@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+
+	<!-- Placeholder Config: loads a property file with config values -->
+	<bean id="placeholderConfig" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+	    <property name="location" value="/conf/red5.properties" />
+	</bean>
+	
+	<!-- Server: This is the core, call startup method to boot up -->
+	<bean id="server" class="org.red5.server.Server" init-method="startup"> 
+	    <property name="networkManager" ref="networkManager" />
+	    <property name="sessionRegistry" ref="sessionRegistry" />
+	</bean>
+	 
+	<!-- Network Manager, adds services to mina registry -->
+	<bean id="networkManager" class="org.red5.server.net.NetworkManager">
+		<property name="serviceConfig">
+			<map>
+				<entry key="rtmp">
+					<map>
+						<entry key="host" value="${rtmp.host}" />
+						<entry key="port" value="${rtmp.port}" />
+						<entry key="handler">
+							<ref bean="rtmpProtocolProvider" />
+						</entry>
+					</map>
+				</entry>
+			</map>
+		</property>
+	</bean> 
+	
+	<!-- Session Registry: central location for client sessions -->
+	<bean id="sessionRegistry" class="org.red5.server.SessionRegistry">
+	</bean>
+	
+	<!-- Serializer: serializer supporting general Output objects -->
+	<bean id="serializer" class="org.red5.server.io.Serializer" />
+
+	<!-- Deserializer: deserializer supporting general Input objects -->
+	<bean id="deserializer" class="org.red5.server.io.Deserializer" />
+    
+    <!-- Service Context: context for exposed services, see service.xml --> 	
+	<bean id="globalContext" class="org.red5.server.context.GlobalContext"
+		init-method="initialize">
+        <constructor-arg><value>./conf/global.xml</value></constructor-arg>
+    </bean>
+
+    <bean id="statusObjectService"
+		class="org.red5.server.rtmp.status.StatusObjectService" 
+		init-method="initialize">
+		<property name="serializer" ref="serializer" />
+    </bean>
+
+    <bean id="rtmpProtocolProvider"
+		class="org.red5.server.rtmp.RTMPProtocolProvider">
+		<property name="handler" ref="rtmpSessionHandler" />
+    </bean>
+	
+	<bean id="rtmpProtocolEncoder"
+		class="org.red5.server.rtmp.codec.ProtocolEncoder">
+		<property name="serializer" ref="serializer" />
+	</bean>
+	
+	<bean id="rtmpProtocolDecoder"
+		class="org.red5.server.rtmp.codec.ProtocolDecoder">
+		<property name="deserializer" ref="deserializer" />
+	</bean>
+	
+	<bean id="serviceInvoker" class="org.red5.server.service.ServiceInvoker" />
+		
+	<bean id="rtmpSessionHandler"
+		class="org.red5.server.rtmp.RTMPSessionHandler">
+		<property name="statusObjectService" ref="statusObjectService" />
+		<property name="serviceInvoker" ref="serviceInvoker" />
+		<property name="globalContext" ref="globalContext" />
+	</bean>
+	
+</beans>

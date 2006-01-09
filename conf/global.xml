@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+	
+	<!-- Service Invoker: invokes call object against child context -->
+	<bean id="serviceInvoker" class="org.red5.server.service.ServiceInvoker" />
+	
+</beans>
