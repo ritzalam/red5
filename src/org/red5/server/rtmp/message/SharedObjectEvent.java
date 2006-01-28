@@ -60,8 +60,8 @@ public class SharedObjectEvent implements Constants {
 				return "Status";
 			case SO_CLIENT_UPDATE_DATA:
 				return "Client Update Data";
-			case SO_LIST:
-				return "List";
+			case SO_CLIENT_UPDATE_ATTRIBUTE:
+				return "Client Update Attribute";
 			case SO_SET_ATTRIBUTE:
 				return "Set Attribute";
 		}

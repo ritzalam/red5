@@ -1,5 +1,6 @@
 package org.red5.server.context;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -26,6 +27,7 @@ public class BaseApplication
 	private HashSet clients = new HashSet();
 	private StreamManager streamManager = null;
 	private HashSet listeners = new HashSet();
+	private HashMap sharedObjects = new HashMap();
 	
 	protected static Log log =
         LogFactory.getLog(BaseApplication.class.getName());
@@ -74,6 +76,7 @@ public class BaseApplication
 	public final void disconnect(){
 		final Client client = Scope.getClient();
 		clients.remove(client);
+		// TODO: Unregister client from shared objects
 		log.debug("Calling onDisconnect");
 		onDisconnect(client);
 	}
@@ -170,5 +173,16 @@ public class BaseApplication
 		// not needed
 		return bean;
 	}
+	
+	// -----------------------------------------------------------------------------
+	
+	public PersistentSharedObject getSharedObject(String name) {
+		return (PersistentSharedObject) this.sharedObjects.get(name);
+	}
+	
+	public void setSharedObject(String name, PersistentSharedObject object) {
+		this.sharedObjects.put(name, object);
+	}
+	
 	
 }

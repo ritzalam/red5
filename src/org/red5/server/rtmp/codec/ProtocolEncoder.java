@@ -1,5 +1,6 @@
 package org.red5.server.rtmp.codec;
 
+import java.util.HashMap;
 import java.util.Iterator;
 
 import org.apache.commons.logging.Log;
@@ -10,6 +11,7 @@ import org.apache.mina.protocol.ProtocolSession;
 import org.apache.mina.protocol.ProtocolViolationException;
 import org.red5.server.io.BufferUtils;
 import org.red5.server.io.Serializer;
+import org.red5.server.io.amf.AMF;
 import org.red5.server.io.amf.Output;
 import org.red5.server.rtmp.Channel;
 import org.red5.server.rtmp.Connection;
@@ -117,15 +119,6 @@ public class ProtocolEncoder implements org.apache.mina.protocol.ProtocolEncoder
 		
 		int headerSize = 9;
 		
-		// This is a little bit of a hack, but sometime the header is 4 bytes longer.
-		// When the data type is shared object and the timer is FF FF FF 
-		if(header.getDataType() == TYPE_SHARED_OBJECT){
-			if(header.getTimer() == MEDIUM_INT_MAX){
-				log.info("EXTRA HEADER");
-				headerSize += 4;
-			}
-		}
-		
 		ByteBuffer buf = ByteBuffer.allocate(headerSize);
 		
 		byte headerByte = RTMPUtils.encodeHeaderByte(HEADER_NEW, header.getChannelId());
@@ -143,14 +136,6 @@ public class ProtocolEncoder implements org.apache.mina.protocol.ProtocolEncoder
 		
 		// write stream
 		RTMPUtils.writeReverseInt(buf, header.getStreamId());
-	
-		// so hack, see above.
-		if(headerSize == 13){
-			buf.putInt(header.getSoId());
-			buf.flip();
-			log.info("SO HEADER DEBUG: "+buf.getHexDump());
-			buf.flip();
-		}
 		
 		return buf;
 	}
@@ -191,24 +176,85 @@ public class ProtocolEncoder implements org.apache.mina.protocol.ProtocolEncoder
 		final ByteBuffer data = so.getData();
 	
 		
-		Output.putString(data,so.getName());
-		data.fill((byte) 0x00,12);
+		Output.putString(data, so.getName());
+		// SO version
+		data.putInt(so.getSoId());
+		// Encoding (this always seems to be 2)
+		data.putInt(2);
+		// unknown field
+		data.putInt(0);
 		
 		Iterator it = so.getEvents().iterator();
-		while(it.hasNext()){
+		while (it.hasNext()) {
 			
 			SharedObjectEvent event = (SharedObjectEvent) it.next();
-			log.info("encode: "+event);
-			if(event.getKey()==null){
+			log.info("encode: " + event);
+			switch (event.getType()) {
+			case SO_CLIENT_INITIAL_DATA:
+				HashMap initialData = (HashMap) event.getValue();
+				
+				if (initialData == null || initialData.isEmpty()) {
+					// early bail out if no initial data present
+					data.put(event.getType());
+					data.putInt(0);
+					return;
+				}
+				
+				// Buffer for all initial attributes
+				ByteBuffer completeBuffer = ByteBuffer.allocate(128);
+				completeBuffer.setAutoExpand(true);
+				
+				Iterator keys = initialData.keySet().iterator();
+				while (keys.hasNext()) {
+					String key = (String) keys.next();
+					
+					ByteBuffer sub = ByteBuffer.allocate(128);
+					sub.setAutoExpand(true);
+					
+					// Store key without leading AMF type flag
+					java.nio.ByteBuffer strBuf = AMF.CHARSET.encode(key);
+					int len = strBuf.limit();
+					sub.putShort((short) len);
+					sub.put(strBuf);
+					
+					// Serialize attribute value using regular AMF methods
+					Output output = new Output(sub);
+					serializer.serialize(output, initialData.get(key));
+					
+					completeBuffer.put(event.getType());
+					completeBuffer.putInt(sub.position());
+					sub.flip();
+					completeBuffer.put(sub);
+				}
+				
+				data.put(event.getType());
+				data.putInt(completeBuffer.position());
+				completeBuffer.flip();
+				data.put(completeBuffer);
+				break;
+				
+			default:
+			}
+			if (event.getKey() == null) {
 				log.info(">"+event.getType());
 				data.put(event.getType());
 				data.putInt(0);
 			} else {
 				ByteBuffer sub = ByteBuffer.allocate(128);
 				sub.setAutoExpand(true);
-				Output output = new Output(sub);
-				serializer.serialize(output,event.getKey());
-				if(event.getValue()!=null) serializer.serialize(output,event.getValue());
+				
+				// Store key without leading AMF type flag
+				java.nio.ByteBuffer strBuf = AMF.CHARSET.encode(event.getKey());
+				int len = strBuf.limit();
+				sub.putShort((short) len);
+				sub.put(strBuf);
+				
+				if (event.getValue() != null) {
+					// Serialize attribute value using regular AMF methods
+					Output output = new Output(sub);
+					serializer.serialize(output, event.getValue());
+				}
+				
 				data.put(event.getType());
 				data.putInt(sub.position());
 				sub.flip();

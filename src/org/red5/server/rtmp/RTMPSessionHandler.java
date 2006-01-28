@@ -1,5 +1,7 @@
 package org.red5.server.rtmp;
 
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 
 import org.apache.commons.logging.Log;
@@ -11,8 +13,11 @@ import org.apache.mina.io.socket.SocketSessionConfig;
 import org.apache.mina.protocol.ProtocolHandler;
 import org.apache.mina.protocol.ProtocolSession;
 import org.red5.server.context.AppContext;
+import org.red5.server.context.BaseApplication;
+import org.red5.server.context.Client;
 import org.red5.server.context.GlobalContext;
 import org.red5.server.context.HostContext;
+import org.red5.server.context.PersistentSharedObject;
 import org.red5.server.context.Scope;
 import org.red5.server.rtmp.message.Constants;
 import org.red5.server.rtmp.message.Handshake;
@@ -112,19 +117,84 @@ public class RTMPSessionHandler implements ProtocolHandler, Constants{
 				stream.publish(message);
 				break;
 			case TYPE_SHARED_OBJECT:
-				log.warn("Shared Object soon.");
-				SharedObject so = (SharedObject) message;
-				log.info(so);
+				SharedObject request = (SharedObject) message;
+				AppContext ctx = conn.getAppContext();
+				BaseApplication app = (BaseApplication) ctx.getBean(ctx.APP_SERVICE_NAME);
+				String name = request.getName();
+				
+				PersistentSharedObject so = app.getSharedObject(name);
+				if (so == null) {
+					log.info("Creating new shared object " + name);
+					so = new PersistentSharedObject(name);
+					app.setSharedObject(name, so);
+				}
+
 				SharedObject reply = new SharedObject();
-				reply.setName(so.getName());
-				reply.setSoId(conn.getClientTimer());
-				reply.setTimestamp(MEDIUM_INT_MAX);
-				//reply.addEvent(new SharedObjectEvent(SO_LIST,null,null));
-				reply.addEvent(new SharedObjectEvent(SO_CONNECT_OK,null,null));
-				LinkedList list = new LinkedList();
-				//list.add()
-				//reply.addEvent(new SharedObjectEvent(SO_SET_ATTRIBUTE,"wot","woo"));
-				conn.getChannel((byte)4).write(reply);
+				reply.setName(name);
+				reply.setTimestamp(0);
+				
+				SharedObject sync = new SharedObject();
+				sync.setName(name);
+				sync.setTimestamp(0);
+				
+				boolean updates = false;
+				
+				Iterator it = request.getEvents().iterator();
+				while (it.hasNext()) {
+					SharedObjectEvent event = (SharedObjectEvent) it.next();
+					
+					switch (event.getType())
+					{
+					case SO_CONNECT:
+						// Register client for this shared object and send initial state
+						reply.addEvent(new SharedObjectEvent(SO_CLIENT_INITIAL_DATA, null, so.getData()));
+						so.registerChannel(channel);
+						break;
+					
+					case SO_SET_ATTRIBUTE:
+						// The client wants to update an attribute
+						so.updateAttribute(event.getKey(), event.getValue());
+						// Send confirmation to client
+						reply.addEvent(new SharedObjectEvent(SO_CLIENT_UPDATE_ATTRIBUTE, event.getKey(), null));
+						sync.addEvent(new SharedObjectEvent(SO_CLIENT_UPDATE_DATA, event.getKey(), event.getValue()));
+						updates = true;
+						break;
+					
+					case SO_DELETE_ATTRIBUTE:
+						// The client wants to remove an attribute
+						so.deleteAttribute(event.getKey());
+						// Send confirmation to client
+						reply.addEvent(new SharedObjectEvent(SO_CLIENT_DELETE_DATA, event.getKey(), null));
+						sync.addEvent(new SharedObjectEvent(SO_CLIENT_DELETE_DATA, event.getKey(), null));
+						updates = true;
+						break;
+						
+					default:
+						log.error("Unknown shared object update event " + event.getType());
+					}
+				}
+				
+				if (updates)
+					// The client sent at least one update -> increase version of SO
+					so.updateVersion();
+				
+				reply.setSoId(so.getVersion());
+				channel.write(reply);
+				
+				if (updates && sync.getEvents().size() > 0) {
+					// Synchronize updates with all registered clients of this shared object
+					sync.setSoId(so.getVersion());
+					Iterator channels = so.getChannels().iterator();
+					while (channels.hasNext()) {
+						Channel c = (Channel) channels.next();
+						if (c == channel)
+							// Don't re-send update to active client
+							continue;
+
+						c.write(sync);
+					}
+				}
+				
 				break;
 			}
 			if(message instanceof Unknown){
@@ -228,7 +298,7 @@ public class RTMPSessionHandler implements ProtocolHandler, Constants{
 				globalContext.getHostContext(hostname) : globalContext.getDefaultHost();
 		
 		if(!host.hasAppContext(app)){
-			log.warn("Application not found");
+			log.warn("Application \"" + app + "\" not found");
 			return null; // todo close connection etc, send status etc
 		}
 		
