@@ -23,6 +23,7 @@ import org.red5.server.rtmp.message.OutPacket;
 import org.red5.server.rtmp.message.PacketHeader;
 import org.red5.server.rtmp.message.Ping;
 import org.red5.server.rtmp.message.SharedObject;
+import org.red5.server.rtmp.message.SharedObjectEvent;
 import org.red5.server.rtmp.message.StreamBytesRead;
 import org.red5.server.rtmp.message.VideoData;
 import org.red5.server.service.Call;
@@ -114,12 +115,23 @@ public class ProtocolEncoder implements org.apache.mina.protocol.ProtocolEncoder
 
 	public ByteBuffer encodeHeader(PacketHeader header, PacketHeader lastHeader){
 		
-		ByteBuffer buf = ByteBuffer.allocate(9);
+		int headerSize = 9;
+		
+		// This is a little bit of a hack, but sometime the header is 4 bytes longer.
+		// When the data type is shared object and the timer is FF FF FF 
+		if(header.getDataType() == TYPE_SHARED_OBJECT){
+			if(header.getTimer() == MEDIUM_INT_MAX){
+				log.info("EXTRA HEADER");
+				headerSize += 4;
+			}
+		}
+		
+		ByteBuffer buf = ByteBuffer.allocate(headerSize);
 		
 		byte headerByte = RTMPUtils.encodeHeaderByte(HEADER_NEW, header.getChannelId());
 		
 		buf.put(headerByte);
-		
+	
 		// write timer
 		RTMPUtils.writeMediumInt(buf, header.getTimer());
 		
@@ -131,6 +143,15 @@ public class ProtocolEncoder implements org.apache.mina.protocol.ProtocolEncoder
 		
 		// write stream
 		RTMPUtils.writeReverseInt(buf, header.getStreamId());
+	
+		// so hack, see above.
+		if(headerSize == 13){
+			buf.putInt(header.getSoId());
+			buf.flip();
+			log.info("SO HEADER DEBUG: "+buf.getHexDump());
+			buf.flip();
+		}
+		
 		return buf;
 	}
 	
@@ -168,21 +189,31 @@ public class ProtocolEncoder implements org.apache.mina.protocol.ProtocolEncoder
 	
 	private void encodeSharedObject(SharedObject so) {
 		final ByteBuffer data = so.getData();
-		if(so.getTimer()!=-1){
-			data.putInt(so.getTimer());
-		}
-		Output output = new Output(data);
+	
+		
 		Output.putString(data,so.getName());
-		data.putLong(so.getId());
-		Iterator it = so.getNumbers().iterator();
+		data.fill((byte) 0x00,12);
+		
+		Iterator it = so.getEvents().iterator();
 		while(it.hasNext()){
-			serializer.serialize(output,(Number) it.next());
-		} 
-		if(so.getKey()!=null){
-			serializer.serialize(output,(String) so.getKey());
-		}
-		if(so.getValue()!=null){
-			serializer.serialize(output,(Object) so.getValue());
+			
+			SharedObjectEvent event = (SharedObjectEvent) it.next();
+			log.info("encode: "+event);
+			if(event.getKey()==null){
+				log.info(">"+event.getType());
+				data.put(event.getType());
+				data.putInt(0);
+			} else {
+				ByteBuffer sub = ByteBuffer.allocate(128);
+				sub.setAutoExpand(true);
+				Output output = new Output(sub);
+				serializer.serialize(output,event.getKey());
+				if(event.getValue()!=null) serializer.serialize(output,event.getValue());
+				data.put(event.getType());
+				data.putInt(sub.position());
+				sub.flip();
+				data.put(sub);
+			}
 		}
 	}
 

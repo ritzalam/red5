@@ -2,6 +2,8 @@ package org.red5.server.rtmp.message;
 
 public interface Constants {
 
+	public static final int MEDIUM_INT_MAX = 16777215;
+	
 	public static final byte TYPE_INVOKE = 0x14;
 	public static final byte TYPE_NOTIFY = 0x12;
 	
@@ -27,5 +29,18 @@ public interface Constants {
 	
 	public static final int HANDSHAKE_SIZE = 1536;
 	public static final int CHUNK_SIZE = 128;
+	
+	public static final byte SO_CLIENT_UPDATE_DATA = 0x04; //update data
+	public static final byte SO_CLIENT_UPDATE_ATTRIBUTE = 0x05; //5: update attribute
+    public static final byte SO_CLIENT_STATUS = 0x07;  // 7: status (usually returned with error messages)
+    public static final byte SO_CLIENT_DELETE_DATA = 0x09; // 9: delete data
+    public static final byte SO_CLIENT_INITIAL_DATA = 0x0D; // 11: initial data
+
+    public static final byte SO_CONNECT = 0x01;
+    public static final byte SO_SET_ATTRIBUTE = 0x06; // < ?
+    public static final byte SO_LIST = 0x0B;
+    public static final byte SO_CONNECT_OK = 0x08;
+
+	
 	
 }

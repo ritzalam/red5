@@ -1,5 +1,7 @@
 package org.red5.server.rtmp;
 
+import java.util.LinkedList;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
@@ -22,6 +24,7 @@ import org.red5.server.rtmp.message.OutPacket;
 import org.red5.server.rtmp.message.PacketHeader;
 import org.red5.server.rtmp.message.Ping;
 import org.red5.server.rtmp.message.SharedObject;
+import org.red5.server.rtmp.message.SharedObjectEvent;
 import org.red5.server.rtmp.message.StreamBytesRead;
 import org.red5.server.rtmp.message.Unknown;
 import org.red5.server.rtmp.status.StatusObjectService;
@@ -110,25 +113,18 @@ public class RTMPSessionHandler implements ProtocolHandler, Constants{
 				break;
 			case TYPE_SHARED_OBJECT:
 				log.warn("Shared Object soon.");
-				/*
 				SharedObject so = (SharedObject) message;
-				if(soName==null){
-					log.info("First shared object");
-					SharedObject init = new SharedObject();
-					//14293651161096
-					init.getNumbers().add(new Double(Double.longBitsToDouble(14293651161096L)));
-					init.getNumbers().add(so.getNumbers().getFirst());
-					init.setName(so.getName());
-					init.setId(so.getId());
-					init.setTimestamp(Integer.MAX_VALUE);
-					init.setTimer(26023003);// stab in dark
-					soName = so.getName();
-				} else {
-					log.debug("Seal shared object and send back");
-					so.setSealed(true);
-				}
-				conn.getChannel((byte)4).write(so);
-				*/
+				log.info(so);
+				SharedObject reply = new SharedObject();
+				reply.setName(so.getName());
+				reply.setSoId(conn.getClientTimer());
+				reply.setTimestamp(MEDIUM_INT_MAX);
+				//reply.addEvent(new SharedObjectEvent(SO_LIST,null,null));
+				reply.addEvent(new SharedObjectEvent(SO_CONNECT_OK,null,null));
+				LinkedList list = new LinkedList();
+				//list.add()
+				//reply.addEvent(new SharedObjectEvent(SO_SET_ATTRIBUTE,"wot","woo"));
+				conn.getChannel((byte)4).write(reply);
 				break;
 			}
 			if(message instanceof Unknown){
@@ -139,9 +135,6 @@ public class RTMPSessionHandler implements ProtocolHandler, Constants{
 			log.error("Exception",e);
 		}
 	}
-
-	// TOTAL QUICK HACK
-	String soName = null;
 	
 	private void rawBufferRecieved(ProtocolSession session, ByteBuffer in) {
 		

@@ -33,6 +33,7 @@ public class Connection extends Client {
 	private Channel lastWriteChannel = null;
 	private AppContext appCtx = null;
 	private boolean mode = MODE_SERVER;
+	private int clientUptime = 0;
 	
 	public Connection(ProtocolSession protocolSession){
 		this.protocolSession = protocolSession;
@@ -116,6 +117,14 @@ public class Connection extends Client {
 		this.params = params;
 	}
 	
+	public int getClientTimer() {
+		return clientUptime;
+	}
+
+	public void setClientTimer(int clientTimer) {
+		this.clientUptime = clientTimer;
+	}
+
 	public Stream getStreamByChannelId(byte channelId){
 		if(channelId < 4) return null;
 		//log.debug("Channel id: "+channelId);

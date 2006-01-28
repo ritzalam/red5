@@ -1,7 +1,6 @@
 package org.red5.server.rtmp.codec;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
@@ -26,6 +25,7 @@ import org.red5.server.rtmp.message.Notify;
 import org.red5.server.rtmp.message.PacketHeader;
 import org.red5.server.rtmp.message.Ping;
 import org.red5.server.rtmp.message.SharedObject;
+import org.red5.server.rtmp.message.SharedObjectEvent;
 import org.red5.server.rtmp.message.StreamBytesRead;
 import org.red5.server.rtmp.message.Unknown;
 import org.red5.server.rtmp.message.VideoData;
@@ -121,6 +121,10 @@ public class ProtocolDecoder implements Constants, org.apache.mina.protocol.Prot
 						log.warn("remaining: "+in.remaining());
 						return false;
 					}
+					in.get();
+					conn.setClientTimer(in.getInt());
+					log.info("CLIENT UPTIME ?: "+conn.getClientTimer());
+					in.position(in.position()-5);
 					ByteBuffer hs = ByteBuffer.allocate(HANDSHAKE_SIZE);
 					hs.setAutoExpand(true);
 					in.get(); // skip the header byte
@@ -362,66 +366,28 @@ public class ProtocolDecoder implements Constants, org.apache.mina.protocol.Prot
 	}
 	
 	public void decodeSharedObject(SharedObject so) {
-		log.info(so);
 		
-		//final int pos = so.getData().position();
+		log.info("> "+so.getData().getHexDump());
 		
 		final ByteBuffer data = so.getData();
-		int position = data.position();
-		try {
-			Input input = new Input(data);
-			//log.debug("so: " +input.getString(data));
-			so.setName(input.getString(data));
-			so.setId(data.getLong());// not sure if this is needed
-			LinkedList nums = so.getNumbers();
-			while(true){
-				nums.add((Number)deserializer.deserialize(input));
-				//log.debug("amf num: "+deserializer.deserialize(input));
-				if(!data.hasRemaining()) break;
-				byte cont = data.get();
-				log.debug("cont: "+cont);
-				if(cont != (byte) 0x08){
-					data.position(data.position()-1);
-					break;
+
+		Input input = new Input(data);
+		so.setName(input.getString(data));
+		data.skip(12);
+		while(data.hasRemaining()){
+			byte type = data.get();
+			log.info("type: "+type);
+			SharedObjectEvent event = new SharedObjectEvent(type,null,null);
+			int length = data.getInt();
+			if(length > 0){
+				event.setKey(input.getString(data));
+				if(length > event.getKey().length()+2){
+					event.setValue(deserializer.deserialize(input));
 				}
-			} 
-			
-			if(data.hasRemaining()){
-				log.debug("method?");
-				so.setKey((String)deserializer.deserialize(input));
-				//log.debug("method: "+method);
-				so.setValue(deserializer.deserialize(input));
 			}
-			
-			/*
-			if(data.getShort()>20){
-				data.position(data.position()-2);
-				int num0 = data.getInt();
-				log.info("num0: "+num0);
-			} else {
-				data.position(data.position()-2);
-			}
-			*/
-			/*
-			String str1 = Input.getString(data);
-			Number num1 = (Number) deserializer.deserialize(input);  
-			if(data.remaining()>8){
-				while(data.remaining()>0){
-					log.info(deserializer.deserialize(input));
-				}
-			} else {
-				log.debug(""+data.getInt());
-				log.debug(""+data.getInt());
-			}*/
-		} catch (RuntimeException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} finally {
-			data.position(position);
+			so.addEvent(event);
 		}
-		//so.getData().position(pos);
-		//so.setSealed(true);
-		//String str1 = 
+		log.info(so);
 	}
 
 	public void decodeInvoke(Invoke invoke){
