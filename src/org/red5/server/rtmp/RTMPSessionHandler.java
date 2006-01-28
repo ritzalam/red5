@@ -147,7 +147,9 @@ public class RTMPSessionHandler implements ProtocolHandler, Constants{
 					{
 					case SO_CONNECT:
 						// Register client for this shared object and send initial state
-						reply.addEvent(new SharedObjectEvent(SO_CLIENT_INITIAL_DATA, null, so.getData()));
+						reply.addEvent(new SharedObjectEvent(SO_CLIENT_INITIAL_DATA, null, null));
+						if (!so.getData().isEmpty())
+							reply.addEvent(new SharedObjectEvent(SO_CLIENT_UPDATE_DATA, null, so.getData()));
 						so.registerChannel(channel);
 						break;
 					

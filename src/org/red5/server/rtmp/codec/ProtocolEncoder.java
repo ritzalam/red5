@@ -171,10 +171,11 @@ public class ProtocolEncoder implements org.apache.mina.protocol.ProtocolEncoder
 		message.setSealed(true);
 		return message.getData();
 	}
-	
+
 	private void encodeSharedObject(SharedObject so) {
 		final ByteBuffer data = so.getData();
-	
+		java.nio.ByteBuffer strBuf;
+		int len;
 		
 		Output.putString(data, so.getName());
 		// SO version
@@ -191,74 +192,95 @@ public class ProtocolEncoder implements org.apache.mina.protocol.ProtocolEncoder
 			log.info("encode: " + event);
 			switch (event.getType()) {
 			case SO_CLIENT_INITIAL_DATA:
-				HashMap initialData = (HashMap) event.getValue();
+				data.put(event.getType());
+				data.putInt(0);
+				break;
+			
+			case SO_CLIENT_UPDATE_ATTRIBUTE:
+				// Confirm attribute change requested by client
+				strBuf = AMF.CHARSET.encode(event.getKey());
+				len = strBuf.limit();
 				
-				if (initialData == null || initialData.isEmpty()) {
-					// early bail out if no initial data present
-					data.put(event.getType());
-					data.putInt(0);
-					return;
-				}
+				data.put(event.getType());
+
+				// Size is length informations + attribute name 
+				data.putInt(len+2);
 				
-				// Buffer for all initial attributes
-				ByteBuffer completeBuffer = ByteBuffer.allocate(128);
-				completeBuffer.setAutoExpand(true);
+				data.putShort((short) len);
+				data.put(strBuf);
+				break;
 				
-				Iterator keys = initialData.keySet().iterator();
-				while (keys.hasNext()) {
-					String key = (String) keys.next();
+			case SO_CLIENT_UPDATE_DATA:
+				if (event.getKey() == null) {
+					// Update multiple attributes in one request
+					HashMap initialData = (HashMap) event.getValue();
 					
+					// Buffer for all initial attributes
+					ByteBuffer completeBuffer = ByteBuffer.allocate(128);
+					completeBuffer.setAutoExpand(true);
+					
+					Iterator keys = initialData.keySet().iterator();
+					while (keys.hasNext()) {
+						String key = (String) keys.next();
+						
+						ByteBuffer sub = ByteBuffer.allocate(128);
+						sub.setAutoExpand(true);
+						
+						// Store key without leading AMF type flag
+						strBuf = AMF.CHARSET.encode(key);
+						len = strBuf.limit();
+						sub.putShort((short) len);
+						sub.put(strBuf);
+						
+						// Serialize attribute value using regular AMF methods
+						Output output = new Output(sub);
+						serializer.serialize(output, initialData.get(key));
+						
+						completeBuffer.put(event.getType());
+						completeBuffer.putInt(sub.position());
+						sub.flip();
+						completeBuffer.put(sub);
+					}
+					
+					completeBuffer.flip();
+					data.put(completeBuffer);
+				} else {
+					// Update one attribute
 					ByteBuffer sub = ByteBuffer.allocate(128);
 					sub.setAutoExpand(true);
 					
 					// Store key without leading AMF type flag
-					java.nio.ByteBuffer strBuf = AMF.CHARSET.encode(key);
-					int len = strBuf.limit();
+					strBuf = AMF.CHARSET.encode(event.getKey());
+					len = strBuf.limit();
 					sub.putShort((short) len);
 					sub.put(strBuf);
 					
 					// Serialize attribute value using regular AMF methods
 					Output output = new Output(sub);
-					serializer.serialize(output, initialData.get(key));
+					serializer.serialize(output, event.getValue());
 					
-					completeBuffer.put(event.getType());
-					completeBuffer.putInt(sub.position());
+					data.put(event.getType());
+					data.putInt(sub.position());
 					sub.flip();
-					completeBuffer.put(sub);
+					data.put(sub);
 				}
-				
+				break;
+			
+			case SO_CLIENT_DELETE_DATA:
+				// Store key without leading AMF type flag
+				strBuf = AMF.CHARSET.encode(event.getKey());
+				len = strBuf.limit();
 				data.put(event.getType());
-				data.putInt(completeBuffer.position());
-				completeBuffer.flip();
-				data.put(completeBuffer);
+				
+				// Size is length informations + attribute name 
+				data.putInt(len+2);
+				
+				data.putShort((short) len);
+				data.put(strBuf);
 				break;
 				
 			default:
-			}
-			if (event.getKey() == null) {
-				log.info(">"+event.getType());
-				data.put(event.getType());
-				data.putInt(0);
-			} else {
-				ByteBuffer sub = ByteBuffer.allocate(128);
-				sub.setAutoExpand(true);
-				
-				// Store key without leading AMF type flag
-				java.nio.ByteBuffer strBuf = AMF.CHARSET.encode(event.getKey());
-				int len = strBuf.limit();
-				sub.putShort((short) len);
-				sub.put(strBuf);
-				
-				if (event.getValue() != null) {
-					// Serialize attribute value using regular AMF methods
-					Output output = new Output(sub);
-					serializer.serialize(output, event.getValue());
-				}
-				
-				data.put(event.getType());
-				data.putInt(sub.position());
-				sub.flip();
-				data.put(sub);
+				log.error("Unknown event " + event.getType());
 			}
 		}
 	}
