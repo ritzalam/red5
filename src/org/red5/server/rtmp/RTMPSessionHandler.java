@@ -130,7 +130,7 @@ public class RTMPSessionHandler implements ProtocolHandler, Constants{
 		}
 	}
 
-	protected void onSharedObject(Connection conn, Channel channel, Channel source, SharedObject request) {
+	protected void onSharedObject(Connection conn, Channel channel, PacketHeader  source, SharedObject request) {
 		AppContext ctx = conn.getAppContext();
 		BaseApplication app = (BaseApplication) ctx.getBean(ctx.APP_SERVICE_NAME);
 		String name = request.getName();
