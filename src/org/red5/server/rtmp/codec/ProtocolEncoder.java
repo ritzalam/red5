@@ -44,7 +44,7 @@ public class ProtocolEncoder implements org.apache.mina.protocol.ProtocolEncoder
 		throws ProtocolViolationException {
 				
 		try {
-			
+
 			if(message instanceof ByteBuffer){
 				if(log.isDebugEnabled())
 					log.debug("Sending raw buffer");
@@ -101,6 +101,8 @@ public class ProtocolEncoder implements org.apache.mina.protocol.ProtocolEncoder
 			}
 			
 			out.write(buf);
+			// Once we have finished with the data buffer flip it for next use
+			data.flip();
 			
 			// this will destroy the packet if there are no more refs
 			packet.getMessage().release();

@@ -199,15 +199,20 @@ public class RTMPSessionHandler implements ProtocolHandler, Constants{
 		if (updates && sync.getEvents().size() > 0) {
 			// Synchronize updates with all registered clients of this shared object
 			sync.setSoId(so.getVersion());
+			// Acquire the packet, this will stop the data inside being released
+			sync.acquire();
 			Iterator channels = so.getChannels().iterator();
 			while (channels.hasNext()) {
 				Channel c = (Channel) channels.next();
 				if (c == channel)
 					// Don't re-send update to active client
 					continue;
-
+				//log.info("Sending sync: "+sync);
 				c.write(sync);
 			}
+			// After sending the packet down all the channels we can release the packet, 
+			// which in turn will allow the data buffer to be released
+			sync.release();
 		}
 	}
 	
