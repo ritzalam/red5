@@ -97,7 +97,7 @@ public class RTMPUtils implements Constants {
 	}
 	
 	public static byte decodeChannelId(byte header) {
-		return (byte) (((byte)(header << 2)) >>> 2) ;
+		return (byte) (header & 0x3f);
 	}
 
 	public static byte decodeHeaderSize(byte header) {
