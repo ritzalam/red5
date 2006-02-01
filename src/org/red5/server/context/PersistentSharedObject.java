@@ -8,7 +8,7 @@ public class PersistentSharedObject {
 	protected String name;
 	protected int version = 0;
 	protected HashMap data = new HashMap();
-	protected HashSet channels = new HashSet();
+	protected HashMap clients = new HashMap();
 	
 	public PersistentSharedObject(String name) {
 		this.name = name;
@@ -34,15 +34,28 @@ public class PersistentSharedObject {
 		this.version += 1;
 	}
 	
-	public void registerChannel(Object channel) {
-		channels.add(channel);
+	public void registerClient(Object client, int channel) {
+		if (!this.clients.containsKey(client))
+			this.clients.put(client, new HashSet());
+		
+		HashSet channels = (HashSet) this.clients.get(client);
+		channels.add(new Integer(channel));
 	}
 	
-	public void unregisterChannel(Object channel) {
-		channels.remove(channel);
+	public void unregisterClient(Object client) {
+		this.clients.remove(client);
 	}
 	
-	public HashSet getChannels() {
-		return this.channels;
+	public void unregisterClient(Object client, int channel) {
+		if (!this.clients.containsKey(client))
+			// No channel registered for this client
+			return;
+		
+		HashSet channels = (HashSet) this.clients.get(client);
+		channels.remove(new Integer(channel));
+	}
+	
+	public HashMap getClients() {
+		return this.clients;
 	}
 }

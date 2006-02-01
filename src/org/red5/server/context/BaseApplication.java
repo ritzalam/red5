@@ -76,8 +76,13 @@ public class BaseApplication
 	public final void disconnect(){
 		final Client client = Scope.getClient();
 		clients.remove(client);
-		// TODO: Unregister client from shared objects
-		log.debug("Calling onDisconnect");
+		// Unregister client from shared objects
+		Iterator it = sharedObjects.values().iterator();
+		while (it.hasNext()) {
+			PersistentSharedObject so = (PersistentSharedObject) it.next();
+			so.unregisterClient(client);
+		}
+		log.info("Calling onDisconnect");
 		onDisconnect(client);
 	}
 	

@@ -1,6 +1,7 @@
 package org.red5.server.rtmp;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 
@@ -163,7 +164,7 @@ public class RTMPSessionHandler implements ProtocolHandler, Constants{
 				reply.addEvent(new SharedObjectEvent(SO_CLIENT_INITIAL_DATA, null, null));
 				if (!so.getData().isEmpty())
 					reply.addEvent(new SharedObjectEvent(SO_CLIENT_UPDATE_DATA, null, so.getData()));
-				so.registerChannel(channel);
+				so.registerClient(conn, source.getChannelId());
 				break;
 			
 			case SO_SET_ATTRIBUTE:
@@ -201,14 +202,21 @@ public class RTMPSessionHandler implements ProtocolHandler, Constants{
 			sync.setSoId(so.getVersion());
 			// Acquire the packet, this will stop the data inside being released
 			sync.acquire();
-			Iterator channels = so.getChannels().iterator();
-			while (channels.hasNext()) {
-				Channel c = (Channel) channels.next();
-				if (c == channel)
+			HashMap all_clients = so.getClients();
+			Iterator clients = all_clients.keySet().iterator();
+			while (clients.hasNext()) {
+				Connection connection = (Connection) clients.next();
+				if (connection == conn) {
 					// Don't re-send update to active client
+					log.info("Skipped " + connection);
 					continue;
-				//log.info("Sending sync: "+sync);
-				c.write(sync);
+				}
+				
+				Iterator channels = ((HashSet) all_clients.get(connection)).iterator();
+				while (channels.hasNext()) {
+					Channel c = connection.getChannel(((Integer) channels.next()).byteValue());
+					c.write(sync);
+				}
 			}
 			// After sending the packet down all the channels we can release the packet, 
 			// which in turn will allow the data buffer to be released
