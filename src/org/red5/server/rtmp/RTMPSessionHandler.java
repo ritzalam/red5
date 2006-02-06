@@ -3,7 +3,6 @@ package org.red5.server.rtmp;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -15,7 +14,6 @@ import org.apache.mina.protocol.ProtocolHandler;
 import org.apache.mina.protocol.ProtocolSession;
 import org.red5.server.context.AppContext;
 import org.red5.server.context.BaseApplication;
-import org.red5.server.context.Client;
 import org.red5.server.context.GlobalContext;
 import org.red5.server.context.HostContext;
 import org.red5.server.context.PersistentSharedObject;
@@ -133,7 +131,7 @@ public class RTMPSessionHandler implements ProtocolHandler, Constants{
 
 	protected void onSharedObject(Connection conn, Channel channel, PacketHeader  source, SharedObject request) {
 		AppContext ctx = conn.getAppContext();
-		BaseApplication app = (BaseApplication) ctx.getBean(ctx.APP_SERVICE_NAME);
+		BaseApplication app = (BaseApplication) ctx.getBean(AppContext.APP_SERVICE_NAME);
 		String name = request.getName();
 		
 		PersistentSharedObject so = app.getSharedObject(name);
