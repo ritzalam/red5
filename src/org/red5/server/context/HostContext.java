@@ -34,7 +34,7 @@ public class HostContext
 			log.debug("Loading apps");
 		}
 		try {
-			Resource[] apps = getResources(APP_DIR + "/*");
+			Resource[] apps = getResources((getWebContent()!=null?"hosts/__default__/":"")+APP_DIR + "/*");
 			if(apps!=null){
 				for(int i=0; i<apps.length; i++){
 					Resource app = apps[i];

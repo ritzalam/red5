@@ -28,19 +28,25 @@ public class GenericRed5Context extends GenericApplicationContext
 			this.baseDir += "/";
 		}
 		this.configFilePath = configFilePath;
-		
 		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 		ResourceLoader resourceLoader = new Red5ContextResourceLoader(this.baseDir, classLoader);
 		this.setResourceLoader(resourceLoader);
 		resourcePatternResolver = new PathMatchingResourcePatternResolver(resourceLoader, classLoader);
 		
+		if(this.getClass().getName().endsWith(".GlobalContext"))
+			return;
 		XmlBeanDefinitionReader xmlReader = new XmlBeanDefinitionReader(this);
-		xmlReader.loadBeanDefinitions(new FileSystemResource(configFilePath));
+		ApplicationContext c = getWebContent();
+		if(c!=null)
+			xmlReader.loadBeanDefinitions(c.getResource(configFilePath));
+		else
+			xmlReader.loadBeanDefinitions(new FileSystemResource(configFilePath));
 		this.refresh();
 	}
 	
 	public void initialize(){
-		// 
+		//
+		
 	}
 	
 	public void setApplicationContext(ApplicationContext appCtx){
@@ -58,13 +64,35 @@ public class GenericRed5Context extends GenericApplicationContext
 	protected ResourcePatternResolver getResourcePatternResolver(){
 		return resourcePatternResolver;
 	}
-
+	public ApplicationContext getWebContent()
+	{
+		ApplicationContext c = this;
+		while (c!=null)
+		{
+			if(c instanceof org.springframework.web.context.WebApplicationContext)
+			{
+				return c;
+				
+			}
+			c = c.getParent();
+		}
+		return null;
+	}
 	public Resource getResource(String uri) {
-		return resourceLoader.getResource(uri);
+		ApplicationContext c = getWebContent();
+		if(c!=null)
+			return c.getResource(uri);
+		else
+			return resourceLoader.getResource(uri);
 	}
 
 	public Resource[] getResources(String pattern) throws IOException {
-		return resourcePatternResolver.getResources(pattern);
+		ApplicationContext c = getWebContent();
+		if(c!=null)
+			return this.getParent().getResources(pattern);
+		else
+			return resourcePatternResolver.getResources(pattern);
+		
 	}
 	
 	

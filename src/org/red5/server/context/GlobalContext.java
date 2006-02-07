@@ -5,7 +5,9 @@ import java.io.IOException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContextAware;
+import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
+import org.springframework.context.ApplicationContext;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 
 public class GlobalContext 
@@ -27,6 +29,13 @@ public class GlobalContext
 	}
 	
 	public void initialize(){
+		XmlBeanDefinitionReader xmlReader = new XmlBeanDefinitionReader(this);
+		ApplicationContext c = getWebContent();
+		if(c!=null)
+			xmlReader.loadBeanDefinitions(c.getResource(configFilePath));
+		else
+			xmlReader.loadBeanDefinitions(new FileSystemResource(configFilePath));
+		this.refresh();
 		if(log.isDebugEnabled()) {
 			log.debug("Initialize global context");
 		}
