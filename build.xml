@@ -1,0 +1,181 @@
+<?xml version="1.0"?>
+<project name="RED5" basedir="." default="all">
+
+<!-- project properties -->
+
+<property environment="env"/>
+
+<property name="java.home" value="${env.JAVA_HOME}" />
+<property name="java.target_version" value="1.4" />
+
+<property name="src.dir" value="src"/>
+<property name="bin.dir" value="bin"/>
+<property name="dist.dir" value="dist"/>
+<property name="lib.dir" value="lib"/>
+<property name="classes.dir" value="bin"/>
+<property name="debug.state" value="true"/> 
+<property name="config.dir" value="conf"/>
+
+<path id="project.classpath">
+	<fileset dir="${lib.dir}">
+		<include name="*.jar" />
+	</fileset>
+</path>
+
+
+<echo> java.home is ${java.home} and the target version is ${java.target_version}</echo>
+
+
+<!-- setup the directories for building -->
+
+<target name="prepare">
+	<mkdir dir="${classes.dir}"/>
+	<mkdir dir="${bin.dir}"/>
+</target>
+
+<!-- do a clean -->
+
+<target name="clean">
+	<delete dir="${classes.dir}"/>
+	<delete dir="${bin.dir}"/>
+</target>
+
+<target name="compile" depends="prepare">
+	<javac 
+		sourcepath=""
+		srcdir="${src.dir}"
+				   destdir="${classes.dir}" 
+			       debug="${debug.state}" 
+			       classpathref="project.classpath" 
+			       fork="yes" 
+			       verbose="no"
+			       nowarn="yes"
+			       executable="${java.home}/../bin/javac" 
+			       target="${java.target_version}" >
+		
+		</javac>
+</target>
+
+<target name="jar" description="Make Archive" depends="compile">
+		<jar destfile="red5.jar">
+		<fileset dir="${classes.dir}">
+			<include name="**"/>
+		</fileset>
+		<!--
+		<metainf dir="${src}/${metainf}">
+			<include name="*.xml"/>
+		</metainf>
+		-->
+		<manifest>
+			<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>
+			<attribute name="Main-Class" value="org.red5.server.Standalone"/>
+			<attribute name="Class-Path" value="conf/ lib/slf4j-log4j12.jar lib/cglib-nodep-2.1_2.jar lib/commons-beanutils.jar lib/commons-collections.jar lib/commons-logging.jar lib/jpda.jar lib/js.jar lib/junit.jar lib/log4j-1.2.9.jar lib/mina-0.8.0.jar lib/servlet-api.jar lib/spring-scripting-support.jar lib/spring.jar lib/xbean_xpath.jar"/>
+		</manifest>
+	</jar>
+</target>
+	
+<target name="demo-dist" description="Make Demo Distribution" depends="jar">
+	<delete dir="${dist.dir}"/>
+	<copy todir="${dist.dir}/lib">
+		<fileset dir="lib" />
+	</copy>
+	<copy todir="${dist.dir}/conf">
+		<fileset dir="conf" />
+	</copy>
+	<copy todir="${dist.dir}/hosts">
+		<fileset dir="hosts" />
+	</copy>
+	<copy todir="${dist.dir}/flvs">
+		<fileset dir="flvs">
+			<!--
+			<include name="on2_flash8_w_audio.flv" />
+			<include name="spark_flash7_no_audio.flv" />
+			-->
+		</fileset>
+	</copy>
+	<copy todir="${dist.dir}">
+		<fileset dir="./">
+			<include name="red5.jar" />
+			<include name="red5.bat" />
+			<include name="red5.sh" />
+			<include name="DEMO_README.txt" />
+			<include name="known_bugs.txt" />
+		</fileset>
+		<fileset dir="tests">
+			<!--
+			<include name="ofla_demo.swf" />
+			-->
+		</fileset>
+	</copy>
+</target>
+	
+<target name="demo-dist-zip" description="Make Demo Distribution Zip" depends="demo-dist">
+	<zip destfile="./red5_demo.zip" basedir="${dist.dir}" />
+</target>
+	
+<target name="server" depends="compile">
+	<java classname="org.red5.server.Standalone" fork="true">
+		<classpath>
+				<pathelement location="${classes.dir}"/>
+				<path refid="project.classpath"/>
+				<pathelement location="${config.dir}"/>
+
+		</classpath>
+	</java>
+</target>
+
+	<target name="webwar" depends="compile">
+		<delete dir="webdir"/>
+		<mkdir dir="webdir"/>
+		<mkdir dir="webdir/WEB-INF"/>
+		<mkdir dir="webdir/WEB-INF/lib" />
+		<mkdir dir="webdir/conf" />
+		<mkdir dir="webdir/hosts" />
+		<copy todir="webdir/WEB-INF/lib">
+				<fileset dir="${lib.dir}">
+					<include name="cglib-nodep-2.1_2.jar" />
+					<include name="commons-beanutils.jar" />
+					<include name="commons-collections.jar" />
+					<include name="commons-logging.jar" />
+					<include name="jpda.jar" />
+					<include name="js.jar" />
+					<include name="junit.jar" />
+					<include name="log4j-1.2.9.jar" />
+					<include name="mina-0.8.0.jar" />
+					<include name="slf4j-log4j12.jar" />
+					<include name="spring.jar" />
+					<include name="spring-scripting-support.jar" />
+					<include name="xbean.jar" />
+					<include name="xbean_xpath.jar" />
+				</fileset>
+				<fileset dir="./">
+					<include name="red5.jar" />
+				</fileset>
+		</copy>
+		<copy todir="webdir/conf">
+				<fileset dir="./conf">
+					<include name="global.xml" />
+					<include name="log4j.properties" />
+					<include name="red5.properties" />
+					<include name="red5_web.xml" />
+				</fileset>
+		</copy>
+		<copy todir="webdir">
+				<fileset dir="./webapps/defaultApp">
+					<include name="index.html" />
+				</fileset>
+		</copy>
+		<copy todir="webdir/hosts">
+				<fileset dir="hosts">
+					<exclude name=".svn" />
+				</fileset>
+		</copy>
+		<war destfile="Red5.war" webxml="conf/web.xml">
+		  <fileset dir="webdir"/>
+		  <lib dir="webdir/WEB-INF/lib"/>
+		</war>
+		<delete dir="webdir"/>
+	</target>
+<target name="all" depends="clean, prepare, compile, jar, webwar"/>
+
+</project>
