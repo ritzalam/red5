@@ -18,7 +18,6 @@ public class GenericRed5Context extends GenericApplicationContext
 	protected String baseDir = "";
 	protected String configFilePath = "applicationContext.xml";
 	protected ResourcePatternResolver resourcePatternResolver = null;
-	protected ResourceLoader resourceLoader = null;
 	
 	public GenericRed5Context(ApplicationContext parent, String baseDir, String configFilePath){
 		super();
@@ -83,7 +82,7 @@ public class GenericRed5Context extends GenericApplicationContext
 		if(c!=null)
 			return c.getResource(uri);
 		else
-			return resourceLoader.getResource(uri);
+			return super.getResource(uri);
 	}
 
 	public Resource[] getResources(String pattern) throws IOException {
