@@ -1,6 +1,5 @@
 package org.red5.server.context;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -26,8 +25,8 @@ public class BaseApplication
 	private ApplicationContext appCtx = null;
 	private HashSet clients = new HashSet();
 	private StreamManager streamManager = null;
+	private SharedObjectPersistence soPersistence = null;
 	private HashSet listeners = new HashSet();
-	private HashMap sharedObjects = new HashMap();
 	
 	protected static Log log =
         LogFactory.getLog(BaseApplication.class.getName());
@@ -39,6 +38,11 @@ public class BaseApplication
 	public void setStreamManager(StreamManager streamManager){
 		this.streamManager = streamManager;
 	}
+	
+	public void setSharedObjectPersistence(SharedObjectPersistence soPersistence) {
+		this.soPersistence = soPersistence;
+	}
+	
 	
 	/*
 	public void setStatusObjectService(StatusObjectService statusObjectService){
@@ -76,11 +80,13 @@ public class BaseApplication
 	public final void disconnect(){
 		final Client client = Scope.getClient();
 		clients.remove(client);
-		// Unregister client from shared objects
-		Iterator it = sharedObjects.values().iterator();
-		while (it.hasNext()) {
-			PersistentSharedObject so = (PersistentSharedObject) it.next();
-			so.unregisterClient(client);
+		if (this.soPersistence != null) {
+			// Unregister client from shared objects
+			Iterator it = this.soPersistence.getSharedObjects();
+			while (it.hasNext()) {
+				PersistentSharedObject so = (PersistentSharedObject) it.next();
+				so.unregisterClient(client);
+			}
 		}
 		log.info("Calling onDisconnect");
 		onDisconnect(client);
@@ -182,12 +188,19 @@ public class BaseApplication
 	// -----------------------------------------------------------------------------
 	
 	public PersistentSharedObject getSharedObject(String name) {
-		return (PersistentSharedObject) this.sharedObjects.get(name);
+		if (this.soPersistence == null) {
+			// XXX: maybe we should thow an exception here as a non-persistent SO doesn't make any sense...
+			return new PersistentSharedObject(name, null);
+		}
+		
+		PersistentSharedObject result = this.soPersistence.loadSharedObject(name);
+		if (result == null) {
+			// Create new shared object with given name
+			log.info("Creating new shared object " + name);
+			result = new PersistentSharedObject(name, this.soPersistence);
+		}
+		
+		return result;
 	}
-	
-	public void setSharedObject(String name, PersistentSharedObject object) {
-		this.sharedObjects.put(name, object);
-	}
-	
 	
 }

@@ -135,12 +135,6 @@ public class RTMPSessionHandler implements ProtocolHandler, Constants{
 		String name = request.getName();
 		
 		PersistentSharedObject so = app.getSharedObject(name);
-		if (so == null) {
-			log.info("Creating new shared object " + name);
-			so = new PersistentSharedObject(name);
-			app.setSharedObject(name, so);
-		}
-
 		SharedObject reply = new SharedObject();
 		reply.setName(name);
 		reply.setTimestamp(0);

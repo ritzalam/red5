@@ -4,6 +4,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.service.ServiceInvoker;
 import org.red5.server.stream.StreamManager;
+import org.red5.server.SharedObjectRamPersistence;
 import org.springframework.beans.BeansException;
 
 public class AppContext 
@@ -11,6 +12,7 @@ public class AppContext
 	
 	public static final String APP_CONFIG = "app.xml";
 	public static final String APP_SERVICE_NAME = "appService";
+	public static final String SO_PERSISTENCE_NAME = "sharedObjectPersistence";
 	public static final String STREAM_MANAGER_NAME = "streamManager";
 	
 	protected String appPath;
@@ -43,12 +45,25 @@ public class AppContext
 		BaseApplication app = null;
 		if(!this.containsBean(APP_SERVICE_NAME)){
 			app = new BaseApplication();
+			app.setApplicationContext(this);
 			this.getBeanFactory().registerSingleton(APP_SERVICE_NAME, app);
 			app.setStreamManager(streamManager);
 			app.initialize();
 		} else {
 			app = (BaseApplication) this.getBean(APP_SERVICE_NAME);
+			app.setApplicationContext(this);
 			app.setStreamManager(streamManager);
+		}
+		
+		SharedObjectPersistence soPersistence = null;
+		if(!this.containsBean(SO_PERSISTENCE_NAME)){
+			soPersistence = new SharedObjectRamPersistence();
+			soPersistence.setApplicationContext(this);
+			app.setSharedObjectPersistence(soPersistence);
+		} else {
+			soPersistence = (SharedObjectPersistence) this.getBean(SO_PERSISTENCE_NAME);
+			soPersistence.setApplicationContext(this);
+			app.setSharedObjectPersistence(soPersistence);
 		}
 	}
 	
