@@ -1,6 +1,7 @@
 package org.red5.server;
 
 import java.io.IOException;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileInputStream;
@@ -88,6 +89,12 @@ public class SharedObjectFilePersistence
 	}
 	
 	private void saveSharedObject(PersistentSharedObject object) {
+		File file = new File(this.appCtx.getBaseDir() + "/sharedObjects");
+		if (!file.isDirectory() && !file.mkdir()) {
+			log.error("Could not create directory " + file.getAbsolutePath());
+			return;
+		}
+		
 		String filename = "sharedObjects/" + object.getName() + ".so";
 		ByteBuffer buf = ByteBuffer.allocate(1024);
 		buf.setAutoExpand(true);
