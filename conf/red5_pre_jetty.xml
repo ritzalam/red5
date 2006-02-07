@@ -6,21 +6,13 @@
 	<bean id="placeholderConfig" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 	    <property name="location" value="/conf/red5.properties" />
 	</bean>
+	
 	<!-- Server: This is the core, call startup method to boot up -->
 	<bean id="server" class="org.red5.server.Server" init-method="startup"> 
 	    <property name="networkManager" ref="networkManager" />
 	    <property name="sessionRegistry" ref="sessionRegistry" />
 	</bean>
-	
-	<!-- httpServer: This is the httpserver--> 
-    <bean id="httpServer" class="org.mortbay.xml.XmlConfiguration" init-method="newInstance"> 
-        <constructor-arg> 
-           <bean class="java.io.FileInputStream"> 
-              <constructor-arg value="conf/jetty.xml"/> 
-           </bean> 
-        </constructor-arg> 
-    </bean>
-	
+	 
 	<!-- Network Manager, adds services to mina registry -->
 	<bean id="networkManager" class="org.red5.server.net.NetworkManager">
 		<property name="serviceConfig">

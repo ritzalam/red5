@@ -2,6 +2,10 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
 
+<!-- ------------------------------------------------------------------------------------------->
+<!-- this file only use in web container, copy from red5.xml, and remove the bean "httpServer"-->
+<!-- ------------------------------------------------------------------------------------------->
+
 	<!-- Placeholder Config: loads a property file with config values -->
 	<bean id="placeholderConfig" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 	    <property name="location" value="/conf/red5.properties" />
@@ -12,15 +16,7 @@
 	    <property name="sessionRegistry" ref="sessionRegistry" />
 	</bean>
 	
-	<!-- httpServer: This is the httpserver--> 
-    <bean id="httpServer" class="org.mortbay.xml.XmlConfiguration" init-method="newInstance"> 
-        <constructor-arg> 
-           <bean class="java.io.FileInputStream"> 
-              <constructor-arg value="conf/jetty.xml"/> 
-           </bean> 
-        </constructor-arg> 
-    </bean>
-	
+
 	<!-- Network Manager, adds services to mina registry -->
 	<bean id="networkManager" class="org.red5.server.net.NetworkManager">
 		<property name="serviceConfig">
