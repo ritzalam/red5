@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
+import org.red5.server.SharedObjectPersistence;
+
 public class PersistentSharedObject {
 
 	protected String name;

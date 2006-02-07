@@ -4,6 +4,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.service.ServiceInvoker;
 import org.red5.server.stream.StreamManager;
+import org.red5.server.SharedObjectPersistence;
 import org.red5.server.SharedObjectRamPersistence;
 import org.springframework.beans.BeansException;
 

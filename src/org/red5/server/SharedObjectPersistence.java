@@ -1,6 +1,9 @@
-package org.red5.server.context;
+package org.red5.server;
 
 import java.util.Iterator;
+
+import org.red5.server.context.AppContext;
+import org.red5.server.context.PersistentSharedObject;
 
 public interface SharedObjectPersistence {
 

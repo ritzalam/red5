@@ -5,7 +5,6 @@ import java.util.HashMap;
 
 import org.red5.server.context.AppContext;
 import org.red5.server.context.PersistentSharedObject;
-import org.red5.server.context.SharedObjectPersistence;
 
 /**
  * Dummy SO persistence implementation that stores the shared objects in memory.

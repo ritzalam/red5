@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.red5.server.SharedObjectPersistence;
 import org.red5.server.rtmp.Connection;
 import org.red5.server.rtmp.message.Ping;
 import org.red5.server.rtmp.status.StatusObject;

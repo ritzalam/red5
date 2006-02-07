@@ -14,7 +14,6 @@ import org.apache.mina.common.ByteBuffer;
 import org.springframework.core.io.Resource;
 import org.red5.server.context.AppContext;
 import org.red5.server.context.PersistentSharedObject;
-import org.red5.server.context.SharedObjectPersistence;
 import org.red5.server.io.amf.Input;
 import org.red5.server.io.amf.Output;
 import org.red5.server.io.Deserializer;
