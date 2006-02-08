@@ -2,9 +2,7 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
 
-<!-- ------------------------------------------------------------------------------------------->
 <!-- this file only use in web container, copy from red5.xml, and remove the bean "httpServer"-->
-<!-- ------------------------------------------------------------------------------------------->
 
 	<!-- Placeholder Config: loads a property file with config values -->
 	<bean id="placeholderConfig" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
