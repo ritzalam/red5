@@ -6,13 +6,14 @@
 	<bean id="placeholderConfig" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 	    <property name="location" value="/conf/red5.properties" />
 	</bean>
+	
 	<!-- Server: This is the core, call startup method to boot up -->
 	<bean id="server" class="org.red5.server.Server" init-method="startup"> 
 	    <property name="networkManager" ref="networkManager" />
 	    <property name="sessionRegistry" ref="sessionRegistry" />
 	</bean>
 	
-	<!-- httpServer: This is the httpserver--> 
+	<!-- httpServer: embedded Jetty servlet engine --> 
     <bean id="httpServer" class="org.mortbay.xml.XmlConfiguration" init-method="newInstance"> 
         <constructor-arg> 
            <bean class="java.io.FileInputStream"> 
@@ -34,6 +35,15 @@
 						</entry>
 					</map>
 				</entry>
+				<entry key="proxy">
+					<map>
+						<entry key="host" value="${proxy.host}" />
+						<entry key="port" value="${proxy.port}" />
+						<entry key="handler">
+							<ref bean="debugProxyHandler" />
+						</entry>
+					</map>
+				</entry>
 			</map>
 		</property>
 	</bean> 
@@ -44,7 +54,7 @@
 	
 	<!-- Serializer: serializer supporting general Output objects -->
 	<bean id="serializer" class="org.red5.server.io.Serializer" />
-
+	
 	<!-- Deserializer: deserializer supporting general Input objects -->
 	<bean id="deserializer" class="org.red5.server.io.Deserializer" />
     
@@ -64,7 +74,7 @@
 		class="org.red5.server.rtmp.RTMPProtocolProvider">
 		<property name="handler" ref="rtmpSessionHandler" />
     </bean>
-	
+
 	<bean id="rtmpProtocolEncoder"
 		class="org.red5.server.rtmp.codec.ProtocolEncoder">
 		<property name="serializer" ref="serializer" />
@@ -76,14 +86,21 @@
 	</bean>
 	
 	<bean id="serviceInvoker" class="org.red5.server.service.ServiceInvoker" />
-	
-	<bean id="sharedObjectPersistence" class="org.red5.server.SharedObjectFilePersistence" />
-	
+		
 	<bean id="rtmpSessionHandler"
 		class="org.red5.server.rtmp.RTMPSessionHandler">
 		<property name="statusObjectService" ref="statusObjectService" />
 		<property name="serviceInvoker" ref="serviceInvoker" />
 		<property name="globalContext" ref="globalContext" />
+	</bean>
+	
+	<bean id="sharedObjectPersistence" class="org.red5.server.SharedObjectFilePersistence" />
+	
+	<bean id="debugProxyHandler"
+		class="org.red5.server.proxy.DebugProxyHandler">
+		<property name="decoder" ref="rtmpProtocolDecoder" />
+		<property name="forwardHost" value="${proxy.forward_host}" />
+		<property name="forwardPort" value="${proxy.forward_port}" />
 	</bean>
 	
 </beans>
