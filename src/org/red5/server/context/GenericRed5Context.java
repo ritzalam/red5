@@ -80,15 +80,16 @@ public class GenericRed5Context extends GenericApplicationContext
 	public Resource getResource(String uri) {
 		ApplicationContext c = getWebContent();
 		if(c!=null)
-			return c.getResource(uri);
+			return c.getResource(((uri.startsWith("./") || uri.startsWith("/"))?"":this.baseDir) + uri);
 		else
 			return super.getResource(uri);
+		
 	}
-
+	
 	public Resource[] getResources(String pattern) throws IOException {
 		ApplicationContext c = getWebContent();
 		if(c!=null)
-			return this.getParent().getResources(pattern);
+			return this.getParent().getResources(((pattern.startsWith("/")||pattern.startsWith("./"))?"":this.baseDir) + pattern);
 		else
 			return resourcePatternResolver.getResources(pattern);
 		
