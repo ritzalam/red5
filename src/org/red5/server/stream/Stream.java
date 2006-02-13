@@ -148,7 +148,7 @@ public class Stream implements Constants, IStream, IStreamSink {
 			bytesReadPacketCount++;
 			StreamBytesRead streamBytesRead = new StreamBytesRead();
 			streamBytesRead.setBytesRead(bytesRead);
-			log.info(streamBytesRead);
+			log.debug(streamBytesRead);
 			conn.getChannel((byte)2).write(streamBytesRead);
 		}
 		message.setTimestamp(ts);

@@ -112,7 +112,7 @@ public class RTMPSessionHandler implements ProtocolHandler, Constants{
 				break;
 			case TYPE_AUDIO_DATA:
 			case TYPE_VIDEO_DATA:
-				log.info("in packet: "+source.getSize()+" ts:"+source.getTimer());
+				log.debug("in packet: "+source.getSize()+" ts:"+source.getTimer());
 				stream.publish(message);
 				break;
 			case TYPE_SHARED_OBJECT:
@@ -373,7 +373,7 @@ public class RTMPSessionHandler implements ProtocolHandler, Constants{
 		pong.setValue1((short)(ping.getValue1()+1));
 		pong.setValue2(ping.getValue2());
 		channel.write(pong);
-		log.info(ping);
+		log.debug(ping);
 		// No idea why this is needed, 
 		// but it was the thing stopping the new rtmp code streaming
 		final Ping pong2 = new Ping();
@@ -384,7 +384,7 @@ public class RTMPSessionHandler implements ProtocolHandler, Constants{
 	
 	public void onStreamBytesRead(Connection conn, Channel channel, PacketHeader source, StreamBytesRead streamBytesRead){
 		// get the stream, pass the event to the stream
-		log.info("Stream Bytes Read: "+streamBytesRead.getBytesRead());
+		log.debug("Stream Bytes Read: "+streamBytesRead.getBytesRead());
 	}
 	
 	//	 ---------------------------------------------------------------------------
