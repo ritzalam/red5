@@ -7,6 +7,7 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.SharedObjectPersistence;
+import org.red5.server.SharedObjectRamPersistence;
 import org.red5.server.net.rtmp.Connection;
 import org.red5.server.net.rtmp.message.Ping;
 import org.red5.server.net.rtmp.status.StatusObject;
@@ -26,7 +27,10 @@ public class BaseApplication
 	private ApplicationContext appCtx = null;
 	private HashSet clients = new HashSet();
 	private StreamManager streamManager = null;
+	// Persistent shared objects are configured through red5.xml
 	private SharedObjectPersistence soPersistence = null;
+	// Non-persistent shared objects are only stored in memory
+	private SharedObjectRamPersistence soTransience = new SharedObjectRamPersistence(); 
 	private HashSet listeners = new HashSet();
 	
 	protected static Log log =
@@ -191,17 +195,22 @@ public class BaseApplication
 	
 	// -----------------------------------------------------------------------------
 	
-	public PersistentSharedObject getSharedObject(String name) {
-		if (this.soPersistence == null) {
+	public PersistentSharedObject getSharedObject(String name, boolean persistent) {
+		SharedObjectPersistence persistence = this.soPersistence;
+		if (!persistent) {
+			persistence = this.soTransience;
+		}
+			
+		if (persistence == null) {
 			// XXX: maybe we should thow an exception here as a non-persistent SO doesn't make any sense...
-			return new PersistentSharedObject(name, null);
+			return new PersistentSharedObject(name, false, null);
 		}
 		
-		PersistentSharedObject result = this.soPersistence.loadSharedObject(name);
+		PersistentSharedObject result = persistence.loadSharedObject(name);
 		if (result == null) {
 			// Create new shared object with given name
 			log.info("Creating new shared object " + name);
-			result = new PersistentSharedObject(name, this.soPersistence);
+			result = new PersistentSharedObject(name, persistent, persistence);
 		}
 		
 		return result;

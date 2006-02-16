@@ -125,14 +125,16 @@ public class RTMPHandler extends BaseHandler implements Constants{
 		BaseApplication app = (BaseApplication) ctx.getBean(AppContext.APP_SERVICE_NAME);
 		String name = request.getName();
 		
-		PersistentSharedObject so = app.getSharedObject(name);
+		PersistentSharedObject so = app.getSharedObject(name, request.isPersistent());
 		SharedObject reply = new SharedObject();
 		reply.setName(name);
 		reply.setTimestamp(0);
+		reply.setType(request.getType());
 		
 		SharedObject sync = new SharedObject();
 		sync.setName(name);
 		sync.setTimestamp(0);
+		sync.setType(request.getType());
 		
 		boolean updates = false;
 		
@@ -148,6 +150,11 @@ public class RTMPHandler extends BaseHandler implements Constants{
 				if (!so.getData().isEmpty())
 					reply.addEvent(new SharedObjectEvent(SO_CLIENT_UPDATE_DATA, null, so.getData()));
 				so.registerClient(conn, source.getChannelId());
+				break;
+			
+			case SO_DISCONNECT:
+				// Unregister client from this shared object
+				so.unregisterClient(conn);
 				break;
 			
 			case SO_SET_ATTRIBUTE:

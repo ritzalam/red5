@@ -25,6 +25,11 @@ public interface SharedObjectPersistence {
 	PersistentSharedObject loadSharedObject(String name);
 
 	/*
+	 * Delete the shared object with the specified name.
+	 */
+	void deleteSharedObject(String name);
+
+	/*
 	 * Returns an iterator over all the shared objects.
 	 */
 	Iterator getSharedObjects();

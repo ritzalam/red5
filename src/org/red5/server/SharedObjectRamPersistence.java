@@ -30,6 +30,10 @@ public class SharedObjectRamPersistence implements SharedObjectPersistence {
 		return (PersistentSharedObject) this.objects.get(name);
 	}
 
+	public void deleteSharedObject(String name) {
+		this.objects.remove(name);
+	}
+	
 	public Iterator getSharedObjects() {
 		return this.objects.values().iterator();
 	}

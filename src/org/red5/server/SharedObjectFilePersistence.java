@@ -76,7 +76,7 @@ public class SharedObjectFilePersistence
 				Deserializer deserializer = new Deserializer();
 				String name = (String) deserializer.deserialize(in);
 				Map attributes = (Map) deserializer.deserialize(in);
-				PersistentSharedObject sharedObject = new PersistentSharedObject(name, this);
+				PersistentSharedObject sharedObject = new PersistentSharedObject(name, true, this);
 				sharedObject.setData(attributes);
 				super.storeSharedObject(sharedObject);
 				log.info("Loaded shared object " + sharedObject.getName() + " from " + filename);
@@ -124,6 +124,12 @@ public class SharedObjectFilePersistence
 	public void storeSharedObject(PersistentSharedObject object) {
 		super.storeSharedObject(object);
 		this.saveSharedObject(object);
+	}
+
+	public void deleteSharedObject(String name) {
+		super.deleteSharedObject(name);
+		// TODO: delete file containing shared object
+		log.error("Deleting of shared objects is not implemented yet.");
 	}
 
 }

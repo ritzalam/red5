@@ -37,6 +37,7 @@ public interface Constants {
     public static final byte SO_CLIENT_INITIAL_DATA = 0x0B; // 11: initial data
 
     public static final byte SO_CONNECT = 0x01;
+    public static final byte SO_DISCONNECT = 0x02;
     public static final byte SO_SET_ATTRIBUTE = 0x03;
     public static final byte SO_DELETE_ATTRIBUTE = 0x0A;
     public static final byte SO_LIST = 0x0B;

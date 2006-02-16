@@ -373,7 +373,13 @@ public class RTMPProtocolDecoder implements Constants, org.apache.mina.filter.co
 
 		Input input = new Input(data);
 		so.setName(input.getString(data));
-		data.skip(12);
+		// Read version of SO to modify
+		so.setSoId(data.getInt());
+		// Read persistence informations
+		so.setType(data.getInt());
+		// Skip unknown bytes
+		data.skip(4);
+		// Parse request body
 		while(data.hasRemaining()){
 			byte type = data.get();
 			log.info("type: "+type);

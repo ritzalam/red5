@@ -178,8 +178,8 @@ public class RTMPProtocolEncoder implements org.apache.mina.filter.codec.Protoco
 		Output.putString(data, so.getName());
 		// SO version
 		data.putInt(so.getSoId());
-		// Encoding (this always seems to be 2)
-		data.putInt(2);
+		// Encoding (this always seems to be 2 for persistent shared objects)
+		data.putInt(so.isPersistent() ? 2 : 0);
 		// unknown field
 		data.putInt(0);
 		

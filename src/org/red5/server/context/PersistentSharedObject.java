@@ -4,18 +4,25 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.red5.server.SharedObjectPersistence;
 
 public class PersistentSharedObject {
 
+	protected static Log log =
+        LogFactory.getLog(BaseApplication.class.getName());
+
 	protected String name;
 	protected SharedObjectPersistence persistence = null;
 	protected int version = 0;
+	protected boolean persistent = true;
 	protected HashMap data = new HashMap();
 	protected HashMap clients = new HashMap();
 	
-	public PersistentSharedObject(String name, SharedObjectPersistence persistence) {
+	public PersistentSharedObject(String name, boolean persistent, SharedObjectPersistence persistence) {
 		this.name = name;
+		this.persistent = persistent;
 		this.persistence = persistence;
 	}
 	
@@ -66,6 +73,10 @@ public class PersistentSharedObject {
 	
 	public void unregisterClient(Object client) {
 		this.clients.remove(client);
+		if (!this.persistent && this.clients.isEmpty()) {
+			log.info("Deleting shared object " + this.name + " because all clients disconnected.");
+			this.persistence.deleteSharedObject(this.name);
+		}
 	}
 	
 	public void unregisterClient(Object client, int channel) {
@@ -75,6 +86,10 @@ public class PersistentSharedObject {
 		
 		HashSet channels = (HashSet) this.clients.get(client);
 		channels.remove(new Integer(channel));
+		if (channels.isEmpty()) {
+			// Delete shared object in case of non-persistent SOs
+			unregisterClient(client);
+		}
 	}
 	
 	public HashMap getClients() {

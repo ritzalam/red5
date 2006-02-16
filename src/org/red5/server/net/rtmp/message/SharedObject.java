@@ -10,6 +10,7 @@ public class SharedObject extends Unknown {
 	private LinkedList events=new LinkedList();
 	private int timer;
 	private int soId = 0;
+	private int type = 0;
 
 	public SharedObject(){
 		super(TYPE_SHARED_OBJECT);
@@ -31,6 +32,19 @@ public class SharedObject extends Unknown {
 		this.name = name;
 	}
 
+	public void setType(int type) {
+		this.type = type;
+	}
+	
+	public int getType() {
+		return this.type;
+	}
+	
+	public boolean isPersistent() {
+		// TODO: what do the values mean?
+		return this.type != 0;
+	}
+	
 	public void addEvent(SharedObjectEvent event){
 		events.add(event);
 	}
