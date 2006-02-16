@@ -1,0 +1,89 @@
+// ** AUTO-UI IMPORT STATEMENTS **
+import com.blitzagency.util.SimpleDialog;
+import mx.controls.TextInput;
+import org.red5.ui.ConnectionLight;
+import org.red5.ui.controls.IconButton;
+// ** END AUTO-UI IMPORT STATEMENTS **
+import org.red5.net.Connection;
+import org.red5.utils.Delegate;
+import com.gskinner.events.GDispatcher;
+
+
+class org.red5.samples.sosample.Connector extends MovieClip 
+{
+// Constants:
+	public static var CLASS_REF = org.red5.samples.sosample.Connector;
+	public static var LINKAGE_ID:String = "org.red5.samples.sosample.Connector";
+// Public Properties:
+	public var addEventListener:Function;
+	public var removeEventListener:Function;
+	public var connection:Connection;
+// Private Properties:
+	private var dispatchEvent:Function;
+	
+// UI Elements:
+
+// ** AUTO-UI ELEMENTS **
+	private var alert:SimpleDialog;
+	private var connect:IconButton;
+	private var disconnect:IconButton;
+	private var light:ConnectionLight;
+	private var uri:TextInput;
+// ** END AUTO-UI ELEMENTS **
+
+// Initialization:
+	private function Connector() {GDispatcher.initialize(this);}
+	private function onLoad():Void {}
+
+// Public Methods:
+	public function configUI():Void 
+	{
+		// instantiate the connection
+		connection  = new Connection();
+		
+		// register the connection with the light so it can add a listener
+		light.registerNC(connection);
+		
+		// hide disconnect button
+		disconnect._visible = false;
+		
+		// set the URI
+		uri.text = "rtmp://localhost/SOSample";
+		
+		// setup the buttons
+		connect.addEventListener("click", Delegate.create(this, makeConnection));
+		disconnect.addEventListener("click", Delegate.create(this, closeConnection));
+		connect.tooltip = "Connect to Red5";
+		disconnect.tooltip = "Disconnect from Red5";
+		
+		// add listener for connection changes
+		connection.addEventListener("connectionChange", Delegate.create(this, manageButtons));
+	}
+// Semi-Private Methods:
+// Private Methods:
+	
+	
+	private function makeConnection(evtObj:Object):Void
+	{
+		if(uri.length > 0) 
+		{
+			var goodURI = connection.connect(uri.text);
+			if(!goodURI) alert.show("Please check connection URI String and try again.");
+		}
+	}
+	
+	private function closeConnection(evtObj:Object):Void
+	{
+		if(connection.connected) connection.close();
+	}
+	
+	private function manageButtons(evtObj:Object):Void
+	{
+		// based on the connection value, hide/show the respective buttons
+		connect._visible = !evtObj.connected;
+		disconnect._visible = evtObj.connected;
+		
+		// since Main doesn't really have access to Light, we're going to pass along the notification
+		dispatchEvent({type:"connectionChange", connected: evtObj.connected});
+	}
+}
