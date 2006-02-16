@@ -152,9 +152,19 @@ public class RTMPHandler extends BaseHandler implements Constants{
 				so.registerClient(conn, source.getChannelId());
 				break;
 			
-			case SO_DISCONNECT:
-				// Unregister client from this shared object
-				so.unregisterClient(conn);
+			case SO_CLEAR:
+				// Clear the shared object
+				if (!request.isPersistent()) {
+					so.unregisterClient(conn);
+				}
+				// TODO: there must be a direct way to clear the SO on the client side...
+				Iterator keys = so.getData().keySet().iterator();
+				while (keys.hasNext()) {
+					String key = (String) keys.next();
+					reply.addEvent(new SharedObjectEvent(SO_CLIENT_DELETE_DATA, key, null));
+					sync.addEvent(new SharedObjectEvent(SO_CLIENT_DELETE_DATA, key, null));
+				}
+				so.clear();
 				break;
 			
 			case SO_SET_ATTRIBUTE:

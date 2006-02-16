@@ -63,6 +63,11 @@ public class PersistentSharedObject {
 		this.notifyModified();
 	}
 	
+	public void clear() {
+		this.data.clear();
+		this.notifyModified();
+	}
+	
 	public void registerClient(Object client, int channel) {
 		if (!this.clients.containsKey(client))
 			this.clients.put(client, new HashSet());
