@@ -137,6 +137,7 @@
 					<include name="commons-beanutils.jar" />
 					<include name="commons-collections.jar" />
 					<include name="commons-logging.jar" />
+					<include name="jetty.jar" />
 					<include name="jpda.jar" />
 					<include name="js.jar" />
 					<include name="junit.jar" />
