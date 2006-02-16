@@ -27,8 +27,9 @@ import junit.framework.TestCase;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.red5.server.rtmp.RTMPUtils;
-import org.red5.server.utils.HexDump;
+import org.red5.io.utils.HexDump;
+import org.red5.server.net.rtmp.RTMPUtils;
+
 
 public class RTMPUtilsTest extends TestCase {
 

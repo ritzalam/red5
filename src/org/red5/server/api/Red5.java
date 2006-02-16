@@ -1,6 +1,6 @@
 package org.red5.server.api;
 
-public class Support {
+public class Red5 {
 
 	public static Application getApplication(){
 		return null;

@@ -9,7 +9,6 @@
 	<classpathentry kind="lib" path="lib/spring.jar"/>
 	<classpathentry kind="lib" path="lib/slf4j-log4j12.jar"/>
 	<classpathentry kind="lib" path="lib/servlet-api.jar"/>
-	<classpathentry kind="lib" path="lib/mina-0.8.0.jar"/>
 	<classpathentry kind="lib" path="lib/log4j-1.2.9.jar"/>
 	<classpathentry kind="lib" path="lib/junit.jar"/>
 	<classpathentry kind="lib" path="lib/js.jar"/>
@@ -29,5 +28,7 @@
 	<classpathentry kind="lib" path="lib/slf4j-simple-1.0-rc1.jar"/>
 	<classpathentry kind="lib" path="lib/xercesImpl-2.6.2.jar"/>
 	<classpathentry kind="lib" path="lib/xmlParserAPIs-2.6.2.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/red5_io"/>
+	<classpathentry kind="lib" path="lib/mina-0.9.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

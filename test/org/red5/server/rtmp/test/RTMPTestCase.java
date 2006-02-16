@@ -6,14 +6,14 @@ import junit.framework.TestCase;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
-import org.red5.server.io.Deserializer;
-import org.red5.server.io.Serializer;
-import org.red5.server.rtmp.codec.ProtocolDecoder;
-import org.red5.server.rtmp.codec.ProtocolEncoder;
-import org.red5.server.rtmp.message.Constants;
-import org.red5.server.rtmp.message.Invoke;
-import org.red5.server.rtmp.message.PacketHeader;
-import org.red5.server.utils.BufferLogUtils;
+import org.apache.mina.filter.SSLFilter;
+import org.red5.io.object.Deserializer;
+import org.red5.io.object.Serializer;
+import org.red5.server.net.rtmp.codec.RTMPProtocolDecoder;
+import org.red5.server.net.rtmp.codec.RTMPProtocolEncoder;
+import org.red5.server.net.rtmp.message.Constants;
+import org.red5.server.net.rtmp.message.Invoke;
+import org.red5.server.net.rtmp.message.PacketHeader;
 
 public class RTMPTestCase extends TestCase implements Constants {
 
@@ -22,16 +22,16 @@ public class RTMPTestCase extends TestCase implements Constants {
 	
 	protected Serializer serializer;
 	protected Deserializer deserializer;
-	protected ProtocolEncoder encoder;
-	protected ProtocolDecoder decoder;
+	protected RTMPProtocolEncoder encoder;
+	protected RTMPProtocolDecoder decoder;
 	
 	protected void setUp() throws Exception {
 		// TODO Auto-generated method stub
 		super.setUp();
 		serializer = new Serializer();
 		deserializer = new Deserializer();
-		encoder = new ProtocolEncoder();
-		decoder = new ProtocolDecoder();
+		encoder = new RTMPProtocolEncoder();
+		decoder = new RTMPProtocolDecoder();
 		encoder.setSerializer(serializer);
 		decoder.setDeserializer(deserializer);
 	}
@@ -45,7 +45,7 @@ public class RTMPTestCase extends TestCase implements Constants {
 		header.setSize(320);
 		ByteBuffer buf = encoder.encodeHeader(header,null);
 		buf.flip();
-		BufferLogUtils.debug(log,"header",buf);
+		log.debug(buf.getHexDump());
 		Assert.assertNotNull(buf);
 		PacketHeader result = decoder.decodeHeader(buf, null);
 		Assert.assertEquals(header, result);
