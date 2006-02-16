@@ -39,7 +39,7 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.ConversionException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.red5.server.io.Deserializer;
+import org.red5.io.object.Deserializer;
 
 public class ConversionUtils {
 	

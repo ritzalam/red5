@@ -1,4 +1,4 @@
-package org.red5.server.rtmp;
+package org.red5.server.net.rtmp;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -23,8 +23,7 @@ package org.red5.server.rtmp;
  */
 
 import org.apache.mina.common.ByteBuffer;
-import org.red5.server.io.BufferUtils;
-import org.red5.server.rtmp.message.Constants;
+import org.red5.server.net.rtmp.message.Constants;
 
 public class RTMPUtils implements Constants {
 

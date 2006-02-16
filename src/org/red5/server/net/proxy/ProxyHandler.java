@@ -1,4 +1,4 @@
-package org.red5.server.proxy;
+package org.red5.server.net.proxy;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -6,9 +6,10 @@ import java.net.SocketAddress;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.io.IoHandlerAdapter;
-import org.apache.mina.io.IoSession;
-import org.apache.mina.io.socket.SocketConnector;
+import org.apache.mina.common.ConnectFuture;
+import org.apache.mina.common.IoHandlerAdapter;
+import org.apache.mina.common.IoSession;
+import org.apache.mina.transport.socket.nio.SocketConnector;
 
 public class ProxyHandler extends IoHandlerAdapter {
 
@@ -50,16 +51,22 @@ public class ProxyHandler extends IoHandlerAdapter {
 		// do nothing
 	}
 	
-	public void dataRead(IoSession session, ByteBuffer buf) throws Exception {
+	public void messageReceived(IoSession session, Object message) throws Exception {
+		
+		if( !( message instanceof ByteBuffer ) ){
+            return;
+        }
+		ByteBuffer buf = (ByteBuffer) message;
+		
 		final ProxyConnector conn = (ProxyConnector) session.getAttachment();
 		conn.getLog().debug(buf.getHexDump());
 		int position = buf.position();
-
 		decodeBuffer(session, buf);
 		buf.position(position);
 		buf.acquire();
 		conn.write(buf);
-		super.dataRead(session, buf);
+		//super.
+		super.messageReceived(session, message);
 	}
 
 	public void exceptionCaught(IoSession session, Throwable cause) throws Exception {
@@ -79,7 +86,10 @@ public class ProxyHandler extends IoHandlerAdapter {
 			log.debug("Forward connect");
 		} else {
 			log.debug("Client connect, opening forward channel");
-			final IoSession forward = connector.connect(forwardAddress,forwardTimeOut,this);
+			connector.setConnectTimeout(forwardTimeOut);
+			final ConnectFuture future = connector.connect(forwardAddress,this);
+			final IoSession forward = future.getSession();
+			
 			if(forward.isConnected()){
 				final ProxyConnector up = new ProxyConnector(forward, ProxyConnector.UP);
 				final ProxyConnector down = new ProxyConnector(session, ProxyConnector.DOWN);
@@ -111,8 +121,12 @@ public class ProxyHandler extends IoHandlerAdapter {
 			this.log = LogFactory.getLog(logName);
 		}
 		
+		public IoSession getSession(){
+			return session;
+		}
+		
 		public void write(ByteBuffer buf){
-			session.write(buf,null);
+			session.write(buf);
 		}
 		
 		public void close(){

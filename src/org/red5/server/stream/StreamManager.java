@@ -6,6 +6,8 @@ import java.util.HashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.red5.io.flv.FLV;
+import org.red5.io.flv.FLVService;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -19,11 +21,18 @@ public class StreamManager implements ApplicationContextAware {
 	private ApplicationContext appCtx = null;
 	private String streamDir = "streams";
 	private HashMap published = new HashMap();
+	private FLVService flvService;
 
 	public void setApplicationContext(ApplicationContext appCtx) throws BeansException {
 		this.appCtx = appCtx;
 	}
 	
+	public void setFlvService(FLVService flvService) {
+		this.flvService = flvService;
+	}
+
+
+
 	public void publishStream(Stream stream){
 		MultiStreamSink multi = new MultiStreamSink();
 		stream.setUpstream(multi);
@@ -47,7 +56,8 @@ public class StreamManager implements ApplicationContextAware {
 		Resource[] resource = null;
 		FileStreamSource source = null;
 		try {
-			File flv = appCtx.getResources("streams/" + name)[0].getFile();
+			File file = appCtx.getResources("streams/" + name)[0].getFile();
+			FLV flv = flvService.getFLV(file);
 			source = new FileStreamSource(flv);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block

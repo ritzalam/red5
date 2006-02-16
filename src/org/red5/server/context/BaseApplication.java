@@ -7,10 +7,10 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.SharedObjectPersistence;
-import org.red5.server.rtmp.Connection;
-import org.red5.server.rtmp.message.Ping;
-import org.red5.server.rtmp.status.StatusObject;
-import org.red5.server.rtmp.status.StatusObjectService;
+import org.red5.server.net.rtmp.Connection;
+import org.red5.server.net.rtmp.message.Ping;
+import org.red5.server.net.rtmp.status.StatusObject;
+import org.red5.server.net.rtmp.status.StatusObjectService;
 import org.red5.server.stream.IStreamSource;
 import org.red5.server.stream.Stream;
 import org.red5.server.stream.StreamManager;
@@ -141,8 +141,11 @@ public class BaseApplication
 	}
 	
 	
-	public void pause(){
-		
+	public void pause(boolean pause, int time){
+		log.info("Pause called: "+pause+" true:"+time);
+		final Stream stream = Scope.getStream();
+		if(pause) stream.pause();
+		else stream.resume();
 	}
 	
 	public void deleteStream(){

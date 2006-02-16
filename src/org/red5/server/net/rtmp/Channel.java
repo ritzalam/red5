@@ -1,15 +1,15 @@
-package org.red5.server.rtmp;
+package org.red5.server.net.rtmp;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.red5.server.rtmp.message.Constants;
-import org.red5.server.rtmp.message.InPacket;
-import org.red5.server.rtmp.message.Invoke;
-import org.red5.server.rtmp.message.Message;
-import org.red5.server.rtmp.message.Notify;
-import org.red5.server.rtmp.message.OutPacket;
-import org.red5.server.rtmp.message.PacketHeader;
-import org.red5.server.rtmp.message.Status;
+import org.red5.server.net.rtmp.message.Constants;
+import org.red5.server.net.rtmp.message.InPacket;
+import org.red5.server.net.rtmp.message.Invoke;
+import org.red5.server.net.rtmp.message.Message;
+import org.red5.server.net.rtmp.message.Notify;
+import org.red5.server.net.rtmp.message.OutPacket;
+import org.red5.server.net.rtmp.message.PacketHeader;
+import org.red5.server.net.rtmp.message.Status;
 import org.red5.server.service.Call;
 import org.red5.server.stream.Stream;
 

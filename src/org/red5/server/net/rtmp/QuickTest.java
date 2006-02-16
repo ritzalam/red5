@@ -1,7 +1,8 @@
-package org.red5.server.rtmp;
+package org.red5.server.net.rtmp;
 
 import org.apache.mina.common.ByteBuffer;
-import org.red5.server.io.amf.Input;
+import org.red5.io.amf.Input;
+
 
 public class QuickTest {
 

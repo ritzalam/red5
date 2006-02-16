@@ -30,7 +30,6 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.red5.server.script.ScriptBeanFactory;
 import org.springframework.context.ApplicationContext;
 
 public class ServiceInvoker  {
@@ -40,11 +39,14 @@ public class ServiceInvoker  {
 	public static final String SERVICE_NAME = "serviceInvoker";
 	
 	protected ApplicationContext serviceContext = null;
-	protected ScriptBeanFactory scriptBeanFactory = null;
 	
+	//protected ScriptBeanFactory scriptBeanFactory = null;
+	
+	/*
 	public void setScriptBeanFactory(ScriptBeanFactory scriptBeanFactory) {
 		this.scriptBeanFactory = scriptBeanFactory;
 	}
+	*/
 
 	public void setServiceContext(ApplicationContext serviceContext){
 		this.serviceContext = serviceContext;
@@ -67,6 +69,7 @@ public class ServiceInvoker  {
 			service = serviceContext.getBean(serviceName);
 		} 
 		
+		/*
 		if(service == null && serviceContext.containsBean("scriptBeanFactory")){
 			scriptBeanFactory = (ScriptBeanFactory) serviceContext.getBean("scriptBeanFactory");
 		}
@@ -75,6 +78,7 @@ public class ServiceInvoker  {
 			// lets see if its a script.
 			service = scriptBeanFactory.getBean(serviceName);
 		}
+		*/
 
 		if(service == null) {
 			call.setException(new ServiceNotFoundException(serviceName));
@@ -88,6 +92,11 @@ public class ServiceInvoker  {
 		
 		Object[] args = call.getArguments();
 		int numParams = (args==null) ? 0 : args.length;
+		
+		for(int i=0; i<args.length; i++){
+			log.debug("   "+i+" => "+args[i]);
+		}
+		
 		List methods = ConversionUtils.findMethodsByNameAndNumParams(service,methodName, numParams);
 	
 		log.debug("Found "+methods.size()+" methods");

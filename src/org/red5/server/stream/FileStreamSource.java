@@ -1,34 +1,27 @@
 package org.red5.server.stream;
 
-import java.io.File;
-import java.io.IOException;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.red5.server.io.flv2.FLVReader;
-import org.red5.server.io.flv2.FLVTag;
-import org.red5.server.rtmp.message.AudioData;
-import org.red5.server.rtmp.message.Constants;
-import org.red5.server.rtmp.message.Invoke;
-import org.red5.server.rtmp.message.Message;
-import org.red5.server.rtmp.message.Notify;
-import org.red5.server.rtmp.message.Unknown;
-import org.red5.server.rtmp.message.VideoData;
+import org.red5.io.flv.FLV;
+import org.red5.io.flv.Reader;
+import org.red5.io.flv.Tag;
+import org.red5.server.net.rtmp.message.AudioData;
+import org.red5.server.net.rtmp.message.Constants;
+import org.red5.server.net.rtmp.message.Invoke;
+import org.red5.server.net.rtmp.message.Message;
+import org.red5.server.net.rtmp.message.Notify;
+import org.red5.server.net.rtmp.message.Unknown;
+import org.red5.server.net.rtmp.message.VideoData;
 
 public class FileStreamSource implements IStreamSource, Constants {
 
 	protected static Log log =
         LogFactory.getLog(FileStreamSource.class.getName());
 	
-	private FLVReader reader = null;
+	private Reader reader = null;
 	
-	public FileStreamSource(File file){
-		try {
-			reader = new FLVReader(file);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	public FileStreamSource(FLV flv){
+		reader = flv.reader();
 	}
 	
 	public void close() {
@@ -36,7 +29,10 @@ public class FileStreamSource implements IStreamSource, Constants {
 	}
 
 	public Message dequeue() {
-		final FLVTag tag = reader.getNextTag();
+		
+		if(!reader.hasMoreTags()) return null;
+		Tag tag = reader.readTag();
+		
 		Message msg = null;
 		switch(tag.getDataType()){
 		case TYPE_AUDIO_DATA:
@@ -61,12 +57,8 @@ public class FileStreamSource implements IStreamSource, Constants {
 		msg.setSealed(true);
 		return msg;
 	}
-	
-	int i=0;
 
 	public boolean hasMore() {
-		//return false;
-		//if(i++>20) return false;
 		return reader.hasMoreTags();
 	}
 	

@@ -1,4 +1,4 @@
-package org.red5.server.rtmp;
+package org.red5.server.net.rtmp;
 
 import org.red5.server.context.AppContext;
 import org.red5.server.service.ServiceInvoker;

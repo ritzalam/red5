@@ -1,4 +1,4 @@
-package org.red5.server.rtmp;
+package org.red5.server.net.rtmp;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -8,63 +8,54 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IdleStatus;
-import org.apache.mina.common.SessionConfig;
-import org.apache.mina.io.socket.SocketSessionConfig;
-import org.apache.mina.protocol.ProtocolHandler;
-import org.apache.mina.protocol.ProtocolSession;
+import org.apache.mina.common.IoSession;
+import org.apache.mina.filter.LoggingFilter;
+import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.red5.server.context.AppContext;
 import org.red5.server.context.BaseApplication;
 import org.red5.server.context.GlobalContext;
 import org.red5.server.context.HostContext;
 import org.red5.server.context.PersistentSharedObject;
 import org.red5.server.context.Scope;
-import org.red5.server.rtmp.message.Constants;
-import org.red5.server.rtmp.message.Handshake;
-import org.red5.server.rtmp.message.HandshakeReply;
-import org.red5.server.rtmp.message.InPacket;
-import org.red5.server.rtmp.message.Invoke;
-import org.red5.server.rtmp.message.Message;
-import org.red5.server.rtmp.message.OutPacket;
-import org.red5.server.rtmp.message.PacketHeader;
-import org.red5.server.rtmp.message.Ping;
-import org.red5.server.rtmp.message.SharedObject;
-import org.red5.server.rtmp.message.SharedObjectEvent;
-import org.red5.server.rtmp.message.StreamBytesRead;
-import org.red5.server.rtmp.message.Unknown;
-import org.red5.server.rtmp.status.StatusObjectService;
+import org.red5.server.net.BaseHandler;
+import org.red5.server.net.rtmp.message.Constants;
+import org.red5.server.net.rtmp.message.Handshake;
+import org.red5.server.net.rtmp.message.HandshakeReply;
+import org.red5.server.net.rtmp.message.InPacket;
+import org.red5.server.net.rtmp.message.Invoke;
+import org.red5.server.net.rtmp.message.Message;
+import org.red5.server.net.rtmp.message.OutPacket;
+import org.red5.server.net.rtmp.message.PacketHeader;
+import org.red5.server.net.rtmp.message.Ping;
+import org.red5.server.net.rtmp.message.SharedObject;
+import org.red5.server.net.rtmp.message.SharedObjectEvent;
+import org.red5.server.net.rtmp.message.StreamBytesRead;
+import org.red5.server.net.rtmp.message.Unknown;
+import org.red5.server.net.rtmp.status.StatusObjectService;
 import org.red5.server.service.Call;
 import org.red5.server.service.ServiceInvoker;
 import org.red5.server.stream.Stream;
 
-public class RTMPSessionHandler implements ProtocolHandler, Constants{
+public class RTMPHandler extends BaseHandler implements Constants{
 
 	protected static Log log =
-        LogFactory.getLog(RTMPSessionHandler.class.getName());
+        LogFactory.getLog(RTMPHandler.class.getName());
 	
 	public StatusObjectService statusObjectService = null;
-	public GlobalContext globalContext = null;
-	public ServiceInvoker serviceInvoker = null;
 
 	public void setStatusObjectService(StatusObjectService statusObjectService) {
 		this.statusObjectService = statusObjectService;
 	}
 	
-	public void setGlobalContext(GlobalContext globalContext) {
-		this.globalContext = globalContext;
-	}
-	
-	public void setServiceInvoker(ServiceInvoker serviceInvoker) {
-		this.serviceInvoker = serviceInvoker;
-	}
-	
 	//	 ------------------------------------------------------------------------------
+	
 
-	public void exceptionCaught(ProtocolSession session, Throwable cause) throws Exception {
+	public void exceptionCaught(IoSession session, Throwable cause) throws Exception {
 		// TODO Auto-generated method stub
-		log.error("Exception caught", cause);
+		log.debug("Exception caught", cause);
 	}
 
-	public void messageReceived(ProtocolSession session, Object in) throws Exception {
+	public void messageReceived(IoSession session, Object in) throws Exception {
 	
 		if(in instanceof ByteBuffer){
 			rawBufferRecieved(session, (ByteBuffer) in);
@@ -112,7 +103,7 @@ public class RTMPSessionHandler implements ProtocolHandler, Constants{
 				break;
 			case TYPE_AUDIO_DATA:
 			case TYPE_VIDEO_DATA:
-				log.debug("in packet: "+source.getSize()+" ts:"+source.getTimer());
+				log.info("in packet: "+source.getSize()+" ts:"+source.getTimer());
 				stream.publish(message);
 				break;
 			case TYPE_SHARED_OBJECT:
@@ -216,7 +207,7 @@ public class RTMPSessionHandler implements ProtocolHandler, Constants{
 		}
 	}
 	
-	private void rawBufferRecieved(ProtocolSession session, ByteBuffer in) {
+	private void rawBufferRecieved(IoSession session, ByteBuffer in) {
 		
 		final Connection conn = (Connection) session.getAttachment();
 		
@@ -237,7 +228,7 @@ public class RTMPSessionHandler implements ProtocolHandler, Constants{
 		session.write(out);
 	}
 
-	public void messageSent(ProtocolSession session, Object message) throws Exception {
+	public void messageSent(IoSession session, Object message) throws Exception {
 		final Connection conn = (Connection) session.getAttachment();
 		// TODO Auto-generated method stub
 		if(log.isDebugEnabled())
@@ -255,7 +246,7 @@ public class RTMPSessionHandler implements ProtocolHandler, Constants{
 		}
 	}
 
-	public void sessionClosed(ProtocolSession session) throws Exception {
+	public void sessionClosed(IoSession session) throws Exception {
 		final Connection conn = (Connection) session.getAttachment();
 		conn.setState(Connection.STATE_DISCONNECTED);
 		invokeCall(conn, new Call("disconnect"));
@@ -263,32 +254,26 @@ public class RTMPSessionHandler implements ProtocolHandler, Constants{
 			log.debug("Session closed");
 	}
 
-	public void sessionCreated(ProtocolSession session) throws Exception {
+	public void sessionCreated(IoSession session) throws Exception {
 		if(log.isDebugEnabled())
 			log.debug("Session created");
 		
-		SessionConfig cfg = session.getConfig();
-		
-		try {
-			if (cfg instanceof SocketSessionConfig) {
-				SocketSessionConfig sessionConfig = (SocketSessionConfig) cfg;
-				sessionConfig.setSessionReceiveBufferSize(256);
-				sessionConfig.setSendBufferSize(256);
-			}
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
+		session.getFilterChain().addFirst(
+                "protocolFilter",new ProtocolCodecFilter(codecFactory) );
+        session.getFilterChain().addLast(
+                "logger", new LoggingFilter() );
+        
 		session.setAttachment(new Connection(session));
+		
+		
 	}
 
-	public void sessionIdle(ProtocolSession session, IdleStatus status) throws Exception {
+	public void sessionIdle(IoSession session, IdleStatus status) throws Exception {
 		// TODO Auto-generated method stub
 		log.debug("Session idle");
 	}
 
-	public void sessionOpened(ProtocolSession session) throws Exception {
+	public void sessionOpened(IoSession session) throws Exception {
 		log.debug("Session opened");
 	}
 
@@ -373,7 +358,7 @@ public class RTMPSessionHandler implements ProtocolHandler, Constants{
 		pong.setValue1((short)(ping.getValue1()+1));
 		pong.setValue2(ping.getValue2());
 		channel.write(pong);
-		log.debug(ping);
+		log.info(ping);
 		// No idea why this is needed, 
 		// but it was the thing stopping the new rtmp code streaming
 		final Ping pong2 = new Ping();
@@ -384,7 +369,8 @@ public class RTMPSessionHandler implements ProtocolHandler, Constants{
 	
 	public void onStreamBytesRead(Connection conn, Channel channel, PacketHeader source, StreamBytesRead streamBytesRead){
 		// get the stream, pass the event to the stream
-		log.debug("Stream Bytes Read: "+streamBytesRead.getBytesRead());
+		log.info("Stream Bytes Read: "+streamBytesRead.getBytesRead());
+		
 	}
 	
 	//	 ---------------------------------------------------------------------------

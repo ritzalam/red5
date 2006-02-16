@@ -24,7 +24,6 @@ package org.red5.server;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.red5.server.net.NetworkManager;
 import org.springframework.context.ApplicationContext;
 
 /**
@@ -43,38 +42,9 @@ public class Server {
 	protected static Log log =
         LogFactory.getLog(Server.class.getName());
 	
-	protected NetworkManager networkManager;
 	protected SessionRegistry sessionRegistry;
 	protected ApplicationContext serviceContext;
 	
-	/**
-	 *	Starts the Red5 server by calling networkManager.up() 
-	 *  Once the server is up, clients can connect connect using
-	 *  rtmp://hostname[:port]/
-	 */
-	public void startup(){
-		if(log.isInfoEnabled()){
-			log.info("Startup");
-			networkManager.up();
-		}
-	}
-
-	/**
-	 * Get the networkManager instance
-	 * @return NetworkManager
-	 */
-	public NetworkManager getNetworkManager() {
-		return networkManager;
-	}
-
-	/**
-	 * Sets the networkManager instance
-	 * @param networkManager
-	 */
-	public void setNetworkManager(NetworkManager networkManager) {
-		this.networkManager = networkManager;
-	}
-
 	/**
 	 * Gets the Spring application context
 	 * @return ApplicationContext

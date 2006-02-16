@@ -2,12 +2,12 @@ package org.red5.server.stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.red5.server.rtmp.Connection;
-import org.red5.server.rtmp.message.AudioData;
-import org.red5.server.rtmp.message.Constants;
-import org.red5.server.rtmp.message.Message;
-import org.red5.server.rtmp.message.Status;
-import org.red5.server.rtmp.message.StreamBytesRead;
+import org.red5.server.net.rtmp.Connection;
+import org.red5.server.net.rtmp.message.AudioData;
+import org.red5.server.net.rtmp.message.Constants;
+import org.red5.server.net.rtmp.message.Message;
+import org.red5.server.net.rtmp.message.Status;
+import org.red5.server.net.rtmp.message.StreamBytesRead;
 
 public class Stream implements Constants, IStream, IStreamSink {
 	
@@ -20,6 +20,7 @@ public class Stream implements Constants, IStream, IStreamSink {
 	private long startTS = 0;
 	private long currentTS = 0;
 	private String name = "";
+	private boolean paused = false;
 	
 	private DownStreamSink downstream = null;
 	private IStreamSink upstream = null;
@@ -81,6 +82,26 @@ public class Stream implements Constants, IStream, IStreamSink {
 		publish.setClientid(1);
 		publish.setDetails(name);
 		downstream.getData().sendStatus(publish);
+	}
+	
+	public void pause(){
+		paused = true;
+		//Status pause  = new Status(Status.NS_PLAY_STOP);
+		//pause.setClientid(1);
+		//pause.setDetails(name);
+		//downstream.getData().sendStatus(pause);
+	}
+	
+	public void resume(){
+		paused = false;
+		Status play  = new Status(Status.NS_PLAY_RESET);
+		play.setClientid(1);
+		play.setDetails(name);
+		downstream.getData().sendStatus(play);
+		
+		if(source !=null && source.hasMore()){
+			write(source.dequeue());
+		}
 	}
 	
 	public void start(){
@@ -160,6 +181,7 @@ public class Stream implements Constants, IStream, IStreamSink {
 	}
 	
 	public void written(Message message){
+		if(paused) return;
 		writeQueue--;
 		if(source !=null && source.hasMore()){
 			write(source.dequeue());

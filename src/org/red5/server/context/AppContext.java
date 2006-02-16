@@ -2,10 +2,11 @@ package org.red5.server.context;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.red5.server.service.ServiceInvoker;
-import org.red5.server.stream.StreamManager;
+import org.red5.io.flv.FLVServiceImpl;
 import org.red5.server.SharedObjectPersistence;
 import org.red5.server.SharedObjectRamPersistence;
+import org.red5.server.service.ServiceInvoker;
+import org.red5.server.stream.StreamManager;
 import org.springframework.beans.BeansException;
 
 public class AppContext 
@@ -37,8 +38,11 @@ public class AppContext
 		if(!this.containsBean(STREAM_MANAGER_NAME)){
 			streamManager = new StreamManager();
 			this.getBeanFactory().registerSingleton(STREAM_MANAGER_NAME, streamManager);
+			
 			//streamManager.initialize();
 			streamManager.setApplicationContext(this);
+			// this will need to be refactored
+			streamManager.setFlvService(new FLVServiceImpl());
 		} else {
 			streamManager = (StreamManager) this.getBean(STREAM_MANAGER_NAME);
 		}

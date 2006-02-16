@@ -53,6 +53,7 @@ public class GlobalContext
 				for(int i=0; i<hosts.length; i++){
 					Resource host = hosts[i];
 					String hostname = host.getFile().getName();
+					if(hostname.indexOf(".")==0) continue;
 					if(log.isDebugEnabled()) {
 						log.debug("hostname: "+hostname);
 					}

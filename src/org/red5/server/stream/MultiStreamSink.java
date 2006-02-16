@@ -5,7 +5,7 @@ import java.util.LinkedList;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.red5.server.rtmp.message.Message;
+import org.red5.server.net.rtmp.message.Message;
 
 public class MultiStreamSink implements IStreamSink {
 

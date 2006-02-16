@@ -39,6 +39,7 @@ public class HostContext
 				for(int i=0; i<apps.length; i++){
 					Resource app = apps[i];
 					String appName = app.getFile().getName();
+					if(appName.indexOf(".")==0) continue;
 					if(log.isDebugEnabled()) {
 						log.debug("appName: "+appName);
 					}

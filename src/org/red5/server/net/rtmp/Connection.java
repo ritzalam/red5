@@ -1,14 +1,14 @@
-package org.red5.server.rtmp;
+package org.red5.server.net.rtmp;
 
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.mina.protocol.ProtocolSession;
+import org.apache.mina.common.IoSession;
 import org.red5.server.context.AppContext;
 import org.red5.server.context.Client;
-import org.red5.server.rtmp.message.OutPacket;
-import org.red5.server.rtmp.message.Ping;
+import org.red5.server.net.rtmp.message.OutPacket;
+import org.red5.server.net.rtmp.message.Ping;
 import org.red5.server.stream.DownStreamSink;
 import org.red5.server.stream.Stream;
 
@@ -24,7 +24,8 @@ public class Connection extends Client {
 	public static final boolean MODE_CLIENT = true;
 	public static final boolean MODE_SERVER = false;
 	
-	private ProtocolSession protocolSession;
+	private IoSession ioSession;
+	
 	//private Context context;
 	private byte state = STATE_CONNECT;
 	private Channel[] channels = new Channel[64];
@@ -35,8 +36,8 @@ public class Connection extends Client {
 	private boolean mode = MODE_SERVER;
 	private int clientUptime = 0;
 	
-	public Connection(ProtocolSession protocolSession){
-		this.protocolSession = protocolSession;
+	public Connection(IoSession protocolSession){
+		this.ioSession = protocolSession;
 	}
 	
 	public AppContext getAppContext() {
@@ -47,8 +48,8 @@ public class Connection extends Client {
 		this.appCtx = appCtx;
 	}
 	
-	public ProtocolSession getProtocolSession() {
-		return protocolSession;
+	public IoSession getIoSession() {
+		return ioSession;
 	}
 	
 	public byte getState() {
@@ -110,7 +111,7 @@ public class Connection extends Client {
 	}
 	
 	public void write(OutPacket packet){
-		protocolSession.write(packet);
+		ioSession.write(packet);
 	}
 	
 	public void setParameters(Map params){

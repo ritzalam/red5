@@ -1,6 +1,6 @@
 package org.red5.server.context;
 
-import org.red5.server.rtmp.status.StatusObjectService;
+import org.red5.server.net.rtmp.status.StatusObjectService;
 import org.red5.server.stream.Stream;
 
 public class Scope {

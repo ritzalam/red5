@@ -2,9 +2,9 @@ package org.red5.server.stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.red5.server.rtmp.Channel;
-import org.red5.server.rtmp.message.Constants;
-import org.red5.server.rtmp.message.Message;
+import org.red5.server.net.rtmp.Channel;
+import org.red5.server.net.rtmp.message.Constants;
+import org.red5.server.net.rtmp.message.Message;
 
 public class DownStreamSink implements IStreamSink, Constants {
 
