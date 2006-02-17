@@ -2,6 +2,19 @@ package org.red5.server.api;
 
 import java.util.List;
 
+/**
+ * @author luke
+ * An application can have multiple scopes. 
+ * The hold the state for an application instance
+ * The application should generally be stateless
+ * 
+ * eg:
+ * rtmp://server:port/app/scope
+ * http://server:port/gateway/app/scope
+ * 
+ * If no scope is given, the default scope will be used
+ * 
+ */
 public interface Scope {
 
 	public String getName();
