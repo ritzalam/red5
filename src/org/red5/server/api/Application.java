@@ -8,6 +8,7 @@ public interface Application {
 
 	public String getName();
 	public AppContext getContext();
+	public SharedObject getSharedObject(String name);
 	public List getScopes();
 	
 }

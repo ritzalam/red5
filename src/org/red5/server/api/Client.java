@@ -6,12 +6,13 @@ package org.red5.server.api;
 
 public interface Client {
 
-	public static final String SESSION_KEY = "red5.client";
+	public static final String HTTP_SESSION_KEY = "red5.client";
 	
 	// Unique client id
 	public String getId();
 	public String getHost();
-	//public String getRemoteHost();
+	
+	//public String getRemoteHost(); keep it simple to start with
 	
 	// The red5 session object
 	public Session getSession();

@@ -12,10 +12,11 @@ public interface Scope {
 	
 	public List getClients();
 	
-	public void sendToAll(Object object, boolean excludeSelf);
-	
 	// These will be called internally ?? 
-	public void join(Client client);
-	public void leave(Client client);
+	//public void join(Client client);
+	//public void leave(Client client);
+	
+	//public void sendToAll(Object object, boolean excludeSelf);
+	
 	
 }
