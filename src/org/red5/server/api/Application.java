@@ -10,6 +10,4 @@ public interface Application {
 	public AppContext getContext();
 	public List getScopes();
 	
-	public Object getProperty(String name);
-	
 }

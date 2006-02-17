@@ -11,16 +11,12 @@ public interface Client {
 	// Unique client id
 	public String getId();
 	public String getHost();
-	public String getRemoteHost();
+	//public String getRemoteHost();
 	
 	// The red5 session object
 	public Session getSession();
 
 	// Only one connection is allowed per client, per scope
 	public Connection getConnection(Scope scope);
-	
-	// Internal methods.. 
-	public void register(Connection conn);
-	public void unregister(Connection conn);
 	
 }
