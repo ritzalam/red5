@@ -41,7 +41,7 @@ class org.red5.samples.sosample.Main extends MovieClip {
 	private function connectionChange(evtObj:Object):Void
 	{		
 		
-		if(evtObj.connected && chat.connection == undefined) 
+		if(evtObj.connected) 
 		{
 			// register the NetConnection that GlobalObject will need
 			chat.registerConnection(connector.connection);
