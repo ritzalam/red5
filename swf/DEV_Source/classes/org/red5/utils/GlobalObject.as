@@ -26,13 +26,13 @@ class org.red5.utils.GlobalObject
 
 // Public Methods:
 
-	public function connect(p_soName:String, p_nc:Connection):Boolean
+	public function connect(p_soName:String, p_nc:Connection, p_persistant):Boolean
 	{
 		// store Connection reference
 		nc = p_nc;
 		
 		// create StoredObject
-		so = SharedObject.getRemote("SOSampleText", nc.uri, true);
+		so = SharedObject.getRemote("SOSampleText", nc.uri, p_persistant);
 		
 		// setup the onSync events
 		so.onSync = Delegate.create(this, onStatus);
