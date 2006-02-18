@@ -37,6 +37,10 @@ class org.red5.samples.sosample.BasicChat extends MovieClip {
 	
 	public function connectSO():Void
 	{
+		// parms
+		// @ SO name
+		// @ Connection reference
+		// @ persistance
 		connected = so.connect("SampleChat", connection, false);
 	}
 // Semi-Private Methods:

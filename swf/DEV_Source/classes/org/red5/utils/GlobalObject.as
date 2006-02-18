@@ -26,7 +26,7 @@ class org.red5.utils.GlobalObject
 
 // Public Methods:
 
-	public function connect(p_soName:String, p_nc:Connection, p_persistant):Boolean
+	public function connect(p_soName:String, p_nc:Connection, p_persistant:Boolean):Boolean
 	{
 		// store Connection reference
 		nc = p_nc;
