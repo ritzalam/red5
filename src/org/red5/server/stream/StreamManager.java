@@ -45,6 +45,7 @@ public class StreamManager implements ApplicationContextAware {
 				File file = res.getFile();
 				FLV flv = flvService.getFLV(file);
 				Writer writer = flv.writer();
+				writer.writeHeader();
 				multi.connect(new FileStreamSink(writer));
 			} catch (IOException e) {
 				log.error("Error recording stream: "+stream, e);
