@@ -21,7 +21,7 @@ public class FileStreamSource implements IStreamSource, Constants {
 	private Reader reader = null;
 	
 	public FileStreamSource(Reader reader){
-		reader = reader;
+		this.reader = reader;
 	}
 	
 	public void close() {
