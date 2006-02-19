@@ -11,6 +11,11 @@ import org.red5.server.net.rtmp.message.StreamBytesRead;
 
 public class Stream implements Constants, IStream, IStreamSink {
 	
+	public static final String MODE_READ = "read";
+	public static final String MODE_RECORD = "record";
+	public static final String MODE_APPEND = "append";
+	public static final String MODE_LIVE = "live";
+	
 	protected static Log log =
         LogFactory.getLog(Stream.class.getName());
 	
@@ -21,6 +26,7 @@ public class Stream implements Constants, IStream, IStreamSink {
 	private long currentTS = 0;
 	private String name = "";
 	private boolean paused = false;
+	private String mode = MODE_READ;
 	
 	private DownStreamSink downstream = null;
 	private IStreamSink upstream = null;
@@ -30,10 +36,15 @@ public class Stream implements Constants, IStream, IStreamSink {
 	
 	private Connection conn;
 	
-	public Stream(Connection conn) {
+	public Stream(Connection conn){
 		this.conn = conn;
 	}
-
+	
+	public Stream(Connection conn, String type) {
+		this.conn = conn;
+		this.mode = type;
+	}
+	
 	public int getStreamId() {
 		return streamId;
 	}
@@ -48,6 +59,14 @@ public class Stream implements Constants, IStream, IStreamSink {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public String getMode() {
+		return mode;
+	}
+
+	public void setMode(String mode) {
+		this.mode = mode;
 	}
 
 	public DownStreamSink getDownstream() {

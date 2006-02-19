@@ -135,9 +135,9 @@ public class BaseApplication
 	public StatusObject publish(String name, String mode){
 		final Stream stream = Scope.getStream();
 		stream.setName(name);
+		stream.setMode(mode);
 		streamManager.publishStream(stream);
-		stream.publish();
-		// register the name with the stream manager	
+		stream.publish();		
 		log.debug("publish: "+name);
 		log.debug("stream: "+stream);
 		log.debug("mode:"+mode);

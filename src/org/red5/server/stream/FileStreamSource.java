@@ -20,8 +20,8 @@ public class FileStreamSource implements IStreamSource, Constants {
 	
 	private Reader reader = null;
 	
-	public FileStreamSource(FLV flv){
-		reader = flv.reader();
+	public FileStreamSource(Reader reader){
+		reader = reader;
 	}
 	
 	public void close() {
