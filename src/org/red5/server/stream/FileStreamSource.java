@@ -25,7 +25,7 @@ public class FileStreamSource implements IStreamSource, Constants {
 	}
 	
 	public void close() {
-		// should close reader ?, or remove reader ?
+		reader.close();
 	}
 
 	public Message dequeue() {

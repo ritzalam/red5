@@ -50,6 +50,8 @@ public class RTMPHandler extends BaseHandler implements Constants{
 	//	 ------------------------------------------------------------------------------
 	
 
+	
+	
 	public void exceptionCaught(IoSession session, Throwable cause) throws Exception {
 		// TODO Auto-generated method stub
 		log.debug("Exception caught", cause);
@@ -266,6 +268,7 @@ public class RTMPHandler extends BaseHandler implements Constants{
 	public void sessionClosed(IoSession session) throws Exception {
 		final Connection conn = (Connection) session.getAttachment();
 		conn.setState(Connection.STATE_DISCONNECTED);
+		conn.close();
 		invokeCall(conn, new Call("disconnect"));
 		if(log.isDebugEnabled())
 			log.debug("Session closed");

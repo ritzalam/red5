@@ -47,7 +47,8 @@ public class StreamManager implements ApplicationContextAware {
 		// The mode must be record or append
 		try {				
 			Resource res = appCtx.getResource("streams/" + stream.getName()+".flv");
-			if(res.exists()) res.getFile().delete();
+			if(stream.getMode().equals(Stream.MODE_RECORD) && res.exists()) 
+				res.getFile().delete();
 			if(!res.exists()) res = appCtx.getResource("streams/").createRelative(stream.getName()+".flv");
 			if(!res.exists()) res.getFile().createNewFile(); 
 			File file = res.getFile();
@@ -61,6 +62,12 @@ public class StreamManager implements ApplicationContextAware {
 		} catch (IOException e) {
 			log.error("Error recording stream: "+stream, e);
 		}
+	}
+	
+	public void deleteStream(Stream stream){
+		stream.close();
+		if(published.containsKey(stream.getName()))
+				published.remove(stream.getName());
 	}
 	
 	public boolean isPublishedStream(String name){

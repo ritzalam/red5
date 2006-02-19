@@ -126,6 +126,10 @@ public class Connection extends Client {
 		this.clientUptime = clientTimer;
 	}
 
+	public Stream getStreamById(int id){
+		return streams[id-1];
+	}
+	
 	public Stream getStreamByChannelId(byte channelId){
 		if(channelId < 4) return null;
 		//log.debug("Channel id: "+channelId);
@@ -134,6 +138,13 @@ public class Connection extends Client {
 		if(streams[streamId]==null) 
 			streams[streamId] = createStream(streamId);
 		return streams[streamId];
+	}
+	
+	public void close(){
+		for(int i=0; i<streams.length; i++){
+			Stream stream = streams[i];
+			if(stream!=null) stream.close();
+		}
 	}
 	
 	protected Stream createStream(int streamId){

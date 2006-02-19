@@ -11,4 +11,8 @@ public class Client {
 		else return (String) params.get(name);
 	}
 	
+	public void close(){
+		// nothing
+	}
+	
 }

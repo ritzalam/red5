@@ -152,8 +152,11 @@ public class BaseApplication
 		else stream.resume();
 	}
 	
-	public void deleteStream(){
-		// unpublish ?
+	public void deleteStream(int number){
+		Connection conn = (Connection) Scope.getClient();
+		Stream stream = conn.getStreamById(number);
+		log.debug("Delete stream: "+stream+" number: "+number);
+		streamManager.deleteStream(stream);
 	}
 	
 	public void closeStream(){
