@@ -11,6 +11,7 @@ SolidCompression=yes
 ;Compression=none
 WizardSmallImageFile={#build_dir}\images\red5_top.bmp
 WizardImageFile={#build_dir}\images\red5_left.bmp
+LicenseFile={#build_dir}\..\license.txt
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -23,6 +24,14 @@ JavaSetup=Java Setup
 JavaHome=Java Home
 JavaHomeInfo=Enter the path to your Java installation.
 InvalidJavaHome=The path you selected is invalid. Please make sure a java.exe exists inside the "bin" directory.
+MainFiles=Main files
+JavaSources=Java source files
+FlashSources=Flash sample source files
+
+[Components]
+Name: "main"; Description: "{cm:MainFiles}"; Types: full compact custom; Flags: fixed
+Name: "java_source"; Description: "{cm:JavaSources}"; Types: full
+Name: "flash_source"; Description: "{cm:FlashSources}"; Types: full
 
 [Tasks]
 Name: "service"; Description: "{cm:RegisterService}"
@@ -38,8 +47,11 @@ Source: "{#root_dir}\conf\red5.xml"; DestDir: "{app}\conf"; Flags: onlyifdoesnte
 Source: "{#root_dir}\conf\web.xml"; DestDir: "{app}\conf"; Flags: onlyifdoesntexist recursesubdirs; AfterInstall: UpdateConfigFiles('{app}\conf\web.xml', '{app}')
 Source: "{#root_dir}\hosts\*"; DestDir: "{app}\hosts"; Flags: onlyifdoesntexist recursesubdirs
 Source: "{#root_dir}\lib\*"; DestDir: "{app}\lib"; Flags: ignoreversion recursesubdirs
-Source: "{#root_dir}\swf\*"; DestDir: "{app}\swf"; Flags: ignoreversion recursesubdirs
+Source: "{#root_dir}\swf\*"; DestDir: "{app}\swf"; Excludes: "*.fla,*.as"; Flags: ignoreversion
+Source: "{#root_dir}\swf\DEV_Deploy\*"; DestDir: "{app}\swf\DEV_Deploy"; Flags: ignoreversion recursesubdirs
 Source: "{#root_dir}\webapps\*"; DestDir: "{app}\webapps"; Flags: onlyifdoesntexist recursesubdirs
+Source: "{#root_dir}\doc\*"; DestDir: "{app}\doc"; Flags: ignoreversion
+;Source: "{#root_dir}\doc\licenseInfo\*"; DestDir: "{app}\doc\licenseInfo"; Flags: ignoreversion recursesubdirs
 
 ; Files required for windows service / wrapped start
 Source: "{#build_dir}\bin\*.bat"; DestDir: "{app}\bin"; Flags: ignoreversion
@@ -48,11 +60,29 @@ Source: "{#build_dir}\conf\wrapper.conf"; DestDir: "{app}\conf"; Flags: ignoreve
 Source: "{#build_dir}\lib\wrapper.dll"; DestDir: "{app}\lib"; Flags: ignoreversion
 Source: "{#build_dir}\lib\wrapper.jar"; DestDir: "{app}\lib"; Flags: ignoreversion
 
+; Java source code (optional)
+Source: "{#root_dir}\.classpath"; DestDir: "{app}"; Flags: ignoreversion; Components: java_source
+Source: "{#root_dir}\.project"; DestDir: "{app}"; Flags: ignoreversion; Components: java_source
+Source: "{#root_dir}\.springBeans"; DestDir: "{app}"; Flags: ignoreversion; Components: java_source
+Source: "{#root_dir}\build.xml"; DestDir: "{app}"; Flags: ignoreversion; Components: java_source
+Source: "{#root_dir}\red5.bat"; DestDir: "{app}"; Flags: ignoreversion; Components: java_source
+Source: "{#root_dir}\red5.sh"; DestDir: "{app}"; Flags: ignoreversion; Components: java_source
+Source: "{#root_dir}\src\*"; DestDir: "{app}\src"; Flags: ignoreversion recursesubdirs; Components: java_source
+
+; Flash sample source code (optional)
+Source: "{#root_dir}\swf\*"; DestDir: "{app}\swf"; Excludes: "*.swf"; Flags: ignoreversion; Components: flash_source
+Source: "{#root_dir}\swf\DEV_Source\*"; DestDir: "{app}\swf\DEV_Source"; Flags: ignoreversion recursesubdirs; Components: flash_source
+
 [Dirs]
 Name: "{app}\logs"
 
 [Icons]
 Name: "{group}\Red5"; Filename: "{app}\bin\Red5.bat"
+Name: "{group}\Readme"; Filename: "{app}\doc\readme.html"
+Name: "{group}\Eclipse Setup"; Filename: "{app}\doc\eclipsesetup.html"
+Name: "{group}\FAQ (PDF)"; Filename: "{app}\doc\Frequently Asked Questions.pdf"
+Name: "{group}\FAQ (Word)"; Filename: "{app}\doc\Frequently Asked Questions.doc"
+Name: "{group}\FAQ (Flash)"; Filename: "{app}\doc\Frequently Asked Questions.swf"
 Name: "{group}\{cm:UninstallProgram,Red5}"; Filename: "{uninstallexe}"
 Name: "{userdesktop}\Red5"; Filename: "{app}\bin\Red5.bat"; Tasks: desktopicon
 
@@ -146,10 +176,17 @@ end;
 function UpdateReadyMemo(Space, NewLine, MemoUserInfoInfo, MemoDirInfo, MemoTypeInfo, MemoComponentsInfo, MemoGroupInfo, MemoTasksInfo: String): String;
 begin
   Result := MemoDirInfo + NewLine + NewLine +
-            MemoGroupInfo + NewLine + NewLine +
-            MemoTasksInfo + NewLine + NewLine +
-            ExpandConstant('{cm:JavaHome}') + NewLine +
-            Space + AddBackslash(JavaHomePage.Values[0]);
+            MemoGroupInfo + NewLine + NewLine;
+
+  if (MemoComponentsInfo <> '') then
+    Result := Result + MemoComponentsInfo + NewLine + NewLine;
+
+  if (MemoTasksInfo <> '') then
+    Result := Result + MemoTasksInfo + NewLine + NewLine;
+
+  Result := Result +
+    ExpandConstant('{cm:JavaHome}') + ':' + NewLine +
+    Space + AddBackslash(JavaHomePage.Values[0]);
 end;
 
 procedure UpdateConfigFiles(Filename: String; Root: String);
@@ -198,7 +235,7 @@ begin
   Path := AddBackslash(JavaHomePage.Values[0]);
   if LoadStringsFromFile(Filename, Lines) then begin
     for i := 0 to GetArrayLength(Lines)-1 do begin
-      if Pos(JavaHome, Lines[i]) > 0 then
+      if Pos(Path, Lines[i]) > 0 then
         // Already changed this line...
         continue;
 
