@@ -30,7 +30,6 @@ import junit.framework.TestCase;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.red5.server.io.test.TestJavaBean;
 import org.red5.server.service.ConversionUtils;
 
 // TODO: Add more tests here. 
@@ -110,6 +109,11 @@ public class ConversionUtilsTest extends TestCase {
 		if(!(result instanceof Set)) Assert.fail("Should be a set");
 		Set results = (Set) result;
 		Assert.assertEquals(results.size(), source.length);
+		
+	}
+	
+	class TestJavaBean {
+		
 		
 	}
 	
