@@ -7,10 +7,10 @@ import org.red5.utils.GlobalObject;
 import org.red5.net.Connection;
 import org.red5.utils.Delegate;
 
-class org.red5.samples.sosample.BasicChat extends MovieClip {
+class org.red5.samples.simplechat.BasicChat extends MovieClip {
 // Constants:
-	public static var CLASS_REF = org.red5.samples.sosample.BasicChat;
-	public static var LINKAGE_ID:String = "org.red5.samples.sosample.BasicChat";
+	public static var CLASS_REF = org.red5.samples.simplechat.BasicChat;
+	public static var LINKAGE_ID:String = "org.red5.samples.simplechat.BasicChat";
 // Public Properties:
 	public var connection:Connection;
 // Private Properties:

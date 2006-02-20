@@ -1,15 +1,15 @@
 // ** AUTO-UI IMPORT STATEMENTS **
-import org.red5.samples.sosample.BasicChat;
+import org.red5.samples.simplechat.BasicChat;
 import org.red5.utils.Connector;
 // ** END AUTO-UI IMPORT STATEMENTS **
 import com.neoarchaic.ui.Tooltip;
 //import org.red5.utils.Delegate;
 import com.blitzagency.xray.util.XrayLoader;
 
-class org.red5.samples.sosample.Main extends MovieClip {
+class org.red5.samples.simplechat.Main extends MovieClip {
 // Constants:
-	public static var CLASS_REF = org.red5.samples.sosample.Main;
-	public static var LINKAGE_ID:String = "org.red5.samples.sosample.Main";
+	public static var CLASS_REF = org.red5.samples.simplechat.Main;
+	public static var LINKAGE_ID:String = "org.red5.samples.simplechat.Main";
 // Public Properties:
 // Private Properties:
 // UI Elements:
