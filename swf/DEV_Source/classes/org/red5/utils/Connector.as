@@ -14,6 +14,7 @@ class org.red5.utils.Connector extends MovieClip
 // Constants:
 	public static var CLASS_REF = org.red5.utils.Connector;
 	public static var LINKAGE_ID:String = "org.red5.utils.Connector";
+	public static var red5URI:String = "rtmp://localhost/";
 // Public Properties:
 	public var addEventListener:Function;
 	public var removeEventListener:Function;
@@ -48,7 +49,7 @@ class org.red5.utils.Connector extends MovieClip
 		disconnect._visible = false;
 		
 		// set the URI
-		uri.text = "rtmp://localhost/";
+		uri.text = red5URI;
 		
 		// setup the buttons
 		connect.addEventListener("click", Delegate.create(this, makeConnection));

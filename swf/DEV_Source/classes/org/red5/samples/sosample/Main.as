@@ -34,6 +34,9 @@ class org.red5.samples.sosample.Main extends MovieClip {
 		// get notified of connection changes
 		connector.addEventListener("connectionChange", this);
 		
+		// set the uri
+		Connector.red5URI = "rtmp://localhost/SOSample";
+		
 		// initialize the connector
 		connector.configUI();
 	}
