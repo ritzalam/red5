@@ -1,5 +1,5 @@
 // ** AUTO-UI IMPORT STATEMENTS **
-import org.red5.samples.sosample.Connector;
+import org.red5.utils.Connector;
 import org.red5.samples.soball.BallControl;
 // ** END AUTO-UI IMPORT STATEMENTS **
 import com.neoarchaic.ui.Tooltip;

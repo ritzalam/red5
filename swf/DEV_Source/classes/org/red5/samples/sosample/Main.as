@@ -1,6 +1,6 @@
 // ** AUTO-UI IMPORT STATEMENTS **
 import org.red5.samples.sosample.BasicChat;
-import org.red5.samples.sosample.Connector;
+import org.red5.utils.Connector;
 // ** END AUTO-UI IMPORT STATEMENTS **
 import com.neoarchaic.ui.Tooltip;
 //import org.red5.utils.Delegate;

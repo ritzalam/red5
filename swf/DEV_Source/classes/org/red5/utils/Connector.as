@@ -9,11 +9,11 @@ import org.red5.utils.Delegate;
 import com.gskinner.events.GDispatcher;
 
 
-class org.red5.samples.sosample.Connector extends MovieClip 
+class org.red5.utils.Connector extends MovieClip 
 {
 // Constants:
-	public static var CLASS_REF = org.red5.samples.sosample.Connector;
-	public static var LINKAGE_ID:String = "org.red5.samples.sosample.Connector";
+	public static var CLASS_REF = org.red5.utils.Connector;
+	public static var LINKAGE_ID:String = "org.red5.utils.Connector";
 // Public Properties:
 	public var addEventListener:Function;
 	public var removeEventListener:Function;
@@ -48,7 +48,7 @@ class org.red5.samples.sosample.Connector extends MovieClip
 		disconnect._visible = false;
 		
 		// set the URI
-		uri.text = "rtmp://localhost/SOSample";
+		uri.text = "rtmp://localhost/";
 		
 		// setup the buttons
 		connect.addEventListener("click", Delegate.create(this, makeConnection));
