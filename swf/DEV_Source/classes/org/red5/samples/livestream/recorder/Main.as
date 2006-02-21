@@ -18,6 +18,7 @@ class org.red5.samples.livestream.recorder.Main extends MovieClip {
 	private var recording:Boolean;
 	private var playing:Boolean;
 	private var cam:Camera;
+	private var mic:Microphone;
 	private var currentTimer:Number;
 // UI Elements:
 
@@ -55,6 +56,9 @@ class org.red5.samples.livestream.recorder.Main extends MovieClip {
 		
 		// setup cam
 		cam = Camera.get();
+		
+		// setup mic
+		mic = Microphone.get();
 		
 		// get notified of connection changes
 		connector.addEventListener("connectionChange", this);
@@ -94,6 +98,7 @@ class org.red5.samples.livestream.recorder.Main extends MovieClip {
 		currentTimer = getTimer();
 		recordingStream.publish("red5RecordDemo" + currentTimer, "record");
 		recordingStream.attachVideo(cam);
+		recordingStream.attachAudio(mic);
 		publish_video.attachVideo(cam);
 	}
 	
