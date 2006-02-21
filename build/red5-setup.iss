@@ -51,7 +51,7 @@ Source: "{#root_dir}\swf\*"; DestDir: "{app}\swf"; Excludes: "*.fla,*.as"; Flags
 Source: "{#root_dir}\swf\DEV_Deploy\*"; DestDir: "{app}\swf\DEV_Deploy"; Flags: ignoreversion recursesubdirs
 Source: "{#root_dir}\webapps\*"; DestDir: "{app}\webapps"; Flags: onlyifdoesntexist recursesubdirs
 Source: "{#root_dir}\doc\*"; DestDir: "{app}\doc"; Flags: ignoreversion
-;Source: "{#root_dir}\doc\licenseInfo\*"; DestDir: "{app}\doc\licenseInfo"; Flags: ignoreversion recursesubdirs
+Source: "{#root_dir}\doc\licenseInfo\*"; DestDir: "{app}\doc\licenseInfo"; Flags: ignoreversion recursesubdirs
 
 ; Files required for windows service / wrapped start
 Source: "{#build_dir}\bin\*.bat"; DestDir: "{app}\bin"; Flags: ignoreversion
@@ -83,6 +83,8 @@ Name: "{group}\Eclipse Setup"; Filename: "{app}\doc\eclipsesetup.html"
 Name: "{group}\FAQ (PDF)"; Filename: "{app}\doc\Frequently Asked Questions.pdf"
 Name: "{group}\FAQ (Word)"; Filename: "{app}\doc\Frequently Asked Questions.doc"
 Name: "{group}\FAQ (Flash)"; Filename: "{app}\doc\Frequently Asked Questions.swf"
+Name: "{group}\License"; Filename: "{app}\doc\licenseInfo\Red5LicenseInfo.txt"
+Name: "{group}\Team"; Filename: "{app}\doc\licenseInfo\team.txt"
 Name: "{group}\{cm:UninstallProgram,Red5}"; Filename: "{uninstallexe}"
 Name: "{userdesktop}\Red5"; Filename: "{app}\bin\Red5.bat"; Tasks: desktopicon
 
