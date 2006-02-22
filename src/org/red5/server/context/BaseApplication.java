@@ -15,6 +15,7 @@ import org.red5.server.net.rtmp.status.StatusObjectService;
 import org.red5.server.stream.IStreamSource;
 import org.red5.server.stream.Stream;
 import org.red5.server.stream.StreamManager;
+import org.red5.server.stream.TemporaryStream;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationContext;
@@ -107,26 +108,90 @@ public class BaseApplication
 	}
 	
 	public void play(String name){
-		 play(name, -1); // not sure what the number does
+		 play(name, new Double(-2000.0));
 	}
 	
-	public void play(String name, int number){
+	public void play(String name, Double number){
 		final Stream stream = Scope.getStream();
+		// it seems as if the number is sent multiplied by 1000
+		int num = (int)(number.doubleValue() / 1000.0);
+		if (num < -2)
+			num = -2;
 		stream.setName(name);
 		log.debug("play: "+name);
 		log.debug("stream: "+stream);
 		log.debug("number:"+number);
-		if(streamManager.isPublishedStream(name)){
-			streamManager.connectToPublishedStream(stream);
-			stream.start();
-		} else {
-			final IStreamSource source = streamManager.lookupStreamSource(name);
-			log.debug(source);
-			stream.setSource(source);
+		
+		// According the documentation of NetStream.play, the number has the following
+		// meanings:
+		//
+		// -2 (default)
+		// try to play live stream <name>, if none exists, play recorded stream,
+		// if no rec. stream exists, create live stream and begin playing once
+		// someone publishes to it
+		//
+		// -1
+		// play live stream, if it doesn't exist, wait for it
+		//
+		// 0 or positive number
+		// play recorded stream at <number> seconds from the beginning
+		//
+		// any negative number but -1 and -2
+		// use same behaviour as -2
+		//
+		
+		boolean isPublishedStream = streamManager.isPublishedStream(name);
+		boolean isFileStream = streamManager.isFileStream(name);
+		
+		switch (num) {
+		case -2:
+			if (isPublishedStream) {
+				streamManager.connectToPublishedStream(stream);
+				stream.start();
+			} else if (isFileStream) {
+				final IStreamSource source = streamManager.lookupStreamSource(name);
+				log.debug(source);
+				stream.setSource(source);
+				
+				//Integer.MAX_VALUE;
+				//stream.setNSId();
+				stream.start();
+			} else {
+				// Create temporary live stream and publish it
+				streamManager.publishStream(new TemporaryStream(name, Stream.MODE_LIVE));
+				streamManager.connectToPublishedStream(stream);
+				stream.start();
+			}
+			break;
+		
+		case -1:
+			if (isPublishedStream) {
+				streamManager.connectToPublishedStream(stream);
+				stream.start();
+			} else {
+				// TODO: Wait for stream to be created until timeout, otherwise continue
+				// with next item in playlist (see Macromedia documentation)
+				// NOTE: For now we create a temporary stream
+				streamManager.publishStream(new TemporaryStream(name, Stream.MODE_LIVE));
+				streamManager.connectToPublishedStream(stream);
+				stream.start();
+			}
+			break;
 			
-			//Integer.MAX_VALUE;
-			//stream.setNSId();
-			stream.start();
+		default:
+			if (isFileStream) {
+				final IStreamSource source = streamManager.lookupStreamSource(name);
+				log.debug(source);
+				stream.setSource(source);
+				
+				//Integer.MAX_VALUE;
+				//stream.setNSId();
+				// TODO: Seek to requested start
+				stream.start();
+			} else {
+				// TODO: Wait for it, then continue with next item in playlist (?)
+			}
+			break;
 		}
 		//streamManager.play(stream, name);
 		//return getStatus(StatusObjectService.NS_PLAY_START);

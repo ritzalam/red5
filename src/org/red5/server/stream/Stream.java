@@ -2,6 +2,7 @@ package org.red5.server.stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.red5.server.net.rtmp.Channel;
 import org.red5.server.net.rtmp.Connection;
 import org.red5.server.net.rtmp.message.AudioData;
 import org.red5.server.net.rtmp.message.Constants;
@@ -100,7 +101,10 @@ public class Stream implements Constants, IStream, IStreamSink {
 		Status publish = new Status(Status.NS_PUBLISH_START);
 		publish.setClientid(1);
 		publish.setDetails(name);
-		downstream.getData().sendStatus(publish);
+		Channel data = downstream.getData();
+		if (data != null)
+			// temporary streams don't have a data channel so check for it
+			data.sendStatus(publish);
 	}
 	
 	public void pause(){

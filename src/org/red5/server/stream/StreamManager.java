@@ -37,7 +37,11 @@ public class StreamManager implements ApplicationContextAware {
 		// If we have a read mode stream, we shouldnt be publishing return
 		if(stream.getMode().equals(Stream.MODE_READ)) return;
 		
-		MultiStreamSink multi = new MultiStreamSink();
+		MultiStreamSink multi = (MultiStreamSink) published.get(stream.getName());
+		if (multi == null)
+			// sink doesn't exist, create new
+			multi = new MultiStreamSink();
+			
 		stream.setUpstream(multi);
 		published.put(stream.getName(),multi);
 		
@@ -72,6 +76,23 @@ public class StreamManager implements ApplicationContextAware {
 	
 	public boolean isPublishedStream(String name){
 		return published.containsKey(name);
+	}
+	
+	public boolean isFileStream(String name) {
+		if (this.isPublishedStream(name))
+			// A stream cannot be published and file based at the same time
+			return false;
+		
+		try {
+			File file = appCtx.getResources("streams/" + name)[0].getFile();
+			if (file.exists())
+				return true;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return false;
 	}
 	
 	public void connectToPublishedStream(Stream stream){
