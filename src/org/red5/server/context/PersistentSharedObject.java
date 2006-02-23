@@ -35,14 +35,22 @@ public class PersistentSharedObject {
 			this.persistence.storeSharedObject(this);
 	}
 	
-	public void updateAttribute(String name, Object value) {
-		this.data.put(name, value);
-		this.notifyModified();
+	public boolean updateAttribute(String name, Object value) {
+		Object old = this.data.get(name);
+		if ((old == null) || (!old.equals(value))) {
+			this.data.put(name, value);
+			this.notifyModified();
+			return true;
+		} else
+			return false;
 	}
 	
-	public void deleteAttribute(String name) {
+	public boolean deleteAttribute(String name) {
+		boolean result = this.data.containsKey(name);
 		this.data.remove(name);
-		this.notifyModified();
+		if (result)
+			this.notifyModified();
+		return result;
 	}
 	
 	public void setData(Map data) {

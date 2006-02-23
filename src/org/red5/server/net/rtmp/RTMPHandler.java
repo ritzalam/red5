@@ -139,6 +139,7 @@ public class RTMPHandler extends BaseHandler implements Constants{
 		sync.setType(request.getType());
 		
 		boolean updates = false;
+		boolean processed;
 		
 		Iterator it = request.getEvents().iterator();
 		while (it.hasNext()) {
@@ -171,19 +172,21 @@ public class RTMPHandler extends BaseHandler implements Constants{
 			
 			case SO_SET_ATTRIBUTE:
 				// The client wants to update an attribute
-				so.updateAttribute(event.getKey(), event.getValue());
+				processed = so.updateAttribute(event.getKey(), event.getValue());
 				// Send confirmation to client
 				reply.addEvent(new SharedObjectEvent(SO_CLIENT_UPDATE_ATTRIBUTE, event.getKey(), null));
-				sync.addEvent(new SharedObjectEvent(SO_CLIENT_UPDATE_DATA, event.getKey(), event.getValue()));
+				if (processed)
+					sync.addEvent(new SharedObjectEvent(SO_CLIENT_UPDATE_DATA, event.getKey(), event.getValue()));
 				updates = true;
 				break;
 			
 			case SO_DELETE_ATTRIBUTE:
 				// The client wants to remove an attribute
-				so.deleteAttribute(event.getKey());
+				processed = so.deleteAttribute(event.getKey());
 				// Send confirmation to client
 				reply.addEvent(new SharedObjectEvent(SO_CLIENT_DELETE_DATA, event.getKey(), null));
-				sync.addEvent(new SharedObjectEvent(SO_CLIENT_DELETE_DATA, event.getKey(), null));
+				if (processed)
+					sync.addEvent(new SharedObjectEvent(SO_CLIENT_DELETE_DATA, event.getKey(), null));
 				updates = true;
 				break;
 				
