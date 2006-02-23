@@ -11,6 +11,7 @@ class com.blitzagency.util.SimpleDialog extends MovieClip {
 // Public Properties:
 	public var addEventListener:Function;
 	public var removeEventListener:Function;
+	public var __title:String;
 // Private Properties:
 	private var dispatchEvent:Function;
 // UI Elements:
@@ -33,6 +34,17 @@ class com.blitzagency.util.SimpleDialog extends MovieClip {
 	{
 		__message = newValue;
 		msg.text = newValue;
+	}
+	
+	public function get title():String
+	{
+		return __title;
+	}
+	
+	public function set title(newValue):Void
+	{
+		__title = newValue;
+		window.title = newValue;
 	}
 
 // Initialization:
