@@ -32,7 +32,7 @@ class org.red5.utils.GlobalObject
 		nc = p_nc;
 		
 		// create StoredObject
-		so = SharedObject.getRemote(p_soName, nc.uri, p_persistant);
+		so = SharedObject.getRemote(p_soName, nc.uri, p_persistant); 
 		
 		// setup the onSync events
 		so.onSync = Delegate.create(this, onStatus);
