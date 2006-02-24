@@ -117,7 +117,7 @@ begin
     JavaHome := '';
     
   if (JavaHome = '') or (not DirExists(JavaHome)) then begin
-    MsgBox(ExpandConstant('{cm:NoJavaFound'), mbCriticalError, MB_OK);
+    MsgBox(ExpandConstant('{cm:NoJavaFound}'), mbCriticalError, MB_OK);
     exit;
   end;
 
