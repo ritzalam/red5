@@ -53,19 +53,20 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 		so = new GlobalObject();
 		so.addEventListener("onSync", this);
 		soConnected = so.connect("othelloRoomList", p_connection, false);
-		
-		
-		// now get room list
-		//getRoom();
 	}
 // Semi-Private Methods:
 // Private Methods:
 	private function getRoom():Void
 	{
 		// get the room list and set to the list view
-		var obj = so.getData("mainLobby");
-		_global.tt("getRoom");
-		players.setDataProvider(obj);
+		var ary:Array = so.getData("mainLobby");
+		
+		//_global.tt("getRoom", ary);
+		players.removeAll();
+		for(var i:Number=0;i<ary.length;i++)
+		{
+			players.addItem({label:ary[i].label, data:ary[i].data})
+		}
 	}
 	
 	private function onSync(evtObj:Object):Void
@@ -90,7 +91,14 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 	
 	private function updateSOList():Void
 	{
-		so.setData("mainLobby", players.dataProvider);
+		var ary:Array = new Array();
+		var obj:Object = players.dataProvider;
+		for(var items:String in obj)
+		{
+			ary.push({label: obj[items].label, data: obj[items].data});
+		}
+		ary.sortOn("label");
+		so.setData("mainLobby", ary);
 	}
 	
 	private function addUser():Void
