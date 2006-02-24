@@ -17,6 +17,7 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 	public var addEventDispatcher:Function
 	public var removeEventDispatcher:Function;
 	public var soConnected:Boolean;
+	public var localUserName:String;
 // Private Properties:
 	private var dispatchEvent:Function;
 	private var so:GlobalObject;
@@ -56,6 +57,11 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 	}
 // Semi-Private Methods:
 // Private Methods:
+
+	private function onUnload():Void
+	{
+		removeUser();
+	}
 	private function getRoom():Void
 	{
 		// get the room list and set to the list view
@@ -71,13 +77,15 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 	
 	private function onSync(evtObj:Object):Void
 	{
-		//_global.tt("onSync", evtObj);
+		_global.tt("onSync", evtObj);
 		getRoom();
 	}
 	
 	private function createGame():Void
 	{
-		
+		disableStartGame();
+		black.text = localUserName;
+		updateStatus();
 	}
 	
 	private function checkDuplicatePlayers(p_name:String):Boolean
@@ -87,6 +95,33 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 			if(players.getItemAt(i).data == p_name) return true;
 		}
 		return false;
+	}
+	
+	private function removeUser():Void
+	{
+		for(var i:Number = 0;i<players.length;i++)
+		{
+			if(players.getItemAt(i).data == localUserName)
+			{
+				players.removeItemAt(i);
+			}
+		}
+		
+		updateSOList();
+	}
+	
+	private function updateStatus():Void
+	{
+		for(var i:Number = 0;i<players.length;i++)
+		{
+			if(players.getItemAt(i).data == localUserName)
+			{
+				var label:String = players.getItemAt(i).label;
+				players.getItemAt(i).label = label + " is waiting...";
+			}
+		}
+		
+		updateSOList();
 	}
 	
 	private function updateSOList():Void
@@ -99,6 +134,28 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 		}
 		ary.sortOn("label");
 		so.setData("mainLobby", ary);
+	}
+	
+	private function enableStartGame():Void
+	{
+		startGame.enabled = true;
+	}
+	
+	private function disableStartGame():Void
+	{
+		startGame.enabled = false;
+	}
+	
+	private function enableJoin():Void
+	{
+		addNewUser.enabled = true;
+		newUserName.enabled = true;
+	}
+	
+	private function disableJoin():Void
+	{
+		addNewUser.enabled = false;
+		newUserName.enabled = false;
 	}
 	
 	private function addUser():Void
@@ -116,6 +173,12 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 		}
 		
 		players.addItem({label:newUserName.text, data:newUserName.text});
+		
+		// set localUserName
+		localUserName = newUserName.text;
+		
+		// now that they are already joined up, disable the controls
+		disableJoin();
 		
 		// updating the mainLobby will force everyone else to get a copy
 		updateSOList();
