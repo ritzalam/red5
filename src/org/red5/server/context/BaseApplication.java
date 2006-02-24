@@ -279,6 +279,7 @@ public class BaseApplication
 			// Create new shared object with given name
 			log.info("Creating new shared object " + name);
 			result = new PersistentSharedObject(name, persistent, persistence);
+			persistence.storeSharedObject(result);
 		}
 		
 		return result;
