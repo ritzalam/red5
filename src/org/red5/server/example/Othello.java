@@ -44,7 +44,7 @@ import org.springframework.context.ApplicationContext;
  */
 
 
-public class Othello
+public class Othello implements AppLifecycleAware
 {
 
 	protected static Log log = LogFactory.getLog(Othello.class.getName());
@@ -59,6 +59,26 @@ public class Othello
 
 	public void startUp() {
 		log.debug("starting the Othello service...");
+	}
+	
+	public void onAppStart()
+	{
+		
+	}
+
+	public void onAppStop()
+	{
+		
+	}
+	
+	public boolean onConnect(Client client)
+	{
+		log.debug("!!!!!!!!!!!!!!!!!! onConnect..." + client);
+	}
+
+	public void onDisconnect(Client client)
+	{
+		log.debug("!!!!!!!!!!!!!!!!!! onDisconnect..." + client);
 	}
 
 	/*
