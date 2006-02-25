@@ -57,6 +57,7 @@ public class Othello implements AppLifecycleAware
 	public Othello()
 	{
 		// constructor
+		
 	}
 
 	public void startUp() {
