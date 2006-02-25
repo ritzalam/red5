@@ -30,6 +30,8 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 //import org.springframework.beans.BeansException;
+//import org.red5.server.Client;
+import org.red5.server.context.AppLifecycleAware;
 import org.springframework.context.ApplicationContext;
 //import org.springframework.context.ApplicationContextAware;
 //import org.springframework.core.io.Resource;
@@ -70,16 +72,6 @@ public class Othello implements AppLifecycleAware
 	{
 		
 	}
-	
-	public boolean onConnect(Client client)
-	{
-		log.debug("!!!!!!!!!!!!!!!!!! onConnect..." + client);
-	}
-
-	public void onDisconnect(Client client)
-	{
-		log.debug("!!!!!!!!!!!!!!!!!! onDisconnect..." + client);
-	}
 
 	/*
 	public void setApplicationContext(ApplicationContext context) throws BeansException {
@@ -87,16 +79,27 @@ public class Othello implements AppLifecycleAware
 	}
 	*/
 	 
-	 
+	 /*
 	 public List addUser(String p_username)
 	 {
 		 players.set(0,p_username);
 		 return players;
 	 }
-	 
+	 */
 	 public String getHello()
 	 {
 		 String msg = "hello from Othello!";
 		 return msg;
 	 }
+
+	public boolean onConnect(org.red5.server.context.Client client) {
+		// TODO Auto-generated method stub
+		log.debug("!!!!!!!!!!!!!!!!!! onConnect..." + client);
+		return true;
+	}
+
+	public void onDisconnect(org.red5.server.context.Client client) {
+		// TODO Auto-generated method stub
+		log.debug("!!!!!!!!!!!!!!!!!! onDisconnect..." + client);
+	}
 }
