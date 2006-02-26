@@ -1,6 +1,7 @@
 package org.red5.server.net.rtmp.codec;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Iterator;
 
 import org.apache.commons.logging.Log;
@@ -282,10 +283,15 @@ public class RTMPProtocolEncoder implements org.apache.mina.filter.codec.Protoco
 				ByteBuffer sub = ByteBuffer.allocate(128);
 				sub.setAutoExpand(true);
 				
-				// Serialize name of the handler to call and the arguments
+				// Serialize name of the handler to call...
 				Output output = new Output(sub);
 				serializer.serialize(output, event.getKey());
-				serializer.serialize(output, event.getValue());
+				// ...and the arguments
+				List value = (List) event.getValue();
+				it = value.iterator();
+				while (it.hasNext()) {
+					serializer.serialize(output, it.next());
+				}
 				
 				data.put(event.getType());
 				data.putInt(sub.position());

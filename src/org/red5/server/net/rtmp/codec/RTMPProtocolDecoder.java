@@ -1,6 +1,7 @@
 package org.red5.server.net.rtmp.codec;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
@@ -385,18 +386,27 @@ public class RTMPProtocolDecoder implements Constants, org.apache.mina.filter.co
 			log.debug("type: "+type);
 			SharedObjectEvent event = new SharedObjectEvent(type,null,null);
 			int length = data.getInt();
-			if(length > 0){
+			if (type != SO_SEND_MESSAGE) {
+				if (length > 0){
+					event.setKey(input.getString(data));
+					
+					if (length > event.getKey().length()+2){
+						event.setValue(deserializer.deserialize(input));
+					}
+				}
+			} else {
+				int start = data.position();
 				// the "send" event seems to encode the handler name
 				// as complete AMF string including the string type byte
-				if (type == SO_SEND_MESSAGE) {
-					// XXX: do we need type checking here?
-					event.setKey((String) deserializer.deserialize(input));
-				} else
-					event.setKey(input.getString(data));
-				
-				if(length > event.getKey().length()+2){
-					event.setValue(deserializer.deserialize(input));
+				event.setKey((String) deserializer.deserialize(input));
+
+				// read parameters
+				LinkedList value = new LinkedList();
+				while (data.position() - start < length) {
+					Object tmp = deserializer.deserialize(input);
+					value.add(tmp);
 				}
+				event.setValue(value);
 			}
 			so.addEvent(event);
 		}
