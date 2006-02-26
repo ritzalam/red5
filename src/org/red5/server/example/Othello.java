@@ -20,10 +20,10 @@ package org.red5.server.example;
  * @author The Red5 Project (red5@osflash.org)
  * @author Chris Allen (mrchrisallen@gmail.com)
  */
-import java.util.ArrayList;
+//import java.util.ArrayList;
 //import java.util.Date;
 //import java.util.HashMap;
-import java.util.List;
+//import java.util.List;
 //import java.util.Locale;
 //import java.util.Map;
 
@@ -32,7 +32,7 @@ import org.apache.commons.logging.LogFactory;
 //import org.springframework.beans.BeansException;
 //import org.red5.server.Client;
 import org.red5.server.context.AppLifecycleAware;
-import org.springframework.context.ApplicationContext;
+//import org.springframework.context.ApplicationContext;
 //import org.springframework.context.ApplicationContextAware;
 //import org.springframework.core.io.Resource;
 
@@ -51,8 +51,8 @@ public class Othello implements AppLifecycleAware
 
 	protected static Log log = LogFactory.getLog(Othello.class.getName());
 	
-	protected ApplicationContext appCtx = null;
-	List players = new ArrayList();
+	//protected ApplicationContext appCtx = null;
+	//List players = new ArrayList();
 	
 	public Othello()
 	{
@@ -66,12 +66,12 @@ public class Othello implements AppLifecycleAware
 	
 	public void onAppStart()
 	{
-		
+		log.debug("!!!!!!!!!!!!!!!!!! Othello.onAppStart...");
 	}
 
 	public void onAppStop()
 	{
-		
+		log.debug("!!!!!!!!!!!!!!!!!! Othello.onAppStop...");
 	}
 
 	/*
@@ -86,21 +86,22 @@ public class Othello implements AppLifecycleAware
 		 players.set(0,p_username);
 		 return players;
 	 }
-	 */
+	 
 	 public String getHello()
 	 {
 		 String msg = "hello from Othello!";
 		 return msg;
 	 }
+	 */
 
-	public boolean onConnect(org.red5.server.context.Client client) {
-		// TODO Auto-generated method stub
+	public boolean onConnect(org.red5.server.context.Client client) 
+	{
 		log.debug("!!!!!!!!!!!!!!!!!! onConnect..." + client);
 		return true;
 	}
 
-	public void onDisconnect(org.red5.server.context.Client client) {
-		// TODO Auto-generated method stub
+	public void onDisconnect(org.red5.server.context.Client client) 
+	{
 		log.debug("!!!!!!!!!!!!!!!!!! onDisconnect..." + client);
 	}
 }

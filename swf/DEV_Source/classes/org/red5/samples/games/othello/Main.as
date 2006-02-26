@@ -42,7 +42,7 @@ class org.red5.samples.games.othello.Main extends MovieClip {
 		connector.addEventListener("connectionChange", this);
 		
 		// set the uri
-		Connector.red5URI = "rtmp://localhost/oflaDemo";
+		Connector.red5URI = "rtmp://localhost/Othello";
 		
 		// initialize the connector
 		connector.configUI();
