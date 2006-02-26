@@ -2,7 +2,7 @@
     <shortName>red5</shortName>
     <fullName>Red5</fullName>
     <version>0.3</version>
-    <installerFilename>${product_shortname}-${product_version}-${platform_name}-installer.${platform_exec_suffix}</installerFilename>
+    <installerFilename>setup-${product_shortname}-${product_version}-${platform_name}.${platform_exec_suffix}</installerFilename>
     <readmeFile></readmeFile>
     <licenseFile>../license.txt</licenseFile>
     <wrapLicenseFileText>1</wrapLicenseFileText>
@@ -136,7 +136,7 @@
                 </folder>
                 <folder>
                     <description>Licenses</description>
-                    <destination>${installdir}/doc/licenseInfo</destination>
+                    <destination>${installdir}/doc</destination>
                     <name>licenses</name>
                     <platforms>all</platforms>
                     <distributionFileList>
@@ -231,6 +231,14 @@
                     <windowsExecArgs></windowsExecArgs>
                     <windowsIcon></windowsIcon>
                     <windowsPath>${installdir}/doc/licenseInfo</windowsPath>
+                </startMenuShortcut>
+                <startMenuShortcut>
+                    <comment>Run ${product_fullname} in console</comment>
+                    <name>RunConsole</name>
+                    <windowsExec>${installdir}/bin/Red5.bat</windowsExec>
+                    <windowsExecArgs></windowsExecArgs>
+                    <windowsIcon></windowsIcon>
+                    <windowsPath>${installdir}/bin</windowsPath>
                 </startMenuShortcut>
             </startMenuShortcutList>
         </component>
