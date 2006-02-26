@@ -316,36 +316,7 @@
     </componentList>
     <customLanguageFileList/>
     <fileList/>
-    <finalPageActionList>
-        <runProgram>
-            <ruleList>
-                <compareValues>
-                    <logic>equals</logic>
-                    <value1>${service}</value1>
-                    <value2>1</value2>
-                </compareValues>
-            </ruleList>
-            <program>${installdir}/bin/StartRed5-NT.bat</program>
-            <programArguments>&amp;</programArguments>
-            <runAs></runAs>
-            <workingDirectory>${installdir}/bin</workingDirectory>
-            <progressText>Start service</progressText>
-        </runProgram>
-        <runProgram>
-            <ruleList>
-                <compareValues>
-                    <logic>does_not_equal</logic>
-                    <value1>${service}</value1>
-                    <value2>1</value2>
-                </compareValues>
-            </ruleList>
-            <program>${installdir}/bin/Red5.bat</program>
-            <programArguments>&amp;</programArguments>
-            <runAs></runAs>
-            <workingDirectory>${installdir}/bin</workingDirectory>
-            <progressText>Start ${product_fullname}</progressText>
-        </runProgram>
-    </finalPageActionList>
+    <finalPageActionList/>
     <parameterList>
         <directoryParameter>
             <name>installdir</name>
@@ -363,11 +334,11 @@
             <width>40</width>
         </directoryParameter>
         <booleanParameter>
-            <name>service</name>
+            <name>win_service</name>
             <title>Service installation</title>
             <description></description>
             <explanation>Should Red5 be installed as service?</explanation>
-            <value>1</value>
+            <value></value>
             <default>1</default>
             <ask>yes</ask>
             <cliOptionName></cliOptionName>
@@ -384,27 +355,35 @@
     <platformOptionsList/>
     <postInstallationActionList>
         <substitute>
-          <files>${installdir}/conf/*.xml</files>
+          <files>${installdir}/conf/jetty.xml;${installdir}/conf/red5.xml</files>
           <substitutionList>
             <substitution>
-              <pattern>./conf/</pattern>
-              <value>${installdir}/conf/</value>
+              <pattern>"/conf/</pattern>
+              <value>"${installdir}/conf/</value>
             </substitution>
             <substitution>
               <pattern>&gt;/conf/</pattern>
               <value>&gt;${installdir}/conf/</value>
             </substitution>
             <substitution>
+              <pattern>\./conf/</pattern>
+              <value>${installdir}/conf/</value>
+            </substitution>
+            <substitution>
               <pattern>&gt;conf/</pattern>
               <value>&gt;${installdir}/conf/</value>
             </substitution>
             <substitution>
-              <pattern>./webapps</pattern>
+              <pattern>"conf/</pattern>
+              <value>"${installdir}/conf/</value>
+            </substitution>
+            <substitution>
+              <pattern>\./webapps</pattern>
               <value>${installdir}/webapps</value>
             </substitution>
             <substitution>
               <pattern>&lt;/value&gt;&lt;/constructor-arg&gt;</pattern>
-              <value>&lt;/constructor-arg&gt;&lt;constructor-arg&gt;&lt;value&gt;..\hosts&lt;/value&gt;&lt;/constructor-arg&gt;</value>
+              <value>&lt;/value&gt;&lt;/constructor-arg&gt;&lt;constructor-arg&gt;&lt;value&gt;..\hosts&lt;/value&gt;&lt;/constructor-arg&gt;</value>
             </substitution>
           </substitutionList>
         </substitute>
@@ -422,7 +401,7 @@
             <ruleList>
                 <compareValues>
                     <logic>equals</logic>
-                    <value1>${service}</value1>
+                    <value1>${win_service}</value1>
                     <value2>1</value2>
                 </compareValues>
                 <compareText>
@@ -454,11 +433,6 @@
         <actionGroup>
             <ruleEvaluationLogic>and</ruleEvaluationLogic>
             <ruleList>
-                <compareValues>
-                    <logic>equals</logic>
-                    <value1>${service}</value1>
-                    <value2>1</value2>
-                </compareValues>
                 <compareText>
                     <logic>equals</logic>
                     <text>${platform_name}</text>

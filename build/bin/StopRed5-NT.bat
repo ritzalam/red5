@@ -31,5 +31,3 @@ rem
 :startup
 "%_WRAPPER_EXE%" -p %_WRAPPER_CONF%
 if not errorlevel 1 goto :eof
-pause
-
