@@ -127,6 +127,8 @@ public class RTMPHandler extends BaseHandler implements Constants{
 		BaseApplication app = (BaseApplication) ctx.getBean(AppContext.APP_SERVICE_NAME);
 		String name = request.getName();
 		
+		log.debug("Received SO request from " + channel + "(" + request + ")");
+		
 		PersistentSharedObject so = app.getSharedObject(name, request.isPersistent());
 		SharedObject reply = new SharedObject();
 		reply.setName(name);
@@ -168,6 +170,7 @@ public class RTMPHandler extends BaseHandler implements Constants{
 					sync.addEvent(new SharedObjectEvent(SO_CLIENT_DELETE_DATA, key, null));
 				}
 				so.clear();
+				updates = true;
 				break;
 			
 			case SO_SET_ATTRIBUTE:
@@ -190,6 +193,12 @@ public class RTMPHandler extends BaseHandler implements Constants{
 				updates = true;
 				break;
 				
+			case SO_SEND_MESSAGE:
+				// The client wants to send a message
+				reply.addEvent(new SharedObjectEvent(SO_CLIENT_SEND_MESSAGE, event.getKey(), event.getValue()));
+				sync.addEvent(new SharedObjectEvent(SO_CLIENT_SEND_MESSAGE, event.getKey(), event.getValue()));
+				break;
+				
 			default:
 				log.error("Unknown shared object update event " + event.getType());
 			}
@@ -202,7 +211,7 @@ public class RTMPHandler extends BaseHandler implements Constants{
 		reply.setSoId(so.getVersion());
 		channel.write(reply);
 		
-		if (updates && sync.getEvents().size() > 0) {
+		if (!sync.getEvents().isEmpty()) {
 			// Synchronize updates with all registered clients of this shared object
 			sync.setSoId(so.getVersion());
 			// Acquire the packet, this will stop the data inside being released

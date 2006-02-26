@@ -64,6 +64,8 @@ public class SharedObjectEvent implements Constants {
 				return "Client Update Attribute";
 			case SO_SET_ATTRIBUTE:
 				return "Set Attribute";
+			case SO_SEND_MESSAGE:
+				return "Send Message";
 		}
 		return "Unknown " + type;
 	}

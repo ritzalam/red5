@@ -367,7 +367,7 @@ public class RTMPProtocolDecoder implements Constants, org.apache.mina.filter.co
 	
 	public void decodeSharedObject(SharedObject so) {
 		
-		log.info("> "+so.getData().getHexDump());
+		log.debug("> "+so.getData().getHexDump());
 		
 		final ByteBuffer data = so.getData();
 
@@ -382,18 +382,25 @@ public class RTMPProtocolDecoder implements Constants, org.apache.mina.filter.co
 		// Parse request body
 		while(data.hasRemaining()){
 			byte type = data.get();
-			log.info("type: "+type);
+			log.debug("type: "+type);
 			SharedObjectEvent event = new SharedObjectEvent(type,null,null);
 			int length = data.getInt();
 			if(length > 0){
-				event.setKey(input.getString(data));
+				// the "send" event seems to encode the handler name
+				// as complete AMF string including the string type byte
+				if (type == SO_SEND_MESSAGE) {
+					// XXX: do we need type checking here?
+					event.setKey((String) deserializer.deserialize(input));
+				} else
+					event.setKey(input.getString(data));
+				
 				if(length > event.getKey().length()+2){
 					event.setValue(deserializer.deserialize(input));
 				}
 			}
 			so.addEvent(event);
 		}
-		log.info(so);
+		log.debug(so);
 	}
 
 	public void decodeInvoke(Invoke invoke){

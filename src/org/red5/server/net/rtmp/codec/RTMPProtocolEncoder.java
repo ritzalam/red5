@@ -277,6 +277,22 @@ public class RTMPProtocolEncoder implements org.apache.mina.filter.codec.Protoco
 				data.put(strBuf);
 				break;
 				
+			case SO_CLIENT_SEND_MESSAGE:
+				// Send method name and value
+				ByteBuffer sub = ByteBuffer.allocate(128);
+				sub.setAutoExpand(true);
+				
+				// Serialize name of the handler to call and the arguments
+				Output output = new Output(sub);
+				serializer.serialize(output, event.getKey());
+				serializer.serialize(output, event.getValue());
+				
+				data.put(event.getType());
+				data.putInt(sub.position());
+				sub.flip();
+				data.put(sub);
+				break;
+				
 			default:
 				log.error("Unknown event " + event.getType());
 			}
