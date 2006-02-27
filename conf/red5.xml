@@ -7,11 +7,6 @@
 	    <property name="location" value="/conf/red5.properties" />
 	</bean>
 	
-	<!-- Server: This is the core, call startup method to boot up -->
-	<bean id="server" class="org.red5.server.Server"> 
-	    <property name="sessionRegistry" ref="sessionRegistry" />
-	</bean>
-	
 	<!-- httpServer: embedded Jetty servlet engine --> 
     <bean id="httpServer" class="org.mortbay.xml.XmlConfiguration" init-method="newInstance"> 
         <constructor-arg> 
@@ -76,7 +71,7 @@
          </bean>
          -->
          <!-- DEBUG PROXY -->
-         <!-- DISABLED:
+         <!--
          <bean class="org.apache.mina.integration.spring.Binding">
            <property name="address" value="${debug_proxy.host_port}"/>
            <property name="handler" ref="debugProxyHandler"/>
@@ -85,10 +80,6 @@
        </list>
      </property>
    </bean> 	
-
-	<!-- Session Registry: central location for client sessions -->
-	<bean id="sessionRegistry" class="org.red5.server.SessionRegistry">
-	</bean>
 	
 	<!-- Serializer: serializer supporting general Output objects -->
 	<bean id="serializer" class="org.red5.io.object.Serializer" />
@@ -148,4 +139,5 @@
 		<property name="forward" value="${proxy.forward_host_port}" />
 	</bean>
 	-->
+	
 </beans>
