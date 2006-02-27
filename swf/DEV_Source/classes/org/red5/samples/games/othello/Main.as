@@ -16,6 +16,7 @@ class org.red5.samples.games.othello.Main extends MovieClip {
 // Public Properties:
 // Private Properties:
 	private var gameManager:GameManager;
+	private var res:Object;
 // UI Elements:
 
 // ** AUTO-UI ELEMENTS **

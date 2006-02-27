@@ -22,6 +22,8 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 	private var dispatchEvent:Function;
 	private var so:GlobalObject;
 	private var alert:SimpleDialog;
+	private var connection:Connection;
+	private var res:Object;
 // UI Elements:
 
 // ** AUTO-UI ELEMENTS **
@@ -51,12 +53,25 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 		addNewUser.addEventListener("click", Delegate.create(this, addUser));
 		startGame.addEventListener("click", Delegate.create(this, createGame));
 		
+		res = new Object();
+		res.onResult = function(obj:Object)
+		{
+			_global.tt("addUserName return", obj);
+		}
+		
+		registerConnection(p_connection);
+		
 		so = new GlobalObject();
 		so.addEventListener("onSync", this);
 		soConnected = so.connect("othelloRoomList", p_connection, false);
 	}
 // Semi-Private Methods:
 // Private Methods:
+
+	private function registerConnection(p_connection:Connection):Void
+	{
+		connection = p_connection;
+	}
 
 	private function onUnload():Void
 	{
@@ -172,6 +187,7 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 			return;
 		}
 		
+		connection.call("addUserName", res, newUserName.text);
 		players.addItem({label:newUserName.text, data:newUserName.text});
 		
 		// set localUserName
