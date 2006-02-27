@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
-    <bean id="Othello" class="org.red5.server.example.Othello" singleton="true" />
+    <bean id="appService" class="org.red5.server.example.Othello" singleton="true" />
 </beans>
