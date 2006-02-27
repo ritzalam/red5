@@ -1,4 +1,4 @@
-package org.red5.server.example;
+package org.red5.server.example; 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  * 
@@ -27,47 +27,35 @@ package org.red5.server.example;
 //import java.util.Locale;
 //import java.util.Map;
 
-import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-//import org.springframework.beans.BeansException;
-//import org.red5.server.Client;
+import org.springframework.context.ApplicationContext;
 import org.red5.server.context.AppLifecycleAware;
-//import org.springframework.context.ApplicationContext;
-//import org.springframework.context.ApplicationContextAware;
-//import org.springframework.core.io.Resource;
+import org.red5.server.context.BaseApplication;
 
-/**
- * This service is to be used for John Grden's deomnstration of the Red5
- * prototype presented on Friday October 21st, 2005 at the OFLA Online: The
- * First Online Open Source Flash Conference.
- * 
- * @author Chris Allen mrchrisallen@gmail.com
- * 
- */
-
-
-public class Othello implements AppLifecycleAware
+public class Othello extends BaseApplication implements AppLifecycleAware
 {
 
 	protected static Log log = LogFactory.getLog(Othello.class.getName());
-	
-	//protected ApplicationContext appCtx = null;
-	//List players = new ArrayList();
+	protected ApplicationContext appCtx = null;
 	
 	public Othello()
 	{
 		// constructor
 		
 	}
+	
+	public void setApplicationContext(ApplicationContext context) throws BeansException {
+		appCtx = context;
+	}
 
 	public void startUp() {
-		log.debug("starting the Othello service...");
+		log.info("starting the Othello service...");
 	}
 	
 	public void onAppStart()
 	{
-		log.debug("!!!!!!!!!!!!!!!!!! Othello.onAppStart...");
+		log.info("!!!!!!!!!!!!!!!!!! Othello.onAppStart...");
 	}
 
 	public void onAppStop()
@@ -75,29 +63,9 @@ public class Othello implements AppLifecycleAware
 		log.debug("!!!!!!!!!!!!!!!!!! Othello.onAppStop...");
 	}
 
-	/*
-	public void setApplicationContext(ApplicationContext context) throws BeansException {
-		appCtx = context;
-	}
-	*/
-	 
-	 /*
-	 public List addUser(String p_username)
-	 {
-		 players.set(0,p_username);
-		 return players;
-	 }
-	 
-	 public String getHello()
-	 {
-		 String msg = "hello from Othello!";
-		 return msg;
-	 }
-	 */
-
-	public boolean onConnect(org.red5.server.context.Client client, List params) 
+	public boolean onConnect(org.red5.server.context.Client client)
 	{
-		log.debug("!!!!!!!!!!!!!!!!!! onConnect..." + client + " Params: " + params);
+		log.debug("!!!!!!!!!!!!!!!!!! onConnect..." + client);
 		return true;
 	}
 
