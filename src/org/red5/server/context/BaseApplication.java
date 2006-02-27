@@ -22,7 +22,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
 public class BaseApplication 
-	implements ApplicationContextAware, BeanPostProcessor {
+	implements AppLifecycleAware, ApplicationContextAware, BeanPostProcessor {
 
 	//private StatusObjectService statusObjectService = null;
 	private ApplicationContext appCtx = null;
@@ -233,6 +233,10 @@ public class BaseApplication
 	// -----------------------------------------------------------------------------
 	
 	public void onAppStart(){
+		
+	}
+	
+	public void onAppStop(){
 		
 	}
 	

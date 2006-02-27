@@ -27,6 +27,7 @@ package org.red5.server.example;
 //import java.util.Locale;
 //import java.util.Map;
 
+import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 //import org.springframework.beans.BeansException;
@@ -94,9 +95,9 @@ public class Othello implements AppLifecycleAware
 	 }
 	 */
 
-	public boolean onConnect(org.red5.server.context.Client client) 
+	public boolean onConnect(org.red5.server.context.Client client, List params) 
 	{
-		log.debug("!!!!!!!!!!!!!!!!!! onConnect..." + client);
+		log.debug("!!!!!!!!!!!!!!!!!! onConnect..." + client + " Params: " + params);
 		return true;
 	}
 
