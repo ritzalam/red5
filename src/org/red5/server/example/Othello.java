@@ -1,4 +1,4 @@
-package org.red5.server.example; 
+package org.red5.server.example;
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  * 
@@ -20,49 +20,42 @@ package org.red5.server.example;
  * @author The Red5 Project (red5@osflash.org)
  * @author Chris Allen (mrchrisallen@gmail.com)
  */
-//import java.util.ArrayList;
-//import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-//import java.util.Locale;
-//import java.util.Map;
+import java.util.Set;
+import org.red5.server.example.Holder;
+import java.util.Iterator;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-//import org.springframework.context.ApplicationContext;
-import org.red5.server.context.AppLifecycleAware;
+
 import org.red5.server.context.BaseApplication;
 
 public class Othello extends BaseApplication
-//public class Othello extends BaseApplication implements AppLifecycleAware
-//public class Othello implements AppLifecycleAware
 {
 
 	protected static Log log = LogFactory.getLog(Othello.class.getName());
-	protected HashMap userList = new HashMap();
-	//protected ApplicationContext appCtx = null;
 	
-	public Othello()
-	{
-		// constructor
-		//Map userList = new HashMap();
-		//List userList = new List();
-	}
+	public Othello(){};
 	
-	public HashMap addUserName(String p_userName)
-	{
-		userList.put("userName", p_userName);
-		log.debug("!!!!!!!!!name added ::" + p_userName);
+	public HashMap addUserName(String p_userName) 
+	{ 
+		HashMap userList = Holder.getUserList();
+		userList.put("userName", p_userName);  
+		Holder.setUserList(userList);
 
-		Set set = userList.valueSet(); 
-           
-		Iterator it = set.iterator(); 
-		while (it.hasNext()) 
-		{ 
-			log.debug("name: " + String()it.next()); 
+		log.debug("!!!!!!!!!name added ::" + p_userName);  
+
+		Set set = userList.keySet(); 
+
+		Iterator it = set.iterator();    
+
+		while (it.hasNext())   {        
+		   log.debug("name: " + (String) it.next());    
 		} 
-		return userList;
-	}
+
+		return userList;   
+     }
 
 	public void startUp() {
 		log.info("starting the Othello service...");
