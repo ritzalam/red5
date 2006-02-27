@@ -56,6 +56,73 @@ public class ServiceInvoker  {
 		invoke(call, serviceContext);
 	}
 	
+	/*
+	 * Returns (method, params) for the given service or (null, null) if not method was found.
+	 */
+	private Object[] findMethodWithExactParameters(Object service, String methodName, Object[] args)
+	{
+		int numParams = (args==null) ? 0 : args.length;
+		List methods = ConversionUtils.findMethodsByNameAndNumParams(service, methodName, numParams);
+		log.debug("Found " + methods.size() + " methods");
+		if (methods.isEmpty())
+			return new Object[]{null, null};
+		else if (methods.size() > 1) {
+			log.debug("Multiple methods found with same name and parameter count.");
+			log.debug("Parameter conversion will be attempted in order.");
+		}
+		
+		Method method = null;
+		Object[] params = null;
+		for(int i=0; i<methods.size(); i++){
+			try {
+				method = (Method) methods.get(i);
+				params = ConversionUtils.convertParams(args, method.getParameterTypes());
+				return new Object[]{method, params};
+			} catch (Exception ex){
+				log.debug("Parameter conversion failed", ex);
+			}
+		}
+		
+		return new Object[]{null, null};
+	}
+	
+	/*
+	 * Returns (method, params) for the given service or (null, null) if not method was found.
+	 */
+	private Object[] findMethodWithListParameters(Object service, String methodName, Object[] args)
+	{
+		List methods = ConversionUtils.findMethodsByNameAndNumParams(service, methodName, 1);
+		log.debug("Found " + methods.size() + " methods");
+		if (methods.isEmpty())
+			return new Object[]{null, null};
+		else if (methods.size() > 1) {
+			log.debug("Multiple methods found with same name and parameter count.");
+			log.debug("Parameter conversion will be attempted in order.");
+		}
+		
+		ArrayList argsList = new ArrayList();
+		if(args!=null){
+			for(int i=0; i<args.length; i++){
+				argsList.add(args[0]);
+			}
+		}
+		args = new Object[]{argsList};
+
+		Method method = null;
+		Object[] params = null;
+		for(int i=0; i<methods.size(); i++){
+			try {
+				method = (Method) methods.get(i);
+				params = ConversionUtils.convertParams(args, method.getParameterTypes());
+				return new Object[]{method, params};
+			} catch (Exception ex){
+				log.debug("Parameter conversion failed", ex);
+			}
+		}
+		
+		return new Object[]{null, null};
+	}
+	
 	public void invoke(Call call, ApplicationContext serviceContext) {
 		
 		String serviceName = call.getServiceName();
@@ -91,65 +158,29 @@ public class ServiceInvoker  {
 		
 		
 		Object[] args = call.getArguments();
-		int numParams = (args==null) ? 0 : args.length;
-		
-		for(int i=0; i<args.length; i++){
+		for (int i=0; i<args.length; i++) {
 			log.debug("   "+i+" => "+args[i]);
 		}
 		
-		List methods = ConversionUtils.findMethodsByNameAndNumParams(service,methodName, numParams);
-	
-		log.debug("Found "+methods.size()+" methods");
+		Object[] methodResult = null;
 		
-		if(methods.size()==0){
-			// Ok, then lets try this as a list
-			methods = ConversionUtils.findMethodsByNameAndNumParams(service,methodName, 1);
-			if(methods.size() > 0){
-				log.debug("Trying as a list");
-				ArrayList argsList = new ArrayList();
-				if(args!=null){
-					for(int i=0; i<args.length; i++){
-						argsList.add(args[0]);
-					}
-				}
-				args = new Object[]{argsList};
-			} else {
-				log.debug("Method not found");
-				call.setStatus(Call.STATUS_METHOD_NOT_FOUND);
-				call.setException(new MethodNotFoundException(methodName));
-				return; // EXIT
-			}
-		} else if(methods.size() > 1){
-			log.debug("Multiple methods found with same name and parameter count.");
-			log.debug("Parameter conversion will be attempted in order.");
-		}
+		methodResult = findMethodWithExactParameters(service, methodName, args);
+		if (methodResult.length == 0 || methodResult[0] == null)
+			methodResult = findMethodWithListParameters(service, methodName, args);
 		
-		boolean foundMethod = false;
-		Method method = null;
-		Object[] params = null;
-		for(int i=0; i<methods.size(); i++){
-			try {
-				method = (Method) methods.get(i);
-				params=ConversionUtils.convertParams(args,method.getParameterTypes());
-				foundMethod = true;
-				break;
-			} catch (Exception ex){
-				log.debug("Parameter conversion failed", ex);
-			}
-		}
-		
-		if(!foundMethod){
-			log.debug("Method not found, parameter conversion failed");
+		if (methodResult.length == 0 || methodResult[0] == null) {
 			call.setStatus(Call.STATUS_METHOD_NOT_FOUND);
 			call.setException(new MethodNotFoundException(methodName));
-			return; // EXIT
+			return;
 		}
 		
 		Object result = null;
+		Method method = (Method) methodResult[0];
+		Object[] params = (Object[]) methodResult[1];
 		
 		try {
 			log.debug("Invoking method: "+method.toString());
-			if(method.getReturnType() == Void.class){
+			if (method.getReturnType() == Void.class) {
 				method.invoke(service, params);
 				call.setStatus(Call.STATUS_SUCCESS_VOID);
 			} else {
