@@ -58,6 +58,7 @@ public class AppContext
 			app = (BaseApplication) this.getBean(APP_SERVICE_NAME);
 			app.setApplicationContext(this);
 			app.setStreamManager(streamManager);
+			app.initialize();
 		}
 		
 		SharedObjectPersistence soPersistence = null;
