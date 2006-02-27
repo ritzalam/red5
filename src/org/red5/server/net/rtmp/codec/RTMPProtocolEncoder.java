@@ -1,8 +1,8 @@
 package org.red5.server.net.rtmp.codec;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Iterator;
+import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -14,10 +14,9 @@ import org.red5.io.amf.AMF;
 import org.red5.io.amf.Output;
 import org.red5.io.object.Serializer;
 import org.red5.io.utils.BufferUtils;
-import org.red5.server.net.rtmp.Channel;
-import org.red5.server.net.rtmp.Connection;
 import org.red5.server.net.rtmp.RTMPUtils;
 import org.red5.server.net.rtmp.message.AudioData;
+import org.red5.server.net.rtmp.message.ChunkSize;
 import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.net.rtmp.message.Invoke;
 import org.red5.server.net.rtmp.message.Message;
@@ -53,22 +52,16 @@ public class RTMPProtocolEncoder implements org.apache.mina.filter.codec.Protoco
 				return;
 			}
 			
-			final Connection conn = (Connection) session.getAttachment();
+			final RTMP rtmp = (RTMP) session.getAttribute(RTMP.SESSION_KEY);
 			final OutPacket packet = (OutPacket) message;
 			final PacketHeader header = packet.getDestination();
-			final Channel channel = conn.getChannel(header.getChannelId());	
-			
-			/*
-			if(conn.getState() == Connection.STATE_HANDSHAKE){
-				log.debug("Sending handshake");
-				out.write(packet.getMessage().getData());
-				return;
-			}
-			*/
+			final byte channelId = header.getChannelId();
 			
 			final ByteBuffer data = encodeMessage(packet.getMessage());
 			header.setSize(data.limit());
-			ByteBuffer headers = encodeHeader(header,channel.getLastWriteHeader());
+			ByteBuffer headers = encodeHeader(header,rtmp.getLastWriteHeader(channelId));
+			rtmp.setLastWriteHeader(channelId, header);
+			rtmp.setLastWritePacket(channelId, packet);
 
 			ByteBuffer buf = null;
 			buf = ByteBuffer.allocate(data.limit()+(int)Math.floor(data.limit()/128)); // FIX ME
@@ -78,17 +71,17 @@ public class RTMPProtocolEncoder implements org.apache.mina.filter.codec.Protoco
 			buf.put(headers);
 			headers.release();
 	
-			int numChunks =  (int) Math.ceil((header.getSize() / (float) header.getChunkSize()));
+			final int chunkSize =  rtmp.getWriteChunkSize();
+			int numChunks =  (int) Math.ceil(header.getSize() / (float) chunkSize);
 			
 			// TODO: threadsafe way of doing this reusing the data here, im thinking a lock
 			for(int i=0; i<numChunks; i++){
-				int readAmount = (data.remaining()>header.getChunkSize()) 
-					? header.getChunkSize() : data.remaining();
+				int readAmount = (data.remaining()>chunkSize) 
+					? chunkSize : data.remaining();
 				if(log.isDebugEnabled())
 					log.debug("putting chunk: "+readAmount);
 				BufferUtils.put(buf,data,readAmount);
 				if(data.remaining()>0){
-					// log.debug("header byte");
 					buf.put(RTMPUtils.encodeHeaderByte(HEADER_CONTINUE, header.getChannelId()));
 				}
 			}
@@ -144,6 +137,9 @@ public class RTMPProtocolEncoder implements org.apache.mina.filter.codec.Protoco
 			return message.getData();
 		}
 		switch(message.getDataType()){
+		case TYPE_CHUNK_SIZE:
+			encodeChunkSize((ChunkSize) message);
+			break;
 		case TYPE_INVOKE:
 			encodeInvoke((Invoke) message);
 			break;
@@ -169,6 +165,11 @@ public class RTMPProtocolEncoder implements org.apache.mina.filter.codec.Protoco
 		message.getData().flip();
 		message.setSealed(true);
 		return message.getData();
+	}
+
+	private void encodeChunkSize(ChunkSize chunkSize) {
+		final ByteBuffer data = chunkSize.getData();
+		data.putInt(chunkSize.getSize());
 	}
 
 	private void encodeSharedObject(SharedObject so) {
@@ -338,8 +339,7 @@ public class RTMPProtocolEncoder implements org.apache.mina.filter.codec.Protoco
 					serializer.serialize(output, args[i]);
 				}
 			}
-		}
-		
+		}		
 		//invoke.getData().flip();
 	}
 	
@@ -368,20 +368,13 @@ public class RTMPProtocolEncoder implements org.apache.mina.filter.codec.Protoco
 	public void encodeVideoData(VideoData videoData){
 
 	}
-	
-	public void enchunkData(ByteBuffer in, int chunkSize){
-
-	}
 
 	public void dispose(IoSession ioSession) throws Exception {
-		// TODO Auto-generated method stub
-		
+		// TODO Auto-generated method stub		
 	}
 
 	public void setSerializer(org.red5.io.object.Serializer serializer) {
 		this.serializer = serializer;
 	}
-	
-	
 	
 }

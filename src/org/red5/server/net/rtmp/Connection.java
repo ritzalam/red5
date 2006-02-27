@@ -16,25 +16,13 @@ public class Connection extends Client {
 
 	protected static Log log =
         LogFactory.getLog(Connection.class.getName());
-	
-	public static final byte STATE_CONNECT = 0;
-	public static final byte STATE_HANDSHAKE = 1;
-	public static final byte STATE_CONNECTED = 2;
-	public static final byte STATE_DISCONNECTED = 3;
-	public static final boolean MODE_CLIENT = true;
-	public static final boolean MODE_SERVER = false;
-	
+
 	private IoSession ioSession;
 	
 	//private Context context;
-	private byte state = STATE_CONNECT;
 	private Channel[] channels = new Channel[64];
 	private Stream[] streams = new Stream[12];
-	private Channel lastReadChannel = null;
-	private Channel lastWriteChannel = null;
 	private AppContext appCtx = null;
-	private boolean mode = MODE_SERVER;
-	private int clientUptime = 0;
 	
 	public Connection(IoSession protocolSession){
 		this.ioSession = protocolSession;
@@ -50,22 +38,6 @@ public class Connection extends Client {
 	
 	public IoSession getIoSession() {
 		return ioSession;
-	}
-	
-	public byte getState() {
-		return state;
-	}
-	
-	public void setState(byte state) {
-		this.state = state;
-	}
-
-	public boolean getMode() {
-		return mode;
-	}
-
-	public void setMode(boolean mode) {
-		this.mode = mode;
 	}
 
 	public int getNextAvailableChannelId(){
@@ -93,23 +65,6 @@ public class Connection extends Client {
 		channels[channelId] = null;
 	}
 
-
-	public Channel getLastReadChannel() {
-		return lastReadChannel;
-	}
-
-	public void setLastReadChannel(Channel lastReadChannel) {
-		this.lastReadChannel = lastReadChannel;
-	}
-
-	public Channel getLastWriteChannel() {
-		return lastWriteChannel;
-	}
-
-	public void setLastWriteChannel(Channel lastWriteChannel) {
-		this.lastWriteChannel = lastWriteChannel;
-	}
-	
 	public void write(OutPacket packet){
 		ioSession.write(packet);
 	}
@@ -118,14 +73,6 @@ public class Connection extends Client {
 		this.params = params;
 	}
 	
-	public int getClientTimer() {
-		return clientUptime;
-	}
-
-	public void setClientTimer(int clientTimer) {
-		this.clientUptime = clientTimer;
-	}
-
 	public Stream getStreamById(int id){
 		return streams[id-1];
 	}

@@ -7,20 +7,17 @@ import java.util.Iterator;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.common.IdleStatus;
 import org.apache.mina.common.IoSession;
 import org.apache.mina.filter.LoggingFilter;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.red5.server.context.AppContext;
 import org.red5.server.context.BaseApplication;
-import org.red5.server.context.GlobalContext;
 import org.red5.server.context.HostContext;
 import org.red5.server.context.PersistentSharedObject;
 import org.red5.server.context.Scope;
 import org.red5.server.net.BaseHandler;
+import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.message.Constants;
-import org.red5.server.net.rtmp.message.Handshake;
-import org.red5.server.net.rtmp.message.HandshakeReply;
 import org.red5.server.net.rtmp.message.InPacket;
 import org.red5.server.net.rtmp.message.Invoke;
 import org.red5.server.net.rtmp.message.Message;
@@ -33,7 +30,6 @@ import org.red5.server.net.rtmp.message.StreamBytesRead;
 import org.red5.server.net.rtmp.message.Unknown;
 import org.red5.server.net.rtmp.status.StatusObjectService;
 import org.red5.server.service.Call;
-import org.red5.server.service.ServiceInvoker;
 import org.red5.server.stream.Stream;
 
 public class RTMPHandler extends BaseHandler implements Constants{
@@ -49,11 +45,7 @@ public class RTMPHandler extends BaseHandler implements Constants{
 	
 	//	 ------------------------------------------------------------------------------
 	
-
-	
-	
 	public void exceptionCaught(IoSession session, Throwable cause) throws Exception {
-		// TODO Auto-generated method stub
 		log.debug("Exception caught", cause);
 	}
 
@@ -90,9 +82,6 @@ public class RTMPHandler extends BaseHandler implements Constants{
 			Scope.setStatusObjectService(statusObjectService);
 			
 			switch(message.getDataType()){
-			case TYPE_HANDSHAKE:
-				onHandshake(conn, channel, source, (Handshake) message);
-				break;
 			case TYPE_INVOKE:
 			case TYPE_NOTIFY: // just like invoke, but does not return
 				onInvoke(conn, channel, source, (Invoke) message);
@@ -240,9 +229,10 @@ public class RTMPHandler extends BaseHandler implements Constants{
 	
 	private void rawBufferRecieved(IoSession session, ByteBuffer in) {
 		
+		final RTMP rtmp = (RTMP) session.getAttribute(RTMP.SESSION_KEY);
 		final Connection conn = (Connection) session.getAttachment();
 		
-		if(conn.getState() != Connection.STATE_HANDSHAKE){
+		if(rtmp.getState() != RTMP.STATE_HANDSHAKE){
 			log.warn("Raw buffer after handshake, something odd going on");
 		}
 		
@@ -261,7 +251,7 @@ public class RTMPHandler extends BaseHandler implements Constants{
 
 	public void messageSent(IoSession session, Object message) throws Exception {
 		final Connection conn = (Connection) session.getAttachment();
-		// TODO Auto-generated method stub
+
 		if(log.isDebugEnabled())
 			log.debug("Message sent");
 		
@@ -278,8 +268,9 @@ public class RTMPHandler extends BaseHandler implements Constants{
 	}
 
 	public void sessionClosed(IoSession session) throws Exception {
+		final RTMP rtmp = (RTMP) session.getAttribute(RTMP.SESSION_KEY);
 		final Connection conn = (Connection) session.getAttachment();
-		conn.setState(Connection.STATE_DISCONNECTED);
+		rtmp.setState(RTMP.STATE_DISCONNECTED);
 		conn.close();
 		invokeCall(conn, new Call("disconnect"));
 		if(log.isDebugEnabled())
@@ -290,6 +281,9 @@ public class RTMPHandler extends BaseHandler implements Constants{
 		if(log.isDebugEnabled())
 			log.debug("Session created");
 		
+		// moved protocol state from connection object to rtmp object
+		session.setAttribute(RTMP.SESSION_KEY,new RTMP(RTMP.MODE_SERVER));
+		
 		session.getFilterChain().addFirst(
                 "protocolFilter",new ProtocolCodecFilter(codecFactory) );
         session.getFilterChain().addLast(
@@ -297,16 +291,6 @@ public class RTMPHandler extends BaseHandler implements Constants{
         
 		session.setAttachment(new Connection(session));
 		
-		
-	}
-
-	public void sessionIdle(IoSession session, IdleStatus status) throws Exception {
-		// TODO Auto-generated method stub
-		log.debug("Session idle");
-	}
-
-	public void sessionOpened(IoSession session) throws Exception {
-		log.debug("Session opened");
 	}
 
 	// ------------------------------------------------------------------------------
@@ -345,17 +329,6 @@ public class RTMPHandler extends BaseHandler implements Constants{
 	
 	// ------------------------------------------------------------------------------
 	
-	public void onHandshake(Connection conn, Channel channel, PacketHeader source, Handshake handshake){
-		log.debug("Handshake Connect");
-		log.debug("Channel: "+channel);
-
-		conn.setState(Connection.STATE_HANDSHAKE);
-		final HandshakeReply reply = new HandshakeReply();
-		reply.getData().put(handshake.getData()).flip();
-		channel.write(reply);
-	}
-	
-
 	public void onInvoke(Connection conn, Channel channel, PacketHeader source, Invoke invoke){
 		
 		log.debug("Invoke");
@@ -400,13 +373,10 @@ public class RTMPHandler extends BaseHandler implements Constants{
 	}
 	
 	public void onStreamBytesRead(Connection conn, Channel channel, PacketHeader source, StreamBytesRead streamBytesRead){
-		// get the stream, pass the event to the stream
 		log.info("Stream Bytes Read: "+streamBytesRead.getBytesRead());
-		
+		// TODO: pass this to streaming code
+		// can be used to work out client bandwidth
 	}
 	
 	//	 ---------------------------------------------------------------------------
-	
-	
-	
 }

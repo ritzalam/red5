@@ -10,15 +10,13 @@ import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecException;
 import org.apache.mina.filter.codec.ProtocolDecoderOutput;
-import org.red5.io.object.Deserializer;
 import org.red5.io.amf.Input;
+import org.red5.io.object.Deserializer;
 import org.red5.io.utils.BufferUtils;
-import org.red5.server.net.rtmp.Channel;
-import org.red5.server.net.rtmp.Connection;
 import org.red5.server.net.rtmp.RTMPUtils;
 import org.red5.server.net.rtmp.message.AudioData;
+import org.red5.server.net.rtmp.message.ChunkSize;
 import org.red5.server.net.rtmp.message.Constants;
-import org.red5.server.net.rtmp.message.Handshake;
 import org.red5.server.net.rtmp.message.InPacket;
 import org.red5.server.net.rtmp.message.Invoke;
 import org.red5.server.net.rtmp.message.Message;
@@ -55,7 +53,6 @@ public class RTMPProtocolDecoder implements Constants, org.apache.mina.filter.co
 		
 		ByteBuffer buf = (ByteBuffer) session.getAttribute("buffer");
 		if(buf==null){
-			log.warn("New buffer");
 			buf = ByteBuffer.allocate(1024);
 			buf.setAutoExpand(true);
 			session.setAttribute("buffer",buf);
@@ -111,21 +108,22 @@ public class RTMPProtocolDecoder implements Constants, org.apache.mina.filter.co
 				return false;
 			}
 			
+			final RTMP rtmp = (RTMP) session.getAttribute(RTMP.SESSION_KEY);
+			
 			final int startPosition = in.position();
-			final Connection conn = (Connection) session.getAttachment();
 			
-			if(conn.getMode()==Connection.MODE_SERVER){
+			if(rtmp.getMode()==RTMP.MODE_SERVER){
 			
-				if(conn.getState()==Connection.STATE_CONNECT){
+				if(rtmp.getState()==RTMP.STATE_CONNECT){
 					if(in.remaining() < HANDSHAKE_SIZE + 1){ 
-						log.warn("Handshake init too small, buffering");
-						log.warn("remaining: "+in.remaining());
+						log.debug("Handshake init too small, buffering. remaining: "+in.remaining());
 						return false;
 					}
-					in.get();
-					conn.setClientTimer(in.getInt());
-					log.info("CLIENT UPTIME ?: "+conn.getClientTimer());
-					in.position(in.position()-5);
+					// Data in the handshake, Looks like a little bit of info
+					// in.get(); // id byte, always the same
+					// in.getInt(); // uptime ? seems to count up
+					// in.position(in.position()-5); // reset position
+					
 					ByteBuffer hs = ByteBuffer.allocate(HANDSHAKE_SIZE);
 					hs.setAutoExpand(true);
 					in.get(); // skip the header byte
@@ -133,39 +131,38 @@ public class RTMPProtocolDecoder implements Constants, org.apache.mina.filter.co
 					in.limit(in.position() + HANDSHAKE_SIZE);
 					hs.put(in).flip();
 					out.write(hs);
-					conn.setState(Connection.STATE_HANDSHAKE);
+					rtmp.setState(RTMP.STATE_HANDSHAKE);
 					in.limit(limit);
 					return true;
 				} 
 				
-				if(conn.getState()==Connection.STATE_HANDSHAKE){
+				if(rtmp.getState()==RTMP.STATE_HANDSHAKE){
 					log.debug("Handshake reply");
 					if(in.remaining() < HANDSHAKE_SIZE){ 
-						log.warn("Handshake reply too small, buffering");
+						log.debug("Handshake reply too small, buffering. remaining: "+in.remaining());
 						return false;
 					}
 					in.skip(HANDSHAKE_SIZE);
-					conn.setState(Connection.STATE_CONNECTED);
+					rtmp.setState(RTMP.STATE_CONNECTED);
 					return true;
 				}
 				
 			} else {
 				
 				// this is client mode. 
-				if(conn.getState()==Connection.STATE_CONNECT){
+				if(rtmp.getState()==RTMP.STATE_CONNECT){
 					if(in.remaining() < (2*HANDSHAKE_SIZE)+1){ 
-						log.warn("Handshake init too small, buffering");
+						log.debug("Handshake init too small, buffering. remaining: "+in.remaining());
 						return false;
 					}
 					ByteBuffer hs = ByteBuffer.allocate(HANDSHAKE_SIZE);
 					hs.setAutoExpand(true);
 					hs.put(in).flip();
 					out.write(hs);
-					conn.setState(Connection.STATE_CONNECTED);
+					rtmp.setState(RTMP.STATE_CONNECTED);
 					return true;
 				} 
-				
-				
+					
 			}
 			
 			final byte headerByte = in.get();
@@ -174,51 +171,45 @@ public class RTMPProtocolDecoder implements Constants, org.apache.mina.filter.co
 			if(channelId<0)
 				throw new ProtocolCodecException("Bad channel id");
 			
-			// Get the channel, and header size
-			final Channel channel = conn.getChannel(channelId);
+			// Get the header size and length
 			final byte headerSize = (byte) RTMPUtils.decodeHeaderSize(headerByte);
 			int headerLength = RTMPUtils.getHeaderLength(headerSize);
 			
 			if(headerLength > in.remaining()) {
-				log.debug("Header too small, buffering");
+				log.debug("Header too small, buffering. remaining: "+in.remaining());
 				in.position(startPosition);
 				return false;
 			}
 			
-			// Read the header
 			PacketHeader header = null;
 			in.position(in.position()-1);
 			
-			header = decodeHeader(in,channel.getLastReadHeader());
+			header = decodeHeader(in,rtmp.getLastReadHeader(channelId));
 			
 			if(header==null){
 				log.warn("Header is null");
 				throw new ProtocolCodecException("Header is null, check for error");
 			}
-				
-			log.debug(header);
 			
-			channel.setLastReadHeader(header);
-			InPacket packet = channel.getInPacket();
+			if(header!=null) rtmp.setLastReadHeader(channelId, header);
+			
+			InPacket packet = rtmp.getLastReadPacket(channelId);
 			
 			if(packet==null){
 				packet = newPacket(header);
-				channel.setInPacket(packet);
+				rtmp.setLastReadPacket(channelId, packet);
 			}
 			
 			final ByteBuffer buf = packet.getMessage().getData();
 			int readRemaining = header.getSize() - buf.position();
-			//readRemaining += Math.floor(header.getSize()/128);
 			
-			int chunkSize = header.getChunkSize();
+			int chunkSize = rtmp.getReadChunkSize();
+			
 			final int readAmount = (readRemaining > chunkSize) ? chunkSize : readRemaining;
-			
-			//log.debug("Read amount: "+readAmount);
 			
 			if(in.remaining() < readAmount) {
 				if(log.isDebugEnabled())
 					log.debug("Chunk too small, buffering ("+in.remaining()+","+readAmount);
-				// log.debug("Remaining: "+in.remaining());
 				in.position(startPosition);
 				return false;
 			}
@@ -236,12 +227,22 @@ public class RTMPProtocolDecoder implements Constants, org.apache.mina.filter.co
 				if(log.isDebugEnabled())
 					log.debug("Finished read, decode packet");
 				buf.flip();
-				decodeMessage(packet.getMessage());
-				packet.getMessage().setTimestamp(packet.getSource().getTimer());
-				ioLog.debug(packet.getSource());
-				ioLog.debug(packet.getMessage());
+				final Message message = packet.getMessage();
+				decodeMessage(message);
+				message.setTimestamp(packet.getSource().getTimer());
+
+				if(ioLog.isDebugEnabled()){
+					ioLog.debug(packet.getSource());
+					ioLog.debug(packet.getMessage());
+					ioLog.debug(buf.getHexDump());
+				}
+				
+				if(message instanceof ChunkSize){
+					ChunkSize chunkSizeMsg = (ChunkSize) message;
+					rtmp.setReadChunkSize(chunkSizeMsg.getSize());
+				}
 				out.write(packet);
-				channel.setInPacket(null);
+				rtmp.setLastReadPacket(channelId, null);
 			} 
 			return true;
 
@@ -256,15 +257,24 @@ public class RTMPProtocolDecoder implements Constants, org.apache.mina.filter.co
 		
 		final byte headerByte = in.get();
 		final byte channelId = RTMPUtils.decodeChannelId(headerByte);
+		
 		final byte headerSize = (byte) RTMPUtils.decodeHeaderSize(headerByte);
+
+		/*
+		int limit  = in.limit();
+		int position = in.position();
+		in.limit(in.position()+11);
+		log.debug("Raw Header: "+in.getHexDump());
+		in.limit(limit);
+		in.position(position);
+		*/
+		
 		PacketHeader header = new PacketHeader();
 		header.setChannelId(channelId);
 		
 		switch(headerSize){
 		
 		case HEADER_NEW:
-			//log.debug("0: Full headers");	
-			//log.debug(in.getHexDump());
 			header.setTimer(RTMPUtils.readUnsignedMediumInt(in));
 			header.setSize(RTMPUtils.readMediumInt(in));
 			header.setDataType(in.get());
@@ -272,8 +282,6 @@ public class RTMPProtocolDecoder implements Constants, org.apache.mina.filter.co
 			break;
 			
 		case HEADER_SAME_SOURCE:			
-			//log.debug("1: Same source as last time");
-			//log.debug(in.getHexDump());
 			header.setTimer(RTMPUtils.readUnsignedMediumInt(in));
 			header.setSize(RTMPUtils.readMediumInt(in));
 			header.setDataType(in.get());
@@ -281,16 +289,13 @@ public class RTMPProtocolDecoder implements Constants, org.apache.mina.filter.co
 			break;
 			
 		case HEADER_TIMER_CHANGE:
-			//log.debug("2: Only the timer changed");
-			//log.debug(in.getHexDump());
 			header.setTimer(RTMPUtils.readUnsignedMediumInt(in));
-			header.setSize(lastHeader.getSize());
 			header.setDataType(lastHeader.getDataType());
 			header.setStreamId(lastHeader.getStreamId());
+			header.setSize(lastHeader.getSize());
 			break;
 			
 		case HEADER_CONTINUE:
-			//log.debug("3: Continue");
 			header = lastHeader;
 			break;
 			
@@ -306,8 +311,8 @@ public class RTMPProtocolDecoder implements Constants, org.apache.mina.filter.co
 		final InPacket packet = new InPacket();
 		packet.setSource(header);
 		switch(header.getDataType()){
-		case TYPE_HANDSHAKE:
-			packet.setMessage(new Handshake());
+		case TYPE_CHUNK_SIZE:
+			packet.setMessage(new ChunkSize());
 			break;
 		case TYPE_INVOKE:
 			packet.setMessage(new Invoke());
@@ -339,8 +344,8 @@ public class RTMPProtocolDecoder implements Constants, org.apache.mina.filter.co
 	
 	public void decodeMessage(Message message) {
 		switch(message.getDataType()){
-		case TYPE_HANDSHAKE:
-			// none needed
+		case TYPE_CHUNK_SIZE:
+			decodeChunkSize((ChunkSize) message);
 			break;
 		case TYPE_INVOKE:
 			decodeInvoke((Invoke) message);
@@ -366,9 +371,14 @@ public class RTMPProtocolDecoder implements Constants, org.apache.mina.filter.co
 		}
 	}
 	
+	private void decodeChunkSize(ChunkSize chunkSize) {
+		chunkSize.setSize(chunkSize.getData().getInt());
+	}
+
 	public void decodeSharedObject(SharedObject so) {
 		
-		log.debug("> "+so.getData().getHexDump());
+		if(log.isDebugEnabled())
+			log.debug("> "+so.getData().getHexDump());
 		
 		final ByteBuffer data = so.getData();
 
@@ -383,7 +393,8 @@ public class RTMPProtocolDecoder implements Constants, org.apache.mina.filter.co
 		// Parse request body
 		while(data.hasRemaining()){
 			byte type = data.get();
-			log.debug("type: "+type);
+			if(log.isDebugEnabled()) 
+				log.debug("type: "+type);
 			SharedObjectEvent event = new SharedObjectEvent(type,null,null);
 			int length = data.getInt();
 			if (type != SO_SEND_MESSAGE) {
@@ -466,8 +477,6 @@ public class RTMPProtocolDecoder implements Constants, org.apache.mina.filter.co
 		ping.setValue1(in.getShort());
 		ping.setValue2(in.getInt());
 		if(in.remaining() > 0) ping.setValue3(in.getInt());
-		if(log.isDebugEnabled())
-			log.debug(ping);
 	}
 	
 	public void decodeStreamBytesRead(StreamBytesRead streamBytesRead){
@@ -487,7 +496,4 @@ public class RTMPProtocolDecoder implements Constants, org.apache.mina.filter.co
 		// TODO Auto-generated method stub
 		
 	}
-	
-	
-	
 }

@@ -8,7 +8,6 @@ public class PacketHeader implements Constants {
 	private int size = 0;
 	private byte dataType = 0;
 	private int streamId = 0;
-	private int clientUptime = 0;
 	
 	public byte getChannelId() {
 		return channelId;
@@ -50,14 +49,6 @@ public class PacketHeader implements Constants {
 		this.timer = timer;
 	}
 
-	public int getSoId() {
-		return clientUptime;
-	}
-
-	public void setSoId(int soId) {
-		this.clientUptime = soId;
-	}
-	
 	public boolean equals(Object other) {
 		if(!(other instanceof PacketHeader)) return false;
 		final PacketHeader header = (PacketHeader) other;
@@ -65,8 +56,7 @@ public class PacketHeader implements Constants {
 			&& header.getDataType() == dataType
 			&& header.getSize() == size
 			&& header.getTimer() == timer
-			&& header.getStreamId() == streamId
-			&& header.getSoId() == clientUptime );
+			&& header.getStreamId() == streamId);
 	}
 	
 	public String toString(){
@@ -76,7 +66,6 @@ public class PacketHeader implements Constants {
 		sb.append("Size: ").append(size).append(", ");
 		sb.append("DateType: ").append(dataType).append(", ");
 		sb.append("StreamId: ").append(streamId);
-		sb.append("Client Uptime?: ").append(clientUptime);
 		return sb.toString();
 	}
 	
@@ -87,12 +76,7 @@ public class PacketHeader implements Constants {
 		header.setSize(size);
 		header.setDataType(dataType);
 		header.setStreamId(streamId);
-		header.setSoId(clientUptime);
 		return header;
-	}
-	
-	public int getChunkSize(){
-		return (dataType>=TYPE_HANDSHAKE) ? HANDSHAKE_SIZE : CHUNK_SIZE;
 	}
 
 }
