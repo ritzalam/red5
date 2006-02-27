@@ -22,31 +22,46 @@ package org.red5.server.example;
  */
 //import java.util.ArrayList;
 //import java.util.Date;
-//import java.util.HashMap;
-//import java.util.List;
+import java.util.HashMap;
+import java.util.List;
 //import java.util.Locale;
 //import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.context.ApplicationContext;
+//import org.springframework.context.ApplicationContext;
 import org.red5.server.context.AppLifecycleAware;
 import org.red5.server.context.BaseApplication;
 
-public class Othello extends BaseApplication implements AppLifecycleAware
+public class Othello extends BaseApplication
+//public class Othello extends BaseApplication implements AppLifecycleAware
+//public class Othello implements AppLifecycleAware
 {
 
 	protected static Log log = LogFactory.getLog(Othello.class.getName());
-	protected ApplicationContext appCtx = null;
+	protected HashMap userList = new HashMap();
+	//protected ApplicationContext appCtx = null;
 	
 	public Othello()
 	{
 		// constructor
-		
+		//Map userList = new HashMap();
+		//List userList = new List();
 	}
 	
-	public void setApplicationContext(ApplicationContext context) throws BeansException {
-		appCtx = context;
+	public HashMap addUserName(String p_userName)
+	{
+		userList.put("userName", p_userName);
+		log.debug("!!!!!!!!!name added ::" + p_userName);
+
+		Set set = userList.valueSet(); 
+           
+		Iterator it = set.iterator(); 
+		while (it.hasNext()) 
+		{ 
+			log.debug("name: " + String()it.next()); 
+		} 
+		return userList;
 	}
 
 	public void startUp() {
@@ -63,9 +78,9 @@ public class Othello extends BaseApplication implements AppLifecycleAware
 		log.debug("!!!!!!!!!!!!!!!!!! Othello.onAppStop...");
 	}
 
-	public boolean onConnect(org.red5.server.context.Client client)
+	public boolean onConnect(org.red5.server.context.Client client, List params)
 	{
-		log.debug("!!!!!!!!!!!!!!!!!! onConnect..." + client);
+		log.debug("!!!!!!!!!!!!!!!!!! onConnect..." + params);
 		return true;
 	}
 
