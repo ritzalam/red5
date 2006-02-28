@@ -7,7 +7,7 @@ import org.red5.io.flv.TagImpl;
 import org.red5.io.flv.Writer;
 import org.red5.server.net.rtmp.message.Message;
 
-public class FileStreamSink implements IStreamSink {
+public class FileStreamSink extends BaseStreamSink implements IStreamSink {
 
 	private Writer writer;
 	
@@ -15,18 +15,11 @@ public class FileStreamSink implements IStreamSink {
 		this.writer = writer;
 	}
 	
-	public boolean canAccept() {
-		return true;
-	}
-
 	public void close() {
 		writer.close();
+		super.close();
 	}
 
-	public void setVideoCodec(IVideoStreamCodec codec) {
-		// nothing to do here...
-	}
-	
 	public void enqueue(Message message) {
 		
 		Tag tag = new TagImpl();

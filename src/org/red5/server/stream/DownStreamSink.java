@@ -6,7 +6,7 @@ import org.red5.server.net.rtmp.Channel;
 import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.net.rtmp.message.Message;
 
-public class DownStreamSink implements IStreamSink, Constants {
+public class DownStreamSink extends BaseStreamSink implements IStreamSink, Constants {
 
 	protected static Log log =
         LogFactory.getLog(DownStreamSink.class.getName());
@@ -14,20 +14,11 @@ public class DownStreamSink implements IStreamSink, Constants {
 	private Channel video;
 	private Channel audio;
 	private Channel data;
-	private IVideoStreamCodec videoCodec;
 	
 	public DownStreamSink(Channel video, Channel audio, Channel data){
 		this.video = video;
 		this.audio = audio;
 		this.data = data;
-	}
-	
-	public boolean canAccept(){
-		return true;
-	}
-
-	public void setVideoCodec(IVideoStreamCodec codec) {
-		this.videoCodec = codec;
 	}
 	
 	public void enqueue(Message message){
@@ -59,9 +50,4 @@ public class DownStreamSink implements IStreamSink, Constants {
 	public Channel getVideo() {
 		return video;
 	}
-
-	public void close(){
-		// do something ?
-	}
-	
 }

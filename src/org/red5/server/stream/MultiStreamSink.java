@@ -7,43 +7,43 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.net.rtmp.message.Message;
 
-public class MultiStreamSink implements IStreamSink {
+public class MultiStreamSink extends BaseStreamSink implements IStreamSink, ISinkContainer {
 
 	protected static Log log =
         LogFactory.getLog(MultiStreamSink.class.getName());
 	
-	protected LinkedList outs = new LinkedList();
-	private IVideoStreamCodec videoCodec = null;
+	protected LinkedList streams = new LinkedList();
 
-	public void connect(IStreamSink out){
-		outs.add(out);
-		out.setVideoCodec(this.videoCodec);
+	public void connect(IStreamSink stream){
+		streams.add(stream);
+		stream.setVideoCodec(this.videoCodec);
+		stream.setSinkContainer(this);
 	}
 
+	public void disconnect(IStreamSink stream) {
+		streams.remove(stream);
+	}
+	
 	public void setVideoCodec(IVideoStreamCodec codec) {
-		this.videoCodec = codec;
+		super.setVideoCodec(codec);
 		
 		// Update already connected streams
-		Iterator it = outs.iterator();
+		Iterator it = streams.iterator();
 		while (it.hasNext()) {
 			IStreamSink stream = (IStreamSink) it.next();
 			stream.setVideoCodec(codec);
 		}
 	}
 
-	public boolean canAccept(){
-		return true;
-	}
-	
 	// push message to all connected streams
 	public void enqueue(Message message) {
-		final Iterator it = outs.iterator();
-		while(it.hasNext()){
-			IStreamSink out = (IStreamSink) it.next();
-			if(log.isDebugEnabled())
+		final Iterator it = streams.iterator();
+		while (it.hasNext()){
+			IStreamSink stream = (IStreamSink) it.next();
+			if (log.isDebugEnabled())
 				log.info("Sending");
-			if(out.canAccept()){
-				out.enqueue(message);
+			if (stream.canAccept()){
+				stream.enqueue(message);
 			} else {
 				log.warn("Out cant accept");
 			}
@@ -51,12 +51,13 @@ public class MultiStreamSink implements IStreamSink {
 	}
 
 	public void close(){
-		final Iterator it = outs.iterator();
-		while(it.hasNext()){
-			IStreamSink out = (IStreamSink) it.next();
-			out.close();
+		final Iterator it = streams.iterator();
+		while (it.hasNext()){
+			IStreamSink stream = (IStreamSink) it.next();
+			stream.close();
 		}
-		outs.clear();
+		streams.clear();
+		
+		super.close();
 	}
-	
 }

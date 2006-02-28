@@ -14,7 +14,7 @@ import org.red5.server.net.rtmp.message.Status;
 import org.red5.server.net.rtmp.message.StreamBytesRead;
 import org.red5.server.net.rtmp.message.VideoData;
 
-public class Stream implements Constants, IStream, IStreamSink {
+public class Stream extends BaseStreamSink implements Constants, IStream, IStreamSink {
 	
 	public static final String MODE_READ = "read";
 	public static final String MODE_RECORD = "record";
@@ -37,7 +37,6 @@ public class Stream implements Constants, IStream, IStreamSink {
 	private IStreamSink upstream = null;
 	private IStreamSource source = null;
 	private VideoCodecFactory videoCodecFactory = null;
-	private IVideoStreamCodec videoCodec = null;
 	
 	private int streamId = 0;
 	private boolean initialMessage = true;
@@ -105,10 +104,6 @@ public class Stream implements Constants, IStream, IStreamSink {
 		this.videoCodecFactory = factory;
 	}
 
-	public void setVideoCodec(IVideoStreamCodec codec) {
-		this.videoCodec = codec;
-	}
-	
 	protected int bytesReadInterval = 125000;
 	protected int bytesRead = 0;
 	
@@ -259,7 +254,7 @@ public class Stream implements Constants, IStream, IStreamSink {
 		if(upstream!=null) upstream.close();
 		if(downstream!=null) downstream.close();
 		if(source!=null) source.close();
-		this.videoCodec = null;
+		super.close();
 	}
 	
 }
