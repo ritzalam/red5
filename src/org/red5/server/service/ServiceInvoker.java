@@ -158,8 +158,10 @@ public class ServiceInvoker  {
 		
 		
 		Object[] args = call.getArguments();
-		for (int i=0; i<args.length; i++) {
-			log.debug("   "+i+" => "+args[i]);
+		if (args != null) {
+			for (int i=0; i<args.length; i++) {
+				log.debug("   "+i+" => "+args[i]);
+			}
 		}
 		
 		Object[] methodResult = null;
