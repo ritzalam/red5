@@ -21,10 +21,10 @@ class org.red5.net.Connection extends NetConnection
 	}
 
 // Public Methods:
-	public function connect(p_uri:String):Boolean
+	public function connect():Boolean
 	{
 		// if the URI is valid, it will return true.  This does NOT mean it's connected however.
-		var goodURI:Boolean = super.connect(p_uri);
+		var goodURI:Boolean = super.connect.apply(super, arguments);
 		
 		return goodURI;
 	}
