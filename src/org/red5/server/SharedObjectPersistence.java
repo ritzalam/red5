@@ -2,8 +2,8 @@ package org.red5.server;
 
 import java.util.Iterator;
 
+import org.red5.server.api.SharedObject;
 import org.red5.server.context.AppContext;
-import org.red5.server.context.PersistentSharedObject;
 
 public interface SharedObjectPersistence {
 
@@ -16,13 +16,13 @@ public interface SharedObjectPersistence {
 	 * Makes the passed shared object persistent so it can be loaded
 	 * through "loadSharedObject" later.
 	 */
-	void storeSharedObject(PersistentSharedObject object);
+	void storeSharedObject(SharedObject object);
 
 	/*
 	 * Returns the shared object with the given name.
 	 * If no SO with the passed name, null is returned.
 	 */
-	PersistentSharedObject loadSharedObject(String name);
+	SharedObject loadSharedObject(String name);
 
 	/*
 	 * Delete the shared object with the specified name.

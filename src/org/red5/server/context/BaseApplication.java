@@ -8,6 +8,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.SharedObjectPersistence;
 import org.red5.server.SharedObjectRamPersistence;
+import org.red5.server.api.SharedObject;
 import org.red5.server.net.rtmp.Connection;
 import org.red5.server.net.rtmp.message.Ping;
 import org.red5.server.net.rtmp.status.StatusObject;
@@ -273,7 +274,7 @@ public class BaseApplication
 	
 	// -----------------------------------------------------------------------------
 	
-	public PersistentSharedObject getSharedObject(String name, boolean persistent) {
+	public SharedObject getSharedObject(String name, boolean persistent) {
 		SharedObjectPersistence persistence = this.soPersistence;
 		if (!persistent) {
 			persistence = this.soTransience;
@@ -284,7 +285,7 @@ public class BaseApplication
 			return new PersistentSharedObject(name, false, null);
 		}
 		
-		PersistentSharedObject result = persistence.loadSharedObject(name);
+		SharedObject result = persistence.loadSharedObject(name);
 		if (result == null) {
 			// Create new shared object with given name
 			log.info("Creating new shared object " + name);

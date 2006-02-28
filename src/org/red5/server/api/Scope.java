@@ -24,6 +24,9 @@ public interface Scope {
 	public Object getAttribute(String name);
 	
 	public List getClients();
+
+	// get a shared object by name
+	public SharedObject getSharedObject(String name, boolean persistent);
 	
 	// These will be called internally ?? 
 	//public void join(Client client);

@@ -14,6 +14,7 @@ import org.red5.io.amf.Input;
 import org.red5.io.amf.Output;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Serializer;
+import org.red5.server.api.SharedObject;
 import org.red5.server.context.AppContext;
 import org.red5.server.context.PersistentSharedObject;
 import org.springframework.core.io.Resource;
@@ -87,7 +88,7 @@ public class SharedObjectFilePersistence
 		}
 	}
 	
-	private void saveSharedObject(PersistentSharedObject object) {
+	private void saveSharedObject(SharedObject object) {
 		File file = new File(this.appCtx.getBaseDir() + "/sharedObjects");
 		if (!file.isDirectory() && !file.mkdir()) {
 			log.error("Could not create directory " + file.getAbsolutePath());
@@ -121,7 +122,7 @@ public class SharedObjectFilePersistence
 		this.loadSharedObjects();
 	}
 	
-	public void storeSharedObject(PersistentSharedObject object) {
+	public void storeSharedObject(SharedObject object) {
 		super.storeSharedObject(object);
 		this.saveSharedObject(object);
 	}

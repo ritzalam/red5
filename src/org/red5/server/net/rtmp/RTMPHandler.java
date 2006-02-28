@@ -3,6 +3,7 @@ package org.red5.server.net.rtmp;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -78,6 +79,7 @@ public class RTMPHandler extends BaseHandler implements Constants{
 			
 			// Is this a bad for performance ?
 			Scope.setClient(conn);
+			Scope.setChannel(channel);
 			Scope.setStream(stream);
 			Scope.setStatusObjectService(statusObjectService);
 			
@@ -117,21 +119,9 @@ public class RTMPHandler extends BaseHandler implements Constants{
 		String name = request.getName();
 		
 		log.debug("Received SO request from " + channel + "(" + request + ")");
+		org.red5.server.api.SharedObject so = app.getSharedObject(name, request.isPersistent());
 		
-		PersistentSharedObject so = app.getSharedObject(name, request.isPersistent());
-		SharedObject reply = new SharedObject();
-		reply.setName(name);
-		reply.setTimestamp(0);
-		reply.setType(request.getType());
-		
-		SharedObject sync = new SharedObject();
-		sync.setName(name);
-		sync.setTimestamp(0);
-		sync.setType(request.getType());
-		
-		boolean updates = false;
-		boolean processed;
-		
+		so.beginUpdate();
 		Iterator it = request.getEvents().iterator();
 		while (it.hasNext()) {
 			SharedObjectEvent event = (SharedObjectEvent) it.next();
@@ -140,91 +130,41 @@ public class RTMPHandler extends BaseHandler implements Constants{
 			{
 			case SO_CONNECT:
 				// Register client for this shared object and send initial state
-				reply.addEvent(new SharedObjectEvent(SO_CLIENT_INITIAL_DATA, null, null));
-				if (!so.getData().isEmpty())
-					reply.addEvent(new SharedObjectEvent(SO_CLIENT_UPDATE_DATA, null, so.getData()));
 				so.registerClient(conn, source.getChannelId());
 				break;
 			
 			case SO_CLEAR:
 				// Clear the shared object
-				if (!request.isPersistent()) {
+				if (!request.isPersistent())
 					so.unregisterClient(conn);
-				}
-				// TODO: there must be a direct way to clear the SO on the client side...
-				Iterator keys = so.getData().keySet().iterator();
-				while (keys.hasNext()) {
-					String key = (String) keys.next();
-					reply.addEvent(new SharedObjectEvent(SO_CLIENT_DELETE_DATA, key, null));
-					sync.addEvent(new SharedObjectEvent(SO_CLIENT_DELETE_DATA, key, null));
-				}
+				
+				/* XXX: should we really clear the SO here?  I think this is rather
+				 *      a "disconnect" - the same event is sent for the "clear" method
+				 *      as well as the disconnect of a client.
+				 */
 				so.clear();
-				updates = true;
 				break;
 			
 			case SO_SET_ATTRIBUTE:
 				// The client wants to update an attribute
-				processed = so.updateAttribute(event.getKey(), event.getValue());
-				// Send confirmation to client
-				reply.addEvent(new SharedObjectEvent(SO_CLIENT_UPDATE_ATTRIBUTE, event.getKey(), null));
-				if (processed)
-					sync.addEvent(new SharedObjectEvent(SO_CLIENT_UPDATE_DATA, event.getKey(), event.getValue()));
-				updates = true;
+				so.updateAttribute(event.getKey(), event.getValue());
 				break;
 			
 			case SO_DELETE_ATTRIBUTE:
 				// The client wants to remove an attribute
-				processed = so.deleteAttribute(event.getKey());
-				// Send confirmation to client
-				reply.addEvent(new SharedObjectEvent(SO_CLIENT_DELETE_DATA, event.getKey(), null));
-				if (processed)
-					sync.addEvent(new SharedObjectEvent(SO_CLIENT_DELETE_DATA, event.getKey(), null));
-				updates = true;
+				so.deleteAttribute(event.getKey());
 				break;
 				
 			case SO_SEND_MESSAGE:
 				// The client wants to send a message
-				reply.addEvent(new SharedObjectEvent(SO_CLIENT_SEND_MESSAGE, event.getKey(), event.getValue()));
-				sync.addEvent(new SharedObjectEvent(SO_CLIENT_SEND_MESSAGE, event.getKey(), event.getValue()));
+				so.sendMessage(event.getKey(), (List) event.getValue());
 				break;
 				
 			default:
 				log.error("Unknown shared object update event " + event.getType());
 			}
 		}
-		
-		if (updates)
-			// The client sent at least one update -> increase version of SO
-			so.updateVersion();
-		
-		reply.setSoId(so.getVersion());
-		channel.write(reply);
-		
-		if (!sync.getEvents().isEmpty()) {
-			// Synchronize updates with all registered clients of this shared object
-			sync.setSoId(so.getVersion());
-			// Acquire the packet, this will stop the data inside being released
-			sync.acquire();
-			HashMap all_clients = so.getClients();
-			Iterator clients = all_clients.keySet().iterator();
-			while (clients.hasNext()) {
-				Connection connection = (Connection) clients.next();
-				if (connection == conn) {
-					// Don't re-send update to active client
-					log.info("Skipped " + connection);
-					continue;
-				}
-				
-				Iterator channels = ((HashSet) all_clients.get(connection)).iterator();
-				while (channels.hasNext()) {
-					Channel c = connection.getChannel(((Integer) channels.next()).byteValue());
-					c.write(sync);
-				}
-			}
-			// After sending the packet down all the channels we can release the packet, 
-			// which in turn will allow the data buffer to be released
-			sync.release();
-		}
+		so.endUpdate();
 	}
 	
 	private void rawBufferRecieved(IoSession session, ByteBuffer in) {

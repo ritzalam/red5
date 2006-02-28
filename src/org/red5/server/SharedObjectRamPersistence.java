@@ -3,8 +3,8 @@ package org.red5.server;
 import java.util.Iterator;
 import java.util.HashMap;
 
+import org.red5.server.api.SharedObject;
 import org.red5.server.context.AppContext;
-import org.red5.server.context.PersistentSharedObject;
 
 /**
  * Dummy SO persistence implementation that stores the shared objects in memory.
@@ -22,12 +22,12 @@ public class SharedObjectRamPersistence implements SharedObjectPersistence {
 		this.appCtx = appCtx;
 	}
 
-	public void storeSharedObject(PersistentSharedObject object) {
+	public void storeSharedObject(SharedObject object) {
 		this.objects.put(object.getName(), object);
 	}
 
-	public PersistentSharedObject loadSharedObject(String name) {
-		return (PersistentSharedObject) this.objects.get(name);
+	public SharedObject loadSharedObject(String name) {
+		return (SharedObject) this.objects.get(name);
 	}
 
 	public void deleteSharedObject(String name) {

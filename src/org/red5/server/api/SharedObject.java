@@ -1,6 +1,9 @@
 package org.red5.server.api;
 
 import java.util.HashMap;
+import java.util.List;
+
+import org.red5.server.context.Client;
 
 /**
  * Serverside access to shared objects.  Changes to the SO are propagated to
@@ -48,9 +51,10 @@ public interface SharedObject {
 	public HashMap getData();
 	
 	/*
-	 * Add / edit an attribute
+	 * Add / edit an attribute.  Returns true if the attribute
+	 * value has changed.
 	 */
-	public void updateAttribute(String name, Object value);
+	public boolean updateAttribute(String name, Object value);
 	
 	/*
 	 * Return the value for a given attribute.  Return null
@@ -59,9 +63,15 @@ public interface SharedObject {
 	public Object getAttribute(String name);
 	
 	/*
-	 * Remove an attribute from the SO.
+	 * Remove an attribute from the SO.  Returns true if the
+	 * attribute has been found and deleted.
 	 */
-	public void deleteAttribute(String name);
+	public boolean deleteAttribute(String name);
+
+	/*
+	 * Send a message to a handler of the shared object.
+	 */
+	public void sendMessage(String handler, List arguments);
 	
 	/*
 	 * Delete all attributes of the shared object.
@@ -78,4 +88,20 @@ public interface SharedObject {
 	 * changes at once.
 	 */
 	public void endUpdate();
+	
+	/*
+	 * Register a new client with the channel that should receive
+	 * updates of the SO.
+	 */
+	public void registerClient(Client client, int channel);
+	
+	/*
+	 * Unregister all channels of a client.
+	 */
+	public void unregisterClient(Client client);
+	
+	/*
+	 * Unregister one channel of a client.
+	 */
+	public void unregisterClient(Client client, int channel);
 }
