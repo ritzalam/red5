@@ -7,6 +7,7 @@ import org.red5.server.SharedObjectPersistence;
 import org.red5.server.SharedObjectRamPersistence;
 import org.red5.server.service.ServiceInvoker;
 import org.red5.server.stream.StreamManager;
+import org.red5.server.stream.VideoCodecFactory;
 import org.springframework.beans.BeansException;
 
 public class AppContext 
@@ -16,6 +17,7 @@ public class AppContext
 	public static final String APP_SERVICE_NAME = "appService";
 	public static final String SO_PERSISTENCE_NAME = "sharedObjectPersistence";
 	public static final String STREAM_MANAGER_NAME = "streamManager";
+	public static final String VIDEO_CODEC_FACTORY = "videoCodecFactory";
 	
 	protected String appPath;
 	protected String appName;
@@ -70,6 +72,11 @@ public class AppContext
 			soPersistence = (SharedObjectPersistence) this.getBean(SO_PERSISTENCE_NAME);
 			soPersistence.setApplicationContext(this);
 			app.setSharedObjectPersistence(soPersistence);
+		}
+		
+		if (this.containsBean(VIDEO_CODEC_FACTORY)){
+			VideoCodecFactory videoFactory = (VideoCodecFactory) this.getBean(VIDEO_CODEC_FACTORY);
+			app.setVideoCodecFactory(videoFactory);
 		}
 	}
 	

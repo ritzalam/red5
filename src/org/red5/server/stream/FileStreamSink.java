@@ -23,6 +23,10 @@ public class FileStreamSink implements IStreamSink {
 		writer.close();
 	}
 
+	public void setVideoCodec(IVideoStreamCodec codec) {
+		// nothing to do here...
+	}
+	
 	public void enqueue(Message message) {
 		
 		Tag tag = new TagImpl();

@@ -11,4 +11,6 @@ public interface IStreamSink {
 	
 	public abstract void close();
 	
+	public abstract void setVideoCodec(IVideoStreamCodec codec);
+	
 }

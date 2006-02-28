@@ -16,6 +16,7 @@ import org.red5.server.stream.IStreamSource;
 import org.red5.server.stream.Stream;
 import org.red5.server.stream.StreamManager;
 import org.red5.server.stream.TemporaryStream;
+import org.red5.server.stream.VideoCodecFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationContext;
@@ -33,6 +34,7 @@ public class BaseApplication
 	// Non-persistent shared objects are only stored in memory
 	private SharedObjectRamPersistence soTransience = new SharedObjectRamPersistence(); 
 	private HashSet listeners = new HashSet();
+	private VideoCodecFactory videoCodecs = null;
 	
 	protected static Log log =
         LogFactory.getLog(BaseApplication.class.getName());
@@ -49,6 +51,9 @@ public class BaseApplication
 		this.soPersistence = soPersistence;
 	}
 	
+	public void setVideoCodecFactory(VideoCodecFactory factory) {
+		this.videoCodecs = factory;
+	}
 	
 	/*
 	public void setStatusObjectService(StatusObjectService statusObjectService){
@@ -201,6 +206,7 @@ public class BaseApplication
 		final Stream stream = Scope.getStream();
 		stream.setName(name);
 		stream.setMode(mode);
+		stream.setVideoCodecFactory(this.videoCodecs);
 		streamManager.publishStream(stream);
 		stream.publish();		
 		log.debug("publish: "+name);

@@ -113,6 +113,15 @@
 		<property name="deserializer" ref="deserializer" />
 	</bean>
 	
+	<bean id="videoCodecFactory"
+		class="org.red5.server.stream.VideoCodecFactory">
+		<property name="codecs">
+			<list>
+				<bean id="screenVideoCodec" class="org.red5.server.stream.codec.ScreenVideo"/>
+			</list>
+		</property>
+	</bean>
+	
 	<bean id="serviceInvoker" class="org.red5.server.service.ServiceInvoker" />
 		
 	<bean id="rtmpHandler"

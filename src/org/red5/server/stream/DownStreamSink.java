@@ -14,6 +14,7 @@ public class DownStreamSink implements IStreamSink, Constants {
 	private Channel video;
 	private Channel audio;
 	private Channel data;
+	private IVideoStreamCodec videoCodec;
 	
 	public DownStreamSink(Channel video, Channel audio, Channel data){
 		this.video = video;
@@ -23,6 +24,10 @@ public class DownStreamSink implements IStreamSink, Constants {
 	
 	public boolean canAccept(){
 		return true;
+	}
+
+	public void setVideoCodec(IVideoStreamCodec codec) {
+		this.videoCodec = codec;
 	}
 	
 	public void enqueue(Message message){

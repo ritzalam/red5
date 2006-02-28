@@ -1,7 +1,10 @@
 package org.red5.server.stream;
 
+import java.io.FileOutputStream;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.mina.common.ByteBuffer;
 import org.red5.server.net.rtmp.Channel;
 import org.red5.server.net.rtmp.Connection;
 import org.red5.server.net.rtmp.message.AudioData;
@@ -9,6 +12,7 @@ import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.net.rtmp.message.Message;
 import org.red5.server.net.rtmp.message.Status;
 import org.red5.server.net.rtmp.message.StreamBytesRead;
+import org.red5.server.net.rtmp.message.VideoData;
 
 public class Stream implements Constants, IStream, IStreamSink {
 	
@@ -32,8 +36,11 @@ public class Stream implements Constants, IStream, IStreamSink {
 	private DownStreamSink downstream = null;
 	private IStreamSink upstream = null;
 	private IStreamSource source = null;
+	private VideoCodecFactory videoCodecFactory = null;
+	private IVideoStreamCodec videoCodec = null;
 	
 	private int streamId = 0;
+	private boolean initialMessage = true;
 	
 	private Connection conn;
 	
@@ -94,6 +101,14 @@ public class Stream implements Constants, IStream, IStreamSink {
 		this.upstream = upstream;
 	}
 
+	public void setVideoCodecFactory(VideoCodecFactory factory) {
+		this.videoCodecFactory = factory;
+	}
+
+	public void setVideoCodec(IVideoStreamCodec codec) {
+		this.videoCodec = codec;
+	}
+	
 	protected int bytesReadInterval = 125000;
 	protected int bytesRead = 0;
 	
@@ -105,6 +120,8 @@ public class Stream implements Constants, IStream, IStreamSink {
 		if (data != null)
 			// temporary streams don't have a data channel so check for it
 			data.sendStatus(publish);
+		
+		initialMessage = true;
 	}
 	
 	public void pause(){
@@ -151,6 +168,19 @@ public class Stream implements Constants, IStream, IStreamSink {
 			write(source.dequeue());
 		}
 		*/
+		
+		if (this.videoCodec != null) {
+			ByteBuffer keyframe = this.videoCodec.getKeyframe();
+			if (keyframe != null) {
+				// Send initial keyframe to client
+				Message msg = new VideoData();
+				msg.setTimestamp(0);
+				msg.setData(keyframe);
+				msg.setSealed(true);
+				this.write(msg);
+			}
+		}
+		
 	}
 	
 	public void stop(){
@@ -173,7 +203,7 @@ public class Stream implements Constants, IStream, IStreamSink {
 	}
 	
 	protected void write(Message message){
-		if(downstream.canAccept()){
+		if (downstream.canAccept()){
 			if(log.isDebugEnabled())
 				log.debug("Sending downstream");
 			//writeQueue++;
@@ -186,6 +216,20 @@ public class Stream implements Constants, IStream, IStreamSink {
 	private int bytesReadPacketCount = 0;
 	
 	public void publish(Message message){
+		ByteBuffer data = message.getData();
+		if (this.initialMessage) {
+			this.initialMessage = false;
+			
+			if (this.videoCodecFactory != null) {
+				this.videoCodec = this.videoCodecFactory.getVideoCodec(data);
+				if (this.upstream != null)
+					this.upstream.setVideoCodec(this.videoCodec);
+			}
+		}
+		
+		if (this.videoCodec != null)
+			this.videoCodec.addData(data);
+		
 		ts += message.getTimestamp();
 		bytesRead += message.getData().limit();
 		if(bytesReadPacketCount < Math.floor(bytesRead / bytesReadInterval)){
@@ -215,6 +259,7 @@ public class Stream implements Constants, IStream, IStreamSink {
 		if(upstream!=null) upstream.close();
 		if(downstream!=null) downstream.close();
 		if(source!=null) source.close();
+		this.videoCodec = null;
 	}
 	
 }

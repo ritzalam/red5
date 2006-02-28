@@ -13,11 +13,24 @@ public class MultiStreamSink implements IStreamSink {
         LogFactory.getLog(MultiStreamSink.class.getName());
 	
 	protected LinkedList outs = new LinkedList();
+	private IVideoStreamCodec videoCodec = null;
 
 	public void connect(IStreamSink out){
 		outs.add(out);
+		out.setVideoCodec(this.videoCodec);
 	}
-	
+
+	public void setVideoCodec(IVideoStreamCodec codec) {
+		this.videoCodec = codec;
+		
+		// Update already connected streams
+		Iterator it = outs.iterator();
+		while (it.hasNext()) {
+			IStreamSink stream = (IStreamSink) it.next();
+			stream.setVideoCodec(codec);
+		}
+	}
+
 	public boolean canAccept(){
 		return true;
 	}
