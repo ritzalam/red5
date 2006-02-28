@@ -22,9 +22,9 @@ package org.red5.server.example;
  */
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+//import java.util.Set;
 import org.red5.server.example.Holder;
-import java.util.Iterator;
+//import java.util.Iterator;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -46,15 +46,19 @@ public class Othello extends BaseApplication
 
 		log.debug("!!!!!!!!!name added ::" + p_userName);  
 
-		Set set = userList.keySet(); 
+		//Set set = userList.keySet(); 
+		/*
+		Set set = userList.entrySet();
 
 		Iterator it = set.iterator();    
 
-		while (it.hasNext())   {        
+		while (it.hasNext())
+		{        
 		   log.debug("name: " + (String) it.next());    
 		} 
+		*/
 
-		return userList;   
+		return Holder.getUserList();   
      }
 
 	public void startUp() {
