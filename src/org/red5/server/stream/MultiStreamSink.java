@@ -22,6 +22,7 @@ public class MultiStreamSink extends BaseStreamSink implements IStreamSink, ISin
 
 	public void disconnect(IStreamSink stream) {
 		streams.remove(stream);
+		stream.setSinkContainer(null);
 	}
 	
 	public void setVideoCodec(IVideoStreamCodec codec) {
