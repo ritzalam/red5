@@ -20,49 +20,35 @@ package org.red5.server.example;
  * @author The Red5 Project (red5@osflash.org)
  * @author Chris Allen (mrchrisallen@gmail.com)
  */
-import java.util.HashMap;
-import java.util.List;
-//import java.util.Set;
-import org.red5.server.example.Holder;
-//import java.util.Iterator;
 
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.LinkedList;
+import org.red5.server.example.UserListManager;
+import org.red5.server.context.Client;
+import org.red5.server.context.BaseApplication;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
-import org.red5.server.context.BaseApplication;
 
 public class Othello extends BaseApplication
 {
 
 	protected static Log log = LogFactory.getLog(Othello.class.getName());
+
+	private UserListManager userListManager;
+	private List clients;
 	
 	public Othello(){};
-	
-	public HashMap addUserName(String p_userName) 
-	{ 
-		HashMap userList = Holder.getUserList();
-		userList.put("userName", p_userName);  
-		Holder.setUserList(userList);
 
-		log.debug("!!!!!!!!!name added ::" + p_userName);  
-
-		//Set set = userList.keySet(); 
-		/*
-		Set set = userList.entrySet();
-
-		Iterator it = set.iterator();    
-
-		while (it.hasNext())
-		{        
-		   log.debug("name: " + (String) it.next());    
-		} 
-		*/
-
-		return Holder.getUserList();   
-     }
-
-	public void startUp() {
+	public void startUp() 
+	{
 		log.info("starting the Othello service...");
+	}
+	
+	public List getUserList()
+	{
+		return userListManager.getUserList();
 	}
 	
 	public void onAppStart()
@@ -75,14 +61,56 @@ public class Othello extends BaseApplication
 		log.debug("!!!!!!!!!!!!!!!!!! Othello.onAppStop...");
 	}
 
-	public boolean onConnect(org.red5.server.context.Client client, List params)
+	public boolean onConnect(Client client, List params)
 	{
-		log.debug("!!!!!!!!!!!!!!!!!! onConnect..." + params);
+		// initialize the userList if not done already
+		init();
+		
+		// get username from the params
+		if(params.size() > 0) 
+		{
+			Object userName = params.get(0);
+			// add to the userList
+			userListManager.addUser(client, userName.toString());
+		}
+		
+		clients.add(client);
+		
+		for(Iterator it=clients.iterator(); it.hasNext();)
+		{
+			Client connectedClient = (Client) it.next();
+			log.info("connectedClient: " + connectedClient);
+		}
+		
+		log.debug("!!!!!!!!!!!!!!!!!! onConnect");
 		return true;
 	}
 
-	public void onDisconnect(org.red5.server.context.Client client) 
+	public void onDisconnect(Client client) 
 	{
+		userListManager.removeUser(client);
+		removeClient(client);
 		log.debug("!!!!!!!!!!!!!!!!!! onDisconnect..." + client);
+	}
+	
+	private void removeClient(Client client)
+	{
+		if(clients.size() == 0) return;
+		
+		for(Iterator it=clients.iterator(); it.hasNext();)
+		{
+			Client connectedClient = (Client) it.next();
+			if(connectedClient.toString().equals(client.toString()))
+			{
+				clients.remove(connectedClient);
+				log.info("removing connectedClient: " + connectedClient + " - " + clients.size());
+			}
+		}
+	}
+	
+	private void init()
+	{
+		if(userListManager == null) userListManager = new UserListManager();
+		if(clients == null) clients = Collections.synchronizedList(new LinkedList());
 	}
 }

@@ -27,8 +27,8 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 // UI Elements:
 
 // ** AUTO-UI ELEMENTS **
-	private var addNewUser:Button;
 	private var black:TextInput;
+	private var joinGame:Button;
 	private var newUserName:TextInput;
 	private var players:List;
 	private var startGame:Button;
@@ -47,36 +47,67 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 		alert = p_alert;
 	}
 	
-	public function configUI(p_connection:Connection):Void 
+	public function configUI(p_connection:Connection, p_userName:String):Void 
 	{
+		_global.tt("configUI", p_connection.connected, p_userName);
+		localUserName = p_userName;
 		// setup buttons
-		addNewUser.addEventListener("click", Delegate.create(this, addUser));
+		joinGame.addEventListener("click", Delegate.create(this, createGameSO));
 		startGame.addEventListener("click", Delegate.create(this, createGame));
 		
 		res = new Object();
+		res.container = this;
 		res.onResult = function(obj:Object)
 		{
-			_global.tt("addUserName return", obj);
+			//_global.tt("Userlist returned", obj);
+			this.container.populateList(obj);
 		}
 		
 		registerConnection(p_connection);
 		
+		
+		
 		so = new GlobalObject();
-		so.addEventListener("onSync", this);
 		soConnected = so.connect("othelloRoomList", p_connection, false);
+		so.addEventListener("onSync", this);
+		
+		getUserList();
 	}
 // Semi-Private Methods:
 // Private Methods:
+
+	private function createGameSO():Void
+	{
+		// check to make sure they've clicked on a user
+		if(players.selectedItem == undefined || players.selectedItem.data == localUserName)
+		{
+			alert.show("Please select a player who's waiting...");
+			return;
+		}
+	}
 
 	private function registerConnection(p_connection:Connection):Void
 	{
 		connection = p_connection;
 	}
-
-	private function onUnload():Void
+	
+	private function getUserList():Void
 	{
-		removeUser();
+		connection.call("getUserList", res);
 	}
+	
+	private function populateList(obj:Object):Void
+	{
+		_global.tt("got userlist", obj);
+		players.removeAll();
+		for(var items:String in obj)
+		{
+			players.addItem({label:obj[items].userName, data:obj[items].userName})
+		}
+		
+		updateSOList();
+	}
+	
 	private function getRoom():Void
 	{
 		// get the room list and set to the list view
@@ -112,6 +143,7 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 		return false;
 	}
 	
+	/*
 	private function removeUser():Void
 	{
 		for(var i:Number = 0;i<players.length;i++)
@@ -124,6 +156,7 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 		
 		updateSOList();
 	}
+	*/
 	
 	private function updateStatus():Void
 	{
@@ -163,16 +196,17 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 	
 	private function enableJoin():Void
 	{
-		addNewUser.enabled = true;
+		joinGame.enabled = true;
 		newUserName.enabled = true;
 	}
 	
 	private function disableJoin():Void
 	{
-		addNewUser.enabled = false;
+		joinGame.enabled = false;
 		newUserName.enabled = false;
 	}
 	
+	/*
 	private function addUser():Void
 	{
 		// check addNewUser is not empty
@@ -199,4 +233,5 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 		// updating the mainLobby will force everyone else to get a copy
 		updateSOList();
 	}
+	*/
 }

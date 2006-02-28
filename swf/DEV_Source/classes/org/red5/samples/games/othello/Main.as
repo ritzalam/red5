@@ -1,6 +1,6 @@
 // ** AUTO-UI IMPORT STATEMENTS **
 import com.blitzagency.util.SimpleDialog;
-import org.red5.utils.Connector;
+import org.red5.samples.games.othello.SignupConnector;
 import org.red5.samples.games.othello.MultiPlayerManager;
 import org.red5.samples.games.othello.GameBoard;
 // ** END AUTO-UI IMPORT STATEMENTS **
@@ -22,7 +22,7 @@ class org.red5.samples.games.othello.Main extends MovieClip {
 // ** AUTO-UI ELEMENTS **
 	private var alert:SimpleDialog;
 	private var board:GameBoard;
-	private var connector:Connector;
+	private var connector:SignupConnector;
 	private var multiPlayerManager:MultiPlayerManager;
 // ** END AUTO-UI ELEMENTS **
 
@@ -43,7 +43,7 @@ class org.red5.samples.games.othello.Main extends MovieClip {
 		connector.addEventListener("connectionChange", this);
 		
 		// set the uri
-		Connector.red5URI = "rtmp://localhost/Othello";
+		SignupConnector.red5URI = "rtmp://localhost/Othello";
 		
 		// initialize the connector
 		connector.configUI();
@@ -65,11 +65,12 @@ class org.red5.samples.games.othello.Main extends MovieClip {
 	
 	private function connectionChange(evtObj:Object):Void
 	{		
-		
+		_global.tt("connectionChange", evtObj);
 		if(evtObj.connected) 
 		{
+			_global.tt(0);
 			//gameManager.resetGame();
-			multiPlayerManager.configUI(connector.connection);
+			multiPlayerManager.configUI(connector.connection, evtObj.userName);
 		}
 	}
 
