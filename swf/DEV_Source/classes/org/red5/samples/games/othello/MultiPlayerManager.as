@@ -23,7 +23,8 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 	private var so:GlobalObject;
 	private var alert:SimpleDialog;
 	private var connection:Connection;
-	private var res:Object;
+	private var loginResult:Object;
+	private var updateResult:Object;
 // UI Elements:
 
 // ** AUTO-UI ELEMENTS **
@@ -55,21 +56,19 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 		joinGame.addEventListener("click", Delegate.create(this, createGameSO));
 		startGame.addEventListener("click", Delegate.create(this, createGame));
 		
-		res = new Object();
-		res.container = this;
-		res.onResult = function(obj:Object)
-		{
-			//_global.tt("Userlist returned", obj);
-			this.container.populateList(obj);
-		}
+		
+		loginResult = new Object();
+		loginResult.onResult = Delegate.create(this, initializeList);
+		
+		updateResult = new Object();
+		updateResult.onResult = Delegate.create(this, populateList);
 		
 		registerConnection(p_connection);
-		
-		
-		
+			
 		so = new GlobalObject();
-		soConnected = so.connect("othelloRoomList", p_connection, false);
 		so.addEventListener("onSync", this);
+		soConnected = so.connect("othelloRoomList", p_connection, false);
+		
 		
 		getUserList();
 	}
@@ -93,37 +92,51 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 	
 	private function getUserList():Void
 	{
-		connection.call("getUserList", res);
+		connection.call("getUserList", loginResult);
+	}
+	
+	private function initializeList(obj:Object):Void
+	{
+		populateList(obj);
+		
+		// now that you have the latest list back, update SO so everyone else goes out to get the new list
+		updateSOList();
 	}
 	
 	private function populateList(obj:Object):Void
 	{
-		_global.tt("got userlist", obj);
+		_global.tt("got userlist", localUserName, obj);
 		players.removeAll();
 		for(var items:String in obj)
 		{
 			players.addItem({label:obj[items].userName, data:obj[items].userName})
 		}
-		
-		updateSOList();
 	}
 	
 	private function getRoom():Void
 	{
 		// get the room list and set to the list view
-		var ary:Array = so.getData("mainLobby");
+		var userName:String = so.getData("mainLobby");
+		_global.tt("getRoom", userName, localUserName);
+		//if(userName != localUserName)
+		//{
+			_global.tt(0);
+			connection.call("getUserList", updateResult);
+		//}
 		
 		//_global.tt("getRoom", ary);
+		/*
 		players.removeAll();
 		for(var i:Number=0;i<ary.length;i++)
 		{
 			players.addItem({label:ary[i].label, data:ary[i].data})
 		}
+		*/
 	}
 	
 	private function onSync(evtObj:Object):Void
 	{
-		_global.tt("onSync", evtObj);
+		_global.tt("onSync called for ", localUserName);
 		getRoom();
 	}
 	
@@ -174,6 +187,7 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 	
 	private function updateSOList():Void
 	{
+		/*
 		var ary:Array = new Array();
 		var obj:Object = players.dataProvider;
 		for(var items:String in obj)
@@ -181,7 +195,11 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 			ary.push({label: obj[items].label, data: obj[items].data});
 		}
 		ary.sortOn("label");
-		so.setData("mainLobby", ary);
+		*/
+		
+		// we won't pass data, we'll just update mainLobby to tell the other clients to get the info
+		// send the localUserName so you don't re-update your list
+		so.setData("mainLobby", localUserName);
 	}
 	
 	private function enableStartGame():Void
