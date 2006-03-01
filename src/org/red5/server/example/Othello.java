@@ -63,6 +63,7 @@ public class Othello extends BaseApplication
 
 	public boolean onConnect(Client client, List params)
 	{
+		/*
 		// initialize the userList if not done already
 		init();
 		
@@ -75,14 +76,14 @@ public class Othello extends BaseApplication
 		}
 		
 		clients.add(client.toString());
-		
+		*/
 		log.debug("!!!!!!!!!!!!!!!!!! onConnect");
 		return true;
 	}
 
 	public void onDisconnect(Client client) 
 	{
-		userListManager.removeUser(client);
+		//userListManager.removeUser(client);
 		//if(clients.size() > 1) removeClient(client);
 		log.debug("!!!!!!!!!!!!!!!!!! onDisconnect..." + client);
 	}

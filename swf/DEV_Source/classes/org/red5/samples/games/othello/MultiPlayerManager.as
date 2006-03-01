@@ -1,4 +1,4 @@
-// ** AUTO-UI IMPORT STATEMENTS **
+﻿// ** AUTO-UI IMPORT STATEMENTS **
 import mx.controls.TextInput;
 import mx.controls.Button;
 import mx.controls.List;
@@ -23,8 +23,10 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 	private var so:GlobalObject;
 	private var alert:SimpleDialog;
 	private var connection:Connection;
-	private var loginResult:Object;
-	private var updateResult:Object;
+	//private var loginResult:Object;
+	//private var updateResult:Object;
+	//private var si:Number;
+	private var userAdded:Boolean;
 // UI Elements:
 
 // ** AUTO-UI ELEMENTS **
@@ -57,20 +59,25 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 		startGame.addEventListener("click", Delegate.create(this, createGame));
 		
 		
+		/*
 		loginResult = new Object();
 		loginResult.onResult = Delegate.create(this, initializeList);
 		
 		updateResult = new Object();
 		updateResult.onResult = Delegate.create(this, populateList);
-		
+		*/
 		registerConnection(p_connection);
 			
+		
+		
 		so = new GlobalObject();
 		so.addEventListener("onSync", this);
 		soConnected = so.connect("othelloRoomList", p_connection, false);
 		
 		
-		getUserList();
+		//si = setInterval(this, "addUser", 250, localUserName);
+		
+		//getUserList();
 	}
 // Semi-Private Methods:
 // Private Methods:
@@ -90,19 +97,14 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 		connection = p_connection;
 	}
 	
+	/*
 	private function getUserList():Void
 	{
 		connection.call("getUserList", loginResult);
 	}
+	*/
 	
-	private function initializeList(obj:Object):Void
-	{
-		populateList(obj);
-		
-		// now that you have the latest list back, update SO so everyone else goes out to get the new list
-		updateSOList();
-	}
-	
+	/*
 	private function populateList(obj:Object):Void
 	{
 		_global.tt("got userlist", localUserName, obj);
@@ -112,26 +114,30 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 			players.addItem({label:obj[items].userName, data:obj[items].userName})
 		}
 	}
+	*/
 	
 	private function getRoom():Void
 	{
 		// get the room list and set to the list view
-		var userName:String = so.getData("mainLobby");
-		_global.tt("getRoom", userName, localUserName);
+		//var userName:String = so.getData("mainLobby");
+		//_global.tt("getRoom", userName, localUserName);
 		//if(userName != localUserName)
 		//{
-			_global.tt(0);
-			connection.call("getUserList", updateResult);
+			//_global.tt(0);
+			//connection.call("getUserList", updateResult);
 		//}
 		
 		//_global.tt("getRoom", ary);
-		/*
+		var ary:Array = so.getData("othelloMainLobby");
+		_global.tt("getRoom", ary);
 		players.removeAll();
 		for(var i:Number=0;i<ary.length;i++)
 		{
 			players.addItem({label:ary[i].label, data:ary[i].data})
 		}
-		*/
+		
+		if(!userAdded) addUser(localUserName);
+		userAdded = true;
 	}
 	
 	private function onSync(evtObj:Object):Void
@@ -187,7 +193,7 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 	
 	private function updateSOList():Void
 	{
-		/*
+		
 		var ary:Array = new Array();
 		var obj:Object = players.dataProvider;
 		for(var items:String in obj)
@@ -195,11 +201,11 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 			ary.push({label: obj[items].label, data: obj[items].data});
 		}
 		ary.sortOn("label");
-		*/
+		
 		
 		// we won't pass data, we'll just update mainLobby to tell the other clients to get the info
 		// send the localUserName so you don't re-update your list
-		so.setData("mainLobby", localUserName);
+		so.setData("othelloMainLobby", ary);
 	}
 	
 	private function enableStartGame():Void
@@ -224,32 +230,30 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 		newUserName.enabled = false;
 	}
 	
-	/*
-	private function addUser():Void
+	private function addUser(p_userName:String):Void
 	{
 		// check addNewUser is not empty
 		// check for duplicates
 		// addName
 		// update SO
 		
-		if(newUserName.text.length < 1 || checkDuplicatePlayers(newUserName.text))
+		if(p_userName.length < 1 || checkDuplicatePlayers(p_userName))
 		{
 			alert.title = "Invalide Entry";
 			alert.show("Please enter a unique player name.")
 			return;
 		}
 		
-		connection.call("addUserName", res, newUserName.text);
-		players.addItem({label:newUserName.text, data:newUserName.text});
+		//connection.call("addUserName", res, p_userName);
+		players.addItem({label:p_userName, data:p_userName});
 		
 		// set localUserName
-		localUserName = newUserName.text;
+		//localUserName = newUserName.text;
 		
 		// now that they are already joined up, disable the controls
-		disableJoin();
+		//disableJoin();
 		
 		// updating the mainLobby will force everyone else to get a copy
 		updateSOList();
 	}
-	*/
 }
