@@ -92,7 +92,6 @@ public class ScreenVideo implements IVideoStreamCodec {
 			for (int idx=0; idx<this.blockCount; idx++)
 				this.blockSize[idx] = 0;
 		}
-		log.debug("Size: " + this.width + "x" + this.height + " (" + this.blockWidth + "x" + this.blockHeight+")");
 	}
 	
 	public boolean addData(ByteBuffer data) {
