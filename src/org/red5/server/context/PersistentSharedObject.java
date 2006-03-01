@@ -18,7 +18,7 @@ import org.red5.server.SharedObjectPersistence;
 public class PersistentSharedObject implements SharedObject, Constants {
 
 	protected static Log log =
-        LogFactory.getLog(BaseApplication.class.getName());
+        LogFactory.getLog(PersistentSharedObject.class.getName());
 
 	protected String name;
 	protected SharedObjectPersistence persistence = null;
