@@ -5,6 +5,7 @@ import org.apache.commons.logging.LogFactory;
 import org.red5.io.flv.FLVServiceImpl;
 import org.red5.server.SharedObjectPersistence;
 import org.red5.server.SharedObjectRamPersistence;
+import org.red5.server.api.Red5;
 import org.red5.server.service.ServiceInvoker;
 import org.red5.server.stream.StreamManager;
 import org.red5.server.stream.VideoCodecFactory;

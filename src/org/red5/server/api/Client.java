@@ -12,8 +12,6 @@ public interface Client {
 	public String getId();
 	public String getHost();
 	
-	//public String getRemoteHost(); keep it simple to start with
-	
 	// The red5 session object
 	public Session getSession();
 
