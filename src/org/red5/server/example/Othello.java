@@ -74,13 +74,7 @@ public class Othello extends BaseApplication
 			userListManager.addUser(client, userName.toString());
 		}
 		
-		clients.add(client);
-		
-		for(Iterator it=clients.iterator(); it.hasNext();)
-		{
-			Client connectedClient = (Client) it.next();
-			log.info("connectedClient: " + connectedClient);
-		}
+		clients.add(client.toString());
 		
 		log.debug("!!!!!!!!!!!!!!!!!! onConnect");
 		return true;
@@ -89,17 +83,16 @@ public class Othello extends BaseApplication
 	public void onDisconnect(Client client) 
 	{
 		userListManager.removeUser(client);
-		removeClient(client);
+		//if(clients.size() > 1) removeClient(client);
 		log.debug("!!!!!!!!!!!!!!!!!! onDisconnect..." + client);
 	}
-	
-	private void removeClient(Client client)
-	{
-		if(clients.size() == 0) return;
 		
+	private void removeClient(Client client)
+	{		
+		// Removing for now since line 95 causes an error.  Don't know why
 		for(Iterator it=clients.iterator(); it.hasNext();)
 		{
-			Client connectedClient = (Client) it.next();
+			Object connectedClient = it.next();
 			if(connectedClient.toString().equals(client.toString()))
 			{
 				clients.remove(connectedClient);
