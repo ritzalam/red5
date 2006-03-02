@@ -63,9 +63,10 @@ public class PersistentSharedObject implements SharedObject, Constants {
 			this.ownerMessage.setSoId(this.version);
 			this.ownerMessage.setSealed(false);
 			Channel channel = Scope.getChannel();
-			if (channel != null)
+			if (channel != null) {
 				channel.write(this.ownerMessage);
-			else
+				log.debug("Owner: " + channel);
+			} else
 				log.warn("No channel found for owner changes!?");
 			this.ownerMessage.getEvents().clear();
 		}
@@ -89,7 +90,9 @@ public class PersistentSharedObject implements SharedObject, Constants {
 				Iterator channels = ((HashSet) all_clients.get(connection)).iterator();
 				while (channels.hasNext()) {
 					Channel c = connection.getChannel(((Integer) channels.next()).byteValue());
+					log.debug("Send to " + c);
 					c.write(this.syncMessage);
+					this.syncMessage.setSealed(false);
 				}
 			}
 			// After sending the packet down all the channels we can release the packet, 
