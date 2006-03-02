@@ -1,6 +1,6 @@
 package org.red5.server.api;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * Subclasses: RTMPConnection, RemotingConnection, AJAXConnection, HttpConnection, etc
@@ -24,8 +24,6 @@ public interface Connection {
 	// Send an object down to the client, this is like an event dispatcher, not like rpc
 	public void dispatchEvent(Object object);
 	
-	public Map getParameters(); // read only hash map of parameters
-	public String[] getParameterNames(); // return all the parameter names
-	public String getParameter(String name); // parameters which came with the initial connect
+	public List getParams(); // read only hash list of connect parameters
 	
 }

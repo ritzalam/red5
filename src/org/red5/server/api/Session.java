@@ -1,18 +1,19 @@
 package org.red5.server.api;
 
+import java.util.Set;
+
 public interface Session {
 	
-	// This should be as close to the servlet API as possible
-	 public Object getAttribute(java.lang.String name);
-	 public java.util.Enumeration getAttributeNames();
-	 public long getCreationTime();
-	 public String 	getId();
-	 public  long getLastAccessedTime();
-	 public int getMaxInactiveInterval();
-	 public void invalidate();
-	 public boolean isNew();
-	 public void removeAttribute(java.lang.String name);
-	 public void setAttribute(String name,Object value);
-	 public void setMaxInactiveInterval(int interval);
-	
+	public long getCreationTime();
+	public boolean isNew();
+	 
+	public String getId();
+	public void invalidate();
+
+	public Set getAttributeNames();
+	public void setAttribute(String name,Object value);
+	public Object getAttribute(String name);
+	public boolean hasAttribute(String name);
+	public void removeAttribute(String name);
+
 }

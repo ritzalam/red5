@@ -3,21 +3,41 @@ package org.red5.server.api;
 import java.util.List;
 
 public interface ScopeHandler {
-
-	boolean onClientConnect(List params); // ? list or object[] ?
-	void onClientDisconnect();
 	
-	boolean onServiceCall(String service, String method, Object[] params);
-	boolean onEventBroadcast(Object event);
+	boolean canCreateScope(String contextPath);
+	void onCreateScope(Scope scope);
+	void onDisposeScope();
+	
+	boolean canConnect(Client client, List params); // ? list or object[] ?
+	void onConnect(Connection conn);
+	void onDisconnect(Connection conn);
+	
+	boolean canCallService(Call call);
+	Call preProcessServiceCall(Call call);
+	void onServiceCall(Call call);
+	Call postProcessServiceCall(Call call);
+	
+	boolean canBroadcastEvent(Object event);
+	void onEventBroadcast(Object event);
 	
 	// The following methods will only be called for RTMP connections
 	
-	boolean onStreamPublish(String stream, String mode); 
-	boolean onStreamSubscribe(String stream, String mode);
+	boolean canPublishStream(String stream, String mode); 
+	void onStreamPublish(Stream stream);
+	
+	boolean canSubscribeStream(String stream, String mode);
+	void onStreamSubscribe(Stream stream);
+	
+	boolean canConnectSharedObject(String soName);
+	void onSharedObjectConnect(SharedObject so);
+	
+	boolean canUpdateSharedObject(SharedObject so, String key, Object value); 
+	void onSharedObjectUpdate(SharedObject so, String key, Object value);
+	
+	boolean canDeleteSharedObject(SharedObject so, String key);
+	void onSharedObjectDelete(SharedObject so, String key);
+	
+	boolean canSendSharedObject(SharedObject so, String method, Object[] params);
+	void onSharedObjectSend(SharedObject so, String method, Object[] params);
 
-	boolean onSharedObjectConnect(String so);
-	boolean onSharedObjectUpdate(String so, String key, Object value); 
-	boolean onSharedObjectDelete(String so, String key);
-	boolean onSharedObjectSend(String so, String method, Object[] params);
-		
 }
