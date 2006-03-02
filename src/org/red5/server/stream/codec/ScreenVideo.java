@@ -28,6 +28,7 @@ public class ScreenVideo implements IVideoStreamCodec {
 	private int blockHeight;
 	private int blockCount;
 	private int blockDataSize;
+	private int totalBlockDataSize;
 	
 	public ScreenVideo() {
 		this.reset();
@@ -44,6 +45,7 @@ public class ScreenVideo implements IVideoStreamCodec {
 		this.blockHeight = 0;
 		this.blockCount = 0;
 		this.blockDataSize = 0;
+		this.totalBlockDataSize = 0;
 	}
 
 	public boolean canHandleData(ByteBuffer data) {
@@ -83,9 +85,11 @@ public class ScreenVideo implements IVideoStreamCodec {
 		this.blockCount = xblocks * yblocks;
 		
 		int blockSize = this.maxCompressedSize(this.blockWidth * this.blockHeight * 3);
-		if (this.blockDataSize != blockSize) {
+		int totalBlockSize = blockSize * this.blockCount;
+		if (this.totalBlockDataSize != totalBlockSize) {
 			log.info("Allocating memory for " + this.blockCount + " compressed blocks.");
 			this.blockDataSize = blockSize;
+			this.totalBlockDataSize = totalBlockSize;
 			this.blockData = new byte[blockSize * this.blockCount];
 			this.blockSize = new int[blockSize * this.blockCount];
 			// Reset the sizes to zero
