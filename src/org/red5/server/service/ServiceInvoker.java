@@ -79,7 +79,7 @@ public class ServiceInvoker  {
 				params = ConversionUtils.convertParams(args, method.getParameterTypes());
 				return new Object[]{method, params};
 			} catch (Exception ex){
-				log.debug("Parameter conversion failed", ex);
+				log.debug("Parameter conversion failed");
 			}
 		}
 		
