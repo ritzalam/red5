@@ -15,13 +15,17 @@ public class MultiStreamSink extends BaseStreamSink implements IStreamSink, ISin
 	protected LinkedList streams = new LinkedList();
 
 	public void connect(IStreamSink stream){
-		streams.add(stream);
+		synchronized (streams) {
+			streams.add(stream);
+		}
 		stream.setVideoCodec(this.videoCodec);
 		stream.setSinkContainer(this);
 	}
 
 	public void disconnect(IStreamSink stream) {
-		streams.remove(stream);
+		synchronized (streams) {
+			streams.remove(stream);
+		}
 		stream.setSinkContainer(null);
 	}
 	
@@ -29,35 +33,41 @@ public class MultiStreamSink extends BaseStreamSink implements IStreamSink, ISin
 		super.setVideoCodec(codec);
 		
 		// Update already connected streams
-		Iterator it = streams.iterator();
-		while (it.hasNext()) {
-			IStreamSink stream = (IStreamSink) it.next();
-			stream.setVideoCodec(codec);
+		synchronized (streams) {
+			Iterator it = streams.iterator();
+			while (it.hasNext()) {
+				IStreamSink stream = (IStreamSink) it.next();
+				stream.setVideoCodec(codec);
+			}
 		}
 	}
 
 	// push message to all connected streams
 	public void enqueue(Message message) {
-		final Iterator it = streams.iterator();
-		while (it.hasNext()){
-			IStreamSink stream = (IStreamSink) it.next();
-			if (log.isDebugEnabled())
-				log.info("Sending");
-			if (stream.canAccept()){
-				stream.enqueue(message);
-			} else {
-				log.warn("Out cant accept");
+		synchronized (streams) {
+			final Iterator it = streams.iterator();
+			while (it.hasNext()){
+				IStreamSink stream = (IStreamSink) it.next();
+				if (log.isDebugEnabled())
+					log.debug("Sending");
+				if (stream.canAccept()){
+					stream.enqueue(message);
+				} else {
+					log.warn("Out cant accept");
+				}
 			}
 		}
 	}
 
 	public void close(){
-		final Iterator it = streams.iterator();
-		while (it.hasNext()){
-			IStreamSink stream = (IStreamSink) it.next();
-			stream.close();
+		synchronized (streams) {
+			final Iterator it = streams.iterator();
+			while (it.hasNext()){
+				IStreamSink stream = (IStreamSink) it.next();
+				stream.close();
+			}
+			streams.clear();
 		}
-		streams.clear();
 		
 		super.close();
 	}
