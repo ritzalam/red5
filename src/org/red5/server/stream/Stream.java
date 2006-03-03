@@ -163,19 +163,7 @@ public class Stream extends BaseStreamSink implements Constants, IStream, IStrea
 			write(source.dequeue());
 		}
 		*/
-		
-		if (this.videoCodec != null) {
-			ByteBuffer keyframe = this.videoCodec.getKeyframe();
-			if (keyframe != null) {
-				// Send initial keyframe to client
-				Message msg = new VideoData();
-				msg.setTimestamp(0);
-				msg.setData(keyframe);
-				msg.setSealed(true);
-				this.write(msg);
-			}
-		}
-		
+		initialMessage = true;
 	}
 	
 	public void stop(){
@@ -199,8 +187,21 @@ public class Stream extends BaseStreamSink implements Constants, IStream, IStrea
 	
 	protected void write(Message message){
 		if (downstream.canAccept()){
+			if (initialMessage && this.videoCodec != null) {
+				initialMessage = false;
+				ByteBuffer keyframe = this.videoCodec.getKeyframe();
+				if (keyframe != null) {
+					// Send initial keyframe to client
+					Message msg = new VideoData();
+					msg.setTimestamp(message.getTimestamp()-1);
+					msg.setData(keyframe);
+					msg.setSealed(true);
+					this.write(msg);
+				}
+			}
+			
 			if(log.isDebugEnabled())
-				log.debug("Sending downstream");
+				log.debug("Sending downstream: " + message.getTimestamp());
 			//writeQueue++;
 			currentTS = message.getTimestamp();
 			downstream.enqueue(message);
