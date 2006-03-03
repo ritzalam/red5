@@ -9,7 +9,7 @@ public class AudioData extends Message {
 	}
 
 	public String toString(){
-		return "Video ts: "+getTimestamp()+" size: "+getData().limit(); 
+		return "Audio  ts: "+getTimestamp()+" size: "+getData().limit(); 
 	}
 	
 }
