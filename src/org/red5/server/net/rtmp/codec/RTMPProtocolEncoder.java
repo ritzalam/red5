@@ -1,5 +1,6 @@
 package org.red5.server.net.rtmp.codec;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -14,6 +15,8 @@ import org.red5.io.amf.AMF;
 import org.red5.io.amf.Output;
 import org.red5.io.object.Serializer;
 import org.red5.io.utils.BufferUtils;
+import org.red5.server.net.ProtocolState;
+import org.red5.server.net.SimpleProtocolEncoder;
 import org.red5.server.net.rtmp.RTMPUtils;
 import org.red5.server.net.rtmp.message.AudioData;
 import org.red5.server.net.rtmp.message.ChunkSize;
@@ -30,7 +33,7 @@ import org.red5.server.net.rtmp.message.StreamBytesRead;
 import org.red5.server.net.rtmp.message.VideoData;
 import org.red5.server.service.Call;
 
-public class RTMPProtocolEncoder implements org.apache.mina.filter.codec.ProtocolEncoder, Constants {
+public class RTMPProtocolEncoder implements org.apache.mina.filter.codec.ProtocolEncoder,SimpleProtocolEncoder, Constants {
 
 	protected static Log log =
         LogFactory.getLog(RTMPProtocolEncoder.class.getName());
@@ -42,17 +45,28 @@ public class RTMPProtocolEncoder implements org.apache.mina.filter.codec.Protoco
 	
 	public void encode(IoSession session, Object message, ProtocolEncoderOutput out) 
 		throws ProtocolCodecException {
-				
+		try {
+			final ProtocolState state = (ProtocolState) session.getAttribute(ProtocolState.SESSION_KEY);
+			final ByteBuffer buf = encode(state, message);
+			if(buf != null) out.write(buf);
+		} catch(Exception ex){
+			log.error(ex);
+		}
+		
+	}
+			
+	public ByteBuffer encode(ProtocolState state, Object message) throws Exception {
+			
 		try {
 
+			final RTMP rtmp = (RTMP) state;
+		
 			if(message instanceof ByteBuffer){
 				if(log.isDebugEnabled())
 					log.debug("Sending raw buffer");
-				out.write((ByteBuffer)message);
-				return;
+				return (ByteBuffer) message; 
 			}
-			
-			final RTMP rtmp = (RTMP) session.getAttribute(RTMP.SESSION_KEY);
+	
 			final OutPacket packet = (OutPacket) message;
 			final PacketHeader header = packet.getDestination();
 			final byte channelId = header.getChannelId();
@@ -94,19 +108,22 @@ public class RTMPProtocolEncoder implements org.apache.mina.filter.codec.Protoco
 				ioLog.debug(buf.getHexDump());
 			}
 			
-			out.write(buf);
 			// Once we have finished with the data buffer flip it for next use
 			data.flip();
 			
 			// this will destroy the packet if there are no more refs
 			packet.getMessage().release();
+			
+			return buf;
+			
 		} catch (RuntimeException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+		return null;
 	}
 
+		
 	public ByteBuffer encodeHeader(PacketHeader header, PacketHeader lastHeader){
 		
 		int headerSize = 9;
@@ -376,5 +393,6 @@ public class RTMPProtocolEncoder implements org.apache.mina.filter.codec.Protoco
 	public void setSerializer(org.red5.io.object.Serializer serializer) {
 		this.serializer = serializer;
 	}
+
 	
 }

@@ -1,12 +1,11 @@
 package org.red5.server.net.rtmp.codec;
 
+import org.red5.server.net.ProtocolState;
 import org.red5.server.net.rtmp.message.InPacket;
 import org.red5.server.net.rtmp.message.OutPacket;
 import org.red5.server.net.rtmp.message.PacketHeader;
 
-public class RTMP {
-	
-	public static final String SESSION_KEY = "rtmp_codec_state";
+public class RTMP extends ProtocolState {
 	
 	public static final byte STATE_CONNECT = 0x00;
 	public static final byte STATE_HANDSHAKE = 0x01;

@@ -13,6 +13,8 @@ import org.apache.mina.filter.codec.ProtocolDecoderOutput;
 import org.red5.io.amf.Input;
 import org.red5.io.object.Deserializer;
 import org.red5.io.utils.BufferUtils;
+import org.red5.server.net.ProtocolState;
+import org.red5.server.net.SimpleProtocolDecoder;
 import org.red5.server.net.rtmp.RTMPUtils;
 import org.red5.server.net.rtmp.message.AudioData;
 import org.red5.server.net.rtmp.message.ChunkSize;
@@ -30,7 +32,7 @@ import org.red5.server.net.rtmp.message.Unknown;
 import org.red5.server.net.rtmp.message.VideoData;
 import org.red5.server.service.Call;
 
-public class RTMPProtocolDecoder implements Constants, org.apache.mina.filter.codec.ProtocolDecoder {
+public class RTMPProtocolDecoder implements Constants, org.apache.mina.filter.codec.ProtocolDecoder, SimpleProtocolDecoder {
 
 	protected static Log log =
         LogFactory.getLog(RTMPProtocolDecoder.class.getName());
@@ -51,39 +53,53 @@ public class RTMPProtocolDecoder implements Constants, org.apache.mina.filter.co
     public void decode( IoSession session, ByteBuffer in,
             ProtocolDecoderOutput out ) throws ProtocolCodecException {
 		
+    	final ProtocolState state = (ProtocolState) session.getAttribute(ProtocolState.SESSION_KEY);
+    	
 		ByteBuffer buf = (ByteBuffer) session.getAttribute("buffer");
 		if(buf==null){
-			buf = ByteBuffer.allocate(1024);
+			buf = ByteBuffer.allocate(2048);
 			buf.setAutoExpand(true);
 			session.setAttribute("buffer",buf);
 		}
 		buf.put(in);
 		buf.flip();
-		
-		try
-		{
-		for( ;; )
-		{
-		    int oldPos = buf.position();
-		    boolean decoded = doDecode( session, buf, out );
-		    if( decoded )
-		    {
-		        if( buf.position() == oldPos )
-		        {
-		            throw new IllegalStateException(
-		                    "doDecode() can't return true when buffer is not consumed." );
-		        }
-		        
-		        if( !buf.hasRemaining() )
-		        {
-		            break;
-		        }
-		    }
-		    else
-		    {
-		        break;
-		    }
-		}
+			
+		try {
+			while(true){
+			 	
+				if(state.canStartDecoding(buf.remaining())){
+					//log.debug("Starting decoding");
+					state.startDecoding();
+				}
+			    else {
+			    	//log.debug("Further buffering needed: "+buf.remaining());
+			    	break;
+			    }
+			   
+				final int oldPos = buf.position();
+			    final Object result = decode( state, buf );
+			    
+			    if(state.hasDecodedObject()){	
+			    	out.write(result);
+			    	
+			    	if( buf.position() == oldPos ){
+			            throw new IllegalStateException(
+			                    "doDecode() can't return true when buffer is not consumed." );
+			        }
+			        if( !buf.hasRemaining() ) {
+			        	//log.debug("End of decode");
+			        	break;
+			        }
+			    }
+			    else if( state.canContinueDecoding() ) 	{
+			    	//log.debug("Continue decoding");
+			    	continue; 
+			    }
+			    else {
+			    	//log.debug("Buffering: "+state.getDecoderBufferAmount());
+			    	break;
+			    }
+			}
 		}
 		catch(ProtocolCodecException  pvx){
 			log.error("Error",pvx);
@@ -97,54 +113,58 @@ public class RTMPProtocolDecoder implements Constants, org.apache.mina.filter.co
 		}
 	}
 
-	
-	protected boolean doDecode(IoSession session, ByteBuffer in,
-			 ProtocolDecoderOutput out) throws ProtocolCodecException {
-		
+	public Object decode(ProtocolState state, ByteBuffer in) throws Exception {
 		try {
-			
-			if(in.remaining() < 1) {
-				log.debug("Empty read, buffering");
-				return false;
+		
+			final RTMP rtmp = (RTMP) state;
+
+			if(in.remaining() < 1){
+				state.bufferDecoding(1);
+				return null;
 			}
-			
-			final RTMP rtmp = (RTMP) session.getAttribute(RTMP.SESSION_KEY);
 			
 			final int startPosition = in.position();
 			
 			if(rtmp.getMode()==RTMP.MODE_SERVER){
 			
 				if(rtmp.getState()==RTMP.STATE_CONNECT){
+					
 					if(in.remaining() < HANDSHAKE_SIZE + 1){ 
 						log.debug("Handshake init too small, buffering. remaining: "+in.remaining());
-						return false;
+						state.bufferDecoding(HANDSHAKE_SIZE + 1); 
+						return null;
 					}
-					// Data in the handshake, Looks like a little bit of info
-					// in.get(); // id byte, always the same
-					// in.getInt(); // uptime ? seems to count up
-					// in.position(in.position()-5); // reset position
+					else {
 					
-					ByteBuffer hs = ByteBuffer.allocate(HANDSHAKE_SIZE);
-					hs.setAutoExpand(true);
-					in.get(); // skip the header byte
-					int limit = in.limit();
-					in.limit(in.position() + HANDSHAKE_SIZE);
-					hs.put(in).flip();
-					out.write(hs);
-					rtmp.setState(RTMP.STATE_HANDSHAKE);
-					in.limit(limit);
-					return true;
+						//	Data in the handshake, Looks like a little bit of info
+						// in.get(); // id byte, always the same
+						// in.getInt(); // uptime ? seems to count up
+						// in.position(in.position()-5); // reset position
+						
+						ByteBuffer hs = ByteBuffer.allocate(HANDSHAKE_SIZE);
+						hs.setAutoExpand(true);
+						in.get(); // skip the header byte
+						int limit = in.limit();
+						in.limit(in.position() + HANDSHAKE_SIZE);
+						hs.put(in).flip();
+						rtmp.setState(RTMP.STATE_HANDSHAKE);
+						in.limit(limit);
+						return hs;
+					}
 				} 
 				
 				if(rtmp.getState()==RTMP.STATE_HANDSHAKE){
 					log.debug("Handshake reply");
 					if(in.remaining() < HANDSHAKE_SIZE){ 
 						log.debug("Handshake reply too small, buffering. remaining: "+in.remaining());
-						return false;
+						state.bufferDecoding(HANDSHAKE_SIZE);
+						return null;
+					} else {
+						in.skip(HANDSHAKE_SIZE);
+						rtmp.setState(RTMP.STATE_CONNECTED);
+						state.continueDecoding();
+						return null;
 					}
-					in.skip(HANDSHAKE_SIZE);
-					rtmp.setState(RTMP.STATE_CONNECTED);
-					return true;
 				}
 				
 			} else {
@@ -153,16 +173,16 @@ public class RTMPProtocolDecoder implements Constants, org.apache.mina.filter.co
 				if(rtmp.getState()==RTMP.STATE_CONNECT){
 					if(in.remaining() < (2*HANDSHAKE_SIZE)+1){ 
 						log.debug("Handshake init too small, buffering. remaining: "+in.remaining());
-						return false;
+						state.bufferDecoding((2*HANDSHAKE_SIZE)+1);
+						return null;
+					} else {
+						ByteBuffer hs = ByteBuffer.allocate(HANDSHAKE_SIZE);
+						hs.setAutoExpand(true);
+						hs.put(in).flip();
+						rtmp.setState(RTMP.STATE_CONNECTED);
+						return hs;
 					}
-					ByteBuffer hs = ByteBuffer.allocate(HANDSHAKE_SIZE);
-					hs.setAutoExpand(true);
-					hs.put(in).flip();
-					out.write(hs);
-					rtmp.setState(RTMP.STATE_CONNECTED);
-					return true;
 				} 
-					
 			}
 			
 			final byte headerByte = in.get();
@@ -178,7 +198,8 @@ public class RTMPProtocolDecoder implements Constants, org.apache.mina.filter.co
 			if(headerLength > in.remaining()) {
 				log.debug("Header too small, buffering. remaining: "+in.remaining());
 				in.position(startPosition);
-				return false;
+				state.bufferDecoding(headerLength);
+				return null;
 			}
 			
 			PacketHeader header = null;
@@ -211,7 +232,8 @@ public class RTMPProtocolDecoder implements Constants, org.apache.mina.filter.co
 				if(log.isDebugEnabled())
 					log.debug("Chunk too small, buffering ("+in.remaining()+","+readAmount);
 				in.position(startPosition);
-				return false;
+				state.bufferDecoding(headerSize + readAmount);
+				return null;
 			}
 			
 			//log.debug("in: "+in.remaining()+" read: "+readAmount+" pos: "+buf.position());
@@ -241,11 +263,12 @@ public class RTMPProtocolDecoder implements Constants, org.apache.mina.filter.co
 					ChunkSize chunkSizeMsg = (ChunkSize) message;
 					rtmp.setReadChunkSize(chunkSizeMsg.getSize());
 				}
-				out.write(packet);
 				rtmp.setLastReadPacket(channelId, null);
-			} 
-			return true;
-
+				return packet;
+			} else { 
+				state.continueDecoding();
+				return null;
+			}
 		} catch (RuntimeException e){
 			log.error("Error", e);
 			throw new ProtocolCodecException("Error copying buffer");
