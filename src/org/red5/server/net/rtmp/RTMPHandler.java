@@ -17,6 +17,7 @@ import org.red5.server.context.HostContext;
 import org.red5.server.context.PersistentSharedObject;
 import org.red5.server.context.Scope;
 import org.red5.server.net.BaseHandler;
+import org.red5.server.net.ProtocolState;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.net.rtmp.message.InPacket;
@@ -51,16 +52,22 @@ public class RTMPHandler extends BaseHandler implements Constants{
 	}
 
 	public void messageReceived(IoSession session, Object in) throws Exception {
+		final Connection conn = (Connection) session.getAttachment();
+		final ProtocolState state = (ProtocolState) session.getAttribute(RTMP.SESSION_KEY);
+		
+		messageReceived(conn, state, in);
+	}
+	
+	public void messageReceived(Connection conn, ProtocolState state, Object in) throws Exception {
 	
 		if(in instanceof ByteBuffer){
-			rawBufferRecieved(session, (ByteBuffer) in);
+			rawBufferRecieved(conn, state, (ByteBuffer) in);
 			return;
 		}
 		
 		try {
 			
 			
-			final Connection conn = (Connection) session.getAttachment();
 			final InPacket packet = (InPacket) in;
 			final Message message = packet.getMessage();
 			final PacketHeader source = packet.getSource();
@@ -167,10 +174,9 @@ public class RTMPHandler extends BaseHandler implements Constants{
 		so.endUpdate();
 	}
 	
-	private void rawBufferRecieved(IoSession session, ByteBuffer in) {
+	private void rawBufferRecieved(Connection conn, ProtocolState state, ByteBuffer in) {
 		
-		final RTMP rtmp = (RTMP) session.getAttribute(RTMP.SESSION_KEY);
-		final Connection conn = (Connection) session.getAttachment();
+		final RTMP rtmp = (RTMP) state;
 		
 		if(rtmp.getState() != RTMP.STATE_HANDSHAKE){
 			log.warn("Raw buffer after handshake, something odd going on");
@@ -186,7 +192,7 @@ public class RTMPHandler extends BaseHandler implements Constants{
 		out.put((byte)0x03);
 		out.fill((byte)0x00,Constants.HANDSHAKE_SIZE);
 		out.put(in).flip();
-		session.write(out);
+		conn.write(out);
 	}
 
 	public void messageSent(IoSession session, Object message) throws Exception {

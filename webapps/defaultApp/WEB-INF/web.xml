@@ -12,19 +12,9 @@
     <servlet-class>org.red5.server.net.servlet.AMFGatewayServlet</servlet-class>
   </servlet>
 
-  <servlet>
-    <servlet-name>dump</servlet-name>
-    <servlet-class>org.red5.server.net.servlet.RequestDumpServlet</servlet-class>
-  </servlet>
-
   <servlet-mapping>
     <servlet-name>gateway</servlet-name>
     <url-pattern>/gateway</url-pattern>
-  </servlet-mapping>
-
-  <servlet-mapping>
-    <servlet-name>dump</servlet-name>
-    <url-pattern>/open/*</url-pattern>
   </servlet-mapping>
 
 </web-app>

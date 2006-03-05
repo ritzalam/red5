@@ -16,6 +16,15 @@
         </constructor-arg> 
     </bean>
 	
+	<!-- rtmptServer: embedded Jetty servlet engine for RTMPT support --> 
+    <bean id="rtmptServer" class="org.mortbay.xml.XmlConfiguration"> 
+        <constructor-arg> 
+           <bean class="java.io.FileInputStream"> 
+              <constructor-arg value="conf/jetty_rtmpt.xml"/> 
+           </bean> 
+        </constructor-arg> 
+    </bean>
+	
 	
 	<!-- Create a thread pool filter -->
    <bean id="threadPoolFilter" 
@@ -106,6 +115,13 @@
 		<property name="deserializer" ref="deserializer" />
 	</bean>
 	
+	<bean id="rtmptCodecFactory"
+		class="org.red5.server.net.rtmpt.codec.RTMPTCodecFactory"
+		init-method="init">
+		<property name="serializer" ref="serializer" />
+		<property name="deserializer" ref="deserializer" />
+	</bean>
+	
 	<bean id="remotingCodecFactory"
 		class="org.red5.server.net.remoting.codec.RemotingCodecFactory"
 		init-method="init">
@@ -130,6 +146,15 @@
 		<property name="statusObjectService" ref="statusObjectService" />
 		<property name="serviceInvoker" ref="serviceInvoker" />
 		<property name="globalContext" ref="globalContext" />
+	</bean>
+
+	<bean id="rtmptHandler"
+		class="org.red5.server.net.rtmpt.RTMPTHandler">
+		<property name="codecFactory" ref="rtmptCodecFactory" />
+		<property name="statusObjectService" ref="statusObjectService" />
+		<property name="serviceInvoker" ref="serviceInvoker" />
+		<property name="globalContext" ref="globalContext" />
+		<property name="rtmptServerConfiguration" ref="rtmptServer" />
 	</bean>
 
 	<bean id="remotingHandler"

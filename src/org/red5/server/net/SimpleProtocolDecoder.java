@@ -1,5 +1,7 @@
 package org.red5.server.net;
 
+import java.util.List;
+
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.filter.codec.ProtocolCodecException;
 
@@ -16,4 +18,13 @@ public interface SimpleProtocolDecoder {
 	 */
 	public Object decode(ProtocolState state, ByteBuffer in) throws Exception;
 
+	/**
+	 * Decode all available objects in buffer.
+	 * 
+	 * @param state Stores state for the protocol
+	 * @param buffer ByteBuffer of data to be decoded
+	 * @return a list of decoded objects, may be empty if nothing could be decoded
+	 */
+    public List decodeBuffer(ProtocolState state, ByteBuffer buffer);
+	
 }

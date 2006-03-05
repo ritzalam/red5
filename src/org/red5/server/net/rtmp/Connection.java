@@ -4,6 +4,7 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoSession;
 import org.red5.server.context.AppContext;
 import org.red5.server.context.Client;
@@ -66,6 +67,10 @@ public class Connection extends Client {
 	}
 
 	public void write(OutPacket packet){
+		ioSession.write(packet);
+	}
+	
+	public void write(ByteBuffer packet){
 		ioSession.write(packet);
 	}
 	

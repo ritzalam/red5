@@ -1,7 +1,9 @@
 package org.red5.server.net.rtmp.codec;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
@@ -63,11 +65,24 @@ public class RTMPProtocolDecoder implements Constants, org.apache.mina.filter.co
 		}
 		buf.put(in);
 		buf.flip();
+		
+		List objects = decodeBuffer(state, buf);
+		if (objects == null || objects.isEmpty())
+			return;
 			
+		Iterator it = objects.iterator();
+		while (it.hasNext())
+			out.write(it.next());
+    }
+			
+    public List decodeBuffer(ProtocolState state, ByteBuffer buffer) {
+		
+    	List result = new LinkedList();
+    	
 		try {
 			while(true){
 			 	
-				if(state.canStartDecoding(buf.remaining())){
+				if(state.canStartDecoding(buffer.remaining())){
 					//log.debug("Starting decoding");
 					state.startDecoding();
 				}
@@ -76,17 +91,17 @@ public class RTMPProtocolDecoder implements Constants, org.apache.mina.filter.co
 			    	break;
 			    }
 			   
-				final int oldPos = buf.position();
-			    final Object result = decode( state, buf );
+				final int oldPos = buffer.position();
+			    final Object decodedObject = decode( state, buffer );
 			    
-			    if(state.hasDecodedObject()){	
-			    	out.write(result);
+			    if(state.hasDecodedObject()){
+			    	result.add(decodedObject);
 			    	
-			    	if( buf.position() == oldPos ){
+			    	if( buffer.position() == oldPos ){
 			            throw new IllegalStateException(
 			                    "doDecode() can't return true when buffer is not consumed." );
 			        }
-			        if( !buf.hasRemaining() ) {
+			        if( !buffer.hasRemaining() ) {
 			        	//log.debug("End of decode");
 			        	break;
 			        }
@@ -109,8 +124,10 @@ public class RTMPProtocolDecoder implements Constants, org.apache.mina.filter.co
 		}
 		finally {
 			// is this needed?
-			buf.compact();
+			buffer.compact();
 		}
+		
+		return result;
 	}
 
 	public Object decode(ProtocolState state, ByteBuffer in) throws Exception {
