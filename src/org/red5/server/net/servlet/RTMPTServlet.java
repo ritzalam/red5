@@ -14,8 +14,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 
+import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmpt.RTMPTClient;
 import org.red5.server.net.rtmpt.RTMPTHandler;
+import org.red5.server.service.Call;
 
 public class RTMPTServlet extends HttpServlet {
 
@@ -166,6 +168,12 @@ public class RTMPTServlet extends HttpServlet {
 		synchronized (rtmptClients) {
 			rtmptClients.remove(client.getId());
 		}
+		
+		((RTMP) client.getState()).setState(RTMP.STATE_DISCONNECTED);
+		RTMPTHandler handler = (RTMPTHandler) getServletContext().getAttribute(RTMPTHandler.HANDLER_ATTRIBUTE);
+		handler.invokeCall(client, new Call("disconnect"));
+		client.close();
+		
 		returnMessage((byte) 0, resp);
 	}
 
