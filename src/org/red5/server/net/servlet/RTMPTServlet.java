@@ -38,6 +38,9 @@ public class RTMPTServlet extends HttpServlet {
 	// Called to poll RTMPT connection
 	private static final String IDLE_REQUEST = "/idle";
 
+	// Try to get at least these many messages to send to the client
+	private static final int MESSAGES_COUNT = 16; 
+	
 	protected HashMap rtmptClients = new HashMap(); 
 	
 	protected void handleBadRequest(String message, HttpServletResponse resp)
@@ -120,7 +123,7 @@ public class RTMPTServlet extends HttpServlet {
 	protected void returnPendingMessages(RTMPTClient client, HttpServletResponse resp)
 		throws IOException {
 		
-		ByteBuffer data = client.getPendingMessages();
+		ByteBuffer data = client.getPendingMessages(MESSAGES_COUNT);
 		if (data == null) {
 			// no more messages to send...
 			returnMessage(client.getPollingDelay(), resp);

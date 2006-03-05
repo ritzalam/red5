@@ -87,8 +87,8 @@ public class RTMPTClient extends Connection {
 		}
 	}
 
-	public ByteBuffer getPendingMessages() {
-		if (this.pendingMessages.size() == 0) {
+	public ByteBuffer getPendingMessages(int minMessages) {
+		if (this.pendingMessages.isEmpty()) {
 			this.noPendingMessages += 1;
 			if (this.noPendingMessages > INCREASE_POLLING_DELAY_COUNT) {
 				if (this.pollingDelay == 0)
@@ -106,35 +106,41 @@ public class RTMPTClient extends Connection {
 		log.debug("Returning " + this.pendingMessages.size() + " messages to client.");
 		this.noPendingMessages = 0;
 		this.pollingDelay = INITIAL_POLLING_DELAY;
-		
-		synchronized (this.pendingMessages) {
-			Iterator it = this.pendingMessages.iterator();
-			while (it.hasNext())
-				result.put((ByteBuffer) it.next());
+		int toProcess = minMessages;
+		while (toProcess > 0) {
+			if (this.pendingMessages.isEmpty())
+				break;
 			
-			this.pendingMessages.clear();
-		}
-		
-		// We'll have to create a copy here to avoid endless recursion
-		List toNotify = new LinkedList();
-		synchronized (this.notifyMessages) {
-			toNotify.addAll(this.notifyMessages);
-			this.notifyMessages.clear();
-		}
-		
-		Iterator it = toNotify.iterator();
-		while (it.hasNext()) {
-			OutPacket packet = (OutPacket) it.next();
-			try {
-				// Notify stream subsystem that packet has been sent
-				final byte channelId = packet.getDestination().getChannelId();
-				final Stream stream = this.getStreamByChannelId(channelId);
-				if (stream != null) {
-					stream.written(packet.getMessage());
+			synchronized (this.pendingMessages) {
+				Iterator it = this.pendingMessages.iterator();
+				while (it.hasNext())
+					result.put((ByteBuffer) it.next());
+				
+				toProcess -= this.pendingMessages.size();
+				this.pendingMessages.clear();
+			}
+			
+			// We'll have to create a copy here to avoid endless recursion
+			List toNotify = new LinkedList();
+			synchronized (this.notifyMessages) {
+				toNotify.addAll(this.notifyMessages);
+				this.notifyMessages.clear();
+			}
+			
+			Iterator it = toNotify.iterator();
+			while (it.hasNext()) {
+				OutPacket packet = (OutPacket) it.next();
+				try {
+					// Notify stream subsystem that packet has been sent
+					final byte channelId = packet.getDestination().getChannelId();
+					final Stream stream = this.getStreamByChannelId(channelId);
+					if (stream != null) {
+						stream.written(packet.getMessage());
+					}
+				} catch (Exception e) {
+					log.error("Could not notify stream subsystem about sent message.", e);
+					continue;
 				}
-			} catch (Exception e) {
-				log.error("Could not notify stream subsystem about sent message.", e);
-				continue;
 			}
 		}
 		
