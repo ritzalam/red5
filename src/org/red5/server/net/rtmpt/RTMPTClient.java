@@ -8,11 +8,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.server.net.ProtocolState;
+import org.red5.server.net.SimpleProtocolDecoder;
+import org.red5.server.net.SimpleProtocolEncoder;
 import org.red5.server.net.rtmp.BaseConnection;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.message.OutPacket;
-import org.red5.server.net.rtmpt.codec.RTMPTProtocolDecoder;
-import org.red5.server.net.rtmpt.codec.RTMPTProtocolEncoder;
 import org.red5.server.stream.Stream;
 
 public class RTMPTClient extends BaseConnection {
@@ -26,9 +26,8 @@ public class RTMPTClient extends BaseConnection {
 	protected static final byte MAX_POLLING_DELAY = 32;
 	
 	protected RTMP state;
-	protected RTMPTHandler handler;
-	protected RTMPTProtocolDecoder decoder;
-	protected RTMPTProtocolEncoder encoder;
+	protected SimpleProtocolDecoder decoder;
+	protected SimpleProtocolEncoder encoder;
 	protected ByteBuffer buffer;
 	protected List pendingMessages = new LinkedList();
 	protected List notifyMessages = new LinkedList();
@@ -40,9 +39,8 @@ public class RTMPTClient extends BaseConnection {
 		this.state = new RTMP(RTMP.MODE_SERVER);
 		this.buffer = ByteBuffer.allocate(2048);
 		this.buffer.setAutoExpand(true);
-		this.handler = handler;
-		this.decoder = (RTMPTProtocolDecoder) handler.getCodecFactory().getSimpleDecoder();
-		this.encoder = (RTMPTProtocolEncoder) handler.getCodecFactory().getSimpleEncoder();
+		this.decoder = handler.getCodecFactory().getSimpleDecoder();
+		this.encoder = handler.getCodecFactory().getSimpleEncoder();
 	}
 	
 	public String getId() {
