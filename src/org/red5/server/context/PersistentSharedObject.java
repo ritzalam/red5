@@ -10,7 +10,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.SharedObject;
 import org.red5.server.net.rtmp.Channel;
-import org.red5.server.net.rtmp.Connection;
+import org.red5.server.net.rtmp.BaseConnection;
 import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.net.rtmp.message.SharedObjectEvent;
 import org.red5.server.SharedObjectPersistence;
@@ -57,7 +57,7 @@ public class PersistentSharedObject implements SharedObject, Constants {
 	}
 	
 	private void sendUpdates() {
-		Connection conn = (Connection) Scope.getClient();
+		BaseConnection conn = (BaseConnection) Scope.getClient();
 		if (!this.ownerMessage.getEvents().isEmpty()) {
 			// Send update to "owner" of this update request
 			this.ownerMessage.setSoId(this.version);
@@ -80,7 +80,7 @@ public class PersistentSharedObject implements SharedObject, Constants {
 			HashMap all_clients = this.clients;
 			Iterator clients = all_clients.keySet().iterator();
 			while (clients.hasNext()) {
-				Connection connection = (Connection) clients.next();
+				BaseConnection connection = (BaseConnection) clients.next();
 				if (connection == conn) {
 					// Don't re-send update to active client
 					log.debug("Skipped " + connection);

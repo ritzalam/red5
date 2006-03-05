@@ -6,7 +6,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.server.net.rtmp.Channel;
-import org.red5.server.net.rtmp.Connection;
+import org.red5.server.net.rtmp.BaseConnection;
 import org.red5.server.net.rtmp.message.AudioData;
 import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.net.rtmp.message.Message;
@@ -41,13 +41,13 @@ public class Stream extends BaseStreamSink implements Constants, IStream, IStrea
 	private int streamId = 0;
 	private boolean initialMessage = true;
 	
-	private Connection conn;
+	private BaseConnection conn;
 	
-	public Stream(Connection conn){
+	public Stream(BaseConnection conn){
 		this.conn = conn;
 	}
 	
-	public Stream(Connection conn, String type) {
+	public Stream(BaseConnection conn, String type) {
 		this.conn = conn;
 		this.mode = type;
 	}

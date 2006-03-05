@@ -9,7 +9,7 @@ import org.apache.commons.logging.LogFactory;
 import org.red5.server.SharedObjectPersistence;
 import org.red5.server.SharedObjectRamPersistence;
 import org.red5.server.api.SharedObject;
-import org.red5.server.net.rtmp.Connection;
+import org.red5.server.net.rtmp.BaseConnection;
 import org.red5.server.net.rtmp.message.Ping;
 import org.red5.server.net.rtmp.status.StatusObject;
 import org.red5.server.net.rtmp.status.StatusObjectService;
@@ -78,7 +78,7 @@ public class BaseApplication
 		log.debug("Calling onConnect");
 		if(onConnect(client, params)){
 			clients.add(client);
-			Connection conn = (Connection) client;
+			BaseConnection conn = (BaseConnection) client;
 			Ping ping = new Ping();
 			ping.setValue1((short)0);
 			ping.setValue2(0);
@@ -225,7 +225,7 @@ public class BaseApplication
 	}
 	
 	public void deleteStream(int number){
-		Connection conn = (Connection) Scope.getClient();
+		BaseConnection conn = (BaseConnection) Scope.getClient();
 		Stream stream = conn.getStreamById(number);
 		log.debug("Delete stream: "+stream+" number: "+number);
 		streamManager.deleteStream(stream);

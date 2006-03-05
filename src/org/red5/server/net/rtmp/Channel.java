@@ -18,7 +18,7 @@ public class Channel {
 	protected static Log log =
         LogFactory.getLog(Channel.class.getName());
 	
-	private Connection connection = null;
+	private BaseConnection connection = null;
 	private byte id = 0;
 	//private Stream stream;
 	private PacketHeader lastReadHeader = null;
@@ -27,7 +27,7 @@ public class Channel {
 	private OutPacket outPacket = null;
 	private int source = 0;
 
-	public Channel(Connection conn, byte channelId){
+	public Channel(BaseConnection conn, byte channelId){
 		connection = conn;
 		id = channelId;
 	}

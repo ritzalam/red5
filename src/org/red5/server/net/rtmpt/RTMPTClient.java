@@ -8,14 +8,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.server.net.ProtocolState;
-import org.red5.server.net.rtmp.Connection;
+import org.red5.server.net.rtmp.BaseConnection;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.message.OutPacket;
 import org.red5.server.net.rtmpt.codec.RTMPTProtocolDecoder;
 import org.red5.server.net.rtmpt.codec.RTMPTProtocolEncoder;
 import org.red5.server.stream.Stream;
 
-public class RTMPTClient extends Connection {
+public class RTMPTClient extends BaseConnection {
 
 	protected static Log log =
         LogFactory.getLog(RTMPTClient.class.getName());
@@ -36,7 +36,7 @@ public class RTMPTClient extends Connection {
 	protected long noPendingMessages = 0;
 	
 	public RTMPTClient(RTMPTHandler handler) {
-		super(null);
+		super();
 		this.state = new RTMP(RTMP.MODE_SERVER);
 		this.buffer = ByteBuffer.allocate(2048);
 		this.buffer.setAutoExpand(true);
