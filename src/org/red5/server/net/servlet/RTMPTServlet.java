@@ -40,8 +40,10 @@ public class RTMPTServlet extends HttpServlet {
 	// Called to poll RTMPT connection
 	private static final String IDLE_REQUEST = "/idle";
 
-	// Try to get at least these many messages to send to the client
-	private static final int MESSAGES_COUNT = 16; 
+	// Try to generate responses that contain at least 32768 bytes data.
+	// Increasing this value results in better stream performance, but
+	// also increases the latency.
+	private static final int RESPONSE_TARGET_SIZE = 32768; 
 	
 	protected HashMap rtmptClients = new HashMap(); 
 	
@@ -82,6 +84,7 @@ public class RTMPTServlet extends HttpServlet {
 		resp.setHeader("Connection", "Keep-Alive");
 		resp.setHeader("Cache-Control", "no-cache");
 		resp.setContentType(CONTENT_TYPE);
+		log.info("Sending " + buffer.limit() + " bytes.");
 		resp.setContentLength(buffer.limit() + 1);
 		ServletOutputStream output = resp.getOutputStream(); 
 		output.write(client.getPollingDelay());
@@ -125,7 +128,7 @@ public class RTMPTServlet extends HttpServlet {
 	protected void returnPendingMessages(RTMPTClient client, HttpServletResponse resp)
 		throws IOException {
 		
-		ByteBuffer data = client.getPendingMessages(MESSAGES_COUNT);
+		ByteBuffer data = client.getPendingMessages(RESPONSE_TARGET_SIZE);
 		if (data == null) {
 			// no more messages to send...
 			returnMessage(client.getPollingDelay(), resp);

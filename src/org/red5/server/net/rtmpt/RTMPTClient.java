@@ -85,7 +85,7 @@ public class RTMPTClient extends BaseConnection {
 		}
 	}
 
-	public ByteBuffer getPendingMessages(int minMessages) {
+	public ByteBuffer getPendingMessages(int targetSize) {
 		if (this.pendingMessages.isEmpty()) {
 			this.noPendingMessages += 1;
 			if (this.noPendingMessages > INCREASE_POLLING_DELAY_COUNT) {
@@ -104,8 +104,7 @@ public class RTMPTClient extends BaseConnection {
 		log.debug("Returning " + this.pendingMessages.size() + " messages to client.");
 		this.noPendingMessages = 0;
 		this.pollingDelay = INITIAL_POLLING_DELAY;
-		int toProcess = minMessages;
-		while (toProcess > 0) {
+		while (result.limit() < targetSize) {
 			if (this.pendingMessages.isEmpty())
 				break;
 			
@@ -114,7 +113,6 @@ public class RTMPTClient extends BaseConnection {
 				while (it.hasNext())
 					result.put((ByteBuffer) it.next());
 				
-				toProcess -= this.pendingMessages.size();
 				this.pendingMessages.clear();
 			}
 			
