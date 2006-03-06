@@ -3,7 +3,7 @@ import org.red5.utils.Connector;
 // ** END AUTO-UI IMPORT STATEMENTS **
 import com.neoarchaic.ui.Tooltip;
 import org.red5.net.Stream;
-//import org.red5.utils.Delegate;
+import org.red5.utils.Delegate;
 import com.blitzagency.xray.util.XrayLoader;
 
 class org.red5.samples.livestream.broadcaster.Main extends MovieClip {
@@ -46,6 +46,16 @@ class org.red5.samples.livestream.broadcaster.Main extends MovieClip {
 		connector.configUI();	
 	}
 	
+	private function status(evtObj:Object):Void
+	{
+		// deal with the status messages here
+	}
+	
+	private function error(evtObj:Object):Void
+	{
+		// deal with the errors here
+	}
+	
 	private function connectionChange(evtObj:Object):Void
 	{		
 		
@@ -53,9 +63,13 @@ class org.red5.samples.livestream.broadcaster.Main extends MovieClip {
 		{
 			// setup stream
 			stream = new Stream(connector.connection);
+			// add stream status events listeners here
+			stream.addEventListener("status", Delegate.create(this, status));
+			stream.addEventListener("error", Delegate.create(this, error));
+			// attach camera
 			stream.attachVideo(cam);
 			stream.publish("red5StreamDemo", "live");
-			
+			// show it on screen
 			publish_video.attachVideo(cam);
 		}
 	}

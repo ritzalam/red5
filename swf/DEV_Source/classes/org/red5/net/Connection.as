@@ -39,16 +39,41 @@ class org.red5.net.Connection extends NetConnection
 // Private Methods:
 	private function onStatus(evtObj:Object):Void
 	{
-		if(evtObj.code == "NetConnection.Connect.Success")
+		switch(evtObj.code)
 		{
-			connected = true;
-			dispatchEvent({type:"connectionChange", connected:true});
+			case "NetConnection.Connect.Success":
+				connected = true;
+				dispatchEvent({type:"success", code:evtObj.code, connected:true});
+				break;
+			
+			case "NetConnection.Connect.Closed":
+				connected = false;
+				dispatchEvent({type:"close", code:evtObj.code, connected:false});
+				break;
+			
+			case"NetConnection.Connect.Failed":
+				connected = false;
+				dispatchEvent({type:"failed", code:evtObj.code, connected:false});
+			break;
+			
+			case"NetConnection.Connect.AppShutdown":
+				connected = false;
+				dispatchEvent({type:"appShutDown", code:evtObj.code});
+			break;
+			
+			case"NetConnection.Call.Failed":
+				dispatchEvent({type:"callFailed", code:evtObj.code});
+			break;
+			
+			case"NetConnection.Connect.InvalidApp":
+				dispatchEvent({type:"invalidApp", code:evtObj.code});
+			break;
+			
+			case"NetConnection.Connect.Rejected":
+				dispatchEvent({type:"rejected", code:evtObj.code});
+			break;
 		}
-		if(evtObj.code == "NetConnection.Connect.Closed")
-		{
-			connected = false;
-			dispatchEvent({type:"connectionChange", connected:false});
-		}
+		
+		dispatchEvent({type:evtObj.level.toLowerCase(), code:evtObj.code, description:evtObj.description, details:evtObj.details});
 	}
-
 }

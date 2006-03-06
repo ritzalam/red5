@@ -24,7 +24,8 @@ class org.red5.ui.ConnectionLight extends MovieClip {
 	{
 		// when we receive the connection reference, we can add the listener
 		connection = p_connection;
-		connection.addEventListener("connectionChange", Delegate.create(this, updateConnection));
+		connection.addEventListener("success", Delegate.create(this, updateConnection));
+		connection.addEventListener("close", Delegate.create(this, updateConnection));
 	}
 // Semi-Private Methods:
 // Private Methods:

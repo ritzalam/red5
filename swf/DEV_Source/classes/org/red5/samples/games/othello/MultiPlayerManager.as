@@ -25,7 +25,7 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 	private var connection:Connection;
 	//private var loginResult:Object;
 	//private var updateResult:Object;
-	//private var si:Number;
+	private var si:Number;
 	private var userAdded:Boolean;
 // UI Elements:
 
@@ -72,7 +72,7 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 		
 		so = new GlobalObject();
 		so.addEventListener("onSync", this);
-		soConnected = so.connect("othelloRoomList", p_connection, false);
+		soConnected = so.connect("othelloRoomList", p_connection, true);
 		
 		
 		//si = setInterval(this, "addUser", 250, localUserName);
@@ -136,7 +136,7 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 			players.addItem({label:ary[i].label, data:ary[i].data})
 		}
 		
-		if(!userAdded) addUser(localUserName);
+		if(!userAdded) si= setInterval(this, "addUser", 500, localUserName);
 		userAdded = true;
 	}
 	
@@ -236,6 +236,8 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 		// check for duplicates
 		// addName
 		// update SO
+		
+		clearInterval(si);
 		
 		if(p_userName.length < 1 || checkDuplicatePlayers(p_userName))
 		{

@@ -39,7 +39,7 @@ class org.red5.utils.Connector extends MovieClip
 // Public Methods:
 	public function configUI():Void 
 	{
-		// instantiate the connection
+		// instantiate the con 	qnection
 		connection  = new Connection();
 		
 		// register the connection with the light so it can add a listener
@@ -58,7 +58,8 @@ class org.red5.utils.Connector extends MovieClip
 		disconnect.tooltip = "Disconnect from Red5";
 		
 		// add listener for connection changes
-		connection.addEventListener("connectionChange", Delegate.create(this, manageButtons));
+		connection.addEventListener("success", Delegate.create(this, manageButtons));
+		connection.addEventListener("close", Delegate.create(this, manageButtons));
 	}
 // Semi-Private Methods:
 // Private Methods:
@@ -68,7 +69,7 @@ class org.red5.utils.Connector extends MovieClip
 	{
 		if(uri.length > 0) 
 		{
-			var goodURI = connection.connect(uri.text);
+			var goodURI = connection.connect(uri.text, getTimer());
 			if(!goodURI) alert.show("Please check connection URI String and try again.");
 		}
 	}
