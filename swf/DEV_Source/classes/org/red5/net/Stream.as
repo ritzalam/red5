@@ -37,33 +37,104 @@ class org.red5.net.Stream extends NetStream {
 	{
 		switch(evtObj.code)
 		{
+			/*==========[ BUFFER NOTIFICATIONS ]=================*/
 			case "NetStream.Buffer.Full":
-				dispatchEvent({type:"playStream"});
+				dispatchEvent({type:"status", code:evtObj.code});
 			break;
 			
 			case "NetStream.Buffer.Empty":
-				dispatchEvent({type:"bufferEmpty"});
+				dispatchEvent({type:"status", code:evtObj.code});
+			break;
+			
+			/*==========[ PLAYBACK NOTIFICATIONS ]=================*/
+			case "NetStream.Play.Stop":
+				dispatchEvent({type:"status", code:evtObj.code});
+			break;
+			
+			case "NetStream.Play.Failed":
+				dispatchEvent({type:"error", code:evtObj.code, description:evtObj.description});
+			break;
+			
+			case "NetStream.Play.Reset":
+				dispatchEvent({type:"status", code:evtObj.code});
+			break;
+			
+			case "NetStream.Play.Start":
+				dispatchEvent({type:"status", code:evtObj.code, details:evtObj.details});
 			break;
 			
 			case "NetStream.Play.Stop":
-				dispatchEvent({type:"stopStream"});
+				dispatchEvent({type:"status", code:evtObj.code});
 			break;
 			
+			case "NetStream.Play.StreamNotFound":
+				dispatchEvent({type:"error", code:evtObj.code});
+			break;
+			
+			case "NetStream.Pause.Notify":
+				dispatchEvent({type:"status", code:evtObj.code});
+			break;
+			
+			case "NetStream.Unpause.Notify":
+				dispatchEvent({type:"status", code:evtObj.code});
+			break;
+			
+			case "NetStream.Seek.Failed":
+				dispatchEvent({type:"error", code:evtObj.code});
+			break;
+			
+			case "NetStream.Seek.Notify":
+				dispatchEvent({type:"status", code:evtObj.code});
+			break;
+			
+			/*==========[ PUBLISH NOTIFICATIONS ]=================*/
 			case "NetStream.Publish.Start":
-				dispatchEvent({type:"publishStart"});
+				dispatchEvent({type:"status", code:evtObj.code});
 			break;
 			
+			case "NetStream.Publish.BadName":
+				dispatchEvent({type:"error", code:evtObj.code});
+			break;
+			
+			case "NetStream.Publish.Idle":
+				dispatchEvent({type:"status", code:evtObj.code});
+			break;
+			
+			case "NetStream.Play.PublishNotify":
+				dispatchEvent({type:"status", code:evtObj.code});
+			break;
+			
+			case "NetStream.Play.UnpublishNotify":
+				dispatchEvent({type:"status", code:evtObj.code});
+			break;
+			
+			case "NetStream.Unpublish.Success":
+				dispatchEvent({type:"status", code:evtObj.code});
+			break;
+			
+			/*==========[ RECORD NOTIFICATIONS ]=================*/
 			case "NetStream.Record.Failed":
-				dispatchEvent({type:"recordFailed"});
+				dispatchEvent({type:"error", code:evtObj.code, description:evtObj.description});
 			break;
 			
 			case "NetStream.Record.Start":
-				dispatchEvent({type:"recordStart"});
+				dispatchEvent({type:"status", code:evtObj.code});
+			break;
+			
+			case "NetStream.Record.NoAccess":
+				dispatchEvent({type:"error", code:evtObj.code});
 			break;
 			
 			case "NetStream.Record.Stop":
-				dispatchEvent({type:"recordStop"});
+				dispatchEvent({type:"status", code:evtObj.code});
+			break;
+
+			/*==========[ UNSPECIFIED ERROR NOTIFICATIONS ]=================*/
+			case "NetStream.Failed":
+				dispatchEvent({type:"error", code:evtObj.code, description:evtObj.description});
 			break;
 		}
+		
+		dispatchEvent({type:"status", level:evtObj.level, code:evtObj.code, description:evtObj.description, details:evtObj.details});
 	}
 }
