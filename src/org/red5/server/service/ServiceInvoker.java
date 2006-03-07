@@ -103,7 +103,7 @@ public class ServiceInvoker  {
 		ArrayList argsList = new ArrayList();
 		if(args!=null){
 			for(int i=0; i<args.length; i++){
-				argsList.add(args[0]);
+				argsList.add(args[i]);
 			}
 		}
 		args = new Object[]{argsList};
