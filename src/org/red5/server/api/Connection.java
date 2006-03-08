@@ -1,11 +1,12 @@
 package org.red5.server.api;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * Subclasses: RTMPConnection, RemotingConnection, AJAXConnection, HttpConnection, etc
  */
-public interface Connection {
+public interface Connection extends AttributeStore {
 
 	public static final String PERSISTENT = "persistent";
 	public static final String POLLING = "polling";
@@ -23,6 +24,10 @@ public interface Connection {
 	
 	// Send an object down to the client, this is like an event dispatcher, not like rpc
 	public void dispatchEvent(Object object);
+	
+	public boolean switchScope(String contextPath); // attempt to enter a new scope
+
+	public Set getStreams(); // should this be split between onDemand and broadcast ?
 	
 	public List getParams(); // read only hash list of connect parameters
 	

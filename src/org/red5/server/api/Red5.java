@@ -14,9 +14,7 @@ import org.springframework.context.ApplicationContext;
  * Red5 r5 = new Red5();
  * r5.getClient() // get the current client object
  * r5.getContext() // get the spring app conext
- * r5.getScope() // get the current application scope
- * r5.getSession() // get the current host session
- *  
+ * r5.getScope() // get the current application scope 
  */
 public class Red5 {
 
@@ -56,11 +54,6 @@ public class Red5 {
 	public Client getClient(){
 		if(conn == null) return null;
 		else return conn.getClient();
-	}
-	
-	public Session getSession(){
-		if(conn == null) return null;
-		else return conn.getClient().getSession();
 	}
 	
 	public  ApplicationContext getContext(){

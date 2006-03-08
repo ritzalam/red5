@@ -1,14 +1,12 @@
 package org.red5.server.api;
 
-import java.util.List;
-
 public interface ScopeHandler {
 	
 	boolean canCreateScope(String contextPath);
 	void onCreateScope(Scope scope);
 	void onDisposeScope();
 	
-	boolean canConnect(Client client, List params); // ? list or object[] ?
+	boolean canConnect(Connection conn);
 	void onConnect(Connection conn);
 	void onDisconnect(Connection conn);
 	
@@ -22,11 +20,24 @@ public interface ScopeHandler {
 	
 	// The following methods will only be called for RTMP connections
 	
-	boolean canPublishStream(String stream, String mode); 
-	void onStreamPublish(Stream stream);
+	boolean canPublishStream(String name); 
+	void onStreamPublishStart(Stream stream);
+	void onStreamPublishStop(Stream stream);
 	
-	boolean canSubscribeStream(String stream, String mode);
-	void onStreamSubscribe(Stream stream);
+	boolean canBroadcastStream(String name);
+	void onBroadcastStreamStart(Stream stream);
+	
+	boolean canRecordStream(String name);
+	void onRecordStreamStart(Stream stream);
+	void onRecordStreamStop(Stream stream);
+	
+	boolean canSubscribeToBroadcastStream(String name);
+	void onBroadcastStreamSubscribe(BroadcastStream stream);
+	void onBroadcastStreamUnsubscribe(BroadcastStream stream);
+	
+	boolean canConnectToOnDemandStream(String name);
+	void onOnDemandStreamConnect(OnDemandStream stream);
+	void onOnDemandStreamDisconnect(OnDemandStream stream);
 	
 	boolean canConnectSharedObject(String soName);
 	void onSharedObjectConnect(SharedObject so);

@@ -1,6 +1,7 @@
 package org.red5.server.api;
 
-import java.util.List;
+import java.io.IOException;
+import java.util.Set;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
@@ -16,30 +17,32 @@ import org.springframework.core.io.Resource;
  * http://server:port/gateway/app/scope
  * 
  * If no scope is given, the default scope will be used
- * 
  */
-public interface Scope {
+ public interface Scope extends AttributeStore {
 
-	public String getName();
 	public boolean hasParent();
 	public Scope getParent();
 	
 	public String getContextPath(); 
 	public ApplicationContext getContext();
 	public Resource getResource(String name);
-	public Resource[] getResources(String pattern);
+	public Resource[] getResources(String pattern) throws IOException;
 
-	public List getChildScopeNames();
+	public boolean hasChildScope(String name);
+	public Set getChildScopeNames();
 	public Scope getChildScope(String name);
 	
-	public List getSharedObjectNames();
-	public SharedObject getSharedObject(String name, boolean persistent);
+	public Set getSharedObjectNames();
+	public boolean createSharedObject(String name, boolean peristent);
+	public SharedObject getSharedObject(String name);
 		
-	public List getClients();
+	public Set getClients();
 	public void dispatchEvent(Object event);
-	
-	public boolean hasAttribute(String name);
-	public void setAttribute(String name, Object value);
-	public Object getAttribute(String name);
 		
+	public ScopeHandler getHandler();
+	
+	public boolean hasBroadcastStream(String name);
+	public BroadcastStream getBroadcastStream(String name);
+	public Set getBroadcastStreamNames();
+	
 }

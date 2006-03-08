@@ -1,25 +1,22 @@
 package org.red5.server.api.impl;
 
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 
 import org.red5.server.api.Connection;
 import org.red5.server.api.Scope;
-import org.red5.server.api.Session;
 
-public class Client implements  org.red5.server.api.Client {
+public class Client extends AttributeStore  
+	implements  org.red5.server.api.Client {
 
 	protected String id;
 	protected String host;
-	protected Session session;
+	protected long creationTime;
+	protected HashMap scopeToConnMap = new HashMap();
 	
-	protected HashMap conns = new HashMap();
-	
-	public Client(String id, String host, Session session){
+	public Client(String id, String host){
 		this.id = id;
 		this.host = host;
-		this.session = session;
+		this.creationTime = System.currentTimeMillis();
 	}
 
 	public String getId() {
@@ -30,10 +27,15 @@ public class Client implements  org.red5.server.api.Client {
 		return host;
 	}
 
-	public Session getSession() {
-		return session;
+	public long getCreationTime() {
+		return creationTime;
 	}
 
+	public Connection getConnection(Scope scope){
+		return (Connection) scopeToConnMap.get(scope);
+	}
+	
+	/* at the moment only a single conn per scope allowed
 	public Connection getConnection(Scope scope) {
 		if(!conns.containsKey(scope)) 
 			return null;
@@ -61,7 +63,8 @@ public class Client implements  org.red5.server.api.Client {
 		// return the most recent one
 		return (Connection) scopeConns.get(0);
 	}
-
+	*/
+	
 	public boolean equals(Object obj) {
 		if(!(obj instanceof Client)) return false;
 		final Client client = (Client) obj;
@@ -70,6 +73,14 @@ public class Client implements  org.red5.server.api.Client {
 
 	public String toString() {
 		return "Client: "+id;
+	}
+	
+	void register(Connection conn){
+		scopeToConnMap.put(conn.getScope(), conn);
+	}
+	
+	void unregister(Connection conn){
+		scopeToConnMap.remove(conn.getScope());
 	}
 		
 }
