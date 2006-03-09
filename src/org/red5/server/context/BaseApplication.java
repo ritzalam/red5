@@ -107,10 +107,14 @@ public class BaseApplication
 	// -----------------------------------------------------------------------------
 	
 	public int createStream(){
-		// i think this is to say if the user is allowed to create a stream
-		// if it returns 0 the play call will not come through
-		// any number higher than 0 seems to do the same thing
-		return 1; 
+		// Reserve a slot for the new stream and send id of new stream to client
+		// This stream id will be checked by publish below
+		final BaseConnection conn = (BaseConnection) Scope.getClient();
+		Stream stream = conn.createNewStream();
+		if (stream == null) {
+			// XXX: no more stream slots available, return error to the client...
+		}
+		return stream.getStreamId(); 
 	}
 	
 	public void play(String name){
@@ -119,6 +123,11 @@ public class BaseApplication
 	
 	public void play(String name, Double number){
 		final Stream stream = Scope.getStream();
+		if (stream == null) {
+			// XXX: invalid request, we must return an error to the client here...
+			// NetStream.Play.Failed
+		}
+		
 		// it seems as if the number is sent multiplied by 1000
 		int num = (int)(number.doubleValue() / 1000.0);
 		if (num < -2)
@@ -205,6 +214,13 @@ public class BaseApplication
 	
 	public StatusObject publish(String name, String mode){
 		final Stream stream = Scope.getStream();
+		if (stream == null) {
+			log.debug("No stream created before publishing or published to wrong stream.");
+			return getStatus(StatusObjectService.NS_PUBLISH_BADNAME);
+		}
+		
+		// TODO: check if a stream with this name is already published by someone else
+		
 		stream.setName(name);
 		stream.setMode(mode);
 		stream.setVideoCodecFactory(this.videoCodecs);
@@ -220,6 +236,9 @@ public class BaseApplication
 	public void pause(boolean pause, int time){
 		log.info("Pause called: "+pause+" true:"+time);
 		final Stream stream = Scope.getStream();
+		if (stream == null) {
+			// XXX: invalid request, we must return an error to the client here...
+		}
 		if(pause) stream.pause();
 		else stream.resume();
 	}
@@ -227,12 +246,19 @@ public class BaseApplication
 	public void deleteStream(int number){
 		BaseConnection conn = (BaseConnection) Scope.getClient();
 		Stream stream = conn.getStreamById(number);
+		if (stream == null) {
+			// XXX: invalid request, we must return an error to the client here...
+		}
+		conn.deleteStreamById(number);
 		log.debug("Delete stream: "+stream+" number: "+number);
 		streamManager.deleteStream(stream);
 	}
 	
 	public void closeStream(){
 		final Stream stream = Scope.getStream();
+		if (stream == null) {
+			// XXX: invalid request, we must return an error to the client here...
+		}
 		stream.stop();
 	}
 	// publishStream ?

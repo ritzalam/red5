@@ -11,9 +11,9 @@ import org.red5.server.net.ProtocolState;
 import org.red5.server.net.SimpleProtocolDecoder;
 import org.red5.server.net.SimpleProtocolEncoder;
 import org.red5.server.net.rtmp.BaseConnection;
+import org.red5.server.net.rtmp.BaseRTMPHandler;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.message.OutPacket;
-import org.red5.server.stream.Stream;
 
 public class RTMPTClient extends BaseConnection {
 
@@ -28,6 +28,7 @@ public class RTMPTClient extends BaseConnection {
 	protected RTMP state;
 	protected SimpleProtocolDecoder decoder;
 	protected SimpleProtocolEncoder encoder;
+	protected BaseRTMPHandler handler;
 	protected ByteBuffer buffer;
 	protected List pendingMessages = new LinkedList();
 	protected List notifyMessages = new LinkedList();
@@ -39,6 +40,7 @@ public class RTMPTClient extends BaseConnection {
 		this.state = new RTMP(RTMP.MODE_SERVER);
 		this.buffer = ByteBuffer.allocate(2048);
 		this.buffer.setAutoExpand(true);
+		this.handler = handler;
 		this.decoder = handler.getCodecFactory().getSimpleDecoder();
 		this.encoder = handler.getCodecFactory().getSimpleEncoder();
 	}
@@ -125,14 +127,8 @@ public class RTMPTClient extends BaseConnection {
 			
 			Iterator it = toNotify.iterator();
 			while (it.hasNext()) {
-				OutPacket packet = (OutPacket) it.next();
 				try {
-					// Notify stream subsystem that packet has been sent
-					final byte channelId = packet.getDestination().getChannelId();
-					final Stream stream = this.getStreamByChannelId(channelId);
-					if (stream != null) {
-						stream.written(packet.getMessage());
-					}
+					handler.messageSent(this, it.next());
 				} catch (Exception e) {
 					log.error("Could not notify stream subsystem about sent message.", e);
 					continue;

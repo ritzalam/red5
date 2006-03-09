@@ -17,6 +17,7 @@ import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.net.rtmp.message.InPacket;
 import org.red5.server.net.rtmp.message.Invoke;
 import org.red5.server.net.rtmp.message.Message;
+import org.red5.server.net.rtmp.message.OutPacket;
 import org.red5.server.net.rtmp.message.PacketHeader;
 import org.red5.server.net.rtmp.message.Ping;
 import org.red5.server.net.rtmp.message.SharedObject;
@@ -57,7 +58,7 @@ public class BaseRTMPHandler extends BaseHandler implements Constants {
 			final Message message = packet.getMessage();
 			final PacketHeader source = packet.getSource();
 			final Channel channel = conn.getChannel(packet.getSource().getChannelId());
-			final Stream stream = conn.getStreamByChannelId(channel.getId());
+			final Stream stream = conn.getStreamById(source.getStreamId());
 			
 			if(log.isDebugEnabled()){
 				log.debug("Message recieved");
@@ -65,10 +66,6 @@ public class BaseRTMPHandler extends BaseHandler implements Constants {
 				log.debug("Channel: "+channel);
 			}
 				
-			if(stream != null){
-				stream.setStreamId(source.getStreamId());
-			}
-			
 			// Is this a bad for performance ?
 			Scope.setClient(conn);
 			Scope.setChannel(channel);
@@ -105,6 +102,30 @@ public class BaseRTMPHandler extends BaseHandler implements Constants {
 		}
 	}
 
+	public void messageSent(BaseConnection conn, Object message) {
+		if(log.isDebugEnabled())
+			log.debug("Message sent");
+		
+		if(message instanceof ByteBuffer){
+			return;
+		}
+		
+		OutPacket sent = (OutPacket) message;
+		final byte channelId = sent.getDestination().getChannelId();
+		final Stream stream = conn.getStreamByChannelId(channelId);
+		if(stream!=null){
+			stream.written(sent.getMessage());
+		}
+	}
+
+	public void connectionClosed(BaseConnection conn, RTMP state) {
+		state.setState(RTMP.STATE_DISCONNECTED);
+		conn.close();
+		invokeCall(conn, new Call("disconnect"));
+		if (log.isDebugEnabled())
+			log.debug("Connection closed: " + conn);
+	}
+	
 	protected void onSharedObject(BaseConnection conn, Channel channel, PacketHeader  source, SharedObject request) {
 		AppContext ctx = conn.getAppContext();
 		BaseApplication app = (BaseApplication) ctx.getBean(AppContext.APP_SERVICE_NAME);

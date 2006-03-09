@@ -17,9 +17,11 @@ public abstract class BaseConnection extends Client {
 	protected static Log log =
         LogFactory.getLog(BaseConnection.class.getName());
 
+	private final static int MAX_STREAMS = 12;
+	
 	//private Context context;
 	private Channel[] channels = new Channel[64];
-	private Stream[] streams = new Stream[12];
+	private Stream[] streams = new Stream[MAX_STREAMS];
 	private AppContext appCtx = null;
 	
 	public AppContext getAppContext() {
@@ -65,30 +67,53 @@ public abstract class BaseConnection extends Client {
 		this.params = params;
 	}
 	
+	/* Returns a stream for the next available stream id or null if all slots are in use. */
+	public Stream createNewStream() {
+		synchronized (streams) {
+			for (int i=0; i<streams.length; i++)
+				if (streams[i] == null) {
+					Stream stream = createStream(i);
+					streams[i] = stream;
+					return stream;
+				}
+		}
+		
+		return null;
+	}
+	
 	public Stream getStreamById(int id){
+		if (id <= 0 || id > MAX_STREAMS-1)
+			return null;
+		
 		return streams[id-1];
 	}
 	
 	public Stream getStreamByChannelId(byte channelId){
-		if(channelId < 4) return null;
+		if (channelId < 4)
+			return null;
+		
 		//log.debug("Channel id: "+channelId);
 		int streamId = (int) Math.floor((channelId-4)/5);
 		//log.debug("Stream: "+streamId);
-		if(streams[streamId]==null) 
-			streams[streamId] = createStream(streamId);
 		return streams[streamId];
 	}
 	
 	public void close(){
-		for(int i=0; i<streams.length; i++){
-			Stream stream = streams[i];
-			if(stream!=null) stream.close();
+		synchronized (streams) {
+			for(int i=0; i<streams.length; i++){
+				Stream stream = streams[i];
+				if(stream != null) {
+					stream.close();
+					streams[i] = null;
+				}
+			}
 		}
 	}
 	
 	protected Stream createStream(int streamId){
 		byte channelId = (byte) (streamId + 4);
 		Stream stream = new Stream(this);
+		stream.setStreamId(streamId+1);
 		final Channel data = getChannel(channelId++);
 		final Channel video = getChannel(channelId++);
 		final Channel audio = getChannel(channelId++);
@@ -97,6 +122,11 @@ public abstract class BaseConnection extends Client {
 		final DownStreamSink down = new DownStreamSink(video,audio,data);
 		stream.setDownstream(down);
 		return stream;
+	}
+	
+	public void deleteStreamById(int streamId) {
+		if (streamId >= 0 && streamId < MAX_STREAMS-1)
+			streams[streamId-1] = null;
 	}
 	
 	public void ping(Ping ping){

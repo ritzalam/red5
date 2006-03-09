@@ -37,29 +37,14 @@ public class RTMPHandler extends BaseRTMPHandler {
 	public void messageSent(IoSession session, Object message) throws Exception {
 		final Connection conn = (Connection) session.getAttachment();
 
-		if(log.isDebugEnabled())
-			log.debug("Message sent");
-		
-		if(message instanceof ByteBuffer){
-			return;
-		}
-		
-		OutPacket sent = (OutPacket) message;
-		final byte channelId = sent.getDestination().getChannelId();
-		final Stream stream = conn.getStreamByChannelId(channelId);
-		if(stream!=null){
-			stream.written(sent.getMessage());
-		}
+		messageSent(conn, message);
 	}
 
 	public void sessionClosed(IoSession session) throws Exception {
 		final RTMP rtmp = (RTMP) session.getAttribute(RTMP.SESSION_KEY);
 		final Connection conn = (Connection) session.getAttachment();
-		rtmp.setState(RTMP.STATE_DISCONNECTED);
-		conn.close();
-		invokeCall(conn, new Call("disconnect"));
-		if(log.isDebugEnabled())
-			log.debug("Session closed");
+		
+		connectionClosed(conn, rtmp);
 	}
 
 	public void sessionCreated(IoSession session) throws Exception {
