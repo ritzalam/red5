@@ -12,7 +12,7 @@ import org.red5.server.net.rtmp.message.Ping;
 import org.red5.server.stream.DownStreamSink;
 import org.red5.server.stream.Stream;
 
-public class BaseConnection extends Client {
+public abstract class BaseConnection extends Client {
 
 	protected static Log log =
         LogFactory.getLog(BaseConnection.class.getName());
@@ -55,15 +55,11 @@ public class BaseConnection extends Client {
 		channels[channelId] = null;
 	}
 
-	public void write(OutPacket packet){
-		// Override this
-		log.error("Method write not implemented in " + this);
-	}
+	// This method must be overwritten by the connection implementation
+	public abstract void write(OutPacket packet);
 	
-	public void write(ByteBuffer packet){
-		// Override this
-		log.error("Method write not implemented in " + this);
-	}
+	// This method must be overwritten by the connection implementation
+	public abstract void write(ByteBuffer packet);
 	
 	public void setParameters(Map params){
 		this.params = params;
