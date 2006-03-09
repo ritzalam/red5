@@ -88,6 +88,7 @@
          -->
        </list>
      </property>
+     <property name="reuseAddress" value="true"/>
    </bean> 	
 	
 	<!-- Serializer: serializer supporting general Output objects -->
