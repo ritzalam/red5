@@ -162,7 +162,7 @@ public class PersistentSharedObject implements SharedObject, Constants {
 		this.modified = false;
 	}
 	
-	public HashMap getData() {
+	public Map getData() {
 		return this.data;
 	}
 	
