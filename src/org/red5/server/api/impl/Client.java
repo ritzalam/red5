@@ -31,7 +31,7 @@ public class Client extends AttributeStore
 		return creationTime;
 	}
 
-	public Connection getConnection(Scope scope){
+	public Connection lookupConnection(Scope scope){
 		return (Connection) scopeToConnMap.get(scope);
 	}
 	
