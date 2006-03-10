@@ -111,7 +111,7 @@ public abstract class BaseConnection extends Client {
 	}
 	
 	protected Stream createStream(int streamId){
-		byte channelId = (byte) (streamId + 4);
+		byte channelId = (byte) (4 + (streamId * 5));
 		Stream stream = new Stream(this);
 		stream.setStreamId(streamId+1);
 		final Channel data = getChannel(channelId++);

@@ -109,7 +109,7 @@ public class Stream extends BaseStreamSink implements Constants, IStream, IStrea
 	
 	public void publish(){
 		Status publish = new Status(Status.NS_PUBLISH_START);
-		publish.setClientid(1);
+		publish.setClientid(streamId);
 		publish.setDetails(name);
 		Channel data = downstream.getData();
 		if (data != null)
@@ -122,7 +122,7 @@ public class Stream extends BaseStreamSink implements Constants, IStream, IStrea
 	public void pause(){
 		paused = true;
 		//Status pause  = new Status(Status.NS_PLAY_STOP);
-		//pause.setClientid(1);
+		//pause.setClientid(streamId);
 		//pause.setDetails(name);
 		//downstream.getData().sendStatus(pause);
 	}
@@ -130,7 +130,7 @@ public class Stream extends BaseStreamSink implements Constants, IStream, IStrea
 	public void resume(){
 		paused = false;
 		Status play  = new Status(Status.NS_PLAY_RESET);
-		play.setClientid(1);
+		play.setClientid(streamId);
 		play.setDetails(name);
 		downstream.getData().sendStatus(play);
 		
@@ -144,8 +144,8 @@ public class Stream extends BaseStreamSink implements Constants, IStream, IStrea
 		
 		Status reset = new Status(Status.NS_PLAY_RESET);
 		Status start = new Status(Status.NS_PLAY_START);
-		reset.setClientid(1);
-		start.setClientid(1);
+		reset.setClientid(streamId);
+		start.setClientid(streamId);
 		reset.setDetails(name);
 		start.setDetails(name);
 		
