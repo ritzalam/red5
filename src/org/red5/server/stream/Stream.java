@@ -213,7 +213,7 @@ public class Stream extends BaseStreamSink implements Constants, IStream, IStrea
 	
 	public void publish(Message message){
 		ByteBuffer data = message.getData();
-		if (this.initialMessage) {
+		if (this.initialMessage && (message instanceof VideoData)) {
 			this.initialMessage = false;
 			
 			if (this.videoCodecFactory != null) {
