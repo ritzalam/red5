@@ -32,6 +32,10 @@ public class Channel {
 		id = channelId;
 	}
 	
+	public void close() {
+		connection.closeChannel(id);
+	}
+	
 	public byte getId(){
 		return id;
 	}

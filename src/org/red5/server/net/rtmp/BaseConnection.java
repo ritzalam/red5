@@ -117,8 +117,8 @@ public abstract class BaseConnection extends Client {
 		final Channel data = getChannel(channelId++);
 		final Channel video = getChannel(channelId++);
 		final Channel audio = getChannel(channelId++);
-		final Channel unknown = getChannel(channelId++);
-		final Channel ctrl = getChannel(channelId++);
+		//final Channel unknown = getChannel(channelId++);
+		//final Channel ctrl = getChannel(channelId++);
 		final DownStreamSink down = new DownStreamSink(video,audio,data);
 		stream.setDownstream(down);
 		return stream;

@@ -21,6 +21,13 @@ public class DownStreamSink extends BaseStreamSink implements IStreamSink, Const
 		this.data = data;
 	}
 	
+	public void close() {
+		this.video.close();
+		this.audio.close();
+		this.data.close();
+		super.close();
+	}
+	
 	public void enqueue(Message message){
 		//log.info("out ts:"+message.getTimestamp());
 		switch(message.getDataType()){
