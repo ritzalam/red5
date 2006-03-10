@@ -21,11 +21,6 @@ public class Channel {
 	private BaseConnection connection = null;
 	private byte id = 0;
 	//private Stream stream;
-	private PacketHeader lastReadHeader = null;
-	private PacketHeader lastWriteHeader = null;
-	private InPacket inPacket = null;
-	private OutPacket outPacket = null;
-	private int source = 0;
 
 	public Channel(BaseConnection conn, byte channelId){
 		connection = conn;
@@ -46,38 +41,6 @@ public class Channel {
 	}
 	*/
 
-	public InPacket getInPacket() {
-		return inPacket;
-	}
-
-	public void setInPacket(InPacket incommingPacket) {
-		this.inPacket = incommingPacket;
-	}
-
-	public OutPacket getOutPacket() {
-		return outPacket;
-	}
-
-	public void setOutPacket(OutPacket outgoingPacket) {
-		this.outPacket = outgoingPacket;
-	}
-
-	public PacketHeader getLastReadHeader() {
-		return lastReadHeader;
-	}
-
-	public void setLastReadHeader(PacketHeader lastReadHeader) {
-		this.lastReadHeader = lastReadHeader;
-	}
-
-	public PacketHeader getLastWriteHeader() {
-		return lastWriteHeader;
-	}
-
-	public void setLastWriteHeader(PacketHeader lastWriteHeader) {
-		this.lastWriteHeader = lastWriteHeader;
-	}
-	
 	public void write(Message message){
 		final Stream stream = connection.getStreamByChannelId(id);
 		/*
