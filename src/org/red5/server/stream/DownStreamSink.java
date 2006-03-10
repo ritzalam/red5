@@ -32,6 +32,7 @@ public class DownStreamSink extends BaseStreamSink implements IStreamSink, Const
 		//log.info("out ts:"+message.getTimestamp());
 		switch(message.getDataType()){
 		case TYPE_VIDEO_DATA:
+		case TYPE_STREAM_METADATA:
 			//log.debug("write video");
 			video.write(message);
 			break;

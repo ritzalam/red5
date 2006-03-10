@@ -391,6 +391,7 @@ public class RTMPProtocolDecoder implements Constants, org.apache.mina.filter.co
 			decodeInvoke((Invoke) message);
 			break;
 		case TYPE_NOTIFY:
+			// This could also contain stream metadata
 			decodeNotify((Notify) message);
 			break;
 		case TYPE_PING:

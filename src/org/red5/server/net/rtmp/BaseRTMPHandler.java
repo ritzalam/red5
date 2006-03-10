@@ -75,7 +75,11 @@ public class BaseRTMPHandler extends BaseHandler implements Constants {
 			switch(message.getDataType()){
 			case TYPE_INVOKE:
 			case TYPE_NOTIFY: // just like invoke, but does not return
-				onInvoke(conn, channel, source, (Invoke) message);
+				if (((Invoke) message).getCall() == null && stream != null)
+					// Stream metadata
+					stream.publish(message);
+				else
+					onInvoke(conn, channel, source, (Invoke) message);
 				break;
 			case TYPE_PING:
 				onPing(conn, channel, source, (Ping) message);

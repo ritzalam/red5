@@ -161,7 +161,11 @@ public class RTMPProtocolEncoder implements org.apache.mina.filter.codec.Protoco
 			encodeInvoke((Invoke) message);
 			break;
 		case TYPE_NOTIFY:
-			encodeInvoke((Invoke) message);
+			if (((Invoke) message).getCall() == null)
+				// Stream metadata
+				encodeStreamMetadata((Invoke) message);
+			else
+				encodeInvoke((Invoke) message);
 			break;
 		case TYPE_PING:
 			encodePing((Ping) message);
@@ -379,6 +383,12 @@ public class RTMPProtocolEncoder implements org.apache.mina.filter.codec.Protoco
 		out.putInt(streamBytesRead.getBytesRead());
 	}
 	
+	public void encodeStreamMetadata(Invoke metaData){
+		// Just seek to end of stream, we pass the published data to the clients
+		final ByteBuffer out = metaData.getData(); 
+		out.position(out.limit());
+	}
+
 	public void encodeAudioData(AudioData audioData){
 	}
 	
