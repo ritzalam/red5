@@ -4,16 +4,18 @@ import org.red5.server.api.Scope;
 
 public class ScopeUtils {
 	
+	private static final String SLASH = "/";
+	
 	public static Scope resolveScope(Scope from, String path){
 		Scope current = from;
-		if(path.startsWith("/")){
+		if(path.startsWith(SLASH)){
 			current = ScopeUtils.findRoot(current);
 			path = path.substring(1,path.length());
 		}
-		if(path.endsWith("/")){
+		if(path.endsWith(SLASH)){
 			path = path.substring(0,path.length()-1);
 		}
-		String[] parts = path.split("/");
+		String[] parts = path.split(SLASH);
 		for(int i=0; i<parts.length; i++){
 			String part = parts[i];
 			if(part.equals(".")) continue;

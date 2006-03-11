@@ -3,11 +3,30 @@ package org.red5.server.api;
 import java.util.List;
 import java.util.Set;
 
+/*
+ * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * 
+ * Copyright © 2006 by respective authors (see below). All rights reserved.
+ * 
+ * This library is free software; you can redistribute it and/or modify it under the 
+ * terms of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either version 2.1 of the License, or (at your option) any later 
+ * version. 
+ * 
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY 
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+ * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License along 
+ * with this library; if not, write to the Free Software Foundation, Inc., 
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ */
+
 /**
  * The connection object
  * 
  * Each connection has an associated client and scope. Connections may be
- * persistent, polling, or transitent. The aim of this interface is to provide
+ * persistent, polling, or transient. The aim of this interface is to provide
  * basic connection methods shared between different types of connections
  * 
  * Future subclasses: RTMPConnection, RemotingConnection, AJAXConnection,
@@ -48,8 +67,8 @@ public interface Connection extends AttributeStore {
 	public boolean isConnected();
 
 	/**
-	 * Close this connection, this will disconnect the client from the assicated
-	 * scope
+	 * Close this connection, this will disconnect the client from the
+	 * associated scope
 	 */
 	public void close();
 
@@ -83,22 +102,20 @@ public interface Connection extends AttributeStore {
 	 *            the desired context path, can be relative or absolute
 	 * @return true of the switch succeeded
 	 */
-	public boolean switchScope(String contextPath); // attempt to enter a new
-													// scope
+	public boolean switchScope(String contextPath);
 
 	/**
 	 * Get a list of the stream object associated with this connection
 	 * 
 	 * @return set of stream objects
 	 */
-	public Set getStreams(); // should this be split between onDemand and
-								// broadcast ?
+	public Set getStreams();
 
 	/**
 	 * Get the connection params
 	 * 
-	 * @return list of params the client sent when connecting
+	 * @return readonly list of connect params
 	 */
-	public List getParams(); // read only hash list of connect parameters
+	public List getParams();
 
 }

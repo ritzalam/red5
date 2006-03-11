@@ -1,9 +1,28 @@
 package org.red5.server.api;
 
+/*
+ * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * 
+ * Copyright © 2006 by respective authors (see below). All rights reserved.
+ * 
+ * This library is free software; you can redistribute it and/or modify it under the 
+ * terms of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either version 2.1 of the License, or (at your option) any later 
+ * version. 
+ * 
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY 
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+ * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License along 
+ * with this library; if not, write to the Free Software Foundation, Inc., 
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ */
+
 /**
- * The client object represents a single client. One client may have mutiple
+ * The client object represents a single client. One client may have multiple
  * connections to different scopes on the same host. In some ways the client
- * object is like a http session.
+ * object is like a HTTP session.
  * 
  * NOTE: I removed session, since client serves the same purpose as a client
  * with attributes
@@ -37,7 +56,7 @@ public interface Client extends AttributeStore {
 	/**
 	 * Get the creation time for this client object
 	 * 
-	 * @return long represnting the time in milliseconds when this object was
+	 * @return long representing the time in milliseconds when this object was
 	 *         created
 	 */
 	public long getCreationTime();
