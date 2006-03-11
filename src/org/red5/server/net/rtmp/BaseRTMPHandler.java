@@ -147,7 +147,7 @@ public class BaseRTMPHandler extends BaseHandler implements Constants {
 			{
 			case SO_CONNECT:
 				// Register client for this shared object and send initial state
-				so.registerClient(conn, source.getChannelId());
+				so.registerClient(conn);
 				break;
 			
 			case SO_CLEAR:

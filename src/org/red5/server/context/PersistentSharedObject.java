@@ -25,7 +25,7 @@ public class PersistentSharedObject implements SharedObject, Constants {
 	protected int version = 0;
 	protected boolean persistent = true;
 	protected HashMap data = new HashMap();
-	protected HashMap clients = new HashMap();
+	protected HashSet clients = new HashSet();
 	protected int updateCounter = 0;
 	protected boolean modified = false;
 	
@@ -77,8 +77,7 @@ public class PersistentSharedObject implements SharedObject, Constants {
 			this.syncMessage.setSealed(false);
 			// Acquire the packet, this will stop the data inside being released
 			this.syncMessage.acquire();
-			HashMap all_clients = this.clients;
-			Iterator clients = all_clients.keySet().iterator();
+			Iterator clients = this.clients.iterator();
 			while (clients.hasNext()) {
 				BaseConnection connection = (BaseConnection) clients.next();
 				if (connection == conn) {
@@ -87,13 +86,10 @@ public class PersistentSharedObject implements SharedObject, Constants {
 					continue;
 				}
 				
-				Iterator channels = ((HashSet) all_clients.get(connection)).iterator();
-				while (channels.hasNext()) {
-					Channel c = connection.getChannel(((Integer) channels.next()).byteValue());
-					log.debug("Send to " + c);
-					c.write(this.syncMessage);
-					this.syncMessage.setSealed(false);
-				}
+				Channel c = connection.getChannel((byte) 3);
+				log.debug("Send to " + c);
+				c.write(this.syncMessage);
+				this.syncMessage.setSealed(false);
 			}
 			// After sending the packet down all the channels we can release the packet, 
 			// which in turn will allow the data buffer to be released
@@ -188,12 +184,8 @@ public class PersistentSharedObject implements SharedObject, Constants {
 		this.notifyModified();
 	}
 	
-	public void registerClient(Client client, int channel) {
-		if (!this.clients.containsKey(client))
-			this.clients.put(client, new HashSet());
-		
-		HashSet channels = (HashSet) this.clients.get(client);
-		channels.add(new Integer(channel));
+	public void registerClient(Client client) {
+		this.clients.add(client);
 		
 		// prepare response for new client
 		this.ownerMessage.addEvent(new SharedObjectEvent(SO_CLIENT_INITIAL_DATA, null, null));
@@ -213,20 +205,7 @@ public class PersistentSharedObject implements SharedObject, Constants {
 		}
 	}
 	
-	public void unregisterClient(Client client, int channel) {
-		if (!this.clients.containsKey(client))
-			// No channel registered for this client
-			return;
-		
-		HashSet channels = (HashSet) this.clients.get(client);
-		channels.remove(new Integer(channel));
-		if (channels.isEmpty()) {
-			// Delete shared object in case of non-persistent SOs
-			this.unregisterClient(client);
-		}
-	}
-	
-	public HashMap getClients() {
+	public HashSet getClients() {
 		return this.clients;
 	}
 	

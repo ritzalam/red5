@@ -138,15 +138,12 @@ public interface SharedObject {
 	public void endUpdate();
 
 	/**
-	 * Register a new client with the channel that should receive updates of the
-	 * shared object.
+	 * Register a new client that should receive updates of the shared object.
 	 * 
 	 * @param client
-	 *            the client that wants to subscribe to this object
-	 * @param channel
-	 *            the connection channel of this client
+	 *            client to subscribe to this object
 	 */
-	public void registerClient(Client client, int channel);
+	public void registerClient(Client client);
 
 	/**
 	 * Unregister all channels of a client.
@@ -155,14 +152,4 @@ public interface SharedObject {
 	 *            the client to unsubscribe from this object
 	 */
 	public void unregisterClient(Client client);
-
-	/**
-	 * Unregister one channel of a client.
-	 * 
-	 * @param client
-	 *            the client to unsubscribe a channel from this object
-	 * @param channel
-	 *            the connection channel to unsubscribe
-	 */
-	public void unregisterClient(Client client, int channel);
 }
