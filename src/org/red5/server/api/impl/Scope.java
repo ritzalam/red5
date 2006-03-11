@@ -108,7 +108,7 @@ public class Scope extends AttributeStore
 	}
 
 	boolean connect(Connection conn) {
-		if(!handler.canConnect(conn)) return false;
+		if(!handler.canConnect(conn, this)) return false;
 		if(!clients.contains(conn.getClient())){
 			clients.add(conn.getClient());
 			handler.onConnect(conn);		

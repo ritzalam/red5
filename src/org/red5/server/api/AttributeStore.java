@@ -9,43 +9,48 @@ import java.util.Set;
  * @author Luke Hubbard (luke@codegent.com)
  */
 public interface AttributeStore {
-	
+
 	/**
 	 * Get the attribute names
 	 * 
-	 * @return set containing all attribute names 
+	 * @return set containing all attribute names
 	 */
 	public Set getAttributeNames();
-	
+
 	/**
 	 * Set an attribute on this object
 	 * 
-	 * @param	 name	the name of the attribute to change
-	 * @param	 value	the new value of the attribute
+	 * @param name
+	 *            the name of the attribute to change
+	 * @param value
+	 *            the new value of the attribute
 	 */
-	public void setAttribute(String name,Object value);
-	
+	public void setAttribute(String name, Object value);
+
 	/**
 	 * Return the value for a given attribute.
 	 * 
-	 * @param	 name	the name of the attribute to get
-	 * @return	the attribute value or null if the attribute doesn't exist
+	 * @param name
+	 *            the name of the attribute to get
+	 * @return the attribute value or null if the attribute doesn't exist
 	 */
 	public Object getAttribute(String name);
-	
+
 	/**
 	 * Check the object has an attribute
 	 * 
-	 * @param name	the name of the attribute to check
+	 * @param name
+	 *            the name of the attribute to check
 	 * @return true if the attribute exists otherwise false
 	 */
 	public boolean hasAttribute(String name);
-	
+
 	/**
 	 * Removes an attribute
 	 * 
-	 * @param name the name of the attribute to remove
+	 * @param name
+	 *            the name of the attribute to remove
 	 */
 	public void removeAttribute(String name);
-	
+
 }

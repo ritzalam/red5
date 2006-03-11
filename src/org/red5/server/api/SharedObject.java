@@ -28,7 +28,7 @@ import org.red5.server.context.Client;
  */
 
 /**
- * Serverside access to shared objects.  Changes to the shared objects are
+ * Serverside access to shared objects. Changes to the shared objects are
  * propagated to all subscribed clients.
  * 
  * If you want to modify multiple attributes and notify the clients about all
@@ -51,115 +51,121 @@ import org.red5.server.context.Client;
  */
 
 public interface SharedObject {
-	
+
 	/**
 	 * Returns the name of the shared object.
 	 * 
 	 * @return the name of the shared object
 	 */
 	public String getName();
-	
+
 	/**
-	 * Returns the version of the shared object.  The version
-	 * is incremented automatically on each modification.
+	 * Returns the version of the shared object. The version is incremented
+	 * automatically on each modification.
 	 * 
 	 * @return the version of the shared object
 	 */
 	public int getVersion();
-	
+
 	/**
-	 * Check if the object has been created as persistent shared
-	 * object by the client.
+	 * Check if the object has been created as persistent shared object by the
+	 * client.
 	 * 
-	 * @return true if the shared object is persistent,
-	 * 		   false otherwise
+	 * @return true if the shared object is persistent, false otherwise
 	 */
 	public boolean isPersistent();
-	
+
 	/**
-	 * Return a map containing all attributes of the shared object.
-	 * <br />
-	 * NOTE: modifications to this map are _not_ propagated to
-	 *       the connected clients.
+	 * Return a map containing all attributes of the shared object. <br />
+	 * NOTE: modifications to this map are _not_ propagated to the connected
+	 * clients.
 	 * 
 	 * @return a map containing all attributes of the shared object
 	 */
 	public Map getData();
-	
+
 	/**
 	 * Add / edit an attribute.
 	 * 
-	 * @param	name	the name of the attribute to change
-	 * @param	value	the new value of the attribute
-	 * @return 	true if the attribute value has changed,
-	 * 			false otherwise
+	 * @param name
+	 *            the name of the attribute to change
+	 * @param value
+	 *            the new value of the attribute
+	 * @return true if the attribute value has changed, false otherwise
 	 */
 	public boolean updateAttribute(String name, Object value);
-	
+
 	/**
 	 * Return the value for a given attribute.
 	 * 
-	 * @param	name	the name of the attribute to get
-	 * @return	the attribute value or
-	 * 			null if the attribute doesn't exist
+	 * @param name
+	 *            the name of the attribute to get
+	 * @return the attribute value or null if the attribute doesn't exist
 	 */
 	public Object getAttribute(String name);
-	
+
 	/**
 	 * Remove an attribute from the shared object.
 	 * 
-	 * @param	name	the name of the attribute to delete
-	 * @return	true if the attribute has been found and deleted,
-	 * 		    false otherwise
+	 * @param name
+	 *            the name of the attribute to delete
+	 * @return true if the attribute has been found and deleted, false otherwise
 	 */
 	public boolean deleteAttribute(String name);
 
 	/**
 	 * Send a message to a handler of the shared object.
 	 * 
-	 * @param	handler		the name of the handler to call
-	 * @param	arguments	a list of objects that should be passed
-	 * 						as arguments to the handler
+	 * @param handler
+	 *            the name of the handler to call
+	 * @param arguments
+	 *            a list of objects that should be passed as arguments to the
+	 *            handler
 	 */
 	public void sendMessage(String handler, List arguments);
-	
+
 	/**
 	 * Delete all attributes of the shared object.
 	 */
 	public void clear();
-	
+
 	/**
 	 * Start performing multiple updates to the shared object.
 	 */
 	public void beginUpdate();
-	
+
 	/**
-	 * The multiple updates are complete, notify clients about all
-	 * changes at once.
+	 * The multiple updates are complete, notify clients about all changes at
+	 * once.
 	 */
 	public void endUpdate();
-	
+
 	/**
-	 * Register a new client with the channel that should receive
-	 * updates of the shared object.
+	 * Register a new client with the channel that should receive updates of the
+	 * shared object.
 	 * 
-	 * @param	client	the client that wants to subscribe to this object
-	 * @param	channel	the connection channel of this client
+	 * @param client
+	 *            the client that wants to subscribe to this object
+	 * @param channel
+	 *            the connection channel of this client
 	 */
 	public void registerClient(Client client, int channel);
-	
+
 	/**
 	 * Unregister all channels of a client.
 	 * 
-	 * @param	client	the client to unsubscribe from this object
+	 * @param client
+	 *            the client to unsubscribe from this object
 	 */
 	public void unregisterClient(Client client);
-	
+
 	/**
 	 * Unregister one channel of a client.
 	 * 
-	 * @param	client	the client to unsubscribe a channel from this object
-	 * @param	channel	the connection channel to unsubscribe
+	 * @param client
+	 *            the client to unsubscribe a channel from this object
+	 * @param channel
+	 *            the connection channel to unsubscribe
 	 */
 	public void unregisterClient(Client client, int channel);
 }

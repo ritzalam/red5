@@ -90,7 +90,7 @@ public class ScopeAdapter implements ScopeHandler {
 		return canCallService;
 	}
 
-	public boolean canConnect(Connection conn) {
+	public boolean canConnect(Connection conn, Scope scope) {
 		return canConnect;
 	}
 
@@ -134,7 +134,7 @@ public class ScopeAdapter implements ScopeHandler {
 		// nothing
 	}
 
-	public void onDisposeScope() {
+	public void onDisposeScope(Scope scope) {
 		// nothing
 	}
 
