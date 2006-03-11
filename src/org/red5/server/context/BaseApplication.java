@@ -157,55 +157,61 @@ public class BaseApplication
 		
 		boolean isPublishedStream = streamManager.isPublishedStream(name);
 		boolean isFileStream = streamManager.isFileStream(name);
+		// decision: 0 for Live, 1 for File, 2 for Wait, 3 for N/A
+		int decision = 3;
 		
 		switch (num) {
 		case -2:
 			if (isPublishedStream) {
-				streamManager.connectToPublishedStream(stream);
-				stream.start();
+				decision = 0;
 			} else if (isFileStream) {
-				final IStreamSource source = streamManager.lookupStreamSource(name);
-				log.debug(source);
-				stream.setSource(source);
-				
-				//Integer.MAX_VALUE;
-				//stream.setNSId();
-				stream.start();
+				decision = 1;
 			} else {
-				// Create temporary live stream and publish it
-				streamManager.publishStream(new TemporaryStream(name, Stream.MODE_LIVE));
-				streamManager.connectToPublishedStream(stream);
-				stream.start();
+				decision = 2;
 			}
 			break;
-		
+			
 		case -1:
 			if (isPublishedStream) {
-				streamManager.connectToPublishedStream(stream);
-				stream.start();
+				decision = 0;
 			} else {
 				// TODO: Wait for stream to be created until timeout, otherwise continue
 				// with next item in playlist (see Macromedia documentation)
 				// NOTE: For now we create a temporary stream
-				streamManager.publishStream(new TemporaryStream(name, Stream.MODE_LIVE));
-				streamManager.connectToPublishedStream(stream);
-				stream.start();
+				decision = 2;
 			}
 			break;
 			
 		default:
 			if (isFileStream) {
-				final IStreamSource source = streamManager.lookupStreamSource(name);
-				log.debug(source);
-				stream.setSource(source);
-				
-				//Integer.MAX_VALUE;
-				//stream.setNSId();
-				// TODO: Seek to requested start
-				stream.start();
+				decision = 1;
 			} else {
 				// TODO: Wait for it, then continue with next item in playlist (?)
 			}
+			break;
+		}
+		
+		switch (decision) {
+		case 0:
+			streamManager.connectToPublishedStream(stream);
+			stream.start();
+			break;
+		case 1:
+			final IStreamSource source = streamManager.lookupStreamSource(name);
+			log.debug(source);
+			stream.setSource(source);
+			
+			//Integer.MAX_VALUE;
+			//stream.setNSId();
+			// TODO: Seek to requested start
+			stream.start();
+			break;
+		case 2:
+			streamManager.publishStream(new TemporaryStream(name, Stream.MODE_LIVE));
+			streamManager.connectToPublishedStream(stream);
+			stream.start();
+			break;
+		default:
 			break;
 		}
 		//streamManager.play(stream, name);
