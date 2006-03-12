@@ -5,6 +5,7 @@ import org.apache.commons.logging.LogFactory;
 import org.red5.io.flv.FLV;
 import org.red5.io.flv.Reader;
 import org.red5.io.flv.Tag;
+import org.red5.io.flv.KeyFrameDataAnalyzer.KeyFrameMeta;
 import org.red5.server.net.rtmp.message.AudioData;
 import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.net.rtmp.message.Invoke;
@@ -13,12 +14,13 @@ import org.red5.server.net.rtmp.message.Notify;
 import org.red5.server.net.rtmp.message.Unknown;
 import org.red5.server.net.rtmp.message.VideoData;
 
-public class FileStreamSource implements IStreamSource, Constants {
+public class FileStreamSource implements ISeekableStreamSource, Constants {
 
 	protected static Log log =
         LogFactory.getLog(FileStreamSource.class.getName());
 	
 	private Reader reader = null;
+	private KeyFrameMeta keyFrameMeta = null;
 	
 	public FileStreamSource(Reader reader){
 		this.reader = reader;
@@ -61,5 +63,17 @@ public class FileStreamSource implements IStreamSource, Constants {
 	public boolean hasMore() {
 		return reader.hasMoreTags();
 	}
-	
+
+	synchronized public int seek(int ts) {
+		if (keyFrameMeta == null) {
+			keyFrameMeta = reader.analyzeKeyFrames();
+		}
+		int frame = 0;
+		for (int i = 0; i < keyFrameMeta.positions.length; i++) {
+			if (keyFrameMeta.timestamps[i] > ts) break;
+			frame = i;
+		}
+		reader.position(keyFrameMeta.positions[frame]);
+		return keyFrameMeta.timestamps[frame];
+	}
 }

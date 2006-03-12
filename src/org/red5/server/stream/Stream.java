@@ -1,15 +1,14 @@
 package org.red5.server.stream;
 
-import java.io.FileOutputStream;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
-import org.red5.server.net.rtmp.Channel;
 import org.red5.server.net.rtmp.BaseConnection;
+import org.red5.server.net.rtmp.Channel;
 import org.red5.server.net.rtmp.message.AudioData;
 import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.net.rtmp.message.Message;
+import org.red5.server.net.rtmp.message.Ping;
 import org.red5.server.net.rtmp.message.Status;
 import org.red5.server.net.rtmp.message.StreamBytesRead;
 import org.red5.server.net.rtmp.message.VideoData;
@@ -121,26 +120,88 @@ public class Stream extends BaseStreamSink implements Constants, IStream, IStrea
 	
 	public void pause(){
 		paused = true;
-		//Status pause  = new Status(Status.NS_PLAY_STOP);
-		//pause.setClientid(streamId);
-		//pause.setDetails(name);
-		//downstream.getData().sendStatus(pause);
+		Status pause  = new Status("NetStream.Pause.Notify");
+		pause.setClientid(1);
+		pause.setDetails(name);
+		downstream.getData().sendStatus(pause);
 	}
 	
-	public void resume(){
+	public void resume(int resumeTS){
+		if (!paused) return;
 		paused = false;
-		Status play  = new Status(Status.NS_PLAY_RESET);
-		play.setClientid(streamId);
+		if (!(source instanceof ISeekableStreamSource)) return;
+		ISeekableStreamSource sss = (ISeekableStreamSource) source;
+		int ts = sss.seek(resumeTS);
+		
+		Ping ping = new Ping();
+		ping.setValue1((short) 4);
+		ping.setValue2(streamId);
+		
+		conn.ping(ping);
+		
+		Ping ping2 = new Ping();
+		ping2.setValue1((short) 0);
+		ping2.setValue2(streamId);
+		
+		conn.ping(ping2);
+		
+		Status play  = new Status("NetStream.Unpause.Notify");
+		play.setClientid(1);
 		play.setDetails(name);
 		downstream.getData().sendStatus(play);
 		
-		if(source !=null && source.hasMore()){
-			write(source.dequeue());
+		AudioData blankAudio = new AudioData();
+		blankAudio.setTimestamp(ts);
+		downstream.getData().write(blankAudio);
+	}
+	
+	public void seek(int time) {
+		if (!(source instanceof ISeekableStreamSource)) return;
+		ISeekableStreamSource sss = (ISeekableStreamSource) source;
+		int ts = sss.seek(time);
+		
+		if (!paused) {
+			// seems not necessary, but seen in FMS's dump
+			Ping ping0 = new Ping();
+			ping0.setValue1((short) 1);
+			ping0.setValue2(streamId);
+			conn.ping(ping0);
+		}
+		
+		Ping ping1 = new Ping();
+		ping1.setValue1((short) 4);
+		ping1.setValue2(streamId);
+		
+		conn.ping(ping1);
+		
+		Ping ping2 = new Ping();
+		ping2.setValue1((short) 0);
+		ping2.setValue2(streamId);
+		
+		conn.ping(ping2);
+		
+		Status play  = new Status("NetStream.Seek.Notify");
+		play.setClientid(1);
+		play.setDetails(name);
+		downstream.getData().sendStatus(play);
+		
+		AudioData blankAudio = new AudioData();
+		blankAudio.setTimestamp(ts);
+		downstream.getData().write(blankAudio);
+		
+		if (paused) {
+			if(source !=null && source.hasMore()){
+				write(source.dequeue());
+			}
 		}
 	}
 	
-	public void start(){
+	public void start(int startTS) {
 		startTime = System.currentTimeMillis();
+		
+		if (startTS > 0 && source instanceof ISeekableStreamSource) {
+			((ISeekableStreamSource) source).seek(startTS);
+		}
 		
 		Status reset = new Status(Status.NS_PLAY_RESET);
 		Status start = new Status(Status.NS_PLAY_START);
@@ -156,14 +217,12 @@ public class Stream extends BaseStreamSink implements Constants, IStream, IStrea
 				
 		downstream.getData().sendStatus(reset);
 		downstream.getVideo().sendStatus(start);
-		//downstream.getVideo().sendStatus(new Status(Status.NS_DATA_START));
 		
-		/*
-		if(source!=null && source.hasMore()){
-			write(source.dequeue());
-		}
-		*/
 		initialMessage = true;
+	}
+	
+	public void start(){
+		start(0);
 	}
 	
 	public void stop(){

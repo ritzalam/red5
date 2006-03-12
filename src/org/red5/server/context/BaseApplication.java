@@ -204,7 +204,7 @@ public class BaseApplication
 			//Integer.MAX_VALUE;
 			//stream.setNSId();
 			// TODO: Seek to requested start
-			stream.start();
+			stream.start(num);
 			break;
 		case 2:
 			streamManager.publishStream(new TemporaryStream(name, Stream.MODE_LIVE));
@@ -246,7 +246,12 @@ public class BaseApplication
 			// XXX: invalid request, we must return an error to the client here...
 		}
 		if(pause) stream.pause();
-		else stream.resume();
+		else stream.resume(time);
+	}
+	
+	public void seek(int time) {
+		final Stream stream = Scope.getStream();
+		stream.seek(time);
 	}
 	
 	public void deleteStream(int number){
