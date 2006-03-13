@@ -2,16 +2,16 @@ package org.red5.server.stream;
 
 import java.io.IOException;
 
-import org.red5.io.flv.Tag;
+import org.red5.io.flv.ITag;
 import org.red5.io.flv.TagImpl;
-import org.red5.io.flv.Writer;
+import org.red5.io.flv.IWriter;
 import org.red5.server.net.rtmp.message.Message;
 
 public class FileStreamSink extends BaseStreamSink implements IStreamSink {
 
-	private Writer writer;
+	private IWriter writer;
 	
-	public FileStreamSink(Writer writer){
+	public FileStreamSink(IWriter writer){
 		this.writer = writer;
 	}
 	
@@ -22,7 +22,7 @@ public class FileStreamSink extends BaseStreamSink implements IStreamSink {
 
 	public void enqueue(Message message) {
 		
-		Tag tag = new TagImpl();
+		ITag tag = new TagImpl();
 		
 		tag.setDataType(message.getDataType());
 		tag.setTimestamp(message.getTimestamp());
