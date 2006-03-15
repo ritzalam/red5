@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import org.red5.io.flv.ITag;
 import org.red5.io.flv.IWriter;
-import org.red5.io.impl.Tag;
+import org.red5.io.flv.impl.Tag;
 import org.red5.server.net.rtmp.message.Message;
 
 public class FileStreamSink extends BaseStreamSink implements IStreamSink {

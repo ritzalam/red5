@@ -2,7 +2,7 @@ package org.red5.server.context;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.red5.io.impl.FLVService;
+import org.red5.io.flv.impl.FLVService;
 import org.red5.server.SharedObjectPersistence;
 import org.red5.server.SharedObjectRamPersistence;
 import org.red5.server.api.Red5;
