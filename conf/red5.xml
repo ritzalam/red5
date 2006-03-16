@@ -177,7 +177,7 @@
 	
 	<!-- Quartz Scheduling Service -->
 	<!-- FLVIndexingService: index FLV keyframes on a schedule -->
-	<bean id="FLVIndexingService" class="com.nvn.scheduler.ExampleBusinessObject">	
+	<bean id="FLVIndexingService" class="org.red5.server.scheduling.ExampleBusinessObject">	
 	</bean>
 
 	<!-- Quartz Job Detail: Specify the Job Detail -->
