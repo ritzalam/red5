@@ -69,7 +69,7 @@
 		<manifest>
 			<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>
 			<attribute name="Main-Class" value="org.red5.server.Standalone"/>
-			<attribute name="Class-Path" value="conf/ lib/slf4j-log4j12.jar lib/cglib-nodep-2.1_2.jar lib/jetty.jar lib/commons-beanutils.jar lib/commons-collections.jar lib/commons-logging.jar lib/jpda.jar lib/js.jar lib/junit.jar lib/log4j-1.2.9.jar lib/mina-0.9.0.jar lib/servlet-api.jar lib/spring-scripting-support.jar lib/spring.jar lib/xbean_xpath.jar lib/red5-IO.jar"/>
+			<attribute name="Class-Path" value="conf/ lib/slf4j-log4j12.jar lib/cglib-nodep-2.1_2.jar lib/jetty.jar lib/commons-beanutils.jar lib/commons-collections.jar lib/commons-logging.jar lib/jpda.jar lib/js.jar lib/junit.jar lib/log4j-1.2.9.jar lib/mina-0.9.0.jar lib/servlet-api.jar lib/spring-scripting-support.jar lib/spring.jar lib/xbean_xpath.jar lib/quartz-1.5.2.jar"/>
 		</manifest>
 	</jar>
 </target>
