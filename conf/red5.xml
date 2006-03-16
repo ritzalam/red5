@@ -175,4 +175,32 @@
 	</bean>
 	-->
 	
+	<!-- Quartz Scheduling Service -->
+	<!-- FLVIndexingService: index FLV keyframes on a schedule -->
+	<bean id="FLVIndexingService" class="com.nvn.scheduler.ExampleBusinessObject">	
+	</bean>
+
+	<!-- Quartz Job Detail: Specify the Job Detail -->
+	<bean id="methodInvokingJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+	    <property name="targetObject"><ref bean="FLVIndexingService"/></property>
+	    <property name="targetMethod"><value>doSomething</value></property>
+	</bean>
+	
+	<!-- Quartz Trigger: Specify the trigger -->
+	<bean id="simpleTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerBean">
+		<property name="startDelay"><value>1000</value></property>
+		<property name="repeatInterval"><value>60000</value></property>
+	    <property name="jobDetail"><ref bean="methodInvokingJobDetail"/></property>
+	</bean>
+	
+	<!-- Quartz SchedulerFactoryBean: load triggers -->
+	<!-- Supply additional triggers for addditional scheduled tasks -->
+	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+		<property name="triggers">
+			<list>
+				<ref local="simpleTrigger"/>
+			</list>
+		</property>
+	</bean>
+	
 </beans>
