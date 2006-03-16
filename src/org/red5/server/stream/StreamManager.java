@@ -70,8 +70,8 @@ public class StreamManager implements ApplicationContextAware {
 	
 	public void deleteStream(Stream stream){
 		stream.close();
-		if(published.containsKey(stream.getName()))
-				published.remove(stream.getName());
+		if (stream.getUpstream() != null && published.containsKey(stream.getName()))
+			published.remove(stream.getName());
 	}
 	
 	public boolean isPublishedStream(String name){
