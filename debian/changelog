@@ -1,3 +1,10 @@
+red5 (20060317) unstable; urgency=low
+
+  * Debian build files now part of subversion tree.
+  * Added Makefile.
+
+ -- Simon Eisenmann <simon@struktur.de>  Fri, 17 Mar 2006 16:51:50 +0100
+
 red5 (20060316) unstable; urgency=low
 
   * Initial Release.
