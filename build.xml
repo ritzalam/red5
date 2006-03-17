@@ -74,7 +74,7 @@
 	</jar>
 </target>
 	
-<target name="demo-dist" description="Make Demo Distribution" depends="jar">
+<target name="dist" description="Make Distribution" depends="jar">
 	<delete dir="${dist.dir}"/>
 	<copy todir="${dist.dir}/lib">
 		<fileset dir="lib" />
@@ -85,45 +85,19 @@
 	<copy todir="${dist.dir}/hosts">
 		<fileset dir="hosts" />
 	</copy>
-	<copy todir="${dist.dir}/flvs">
-		<fileset dir="flvs">
-			<!--
-			<include name="on2_flash8_w_audio.flv" />
-			<include name="spark_flash7_no_audio.flv" />
-			-->
-		</fileset>
+        <copy todir="${dist.dir}/webapps">
+                <fileset dir="webapps" />
 	</copy>
 	<copy todir="${dist.dir}">
 		<fileset dir="./">
 			<include name="red5.jar" />
 			<include name="red5.bat" />
 			<include name="red5.sh" />
-			<include name="DEMO_README.txt" />
-			<include name="known_bugs.txt" />
-		</fileset>
-		<fileset dir="tests">
-			<!--
-			<include name="ofla_demo.swf" />
-			-->
+			<include name="license.txt" />
 		</fileset>
 	</copy>
 </target>
 	
-<target name="demo-dist-zip" description="Make Demo Distribution Zip" depends="demo-dist">
-	<zip destfile="./red5_demo.zip" basedir="${dist.dir}" />
-</target>
-	
-<target name="server" depends="compile">
-	<java classname="org.red5.server.Standalone" fork="true">
-		<classpath>
-				<pathelement location="${classes.dir}"/>
-				<path refid="project.classpath"/>
-				<pathelement location="${config.dir}"/>
-
-		</classpath>
-	</java>
-</target>
-
 	<target name="webwar" depends="compile">
 		<delete dir="webdir"/>
 		<mkdir dir="webdir"/>
