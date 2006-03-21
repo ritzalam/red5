@@ -6,6 +6,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.server.context.AppContext;
+import org.red5.server.context.BaseApplication;
 import org.red5.server.context.Client;
 import org.red5.server.net.rtmp.message.OutPacket;
 import org.red5.server.net.rtmp.message.Ping;
@@ -99,11 +100,13 @@ public abstract class BaseConnection extends Client {
 	}
 	
 	public void close(){
+		AppContext ctx = getAppContext();
+		BaseApplication app = (BaseApplication) ctx.getBean(AppContext.APP_SERVICE_NAME);
 		synchronized (streams) {
 			for(int i=0; i<streams.length; i++){
 				Stream stream = streams[i];
 				if(stream != null) {
-					stream.close();
+					app.deleteStream(stream.getStreamId());
 					streams[i] = null;
 				}
 			}

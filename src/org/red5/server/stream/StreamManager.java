@@ -3,12 +3,14 @@ package org.red5.server.stream;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.io.flv.IFLV;
 import org.red5.io.flv.IFLVService;
 import org.red5.io.flv.IWriter;
+import org.red5.server.net.rtmp.message.Status;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -69,9 +71,20 @@ public class StreamManager implements ApplicationContextAware {
 	}
 	
 	public void deleteStream(Stream stream){
-		stream.close();
-		if (stream.getUpstream() != null && published.containsKey(stream.getName()))
+		if (stream.getUpstream() != null && published.containsKey(stream.getName())) {
+			// Notify all clients that stream is no longer published
+			MultiStreamSink multi = (MultiStreamSink) published.get(stream.getName());
+			Status unpublish = new Status(Status.NS_PLAY_UNPUBLISHNOTIFY);
+			unpublish.setClientid(stream.getStreamId());
+			unpublish.setDetails(stream.getName());
+			Iterator it = multi.streams.iterator();
+			while (it.hasNext()) {
+				Stream s = (Stream) it.next();
+				s.getDownstream().getData().sendStatus(unpublish);
+			}
 			published.remove(stream.getName());
+		}
+		stream.close();
 	}
 	
 	public boolean isPublishedStream(String name){
