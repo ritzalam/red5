@@ -8,4 +8,10 @@ do
   fi
 done
 
+if [ ! -x $JAVA ]
+then
+  echo "Unable to locate java. Please set JAVA_HOME environment variable."
+  exit
+fi
+
 exec $JAVA -cp red5.jar:$CLASSPATH org.red5.server.Standalone
