@@ -46,7 +46,7 @@ public class ExampleBusinessObject {
 	 * @return void
 	 */
 	public void doSomething() {
-		System.out.println("timer: " + counter++);
+		//System.out.println("timer: " + counter++);
 	}
 
 }
