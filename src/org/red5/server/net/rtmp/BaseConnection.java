@@ -106,7 +106,7 @@ public abstract class BaseConnection extends Client {
 			for(int i=0; i<streams.length; i++){
 				Stream stream = streams[i];
 				if(stream != null) {
-					app.deleteStream(stream.getStreamId());
+					app.deleteStream(this, stream.getStreamId());
 					streams[i] = null;
 				}
 			}

@@ -256,6 +256,10 @@ public class BaseApplication
 	
 	public void deleteStream(int number){
 		BaseConnection conn = (BaseConnection) Scope.getClient();
+		deleteStream(conn, number);
+	}
+		
+	public void deleteStream(BaseConnection conn, int number){
 		Stream stream = conn.getStreamById(number);
 		if (stream == null) {
 			// XXX: invalid request, we must return an error to the client here...
