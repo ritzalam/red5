@@ -1,8 +1,10 @@
 package org.red5.server;
 
+import java.lang.reflect.InvocationTargetException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
+import org.springframework.core.NestedRuntimeException;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -62,7 +64,19 @@ public class Standalone {
 		
 		// Spring Loads the xml config file which initializes 
 		// beans and loads the server
-		FileSystemXmlApplicationContext appCtx = new FileSystemXmlApplicationContext(red5ConfigPath);
+		FileSystemXmlApplicationContext appCtx = null;
+		try {
+			appCtx = new FileSystemXmlApplicationContext(red5ConfigPath);
+		} catch (Exception e) {
+			if (e instanceof InvocationTargetException)
+				log.error("Could not start Red5.", ((InvocationTargetException) e).getCause());
+			else if (e instanceof NestedRuntimeException)
+				log.error("Could not start Red5.", ((NestedRuntimeException) e).getCause().getCause());
+			else
+				log.error("Could not start Red5.", e);
+			
+			return;
+		}
 		if(log.isDebugEnabled()) {
 			log.debug("Startup date: "+appCtx.getStartupDate());
 		}
