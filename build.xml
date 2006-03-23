@@ -97,7 +97,17 @@
 		</fileset>
 	</copy>
 </target>
-	
+
+<target name="server" depends="compile">
+    <java classname=" org.red5.server.Standalone" fork="true">
+        <classpath>
+            <pathelement location="${classes.dir}"/>
+            <path refid="project.classpath"/>
+            <pathelement location="${config.dir}"/>
+        </classpath>
+    </java>
+</target>
+
 	<target name="webwar" depends="compile">
 		<delete dir="webdir"/>
 		<mkdir dir="webdir"/>
