@@ -270,15 +270,15 @@ public class BaseRTMPHandler extends BaseHandler implements Constants {
 	
 	public void onPing(BaseConnection conn, Channel channel, PacketHeader source, Ping ping){
 		final Ping pong = new Ping();
-		pong.setValue1((short)(ping.getValue1()+1));
-		pong.setValue2(ping.getValue2());
+		pong.setValue1((short) 4);
+		pong.setValue2(source.getStreamId());
 		channel.write(pong);
 		log.info(ping);
 		// No idea why this is needed, 
 		// but it was the thing stopping the new rtmp code streaming
 		final Ping pong2 = new Ping();
-		pong2.setValue1((short)0);
-		pong2.setValue2(1);
+		pong2.setValue1((short) 0);
+		pong2.setValue2(source.getStreamId());
 		channel.write(pong2);
 	}
 	
