@@ -28,6 +28,7 @@ public class Stream extends BaseStreamSink implements Constants, IStream, IStrea
 	private long startTime = 0;
 	private long startTS = 0;
 	private long currentTS = 0;
+	private int playLength = -1;
 	private String name = "";
 	private boolean paused = false;
 	private String mode = MODE_READ;
@@ -196,8 +197,9 @@ public class Stream extends BaseStreamSink implements Constants, IStream, IStrea
 		}
 	}
 	
-	public void start(int startTS) {
+	public void start(int startTS, int length) {
 		startTime = System.currentTimeMillis();
+		playLength = length;
 		
 		if (startTS > 0 && source instanceof ISeekableStreamSource) {
 			((ISeekableStreamSource) source).seek(startTS);
@@ -222,7 +224,7 @@ public class Stream extends BaseStreamSink implements Constants, IStream, IStrea
 	}
 	
 	public void start(){
-		start(0);
+		start(0, -1);
 	}
 	
 	public void stop(){
@@ -246,23 +248,28 @@ public class Stream extends BaseStreamSink implements Constants, IStream, IStrea
 	
 	protected void write(Message message){
 		if (downstream.canAccept()){
-			if (initialMessage && this.videoCodec != null) {
+			if (initialMessage) {
 				initialMessage = false;
-				ByteBuffer keyframe = this.videoCodec.getKeyframe();
-				if (keyframe != null) {
-					// Send initial keyframe to client
-					Message msg = new VideoData();
-					msg.setTimestamp(message.getTimestamp()-1);
-					msg.setData(keyframe);
-					msg.setSealed(true);
-					this.write(msg);
+				startTS = message.getTimestamp();
+				if (this.videoCodec != null) {
+					ByteBuffer keyframe = this.videoCodec.getKeyframe();
+					if (keyframe != null) {
+						// Send initial keyframe to client
+						Message msg = new VideoData();
+						msg.setTimestamp(message.getTimestamp()-1);
+						msg.setData(keyframe);
+						msg.setSealed(true);
+						this.write(msg);
+					}
 				}
 			}
+			currentTS = message.getTimestamp();
+			if (playLength >= 0 && currentTS - startTS > playLength) return;
 			
 			if(log.isDebugEnabled())
 				log.debug("Sending downstream: " + message.getTimestamp());
 			//writeQueue++;
-			currentTS = message.getTimestamp();
+			
 			downstream.enqueue(message);
 		}
 	}
@@ -305,8 +312,10 @@ public class Stream extends BaseStreamSink implements Constants, IStream, IStrea
 	public void written(Message message){
 		if(paused) return;
 		writeQueue--;
-		if(source !=null && source.hasMore()){
-			write(source.dequeue());
+		synchronized (this) {
+			if(source !=null && source.hasMore()){
+				write(source.dequeue());
+			}
 		}
 	}
 	

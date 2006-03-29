@@ -118,10 +118,18 @@ public class BaseApplication
 	}
 	
 	public void play(String name){
-		 play(name, new Double(-2000.0));
+		play(name, new Double(-2000.0));
 	}
 	
-	public void play(String name, Double number){
+	public void play(String name, Double number) {
+		play(name, number, -1);
+	}
+	
+	public void play(String name, Double number, int length) {
+		play(name, number, length, false);
+	}
+	
+	public void play(String name, Double number, int length, boolean flushPlaylists){
 		final Stream stream = Scope.getStream();
 		if (stream == null) {
 			// XXX: invalid request, we must return an error to the client here...
@@ -194,7 +202,7 @@ public class BaseApplication
 		switch (decision) {
 		case 0:
 			streamManager.connectToPublishedStream(stream);
-			stream.start();
+			stream.start(0, length);
 			break;
 		case 1:
 			final IStreamSource source = streamManager.lookupStreamSource(name);
@@ -204,12 +212,12 @@ public class BaseApplication
 			//Integer.MAX_VALUE;
 			//stream.setNSId();
 			// TODO: Seek to requested start
-			stream.start(num);
+			stream.start(num, length);
 			break;
 		case 2:
 			streamManager.publishStream(new TemporaryStream(name, Stream.MODE_LIVE));
 			streamManager.connectToPublishedStream(stream);
-			stream.start();
+			stream.start(0, length);
 			break;
 		default:
 			break;
