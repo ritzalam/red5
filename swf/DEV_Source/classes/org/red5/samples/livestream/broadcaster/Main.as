@@ -14,6 +14,7 @@ class org.red5.samples.livestream.broadcaster.Main extends MovieClip {
 // Private Properties:
 	private var stream:Stream;
 	private var cam:Camera;
+	private var mic:Microphone;
 // UI Elements:
 
 // ** AUTO-UI ELEMENTS **
@@ -35,6 +36,10 @@ class org.red5.samples.livestream.broadcaster.Main extends MovieClip {
 		
 		// setup cam
 		cam = Camera.get();
+		cam.setQuality(0,80);
+		
+		// setup mic
+		mic = Microphone.get();
 		
 		// get notified of connection changes
 		connector.addEventListener("connectionChange", this);
@@ -57,8 +62,7 @@ class org.red5.samples.livestream.broadcaster.Main extends MovieClip {
 	}
 	
 	private function connectionChange(evtObj:Object):Void
-	{		
-		
+	{
 		if(evtObj.connected) 
 		{
 			// setup stream
@@ -68,9 +72,15 @@ class org.red5.samples.livestream.broadcaster.Main extends MovieClip {
 			stream.addEventListener("error", Delegate.create(this, error));
 			// attach camera
 			stream.attachVideo(cam);
+			// add audio
+			stream.attachAudio(mic);
 			stream.publish("red5StreamDemo", "live");
 			// show it on screen
 			publish_video.attachVideo(cam);
+		}else
+		{
+			publish_video.attachVideo(null);
+			publish_video.clear();
 		}
 	}
 
