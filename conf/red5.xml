@@ -203,4 +203,14 @@
 		</property>
 	</bean>
 	
+	<!-- Meta Data Services: allows for Meta Data configuration -->
+	<!-- Resolver: Specify which resolver the metaService will use -->
+	<bean id="resolver" class="org.red5.io.flv.meta.Resolver"></bean>
+	
+	<!-- MetaService: service for metadata configuration -->
+	<bean id="metaService" class="org.red5.io.flv.meta.MetaService">
+		<property name="serializer" ref="serializer" />
+		<property name="deserializer" ref="deserializer" />
+		<property name="resolver"><ref bean="resolver"/></property>
+	</bean>
 </beans>
