@@ -63,7 +63,8 @@
         -->
         <Item>
           <New class="org.mortbay.jetty.nio.SelectChannelConnector">
-            <Set name="port">8088</Set>
+            <Set name="port"><SystemProperty name="rtmpt.port" default="8088" /></Set>
+            <Set name="host"><SystemProperty name="rtmpt.host" default="0.0.0.0" /></Set>
             <Set name="maxIdleTime">50000</Set>
             <Set name="Acceptors">1</Set>
           </New>

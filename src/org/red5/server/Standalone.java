@@ -1,6 +1,9 @@
 package org.red5.server;
 
+import java.io.FileInputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Iterator;
+import java.util.Properties;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
@@ -44,6 +47,7 @@ public class Standalone {
         LogFactory.getLog(Standalone.class.getName());
 	
 	protected static String red5ConfigPath = "./conf/red5.xml";
+	protected static String red5PropertiesPath = "./conf/red5.properties";
 	
 	/**
 	 * Main entry point for the Red5 Server 
@@ -53,13 +57,22 @@ public class Standalone {
 	 */
 	public static void main(String[] args) throws Exception {
 		
-		if(args.length == 1) {
+		if (args.length == 1) {
 			red5ConfigPath = args[0];
 		}
 		
 		if(log.isInfoEnabled()){ 
 			log.info("RED5 Server (http://www.osflash.org/red5)");
 			log.info("Loading Spring Application Context: "+red5ConfigPath);
+		}
+		
+		// Setup system properties so they can be evaluated by Jetty
+		Properties props = new Properties();
+		props.load(new FileInputStream(red5PropertiesPath));
+		Iterator it = props.keySet().iterator();
+		while (it.hasNext()) {
+			String key = (String) it.next();
+			System.setProperty(key, props.getProperty(key));
 		}
 		
 		// Spring Loads the xml config file which initializes 
