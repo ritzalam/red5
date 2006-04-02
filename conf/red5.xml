@@ -46,7 +46,7 @@
       <list>
         <!-- REMOTING -->
         <bean class="org.apache.mina.integration.spring.Binding">
-          <property name="address" value=":5080"/>
+          <property name="address" value="${remoting.host_port}"/>
           <property name="handler" ref="remotingHandler"/>
         </bean>
       </list>
