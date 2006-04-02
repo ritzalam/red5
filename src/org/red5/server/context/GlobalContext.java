@@ -20,11 +20,11 @@ public class GlobalContext
         LogFactory.getLog(GlobalContext.class.getName());
 	
 	public GlobalContext(String configFilePath) throws BeansException {
-		super(null,"./",configFilePath);
+		super(null, System.getProperty("red5.root", ".") + "/", configFilePath);
 	}
 	
 	public GlobalContext(String configFilePath, String hostsPath) throws BeansException {
-		super(null,"./",configFilePath);
+		super(null, System.getProperty("red5.root", ".") + "/", configFilePath);
 		this.hostsPath = hostsPath;
 	}
 	
