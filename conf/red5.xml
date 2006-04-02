@@ -4,14 +4,14 @@
 
 	<!-- Placeholder Config: loads a property file with config values -->
 	<bean id="placeholderConfig" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-	    <property name="location" value="/conf/red5.properties" />
+	    <property name="location" value="${red5.config_root}/red5.properties" />
 	</bean>
 	
 	<!-- httpServer: embedded Jetty servlet engine --> 
     <bean id="httpServer" class="org.mortbay.xml.XmlConfiguration" init-method="newInstance"> 
         <constructor-arg> 
            <bean class="java.io.FileInputStream"> 
-              <constructor-arg value="conf/jetty.xml"/> 
+              <constructor-arg value="${red5.config_root}/jetty.xml"/> 
            </bean> 
         </constructor-arg> 
     </bean>
@@ -20,7 +20,7 @@
     <bean id="rtmptServer" class="org.mortbay.xml.XmlConfiguration"> 
         <constructor-arg> 
            <bean class="java.io.FileInputStream"> 
-              <constructor-arg value="conf/jetty_rtmpt.xml"/> 
+              <constructor-arg value="${red5.config_root}/jetty_rtmpt.xml"/> 
            </bean> 
         </constructor-arg> 
     </bean>
@@ -100,7 +100,7 @@
     <!-- Service Context: context for exposed services, see service.xml --> 	
 	<bean id="globalContext" class="org.red5.server.context.GlobalContext"
 		init-method="initialize">
-        <constructor-arg><value>./conf/global.xml</value></constructor-arg>
+        <constructor-arg><value>${red5.config_root}/global.xml</value></constructor-arg>
     </bean>
 
     <bean id="statusObjectService"

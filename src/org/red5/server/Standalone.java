@@ -1,5 +1,6 @@
 package org.red5.server;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Iterator;
@@ -75,6 +76,19 @@ public class Standalone {
 			System.setProperty(key, props.getProperty(key));
 		}
 		
+		// Detect root of Red5 configuration and set as system property
+		File fp = new File(red5ConfigPath);
+		fp = fp.getCanonicalFile();
+		String root = fp.getAbsolutePath();
+		root = root.replace("\\", "/");
+		Integer idx = root.lastIndexOf('/');
+		root = root.substring(0, idx);
+		System.setProperty("red5.config_root", root);
+
+		idx = root.lastIndexOf('/');
+		root = root.substring(0, idx);
+		System.setProperty("red5.root", root);
+
 		// Spring Loads the xml config file which initializes 
 		// beans and loads the server
 		FileSystemXmlApplicationContext appCtx = null;

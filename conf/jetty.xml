@@ -111,7 +111,7 @@
 		<Item>
           <New id="defaultWebAppContext"  class="org.mortbay.jetty.webapp.WebAppContext">
             <Set name="contextPath">/</Set>
-            <Set name="war">./webapps/defaultApp</Set>
+            <Set name="war"><SystemProperty name="red5.root" default="." />/webapps/defaultApp</Set>
             <Set name="VirtualHosts"><Array type="java.lang.String"></Array></Set>
             <Get name="SessionHandler">
               <Set name="SessionManager"><New class="org.mortbay.jetty.servlet.HashSessionManager"/></Set>
@@ -165,7 +165,7 @@
     <!-- =========================================================== -->
     <Call class="org.mortbay.jetty.webapp.WebAppContext" name="addWebApplications">
       <Arg><Ref id="Server"/></Arg>
-      <Arg>./webapps</Arg>
+      <Arg><SystemProperty name="red5.root" default="." />/webapps</Arg>
       <Arg>org/mortbay/jetty/webapp/webdefault.xml</Arg>
       <Arg type="boolean">True</Arg>
       <Arg type="boolean">True</Arg>
@@ -181,7 +181,7 @@
         <Item>
           <New class="org.mortbay.jetty.security.HashUserRealm">
             <Set name="name">Test Realm</Set>
-            <Set name="config">conf/realm.properties</Set>
+            <Set name="config"><SystemProperty name="red5.config_root" default="conf" />/realm.properties</Set>
           </New>
         </Item>
       </Array>
