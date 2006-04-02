@@ -48,7 +48,6 @@ public class Standalone {
         LogFactory.getLog(Standalone.class.getName());
 	
 	protected static String red5ConfigPath = "./conf/red5.xml";
-	protected static String red5PropertiesPath = "./conf/red5.properties";
 	
 	/**
 	 * Main entry point for the Red5 Server 
@@ -67,15 +66,6 @@ public class Standalone {
 			log.info("Loading Spring Application Context: "+red5ConfigPath);
 		}
 		
-		// Setup system properties so they can be evaluated by Jetty
-		Properties props = new Properties();
-		props.load(new FileInputStream(red5PropertiesPath));
-		Iterator it = props.keySet().iterator();
-		while (it.hasNext()) {
-			String key = (String) it.next();
-			System.setProperty(key, props.getProperty(key));
-		}
-		
 		// Detect root of Red5 configuration and set as system property
 		File fp = new File(red5ConfigPath);
 		fp = fp.getCanonicalFile();
@@ -85,6 +75,16 @@ public class Standalone {
 		root = root.substring(0, idx);
 		System.setProperty("red5.config_root", root);
 
+		// Setup system properties so they can be evaluated by Jetty
+		Properties props = new Properties();
+		props.load(new FileInputStream(root + "/red5.properties"));
+		Iterator it = props.keySet().iterator();
+		while (it.hasNext()) {
+			String key = (String) it.next();
+			System.setProperty(key, props.getProperty(key));
+		}
+		
+		// Store root directory of Red5
 		idx = root.lastIndexOf('/');
 		root = root.substring(0, idx);
 		System.setProperty("red5.root", root);
