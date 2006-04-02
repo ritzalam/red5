@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.Properties;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.PropertyConfigurator;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 import org.springframework.core.NestedRuntimeException;
 
@@ -61,11 +62,6 @@ public class Standalone {
 			red5ConfigPath = args[0];
 		}
 		
-		if(log.isInfoEnabled()){ 
-			log.info("RED5 Server (http://www.osflash.org/red5)");
-			log.info("Loading Spring Application Context: "+red5ConfigPath);
-		}
-		
 		// Detect root of Red5 configuration and set as system property
 		File fp = new File(red5ConfigPath);
 		fp = fp.getCanonicalFile();
@@ -75,6 +71,9 @@ public class Standalone {
 		root = root.substring(0, idx);
 		System.setProperty("red5.config_root", root);
 
+		// Explicitly setup logging
+		PropertyConfigurator.configure(root + "/log4j.properties");
+		
 		// Setup system properties so they can be evaluated by Jetty
 		Properties props = new Properties();
 		props.load(new FileInputStream(root + "/red5.properties"));
@@ -89,6 +88,11 @@ public class Standalone {
 		root = root.substring(0, idx);
 		System.setProperty("red5.root", root);
 
+		if (log.isInfoEnabled()){ 
+			log.info("RED5 Server (http://www.osflash.org/red5)");
+			log.info("Loading Spring Application Context: "+red5ConfigPath);
+		}
+		
 		// Spring Loads the xml config file which initializes 
 		// beans and loads the server
 		FileSystemXmlApplicationContext appCtx = null;
