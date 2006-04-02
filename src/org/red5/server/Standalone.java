@@ -70,9 +70,12 @@ public class Standalone {
 		} catch (Exception e) {
 			if (e instanceof InvocationTargetException)
 				log.error("Could not start Red5.", ((InvocationTargetException) e).getCause());
-			else if (e instanceof NestedRuntimeException)
-				log.error("Could not start Red5.", ((NestedRuntimeException) e).getCause().getCause());
-			else
+			else if (e instanceof NestedRuntimeException) {
+				Throwable cause = ((NestedRuntimeException) e).getCause();
+				if (cause.getCause() != null)
+					cause = cause.getCause();
+				log.error("Could not start Red5.", cause);
+			} else
 				log.error("Could not start Red5.", e);
 			
 			return;
