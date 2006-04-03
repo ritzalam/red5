@@ -26,6 +26,9 @@ public class GenericRed5Context extends GenericApplicationContext
 		if(!this.baseDir.endsWith("/")){
 			this.baseDir += "/";
 		}
+		if (this.baseDir.startsWith("/"))
+			// Workaround for absolute pathnames on Linux
+			this.baseDir = "/"+this.baseDir;
 		this.configFilePath = configFilePath;
 		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 		ResourceLoader resourceLoader = new Red5ContextResourceLoader(this.baseDir, classLoader);
