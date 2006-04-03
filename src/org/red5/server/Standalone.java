@@ -80,7 +80,8 @@ public class Standalone {
 		Iterator it = props.keySet().iterator();
 		while (it.hasNext()) {
 			String key = (String) it.next();
-			System.setProperty(key, props.getProperty(key));
+			if (key != null && !key.equals(""))
+				System.setProperty(key, props.getProperty(key));
 		}
 		
 		// Store root directory of Red5
