@@ -66,7 +66,7 @@ public class Standalone {
 		File fp = new File(red5ConfigPath);
 		fp = fp.getCanonicalFile();
 		String root = fp.getAbsolutePath();
-		root = root.replace("\\", "/");
+		root = root.replace('\\', '/');
 		int idx = root.lastIndexOf('/');
 		root = root.substring(0, idx);
 		System.setProperty("red5.config_root", root);
