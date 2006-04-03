@@ -135,6 +135,7 @@
 		<property name="codecs">
 			<list>
 				<bean id="screenVideoCodec" class="org.red5.server.stream.codec.ScreenVideo"/>
+				<bean id="sorensonVideoCodec" class="org.red5.server.stream.codec.SorensonVideo"/>
 			</list>
 		</property>
 	</bean>
