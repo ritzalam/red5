@@ -4,7 +4,7 @@
 
 	<!-- Placeholder Config: loads a property file with config values -->
 	<bean id="placeholderConfig" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-	    <property name="location" value="${red5.config_root}/red5.properties" />
+	    <property name="systemPropertiesMode" value="1" />
 	</bean>
 	
 	<!-- httpServer: embedded Jetty servlet engine --> 
