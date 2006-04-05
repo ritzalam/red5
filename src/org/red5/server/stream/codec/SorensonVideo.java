@@ -35,6 +35,10 @@ public class SorensonVideo implements IVideoStreamCodec {
 	}
 
 	public boolean canHandleData(ByteBuffer data) {
+		if (data.limit() == 0)
+			// Empty buffer
+			return false;
+		
 		byte first = data.get();
 		boolean result = ((first & 0x0f) == FLV_CODEC_SORENSON);
 		data.rewind();
@@ -42,6 +46,10 @@ public class SorensonVideo implements IVideoStreamCodec {
 	}
 
 	public boolean addData(ByteBuffer data) {
+		if (data.limit() == 0)
+			// Empty buffer
+			return true;
+		
 		if (!this.canHandleData(data))
 			return false;
 		
