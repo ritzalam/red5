@@ -1,7 +1,6 @@
 package org.red5.server.net.rtmp.codec;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -9,14 +8,12 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.common.IoSession;
-import org.apache.mina.filter.codec.ProtocolCodecException;
-import org.apache.mina.filter.codec.ProtocolDecoderOutput;
 import org.red5.io.amf.Input;
 import org.red5.io.object.Deserializer;
 import org.red5.io.utils.BufferUtils;
-import org.red5.server.net.ProtocolState;
-import org.red5.server.net.SimpleProtocolDecoder;
+import org.red5.server.net.protocol.ProtocolException;
+import org.red5.server.net.protocol.ProtocolState;
+import org.red5.server.net.protocol.SimpleProtocolDecoder;
 import org.red5.server.net.rtmp.RTMPUtils;
 import org.red5.server.net.rtmp.message.AudioData;
 import org.red5.server.net.rtmp.message.ChunkSize;
@@ -34,7 +31,7 @@ import org.red5.server.net.rtmp.message.Unknown;
 import org.red5.server.net.rtmp.message.VideoData;
 import org.red5.server.service.Call;
 
-public class RTMPProtocolDecoder implements Constants, org.apache.mina.filter.codec.ProtocolDecoder, SimpleProtocolDecoder {
+public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder {
 
 	protected static Log log =
         LogFactory.getLog(RTMPProtocolDecoder.class.getName());
@@ -52,29 +49,6 @@ public class RTMPProtocolDecoder implements Constants, org.apache.mina.filter.co
 		this.deserializer = deserializer;
 	}
 	
-    public void decode( IoSession session, ByteBuffer in,
-            ProtocolDecoderOutput out ) throws ProtocolCodecException {
-		
-    	final ProtocolState state = (ProtocolState) session.getAttribute(ProtocolState.SESSION_KEY);
-    	
-		ByteBuffer buf = (ByteBuffer) session.getAttribute("buffer");
-		if(buf==null){
-			buf = ByteBuffer.allocate(2048);
-			buf.setAutoExpand(true);
-			session.setAttribute("buffer",buf);
-		}
-		buf.put(in);
-		buf.flip();
-		
-		List objects = decodeBuffer(state, buf);
-		if (objects == null || objects.isEmpty())
-			return;
-			
-		Iterator it = objects.iterator();
-		while (it.hasNext())
-			out.write(it.next());
-    }
-			
     public List decodeBuffer(ProtocolState state, ByteBuffer buffer) {
 		
     	List result = new LinkedList();
@@ -116,7 +90,7 @@ public class RTMPProtocolDecoder implements Constants, org.apache.mina.filter.co
 			    }
 			}
 		}
-		catch(ProtocolCodecException  pvx){
+		catch(ProtocolException  pvx){
 			log.error("Error",pvx);
 		}
 		catch(Exception ex){
@@ -130,7 +104,7 @@ public class RTMPProtocolDecoder implements Constants, org.apache.mina.filter.co
 		return result;
 	}
 
-	public Object decode(ProtocolState state, ByteBuffer in) throws Exception {
+	public Object decode(ProtocolState state, ByteBuffer in) throws ProtocolException {
 		try {
 		
 			final RTMP rtmp = (RTMP) state;
@@ -206,7 +180,7 @@ public class RTMPProtocolDecoder implements Constants, org.apache.mina.filter.co
 			final byte channelId = RTMPUtils.decodeChannelId(headerByte);
 			
 			if(channelId<0)
-				throw new ProtocolCodecException("Bad channel id");
+				throw new ProtocolException("Bad channel id");
 			
 			// Get the header size and length
 			final byte headerSize = (byte) RTMPUtils.decodeHeaderSize(headerByte);
@@ -226,7 +200,7 @@ public class RTMPProtocolDecoder implements Constants, org.apache.mina.filter.co
 			
 			if(header==null){
 				log.warn("Header is null");
-				throw new ProtocolCodecException("Header is null, check for error");
+				throw new ProtocolException("Header is null, check for error");
 			}
 			
 			if(header!=null) rtmp.setLastReadHeader(channelId, header);
@@ -259,7 +233,7 @@ public class RTMPProtocolDecoder implements Constants, org.apache.mina.filter.co
 				BufferUtils.put(buf, in, readAmount);
 			} catch (RuntimeException e) {
 				log.error("Error",e);
-				throw new ProtocolCodecException("Error copying buffer");
+				throw new ProtocolException("Error copying buffer");
 			}
 			
 			if(buf.position() >= header.getSize()){
@@ -288,7 +262,7 @@ public class RTMPProtocolDecoder implements Constants, org.apache.mina.filter.co
 			}
 		} catch (RuntimeException e){
 			log.error("Error", e);
-			throw new ProtocolCodecException("Error copying buffer");
+			throw new ProtocolException("Error copying buffer");
 		}
 		
 	}
@@ -531,10 +505,5 @@ public class RTMPProtocolDecoder implements Constants, org.apache.mina.filter.co
 	
 	public void decodeVideoData(VideoData videoData){
 		videoData.setSealed(true);
-	}
-
-	public void dispose(IoSession ioSession) throws Exception {
-		// TODO Auto-generated method stub
-		
 	}
 }

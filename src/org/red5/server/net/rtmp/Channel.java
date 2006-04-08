@@ -18,11 +18,11 @@ public class Channel {
 	protected static Log log =
         LogFactory.getLog(Channel.class.getName());
 	
-	private BaseConnection connection = null;
+	private RTMPConnection connection = null;
 	private byte id = 0;
 	//private Stream stream;
 
-	public Channel(BaseConnection conn, byte channelId){
+	public Channel(RTMPConnection conn, byte channelId){
 		connection = conn;
 		id = channelId;
 	}
@@ -67,6 +67,7 @@ public class Channel {
 		packet.setDestination(header);
 		packet.setMessage(message);
 		
+		// should use RTMPConnection specific method.. 
 		connection.write(packet);
 		
 	}

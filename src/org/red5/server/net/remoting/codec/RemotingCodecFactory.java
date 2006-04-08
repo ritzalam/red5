@@ -1,12 +1,14 @@
 package org.red5.server.net.remoting.codec;
 
-import org.apache.mina.filter.codec.ProtocolCodecFactory;
 import org.apache.mina.filter.codec.ProtocolDecoder;
 import org.apache.mina.filter.codec.ProtocolEncoder;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Serializer;
+import org.red5.server.net.protocol.SimpleProtocolCodecFactory;
+import org.red5.server.net.protocol.SimpleProtocolDecoder;
+import org.red5.server.net.protocol.SimpleProtocolEncoder;
 
-public class RemotingCodecFactory implements ProtocolCodecFactory {
+public class RemotingCodecFactory implements SimpleProtocolCodecFactory {
 	
 	protected Deserializer deserializer;
 	protected Serializer serializer;
@@ -28,12 +30,12 @@ public class RemotingCodecFactory implements ProtocolCodecFactory {
 		this.serializer = serializer;
 	}
 
-	public ProtocolDecoder getDecoder() {
+	public SimpleProtocolDecoder getSimpleDecoder() {
 		return decoder;
 	}
 
-	public ProtocolEncoder getEncoder() {
+	public SimpleProtocolEncoder getSimpleEncoder() {
 		return encoder;
-	}
-
+	}	
+	
 }

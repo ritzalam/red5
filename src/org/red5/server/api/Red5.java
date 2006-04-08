@@ -1,6 +1,5 @@
 package org.red5.server.api;
 
-import org.springframework.context.ApplicationContext;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -22,30 +21,30 @@ import org.springframework.context.ApplicationContext;
  */
 
 /**
- * Utility class for accessing red5 API objects
+ * Utility class for accessing red5 API objects.
  * 
  * This class uses a thread local, and will be setup by the service invoker
  * 
  * The code below shows various uses.
  * <p>
  * <code>
- * Connection conn = Red5.getConnectionLocal();
- * Red5 r5 = new Red5();
- * Scope scope = r5.getScope();
- * conn = r5.getConnection();
- * r5 = new Red5(conn);
- * Client client = r5.getClient();
+ * IConnection conn = Red5.getConnectionLocal();<br />
+ * Red5 r5 = new Red5();<br />
+ * IScope scope = r5.getScope();<br />
+ * conn = r5.getConnection();<br />
+ * r5 = new Red5(conn);<br />
+ * IClient client = r5.getClient();<br />
  * </code>
  * </p>
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard (luke@codegent.com)
  */
-public class Red5 {
+public final class Red5 {
 
-	private static ThreadLocal connThreadLocal = new ThreadLocal();
+	private static ThreadLocal<IConnection> connThreadLocal = new ThreadLocal<IConnection>();
 
-	public Connection conn = null;
+	public IConnection conn = null;
 
 	/**
 	 * Create a new Red5 object using given connection
@@ -53,7 +52,7 @@ public class Red5 {
 	 * @param conn
 	 *            connection object
 	 */
-	public Red5(Connection conn) {
+	public Red5(IConnection conn) {
 		this.conn = conn;
 	}
 
@@ -65,7 +64,7 @@ public class Red5 {
 		conn = Red5.getConnectionLocal();
 	}
 
-	static void setConnectionLocal(Connection connection) {
+	public static void setConnectionLocal(IConnection connection) {
 		connThreadLocal.set(connection);
 	}
 
@@ -74,8 +73,8 @@ public class Red5 {
 	 * 
 	 * @return connection object
 	 */
-	public static Connection getConnectionLocal() {
-		return (Connection) connThreadLocal.get();
+	public static IConnection getConnectionLocal() {
+		return connThreadLocal.get();
 	}
 
 	/**
@@ -83,7 +82,7 @@ public class Red5 {
 	 * 
 	 * @return connection object
 	 */
-	public Connection getConnection() {
+	public IConnection getConnection() {
 		return conn;
 	}
 
@@ -92,7 +91,7 @@ public class Red5 {
 	 * 
 	 * @return scope object
 	 */
-	public Scope getScope() {
+	public IScope getScope() {
 		return conn.getScope();
 	}
 
@@ -101,7 +100,7 @@ public class Red5 {
 	 * 
 	 * @return client object
 	 */
-	public Client getClient() {
+	public IClient getClient() {
 		return conn.getClient();
 	}
 
@@ -110,7 +109,7 @@ public class Red5 {
 	 * 
 	 * @return application context
 	 */
-	public ApplicationContext getContext() {
+	public IContext getContext() {
 		return conn.getScope().getContext();
 	}
 

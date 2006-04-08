@@ -30,15 +30,15 @@ import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.context.ApplicationContext;
+import org.red5.server.api.IContext;
+import org.red5.server.api.service.IServiceCall;
+import org.red5.server.api.service.IServiceInvoker;
 
-public class ServiceInvoker  {
+public class ServiceInvoker  implements IServiceInvoker {
 
 	private static final Log log = LogFactory.getLog(ServiceInvoker.class);
 	
 	public static final String SERVICE_NAME = "serviceInvoker";
-	
-	protected ApplicationContext serviceContext = null;
 	
 	//protected ScriptBeanFactory scriptBeanFactory = null;
 	
@@ -48,13 +48,6 @@ public class ServiceInvoker  {
 	}
 	*/
 
-	public void setServiceContext(ApplicationContext serviceContext){
-		this.serviceContext = serviceContext;
-	}
-	
-	public void invoke(Call call) {
-		invoke(call, serviceContext);
-	}
 	
 	/*
 	 * Returns (method, params) for the given service or (null, null) if not method was found.
@@ -123,18 +116,13 @@ public class ServiceInvoker  {
 		return new Object[]{null, null};
 	}
 	
-	public void invoke(Call call, ApplicationContext serviceContext) {
+	public IServiceCall invoke(IServiceCall call, IContext context) {
 		
 		String serviceName = call.getServiceName();
-		String methodName = call.getServiceMethodName();
+		
 		log.debug("Service name " + serviceName);
-		log.debug("Service method " + methodName);
 		
-		Object service = null;
-		
-		if(serviceContext.containsBean(serviceName)){
-			service = serviceContext.getBean(serviceName);
-		} 
+		Object service = context.lookupService(serviceName);
 		
 		/*
 		if(service == null && serviceContext.containsBean("scriptBeanFactory")){
@@ -151,11 +139,18 @@ public class ServiceInvoker  {
 			call.setException(new ServiceNotFoundException(serviceName));
 			call.setStatus(Call.STATUS_SERVICE_NOT_FOUND);
 			log.warn("Service not found: "+serviceName);
-			return; // EXIT
+			return call;
 		} else {
 			log.debug("Service found: "+serviceName);
 		}
 		
+		return invoke(call, service);
+	}
+
+
+	public IServiceCall invoke(IServiceCall call, Object service) {
+		
+		final String methodName = call.getServiceMethodName();
 		
 		Object[] args = call.getArguments();
 		if (args != null) {
@@ -173,7 +168,7 @@ public class ServiceInvoker  {
 		if (methodResult.length == 0 || methodResult[0] == null) {
 			call.setStatus(Call.STATUS_METHOD_NOT_FOUND);
 			call.setException(new MethodNotFoundException(methodName));
-			return;
+			return call;
 		}
 		
 		Object result = null;
@@ -187,6 +182,7 @@ public class ServiceInvoker  {
 				call.setStatus(Call.STATUS_SUCCESS_VOID);
 			} else {
 				result = method.invoke(service, params);
+				log.debug("result: "+result);
 				call.setResult(result);
 				call.setStatus( result==null ? Call.STATUS_SUCCESS_NULL : Call.STATUS_SUCCESS_RESULT );
 			}
@@ -204,7 +200,9 @@ public class ServiceInvoker  {
 			log.error("Service invocation error",ex);
 		}
 
-	
+		return call;
+		
 	}
 
+	
 }

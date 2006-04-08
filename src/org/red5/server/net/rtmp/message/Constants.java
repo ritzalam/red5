@@ -40,5 +40,12 @@ public interface Constants {
     public static final byte SO_DELETE_ATTRIBUTE = 0x0A;
     public static final byte SO_LIST = 0x0B;
     public static final byte SO_CONNECT_OK = 0x08;
-
+    
+    public static final String ACTION_CONNECT = "connect";
+    public static final String ACTION_DISCONNECT = "disconnect";
+    public static final String ACTION_PAUSE = "pause";
+    public static final String ACTION_SEEK = "seek";
+    public static final String ACTION_PLAY = "play";
+    public static final String ACTION_STOP = "disconnect";    
+    
 }

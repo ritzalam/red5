@@ -1,22 +1,18 @@
 package org.red5.server.net.rtmp.codec;
 
-import java.io.IOException;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.common.IoSession;
-import org.apache.mina.filter.codec.ProtocolCodecException;
-import org.apache.mina.filter.codec.ProtocolEncoderOutput;
 import org.red5.io.amf.AMF;
 import org.red5.io.amf.Output;
 import org.red5.io.object.Serializer;
 import org.red5.io.utils.BufferUtils;
-import org.red5.server.net.ProtocolState;
-import org.red5.server.net.SimpleProtocolEncoder;
+import org.red5.server.net.protocol.ProtocolState;
+import org.red5.server.net.protocol.SimpleProtocolEncoder;
 import org.red5.server.net.rtmp.RTMPUtils;
 import org.red5.server.net.rtmp.message.AudioData;
 import org.red5.server.net.rtmp.message.ChunkSize;
@@ -33,7 +29,7 @@ import org.red5.server.net.rtmp.message.StreamBytesRead;
 import org.red5.server.net.rtmp.message.VideoData;
 import org.red5.server.service.Call;
 
-public class RTMPProtocolEncoder implements org.apache.mina.filter.codec.ProtocolEncoder,SimpleProtocolEncoder, Constants {
+public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants {
 
 	protected static Log log =
         LogFactory.getLog(RTMPProtocolEncoder.class.getName());
@@ -43,18 +39,6 @@ public class RTMPProtocolEncoder implements org.apache.mina.filter.codec.Protoco
 	
 	private Serializer serializer = null;
 	
-	public void encode(IoSession session, Object message, ProtocolEncoderOutput out) 
-		throws ProtocolCodecException {
-		try {
-			final ProtocolState state = (ProtocolState) session.getAttribute(ProtocolState.SESSION_KEY);
-			final ByteBuffer buf = encode(state, message);
-			if(buf != null) out.write(buf);
-		} catch(Exception ex){
-			log.error(ex);
-		}
-		
-	}
-			
 	public ByteBuffer encode(ProtocolState state, Object message) throws Exception {
 			
 		try {
@@ -234,7 +218,7 @@ public class RTMPProtocolEncoder implements org.apache.mina.filter.codec.Protoco
 			case SO_CLIENT_UPDATE_DATA:
 				if (event.getKey() == null) {
 					// Update multiple attributes in one request
-					HashMap initialData = (HashMap) event.getValue();
+					Map initialData = (Map) event.getValue();
 					
 					// Buffer for all initial attributes
 					ByteBuffer completeBuffer = ByteBuffer.allocate(128);
@@ -394,10 +378,6 @@ public class RTMPProtocolEncoder implements org.apache.mina.filter.codec.Protoco
 	
 	public void encodeVideoData(VideoData videoData){
 
-	}
-
-	public void dispose(IoSession ioSession) throws Exception {
-		// TODO Auto-generated method stub		
 	}
 
 	public void setSerializer(org.red5.io.object.Serializer serializer) {

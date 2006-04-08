@@ -22,7 +22,9 @@ package org.red5.server.service;
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 
-public class Call {
+import org.red5.server.api.service.IServiceCall;
+
+public class Call implements IServiceCall {
 
 	public static final byte STATUS_PENDING = 0x01;
 	public static final byte STATUS_SUCCESS_RESULT = 0x02;
@@ -57,24 +59,36 @@ public class Call {
     		arguments = args;
     }
     
+    /* (non-Javadoc)
+	 * @see org.red5.server.service.ServiceCall#isSuccess()
+	 */
     public boolean isSuccess(){
     		return (status == STATUS_SUCCESS_RESULT) || 
     			(status == STATUS_SUCCESS_NULL) || 
     			(status == STATUS_SUCCESS_VOID);
     }
     
+	/* (non-Javadoc)
+	 * @see org.red5.server.service.ServiceCall#getServiceMethodName()
+	 */
 	public String getServiceMethodName() {
 		return serviceMethodName;
 	}
 	public void setServiceMethodName(String serviceMethodName) {
 		this.serviceMethodName = serviceMethodName;
 	}
+	/* (non-Javadoc)
+	 * @see org.red5.server.service.ServiceCall#getServiceName()
+	 */
 	public String getServiceName() {
 		return serviceName;
 	}
 	public void setServiceName(String serviceName) {
 		this.serviceName = serviceName;
 	}
+	/* (non-Javadoc)
+	 * @see org.red5.server.service.ServiceCall#getArguments()
+	 */
 	public Object[] getArguments() {
 		return arguments;
 	}
@@ -82,26 +96,44 @@ public class Call {
 		arguments = args;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.red5.server.service.ServiceCall#getStatus()
+	 */
 	public byte getStatus() {
 		return status;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.red5.server.service.temp#setStatus(byte)
+	 */
 	public void setStatus(byte status) {
 		this.status = status;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.red5.server.service.ServiceCall#getException()
+	 */
 	public Exception getException() {
 		return exception;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.red5.server.service.temp#setException(java.lang.Exception)
+	 */
 	public void setException(Exception exception) {
 		this.exception = exception;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.red5.server.service.ServiceCall#getResult()
+	 */
 	public Object getResult() {
 		return result;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.red5.server.service.temp#setResult(java.lang.Object)
+	 */
 	public void setResult(Object result) {
 		this.result = result;
 	}

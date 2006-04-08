@@ -2,9 +2,9 @@ package org.red5.server.net.rtmpt.codec;
 
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Serializer;
-import org.red5.server.net.SimpleProtocolCodecFactory;
-import org.red5.server.net.SimpleProtocolDecoder;
-import org.red5.server.net.SimpleProtocolEncoder;
+import org.red5.server.net.protocol.SimpleProtocolCodecFactory;
+import org.red5.server.net.protocol.SimpleProtocolDecoder;
+import org.red5.server.net.protocol.SimpleProtocolEncoder;
 
 public class RTMPTCodecFactory implements SimpleProtocolCodecFactory {
 

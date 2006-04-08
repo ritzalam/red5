@@ -3,7 +3,7 @@ package org.red5.server.net.remoting;
 import javax.servlet.http.HttpSession;
 
 import org.apache.mina.common.IoSession;
-import org.red5.server.context.AppContext;
+import org.red5.server.zcontext.AppContext;
 
 public class Connection {
 

@@ -5,19 +5,38 @@ import java.util.Iterator;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.IdleStatus;
+import org.apache.mina.common.IoHandlerAdapter;
 import org.apache.mina.common.IoSession;
 import org.apache.mina.filter.LoggingFilter;
+import org.apache.mina.filter.codec.ProtocolCodecFactory;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
-import org.red5.server.net.BaseHandler;
 import org.red5.server.net.remoting.message.RemotingCall;
 import org.red5.server.net.remoting.message.RemotingPacket;
+import org.red5.server.service.ServiceInvoker;
+import org.red5.server.zcontext.GlobalContext;
 //import org.red5.server.net.remoting.message.RemotingResponse;
 
-public class RemotingHandler extends BaseHandler {
+public class RemotingHandler extends IoHandlerAdapter {
 
 	protected static Log log =
         LogFactory.getLog(RemotingHandler.class.getName());
 	
+	private ProtocolCodecFactory codecFactory = null;
+	private ServiceInvoker serviceInvoker = null;
+	private GlobalContext globalContext = null;
+
+	public void setGlobalContext(GlobalContext globalContext) {
+		this.globalContext = globalContext;
+	}
+	
+	public void setCodecFactory(ProtocolCodecFactory codecFactory) {
+		this.codecFactory = codecFactory;
+	}
+	
+	public void setServiceInvoker(ServiceInvoker serviceInvoker) {
+		this.serviceInvoker = serviceInvoker;
+	}
+
 	public void exceptionCaught(IoSession arg0, Throwable arg1) throws Exception {
 		// TODO Auto-generated method stub
 		super.exceptionCaught(arg0, arg1);

@@ -15,7 +15,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 
 import org.red5.server.net.rtmp.codec.RTMP;
-import org.red5.server.net.rtmpt.RTMPTClient;
+import org.red5.server.net.rtmpt.RTMPTConnection;
 import org.red5.server.net.rtmpt.RTMPTHandler;
 import org.red5.server.service.Call;
 
@@ -78,7 +78,7 @@ public class RTMPTServlet extends HttpServlet {
 		resp.flushBuffer();
 	}
 	
-	protected void returnMessage(RTMPTClient client, ByteBuffer buffer, HttpServletResponse resp)
+	protected void returnMessage(RTMPTConnection client, ByteBuffer buffer, HttpServletResponse resp)
 		throws IOException {
 		resp.setStatus(HttpServletResponse.SC_OK);
 		resp.setHeader("Connection", "Keep-Alive");
@@ -109,14 +109,14 @@ public class RTMPTServlet extends HttpServlet {
 		return path;
 	}
 
-	protected RTMPTClient getClient(HttpServletRequest req) {
+	protected RTMPTConnection getClient(HttpServletRequest req) {
 		String id = getClientId(req);
 		if (id == "" || !rtmptClients.containsKey(id)) {
 			log.debug("Unknown client id: " + id);
 			return null;
 		}
 		
-		return (RTMPTClient) rtmptClients.get(id);
+		return (RTMPTConnection) rtmptClients.get(id);
 	}
 
 	protected void skipData(HttpServletRequest req) throws IOException {
@@ -125,7 +125,7 @@ public class RTMPTServlet extends HttpServlet {
 		data.flip();
 	}
 	
-	protected void returnPendingMessages(RTMPTClient client, HttpServletResponse resp)
+	protected void returnPendingMessages(RTMPTConnection client, HttpServletResponse resp)
 		throws IOException {
 		
 		ByteBuffer data = client.getPendingMessages(RESPONSE_TARGET_SIZE);
@@ -147,7 +147,7 @@ public class RTMPTServlet extends HttpServlet {
 		// TODO: should we evaluate the pathinfo?
 		
 		RTMPTHandler handler = (RTMPTHandler) getServletContext().getAttribute(RTMPTHandler.HANDLER_ATTRIBUTE);
-		RTMPTClient client = new RTMPTClient(handler);
+		RTMPTConnection client = new RTMPTConnection(handler);
 		synchronized (rtmptClients) {
 			rtmptClients.put(client.getId(), client);
 		}
@@ -162,7 +162,7 @@ public class RTMPTServlet extends HttpServlet {
 		// Skip sent data
 		skipData(req);
 
-		RTMPTClient client = getClient(req);
+		RTMPTConnection client = getClient(req);
 		if (client == null) {
 			handleBadRequest("Unknown client.", resp);
 			return;
@@ -181,7 +181,7 @@ public class RTMPTServlet extends HttpServlet {
 	protected void handleSend(HttpServletRequest req, HttpServletResponse resp) 
 		throws ServletException, IOException {
 		
-		RTMPTClient client = getClient(req);
+		RTMPTConnection client = getClient(req);
 		if (client == null) {
 			handleBadRequest("Unknown client.", resp);
 			return;
@@ -221,7 +221,7 @@ public class RTMPTServlet extends HttpServlet {
 		// Skip sent data
 		skipData(req);
 		
-		RTMPTClient client = getClient(req);
+		RTMPTConnection client = getClient(req);
 		if (client == null) {
 			handleBadRequest("Unknown client.", resp);
 			return;

@@ -7,15 +7,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoSession;
-import org.apache.mina.filter.codec.ProtocolCodecException;
-import org.apache.mina.filter.codec.ProtocolDecoder;
-import org.apache.mina.filter.codec.ProtocolDecoderOutput;
 import org.red5.io.amf.Input;
 import org.red5.io.object.Deserializer;
+import org.red5.server.net.protocol.ProtocolState;
+import org.red5.server.net.protocol.SimpleProtocolDecoder;
 import org.red5.server.net.remoting.message.RemotingCall;
 import org.red5.server.net.remoting.message.RemotingPacket;
 
-public class RemotingProtocolDecoder implements ProtocolDecoder {
+public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 
 	protected static Log log =
         LogFactory.getLog(RemotingProtocolDecoder.class.getName());
@@ -29,14 +28,29 @@ public class RemotingProtocolDecoder implements ProtocolDecoder {
 		this.deserializer = deserializer;
 	}
 	
-    public void decode( IoSession session, ByteBuffer in,
-            ProtocolDecoderOutput out ) throws ProtocolCodecException {			
-		skipHeaders(in); 
-		List calls = decodeCalls(in);	
-		out.write(new RemotingPacket(calls));
+	
+	
+	public List decodeBuffer(ProtocolState state, ByteBuffer buffer) {
+		List list = new LinkedList();
+		Object packet = null;
+		try {
+			packet = decode(state, buffer);
+		} catch (Exception e) {
+			log.error("Decoding error",e);
+			packet = null;
+		}
+		if(packet != null) list.add(packet);
+		return list;
 	}
 
-    
+
+
+	public Object decode(ProtocolState state, ByteBuffer in) throws Exception {
+		skipHeaders(in); 
+		List calls = decodeCalls(in);	
+		return new RemotingPacket(calls);
+	}
+
 	public void dispose(IoSession arg0) throws Exception {
 		// TODO Auto-generated method stub
 	}

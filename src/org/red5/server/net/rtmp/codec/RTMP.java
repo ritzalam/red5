@@ -1,6 +1,6 @@
 package org.red5.server.net.rtmp.codec;
 
-import org.red5.server.net.ProtocolState;
+import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.message.InPacket;
 import org.red5.server.net.rtmp.message.OutPacket;
 import org.red5.server.net.rtmp.message.PacketHeader;
