@@ -36,8 +36,12 @@ public class AMFGatewayServlet extends HttpServlet {
 	@Override
 	public void init() throws ServletException {
 		webAppCtx = WebApplicationContextUtils.getWebApplicationContext(getServletContext());
-		webContext  = (IContext) webAppCtx.getBean("web.context");
-		codecFactory = (RemotingCodecFactory) webAppCtx.getBean("remotingCodecFactory");
+		if(webAppCtx != null){
+			webContext  = (IContext) webAppCtx.getBean("web.context");
+			codecFactory = (RemotingCodecFactory) webAppCtx.getBean("remotingCodecFactory");
+		} else {
+			log.debug("No web context");
+		}
 	}
 
 	@Override
