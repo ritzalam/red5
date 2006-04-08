@@ -12,8 +12,10 @@ import org.apache.mina.common.ByteBuffer;
 import org.red5.io.amf.Input;
 import org.red5.io.amf.Output;
 import org.red5.io.object.Deserializer;
-import org.red5.server.zcontext.AppContext;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.ResourcePatternResolver;
+
+import sun.awt.AppContext;
 
 
 /**
@@ -38,13 +40,16 @@ public class FilePersistence extends RamPersistence implements IPersistentStorag
 		this.extension = extension;
 	}
 	
+	// Quick hack to get it to compile during merge. 
+	protected ResourcePatternResolver context;
+	
 	/*
 	 * Load existing objects.
 	 */
 	private void loadObjects() {
 		Resource[] objects;
 		try {
-			objects = this.appCtx.getResources(path + "/*" + extension);
+			objects = context.getResources(path + "/*" + extension);
 		} catch (IllegalArgumentException e) {
 			// This is raised if the directory exists.
 			return;
@@ -56,7 +61,7 @@ public class FilePersistence extends RamPersistence implements IPersistentStorag
 		for(int i=0; i < objects.length; i++){
 			Resource ob = objects[i];
 			FileInputStream input;
-			String filename = this.appCtx.getBaseDir() + "/" + path + "/" + ob.getFilename();
+			String filename =  "/" + path + "/" + ob.getFilename();
 			try {
 				input = new FileInputStream(filename);
 			} catch (FileNotFoundException e) {
@@ -104,7 +109,7 @@ public class FilePersistence extends RamPersistence implements IPersistentStorag
 	}
 	
 	private void saveObject(IPersistable object) throws IOException {
-		File file = new File(this.appCtx.getBaseDir() + "/" + path);
+		File file = new File( "/" + path);
 		if (!file.isDirectory() && !file.mkdir()) {
 			log.error("Could not create directory " + file.getAbsolutePath());
 			return;
@@ -119,7 +124,7 @@ public class FilePersistence extends RamPersistence implements IPersistentStorag
 		buf.flip();
 		
 		try {
-			FileOutputStream output = new FileOutputStream(this.appCtx.getBaseDir() + "/" + filename);
+			FileOutputStream output = new FileOutputStream("/" + filename);
 			byte[] data = new byte[buf.limit()];
 			buf.get(data);
 			output.write(data);
@@ -131,7 +136,7 @@ public class FilePersistence extends RamPersistence implements IPersistentStorag
 	}
 	
 	public void setApplicationContext(AppContext context) {
-		super.setApplicationContext(context);
+		//super.setApplicationContext(context);
 		this.loadObjects();
 	}
 	

@@ -1,10 +1,8 @@
 package org.red5.server.persistence2;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.HashMap;
-
-import org.red5.server.zcontext.AppContext;
+import java.util.Iterator;
 
 /**
  * Persistence implementation that stores the objects in memory.
@@ -15,14 +13,9 @@ import org.red5.server.zcontext.AppContext;
  */
 public class RamPersistence implements IPersistentStorage {
 
-	protected AppContext appCtx = null;
 	private HashMap objects = new HashMap();
 	private final static String GENERATED_ID_PREFIX = "_RED5_GENERATED_"; 
 	private int objectId = 0;
-	
-	public void setApplicationContext(AppContext appCtx) {
-		this.appCtx = appCtx;
-	}
 	
 	public synchronized String newPersistentId() {
 		objectId++;

@@ -22,8 +22,6 @@ package org.red5.server.persistence2;
 import java.io.IOException;
 import java.util.Iterator;
 
-import org.red5.server.zcontext.AppContext;
-
 /**
  * Storage for persistent objects. 
  * 
@@ -39,7 +37,7 @@ public interface IPersistentStorage {
 	 * @param appCtx
 	 * 		the application context to use
 	 */
-	public void setApplicationContext(AppContext appCtx);
+	/*public void setApplicationContext(AppContext appCtx); */
 	
 	/**
 	 * Generate a new unique object id.
