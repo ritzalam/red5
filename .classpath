@@ -2,13 +2,11 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="conf"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/xbean.jar"/>
 	<classpathentry kind="lib" path="lib/xbean_xpath.jar"/>
 	<classpathentry kind="lib" path="lib/spring-scripting-support.jar"/>
 	<classpathentry kind="lib" path="lib/spring.jar"/>
 	<classpathentry kind="lib" path="lib/slf4j-log4j12.jar"/>
-	<classpathentry kind="lib" path="lib/servlet-api.jar"/>
 	<classpathentry kind="lib" path="lib/log4j-1.2.9.jar"/>
 	<classpathentry kind="lib" path="lib/junit.jar"/>
 	<classpathentry kind="lib" path="lib/js.jar"/>
@@ -29,6 +27,9 @@
 	<classpathentry kind="lib" path="lib/xercesImpl-2.6.2.jar"/>
 	<classpathentry kind="lib" path="lib/xmlParserAPIs-2.6.2.jar"/>
 	<classpathentry kind="lib" path="lib/mina-0.9.0.jar"/>
+	<classpathentry kind="lib" path="lib/junit-4.0.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry output="webapps/test/WEB-INF/classes" kind="src" path="webapps/test/WEB-INF/src"/>
 	<classpathentry kind="lib" path="lib/quartz-1.5.2.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
