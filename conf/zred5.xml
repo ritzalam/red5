@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+
+	<!-- Placeholder Config: loads a property file with config values -->
+	<bean id="placeholderConfig" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+	    <property name="location" value="/conf/red5.properties" />
+	</bean>
+	
+	<!-- httpServer: embedded Jetty servlet engine --> 
+    <bean id="httpServer" class="org.mortbay.xml.XmlConfiguration" init-method="newInstance"> 
+        <constructor-arg> 
+           <bean class="java.io.FileInputStream"> 
+              <constructor-arg value="conf/jetty.xml"/> 
+           </bean> 
+        </constructor-arg> 
+    </bean>
+	
+	<!-- rtmptServer: embedded Jetty servlet engine for RTMPT support --> 
+    <bean id="rtmptServer" class="org.mortbay.xml.XmlConfiguration"> 
+        <constructor-arg> 
+           <bean class="java.io.FileInputStream"> 
+              <constructor-arg value="conf/jetty_rtmpt.xml"/> 
+           </bean> 
+        </constructor-arg> 
+    </bean>
+	
+	
+	<!-- Create a thread pool filter -->
+   <bean id="threadPoolFilter" 
+         class="org.apache.mina.filter.ThreadPoolFilter">
+     <!-- Threads will be named IoWorker-1, IoWorker-2, etc -->
+     <constructor-arg value="IoWorker"/>
+     <property name="maximumPoolSize" value="10"/>
+   </bean>
+   
+   <!-- Create the DatagramAcceptor -->
+   <bean id="vmPipeAcceptor" 
+        class="org.apache.mina.integration.spring.VmPipeAcceptorFactoryBean">
+    <property name="filters">
+      <list>
+        <ref local="threadPoolFilter"/>
+      </list>
+    </property>
+    <property name="bindings">
+      <list>
+        <!-- REMOTING -->
+        <bean class="org.apache.mina.integration.spring.Binding">
+          <property name="address" value=":5080"/>
+          <property name="handler" ref="remotingHandler"/>
+        </bean>
+      </list>
+    </property>
+  </bean>
+
+   <!-- Create an SSL filter to be used for RTMP over SSL (RTMPS) -->
+   <!-- TODO: <bean id="sslFilter" class="org.apache.mina.filter.SSLFilter"></bean>-->
+   
+   <!-- Create the SocketAcceptor -->
+   <bean id="socketAcceptor" 
+        class="org.apache.mina.integration.spring.SocketAcceptorFactoryBean">
+     <property name="filters">
+       <list>
+         <ref local="threadPoolFilter"/>
+       </list>
+     </property>
+     <property name="bindings">
+       <list>
+         <!-- RTMP -->
+         <bean class="org.apache.mina.integration.spring.Binding">
+           <property name="address" value="${rtmp.host_port}"/>
+           <property name="handler" ref="rtmpHandler"/>
+         </bean>
+         <!-- RTMPS (over SSL) -->
+         <!-- TODO: 
+         <bean class="org.apache.mina.integration.spring.Binding">
+           <property name="address" value="${rtmps.host_port}"/>
+           <property name="handler" ref="rtmpHandler"/>
+           <property name="filters"><list><ref local="sslFilter"/></list></property>
+         </bean>
+         -->
+         <!-- DEBUG PROXY -->
+         <!--
+         <bean class="org.apache.mina.integration.spring.Binding">
+           <property name="address" value="${debug_proxy.host_port}"/>
+           <property name="handler" ref="debugProxyHandler"/>
+         </bean>
+         -->
+       </list>
+     </property>
+     <property name="reuseAddress" value="true"/>
+   </bean> 	
+	
+	<!-- Serializer: serializer supporting general Output objects -->
+	<bean id="serializer" class="org.red5.io.object.Serializer" />
+	
+	<!-- Deserializer: deserializer supporting general Input objects -->
+	<bean id="deserializer" class="org.red5.io.object.Deserializer" />
+    
+    <!-- Service Context: context for exposed services, see service.xml --> 	
+	<bean id="globalContext" class="org.red5.server.context.GlobalContext"
+		init-method="initialize">
+        <constructor-arg><value>./conf/global.xml</value></constructor-arg>
+    </bean>
+
+    <bean id="statusObjectService"
+		class="org.red5.server.net.rtmp.status.StatusObjectService" 
+		init-method="initialize">
+		<property name="serializer" ref="serializer" />
+    </bean>
+
+	<bean id="rtmpCodecFactory"
+		class="org.red5.server.net.rtmp.codec.RTMPCodecFactory"
+		init-method="init">
+		<property name="serializer" ref="serializer" />
+		<property name="deserializer" ref="deserializer" />
+	</bean>
+	
+	<bean id="rtmptCodecFactory"
+		class="org.red5.server.net.rtmpt.codec.RTMPTCodecFactory"
+		init-method="init">
+		<property name="serializer" ref="serializer" />
+		<property name="deserializer" ref="deserializer" />
+	</bean>
+	
+	<bean id="remotingCodecFactory"
+		class="org.red5.server.net.remoting.codec.RemotingCodecFactory"
+		init-method="init">
+		<property name="serializer" ref="serializer" />
+		<property name="deserializer" ref="deserializer" />
+	</bean>
+	
+	<bean id="videoCodecFactory"
+		class="org.red5.server.stream.VideoCodecFactory">
+		<property name="codecs">
+			<list>
+				<bean id="screenVideoCodec" class="org.red5.server.stream.codec.ScreenVideo"/>
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="serviceInvoker" class="org.red5.server.service.ServiceInvoker" />
+		
+	<bean id="rtmpHandler"
+		class="org.red5.server.net.rtmp.RTMPHandler">
+		<property name="codecFactory" ref="rtmpCodecFactory" />
+		<property name="statusObjectService" ref="statusObjectService" />
+		<property name="serviceInvoker" ref="serviceInvoker" />
+		<property name="globalContext" ref="globalContext" />
+	</bean>
+
+	<bean id="rtmptHandler"
+		class="org.red5.server.net.rtmpt.RTMPTHandler">
+		<property name="codecFactory" ref="rtmptCodecFactory" />
+		<property name="statusObjectService" ref="statusObjectService" />
+		<property name="serviceInvoker" ref="serviceInvoker" />
+		<property name="globalContext" ref="globalContext" />
+		<property name="rtmptServerConfiguration" ref="rtmptServer" />
+	</bean>
+
+	<bean id="remotingHandler"
+		class="org.red5.server.net.remoting.RemotingHandler">
+		<property name="codecFactory" ref="remotingCodecFactory" />
+		<property name="serviceInvoker" ref="serviceInvoker" />
+		<property name="globalContext" ref="globalContext" />
+	</bean>
+	
+	<bean id="sharedObjectPersistence" class="org.red5.server.SharedObjectFilePersistence" />
+	
+	<!--
+	<bean id="debugProxyHandler"
+		class="org.red5.server.net.proxy.DebugProxyHandler">
+		<property name="codecFactory" ref="rtmpCodecFactory" />
+		<property name="forward" value="${proxy.forward_host_port}" />
+	</bean>
+	-->
+	
+</beans>

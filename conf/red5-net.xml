@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+
+	<!-- This context holds all the networking: mina, jetty, etc -->
+
+	<!--<bean id="red5.server" class="org.red5.server.Server" init-method="init" />-->
+	<!--<bean id="jetty6.server" class="org.red5.server.JettyLoader" init-method="init" />-->
+	
+
+		
+	<bean id="threadPoolFilter" class="org.apache.mina.filter.ThreadPoolFilter">
+     <constructor-arg value="mina"/>
+     <property name="maximumPoolSize" value="10"/>
+   </bean>
+	
+	<bean id="socketAcceptor" class="org.apache.mina.integration.spring.SocketAcceptorFactoryBean">
+     <property name="filters">
+       <list>
+         <ref local="threadPoolFilter"/>
+       </list>
+     </property>
+     <property name="bindings">
+       <list>
+         <!-- RTMP -->
+         <bean class="org.apache.mina.integration.spring.Binding">
+           <property name="address" value="localhost:1935"/>
+           <property name="handler" ref="rtmpMinaIoHandler"/>
+         </bean>
+       </list>
+     </property>
+     <property name="reuseAddress" value="true"/>
+   </bean> 	
+   
+	<bean id="rtmpHandler" class="org.red5.server.net.rtmp.RTMPHandler"
+		autowire="byType" />
+		
+	<bean id="rtmpMinaIoHandler" class="org.red5.server.net.rtmp.RTMPMinaIoHandler">
+        <property name="handler" ref="rtmpHandler"/>
+        <property name="codecFactory" ref="rtmpCodecFactory"/>
+    </bean>
+
+	<bean id="rtmptHandler" class="org.red5.server.net.rtmpt.RTMPTHandler"
+		autowire="byType">
+		<property name="codecFactory" ref="rtmpCodecFactory" />
+	</bean>
+		
+	<bean id="jetty6.server" class="org.red5.server.JettyLoader" init-method="init" autowire="byType" />
+	
+	<bean id="rtmpt.server" class="org.red5.server.net.rtmpt.RTMPTLoader" init-method="init" autowire="byType" />
+	
+</beans>

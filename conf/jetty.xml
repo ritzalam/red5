@@ -1,10 +1,5 @@
 <?xml version="1.0"?>
 <!DOCTYPE Configure PUBLIC "-//Mort Bay Consulting//DTD Configure//EN" "http://jetty.mortbay.org/configure.dtd">
-
-
-<!-- =============================================================== -->
-<!-- Configure the Jetty Server                                      -->
-<!-- =============================================================== -->
 <Configure id="Server" class="org.mortbay.jetty.Server">
 
     <!-- =========================================================== -->
@@ -63,8 +58,7 @@
         -->
         <Item>
           <New class="org.mortbay.jetty.nio.SelectChannelConnector">
-            <Set name="port"><SystemProperty name="http.port" default="8080" /></Set>
-            <Set name="host"><SystemProperty name="http.host" default="0.0.0.0" /></Set>
+            <Set name="port">8080</Set>
             <Set name="maxIdleTime">50000</Set>
             <Set name="Acceptors">1</Set>
           </New>
@@ -90,88 +84,49 @@
     <!-- =========================================================== -->
     <!-- Set handlers                                                -->
     <!-- =========================================================== -->
+   <!--
     <Set name="handlers">
       <Array type="org.mortbay.jetty.Handler">
-
-        <!-- ======================================================= -->
-        <!-- Configure a test web application with web.xml           -->
-        <!-- ======================================================= -->
-        <!--
-        <Item>
-          <New id="testWebAppContext"  class="org.mortbay.jetty.webapp.WebAppContext">
-            <Set name="contextPath">/test</Set>
-            <Set name="war">./webapps/test</Set>
-            <Set name="VirtualHosts"><Array type="java.lang.String"></Array></Set>
-            <Get name="SessionHandler">
-              <Set name="SessionManager"><New class="org.mortbay.jetty.servlet.HashSessionManager"/></Set>
-            </Get>
-          </New>
-        </Item>
-        -->
 		<Item>
           <New id="defaultWebAppContext"  class="org.mortbay.jetty.webapp.WebAppContext">
             <Set name="contextPath">/</Set>
-            <Set name="war"><SystemProperty name="red5.root" default="." />/webapps/defaultApp</Set>
+            <Set name="war">./webapps/defaultApp</Set>
             <Set name="VirtualHosts"><Array type="java.lang.String"></Array></Set>
             <Get name="SessionHandler">
               <Set name="SessionManager"><New class="org.mortbay.jetty.servlet.HashSessionManager"/></Set>
             </Get>
           </New>
         </Item>
-        <!-- ======================================================= -->
-        <!-- Configure a context directly - no XML parser required   -->
-        <!-- ======================================================= -->
-        <!--
-        <Item>
-          <New id="javadocContext"  class="org.mortbay.jetty.handler.ContextHandler">
-            <Set name="contextPath">/javadoc</Set>
-            <Set name="resourceBase">./javadoc</Set>
-            <Set name="handler">
-              <New id="javadocServletHandler" class="org.mortbay.jetty.servlet.ServletHandler">
-                <Set name="servlets">
-                    <Array type="org.mortbay.jetty.servlet.ServletHolder">
-                        <Item>
-                           <New class="org.mortbay.jetty.servlet.ServletHolder">
-                               <Set name="name">Default</Set>
-                               <Set name="className">org.mortbay.jetty.servlet.DefaultServlet</Set>
-                           </New>
-                        </Item>
-                     </Array>
-                 </Set>
-
-                <Set name="servletMappings">
-                    <Array type="org.mortbay.jetty.servlet.ServletMapping">
-                        <Item>
-                           <New class="org.mortbay.jetty.servlet.ServletMapping">
-                             <Set name="pathSpec">/</Set>
-                             <Set name="servletName">Default</Set>
-                           </New>
-                        </Item>
-                    </Array>
-                </Set>
-              </New>
-            </Set>
-          </New>
-        </Item>
-        -->
-
       </Array>
     </Set>
-
-
+    -->
 
     <!-- =========================================================== -->
     <!-- Additional contexts not defined above                       -->
     <!-- =========================================================== -->
     <Call class="org.mortbay.jetty.webapp.WebAppContext" name="addWebApplications">
       <Arg><Ref id="Server"/></Arg>
-      <Arg><SystemProperty name="red5.root" default="." />/webapps</Arg>
-      <Arg>org/mortbay/jetty/webapp/webdefault.xml</Arg>
+      <Arg>./webapps/</Arg>
+      <Arg>web-default.xml</Arg>
+      <Arg><Array type="java.lang.String">
+			<Item>org.mortbay.jetty.webapp.WebXmlConfiguration</Item>
+			<Item>org.mortbay.jetty.webapp.JettyWebXmlConfiguration</Item>
+			<Item>org.red5.server.jetty.Red5WebPropertiesConfiguration</Item>
+	  </Array></Arg>
       <Arg type="boolean">True</Arg>
       <Arg type="boolean">True</Arg>
     </Call>
-
-
+    <!--
+    addWebApplications(
+	    Server server, 
+	    java.lang.String webapps, 
+	    java.lang.String defaults, 
+	    java.lang.String[] configurations, 
+	    boolean extract, 
+	    boolean java2CompliantClassLoader
+    ) 
+    -->
+    
 
     <!-- =========================================================== -->
     <!-- Configure Realms                                            -->
@@ -181,25 +136,16 @@
         <Item>
           <New class="org.mortbay.jetty.security.HashUserRealm">
             <Set name="name">Test Realm</Set>
-            <Set name="config"><SystemProperty name="red5.config_root" default="conf" />/realm.properties</Set>
+            <Set name="config">conf/realm.properties</Set>
           </New>
         </Item>
       </Array>
     </Set>
 
     <!-- =========================================================== -->
-    <!-- Start the server                                            -->
+    <!-- Do NOT start the server, red5 will do this                                            -->
     <!-- =========================================================== -->
     <Set name="stopAtShutdown">true</Set>
-    <Call name="start"/>
+    <!-- <Call name="start"/> -->
 
 </Configure>
-
-
-
-
-
-
-
-
-

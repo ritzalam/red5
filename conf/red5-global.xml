@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+
+	<!-- This context is shared between all child contexts. -->
+
+	<bean id="red5.server" class="org.red5.server.Server"  />
+
+	<bean id="serializer" class="org.red5.io.object.Serializer" />
+	
+	<bean id="deserializer" class="org.red5.io.object.Deserializer" />
+	
+	<bean id="statusObjectService" class="org.red5.server.net.rtmp.status.StatusObjectService" 
+		autowire="byType" init-method="initialize" />
+	
+	<bean id="rtmpCodecFactory" class="org.red5.server.net.rtmp.codec.RTMPMinaCodecFactory" 
+		autowire="byType" init-method="init" />
+		
+	<bean id="remotingCodecFactory" class="org.red5.server.net.remoting.codec.RemotingCodecFactory" 
+		autowire="byType" init-method="init" />
+	
+</beans>
