@@ -7,15 +7,17 @@ import org.red5.server.api.event.IEvent;
 import org.red5.server.api.event.IEventDispatcher;
 import org.red5.server.api.stream.IBroadcastStream;
 import org.red5.server.api.stream.ISubscriberStream;
+import org.red5.server.net.rtmp.RTMPConnection;
+import org.red5.server.net.rtmp.message.Message;
 
 public class BroadcastStreamScope extends BasicScope implements
 		IBroadcastStream, IBasicScope, IEventDispatcher {
 
 	private BroadcastStream stream;
 	
-	public BroadcastStreamScope(IScope parent, String name) {
+	public BroadcastStreamScope(IScope parent, RTMPConnection conn, String name) {
 		super(parent, IBroadcastStream.TYPE, name, false);
-		stream = new BroadcastStream(parent);
+		stream = new BroadcastStream(parent, conn);
 	}
 	
 	public int getStreamId() {
@@ -67,10 +69,17 @@ public class BroadcastStreamScope extends BasicScope implements
 	}
 	
 	public void dispatchEvent(Object event) {
-		stream.dispatchEvent(event);
+		if (!(event instanceof Message))
+			return;
+		
+		stream.publish((Message) event);
 	}
 	
 	public void dispatchEvent(IEvent event) {
-		stream.dispatchEvent(event);
+		if ((event.getType() != IEvent.Type.STREAM_CONTROL) &&
+			(event.getType() != IEvent.Type.STREAM_DATA))
+			return;
+		
+		dispatchEvent(event.getObject());
 	}
 }

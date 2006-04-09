@@ -65,7 +65,13 @@ public class ScopeWrappingStreamManager
 			return result;
 		
 		// Create new stream
-		result = new BroadcastStreamScope(scope, name);
+		// XXX: this is only the correct connection if the stream is created by the
+		//      real subscriber, not if it's a temporary stream!
+		IConnection conn = Red5.getConnectionLocal();
+		if (!(conn instanceof RTMPConnection))
+			return null;
+		
+		result = new BroadcastStreamScope(scope, (RTMPConnection) conn, name);
 		scope.addChildScope(result);
 		return result;
 	}

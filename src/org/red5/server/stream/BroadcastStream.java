@@ -10,6 +10,7 @@ import org.red5.server.api.event.IEvent;
 import org.red5.server.api.event.IEventDispatcher;
 import org.red5.server.api.stream.IBroadcastStream;
 import org.red5.server.api.stream.ISubscriberStream;
+import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.message.Message;
 
 public class BroadcastStream extends Stream
@@ -20,8 +21,8 @@ public class BroadcastStream extends Stream
 	
 	protected LinkedList<ISubscriberStream> streams = new LinkedList<ISubscriberStream>();
 
-	public BroadcastStream(IScope scope) {
-		super(scope, null, Stream.MODE_LIVE);
+	public BroadcastStream(IScope scope, RTMPConnection conn) {
+		super(scope, conn, Stream.MODE_LIVE);
 	}
 	
 	public void subscribe(ISubscriberStream stream){

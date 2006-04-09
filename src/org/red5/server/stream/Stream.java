@@ -38,7 +38,6 @@ public class Stream extends BaseStream implements Constants, IStream, IEventDisp
 	private String mode = MODE_READ;
 	
 	private OutputStream downstream = null;
-	private IStream upstream = null;
 	private IStreamSource source = null;
 	private VideoCodecFactory videoCodecFactory = null;
 	
@@ -87,14 +86,6 @@ public class Stream extends BaseStream implements Constants, IStream, IEventDisp
 
 	public void setSource(IStreamSource source) {
 		this.source = source;
-	}
-
-	public IStream getUpstream() {
-		return upstream;
-	}
-
-	public void setUpstream(IStream upstream) {
-		this.upstream = upstream;
 	}
 
 	public void setVideoCodecFactory(VideoCodecFactory factory) {
@@ -289,8 +280,7 @@ public class Stream extends BaseStream implements Constants, IStream, IEventDisp
 			
 			if (this.videoCodecFactory != null) {
 				this.videoCodec = this.videoCodecFactory.getVideoCodec(data);
-				if (this.upstream != null && (this.upstream instanceof BaseStream))
-					((BaseStream) this.upstream).setVideoCodec(this.videoCodec);
+				setVideoCodec(this.videoCodec);
 			}
 		}
 		
@@ -307,11 +297,7 @@ public class Stream extends BaseStream implements Constants, IStream, IEventDisp
 			conn.getChannel((byte)2).write(streamBytesRead);
 		}
 		message.setTimestamp(ts);
-		if (upstream != null && (upstream instanceof IEventDispatcher)) {
-			((IEventDispatcher) upstream).dispatchEvent(message);
-		} else {
-			log.warn("No where for upstream packet to go :(");
-		}
+		dispatchEvent(message);
 	}
 	
 	public void written(Message message){
@@ -325,7 +311,6 @@ public class Stream extends BaseStream implements Constants, IStream, IEventDisp
 	}
 	
 	public void close(){
-		if(upstream!=null) upstream.close();
 		if(downstream!=null) downstream.close();
 		if(source!=null) source.close();
 		super.close();
