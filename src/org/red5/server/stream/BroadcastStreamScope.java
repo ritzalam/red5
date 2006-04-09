@@ -22,6 +22,10 @@ public class BroadcastStreamScope extends BasicScope implements
 		stream = new BroadcastStream(parent, conn);
 	}
 	
+	public void setVideoCodecFactory(VideoCodecFactory factory) {
+		stream.setVideoCodecFactory(factory);
+	}
+	
 	public int getStreamId() {
 		return stream.getStreamId();
 	}

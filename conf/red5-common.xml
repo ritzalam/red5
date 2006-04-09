@@ -19,4 +19,12 @@
 	<bean id="remotingCodecFactory" class="org.red5.server.net.remoting.codec.RemotingCodecFactory" 
 		autowire="byType" init-method="init" />
 	
+	<bean id="videoCodecFactory" class="org.red5.server.stream.VideoCodecFactory">
+		<property name="codecs">
+			<list>
+				<bean id="screenVideoCodec" class="org.red5.server.stream.codec.ScreenVideo"/>
+				<bean id="sorensonVideoCodec" class="org.red5.server.stream.codec.SorensonVideo"/>
+			</list>
+		</property>
+	</bean>
 </beans>

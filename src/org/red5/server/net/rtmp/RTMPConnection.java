@@ -8,6 +8,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.server.BaseConnection;
+import org.red5.server.api.IContext;
 import org.red5.server.api.IScope;
 import org.red5.server.api.so.ISharedObject;
 import org.red5.server.api.so.ISharedObjectCapableConnection;
@@ -23,11 +24,13 @@ import org.red5.server.net.rtmp.message.Ping;
 import org.red5.server.so.ScopeWrappingSharedObjectService;
 import org.red5.server.stream.BroadcastStream;
 import org.red5.server.stream.BroadcastStreamScope;
+import org.red5.server.stream.VideoCodecFactory;
 import org.red5.server.stream.OnDemandStream;
 import org.red5.server.stream.OutputStream;
 import org.red5.server.stream.ScopeWrappingStreamService;
 import org.red5.server.stream.Stream;
 import org.red5.server.stream.SubscriberStream;
+import org.springframework.context.ApplicationContext;
 
 public abstract class RTMPConnection extends BaseConnection 
 	implements ISharedObjectCapableConnection, IStreamCapableConnection {
@@ -36,6 +39,7 @@ public abstract class RTMPConnection extends BaseConnection
         LogFactory.getLog(RTMPConnection.class.getName());
 
 	private final static int MAX_STREAMS = 12;
+	private final static String VIDEO_CODEC_FACTORY = "videoCodecFactory";
 	
 	//private Context context;
 	private Channel[] channels = new Channel[64];
@@ -109,6 +113,15 @@ public abstract class RTMPConnection extends BaseConnection
 		return new OutputStream(this.getScope(), video, audio, data);
 	}
 	
+	public VideoCodecFactory getVideoCodecFactory() {
+		final IContext context = scope.getContext();
+		ApplicationContext appCtx = context.getApplicationContext();
+		if (!appCtx.containsBean(VIDEO_CODEC_FACTORY))
+			return null;
+	
+		return (VideoCodecFactory) appCtx.getBean(VIDEO_CODEC_FACTORY);
+	}
+	
 	public IBroadcastStream newBroadcastStream(String name, int streamId) {
 		if (!reservedStreams[streamId])
 			// StreamId has not been reserved before
@@ -122,9 +135,11 @@ public abstract class RTMPConnection extends BaseConnection
 		if (result instanceof BroadcastStream) {
 			((BroadcastStream) result).setStreamId(streamId+1);
 			((BroadcastStream) result).setDownstream(createOutputStream(streamId));
+			((BroadcastStream) result).setVideoCodecFactory(getVideoCodecFactory());
 		} else if (result instanceof BroadcastStreamScope) {
 			((BroadcastStreamScope) result).setStreamId(streamId+1);
 			((BroadcastStreamScope) result).setDownstream(createOutputStream(streamId));
+			((BroadcastStreamScope) result).setVideoCodecFactory(getVideoCodecFactory());
 		} else
 			log.error("Can't initialize broadcast stream.");
 		streams[streamId] = result;
@@ -167,20 +182,6 @@ public abstract class RTMPConnection extends BaseConnection
 		return stream;
 	}
 	
-	/* Returns a stream for the next available stream id or null if all slots are in use. */
-	public Stream createNewStream() {
-		synchronized (streams) {
-			for (int i=0; i<streams.length; i++)
-				if (streams[i] == null) {
-					Stream stream = createStream(i);
-					streams[i] = stream;
-					return stream;
-				}
-		}
-		
-		return null;
-	}
-	
 	public IStream getStreamById(int id){
 		if (id <= 0 || id > MAX_STREAMS-1)
 			return null;
@@ -209,20 +210,6 @@ public abstract class RTMPConnection extends BaseConnection
 			}
 		}
 		super.close();
-	}
-	
-	protected Stream createStream(int streamId){
-		byte channelId = (byte) (4 + (streamId * 5));
-		Stream stream = new Stream(this.getScope(), this);
-		stream.setStreamId(streamId+1);
-		final Channel data = getChannel(channelId++);
-		final Channel video = getChannel(channelId++);
-		final Channel audio = getChannel(channelId++);
-		//final Channel unknown = getChannel(channelId++);
-		//final Channel ctrl = getChannel(channelId++);
-		final OutputStream down = new OutputStream(this.getScope(), video,audio,data);
-		stream.setDownstream(down);
-		return stream;
 	}
 	
 	public void deleteStreamById(int streamId) {
