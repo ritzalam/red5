@@ -14,6 +14,8 @@ import org.red5.server.api.IScopeHandler;
 import org.red5.server.api.IServer;
 import org.red5.server.api.so.ISharedObject;
 import org.red5.server.api.Red5;
+import org.red5.server.api.event.IEventDispatcher;
+import org.red5.server.api.stream.IStream;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.message.Constants;
@@ -57,7 +59,7 @@ public class RTMPHandler
 			final Message message = packet.getMessage();
 			final PacketHeader source = packet.getSource();
 			final Channel channel = conn.getChannel(packet.getSource().getChannelId());
-			final Stream stream = conn.getStreamById(source.getStreamId());
+			final IStream stream = conn.getStreamById(source.getStreamId());
 			
 			if(log.isDebugEnabled()){
 				log.debug("Message recieved");
@@ -73,7 +75,7 @@ public class RTMPHandler
 			case TYPE_NOTIFY: // just like invoke, but does not return
 				if (((Invoke) message).getCall() == null && stream != null)
 					// Stream metadata
-					stream.publish(message);
+					((IEventDispatcher) stream).dispatchEvent(message);
 				else
 					onInvoke(conn, channel, source, (Invoke) message);
 				break;
@@ -84,12 +86,12 @@ public class RTMPHandler
 			case TYPE_STREAM_BYTES_READ:
 				onStreamBytesRead(conn, channel, source, (StreamBytesRead) message);
 				break;
+			*/
 			case TYPE_AUDIO_DATA:
 			case TYPE_VIDEO_DATA:
 				log.info("in packet: "+source.getSize()+" ts:"+source.getTimer());
-				stream.publish(message);
+				((IEventDispatcher) stream).dispatchEvent(message);
 				break;
-			*/
 			case TYPE_SHARED_OBJECT:
 				SharedObject so = (SharedObject) message;
 				onSharedObject(conn, channel, source, so);
@@ -114,9 +116,9 @@ public class RTMPHandler
 		
 		OutPacket sent = (OutPacket) message;
 		final byte channelId = sent.getDestination().getChannelId();
-		final Stream stream = conn.getStreamByChannelId(channelId);
-		if(stream!=null){
-			stream.written(sent.getMessage());
+		final IStream stream = conn.getStreamByChannelId(channelId);
+		if (stream!=null){
+			((Stream) stream).written(sent.getMessage());
 		}
 	}
 
@@ -139,6 +141,15 @@ public class RTMPHandler
 		final IContext context = scope.getContext();
 		log.debug("Context: " + context);
 		context.getServiceInvoker().invoke(call, handler);
+	}
+	
+	public void invokeCall(RTMPConnection conn, Call call, Object service){
+		final IScope scope = conn.getScope();
+		final IContext context = scope.getContext();
+		log.debug("Scope: " + scope);
+		log.debug("Service: " + service);
+		log.debug("Context: " + context);
+		context.getServiceInvoker().invoke(call, service);
 	}
 	
 	// ------------------------------------------------------------------------------
@@ -196,6 +207,8 @@ public class RTMPHandler
 				}
 			} else if(action.equals(ACTION_DISCONNECT)){
 				conn.close();
+			} else if (action.equals(ACTION_CREATE_STREAM) || action.equals(ACTION_PUBLISH) || action.equals(ACTION_PLAY)){
+				invokeCall(conn, call, conn.streamService);
 			} else {
 				invokeCall(conn, call);
 			}

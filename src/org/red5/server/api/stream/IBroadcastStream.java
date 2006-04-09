@@ -29,14 +29,16 @@ package org.red5.server.api.stream;
  */
 public interface IBroadcastStream extends IStream {
 
+	public static final String TYPE = "broadcastStream";
+	
 	/**
 	 * Subscribe to this stream
 	 */
-	public void subscribe();
+	public void subscribe(ISubscriberStream stream);
 
 	/**
 	 * Unsubscire to this stream
 	 */
-	public void unsubscirbe();
+	public void unsubscribe(ISubscriberStream stream);
 
 }

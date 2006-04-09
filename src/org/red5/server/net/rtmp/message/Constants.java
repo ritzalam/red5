@@ -43,6 +43,8 @@ public interface Constants {
     
     public static final String ACTION_CONNECT = "connect";
     public static final String ACTION_DISCONNECT = "disconnect";
+    public static final String ACTION_CREATE_STREAM = "createStream";
+    public static final String ACTION_PUBLISH = "publish";
     public static final String ACTION_PAUSE = "pause";
     public static final String ACTION_SEEK = "seek";
     public static final String ACTION_PLAY = "play";

@@ -4,6 +4,7 @@ import static org.red5.server.api.ScopeUtils.isApp;
 import static org.red5.server.api.ScopeUtils.isRoom;
 
 import java.util.Iterator;
+import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -12,20 +13,29 @@ import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
 import org.red5.server.api.so.ISharedObject;
 import org.red5.server.api.so.ISharedObjectService;
+import org.red5.server.api.stream.IBroadcastStream;
+import org.red5.server.api.stream.IBroadcastStreamService;
+import org.red5.server.api.stream.IOnDemandStream;
+import org.red5.server.api.stream.IOnDemandStreamService;
+import org.red5.server.api.stream.ISubscriberStream;
+import org.red5.server.api.stream.ISubscriberStreamService;
 import org.red5.server.so.ScopeWrappingSharedObjectService;
+import org.red5.server.stream.ScopeWrappingStreamManager;
 
 public class ApplicationAdapter extends StatefulScopeWrappingAdapter
-	implements ISharedObjectService {
+	implements ISharedObjectService, IBroadcastStreamService, IOnDemandStreamService, ISubscriberStreamService {
 
 	protected static Log log =
         LogFactory.getLog(ApplicationAdapter.class.getName());
 
 	protected ISharedObjectService sharedObjectService;
+	protected ScopeWrappingStreamManager streamService;
 
 	@Override
 	public void setScope(IScope scope) {
 		super.setScope(scope);
 		sharedObjectService = new ScopeWrappingSharedObjectService(scope);
+		streamService = new ScopeWrappingStreamManager(scope);
 	}
 
 	public boolean connect(IConnection conn) {
@@ -119,6 +129,8 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 		log.debug("roomLeave: "+client+" << "+room);
 	}
 	
+	/* Wrapper around ISharedObjectService */
+	
 	public boolean createSharedObject(String name, boolean persistent) {
 		return sharedObjectService.createSharedObject(name, persistent);
 	}
@@ -135,4 +147,29 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 		return sharedObjectService.hasSharedObject(name);
 	}
 	
+	/* Wrapper around the stream interfaces */
+	
+	public boolean hasBroadcastStream(String name) {
+		return streamService.hasBroadcastStream(name);
+	}
+
+	public IBroadcastStream getBroadcastStream(String name) {
+		return streamService.getBroadcastStream(name);
+	}
+	
+	public Iterator<String> getBroadcastStreamNames() {
+		return streamService.getBroadcastStreamNames();
+	}
+	
+	public boolean hasOnDemandStream(String name) {
+		return streamService.hasOnDemandStream(name);
+	}
+
+	public IOnDemandStream getOnDemandStream(String name) {
+		return streamService.getOnDemandStream(name);
+	}
+
+	public ISubscriberStream getSubscriberStream(String name) {
+		return streamService.getSubscriberStream(name);
+	}
 }

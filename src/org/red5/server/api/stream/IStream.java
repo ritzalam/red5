@@ -30,6 +30,13 @@ import org.red5.server.api.IScope;
 public abstract interface IStream {
 
 	/**
+	 * Get the stream id.
+	 * 
+	 * @return the numeric id of the stream
+	 */
+	public int getStreamId();
+	
+	/**
 	 * Get the current position in seconds
 	 * 
 	 * @return current position in seconds

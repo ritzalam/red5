@@ -17,6 +17,7 @@ public class SorensonVideo implements IVideoStreamCodec {
 
 	private Log log = LogFactory.getLog(SorensonVideo.class.getName());
 	
+	static final String CODEC_NAME = "SorensonVideo";
 	static final byte FLV_FRAME_KEY = 0x10;
 	static final byte FLV_CODEC_SORENSON = 0x02;
 
@@ -26,6 +27,10 @@ public class SorensonVideo implements IVideoStreamCodec {
 	
 	public SorensonVideo() {
 		this.reset();
+	}
+
+	public String getName() {
+		return CODEC_NAME;
 	}
 	
 	public void reset() {

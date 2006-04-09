@@ -15,6 +15,7 @@ public class ScreenVideo implements IVideoStreamCodec {
 
 	private Log log = LogFactory.getLog(ScreenVideo.class.getName());
 	
+	static final String CODEC_NAME = "ScreenVideo";
 	static final byte FLV_FRAME_KEY = 0x10;
 	static final byte FLV_CODEC_SCREEN = 0x03;
 	
@@ -32,6 +33,10 @@ public class ScreenVideo implements IVideoStreamCodec {
 	
 	public ScreenVideo() {
 		this.reset();
+	}
+	
+	public String getName() {
+		return CODEC_NAME;
 	}
 	
 	public void reset() {

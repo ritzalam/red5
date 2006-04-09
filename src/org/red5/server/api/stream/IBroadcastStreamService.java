@@ -1,6 +1,6 @@
 package org.red5.server.api.stream;
 
-import java.util.Set;
+import java.util.Iterator;
 
 public interface IBroadcastStreamService {
 
@@ -27,7 +27,7 @@ public interface IBroadcastStreamService {
 	 * 
 	 * @return set containing all broadcast names
 	 */
-	public Set<String> getBroadcastStreamNames();
+	public Iterator<String> getBroadcastStreamNames();
 	
 	
 }

@@ -3,6 +3,10 @@ package org.red5.server.stream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
+import org.red5.server.api.IScope;
+import org.red5.server.api.event.IEvent;
+import org.red5.server.api.event.IEventDispatcher;
+import org.red5.server.api.stream.IStream;
 import org.red5.server.net.rtmp.Channel;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.message.AudioData;
@@ -13,7 +17,7 @@ import org.red5.server.net.rtmp.message.Status;
 import org.red5.server.net.rtmp.message.StreamBytesRead;
 import org.red5.server.net.rtmp.message.VideoData;
 
-public class Stream extends BaseStreamSink implements Constants, IStream, IStreamSink {
+public class Stream extends BaseStream implements Constants, IStream, IEventDispatcher {
 	
 	public static final String MODE_READ = "read";
 	public static final String MODE_RECORD = "record";
@@ -33,31 +37,24 @@ public class Stream extends BaseStreamSink implements Constants, IStream, IStrea
 	private boolean paused = false;
 	private String mode = MODE_READ;
 	
-	private DownStreamSink downstream = null;
-	private IStreamSink upstream = null;
+	private OutputStream downstream = null;
+	private IStream upstream = null;
 	private IStreamSource source = null;
 	private VideoCodecFactory videoCodecFactory = null;
 	
-	private int streamId = 0;
 	private boolean initialMessage = true;
 	
 	private RTMPConnection conn;
 	
-	public Stream(RTMPConnection conn){
+	public Stream(IScope scope, RTMPConnection conn){
+		super(scope);
 		this.conn = conn;
 	}
 	
-	public Stream(RTMPConnection conn, String type) {
+	public Stream(IScope scope, RTMPConnection conn, String type) {
+		super(scope);
 		this.conn = conn;
 		this.mode = type;
-	}
-	
-	public int getStreamId() {
-		return streamId;
-	}
-	
-	public void setStreamId(int streamId) {
-		this.streamId = streamId;
 	}
 	
 	public String getName() {
@@ -76,11 +73,11 @@ public class Stream extends BaseStreamSink implements Constants, IStream, IStrea
 		this.mode = mode;
 	}
 
-	public DownStreamSink getDownstream() {
+	public OutputStream getDownstream() {
 		return downstream;
 	}
 
-	public void setDownstream(DownStreamSink downstream) {
+	public void setDownstream(OutputStream downstream) {
 		this.downstream = downstream;
 	}
 
@@ -92,11 +89,11 @@ public class Stream extends BaseStreamSink implements Constants, IStream, IStrea
 		this.source = source;
 	}
 
-	public IStreamSink getUpstream() {
+	public IStream getUpstream() {
 		return upstream;
 	}
 
-	public void setUpstream(IStreamSink upstream) {
+	public void setUpstream(IStream upstream) {
 		this.upstream = upstream;
 	}
 
@@ -192,7 +189,7 @@ public class Stream extends BaseStreamSink implements Constants, IStream, IStrea
 		
 		if (paused) {
 			if(source !=null && source.hasMore()){
-				write(source.dequeue());
+				dispatchEvent(source.dequeue());
 			}
 		}
 	}
@@ -242,11 +239,11 @@ public class Stream extends BaseStreamSink implements Constants, IStream, IStrea
 		return downstream.canAccept();
 	}
 	
-	public void enqueue(Message message){ 
-		write(message);
-	}
-	
-	protected void write(Message message){
+	public void dispatchEvent(Object obj) {
+		if (!(obj instanceof Message))
+			return;
+		
+		final Message message = (Message) obj;		
 		if (downstream.canAccept()){
 			if (initialMessage) {
 				initialMessage = false;
@@ -259,7 +256,7 @@ public class Stream extends BaseStreamSink implements Constants, IStream, IStrea
 						msg.setTimestamp(message.getTimestamp()-1);
 						msg.setData(keyframe);
 						msg.setSealed(true);
-						this.write(msg);
+						dispatchEvent(msg);
 					}
 				}
 			}
@@ -270,8 +267,16 @@ public class Stream extends BaseStreamSink implements Constants, IStream, IStrea
 				log.debug("Sending downstream: " + message.getTimestamp());
 			//writeQueue++;
 			
-			downstream.enqueue(message);
+			downstream.dispatchEvent(message);
 		}
+	}
+	
+	public void dispatchEvent(IEvent event) {
+		if ((event.getType() != IEvent.Type.STREAM_CONTROL) &&
+			(event.getType() != IEvent.Type.STREAM_DATA))
+			return;
+		
+		dispatchEvent(event.getObject());
 	}
 	
 	private int ts = 0;
@@ -284,8 +289,8 @@ public class Stream extends BaseStreamSink implements Constants, IStream, IStrea
 			
 			if (this.videoCodecFactory != null) {
 				this.videoCodec = this.videoCodecFactory.getVideoCodec(data);
-				if (this.upstream != null)
-					this.upstream.setVideoCodec(this.videoCodec);
+				if (this.upstream != null && (this.upstream instanceof BaseStream))
+					((BaseStream) this.upstream).setVideoCodec(this.videoCodec);
 			}
 		}
 		
@@ -302,8 +307,8 @@ public class Stream extends BaseStreamSink implements Constants, IStream, IStrea
 			conn.getChannel((byte)2).write(streamBytesRead);
 		}
 		message.setTimestamp(ts);
-		if(upstream != null && upstream.canAccept()){
-			upstream.enqueue(message);
+		if (upstream != null && (upstream instanceof IEventDispatcher)) {
+			((IEventDispatcher) upstream).dispatchEvent(message);
 		} else {
 			log.warn("No where for upstream packet to go :(");
 		}
@@ -314,7 +319,7 @@ public class Stream extends BaseStreamSink implements Constants, IStream, IStrea
 		writeQueue--;
 		synchronized (this) {
 			if(source !=null && source.hasMore()){
-				write(source.dequeue());
+				dispatchEvent(source.dequeue());
 			}
 		}
 	}

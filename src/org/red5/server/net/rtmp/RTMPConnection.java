@@ -12,14 +12,24 @@ import org.red5.server.api.IScope;
 import org.red5.server.api.so.ISharedObject;
 import org.red5.server.api.so.ISharedObjectCapableConnection;
 import org.red5.server.api.so.ISharedObjectService;
+import org.red5.server.api.stream.IBroadcastStream;
+import org.red5.server.api.stream.IBroadcastStreamService;
+import org.red5.server.api.stream.IOnDemandStream;
+import org.red5.server.api.stream.IStream;
+import org.red5.server.api.stream.IStreamCapableConnection;
+import org.red5.server.api.stream.ISubscriberStream;
 import org.red5.server.net.rtmp.message.OutPacket;
 import org.red5.server.net.rtmp.message.Ping;
 import org.red5.server.so.ScopeWrappingSharedObjectService;
-import org.red5.server.stream.DownStreamSink;
+import org.red5.server.stream.BroadcastStream;
+import org.red5.server.stream.BroadcastStreamScope;
+import org.red5.server.stream.OutputStream;
+import org.red5.server.stream.ScopeWrappingStreamService;
 import org.red5.server.stream.Stream;
+import org.red5.server.stream.SubscriberStream;
 
 public abstract class RTMPConnection extends BaseConnection 
-	implements ISharedObjectCapableConnection {
+	implements ISharedObjectCapableConnection, IStreamCapableConnection {
 
 	protected static Log log =
         LogFactory.getLog(RTMPConnection.class.getName());
@@ -28,8 +38,10 @@ public abstract class RTMPConnection extends BaseConnection
 	
 	//private Context context;
 	private Channel[] channels = new Channel[64];
-	private Stream[] streams = new Stream[MAX_STREAMS];
+	private IStream[] streams = new IStream[MAX_STREAMS];
+	private boolean[] reservedStreams = new boolean[MAX_STREAMS];
 	protected ISharedObjectService sharedObjectService;
+	protected ScopeWrappingStreamService streamService;
 	protected HashMap<String,ISharedObject> sharedObjects;
 
 	public RTMPConnection(String type) {
@@ -37,7 +49,7 @@ public abstract class RTMPConnection extends BaseConnection
 		// These parameters will be set during the call of "connect" later.
 		//super(null, "");	temp fix to get things to compile
 		super(type,null,null,null,null);
-		sharedObjects = new HashMap();
+		sharedObjects = new HashMap<String,ISharedObject>();
 	}
 	
 	public void setup(String host, String path, String sessionId, Map<String, String> params){
@@ -71,7 +83,83 @@ public abstract class RTMPConnection extends BaseConnection
 	public void closeChannel(byte channelId){
 		channels[channelId] = null;
 	}
-
+	
+	public int reserveStreamId() {
+		int result = -1;
+		synchronized (reservedStreams) {
+			for (int i=0; i<reservedStreams.length; i++) {
+				if (!reservedStreams[i]) {
+					reservedStreams[i] = true;
+					result = i;
+					break;
+				}
+			}
+		}
+		return result;
+	}
+	
+	private OutputStream createOutputStream(int streamId) {
+		byte channelId = (byte) (4 + (streamId * 5));
+		final Channel data = getChannel(channelId++);
+		final Channel video = getChannel(channelId++);
+		final Channel audio = getChannel(channelId++);
+		//final Channel unknown = getChannel(channelId++);
+		//final Channel ctrl = getChannel(channelId++);
+		return new OutputStream(this.getScope(), video, audio, data);
+	}
+	
+	public IBroadcastStream newBroadcastStream(String name, int streamId) {
+		if (!reservedStreams[streamId])
+			// StreamId has not been reserved before
+			return null;
+		
+		if (streams[streamId] != null)
+			// Another stream already exists with this id
+			return null;
+		
+		final IBroadcastStream result = streamService.getBroadcastStream(name);
+		if (result instanceof BroadcastStream) {
+			((BroadcastStream) result).setStreamId(streamId+1);
+			((BroadcastStream) result).setDownstream(createOutputStream(streamId));
+		} else if (result instanceof BroadcastStreamScope) {
+			((BroadcastStreamScope) result).setStreamId(streamId+1);
+			((BroadcastStreamScope) result).setDownstream(createOutputStream(streamId));
+		} else
+			log.error("Can't initialize broadcast stream.");
+		streams[streamId] = result;
+		return result;
+	}
+	
+	public ISubscriberStream newSubscriberStream(String name, int streamId) {
+		if (!reservedStreams[streamId])
+			// StreamId has not been reserved before
+			return null;
+		
+		if (streams[streamId] != null)
+			// Another stream already exists with this id
+			return null;
+		
+		SubscriberStream result = new SubscriberStream(getScope(), this);
+		result.setStreamId(streamId+1);
+		result.setDownstream(createOutputStream(streamId));
+		final IBroadcastStream broadcast = streamService.getBroadcastStream(name);
+		broadcast.subscribe(result);
+		streams[streamId] = result;
+		return result;
+	}
+	
+	public IOnDemandStream newOnDemandStream(String name, int streamId) {
+		if (!reservedStreams[streamId])
+			// StreamId has not been reserved before
+			return null;
+		
+		if (streams[streamId] != null)
+			// Another stream already exists with this id
+			return null;
+	
+		log.warn("Not implemented yet.");
+		return null;
+	}
 	
 	/* Returns a stream for the next available stream id or null if all slots are in use. */
 	public Stream createNewStream() {
@@ -87,14 +175,14 @@ public abstract class RTMPConnection extends BaseConnection
 		return null;
 	}
 	
-	public Stream getStreamById(int id){
+	public IStream getStreamById(int id){
 		if (id <= 0 || id > MAX_STREAMS-1)
 			return null;
 		
 		return streams[id-1];
 	}
 	
-	public Stream getStreamByChannelId(byte channelId){
+	public IStream getStreamByChannelId(byte channelId){
 		if (channelId < 4)
 			return null;
 		
@@ -107,7 +195,7 @@ public abstract class RTMPConnection extends BaseConnection
 	public void close(){
 		synchronized (streams) {
 			for(int i=0; i<streams.length; i++){
-				Stream stream = streams[i];
+				IStream stream = streams[i];
 				if(stream != null) {
 					stream.close();
 					streams[i] = null;
@@ -119,14 +207,14 @@ public abstract class RTMPConnection extends BaseConnection
 	
 	protected Stream createStream(int streamId){
 		byte channelId = (byte) (4 + (streamId * 5));
-		Stream stream = new Stream(this);
+		Stream stream = new Stream(this.getScope(), this);
 		stream.setStreamId(streamId+1);
 		final Channel data = getChannel(channelId++);
 		final Channel video = getChannel(channelId++);
 		final Channel audio = getChannel(channelId++);
 		//final Channel unknown = getChannel(channelId++);
 		//final Channel ctrl = getChannel(channelId++);
-		final DownStreamSink down = new DownStreamSink(video,audio,data);
+		final OutputStream down = new OutputStream(this.getScope(), video,audio,data);
 		stream.setDownstream(down);
 		return stream;
 	}
@@ -175,6 +263,7 @@ public abstract class RTMPConnection extends BaseConnection
 	public boolean connect(IScope newScope) {
 		if(super.connect(newScope)){
 			sharedObjectService = new ScopeWrappingSharedObjectService(newScope);
+			streamService = new ScopeWrappingStreamService(newScope);
 			return true;
 		} else {
 			return false;

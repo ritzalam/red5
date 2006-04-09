@@ -5,13 +5,17 @@ import java.io.IOException;
 import org.red5.io.flv.ITag;
 import org.red5.io.flv.IWriter;
 import org.red5.io.flv.impl.Tag;
+import org.red5.server.api.IScope;
+import org.red5.server.api.event.IEvent;
+import org.red5.server.api.event.IEventDispatcher;
 import org.red5.server.net.rtmp.message.Message;
 
-public class FileStreamSink extends BaseStreamSink implements IStreamSink {
+public class FileStreamSink extends SubscriberStream implements IEventDispatcher {
 
 	private IWriter writer;
 	
-	public FileStreamSink(IWriter writer){
+	public FileStreamSink(IScope scope, IWriter writer){
+		super(scope, null);
 		this.writer = writer;
 	}
 	
@@ -20,8 +24,11 @@ public class FileStreamSink extends BaseStreamSink implements IStreamSink {
 		super.close();
 	}
 
-	public void enqueue(Message message) {
+	public void dispatchEvent(Object obj) {
+		if (!(obj instanceof Message))
+			return;
 		
+		final Message message = (Message) obj;
 		ITag tag = new Tag();
 		
 		tag.setDataType(message.getDataType());
@@ -34,6 +41,15 @@ public class FileStreamSink extends BaseStreamSink implements IStreamSink {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}	
+		}
+		position = message.getTimestamp();
+	}
+	
+	public void dispatchEvent(IEvent event) {
+		if ((event.getType() != IEvent.Type.STREAM_CONTROL) &&
+			(event.getType() != IEvent.Type.STREAM_DATA))
+			return;
+		
+		dispatchEvent(event.getObject());
 	}
 }
