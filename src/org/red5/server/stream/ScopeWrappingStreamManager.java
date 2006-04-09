@@ -13,6 +13,7 @@ import org.apache.commons.logging.LogFactory;
 import org.red5.io.flv.IFLV;
 import org.red5.io.flv.IFLVService;
 import org.red5.io.flv.IWriter;
+import org.red5.io.flv.impl.FLVService;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
 import org.red5.server.api.Red5;
@@ -45,6 +46,7 @@ public class ScopeWrappingStreamManager
 
 	public ScopeWrappingStreamManager(IScope scope) {
 		this.scope = scope;
+		setFlvService(new FLVService());
 	}
 	
 	public void setFlvService(IFLVService flvService) {
@@ -77,13 +79,32 @@ public class ScopeWrappingStreamManager
 	}
 	
 	public boolean hasOnDemandStream(String name) {
-		// TODO: implement this
+		try {
+			File file = scope.getResources("streams/" + name)[0].getFile();
+			if (file.exists())
+				return true;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		return false;
 	}
 	
 	public IOnDemandStream getOnDemandStream(String name) {
-		// TODO: implement this
-		return null;
+		FileStreamSource source = null;
+		try {
+			File file = scope.getResources("streams/" + name)[0].getFile();
+			IFLV flv = flvService.getFLV(file);
+			source = new FileStreamSource(flv.reader());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		if (source == null)
+			return null;
+		
+		return new OnDemandStream(scope, source);
 	}
 	
 	public ISubscriberStream getSubscriberStream(String name) {

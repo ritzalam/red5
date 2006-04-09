@@ -31,6 +31,14 @@ public interface IOnDemandStream extends IStream {
 	 * Start playback
 	 */
 	public void play();
+	
+	/**
+	 * Start playback with a given maximum duration.
+	 * 
+	 * @param length
+	 *            maximum duration in seconds
+	 */
+	public void play(int length);
 
 	/**
 	 * Seek to the keyframe nearest to position

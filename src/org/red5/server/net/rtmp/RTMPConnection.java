@@ -23,6 +23,7 @@ import org.red5.server.net.rtmp.message.Ping;
 import org.red5.server.so.ScopeWrappingSharedObjectService;
 import org.red5.server.stream.BroadcastStream;
 import org.red5.server.stream.BroadcastStreamScope;
+import org.red5.server.stream.OnDemandStream;
 import org.red5.server.stream.OutputStream;
 import org.red5.server.stream.ScopeWrappingStreamService;
 import org.red5.server.stream.Stream;
@@ -157,8 +158,13 @@ public abstract class RTMPConnection extends BaseConnection
 			// Another stream already exists with this id
 			return null;
 	
-		log.warn("Not implemented yet.");
-		return null;
+		final IOnDemandStream stream = streamService.getOnDemandStream(name);
+		if (stream instanceof OnDemandStream) {
+			((OnDemandStream) stream).setStreamId(streamId+1);
+			((OnDemandStream) stream).setDownstream(createOutputStream(streamId));
+		}
+		streams[streamId] = stream;
+		return stream;
 	}
 	
 	/* Returns a stream for the next available stream id or null if all slots are in use. */

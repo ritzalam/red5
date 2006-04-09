@@ -50,7 +50,7 @@ public class OutputStream extends BaseStream implements IEventDispatcher, Consta
 			return;
 		
 		final Message message = (Message) obj;
-		//log.info("out ts:"+message.getTimestamp());
+		log.info("out ts:"+message.getTimestamp());
 		switch(message.getDataType()){
 		case TYPE_VIDEO_DATA:
 		case TYPE_STREAM_METADATA:

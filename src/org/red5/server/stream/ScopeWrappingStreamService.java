@@ -4,6 +4,7 @@ import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
 import org.red5.server.api.Red5;
 import org.red5.server.api.stream.IBroadcastStream;
+import org.red5.server.api.stream.IOnDemandStream;
 import org.red5.server.api.stream.IStreamCapableConnection;
 import org.red5.server.api.stream.IStreamService;
 import org.red5.server.api.stream.ISubscriberStream;
@@ -43,9 +44,68 @@ public class ScopeWrappingStreamService extends ScopeWrappingStreamManager
 		IConnection conn = Red5.getConnectionLocal();
 		if (!(conn instanceof IStreamCapableConnection))
 			return;
+
+		// it seems as if the number is sent multiplied by 1000
+		int num = (int)(type.doubleValue() / 1000.0);
+		if (num < -2)
+			num = -2;
+
+		boolean isPublishedStream = hasBroadcastStream(name);
+		boolean isFileStream = hasOnDemandStream(name);
 		
-		ISubscriberStream stream = ((IStreamCapableConnection) conn).newSubscriberStream(name, 0);
-		stream.start();
+		// decision: 0 for Live, 1 for File, 2 for Wait, 3 for N/A
+		int decision = 3;
+		
+		switch (num) {
+		case -2:
+			if (isPublishedStream) {
+				decision = 0;
+			} else if (isFileStream) {
+				decision = 1;
+			} else {
+				decision = 2;
+			}
+			break;
+			
+		case -1:
+			if (isPublishedStream) {
+				decision = 0;
+			} else {
+				// TODO: Wait for stream to be created until timeout, otherwise continue
+				// with next item in playlist (see Macromedia documentation)
+				// NOTE: For now we create a temporary stream
+				decision = 2;
+			}
+			break;
+			
+		default:
+			if (isFileStream) {
+				decision = 1;
+			} else {
+				// TODO: Wait for it, then continue with next item in playlist (?)
+			}
+			break;
+		}
+		
+		ISubscriberStream subscriber;
+		IOnDemandStream onDemand;
+		switch (decision) {
+		case 0:
+			subscriber = ((IStreamCapableConnection) conn).newSubscriberStream(name, 0);
+			subscriber.start(0, length);
+			break;
+			
+		case 1:
+			onDemand = ((IStreamCapableConnection) conn).newOnDemandStream(name, 0);
+			// TODO: initial seeking?
+			onDemand.play(length);
+			break;
+			
+		case 2:
+			subscriber = ((IStreamCapableConnection) conn).newSubscriberStream(name, 0);
+			subscriber.start(0, length);
+			break;
+		}
 	}
 
 	public void publish(String name, String mode) {

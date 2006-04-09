@@ -115,6 +115,10 @@ public class Stream extends BaseStream implements Constants, IStream, IEventDisp
 		downstream.getData().sendStatus(pause);
 	}
 	
+	public boolean isPaused() {
+		return this.paused;
+	}
+	
 	public void resume(int resumeTS){
 		if (!paused) return;
 		paused = false;
