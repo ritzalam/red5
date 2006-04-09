@@ -203,7 +203,7 @@ public abstract class RTMPConnection extends BaseConnection
 			for(int i=0; i<streams.length; i++){
 				IStream stream = streams[i];
 				if(stream != null) {
-					stream.close();
+					streamService.deleteStream(this, stream.getStreamId());
 					streams[i] = null;
 				}
 			}
