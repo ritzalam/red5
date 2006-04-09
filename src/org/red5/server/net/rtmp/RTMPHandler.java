@@ -117,7 +117,7 @@ public class RTMPHandler
 		OutPacket sent = (OutPacket) message;
 		final byte channelId = sent.getDestination().getChannelId();
 		final IStream stream = conn.getStreamByChannelId(channelId);
-		if (stream!=null){
+		if (stream != null && (stream instanceof Stream)) {
 			((Stream) stream).written(sent.getMessage());
 		}
 	}
@@ -207,7 +207,7 @@ public class RTMPHandler
 				}
 			} else if(action.equals(ACTION_DISCONNECT)){
 				conn.close();
-			} else if (action.equals(ACTION_CREATE_STREAM) || action.equals(ACTION_DELETE_STREAM) || action.equals(ACTION_PUBLISH) || action.equals(ACTION_PLAY)){
+			} else if (action.equals(ACTION_CREATE_STREAM) || action.equals(ACTION_DELETE_STREAM) || action.equals(ACTION_PUBLISH) || action.equals(ACTION_PLAY) || action.equals(ACTION_CLOSE_STREAM)){
 				invokeCall(conn, call, conn.streamService);
 			} else {
 				invokeCall(conn, call);

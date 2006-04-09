@@ -7,6 +7,8 @@ public interface IStreamService {
 
 	public int createStream();
 	
+	public void closeStream();
+	
 	public void play(String name);
 	
 	public void play(String name, Double type);
@@ -15,5 +17,9 @@ public interface IStreamService {
 	
 	public void play(String name, Double type, int length, boolean flushPlaylist);
 	
+	public void publish(String name);
+	
 	public void publish(String name, String mode);
+	
+	public void publish(boolean dontStop);
 }

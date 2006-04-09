@@ -41,9 +41,9 @@ public class ScopeWrappingStreamManager
 	protected static Log log =
         LogFactory.getLog(ScopeWrappingStreamManager.class.getName());
 	
-	private IScope scope;
+	protected IScope scope;
 	private String streamDir = "streams";
-	private IFLVService flvService;
+	protected IFLVService flvService;
 
 	public ScopeWrappingStreamManager(IScope scope) {
 		this.scope = scope;
@@ -79,9 +79,24 @@ public class ScopeWrappingStreamManager
 		return result;
 	}
 	
+	protected String getStreamDirectory() {
+		return streamDir + "/";
+	}
+	
+	protected String getStreamFilename(String name) {
+		return getStreamFilename(name, null);
+	}
+	
+	protected String getStreamFilename(String name, String extension) {
+		String result = getStreamDirectory() + name;
+		if (extension != null && !extension.equals(""))
+			result += extension;
+		return result;
+	}
+	
 	public boolean hasOnDemandStream(String name) {
 		try {
-			File file = scope.getResources("streams/" + name)[0].getFile();
+			File file = scope.getResources(getStreamFilename(name))[0].getFile();
 			if (file.exists())
 				return true;
 		} catch (IOException e) {
@@ -95,7 +110,7 @@ public class ScopeWrappingStreamManager
 	public IOnDemandStream getOnDemandStream(String name) {
 		FileStreamSource source = null;
 		try {
-			File file = scope.getResources("streams/" + name)[0].getFile();
+			File file = scope.getResources(getStreamFilename(name))[0].getFile();
 			IFLV flv = flvService.getFLV(file);
 			source = new FileStreamSource(flv.reader());
 		} catch (IOException e) {
@@ -133,97 +148,4 @@ public class ScopeWrappingStreamManager
 		stream.close();
 	}
 	
-	/*
-	public void publishStream(Stream stream){
-		
-		// If we have a read mode stream, we shouldnt be publishing return
-		if(stream.getMode().equals(Stream.MODE_READ)) return;
-		
-		BroadcastStream multi = (BroadcastStream) published.get(stream.getName());
-		if (multi == null)
-			// sink doesn't exist, create new
-			multi = new BroadcastStream(scope);
-			
-		stream.setUpstream(multi);
-		published.put(stream.getName(),multi);
-		
-		// If the mode is live, we dont need to do anything else
-		if(stream.getMode().equals(Stream.MODE_LIVE)) return;
-		
-		// The mode must be record or append
-		try {
-			Resource res = scope.getResource("streams/" + stream.getName()+".flv");
-			if(stream.getMode().equals(Stream.MODE_RECORD) && res.exists()) 
-				res.getFile().delete();
-			if(!res.exists()) res = scope.getResource("streams/").createRelative(stream.getName()+".flv");
-			if(!res.exists()) res.getFile().createNewFile(); 
-			File file = res.getFile();
-			IFLV flv = flvService.getFLV(file);
-			IWriter writer = null; 
-			if(stream.getMode().equals(Stream.MODE_RECORD)) 
-				writer = flv.writer();
-			else if(stream.getMode().equals(Stream.MODE_APPEND))
-				writer = flv.append();
-			multi.subscribe(new FileStreamSink(scope, writer));
-		} catch (IOException e) {
-			log.error("Error recording stream: "+stream, e);
-		}
-	}
-	
-	public void deleteStream(Stream stream){
-		if (stream.getUpstream() != null && published.containsKey(stream.getName())) {
-			// Notify all clients that stream is no longer published
-			BroadcastStream multi = (BroadcastStream) published.get(stream.getName());
-			Status unpublish = new Status(Status.NS_PLAY_UNPUBLISHNOTIFY);
-			unpublish.setClientid(stream.getStreamId());
-			unpublish.setDetails(stream.getName());
-			Iterator it = multi.streams.iterator();
-			while (it.hasNext()) {
-				Stream s = (Stream) it.next();
-				s.getDownstream().getData().sendStatus(unpublish);
-			}
-			published.remove(stream.getName());
-		}
-		stream.close();
-	}
-	
-	public boolean isPublishedStream(String name){
-		return published.containsKey(name);
-	}
-	
-	public boolean isFileStream(String name) {
-		if (this.isPublishedStream(name))
-			// A stream cannot be published and file based at the same time
-			return false;
-		
-		try {
-			File file = scope.getResources("streams/" + name)[0].getFile();
-			if (file.exists())
-				return true;
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		return false;
-	}
-	
-	public IStreamSource lookupStreamSource(String name){
-		return createFileStreamSource(name);
-	}
-
-	protected IStreamSource createFileStreamSource(String name){
-		Resource[] resource = null;
-		FileStreamSource source = null;
-		try {
-			File file = scope.getResources("streams/" + name)[0].getFile();
-			IFLV flv = flvService.getFLV(file);
-			source = new FileStreamSource(flv.reader());
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return source;
-	}
-	*/
 }

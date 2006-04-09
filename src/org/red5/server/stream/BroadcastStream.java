@@ -90,13 +90,18 @@ public class BroadcastStream extends Stream
 	}
 
 	public void close(){
+		// Create copy of streams first because closing of a stream will modify
+		// the list of streams which will raise an exception otherwise.
+		LinkedList<ISubscriberStream> tmp = new LinkedList<ISubscriberStream>();
 		synchronized (streams) {
-			final Iterator<ISubscriberStream> it = streams.iterator();
-			while (it.hasNext()){
-				ISubscriberStream stream = it.next();
-				stream.close();
-			}
+			tmp.addAll(streams);
 			streams.clear();
+		}
+		
+		final Iterator<ISubscriberStream> it = tmp.iterator();
+		while (it.hasNext()){
+			ISubscriberStream stream = it.next();
+			stream.close();
 		}
 		
 		super.close();

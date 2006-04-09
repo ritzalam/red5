@@ -1,5 +1,13 @@
 package org.red5.server.stream;
 
+import java.io.File;
+import java.io.IOException;
+
+import javax.xml.transform.stream.StreamSource;
+
+import org.red5.io.flv.IFLV;
+import org.red5.io.flv.IFLVService;
+import org.red5.io.flv.IWriter;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
 import org.red5.server.api.Red5;
@@ -9,12 +17,18 @@ import org.red5.server.api.stream.IStream;
 import org.red5.server.api.stream.IStreamCapableConnection;
 import org.red5.server.api.stream.IStreamService;
 import org.red5.server.api.stream.ISubscriberStream;
+import org.springframework.core.io.Resource;
 
 public class ScopeWrappingStreamService extends ScopeWrappingStreamManager
 		implements IStreamService {
 
 	public ScopeWrappingStreamService(IScope scope) {
 		super(scope);
+	}
+	
+	private int getCurrentStreamId() {
+		// TODO: this must come from the current connection!
+		return 0;
 	}
 	
 	public int createStream() {
@@ -64,6 +78,8 @@ public class ScopeWrappingStreamService extends ScopeWrappingStreamManager
 		if (!(conn instanceof IStreamCapableConnection))
 			return;
 
+		int streamId = getCurrentStreamId();
+		
 		// it seems as if the number is sent multiplied by 1000
 		int num = (int)(type.doubleValue() / 1000.0);
 		if (num < -2)
@@ -110,35 +126,80 @@ public class ScopeWrappingStreamService extends ScopeWrappingStreamManager
 		IOnDemandStream onDemand;
 		switch (decision) {
 		case 0:
-			subscriber = ((IStreamCapableConnection) conn).newSubscriberStream(name, 0);
+			subscriber = ((IStreamCapableConnection) conn).newSubscriberStream(name, streamId);
 			subscriber.start(0, length);
 			break;
 			
 		case 1:
-			onDemand = ((IStreamCapableConnection) conn).newOnDemandStream(name, 0);
+			onDemand = ((IStreamCapableConnection) conn).newOnDemandStream(name, streamId);
 			// TODO: initial seeking?
 			onDemand.play(length);
 			break;
 			
 		case 2:
-			subscriber = ((IStreamCapableConnection) conn).newSubscriberStream(name, 0);
+			subscriber = ((IStreamCapableConnection) conn).newSubscriberStream(name, streamId);
 			subscriber.start(0, length);
 			break;
 		}
 	}
 
+	public void publish(String name) {
+		publish(name, Stream.MODE_LIVE);
+	}
+	
 	public void publish(String name, String mode) {
 		IConnection conn = Red5.getConnectionLocal();
 		if (!(conn instanceof IStreamCapableConnection))
 			return;
 		
-		if (!mode.equals("live"))
-			// TODO: impement other stream modes
+		IBroadcastStream stream = ((IStreamCapableConnection) conn).newBroadcastStream(name, getCurrentStreamId());
+		if (mode.equals(Stream.MODE_LIVE))
+			// Nothing more to do
 			return;
 		
-		// TODO: where can I get the current client id from?
-		IBroadcastStream stream = ((IStreamCapableConnection) conn).newBroadcastStream(name, 0);
-		
+		// Now the mode is either MODE_RECORD or MODE_APPEND
+		try {				
+			Resource res = scope.getResource(getStreamFilename(name, ".flv"));
+			if (mode.equals(Stream.MODE_RECORD) && res.exists()) 
+				res.getFile().delete();
+			
+			if (!res.exists())
+				res = scope.getResource(getStreamDirectory()).createRelative(name + ".flv");
+			
+			if (!res.exists())
+				res.getFile().createNewFile();
+			
+			File file = res.getFile();
+			IFLV flv = flvService.getFLV(file);
+			IWriter writer = null; 
+			if (mode.equals(Stream.MODE_RECORD)) 
+				writer = flv.writer();
+			else if (mode.equals(Stream.MODE_APPEND))
+				writer = flv.append();
+			stream.subscribe(new FileStreamSink(scope, writer));
+		} catch (IOException e) {
+			log.error("Error recording stream: " + stream, e);
+		}
 	}
 
+	public void publish(boolean dontStop) {
+		if (dontStop)
+			return;
+		
+		IConnection conn = Red5.getConnectionLocal();
+		if (!(conn instanceof IStreamCapableConnection))
+			return;
+		
+		IStream stream = ((IStreamCapableConnection) conn).getStreamById(getCurrentStreamId()+1);
+		stream.close();
+	}
+	
+	public void closeStream() {
+		IConnection conn = Red5.getConnectionLocal();
+		if (!(conn instanceof IStreamCapableConnection))
+			return;
+		
+		IStream stream = ((IStreamCapableConnection) conn).getStreamById(getCurrentStreamId()+1);
+		stream.close();
+	}
 }
