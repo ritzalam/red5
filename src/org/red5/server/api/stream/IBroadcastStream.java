@@ -1,5 +1,7 @@
 package org.red5.server.api.stream;
 
+import java.util.Iterator;
+
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  * 
@@ -41,4 +43,5 @@ public interface IBroadcastStream extends IStream {
 	 */
 	public void unsubscribe(ISubscriberStream stream);
 
+	public Iterator<ISubscriberStream> getSubscribers();
 }

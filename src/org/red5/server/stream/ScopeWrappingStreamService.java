@@ -5,6 +5,7 @@ import org.red5.server.api.IScope;
 import org.red5.server.api.Red5;
 import org.red5.server.api.stream.IBroadcastStream;
 import org.red5.server.api.stream.IOnDemandStream;
+import org.red5.server.api.stream.IStream;
 import org.red5.server.api.stream.IStreamCapableConnection;
 import org.red5.server.api.stream.IStreamService;
 import org.red5.server.api.stream.ISubscriberStream;
@@ -25,6 +26,24 @@ public class ScopeWrappingStreamService extends ScopeWrappingStreamManager
 		return ((IStreamCapableConnection) conn).reserveStreamId() + 1;
 	}
 
+	public void deleteStream(int number) {
+		IConnection conn = Red5.getConnectionLocal();
+		if (!(conn instanceof IStreamCapableConnection))
+			return;
+		
+		deleteStream((IStreamCapableConnection) conn, number);
+	}
+	
+	public void deleteStream(IStreamCapableConnection conn, int number) {
+		IStream stream = conn.getStreamById(number);
+		if (stream == null) {
+			// XXX: invalid request, we must return an error to the client here...
+		}
+		conn.deleteStreamById(number);
+		log.debug("Delete stream: "+stream+" number: "+number);
+		deleteStream(stream);
+	}
+	
 	public void play(String name) {
 		play(name, new Double(-2000.0), -1, false);
 

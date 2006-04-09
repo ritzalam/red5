@@ -1,5 +1,7 @@
 package org.red5.server.stream;
 
+import java.util.Iterator;
+
 import org.red5.server.BasicScope;
 import org.red5.server.api.IScope;
 import org.red5.server.api.IBasicScope;
@@ -30,6 +32,10 @@ public class BroadcastStreamScope extends BasicScope implements
 	
 	public void setDownstream(OutputStream downstream) {
 		this.stream.setDownstream(downstream);
+	}
+	
+	public Iterator<ISubscriberStream> getSubscribers() {
+		return this.stream.getSubscribers();
 	}
 	
 	public void subscribe(ISubscriberStream stream) {

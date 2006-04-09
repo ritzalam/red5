@@ -207,7 +207,7 @@ public class RTMPHandler
 				}
 			} else if(action.equals(ACTION_DISCONNECT)){
 				conn.close();
-			} else if (action.equals(ACTION_CREATE_STREAM) || action.equals(ACTION_PUBLISH) || action.equals(ACTION_PLAY)){
+			} else if (action.equals(ACTION_CREATE_STREAM) || action.equals(ACTION_DELETE_STREAM) || action.equals(ACTION_PUBLISH) || action.equals(ACTION_PLAY)){
 				invokeCall(conn, call, conn.streamService);
 			} else {
 				invokeCall(conn, call);

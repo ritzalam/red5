@@ -14,6 +14,7 @@ import org.red5.io.flv.IFLV;
 import org.red5.io.flv.IFLVService;
 import org.red5.io.flv.IWriter;
 import org.red5.io.flv.impl.FLVService;
+import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
 import org.red5.server.api.Red5;
@@ -110,6 +111,26 @@ public class ScopeWrappingStreamManager
 	public ISubscriberStream getSubscriberStream(String name) {
 		// TODO: implement this
 		return null;
+	}
+	
+	public void deleteStream(IStream stream) {
+		if (stream instanceof IBroadcastStream) {
+			// Notify all clients that stream is no longer published
+			Status unpublish = new Status(Status.NS_PLAY_UNPUBLISHNOTIFY);
+			unpublish.setClientid(stream.getStreamId());
+			unpublish.setDetails(stream.getName());
+			Iterator<ISubscriberStream> it = ((IBroadcastStream) stream).getSubscribers();
+			while (it.hasNext()) {
+				ISubscriberStream s = it.next();
+				if (s instanceof SubscriberStream)
+					((SubscriberStream) s).getDownstream().getData().sendStatus(unpublish);
+			}
+		}
+		
+		if (stream instanceof IBasicScope)
+			scope.removeChildScope((IBasicScope) stream);
+		
+		stream.close();
 	}
 	
 	/*

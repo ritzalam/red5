@@ -37,6 +37,13 @@ public abstract interface IStream {
 	public int getStreamId();
 	
 	/**
+	 * Get the name of the stream.
+	 * 
+	 * @return the name of the stream
+	 */
+	public String getName();
+	
+	/**
 	 * Get the current position in seconds
 	 * 
 	 * @return current position in seconds

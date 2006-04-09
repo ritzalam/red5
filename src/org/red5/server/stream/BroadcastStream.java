@@ -25,6 +25,10 @@ public class BroadcastStream extends Stream
 		super(scope, conn, Stream.MODE_LIVE);
 	}
 	
+	public Iterator<ISubscriberStream> getSubscribers() {
+		return streams.iterator();
+	}
+	
 	public void subscribe(ISubscriberStream stream){
 		synchronized (streams) {
 			streams.add(stream);
