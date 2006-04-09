@@ -316,4 +316,12 @@
     <locale-encoding-mapping><locale>zh_TW</locale><encoding>Big5</encoding></locale-encoding-mapping>   
   </locale-encoding-mapping-list>
 
+  <security-constraint>
+    <web-resource-collection>
+      <web-resource-name>Forbidden</web-resource-name>
+      <url-pattern>/WEB-INF/*</url-pattern>
+    </web-resource-collection>
+    <auth-constraint/>
+  </security-constraint>
+
 </web-app>
