@@ -28,6 +28,4 @@ public class BaseTest {
 		context = (IContext) spring.getBean("red5.context");
 	}
 	
-
-	
 }

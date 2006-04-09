@@ -65,7 +65,7 @@ public class Standalone {
 		log.info("RED5 Server (http://www.osflash.org/red5)");
 		log.info("Loading red5 global context from: "+red5Config);
 		
-		ContextSingletonBeanFactoryLocator.getInstance(red5Config).useBeanFactory("red5.net");
+		ContextSingletonBeanFactoryLocator.getInstance(red5Config).useBeanFactory("red5.common");
 
 		long startupIn = System.currentTimeMillis() - time;
 		log.debug("Startup done in: "+startupIn+" ms");

@@ -44,9 +44,7 @@
 		autowire="byType">
 		<property name="codecFactory" ref="rtmpCodecFactory" />
 	</bean>
-		
-	<bean id="jetty6.server" class="org.red5.server.JettyLoader" init-method="init" autowire="byType" />
-	
+			
 	<bean id="rtmpt.server" class="org.red5.server.net.rtmpt.RTMPTLoader" init-method="init" autowire="byType" />
 	
 </beans>

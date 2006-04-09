@@ -12,13 +12,16 @@ import org.red5.server.api.persistance.IPersistenceStore;
 import org.red5.server.api.service.IServiceInvoker;
 import org.red5.server.exception.ScopeHandlerNotFoundException;
 import org.red5.server.service.ServiceNotFoundException;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.access.ContextSingletonBeanFactoryLocator;
 import org.springframework.core.io.Resource;
 
 public class Context implements IContext, ApplicationContextAware {
 	
 	private ApplicationContext applicationContext; 
+	private BeanFactory coreContext;
 	private String contextPath = "";
 	
 	private IScopeResolver scopeResolver;
@@ -28,7 +31,8 @@ public class Context implements IContext, ApplicationContextAware {
 	private IPersistenceStore persistanceStore;
 	
 	public Context(){
-		
+		coreContext = ContextSingletonBeanFactoryLocator
+			.getInstance("red5.xml").useBeanFactory("red5.core").getFactory();
 	}
 	
 	public Context(ApplicationContext context, String contextPath){
@@ -129,6 +133,14 @@ public class Context implements IContext, ApplicationContextAware {
 
 	public IScope resolveScope(String host, String path) {
 		return scopeResolver.resolveScope(path);
+	}
+
+	public Object getBean(String beanId) {
+		return applicationContext.getBean(beanId);
+	}
+
+	public Object getCoreService(String beanId) {
+		return coreContext.getBean(beanId);
 	}
 	
 }

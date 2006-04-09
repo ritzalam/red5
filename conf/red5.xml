@@ -4,26 +4,40 @@
 
 	<!-- This file just wires together the context tree. Its accessed by ContextSingletonBeanFactoryLocator -->
 
+	<!-- First we load the common context, its shared between all the other contexts -->
 	<!-- Global context serves are the parent to all child contexts. -->
 	<bean id="red5.common"
   	    class="org.springframework.context.support.FileSystemXmlApplicationContext">
     	<constructor-arg><list><value>/conf/red5-common.xml</value></list></constructor-arg>
 	</bean>
 	
+	<!-- Then we load the core context, with the common as parent --> 
 	<!-- Context holding all the networking, users should need to edit. -->
-	<bean id="red5.net"
+	<bean id="red5.core"
   	    class="org.springframework.context.support.FileSystemXmlApplicationContext">
-    	<constructor-arg><list><value>/conf/red5-net.xml</value></list></constructor-arg>
+    	<constructor-arg><list><value>/conf/red5-core.xml</value></list></constructor-arg>
     	<constructor-arg><ref bean="red5.common" /></constructor-arg>
 	</bean>
 	
+	<!-- Then we load the global contexts, note its important this happens before jetty loads -->
+	<bean id="context.loader" 
+		class="org.red5.server.ContextLoader"
+		init-method="init">
+		<property name="parentContext" ref="red5.common" />
+		<property name="contextsConfig" value="red5.globals" />
+	</bean>
+	
+	<!-- Now we can load the servlet engine, this has to happen after the context are loaded -->
+	<bean id="jetty6.server" class="org.red5.server.JettyLoader" init-method="init" autowire="byType" />
+	
 	<!-- Default context. This can be shared between web app contexts -->
+	<!--
 	<bean id="default.context"
   	    class="org.springframework.context.support.FileSystemXmlApplicationContext">
     	<constructor-arg><value>/webapps/red5-default.xml</value></constructor-arg>
     	<constructor-arg><ref bean="red5.common" /></constructor-arg>
 	</bean>
-	
+	-->
 	<!-- You can add further contexts here. This allows for multiple separate global scopes -->
 	
 </beans>
