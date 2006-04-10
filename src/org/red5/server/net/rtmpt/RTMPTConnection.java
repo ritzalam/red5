@@ -15,14 +15,50 @@ import org.red5.server.net.rtmp.RTMPHandler;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.message.OutPacket;
 
+/*
+ * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * 
+ * Copyright © 2006 by respective authors (see below). All rights reserved.
+ * 
+ * This library is free software; you can redistribute it and/or modify it under the 
+ * terms of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either version 2.1 of the License, or (at your option) any later 
+ * version. 
+ * 
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY 
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+ * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License along 
+ * with this library; if not, write to the Free Software Foundation, Inc., 
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ */
+
+/**
+ * A RTMPT client / session.
+ * 
+ * @author The Red5 Project (red5@osflash.org)
+ * @author Joachim Bauch (jojo@struktur.de)
+ */
+
 public class RTMPTConnection extends RTMPConnection {
 
 	protected static Log log =
         LogFactory.getLog(RTMPTConnection.class.getName());
 	
-	// Start to increase the polling delay after this many empty results
+	/**
+	 * Start to increase the polling delay after this many empty results
+	 */
 	protected static final long INCREASE_POLLING_DELAY_COUNT = 10;
+	
+	/**
+	 * Polling delay to start with.
+	 */
 	protected static final byte INITIAL_POLLING_DELAY = 0;
+	
+	/**
+	 * Maximum polling delay. 
+	 */
 	protected static final byte MAX_POLLING_DELAY = 32;
 	
 	protected RTMP state;
@@ -45,24 +81,52 @@ public class RTMPTConnection extends RTMPConnection {
 		this.encoder = handler.getCodecFactory().getSimpleEncoder();
 	}
 	
+	/**
+	 * Return the client id for this connection.
+	 * 
+	 * @return the client id
+	 */
 	public String getId() {
 		return new Integer(this.hashCode()).toString();
 	}
 	
+	/**
+	 * Return the current decoder state.
+	 * 
+	 * @return the current decoder state.
+	 */
 	public ProtocolState getState() {
 		return this.state;
 	}
 	
+	/**
+	 * Return the polling delay to use.
+	 * 
+	 * @return the polling delay
+	 */
 	public byte getPollingDelay() {
 		return (byte) (this.pollingDelay + 1);
 	}
 	
+	/**
+	 * Decode data sent by the client.
+	 * 
+	 * @param data
+	 * 			the data to decode
+	 * @return a list of decoded objects
+	 */
 	public List decode(ByteBuffer data) {
 		this.buffer.put(data);
 		this.buffer.flip();
 		return this.decoder.decodeBuffer(this.state, this.buffer);
 	}
 
+	/**
+	 * Send RTMP packet down the connection.
+	 * 
+	 * @param packet
+	 * 			the packet to send
+	 */
 	public void write(OutPacket packet){
 		ByteBuffer data;
 		try {
@@ -81,12 +145,24 @@ public class RTMPTConnection extends RTMPConnection {
 		}
 	}
 
+	/**
+	 * Send raw data down the connection.
+	 * 
+	 * @param packet
+	 * 			the buffer containing the raw data
+	 */
 	public void rawWrite(ByteBuffer packet){
 		synchronized (this.pendingMessages) {
 			this.pendingMessages.add(packet);
 		}
 	}
 	
+	/**
+	 * Send event down the connection.
+	 * 
+	 * @param event
+	 * 			the event to send
+	 */
 	public void dispatchEvent(Object event) {
 		if (event instanceof ByteBuffer) {
 			rawWrite((ByteBuffer) event);
@@ -96,6 +172,13 @@ public class RTMPTConnection extends RTMPConnection {
 			log.error("Don't know how to dispatch event " + event);
 	}
 
+	/**
+	 * Return any pending messages up to a given size.
+	 * 
+	 * @param targetSize
+	 * 			the size the resulting buffer should have
+	 * @return a buffer containing the data to send or null if no messages are pending
+	 */
 	public ByteBuffer getPendingMessages(int targetSize) {
 		if (this.pendingMessages.isEmpty()) {
 			this.noPendingMessages += 1;

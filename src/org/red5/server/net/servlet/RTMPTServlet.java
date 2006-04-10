@@ -19,34 +19,86 @@ import org.red5.server.net.rtmpt.RTMPTConnection;
 import org.red5.server.net.rtmpt.RTMPTHandler;
 import org.red5.server.service.Call;
 
+/*
+ * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * 
+ * Copyright © 2006 by respective authors (see below). All rights reserved.
+ * 
+ * This library is free software; you can redistribute it and/or modify it under the 
+ * terms of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either version 2.1 of the License, or (at your option) any later 
+ * version. 
+ * 
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY 
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+ * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License along 
+ * with this library; if not, write to the Free Software Foundation, Inc., 
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ */
+
+/**
+ * Servlet that handles all RTMPT requests.
+ * 
+ * @author The Red5 Project (red5@osflash.org)
+ * @author Joachim Bauch (jojo@struktur.de)
+ */
+
 public class RTMPTServlet extends HttpServlet {
 
 	protected static Log log =
         LogFactory.getLog(RTMPTServlet.class.getName());
 
-	// RTMPT only supports POST with a content type of "application/x-fcs"
+	/**
+	 * HTTP request method to use for RTMPT calls.
+	 */
 	private static final String REQUEST_METHOD = "POST";
+	
+	/**
+	 * Content-Type to use for RTMPT requests / responses. 
+	 */
 	private static final String CONTENT_TYPE = "application/x-fcs";
 	
-	// Called to start RTMPT connection
+	/**
+	 * URL that is called to start a new RTMPT session.
+	 */
 	private static final String OPEN_REQUEST = "/open";
 	
-	// Called to close RTMPT connection
+	/**
+	 * URL that is called to close a RTMPT session.
+	 */
 	private static final String CLOSE_REQUEST = "/close";
 	
-	// Called to send data through RTMPT connection
+	/**
+	 * URL that is called to send data through a RTMPT connection. 
+	 */
 	private static final String SEND_REQUEST = "/send";
 	
-	// Called to poll RTMPT connection
+	/**
+	 * URL that is called to poll RTMPT connection for new events / data. 
+	 */
 	private static final String IDLE_REQUEST = "/idle";
 
-	// Try to generate responses that contain at least 32768 bytes data.
-	// Increasing this value results in better stream performance, but
-	// also increases the latency.
+	/**
+	 * Try to generate responses that contain at least 32768 bytes data.
+	 * Increasing this value results in better stream performance, but
+	 * also increases the latency.
+	 */
 	private static final int RESPONSE_TARGET_SIZE = 32768; 
 	
+	/**
+	 * Holds a map of client id -> client object.
+	 */
 	protected HashMap rtmptClients = new HashMap(); 
 	
+	/**
+	 * Return an error message to the client.
+	 * 
+	 * @param message
+	 * @param resp
+	 * @throws IOException
+	 */
 	protected void handleBadRequest(String message, HttpServletResponse resp)
 		throws IOException {
 		resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -56,6 +108,13 @@ public class RTMPTServlet extends HttpServlet {
 		resp.flushBuffer();
 	}
 	
+	/**
+	 * Return a single byte to the client.
+	 * 
+	 * @param message
+	 * @param resp
+	 * @throws IOException
+	 */
 	protected void returnMessage(byte message, HttpServletResponse resp)
 		throws IOException {
 		resp.setStatus(HttpServletResponse.SC_OK);
@@ -67,6 +126,13 @@ public class RTMPTServlet extends HttpServlet {
 		resp.flushBuffer();
 	}
 
+	/**
+	 * Return a message to the client.
+	 * 
+	 * @param message
+	 * @param resp
+	 * @throws IOException
+	 */
 	protected void returnMessage(String message, HttpServletResponse resp)
 		throws IOException {
 		resp.setStatus(HttpServletResponse.SC_OK);
@@ -78,6 +144,14 @@ public class RTMPTServlet extends HttpServlet {
 		resp.flushBuffer();
 	}
 	
+	/**
+	 * Return raw data to the client.
+	 * 
+	 * @param client
+	 * @param buffer
+	 * @param resp
+	 * @throws IOException
+	 */
 	protected void returnMessage(RTMPTConnection client, ByteBuffer buffer, HttpServletResponse resp)
 		throws IOException {
 		resp.setStatus(HttpServletResponse.SC_OK);
@@ -91,8 +165,8 @@ public class RTMPTServlet extends HttpServlet {
 		ServletUtils.copy(buffer.asInputStream(), output);
 	}
 
-	/*
-	 * Returns the client id from a url like /send/123456/12 -> 123456
+	/**
+	 * Return the client id from a url like /send/123456/12 -> 123456
 	 */
 	protected String getClientId(HttpServletRequest req) {
 		String path = req.getPathInfo();
@@ -109,6 +183,12 @@ public class RTMPTServlet extends HttpServlet {
 		return path;
 	}
 
+	/**
+	 * Get the RTMPT client for a session.
+	 * 
+	 * @param req
+	 * @return
+	 */
 	protected RTMPTConnection getClient(HttpServletRequest req) {
 		String id = getClientId(req);
 		if (id == "" || !rtmptClients.containsKey(id)) {
@@ -119,12 +199,25 @@ public class RTMPTServlet extends HttpServlet {
 		return (RTMPTConnection) rtmptClients.get(id);
 	}
 
+	/**
+	 * Skip data sent by the client.
+	 * 
+	 * @param req
+	 * @throws IOException
+	 */
 	protected void skipData(HttpServletRequest req) throws IOException {
 		ByteBuffer data = ByteBuffer.allocate(req.getContentLength());
 		ServletUtils.copy(req.getInputStream(), data.asOutputStream());
 		data.flip();
 	}
 	
+	/**
+	 * Send pending messages to client.
+	 * 
+	 * @param client
+	 * @param resp
+	 * @throws IOException
+	 */
 	protected void returnPendingMessages(RTMPTConnection client, HttpServletResponse resp)
 		throws IOException {
 		
@@ -138,6 +231,14 @@ public class RTMPTServlet extends HttpServlet {
 		returnMessage(client, data, resp);
 	}
 	
+	/**
+	 * Start a new RTMPT session.
+	 * 
+	 * @param req
+	 * @param resp
+	 * @throws ServletException
+	 * @throws IOException
+	 */
 	protected void handleOpen(HttpServletRequest req, HttpServletResponse resp) 
 		throws ServletException, IOException {
 		
@@ -156,6 +257,14 @@ public class RTMPTServlet extends HttpServlet {
 		returnMessage(client.getId() + "\n", resp);
 	}
 	
+	/**
+	 * Close a RTMPT session.
+	 * 
+	 * @param req
+	 * @param resp
+	 * @throws ServletException
+	 * @throws IOException
+	 */
 	protected void handleClose(HttpServletRequest req, HttpServletResponse resp) 
 		throws ServletException, IOException {
 
@@ -178,6 +287,14 @@ public class RTMPTServlet extends HttpServlet {
 		returnMessage((byte) 0, resp);
 	}
 
+	/**
+	 * Add data for an established session.   
+	 * 
+	 * @param req
+	 * @param resp
+	 * @throws ServletException
+	 * @throws IOException
+	 */
 	protected void handleSend(HttpServletRequest req, HttpServletResponse resp) 
 		throws ServletException, IOException {
 		
@@ -215,6 +332,14 @@ public class RTMPTServlet extends HttpServlet {
 		returnPendingMessages(client, resp);
 	}
 	
+	/**
+	 * Poll RTMPT session for updates.
+	 * 
+	 * @param req
+	 * @param resp
+	 * @throws ServletException
+	 * @throws IOException
+	 */
 	protected void handleIdle(HttpServletRequest req, HttpServletResponse resp) 
 		throws ServletException, IOException {
 		
@@ -230,6 +355,9 @@ public class RTMPTServlet extends HttpServlet {
 		returnPendingMessages(client, resp);
 	}
 	
+	/**
+	 * Main entry point for the servlet.
+	 */
 	protected void service(HttpServletRequest req, HttpServletResponse resp) 
 		throws ServletException, IOException {
 
