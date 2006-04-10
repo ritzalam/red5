@@ -27,7 +27,7 @@ public class CoreHandler implements IScopeHandler {
 		return true;
 	}
 
-	public boolean connect(IConnection conn) {
+	public boolean connect(IConnection conn, IScope scope) {
 		
 		log.debug("Connect to core handler ?");
 		
@@ -43,7 +43,7 @@ public class CoreHandler implements IScopeHandler {
 		return true;
 	}
 
-	public void disconnect(IConnection conn) {
+	public void disconnect(IConnection conn, IScope scope) {
 		// do nothing here
 	}
 

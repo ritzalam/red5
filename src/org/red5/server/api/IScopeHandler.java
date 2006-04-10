@@ -58,7 +58,7 @@ public interface IScopeHandler extends IEventHandler {
 	 * @param conn
 	 *            connection object
 	 */
-	boolean connect(IConnection conn);
+	boolean connect(IConnection conn, IScope scope);
 
 	/**
 	 * Called just after the a connection is disconnected
@@ -66,7 +66,7 @@ public interface IScopeHandler extends IEventHandler {
 	 * @param conn
 	 *            connection object
 	 */
-	void disconnect(IConnection conn);
+	void disconnect(IConnection conn, IScope scope);
 	
 	
 	boolean addChildScope(IBasicScope scope);

@@ -38,9 +38,9 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 		streamService = new ScopeWrappingStreamManager(scope);
 	}
 
-	public boolean connect(IConnection conn) {
-		if(isApp(conn.getScope())) return appConnect(conn);
-		else if(isRoom(conn.getScope())) return roomConnect(conn);
+	public boolean connect(IConnection conn, IScope scope) {
+		if(isApp(scope)) return appConnect(conn);
+		else if(isRoom(scope)) return roomConnect(conn);
 		else return false;
 	}
 
@@ -50,9 +50,9 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 		else return false;
 	}
 
-	public void disconnect(IConnection conn) {
-		if(isApp(conn.getScope())) appDisconnect(conn);
-		else if(isRoom(conn.getScope())) roomDisconnect(conn);
+	public void disconnect(IConnection conn, IScope scope) {
+		if(isApp(scope)) appDisconnect(conn);
+		else if(isRoom(scope)) roomDisconnect(conn);
 	}
 
 	public void stop(IScope scope) {

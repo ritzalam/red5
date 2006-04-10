@@ -41,11 +41,11 @@ public abstract class AbstractScopeAdapter implements IScopeHandler {
 		// nothing
 	}
 	
-	public boolean connect(IConnection conn) {
+	public boolean connect(IConnection conn, IScope scope) {
 		return canConnect;
 	}
 	
-	public void disconnect(IConnection conn) {
+	public void disconnect(IConnection conn, IScope scope) {
 		// nothing
 	}
 

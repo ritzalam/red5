@@ -175,11 +175,11 @@ public class Scope extends BasicScope implements IScope {
 	}
 	
 	public boolean hasHandler() {
-		return (handler != null);
+		return (handler != null || (hasParent() && getParent().hasHandler()));
 	}
 	
 	public IScopeHandler getHandler() {
-		if(hasHandler()) return handler;
+		if(handler != null) return handler;
 		else if(hasParent()) return getParent().getHandler();
 		else return null;
 	}
@@ -193,15 +193,20 @@ public class Scope extends BasicScope implements IScope {
 	}
 
 	public synchronized boolean connect(IConnection conn) {
+	   //log.debug("Connect: "+conn+" to "+this);
+	   //log.debug("has handler? "+hasHandler());
 	   if(hasParent() && !parent.connect(conn)) return false;
-	   if(hasHandler() && !handler.connect(conn)) return false;
+	   if(hasHandler() && !getHandler().connect(conn, this)) return false;
 	   final IClient client = conn.getClient();
+	   //log.debug("connected to: "+this);
 	   if(!clients.containsKey(client)){
-			if(hasHandler() && !handler.join(client, this)) return false;
+		    //log.debug("Joining: "+this);
+		    if(hasHandler() && !getHandler().join(client, this)) return false;
 			final Set<IConnection> conns = new HashSet<IConnection>();
 			conns.add(conn);
 			clients.put(conn.getClient(), conns);
 		} else {
+			
 			final Set<IConnection> conns = clients.get(client);
 			conns.add(conn);
 		}
@@ -217,7 +222,7 @@ public class Scope extends BasicScope implements IScope {
 			conns.remove(conn);
 			removeEventListener(conn);
 			if(hasHandler()) 
-				handler.disconnect(conn);
+				handler.disconnect(conn, this);
 			if(conns.isEmpty()) {
 				clients.remove(client);
 				if(hasHandler()){
