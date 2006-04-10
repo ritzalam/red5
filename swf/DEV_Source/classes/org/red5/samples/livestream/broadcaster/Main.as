@@ -36,6 +36,7 @@ class org.red5.samples.livestream.broadcaster.Main extends MovieClip {
 		
 		// setup cam
 		cam = Camera.get();
+		cam.setMode(480, 320, 15);
 		cam.setQuality(0,80);
 		
 		// setup mic
