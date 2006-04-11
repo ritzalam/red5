@@ -43,6 +43,9 @@ public class RTMPHandler
 	protected StatusObjectService statusObjectService;
 	protected IServer server;
 	
+	// XXX: HACK HACK HACK to support stream ids
+	private static ThreadLocal<Integer> streamLocal = new ThreadLocal<Integer>();
+	
 	public void setServer(IServer server) {
 		this.server = server;
 	}
@@ -51,6 +54,14 @@ public class RTMPHandler
 		this.statusObjectService = statusObjectService;
 	}
 
+	// XXX: HACK HACK HACK to support stream ids
+	public static int getStreamId() {
+		return streamLocal.get().intValue();
+	}
+	private static void setStreamId(int id) {
+		streamLocal.set(id);
+	}
+	
 	public void messageReceived(RTMPConnection conn, ProtocolState state, Object in) throws Exception {
 			
 		try {
@@ -69,6 +80,9 @@ public class RTMPHandler
 				
 			// Thread local performance ? Should we benchmark
 			Red5.setConnectionLocal(conn);
+			
+			// XXX: HACK HACK HACK to support stream ids
+			RTMPHandler.setStreamId(source.getStreamId());
 			
 			switch(message.getDataType()){
 			case TYPE_INVOKE:
@@ -242,15 +256,15 @@ public class RTMPHandler
 	
 	public void onPing(RTMPConnection conn, Channel channel, PacketHeader source, Ping ping){
 		final Ping pong = new Ping();
-		pong.setValue1((short)(ping.getValue1()+1));
-		pong.setValue2(ping.getValue2());
+		pong.setValue1((short) 4);
+		pong.setValue2(RTMPHandler.getStreamId());
 		channel.write(pong);
 		log.info(ping);
 		// No idea why this is needed, 
 		// but it was the thing stopping the new rtmp code streaming
 		final Ping pong2 = new Ping();
-		pong2.setValue1((short)0);
-		pong2.setValue2(1);
+		pong2.setValue1((short) 0);
+		pong2.setValue2(RTMPHandler.getStreamId());
 		channel.write(pong2);
 	}
 	

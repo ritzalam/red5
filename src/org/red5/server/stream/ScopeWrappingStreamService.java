@@ -17,6 +17,7 @@ import org.red5.server.api.stream.IStream;
 import org.red5.server.api.stream.IStreamCapableConnection;
 import org.red5.server.api.stream.IStreamService;
 import org.red5.server.api.stream.ISubscriberStream;
+import org.red5.server.net.rtmp.RTMPHandler;
 import org.springframework.core.io.Resource;
 
 public class ScopeWrappingStreamService extends ScopeWrappingStreamManager
@@ -28,7 +29,7 @@ public class ScopeWrappingStreamService extends ScopeWrappingStreamManager
 	
 	private int getCurrentStreamId() {
 		// TODO: this must come from the current connection!
-		return 0;
+		return RTMPHandler.getStreamId()-1;
 	}
 	
 	public int createStream() {
