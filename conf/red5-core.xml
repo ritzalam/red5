@@ -7,7 +7,9 @@
 	<!--<bean id="red5.server" class="org.red5.server.Server" init-method="init" />-->
 	<!--<bean id="jetty6.server" class="org.red5.server.JettyLoader" init-method="init" />-->
 	
-
+	<bean id="placeholderConfig" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+	    <property name="location" value="conf/red5.properties" />
+	</bean>
 		
 	<bean id="threadPoolFilter" class="org.apache.mina.filter.ThreadPoolFilter">
      <constructor-arg value="mina"/>
@@ -24,7 +26,7 @@
        <list>
          <!-- RTMP -->
          <bean class="org.apache.mina.integration.spring.Binding">
-           <property name="address" value="localhost:1935"/>
+           <property name="address" value="${rtmp.host_port}"/>
            <property name="handler" ref="rtmpMinaIoHandler"/>
          </bean>
        </list>
