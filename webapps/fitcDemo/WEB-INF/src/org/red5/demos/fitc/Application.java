@@ -17,8 +17,8 @@ public class Application extends ApplicationAdapter implements IPendingServiceCa
 	
 	private final static String CLIENT_ID = "fitc.ClientId";
 	
-	public boolean start(IScope scope) {
-		if (!super.start(scope))
+	public boolean appStart(IScope scope) {
+		if (!super.appStart(scope))
 			return false;
 		
 		// Initialize id generation
