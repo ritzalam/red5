@@ -9,4 +9,7 @@ public class Application extends ApplicationAdapter {
 		return val + val;
 	}
 
+    public Double add(Double a, Double b){
+        return a + b;
+    }
 }
