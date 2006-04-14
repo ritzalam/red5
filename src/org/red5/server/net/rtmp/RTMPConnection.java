@@ -276,14 +276,11 @@ public abstract class RTMPConnection extends BaseConnection
 	}
 	
 	public void invoke(IServiceCall call) {
-		Notify notify;
-		if (call instanceof IPendingServiceCall)
-			notify = new Invoke();
-		else
-			notify = new Notify();
-		notify.setCall(call);
+		// We need to use Invoke for all calls to the client
+		Invoke invoke = new Invoke();
+		invoke.setCall(call);
 		synchronized (invokeId) {
-			notify.setInvokeId(invokeId);
+			invoke.setInvokeId(invokeId);
 			if (call instanceof IPendingServiceCall) {
 				synchronized (pendingCalls) {
 					pendingCalls.put(invokeId, (IPendingServiceCall) call);
@@ -291,7 +288,7 @@ public abstract class RTMPConnection extends BaseConnection
 			}
 			invokeId += 1;
 		}
-		getChannel((byte) 3).write(notify);
+		getChannel((byte) 3).write(invoke);
 	}
 
 	public void invoke(String method) {
@@ -307,13 +304,9 @@ public abstract class RTMPConnection extends BaseConnection
 	}
 	
 	public void invoke(String method, Object[] params, IPendingServiceCallback callback) {
-		IServiceCall call;
-		if (callback != null) {
-			call = new PendingCall(method, params);
-			((IPendingServiceCall) call).registerCallback(callback);
-		} else {
-			call = new Call(method, params);
-		}
+		IPendingServiceCall call = new PendingCall(method, params);
+		if (callback != null)
+			call.registerCallback(callback);
 		
 		invoke(call);
 	}
