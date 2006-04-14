@@ -255,8 +255,8 @@ public abstract class RTMPConnection extends BaseConnection
 	}
 
 	@Override
-	public boolean connect(IScope newScope) {
-		if(super.connect(newScope)){
+	public boolean connect(IScope newScope, Object[] params) {
+		if(super.connect(newScope, params)){
 			sharedObjectService = new ScopeWrappingSharedObjectService(newScope);
 			streamService = new ScopeWrappingStreamService(newScope);
 			return true;
