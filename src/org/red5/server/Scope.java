@@ -103,7 +103,7 @@ public class Scope extends BasicScope implements IScope {
 
 	
 	public boolean addChildScope(IBasicScope scope){
-		if(hasHandler() && !handler.addChildScope(scope)) {
+		if(hasHandler() && !getHandler().addChildScope(scope)) {
 			log.debug("Failed to add child scope: "+scope+" to "+this);
 			return false;
 		}
