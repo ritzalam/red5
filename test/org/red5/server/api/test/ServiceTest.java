@@ -3,15 +3,15 @@ package org.red5.server.api.test;
 import junit.framework.JUnit4TestAdapter;
 
 import org.junit.Test;
-import org.red5.server.api.service.IServiceCall;
-import org.red5.server.service.Call;
+import org.red5.server.api.service.IPendingServiceCall;
+import org.red5.server.service.PendingCall;
 import static junit.framework.Assert.assertTrue;
 
 public class ServiceTest extends BaseTest {
 
 	@Test public void simpletest(){
-		IServiceCall call = new Call("echoService","echoString",new Object[]{"My String"});
-		call = context.getServiceInvoker().invoke(call, context);
+		IPendingServiceCall call = new PendingCall("echoService","echoString",new Object[]{"My String"});
+		context.getServiceInvoker().invoke(call, context);
 		assertTrue("result null",call.getResult()!=null);
 	}
 	

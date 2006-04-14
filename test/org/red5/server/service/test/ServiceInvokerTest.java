@@ -28,6 +28,7 @@ import junit.framework.TestCase;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.service.Call;
+import org.red5.server.service.PendingCall;
 import org.red5.server.service.ServiceInvoker;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -59,7 +60,7 @@ public class ServiceInvokerTest extends TestCase {
 
 	public void testSimpleEchoCall(){
 		Object[] params = new Object[]{"Woot this is cool"};
-		Call call = new Call("echoService","echoString", params);
+		PendingCall call = new PendingCall("echoService","echoString", params);
 		ServiceInvoker invoker = (ServiceInvoker) appCtx.getBean(ServiceInvoker.SERVICE_NAME);
 		invoker.invoke(call, appCtx);
 		Assert.assertEquals(call.isSuccess(), true);
