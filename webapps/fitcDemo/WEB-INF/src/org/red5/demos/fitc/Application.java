@@ -54,7 +54,7 @@ public class Application extends ApplicationAdapter implements IPendingServiceCa
 			
 			Object[] args = new Integer[1];
 			args[0] = id;
-			service.invoke("setId", args);
+			service.invoke("setId", args, this);
 		}
 		
 		return true;
