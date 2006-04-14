@@ -27,13 +27,12 @@ public class Application extends ApplicationAdapter implements IPendingServiceCa
 		}
 		return true;
 	}
-
-	public boolean connect(IConnection conn, IScope scope, Object[] params) {
-		if (!super.connect(conn, scope, params))
+	
+	public boolean appJoin(IClient client, IScope app) {
+		if (!super.appJoin(client, app))
 			return false;
 		
 		Integer id;
-		IClient client = conn.getClient();
 		if (!client.hasAttribute(CLIENT_ID)) {
 			// Generate new client id
 			synchronized (scope) {
@@ -49,6 +48,7 @@ public class Application extends ApplicationAdapter implements IPendingServiceCa
 		}
 		
 		// Send to client
+		IConnection conn = Red5.getConnectionLocal();
 		if (conn instanceof IServiceCapableConnection) {
 			IServiceCapableConnection service = (IServiceCapableConnection) conn;
 			
