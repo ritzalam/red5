@@ -31,6 +31,7 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.IContext;
+import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IServiceCall;
 import org.red5.server.api.service.IServiceInvoker;
 
@@ -116,8 +117,7 @@ public class ServiceInvoker  implements IServiceInvoker {
 		return new Object[]{null, null};
 	}
 	
-	public IServiceCall invoke(IServiceCall call, IContext context) {
-		
+	public void invoke(IServiceCall call, IContext context) {
 		String serviceName = call.getServiceName();
 		
 		log.debug("Service name " + serviceName);
@@ -139,17 +139,15 @@ public class ServiceInvoker  implements IServiceInvoker {
 			call.setException(new ServiceNotFoundException(serviceName));
 			call.setStatus(Call.STATUS_SERVICE_NOT_FOUND);
 			log.warn("Service not found: "+serviceName);
-			return call;
+			return;
 		} else {
 			log.debug("Service found: "+serviceName);
 		}
 		
-		return invoke(call, service);
+		invoke(call, service);
 	}
 
-
-	public IServiceCall invoke(IServiceCall call, Object service) {
-		
+	public void invoke(IServiceCall call, Object service) {
 		final String methodName = call.getServiceMethodName();
 		
 		Object[] args = call.getArguments();
@@ -168,7 +166,7 @@ public class ServiceInvoker  implements IServiceInvoker {
 		if (methodResult.length == 0 || methodResult[0] == null) {
 			call.setStatus(Call.STATUS_METHOD_NOT_FOUND);
 			call.setException(new MethodNotFoundException(methodName));
-			return call;
+			return;
 		}
 		
 		Object result = null;
@@ -183,7 +181,8 @@ public class ServiceInvoker  implements IServiceInvoker {
 			} else {
 				result = method.invoke(service, params);
 				log.debug("result: "+result);
-				call.setResult(result);
+				if (call instanceof IPendingServiceCall)
+					((IPendingServiceCall) call).setResult(result);
 				call.setStatus( result==null ? Call.STATUS_SUCCESS_NULL : Call.STATUS_SUCCESS_RESULT );
 			}
 		} catch (IllegalAccessException accessEx){
@@ -199,10 +198,6 @@ public class ServiceInvoker  implements IServiceInvoker {
 			call.setStatus(Call.STATUS_GENERAL_EXCEPTION);
 			log.error("Service invocation error",ex);
 		}
-
-		return call;
-		
 	}
 
-	
 }

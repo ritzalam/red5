@@ -30,6 +30,7 @@ import org.red5.server.net.rtmp.message.StreamBytesRead;
 import org.red5.server.net.rtmp.message.Unknown;
 import org.red5.server.net.rtmp.message.VideoData;
 import org.red5.server.service.Call;
+import org.red5.server.service.PendingCall;
 
 public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder {
 
@@ -440,29 +441,32 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder {
 	}
 
 	public void decodeInvoke(Invoke invoke){
-		
-		Input input = new Input(invoke.getData());
+		decodeNotify((Notify) invoke);
+	}
 	
+	public void decodeNotify(Notify notify){
+		Input input = new Input(notify.getData());
+		
 		String action = (String) deserializer.deserialize(input);
 		
 		if(log.isDebugEnabled())
 			log.debug("Action "+action);
 		
 		int invokeId = ((Number) deserializer.deserialize(input)).intValue();
-		invoke.setInvokeId(invokeId);
+		notify.setInvokeId(invokeId);
 				
 		Object[] params = new Object[]{};
 
-		if(invoke.getData().hasRemaining()){
+		if(notify.getData().hasRemaining()){
 			ArrayList paramList = new ArrayList();
 			
 			// Before the actual parameters we sometimes (connect) get a map
 			// of parameters, this is usually null, but if set should be passed
 			// to the connection object. 
 			final Map connParams = (Map) deserializer.deserialize(input);
-			invoke.setConnectionParams(connParams);
+			notify.setConnectionParams(connParams);
 			
-			while(invoke.getData().hasRemaining()){
+			while(notify.getData().hasRemaining()){
 				paramList.add(deserializer.deserialize(input));
 			}
 			params = paramList.toArray();
@@ -478,13 +482,13 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder {
 		String serviceName = (dotIndex==-1) ? null : action.substring(0,dotIndex);
 		String serviceMethod = (dotIndex==-1) ? action : action.substring(dotIndex+1, action.length());
 		
-		Call call = new Call(serviceName,serviceMethod,params);
-		
-		invoke.setCall(call);
-	}
-	
-	public void decodeNotify(Notify notify){
-
+		if (notify instanceof Invoke) {
+			PendingCall call = new PendingCall(serviceName,serviceMethod,params);
+			((Invoke) notify).setCall(call);
+		} else {
+			Call call = new Call(serviceName,serviceMethod,params);
+			notify.setCall(call);
+		}
 	}
 	
 	public void decodePing(Ping ping){

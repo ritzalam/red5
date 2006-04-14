@@ -9,7 +9,7 @@ import org.red5.server.api.IContext;
  */
 public interface IServiceInvoker {
 
-	public IServiceCall invoke(IServiceCall call, IContext context); // note no scope involved.
-	public IServiceCall invoke(IServiceCall call, Object service); // the service to use
+	public void invoke(IServiceCall call, IContext context); // note no scope involved.
+	public void invoke(IServiceCall call, Object service); // the service to use
 	
 }

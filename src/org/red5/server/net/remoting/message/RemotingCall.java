@@ -22,9 +22,9 @@ package org.red5.server.net.remoting.message;
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 
-import org.red5.server.service.Call;
+import org.red5.server.service.PendingCall;
 
-public class RemotingCall extends Call {
+public class RemotingCall extends PendingCall {
 
 	public static final String HANDLER_SUCCESS = "/onResult";
 	public static final String HANDLER_ERROR = "/onStatus";

@@ -13,6 +13,8 @@ import org.red5.server.api.IScope;
 import org.red5.server.api.so.ISharedObject;
 import org.red5.server.api.so.ISharedObjectCapableConnection;
 import org.red5.server.api.so.ISharedObjectService;
+import org.red5.server.api.service.IPendingServiceCall;
+import org.red5.server.api.service.IPendingServiceCallback;
 import org.red5.server.api.service.IServiceCall;
 import org.red5.server.api.service.IServiceCapableConnection;
 import org.red5.server.api.stream.IBroadcastStream;
@@ -21,9 +23,12 @@ import org.red5.server.api.stream.IOnDemandStream;
 import org.red5.server.api.stream.IStream;
 import org.red5.server.api.stream.IStreamCapableConnection;
 import org.red5.server.api.stream.ISubscriberStream;
+import org.red5.server.net.rtmp.message.Notify;
 import org.red5.server.net.rtmp.message.Invoke;
 import org.red5.server.net.rtmp.message.OutPacket;
 import org.red5.server.net.rtmp.message.Ping;
+import org.red5.server.service.Call;
+import org.red5.server.service.PendingCall;
 import org.red5.server.so.ScopeWrappingSharedObjectService;
 import org.red5.server.stream.BroadcastStream;
 import org.red5.server.stream.BroadcastStreamScope;
@@ -51,6 +56,8 @@ public abstract class RTMPConnection extends BaseConnection
 	protected ISharedObjectService sharedObjectService;
 	protected ScopeWrappingStreamService streamService;
 	protected HashMap<String,ISharedObject> sharedObjects;
+	protected Integer invokeId = new Integer(1);
+	protected HashMap<Integer,IPendingServiceCall> pendingCalls = new HashMap<Integer,IPendingServiceCall>();
 
 	public RTMPConnection(String type) {
 		// We start with an anonymous connection without a scope.
@@ -268,10 +275,57 @@ public abstract class RTMPConnection extends BaseConnection
 		}
 	}
 	
-	public IServiceCall invoke(IServiceCall call) {
-		Invoke invoke = new Invoke();
-		invoke.setCall(call);
-		getChannel((byte) 3).write(invoke);
-		return call;
+	public void invoke(IServiceCall call) {
+		Notify notify;
+		if (call instanceof IPendingServiceCall)
+			notify = new Invoke();
+		else
+			notify = new Notify();
+		notify.setCall(call);
+		synchronized (invokeId) {
+			notify.setInvokeId(invokeId);
+			if (call instanceof IPendingServiceCall) {
+				synchronized (pendingCalls) {
+					pendingCalls.put(invokeId, (IPendingServiceCall) call);
+				}
+			}
+			invokeId += 1;
+		}
+		getChannel((byte) 3).write(notify);
 	}
+
+	public void invoke(String method) {
+		invoke(method, null, null);
+	}
+	
+	public void invoke(String method, Object[] params) {
+		invoke(method, params, null);
+	}
+	
+	public void invoke(String method, IPendingServiceCallback callback) {
+		invoke(method, null, callback);
+	}
+	
+	public void invoke(String method, Object[] params, IPendingServiceCallback callback) {
+		IServiceCall call;
+		if (callback != null) {
+			call = new PendingCall(method, params);
+			((IPendingServiceCall) call).registerCallback(callback);
+		} else {
+			call = new Call(method, params);
+		}
+		
+		invoke(call);
+	}
+	
+	protected IPendingServiceCall getPendingCall(int invokeId) {
+		IPendingServiceCall result;
+		synchronized (pendingCalls) {
+			result = pendingCalls.get(invokeId);
+			if (result != null)
+				pendingCalls.remove(invokeId);
+		}
+		return result;
+	}
+	
 }

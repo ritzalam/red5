@@ -17,12 +17,8 @@ public interface IServiceCall  {
 
 	public abstract Exception getException();
 
-	public abstract Object getResult();
-	
 	public abstract void setStatus(byte status);
 
 	public abstract void setException(Exception exception);
-
-	public abstract void setResult(Object result);
 
 }

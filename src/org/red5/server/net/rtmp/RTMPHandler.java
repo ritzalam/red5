@@ -3,6 +3,8 @@ package org.red5.server.net.rtmp;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -15,6 +17,8 @@ import org.red5.server.api.IServer;
 import org.red5.server.api.so.ISharedObject;
 import org.red5.server.api.Red5;
 import org.red5.server.api.event.IEventDispatcher;
+import org.red5.server.api.service.IPendingServiceCall;
+import org.red5.server.api.service.IPendingServiceCallback;
 import org.red5.server.api.service.IServiceCall;
 import org.red5.server.api.stream.IStream;
 import org.red5.server.net.protocol.ProtocolState;
@@ -22,6 +26,7 @@ import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.net.rtmp.message.InPacket;
 import org.red5.server.net.rtmp.message.Invoke;
+import org.red5.server.net.rtmp.message.Notify;
 import org.red5.server.net.rtmp.message.Message;
 import org.red5.server.net.rtmp.message.OutPacket;
 import org.red5.server.net.rtmp.message.PacketHeader;
@@ -87,12 +92,15 @@ public class RTMPHandler
 			
 			switch(message.getDataType()){
 			case TYPE_INVOKE:
+				onInvoke(conn, channel, source, (Invoke) message);
+				break;
+				
 			case TYPE_NOTIFY: // just like invoke, but does not return
-				if (((Invoke) message).getCall() == null && stream != null)
+				if (((Notify) message).getCall() == null && stream != null)
 					// Stream metadata
 					((IEventDispatcher) stream).dispatchEvent(message);
 				else
-					onInvoke(conn, channel, source, (Invoke) message);
+					onInvoke(conn, channel, source, (Notify) message);
 				break;
 			case TYPE_PING:
 				onPing(conn, channel, source, (Ping) message);
@@ -174,10 +182,45 @@ public class RTMPHandler
 		return url.split("/")[2];
 	}
 	
-	public void onInvoke(RTMPConnection conn, Channel channel, PacketHeader source, Invoke invoke){
+	public void onInvoke(RTMPConnection conn, Channel channel, PacketHeader source, Notify invoke){
 		
 		log.debug("Invoke");
+		
 		final IServiceCall call = invoke.getCall();
+		if (call.getServiceMethodName().equals("_result") || call.getServiceMethodName().equals("onStatus")) {
+			final IPendingServiceCall pendingCall = conn.getPendingCall(invoke.getInvokeId());
+			Object[] args = call.getArguments(); 
+			if ((args != null) && (args.length > 0)) {
+				// TODO: can a client return multiple results?
+				pendingCall.setResult(args[0]);
+			}
+			
+			if (pendingCall != null) {
+				// The client sent a response to a previously made call.
+				Set<IPendingServiceCallback> callbacks = pendingCall.getCallbacks();
+				if (callbacks.isEmpty())
+					return;
+				
+				HashSet<IPendingServiceCallback> tmp = new HashSet<IPendingServiceCallback>();
+				tmp.addAll(callbacks);
+				Iterator<IPendingServiceCallback> it = tmp.iterator();
+				while (it.hasNext()) {
+					IPendingServiceCallback callback = it.next();
+					try {
+						callback.resultReceived(pendingCall);
+					} catch (Exception e) {
+						log.error("Error while executing callback " + callback, e);
+					}
+				}
+			}
+			return;
+		}
+		
+		// Make sure we don't use invoke ids that are used by the client
+		synchronized (conn.invokeId) {
+			if (conn.invokeId <= invoke.getInvokeId())
+				conn.invokeId = invoke.getInvokeId() + 1;
+		}
 		
 		if(call.getServiceName() == null){
 			log.info("call: "+call);
@@ -199,7 +242,8 @@ public class RTMPHandler
 						final IGlobalScope global = server.lookupGlobal(host,path);
 						if (global == null) {
 							call.setStatus(Call.STATUS_SERVICE_NOT_FOUND);
-							call.setResult(getStatus(NC_CONNECT_FAILED));
+							if (call instanceof IPendingServiceCall)
+								((IPendingServiceCall) call).setResult(getStatus(NC_CONNECT_FAILED));
 							log.info("No global scope found for " + path + " on " + host);
 							conn.close();
 						} else {
@@ -215,16 +259,19 @@ public class RTMPHandler
 								log.debug("connected");
 								log.debug("client: "+conn.getClient());
 								call.setStatus(Call.STATUS_SUCCESS_RESULT);
-								call.setResult(getStatus(NC_CONNECT_SUCCESS));
+								if (call instanceof IPendingServiceCall)
+									((IPendingServiceCall) call).setResult(getStatus(NC_CONNECT_SUCCESS));
 							} else {
 								log.debug("connect failed");
 								call.setStatus(Call.STATUS_ACCESS_DENIED);
-								call.setResult(getStatus(NC_CONNECT_REJECTED));
+								if (call instanceof IPendingServiceCall)
+									((IPendingServiceCall) call).setResult(getStatus(NC_CONNECT_REJECTED));
 							}
 						}
 					} catch (RuntimeException e) {
 						call.setStatus(Call.STATUS_GENERAL_EXCEPTION);
-						call.setResult(getStatus(NC_CONNECT_FAILED));
+						if (call instanceof IPendingServiceCall)
+							((IPendingServiceCall) call).setResult(getStatus(NC_CONNECT_FAILED));
 						log.error("Error connecting",e);
 					}
 				}
@@ -244,8 +291,8 @@ public class RTMPHandler
 			conn.close();
 		}
 		
-		if(invoke.isAndReturn()){
-		
+		if (invoke instanceof Invoke){
+			
 			if(call.getStatus() == Call.STATUS_SUCCESS_VOID ||
 				call.getStatus() == Call.STATUS_SUCCESS_NULL ){
 				log.debug("Method does not have return value, do not reply");

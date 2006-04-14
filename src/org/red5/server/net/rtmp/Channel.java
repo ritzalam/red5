@@ -12,6 +12,7 @@ import org.red5.server.net.rtmp.message.OutPacket;
 import org.red5.server.net.rtmp.message.PacketHeader;
 import org.red5.server.net.rtmp.message.Status;
 import org.red5.server.service.Call;
+import org.red5.server.service.PendingCall;
 
 public class Channel {
 
@@ -73,11 +74,19 @@ public class Channel {
 	}
 
 	public void sendStatus(Status status) {
-		final Call call = new Call(null,"onStatus",new Object[]{status});
 		final boolean andReturn = !status.getCode().equals(Status.NS_DATA_START);
-		final Invoke invoke = (andReturn) ? new Invoke() : new Notify();
-		invoke.setInvokeId(1);
-		invoke.setCall(call);
+		final Invoke invoke;
+		if (andReturn) {
+			final PendingCall call = new PendingCall(null,"onStatus",new Object[]{status});
+			invoke = new Invoke();
+			invoke.setInvokeId(1);
+			invoke.setCall(call);
+		} else {
+			final Call call = new Call(null,"onStatus",new Object[]{status});
+			invoke = (Invoke) new Notify();
+			invoke.setInvokeId(1);
+			((Notify) invoke).setCall(call);
+		}
 		write(invoke);
 	}
 

@@ -40,7 +40,6 @@ public class Call implements IServiceCall {
     protected String serviceName = null;
     protected String serviceMethodName = null;
     protected Object[] arguments = null;
-    protected Object result = null;
     protected byte status = STATUS_PENDING;
     protected Exception exception = null;
     
@@ -124,20 +123,6 @@ public class Call implements IServiceCall {
 		this.exception = exception;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.red5.server.service.ServiceCall#getResult()
-	 */
-	public Object getResult() {
-		return result;
-	}
-
-	/* (non-Javadoc)
-	 * @see org.red5.server.service.temp#setResult(java.lang.Object)
-	 */
-	public void setResult(Object result) {
-		this.result = result;
-	}
- 
 	public String toString(){
 		StringBuffer sb = new StringBuffer();
 		sb.append("Service: "+serviceName+" Method: "+serviceMethodName);

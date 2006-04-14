@@ -11,6 +11,8 @@ import org.red5.io.amf.AMF;
 import org.red5.io.amf.Output;
 import org.red5.io.object.Serializer;
 import org.red5.io.utils.BufferUtils;
+import org.red5.server.api.service.IPendingServiceCall;
+import org.red5.server.api.service.IServiceCall;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.protocol.SimpleProtocolEncoder;
 import org.red5.server.net.rtmp.RTMPUtils;
@@ -145,11 +147,11 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants {
 			encodeInvoke((Invoke) message);
 			break;
 		case TYPE_NOTIFY:
-			if (((Invoke) message).getCall() == null)
+			if (((Notify) message).getCall() == null)
 				// Stream metadata
-				encodeStreamMetadata((Invoke) message);
+				encodeStreamMetadata((Notify) message);
 			else
-				encodeInvoke((Invoke) message);
+				encodeInvoke((Notify) message);
 			break;
 		case TYPE_PING:
 			encodePing((Ping) message);
@@ -311,12 +313,13 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants {
 		}
 	}
 
-	public void encodeInvoke(Invoke invoke){
+	public void encodeInvoke(Notify invoke){
 		// TODO: tidy up here
 		// log.debug("Encode invoke");
 		Output output = new Output(invoke.getData());
 		
-		final boolean isPending =(invoke.getCall().getStatus()==Call.STATUS_PENDING);
+		final IServiceCall call = invoke.getCall();
+		final boolean isPending = (call.getStatus()==Call.STATUS_PENDING);
 		
 		if(!isPending){
 			if(log.isDebugEnabled())
@@ -331,10 +334,11 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants {
 		// dont know what this number does, so im just sending it back
 		serializer.serialize(output, new Integer(invoke.getInvokeId())); 
 		serializer.serialize(output, null);
-		if(!isPending){
+		if (!isPending && (invoke instanceof Invoke)){
+			IPendingServiceCall pendingCall = (IPendingServiceCall) call;
 			if(log.isDebugEnabled())
-				log.debug("Writing result: "+invoke.getCall().getResult());
-			serializer.serialize(output, invoke.getCall().getResult());
+				log.debug("Writing result: "+pendingCall.getResult());
+			serializer.serialize(output, pendingCall.getResult());
 		} else {
 			if(log.isDebugEnabled())
 				log.debug("Writing params");
@@ -367,7 +371,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants {
 		out.putInt(streamBytesRead.getBytesRead());
 	}
 	
-	public void encodeStreamMetadata(Invoke metaData){
+	public void encodeStreamMetadata(Notify metaData){
 		// Just seek to end of stream, we pass the published data to the clients
 		final ByteBuffer out = metaData.getData(); 
 		out.position(out.limit());
