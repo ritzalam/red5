@@ -193,10 +193,14 @@ public class Scope extends BasicScope implements IScope {
 	}
 
 	public synchronized boolean connect(IConnection conn) {
+		return connect(conn, null);
+	}
+	
+	public synchronized boolean connect(IConnection conn, Object[] params) {
 	   //log.debug("Connect: "+conn+" to "+this);
 	   //log.debug("has handler? "+hasHandler());
-	   if(hasParent() && !parent.connect(conn)) return false;
-	   if(hasHandler() && !getHandler().connect(conn, this)) return false;
+	   if(hasParent() && !parent.connect(conn, params)) return false;
+	   if(hasHandler() && !getHandler().connect(conn, this, params)) return false;
 	   final IClient client = conn.getClient();
 	   //log.debug("connected to: "+this);
 	   if(!clients.containsKey(client)){

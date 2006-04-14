@@ -187,7 +187,10 @@ public class RTMPHandler
 				if(action.equals(ACTION_CONNECT)){
 					log.debug("connect");
 					final Map params = invoke.getConnectionParams();
-					final String host = getHostname((String) params.get("tcUrl"));
+					String host = getHostname((String) params.get("tcUrl"));
+					if (host.endsWith(":1935"))
+						// Remove default port from connection string
+						host = host.substring(0, host.length() - 5);
 					final String path = (String) params.get("app");
 					final String sessionId = null;
 					conn.setup(host, path, sessionId, params);
@@ -202,7 +205,12 @@ public class RTMPHandler
 							final IContext context = global.getContext();
 							final IScope scope = context.resolveScope(path);
 							log.info("Connecting to: "+scope);
-							if(conn.connect(scope)){
+							boolean okayToConnect;
+							if (call.getArguments() != null)
+								okayToConnect = conn.connect(scope, call.getArguments());
+							else
+								okayToConnect = conn.connect(scope);
+							if (okayToConnect){
 								log.debug("connected");
 								log.debug("client: "+conn.getClient());
 								call.setStatus(Call.STATUS_SUCCESS_RESULT);

@@ -71,9 +71,13 @@ public class BaseConnection extends AttributeStore
 	}
 
 	public boolean connect(IScope newScope) {
+		return connect(newScope, null);
+	}
+
+	public boolean connect(IScope newScope, Object[] params) {
 		final Scope oldScope = scope;
 		scope = (Scope) newScope;
-		if(scope.connect(this)){
+		if (scope.connect(this, params)){
 			if(oldScope != null) 
 				oldScope.disconnect(this);
 			return true;

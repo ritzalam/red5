@@ -116,6 +116,7 @@ public interface IScope extends IBasicScope, ResourcePatternResolver {
 	public String getContextPath();
 	
 	public boolean connect(IConnection conn);
+	public boolean connect(IConnection conn, Object[] params);
 	public void disconnect(IConnection conn);
 	
 	

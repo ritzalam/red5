@@ -28,6 +28,10 @@ public class CoreHandler implements IScopeHandler {
 	}
 
 	public boolean connect(IConnection conn, IScope scope) {
+		return connect(conn, scope, null);
+	}
+		
+	public boolean connect(IConnection conn, IScope scope, Object[] params) {
 		
 		log.debug("Connect to core handler ?");
 		

@@ -69,6 +69,11 @@ public interface IConnection extends ICoreObject {
 	public boolean connect(IScope scope);
 
 	/**
+	 * Try to connect to the scope with a list of connection parameters.
+	 */
+	public boolean connect(IScope scope, Object[] params);
+
+	/**
 	 * Is the client connected to the scope
 	 * 
 	 * @return true if the connection is persistent or polling, otherwise false
