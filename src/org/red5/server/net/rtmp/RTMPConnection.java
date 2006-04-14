@@ -13,12 +13,15 @@ import org.red5.server.api.IScope;
 import org.red5.server.api.so.ISharedObject;
 import org.red5.server.api.so.ISharedObjectCapableConnection;
 import org.red5.server.api.so.ISharedObjectService;
+import org.red5.server.api.service.IServiceCall;
+import org.red5.server.api.service.IServiceCapableConnection;
 import org.red5.server.api.stream.IBroadcastStream;
 import org.red5.server.api.stream.IBroadcastStreamService;
 import org.red5.server.api.stream.IOnDemandStream;
 import org.red5.server.api.stream.IStream;
 import org.red5.server.api.stream.IStreamCapableConnection;
 import org.red5.server.api.stream.ISubscriberStream;
+import org.red5.server.net.rtmp.message.Invoke;
 import org.red5.server.net.rtmp.message.OutPacket;
 import org.red5.server.net.rtmp.message.Ping;
 import org.red5.server.so.ScopeWrappingSharedObjectService;
@@ -33,7 +36,7 @@ import org.red5.server.stream.SubscriberStream;
 import org.springframework.context.ApplicationContext;
 
 public abstract class RTMPConnection extends BaseConnection 
-	implements ISharedObjectCapableConnection, IStreamCapableConnection {
+	implements ISharedObjectCapableConnection, IStreamCapableConnection, IServiceCapableConnection {
 
 	protected static Log log =
         LogFactory.getLog(RTMPConnection.class.getName());
@@ -265,4 +268,10 @@ public abstract class RTMPConnection extends BaseConnection
 		}
 	}
 	
+	public IServiceCall invoke(IServiceCall call) {
+		Invoke invoke = new Invoke();
+		invoke.setCall(call);
+		getChannel((byte) 3).write(invoke);
+		return call;
+	}
 }

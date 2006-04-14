@@ -15,6 +15,7 @@ import org.red5.server.api.IServer;
 import org.red5.server.api.so.ISharedObject;
 import org.red5.server.api.Red5;
 import org.red5.server.api.event.IEventDispatcher;
+import org.red5.server.api.service.IServiceCall;
 import org.red5.server.api.stream.IStream;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.codec.RTMP;
@@ -142,7 +143,7 @@ public class RTMPHandler
 	}
 	
 	
-	public void invokeCall(RTMPConnection conn, Call call){
+	public void invokeCall(RTMPConnection conn, IServiceCall call){
 		final IScope scope = conn.getScope();
 		final IScopeHandler handler = scope.getHandler();
 		log.debug("Scope: " + scope);
@@ -157,7 +158,7 @@ public class RTMPHandler
 		context.getServiceInvoker().invoke(call, handler);
 	}
 	
-	public void invokeCall(RTMPConnection conn, Call call, Object service){
+	public void invokeCall(RTMPConnection conn, IServiceCall call, Object service){
 		final IScope scope = conn.getScope();
 		final IContext context = scope.getContext();
 		log.debug("Scope: " + scope);
@@ -176,7 +177,7 @@ public class RTMPHandler
 	public void onInvoke(RTMPConnection conn, Channel channel, PacketHeader source, Invoke invoke){
 		
 		log.debug("Invoke");
-		final Call call = invoke.getCall();
+		final IServiceCall call = invoke.getCall();
 		
 		if(call.getServiceName() == null){
 			log.info("call: "+call);

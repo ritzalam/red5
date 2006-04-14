@@ -2,13 +2,13 @@ package org.red5.server.net.rtmp.message;
 
 import java.util.Map;
 
-import org.red5.server.service.Call;
+import org.red5.server.api.service.IServiceCall;
 
 public class Invoke extends Message {
 	
 	private static final int INITIAL_CAPACITY = 1024;
 	
-	private Call call;
+	private IServiceCall call;
 	private int invokeId = 0;
 	private Map connectionParams = null;
 	private boolean andReturn = true;
@@ -17,11 +17,11 @@ public class Invoke extends Message {
 		super(TYPE_INVOKE,INITIAL_CAPACITY);
 	}
 
-	public Call getCall() {
+	public IServiceCall getCall() {
 		return call;
 	}
 
-	public void setCall(Call call) {
+	public void setCall(IServiceCall call) {
 		this.call = call;
 	}
 
