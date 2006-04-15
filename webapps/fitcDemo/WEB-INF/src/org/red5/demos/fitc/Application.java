@@ -1,8 +1,10 @@
 package org.red5.demos.fitc;
 
+import java.util.Iterator;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.adapter.ApplicationAdapter;
+import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
@@ -10,6 +12,7 @@ import org.red5.server.api.Red5;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IPendingServiceCallback;
 import org.red5.server.api.service.IServiceCapableConnection;
+import org.red5.server.api.stream.IBroadcastStream;
 
 public class Application extends ApplicationAdapter implements IPendingServiceCallback {
 
@@ -52,9 +55,7 @@ public class Application extends ApplicationAdapter implements IPendingServiceCa
 		if (conn instanceof IServiceCapableConnection) {
 			IServiceCapableConnection service = (IServiceCapableConnection) conn;
 			
-			Object[] args = new Integer[1];
-			args[0] = id;
-			service.invoke("setId", args, this);
+			service.invoke("setId", new Object[]{id}, this);
 		}
 		
 		return true;
@@ -62,6 +63,27 @@ public class Application extends ApplicationAdapter implements IPendingServiceCa
 
 	public void resultReceived(IPendingServiceCall call) { 
 		log.info("Received result: " + call.getResult());
+	}
+	
+	public boolean addChildScope(IBasicScope scope) {
+		if (!super.addChildScope(scope))
+			return false;
+		
+		if (scope instanceof IBroadcastStream) {
+			IConnection current = Red5.getConnectionLocal();
+			Iterator<IConnection> it = scope.getParent().getConnections();
+			while (it.hasNext()) {
+				IConnection conn = it.next();
+				if (conn.equals(current))
+					// Don't notify current client
+					continue;
+				
+				if (conn instanceof IServiceCapableConnection)
+					((IServiceCapableConnection) conn).invoke("newStream", new Object[]{scope.getName()}, this);
+			}
+		}
+		return true;
+		
 	}
 	
 };
