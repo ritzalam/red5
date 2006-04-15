@@ -187,7 +187,7 @@ public class RTMPHandler
 		log.debug("Invoke");
 		
 		final IServiceCall call = invoke.getCall();
-		if (call.getServiceMethodName().equals("_result") || call.getServiceMethodName().equals("onStatus")) {
+		if (call.getServiceMethodName().equals("_result") || call.getServiceMethodName().equals("_error")) {
 			final IPendingServiceCall pendingCall = conn.getPendingCall(invoke.getInvokeId());
 			Object[] args = call.getArguments(); 
 			if ((args != null) && (args.length > 0)) {
