@@ -323,19 +323,19 @@ public class Scope extends BasicScope implements IScope {
 	class ConnectionIterator implements Iterator<IConnection> {
 		
 		private Iterator setIterator; 
-		private Iterator connIterator;
-		private IConnection current;
+		private Iterator connIterator = null;
+		private IConnection current = null;
 		
 		public ConnectionIterator(){
 			setIterator = clients.values().iterator();
 		}
 		
 		public boolean hasNext() {
-			return connIterator.hasNext() || setIterator.hasNext();
+			return (connIterator != null && connIterator.hasNext()) || setIterator.hasNext();
 		}
 
 		public IConnection next() {
-			if(!connIterator.hasNext()){
+			if (connIterator == null || !connIterator.hasNext()){
 				if(!setIterator.hasNext()) return null;
 				connIterator = ((Set) setIterator.next()).iterator();
 			}
