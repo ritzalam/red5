@@ -6,7 +6,7 @@
 <property environment="env"/>
 
 <property name="java.home" value="${env.JAVA_HOME}" />
-<property name="java.target_version" value="1.4" />
+<property name="java.target_version" value="1.5" />
 
 <property name="src.dir" value="src"/>
 <property name="bin.dir" value="bin"/>
@@ -54,6 +54,48 @@
 			       target="${java.target_version}" >
 		
 		</javac>
+    
+	<javac 
+		sourcepath=""
+		srcdir="${src.dir}/../webapps/fitcDemo/WEB-INF/src"
+				   destdir="${classes.dir}" 
+			       debug="${debug.state}" 
+			       classpathref="project.classpath" 
+			       fork="yes" 
+			       verbose="no"
+			       nowarn="yes"
+			       executable="${java.home}/../bin/javac" 
+			       target="${java.target_version}" >
+		
+		</javac>
+    
+	<javac 
+		sourcepath=""
+		srcdir="${src.dir}/../webapps/oflaDemo/WEB-INF/src"
+				   destdir="${classes.dir}" 
+			       debug="${debug.state}" 
+			       classpathref="project.classpath" 
+			       fork="yes" 
+			       verbose="no"
+			       nowarn="yes"
+			       executable="${java.home}/../bin/javac" 
+			       target="${java.target_version}" >
+		
+		</javac>
+    
+	<javac 
+		sourcepath=""
+		srcdir="${src.dir}/../webapps/test/WEB-INF/src"
+				   destdir="${classes.dir}" 
+			       debug="${debug.state}" 
+			       classpathref="project.classpath" 
+			       fork="yes" 
+			       verbose="no"
+			       nowarn="yes"
+			       executable="${java.home}/../bin/javac" 
+			       target="${java.target_version}" >
+		
+		</javac>
 </target>
 
 <target name="jar" description="Make Archive" depends="compile">
@@ -82,11 +124,8 @@
 	<copy todir="${dist.dir}/conf">
 		<fileset dir="conf" />
 	</copy>
-	<copy todir="${dist.dir}/hosts">
-		<fileset dir="hosts" />
-	</copy>
-        <copy todir="${dist.dir}/webapps">
-                <fileset dir="webapps" />
+    <copy todir="${dist.dir}/webapps">
+        <fileset dir="webapps" />
 	</copy>
 	<copy todir="${dist.dir}">
 		<fileset dir="./">
@@ -171,12 +210,7 @@
 					<include name="index.html" />
 				</fileset>
 		</copy>
-		<copy todir="webdir/hosts">
-				<fileset dir="hosts">
-					<exclude name=".svn" />
-				</fileset>
-		</copy>
-		<war destfile="Red5.war" webxml="conf/web.xml">
+		<war destfile="Red5.war" webxml="conf/web-default.xml">
 		  <fileset dir="webdir"/>
 		  <lib dir="webdir/WEB-INF/lib"/>
 		</war>
