@@ -107,11 +107,15 @@ public class Scope extends BasicScope implements IScope {
 			log.debug("Failed to add child scope: "+scope+" to "+this);
 			return false;
 		}
-		log.debug("Add child scope: "+scope+" to "+this);
-		children.put(scope.getType() + SEPARATOR + scope.getName(),scope);
 		if(scope instanceof IScope){
 			// start the scope
+			if (hasHandler() && !getHandler().start((IScope) scope)) {
+				log.debug("Failed to start child scope: "+scope+" in "+this);
+				return false;
+			}
 		}
+		log.debug("Add child scope: "+scope+" to "+this);
+		children.put(scope.getType() + SEPARATOR + scope.getName(),scope);
 		return true;
 	} 
 	
@@ -120,6 +124,10 @@ public class Scope extends BasicScope implements IScope {
 	}
 	
 	public void removeChildScope(IBasicScope scope){
+		if (scope instanceof IScope) {
+			if (hasHandler())
+				getHandler().stop((IScope) scope);
+		}
 		children.remove(scope);
 	}
 	
