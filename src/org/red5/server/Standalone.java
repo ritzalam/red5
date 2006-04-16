@@ -2,12 +2,7 @@ package org.red5.server;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.mortbay.jetty.Handler;
-import org.mortbay.jetty.Server;
-import org.mortbay.jetty.webapp.WebAppContext;
-import org.mortbay.xml.XmlConfiguration;
 import org.springframework.context.access.ContextSingletonBeanFactoryLocator;
-import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5

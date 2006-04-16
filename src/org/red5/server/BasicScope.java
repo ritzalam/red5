@@ -43,6 +43,9 @@ public class BasicScope extends PersistableAttributeStore implements IBasicScope
 
 	public void removeEventListener(IEventListener listener) {
 		listeners.remove(listener);
+		if(isPersistant() && listeners.isEmpty()){
+			parent.removeChildScope(this);
+		} 
 	}
 
 	public Iterator<IEventListener> getEventListeners() {

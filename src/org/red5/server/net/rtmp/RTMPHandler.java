@@ -340,7 +340,6 @@ public class RTMPHandler
 			}
 		}
 		so = conn.sharedObjectService.getSharedObject(name);
-		
 		so.beginUpdate();
 		Iterator it = object.getEvents().iterator();
 		while (it.hasNext()) {

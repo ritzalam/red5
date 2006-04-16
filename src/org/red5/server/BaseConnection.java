@@ -12,6 +12,7 @@ import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
 import org.red5.server.api.event.IEvent;
+import org.red5.server.api.so.ISharedObject;
 
 public class BaseConnection extends AttributeStore 
 	implements IConnection {
@@ -92,9 +93,22 @@ public class BaseConnection extends AttributeStore
 	}
 	
 	public void close(){
-		if(isConnected()) {
-			log.debug("Close, disconnect from scope");
+		if(scope != null) {
+			log.debug("Close, disconnect from scope, and children");
+			for(IBasicScope basicScope : basicScopes){
+				basicScope.removeEventListener(this);
+			}
 			scope.disconnect(this);
+			
+			// XXX: HACK HACK HACK, this should not be needed, 
+			// the so should be in the basic scopes. Quick fix
+			Iterator<String>it = scope.getBasicScopeNames(ISharedObject.TYPE);
+			while(it.hasNext()){
+				String name = it.next();
+				IBasicScope so = scope.getBasicScope(ISharedObject.TYPE, name);
+				so.removeEventListener(this);
+			}
+			
 			scope=null;
 		} else {
 			log.debug("Close, not connected nothing to do.");

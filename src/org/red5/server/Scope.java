@@ -129,6 +129,10 @@ public class Scope extends BasicScope implements IScope {
 				getHandler().stop((IScope) scope);
 		}
 		children.remove(scope);
+		if (hasHandler()){
+			log.debug("Remove child scope");
+			getHandler().removeChildScope(scope);
+		}
 	}
 	
 	public boolean hasChildScope(String name){
@@ -316,7 +320,7 @@ public class Scope extends BasicScope implements IScope {
 			if(next != null){
 				final String result = next;
 				next = null;
-				return result;
+				return result.substring(prefix.length());
 			}
 			if(hasNext()) return next();
 			else return null;

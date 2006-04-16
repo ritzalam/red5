@@ -29,11 +29,13 @@ public class Application extends ApplicationAdapter implements IPendingServiceCa
 			return false;
 		
 		// Initialize id generation and list of streams
+		/*
 		if (ScopeUtils.isApp(scope)) {
 			synchronized (scope) {
 				scope.setAttribute(CLIENT_ID, 0);
 			}
 		}
+		*/
 		
 		// Every scope keeps a list of connected streams
 		synchronized (scope) {
@@ -50,6 +52,7 @@ public class Application extends ApplicationAdapter implements IPendingServiceCa
 		if (!ScopeUtils.isApp(scope))
 			return true;
 		
+		/*
 		Integer id;
 		if (!client.hasAttribute(CLIENT_ID)) {
 			// Generate new client id
@@ -64,14 +67,15 @@ public class Application extends ApplicationAdapter implements IPendingServiceCa
 			// Returning client
 			id = (Integer) client.getAttribute(CLIENT_ID);
 		}
+		*/
 		
 		// Send to client
 		IConnection conn = Red5.getConnectionLocal();
 		if (conn instanceof IServiceCapableConnection) {
 			IServiceCapableConnection service = (IServiceCapableConnection) conn;
 			
-			log.info("Setting id " + id + " for client " + client);
-			service.invoke("setId", new Object[]{id}, this);
+			log.info("Setting id " + client.getId() + " for client " + client);
+			service.invoke("setId", new Object[]{client.getId()}, this);
 		}
 		
 		return true;
@@ -84,7 +88,7 @@ public class Application extends ApplicationAdapter implements IPendingServiceCa
 	public boolean addChildScope(IBasicScope scope) {
 		if (!super.addChildScope(scope))
 			return false;
-		
+		log.debug("Adding stream");
 		if (scope instanceof IBroadcastStream) {
 			IConnection current = Red5.getConnectionLocal();
 			IScope parent = scope.getParent();
@@ -106,16 +110,16 @@ public class Application extends ApplicationAdapter implements IPendingServiceCa
 		}
 		return true;
 	}
-	
+
 	public void removeChildScope(IBasicScope scope) {
 		if (scope instanceof IBroadcastStream) {
 			IScope parent = scope.getParent();
 			synchronized (parent) {
 				Set<String> streams = (Set<String>) parent.getAttribute(STREAMS_ID);
+				log.debug("Remove stream:"+scope.getName());
 				streams.remove(scope.getName());
 			}
 		}
-		
 		super.removeChildScope(scope);
 	}
 	

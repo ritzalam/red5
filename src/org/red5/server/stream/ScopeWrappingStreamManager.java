@@ -129,6 +129,7 @@ public class ScopeWrappingStreamManager
 	}
 	
 	public void deleteStream(IStream stream) {
+		
 		if (stream instanceof IBroadcastStream) {
 			// Notify all clients that stream is no longer published
 			Status unpublish = new Status(Status.NS_PLAY_UNPUBLISHNOTIFY);
@@ -142,9 +143,11 @@ public class ScopeWrappingStreamManager
 			}
 		}
 		
-		if (stream instanceof IBasicScope)
+		if (stream instanceof IBasicScope){
+			log.info("Remove stream scope:" + stream);
 			scope.removeChildScope((IBasicScope) stream);
-		
+		}
+			
 		stream.close();
 	}
 	
