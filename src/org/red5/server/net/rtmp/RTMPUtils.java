@@ -65,7 +65,9 @@ public class RTMPUtils implements Constants {
 		buf.put(in.get());
 		buf.put(in.get());
 		buf.flip();
-		return buf.getInt();
+		int val = buf.getInt();
+		buf.release();
+		return val;
 	}
 	
 	public static int readMediumInt2(ByteBuffer in) {

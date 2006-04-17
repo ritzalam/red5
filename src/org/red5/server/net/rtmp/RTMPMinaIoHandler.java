@@ -66,7 +66,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter  {
 		out.put((byte)0x03);
 		out.fill((byte)0x00,Constants.HANDSHAKE_SIZE);
 		out.put(in).flip();
-		
+		//in.release();
 		session.write(out);
 		
 	}
@@ -79,6 +79,8 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter  {
 
 	public void sessionClosed(IoSession session) throws Exception {
 		final RTMP rtmp = (RTMP) session.getAttribute(RTMP.SESSION_KEY);
+		ByteBuffer buf = (ByteBuffer) session.getAttribute("buffer");
+		if(buf !=null ) buf.release();
 		final RTMPMinaConnection conn = (RTMPMinaConnection) session.getAttachment();
 		conn.close();
 	}

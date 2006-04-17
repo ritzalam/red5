@@ -1,8 +1,13 @@
 package org.red5.server.net.rtmp.message;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 
 public class Message implements Constants {
+	
+	protected static Log log =
+        LogFactory.getLog(Message.class.getName());
 	
 	private byte dataType = 0;
 	private int refCount = 0;
@@ -12,9 +17,9 @@ public class Message implements Constants {
 	
 	public Message(byte dataType, int initialCapacity){
 		this.dataType = dataType;
-		data = ByteBuffer.allocate(initialCapacity);
-		data.setAutoExpand(true);
-		data.acquire(); // this stops it being released
+		//data = ByteBuffer.allocate(initialCapacity);
+		//data.setAutoExpand(true);
+		//data.acquire(); // this stops it being released
 		acquire();
 	}
 
@@ -55,7 +60,7 @@ public class Message implements Constants {
 	}
 
 	protected void doRelease(){
-		// override
+		//this.data.release();
 	}
 	
 	public ByteBuffer getData() {
@@ -63,6 +68,10 @@ public class Message implements Constants {
 	}
 
 	public void setData(ByteBuffer data) {
+	    if(this.data != null && this.data != data) {
+	    	if(refCount > 0) this.data.release(); 
+	    	this.refCount = 1;
+	    }
 		this.data = data;
 	}
 	

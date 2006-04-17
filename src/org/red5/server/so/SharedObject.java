@@ -17,8 +17,8 @@ import org.apache.mina.common.ByteBuffer;
 import org.red5.io.amf.Input;
 import org.red5.io.amf.Output;
 import org.red5.io.object.Deserializer;
-import org.red5.server.api.Red5;
 import org.red5.server.api.IConnection;
+import org.red5.server.api.Red5;
 import org.red5.server.api.event.IEventListener;
 import org.red5.server.net.rtmp.Channel;
 import org.red5.server.net.rtmp.RTMPConnection;
@@ -91,14 +91,21 @@ public class SharedObject implements IPersistable, Constants {
 	private void sendUpdates() {
 		if (!ownerMessage.getEvents().isEmpty()) {
 			// Send update to "owner" of this update request
-			ownerMessage.setSoId(version);
-			ownerMessage.setSealed(false);
+			org.red5.server.net.rtmp.message.SharedObject syncOwner  = new org.red5.server.net.rtmp.message.SharedObject();
+			syncOwner.setName(name);
+			syncOwner.setTimestamp(0);
+			syncOwner.setType(persistent ? 2 : 0);
+			syncOwner.setSoId(version);
+			syncOwner.setSealed(false);
+			syncOwner.addEvents(ownerMessage.getEvents());
 
 			IConnection conn = Red5.getConnectionLocal();
 			Channel channel = ((RTMPConnection) conn).getChannel((byte) 3);
 			
 			if (channel != null) {
-				channel.write(ownerMessage);
+				//ownerMessage.acquire();
+
+				channel.write(syncOwner);
 				log.debug("Owner: " + channel);
 			} else
 				log.warn("No channel found for owner changes!?");

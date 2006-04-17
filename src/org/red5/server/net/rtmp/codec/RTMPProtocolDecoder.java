@@ -11,6 +11,7 @@ import org.apache.mina.common.ByteBuffer;
 import org.red5.io.amf.Input;
 import org.red5.io.object.Deserializer;
 import org.red5.io.utils.BufferUtils;
+import org.red5.server.DebugPooledByteBufferAllocator;
 import org.red5.server.net.protocol.ProtocolException;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.protocol.SimpleProtocolDecoder;
@@ -68,7 +69,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder {
 			   
 				final int oldPos = buffer.position();
 			    final Object decodedObject = decode( state, buffer );
-			    
+			    //DebugPooledByteBufferAllocator.setCodeSection(null);
 			    if(state.hasDecodedObject()){
 			    	result.add(decodedObject);
 			    	
@@ -106,6 +107,9 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder {
 	}
 
 	public Object decode(ProtocolState state, ByteBuffer in) throws ProtocolException {
+		
+		//DebugPooledByteBufferAllocator.setCodeSection("decode");
+		
 		try {
 		
 			final RTMP rtmp = (RTMP) state;
@@ -116,6 +120,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder {
 			}
 			
 			final int startPosition = in.position();
+			//log.info("Start: "+startPosition+" size:"+in.capacity());
 			
 			if(rtmp.getMode()==RTMP.MODE_SERVER){
 			
@@ -213,7 +218,9 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder {
 				rtmp.setLastReadPacket(channelId, packet);
 			}
 			
-			final ByteBuffer buf = packet.getMessage().getData();
+			if(packet.getMessage().getData() == null) 
+				packet.getMessage().setData(ByteBuffer.allocate(header.getSize()));
+			ByteBuffer buf = packet.getMessage().getData();
 			int readRemaining = header.getSize() - buf.position();
 			
 			int chunkSize = rtmp.getReadChunkSize();
@@ -256,6 +263,9 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder {
 					rtmp.setReadChunkSize(chunkSizeMsg.getSize());
 				}
 				rtmp.setLastReadPacket(channelId, null);
+				if(!packet.getMessage().isSealed() && packet.getMessage().getData() != null){
+					packet.getMessage().getData().release();
+				}
 				return packet;
 			} else { 
 				state.continueDecoding();
@@ -291,7 +301,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder {
 		
 		case HEADER_NEW:
 			header.setTimer(RTMPUtils.readUnsignedMediumInt(in));
-			header.setSize(RTMPUtils.readMediumInt(in));
+			header.setSize(RTMPUtils.readMediumInt2(in));
 			header.setDataType(in.get());
 			header.setStreamId(RTMPUtils.readReverseInt(in));
 			break;

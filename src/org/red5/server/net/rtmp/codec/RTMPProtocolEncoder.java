@@ -11,6 +11,7 @@ import org.red5.io.amf.AMF;
 import org.red5.io.amf.Output;
 import org.red5.io.object.Serializer;
 import org.red5.io.utils.BufferUtils;
+import org.red5.server.DebugPooledByteBufferAllocator;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IServiceCall;
 import org.red5.server.net.protocol.ProtocolState;
@@ -43,8 +44,12 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants {
 	
 	public ByteBuffer encode(ProtocolState state, Object message) throws Exception {
 			
+		//DebugPooledByteBufferAllocator.setCodeSection("encode");
+		
 		try {
 
+			
+			
 			final RTMP rtmp = (RTMP) state;
 		
 			if(message instanceof ByteBuffer){
@@ -63,16 +68,19 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants {
 			rtmp.setLastWriteHeader(channelId, header);
 			rtmp.setLastWritePacket(channelId, packet);
 
+			final int chunkSize =  rtmp.getWriteChunkSize();
+			int numChunks =  (int) Math.ceil(header.getSize() / (float) chunkSize);
+			
 			ByteBuffer buf = null;
-			buf = ByteBuffer.allocate(data.limit()+(int)Math.floor(data.limit()/128)); // FIX ME
-			buf.setAutoExpand(true);
+			final int bufSize = header.getSize() + 12 + (numChunks - 1 * 1);
+			buf = ByteBuffer.allocate(bufSize); // FIX ME
+			buf.setAutoExpand(false);
 
 			headers.flip();	
 			buf.put(headers);
 			headers.release();
 	
-			final int chunkSize =  rtmp.getWriteChunkSize();
-			int numChunks =  (int) Math.ceil(header.getSize() / (float) chunkSize);
+			
 			
 			// TODO: threadsafe way of doing this reusing the data here, im thinking a lock
 			for(int i=0; i<numChunks; i++){
@@ -96,23 +104,25 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants {
 			
 			// Once we have finished with the data buffer flip it for next use
 			data.flip();
-			
 			// this will destroy the packet if there are no more refs
+			
 			packet.getMessage().release();
 			
+			//DebugPooledByteBufferAllocator.setCodeSection(null);
 			return buf;
 			
 		} catch (RuntimeException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		//DebugPooledByteBufferAllocator.setCodeSection(null);
 		return null;
 	}
 
 		
 	public ByteBuffer encodeHeader(PacketHeader header, PacketHeader lastHeader){
 		
-		int headerSize = 9;
+		int headerSize = 12;
 		
 		ByteBuffer buf = ByteBuffer.allocate(headerSize);
 		
@@ -169,18 +179,23 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants {
 			encodeSharedObject((SharedObject) message);
 			break;
 		}
+		if(message.getData() == null){
+			message.setData(ByteBuffer.allocate(0));
+		}
 		message.getData().flip();
 		message.setSealed(true);
 		return message.getData();
 	}
 
 	private void encodeChunkSize(ChunkSize chunkSize) {
+		if(chunkSize.getData() == null) chunkSize.setData(ByteBuffer.allocate(4));
 		final ByteBuffer data = chunkSize.getData();
 		data.putInt(chunkSize.getSize());
 	}
 
 	private void encodeSharedObject(SharedObject so) {
-		final ByteBuffer data = so.getData();
+	
+		final ByteBuffer data = ByteBuffer.allocate(256).setAutoExpand(true);
 		java.nio.ByteBuffer strBuf;
 		int len;
 		
@@ -196,7 +211,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants {
 		while (it.hasNext()) {
 			
 			SharedObjectEvent event = (SharedObjectEvent) it.next();
-			log.info("encode: " + event);
+			//log.info("encode: " + event);
 			switch (event.getType()) {
 			case SO_CLIENT_INITIAL_DATA:
 				data.put(event.getType());
@@ -315,11 +330,13 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants {
 				log.error("Unknown event " + event.getType());
 			}
 		}
+		so.setData(data);
 	}
 
 	public void encodeInvoke(Notify invoke){
 		// TODO: tidy up here
 		// log.debug("Encode invoke");
+		if(invoke.getData()==null) invoke.setData(ByteBuffer.allocate(256).setAutoExpand(true));
 		Output output = new Output(invoke.getData());
 		
 		final IServiceCall call = invoke.getCall();
@@ -361,6 +378,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants {
 	}
 	
 	public void encodePing(Ping ping){
+		if(ping.getData()==null) ping.setData(ByteBuffer.allocate(16));
 		final ByteBuffer out = ping.getData();
 		out.putShort(ping.getValue1());
 		out.putInt(ping.getValue2());
@@ -371,12 +389,14 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants {
 	}
 	
 	public void encodeStreamBytesRead(StreamBytesRead streamBytesRead){
+		if(streamBytesRead.getData()==null) streamBytesRead.setData(ByteBuffer.allocate(4));
 		final ByteBuffer out = streamBytesRead.getData();
 		out.putInt(streamBytesRead.getBytesRead());
 	}
 	
 	public void encodeStreamMetadata(Notify metaData){
 		// Just seek to end of stream, we pass the published data to the clients
+		if(metaData.getData()==null) metaData.setData(ByteBuffer.allocate(256).setAutoExpand(true));
 		final ByteBuffer out = metaData.getData(); 
 		out.position(out.limit());
 	}

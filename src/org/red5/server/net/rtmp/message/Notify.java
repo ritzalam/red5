@@ -6,7 +6,7 @@ import org.red5.server.api.service.IServiceCall;
 
 public class Notify extends Message {
 
-	private static final int INITIAL_CAPACITY = 1024;
+	private static final int INITIAL_CAPACITY = 1111;
 	
 	protected IServiceCall call = null;
 	private int invokeId = 0;

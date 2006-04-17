@@ -2,7 +2,10 @@ package org.red5.server;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.mina.common.ByteBuffer;
 import org.springframework.context.access.ContextSingletonBeanFactoryLocator;
+import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.common.ByteBufferAllocator;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -50,6 +53,8 @@ public class Standalone {
 	 * @return void
 	 */
 	public static void main(String[] args) throws Exception {
+		
+		if(false) ByteBuffer.setAllocator(new DebugPooledByteBufferAllocator());
 		
 		if(args.length == 1) {
 			red5Config = args[0];
