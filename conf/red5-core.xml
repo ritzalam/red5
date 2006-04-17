@@ -6,6 +6,17 @@
 
 	<!--<bean id="red5.server" class="org.red5.server.Server" init-method="init" />-->
 	<!--<bean id="jetty6.server" class="org.red5.server.JettyLoader" init-method="init" />-->
+
+	<bean id="customEditorConfigurer" 
+	    class="org.springframework.beans.factory.config.CustomEditorConfigurer">
+	  <property name="customEditors">
+	    <map>
+	      <entry key="java.net.SocketAddress">
+	        <bean class="org.apache.mina.integration.spring.InetSocketAddressEditor" />
+	      </entry>
+	    </map>
+	  </property>
+	</bean>
 	
 	<bean id="placeholderConfig" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 	    <property name="location" value="classpath:/red5.properties" />
@@ -16,11 +27,18 @@
      <property name="maximumPoolSize" value="10"/>
    </bean>
 	
-	<bean id="socketAcceptor" class="org.apache.mina.integration.spring.SocketAcceptorFactoryBean">
+   <bean id="filterChainBuilder" 
+         class="org.apache.mina.integration.spring.DefaultIoFilterChainBuilderFactoryBean">
      <property name="filters">
        <list>
-         <ref local="threadPoolFilter"/>
+         <ref bean="threadPoolFilter" />
        </list>
+     </property>
+   </bean>
+	
+	<bean id="socketAcceptor" class="org.apache.mina.integration.spring.IoAcceptorFactoryBean">
+     <property name="target">
+       <bean class="org.apache.mina.transport.socket.nio.SocketAcceptor"/>
      </property>
      <property name="bindings">
        <list>
@@ -28,12 +46,17 @@
          <bean class="org.apache.mina.integration.spring.Binding">
            <property name="address" value="${rtmp.host_port}"/>
            <property name="handler" ref="rtmpMinaIoHandler"/>
+           <property name="serviceConfig">
+             <bean class="org.apache.mina.transport.socket.nio.SocketAcceptorConfig">
+               <property name="filterChainBuilder" ref="filterChainBuilder"/>
+               <property name="reuseAddress" value="true"/>
+             </bean>
+           </property>
          </bean>
        </list>
      </property>
-     <property name="reuseAddress" value="true"/>
    </bean> 	
-   
+      
 	<bean id="rtmpHandler" class="org.red5.server.net.rtmp.RTMPHandler"
 		autowire="byType" />
 		
