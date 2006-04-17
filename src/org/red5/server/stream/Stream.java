@@ -36,6 +36,9 @@ public class Stream extends BaseStream implements Constants, IStream, IEventDisp
 	private String name = "";
 	private boolean paused = false;
 	private String mode = MODE_READ;
+	private int video_ts = 0;
+	private int audio_ts = 0;
+	private int bytesReadPacketCount = 0;
 	
 	private OutputStream downstream = null;
 	private IStreamSource source = null;
@@ -274,9 +277,6 @@ public class Stream extends BaseStream implements Constants, IStream, IEventDisp
 		dispatchEvent(event.getObject());
 	}
 	
-	private int ts = 0;
-	private int bytesReadPacketCount = 0;
-	
 	public void publish(Message message){
 		ByteBuffer data = message.getData();
 		if (this.initialMessage && (message instanceof VideoData)) {
@@ -291,7 +291,13 @@ public class Stream extends BaseStream implements Constants, IStream, IEventDisp
 		if (this.videoCodec != null)
 			this.videoCodec.addData(data);
 		
-		ts += message.getTimestamp();
+		if (message instanceof AudioData) {
+			audio_ts += message.getTimestamp();
+			message.setTimestamp(audio_ts);
+		} else if (message instanceof VideoData) {
+			video_ts += message.getTimestamp();
+			message.setTimestamp(video_ts);
+		}
 		bytesRead += message.getData().limit();
 		if(bytesReadPacketCount < Math.floor(bytesRead / bytesReadInterval)){
 			bytesReadPacketCount++;
@@ -300,7 +306,6 @@ public class Stream extends BaseStream implements Constants, IStream, IEventDisp
 			log.debug(streamBytesRead);
 			conn.getChannel((byte)2).write(streamBytesRead);
 		}
-		message.setTimestamp(ts);
 		dispatchEvent(message);
 	}
 	
