@@ -82,7 +82,7 @@ public class Application extends ApplicationAdapter implements IPendingServiceCa
 	}
 
 	public void resultReceived(IPendingServiceCall call) { 
-		log.info("Received result: " + call.getResult());
+		log.info("Received result " + call.getResult() + " for " + call.getServiceMethodName());
 	}
 	
 	public boolean addChildScope(IBasicScope scope) {
