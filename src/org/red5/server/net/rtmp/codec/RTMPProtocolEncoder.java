@@ -247,10 +247,12 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants {
 						completeBuffer.putInt(sub.position());
 						sub.flip();
 						completeBuffer.put(sub);
+						sub.release();
 					}
 					
 					completeBuffer.flip();
 					data.put(completeBuffer);
+					completeBuffer.release();
 				} else {
 					// Update one attribute
 					ByteBuffer sub = ByteBuffer.allocate(128);
@@ -270,6 +272,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants {
 					data.putInt(sub.position());
 					sub.flip();
 					data.put(sub);
+					sub.release();
 				}
 				break;
 			
@@ -305,6 +308,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants {
 				data.putInt(sub.position());
 				sub.flip();
 				data.put(sub);
+				sub.release();
 				break;
 				
 			default:
