@@ -402,10 +402,11 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants {
 	}
 
 	public void encodeAudioData(AudioData audioData){
+		audioData.release();
 	}
 	
 	public void encodeVideoData(VideoData videoData){
-
+		videoData.release();
 	}
 
 	public void setSerializer(org.red5.io.object.Serializer serializer) {

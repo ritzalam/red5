@@ -301,7 +301,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder {
 		
 		case HEADER_NEW:
 			header.setTimer(RTMPUtils.readUnsignedMediumInt(in));
-			header.setSize(RTMPUtils.readMediumInt2(in));
+			header.setSize(RTMPUtils.readMediumInt(in));
 			header.setDataType(in.get());
 			header.setStreamId(RTMPUtils.readReverseInt(in));
 			break;
@@ -514,10 +514,12 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder {
 	}
 	
 	public void decodeAudioData(AudioData audioData){
+		audioData.acquire();
 		audioData.setSealed(true);
 	}
 	
 	public void decodeVideoData(VideoData videoData){
+		videoData.acquire();
 		videoData.setSealed(true);
 	}
 }

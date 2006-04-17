@@ -46,7 +46,8 @@ public class Message implements Constants {
 	public void release(){
 		refCount--;
 		if(refCount == 0){
-			data.release();
+			if (data != null)
+				data.release();
 			doRelease();
 		}
 	}
