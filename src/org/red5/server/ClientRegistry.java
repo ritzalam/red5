@@ -23,9 +23,13 @@ public class ClientRegistry implements IClientRegistry {
 	}
 
 	public IClient newClient() {
-		IClient client = new Client(nextId());
+		IClient client = new Client(nextId(), this);
 		clients.put(client.getId(), client);
 		return client;
 	}
 
+	protected void removeClient(IClient client) {
+		clients.remove(client.getId());
+	}
+	
 }

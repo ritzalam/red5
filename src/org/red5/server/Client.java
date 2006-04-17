@@ -18,10 +18,12 @@ public class Client extends AttributeStore
 	
 	protected String id;
 	protected long creationTime;
+	protected ClientRegistry registry;
 	protected HashMap<IConnection,IScope> connToScope = new HashMap<IConnection,IScope>();
 	
-	public Client(String id){
+	public Client(String id, ClientRegistry registry){
 		this.id = id;
+		this.registry = registry;
 		this.creationTime = System.currentTimeMillis();
 	}
 
@@ -65,6 +67,10 @@ public class Client extends AttributeStore
 	
 	void unregister(IConnection conn){
 		connToScope.remove(conn);
+		if (connToScope.isEmpty()) {
+			// This client is not connected to any scopes, remove from registry.
+			registry.removeClient(this);
+		}
 	}
 
 }

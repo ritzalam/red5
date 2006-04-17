@@ -40,7 +40,15 @@ public class BaseConnection extends AttributeStore
 	}
 	
 	public void initialize(IClient client){
+		if (this.client != null && this.client instanceof Client) {
+			// Unregister old client
+			((Client) this.client).unregister(this);
+		}
 		this.client = client;
+		if (this.client instanceof Client) {
+			// Register new client
+			((Client) this.client).register(this);
+		}
 	}
 	
 	public String getType(){
@@ -93,6 +101,11 @@ public class BaseConnection extends AttributeStore
 	}
 	
 	public void close(){
+		if (client != null && client instanceof Client) {
+			((Client) client).unregister(this);
+			client = null;
+		}
+		
 		if(scope != null) {
 			log.debug("Close, disconnect from scope, and children");
 			for(IBasicScope basicScope : basicScopes){
