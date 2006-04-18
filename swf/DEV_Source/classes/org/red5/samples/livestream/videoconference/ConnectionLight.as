@@ -1,12 +1,12 @@
 ﻿// ** AUTO-UI IMPORT STATEMENTS **
 // ** END AUTO-UI IMPORT STATEMENTS **
 import org.red5.utils.Delegate;
-import org.red5.net.Connection;
+import org.red5.samples.livestream.videoconference.Connection;
 
-class org.red5.ui.ConnectionLight extends MovieClip {
+class org.red5.samples.livestream.videoconference.ConnectionLight extends MovieClip {
 // Constants:
-	public static var CLASS_REF = org.red5.ui.ConnectionLight;
-	public static var LINKAGE_ID:String = "org.red5.ui.ConnectionLight";
+	public static var CLASS_REF = org.red5.samples.livestream.videoconference.ConnectionLight;
+	public static var LINKAGE_ID:String = "org.red5.samples.livestream.videoconference.ConnectionLight";
 // Public Properties:
 // Private Properties:
 	private var connection:Connection;

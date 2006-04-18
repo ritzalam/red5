@@ -1,13 +1,13 @@
 // ** AUTO-UI IMPORT STATEMENTS **
 import com.blitzagency.util.SimpleDialog;
-import mx.controls.TextInput;
-import org.red5.ui.ConnectionLight;
+import mx.controls.ComboBox;
+import org.red5.samples.livestream.videoconference.ConnectionLight;
 import org.red5.ui.controls.IconButton;
 // ** END AUTO-UI IMPORT STATEMENTS **
 import org.red5.samples.livestream.videoconference.Connection;
 import org.red5.utils.Delegate;
 import com.gskinner.events.GDispatcher;
-
+import com.blitzagency.util.LSOUserPreferences;
 
 class org.red5.samples.livestream.videoconference.Connector extends MovieClip 
 {
@@ -30,7 +30,7 @@ class org.red5.samples.livestream.videoconference.Connector extends MovieClip
 	private var connect:IconButton;
 	private var disconnect:IconButton;
 	private var light:ConnectionLight;
-	private var uri:TextInput;
+	private var uri:ComboBox;
 // ** END AUTO-UI ELEMENTS **
 
 // Initialization:
@@ -50,7 +50,9 @@ class org.red5.samples.livestream.videoconference.Connector extends MovieClip
 		disconnect._visible = false;
 		
 		// set the URI
-		uri.text = red5URI;
+		//uri.text = red5URI;
+		uri.addEventListener("change", Delegate.create(this, uriChange));
+		initURIList();		
 		
 		// setup the buttons
 		connect.addEventListener("click", Delegate.create(this, makeConnection));
@@ -67,18 +69,79 @@ class org.red5.samples.livestream.videoconference.Connector extends MovieClip
 		connection.addEventListener("close", Delegate.create(this, manageButtons));
 	}
 	
-	
+	public function initURIList():Void
+	{
+		LSOUserPreferences.load("VideoConference");
+		
+		var uriList:Array = LSOUserPreferences.getPreference("uriList");
+		if(uriList != undefined && uriList.length > 0)
+		{
+			uri.dataProvider = uriList;
+		}else
+		{
+			// add default values for now:
+			uri.addItem("rtmp://192.168.1.2/fitcDemo");
+			uri.addItem("rtmp://fancycode.com/fitcDemo");
+			uri.addItem("rtmp://69.64.37.77/fitcDemo");
+		}
+	}
 	
 	public function makeConnection(evtObj:Object):Void
 	{
 		if(uri.length > 0) 
 		{
-			var goodURI = connection.connect(uri.text, getTimer());
-			if(!goodURI) alert.show("Please check connection URI String and try again.");
+			var goodURI = connection.connect(uri.value, getTimer());
+			if(!goodURI) 
+			{
+				alert.show("Please check connection URI String and try again.");
+			}else
+			{
+				// update LSO
+				LSOUserPreferences.setPreference("uriList", uri.dataProvider, true);
+				addNewURI(uri.text);
+				
+			}
 		}
 	}
 // Semi-Private Methods:
 // Private Methods:
+	private function addNewURI(p_value:String):Void
+	{
+		if(!checkDuplicates(p_value)) uri.addItem({label:uri.text})
+	}
+	
+	private function checkDuplicates(p_value:String):Boolean
+	{
+		for(var i:Number=0;i<uri.dataProvider.length;i++)
+		{
+			if(uri.getItemAt(i).label == p_value) 
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private function uriChange(evtObj:Object):Void
+	{
+		if(uri.value.indexOf(" - clr") > -1)
+		{
+			removeFromList(String(uri.value.split(" -")[0]));
+		}
+	}
+	
+	private function removeFromList(p_value:String):Void
+	{
+		for(var i:Number=0;i<uri.dataProvider.length;i++)
+		{
+			if(uri.getItemAt(i).label == p_value) 
+			{
+				uri.removeItemAt(i);
+				uri.text = "";
+				break;
+			}
+		}
+	}
 
 	// FITC VIDEO CONFERENCE
 	private function newStream(evtObj:Object):Void

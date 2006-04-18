@@ -2,14 +2,14 @@
 import mx.controls.TextArea;
 import mx.controls.Button;
 import org.red5.samples.livestream.videoconference.VideoPool;
-import org.red5.samples.simplechat.BasicChat;
-import org.red5.samples.livestream.broadcaster.Broadcaster;
+import org.red5.samples.livestream.videoconference.Chat;
+import org.red5.samples.livestream.videoconference.Broadcaster;
 // ** END AUTO-UI IMPORT STATEMENTS **
 
-import org.red5.utils.GlobalObject;
+import org.red5.samples.livestream.videoconference.GlobalObject;
 import com.blitzagency.xray.util.XrayLoader;
 
-import com.dynamicflash.utils.Delegate;
+import org.red5.utils.Delegate;
 import org.red5.samples.livestream.videoconference.Connection;
 
 class org.red5.samples.livestream.videoconference.VideoConference extends MovieClip {
@@ -32,7 +32,7 @@ class org.red5.samples.livestream.videoconference.VideoConference extends MovieC
 	private var output:TextArea;
 	private var videoPool:VideoPool;
 	private var clearTrace:Button;
-	private var chat:BasicChat;
+	private var chat:Chat;
 // ** END AUTO-UI ELEMENTS **
 
 // Initialization:

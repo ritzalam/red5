@@ -48,9 +48,14 @@ class org.red5.samples.livestream.videoconference.Broadcaster extends MovieClip 
 		
 		// 4.18.2006 - removed per discussion with Luke/John about performance issues
 		//cam.setQuality(0,80);
+		cam.setQuality(0,70);
+		cam.setKeyFrameInterval(35);
+		cam.setMotionLevel(0,35000);
+		cam.setLoopback(false);
 		
 		// setup mic
-		mic = Microphone.get();
+		//mic = Microphone.get();
+		//mic.setSilenceLevel(25);
 		
 		// get notified of connection changes
 		connector.addEventListener("onSetID", this);
@@ -98,7 +103,7 @@ class org.red5.samples.livestream.videoconference.Broadcaster extends MovieClip 
 		
 		// add audio
 		// 4.18.2006 - removed per discussion with Luke/John about performance issues
-		stream.attachAudio(mic);
+		//stream.attachAudio(mic);
 		
 		stream.publish("videoStream_" + evtObj.id, "live");
 		
