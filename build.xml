@@ -181,6 +181,7 @@
 					<include name="commons-collections.jar" />
 					<include name="commons-logging.jar" />
 					<include name="jetty.jar" />
+					<include name="jetty-util.jar" />
 					<include name="jpda.jar" />
 					<include name="js.jar" />
 					<include name="junit.jar" />
@@ -188,7 +189,6 @@
 					<include name="mina-0.9.0.jar" />
 					<include name="slf4j-log4j12.jar" />
 					<include name="spring.jar" />
-					<include name="red5-IO.jar" />
 					<include name="spring-scripting-support.jar" />
 					<include name="xbean.jar" />
 					<include name="xbean_xpath.jar" />
