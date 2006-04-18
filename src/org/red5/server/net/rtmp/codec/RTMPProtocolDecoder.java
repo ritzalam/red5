@@ -514,12 +514,12 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder {
 	}
 	
 	public void decodeAudioData(AudioData audioData){
-		audioData.acquire();
+		//audioData.acquire();
 		audioData.setSealed(true);
 	}
 	
 	public void decodeVideoData(VideoData videoData){
-		videoData.acquire();
+		//videoData.acquire();
 		videoData.setSealed(true);
 	}
 }

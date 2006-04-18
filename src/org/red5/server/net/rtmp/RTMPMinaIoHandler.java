@@ -94,9 +94,10 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter  {
 		
 		session.getFilterChain().addFirst(
                 "protocolFilter", new ProtocolCodecFilter(this.codecFactory) );
-        session.getFilterChain().addLast(
+        if(log.isDebugEnabled()){
+        	session.getFilterChain().addLast(
                 "logger", new LoggingFilter() );
-        
+        }
 		session.setAttachment(new RTMPMinaConnection(session));		
 	}
    		

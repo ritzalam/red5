@@ -45,9 +45,12 @@ public class Message implements Constants {
 	
 	public void release(){
 		refCount--;
+		//log.info("RELEASE ? "+refCount);
 		if(refCount == 0){
-			if (data != null)
+			if (data != null){
+				//log.info("RELEASE MESSAGE : "+data.capacity());
 				data.release();
+			}
 			doRelease();
 		}
 	}

@@ -15,20 +15,15 @@ public class SharedObjectEvent
 	}
 	
 	public String getKey() {
-		// TODO Auto-generated method stub
-		return null;
+		return key;
 	}
 
 	public Type getType() {
-		// TODO Auto-generated method stub
-		return null;
+		return type;
 	}
 
 	public Object getValue() {
-		// TODO Auto-generated method stub
-		return null;
+		return value;
 	}
-
-	
 	
 }

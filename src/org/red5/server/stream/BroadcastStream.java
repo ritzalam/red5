@@ -65,15 +65,19 @@ public class BroadcastStream extends Stream
 	}
 
 	// push message to all connected streams
-	public void dispatchEvent(Object message) {
-		if (!(message instanceof Message))
+	public void dispatchEvent(Object obj) {
+		
+		if (!(obj instanceof Message))
 			return;
+		
+		Message message = (Message) obj;
 		
 		synchronized (streams) {
 			final Iterator<ISubscriberStream> it = streams.iterator();
 			while (it.hasNext()){
 				ISubscriberStream stream = it.next();
 				log.debug("Sending");
+				message.acquire();
 				if (stream instanceof IEventDispatcher)
 					((IEventDispatcher) stream).dispatchEvent(message);
 			}

@@ -277,27 +277,41 @@ public class Stream extends BaseStream implements Constants, IStream, IEventDisp
 		dispatchEvent(event.getObject());
 	}
 	
+	protected boolean useRuntimeTS = true;
+		
 	public void publish(Message message){
 		ByteBuffer data = message.getData();
 		if (this.initialMessage && (message instanceof VideoData)) {
 			this.initialMessage = false;
-			
+			startTime = System.currentTimeMillis();
 			if (this.videoCodecFactory != null) {
 				this.videoCodec = this.videoCodecFactory.getVideoCodec(data);
 				setVideoCodec(this.videoCodec);
 			}
 		}
 		
+		long runTime = System.currentTimeMillis() - startTime;
+		
 		if (this.videoCodec != null)
 			this.videoCodec.addData(data);
 		
 		if (message instanceof AudioData) {
 			audio_ts += message.getTimestamp();
-			message.setTimestamp(audio_ts);
+			if(useRuntimeTS) message.setTimestamp((int)runTime);
+			else message.setTimestamp(audio_ts);
+			
 		} else if (message instanceof VideoData) {
 			video_ts += message.getTimestamp();
-			message.setTimestamp(video_ts);
+			if(useRuntimeTS) message.setTimestamp((int)runTime);
+			else message.setTimestamp(video_ts);
 		}
+		
+		long lag = video_ts - runTime;
+		
+		// XXX: not sure my lag calc works, but runtimeTS seems to improve lag a little
+		//log.info("lag: "+lag);
+		//log.info("v:"+video_ts+" a:"+audio_ts+" lag:"+lag); 
+		
 		bytesRead += message.getData().limit();
 		if(bytesReadPacketCount < Math.floor(bytesRead / bytesReadInterval)){
 			bytesReadPacketCount++;
@@ -307,6 +321,7 @@ public class Stream extends BaseStream implements Constants, IStream, IEventDisp
 			conn.getChannel((byte)2).write(streamBytesRead);
 		}
 		dispatchEvent(message);
+		message.release();
 	}
 	
 	public void written(Message message){
