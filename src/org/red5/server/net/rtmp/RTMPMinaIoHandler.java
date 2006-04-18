@@ -8,6 +8,7 @@ import org.apache.mina.common.IoSession;
 import org.apache.mina.filter.LoggingFilter;
 import org.apache.mina.filter.codec.ProtocolCodecFactory;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
+import org.apache.mina.transport.socket.nio.SocketSessionConfig;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.message.Constants;
@@ -75,6 +76,21 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter  {
 		log.debug("messageSent");		
 		final RTMPMinaConnection conn = (RTMPMinaConnection) session.getAttachment();
 		handler.messageSent(conn, message);
+	}
+	
+	
+
+	@Override
+	public void sessionOpened(IoSession session) throws Exception {
+		// TODO Auto-generated method stub
+		
+		SocketSessionConfig cfg = (SocketSessionConfig) session.getConfig();
+		//cfg.setReceiveBufferSize(256);
+		//cfg.setSendBufferSize(256);
+		log.warn("Is tcp delay enabled: "+cfg.isTcpNoDelay());
+		cfg.setTcpNoDelay(true);
+		super.sessionOpened(session);
+		
 	}
 
 	public void sessionClosed(IoSession session) throws Exception {
