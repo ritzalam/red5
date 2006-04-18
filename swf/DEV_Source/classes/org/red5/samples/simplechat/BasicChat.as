@@ -1,10 +1,11 @@
 // ** AUTO-UI IMPORT STATEMENTS **
-import org.red5.ui.controls.IconButton;
+//import com.metaliq.controls.ColorPicker;
 import mx.controls.TextInput;
+import org.red5.ui.controls.IconButton;
 import mx.controls.TextArea;
 // ** END AUTO-UI IMPORT STATEMENTS **
 import org.red5.utils.GlobalObject;
-import org.red5.net.Connection;
+import org.red5.samples.livestream.videoconference.Connection;
 import org.red5.utils.Delegate;
 
 class org.red5.samples.simplechat.BasicChat extends MovieClip {
@@ -17,12 +18,16 @@ class org.red5.samples.simplechat.BasicChat extends MovieClip {
 	private var connected:Boolean;
 	private var so:GlobalObject;
 	private var history:Array;
+	private var chatID:String;
+	private var defaultUserName:String = "Looser User"
 // UI Elements:
 
 // ** AUTO-UI ELEMENTS **
 	private var chatBody:TextArea;
 	private var clearChat:IconButton;
+	private var clr:MovieClip;
 	private var message:TextInput;
+	private var userName:TextInput;
 // ** END AUTO-UI ELEMENTS **
 
 // Initialization:
@@ -35,13 +40,15 @@ class org.red5.samples.simplechat.BasicChat extends MovieClip {
 		connection = p_connection;
 	}
 	
-	public function connectSO():Void
+	public function connectSO(p_soName:String):Void
 	{
 		// parms
 		// @ SO name
 		// @ Connection reference
 		// @ persistance
-		connected = so.connect("SampleChat", connection, false);
+		if(p_soName == undefined) p_soName = "SampleChat";
+		chatID = p_soName;
+		connected = so.connect(p_soName, connection, false);
 	}
 // Semi-Private Methods:
 // Private Methods:
@@ -69,11 +76,20 @@ class org.red5.samples.simplechat.BasicChat extends MovieClip {
 		if(Key.getCode() == 13 && message.length > 0)
 		{
 			// send message
-			so.setData("simpleChat", message.text);
+			var msg = message.text;
+			msg = getUserName() + msg;
+			so.setData(chatID, msg);
 			
 			// clear text input
 			message.text = "";
 		}
+	}
+	
+	private function getUserName():String
+	{
+		var name:String = userName.text.length > 0 ? userName.text : defaultUserName;
+		var value:String = "<font color=\"" + clr.palette.cLabel.text + "\"><b>" + name + "</b></font> - ";
+		return value;
 	}
 	
 	private function clear():Void
@@ -88,7 +104,10 @@ class org.red5.samples.simplechat.BasicChat extends MovieClip {
 	private function newMessageHandler(evtObj:Object):Void
 	{
 		// we've been notified that there's a new message, go get it
-		var newChat:String = so.getData("simpleChat");
+		var newChat:String = so.getData(chatID);
+		
+		// return if newChat is null
+		if(newChat == null) return;
 		
 		// push to history
 		history.push(newChat);

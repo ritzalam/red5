@@ -1,9 +1,9 @@
 // ** AUTO-UI IMPORT STATEMENTS **
-import org.red5.utils.Connector;
+import org.red5.samples.livestream.videoconference.Connector;
 // ** END AUTO-UI IMPORT STATEMENTS **
 //import org.red5.utils.Delegate;
 import com.gskinner.events.GDispatcher;
-import org.red5.net.Connection;
+import org.red5.samples.livestream.videoconference.Connection;
 
 class org.red5.net.Stream extends NetStream {
 // Constants:
@@ -12,6 +12,7 @@ class org.red5.net.Stream extends NetStream {
 // Public Properties:
 	public var addEventListener:Function;
 	public var removeEventListener:Function;
+	public var debug:Boolean;
 // Private Properties:
 	private var dispatchEvent:Function;
 	private var connection:Connection;
@@ -31,10 +32,19 @@ class org.red5.net.Stream extends NetStream {
 	}
 
 // Public Methods:
+	public function setBuffer(p_time):Void
+	{
+		super.setBufferTime(p_time);
+	}
+	public function close():Void
+	{
+		super.close();
+	}
 // Semi-Private Methods:
 // Private Methods:
 	private function onStatus(evtObj:Object):Void 
 	{
+		if(debug) _global.tt("Stream.onStatus", evtObj.code);
 		switch(evtObj.code)
 		{
 			/*==========[ BUFFER NOTIFICATIONS ]=================*/
@@ -61,10 +71,6 @@ class org.red5.net.Stream extends NetStream {
 			
 			case "NetStream.Play.Start":
 				dispatchEvent({type:"playStart", code:evtObj.code, details:evtObj.details});
-			break;
-			
-			case "NetStream.Play.Stop":
-				dispatchEvent({type:"playStop", code:evtObj.code});
 			break;
 			
 			case "NetStream.Play.StreamNotFound":
