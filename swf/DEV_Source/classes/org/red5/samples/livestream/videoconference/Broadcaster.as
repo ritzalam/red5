@@ -50,7 +50,7 @@ class org.red5.samples.livestream.videoconference.Broadcaster extends MovieClip 
 		//cam.setQuality(0,80);
 		
 		// setup mic
-		//mic = Microphone.get();
+		mic = Microphone.get();
 		
 		// get notified of connection changes
 		connector.addEventListener("onSetID", this);
@@ -98,7 +98,7 @@ class org.red5.samples.livestream.videoconference.Broadcaster extends MovieClip 
 		
 		// add audio
 		// 4.18.2006 - removed per discussion with Luke/John about performance issues
-		//stream.attachAudio(mic);
+		stream.attachAudio(mic);
 		
 		stream.publish("videoStream_" + evtObj.id, "live");
 		
