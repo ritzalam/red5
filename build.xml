@@ -15,6 +15,7 @@
 <property name="classes.dir" value="bin"/>
 <property name="debug.state" value="true"/> 
 <property name="config.dir" value="conf"/>
+<property name="javadoc.dir" value="doc/api"/>
 
 <path id="project.classpath">
 	<fileset dir="${lib.dir}">
@@ -38,6 +39,7 @@
 <target name="clean">
 	<delete dir="${classes.dir}"/>
 	<delete dir="${bin.dir}"/>
+    <delete dir="${javadoc.dir}"/>
 </target>
 
 <target name="compile" depends="prepare">
@@ -98,6 +100,36 @@
 		</javac>
 </target>
 
+<target name="javadoc" description="Generate JavaDoc">
+    <javadoc
+        classpathref="project.classpath" 
+        destdir="${javadoc.dir}"
+        author="true"
+        version="true"
+        use="true"
+        splitindex="true"
+        windowtitle="Red5">
+        
+    <fileset dir="src" defaultexcludes="yes">
+        <include name="org/red5/**"/>
+        <exclude name="**/*.xml"/>
+        <exclude name="**/*.xsd"/>
+    </fileset>
+    
+    <doctitle><![CDATA[<h1>Red5 Server Documentation</h1>]]></doctitle>
+    <bottom><![CDATA[<i>Copyright &#169; 2006 <a href="http://osflash.org/red5" target="_blank">the Red5 project</a>.</i>]]></bottom>
+    <tag name="todo" scope="all" description="To do:"/>
+    <group title="Public API" packages="org.red5.server.api:org.red5.server.api.*"/>
+    <group title="Network Protocols" packages="org.red5.server.net:org.red5.server.net.*"/>
+    <group title="IO Packages" packages="org.red5.io:org.red5.io.*"/>
+    <link href="http://java.sun.com/j2se/1.5.0/docs/api"/>
+    <link href="http://jetty.mortbay.org/jetty6/jetty"/>
+    <link href="http://java.sun.com/j2se/1.5.0/docs/api"/>
+    <link href="http://directory.apache.org/subprojects/mina/apidocs"/>
+    <link href="http://www.springframework.org/docs/api"/>
+  </javadoc>
+</target>
+
 <target name="jar" description="Make Archive" depends="compile">
 	<jar destfile="red5.jar">
 		<fileset dir="${classes.dir}">
@@ -137,7 +169,7 @@
 	</copy>
 </target>
 
-<target name="installerdist" description="Make Installer Distribution" depends="dist">
+<target name="installerdist" description="Make Installer Distribution" depends="dist, javadoc">
     <copy todir="${dist.dir}">
         <fileset dir="./">
             <include name=".classpath" />
@@ -167,55 +199,56 @@
     </java>
 </target>
 
-	<target name="webwar" depends="compile">
-		<delete dir="webdir"/>
-		<mkdir dir="webdir"/>
-		<mkdir dir="webdir/WEB-INF"/>
-		<mkdir dir="webdir/WEB-INF/lib" />
-		<mkdir dir="webdir/conf" />
-		<mkdir dir="webdir/hosts" />
-		<copy todir="webdir/WEB-INF/lib">
-				<fileset dir="${lib.dir}">
-					<include name="cglib-nodep-2.1_2.jar" />
-					<include name="commons-beanutils.jar" />
-					<include name="commons-collections.jar" />
-					<include name="commons-logging.jar" />
-					<include name="jetty.jar" />
-					<include name="jetty-util.jar" />
-					<include name="jpda.jar" />
-					<include name="js.jar" />
-					<include name="junit.jar" />
-					<include name="log4j-1.2.9.jar" />
-					<include name="mina-0.9.0.jar" />
-					<include name="slf4j-log4j12.jar" />
-					<include name="spring.jar" />
-					<include name="spring-scripting-support.jar" />
-					<include name="xbean.jar" />
-					<include name="xbean_xpath.jar" />
-				</fileset>
-				<fileset dir="./">
-					<include name="red5.jar" />
-				</fileset>
-		</copy>
-		<copy todir="webdir/conf">
-				<fileset dir="./conf">
-					<include name="global.xml" />
-					<include name="log4j.properties" />
-					<include name="red5.properties" />
-					<include name="red5_web.xml" />
-				</fileset>
-		</copy>
-		<copy todir="webdir">
-				<fileset dir="./webapps/defaultApp">
-					<include name="index.html" />
-				</fileset>
-		</copy>
-		<war destfile="Red5.war" webxml="conf/web-default.xml">
-		  <fileset dir="webdir"/>
-		  <lib dir="webdir/WEB-INF/lib"/>
-		</war>
-		<delete dir="webdir"/>
-	</target>
-<target name="all" depends="clean, prepare, compile, jar, webwar"/>
+<target name="webwar" depends="compile">
+    <delete dir="webdir"/>
+    <mkdir dir="webdir"/>
+    <mkdir dir="webdir/WEB-INF"/>
+    <mkdir dir="webdir/WEB-INF/lib" />
+    <mkdir dir="webdir/conf" />
+    <mkdir dir="webdir/hosts" />
+    <copy todir="webdir/WEB-INF/lib">
+            <fileset dir="${lib.dir}">
+                <include name="cglib-nodep-2.1_2.jar" />
+                <include name="commons-beanutils.jar" />
+                <include name="commons-collections.jar" />
+                <include name="commons-logging.jar" />
+                <include name="jetty.jar" />
+                <include name="jetty-util.jar" />
+                <include name="jpda.jar" />
+                <include name="js.jar" />
+                <include name="junit.jar" />
+                <include name="log4j-1.2.9.jar" />
+                <include name="mina-0.9.0.jar" />
+                <include name="slf4j-log4j12.jar" />
+                <include name="spring.jar" />
+                <include name="spring-scripting-support.jar" />
+                <include name="xbean.jar" />
+                <include name="xbean_xpath.jar" />
+            </fileset>
+            <fileset dir="./">
+                <include name="red5.jar" />
+            </fileset>
+    </copy>
+    <copy todir="webdir/conf">
+            <fileset dir="./conf">
+                <include name="global.xml" />
+                <include name="log4j.properties" />
+                <include name="red5.properties" />
+                <include name="red5_web.xml" />
+            </fileset>
+    </copy>
+    <copy todir="webdir">
+            <fileset dir="./webapps/defaultApp">
+                <include name="index.html" />
+            </fileset>
+    </copy>
+    <war destfile="Red5.war" webxml="conf/web-default.xml">
+      <fileset dir="webdir"/>
+      <lib dir="webdir/WEB-INF/lib"/>
+    </war>
+    <delete dir="webdir"/>
+</target>
+
+<target name="all" depends="clean, prepare, compile, jar, webwar, javadoc"/>
 
 </project>
