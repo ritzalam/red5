@@ -48,7 +48,10 @@ public class ContextLoader implements ApplicationContextAware {
     	for(Object key : props.keySet()){
     		String name = (String) key;
     		String config = props.getProperty(name);
-    		log.debug("Loading: "+name+" = "+config);
+    		// TODO: we should support arbitrary property substitution
+    		config = config.replace("${red5.root}", System.getProperty("red5.root"));
+    		config = config.replace("${red5.config_root}", System.getProperty("red5.config_root"));
+    		log.info("Loading: "+name+" = "+config);
     		loadContext(name, config);
     	}
     	

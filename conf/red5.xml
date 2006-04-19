@@ -8,14 +8,14 @@
 	<!-- Global context serves are the parent to all child contexts. -->
 	<bean id="red5.common"
   	    class="org.springframework.context.support.FileSystemXmlApplicationContext">
-    	<constructor-arg><list><value>/conf/red5-common.xml</value></list></constructor-arg>
+    	<constructor-arg><list><value>classpath:/red5-common.xml</value></list></constructor-arg>
 	</bean>
 	
 	<!-- Then we load the core context, with the common as parent --> 
 	<!-- Context holding all the networking, users should need to edit. -->
 	<bean id="red5.core"
   	    class="org.springframework.context.support.FileSystemXmlApplicationContext">
-    	<constructor-arg><list><value>/conf/red5-core.xml</value></list></constructor-arg>
+    	<constructor-arg><list><value>classpath:/red5-core.xml</value></list></constructor-arg>
     	<constructor-arg><ref bean="red5.common" /></constructor-arg>
 	</bean>
 	

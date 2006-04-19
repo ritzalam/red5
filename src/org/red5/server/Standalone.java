@@ -1,5 +1,9 @@
 package org.red5.server;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.Iterator;
+import java.util.Properties;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
@@ -64,6 +68,48 @@ public class Standalone {
 		
 		log.info("RED5 Server (http://www.osflash.org/red5)");
 		log.info("Loading red5 global context from: "+red5Config);
+
+		// Detect root of Red5 configuration and set as system property
+		String root;
+		File fp = new File(red5Config);
+		fp = fp.getCanonicalFile();
+		if (!fp.isFile()) {
+			// Given file does not exist, search it on the classpath
+			String classpath = System.getProperty("java.class.path");
+			String[] paths = classpath.split(System.getProperty("path.separator"));
+			for (int i=0; i<paths.length; i++) {
+				fp = new File(paths[i] + "/" + red5Config);
+				fp = fp.getCanonicalFile();
+				if (fp.isFile())
+					break;
+			}
+		}
+		
+		if (!fp.isFile())
+			throw new Exception("could not find configuration file" + red5Config);
+		
+		root = fp.getAbsolutePath();
+		root = root.replace('\\', '/');
+		int idx = root.lastIndexOf('/');
+		root = root.substring(0, idx);
+		System.setProperty("red5.config_root", root);
+		log.info("Setting configuation root to " + root);
+		
+		// Setup system properties so they can be evaluated by Jetty
+		Properties props = new Properties();
+		props.load(new FileInputStream(root + "/red5.properties"));
+		Iterator it = props.keySet().iterator();
+		while (it.hasNext()) {
+			String key = (String) it.next();
+			if (key != null && !key.equals(""))
+				System.setProperty(key, props.getProperty(key));
+		}
+		
+		// Store root directory of Red5
+		idx = root.lastIndexOf('/');
+		root = root.substring(0, idx);
+		System.setProperty("red5.root", root);
+		log.info("Setting Red5 root to " + root);
 		
 		ContextSingletonBeanFactoryLocator.getInstance(red5Config).useBeanFactory("red5.common");
 

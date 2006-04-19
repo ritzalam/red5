@@ -106,7 +106,7 @@
     <!-- =========================================================== -->
     <Call class="org.mortbay.jetty.webapp.WebAppContext" name="addWebApplications">
       <Arg><Ref id="Server"/></Arg>
-      <Arg>./webapps/</Arg>
+      <Arg><SystemProperty name="red5.root" default="." />/webapps/</Arg>
       <Arg>web-default.xml</Arg>
       <Arg><Array type="java.lang.String">
 			<Item>org.mortbay.jetty.webapp.WebXmlConfiguration</Item>
@@ -136,7 +136,7 @@
         <Item>
           <New class="org.mortbay.jetty.security.HashUserRealm">
             <Set name="name">Test Realm</Set>
-            <Set name="config">conf/realm.properties</Set>
+            <Set name="config"><SystemProperty name="red5.config_root" default="conf" />/realm.properties</Set>
           </New>
         </Item>
       </Array>

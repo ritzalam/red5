@@ -1,1 +1,1 @@
-default.context=/webapps/red5-default.xml
+default.context=${red5.root}/webapps/red5-default.xml
