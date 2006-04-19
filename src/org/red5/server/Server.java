@@ -44,13 +44,16 @@ public class Server implements IServer, ApplicationContextAware {
 			contextPath = contextPath.substring(0,contextPath.lastIndexOf(SLASH));
 		}
 		key = getKey(hostName, contextPath);
-		log.debug("Check: "+key);
+		log.debug("Check host and path: "+key);
+		if(mapping.containsKey(key)) return getGlobal(mapping.get(key));
+		key = getKey(EMPTY, contextPath);
+		log.debug("Check wildcard host with path: "+key);
 		if(mapping.containsKey(key)) return getGlobal(mapping.get(key));
 		key = getKey(hostName, EMPTY);
-		log.debug("Check: "+key);
+		log.debug("Check host with no path: "+key);
 		if(mapping.containsKey(key)) return getGlobal(mapping.get(key));
 		key = getKey(EMPTY, EMPTY);
-		log.debug("Check: "+key);
+		log.debug("Check default host, default path: "+key);
 		return getGlobal(mapping.get(key));
 	}
 	

@@ -277,7 +277,9 @@ public class Stream extends BaseStream implements Constants, IStream, IEventDisp
 		dispatchEvent(event.getObject());
 	}
 	
-	protected boolean useRuntimeTS = true;
+	protected boolean calcTS = true;
+	protected boolean useServerTS = true;
+	
 		
 	public void publish(Message message){
 		ByteBuffer data = message.getData();
@@ -295,15 +297,17 @@ public class Stream extends BaseStream implements Constants, IStream, IEventDisp
 		if (this.videoCodec != null)
 			this.videoCodec.addData(data);
 		
-		if (message instanceof AudioData) {
-			audio_ts += message.getTimestamp();
-			if(useRuntimeTS) message.setTimestamp((int)runTime);
-			else message.setTimestamp(audio_ts);
-			
-		} else if (message instanceof VideoData) {
-			video_ts += message.getTimestamp();
-			if(useRuntimeTS) message.setTimestamp((int)runTime);
-			else message.setTimestamp(video_ts);
+		if(calcTS){
+			if (message instanceof AudioData) {
+				audio_ts += message.getTimestamp();
+				if(useServerTS) message.setTimestamp((int)runTime);
+				else message.setTimestamp(audio_ts);
+				
+			} else if (message instanceof VideoData) {
+				video_ts += message.getTimestamp();
+				if(useServerTS) message.setTimestamp((int)runTime);
+				else message.setTimestamp(video_ts);
+			}
 		}
 		
 		long lag = video_ts - runTime;

@@ -51,7 +51,10 @@ public class Red5WebPropertiesConfiguration implements Configuration, EventListe
             	String virtualHosts = props.getProperty("webapp.virtualHosts");
         		String[] hostnames = virtualHosts.split(",");
         		for (int i = 0; i < hostnames.length; i++) {
-        			String hostname = hostnames[i].trim();
+        			hostnames[i] = hostnames[i].trim();
+        			if(hostnames[i].equals("*")){
+        				hostnames[i] = "";
+        			}
         		}
     			getWebAppContext().setVirtualHosts(hostnames);
     			getWebAppContext().setContextPath(contextPath);

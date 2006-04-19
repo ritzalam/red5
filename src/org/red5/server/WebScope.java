@@ -50,6 +50,9 @@ public class WebScope extends Scope implements ServletContextAware {
 		hostnames = virtualHosts.split(",");
 		for (int i = 0; i < hostnames.length; i++) {
 			hostnames[i] = hostnames[i].trim();
+			if(hostnames[i].equals("*")){
+				hostnames[i] = "";
+			}
 		}
 	}
 
