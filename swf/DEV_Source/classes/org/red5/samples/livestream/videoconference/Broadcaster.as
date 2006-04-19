@@ -1,10 +1,14 @@
 // ** AUTO-UI IMPORT STATEMENTS **
+import mx.controls.NumericStepper;
+//import mx.controls.CheckBox;
 import org.red5.samples.livestream.videoconference.Connector;
 // ** END AUTO-UI IMPORT STATEMENTS **
 import com.neoarchaic.ui.Tooltip;
 import org.red5.net.Stream;
 import org.red5.utils.Delegate;
 import com.gskinner.events.GDispatcher;
+import com.blitzagency.util.SimpleDialog;
+import org.red5.samples.livestream.videoconference.VideoConference;
 
 class org.red5.samples.livestream.videoconference.Broadcaster extends MovieClip {
 // Constants:
@@ -13,17 +17,21 @@ class org.red5.samples.livestream.videoconference.Broadcaster extends MovieClip 
 // Public Properties:
 	public var addEventListener:Function;
 	public var removeEventListener:Function;
+	public var videoID:Number;
 // Private Properties:
 	private var dispatchEvent:Function;
 	private var stream:Stream;
 	private var cam:Camera;
 	private var mic:Microphone;
 	private var controller:MovieClip;
+	private var alert:SimpleDialog;
 // UI Elements:
 
 // ** AUTO-UI ELEMENTS **
+	//private var broadcastAudio:CheckBox;
 	private var connector:Connector;
 	private var public_video:MovieClip;
+	private var videoQuality:NumericStepper;
 // ** END AUTO-UI ELEMENTS **
 
 // Initialization:
@@ -31,9 +39,14 @@ class org.red5.samples.livestream.videoconference.Broadcaster extends MovieClip 
 	private function onLoad():Void { configUI(); }
 
 // Public Methods:
-	public function registerController(p_controller:MovieClip):Void
+	public function registerController(p_controller:VideoConference):Void
 	{
 		controller = p_controller;
+	}
+	
+	public function registerAlert(p_alert:SimpleDialog):Void
+	{
+		alert = p_alert;
 	}
 // Semi-Private Methods:
 // Private Methods:
@@ -42,20 +55,24 @@ class org.red5.samples.livestream.videoconference.Broadcaster extends MovieClip 
 		// setup the tooltip defaults
 		Tooltip.options = {size:10, font:"_sans", corner:0};
 		
+		// setup alerts
+		//broadcastAudio.addEventListener("click", Delegate.create(this, broadcastAudioChange));
+		videoQuality.addEventListener("change", Delegate.create(this, videoQualityChange));
+		alert = connector.alert;
+		
 		// setup cam
 		cam = Camera.get();
 		cam.setMode(160, 110, 8);
 		
 		// 4.18.2006 - removed per discussion with Luke/John about performance issues
 		//cam.setQuality(0,80);
-		cam.setQuality(0,70);
+		cam.setQuality(0,videoQuality.value);
 		cam.setKeyFrameInterval(35);
 		cam.setMotionLevel(0,35000);
 		cam.setLoopback(false);
 		
 		// setup mic
 		//mic = Microphone.get();
-		//mic.setSilenceLevel(25);
 		
 		// get notified of connection changes
 		connector.addEventListener("onSetID", this);
@@ -77,6 +94,18 @@ class org.red5.samples.livestream.videoconference.Broadcaster extends MovieClip 
 		
 		// initialize the connector
 		connector.configUI();	
+	}
+	
+	private function broadcastAudioChange(evtObj:Object):Void
+	{
+		if(!connector.connected) return;
+		alert.show("You need to reconnect to the server for this change to take affect");
+	}
+	
+	private function videoQualityChange(evtObj:Object):Void
+	{
+		if(!connector.connected) return;
+		alert.show("You need to reconnect to the server for this change to take affect");
 	}
 	
 	private function status(evtObj:Object):Void
@@ -103,14 +132,16 @@ class org.red5.samples.livestream.videoconference.Broadcaster extends MovieClip 
 		
 		// add audio
 		// 4.18.2006 - removed per discussion with Luke/John about performance issues
-		//stream.attachAudio(mic);
+		//if(broadcastAudio.selected) stream.attachAudio(mic);
 		
 		stream.publish("videoStream_" + evtObj.id, "live");
 		
 		// show it on screen
 		public_video.video.attachVideo(cam);
 		
+		videoID = evtObj.id;
 		controller.setID(evtObj.id, connector.connection);
+		
 		//dispatchEvent({type:"onSetID", id:evtObj.id})
 	}	
 	

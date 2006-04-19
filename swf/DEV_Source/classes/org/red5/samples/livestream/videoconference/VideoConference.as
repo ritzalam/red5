@@ -57,6 +57,9 @@ class org.red5.samples.livestream.videoconference.VideoConference extends MovieC
 		broadcaster.addEventListener("connected", this);
 		broadcaster.addEventListener("disconnected", this);
 		broadcaster.addEventListener("onSetID", this);
+		
+		chat.registerBroadcaster(broadcaster);
+		chat.addEventListener("onNewName", Delegate.create(videoPool, videoPool.updateName));
 	}
 	
 	private function clearOutput():Void
@@ -87,11 +90,13 @@ class org.red5.samples.livestream.videoconference.VideoConference extends MovieC
 	{
 		if(streamQue.length <= 0) 
 		{
+			chat.getNames();
 			clearInterval(si);
 			return;
 		}
 		
 		var id:Number = Number(streamQue.shift().split("_")[1]);
+		_global.tt("SUBSCRIBING", id, streamQue.length);
 		videoPool.subscribe(id);
 	}
 	
@@ -99,10 +104,12 @@ class org.red5.samples.livestream.videoconference.VideoConference extends MovieC
 	{
 		//set local videoID
 		videoID = Number(p_id);
+		_global.tt("VideoConference.setID called", p_id);
 		
 		// set connection
 		connection = p_connection;
 		
+		chat.configUI();
 		chat.registerConnection(p_connection);
 		chat.connectSO("videoConferenceChat");
 		
@@ -125,6 +132,8 @@ class org.red5.samples.livestream.videoconference.VideoConference extends MovieC
 	private function newStream(evtObj:Object):Void
 	{
 		_global.tt("NewStream Recieved", evtObj.newStream);
+		// new user, updates names
+		chat.getNames();
 		videoPool.subscribe(evtObj.newStream.split("_")[1]);
 	}
 	

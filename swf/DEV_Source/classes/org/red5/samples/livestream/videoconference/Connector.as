@@ -19,6 +19,7 @@ class org.red5.samples.livestream.videoconference.Connector extends MovieClip
 	public var addEventListener:Function;
 	public var removeEventListener:Function;
 	public var connection:Connection;
+	public var connected:Boolean;
 // Private Properties:
 	private var dispatchEvent:Function;
 	
@@ -26,7 +27,7 @@ class org.red5.samples.livestream.videoconference.Connector extends MovieClip
 // UI Elements:
 
 // ** AUTO-UI ELEMENTS **
-	private var alert:SimpleDialog;
+	public var alert:SimpleDialog;
 	private var connect:IconButton;
 	private var disconnect:IconButton;
 	private var light:ConnectionLight;
@@ -96,6 +97,7 @@ class org.red5.samples.livestream.videoconference.Connector extends MovieClip
 				alert.show("Please check connection URI String and try again.");
 			}else
 			{
+				connected = true;
 				// update LSO
 				LSOUserPreferences.setPreference("uriList", uri.dataProvider, true);
 				addNewURI(uri.text);
@@ -157,7 +159,11 @@ class org.red5.samples.livestream.videoconference.Connector extends MovieClip
 	
 	private function closeConnection(evtObj:Object):Void
 	{
-		if(connection.connected) connection.close();
+		if(connection.connected) 
+		{
+			connected = false;
+			connection.close();
+		}
 	}
 	
 	private function manageButtons(evtObj:Object):Void

@@ -27,6 +27,24 @@ class org.red5.samples.livestream.videoconference.VideoPool extends MovieClip {
 	private function onLoad():Void { configUI(); }
 
 // Public Methods:
+
+	public function updateName(evtObj:Object):Void
+	{
+		if(evtObj.name == undefined) return;
+		//_global.tt("VideoPool.updateName", evtObj.name, evtObj.videoID);
+		
+		for(var i:Number=0;i<subscriberList.length;i++)
+		{
+			var videoID:Number = subscriberList[i].videoStream.split("_")[1];
+			if(videoID == evtObj.videoID)
+			{
+				// we have a match, update the name
+				//_global.tt("found match", subscriberList[i]);
+				subscriberList[i].setUserName(evtObj.name);
+			}
+		}
+	}
+
 	public function resetAll():Void
 	{
 		// if the user disconnects, but doesn't close the client, reset all subscribers
