@@ -58,7 +58,8 @@
         -->
         <Item>
           <New class="org.mortbay.jetty.nio.SelectChannelConnector">
-            <Set name="port">5080</Set>
+            <Set name="port"><SystemProperty name="http.port" default="5080" /></Set>
+            <Set name="host"><SystemProperty name="http.host" default="0.0.0.0" /></Set>
             <Set name="maxIdleTime">50000</Set>
             <Set name="Acceptors">1</Set>
           </New>
