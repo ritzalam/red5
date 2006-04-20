@@ -189,14 +189,14 @@ public class RTMPHandler
 		final IServiceCall call = invoke.getCall();
 		if (call.getServiceMethodName().equals("_result") || call.getServiceMethodName().equals("_error")) {
 			final IPendingServiceCall pendingCall = conn.getPendingCall(invoke.getInvokeId());
-			Object[] args = call.getArguments(); 
-			if ((args != null) && (args.length > 0)) {
-				// TODO: can a client return multiple results?
-				pendingCall.setResult(args[0]);
-			}
-			
 			if (pendingCall != null) {
 				// The client sent a response to a previously made call.
+				Object[] args = call.getArguments(); 
+				if ((args != null) && (args.length > 0)) {
+					// TODO: can a client return multiple results?
+					pendingCall.setResult(args[0]);
+				}
+				
 				Set<IPendingServiceCallback> callbacks = pendingCall.getCallbacks();
 				if (callbacks.isEmpty())
 					return;
