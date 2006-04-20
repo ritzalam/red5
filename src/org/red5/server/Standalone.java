@@ -108,6 +108,9 @@ public class Standalone {
 		// Store root directory of Red5
 		idx = root.lastIndexOf('/');
 		root = root.substring(0, idx);
+		if (System.getProperty("file.separator").equals("/"))
+			// Workaround for linux systems
+			root = "/" + root;
 		System.setProperty("red5.root", root);
 		log.info("Setting Red5 root to " + root);
 		
