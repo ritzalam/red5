@@ -133,7 +133,7 @@ class org.red5.samples.livestream.videoconference.VideoConference extends MovieC
 	{
 		_global.tt("NewStream Recieved", evtObj.newStream);
 		// new user, updates names
-		chat.getNames();
+		//chat.getNames();
 		videoPool.subscribe(evtObj.newStream.split("_")[1]);
 	}
 	

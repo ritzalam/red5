@@ -31,6 +31,7 @@ class org.red5.fitc.presentation.DemoSection extends MovieClip {
 // Private Methods:
 	private function configUI():Void 
 	{
+		//content.loadMovie("FITCvideoConference.swf");
 		hide();
 	}
 	

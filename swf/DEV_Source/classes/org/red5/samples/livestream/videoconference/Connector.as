@@ -157,7 +157,7 @@ class org.red5.samples.livestream.videoconference.Connector extends MovieClip
 		dispatchEvent({type:"onSetID", id:evtObj.id})
 	}	
 	
-	private function closeConnection(evtObj:Object):Void
+	public function closeConnection(evtObj:Object):Void
 	{
 		if(connection.connected) 
 		{

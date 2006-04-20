@@ -14,6 +14,7 @@ class org.red5.samples.livestream.videoconference.Broadcaster extends MovieClip 
 // Constants:
 	public static var CLASS_REF = org.red5.samples.livestream.videoconference.Broadcaster;
 	public static var LINKAGE_ID:String = "org.red5.samples.livestream.videoconference.Broadcaster";
+	public static var instance:MovieClip;
 // Public Properties:
 	public var addEventListener:Function;
 	public var removeEventListener:Function;
@@ -44,6 +45,11 @@ class org.red5.samples.livestream.videoconference.Broadcaster extends MovieClip 
 		controller = p_controller;
 	}
 	
+	public function closeConnection():Void
+	{
+		connector.closeConnection();
+	}
+	
 	public function registerAlert(p_alert:SimpleDialog):Void
 	{
 		alert = p_alert;
@@ -51,7 +57,9 @@ class org.red5.samples.livestream.videoconference.Broadcaster extends MovieClip 
 // Semi-Private Methods:
 // Private Methods:
 	private function configUI():Void 
-	{
+	{		
+		instance = this;
+		
 		// setup the tooltip defaults
 		Tooltip.options = {size:10, font:"_sans", corner:0};
 		
