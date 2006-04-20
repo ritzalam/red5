@@ -3,10 +3,7 @@ package org.red5.server.stream;
 import java.io.File;
 import java.io.IOException;
 
-import javax.xml.transform.stream.StreamSource;
-
 import org.red5.io.flv.IFLV;
-import org.red5.io.flv.IFLVService;
 import org.red5.io.flv.IWriter;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
@@ -196,6 +193,7 @@ public class ScopeWrappingStreamService extends ScopeWrappingStreamManager
 	}
 	
 	public void closeStream() {
+		log.debug("Closing stream");
 		IConnection conn = Red5.getConnectionLocal();
 		if (!(conn instanceof IStreamCapableConnection))
 			return;

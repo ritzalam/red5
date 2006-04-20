@@ -4,7 +4,6 @@ import static org.red5.server.api.ScopeUtils.isApp;
 import static org.red5.server.api.ScopeUtils.isRoom;
 
 import java.util.Iterator;
-import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -38,9 +37,9 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 		streamService = new ScopeWrappingStreamManager(scope);
 	}
 
-	public boolean connect(IConnection conn, IScope scope) {
-		if(isApp(scope)) return appConnect(conn);
-		else if(isRoom(scope)) return roomConnect(conn);
+	public boolean connect(IConnection conn, IScope scope, Object[] params) {
+		if(isApp(scope)) return appConnect(conn, params);
+		else if(isRoom(scope)) return roomConnect(conn, params);
 		else return false;
 	}
 
@@ -51,6 +50,7 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 	}
 
 	public void disconnect(IConnection conn, IScope scope) {
+		log.debug("disconnect");
 		if(isApp(scope)) appDisconnect(conn);
 		else if(isRoom(scope)) roomDisconnect(conn);
 	}
@@ -67,6 +67,7 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 	}
 
 	public void leave(IClient client, IScope scope) {
+		log.debug("leave");
 		if(isApp(scope)) appLeave(client, scope);
 		else if(isRoom(scope)) roomLeave(client, scope);
 	}
@@ -91,12 +92,12 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 		//	do nothing
 	}
 	
-	public boolean appConnect(IConnection conn){
+	public boolean appConnect(IConnection conn, Object[] params){
 		log.debug("appConnect: "+conn);
 		return true;
 	}
 	
-	public boolean roomConnect(IConnection conn){
+	public boolean roomConnect(IConnection conn, Object[] params){
 		log.debug("roomConnect: "+conn);
 		return true;
 	}

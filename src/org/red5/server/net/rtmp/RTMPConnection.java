@@ -214,6 +214,7 @@ public abstract class RTMPConnection extends BaseConnection
 			for(int i=0; i<streams.length; i++){
 				IStream stream = streams[i];
 				if(stream != null) {
+					log.debug("Closing stream: "+ stream.getStreamId());
 					streamService.deleteStream(this, stream.getStreamId());
 					streams[i] = null;
 				}
@@ -320,5 +321,7 @@ public abstract class RTMPConnection extends BaseConnection
 		}
 		return result;
 	}
+	
+	
 	
 }

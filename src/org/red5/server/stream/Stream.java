@@ -7,6 +7,7 @@ import org.red5.server.api.IScope;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.event.IEventDispatcher;
 import org.red5.server.api.stream.IStream;
+import org.red5.server.api.stream.IStreamAware;
 import org.red5.server.net.rtmp.Channel;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.message.AudioData;
@@ -289,6 +290,12 @@ public class Stream extends BaseStream implements Constants, IStream, IEventDisp
 			if (this.videoCodecFactory != null) {
 				this.videoCodec = this.videoCodecFactory.getVideoCodec(data);
 				setVideoCodec(this.videoCodec);
+			}
+			// XXX: HACK HACK HACK, just for 0.4
+			//log.warn("scope: "+scope);
+			if(scope.getHandler() instanceof IStreamAware){
+				//log.warn("publish start"+name);
+				((IStreamAware) scope.getHandler()).streamBroadcastStart(name);
 			}
 		}
 		

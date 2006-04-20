@@ -20,6 +20,7 @@ public class BroadcastStreamScope extends BasicScope implements
 	public BroadcastStreamScope(IScope parent, RTMPConnection conn, String name) {
 		super(parent, IBroadcastStream.TYPE, name, false);
 		stream = new BroadcastStream(parent, conn);
+		stream.setName(name);
 	}
 	
 	public void setVideoCodecFactory(VideoCodecFactory factory) {

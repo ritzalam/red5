@@ -136,5 +136,12 @@ public class SharedObjectScope extends BasicScope
 		so.setAttributes(values);
 		endUpdate();
 	}
+
+	@Override
+	public String toString() {
+		return "Shared Object: "+getName();
+	}
+	
+	
 	
 }

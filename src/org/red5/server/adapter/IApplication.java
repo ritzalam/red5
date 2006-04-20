@@ -8,7 +8,7 @@ public interface IApplication  {
 
 	public boolean appStart(IScope app);
 
-	public boolean appConnect(IConnection conn);
+	public boolean appConnect(IConnection conn, Object[] params);
 	
 	public boolean appJoin(IClient client, IScope app);
 

@@ -4,36 +4,26 @@ import static org.red5.server.api.stream.IBroadcastStream.TYPE;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.io.flv.IFLV;
 import org.red5.io.flv.IFLVService;
-import org.red5.io.flv.IWriter;
 import org.red5.io.flv.impl.FLVService;
 import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
 import org.red5.server.api.Red5;
-import org.red5.server.net.rtmp.RTMPConnection;
-import org.red5.server.api.so.ISharedObject;
 import org.red5.server.api.stream.IBroadcastStream;
 import org.red5.server.api.stream.IBroadcastStreamService;
 import org.red5.server.api.stream.IOnDemandStream;
 import org.red5.server.api.stream.IOnDemandStreamService;
 import org.red5.server.api.stream.IStream;
-import org.red5.server.api.stream.IStreamCapableConnection;
-import org.red5.server.api.stream.IStreamService;
 import org.red5.server.api.stream.ISubscriberStream;
 import org.red5.server.api.stream.ISubscriberStreamService;
+import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.message.Status;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.core.io.Resource;
 
 public class ScopeWrappingStreamManager
 	implements IBroadcastStreamService, IOnDemandStreamService, ISubscriberStreamService {
@@ -75,6 +65,7 @@ public class ScopeWrappingStreamManager
 			return null;
 		
 		result = new BroadcastStreamScope(scope, (RTMPConnection) conn, name);
+
 		scope.addChildScope(result);
 		return result;
 	}
@@ -129,6 +120,8 @@ public class ScopeWrappingStreamManager
 	}
 	
 	public void deleteStream(IStream stream) {
+		
+		log.debug("Delete stream: "+stream);
 		
 		if (stream instanceof IBroadcastStream) {
 			// Notify all clients that stream is no longer published

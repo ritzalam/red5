@@ -90,9 +90,6 @@ public class Scope extends BasicScope implements IScope {
 	}
 	
 	public void stop(){
-		if(running){
-			
-		}
 	}
 	
 	public void destory(){
@@ -128,7 +125,7 @@ public class Scope extends BasicScope implements IScope {
 			if (hasHandler())
 				getHandler().stop((IScope) scope);
 		}
-		children.remove(scope);
+		children.remove(scope.getType() + SEPARATOR + scope.getName());
 		if (hasHandler()){
 			log.debug("Remove child scope");
 			getHandler().removeChildScope(scope);
@@ -221,8 +218,8 @@ public class Scope extends BasicScope implements IScope {
 			final Set<IConnection> conns = new HashSet<IConnection>();
 			conns.add(conn);
 			clients.put(conn.getClient(), conns);
+			log.debug("adding client");
 		} else {
-			
 			final Set<IConnection> conns = clients.get(client);
 			conns.add(conn);
 		}
@@ -237,8 +234,9 @@ public class Scope extends BasicScope implements IScope {
 			final Set conns = clients.get(client);
 			conns.remove(conn);
 			removeEventListener(conn);
-			if(hasHandler()) 
+			if(hasHandler()) {
 				handler.disconnect(conn, this);
+			}
 			if(conns.isEmpty()) {
 				clients.remove(client);
 				if(hasHandler()){

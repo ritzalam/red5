@@ -5,7 +5,7 @@ import org.red5.server.api.IMappingStrategy;
 public class MappingStrategy implements IMappingStrategy {
 
 	private static final String ROOT = "";
-	private static final String HANDLER = "Handler";
+	private static final String HANDLER = ".handler";
 	private static final String DIR = "/";
 	private static final String SERVICE = ".service";
 	private String defaultApp = "default";

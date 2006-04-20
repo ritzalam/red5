@@ -2,7 +2,6 @@ package org.red5.server.stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.red5.io.flv.IFLV;
 import org.red5.io.flv.IReader;
 import org.red5.io.flv.ITag;
 import org.red5.io.flv.IKeyFrameDataAnalyzer.KeyFrameMeta;

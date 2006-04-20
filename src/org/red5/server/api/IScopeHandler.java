@@ -58,7 +58,7 @@ public interface IScopeHandler extends IEventHandler {
 	 * @param conn
 	 *            connection object
 	 */
-	boolean connect(IConnection conn, IScope scope);
+	/*boolean connect(IConnection conn, IScope scope);*/
 
 	/**
 	 * Called just before every connection to a scope

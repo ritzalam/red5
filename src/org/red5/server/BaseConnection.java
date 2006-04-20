@@ -101,11 +101,7 @@ public class BaseConnection extends AttributeStore
 	}
 	
 	public void close(){
-		if (client != null && client instanceof Client) {
-			((Client) client).unregister(this);
-			client = null;
-		}
-		
+	
 		if(scope != null) {
 			log.debug("Close, disconnect from scope, and children");
 			for(IBasicScope basicScope : basicScopes){
@@ -121,11 +117,17 @@ public class BaseConnection extends AttributeStore
 				IBasicScope so = scope.getBasicScope(ISharedObject.TYPE, name);
 				so.removeEventListener(this);
 			}
+
+			if (client != null && client instanceof Client) {
+				((Client) client).unregister(this);
+				client = null;
+			}
 			
 			scope=null;
 		} else {
 			log.debug("Close, not connected nothing to do.");
 		}
+		
 	}
 
 	public void notifyEvent(IEvent event) {

@@ -40,10 +40,12 @@ public abstract class AbstractScopeAdapter implements IScopeHandler {
 	public void stop(IScope scope) {
 		// nothing
 	}
-	
+
+	/*
 	public boolean connect(IConnection conn, IScope scope) {
 		return connect(conn, scope, null);
 	}
+	*/
 	
 	public boolean connect(IConnection conn, IScope scope, Object[] params) {
 		return canConnect;
