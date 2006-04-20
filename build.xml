@@ -39,6 +39,7 @@
 <target name="clean">
 	<delete dir="${classes.dir}"/>
 	<delete dir="${bin.dir}"/>
+	<delete dir="${dist.dir}"/>
     <delete dir="${javadoc.dir}"/>
 </target>
 
@@ -148,8 +149,10 @@
 	</jar>
 </target>
 	
-<target name="dist" description="Make Distribution" depends="jar">
-	<delete dir="${dist.dir}"/>
+<target name="dist" description="Make Distribution" depends="clean, jar, javadoc">
+    <copy todir="${dist.dir}/doc">
+        <fileset dir="doc" />
+    </copy>
 	<copy todir="${dist.dir}/lib">
 		<fileset dir="lib" />
 	</copy>
@@ -169,7 +172,7 @@
 	</copy>
 </target>
 
-<target name="installerdist" description="Make Installer Distribution" depends="clean, dist, javadoc">
+<target name="installerdist" description="Make Installer Distribution" depends="dist">
     <copy todir="${dist.dir}">
         <fileset dir="./">
             <include name=".classpath" />
@@ -177,9 +180,6 @@
             <include name=".springBeans" />
             <include name="build.xml" />
         </fileset>
-    </copy>
-    <copy todir="${dist.dir}/doc">
-        <fileset dir="doc" />
     </copy>
     <copy todir="${dist.dir}/src">
         <fileset dir="src" />
