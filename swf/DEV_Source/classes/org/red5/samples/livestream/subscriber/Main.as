@@ -52,7 +52,10 @@ class org.red5.samples.livestream.subscriber.Main extends MovieClip {
 		if(evtObj.connected) 
 		{
 			// setup stream
-			stream = new Stream(connector.connection);
+			// XXX: odd hack needed for flashIDE.
+			var conn = this.connector.connection; 
+			var x = new Stream(conn);
+			stream = x;
 			stream.play("red5StreamDemo", -1);
 			publish_video.attachVideo(stream);
 		}
