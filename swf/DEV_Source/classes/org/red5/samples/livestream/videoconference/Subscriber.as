@@ -35,6 +35,11 @@ class org.red5.samples.livestream.videoconference.Subscriber extends MovieClip {
 		userName.text = p_name;
 	}
 	
+	public function streamStop(evtObj:Object):Void
+	{
+		reset();
+	}
+	
 	public function subscribe(p_subscriptionID:String, p_connection:Connection):Void
 	{
 		_global.tt("Subscriber.subscribe", p_subscriptionID);
@@ -69,11 +74,6 @@ class org.red5.samples.livestream.videoconference.Subscriber extends MovieClip {
 		userName.text = "";
 		noStream._visible = false;
 	};
-	
-	private function streamStop(evtObj:Object):Void
-	{
-		reset();
-	}
 	
 	private function reset():Void
 	{

@@ -86,6 +86,6 @@ class org.red5.utils.Connector extends MovieClip
 		disconnect._visible = evtObj.connected;
 		
 		// since Main doesn't really have access to Light, we're going to pass along the notification
-		dispatchEvent({type:"connectionChange", connected: evtObj.connected});
+		dispatchEvent({type:"connectionChange", connected: evtObj.connected, connection:connection});
 	}
 }
