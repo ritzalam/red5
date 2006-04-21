@@ -14,4 +14,4 @@ then
   exit
 fi
 
-exec $JAVA -cp red5.jar:$CLASSPATH org.red5.server.Standalone
+exec $JAVA -cp red5.jar:conf:$CLASSPATH org.red5.server.Standalone

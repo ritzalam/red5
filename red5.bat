@@ -3,7 +3,7 @@
 if not %JAVA_HOME% == "" goto launchRed5
 
 :launchRed5
-%JAVA_HOME%/bin/java -jar red5.jar
+%JAVA_HOME%/bin/java -cp red5.jar;conf;%CLASSPATH% org.red5.server.Standalone
 goto finaly
 
 :err
