@@ -71,11 +71,11 @@ public class Standalone {
 
 		// Detect root of Red5 configuration and set as system property
 		String root;
+		String classpath = System.getProperty("java.class.path");
 		File fp = new File(red5Config);
 		fp = fp.getCanonicalFile();
 		if (!fp.isFile()) {
 			// Given file does not exist, search it on the classpath
-			String classpath = System.getProperty("java.class.path");
 			String[] paths = classpath.split(System.getProperty("path.separator"));
 			for (int i=0; i<paths.length; i++) {
 				fp = new File(paths[i] + "/" + red5Config);
@@ -86,7 +86,7 @@ public class Standalone {
 		}
 		
 		if (!fp.isFile())
-			throw new Exception("could not find configuration file" + red5Config);
+			throw new Exception("could not find configuration file " + red5Config + " on your classpath " + classpath);
 		
 		root = fp.getAbsolutePath();
 		root = root.replace('\\', '/');
