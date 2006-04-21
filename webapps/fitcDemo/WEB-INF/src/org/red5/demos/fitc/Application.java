@@ -29,7 +29,7 @@ public class Application extends ApplicationAdapter implements IPendingServiceCa
 		IServiceCapableConnection service = (IServiceCapableConnection) conn;
 		log.info("Client connected " + conn.getClient().getId() + " conn " + conn);
 		log.info("Setting stream id: "+ getClients().size()); // just a unique number
-		service.invoke("setId", new Object[]{getClients().size()}, this);
+		service.invoke("setId", new Object[]{conn.getClient().getId()}, this);
 		return true;
 	}
 
