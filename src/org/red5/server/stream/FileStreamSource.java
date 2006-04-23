@@ -2,8 +2,9 @@ package org.red5.server.stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.red5.io.flv.IReader;
-import org.red5.io.flv.ITag;
+import org.red5.io.ITag;
+import org.red5.io.ITagReader;
+import org.red5.io.flv.IKeyFrameDataAnalyzer;
 import org.red5.io.flv.IKeyFrameDataAnalyzer.KeyFrameMeta;
 import org.red5.server.net.rtmp.message.AudioData;
 import org.red5.server.net.rtmp.message.Constants;
@@ -18,10 +19,10 @@ public class FileStreamSource implements ISeekableStreamSource, Constants {
 	protected static Log log =
         LogFactory.getLog(FileStreamSource.class.getName());
 	
-	private IReader reader = null;
+	private ITagReader reader = null;
 	private KeyFrameMeta keyFrameMeta = null;
 	
-	public FileStreamSource(IReader reader){
+	public FileStreamSource(ITagReader reader){
 		this.reader = reader;
 	}
 	
@@ -64,9 +65,12 @@ public class FileStreamSource implements ISeekableStreamSource, Constants {
 	}
 
 	synchronized public int seek(int ts) {
-		if (keyFrameMeta == null) {
-			keyFrameMeta = reader.analyzeKeyFrames();
-		}
+		if (keyFrameMeta == null && (reader instanceof IKeyFrameDataAnalyzer)) {
+			keyFrameMeta = ((IKeyFrameDataAnalyzer) reader).analyzeKeyFrames();
+		} else
+			// Seeking not supported
+			return ts;
+		
 		if (keyFrameMeta.positions.length == 0) {
 			// no video keyframe metainfo, it's an audio-only FLV
 			// we skip the seek for now.

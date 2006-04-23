@@ -3,8 +3,9 @@ package org.red5.server.stream;
 import java.io.File;
 import java.io.IOException;
 
-import org.red5.io.flv.IFLV;
-import org.red5.io.flv.IWriter;
+import org.red5.io.IStreamableFile;
+import org.red5.io.IStreamableFileService;
+import org.red5.io.ITagWriter;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
 import org.red5.server.api.Red5;
@@ -168,12 +169,13 @@ public class ScopeWrappingStreamService extends ScopeWrappingStreamManager
 				res.getFile().createNewFile();
 			
 			File file = res.getFile();
-			IFLV flv = flvService.getFLV(file);
-			IWriter writer = null; 
+			IStreamableFileService service = fileFactory.getService(file);
+			IStreamableFile flv = service.getStreamableFile(file);
+			ITagWriter writer = null; 
 			if (mode.equals(Stream.MODE_RECORD)) 
-				writer = flv.writer();
+				writer = flv.getWriter();
 			else if (mode.equals(Stream.MODE_APPEND))
-				writer = flv.append();
+				writer = flv.getAppendWriter();
 			stream.subscribe(new FileStreamSink(scope, writer));
 		} catch (IOException e) {
 			log.error("Error recording stream: " + stream, e);

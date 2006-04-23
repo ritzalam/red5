@@ -2,8 +2,8 @@ package org.red5.server.stream;
 
 import java.io.IOException;
 
-import org.red5.io.flv.ITag;
-import org.red5.io.flv.IWriter;
+import org.red5.io.ITag;
+import org.red5.io.ITagWriter;
 import org.red5.io.flv.impl.Tag;
 import org.red5.server.api.IScope;
 import org.red5.server.api.event.IEvent;
@@ -12,9 +12,9 @@ import org.red5.server.net.rtmp.message.Message;
 
 public class FileStreamSink extends SubscriberStream implements IEventDispatcher {
 
-	private IWriter writer;
+	private ITagWriter writer;
 	
-	public FileStreamSink(IScope scope, IWriter writer){
+	public FileStreamSink(IScope scope, ITagWriter writer){
 		super(scope, null);
 		this.writer = writer;
 	}

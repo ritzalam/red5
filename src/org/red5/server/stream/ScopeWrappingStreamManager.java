@@ -8,15 +8,13 @@ import java.util.Iterator;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.red5.io.flv.IFLV;
-import org.red5.io.flv.IFLVService;
-import org.red5.io.flv.IReader;
-import org.red5.io.flv.impl.FLVService;
-import org.red5.io.mp3.IMP3;
-import org.red5.io.mp3.IMP3Service;
-import org.red5.io.mp3.impl.MP3Service;
+import org.red5.io.IStreamableFile;
+import org.red5.io.IStreamableFileService;
+import org.red5.io.ITagReader;
+import org.red5.io.StreamableFileFactory;
 import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IConnection;
+import org.red5.server.api.IContext;
 import org.red5.server.api.IScope;
 import org.red5.server.api.Red5;
 import org.red5.server.api.stream.IBroadcastStream;
@@ -28,32 +26,30 @@ import org.red5.server.api.stream.ISubscriberStream;
 import org.red5.server.api.stream.ISubscriberStreamService;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.message.Status;
+import org.springframework.context.ApplicationContext;
 
 public class ScopeWrappingStreamManager
 	implements IBroadcastStreamService, IOnDemandStreamService, ISubscriberStreamService {
 
+	protected static final String FILE_FACTORY = "streamableFileFactory";
+	
 	protected static Log log =
         LogFactory.getLog(ScopeWrappingStreamManager.class.getName());
 	
 	protected IScope scope;
 	private String streamDir = "streams";
-	protected IFLVService flvService;
-	protected IMP3Service mp3Service;
+	protected StreamableFileFactory fileFactory = null;
 
 	public ScopeWrappingStreamManager(IScope scope) {
 		this.scope = scope;
-		setFlvService(new FLVService());
-		setMp3Service(new MP3Service());
+		final IContext context = scope.getContext();
+		ApplicationContext appCtx = context.getApplicationContext();
+		if (!appCtx.containsBean(FILE_FACTORY))
+			fileFactory = new StreamableFileFactory();
+		else
+			fileFactory =  (StreamableFileFactory) appCtx.getBean(FILE_FACTORY);
 	}
 	
-	public void setFlvService(IFLVService flvService) {
-		this.flvService = flvService;
-	}
-
-	public void setMp3Service(IMP3Service mp3Service) {
-		this.mp3Service = mp3Service;
-	}
-
 	public boolean hasBroadcastStream(String name) {
 		return scope.hasChildScope(name);
 	}
@@ -112,14 +108,14 @@ public class ScopeWrappingStreamManager
 		FileStreamSource source = null;
 		try {
 			File file = scope.getResources(getStreamFilename(name))[0].getFile();
-			IReader reader;
-			if (file.getAbsolutePath().endsWith(".mp3")) {
-				IMP3 mp3 = mp3Service.getMP3(file);
-				reader = mp3.reader();
-			} else {
-				IFLV flv = flvService.getFLV(file);
-				reader = flv.reader();
+			ITagReader reader;
+			IStreamableFileService service = fileFactory.getService(file);
+			if (service == null) {
+				log.error("No service found for " + file.getAbsolutePath());
+				return null;
 			}
+			IStreamableFile streamFile = service.getStreamableFile(file);
+			reader = streamFile.getReader();
 			source = new FileStreamSource(reader);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
