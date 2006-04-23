@@ -10,7 +10,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.io.flv.IFLV;
 import org.red5.io.flv.IFLVService;
+import org.red5.io.flv.IReader;
 import org.red5.io.flv.impl.FLVService;
+import org.red5.io.mp3.IMP3;
+import org.red5.io.mp3.IMP3Service;
+import org.red5.io.mp3.impl.MP3Service;
 import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
@@ -34,14 +38,20 @@ public class ScopeWrappingStreamManager
 	protected IScope scope;
 	private String streamDir = "streams";
 	protected IFLVService flvService;
+	protected IMP3Service mp3Service;
 
 	public ScopeWrappingStreamManager(IScope scope) {
 		this.scope = scope;
 		setFlvService(new FLVService());
+		setMp3Service(new MP3Service());
 	}
 	
 	public void setFlvService(IFLVService flvService) {
 		this.flvService = flvService;
+	}
+
+	public void setMp3Service(IMP3Service mp3Service) {
+		this.mp3Service = mp3Service;
 	}
 
 	public boolean hasBroadcastStream(String name) {
@@ -102,8 +112,15 @@ public class ScopeWrappingStreamManager
 		FileStreamSource source = null;
 		try {
 			File file = scope.getResources(getStreamFilename(name))[0].getFile();
-			IFLV flv = flvService.getFLV(file);
-			source = new FileStreamSource(flv.reader());
+			IReader reader;
+			if (file.getAbsolutePath().endsWith(".mp3")) {
+				IMP3 mp3 = mp3Service.getMP3(file);
+				reader = mp3.reader();
+			} else {
+				IFLV flv = flvService.getFLV(file);
+				reader = flv.reader();
+			}
+			source = new FileStreamSource(reader);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

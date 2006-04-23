@@ -13,8 +13,8 @@ import org.springframework.core.io.Resource;
 public class Application extends ApplicationAdapter {
 	
 	public Map getListOfAvailableFLVs() {
-		Map filesMap = new HashMap();
-		Map fileInfo;
+		Map<String, Map> filesMap = new HashMap<String, Map>();
+		Map<String, Object> fileInfo;
 		try {
 			log.debug("getting the FLV files");
 			//Resource[] flvs = appCtx.getResources("../../../../flvs/*.flv");
@@ -33,12 +33,34 @@ public class Application extends ApplicationAdapter {
 					log.debug("flvBytes: " + flvBytes);
 					log.debug("-------");
 					
-					fileInfo = new HashMap();
+					fileInfo = new HashMap<String, Object>();
 					fileInfo.put("name", flvName);
 					fileInfo.put("lastModified", lastModified);
 					fileInfo.put("size", flvBytes);
 					filesMap.put(flvName, fileInfo);
-					fileInfo = null;
+				}
+			}
+			
+			Resource[] mp3s = scope.getResources("streams/*.mp3");
+			if(mp3s!=null){
+				for(int i=0; i<mp3s.length; i++){
+					Resource mp3 = mp3s[i];
+					File file = mp3.getFile();
+					Date lastModifiedDate = new Date(file.lastModified());
+					String lastModified = formatDate(lastModifiedDate);
+					String flvName = mp3.getFile().getName();
+					String flvBytes = new Long(file.length()).toString();
+		
+					log.debug("flvName: " + flvName);
+					log.debug("lastModified date: " + lastModified);
+					log.debug("flvBytes: " + flvBytes);
+					log.debug("-------");
+					
+					fileInfo = new HashMap<String, Object>();
+					fileInfo.put("name", flvName);
+					fileInfo.put("lastModified", lastModified);
+					fileInfo.put("size", flvBytes);
+					filesMap.put(flvName, fileInfo);
 				}
 			}
 		} catch (IOException e) {
