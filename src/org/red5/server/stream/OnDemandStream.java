@@ -2,11 +2,12 @@ package org.red5.server.stream;
 
 import org.red5.server.api.IScope;
 import org.red5.server.api.stream.IOnDemandStream;
+import org.red5.server.net.rtmp.RTMPConnection;
 
 public class OnDemandStream extends Stream implements IOnDemandStream {
 
-	public OnDemandStream(IScope scope, IStreamSource source) {
-		super(scope, null);
+	public OnDemandStream(IScope scope, IStreamSource source, RTMPConnection conn) {
+		super(scope, conn);
 		setSource(source);
 	}
 	

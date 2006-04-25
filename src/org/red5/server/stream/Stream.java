@@ -113,9 +113,9 @@ public class Stream extends BaseStream implements Constants, IStream, IEventDisp
 	public void pause(){
 		paused = true;
 		Status pause  = new Status("NetStream.Pause.Notify");
-		pause.setClientid(1);
+		pause.setClientid(streamId);
 		pause.setDetails(name);
-		downstream.getData().sendStatus(pause);
+		conn.getChannel((byte) 3).sendStatus(pause);
 	}
 	
 	public boolean isPaused() {
@@ -142,13 +142,17 @@ public class Stream extends BaseStream implements Constants, IStream, IEventDisp
 		conn.ping(ping2);
 		
 		Status play  = new Status("NetStream.Unpause.Notify");
-		play.setClientid(1);
+		play.setClientid(streamId);
 		play.setDetails(name);
-		downstream.getData().sendStatus(play);
+		conn.getChannel((byte) 3).sendStatus(play);
 		
 		AudioData blankAudio = new AudioData();
 		blankAudio.setTimestamp(ts);
-		downstream.getData().write(blankAudio);
+		dispatchEvent(blankAudio);
+		
+		if(source != null && source.hasMore()){
+			dispatchEvent(source.dequeue());
+		}
 	}
 	
 	public void seek(int time) {
@@ -177,16 +181,16 @@ public class Stream extends BaseStream implements Constants, IStream, IEventDisp
 		conn.ping(ping2);
 		
 		Status play  = new Status("NetStream.Seek.Notify");
-		play.setClientid(1);
+		play.setClientid(streamId);
 		play.setDetails(name);
-		downstream.getData().sendStatus(play);
+		conn.getChannel((byte) 3).sendStatus(play);
 		
 		AudioData blankAudio = new AudioData();
 		blankAudio.setTimestamp(ts);
-		downstream.getData().write(blankAudio);
+		dispatchEvent(blankAudio);
 		
-		if (paused) {
-			if(source !=null && source.hasMore()){
+		if (!paused) {
+			if (source !=null && source.hasMore()){
 				dispatchEvent(source.dequeue());
 			}
 		}

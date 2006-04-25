@@ -237,9 +237,9 @@ public class ScopeWrappingStreamService extends ScopeWrappingStreamManager
 		IStream stream = ((IStreamCapableConnection) conn).getStreamById(getCurrentStreamId()+1);
 		if (stream instanceof IOnDemandStream) {
 			IOnDemandStream ods = (IOnDemandStream) stream;
-			if (resume && ods.isPaused())
+			if (resume || ods.isPaused())
 				ods.resume();
-			else if (!resume && !ods.isPaused())
+			else if (!resume || !ods.isPaused())
 				ods.pause();
 		}
 	}

@@ -105,6 +105,10 @@ public class ScopeWrappingStreamManager
 	}
 	
 	public IOnDemandStream getOnDemandStream(String name) {
+		IConnection conn = Red5.getConnectionLocal();
+		if (!(conn instanceof RTMPConnection))
+			return null;
+		
 		FileStreamSource source = null;
 		try {
 			File file = scope.getResources(getStreamFilename(name))[0].getFile();
@@ -124,7 +128,7 @@ public class ScopeWrappingStreamManager
 		if (source == null)
 			return null;
 		
-		return new OnDemandStream(scope, source);
+		return new OnDemandStream(scope, source, (RTMPConnection) conn);
 	}
 	
 	public ISubscriberStream getSubscriberStream(String name) {
