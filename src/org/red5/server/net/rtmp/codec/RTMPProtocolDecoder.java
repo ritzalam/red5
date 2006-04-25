@@ -249,7 +249,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder {
 					log.debug("Finished read, decode packet");
 				buf.flip();
 				final Message message = packet.getMessage();
-				decodeMessage(message);
+				decodeMessage(message, packet.getSource().getStreamId());
 				message.setTimestamp(packet.getSource().getTimer());
 
 				if(ioLog.isDebugEnabled()){
@@ -367,7 +367,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder {
 		return packet;
 	}
 	
-	public void decodeMessage(Message message) {
+	public void decodeMessage(Message message, int streamId) {
 		switch(message.getDataType()){
 		case TYPE_CHUNK_SIZE:
 			decodeChunkSize((ChunkSize) message);
@@ -377,7 +377,10 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder {
 			break;
 		case TYPE_NOTIFY:
 			// This could also contain stream metadata
-			decodeNotify((Notify) message);
+			if (streamId != 0)
+				decodeStreamMetadata(message);
+			else
+				decodeNotify((Notify) message);
 			break;
 		case TYPE_PING:
 			decodePing((Ping) message);
@@ -521,5 +524,10 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder {
 	public void decodeVideoData(VideoData videoData){
 		//videoData.acquire();
 		videoData.setSealed(true);
+	}
+	
+	public void decodeStreamMetadata(Message metadata){
+		//metadata.acquire();
+		metadata.setSealed(true);
 	}
 }
