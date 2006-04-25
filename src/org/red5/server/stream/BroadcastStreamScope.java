@@ -21,6 +21,7 @@ public class BroadcastStreamScope extends BasicScope implements
 		super(parent, IBroadcastStream.TYPE, name, false);
 		stream = new BroadcastStream(parent, conn);
 		stream.setName(name);
+		stream.publish();
 	}
 	
 	public void setVideoCodecFactory(VideoCodecFactory factory) {

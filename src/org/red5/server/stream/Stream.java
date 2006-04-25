@@ -13,6 +13,7 @@ import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.message.AudioData;
 import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.net.rtmp.message.Message;
+import org.red5.server.net.rtmp.message.Notify;
 import org.red5.server.net.rtmp.message.Ping;
 import org.red5.server.net.rtmp.message.Status;
 import org.red5.server.net.rtmp.message.StreamBytesRead;
@@ -39,6 +40,7 @@ public class Stream extends BaseStream implements Constants, IStream, IEventDisp
 	private String mode = MODE_READ;
 	private int video_ts = 0;
 	private int audio_ts = 0;
+	private int metadata_ts = 0;
 	private int bytesReadPacketCount = 0;
 	
 	private OutputStream downstream = null;
@@ -103,10 +105,7 @@ public class Stream extends BaseStream implements Constants, IStream, IEventDisp
 		Status publish = new Status(Status.NS_PUBLISH_START);
 		publish.setClientid(streamId);
 		publish.setDetails(name);
-		Channel data = downstream.getData();
-		if (data != null)
-			// temporary streams don't have a data channel so check for it
-			data.sendStatus(publish);
+		conn.getChannel((byte) 3).sendStatus(publish);
 		
 		initialMessage = true;
 	}
@@ -309,11 +308,14 @@ public class Stream extends BaseStream implements Constants, IStream, IEventDisp
 				audio_ts += message.getTimestamp();
 				if(useServerTS) message.setTimestamp((int)runTime);
 				else message.setTimestamp(audio_ts);
-				
 			} else if (message instanceof VideoData) {
 				video_ts += message.getTimestamp();
 				if(useServerTS) message.setTimestamp((int)runTime);
 				else message.setTimestamp(video_ts);
+			} else if (message instanceof Notify) {
+				metadata_ts += message.getTimestamp();
+				if(useServerTS) message.setTimestamp((int)runTime);
+				else message.setTimestamp(metadata_ts);
 			}
 		}
 		
