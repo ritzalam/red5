@@ -203,4 +203,44 @@ public class ScopeWrappingStreamService extends ScopeWrappingStreamManager
 		IStream stream = ((IStreamCapableConnection) conn).getStreamById(getCurrentStreamId()+1);
 		stream.close();
 	}
+	
+	public void seek(int position) {
+		IConnection conn = Red5.getConnectionLocal();
+		if (!(conn instanceof IStreamCapableConnection))
+			return;
+		
+		IStream stream = ((IStreamCapableConnection) conn).getStreamById(getCurrentStreamId()+1);
+		if (stream instanceof IOnDemandStream)
+			((IOnDemandStream) stream).seek(position);
+	}
+	
+	public void pause() {
+		IConnection conn = Red5.getConnectionLocal();
+		if (!(conn instanceof IStreamCapableConnection))
+			return;
+		
+		IStream stream = ((IStreamCapableConnection) conn).getStreamById(getCurrentStreamId()+1);
+		if (stream instanceof IOnDemandStream) {
+			IOnDemandStream ods = (IOnDemandStream) stream;
+			if (ods.isPaused())
+				ods.resume();
+			else
+				ods.pause();
+		}
+	}
+	
+	public void pause(boolean resume) {
+		IConnection conn = Red5.getConnectionLocal();
+		if (!(conn instanceof IStreamCapableConnection))
+			return;
+		
+		IStream stream = ((IStreamCapableConnection) conn).getStreamById(getCurrentStreamId()+1);
+		if (stream instanceof IOnDemandStream) {
+			IOnDemandStream ods = (IOnDemandStream) stream;
+			if (resume && ods.isPaused())
+				ods.resume();
+			else if (!resume && !ods.isPaused())
+				ods.pause();
+		}
+	}
 }
