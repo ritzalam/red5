@@ -65,11 +65,13 @@ public class FileStreamSource implements ISeekableStreamSource, Constants {
 	}
 
 	synchronized public int seek(int ts) {
-		if (keyFrameMeta == null && (reader instanceof IKeyFrameDataAnalyzer)) {
+		if (keyFrameMeta == null) {
+			if (!(reader instanceof IKeyFrameDataAnalyzer))
+				// Seeking not supported
+				return ts;
+		
 			keyFrameMeta = ((IKeyFrameDataAnalyzer) reader).analyzeKeyFrames();
-		} else
-			// Seeking not supported
-			return ts;
+		}
 		
 		if (keyFrameMeta.positions.length == 0) {
 			// no video keyframe metainfo, it's an audio-only FLV
