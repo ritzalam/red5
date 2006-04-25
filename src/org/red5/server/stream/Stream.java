@@ -111,6 +111,7 @@ public class Stream extends BaseStream implements Constants, IStream, IEventDisp
 	}
 	
 	public void pause(){
+		if (paused) return;
 		paused = true;
 		Status pause  = new Status("NetStream.Pause.Notify");
 		pause.setClientid(streamId);
@@ -269,6 +270,7 @@ public class Stream extends BaseStream implements Constants, IStream, IEventDisp
 				log.debug("Sending downstream: " + message.getTimestamp());
 			//writeQueue++;
 			
+			position = message.getTimestamp();
 			downstream.dispatchEvent(message);
 		}
 	}

@@ -44,9 +44,9 @@ public abstract interface IStream {
 	public String getName();
 	
 	/**
-	 * Get the current position in seconds
+	 * Get the current position in milliseconds.
 	 * 
-	 * @return current position in seconds
+	 * @return current position in milliseconds
 	 */
 	public int getCurrentPosition();
 
