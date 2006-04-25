@@ -1,4 +1,4 @@
-// ** AUTO-UI IMPORT STATEMENTS **
+﻿// ** AUTO-UI IMPORT STATEMENTS **
 import org.red5.utils.Connector;
 import org.red5.samples.soball.BallControl;
 // ** END AUTO-UI IMPORT STATEMENTS **
@@ -47,7 +47,7 @@ class org.red5.samples.soball.Main extends MovieClip {
 		if(evtObj.connected) 
 		{
 			// register the NetConnection that GlobalObject will need
-			ballControl.registerConnection(connector.connection);
+			ballControl.registerConnection(evtObj.connection);
 			
 			// connect the shared object
 			ballControl.connectSO();

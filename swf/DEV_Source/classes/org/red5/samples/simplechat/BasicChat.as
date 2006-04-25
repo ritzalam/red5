@@ -1,11 +1,12 @@
-// ** AUTO-UI IMPORT STATEMENTS **
+﻿// ** AUTO-UI IMPORT STATEMENTS **
 //import com.metaliq.controls.ColorPicker;
 import mx.controls.TextInput;
 import org.red5.ui.controls.IconButton;
 import mx.controls.TextArea;
 // ** END AUTO-UI IMPORT STATEMENTS **
 import org.red5.utils.GlobalObject;
-import org.red5.samples.livestream.videoconference.Connection;
+import org.red5.net.Connection;
+//import org.red5.samples.livestream.videoconference.Connection;
 import org.red5.utils.Delegate;
 
 class org.red5.samples.simplechat.BasicChat extends MovieClip {

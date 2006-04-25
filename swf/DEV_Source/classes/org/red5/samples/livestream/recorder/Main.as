@@ -1,4 +1,4 @@
-// ** AUTO-UI IMPORT STATEMENTS **
+﻿// ** AUTO-UI IMPORT STATEMENTS **
 import org.red5.utils.Connector;
 import org.red5.ui.controls.IconButton;
 // ** END AUTO-UI IMPORT STATEMENTS **
@@ -116,7 +116,7 @@ class org.red5.samples.livestream.recorder.Main extends MovieClip {
 		{
 			recording = false;
 			//playing = false;
-			recordingStream = new Stream(connector.connection);
+			recordingStream = new Stream(evtObj.connection);
 			//playingStream = new Stream(connector.connection);
 			//playingStream.addEventListener("streamStop", Delegate.create(this, stopStreamPlayback));
 		}

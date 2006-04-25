@@ -1,4 +1,4 @@
-// ** AUTO-UI IMPORT STATEMENTS **
+﻿// ** AUTO-UI IMPORT STATEMENTS **
 import org.red5.utils.Connector;
 // ** END AUTO-UI IMPORT STATEMENTS **
 import com.neoarchaic.ui.Tooltip;
@@ -53,7 +53,7 @@ class org.red5.samples.livestream.subscriber.Main extends MovieClip {
 		{
 			// setup stream
 			// XXX: odd hack needed for flashIDE.
-			var conn = this.connector.connection; 
+			var conn = evtObj.connection; 
 			var x = new Stream(conn);
 			stream = x;
 			stream.play("red5StreamDemo", -1);

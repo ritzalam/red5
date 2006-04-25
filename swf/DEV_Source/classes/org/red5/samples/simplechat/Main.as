@@ -1,4 +1,4 @@
-// ** AUTO-UI IMPORT STATEMENTS **
+﻿// ** AUTO-UI IMPORT STATEMENTS **
 import org.red5.samples.simplechat.BasicChat;
 import org.red5.utils.Connector;
 // ** END AUTO-UI IMPORT STATEMENTS **
@@ -47,7 +47,7 @@ class org.red5.samples.simplechat.Main extends MovieClip {
 		if(evtObj.connected) 
 		{
 			// register the NetConnection that GlobalObject will need
-			chat.registerConnection(connector.connection);
+			chat.registerConnection(evtObj.connection);
 			
 			// connect the shared object
 			chat.connectSO();

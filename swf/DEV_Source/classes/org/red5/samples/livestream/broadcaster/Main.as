@@ -1,4 +1,4 @@
-// ** AUTO-UI IMPORT STATEMENTS **
+﻿// ** AUTO-UI IMPORT STATEMENTS **
 import org.red5.utils.Connector;
 // ** END AUTO-UI IMPORT STATEMENTS **
 import com.neoarchaic.ui.Tooltip;
@@ -67,7 +67,7 @@ class org.red5.samples.livestream.broadcaster.Main extends MovieClip {
 		if(evtObj.connected) 
 		{
 			// setup stream
-			stream = new Stream(connector.connection);
+			stream = new Stream(evtObj.connection);
 			// add stream status events listeners here
 			stream.addEventListener("status", Delegate.create(this, status));
 			stream.addEventListener("error", Delegate.create(this, error));
