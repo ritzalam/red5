@@ -49,12 +49,12 @@
            <property name="serviceConfig">
              <bean class="org.apache.mina.transport.socket.nio.SocketAcceptorConfig">
                <property name="filterChainBuilder" ref="filterChainBuilder"/>
+               <property name="reuseAddress" value="true"/>
              </bean>
            </property>
          </bean>
        </list>
      </property>
-     <property name="reuseAddress" value="true"/>
    </bean> 	
       
 	<bean id="rtmpHandler" class="org.red5.server.net.rtmp.RTMPHandler"
