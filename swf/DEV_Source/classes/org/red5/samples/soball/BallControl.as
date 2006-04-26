@@ -67,7 +67,6 @@ class org.red5.samples.soball.BallControl extends MovieClip {
 	
 	private function onMouseMove():Void
 	{
-		_global.tt("mouse move", ballDragging);
 		var obj = new Object();
 		obj.x = ball._x;
 		obj.y = ball._y;
@@ -78,6 +77,8 @@ class org.red5.samples.soball.BallControl extends MovieClip {
 	{
 		// we've been notified that there's a new message, go get it
 		var obj:Object = so.getData("ballCoordinates");
+		
+		_global.tt("newMessageHandler update", obj);
 		
 		ball._x = obj.x;
 		ball._y = obj.y;
