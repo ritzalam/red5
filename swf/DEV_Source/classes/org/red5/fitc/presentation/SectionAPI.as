@@ -1,4 +1,4 @@
-// ** AUTO-UI IMPORT STATEMENTS **
+﻿// ** AUTO-UI IMPORT STATEMENTS **
 // ** END AUTO-UI IMPORT STATEMENTS **
 
 import com.blitzagency.data.ContentFarm;
@@ -45,7 +45,7 @@ class org.red5.fitc.presentation.SectionAPI extends MovieClip {
 		connected = connection.connect("rtmp://fancycode.com/fitcDemo");
 		
 		subscribe.subscribe("api_presentation", connection);
-		subscribe.setUserName("Luke Hubbard - Red5");
+		subscribe.setUserName("Joachim Bauch - Red5");
 		_global.tt("connected?", connected);
 	}
 	
