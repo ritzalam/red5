@@ -50,6 +50,7 @@
              <bean class="org.apache.mina.transport.socket.nio.SocketAcceptorConfig">
                <property name="filterChainBuilder" ref="filterChainBuilder"/>
                <property name="reuseAddress" value="true"/>
+               <property name="sessionConfig.reuseAddress" value="true"/>
              </bean>
            </property>
          </bean>
