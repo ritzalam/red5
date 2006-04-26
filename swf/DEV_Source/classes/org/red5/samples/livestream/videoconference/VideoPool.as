@@ -60,8 +60,11 @@ class org.red5.samples.livestream.videoconference.VideoPool extends MovieClip {
 	public function subscribe(p_id:Number):Void
 	{
 		// VideoPool recieves an id to subscribe to
-		// it first has to manage which of the video screens is available, if any
+		// if bogus id is returned, don't add
+		if(p_id == "undefined" || isNaN(p_id) || p_id == "") return;
 		
+		_global.tt("isNaN", isNaN(p_id), p_id);
+		// it first has to manage which of the video screens is available, if any
 		var video = getVideoContainer();
 		if(video != null) 
 		{

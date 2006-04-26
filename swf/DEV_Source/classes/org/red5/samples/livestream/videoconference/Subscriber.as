@@ -16,6 +16,8 @@ class org.red5.samples.livestream.videoconference.Subscriber extends MovieClip {
 // Private Properties:
 	private var stream:Stream;
 	private var nc:Connection;
+	private var checkTime:Number;
+	private var si:Number;
 // UI Elements:
 
 // ** AUTO-UI ELEMENTS **
@@ -58,6 +60,9 @@ class org.red5.samples.livestream.videoconference.Subscriber extends MovieClip {
 		// play the stream
 		stream.play(p_subscriptionID, -1);
 		
+		checkTime = stream.time;
+		si = setInterval(this, "doubleCheckTime", 1500);
+		
 		// connect to the video object
 		publish_video.attachVideo(stream);
 		
@@ -69,6 +74,12 @@ class org.red5.samples.livestream.videoconference.Subscriber extends MovieClip {
 	}
 // Semi-Private Methods:
 // Private Methods:
+
+	private function doubleCheckTime():Void
+	{
+		clearInterval(si);
+		if(checkTime == stream.time) reset();
+	}
 	private function configUI():Void 
 	{
 		userName.text = "";
