@@ -66,8 +66,8 @@ public class SharedObjectEvent implements Constants {
 				return "Set Attribute";
 			case SO_SEND_MESSAGE:
 				return "Send Message";
-			case SO_CLEAR:
-				return "Clear";
+			case SO_DISCONNECT:
+				return "Disconnect";
 		}
 		return "Unknown " + type;
 	}

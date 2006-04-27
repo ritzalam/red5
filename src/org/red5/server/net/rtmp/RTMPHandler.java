@@ -352,16 +352,9 @@ public class RTMPHandler
 				so.addEventListener(conn);
 				break;
 			
-			case SO_CLEAR:
-				// Clear the shared object
-				if (!object.isPersistent())
-					so.removeEventListener(conn);
-				
-				/* XXX: should we really clear the SO here?  I think this is rather
-				 *      a "disconnect" - the same event is sent for the "clear" method
-				 *      as well as the disconnect of a client.
-				 */
-				so.removeAttributes();
+			case SO_DISCONNECT:
+				// The client disconnected from the SO
+				so.removeEventListener(conn);
 				break;
 			
 			case SO_SET_ATTRIBUTE:
