@@ -1,9 +1,10 @@
 // ** AUTO-UI IMPORT STATEMENTS **
-import mx.controls.TextArea;
-import mx.controls.Button;
-import org.red5.samples.livestream.videoconference.VideoPool;
-import org.red5.samples.livestream.videoconference.Chat;
 import org.red5.samples.livestream.videoconference.Broadcaster;
+import mx.controls.Button;
+import mx.controls.TextArea;
+import org.red5.ui.controls.IconButton;
+import org.red5.samples.livestream.videoconference.Chat;
+import org.red5.samples.livestream.videoconference.VideoPool;
 // ** END AUTO-UI IMPORT STATEMENTS **
 
 import org.red5.samples.livestream.videoconference.GlobalObject;
@@ -24,15 +25,20 @@ class org.red5.samples.livestream.videoconference.VideoConference extends MovieC
 	private var result:Object;
 	private var streamQue:Array;
 	private var si:Number;
+	private var snd:Sound;
+	private var sndTarget:MovieClip;
+	private var muted:Boolean = false;
 	
 // UI Elements:
 
 // ** AUTO-UI ELEMENTS **
 	private var broadcaster:Broadcaster;
-	private var output:TextArea;
-	private var videoPool:VideoPool;
-	private var clearTrace:Button;
 	private var chat:Chat;
+	private var clearTrace:Button;
+	private var output:TextArea;
+	private var soundMute:IconButton;
+	private var soundPlay:IconButton;
+	private var videoPool:VideoPool;
 // ** END AUTO-UI ELEMENTS **
 
 // Initialization:
@@ -60,6 +66,33 @@ class org.red5.samples.livestream.videoconference.VideoConference extends MovieC
 		
 		chat.registerBroadcaster(broadcaster);
 		chat.addEventListener("onNewName", Delegate.create(videoPool, videoPool.updateName));
+		chat.addEventListener("newChat", Delegate.create(this, playNewChatSound));
+		
+		// create sound obj
+		sndTarget = this.createEmptyMovieClip("sndTarget", this.getNextHighestDepth());
+		snd = new Sound (sndTarget);
+		snd.attachSound("newChatMessage");
+		snd.setVolume(80);
+		
+		soundPlay._visible = false;
+		soundMute.addEventListener("click", Delegate.create(this, updateMute));
+		soundPlay.addEventListener("click", Delegate.create(this, updateMute));
+		soundMute.tooltip = "Mute new chat sound";
+		soundPlay.tooltip = "Un-mute new chat sound";
+	}
+	
+	private function playNewChatSound():Void
+	{
+		if(muted) return;
+		snd.stop();
+		snd.start();
+	}
+	
+	private function updateMute():Void
+	{
+		muted = !muted;
+		soundMute._visible = !muted;
+		soundPlay._visible = muted;
 	}
 	
 	private function clearOutput():Void

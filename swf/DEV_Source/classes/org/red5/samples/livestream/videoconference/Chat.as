@@ -228,5 +228,7 @@ class org.red5.samples.livestream.videoconference.Chat extends MovieClip {
 		
 		// scroll the chat window
 		chatBody.vPosition = chatBody.maxVPosition;
+		
+		dispatchEvent({type:"newChat"});
 	}
 }

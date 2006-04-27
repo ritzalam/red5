@@ -51,7 +51,7 @@ class org.red5.samples.livestream.videoconference.Subscriber extends MovieClip {
 		stream = new Stream(p_connection);
 		
 		// set to false to NOT see status events
-		stream.debug = true;
+		//stream.debug = true;
 		
 		//stream.setBuffer(1);
 		// add listener for when someone disconnects
