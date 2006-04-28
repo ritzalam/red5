@@ -38,9 +38,13 @@ class org.red5.samples.livestream.videoconference.Connection extends NetConnecti
 // Semi-Private Methods:
 // Private Methods:
 	// FITC Demo method
-	private function setId(id:String) 
+	private function setId(id:Number) 
 	{
-	   _global.tt("SetId", id);
+	   _global.tt("SetId", id, "isNaN?", isNaN(id));
+	   
+	   // must recieve number
+	   if(isNaN(id)) return;
+	   
 	   dispatchEvent({type:"onSetID", id:id})
 	   return "Okay";
 	}

@@ -128,6 +128,10 @@ class org.red5.samples.livestream.videoconference.Broadcaster extends MovieClip 
 	
 	private function onSetID(evtObj:Object):Void
 	{
+		if(evtObj.id == "undefined" || isNaN(evtObj.id) || evtObj.id == "") return;
+				
+		videoID = evtObj.id;
+		
 		// setup stream
 		stream = new Stream(connector.connection);
 		
@@ -142,12 +146,13 @@ class org.red5.samples.livestream.videoconference.Broadcaster extends MovieClip 
 		// 4.18.2006 - removed per discussion with Luke/John about performance issues
 		//if(broadcastAudio.selected) stream.attachAudio(mic);
 		
-		stream.publish("videoStream_" + evtObj.id, "live");
+		_global.tt("Broadcaster.onSetID", videoID);
+		stream.publish("videoStream_" + videoID, "live");
 		
 		// show it on screen
 		public_video.video.attachVideo(cam);
 		
-		videoID = evtObj.id;
+		
 		controller.setID(evtObj.id, connector.connection);
 		
 		//dispatchEvent({type:"onSetID", id:evtObj.id})
