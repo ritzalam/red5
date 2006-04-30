@@ -185,7 +185,12 @@ public class RTMPHandler
 	
 	protected String getHostname(String url) {
 		log.debug("url: "+url);
-		return url.split("/")[2];
+		String[] parts = url.split("/");
+		if (parts.length == 2)
+			// TODO: is this a good default hostname?
+			return "";
+		else
+			return parts[2];
 	}
 	
 	public void onInvoke(RTMPConnection conn, Channel channel, PacketHeader source, Notify invoke){
