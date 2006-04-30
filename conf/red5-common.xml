@@ -36,4 +36,20 @@
 			</list>
 		</property>
 	</bean>
+    
+    <!-- handles creation / lookup of shared objects -->
+    <bean id="sharedObjectService" class="org.red5.server.so.SharedObjectService" />
+    
+    <!-- high level access to streams -->
+    <bean id="streamService" class="org.red5.server.stream.StreamService" />
+    
+    <!-- handles broadcast streams -->
+    <bean id="broadcastStreamService" class="org.red5.server.stream.StreamManager" />
+    
+    <!-- handles on-demand streams -->
+    <bean id="onDemandStreamService" class="org.red5.server.stream.StreamManager" />
+    
+    <!-- handles subsciber streams of broadcasts -->
+    <bean id="subscriberStreamService" class="org.red5.server.stream.StreamManager" />
+    
 </beans>

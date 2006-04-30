@@ -1,15 +1,18 @@
 package org.red5.server.api.so;
 
 import java.util.Iterator;
+import org.red5.server.api.IScope;
 
 public interface ISharedObjectService {
 
+	public final static String SHARED_OBJECT_SERVICE = "sharedObjectService";
+	
 	/**
 	 * Get a set of the shared object names
 	 * 
 	 * @return set containing the shared object names
 	 */
-	public Iterator<String> getSharedObjectNames();
+	public Iterator<String> getSharedObjectNames(IScope scope);
 
 	/**
 	 * Create a new shared object
@@ -20,7 +23,7 @@ public interface ISharedObjectService {
 	 *            will the shared object be persistent
 	 * @return true if the shared object was created, otherwise false
 	 */
-	public boolean createSharedObject(String name, boolean persistent);
+	public boolean createSharedObject(IScope scope, String name, boolean persistent);
 
 	/**
 	 * Get a shared object by name
@@ -29,9 +32,9 @@ public interface ISharedObjectService {
 	 *            the name of the shared object
 	 * @return shared object, or null if not found
 	 */
-	public ISharedObject getSharedObject(String name);
+	public ISharedObject getSharedObject(IScope scope, String name);
 
-	public boolean hasSharedObject(String name);
+	public boolean hasSharedObject(IScope scope, String name);
 
 	
 }

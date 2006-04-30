@@ -1,5 +1,7 @@
 package org.red5.server.net.rtmp;
 
+import static org.red5.server.api.ScopeUtils.getScopeService;
+
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -15,12 +17,14 @@ import org.red5.server.api.IScope;
 import org.red5.server.api.IScopeHandler;
 import org.red5.server.api.IServer;
 import org.red5.server.api.so.ISharedObject;
+import org.red5.server.api.so.ISharedObjectService;
 import org.red5.server.api.Red5;
 import org.red5.server.api.event.IEventDispatcher;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IPendingServiceCallback;
 import org.red5.server.api.service.IServiceCall;
 import org.red5.server.api.stream.IStream;
+import org.red5.server.api.stream.IStreamService;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.message.Constants;
@@ -38,7 +42,9 @@ import org.red5.server.net.rtmp.message.Unknown;
 import org.red5.server.net.rtmp.status.StatusCodes;
 import org.red5.server.net.rtmp.status.StatusObjectService;
 import org.red5.server.service.Call;
+import org.red5.server.so.SharedObjectService;
 import org.red5.server.stream.Stream;
+import org.red5.server.stream.StreamService;
 
 public class RTMPHandler 
 	implements Constants, StatusCodes {
@@ -280,7 +286,8 @@ public class RTMPHandler
 			} else if (action.equals(ACTION_CREATE_STREAM) || action.equals(ACTION_DELETE_STREAM) ||
 					   action.equals(ACTION_PUBLISH) || action.equals(ACTION_PLAY) || action.equals(ACTION_SEEK) ||
 					   action.equals(ACTION_PAUSE) || action.equals(ACTION_CLOSE_STREAM)) {
-				invokeCall(conn, call, conn.streamService);
+				IStreamService streamService = (IStreamService) getScopeService(conn.getScope(), IStreamService.STREAM_SERVICE, StreamService.class);
+				invokeCall(conn, call, streamService);
 			} else {
 				invokeCall(conn, call);
 			}
@@ -335,13 +342,15 @@ public class RTMPHandler
 		log.debug("SO Service: " + conn.sharedObjectService);
 		final ISharedObject so;
 		final String name = object.getName();
-		if (!conn.sharedObjectService.hasSharedObject(name)) {
-			if (!conn.sharedObjectService.createSharedObject(name, object.isPersistent())) {
+		IScope scope = conn.getScope();
+		ISharedObjectService sharedObjectService = (ISharedObjectService) getScopeService(scope, ISharedObjectService.SHARED_OBJECT_SERVICE, SharedObjectService.class);
+		if (!sharedObjectService.hasSharedObject(scope, name)) {
+			if (!sharedObjectService.createSharedObject(scope, name, object.isPersistent())) {
 				// TODO: return error to client.
 				return;
 			}
 		}
-		so = conn.sharedObjectService.getSharedObject(name);
+		so = sharedObjectService.getSharedObject(scope, name);
 		so.beginUpdate();
 		Iterator it = object.getEvents().iterator();
 		while (it.hasNext()) {

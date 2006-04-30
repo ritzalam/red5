@@ -28,9 +28,9 @@ public class ScopeResolver implements IScopeResolver {
 			final String room = parts[i];
 			if(scope.hasChildScope(room)){
 				scope = scope.getScope(room);
-			} /*else if(scope.createChildScope(room)){
+			} else if(scope.createChildScope(room)){
 				scope = scope.getScope(room);
-			} */else throw new ScopeNotFoundException(scope,parts[i]);
+			} else throw new ScopeNotFoundException(scope,parts[i]);
 		}
 		return scope;
 	}

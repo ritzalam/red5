@@ -9,7 +9,7 @@ import org.red5.server.api.event.IEvent;
 import org.red5.server.api.event.IEventListener;
 import org.red5.server.api.so.ISharedObject;
 import org.red5.server.api.so.ISharedObjectService;
-import org.red5.server.so.ScopeWrappingSharedObjectService;
+import org.red5.server.so.SharedObjectService;
 
 public class SharedObjectTest extends BaseTest 
 	implements IEventListener {
@@ -18,11 +18,11 @@ public class SharedObjectTest extends BaseTest
 	
 	@Test public void sharedObjectService(){
 		IScope scope = context.resolveScope(path_app);
-		ISharedObjectService service = new ScopeWrappingSharedObjectService(scope);
-		assertTrue("should be empty",!service.hasSharedObject("blah"));
-		assertTrue("create so",service.createSharedObject(name,false));
-		assertTrue("so exists?",service.hasSharedObject(name));
-		ISharedObject so = service.getSharedObject(name);
+		ISharedObjectService service = new SharedObjectService();
+		assertTrue("should be empty",!service.hasSharedObject(scope,"blah"));
+		assertTrue("create so",service.createSharedObject(scope,name,false));
+		assertTrue("so exists?",service.hasSharedObject(scope,name));
+		ISharedObject so = service.getSharedObject(scope,name);
 		assertTrue("so not null",so!=null);
 		assertTrue("name same",so.getName().equals(name));
 		//assertTrue("persistent",!so.isPersistent());

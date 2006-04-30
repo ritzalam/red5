@@ -28,37 +28,34 @@ import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.message.Status;
 import org.springframework.context.ApplicationContext;
 
-public class ScopeWrappingStreamManager
+public class StreamManager
 	implements IBroadcastStreamService, IOnDemandStreamService, ISubscriberStreamService {
 
 	protected static final String FILE_FACTORY = "streamableFileFactory";
 	
 	protected static Log log =
-        LogFactory.getLog(ScopeWrappingStreamManager.class.getName());
+        LogFactory.getLog(StreamManager.class.getName());
 	
-	protected IScope scope;
 	private String streamDir = "streams";
-	protected StreamableFileFactory fileFactory = null;
 
-	public ScopeWrappingStreamManager(IScope scope) {
-		this.scope = scope;
+	protected StreamableFileFactory getFileFactory(IScope scope) {
 		final IContext context = scope.getContext();
 		ApplicationContext appCtx = context.getApplicationContext();
 		if (!appCtx.containsBean(FILE_FACTORY))
-			fileFactory = new StreamableFileFactory();
+			return new StreamableFileFactory();
 		else
-			fileFactory =  (StreamableFileFactory) appCtx.getBean(FILE_FACTORY);
+			return (StreamableFileFactory) appCtx.getBean(FILE_FACTORY);
 	}
 	
-	public boolean hasBroadcastStream(String name) {
+	public boolean hasBroadcastStream(IScope scope, String name) {
 		return scope.hasChildScope(name);
 	}
 	
-	public Iterator<String> getBroadcastStreamNames() {
+	public Iterator<String> getBroadcastStreamNames(IScope scope) {
 		return scope.getBasicScopeNames(TYPE);
 	}
 	
-	public IBroadcastStream getBroadcastStream(String name) {
+	public IBroadcastStream getBroadcastStream(IScope scope, String name) {
 		BroadcastStreamScope result = (BroadcastStreamScope) scope.getBasicScope(TYPE, name);
 		if (result != null)
 			return result;
@@ -91,7 +88,7 @@ public class ScopeWrappingStreamManager
 		return result;
 	}
 	
-	public boolean hasOnDemandStream(String name) {
+	public boolean hasOnDemandStream(IScope scope, String name) {
 		try {
 			File file = scope.getResources(getStreamFilename(name))[0].getFile();
 			if (file.exists())
@@ -104,7 +101,7 @@ public class ScopeWrappingStreamManager
 		return false;
 	}
 	
-	public IOnDemandStream getOnDemandStream(String name) {
+	public IOnDemandStream getOnDemandStream(IScope scope, String name) {
 		IConnection conn = Red5.getConnectionLocal();
 		if (!(conn instanceof RTMPConnection))
 			return null;
@@ -113,7 +110,7 @@ public class ScopeWrappingStreamManager
 		try {
 			File file = scope.getResources(getStreamFilename(name))[0].getFile();
 			ITagReader reader;
-			IStreamableFileService service = fileFactory.getService(file);
+			IStreamableFileService service = getFileFactory(scope).getService(file);
 			if (service == null) {
 				log.error("No service found for " + file.getAbsolutePath());
 				return null;
@@ -131,12 +128,12 @@ public class ScopeWrappingStreamManager
 		return new OnDemandStream(scope, source, (RTMPConnection) conn);
 	}
 	
-	public ISubscriberStream getSubscriberStream(String name) {
+	public ISubscriberStream getSubscriberStream(IScope scope, String name) {
 		// TODO: implement this
 		return null;
 	}
 	
-	public void deleteStream(IStream stream) {
+	public void deleteStream(IScope scope, IStream stream) {
 		
 		log.debug("Delete stream: "+stream);
 		

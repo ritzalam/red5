@@ -2,6 +2,7 @@ package org.red5.server.adapter;
 
 import static org.red5.server.api.ScopeUtils.isApp;
 import static org.red5.server.api.ScopeUtils.isRoom;
+import static org.red5.server.api.ScopeUtils.getScopeService;
 
 import java.util.Iterator;
 
@@ -18,24 +19,14 @@ import org.red5.server.api.stream.IOnDemandStream;
 import org.red5.server.api.stream.IOnDemandStreamService;
 import org.red5.server.api.stream.ISubscriberStream;
 import org.red5.server.api.stream.ISubscriberStreamService;
-import org.red5.server.so.ScopeWrappingSharedObjectService;
-import org.red5.server.stream.ScopeWrappingStreamManager;
+import org.red5.server.so.SharedObjectService;
+import org.red5.server.stream.StreamService;
 
 public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 	implements ISharedObjectService, IBroadcastStreamService, IOnDemandStreamService, ISubscriberStreamService {
 
 	protected static Log log =
         LogFactory.getLog(ApplicationAdapter.class.getName());
-
-	protected ISharedObjectService sharedObjectService;
-	protected ScopeWrappingStreamManager streamService;
-
-	@Override
-	public void setScope(IScope scope) {
-		super.setScope(scope);
-		sharedObjectService = new ScopeWrappingSharedObjectService(scope);
-		streamService = new ScopeWrappingStreamManager(scope);
-	}
 
 	public boolean connect(IConnection conn, IScope scope, Object[] params) {
 		if(isApp(scope)) return appConnect(conn, params);
@@ -132,45 +123,55 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 	
 	/* Wrapper around ISharedObjectService */
 	
-	public boolean createSharedObject(String name, boolean persistent) {
-		return sharedObjectService.createSharedObject(name, persistent);
+	public boolean createSharedObject(IScope scope, String name, boolean persistent) {
+		ISharedObjectService service = (ISharedObjectService) getScopeService(scope, ISharedObjectService.SHARED_OBJECT_SERVICE, SharedObjectService.class); 
+		return service.createSharedObject(scope, name, persistent);
 	}
 
-	public ISharedObject getSharedObject(String name) {
-		return sharedObjectService.getSharedObject(name);
+	public ISharedObject getSharedObject(IScope scope, String name) {
+		ISharedObjectService service = (ISharedObjectService) getScopeService(scope, ISharedObjectService.SHARED_OBJECT_SERVICE, SharedObjectService.class); 
+		return service.getSharedObject(scope, name);
 	}
 
-	public Iterator<String> getSharedObjectNames() {
-		return sharedObjectService.getSharedObjectNames();
+	public Iterator<String> getSharedObjectNames(IScope scope) {
+		ISharedObjectService service = (ISharedObjectService) getScopeService(scope, ISharedObjectService.SHARED_OBJECT_SERVICE, SharedObjectService.class); 
+		return service.getSharedObjectNames(scope);
 	}
 
-	public boolean hasSharedObject(String name) {
-		return sharedObjectService.hasSharedObject(name);
+	public boolean hasSharedObject(IScope scope, String name) {
+		ISharedObjectService service = (ISharedObjectService) getScopeService(scope, ISharedObjectService.SHARED_OBJECT_SERVICE, SharedObjectService.class); 
+		return service.hasSharedObject(scope, name);
 	}
 	
 	/* Wrapper around the stream interfaces */
 	
-	public boolean hasBroadcastStream(String name) {
-		return streamService.hasBroadcastStream(name);
+	public boolean hasBroadcastStream(IScope scope, String name) {
+		IBroadcastStreamService service = (IBroadcastStreamService) getScopeService(scope, IBroadcastStreamService.BROADCAST_STREAM_SERVICE, StreamService.class); 
+		return service.hasBroadcastStream(scope, name);
 	}
 
-	public IBroadcastStream getBroadcastStream(String name) {
-		return streamService.getBroadcastStream(name);
+	public IBroadcastStream getBroadcastStream(IScope scope, String name) {
+		IBroadcastStreamService service = (IBroadcastStreamService) getScopeService(scope, IBroadcastStreamService.BROADCAST_STREAM_SERVICE, StreamService.class); 
+		return service.getBroadcastStream(scope, name);
 	}
 	
-	public Iterator<String> getBroadcastStreamNames() {
-		return streamService.getBroadcastStreamNames();
+	public Iterator<String> getBroadcastStreamNames(IScope scope) {
+		IBroadcastStreamService service = (IBroadcastStreamService) getScopeService(scope, IBroadcastStreamService.BROADCAST_STREAM_SERVICE, StreamService.class); 
+		return service.getBroadcastStreamNames(scope);
 	}
 	
-	public boolean hasOnDemandStream(String name) {
-		return streamService.hasOnDemandStream(name);
+	public boolean hasOnDemandStream(IScope scope, String name) {
+		IOnDemandStreamService service = (IOnDemandStreamService) getScopeService(scope, IOnDemandStreamService.ON_DEMAND_STREAM_SERVICE, StreamService.class); 
+		return service.hasOnDemandStream(scope, name);
 	}
 
-	public IOnDemandStream getOnDemandStream(String name) {
-		return streamService.getOnDemandStream(name);
+	public IOnDemandStream getOnDemandStream(IScope scope, String name) {
+		IOnDemandStreamService service = (IOnDemandStreamService) getScopeService(scope, IOnDemandStreamService.ON_DEMAND_STREAM_SERVICE, StreamService.class); 
+		return service.getOnDemandStream(scope, name);
 	}
 
-	public ISubscriberStream getSubscriberStream(String name) {
-		return streamService.getSubscriberStream(name);
+	public ISubscriberStream getSubscriberStream(IScope scope, String name) {
+		ISubscriberStreamService service = (ISubscriberStreamService) getScopeService(scope, ISubscriberStreamService.SUBSCRIBER_STREAM_SERVICE, StreamService.class); 
+		return service.getSubscriberStream(scope, name);
 	}
 }

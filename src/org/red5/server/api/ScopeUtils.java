@@ -1,5 +1,9 @@
 package org.red5.server.api;
 
+import org.red5.server.api.so.ISharedObjectService;
+import org.red5.server.so.SharedObjectService;
+import org.springframework.context.ApplicationContext;
+
 /**
  * Collection of utils for working with scopes
  */
@@ -8,6 +12,7 @@ public class ScopeUtils {
 	private static final int GLOBAL = 0x00;
 	private static final int APPLICATION = 0x01;
 	private static final int ROOM = 0x02;
+	private static final String SERVICE_CACHE_PREFIX = "__service_cache:";
 	
 	private static final String SLASH = "/";
 	
@@ -68,4 +73,34 @@ public class ScopeUtils {
 		return scope.getDepth() >= ROOM;
 	}
 	
+	public static Object getScopeService(IScope scope, String name) {
+		return getScopeService(scope, name, null);
+	}
+	
+	public static Object getScopeService(IScope scope, String name, Class defaultClass) {
+		if (scope.hasAttribute(SERVICE_CACHE_PREFIX + name))
+			// Return cached service
+			return scope.getAttribute(SERVICE_CACHE_PREFIX + name);
+		
+		final IContext context = scope.getContext();
+		ApplicationContext appCtx = context.getApplicationContext();
+		Object result;
+		if (!appCtx.containsBean(name)) {
+			if (defaultClass == null)
+				return null;
+			
+			try {
+				result = defaultClass.newInstance();
+			} catch (Exception e) {
+				e.printStackTrace();
+				return null;
+			}
+		} else
+			result = appCtx.getBean(name);
+		
+		// Cache service
+		scope.setAttribute(SERVICE_CACHE_PREFIX + name, result);
+		return result;
+	}
+
 }

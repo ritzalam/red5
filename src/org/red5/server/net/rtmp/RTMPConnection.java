@@ -1,5 +1,7 @@
 package org.red5.server.net.rtmp;
 
+import static org.red5.server.api.ScopeUtils.getScopeService;
+
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -20,8 +22,10 @@ import org.red5.server.api.service.IServiceCapableConnection;
 import org.red5.server.api.stream.IBroadcastStream;
 import org.red5.server.api.stream.IBroadcastStreamService;
 import org.red5.server.api.stream.IOnDemandStream;
+import org.red5.server.api.stream.IOnDemandStreamService;
 import org.red5.server.api.stream.IStream;
 import org.red5.server.api.stream.IStreamCapableConnection;
+import org.red5.server.api.stream.IStreamService;
 import org.red5.server.api.stream.ISubscriberStream;
 import org.red5.server.net.rtmp.message.Notify;
 import org.red5.server.net.rtmp.message.Invoke;
@@ -29,13 +33,13 @@ import org.red5.server.net.rtmp.message.OutPacket;
 import org.red5.server.net.rtmp.message.Ping;
 import org.red5.server.service.Call;
 import org.red5.server.service.PendingCall;
-import org.red5.server.so.ScopeWrappingSharedObjectService;
+import org.red5.server.so.SharedObjectService;
 import org.red5.server.stream.BroadcastStream;
 import org.red5.server.stream.BroadcastStreamScope;
 import org.red5.server.stream.VideoCodecFactory;
 import org.red5.server.stream.OnDemandStream;
 import org.red5.server.stream.OutputStream;
-import org.red5.server.stream.ScopeWrappingStreamService;
+import org.red5.server.stream.StreamService;
 import org.red5.server.stream.Stream;
 import org.red5.server.stream.SubscriberStream;
 import org.springframework.context.ApplicationContext;
@@ -54,7 +58,6 @@ public abstract class RTMPConnection extends BaseConnection
 	private IStream[] streams = new IStream[MAX_STREAMS];
 	private boolean[] reservedStreams = new boolean[MAX_STREAMS];
 	protected ISharedObjectService sharedObjectService;
-	protected ScopeWrappingStreamService streamService;
 	protected HashMap<String,ISharedObject> sharedObjects;
 	protected Integer invokeId = new Integer(1);
 	protected HashMap<Integer,IPendingServiceCall> pendingCalls = new HashMap<Integer,IPendingServiceCall>();
@@ -141,7 +144,8 @@ public abstract class RTMPConnection extends BaseConnection
 			// Another stream already exists with this id
 			return null;
 		
-		final IBroadcastStream result = streamService.getBroadcastStream(name);
+		IBroadcastStreamService service = (IBroadcastStreamService) getScopeService(scope, IBroadcastStreamService.BROADCAST_STREAM_SERVICE, StreamService.class);
+		final IBroadcastStream result = service.getBroadcastStream(scope, name);
 		if (result instanceof BroadcastStream) {
 			((BroadcastStream) result).setStreamId(streamId+1);
 			((BroadcastStream) result).setDownstream(createOutputStream(streamId));
@@ -165,10 +169,11 @@ public abstract class RTMPConnection extends BaseConnection
 			// Another stream already exists with this id
 			return null;
 		
+		IBroadcastStreamService service = (IBroadcastStreamService) getScopeService(scope, IBroadcastStreamService.BROADCAST_STREAM_SERVICE, StreamService.class);
 		SubscriberStream result = new SubscriberStream(getScope(), this);
 		result.setStreamId(streamId+1);
 		result.setDownstream(createOutputStream(streamId));
-		final IBroadcastStream broadcast = streamService.getBroadcastStream(name);
+		final IBroadcastStream broadcast = service.getBroadcastStream(scope, name);
 		broadcast.subscribe(result);
 		streams[streamId] = result;
 		return result;
@@ -183,7 +188,8 @@ public abstract class RTMPConnection extends BaseConnection
 			// Another stream already exists with this id
 			return null;
 	
-		final IOnDemandStream stream = streamService.getOnDemandStream(name);
+		IOnDemandStreamService service = (IOnDemandStreamService) getScopeService(scope, IOnDemandStreamService.ON_DEMAND_STREAM_SERVICE, StreamService.class);
+		final IOnDemandStream stream = service.getOnDemandStream(scope, name);
 		if (stream instanceof OnDemandStream) {
 			((OnDemandStream) stream).setStreamId(streamId+1);
 			((OnDemandStream) stream).setDownstream(createOutputStream(streamId));
@@ -210,6 +216,7 @@ public abstract class RTMPConnection extends BaseConnection
 	}
 	
 	public void close(){
+		IStreamService streamService = (IStreamService) getScopeService(scope, IStreamService.STREAM_SERVICE, StreamService.class);		
 		synchronized (streams) {
 			for(int i=0; i<streams.length; i++){
 				IStream stream = streams[i];
@@ -238,12 +245,14 @@ public abstract class RTMPConnection extends BaseConnection
 	public abstract void write(OutPacket out);
 
 	public boolean connectSharedObject(String name, boolean persistent) {
-		if(!sharedObjectService.hasSharedObject(name)){
-			if(!sharedObjectService.createSharedObject(name, persistent)){
+		ISharedObjectService sharedObjectService = (ISharedObjectService) getScopeService(scope, ISharedObjectService.SHARED_OBJECT_SERVICE, SharedObjectService.class);
+		IScope scope = getScope();
+		if(!sharedObjectService.hasSharedObject(scope, name)){
+			if(!sharedObjectService.createSharedObject(scope, name, persistent)){
 				return false;
 			}
 		}
-		final ISharedObject so = sharedObjectService.getSharedObject(name);
+		final ISharedObject so = sharedObjectService.getSharedObject(scope, name);
 		so.addEventListener(this);
 		sharedObjects.put(name, so);
 		return true;
@@ -265,17 +274,6 @@ public abstract class RTMPConnection extends BaseConnection
 		return sharedObjects.containsKey(name);
 	}
 
-	@Override
-	public boolean connect(IScope newScope, Object[] params) {
-		if(super.connect(newScope, params)){
-			sharedObjectService = new ScopeWrappingSharedObjectService(newScope);
-			streamService = new ScopeWrappingStreamService(newScope);
-			return true;
-		} else {
-			return false;
-		}
-	}
-	
 	public void invoke(IServiceCall call) {
 		// We need to use Invoke for all calls to the client
 		Invoke invoke = new Invoke();

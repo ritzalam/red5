@@ -63,7 +63,8 @@ public class Application extends ApplicationAdapter implements IPendingServiceCa
 	 * @return iterator of broadcast stream names
 	 */
 	public Iterator<String> getStreams(){
-		return getBroadcastStreamNames();
+		IConnection conn = Red5.getConnectionLocal();
+		return getBroadcastStreamNames(conn.getScope());
 	}
 	
 	/**
