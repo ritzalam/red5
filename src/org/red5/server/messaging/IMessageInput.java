@@ -1,0 +1,61 @@
+/*
+ * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * 
+ * Copyright ? 2006 by respective authors (see below). All rights reserved.
+ * 
+ * This library is free software; you can redistribute it and/or modify it under the 
+ * terms of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either version 2.1 of the License, or (at your option) any later 
+ * version. 
+ * 
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY 
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+ * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License along 
+ * with this library; if not, write to the Free Software Foundation, Inc., 
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ */
+
+package org.red5.server.messaging;
+
+/**
+ * Input Endpoint for a consumer to connect.
+ * @author The Red5 Project (red5@osflash.org)
+ * @author Steven Gong (steven.gong@gmail.com)
+ */
+public interface IMessageInput {
+	/**
+	 * Pull message from this input endpoint. Return
+	 * w/o waiting.
+	 * @return The pulled message or <tt>null</tt> if message is
+	 * not available.
+	 */
+	IMessage pullMessage();
+	
+	/**
+	 * Pull message from this input endpoint. Wait
+	 * <tt>wait</tt> milliseconds if message is not available.
+	 * @param wait milliseconds to wait when message is not
+	 * available.
+	 * @return The pulled message or <tt>null</tt> if message is
+	 * not available.
+	 */
+	IMessage pullMessage(long wait);
+	
+	/**
+	 * Connect to a consumer.
+	 * @param consumer
+	 * @return <tt>true</tt> when successfully subscribed,
+	 * <tt>false</tt> otherwise.
+	 */
+	boolean subscribe(IConsumer consumer);
+	
+	/**
+	 * Disconnect from a consumer.
+	 * @param consumer
+	 * @return <tt>true</tt> when successfully unsubscribed,
+	 * <tt>false</tt> otherwise.
+	 */
+	boolean unsubscribe(IConsumer consumer);
+}
