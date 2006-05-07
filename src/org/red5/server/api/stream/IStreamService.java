@@ -30,4 +30,8 @@ public interface IStreamService {
 	public void publish(String name, String mode);
 	
 	public void publish(boolean dontStop);
+	
+	public void seek(int position);
+	
+	public void pause(boolean pausePlayback, int position);
 }

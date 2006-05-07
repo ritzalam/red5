@@ -132,5 +132,12 @@ public abstract class AbstractPipe implements IPipe {
 				log.error("exception when handling pipe connection event", t);
 			}
 		}
+		// execute the pending tasks
+		for (Runnable task : event.getTaskList()) {
+			try {
+				task.run();
+			} catch (Throwable t) {}
+		}
+		event.getTaskList().clear();
 	}
 }

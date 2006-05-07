@@ -34,4 +34,15 @@ public class PipeUtils {
 		pipe.subscribe(provider);
 		pipe.subscribe(consumer);
 	}
+	
+	/**
+	 * Disconnect a provider/consumer from a pipe.
+	 * @param provider
+	 * @param pipe
+	 * @param consumer
+	 */
+	public static void disconnect(IProvider provider, IPipe pipe, IConsumer consumer) {
+		pipe.unsubscribe(provider);
+		pipe.unsubscribe(consumer);
+	}
 }

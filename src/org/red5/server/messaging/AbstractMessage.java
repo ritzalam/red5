@@ -28,33 +28,27 @@ public class AbstractMessage implements IMessage {
 	protected Map extraHeaders = new HashMap();
 
 	public String getMessageID() {
-		// TODO Auto-generated method stub
-		return null;
+		return messageID;
 	}
 
 	public void setMessageID(String id) {
-		// TODO Auto-generated method stub
-
+		this.messageID = id;
 	}
 
 	public String getCorrelationID() {
-		// TODO Auto-generated method stub
-		return null;
+		return correlationID;
 	}
 
 	public void setCorrelationID(String id) {
-		// TODO Auto-generated method stub
-
+		this.correlationID = id;
 	}
 
 	public String getMessageType() {
-		// TODO Auto-generated method stub
-		return null;
+		return messageType;
 	}
 
 	public void setMessageType(String type) {
-		// TODO Auto-generated method stub
-
+		this.messageType = type;
 	}
 
 	public boolean getBooleanProperty(String name) {

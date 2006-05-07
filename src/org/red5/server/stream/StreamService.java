@@ -15,7 +15,13 @@ import org.red5.server.api.stream.IStream;
 import org.red5.server.api.stream.IStreamCapableConnection;
 import org.red5.server.api.stream.IStreamService;
 import org.red5.server.api.stream.ISubscriberStream;
+import org.red5.server.messaging.InMemoryPullPullPipe;
+import org.red5.server.messaging.InMemoryPushPushPipe;
+import org.red5.server.messaging.PipeUtils;
 import org.red5.server.net.rtmp.RTMPHandler;
+import org.red5.server.stream.consumer.ConnectionConsumer;
+import org.red5.server.stream.filter.StreamBandwidthController;
+import org.red5.server.stream.provider.FileProvider;
 import org.springframework.core.io.Resource;
 
 public class StreamService extends StreamManager
@@ -212,7 +218,7 @@ public class StreamService extends StreamManager
 			((IOnDemandStream) stream).seek(position);
 	}
 	
-	public void pause(Object resumePlayback, int position) {
+	public void pause(boolean resumePlayback, int position) {
 		IConnection conn = Red5.getConnectionLocal();
 		if (!(conn instanceof IStreamCapableConnection))
 			return;
@@ -220,19 +226,11 @@ public class StreamService extends StreamManager
 		IStream stream = ((IStreamCapableConnection) conn).getStreamById(getCurrentStreamId()+1);
 		if (stream instanceof IOnDemandStream) {
 			IOnDemandStream ods = (IOnDemandStream) stream;
-			if (resumePlayback instanceof Boolean) {
-				if (((Boolean) resumePlayback).booleanValue()) {
-					ods.seek(position);
-					ods.resume();
-				} else
-					ods.pause();
-			} else {
-				if (ods.isPaused()) {
-					ods.seek(position);
-					ods.resume();
-				} else
-					ods.pause();
-			}
+			if (resumePlayback) {
+				ods.seek(position);
+				ods.resume();
+			} else
+				ods.pause();
 		}
 	}
 }

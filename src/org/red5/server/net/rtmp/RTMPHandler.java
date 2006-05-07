@@ -43,6 +43,7 @@ import org.red5.server.net.rtmp.status.StatusCodes;
 import org.red5.server.net.rtmp.status.StatusObjectService;
 import org.red5.server.service.Call;
 import org.red5.server.so.SharedObjectService;
+import org.red5.server.stream.SubscriberStreamNew;
 import org.red5.server.stream.Stream;
 import org.red5.server.stream.StreamService;
 
@@ -148,6 +149,10 @@ public class RTMPHandler
 		final IStream stream = conn.getStreamByChannelId(channelId);
 		if (stream != null && (stream instanceof Stream)) {
 			((Stream) stream).written(sent.getMessage());
+		}
+		// XXX we'd better use new event model for notification
+		if (stream != null && (stream instanceof SubscriberStreamNew)) {
+			((SubscriberStreamNew) stream).written(sent.getMessage());
 		}
 	}
 

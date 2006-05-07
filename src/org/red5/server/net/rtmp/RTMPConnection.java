@@ -5,6 +5,7 @@ import static org.red5.server.api.ScopeUtils.getScopeService;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.UUID;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -23,6 +24,7 @@ import org.red5.server.api.stream.IBroadcastStream;
 import org.red5.server.api.stream.IBroadcastStreamService;
 import org.red5.server.api.stream.IOnDemandStream;
 import org.red5.server.api.stream.IOnDemandStreamService;
+import org.red5.server.api.stream.ISubscriberStreamNew;
 import org.red5.server.api.stream.IStream;
 import org.red5.server.api.stream.IStreamCapableConnection;
 import org.red5.server.api.stream.IStreamService;
@@ -36,6 +38,7 @@ import org.red5.server.service.PendingCall;
 import org.red5.server.so.SharedObjectService;
 import org.red5.server.stream.BroadcastStream;
 import org.red5.server.stream.BroadcastStreamScope;
+import org.red5.server.stream.SubscriberStreamNew;
 import org.red5.server.stream.VideoCodecFactory;
 import org.red5.server.stream.OnDemandStream;
 import org.red5.server.stream.OutputStream;
@@ -113,11 +116,11 @@ public abstract class RTMPConnection extends BaseConnection
 				}
 			}
 		}
-		return result;
+		return result + 1;
 	}
 	
-	private OutputStream createOutputStream(int streamId) {
-		byte channelId = (byte) (4 + (streamId * 5));
+	public OutputStream createOutputStream(int streamId) {
+		byte channelId = (byte) (4 + ((streamId - 1) * 5));
 		final Channel data = getChannel(channelId++);
 		final Channel video = getChannel(channelId++);
 		final Channel audio = getChannel(channelId++);
@@ -136,65 +139,65 @@ public abstract class RTMPConnection extends BaseConnection
 	}
 	
 	public IBroadcastStream newBroadcastStream(String name, int streamId) {
-		if (!reservedStreams[streamId])
+		if (!reservedStreams[streamId - 1])
 			// StreamId has not been reserved before
 			return null;
 		
-		if (streams[streamId] != null)
+		if (streams[streamId - 1] != null)
 			// Another stream already exists with this id
 			return null;
 		
 		IBroadcastStreamService service = (IBroadcastStreamService) getScopeService(scope, IBroadcastStreamService.BROADCAST_STREAM_SERVICE, StreamService.class);
 		final IBroadcastStream result = service.getBroadcastStream(scope, name);
 		if (result instanceof BroadcastStream) {
-			((BroadcastStream) result).setStreamId(streamId+1);
+			((BroadcastStream) result).setStreamId(streamId);
 			((BroadcastStream) result).setDownstream(createOutputStream(streamId));
 			((BroadcastStream) result).setVideoCodecFactory(getVideoCodecFactory());
 		} else if (result instanceof BroadcastStreamScope) {
-			((BroadcastStreamScope) result).setStreamId(streamId+1);
+			((BroadcastStreamScope) result).setStreamId(streamId);
 			((BroadcastStreamScope) result).setDownstream(createOutputStream(streamId));
 			((BroadcastStreamScope) result).setVideoCodecFactory(getVideoCodecFactory());
 		} else
 			log.error("Can't initialize broadcast stream.");
-		streams[streamId] = result;
+		streams[streamId - 1] = result;
 		return result;
 	}
 	
 	public ISubscriberStream newSubscriberStream(String name, int streamId) {
-		if (!reservedStreams[streamId])
+		if (!reservedStreams[streamId - 1])
 			// StreamId has not been reserved before
 			return null;
 		
-		if (streams[streamId] != null)
+		if (streams[streamId - 1] != null)
 			// Another stream already exists with this id
 			return null;
 		
 		IBroadcastStreamService service = (IBroadcastStreamService) getScopeService(scope, IBroadcastStreamService.BROADCAST_STREAM_SERVICE, StreamService.class);
 		SubscriberStream result = new SubscriberStream(getScope(), this);
-		result.setStreamId(streamId+1);
+		result.setStreamId(streamId);
 		result.setDownstream(createOutputStream(streamId));
 		final IBroadcastStream broadcast = service.getBroadcastStream(scope, name);
 		broadcast.subscribe(result);
-		streams[streamId] = result;
+		streams[streamId - 1] = result;
 		return result;
 	}
 	
 	public IOnDemandStream newOnDemandStream(String name, int streamId) {
-		if (!reservedStreams[streamId])
+		if (!reservedStreams[streamId - 1])
 			// StreamId has not been reserved before
 			return null;
 		
-		if (streams[streamId] != null)
+		if (streams[streamId - 1] != null)
 			// Another stream already exists with this id
 			return null;
 	
 		IOnDemandStreamService service = (IOnDemandStreamService) getScopeService(scope, IOnDemandStreamService.ON_DEMAND_STREAM_SERVICE, StreamService.class);
 		final IOnDemandStream stream = service.getOnDemandStream(scope, name);
 		if (stream instanceof OnDemandStream) {
-			((OnDemandStream) stream).setStreamId(streamId+1);
+			((OnDemandStream) stream).setStreamId(streamId);
 			((OnDemandStream) stream).setDownstream(createOutputStream(streamId));
 		}
-		streams[streamId] = stream;
+		streams[streamId - 1] = stream;
 		return stream;
 	}
 	
@@ -210,9 +213,9 @@ public abstract class RTMPConnection extends BaseConnection
 			return null;
 		
 		//log.debug("Channel id: "+channelId);
-		int streamId = (int) Math.floor((channelId-4)/5);
+		int id = (int) Math.floor((channelId-4)/5);
 		//log.debug("Stream: "+streamId);
-		return streams[streamId];
+		return streams[id];
 	}
 	
 	public void close(){
@@ -320,6 +323,24 @@ public abstract class RTMPConnection extends BaseConnection
 		return result;
 	}
 	
+	protected String createStreamName() {
+		return UUID.randomUUID().toString();
+	}
 	
-	
+	public ISubscriberStreamNew newSubscriberStreamNew(int streamId) {
+		if (!reservedStreams[streamId - 1])
+			// StreamId has not been reserved before
+			return null;
+		
+		if (streams[streamId - 1] != null)
+			// Another stream already exists with this id
+			return null;
+		
+		SubscriberStreamNew ss = new SubscriberStreamNew();
+		ss.setConnection(this);
+		ss.setName(createStreamName());
+		ss.setStreamId(streamId);
+		streams[streamId - 1] = ss;
+		return ss;
+	}
 }

@@ -19,7 +19,9 @@
 
 package org.red5.server.messaging;
 
+import java.util.ArrayList;
 import java.util.EventObject;
+import java.util.List;
 
 /**
  * Event object corresponds to the connect/disconnect events
@@ -30,7 +32,8 @@ import java.util.EventObject;
  */
 public class PipeConnectionEvent extends EventObject {
 	private static final long serialVersionUID = 9078843765378168072L;
-
+	
+	private List<Runnable> taskList = new ArrayList<Runnable>();
 	/**
 	 * A provider connects as pull mode.
 	 */
@@ -92,5 +95,12 @@ public class PipeConnectionEvent extends EventObject {
 	public void setType(int type) {
 		this.type = type;
 	}
-
+	
+	public void addTask(Runnable task) {
+		taskList.add(task);
+	}
+	
+	List<Runnable> getTaskList() {
+		return taskList;
+	}
 }
