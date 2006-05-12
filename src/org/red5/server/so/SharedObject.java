@@ -100,15 +100,18 @@ public class SharedObject implements IPersistable, Constants {
 			syncOwner.addEvents(ownerMessage.getEvents());
 
 			IConnection conn = Red5.getConnectionLocal();
-			Channel channel = ((RTMPConnection) conn).getChannel((byte) 3);
-			
-			if (channel != null) {
-				//ownerMessage.acquire();
-
-				channel.write(syncOwner);
-				log.debug("Owner: " + channel);
-			} else
-				log.warn("No channel found for owner changes!?");
+			if (conn != null) {
+				// Only send updates when issued through RTMP request
+				Channel channel = ((RTMPConnection) conn).getChannel((byte) 3);
+				
+				if (channel != null) {
+					//ownerMessage.acquire();
+	
+					channel.write(syncOwner);
+					log.debug("Owner: " + channel);
+				} else
+					log.warn("No channel found for owner changes!?");
+			}
 			ownerMessage.getEvents().clear();
 		}
 
