@@ -20,6 +20,7 @@
 package org.red5.server.messaging;
 
 import java.util.Iterator;
+import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -35,18 +36,18 @@ import org.apache.commons.logging.LogFactory;
 public class InMemoryPullPullPipe extends AbstractPipe {
 	private static final Log log = LogFactory.getLog(InMemoryPullPullPipe.class);
 	
-	public boolean subscribe(IConsumer consumer) {
-		boolean success = super.subscribe(consumer);
-		if (success) fireConsumerConnectionEvent(consumer, PipeConnectionEvent.CONSUMER_CONNECT_PULL);
+	public boolean subscribe(IConsumer consumer, Map paramMap) {
+		boolean success = super.subscribe(consumer, paramMap);
+		if (success) fireConsumerConnectionEvent(consumer, PipeConnectionEvent.CONSUMER_CONNECT_PULL, paramMap);
 		return success;
 	}
 
-	public boolean subscribe(IProvider provider) {
+	public boolean subscribe(IProvider provider, Map paramMap) {
 		if (!(provider instanceof IPullableProvider)) {
 			throw new IllegalArgumentException("Non-pullable provider not supported by PullPullPipe");
 		}
-		boolean success = super.subscribe(provider);
-		if (success) fireProviderConnectionEvent(provider, PipeConnectionEvent.PROVIDER_CONNECT_PULL);
+		boolean success = super.subscribe(provider, paramMap);
+		if (success) fireProviderConnectionEvent(provider, PipeConnectionEvent.PROVIDER_CONNECT_PULL, paramMap);
 		return success;
 	}
 

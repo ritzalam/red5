@@ -15,10 +15,12 @@ import org.red5.io.flv.IKeyFrameDataAnalyzer.KeyFrameMeta;
 import org.red5.server.api.IContext;
 import org.red5.server.api.IScope;
 import org.red5.server.messaging.IMessage;
+import org.red5.server.messaging.IMessageComponent;
 import org.red5.server.messaging.IPassive;
 import org.red5.server.messaging.IPipe;
 import org.red5.server.messaging.IPipeConnectionListener;
 import org.red5.server.messaging.IPullableProvider;
+import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.messaging.PipeConnectionEvent;
 import org.red5.server.net.rtmp.message.AudioData;
 import org.red5.server.net.rtmp.message.Constants;
@@ -36,13 +38,14 @@ implements IPassive, ISeekableProvider, IPullableProvider, IPipeConnectionListen
 	private static final Log log = LogFactory.getLog(FileProvider.class);
 	private static final String FILE_FACTORY = "streamableFileFactory";
 	
+	public static final String KEY = FileProvider.class.getName();
+	
 	private IScope scope;
 	private File file;
 	private IPipe pipe;
 	private ITagReader reader;
 	private KeyFrameMeta keyFrameMeta = null;
-	private int start = 0, end = -1;
-	private int lastTS = 0;
+	private int start = 0;
 	
 	public FileProvider(IScope scope, File file) {
 		this.scope = scope;
@@ -53,18 +56,15 @@ implements IPassive, ISeekableProvider, IPullableProvider, IPipeConnectionListen
 		this.start = start;
 	}
 	
-	public void setEnd(int end) {
-		this.end = end;
-	}
-	
 	public IMessage pullMessage(IPipe pipe) {
 		if (this.pipe != pipe) return null;
-		if(!reader.hasMoreTags() || (end >= 0 && lastTS > end)) {
+		if (this.reader == null) init();
+		if(!reader.hasMoreTags()) {
+			// TODO send OOBCM to notify EOF
 			this.pipe.unsubscribe(this);
 			return null;
 		}
 		ITag tag = reader.readTag();
-		lastTS = tag.getTimestamp();
 		Message msg = null;
 		switch(tag.getDataType()){
 		case Constants.TYPE_AUDIO_DATA:
@@ -101,30 +101,59 @@ implements IPassive, ISeekableProvider, IPullableProvider, IPipeConnectionListen
 		case PipeConnectionEvent.PROVIDER_CONNECT_PULL:
 			if (pipe == null) {
 				pipe = (IPipe) event.getSource();
-				IStreamableFileService service = getFileFactory(scope).getService(file);
-				if (service == null) {
-					log.error("No service found for " + file.getAbsolutePath());
-					break;
-				}
-				try {
-					IStreamableFile streamFile = service.getStreamableFile(file);
-					reader = streamFile.getReader();
-				} catch (IOException e) {
-					log.error("error read stream file " + file.getAbsolutePath(), e);
-				}
-				if (start > 0) {
-					seek(start);
-				}
 			}
 			break;
 		case PipeConnectionEvent.PROVIDER_DISCONNECT:
 			if (pipe == event.getSource()) {
 				this.pipe = null;
-				reader.close();
+				uninit();
 			}
 			break;
+		case PipeConnectionEvent.CONSUMER_DISCONNECT:
+			if (pipe == event.getSource()) {
+				uninit();
+			}
 		default:
 			break;
+		}
+	}
+	
+	public void onOOBControlMessage(IMessageComponent source, IPipe pipe, OOBControlMessage oobCtrlMsg) {
+		if (IPassive.KEY.equals(oobCtrlMsg.getTarget())) {
+			if (oobCtrlMsg.getServiceName().equals("init")) {
+				Integer startTS = (Integer) oobCtrlMsg.getServiceParamMap().get("startTS");
+				setStart(startTS.intValue());
+			}
+		}
+		if (ISeekableProvider.KEY.equals(oobCtrlMsg.getTarget())) {
+			if (oobCtrlMsg.getServiceName().equals("seek")) {
+				Integer position = (Integer) oobCtrlMsg.getServiceParamMap().get("position");
+				seek(position.intValue());
+			}
+		}
+	}
+
+	private void init() {
+		IStreamableFileService service = getFileFactory(scope).getService(file);
+		if (service == null) {
+			log.error("No service found for " + file.getAbsolutePath());
+			return;
+		}
+		try {
+			IStreamableFile streamFile = service.getStreamableFile(file);
+			reader = streamFile.getReader();
+		} catch (IOException e) {
+			log.error("error read stream file " + file.getAbsolutePath(), e);
+		}
+		if (start > 0) {
+			seek(start);
+		}
+	}
+	
+	private void uninit() {
+		if (this.reader != null) {
+			this.reader.close();
+			this.reader = null;
 		}
 	}
 

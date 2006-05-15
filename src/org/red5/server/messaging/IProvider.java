@@ -24,6 +24,6 @@ package org.red5.server.messaging;
  * @author The Red5 Project (red5@osflash.org)
  * @author Steven Gong (steven.gong@gmail.com)
  */
-public interface IProvider {
+public interface IProvider extends IMessageComponent {
 
 }

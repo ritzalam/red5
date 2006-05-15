@@ -2,6 +2,7 @@ package org.red5.server.stream;
 
 import org.red5.server.api.IConnection;
 import org.red5.server.api.Red5;
+import org.red5.server.api.stream.IBroadcastStreamNew;
 import org.red5.server.api.stream.ISubscriberStreamNew;
 import org.red5.server.api.stream.IStream;
 import org.red5.server.api.stream.IStreamCapableConnection;
@@ -112,13 +113,33 @@ public class StreamServiceNew implements IStreamService {
 	}
 
 	public void publish(String name) {
-		// TODO Auto-generated method stub
-
+		publish(name, Stream.MODE_LIVE);
 	}
 
 	public void publish(String name, String mode) {
-		// TODO Auto-generated method stub
-
+		IConnection conn = Red5.getConnectionLocal();
+		if (!(conn instanceof IStreamCapableConnection))
+			return;
+		RTMPConnection rtmpConn = (RTMPConnection) conn;
+		int streamId = getCurrentStreamId();
+		IStream stream = rtmpConn.getStreamById(streamId);
+		if (stream != null) {
+			// stream already exists
+			return;
+		} else {
+			stream = rtmpConn.newBroadcastStreamNew(streamId);
+		}
+		BroadcastStreamNew bs = (BroadcastStreamNew) stream;
+		bs.start();
+		if (Stream.MODE_RECORD.equals(mode)) {
+			bs.saveAs(name, false);
+		} else if (Stream.MODE_APPEND.equals(mode)) {
+			bs.saveAs(name, true);
+		} else if (Stream.MODE_LIVE.equals(mode)) {
+			IProviderService providerService =
+				(IProviderService) conn.getScope().getContext().getBean(IProviderService.KEY);
+			providerService.registerLiveProvider(conn.getScope(), name, bs);
+		}
 	}
 
 	public void publish(boolean dontStop) {

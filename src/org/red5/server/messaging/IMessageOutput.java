@@ -19,6 +19,8 @@
 
 package org.red5.server.messaging;
 
+import java.util.Map;
+
 /**
  * Output Endpoint for a provider to connect.
  * @author The Red5 Project (red5@osflash.org)
@@ -36,10 +38,11 @@ public interface IMessageOutput {
 	/**
 	 * Connect to a provider.
 	 * @param provider
+	 * @param paramMap
 	 * @return <tt>true</tt> when successfully subscribed,
 	 * <tt>false</tt> otherwise.
 	 */
-	boolean subscribe(IProvider provider);
+	boolean subscribe(IProvider provider, Map paramMap);
 	
 	/**
 	 * Disconnect from a provider.
@@ -48,4 +51,11 @@ public interface IMessageOutput {
 	 * <tt>false</tt> otherwise.
 	 */
 	boolean unsubscribe(IProvider provider);
+	
+	/**
+	 * Send OOB Control Message to all consumers on the other side of pipe.
+	 * @param provider The provider that sends the message
+	 * @param oobCtrlMsg
+	 */
+	void sendOOBControlMessage(IProvider provider, OOBControlMessage oobCtrlMsg);
 }

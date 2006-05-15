@@ -1,7 +1,9 @@
 package org.red5.server.stream;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -11,6 +13,9 @@ import org.red5.server.api.stream.ISubscriberStreamNew;
 import org.red5.server.messaging.IConsumer;
 import org.red5.server.messaging.IFilter;
 import org.red5.server.messaging.IMessage;
+import org.red5.server.messaging.IMessageComponent;
+import org.red5.server.messaging.IMessageInput;
+import org.red5.server.messaging.IMessageOutput;
 import org.red5.server.messaging.IPassive;
 import org.red5.server.messaging.IPipe;
 import org.red5.server.messaging.IPipeConnectionListener;
@@ -18,6 +23,7 @@ import org.red5.server.messaging.IProvider;
 import org.red5.server.messaging.IPushableConsumer;
 import org.red5.server.messaging.InMemoryPullPullPipe;
 import org.red5.server.messaging.InMemoryPushPushPipe;
+import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.messaging.PipeConnectionEvent;
 import org.red5.server.messaging.PipeUtils;
 import org.red5.server.net.rtmp.message.AudioData;
@@ -39,9 +45,9 @@ implements ISubscriberStreamNew, IFilter, IPushableConsumer, IPipeConnectionList
 	private int currentItem;
 	private Timer listTimer;
 
-	private IPipe sourcePipe;
-	private IProvider sourceProvider;
-	private IPipe downpipe;
+	private IMessageOutput msgOut;
+	private IMessageInput msgIn;
+	private boolean isPullMode = false;
 	
 	private boolean isPaused = false;
 	
@@ -112,30 +118,33 @@ implements ISubscriberStreamNew, IFilter, IPushableConsumer, IPipeConnectionList
 	}
 
 	public void pause(int position) {
-		if (sourceProvider instanceof IPassive && !isPaused) {
+		if (isPullMode && !isPaused) {
 			isPaused = true;
 		}
 	}
 
 	public void resume(int position) {
-		if (sourceProvider instanceof IPassive && isPaused) {
+		if (msgIn == null) return;
+		if (isPullMode && isPaused) {
 			isPaused = false;
-			if (sourceProvider instanceof ISeekableProvider) {
-				((ISeekableProvider) sourceProvider).seek(position);
-			}
+			sendVODSeekCM(msgIn, position);
 			sendResetPing();
 		}
 	}
 
 	public void seek(int position) {
-		if (sourceProvider instanceof ISeekableProvider) {
+		if (msgIn == null) return;
+		if (isPullMode) {
 			sendResetPing();
-			((ISeekableProvider) sourceProvider).seek(position);
+			sendVODSeekCM(msgIn, position);
 		}
 	}
 
 	public void stop() {
-		if (sourceProvider != null) sourcePipe.unsubscribe(sourceProvider);
+		if (msgIn != null) {
+			msgIn.unsubscribe(this);
+			msgIn = null;
+		}
 		status = STOPPED;
 		currentItem = 0;
 	}
@@ -147,7 +156,12 @@ implements ISubscriberStreamNew, IFilter, IPushableConsumer, IPipeConnectionList
 	public IConnection getConnection() {
 		return this.conn;
 	}
+	
+	public void onOOBControlMessage(IMessageComponent source, IPipe pipe, OOBControlMessage oobCtrlMsg) {
+		// TODO Auto-generated method stub
 		
+	}
+
 	synchronized void start() {
 		if (playList.size() == 0) {
 			throw new IllegalStateException("nothing in playlist");
@@ -159,9 +173,8 @@ implements ISubscriberStreamNew, IFilter, IPushableConsumer, IPipeConnectionList
 			// prepare the pipeline
 			IConsumerService consumerManager =
 				(IConsumerService) conn.getScope().getContext().getBean(IConsumerService.KEY);
-			IConsumer consumer = consumerManager.getConsumer(this);
-			downpipe = new InMemoryPushPushPipe();
-			PipeUtils.connect(this, downpipe, consumer);
+			msgOut = consumerManager.getConsumerOutput(this);
+			msgOut.subscribe(this, null);
 		}
 		currentItem = 0;
 		sendStartNotify();
@@ -179,10 +192,9 @@ implements ISubscriberStreamNew, IFilter, IPushableConsumer, IPipeConnectionList
 			// we reaches the end
 			status = STOPPED;
 		} else {
-			if (sourceProvider != null) {
-				// disconnect from the original provider first
-				PipeUtils.disconnect(sourceProvider, sourcePipe, this);
-				sourceProvider = null;
+			if (msgIn != null) {
+				msgIn.unsubscribe(this);
+				msgIn = null;
 			}
 			PlayItem item = playList.get(0);
 			play(item);
@@ -194,11 +206,12 @@ implements ISubscriberStreamNew, IFilter, IPushableConsumer, IPipeConnectionList
 		// decision: 0 for Live, 1 for File, 2 for Wait, 3 for N/A
 		int decision = 3;
 		
-		IProviderService providerManager =
+		IProviderService providerService =
 			(IProviderService) conn.getScope().getContext().getApplicationContext().getBean(IProviderService.KEY);
-		sourceProvider = providerManager.getProvider(conn.getScope(), item.getName());
-		boolean isPublishedStream = sourceProvider != null && !(sourceProvider instanceof IPassive);
-		boolean isFileStream = sourceProvider != null && sourceProvider instanceof IPassive;
+		IMessageInput liveInput = providerService.getLiveProviderInput(conn.getScope(), item.getName(), false);
+		IMessageInput vodInput = providerService.getVODProviderInput(conn.getScope(), item.getName());
+		boolean isPublishedStream = liveInput != null;
+		boolean isFileStream = vodInput != null;
 		
 		switch (item.getType()) {
 		case -2:
@@ -230,21 +243,20 @@ implements ISubscriberStreamNew, IFilter, IPushableConsumer, IPipeConnectionList
 			}
 			break;
 		}
+		if (decision == 2) liveInput = providerService.getLiveProviderInput(
+				conn.getScope(), item.getName(), true);
 		
 		switch (decision) {
 		case 0:
+		case 2:
+			msgIn = liveInput;
+			msgIn.subscribe(this, null);
 			break;
 		case 1:
-			if (sourceProvider instanceof FileProvider) {
-				FileProvider fileProvider = (FileProvider) sourceProvider;
-				fileProvider.setStart(item.getType());
-				fileProvider.setEnd(item.getType() + item.getLength());
-			}
-			sourcePipe = new InMemoryPullPullPipe();
-			PipeUtils.connect(sourceProvider, sourcePipe, this);
+			msgIn = vodInput;
+			msgIn.subscribe(this, null);
+			sendVODInitCM(msgIn, item);
 			pullAndPush();
-			break;
-		case 2:
 			break;
 		default:
 			break;
@@ -257,19 +269,31 @@ implements ISubscriberStreamNew, IFilter, IPushableConsumer, IPipeConnectionList
 	}
 	
 	public void written(Message msg) {
-		pullAndPush();
+		if (isPullMode) pullAndPush();
 	}
 	
 	public void pushMessage(IPipe pipe, IMessage message) {
-		// TODO Auto-generated method stub
-		
+		msgOut.pushMessage(message);
 	}
 
 	public void onPipeConnectionEvent(PipeConnectionEvent event) {
 		switch (event.getType()) {
 		case PipeConnectionEvent.PROVIDER_DISCONNECT:
-			if (sourceProvider == event.getProvider()) {
-				sourceProvider = null;
+			if (event.getProvider() != this) {
+				if (msgIn != null) {
+					msgIn.unsubscribe(this);
+					msgIn = null;
+				}
+			}
+			break;
+		case PipeConnectionEvent.CONSUMER_CONNECT_PULL:
+			if (event.getConsumer() == this) {
+				isPullMode = true;
+			}
+			break;
+		case PipeConnectionEvent.CONSUMER_CONNECT_PUSH:
+			if (event.getConsumer() == this) {
+				isPullMode = false;
 			}
 			break;
 		default:
@@ -279,11 +303,31 @@ implements ISubscriberStreamNew, IFilter, IPushableConsumer, IPipeConnectionList
 	
 	private void pullAndPush() {
 		if (!isPaused) {
-			IMessage msg = sourcePipe.pullMessage();
-			if (msg != null) downpipe.pushMessage(msg);
+			IMessage msg = msgIn.pullMessage();
+			if (msg != null) msgOut.pushMessage(msg);
 		}
 	}
 
+	private void sendVODInitCM(IMessageInput msgIn, PlayItem item) {
+		OOBControlMessage oobCtrlMsg = new OOBControlMessage();
+		oobCtrlMsg.setTarget(IPassive.KEY);
+		oobCtrlMsg.setServiceName("init");
+		Map<Object, Object> paramMap = new HashMap<Object, Object>();
+		paramMap.put("startTS", new Integer(item.getType()));
+		oobCtrlMsg.setServiceParamMap(paramMap);
+		msgIn.sendOOBControlMessage(this, oobCtrlMsg);
+	}
+	
+	private void sendVODSeekCM(IMessageInput msgIn, int position) {
+		OOBControlMessage oobCtrlMsg = new OOBControlMessage();
+		oobCtrlMsg.setTarget(ISeekableProvider.KEY);
+		oobCtrlMsg.setServiceName("seek");
+		Map<Object, Object> paramMap = new HashMap<Object, Object>();
+		paramMap.put("position", new Integer(position));
+		oobCtrlMsg.setServiceParamMap(paramMap);
+		msgIn.sendOOBControlMessage(this, oobCtrlMsg);
+	}
+	
 	private void sendStartNotify() {
 		Status reset = new Status(Status.NS_PLAY_RESET);
 		Status start = new Status(Status.NS_PLAY_START);
@@ -298,15 +342,15 @@ implements ISubscriberStreamNew, IFilter, IPushableConsumer, IPipeConnectionList
 		
 		RTMPMessage blankAudioMsg = new RTMPMessage();
 		blankAudioMsg.setBody(blankAudio);
-		downpipe.pushMessage(blankAudioMsg);
+		msgOut.pushMessage(blankAudioMsg);
 
 		StatusMessage resetMsg = new StatusMessage();
 		resetMsg.setBody(reset);
-		downpipe.pushMessage(resetMsg);
+		msgOut.pushMessage(resetMsg);
 		
 		StatusMessage startMsg = new StatusMessage();
 		startMsg.setBody(start);
-		downpipe.pushMessage(startMsg);
+		msgOut.pushMessage(startMsg);
 	}
 	
 	private void sendResetPing() {
@@ -316,7 +360,7 @@ implements ISubscriberStreamNew, IFilter, IPushableConsumer, IPipeConnectionList
 
 		RTMPMessage ping1Msg = new RTMPMessage();
 		ping1Msg.setBody(ping1);
-		downpipe.pushMessage(ping1Msg);
+		msgOut.pushMessage(ping1Msg);
 		
 		Ping ping2 = new Ping();
 		ping2.setValue1((short) 0);
@@ -324,7 +368,7 @@ implements ISubscriberStreamNew, IFilter, IPushableConsumer, IPipeConnectionList
 		
 		RTMPMessage ping2Msg = new RTMPMessage();
 		ping2Msg.setBody(ping2);
-		downpipe.pushMessage(ping2Msg);
+		msgOut.pushMessage(ping2Msg);
 	}
 	
 	public class PlayItem {

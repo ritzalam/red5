@@ -20,6 +20,7 @@
 package org.red5.server.messaging;
 
 import java.util.Iterator;
+import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -35,18 +36,18 @@ import org.apache.commons.logging.LogFactory;
 public class InMemoryPushPushPipe extends AbstractPipe {
 	private static final Log log = LogFactory.getLog(InMemoryPushPushPipe.class);
 	
-	public boolean subscribe(IConsumer consumer) {
+	public boolean subscribe(IConsumer consumer, Map paramMap) {
 		if (!(consumer instanceof IPushableConsumer)) {
 			throw new IllegalArgumentException("Non-pushable consumer not supported by PushPushPipe");
 		}
-		boolean success = super.subscribe(consumer);
-		if (success) fireConsumerConnectionEvent(consumer, PipeConnectionEvent.CONSUMER_CONNECT_PUSH);
+		boolean success = super.subscribe(consumer, paramMap);
+		if (success) fireConsumerConnectionEvent(consumer, PipeConnectionEvent.CONSUMER_CONNECT_PUSH, paramMap);
 		return success;
 	}
 
-	public boolean subscribe(IProvider provider) {
-		boolean success = super.subscribe(provider);
-		if (success) fireProviderConnectionEvent(provider, PipeConnectionEvent.PROVIDER_CONNECT_PUSH);
+	public boolean subscribe(IProvider provider, Map paramMap) {
+		boolean success = super.subscribe(provider, paramMap);
+		if (success) fireProviderConnectionEvent(provider, PipeConnectionEvent.PROVIDER_CONNECT_PUSH, paramMap);
 		return success;
 	}
 

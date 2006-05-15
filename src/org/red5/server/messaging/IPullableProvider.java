@@ -26,6 +26,8 @@ package org.red5.server.messaging;
  * @author Steven Gong (steven.gong@gmail.com)
  */
 public interface IPullableProvider extends IProvider {
+	public static final String KEY = IPullableProvider.class.getName();
+	
 	IMessage pullMessage(IPipe pipe);
 	IMessage pullMessage(IPipe pipe, long wait);
 }

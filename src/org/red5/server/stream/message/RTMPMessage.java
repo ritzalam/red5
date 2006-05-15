@@ -14,4 +14,12 @@ public class RTMPMessage extends AbstractMessage {
 		this.body = body;
 	}
 	
+	public void acquire() {
+		if (body != null) body.acquire();
+	}
+	
+	public void release() {
+		if (body != null) body.release();
+	}
+	
 }

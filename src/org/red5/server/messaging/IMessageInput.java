@@ -19,6 +19,8 @@
 
 package org.red5.server.messaging;
 
+import java.util.Map;
+
 /**
  * Input Endpoint for a consumer to connect.
  * @author The Red5 Project (red5@osflash.org)
@@ -46,10 +48,11 @@ public interface IMessageInput {
 	/**
 	 * Connect to a consumer.
 	 * @param consumer
+	 * @param paramMap
 	 * @return <tt>true</tt> when successfully subscribed,
 	 * <tt>false</tt> otherwise.
 	 */
-	boolean subscribe(IConsumer consumer);
+	boolean subscribe(IConsumer consumer, Map paramMap);
 	
 	/**
 	 * Disconnect from a consumer.
@@ -58,4 +61,11 @@ public interface IMessageInput {
 	 * <tt>false</tt> otherwise.
 	 */
 	boolean unsubscribe(IConsumer consumer);
+	
+	/**
+	 * Send OOB Control Message to all providers on the other side of pipe.
+	 * @param consumer The consumer that sends the message
+	 * @param oobCtrlMsg
+	 */
+	void sendOOBControlMessage(IConsumer consumer, OOBControlMessage oobCtrlMsg);
 }

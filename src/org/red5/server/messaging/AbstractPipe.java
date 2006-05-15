@@ -21,6 +21,7 @@ package org.red5.server.messaging;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -39,7 +40,7 @@ public abstract class AbstractPipe implements IPipe {
 	protected List<IProvider> providers = new ArrayList<IProvider>();
 	protected List<IPipeConnectionListener> listeners = new ArrayList<IPipeConnectionListener>();
 	
-	public boolean subscribe(IConsumer consumer) {
+	public boolean subscribe(IConsumer consumer, Map paramMap) {
 		synchronized (consumers) {
 			if (consumers.contains(consumer)) return false;
 			consumers.add(consumer);
@@ -52,7 +53,7 @@ public abstract class AbstractPipe implements IPipe {
 		return true;
 	}
 
-	public boolean subscribe(IProvider provider) {
+	public boolean subscribe(IProvider provider, Map paramMap) {
 		synchronized (providers) {
 			if (providers.contains(provider)) return false;
 			providers.add(provider);
@@ -70,7 +71,7 @@ public abstract class AbstractPipe implements IPipe {
 			if (!providers.contains(provider)) return false;
 			providers.remove(provider);
 		}
-		fireProviderConnectionEvent(provider, PipeConnectionEvent.PROVIDER_DISCONNECT);
+		fireProviderConnectionEvent(provider, PipeConnectionEvent.PROVIDER_DISCONNECT, null);
 		if (provider instanceof IPipeConnectionListener) {
 			synchronized (listeners) {
 				listeners.remove(provider);
@@ -84,7 +85,7 @@ public abstract class AbstractPipe implements IPipe {
 			if (!consumers.contains(consumer)) return false;
 			consumers.remove(consumer);
 		}
-		fireConsumerConnectionEvent(consumer, PipeConnectionEvent.CONSUMER_DISCONNECT);
+		fireConsumerConnectionEvent(consumer, PipeConnectionEvent.CONSUMER_DISCONNECT, null);
 		if (consumer instanceof IPipeConnectionListener) {
 			synchronized (listeners) {
 				listeners.remove(consumer);
@@ -106,17 +107,47 @@ public abstract class AbstractPipe implements IPipe {
 		
 	}
 
-	protected void fireConsumerConnectionEvent(IConsumer consumer, int type) {
+	public void sendOOBControlMessage(IProvider provider, OOBControlMessage oobCtrlMsg) {
+		IConsumer[] consumerArray = null;
+		synchronized (consumers) {
+			consumerArray = consumers.toArray(new IConsumer[]{});
+		}
+		for (IConsumer consumer : consumerArray) {
+			try {
+				consumer.onOOBControlMessage(provider, this, oobCtrlMsg);
+			} catch (Throwable t) {
+				log.error("exception when passing OOBCM from provider to consumers", t);
+			}
+		}
+	}
+
+	public void sendOOBControlMessage(IConsumer consumer, OOBControlMessage oobCtrlMsg) {
+		IProvider[] providerArray = null;
+		synchronized (providers) {
+			providerArray = providers.toArray(new IProvider[]{});
+		}
+		for (IProvider provider : providerArray) {
+			try {
+				provider.onOOBControlMessage(consumer, this, oobCtrlMsg);
+			} catch (Throwable t) {
+				log.error("exception when passing OOBCM from consumer to providers", t);
+			}
+		}
+	}
+
+	protected void fireConsumerConnectionEvent(IConsumer consumer, int type, Map paramMap) {
 		PipeConnectionEvent event = new PipeConnectionEvent(this);
 		event.setConsumer(consumer);
 		event.setType(type);
+		event.setParamMap(paramMap);
 		firePipeConnectionEvent(event);
 	}
 	
-	protected void fireProviderConnectionEvent(IProvider provider, int type) {
+	protected void fireProviderConnectionEvent(IProvider provider, int type, Map paramMap) {
 		PipeConnectionEvent event = new PipeConnectionEvent(this);
 		event.setProvider(provider);
 		event.setType(type);
+		event.setParamMap(paramMap);
 		firePipeConnectionEvent(event);
 	}
 	

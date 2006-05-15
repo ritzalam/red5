@@ -4,9 +4,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.IConnection;
 import org.red5.server.messaging.IMessage;
+import org.red5.server.messaging.IMessageComponent;
 import org.red5.server.messaging.IPipe;
 import org.red5.server.messaging.IPipeConnectionListener;
 import org.red5.server.messaging.IPushableConsumer;
+import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.messaging.PipeConnectionEvent;
 import org.red5.server.net.rtmp.Channel;
 import org.red5.server.net.rtmp.RTMPConnection;
@@ -19,6 +21,8 @@ import org.red5.server.stream.message.StatusMessage;
 public class ConnectionConsumer implements IPushableConsumer,
 		IPipeConnectionListener {
 	private static final Log log = LogFactory.getLog(ConnectionConsumer.class);
+	
+	public static final String KEY = ConnectionConsumer.class.getName();
 	
 	private RTMPConnection conn;
 	private Channel video;
@@ -40,7 +44,7 @@ public class ConnectionConsumer implements IPushableConsumer,
 		else if (message instanceof RTMPMessage) {
 			RTMPMessage rtmpMsg = (RTMPMessage) message;
 			Message msg = rtmpMsg.getBody();
-			log.debug("ts :" + msg.getTimestamp());
+//			log.debug("ts :" + msg.getTimestamp());
 			switch(msg.getDataType()){
 			case Constants.TYPE_VIDEO_DATA:
 			case Constants.TYPE_STREAM_METADATA:
@@ -60,6 +64,11 @@ public class ConnectionConsumer implements IPushableConsumer,
 	}
 
 	public void onPipeConnectionEvent(PipeConnectionEvent event) {
+	}
+
+	public void onOOBControlMessage(IMessageComponent source, IPipe pipe, OOBControlMessage oobCtrlMsg) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

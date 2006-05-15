@@ -31,8 +31,8 @@ public class PipeUtils {
 	 * @param consumer
 	 */
 	public static void connect(IProvider provider, IPipe pipe, IConsumer consumer) {
-		pipe.subscribe(provider);
-		pipe.subscribe(consumer);
+		pipe.subscribe(provider, null);
+		pipe.subscribe(consumer, null);
 	}
 	
 	/**

@@ -21,6 +21,7 @@ import org.red5.server.api.service.IPendingServiceCallback;
 import org.red5.server.api.service.IServiceCall;
 import org.red5.server.api.service.IServiceCapableConnection;
 import org.red5.server.api.stream.IBroadcastStream;
+import org.red5.server.api.stream.IBroadcastStreamNew;
 import org.red5.server.api.stream.IBroadcastStreamService;
 import org.red5.server.api.stream.IOnDemandStream;
 import org.red5.server.api.stream.IOnDemandStreamService;
@@ -37,6 +38,7 @@ import org.red5.server.service.Call;
 import org.red5.server.service.PendingCall;
 import org.red5.server.so.SharedObjectService;
 import org.red5.server.stream.BroadcastStream;
+import org.red5.server.stream.BroadcastStreamNew;
 import org.red5.server.stream.BroadcastStreamScope;
 import org.red5.server.stream.SubscriberStreamNew;
 import org.red5.server.stream.VideoCodecFactory;
@@ -342,5 +344,17 @@ public abstract class RTMPConnection extends BaseConnection
 		ss.setStreamId(streamId);
 		streams[streamId - 1] = ss;
 		return ss;
+	}
+	
+	public IBroadcastStreamNew newBroadcastStreamNew(int streamId) {
+		if (!reservedStreams[streamId - 1]) return null;
+		if (streams[streamId - 1] != null) return null;
+		
+		BroadcastStreamNew bs = new BroadcastStreamNew();
+		bs.setConnection(this);
+		bs.setName(createStreamName());
+		bs.setStreamId(streamId);
+		streams[streamId - 1] = bs;
+		return bs;
 	}
 }

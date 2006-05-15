@@ -22,6 +22,7 @@ package org.red5.server.messaging;
 import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Event object corresponds to the connect/disconnect events
@@ -62,6 +63,7 @@ public class PipeConnectionEvent extends EventObject {
 	private IProvider provider;
 	private IConsumer consumer;
 	private int type;
+	private Map paramMap;
 	
 	/**
 	 * Construct an object with the specific pipe as the
@@ -96,6 +98,14 @@ public class PipeConnectionEvent extends EventObject {
 		this.type = type;
 	}
 	
+	public Map getParamMap() {
+		return paramMap;
+	}
+
+	public void setParamMap(Map paramMap) {
+		this.paramMap = paramMap;
+	}
+
 	public void addTask(Runnable task) {
 		taskList.add(task);
 	}
