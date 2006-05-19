@@ -122,6 +122,7 @@
     <tag name="todo" scope="all" description="To do:"/>
     <group title="Public API" packages="org.red5.server.api:org.red5.server.api.*"/>
     <group title="Network Protocols" packages="org.red5.server.net:org.red5.server.net.*"/>
+    <group title="Streaming" packages="org.red5.server.stream:org.red5.server.stream.*"/>
     <group title="IO Packages" packages="org.red5.io:org.red5.io.*"/>
     <link href="http://java.sun.com/j2se/1.5.0/docs/api"/>
     <link href="http://jetty.mortbay.org/jetty6/jetty"/>
