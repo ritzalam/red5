@@ -41,6 +41,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants {
         LogFactory.getLog(RTMPProtocolEncoder.class.getName()+".out");
 	
 	private Serializer serializer = null;
+	private Serializer soSerializer = new SharedObjectSerializer();
 	
 	public ByteBuffer encode(ProtocolState state, Object message) throws Exception {
 			
@@ -256,7 +257,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants {
 						
 						// Serialize attribute value using regular AMF methods
 						Output output = new Output(sub);
-						serializer.serialize(output, initialData.get(key));
+						soSerializer.serialize(output, initialData.get(key));
 						
 						completeBuffer.put(event.getType());
 						completeBuffer.putInt(sub.position());
@@ -281,7 +282,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants {
 					
 					// Serialize attribute value using regular AMF methods
 					Output output = new Output(sub);
-					serializer.serialize(output, event.getValue());
+					soSerializer.serialize(output, event.getValue());
 					
 					data.put(event.getType());
 					data.putInt(sub.position());
@@ -311,7 +312,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants {
 				
 				// Serialize name of the handler to call...
 				Output output = new Output(sub);
-				serializer.serialize(output, event.getKey());
+				soSerializer.serialize(output, event.getKey());
 				// ...and the arguments
 				List value = (List) event.getValue();
 				it = value.iterator();
@@ -409,9 +410,8 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants {
 		videoData.release();
 	}
 
-	public void setSerializer(org.red5.io.object.Serializer serializer) {
+	public void setSerializer(Serializer serializer) {
 		this.serializer = serializer;
 	}
 
-	
 }
