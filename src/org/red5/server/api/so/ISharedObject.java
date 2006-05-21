@@ -98,4 +98,19 @@ public interface ISharedObject extends IBasicScope {
 	 */
 	public void endUpdate();
 	
+	/**
+	 * Register object that will be notified about update events.
+	 * 
+	 * @param listener
+	 * 				the object to notify
+	 */
+	public void addSharedObjectListener(ISharedObjectListener listener);
+	
+	/**
+	 * Unregister object to not longer receive update events.
+	 *  
+	 * @param listener
+	 * 				the object to unregister
+	 */
+	public void removeSharedObjectListener(ISharedObjectListener listener);
 }

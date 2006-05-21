@@ -1,5 +1,7 @@
 package org.red5.server.so;
 
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
@@ -10,11 +12,13 @@ import org.red5.server.api.IScope;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.event.IEventListener;
 import org.red5.server.api.so.ISharedObject;
+import org.red5.server.api.so.ISharedObjectListener;
 
 public class SharedObjectScope extends BasicScope 
 	implements ISharedObject {
 	
 	private final ReentrantLock lock = new ReentrantLock();
+	private HashSet<ISharedObjectListener> serverListeners = new HashSet<ISharedObjectListener>();
 	protected SharedObject so;
 	
 	public SharedObjectScope(IScope parent, String name, boolean persistent){
@@ -53,6 +57,12 @@ public class SharedObjectScope extends BasicScope
 		beginUpdate();
 		so.sendMessage(handler, arguments);
 		endUpdate();
+		
+		Iterator<ISharedObjectListener> it = serverListeners.iterator();
+		while (it.hasNext()) {
+			ISharedObjectListener listener = it.next();
+			listener.onSharedObjectSend(this, handler, arguments);
+		}
 	}
 	
 	@Override
@@ -60,6 +70,14 @@ public class SharedObjectScope extends BasicScope
 		beginUpdate();
 		boolean success = so.removeAttribute(name);
 		endUpdate();
+		
+		if (success) {
+			Iterator<ISharedObjectListener> it = serverListeners.iterator();
+			while (it.hasNext()) {
+				ISharedObjectListener listener = it.next();
+				listener.onSharedObjectDelete(this, name);
+			}
+		}
 		return success;
 	}
 
@@ -68,18 +86,36 @@ public class SharedObjectScope extends BasicScope
 		beginUpdate();
 		so.removeAttributes();
 		endUpdate();
+		
+		Iterator<ISharedObjectListener> it = serverListeners.iterator();
+		while (it.hasNext()) {
+			ISharedObjectListener listener = it.next();
+			listener.onSharedObjectClear(this);
+		}
 	}
 
 	@Override
 	public void addEventListener(IEventListener listener) {
 		super.addEventListener(listener);
 		so.register(listener);
+		
+		Iterator<ISharedObjectListener> it = serverListeners.iterator();
+		while (it.hasNext()) {
+			ISharedObjectListener soListener = it.next();
+			soListener.onSharedObjectConnect(this);
+		}
 	}
 
 	@Override
 	public void removeEventListener(IEventListener listener) {
 		so.unregister(listener);
 		super.removeEventListener(listener);
+		
+		Iterator<ISharedObjectListener> it = serverListeners.iterator();
+		while (it.hasNext()) {
+			ISharedObjectListener soListener = it.next();
+			soListener.onSharedObjectDisconnect(this);
+		}
 	}
 
 	public Map<String, Object> getData() {
@@ -120,6 +156,14 @@ public class SharedObjectScope extends BasicScope
 		beginUpdate();
 		boolean success = so.setAttribute(name, value);
 		endUpdate();
+		
+		if (success) {
+			Iterator<ISharedObjectListener> it = serverListeners.iterator();
+			while (it.hasNext()) {
+				ISharedObjectListener listener = it.next();
+				listener.onSharedObjectUpdate(this, name, value);
+			}
+		}
 		return success;
 	}
 
@@ -128,6 +172,12 @@ public class SharedObjectScope extends BasicScope
 		beginUpdate();
 		so.setAttributes(values);
 		endUpdate();
+		
+		Iterator<ISharedObjectListener> it = serverListeners.iterator();
+		while (it.hasNext()) {
+			ISharedObjectListener listener = it.next();
+			listener.onSharedObjectUpdate(this, values);
+		}
 	}
 
 	@Override
@@ -135,6 +185,12 @@ public class SharedObjectScope extends BasicScope
 		beginUpdate();
 		so.setAttributes(values);
 		endUpdate();
+		
+		Iterator<ISharedObjectListener> it = serverListeners.iterator();
+		while (it.hasNext()) {
+			ISharedObjectListener listener = it.next();
+			listener.onSharedObjectUpdate(this, values);
+		}
 	}
 
 	@Override
@@ -142,6 +198,12 @@ public class SharedObjectScope extends BasicScope
 		return "Shared Object: "+getName();
 	}
 	
+	public synchronized void addSharedObjectListener(ISharedObjectListener listener) {
+		serverListeners.add(listener);
+	}
 	
+	public synchronized void removeSharedObjectListener(ISharedObjectListener listener) {
+		serverListeners.remove(listener);
+	}
 	
 }
