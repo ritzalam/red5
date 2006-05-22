@@ -1,8 +1,8 @@
-package org.red5.server.api.persistance;
+package org.red5.server.api.persistence;
 
 public interface IPersistable {
 	
-	public boolean isPersistant();
+	public boolean isPersistent();
 	public String getName();
 	public String getType();
 	public String getPath();

@@ -1,4 +1,4 @@
-package org.red5.server.api.persistance;
+package org.red5.server.api.persistence;
 
 public interface IPersistenceStore {
 	

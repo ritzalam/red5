@@ -2,30 +2,30 @@ package org.red5.server;
 
 import java.util.Map;
 
-import org.red5.server.api.persistance.IPersistable;
+import org.red5.server.api.persistence.IPersistable;
 
 public class PersistableAttributeStore extends AttributeStore 
 	implements IPersistable {
 	
-	protected boolean persistant = true;
+	protected boolean persistent = true;
 	protected String name;
 	protected String type;
 	protected String path;
 	protected long lastModified = -1;
 	
-	public PersistableAttributeStore(String type, String name, String path, boolean persistant){
+	public PersistableAttributeStore(String type, String name, String path, boolean persistent){
 		this.type = type;
 		this.name = name;
 		this.path = path;
-		this.persistant = persistant;
+		this.persistent = persistent;
 	}
 	
 	protected void modified(){
 		lastModified = System.currentTimeMillis();
 	}
 	
-	public boolean isPersistant() {
-		return persistant;
+	public boolean isPersistent() {
+		return persistent;
 	}
 
 	public long getLastModified() {

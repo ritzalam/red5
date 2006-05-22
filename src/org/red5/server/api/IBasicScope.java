@@ -1,7 +1,7 @@
 package org.red5.server.api;
 
 import org.red5.server.api.event.IEventObservable;
-import org.red5.server.api.persistance.IPersistable;
+import org.red5.server.api.persistence.IPersistable;
 
 public interface IBasicScope 
 	extends ICoreObject, 
@@ -44,9 +44,9 @@ public interface IBasicScope
 	 */
 	public String getPath();
 	
-	public boolean isPersistant();
+	public boolean isPersistent();
 	
-	public void setPersistant(boolean persistant);
+	public void setPersistent(boolean persistent);
 	
 	public String getType();
 	

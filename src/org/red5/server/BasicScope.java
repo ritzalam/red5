@@ -43,7 +43,7 @@ public class BasicScope extends PersistableAttributeStore implements IBasicScope
 
 	public void removeEventListener(IEventListener listener) {
 		listeners.remove(listener);
-		if(isPersistant() && listeners.isEmpty()){
+		if(isPersistent() && listeners.isEmpty()){
 			parent.removeChildScope(this);
 		} 
 	}
@@ -52,8 +52,8 @@ public class BasicScope extends PersistableAttributeStore implements IBasicScope
 		return listeners.iterator();
 	}
 
-	public void setPersistant(boolean persistant) {
-		this.persistant = persistant;
+	public void setPersistent(boolean persistent) {
+		this.persistent = persistent;
 	}
 
 	public boolean handleEvent(IEvent event) {

@@ -8,7 +8,7 @@ import org.red5.server.api.IMappingStrategy;
 import org.red5.server.api.IScope;
 import org.red5.server.api.IScopeHandler;
 import org.red5.server.api.IScopeResolver;
-import org.red5.server.api.persistance.IPersistenceStore;
+import org.red5.server.api.persistence.IPersistenceStore;
 import org.red5.server.api.service.IServiceInvoker;
 import org.red5.server.exception.ScopeHandlerNotFoundException;
 import org.red5.server.service.ServiceNotFoundException;
