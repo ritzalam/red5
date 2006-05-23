@@ -62,7 +62,6 @@ public abstract class RTMPConnection extends BaseConnection
 	private Channel[] channels = new Channel[64];
 	private IStream[] streams = new IStream[MAX_STREAMS];
 	private boolean[] reservedStreams = new boolean[MAX_STREAMS];
-	protected ISharedObjectService sharedObjectService;
 	protected HashMap<String,ISharedObject> sharedObjects;
 	protected Integer invokeId = new Integer(1);
 	protected HashMap<Integer,IPendingServiceCall> pendingCalls = new HashMap<Integer,IPendingServiceCall>();

@@ -349,7 +349,6 @@ public class RTMPHandler
 	}
 	
 	public void onSharedObject(RTMPConnection conn, Channel channel, PacketHeader source, SharedObject object) {
-		log.debug("SO Service: " + conn.sharedObjectService);
 		final ISharedObject so;
 		final String name = object.getName();
 		IScope scope = conn.getScope();
