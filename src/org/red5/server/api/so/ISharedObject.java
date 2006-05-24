@@ -35,7 +35,7 @@ import org.red5.server.api.IBasicScope;
  * SharedObject.beginUpdate();<br />
  * SharedObject.setAttribute("One", "1");<br />
  * SharedObject.setAttribute("Two", "2");<br />
- * SharedObject.setAttribute("Three");<br />
+ * SharedObject.removeAttribute("Three");<br />
  * SharedObject.endUpdate();<br />
  * </code>
  * </p>
