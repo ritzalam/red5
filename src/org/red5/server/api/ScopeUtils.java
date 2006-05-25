@@ -48,6 +48,14 @@ public class ScopeUtils {
 		return current;
 	}
 	
+	public static IScope findApplication(IScope from){
+		IScope current = from;
+		while(current.hasParent() && current.getDepth() != APPLICATION){
+			current = current.getParent();
+		}
+		return current;
+	}
+	
 	public static boolean isAncestor(IScope from, IScope ancestor){
 		IScope current = from;
 		while(current.hasParent()){
