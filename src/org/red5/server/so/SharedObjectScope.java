@@ -11,6 +11,7 @@ import org.red5.server.api.IAttributeStore;
 import org.red5.server.api.IScope;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.event.IEventListener;
+import org.red5.server.api.persistence.IPersistenceStore;
 import org.red5.server.api.so.ISharedObject;
 import org.red5.server.api.so.ISharedObjectListener;
 
@@ -21,12 +22,16 @@ public class SharedObjectScope extends BasicScope
 	private HashSet<ISharedObjectListener> serverListeners = new HashSet<ISharedObjectListener>();
 	protected SharedObject so;
 	
-	public SharedObjectScope(IScope parent, String name, boolean persistent){
+	public SharedObjectScope(IScope parent, String name, boolean persistent, IPersistenceStore store){
 		super(parent,TYPE, name, persistent);
 		
 		// Create shared object wrapper around the attributes
-		// TODO: add support for true persistent SOs
-		so = new SharedObject(attributes, name, persistent);
+		so = (SharedObject) store.load(SharedObject.PERSISTENCE_TYPE + "/" + parent.getContextPath() + "/" + name);
+		if (so == null) {
+			so = new SharedObject(attributes, name, parent.getContextPath(), persistent, store);
+
+			store.save(so);
+		}
 	}
 	
 	public void beginUpdate() {

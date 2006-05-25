@@ -38,7 +38,11 @@
 	</bean>
     
     <!-- handles creation / lookup of shared objects -->
-    <bean id="sharedObjectService" class="org.red5.server.so.SharedObjectService" />
+    <bean id="sharedObjectService" class="org.red5.server.so.SharedObjectService">
+        <property name="persistenceClassName">
+            <value>org.red5.server.persistence.FilePersistence</value>
+        </property>
+    </bean>
     
     <!-- high level access to streams -->
     <bean id="streamService" class="org.red5.server.stream.StreamServiceNew" />

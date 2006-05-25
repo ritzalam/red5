@@ -9,7 +9,7 @@ import org.red5.server.api.IAttributeStore;
 
 public class AttributeStore implements IAttributeStore {
 
-	protected HashMap<String,Object> attributes = new HashMap<String,Object>();
+	protected Map<String,Object> attributes = new HashMap<String,Object>();
 	
 	public AttributeStore() {
 		// Object is not associated with a persistence storage
