@@ -3,14 +3,15 @@ package org.red5.server.so;
 import static org.red5.server.api.so.ISharedObject.TYPE;
 
 import java.util.Iterator;
-import java.lang.reflect.Constructor;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IScope;
+import org.red5.server.api.ScopeUtils;
 import org.red5.server.api.so.ISharedObject;
 import org.red5.server.api.so.ISharedObjectService;
+import org.red5.server.api.persistence.IPersistable;
 import org.red5.server.api.persistence.IPersistenceStore;
 import org.red5.server.persistence.RamPersistence;
 
@@ -19,8 +20,8 @@ public class SharedObjectService
 
 	private Log log = LogFactory.getLog(SharedObjectService.class.getName());
 
-	private static final String SO_PERSISTENCE_STORE = "_SO_PERSISTENCE_STORE_";
-	private static final String SO_TRANSIENT_STORE = "_SO_TRANSIENT_STORE_";
+	private static final String SO_PERSISTENCE_STORE = IPersistable.TRANSIENT_PREFIX + "_SO_PERSISTENCE_STORE_";
+	private static final String SO_TRANSIENT_STORE = IPersistable.TRANSIENT_PREFIX + "_SO_TRANSIENT_STORE_";
 	private String persistenceClassName = "org.red5.server.persistence.RamPersistence";
 	
 	public void setPersistenceClassName(String name) {
@@ -43,18 +44,8 @@ public class SharedObjectService
 		// Evaluate configuration for persistent shared objects
 		if (!scope.hasAttribute(SO_PERSISTENCE_STORE)) {
 			try {
-				Class persistenceClass = Class.forName(persistenceClassName);
-				Constructor constructor = null;
-				for (Class interfaceClass : scope.getClass().getInterfaces()) {
-					constructor = persistenceClass.getConstructor(new Class[]{interfaceClass});
-					if (constructor != null)
-						break;
-				}
-				if (constructor == null)
-					throw new NoSuchMethodException();
-				
-				store = (IPersistenceStore) constructor.newInstance(new Object[]{scope});
-				log.warn("Created persistence store " + store + " for shared objects.");
+				store = ScopeUtils.getPersistenceStore(scope, persistenceClassName);
+				log.info("Created persistence store " + store + " for shared objects.");
 			} catch (Exception err) {
 				log.error("Could not create persistence store for shared objects, falling back to Ram persistence.", err);
 				store = new RamPersistence(scope);

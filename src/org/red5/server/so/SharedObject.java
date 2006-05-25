@@ -377,4 +377,8 @@ public class SharedObject implements IPersistable, Constants {
 	public void setStore(IPersistenceStore store) {
 		this.storage = store;
 	}
+	
+	public IPersistenceStore getStore() {
+		return storage;
+	}
 }

@@ -1,7 +1,9 @@
 package org.red5.server.api;
 
-import org.red5.server.api.so.ISharedObjectService;
-import org.red5.server.so.SharedObjectService;
+import java.lang.reflect.Constructor;
+
+import org.red5.server.api.persistence.IPersistable;
+import org.red5.server.api.persistence.IPersistenceStore;
 import org.springframework.context.ApplicationContext;
 
 /**
@@ -56,8 +58,8 @@ public class ScopeUtils {
 		return current;
 	}
 	
-	public static boolean isAncestor(IScope from, IScope ancestor){
-		IScope current = from;
+	public static boolean isAncestor(IBasicScope from, IBasicScope ancestor){
+		IBasicScope current = from;
 		while(current.hasParent()){
 			current = current.getParent();
 			if(current.equals(ancestor)) return true;
@@ -65,19 +67,19 @@ public class ScopeUtils {
 		return false;
 	}
 
-	public static boolean isRoot(IScope scope){
+	public static boolean isRoot(IBasicScope scope){
 		return !scope.hasParent();	
 	}
 
-	public static boolean isGlobal(IScope scope){
+	public static boolean isGlobal(IBasicScope scope){
 		return scope.getDepth() == GLOBAL;	
 	}
 	
-	public static boolean isApp(IScope scope){
+	public static boolean isApp(IBasicScope scope){
 		return scope.getDepth() == APPLICATION;
 	}
 
-	public static boolean isRoom(IScope scope){
+	public static boolean isRoom(IBasicScope scope){
 		return scope.getDepth() >= ROOM;
 	}
 	
@@ -86,9 +88,9 @@ public class ScopeUtils {
 	}
 	
 	public static Object getScopeService(IScope scope, String name, Class defaultClass) {
-		if (scope.hasAttribute(SERVICE_CACHE_PREFIX + name))
+		if (scope.hasAttribute(IPersistable.TRANSIENT_PREFIX + SERVICE_CACHE_PREFIX + name))
 			// Return cached service
-			return scope.getAttribute(SERVICE_CACHE_PREFIX + name);
+			return scope.getAttribute(IPersistable.TRANSIENT_PREFIX + SERVICE_CACHE_PREFIX + name);
 		
 		final IContext context = scope.getContext();
 		ApplicationContext appCtx = context.getApplicationContext();
@@ -107,8 +109,47 @@ public class ScopeUtils {
 			result = appCtx.getBean(name);
 		
 		// Cache service
-		scope.setAttribute(SERVICE_CACHE_PREFIX + name, result);
+		scope.setAttribute(IPersistable.TRANSIENT_PREFIX + SERVICE_CACHE_PREFIX + name, result);
 		return result;
 	}
 
+	private static Constructor getPersistenceStoreConstructor(Class theClass, Class[] interfaces) throws Exception {
+		Constructor constructor = null;
+		for (Class interfaceClass : interfaces) {
+			try {
+				constructor = theClass.getConstructor(new Class[]{interfaceClass});
+			} catch (NoSuchMethodException err) {
+				// Ignore this error
+			}
+			if (constructor != null)
+				break;
+			
+			constructor = getPersistenceStoreConstructor(theClass, interfaceClass.getInterfaces());
+			if (constructor != null)
+				break;
+		}
+		return constructor;
+	}
+	
+	public static IPersistenceStore getPersistenceStore(IBasicScope scope, String className) throws Exception {
+		Class persistenceClass = Class.forName(className);
+		Constructor constructor = getPersistenceStoreConstructor(persistenceClass, scope.getClass().getInterfaces());
+		if (constructor == null) {
+			// Search in superclasses of the scope.
+			Class superClass = scope.getClass().getSuperclass();
+			while (superClass != null) {
+				constructor = getPersistenceStoreConstructor(persistenceClass, superClass.getInterfaces());
+				if (constructor != null)
+					break;
+				
+				superClass = superClass.getSuperclass();
+			}
+		}
+		
+		if (constructor == null)
+			throw new NoSuchMethodException();
+		
+		return (IPersistenceStore) constructor.newInstance(new Object[]{scope});
+	}
+	
 }

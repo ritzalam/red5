@@ -100,6 +100,15 @@ public class Scope extends BasicScope implements IScope {
 
 	
 	public boolean addChildScope(IBasicScope scope){
+		if (scope.getStore() == null) {
+			// Child scope has no persistence store, use same class as parent.
+			try {
+				if (scope instanceof BasicScope)
+					((BasicScope) scope).setPersistenceClass(this.persistenceClass);
+			} catch (Exception error) {
+				log.error("Could not set persistence class.", error);
+			}
+		}
 		if(hasHandler() && !getHandler().addChildScope(scope)) {
 			log.debug("Failed to add child scope: "+scope+" to "+this);
 			return false;

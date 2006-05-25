@@ -150,7 +150,8 @@ public class FilePersistence extends RamPersistence implements IPersistenceStore
 				
 				result.deserialize(in);
 			}
-			result.setStore(this);
+			if (result.getStore() != this)
+				result.setStore(this);
 			super.save(result);
 			log.debug("Loaded persistent object " + result + " from " + filename);
 		} catch (IOException e) {

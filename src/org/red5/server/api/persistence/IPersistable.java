@@ -39,6 +39,11 @@ import org.red5.io.object.Output;
 public interface IPersistable {
 	
 	/**
+	 * Prefix for attribute names that should not be made persistent.
+	 */
+	public static final String TRANSIENT_PREFIX = "_transient";
+	
+	/**
 	 * Returns <code>true</code> if the object is persistent, <code>false</code>
 	 * otherwise.
 	 * 
@@ -104,6 +109,14 @@ public interface IPersistable {
 	 */
 	public long getLastModified();
 
+	/**
+	 * Returns the persistence store this object is stored in
+	 * 
+	 * @return
+	 * 		the store for this object
+	 */
+	public IPersistenceStore getStore();
+	
 	/**
 	 * Store a reference to the persistence store in the object.
 	 * 

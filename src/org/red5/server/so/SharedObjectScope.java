@@ -34,6 +34,10 @@ public class SharedObjectScope extends BasicScope
 		}
 	}
 	
+	public void setPersistenceClass(String persistenceClass) {
+		// Nothing to do here, the shared object will take care of persistence.
+	}
+	
 	public void beginUpdate() {
 		if (!lock.isHeldByCurrentThread())
 			lock.lock();

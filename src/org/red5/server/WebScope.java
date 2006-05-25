@@ -21,7 +21,13 @@ public class WebScope extends Scope implements ServletContextAware {
 	protected String[] hostnames;
 	
 	public void setGlobalScope(IGlobalScope globalScope){
+		// XXX: this is called from nowhere, remove?
 		super.setParent(globalScope);
+		try {
+			setPersistenceClass(globalScope.getStore().getClass().getName());
+		} catch (Exception error) {
+			log.error("Could not set persistence class.", error);
+		}
 	}
 
 	public void setName(){
