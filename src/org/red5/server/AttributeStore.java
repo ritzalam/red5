@@ -44,7 +44,7 @@ public class AttributeStore implements IAttributeStore {
 		attributes.putAll(values);
 	}
 	
-	synchronized public void setAttributes(org.red5.server.api.IAttributeStore values) {
+	synchronized public void setAttributes(IAttributeStore values) {
 		Iterator it = values.getAttributeNames().iterator();
 		while (it.hasNext()) {
 			String name = (String) it.next();
