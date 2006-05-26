@@ -246,23 +246,25 @@ public class Scope extends BasicScope implements IScope {
 	}
 	
 	public synchronized void disconnect(IConnection conn){
-		if(hasParent()) parent.disconnect(conn);
+		// We call the disconnect handlers in reverse order they were called
+		// during connection, i.e. roomDisconnect is called before appDisconnect.
 		final IClient client = conn.getClient();
 		if(clients.containsKey(client)){
 			final Set conns = clients.get(client);
 			conns.remove(conn);
-			removeEventListener(conn);
 			if(hasHandler()) {
-				handler.disconnect(conn, this);
+				getHandler().disconnect(conn, this);
 			}
 			if(conns.isEmpty()) {
 				clients.remove(client);
 				if(hasHandler()){
 					// there may be a timeout here ?
-					handler.leave(client, this);
+					getHandler().leave(client, this);
 				}
 			}
+			removeEventListener(conn);
 		}
+		if(hasParent()) parent.disconnect(conn);
 	}
 
 	public void setDepth(int depth){
