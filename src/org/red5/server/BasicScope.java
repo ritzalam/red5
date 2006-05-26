@@ -9,6 +9,7 @@ import org.red5.server.api.IScope;
 import org.red5.server.api.ScopeUtils;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.event.IEventListener;
+import org.red5.server.api.persistence.PersistenceUtils;
 
 public class BasicScope extends PersistableAttributeStore implements IBasicScope {
 
@@ -25,7 +26,7 @@ public class BasicScope extends PersistableAttributeStore implements IBasicScope
 	public void setPersistenceClass(String persistenceClass) throws Exception {
 		this.persistenceClass = persistenceClass;
 		if (persistenceClass != null)
-			setStore(ScopeUtils.getPersistenceStore(this, persistenceClass));
+			setStore(PersistenceUtils.getPersistenceStore(this, persistenceClass));
 		else
 			setStore(null);
 	}

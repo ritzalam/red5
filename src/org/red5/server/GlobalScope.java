@@ -2,8 +2,8 @@ package org.red5.server;
 
 import org.red5.server.api.IGlobalScope;
 import org.red5.server.api.IServer;
-import org.red5.server.api.ScopeUtils;
 import org.red5.server.api.persistence.IPersistenceStore;
+import org.red5.server.api.persistence.PersistenceUtils;
 
 public class GlobalScope extends Scope implements IGlobalScope {
 
@@ -20,7 +20,7 @@ public class GlobalScope extends Scope implements IGlobalScope {
 			return store;
 		
 		try {
-			store = ScopeUtils.getPersistenceStore(this, this.persistenceClass);
+			store = PersistenceUtils.getPersistenceStore(this, this.persistenceClass);
 		} catch (Exception error) {
 			log.error("Could not create persistence store.", error);
 			store = null;

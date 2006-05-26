@@ -8,10 +8,11 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.IConnection;
+import org.red5.server.api.IClient;
 import org.red5.server.api.IScope;
 
 public class Client extends AttributeStore  
-	implements  org.red5.server.api.IClient {
+	implements IClient {
 
 	protected static Log log =
         LogFactory.getLog(Client.class.getName());

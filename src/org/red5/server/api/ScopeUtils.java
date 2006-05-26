@@ -1,9 +1,6 @@
 package org.red5.server.api;
 
-import java.lang.reflect.Constructor;
-
 import org.red5.server.api.persistence.IPersistable;
-import org.red5.server.api.persistence.IPersistenceStore;
 import org.springframework.context.ApplicationContext;
 
 /**
@@ -113,43 +110,4 @@ public class ScopeUtils {
 		return result;
 	}
 
-	private static Constructor getPersistenceStoreConstructor(Class theClass, Class[] interfaces) throws Exception {
-		Constructor constructor = null;
-		for (Class interfaceClass : interfaces) {
-			try {
-				constructor = theClass.getConstructor(new Class[]{interfaceClass});
-			} catch (NoSuchMethodException err) {
-				// Ignore this error
-			}
-			if (constructor != null)
-				break;
-			
-			constructor = getPersistenceStoreConstructor(theClass, interfaceClass.getInterfaces());
-			if (constructor != null)
-				break;
-		}
-		return constructor;
-	}
-	
-	public static IPersistenceStore getPersistenceStore(IBasicScope scope, String className) throws Exception {
-		Class persistenceClass = Class.forName(className);
-		Constructor constructor = getPersistenceStoreConstructor(persistenceClass, scope.getClass().getInterfaces());
-		if (constructor == null) {
-			// Search in superclasses of the scope.
-			Class superClass = scope.getClass().getSuperclass();
-			while (superClass != null) {
-				constructor = getPersistenceStoreConstructor(persistenceClass, superClass.getInterfaces());
-				if (constructor != null)
-					break;
-				
-				superClass = superClass.getSuperclass();
-			}
-		}
-		
-		if (constructor == null)
-			throw new NoSuchMethodException();
-		
-		return (IPersistenceStore) constructor.newInstance(new Object[]{scope});
-	}
-	
 }

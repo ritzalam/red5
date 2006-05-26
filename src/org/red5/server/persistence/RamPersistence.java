@@ -5,8 +5,11 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.red5.server.api.IScope;
+import org.red5.server.api.ScopeUtils;
 import org.red5.server.api.persistence.IPersistable;
 import org.red5.server.api.persistence.IPersistenceStore;
+
+import org.springframework.core.io.support.ResourcePatternResolver;
 
 /**
  * Persistence implementation that stores the objects in memory.
@@ -20,10 +23,14 @@ public class RamPersistence implements IPersistenceStore {
 	/** This is used in the id for objects that have a name of <code>null</code> **/
 	protected static final String PERSISTENCE_NO_NAME = "__null__";
 	protected Map<String, IPersistable> objects = new HashMap<String, IPersistable>();
-	protected IScope scope;
+	protected ResourcePatternResolver resources;
+	
+	public RamPersistence(ResourcePatternResolver resources) {
+		this.resources = resources;
+	}
 	
 	public RamPersistence(IScope scope) {
-		this.scope = scope;
+		this((ResourcePatternResolver) ScopeUtils.findApplication(scope));
 	}
 	
 	protected String getObjectName(String id) {

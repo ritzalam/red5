@@ -20,6 +20,7 @@ import org.red5.server.api.persistence.IPersistable;
 import org.red5.server.api.persistence.IPersistenceStore;
 import org.red5.server.net.servlet.ServletUtils;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.ResourcePatternResolver;
 
 /**
  * Simple file-based persistence for objects.
@@ -35,6 +36,10 @@ public class FilePersistence extends RamPersistence implements IPersistenceStore
 	private String path = "persistence";
 	private String extension = ".red5";
 
+	public FilePersistence(ResourcePatternResolver resolver) {
+		super(resolver);
+	}
+	
 	public FilePersistence(IScope scope) {
 		super(scope);
 	}
@@ -68,7 +73,7 @@ public class FilePersistence extends RamPersistence implements IPersistenceStore
 	
 	private IPersistable doLoad(String name, IPersistable object) {
 		IPersistable result = object;
-		Resource data = ScopeUtils.findApplication(scope).getResource(name);
+		Resource data = resources.getResource(name);
 		if (data == null || !data.exists())
 			// No such file
 			return null;
@@ -181,7 +186,7 @@ public class FilePersistence extends RamPersistence implements IPersistenceStore
 	
 	private boolean saveObject(IPersistable object) {
 		String path = getObjectFilepath(object);
-		Resource resPath = ScopeUtils.findApplication(scope).getResource(path);
+		Resource resPath = resources.getResource(path);
 		File file;
 		try {
 			file = resPath.getFile();
@@ -196,7 +201,7 @@ public class FilePersistence extends RamPersistence implements IPersistenceStore
 		}
 		
 		String filename = getObjectFilename(object);
-		Resource resFile = ScopeUtils.findApplication(scope).getResource(filename);
+		Resource resFile = resources.getResource(filename);
 		try {
 			ByteBuffer buf = ByteBuffer.allocate(1024);
 			buf.setAutoExpand(true);
@@ -230,7 +235,7 @@ public class FilePersistence extends RamPersistence implements IPersistenceStore
 			return false;
 		
 		String filename = path + "/" + name + extension;
-		Resource resFile = ScopeUtils.findApplication(scope).getResource(filename);
+		Resource resFile = resources.getResource(filename);
 		if (!resFile.exists())
 			// File already deleted
 			return true;

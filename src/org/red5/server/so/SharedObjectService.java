@@ -8,11 +8,11 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IScope;
-import org.red5.server.api.ScopeUtils;
 import org.red5.server.api.so.ISharedObject;
 import org.red5.server.api.so.ISharedObjectService;
 import org.red5.server.api.persistence.IPersistable;
 import org.red5.server.api.persistence.IPersistenceStore;
+import org.red5.server.api.persistence.PersistenceUtils;
 import org.red5.server.persistence.RamPersistence;
 
 public class SharedObjectService
@@ -44,7 +44,7 @@ public class SharedObjectService
 		// Evaluate configuration for persistent shared objects
 		if (!scope.hasAttribute(SO_PERSISTENCE_STORE)) {
 			try {
-				store = ScopeUtils.getPersistenceStore(scope, persistenceClassName);
+				store = PersistenceUtils.getPersistenceStore(scope, persistenceClassName);
 				log.info("Created persistence store " + store + " for shared objects.");
 			} catch (Exception err) {
 				log.error("Could not create persistence store for shared objects, falling back to Ram persistence.", err);
