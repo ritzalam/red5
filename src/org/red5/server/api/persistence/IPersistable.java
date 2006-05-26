@@ -27,9 +27,14 @@ import org.red5.io.object.Output;
  * Base interface for objects that can be made persistent.
  * 
  * Every object that complies to this interface must provide either a constructor
- * that takes an input stream as only parameter or an empty constructor.
+ * that takes an input stream as only parameter or an empty constructor so it can
+ * be loaded from the persistence store.
+ * 
+ * However this is not required for objects that are created by the application
+ * and initialized afterwards.
  * 
  * @see org.red5.io.object.Input
+ * @see IPersistenceStore#load(String)
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard (luke@codegent.com)

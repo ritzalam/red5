@@ -40,7 +40,9 @@ public interface IPersistenceStore {
 	public boolean save(IPersistable obj);
 	
 	/**
-	 * Load a persistent object with the given name.
+	 * Load a persistent object with the given name.  The object must provide
+	 * either a constructor that takes an input stream as only parameter or an
+	 * empty constructor so it can be loaded from the persistence store.
 	 * 
 	 * @param name
 	 * 		the name of the object to load
