@@ -16,6 +16,7 @@ import org.red5.server.api.IScope;
 import org.red5.server.api.IScopeAware;
 import org.red5.server.api.IScopeHandler;
 import org.red5.server.api.event.IEvent;
+import org.red5.server.api.persistence.PersistenceUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.core.style.ToStringCreator;
 
@@ -99,12 +100,20 @@ public class Scope extends BasicScope implements IScope {
 	}
 
 	
+	public void setPersistenceClass(String persistenceClass) throws Exception {
+		this.persistenceClass = persistenceClass;
+		if (persistenceClass != null)
+			setStore(PersistenceUtils.getPersistenceStore(this, persistenceClass));
+		else
+			setStore(null);
+	}
+	
 	public boolean addChildScope(IBasicScope scope){
 		if (scope.getStore() == null) {
 			// Child scope has no persistence store, use same class as parent.
 			try {
-				if (scope instanceof BasicScope)
-					((BasicScope) scope).setPersistenceClass(this.persistenceClass);
+				if (scope instanceof Scope)
+					((Scope) scope).setPersistenceClass(this.persistenceClass);
 			} catch (Exception error) {
 				log.error("Could not set persistence class.", error);
 			}
