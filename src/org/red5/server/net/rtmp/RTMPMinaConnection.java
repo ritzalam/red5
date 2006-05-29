@@ -43,4 +43,9 @@ public class RTMPMinaConnection extends RTMPConnection {
 	public boolean isConnected() {
 		return super.isConnected() && ioSession.isConnected();
 	}
+	
+	public void close() {
+		super.close();
+		ioSession.close();
+	}
 }
