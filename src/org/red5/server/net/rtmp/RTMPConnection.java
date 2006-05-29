@@ -220,14 +220,16 @@ public abstract class RTMPConnection extends BaseConnection
 	}
 	
 	public void close(){
-		IStreamService streamService = (IStreamService) getScopeService(scope, IStreamService.STREAM_SERVICE, StreamService.class);		
-		synchronized (streams) {
-			for(int i=0; i<streams.length; i++){
-				IStream stream = streams[i];
-				if(stream != null) {
-					log.debug("Closing stream: "+ stream.getStreamId());
-					streamService.deleteStream(this, stream.getStreamId());
-					streams[i] = null;
+		IStreamService streamService = (IStreamService) getScopeService(scope, IStreamService.STREAM_SERVICE, StreamService.class);
+		if (streamService != null) {
+			synchronized (streams) {
+				for(int i=0; i<streams.length; i++){
+					IStream stream = streams[i];
+					if(stream != null) {
+						log.debug("Closing stream: "+ stream.getStreamId());
+						streamService.deleteStream(this, stream.getStreamId());
+						streams[i] = null;
+					}
 				}
 			}
 		}

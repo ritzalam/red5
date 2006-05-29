@@ -85,6 +85,9 @@ public class ScopeUtils {
 	}
 	
 	public static Object getScopeService(IScope scope, String name, Class defaultClass) {
+		if (scope == null)
+			return null;
+		
 		if (scope.hasAttribute(IPersistable.TRANSIENT_PREFIX + SERVICE_CACHE_PREFIX + name))
 			// Return cached service
 			return scope.getAttribute(IPersistable.TRANSIENT_PREFIX + SERVICE_CACHE_PREFIX + name);
