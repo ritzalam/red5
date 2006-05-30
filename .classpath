@@ -36,5 +36,7 @@
 	<classpathentry kind="lib" path="lib/mina-filter-ssl-0.9.3.jar"/>
 	<classpathentry kind="lib" path="lib/mina-integration-spring-0.9.3.jar"/>
 	<classpathentry kind="lib" path="lib/jetty-util.jar"/>
+	<classpathentry kind="lib" path="lib/xmlrpc-2.0.1.jar"/>
+	<classpathentry kind="lib" path="lib/commons-codec-1.3.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
