@@ -57,7 +57,7 @@ public class StatisticsServlet extends HttpServlet {
 		webContext  = (IContext) webAppCtx.getBean("web.context");
 		
 		// Register handlers in XML-RPC server
-        server.addHandler("scopes", new ScopeStatistics(webContext));		
+        server.addHandler("scopes", new ScopeStatistics(webContext.getGlobalScope()));		
 	}
 	
     public void doPost(HttpServletRequest request, HttpServletResponse response)

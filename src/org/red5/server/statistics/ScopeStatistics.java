@@ -37,10 +37,10 @@ import org.red5.server.exception.ScopeNotFoundException;
  */
 public class ScopeStatistics {
 
-	private IContext context;
+	private IScope globalScope;
 	
-	public ScopeStatistics(IContext context) {
-		this.context = context;
+	public ScopeStatistics(IScope globalScope) {
+		this.globalScope = globalScope;
 	}
 	
 	/**
@@ -54,12 +54,12 @@ public class ScopeStatistics {
 	private IScope getScope(String path) throws ScopeNotFoundException {
 		IScope scope;
 		if (path != null && !path.equals("")) 
-			scope = ScopeUtils.resolveScope(context.getGlobalScope(), path);
+			scope = ScopeUtils.resolveScope(globalScope, path);
 		else
-			scope = context.getGlobalScope();
+			scope = globalScope;
 		
 		if (scope == null)
-			throw new ScopeNotFoundException(context.getGlobalScope(), path);
+			throw new ScopeNotFoundException(globalScope, path);
 		
 		return scope;
 	}
