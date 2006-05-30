@@ -112,8 +112,10 @@ public class ScopeStatistics {
 		IScope scope = getScope(path);
 		Map<String, Object> result = new Hashtable<String, Object>();
 		for (String name : scope.getAttributeNames()) {
-			// TODO: filter objects that can not be sent through XML-RPC
-			result.put(name, scope.getAttribute(name));
+			Object value = scope.getAttribute(name);
+			// TODO: allow other filter objects that can be sent through XML-RPC
+			if (value instanceof String)
+				result.put(name, value);
 		}
 		return result;
 	}
