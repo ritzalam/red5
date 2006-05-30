@@ -52,8 +52,11 @@ public class Red5WebPropertiesConfiguration implements Configuration, EventListe
         		String[] hostnames = virtualHosts.split(",");
         		for (int i = 0; i < hostnames.length; i++) {
         			hostnames[i] = hostnames[i].trim();
-        			if(hostnames[i].equals("*")){
-        				hostnames[i] = "";
+        			if(hostnames[i].equals("*")) {
+        				// A virtual host "null" must be used so requests for any host
+        				// will be server.
+        				hostnames = null;
+        				break;
         			}
         		}
     			getWebAppContext().setVirtualHosts(hostnames);
