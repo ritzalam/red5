@@ -54,7 +54,7 @@ public class Red5WebPropertiesConfiguration implements Configuration, EventListe
         			hostnames[i] = hostnames[i].trim();
         			if(hostnames[i].equals("*")) {
         				// A virtual host "null" must be used so requests for any host
-        				// will be server.
+        				// will be served.
         				hostnames = null;
         				break;
         			}
