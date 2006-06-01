@@ -65,4 +65,7 @@ public class ContextLoader implements ApplicationContextAware {
 		factory.registerSingleton(name,context);
 	}
 	
+	public ApplicationContext getContext(String name) {
+		return contextMap.get(name);
+	}
 }

@@ -25,26 +25,28 @@ public class JettyLoader implements ApplicationContextAware {
 	protected static Log log =
         LogFactory.getLog(JettyLoader.class.getName());
 	
-	protected ApplicationContext applicationContext;
 	protected String jettyConfig = "classpath:/jetty.xml";
 	protected Server jetty;
+	// We store the application context in a ThreadLocal so we can access it from
+	// "org.red5.server.jetty.Red5WebPropertiesConfiguration" later.
+	private static ThreadLocal<ApplicationContext> applicationContext = new ThreadLocal<ApplicationContext>();
 	
 	public void setApplicationContext(ApplicationContext context) throws BeansException {
-		applicationContext = context;
+		applicationContext.set(context);
+	}
+	
+	public static ApplicationContext getApplicationContext() {
+		return applicationContext.get();
 	}
 	
 	public void init() {
-		
 		// Originally this class was used to inspect the webapps.
 		// But now thats done using Red5WebPropertiesConfiguration
 		// So this class is left just starting jetty, we can probably use the old method 
-		
-		
-		
 		try {
 			log.info("Loading jetty6 context from: "+jettyConfig);
 			Server jetty = new Server();
-			XmlConfiguration config = new XmlConfiguration(applicationContext.getResource(jettyConfig).getInputStream());
+			XmlConfiguration config = new XmlConfiguration(getApplicationContext().getResource(jettyConfig).getInputStream());
 			config.configure(jetty);
 			log.info("Starting jetty servlet engine");
 			jetty.start();
