@@ -38,7 +38,7 @@ public class CoreHandler implements IScopeHandler {
 		String id = conn.getSessionId();
 		
 		IClient client = clientRegistry.hasClient(id) ? 
-				clientRegistry.lookupClient(id) : clientRegistry.newClient();
+				clientRegistry.lookupClient(id) : clientRegistry.newClient(params);
 		
 		// We have a context, and a client object.. time to init the conneciton.
 		conn.initialize(client);

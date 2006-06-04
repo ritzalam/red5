@@ -10,19 +10,19 @@ public class ClientRegistry implements IClientRegistry {
 	private HashMap<String,IClient> clients = new HashMap<String,IClient>();
 	private int nextId = 0;
 	
-	public String nextId(){
+	public synchronized String nextId(){
 		return "" + nextId++;
 	}
 	
 	public boolean hasClient(String id) {
-		return false;
+		return clients.containsKey(id);
 	}
 
 	public IClient lookupClient(String id) {
-		return null;
+		return clients.get(id);
 	}
 
-	public IClient newClient() {
+	public IClient newClient(Object[] params) {
 		IClient client = new Client(nextId(), this);
 		clients.put(client.getId(), client);
 		return client;
