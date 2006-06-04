@@ -180,7 +180,7 @@ public class SharedObject implements IPersistable, Constants {
 				syncMessage.addEvents(syncEvents);
 				
 				Channel c = ((RTMPConnection) listener).getChannel((byte) 3);
-				log.warn("Send to " + c);
+				log.debug("Send to " + c);
 				c.write(syncMessage);
 			}
 			// Clear list of sync events
