@@ -29,12 +29,16 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
         LogFactory.getLog(ApplicationAdapter.class.getName());
 
 	public boolean connect(IConnection conn, IScope scope, Object[] params) {
+		if (!super.connect(conn, scope, params))
+			return false;
 		if(isApp(scope)) return appConnect(conn, params);
 		else if(isRoom(scope)) return roomConnect(conn, params);
 		else return false;
 	}
 
 	public boolean start(IScope scope) {
+		if (!super.start(scope))
+			return false;
 		if(isApp(scope)) return appStart(scope);
 		else if(isRoom(scope)) return roomStart(scope);
 		else return false;
@@ -44,14 +48,18 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 		log.debug("disconnect");
 		if(isApp(scope)) appDisconnect(conn);
 		else if(isRoom(scope)) roomDisconnect(conn);
+		super.disconnect(conn, scope);
 	}
 
 	public void stop(IScope scope) {
 		if(isApp(scope)) appStop(scope);
 		else if(isRoom(scope)) roomStop(scope);
+		super.stop(scope);
 	}
 
 	public boolean join(IClient client, IScope scope) {
+		if (!super.join(client, scope))
+			return false;
 		if(isApp(scope)) return appJoin(client, scope);
 		else if(isRoom(scope)) return roomJoin(client, scope);
 		else return false;
@@ -61,6 +69,7 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 		log.debug("leave");
 		if(isApp(scope)) appLeave(client, scope);
 		else if(isRoom(scope)) roomLeave(client, scope);
+		super.leave(client, scope);
 	}
 
 	public boolean appStart(IScope app){
