@@ -33,7 +33,10 @@ public class SharedObject implements IPersistable, Constants {
 
 	protected String name = "";
 	protected String path = "";
+	// true if the SharedObject was stored by the persistence framework 
 	protected boolean persistent = false;
+	// true if the client / server created the SO to be persistent
+	protected boolean persistentSO = false;
 	protected IPersistenceStore storage = null;
 
 	protected int version = 0;
@@ -65,7 +68,7 @@ public class SharedObject implements IPersistable, Constants {
 		this.data = data;
 		this.name = name;
 		this.path = path;
-		this.persistent = persistent;
+		this.persistentSO = persistent;
 		
 		ownerMessage = new org.red5.server.net.rtmp.message.SharedObject();
 		ownerMessage.setName(name);
@@ -78,7 +81,7 @@ public class SharedObject implements IPersistable, Constants {
 		this.data = data;
 		this.name = name;
 		this.path = path;
-		this.persistent = persistent;
+		this.persistentSO = persistent;
 		setStore(storage);
 
 		ownerMessage = new org.red5.server.net.rtmp.message.SharedObject();
@@ -111,6 +114,10 @@ public class SharedObject implements IPersistable, Constants {
 		return lastModified;
 	}
 
+	public boolean isPersistentObject() {
+		return persistentSO;
+	}
+
 	public boolean isPersistent() {
 		return persistent;
 	}
@@ -125,15 +132,14 @@ public class SharedObject implements IPersistable, Constants {
 			org.red5.server.net.rtmp.message.SharedObject syncOwner  = new org.red5.server.net.rtmp.message.SharedObject();
 			syncOwner.setName(name);
 			syncOwner.setTimestamp(0);
-			syncOwner.setType(persistent ? 2 : 0);
+			syncOwner.setType(isPersistentObject() ? 2 : 0);
 			syncOwner.setSoId(version);
 			syncOwner.setSealed(false);
 			syncOwner.addEvents(ownerMessage.getEvents());
 
-			IConnection conn = Red5.getConnectionLocal();
-			if (conn != null) {
+			if (source != null) {
 				// Only send updates when issued through RTMP request
-				Channel channel = ((RTMPConnection) conn).getChannel((byte) 3);
+				Channel channel = ((RTMPConnection) source).getChannel((byte) 3);
 				
 				if (channel != null) {
 					//ownerMessage.acquire();
@@ -170,11 +176,11 @@ public class SharedObject implements IPersistable, Constants {
 				syncMessage.setName(name);
 				syncMessage.setSoId(version);
 				syncMessage.setTimestamp(0);
-				syncMessage.setType(persistent ? 2 : 0);
+				syncMessage.setType(isPersistentObject() ? 2 : 0);
 				syncMessage.addEvents(syncEvents);
 				
 				Channel c = ((RTMPConnection) listener).getChannel((byte) 3);
-				log.debug("Send to " + c);
+				log.warn("Send to " + c);
 				c.write(syncMessage);
 			}
 			// Clear list of sync events
@@ -327,7 +333,7 @@ public class SharedObject implements IPersistable, Constants {
 
 	public void unregister(IEventListener listener) {
 		listeners.remove(listener);
-		if (!persistent && listeners.isEmpty()) {
+		if (!isPersistentObject() && listeners.isEmpty()) {
 			log.info("Deleting shared object " + name
 					+ " because all clients disconnected.");
 			data.clear();
@@ -343,7 +349,7 @@ public class SharedObject implements IPersistable, Constants {
 	}
 
 	public void beginUpdate() {
-		beginUpdate(Red5.getConnectionLocal());
+		beginUpdate(null);
 	}
 
 	public void beginUpdate(IEventListener listener) {
@@ -367,7 +373,7 @@ public class SharedObject implements IPersistable, Constants {
 	public void deserialize(Input input) throws IOException {
 		Deserializer deserializer = new Deserializer();
 		name = (String) deserializer.deserialize(input);
-		persistent = true;
+		persistentSO = persistent = true;
 		data.clear();
 		data.putAll((Map<String, Object>) deserializer.deserialize(input));
 		ownerMessage.setName(name);

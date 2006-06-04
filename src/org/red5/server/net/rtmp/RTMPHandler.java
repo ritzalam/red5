@@ -360,7 +360,7 @@ public class RTMPHandler
 			}
 		}
 		so = sharedObjectService.getSharedObject(scope, name);
-		so.beginUpdate();
+		so.beginUpdate(conn);
 		Iterator it = object.getEvents().iterator();
 		while (it.hasNext()) {
 			SharedObjectEvent event = (SharedObjectEvent) it.next();

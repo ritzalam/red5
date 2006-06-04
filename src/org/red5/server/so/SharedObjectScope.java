@@ -38,11 +38,12 @@ public class SharedObjectScope extends BasicScope
 		// Nothing to do here, the shared object will take care of persistence.
 	}
 	
+	public boolean isPersistentObject() {
+		return so.isPersistentObject();
+	}
+	
 	public void beginUpdate() {
-		if (!lock.isHeldByCurrentThread())
-			lock.lock();
-		
-		so.beginUpdate();
+		beginUpdate(null);
 	}
 
 	public void beginUpdate(IEventListener listener) {

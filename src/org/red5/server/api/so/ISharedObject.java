@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.List;
 
 import org.red5.server.api.IBasicScope;
+import org.red5.server.api.event.IEventListener;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -65,7 +66,7 @@ public interface ISharedObject extends IBasicScope {
 	 * 
 	 * @return true if the shared object is persistent, false otherwise
 	 */
-	/*public boolean isPersistent();*/
+	public boolean isPersistentObject();
 
 	/**
 	 * Return a map containing all attributes of the shared object. <br />
@@ -88,9 +89,16 @@ public interface ISharedObject extends IBasicScope {
 	public void sendMessage(String handler, List arguments);
 
 	/**
-	 * Start performing multiple updates to the shared object.
+	 * Start performing multiple updates to the shared object from serverside
+	 * code.
 	 */
 	public void beginUpdate();
+
+	/**
+	 * Start performing multiple updates to the shared object from a connected
+	 * client.
+	 */
+	public void beginUpdate(IEventListener source);
 
 	/**
 	 * The multiple updates are complete, notify clients about all changes at
