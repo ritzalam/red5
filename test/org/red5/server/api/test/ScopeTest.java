@@ -52,7 +52,7 @@ public class ScopeTest extends BaseTest {
 	
 	@Test public void client(){
 		IClientRegistry reg = context.getClientRegistry();
-		IClient client = reg.newClient();
+		IClient client = reg.newClient(null);
 		assertTrue("client should not be null", client!=null);
 	}
 	
@@ -62,7 +62,7 @@ public class ScopeTest extends BaseTest {
 		assertTrue("should have a handler",testApp.hasHandler());
 		
 		IClientRegistry reg = context.getClientRegistry();
-		IClient client = reg.newClient();
+		IClient client = reg.newClient(null);
 		
 		TestConnection conn = new TestConnection(host,path_app,client.getId());
 		conn.initialize(client);
