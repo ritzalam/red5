@@ -17,12 +17,6 @@ public class CoreHandler implements IScopeHandler {
 	protected static Log log =
         LogFactory.getLog(CoreHandler.class.getName());
 	
-	protected IClientRegistry clientRegistry;
-		
-	public void setClientRegistry(IClientRegistry clientRegistry) {
-		this.clientRegistry = clientRegistry;
-	}
-
 	public boolean addChildScope(IBasicScope scope) {
 		return true;
 	}
@@ -36,6 +30,8 @@ public class CoreHandler implements IScopeHandler {
 		log.debug("Connect to core handler ?");
 		
 		String id = conn.getSessionId();
+		
+		IClientRegistry clientRegistry = scope.getContext().getClientRegistry();
 		
 		IClient client = clientRegistry.hasClient(id) ? 
 				clientRegistry.lookupClient(id) : clientRegistry.newClient(params);
