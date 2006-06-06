@@ -24,10 +24,14 @@ public class ClientRegistry implements IClientRegistry {
 
 	public IClient newClient(Object[] params) {
 		IClient client = new Client(nextId(), this);
-		clients.put(client.getId(), client);
+		addClient(client);
 		return client;
 	}
 
+	protected void addClient(IClient client) {
+		clients.put(client.getId(), client);
+	}
+	
 	protected void removeClient(IClient client) {
 		clients.remove(client.getId());
 	}
