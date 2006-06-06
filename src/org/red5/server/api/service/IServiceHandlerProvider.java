@@ -22,6 +22,7 @@ package org.red5.server.api.service;
 /**
  * Supports registration and lookup of service handlers.
  * 
+ * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
  *
  */
