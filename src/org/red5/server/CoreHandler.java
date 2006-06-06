@@ -9,6 +9,7 @@ import org.red5.server.api.IConnection;
 import org.red5.server.api.IContext;
 import org.red5.server.api.IScope;
 import org.red5.server.api.IScopeHandler;
+import org.red5.server.api.Red5;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.service.IServiceCall;
 
@@ -31,7 +32,9 @@ public class CoreHandler implements IScopeHandler {
 		
 		String id = conn.getSessionId();
 		
-		IClientRegistry clientRegistry = scope.getContext().getClientRegistry();
+		// Use client registry from scope the client connected to.
+		IScope connectionScope = Red5.getConnectionLocal().getScope(); 
+		IClientRegistry clientRegistry = connectionScope.getContext().getClientRegistry();
 		
 		IClient client = clientRegistry.hasClient(id) ? 
 				clientRegistry.lookupClient(id) : clientRegistry.newClient(params);
