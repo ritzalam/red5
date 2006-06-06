@@ -491,7 +491,9 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder {
 			}
 		} 
 		
-		final int dotIndex = action.indexOf(".");
+		// The method name has the form "<serviceName>.<serviceMethod>"
+		// where "<serviceName>" may contain dots.
+		final int dotIndex = action.lastIndexOf(".");
 		String serviceName = (dotIndex==-1) ? null : action.substring(0,dotIndex);
 		String serviceMethod = (dotIndex==-1) ? action : action.substring(dotIndex+1, action.length());
 		

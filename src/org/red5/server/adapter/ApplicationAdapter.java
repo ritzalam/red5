@@ -4,6 +4,7 @@ import static org.red5.server.api.ScopeUtils.isApp;
 import static org.red5.server.api.ScopeUtils.isRoom;
 import static org.red5.server.api.ScopeUtils.getScopeService;
 
+import java.util.HashMap;
 import java.util.Iterator;
 
 import org.apache.commons.logging.Log;
@@ -11,6 +12,7 @@ import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
+import org.red5.server.api.service.IServiceHandlerProvider;
 import org.red5.server.api.so.ISharedObject;
 import org.red5.server.api.so.ISharedObjectService;
 import org.red5.server.api.stream.IBroadcastStream;
@@ -23,11 +25,14 @@ import org.red5.server.so.SharedObjectService;
 import org.red5.server.stream.StreamService;
 
 public class ApplicationAdapter extends StatefulScopeWrappingAdapter
-	implements ISharedObjectService, IBroadcastStreamService, IOnDemandStreamService, ISubscriberStreamService {
+	implements ISharedObjectService, IBroadcastStreamService, IOnDemandStreamService, ISubscriberStreamService,
+		IServiceHandlerProvider {
 
 	protected static Log log =
         LogFactory.getLog(ApplicationAdapter.class.getName());
 
+	private HashMap<String, Object> serviceHandlers = new HashMap<String, Object>();
+	
 	public boolean connect(IConnection conn, IScope scope, Object[] params) {
 		if (!super.connect(conn, scope, params))
 			return false;
@@ -182,5 +187,15 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 	public ISubscriberStream getSubscriberStream(IScope scope, String name) {
 		ISubscriberStreamService service = (ISubscriberStreamService) getScopeService(scope, ISubscriberStreamService.SUBSCRIBER_STREAM_SERVICE, StreamService.class); 
 		return service.getSubscriberStream(scope, name);
+	}
+	
+	/* IServiceHandlerProvider interface */
+	
+	public void registerServiceHandler(String name, Object handler) {
+		serviceHandlers.put(name, handler);
+	}
+	
+	public Object getServiceHandler(String name) {
+		return serviceHandlers.get(name);
 	}
 }

@@ -33,6 +33,7 @@ import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.IContext;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IServiceCall;
+import org.red5.server.api.service.IServiceHandlerProvider;
 import org.red5.server.api.service.IServiceInvoker;
 
 public class ServiceInvoker  implements IServiceInvoker {
@@ -148,7 +149,28 @@ public class ServiceInvoker  implements IServiceInvoker {
 	}
 
 	public void invoke(IServiceCall call, Object service) {
-		final String methodName = call.getServiceMethodName();
+		String serviceName = call.getServiceName();
+		String methodName = call.getServiceMethodName();
+		
+		if (serviceName != null && !serviceName.equals("")) {
+			if (!(service instanceof IServiceHandlerProvider)) {
+				log.error("Service "  +service + " has no service handlers.");
+				call.setStatus(Call.STATUS_METHOD_NOT_FOUND);
+				call.setException(new ServiceNotFoundException(serviceName));
+				return;
+			}
+			
+			Object serviceHandler = ((IServiceHandlerProvider) service).getServiceHandler(serviceName);
+			if (serviceHandler == null) {
+				log.error("Service "  + serviceName + " not found in " + service);
+				call.setStatus(Call.STATUS_METHOD_NOT_FOUND);
+				call.setException(new ServiceNotFoundException(serviceName));
+				return;
+			}
+			
+			// Lookup method in service handler
+			service = serviceHandler;
+		}
 		
 		Object[] args = call.getArguments();
 		if (args != null) {
@@ -164,6 +186,7 @@ public class ServiceInvoker  implements IServiceInvoker {
 			methodResult = findMethodWithListParameters(service, methodName, args);
 		
 		if (methodResult.length == 0 || methodResult[0] == null) {
+			log.error("Method " + methodName + " not found in " + service);
 			call.setStatus(Call.STATUS_METHOD_NOT_FOUND);
 			call.setException(new MethodNotFoundException(methodName));
 			return;
