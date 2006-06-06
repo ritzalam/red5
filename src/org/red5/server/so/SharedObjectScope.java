@@ -31,6 +31,9 @@ public class SharedObjectScope extends BasicScope
 			so = new SharedObject(attributes, name, parent.getContextPath(), persistent, store);
 
 			store.save(so);
+		} else {
+			so.setName(name);
+			so.setPath(parent.getContextPath());
 		}
 	}
 	
