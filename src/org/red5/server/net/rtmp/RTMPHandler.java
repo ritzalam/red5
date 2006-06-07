@@ -240,6 +240,7 @@ public class RTMPHandler
 				conn.invokeId = invoke.getInvokeId() + 1;
 		}
 		
+		boolean disconnectOnReturn = false;
 		if(call.getServiceName() == null){
 			log.info("call: "+call);
 			final String action = call.getServiceMethodName();
@@ -285,6 +286,7 @@ public class RTMPHandler
 									call.setStatus(Call.STATUS_ACCESS_DENIED);
 									if (call instanceof IPendingServiceCall)
 										((IPendingServiceCall) call).setResult(getStatus(NC_CONNECT_REJECTED));
+									disconnectOnReturn = true;
 								}
 							} catch (ClientRejectedException rejected) {
 								log.debug("connect rejected");
@@ -294,6 +296,7 @@ public class RTMPHandler
 									status.setApplication(rejected.getReason());
 									((IPendingServiceCall) call).setResult(status);
 								}
+								disconnectOnReturn = true;
 							}
 						}
 					} catch (RuntimeException e) {
@@ -301,6 +304,7 @@ public class RTMPHandler
 						if (call instanceof IPendingServiceCall)
 							((IPendingServiceCall) call).setResult(getStatus(NC_CONNECT_FAILED));
 						log.error("Error connecting",e);
+						disconnectOnReturn = true;
 					}
 				}
 			} else if(action.equals(ACTION_DISCONNECT)){
@@ -334,6 +338,8 @@ public class RTMPHandler
 			reply.setInvokeId(invoke.getInvokeId());
 			log.debug("sending reply");
 			channel.write(reply);
+			if (disconnectOnReturn)
+				conn.close();
 		}
 	}
 	
