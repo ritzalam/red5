@@ -4,6 +4,8 @@ import java.util.HashMap;
 
 import org.red5.server.api.IClient;
 import org.red5.server.api.IClientRegistry;
+import org.red5.server.exception.ClientNotFoundException;
+import org.red5.server.exception.ClientRejectedException;
 
 public class ClientRegistry implements IClientRegistry {
 
@@ -18,11 +20,14 @@ public class ClientRegistry implements IClientRegistry {
 		return clients.containsKey(id);
 	}
 
-	public IClient lookupClient(String id) {
+	public IClient lookupClient(String id) throws ClientNotFoundException {
+		if (!hasClient(id))
+			throw new ClientNotFoundException(id);
+		
 		return clients.get(id);
 	}
 
-	public IClient newClient(Object[] params) {
+	public IClient newClient(Object[] params) throws ClientNotFoundException, ClientRejectedException {
 		IClient client = new Client(nextId(), this);
 		addClient(client);
 		return client;

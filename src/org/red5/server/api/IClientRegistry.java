@@ -19,6 +19,9 @@ package org.red5.server.api;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import org.red5.server.exception.ClientNotFoundException;
+import org.red5.server.exception.ClientRejectedException;
+
 /**
  * Provides a registry of client objects.
  * You can lookup a client by its clientid / session id.
@@ -43,8 +46,10 @@ public interface IClientRegistry {
 	 * @param params
 	 * 			the parameters the client passed during connection
 	 * @return the new client
+	 * @throws ClientNotFoundException no client could be created from the passed parameters
+	 * @throws ClientRejectedException the client is not allowed to connect
 	 */
-	public IClient newClient(Object[] params);
+	public IClient newClient(Object[] params) throws ClientNotFoundException, ClientRejectedException;
 	
 	/**
 	 * Return an existing client from a client id.
@@ -52,7 +57,8 @@ public interface IClientRegistry {
 	 * @param id
 	 * 			the id of the client to return
 	 * @return the client object
+	 * @throws ClientNotFoundException no client with the passed id exists
 	 */
-	public IClient lookupClient(String id);
+	public IClient lookupClient(String id) throws ClientNotFoundException;
 
 }
