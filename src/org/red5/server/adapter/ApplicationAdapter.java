@@ -22,6 +22,7 @@ import org.red5.server.api.stream.IOnDemandStream;
 import org.red5.server.api.stream.IOnDemandStreamService;
 import org.red5.server.api.stream.ISubscriberStream;
 import org.red5.server.api.stream.ISubscriberStreamService;
+import org.red5.server.exception.ClientRejectedException;
 import org.red5.server.so.SharedObjectService;
 import org.red5.server.stream.StreamService;
 
@@ -33,6 +34,14 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
         LogFactory.getLog(ApplicationAdapter.class.getName());
 
 	private HashMap<String, Object> serviceHandlers = new HashMap<String, Object>();
+
+	protected void rejectClient() {
+		throw new ClientRejectedException();
+	}
+	
+	protected void rejectClient(Object reason) {
+		throw new ClientRejectedException(reason);
+	}
 	
 	public boolean connect(IConnection conn, IScope scope, Object[] params) {
 		if (!super.connect(conn, scope, params))

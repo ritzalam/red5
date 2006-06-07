@@ -35,6 +35,7 @@ public class StatusObject implements Serializable {
 	protected String code;
 	protected String level;
 	protected String description = "";
+	protected Object application = null;
 	
 	public StatusObject(){
 		
@@ -68,6 +69,14 @@ public class StatusObject implements Serializable {
 	
 	public void setLevel(String level) {
 		this.level = level;
+	}
+	
+	public void setApplication(Object application) {
+		this.application = application;
+	}
+	
+	public Object getApplication() {
+		return application;
 	}
 	
 }

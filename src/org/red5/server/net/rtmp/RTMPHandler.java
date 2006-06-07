@@ -25,6 +25,7 @@ import org.red5.server.api.service.IPendingServiceCallback;
 import org.red5.server.api.service.IServiceCall;
 import org.red5.server.api.stream.IStream;
 import org.red5.server.api.stream.IStreamService;
+import org.red5.server.exception.ClientRejectedException;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.message.Constants;
@@ -40,6 +41,7 @@ import org.red5.server.net.rtmp.message.SharedObjectEvent;
 import org.red5.server.net.rtmp.message.StreamBytesRead;
 import org.red5.server.net.rtmp.message.Unknown;
 import org.red5.server.net.rtmp.status.StatusCodes;
+import org.red5.server.net.rtmp.status.StatusObject;
 import org.red5.server.net.rtmp.status.StatusObjectService;
 import org.red5.server.service.Call;
 import org.red5.server.so.SharedObjectService;
@@ -267,21 +269,31 @@ public class RTMPHandler
 							final IScope scope = context.resolveScope(path);
 							log.info("Connecting to: "+scope);
 							boolean okayToConnect;
-							if (call.getArguments() != null)
-								okayToConnect = conn.connect(scope, call.getArguments());
-							else
-								okayToConnect = conn.connect(scope);
-							if (okayToConnect){
-								log.debug("connected");
-								log.debug("client: "+conn.getClient());
-								call.setStatus(Call.STATUS_SUCCESS_RESULT);
-								if (call instanceof IPendingServiceCall)
-									((IPendingServiceCall) call).setResult(getStatus(NC_CONNECT_SUCCESS));
-							} else {
-								log.debug("connect failed");
+							try {
+								if (call.getArguments() != null)
+									okayToConnect = conn.connect(scope, call.getArguments());
+								else
+									okayToConnect = conn.connect(scope);
+								if (okayToConnect){
+									log.debug("connected");
+									log.debug("client: "+conn.getClient());
+									call.setStatus(Call.STATUS_SUCCESS_RESULT);
+									if (call instanceof IPendingServiceCall)
+										((IPendingServiceCall) call).setResult(getStatus(NC_CONNECT_SUCCESS));
+								} else {
+									log.debug("connect failed");
+									call.setStatus(Call.STATUS_ACCESS_DENIED);
+									if (call instanceof IPendingServiceCall)
+										((IPendingServiceCall) call).setResult(getStatus(NC_CONNECT_REJECTED));
+								}
+							} catch (ClientRejectedException rejected) {
+								log.debug("connect rejected");
 								call.setStatus(Call.STATUS_ACCESS_DENIED);
-								if (call instanceof IPendingServiceCall)
-									((IPendingServiceCall) call).setResult(getStatus(NC_CONNECT_REJECTED));
+								if (call instanceof IPendingServiceCall) {
+									StatusObject status = (StatusObject) getStatus(NC_CONNECT_REJECTED);
+									status.setApplication(rejected.getReason());
+									((IPendingServiceCall) call).setResult(status);
+								}
 							}
 						}
 					} catch (RuntimeException e) {
