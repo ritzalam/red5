@@ -112,9 +112,16 @@ public class BaseConnection extends AttributeStore
 			// XXX: HACK HACK HACK, this should not be needed, 
 			// the so should be in the basic scopes. Quick fix
 			Iterator<String>it = scope.getBasicScopeNames(ISharedObject.TYPE);
+			// We need to create a copy of the iterator as this may change
+			// during unregistering of the event listeners
+			Set<IBasicScope> scopes = new HashSet<IBasicScope>();
 			while(it.hasNext()){
 				String name = it.next();
 				IBasicScope so = scope.getBasicScope(ISharedObject.TYPE, name);
+				scopes.add(so);
+			}
+			
+			for (IBasicScope so : scopes) {
 				so.removeEventListener(this);
 			}
 
