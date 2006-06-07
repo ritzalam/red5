@@ -6,6 +6,7 @@ import static org.red5.server.api.ScopeUtils.getScopeService;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -197,5 +198,9 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 	
 	public Object getServiceHandler(String name) {
 		return serviceHandlers.get(name);
+	}
+	
+	public Set<String> getServiceHandlerNames() {
+		return serviceHandlers.keySet();
 	}
 }

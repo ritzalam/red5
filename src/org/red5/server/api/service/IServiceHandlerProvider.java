@@ -19,6 +19,8 @@ package org.red5.server.api.service;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.Set;
+
 /**
  * Supports registration and lookup of service handlers.
  * 
@@ -50,5 +52,12 @@ public interface IServiceHandlerProvider {
 	 * @return the previously registered handler
 	 */
 	public Object getServiceHandler(String name);
-	
+
+	/**
+	 * Get list of registered service handler names.
+	 * 
+	 * @return the names of the registered handlers
+	 */
+	public Set<String> getServiceHandlerNames();
+
 }
