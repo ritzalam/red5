@@ -35,10 +35,23 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 
 	private HashMap<String, Object> serviceHandlers = new HashMap<String, Object>();
 
+	/**
+	 * Reject the currently connecting client without a special error message.
+	 *
+	 */
 	protected void rejectClient() {
 		throw new ClientRejectedException();
 	}
 	
+	/**
+	 * Reject the currently connecting client with an error message.
+	 * 
+	 * The passed object will be available as "application" property of the
+	 * information object that is returned to the caller. 
+	 * 
+	 * @param reason
+	 * 			additional error message to return
+	 */
 	protected void rejectClient(Object reason) {
 		throw new ClientRejectedException(reason);
 	}
