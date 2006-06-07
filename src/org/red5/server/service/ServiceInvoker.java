@@ -68,6 +68,24 @@ public class ServiceInvoker  implements IServiceInvoker {
 		
 		Method method = null;
 		Object[] params = null;
+		
+		// First search for method with exact parameters
+		for(int i=0; i<methods.size(); i++){
+			method = (Method) methods.get(i);
+			boolean valid = true;
+			Class[] paramTypes = method.getParameterTypes(); 
+			for (int j=0; j<args.length; j++) {
+				if (!args[j].getClass().equals(paramTypes[j])) {
+					valid = false;
+					break;
+				}
+			}
+			
+			if (valid)
+				return new Object[]{method, args};
+		}
+		
+		// Then try to convert parameters
 		for(int i=0; i<methods.size(); i++){
 			try {
 				method = (Method) methods.get(i);
