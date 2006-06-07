@@ -46,7 +46,10 @@ public class SharedObjectScope extends BasicScope
 	}
 	
 	public void beginUpdate() {
-		beginUpdate(null);
+		if (!lock.isHeldByCurrentThread())
+			lock.lock();
+		
+		so.beginUpdate();
 	}
 
 	public void beginUpdate(IEventListener listener) {

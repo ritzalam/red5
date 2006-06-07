@@ -39,7 +39,7 @@ public class SharedObject implements IPersistable, Constants {
 	protected boolean persistentSO = false;
 	protected IPersistenceStore storage = null;
 
-	protected int version = 0;
+	protected int version = 1;
 	protected Map<String, Object> data = null;
 	protected int updateCounter = 0;
 	protected boolean modified = false;
@@ -349,7 +349,7 @@ public class SharedObject implements IPersistable, Constants {
 	}
 
 	public void beginUpdate() {
-		beginUpdate(null);
+		beginUpdate(source);
 	}
 
 	public void beginUpdate(IEventListener listener) {
@@ -360,8 +360,10 @@ public class SharedObject implements IPersistable, Constants {
 	public void endUpdate() {
 		updateCounter -= 1;
 
-		if (updateCounter == 0)
+		if (updateCounter == 0) {
 			notifyModified();
+			source = null;
+		}
 	}
 
 	public void serialize(Output output) throws IOException {
