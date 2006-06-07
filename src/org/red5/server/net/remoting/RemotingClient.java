@@ -184,7 +184,7 @@ public class RemotingClient {
 		post.setRequestEntity(new InputStreamRequestEntity(data.asInputStream(), data.limit(), CONTENT_TYPE));
         try {
             int resultCode = client.executeMethod(post);
-            if (resultCode % 100 != 2)
+            if (resultCode / 100 != 2)
             	throw new RuntimeException("Didn't receive success from remoting server."); 
             	
             resultBuffer = ByteBuffer.allocate((int) post.getResponseContentLength());
