@@ -53,9 +53,20 @@ public class FilePersistence extends RamPersistence implements IPersistenceStore
 	}
 
 	private String getObjectFilepath(IPersistable object) {
+		return getObjectFilepath(object, false);
+	}
+	
+	private String getObjectFilepath(IPersistable object, boolean completePath) {
 		String result = path + "/" + object.getType() + "/" + object.getPath();
 		if (!result.endsWith("/"))
 			result += "/";
+		
+		if (completePath) {
+			String name = object.getName();
+			int pos = name.lastIndexOf("/");
+			if (pos >= 0)
+				result += name.substring(0, pos);
+		}
 		return result;
 	}
 	
@@ -185,7 +196,7 @@ public class FilePersistence extends RamPersistence implements IPersistenceStore
 	}
 	
 	private boolean saveObject(IPersistable object) {
-		String path = getObjectFilepath(object);
+		String path = getObjectFilepath(object, true);
 		Resource resPath = resources.getResource(path);
 		File file;
 		try {
