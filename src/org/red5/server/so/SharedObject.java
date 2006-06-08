@@ -333,6 +333,9 @@ public class SharedObject implements IPersistable, Constants {
 		// prepare response for new client
 		ownerMessage.addEvent(new SharedObjectEvent(
 				SO_CLIENT_INITIAL_DATA, null, null));
+		if (!isPersistentObject())
+			ownerMessage.addEvent(new SharedObjectEvent(
+					SO_CLIENT_CLEAR_DATA, null, null));
 		if (!data.isEmpty())
 			ownerMessage.addEvent(new SharedObjectEvent(
 					SO_CLIENT_UPDATE_DATA, null, getData()));

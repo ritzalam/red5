@@ -219,6 +219,11 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants {
 				data.putInt(0);
 				break;
 			
+			case SO_CLIENT_CLEAR_DATA:
+				data.put(event.getType());
+				data.putInt(0);
+				break;
+			
 			case SO_CLIENT_UPDATE_ATTRIBUTE:
 				// Confirm attribute change requested by client
 				strBuf = AMF.CHARSET.encode(event.getKey());

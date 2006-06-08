@@ -30,6 +30,7 @@ public interface Constants {
 	public static final byte SO_CLIENT_UPDATE_ATTRIBUTE = 0x05; //5: update attribute
 	public static final byte SO_CLIENT_SEND_MESSAGE = 0x06;  // 6: send message
     public static final byte SO_CLIENT_STATUS = 0x07;  // 7: status (usually returned with error messages)
+    public static final byte SO_CLIENT_CLEAR_DATA = 0x08; // 8: clear data
     public static final byte SO_CLIENT_DELETE_DATA = 0x09; // 9: delete data
     public static final byte SO_CLIENT_INITIAL_DATA = 0x0B; // 11: initial data
 
@@ -38,8 +39,6 @@ public interface Constants {
     public static final byte SO_SET_ATTRIBUTE = 0x03;
     public static final byte SO_SEND_MESSAGE = 0x06;
     public static final byte SO_DELETE_ATTRIBUTE = 0x0A;
-    public static final byte SO_LIST = 0x0B;
-    public static final byte SO_CONNECT_OK = 0x08;
     
     public static final String ACTION_CONNECT = "connect";
     public static final String ACTION_DISCONNECT = "disconnect";

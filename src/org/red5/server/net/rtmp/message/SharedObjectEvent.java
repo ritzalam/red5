@@ -50,14 +50,14 @@ public class SharedObjectEvent implements Constants {
 		switch(type){
 			case SO_CONNECT:
 				return "Connect";
-			case SO_CONNECT_OK:
-				return "Connect OK";
 			case SO_CLIENT_DELETE_DATA:
 				return "Client Delete Data";
 			case SO_CLIENT_INITIAL_DATA:
 				return "Client Initial Data";
 			case SO_CLIENT_STATUS:
 				return "Status";
+			case SO_CLIENT_CLEAR_DATA:
+				return "Client Clear Data";
 			case SO_CLIENT_UPDATE_DATA:
 				return "Client Update Data";
 			case SO_CLIENT_UPDATE_ATTRIBUTE:
