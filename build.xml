@@ -136,6 +136,8 @@
 	<jar destfile="red5.jar">
 		<fileset dir="${classes.dir}">
 			<include name="**"/>
+			<exclude name="org/red5/server/webapp/**"/>
+			<exclude name="org/red5/demos/**"/>
 		</fileset>
 		<!--
 		<metainf dir="${src}/${metainf}">

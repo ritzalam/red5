@@ -110,8 +110,10 @@
       <Arg><SystemProperty name="red5.root" default="." />/webapps/</Arg>
       <Arg>web-default.xml</Arg>
       <Arg><Array type="java.lang.String">
+            <Item>org.mortbay.jetty.webapp.WebInfConfiguration</Item>
 			<Item>org.mortbay.jetty.webapp.WebXmlConfiguration</Item>
 			<Item>org.mortbay.jetty.webapp.JettyWebXmlConfiguration</Item>
+            <Item>org.mortbay.jetty.webapp.TagLibConfiguration</Item>
 			<Item>org.red5.server.jetty.Red5WebPropertiesConfiguration</Item>
 	  </Array></Arg>
       <Arg type="boolean">True</Arg>
