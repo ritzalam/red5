@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.red5.server.BasicScope;
@@ -132,6 +133,21 @@ public class SharedObjectScope extends BasicScope
 			ISharedObjectListener soListener = it.next();
 			soListener.onSharedObjectDisconnect(this);
 		}
+	}
+	
+	@Override
+	public boolean hasAttribute(String name) {
+		return so.hasAttribute(name);
+	}
+
+	@Override
+	public Object getAttribute(String name) {
+		return so.getAttribute(name);
+	}
+
+	@Override
+	public Set<String> getAttributeNames() {
+		return so.getAttributeNames();
 	}
 
 	public Map<String, Object> getData() {

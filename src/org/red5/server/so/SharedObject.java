@@ -211,7 +211,7 @@ public class SharedObject implements IPersistable, Constants {
 		return data.containsKey(name);
 	}
 
-	public Set getAttributeNames() {
+	public Set<String> getAttributeNames() {
 		return data.keySet();
 	}
 
