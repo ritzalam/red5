@@ -70,7 +70,7 @@ public abstract class RTMPConnection extends BaseConnection
 		// We start with an anonymous connection without a scope.
 		// These parameters will be set during the call of "connect" later.
 		//super(null, "");	temp fix to get things to compile
-		super(type,null,null,null,null);
+		super(type,null,null,null,null,null);
 		sharedObjects = new HashMap<String,ISharedObject>();
 	}
 	

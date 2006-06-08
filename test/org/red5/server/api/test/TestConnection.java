@@ -5,7 +5,7 @@ import org.red5.server.BaseConnection;
 public class TestConnection extends BaseConnection {
 
 	public TestConnection(String host, String path, String sessionId){
-		super(PERSISTENT,host,path,sessionId,null);
+		super(PERSISTENT,host,null,path,sessionId,null);
 	}
 	
 }

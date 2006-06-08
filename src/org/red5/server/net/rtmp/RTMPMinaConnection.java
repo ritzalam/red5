@@ -1,5 +1,7 @@
 package org.red5.server.net.rtmp;
 
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
@@ -17,6 +19,11 @@ public class RTMPMinaConnection extends RTMPConnection {
 	
 	public RTMPMinaConnection(IoSession protocolSession) {
 		super(PERSISTENT);
+		SocketAddress remote = protocolSession.getRemoteAddress();
+		if (remote instanceof InetSocketAddress)
+			remoteAddress = ((InetSocketAddress) remote).getAddress().getHostAddress();
+		else
+			remoteAddress = remote.toString();
 		this.ioSession = protocolSession;
 	}
 		

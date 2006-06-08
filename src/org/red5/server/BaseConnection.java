@@ -22,6 +22,7 @@ public class BaseConnection extends AttributeStore
 	
 	protected String type;
 	protected String host;
+	protected String remoteAddress;
 	protected String path;
 	protected String sessionId;
 	protected Map<String,String> params = null;
@@ -30,9 +31,10 @@ public class BaseConnection extends AttributeStore
 	protected Scope scope = null;
 	protected Set<IBasicScope> basicScopes;
 	
-	public BaseConnection(String type, String host, String path, String sessionId, Map<String,String> params){
+	public BaseConnection(String type, String host, String remoteAddress, String path, String sessionId, Map<String,String> params){
 		this.type = type;
 		this.host = host;
+		this.remoteAddress = remoteAddress;
 		this.path = path;
 		this.sessionId = sessionId;
 		this.params = params;
@@ -57,6 +59,10 @@ public class BaseConnection extends AttributeStore
 
 	public String getHost() {
 		return host;
+	}
+
+	public String getRemoteAddress() {
+		return remoteAddress;
 	}
 
 	public String getPath(){
