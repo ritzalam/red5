@@ -252,14 +252,25 @@ public class Scope extends BasicScope implements IScope {
 		if(clients.containsKey(client)){
 			final Set conns = clients.get(client);
 			conns.remove(conn);
-			if(hasHandler()) {
-				getHandler().disconnect(conn, this);
+			IScopeHandler handler = null;
+			if (hasHandler()) {
+				handler = getHandler(); 
+				try {
+					handler.disconnect(conn, this);
+				} catch (Exception e) {
+					log.error("Error while executing \"disconnect\" for connection " + conn + " on handler " + handler, e);
+				}
 			}
+			
 			if(conns.isEmpty()) {
 				clients.remove(client);
-				if(hasHandler()){
-					// there may be a timeout here ?
-					getHandler().leave(client, this);
+				if (handler != null) {
+					try {
+						// there may be a timeout here ?
+						handler.leave(client, this);
+					} catch (Exception e) {
+						log.error("Error while executing \"leave\" for client " + client + " on handler " + handler, e);
+					}
 				}
 			}
 			removeEventListener(conn);
