@@ -51,6 +51,14 @@ public class RTMPMinaConnection extends RTMPConnection {
 		return super.isConnected() && ioSession.isConnected();
 	}
 	
+	public long getReadBytes() {
+		return ioSession.getReadBytes();
+	}
+	
+	public long getWrittenBytes() {
+		return ioSession.getWrittenBytes();
+	}
+	
 	public void close() {
 		super.close();
 		ioSession.close();

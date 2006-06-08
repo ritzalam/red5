@@ -8,4 +8,12 @@ public class TestConnection extends BaseConnection {
 		super(PERSISTENT,host,null,path,sessionId,null);
 	}
 	
+	public long getReadBytes() {
+		return 0;
+	}
+
+	public long getWrittenBytes() {
+		return 0;
+	}
+
 }

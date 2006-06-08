@@ -14,7 +14,7 @@ import org.red5.server.api.IScope;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.so.ISharedObject;
 
-public class BaseConnection extends AttributeStore 
+public abstract class BaseConnection extends AttributeStore 
 	implements IConnection {
 	
 	protected static Log log =
@@ -25,6 +25,9 @@ public class BaseConnection extends AttributeStore
 	protected String remoteAddress;
 	protected String path;
 	protected String sessionId;
+	protected long readMessages = 0;
+	protected long writtenMessages = 0;
+	protected long droppedMessages = 0;
 	protected Map<String,String> params = null;
 	
 	protected IClient client = null;
@@ -162,7 +165,21 @@ public class BaseConnection extends AttributeStore
 	public Iterator<IBasicScope> getBasicScopes() {
 		return basicScopes.iterator();
 	}
+
+	public abstract long getReadBytes();
+	public abstract long getWrittenBytes();
 	
+	public long getReadMessages() {
+		return readMessages;
+	}
+	
+	public long getWrittenMessages() {
+		return writtenMessages;
+	}
+	
+	public long getDroppedMessages() {
+		return droppedMessages;
+	}
 	
 	/* This is really a utility
 	public boolean switchScope(String contextPath) {

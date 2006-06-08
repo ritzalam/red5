@@ -123,6 +123,41 @@ public interface IConnection extends ICoreObject {
 	 */
 	public String getSessionId();
 
+	/**
+	 * Total number of bytes read from the connection.
+	 * 
+	 * @return number of read bytes
+	 */
+	public long getReadBytes();
+
+	/**
+	 * Total number of bytes written to the connection.
+	 * 
+	 * @return number of written bytes
+	 */
+	public long getWrittenBytes();
+
+	/**
+	 * Total number of messages read from the connection.
+	 * 
+	 * @return number of read messages 
+	 */
+	public long getReadMessages();
+	
+	/**
+	 * Total number of messages written to the connection.
+	 * 
+	 * @return number of written messages
+	 */
+	public long getWrittenMessages();
+	
+	/**
+	 * Total number of messages that have been dropped.
+	 * 
+	 * @return number of dropped messages
+	 */
+	public long getDroppedMessages();
+	
 	public IScope getScope();
 	
 	public Iterator<IBasicScope> getBasicScopes();

@@ -99,6 +99,9 @@ public class RTMPHandler
 			// XXX: HACK HACK HACK to support stream ids
 			RTMPHandler.setStreamId(source.getStreamId());
 			
+			// Increase number of received messages
+			conn.messageReceived();
+			
 			switch(message.getDataType()){
 			case TYPE_INVOKE:
 				onInvoke(conn, channel, source, (Invoke) message);
@@ -145,6 +148,9 @@ public class RTMPHandler
 		if(message instanceof ByteBuffer){
 			return;
 		}
+		
+		// Increase number of sent messages
+		conn.messageSent();
 		
 		OutPacket sent = (OutPacket) message;
 		final byte channelId = sent.getDestination().getChannelId();

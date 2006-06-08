@@ -358,4 +358,17 @@ public abstract class RTMPConnection extends BaseConnection
 		streams[streamId - 1] = bs;
 		return bs;
 	}
+	
+	protected void messageReceived() {
+		readMessages++;
+	}
+	
+	protected void messageSent() {
+		writtenMessages++;
+	}
+	
+	protected void messageDropped() {
+		droppedMessages++;
+	}
+	
 }

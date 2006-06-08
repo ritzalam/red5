@@ -70,6 +70,8 @@ public class RTMPTConnection extends RTMPConnection {
 	protected List notifyMessages = new LinkedList();
 	protected byte pollingDelay = INITIAL_POLLING_DELAY;
 	protected long noPendingMessages = 0;
+	protected long readBytes = 0;
+	protected long writtenBytes = 0;
 	
 	public RTMPTConnection(RTMPTHandler handler) {
 		super( POLLING );
@@ -116,6 +118,7 @@ public class RTMPTConnection extends RTMPConnection {
 	 * @return a list of decoded objects
 	 */
 	public List decode(ByteBuffer data) {
+		readBytes += data.limit();
 		this.buffer.put(data);
 		this.buffer.flip();
 		return this.decoder.decodeBuffer(this.state, this.buffer);
@@ -229,7 +232,16 @@ public class RTMPTConnection extends RTMPConnection {
 		}
 		
 		result.flip();
+		writtenBytes += result.limit();
 		return result;
 	}
 	
+	public long getReadBytes() {
+		return readBytes;
+	}
+
+	public long getWrittenBytes() {
+		return writtenBytes;
+	}
+
 }
