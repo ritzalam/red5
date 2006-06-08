@@ -41,6 +41,7 @@ public class SharedObject implements IPersistable, Constants {
 
 	protected int version = 1;
 	protected Map<String, Object> data = null;
+	protected Map<String, Integer> hashes = new HashMap<String, Integer>();
 	protected int updateCounter = 0;
 	protected boolean modified = false;
 	protected long lastModified = -1;
@@ -188,6 +189,14 @@ public class SharedObject implements IPersistable, Constants {
 		}
 	}
 
+	private void updateHashes() {
+		hashes.clear();
+		for (String name: data.keySet()) {
+			Object value = data.get(name);
+			hashes.put(name, value != null ? value.hashCode() : 0);
+		}
+	}
+	
 	private void notifyModified() {
 		if (updateCounter > 0)
 			// we're inside a beginUpdate...endUpdate block
@@ -205,6 +214,7 @@ public class SharedObject implements IPersistable, Constants {
 		}
 
 		sendUpdates();
+		updateHashes();
 	}
 
 	public boolean hasAttribute(String name) {
@@ -223,7 +233,8 @@ public class SharedObject implements IPersistable, Constants {
 		ownerMessage.addEvent(new SharedObjectEvent(
 				SO_CLIENT_UPDATE_ATTRIBUTE, name, null));
 		Object old = data.get(name);
-		if (old == null || !old.equals(value)) {
+		Integer oldHash = (value != null ? value.hashCode() : 0);
+		if (old == null || !old.equals(value) || !oldHash.equals(hashes.get(name))) {
 			modified = true;
 			data.put(name, value);
 			// only sync if the attribute changed
@@ -378,6 +389,7 @@ public class SharedObject implements IPersistable, Constants {
 		persistentSO = persistent = true;
 		data.clear();
 		data.putAll((Map<String, Object>) deserializer.deserialize(input));
+		updateHashes();
 		ownerMessage.setName(name);
 		ownerMessage.setType(2);
 	}
