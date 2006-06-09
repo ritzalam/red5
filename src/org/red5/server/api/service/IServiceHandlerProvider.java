@@ -33,9 +33,10 @@ public interface IServiceHandlerProvider {
 	/**
 	 * Register an object that provides methods which can be called from a client.
 	 * 
-	 * Example:<br>
-	 * If you registered a handler with the name "one.two" that provides a method
-	 * "callMe", you can call a method "one.two.callMe" from the client.
+	 * <p>Example:<br>
+	 * If you registered a handler with the name "<code>one.two</code>" that
+	 * provides a method "<code>callMe</code>", you can call a method
+	 * "<code>one.two.callMe</code>" from the client.</p>
 	 * 
 	 * @param name
 	 * 			the name of the handler
