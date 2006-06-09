@@ -287,6 +287,8 @@ public class RTMPHandler
 									call.setStatus(Call.STATUS_SUCCESS_RESULT);
 									if (call instanceof IPendingServiceCall)
 										((IPendingServiceCall) call).setResult(getStatus(NC_CONNECT_SUCCESS));
+									// Measure initial roundtrip time after connecting
+									conn.ping();
 								} else {
 									log.debug("connect failed");
 									call.setStatus(Call.STATUS_ACCESS_DENIED);
