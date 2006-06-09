@@ -158,6 +158,18 @@ public interface IConnection extends ICoreObject {
 	 */
 	public long getDroppedMessages();
 	
+	/**
+	 * Start measuring the roundtrip time for a packet on the connection.
+	 */
+	public void ping();
+
+	/**
+	 * Return roundtrip time of last ping command.
+	 * 
+	 * @return roundtrip time in milliseconds
+	 */
+	public int getLastPingTime();
+	
 	public IScope getScope();
 	
 	public Iterator<IBasicScope> getBasicScopes();

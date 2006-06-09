@@ -65,6 +65,7 @@ public abstract class RTMPConnection extends BaseConnection
 	protected HashMap<String,ISharedObject> sharedObjects;
 	protected Integer invokeId = new Integer(1);
 	protected HashMap<Integer,IPendingServiceCall> pendingCalls = new HashMap<Integer,IPendingServiceCall>();
+	protected int lastPingTime = -1;
 
 	public RTMPConnection(String type) {
 		// We start with an anonymous connection without a scope.
@@ -369,6 +370,24 @@ public abstract class RTMPConnection extends BaseConnection
 	
 	protected void messageDropped() {
 		droppedMessages++;
+	}
+	
+	public void ping() {
+		Ping pingRequest = new Ping();
+		pingRequest.setValue1((short) 6);
+		int now = (int) (System.currentTimeMillis() & 0xffffffff);
+		pingRequest.setValue2(now);
+		pingRequest.setValue3(Ping.UNDEFINED);
+		ping(pingRequest);
+	}
+	
+	protected void pingReceived(Ping pong) {
+		int now = (int) (System.currentTimeMillis() & 0xffffffff);
+		lastPingTime = now - pong.getValue2();
+	}
+	
+	public int getLastPingTime() {
+		return lastPingTime;
 	}
 	
 }

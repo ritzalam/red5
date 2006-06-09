@@ -16,4 +16,11 @@ public class TestConnection extends BaseConnection {
 		return 0;
 	}
 
+	public void ping() {
+		
+	}
+	
+	public int getLastPingTime() {
+		return 0;
+	}
 }

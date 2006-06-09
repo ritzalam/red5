@@ -354,6 +354,12 @@ public class RTMPHandler
 	}
 	
 	public void onPing(RTMPConnection conn, Channel channel, PacketHeader source, Ping ping){
+		if (ping.getValue1() == 7) {
+			// This is the response to an IConnection.ping request
+			conn.pingReceived(ping);
+			return;
+		}
+		
 		final Ping pong = new Ping();
 		pong.setValue1((short) 4);
 		pong.setValue2(RTMPHandler.getStreamId());
