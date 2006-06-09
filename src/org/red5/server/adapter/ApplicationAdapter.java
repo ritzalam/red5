@@ -6,6 +6,7 @@ import static org.red5.server.api.ScopeUtils.getScopeService;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
@@ -13,6 +14,8 @@ import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
+import org.red5.server.api.scheduling.IScheduledJob;
+import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.api.service.IServiceHandlerProvider;
 import org.red5.server.api.so.ISharedObject;
 import org.red5.server.api.so.ISharedObjectService;
@@ -23,12 +26,13 @@ import org.red5.server.api.stream.IOnDemandStreamService;
 import org.red5.server.api.stream.ISubscriberStream;
 import org.red5.server.api.stream.ISubscriberStreamService;
 import org.red5.server.exception.ClientRejectedException;
+import org.red5.server.scheduling.QuartzSchedulingService;
 import org.red5.server.so.SharedObjectService;
 import org.red5.server.stream.StreamService;
 
 public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 	implements ISharedObjectService, IBroadcastStreamService, IOnDemandStreamService, ISubscriberStreamService,
-		IServiceHandlerProvider {
+		IServiceHandlerProvider, ISchedulingService {
 
 	protected static Log log =
         LogFactory.getLog(ApplicationAdapter.class.getName());
@@ -229,4 +233,28 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 	public Set<String> getServiceHandlerNames() {
 		return serviceHandlers.keySet();
 	}
+	
+	/* Wrapper around ISchedulingService */
+	
+	public String addScheduledJob(int interval, IScheduledJob job) {
+		// NOTE: We store this service in the scope as it can be
+		//       shared across all rooms of the applications.
+		ISchedulingService service = (ISchedulingService) getScopeService(scope, ISchedulingService.SCHEDULING_SERVICE, QuartzSchedulingService.class);
+		return service.addScheduledJob(interval, job);
+	}
+
+	public void removeScheduledJob(String name) {
+		// NOTE: We store this service in the scope as it can be
+		//       shared across all rooms of the applications.
+		ISchedulingService service = (ISchedulingService) getScopeService(scope, ISchedulingService.SCHEDULING_SERVICE, QuartzSchedulingService.class);
+		service.removeScheduledJob(name);
+	}
+	
+	public List<String> getScheduledJobNames() {
+		// NOTE: We store this service in the scope as it can be
+		//       shared across all rooms of the applications.
+		ISchedulingService service = (ISchedulingService) getScopeService(scope, ISchedulingService.SCHEDULING_SERVICE, QuartzSchedulingService.class);
+		return service.getScheduledJobNames();
+	}
+
 }

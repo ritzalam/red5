@@ -59,4 +59,6 @@
     <bean id="providerService" class="org.red5.server.stream.ProviderService" />
     
     <bean id="consumerService" class="org.red5.server.stream.ConsumerService" />
+    
+    <bean id="schedulingService" class="org.red5.server.scheduling.QuartzSchedulingService" />
 </beans>
