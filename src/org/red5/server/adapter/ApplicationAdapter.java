@@ -218,6 +218,10 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 		serviceHandlers.put(name, handler);
 	}
 	
+	public void unregisterServiceHandler(String name) {
+		serviceHandlers.remove(name);
+	}
+	
 	public Object getServiceHandler(String name) {
 		return serviceHandlers.get(name);
 	}
