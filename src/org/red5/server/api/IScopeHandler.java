@@ -23,7 +23,7 @@ import org.red5.server.api.service.IServiceCall;
  */
 
 /**
- * The Scope Handler controls actions performed against a scope object, and also
+ * The scope handler controls actions performed against a scope object, and also
  * is notified of all events.
  * 
  * Gives fine grained control over what actions can be performed with the can*
@@ -40,68 +40,76 @@ import org.red5.server.api.service.IServiceCall;
 public interface IScopeHandler extends IEventHandler {
 
 	/**
-	 * Called when a scope is created for the first time
+	 * Called when a scope is created for the first time.
 	 * 
 	 * @param scope
-	 *            the new scope object
+	 * 			the new scope object
+	 * @return <code>true</code> to allow, <code>false</code> to deny
 	 */
 	boolean start(IScope scope);
 
 	/**
-	 * Called just before a scope is disposed
+	 * Called just before a scope is disposed.
 	 */
 	void stop(IScope scope);
 	
 	/**
-	 * Called just before every connection to a scope
+	 * Called just before every connection to a scope.
 	 * 
 	 * @param conn
-	 *            connection object
-	 */
-	/*boolean connect(IConnection conn, IScope scope);*/
-
-	/**
-	 * Called just before every connection to a scope
-	 * 
-	 * @param conn
-	 *            connection object
+	 * 			connection object
+	 * @return <code>true</code> to allow, <code>false</code> to deny
 	 */
 	boolean connect(IConnection conn, IScope scope, Object[] params);
 
 	/**
-	 * Called just after the a connection is disconnected
+	 * Called just after the a connection is disconnected.
 	 * 
 	 * @param conn
-	 *            connection object
+	 * 			connection object
 	 */
 	void disconnect(IConnection conn, IScope scope);
 	
-	
+	/**
+	 * Called just before a child scope is added.
+	 * 
+	 * @param scope
+	 * 			scope that will be added
+	 * @return <code>true</code> to allow, <code>false</code> to deny
+	 */
 	boolean addChildScope(IBasicScope scope);
 	
+	/**
+	 * Called just after a child scope has been removed.
+	 * 
+	 * @param scope
+	 * 			scope that has been removed
+	 */
 	void removeChildScope(IBasicScope scope);
 
 	/**
-	 * Called just before a client enters the scope
+	 * Called just before a client enters the scope.
 	 * 
 	 * @param client
-	 *            client object
+	 * 			client object
+	 * @return <code>true</code> to allow, <code>false</code> to deny
 	 */
 	boolean join(IClient client, IScope scope);
 
 	/**
-	 * Called just after the client leaves the scope
+	 * Called just after the client leaves the scope.
 	 * 
 	 * @param client
-	 *            client object
+	 * 			client object
 	 */
 	void leave(IClient client, IScope scope);
 
 	/**
-	 * Called when a service is called
+	 * Called when a service is called.
 	 * 
 	 * @param call
-	 *            the call object
+	 * 			the call object
+	 * @return <code>true</code> to allow, <code>false</code> to deny
 	 */
 	boolean serviceCall(IConnection conn, IServiceCall call);
 	

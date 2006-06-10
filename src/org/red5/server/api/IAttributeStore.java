@@ -1,8 +1,5 @@
 package org.red5.server.api;
 
-import java.util.Map;
-import java.util.Set;
-
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  * 
@@ -26,6 +23,9 @@ import java.util.Set;
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 
+import java.util.Map;
+import java.util.Set;
+
 /**
  * Base interface for all API objects with attributes
  * 
@@ -35,14 +35,14 @@ import java.util.Set;
 public interface IAttributeStore  {
 
 	/**
-	 * Get the attribute names
+	 * Get the attribute names.
 	 * 
 	 * @return set containing all attribute names
 	 */
 	public Set<String> getAttributeNames();
 
 	/**
-	 * Set an attribute on this object
+	 * Set an attribute on this object.
 	 * 
 	 * @param name
 	 *            the name of the attribute to change
@@ -53,7 +53,7 @@ public interface IAttributeStore  {
 	public boolean setAttribute(String name, Object value);
 
 	/**
-	 * Set multiple attributes on this object
+	 * Set multiple attributes on this object.
 	 * 
 	 * @param values
 	 *            the attributes to set
@@ -61,7 +61,7 @@ public interface IAttributeStore  {
 	public void setAttributes(Map<String,Object> values);
 	
 	/**
-	 * Set multiple attributes on this object
+	 * Set multiple attributes on this object.
 	 * 
 	 * @param values
 	 *            the attributes to set
@@ -96,7 +96,7 @@ public interface IAttributeStore  {
 	public Object getAttribute(String name, Object defaultValue);
 
 	/**
-	 * Check the object has an attribute
+	 * Check the object has an attribute.
 	 * 
 	 * @param name
 	 *            the name of the attribute to check
@@ -105,7 +105,7 @@ public interface IAttributeStore  {
 	public boolean hasAttribute(String name);
 
 	/**
-	 * Removes an attribute
+	 * Remove an attribute.
 	 * 
 	 * @param name
 	 *            the name of the attribute to remove
@@ -114,7 +114,7 @@ public interface IAttributeStore  {
 	public boolean removeAttribute(String name);
 
 	/**
-	 * Remove all attributes
+	 * Remove all attributes.
 	 */
 	public void removeAttributes();
 	

@@ -2,7 +2,9 @@ package org.red5.server;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
@@ -48,6 +50,18 @@ public class Client extends AttributeStore
 	
 	public Set<IConnection> getConnections() {
 		return connToScope.keySet();
+	}
+	
+	public Set<IConnection> getConnections(IScope scope) {
+		if (scope == null)
+			return getConnections();
+		
+		Set<IConnection> result = new HashSet<IConnection>();
+		for (Entry<IConnection, IScope> entry: connToScope.entrySet()) {
+			if (scope.equals(entry.getValue()))
+				result.add(entry.getKey());
+		}
+		return result;
 	}
 
 	public Collection<IScope> getScopes() {

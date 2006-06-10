@@ -1,10 +1,5 @@
 package org.red5.server.api;
 
-import java.util.Iterator;
-import java.util.Set;
-
-import org.springframework.core.io.support.ResourcePatternResolver;
-
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  * 
@@ -24,8 +19,13 @@ import org.springframework.core.io.support.ResourcePatternResolver;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.Iterator;
+import java.util.Set;
+
+import org.springframework.core.io.support.ResourcePatternResolver;
+
 /**
- * The Scope Object.
+ * The scope object.
  * 
  * A statefull object shared between a group of clients connected to the same
  * context path. Scopes are arranged in a hierarchical way, so its possible for
@@ -46,11 +46,11 @@ public interface IScope extends IBasicScope, ResourcePatternResolver {
 	public static final String SEPARATOR = ":";
 	
 	/**
-	 * Check to see if this scope has a child scope matching a given name
+	 * Check to see if this scope has a child scope matching a given name.
 	 * 
 	 * @param name
 	 *            the name of the child scope
-	 * @return true if a child scope exists, otherwise false
+	 * @return <code>true</code> if a child scope exists, otherwise <code>false</code>
 	 */
 	public boolean hasChildScope(String name);
 	
@@ -63,7 +63,7 @@ public interface IScope extends IBasicScope, ResourcePatternResolver {
 	public void removeChildScope(IBasicScope scope);
 	
 	/**
-	 * Get a set of the child scope names
+	 * Get a set of the child scope names.
 	 * 
 	 * @return set containing child scope names
 	 */
@@ -72,7 +72,7 @@ public interface IScope extends IBasicScope, ResourcePatternResolver {
 	public Iterator<String> getBasicScopeNames(String type);
 
 	/**
-	 * Get a child scope by name
+	 * Get a child scope by name.
 	 * 
 	 * @param name
 	 *            name of the child scope
@@ -85,21 +85,22 @@ public interface IScope extends IBasicScope, ResourcePatternResolver {
 	
 	
 	/**
-	 * Get a set of connected clients You can get the connections by passing the
-	 * scope to the clients lookupConnection method
+	 * Get a set of connected clients.  You can get the connections by passing the
+	 * scope to the clients <code>getConnections</code> method.
 	 * 
 	 * @return set containing all connected clients
+	 * @see org.red5.server.api.IClient#getConnections(IScope)
 	 */
 	public Set<IClient> getClients();
 		
 	/**
-	 * Get a connection iterator, you can call remove, and the connection will be closed.
+	 * Get a connection iterator.  You can call remove, and the connection will be closed.
 	 * @return iterator holding all connections
 	 */
 	public Iterator<IConnection> getConnections();
 		
 	/**
-	 * Lookup connections
+	 * Lookup connections.
 	 * 
 	 * @param	client object
 	 * @return set of connection objects (readonly)

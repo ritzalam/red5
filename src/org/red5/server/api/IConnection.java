@@ -1,7 +1,5 @@
 package org.red5.server.api;
 
-import java.util.Iterator;
-
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  * 
@@ -21,6 +19,8 @@ import java.util.Iterator;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.Iterator;
+
 /**
  * The connection object.
  * 
@@ -37,34 +37,34 @@ import java.util.Iterator;
 public interface IConnection extends ICoreObject {
 
 	/**
-	 * Persistent connection type, eg RTMP
+	 * Persistent connection type, eg RTMP.
 	 */
 	public static final String PERSISTENT = "persistent";
 
 	/**
-	 * Polling connection type, eg RTMPT
+	 * Polling connection type, eg RTMPT.
 	 */
 	public static final String POLLING = "polling";
 
 	/**
-	 * Transient connection type, eg Remoting, HTTP, etc
+	 * Transient connection type, eg Remoting, HTTP, etc.
 	 */
 	public static final String TRANSIENT = "transient";
 
 	/**
-	 * Get the connection type
+	 * Get the connection type.
 	 * 
 	 * @return string containing one of connection types
 	 */
 	public String getType(); // PERSISTENT | POLLING | TRANSIENT
 
 	/**
-	 * Initialize the connection
+	 * Initialize the connection.
 	 */
 	public void initialize(IClient client);
 
 	/**
-	 * Try to connect to the scope
+	 * Try to connect to the scope.
 	 */
 	public boolean connect(IScope scope);
 
@@ -74,27 +74,27 @@ public interface IConnection extends ICoreObject {
 	public boolean connect(IScope scope, Object[] params);
 
 	/**
-	 * Is the client connected to the scope
+	 * Is the client connected to the scope.
 	 * 
-	 * @return true if the connection is persistent or polling, otherwise false
+	 * @return <code>true</code> if the connection is persistent or polling, otherwise <code>false</code>
 	 */
 	public boolean isConnected();
 
 	/**
-	 * Close this connection, this will disconnect the client from the
-	 * associated scope
+	 * Close this connection.  This will disconnect the client from the
+	 * associated scope.
 	 */
 	public void close();
 
 	/**
-	 * Get the client object associated with this connection
+	 * Get the client object associated with this connection.
 	 * 
 	 * @return client object
 	 */
 	public IClient getClient();
 
 	/**
-	 * Get the hostname that the client is connected to. If they connected to an
+	 * Get the hostname that the client is connected to. If they are connected to an
 	 * IP, the IP address will be returned as a String.
 	 * 
 	 * @return String containing the hostname
@@ -109,15 +109,15 @@ public interface IConnection extends ICoreObject {
 	public String getRemoteAddress();
 	
 	/**
-	 * Get the path for this connection
-	 * This is not updated if you switch scope
+	 * Get the path for this connection.
+	 * This is not updated if you switch scope.
 	 * 
 	 * @return path
 	 */
 	public String getPath();
 	
 	/**
-	 * Get the session id, this may be null
+	 * Get the session id, this may be <code>null</code>.
 	 * 
 	 * @return session id
 	 */
@@ -170,8 +170,14 @@ public interface IConnection extends ICoreObject {
 	 */
 	public int getLastPingTime();
 	
+	/**
+	 * Get the scope this is connected to.
+	 * 
+	 * @return the connected scope
+	 */
 	public IScope getScope();
 	
+	// XXX: is this used somewhere?
 	public Iterator<IBasicScope> getBasicScopes();
 	
 }

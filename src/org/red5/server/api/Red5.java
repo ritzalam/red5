@@ -1,6 +1,5 @@
 package org.red5.server.api;
 
-
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  * 
@@ -21,9 +20,9 @@ package org.red5.server.api;
  */
 
 /**
- * Utility class for accessing red5 API objects.
+ * Utility class for accessing Red5 API objects.
  * 
- * This class uses a thread local, and will be setup by the service invoker
+ * This class uses a thread local, and will be setup by the service invoker.
  * 
  * The code below shows various uses.
  * <p>

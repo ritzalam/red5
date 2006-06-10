@@ -28,7 +28,7 @@ import org.red5.server.api.service.IServiceHandlerProvider;
  *
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
- * @see org.red5.server.api.service.IServiceHandlerProvider#registerServiceHandler(String, Object)
+ * @see org.red5.server.api.service.IServiceHandlerProvider#registerServiceHandler(IScope, String, Object)
  *  
  */
 public class HandlerServiceResolver implements IServiceResolver {
