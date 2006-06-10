@@ -172,20 +172,22 @@ public class RTMPHandler
 	
 	public void invokeCall(RTMPConnection conn, IServiceCall call){
 		final IScope scope = conn.getScope();
-		final IScopeHandler handler = scope.getHandler();
-		log.debug("Scope: " + scope);
-		log.debug("Handler: " + handler);
-		if (!handler.serviceCall(conn, call)) {
-			// XXX: What do do here? Return an error?
-			return;
+		if (scope.hasHandler()) {
+			final IScopeHandler handler = scope.getHandler();
+			log.debug("Scope: " + scope);
+			log.debug("Handler: " + handler);
+			if (!handler.serviceCall(conn, call)) {
+				// XXX: What do do here? Return an error?
+				return;
+			}
 		}
 		
 		final IContext context = scope.getContext();
 		log.debug("Context: " + context);
-		context.getServiceInvoker().invoke(call, handler);
+		context.getServiceInvoker().invoke(call, scope);
 	}
 	
-	public void invokeCall(RTMPConnection conn, IServiceCall call, Object service){
+	private void invokeCall(RTMPConnection conn, IServiceCall call, Object service){
 		final IScope scope = conn.getScope();
 		final IContext context = scope.getContext();
 		log.debug("Scope: " + scope);

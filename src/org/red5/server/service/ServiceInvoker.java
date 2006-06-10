@@ -31,6 +31,7 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.IContext;
+import org.red5.server.api.IScope;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IServiceCall;
 import org.red5.server.api.service.IServiceHandlerProvider;
@@ -136,12 +137,51 @@ public class ServiceInvoker  implements IServiceInvoker {
 		return new Object[]{null, null};
 	}
 	
-	public void invoke(IServiceCall call, IContext context) {
+	/**
+	 * Lookup a handler for the passed service name in the given scope.
+	 * 
+	 * Resolution order is:
+	 * <ol>
+	 * <li>a custom registered handler</li>
+	 * <li>a handler in the context</li>
+	 * </ol>
+	 *  
+	 * @param scope
+	 * @param serviceName
+	 * @return
+	 * @see org.red5.server.api.service.IServiceHandlerProvider#registerServiceHandler(String, Object)
+	 */
+	private Object getServiceHandler(IScope scope, String serviceName) {
+		// Get application scope handler first
+		Object service = scope.getHandler();
+		if (serviceName == null || serviceName.equals(""))
+			// No service requested, return application scope handler
+			return service;
+		
+		if (service instanceof IServiceHandlerProvider) {
+			// Check for registered service handler
+			Object handler = ((IServiceHandlerProvider) service).getServiceHandler(serviceName);
+			if (handler != null)
+				// The application registered a custom handler, return it.
+				return handler;
+		}
+
+		// NOTE: here would the scripting support integrate...
+		
+		// Maybe the context has a service with the given name?
+		service = scope.getContext().lookupService(serviceName);
+		if (service != null)
+			return service;
+		
+		// Requested service does not exist.
+		return null;
+	}
+	
+	public void invoke(IServiceCall call, IScope scope) {
 		String serviceName = call.getServiceName();
 		
 		log.debug("Service name " + serviceName);
-		
-		Object service = context.lookupService(serviceName);
+		Object service = getServiceHandler(scope, serviceName);
 		
 		/*
 		if(service == null && serviceContext.containsBean("scriptBeanFactory")){
@@ -167,28 +207,7 @@ public class ServiceInvoker  implements IServiceInvoker {
 	}
 
 	public void invoke(IServiceCall call, Object service) {
-		String serviceName = call.getServiceName();
 		String methodName = call.getServiceMethodName();
-		
-		if (serviceName != null && !serviceName.equals("")) {
-			if (!(service instanceof IServiceHandlerProvider)) {
-				log.error("Service "  +service + " has no service handlers.");
-				call.setStatus(Call.STATUS_METHOD_NOT_FOUND);
-				call.setException(new ServiceNotFoundException(serviceName));
-				return;
-			}
-			
-			Object serviceHandler = ((IServiceHandlerProvider) service).getServiceHandler(serviceName);
-			if (serviceHandler == null) {
-				log.error("Service "  + serviceName + " not found in " + service);
-				call.setStatus(Call.STATUS_METHOD_NOT_FOUND);
-				call.setException(new ServiceNotFoundException(serviceName));
-				return;
-			}
-			
-			// Lookup method in service handler
-			service = serviceHandler;
-		}
 		
 		Object[] args = call.getArguments();
 		if (args != null) {
