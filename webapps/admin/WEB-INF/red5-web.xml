@@ -25,6 +25,8 @@
 
 	<bean id="scopes.service" 
 	    class="org.red5.server.statistics.ScopeStatistics" 
-		singleton="true" />
+		singleton="true">
+        <property name="globalScope" ref="global.scope" />
+    </bean>
 
 </beans>
