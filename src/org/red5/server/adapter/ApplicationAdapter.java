@@ -174,6 +174,11 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 		return service.getSharedObject(scope, name);
 	}
 
+	public ISharedObject getSharedObject(IScope scope, String name, boolean persistent) {
+		ISharedObjectService service = (ISharedObjectService) getScopeService(scope, ISharedObjectService.SHARED_OBJECT_SERVICE, SharedObjectService.class); 
+		return service.getSharedObject(scope, name, persistent);
+	}
+
 	public Iterator<String> getSharedObjectNames(IScope scope) {
 		ISharedObjectService service = (ISharedObjectService) getScopeService(scope, ISharedObjectService.SHARED_OBJECT_SERVICE, SharedObjectService.class); 
 		return service.getSharedObjectNames(scope);
