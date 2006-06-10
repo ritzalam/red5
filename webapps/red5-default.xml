@@ -6,7 +6,14 @@
 	
 	<bean id="global.clientRegistry" class="org.red5.server.ClientRegistry" />
 	
-	<bean id="global.serviceInvoker" class="org.red5.server.service.ServiceInvoker" />
+	<bean id="global.serviceInvoker" class="org.red5.server.service.ServiceInvoker">
+		<property name="serviceResolvers">
+			<list>
+				<bean id="handlerServiceResolver" class="org.red5.server.service.HandlerServiceResolver"/>
+				<bean id="contextServiceResolver" class="org.red5.server.service.ContextServiceResolver"/>
+			</list>
+		</property>
+	</bean>
 	
 	<bean id="global.mappingStrategy" class="org.red5.server.MappingStrategy" />
 	

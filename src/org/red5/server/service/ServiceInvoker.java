@@ -26,7 +26,9 @@ package org.red5.server.service;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -34,7 +36,6 @@ import org.red5.server.api.IContext;
 import org.red5.server.api.IScope;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IServiceCall;
-import org.red5.server.api.service.IServiceHandlerProvider;
 import org.red5.server.api.service.IServiceInvoker;
 
 public class ServiceInvoker  implements IServiceInvoker {
@@ -42,15 +43,11 @@ public class ServiceInvoker  implements IServiceInvoker {
 	private static final Log log = LogFactory.getLog(ServiceInvoker.class);
 	
 	public static final String SERVICE_NAME = "serviceInvoker";
-	
-	//protected ScriptBeanFactory scriptBeanFactory = null;
-	
-	/*
-	public void setScriptBeanFactory(ScriptBeanFactory scriptBeanFactory) {
-		this.scriptBeanFactory = scriptBeanFactory;
-	}
-	*/
+	private Set<IServiceResolver> serviceResolvers = new HashSet<IServiceResolver>();
 
+	public void setServiceResolvers(Set<IServiceResolver> resolvers) {
+		serviceResolvers = resolvers;
+	}
 	
 	/*
 	 * Returns (method, params) for the given service or (null, null) if not method was found.
@@ -140,16 +137,9 @@ public class ServiceInvoker  implements IServiceInvoker {
 	/**
 	 * Lookup a handler for the passed service name in the given scope.
 	 * 
-	 * Resolution order is:
-	 * <ol>
-	 * <li>a custom registered handler</li>
-	 * <li>a handler in the context</li>
-	 * </ol>
-	 *  
 	 * @param scope
 	 * @param serviceName
 	 * @return
-	 * @see org.red5.server.api.service.IServiceHandlerProvider#registerServiceHandler(String, Object)
 	 */
 	private Object getServiceHandler(IScope scope, String serviceName) {
 		// Get application scope handler first
@@ -158,20 +148,12 @@ public class ServiceInvoker  implements IServiceInvoker {
 			// No service requested, return application scope handler
 			return service;
 		
-		if (service instanceof IServiceHandlerProvider) {
-			// Check for registered service handler
-			Object handler = ((IServiceHandlerProvider) service).getServiceHandler(serviceName);
-			if (handler != null)
-				// The application registered a custom handler, return it.
-				return handler;
+		// Search service resolver that knows about service name
+		for (IServiceResolver resolver: serviceResolvers) {
+			service = resolver.resolveService(scope, serviceName);
+			if (service != null)
+				return service;
 		}
-
-		// NOTE: here would the scripting support integrate...
-		
-		// Maybe the context has a service with the given name?
-		service = scope.getContext().lookupService(serviceName);
-		if (service != null)
-			return service;
 		
 		// Requested service does not exist.
 		return null;
@@ -183,17 +165,6 @@ public class ServiceInvoker  implements IServiceInvoker {
 		log.debug("Service name " + serviceName);
 		Object service = getServiceHandler(scope, serviceName);
 		
-		/*
-		if(service == null && serviceContext.containsBean("scriptBeanFactory")){
-			scriptBeanFactory = (ScriptBeanFactory) serviceContext.getBean("scriptBeanFactory");
-		}
-		
-		if(service == null && scriptBeanFactory !=null) {
-			// lets see if its a script.
-			service = scriptBeanFactory.getBean(serviceName);
-		}
-		*/
-
 		if(service == null) {
 			call.setException(new ServiceNotFoundException(serviceName));
 			call.setStatus(Call.STATUS_SERVICE_NOT_FOUND);
