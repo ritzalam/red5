@@ -23,4 +23,8 @@
 	    class="org.red5.server.adapter.ApplicationAdapter" 
 		singleton="true" />
 
+	<bean id="scopes.service" 
+	    class="org.red5.server.statistics.ScopeStatistics" 
+		singleton="true" />
+
 </beans>
