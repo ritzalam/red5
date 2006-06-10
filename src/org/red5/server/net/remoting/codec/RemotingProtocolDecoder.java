@@ -98,7 +98,7 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
             
             String serviceName;
             String serviceMethod;
-            int dotPos = serviceString.indexOf(".");
+            int dotPos = serviceString.lastIndexOf(".");
             if(dotPos!=-1){
             		serviceName = serviceString.substring(0, dotPos);
             		serviceMethod = serviceString.substring(dotPos+1, serviceString.length());
