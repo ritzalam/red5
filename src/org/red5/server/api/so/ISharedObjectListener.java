@@ -19,6 +19,10 @@ package org.red5.server.api.so;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.List;
+import java.util.Map;
+import org.red5.server.api.IAttributeStore;
+
 /**
  * Serverside notifications about shared object updates.
  * 
@@ -26,11 +30,6 @@ package org.red5.server.api.so;
  * @author Luke Hubbard (luke@codegent.com)
  * @author Joachim Bauch (jojo@struktur.de)
  */
-
-import java.util.List;
-import java.util.Map;
-import org.red5.server.api.IAttributeStore;
-
 public interface ISharedObjectListener {
 
 	/**
