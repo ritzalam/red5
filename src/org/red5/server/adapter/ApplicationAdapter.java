@@ -7,6 +7,7 @@ import static org.red5.server.api.ScopeUtils.getScopeService;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
@@ -14,6 +15,7 @@ import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
+import org.red5.server.api.persistence.IPersistable;
 import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.api.service.IServiceHandlerProvider;
@@ -37,7 +39,7 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 	protected static Log log =
         LogFactory.getLog(ApplicationAdapter.class.getName());
 
-	private HashMap<String, Object> serviceHandlers = new HashMap<String, Object>();
+	private static final String SERVICE_HANDLERS = IPersistable.TRANSIENT_PREFIX + "_scope_service_handlers";
 
 	/**
 	 * Reject the currently connecting client without a special error message.
@@ -223,19 +225,27 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 	
 	/* IServiceHandlerProvider interface */
 	
-	public void registerServiceHandler(String name, Object handler) {
+	protected Map<String, Object> getServiceHandlers(IScope scope) {
+		return (Map<String, Object>) scope.getAttribute(SERVICE_HANDLERS, new HashMap<String, Object>());
+	}
+	
+	public void registerServiceHandler(IScope scope, String name, Object handler) {
+		Map<String, Object> serviceHandlers = getServiceHandlers(scope);
 		serviceHandlers.put(name, handler);
 	}
 	
-	public void unregisterServiceHandler(String name) {
+	public void unregisterServiceHandler(IScope scope, String name) {
+		Map<String, Object> serviceHandlers = getServiceHandlers(scope);
 		serviceHandlers.remove(name);
 	}
 	
-	public Object getServiceHandler(String name) {
+	public Object getServiceHandler(IScope scope, String name) {
+		Map<String, Object> serviceHandlers = getServiceHandlers(scope);
 		return serviceHandlers.get(name);
 	}
 	
-	public Set<String> getServiceHandlerNames() {
+	public Set<String> getServiceHandlerNames(IScope scope) {
+		Map<String, Object> serviceHandlers = getServiceHandlers(scope);
 		return serviceHandlers.keySet();
 	}
 	

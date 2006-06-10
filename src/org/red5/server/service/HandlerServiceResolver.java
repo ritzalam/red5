@@ -37,7 +37,7 @@ public class HandlerServiceResolver implements IServiceResolver {
 		Object service = scope.getHandler();
 		if (service instanceof IServiceHandlerProvider) {
 			// Check for registered service handler
-			Object handler = ((IServiceHandlerProvider) service).getServiceHandler(serviceName);
+			Object handler = ((IServiceHandlerProvider) service).getServiceHandler(scope, serviceName);
 			if (handler != null)
 				// The application registered a custom handler, return it.
 				return handler;

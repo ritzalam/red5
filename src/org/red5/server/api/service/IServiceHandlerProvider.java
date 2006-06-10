@@ -20,6 +20,7 @@ package org.red5.server.api.service;
  */
 
 import java.util.Set;
+import org.red5.server.api.IScope;
 
 /**
  * Supports registration and lookup of service handlers.
@@ -43,7 +44,7 @@ public interface IServiceHandlerProvider {
 	 * @param handler
 	 * 			the handler object
 	 */
-	public void registerServiceHandler(String name, Object handler);
+	public void registerServiceHandler(IScope scope, String name, Object handler);
 	
 	/**
 	 * Unregister service handler.
@@ -51,7 +52,7 @@ public interface IServiceHandlerProvider {
 	 * @param name
 	 * 			the name of the handler
 	 */
-	public void unregisterServiceHandler(String name);
+	public void unregisterServiceHandler(IScope scope, String name);
 	
 	/**
 	 * Return a previously registered service handler.
@@ -60,13 +61,13 @@ public interface IServiceHandlerProvider {
 	 * 			the name of the handler to return
 	 * @return the previously registered handler
 	 */
-	public Object getServiceHandler(String name);
+	public Object getServiceHandler(IScope scope, String name);
 
 	/**
 	 * Get list of registered service handler names.
 	 * 
 	 * @return the names of the registered handlers
 	 */
-	public Set<String> getServiceHandlerNames();
+	public Set<String> getServiceHandlerNames(IScope scope);
 
 }
