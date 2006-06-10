@@ -78,6 +78,24 @@ public interface IAttributeStore  {
 	public Object getAttribute(String name);
 
 	/**
+	 * Return the value for a given attribute and set it if it doesn't exist.
+	 * 
+	 * <p>This is a utility function that internally performs the following code:
+	 * <p><code>
+	 * if (!hasAttribute(name)) setAttribute(name, defaultValue);<br>
+	 * return getAttribute(name);<br>
+	 * </code></p>
+	 * </p>
+	 * 
+	 * @param name
+	 *            the name of the attribute to get
+	 * @param defaultValue
+	 *            the value of the attribute to set if the attribute doesn't exist
+	 * @return the attribute value
+	 */
+	public Object getAttribute(String name, Object defaultValue);
+
+	/**
 	 * Check the object has an attribute
 	 * 
 	 * @param name

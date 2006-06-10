@@ -25,6 +25,13 @@ public class AttributeStore implements IAttributeStore, ICastingAttributeStore {
 		return attributes.get(name);
 	}
 
+	synchronized public Object getAttribute(String name, Object defaultValue) {
+		if (!hasAttribute(name))
+			setAttribute(name, defaultValue);
+		
+		return getAttribute(name);
+	}
+
 	public boolean hasAttribute(String name) {
 		return attributes.containsKey(name);
 	}
