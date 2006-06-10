@@ -70,8 +70,7 @@ public interface ISharedObject extends IBasicScope {
 
 	/**
 	 * Return a map containing all attributes of the shared object. <br />
-	 * NOTE: modifications to this map are _not_ propagated to the connected
-	 * clients.
+	 * NOTE: The returned map will be read-only.
 	 * 
 	 * @return a map containing all attributes of the shared object
 	 */

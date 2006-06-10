@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Collections;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -222,7 +223,7 @@ public class SharedObject implements IPersistable, Constants {
 	}
 
 	public Set<String> getAttributeNames() {
-		return data.keySet();
+		return Collections.unmodifiableSet(data.keySet());
 	}
 
 	public Object getAttribute(String name) {
@@ -292,14 +293,7 @@ public class SharedObject implements IPersistable, Constants {
 	}
 
 	public Map<String, Object> getData() {
-		Map<String, Object> result = new HashMap<String, Object>();
-		Iterator<String> it = data.keySet().iterator();
-		while (it.hasNext()) {
-			String name = it.next();
-			Object value = data.get(name);
-			result.put(name, value);
-		}
-		return result;
+		return Collections.unmodifiableMap(data);
 	}
 
 	public int getVersion() {
