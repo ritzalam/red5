@@ -7,6 +7,7 @@ import org.red5.server.api.event.IEventListener;
 public interface ICoreObject 
 	extends 
 		IAttributeStore, 
+		ICastingAttributeStore, 
 		IEventDispatcher, 
 		IEventHandler, 
 		IEventListener {
