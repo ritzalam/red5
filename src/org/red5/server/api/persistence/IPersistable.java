@@ -95,13 +95,12 @@ public interface IPersistable {
 	 * @return
 	 * 		the path of the object
 	 */
-
 	public String getPath();
 
 	/**
 	 * Set the path of the persistent object.
 	 * 
-	 * @param name
+	 * @param path
 	 * 		the new path of the object
 	 */
 	public void setPath(String path);
