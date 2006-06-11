@@ -38,16 +38,7 @@ public class CoreHandler implements IScopeHandler {
 		IScope connectionScope = Red5.getConnectionLocal().getScope(); 
 		IClientRegistry clientRegistry = connectionScope.getContext().getClientRegistry();
 		
-		IClient client;
-		try {
-			client = clientRegistry.hasClient(id) ? clientRegistry.lookupClient(id) : clientRegistry.newClient(params);
-		} catch (ClientNotFoundException err) {
-			log.debug("Client not found.", err);
-			return false;
-		} catch (ClientRejectedException err) {
-			log.debug("Client not allowed to connect.", err);
-			return false;
-		}
+		IClient client = clientRegistry.hasClient(id) ? clientRegistry.lookupClient(id) : clientRegistry.newClient(params);
 		
 		// We have a context, and a client object.. time to init the conneciton.
 		conn.initialize(client);
