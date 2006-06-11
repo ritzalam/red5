@@ -13,9 +13,6 @@ import org.apache.mina.common.ByteBuffer;
 import org.red5.server.BaseConnection;
 import org.red5.server.api.IContext;
 import org.red5.server.api.IScope;
-import org.red5.server.api.so.ISharedObject;
-import org.red5.server.api.so.ISharedObjectCapableConnection;
-import org.red5.server.api.so.ISharedObjectService;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IPendingServiceCallback;
 import org.red5.server.api.service.IServiceCall;
@@ -50,7 +47,7 @@ import org.red5.server.stream.SubscriberStream;
 import org.springframework.context.ApplicationContext;
 
 public abstract class RTMPConnection extends BaseConnection 
-	implements ISharedObjectCapableConnection, IStreamCapableConnection, IServiceCapableConnection {
+	implements IStreamCapableConnection, IServiceCapableConnection {
 
 	protected static Log log =
         LogFactory.getLog(RTMPConnection.class.getName());
@@ -62,7 +59,6 @@ public abstract class RTMPConnection extends BaseConnection
 	private Channel[] channels = new Channel[64];
 	private IStream[] streams = new IStream[MAX_STREAMS];
 	private boolean[] reservedStreams = new boolean[MAX_STREAMS];
-	protected HashMap<String,ISharedObject> sharedObjects;
 	protected Integer invokeId = new Integer(1);
 	protected HashMap<Integer,IPendingServiceCall> pendingCalls = new HashMap<Integer,IPendingServiceCall>();
 	protected int lastPingTime = -1;
@@ -72,7 +68,6 @@ public abstract class RTMPConnection extends BaseConnection
 		// These parameters will be set during the call of "connect" later.
 		//super(null, "");	temp fix to get things to compile
 		super(type,null,null,null,null,null);
-		sharedObjects = new HashMap<String,ISharedObject>();
 	}
 	
 	public void setup(String host, String path, String sessionId, Map<String, String> params){
@@ -250,37 +245,6 @@ public abstract class RTMPConnection extends BaseConnection
 	
 	public abstract void rawWrite(ByteBuffer out);
 	public abstract void write(OutPacket out);
-
-	public boolean connectSharedObject(String name, boolean persistent) {
-		ISharedObjectService sharedObjectService = (ISharedObjectService) getScopeService(scope, ISharedObjectService.SHARED_OBJECT_SERVICE, SharedObjectService.class);
-		IScope scope = getScope();
-		if(!sharedObjectService.hasSharedObject(scope, name)){
-			if(!sharedObjectService.createSharedObject(scope, name, persistent)){
-				return false;
-			}
-		}
-		final ISharedObject so = sharedObjectService.getSharedObject(scope, name);
-		registerBasicScope(so);
-		sharedObjects.put(name, so);
-		return true;
-	}
-
-	public void disconnectSharedObject(String name) {
-		unregisterBasicScope(sharedObjects.get(name));
-		sharedObjects.remove(name);
-	}
-
-	public ISharedObject getConnectedSharedObject(String name) {
-		return sharedObjects.get(name);
-	}
-
-	public Iterator<String> getConnectedSharedObjectNames() {
-		return sharedObjects.keySet().iterator();
-	}
-	
-	public boolean isConnectedToSharedObject(String name) {
-		return sharedObjects.containsKey(name);
-	}
 
 	public void invoke(IServiceCall call) {
 		// We need to use Invoke for all calls to the client

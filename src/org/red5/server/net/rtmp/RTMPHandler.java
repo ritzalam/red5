@@ -401,12 +401,12 @@ public class RTMPHandler
 			switch (event.getType()) {
 			case SO_CONNECT:
 				// Register client for this shared object and send initial state
-				so.addEventListener(conn);
+				conn.registerBasicScope(so);
 				break;
 			
 			case SO_DISCONNECT:
 				// The client disconnected from the SO
-				so.removeEventListener(conn);
+				conn.unregisterBasicScope(so);
 				break;
 			
 			case SO_SET_ATTRIBUTE:

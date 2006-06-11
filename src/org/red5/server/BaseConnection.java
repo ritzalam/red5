@@ -1,6 +1,5 @@
 package org.red5.server;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -13,7 +12,6 @@ import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
 import org.red5.server.api.event.IEvent;
-import org.red5.server.api.so.ISharedObject;
 
 public abstract class BaseConnection extends AttributeStore 
 	implements IConnection {
@@ -115,31 +113,21 @@ public abstract class BaseConnection extends AttributeStore
 		if(scope != null) {
 			
 			log.debug("Close, disconnect from scope, and children");
-			for(IBasicScope basicScope : basicScopes){
-				unregisterBasicScope(basicScope);
-			}
-			scope.disconnect(this);
-			
-			/*
-			
-			// XXX: HACK HACK HACK, this should not be needed, 
-			// the so should be in the basic scopes. Quick fix
-			Iterator<String>it = scope.getBasicScopeNames(ISharedObject.TYPE);
-			// We need to create a copy of the iterator as this may change
-			// during unregistering of the event listeners
-			Set<IBasicScope> scopes = new HashSet<IBasicScope>();
-			while(it.hasNext()){
-				String name = it.next();
-				IBasicScope so = scope.getBasicScope(ISharedObject.TYPE, name);
-				scopes.add(so);
+			try {
+				Set<IBasicScope> tmpScopes = new HashSet<IBasicScope>(basicScopes);
+				for(IBasicScope basicScope : tmpScopes){
+					unregisterBasicScope(basicScope);
+				}
+			} catch (Exception err) {
+				log.error("Error while unregistering basic scopes.", err);
 			}
 			
-			for (IBasicScope so : scopes) {
-				so.removeEventListener(this);
+			try {
+				scope.disconnect(this);
+			} catch (Exception err) {
+				log.error("Error while disconnecting from scope " + scope, err);
 			}
 			
-			*/
-
 			if (client != null && client instanceof Client) {
 				((Client) client).unregister(this);
 				client = null;
