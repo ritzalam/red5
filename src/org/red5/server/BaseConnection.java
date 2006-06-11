@@ -1,5 +1,6 @@
 package org.red5.server;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -112,11 +113,14 @@ public abstract class BaseConnection extends AttributeStore
 	public void close(){
 	
 		if(scope != null) {
+			
 			log.debug("Close, disconnect from scope, and children");
 			for(IBasicScope basicScope : basicScopes){
-				basicScope.removeEventListener(this);
+				unregisterBasicScope(basicScope);
 			}
 			scope.disconnect(this);
+			
+			/*
 			
 			// XXX: HACK HACK HACK, this should not be needed, 
 			// the so should be in the basic scopes. Quick fix
@@ -133,6 +137,8 @@ public abstract class BaseConnection extends AttributeStore
 			for (IBasicScope so : scopes) {
 				so.removeEventListener(this);
 			}
+			
+			*/
 
 			if (client != null && client instanceof Client) {
 				((Client) client).unregister(this);
@@ -145,7 +151,7 @@ public abstract class BaseConnection extends AttributeStore
 		}
 		
 	}
-
+	
 	public void notifyEvent(IEvent event) {
 		// TODO Auto-generated method stub		
 	}
@@ -164,6 +170,16 @@ public abstract class BaseConnection extends AttributeStore
 
 	public Iterator<IBasicScope> getBasicScopes() {
 		return basicScopes.iterator();
+	}
+	
+	public void registerBasicScope(IBasicScope basicScope){
+		basicScopes.add(basicScope);
+		basicScope.addEventListener(this);
+	}
+	
+	public void unregisterBasicScope(IBasicScope basicScope){
+		basicScopes.remove(basicScope);
+		basicScope.removeEventListener(this);
 	}
 
 	public abstract long getReadBytes();

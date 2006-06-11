@@ -260,13 +260,14 @@ public abstract class RTMPConnection extends BaseConnection
 			}
 		}
 		final ISharedObject so = sharedObjectService.getSharedObject(scope, name);
-		so.addEventListener(this);
+		registerBasicScope(so);
 		sharedObjects.put(name, so);
 		return true;
 	}
 
 	public void disconnectSharedObject(String name) {
-		sharedObjects.get(name).removeEventListener(this);
+		unregisterBasicScope(sharedObjects.get(name));
+		sharedObjects.remove(name);
 	}
 
 	public ISharedObject getConnectedSharedObject(String name) {

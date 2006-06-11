@@ -2,7 +2,6 @@ package org.red5.server.net.rtmp;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
