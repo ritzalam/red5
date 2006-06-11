@@ -48,7 +48,7 @@ import org.red5.server.api.event.IEventListener;
  * @author Joachim Bauch (jojo@struktur.de)
  */
 
-public interface ISharedObject extends IBasicScope {
+public interface ISharedObject extends IBasicScope, ISharedObjectHandlerProvider {
 
 	public static final String TYPE = "so";
 	

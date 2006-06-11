@@ -1,5 +1,8 @@
 package org.red5.server.so;
 
+import java.lang.reflect.Method;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -7,6 +10,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.red5.server.BasicScope;
 import org.red5.server.api.IAttributeStore;
 import org.red5.server.api.IScope;
@@ -15,12 +20,16 @@ import org.red5.server.api.event.IEventListener;
 import org.red5.server.api.persistence.IPersistenceStore;
 import org.red5.server.api.so.ISharedObject;
 import org.red5.server.api.so.ISharedObjectListener;
+import org.red5.server.service.ServiceUtils;
 
 public class SharedObjectScope extends BasicScope 
 	implements ISharedObject {
 	
+	private Log log = LogFactory.getLog(SharedObjectScope.class.getName());
+	
 	private final ReentrantLock lock = new ReentrantLock();
 	private HashSet<ISharedObjectListener> serverListeners = new HashSet<ISharedObjectListener>();
+	private HashMap<String, Object> handlers = new HashMap<String, Object>();
 	protected SharedObject so;
 	
 	public SharedObjectScope(IScope parent, String name, boolean persistent, IPersistenceStore store){
@@ -75,6 +84,35 @@ public class SharedObjectScope extends BasicScope
 		so.sendMessage(handler, arguments);
 		endUpdate();
 		
+		// Invoke method on registered handler
+		String serviceName, serviceMethod;
+		int dotPos = handler.lastIndexOf(".");
+		if (dotPos != -1) {
+			serviceName = handler.substring(0, dotPos);
+			serviceMethod = handler.substring(dotPos+1);
+		} else {
+			serviceName = "";
+			serviceMethod = handler;
+		}
+		
+		Object soHandler = getServiceHandler(serviceName);
+		if (soHandler != null) {
+			Object[] methodResult = ServiceUtils.findMethodWithExactParameters(soHandler, serviceMethod, arguments);
+			if (methodResult.length == 0 || methodResult[0] == null)
+				methodResult = ServiceUtils.findMethodWithListParameters(soHandler, serviceMethod, arguments);
+			
+			if (methodResult.length > 0 && methodResult[0] != null) {
+				Method method = (Method) methodResult[0];
+				Object[] params = (Object[]) methodResult[1];
+				try {
+					method.invoke(soHandler, params);
+				} catch (Exception err) {
+					log.error("Error while invoking method " + serviceMethod + " on shared object handler " + handler, err);
+				}
+			}
+		}
+		
+		// Notify server listeners
 		Iterator<ISharedObjectListener> it = serverListeners.iterator();
 		while (it.hasNext()) {
 			ISharedObjectListener listener = it.next();
@@ -237,5 +275,35 @@ public class SharedObjectScope extends BasicScope
 	public synchronized void removeSharedObjectListener(ISharedObjectListener listener) {
 		serverListeners.remove(listener);
 	}
+
+	public void registerServiceHandler(Object handler) {
+		registerServiceHandler("", handler);
+	}
 	
+	public void registerServiceHandler(String name, Object handler) {
+		if (name == null)
+			name = "";
+		handlers.put(name, handler);
+	}
+
+	public void unregisterServiceHandler() {
+		unregisterServiceHandler("");
+	}
+
+	public void unregisterServiceHandler(String name) {
+		if (name == null)
+			name = "";
+		handlers.remove(name);
+	}
+	
+	public Object getServiceHandler(String name) {
+		if (name == null)
+			name = "";
+		return handlers.get(name);
+	}
+	
+	public Set<String> getServiceHandlerNames() {
+		return Collections.unmodifiableSet(handlers.keySet());
+	}
+
 }
