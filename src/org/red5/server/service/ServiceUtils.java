@@ -15,7 +15,7 @@ public class ServiceUtils {
 	 * Returns (method, params) for the given service or (null, null) if not method was found.
 	 */
 	public static Object[] findMethodWithExactParameters(Object service, String methodName, List args) {
-		Object[] arguments = new Object[]{args.size()};
+		Object[] arguments = new Object[args.size()];
 		for (int i=0; i<args.size(); i++) {
 			arguments[i] = args.get(i);
 		}
@@ -74,7 +74,7 @@ public class ServiceUtils {
 	 * Returns (method, params) for the given service or (null, null) if not method was found.
 	 */
 	public static Object[] findMethodWithListParameters(Object service, String methodName, List args) {
-		Object[] arguments = new Object[]{args.size()};
+		Object[] arguments = new Object[args.size()];
 		for (int i=0; i<args.size(); i++) {
 			arguments[i] = args.get(i);
 		}
