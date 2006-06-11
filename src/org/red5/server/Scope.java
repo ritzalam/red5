@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
@@ -16,6 +17,7 @@ import org.red5.server.api.IScope;
 import org.red5.server.api.IScopeAware;
 import org.red5.server.api.IScopeHandler;
 import org.red5.server.api.event.IEvent;
+import org.red5.server.api.persistence.IPersistable;
 import org.red5.server.api.persistence.PersistenceUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.core.style.ToStringCreator;
@@ -27,6 +29,7 @@ public class Scope extends BasicScope implements IScope {
 	
 	private static final int UNSET = -1;
 	private static final String TYPE = "scope";
+	private static final String SERVICE_HANDLERS = IPersistable.TRANSIENT_PREFIX + "_scope_service_handlers";
 	
 	private int depth = UNSET; 
 	private IContext context;
@@ -428,6 +431,32 @@ public class Scope extends BasicScope implements IScope {
 			.append("Path",getPath())
 			.append("Name",getName())
 			.toString();
+	}
+
+	/* IServiceHandlerProvider interface */
+	
+	protected Map<String, Object> getServiceHandlers() {
+		return (Map<String, Object>) getAttribute(SERVICE_HANDLERS, new HashMap<String, Object>());
+	}
+	
+	public void registerServiceHandler(String name, Object handler) {
+		Map<String, Object> serviceHandlers = getServiceHandlers();
+		serviceHandlers.put(name, handler);
+	}
+	
+	public void unregisterServiceHandler(String name) {
+		Map<String, Object> serviceHandlers = getServiceHandlers();
+		serviceHandlers.remove(name);
+	}
+	
+	public Object getServiceHandler(String name) {
+		Map<String, Object> serviceHandlers = getServiceHandlers();
+		return serviceHandlers.get(name);
+	}
+	
+	public Set<String> getServiceHandlerNames() {
+		Map<String, Object> serviceHandlers = getServiceHandlers();
+		return serviceHandlers.keySet();
 	}
 	
 }

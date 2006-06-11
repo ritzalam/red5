@@ -20,7 +20,13 @@
 	</bean>
 
 	<bean id="web.handler" 
-	    class="org.red5.server.webapp.oflaDemo.Application" 
+	    class="org.red5.server.adapter.ApplicationAdapter" 
 		singleton="true" />
+	
+    <bean id="demoService.service" 
+	    class="org.red5.server.webapp.oflaDemo.DemoService" 
+		singleton="true" />
+
+
 
 </beans>

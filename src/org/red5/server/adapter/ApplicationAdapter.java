@@ -15,7 +15,6 @@ import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
-import org.red5.server.api.persistence.IPersistable;
 import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.api.service.IServiceHandlerProvider;
@@ -34,12 +33,10 @@ import org.red5.server.stream.StreamService;
 
 public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 	implements ISharedObjectService, IBroadcastStreamService, IOnDemandStreamService, ISubscriberStreamService,
-		IServiceHandlerProvider, ISchedulingService {
+		ISchedulingService {
 
 	protected static Log log =
         LogFactory.getLog(ApplicationAdapter.class.getName());
-
-	private static final String SERVICE_HANDLERS = IPersistable.TRANSIENT_PREFIX + "_scope_service_handlers";
 
 	/**
 	 * Reject the currently connecting client without a special error message.
@@ -221,32 +218,6 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 	public ISubscriberStream getSubscriberStream(IScope scope, String name) {
 		ISubscriberStreamService service = (ISubscriberStreamService) getScopeService(scope, ISubscriberStreamService.SUBSCRIBER_STREAM_SERVICE, StreamService.class); 
 		return service.getSubscriberStream(scope, name);
-	}
-	
-	/* IServiceHandlerProvider interface */
-	
-	protected Map<String, Object> getServiceHandlers(IScope scope) {
-		return (Map<String, Object>) scope.getAttribute(SERVICE_HANDLERS, new HashMap<String, Object>());
-	}
-	
-	public void registerServiceHandler(IScope scope, String name, Object handler) {
-		Map<String, Object> serviceHandlers = getServiceHandlers(scope);
-		serviceHandlers.put(name, handler);
-	}
-	
-	public void unregisterServiceHandler(IScope scope, String name) {
-		Map<String, Object> serviceHandlers = getServiceHandlers(scope);
-		serviceHandlers.remove(name);
-	}
-	
-	public Object getServiceHandler(IScope scope, String name) {
-		Map<String, Object> serviceHandlers = getServiceHandlers(scope);
-		return serviceHandlers.get(name);
-	}
-	
-	public Set<String> getServiceHandlerNames(IScope scope) {
-		Map<String, Object> serviceHandlers = getServiceHandlers(scope);
-		return serviceHandlers.keySet();
 	}
 	
 	/* Wrapper around ISchedulingService */

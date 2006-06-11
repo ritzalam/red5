@@ -34,16 +34,7 @@ import org.red5.server.api.service.IServiceHandlerProvider;
 public class HandlerServiceResolver implements IServiceResolver {
 
 	public Object resolveService(IScope scope, String serviceName) {
-		Object service = scope.getHandler();
-		if (service instanceof IServiceHandlerProvider) {
-			// Check for registered service handler
-			Object handler = ((IServiceHandlerProvider) service).getServiceHandler(scope, serviceName);
-			if (handler != null)
-				// The application registered a custom handler, return it.
-				return handler;
-		}
-		
-		return null;
+		return scope.getServiceHandler(serviceName);
 	}
 
 }

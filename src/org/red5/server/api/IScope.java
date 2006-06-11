@@ -22,6 +22,7 @@ package org.red5.server.api;
 import java.util.Iterator;
 import java.util.Set;
 
+import org.red5.server.api.service.IServiceHandlerProvider;
 import org.springframework.core.io.support.ResourcePatternResolver;
 
 /**
@@ -38,7 +39,7 @@ import org.springframework.core.io.support.ResourcePatternResolver;
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard (luke@codegent.com)
  */
-public interface IScope extends IBasicScope, ResourcePatternResolver {
+public interface IScope extends IBasicScope, ResourcePatternResolver, IServiceHandlerProvider {
 
 	public static final String ID = "red5.scope";
 	

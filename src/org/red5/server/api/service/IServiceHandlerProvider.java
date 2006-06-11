@@ -39,43 +39,35 @@ public interface IServiceHandlerProvider {
 	 * provides a method "<code>callMe</code>", you can call a method
 	 * "<code>one.two.callMe</code>" from the client.</p>
 	 * 
-	 * @param scope
-	 * 			the scope this handler applies to
 	 * @param name
 	 * 			the name of the handler
 	 * @param handler
 	 * 			the handler object
 	 */
-	public void registerServiceHandler(IScope scope, String name, Object handler);
+	public void registerServiceHandler(String name, Object handler);
 	
 	/**
 	 * Unregister service handler.
 	 * 
-	 * @param scope
-	 * 			the scope this handler was registered for
 	 * @param name
 	 * 			the name of the handler
 	 */
-	public void unregisterServiceHandler(IScope scope, String name);
+	public void unregisterServiceHandler(String name);
 	
 	/**
 	 * Return a previously registered service handler.
 	 * 
-	 * @param scope
-	 * 			the scope to lookup the handler for
 	 * @param name
 	 * 			the name of the handler to return
 	 * @return the previously registered handler
 	 */
-	public Object getServiceHandler(IScope scope, String name);
+	public Object getServiceHandler(String name);
 
 	/**
 	 * Get list of registered service handler names.
 	 * 
-	 * @param scope
-	 * 			the scope to return the handler names for
 	 * @return the names of the registered handlers
 	 */
-	public Set<String> getServiceHandlerNames(IScope scope);
+	public Set<String> getServiceHandlerNames();
 
 }
