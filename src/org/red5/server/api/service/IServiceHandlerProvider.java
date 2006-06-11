@@ -39,6 +39,8 @@ public interface IServiceHandlerProvider {
 	 * provides a method "<code>callMe</code>", you can call a method
 	 * "<code>one.two.callMe</code>" from the client.</p>
 	 * 
+	 * @param scope
+	 * 			the scope this handler applies to
 	 * @param name
 	 * 			the name of the handler
 	 * @param handler
@@ -49,6 +51,8 @@ public interface IServiceHandlerProvider {
 	/**
 	 * Unregister service handler.
 	 * 
+	 * @param scope
+	 * 			the scope this handler was registered for
 	 * @param name
 	 * 			the name of the handler
 	 */
@@ -57,6 +61,8 @@ public interface IServiceHandlerProvider {
 	/**
 	 * Return a previously registered service handler.
 	 * 
+	 * @param scope
+	 * 			the scope to lookup the handler for
 	 * @param name
 	 * 			the name of the handler to return
 	 * @return the previously registered handler
@@ -66,6 +72,8 @@ public interface IServiceHandlerProvider {
 	/**
 	 * Get list of registered service handler names.
 	 * 
+	 * @param scope
+	 * 			the scope to return the handler names for
 	 * @return the names of the registered handlers
 	 */
 	public Set<String> getServiceHandlerNames(IScope scope);
