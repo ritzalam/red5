@@ -14,6 +14,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.BasicScope;
 import org.red5.server.api.IAttributeStore;
+import org.red5.server.api.IContext;
 import org.red5.server.api.IScope;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.event.IEventListener;
@@ -96,6 +97,17 @@ public class SharedObjectScope extends BasicScope
 		}
 		
 		Object soHandler = getServiceHandler(serviceName);
+		if (soHandler == null && hasParent()) {
+			// No custom handler, check for service defined in the scope's context
+			IContext context = getParent().getContext();
+			try {
+				// The bean must have a name of "<SharedObjectName>.<DottedServiceName>.soservice"
+				soHandler = context.getBean(so.getName() + "." + serviceName + ".soservice");
+			} catch (Exception err) {
+				// No such bean.
+			}
+		}
+		
 		if (soHandler != null) {
 			Object[] methodResult = ServiceUtils.findMethodWithExactParameters(soHandler, serviceMethod, arguments);
 			if (methodResult.length == 0 || methodResult[0] == null)
