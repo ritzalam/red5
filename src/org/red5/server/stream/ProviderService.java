@@ -38,7 +38,7 @@ public class ProviderService implements IProviderService {
 		try {
 			file = scope.getResources(getStreamFilename(name))[0].getFile();
 		} catch (IOException e) {}
-		if (file == null) {
+		if (file == null || !file.exists()) {
 			return null;
 		} else if (!file.exists()) {
 			return null;
