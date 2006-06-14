@@ -5,7 +5,7 @@ import org.red5.server.api.IScope;
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  * 
- * Copyright © 2006 by respective authors (see below). All rights reserved.
+ * Copyright ? 2006 by respective authors (see below). All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or modify it under the 
  * terms of the GNU Lesser General Public License as published by the Free Software 
@@ -23,70 +23,38 @@ import org.red5.server.api.IScope;
 
 /**
  * Base interface for stream objects.
- * 
- * Provides all the common methods shared between OnDemandStream and
- * BroadcastStream
+ * A stream object is always associated with a scope. 
  */
-public abstract interface IStream {
-
-	/**
-	 * Get the stream id.
-	 * 
-	 * @return the numeric id of the stream
-	 */
-	public int getStreamId();
+public interface IStream {
 	
 	/**
 	 * Get the name of the stream.
+	 * The name is unique across the server.
 	 * 
 	 * @return the name of the stream
 	 */
 	public String getName();
 	
 	/**
-	 * Get the current position in milliseconds.
-	 * 
-	 * @return current position in milliseconds
+	 * Get Codec info for a stream.
+	 * @return
 	 */
-	public int getCurrentPosition();
+	IStreamCodecInfo getCodecInfo();
 
 	/**
-	 * Check if the stream has audio
-	 * 
-	 * @return true if there is an audio channel
-	 */
-	public boolean hasAudio();
-
-	/**
-	 * Check if the stream has video
-	 * 
-	 * @return true if there is a video channel
-	 */
-	public boolean hasVideo();
-
-	/**
-	 * Get the name of the current video codec
-	 * 
-	 * @return the name of the coded, eg: vp6
-	 */
-	public String getVideoCodecName();
-
-	/**
-	 * Get the name of the current audio coded
-	 * 
-	 * @return the name of the codec, eg: mp3
-	 */
-	public String getAudioCodecName();
-
-	/**
-	 * Get the scope this stream is associated with
+	 * Get the scope this stream is associated with.
 	 * 
 	 * @return scope object
 	 */
 	public IScope getScope();
 
 	/**
-	 * Close this stream, this will disconnect all clients
+	 * Start this stream.
+	 */
+	public void start();
+	
+	/**
+	 * Close this stream.
 	 */
 	public void close();
 

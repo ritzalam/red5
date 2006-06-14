@@ -1,11 +1,12 @@
 package org.red5.server.api.stream;
 
-import java.util.Iterator;
+import org.red5.server.messaging.IProvider;
+
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  * 
- * Copyright © 2006 by respective authors (see below). All rights reserved.
+ * Copyright ? 2006 by respective authors (see below). All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or modify it under the 
  * terms of the GNU Lesser General Public License as published by the Free Software 
@@ -22,26 +23,31 @@ import java.util.Iterator;
  */
 
 /**
- * Extends stream to add methods for broadcast streaming.
- * 
- * TODO: What should be pass to the methods?
+ * A broadcast stream is a stream source to be subscribed.
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard (luke@codegent.com)
+ * @author Steven Gong (steven.gong@gmail.com)
  */
 public interface IBroadcastStream extends IStream {
-
-	public static final String TYPE = "broadcastStream";
 	
 	/**
-	 * Subscribe to this stream
+	 * Save the broadcast stream as a file.
+	 * @param filePath The path of the file relative to the scope.
+	 * @param isAppend Whether to append to the end of file.
+	 * @throws ResourceExistException Resource exist when trying to create.
+	 * @throws ResourceNotFoundException Resource not exist when trying to append.
 	 */
-	public void subscribe(ISubscriberStream stream);
+	void saveAs(String filePath, boolean isAppend)
+	throws ResourceNotFoundException, ResourceExistException;
 
 	/**
-	 * Unsubscire to this stream
+	 * Get the provider corresponding to this stream.
+	 * @return
 	 */
-	public void unsubscribe(ISubscriberStream stream);
-
-	public Iterator<ISubscriberStream> getSubscribers();
+	IProvider getProvider();
+	
+	String getPublishedName();
+	
+	void setPublishedName(String name);
 }

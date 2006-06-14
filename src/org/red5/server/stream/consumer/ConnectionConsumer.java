@@ -2,7 +2,6 @@ package org.red5.server.stream.consumer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.red5.server.api.IConnection;
 import org.red5.server.messaging.IMessage;
 import org.red5.server.messaging.IMessageComponent;
 import org.red5.server.messaging.IPipe;
@@ -64,6 +63,7 @@ public class ConnectionConsumer implements IPushableConsumer,
 	}
 
 	public void onPipeConnectionEvent(PipeConnectionEvent event) {
+		// TODO close channels on pipe disconnect
 	}
 
 	public void onOOBControlMessage(IMessageComponent source, IPipe pipe, OOBControlMessage oobCtrlMsg) {

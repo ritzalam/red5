@@ -2,11 +2,11 @@ package org.red5.server.net.rtmp;
 
 import static org.red5.server.api.ScopeUtils.getScopeService;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.HashSet;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -16,13 +16,14 @@ import org.red5.server.api.IGlobalScope;
 import org.red5.server.api.IScope;
 import org.red5.server.api.IScopeHandler;
 import org.red5.server.api.IServer;
-import org.red5.server.api.so.ISharedObject;
-import org.red5.server.api.so.ISharedObjectService;
 import org.red5.server.api.Red5;
 import org.red5.server.api.event.IEventDispatcher;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IPendingServiceCallback;
 import org.red5.server.api.service.IServiceCall;
+import org.red5.server.api.so.ISharedObject;
+import org.red5.server.api.so.ISharedObjectService;
+import org.red5.server.api.stream.IClientStream;
 import org.red5.server.api.stream.IStream;
 import org.red5.server.api.stream.IStreamService;
 import org.red5.server.exception.ClientRejectedException;
@@ -31,8 +32,8 @@ import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.net.rtmp.message.InPacket;
 import org.red5.server.net.rtmp.message.Invoke;
-import org.red5.server.net.rtmp.message.Notify;
 import org.red5.server.net.rtmp.message.Message;
+import org.red5.server.net.rtmp.message.Notify;
 import org.red5.server.net.rtmp.message.OutPacket;
 import org.red5.server.net.rtmp.message.PacketHeader;
 import org.red5.server.net.rtmp.message.Ping;
@@ -45,8 +46,7 @@ import org.red5.server.net.rtmp.status.StatusObject;
 import org.red5.server.net.rtmp.status.StatusObjectService;
 import org.red5.server.service.Call;
 import org.red5.server.so.SharedObjectService;
-import org.red5.server.stream.SubscriberStreamNew;
-import org.red5.server.stream.Stream;
+import org.red5.server.stream.PlaylistSubscriberStream;
 import org.red5.server.stream.StreamService;
 
 public class RTMPHandler 
@@ -85,7 +85,7 @@ public class RTMPHandler
 			final Message message = packet.getMessage();
 			final PacketHeader source = packet.getSource();
 			final Channel channel = conn.getChannel(packet.getSource().getChannelId());
-			final IStream stream = conn.getStreamById(source.getStreamId());
+			final IClientStream stream = conn.getStreamById(source.getStreamId());
 			
 			if(log.isDebugEnabled()){
 				log.debug("Message recieved");
@@ -125,7 +125,11 @@ public class RTMPHandler
 			case TYPE_AUDIO_DATA:
 			case TYPE_VIDEO_DATA:
 				//log.info("in packet: "+source.getSize()+" ts:"+source.getTimer());
-				((IEventDispatcher) stream).dispatchEvent(message);
+				try {
+					((IEventDispatcher) stream).dispatchEvent(message);
+				} catch (NullPointerException e) {
+					//e.printStackTrace();
+				}
 				break;
 			case TYPE_SHARED_OBJECT:
 				SharedObject so = (SharedObject) message;
@@ -154,13 +158,10 @@ public class RTMPHandler
 		
 		OutPacket sent = (OutPacket) message;
 		final byte channelId = sent.getDestination().getChannelId();
-		final IStream stream = conn.getStreamByChannelId(channelId);
-		if (stream != null && (stream instanceof Stream)) {
-			((Stream) stream).written(sent.getMessage());
-		}
+		final IClientStream stream = conn.getStreamByChannelId(channelId);
 		// XXX we'd better use new event model for notification
-		if (stream != null && (stream instanceof SubscriberStreamNew)) {
-			((SubscriberStreamNew) stream).written(sent.getMessage());
+		if (stream != null && (stream instanceof PlaylistSubscriberStream)) {
+			((PlaylistSubscriberStream) stream).written(sent.getMessage());
 		}
 	}
 

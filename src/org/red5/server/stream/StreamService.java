@@ -1,236 +1,181 @@
 package org.red5.server.stream;
 
-import java.io.File;
-import java.io.IOException;
-
-import org.red5.io.IStreamableFile;
-import org.red5.io.IStreamableFileService;
-import org.red5.io.ITagWriter;
+import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IConnection;
+import org.red5.server.api.IContext;
 import org.red5.server.api.IScope;
 import org.red5.server.api.Red5;
 import org.red5.server.api.stream.IBroadcastStream;
-import org.red5.server.api.stream.IOnDemandStream;
-import org.red5.server.api.stream.IStream;
+import org.red5.server.api.stream.IClientBroadcastStream;
+import org.red5.server.api.stream.IClientStream;
+import org.red5.server.api.stream.IPlaylistSubscriberStream;
+import org.red5.server.api.stream.ISingleItemSubscriberStream;
 import org.red5.server.api.stream.IStreamCapableConnection;
 import org.red5.server.api.stream.IStreamService;
 import org.red5.server.api.stream.ISubscriberStream;
-import org.red5.server.messaging.InMemoryPullPullPipe;
-import org.red5.server.messaging.InMemoryPushPushPipe;
-import org.red5.server.messaging.PipeUtils;
+import org.red5.server.api.stream.support.SimplePlayItem;
 import org.red5.server.net.rtmp.RTMPHandler;
-import org.red5.server.stream.consumer.ConnectionConsumer;
-import org.red5.server.stream.filter.StreamBandwidthController;
-import org.red5.server.stream.provider.FileProvider;
-import org.springframework.core.io.Resource;
 
-public class StreamService extends StreamManager
-		implements IStreamService {
+public class StreamService implements IStreamService {
 
-	private int getCurrentStreamId() {
-		// TODO: this must come from the current connection!
-		return RTMPHandler.getStreamId()-1;
+	public void closeStream() {
+		IConnection conn = Red5.getConnectionLocal();
+		if (!(conn instanceof IStreamCapableConnection)) return;
+		IClientStream stream = ((IStreamCapableConnection) conn).getStreamById(getCurrentStreamId());
+		stream.close();
 	}
-	
+
 	public int createStream() {
 		IConnection conn = Red5.getConnectionLocal();
-		if (!(conn instanceof IStreamCapableConnection))
-			return -1;
-		
-		// Flash starts with 1
-		return ((IStreamCapableConnection) conn).reserveStreamId() + 1;
+		if (!(conn instanceof IStreamCapableConnection)) return -1;
+		return ((IStreamCapableConnection) conn).reserveStreamId();
 	}
 
-	public void deleteStream(int number) {
+	public void deleteStream(int streamId) {
 		IConnection conn = Red5.getConnectionLocal();
-		if (!(conn instanceof IStreamCapableConnection))
-			return;
-		
-		deleteStream((IStreamCapableConnection) conn, number);
+		if (!(conn instanceof IStreamCapableConnection)) return;
+		IStreamCapableConnection streamConn = (IStreamCapableConnection) conn;
+		IClientStream stream = streamConn.getStreamById(streamId);
+		if (stream != null) stream.close();
 	}
 	
-	public void deleteStream(IStreamCapableConnection conn, int number) {
-		IStream stream = conn.getStreamById(number);
-		if (stream == null) {
-			// XXX: invalid request, we must return an error to the client here...
-		}
-		conn.deleteStreamById(number);
-		log.debug("Delete stream: "+stream+" number: "+number);
-		deleteStream(((IConnection) conn).getScope(), stream);
-	}
-	
-	public void play(String name) {
-		play(name, new Double(-2000.0), -1, false);
-
+	public void deleteStream(IStreamCapableConnection conn, int streamId) {
+		IClientStream stream = conn.getStreamById(streamId);
+		conn.unreserveStreamId(streamId);
+		if (stream != null) stream.close();
 	}
 
-	public void play(String name, Double type) {
-		play(name, type, -1, false);
-
-	}
-
-	public void play(String name, Double type, int length) {
-		play(name, type, length, false);
-	}
-
-	public void play(String name, Double type, int length,
-			boolean flushPlaylist) {
+	public void pause(boolean pausePlayback, int position) {
 		IConnection conn = Red5.getConnectionLocal();
-		if (!(conn instanceof IStreamCapableConnection))
-			return;
-
-		IScope scope = conn.getScope();
+		if (!(conn instanceof IStreamCapableConnection)) return;
+		IStreamCapableConnection streamConn = (IStreamCapableConnection) conn;
 		int streamId = getCurrentStreamId();
-		
-		// it seems as if the number is sent multiplied by 1000
-		int num = (int)(type.doubleValue() / 1000.0);
-		if (num < -2)
-			num = -2;
-
-		boolean isPublishedStream = hasBroadcastStream(scope, name);
-		boolean isFileStream = hasOnDemandStream(scope, name);
-		
-		// decision: 0 for Live, 1 for File, 2 for Wait, 3 for N/A
-		int decision = 3;
-		
-		switch (num) {
-		case -2:
-			if (isPublishedStream) {
-				decision = 0;
-			} else if (isFileStream) {
-				decision = 1;
-			} else {
-				decision = 2;
-			}
-			break;
-			
-		case -1:
-			if (isPublishedStream) {
-				decision = 0;
-			} else {
-				// TODO: Wait for stream to be created until timeout, otherwise continue
-				// with next item in playlist (see Macromedia documentation)
-				// NOTE: For now we create a temporary stream
-				decision = 2;
-			}
-			break;
-			
-		default:
-			if (isFileStream) {
-				decision = 1;
-			} else {
-				// TODO: Wait for it, then continue with next item in playlist (?)
-			}
-			break;
+		IClientStream stream = streamConn.getStreamById(streamId);
+		if (stream == null || !(stream instanceof ISubscriberStream)) return;
+		ISubscriberStream subscriberStream = (ISubscriberStream) stream;
+		if (pausePlayback) {
+			subscriberStream.pause(position);
+		} else {
+			subscriberStream.resume(position);
 		}
-		
-		ISubscriberStream subscriber;
-		IOnDemandStream onDemand;
-		switch (decision) {
-		case 0:
-			subscriber = ((IStreamCapableConnection) conn).newSubscriberStream(name, streamId);
-			subscriber.start(0, length);
-			break;
-			
-		case 1:
-			onDemand = ((IStreamCapableConnection) conn).newOnDemandStream(name, streamId);
-			// TODO: initial seeking?
-			onDemand.play(length);
-			break;
-			
-		case 2:
-			subscriber = ((IStreamCapableConnection) conn).newSubscriberStream(name, streamId);
-			subscriber.start(0, length);
-			break;
+	}
+
+	public void play(String name, int start, int length, boolean flushPlaylist) {
+		IConnection conn = Red5.getConnectionLocal();
+		if (!(conn instanceof IStreamCapableConnection)) return;
+		IStreamCapableConnection streamConn = (IStreamCapableConnection) conn;
+		int streamId = getCurrentStreamId();
+		IClientStream stream = streamConn.getStreamById(streamId);
+		if (stream == null) {
+			stream = streamConn.newPlaylistSubscriberStream(streamId);
+		}
+		if (!(stream instanceof ISubscriberStream)) return;
+		ISubscriberStream subscriberStream = (ISubscriberStream) stream;
+		SimplePlayItem item = new SimplePlayItem();
+		item.setName(name);
+		item.setStart(start);
+		item.setLength(length);
+		if (subscriberStream instanceof IPlaylistSubscriberStream) {
+			IPlaylistSubscriberStream playlistStream = (IPlaylistSubscriberStream) subscriberStream;
+			if (flushPlaylist) {
+				playlistStream.removeAllItems();
+			}
+			playlistStream.addItem(item);
+		} else if (subscriberStream instanceof ISingleItemSubscriberStream) {
+			ISingleItemSubscriberStream singleStream = (ISingleItemSubscriberStream) subscriberStream;
+			singleStream.setPlayItem(item);
+		} else {
+			// not supported by this stream service
+			return;
+		}
+		subscriberStream.play();
+	}
+
+	public void play(String name, int start, int length) {
+		play(name, start, length, false);
+	}
+
+	public void play(String name, int start) {
+		play(name, start, -1, false);
+	}
+
+	public void play(String name) {
+		play(name, -2000, -1, false);
+	}
+
+	public void publish(boolean dontStop) {
+		if (!dontStop) {
+			IConnection conn = Red5.getConnectionLocal();
+			if (!(conn instanceof IStreamCapableConnection)) return;
+			IStreamCapableConnection streamConn = (IStreamCapableConnection) conn;
+			int streamId = getCurrentStreamId();
+			IClientStream stream = streamConn.getStreamById(streamId);
+			if (!(stream instanceof IBroadcastStream)) return;
+			IBroadcastStream bs = (IBroadcastStream) stream;
+			if (bs.getPublishedName() == null) return;
+			IBroadcastScope bsScope = getBroadcastScope(conn.getScope(), bs.getPublishedName());
+			if (bsScope != null) {
+				bsScope.unsubscribe(bs.getProvider());
+			}
+		}
+	}
+
+	public void publish(String name, String mode) {
+		IConnection conn = Red5.getConnectionLocal();
+		if (!(conn instanceof IStreamCapableConnection)) return;
+		IStreamCapableConnection streamConn = (IStreamCapableConnection) conn;
+		int streamId = getCurrentStreamId();
+		IClientStream stream = streamConn.getStreamById(streamId);
+		if (stream != null && !(stream instanceof IClientBroadcastStream)) return;
+		if (stream == null) {
+			stream = streamConn.newBroadcastStream(streamId);
+		} else {
+			// already published
+			return;
+		}
+		IClientBroadcastStream bs = (IClientBroadcastStream) stream;
+		try {
+			if (IClientStream.MODE_RECORD.equals(mode)) {
+				bs.saveAs(name, false);
+			} else if (IClientStream.MODE_APPEND.equals(mode)) {
+				bs.saveAs(name, true);
+			} else if (IClientStream.MODE_LIVE.equals(mode)) {
+				IContext context = conn.getScope().getContext();
+				IProviderService providerService = (IProviderService) context.getBean(IProviderService.KEY);
+				bs.setPublishedName(name);
+				// TODO handle registration failure
+				providerService.registerBroadcastStream(conn.getScope(), name, bs);
+			}
+		} catch (Exception e) {
+			// TODO report publish error
 		}
 	}
 
 	public void publish(String name) {
-		publish(name, Stream.MODE_LIVE);
-	}
-	
-	public void publish(String name, String mode) {
-		IConnection conn = Red5.getConnectionLocal();
-		if (!(conn instanceof IStreamCapableConnection))
-			return;
-		
-		IBroadcastStream stream = ((IStreamCapableConnection) conn).newBroadcastStream(name, getCurrentStreamId());
-		if (mode.equals(Stream.MODE_LIVE))
-			// Nothing more to do
-			return;
-		
-		// Now the mode is either MODE_RECORD or MODE_APPEND
-		IScope scope = conn.getScope();
-		try {				
-			Resource res = scope.getResource(getStreamFilename(name, ".flv"));
-			if (mode.equals(Stream.MODE_RECORD) && res.exists()) 
-				res.getFile().delete();
-			
-			if (!res.exists())
-				res = scope.getResource(getStreamDirectory()).createRelative(name + ".flv");
-			
-			if (!res.exists())
-				res.getFile().createNewFile();
-			
-			File file = res.getFile();
-			IStreamableFileService service = getFileFactory(scope).getService(file);
-			IStreamableFile flv = service.getStreamableFile(file);
-			ITagWriter writer = null; 
-			if (mode.equals(Stream.MODE_RECORD)) 
-				writer = flv.getWriter();
-			else if (mode.equals(Stream.MODE_APPEND))
-				writer = flv.getAppendWriter();
-			stream.subscribe(new FileStreamSink(scope, writer));
-		} catch (IOException e) {
-			log.error("Error recording stream: " + stream, e);
-		}
+		publish(name, IClientStream.MODE_LIVE);
 	}
 
-	public void publish(boolean dontStop) {
-		if (dontStop)
-			return;
-		
-		IConnection conn = Red5.getConnectionLocal();
-		if (!(conn instanceof IStreamCapableConnection))
-			return;
-		
-		IStream stream = ((IStreamCapableConnection) conn).getStreamById(getCurrentStreamId()+1);
-		stream.close();
-	}
-	
-	public void closeStream() {
-		log.debug("Closing stream");
-		IConnection conn = Red5.getConnectionLocal();
-		if (!(conn instanceof IStreamCapableConnection))
-			return;
-		
-		IStream stream = ((IStreamCapableConnection) conn).getStreamById(getCurrentStreamId()+1);
-		stream.close();
-	}
-	
 	public void seek(int position) {
 		IConnection conn = Red5.getConnectionLocal();
-		if (!(conn instanceof IStreamCapableConnection))
-			return;
-		
-		IStream stream = ((IStreamCapableConnection) conn).getStreamById(getCurrentStreamId()+1);
-		if (stream instanceof IOnDemandStream)
-			((IOnDemandStream) stream).seek(position);
+		if (!(conn instanceof IStreamCapableConnection)) return;
+		IStreamCapableConnection streamConn = (IStreamCapableConnection) conn;
+		int streamId = getCurrentStreamId();
+		IClientStream stream = streamConn.getStreamById(streamId);
+		if (stream == null || !(stream instanceof ISubscriberStream)) return;
+		ISubscriberStream subscriberStream = (ISubscriberStream) stream;
+		subscriberStream.seek(position);
+	}
+
+	private int getCurrentStreamId() {
+		// TODO: this must come from the current connection!
+		return RTMPHandler.getStreamId();
 	}
 	
-	public void pause(boolean resumePlayback, int position) {
-		IConnection conn = Red5.getConnectionLocal();
-		if (!(conn instanceof IStreamCapableConnection))
-			return;
-		
-		IStream stream = ((IStreamCapableConnection) conn).getStreamById(getCurrentStreamId()+1);
-		if (stream instanceof IOnDemandStream) {
-			IOnDemandStream ods = (IOnDemandStream) stream;
-			if (resumePlayback) {
-				ods.seek(position);
-				ods.resume();
-			} else
-				ods.pause();
+	public IBroadcastScope getBroadcastScope(IScope scope, String name) {
+		synchronized (scope) {
+			IBasicScope basicScope = scope.getBasicScope(IBroadcastScope.TYPE, name);
+			if (!(basicScope instanceof IBroadcastScope)) return null;
+			else return (IBroadcastScope) basicScope;
 		}
 	}
 }

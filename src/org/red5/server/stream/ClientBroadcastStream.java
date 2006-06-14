@@ -4,11 +4,12 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.event.IEventDispatcher;
-import org.red5.server.api.stream.IBroadcastStreamNew;
+import org.red5.server.api.stream.IClientBroadcastStream;
+import org.red5.server.api.stream.ResourceExistException;
+import org.red5.server.api.stream.ResourceNotFoundException;
 import org.red5.server.messaging.IFilter;
 import org.red5.server.messaging.IMessage;
 import org.red5.server.messaging.IMessageComponent;
@@ -30,58 +31,27 @@ import org.red5.server.stream.message.StatusMessage;
 import org.red5.server.stream.pipe.RefCountPushPushPipe;
 import org.springframework.core.io.Resource;
 
-public class BroadcastStreamNew
-implements IBroadcastStreamNew, IFilter, IPushableConsumer,
-IPipeConnectionListener, IEventDispatcher {
-	private String name;
-	private int streamId;
-	private IConnection conn;
+public class ClientBroadcastStream extends AbstractClientStream implements
+		IClientBroadcastStream, IFilter, IPushableConsumer,
+		IPipeConnectionListener, IEventDispatcher {
+	private String publishedName;
 	
 	private IMessageOutput connMsgOut;
 	private IPipe livePipe;
 	private IPipe recordPipe;
 	
 	private long startTime;
-	
-	public int getStreamId() {
-		return streamId;
-	}
-	
-	public void setStreamId(int streamId) {
-		this.streamId = streamId;
-	}
 
-	public String getName() {
-		return name;
-	}
-
-	public int getCurrentPosition() {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	public boolean hasAudio() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	public boolean hasVideo() {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	public String getVideoCodecName() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public String getAudioCodecName() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public IScope getScope() {
-		return this.conn.getScope();
+	public void start() {
+		IConsumerService consumerManager =
+			(IConsumerService) getScope().getContext().getBean(IConsumerService.KEY);
+		connMsgOut = consumerManager.getConsumerOutput(this);
+		recordPipe = new RefCountPushPushPipe();
+		Map<Object, Object> recordParamMap = new HashMap<Object, Object>();
+		recordParamMap.put("record", null);
+		recordPipe.subscribe((IProvider) this, recordParamMap);
+		startTime = System.currentTimeMillis();
+		sendStartNotify();
 	}
 
 	public void close() {
@@ -91,37 +61,10 @@ IPipeConnectionListener, IEventDispatcher {
 		recordPipe.unsubscribe((IProvider) this);
 	}
 
-	public void pushMessage(IPipe pipe, IMessage message) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void onPipeConnectionEvent(PipeConnectionEvent event) {
-		switch (event.getType()) {
-		case PipeConnectionEvent.PROVIDER_CONNECT_PUSH:
-			if (event.getProvider() == this &&
-					(event.getParamMap() == null || !event.getParamMap().containsKey("record"))) {
-				this.livePipe = (IPipe) event.getSource();
-			}
-			break;
-		case PipeConnectionEvent.PROVIDER_DISCONNECT:
-			if (this.livePipe == event.getSource()) {
-				this.livePipe = null;
-			}
-			break;
-		default:
-			break;
-		}
-	}
-
-	public void onOOBControlMessage(IMessageComponent source, IPipe pipe, OOBControlMessage oobCtrlMsg) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void saveAs(String name, boolean isAppend) {
+	public void saveAs(String name, boolean isAppend)
+			throws ResourceNotFoundException, ResourceExistException {
 		try {
-			IScope scope = conn.getScope();
+			IScope scope = getConnection().getScope();
 			Resource res = scope.getResource(getStreamFilename(name, ".flv"));
 			if (!isAppend && res.exists()) 
 				res.getFile().delete();
@@ -140,6 +83,24 @@ IPipeConnectionListener, IEventDispatcher {
 			}
 			recordPipe.subscribe(fc, paramMap);
 		} catch (IOException e) {}
+	}
+
+	public IProvider getProvider() {
+		return this;
+	}
+
+	public String getPublishedName() {
+		return publishedName;
+	}
+
+	public void setPublishedName(String name) {
+		this.publishedName = name;
+	}
+
+	public void pushMessage(IPipe pipe, IMessage message) {
+	}
+
+	public void onOOBControlMessage(IMessageComponent source, IPipe pipe, OOBControlMessage oobCtrlMsg) {
 	}
 
 	public void dispatchEvent(IEvent event) {
@@ -173,34 +134,28 @@ IPipeConnectionListener, IEventDispatcher {
 		message.release();
 	}
 
-	public void setName(String name) {
-		this.name = name;
-	}
-	
-	public IConnection getConnection() {
-		return this.conn;
-	}
-	
-	public void setConnection(IConnection conn) {
-		this.conn = conn;
-	}
-	
-	public void start() {
-		IConsumerService consumerManager =
-			(IConsumerService) conn.getScope().getContext().getBean(IConsumerService.KEY);
-		connMsgOut = consumerManager.getConsumerOutput(this);
-		recordPipe = new RefCountPushPushPipe();
-		Map<Object, Object> recordParamMap = new HashMap<Object, Object>();
-		recordParamMap.put("record", null);
-		recordPipe.subscribe((IProvider) this, recordParamMap);
-		startTime = System.currentTimeMillis();
-		sendStartNotify();
+	public void onPipeConnectionEvent(PipeConnectionEvent event) {
+		switch (event.getType()) {
+		case PipeConnectionEvent.PROVIDER_CONNECT_PUSH:
+			if (event.getProvider() == this &&
+					(event.getParamMap() == null || !event.getParamMap().containsKey("record"))) {
+				this.livePipe = (IPipe) event.getSource();
+			}
+			break;
+		case PipeConnectionEvent.PROVIDER_DISCONNECT:
+			if (this.livePipe == event.getSource()) {
+				this.livePipe = null;
+			}
+			break;
+		default:
+			break;
+		}
 	}
 	
 	private void sendStartNotify() {
 		Status start = new Status(Status.NS_PUBLISH_START);
-		start.setClientid(streamId);
-		start.setDetails(name);
+		start.setClientid(getStreamId());
+		start.setDetails(getName());
 		
 		StatusMessage startMsg = new StatusMessage();
 		startMsg.setBody(start);

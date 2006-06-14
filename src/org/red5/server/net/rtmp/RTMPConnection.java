@@ -17,33 +17,25 @@ import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IPendingServiceCallback;
 import org.red5.server.api.service.IServiceCall;
 import org.red5.server.api.service.IServiceCapableConnection;
-import org.red5.server.api.stream.IBroadcastStream;
-import org.red5.server.api.stream.IBroadcastStreamNew;
-import org.red5.server.api.stream.IBroadcastStreamService;
-import org.red5.server.api.stream.IOnDemandStream;
-import org.red5.server.api.stream.IOnDemandStreamService;
-import org.red5.server.api.stream.ISubscriberStreamNew;
-import org.red5.server.api.stream.IStream;
+import org.red5.server.api.so.ISharedObject;
+import org.red5.server.api.so.ISharedObjectCapableConnection;
+import org.red5.server.api.so.ISharedObjectService;
+import org.red5.server.api.stream.IClientBroadcastStream;
+import org.red5.server.api.stream.IClientStream;
+import org.red5.server.api.stream.IPlaylistSubscriberStream;
+import org.red5.server.api.stream.ISingleItemSubscriberStream;
 import org.red5.server.api.stream.IStreamCapableConnection;
 import org.red5.server.api.stream.IStreamService;
-import org.red5.server.api.stream.ISubscriberStream;
-import org.red5.server.net.rtmp.message.Notify;
 import org.red5.server.net.rtmp.message.Invoke;
 import org.red5.server.net.rtmp.message.OutPacket;
 import org.red5.server.net.rtmp.message.Ping;
-import org.red5.server.service.Call;
 import org.red5.server.service.PendingCall;
 import org.red5.server.so.SharedObjectService;
-import org.red5.server.stream.BroadcastStream;
-import org.red5.server.stream.BroadcastStreamNew;
-import org.red5.server.stream.BroadcastStreamScope;
-import org.red5.server.stream.SubscriberStreamNew;
-import org.red5.server.stream.VideoCodecFactory;
-import org.red5.server.stream.OnDemandStream;
+import org.red5.server.stream.ClientBroadcastStream;
 import org.red5.server.stream.OutputStream;
+import org.red5.server.stream.PlaylistSubscriberStream;
 import org.red5.server.stream.StreamService;
-import org.red5.server.stream.Stream;
-import org.red5.server.stream.SubscriberStream;
+import org.red5.server.stream.VideoCodecFactory;
 import org.springframework.context.ApplicationContext;
 
 public abstract class RTMPConnection extends BaseConnection 
@@ -57,7 +49,7 @@ public abstract class RTMPConnection extends BaseConnection
 	
 	//private Context context;
 	private Channel[] channels = new Channel[64];
-	private IStream[] streams = new IStream[MAX_STREAMS];
+	private IClientStream[] streams = new IClientStream[MAX_STREAMS];
 	private boolean[] reservedStreams = new boolean[MAX_STREAMS];
 	protected Integer invokeId = new Integer(1);
 	protected HashMap<Integer,IPendingServiceCall> pendingCalls = new HashMap<Integer,IPendingServiceCall>();
@@ -123,7 +115,7 @@ public abstract class RTMPConnection extends BaseConnection
 		final Channel audio = getChannel(channelId++);
 		//final Channel unknown = getChannel(channelId++);
 		//final Channel ctrl = getChannel(channelId++);
-		return new OutputStream(this.getScope(), video, audio, data);
+		return new OutputStream(video, audio, data);
 	}
 	
 	public VideoCodecFactory getVideoCodecFactory() {
@@ -135,7 +127,7 @@ public abstract class RTMPConnection extends BaseConnection
 		return (VideoCodecFactory) appCtx.getBean(VIDEO_CODEC_FACTORY);
 	}
 	
-	public IBroadcastStream newBroadcastStream(String name, int streamId) {
+	public IClientBroadcastStream newBroadcastStream(int streamId) {
 		if (!reservedStreams[streamId - 1])
 			// StreamId has not been reserved before
 			return null;
@@ -144,23 +136,23 @@ public abstract class RTMPConnection extends BaseConnection
 			// Another stream already exists with this id
 			return null;
 		
-		IBroadcastStreamService service = (IBroadcastStreamService) getScopeService(scope, IBroadcastStreamService.BROADCAST_STREAM_SERVICE, StreamService.class);
-		final IBroadcastStream result = service.getBroadcastStream(scope, name);
-		if (result instanceof BroadcastStream) {
-			((BroadcastStream) result).setStreamId(streamId);
-			((BroadcastStream) result).setDownstream(createOutputStream(streamId));
-			((BroadcastStream) result).setVideoCodecFactory(getVideoCodecFactory());
-		} else if (result instanceof BroadcastStreamScope) {
-			((BroadcastStreamScope) result).setStreamId(streamId);
-			((BroadcastStreamScope) result).setDownstream(createOutputStream(streamId));
-			((BroadcastStreamScope) result).setVideoCodecFactory(getVideoCodecFactory());
-		} else
-			log.error("Can't initialize broadcast stream.");
-		streams[streamId - 1] = result;
-		return result;
+		ClientBroadcastStream cbs = new ClientBroadcastStream();
+		cbs.setStreamId(streamId);
+		cbs.setConnection(this);
+		cbs.setName(createStreamName());
+		cbs.setScope(this.getScope());
+		cbs.start();
+
+		streams[streamId - 1] = cbs;
+		return cbs;
 	}
 	
-	public ISubscriberStream newSubscriberStream(String name, int streamId) {
+	public ISingleItemSubscriberStream newSingleItemSubscriberStream(int streamId) {
+		// TODO implement it
+		return null;
+	}
+	
+	public IPlaylistSubscriberStream newPlaylistSubscriberStream(int streamId) {
 		if (!reservedStreams[streamId - 1])
 			// StreamId has not been reserved before
 			return null;
@@ -169,43 +161,24 @@ public abstract class RTMPConnection extends BaseConnection
 			// Another stream already exists with this id
 			return null;
 		
-		IBroadcastStreamService service = (IBroadcastStreamService) getScopeService(scope, IBroadcastStreamService.BROADCAST_STREAM_SERVICE, StreamService.class);
-		SubscriberStream result = new SubscriberStream(getScope(), this);
-		result.setStreamId(streamId);
-		result.setDownstream(createOutputStream(streamId));
-		final IBroadcastStream broadcast = service.getBroadcastStream(scope, name);
-		broadcast.subscribe(result);
-		streams[streamId - 1] = result;
-		return result;
+		PlaylistSubscriberStream pss = new PlaylistSubscriberStream();
+		pss.setName(createStreamName());
+		pss.setConnection(this);
+		pss.setScope(this.getScope());
+		pss.setStreamId(streamId);
+		pss.start();
+		streams[streamId - 1] = pss;
+		return pss;
 	}
 	
-	public IOnDemandStream newOnDemandStream(String name, int streamId) {
-		if (!reservedStreams[streamId - 1])
-			// StreamId has not been reserved before
-			return null;
-		
-		if (streams[streamId - 1] != null)
-			// Another stream already exists with this id
-			return null;
-	
-		IOnDemandStreamService service = (IOnDemandStreamService) getScopeService(scope, IOnDemandStreamService.ON_DEMAND_STREAM_SERVICE, StreamService.class);
-		final IOnDemandStream stream = service.getOnDemandStream(scope, name);
-		if (stream instanceof OnDemandStream) {
-			((OnDemandStream) stream).setStreamId(streamId);
-			((OnDemandStream) stream).setDownstream(createOutputStream(streamId));
-		}
-		streams[streamId - 1] = stream;
-		return stream;
-	}
-	
-	public IStream getStreamById(int id){
+	public IClientStream getStreamById(int id){
 		if (id <= 0 || id > MAX_STREAMS-1)
 			return null;
 		
 		return streams[id-1];
 	}
 	
-	public IStream getStreamByChannelId(byte channelId){
+	public IClientStream getStreamByChannelId(byte channelId){
 		if (channelId < 4)
 			return null;
 		
@@ -220,7 +193,7 @@ public abstract class RTMPConnection extends BaseConnection
 		if (streamService != null) {
 			synchronized (streams) {
 				for(int i=0; i<streams.length; i++){
-					IStream stream = streams[i];
+					IClientStream stream = streams[i];
 					if(stream != null) {
 						log.debug("Closing stream: "+ stream.getStreamId());
 						streamService.deleteStream(this, stream.getStreamId());
@@ -232,7 +205,7 @@ public abstract class RTMPConnection extends BaseConnection
 		super.close();
 	}
 	
-	public void deleteStreamById(int streamId) {
+	public void unreserveStreamId(int streamId) {
 		if (streamId >= 0 && streamId < MAX_STREAMS-1) {
 			streams[streamId-1] = null;
 			reservedStreams[streamId-1] = false;
@@ -294,35 +267,6 @@ public abstract class RTMPConnection extends BaseConnection
 	
 	protected String createStreamName() {
 		return UUID.randomUUID().toString();
-	}
-	
-	public ISubscriberStreamNew newSubscriberStreamNew(int streamId) {
-		if (!reservedStreams[streamId - 1])
-			// StreamId has not been reserved before
-			return null;
-		
-		if (streams[streamId - 1] != null)
-			// Another stream already exists with this id
-			return null;
-		
-		SubscriberStreamNew ss = new SubscriberStreamNew();
-		ss.setConnection(this);
-		ss.setName(createStreamName());
-		ss.setStreamId(streamId);
-		streams[streamId - 1] = ss;
-		return ss;
-	}
-	
-	public IBroadcastStreamNew newBroadcastStreamNew(int streamId) {
-		if (!reservedStreams[streamId - 1]) return null;
-		if (streams[streamId - 1] != null) return null;
-		
-		BroadcastStreamNew bs = new BroadcastStreamNew();
-		bs.setConnection(this);
-		bs.setName(createStreamName());
-		bs.setStreamId(streamId);
-		streams[streamId - 1] = bs;
-		return bs;
 	}
 	
 	protected void messageReceived() {

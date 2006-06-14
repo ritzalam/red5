@@ -1,6 +1,7 @@
 package org.red5.server.stream;
 
 import org.red5.server.api.IScope;
+import org.red5.server.api.stream.IBroadcastStream;
 import org.red5.server.api.stream.IBroadcastStreamNew;
 import org.red5.server.messaging.IMessageInput;
 import org.red5.server.messaging.IProvider;
@@ -33,5 +34,20 @@ public interface IProviderService {
 	 */
 	IMessageInput getVODProviderInput(IScope scope, String name);
 	
-	void registerLiveProvider(IScope scope, String name, IProvider provider);
+	/**
+	 * Register a broadcast stream to a scope.
+	 * @param scope
+	 * @param name
+	 * @param bs
+	 * @return <tt>true</tt> if register successfully.
+	 */
+	boolean registerBroadcastStream(IScope scope, String name, IBroadcastStream bs);
+
+	/**
+	 * Unregister a broadcast stream of a specific name from a scope.
+	 * @param scope
+	 * @param name
+	 * @return <tt>true</tt> if unregister successfully.
+	 */
+	boolean unregisterBroadcastStream(IScope scope, String name);
 }

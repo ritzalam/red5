@@ -1,7 +1,9 @@
 package org.red5.server.api.service;
 
+import org.red5.server.api.IConnection;
+
 // TODO: this should really extend IServiceInvoker
-public interface IServiceCapableConnection {
+public interface IServiceCapableConnection extends IConnection {
 	
 	public void invoke(IServiceCall call);
 	public void invoke(String method);

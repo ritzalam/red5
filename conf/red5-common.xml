@@ -45,16 +45,7 @@
     </bean>
     
     <!-- high level access to streams -->
-    <bean id="streamService" class="org.red5.server.stream.StreamServiceNew" />
-    
-    <!-- handles broadcast streams -->
-    <bean id="broadcastStreamService" class="org.red5.server.stream.StreamManager" />
-    
-    <!-- handles on-demand streams -->
-    <bean id="onDemandStreamService" class="org.red5.server.stream.StreamManager" />
-    
-    <!-- handles subsciber streams of broadcasts -->
-    <bean id="subscriberStreamService" class="org.red5.server.stream.StreamManager" />
+    <bean id="streamService" class="org.red5.server.stream.StreamService" />
     
     <bean id="providerService" class="org.red5.server.stream.ProviderService" />
     

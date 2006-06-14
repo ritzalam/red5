@@ -14,6 +14,7 @@ import org.red5.io.StreamableFileFactory;
 import org.red5.io.flv.impl.Tag;
 import org.red5.server.api.IContext;
 import org.red5.server.api.IScope;
+import org.red5.server.api.stream.IClientStream;
 import org.red5.server.messaging.IMessage;
 import org.red5.server.messaging.IMessageComponent;
 import org.red5.server.messaging.IPipe;
@@ -22,7 +23,6 @@ import org.red5.server.messaging.IPushableConsumer;
 import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.messaging.PipeConnectionEvent;
 import org.red5.server.net.rtmp.message.Message;
-import org.red5.server.stream.Stream;
 import org.red5.server.stream.message.RTMPMessage;
 import org.springframework.context.ApplicationContext;
 
@@ -91,9 +91,9 @@ public class FileConsumer implements IPushableConsumer, IPipeConnectionListener 
 	private void init() throws IOException {
 		IStreamableFileService service = getFileFactory(scope).getService(file);
 		IStreamableFile flv = service.getStreamableFile(file);
-		if (mode == null || mode.equals(Stream.MODE_RECORD)) {
+		if (mode == null || mode.equals(IClientStream.MODE_RECORD)) {
 			writer = flv.getWriter();
-		} else if (mode.equals(Stream.MODE_APPEND)) {
+		} else if (mode.equals(IClientStream.MODE_APPEND)) {
 			writer = flv.getAppendWriter();
 		} else throw new IllegalStateException("illegal mode type: " + mode);
 	}
