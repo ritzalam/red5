@@ -6,7 +6,7 @@ import org.red5.server.api.stream.IPlaylistController;
 public class SimplePlaylistController implements IPlaylistController {
 
 	public int nextItem(IPlaylist playlist, int itemIndex) {
-		if (itemIndex < 0) return -1;
+		if (itemIndex < 0) itemIndex = -1;
 		int nextIndex = itemIndex + 1;
 		if (nextIndex < playlist.getItemSize()) {
 			return nextIndex;

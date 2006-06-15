@@ -309,8 +309,12 @@ implements IPlaylistSubscriberStream {
 		
 		private Timer timer;
 		private boolean isWaiting = false;
+		private int vodStartTS = 0;
 		
 		private IPlayItem currentItem;
+		private int currentVideoTS = 0;
+		private int currentAudioTS = 0;
+		private int currentDataTS = 0;
 		
 		public PlayEngine() {
 			state = State.UNINIT;
@@ -373,6 +377,7 @@ implements IPlaylistSubscriberStream {
 			if (decision == 2) liveInput = providerService.getLiveProviderInput(
 					thisScope, item.getName(), true);
 			currentItem = item;
+			sendResetPing();
 			switch (decision) {
 			case 0:
 				msgIn = liveInput;
@@ -396,13 +401,17 @@ implements IPlaylistSubscriberStream {
 			case 1:
 				msgIn = vodInput;
 				msgIn.subscribe(this, null);
-				sendVODInitCM(msgIn, item);
-				pullAndPush();
+
 				break;
 			default:
 				throw new StreamNotFoundException(item.getName());
 			}
 			state = State.PLAYING;
+			if (decision == 1) {
+				sendVODInitCM(msgIn, item);
+				vodStartTS = -1;
+				pullAndPush();
+			}
 		}
 		
 		synchronized public void pause(int position) throws IllegalStateException {
@@ -457,8 +466,26 @@ implements IPlaylistSubscriberStream {
 		}
 		
 		synchronized private void pullAndPush() {
-			if (state != State.PAUSED && isPullMode) {
+			if (state == State.PLAYING && isPullMode) {
 				IMessage msg = msgIn.pullMessage();
+				if (vodStartTS == -1) {
+					if (msg instanceof RTMPMessage) {
+						vodStartTS = ((RTMPMessage) msg).getBody().getTimestamp();
+						System.out.println("Init vodStartTS" + vodStartTS);
+					}
+				} else {
+					if (msg instanceof RTMPMessage) {
+						if (currentItem.getLength() >= 0) {
+							int diff = ((RTMPMessage) msg).getBody().getTimestamp() - vodStartTS;
+							System.out.println("vod length, " + currentItem.getLength() + " vod diff " + diff);
+							if (diff > currentItem.getLength()) {
+								// stop this item
+								state = State.STOPPED;
+								onItemEnd();
+							}
+						}
+					}
+				}
 				if (msg != null) msgOut.pushMessage(msg);
 			}
 		}
