@@ -13,6 +13,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.server.api.IContext;
+import org.red5.server.api.IScope;
+import org.red5.server.api.Red5;
 import org.red5.server.net.remoting.codec.RemotingCodecFactory;
 import org.red5.server.net.remoting.message.RemotingCall;
 import org.red5.server.net.remoting.message.RemotingPacket;
@@ -20,6 +22,13 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
+/**
+ * Servlet that handles remoting requests.
+ * 
+ * @author The Red5 Project (red5@osflash.org)
+ * @author Luke Hubbard (luke@codegent.com)
+ *
+ */
 public class AMFGatewayServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 7174018823796785619L;
@@ -59,7 +68,7 @@ public class AMFGatewayServlet extends HttpServlet {
 				log.error("Packet should not be null");
 				return;
 			}
-			handleRemotingPacket(packet);
+			handleRemotingPacket(req, packet);
 			resp.setStatus(HttpServletResponse.SC_OK);
 			resp.setContentType(APPLICATION_AMF);
 			sendResponse(resp, packet);
@@ -73,16 +82,26 @@ public class AMFGatewayServlet extends HttpServlet {
 		ByteBuffer reqBuffer = ByteBuffer.allocate(req.getContentLength());
 		ServletUtils.copy(req.getInputStream(),reqBuffer.asOutputStream());
 		reqBuffer.flip();
-		RemotingPacket packet = (RemotingPacket) codecFactory.getSimpleDecoder().decode(null, reqBuffer);	
+		RemotingPacket packet = (RemotingPacket) codecFactory.getSimpleDecoder().decode(null, reqBuffer);
+		String path = req.getContextPath();
+		if (req.getPathInfo() != null)
+			path += req.getPathInfo();
+		if (path.startsWith("/"))
+			path = path.substring(1);
+		packet.setScopePath(path);
 		reqBuffer.release();
 		return packet;
 	}
 
-	protected boolean handleRemotingPacket(RemotingPacket message){
+	protected boolean handleRemotingPacket(HttpServletRequest req, RemotingPacket message){
+		IScope scope = webContext.resolveScope(message.getScopePath());
+		// Provide a valid IConnection in the Red5 object
+		Red5.setConnectionLocal(new ServletConnection(req, scope));
+		
 		Iterator it = message.getCalls().iterator();
 		while(it.hasNext()){
 			RemotingCall call = (RemotingCall) it.next();
-			webContext.getServiceInvoker().invoke(call, webContext);
+			webContext.getServiceInvoker().invoke(call, scope);
 		}
 		return true;
 	}

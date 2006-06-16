@@ -2,6 +2,7 @@ package org.red5.server.net.remoting.codec;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -73,8 +74,8 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
     protected List decodeCalls(ByteBuffer in)  {
         log.debug("Decode calls");
         //in.getInt();
-    		List calls = new LinkedList();
-    		Input input = new Input(in);
+		List<RemotingCall> calls = new LinkedList<RemotingCall>();
+		Input input = new Input(in);
         int count = in.getUnsignedShort();
         log.debug("Calls: "+count);
         int limit = in.limit();
@@ -82,8 +83,8 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
         // Loop over all the body elements
         for (int i = 0; i < count; i++) {
             
-        		in.limit(limit);
-        	    input.reset();
+    		in.limit(limit);
+    	    input.reset();
         	    
             String serviceString = Input.getString(in);
             String clientCallback =  Input.getString(in);
@@ -91,7 +92,8 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
             int length = in.getInt();
            
             // set the limit and deserialize
-            in.limit(in.position()+length);
+            if (length != -1)
+            	in.limit(in.position()+length);
             Object value = deserializer.deserialize(input);
             
            // log.info(value);
@@ -100,19 +102,30 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
             String serviceMethod;
             int dotPos = serviceString.lastIndexOf(".");
             if(dotPos!=-1){
-            		serviceName = serviceString.substring(0, dotPos);
-            		serviceMethod = serviceString.substring(dotPos+1, serviceString.length());
+        		serviceName = serviceString.substring(0, dotPos);
+        		serviceMethod = serviceString.substring(dotPos+1, serviceString.length());
             } else {
-            		serviceName = serviceString;
-            		serviceMethod = "";
+        		serviceName = serviceString;
+        		serviceMethod = "";
             }
             
             log.info("Service: "+serviceName+" Method: "+serviceMethod);
             Object[] args = null;
             if(value instanceof Object[]){
-            		args = (Object[]) value;
+            	args = (Object[]) value;
+            } else if (value instanceof List) {
+            	List valueList = (List) value;
+            	args = new Object[valueList.size()];
+            	for (int j=0; j<valueList.size(); j++)
+            		args[j] = valueList.get(j);
+            } else if (value instanceof Set) {
+            	Set valueSet = (Set) value;
+            	args = new Object[valueSet.size()];
+            	int j=0;
+            	for (Object item: valueSet)
+            		args[j++] = item;
             } else {
-            		args = new Object[]{value};
+            	args = new Object[]{value};
             }
             
             for (int j = 0; j < args.length; j++) {
