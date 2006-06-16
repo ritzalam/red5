@@ -177,7 +177,13 @@ public interface IConnection extends ICoreObject {
 	 */
 	public IScope getScope();
 	
-	// XXX: is this used somewhere?
+	/**
+	 * Get the basic scopes this connection has subscribed.  This list will
+	 * contain the shared objects and broadcast streams the connection
+	 * connected to.
+	 * 
+	 * @return list of basic scopes
+	 */
 	public Iterator<IBasicScope> getBasicScopes();
 	
 }
