@@ -69,8 +69,6 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	public void saveAs(String name, boolean isAppend)
 			throws ResourceNotFoundException, ResourceExistException {
 		try {
-			if (name.startsWith("red5"))
-				name = "one/two/" + name;
 			IScope scope = getConnection().getScope();
 			Resource res = scope.getResource(getStreamFilename(name, ".flv"));
 			if (!isAppend && res.exists()) 
