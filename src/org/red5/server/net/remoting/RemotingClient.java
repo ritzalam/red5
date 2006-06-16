@@ -232,7 +232,28 @@ public class RemotingClient {
 	 *
 	 */
 	public void resetCredentials() {
-		headers.remove(RemotingHeader.CREDENTIALS);
+		removeHeader(RemotingHeader.CREDENTIALS);
+	}
+	
+	/**
+	 * Send an additional header to the server.
+	 * 
+	 * @param name
+	 * @param required
+	 * @param value
+	 */
+	public void addHeader(String name, boolean required, Object value) {
+		RemotingHeader header = new RemotingHeader(name, required, value);
+		headers.put(name, header);
+	}
+	
+	/**
+	 * Stop sending a given header.
+	 * 
+	 * @param name
+	 */
+	public void removeHeader(String name) {
+		headers.remove(name);
 	}
 	
 	/**
