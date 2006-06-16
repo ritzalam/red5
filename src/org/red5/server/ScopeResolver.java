@@ -26,6 +26,9 @@ public class ScopeResolver implements IScopeResolver {
 		final String[] parts = path.split("/");
 		for(int i=0; i < parts.length; i++){
 			final String room = parts[i];
+			if (room.equals(""))
+				// Skip empty path elements
+				continue;
 			if(scope.hasChildScope(room)){
 				scope = scope.getScope(room);
 			} else if(scope.createChildScope(room)){
