@@ -19,6 +19,9 @@ package org.red5.server.net.remoting;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpConnectionManager;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
@@ -60,6 +63,12 @@ public class RemotingClient {
 	/** Url to connect to. */
 	private String url;
 	
+	/** Additonal string to use while connecting. */
+	private String appendToUrl = "";
+	
+	/** Headers to send to the server. */
+	protected Map<String, RemotingHeader> headers = new HashMap<String, RemotingHeader>();
+	
 	/**
 	 * Create new remoting client for the given url.
 	 * 
@@ -94,14 +103,31 @@ public class RemotingClient {
 	private ByteBuffer encodeInvoke(String method, Object[] params) {
 		ByteBuffer result = ByteBuffer.allocate(1024);
 		result.setAutoExpand(true);
+		Output out = new Output(result);
+		
 		// XXX: which is the correct version?
 		result.putShort((short) 0);
-		// No headers
-		result.putShort((short) 0);
+		// Headers
+		result.putShort((short) headers.size());
+		for (RemotingHeader header: headers.values()) {
+			Output.putString(result, header.name);
+			result.put(header.required ? (byte) 0x01 : (byte) 0x00);
+			
+			ByteBuffer tmp = ByteBuffer.allocate(1024);
+			tmp.setAutoExpand(true);
+			Output tmpOut = new Output(tmp);
+			Serializer tmpSer = new Serializer();
+			tmpSer.serialize(tmpOut, header.data);
+			tmp.flip();
+			// Size of header data
+			result.putInt(tmp.limit());
+			// Header data
+			result.put(tmp);
+			tmp.release();
+		}
 		// One body
 		result.putShort((short) 1);
 		
-		Output out = new Output(result);
 		// Method name
 		Output.putString(result, method);
 		
@@ -130,21 +156,39 @@ public class RemotingClient {
 	}
 
 	/**
-	 * Skip any headers sent in the response.
+	 * Process any headers sent in the response.
 	 * 
 	 * @param in
 	 */
-	protected void skipHeaders(ByteBuffer in){
-		log.debug("Skip headers");
+	protected void processHeaders(ByteBuffer in){
 		int version = in.getUnsignedShort(); // skip the version
 		int count = in.getUnsignedShort();
-		log.debug("Version: "+version);
-		log.debug("Count: "+count);
-		for(int i=0; i<count; i++){
-			log.debug("Header: "+Input.getString(in));
-			boolean required = in.get() == 0x01;
-			log.debug("Required: "+required);
-			in.skip(in.getInt());
+		Deserializer deserializer = new Deserializer();
+		Input input = new Input(in);
+		for (int i=0; i<count; i++) {
+			String name = Input.getString(in);
+			boolean required = (in.get() == 0x01);
+			int len = in.getInt();
+			Object value = deserializer.deserialize(input);
+			
+			// XXX: this is pretty much untested!!!
+			if (name.equals(RemotingHeader.APPEND_TO_GATEWAY_URL)) {
+				// Append string to gateway url
+				appendToUrl = (String) value;
+			} else if (name.equals(RemotingHeader.REPLACE_GATEWAY_URL)) {
+				// Replace complete gateway url
+				url = (String) value;
+				// XXX: reset the <appendToUrl< here?
+			} else if (name.equals(RemotingHeader.PERSISTENT_HEADER)) {
+				// Send a new header with each following request
+				if (value instanceof Map) {
+					Map<String, Object> valueMap = (Map) value;
+					RemotingHeader header = new RemotingHeader((String) valueMap.get("name"), (Boolean) valueMap.get("mustUnderstand"), valueMap.get("data"));
+					headers.put(header.name, header);
+				} else
+					log.error("Expected Map but received " + value);
+			} else
+				log.warn("Unsupported remoting header \"" + name + "\" received with value " + value);
 		}
 	}
 	
@@ -155,8 +199,7 @@ public class RemotingClient {
 	 * @return
 	 */
 	private Object decodeResult(ByteBuffer data) {
-		// Skip headers, they are not supported yet.
-		skipHeaders(data);
+		processHeaders(data);
 		int count = data.getUnsignedShort();
 		if (count != 1)
 			throw new RuntimeException("Expected exactly one result but got " + count);
@@ -171,6 +214,28 @@ public class RemotingClient {
 	}
 	
 	/**
+	 * Send authentication data with each remoting request.
+	 * 
+	 * @param userid
+	 * @param password
+	 */
+	public void setCredentials(String userid, String password) {
+		Map<String, String> data = new HashMap<String, String>();
+		data.put("userid", userid);
+		data.put("password", password);
+		RemotingHeader header = new RemotingHeader(RemotingHeader.CREDENTIALS, true, data);
+		headers.put(RemotingHeader.CREDENTIALS, header);
+	}
+	
+	/**
+	 * Stop sending authentication data.
+	 *
+	 */
+	public void resetCredentials() {
+		headers.remove(RemotingHeader.CREDENTIALS);
+	}
+	
+	/**
 	 * Invoke a method on the remoting server.
 	 * 
 	 * @param method
@@ -178,7 +243,7 @@ public class RemotingClient {
 	 * @return
 	 */
 	public Object invokeMethod(String method, Object[] params) {
-		PostMethod post = new PostMethod(this.url);
+		PostMethod post = new PostMethod(this.url + appendToUrl);
 		ByteBuffer resultBuffer = null;
 		ByteBuffer data = encodeInvoke(method, params);
 		post.setRequestEntity(new InputStreamRequestEntity(data.asInputStream(), data.limit(), CONTENT_TYPE));
@@ -201,5 +266,6 @@ public class RemotingClient {
         }
         return null;
 	}
+	
 	
 }
