@@ -13,6 +13,7 @@ import org.red5.server.api.service.IServiceInvoker;
 import org.red5.server.exception.ScopeHandlerNotFoundException;
 import org.red5.server.service.ServiceNotFoundException;
 import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.access.ContextSingletonBeanFactoryLocator;
@@ -99,10 +100,14 @@ public class Context implements IContext, ApplicationContextAware {
 	}
 
 	public Object lookupService(String serviceName) {
-		serviceName = getMappingStrategy().mapServiceName(serviceName); 
-		Object bean = applicationContext.getBean(serviceName);
-		if(bean != null ) return bean;
-		else throw new ServiceNotFoundException(serviceName);
+		serviceName = getMappingStrategy().mapServiceName(serviceName);
+		try {
+			Object bean = applicationContext.getBean(serviceName);
+			if(bean != null ) return bean;
+			else throw new ServiceNotFoundException(serviceName);
+		} catch (NoSuchBeanDefinitionException err) {
+			throw new ServiceNotFoundException(serviceName);
+		}
 	}
 
 	/*

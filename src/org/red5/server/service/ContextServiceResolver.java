@@ -21,6 +21,7 @@ package org.red5.server.service;
  */
 
 import org.red5.server.api.IScope;
+import org.red5.server.service.ServiceNotFoundException;
 
 /**
  * Resolve services that have been configured in the context of a scope.
@@ -32,7 +33,12 @@ import org.red5.server.api.IScope;
 public class ContextServiceResolver implements IServiceResolver {
 
 	public Object resolveService(IScope scope, String serviceName) {
-		Object service = scope.getContext().lookupService(serviceName);
+		Object service;
+		try {
+			service = scope.getContext().lookupService(serviceName);
+		} catch (ServiceNotFoundException err) {
+			return null;
+		}
 		if (service != null)
 			return service;
 		
