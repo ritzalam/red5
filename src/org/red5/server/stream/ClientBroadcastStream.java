@@ -1,9 +1,12 @@
 package org.red5.server.stream;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.IScope;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.event.IEventDispatcher;
@@ -34,6 +37,8 @@ import org.springframework.core.io.Resource;
 public class ClientBroadcastStream extends AbstractClientStream implements
 		IClientBroadcastStream, IFilter, IPushableConsumer,
 		IPipeConnectionListener, IEventDispatcher {
+	
+	private static final Log log = LogFactory.getLog(ClientBroadcastStream.class);
 	private String publishedName;
 	
 	private IMessageOutput connMsgOut;
@@ -64,13 +69,27 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	public void saveAs(String name, boolean isAppend)
 			throws ResourceNotFoundException, ResourceExistException {
 		try {
+			if (name.startsWith("red5"))
+				name = "one/two/" + name;
 			IScope scope = getConnection().getScope();
 			Resource res = scope.getResource(getStreamFilename(name, ".flv"));
 			if (!isAppend && res.exists()) 
 				res.getFile().delete();
 			
-			if (!res.exists())
+			if (!res.exists()) {
+				// Make sure the destination directory exists
+				try {
+					String path = res.getFile().getAbsolutePath();
+					int slashPos = path.lastIndexOf(File.separator);
+					if (slashPos != -1)
+						path = path.substring(0, slashPos);
+					File tmp = new File(path);
+					tmp.mkdirs();
+				} catch (IOException err) {
+					log.error("Could not create destination directory.", err);
+				}
 				res = scope.getResource(getStreamDirectory()).createRelative(name + ".flv");
+			}
 			
 			if (!res.exists())
 				res.getFile().createNewFile();
