@@ -95,7 +95,11 @@ public class ConversionUtils {
 	}
 	
 	public static Object convert(Object source, Class target) throws ConversionException {
-		if(source == null || target == null) return null;
+		if(target==null) throw new ConversionException("Unable to perform conversion");
+		if(source==null) {
+			if(target.isPrimitive())  throw new ConversionException("Unable to convert null to primitive value");
+			return source;
+		}
 		if(target.isInstance(source)) return source;
 		if(target.isAssignableFrom(source.getClass())) return source;
 		if(target.isArray()) return convertToArray(source, target);

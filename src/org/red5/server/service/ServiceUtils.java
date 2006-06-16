@@ -46,7 +46,7 @@ public class ServiceUtils {
 			boolean valid = true;
 			Class[] paramTypes = method.getParameterTypes(); 
 			for (int j=0; j<args.length; j++) {
-				if (!args[j].getClass().equals(paramTypes[j])) {
+				if ((args[j]==null && paramTypes[j].isPrimitive()) || (args[j]!=null && !args[j].getClass().equals(paramTypes[j]))) {
 					valid = false;
 					break;
 				}
