@@ -1,5 +1,6 @@
 package org.red5.server.stream;
 
+import org.red5.server.BaseConnection;
 import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IContext;
@@ -35,14 +36,21 @@ public class StreamService implements IStreamService {
 		IConnection conn = Red5.getConnectionLocal();
 		if (!(conn instanceof IStreamCapableConnection)) return;
 		IStreamCapableConnection streamConn = (IStreamCapableConnection) conn;
-		IClientStream stream = streamConn.getStreamById(streamId);
-		if (stream != null) stream.close();
+		deleteStream(streamConn, streamId);
 	}
 	
 	public void deleteStream(IStreamCapableConnection conn, int streamId) {
 		IClientStream stream = conn.getStreamById(streamId);
 		conn.unreserveStreamId(streamId);
-		if (stream != null) stream.close();
+		if (stream != null) {
+			stream.close();
+			if (stream instanceof IClientBroadcastStream) {
+				IClientBroadcastStream bs = (IClientBroadcastStream) stream;
+				IBroadcastScope bsScope = getBroadcastScope(conn.getScope(), bs.getPublishedName());
+				if (bsScope != null && conn instanceof BaseConnection)
+					((BaseConnection) conn).unregisterBasicScope(bsScope);
+			}
+		}
 	}
 
 	public void pause(boolean pausePlayback, int position) {
@@ -116,6 +124,8 @@ public class StreamService implements IStreamService {
 			IBroadcastScope bsScope = getBroadcastScope(conn.getScope(), bs.getPublishedName());
 			if (bsScope != null) {
 				bsScope.unsubscribe(bs.getProvider());
+				if (conn instanceof BaseConnection)
+					((BaseConnection) conn).unregisterBasicScope(bsScope);
 			}
 		}
 	}
@@ -144,7 +154,11 @@ public class StreamService implements IStreamService {
 				IProviderService providerService = (IProviderService) context.getBean(IProviderService.KEY);
 				bs.setPublishedName(name);
 				// TODO handle registration failure
-				providerService.registerBroadcastStream(conn.getScope(), name, bs);
+				if (providerService.registerBroadcastStream(conn.getScope(), name, bs)) {
+					IBroadcastScope bsScope = getBroadcastScope(conn.getScope(), bs.getPublishedName());
+					if (conn instanceof BaseConnection)
+						((BaseConnection) conn).registerBasicScope(bsScope);
+				}
 			}
 		} catch (Exception e) {
 			// TODO report publish error

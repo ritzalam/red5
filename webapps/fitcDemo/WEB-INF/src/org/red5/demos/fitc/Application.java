@@ -1,6 +1,7 @@
 package org.red5.demos.fitc;
 
 import java.util.Iterator;
+import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -62,7 +63,7 @@ public class Application extends ApplicationAdapter implements IPendingServiceCa
 	 * Get streams. called from client
 	 * @return iterator of broadcast stream names
 	 */
-	public Iterator<String> getStreams(){
+	public List<String> getStreams(){
 		IConnection conn = Red5.getConnectionLocal();
 		return getBroadcastStreamNames(conn.getScope());
 	}
