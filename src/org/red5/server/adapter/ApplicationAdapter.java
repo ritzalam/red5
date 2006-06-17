@@ -29,6 +29,8 @@ import org.red5.server.api.stream.ISubscriberStreamService;
 import org.red5.server.exception.ClientRejectedException;
 import org.red5.server.scheduling.QuartzSchedulingService;
 import org.red5.server.so.SharedObjectService;
+import org.red5.server.stream.IProviderService;
+import org.red5.server.stream.ProviderService;
 import org.red5.server.stream.StreamService;
 
 public class ApplicationAdapter extends StatefulScopeWrappingAdapter
@@ -191,31 +193,34 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 	/* Wrapper around the stream interfaces */
 	
 	public boolean hasBroadcastStream(IScope scope, String name) {
-		IBroadcastStreamService service = (IBroadcastStreamService) getScopeService(scope, IBroadcastStreamService.BROADCAST_STREAM_SERVICE, StreamService.class); 
-		return service.hasBroadcastStream(scope, name);
+		IProviderService service = (IProviderService) getScopeService(scope, IProviderService.KEY, ProviderService.class); 
+		return (service.getLiveProviderInput(scope, name, false) != null);
 	}
 
 	public IBroadcastStream getBroadcastStream(IScope scope, String name) {
+		log.warn("This won't work until the refactoring of the streaming code is complete.");
 		IBroadcastStreamService service = (IBroadcastStreamService) getScopeService(scope, IBroadcastStreamService.BROADCAST_STREAM_SERVICE, StreamService.class); 
 		return service.getBroadcastStream(scope, name);
 	}
 	
-	public Iterator<String> getBroadcastStreamNames(IScope scope) {
-		IBroadcastStreamService service = (IBroadcastStreamService) getScopeService(scope, IBroadcastStreamService.BROADCAST_STREAM_SERVICE, StreamService.class); 
+	public List<String> getBroadcastStreamNames(IScope scope) {
+		IProviderService service = (IProviderService) getScopeService(scope, IProviderService.KEY, ProviderService.class); 
 		return service.getBroadcastStreamNames(scope);
 	}
 	
 	public boolean hasOnDemandStream(IScope scope, String name) {
-		IOnDemandStreamService service = (IOnDemandStreamService) getScopeService(scope, IOnDemandStreamService.ON_DEMAND_STREAM_SERVICE, StreamService.class); 
-		return service.hasOnDemandStream(scope, name);
+		IProviderService service = (IProviderService) getScopeService(scope, IProviderService.KEY, ProviderService.class); 
+		return (service.getVODProviderInput(scope, name) != null);
 	}
 
 	public IOnDemandStream getOnDemandStream(IScope scope, String name) {
+		log.warn("This won't work until the refactoring of the streaming code is complete.");
 		IOnDemandStreamService service = (IOnDemandStreamService) getScopeService(scope, IOnDemandStreamService.ON_DEMAND_STREAM_SERVICE, StreamService.class); 
 		return service.getOnDemandStream(scope, name);
 	}
 
 	public ISubscriberStream getSubscriberStream(IScope scope, String name) {
+		log.warn("This won't work until the refactoring of the streaming code is complete.");
 		ISubscriberStreamService service = (ISubscriberStreamService) getScopeService(scope, ISubscriberStreamService.SUBSCRIBER_STREAM_SERVICE, StreamService.class); 
 		return service.getSubscriberStream(scope, name);
 	}

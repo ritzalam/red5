@@ -1,6 +1,6 @@
 package org.red5.server.api.stream;
 
-import java.util.Iterator;
+import java.util.List;
 import org.red5.server.api.IScope;
 
 public interface IBroadcastStreamService {
@@ -36,7 +36,7 @@ public interface IBroadcastStreamService {
 	 * 			  the scope to search for streams
 	 * @return set containing all broadcast names
 	 */
-	public Iterator<String> getBroadcastStreamNames(IScope scope);
+	public List<String> getBroadcastStreamNames(IScope scope);
 	
 	
 }

@@ -1,5 +1,6 @@
 package org.red5.server.stream;
 
+import java.util.List;
 import org.red5.server.api.IScope;
 import org.red5.server.api.stream.IBroadcastStream;
 import org.red5.server.api.stream.IBroadcastStreamNew;
@@ -43,6 +44,13 @@ public interface IProviderService {
 	 */
 	boolean registerBroadcastStream(IScope scope, String name, IBroadcastStream bs);
 
+	/**
+	 * Get names of existing broadcast streams in a scope. 
+	 * @param scope
+	 * @return list of stream names 
+	 */
+	List<String> getBroadcastStreamNames(IScope scope);
+	
 	/**
 	 * Unregister a broadcast stream of a specific name from a scope.
 	 * @param scope

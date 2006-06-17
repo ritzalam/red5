@@ -2,6 +2,9 @@ package org.red5.server.stream;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IScope;
@@ -62,6 +65,19 @@ public class ProviderService implements IProviderService {
 				((IBroadcastScope) basicScope).subscribe(bs.getProvider(), null);
 				return true;
 			}
+		}
+	}
+
+	public List<String> getBroadcastStreamNames(IScope scope) {
+		synchronized (scope) {
+			// TODO: return result of "getBasicScopeNames" when the api has changed
+			//       to not return iterators
+			List<String> result = new ArrayList<String>();
+			Iterator<String> it = scope.getBasicScopeNames(IBroadcastScope.TYPE);
+			while (it.hasNext()) {
+				result.add(it.next());
+			}
+			return result;
 		}
 	}
 
