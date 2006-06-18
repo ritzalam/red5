@@ -25,9 +25,12 @@ import org.red5.server.messaging.IPipeConnectionListener;
 import org.red5.server.messaging.IPushableConsumer;
 import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.messaging.PipeConnectionEvent;
+import org.red5.server.net.rtmp.message.AudioData;
 import org.red5.server.net.rtmp.message.Message;
 import org.red5.server.net.rtmp.message.Ping;
+import org.red5.server.net.rtmp.message.Status;
 import org.red5.server.stream.message.RTMPMessage;
+import org.red5.server.stream.message.StatusMessage;
 
 public class PlaylistSubscriberStream extends AbstractClientStream
 implements IPlaylistSubscriberStream {
@@ -378,6 +381,8 @@ implements IPlaylistSubscriberStream {
 					thisScope, item.getName(), true);
 			currentItem = item;
 			sendResetPing();
+			sendResetStatus(item);
+			sendStartStatus(item);
 			switch (decision) {
 			case 0:
 				msgIn = liveInput;
@@ -418,7 +423,7 @@ implements IPlaylistSubscriberStream {
 			if (state != State.PLAYING) throw new IllegalStateException();
 			if (isPullMode) {
 				state = State.PAUSED;
-				// TODO send pause notification
+				sendPauseStatus(currentItem);
 			}
 		}
 		
@@ -426,9 +431,9 @@ implements IPlaylistSubscriberStream {
 			if (state != State.PAUSED) throw new IllegalStateException();
 			if (isPullMode) {
 				state = State.PLAYING;
-				// TODO send resume notification
 				sendVODSeekCM(msgIn, position);
 				sendResetPing();
+				sendResumeStatus(currentItem);
 			}
 		}
 		
@@ -437,8 +442,9 @@ implements IPlaylistSubscriberStream {
 				throw new IllegalStateException();
 			}
 			if (isPullMode) {
-				// TODO send seek notification
 				sendResetPing();
+				sendSeekStatus(currentItem, position);
+				sendStartStatus(currentItem);
 				sendVODSeekCM(msgIn, position);
 			}
 		}
@@ -506,6 +512,66 @@ implements IPlaylistSubscriberStream {
 			RTMPMessage ping2Msg = new RTMPMessage();
 			ping2Msg.setBody(ping2);
 			msgOut.pushMessage(ping2Msg);
+			
+			AudioData blankAudio = new AudioData();
+			blankAudio.setTimestamp(0);
+			
+			RTMPMessage blankAudioMsg = new RTMPMessage();
+			blankAudioMsg.setBody(blankAudio);
+			msgOut.pushMessage(blankAudioMsg);
+		}
+		
+		private void sendResetStatus(IPlayItem item) {
+			Status reset = new Status(Status.NS_PLAY_RESET);
+			reset.setClientid(getStreamId());
+			reset.setDetails(item.getName());
+			reset.setDesciption("Playing and resetting " + item.getName() + ".");
+			
+			StatusMessage resetMsg = new StatusMessage();
+			resetMsg.setBody(reset);
+			msgOut.pushMessage(resetMsg);
+		}
+		
+		private void sendStartStatus(IPlayItem item) {
+			Status start = new Status(Status.NS_PLAY_START);
+			start.setClientid(getStreamId());
+			start.setDetails(item.getName());
+			start.setDesciption("Started playing " + item.getName() + ".");
+			
+			StatusMessage startMsg = new StatusMessage();
+			startMsg.setBody(start);
+			msgOut.pushMessage(startMsg);
+		}
+		
+		private void sendSeekStatus(IPlayItem item, int position) {
+			Status seek = new Status(Status.NS_SEEK_NOTIFY);
+			seek.setClientid(getStreamId());
+			seek.setDetails(item.getName());
+			seek.setDesciption("Seeking " + position + " (stream ID: " + getStreamId() + ").");
+			
+			StatusMessage seekMsg = new StatusMessage();
+			seekMsg.setBody(seek);
+			msgOut.pushMessage(seekMsg);
+		}
+		
+		private void sendPauseStatus(IPlayItem item) {
+			Status pause = new Status(Status.NS_PAUSE_NOTIFY);
+			pause.setClientid(getStreamId());
+			pause.setDetails(item.getName());
+			
+			StatusMessage pauseMsg = new StatusMessage();
+			pauseMsg.setBody(pause);
+			msgOut.pushMessage(pauseMsg);
+		}
+		
+		private void sendResumeStatus(IPlayItem item) {
+			Status resume = new Status(Status.NS_UNPAUSE_NOTIFY);
+			resume.setClientid(getStreamId());
+			resume.setDetails(item.getName());
+			
+			StatusMessage resumeMsg = new StatusMessage();
+			resumeMsg.setBody(resume);
+			msgOut.pushMessage(resumeMsg);
 		}
 		
 		private void sendVODInitCM(IMessageInput msgIn, IPlayItem item) {

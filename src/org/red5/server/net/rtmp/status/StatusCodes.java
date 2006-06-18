@@ -35,6 +35,9 @@ public interface StatusCodes {
 	
 	public static final String NS_SEEK_NOTIFY = "NetStream.Seek.Notify";
 	
+	public static final String NS_PAUSE_NOTIFY = "NetStream.Pause.Notify";
+	public static final String NS_UNPAUSE_NOTIFY = "NetStream.Unpause.Notify";
+	
 	public static final String NS_DATA_START = "NetStream.Data.Start";
 	
 	public static final String APP_SCRIPT_ERROR = "Application.Script.Error";
