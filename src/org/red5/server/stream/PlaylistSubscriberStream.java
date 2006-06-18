@@ -383,6 +383,7 @@ implements IPlaylistSubscriberStream {
 			sendResetPing();
 			sendResetStatus(item);
 			sendStartStatus(item);
+			sendBlankAudio();
 			switch (decision) {
 			case 0:
 				msgIn = liveInput;
@@ -434,6 +435,7 @@ implements IPlaylistSubscriberStream {
 				sendVODSeekCM(msgIn, position);
 				sendResetPing();
 				sendResumeStatus(currentItem);
+				sendBlankAudio();
 			}
 		}
 		
@@ -445,6 +447,7 @@ implements IPlaylistSubscriberStream {
 				sendResetPing();
 				sendSeekStatus(currentItem, position);
 				sendStartStatus(currentItem);
+				sendBlankAudio();
 				sendVODSeekCM(msgIn, position);
 			}
 		}
@@ -512,7 +515,9 @@ implements IPlaylistSubscriberStream {
 			RTMPMessage ping2Msg = new RTMPMessage();
 			ping2Msg.setBody(ping2);
 			msgOut.pushMessage(ping2Msg);
-			
+		}
+		
+		private void sendBlankAudio() {
 			AudioData blankAudio = new AudioData();
 			blankAudio.setTimestamp(0);
 			
