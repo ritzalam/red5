@@ -33,6 +33,8 @@ public interface StatusCodes {
 	public static final String NS_PLAY_PUBLISHNOTIFY = "NetStream.Play.PublishNotify";
 	public static final String NS_PLAY_UNPUBLISHNOTIFY = "NetStream.Play.UnpublishNotify";
 	
+	public static final String NS_SEEK_NOTIFY = "NetStream.Seek.Notify";
+	
 	public static final String NS_DATA_START = "NetStream.Data.Start";
 	
 	public static final String APP_SCRIPT_ERROR = "Application.Script.Error";
