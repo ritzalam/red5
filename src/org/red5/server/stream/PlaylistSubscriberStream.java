@@ -543,6 +543,16 @@ implements IPlaylistSubscriberStream {
 			msgOut.pushMessage(startMsg);
 		}
 		
+		private void sendStopStatus(IPlayItem item) {
+			Status stop = new Status(Status.NS_PLAY_STOP);
+			stop.setClientid(getStreamId());
+			stop.setDetails(item.getName());
+			
+			StatusMessage stopMsg = new StatusMessage();
+			stopMsg.setBody(stop);
+			msgOut.pushMessage(stopMsg);
+		}
+		
 		private void sendSeekStatus(IPlayItem item, int position) {
 			Status seek = new Status(Status.NS_SEEK_NOTIFY);
 			seek.setClientid(getStreamId());
@@ -572,6 +582,16 @@ implements IPlaylistSubscriberStream {
 			StatusMessage resumeMsg = new StatusMessage();
 			resumeMsg.setBody(resume);
 			msgOut.pushMessage(resumeMsg);
+		}
+		
+		private void sendUnpublishedStatus(IPlayItem item) {
+			Status unpublished = new Status(Status.NS_PLAY_UNPUBLISHNOTIFY);
+			unpublished.setClientid(getStreamId());
+			unpublished.setDetails(item.getName());
+			
+			StatusMessage unpublishedMsg = new StatusMessage();
+			unpublishedMsg.setBody(unpublished);
+			msgOut.pushMessage(unpublishedMsg);
 		}
 		
 		private void sendVODInitCM(IMessageInput msgIn, IPlayItem item) {
@@ -612,6 +632,10 @@ implements IPlaylistSubscriberStream {
 				}
 				break;
 			case PipeConnectionEvent.PROVIDER_DISCONNECT:
+				if (isPullMode)
+					sendStopStatus(currentItem);
+				else
+					sendUnpublishedStatus(currentItem);
 				break;
 			case PipeConnectionEvent.CONSUMER_CONNECT_PULL:
 				if (event.getConsumer() == this) {
