@@ -127,6 +127,7 @@ public class StreamService implements IStreamService {
 				if (conn instanceof BaseConnection)
 					((BaseConnection) conn).unregisterBasicScope(bsScope);
 			}
+			bs.close();
 		}
 	}
 
