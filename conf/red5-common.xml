@@ -52,4 +52,12 @@
     <bean id="consumerService" class="org.red5.server.stream.ConsumerService" />
     
     <bean id="schedulingService" class="org.red5.server.scheduling.QuartzSchedulingService" />
+    
+    <!-- threadpool settings for the remoting clients -->
+    <bean id="remotingPool" class="org.mortbay.thread.BoundedThreadPool"
+          init-method="start">
+        <property name="minThreads" value="4" />
+        <property name="maxThreads" value="16" />
+    </bean>
+    
 </beans>

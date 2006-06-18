@@ -30,11 +30,14 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
+import org.mortbay.thread.ThreadPool;
 
 import org.red5.io.amf.Input;
 import org.red5.io.amf.Output;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Serializer;
+import org.red5.server.api.IScope;
+import org.red5.server.api.Red5;
 import org.red5.server.net.servlet.ServletUtils;
 
 /**
@@ -54,6 +57,9 @@ public class RemotingClient {
 	/** Content type for HTTP requests. */
 	private static final String CONTENT_TYPE = "application/x-amf";
 
+	/** Name of the bean defining the thread pool. */
+	private static final String POOL_BEAN_ID = "remotingPool";
+	
 	/** Manages HTTP connections. */
 	private static HttpConnectionManager connectionMgr = new MultiThreadedHttpConnectionManager();
 	
@@ -100,7 +106,7 @@ public class RemotingClient {
 	 * @param params
 	 * @return
 	 */
-	private ByteBuffer encodeInvoke(String method, Object[] params) {
+	private synchronized ByteBuffer encodeInvoke(String method, Object[] params) {
 		ByteBuffer result = ByteBuffer.allocate(1024);
 		result.setAutoExpand(true);
 		Output out = new Output(result);
@@ -198,7 +204,7 @@ public class RemotingClient {
 	 * @param data
 	 * @return
 	 */
-	private Object decodeResult(ByteBuffer data) {
+	private synchronized Object decodeResult(ByteBuffer data) {
 		processHeaders(data);
 		int count = data.getUnsignedShort();
 		if (count != 1)
@@ -219,7 +225,7 @@ public class RemotingClient {
 	 * @param userid
 	 * @param password
 	 */
-	public void setCredentials(String userid, String password) {
+	public synchronized void setCredentials(String userid, String password) {
 		Map<String, String> data = new HashMap<String, String>();
 		data.put("userid", userid);
 		data.put("password", password);
@@ -231,7 +237,7 @@ public class RemotingClient {
 	 * Stop sending authentication data.
 	 *
 	 */
-	public void resetCredentials() {
+	public synchronized void resetCredentials() {
 		removeHeader(RemotingHeader.CREDENTIALS);
 	}
 	
@@ -242,7 +248,7 @@ public class RemotingClient {
 	 * @param required
 	 * @param value
 	 */
-	public void addHeader(String name, boolean required, Object value) {
+	public synchronized void addHeader(String name, boolean required, Object value) {
 		RemotingHeader header = new RemotingHeader(name, required, value);
 		headers.put(name, header);
 	}
@@ -252,12 +258,12 @@ public class RemotingClient {
 	 * 
 	 * @param name
 	 */
-	public void removeHeader(String name) {
+	public synchronized void removeHeader(String name) {
 		headers.remove(name);
 	}
 	
 	/**
-	 * Invoke a method on the remoting server.
+	 * Invoke a method synchronously on the remoting server.
 	 * 
 	 * @param method
 	 * @param params
@@ -288,5 +294,46 @@ public class RemotingClient {
         return null;
 	}
 	
+	/**
+	 * Invoke a method asynchronously on the remoting server.
+	 * 
+	 * @param method
+	 * @param params
+	 * @param callback
+	 */
+	public void invokeMethod(String method, Object[] params, IRemotingCallback callback) {
+		IScope scope = Red5.getConnectionLocal().getScope();
+		RemotingWorker worker = new RemotingWorker(this, method, params, callback);
+		
+		ThreadPool pool = (ThreadPool) scope.getContext().getBean(POOL_BEAN_ID);
+		pool.dispatch(worker);
+	}
+	
+	/**
+	 * Worker class that is used for asynchronous remoting calls.
+	 */
+	protected class RemotingWorker implements Runnable {
+		
+		protected RemotingClient client;
+		protected String method;
+		protected Object[] params;
+		protected IRemotingCallback callback;
+		
+		protected RemotingWorker(RemotingClient client, String method, Object[] params, IRemotingCallback callback) {
+			this.client = client;
+			this.method = method;
+			this.params = params;
+			this.callback = callback;
+		}
+		
+		public void run() {
+			try {
+				Object result = this.client.invokeMethod(method, params);
+				this.callback.resultReceived(this.client, method, params, result);
+			} catch (Exception err) {
+				this.callback.errorReceived(this.client, method, params, err);
+			}
+		}
+	}
 	
 }
