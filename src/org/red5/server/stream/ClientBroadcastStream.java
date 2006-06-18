@@ -161,6 +161,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			break;
 		case PipeConnectionEvent.PROVIDER_DISCONNECT:
 			if (this.livePipe == event.getSource()) {
+				sendStopNotify();
 				this.livePipe = null;
 			}
 			break;
@@ -177,6 +178,16 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		StatusMessage startMsg = new StatusMessage();
 		startMsg.setBody(start);
 		connMsgOut.pushMessage(startMsg);
+	}
+	
+	private void sendStopNotify() {
+		Status stop = new Status(Status.NS_UNPUBLISHED_SUCCESS);
+		stop.setClientid(getStreamId());
+		stop.setDetails(getName());
+		
+		StatusMessage stopMsg = new StatusMessage();
+		stopMsg.setBody(stop);
+		connMsgOut.pushMessage(stopMsg);
 	}
 	
 	private String getStreamDirectory() {
