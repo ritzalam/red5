@@ -30,6 +30,7 @@ import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.SchedulerFactory;
 import org.quartz.SimpleTrigger;
+import org.quartz.Trigger;
 import org.quartz.impl.StdSchedulerFactory;
 import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
@@ -64,22 +65,26 @@ public class QuartzSchedulingService implements ISchedulingService {
 		return result;
 	}
 	
-	public String addScheduledJob(int interval, IScheduledJob job) {
-		String result = getJobName();
-		
+	private void scheduleJob(String name, Trigger trigger, IScheduledJob job) {
 		// Store reference to applications job and service 
-		JobDetail jobDetail = new JobDetail(result, null, QuartzSchedulingServiceJob.class);
+		JobDetail jobDetail = new JobDetail(name, null, QuartzSchedulingServiceJob.class);
 		jobDetail.getJobDataMap().put(QuartzSchedulingServiceJob.SCHEDULING_SERVICE, this);
 		jobDetail.getJobDataMap().put(QuartzSchedulingServiceJob.SCHEDULED_JOB, job);
 		
-		// Create trigger that fires indefinitely every <interval> milliseconds
-		SimpleTrigger trigger = new SimpleTrigger("Trigger_" + result, null, new Date(),
-				null, SimpleTrigger.REPEAT_INDEFINITELY, interval);
 		try {
 			scheduler.scheduleJob(jobDetail, trigger);
 		} catch (SchedulerException ex) {
 			throw new RuntimeException(ex);
 		}
+	}
+	
+	public String addScheduledJob(int interval, IScheduledJob job) {
+		String result = getJobName();
+		
+		// Create trigger that fires indefinitely every <interval> milliseconds
+		SimpleTrigger trigger = new SimpleTrigger("Trigger_" + result, null, new Date(),
+				null, SimpleTrigger.REPEAT_INDEFINITELY, interval);
+		scheduleJob(result, trigger, job);
 		return result;
 	}
 
@@ -91,18 +96,9 @@ public class QuartzSchedulingService implements ISchedulingService {
 	public String addScheduledOnceJob(Date date, IScheduledJob job) {
 		String result = getJobName();
 		
-		// Store reference to applications job and service 
-		JobDetail jobDetail = new JobDetail(result, null, QuartzSchedulingServiceJob.class);
-		jobDetail.getJobDataMap().put(QuartzSchedulingServiceJob.SCHEDULING_SERVICE, this);
-		jobDetail.getJobDataMap().put(QuartzSchedulingServiceJob.SCHEDULED_JOB, job);
-		
 		// Create trigger that fires once at <date>
 		SimpleTrigger trigger = new SimpleTrigger("Trigger_" + result, null, date);
-		try {
-			scheduler.scheduleJob(jobDetail, trigger);
-		} catch (SchedulerException ex) {
-			throw new RuntimeException(ex);
-		}
+		scheduleJob(result, trigger, job);
 		return result;
 	}
 
