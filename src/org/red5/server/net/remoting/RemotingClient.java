@@ -35,6 +35,7 @@ import org.mortbay.thread.ThreadPool;
 import org.red5.io.amf.Input;
 import org.red5.io.amf.Output;
 import org.red5.io.object.Deserializer;
+import org.red5.io.object.RecordSet;
 import org.red5.io.object.Serializer;
 import org.red5.server.api.IScope;
 import org.red5.server.api.Red5;
@@ -282,7 +283,11 @@ public class RemotingClient {
             resultBuffer = ByteBuffer.allocate((int) post.getResponseContentLength());
             ServletUtils.copy(post.getResponseBodyAsStream(), resultBuffer.asOutputStream());
             resultBuffer.flip();
-            return decodeResult(resultBuffer);
+            Object result = decodeResult(resultBuffer);
+            if (result instanceof RecordSet)
+            	// Make sure we can retrieve paged results
+            	((RecordSet) result).setRemotingClient(this);
+            return result;
         } catch (Exception ex) {
         	log.error("Error while invoking remoting method.", ex);
         } finally {
