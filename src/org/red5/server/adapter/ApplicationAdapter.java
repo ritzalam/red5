@@ -4,6 +4,7 @@ import static org.red5.server.api.ScopeUtils.isApp;
 import static org.red5.server.api.ScopeUtils.isRoom;
 import static org.red5.server.api.ScopeUtils.getScopeService;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -225,25 +226,33 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 		return service.getSubscriberStream(scope, name);
 	}
 	
-	/* Wrapper around ISchedulingService */
-	
+	/*
+	 * Wrapper around ISchedulingService
+	 * 
+	 * NOTE: We store this service in the scope as it can be
+	 * shared across all rooms of the applications.
+	 */
 	public String addScheduledJob(int interval, IScheduledJob job) {
-		// NOTE: We store this service in the scope as it can be
-		//       shared across all rooms of the applications.
 		ISchedulingService service = (ISchedulingService) getScopeService(scope, ISchedulingService.SCHEDULING_SERVICE, QuartzSchedulingService.class);
 		return service.addScheduledJob(interval, job);
 	}
 
+	public String addScheduledOnceJob(long timeDelta, IScheduledJob job) {
+		ISchedulingService service = (ISchedulingService) getScopeService(scope, ISchedulingService.SCHEDULING_SERVICE, QuartzSchedulingService.class);
+		return service.addScheduledOnceJob(timeDelta, job);
+	}
+	
+	public String addScheduledOnceJob(Date date, IScheduledJob job) {
+		ISchedulingService service = (ISchedulingService) getScopeService(scope, ISchedulingService.SCHEDULING_SERVICE, QuartzSchedulingService.class);
+		return service.addScheduledOnceJob(date, job);
+	}
+
 	public void removeScheduledJob(String name) {
-		// NOTE: We store this service in the scope as it can be
-		//       shared across all rooms of the applications.
 		ISchedulingService service = (ISchedulingService) getScopeService(scope, ISchedulingService.SCHEDULING_SERVICE, QuartzSchedulingService.class);
 		service.removeScheduledJob(name);
 	}
 	
 	public List<String> getScheduledJobNames() {
-		// NOTE: We store this service in the scope as it can be
-		//       shared across all rooms of the applications.
 		ISchedulingService service = (ISchedulingService) getScopeService(scope, ISchedulingService.SCHEDULING_SERVICE, QuartzSchedulingService.class);
 		return service.getScheduledJobNames();
 	}
