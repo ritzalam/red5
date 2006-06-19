@@ -43,8 +43,6 @@ public class ProviderService implements IProviderService {
 		} catch (IOException e) {}
 		if (file == null || !file.exists()) {
 			return null;
-		} else if (!file.exists()) {
-			return null;
 		}
 		IPipe pipe = new InMemoryPullPullPipe();
 		pipe.subscribe(new FileProvider(scope, file), null);
