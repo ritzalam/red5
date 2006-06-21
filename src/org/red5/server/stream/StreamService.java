@@ -67,6 +67,14 @@ public class StreamService implements IStreamService {
 			subscriberStream.resume(position);
 		}
 	}
+	
+	// "play" sometimes is called with "null" as last parameter.
+	public void play(String name, int start, int length, Object flushPlaylist) {
+		if (flushPlaylist instanceof Boolean)
+			play(name, start, length, ((Boolean) flushPlaylist).booleanValue());
+		else
+			play(name, start, length);
+	}
 
 	public void play(String name, int start, int length, boolean flushPlaylist) {
 		IConnection conn = Red5.getConnectionLocal();

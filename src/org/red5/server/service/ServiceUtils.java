@@ -7,6 +7,8 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.red5.server.api.IConnection;
+
 public class ServiceUtils {
 
 	private static final Log log = LogFactory.getLog(ServiceUtils.class);
@@ -61,6 +63,10 @@ public class ServiceUtils {
 			try {
 				method = (Method) methods.get(i);
 				params = ConversionUtils.convertParams(args, method.getParameterTypes());
+				if (args.length > 0 && (args[0] instanceof IConnection) && (!(params[0] instanceof IConnection)))
+					// Don't convert first IConnection parameter
+					continue;
+				
 				return new Object[]{method, params};
 			} catch (Exception ex){
 				log.debug("Parameter conversion failed for " + method);
@@ -109,6 +115,10 @@ public class ServiceUtils {
 			try {
 				method = (Method) methods.get(i);
 				params = ConversionUtils.convertParams(args, method.getParameterTypes());
+				if (argsList.size() > 0 && (argsList.get(0) instanceof IConnection) && (!(params[0] instanceof IConnection)))
+					// Don't convert first IConnection parameter
+					continue;
+				
 				return new Object[]{method, params};
 			} catch (Exception ex){
 				log.debug("Parameter conversion failed", ex);
