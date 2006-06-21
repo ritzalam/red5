@@ -319,8 +319,14 @@ implements IPlaylistSubscriberStream {
 		private int currentAudioTS = 0;
 		private int currentDataTS = 0;
 		
+		private PlayBuffer buffer;  // buffer used for VOD streaming
+		private RTMPMessage remainder;
+		
 		public PlayEngine() {
 			state = State.UNINIT;
+			// TODO make this configurable from API.
+			// 30KB buffer size.
+			buffer = new PlayBuffer(30*1024);
 		}
 		
 		synchronized public void start() {
@@ -364,9 +370,6 @@ implements IPlaylistSubscriberStream {
 				if (isPublishedStream) {
 					decision = 0;
 				} else {
-					// TODO: Wait for stream to be created until timeout, otherwise continue
-					// with next item in playlist (see Macromedia documentation)
-					// NOTE: For now we create a temporary stream
 					decision = 2;
 				}
 				break;
@@ -396,6 +399,7 @@ implements IPlaylistSubscriberStream {
 				msgIn = liveInput;
 				msgIn.subscribe(this, null);
 				isWaiting = true;
+				// TODO use scheduler service instead
 				timer.schedule(new TimerTask() {
 					@Override
 					public void run() {
@@ -414,6 +418,8 @@ implements IPlaylistSubscriberStream {
 			}
 			state = State.PLAYING;
 			if (decision == 1) {
+				buffer.clear();
+				remainder = null;
 				sendVODInitCM(msgIn, item);
 				vodStartTS = -1;
 				pullAndPush();
@@ -476,26 +482,31 @@ implements IPlaylistSubscriberStream {
 		
 		synchronized private void pullAndPush() {
 			if (state == State.PLAYING && isPullMode) {
-				IMessage msg = msgIn.pullMessage();
-				if (vodStartTS == -1) {
-					if (msg instanceof RTMPMessage) {
-						vodStartTS = ((RTMPMessage) msg).getBody().getTimestamp();
-						System.out.println("Init vodStartTS" + vodStartTS);
+				RTMPMessage rtmpMessage = buffer.takeMessage();
+				if (rtmpMessage == null) {
+					fillBuffer();
+					rtmpMessage = buffer.takeMessage();
+					if (rtmpMessage == null) {
+						// empty buffer after fill -- EOF in VOD
+						state = State.STOPPED;
+						onItemEnd();
+						return;
 					}
+				}
+				if (vodStartTS == -1) {
+					vodStartTS = rtmpMessage.getBody().getTimestamp();
 				} else {
-					if (msg instanceof RTMPMessage) {
-						if (currentItem.getLength() >= 0) {
-							int diff = ((RTMPMessage) msg).getBody().getTimestamp() - vodStartTS;
-							System.out.println("vod length, " + currentItem.getLength() + " vod diff " + diff);
-							if (diff > currentItem.getLength()) {
-								// stop this item
-								state = State.STOPPED;
-								onItemEnd();
-							}
+					if (currentItem.getLength() >= 0) {
+						int diff = rtmpMessage.getBody().getTimestamp() - vodStartTS;
+						if (diff > currentItem.getLength()) {
+							// we are reaching the length, stop the item.
+							state = State.STOPPED;
+							onItemEnd();
+							return;
 						}
 					}
 				}
-				if (msg != null) msgOut.pushMessage(msg);
+				msgOut.pushMessage(rtmpMessage);
 			}
 		}
 		
@@ -673,6 +684,32 @@ implements IPlaylistSubscriberStream {
 			onItemEnd();
 		}
 		
+		/**
+		 * Fill the play buffer.
+		 * @return <tt>false</tt> if not in pull mode or stream stopped or closed.
+		 */
+		synchronized private boolean fillBuffer() {
+			if (!isPullMode || (state != State.PLAYING && state != State.PAUSED)) {
+				return false;
+			}
+			boolean overflow = false;
+			IMessage message = null;
+			while (true) {
+				if (remainder != null) {
+					overflow = !buffer.putMessage(remainder);
+					if (overflow) return true;
+					remainder = null;
+				}
+				message = msgIn.pullMessage();
+				if (message == null) {
+					return true;
+				} else if (!(message instanceof RTMPMessage)) {
+					continue;
+				} else {
+					remainder = (RTMPMessage) message;
+				}
+			}
+		}
 	}
 	
 	private class StreamNotFoundException extends Exception {
