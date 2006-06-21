@@ -40,6 +40,7 @@ import org.apache.commons.beanutils.ConversionException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.io.object.Deserializer;
+import org.red5.server.api.IConnection;
 
 public class ConversionUtils {
 	
@@ -100,6 +101,7 @@ public class ConversionUtils {
 			if(target.isPrimitive())  throw new ConversionException("Unable to convert null to primitive value");
 			return source;
 		}
+		if(IConnection.class.isAssignableFrom(source.getClass()) && !target.equals(IConnection.class)) throw new ConversionException("IConnection must match exact.");
 		if(target.isInstance(source)) return source;
 		if(target.isAssignableFrom(source.getClass())) return source;
 		if(target.isArray()) return convertToArray(source, target);
