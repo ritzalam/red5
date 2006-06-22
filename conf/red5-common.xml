@@ -51,6 +51,9 @@
     
     <bean id="consumerService" class="org.red5.server.stream.ConsumerService" />
     
+    <bean id="TokenBucketService" class="org.red5.server.stream.TokenBucketService"
+	    init-method="init" />
+    
     <bean id="schedulingService" class="org.red5.server.scheduling.QuartzSchedulingService" />
     
     <!-- threadpool settings for the remoting clients -->
