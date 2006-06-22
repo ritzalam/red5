@@ -177,6 +177,8 @@ public class SharedObjectScope extends BasicScope
 	public void removeEventListener(IEventListener listener) {
 		so.unregister(listener);
 		super.removeEventListener(listener);
+		if (!so.isPersistentObject() && so.getListeners().isEmpty())
+			getParent().removeChildScope(this);
 		
 		Iterator<ISharedObjectListener> it = serverListeners.iterator();
 		while (it.hasNext()) {
