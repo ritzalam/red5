@@ -169,6 +169,7 @@ public class StreamService implements IStreamService {
 						((BaseConnection) conn).registerBasicScope(bsScope);
 				}
 			}
+			bs.start();
 		} catch (Exception e) {
 			// TODO report publish error
 		}

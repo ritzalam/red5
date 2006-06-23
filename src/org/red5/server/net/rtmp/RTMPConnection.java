@@ -141,7 +141,6 @@ public abstract class RTMPConnection extends BaseConnection
 		cbs.setConnection(this);
 		cbs.setName(createStreamName());
 		cbs.setScope(this.getScope());
-		cbs.start();
 
 		streams[streamId - 1] = cbs;
 		return cbs;

@@ -173,7 +173,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	private void sendStartNotify() {
 		Status start = new Status(Status.NS_PUBLISH_START);
 		start.setClientid(getStreamId());
-		start.setDetails(getName());
+		start.setDetails(getPublishedName());
 		
 		StatusMessage startMsg = new StatusMessage();
 		startMsg.setBody(start);
@@ -183,7 +183,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	private void sendStopNotify() {
 		Status stop = new Status(Status.NS_UNPUBLISHED_SUCCESS);
 		stop.setClientid(getStreamId());
-		stop.setDetails(getName());
+		stop.setDetails(getPublishedName());
 		
 		StatusMessage stopMsg = new StatusMessage();
 		stopMsg.setBody(stop);
