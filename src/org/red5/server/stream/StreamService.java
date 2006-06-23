@@ -165,6 +165,7 @@ public class StreamService implements IStreamService {
 				// TODO handle registration failure
 				if (providerService.registerBroadcastStream(conn.getScope(), name, bs)) {
 					IBroadcastScope bsScope = getBroadcastScope(conn.getScope(), bs.getPublishedName());
+					bsScope.setAttribute(IBroadcastScope.STREAM_ATTRIBUTE, bs);
 					if (conn instanceof BaseConnection)
 						((BaseConnection) conn).registerBasicScope(bsScope);
 				}

@@ -9,11 +9,14 @@ import java.util.TimerTask;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.mina.common.ByteBuffer;
 import org.red5.server.api.IContext;
 import org.red5.server.api.IScope;
+import org.red5.server.api.stream.IClientBroadcastStream;
 import org.red5.server.api.stream.IPlayItem;
 import org.red5.server.api.stream.IPlaylistController;
 import org.red5.server.api.stream.IPlaylistSubscriberStream;
+import org.red5.server.api.stream.IVideoStreamCodec;
 import org.red5.server.messaging.IFilter;
 import org.red5.server.messaging.IMessage;
 import org.red5.server.messaging.IMessageComponent;
@@ -29,6 +32,7 @@ import org.red5.server.net.rtmp.message.AudioData;
 import org.red5.server.net.rtmp.message.Message;
 import org.red5.server.net.rtmp.message.Ping;
 import org.red5.server.net.rtmp.message.Status;
+import org.red5.server.net.rtmp.message.VideoData;
 import org.red5.server.stream.ITokenBucket.ITokenBucketCallback;
 import org.red5.server.stream.message.RTMPMessage;
 import org.red5.server.stream.message.StatusMessage;
@@ -395,6 +399,26 @@ implements IPlaylistSubscriberStream {
 			switch (decision) {
 			case 0:
 				msgIn = liveInput;
+				if (msgIn instanceof IBroadcastScope) {
+					// Send initial keyframe
+					IClientBroadcastStream stream = (IClientBroadcastStream) ((IBroadcastScope) msgIn).getAttribute(IBroadcastScope.STREAM_ATTRIBUTE);
+					if (stream != null && stream.getCodecInfo() != null) {
+						IVideoStreamCodec videoCodec = stream.getCodecInfo().getVideoCodec();
+						if (videoCodec != null) {
+							ByteBuffer keyFrame = videoCodec.getKeyframe();
+							if (keyFrame != null) {
+								VideoData video = new VideoData();
+								video.setTimestamp(0);
+								video.setData(keyFrame);
+								video.setSealed(true);
+								
+								RTMPMessage videoMsg = new RTMPMessage();
+								videoMsg.setBody(video);
+								this.sendMessage(videoMsg);
+							}
+						}
+					}
+				}
 				msgIn.subscribe(this, null);
 				if (item.getLength() >= 0) {
 					timer.schedule(this, item.getLength());

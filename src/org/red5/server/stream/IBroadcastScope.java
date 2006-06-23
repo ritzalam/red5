@@ -5,4 +5,5 @@ import org.red5.server.messaging.IPipe;
 
 public interface IBroadcastScope extends IBasicScope, IPipe {
 	public static final String TYPE = "bs";
+	public static final String STREAM_ATTRIBUTE = TRANSIENT_PREFIX + "_publishing_stream";
 }

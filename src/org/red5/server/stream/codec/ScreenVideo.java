@@ -9,7 +9,7 @@ package org.red5.server.stream.codec;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
-import org.red5.server.stream.IVideoStreamCodec;
+import org.red5.server.api.stream.IVideoStreamCodec;
 
 public class ScreenVideo implements IVideoStreamCodec {
 

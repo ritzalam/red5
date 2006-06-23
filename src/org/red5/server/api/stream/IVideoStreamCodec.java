@@ -1,4 +1,4 @@
-package org.red5.server.stream;
+package org.red5.server.api.stream;
 
 import org.apache.mina.common.ByteBuffer;
 

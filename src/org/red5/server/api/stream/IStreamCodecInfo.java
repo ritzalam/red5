@@ -5,4 +5,5 @@ public interface IStreamCodecInfo {
 	boolean hasVideo();
 	String getAudioCodecName();
 	String getVideoCodecName();
+	IVideoStreamCodec getVideoCodec();
 }

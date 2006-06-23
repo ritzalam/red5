@@ -7,9 +7,11 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
+import org.red5.server.api.stream.IVideoStreamCodec;
 
 public class VideoCodecFactory {
 
+	public static final String KEY = "videoCodecFactory";
 	private Log log = LogFactory.getLog(VideoCodecFactory.class.getName());
 
 	private List codecs = new ArrayList();

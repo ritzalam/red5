@@ -11,6 +11,8 @@ import org.red5.server.api.IScope;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.event.IEventDispatcher;
 import org.red5.server.api.stream.IClientBroadcastStream;
+import org.red5.server.api.stream.IStreamCodecInfo;
+import org.red5.server.api.stream.IVideoStreamCodec;
 import org.red5.server.api.stream.ResourceExistException;
 import org.red5.server.api.stream.ResourceNotFoundException;
 import org.red5.server.messaging.IFilter;
@@ -28,6 +30,7 @@ import org.red5.server.net.rtmp.message.Message;
 import org.red5.server.net.rtmp.message.Notify;
 import org.red5.server.net.rtmp.message.Status;
 import org.red5.server.net.rtmp.message.VideoData;
+import org.red5.server.stream.codec.StreamCodecInfo;
 import org.red5.server.stream.consumer.FileConsumer;
 import org.red5.server.stream.message.RTMPMessage;
 import org.red5.server.stream.message.StatusMessage;
@@ -42,6 +45,8 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	private String publishedName;
 	
 	private IMessageOutput connMsgOut;
+	private VideoCodecFactory videoCodecFactory = null;
+	private boolean checkVideoCodec = false;
 	private IPipe livePipe;
 	private IPipe recordPipe;
 	
@@ -50,12 +55,19 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	public void start() {
 		IConsumerService consumerManager =
 			(IConsumerService) getScope().getContext().getBean(IConsumerService.KEY);
+		try {
+			videoCodecFactory = (VideoCodecFactory) getScope().getContext().getBean(VideoCodecFactory.KEY);
+			checkVideoCodec = true;
+		} catch (Exception err) {
+			log.warn("No video codec factory available.", err);
+		}
 		connMsgOut = consumerManager.getConsumerOutput(this);
 		recordPipe = new RefCountPushPushPipe();
 		Map<Object, Object> recordParamMap = new HashMap<Object, Object>();
 		recordParamMap.put("record", null);
 		recordPipe.subscribe((IProvider) this, recordParamMap);
 		startTime = System.currentTimeMillis();
+		setCodecInfo(new StreamCodecInfo());
 		sendStartNotify();
 	}
 
@@ -134,9 +146,31 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		
 		final Message message = (Message) obj;
 		long runTime = System.currentTimeMillis() - startTime;
+		IStreamCodecInfo codecInfo = getCodecInfo();
+		StreamCodecInfo streamCodec = null;
+		if (codecInfo instanceof StreamCodecInfo)
+			streamCodec = (StreamCodecInfo) codecInfo;
+		
 		if (message instanceof AudioData) {
 			message.setTimestamp((int)runTime);
+			if (streamCodec != null)
+				streamCodec.setHasAudio(true);
 		} else if (message instanceof VideoData) {
+			IVideoStreamCodec videoStreamCodec = null;
+			if (videoCodecFactory != null && checkVideoCodec) {
+				videoStreamCodec = videoCodecFactory.getVideoCodec(message.getData());
+				if (codecInfo instanceof StreamCodecInfo) {
+					((StreamCodecInfo) codecInfo).setVideoCodec(videoStreamCodec);
+				}
+				checkVideoCodec = false;
+			} else if (codecInfo != null)
+				videoStreamCodec = codecInfo.getVideoCodec();
+			
+			if (videoStreamCodec != null)
+				videoStreamCodec.addData(message.getData());
+			
+			if (streamCodec != null)
+				streamCodec.setHasVideo(true);
 			message.setTimestamp((int)runTime);
 		} else if (message instanceof Notify) {
 			message.setTimestamp((int)runTime);
