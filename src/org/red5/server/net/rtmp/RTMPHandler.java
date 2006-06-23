@@ -338,12 +338,7 @@ public class RTMPHandler
 		}
 		
 		if (invoke instanceof Invoke){
-			
-			if(call.getStatus() == Call.STATUS_SUCCESS_VOID ||
-				call.getStatus() == Call.STATUS_SUCCESS_NULL ){
-				log.debug("Method does not have return value, do not reply");
-				return;
-			}
+			// The client expects a result for the method call.
 			Invoke reply = new Invoke();
 			reply.setCall(call);
 			reply.setInvokeId(invoke.getInvokeId());

@@ -141,10 +141,10 @@ public class ServiceInvoker  implements IServiceInvoker {
 			} else {
 				result = method.invoke(service, params);
 				log.debug("result: "+result);
-				if (call instanceof IPendingServiceCall)
-					((IPendingServiceCall) call).setResult(result);
 				call.setStatus( result==null ? Call.STATUS_SUCCESS_NULL : Call.STATUS_SUCCESS_RESULT );
 			}
+			if (call instanceof IPendingServiceCall)
+				((IPendingServiceCall) call).setResult(result);
 		} catch (IllegalAccessException accessEx){
 			call.setException(accessEx);
 			call.setStatus(Call.STATUS_ACCESS_DENIED);
