@@ -165,7 +165,6 @@ public abstract class RTMPConnection extends BaseConnection
 		pss.setConnection(this);
 		pss.setScope(this.getScope());
 		pss.setStreamId(streamId);
-		pss.start();
 		streams[streamId - 1] = pss;
 		return pss;
 	}

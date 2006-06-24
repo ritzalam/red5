@@ -91,6 +91,7 @@ public class StreamService implements IStreamService {
 			bc.setAudioBandwidth(defaultAudioBandwidth);
 			bc.setVideoBandwidth(defaultVideoBandwidth);
 			stream.setBandwidthConfigure(bc);
+			stream.start();
 		}
 		if (!(stream instanceof ISubscriberStream)) return;
 		ISubscriberStream subscriberStream = (ISubscriberStream) stream;
@@ -159,6 +160,7 @@ public class StreamService implements IStreamService {
 			bc.setAudioBandwidth(defaultAudioBandwidth);
 			bc.setVideoBandwidth(defaultVideoBandwidth);
 			stream.setBandwidthConfigure(bc);
+			stream.start();
 		} else {
 			// already published
 			return;

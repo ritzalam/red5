@@ -552,7 +552,7 @@ implements IPlaylistSubscriberStream {
 							if (msg instanceof RTMPMessage) {
 								RTMPMessage rtmpMessage = (RTMPMessage) msg;
 								size = rtmpMessage.getBody().getData().limit();
-								Message message = pendingMessage.getBody();
+								Message message = rtmpMessage.getBody();
 								boolean toSend = true;
 								if (message instanceof VideoData) {
 									if (!videoBucket.acquireTokenNonblocking(size, this)) {
@@ -564,7 +564,7 @@ implements IPlaylistSubscriberStream {
 									}
 								}
 								if (toSend) {
-									sendMessage(pendingMessage);
+									sendMessage(rtmpMessage);
 								} else {
 									pendingMessage = rtmpMessage;
 								}
