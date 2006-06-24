@@ -1,7 +1,4 @@
-//import mx.events.EventDispatcher;
-
-//[CHRIS REVIEW: Instead of using the wildcard, I broke it down to what was specifically needed with the imports
-import com.blitzagency.events.EventBroadcaster;
+﻿import com.blitzagency.events.EventBroadcaster;
 import com.blitzagency.events.IStaticBroadcastable;
 
 /**
@@ -23,49 +20,42 @@ import com.blitzagency.events.IStaticBroadcastable;
  * @author Chris Allen	chris@cnmpro.com
  * @author John Grden 	neoRiley@gmail.com
  */
-//import com.blitzagency.xray.util.Flashout;
-
 class com.blitzagency.xray.util.XrayLoader implements IStaticBroadcastable
 {
-	private static var connector:MovieClip;
-	private static var containerMovie:MovieClip;
-	private static var componentSWFPath:String;
-	private static var loaded:Boolean;
-	private static var fpsMeter:Boolean;
-
-	private static var loader:XrayLoader;
-	
-	private var broadcaster:EventBroadcaster;
-	
 	/**
 	 * An event that is triggered once the xray
 	 * connector componet has fully loaded and is ready to use.
 	 */
-	[Event("xrayLoadComplete")]
-
+	public static var LOADCOMPLETE:String = "LoadComplete";
 	/**
 	 * An event that is triggered during the loading process of
 	 * the xray connector componet
 	 *
 	 * @param eventObject Object that contains {percentLoaded:percentLoaded}
 	 */
-	 [Event("onLoadProgress")]
-
+	public static var LOADPROGRESS:String = "LoadProgress";
+	
 	/**
 	 * An event that is triggered during the loading process of
 	 * the xray connector componet
 	 *
 	 * @param eventObject Object that contains {errorCode:errorCode}
 	 */
-	 [Event("xrayLoadError")]
+	public static var LOADERROR:String = "LoadError";
+	
+	private static var connector:MovieClip;
+	
+	private static var containerMovie:MovieClip;
+	
+	private static var componentSWFPath:String;
+	
+	private static var loaded:Boolean;
+	
+	private static var fpsMeter:Boolean;
 
-	/**
-	 * Loads the Xray connector component for use with the Xray interface.
-	 *
-	 * @param componentSWF 	String 		The relative path to the component SWF.
-	 * @param containerClip	MovieClip	The location as to where you want the
-	 * 									connector loaded.(default is _root)
-	 */
+	private static var loader:XrayLoader;
+	
+	private var broadcaster:EventBroadcaster; 
 	 
 	public static function trace()
 	{
@@ -81,7 +71,6 @@ class com.blitzagency.xray.util.XrayLoader implements IStaticBroadcastable
 	 *
 	 * tt() was created as a shortcut rather than typing out "trace".  It calls the exact same method that trace does.
 	 */
-
 	public static function tt()
 	{
 		if (loaded)
@@ -109,7 +98,6 @@ class com.blitzagency.xray.util.XrayLoader implements IStaticBroadcastable
 	 </pre>
 	 *
 	 */
-
 	public static function tf()
 	{
 		if (loaded)
@@ -118,12 +106,20 @@ class com.blitzagency.xray.util.XrayLoader implements IStaticBroadcastable
 		}
 	}
 	
-	public static function loadConnector(componentSWF:String, containerClip:MovieClip, showFPS:Boolean):Void
+	/**
+	 * Loads the Xray connector component for use with the Xray interface.
+	 *
+	 * @param componentSWF 	String 		The relative path to the component SWF.
+	 * @param containerClip	MovieClip	The location as to where you want the
+	 * 									connector loaded.(default is _root)
+	 * @param showFPS		Boolean		Show the current frames per second or not (default is false)
+	 */
+	public static function loadConnector(componentSWF:String, containerClip:MovieClip, showFPS:Boolean):MovieClip
 	{
 		componentSWFPath = componentSWF;
 		containerMovie = !containerClip ? _root : containerClip;
 		fpsMeter = showFPS;
-		loadXray();
+		return loadXray();
 	}
 	
 	public static function addEventListener(eventName:String, listener:Object, methodName:String):Void 
@@ -142,8 +138,6 @@ class com.blitzagency.xray.util.XrayLoader implements IStaticBroadcastable
 	
 	public function addSingletonEventListener(eventName:String, listener:Object, methodName:String):Void 
 	{
-		//[CHRIS REVIEW:  I added this check to create the new EventBroadcaster.  I also had to change 
-		// the reference in EventBroadcaster from IBroadcastable to IStaticBroadcastable - that's what made it light up.
 		if(broadcaster == undefined) broadcaster = new EventBroadcaster(this);
 		broadcaster.addEventListener(eventName, listener, methodName);
 	}
@@ -166,12 +160,13 @@ class com.blitzagency.xray.util.XrayLoader implements IStaticBroadcastable
 		loader.broadcastSingletonEvent(eventName, data);
 	}
 	
-	private static function loadXray():Void
+	private static function loadXray():MovieClip
 	{
-    	var loader:MovieClipLoader = new MovieClipLoader();
-    	connector = containerMovie.createEmptyMovieClip("__xrayConnector", containerMovie.getNextHighestDepth());
-    	loader.addListener(XrayLoader);
-    	loader.loadClip(componentSWFPath, connector);
+	    	var loader:MovieClipLoader = new MovieClipLoader();
+	    	connector = containerMovie.createEmptyMovieClip("__xrayConnector", containerMovie.getNextHighestDepth());
+	    	loader.addListener(XrayLoader);
+	    	loader.loadClip(componentSWFPath, connector);
+			return connector;
 	}
 
 	/**
@@ -183,23 +178,22 @@ class com.blitzagency.xray.util.XrayLoader implements IStaticBroadcastable
 	 * @type: String - event fired ("onLoadProgress")
 	 * @percentLoaded: Number - 0 thru 100 representing the downloaded amount
 	 */
-	private static function onLoadProgress(target_mc, loadedBytes, totalBytes)
+	private static function onLoadProgress(target_mc:MovieClip, loadedBytes:Number, totalBytes:Number)
 	{
 		var percentLoaded:Number = Math.floor((loadedBytes/totalBytes)*100);
 
-		XrayLoader.broadcastEvent("onLoadProgress", {type:"onLoadProgress", percentLoaded:percentLoaded});
+		XrayLoader.broadcastEvent(LOADPROGRESS, {type:LOADPROGRESS, percentLoaded:percentLoaded});
 	}
 
 	private static function onLoadInit(targetMC:MovieClip):Void
 	{
 		// initialize  connections
-		
 		_global.com.blitzagency.xray.Xray.initConnections();
 
 		if(fpsMeter) _global.com.blitzagency.xray.Xray.createFPSMeter(targetMC);
 
 		//Dispatch Event
-		XrayLoader.broadcastEvent("LoadComplete", {type:"LoadComplete"});
+		XrayLoader.broadcastEvent(LOADCOMPLETE, {type:LOADCOMPLETE});
 	}
 
 	private static function onLoadComplete(targetMC:MovieClip):Void
@@ -209,6 +203,6 @@ class com.blitzagency.xray.util.XrayLoader implements IStaticBroadcastable
 
 	private static function onLoadError(targetMC:MovieClip, errorCode:String):Void
 	{
-		XrayLoader.broadcastEvent("LoadError", {type:"LoadError", errorCode:errorCode});
+		XrayLoader.broadcastEvent(LOADERROR, {type:LOADERROR, errorCode:errorCode});
 	}
 }
