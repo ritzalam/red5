@@ -37,6 +37,8 @@ import org.red5.server.stream.ITokenBucket.ITokenBucketCallback;
 import org.red5.server.stream.message.RTMPMessage;
 import org.red5.server.stream.message.StatusMessage;
 
+import sun.security.action.GetBooleanAction;
+
 public class PlaylistSubscriberStream extends AbstractClientStream
 implements IPlaylistSubscriberStream {
 	private static final Log log = LogFactory.getLog(PlaylistSubscriberStream.class);
@@ -307,6 +309,8 @@ implements IPlaylistSubscriberStream {
 	implements IFilter, IPushableConsumer, IPipeConnectionListener, ITokenBucketCallback {
 		// XXX shall we make this as a configurable property?
 		private static final long LIVE_WAIT_TIMEOUT = 5000;
+		private static final long AUDIO_CAPACITY = 100 * 1024;
+		private static final long VIDEO_CAPACITY = 100 * 1024;
 		
 		private State state;
 		
@@ -320,11 +324,9 @@ implements IPlaylistSubscriberStream {
 		private int vodStartTS = 0;
 		
 		private IPlayItem currentItem;
-		private int currentVideoTS = 0;
-		private int currentAudioTS = 0;
-		private int currentDataTS = 0;
 		
-		private ITokenBucket bucket;
+		private ITokenBucket audioBucket;
+		private ITokenBucket videoBucket;
 		private RTMPMessage pendingMessage;
 		
 		public PlayEngine() {
@@ -341,8 +343,8 @@ implements IPlaylistSubscriberStream {
 			timer = new Timer(true);
 			ITokenBucketService bucketService =
 				(ITokenBucketService) getScope().getContext().getBean(ITokenBucketService.KEY);
-			// TODO make this configurable via API
-			bucket = bucketService.createTokenBucket(100 * 1024, 100);
+			audioBucket = bucketService.createTokenBucket(AUDIO_CAPACITY, getBandwidthConfigure().getAudioBandwidth() * 1000 / 8);
+			videoBucket = bucketService.createTokenBucket(VIDEO_CAPACITY, getBandwidthConfigure().getVideoBandwidth() * 1000 / 8);
 		}
 		
 		synchronized public void play(IPlayItem item)
@@ -414,7 +416,7 @@ implements IPlaylistSubscriberStream {
 								
 								RTMPMessage videoMsg = new RTMPMessage();
 								videoMsg.setBody(video);
-								this.sendMessage(videoMsg);
+								msgOut.pushMessage(videoMsg);
 							}
 						}
 					}
@@ -465,6 +467,8 @@ implements IPlaylistSubscriberStream {
 			if (state != State.PAUSED) throw new IllegalStateException();
 			if (isPullMode) {
 				state = State.PLAYING;
+				audioBucket.reset();
+				videoBucket.reset();
 				sendVODSeekCM(msgIn, position);
 				sendResetPing();
 				sendResumeStatus(currentItem);
@@ -477,6 +481,8 @@ implements IPlaylistSubscriberStream {
 				throw new IllegalStateException();
 			}
 			if (isPullMode) {
+				audioBucket.reset();
+				videoBucket.reset();
 				sendResetPing();
 				sendSeekStatus(currentItem, position);
 				sendStartStatus(currentItem);
@@ -493,8 +499,10 @@ implements IPlaylistSubscriberStream {
 				msgIn.unsubscribe(this);
 				msgIn = null;
 			}
+			state = State.STOPPED;
 			timer.purge();
-			bucket.reset();
+			audioBucket.reset();
+			videoBucket.reset();
 		}
 		
 		synchronized public void close() {
@@ -508,7 +516,8 @@ implements IPlaylistSubscriberStream {
 			timer.cancel();
 			ITokenBucketService tbs =
 				(ITokenBucketService) getScope().getContext().getBean(ITokenBucketService.KEY);
-			tbs.removeTokenBucket(bucket);
+			tbs.removeTokenBucket(audioBucket);
+			tbs.removeTokenBucket(videoBucket);
 		}
 		
 		synchronized private void pullAndPush() {
@@ -516,7 +525,18 @@ implements IPlaylistSubscriberStream {
 				int size;
 				if (pendingMessage != null) {
 					size = pendingMessage.getBody().getData().limit();
-					if (bucket.acquireTokenNonblocking(size, this)) {
+					Message message = pendingMessage.getBody();
+					boolean toSend = true;
+					if (message instanceof VideoData) {
+						if (!videoBucket.acquireTokenNonblocking(size, this)) {
+							toSend = false;
+						}
+					} else if (message instanceof AudioData) {
+						if (!audioBucket.acquireTokenNonblocking(size, this)) {
+							toSend = false;
+						}
+					}
+					if (toSend) {
 						sendMessage(pendingMessage);
 						pendingMessage = null;
 					}
@@ -532,8 +552,19 @@ implements IPlaylistSubscriberStream {
 							if (msg instanceof RTMPMessage) {
 								RTMPMessage rtmpMessage = (RTMPMessage) msg;
 								size = rtmpMessage.getBody().getData().limit();
-								if (bucket.acquireTokenNonblocking(size, this)) {
-									sendMessage(rtmpMessage);
+								Message message = pendingMessage.getBody();
+								boolean toSend = true;
+								if (message instanceof VideoData) {
+									if (!videoBucket.acquireTokenNonblocking(size, this)) {
+										toSend = false;
+									}
+								} else if (message instanceof AudioData) {
+									if (!audioBucket.acquireTokenNonblocking(size, this)) {
+										toSend = false;
+									}
+								}
+								if (toSend) {
+									sendMessage(pendingMessage);
 								} else {
 									pendingMessage = rtmpMessage;
 								}
@@ -724,9 +755,15 @@ implements IPlaylistSubscriberStream {
 			if (message instanceof RTMPMessage) {
 				RTMPMessage rtmpMessage = (RTMPMessage) message;
 				int size = rtmpMessage.getBody().getData().limit();
-				if (!bucket.acquireToken(size, 0)) {
-					// drop the message
-					return;
+				Message body = rtmpMessage.getBody();
+				if (body instanceof VideoData) {
+					if (!videoBucket.acquireToken(size, 0)) {
+						return;
+					}
+				} else if (body instanceof AudioData) {
+					if (!audioBucket.acquireToken(size, 0)) {
+						return;
+					}
 				}
 			}
 			msgOut.pushMessage(message);
@@ -734,13 +771,7 @@ implements IPlaylistSubscriberStream {
 
 		@Override
 		public void run() {
-			synchronized (this) {
-				if (msgIn != null) {
-					msgIn.unsubscribe(this);
-					msgIn = null;
-				}
-				state = State.STOPPED;
-			}
+			stop();
 			onItemEnd();
 		}
 
