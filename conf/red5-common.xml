@@ -46,8 +46,8 @@
     
     <!-- high level access to streams -->
     <bean id="streamService" class="org.red5.server.stream.StreamService">
-    	<property name="defaultVideoBandwidth" value="102400" />
-    	<property name="defaultAudioBandwidth" value="51200" />
+    	<property name="defaultVideoBandwidth" value="500000" />
+    	<property name="defaultAudioBandwidth" value="200000" />
     </bean>
     
     <bean id="providerService" class="org.red5.server.stream.ProviderService" />

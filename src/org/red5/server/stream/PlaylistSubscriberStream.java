@@ -343,8 +343,8 @@ implements IPlaylistSubscriberStream {
 			timer = new Timer(true);
 			ITokenBucketService bucketService =
 				(ITokenBucketService) getScope().getContext().getBean(ITokenBucketService.KEY);
-			audioBucket = bucketService.createTokenBucket(AUDIO_CAPACITY, getBandwidthConfigure().getAudioBandwidth() * 1000 / 8);
-			videoBucket = bucketService.createTokenBucket(VIDEO_CAPACITY, getBandwidthConfigure().getVideoBandwidth() * 1000 / 8);
+			audioBucket = bucketService.createTokenBucket(AUDIO_CAPACITY, getBandwidthConfigure().getAudioBandwidth() / 1000 / 8);
+			videoBucket = bucketService.createTokenBucket(VIDEO_CAPACITY, getBandwidthConfigure().getVideoBandwidth() / 1000 / 8);
 		}
 		
 		synchronized public void play(IPlayItem item)
