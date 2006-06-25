@@ -12,6 +12,8 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.server.api.IContext;
 import org.red5.server.api.IScope;
+import org.red5.server.api.scheduling.IScheduledJob;
+import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.api.stream.IClientBroadcastStream;
 import org.red5.server.api.stream.IPlayItem;
 import org.red5.server.api.stream.IPlaylistController;
@@ -305,8 +307,9 @@ implements IPlaylistSubscriberStream {
 	/**
 	 * A play engine for playing an IPlayItem.
 	 */
-	private class PlayEngine extends TimerTask
-	implements IFilter, IPushableConsumer, IPipeConnectionListener, ITokenBucketCallback {
+	private class PlayEngine
+	implements IFilter, IPushableConsumer, IPipeConnectionListener,
+	ITokenBucketCallback, IScheduledJob {
 		// XXX shall we make this as a configurable property?
 		private static final long LIVE_WAIT_TIMEOUT = 5000;
 		private static final long AUDIO_CAPACITY = 100 * 1024;
@@ -319,7 +322,9 @@ implements IPlaylistSubscriberStream {
 		
 		private boolean isPullMode = false;
 		
-		private Timer timer;
+		private ISchedulingService schedulingService = null;
+		private String waitLiveJob;
+		private String liveLengthJob;
 		private boolean isWaiting = false;
 		private int vodStartTS = 0;
 		
@@ -336,11 +341,11 @@ implements IPlaylistSubscriberStream {
 		synchronized public void start() {
 			if (state != State.UNINIT) throw new IllegalStateException();
 			state = State.STOPPED;
+			schedulingService = (ISchedulingService) getScope().getContext().getBean(ISchedulingService.SCHEDULING_SERVICE);
 			IConsumerService consumerManager =
 				(IConsumerService) getScope().getContext().getBean(IConsumerService.KEY);
 			msgOut = consumerManager.getConsumerOutput(PlaylistSubscriberStream.this);
 			msgOut.subscribe(this, null);
-			timer = new Timer(true);
 			ITokenBucketService bucketService =
 				(ITokenBucketService) getScope().getContext().getBean(ITokenBucketService.KEY);
 			audioBucket = bucketService.createTokenBucket(AUDIO_CAPACITY, getBandwidthConfigure().getAudioBandwidth() / 1000 / 8);
@@ -423,20 +428,21 @@ implements IPlaylistSubscriberStream {
 				}
 				msgIn.subscribe(this, null);
 				if (item.getLength() >= 0) {
-					timer.schedule(this, item.getLength());
+					liveLengthJob = schedulingService.addScheduledOnceJob(item.getLength(), this);
 				}
 				break;
 			case 2:
 				msgIn = liveInput;
 				msgIn.subscribe(this, null);
 				isWaiting = true;
-				timer.schedule(new TimerTask() {
-					@Override
-					public void run() {
+				waitLiveJob = schedulingService.addScheduledOnceJob(LIVE_WAIT_TIMEOUT,
+						new IScheduledJob() {
+					public void execute(ISchedulingService service) {
+						waitLiveJob = null;
 						isWaiting = false;
 						onItemEnd();
 					}
-				}, LIVE_WAIT_TIMEOUT);
+				});
 				break;
 			case 1:
 				msgIn = vodInput;
@@ -500,7 +506,14 @@ implements IPlaylistSubscriberStream {
 				msgIn = null;
 			}
 			state = State.STOPPED;
-			timer.purge();
+			if (waitLiveJob != null) {
+				schedulingService.removeScheduledJob(waitLiveJob);
+				waitLiveJob = null;
+			}
+			if (liveLengthJob != null) {
+				schedulingService.removeScheduledJob(liveLengthJob);
+				liveLengthJob = null;
+			}
 			audioBucket.reset();
 			videoBucket.reset();
 		}
@@ -513,7 +526,14 @@ implements IPlaylistSubscriberStream {
 				}
 			}
 			state = State.CLOSED;
-			timer.cancel();
+			if (waitLiveJob != null) {
+				schedulingService.removeScheduledJob(waitLiveJob);
+				waitLiveJob = null;
+			}
+			if (liveLengthJob != null) {
+				schedulingService.removeScheduledJob(liveLengthJob);
+				liveLengthJob = null;
+			}
 			ITokenBucketService tbs =
 				(ITokenBucketService) getScope().getContext().getBean(ITokenBucketService.KEY);
 			tbs.removeTokenBucket(audioBucket);
@@ -722,9 +742,10 @@ implements IPlaylistSubscriberStream {
 			case PipeConnectionEvent.PROVIDER_CONNECT_PUSH:
 				if (event.getProvider() != this) {
 					if (isWaiting) {
-						timer.purge();
+						schedulingService.removeScheduledJob(waitLiveJob);
+						waitLiveJob = null;
 						if (currentItem.getLength() >= 0) {
-							timer.schedule(this, currentItem.getLength());
+							liveLengthJob = schedulingService.addScheduledOnceJob(currentItem.getLength(), this);
 						}
 						isWaiting = false;
 					}
@@ -769,8 +790,8 @@ implements IPlaylistSubscriberStream {
 			msgOut.pushMessage(message);
 		}
 
-		@Override
-		public void run() {
+		public void execute(ISchedulingService service) {
+			liveLengthJob = null;
 			stop();
 			onItemEnd();
 		}
