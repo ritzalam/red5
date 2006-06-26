@@ -30,8 +30,10 @@ public class AudioData extends BaseEvent implements IStreamData {
 	}
 	
 	public void release() {
-		if (data != null)
+		if (data != null) {
 			data.release();
+			data = null;
+		}
 		super.release();
 	}
 }

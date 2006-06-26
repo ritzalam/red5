@@ -31,8 +31,10 @@ public class Unknown extends BaseEvent {
 	}
 
 	public void release() {
-		if (data != null)
+		if (data != null) {
 			data.release();
+			data = null;
+		}
 		super.release();
 	}
 }
