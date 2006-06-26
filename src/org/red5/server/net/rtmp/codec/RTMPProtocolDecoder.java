@@ -317,6 +317,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder, IE
 			break;
 		}
 		message.setHeader(header);
+		message.setTimestamp(header.getTimer());
 		return message;
 	}
 	

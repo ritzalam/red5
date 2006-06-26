@@ -107,8 +107,6 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants, IE
 	public ByteBuffer encodeHeader(Header header, Header lastHeader){
 		
 		byte headerType = HEADER_NEW;
-		// XXX: disabled as it produces wrong timestamps during streaming
-		/*
 		if(lastHeader==null || header.getStreamId() != lastHeader.getStreamId()){
 			headerType = HEADER_NEW;
 		} else if(header.getSize() != lastHeader.getSize() || header.getDataType() != lastHeader.getDataType()){
@@ -117,7 +115,6 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants, IE
 			headerType = HEADER_TIMER_CHANGE;
 		} else
 			headerType = HEADER_CONTINUE;
-		*/
 		
 		final ByteBuffer buf = ByteBuffer.allocate(RTMPUtils.getHeaderLength(headerType));
 		final byte headerByte = RTMPUtils.encodeHeaderByte(headerType, header.getChannelId());

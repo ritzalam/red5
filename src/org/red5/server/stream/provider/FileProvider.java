@@ -46,6 +46,10 @@ implements IPassive, ISeekableProvider, IPullableProvider, IPipeConnectionListen
 	private ITagReader reader;
 	private KeyFrameMeta keyFrameMeta = null;
 	private int start = 0;
+	private int lastVideo = 0;
+	private int lastAudio = 0;
+	private int lastData = 0;
+	private int lastUnknown = 0;
 	
 	public FileProvider(IScope scope, File file) {
 		this.scope = scope;
@@ -66,25 +70,36 @@ implements IPassive, ISeekableProvider, IPullableProvider, IPipeConnectionListen
 		}
 		ITag tag = reader.readTag();
 		IRTMPEvent msg = null;
+		int delta;
 		switch(tag.getDataType()){
 		case Constants.TYPE_AUDIO_DATA:
 			msg = new AudioData(tag.getBody());
+			delta = tag.getTimestamp() - lastAudio;
+			lastAudio = tag.getTimestamp();
 			break;
 		case Constants.TYPE_VIDEO_DATA:
 			msg = new VideoData(tag.getBody());
+			delta = tag.getTimestamp() - lastVideo;
+			lastVideo = tag.getTimestamp();
 			break;
 		case Constants.TYPE_INVOKE:
 			msg = new Invoke(tag.getBody());
+			delta = tag.getTimestamp() - lastData;
+			lastData = tag.getTimestamp();
 			break;
 		case Constants.TYPE_NOTIFY:
 			msg = new Notify(tag.getBody());
+			delta = tag.getTimestamp() - lastData;
+			lastData = tag.getTimestamp();
 			break;
 		default:
 			log.warn("Unexpected type? "+tag.getDataType());
 			msg = new Unknown(tag.getDataType(), tag.getBody());
+			delta = tag.getTimestamp() - lastUnknown;
+			lastUnknown = tag.getTimestamp();
 			break;
 		}
-		msg.setTimestamp(tag.getTimestamp());
+		msg.setTimestamp(delta);
 		RTMPMessage rtmpMsg = new RTMPMessage();
 		rtmpMsg.setBody(msg);
 		return rtmpMsg;
@@ -185,6 +200,8 @@ implements IPassive, ISeekableProvider, IPullableProvider, IPipeConnectionListen
 			frame = i;
 		}
 		reader.position(keyFrameMeta.positions[frame]);
+		// TODO: better use distinct timestamps for audio/video/data?
+		lastAudio = lastVideo = lastData = lastUnknown = keyFrameMeta.timestamps[frame];
 		return keyFrameMeta.timestamps[frame];
 	}
 }
