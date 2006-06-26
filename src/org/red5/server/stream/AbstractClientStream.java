@@ -1,6 +1,7 @@
 package org.red5.server.stream;
 
-import org.red5.server.api.stream.IBandwidthConfigure;
+import org.red5.server.api.IBandwidthConfigure;
+import org.red5.server.api.IFlowControllable;
 import org.red5.server.api.stream.IClientStream;
 import org.red5.server.api.stream.IStreamCapableConnection;
 
@@ -26,6 +27,10 @@ public abstract class AbstractClientStream extends AbstractStream implements
 		this.bwConfig = config;
 	}
 	
+	public IFlowControllable getParentFlowControllable() {
+		return conn;
+	}
+
 	public void setStreamId(int streamId) {
 		this.streamId = streamId;
 	}

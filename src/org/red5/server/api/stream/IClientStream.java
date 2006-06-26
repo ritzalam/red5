@@ -1,11 +1,13 @@
 package org.red5.server.api.stream;
 
+import org.red5.server.api.IFlowControllable;
+
 /**
  * A stream that is bound to a client.
  * @author The Red5 Project (red5@osflash.org)
  * @author Steven Gong (steven.gong@gmail.com)
  */
-public interface IClientStream extends IStream {
+public interface IClientStream extends IStream, IFlowControllable {
 	public static final String MODE_READ = "read";
 	public static final String MODE_RECORD = "record";
 	public static final String MODE_APPEND = "append";
@@ -22,14 +24,4 @@ public interface IClientStream extends IStream {
 	 * @return
 	 */
 	IStreamCapableConnection getConnection();
-	
-	IBandwidthConfigure getBandwidthConfigure();
-	
-	/**
-	 * Set the Bandwidth Configuration.
-	 * For a subscriber, it controls down-stream Bandwidth.
-	 * For a broadcaster, it controls up-stream Bandwidth.
-	 * @param config
-	 */
-	void setBandwidthConfigure(IBandwidthConfigure config);
 }

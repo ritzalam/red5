@@ -11,7 +11,9 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.server.BaseConnection;
+import org.red5.server.api.IBandwidthConfigure;
 import org.red5.server.api.IContext;
+import org.red5.server.api.IFlowControllable;
 import org.red5.server.api.IScope;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IPendingServiceCallback;
@@ -32,6 +34,7 @@ import org.red5.server.net.rtmp.message.Packet;
 import org.red5.server.service.PendingCall;
 import org.red5.server.so.SharedObjectService;
 import org.red5.server.stream.ClientBroadcastStream;
+import org.red5.server.stream.IFlowControlService;
 import org.red5.server.stream.OutputStream;
 import org.red5.server.stream.PlaylistSubscriberStream;
 import org.red5.server.stream.StreamService;
@@ -54,6 +57,8 @@ public abstract class RTMPConnection extends BaseConnection
 	protected Integer invokeId = new Integer(1);
 	protected HashMap<Integer,IPendingServiceCall> pendingCalls = new HashMap<Integer,IPendingServiceCall>();
 	protected int lastPingTime = -1;
+	
+	private IBandwidthConfigure bandwidthConfig;
 
 	public RTMPConnection(String type) {
 		// We start with an anonymous connection without a scope.
@@ -201,6 +206,9 @@ public abstract class RTMPConnection extends BaseConnection
 			}
 		}
 		super.close();
+		IFlowControlService fcs = (IFlowControlService) getScope().getContext().getBean(
+				IFlowControlService.KEY);
+		fcs.unregisterFlowControllable(this);
 	}
 	
 	public void unreserveStreamId(int streamId) {
@@ -253,6 +261,43 @@ public abstract class RTMPConnection extends BaseConnection
 		invoke(call);
 	}
 	
+	public IBandwidthConfigure getBandwidthConfigure() {
+		return bandwidthConfig;
+	}
+
+	public IFlowControllable getParentFlowControllable() {
+		return this.getClient();
+	}
+
+	public void setBandwidthConfigure(IBandwidthConfigure config) {
+		IFlowControlService fcs = (IFlowControlService) getScope().getContext().getBean(
+				IFlowControlService.KEY);
+		boolean needRegister = false;
+		if (this.bandwidthConfig == null) {
+			if (config != null) {
+				needRegister = true;
+			} else return;
+		}
+		this.bandwidthConfig = config;
+		if (needRegister) {
+			fcs.registerFlowControllable(this);
+		} else {
+			fcs.updateBWConfigure(this);
+		}
+	}
+
+	@Override
+	public long getReadBytes() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public long getWrittenBytes() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
 	protected IPendingServiceCall getPendingCall(int invokeId) {
 		IPendingServiceCall result;
 		synchronized (pendingCalls) {

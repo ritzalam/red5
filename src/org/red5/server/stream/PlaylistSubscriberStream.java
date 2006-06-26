@@ -10,6 +10,7 @@ import java.util.TimerTask;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
+import org.red5.server.api.IBandwidthConfigure;
 import org.red5.server.api.IContext;
 import org.red5.server.api.IScope;
 import org.red5.server.api.scheduling.IScheduledJob;
@@ -267,6 +268,12 @@ implements IPlaylistSubscriberStream {
 		return items.size();
 	}
 	
+	@Override
+	public void setBandwidthConfigure(IBandwidthConfigure config) {
+		super.setBandwidthConfigure(config);
+		engine.updateBandwithConfigure();
+	}
+	
 	/**
 	 * Notified by RTMPHandler when a message has been sent.
 	 * Glue for old code base.
@@ -305,6 +312,7 @@ implements IPlaylistSubscriberStream {
 		nextItem();
 	}
 	
+	
 	/**
 	 * A play engine for playing an IPlayItem.
 	 */
@@ -331,6 +339,7 @@ implements IPlaylistSubscriberStream {
 		
 		private IPlayItem currentItem;
 		
+		private IFlowControlService flowControlService;
 		private ITokenBucket audioBucket;
 		private ITokenBucket videoBucket;
 		private RTMPMessage pendingMessage;
@@ -347,10 +356,11 @@ implements IPlaylistSubscriberStream {
 				(IConsumerService) getScope().getContext().getBean(IConsumerService.KEY);
 			msgOut = consumerManager.getConsumerOutput(PlaylistSubscriberStream.this);
 			msgOut.subscribe(this, null);
-			ITokenBucketService bucketService =
-				(ITokenBucketService) getScope().getContext().getBean(ITokenBucketService.KEY);
-			audioBucket = bucketService.createTokenBucket(AUDIO_CAPACITY, getBandwidthConfigure().getAudioBandwidth() / 1000 / 8);
-			videoBucket = bucketService.createTokenBucket(VIDEO_CAPACITY, getBandwidthConfigure().getVideoBandwidth() / 1000 / 8);
+			flowControlService =
+				(IFlowControlService) getScope().getContext().getBean(IFlowControlService.KEY);
+			flowControlService.registerFlowControllable(PlaylistSubscriberStream.this);
+			audioBucket = flowControlService.getAudioTokenBucket(PlaylistSubscriberStream.this);
+			videoBucket = flowControlService.getVideoTokenBucket(PlaylistSubscriberStream.this);
 		}
 		
 		synchronized public void play(IPlayItem item)
@@ -472,8 +482,7 @@ implements IPlaylistSubscriberStream {
 			if (state != State.PAUSED) throw new IllegalStateException();
 			if (isPullMode) {
 				state = State.PLAYING;
-				audioBucket.reset();
-				videoBucket.reset();
+				flowControlService.resetTokenBuckets(PlaylistSubscriberStream.this);
 				sendVODSeekCM(msgIn, position);
 				sendResetPing();
 				sendResumeStatus(currentItem);
@@ -486,8 +495,7 @@ implements IPlaylistSubscriberStream {
 				throw new IllegalStateException();
 			}
 			if (isPullMode) {
-				audioBucket.reset();
-				videoBucket.reset();
+				flowControlService.resetTokenBuckets(PlaylistSubscriberStream.this);
 				sendResetPing();
 				sendSeekStatus(currentItem, position);
 				sendStartStatus(currentItem);
@@ -513,8 +521,7 @@ implements IPlaylistSubscriberStream {
 				schedulingService.removeScheduledJob(liveLengthJob);
 				liveLengthJob = null;
 			}
-			audioBucket.reset();
-			videoBucket.reset();
+			flowControlService.resetTokenBuckets(PlaylistSubscriberStream.this);
 		}
 		
 		synchronized public void close() {
@@ -533,10 +540,7 @@ implements IPlaylistSubscriberStream {
 				schedulingService.removeScheduledJob(liveLengthJob);
 				liveLengthJob = null;
 			}
-			ITokenBucketService tbs =
-				(ITokenBucketService) getScope().getContext().getBean(ITokenBucketService.KEY);
-			tbs.removeTokenBucket(audioBucket);
-			tbs.removeTokenBucket(videoBucket);
+			flowControlService.unregisterFlowControllable(PlaylistSubscriberStream.this);
 		}
 		
 		synchronized private void pullAndPush() {
@@ -806,6 +810,10 @@ implements IPlaylistSubscriberStream {
 
 		public void run(ITokenBucket bucket, long tokenCount) {
 			pullAndPush();
+		}
+		
+		public void updateBandwithConfigure() {
+			flowControlService.updateBWConfigure(PlaylistSubscriberStream.this);
 		}
 		
 	}

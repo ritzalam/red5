@@ -1,6 +1,7 @@
 package org.red5.server.api.stream;
 
 import org.red5.server.api.IConnection;
+import org.red5.server.api.IFlowControllable;
 
 /**
  * A connection that supports streaming.
@@ -8,7 +9,7 @@ import org.red5.server.api.IConnection;
  * @author Luke Hubbard (luke@codegent.com)
  * @author Steven Gong (steven.gong@gmail.com)
  */
-public interface IStreamCapableConnection extends IConnection {
+public interface IStreamCapableConnection extends IConnection, IFlowControllable {
 
 	/**
 	 * Return a reserved stream id for use.

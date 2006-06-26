@@ -4,14 +4,18 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map.Entry;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.red5.server.api.IConnection;
+import org.red5.server.api.IBandwidthConfigure;
 import org.red5.server.api.IClient;
+import org.red5.server.api.IConnection;
+import org.red5.server.api.IContext;
+import org.red5.server.api.IFlowControllable;
 import org.red5.server.api.IScope;
+import org.red5.server.stream.IFlowControlService;
 
 public class Client extends AttributeStore  
 	implements IClient {
@@ -23,6 +27,8 @@ public class Client extends AttributeStore
 	protected long creationTime;
 	protected ClientRegistry registry;
 	protected HashMap<IConnection,IScope> connToScope = new HashMap<IConnection,IScope>();
+	
+	private IBandwidthConfigure bandwidthConfig;
 	
 	public Client(String id, ClientRegistry registry){
 		this.id = id;
@@ -74,8 +80,41 @@ public class Client extends AttributeStore
 		while(conns.hasNext()){
 			conns.next().close();
 		}
+		IContext context = getContextFromConnection();
+		if (context == null) return;
+		IFlowControlService fcs = (IFlowControlService) context.getBean(
+				IFlowControlService.KEY);
+		fcs.unregisterFlowControllable(this);
 	}
 		
+	public IBandwidthConfigure getBandwidthConfigure() {
+		return this.bandwidthConfig;
+	}
+
+	public IFlowControllable getParentFlowControllable() {
+		// parent is host
+		return null;
+	}
+
+	public void setBandwidthConfigure(IBandwidthConfigure config) {
+		IContext context = getContextFromConnection();
+		if (context == null) return;
+		IFlowControlService fcs = (IFlowControlService) context.getBean(
+				IFlowControlService.KEY);
+		boolean needRegister = false;
+		if (this.bandwidthConfig == null) {
+			if (config != null) {
+				needRegister = true;
+			} else return;
+		}
+		this.bandwidthConfig = config;
+		if (needRegister) {
+			fcs.registerFlowControllable(this);
+		} else {
+			fcs.updateBWConfigure(this);
+		}
+	}
+
 	void register(IConnection conn){
 		connToScope.put(conn, conn.getScope());
 	}
@@ -86,6 +125,21 @@ public class Client extends AttributeStore
 			// This client is not connected to any scopes, remove from registry.
 			registry.removeClient(this);
 		}
+	}
+	
+	/**
+	 * Get the context from anyone of the IConnection.
+	 * @return
+	 */
+	private IContext getContextFromConnection() {
+		IConnection conn = null;
+		try {
+			conn = connToScope.keySet().iterator().next();
+		} catch (Exception e) {}
+		if (conn != null) {
+			return conn.getScope().getContext();
+		}
+		return null;
 	}
 
 }

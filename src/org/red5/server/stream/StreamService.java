@@ -19,9 +19,6 @@ import org.red5.server.api.stream.support.SimplePlayItem;
 import org.red5.server.net.rtmp.RTMPHandler;
 
 public class StreamService implements IStreamService {
-	private long defaultVideoBandwidth;
-	private long defaultAudioBandwidth;
-	
 	public void closeStream() {
 		IConnection conn = Red5.getConnectionLocal();
 		if (!(conn instanceof IStreamCapableConnection)) return;
@@ -87,10 +84,6 @@ public class StreamService implements IStreamService {
 		IClientStream stream = streamConn.getStreamById(streamId);
 		if (stream == null) {
 			stream = streamConn.newPlaylistSubscriberStream(streamId);
-			SimpleBandwidthConfigure bc = new SimpleBandwidthConfigure();
-			bc.setAudioBandwidth(defaultAudioBandwidth);
-			bc.setVideoBandwidth(defaultVideoBandwidth);
-			stream.setBandwidthConfigure(bc);
 			stream.start();
 		}
 		if (!(stream instanceof ISubscriberStream)) return;
@@ -156,10 +149,6 @@ public class StreamService implements IStreamService {
 		if (stream != null && !(stream instanceof IClientBroadcastStream)) return;
 		if (stream == null) {
 			stream = streamConn.newBroadcastStream(streamId);
-			SimpleBandwidthConfigure bc = new SimpleBandwidthConfigure();
-			bc.setAudioBandwidth(defaultAudioBandwidth);
-			bc.setVideoBandwidth(defaultVideoBandwidth);
-			stream.setBandwidthConfigure(bc);
 			stream.start();
 		} else {
 			// already published
@@ -215,13 +204,5 @@ public class StreamService implements IStreamService {
 			if (!(basicScope instanceof IBroadcastScope)) return null;
 			else return (IBroadcastScope) basicScope;
 		}
-	}
-	
-	public void setDefaultVideoBandwidth(long bw) {
-		defaultVideoBandwidth = bw;
-	}
-	
-	public void setDefaultAudioBandwidth(long bw) {
-		defaultAudioBandwidth = bw;
 	}
 }

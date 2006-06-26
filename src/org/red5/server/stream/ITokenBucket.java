@@ -29,6 +29,15 @@ public interface ITokenBucket {
 	boolean acquireTokenNonblocking(long tokenCount, ITokenBucketCallback callback);
 	
 	/**
+	 * Nonblockingly acquire token. The upper limit is specified. If
+	 * not enough tokens are left in bucket, all remaining will be
+	 * returned.
+	 * @param upperLimitCount
+	 * @return
+	 */
+	long acquireTokenBestEffort(long upperLimitCount);
+	
+	/**
 	 * Get the capacity of this bucket in Byte.
 	 * @return
 	 */

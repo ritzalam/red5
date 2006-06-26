@@ -7,7 +7,11 @@ public class TokenBucket implements ITokenBucket {
 	private long tokens = 0;
 	private WaitObject waitObject = null;
 	
-	public TokenBucket(ITokenBucketService service) {
+	public TokenBucket() {
+	}
+	
+	public TokenBucket(long initialTokens) {
+		tokens = initialTokens;
 	}
 	
 	synchronized public boolean acquireToken(long tokenCount, long wait) {
@@ -25,6 +29,7 @@ public class TokenBucket implements ITokenBucket {
 
 	synchronized public boolean acquireTokenNonblocking(long tokenCount,
 			ITokenBucketCallback callback) {
+		// TODO use a wait queue instead
 		if (waitObject != null) return false;
 		if (tokens >= tokenCount) {
 			tokens -= tokenCount;
@@ -36,6 +41,18 @@ public class TokenBucket implements ITokenBucket {
 				waitObject.tokenCount = tokenCount;
 			}
 			return false;
+		}
+	}
+
+	synchronized public long acquireTokenBestEffort(long upperLimitCount) {
+		if (waitObject != null) return 0;
+		if (tokens >= upperLimitCount) {
+			tokens -= upperLimitCount;
+			return upperLimitCount;
+		} else {
+			long result = tokens;
+			tokens = 0;
+			return result;
 		}
 	}
 

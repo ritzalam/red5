@@ -45,17 +45,17 @@
     </bean>
     
     <!-- high level access to streams -->
-    <bean id="streamService" class="org.red5.server.stream.StreamService">
-    	<property name="defaultVideoBandwidth" value="500000" />
-    	<property name="defaultAudioBandwidth" value="200000" />
-    </bean>
+    <bean id="streamService" class="org.red5.server.stream.StreamService" />
     
     <bean id="providerService" class="org.red5.server.stream.ProviderService" />
     
     <bean id="consumerService" class="org.red5.server.stream.ConsumerService" />
     
-    <bean id="TokenBucketService" class="org.red5.server.stream.TokenBucketService"
-	    init-method="init" />
+    <bean id="FlowControlService" class="org.red5.server.stream.FlowControlService"
+    	init-method="init" >
+    	<property name="interval" value="10"/>
+    	<property name="defaultCapacity" value="102400"/>
+    </bean>
     
     <bean id="schedulingService" class="org.red5.server.scheduling.QuartzSchedulingService" />
     
