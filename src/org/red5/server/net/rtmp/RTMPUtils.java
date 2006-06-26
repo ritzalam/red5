@@ -60,14 +60,14 @@ public class RTMPUtils implements Constants {
 	public static int readUnsignedMediumInt(ByteBuffer in) {
 		byte[] bytes = new byte[3];
 		in.get(bytes);
-		// Fix unsigned values
-		if (bytes[0] < 0) bytes[0] += 256;
-		if (bytes[1] < 0) bytes[1] += 256;
-		if (bytes[2] < 0) bytes[2] += 256;
 		int val = 0;
-		val += bytes[0] << 16;
-		val += bytes[1] << 8;
-		val += bytes[2];
+		// Fix unsigned values
+		if (bytes[0] < 0) val += ((bytes[0] + 256) << 16);
+		else              val += (bytes[0] << 16);
+		if (bytes[1] < 0) val += ((bytes[1] + 256) << 8);
+		else              val += (bytes[1] << 8);
+		if (bytes[2] < 0) val += bytes[2] + 256;
+		else              val += bytes[2];
 		return val;
 	}
 	
