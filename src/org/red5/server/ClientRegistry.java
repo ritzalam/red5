@@ -1,5 +1,7 @@
 package org.red5.server;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 
 import org.red5.server.api.IClient;
@@ -41,4 +43,7 @@ public class ClientRegistry implements IClientRegistry {
 		clients.remove(client.getId());
 	}
 	
+	protected Collection<IClient> getClients() {
+		return Collections.unmodifiableCollection(clients.values());
+	}
 }
