@@ -50,6 +50,9 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	private IPipe recordPipe;
 	
 	private long startTime;
+	private long lastAudio;
+	private long lastVideo;
+	private long lastData;
 
 	public void start() {
 		IConsumerService consumerManager =
@@ -68,6 +71,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		startTime = System.currentTimeMillis();
 		setCodecInfo(new StreamCodecInfo());
 		sendStartNotify();
+		lastAudio = lastVideo = lastData = startTime;
 	}
 
 	public void close() {
@@ -135,18 +139,19 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		if (!(event instanceof IRTMPEvent) && (event.getType() != IEvent.Type.STREAM_CONTROL) && (event.getType() != IEvent.Type.STREAM_DATA))
 			return;
 		
-		long runTime = System.currentTimeMillis() - startTime;
 		IStreamCodecInfo codecInfo = getCodecInfo();
 		StreamCodecInfo streamCodec = null;
 		if (codecInfo instanceof StreamCodecInfo)
 			streamCodec = (StreamCodecInfo) codecInfo;
 		
 		IRTMPEvent rtmpEvent = (IRTMPEvent) event;
-		rtmpEvent.setTimestamp((int) runTime);
-		
+		long delta = 0;
+		long now = System.currentTimeMillis();
 		if (rtmpEvent instanceof AudioData) {
 			if (streamCodec != null)
 				streamCodec.setHasAudio(true);
+			delta = now - lastAudio;
+			lastAudio = now;
 		} else if (rtmpEvent instanceof VideoData) {
 			IVideoStreamCodec videoStreamCodec = null;
 			if (videoCodecFactory != null && checkVideoCodec) {
@@ -163,7 +168,18 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			
 			if (streamCodec != null)
 				streamCodec.setHasVideo(true);
+			delta = now - lastVideo;
+			lastVideo = now;
+		} else {
+			delta = now - lastData;
+			lastData = now;
 		}
+		
+		// XXX: deltas for the different tag types don't seem to work, investigate!
+		delta = now - startTime;
+		startTime = now;
+		
+		rtmpEvent.setTimestamp((int) delta);
 		RTMPMessage msg = new RTMPMessage();
 		msg.setBody(rtmpEvent);
 		if (livePipe != null) {
