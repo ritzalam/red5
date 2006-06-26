@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.mina.common.ByteBuffer;
 import org.red5.io.IStreamableFile;
 import org.red5.io.IStreamableFileService;
 import org.red5.io.ITag;
@@ -22,7 +23,8 @@ import org.red5.server.messaging.IPipeConnectionListener;
 import org.red5.server.messaging.IPushableConsumer;
 import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.messaging.PipeConnectionEvent;
-import org.red5.server.net.rtmp.message.Message;
+import org.red5.server.net.rtmp.event.IRTMPEvent;
+import org.red5.server.stream.IStreamData;
 import org.red5.server.stream.message.RTMPMessage;
 import org.springframework.context.ApplicationContext;
 
@@ -50,13 +52,16 @@ public class FileConsumer implements IPushableConsumer, IPipeConnectionListener 
 			}
 		}
 		RTMPMessage rtmpMsg = (RTMPMessage) message;
-		final Message msg = rtmpMsg.getBody();
+		final IRTMPEvent msg = rtmpMsg.getBody();
 		ITag tag = new Tag();
 		
 		tag.setDataType(msg.getDataType());
 		tag.setTimestamp(msg.getTimestamp());
-		tag.setBodySize(msg.getData().limit());
-		tag.setBody(msg.getData());
+		if (msg instanceof IStreamData) {
+			ByteBuffer data = ((IStreamData) msg).getData();
+			tag.setBodySize(data.limit());
+			tag.setBody(data);
+		}
 		
 		try {
 			writer.writeTag(tag);

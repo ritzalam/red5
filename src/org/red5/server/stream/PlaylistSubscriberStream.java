@@ -30,11 +30,12 @@ import org.red5.server.messaging.IPipeConnectionListener;
 import org.red5.server.messaging.IPushableConsumer;
 import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.messaging.PipeConnectionEvent;
-import org.red5.server.net.rtmp.message.AudioData;
-import org.red5.server.net.rtmp.message.Message;
-import org.red5.server.net.rtmp.message.Ping;
-import org.red5.server.net.rtmp.message.Status;
-import org.red5.server.net.rtmp.message.VideoData;
+import org.red5.server.net.rtmp.event.AudioData;
+import org.red5.server.net.rtmp.event.BaseEvent;
+import org.red5.server.net.rtmp.event.IRTMPEvent;
+import org.red5.server.net.rtmp.event.Ping;
+import org.red5.server.net.rtmp.event.VideoData;
+import org.red5.server.net.rtmp.status.Status;
 import org.red5.server.stream.ITokenBucket.ITokenBucketCallback;
 import org.red5.server.stream.message.RTMPMessage;
 import org.red5.server.stream.message.StatusMessage;
@@ -271,7 +272,7 @@ implements IPlaylistSubscriberStream {
 	 * Glue for old code base.
 	 * @param message
 	 */
-	public void written(Message message) {
+	public void written(Object message) {
 		engine.pullAndPush();
 	}
 	
@@ -414,10 +415,8 @@ implements IPlaylistSubscriberStream {
 						if (videoCodec != null) {
 							ByteBuffer keyFrame = videoCodec.getKeyframe();
 							if (keyFrame != null) {
-								VideoData video = new VideoData();
+								VideoData video = new VideoData(keyFrame);
 								video.setTimestamp(0);
-								video.setData(keyFrame);
-								video.setSealed(true);
 								
 								RTMPMessage videoMsg = new RTMPMessage();
 								videoMsg.setBody(video);
@@ -544,14 +543,17 @@ implements IPlaylistSubscriberStream {
 			if (state == State.PLAYING && isPullMode) {
 				int size;
 				if (pendingMessage != null) {
-					size = pendingMessage.getBody().getData().limit();
-					Message message = pendingMessage.getBody();
+					IRTMPEvent body = pendingMessage.getBody();
+					if (!(body instanceof IStreamData))
+						throw new RuntimeException("expected IStreamData but got " + body);
+					
+					size = ((IStreamData) body).getData().limit();
 					boolean toSend = true;
-					if (message instanceof VideoData) {
+					if (body instanceof VideoData) {
 						if (!videoBucket.acquireTokenNonblocking(size, this)) {
 							toSend = false;
 						}
-					} else if (message instanceof AudioData) {
+					} else if (body instanceof AudioData) {
 						if (!audioBucket.acquireTokenNonblocking(size, this)) {
 							toSend = false;
 						}
@@ -571,14 +573,17 @@ implements IPlaylistSubscriberStream {
 						} else {
 							if (msg instanceof RTMPMessage) {
 								RTMPMessage rtmpMessage = (RTMPMessage) msg;
-								size = rtmpMessage.getBody().getData().limit();
-								Message message = rtmpMessage.getBody();
+								IRTMPEvent body = rtmpMessage.getBody();
+								if (!(body instanceof IStreamData))
+									throw new RuntimeException("expected IStreamData but got " + body);
+								
+								size = ((IStreamData) body).getData().limit();
 								boolean toSend = true;
-								if (message instanceof VideoData) {
+								if (body instanceof VideoData) {
 									if (!videoBucket.acquireTokenNonblocking(size, this)) {
 										toSend = false;
 									}
-								} else if (message instanceof AudioData) {
+								} else if (body instanceof AudioData) {
 									if (!audioBucket.acquireTokenNonblocking(size, this)) {
 										toSend = false;
 									}
@@ -775,8 +780,11 @@ implements IPlaylistSubscriberStream {
 		synchronized public void pushMessage(IPipe pipe, IMessage message) {
 			if (message instanceof RTMPMessage) {
 				RTMPMessage rtmpMessage = (RTMPMessage) message;
-				int size = rtmpMessage.getBody().getData().limit();
-				Message body = rtmpMessage.getBody();
+				IRTMPEvent body = rtmpMessage.getBody();
+				if (!(body instanceof IStreamData))
+					throw new RuntimeException("expected IStreamData but got " + body);
+				
+				int size = ((IStreamData) body).getData().limit();
 				if (body instanceof VideoData) {
 					if (!videoBucket.acquireToken(size, 0)) {
 						return;

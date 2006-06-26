@@ -13,7 +13,7 @@ import org.red5.server.net.protocol.SimpleProtocolEncoder;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.RTMPHandler;
 import org.red5.server.net.rtmp.codec.RTMP;
-import org.red5.server.net.rtmp.message.OutPacket;
+import org.red5.server.net.rtmp.message.Packet;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -130,7 +130,7 @@ public class RTMPTConnection extends RTMPConnection {
 	 * @param packet
 	 * 			the packet to send
 	 */
-	public void write(OutPacket packet){
+	public void write(Packet packet){
 		ByteBuffer data;
 		try {
 			data = this.encoder.encode(this.state, packet);
@@ -169,8 +169,8 @@ public class RTMPTConnection extends RTMPConnection {
 	public void dispatchEvent(Object event) {
 		if (event instanceof ByteBuffer) {
 			rawWrite((ByteBuffer) event);
-		} else if (event instanceof OutPacket) {
-			write((OutPacket) event);
+		} else if (event instanceof Packet) {
+			write((Packet) event);
 		} else
 			log.error("Don't know how to dispatch event " + event);
 	}

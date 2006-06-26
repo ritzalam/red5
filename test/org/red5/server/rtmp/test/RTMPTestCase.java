@@ -11,9 +11,9 @@ import org.red5.io.object.Deserializer;
 import org.red5.io.object.Serializer;
 import org.red5.server.net.rtmp.codec.RTMPProtocolDecoder;
 import org.red5.server.net.rtmp.codec.RTMPProtocolEncoder;
+import org.red5.server.net.rtmp.event.Invoke;
 import org.red5.server.net.rtmp.message.Constants;
-import org.red5.server.net.rtmp.message.Invoke;
-import org.red5.server.net.rtmp.message.PacketHeader;
+import org.red5.server.net.rtmp.message.Header;
 
 public class RTMPTestCase extends TestCase implements Constants {
 
@@ -37,7 +37,7 @@ public class RTMPTestCase extends TestCase implements Constants {
 	}
 	
 	public void testHeaders(){
-		PacketHeader header = new PacketHeader();
+		Header header = new Header();
 		header.setChannelId((byte)0x12);
 		header.setDataType(TYPE_INVOKE);
 		header.setStreamId(100);
@@ -47,7 +47,7 @@ public class RTMPTestCase extends TestCase implements Constants {
 		buf.flip();
 		log.debug(buf.getHexDump());
 		Assert.assertNotNull(buf);
-		PacketHeader result = decoder.decodeHeader(buf, null);
+		Header result = decoder.decodeHeader(buf, null);
 		Assert.assertEquals(header, result);
 	}
 	

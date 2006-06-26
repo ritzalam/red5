@@ -7,7 +7,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoSession;
-import org.red5.server.net.rtmp.message.OutPacket;
+import org.red5.server.net.rtmp.message.Packet;
 
 public class RTMPMinaConnection extends RTMPConnection {
 
@@ -42,7 +42,7 @@ public class RTMPMinaConnection extends RTMPConnection {
 	}
 
 	@Override
-	public void write(OutPacket out) {
+	public void write(Packet out) {
 		ioSession.write(out);
 	}
 

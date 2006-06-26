@@ -25,11 +25,10 @@ import org.red5.server.messaging.IProvider;
 import org.red5.server.messaging.IPushableConsumer;
 import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.messaging.PipeConnectionEvent;
-import org.red5.server.net.rtmp.message.AudioData;
-import org.red5.server.net.rtmp.message.Message;
-import org.red5.server.net.rtmp.message.Notify;
-import org.red5.server.net.rtmp.message.Status;
-import org.red5.server.net.rtmp.message.VideoData;
+import org.red5.server.net.rtmp.event.AudioData;
+import org.red5.server.net.rtmp.event.IRTMPEvent;
+import org.red5.server.net.rtmp.event.VideoData;
+import org.red5.server.net.rtmp.status.Status;
 import org.red5.server.stream.codec.StreamCodecInfo;
 import org.red5.server.stream.consumer.FileConsumer;
 import org.red5.server.stream.message.RTMPMessage;
@@ -133,32 +132,25 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	}
 
 	public void dispatchEvent(IEvent event) {
-		if ((event.getType() != IEvent.Type.STREAM_CONTROL) &&
-				(event.getType() != IEvent.Type.STREAM_DATA))
-				return;
-			
-		dispatchEvent(event.getObject());
-	}
-
-	public void dispatchEvent(Object obj) {
-		if (!(obj instanceof Message))
+		if (!(event instanceof IRTMPEvent) && (event.getType() != IEvent.Type.STREAM_CONTROL) && (event.getType() != IEvent.Type.STREAM_DATA))
 			return;
 		
-		final Message message = (Message) obj;
 		long runTime = System.currentTimeMillis() - startTime;
 		IStreamCodecInfo codecInfo = getCodecInfo();
 		StreamCodecInfo streamCodec = null;
 		if (codecInfo instanceof StreamCodecInfo)
 			streamCodec = (StreamCodecInfo) codecInfo;
 		
-		if (message instanceof AudioData) {
-			message.setTimestamp((int)runTime);
+		IRTMPEvent rtmpEvent = (IRTMPEvent) event;
+		rtmpEvent.setTimestamp((int) runTime);
+		
+		if (rtmpEvent instanceof AudioData) {
 			if (streamCodec != null)
 				streamCodec.setHasAudio(true);
-		} else if (message instanceof VideoData) {
+		} else if (rtmpEvent instanceof VideoData) {
 			IVideoStreamCodec videoStreamCodec = null;
 			if (videoCodecFactory != null && checkVideoCodec) {
-				videoStreamCodec = videoCodecFactory.getVideoCodec(message.getData());
+				videoStreamCodec = videoCodecFactory.getVideoCodec(((VideoData) rtmpEvent).getData());
 				if (codecInfo instanceof StreamCodecInfo) {
 					((StreamCodecInfo) codecInfo).setVideoCodec(videoStreamCodec);
 				}
@@ -167,22 +159,18 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 				videoStreamCodec = codecInfo.getVideoCodec();
 			
 			if (videoStreamCodec != null)
-				videoStreamCodec.addData(message.getData());
+				videoStreamCodec.addData(((VideoData) rtmpEvent).getData());
 			
 			if (streamCodec != null)
 				streamCodec.setHasVideo(true);
-			message.setTimestamp((int)runTime);
-		} else if (message instanceof Notify) {
-			message.setTimestamp((int)runTime);
 		}
 		RTMPMessage msg = new RTMPMessage();
-		msg.setBody(message);
+		msg.setBody(rtmpEvent);
 		if (livePipe != null) {
 			// XXX probable race condition here
 			livePipe.pushMessage(msg);
 		}
 		recordPipe.pushMessage(msg);
-		message.release();
 	}
 
 	public void onPipeConnectionEvent(PipeConnectionEvent event) {

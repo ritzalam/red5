@@ -22,13 +22,13 @@ import org.red5.server.messaging.IPipeConnectionListener;
 import org.red5.server.messaging.IPullableProvider;
 import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.messaging.PipeConnectionEvent;
-import org.red5.server.net.rtmp.message.AudioData;
+import org.red5.server.net.rtmp.event.AudioData;
+import org.red5.server.net.rtmp.event.Invoke;
+import org.red5.server.net.rtmp.event.IRTMPEvent;
+import org.red5.server.net.rtmp.event.Notify;
+import org.red5.server.net.rtmp.event.Unknown;
+import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.net.rtmp.message.Constants;
-import org.red5.server.net.rtmp.message.Invoke;
-import org.red5.server.net.rtmp.message.Message;
-import org.red5.server.net.rtmp.message.Notify;
-import org.red5.server.net.rtmp.message.Unknown;
-import org.red5.server.net.rtmp.message.VideoData;
 import org.red5.server.stream.ISeekableProvider;
 import org.red5.server.stream.message.RTMPMessage;
 import org.springframework.context.ApplicationContext;
@@ -65,28 +65,26 @@ implements IPassive, ISeekableProvider, IPullableProvider, IPipeConnectionListen
 			return null;
 		}
 		ITag tag = reader.readTag();
-		Message msg = null;
+		IRTMPEvent msg = null;
 		switch(tag.getDataType()){
 		case Constants.TYPE_AUDIO_DATA:
-			msg = new AudioData();
+			msg = new AudioData(tag.getBody());
 			break;
 		case Constants.TYPE_VIDEO_DATA:
-			msg = new VideoData();
+			msg = new VideoData(tag.getBody());
 			break;
 		case Constants.TYPE_INVOKE:
-			msg = new Invoke();
+			msg = new Invoke(tag.getBody());
 			break;
 		case Constants.TYPE_NOTIFY:
-			msg = new Notify();
+			msg = new Notify(tag.getBody());
 			break;
 		default:
 			log.warn("Unexpected type? "+tag.getDataType());
-			msg = new Unknown(tag.getDataType());
+			msg = new Unknown(tag.getDataType(), tag.getBody());
 			break;
 		}
-		msg.setData(tag.getBody());
 		msg.setTimestamp(tag.getTimestamp());
-		msg.setSealed(true);
 		RTMPMessage rtmpMsg = new RTMPMessage();
 		rtmpMsg.setBody(msg);
 		return rtmpMsg;

@@ -1,5 +1,7 @@
 package org.red5.server.so;
 
+import static org.red5.server.so.ISharedObjectEvent.Type.*;
+
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;
@@ -213,22 +215,23 @@ public class SharedObjectScope extends BasicScope
 		else beginUpdate();
 		for(ISharedObjectEvent event : msg.getEvents()){
 			switch(event.getType()){
-			case CONNECT:
+			case SERVER_CONNECT:
 				if(msg.hasSource()) 
 					addEventListener(msg.getSource());
 				break;
-			case SET_ATTRIBUTE:
+			case SERVER_DISCONNECT:
+				if(msg.hasSource()) 
+					removeEventListener(msg.getSource());
+				break;		
+			case SERVER_SET_ATTRIBUTE:
 				setAttribute(event.getKey(), event.getValue());
 				break;
-			case DELETE_ATTRIBUTE:
+			case SERVER_DELETE_ATTRIBUTE:
 				removeAttribute(event.getKey());
 				break;
-			case SEND_MESSAGE:
+			case SERVER_SEND_MESSAGE:
 				sendMessage(event.getKey(), (List) event.getValue());
 				break;
-			case CLEAR:
-				removeAttributes();
-				break;		
 			}
 		}
 		endUpdate();

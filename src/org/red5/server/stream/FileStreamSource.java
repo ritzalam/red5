@@ -6,13 +6,13 @@ import org.red5.io.ITag;
 import org.red5.io.ITagReader;
 import org.red5.io.flv.IKeyFrameDataAnalyzer;
 import org.red5.io.flv.IKeyFrameDataAnalyzer.KeyFrameMeta;
-import org.red5.server.net.rtmp.message.AudioData;
+import org.red5.server.net.rtmp.event.AudioData;
+import org.red5.server.net.rtmp.event.Invoke;
+import org.red5.server.net.rtmp.event.IRTMPEvent;
+import org.red5.server.net.rtmp.event.Notify;
+import org.red5.server.net.rtmp.event.Unknown;
+import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.net.rtmp.message.Constants;
-import org.red5.server.net.rtmp.message.Invoke;
-import org.red5.server.net.rtmp.message.Message;
-import org.red5.server.net.rtmp.message.Notify;
-import org.red5.server.net.rtmp.message.Unknown;
-import org.red5.server.net.rtmp.message.VideoData;
 
 public class FileStreamSource implements ISeekableStreamSource, Constants {
 
@@ -30,33 +30,32 @@ public class FileStreamSource implements ISeekableStreamSource, Constants {
 		reader.close();
 	}
 
-	public Message dequeue() {
+	public IRTMPEvent dequeue() {
 		
 		if(!reader.hasMoreTags()) return null;
 		ITag tag = reader.readTag();
 		
-		Message msg = null;
+		IRTMPEvent msg = null;
 		switch(tag.getDataType()){
 		case TYPE_AUDIO_DATA:
-			msg = new AudioData();
+			msg = new AudioData(tag.getBody());
 			break;
 		case TYPE_VIDEO_DATA:
-			msg = new VideoData();
+			msg = new VideoData(tag.getBody());
 			break;
 		case TYPE_INVOKE:
-			msg = new Invoke();
+			msg = new Invoke(tag.getBody());
 			break;
 		case TYPE_NOTIFY:
-			msg = new Notify();
+			msg = new Notify(tag.getBody());
 			break;
 		default:
 			log.warn("Unexpected type? "+tag.getDataType());
-			msg = new Unknown(tag.getDataType());
+			msg = new Unknown(tag.getDataType(), tag.getBody());
 			break;
 		}
-		msg.setData(tag.getBody());
 		msg.setTimestamp(tag.getTimestamp());
-		msg.setSealed(true);
+		//msg.setSealed(true);
 		return msg;
 	}
 

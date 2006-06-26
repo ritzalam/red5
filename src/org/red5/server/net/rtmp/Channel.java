@@ -3,12 +3,12 @@ package org.red5.server.net.rtmp;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.stream.IClientStream;
-import org.red5.server.net.rtmp.message.Invoke;
-import org.red5.server.net.rtmp.message.Message;
-import org.red5.server.net.rtmp.message.Notify;
-import org.red5.server.net.rtmp.message.OutPacket;
-import org.red5.server.net.rtmp.message.PacketHeader;
-import org.red5.server.net.rtmp.message.Status;
+import org.red5.server.net.rtmp.event.Invoke;
+import org.red5.server.net.rtmp.event.IRTMPEvent;
+import org.red5.server.net.rtmp.event.Notify;
+import org.red5.server.net.rtmp.message.Header;
+import org.red5.server.net.rtmp.message.Packet;
+import org.red5.server.net.rtmp.status.Status;
 import org.red5.server.service.Call;
 import org.red5.server.service.PendingCall;
 
@@ -40,7 +40,7 @@ public class Channel {
 	}
 	*/
 
-	public void write(Message message){
+	public void write(IRTMPEvent event){
 		final IClientStream stream = connection.getStreamByChannelId(id);
 		/*
 		final int streamId = (
@@ -50,21 +50,18 @@ public class Channel {
 				) ? 0 : stream.getStreamId();
 				*/
 		final int streamId = ( stream==null ) ? 0 : stream.getStreamId();
-		write(message, message.getTimestamp(), streamId);
+		write(event, streamId);
 	}
 	
-	private void write(Message message, int timer, int streamId){
+	private void write(IRTMPEvent event, int streamId){
 		
-		final OutPacket packet = new OutPacket();
-		final PacketHeader header = new PacketHeader();
+		final Header header = new Header();
+		final Packet packet = new Packet(header, event);
 		
 		header.setChannelId(id);
-		header.setTimer(timer);
+		header.setTimer(event.getTimestamp());
 		header.setStreamId(streamId);
-		header.setDataType(message.getDataType());
-		
-		packet.setDestination(header);
-		packet.setMessage(message);
+		header.setDataType(event.getDataType());
 		
 		// should use RTMPConnection specific method.. 
 		connection.write(packet);

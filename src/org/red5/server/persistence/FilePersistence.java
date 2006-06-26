@@ -111,60 +111,64 @@ public class FilePersistence extends RamPersistence implements IPersistenceStore
 		
 		try {
 			ByteBuffer buf = ByteBuffer.allocate(input.available());
-			ServletUtils.copy(input, buf.asOutputStream());
-			buf.flip();
-			Input in = new Input(buf);
-			Deserializer deserializer = new Deserializer();
-			String className = (String) deserializer.deserialize(in);
-			if (result == null) {
-				// We need to create the object first
-				try {
-					Class theClass  = Class.forName(className);
-					Constructor constructor = null;
+			try {
+				ServletUtils.copy(input, buf.asOutputStream());
+				buf.flip();
+				Input in = new Input(buf);
+				Deserializer deserializer = new Deserializer();
+				String className = (String) deserializer.deserialize(in);
+				if (result == null) {
+					// We need to create the object first
 					try {
-						// Try to create object by calling constructor with Input stream as
-						// parameter.
-						for (Class interfaceClass : in.getClass().getInterfaces()) {
-							constructor = theClass.getConstructor(new Class[]{interfaceClass});
-							if (constructor != null)
-								break;
+						Class theClass  = Class.forName(className);
+						Constructor constructor = null;
+						try {
+							// Try to create object by calling constructor with Input stream as
+							// parameter.
+							for (Class interfaceClass : in.getClass().getInterfaces()) {
+								constructor = theClass.getConstructor(new Class[]{interfaceClass});
+								if (constructor != null)
+									break;
+							}
+							if (constructor == null)
+								throw new NoSuchMethodException();
+							
+							result = (IPersistable) constructor.newInstance(new Object[]{in});
+						} catch (NoSuchMethodException err) {
+							// No valid constructor found, use empty constructor.
+							result = (IPersistable) theClass.newInstance(); 
+							result.deserialize(in);
+						} catch (InvocationTargetException err) {
+							// Error while invoking found constructor, use empty constructor.
+							result = (IPersistable) theClass.newInstance(); 
+							result.deserialize(in);
 						}
-						if (constructor == null)
-							throw new NoSuchMethodException();
-						
-						result = (IPersistable) constructor.newInstance(new Object[]{in});
-					} catch (NoSuchMethodException err) {
-						// No valid constructor found, use empty constructor.
-						result = (IPersistable) theClass.newInstance(); 
-						result.deserialize(in);
-					} catch (InvocationTargetException err) {
-						// Error while invoking found constructor, use empty constructor.
-						result = (IPersistable) theClass.newInstance(); 
-						result.deserialize(in);
+					} catch (ClassNotFoundException cnfe) {
+						log.error("Unknown class " + className);
+						return null;
+					} catch (IllegalAccessException iae) {
+						log.error("Illegal access.", iae);
+						return null;
+					} catch (InstantiationException ie) {
+						log.error("Could not instantiate class " + className);
+						return null;
 					}
-				} catch (ClassNotFoundException cnfe) {
-					log.error("Unknown class " + className);
-					return null;
-				} catch (IllegalAccessException iae) {
-					log.error("Illegal access.", iae);
-					return null;
-				} catch (InstantiationException ie) {
-					log.error("Could not instantiate class " + className);
-					return null;
+					
+					// Set object's properties
+					result.setName(getObjectName(name)); 
+					result.setPath(getObjectPath(name)); 
+				} else {
+					// Initialize existing object
+					String resultClass = result.getClass().getName(); 
+					if (!resultClass.equals(className)) {
+						log.error("The classes differ: " + resultClass + " != " + className);
+						return null;
+					}
+					
+					result.deserialize(in);
 				}
-				
-				// Set object's properties
-				result.setName(getObjectName(name)); 
-				result.setPath(getObjectPath(name)); 
-			} else {
-				// Initialize existing object
-				String resultClass = result.getClass().getName(); 
-				if (!resultClass.equals(className)) {
-					log.error("The classes differ: " + resultClass + " != " + className);
-					return null;
-				}
-				
-				result.deserialize(in);
+			} finally {
+				buf.release();
 			}
 			if (result.getStore() != this)
 				result.setStore(this);
@@ -215,15 +219,19 @@ public class FilePersistence extends RamPersistence implements IPersistenceStore
 		Resource resFile = resources.getResource(filename);
 		try {
 			ByteBuffer buf = ByteBuffer.allocate(1024);
-			buf.setAutoExpand(true);
-			Output out = new Output(buf);
-			out.writeString(object.getClass().getName());
-			object.serialize(out);
-			buf.flip();
-			
-			FileOutputStream output = new FileOutputStream(resFile.getFile().getAbsolutePath());
-			ServletUtils.copy(buf.asInputStream(), output);
-			output.close();
+			try {
+				buf.setAutoExpand(true);
+				Output out = new Output(buf);
+				out.writeString(object.getClass().getName());
+				object.serialize(out);
+				buf.flip();
+				
+				FileOutputStream output = new FileOutputStream(resFile.getFile().getAbsolutePath());
+				ServletUtils.copy(buf.asInputStream(), output);
+				output.close();
+			} finally {
+				buf.release();
+			}
 			log.debug("Stored persistent object " + object + " at " + filename);
 			return true;
 		} catch (IOException e) {

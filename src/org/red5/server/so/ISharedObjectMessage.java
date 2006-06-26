@@ -2,9 +2,9 @@ package org.red5.server.so;
 
 import java.util.List;
 
-import org.red5.server.api.event.IEvent;
+import org.red5.server.net.rtmp.event.IRTMPEvent;
 
-public interface ISharedObjectMessage extends IEvent {
+public interface ISharedObjectMessage extends IRTMPEvent {
 
 	/**
 	 * Returns the name of the shared object this message belongs to.

@@ -26,6 +26,8 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
+import java.util.HashMap;
+import java.util.Map.Entry;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -58,6 +60,17 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator
         LogFactory.getLog(DebugPooledByteBufferAllocator.class.getName());
 	
 	protected static ThreadLocal local = new ThreadLocal();
+	
+	/** Contains stack traces where buffers were allocated. */
+	protected HashMap<UnexpandableByteBuffer, StackTraceElement[]> stacks = new HashMap<UnexpandableByteBuffer, StackTraceElement[]>();
+	
+	/**
+	 * Save a stack trace for every buffer allocated?
+	 * 
+	 * Warning: This slows down the Red5 a lot!
+	 * 
+	 */
+	protected boolean saveStacks = false;
 	
 	public static void setCodeSection(String section){
 		local.set(section);
@@ -105,14 +118,23 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator
      */
     public DebugPooledByteBufferAllocator()
     {
-        this( 60 );
+        this(60, false);
+    }
+
+    public DebugPooledByteBufferAllocator(boolean saveStacks) {
+    	this(60, saveStacks);
     }
 
     /**
      * Creates a new instance with the specified <tt>timeout</tt>.
      */
-    public DebugPooledByteBufferAllocator( int timeout )
+    public DebugPooledByteBufferAllocator(int timeout)
     {
+    	this(timeout, false);
+    }
+
+    public DebugPooledByteBufferAllocator(int timeout, boolean saveStacks) {
+    	this.saveStacks = saveStacks;
         setTimeout( timeout );
         expirer = new Expirer();
         expirer.start();
@@ -214,6 +236,21 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator
         return buf;
     }
     
+    public void resetStacks() {
+    	stacks.clear();
+    }
+    
+    public void printStacks() {
+    	for (Entry<UnexpandableByteBuffer, StackTraceElement[]> entry: stacks.entrySet()) {
+    		System.out.println("Stack for buffer " + entry.getKey());
+    		StackTraceElement[] stack = entry.getValue();
+    		for (StackTraceElement element: stack) {
+    			System.out.println("  " + element);
+    		}
+    		System.out.println();
+    	}
+    }
+    
     private UnexpandableByteBuffer allocate0( int capacity, boolean direct )
     {
         count++;
@@ -237,7 +274,10 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator
         }
 
         buf.init();
-        log.info("+++ "+count+" ("+buf.buf().capacity()+") "+getCodeSection() +" req: "+capacity ); 
+        log.info("+++ "+count+" ("+buf.buf().capacity()+") "+getCodeSection() +" req: "+capacity );
+        if (saveStacks)
+        	stacks.put(buf, Thread.currentThread().getStackTrace());
+        
         return buf;
     }
     
@@ -246,6 +286,8 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator
     	
         count--;
         log.info("--- "+count+" ("+buf.buf().capacity()+") " +getCodeSection() );
+        if (saveStacks)
+        	stacks.remove(buf);
         ExpiringStack[] bufferStacks = buf.buf().isDirect()? directBufferStacks : heapBufferStacks;
         ExpiringStack stack = bufferStacks[ getBufferStackIndex( bufferStacks, buf.buf().capacity() ) ];
         

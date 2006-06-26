@@ -1,5 +1,7 @@
 package org.red5.server.so;
 
+import static org.red5.server.so.ISharedObjectEvent.Type;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,7 +24,8 @@ import org.red5.server.api.event.IEventListener;
 import org.red5.server.net.rtmp.Channel;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.message.Constants;
-import org.red5.server.net.rtmp.message.SharedObjectEvent;
+import org.red5.server.so.SharedObjectEvent;
+import org.red5.server.so.SharedObjectMessage;
 import org.red5.server.api.persistence.IPersistable;
 import org.red5.server.api.persistence.IPersistenceStore;
 
@@ -47,8 +50,8 @@ public class SharedObject implements IPersistable, Constants {
 	protected boolean modified = false;
 	protected long lastModified = -1;
 	
-	private org.red5.server.net.rtmp.message.SharedObject ownerMessage;
-	private LinkedList<SharedObjectEvent> syncEvents = new LinkedList<SharedObjectEvent>();
+	private SharedObjectMessage ownerMessage;
+	private LinkedList<ISharedObjectEvent> syncEvents = new LinkedList<ISharedObjectEvent>();
 	
 	protected HashSet<IEventListener> listeners = new HashSet<IEventListener>();
 	private IEventListener source = null;
@@ -57,8 +60,7 @@ public class SharedObject implements IPersistable, Constants {
 		// This is used by the persistence framework
 		data = new HashMap<String, Object>();
 		
-		ownerMessage = new org.red5.server.net.rtmp.message.SharedObject();
-		ownerMessage.setTimestamp(0);
+		ownerMessage = new SharedObjectMessage(null, null, -1, false);
 	}
 
 	public SharedObject(Input input) throws IOException {
@@ -72,10 +74,7 @@ public class SharedObject implements IPersistable, Constants {
 		this.path = path;
 		this.persistentSO = persistent;
 		
-		ownerMessage = new org.red5.server.net.rtmp.message.SharedObject();
-		ownerMessage.setName(name);
-		ownerMessage.setTimestamp(0);
-		ownerMessage.setType(persistent ? 2 : 0);
+		ownerMessage = new SharedObjectMessage(null, name, 0, persistent);
 	}
 
 	public SharedObject(Map<String, Object> data, String name, String path, boolean persistent,
@@ -86,10 +85,7 @@ public class SharedObject implements IPersistable, Constants {
 		this.persistentSO = persistent;
 		setStore(storage);
 
-		ownerMessage = new org.red5.server.net.rtmp.message.SharedObject();
-		ownerMessage.setName(name);
-		ownerMessage.setTimestamp(0);
-		ownerMessage.setType(persistent ? 2 : 0);
+		ownerMessage = new SharedObjectMessage(null, name, 0, persistent);
 	}
 
 	public String getName() {
@@ -131,12 +127,7 @@ public class SharedObject implements IPersistable, Constants {
 	private void sendUpdates() {
 		if (!ownerMessage.getEvents().isEmpty()) {
 			// Send update to "owner" of this update request
-			org.red5.server.net.rtmp.message.SharedObject syncOwner  = new org.red5.server.net.rtmp.message.SharedObject();
-			syncOwner.setName(name);
-			syncOwner.setTimestamp(0);
-			syncOwner.setType(isPersistentObject() ? 2 : 0);
-			syncOwner.setSoId(version);
-			syncOwner.setSealed(false);
+			SharedObjectMessage syncOwner  = new SharedObjectMessage(null, name, version, isPersistentObject());
 			syncOwner.addEvents(ownerMessage.getEvents());
 
 			if (source != null) {
@@ -174,11 +165,7 @@ public class SharedObject implements IPersistable, Constants {
 				// Create a new sync message for every client to avoid
 				// concurrent access through multiple threads
 				// TODO: perhaps we could cache the generated message
-				org.red5.server.net.rtmp.message.SharedObject syncMessage = new org.red5.server.net.rtmp.message.SharedObject();
-				syncMessage.setName(name);
-				syncMessage.setSoId(version);
-				syncMessage.setTimestamp(0);
-				syncMessage.setType(isPersistentObject() ? 2 : 0);
+				SharedObjectMessage syncMessage = new SharedObjectMessage(null, name, version, isPersistentObject());
 				syncMessage.addEvents(syncEvents);
 				
 				Channel c = ((RTMPConnection) listener).getChannel((byte) 3);
@@ -231,8 +218,7 @@ public class SharedObject implements IPersistable, Constants {
 	}
 
 	public boolean setAttribute(String name, Object value) {
-		ownerMessage.addEvent(new SharedObjectEvent(
-				SO_CLIENT_UPDATE_ATTRIBUTE, name, null));
+		ownerMessage.addEvent(Type.CLIENT_UPDATE_ATTRIBUTE, name, null);
 		Object old = data.get(name);
 		Integer oldHash = (value != null ? value.hashCode() : 0);
 		if (old == null || !old.equals(value) || !oldHash.equals(hashes.get(name))) {
@@ -240,7 +226,7 @@ public class SharedObject implements IPersistable, Constants {
 			data.put(name, value);
 			// only sync if the attribute changed
 			syncEvents.add(new SharedObjectEvent(
-					SO_CLIENT_UPDATE_DATA, name, value));
+					Type.CLIENT_UPDATE_DATA, name, value));
 			notifyModified();
 			return true;
 		} else {
@@ -274,22 +260,20 @@ public class SharedObject implements IPersistable, Constants {
 		if (result)
 			data.remove(name);
 		// Send confirmation to client
-		ownerMessage.addEvent(new SharedObjectEvent(SO_CLIENT_DELETE_DATA,
-				name, null));
+		ownerMessage.addEvent(Type.CLIENT_DELETE_DATA, name, null);
 		if (result) {
 			modified = true;
 			syncEvents.add(new SharedObjectEvent(
-					SO_CLIENT_DELETE_DATA, name, null));
+					Type.CLIENT_DELETE_DATA, name, null));
 		}
 		notifyModified();
 		return result;
 	}
 
 	public void sendMessage(String handler, List arguments) {
-		ownerMessage.addEvent(new SharedObjectEvent(
-				SO_CLIENT_SEND_MESSAGE, handler, arguments));
+		ownerMessage.addEvent(Type.CLIENT_SEND_MESSAGE, handler, arguments);
 		syncEvents.add(new SharedObjectEvent(
-				SO_CLIENT_SEND_MESSAGE, handler, arguments));
+				Type.CLIENT_SEND_MESSAGE, handler, arguments));
 	}
 
 	public Map<String, Object> getData() {
@@ -310,10 +294,9 @@ public class SharedObject implements IPersistable, Constants {
 		Iterator keys = data.keySet().iterator();
 		while (keys.hasNext()) {
 			String key = (String) keys.next();
-			ownerMessage.addEvent(new SharedObjectEvent(
-					SO_CLIENT_DELETE_DATA, key, null));
+			ownerMessage.addEvent(Type.CLIENT_DELETE_DATA, key, null);
 			syncEvents.add(new SharedObjectEvent(
-					SO_CLIENT_DELETE_DATA, key, null));
+					Type.CLIENT_DELETE_DATA, key, null));
 		}
 
 		data.clear();
@@ -325,14 +308,12 @@ public class SharedObject implements IPersistable, Constants {
 		listeners.add(listener);
 
 		// prepare response for new client
-		ownerMessage.addEvent(new SharedObjectEvent(
-				SO_CLIENT_INITIAL_DATA, null, null));
+		ownerMessage.addEvent(Type.CLIENT_INITIAL_DATA, null, null);
 		if (!isPersistentObject())
-			ownerMessage.addEvent(new SharedObjectEvent(
-					SO_CLIENT_CLEAR_DATA, null, null));
+			ownerMessage.addEvent(Type.CLIENT_CLEAR_DATA, null, null);
 		if (!data.isEmpty())
 			ownerMessage.addEvent(new SharedObjectEvent(
-					SO_CLIENT_UPDATE_DATA, null, getData()));
+					Type.CLIENT_UPDATE_DATA, null, getData()));
 
 		// we call notifyModified here to send response if we're not in a
 		// beginUpdate block
@@ -388,7 +369,7 @@ public class SharedObject implements IPersistable, Constants {
 		data.putAll((Map<String, Object>) deserializer.deserialize(input));
 		updateHashes();
 		ownerMessage.setName(name);
-		ownerMessage.setType(2);
+		ownerMessage.setIsPersistent(true);
 	}
 
 	public void setStore(IPersistenceStore store) {

@@ -16,9 +16,8 @@ import org.apache.mina.transport.socket.nio.SocketConnector;
 import org.red5.server.net.rtmp.Channel;
 import org.red5.server.net.rtmp.RTMPMinaConnection;
 import org.red5.server.net.rtmp.codec.RTMP;
-import org.red5.server.net.rtmp.message.InPacket;
-import org.red5.server.net.rtmp.message.Message;
-import org.red5.server.net.rtmp.message.PacketHeader;
+import org.red5.server.net.rtmp.message.Packet;
+import org.red5.server.net.rtmp.message.Header;
 
 public class DebugProxyHandler extends IoHandlerAdapter {
 
@@ -83,10 +82,10 @@ public class DebugProxyHandler extends IoHandlerAdapter {
 			
 			final RTMPMinaConnection conn = (RTMPMinaConnection) session.getAttachment();
 						
-			final InPacket packet = (InPacket) in;
-			final Message message = packet.getMessage();
-			final PacketHeader source = packet.getSource();
-			final Channel channel = conn.getChannel(packet.getSource().getChannelId());
+			final Packet packet = (Packet) in;
+			final Object message = packet.getMessage();
+			final Header source = packet.getHeader();
+			final Channel channel = conn.getChannel(packet.getHeader().getChannelId());
 			
 			log.info(source);
 			log.info(message);

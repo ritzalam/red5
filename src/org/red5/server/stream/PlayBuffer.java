@@ -3,6 +3,8 @@ package org.red5.server.stream;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import org.red5.server.net.rtmp.event.IRTMPEvent;
+import org.red5.server.stream.IStreamData;
 import org.red5.server.stream.message.RTMPMessage;
 
 /**
@@ -55,7 +57,11 @@ public class PlayBuffer {
 	 * indicates buffer is full.
 	 */
 	public boolean putMessage(RTMPMessage message) {
-		int size = message.getBody().getData().limit();
+		IRTMPEvent body = message.getBody();
+		if (!(body instanceof IStreamData))
+			throw new RuntimeException("expected IStreamData but got " + body);
+		
+		int size = ((IStreamData) body).getData().limit();
 		if (messageSize + size > capacity) {
 			return false;
 		}
@@ -70,7 +76,13 @@ public class PlayBuffer {
 	 */
 	public RTMPMessage takeMessage() {
 		RTMPMessage message = messageQueue.poll();
-		if (message != null) messageSize -= message.getBody().getData().limit();
+		if (message != null) {
+			IRTMPEvent body = message.getBody();
+			if (!(body instanceof IStreamData))
+				throw new RuntimeException("expected IStreamData but got " + body);
+			
+			messageSize -= ((IStreamData) body).getData().limit();
+		}
 		return message;
 	}
 	

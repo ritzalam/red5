@@ -11,9 +11,9 @@ import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.messaging.PipeConnectionEvent;
 import org.red5.server.net.rtmp.Channel;
 import org.red5.server.net.rtmp.RTMPConnection;
+import org.red5.server.net.rtmp.event.IRTMPEvent;
+import org.red5.server.net.rtmp.event.Ping;
 import org.red5.server.net.rtmp.message.Constants;
-import org.red5.server.net.rtmp.message.Message;
-import org.red5.server.net.rtmp.message.Ping;
 import org.red5.server.stream.message.RTMPMessage;
 import org.red5.server.stream.message.StatusMessage;
 
@@ -42,7 +42,7 @@ public class ConnectionConsumer implements IPushableConsumer,
 		}
 		else if (message instanceof RTMPMessage) {
 			RTMPMessage rtmpMsg = (RTMPMessage) message;
-			Message msg = rtmpMsg.getBody();
+			IRTMPEvent msg = rtmpMsg.getBody();
 //			log.debug("ts :" + msg.getTimestamp());
 			switch(msg.getDataType()){
 			case Constants.TYPE_VIDEO_DATA:

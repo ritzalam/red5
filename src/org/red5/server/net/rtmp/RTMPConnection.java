@@ -26,9 +26,9 @@ import org.red5.server.api.stream.IPlaylistSubscriberStream;
 import org.red5.server.api.stream.ISingleItemSubscriberStream;
 import org.red5.server.api.stream.IStreamCapableConnection;
 import org.red5.server.api.stream.IStreamService;
-import org.red5.server.net.rtmp.message.Invoke;
-import org.red5.server.net.rtmp.message.OutPacket;
-import org.red5.server.net.rtmp.message.Ping;
+import org.red5.server.net.rtmp.event.Invoke;
+import org.red5.server.net.rtmp.event.Ping;
+import org.red5.server.net.rtmp.message.Packet;
 import org.red5.server.service.PendingCall;
 import org.red5.server.so.SharedObjectService;
 import org.red5.server.stream.ClientBroadcastStream;
@@ -215,7 +215,7 @@ public abstract class RTMPConnection extends BaseConnection
 	}
 	
 	public abstract void rawWrite(ByteBuffer out);
-	public abstract void write(OutPacket out);
+	public abstract void write(Packet out);
 
 	public void invoke(IServiceCall call) {
 		// We need to use Invoke for all calls to the client

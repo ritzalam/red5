@@ -1,6 +1,7 @@
 package org.red5.server.net.rtmp;
 
 import static org.red5.server.api.ScopeUtils.getScopeService;
+import static org.red5.server.so.ISharedObjectEvent.Type;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -29,22 +30,22 @@ import org.red5.server.api.stream.IStreamService;
 import org.red5.server.exception.ClientRejectedException;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.codec.RTMP;
+import org.red5.server.net.rtmp.event.Invoke;
+import org.red5.server.net.rtmp.event.IRTMPEvent;
+import org.red5.server.net.rtmp.event.Notify;
+import org.red5.server.net.rtmp.event.Ping;
+import org.red5.server.net.rtmp.event.StreamBytesRead;
+import org.red5.server.net.rtmp.event.Unknown;
 import org.red5.server.net.rtmp.message.Constants;
-import org.red5.server.net.rtmp.message.InPacket;
-import org.red5.server.net.rtmp.message.Invoke;
-import org.red5.server.net.rtmp.message.Message;
-import org.red5.server.net.rtmp.message.Notify;
-import org.red5.server.net.rtmp.message.OutPacket;
-import org.red5.server.net.rtmp.message.PacketHeader;
-import org.red5.server.net.rtmp.message.Ping;
-import org.red5.server.net.rtmp.message.SharedObject;
-import org.red5.server.net.rtmp.message.SharedObjectEvent;
-import org.red5.server.net.rtmp.message.StreamBytesRead;
-import org.red5.server.net.rtmp.message.Unknown;
+import org.red5.server.net.rtmp.message.Header;
+import org.red5.server.net.rtmp.message.Packet;
+import org.red5.server.net.rtmp.message.SharedObjectTypeMapping;
 import org.red5.server.net.rtmp.status.StatusCodes;
 import org.red5.server.net.rtmp.status.StatusObject;
 import org.red5.server.net.rtmp.status.StatusObjectService;
 import org.red5.server.service.Call;
+import org.red5.server.so.SharedObjectEvent;
+import org.red5.server.so.SharedObjectMessage;
 import org.red5.server.so.SharedObjectService;
 import org.red5.server.stream.PlaylistSubscriberStream;
 import org.red5.server.stream.StreamService;
@@ -79,17 +80,18 @@ public class RTMPHandler
 	
 	public void messageReceived(RTMPConnection conn, ProtocolState state, Object in) throws Exception {
 			
+		IRTMPEvent message = null;
 		try {
 			
-			final InPacket packet = (InPacket) in;
-			final Message message = packet.getMessage();
-			final PacketHeader source = packet.getSource();
-			final Channel channel = conn.getChannel(packet.getSource().getChannelId());
-			final IClientStream stream = conn.getStreamById(source.getStreamId());
+			final Packet packet = (Packet) in;
+			message = packet.getMessage();
+			final Header header = packet.getHeader();
+			final Channel channel = conn.getChannel(header.getChannelId());
+			final IClientStream stream = conn.getStreamById(header.getStreamId());
 			
 			if(log.isDebugEnabled()){
 				log.debug("Message recieved");
-				log.debug("Stream Id: "+source);
+				log.debug("Stream Id: "+header);
 				log.debug("Channel: "+channel);
 			}
 				
@@ -97,14 +99,14 @@ public class RTMPHandler
 			Red5.setConnectionLocal(conn);
 			
 			// XXX: HACK HACK HACK to support stream ids
-			RTMPHandler.setStreamId(source.getStreamId());
+			RTMPHandler.setStreamId(header.getStreamId());
 			
 			// Increase number of received messages
 			conn.messageReceived();
 			
-			switch(message.getDataType()){
+			switch (header.getDataType()){
 			case TYPE_INVOKE:
-				onInvoke(conn, channel, source, (Invoke) message);
+				onInvoke(conn, channel, header, (Invoke) message);
 				break;
 				
 			case TYPE_NOTIFY: // just like invoke, but does not return
@@ -112,16 +114,16 @@ public class RTMPHandler
 					// Stream metadata
 					((IEventDispatcher) stream).dispatchEvent(message);
 				else
-					onInvoke(conn, channel, source, (Notify) message);
+					onInvoke(conn, channel, header, (Notify) message);
 				break;
 			case TYPE_PING:
-				onPing(conn, channel, source, (Ping) message);
+				onPing(conn, channel, header, (Ping) message);
 				break;
-			/*
+			
 			case TYPE_STREAM_BYTES_READ:
-				onStreamBytesRead(conn, channel, source, (StreamBytesRead) message);
+				onStreamBytesRead(conn, channel, header, (StreamBytesRead) message);
 				break;
-			*/
+			
 			case TYPE_AUDIO_DATA:
 			case TYPE_VIDEO_DATA:
 				//log.info("in packet: "+source.getSize()+" ts:"+source.getTimer());
@@ -132,8 +134,7 @@ public class RTMPHandler
 				}
 				break;
 			case TYPE_SHARED_OBJECT:
-				SharedObject so = (SharedObject) message;
-				onSharedObject(conn, channel, source, so);
+				onSharedObject(conn, channel, header, (SharedObjectMessage) message);
 				break;
 			}
 			if(message instanceof Unknown){
@@ -143,6 +144,8 @@ public class RTMPHandler
 			// TODO Auto-generated catch block
 			log.error("Exception",e);
 		}
+		if (message != null)
+			message.release();
 	}
 
 	public void messageSent(RTMPConnection conn, Object message) {
@@ -156,8 +159,8 @@ public class RTMPHandler
 		// Increase number of sent messages
 		conn.messageSent();
 		
-		OutPacket sent = (OutPacket) message;
-		final byte channelId = sent.getDestination().getChannelId();
+		Packet sent = (Packet) message;
+		final byte channelId = sent.getHeader().getChannelId();
 		final IClientStream stream = conn.getStreamByChannelId(channelId);
 		// XXX we'd better use new event model for notification
 		if (stream != null && (stream instanceof PlaylistSubscriberStream)) {
@@ -209,7 +212,7 @@ public class RTMPHandler
 			return parts[2];
 	}
 	
-	public void onInvoke(RTMPConnection conn, Channel channel, PacketHeader source, Notify invoke){
+	public void onInvoke(RTMPConnection conn, Channel channel, Header source, Notify invoke){
 		
 		log.debug("Invoke");
 		
@@ -353,7 +356,7 @@ public class RTMPHandler
 		return statusObjectService.getStatusObject(code);
 	}
 	
-	public void onPing(RTMPConnection conn, Channel channel, PacketHeader source, Ping ping){
+	public void onPing(RTMPConnection conn, Channel channel, Header source, Ping ping){
 		if (ping.getValue1() == 7) {
 			// This is the response to an IConnection.ping request
 			conn.pingReceived(ping);
@@ -362,23 +365,23 @@ public class RTMPHandler
 		
 		final Ping pong = new Ping();
 		pong.setValue1((short) 4);
-		pong.setValue2(RTMPHandler.getStreamId());
+		pong.setValue2(source.getStreamId());
 		channel.write(pong);
 		log.info(ping);
 		// No idea why this is needed, 
 		// but it was the thing stopping the new rtmp code streaming
 		final Ping pong2 = new Ping();
 		pong2.setValue1((short) 0);
-		pong2.setValue2(RTMPHandler.getStreamId());
+		pong2.setValue2(source.getStreamId());
 		channel.write(pong2);
 	}
 	
-	public void onStreamBytesRead(RTMPConnection conn, Channel channel, PacketHeader source, StreamBytesRead streamBytesRead){
+	public void onStreamBytesRead(RTMPConnection conn, Channel channel, Header source, StreamBytesRead streamBytesRead){
 		log.info("Stream Bytes Read: "+streamBytesRead.getBytesRead());
 		// pass to stream handler
 	}
 	
-	public void onSharedObject(RTMPConnection conn, Channel channel, PacketHeader source, SharedObject object) {
+	public void onSharedObject(RTMPConnection conn, Channel channel, Header source, SharedObjectMessage object) {
 		final ISharedObject so;
 		final String name = object.getName();
 		IScope scope = conn.getScope();
@@ -394,7 +397,7 @@ public class RTMPHandler
 		Iterator it = object.getEvents().iterator();
 		while (it.hasNext()) {
 			SharedObjectEvent event = (SharedObjectEvent) it.next();
-			switch (event.getType()) {
+			switch (SharedObjectTypeMapping.toByte(event.getType())) {
 			case SO_CONNECT:
 				// Register client for this shared object and send initial state
 				conn.registerBasicScope(so);

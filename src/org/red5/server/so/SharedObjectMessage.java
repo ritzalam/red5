@@ -2,38 +2,63 @@ package org.red5.server.so;
 
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 
 import org.red5.server.api.event.IEventListener;
+import org.red5.server.net.rtmp.event.BaseEvent;
 
-public class SharedObjectMessage implements ISharedObjectMessage {
+public class SharedObjectMessage extends BaseEvent implements ISharedObjectMessage {
 
-	private IEventListener source;
 	private String name;
 	private LinkedList<ISharedObjectEvent> events = new LinkedList<ISharedObjectEvent>();
 	private int version = 0;
 	private boolean persistent = false;
 	
+	public SharedObjectMessage(String name, int version, boolean persistent) {
+		this(null, name, version, persistent);
+	}
+	
 	public SharedObjectMessage(IEventListener source, String name, int version, boolean persistent){
-		this.source = source;
+		super(Type.SHARED_OBJECT, source);
 		this.name = name;
 		this.version = version;
 		this.persistent = persistent;
 	}
+
+	public byte getDataType() {
+		return TYPE_SHARED_OBJECT; 
+	}
 	
 	public int getVersion() {
 		return version;
+	}
+	
+	protected void setVersion(int version) {
+		this.version = version;
 	}
 
 	public String getName() {
 		return name;
 	}
 	
+	protected void setName(String name) {
+		this.name = name;
+	}
+	
 	public boolean isPersistent() {
 		return persistent;
 	}
 	
+	protected void setIsPersistent(boolean persistent) {
+		this.persistent = persistent;
+	}
+	
 	public void addEvent(ISharedObjectEvent event){
 		events.add(event);
+	}
+	
+	public void addEvents(List<ISharedObjectEvent> events){
+		this.events.addAll(events);
 	}
 	
 	public LinkedList<ISharedObjectEvent> getEvents(){
