@@ -92,8 +92,11 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
             int length = in.getInt();
            
             // set the limit and deserialize
+            // NOTE: disabled because the FP sends wrong values here
+            /*
             if (length != -1)
             	in.limit(in.position()+length);
+            */
             Object value = deserializer.deserialize(input);
             
            // log.info(value);
