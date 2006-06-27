@@ -45,4 +45,14 @@
 	    <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
 	</listener>
 
+    <servlet>
+        <servlet-name>gateway</servlet-name>
+        <servlet-class>org.red5.server.net.servlet.AMFGatewayServlet</servlet-class>
+    </servlet>
+    
+    <servlet-mapping>
+        <servlet-name>gateway</servlet-name>
+        <url-pattern>/gateway</url-pattern>
+    </servlet-mapping>
+
 </web-app>

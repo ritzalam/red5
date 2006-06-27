@@ -27,4 +27,8 @@
 	    class="org.red5.server.webapp.test.TestService" 
 		singleton="true" />	
 
+	<bean id="echo.service" 
+	    class="org.red5.samples.services.EchoService" 
+		singleton="true" />	
+
 </beans>

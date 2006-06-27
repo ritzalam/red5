@@ -1,4 +1,4 @@
-package org.red5.server.service;
+package org.red5.samples.services;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -105,6 +105,11 @@ public class EchoService implements IEchoService {
 		result[1] = words;
 		result[2] = str;
 		return result;
+	}
+	
+	public Object echoAny(Object any) {
+		log.info("Received: " + any);
+		return any;
 	}
 	
 }

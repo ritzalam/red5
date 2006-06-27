@@ -39,8 +39,8 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.red5.server.service.EchoService;
-import org.red5.server.service.IEchoService;
+import org.red5.samples.services.EchoService;
+import org.red5.samples.services.IEchoService;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
