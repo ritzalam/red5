@@ -90,12 +90,14 @@ class org.red5.data.RemotingTestData {
 	//Returns all session meta data in an array	
 	public static function testRemoteMethod()
 	{
+		setGateway();
 		var args:Array = buildArguments();
 		if(args.length < 1) return; // nothing to send
 		
 		_global.tt("submit", args);
 		var pc:PendingCall = service[remoteMethod](args);
 		pc.responder = new RelayResponder(RemotingTestData, "handleGetDetails", "handleRemotingError");
+		_global.tt("setGateway", service);
 	}
 		
 	private static function buildArguments():Array

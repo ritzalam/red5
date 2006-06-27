@@ -110,7 +110,7 @@ class org.red5.data.RemotingTest extends MovieClip {
 	private function textValueChangeHandler(evtObj:Object):Void
 	{
 		//handles text changes to the text input fields
-		_global.tt("changed", evtObj.target._name);
+		//_global.tt("changed", evtObj.target._name);
 		switch(evtObj.target._name)
 		{
 			case "gatewayValue":
