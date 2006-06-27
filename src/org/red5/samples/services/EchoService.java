@@ -22,14 +22,17 @@ package org.red5.samples.services;
  * @author Chris Allen (mrchrisallen@gmail.com)
  */
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.red5.server.Standalone;
 import org.w3c.dom.Document;
+
+import org.red5.server.api.IConnection;
+import org.red5.server.api.Red5;
 
 /**
  * The Echo service is used to test all of the different datatypes 
@@ -110,6 +113,56 @@ public class EchoService implements IEchoService {
 	public Object echoAny(Object any) {
 		log.info("Received: " + any);
 		return any;
+	}
+	
+	/**
+	 * Test serialization of arbitrary objects.
+	 * 
+	 * @param any
+	 * @return
+	 */
+	public List<Object> returnDistinctObjects(Object any) {
+		List<Object> result = new ArrayList<Object>();
+		for (int i=0; i<4; i++)
+			result.add(new SampleObject());
+		return result;
+	}
+	
+	/**
+	 * Test references.
+	 * 
+	 * @param any
+	 * @return
+	 */
+	public List<Object> returnSameObjects(Object any) {
+		List<Object> result = new ArrayList<Object>();
+		SampleObject object = new SampleObject();
+		for (int i=0; i<4; i++)
+			result.add(object);
+		return result;
+	}
+
+	/**
+	 * Test returning of internal objects.
+	 * 
+	 * @param any
+	 * @return
+	 */
+	public IConnection returnConnection(Object any) {
+		return Red5.getConnectionLocal();
+	}
+
+	/**
+	 * Sample object that contains attributes with all access possibilities.
+	 * This will test the serializer of arbitrary objects. 
+	 */
+	public class SampleObject {
+		
+		public String value1 = "one";
+		public int value2 = 2;
+		private String value3 = "drei";
+		protected int value4 = 4;
+		
 	}
 	
 }
