@@ -205,10 +205,10 @@ public abstract class RTMPConnection extends BaseConnection
 				}
 			}
 		}
-		super.close();
 		IFlowControlService fcs = (IFlowControlService) getScope().getContext().getBean(
 				IFlowControlService.KEY);
 		fcs.unregisterFlowControllable(this);
+		super.close();
 	}
 	
 	public void unreserveStreamId(int streamId) {
