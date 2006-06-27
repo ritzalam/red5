@@ -250,6 +250,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants, IE
 				}
 				break;
 							
+			case CLIENT_SEND_MESSAGE:
 			case SERVER_SEND_MESSAGE:
 				// Send method name and value
 				out.put(type);
