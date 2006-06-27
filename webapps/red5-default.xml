@@ -9,6 +9,7 @@
 	<bean id="global.serviceInvoker" class="org.red5.server.service.ServiceInvoker">
 		<property name="serviceResolvers">
 			<list>
+				<bean id="scopeServiceResolver" class="org.red5.server.service.ScopeServiceResolver"/>
 				<bean id="handlerServiceResolver" class="org.red5.server.service.HandlerServiceResolver"/>
 				<bean id="contextServiceResolver" class="org.red5.server.service.ContextServiceResolver"/>
 			</list>
