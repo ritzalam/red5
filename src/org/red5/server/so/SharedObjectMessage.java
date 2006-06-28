@@ -25,6 +25,10 @@ public class SharedObjectMessage extends BaseEvent implements ISharedObjectMessa
 		this.persistent = persistent;
 	}
 
+	public void setSource(IEventListener source) {
+		this.source = source;
+	}
+	
 	public byte getDataType() {
 		return TYPE_SHARED_OBJECT; 
 	}

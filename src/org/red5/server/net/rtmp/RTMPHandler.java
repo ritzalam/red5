@@ -400,41 +400,8 @@ public class RTMPHandler
 			}
 		}
 		so = sharedObjectService.getSharedObject(scope, name);
-		so.beginUpdate(conn);
-		Iterator it = object.getEvents().iterator();
-		while (it.hasNext()) {
-			SharedObjectEvent event = (SharedObjectEvent) it.next();
-			switch (SharedObjectTypeMapping.toByte(event.getType())) {
-			case SO_CONNECT:
-				// Register client for this shared object and send initial state
-				conn.registerBasicScope(so);
-				break;
-			
-			case SO_DISCONNECT:
-				// The client disconnected from the SO
-				conn.unregisterBasicScope(so);
-				break;
-			
-			case SO_SET_ATTRIBUTE:
-				// The client wants to update an attribute
-				so.setAttribute(event.getKey(), event.getValue());
-				break;
-			
-			case SO_DELETE_ATTRIBUTE:
-				// The client wants to remove an attribute
-				so.removeAttribute(event.getKey());
-				break;
-				
-			case SO_SEND_MESSAGE:
-				// The client wants to send a message
-				so.sendMessage(event.getKey(), (List) event.getValue());
-				break;
-				
-			default:
-				log.error("Unknown shared object update event " + event.getType());
-			}
-		}
-		so.endUpdate();
+		object.setSource(conn);
+		so.dispatchEvent(object);
 	}
 	
 }

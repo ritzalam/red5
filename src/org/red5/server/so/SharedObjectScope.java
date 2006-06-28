@@ -14,6 +14,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.red5.server.BaseConnection;
 import org.red5.server.BasicScope;
 import org.red5.server.api.IAttributeStore;
 import org.red5.server.api.IContext;
@@ -208,20 +209,35 @@ public class SharedObjectScope extends BasicScope
 		return so.getData();
 	}
 
-	public boolean handleEvent(IEvent e){
-		if(! (e instanceof ISharedObjectEvent)) return false;
+	public void dispatchEvent(IEvent e) {
+		if (e.getType() != IEvent.Type.SHARED_OBJECT || !(e instanceof ISharedObjectMessage)) {
+			// Don't know how to handle this event.
+			super.dispatchEvent(e);
+			return;
+		}
+		
 		ISharedObjectMessage msg = (ISharedObjectMessage) e;
 		if (msg.hasSource()) beginUpdate(msg.getSource());
 		else beginUpdate();
-		for(ISharedObjectEvent event : msg.getEvents()){
+		for (ISharedObjectEvent event: msg.getEvents()) {
 			switch(event.getType()){
 			case SERVER_CONNECT:
-				if(msg.hasSource()) 
-					addEventListener(msg.getSource());
+				if (msg.hasSource()) {
+					IEventListener source = msg.getSource();
+					if (source instanceof BaseConnection)
+						((BaseConnection) source).registerBasicScope(this);
+					else
+						addEventListener(source);
+				}
 				break;
 			case SERVER_DISCONNECT:
-				if(msg.hasSource()) 
-					removeEventListener(msg.getSource());
+				if (msg.hasSource()) {
+					IEventListener source = msg.getSource();
+					if (source instanceof BaseConnection)
+						((BaseConnection) source).unregisterBasicScope(this);
+					else
+						removeEventListener(source);
+				}
 				break;		
 			case SERVER_SET_ATTRIBUTE:
 				setAttribute(event.getKey(), event.getValue());
@@ -232,10 +248,11 @@ public class SharedObjectScope extends BasicScope
 			case SERVER_SEND_MESSAGE:
 				sendMessage(event.getKey(), (List) event.getValue());
 				break;
+			default:
+				log.warn("Unknown SO event: " + event.getType());
 			}
 		}
 		endUpdate();
-		return true;
 	}
 	
 	@Override
