@@ -80,6 +80,7 @@ implements IFlowControlService, ApplicationContextAware {
 				// simple unregister the flow controllable
 				// TODO migrate the waiting threads to ancestors
 				fcsMap.remove(fc);
+				return;
 			}
 			IBandwidthConfigure oldConf = obj.bwConfig;
 			IBandwidthConfigure newConf = fc.getBandwidthConfigure();
