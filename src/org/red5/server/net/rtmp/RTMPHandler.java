@@ -340,7 +340,14 @@ public class RTMPHandler
 			conn.close();
 		}
 		
-		if (invoke instanceof Invoke){
+		if (invoke instanceof Invoke) {
+			if ((source.getStreamId() != 0) &&
+				(call.getStatus() == Call.STATUS_SUCCESS_VOID || call.getStatus() == Call.STATUS_SUCCESS_NULL)) {
+				// This fixes a bug in the FP on Intel Macs.
+				log.debug("Method does not have return value, do not reply"); 
+				return; 
+			}
+			
 			// The client expects a result for the method call.
 			Invoke reply = new Invoke();
 			reply.setCall(call);
