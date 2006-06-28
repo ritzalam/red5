@@ -237,17 +237,21 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator
     }
     
     public void resetStacks() {
-    	stacks.clear();
+    	synchronized (stacks) {
+    		stacks.clear();
+    	}
     }
     
     public void printStacks() {
-    	for (Entry<UnexpandableByteBuffer, StackTraceElement[]> entry: stacks.entrySet()) {
-    		System.out.println("Stack for buffer " + entry.getKey());
-    		StackTraceElement[] stack = entry.getValue();
-    		for (StackTraceElement element: stack) {
-    			System.out.println("  " + element);
-    		}
-    		System.out.println();
+    	synchronized (stacks) {
+	    	for (Entry<UnexpandableByteBuffer, StackTraceElement[]> entry: stacks.entrySet()) {
+	    		System.out.println("Stack for buffer " + entry.getKey());
+	    		StackTraceElement[] stack = entry.getValue();
+	    		for (StackTraceElement element: stack) {
+	    			System.out.println("  " + element);
+	    		}
+	    		System.out.println();
+	    	}
     	}
     }
     
@@ -276,7 +280,9 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator
         buf.init();
         log.info("+++ "+count+" ("+buf.buf().capacity()+") "+getCodeSection() +" req: "+capacity );
         if (saveStacks)
-        	stacks.put(buf, Thread.currentThread().getStackTrace());
+        	synchronized (stacks) {
+        		stacks.put(buf, Thread.currentThread().getStackTrace());
+        	}
         
         return buf;
     }
@@ -287,7 +293,9 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator
         count--;
         log.info("--- "+count+" ("+buf.buf().capacity()+") " +getCodeSection() );
         if (saveStacks)
-        	stacks.remove(buf);
+        	synchronized (stacks) {
+        		stacks.remove(buf);
+        	}
         ExpiringStack[] bufferStacks = buf.buf().isDirect()? directBufferStacks : heapBufferStacks;
         ExpiringStack stack = bufferStacks[ getBufferStackIndex( bufferStacks, buf.buf().capacity() ) ];
         
