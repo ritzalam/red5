@@ -75,9 +75,10 @@ public class RTMPTHandler extends RTMPHandler implements Constants {
 	}
 	
 	public void messageReceived(RTMPConnection conn, ProtocolState state, Object in) throws Exception {
-		if (in instanceof ByteBuffer)
+		if (in instanceof ByteBuffer) {
 			rawBufferRecieved(conn, state, (ByteBuffer) in);
-		else
+			((ByteBuffer) in).release();
+		} else
 			super.messageReceived(conn, state, in);
 	}
 	

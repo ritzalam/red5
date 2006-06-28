@@ -66,8 +66,8 @@ public class RTMPTConnection extends RTMPConnection {
 	protected SimpleProtocolEncoder encoder;
 	protected RTMPHandler handler;
 	protected ByteBuffer buffer;
-	protected List pendingMessages = new LinkedList();
-	protected List notifyMessages = new LinkedList();
+	protected List<ByteBuffer> pendingMessages = new LinkedList<ByteBuffer>();
+	protected List<Object> notifyMessages = new LinkedList<Object>();
 	protected byte pollingDelay = INITIAL_POLLING_DELAY;
 	protected long noPendingMessages = 0;
 	protected long readBytes = 0;
@@ -82,7 +82,17 @@ public class RTMPTConnection extends RTMPConnection {
 		this.decoder = handler.getCodecFactory().getSimpleDecoder();
 		this.encoder = handler.getCodecFactory().getSimpleEncoder();
 	}
-	
+
+	public void close() {
+		this.buffer.release();
+		for (ByteBuffer buffer: pendingMessages) {
+			buffer.release();
+		}
+		pendingMessages.clear();
+		state.setState(RTMP.STATE_DISCONNECTED);
+		super.close();
+	}
+
 	/**
 	 * Return the client id for this connection.
 	 * 
@@ -206,21 +216,24 @@ public class RTMPTConnection extends RTMPConnection {
 				break;
 			
 			synchronized (this.pendingMessages) {
-				Iterator it = this.pendingMessages.iterator();
-				while (it.hasNext())
-					result.put((ByteBuffer) it.next());
+				Iterator<ByteBuffer> it = this.pendingMessages.iterator();
+				while (it.hasNext()) {
+					ByteBuffer buffer = it.next();
+					result.put(buffer);
+					buffer.release();
+				}
 				
 				this.pendingMessages.clear();
 			}
 			
 			// We'll have to create a copy here to avoid endless recursion
-			List toNotify = new LinkedList();
+			List<Object> toNotify = new LinkedList<Object>();
 			synchronized (this.notifyMessages) {
 				toNotify.addAll(this.notifyMessages);
 				this.notifyMessages.clear();
 			}
 			
-			Iterator it = toNotify.iterator();
+			Iterator<Object> it = toNotify.iterator();
 			while (it.hasNext()) {
 				try {
 					handler.messageSent(this, it.next());
