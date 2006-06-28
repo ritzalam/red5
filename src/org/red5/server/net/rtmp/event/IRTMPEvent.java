@@ -7,6 +7,8 @@ public interface IRTMPEvent extends IEvent {
 
 	public byte getDataType();
 	
+	public Header getHeader();
+	
 	public void setHeader(Header header);
 	
 	public int getTimestamp();

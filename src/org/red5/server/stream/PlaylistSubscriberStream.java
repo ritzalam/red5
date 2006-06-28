@@ -426,11 +426,15 @@ implements IPlaylistSubscriberStream {
 							ByteBuffer keyFrame = videoCodec.getKeyframe();
 							if (keyFrame != null) {
 								VideoData video = new VideoData(keyFrame);
-								video.setTimestamp(0);
-								
-								RTMPMessage videoMsg = new RTMPMessage();
-								videoMsg.setBody(video);
-								msgOut.pushMessage(videoMsg);
+								try {
+									video.setTimestamp(0);
+									
+									RTMPMessage videoMsg = new RTMPMessage();
+									videoMsg.setBody(video);
+									msgOut.pushMessage(videoMsg);
+								} finally {
+									video.release();
+								}
 							}
 						}
 					}
@@ -642,11 +646,15 @@ implements IPlaylistSubscriberStream {
 		
 		private void sendBlankAudio() {
 			AudioData blankAudio = new AudioData();
-			blankAudio.setTimestamp(0);
-			
-			RTMPMessage blankAudioMsg = new RTMPMessage();
-			blankAudioMsg.setBody(blankAudio);
-			msgOut.pushMessage(blankAudioMsg);
+			try {
+				blankAudio.setTimestamp(0);
+				
+				RTMPMessage blankAudioMsg = new RTMPMessage();
+				blankAudioMsg.setBody(blankAudio);
+				msgOut.pushMessage(blankAudioMsg);
+			} finally {
+				blankAudio.release();
+			}
 		}
 		
 		private void sendResetStatus(IPlayItem item) {
