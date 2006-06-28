@@ -83,24 +83,26 @@
     </Set>
 
     <!-- =========================================================== -->
-    <!-- Set handlers                                                -->
+    <!-- Set handler Collection Structure                            --> 
     <!-- =========================================================== -->
-   <!--
-    <Set name="handlers">
-      <Array type="org.mortbay.jetty.Handler">
-		<Item>
-          <New id="defaultWebAppContext"  class="org.mortbay.jetty.webapp.WebAppContext">
-            <Set name="contextPath">/</Set>
-            <Set name="war">./webapps/defaultApp</Set>
-            <Set name="VirtualHosts"><Array type="java.lang.String"></Array></Set>
-            <Get name="SessionHandler">
-              <Set name="SessionManager"><New class="org.mortbay.jetty.servlet.HashSessionManager"/></Set>
-            </Get>
-          </New>
-        </Item>
-      </Array>
+    <Set name="handler">
+      <New id="handlers" class="org.mortbay.jetty.handler.HandlerCollection">
+        <Set name="handlers">
+         <Array type="org.mortbay.jetty.Handler">
+           <Item>
+             <New id="contexts" class="org.mortbay.jetty.handler.ContextHandlerCollection"/>
+           </Item>
+           <Item>
+             <New id="defaultHandler" class="org.mortbay.jetty.handler.DefaultHandler"/>
+           </Item>
+           <Item>
+             <New id="requestLog" class="org.mortbay.jetty.handler.RequestLogHandler"/>
+           </Item>
+         </Array>
+        </Set>
+      </New>
     </Set>
-    -->
+    
 
     <!-- =========================================================== -->
     <!-- Additional contexts not defined above                       -->

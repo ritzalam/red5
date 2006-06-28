@@ -73,11 +73,17 @@ public class RTMPTLoader implements ApplicationContextAware {
 		config.configure(rtmptServer);
 		
 		// Setup configuration data in rtmptServer
-		Handler tmp = rtmptServer.getHandler();
-		if (!(tmp instanceof ContextHandler))
-			throw new Exception("Only context handlers supported.");
+		ContextHandler contextHandler = null;
+		for (Handler handler: rtmptServer.getHandlers()) {
+			if (handler instanceof ContextHandler) {
+				contextHandler = (ContextHandler) handler;
+				break;
+			}
+		}
+		if (contextHandler == null)
+			throw new Exception("No context handler found in the server.");
 		
-		((ContextHandler) tmp).setAttribute(RTMPTHandler.HANDLER_ATTRIBUTE, this.handler);
+		contextHandler.setAttribute(RTMPTHandler.HANDLER_ATTRIBUTE, this.handler);
 		log.info("Starting RTMPT server");
 		rtmptServer.start();
 		
