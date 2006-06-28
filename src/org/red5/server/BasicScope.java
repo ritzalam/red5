@@ -69,10 +69,6 @@ public class BasicScope extends PersistableAttributeStore implements IBasicScope
 		
 	}
 
-	public void dispatchEvent(Object event) {
-		// send out an event, with this object as the source
-	}
-	
 	public void dispatchEvent(IEvent event){
 		for(IEventListener listener : listeners){
 			if(event.getSource()==null || 

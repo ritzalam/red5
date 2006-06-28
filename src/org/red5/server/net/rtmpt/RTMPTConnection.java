@@ -171,21 +171,6 @@ public class RTMPTConnection extends RTMPConnection {
 	}
 	
 	/**
-	 * Send event down the connection.
-	 * 
-	 * @param event
-	 * 			the event to send
-	 */
-	public void dispatchEvent(Object event) {
-		if (event instanceof ByteBuffer) {
-			rawWrite((ByteBuffer) event);
-		} else if (event instanceof Packet) {
-			write((Packet) event);
-		} else
-			log.error("Don't know how to dispatch event " + event);
-	}
-
-	/**
 	 * Return any pending messages up to a given size.
 	 * 
 	 * @param targetSize

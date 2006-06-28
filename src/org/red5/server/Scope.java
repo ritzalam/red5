@@ -325,10 +325,6 @@ public class Scope extends BasicScope implements IScope {
 		}
 	}
 	
-	public void dispatchEvent(Object event){
-		// wrap then forward
-	}
-	
 	class PrefixFilteringStringIterator implements Iterator<String>{
 
 		private Iterator<String> iterator; 

@@ -144,10 +144,6 @@ public abstract class BaseConnection extends AttributeStore
 		// TODO Auto-generated method stub		
 	}
 
-	public void dispatchEvent(Object event){
-		// wrap as IEvent and forward
-	}
-
 	public void dispatchEvent(IEvent event) {
 		
 	}
