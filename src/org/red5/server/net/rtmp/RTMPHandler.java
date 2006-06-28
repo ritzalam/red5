@@ -1,7 +1,6 @@
 package org.red5.server.net.rtmp;
 
 import static org.red5.server.api.ScopeUtils.getScopeService;
-import static org.red5.server.so.ISharedObjectEvent.Type;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -39,12 +38,10 @@ import org.red5.server.net.rtmp.event.Unknown;
 import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.net.rtmp.message.Header;
 import org.red5.server.net.rtmp.message.Packet;
-import org.red5.server.net.rtmp.message.SharedObjectTypeMapping;
 import org.red5.server.net.rtmp.status.StatusCodes;
 import org.red5.server.net.rtmp.status.StatusObject;
 import org.red5.server.net.rtmp.status.StatusObjectService;
 import org.red5.server.service.Call;
-import org.red5.server.so.SharedObjectEvent;
 import org.red5.server.so.SharedObjectMessage;
 import org.red5.server.so.SharedObjectService;
 import org.red5.server.stream.PlaylistSubscriberStream;
