@@ -124,8 +124,7 @@ public class StatusObjectService implements StatusCodes {
 			out.clear();
 			cachedStatusObjects.put(statusCode,cachedBytes);
 		}
-		
-		
+		out.release();
 	}
 	
 	public void serializeStatusObject(ByteBuffer out, StatusObject statusObject){
