@@ -72,15 +72,15 @@ public class ConversionUtils {
 	};
 	
 	/** Mapping of primitives to wrappers */	
-	private static Map primitiveMap = new HashMap();
+	private static Map<Class, Class> primitiveMap = new HashMap<Class, Class>();
 	/** Mapping of wrappers to primitives */
-	private static Map wrapperMap = new HashMap();
+	private static Map<Class, Class> wrapperMap = new HashMap<Class, Class>();
 	/** 
 	 * Mapping from wrapper class to appropriate parameter types (in order) 
 	 * Each entry is an array of Classes, the last of which is either null
 	 * (for no chaining) or the next class to try
 	 */
-	private static Map parameterMap = new HashMap();
+	private static Map<Class, Class[]> parameterMap = new HashMap<Class, Class[]>();
 
 	/** Default number format */
 	private static NumberFormat NUMBER_FORMAT = NumberFormat.getInstance();
