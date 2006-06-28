@@ -43,8 +43,8 @@ public class StatusObjectService implements StatusCodes {
 	
 	protected Serializer serializer;
 	
-	protected Map statusObjects;
-	protected Map cachedStatusObjects; 
+	protected Map<String, StatusObject> statusObjects;
+	protected Map<String, byte[]> cachedStatusObjects; 
 
 	public void setSerializer(Serializer serializer) {
 		this.serializer = serializer;
@@ -59,7 +59,7 @@ public class StatusObjectService implements StatusCodes {
 	}
 	
 	public void loadStatusObjects(){
-		statusObjects = new HashMap();
+		statusObjects = new HashMap<String, StatusObject>();
 		
 		statusObjects.put(NC_CALL_FAILED,new StatusObject(NC_CALL_FAILED,StatusObject.ERROR,""));
 		statusObjects.put(NC_CALL_BADVERSION,new StatusObject(NC_CALL_BADVERSION,StatusObject.ERROR,""));
@@ -104,17 +104,17 @@ public class StatusObjectService implements StatusCodes {
 	
 	public void cacheStatusObjects(){
 		
-		cachedStatusObjects = new HashMap();
+		cachedStatusObjects = new HashMap<String, byte[]>();
 		
-		Iterator it = statusObjects.keySet().iterator();
+		Iterator<String> it = statusObjects.keySet().iterator();
 		
 		String statusCode;
 		ByteBuffer out = ByteBuffer.allocate(256);
 		out.setAutoExpand(true);
 		
 		while(it.hasNext()){
-			statusCode = (String) it.next();
-			StatusObject statusObject = (StatusObject) statusObjects.get(statusCode);
+			statusCode = it.next();
+			StatusObject statusObject = statusObjects.get(statusCode);
 			if(statusObject instanceof RuntimeStatusObject) continue;
 			serializeStatusObject(out, statusObject);
 			out.flip();
@@ -134,11 +134,11 @@ public class StatusObjectService implements StatusCodes {
 	}
 	
 	public StatusObject getStatusObject(String statusCode){
-		return (StatusObject) statusObjects.get(statusCode);
+		return statusObjects.get(statusCode);
 	}
 	
 	public byte[] getCachedStatusObjectAsByteArray(String statusCode){
-		return (byte[]) cachedStatusObjects.get(statusCode);
+		return cachedStatusObjects.get(statusCode);
 	}
 	
 	/*
