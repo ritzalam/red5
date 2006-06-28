@@ -535,6 +535,14 @@ implements IPlaylistSubscriberStream {
 					msgIn = null;
 				}
 			}
+			if (pendingMessage != null) {
+				IRTMPEvent body = pendingMessage.getBody();
+				if (body instanceof IStreamData)
+					((IStreamData) body).getData().release();
+				
+				pendingMessage = null;
+			}
+			
 			state = State.CLOSED;
 			if (waitLiveJob != null) {
 				schedulingService.removeScheduledJob(waitLiveJob);
@@ -568,6 +576,7 @@ implements IPlaylistSubscriberStream {
 					}
 					if (toSend) {
 						sendMessage(pendingMessage);
+						((IStreamData) body).getData().release();
 						pendingMessage = null;
 					}
 				} else {
@@ -598,6 +607,7 @@ implements IPlaylistSubscriberStream {
 								}
 								if (toSend) {
 									sendMessage(rtmpMessage);
+									((IStreamData) body).getData().release();
 								} else {
 									pendingMessage = rtmpMessage;
 								}
