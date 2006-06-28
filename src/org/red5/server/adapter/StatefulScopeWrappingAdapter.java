@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.red5.server.api.IAttributeStore;
-import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IContext;
@@ -15,7 +14,7 @@ import org.red5.server.api.IScopeAware;
 import org.springframework.core.io.Resource;
 
 public class StatefulScopeWrappingAdapter extends AbstractScopeAdapter 
-	implements IScopeAware {
+	implements IScopeAware, IAttributeStore {
 	
 	protected IScope scope; 
 	
@@ -27,7 +26,11 @@ public class StatefulScopeWrappingAdapter extends AbstractScopeAdapter
 		return scope.getAttribute(name);
 	}
 
-	public Set getAttributeNames() {
+	public Object getAttribute(String name, Object defaultValue) {
+		return scope.getAttribute(name, defaultValue);
+	}
+	
+	public Set<String> getAttributeNames() {
 		return scope.getAttributeNames();
 	}
 
@@ -51,7 +54,7 @@ public class StatefulScopeWrappingAdapter extends AbstractScopeAdapter
 		scope.setAttributes(values);
 	}
 
-	public void setAttributes(Map values) {
+	public void setAttributes(Map<String, Object> values) {
 		scope.setAttributes(values);
 	}
 	
