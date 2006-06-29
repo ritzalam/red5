@@ -781,8 +781,14 @@ implements IPlaylistSubscriberStream {
 			case PipeConnectionEvent.PROVIDER_DISCONNECT:
 				if (isPullMode)
 					sendStopStatus(currentItem);
-				else
+				else {
 					sendUnpublishedStatus(currentItem);
+					stop();
+					nextItem();
+					if (state == State.STOPPED)
+						// No more items in the playlist, close stream.
+						close();
+				}
 				break;
 			case PipeConnectionEvent.CONSUMER_CONNECT_PULL:
 				if (event.getConsumer() == this) {
