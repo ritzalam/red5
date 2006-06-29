@@ -27,6 +27,7 @@ import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.messaging.PipeConnectionEvent;
 import org.red5.server.net.rtmp.event.AudioData;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
+import org.red5.server.net.rtmp.event.StreamBytesRead;
 import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.net.rtmp.status.Status;
 import org.red5.server.stream.codec.StreamCodecInfo;
@@ -53,6 +54,11 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	private long lastAudio;
 	private long lastVideo;
 	private long lastData;
+	
+	// HACK: Adding stream bytes read quickly.
+	private int bytesReadInterval = 125000;
+	private int bytesRead = 0;
+	private int bytesReadPacketCount = 0;
 
 	public void start() {
 		IConsumerService consumerManager =
@@ -134,7 +140,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 
 	public void onOOBControlMessage(IMessageComponent source, IPipe pipe, OOBControlMessage oobCtrlMsg) {
 	}
-
+	
 	public void dispatchEvent(IEvent event) {
 		if (!(event instanceof IRTMPEvent) && (event.getType() != IEvent.Type.STREAM_CONTROL) && (event.getType() != IEvent.Type.STREAM_DATA))
 			return;
@@ -152,6 +158,8 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 				streamCodec.setHasAudio(true);
 			delta = now - lastAudio;
 			lastAudio = now;
+			// HACK: Adding stream bytes read
+			bytesRead += ((AudioData) rtmpEvent).getData().limit();
 		} else if (rtmpEvent instanceof VideoData) {
 			IVideoStreamCodec videoStreamCodec = null;
 			if (videoCodecFactory != null && checkVideoCodec) {
@@ -170,10 +178,26 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 				streamCodec.setHasVideo(true);
 			delta = now - lastVideo;
 			lastVideo = now;
+			// HACK: Adding stream bytes read
+			bytesRead += ((VideoData) rtmpEvent).getData().limit();
 		} else {
 			delta = now - lastData;
 			lastData = now;
 		}
+		
+		
+		// HACK: Adding stream bytes read
+		// Question: Does the stream bytes read need a netstream id ?
+		// Im wondering how the client would tell its for this stream.
+		if(bytesReadPacketCount < Math.floor(bytesRead / bytesReadInterval)){
+			bytesReadPacketCount++;
+			StreamBytesRead streamBytesRead = new StreamBytesRead(bytesRead);
+			log.info(streamBytesRead);
+			RTMPMessage msg = new RTMPMessage();
+			msg.setBody(streamBytesRead);
+			connMsgOut.pushMessage(msg);
+		}
+		
 		
 		// XXX: deltas for the different tag types don't seem to work, investigate!
 		delta = now - startTime;
