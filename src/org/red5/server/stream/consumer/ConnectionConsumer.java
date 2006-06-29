@@ -71,7 +71,7 @@ public class ConnectionConsumer implements IPushableConsumer,
 				conn.ping((Ping) msg);
 				break;
 			case Constants.TYPE_STREAM_BYTES_READ:
-				conn.getChannel((byte)2).write((StreamBytesRead) msg);
+				video.write((StreamBytesRead) msg);
 				break;
 			default:
 				data.write(msg);

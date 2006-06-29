@@ -189,9 +189,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		
 		
 		// HACK: Adding stream bytes read
-		// Question: Does the stream bytes read need a netstream id ?
-		// Im wondering how the client would tell its for this stream.
-		if(bytesReadPacketCount < Math.floor(bytesRead / bytesReadInterval)){
+		if (bytesReadPacketCount < Math.floor(bytesRead / bytesReadInterval)) {
 			bytesReadPacketCount++;
 			StreamBytesRead streamBytesRead = new StreamBytesRead(bytesRead);
 			log.info(streamBytesRead);
