@@ -218,8 +218,6 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			
 			if (send)
 				livePipe.pushMessage(msg);
-			else
-				log.warn("Discard packet.");
 		}
 		recordPipe.pushMessage(msg);
 	}
