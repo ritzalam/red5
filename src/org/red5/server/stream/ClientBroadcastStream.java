@@ -210,8 +210,18 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		msg.setBody(rtmpEvent);
 		if (livePipe != null) {
 			// XXX probable race condition here
-			// Drop 1 in every 100 packets, low tech lag fix.
-			if( (tempCounter++ % 100) != 0) livePipe.pushMessage(msg);
+			boolean send = true;
+			if (rtmpEvent instanceof VideoData) {
+				// Drop 1 in every 100 interframe video packets, low tech lag fix.
+				VideoData.FrameType frameType = ((VideoData) rtmpEvent).getFrameType();
+				if (frameType == VideoData.FrameType.DISPOSABLE_INTERFRAME || frameType == VideoData.FrameType.INTERFRAME)
+					send = (tempCounter++ % 100) != 0;
+			}
+			
+			if (send)
+				livePipe.pushMessage(msg);
+			else
+				log.warn("Discard packet.");
 		}
 		recordPipe.pushMessage(msg);
 	}
