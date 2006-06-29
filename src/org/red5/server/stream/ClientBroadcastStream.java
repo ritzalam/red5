@@ -210,12 +210,11 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			// XXX probable race condition here
 			boolean send = true;
 			if (rtmpEvent instanceof VideoData) {
-				// Drop 1 in every 100 interframe video packets, low tech lag fix.
+				// Drop 1 in every 20 disposable interframe video packets, low tech lag fix.
 				VideoData.FrameType frameType = ((VideoData) rtmpEvent).getFrameType();
-				if (frameType == VideoData.FrameType.DISPOSABLE_INTERFRAME || frameType == VideoData.FrameType.INTERFRAME)
-					send = (tempCounter++ % 100) != 0;
+				if (frameType == VideoData.FrameType.DISPOSABLE_INTERFRAME )
+					send = (tempCounter++ % 20) != 0;
 			}
-			
 			if (send)
 				livePipe.pushMessage(msg);
 		}
