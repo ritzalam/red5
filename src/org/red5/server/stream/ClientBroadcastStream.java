@@ -141,6 +141,8 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	public void onOOBControlMessage(IMessageComponent source, IPipe pipe, OOBControlMessage oobCtrlMsg) {
 	}
 	
+	private int tempCounter = 0;
+	
 	public void dispatchEvent(IEvent event) {
 		if (!(event instanceof IRTMPEvent) && (event.getType() != IEvent.Type.STREAM_CONTROL) && (event.getType() != IEvent.Type.STREAM_DATA))
 			return;
@@ -198,17 +200,18 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			connMsgOut.pushMessage(msg);
 		}
 		
-		
+	
 		// XXX: deltas for the different tag types don't seem to work, investigate!
 		delta = now - startTime;
 		startTime = now;
 		
-		rtmpEvent.setTimestamp((int) delta);
+		//rtmpEvent.setTimestamp((int) delta);
 		RTMPMessage msg = new RTMPMessage();
 		msg.setBody(rtmpEvent);
 		if (livePipe != null) {
 			// XXX probable race condition here
-			livePipe.pushMessage(msg);
+			// Drop 1 in every 100 packets, low tech lag fix.
+			if( (tempCounter++ % 100) != 0) livePipe.pushMessage(msg);
 		}
 		recordPipe.pushMessage(msg);
 	}
