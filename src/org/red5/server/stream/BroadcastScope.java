@@ -10,11 +10,11 @@ import org.red5.server.messaging.IConsumer;
 import org.red5.server.messaging.IMessage;
 import org.red5.server.messaging.IPipeConnectionListener;
 import org.red5.server.messaging.IProvider;
-import org.red5.server.messaging.InMemoryPushPushPipe;
 import org.red5.server.messaging.OOBControlMessage;
+import org.red5.server.messaging.PipeConnectionEvent;
 import org.red5.server.stream.pipe.RefCountPushPushPipe;
 
-public class BroadcastScope extends BasicScope implements IBroadcastScope {
+public class BroadcastScope extends BasicScope implements IBroadcastScope, IPipeConnectionListener {
 	private static final Log log = LogFactory.getLog(BroadcastScope.class);
 	
 	private RefCountPushPushPipe pipe;
@@ -24,6 +24,7 @@ public class BroadcastScope extends BasicScope implements IBroadcastScope {
 	public BroadcastScope(IScope parent, String name) {
 		super(parent, TYPE, name, false);
 		pipe = new RefCountPushPushPipe();
+		pipe.addPipeConnectionListener(this);
 		compCounter = 0;
 		hasRemoved = false;
 	}
@@ -44,18 +45,15 @@ public class BroadcastScope extends BasicScope implements IBroadcastScope {
 		return pipe.pullMessage(wait);
 	}
 
-	synchronized public boolean subscribe(IConsumer consumer, Map paramMap) {
-		if (hasRemoved) return false;
-		boolean result = pipe.subscribe(consumer, paramMap);
-		if (result) compCounter++;
-		return result;
+	public boolean subscribe(IConsumer consumer, Map paramMap) {
+		synchronized (pipe) {
+			if (hasRemoved) return false;
+			return pipe.subscribe(consumer, paramMap);
+		}
 	}
-
-	synchronized public boolean unsubscribe(IConsumer consumer) {
-		boolean result = pipe.unsubscribe(consumer);
-		if (result) compCounter--;
-		if (compCounter <= 0) removeSelf();
-		return result;
+	
+	public boolean unsubscribe(IConsumer consumer) {
+		return pipe.unsubscribe(consumer);
 	}
 
 	public void sendOOBControlMessage(IConsumer consumer,
@@ -68,17 +66,14 @@ public class BroadcastScope extends BasicScope implements IBroadcastScope {
 	}
 
 	synchronized public boolean subscribe(IProvider provider, Map paramMap) {
-		if (hasRemoved) return false;
-		boolean result = pipe.subscribe(provider, paramMap);
-		if (result) compCounter++;
-		return result;
+		synchronized (pipe) {
+			if (hasRemoved) return false;
+			return pipe.subscribe(provider, paramMap);
+		}
 	}
 
 	synchronized public boolean unsubscribe(IProvider provider) {
-		boolean result = pipe.unsubscribe(provider);
-		if (result) compCounter--;
-		if (compCounter <= 0) removeSelf();
-		return result;
+		return pipe.unsubscribe(provider);
 	}
 
 	public void sendOOBControlMessage(IProvider provider,
@@ -86,13 +81,25 @@ public class BroadcastScope extends BasicScope implements IBroadcastScope {
 		pipe.sendOOBControlMessage(provider, oobCtrlMsg);
 	}
 
-	/**
-	 * Remove self from parent scope.
-	 */
-	private void removeSelf() {
-		if (compCounter <= 0) {
-			getParent().removeChildScope(this);
-			hasRemoved = true;
+	public void onPipeConnectionEvent(PipeConnectionEvent event) {
+		switch(event.getType()) {
+			case PipeConnectionEvent.CONSUMER_CONNECT_PULL:
+			case PipeConnectionEvent.CONSUMER_CONNECT_PUSH:
+			case PipeConnectionEvent.PROVIDER_CONNECT_PULL:
+			case PipeConnectionEvent.PROVIDER_CONNECT_PUSH:
+				compCounter++;
+				break;
+
+			case PipeConnectionEvent.CONSUMER_DISCONNECT:
+			case PipeConnectionEvent.PROVIDER_DISCONNECT:
+				compCounter--;
+				if (compCounter <= 0) {
+					if (hasParent())
+						getParent().removeChildScope(this);
+					hasRemoved = true;
+				}
+				break;
 		}
 	}
+	
 }
