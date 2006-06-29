@@ -1,24 +1,9 @@
 package org.red5.server.net.rtmpt;
 
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.mina.common.ByteBuffer;
-import org.red5.server.net.protocol.ProtocolState;
-import org.red5.server.net.protocol.SimpleProtocolDecoder;
-import org.red5.server.net.protocol.SimpleProtocolEncoder;
-import org.red5.server.net.rtmp.RTMPConnection;
-import org.red5.server.net.rtmp.RTMPHandler;
-import org.red5.server.net.rtmp.codec.RTMP;
-import org.red5.server.net.rtmp.message.Packet;
-
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  * 
- * Copyright © 2006 by respective authors (see below). All rights reserved.
+ * Copyright (c) 2006 by respective authors (see below). All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or modify it under the 
  * terms of the GNU Lesser General Public License as published by the Free Software 
@@ -33,6 +18,21 @@ import org.red5.server.net.rtmp.message.Packet;
  * with this library; if not, write to the Free Software Foundation, Inc., 
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
+
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.mina.common.ByteBuffer;
+import org.red5.server.net.protocol.ProtocolState;
+import org.red5.server.net.protocol.SimpleProtocolDecoder;
+import org.red5.server.net.protocol.SimpleProtocolEncoder;
+import org.red5.server.net.rtmp.RTMPConnection;
+import org.red5.server.net.rtmp.RTMPHandler;
+import org.red5.server.net.rtmp.codec.RTMP;
+import org.red5.server.net.rtmp.message.Packet;
 
 /**
  * A RTMPT client / session.

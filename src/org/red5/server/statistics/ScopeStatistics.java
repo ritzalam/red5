@@ -3,7 +3,7 @@ package org.red5.server.statistics;
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  * 
- * Copyright © 2006 by respective authors (see below). All rights reserved.
+ * Copyright (c) 2006 by respective authors (see below). All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or modify it under the 
  * terms of the GNU Lesser General Public License as published by the Free Software 
@@ -32,8 +32,8 @@ import org.red5.server.exception.ScopeNotFoundException;
 /**
  * Public methods for XML-RPC scope statistics service.
  * 
+ * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
- *
  */
 public class ScopeStatistics {
 
