@@ -212,7 +212,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants, IE
 				mark = out.position();
 				out.skip(4); // we will be back
 				Output.putString(out,event.getKey());
-				len = out.position() - mark;
+				len = out.position() - mark - 4;
 				out.putInt(mark,len);
 				break;
 				
@@ -233,7 +233,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants, IE
 						final Output output = new Output(out);
 						serializer.serialize(output, initialData.get(key));
 						
-						len = out.position() - mark;
+						len = out.position() - mark - 4;
 						out.putInt(mark,len);
 					}
 				} else {
@@ -245,7 +245,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants, IE
 					final Output output = new Output(out);
 					serializer.serialize(output,event.getValue());
 
-					len = out.position() - mark;
+					len = out.position() - mark - 4;
 					out.putInt(mark,len);
 				}
 				break;
@@ -280,7 +280,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants, IE
 				Output.putString(out,event.getKey());
 				final Output output2 = new Output(out);
 				serializer.serialize(output2, event.getValue());
-				len = out.position() - mark;
+				len = out.position() - mark - 4;
 				out.putInt(mark,len);
 				break;
 				
