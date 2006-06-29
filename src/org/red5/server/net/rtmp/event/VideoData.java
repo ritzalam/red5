@@ -44,7 +44,7 @@ public class VideoData extends BaseEvent implements IoConstants, IStreamData {
 	}
 	
 	public String toString(){
-		return "Audio  ts: "+getTimestamp();
+		return "Video  ts: "+getTimestamp();
 	}
 	
 	public FrameType getFrameType() {
