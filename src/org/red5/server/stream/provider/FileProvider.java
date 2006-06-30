@@ -25,14 +25,15 @@ import java.io.IOException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.io.IStreamableFile;
+import org.red5.io.IStreamableFileFactory;
 import org.red5.io.IStreamableFileService;
 import org.red5.io.ITag;
 import org.red5.io.ITagReader;
 import org.red5.io.StreamableFileFactory;
 import org.red5.io.flv.IKeyFrameDataAnalyzer;
 import org.red5.io.flv.IKeyFrameDataAnalyzer.KeyFrameMeta;
-import org.red5.server.api.IContext;
 import org.red5.server.api.IScope;
+import org.red5.server.api.ScopeUtils;
 import org.red5.server.messaging.IMessage;
 import org.red5.server.messaging.IMessageComponent;
 import org.red5.server.messaging.IPassive;
@@ -50,12 +51,10 @@ import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.stream.ISeekableProvider;
 import org.red5.server.stream.message.RTMPMessage;
-import org.springframework.context.ApplicationContext;
 
 public class FileProvider
 implements IPassive, ISeekableProvider, IPullableProvider, IPipeConnectionListener {
 	private static final Log log = LogFactory.getLog(FileProvider.class);
-	private static final String FILE_FACTORY = "streamableFileFactory";
 	
 	public static final String KEY = FileProvider.class.getName();
 	
@@ -166,7 +165,8 @@ implements IPassive, ISeekableProvider, IPullableProvider, IPipeConnectionListen
 	}
 
 	private void init() {
-		IStreamableFileService service = getFileFactory(scope).getService(file);
+		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils.getScopeService(scope, IStreamableFileFactory.KEY, StreamableFileFactory.class);
+		IStreamableFileService service = factory.getService(file);
 		if (service == null) {
 			log.error("No service found for " + file.getAbsolutePath());
 			return;
@@ -189,15 +189,6 @@ implements IPassive, ISeekableProvider, IPullableProvider, IPipeConnectionListen
 		}
 	}
 
-	private StreamableFileFactory getFileFactory(IScope scope) {
-		final IContext context = scope.getContext();
-		ApplicationContext appCtx = context.getApplicationContext();
-		if (!appCtx.containsBean(FILE_FACTORY))
-			return new StreamableFileFactory();
-		else
-			return (StreamableFileFactory) appCtx.getBean(FILE_FACTORY);
-	}
-	
 	synchronized public int seek(int ts) {
 		if (keyFrameMeta == null) {
 			if (!(reader instanceof IKeyFrameDataAnalyzer))

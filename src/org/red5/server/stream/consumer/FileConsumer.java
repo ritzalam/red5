@@ -27,13 +27,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.io.IStreamableFile;
+import org.red5.io.IStreamableFileFactory;
 import org.red5.io.IStreamableFileService;
 import org.red5.io.ITag;
 import org.red5.io.ITagWriter;
 import org.red5.io.StreamableFileFactory;
 import org.red5.io.flv.impl.Tag;
-import org.red5.server.api.IContext;
 import org.red5.server.api.IScope;
+import org.red5.server.api.ScopeUtils;
 import org.red5.server.api.stream.IClientStream;
 import org.red5.server.messaging.IMessage;
 import org.red5.server.messaging.IMessageComponent;
@@ -45,11 +46,9 @@ import org.red5.server.messaging.PipeConnectionEvent;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.stream.IStreamData;
 import org.red5.server.stream.message.RTMPMessage;
-import org.springframework.context.ApplicationContext;
 
 public class FileConsumer implements IPushableConsumer, IPipeConnectionListener {
 	private static final Log log = LogFactory.getLog(FileConsumer.class);
-	protected static final String FILE_FACTORY = "streamableFileFactory";
 	
 	private IScope scope;
 	private File file;
@@ -113,7 +112,8 @@ public class FileConsumer implements IPushableConsumer, IPipeConnectionListener 
 	}
 
 	private void init() throws IOException {
-		IStreamableFileService service = getFileFactory(scope).getService(file);
+		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils.getScopeService(scope, IStreamableFileFactory.KEY, StreamableFileFactory.class);
+		IStreamableFileService service = factory.getService(file);
 		IStreamableFile flv = service.getStreamableFile(file);
 		if (mode == null || mode.equals(IClientStream.MODE_RECORD)) {
 			writer = flv.getWriter();
@@ -129,12 +129,4 @@ public class FileConsumer implements IPushableConsumer, IPipeConnectionListener 
 		}
 	}
 	
-	private StreamableFileFactory getFileFactory(IScope scope) {
-		final IContext context = scope.getContext();
-		ApplicationContext appCtx = context.getApplicationContext();
-		if (!appCtx.containsBean(FILE_FACTORY))
-			return new StreamableFileFactory();
-		else
-			return (StreamableFileFactory) appCtx.getBean(FILE_FACTORY);
-	}
 }
