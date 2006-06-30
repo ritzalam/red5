@@ -176,8 +176,10 @@ public class StreamService implements IStreamService {
 		IClientBroadcastStream bs = (IClientBroadcastStream) stream;
 		try {
 			if (IClientStream.MODE_RECORD.equals(mode)) {
+				bs.start();
 				bs.saveAs(name, false);
 			} else if (IClientStream.MODE_APPEND.equals(mode)) {
+				bs.start();
 				bs.saveAs(name, true);
 			} else if (IClientStream.MODE_LIVE.equals(mode)) {
 				IContext context = conn.getScope().getContext();
@@ -190,8 +192,8 @@ public class StreamService implements IStreamService {
 					if (conn instanceof BaseConnection)
 						((BaseConnection) conn).registerBasicScope(bsScope);
 				}
+				bs.start();
 			}
-			bs.start();
 		} catch (Exception e) {
 			// TODO report publish error
 		}

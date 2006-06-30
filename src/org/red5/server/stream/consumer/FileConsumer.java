@@ -44,20 +44,25 @@ import org.red5.server.messaging.IPushableConsumer;
 import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.messaging.PipeConnectionEvent;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
+import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.stream.IStreamData;
 import org.red5.server.stream.message.RTMPMessage;
 
-public class FileConsumer implements IPushableConsumer, IPipeConnectionListener {
+public class FileConsumer implements Constants, IPushableConsumer, IPipeConnectionListener {
 	private static final Log log = LogFactory.getLog(FileConsumer.class);
 	
 	private IScope scope;
 	private File file;
 	private ITagWriter writer;
 	private String mode;
-	
+	private int audioTimestamp;
+	private int videoTimestamp;
+	private int dataTimestamp;
+
 	public FileConsumer(IScope scope, File file) {
 		this.scope = scope;
 		this.file = file;
+		audioTimestamp = videoTimestamp = dataTimestamp = 0;
 	}
 	
 	public void pushMessage(IPipe pipe, IMessage message) {
@@ -74,7 +79,22 @@ public class FileConsumer implements IPushableConsumer, IPipeConnectionListener 
 		ITag tag = new Tag();
 		
 		tag.setDataType(msg.getDataType());
-		tag.setTimestamp(msg.getTimestamp());
+		switch (msg.getDataType()) {
+			case TYPE_VIDEO_DATA:
+				videoTimestamp += msg.getTimestamp();
+				tag.setTimestamp(videoTimestamp);
+				break;
+			
+			case TYPE_AUDIO_DATA:
+				audioTimestamp += msg.getTimestamp();
+				tag.setTimestamp(audioTimestamp);
+				break;
+				
+			default:
+				dataTimestamp += msg.getTimestamp();
+				tag.setTimestamp(dataTimestamp);
+		}
+		
 		if (msg instanceof IStreamData) {
 			ByteBuffer data = ((IStreamData) msg).getData();
 			tag.setBodySize(data.limit());
@@ -113,6 +133,9 @@ public class FileConsumer implements IPushableConsumer, IPipeConnectionListener 
 
 	private void init() throws IOException {
 		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils.getScopeService(scope, IStreamableFileFactory.KEY, StreamableFileFactory.class);
+		if (!file.isFile())
+			// Maybe the (previously existing) file has been deleted
+			file.createNewFile();
 		IStreamableFileService service = factory.getService(file);
 		IStreamableFile flv = service.getStreamableFile(file);
 		if (mode == null || mode.equals(IClientStream.MODE_RECORD)) {
