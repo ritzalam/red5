@@ -429,10 +429,6 @@ implements IPlaylistSubscriberStream {
 			if (decision == 2) liveInput = providerService.getLiveProviderInput(
 					thisScope, item.getName(), true);
 			currentItem = item;
-			sendResetPing();
-			sendResetStatus(item);
-			sendStartStatus(item);
-			sendBlankAudio();
 			switch (decision) {
 			case 0:
 				msgIn = liveInput;
@@ -482,8 +478,13 @@ implements IPlaylistSubscriberStream {
 
 				break;
 			default:
+				sendStreamNotFoundStatus(currentItem);
 				throw new StreamNotFoundException(item.getName());
 			}
+			sendResetPing();
+			sendResetStatus(item);
+			sendStartStatus(item);
+			sendBlankAudio();
 			state = State.PLAYING;
 			if (decision == 1) {
 				pendingMessage = null;
@@ -757,6 +758,17 @@ implements IPlaylistSubscriberStream {
 			StatusMessage unpublishedMsg = new StatusMessage();
 			unpublishedMsg.setBody(unpublished);
 			msgOut.pushMessage(unpublishedMsg);
+		}
+		
+		private void sendStreamNotFoundStatus(IPlayItem item) {
+			Status notFound = new Status(Status.NS_PLAY_STREAMNOTFOUND);
+			notFound.setClientid(getStreamId());
+			notFound.setLevel(Status.ERROR);
+			notFound.setDetails(item.getName());
+			
+			StatusMessage notFoundMsg = new StatusMessage();
+			notFoundMsg.setBody(notFound);
+			msgOut.pushMessage(notFoundMsg);
 		}
 		
 		private void sendVODInitCM(IMessageInput msgIn, IPlayItem item) {
