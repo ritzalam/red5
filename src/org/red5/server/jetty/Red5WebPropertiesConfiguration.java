@@ -96,9 +96,7 @@ public class Red5WebPropertiesConfiguration implements Configuration, EventListe
         			}
         		}
     			context.setVirtualHosts(hostnames);
-    			if(contextPath.equals("/"))
-    				context.setContextPath("/defaultApp");
-    			else context.setContextPath(contextPath);
+    			context.setContextPath(contextPath);
             }
         } else if (webInf == null) {
         	// No WEB-INF directory found, register as default application
