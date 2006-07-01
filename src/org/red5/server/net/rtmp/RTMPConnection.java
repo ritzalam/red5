@@ -227,7 +227,7 @@ public abstract class RTMPConnection extends BaseConnection
 	}
 	
 	public void unreserveStreamId(int streamId) {
-		if (streamId >= 0 && streamId < MAX_STREAMS-1) {
+		if (streamId > 0 && streamId <= MAX_STREAMS) {
 			streams[streamId-1] = null;
 			reservedStreams[streamId-1] = false;
 		}
