@@ -176,11 +176,6 @@
   <!--   If you get an error reporting that jikes can't use UTF8 encoding,  -->
   <!--   try setting the init parameter "javaEncoding" to "ISO-8859-1".     -->
   <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  -->
-  
-  <!-- NOTE: If you need support for .jsp servlets, you will have to        -->
-  <!--       add the required .jar files to your classpath.                 -->
-  
-  <!--
   <servlet id="jsp">
     <servlet-name>jsp</servlet-name>
     <servlet-class>org.apache.jasper.servlet.JspServlet</servlet-class>
@@ -210,7 +205,6 @@
     <url-pattern>*.JSPX</url-pattern>
     <url-pattern>*.XSP</url-pattern>
   </servlet-mapping>
-  -->
   
   <!-- ==================================================================== -->
   <!-- Dynamic Servlet Invoker.                                             -->

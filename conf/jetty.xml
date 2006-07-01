@@ -95,9 +95,11 @@
            <Item>
              <New id="defaultHandler" class="org.mortbay.jetty.handler.DefaultHandler"/>
            </Item>
+           <!--
            <Item>
              <New id="requestLog" class="org.mortbay.jetty.handler.RequestLogHandler"/>
            </Item>
+           -->
          </Array>
         </Set>
       </New>
