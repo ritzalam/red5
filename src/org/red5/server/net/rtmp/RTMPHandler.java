@@ -143,7 +143,7 @@ public class RTMPHandler
 			
 			case TYPE_AUDIO_DATA:
 			case TYPE_VIDEO_DATA:
-				//log.info("in packet: "+source.getSize()+" ts:"+source.getTimer());
+				// log.info("in packet: "+source.getSize()+" ts:"+source.getTimer());
 				try {
 					((IEventDispatcher) stream).dispatchEvent(message);
 				} catch (NullPointerException e) {

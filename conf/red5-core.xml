@@ -2,10 +2,7 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
 
-	<!-- This context holds all the networking: mina, jetty, etc -->
-
-	<!--<bean id="red5.server" class="org.red5.server.Server" init-method="init" />-->
-	<!--<bean id="jetty6.server" class="org.red5.server.JettyLoader" init-method="init" />-->
+	<!-- This context holds all the networking: mina -->
 
 	<bean id="customEditorConfigurer" 
 	    class="org.springframework.beans.factory.config.CustomEditorConfigurer">
@@ -21,19 +18,9 @@
 	<bean id="placeholderConfig" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 	    <property name="location" value="classpath:/red5.properties" />
 	</bean>
-		
-	<bean id="threadPoolFilter" class="org.apache.mina.filter.ThreadPoolFilter">
-     <constructor-arg value="mina"/>
-     <property name="maximumPoolSize" value="10"/>
-   </bean>
 	
    <bean id="filterChainBuilder" 
          class="org.apache.mina.integration.spring.DefaultIoFilterChainBuilderFactoryBean">
-     <property name="filters">
-       <list>
-         <ref bean="threadPoolFilter" />
-       </list>
-     </property>
    </bean>
 	
 	<bean id="socketAcceptor" class="org.apache.mina.integration.spring.IoAcceptorFactoryBean">
@@ -42,6 +29,7 @@
      </property>
      <property name="bindings">
        <list>
+         
          <!-- RTMP -->
          <bean class="org.apache.mina.integration.spring.Binding">
            <property name="address" value="${rtmp.host_port}"/>
@@ -54,6 +42,20 @@
              </bean>
            </property>
          </bean>
+         
+         <!-- DEBUG PROXY -->
+         <bean class="org.apache.mina.integration.spring.Binding">
+           <property name="address" value="${debug_proxy.host_port}"/>
+           <property name="handler" ref="debugProxyIoHandler"/>
+           <property name="serviceConfig">
+             <bean class="org.apache.mina.transport.socket.nio.SocketAcceptorConfig">
+               <property name="filterChainBuilder" ref="filterChainBuilder"/>
+               <property name="reuseAddress" value="true"/>
+               <property name="sessionConfig.reuseAddress" value="true"/>
+             </bean>
+           </property>
+         </bean>
+       
        </list>
      </property>
    </bean> 	
@@ -72,5 +74,12 @@
 	</bean>
 			
 	<bean id="rtmpt.server" class="org.red5.server.net.rtmpt.RTMPTLoader" init-method="init" autowire="byType" />
+	
+	<bean id="debugProxyIoHandler" class="org.red5.server.net.proxy.DebugProxyHandler">
+        <property name="codecFactory" ref="rtmpCodecFactory" />
+        <property name="forward" value="${proxy_forward.host_port}" />
+        <property name="dumpTo" value="./dumps/" />
+    </bean>
+	
 	
 </beans>

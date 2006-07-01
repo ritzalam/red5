@@ -19,8 +19,10 @@ package org.red5.server.net.proxy;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
+import java.nio.channels.WritableByteChannel;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -31,19 +33,27 @@ import org.apache.mina.common.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecFactory;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.transport.socket.nio.SocketConnector;
-import org.red5.server.net.rtmp.Channel;
-import org.red5.server.net.rtmp.RTMPMinaConnection;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.message.Header;
 import org.red5.server.net.rtmp.message.Packet;
+import org.springframework.context.ResourceLoaderAware;
+import org.springframework.core.io.ResourceLoader;
 
-public class DebugProxyHandler extends IoHandlerAdapter {
+public class DebugProxyHandler extends IoHandlerAdapter
+	implements ResourceLoaderAware {
 
 	protected static Log log =
         LogFactory.getLog(DebugProxyHandler.class.getName());
 	
-	public ProtocolCodecFactory codecFactory = null;
-	private SocketAddress forward = null;
+	private ResourceLoader loader;
+	private ProtocolCodecFactory codecFactory = null;
+	private InetSocketAddress forward = null;
+	private String dumpTo = "./dumps/";
+	private boolean addHeaders = true;
+
+	public void setResourceLoader(ResourceLoader loader) {
+		this.loader = loader;
+	}
 
 	public void setCodecFactory(ProtocolCodecFactory codecFactory) {
 		this.codecFactory = codecFactory;
@@ -54,6 +64,14 @@ public class DebugProxyHandler extends IoHandlerAdapter {
 		String host = forward.substring(0,split);
 		int port = Integer.parseInt( forward.substring(split+1,forward.length()) );
 		this.forward = new InetSocketAddress(host,port); 
+	}
+	
+	public void setDumpTo(String dumpTo){
+		this.dumpTo = dumpTo;
+	}
+	
+	public void setAddHeadersToDump(boolean addHeaders){
+		this.addHeaders = addHeaders;
 	}
 	
 	public void sessionCreated(IoSession session) throws Exception {
@@ -70,12 +88,29 @@ public class DebugProxyHandler extends IoHandlerAdapter {
 		}
 		
 		session.getFilterChain().addFirst(
-                "proxy", new ProxyFilter(isClient ? "down" : "up") );
-
+				"proxy", new ProxyFilter(isClient ? "down" : "up") );
+		
+		if(true){
+		
+			String fileName = System.currentTimeMillis() 
+				+ "_" + forward.getHostName() 
+				+ "_" + forward.getPort() 
+				+ "_up." + ( (addHeaders) ? "cap" : "raw" );
+			
+			File file = loader.getResource( dumpTo + fileName ).getFile();
+			file.createNewFile();
+			FileOutputStream fos = new FileOutputStream( file );
+			WritableByteChannel channel = fos.getChannel();
+			
+			session.getFilterChain().addFirst(
+                "dump", new NetworkDumpFilter( channel, addHeaders ) );
+		}
+		
         //session.getFilterChain().addLast(
         //        "logger", new LoggingFilter() );
 		
         if(!isClient){
+        	log.debug("Connecting..");
         	SocketConnector connector = new SocketConnector();
         	ConnectFuture future = connector.connect(forward, this);
     		future.join(); // wait for connect, or timeout
@@ -91,25 +126,24 @@ public class DebugProxyHandler extends IoHandlerAdapter {
 	
 	public void messageReceived(IoSession session, Object in) {
 		
+		if(!log.isDebugEnabled()) return;
+		
 		if(in instanceof ByteBuffer){
 			log.debug("Handskake");
 			return;
 		}
 		
 		try {
-			
-			final RTMPMinaConnection conn = (RTMPMinaConnection) session.getAttachment();
 						
 			final Packet packet = (Packet) in;
 			final Object message = packet.getMessage();
 			final Header source = packet.getHeader();
-			final Channel channel = conn.getChannel(packet.getHeader().getChannelId());
 			
-			log.info(source);
-			log.info(message);
+			log.debug(source);
+			log.debug(message);
 			
 		} catch (RuntimeException e) {
-			log.debug("Exception",e);
+			log.error("Exception",e);
 		}
 	}
 
