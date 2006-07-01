@@ -31,7 +31,6 @@ import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.protocol.SimpleProtocolEncoder;
 import org.red5.server.net.remoting.message.RemotingCall;
 import org.red5.server.net.remoting.message.RemotingPacket;
-//import org.red5.server.net.remoting.message.RemotingResponse;
 
 public class RemotingProtocolEncoder implements SimpleProtocolEncoder {
 

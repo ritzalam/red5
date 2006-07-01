@@ -26,7 +26,6 @@ import java.util.List;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
 import org.red5.server.api.Red5;
-import org.red5.server.api.service.IServiceCapableConnection;
 
 /**
  * Utility functions to invoke methods on connections.

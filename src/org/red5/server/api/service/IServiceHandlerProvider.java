@@ -20,7 +20,6 @@ package org.red5.server.api.service;
  */
 
 import java.util.Set;
-import org.red5.server.api.IScope;
 
 /**
  * Supports registration and lookup of service handlers.

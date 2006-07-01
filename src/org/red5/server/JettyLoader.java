@@ -19,24 +19,13 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.io.IOException;
-
-import javax.servlet.ServletContext;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.mortbay.jetty.Handler;
 import org.mortbay.jetty.Server;
-import org.mortbay.jetty.webapp.WebAppContext;
 import org.mortbay.xml.XmlConfiguration;
-import org.red5.server.api.IScope;
-import org.red5.server.api.IServer;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.access.ContextSingletonBeanFactoryLocator;
-import org.springframework.web.context.support.WebApplicationContextUtils;
-import org.xml.sax.SAXException;
 
 public class JettyLoader implements ApplicationContextAware {
 	

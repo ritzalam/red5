@@ -20,7 +20,6 @@ package org.red5.server.service;
  */
 
 import org.red5.server.api.IScope;
-import org.red5.server.service.ServiceNotFoundException;
 
 /**
  * Resolve services that have been configured in the context of a scope.

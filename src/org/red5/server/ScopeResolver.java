@@ -22,7 +22,6 @@ package org.red5.server;
 import org.red5.server.api.IGlobalScope;
 import org.red5.server.api.IScope;
 import org.red5.server.api.IScopeResolver;
-import org.red5.server.api.ScopeUtils;
 import org.red5.server.exception.ScopeNotFoundException;
 
 public class ScopeResolver implements IScopeResolver {

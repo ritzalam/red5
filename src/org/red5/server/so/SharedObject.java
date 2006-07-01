@@ -19,9 +19,8 @@ package org.red5.server.so;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import static org.red5.server.so.ISharedObjectEvent.Type;
-
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -29,7 +28,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Collections;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -37,16 +35,13 @@ import org.red5.io.object.Deserializer;
 import org.red5.io.object.Input;
 import org.red5.io.object.Output;
 import org.red5.io.object.Serializer;
-import org.red5.server.api.IConnection;
-import org.red5.server.api.Red5;
 import org.red5.server.api.event.IEventListener;
+import org.red5.server.api.persistence.IPersistable;
+import org.red5.server.api.persistence.IPersistenceStore;
 import org.red5.server.net.rtmp.Channel;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.message.Constants;
-import org.red5.server.so.SharedObjectEvent;
-import org.red5.server.so.SharedObjectMessage;
-import org.red5.server.api.persistence.IPersistable;
-import org.red5.server.api.persistence.IPersistenceStore;
+import org.red5.server.so.ISharedObjectEvent.Type;
 
 public class SharedObject implements IPersistable, Constants {
 

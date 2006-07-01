@@ -19,16 +19,13 @@ package org.red5.server.adapter;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import static org.red5.server.api.ScopeUtils.getScopeService;
 import static org.red5.server.api.ScopeUtils.isApp;
 import static org.red5.server.api.ScopeUtils.isRoom;
-import static org.red5.server.api.ScopeUtils.getScopeService;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -37,7 +34,6 @@ import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
 import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
-import org.red5.server.api.service.IServiceHandlerProvider;
 import org.red5.server.api.so.ISharedObject;
 import org.red5.server.api.so.ISharedObjectService;
 import org.red5.server.api.stream.IBroadcastStream;

@@ -4,14 +4,10 @@
 	<classpathentry excluding=".svn/*" output="webapps/fitcDemo/WEB-INF/classes" kind="src" path="webapps/fitcDemo/WEB-INF/src"/>
 	<classpathentry excluding=".svn/*" output="webapps/oflaDemo/WEB-INF/classes" kind="src" path="webapps/oflaDemo/WEB-INF/src"/>
 	<classpathentry excluding=".svn/*" kind="src" path="conf"/>
-	<classpathentry kind="lib" path="lib/xbean.jar"/>
-	<classpathentry kind="lib" path="lib/xbean_xpath.jar"/>
-	<classpathentry kind="lib" path="lib/spring-scripting-support.jar"/>
 	<classpathentry kind="lib" path="lib/spring.jar"/>
 	<classpathentry kind="lib" path="lib/slf4j-log4j12.jar"/>
 	<classpathentry kind="lib" path="lib/log4j-1.2.9.jar"/>
 	<classpathentry kind="lib" path="lib/junit.jar"/>
-	<classpathentry kind="lib" path="lib/js.jar"/>
 	<classpathentry kind="lib" path="lib/jpda.jar"/>
 	<classpathentry kind="lib" path="lib/commons-logging.jar"/>
 	<classpathentry kind="lib" path="lib/commons-collections.jar"/>

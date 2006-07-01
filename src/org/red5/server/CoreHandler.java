@@ -31,8 +31,6 @@ import org.red5.server.api.IScopeHandler;
 import org.red5.server.api.Red5;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.service.IServiceCall;
-import org.red5.server.exception.ClientNotFoundException;
-import org.red5.server.exception.ClientRejectedException;
 
 public class CoreHandler implements IScopeHandler {
 

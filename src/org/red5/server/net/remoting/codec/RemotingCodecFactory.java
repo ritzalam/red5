@@ -19,8 +19,6 @@ package org.red5.server.net.remoting.codec;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.apache.mina.filter.codec.ProtocolDecoder;
-import org.apache.mina.filter.codec.ProtocolEncoder;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Serializer;
 import org.red5.server.net.protocol.SimpleProtocolCodecFactory;

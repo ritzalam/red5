@@ -1,5 +1,7 @@
 package org.red5.server.api;
 
+import org.red5.server.exception.ScopeNotFoundException;
+
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  * 

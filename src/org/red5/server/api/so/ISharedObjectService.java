@@ -20,6 +20,7 @@ package org.red5.server.api.so;
  */
 
 import java.util.Iterator;
+
 import org.red5.server.api.IScope;
 
 /**

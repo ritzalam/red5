@@ -22,7 +22,6 @@ package org.red5.server.net.rtmp;
 import static org.red5.server.api.ScopeUtils.getScopeService;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.UUID;
 
@@ -33,7 +32,6 @@ import org.red5.server.BaseConnection;
 import org.red5.server.api.IBandwidthConfigure;
 import org.red5.server.api.IContext;
 import org.red5.server.api.IFlowControllable;
-import org.red5.server.api.IScope;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IPendingServiceCallback;
 import org.red5.server.api.service.IServiceCall;

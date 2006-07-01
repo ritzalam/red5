@@ -27,7 +27,6 @@ import org.red5.server.api.IScope;
 import org.red5.server.api.ScopeUtils;
 import org.red5.server.api.persistence.IPersistable;
 import org.red5.server.api.persistence.IPersistenceStore;
-
 import org.springframework.core.io.support.ResourcePatternResolver;
 
 /**

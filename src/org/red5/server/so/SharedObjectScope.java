@@ -19,8 +19,6 @@ package org.red5.server.so;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import static org.red5.server.so.ISharedObjectEvent.Type.*;
-
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashMap;

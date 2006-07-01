@@ -19,8 +19,8 @@ package org.red5.server.api.so;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.Map;
 import java.util.List;
+import java.util.Map;
 
 import org.red5.server.api.IBasicScope;
 import org.red5.server.api.event.IEventListener;

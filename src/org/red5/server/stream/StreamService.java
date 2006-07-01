@@ -33,7 +33,6 @@ import org.red5.server.api.stream.ISingleItemSubscriberStream;
 import org.red5.server.api.stream.IStreamCapableConnection;
 import org.red5.server.api.stream.IStreamService;
 import org.red5.server.api.stream.ISubscriberStream;
-import org.red5.server.api.stream.support.SimpleBandwidthConfigure;
 import org.red5.server.api.stream.support.SimplePlayItem;
 import org.red5.server.net.rtmp.RTMPHandler;
 

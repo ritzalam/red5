@@ -23,10 +23,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.Iterator;
 import java.util.Properties;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.common.ByteBufferAllocator;
 import org.springframework.context.access.ContextSingletonBeanFactoryLocator;
 
 /**

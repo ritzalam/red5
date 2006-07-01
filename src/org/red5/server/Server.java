@@ -26,7 +26,6 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.IGlobalScope;
-import org.red5.server.api.IScope;
 import org.red5.server.api.IServer;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;

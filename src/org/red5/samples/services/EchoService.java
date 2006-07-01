@@ -26,10 +26,9 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.w3c.dom.Document;
-
 import org.red5.server.api.IConnection;
 import org.red5.server.api.Red5;
+import org.w3c.dom.Document;
 
 /**
  * The Echo service is used to test all of the different datatypes 

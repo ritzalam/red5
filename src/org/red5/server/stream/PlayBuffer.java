@@ -23,7 +23,6 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 import org.red5.server.net.rtmp.event.IRTMPEvent;
-import org.red5.server.stream.IStreamData;
 import org.red5.server.stream.message.RTMPMessage;
 
 /**
