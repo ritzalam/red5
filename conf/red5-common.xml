@@ -31,7 +31,9 @@
 	<bean id="streamableFileFactory" class="org.red5.io.StreamableFileFactory">
 		<property name="services">
 			<list>
-				<bean id="flvFileService" class="org.red5.io.flv.impl.FLVService"/>
+				<bean id="flvFileService" class="org.red5.io.flv.impl.FLVService">
+					<property name="generateMetadata" value="true" />
+				</bean>
 				<bean id="mp3FileService" class="org.red5.io.mp3.impl.MP3Service"/>
 			</list>
 		</property>
