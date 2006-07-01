@@ -44,6 +44,7 @@ import org.red5.server.api.stream.IStreamCapableConnection;
 import org.red5.server.api.stream.IStreamService;
 import org.red5.server.net.rtmp.event.Invoke;
 import org.red5.server.net.rtmp.event.Ping;
+import org.red5.server.net.rtmp.event.StreamBytesRead;
 import org.red5.server.net.rtmp.message.Packet;
 import org.red5.server.service.PendingCall;
 import org.red5.server.stream.ClientBroadcastStream;
@@ -70,6 +71,9 @@ public abstract class RTMPConnection extends BaseConnection
 	protected Integer invokeId = new Integer(1);
 	protected HashMap<Integer,IPendingServiceCall> pendingCalls = new HashMap<Integer,IPendingServiceCall>();
 	protected int lastPingTime = -1;
+	protected int streamBytesRead = 0;
+	private int streamBytesReadInterval = 125000;
+	private int nextStreamBytesRead = 125000;
 	
 	private IBandwidthConfigure bandwidthConfig;
 
@@ -238,6 +242,17 @@ public abstract class RTMPConnection extends BaseConnection
 	public abstract void rawWrite(ByteBuffer out);
 	public abstract void write(Packet out);
 
+	public void updateStreamBytesRead(int bytes) {
+		streamBytesRead += bytes;
+		
+		if (streamBytesRead >= nextStreamBytesRead) {
+			StreamBytesRead sbr = new StreamBytesRead(streamBytesRead);
+			getChannel((byte) 2).write((StreamBytesRead) sbr);
+			log.info(sbr);
+			nextStreamBytesRead += streamBytesReadInterval;
+		}
+	}
+	
 	public void invoke(IServiceCall call) {
 		// We need to use Invoke for all calls to the client
 		Invoke invoke = new Invoke();

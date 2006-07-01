@@ -29,7 +29,9 @@ import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.IScope;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.event.IEventDispatcher;
+import org.red5.server.api.event.IEventListener;
 import org.red5.server.api.stream.IClientBroadcastStream;
+import org.red5.server.api.stream.IStreamCapableConnection;
 import org.red5.server.api.stream.IStreamCodecInfo;
 import org.red5.server.api.stream.IVideoStreamCodec;
 import org.red5.server.api.stream.ResourceExistException;
@@ -74,11 +76,6 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	private long lastVideo;
 	private long lastData;
 	
-	// HACK: Adding stream bytes read quickly.
-	private int bytesReadInterval = 125000;
-	private int bytesRead = 0;
-	private int bytesReadPacketCount = 0;
-
 	public void start() {
 		IConsumerService consumerManager =
 			(IConsumerService) getScope().getContext().getBean(IConsumerService.KEY);
@@ -179,8 +176,9 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 				streamCodec.setHasAudio(true);
 			delta = now - lastAudio;
 			lastAudio = now;
-			// HACK: Adding stream bytes read
-			bytesRead += ((AudioData) rtmpEvent).getData().limit();
+			IEventListener source = event.getSource();
+			if (source instanceof IStreamCapableConnection)
+				((IStreamCapableConnection) source).updateStreamBytesRead(((AudioData) rtmpEvent).getData().limit());
 		} else if (rtmpEvent instanceof VideoData) {
 			IVideoStreamCodec videoStreamCodec = null;
 			if (videoCodecFactory != null && checkVideoCodec) {
@@ -199,25 +197,14 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 				streamCodec.setHasVideo(true);
 			delta = now - lastVideo;
 			lastVideo = now;
-			// HACK: Adding stream bytes read
-			bytesRead += ((VideoData) rtmpEvent).getData().limit();
+			IEventListener source = event.getSource();
+			if (source instanceof IStreamCapableConnection)
+				((IStreamCapableConnection) source).updateStreamBytesRead(((VideoData) rtmpEvent).getData().limit());
 		} else {
 			delta = now - lastData;
 			lastData = now;
 		}
 		
-		
-		// HACK: Adding stream bytes read
-		if (bytesReadPacketCount < Math.floor(bytesRead / bytesReadInterval)) {
-			bytesReadPacketCount++;
-			StreamBytesRead streamBytesRead = new StreamBytesRead(bytesRead);
-			log.info(streamBytesRead);
-			RTMPMessage msg = new RTMPMessage();
-			msg.setBody(streamBytesRead);
-			connMsgOut.pushMessage(msg);
-		}
-		
-	
 		// XXX: deltas for the different tag types don't seem to work, investigate!
 		delta = now - startTime;
 		startTime = now;

@@ -118,6 +118,9 @@ public class RTMPHandler
 			// Increase number of received messages
 			conn.messageReceived();
 			
+			if (message instanceof IRTMPEvent)
+				message.setSource(conn);
+			
 			switch (header.getDataType()){
 			case TYPE_INVOKE:
 				onInvoke(conn, channel, header, (Invoke) message);
@@ -414,7 +417,6 @@ public class RTMPHandler
 			}
 		}
 		so = sharedObjectService.getSharedObject(scope, name);
-		object.setSource(conn);
 		so.dispatchEvent(object);
 	}
 	

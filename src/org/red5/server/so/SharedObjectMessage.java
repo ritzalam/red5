@@ -44,10 +44,6 @@ public class SharedObjectMessage extends BaseEvent implements ISharedObjectMessa
 		this.persistent = persistent;
 	}
 
-	public void setSource(IEventListener source) {
-		this.source = source;
-	}
-	
 	public byte getDataType() {
 		return TYPE_SHARED_OBJECT; 
 	}
@@ -106,14 +102,6 @@ public class SharedObjectMessage extends BaseEvent implements ISharedObjectMessa
 
 	public Object getObject() {
 		return getEvents();
-	}
-
-	public boolean hasSource() {
-		return source != null;
-	}
-
-	public IEventListener getSource() {
-		return source;
 	}
 
 	public String toString(){

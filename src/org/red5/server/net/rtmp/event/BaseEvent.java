@@ -64,6 +64,10 @@ public abstract class BaseEvent implements Constants, IRTMPEvent {
 		return source;
 	}
 
+	public void setSource(IEventListener source) {
+		this.source = source;
+	}
+
 	public abstract byte getDataType();
 	
 	public int getTimestamp() {
