@@ -461,7 +461,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder, IE
 				// to the connection object. 
 				final Map connParams = (Map) obj;
 				notify.setConnectionParams(connParams);
-			} else
+			} else if (obj != null)
 				paramList.add(obj);
 			
 			while(in.hasRemaining()){
