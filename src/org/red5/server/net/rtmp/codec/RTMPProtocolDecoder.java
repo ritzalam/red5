@@ -104,6 +104,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder, IE
 	}
     
 	public Object decode(ProtocolState state, ByteBuffer in) throws ProtocolException {
+		int start = in.position();
 		try {
 			final RTMP rtmp = (RTMP) state;
 			switch(rtmp.getState()){
@@ -118,7 +119,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder, IE
 				return null;
 			}
 		} catch (RuntimeException e){
-			log.error("Error", e);
+			log.error("Error in packet at " + start, e);
 			throw new ProtocolException("Error during decoding");
 		}
 	}
@@ -227,7 +228,8 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder, IE
 		}
 		
 		final ByteBuffer buf = packet.getData();
-		final int readRemaining = header.getSize() - buf.position();
+		final int addSize = (header.getTimer() == 0xffffff ? 4 : 0);
+		final int readRemaining = header.getSize() + addSize - buf.position();
 		final int chunkSize = rtmp.getReadChunkSize();
 		final int readAmount = (readRemaining > chunkSize) ? chunkSize : readRemaining;
 		
@@ -242,7 +244,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder, IE
 		
 		BufferUtils.put(buf, in, readAmount);
 		
-		if(buf.position() < header.getSize()){
+		if(buf.position() < header.getSize() + addSize){
 			rtmp.continueDecoding();
 			return null;
 		}
@@ -306,6 +308,12 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder, IE
 	
 	public IRTMPEvent decodeMessage(Header header, ByteBuffer in) {
 		IRTMPEvent message = null;
+		if (header.getTimer() == 0xffffff) {
+			// Skip first four bytes
+			int unknown = in.getInt();
+			log.debug("Unknown 4 bytes: " + unknown);
+		}
+		
 		switch(header.getDataType()){
 		case TYPE_CHUNK_SIZE: 
 			message = decodeChunkSize(in);
@@ -314,7 +322,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder, IE
 			message = decodeInvoke(in);
 			break;
 		case TYPE_NOTIFY: 
-			message = decodeNotify(in);
+			message = decodeNotify(in, header);
 			break;
 		case TYPE_PING: 
 			message = decodePing(in);
@@ -412,17 +420,21 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder, IE
 	 * @see org.red5.server.net.rtmp.codec.IEventDecoder#decodeNotify(org.apache.mina.common.ByteBuffer)
 	 */
 	public Notify decodeNotify(ByteBuffer in){
-		return decodeNotifyOrInvoke(new Notify(), in);
+		return decodeNotify(in, null);
+	}
+	
+	public Notify decodeNotify(ByteBuffer in, Header header) {
+		return decodeNotifyOrInvoke(new Notify(), in, header);
 	}
 	
 	/* (non-Javadoc)
 	 * @see org.red5.server.net.rtmp.codec.IEventDecoder#decodeInvoke(org.apache.mina.common.ByteBuffer)
 	 */
 	public Invoke decodeInvoke(ByteBuffer in){
-		return (Invoke) decodeNotifyOrInvoke(new Invoke(), in);
+		return (Invoke) decodeNotifyOrInvoke(new Invoke(), in, null);
 	}
 	
-	protected Notify decodeNotifyOrInvoke(Notify notify, ByteBuffer in) {
+	protected Notify decodeNotifyOrInvoke(Notify notify, ByteBuffer in, Header header) {
 		
 		Input input = new Input(in);
 		
@@ -431,8 +443,10 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder, IE
 		if(log.isDebugEnabled())
 			log.debug("Action "+action);
 		
-		int invokeId = ((Number) deserializer.deserialize(input)).intValue();
-		notify.setInvokeId(invokeId);
+		if (header == null || header.getStreamId() == 0) {
+			int invokeId = ((Number) deserializer.deserialize(input)).intValue();
+			notify.setInvokeId(invokeId);
+		}
 				
 		Object[] params = new Object[]{};
 

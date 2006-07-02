@@ -82,6 +82,7 @@ public class CaptureViewerServlet extends HttpServlet {
 			RTMP state = new RTMP(serverMode);
 			int id = 0;
 			try {
+				int lastPos = in.position();
 				while(in.position() < limit){
 					//long time = cap.getLong();
 					//int size = cap.getInt();
@@ -99,7 +100,7 @@ public class CaptureViewerServlet extends HttpServlet {
 						    final Object decodedObject = decoder.decode( state, in );
 						    
 						    if(state.hasDecodedObject()) {
-						    	log.debug(decodedObject);
+						    	//log.debug(decodedObject);
 						    	if(decodedObject instanceof Packet){
 						    		out.write(formatHTML((Packet) decodedObject, id++, 0));
 						    	}
@@ -119,7 +120,11 @@ public class CaptureViewerServlet extends HttpServlet {
 					finally {
 						// dont compact.
 					}
-					
+					if (in.position() == lastPos) {
+						log.error("Decoding at " + lastPos + " didn't advance file pointer.");
+						break;
+					}
+					lastPos = in.position();
 				}
 			} catch (RuntimeException e) {
 				log.error("Error",e);

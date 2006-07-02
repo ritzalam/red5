@@ -30,7 +30,7 @@ public class Packet {
 
 	public Packet(Header header){
 		this.header = header;
-		data = ByteBuffer.allocate(header.getSize());
+		data = ByteBuffer.allocate(header.getSize() + (header.getTimer() == 0xffffff ? 4 : 0));
 	}
 	
 	public Packet(Header header, IRTMPEvent event){
