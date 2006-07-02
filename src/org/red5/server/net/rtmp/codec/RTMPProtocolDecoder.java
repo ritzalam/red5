@@ -435,7 +435,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder, IE
 	}
 	
 	protected Notify decodeNotifyOrInvoke(Notify notify, ByteBuffer in, Header header) {
-		
+		// TODO: we should use different code depending on server or client mode
 		Input input = new Input(in);
 		
 		String action = (String) deserializer.deserialize(input);
@@ -453,11 +453,16 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder, IE
 		if(in.hasRemaining()){
 			ArrayList paramList = new ArrayList();
 			
-			// Before the actual parameters we sometimes (connect) get a map
-			// of parameters, this is usually null, but if set should be passed
-			// to the connection object. 
-			final Map connParams = (Map) deserializer.deserialize(input);
-			notify.setConnectionParams(connParams);
+			final Object obj = deserializer.deserialize(input);
+			
+			if (obj instanceof Map) {
+				// Before the actual parameters we sometimes (connect) get a map
+				// of parameters, this is usually null, but if set should be passed
+				// to the connection object. 
+				final Map connParams = (Map) obj;
+				notify.setConnectionParams(connParams);
+			} else
+				paramList.add(obj);
 			
 			while(in.hasRemaining()){
 				paramList.add(deserializer.deserialize(input));
