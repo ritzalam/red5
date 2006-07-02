@@ -44,4 +44,7 @@ public class SharedObjectEvent
 		return value;
 	}
 	
+	public String toString() {
+		return "SOEvent(" + getType() + ", " + getKey() + ", " + getValue() + ")";
+	}
 }
