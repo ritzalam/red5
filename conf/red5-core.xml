@@ -78,7 +78,7 @@
 	<bean id="debugProxyIoHandler" class="org.red5.server.net.proxy.DebugProxyHandler">
         <property name="codecFactory" ref="rtmpCodecFactory" />
         <property name="forward" value="${proxy_forward.host_port}" />
-        <property name="dumpTo" value="./dumps/" />
+        <property name="dumpTo" value="./webapps/dump/" />
     </bean>
 	
 	

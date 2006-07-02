@@ -88,22 +88,33 @@ public class DebugProxyHandler extends IoHandlerAdapter
 		}
 		
 		session.getFilterChain().addFirst(
-				"proxy", new ProxyFilter(isClient ? "down" : "up") );
+				"proxy", new ProxyFilter(isClient ? "client" : "server") );
 		
 		if(true){
 		
 			String fileName = System.currentTimeMillis() 
 				+ "_" + forward.getHostName() 
 				+ "_" + forward.getPort() 
-				+ "_up." + ( (addHeaders) ? "cap" : "raw" );
+				+ "_" + (isClient ? "client" : "server");
 			
-			File file = loader.getResource( dumpTo + fileName ).getFile();
-			file.createNewFile();
-			FileOutputStream fos = new FileOutputStream( file );
-			WritableByteChannel channel = fos.getChannel();
+			File headersFile = loader.getResource( dumpTo + fileName + ".cap" ).getFile();
+			headersFile.createNewFile();
+			
+			File rawFile = loader.getResource( dumpTo + fileName + ".raw" ).getFile();
+			rawFile.createNewFile();
+			
+			FileOutputStream headersFos = new FileOutputStream( headersFile );
+			WritableByteChannel headers = headersFos.getChannel();
+			
+			FileOutputStream rawFos = new FileOutputStream( rawFile );
+			WritableByteChannel raw = rawFos.getChannel();
+			
+			ByteBuffer header = ByteBuffer.allocate(1);
+			header.put( (byte) ( isClient ? 0x00 : 0x01 ) );
+			headers.write( header.buf() );
 			
 			session.getFilterChain().addFirst(
-                "dump", new NetworkDumpFilter( channel, addHeaders ) );
+                "dump", new NetworkDumpFilter( headers, raw ) );
 		}
 		
         //session.getFilterChain().addLast(

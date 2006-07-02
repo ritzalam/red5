@@ -32,31 +32,34 @@ public class NetworkDumpFilter extends IoFilterAdapter {
 	protected static Log log =
         LogFactory.getLog(ProxyFilter.class.getName());
 	
-	protected WritableByteChannel channel;
-	protected boolean addHeaders = true;
+	protected WritableByteChannel raw;
+	protected WritableByteChannel headers;
 	
-	public NetworkDumpFilter(WritableByteChannel channel, boolean addHeaders){
-		this.channel = channel;
-		this.addHeaders = addHeaders;
+	public NetworkDumpFilter(WritableByteChannel headers, WritableByteChannel raw){
+		this.raw = raw;
+		this.headers = headers;
 	}
 	
 	public void messageReceived(NextFilter next, IoSession session, Object message) throws Exception {
 		if(message instanceof ByteBuffer){
 			ByteBuffer out = (ByteBuffer) message;
-			if( addHeaders ){
+			if(headers != null){
 				ByteBuffer header = ByteBuffer.allocate(12);
 				header.putLong(System.currentTimeMillis());
 				header.putInt(out.limit());
 				header.flip();
-				channel.write( header.buf() );
+				headers.write( header.buf() );
 			}
-			channel.write( out.asReadOnlyBuffer().buf() );
+			if(raw != null){
+				raw.write( out.asReadOnlyBuffer().buf() );
+			}
 		}
 		next.messageReceived(session, message);
 	}
 
 	public void sessionClosed(NextFilter next, IoSession session) throws Exception {
-		channel.close();
+		if(headers.isOpen()) headers.close();
+		if(raw.isOpen()) raw.close();
 		next.sessionClosed(session);
 	}
 
