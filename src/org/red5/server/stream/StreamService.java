@@ -167,7 +167,6 @@ public class StreamService implements IStreamService {
 		if (stream != null && !(stream instanceof IClientBroadcastStream)) return;
 		if (stream == null) {
 			stream = streamConn.newBroadcastStream(streamId);
-			stream.start();
 		} else {
 			// already published
 			return;

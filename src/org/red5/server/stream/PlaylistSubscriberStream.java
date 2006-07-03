@@ -389,6 +389,7 @@ implements IPlaylistSubscriberStream {
 			IMessageInput vodInput = providerService.getVODProviderInput(thisScope, item.getName());
 			boolean isPublishedStream = liveInput != null;
 			boolean isFileStream = vodInput != null;
+			boolean sendNotifications = true;
 			
 			// decision: 0 for Live, 1 for File, 2 for Wait, 3 for N/A
 			int decision = 3;
@@ -437,11 +438,17 @@ implements IPlaylistSubscriberStream {
 							if (keyFrame != null) {
 								VideoData video = new VideoData(keyFrame);
 								try {
+									sendResetPing();
+									sendResetStatus(item);
+									sendStartStatus(item);
+									sendBlankAudio();
+									
 									video.setTimestamp(0);
 									
 									RTMPMessage videoMsg = new RTMPMessage();
 									videoMsg.setBody(video);
 									msgOut.pushMessage(videoMsg);
+									sendNotifications = false;
 								} finally {
 									video.release();
 								}
@@ -476,10 +483,12 @@ implements IPlaylistSubscriberStream {
 				sendStreamNotFoundStatus(currentItem);
 				throw new StreamNotFoundException(item.getName());
 			}
-			sendResetPing();
-			sendResetStatus(item);
-			sendStartStatus(item);
-			sendBlankAudio();
+			if (sendNotifications) {
+				sendResetPing();
+				sendResetStatus(item);
+				sendStartStatus(item);
+				sendBlankAudio();
+			}
 			state = State.PLAYING;
 			if (decision == 1) {
 				pendingMessage = null;
