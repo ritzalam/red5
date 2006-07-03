@@ -26,11 +26,13 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.event.IEventDispatcher;
 import org.red5.server.api.event.IEventListener;
 import org.red5.server.api.stream.IClientBroadcastStream;
+import org.red5.server.api.stream.IStreamAware;
 import org.red5.server.api.stream.IStreamCapableConnection;
 import org.red5.server.api.stream.IStreamCodecInfo;
 import org.red5.server.api.stream.IVideoStreamCodec;
@@ -70,6 +72,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	private boolean checkVideoCodec = false;
 	private IPipe livePipe;
 	private IPipe recordPipe;
+	private boolean sendStartNotification = true;
 	
 	private long startTime;
 	private long lastAudio;
@@ -200,6 +203,18 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			IEventListener source = event.getSource();
 			if (source instanceof IStreamCapableConnection)
 				((IStreamCapableConnection) source).updateStreamBytesRead(((VideoData) rtmpEvent).getData().limit());
+			if (sendStartNotification) {
+				// Notify handler that stream starts publishing
+				sendStartNotification = false;
+				if (source instanceof IConnection) {
+					IScope scope = ((IConnection) source).getScope();
+					if (scope.hasHandler()) {
+						Object handler = scope.getHandler();
+						if (handler instanceof IStreamAware)
+							((IStreamAware) handler).streamBroadcastStart(this);
+					}
+				}
+			}
 		} else {
 			delta = now - lastData;
 			lastData = now;

@@ -19,8 +19,17 @@ package org.red5.server.api.stream;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+/**
+ * Notification methods for stream events.
+ */
 public interface IStreamAware {
 	
-	public void streamBroadcastStart(String name);
+	/**
+	 * A broadcast stream starts being published. This will be called
+	 * when the first video packet has been received.
+	 * 
+	 * @param stream
+	 */
+	public void streamBroadcastStart(IBroadcastStream stream);
 
 }

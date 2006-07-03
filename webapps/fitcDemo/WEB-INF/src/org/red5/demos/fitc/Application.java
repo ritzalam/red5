@@ -13,6 +13,7 @@ import org.red5.server.api.Red5;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IPendingServiceCallback;
 import org.red5.server.api.service.IServiceCapableConnection;
+import org.red5.server.api.stream.IBroadcastStream;
 import org.red5.server.api.stream.IStreamAware;
 
 public class Application extends ApplicationAdapter implements IPendingServiceCallback, IStreamAware {
@@ -42,20 +43,21 @@ public class Application extends ApplicationAdapter implements IPendingServiceCa
 		return true;
 	}
 	
-	public void streamBroadcastStart(String name) {
+	public void streamBroadcastStart(IBroadcastStream stream) {
 		// Notify all the clients that the stream had been started
-		log.debug("stream broadcast start: "+name);
+		log.debug("stream broadcast start: "+stream.getPublishedName());
 		IConnection current = Red5.getConnectionLocal();
-		IScope parent = scope.getParent();
-		Iterator<IConnection> it = parent.getConnections();
+		Iterator<IConnection> it = scope.getConnections();
 		while (it.hasNext()) {
 			IConnection conn = it.next();
 			if (conn.equals(current))
 				// Don't notify current client
 				continue;
 			
-			if (conn instanceof IServiceCapableConnection)
-				((IServiceCapableConnection) conn).invoke("newStream", new Object[]{name}, this);
+			if (conn instanceof IServiceCapableConnection) {
+				((IServiceCapableConnection) conn).invoke("newStream", new Object[]{stream.getPublishedName()}, this);
+				log.debug("sending notification to "+conn);
+			}
 		}
 	}
 	
