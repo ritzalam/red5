@@ -22,13 +22,20 @@
 	<property name="testreports.dir" value="${testclass.dir}/testreports"/>
 	<property name="testdoc.dir" value="doc/test"/>
 	<target name="-junit.check">
-        <available property="junit.installed" classname="junit.framework.TestCase" />
+		<available property="junit.installed" classname="junit.framework.TestCase" />
 	</target>
 
 	<path id="project.classpath">
 		<fileset dir="${lib.dir}">
 			<include name="*.jar"/>
 		</fileset>
+	</path>
+
+	<path id="webapps.classpath">
+		<fileset dir="${lib.dir}">
+			<include name="*.jar"/>
+		</fileset>
+		<pathelement location="${bin.dir}"/>
 	</path>
 
 	<path id="full.classpath">
@@ -51,6 +58,12 @@
 		<mkdir dir="${dist.dir}"/>
 		<mkdir dir="${testclass.dir}"/>
 		<mkdir dir="${testreports.dir}"/>
+		<mkdir dir="${src.dir}/../webapps/fitcDemo/WEB-INF/classes"/>
+		<mkdir dir="${src.dir}/../webapps/fitcDemo/WEB-INF/lib"/>
+		<mkdir dir="${src.dir}/../webapps/oflaDemo/WEB-INF/classes"/>
+		<mkdir dir="${src.dir}/../webapps/oflaDemo/WEB-INF/lib"/>
+		<mkdir dir="${src.dir}/../webapps/test/WEB-INF/classes"/>
+		<mkdir dir="${src.dir}/../webapps/test/WEB-INF/lib"/>
 	</target>
 
 	<!-- do a clean -->
@@ -61,6 +74,12 @@
 		<delete dir="${dist.dir}"/>
 		<delete dir="${javadoc.dir}"/>
 		<delete dir="${testdoc.dir}"/>
+		<delete dir="${src.dir}/../webapps/fitcDemo/WEB-INF/classes"/>
+		<delete dir="${src.dir}/../webapps/fitcDemo/WEB-INF/lib"/>
+		<delete dir="${src.dir}/../webapps/oflaDemo/WEB-INF/classes"/>
+		<delete dir="${src.dir}/../webapps/oflaDemo/WEB-INF/lib"/>
+		<delete dir="${src.dir}/../webapps/test/WEB-INF/classes"/>
+		<delete dir="${src.dir}/../webapps/test/WEB-INF/lib"/>
 	</target>
 
 	<target name="compile" depends="-junit.check, prepare">
@@ -81,9 +100,9 @@
 		<javac
 				sourcepath=""
 				srcdir="${src.dir}/../webapps/fitcDemo/WEB-INF/src"
-				destdir="${classes.dir}"
+				destdir="${src.dir}/../webapps/fitcDemo/WEB-INF/classes"
 				debug="${debug.state}"
-				classpathref="project.classpath"
+				classpathref="webapps.classpath"
 				fork="yes"
 				verbose="no"
 				nowarn="yes"
@@ -95,9 +114,9 @@
 		<javac
 				sourcepath=""
 				srcdir="${src.dir}/../webapps/oflaDemo/WEB-INF/src"
-				destdir="${classes.dir}"
+				destdir="${src.dir}/../webapps/oflaDemo/WEB-INF/classes"
 				debug="${debug.state}"
-				classpathref="project.classpath"
+				classpathref="webapps.classpath"
 				fork="yes"
 				verbose="no"
 				nowarn="yes"
@@ -109,9 +128,9 @@
 		<javac
 				sourcepath=""
 				srcdir="${src.dir}/../webapps/test/WEB-INF/src"
-				destdir="${classes.dir}"
+				destdir="${src.dir}/../webapps/test/WEB-INF/classes"
 				debug="${debug.state}"
-				classpathref="project.classpath"
+				classpathref="webapps.classpath"
 				fork="yes"
 				verbose="no"
 				nowarn="yes"
@@ -157,13 +176,6 @@
 		<jar destfile="red5.jar">
 			<fileset dir="${classes.dir}">
 				<include name="**"/>
-				<!-- 
-				Allow the all classes so that server works after compile with ant.
-				What we really want is a task which compiles /{app}/WEB-INF/src/** to /{app}/WEB-INF/lib/{app}.jar
-				- Luke
-				<exclude name="org/red5/server/webapp/**"/>
-				<exclude name="org/red5/demos/**"/>
-			    --> 
 				<exclude name="testcases/**"/>
 			</fileset>
 			<!--
@@ -175,12 +187,30 @@
 				<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>
 				<attribute name="Main-Class" value="org.red5.server.Standalone"/>
 				<attribute name="Class-Path"
-				           value="conf/ lib/slf4j-log4j12.jar lib/cglib-nodep-2.1_2.jar lib/jetty.jar lib/jetty-util.jar lib/commons-beanutils.jar lib/commons-collections.jar lib/commons-logging.jar lib/jpda.jar lib/log4j-1.2.9.jar lib/mina-filter-ssl-0.9.4.jar lib/mina-core-0.9.4.jar lib/mina-integration-spring-0.9.4.jar lib/servlet-api.jar lib/spring.jar lib/quartz-1.5.2.jar lib/xmlrpc-2.0.1.jar lib/commons-codec-1.3.jar lib/commons-httpclient-3.0.1.jar "/>
+						   value="conf/ lib/slf4j-log4j12.jar lib/cglib-nodep-2.1_2.jar lib/jetty.jar lib/jetty-util.jar lib/commons-beanutils.jar lib/commons-collections.jar lib/commons-logging.jar lib/jpda.jar lib/log4j-1.2.9.jar lib/mina-filter-ssl-0.9.4.jar lib/mina-core-0.9.4.jar lib/mina-integration-spring-0.9.4.jar lib/servlet-api.jar lib/spring.jar lib/quartz-1.5.2.jar lib/xmlrpc-2.0.1.jar lib/commons-codec-1.3.jar lib/commons-httpclient-3.0.1.jar "/>
 			</manifest>
+		</jar>
+		
+		<jar destfile="${src.dir}/../webapps/fitcDemo/WEB-INF/lib/fitcDemo.jar">
+			<fileset dir="${src.dir}/../webapps/fitcDemo/WEB-INF/classes">
+				<include name="**"/>
+			</fileset>
+		</jar>
+		
+		<jar destfile="${src.dir}/../webapps/oflaDemo/WEB-INF/lib/oflaDemo.jar">
+			<fileset dir="${src.dir}/../webapps/oflaDemo/WEB-INF/classes">
+				<include name="**"/>
+			</fileset>
+		</jar>
+		
+		<jar destfile="${src.dir}/../webapps/test/WEB-INF/lib/test.jar">
+			<fileset dir="${src.dir}/../webapps/test/WEB-INF/classes">
+				<include name="**"/>
+			</fileset>
 		</jar>
 	</target>
 
-	<target name="dist" description="Make Distribution" depends="clean, jar, javadoc">
+	<target name="dist" description="Make Binary Distribution" depends="clean, jar, javadoc">
 		<copy todir="${dist.dir}/doc">
 			<fileset dir="doc"/>
 		</copy>
@@ -191,7 +221,11 @@
 			<fileset dir="conf"/>
 		</copy>
 		<copy todir="${dist.dir}/webapps">
-			<fileset dir="webapps"/>
+			<fileset dir="webapps">
+				<include name="**"/>
+				<exclude name="**/classes/**"/>
+				<exclude name="**/src/**"/>
+			</fileset>
 		</copy>
 		<copy todir="${dist.dir}">
 			<fileset dir="./">
@@ -217,6 +251,11 @@
 		</copy>
 		<copy todir="${dist.dir}/swf">
 			<fileset dir="swf"/>
+		</copy>
+		<copy todir="${dist.dir}/webapps">
+			<fileset dir="webapps">
+				<include name="**/src/**"/>
+			</fileset>
 		</copy>
 	</target>
 
@@ -271,7 +310,7 @@
 		</war>
 		<delete dir="webdir"/>
 	</target>
-    -->
+	-->
 
 	<target name="run-tests"  if="junit.installed" depends="compiletests" description="Run JUnit tests and generate HTML reports">
 		<junit fork="true" haltonfailure="no" printsummary="no" showoutput="no" dir="${testreports.dir}">
