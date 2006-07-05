@@ -157,8 +157,13 @@
 		<jar destfile="red5.jar">
 			<fileset dir="${classes.dir}">
 				<include name="**"/>
+				<!-- 
+				Allow the all classes so that server works after compile with ant.
+				What we really want is a task which compiles /{app}/WEB-INF/src/** to /{app}/WEB-INF/lib/{app}.jar
+				- Luke
 				<exclude name="org/red5/server/webapp/**"/>
 				<exclude name="org/red5/demos/**"/>
+			    --> 
 				<exclude name="testcases/**"/>
 			</fileset>
 			<!--
@@ -170,7 +175,7 @@
 				<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>
 				<attribute name="Main-Class" value="org.red5.server.Standalone"/>
 				<attribute name="Class-Path"
-				           value="conf/ lib/slf4j-log4j12.jar lib/cglib-nodep-2.1_2.jar lib/jetty.jar lib/jetty-util.jar lib/commons-beanutils.jar lib/commons-collections.jar lib/commons-logging.jar lib/jpda.jar lib/log4j-1.2.9.jar lib/mina-filter-ssl-0.9.4.jar lib/mina-core-0.9.4.jar lib/mina-integration-spring-0.9.4 .jar lib/servlet-api.jar lib/spring.jar lib/quartz-1.5.2.jar lib/xmlrpc-2.0.1.jar lib/commons-codec-1.3.jar lib/commons-httpclient-3.0.1.jar "/>
+				           value="conf/ lib/slf4j-log4j12.jar lib/cglib-nodep-2.1_2.jar lib/jetty.jar lib/jetty-util.jar lib/commons-beanutils.jar lib/commons-collections.jar lib/commons-logging.jar lib/jpda.jar lib/log4j-1.2.9.jar lib/mina-filter-ssl-0.9.4.jar lib/mina-core-0.9.4.jar lib/mina-integration-spring-0.9.4.jar lib/servlet-api.jar lib/spring.jar lib/quartz-1.5.2.jar lib/xmlrpc-2.0.1.jar lib/commons-codec-1.3.jar lib/commons-httpclient-3.0.1.jar "/>
 			</manifest>
 		</jar>
 	</target>
@@ -224,7 +229,8 @@
 			</classpath>
 		</java>
 	</target>
-
+	
+	<!-- I have disabled this until we know its has been tested - Luke
 	<target name="webwar" depends="compile">
 		<delete dir="webdir"/>
 		<mkdir dir="webdir"/>
@@ -255,7 +261,7 @@
 			</fileset>
 		</copy>
 		<copy todir="webdir">
-			<fileset dir="./webapps/defaultApp">
+			<fileset dir="./webapps/root">
 				<include name="index.html"/>
 			</fileset>
 		</copy>
@@ -265,6 +271,7 @@
 		</war>
 		<delete dir="webdir"/>
 	</target>
+    -->
 
 	<target name="run-tests"  if="junit.installed" depends="compiletests" description="Run JUnit tests and generate HTML reports">
 		<junit fork="true" haltonfailure="no" printsummary="no" showoutput="no" dir="${testreports.dir}">
@@ -298,6 +305,6 @@
 		</javac>
 	</target>
 
-	<target name="all" depends="clean, prepare, compile, jar, webwar, javadoc"/>
+	<target name="all" depends="clean, prepare, compile, jar, javadoc"/>
 
 </project>
