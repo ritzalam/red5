@@ -124,11 +124,11 @@ public class Client extends AttributeStore
 		fcs.updateBWConfigure(this);
 	}
 
-	void register(IConnection conn){
+	protected void register(IConnection conn){
 		connToScope.put(conn, conn.getScope());
 	}
 	
-	void unregister(IConnection conn){
+	protected void unregister(IConnection conn){
 		connToScope.remove(conn);
 		if (connToScope.isEmpty()) {
 			// This client is not connected to any scopes, remove from registry.
