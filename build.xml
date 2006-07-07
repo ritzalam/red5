@@ -266,6 +266,8 @@
 				<path refid="project.classpath"/>
 				<pathelement location="${config.dir}"/>
 			</classpath>
+			<jvmarg value="-Djava.security.manager"/>
+			<jvmarg value="-Djava.security.policy=${config.dir}/red5.policy"/>
 		</java>
 	</target>
 	

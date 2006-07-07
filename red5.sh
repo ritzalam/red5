@@ -14,4 +14,4 @@ then
   exit
 fi
 
-exec $JAVA -cp red5.jar:conf:$CLASSPATH org.red5.server.Standalone
+exec $JAVA -Djava.security.manager -Djava.security.policy=conf/red5.policy -cp red5.jar:conf:$CLASSPATH org.red5.server.Standalone
