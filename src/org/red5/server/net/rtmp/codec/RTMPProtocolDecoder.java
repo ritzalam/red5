@@ -251,7 +251,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder, IE
 		
 		buf.flip();	
 		
-		final IRTMPEvent message = decodeMessage(header, buf);
+		final IRTMPEvent message = decodeMessage(rtmp, header, buf);
 		packet.setMessage(message);
 		
 		if(message instanceof ChunkSize){
@@ -306,7 +306,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder, IE
 		return header;
 	}
 	
-	public IRTMPEvent decodeMessage(Header header, ByteBuffer in) {
+	public IRTMPEvent decodeMessage(RTMP rtmp, Header header, ByteBuffer in) {
 		IRTMPEvent message = null;
 		if (header.getTimer() == 0xffffff) {
 			// Skip first four bytes
@@ -321,8 +321,8 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder, IE
 		case TYPE_INVOKE: 
 			message = decodeInvoke(in);
 			break;
-		case TYPE_NOTIFY: 
-			message = decodeNotify(in, header);
+		case TYPE_NOTIFY:
+			message = decodeNotify(in, header, rtmp);
 			break;
 		case TYPE_PING: 
 			message = decodePing(in);
@@ -420,25 +420,38 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder, IE
 	 * @see org.red5.server.net.rtmp.codec.IEventDecoder#decodeNotify(org.apache.mina.common.ByteBuffer)
 	 */
 	public Notify decodeNotify(ByteBuffer in){
-		return decodeNotify(in, null);
+		return decodeNotify(in, null, null);
 	}
 	
-	public Notify decodeNotify(ByteBuffer in, Header header) {
-		return decodeNotifyOrInvoke(new Notify(), in, header);
+	public Notify decodeNotify(ByteBuffer in, Header header, RTMP rtmp) {
+		return decodeNotifyOrInvoke(new Notify(), in, header, rtmp);
 	}
 	
 	/* (non-Javadoc)
 	 * @see org.red5.server.net.rtmp.codec.IEventDecoder#decodeInvoke(org.apache.mina.common.ByteBuffer)
 	 */
 	public Invoke decodeInvoke(ByteBuffer in){
-		return (Invoke) decodeNotifyOrInvoke(new Invoke(), in, null);
+		return (Invoke) decodeNotifyOrInvoke(new Invoke(), in, null, null);
 	}
 	
-	protected Notify decodeNotifyOrInvoke(Notify notify, ByteBuffer in, Header header) {
+	private boolean isStreamMetadataAction(String action) {
+		return (action.equals("onMetaData") || action.equals("onCuePoint"));
+	}
+	
+	protected Notify decodeNotifyOrInvoke(Notify notify, ByteBuffer in, Header header, RTMP rtmp) {
 		// TODO: we should use different code depending on server or client mode
+		int start = in.position();
 		Input input = new Input(in);
 		
 		String action = (String) deserializer.deserialize(input);
+		
+		if (!(notify instanceof Invoke) && rtmp != null && rtmp.getMode() == RTMP.MODE_SERVER &&
+			header != null && header.getStreamId() != 0 && isStreamMetadataAction(action)) {
+			// Don't decode stream metadata
+			in.position(start);
+			notify.setData(in.asReadOnlyBuffer());
+			return notify;
+		}
 		
 		if(log.isDebugEnabled())
 			log.debug("Action "+action);
@@ -522,5 +535,5 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder, IE
 	public VideoData decodeVideoData(ByteBuffer in) {
 		return new VideoData(in.asReadOnlyBuffer());
 	}
-	
+
 }

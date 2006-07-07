@@ -50,6 +50,10 @@ public class Notify extends BaseEvent implements IStreamData {
 		return TYPE_NOTIFY;
 	}
 	
+	public void setData(ByteBuffer data) {
+		this.data = data;
+	}
+	
 	public void setCall(IServiceCall call) {
 		this.call = call;
 	}
