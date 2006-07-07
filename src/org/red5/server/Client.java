@@ -103,7 +103,7 @@ public class Client extends AttributeStore
 		if (context == null) return;
 		IFlowControlService fcs = (IFlowControlService) context.getBean(
 				IFlowControlService.KEY);
-		fcs.unregisterFlowControllable(this);
+		fcs.releaseFlowControllable(this);
 	}
 		
 	public IBandwidthConfigure getBandwidthConfigure() {
@@ -120,18 +120,8 @@ public class Client extends AttributeStore
 		if (context == null) return;
 		IFlowControlService fcs = (IFlowControlService) context.getBean(
 				IFlowControlService.KEY);
-		boolean needRegister = false;
-		if (this.bandwidthConfig == null) {
-			if (config != null) {
-				needRegister = true;
-			} else return;
-		}
 		this.bandwidthConfig = config;
-		if (needRegister) {
-			fcs.registerFlowControllable(this);
-		} else {
-			fcs.updateBWConfigure(this);
-		}
+		fcs.updateBWConfigure(this);
 	}
 
 	void register(IConnection conn){

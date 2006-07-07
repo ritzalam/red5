@@ -39,7 +39,8 @@ public interface ITokenBucket {
 	/**
 	 * Nonblockingly acquire token. If the token is not available and
 	 * <tt>task</tt> is not null, the callback will be executed when the token
-	 * is available.
+	 * is available. The tokens are not consumed automatically before callback,
+	 * so it's recommended to acquire token again in callback function.
 	 * @param tokenCount
 	 * @param callback
 	 * @return <tt>true</tt> if successfully acquired or <tt>false</tt>
@@ -75,6 +76,7 @@ public interface ITokenBucket {
 	void reset();
 	
 	public interface ITokenBucketCallback {
-		void run(ITokenBucket bucket, long tokenCount);
+		void available(ITokenBucket bucket, long tokenCount);
+		void reset(ITokenBucket bucket, long tokenCount);
 	}
 }

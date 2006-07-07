@@ -76,6 +76,7 @@ implements IPlaylistSubscriberStream {
 	private int currentItemIndex;
 	
 	private PlayEngine engine;
+	private IFlowControlService flowControlService;
 	
 	private boolean isRewind = false;
 	private boolean isRandom = false;
@@ -89,6 +90,8 @@ implements IPlaylistSubscriberStream {
 	}
 	
 	public void start() {
+		flowControlService =
+			(IFlowControlService) getScope().getContext().getBean(IFlowControlService.KEY);
 		engine.start();
 	}
 
@@ -144,6 +147,7 @@ implements IPlaylistSubscriberStream {
 
 	public void close() {
 		engine.close();
+		flowControlService.releaseFlowControllable(this);
 	}
 
 	public void addItem(IPlayItem item) {
@@ -353,10 +357,10 @@ implements IPlaylistSubscriberStream {
 		
 		private IPlayItem currentItem;
 		
-		private IFlowControlService flowControlService;
 		private ITokenBucket audioBucket;
 		private ITokenBucket videoBucket;
 		private RTMPMessage pendingMessage;
+		private boolean isWaitingForToken = false;
 		
 		public PlayEngine() {
 			state = State.UNINIT;
@@ -370,9 +374,6 @@ implements IPlaylistSubscriberStream {
 				(IConsumerService) getScope().getContext().getBean(IConsumerService.KEY);
 			msgOut = consumerManager.getConsumerOutput(PlaylistSubscriberStream.this);
 			msgOut.subscribe(this, null);
-			flowControlService =
-				(IFlowControlService) getScope().getContext().getBean(IFlowControlService.KEY);
-			flowControlService.registerFlowControllable(PlaylistSubscriberStream.this);
 			audioBucket = flowControlService.getAudioTokenBucket(PlaylistSubscriberStream.this);
 			videoBucket = flowControlService.getVideoTokenBucket(PlaylistSubscriberStream.this);
 		}
@@ -524,6 +525,7 @@ implements IPlaylistSubscriberStream {
 			}
 			if (isPullMode) {
 				flowControlService.resetTokenBuckets(PlaylistSubscriberStream.this);
+				isWaitingForToken = false;
 				sendResetPing();
 				sendSeekStatus(currentItem, position);
 				sendStartStatus(currentItem);
@@ -550,6 +552,7 @@ implements IPlaylistSubscriberStream {
 				liveLengthJob = null;
 			}
 			flowControlService.resetTokenBuckets(PlaylistSubscriberStream.this);
+			isWaitingForToken = false;
 		}
 		
 		synchronized public void close() {
@@ -576,11 +579,10 @@ implements IPlaylistSubscriberStream {
 				schedulingService.removeScheduledJob(liveLengthJob);
 				liveLengthJob = null;
 			}
-			flowControlService.unregisterFlowControllable(PlaylistSubscriberStream.this);
 		}
 		
 		synchronized private void pullAndPush() {
-			if (state == State.PLAYING && isPullMode) {
+			if (state == State.PLAYING && isPullMode && !isWaitingForToken) {
 				int size;
 				if (pendingMessage != null) {
 					IRTMPEvent body = pendingMessage.getBody();
@@ -591,10 +593,12 @@ implements IPlaylistSubscriberStream {
 					boolean toSend = true;
 					if (body instanceof VideoData) {
 						if (!videoBucket.acquireTokenNonblocking(size, this)) {
+							isWaitingForToken = true;
 							toSend = false;
 						}
 					} else if (body instanceof AudioData) {
 						if (!audioBucket.acquireTokenNonblocking(size, this)) {
+							isWaitingForToken = true;
 							toSend = false;
 						}
 					}
@@ -622,10 +626,12 @@ implements IPlaylistSubscriberStream {
 								boolean toSend = true;
 								if (body instanceof VideoData) {
 									if (!videoBucket.acquireTokenNonblocking(size, this)) {
+										isWaitingForToken = true;
 										toSend = false;
 									}
 								} else if (body instanceof AudioData) {
 									if (!audioBucket.acquireTokenNonblocking(size, this)) {
+										isWaitingForToken = true;
 										toSend = false;
 									}
 								}
@@ -867,10 +873,15 @@ implements IPlaylistSubscriberStream {
 			onItemEnd();
 		}
 
-		public void run(ITokenBucket bucket, long tokenCount) {
+		synchronized public void available(ITokenBucket bucket, long tokenCount) {
+			isWaitingForToken = false;
 			pullAndPush();
 		}
 		
+		public void reset(ITokenBucket bucket, long tokenCount) {
+			isWaitingForToken = false;
+		}
+
 		public void updateBandwithConfigure() {
 			flowControlService.updateBWConfigure(PlaylistSubscriberStream.this);
 		}

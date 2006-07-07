@@ -19,6 +19,7 @@ package org.red5.server.stream;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
@@ -27,6 +28,7 @@ import java.util.TimerTask;
 import org.red5.server.api.IBandwidthConfigure;
 import org.red5.server.api.IFlowControllable;
 import org.red5.server.api.stream.support.SimpleBandwidthConfigure;
+import org.red5.server.stream.ITokenBucket.ITokenBucketCallback;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -44,214 +46,244 @@ implements IFlowControlService, ApplicationContextAware {
 	private long interval = 10;
 	private long defaultCapacity = 1024 * 100;
 	private Timer timer;
-	private Map<IFlowControllable, DataObject> fcsMap =
-		new HashMap<IFlowControllable, DataObject>();
-	private DummyBucket dummyBucket = new DummyBucket();
 	
-	public void registerFlowControllable(IFlowControllable fc) {
+	private Map <IFlowControllable, FCData> fcsMap =
+		new HashMap<IFlowControllable, FCData>();
+
+	public void init() {
+		timer = new Timer("FlowControlService", true);
+		timer.schedule(this, interval, interval);
+	}
+	
+	@Override
+	public void run() {
 		synchronized (fcsMap) {
-			if (fcsMap.containsKey(fcsMap)) return;
-			if (fc.getBandwidthConfigure() == null) return;
-			DataObject obj = new DataObject();
-			obj.bwConfig = new SimpleBandwidthConfigure(fc.getBandwidthConfigure());
-			long maxBurst = obj.bwConfig.getMaxBurst();
-			if (maxBurst <= 0) {
-				maxBurst = defaultCapacity;
+			for (IFlowControllable fc : fcsMap.keySet()) {
+				FCData data = fcsMap.get(fc);
+				if (data.resources.length > 0) {
+					// find the nearest ancestor that has bw resource assigned
+					IFlowControllable parentFC = fc.getParentFlowControllable();
+					while (parentFC != null) {
+						FCData parentData = fcsMap.get(parentFC);
+						if (parentData != null && parentData.resources.length > 0) {
+							for (int i = 0; i < data.resources.length; i++) {
+								for (int j = i; j >= 0; j--) {
+									if (j < parentData.resources.length) {
+										long tokenCount = data.resources[i].getSpeed(fc) * interval;
+										long availableTokens = parentData.resources[j].acquireTokenBestEffort(fc, tokenCount);
+										data.resources[i].addToken(availableTokens);
+										break;
+									}
+								}
+							}
+							break;
+						}
+						parentFC = parentFC.getParentFlowControllable();
+					}
+					if (parentFC == null) {
+						// no bw limit
+						for (int i = 0; i < data.resources.length; i++) {
+							data.resources[i].addToken(data.resources[i].getSpeed(fc) * interval);
+						}
+					}
+				}
 			}
-			long burst = obj.bwConfig.getBurst();
-			if (burst > maxBurst) {
-				burst = maxBurst;
-			} else if (burst < 0) {
-				burst = 0;
-			}
-			if (obj.bwConfig.getOverallBandwidth() >= 0) {
-				obj.overallBucket = new TokenBucket(burst);
-				obj.overallBucket.setCapacity(maxBurst);
-				obj.overallBucket.setSpeed(bps2Bpms(obj.bwConfig.getOverallBandwidth()));
-				obj.audioWrapper = new TokenBucketWrapper(obj.overallBucket);
-				obj.videoWrapper = new TokenBucketWrapper(obj.overallBucket);
-			} else {
-				obj.audioBucket = new TokenBucket(burst);
-				obj.audioBucket.setCapacity(maxBurst);
-				obj.audioBucket.setSpeed(bps2Bpms(obj.bwConfig.getAudioBandwidth()));
-				obj.videoBucket = new TokenBucket(burst);
-				obj.videoBucket.setCapacity(maxBurst);
-				obj.videoBucket.setSpeed(bps2Bpms(obj.bwConfig.getVideoBandwidth()));
-				obj.audioWrapper = new TokenBucketWrapper(obj.audioBucket);
-				obj.videoWrapper = new TokenBucketWrapper(obj.videoBucket);
-			}
-			fcsMap.put(fc, obj);
 		}
 	}
 
-	public void unregisterFlowControllable(IFlowControllable fc) {
+	public void releaseFlowControllable(IFlowControllable fc) {
 		synchronized (fcsMap) {
-			// TODO migrate the waiting threads to ancestors
 			fcsMap.remove(fc);
 		}
 	}
 
 	public void updateBWConfigure(IFlowControllable fc) {
 		synchronized (fcsMap) {
-			DataObject obj = fcsMap.get(fc);
-			if (obj == null) return;
-			if (fc.getBandwidthConfigure() == null) {
-				// simple unregister the flow controllable
-				// TODO migrate the waiting threads to ancestors
-				fcsMap.remove(fc);
-				return;
-			}
-			IBandwidthConfigure oldConf = obj.bwConfig;
-			IBandwidthConfigure newConf = fc.getBandwidthConfigure();
-			long maxBurst = newConf.getMaxBurst();
-			if (maxBurst <= 0) {
-				maxBurst = defaultCapacity;
-			}
-			long burst = newConf.getBurst();
-			if (burst > maxBurst) {
-				burst = maxBurst;
+			FCData data = fcsMap.get(fc);
+			if (data == null) {
+				data = registerFlowControllable(fc);
 			} else {
-				burst = 0;
+				IBandwidthConfigure newBC = fc.getBandwidthConfigure();
+				long capacity = 0;
+				if (newBC != null) {
+					capacity = newBC.getMaxBurst() <= 0 ? defaultCapacity : newBC.getMaxBurst();
+				}
+				if (data.sbc == null && newBC == null) {
+					// nothing changes
+				} else if (data.sbc != null && newBC == null) {
+					// configuration removed
+					yieldResourceToAncestor(fc);
+					data.sbc = null;
+				} else if (data.sbc == null && newBC != null) {
+					// configuration added
+					data.sbc = new SimpleBandwidthConfigure(newBC);
+					initFCDataByBWConfig(data, data.sbc);
+					adoptAncestorResource(fc);
+				} else {
+					// configuration changes
+					if (data.sbc.getOverallBandwidth() >= 0 &&
+							newBC.getOverallBandwidth() < 0) {
+						// change to a/v bw config
+						data.sbc = new SimpleBandwidthConfigure(newBC);
+						BandwidthResource[] old = data.resources;
+						data.resources = new BandwidthResource[2];
+						data.resources[0] = old[0];
+						data.resources[0].capacity = capacity;
+						data.resources[0].speed = bps2Bpms(data.sbc.getVideoBandwidth());
+						data.resources[1] = new BandwidthResource(
+								data.sbc.getMaxBurst(),
+								bps2Bpms(data.sbc.getAudioBandwidth()),
+								data.sbc.getBurst());
+					} else if (data.sbc.getOverallBandwidth() < 0 &&
+							newBC.getOverallBandwidth() >= 0) {
+						// change to overall bw config
+						data.sbc = new SimpleBandwidthConfigure(newBC);
+						BandwidthResource[] old = data.resources;
+						data.resources = new BandwidthResource[1];
+						old[0].adoptAll(old[1]);
+						data.resources[0] = old[0];
+						data.resources[0].capacity = capacity;
+						data.resources[0].speed = bps2Bpms(data.sbc.getOverallBandwidth());
+					} else if (data.sbc.getOverallBandwidth() < 0) {
+						// update a/v bw config
+						data.sbc = new SimpleBandwidthConfigure(newBC);
+						data.resources[0].capacity = capacity;
+						data.resources[0].speed = bps2Bpms(data.sbc.getVideoBandwidth());
+						data.resources[1].capacity = capacity;
+						data.resources[1].speed = bps2Bpms(data.sbc.getAudioBandwidth());
+					} else {
+						// update overall bw config
+						data.sbc = new SimpleBandwidthConfigure(newBC);
+						data.resources[0].capacity = capacity;
+						data.resources[0].speed = bps2Bpms(data.sbc.getOverallBandwidth());
+					}
+				}
 			}
-			if (oldConf.getOverallBandwidth() >= 0 &&
-					newConf.getOverallBandwidth() >= 0) {
-				obj.overallBucket.setCapacity(newConf.getMaxBurst());
-				obj.overallBucket.setSpeed(bps2Bpms(newConf.getOverallBandwidth()));
-			} else if (oldConf.getOverallBandwidth() >= 0 &&
-					newConf.getOverallBandwidth() < 0) {
-				// TODO migrate waiting threads on overallBucket
-				// to a/v buckets
-				obj.overallBucket = null;
-				obj.audioBucket = new TokenBucket(burst);
-				obj.audioBucket.setCapacity(maxBurst);
-				obj.audioBucket.setSpeed(bps2Bpms(newConf.getAudioBandwidth()));
-				obj.videoBucket = new TokenBucket(burst);
-				obj.videoBucket.setCapacity(maxBurst);
-				obj.videoBucket.setSpeed(bps2Bpms(newConf.getVideoBandwidth()));
-				obj.audioWrapper.wrapped = obj.audioBucket;
-				obj.videoWrapper.wrapped = obj.videoBucket;
-			} else if (oldConf.getOverallBandwidth() < 0 &&
-					newConf.getOverallBandwidth() >= 0) {
-				// TODO migrate waiting threads on a/v buckets
-				// to overallBucket
-				obj.audioBucket = null;
-				obj.videoBucket = null;
-				obj.overallBucket = new TokenBucket(burst);
-				obj.overallBucket.setCapacity(maxBurst);
-				obj.overallBucket.setSpeed(bps2Bpms(newConf.getOverallBandwidth()));
-				obj.audioWrapper.wrapped = obj.overallBucket;
-				obj.videoWrapper.wrapped = obj.overallBucket;
-			} else {
-				obj.audioBucket.setCapacity(newConf.getMaxBurst());
-				obj.audioBucket.setSpeed(bps2Bpms(newConf.getAudioBandwidth()));
-				obj.videoBucket.setCapacity(newConf.getMaxBurst());
-				obj.videoBucket.setSpeed(bps2Bpms(newConf.getVideoBandwidth()));
-			}
-			obj.bwConfig = new SimpleBandwidthConfigure(newConf);
 		}
 	}
 
 	public void resetTokenBuckets(IFlowControllable fc) {
-		synchronized (fcsMap) {
-			DataObject obj = fcsMap.get(fc);
-			if (obj != null) {
-				if (obj.overallBucket != null) {
-					obj.overallBucket.reset();
-				}
-				if (obj.audioBucket != null) {
-					obj.audioBucket.reset();
-				}
-				if (obj.videoBucket != null) {
-					obj.videoBucket.reset();
-				}
-			}
-		}
+		getAudioTokenBucket(fc).reset();
+		getVideoTokenBucket(fc).reset();
 	}
 
 	public ITokenBucket getAudioTokenBucket(IFlowControllable fc) {
 		synchronized (fcsMap) {
-			DataObject obj = fcsMap.get(fc);
-			while (obj == null && fc.getParentFlowControllable() != null) {
-				fc = fc.getParentFlowControllable();
-				obj = fcsMap.get(fc);
+			FCData data = fcsMap.get(fc);
+			if (data == null) {
+				data = registerFlowControllable(fc);
 			}
-			if (obj != null) {
-				return obj.audioWrapper;
-			} else {
-				return dummyBucket;
-			}
+			return data.audioBucket;
 		}
 	}
 
 	public ITokenBucket getVideoTokenBucket(IFlowControllable fc) {
 		synchronized (fcsMap) {
-			DataObject obj = fcsMap.get(fc);
-			while (obj == null && fc.getParentFlowControllable() != null) {
-				fc = fc.getParentFlowControllable();
-				obj = fcsMap.get(fc);
+			FCData data = fcsMap.get(fc);
+			if (data == null) {
+				data = registerFlowControllable(fc);
 			}
-			if (obj != null) {
-				return obj.videoWrapper;
-			} else {
-				return dummyBucket;
-			}
+			return data.videoBucket;
 		}
 	}
 
-	public void setApplicationContext(ApplicationContext applicationContext)
+	public void setApplicationContext(ApplicationContext arg0)
 			throws BeansException {
 	}
-
-	@Override
-	public void run() {
+	
+	private FCData registerFlowControllable(IFlowControllable fc) {
 		synchronized (fcsMap) {
-			for (IFlowControllable fc : fcsMap.keySet()) {
-				// search through all parents to find the first ancestor that's
-				// registered IFlowControllable
-				ITokenBucket ancestorOverallBucket = null;
-				ITokenBucket ancestorAudioBucket = null;
-				ITokenBucket ancestorVideoBucket = null;
-				IFlowControllable parent = fc.getParentFlowControllable();
-				while (parent != null) {
-					if (fcsMap.containsKey(parent)) {
-						DataObject theObj = fcsMap.get(parent);
-						if (theObj.overallBucket != null) {
-							ancestorOverallBucket = theObj.overallBucket;
-						} else {
-							ancestorAudioBucket = theObj.audioBucket;
-							ancestorVideoBucket = theObj.videoBucket;
-						}
-						break;
-					}
-				}
-				if (ancestorOverallBucket == null &&
-						ancestorAudioBucket == null &&
-						ancestorVideoBucket == null) {
-					// no ancestors are registered, use the default one
-					ancestorVideoBucket = dummyBucket;
-					ancestorAudioBucket = dummyBucket;
-					ancestorOverallBucket = dummyBucket;
-				}
-				DataObject obj = fcsMap.get(fc);
-				if (obj.overallBucket != null) {
-					long tokenCount = obj.overallBucket.getSpeed() * interval;
-					long availableTokens = ancestorOverallBucket.acquireTokenBestEffort(tokenCount);
-					obj.overallBucket.addToken(availableTokens);
-				} else {
-					long tokenCount = obj.audioBucket.getSpeed() * interval;
-					long availableTokens = ancestorAudioBucket.acquireTokenBestEffort(tokenCount);
-					obj.audioBucket.addToken(availableTokens);
-					tokenCount = obj.videoBucket.getSpeed() * interval;
-					availableTokens = ancestorVideoBucket.acquireTokenBestEffort(tokenCount);
-					obj.videoBucket.addToken(availableTokens);
-				}
+			FCData data = new FCData();
+			IBandwidthConfigure bc = fc.getBandwidthConfigure();
+			data.videoBucket = new Bucket(fc, 0);
+			data.audioBucket = new Bucket(fc, 1);
+			initFCDataByBWConfig(data, bc);
+			if (bc != null) {
+				adoptAncestorResource(fc);
+			}
+			fcsMap.put(fc, data);
+			return data;
+		}
+	}
+	
+	private long bps2Bpms(long bps) {
+		return bps / 1000 / 8;
+	}
+	
+	private void initFCDataByBWConfig(FCData data, IBandwidthConfigure bc) {
+		if (bc == null) {
+			data.resources = new BandwidthResource[0];
+		} else {
+			long capacity = bc.getMaxBurst() <= 0 ? defaultCapacity : bc.getMaxBurst();
+			if (bc.getOverallBandwidth() >= 0) {
+				// valid overall bandwidth
+				data.resources = new BandwidthResource[1];
+				data.resources[0] = new BandwidthResource(
+						capacity,
+						bps2Bpms(bc.getOverallBandwidth()),
+						bc.getBurst());
+			} else {
+				// valid a/v bandwidth
+				data.resources = new BandwidthResource[2];
+				data.resources[0] = new BandwidthResource(
+						capacity,
+						bps2Bpms(bc.getVideoBandwidth()),
+						bc.getBurst());
+				data.resources[1] = new BandwidthResource(
+						capacity,
+						bps2Bpms(bc.getAudioBandwidth()),
+						bc.getBurst());
 			}
 		}
 	}
 	
-	public void init() {
-		timer = new Timer("FlowControlService", true);
-		timer.schedule(this, interval, interval);
+	/**
+	 * Move related resource from ancestor to this fc.
+	 * @param fc
+	 */
+	private void adoptAncestorResource(IFlowControllable fc) {
+		IFlowControllable currentFC, parentFC;
+		FCData data, thisData;
+		thisData = fcsMap.get(fc);
+		currentFC = fc;
+		while (true) {
+			parentFC = currentFC.getParentFlowControllable();
+			if (parentFC == null) break;
+			data = fcsMap.get(parentFC);
+			if (data != null) {
+				for (int i = 0; i < data.resources.length; i++) {
+					for (int j = i; j >= 0; j--) {
+						if (j < thisData.resources.length) {
+							thisData.resources[j].adopt(data.resources[i], fc);
+							break;
+						}
+					}
+				}
+			}
+			currentFC = parentFC;
+		}
+	}
+	
+	/**
+	 * Give away resource to ancestor that has assigned bw resource.
+	 * @param fc
+	 */
+	private void yieldResourceToAncestor(IFlowControllable fc) {
+		FCData thisData = fcsMap.get(fc);
+		IFlowControllable parentFC = fc.getParentFlowControllable();
+		while (parentFC != null) {
+			FCData data = fcsMap.get(parentFC);
+			if (data != null && data.resources.length > 0) {
+				for (int i = 0; i < thisData.resources.length; i++) {
+					for (int j = i; j >=0; j--) {
+						if (j < data.resources.length) {
+							data.resources[j].adopt(thisData.resources[i], fc);
+							break;
+						}
+					}
+				}
+			}
+		}
 	}
 	
 	public void setInterval(long interval) {
@@ -262,77 +294,223 @@ implements IFlowControlService, ApplicationContextAware {
 		this.defaultCapacity = defaultCapacity;
 	}
 	
-	private long bps2Bpms(long bps) {
-		return bps / 1000 / 8;
+	private class FCData {
+		private Bucket audioBucket;
+		private Bucket videoBucket;
+		private BandwidthResource[] resources;
+		private SimpleBandwidthConfigure sbc;
 	}
 
-	private class DataObject {
-		private IBandwidthConfigure bwConfig;
-		private TokenBucketWrapper audioWrapper;
-		private TokenBucketWrapper videoWrapper;
-		private TokenBucket videoBucket;
-		private TokenBucket audioBucket;
-		private TokenBucket overallBucket;
-	}
-	
-	private class TokenBucketWrapper implements ITokenBucket {
-		private ITokenBucket wrapped;
+	private class Bucket implements ITokenBucket {
+		private int bucketNum; // video:0, audio:1
+		private IFlowControllable fc;
+		private boolean isReset = false;
 		
-		public TokenBucketWrapper(ITokenBucket wrapped) {
-			this.wrapped = wrapped;
+		public Bucket(IFlowControllable fc, int bucketNum) {
+			this.bucketNum = bucketNum;
+			this.fc = fc;
 		}
 
-		public boolean acquireToken(long tokenCount, long wait) {
-			return wrapped.acquireToken(tokenCount, wait);
+		synchronized public boolean acquireToken(long tokenCount, long wait) {
+			if (isReset) return false;
+			if (wait != 0) {
+				// XXX not support waiting for now
+				return false;
+			}
+			BandwidthResource resource = getResource();
+			if (resource == null) return true;
+			return resource.acquireToken(fc, tokenCount);
 		}
 
-		public long acquireTokenBestEffort(long upperLimitCount) {
-			return wrapped.acquireTokenBestEffort(upperLimitCount);
+		synchronized public long acquireTokenBestEffort(long upperLimitCount) {
+			if (isReset) return 0;
+			BandwidthResource resource = getResource();
+			if (resource == null) return upperLimitCount;
+			return resource.acquireTokenBestEffort(fc, upperLimitCount);
 		}
 
-		public boolean acquireTokenNonblocking(long tokenCount, ITokenBucketCallback callback) {
-			return wrapped.acquireTokenNonblocking(tokenCount, callback);
+		synchronized public boolean acquireTokenNonblocking(long tokenCount, ITokenBucketCallback callback) {
+			if (isReset) return false;
+			BandwidthResource resource = getResource();
+			if (resource == null) return true;
+			return resource.acquireToken(fc, tokenCount, callback, this);
 		}
 
 		public long getCapacity() {
-			return wrapped.getCapacity();
+			BandwidthResource resource = getResource();
+			if (resource == null) return -1; // infinite
+			return resource.getCapacity(fc);
 		}
 
 		public long getSpeed() {
-			return wrapped.getSpeed();
+			BandwidthResource resource = getResource();
+			if (resource == null) return -1; // infinite
+			return resource.getSpeed(fc);
 		}
 
-		public void reset() {
-			wrapped.reset();
+		synchronized public void reset() {
+			BandwidthResource resource = getResource();
+			if (resource != null) {
+				isReset = true;
+				resource.reset(fc);
+				isReset = false;
+			}
+		}
+		
+		private BandwidthResource getResource() {
+			synchronized (fcsMap) {
+				FCData data = fcsMap.get(fc);
+				IFlowControllable currentFC = fc;
+				while (data.resources.length == 0) {
+					currentFC = currentFC.getParentFlowControllable();
+					if (currentFC == null) {
+						return null;
+					}
+					data = fcsMap.get(currentFC);
+					if (data == null) {
+						data = registerFlowControllable(currentFC);
+					}
+				}
+				int fitBucket = bucketNum;
+				while (fitBucket >= data.resources.length) {
+					fitBucket--;
+				}
+				return data.resources[fitBucket];
+			}
 		}
 	}
 	
-	/**
-	 * A bucket that always has token available.
-	 */
-	private class DummyBucket implements ITokenBucket {
-
-		public boolean acquireToken(long tokenCount, long wait) {
+	private class BandwidthResource {
+		private long speed;
+		private long capacity;
+		private long tokens = 0;
+		private Map<IFlowControllable, Map<ITokenBucketCallback, RequestObject>> fcWaitingMap =
+			new HashMap<IFlowControllable, Map<ITokenBucketCallback, RequestObject>>();
+		
+		public BandwidthResource(long capacity, long speed, long initial) {
+			this.capacity = capacity;
+			this.speed = speed;
+			if (initial < 0) this.tokens = 0;
+			else if (initial > capacity) this.tokens = capacity;
+			else this.tokens = initial;
+		}
+		
+		synchronized public void addToken(long tokenCount) {
+			long tmp = tokens + tokenCount;
+			if (tmp > capacity) tokens = capacity;
+			else tokens = tmp;
+			IFlowControllable toReleaseFC = null;
+			ITokenBucketCallback toReleaseCallback = null;
+			loop: for (IFlowControllable fc : fcWaitingMap.keySet()) {
+				Map<ITokenBucketCallback, RequestObject> callbackMap =
+					fcWaitingMap.get(fc);
+				for (ITokenBucketCallback callback : callbackMap.keySet()) {
+					RequestObject reqObj = callbackMap.get(callback);
+					if (reqObj.requestTokenCount <= tokens) {
+						toReleaseFC = fc;
+						toReleaseCallback = callback;
+						break loop;
+					}
+				}
+			}
+			if (toReleaseFC != null) {
+				Map<ITokenBucketCallback, RequestObject> callbackMap =
+					fcWaitingMap.get(toReleaseFC);
+				RequestObject reqObj = callbackMap.remove(toReleaseCallback);
+				if (callbackMap.size() == 0) {
+					fcWaitingMap.remove(toReleaseFC);
+				}
+				// finally call back
+				try {
+					toReleaseCallback.available(reqObj.requestBucket, reqObj.requestTokenCount);
+				} catch (Throwable t) {}
+			}
+		}
+		
+		synchronized public boolean acquireToken(IFlowControllable fc, long tokenCount, ITokenBucketCallback callback, ITokenBucket requestBucket) {
+			if (tokenCount > tokens) {
+				Map<ITokenBucketCallback, RequestObject> callbackMap = fcWaitingMap.get(fc);
+				if (callbackMap == null) {
+					callbackMap = new HashMap<ITokenBucketCallback, RequestObject>();
+					fcWaitingMap.put(fc, callbackMap);
+				}
+				if (!callbackMap.containsKey(callback)) {
+					RequestObject reqObj = new RequestObject();
+					reqObj.requestTokenCount = tokenCount;
+					reqObj.requestBucket = requestBucket;
+					callbackMap.put(callback, reqObj);
+				}
+				return false;
+			} else {
+				tokens -= tokenCount;
+				return true;
+			}
+		}
+		
+		synchronized public boolean acquireToken(IFlowControllable fc, long tokenCount) {
+			if (tokenCount > tokens) return false;
+			tokens -= tokenCount;
 			return true;
 		}
-
-		public long acquireTokenBestEffort(long upperLimitCount) {
-			return upperLimitCount;
+		
+		synchronized public long acquireTokenBestEffort(IFlowControllable fc, long upperLimitCount) {
+			long available;
+			if (tokens >= upperLimitCount) {
+				available = upperLimitCount;
+			} else {
+				available = tokens;
+			}
+			tokens -= available;
+			return available;
 		}
-
-		public boolean acquireTokenNonblocking(long tokenCount, ITokenBucketCallback callback) {
-			return true;
+		
+		public long getCapacity(IFlowControllable fc) {
+			return capacity;
 		}
-
-		public long getCapacity() {
-			return 0;
+		
+		public long getSpeed(IFlowControllable fc) {
+			return speed;
 		}
-
-		public long getSpeed() {
-			return 0;
+		
+		synchronized public void reset(IFlowControllable fc) {
+			Map<ITokenBucketCallback, RequestObject> callbackMap =
+				fcWaitingMap.get(fc);
+			if (callbackMap != null) {
+				for (ITokenBucketCallback callback : callbackMap.keySet()) {
+					RequestObject reqObj = callbackMap.get(callback);
+					try {
+						callback.reset(reqObj.requestBucket, reqObj.requestTokenCount);
+					} catch (Throwable t) {}
+				}
+				fcWaitingMap.remove(callbackMap);
+			}
 		}
-
-		public void reset() {
+		
+		synchronized public void adopt(BandwidthResource source, IFlowControllable fc) {
+			Map<ITokenBucketCallback, RequestObject> srcMap =
+				source.fcWaitingMap.remove(fc);
+			if (srcMap != null) {
+				Map<ITokenBucketCallback, RequestObject> dstMap =
+					fcWaitingMap.get(fc);
+				if (dstMap == null) {
+					dstMap = new HashMap<ITokenBucketCallback, RequestObject>();
+					fcWaitingMap.put(fc, dstMap);
+				}
+				dstMap.putAll(srcMap);
+			}
+		}
+		
+		synchronized public void adoptAll(BandwidthResource source) {
+			ArrayList<IFlowControllable> list = new ArrayList<IFlowControllable>();
+			list.addAll(source.fcWaitingMap.keySet());
+			for (IFlowControllable fc : list) {
+				adopt(source, fc);
+			}
+		}
+		
+		private class RequestObject {
+			private long requestTokenCount;
+			private ITokenBucket requestBucket;
 		}
 	}
 }

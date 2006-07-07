@@ -224,7 +224,7 @@ public abstract class RTMPConnection extends BaseConnection
 		}
 		IFlowControlService fcs = (IFlowControlService) getScope().getContext().getBean(
 				IFlowControlService.KEY);
-		fcs.unregisterFlowControllable(this);
+		fcs.releaseFlowControllable(this);
 		super.close();
 	}
 	
@@ -300,18 +300,8 @@ public abstract class RTMPConnection extends BaseConnection
 	public void setBandwidthConfigure(IBandwidthConfigure config) {
 		IFlowControlService fcs = (IFlowControlService) getScope().getContext().getBean(
 				IFlowControlService.KEY);
-		boolean needRegister = false;
-		if (this.bandwidthConfig == null) {
-			if (config != null) {
-				needRegister = true;
-			} else return;
-		}
 		this.bandwidthConfig = config;
-		if (needRegister) {
-			fcs.registerFlowControllable(this);
-		} else {
-			fcs.updateBWConfigure(this);
-		}
+		fcs.updateBWConfigure(this);
 	}
 
 	@Override

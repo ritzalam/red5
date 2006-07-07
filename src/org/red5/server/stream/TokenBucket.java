@@ -109,7 +109,7 @@ public class TokenBucket implements ITokenBucket {
 			ITokenBucketCallback callback = waitObject.callback;
 			long tokenCount = waitObject.tokenCount;
 			waitObject = null;
-			callback.run(this, tokenCount);
+			callback.available(this, tokenCount);
 		}
 	}
 	
