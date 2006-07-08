@@ -35,6 +35,18 @@ function updateScope(path, id) {
  * subscopes of the passed path.
  */
 function addSubScopes(path, element) {
+    // Delete existing child nodes
+    var pos = 0;
+    while (element.childNodes.length > pos) {
+        var child = element.childNodes[pos];
+        if (child.nodeType == 3) {
+            // Skip text nodes
+            pos += 1;
+            continue;
+        }
+        element.removeChild(child);
+    }
+    
     try {
         var scopes = server.scopes.getScopes(path);
     } catch (err) {
@@ -48,27 +60,11 @@ function addSubScopes(path, element) {
         // Create nodes for each subscope
         var name = scopes[i];
         var id = path.replace("/", "_")+"_"+name;
-        var node = document.getElementById(id);
-        if (node) {
-            // Delete existing child nodes
-            var pos = 0;
-            while (node.childNodes.length > pos) {
-                var child = node.childNodes[pos];
-                if (child.nodeType == 3) {
-                    // Skip text nodes
-                    pos += 1;
-                    continue;
-                }
-                node.removeChild(child);
-            }
-        } else {
-            // Create new subnode
-            var node = document.createElement("li");
-            node.appendChild(document.createTextNode(name));
-            node.id = id;
-            addEvent(node, "click", updateScopeEvent(path+"/"+name, node.id));
-            submenu.appendChild(node);
-        } 
+        var node = document.createElement("li");
+        node.appendChild(document.createTextNode(name));
+        node.id = id;
+        addEvent(node, "click", updateScopeEvent(path+"/"+name, node.id));
+        submenu.appendChild(node);
     }
     
     return true;
