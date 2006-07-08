@@ -125,7 +125,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants, IE
 	public ByteBuffer encodeHeader(Header header, Header lastHeader){
 		
 		byte headerType = HEADER_NEW;
-		if(lastHeader==null || header.getStreamId() != lastHeader.getStreamId()){
+		if(lastHeader==null || header.getStreamId() != lastHeader.getStreamId() || !header.isTimerRelative()){
 			headerType = HEADER_NEW;
 		} else if(header.getSize() != lastHeader.getSize() || header.getDataType() != lastHeader.getDataType()){
 			headerType = HEADER_SAME_SOURCE;
@@ -142,6 +142,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants, IE
 		switch(headerType){
 		
 		case HEADER_NEW:
+			log.info("absolute header timer: " + header.getTimer());
 			RTMPUtils.writeMediumInt(buf, header.getTimer());
 			RTMPUtils.writeMediumInt(buf, header.getSize());
 			buf.put(header.getDataType());

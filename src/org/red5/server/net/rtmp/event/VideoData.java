@@ -35,6 +35,10 @@ public class VideoData extends BaseEvent implements IoConstants, IStreamData {
 	protected ByteBuffer data = null;
 	private FrameType frameType = FrameType.UNKNOWN;
 	
+	public VideoData() {
+		this(ByteBuffer.allocate(0).flip());
+	}
+	
 	public VideoData(ByteBuffer data){
 		super(Type.STREAM_DATA);
 		this.data = data;

@@ -46,6 +46,7 @@ import org.red5.server.messaging.IPipe;
 import org.red5.server.messaging.IPipeConnectionListener;
 import org.red5.server.messaging.IProvider;
 import org.red5.server.messaging.IPushableConsumer;
+import org.red5.server.messaging.InMemoryPushPushPipe;
 import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.messaging.PipeConnectionEvent;
 import org.red5.server.net.rtmp.event.AudioData;
@@ -56,7 +57,6 @@ import org.red5.server.stream.codec.StreamCodecInfo;
 import org.red5.server.stream.consumer.FileConsumer;
 import org.red5.server.stream.message.RTMPMessage;
 import org.red5.server.stream.message.StatusMessage;
-import org.red5.server.stream.pipe.RefCountPushPushPipe;
 import org.springframework.core.io.Resource;
 
 public class ClientBroadcastStream extends AbstractClientStream implements
@@ -88,7 +88,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			log.warn("No video codec factory available.", err);
 		}
 		connMsgOut = consumerManager.getConsumerOutput(this);
-		recordPipe = new RefCountPushPushPipe();
+		recordPipe = new InMemoryPushPushPipe();
 		Map<Object, Object> recordParamMap = new HashMap<Object, Object>();
 		recordParamMap.put("record", null);
 		recordPipe.subscribe((IProvider) this, recordParamMap);

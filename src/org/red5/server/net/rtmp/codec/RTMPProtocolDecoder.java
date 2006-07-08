@@ -270,7 +270,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder, IE
 		final byte headerSize = (byte) RTMPUtils.decodeHeaderSize(headerByte);
 		Header header = new Header();
 		header.setChannelId(channelId);
-		header.setHeaderSize(headerSize);
+		header.setTimerRelative(headerSize != HEADER_NEW);
 		
 		switch(headerSize){
 		

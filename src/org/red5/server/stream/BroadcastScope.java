@@ -29,20 +29,20 @@ import org.red5.server.messaging.IConsumer;
 import org.red5.server.messaging.IMessage;
 import org.red5.server.messaging.IPipeConnectionListener;
 import org.red5.server.messaging.IProvider;
+import org.red5.server.messaging.InMemoryPushPushPipe;
 import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.messaging.PipeConnectionEvent;
-import org.red5.server.stream.pipe.RefCountPushPushPipe;
 
 public class BroadcastScope extends BasicScope implements IBroadcastScope, IPipeConnectionListener {
 	private static final Log log = LogFactory.getLog(BroadcastScope.class);
 	
-	private RefCountPushPushPipe pipe;
+	private InMemoryPushPushPipe pipe;
 	private int compCounter;
 	private boolean hasRemoved;
 	
 	public BroadcastScope(IScope parent, String name) {
 		super(parent, TYPE, name, false);
-		pipe = new RefCountPushPushPipe();
+		pipe = new InMemoryPushPushPipe();
 		pipe.addPipeConnectionListener(this);
 		compCounter = 0;
 		hasRemoved = false;

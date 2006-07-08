@@ -26,7 +26,7 @@ public class Header implements Constants {
 	private int size = 0;
 	private byte dataType = 0;
 	private int streamId = 0;
-	private byte headerSize = 0;
+	private boolean timerRelative = true;
 	
 	public byte getChannelId() {
 		return channelId;
@@ -67,17 +67,13 @@ public class Header implements Constants {
 	public void setTimer(int timer) {
 		this.timer = timer;
 	}
-
-	public byte getHeaderSize() {
-		return headerSize;
+	
+	public boolean isTimerRelative() {
+		return timerRelative;
 	}
-
-	public void setHeaderSize(byte headerSize) {
-		this.headerSize = headerSize;
-	}
-
-	public boolean isRelativeTimer() {
-		return headerSize != HEADER_NEW;
+	
+	public void setTimerRelative(boolean timerRelative) {
+		this.timerRelative = timerRelative;
 	}
 	
 	public boolean equals(Object other) {

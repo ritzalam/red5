@@ -525,6 +525,7 @@ implements IPlaylistSubscriberStream {
 									
 									RTMPMessage videoMsg = new RTMPMessage();
 									videoMsg.setBody(video);
+									videoMsg.setTimerRelative(false);
 									msgOut.pushMessage(videoMsg);
 									sendNotifications = false;
 								} finally {
@@ -566,6 +567,7 @@ implements IPlaylistSubscriberStream {
 				sendResetStatus(item);
 				sendStartStatus(item);
 				sendBlankAudio();
+				sendBlankVideo();
 			}
 			state = State.PLAYING;
 			if (decision == 1) {
@@ -773,9 +775,24 @@ implements IPlaylistSubscriberStream {
 				
 				RTMPMessage blankAudioMsg = new RTMPMessage();
 				blankAudioMsg.setBody(blankAudio);
+				blankAudioMsg.setTimerRelative(false);
 				msgOut.pushMessage(blankAudioMsg);
 			} finally {
 				blankAudio.release();
+			}
+		}
+		
+		private void sendBlankVideo() {
+			VideoData blankVideo = new VideoData();
+			try {
+				blankVideo.setTimestamp(0);
+				
+				RTMPMessage blankVideoMsg = new RTMPMessage();
+				blankVideoMsg.setBody(blankVideo);
+				blankVideoMsg.setTimerRelative(false);
+				msgOut.pushMessage(blankVideoMsg);
+			} finally {
+				blankVideo.release();
 			}
 		}
 		

@@ -37,6 +37,7 @@ import org.red5.server.net.rtmp.event.Ping;
 import org.red5.server.net.rtmp.event.StreamBytesRead;
 import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.net.rtmp.message.Constants;
+import org.red5.server.net.rtmp.message.Header;
 import org.red5.server.stream.message.RTMPMessage;
 import org.red5.server.stream.message.StatusMessage;
 
@@ -66,6 +67,10 @@ public class ConnectionConsumer implements IPushableConsumer,
 		else if (message instanceof RTMPMessage) {
 			RTMPMessage rtmpMsg = (RTMPMessage) message;
 			IRTMPEvent msg = rtmpMsg.getBody();
+			if (msg.getHeader() == null) {
+				msg.setHeader(new Header());
+			}
+			msg.getHeader().setTimerRelative(rtmpMsg.isTimerRelative());
 //			log.debug("ts :" + msg.getTimestamp());
 			switch(msg.getDataType()){
 			case Constants.TYPE_STREAM_METADATA:
