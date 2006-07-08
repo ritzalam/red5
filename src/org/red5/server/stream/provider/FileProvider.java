@@ -68,6 +68,10 @@ implements IPassive, ISeekableProvider, IPullableProvider, IPipeConnectionListen
 	private int lastAudio = 0;
 	private int lastData = 0;
 	private int lastUnknown = 0;
+	private boolean videoRelative = false;
+	private boolean audioRelative = false;
+	private boolean dataRelative = false;
+	private boolean unknownRelative = false;
 	
 	public FileProvider(IScope scope, File file) {
 		this.scope = scope;
@@ -88,38 +92,70 @@ implements IPassive, ISeekableProvider, IPullableProvider, IPipeConnectionListen
 		}
 		ITag tag = reader.readTag();
 		IRTMPEvent msg = null;
-		int delta;
+		int timestamp;
+		boolean isRelative = true;
 		switch(tag.getDataType()){
 		case Constants.TYPE_AUDIO_DATA:
 			msg = new AudioData(tag.getBody());
-			delta = tag.getTimestamp() - lastAudio;
+			if (audioRelative) {
+				timestamp = tag.getTimestamp() - lastAudio;
+			} else {
+				timestamp = tag.getTimestamp();
+				isRelative = false;
+				audioRelative = true;
+			}
 			lastAudio = tag.getTimestamp();
 			break;
 		case Constants.TYPE_VIDEO_DATA:
 			msg = new VideoData(tag.getBody());
-			delta = tag.getTimestamp() - lastVideo;
+			if (videoRelative) {
+				timestamp = tag.getTimestamp() - lastVideo;
+			} else {
+				timestamp = tag.getTimestamp();
+				isRelative = false;
+				videoRelative = true;
+			}
 			lastVideo = tag.getTimestamp();
 			break;
 		case Constants.TYPE_INVOKE:
 			msg = new Invoke(tag.getBody());
-			delta = tag.getTimestamp() - lastData;
+			if (dataRelative) {
+				timestamp = tag.getTimestamp() - lastData;
+			} else {
+				timestamp = tag.getTimestamp();
+				isRelative = false;
+				dataRelative = true;
+			}
 			lastData = tag.getTimestamp();
 			break;
 		case Constants.TYPE_NOTIFY:
 			msg = new Notify(tag.getBody());
-			delta = tag.getTimestamp() - lastData;
+			if (dataRelative) {
+				timestamp = tag.getTimestamp() - lastData;
+			} else {
+				timestamp = tag.getTimestamp();
+				isRelative = false;
+				dataRelative = true;
+			}
 			lastData = tag.getTimestamp();
 			break;
 		default:
 			log.warn("Unexpected type? "+tag.getDataType());
 			msg = new Unknown(tag.getDataType(), tag.getBody());
-			delta = tag.getTimestamp() - lastUnknown;
+			if (unknownRelative) {
+				timestamp = tag.getTimestamp() - lastUnknown;
+			} else {
+				timestamp = tag.getTimestamp();
+				isRelative = false;
+				unknownRelative = true;
+			}
 			lastUnknown = tag.getTimestamp();
 			break;
 		}
-		msg.setTimestamp(delta);
+		msg.setTimestamp(timestamp);
 		RTMPMessage rtmpMsg = new RTMPMessage();
 		rtmpMsg.setBody(msg);
+		rtmpMsg.setTimerRelative(isRelative);
 		return rtmpMsg;
 	}
 
@@ -154,14 +190,23 @@ implements IPassive, ISeekableProvider, IPullableProvider, IPipeConnectionListen
 			if (oobCtrlMsg.getServiceName().equals("init")) {
 				Integer startTS = (Integer) oobCtrlMsg.getServiceParamMap().get("startTS");
 				setStart(startTS.intValue());
+				useAbsoluteTimestamp();
 			}
 		}
 		if (ISeekableProvider.KEY.equals(oobCtrlMsg.getTarget())) {
 			if (oobCtrlMsg.getServiceName().equals("seek")) {
 				Integer position = (Integer) oobCtrlMsg.getServiceParamMap().get("position");
 				seek(position.intValue());
+				useAbsoluteTimestamp();
 			}
 		}
+	}
+	
+	private void useAbsoluteTimestamp() {
+		videoRelative = false;
+		audioRelative = false;
+		dataRelative = false;
+		unknownRelative = false;
 	}
 
 	private void init() {

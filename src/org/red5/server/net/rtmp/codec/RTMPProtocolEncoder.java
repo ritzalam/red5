@@ -142,7 +142,6 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants, IE
 		switch(headerType){
 		
 		case HEADER_NEW:
-			log.info("absolute header timer: " + header.getTimer());
 			RTMPUtils.writeMediumInt(buf, header.getTimer());
 			RTMPUtils.writeMediumInt(buf, header.getSize());
 			buf.put(header.getDataType());

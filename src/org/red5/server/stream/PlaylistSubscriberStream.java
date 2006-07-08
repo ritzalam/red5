@@ -519,7 +519,7 @@ implements IPlaylistSubscriberStream {
 									sendResetPing();
 									sendResetStatus(item);
 									sendStartStatus(item);
-									sendBlankAudio();
+									sendBlankAudio(0);
 									
 									video.setTimestamp(0);
 									
@@ -566,8 +566,8 @@ implements IPlaylistSubscriberStream {
 				sendResetPing();
 				sendResetStatus(item);
 				sendStartStatus(item);
-				sendBlankAudio();
-				sendBlankVideo();
+				sendBlankAudio(0);
+				sendBlankVideo(0);
 			}
 			state = State.PLAYING;
 			if (decision == 1) {
@@ -593,10 +593,11 @@ implements IPlaylistSubscriberStream {
 			if (isPullMode) {
 				state = State.PLAYING;
 				flowControlService.resetTokenBuckets(PlaylistSubscriberStream.this);
-				sendVODSeekCM(msgIn, position);
-				sendResetPing();
 				sendResumeStatus(currentItem);
-				sendBlankAudio();
+				sendResetPing();
+				sendBlankAudio(position);
+				sendBlankVideo(position);
+				sendVODSeekCM(msgIn, position);
 				notifyItemResume(currentItem, position);
 			}
 		}
@@ -608,10 +609,11 @@ implements IPlaylistSubscriberStream {
 			if (isPullMode) {
 				flowControlService.resetTokenBuckets(PlaylistSubscriberStream.this);
 				isWaitingForToken = false;
-				sendResetPing();
 				sendSeekStatus(currentItem, position);
 				sendStartStatus(currentItem);
-				sendBlankAudio();
+				sendResetPing();
+				sendBlankAudio(position);
+				sendBlankVideo(position);
 				sendVODSeekCM(msgIn, position);
 				notifyItemSeek(currentItem, position);
 			}
@@ -768,10 +770,10 @@ implements IPlaylistSubscriberStream {
 			msgOut.pushMessage(ping2Msg);
 		}
 		
-		private void sendBlankAudio() {
+		private void sendBlankAudio(int ts) {
 			AudioData blankAudio = new AudioData();
 			try {
-				blankAudio.setTimestamp(0);
+				blankAudio.setTimestamp(ts);
 				
 				RTMPMessage blankAudioMsg = new RTMPMessage();
 				blankAudioMsg.setBody(blankAudio);
@@ -782,10 +784,10 @@ implements IPlaylistSubscriberStream {
 			}
 		}
 		
-		private void sendBlankVideo() {
+		private void sendBlankVideo(int ts) {
 			VideoData blankVideo = new VideoData();
 			try {
-				blankVideo.setTimestamp(0);
+				blankVideo.setTimestamp(ts);
 				
 				RTMPMessage blankVideoMsg = new RTMPMessage();
 				blankVideoMsg.setBody(blankVideo);

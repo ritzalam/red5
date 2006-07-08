@@ -92,9 +92,13 @@ public class ConnectionConsumer implements IPushableConsumer,
 				audio.write(audioData);
 				break;
 			case Constants.TYPE_PING:
+				msg.getHeader().setTimerRelative(false);
+				msg.setTimestamp(0);
 				conn.ping((Ping) msg);
 				break;
 			case Constants.TYPE_BYTES_READ:
+				msg.getHeader().setTimerRelative(false);
+				msg.setTimestamp(0);
 				conn.getChannel((byte) 2).write((BytesRead) msg);
 				break;
 			default:
