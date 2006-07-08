@@ -25,7 +25,7 @@ public interface Constants {
 	
 	public static final byte TYPE_CHUNK_SIZE = 0x01;
 	// Unknown: 0x02 
-	public static final byte TYPE_STREAM_BYTES_READ = 0x03;
+	public static final byte TYPE_BYTES_READ = 0x03;
 	public static final byte TYPE_PING = 0x04;
 	public static final byte TYPE_SERVER_BANDWIDTH = 0x05;
 	public static final byte TYPE_CLIENT_BANDWIDTH = 0x06;

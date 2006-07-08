@@ -50,7 +50,7 @@ import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.event.Invoke;
 import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.event.Ping;
-import org.red5.server.net.rtmp.event.StreamBytesRead;
+import org.red5.server.net.rtmp.event.BytesRead;
 import org.red5.server.net.rtmp.event.Unknown;
 import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.net.rtmp.message.Header;
@@ -137,8 +137,8 @@ public class RTMPHandler
 				onPing(conn, channel, header, (Ping) message);
 				break;
 			
-			case TYPE_STREAM_BYTES_READ:
-				onStreamBytesRead(conn, channel, header, (StreamBytesRead) message);
+			case TYPE_BYTES_READ:
+				onStreamBytesRead(conn, channel, header, (BytesRead) message);
 				break;
 			
 			case TYPE_AUDIO_DATA:
@@ -400,7 +400,7 @@ public class RTMPHandler
 		channel.write(pong2);
 	}
 	
-	public void onStreamBytesRead(RTMPConnection conn, Channel channel, Header source, StreamBytesRead streamBytesRead){
+	public void onStreamBytesRead(RTMPConnection conn, Channel channel, Header source, BytesRead streamBytesRead){
 		log.info("Stream Bytes Read: "+streamBytesRead.getBytesRead());
 		// pass to stream handler
 	}

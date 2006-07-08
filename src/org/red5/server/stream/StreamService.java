@@ -37,6 +37,7 @@ import org.red5.server.api.stream.support.SimplePlayItem;
 import org.red5.server.net.rtmp.RTMPHandler;
 
 public class StreamService implements IStreamService {
+
 	public void closeStream() {
 		IConnection conn = Red5.getConnectionLocal();
 		if (!(conn instanceof IStreamCapableConnection)) return;

@@ -19,17 +19,17 @@ package org.red5.server.net.rtmp.event;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-public class StreamBytesRead extends BaseEvent {
+public class BytesRead extends BaseEvent {
 	
 	private int bytesRead = 0;
 
-	public StreamBytesRead(int bytesRead){
+	public BytesRead(int bytesRead){
 		super(Type.STREAM_CONTROL);
 		this.bytesRead = bytesRead;
 	}
 	
 	public byte getDataType() {
-		return TYPE_STREAM_BYTES_READ;
+		return TYPE_BYTES_READ;
 	}
 	
 	public int getBytesRead(){

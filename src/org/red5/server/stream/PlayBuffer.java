@@ -32,6 +32,7 @@ import org.red5.server.stream.message.RTMPMessage;
  * @author Steven Gong (steven.gong@gmail.com)
  */
 public class PlayBuffer {
+	
 	private long capacity;
 	private long messageSize = 0;
 	private Queue<RTMPMessage> messageQueue = new LinkedList<RTMPMessage>();

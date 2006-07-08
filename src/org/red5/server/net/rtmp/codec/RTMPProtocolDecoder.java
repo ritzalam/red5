@@ -40,7 +40,7 @@ import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.event.Invoke;
 import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.event.Ping;
-import org.red5.server.net.rtmp.event.StreamBytesRead;
+import org.red5.server.net.rtmp.event.BytesRead;
 import org.red5.server.net.rtmp.event.Unknown;
 import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.net.rtmp.message.Constants;
@@ -331,8 +331,8 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder, IE
 		case TYPE_PING: 
 			message = decodePing(in);
 			break;
-		case TYPE_STREAM_BYTES_READ: 
-			message = decodeStreamBytesRead(in);
+		case TYPE_BYTES_READ: 
+			message = decodeBytesRead(in);
 			break;
 		case TYPE_AUDIO_DATA: 
 			message = decodeAudioData(in);
@@ -522,8 +522,8 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder, IE
 	/* (non-Javadoc)
 	 * @see org.red5.server.net.rtmp.codec.IEventDecoder#decodeStreamBytesRead(org.apache.mina.common.ByteBuffer)
 	 */
-	public StreamBytesRead decodeStreamBytesRead(ByteBuffer in) {
-		return new StreamBytesRead(in.getInt());
+	public BytesRead decodeBytesRead(ByteBuffer in) {
+		return new BytesRead(in.getInt());
 	}
 	
 	/* (non-Javadoc)

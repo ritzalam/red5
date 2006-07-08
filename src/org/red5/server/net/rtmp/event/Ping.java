@@ -26,9 +26,23 @@ public class Ping extends BaseEvent {
 	private short value1 = 0; // XXX: can someone suggest better names? 
 	private int value2 = 0;
 	private int value3 = UNDEFINED;
+	private String debug = "";
 	
 	public Ping(){
 		super(Type.SYSTEM);
+	}
+	
+	public Ping(short value1, int value2){
+		super(Type.SYSTEM);
+		this.value1 = value1;
+		this.value2 = value2;
+	}
+	
+	public Ping(short value1, int value2, int value3){
+		super(Type.SYSTEM);
+		this.value1 = value1;
+		this.value2 = value2;
+		this.value3 = value3;
 	}
 
 	public byte getDataType() {
@@ -59,6 +73,16 @@ public class Ping extends BaseEvent {
 		this.value3 = value3;
 	}
 
+	
+	
+	public String getDebug() {
+		return debug;
+	}
+
+	public void setDebug(String debug) {
+		this.debug = debug;
+	}
+
 	protected void doRelease() {
 		value1 = 0;
 		value2 = 0;
@@ -66,7 +90,7 @@ public class Ping extends BaseEvent {
 	}
 	
 	public String toString(){
-		return "Ping: "+value1+", "+value2+", "+value3;
+		return "Ping: "+value1+", "+value2+", "+value3+" \n" + debug;
 	}
 	
 }

@@ -34,7 +34,7 @@ import org.red5.server.net.rtmp.event.AudioData;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.event.Ping;
-import org.red5.server.net.rtmp.event.StreamBytesRead;
+import org.red5.server.net.rtmp.event.BytesRead;
 import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.net.rtmp.message.Header;
@@ -94,8 +94,8 @@ public class ConnectionConsumer implements IPushableConsumer,
 			case Constants.TYPE_PING:
 				conn.ping((Ping) msg);
 				break;
-			case Constants.TYPE_STREAM_BYTES_READ:
-				conn.getChannel((byte) 2).write((StreamBytesRead) msg);
+			case Constants.TYPE_BYTES_READ:
+				conn.getChannel((byte) 2).write((BytesRead) msg);
 				break;
 			default:
 				data.write(msg);

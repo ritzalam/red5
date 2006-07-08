@@ -38,6 +38,7 @@ public class RTMP extends ProtocolState {
 	
 	private byte state = STATE_CONNECT;
 	private boolean mode = MODE_SERVER;
+	private boolean debug = false;
 	
 	private final static int MAX_STREAMS = 12;
 	
@@ -52,12 +53,24 @@ public class RTMP extends ProtocolState {
 	
 	private int[] streamIds = new int[MAX_STREAMS];
 	
+	private long bytesRead = 0;
+	private long bytesWritten = 0; 
+	private long bytesRecieved = 0;
+	
 	public RTMP(boolean mode){
 		this.mode = mode;
 	}
 	
 	public boolean getMode(){
 		return mode;
+	}
+	
+	public boolean isDebug() {
+		return debug;
+	}
+	
+	public void setDebug(boolean debug) {
+		this.debug = debug;
 	}
 
 	public byte getState() {

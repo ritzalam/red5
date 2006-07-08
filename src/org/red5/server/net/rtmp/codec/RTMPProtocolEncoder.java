@@ -40,7 +40,7 @@ import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.event.Invoke;
 import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.event.Ping;
-import org.red5.server.net.rtmp.event.StreamBytesRead;
+import org.red5.server.net.rtmp.event.BytesRead;
 import org.red5.server.net.rtmp.event.Unknown;
 import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.net.rtmp.message.Constants;
@@ -179,8 +179,8 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants, IE
 				return encodeNotify((Notify) message);
 		case TYPE_PING:
 			return encodePing((Ping) message);
-		case TYPE_STREAM_BYTES_READ:
-			return encodeStreamBytesRead((StreamBytesRead) message);
+		case TYPE_BYTES_READ:
+			return encodeBytesRead((BytesRead) message);
 		case TYPE_AUDIO_DATA:
 			return encodeAudioData((AudioData) message);
 		case TYPE_VIDEO_DATA:
@@ -381,9 +381,9 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants, IE
 	/* (non-Javadoc)
 	 * @see org.red5.server.net.rtmp.codec.IEventEncoder#encodeStreamBytesRead(org.red5.server.net.rtmp.event.StreamBytesRead)
 	 */
-	public ByteBuffer encodeStreamBytesRead(StreamBytesRead streamBytesRead){
+	public ByteBuffer encodeBytesRead(BytesRead bytesRead){
 		final ByteBuffer out = ByteBuffer.allocate(4);
-		out.putInt(streamBytesRead.getBytesRead());
+		out.putInt(bytesRead.getBytesRead());
 		return out;
 	}
 

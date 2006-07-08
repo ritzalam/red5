@@ -46,7 +46,7 @@ public class NetworkDumpFilter extends IoFilterAdapter {
 			if(headers != null){
 				ByteBuffer header = ByteBuffer.allocate(12);
 				header.putLong(System.currentTimeMillis());
-				header.putInt(out.limit());
+				header.putInt(out.limit() - out.position());
 				header.flip();
 				headers.write( header.buf() );
 			}

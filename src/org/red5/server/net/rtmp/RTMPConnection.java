@@ -44,7 +44,7 @@ import org.red5.server.api.stream.IStreamCapableConnection;
 import org.red5.server.api.stream.IStreamService;
 import org.red5.server.net.rtmp.event.Invoke;
 import org.red5.server.net.rtmp.event.Ping;
-import org.red5.server.net.rtmp.event.StreamBytesRead;
+import org.red5.server.net.rtmp.event.BytesRead;
 import org.red5.server.net.rtmp.message.Packet;
 import org.red5.server.service.PendingCall;
 import org.red5.server.stream.ClientBroadcastStream;
@@ -246,8 +246,8 @@ public abstract class RTMPConnection extends BaseConnection
 		streamBytesRead += bytes;
 		
 		if (streamBytesRead >= nextStreamBytesRead) {
-			StreamBytesRead sbr = new StreamBytesRead(streamBytesRead);
-			getChannel((byte) 2).write((StreamBytesRead) sbr);
+			BytesRead sbr = new BytesRead(streamBytesRead);
+			getChannel((byte) 2).write((BytesRead) sbr);
 			log.info(sbr);
 			nextStreamBytesRead += streamBytesReadInterval;
 		}

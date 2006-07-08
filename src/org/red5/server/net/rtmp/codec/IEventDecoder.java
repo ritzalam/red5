@@ -25,7 +25,7 @@ import org.red5.server.net.rtmp.event.ChunkSize;
 import org.red5.server.net.rtmp.event.Invoke;
 import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.event.Ping;
-import org.red5.server.net.rtmp.event.StreamBytesRead;
+import org.red5.server.net.rtmp.event.BytesRead;
 import org.red5.server.net.rtmp.event.Unknown;
 import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.so.ISharedObjectMessage;
@@ -44,7 +44,7 @@ public interface IEventDecoder {
 
 	public abstract Ping decodePing(ByteBuffer in);
 
-	public abstract StreamBytesRead decodeStreamBytesRead(ByteBuffer in);
+	public abstract BytesRead decodeBytesRead(ByteBuffer in);
 
 	public abstract AudioData decodeAudioData(ByteBuffer in);
 
