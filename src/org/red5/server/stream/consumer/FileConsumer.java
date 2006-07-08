@@ -81,17 +81,29 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 		tag.setDataType(msg.getDataType());
 		switch (msg.getDataType()) {
 			case TYPE_VIDEO_DATA:
-				videoTimestamp += msg.getTimestamp();
+				if (rtmpMsg.isTimerRelative()) {
+					videoTimestamp += msg.getTimestamp();
+				} else {
+					videoTimestamp = msg.getTimestamp();
+				}
 				tag.setTimestamp(videoTimestamp);
 				break;
 			
 			case TYPE_AUDIO_DATA:
-				audioTimestamp += msg.getTimestamp();
+				if (rtmpMsg.isTimerRelative()) {
+					audioTimestamp += msg.getTimestamp();
+				} else {
+					audioTimestamp = msg.getTimestamp();
+				}
 				tag.setTimestamp(audioTimestamp);
 				break;
 				
 			default:
-				dataTimestamp += msg.getTimestamp();
+				if (rtmpMsg.isTimerRelative()) {
+					dataTimestamp += msg.getTimestamp();
+				} else {
+					dataTimestamp = msg.getTimestamp();
+				}
 				tag.setTimestamp(dataTimestamp);
 		}
 		
