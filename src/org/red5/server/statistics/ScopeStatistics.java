@@ -19,11 +19,14 @@ package org.red5.server.statistics;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 
 import org.red5.server.api.IScope;
 import org.red5.server.api.ScopeUtils;
@@ -110,6 +113,38 @@ public class ScopeStatistics {
 	}
 	
 	/**
+	 * Return an object that can be serialized through XML-RPC.
+	 * Inspired by "Reflective XML-RPC" by "Stephan Maier".
+	 * 
+	 * @param value
+	 * @return
+	 */
+	private Object getXMLRPCValue(Object value) {
+		if (value == null) {
+			return null;
+		}
+		
+		Class type = value.getClass();
+		if (type.equals(Integer.class)
+			|| type.equals(Double.class)
+			|| type.equals(Boolean.class)
+			|| type.equals(String.class)
+			|| type.equals(Date.class)) {
+			return value;
+		} else if (type.isArray() && type.getComponentType().equals(byte.class)) {
+			return value;
+		} else if (type.isArray()) {
+			int length = Array.getLength(value);
+			Vector<Object> res = new Vector<Object>();
+			for (int i = 0; i < length; i++)
+				res.add(getXMLRPCValue(Array.get(value, i)));
+			return res;
+		}
+		
+		throw new RuntimeException("Don't know how to convert " + value);
+	}
+	
+	/**
 	 * Return attributes of a given scope.
 	 * 
 	 * @param path
@@ -121,9 +156,11 @@ public class ScopeStatistics {
 		Map<String, Object> result = new Hashtable<String, Object>();
 		for (String name : scope.getAttributeNames()) {
 			Object value = scope.getAttribute(name);
-			// TODO: allow other filter objects that can be sent through XML-RPC
-			if (value instanceof String)
-				result.put(name, value);
+			try {
+				result.put(name, getXMLRPCValue(value));
+			} catch (RuntimeException err) {
+				// Could not convert attribute for XML-RPC serialization.
+			}
 		}
 		return result;
 	}
