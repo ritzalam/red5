@@ -26,6 +26,7 @@ public class Header implements Constants {
 	private int size = 0;
 	private byte dataType = 0;
 	private int streamId = 0;
+	private byte headerSize = 0;
 	
 	public byte getChannelId() {
 		return channelId;
@@ -67,6 +68,18 @@ public class Header implements Constants {
 		this.timer = timer;
 	}
 
+	public byte getHeaderSize() {
+		return headerSize;
+	}
+
+	public void setHeaderSize(byte headerSize) {
+		this.headerSize = headerSize;
+	}
+
+	public boolean isRelativeTimer() {
+		return headerSize != HEADER_NEW;
+	}
+	
 	public boolean equals(Object other) {
 		if(!(other instanceof Header)) return false;
 		final Header header = (Header) other;

@@ -270,6 +270,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder, IE
 		final byte headerSize = (byte) RTMPUtils.decodeHeaderSize(headerByte);
 		Header header = new Header();
 		header.setChannelId(channelId);
+		header.setHeaderSize(headerSize);
 		
 		switch(headerSize){
 		
@@ -295,7 +296,10 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder, IE
 			break;
 			
 		case HEADER_CONTINUE:
-			header = lastHeader;
+			header.setTimer(lastHeader.getSize());
+			header.setSize(lastHeader.getSize());
+			header.setDataType(lastHeader.getDataType());
+			header.setStreamId(lastHeader.getStreamId());
 			break;
 			
 		default:
