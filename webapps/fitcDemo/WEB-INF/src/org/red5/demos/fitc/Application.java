@@ -14,9 +14,12 @@ import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IPendingServiceCallback;
 import org.red5.server.api.service.IServiceCapableConnection;
 import org.red5.server.api.stream.IBroadcastStream;
-import org.red5.server.api.stream.IStreamAware;
+import org.red5.server.api.stream.IPlayItem;
+import org.red5.server.api.stream.IPlaylistSubscriberStream;
+import org.red5.server.api.stream.IStreamAwareScopeHandler;
+import org.red5.server.api.stream.ISubscriberStream;
 
-public class Application extends ApplicationAdapter implements IPendingServiceCallback, IStreamAware {
+public class Application extends ApplicationAdapter implements IPendingServiceCallback, IStreamAwareScopeHandler {
 
 	private static final Log log = LogFactory.getLog(Application.class);
 	
@@ -43,7 +46,7 @@ public class Application extends ApplicationAdapter implements IPendingServiceCa
 		return true;
 	}
 	
-	public void streamBroadcastStart(IBroadcastStream stream) {
+	public void streamPublishStart(IBroadcastStream stream) {
 		// Notify all the clients that the stream had been started
 		log.debug("stream broadcast start: "+stream.getPublishedName());
 		IConnection current = Red5.getConnectionLocal();
@@ -61,6 +64,38 @@ public class Application extends ApplicationAdapter implements IPendingServiceCa
 		}
 	}
 	
+	public void streamBroadcastClose(IBroadcastStream stream) {
+	}
+
+	public void streamBroadcastStart(IBroadcastStream stream) {
+	}
+
+	public void streamPlaylistItemPlay(IPlaylistSubscriberStream stream, IPlayItem item, boolean isLive) {
+	}
+
+	public void streamPlaylistItemStop(IPlaylistSubscriberStream stream, IPlayItem item) {
+		
+	}
+
+	public void streamPlaylistVODItemPause(IPlaylistSubscriberStream stream, IPlayItem item, int position) {
+		
+	}
+
+	public void streamPlaylistVODItemResume(IPlaylistSubscriberStream stream, IPlayItem item, int position) {
+		
+	}
+
+	public void streamPlaylistVODItemSeek(IPlaylistSubscriberStream stream, IPlayItem item, int position) {
+		
+	}
+
+	public void streamSubscriberClose(ISubscriberStream stream) {
+		
+	}
+
+	public void streamSubscriberStart(ISubscriberStream stream) {
+	}
+
 	/**
 	 * Get streams. called from client
 	 * @return iterator of broadcast stream names

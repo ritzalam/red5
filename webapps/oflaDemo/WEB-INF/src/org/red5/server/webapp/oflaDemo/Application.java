@@ -12,9 +12,9 @@ public class Application extends ApplicationAdapter {
 		if (conn instanceof IStreamCapableConnection) {
 			IStreamCapableConnection streamConn = (IStreamCapableConnection) conn;
 			SimpleBandwidthConfigure sbc = new SimpleBandwidthConfigure();
-			sbc.setMaxBurst(102400);
-			sbc.setBurst(51200);
-			sbc.setOverallBandwidth(1024000);
+			sbc.setMaxBurst(1024000);
+			sbc.setBurst(512000);
+			sbc.setOverallBandwidth(512000);
 			streamConn.setBandwidthConfigure(sbc);
 		}
 		return super.appConnect(conn, params);

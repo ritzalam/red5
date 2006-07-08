@@ -36,6 +36,7 @@ import org.red5.server.api.stream.IClientBroadcastStream;
 import org.red5.server.api.stream.IPlayItem;
 import org.red5.server.api.stream.IPlaylistController;
 import org.red5.server.api.stream.IPlaylistSubscriberStream;
+import org.red5.server.api.stream.IStreamAwareScopeHandler;
 import org.red5.server.api.stream.IVideoStreamCodec;
 import org.red5.server.messaging.IFilter;
 import org.red5.server.messaging.IMessage;
@@ -93,6 +94,7 @@ implements IPlaylistSubscriberStream {
 		flowControlService =
 			(IFlowControlService) getScope().getContext().getBean(IFlowControlService.KEY);
 		engine.start();
+		notifySubscriberStart();
 	}
 
 	public void play() {
@@ -148,6 +150,7 @@ implements IPlaylistSubscriberStream {
 	public void close() {
 		engine.close();
 		flowControlService.releaseFlowControllable(this);
+		notifySubscriberClose();
 	}
 
 	public void addItem(IPlayItem item) {
@@ -330,6 +333,82 @@ implements IPlaylistSubscriberStream {
 		nextItem();
 	}
 	
+	private void notifySubscriberStart() {
+		IStreamAwareScopeHandler handler = getStreamAwareHandler();
+		if (handler != null) {
+			try {
+				handler.streamSubscriberStart(this);
+			} catch (Throwable t) {
+				log.error("error notify streamSubscriberStart", t);
+			}
+		}
+	}
+	
+	private void notifySubscriberClose() {
+		IStreamAwareScopeHandler handler = getStreamAwareHandler();
+		if (handler != null) {
+			try {
+				handler.streamSubscriberClose(this);
+			} catch (Throwable t) {
+				log.error("error notify streamSubscriberClose", t);
+			}
+		}
+	}
+	
+	private void notifyItemPlay(IPlayItem item, boolean isLive) {
+		IStreamAwareScopeHandler handler = getStreamAwareHandler();
+		if (handler != null) {
+			try {
+				handler.streamPlaylistItemPlay(this, item, isLive);
+			} catch (Throwable t) {
+				log.error("error notify streamPlaylistItemPlay", t);
+			}
+		}
+	}
+	
+	private void notifyItemStop(IPlayItem item) {
+		IStreamAwareScopeHandler handler = getStreamAwareHandler();
+		if (handler != null) {
+			try {
+				handler.streamPlaylistItemStop(this, item);
+			} catch (Throwable t) {
+				log.error("error notify streamPlaylistItemStop", t);
+			}
+		}
+	}
+	
+	private void notifyItemPause(IPlayItem item, int position) {
+		IStreamAwareScopeHandler handler = getStreamAwareHandler();
+		if (handler != null) {
+			try {
+				handler.streamPlaylistVODItemPause(this, item, position);
+			} catch (Throwable t) {
+				log.error("error notify streamPlaylistVODItemPause", t);
+			}
+		}
+	}
+	
+	private void notifyItemResume(IPlayItem item, int position) {
+		IStreamAwareScopeHandler handler = getStreamAwareHandler();
+		if (handler != null) {
+			try {
+				handler.streamPlaylistVODItemResume(this, item, position);
+			} catch (Throwable t) {
+				log.error("error notify streamPlaylistVODItemResume", t);
+			}
+		}
+	}
+	
+	private void notifyItemSeek(IPlayItem item, int position) {
+		IStreamAwareScopeHandler handler = getStreamAwareHandler();
+		if (handler != null) {
+			try {
+				handler.streamPlaylistVODItemSeek(this, item, position);
+			} catch (Throwable t) {
+				log.error("error notify streamPlaylistVODItemSeek", t);
+			}
+		}
+	}
 	
 	/**
 	 * A play engine for playing an IPlayItem.
@@ -339,8 +418,6 @@ implements IPlaylistSubscriberStream {
 	ITokenBucketCallback, IScheduledJob {
 		// XXX shall we make this as a configurable property?
 		private static final long LIVE_WAIT_TIMEOUT = 5000;
-		private static final long AUDIO_CAPACITY = 100 * 1024;
-		private static final long VIDEO_CAPACITY = 100 * 1024;
 		
 		private State state;
 		
@@ -497,6 +574,7 @@ implements IPlaylistSubscriberStream {
 				vodStartTS = -1;
 				pullAndPush();
 			}
+			notifyItemPlay(currentItem, !isPullMode);
 		}
 		
 		synchronized public void pause(int position) throws IllegalStateException {
@@ -504,6 +582,7 @@ implements IPlaylistSubscriberStream {
 			if (isPullMode) {
 				state = State.PAUSED;
 				sendPauseStatus(currentItem);
+				notifyItemPause(currentItem, position);
 			}
 		}
 		
@@ -516,6 +595,7 @@ implements IPlaylistSubscriberStream {
 				sendResetPing();
 				sendResumeStatus(currentItem);
 				sendBlankAudio();
+				notifyItemResume(currentItem, position);
 			}
 		}
 		
@@ -531,6 +611,7 @@ implements IPlaylistSubscriberStream {
 				sendStartStatus(currentItem);
 				sendBlankAudio();
 				sendVODSeekCM(msgIn, position);
+				notifyItemSeek(currentItem, position);
 			}
 		}
 		
@@ -553,6 +634,7 @@ implements IPlaylistSubscriberStream {
 			}
 			flowControlService.resetTokenBuckets(PlaylistSubscriberStream.this);
 			isWaitingForToken = false;
+			notifyItemStop(currentItem);
 		}
 		
 		synchronized public void close() {

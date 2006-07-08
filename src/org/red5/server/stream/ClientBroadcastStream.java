@@ -32,7 +32,7 @@ import org.red5.server.api.event.IEvent;
 import org.red5.server.api.event.IEventDispatcher;
 import org.red5.server.api.event.IEventListener;
 import org.red5.server.api.stream.IClientBroadcastStream;
-import org.red5.server.api.stream.IStreamAware;
+import org.red5.server.api.stream.IStreamAwareScopeHandler;
 import org.red5.server.api.stream.IStreamCapableConnection;
 import org.red5.server.api.stream.IStreamCodecInfo;
 import org.red5.server.api.stream.IVideoStreamCodec;
@@ -50,7 +50,6 @@ import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.messaging.PipeConnectionEvent;
 import org.red5.server.net.rtmp.event.AudioData;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
-import org.red5.server.net.rtmp.event.StreamBytesRead;
 import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.net.rtmp.status.Status;
 import org.red5.server.stream.codec.StreamCodecInfo;
@@ -97,6 +96,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		setCodecInfo(new StreamCodecInfo());
 		sendStartNotify();
 		lastAudio = lastVideo = lastData = startTime;
+		notifyBroadcastStart();
 	}
 
 	public void close() {
@@ -104,6 +104,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			livePipe.unsubscribe((IProvider) this);
 		}
 		recordPipe.unsubscribe((IProvider) this);
+		notifyBroadcastClose();
 	}
 
 	public void saveAs(String name, boolean isAppend)
@@ -210,8 +211,8 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 					IScope scope = ((IConnection) source).getScope();
 					if (scope.hasHandler()) {
 						Object handler = scope.getHandler();
-						if (handler instanceof IStreamAware)
-							((IStreamAware) handler).streamBroadcastStart(this);
+						if (handler instanceof IStreamAwareScopeHandler)
+							((IStreamAwareScopeHandler) handler).streamPublishStart(this);
 					}
 				}
 			}
@@ -290,5 +291,27 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		if (extension != null && !extension.equals(""))
 			result += extension;
 		return result;
+	}
+	
+	private void notifyBroadcastStart() {
+		IStreamAwareScopeHandler handler = getStreamAwareHandler();
+		if (handler != null) {
+			try {
+				handler.streamBroadcastStart(this);
+			} catch (Throwable t) {
+				log.error("error notify streamBroadcastStart", t);
+			}
+		}
+	}
+	
+	private void notifyBroadcastClose() {
+		IStreamAwareScopeHandler handler = getStreamAwareHandler();
+		if (handler != null) {
+			try {
+				handler.streamBroadcastClose(this);
+			} catch (Throwable t) {
+				log.error("error notify streamBroadcastStop", t);
+			}
+		}
 	}
 }

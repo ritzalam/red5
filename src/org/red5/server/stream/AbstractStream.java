@@ -20,7 +20,9 @@ package org.red5.server.stream;
  */
 
 import org.red5.server.api.IScope;
+import org.red5.server.api.IScopeHandler;
 import org.red5.server.api.stream.IStream;
+import org.red5.server.api.stream.IStreamAwareScopeHandler;
 import org.red5.server.api.stream.IStreamCodecInfo;
 
 public abstract class AbstractStream implements IStream {
@@ -50,5 +52,15 @@ public abstract class AbstractStream implements IStream {
 	
 	public void setScope(IScope scope) {
 		this.scope = scope;
+	}
+	
+	protected IStreamAwareScopeHandler getStreamAwareHandler() {
+		if (scope != null) {
+			IScopeHandler handler = scope.getHandler();
+			if (handler instanceof IStreamAwareScopeHandler) {
+				return (IStreamAwareScopeHandler) handler;
+			}
+		}
+		return null;
 	}
 }

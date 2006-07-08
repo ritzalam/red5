@@ -93,6 +93,7 @@ implements IFlowControlService, ApplicationContextAware {
 
 	public void releaseFlowControllable(IFlowControllable fc) {
 		synchronized (fcsMap) {
+			yieldResourceToAncestor(fc);
 			fcsMap.remove(fc);
 		}
 	}
@@ -283,6 +284,7 @@ implements IFlowControlService, ApplicationContextAware {
 					}
 				}
 			}
+			parentFC = parentFC.getParentFlowControllable();
 		}
 	}
 	
