@@ -80,6 +80,11 @@
       <param-name>maxCachedFiles</param-name>
       <param-value>100</param-value>
     </init-param>
+    <!-- Disable this to use memory mapped files. However this locks files on windows. -->
+    <init-param>
+        <param-name>useFileMappedBuffer</param-name>
+        <param-value>false</param-value>
+    </init-param>
     <load-on-startup>0</load-on-startup>
   </servlet> 
   
