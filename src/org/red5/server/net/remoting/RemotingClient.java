@@ -267,7 +267,7 @@ public class RemotingClient {
 	 * 
 	 * @param method
 	 * @param params
-	 * @return
+	 * @return the result of the method call
 	 */
 	public Object invokeMethod(String method, Object[] params) {
 		PostMethod post = new PostMethod(this.url + appendToUrl);

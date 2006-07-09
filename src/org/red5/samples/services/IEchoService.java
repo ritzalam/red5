@@ -44,7 +44,7 @@ public interface IEchoService {
 	 * Verifies that a boolean that is passed in returns correctly.
 	 * 
 	 * @param bool
-	 * @return
+	 * @return input value
 	 */
 	public abstract boolean echoBoolean(boolean bool);
 
@@ -54,7 +54,7 @@ public interface IEchoService {
 	 * Flash Number = double
 	 * 
 	 * @param num
-	 * @return
+	 * @return input value
 	 */
 	public abstract double echoNumber(double num);
 
@@ -62,7 +62,7 @@ public interface IEchoService {
 	 * Verifies that a String that is passed in returns correctly.
 	 * 
 	 * @param string
-	 * @return
+	 * @return input value
 	 */
 	public abstract String echoString(String string);
 
@@ -70,7 +70,7 @@ public interface IEchoService {
 	 * Verifies that a Date that is passed in returns correctly.
 	 * 
 	 * @param date
-	 * @return
+	 * @return input value
 	 */
 	public abstract Date echoDate(Date date);
 
@@ -79,7 +79,7 @@ public interface IEchoService {
 	 * Flash Object = java.utils.Map
 	 * 
 	 * @param obj
-	 * @return
+	 * @return input value
 	 */
 	public abstract Map echoObject(Map obj);
 
@@ -88,7 +88,7 @@ public interface IEchoService {
 	 * Flash simple Array = Object[]
 	 * 
 	 * @param array
-	 * @return
+	 * @return input value
 	 */
 	public abstract Object[] echoArray(Object[] array);
 
@@ -97,7 +97,7 @@ public interface IEchoService {
 	 * Flash multi-dimensional Array = java.utils.List
 	 * 
 	 * @param list
-	 * @return
+	 * @return input value
 	 */
 	public abstract List echoList(List list);
 
@@ -106,7 +106,7 @@ public interface IEchoService {
 	 * Flash XML = org.w3c.dom.Document
 	 * 
 	 * @param xml
-	 * @return
+	 * @return input value
 	 */
 	public abstract Document echoXML(Document xml);
 

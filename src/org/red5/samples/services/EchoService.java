@@ -46,56 +46,56 @@ public class EchoService implements IEchoService {
 	}
 	
 	/** 
-	 * @see org.red5.server.service.IEchoService#echoBoolean(boolean)
+	 * @see org.red5.samples.services.IEchoService#echoBoolean(boolean)
 	 */
 	public boolean echoBoolean(boolean bool) {
 		return bool;
 	}
 	
 	/**
-	 * @see org.red5.server.service.IEchoService#echoNumber(float)
+	 * @see org.red5.samples.services.IEchoService#echoNumber(double)
 	 */
 	public double echoNumber(double number) {
 		return number;
 	}
 	
 	/**
-	 * @see org.red5.server.service.IEchoService#echoString(java.lang.String)
+	 * @see org.red5.samples.services.IEchoService#echoString(java.lang.String)
 	 */
 	public String echoString(String string) {
 		return string;
 	}
 	
 	/**
-	 * @see org.red5.server.service.IEchoService#echoDate(java.util.Date)
+	 * @see org.red5.samples.services.IEchoService#echoDate(java.util.Date)
 	 */
 	public Date echoDate(Date date) {
 		return date;
 	}
 	
 	/**
-	 * @see org.red5.server.service.IEchoService#echoObject(java.util.Map)
+	 * @see org.red5.samples.services.IEchoService#echoObject(java.util.Map)
 	 */
 	public Map echoObject(Map obj) {
 		return obj;
 	}
 	
 	/**
-	 * @see org.red5.server.service.IEchoService#echoArray(java.lang.Object[])
+	 * @see org.red5.samples.services.IEchoService#echoArray(java.lang.Object[])
 	 */
 	public Object[] echoArray(Object[] array) {
 		return array;
 	}
 	
 	/**
-	 * @see org.red5.server.service.IEchoService#echoList(java.util.List)
+	 * @see org.red5.samples.services.IEchoService#echoList(java.util.List)
 	 */
 	public List echoList(List list) {
 		return list;
 	}
 	
 	/**
-	 * @see org.red5.server.service.IEchoService#echoXML(org.w3c.dom.Document)
+	 * @see org.red5.samples.services.IEchoService#echoXML(org.w3c.dom.Document)
 	 */
 	public Document echoXML(Document xml) {
 		return xml;
@@ -118,7 +118,7 @@ public class EchoService implements IEchoService {
 	 * Test serialization of arbitrary objects.
 	 * 
 	 * @param any
-	 * @return
+	 * @return list containing distinct objects
 	 */
 	public List<Object> returnDistinctObjects(Object any) {
 		List<Object> result = new ArrayList<Object>();
@@ -131,7 +131,7 @@ public class EchoService implements IEchoService {
 	 * Test references.
 	 * 
 	 * @param any
-	 * @return
+	 * @return list containing same objects
 	 */
 	public List<Object> returnSameObjects(Object any) {
 		List<Object> result = new ArrayList<Object>();
@@ -145,7 +145,7 @@ public class EchoService implements IEchoService {
 	 * Test returning of internal objects.
 	 * 
 	 * @param any
-	 * @return
+	 * @return the current connection
 	 */
 	public IConnection returnConnection(Object any) {
 		return Red5.getConnectionLocal();

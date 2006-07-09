@@ -58,7 +58,6 @@ public class Standalone {
 	 * Main entry point for the Red5 Server 
 	 * usage java Standalone
 	 * @param args String passed in that points to a red5.xml config file
-	 * @return void
 	 */
 	public static void main(String[] args) throws Exception, Throwable {
 		
