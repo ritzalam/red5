@@ -35,12 +35,14 @@ import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.protocol.SimpleProtocolEncoder;
 import org.red5.server.net.rtmp.RTMPUtils;
 import org.red5.server.net.rtmp.event.AudioData;
+import org.red5.server.net.rtmp.event.BytesRead;
 import org.red5.server.net.rtmp.event.ChunkSize;
+import org.red5.server.net.rtmp.event.ClientBW;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.event.Invoke;
 import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.event.Ping;
-import org.red5.server.net.rtmp.event.BytesRead;
+import org.red5.server.net.rtmp.event.ServerBW;
 import org.red5.server.net.rtmp.event.Unknown;
 import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.net.rtmp.message.Constants;
@@ -186,8 +188,25 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants, IE
 			return encodeVideoData((VideoData) message);
 		case TYPE_SHARED_OBJECT:
 			return encodeSharedObject((ISharedObjectMessage) message);
+		case TYPE_SERVER_BANDWIDTH:
+			return encodeServerBW((ServerBW) message);
+		case TYPE_CLIENT_BANDWIDTH:
+			return encodeClientBW((ClientBW) message);
 		default: return null;
 		}
+	}
+
+	private ByteBuffer encodeServerBW(ServerBW serverBW) {
+		final ByteBuffer out = ByteBuffer.allocate(4);
+		out.putInt(serverBW.getBandwidth());
+		return out;
+	}
+	
+	private ByteBuffer encodeClientBW(ClientBW clientBW) {
+		final ByteBuffer out = ByteBuffer.allocate(5);
+		out.putInt(clientBW.getBandwidth());
+		out.put(clientBW.getValue2());
+		return out;
 	}
 
 	public ByteBuffer encodeChunkSize(ChunkSize chunkSize) {

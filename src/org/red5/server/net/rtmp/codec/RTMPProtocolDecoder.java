@@ -35,12 +35,14 @@ import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.protocol.SimpleProtocolDecoder;
 import org.red5.server.net.rtmp.RTMPUtils;
 import org.red5.server.net.rtmp.event.AudioData;
+import org.red5.server.net.rtmp.event.BytesRead;
 import org.red5.server.net.rtmp.event.ChunkSize;
+import org.red5.server.net.rtmp.event.ClientBW;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.event.Invoke;
 import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.event.Ping;
-import org.red5.server.net.rtmp.event.BytesRead;
+import org.red5.server.net.rtmp.event.ServerBW;
 import org.red5.server.net.rtmp.event.Unknown;
 import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.net.rtmp.message.Constants;
@@ -343,6 +345,12 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder, IE
 		case TYPE_SHARED_OBJECT: 
 			message = decodeSharedObject(in);
 			break;
+		case TYPE_SERVER_BANDWIDTH: 
+			message = decodeServerBW(in);
+			break;
+		case TYPE_CLIENT_BANDWIDTH: 
+			message = decodeClientBW(in);
+			break;
 		default: 
 			message = decodeUnknown(header.getDataType(), in);
 			break;
@@ -350,6 +358,14 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder, IE
 		message.setHeader(header);
 		message.setTimestamp(header.getTimer());
 		return message;
+	}
+	
+	private IRTMPEvent decodeServerBW(ByteBuffer in) {
+		return new ServerBW(in.getInt());
+	}
+
+	private IRTMPEvent decodeClientBW(ByteBuffer in) {
+		return new ClientBW(in.getInt(), in.get());
 	}
 	
 	/* (non-Javadoc)
@@ -419,6 +435,8 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder, IE
 		}
 		return so;
 	}
+	
+	
 	
 	/* (non-Javadoc)
 	 * @see org.red5.server.net.rtmp.codec.IEventDecoder#decodeNotify(org.apache.mina.common.ByteBuffer)
