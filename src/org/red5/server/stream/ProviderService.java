@@ -59,6 +59,14 @@ public class ProviderService implements IProviderService {
 	}
 
 	public IMessageInput getVODProviderInput(IScope scope, String name) {
+		File file = getVODProviderFile(scope, name);
+		if(file == null) return null;
+		IPipe pipe = new InMemoryPullPullPipe();
+		pipe.subscribe(new FileProvider(scope, file), null);
+		return pipe;
+	}
+
+	public File getVODProviderFile(IScope scope, String name){
 		File file = null;
 		try {
 			file = scope.getResources(getStreamFilename(scope, name))[0].getFile();
@@ -66,11 +74,9 @@ public class ProviderService implements IProviderService {
 		if (file == null || !file.exists()) {
 			return null;
 		}
-		IPipe pipe = new InMemoryPullPullPipe();
-		pipe.subscribe(new FileProvider(scope, file), null);
-		return pipe;
+		return file;
 	}
-
+	
 	public boolean registerBroadcastStream(IScope scope, String name, IBroadcastStream bs) {
 		synchronized (scope) {
 			IBasicScope basicScope = scope.getBasicScope(IBroadcastScope.TYPE, name);

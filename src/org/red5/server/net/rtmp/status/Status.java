@@ -1,5 +1,7 @@
 package org.red5.server.net.rtmp.status;
 
+import org.red5.io.object.SerializerOpts;
+
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  * 
@@ -19,7 +21,7 @@ package org.red5.server.net.rtmp.status;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-public class Status implements StatusCodes {
+public class Status implements StatusCodes, SerializerOpts {
 
 	public static final String ERROR = "error";
 	public static final String STATUS = "status";
@@ -98,10 +100,16 @@ public class Status implements StatusCodes {
 		this.description = description;
 	}
 
-
-
+	
 	public String toString(){
-		return "Status: "+code;
+		return "Status: code: "+getCode()
+			+ " desc: "+getDescription() 
+			+ " level: "+getLevel();
+	}
+
+	public Flag getSerializerOption(SerializerOption opt) {
+		if(opt == SerializerOption.SerializeClassName) return Flag.Disabled;
+		return Flag.Default;
 	}
 	
 }

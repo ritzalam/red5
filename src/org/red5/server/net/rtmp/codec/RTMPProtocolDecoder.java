@@ -513,9 +513,11 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder, IE
 	 */
 	public Ping decodePing(ByteBuffer in) {
 		final Ping ping = new Ping();
+		ping.setDebug(in.getHexDump());
 		ping.setValue1(in.getShort());
 		ping.setValue2(in.getInt());
 		if(in.hasRemaining()) ping.setValue3(in.getInt());
+		if(in.hasRemaining()) ping.setValue4(in.getInt());
 		return ping;
 	}
 	

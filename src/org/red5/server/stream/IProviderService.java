@@ -19,6 +19,7 @@ package org.red5.server.stream;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.io.File;
 import java.util.List;
 
 import org.red5.server.api.IScope;
@@ -52,6 +53,14 @@ public interface IProviderService {
 	 * @return <tt>null</tt> if not found.
 	 */
 	IMessageInput getVODProviderInput(IScope scope, String name);
+	
+	/**
+	 * Get a named VOD source file.
+	 * @param scope
+	 * @param name
+	 * @return <tt>null</tt> if not found.
+	 */
+	File getVODProviderFile(IScope scope, String name);
 	
 	/**
 	 * Register a broadcast stream to a scope.

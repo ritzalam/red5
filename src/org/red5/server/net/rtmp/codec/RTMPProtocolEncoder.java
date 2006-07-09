@@ -368,12 +368,16 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants, IE
 	 * @see org.red5.server.net.rtmp.codec.IEventEncoder#encodePing(org.red5.server.net.rtmp.event.Ping)
 	 */
 	public ByteBuffer encodePing(Ping ping){
-		final int len =  (ping.getValue3()==Ping.UNDEFINED) ? 6 : 8;
+		int len = 6;
+		if(ping.getValue3()!=Ping.UNDEFINED) len +=4;
+		if(ping.getValue4()!=Ping.UNDEFINED) len +=4;
 		final ByteBuffer out = ByteBuffer.allocate(len);
 		out.putShort(ping.getValue1());
 		out.putInt(ping.getValue2());
 		if(ping.getValue3()!=Ping.UNDEFINED)
 			out.putInt(ping.getValue3());
+		if(ping.getValue4()!=Ping.UNDEFINED)
+			out.putInt(ping.getValue4());
 		return out;
 	}
 	

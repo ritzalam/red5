@@ -69,7 +69,7 @@ public class StatusObjectService implements StatusCodes {
 		statusObjects.put(NC_CONNECT_CLOSED,new StatusObject(NC_CONNECT_CLOSED,StatusObject.STATUS,""));
 		statusObjects.put(NC_CONNECT_FAILED,new StatusObject(NC_CONNECT_FAILED,StatusObject.ERROR,""));
 		statusObjects.put(NC_CONNECT_REJECTED,new StatusObject(NC_CONNECT_REJECTED,StatusObject.ERROR,""));
-		statusObjects.put(NC_CONNECT_SUCCESS,new StatusObject(NC_CONNECT_SUCCESS,StatusObject.STATUS,""));
+		statusObjects.put(NC_CONNECT_SUCCESS,new StatusObject(NC_CONNECT_SUCCESS,StatusObject.STATUS,"Connection succeeded."));
 		
 		statusObjects.put(NS_CLEAR_SUCCESS,new StatusObject(NS_CLEAR_SUCCESS,StatusObject.STATUS,""));
 		statusObjects.put(NS_CLEAR_FAILED,new StatusObject(NS_CLEAR_FAILED,StatusObject.ERROR,""));

@@ -23,15 +23,23 @@ import static org.red5.server.api.ScopeUtils.getScopeService;
 import static org.red5.server.api.ScopeUtils.isApp;
 import static org.red5.server.api.ScopeUtils.isRoom;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.red5.io.IStreamableFile;
+import org.red5.io.IStreamableFileFactory;
+import org.red5.io.IStreamableFileService;
+import org.red5.io.ITagReader;
+import org.red5.io.StreamableFileFactory;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
+import org.red5.server.api.ScopeUtils;
 import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.api.so.ISharedObject;
@@ -78,11 +86,19 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 	}
 	
 	public boolean connect(IConnection conn, IScope scope, Object[] params) {
+		/*
+		try {
+			Thread.currentThread().sleep(3000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}*/
 		if (!super.connect(conn, scope, params))
 			return false;
-		if(isApp(scope)) return appConnect(conn, params);
-		else if(isRoom(scope)) return roomConnect(conn, params);
-		else return false;
+		boolean success = false;
+		if(isApp(scope)) success = appConnect(conn, params);
+		else if(isRoom(scope)) success = roomConnect(conn, params);
+		return success;
 	}
 
 	public boolean start(IScope scope) {
@@ -272,4 +288,30 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 		return service.getScheduledJobNames();
 	}
 
+	// NOTE: Method added to get flv player to work.
+	public double getStreamLength(String name){
+		IProviderService provider = (IProviderService) getScopeService(scope, IProviderService.KEY, ProviderService.class); 
+		File file = provider.getVODProviderFile(scope, name);
+		if(file == null) return 0;
+		
+		double duration = 0;
+		
+		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils.getScopeService(scope, IStreamableFileFactory.KEY, StreamableFileFactory.class);
+		IStreamableFileService service = factory.getService(file);
+		if (service == null) {
+			log.error("No service found for " + file.getAbsolutePath());
+			return 0;
+		}
+		try {
+			IStreamableFile streamFile = service.getStreamableFile(file);
+			ITagReader reader = streamFile.getReader();
+			duration = reader.getDuration() / 1000;
+			reader.close();
+		} catch (IOException e) {
+			log.error("error read stream file " + file.getAbsolutePath(), e);
+		}
+		
+		return duration;
+	}
+	
 }

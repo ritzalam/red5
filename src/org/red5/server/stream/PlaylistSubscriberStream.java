@@ -585,6 +585,7 @@ implements IPlaylistSubscriberStream {
 			if (state != State.PLAYING) throw new IllegalStateException();
 			if (isPullMode) {
 				state = State.PAUSED;
+				sendClearPing();
 				sendPauseStatus(currentItem);
 				notifyItemPause(currentItem, position);
 			}
@@ -611,9 +612,10 @@ implements IPlaylistSubscriberStream {
 			if (isPullMode) {
 				flowControlService.resetTokenBuckets(PlaylistSubscriberStream.this);
 				isWaitingForToken = false;
+				sendClearPing();
+				sendResetPing();
 				sendSeekStatus(currentItem, position);
 				sendStartStatus(currentItem);
-				sendResetPing();
 				sendBlankAudio(position);
 				sendBlankVideo(position);
 				sendVODSeekCM(msgIn, position);
@@ -641,6 +643,7 @@ implements IPlaylistSubscriberStream {
 			flowControlService.resetTokenBuckets(PlaylistSubscriberStream.this);
 			isWaitingForToken = false;
 			notifyItemStop(currentItem);
+			sendClearPing();
 		}
 		
 		synchronized public void close() {
@@ -667,6 +670,7 @@ implements IPlaylistSubscriberStream {
 				schedulingService.removeScheduledJob(liveLengthJob);
 				liveLengthJob = null;
 			}
+			sendClearPing();
 		}
 		
 		synchronized private void pullAndPush() {
@@ -752,6 +756,16 @@ implements IPlaylistSubscriberStream {
 				}
 			}
 			msgOut.pushMessage(message);
+		}
+		
+		private void sendClearPing() {
+			Ping ping1 = new Ping();
+			ping1.setValue1((short) 1);
+			ping1.setValue2(getStreamId());
+
+			RTMPMessage ping1Msg = new RTMPMessage();
+			ping1Msg.setBody(ping1);
+			msgOut.pushMessage(ping1Msg);
 		}
 		
 		private void sendResetPing() {

@@ -270,6 +270,7 @@ public class RTMPHandler
 		}
 		
 		boolean disconnectOnReturn = false;
+		boolean runBandwidthCheck = false;
 		if(call.getServiceName() == null){
 			log.info("call: "+call);
 			final String action = call.getServiceMethodName();
@@ -311,7 +312,9 @@ public class RTMPHandler
 									if (call instanceof IPendingServiceCall)
 										((IPendingServiceCall) call).setResult(getStatus(NC_CONNECT_SUCCESS));
 									// Measure initial roundtrip time after connecting
+									conn.getChannel((byte) 2).write(new Ping((short)0,0,-1)); 
 									conn.ping();
+									runBandwidthCheck = true;
 								} else {
 									log.debug("connect failed");
 									call.setStatus(Call.STATUS_ACCESS_DENIED);
@@ -371,6 +374,9 @@ public class RTMPHandler
 			reply.setInvokeId(invoke.getInvokeId());
 			log.debug("sending reply");
 			channel.write(reply);
+			if (runBandwidthCheck){
+				conn.runBandwidthCheck();
+			}
 			if (disconnectOnReturn)
 				conn.close();
 		}
@@ -387,6 +393,9 @@ public class RTMPHandler
 			return;
 		}
 		
+		log.warn("Unhandled ping: "+ping);
+		
+		/*
 		final Ping pong = new Ping();
 		pong.setValue1((short) 4);
 		pong.setValue2(source.getStreamId());
@@ -398,6 +407,7 @@ public class RTMPHandler
 		pong2.setValue1((short) 0);
 		pong2.setValue2(source.getStreamId());
 		channel.write(pong2);
+		*/
 	}
 	
 	public void onStreamBytesRead(RTMPConnection conn, Channel channel, Header source, BytesRead streamBytesRead){
