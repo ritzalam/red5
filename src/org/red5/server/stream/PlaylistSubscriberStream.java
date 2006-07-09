@@ -56,6 +56,7 @@ import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.net.rtmp.status.Status;
 import org.red5.server.stream.ITokenBucket.ITokenBucketCallback;
 import org.red5.server.stream.message.RTMPMessage;
+import org.red5.server.stream.message.ResetMessage;
 import org.red5.server.stream.message.StatusMessage;
 
 public class PlaylistSubscriberStream extends AbstractClientStream
@@ -182,15 +183,14 @@ implements IPlaylistSubscriberStream {
 	public void removeAllItems() {
 		synchronized (items) {
 			// we try to stop the engine first
-			try {
-				engine.stop();
-			} catch (IllegalStateException e) {}
+			stop();
 			items.clear();
 		}
 	}
 
 	public void previousItem() {
 		synchronized (items) {
+			stop();
 			moveToPrevious();
 			if (currentItemIndex == -1) return;
 			IPlayItem item = items.get(currentItemIndex);
@@ -217,6 +217,7 @@ implements IPlaylistSubscriberStream {
 
 	public void nextItem() {
 		synchronized (items) {
+			stop();
 			moveToNext();
 			if (currentItemIndex == -1) return;
 			IPlayItem item = items.get(currentItemIndex);
@@ -244,6 +245,7 @@ implements IPlaylistSubscriberStream {
 	public void setItem(int index) {
 		synchronized (items) {
 			if (index < 0 || index >= items.size()) return;
+			stop();
 			currentItemIndex = index;
 			IPlayItem item = items.get(currentItemIndex);
 			try {
@@ -948,6 +950,10 @@ implements IPlaylistSubscriberStream {
 		}
 
 		synchronized public void pushMessage(IPipe pipe, IMessage message) {
+			if (message instanceof ResetMessage) {
+				sendResetPing();
+				return;
+			}
 			if (message instanceof RTMPMessage) {
 				RTMPMessage rtmpMessage = (RTMPMessage) message;
 				IRTMPEvent body = rtmpMessage.getBody();

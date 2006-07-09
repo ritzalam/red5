@@ -113,6 +113,7 @@ public class BroadcastScope extends BasicScope implements IBroadcastScope, IPipe
 			case PipeConnectionEvent.PROVIDER_DISCONNECT:
 				compCounter--;
 				if (compCounter <= 0) {
+					// XXX should we synchronize parent before removing?
 					if (hasParent())
 						getParent().removeChildScope(this);
 					hasRemoved = true;
