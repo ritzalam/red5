@@ -298,7 +298,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder, IE
 			break;
 			
 		case HEADER_CONTINUE:
-			header.setTimer(lastHeader.getSize());
+			header.setTimer(lastHeader.getTimer());
 			header.setSize(lastHeader.getSize());
 			header.setDataType(lastHeader.getDataType());
 			header.setStreamId(lastHeader.getStreamId());
