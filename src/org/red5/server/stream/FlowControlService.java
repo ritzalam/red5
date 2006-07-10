@@ -25,6 +25,8 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.IBandwidthConfigure;
 import org.red5.server.api.IFlowControllable;
 import org.red5.server.api.stream.support.SimpleBandwidthConfigure;
@@ -43,6 +45,8 @@ import org.springframework.context.ApplicationContextAware;
  */
 public class FlowControlService extends TimerTask
 implements IFlowControlService, ApplicationContextAware {
+	private static final Log log = LogFactory.getLog(FlowControlService.class);
+	
 	private long interval = 10;
 	private long defaultCapacity = 1024 * 100;
 	private Timer timer;
@@ -52,7 +56,7 @@ implements IFlowControlService, ApplicationContextAware {
 
 	public void init() {
 		timer = new Timer("FlowControlService", true);
-		timer.schedule(this, interval, interval);
+		timer.scheduleAtFixedRate(this, interval, interval);
 	}
 	
 	@Override
@@ -207,6 +211,11 @@ implements IFlowControlService, ApplicationContextAware {
 		}
 	}
 	
+	/**
+	 * Bit per second to Byte per millisecond.
+	 * @param bps Bit per second.
+	 * @return Byte per millisecond.
+	 */
 	private long bps2Bpms(long bps) {
 		return bps / 1000 / 8;
 	}
@@ -424,13 +433,17 @@ implements IFlowControlService, ApplicationContextAware {
 				}
 				// finally call back
 				try {
+					log.debug("Token available and calling callback: request " + reqObj.requestTokenCount + ", available " + tokens);
 					toReleaseCallback.available(reqObj.requestBucket, reqObj.requestTokenCount);
-				} catch (Throwable t) {}
+				} catch (Throwable t) {
+					log.error("exception when calling callback", t);
+				}
 			}
 		}
 		
 		synchronized public boolean acquireToken(IFlowControllable fc, long tokenCount, ITokenBucketCallback callback, ITokenBucket requestBucket) {
 			if (tokenCount > tokens) {
+				log.debug("Token not enough: request " + tokenCount + ", available " + tokens);
 				Map<ITokenBucketCallback, RequestObject> callbackMap = fcWaitingMap.get(fc);
 				if (callbackMap == null) {
 					callbackMap = new HashMap<ITokenBucketCallback, RequestObject>();
