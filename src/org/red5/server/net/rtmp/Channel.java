@@ -74,13 +74,15 @@ public class Channel {
 	
 	private void write(IRTMPEvent event, int streamId){
 		
-		final Header header = event.getHeader() != null ? event.getHeader() : new Header();
+		final Header header = new Header();
 		final Packet packet = new Packet(header, event);
 		
 		header.setChannelId(id);
 		header.setTimer(event.getTimestamp());
 		header.setStreamId(streamId);
 		header.setDataType(event.getDataType());
+		if (event.getHeader() != null)
+			header.setTimerRelative(event.getHeader().isTimerRelative());
 		
 		// should use RTMPConnection specific method.. 
 		connection.write(packet);
