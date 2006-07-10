@@ -324,6 +324,20 @@ public class ServerStream extends AbstractStream implements IServerStream,
 			onItemEnd();
 			return;
 		}
+		// FIXME hack the first Metadata Tag from FLVReader
+		// the FLVReader will issue a metadata tag of ts 0
+		// even if it is seeked to somewhere in the middle
+		// which will cause the stream to wait too long.
+		// Is this an FLVReader's bug?
+		if (!(firstRTMPMsg.getBody() instanceof VideoData) &&
+				!(firstRTMPMsg.getBody() instanceof AudioData) &&
+				firstRTMPMsg.getBody().getTimestamp() == 0) {
+			firstRTMPMsg = getNextRTMPMessage();
+			if (firstRTMPMsg == null) {
+				onItemEnd();
+				return;
+			}
+		}
 		IRTMPEvent rtmpEvent = firstRTMPMsg.getBody();
 		if (rtmpEvent instanceof VideoData) {
 			if (!firstRTMPMsg.isTimerRelative()) {
