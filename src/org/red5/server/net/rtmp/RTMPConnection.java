@@ -398,5 +398,10 @@ public abstract class RTMPConnection extends BaseConnection implements
 		});*/
 
 	}
+	
+	public String toString() {
+		return getClass().getSimpleName() + " to " + getRemoteAddress() +
+			" (in: " + getReadBytes() + ", out: " + getWrittenBytes() + ")";
+	}
 
 }

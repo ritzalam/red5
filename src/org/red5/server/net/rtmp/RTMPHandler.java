@@ -127,7 +127,7 @@ public class RTMPHandler
 				break;
 				
 			case TYPE_NOTIFY: // just like invoke, but does not return
-				if (((Notify) message).getCall() == null && stream != null)
+				if (((Notify) message).getData() != null && stream != null)
 					// Stream metadata
 					((IEventDispatcher) stream).dispatchEvent(message);
 				else
