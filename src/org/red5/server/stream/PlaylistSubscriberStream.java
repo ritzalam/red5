@@ -440,7 +440,10 @@ implements IPlaylistSubscriberStream {
 		private ITokenBucket videoBucket;
 		private RTMPMessage pendingMessage;
 		private boolean isWaitingForToken = false;
-		
+
+		/** Set to true to drop all frames until the next keyframe. */
+		private boolean dropUntilKeyframe = false;
+
 		public PlayEngine() {
 			state = State.UNINIT;
 		}
@@ -508,6 +511,8 @@ implements IPlaylistSubscriberStream {
 			switch (decision) {
 			case 0:
 				msgIn = liveInput;
+				// Wait for first keyframe by default
+				dropUntilKeyframe = true;
 				if (msgIn instanceof IBroadcastScope) {
 					// Send initial keyframe
 					IClientBroadcastStream stream = (IClientBroadcastStream) ((IBroadcastScope) msgIn).getAttribute(IBroadcastScope.STREAM_ATTRIBUTE);
@@ -530,6 +535,7 @@ implements IPlaylistSubscriberStream {
 									videoMsg.setTimerRelative(false);
 									msgOut.pushMessage(videoMsg);
 									sendNotifications = false;
+									dropUntilKeyframe = false;
 								} finally {
 									video.release();
 								}
@@ -976,6 +982,13 @@ implements IPlaylistSubscriberStream {
 				
 				int size = ((IStreamData) body).getData().limit();
 				if (body instanceof VideoData) {
+					if (dropUntilKeyframe) {
+						if (((VideoData) body).getFrameType() != VideoData.FrameType.KEYFRAME)
+							return;
+						
+						dropUntilKeyframe = false;
+					}
+					
 					if (!videoBucket.acquireToken(size, 0)) {
 						return;
 					}
