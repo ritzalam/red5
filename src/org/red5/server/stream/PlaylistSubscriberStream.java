@@ -990,6 +990,9 @@ implements IPlaylistSubscriberStream {
 					}
 					
 					if (!videoBucket.acquireToken(size, 0)) {
+						// We dropped a frame, so drop all delta frames until the next
+						// keyframe to avoid image corruption.
+						dropUntilKeyframe = true;
 						return;
 					}
 				} else if (body instanceof AudioData) {
