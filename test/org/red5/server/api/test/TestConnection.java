@@ -5,7 +5,7 @@ import org.red5.server.BaseConnection;
 public class TestConnection extends BaseConnection {
 
 	public TestConnection(String host, String path, String sessionId){
-		super(PERSISTENT,host,null,path,sessionId,null);
+		super(PERSISTENT,host,null,0,path,sessionId,null);
 	}
 	
 	public long getReadBytes() {
