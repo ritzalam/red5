@@ -41,6 +41,7 @@ public abstract class BaseConnection extends AttributeStore
 	protected String type;
 	protected String host;
 	protected String remoteAddress;
+	protected int remotePort;
 	protected String path;
 	protected String sessionId;
 	protected long readMessages = 0;
@@ -52,10 +53,11 @@ public abstract class BaseConnection extends AttributeStore
 	protected Scope scope = null;
 	protected Set<IBasicScope> basicScopes;
 	
-	public BaseConnection(String type, String host, String remoteAddress, String path, String sessionId, Map<String,String> params){
+	public BaseConnection(String type, String host, String remoteAddress, int remotePort, String path, String sessionId, Map<String,String> params){
 		this.type = type;
 		this.host = host;
 		this.remoteAddress = remoteAddress;
+		this.remotePort = remotePort;
 		this.path = path;
 		this.sessionId = sessionId;
 		this.params = params;
@@ -86,6 +88,10 @@ public abstract class BaseConnection extends AttributeStore
 		return remoteAddress;
 	}
 
+	public int getRemotePort() {
+		return remotePort;
+	}
+	
 	public String getPath(){
 		return path;
 	}

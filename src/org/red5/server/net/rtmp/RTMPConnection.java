@@ -91,7 +91,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 		// We start with an anonymous connection without a scope.
 		// These parameters will be set during the call of "connect" later.
 		// super(null, ""); temp fix to get things to compile
-		super(type, null, null, null, null, null);
+		super(type, null, null, 0, null, null, null);
 	}
 
 	public void setup(String host, String path, String sessionId,
@@ -400,8 +400,8 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 	
 	public String toString() {
-		return getClass().getSimpleName() + " to " + getRemoteAddress() +
-			" (in: " + getReadBytes() + ", out: " + getWrittenBytes() + ")";
+		return getClass().getSimpleName() + " from " + getRemoteAddress() + ":" + getRemotePort() + 
+			" to " + getHost() + " (in: " + getReadBytes() + ", out: " + getWrittenBytes() + ")";
 	}
 
 }

@@ -22,6 +22,7 @@ package org.red5.server.net.rtmpt;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -72,6 +73,7 @@ public class RTMPTConnection extends RTMPConnection {
 	protected long noPendingMessages = 0;
 	protected long readBytes = 0;
 	protected long writtenBytes = 0;
+	protected ThreadLocal<HttpServletRequest> request = new ThreadLocal<HttpServletRequest>();
 	
 	public RTMPTConnection(RTMPTHandler handler) {
 		super( POLLING );
@@ -91,6 +93,22 @@ public class RTMPTConnection extends RTMPConnection {
 		pendingMessages.clear();
 		state.setState(RTMP.STATE_DISCONNECTED);
 		super.close();
+	}
+	
+	public void setServletRequest(HttpServletRequest request) {
+		this.request.set(request);
+	}
+
+	public String getHost() {
+		return request.get().getLocalName();
+	}
+
+	public String getRemoteAddress() {
+		return request.get().getRemoteHost();
+	}
+
+	public int getRemotePort() {
+		return request.get().getRemotePort();
 	}
 
 	/**

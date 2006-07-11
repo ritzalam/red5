@@ -81,11 +81,15 @@ public class ServletConnection extends AttributeStore implements IConnection {
 	}
 
 	public String getHost() {
-		return request.getRemoteHost();
+		return request.getLocalName();
 	}
 
 	public String getRemoteAddress() {
 		return request.getRemoteAddr();
+	}
+
+	public int getRemotePort() {
+		return request.getRemotePort();
 	}
 
 	public String getPath() {

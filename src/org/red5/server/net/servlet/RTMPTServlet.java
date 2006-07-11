@@ -282,7 +282,9 @@ public class RTMPTServlet extends HttpServlet {
 		}
 		
 		RTMPTHandler handler = (RTMPTHandler) getServletContext().getAttribute(RTMPTHandler.HANDLER_ATTRIBUTE);
+		client.setServletRequest(req);
 		handler.connectionClosed(client, (RTMP) client.getState());
+		client.setServletRequest(null);
 		
 		returnMessage((byte) 0, resp);
 	}
@@ -304,6 +306,8 @@ public class RTMPTServlet extends HttpServlet {
 			return;
 		}
 		
+		client.setServletRequest(req);
+		
 		// Put the received data in a ByteBuffer
 		int length = req.getContentLength();
 		ByteBuffer data = ByteBuffer.allocate(length);
@@ -315,6 +319,7 @@ public class RTMPTServlet extends HttpServlet {
 		data.release();
 		if (messages == null || messages.isEmpty()) {
 			returnMessage(client.getPollingDelay(), resp);
+			client.setServletRequest(null);
 			return;
 		}
 		
@@ -331,6 +336,7 @@ public class RTMPTServlet extends HttpServlet {
 		
 		// Send results to client
 		returnPendingMessages(client, resp);
+		client.setServletRequest(null);
 	}
 	
 	/**
@@ -353,7 +359,12 @@ public class RTMPTServlet extends HttpServlet {
 			return;
 		}
 		
-		returnPendingMessages(client, resp);
+		client.setServletRequest(req);
+		try {
+			returnPendingMessages(client, resp);
+		} finally {
+			client.setServletRequest(null);
+		}
 	}
 	
 	/**

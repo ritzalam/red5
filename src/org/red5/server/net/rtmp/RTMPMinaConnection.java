@@ -38,10 +38,13 @@ public class RTMPMinaConnection extends RTMPConnection {
 	public RTMPMinaConnection(IoSession protocolSession) {
 		super(PERSISTENT);
 		SocketAddress remote = protocolSession.getRemoteAddress();
-		if (remote instanceof InetSocketAddress)
+		if (remote instanceof InetSocketAddress) {
 			remoteAddress = ((InetSocketAddress) remote).getAddress().getHostAddress();
-		else
+			remotePort = ((InetSocketAddress) remote).getPort();
+		} else {
 			remoteAddress = remote.toString();
+			remotePort = -1;
+		}
 		this.ioSession = protocolSession;
 	}
 		

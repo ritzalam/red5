@@ -107,7 +107,14 @@ public interface IConnection extends ICoreObject {
 	 * @return the ip address of the client
 	 */
 	public String getRemoteAddress();
-	
+
+	/**
+	 * Get the port the client is connected from.
+	 * 
+	 * @return the port of the client
+	 */
+	public int getRemotePort();
+
 	/**
 	 * Get the path for this connection.
 	 * This is not updated if you switch scope.
