@@ -71,12 +71,4 @@ public interface IStreamCapableConnection extends IConnection, IFlowControllable
 	 */
 	IClientBroadcastStream newBroadcastStream(int streamId);
 
-	/**
-	 * The connection read data for a stream.
-	 * 
-	 * @param bytes
-	 * 			amount of bytes that have been read
-	 */
-	void updateStreamBytesRead(int bytes);
-	
 }

@@ -411,8 +411,7 @@ public class RTMPHandler
 	}
 	
 	public void onStreamBytesRead(RTMPConnection conn, Channel channel, Header source, BytesRead streamBytesRead){
-		log.info("Stream Bytes Read: "+streamBytesRead.getBytesRead());
-		// pass to stream handler
+		conn.receivedBytesRead(streamBytesRead.getBytesRead());
 	}
 	
 	public void onSharedObject(RTMPConnection conn, Channel channel, Header source, SharedObjectMessage object) {

@@ -79,11 +79,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	protected int lastPingTime = -1;
 
-	protected int streamBytesRead = 0;
+	private int bytesReadInterval = 125000;
 
-	private int streamBytesReadInterval = 125000;
-
-	private int nextStreamBytesRead = 125000;
+	private int nextBytesRead = 125000;
 
 	private IBandwidthConfigure bandwidthConfig;
 
@@ -256,15 +254,18 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	public abstract void write(Packet out);
 
-	public void updateStreamBytesRead(int bytes) {
-		streamBytesRead += bytes;
-
-		if (streamBytesRead >= nextStreamBytesRead) {
-			BytesRead sbr = new BytesRead(streamBytesRead);
+	protected void updateBytesRead() {
+		long bytesRead = getReadBytes();
+		if (bytesRead >= nextBytesRead) {
+			BytesRead sbr = new BytesRead((int) bytesRead);
 			getChannel((byte) 2).write((BytesRead) sbr);
 			log.info(sbr);
-			nextStreamBytesRead += streamBytesReadInterval;
+			nextBytesRead += bytesReadInterval;
 		}
+	}
+	
+	public void receivedBytesRead(int bytes) {
+		log.info("Client received " + bytes + " bytes, written " + getWrittenBytes());
 	}
 
 	public void invoke(IServiceCall call) {
@@ -347,6 +348,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	protected void messageReceived() {
 		readMessages++;
+
+		// Trigger generation of BytesRead messages
+		updateBytesRead();
 	}
 
 	protected void messageSent() {

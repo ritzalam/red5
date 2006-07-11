@@ -181,8 +181,6 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			delta = now - lastAudio;
 			lastAudio = now;
 			IEventListener source = event.getSource();
-			if (source instanceof IStreamCapableConnection)
-				((IStreamCapableConnection) source).updateStreamBytesRead(((AudioData) rtmpEvent).getData().limit());
 		} else if (rtmpEvent instanceof VideoData) {
 			IVideoStreamCodec videoStreamCodec = null;
 			if (videoCodecFactory != null && checkVideoCodec) {
@@ -202,8 +200,6 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			delta = now - lastVideo;
 			lastVideo = now;
 			IEventListener source = event.getSource();
-			if (source instanceof IStreamCapableConnection)
-				((IStreamCapableConnection) source).updateStreamBytesRead(((VideoData) rtmpEvent).getData().limit());
 			if (sendStartNotification) {
 				// Notify handler that stream starts publishing
 				sendStartNotification = false;
