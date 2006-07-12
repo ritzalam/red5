@@ -64,6 +64,8 @@
 		<mkdir dir="${src.dir}/../webapps/oflaDemo/WEB-INF/lib"/>
 		<mkdir dir="${src.dir}/../webapps/test/WEB-INF/classes"/>
 		<mkdir dir="${src.dir}/../webapps/test/WEB-INF/lib"/>
+		<mkdir dir="${src.dir}/../webapps/tutorial/WEB-INF/classes"/>
+		<mkdir dir="${src.dir}/../webapps/tutorial/WEB-INF/lib"/>
 	</target>
 
 	<!-- do a clean -->
@@ -80,6 +82,8 @@
 		<delete dir="${src.dir}/../webapps/oflaDemo/WEB-INF/lib"/>
 		<delete dir="${src.dir}/../webapps/test/WEB-INF/classes"/>
 		<delete dir="${src.dir}/../webapps/test/WEB-INF/lib"/>
+		<delete dir="${src.dir}/../webapps/tutorial/WEB-INF/classes"/>
+		<delete dir="${src.dir}/../webapps/tutorial/WEB-INF/lib"/>
 	</target>
 
 	<target name="compile" depends="-junit.check, prepare">
@@ -129,6 +133,20 @@
 				sourcepath=""
 				srcdir="${src.dir}/../webapps/test/WEB-INF/src"
 				destdir="${src.dir}/../webapps/test/WEB-INF/classes"
+				debug="${debug.state}"
+				classpathref="webapps.classpath"
+				fork="yes"
+				verbose="no"
+				nowarn="yes"
+				executable="${java.home}/../bin/javac"
+				target="${java.target_version}">
+
+		</javac>
+
+		<javac
+				sourcepath=""
+				srcdir="${src.dir}/../webapps/tutorial/WEB-INF/src"
+				destdir="${src.dir}/../webapps/tutorial/WEB-INF/classes"
 				debug="${debug.state}"
 				classpathref="webapps.classpath"
 				fork="yes"
@@ -205,6 +223,12 @@
 		
 		<jar destfile="${src.dir}/../webapps/test/WEB-INF/lib/test.jar">
 			<fileset dir="${src.dir}/../webapps/test/WEB-INF/classes">
+				<include name="**"/>
+			</fileset>
+		</jar>
+		
+		<jar destfile="${src.dir}/../webapps/tutorial/WEB-INF/lib/tutorial.jar">
+			<fileset dir="${src.dir}/../webapps/tutorial/WEB-INF/classes">
 				<include name="**"/>
 			</fileset>
 		</jar>

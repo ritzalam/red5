@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry excluding=".svn/*" kind="src" path="src"/>
+	<classpathentry excluding=".svn/*" output="webapps/tutorial/WEB-INF/classes" kind="src" path="webapps/tutorial/WEB-INF/src"/>
 	<classpathentry excluding=".svn/*" output="webapps/fitcDemo/WEB-INF/classes" kind="src" path="webapps/fitcDemo/WEB-INF/src"/>
 	<classpathentry excluding=".svn/*" output="webapps/oflaDemo/WEB-INF/classes" kind="src" path="webapps/oflaDemo/WEB-INF/src"/>
 	<classpathentry excluding=".svn/*" kind="src" path="conf"/>

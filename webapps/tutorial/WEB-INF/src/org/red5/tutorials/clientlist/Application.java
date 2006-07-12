@@ -1,0 +1,80 @@
+package org.red5.tutorials.clientlist;
+
+/*
+ * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * 
+ * Copyright (c) 2006 by respective authors (see below). All rights reserved.
+ * 
+ * This library is free software; you can redistribute it and/or modify it under the 
+ * terms of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either version 2.1 of the License, or (at your option) any later 
+ * version. 
+ * 
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY 
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+ * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License along 
+ * with this library; if not, write to the Free Software Foundation, Inc., 
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ */
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.red5.samples.components.ClientManager;
+import org.red5.server.adapter.ApplicationAdapter;
+import org.red5.server.api.IConnection;
+import org.red5.server.api.IScope;
+
+/**
+ * Sample application that uses the client manager.
+ * 
+ * @author The Red5 Project (red5@osflash.org)
+ * @author Joachim Bauch (jojo@struktur.de)
+ * @see org.red5.samples.components.ClientManager
+ */
+public class Application extends ApplicationAdapter {
+
+	protected static Log log = LogFactory.getLog(Application.class.getName());
+	
+	/** Manager for the clients. */
+	private ClientManager clientMgr = new ClientManager("clientlist", false);
+	
+	/** Name of the connection attribute that stores the username. */
+	private final static String USERNAME = "username"; 
+	
+	@Override
+	public boolean connect(IConnection conn, IScope scope, Object[] params) {
+		// Check if the user passed valid parameters.
+		if (params == null || params.length == 0) {
+			log.debug("Client didn't pass a username.");
+			// NOTE: "rejectClient" terminates the execution of the current method!
+			rejectClient("No username passed.");
+		}
+		
+		// Call original method of parent class.
+		if (!super.connect(conn, scope, params))
+			return false;
+		
+		String username = params[0].toString();
+		log.debug("Client \"" + username + "\" connected.");
+		// Register the user in the shared object.
+		clientMgr.addClient(scope, username);
+		// Store the username for later use.
+		conn.setAttribute(USERNAME, username);
+		return true;
+	}
+	
+	@Override
+	public void disconnect(IConnection conn, IScope scope) {
+		// Get the previously stored username.
+		String username = conn.getStringAttribute(USERNAME);
+		log.debug("Client \"" + username + "\" disconnected.");
+		// Unregister user.
+		clientMgr.removeClient(scope, username);
+		// Call original method of parent class.
+		super.disconnect(conn, scope);
+	}
+	
+}
