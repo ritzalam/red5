@@ -233,9 +233,12 @@ public abstract class RTMPConnection extends BaseConnection implements
 				}
 			}
 		}
-		IFlowControlService fcs = (IFlowControlService) getScope().getContext()
-				.getBean(IFlowControlService.KEY);
-		fcs.releaseFlowControllable(this);
+		
+		if (getScope() != null && getScope().getContext() != null) {
+			IFlowControlService fcs = (IFlowControlService) getScope().getContext()
+					.getBean(IFlowControlService.KEY);
+			fcs.releaseFlowControllable(this);
+		}
 		super.close();
 	}
 
