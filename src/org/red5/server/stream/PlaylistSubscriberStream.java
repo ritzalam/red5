@@ -1023,6 +1023,18 @@ implements IPlaylistSubscriberStream {
 			flowControlService.updateBWConfigure(PlaylistSubscriberStream.this);
 		}
 		
+		private int pendingMessage() {
+			OOBControlMessage pendingRequest = new OOBControlMessage();
+			pendingRequest.setTarget("ConnectionConsumer");
+			pendingRequest.setServiceName("pendingCount");
+			msgOut.sendOOBControlMessage(this, pendingRequest);
+			if (pendingRequest.getResult() != null) {
+				return (Integer) pendingRequest.getResult();
+			} else {
+				return 0;
+			}
+		}
+		
 	}
 	
 	private class StreamNotFoundException extends Exception {

@@ -37,6 +37,7 @@ public class OOBControlMessage implements Serializable {
 	private String target;
 	private String serviceName;
 	private Map serviceParamMap;
+	private Object result;
 	
 	public String getServiceName() {
 		return serviceName;
@@ -55,5 +56,11 @@ public class OOBControlMessage implements Serializable {
 	}
 	public void setTarget(String target) {
 		this.target = target;
+	}
+	public Object getResult() {
+		return result;
+	}
+	public void setResult(Object result) {
+		this.result = result;
 	}
 }

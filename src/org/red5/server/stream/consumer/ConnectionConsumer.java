@@ -30,6 +30,7 @@ import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.messaging.PipeConnectionEvent;
 import org.red5.server.net.rtmp.Channel;
 import org.red5.server.net.rtmp.RTMPConnection;
+import org.red5.server.net.rtmp.RTMPMinaConnection;
 import org.red5.server.net.rtmp.event.AudioData;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.event.Notify;
@@ -113,8 +114,14 @@ public class ConnectionConsumer implements IPushableConsumer,
 	}
 
 	public void onOOBControlMessage(IMessageComponent source, IPipe pipe, OOBControlMessage oobCtrlMsg) {
-		// TODO Auto-generated method stub
-		
+		if ("ConnectionConsumer".equals(oobCtrlMsg.getTarget()) &&
+				"pendingCount".equals(oobCtrlMsg.getServiceName())) {
+			if (conn instanceof RTMPMinaConnection) {
+				oobCtrlMsg.setResult(((RTMPMinaConnection) conn).getPendingPacketCount());
+			} else {
+				oobCtrlMsg.setResult(0);
+			}
+		}
 	}
 
 }
