@@ -260,4 +260,8 @@ public class RTMPTConnection extends RTMPConnection {
 		return writtenBytes;
 	}
 
+	public long getPendingMessages() {
+		return pendingMessages.size();
+	}
+
 }

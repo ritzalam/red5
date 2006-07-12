@@ -116,11 +116,7 @@ public class ConnectionConsumer implements IPushableConsumer,
 	public void onOOBControlMessage(IMessageComponent source, IPipe pipe, OOBControlMessage oobCtrlMsg) {
 		if ("ConnectionConsumer".equals(oobCtrlMsg.getTarget()) &&
 				"pendingCount".equals(oobCtrlMsg.getServiceName())) {
-			if (conn instanceof RTMPMinaConnection) {
-				oobCtrlMsg.setResult(((RTMPMinaConnection) conn).getPendingPacketCount());
-			} else {
-				oobCtrlMsg.setResult(0);
-			}
+			oobCtrlMsg.setResult(conn.getPendingMessages());
 		}
 	}
 

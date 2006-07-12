@@ -113,6 +113,10 @@ public class ServletConnection extends AttributeStore implements IConnection {
 		return 0;
 	}
 
+	public long getPendingMessages() {
+		return 0;
+	}
+
 	public long getReadMessages() {
 		return 1;
 	}

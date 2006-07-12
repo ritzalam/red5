@@ -166,6 +166,13 @@ public interface IConnection extends ICoreObject {
 	public long getDroppedMessages();
 	
 	/**
+	 * Total number of messages that are pending to be sent to the connection.
+	 * 
+	 * @return number of pending messages
+	 */
+	public long getPendingMessages();
+
+	/**
 	 * Start measuring the roundtrip time for a packet on the connection.
 	 */
 	public void ping();

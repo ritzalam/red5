@@ -72,16 +72,16 @@ public class RTMPMinaConnection extends RTMPConnection {
 		return super.isConnected() && ioSession.isConnected();
 	}
 	
-	public int getPendingPacketCount() {
-		return ioSession.getScheduledWriteRequests();
-	}
-	
 	public long getReadBytes() {
 		return ioSession.getReadBytes();
 	}
 	
 	public long getWrittenBytes() {
 		return ioSession.getWrittenBytes();
+	}
+	
+	public long getPendingMessages() {
+		return ioSession.getScheduledWriteRequests();
 	}
 	
 	public void close() {

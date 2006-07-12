@@ -441,8 +441,8 @@ implements IPlaylistSubscriberStream {
 		private RTMPMessage pendingMessage;
 		private boolean isWaitingForToken = false;
 
-		/** Set to true to drop all frames until the next keyframe. */
-		private boolean dropUntilKeyframe = false;
+		// State machine for video frame dropping in live streams
+		private IFrameDropper videoFrameDropper = new VideoFrameDropper();
 
 		public PlayEngine() {
 			state = State.UNINIT;
@@ -511,8 +511,8 @@ implements IPlaylistSubscriberStream {
 			switch (decision) {
 			case 0:
 				msgIn = liveInput;
-				// Wait for first keyframe by default
-				dropUntilKeyframe = true;
+				// Drop all frames up to the next keyframe
+				videoFrameDropper.reset(IFrameDropper.SEND_KEYFRAMES_CHECK);
 				if (msgIn instanceof IBroadcastScope) {
 					// Send initial keyframe
 					IClientBroadcastStream stream = (IClientBroadcastStream) ((IBroadcastScope) msgIn).getAttribute(IBroadcastScope.STREAM_ATTRIBUTE);
@@ -527,6 +527,7 @@ implements IPlaylistSubscriberStream {
 									sendResetStatus(item);
 									sendStartStatus(item);
 									sendBlankAudio(0);
+									sendBlankVideo(0);
 									
 									video.setTimestamp(0);
 									
@@ -535,7 +536,8 @@ implements IPlaylistSubscriberStream {
 									videoMsg.setTimerRelative(false);
 									msgOut.pushMessage(videoMsg);
 									sendNotifications = false;
-									dropUntilKeyframe = false;
+									// Don't wait for keyframe
+									videoFrameDropper.reset();
 								} finally {
 									video.release();
 								}
@@ -982,19 +984,17 @@ implements IPlaylistSubscriberStream {
 				
 				int size = ((IStreamData) body).getData().limit();
 				if (body instanceof VideoData) {
-					if (dropUntilKeyframe) {
-						if (((VideoData) body).getFrameType() != VideoData.FrameType.KEYFRAME)
-							return;
-						
-						dropUntilKeyframe = false;
-					}
-					
-					if (!videoBucket.acquireToken(size, 0)) {
-						// We dropped a frame, so drop all delta frames until the next
-						// keyframe to avoid image corruption.
-						dropUntilKeyframe = true;
+					long pending = pendingMessages();
+					if (!videoFrameDropper.canSendPacket(body, pending)) {
 						return;
 					}
+					
+					if (pending > 1 || !videoBucket.acquireToken(size, 0)) {
+						videoFrameDropper.dropPacket(body);
+						return;
+					}
+
+					videoFrameDropper.sendPacket(body);
 				} else if (body instanceof AudioData) {
 					if (!audioBucket.acquireToken(size, 0)) {
 						return;
@@ -1023,13 +1023,13 @@ implements IPlaylistSubscriberStream {
 			flowControlService.updateBWConfigure(PlaylistSubscriberStream.this);
 		}
 		
-		private int pendingMessage() {
+		private long pendingMessages() {
 			OOBControlMessage pendingRequest = new OOBControlMessage();
 			pendingRequest.setTarget("ConnectionConsumer");
 			pendingRequest.setServiceName("pendingCount");
 			msgOut.sendOOBControlMessage(this, pendingRequest);
 			if (pendingRequest.getResult() != null) {
-				return (Integer) pendingRequest.getResult();
+				return (Long) pendingRequest.getResult();
 			} else {
 				return 0;
 			}

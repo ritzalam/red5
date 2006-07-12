@@ -205,6 +205,10 @@ public abstract class BaseConnection extends AttributeStore
 	public long getDroppedMessages() {
 		return droppedMessages;
 	}
+
+	public long getPendingMessages() {
+		return 0;
+	}
 	
 	/* This is really a utility
 	public boolean switchScope(String contextPath) {
