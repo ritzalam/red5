@@ -159,7 +159,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	}
 
 	private void notifyChunkSize() {
-		if (livePipe != null) {
+		if (chunkSize > 0 && livePipe != null) {
 			OOBControlMessage setChunkSize = new OOBControlMessage();
 			setChunkSize.setTarget("ConnectionConsumer");
 			setChunkSize.setServiceName("chunkSize");

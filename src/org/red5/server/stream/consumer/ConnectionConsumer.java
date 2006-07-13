@@ -104,9 +104,9 @@ public class ConnectionConsumer implements IPushableConsumer,
 						msg.setTimestamp(0);
 					videoData.getHeader().setTimer(msg.getTimestamp());
 					audioTime = 0;
-					videoReceived = true;
 				}
 				videoData.setTimestamp(msg.getTimestamp());
+				videoReceived = true;
 				video.write(videoData);
 				if (msg.getHeader().isTimerRelative())
 					totalVideo += msg.getTimestamp();
