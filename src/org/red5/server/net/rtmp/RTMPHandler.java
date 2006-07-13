@@ -299,7 +299,6 @@ public class RTMPHandler
 		}
 		
 		boolean disconnectOnReturn = false;
-		boolean runBandwidthCheck = false;
 		if(call.getServiceName() == null){
 			log.info("call: "+call);
 			final String action = call.getServiceMethodName();
@@ -343,7 +342,6 @@ public class RTMPHandler
 									// Measure initial roundtrip time after connecting
 									conn.getChannel((byte) 2).write(new Ping((short)0,0,-1)); 
 									conn.ping();
-									runBandwidthCheck = true;
 								} else {
 									log.debug("connect failed");
 									call.setStatus(Call.STATUS_ACCESS_DENIED);
@@ -403,9 +401,6 @@ public class RTMPHandler
 			reply.setInvokeId(invoke.getInvokeId());
 			log.debug("sending reply");
 			channel.write(reply);
-			if (runBandwidthCheck){
-				conn.runBandwidthCheck();
-			}
 			if (disconnectOnReturn)
 				conn.close();
 		}

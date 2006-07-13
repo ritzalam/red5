@@ -39,9 +39,11 @@ import org.red5.io.StreamableFileFactory;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
+import org.red5.server.api.Red5;
 import org.red5.server.api.ScopeUtils;
 import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
+import org.red5.server.api.service.ServiceUtils;
 import org.red5.server.api.so.ISharedObject;
 import org.red5.server.api.so.ISharedObjectService;
 import org.red5.server.api.stream.IBroadcastStream;
@@ -193,6 +195,48 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 	
 	public void roomLeave(IClient client, IScope room){
 		log.debug("roomLeave: "+client+" << "+room);
+	}
+
+	/**
+	 * Try to measure bandwidth of current connection.
+	 * 
+	 * This is required for some FLV player to work because they require
+	 * the "onBWDone" method to be called on the connection.
+	 */
+	public void measureBandwidth() {
+		measureBandwidth(Red5.getConnectionLocal());
+	}
+	
+	/**
+	 * Try to measure bandwidth of given connection.
+	 * 
+	 * This is required for some FLV player to work because they require
+	 * the "onBWDone" method to be called on the connection.
+	 * 
+	 * @param conn
+	 * 			the connection to measure the bandwidth for 
+	 */
+	public void measureBandwidth(IConnection conn) {
+		// dummy for now, this makes flv player work
+		// they dont wait for connected status they wait for onBWDone
+		ServiceUtils.invokeOnConnection(conn, "onBWDone", new Object[]{});
+		/*
+		ServiceUtils.invokeOnConnection(conn, "onBWCheck", new Object[] {}, new IPendingServiceCallback() {
+			public void resultReceived(IPendingServiceCall call) {
+				log.debug("onBWCheck 1 result: " + call.getResult());
+			}
+		});
+		int[] filler = new int[1024];
+		ServiceUtils.invokeOnConnection(conn, "onBWCheck", new Object[] { filler }, new IPendingServiceCallback() {
+			public void resultReceived(IPendingServiceCall call) {
+				log.debug("onBWCheck 2 result: " + call.getResult());
+				ServiceUtils.invokeOnConnection(conn, "onBWDone", new Object[] { new Integer(1000), new Integer(300), new Integer(6000), new Integer(300) }, new IPendingServiceCallback() {
+					public void resultReceived(IPendingServiceCall call) {
+						log.debug("onBWDone result: " + call.getResult());
+					}
+				});
+			}
+		});*/
 	}
 	
 	/* Wrapper around ISharedObjectService */

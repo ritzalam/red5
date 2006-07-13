@@ -386,30 +386,6 @@ public abstract class RTMPConnection extends BaseConnection implements
 		return lastPingTime;
 	}
 
-	public void runBandwidthCheck() {
-		// dummy for now, this makes flv player work
-		// they dont wait for connected status they wait for onBWDone
-		invoke("onBWDone",new Object[]{});
-		/*
-		invoke("onBWCheck", new Object[] {}, new IPendingServiceCallback() {
-			public void resultReceived(IPendingServiceCall call) {
-				log.debug("onBWCheck 1 result: " + call.getResult());
-			}
-		});
-		int[] filler = new int[1024];
-		invoke("onBWCheck", new Object[] { filler }, new IPendingServiceCallback() {
-			public void resultReceived(IPendingServiceCall call) {
-				log.debug("onBWCheck 2 result: " + call.getResult());
-				invoke("onBWDone", new Object[] { new Integer(1000), new Integer(300), new Integer(6000), new Integer(300) }, new IPendingServiceCallback() {
-					public void resultReceived(IPendingServiceCall call) {
-						log.debug("onBWDone result: " + call.getResult());
-					}
-				});
-			}
-		});*/
-
-	}
-	
 	public String toString() {
 		return getClass().getSimpleName() + " from " + getRemoteAddress() + ":" + getRemotePort() + 
 			" to " + getHost() + " (in: " + getReadBytes() + ", out: " + getWrittenBytes() + ")";
