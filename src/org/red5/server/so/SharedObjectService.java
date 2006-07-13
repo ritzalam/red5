@@ -21,7 +21,9 @@ package org.red5.server.so;
 
 import static org.red5.server.api.so.ISharedObject.TYPE;
 
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -95,8 +97,12 @@ public class SharedObjectService
 		return getSharedObject(scope, name);
 	}
 
-	public Iterator<String> getSharedObjectNames(IScope scope) {
-		return scope.getBasicScopeNames(TYPE);
+	public Set<String> getSharedObjectNames(IScope scope) {
+		Set<String> result = new HashSet<String>();
+		Iterator<String> iter = scope.getBasicScopeNames(TYPE);
+		while (iter.hasNext())
+			result.add(iter.next());
+		return result;
 	}
 
 	public boolean hasSharedObject(IScope scope, String name) {

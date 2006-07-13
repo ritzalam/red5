@@ -19,7 +19,7 @@ package org.red5.server.api.so;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.Iterator;
+import java.util.Set;
 
 import org.red5.server.api.IScope;
 
@@ -38,7 +38,7 @@ public interface ISharedObjectService {
 	 * 			the scope to return the shared object names from
 	 * @return set containing the shared object names
 	 */
-	public Iterator<String> getSharedObjectNames(IScope scope);
+	public Set<String> getSharedObjectNames(IScope scope);
 
 	/**
 	 * Create a new shared object.

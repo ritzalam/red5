@@ -30,6 +30,8 @@ import java.util.Vector;
 
 import org.red5.server.api.IScope;
 import org.red5.server.api.ScopeUtils;
+import org.red5.server.api.so.ISharedObject;
+import org.red5.server.api.so.ISharedObjectService;
 import org.red5.server.exception.ScopeNotFoundException;
 
 /**
@@ -139,6 +141,14 @@ public class ScopeStatistics {
 			for (int i = 0; i < length; i++)
 				res.add(getXMLRPCValue(Array.get(value, i)));
 			return res;
+		} else if (value instanceof Map) {
+			Hashtable<Object, Object> res = new Hashtable<Object, Object>();
+			Iterator<Map.Entry> it = ((Map) value).entrySet().iterator();
+			while (it.hasNext()) {
+				Map.Entry entry = it.next();
+				res.put(entry.getKey(), getXMLRPCValue(entry.getValue()));
+			}
+			return res;
 		}
 		
 		throw new RuntimeException("Don't know how to convert " + value);
@@ -160,6 +170,32 @@ public class ScopeStatistics {
 				result.put(name, getXMLRPCValue(value));
 			} catch (RuntimeException err) {
 				// Could not convert attribute for XML-RPC serialization.
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * Return informations about shared objects of a given scope.
+	 * 
+	 * @param path
+	 * 			path of scope to return shared objects for
+	 * @return a mapping containing shared object name -> (persistent, data)
+	 */
+	public Map<String, Object> getSharedObjects(String path) {
+		IScope scope = getScope(path);
+		ISharedObjectService service = (ISharedObjectService) ScopeUtils.getScopeService(scope, ISharedObjectService.SHARED_OBJECT_SERVICE);
+		if (service == null)
+			return new Hashtable<String, Object>();
+		
+		Map<String, Object> result = new Hashtable<String, Object>();
+		for (String name : service.getSharedObjectNames(scope)) {
+			ISharedObject so = service.getSharedObject(scope, name);
+			try {
+				result.put(name, new Object[]{so.isPersistentObject(), getXMLRPCValue(so.getData())});
+			} catch (RuntimeException err) {
+				// Could not convert attribute for XML-RPC serialization.
+				result.put(name, "--- Error while serializing \"" + so.getData().toString() + "\" ---");
 			}
 		}
 		return result;

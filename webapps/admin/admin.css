@@ -61,21 +61,35 @@ ul {
     margin-left: 1em;
     padding-left: 0;
 }
-#scope_contents table {
+table {
     table-layout: fixed;
     border-spacing: 0;
     border-collapse: collapse;
-    width: 50em;
+    width: 100%;
     border-bottom: 1px solid #aaa;
     border-right: 1px solid #aaa;
     margin: 0;
     padding: 0;
 }
-#scope_contents table tr th {
+table tr th {
     border-top: 1px solid #aaa;
     border-left: 1px solid #aaa;
+	vertical-align: top;
 }
-#scope_contents table tr td {
+table tr th.property {
+    width: 15em;
+}
+table tr td {
     border-top: 1px solid #aaa;
     border-left: 1px solid #aaa;
+	vertical-align: top;
+}
+table tr td.property {
+    width: 15em;
+}
+div.sharedObject h4 {
+	margin-bottom: 0.5em;
+}
+dl {
+	margin: 0;
 }

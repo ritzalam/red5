@@ -28,6 +28,7 @@ function updateScope(path, id) {
         return;
     
     updateScopeAttributes(path, document.getElementById("scope_contents"));
+    updateSharedObjects(path, document.getElementById("scope_sharedobjects"));
 }
 
 /**
@@ -97,6 +98,7 @@ function updateScopeAttributes(path, container) {
             row = table.insertRow(0);
 
             th = document.createElement("th");
+            th.className = "property";
             th.appendChild(document.createTextNode("Name"));
             row.appendChild(th);
             
@@ -107,6 +109,7 @@ function updateScopeAttributes(path, container) {
         
         row = table.insertRow(idx++);
         td = row.insertCell(0);
+        td.className = "property";
         td.appendChild(document.createTextNode(name));
         
         td = row.insertCell(1);
@@ -115,6 +118,85 @@ function updateScopeAttributes(path, container) {
     
     if (container.childNodes.length == 0)
         container.appendChild(document.createTextNode("Scope has no attributes."));
+    
+    return true;
+}
+
+function outputProperty(property, container) {
+    if (isNaN(property) && property instanceof Object) {
+        dl = document.createElement("dl");
+        container.appendChild(dl);
+        for (var name in property) {
+            dt = document.createElement("dt");
+            outputProperty(name, dt);
+            dl.appendChild(dt);
+            
+            dd = document.createElement("dd");
+            dl.appendChild(dd);
+            outputProperty(property[name], dd);
+        }
+        return;
+    }
+    
+    // Basic object
+    container.appendChild(document.createTextNode(property));
+}
+
+/**
+ * Create listing of shared objects in a scope.
+ */
+function updateSharedObjects(path, container) {
+    while (container.childNodes.length > 0)
+        container.removeChild(container.firstChild);
+    
+    try {
+        var objects = server.scopes.getSharedObjects(path);
+    } catch (err) {
+        alert(err);
+        return false;
+    }
+    
+    for (var name in objects) {
+        var table = null;
+        var idx = 1;
+        sub_container = document.createElement("div");
+        sub_container.className = "sharedObject";
+        container.appendChild(sub_container);
+        h4 = document.createElement("h4");
+        info = objects[name];
+        if (info[0])
+            h4.appendChild(document.createTextNode("Persistent shared object \"" + name + "\""));
+        else
+            h4.appendChild(document.createTextNode("Non-persistent shared object \"" + name + "\""));
+        sub_container.appendChild(h4);
+        for (var property in info[1]) {
+            if (!table) {
+                table = document.createElement("table");
+                container.appendChild(table);
+                row = table.insertRow(0);
+
+                th = document.createElement("th");
+                th.className = "property";
+                th.appendChild(document.createTextNode("Property"));
+                row.appendChild(th);
+                
+                th = document.createElement("th");
+                th.appendChild(document.createTextNode("Value"));
+                row.appendChild(th);
+            }
+            
+            row = table.insertRow(idx++);
+            td = row.insertCell(0);
+            td.className = "property";
+            td.appendChild(document.createTextNode(property));
+            
+            td = row.insertCell(1);
+            outputProperty(info[1][property], td);
+        }
+    }
+    
+    if (container.childNodes.length == 0)
+        container.appendChild(document.createTextNode("Scope has no shared objects."));
     
     return true;
 }

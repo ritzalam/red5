@@ -26,8 +26,8 @@ import static org.red5.server.api.ScopeUtils.isRoom;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -256,7 +256,7 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 		return service.getSharedObject(scope, name, persistent);
 	}
 
-	public Iterator<String> getSharedObjectNames(IScope scope) {
+	public Set<String> getSharedObjectNames(IScope scope) {
 		ISharedObjectService service = (ISharedObjectService) getScopeService(scope, ISharedObjectService.SHARED_OBJECT_SERVICE, SharedObjectService.class); 
 		return service.getSharedObjectNames(scope);
 	}

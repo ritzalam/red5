@@ -12,7 +12,7 @@
 var xmlrpc = importModule('xmlrpc');
 
 // Create proxy to the Red5 statistics
-var server = new xmlrpc.ServerProxy("statistics", ["scopes.getScopes", "scopes.getScopeAttributes"]);
+var server = new xmlrpc.ServerProxy("statistics", ["scopes.getScopes", "scopes.getScopeAttributes", "scopes.getSharedObjects"]);
 -->
 </script>
 </head>
@@ -29,7 +29,10 @@ var server = new xmlrpc.ServerProxy("statistics", ["scopes.getScopes", "scopes.g
 <p>You can browse through the scopes in the server by using the menu on the left.</p>
 <div id="scope_contents">
 </div>
+<div id="scope_sharedobjects">
 </div>
+</div>
+<br />
 <div id="footer">
 Copyright &copy; 2006 <a href="http://osflash.org/red5">The Red5 Project</a>.
 </div>
