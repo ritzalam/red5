@@ -282,8 +282,10 @@ function initializeData() {
         if (path)
             path = path.substring(0, path.length-1);
         state = encodeURIComponent(path);
-    } else
+    } else {
         state = "";
+        updateScope('', 'menu_root');
+    }
     
     if (state != window.location.hash)
         window.location.hash = state;
