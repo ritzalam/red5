@@ -162,6 +162,9 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	}
 	
 	private int tempCounter = 0;
+	private long totalAudio = 0;
+	private long totalVideo = 0;
+	private int timerAdd = 0;
 	
 	public void dispatchEvent(IEvent event) {
 		if (!(event instanceof IRTMPEvent) && (event.getType() != IEvent.Type.STREAM_CONTROL) && (event.getType() != IEvent.Type.STREAM_DATA))
@@ -181,6 +184,10 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			delta = now - lastAudio;
 			lastAudio = now;
 			IEventListener source = event.getSource();
+			if (rtmpEvent.getHeader().isTimerRelative())
+				totalAudio += rtmpEvent.getTimestamp();
+			else
+				totalAudio = rtmpEvent.getTimestamp();
 		} else if (rtmpEvent instanceof VideoData) {
 			IVideoStreamCodec videoStreamCodec = null;
 			if (videoCodecFactory != null && checkVideoCodec) {
@@ -199,6 +206,10 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 				streamCodec.setHasVideo(true);
 			delta = now - lastVideo;
 			lastVideo = now;
+			if (rtmpEvent.getHeader().isTimerRelative())
+				totalVideo += rtmpEvent.getTimestamp();
+			else
+				totalVideo = rtmpEvent.getTimestamp();
 			IEventListener source = event.getSource();
 			if (sendStartNotification) {
 				// Notify handler that stream starts publishing
@@ -221,6 +232,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		delta = now - startTime;
 		startTime = now;
 		
+		//System.err.println("Input:  Audio " + totalAudio + ", Video " + totalVideo + ", Diff " + (totalAudio - totalVideo));
 		//rtmpEvent.setTimestamp((int) delta);
 		RTMPMessage msg = new RTMPMessage();
 		msg.setBody(rtmpEvent);
@@ -230,8 +242,17 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			if (rtmpEvent instanceof VideoData) {
 				// Drop 1 in every 20 disposable interframe video packets, low tech lag fix.
 				VideoData.FrameType frameType = ((VideoData) rtmpEvent).getFrameType();
-				if (frameType == VideoData.FrameType.DISPOSABLE_INTERFRAME )
+				if (frameType == VideoData.FrameType.DISPOSABLE_INTERFRAME) {
 					send = (tempCounter++ % 20) != 0;
+					timerAdd += rtmpEvent.getTimestamp();
+				}
+				
+				if (send && timerAdd > 0) {
+					// Adjust timestamp with previously skipped frame
+					// TODO: check if this increases lag again...
+					rtmpEvent.setTimestamp(rtmpEvent.getTimestamp() + timerAdd);
+					timerAdd = 0;
+				}
 			}
 			if (send)
 				livePipe.pushMessage(msg);
