@@ -58,6 +58,8 @@ public class VideoFrameDropper implements IFrameDropper {
 	private int state;
 	/** Timestamps of the dropped packets. */
 	private int droppedTimes;
+	/** Is the timestamp absolute? */
+	private boolean droppedAbsolute;
 	/** Should the timestamps of dropped packets be counted? */
 	private boolean countDroppedTimes;
 	
@@ -72,6 +74,7 @@ public class VideoFrameDropper implements IFrameDropper {
 	public void reset(int state) {
 		this.state = state;
 		droppedTimes = 0;
+		droppedAbsolute = false;
 		countDroppedTimes = (state != SEND_ALL);
 	}
 	
@@ -120,8 +123,14 @@ public class VideoFrameDropper implements IFrameDropper {
 		}
 		
 		// Store timestamp of dropped packet
-		if (!result && countDroppedTimes && type != FrameType.DISPOSABLE_INTERFRAME)
-			droppedTimes += packet.getTimestamp();
+		if (!result && countDroppedTimes && type != FrameType.DISPOSABLE_INTERFRAME) {
+			if (packet.getHeader().isTimerRelative())
+				droppedTimes += packet.getTimestamp();
+			else {
+				droppedTimes = packet.getTimestamp();
+				droppedAbsolute = true;
+			}
+		}
 		
 		return result;
 	}
@@ -135,8 +144,14 @@ public class VideoFrameDropper implements IFrameDropper {
 		FrameType type = video.getFrameType();
 		
 		// Store timestamp of dropped packet
-		if (countDroppedTimes && type != FrameType.DISPOSABLE_INTERFRAME)
-			droppedTimes += packet.getTimestamp();
+		if (countDroppedTimes && type != FrameType.DISPOSABLE_INTERFRAME) {
+			if (packet.getHeader().isTimerRelative())
+				droppedTimes += packet.getTimestamp();
+			else {
+				droppedTimes = packet.getTimestamp();
+				droppedAbsolute = true;
+			}
+		}
 		
 		switch (state) {
 		case SEND_ALL:
@@ -191,8 +206,14 @@ public class VideoFrameDropper implements IFrameDropper {
 		
 		// Modify packet to send to include dropped timestamps
 		VideoData video = (VideoData) packet;
-		log.debug("Dropped " + droppedTimes + " ms packets");
-		video.setTimestamp(video.getTimestamp() + droppedTimes);
+		if (droppedAbsolute) {
+			video.setTimestamp(droppedTimes);
+			video.getHeader().setTimerRelative(true);
+			droppedAbsolute = true;
+		} else {
+			log.debug("Dropped " + droppedTimes + " ms packets");
+			video.setTimestamp(video.getTimestamp() + droppedTimes);
+		}
 		droppedTimes = 0;
 	}
 
