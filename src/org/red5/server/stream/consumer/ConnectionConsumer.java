@@ -99,14 +99,14 @@ public class ConnectionConsumer implements IPushableConsumer,
 				VideoData videoData = new VideoData(((VideoData) msg).getData().asReadOnlyBuffer());
 				videoData.setHeader(msg.getHeader());
 				if (audioTime > 0) {
-					// TODO: adjust first video frame if we started with multiple audio frames?
-					//videoData.setTimestamp(msg.getTimestamp() + audioTime);
-					if (videoData.getTimestamp() < 0)
-						videoData.setTimestamp(0);
+					msg.setTimestamp(msg.getTimestamp() + audioTime);
+					if (msg.getTimestamp() < 0)
+						msg.setTimestamp(0);
+					videoData.getHeader().setTimer(msg.getTimestamp());
 					audioTime = 0;
 					videoReceived = true;
-				} else
-					videoData.setTimestamp(msg.getTimestamp());
+				}
+				videoData.setTimestamp(msg.getTimestamp());
 				video.write(videoData);
 				if (msg.getHeader().isTimerRelative())
 					totalVideo += msg.getTimestamp();
@@ -117,6 +117,12 @@ public class ConnectionConsumer implements IPushableConsumer,
 				AudioData audioData = new AudioData(((AudioData) msg).getData().asReadOnlyBuffer());
 				audioData.setHeader(msg.getHeader());
 				audioData.setTimestamp(msg.getTimestamp());
+				// Low-tech audio lag fix
+				if (index > 0 && index % 5 != 0 && msg.getTimestamp() > 0) {
+					audioData.setTimestamp(msg.getTimestamp() - 1);
+					msg.getHeader().setTimer(audioData.getTimestamp());
+				}
+				index++;
 				audio.write(audioData);
 				if (!videoReceived)
 					if (msg.getHeader().isTimerRelative())
@@ -143,7 +149,7 @@ public class ConnectionConsumer implements IPushableConsumer,
 				data.write(msg);
 			break;
 			}
-			System.err.println("Audio: " + totalAudio + ", Video: " + totalVideo + ", Diff: " + (totalAudio - totalVideo));
+			//System.err.println("Audio: " + totalAudio + ", Video: " + totalVideo + ", Diff: " + (totalAudio - totalVideo));
 		}
 	}
 

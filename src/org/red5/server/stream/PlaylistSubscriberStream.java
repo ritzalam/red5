@@ -525,10 +525,10 @@ implements IPlaylistSubscriberStream {
 								VideoData video = new VideoData(keyFrame);
 								try {
 									sendResetPing();
+									sendBlankAudio(0);
+									//sendBlankVideo(0);
 									sendResetStatus(item);
 									sendStartStatus(item);
-									sendBlankAudio(0);
-									sendBlankVideo(0);
 									
 									video.setTimestamp(0);
 									
@@ -575,10 +575,10 @@ implements IPlaylistSubscriberStream {
 			}
 			if (sendNotifications) {
 				sendResetPing();
+				sendBlankAudio(0);
+				//sendBlankVideo(0);
 				sendResetStatus(item);
 				sendStartStatus(item);
-				sendBlankAudio(0);
-				sendBlankVideo(0);
 			}
 			state = State.PLAYING;
 			if (decision == 1) {
@@ -778,13 +778,15 @@ implements IPlaylistSubscriberStream {
 		}
 		
 		private void sendResetPing() {
-			Ping ping1 = new Ping();
-			ping1.setValue1((short) 4);
-			ping1.setValue2(getStreamId());
-
-			RTMPMessage ping1Msg = new RTMPMessage();
-			ping1Msg.setBody(ping1);
-			msgOut.pushMessage(ping1Msg);
+			if (isPullMode) {
+				Ping ping1 = new Ping();
+				ping1.setValue1((short) 4);
+				ping1.setValue2(getStreamId());
+	
+				RTMPMessage ping1Msg = new RTMPMessage();
+				ping1Msg.setBody(ping1);
+				msgOut.pushMessage(ping1Msg);
+			}
 			
 			Ping ping2 = new Ping();
 			ping2.setValue1((short) 0);
