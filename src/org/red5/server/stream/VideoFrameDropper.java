@@ -28,7 +28,7 @@ import org.red5.server.net.rtmp.event.VideoData;
 
 /**
  * State machine for video frame dropping in live streams.
- * 
+ * <p>
  * We start sending all frame types. Disposable interframes can be dropped any
  * time without affecting the current state. If a regular interframe is dropped,
  * all future frames up to the next keyframes are dropped as well. Dropped
@@ -37,12 +37,14 @@ import org.red5.server.net.rtmp.event.VideoData;
  * iteration as well. If these frames all went through, disposable interframes
  * are sent again.
  * 
- * So from highest to lowest bandwidth and back, the states go as follows:
- * - all frames
- * - keyframes and interframes
- * - keyframes
- * - keyframes and interframes
- * - all frames
+ * <p>So from highest to lowest bandwidth and back, the states go as follows:
+ * <ul>
+ * <li>all frames</li>
+ * <li>keyframes and interframes</li>
+ * <li>keyframes</li>
+ * <li>keyframes and interframes</li>
+ * <li>all frames</li>
+ * </ul>
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
