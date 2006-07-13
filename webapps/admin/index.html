@@ -25,7 +25,7 @@ var server = new xmlrpc.ServerProxy("statistics", ["scopes.getScopes", "scopes.g
 </ul>
 </div>
 <div id="content">
-<h3>Scope informations</h3>
+<h3>Scope informations<span id="scope_name"></span></h3>
 <p>You can browse through the scopes in the server by using the menu on the left.</p>
 <div id="scope_contents">
 </div>
@@ -34,6 +34,7 @@ var server = new xmlrpc.ServerProxy("statistics", ["scopes.getScopes", "scopes.g
 </div>
 <br />
 <div id="footer">
+<div id="last_updated">Last updated: <span id="last_updated_date"></span></div>
 Copyright &copy; 2006 <a href="http://osflash.org/red5">The Red5 Project</a>.
 </div>
 </body>

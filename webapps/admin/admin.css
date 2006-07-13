@@ -43,6 +43,9 @@ h3 {
     padding: 0 0.5em;
     clear: both;
 }
+#footer #last_updated {
+	float: right;
+}
 .message {
     border: 1px solid red;
     padding: 0.5em 0.5em;

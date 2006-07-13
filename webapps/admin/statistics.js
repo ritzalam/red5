@@ -1,3 +1,6 @@
+var state = "";
+var loading = false;
+
 /**
  * Browser independent method to add events to elements.
  */
@@ -20,15 +23,34 @@ function updateScopeEvent(path, id) {
 }
 
 /**
+ * Update the "last modified" area of the page.
+ */
+function updateDate() {
+    var last_updated = document.getElementById("last_updated_date");
+    while (last_updated.childNodes.length > 0)
+        last_updated.removeChild(last_updated.firstChild);
+    last_updated.appendChild(document.createTextNode(new Date().toLocaleString()));
+}
+
+/**
  * Get informations for scope at given path and insert menu in element with given id.
  */
-function updateScope(path, id) {
+function updateScope(path, id, noUpdate) {
     var element = document.getElementById(id);
     if (!addSubScopes(path, element))
         return;
     
+    var name = document.getElementById("scope_name");
+    if (!name.firstChild)
+        name.appendChild(document.createTextNode(""));
+    name.firstChild.nodeValue = " for " + (path ? path : "root");
     updateScopeAttributes(path, document.getElementById("scope_contents"));
     updateSharedObjects(path, document.getElementById("scope_sharedobjects"));
+    if (!noUpdate && encodeURIComponent(path) != state) {
+        state = encodeURIComponent(path);
+        window.location.hash = state;
+    }
+    updateDate();
 }
 
 /**
@@ -60,7 +82,9 @@ function addSubScopes(path, element) {
     for (var i=0; i<scopes.length; i++) {
         // Create nodes for each subscope
         var name = scopes[i];
-        var id = path.replace("/", "_")+"_"+name;
+        var id = path+"_"+name;
+        while (id.indexOf("/") >= 0)
+            id = id.replace("/", "_")
         var node = document.createElement("li");
         node.appendChild(document.createTextNode(name));
         node.id = id;
@@ -122,6 +146,9 @@ function updateScopeAttributes(path, container) {
     return true;
 }
 
+/**
+ * Serializ a property that was received from Red5.
+ */
 function outputProperty(property, container) {
     if (isNaN(property) && property instanceof Object) {
         dl = document.createElement("dl");
@@ -200,3 +227,73 @@ function updateSharedObjects(path, container) {
     
     return true;
 }
+
+/**
+ * Checks for changes in the URL.
+ */
+function handleHistory() {
+    current = window.location.hash;
+    current = current.substring(1);
+    if (current && (decodeURIComponent(current) != decodeURIComponent(state))) {
+        initializeData();
+    }
+    return true;
+}
+
+/**
+ * Called periodically to reload the statistics.
+ */
+function reloadStatistics() {
+    if (loading)
+        return;
+    
+    loading = true;
+    try {
+        initializeData();
+    } finally {
+        loading = false;
+    }
+    return true;
+}
+
+/**
+ * Load statistics based on the URL.
+ */
+function initializeData() {
+    state = window.location.hash;
+    path = decodeURIComponent(state);
+    if (path != "" && path[0] == "#")
+        path = path.substring(1);
+    
+    if (path != "") {
+        var parts = path.split("/");
+        path = "";
+        id = "menu_root";
+        for (var i=0; i<parts.length; i++) {
+            subpath = parts[i];
+            if (subpath == "#")
+                subpath = "";
+            updateScope(path + subpath, id, true);
+            path += subpath + "/";
+            id = path + parts[i+1];
+            while (id.indexOf("/") >= 0)
+                id = id.replace("/", "_")
+        }
+        if (path)
+            path = path.substring(0, path.length-1);
+        state = encodeURIComponent(path);
+    } else
+        state = "";
+    
+    if (state != window.location.hash)
+        window.location.hash = state;
+
+    // Check every 500ms for changes in the URL (back / forward button)
+    window.setInterval("handleHistory()", 500);
+    updateDate();
+}
+
+/**
+ * Initialize statistics when page finished loading.
+ */
+addEvent(window, "load", initializeData);
