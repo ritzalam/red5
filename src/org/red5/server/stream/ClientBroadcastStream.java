@@ -33,7 +33,6 @@ import org.red5.server.api.event.IEventDispatcher;
 import org.red5.server.api.event.IEventListener;
 import org.red5.server.api.stream.IClientBroadcastStream;
 import org.red5.server.api.stream.IStreamAwareScopeHandler;
-import org.red5.server.api.stream.IStreamCapableConnection;
 import org.red5.server.api.stream.IStreamCodecInfo;
 import org.red5.server.api.stream.IVideoStreamCodec;
 import org.red5.server.api.stream.ResourceExistException;
@@ -77,6 +76,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	private long lastAudio;
 	private long lastVideo;
 	private long lastData;
+	private int chunkSize = 0;
 	
 	public void start() {
 		IConsumerService consumerManager =
@@ -158,7 +158,26 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	public void pushMessage(IPipe pipe, IMessage message) {
 	}
 
+	private void notifyChunkSize() {
+		if (livePipe != null) {
+			OOBControlMessage setChunkSize = new OOBControlMessage();
+			setChunkSize.setTarget("ConnectionConsumer");
+			setChunkSize.setServiceName("chunkSize");
+			if (setChunkSize.getServiceParamMap() == null)
+				setChunkSize.setServiceParamMap(new HashMap());
+			setChunkSize.getServiceParamMap().put("chunkSize", chunkSize);
+			livePipe.sendOOBControlMessage(getProvider(), setChunkSize);
+		}
+	}
+	
 	public void onOOBControlMessage(IMessageComponent source, IPipe pipe, OOBControlMessage oobCtrlMsg) {
+		if (!"ClientBroadcastStream".equals(oobCtrlMsg.getTarget()))
+			return;
+		
+		if ("chunkSize".equals(oobCtrlMsg.getServiceName())) {
+			chunkSize = (Integer) oobCtrlMsg.getServiceParamMap().get("chunkSize");
+			notifyChunkSize();
+		}
 	}
 	
 	private int tempCounter = 0;
@@ -247,12 +266,14 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 					timerAdd += rtmpEvent.getTimestamp();
 				}
 				
+				/*
 				if (send && timerAdd > 0) {
 					// Adjust timestamp with previously skipped frame
 					// TODO: check if this increases lag again...
 					rtmpEvent.setTimestamp(rtmpEvent.getTimestamp() + timerAdd);
 					timerAdd = 0;
 				}
+				*/
 			}
 			if (send)
 				livePipe.pushMessage(msg);
@@ -272,6 +293,11 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			if (this.livePipe == event.getSource()) {
 				sendStopNotify();
 				this.livePipe = null;
+			}
+			break;
+		case PipeConnectionEvent.CONSUMER_CONNECT_PUSH:
+			if (this.livePipe == event.getSource()) {
+				notifyChunkSize();
 			}
 			break;
 		default:

@@ -125,6 +125,10 @@ public abstract class RTMPConnection extends BaseConnection implements
 		channels[channelId] = null;
 	}
 
+	protected IClientStream[] getStreams() {
+		return streams;
+	}
+	
 	public int reserveStreamId() {
 		int result = -1;
 		synchronized (reservedStreams) {

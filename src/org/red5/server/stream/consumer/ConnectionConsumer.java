@@ -32,6 +32,7 @@ import org.red5.server.net.rtmp.Channel;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.RTMPMinaConnection;
 import org.red5.server.net.rtmp.event.AudioData;
+import org.red5.server.net.rtmp.event.ChunkSize;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.event.Ping;
@@ -55,6 +56,7 @@ public class ConnectionConsumer implements IPushableConsumer,
 	private int audioTime;
 	private boolean videoReceived;
 	private long index;
+	private int chunkSize = -1;
 	
 	public ConnectionConsumer(RTMPConnection conn, byte videoChannel, byte audioChannel, byte dataChannel) {
 		this.conn = conn;
@@ -150,9 +152,18 @@ public class ConnectionConsumer implements IPushableConsumer,
 	}
 
 	public void onOOBControlMessage(IMessageComponent source, IPipe pipe, OOBControlMessage oobCtrlMsg) {
-		if ("ConnectionConsumer".equals(oobCtrlMsg.getTarget()) &&
-				"pendingCount".equals(oobCtrlMsg.getServiceName())) {
+		if (!"ConnectionConsumer".equals(oobCtrlMsg.getTarget()))
+			return;
+		
+		if ("pendingCount".equals(oobCtrlMsg.getServiceName())) {
 			oobCtrlMsg.setResult(conn.getPendingMessages());
+		} else if ("chunkSize".equals(oobCtrlMsg.getServiceName())) {
+			int newSize = (Integer) oobCtrlMsg.getServiceParamMap().get("chunkSize");
+			if (newSize != chunkSize) {
+				chunkSize = newSize;
+				ChunkSize chunkSizeMsg = new ChunkSize(chunkSize);
+				conn.getChannel((byte) 2).write(chunkSizeMsg);
+			}
 		}
 	}
 

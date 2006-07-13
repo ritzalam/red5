@@ -109,9 +109,11 @@ public abstract class AbstractPipe implements IPipe {
 
 	public void sendOOBControlMessage(IProvider provider, OOBControlMessage oobCtrlMsg) {
 		IConsumer[] consumerArray = null;
-		synchronized (consumers) {
+		// XXX: synchronizing this sometimes causes deadlocks in the code that
+		//      passes the ChunkSize message to the subscribers of a stream
+		//synchronized (consumers) {
 			consumerArray = consumers.toArray(new IConsumer[]{});
-		}
+		//}
 		for (IConsumer consumer : consumerArray) {
 			try {
 				consumer.onOOBControlMessage(provider, this, oobCtrlMsg);

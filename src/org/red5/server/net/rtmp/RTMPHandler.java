@@ -21,6 +21,7 @@ package org.red5.server.net.rtmp;
 
 import static org.red5.server.api.ScopeUtils.getScopeService;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -41,11 +42,15 @@ import org.red5.server.api.service.IPendingServiceCallback;
 import org.red5.server.api.service.IServiceCall;
 import org.red5.server.api.so.ISharedObject;
 import org.red5.server.api.so.ISharedObjectService;
+import org.red5.server.api.stream.IClientBroadcastStream;
 import org.red5.server.api.stream.IClientStream;
 import org.red5.server.api.stream.IStreamService;
 import org.red5.server.exception.ClientRejectedException;
+import org.red5.server.messaging.IConsumer;
+import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.codec.RTMP;
+import org.red5.server.net.rtmp.event.ChunkSize;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.event.Invoke;
 import org.red5.server.net.rtmp.event.Notify;
@@ -61,6 +66,7 @@ import org.red5.server.net.rtmp.status.StatusObjectService;
 import org.red5.server.service.Call;
 import org.red5.server.so.SharedObjectMessage;
 import org.red5.server.so.SharedObjectService;
+import org.red5.server.stream.IBroadcastScope;
 import org.red5.server.stream.PlaylistSubscriberStream;
 import org.red5.server.stream.StreamService;
 
@@ -122,6 +128,10 @@ public class RTMPHandler
 				message.setSource(conn);
 			
 			switch (header.getDataType()){
+			case TYPE_CHUNK_SIZE:
+				onChunkSize(conn, channel, header, (ChunkSize) message);
+				break;
+				
 			case TYPE_INVOKE:
 				onInvoke(conn, channel, header, (Invoke) message);
 				break;
@@ -190,6 +200,25 @@ public class RTMPHandler
 		conn.close();
 	}
 	
+	public void onChunkSize(RTMPConnection conn, Channel channel, Header source, ChunkSize chunkSize) {
+		for (IClientStream stream: conn.getStreams()) {
+			if (stream instanceof IClientBroadcastStream) {
+				IClientBroadcastStream bs = (IClientBroadcastStream) stream;
+				IBroadcastScope scope = (IBroadcastScope) bs.getScope().getBasicScope(IBroadcastScope.TYPE, bs.getPublishedName());
+				if (scope == null)
+					continue;
+				
+				OOBControlMessage setChunkSize = new OOBControlMessage();
+				setChunkSize.setTarget("ClientBroadcastStream");
+				setChunkSize.setServiceName("chunkSize");
+				if (setChunkSize.getServiceParamMap() == null)
+					setChunkSize.setServiceParamMap(new HashMap());
+				setChunkSize.getServiceParamMap().put("chunkSize", chunkSize.getSize());
+				scope.sendOOBControlMessage((IConsumer) null, setChunkSize);
+				log.debug("Sending chunksize " + chunkSize + " to " + bs.getProvider());
+			}
+		}
+	}
 	
 	public void invokeCall(RTMPConnection conn, IServiceCall call){
 		final IScope scope = conn.getScope();

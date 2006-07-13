@@ -46,6 +46,7 @@ import org.red5.server.messaging.IMessageOutput;
 import org.red5.server.messaging.IPassive;
 import org.red5.server.messaging.IPipe;
 import org.red5.server.messaging.IPipeConnectionListener;
+import org.red5.server.messaging.IProvider;
 import org.red5.server.messaging.IPushableConsumer;
 import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.messaging.PipeConnectionEvent;
@@ -927,7 +928,10 @@ implements IPlaylistSubscriberStream {
 		}
 
 		public void onOOBControlMessage(IMessageComponent source, IPipe pipe, OOBControlMessage oobCtrlMsg) {
-			
+			if ("ConnectionConsumer".equals(oobCtrlMsg.getTarget())) {
+				if (source instanceof IProvider)
+					msgOut.sendOOBControlMessage((IProvider) source, oobCtrlMsg);
+			}
 		}
 
 		public void onPipeConnectionEvent(PipeConnectionEvent event) {

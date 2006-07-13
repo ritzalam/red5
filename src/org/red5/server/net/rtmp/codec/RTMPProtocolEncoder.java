@@ -81,6 +81,11 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants, IE
 		final IRTMPEvent message = packet.getMessage();
 		ByteBuffer data;
 		
+		if (message instanceof ChunkSize) {
+			ChunkSize chunkSizeMsg = (ChunkSize) message;
+			rtmp.setWriteChunkSize(chunkSizeMsg.getSize());
+		}
+		
 		try {
 			data = encodeMessage(header, message);
 		} finally {
