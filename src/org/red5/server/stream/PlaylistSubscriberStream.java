@@ -990,17 +990,27 @@ implements IPlaylistSubscriberStream {
 				
 				int size = ((IStreamData) body).getData().limit();
 				if (body instanceof VideoData) {
-					long pending = pendingMessages();
-					if (!videoFrameDropper.canSendPacket(body, pending)) {
-						return;
+					IVideoStreamCodec videoCodec = null;
+					if (msgIn instanceof IBroadcastScope) {
+						IClientBroadcastStream stream = (IClientBroadcastStream) ((IBroadcastScope) msgIn).getAttribute(IBroadcastScope.STREAM_ATTRIBUTE);
+						if (stream != null && stream.getCodecInfo() != null)
+							videoCodec = stream.getCodecInfo().getVideoCodec();
 					}
 					
-					if (pending > 1 || !videoBucket.acquireToken(size, 0)) {
-						videoFrameDropper.dropPacket(body);
-						return;
+					if (videoCodec == null || videoCodec.canDropFrames()) {
+						// Only check for frame dropping if the codec supports it
+						long pending = pendingMessages();
+						if (!videoFrameDropper.canSendPacket(body, pending)) {
+							return;
+						}
+						
+						if (pending > 1 || !videoBucket.acquireToken(size, 0)) {
+							videoFrameDropper.dropPacket(body);
+							return;
+						}
+	
+						videoFrameDropper.sendPacket(body);
 					}
-
-					videoFrameDropper.sendPacket(body);
 				} else if (body instanceof AudioData) {
 					if (!audioBucket.acquireToken(size, 0)) {
 						return;

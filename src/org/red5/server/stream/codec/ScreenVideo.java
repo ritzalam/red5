@@ -79,6 +79,10 @@ public class ScreenVideo implements IVideoStreamCodec {
 		return result;
 	}
 
+	public boolean canDropFrames() {
+		return false;
+	}
+	
 	/*
 	 * This uses the same algorithm as "compressBound" from zlib
 	 */

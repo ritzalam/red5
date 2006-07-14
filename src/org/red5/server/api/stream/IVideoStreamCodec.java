@@ -34,6 +34,11 @@ public interface IVideoStreamCodec {
 	public void reset();
 	
 	/**
+	 * Check if the codec supports frame dropping.
+	 */
+	public boolean canDropFrames();
+	
+	/**
 	 * Returns true if the codec knows how to handle the passed
 	 * stream data.
 	 */

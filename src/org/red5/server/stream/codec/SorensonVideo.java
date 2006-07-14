@@ -52,6 +52,10 @@ public class SorensonVideo implements IVideoStreamCodec {
 		return CODEC_NAME;
 	}
 	
+	public boolean canDropFrames() {
+		return true;
+	}
+	
 	public void reset() {
 		this.blockData = null;
 		this.blockSize = 0;
