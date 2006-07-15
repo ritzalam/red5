@@ -29,7 +29,7 @@ public class Application extends ApplicationAdapter {
 			SimpleBandwidthConfigure sbc = new SimpleBandwidthConfigure();
 			sbc.setMaxBurst(1024000);
 			sbc.setBurst(512000);
-			sbc.setOverallBandwidth(512000);
+			sbc.setOverallBandwidth(1024000);
 			streamConn.setBandwidthConfigure(sbc);
 		}
 		if (appScope == conn.getScope()) {
