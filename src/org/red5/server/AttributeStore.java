@@ -31,6 +31,7 @@ import org.red5.server.api.ICastingAttributeStore;
 public class AttributeStore implements IAttributeStore, ICastingAttributeStore {
 
 	protected Map<String,Object> attributes = new HashMap<String,Object>();
+	protected Map<String, Integer> hashes = new HashMap<String, Integer>();
 	
 	public AttributeStore() {
 		// Object is not associated with a persistence storage
@@ -60,9 +61,11 @@ public class AttributeStore implements IAttributeStore, ICastingAttributeStore {
 			return false;
 		
 		Object old = attributes.get(name);
-		if ((old == null && value != null) || !old.equals(value)) {
+		Integer newHash = (value != null ? value.hashCode() : 0);
+		if ((old == null && value != null) || !old.equals(value) || !newHash.equals(hashes.get(name))) {
 			// Attribute value changed
 			attributes.put(name,value);
+			hashes.put(name, newHash);
 			return true;
 		} else
 			return false;
@@ -70,6 +73,11 @@ public class AttributeStore implements IAttributeStore, ICastingAttributeStore {
 
 	synchronized public void setAttributes(Map<String,Object> values) {
 		attributes.putAll(values);
+		hashes.clear();
+		for (Map.Entry<String, Object> entry: attributes.entrySet()) {
+			Object value = entry.getValue();
+			hashes.put(entry.getKey(), value != null ? value.hashCode() : 0);
+		}
 	}
 	
 	synchronized public void setAttributes(IAttributeStore values) {
@@ -87,11 +95,13 @@ public class AttributeStore implements IAttributeStore, ICastingAttributeStore {
 		
 		boolean result = hasAttribute(name);
 		attributes.remove(name);
+		hashes.remove(name);
 		return result;
 	}
 	
 	synchronized public void removeAttributes() {
 		attributes.clear();
+		hashes.clear();
 	}	
 
 	public Boolean getBoolAttribute(String name) {
