@@ -14,7 +14,6 @@ install:
 	install dist/red5.jar $(DESTINATION)
 	install -m 755 dist/red5.sh $(DESTINATION)
 	cp -r dist/conf $(DESTINATION)
-	cp -r dist/hosts $(DESTINATION)
 	cp -r dist/lib $(DESTINATION)
 	cp -r dist/webapps $(DESTINATION)
 
