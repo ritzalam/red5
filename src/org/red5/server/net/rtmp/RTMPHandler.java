@@ -46,6 +46,7 @@ import org.red5.server.api.stream.IClientBroadcastStream;
 import org.red5.server.api.stream.IClientStream;
 import org.red5.server.api.stream.IStreamService;
 import org.red5.server.exception.ClientRejectedException;
+import org.red5.server.exception.ScopeNotFoundException;
 import org.red5.server.messaging.IConsumer;
 import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.net.protocol.ProtocolState;
@@ -325,39 +326,50 @@ public class RTMPHandler
 							conn.close();
 						} else {
 							final IContext context = global.getContext();
-							final IScope scope = context.resolveScope(path);
-							log.info("Connecting to: "+scope);
-							boolean okayToConnect;
+							IScope scope = null;
 							try {
-								if (call.getArguments() != null)
-									okayToConnect = conn.connect(scope, call.getArguments());
-								else
-									okayToConnect = conn.connect(scope);
-								if (okayToConnect){
-									log.debug("connected");
-									log.debug("client: "+conn.getClient());
-									call.setStatus(Call.STATUS_SUCCESS_RESULT);
-									if (call instanceof IPendingServiceCall)
-										((IPendingServiceCall) call).setResult(getStatus(NC_CONNECT_SUCCESS));
-									// Measure initial roundtrip time after connecting
-									conn.getChannel((byte) 2).write(new Ping((short)0,0,-1)); 
-									conn.ping();
-								} else {
-									log.debug("connect failed");
+								scope = context.resolveScope(path);
+							} catch (ScopeNotFoundException err) {
+								call.setStatus(Call.STATUS_SERVICE_NOT_FOUND);
+								if (call instanceof IPendingServiceCall)
+									((IPendingServiceCall) call).setResult(getStatus(NC_CONNECT_FAILED));
+								log.info("Scope " + path + " not found on " + host);
+								disconnectOnReturn = true;
+							}
+							if (scope != null) {
+								log.info("Connecting to: "+scope);
+								boolean okayToConnect;
+								try {
+									if (call.getArguments() != null)
+										okayToConnect = conn.connect(scope, call.getArguments());
+									else
+										okayToConnect = conn.connect(scope);
+									if (okayToConnect){
+										log.debug("connected");
+										log.debug("client: "+conn.getClient());
+										call.setStatus(Call.STATUS_SUCCESS_RESULT);
+										if (call instanceof IPendingServiceCall)
+											((IPendingServiceCall) call).setResult(getStatus(NC_CONNECT_SUCCESS));
+										// Measure initial roundtrip time after connecting
+										conn.getChannel((byte) 2).write(new Ping((short)0,0,-1)); 
+										conn.ping();
+									} else {
+										log.debug("connect failed");
+										call.setStatus(Call.STATUS_ACCESS_DENIED);
+										if (call instanceof IPendingServiceCall)
+											((IPendingServiceCall) call).setResult(getStatus(NC_CONNECT_REJECTED));
+										disconnectOnReturn = true;
+									}
+								} catch (ClientRejectedException rejected) {
+									log.debug("connect rejected");
 									call.setStatus(Call.STATUS_ACCESS_DENIED);
-									if (call instanceof IPendingServiceCall)
-										((IPendingServiceCall) call).setResult(getStatus(NC_CONNECT_REJECTED));
+									if (call instanceof IPendingServiceCall) {
+										StatusObject status = (StatusObject) getStatus(NC_CONNECT_REJECTED);
+										status.setApplication(rejected.getReason());
+										((IPendingServiceCall) call).setResult(status);
+									}
 									disconnectOnReturn = true;
 								}
-							} catch (ClientRejectedException rejected) {
-								log.debug("connect rejected");
-								call.setStatus(Call.STATUS_ACCESS_DENIED);
-								if (call instanceof IPendingServiceCall) {
-									StatusObject status = (StatusObject) getStatus(NC_CONNECT_REJECTED);
-									status.setApplication(rejected.getReason());
-									((IPendingServiceCall) call).setResult(status);
-								}
-								disconnectOnReturn = true;
 							}
 						}
 					} catch (RuntimeException e) {
