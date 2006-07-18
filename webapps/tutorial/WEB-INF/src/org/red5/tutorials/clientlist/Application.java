@@ -26,6 +26,7 @@ import org.red5.samples.components.ClientManager;
 import org.red5.server.adapter.ApplicationAdapter;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
+import org.red5.server.api.service.ServiceUtils;
 
 /**
  * Sample application that uses the client manager.
@@ -41,9 +42,6 @@ public class Application extends ApplicationAdapter {
 	/** Manager for the clients. */
 	private ClientManager clientMgr = new ClientManager("clientlist", false);
 	
-	/** Name of the connection attribute that stores the username. */
-	private final static String USERNAME = "username"; 
-	
 	@Override
 	public boolean connect(IConnection conn, IScope scope, Object[] params) {
 		// Check if the user passed valid parameters.
@@ -58,21 +56,25 @@ public class Application extends ApplicationAdapter {
 			return false;
 		
 		String username = params[0].toString();
-		log.debug("Client \"" + username + "\" connected.");
+		String uid = conn.getClient().getId();
+		log.debug("Client \"" + username + "\" (" + uid + ") connected.");
 		// Register the user in the shared object.
-		clientMgr.addClient(scope, username);
-		// Store the username for later use.
-		conn.setAttribute(USERNAME, username);
+		clientMgr.addClient(scope, username, uid);
+		// Notify client about unique id.
+		ServiceUtils.invokeOnConnection(conn, "setClientID", new Object[]{uid});
 		return true;
 	}
 	
 	@Override
 	public void disconnect(IConnection conn, IScope scope) {
 		// Get the previously stored username.
-		String username = conn.getStringAttribute(USERNAME);
-		log.debug("Client \"" + username + "\" disconnected.");
+		String uid = conn.getClient().getId();
 		// Unregister user.
-		clientMgr.removeClient(scope, username);
+		String username = clientMgr.removeClient(scope, uid);
+		if (username != null)
+			log.debug("Client \"" + username + "\" (" + uid + ") disconnected.");
+		else
+			log.debug("Client (" + uid + ") disconnected.");
 		// Call original method of parent class.
 		super.disconnect(conn, scope);
 	}

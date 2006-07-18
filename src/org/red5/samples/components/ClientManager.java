@@ -19,8 +19,8 @@ package org.red5.samples.components;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.red5.server.api.IScope;
 import org.red5.server.api.ScopeUtils;
@@ -77,41 +77,46 @@ public class ClientManager {
 	 * 			scope the client connected to 
 	 * @param username
 	 * 			name of the user that connected
+	 * @param uid
+	 * 			the unique id of the user that connected
 	 */
 	@SuppressWarnings("unchecked")
-	public void addClient(IScope scope, String username) {
+	public void addClient(IScope scope, String username, String uid) {
 		ISharedObject so = getSharedObject(scope);
 		so.beginUpdate();
-		List<String> clientNames = (List<String>) so.getAttribute(CLIENT_NAMES, new ArrayList<String>());
-		clientNames.add(username);
+		Map<String, String> clientNames = (Map<String, String>) so.getAttribute(CLIENT_NAMES, new HashMap<String, String>());
+		clientNames.put(uid, username);
 		so.setAttribute(CLIENT_NAMES, clientNames);
 		so.endUpdate();
 	}
-
+	
 	/**
 	 * A client disconnected. This removes the username from
 	 * the shared object of the passed scope.
 	 * 
 	 * @param scope
 	 * 			scope the client disconnected from
-	 * @param username
-	 * 			name of the user that disconnected
+	 * @param uid
+	 * 			unique id of the user that disconnected
+	 * @return the username of the disconnected user
 	 */
 	@SuppressWarnings("unchecked")
-	public void removeClient(IScope scope, String username) {
+	public String removeClient(IScope scope, String uid) {
 		ISharedObject so = getSharedObject(scope);
 		if (!so.hasAttribute(CLIENT_NAMES))
-			// SharedObject is empty, this shouldn't happen.
-			return;
+			// SharedObject is empty.  This happes when the last client disconnects.
+			return null;
 		
+		String username = null;
 		so.beginUpdate();
-		List<String> clientNames = (List<String>) so.getAttribute(CLIENT_NAMES);
-		if (clientNames.contains(username)) {
+		Map<String, String> clientNames = (Map<String, String>) so.getAttribute(CLIENT_NAMES);
+		if (clientNames.containsKey(uid)) {
 			// Remove client and update SO.
-			clientNames.remove(username);
+			username = clientNames.remove(uid);
 			so.setAttribute(CLIENT_NAMES, clientNames);
 		}
 		so.endUpdate();
+		return username;
 	}
 	
 }
