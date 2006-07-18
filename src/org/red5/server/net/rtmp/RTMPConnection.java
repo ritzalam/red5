@@ -167,18 +167,20 @@ public abstract class RTMPConnection extends BaseConnection implements
 			// StreamId has not been reserved before
 			return null;
 
-		if (streams[streamId - 1] != null)
-			// Another stream already exists with this id
-			return null;
-
-		ClientBroadcastStream cbs = new ClientBroadcastStream();
-		cbs.setStreamId(streamId);
-		cbs.setConnection(this);
-		cbs.setName(createStreamName());
-		cbs.setScope(this.getScope());
-
-		streams[streamId - 1] = cbs;
-		return cbs;
+		synchronized (streams) {
+			if (streams[streamId - 1] != null)
+				// Another stream already exists with this id
+				return null;
+	
+			ClientBroadcastStream cbs = new ClientBroadcastStream();
+			cbs.setStreamId(streamId);
+			cbs.setConnection(this);
+			cbs.setName(createStreamName());
+			cbs.setScope(this.getScope());
+	
+			streams[streamId - 1] = cbs;
+			return cbs;
+		}
 	}
 
 	public ISingleItemSubscriberStream newSingleItemSubscriberStream(
@@ -192,17 +194,19 @@ public abstract class RTMPConnection extends BaseConnection implements
 			// StreamId has not been reserved before
 			return null;
 
-		if (streams[streamId - 1] != null)
-			// Another stream already exists with this id
-			return null;
-
-		PlaylistSubscriberStream pss = new PlaylistSubscriberStream();
-		pss.setName(createStreamName());
-		pss.setConnection(this);
-		pss.setScope(this.getScope());
-		pss.setStreamId(streamId);
-		streams[streamId - 1] = pss;
-		return pss;
+		synchronized (streams) {
+			if (streams[streamId - 1] != null)
+				// Another stream already exists with this id
+				return null;
+	
+			PlaylistSubscriberStream pss = new PlaylistSubscriberStream();
+			pss.setName(createStreamName());
+			pss.setConnection(this);
+			pss.setScope(this.getScope());
+			pss.setStreamId(streamId);
+			streams[streamId - 1] = pss;
+			return pss;
+		}
 	}
 
 	public IClientStream getStreamById(int id) {
