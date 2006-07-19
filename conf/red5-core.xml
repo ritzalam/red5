@@ -19,9 +19,18 @@
 	    <property name="location" value="classpath:/red5.properties" />
 	</bean>
 	
-   <bean id="filterChainBuilder" 
-         class="org.apache.mina.integration.spring.DefaultIoFilterChainBuilderFactoryBean">
-   </bean>
+	<bean id="filterChainBuilder" 
+        class="org.apache.mina.integration.spring.DefaultIoFilterChainBuilderFactoryBean">
+	  <property name="filters">
+	    <list>
+	      <bean class="org.apache.mina.filter.ThreadPoolFilter">
+	        <!-- Threads will be named IoWorker-1, IoWorker-2, etc -->
+	        <constructor-arg value="IoWorker"/>
+	        <property name="maximumPoolSize" value="128"/>
+	      </bean>
+	    </list>
+	  </property>
+	</bean>
 	
 	<bean id="socketAcceptor" class="org.apache.mina.integration.spring.IoAcceptorFactoryBean">
      <property name="target">
