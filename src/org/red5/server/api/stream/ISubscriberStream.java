@@ -47,4 +47,10 @@ public interface ISubscriberStream extends IClientStream {
 	 * @param position Position for seek in millisecond.
 	 */
 	void seek(int position);
+	
+	/**
+	 * Check if the stream is currently paused.
+	 * @return
+	 */
+	boolean isPaused();
 }

@@ -80,6 +80,11 @@ public class StreamService implements IStreamService {
 	}
 
 	public void pause(boolean pausePlayback, int position) {
+		pause(new Boolean(pausePlayback), position);
+	}
+
+	// Required as "pausePlayback" can be "null" if no flag is passed by the client
+	public void pause(Boolean pausePlayback, int position) {
 		IConnection conn = Red5.getConnectionLocal();
 		if (!(conn instanceof IStreamCapableConnection)) return;
 		IStreamCapableConnection streamConn = (IStreamCapableConnection) conn;
@@ -87,10 +92,18 @@ public class StreamService implements IStreamService {
 		IClientStream stream = streamConn.getStreamById(streamId);
 		if (stream == null || !(stream instanceof ISubscriberStream)) return;
 		ISubscriberStream subscriberStream = (ISubscriberStream) stream;
-		if (pausePlayback) {
-			subscriberStream.pause(position);
+		if (pausePlayback instanceof Boolean) {
+			if ((Boolean) pausePlayback) {
+				subscriberStream.pause(position);
+			} else {
+				subscriberStream.resume(position);
+			}
 		} else {
-			subscriberStream.resume(position);
+			if (!subscriberStream.isPaused()) {
+				subscriberStream.pause(position);
+			} else {
+				subscriberStream.resume(position);
+			}
 		}
 	}
 	

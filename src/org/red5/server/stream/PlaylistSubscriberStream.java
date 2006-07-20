@@ -155,6 +155,10 @@ implements IPlaylistSubscriberStream {
 		notifySubscriberClose();
 	}
 
+	public boolean isPaused() {
+		return (engine.state == State.PAUSED);
+	}
+	
 	public void addItem(IPlayItem item) {
 		synchronized (items) {
 			items.add(item);
