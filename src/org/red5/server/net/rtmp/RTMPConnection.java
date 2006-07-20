@@ -256,12 +256,18 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	public void unreserveStreamId(int streamId) {
+		deleteStreamById(streamId);
 		if (streamId > 0 && streamId <= MAX_STREAMS) {
-			streams[streamId - 1] = null;
 			reservedStreams[streamId - 1] = false;
 		}
 	}
 
+	public void deleteStreamById(int streamId) {
+		if (streamId > 0 && streamId <= MAX_STREAMS) {
+			streams[streamId - 1] = null;
+		}
+	}
+	
 	public void ping(Ping ping) {
 		getChannel((byte) 2).write(ping);
 	}

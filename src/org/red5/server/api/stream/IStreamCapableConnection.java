@@ -44,6 +44,13 @@ public interface IStreamCapableConnection extends IConnection, IFlowControllable
 	void unreserveStreamId(int streamId);
 	
 	/**
+	 * Deletes the stream with the given id.
+	 * 
+	 * @param streamId
+	 */
+	void deleteStreamById(int streamId);
+	
+	/**
 	 * Get a stream by its id.
 	 * @param streamId
 	 * @return

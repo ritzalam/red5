@@ -58,6 +58,7 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	private int audioTimestamp;
 	private int videoTimestamp;
 	private int dataTimestamp;
+	private int timestampDelta = 0;
 
 	public FileConsumer(IScope scope, File file) {
 		this.scope = scope;
@@ -73,6 +74,7 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 			} catch (Exception e) {
 				log.error("error init file consumer", e);
 			}
+			timestampDelta = ((RTMPMessage) message).getBody().getTimestamp();
 		}
 		RTMPMessage rtmpMsg = (RTMPMessage) message;
 		final IRTMPEvent msg = rtmpMsg.getBody();
@@ -86,7 +88,7 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 				} else {
 					videoTimestamp = msg.getTimestamp();
 				}
-				tag.setTimestamp(videoTimestamp);
+				tag.setTimestamp(videoTimestamp - timestampDelta);
 				break;
 			
 			case TYPE_AUDIO_DATA:
@@ -95,7 +97,7 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 				} else {
 					audioTimestamp = msg.getTimestamp();
 				}
-				tag.setTimestamp(audioTimestamp);
+				tag.setTimestamp(audioTimestamp - timestampDelta);
 				break;
 				
 			default:
@@ -104,7 +106,7 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 				} else {
 					dataTimestamp = msg.getTimestamp();
 				}
-				tag.setTimestamp(dataTimestamp);
+				tag.setTimestamp(dataTimestamp - timestampDelta);
 		}
 		
 		if (msg instanceof IStreamData) {

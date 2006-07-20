@@ -42,7 +42,14 @@ public class StreamService implements IStreamService {
 		IConnection conn = Red5.getConnectionLocal();
 		if (!(conn instanceof IStreamCapableConnection)) return;
 		IClientStream stream = ((IStreamCapableConnection) conn).getStreamById(getCurrentStreamId());
+		if (stream instanceof IClientBroadcastStream) {
+			IClientBroadcastStream bs = (IClientBroadcastStream) stream;
+			IBroadcastScope bsScope = getBroadcastScope(conn.getScope(), bs.getPublishedName());
+			if (bsScope != null && conn instanceof BaseConnection)
+				((BaseConnection) conn).unregisterBasicScope(bsScope);
+		}
 		stream.close();
+		((IStreamCapableConnection) conn).deleteStreamById(getCurrentStreamId());
 	}
 
 	public int createStream() {
@@ -60,16 +67,16 @@ public class StreamService implements IStreamService {
 	
 	public void deleteStream(IStreamCapableConnection conn, int streamId) {
 		IClientStream stream = conn.getStreamById(streamId);
-		conn.unreserveStreamId(streamId);
 		if (stream != null) {
-			stream.close();
 			if (stream instanceof IClientBroadcastStream) {
 				IClientBroadcastStream bs = (IClientBroadcastStream) stream;
 				IBroadcastScope bsScope = getBroadcastScope(conn.getScope(), bs.getPublishedName());
 				if (bsScope != null && conn instanceof BaseConnection)
 					((BaseConnection) conn).unregisterBasicScope(bsScope);
 			}
+			stream.close();
 		}
+		conn.unreserveStreamId(streamId);
 	}
 
 	public void pause(boolean pausePlayback, int position) {
@@ -156,6 +163,7 @@ public class StreamService implements IStreamService {
 					((BaseConnection) conn).unregisterBasicScope(bsScope);
 			}
 			bs.close();
+			streamConn.deleteStreamById(streamId);
 		}
 	}
 
@@ -166,12 +174,9 @@ public class StreamService implements IStreamService {
 		int streamId = getCurrentStreamId();
 		IClientStream stream = streamConn.getStreamById(streamId);
 		if (stream != null && !(stream instanceof IClientBroadcastStream)) return;
-		if (stream == null) {
+		if (stream == null)
 			stream = streamConn.newBroadcastStream(streamId);
-		} else {
-			// already published
-			return;
-		}
+		
 		IClientBroadcastStream bs = (IClientBroadcastStream) stream;
 		try {
 			if (IClientStream.MODE_RECORD.equals(mode)) {
