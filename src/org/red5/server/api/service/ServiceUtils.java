@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
 import org.red5.server.api.Red5;
@@ -159,10 +160,47 @@ public class ServiceUtils {
 	 * 			object to notify when result is received
 	 */
 	public static void invokeOnAllConnections(IScope scope, String method, Object[] params, IPendingServiceCallback callback) {
+		invokeOnClient(null, scope, method, params, callback);
+	}
+	
+	/**
+	 * Invoke a method on all connections of a client to a given scope.
+	 *  
+	 * @param client
+	 * 			client to get connections for
+	 * @param scope
+	 * 			scope to get connections of the client from
+	 * @param method
+	 * 			name of the method to invoke
+	 * @param params
+	 * 			parameters to pass to the method
+	 */
+	public static void invokeOnClient(IClient client, IScope scope, String method, Object[] params) {
+		invokeOnClient(client, scope, method, params, null);
+	}
+
+	/**
+	 * Invoke a method on all connections of a client to a given scope and handle result.
+	 * 
+	 * @param client
+	 * 			client to get connections for
+	 * @param scope
+	 * 			scope to get connections of the client from
+	 * @param method
+	 * 			name of the method to invoke
+	 * @param params
+	 * 			parameters to pass to the method
+	 * @param callback
+	 * 			object to notify when result is received
+	 */
+	public static void invokeOnClient(IClient client, IScope scope, String method, Object[] params, IPendingServiceCallback callback) {
 		List<IConnection> connections = new ArrayList<IConnection>();
 		Iterator<IConnection> iter = scope.getConnections();
-		while (iter.hasNext())
-			connections.add(iter.next());
+		while (iter.hasNext()) {
+			IConnection conn = iter.next();
+			if (client == null || conn.getClient().equals(client))
+				connections.add(conn);
+		}
 		
 		if (callback == null)
 			for (IConnection conn: connections)
@@ -171,4 +209,5 @@ public class ServiceUtils {
 			for (IConnection conn: connections)
 				invokeOnConnection(conn, method, params, callback);
 	}
+
 }
