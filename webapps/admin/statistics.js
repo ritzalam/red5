@@ -137,7 +137,7 @@ function updateScopeAttributes(path, container) {
         td.appendChild(document.createTextNode(name));
         
         td = row.insertCell(1);
-        td.appendChild(document.createTextNode(attributes[name]));
+        outputProperty(attributes[name], td);
     }
     
     if (container.childNodes.length == 0)
