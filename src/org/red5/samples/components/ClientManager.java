@@ -19,9 +19,6 @@ package org.red5.samples.components;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.red5.server.api.IScope;
 import org.red5.server.api.ScopeUtils;
 import org.red5.server.api.so.ISharedObject;
@@ -34,9 +31,6 @@ import org.red5.server.api.so.ISharedObjectService;
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public class ClientManager {
-
-	/** Name of the shared object attribute that keeps the list of client names. */
-	private static String CLIENT_NAMES = "clients";
 	
 	/** Stores the name of the SharedObject to use. */
 	private String name;
@@ -83,11 +77,7 @@ public class ClientManager {
 	@SuppressWarnings("unchecked")
 	public void addClient(IScope scope, String username, String uid) {
 		ISharedObject so = getSharedObject(scope);
-		so.beginUpdate();
-		Map<String, String> clientNames = (Map<String, String>) so.getAttribute(CLIENT_NAMES, new HashMap<String, String>());
-		clientNames.put(uid, username);
-		so.setAttribute(CLIENT_NAMES, clientNames);
-		so.endUpdate();
+		so.setAttribute(uid, username);
 	}
 	
 	/**
@@ -103,19 +93,12 @@ public class ClientManager {
 	@SuppressWarnings("unchecked")
 	public String removeClient(IScope scope, String uid) {
 		ISharedObject so = getSharedObject(scope);
-		if (!so.hasAttribute(CLIENT_NAMES))
+		if (!so.hasAttribute(uid))
 			// SharedObject is empty.  This happes when the last client disconnects.
 			return null;
 		
-		String username = null;
-		so.beginUpdate();
-		Map<String, String> clientNames = (Map<String, String>) so.getAttribute(CLIENT_NAMES);
-		if (clientNames.containsKey(uid)) {
-			// Remove client and update SO.
-			username = clientNames.remove(uid);
-			so.setAttribute(CLIENT_NAMES, clientNames);
-		}
-		so.endUpdate();
+		String username = so.getStringAttribute(uid);
+		so.removeAttribute(uid);
 		return username;
 	}
 	
