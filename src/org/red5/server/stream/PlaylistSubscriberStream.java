@@ -629,10 +629,13 @@ implements IPlaylistSubscriberStream {
 				sendResetPing();
 				sendSeekStatus(currentItem, position);
 				sendStartStatus(currentItem);
-				sendBlankAudio(position);
-				sendBlankVideo(position);
-				sendVODSeekCM(msgIn, position);
-				notifyItemSeek(currentItem, position);
+				int seekPos = sendVODSeekCM(msgIn, position);
+				// We seeked to the nearest keyframe so use real timestamp now 
+				if (seekPos == -1)
+					seekPos = position;
+				sendBlankAudio(seekPos);
+				sendBlankVideo(seekPos);
+				notifyItemSeek(currentItem, seekPos);
 			}
 		}
 		
@@ -923,7 +926,7 @@ implements IPlaylistSubscriberStream {
 			msgIn.sendOOBControlMessage(this, oobCtrlMsg);
 		}
 		
-		private void sendVODSeekCM(IMessageInput msgIn, int position) {
+		private int sendVODSeekCM(IMessageInput msgIn, int position) {
 			OOBControlMessage oobCtrlMsg = new OOBControlMessage();
 			oobCtrlMsg.setTarget(ISeekableProvider.KEY);
 			oobCtrlMsg.setServiceName("seek");
@@ -931,6 +934,10 @@ implements IPlaylistSubscriberStream {
 			paramMap.put("position", new Integer(position));
 			oobCtrlMsg.setServiceParamMap(paramMap);
 			msgIn.sendOOBControlMessage(this, oobCtrlMsg);
+			if (oobCtrlMsg.getResult() instanceof Integer)
+				return (Integer) oobCtrlMsg.getResult();
+			else
+				return -1;
 		}
 
 		public void onOOBControlMessage(IMessageComponent source, IPipe pipe, OOBControlMessage oobCtrlMsg) {

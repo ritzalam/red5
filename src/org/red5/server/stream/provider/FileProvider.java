@@ -196,7 +196,9 @@ implements IPassive, ISeekableProvider, IPullableProvider, IPipeConnectionListen
 		if (ISeekableProvider.KEY.equals(oobCtrlMsg.getTarget())) {
 			if (oobCtrlMsg.getServiceName().equals("seek")) {
 				Integer position = (Integer) oobCtrlMsg.getServiceParamMap().get("position");
-				seek(position.intValue());
+				int seekPos = seek(position.intValue());
+				// Return position we seeked to
+				oobCtrlMsg.setResult(seekPos);
 				useAbsoluteTimestamp();
 			}
 		}
