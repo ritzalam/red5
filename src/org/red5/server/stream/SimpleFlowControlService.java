@@ -36,16 +36,16 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
 /**
- * An implementation of IFlowControlService.
- * TODO fairly distribute tokens across child nodes and elegantly
- * order the IFlowControllables for scheduling (give priority to buckets
+ * A simple implementation of IFlowControlService.
+ * No fairly distribute tokens across child nodes and no elegantly
+ * order the IFlowControllables for scheduling (won't give priority to buckets
  * that have threads waiting).
  * @author The Red5 Project (red5@osflash.org)
  * @author Steven Gong (steven.gong@gmail.com)
  */
-public class FlowControlService extends TimerTask
+public class SimpleFlowControlService extends TimerTask
 implements IFlowControlService, ApplicationContextAware {
-	private static final Log log = LogFactory.getLog(FlowControlService.class);
+	private static final Log log = LogFactory.getLog(SimpleFlowControlService.class);
 	
 	private long interval = 10;
 	private long defaultCapacity = 1024 * 100;
