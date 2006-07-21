@@ -56,7 +56,6 @@ public class ConnectionConsumer implements IPushableConsumer,
 	private Channel data;
 	private int audioTime;
 	private boolean videoReceived;
-	private long index;
 	private int chunkSize = -1;
 	
 	public ConnectionConsumer(RTMPConnection conn, byte videoChannel, byte audioChannel, byte dataChannel) {
@@ -66,7 +65,6 @@ public class ConnectionConsumer implements IPushableConsumer,
 		this.data = conn.getChannel(dataChannel);
 		this.audioTime = 0;
 		this.videoReceived = false;
-		this.index = 0;
 	}
 
 	private long totalAudio = 0;
@@ -118,15 +116,6 @@ public class ConnectionConsumer implements IPushableConsumer,
 				AudioData audioData = new AudioData(((AudioData) msg).getData().asReadOnlyBuffer());
 				audioData.setHeader(msg.getHeader());
 				audioData.setTimestamp(msg.getTimestamp());
-				// Low-tech audio lag fix
-				// XXX: This can only applied for live streams otherwise audio in VOD streams is delayed
-				/*
-				if (index > 0 && index % 5 != 0 && msg.getTimestamp() > 0) {
-					audioData.setTimestamp(msg.getTimestamp() - 1);
-					msg.getHeader().setTimer(audioData.getTimestamp());
-				}
-				*/
-				index++;
 				audio.write(audioData);
 				if (!videoReceived)
 					if (msg.getHeader().isTimerRelative())

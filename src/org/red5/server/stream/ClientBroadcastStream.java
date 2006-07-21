@@ -180,7 +180,8 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		}
 	}
 	
-	private int tempCounter = 0;
+	private int videoCounter = 0;
+	private int audioCounter = 0;
 	private long totalAudio = 0;
 	private long totalVideo = 0;
 	private int timerAdd = 0;
@@ -262,7 +263,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 				// Drop 1 in every 20 disposable interframe video packets, low tech lag fix.
 				VideoData.FrameType frameType = ((VideoData) rtmpEvent).getFrameType();
 				if (frameType == VideoData.FrameType.DISPOSABLE_INTERFRAME) {
-					send = (tempCounter++ % 20) != 0;
+					send = (videoCounter++ % 20) != 0;
 					timerAdd += rtmpEvent.getTimestamp();
 				}
 				
@@ -274,6 +275,12 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 					timerAdd = 0;
 				}
 				*/
+			} else if (rtmpEvent instanceof AudioData) {
+				// Low-tech audio lag fix, decrement timestamp by 1 in 4 of 5 audio packets
+				if (audioCounter > 0 && audioCounter % 5 != 0 && rtmpEvent.getTimestamp() > 0) {
+					rtmpEvent.setTimestamp(rtmpEvent.getTimestamp() - 1);
+				}
+				audioCounter++;
 			}
 			if (send)
 				livePipe.pushMessage(msg);
