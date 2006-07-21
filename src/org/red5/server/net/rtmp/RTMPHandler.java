@@ -185,7 +185,7 @@ public class RTMPHandler
 		}
 		
 		// Increase number of sent messages
-		conn.messageSent();
+		conn.messageSent((Packet) message);
 		
 		Packet sent = (Packet) message;
 		final byte channelId = sent.getHeader().getChannelId();
@@ -384,9 +384,13 @@ public class RTMPHandler
 				conn.close();
 			} else if (action.equals(ACTION_CREATE_STREAM) || action.equals(ACTION_DELETE_STREAM) ||
 					   action.equals(ACTION_PUBLISH) || action.equals(ACTION_PLAY) || action.equals(ACTION_SEEK) ||
-					   action.equals(ACTION_PAUSE) || action.equals(ACTION_CLOSE_STREAM)) {
+					   action.equals(ACTION_PAUSE) || action.equals(ACTION_CLOSE_STREAM) ||
+					   action.equals(ACTION_RECEIVE_VIDEO) || action.equals(ACTION_RECEIVE_AUDIO)) {
 				IStreamService streamService = (IStreamService) getScopeService(conn.getScope(), IStreamService.STREAM_SERVICE, StreamService.class);
 				invokeCall(conn, call, streamService);
+			} else if (source.getStreamId() != 0) {
+				IStreamService streamService = (IStreamService) getScopeService(conn.getScope(), IStreamService.STREAM_SERVICE, StreamService.class);
+				streamService.send(call);
 			} else {
 				invokeCall(conn, call);
 			}

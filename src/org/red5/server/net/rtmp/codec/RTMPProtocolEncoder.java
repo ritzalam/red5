@@ -368,8 +368,10 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants, IE
 					call.getServiceMethodName() : call.getServiceName() + "." + call.getServiceMethodName();
 			serializer.serialize(output, action); // seems right
 		}
-		serializer.serialize(output, new Integer(invoke.getInvokeId())); 
-		serializer.serialize(output, null);
+		if (invoke instanceof Invoke) {
+			serializer.serialize(output, new Integer(invoke.getInvokeId())); 
+			serializer.serialize(output, null);
+		}
 		if (!isPending && (invoke instanceof Invoke)){
 			IPendingServiceCall pendingCall = (IPendingServiceCall) call;
 			if(log.isDebugEnabled())

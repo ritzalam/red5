@@ -33,6 +33,7 @@ import org.red5.server.api.IScope;
 import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.api.stream.IClientBroadcastStream;
+import org.red5.server.api.stream.IClientStream;
 import org.red5.server.api.stream.IPlayItem;
 import org.red5.server.api.stream.IPlaylistController;
 import org.red5.server.api.stream.IPlaylistSubscriberStream;
@@ -84,6 +85,9 @@ implements IPlaylistSubscriberStream {
 	private boolean isRewind = false;
 	private boolean isRandom = false;
 	private boolean isRepeat = false;
+	
+	private boolean receiveVideo = true;
+	private boolean receiveAudio = true;
 	
 	public PlaylistSubscriberStream() {
 		defaultController = new SimplePlaylistController();
@@ -286,6 +290,14 @@ implements IPlaylistSubscriberStream {
 
 	public void setRepeat(boolean repeat) {
 		isRepeat = repeat;
+	}
+
+	public void receiveVideo(boolean receive) {
+		receiveVideo = receive;
+	}
+	
+	public void receiveAudio(boolean receive) {
+		receiveAudio = receive;
 	}
 
 	public void setPlaylistController(IPlaylistController controller) {
@@ -1010,12 +1022,14 @@ implements IPlaylistSubscriberStream {
 					
 					if (videoCodec == null || videoCodec.canDropFrames()) {
 						// Only check for frame dropping if the codec supports it
-						long pending = pendingMessages();
-						if (!videoFrameDropper.canSendPacket(body, pending)) {
+						long pendingVideos = pendingVideoMessages();
+						if (!videoFrameDropper.canSendPacket(body, pendingVideos)) {
+							//System.err.println("Dropping1: " + body + " " + pendingVideos);
 							return;
 						}
 						
-						if (pending > 1 || !videoBucket.acquireToken(size, 0)) {
+						if (!receiveVideo || pendingVideos > 1 || !videoBucket.acquireToken(size, 0)) {
+							//System.err.println("Dropping2: " + receiveVideo + " " + pendingVideos);
 							videoFrameDropper.dropPacket(body);
 							return;
 						}
@@ -1023,7 +1037,7 @@ implements IPlaylistSubscriberStream {
 						videoFrameDropper.sendPacket(body);
 					}
 				} else if (body instanceof AudioData) {
-					if (!audioBucket.acquireToken(size, 0)) {
+					if (!receiveAudio || !audioBucket.acquireToken(size, 0)) {
 						return;
 					}
 				}
@@ -1054,6 +1068,18 @@ implements IPlaylistSubscriberStream {
 			OOBControlMessage pendingRequest = new OOBControlMessage();
 			pendingRequest.setTarget("ConnectionConsumer");
 			pendingRequest.setServiceName("pendingCount");
+			msgOut.sendOOBControlMessage(this, pendingRequest);
+			if (pendingRequest.getResult() != null) {
+				return (Long) pendingRequest.getResult();
+			} else {
+				return 0;
+			}
+		}
+		
+		private long pendingVideoMessages() {
+			OOBControlMessage pendingRequest = new OOBControlMessage();
+			pendingRequest.setTarget("ConnectionConsumer");
+			pendingRequest.setServiceName("pendingVideoCount");
 			msgOut.sendOOBControlMessage(this, pendingRequest);
 			if (pendingRequest.getResult() != null) {
 				return (Long) pendingRequest.getResult();

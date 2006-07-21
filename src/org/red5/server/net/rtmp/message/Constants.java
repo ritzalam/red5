@@ -68,6 +68,8 @@ public interface Constants {
     public static final String ACTION_PAUSE = "pause";
     public static final String ACTION_SEEK = "seek";
     public static final String ACTION_PLAY = "play";
-    public static final String ACTION_STOP = "disconnect";    
+    public static final String ACTION_STOP = "disconnect";
+    public static final String ACTION_RECEIVE_VIDEO = "receiveVideo";
+    public static final String ACTION_RECEIVE_AUDIO = "receiveAudio";
     
 }

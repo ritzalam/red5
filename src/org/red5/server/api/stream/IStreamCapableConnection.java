@@ -78,4 +78,12 @@ public interface IStreamCapableConnection extends IConnection, IFlowControllable
 	 */
 	IClientBroadcastStream newBroadcastStream(int streamId);
 
+	/**
+	 * Total number of video messages that are pending to be sent to a stream.
+	 *
+	 * @param streamId
+	 * @return number of pending video messages
+	 */
+	long getPendingVideoMessages(int streamId);
+
 }

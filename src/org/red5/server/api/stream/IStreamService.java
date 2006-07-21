@@ -1,5 +1,7 @@
 package org.red5.server.api.stream;
 
+import org.red5.server.api.service.IServiceCall;
+
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  * 
@@ -46,6 +48,8 @@ public interface IStreamService {
 	
 	public void deleteStream(IStreamCapableConnection conn, int streamId);
 	
+	public void play(boolean dontStop);
+	
 	public void play(String name);
 	
 	public void play(String name, int start);
@@ -63,4 +67,16 @@ public interface IStreamService {
 	public void seek(int position);
 	
 	public void pause(boolean pausePlayback, int position);
+	
+	public void receiveVideo(boolean receive);
+	
+	public void receiveAudio(boolean receive);
+	
+	/**
+	 * Send a call to all subscribers of a stream.
+	 * 
+	 * @param call
+	 */
+	public void send(IServiceCall call);
+	
 }

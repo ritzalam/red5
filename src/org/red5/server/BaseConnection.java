@@ -210,6 +210,10 @@ public abstract class BaseConnection extends AttributeStore
 		return 0;
 	}
 	
+	public long getPendingVideoMessages(int streamId) {
+		return 0;
+	}
+	
 	/* This is really a utility
 	public boolean switchScope(String contextPath) {
 		// At the moment this method is not dealing with tree schematics

@@ -21,6 +21,8 @@ package org.red5.server.stream.consumer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.red5.server.api.service.IServiceCall;
+import org.red5.server.api.stream.IClientStream;
 import org.red5.server.messaging.IMessage;
 import org.red5.server.messaging.IMessageComponent;
 import org.red5.server.messaging.IPipe;
@@ -30,7 +32,6 @@ import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.messaging.PipeConnectionEvent;
 import org.red5.server.net.rtmp.Channel;
 import org.red5.server.net.rtmp.RTMPConnection;
-import org.red5.server.net.rtmp.RTMPMinaConnection;
 import org.red5.server.net.rtmp.event.AudioData;
 import org.red5.server.net.rtmp.event.ChunkSize;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
@@ -163,6 +164,17 @@ public class ConnectionConsumer implements IPushableConsumer,
 		
 		if ("pendingCount".equals(oobCtrlMsg.getServiceName())) {
 			oobCtrlMsg.setResult(conn.getPendingMessages());
+		} else if ("streamSend".equals(oobCtrlMsg.getServiceName())) {
+			IServiceCall call = null;
+			if (oobCtrlMsg.getServiceParamMap() != null)
+				call = (IServiceCall) oobCtrlMsg.getServiceParamMap().get("call");
+			
+			if (call != null)
+				// Call method on the stream
+				conn.notify(call, data.getId());
+		} else if ("pendingVideoCount".equals(oobCtrlMsg.getServiceName())) {
+			IClientStream stream = conn.getStreamByChannelId(video.getId());
+			oobCtrlMsg.setResult(conn.getPendingVideoMessages(stream.getStreamId()));
 		} else if ("chunkSize".equals(oobCtrlMsg.getServiceName())) {
 			int newSize = (Integer) oobCtrlMsg.getServiceParamMap().get("chunkSize");
 			if (newSize != chunkSize) {

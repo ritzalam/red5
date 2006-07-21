@@ -53,4 +53,18 @@ public interface ISubscriberStream extends IClientStream {
 	 * @return
 	 */
 	boolean isPaused();
+	
+	/**
+	 * Should the stream send video to the client?
+	 * 
+	 * @param receive
+	 */
+	void receiveVideo(boolean receive);
+	
+	/**
+	 * Should the stream send audio to the client?
+	 * 
+	 * @param receive
+	 */
+	void receiveAudio(boolean receive);
 }

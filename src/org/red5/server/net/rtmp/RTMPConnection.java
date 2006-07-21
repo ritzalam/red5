@@ -44,9 +44,11 @@ import org.red5.server.api.stream.ISingleItemSubscriberStream;
 import org.red5.server.api.stream.IStreamCapableConnection;
 import org.red5.server.api.stream.IStreamService;
 import org.red5.server.net.rtmp.event.Invoke;
+import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.event.Ping;
 import org.red5.server.net.rtmp.event.BytesRead;
 import org.red5.server.net.rtmp.message.Packet;
+import org.red5.server.service.Call;
 import org.red5.server.service.PendingCall;
 import org.red5.server.stream.ClientBroadcastStream;
 import org.red5.server.stream.IFlowControlService;
@@ -62,7 +64,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	protected static Log log = LogFactory
 			.getLog(RTMPConnection.class.getName());
 
-	private final static int MAX_STREAMS = 12;
+	protected final static int MAX_STREAMS = 12;
 
 	private final static String VIDEO_CODEC_FACTORY = "videoCodecFactory";
 
@@ -84,6 +86,8 @@ public abstract class RTMPConnection extends BaseConnection implements
 	private int nextBytesRead = 125000;
 
 	private IBandwidthConfigure bandwidthConfig;
+	
+	private int usedStreams = 0;
 
 	public RTMPConnection(String type) {
 		// We start with an anonymous connection without a scope.
@@ -179,6 +183,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 			cbs.setScope(this.getScope());
 	
 			streams[streamId - 1] = cbs;
+			usedStreams++;
 			return cbs;
 		}
 	}
@@ -205,10 +210,15 @@ public abstract class RTMPConnection extends BaseConnection implements
 			pss.setScope(this.getScope());
 			pss.setStreamId(streamId);
 			streams[streamId - 1] = pss;
+			usedStreams++;
 			return pss;
 		}
 	}
 
+	protected int getUsedStreamCount() {
+		return usedStreams;
+	}
+	
 	public IClientStream getStreamById(int id) {
 		if (id <= 0 || id > MAX_STREAMS - 1)
 			return null;
@@ -237,6 +247,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 						log.debug("Closing stream: " + stream.getStreamId());
 						streamService.deleteStream(this, stream.getStreamId());
 						streams[i] = null;
+						usedStreams--;
 					}
 				}
 			}
@@ -264,7 +275,10 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	public void deleteStreamById(int streamId) {
 		if (streamId > 0 && streamId <= MAX_STREAMS) {
-			streams[streamId - 1] = null;
+			if (streams[streamId - 1] != null) {
+				usedStreams--;
+				streams[streamId - 1] = null;
+			}
 		}
 	}
 	
@@ -291,6 +305,10 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	public void invoke(IServiceCall call) {
+		invoke(call, (byte) 3);
+	}
+
+	public void invoke(IServiceCall call, byte channel) {
 		// We need to use Invoke for all calls to the client
 		Invoke invoke = new Invoke();
 		invoke.setCall(call);
@@ -303,9 +321,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 			}
 			invokeId += 1;
 		}
-		getChannel((byte) 3).write(invoke);
+		getChannel(channel).write(invoke);
 	}
-
+	
 	public void invoke(String method) {
 		invoke(method, null, null);
 	}
@@ -324,6 +342,25 @@ public abstract class RTMPConnection extends BaseConnection implements
 		if (callback != null)
 			call.registerCallback(callback);
 
+		invoke(call);
+	}
+
+	public void notify(IServiceCall call) {
+		notify(call, (byte) 3);
+	}
+
+	public void notify(IServiceCall call, byte channel) {
+		Notify notify = new Notify();
+		notify.setCall(call);
+		getChannel(channel).write(notify);
+	}
+	
+	public void notify(String method) {
+		notify(method, null);
+	}
+	
+	public void notify(String method, Object[] params) {
+		IServiceCall call = new Call(method, params);
 		invoke(call);
 	}
 
@@ -375,7 +412,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 		updateBytesRead();
 	}
 
-	protected void messageSent() {
+	protected void messageSent(Packet message) {
 		writtenMessages++;
 	}
 
