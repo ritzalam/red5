@@ -119,10 +119,13 @@ public class ConnectionConsumer implements IPushableConsumer,
 				audioData.setHeader(msg.getHeader());
 				audioData.setTimestamp(msg.getTimestamp());
 				// Low-tech audio lag fix
+				// XXX: This can only applied for live streams otherwise audio in VOD streams is delayed
+				/*
 				if (index > 0 && index % 5 != 0 && msg.getTimestamp() > 0) {
 					audioData.setTimestamp(msg.getTimestamp() - 1);
 					msg.getHeader().setTimer(audioData.getTimestamp());
 				}
+				*/
 				index++;
 				audio.write(audioData);
 				if (!videoReceived)
