@@ -28,12 +28,14 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
+import org.red5.server.api.ScopeUtils;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.event.IEventDispatcher;
 import org.red5.server.api.event.IEventListener;
 import org.red5.server.api.stream.IClientBroadcastStream;
 import org.red5.server.api.stream.IStreamAwareScopeHandler;
 import org.red5.server.api.stream.IStreamCodecInfo;
+import org.red5.server.api.stream.IStreamFilenameGenerator;
 import org.red5.server.api.stream.IVideoStreamCodec;
 import org.red5.server.api.stream.ResourceExistException;
 import org.red5.server.api.stream.ResourceNotFoundException;
@@ -111,7 +113,10 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			throws ResourceNotFoundException, ResourceExistException {
 		try {
 			IScope scope = getConnection().getScope();
-			Resource res = scope.getResource(getStreamFilename(name, ".flv"));
+			IStreamFilenameGenerator generator = (IStreamFilenameGenerator) ScopeUtils.getScopeService(scope, IStreamFilenameGenerator.KEY, DefaultStreamFilenameGenerator.class);
+			
+			String filename = generator.generateFilename(scope, name, ".flv");
+			Resource res = scope.getResource(filename);
 			if (!isAppend && res.exists()) 
 				res.getFile().delete();
 			
@@ -123,11 +128,12 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 					if (slashPos != -1)
 						path = path.substring(0, slashPos);
 					File tmp = new File(path);
-					tmp.mkdirs();
+					if (!tmp.isDirectory())
+						tmp.mkdirs();
 				} catch (IOException err) {
 					log.error("Could not create destination directory.", err);
 				}
-				res = scope.getResource(getStreamDirectory()).createRelative(name + ".flv");
+				res = scope.getResource(filename);
 			}
 			
 			if (!res.exists())
@@ -331,18 +337,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		stopMsg.setBody(stop);
 		connMsgOut.pushMessage(stopMsg);
 	}
-	
-	private String getStreamDirectory() {
-		return "streams/";
-	}
-	
-	private String getStreamFilename(String name, String extension) {
-		String result = getStreamDirectory() + name;
-		if (extension != null && !extension.equals(""))
-			result += extension;
-		return result;
-	}
-	
+		
 	private void notifyBroadcastStart() {
 		IStreamAwareScopeHandler handler = getStreamAwareHandler();
 		if (handler != null) {
