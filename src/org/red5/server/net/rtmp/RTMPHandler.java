@@ -433,14 +433,16 @@ public class RTMPHandler
 			if (ping.getValue2() != 0) {
 				// The client wants to set the buffer time
 				IClientStream stream = conn.getStreamById(ping.getValue2());
-				IStreamFlow flow = stream.getStreamFlow();
-				int buffer = ping.getValue3();
-				flow.setClientTimeBuffer(buffer);
-				int minBuffer = buffer - (buffer / 2);
-				if (minBuffer < 1000)
-					minBuffer = 1000;
-				flow.setMinTimeBuffer(minBuffer);
-				flow.setMaxTimeBuffer(buffer);
+				if (stream != null && stream.getStreamFlow() != null) {
+					IStreamFlow flow = stream.getStreamFlow();
+					int buffer = ping.getValue3();
+					flow.setClientTimeBuffer(buffer);
+					int minBuffer = buffer - (buffer / 2);
+					if (minBuffer < 1000)
+						minBuffer = 1000;
+					flow.setMinTimeBuffer(minBuffer);
+					flow.setMaxTimeBuffer(buffer);
+				}
 			} else {
 				// XXX: should we store the buffer time for future streams?
 				log.warn("Unhandled ping: "+ping);
