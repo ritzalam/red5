@@ -369,7 +369,7 @@ public class RTMPTServlet extends HttpServlet {
 	
 	/**
 	 * Main entry point for the servlet.
-	 */
+	 * /
 	protected void service(HttpServletRequest req, HttpServletResponse resp) 
 		throws ServletException, IOException {
 
@@ -395,4 +395,46 @@ public class RTMPTServlet extends HttpServlet {
 			handleBadRequest("RTMPT command " + path + " is not supported.", resp);
 		}
 	}
+	*/
+	
+	/**
+	 * Main entry point for the servlet.
+	 */
+	protected void service(HttpServletRequest req, HttpServletResponse resp) 
+		throws ServletException, IOException {
+
+		log.info("RTMPT service");
+		
+		if (!req.getMethod().equals(REQUEST_METHOD) ||
+			req.getContentLength() == 0 ||
+			req.getContentType() == null ||
+			!req.getContentType().equals(CONTENT_TYPE)) {
+			// Bad request - return simple error page
+			handleBadRequest("Bad request, only RTMPT supported.", resp);
+			return;
+		}
+
+		// XXX Paul: since the only current difference in the type of request
+		// that we are interested in is the 'second' character, we can double
+		// the speed of this entry point by using a switch on the second charater.
+		char p = req.getServletPath().charAt(1);
+		switch (p) {
+			case 'o': //OPEN_REQUEST
+				handleOpen(req, resp);
+				break;
+			case 'c': //CLOSE_REQUEST
+				handleClose(req, resp);
+				break;
+			case 's': //SEND_REQUEST
+				handleSend(req, resp);
+				break;
+			case 'i': //IDLE_REQUEST
+				handleIdle(req, resp);
+				break;
+			default: 
+				handleBadRequest("RTMPT command " + p + " is not supported.", resp);
+		}
+
+	}	
+	
 }

@@ -20,6 +20,7 @@ package org.red5.server.api.stream.support;
  */
 
 import org.red5.server.api.IBandwidthConfigure;
+import org.springframework.core.style.ToStringCreator;
 
 public class SimpleBandwidthConfigure implements IBandwidthConfigure {
 	private long audioBandwidth;
@@ -77,5 +78,23 @@ public class SimpleBandwidthConfigure implements IBandwidthConfigure {
 	public void setMaxBurst(long maxBurst) {
 		this.maxBurst = maxBurst;
 	}	
+	
+	public String toString(){
+		return new ToStringCreator(this)
+			.append("ALL",getOverallBandwidth())
+			.append("BURST",getBurst())
+			.append("MAX",getMaxBurst())
+			.toString();
+	}
+	
+	public IBandwidthConfigure clone(){
+		IBandwidthConfigure clone = new SimpleBandwidthConfigure();
+		clone.setOverallBandwidth(getOverallBandwidth());
+		clone.setAudioBandwidth(getAudioBandwidth());
+		clone.setMaxBurst(getMaxBurst());
+		clone.setVideoBandwidth(getVideoBandwidth());
+		clone.setBurst(getBurst());
+		return clone;
+	}
 	
 }

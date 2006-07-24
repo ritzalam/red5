@@ -55,4 +55,6 @@ public interface IBandwidthConfigure {
 	 */
 	void setBurst(long burst);
 	long getBurst();
+	
+	IBandwidthConfigure clone();
 }

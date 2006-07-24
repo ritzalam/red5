@@ -149,14 +149,17 @@ public class ServiceInvoker  implements IServiceInvoker {
 		} catch (IllegalAccessException accessEx){
 			call.setException(accessEx);
 			call.setStatus(Call.STATUS_ACCESS_DENIED);
+			log.error("Error executing call: "+call);
 			log.error("Service invocation error",accessEx);
 		} catch (InvocationTargetException invocationEx){
 			call.setException(invocationEx);
 			call.setStatus(Call.STATUS_INVOCATION_EXCEPTION);
+			log.error("Error executing call: "+call);
 			log.error("Service invocation error",invocationEx);
 		} catch (Exception ex){
 			call.setException(ex);
 			call.setStatus(Call.STATUS_GENERAL_EXCEPTION);
+			log.error("Error executing call: "+call);
 			log.error("Service invocation error",ex);
 		}
 	}

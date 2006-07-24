@@ -33,7 +33,6 @@ import org.red5.server.api.IScope;
 import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.api.stream.IClientBroadcastStream;
-import org.red5.server.api.stream.IClientStream;
 import org.red5.server.api.stream.IPlayItem;
 import org.red5.server.api.stream.IPlaylistController;
 import org.red5.server.api.stream.IPlaylistSubscriberStream;
@@ -81,6 +80,7 @@ implements IPlaylistSubscriberStream {
 	
 	private PlayEngine engine;
 	private IFlowControlService flowControlService;
+	private StreamFlowController streamFlowController = new StreamFlowController();
 	
 	private boolean isRewind = false;
 	private boolean isRandom = false;
@@ -131,29 +131,34 @@ implements IPlaylistSubscriberStream {
 
 	public void pause(int position) {
 		try {
+			getStreamFlow().clear();
 			engine.pause(position);
 		} catch (IllegalStateException e) {}
 	}
 
 	public void resume(int position) {
 		try {
+			getStreamFlow().clear();
 			engine.resume(position);
 		} catch (IllegalStateException e) {}
 	}
 
 	public void stop() {
 		try {
+			getStreamFlow().clear();
 			engine.stop();
 		} catch (IllegalStateException e) {}
 	}
 
 	public void seek(int position) {
 		try {
+			getStreamFlow().clear();
 			engine.seek(position);
 		} catch (IllegalStateException e) {}
 	}
 
 	public void close() {
+		getStreamFlow().reset();
 		engine.close();
 		flowControlService.releaseFlowControllable(this);
 		notifySubscriberClose();
@@ -492,6 +497,7 @@ implements IPlaylistSubscriberStream {
 			boolean sendNotifications = true;
 			
 			// decision: 0 for Live, 1 for File, 2 for Wait, 3 for N/A
+			
 			int decision = 3;
 			
 			switch (type) {
@@ -769,6 +775,8 @@ implements IPlaylistSubscriberStream {
 			}
 		}
 		
+		private int counter = 0;
+		
 		private void sendMessage(RTMPMessage message) {
 			if (vodStartTS == -1) {
 				vodStartTS = message.getBody().getTimestamp();
@@ -783,9 +791,21 @@ implements IPlaylistSubscriberStream {
 					}
 				}
 			}
+			try {
+				getStreamFlow().update(message);
+				// TODO: this should be time based, not every 10 packets.
+				if((counter++ % 10) == 0){
+					if(streamFlowController.adaptBandwidthForFlow(getStreamFlow(), PlaylistSubscriberStream.this)){
+						//getParentFlowControllable().setBandwidthConfigure(getParentFlowControllable().getBandwidthConfigure());
+						// log.info("bwConf: "+getParentFlowControllable().getBandwidthConfigure()+" flow:"+getStreamFlow());
+					}
+				}
+			} catch (RuntimeException e) {
+				log.error("Error updating flow",e);
+			}
 			msgOut.pushMessage(message);
 		}
-		
+		                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
 		private void sendClearPing() {
 			Ping ping1 = new Ping();
 			ping1.setValue1((short) 1);
