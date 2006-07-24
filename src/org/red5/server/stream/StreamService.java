@@ -128,9 +128,10 @@ public class StreamService implements IStreamService {
 		IStreamCapableConnection streamConn = (IStreamCapableConnection) conn;
 		int streamId = getCurrentStreamId();
 		IClientStream stream = streamConn.getStreamById(streamId);
-		if (stream == null)
+		if (stream == null) {
 			stream = streamConn.newPlaylistSubscriberStream(streamId);
-		stream.start();
+			stream.start();
+		}
 		if (!(stream instanceof ISubscriberStream)) return;
 		ISubscriberStream subscriberStream = (ISubscriberStream) stream;
 		SimplePlayItem item = new SimplePlayItem();
