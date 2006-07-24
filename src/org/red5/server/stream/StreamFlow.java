@@ -92,7 +92,7 @@ public class StreamFlow implements IStreamFlow {
 		}
 		int newLastBufferTime = (combinedBufferTime/lastBufferTimes.length);
 		boolean isIncreasing = (newLastBufferTime >= lastBufferTime);
-		System.err.println("lastBufferTime: "+lastBufferTime+" new:"+newLastBufferTime);
+		log.debug("lastBufferTime: "+lastBufferTime+" new:"+newLastBufferTime);
 		lastBufferTime = newLastBufferTime;
 		return isIncreasing;
 	}
@@ -145,7 +145,7 @@ public class StreamFlow implements IStreamFlow {
 		int ts = (rtmpMsg.isTimerRelative()) ? msg.getTimestamp() : 0;
 		
 		if(!rtmpMsg.isTimerRelative()){
-			System.err.println("Absolute: "+msg.getTimestamp());
+			log.debug("Absolute: "+msg.getTimestamp());
 		}
 		
 		switch(msg.getDataType()){

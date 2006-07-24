@@ -64,7 +64,7 @@ public class StreamFlowController {
 			controllable.setBandwidthConfigure(bwConf);
 		}
 		
-		System.err.println("bw: "+Math.round(bw/1000)+" buf: "+bufferTime);
+		log.debug("bw: "+Math.round(bw/1000)+" buf: "+bufferTime);
 		
 		return change;
 	}
