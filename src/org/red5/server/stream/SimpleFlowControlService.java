@@ -73,8 +73,8 @@ implements IFlowControlService, ApplicationContextAware {
 							for (int i = 0; i < data.resources.length; i++) {
 								for (int j = i; j >= 0; j--) {
 									if (j < parentData.resources.length) {
-										long tokenCount = data.resources[i].getSpeed(fc) * interval;
-										long availableTokens = parentData.resources[j].acquireTokenBestEffort(fc, tokenCount);
+										double tokenCount = data.resources[i].getSpeed(fc) * interval;
+										double availableTokens = parentData.resources[j].acquireTokenBestEffort(fc, tokenCount);
 										data.resources[i].addToken(availableTokens);
 										break;
 									}
@@ -322,7 +322,7 @@ implements IFlowControlService, ApplicationContextAware {
 			this.fc = fc;
 		}
 
-		synchronized public boolean acquireToken(long tokenCount, long wait) {
+		synchronized public boolean acquireToken(double tokenCount, long wait) {
 			if (isReset) return false;
 			if (wait != 0) {
 				// XXX not support waiting for now
@@ -333,14 +333,14 @@ implements IFlowControlService, ApplicationContextAware {
 			return resource.acquireToken(fc, tokenCount);
 		}
 
-		synchronized public long acquireTokenBestEffort(long upperLimitCount) {
+		synchronized public double acquireTokenBestEffort(double upperLimitCount) {
 			if (isReset) return 0;
 			BandwidthResource resource = getResource();
 			if (resource == null) return upperLimitCount;
 			return resource.acquireTokenBestEffort(fc, upperLimitCount);
 		}
 
-		synchronized public boolean acquireTokenNonblocking(long tokenCount, ITokenBucketCallback callback) {
+		synchronized public boolean acquireTokenNonblocking(double tokenCount, ITokenBucketCallback callback) {
 			if (isReset) return false;
 			BandwidthResource resource = getResource();
 			if (resource == null) return true;
@@ -353,7 +353,7 @@ implements IFlowControlService, ApplicationContextAware {
 			return resource.getCapacity(fc);
 		}
 
-		public long getSpeed() {
+		public double getSpeed() {
 			BandwidthResource resource = getResource();
 			if (resource == null) return -1; // infinite
 			return resource.getSpeed(fc);
@@ -392,13 +392,13 @@ implements IFlowControlService, ApplicationContextAware {
 	}
 	
 	private class BandwidthResource {
-		private long speed;
+		private double speed;
 		private long capacity;
-		private long tokens = 0;
+		private double tokens = 0;
 		private Map<IFlowControllable, Map<ITokenBucketCallback, RequestObject>> fcWaitingMap =
 			new HashMap<IFlowControllable, Map<ITokenBucketCallback, RequestObject>>();
 		
-		public BandwidthResource(long capacity, long speed, long initial) {
+		public BandwidthResource(long capacity, double speed, double initial) {
 			this.capacity = capacity;
 			this.speed = speed;
 			if (initial < 0) this.tokens = 0;
@@ -406,8 +406,8 @@ implements IFlowControlService, ApplicationContextAware {
 			else this.tokens = initial;
 		}
 		
-		synchronized public void addToken(long tokenCount) {
-			long tmp = tokens + tokenCount;
+		synchronized public void addToken(double tokenCount) {
+			double tmp = tokens + tokenCount;
 			if (tmp > capacity) tokens = capacity;
 			else tokens = tmp;
 			IFlowControllable toReleaseFC = null;
@@ -441,7 +441,7 @@ implements IFlowControlService, ApplicationContextAware {
 			}
 		}
 		
-		synchronized public boolean acquireToken(IFlowControllable fc, long tokenCount, ITokenBucketCallback callback, ITokenBucket requestBucket) {
+		synchronized public boolean acquireToken(IFlowControllable fc, double tokenCount, ITokenBucketCallback callback, ITokenBucket requestBucket) {
 			if (tokenCount > tokens) {
 				log.debug("Token not enough: request " + tokenCount + ", available " + tokens);
 				Map<ITokenBucketCallback, RequestObject> callbackMap = fcWaitingMap.get(fc);
@@ -462,14 +462,14 @@ implements IFlowControlService, ApplicationContextAware {
 			}
 		}
 		
-		synchronized public boolean acquireToken(IFlowControllable fc, long tokenCount) {
+		synchronized public boolean acquireToken(IFlowControllable fc, double tokenCount) {
 			if (tokenCount > tokens) return false;
 			tokens -= tokenCount;
 			return true;
 		}
 		
-		synchronized public long acquireTokenBestEffort(IFlowControllable fc, long upperLimitCount) {
-			long available;
+		synchronized public double acquireTokenBestEffort(IFlowControllable fc, double upperLimitCount) {
+			double available;
 			if (tokens >= upperLimitCount) {
 				available = upperLimitCount;
 			} else {
@@ -483,7 +483,7 @@ implements IFlowControlService, ApplicationContextAware {
 			return capacity;
 		}
 		
-		public long getSpeed(IFlowControllable fc) {
+		public double getSpeed(IFlowControllable fc) {
 			return speed;
 		}
 		
@@ -524,7 +524,7 @@ implements IFlowControlService, ApplicationContextAware {
 		}
 		
 		private class RequestObject {
-			private long requestTokenCount;
+			private double requestTokenCount;
 			private ITokenBucket requestBucket;
 		}
 	}

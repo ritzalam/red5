@@ -58,15 +58,15 @@ public class DummyFlowControlService implements IFlowControlService {
 
 	private class DummyTokenBukcet implements ITokenBucket {
 
-		public boolean acquireToken(long tokenCount, long wait) {
+		public boolean acquireToken(double tokenCount, long wait) {
 			return true;
 		}
 
-		public long acquireTokenBestEffort(long upperLimitCount) {
+		public double acquireTokenBestEffort(double upperLimitCount) {
 			return upperLimitCount;
 		}
 
-		public boolean acquireTokenNonblocking(long tokenCount, ITokenBucketCallback callback) {
+		public boolean acquireTokenNonblocking(double tokenCount, ITokenBucketCallback callback) {
 			return true;
 		}
 
@@ -74,7 +74,7 @@ public class DummyFlowControlService implements IFlowControlService {
 			return 0;
 		}
 
-		public long getSpeed() {
+		public double getSpeed() {
 			return 0;
 		}
 

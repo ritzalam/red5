@@ -1048,8 +1048,9 @@ implements IPlaylistSubscriberStream {
 							return;
 						}
 						
-						if (!receiveVideo || pendingVideos > 1 || !videoBucket.acquireToken(size, 0)) {
-							//System.err.println("Dropping2: " + receiveVideo + " " + pendingVideos);
+						boolean drop = !videoBucket.acquireToken(size, 0);
+						if (!receiveVideo || pendingVideos > 1 || drop) {
+							//System.err.println("Dropping2: " + receiveVideo + " " + pendingVideos + " " + videoBucket + " size: " + size + " drop: " + drop);
 							videoFrameDropper.dropPacket(body);
 							return;
 						}
@@ -1071,12 +1072,12 @@ implements IPlaylistSubscriberStream {
 			onItemEnd();
 		}
 
-		synchronized public void available(ITokenBucket bucket, long tokenCount) {
+		synchronized public void available(ITokenBucket bucket, double tokenCount) {
 			isWaitingForToken = false;
 			pullAndPush();
 		}
 		
-		public void reset(ITokenBucket bucket, long tokenCount) {
+		public void reset(ITokenBucket bucket, double tokenCount) {
 			isWaitingForToken = false;
 		}
 

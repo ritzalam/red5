@@ -106,7 +106,7 @@ public class BalancedFlowControlService extends TimerTask implements
 						boolean gotToken = false;
 						for (int channelId = 0; channelId < fcData.bwResources.length; channelId++) {
 							BandwidthResource thisResource = fcData.bwResources[channelId];
-							long tokenCount = fcData.bwResources[channelId].speed * interval;
+							double tokenCount = fcData.bwResources[channelId].speed * interval;
 							BandwidthResource parentResource = getParentBandwidthResource(fcData, channelId);
 							if (parentResource == null) {
 								thisResource.addToken(tokenCount);
@@ -372,16 +372,16 @@ public class BalancedFlowControlService extends TimerTask implements
 	 * @param bps Bit per second.
 	 * @return Byte per millisecond.
 	 */
-	private long bps2Bpms(long bps) {
-		return bps / 1000 / 8;
+	private double bps2Bpms(long bps) {
+		return (double) bps / 1000.0 / 8.0;
 	}
 	
 	private class BandwidthResource {
-		private long speed;
+		private double speed;
 		private long capacity;
-		private long tokens = 0;
+		private double tokens = 0;
 		
-		public BandwidthResource(long capacity, long speed, long initial) {
+		public BandwidthResource(long capacity, double speed, long initial) {
 			this.capacity = capacity;
 			this.speed = speed;
 			if (initial < 0) this.tokens = 0;
@@ -389,7 +389,7 @@ public class BalancedFlowControlService extends TimerTask implements
 			else this.tokens = initial;
 		}
 		
-		synchronized public boolean acquireToken(long token) {
+		synchronized public boolean acquireToken(double token) {
 			if (tokens >= token) {
 				tokens -= token;
 				return true;
@@ -398,8 +398,8 @@ public class BalancedFlowControlService extends TimerTask implements
 			}
 		}
 		
-		synchronized public long acquireTokenBestEffort(long upperLimit) {
-			long avail = 0;
+		synchronized public double acquireTokenBestEffort(double upperLimit) {
+			double avail = 0;
 			if (tokens < upperLimit) {
 				avail = tokens;
 				tokens = 0;
@@ -409,7 +409,7 @@ public class BalancedFlowControlService extends TimerTask implements
 			}
 		}
 		
-		synchronized public void addToken(long token) {
+		synchronized public void addToken(double token) {
 			if (tokens + token > capacity) {
 				tokens = capacity;
 			} else {
@@ -458,7 +458,7 @@ public class BalancedFlowControlService extends TimerTask implements
 			this.isReset = false;
 		}
 
-		public boolean acquireToken(long tokenCount, long wait) {
+		public boolean acquireToken(double tokenCount, long wait) {
 			if (wait != 0) {
 				// XXX not support waiting for now
 				return false;
@@ -487,7 +487,7 @@ public class BalancedFlowControlService extends TimerTask implements
 			return success;
 		}
 
-		public long acquireTokenBestEffort(long upperLimitCount) {
+		public double acquireTokenBestEffort(double upperLimitCount) {
 			BandwidthResource resource = null;
 			lock.readLock().lock();
 			try {
@@ -497,7 +497,7 @@ public class BalancedFlowControlService extends TimerTask implements
 				lock.readLock().unlock();
 			}
 			if (resource == null) return upperLimitCount;
-			long avail = resource.acquireTokenBestEffort(upperLimitCount);
+			double avail = resource.acquireTokenBestEffort(upperLimitCount);
 			// lock here to avoid sorting on concurrent modification
 			lock.readLock().lock();
 			try {
@@ -512,7 +512,7 @@ public class BalancedFlowControlService extends TimerTask implements
 			return avail;
 		}
 
-		public boolean acquireTokenNonblocking(long tokenCount, ITokenBucketCallback callback) {
+		public boolean acquireTokenNonblocking(double tokenCount, ITokenBucketCallback callback) {
 			BandwidthResource bwResource = null;
 			lock.readLock().lock();
 			try {
@@ -558,7 +558,7 @@ public class BalancedFlowControlService extends TimerTask implements
 			}
 		}
 
-		public long getSpeed() {
+		public double getSpeed() {
 			lock.readLock().unlock();
 			try {
 				BandwidthResource bwResource = getResource();
@@ -600,7 +600,7 @@ public class BalancedFlowControlService extends TimerTask implements
 	 * Note: this class has a natural ordering that is inconsistent with equals.
 	 */
 	private class RequestObject implements Comparable {
-		private long tokenCount;
+		private double tokenCount;
 		private ITokenBucket bucket;
 		private ITokenBucketCallback callback;
 		private int hungry = 0;
