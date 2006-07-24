@@ -458,6 +458,10 @@ public class RTMPHandler
 		final ISharedObject so;
 		final String name = object.getName();
 		IScope scope = conn.getScope();
+		if (scope == null)
+			// The scope already has been deleted.
+			return;
+		
 		ISharedObjectService sharedObjectService = (ISharedObjectService) getScopeService(scope, ISharedObjectService.SHARED_OBJECT_SERVICE, SharedObjectService.class);
 		if (!sharedObjectService.hasSharedObject(scope, name)) {
 			if (!sharedObjectService.createSharedObject(scope, name, object.isPersistent())) {
