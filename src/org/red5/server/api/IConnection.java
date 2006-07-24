@@ -20,6 +20,7 @@ package org.red5.server.api;
  */
 
 import java.util.Iterator;
+import java.util.Map;
 
 /**
  * The connection object.
@@ -86,6 +87,13 @@ public interface IConnection extends ICoreObject {
 	 */
 	public void close();
 
+	/**
+	 * Return the parameters that were given in the call to "connect".
+	 * 
+	 * @return
+	 */
+	public Map<String, String> getConnectParams();
+	
 	/**
 	 * Get the client object associated with this connection.
 	 * 

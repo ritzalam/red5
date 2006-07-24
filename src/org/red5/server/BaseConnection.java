@@ -19,6 +19,7 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -100,8 +101,8 @@ public abstract class BaseConnection extends AttributeStore
 		return sessionId;
 	}
 
-	public Map<String,String> getParams(){
-		return params;
+	public Map<String, String> getConnectParams() {
+		return Collections.unmodifiableMap(params);
 	}
 
 	public IClient getClient() {
