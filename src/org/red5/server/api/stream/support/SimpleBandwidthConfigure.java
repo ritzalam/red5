@@ -26,6 +26,8 @@ public class SimpleBandwidthConfigure implements IBandwidthConfigure {
 	private long audioBandwidth;
 	private long videoBandwidth;
 	private long overallBandwidth = -1;
+	private long upstreamBandwidth = -1;
+	private long downstreamBandwidth = -1;
 	private long burst = 0;
 	private long maxBurst = 0;
 	
@@ -37,6 +39,8 @@ public class SimpleBandwidthConfigure implements IBandwidthConfigure {
 		this.audioBandwidth = config.getAudioBandwidth();
 		this.videoBandwidth = config.getVideoBandwidth();
 		this.overallBandwidth = config.getOverallBandwidth();
+		this.upstreamBandwidth = config.getUpstreamBandwidth();
+		this.downstreamBandwidth = config.getDownstreamBandwidth();
 	}
 	
 	public long getAudioBandwidth() {
@@ -61,6 +65,22 @@ public class SimpleBandwidthConfigure implements IBandwidthConfigure {
 
 	public void setOverallBandwidth(long overallBandwidth) {
 		this.overallBandwidth = overallBandwidth;
+	}
+
+	public long getUpstreamBandwidth() {
+		return upstreamBandwidth;
+	}
+
+	public void setUpstreamBandwidth(long upstreamBandwidth) {
+		this.upstreamBandwidth = upstreamBandwidth;
+	}
+
+	public long getDownstreamBandwidth() {
+		return downstreamBandwidth;
+	}
+
+	public void setDownstreamBandwidth(long downstreamBandwidth) {
+		this.downstreamBandwidth = downstreamBandwidth;
 	}
 
 	public long getBurst() {

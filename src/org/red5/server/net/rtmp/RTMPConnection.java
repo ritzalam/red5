@@ -30,7 +30,6 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.server.BaseConnection;
 import org.red5.server.api.IBandwidthConfigure;
-import org.red5.server.api.IConnection;
 import org.red5.server.api.IContext;
 import org.red5.server.api.IFlowControllable;
 import org.red5.server.api.service.IPendingServiceCall;
@@ -43,10 +42,12 @@ import org.red5.server.api.stream.IPlaylistSubscriberStream;
 import org.red5.server.api.stream.ISingleItemSubscriberStream;
 import org.red5.server.api.stream.IStreamCapableConnection;
 import org.red5.server.api.stream.IStreamService;
+import org.red5.server.net.rtmp.event.ClientBW;
 import org.red5.server.net.rtmp.event.Invoke;
 import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.event.Ping;
 import org.red5.server.net.rtmp.event.BytesRead;
+import org.red5.server.net.rtmp.event.ServerBW;
 import org.red5.server.net.rtmp.message.Packet;
 import org.red5.server.service.Call;
 import org.red5.server.service.PendingCall;
@@ -377,6 +378,20 @@ public abstract class RTMPConnection extends BaseConnection implements
 				.getBean(IFlowControlService.KEY);
 		this.bandwidthConfig = config;
 		fcs.updateBWConfigure(this);
+		
+		// Notify client about new bandwidth settings
+		if (config.getDownstreamBandwidth() > 0) {
+			ServerBW serverBW = new ServerBW((int) config.getDownstreamBandwidth());
+			getChannel((byte) 2).write(serverBW);
+		}
+		if (config.getUpstreamBandwidth() > 0) {
+			ClientBW clientBW = new ClientBW((int) config.getUpstreamBandwidth(), (byte) 0);
+			getChannel((byte) 2).write(clientBW);
+			// Update generation of BytesRead messages
+			// TODO: what are the correct values here?
+			bytesReadInterval = (int) config.getUpstreamBandwidth();
+			nextBytesRead = (int) getWrittenBytes();
+		}
 	}
 
 	@Override

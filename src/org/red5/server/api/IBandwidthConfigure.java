@@ -36,6 +36,23 @@ public interface IBandwidthConfigure {
 	long getOverallBandwidth();
 	
 	/**
+	 * Set the upstream bandwidth to be notified to the client.
+	 * Upstream is the data that is sent from the client to the server.
+	 * 
+	 * @param bw
+	 */
+	void setUpstreamBandwidth(long bw);
+	long getUpstreamBandwidth();
+	/**
+	 * Set the downstream bandwidth to be notified to the client.
+	 * Downstream is the data that is sent from the server to the client.
+	 * 
+	 * @param bw
+	 */
+	void setDownstreamBandwidth(long bw);
+	long getDownstreamBandwidth();
+	
+	/**
 	 * Set the maximum amount of burst in Byte.
 	 * This values controls the maximum amount of packets that
 	 * can burst to the client at any time.
