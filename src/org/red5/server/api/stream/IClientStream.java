@@ -20,6 +20,7 @@ package org.red5.server.api.stream;
  */
 
 import org.red5.server.api.IFlowControllable;
+import org.red5.server.stream.IStreamFlow;
 
 /**
  * A stream that is bound to a client.
@@ -43,4 +44,12 @@ public interface IClientStream extends IStream, IFlowControllable {
 	 * @return
 	 */
 	IStreamCapableConnection getConnection();
+	
+	/**
+	 * Get the flow settings for this stream.
+	 * 
+	 * @return
+	 */
+	IStreamFlow getStreamFlow();
+
 }

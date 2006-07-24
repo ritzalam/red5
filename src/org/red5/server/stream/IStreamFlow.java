@@ -12,6 +12,10 @@ public interface IStreamFlow {
 
 	public void setMinTimeBuffer(int minTimeBuffer);
 
+	public long getClientTimeBuffer();
+	
+	public void setClientTimeBuffer(long clientTimeBuffer);
+	
 	public int getDataBitRate();
 
 	public int getSegmentBytesTransfered();

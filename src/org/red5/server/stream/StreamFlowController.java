@@ -23,6 +23,7 @@ public class StreamFlowController {
 		boolean change = false;
 		final int bufferTime = flow.getBufferTime();
 		long bw = bwConf.getOverallBandwidth();
+		//log.info("Buffer: " + bufferTime + " min: " + flow.getMinTimeBuffer() + " max: " + flow.getMaxTimeBuffer());
 		if(bufferTime > flow.getMaxTimeBuffer()){
 			if(flow.isBufferTimeIncreasing()){ 
 				if(bw > flow.getDataBitRate()) bw = flow.getDataBitRate();

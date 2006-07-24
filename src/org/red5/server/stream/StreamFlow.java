@@ -60,6 +60,14 @@ public class StreamFlow implements IStreamFlow {
 		this.minTimeBuffer = minTimeBuffer;
 	}
 
+	public long getClientTimeBuffer() {
+		return clientTimeBuffer;
+	}
+	
+	public void setClientTimeBuffer(long clientTimeBuffer) {
+		this.clientTimeBuffer = clientTimeBuffer;
+	}
+
 	public int getDataBitRate() {
 		if(combinedSegmentDataTime==0) return 0;
 		return ((segmentBytesTransfered / combinedSegmentDataTime ) * 10000);

@@ -68,6 +68,7 @@ import org.red5.server.service.Call;
 import org.red5.server.so.SharedObjectMessage;
 import org.red5.server.so.SharedObjectService;
 import org.red5.server.stream.IBroadcastScope;
+import org.red5.server.stream.IStreamFlow;
 import org.red5.server.stream.PlaylistSubscriberStream;
 import org.red5.server.stream.StreamService;
 
@@ -427,13 +428,33 @@ public class RTMPHandler
 	}
 	
 	public void onPing(RTMPConnection conn, Channel channel, Header source, Ping ping){
-		if (ping.getValue1() == 7) {
+		switch (ping.getValue1()) {
+		case 3:
+			if (ping.getValue2() != 0) {
+				// The client wants to set the buffer time
+				IClientStream stream = conn.getStreamById(ping.getValue2());
+				IStreamFlow flow = stream.getStreamFlow();
+				int buffer = ping.getValue3();
+				flow.setClientTimeBuffer(buffer);
+				int minBuffer = buffer - (buffer / 2);
+				if (minBuffer < 1000)
+					minBuffer = 1000;
+				flow.setMinTimeBuffer(minBuffer);
+				flow.setMaxTimeBuffer(buffer);
+			} else {
+				// XXX: should we store the buffer time for future streams?
+				log.warn("Unhandled ping: "+ping);
+			}
+			break;
+			
+		case 7:
 			// This is the response to an IConnection.ping request
 			conn.pingReceived(ping);
-			return;
+			break;
+			
+		default:
+			log.warn("Unhandled ping: "+ping);
 		}
-		
-		log.warn("Unhandled ping: "+ping);
 		
 		/*
 		final Ping pong = new Ping();
