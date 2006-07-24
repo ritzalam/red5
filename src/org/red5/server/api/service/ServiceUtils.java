@@ -210,4 +210,89 @@ public class ServiceUtils {
 				invokeOnConnection(conn, method, params, callback);
 	}
 
+	/**
+	 * Notify a method on the current connection.
+	 * 
+	 * @param method
+	 * 			name of the method to notify
+	 * @param params
+	 * 			parameters to pass to the method
+	 * @return <code>true</code> if the connection supports method calls, otherwise <code>false</code>
+	 */
+	public static boolean notifyOnConnection(String method, Object[] params) {
+		IConnection conn = Red5.getConnectionLocal();
+		return notifyOnConnection(conn, method, params);
+	}
+
+	/**
+	 * Notify a method on a given connection.
+	 * 
+	 * @param conn
+	 * 			connection to notify method on
+	 * @param method
+	 * 			name of the method to notify
+	 * @param params
+	 * 			parameters to pass to the method
+	 * @return <code>true</code> if the connection supports method calls, otherwise <code>false</code>
+	 */
+	public static boolean notifyOnConnection(IConnection conn, String method, Object[] params) {
+		if (conn instanceof IServiceCapableConnection) {
+			((IServiceCapableConnection) conn).notify(method, params);
+			return true;
+		} else
+			return false;
+	}
+
+	/**
+	 * Notify a method on all connections to the current scope.
+	 * 
+	 * @param method
+	 * 			name of the method to notifynotify
+	 * @param params
+	 * 			parameters to pass to the method
+	 */
+	public static void notifyOnAllConnections(String method, Object[] params) {
+		IScope scope = Red5.getConnectionLocal().getScope();
+		notifyOnAllConnections(scope, method, params);
+	}
+
+	/**
+	 * Notfy a method on all connections to a given scope.
+	 * 
+	 * @param scope
+	 * 			scope to get connections for
+	 * @param method
+	 * 			name of the method to notify
+	 * @param params
+	 * 			parameters to pass to the method
+	 */
+	public static void notifyOnAllConnections(IScope scope, String method, Object[] params) {
+		notifyOnClient(null, scope, method, params);
+	}
+	
+	/**
+	 * Notify a method on all connections of a client to a given scope.
+	 *  
+	 * @param client
+	 * 			client to get connections for
+	 * @param scope
+	 * 			scope to get connections of the client from
+	 * @param method
+	 * 			name of the method to notify
+	 * @param params
+	 * 			parameters to pass to the method
+	 */
+	public static void notifyOnClient(IClient client, IScope scope, String method, Object[] params) {
+		List<IConnection> connections = new ArrayList<IConnection>();
+		Iterator<IConnection> iter = scope.getConnections();
+		while (iter.hasNext()) {
+			IConnection conn = iter.next();
+			if (client == null || conn.getClient().equals(client))
+				connections.add(conn);
+		}
+		
+		for (IConnection conn: connections)
+			notifyOnConnection(conn, method, params);
+	}
+
 }
