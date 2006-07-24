@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ScheduledExecutorService;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -452,9 +453,10 @@ implements IPlaylistSubscriberStream {
 		
 		private ISchedulingService schedulingService = null;
 		private String waitLiveJob;
-		private String liveLengthJob;
+		private String playLengthJob;
 		private boolean isWaiting = false;
 		private int vodStartTS = 0;
+		private int duration = 0;
 		
 		private IPlayItem currentItem;
 		
@@ -570,7 +572,7 @@ implements IPlaylistSubscriberStream {
 				}
 				msgIn.subscribe(this, null);
 				if (item.getLength() >= 0) {
-					liveLengthJob = schedulingService.addScheduledOnceJob(item.getLength(), this);
+					playLengthJob = schedulingService.addScheduledOnceJob(item.getLength(), this);
 				}
 				break;
 			case 2:
@@ -589,7 +591,9 @@ implements IPlaylistSubscriberStream {
 			case 1:
 				msgIn = vodInput;
 				msgIn.subscribe(this, null);
-
+				if (item.getLength() >= 0) {
+					playLengthJob = schedulingService.addScheduledOnceJob(item.getLength(), this);
+				}
 				break;
 			default:
 				sendStreamNotFoundStatus(currentItem);
@@ -616,6 +620,10 @@ implements IPlaylistSubscriberStream {
 			if (state != State.PLAYING) throw new IllegalStateException();
 			if (isPullMode) {
 				state = State.PAUSED;
+				if (playLengthJob != null) {
+					schedulingService.removeScheduledJob(playLengthJob);
+					playLengthJob = null;
+				}
 				sendClearPing();
 				sendPauseStatus(currentItem);
 				notifyItemPause(currentItem, position);
@@ -626,6 +634,11 @@ implements IPlaylistSubscriberStream {
 			if (state != State.PAUSED) throw new IllegalStateException();
 			if (isPullMode) {
 				state = State.PLAYING;
+				if (currentItem.getLength() >= 0) {
+					long length = currentItem.getLength() - vodStartTS + position;
+					if (length < 0) length = 0;
+					playLengthJob = schedulingService.addScheduledOnceJob(length, this);
+				}
 				flowControlService.resetTokenBuckets(PlaylistSubscriberStream.this);
 				sendResumeStatus(currentItem);
 				sendResetPing();
@@ -641,6 +654,15 @@ implements IPlaylistSubscriberStream {
 				throw new IllegalStateException();
 			}
 			if (isPullMode) {
+				if (playLengthJob != null) {
+					schedulingService.removeScheduledJob(playLengthJob);
+					playLengthJob = null;
+				}
+				if (state == State.PLAYING && currentItem.getLength() >= 0) {
+					long length = currentItem.getLength() - vodStartTS + position;
+					if (length < 0) length = 0;
+					playLengthJob = schedulingService.addScheduledOnceJob(length, this);
+				}
 				flowControlService.resetTokenBuckets(PlaylistSubscriberStream.this);
 				isWaitingForToken = false;
 				sendClearPing();
@@ -670,14 +692,15 @@ implements IPlaylistSubscriberStream {
 				schedulingService.removeScheduledJob(waitLiveJob);
 				waitLiveJob = null;
 			}
-			if (liveLengthJob != null) {
-				schedulingService.removeScheduledJob(liveLengthJob);
-				liveLengthJob = null;
+			if (playLengthJob != null) {
+				schedulingService.removeScheduledJob(playLengthJob);
+				playLengthJob = null;
 			}
 			flowControlService.resetTokenBuckets(PlaylistSubscriberStream.this);
 			isWaitingForToken = false;
 			notifyItemStop(currentItem);
 			sendClearPing();
+			sendResetPing();
 		}
 		
 		synchronized public void close() {
@@ -700,9 +723,9 @@ implements IPlaylistSubscriberStream {
 				schedulingService.removeScheduledJob(waitLiveJob);
 				waitLiveJob = null;
 			}
-			if (liveLengthJob != null) {
-				schedulingService.removeScheduledJob(liveLengthJob);
-				liveLengthJob = null;
+			if (playLengthJob != null) {
+				schedulingService.removeScheduledJob(playLengthJob);
+				playLengthJob = null;
 			}
 			sendClearPing();
 		}
@@ -779,11 +802,19 @@ implements IPlaylistSubscriberStream {
 		
 		private void sendMessage(RTMPMessage message) {
 			if (vodStartTS == -1) {
-				vodStartTS = message.getBody().getTimestamp();
+				if (!message.isTimerRelative()) {
+					vodStartTS = message.getBody().getTimestamp();
+					duration = vodStartTS;
+				}
 			} else {
 				if (currentItem.getLength() >= 0) {
-					int diff = message.getBody().getTimestamp() - vodStartTS;
-					if (diff > currentItem.getLength()) {
+					if (message.isTimerRelative()) {
+						duration += message.getBody().getTimestamp();
+					} else {
+						duration = message.getBody().getTimestamp();
+					}
+					int diff = duration - vodStartTS;
+					if (diff > currentItem.getLength() && playLengthJob == null) {
 						// stop this item
 						stop();
 						onItemEnd();
@@ -805,7 +836,7 @@ implements IPlaylistSubscriberStream {
 			}
 			msgOut.pushMessage(message);
 		}
-		                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
+
 		private void sendClearPing() {
 			Ping ping1 = new Ping();
 			ping1.setValue1((short) 1);
@@ -987,7 +1018,7 @@ implements IPlaylistSubscriberStream {
 						schedulingService.removeScheduledJob(waitLiveJob);
 						waitLiveJob = null;
 						if (currentItem.getLength() >= 0) {
-							liveLengthJob = schedulingService.addScheduledOnceJob(currentItem.getLength(), this);
+							playLengthJob = schedulingService.addScheduledOnceJob(currentItem.getLength(), this);
 						}
 						isWaiting = false;
 					}
@@ -1066,8 +1097,9 @@ implements IPlaylistSubscriberStream {
 			msgOut.pushMessage(message);
 		}
 
-		public void execute(ISchedulingService service) {
-			liveLengthJob = null;
+		synchronized public void execute(ISchedulingService service) {
+			if (playLengthJob == null) return;
+			playLengthJob = null;
 			stop();
 			onItemEnd();
 		}
