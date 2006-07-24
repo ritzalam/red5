@@ -35,6 +35,7 @@ import org.red5.io.object.Deserializer;
 import org.red5.io.object.Input;
 import org.red5.io.object.Output;
 import org.red5.io.object.Serializer;
+import org.red5.server.api.IAttributeStore;
 import org.red5.server.api.event.IEventListener;
 import org.red5.server.api.persistence.IPersistable;
 import org.red5.server.api.persistence.IPersistenceStore;
@@ -250,6 +251,9 @@ public class SharedObject implements IPersistable, Constants {
 	}
 
 	public void setAttributes(Map values) {
+		if (values == null)
+			return;
+		
 		beginUpdate();
 		Iterator it = values.keySet().iterator();
 		while (it.hasNext()) {
@@ -259,7 +263,10 @@ public class SharedObject implements IPersistable, Constants {
 		endUpdate();
 	}
 
-	public void setAttributes(org.red5.server.api.IAttributeStore values) {
+	public void setAttributes(IAttributeStore values) {
+		if (values == null)
+			return;
+		
 		beginUpdate();
 		Iterator it = values.getAttributeNames().iterator();
 		while (it.hasNext()) {
