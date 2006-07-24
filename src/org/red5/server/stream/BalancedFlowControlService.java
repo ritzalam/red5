@@ -27,6 +27,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -50,7 +54,6 @@ public class BalancedFlowControlService extends TimerTask implements
 	private static final Log log = LogFactory.getLog(BalancedFlowControlService.class);
 	
 	private static final int maxDepth = 10;
-	private static final int maxChannelNum = 2;
 	
 	private long interval = 10;
 	private long defaultCapacity = 1024 * 100;
@@ -60,6 +63,10 @@ public class BalancedFlowControlService extends TimerTask implements
 	private List<FcData>[] fcListArray;
 	
 	private Timer timer;
+	private Thread cbThread = new Thread(new CallbackRunnable());
+	private BlockingQueue<FcData> wakeUpQueue = new LinkedBlockingQueue<FcData>();
+	
+	private ReadWriteLock lock = new ReentrantReadWriteLock();
 	
 	public BalancedFlowControlService() {
 		fcListArray = (List<FcData>[]) Array.newInstance(List.class, maxDepth);
@@ -71,115 +78,158 @@ public class BalancedFlowControlService extends TimerTask implements
 	public void init() {
 		timer = new Timer("FlowControlService", true);
 		timer.scheduleAtFixedRate(this, interval, interval);
+		cbThread.setName("Callback Thread");
+		cbThread.setDaemon(true);
+		cbThread.start();
 	}
 	
 	@Override
-	synchronized public void run() {
-		for (int i = 0; i < maxDepth; i++) {
-			List<FcData> fcList = fcListArray[i];
-			for (FcData fcData : fcList) {
-				if (fcData.hasBandwidthResource()) {
-					for (int channelId = 0; channelId < fcData.bwResources.length; channelId++) {
-						BandwidthResource thisResource = fcData.bwResources[channelId];
-						long tokenCount = fcData.bwResources[channelId].speed * interval;
-						boolean gotToken = true;
-						BandwidthResource parentResource = getParentBandwidthResource(fcData, channelId);
-						if (parentResource == null) {
-							thisResource.addToken(tokenCount);
-						} else {
-							if (parentResource.acquireToken(tokenCount)) {
+	public void run() {
+		// re-sort the fc list
+		// use write lock to protect the structural modification
+		lock.writeLock().lock();
+		try {
+			for (int i = 0; i < maxDepth; i++) {
+				Collections.sort(fcListArray[i]);
+			}
+		} finally {
+			lock.writeLock().unlock();
+		}
+		// distribute tokens
+		// no structural modification, use read lock
+		lock.readLock().lock();
+		try {
+			for (int i = 0; i < maxDepth; i++) {
+				List<FcData> fcList = fcListArray[i];
+				for (FcData fcData : fcList) {
+					if (fcData.hasBandwidthResource()) {
+						boolean gotToken = false;
+						for (int channelId = 0; channelId < fcData.bwResources.length; channelId++) {
+							BandwidthResource thisResource = fcData.bwResources[channelId];
+							long tokenCount = fcData.bwResources[channelId].speed * interval;
+							BandwidthResource parentResource = getParentBandwidthResource(fcData, channelId);
+							if (parentResource == null) {
 								thisResource.addToken(tokenCount);
 							} else {
-								gotToken = false;
+								if (parentResource.acquireToken(tokenCount)) {
+									thisResource.addToken(tokenCount);
+									gotToken = true;
+								}
 							}
 						}
 						if (gotToken) {
-							wakeFCCallback(fcData, channelId);
+							wakeUpCallback(fcData);
+						} else {
+							fcData.hungry++;
+						}
+					} else {
+						// no bw resource available, try to wake up callbacks
+						wakeUpCallback(fcData);
+					}
+				}
+			}
+		} finally {
+			lock.readLock().unlock();
+		}
+	}
+
+	public void releaseFlowControllable(IFlowControllable fc) {
+		int depth = getFCDepth(fc);
+		lock.writeLock().lock();
+		try {
+			FcData data = fcMap.remove(fc);
+			if (data != null) {
+				fcListArray[depth].remove(data);
+			}
+		} finally {
+			lock.writeLock().unlock();
+		}
+	}
+
+	public void updateBWConfigure(IFlowControllable fc) {
+		lock.readLock().lock();
+		try {
+			FcData data = getFcData(fc);
+			// escalate to write lock
+			lock.readLock().unlock();
+			lock.writeLock().lock();
+			try {
+				IBandwidthConfigure oldConf = data.config;
+				IBandwidthConfigure newConf = fc.getBandwidthConfigure();
+				if (oldConf == null && newConf == null) {
+					return;
+				} else if (oldConf != null && newConf == null) {
+					data.bwResources = new BandwidthResource[0];
+					data.config = null;
+				} else {
+					long capacity = newConf.getMaxBurst() <= 0 ? defaultCapacity : newConf.getMaxBurst();
+					if (oldConf == null) {
+						data.config = new SimpleBandwidthConfigure(newConf);
+						if (data.config.getOverallBandwidth() >= 0) {
+							data.bwResources = new BandwidthResource[1];
+							data.bwResources[0] = new BandwidthResource(
+									capacity,
+									bps2Bpms(data.config.getOverallBandwidth()),
+									data.config.getBurst());
+						} else {
+							data.bwResources = new BandwidthResource[2];
+							data.bwResources[0] = new BandwidthResource(
+									capacity,
+									bps2Bpms(data.config.getVideoBandwidth()),
+									data.config.getBurst());
+							data.bwResources[1] = new BandwidthResource(
+									capacity,
+									bps2Bpms(data.config.getAudioBandwidth()),
+									data.config.getBurst());
+						}
+					} else {
+						data.config = new SimpleBandwidthConfigure(newConf);
+						if (oldConf.getOverallBandwidth() < 0 &&
+								newConf.getOverallBandwidth() >= 0) {
+							data.bwResources[1] = null;
+							data.bwResources[0].capacity = capacity;
+							data.bwResources[0].speed = bps2Bpms(data.config.getOverallBandwidth());
+						} else if (newConf.getOverallBandwidth() < 0) {
+							data.bwResources[0].capacity = capacity;
+							data.bwResources[0].speed = bps2Bpms(data.config.getVideoBandwidth());
+							data.bwResources[1].capacity = capacity;
+							data.bwResources[1].speed = bps2Bpms(data.config.getAudioBandwidth());
+						} else {
+							data.bwResources[0].capacity = capacity;
+							data.bwResources[0].speed = bps2Bpms(data.config.getOverallBandwidth());
 						}
 					}
-				} else {
-					// no bw resource available, try to wake up all fc 
-					for (int channelId = 0; channelId < maxChannelNum; channelId++) {
-						BandwidthResource parentResource = getParentBandwidthResource(fcData, channelId);
-						wakeFCCallback(fcData, channelId);
-					}
 				}
+			} finally {
+				lock.readLock().lock();
+				lock.writeLock().unlock();
 			}
+		} finally {
+			lock.readLock().unlock();
 		}
 	}
 
-	synchronized public void releaseFlowControllable(IFlowControllable fc) {
-		int depth = getFCDepth(fc);
-		FcData data = fcMap.remove(fc);
-		if (data != null) {
-			fcListArray[depth].remove(data);
-		}
-	}
-
-	synchronized public void updateBWConfigure(IFlowControllable fc) {
-		FcData data = getFcData(fc);
-		IBandwidthConfigure oldConf = data.config;
-		IBandwidthConfigure newConf = fc.getBandwidthConfigure();
-		if (oldConf == null && newConf == null) {
-			return;
-		} else if (oldConf != null && newConf == null) {
-			data.bwResources = new BandwidthResource[0];
-			data.config = null;
-		} else {
-			long capacity = newConf.getMaxBurst() <= 0 ? defaultCapacity : newConf.getMaxBurst();
-			if (oldConf == null) {
-				data.config = new SimpleBandwidthConfigure(newConf);
-				if (data.config.getOverallBandwidth() >= 0) {
-					data.bwResources = new BandwidthResource[1];
-					data.bwResources[0] = new BandwidthResource(
-							capacity,
-							bps2Bpms(data.config.getOverallBandwidth()),
-							data.config.getBurst());
-				} else {
-					data.bwResources = new BandwidthResource[2];
-					data.bwResources[0] = new BandwidthResource(
-							capacity,
-							bps2Bpms(data.config.getVideoBandwidth()),
-							data.config.getBurst());
-					data.bwResources[1] = new BandwidthResource(
-							capacity,
-							bps2Bpms(data.config.getAudioBandwidth()),
-							data.config.getBurst());
-				}
-			} else {
-				data.config = new SimpleBandwidthConfigure(newConf);
-				if (oldConf.getOverallBandwidth() < 0 &&
-						newConf.getOverallBandwidth() >= 0) {
-					data.waitingListArray[0].addAll(data.waitingListArray[1]);
-					Collections.sort(data.waitingListArray[0]);
-					data.waitingListArray[1].clear();
-					data.bwResources[1] = null;
-					data.bwResources[0].capacity = capacity;
-					data.bwResources[0].speed = bps2Bpms(data.config.getOverallBandwidth());
-				} else if (newConf.getOverallBandwidth() < 0) {
-					data.bwResources[0].capacity = capacity;
-					data.bwResources[0].speed = bps2Bpms(data.config.getVideoBandwidth());
-					data.bwResources[1].capacity = capacity;
-					data.bwResources[1].speed = bps2Bpms(data.config.getAudioBandwidth());
-				} else {
-					data.bwResources[0].capacity = capacity;
-					data.bwResources[0].speed = bps2Bpms(data.config.getOverallBandwidth());
-				}
-			}
-		}
-	}
-
-	synchronized public void resetTokenBuckets(IFlowControllable fc) {
+	public void resetTokenBuckets(IFlowControllable fc) {
 		getAudioTokenBucket(fc).reset();
 		getVideoTokenBucket(fc).reset();
 	}
 
-	synchronized public ITokenBucket getAudioTokenBucket(IFlowControllable fc) {
-		return getFcData(fc).audioBucket;
+	public ITokenBucket getAudioTokenBucket(IFlowControllable fc) {
+		lock.readLock().lock();
+		try {
+			return getFcData(fc).audioBucket;
+		} finally {
+			lock.readLock().unlock();
+		}
 	}
 
-	synchronized public ITokenBucket getVideoTokenBucket(IFlowControllable fc) {
-		return getFcData(fc).videoBucket;
+	public ITokenBucket getVideoTokenBucket(IFlowControllable fc) {
+		lock.readLock().lock();
+		try {
+			return getFcData(fc).videoBucket;
+		} finally {
+			lock.readLock().unlock();
+		}
 	}
 
 	public void setApplicationContext(ApplicationContext arg0)
@@ -194,11 +244,18 @@ public class BalancedFlowControlService extends TimerTask implements
 		this.defaultCapacity = defaultCapacity;
 	}
 	
+	/**
+	 * Get bw resource from the parent tree nodes.
+	 * Read-lock should be held when calling into this method.
+	 * @param fcData
+	 * @param channelId
+	 * @return
+	 */
 	private BandwidthResource getParentBandwidthResource(FcData fcData, int channelId) {
 		IFlowControllable parentFC = fcData.fc.getParentFlowControllable();
 		while (parentFC != null) {
 			FcData data = getFcData(parentFC);
-			if (data.bwResources.length > 0) {
+			if (data.hasBandwidthResource()) {
 				while (channelId >= data.bwResources.length) {
 					channelId--;
 				}
@@ -209,11 +266,15 @@ public class BalancedFlowControlService extends TimerTask implements
 		return null;
 	}
 	
+	/**
+	 * Register an fc.
+	 * Write-lock should be held when calling into this method.
+	 * @param fc
+	 */
 	private void registerFlowControllable(IFlowControllable fc) {
 		int depth = getFCDepth(fc);
 		FcData data = new FcData();
 		data.fc = fc;
-		data.depth = getFCDepth(fc);
 		data.videoBucket = new Bucket(data, 0);
 		data.audioBucket = new Bucket(data, 1);
 		fcListArray[depth].add(data);
@@ -221,6 +282,11 @@ public class BalancedFlowControlService extends TimerTask implements
 		updateBWConfigure(fc);
 	}
 	
+	/**
+	 * Get the FC depth in the tree.
+	 * @param fc
+	 * @return
+	 */
 	private int getFCDepth(IFlowControllable fc) {
 		IFlowControllable currentFC = fc;
 		int depth = -1;
@@ -235,18 +301,24 @@ public class BalancedFlowControlService extends TimerTask implements
 	}
 	
 	/**
-	 * Put a request object to sleep state on a specific channel.
+	 * Put a request object to sleep state.
 	 * @param fcData
 	 * @param reqObj
 	 * @param channelId
 	 */
-	private void putToSleep(FcData fcData, RequestObject reqObj, int channelId) {
-		fcData.waitingListArray[channelId].add(reqObj);
+	private void putToSleep(FcData fcData, RequestObject reqObj) {
+		lock.writeLock().lock();
+		try {
+			fcData.waitingList.add(reqObj);
+		} finally {
+			lock.writeLock().unlock();
+		}
 	}
 	
 	/**
 	 * Search nodes (including itself) along the parent path for
 	 * available bandwidth resource.
+	 * Read-lock should be held when calling into this method.
 	 * @param fcData
 	 * @param channelId
 	 * @return
@@ -266,25 +338,30 @@ public class BalancedFlowControlService extends TimerTask implements
 		}
 	}
 	
-	private void wakeFCCallback(FcData fcData, int channelId) {
-		List<RequestObject> reqObjList = fcData.waitingListArray[channelId];
-		if (reqObjList.size() > 0) {
-			RequestObject reqObj = reqObjList.remove(0);
-			for (RequestObject obj : reqObjList) {
-				obj.hungry++;
-			}
-			try {
-				reqObj.callback.available(reqObj.bucket, reqObj.tokenCount);
-			} catch (Throwable t) {
-				log.error("Exception in callback", t);
-			}
-		}
+	private void wakeUpCallback(FcData fcData) {
+		try {
+			wakeUpQueue.put(fcData);
+		} catch (InterruptedException e) {}
 	}
 	
+	/**
+	 * Get the fcData from the fc map.
+	 * Readlock should be held when calling into this method.
+	 * @param fc
+	 * @return
+	 */
 	private FcData getFcData(IFlowControllable fc) {
 		FcData data = fcMap.get(fc);
 		if (data == null) {
-			registerFlowControllable(fc);
+			// escalate the lock
+			lock.readLock().unlock();
+			lock.writeLock().lock();
+			try {
+				registerFlowControllable(fc);
+			} finally {
+				lock.readLock().lock();
+				lock.writeLock().unlock();
+			}
 			data = fcMap.get(fc);
 		}
 		return data;
@@ -312,7 +389,7 @@ public class BalancedFlowControlService extends TimerTask implements
 			else this.tokens = initial;
 		}
 		
-		private boolean acquireToken(long token) {
+		synchronized public boolean acquireToken(long token) {
 			if (tokens >= token) {
 				tokens -= token;
 				return true;
@@ -321,7 +398,7 @@ public class BalancedFlowControlService extends TimerTask implements
 			}
 		}
 		
-		private long acquireTokenBestEffort(long upperLimit) {
+		synchronized public long acquireTokenBestEffort(long upperLimit) {
 			long avail = 0;
 			if (tokens < upperLimit) {
 				avail = tokens;
@@ -332,7 +409,7 @@ public class BalancedFlowControlService extends TimerTask implements
 			}
 		}
 		
-		private void addToken(long token) {
+		synchronized public void addToken(long token) {
 			if (tokens + token > capacity) {
 				tokens = capacity;
 			} else {
@@ -346,19 +423,15 @@ public class BalancedFlowControlService extends TimerTask implements
 	 */
 	private class FcData implements Comparable {
 		private IFlowControllable fc;
-		private int depth;
 		private Bucket audioBucket;
 		private Bucket videoBucket;
 		private SimpleBandwidthConfigure config;
 		private BandwidthResource[] bwResources = new BandwidthResource[0];
-		private List<RequestObject>[] waitingListArray;
+		private List<RequestObject> waitingList;
 		private int hungry = 0;
 		
 		public FcData() {
-			waitingListArray = (List<RequestObject>[]) Array.newInstance(List.class, maxChannelNum);
-			for (int i = 0; i < maxChannelNum; i++) {
-				waitingListArray[i] = new ArrayList<RequestObject>();
-			}
+			waitingList = new ArrayList<RequestObject>();
 		}
 		
 		private boolean hasBandwidthResource() {
@@ -386,110 +459,134 @@ public class BalancedFlowControlService extends TimerTask implements
 		}
 
 		public boolean acquireToken(long tokenCount, long wait) {
-			synchronized (BalancedFlowControlService.this) {
+			if (wait != 0) {
+				// XXX not support waiting for now
+				return false;
+			}
+			BandwidthResource resource = null;
+			lock.readLock().lock();
+			try {
 				if (isReset) return false;
-				if (wait != 0) {
-					// XXX not support waiting for now
-					return false;
-				}
-				BandwidthResource resource = getResource();
-				if (resource == null) return true;
-				boolean success = resource.acquireToken(tokenCount);
-				int oldHungry = fcData.hungry;
+				resource = getResource();
+			} finally {
+				lock.readLock().unlock();
+			}
+			if (resource == null) return true;
+			boolean success = resource.acquireToken(tokenCount);
+			// lock here to avoid sorting on concurrent modification
+			lock.readLock().lock();
+			try {
 				if (success) {
 					fcData.hungry = 0;
 				} else {
 					fcData.hungry++;
 				}
-				if (oldHungry != fcData.hungry) {
-					Collections.sort(fcListArray[fcData.depth]);
-				}
-				return success;
+			} finally {
+				lock.readLock().unlock();
 			}
+			return success;
 		}
 
 		public long acquireTokenBestEffort(long upperLimitCount) {
-			synchronized (BalancedFlowControlService.this) {
+			BandwidthResource resource = null;
+			lock.readLock().lock();
+			try {
 				if (isReset) return 0;
-				BandwidthResource resource = getResource();
-				if (resource == null) return upperLimitCount;
-				long avail = resource.acquireTokenBestEffort(upperLimitCount);
-				int oldHungry = fcData.hungry;
+				resource = getResource();
+			} finally {
+				lock.readLock().unlock();
+			}
+			if (resource == null) return upperLimitCount;
+			long avail = resource.acquireTokenBestEffort(upperLimitCount);
+			// lock here to avoid sorting on concurrent modification
+			lock.readLock().lock();
+			try {
 				if (avail == 0) {
 					fcData.hungry++;
 				} else {
 					fcData.hungry = 0;
 				}
-				if (oldHungry != fcData.hungry) {
-					Collections.sort(fcListArray[fcData.depth]);
-				}
-				return avail;
+			} finally {
+				lock.readLock().unlock();
 			}
+			return avail;
 		}
 
 		public boolean acquireTokenNonblocking(long tokenCount, ITokenBucketCallback callback) {
-			synchronized (BalancedFlowControlService.this) {
+			BandwidthResource bwResource = null;
+			lock.readLock().lock();
+			try {
 				if (isReset) return false;
-				BandwidthResource bwResource = getResource();
-				if (bwResource != null) {
-					boolean success;
-					int oldHungry = fcData.hungry;
-					if (bwResource.acquireToken(tokenCount)) {
-						fcData.hungry = 0;
-						success = true;
-					} else {
-						fcData.hungry++;
-						RequestObject reqObj = new RequestObject();
-						reqObj.bucket = this;
-						reqObj.callback = callback;
-						reqObj.tokenCount = tokenCount;
-						putToSleep(fcData, reqObj, channelId);
-						success = false;
-					}
-					if (oldHungry != fcData.hungry) {
-						Collections.sort(fcListArray[fcData.depth]);
-					}
-					return success;
-				} else {
-					return true;
-				}
+				bwResource = getResource();
+			} finally {
+				lock.readLock().unlock();
 			}
+			if (bwResource == null) return true;
+			boolean success = bwResource.acquireToken(tokenCount);
+			if (!success) {
+				RequestObject reqObj = new RequestObject();
+				reqObj.bucket = this;
+				reqObj.callback = callback;
+				reqObj.tokenCount = tokenCount;
+				putToSleep(fcData, reqObj);
+			}
+			// lock here to avoid sorting on concurrent modification
+			lock.readLock().lock();
+			try {
+				if (success) {
+					fcData.hungry = 0;
+				} else {
+					fcData.hungry++;
+				}
+			} finally {
+				lock.readLock().unlock();
+			}
+			return success;
 		}
 
 		public long getCapacity() {
-			synchronized (BalancedFlowControlService.this) {
+			lock.readLock().lock();
+			try {
 				BandwidthResource bwResource = getResource();
 				if (bwResource != null) {
 					return bwResource.capacity;
 				} else {
 					return -1; // infinite
 				}
+			} finally {
+				lock.readLock().unlock();
 			}
 		}
 
 		public long getSpeed() {
-			synchronized (BalancedFlowControlService.this) {
+			lock.readLock().unlock();
+			try {
 				BandwidthResource bwResource = getResource();
 				if (bwResource != null) {
 					return bwResource.capacity;
 				} else {
 					return -1; // infinite
 				}
+			} finally {
+				lock.readLock().unlock();
 			}
 		}
 
 		public void reset() {
-			synchronized (BalancedFlowControlService.this) {
+			lock.writeLock().lock();
+			try {
 				isReset = true;
-				for (RequestObject obj : fcData.waitingListArray[channelId]) {
+				for (RequestObject obj : fcData.waitingList) {
 					try {
 						obj.callback.reset(obj.bucket, obj.tokenCount);
 					} catch (Throwable t) {
 						log.error("Exception in callback reset", t);
 					}
 				}
-				fcData.waitingListArray[channelId].clear();
+				fcData.waitingList.clear();
 				isReset = false;
+			} finally {
+				lock.writeLock().unlock();
 			}
 		}
 		
@@ -513,6 +610,36 @@ public class BalancedFlowControlService extends TimerTask implements
 			if (hungry < toCompare.hungry) return 1;
 			else if (hungry == toCompare.hungry) return 0;
 			else return -1;
+		}
+	}
+	
+	private class CallbackRunnable implements Runnable {
+		public void run() {
+			try {
+				while (true) {
+					FcData data = wakeUpQueue.take();
+					List<RequestObject> reqObjList = data.waitingList;
+					RequestObject reqObj = null;
+					lock.writeLock().lock();
+					try {
+						if (reqObjList.size() > 0) {
+							reqObj = reqObjList.remove(0);
+							for (RequestObject obj : reqObjList) {
+								obj.hungry++;
+							}
+						}
+					} finally {
+						lock.writeLock().unlock();
+					}
+					try {
+						if (reqObj != null) {
+							reqObj.callback.available(reqObj.bucket, reqObj.tokenCount);
+						}
+					} catch (Throwable t) {
+						log.error("Exception in callback", t);
+					}
+				}
+			} catch (InterruptedException e) {}
 		}
 	}
 }
