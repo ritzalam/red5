@@ -23,7 +23,7 @@ package org.red5.server.api;
  * Interface for setting/getting bandwidth configure.
  * If overallBandwidth is <tt>-1</tt>, A/V bandwidth settings are valid.
  * Or overallBandwidth will be used, thus Audio and Video share the
- * bandwidth setting.
+ * bandwidth setting. All bandwidth is specified in bits per second.
  * @author The Red5 Project (red5@osflash.org)
  * @author Steven Gong (steven.gong@gmail.com)
  */

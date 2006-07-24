@@ -379,17 +379,17 @@ public abstract class RTMPConnection extends BaseConnection implements
 		this.bandwidthConfig = config;
 		fcs.updateBWConfigure(this);
 		
-		// Notify client about new bandwidth settings
+		// Notify client about new bandwidth settings (in bytes per second)
 		if (config.getDownstreamBandwidth() > 0) {
-			ServerBW serverBW = new ServerBW((int) config.getDownstreamBandwidth());
+			ServerBW serverBW = new ServerBW((int) config.getDownstreamBandwidth() / 8);
 			getChannel((byte) 2).write(serverBW);
 		}
 		if (config.getUpstreamBandwidth() > 0) {
-			ClientBW clientBW = new ClientBW((int) config.getUpstreamBandwidth(), (byte) 0);
+			ClientBW clientBW = new ClientBW((int) config.getUpstreamBandwidth() / 8, (byte) 0);
 			getChannel((byte) 2).write(clientBW);
 			// Update generation of BytesRead messages
 			// TODO: what are the correct values here?
-			bytesReadInterval = (int) config.getUpstreamBandwidth();
+			bytesReadInterval = (int) config.getUpstreamBandwidth() / 8;
 			nextBytesRead = (int) getWrittenBytes();
 		}
 	}
