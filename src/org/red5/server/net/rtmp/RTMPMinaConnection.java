@@ -21,14 +21,11 @@ package org.red5.server.net.rtmp;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoSession;
-import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.net.rtmp.message.Packet;
 
 public class RTMPMinaConnection extends RTMPConnection {
@@ -37,7 +34,6 @@ public class RTMPMinaConnection extends RTMPConnection {
         LogFactory.getLog(RTMPMinaConnection.class.getName());
 
 	private IoSession ioSession;
-	private Map<Integer, Integer> pendingVideos = new HashMap<Integer, Integer>();
 	
 	public RTMPMinaConnection(IoSession protocolSession) {
 		super(PERSISTENT);
@@ -67,36 +63,9 @@ public class RTMPMinaConnection extends RTMPConnection {
 		ioSession.write(out);
 	}
 
-	long towrite = 0;
-
-	@Override
-	protected void messageSent(Packet message) {
-		if (message.getMessage() instanceof VideoData) {
-			int streamId = message.getHeader().getStreamId();
-			synchronized (pendingVideos) {
-				Integer pending = pendingVideos.get(streamId);
-				if (pending != null)
-					pendingVideos.put(streamId, pending-1);
-				towrite -= 1;
-			}
-		}
-		
-		super.messageSent(message);
-	}
-	
 	@Override
 	public void write(Packet out) {
-		if (out.getMessage() instanceof VideoData) {
-			int streamId = out.getHeader().getStreamId();
-			synchronized (pendingVideos) {
-				Integer old = pendingVideos.get(streamId);
-				if (old == null)
-					old = new Integer(0);
-				pendingVideos.put(streamId, old+1);
-				towrite += 1;
-			}
-		}
-		
+		writingMessage(out);
 		ioSession.write(out);
 	}
 
@@ -114,24 +83,6 @@ public class RTMPMinaConnection extends RTMPConnection {
 	
 	public long getPendingMessages() {
 		return ioSession.getScheduledWriteRequests();
-	}
-	
-	public long getPendingVideoMessages(int streamId) {
-		synchronized (pendingVideos) {
-			Integer count = pendingVideos.get(streamId);
-			long result = (count != null ? count.intValue() - getUsedStreamCount() : 0);
-			return (result > 0 ? result : 0);
-		}
-	}
-
-	@Override
-	public void deleteStreamById(int streamId) {
-		if (streamId > 0 && streamId <= MAX_STREAMS) {
-			synchronized (pendingVideos) {
-				pendingVideos.remove(streamId);
-			}
-		}
-		super.deleteStreamById(streamId);
 	}
 
 	public void close() {

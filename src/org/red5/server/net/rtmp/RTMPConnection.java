@@ -48,6 +48,7 @@ import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.event.Ping;
 import org.red5.server.net.rtmp.event.BytesRead;
 import org.red5.server.net.rtmp.event.ServerBW;
+import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.net.rtmp.message.Packet;
 import org.red5.server.service.Call;
 import org.red5.server.service.PendingCall;
@@ -87,6 +88,8 @@ public abstract class RTMPConnection extends BaseConnection implements
 	private int nextBytesRead = 125000;
 
 	private IBandwidthConfigure bandwidthConfig;
+	
+	private Map<Integer, Integer> pendingVideos = new HashMap<Integer, Integer>();
 	
 	private int usedStreams = 0;
 
@@ -277,6 +280,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 	public void deleteStreamById(int streamId) {
 		if (streamId > 0 && streamId <= MAX_STREAMS) {
 			if (streams[streamId - 1] != null) {
+				synchronized (pendingVideos) {
+					pendingVideos.remove(streamId);
+				}
 				usedStreams--;
 				streams[streamId - 1] = null;
 			}
@@ -420,6 +426,23 @@ public abstract class RTMPConnection extends BaseConnection implements
 		return UUID.randomUUID().toString();
 	}
 
+	/**
+	 * Mark message as being written.
+	 * 
+	 * @param message
+	 */
+	protected void writingMessage(Packet message) {
+		if (message.getMessage() instanceof VideoData) {
+			int streamId = message.getHeader().getStreamId();
+			synchronized (pendingVideos) {
+				Integer old = pendingVideos.get(streamId);
+				if (old == null)
+					old = new Integer(0);
+				pendingVideos.put(streamId, old+1);
+			}
+		}
+	}
+	
 	protected void messageReceived() {
 		readMessages++;
 
@@ -427,12 +450,34 @@ public abstract class RTMPConnection extends BaseConnection implements
 		updateBytesRead();
 	}
 
+	/**
+	 * Mark message as sent.
+	 * 
+	 * @param message
+	 */
 	protected void messageSent(Packet message) {
+		if (message.getMessage() instanceof VideoData) {
+			int streamId = message.getHeader().getStreamId();
+			synchronized (pendingVideos) {
+				Integer pending = pendingVideos.get(streamId);
+				if (pending != null)
+					pendingVideos.put(streamId, pending-1);
+			}
+		}
+		
 		writtenMessages++;
 	}
 
 	protected void messageDropped() {
 		droppedMessages++;
+	}
+
+	public long getPendingVideoMessages(int streamId) {
+		synchronized (pendingVideos) {
+			Integer count = pendingVideos.get(streamId);
+			long result = (count != null ? count.intValue() - getUsedStreamCount() : 0);
+			return (result > 0 ? result : 0);
+		}
 	}
 
 	public void ping() {

@@ -167,6 +167,9 @@ public class RTMPTConnection extends RTMPConnection {
 			return;
 		}
 		
+		// Mark packet as being written
+		writingMessage(packet);
+		
 		// Enqueue encoded packet data to be sent to client
 		rawWrite(data);
 		
