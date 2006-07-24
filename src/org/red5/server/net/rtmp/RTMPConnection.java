@@ -362,7 +362,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	
 	public void notify(String method, Object[] params) {
 		IServiceCall call = new Call(method, params);
-		invoke(call);
+		notify(call);
 	}
 
 	public IBandwidthConfigure getBandwidthConfigure() {
