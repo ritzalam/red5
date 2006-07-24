@@ -10,8 +10,6 @@ import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.stream.message.RTMPMessage;
 import org.springframework.core.style.ToStringCreator;
 
-import com.sun.org.apache.bcel.internal.generic.RETURN;
-
 public class StreamFlow implements IStreamFlow {
 
 	private static final Log log = LogFactory.getLog(StreamFlow.class);
@@ -34,6 +32,9 @@ public class StreamFlow implements IStreamFlow {
 	
 	private int minTimeBuffer = 10000;
 	private int maxTimeBuffer = 20000;
+	
+	private long clientTimeBuffer = 10000;
+	private long zeroToStreamTime = -1;
 	
 	private int bufferTime = 0;
 	private int lastBufferTimes[] = new int[]{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
@@ -113,8 +114,13 @@ public class StreamFlow implements IStreamFlow {
 		return System.currentTimeMillis() - streamStartTime;
 	}
 	
+	public long getZeroToStreamTime() {
+		if(zeroToStreamTime == -1) return System.currentTimeMillis() - segmentStartTime;
+		return zeroToStreamTime;
+	}
+
 	public int getBufferTime(){
-		return bufferTime; 
+		return (int) (getSegmentDataTime() - getSegmentStreamTime()); 
 	}
 
 	void startSegment(){
@@ -124,10 +130,20 @@ public class StreamFlow implements IStreamFlow {
 		segmentStartTime = now;
 	}
 	
+	public void pause(){
+		clear();
+	}
+	
+	public void resume(){
+		startSegment();
+	}
+	
 	public void clear(){
 		streaming = false;
 		segmentBytesTransfered = 0;
 		combinedSegmentDataTime = 0;
+		for(int i=0; i<lastBufferTimes.length; i++) lastBufferTimes[i] = 0;
+		zeroToStreamTime = -1;
 		segmentDataTimes[0] = segmentDataTimes[1] = segmentDataTimes[2] = 0;
 	}
 	
@@ -173,7 +189,10 @@ public class StreamFlow implements IStreamFlow {
 		
 		lastBufferTimes[lastBufferTimeIndex++] = bufferTime;
 		if(lastBufferTimeIndex == lastBufferTimes.length) lastBufferTimeIndex = 0;
-		bufferTime = (int) (getSegmentDataTime() - getSegmentStreamTime());
+		int dataTime = getSegmentDataTime();
+		if( zeroToStreamTime == -1 && dataTime > clientTimeBuffer )
+			zeroToStreamTime = System.currentTimeMillis() - segmentStartTime;
+		bufferTime = (int) (dataTime - getSegmentStreamTime());
 	}
 	
 	void updateSegment(int index, int bytes, int relativeTime){

@@ -87,7 +87,8 @@ implements IPassive, ISeekableProvider, IPullableProvider, IPipeConnectionListen
 		if (this.reader == null) init();
 		if(!reader.hasMoreTags()) {
 			// TODO send OOBCM to notify EOF
-			this.pipe.unsubscribe(this);
+			// Do not unsubscribe as this kills VOD seek while in buffer
+			// this.pipe.unsubscribe(this);
 			return null;
 		}
 		ITag tag = reader.readTag();

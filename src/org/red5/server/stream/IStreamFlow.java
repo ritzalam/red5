@@ -34,8 +34,14 @@ public interface IStreamFlow {
 
 	public void reset();
 	
+	public void pause();
+	
+	public void resume();
+	
 	public void clear();
 	
 	public void update(RTMPMessage msg);
+
+	public long getZeroToStreamTime();
 	
 }

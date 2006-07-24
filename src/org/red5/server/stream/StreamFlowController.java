@@ -13,6 +13,7 @@ public class StreamFlowController {
 	
 	public boolean adaptBandwidthForFlow(IStreamFlow flow, IFlowControllable controllable){
 		
+		
 		IBandwidthConfigure parentBwConf = controllable.getParentFlowControllable().getBandwidthConfigure();
 		IBandwidthConfigure bwConf = controllable.getBandwidthConfigure();
 		if(bwConf == null){
@@ -64,7 +65,7 @@ public class StreamFlowController {
 			controllable.setBandwidthConfigure(bwConf);
 		}
 		
-		log.debug("bw: "+Math.round(bw/1000)+" buf: "+bufferTime);
+		log.debug("bw: "+Math.round(bw/1000)+" buf: "+(bufferTime + flow.getZeroToStreamTime()));
 		
 		return change;
 	}
