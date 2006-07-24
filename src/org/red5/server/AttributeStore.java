@@ -62,7 +62,7 @@ public class AttributeStore implements IAttributeStore, ICastingAttributeStore {
 		
 		Object old = attributes.get(name);
 		Integer newHash = (value != null ? value.hashCode() : 0);
-		if ((old == null && value != null) || !old.equals(value) || !newHash.equals(hashes.get(name))) {
+		if ((old == null && value != null) || (old != null && !old.equals(value)) || !newHash.equals(hashes.get(name))) {
 			// Attribute value changed
 			attributes.put(name,value);
 			hashes.put(name, newHash);
