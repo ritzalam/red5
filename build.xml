@@ -182,7 +182,7 @@
 			<group title="Streaming" packages="org.red5.server.stream:org.red5.server.stream.*"/>
 			<group title="IO Packages" packages="org.red5.io:org.red5.io.*"/>
 			<link href="http://java.sun.com/j2se/1.5.0/docs/api"/>
-			<link href="http://jetty.mortbay.org/jetty6/jetty"/>
+			<link href="http://jetty.mortbay.org/jetty6/apidocs"/>
 			<link href="http://java.sun.com/j2se/1.5.0/docs/api"/>
 			<link href="http://directory.apache.org/subprojects/mina/apidocs"/>
 			<link href="http://www.springframework.org/docs/api"/>
