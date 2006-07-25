@@ -47,11 +47,15 @@ public class ScopeResolver implements IScopeResolver {
 			if (room.equals(""))
 				// Skip empty path elements
 				continue;
-			if (scope.hasChildScope(room)){
-				scope = scope.getScope(room);
-			} else if (!scope.equals(globalScope) && scope.createChildScope(room)){
-				scope = scope.getScope(room);
-			} else throw new ScopeNotFoundException(scope,parts[i]);
+			
+			// Prevent the same subscope from getting created twice
+			synchronized (scope) {
+				if (scope.hasChildScope(room)){
+					scope = scope.getScope(room);
+				} else if (!scope.equals(globalScope) && scope.createChildScope(room)){
+					scope = scope.getScope(room);
+				} else throw new ScopeNotFoundException(scope,parts[i]);
+			}
 		}
 		return scope;
 	}
