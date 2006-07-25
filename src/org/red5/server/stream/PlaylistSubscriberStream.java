@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ScheduledExecutorService;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -55,6 +54,7 @@ import org.red5.server.net.rtmp.event.AudioData;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.event.Ping;
 import org.red5.server.net.rtmp.event.VideoData;
+import org.red5.server.net.rtmp.event.VideoData.FrameType;
 import org.red5.server.net.rtmp.status.Status;
 import org.red5.server.stream.ITokenBucket.ITokenBucketCallback;
 import org.red5.server.stream.message.RTMPMessage;
@@ -605,7 +605,7 @@ implements IPlaylistSubscriberStream {
 			}
 			state = State.PLAYING;
 			if (decision == 1) {
-				pendingMessage = null;
+				releasePendingMessage();
 				sendVODInitCM(msgIn, item);
 				vodStartTS = -1;
 				pullAndPush();
@@ -655,6 +655,7 @@ implements IPlaylistSubscriberStream {
 					if (length < 0) length = 0;
 					playLengthJob = schedulingService.addScheduledOnceJob(length, this);
 				}
+				releasePendingMessage();
 				getStreamFlow().clear();
 				clearWaitJobs();
 				flowControlService.resetTokenBuckets(PlaylistSubscriberStream.this);
@@ -667,9 +668,30 @@ implements IPlaylistSubscriberStream {
 				// We seeked to the nearest keyframe so use real timestamp now 
 				if (seekPos == -1)
 					seekPos = position;
-				sendBlankAudio(seekPos);
-				sendBlankVideo(seekPos);
 				notifyItemSeek(currentItem, seekPos);
+				if (state == State.PAUSED) {
+					// we send a single snapshot on pause.
+					// XXX we need to take BWC into account, for
+					// now send forcefully.
+					IMessage msg = msgIn.pullMessage();
+					while (msg != null) {
+						if (msg instanceof RTMPMessage) {
+							RTMPMessage rtmpMessage = (RTMPMessage) msg;
+							IRTMPEvent body = rtmpMessage.getBody();
+							if (body instanceof VideoData &&
+									((VideoData) body).getFrameType() == FrameType.KEYFRAME) {
+								rtmpMessage.setTimerRelative(false);
+								body.setTimestamp(seekPos);
+								msgOut.pushMessage(rtmpMessage);
+								rtmpMessage.getBody().release();
+								break;
+							}
+						}
+					}
+				} else {
+					sendBlankAudio(seekPos);
+					sendBlankVideo(seekPos);
+				}
 			}
 		}
 		
@@ -683,6 +705,7 @@ implements IPlaylistSubscriberStream {
 				msgIn = null;
 			}
 			state = State.STOPPED;
+			releasePendingMessage();
 			getStreamFlow().reset();
 			clearWaitJobs();
 			flowControlService.resetTokenBuckets(PlaylistSubscriberStream.this);
@@ -701,13 +724,7 @@ implements IPlaylistSubscriberStream {
 					msgIn = null;
 				}
 			}
-			if (pendingMessage != null) {
-				IRTMPEvent body = pendingMessage.getBody();
-				if (body instanceof IStreamData)
-					((IStreamData) body).getData().release();
-				
-				pendingMessage = null;
-			}
+			releasePendingMessage();
 			
 			state = State.CLOSED;
 			getStreamFlow().reset();
@@ -738,8 +755,7 @@ implements IPlaylistSubscriberStream {
 					}
 					if (toSend) {
 						sendMessage(pendingMessage);
-						((IStreamData) body).getData().release();
-						pendingMessage = null;
+						releasePendingMessage();
 					}
 				} else {
 					while (true) {
@@ -822,8 +838,6 @@ implements IPlaylistSubscriberStream {
 				playLengthJob = null;
 			}
 		}
-		
-		private int counter = 0;
 		
 		private void sendMessage(RTMPMessage message) {
 			if (vodStartTS == -1) {
@@ -1131,18 +1145,6 @@ implements IPlaylistSubscriberStream {
 			flowControlService.updateBWConfigure(PlaylistSubscriberStream.this);
 		}
 		
-		private long pendingMessages() {
-			OOBControlMessage pendingRequest = new OOBControlMessage();
-			pendingRequest.setTarget("ConnectionConsumer");
-			pendingRequest.setServiceName("pendingCount");
-			msgOut.sendOOBControlMessage(this, pendingRequest);
-			if (pendingRequest.getResult() != null) {
-				return (Long) pendingRequest.getResult();
-			} else {
-				return 0;
-			}
-		}
-		
 		private long pendingVideoMessages() {
 			OOBControlMessage pendingRequest = new OOBControlMessage();
 			pendingRequest.setTarget("ConnectionConsumer");
@@ -1155,6 +1157,15 @@ implements IPlaylistSubscriberStream {
 			}
 		}
 		
+		private void releasePendingMessage() {
+			if (pendingMessage != null) {
+				IRTMPEvent body = pendingMessage.getBody();
+				if (body instanceof IStreamData)
+					((IStreamData) body).getData().release();
+				
+				pendingMessage = null;
+			}
+		}
 	}
 	
 	private class StreamNotFoundException extends Exception {
