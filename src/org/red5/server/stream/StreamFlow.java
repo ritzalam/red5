@@ -88,9 +88,9 @@ public class StreamFlow implements IStreamFlow {
 	}
 
 	public int getDataBitRate() {
-		int dataTime = getSegmentDataTime();
+		int dataTime = getSegmentDataTime() / 1000;
 		if(dataTime==0) return 0;
-		return ((segmentBytesTransfered * 8) / (dataTime / 1000));
+		return ((segmentBytesTransfered * 8) / dataTime);
 	}
 
 	public int getSegmentBytesTransfered() {
