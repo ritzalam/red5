@@ -57,16 +57,16 @@ public class StreamFlowController {
 				change = true;
 				//log.info(">>");
 			} 
-		} else if(bufferTime < ( flow.getMinTimeBuffer() + ((flow.getMaxTimeBuffer() - flow.getMinTimeBuffer()) / 1.5) )){
+		} else if(bufferTime < ( flow.getMinTimeBuffer() + ((flow.getMaxTimeBuffer() - flow.getMinTimeBuffer()) / 1.8) )){
 			if(!flow.isBufferTimeIncreasing()){ 
-				if(bw < flow.getDataBitRate() * 0.5) bw = (int) (flow.getDataBitRate() * 1.2);
+				if(bw < flow.getDataBitRate() * 0.9) bw = (int) (flow.getDataBitRate());
 				bw += computeChange(bw) / 2;
 				change = true;
 				//log.info(">");
 			} 
 		} else if(bufferTime < flow.getMaxTimeBuffer()){
 			if(flow.isBufferTimeIncreasing()){
-				if(bw > flow.getDataBitRate()*1.5) bw = (int) (flow.getDataBitRate() * 1.2);
+				if(bw > flow.getDataBitRate() * 1.1) bw = (int) (flow.getDataBitRate());
 				bw -= computeChange(bw) / 2;
 				change = true;
 				//log.info("<");
@@ -85,7 +85,7 @@ public class StreamFlowController {
 			controllable.setBandwidthConfigure(bwConf);
 		}
 		
-		log.debug("bw: "+Math.round(bw/1000)+" buf: "+(bufferTime + flow.getZeroToStreamTime()));
+		log.debug("bw: "+bw+" buf: "+bufferTime+" data bit rate: "+flow.getDataBitRate());
 		
 		return change;
 	}

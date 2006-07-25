@@ -450,6 +450,7 @@ implements IPlaylistSubscriberStream {
 		private String waitLiveJob;
 		private String playLengthJob;
 		private String waitStopJob;
+		private String adaptFlowJob;
 		private boolean isWaiting = false;
 		private int vodStartTS = 0;
 		private int duration = 0;
@@ -617,14 +618,7 @@ implements IPlaylistSubscriberStream {
 			if (isPullMode) {
 				state = State.PAUSED;
 				getStreamFlow().pause();
-				if (waitStopJob != null) {
-					schedulingService.removeScheduledJob(waitStopJob);
-					waitStopJob = null;
-				}
-				if (playLengthJob != null) {
-					schedulingService.removeScheduledJob(playLengthJob);
-					playLengthJob = null;
-				}
+				clearWaitJobs();
 				sendClearPing();
 				sendPauseStatus(currentItem);
 				notifyItemPause(currentItem, position);
@@ -656,21 +650,13 @@ implements IPlaylistSubscriberStream {
 				throw new IllegalStateException();
 			}
 			if (isPullMode) {
-				if (playLengthJob != null) {
-					schedulingService.removeScheduledJob(playLengthJob);
-					playLengthJob = null;
-				}
 				if (state == State.PLAYING && currentItem.getLength() >= 0) {
 					long length = currentItem.getLength() - vodStartTS + position;
 					if (length < 0) length = 0;
 					playLengthJob = schedulingService.addScheduledOnceJob(length, this);
 				}
 				getStreamFlow().clear();
-				if (waitStopJob != null) {
-					log.info("Removing wait stop job!");
-					schedulingService.removeScheduledJob(waitStopJob);
-					waitStopJob = null;
-				}
+				clearWaitJobs();
 				flowControlService.resetTokenBuckets(PlaylistSubscriberStream.this);
 				isWaitingForToken = false;
 				sendClearPing();
@@ -698,18 +684,7 @@ implements IPlaylistSubscriberStream {
 			}
 			state = State.STOPPED;
 			getStreamFlow().reset();
-			if (waitStopJob != null) {
-				schedulingService.removeScheduledJob(waitStopJob);
-				waitStopJob = null;
-			}
-			if (waitLiveJob != null) {
-				schedulingService.removeScheduledJob(waitLiveJob);
-				waitLiveJob = null;
-			}
-			if (playLengthJob != null) {
-				schedulingService.removeScheduledJob(playLengthJob);
-				playLengthJob = null;
-			}
+			clearWaitJobs();
 			flowControlService.resetTokenBuckets(PlaylistSubscriberStream.this);
 			isWaitingForToken = false;
 			notifyItemStop(currentItem);
@@ -736,18 +711,7 @@ implements IPlaylistSubscriberStream {
 			
 			state = State.CLOSED;
 			getStreamFlow().reset();
-			if (waitStopJob != null) {
-				schedulingService.removeScheduledJob(waitStopJob);
-				waitStopJob = null;
-			}
-			if (waitLiveJob != null) {
-				schedulingService.removeScheduledJob(waitLiveJob);
-				waitLiveJob = null;
-			}
-			if (playLengthJob != null) {
-				schedulingService.removeScheduledJob(playLengthJob);
-				playLengthJob = null;
-			}
+			clearWaitJobs();
 			sendClearPing();
 		}
 		
@@ -780,6 +744,14 @@ implements IPlaylistSubscriberStream {
 				} else {
 					while (true) {
 						IMessage msg = msgIn.pullMessage();
+						if(adaptFlowJob == null){
+							adaptFlowJob = schedulingService.addScheduledJob(100,new IScheduledJob(){
+								public void execute(ISchedulingService service){
+									streamFlowController.adaptBandwidthForFlow(getStreamFlow(), PlaylistSubscriberStream.this);
+								}
+							});
+						}
+						
 						if (msg == null) {
 							// end of the VOD stream
 							final IStreamFlow streamFlow = getStreamFlow();
@@ -832,6 +804,25 @@ implements IPlaylistSubscriberStream {
 			}
 		}
 		
+		private void clearWaitJobs(){
+			if (adaptFlowJob != null) {
+				schedulingService.removeScheduledJob(adaptFlowJob);
+				adaptFlowJob = null;
+			}
+			if (waitStopJob != null) {
+				schedulingService.removeScheduledJob(waitStopJob);
+				waitStopJob = null;
+			}
+			if (waitLiveJob != null) {
+				schedulingService.removeScheduledJob(waitLiveJob);
+				waitLiveJob = null;
+			}
+			if (playLengthJob != null) {
+				schedulingService.removeScheduledJob(playLengthJob);
+				playLengthJob = null;
+			}
+		}
+		
 		private int counter = 0;
 		
 		private void sendMessage(RTMPMessage message) {
@@ -856,15 +847,7 @@ implements IPlaylistSubscriberStream {
 					}
 				}
 			}
-			try {
-				getStreamFlow().update(message);
-				// TODO: this should be time based, not every 10 packets.
-				if((counter++ % 10) == 0){
-					streamFlowController.adaptBandwidthForFlow(getStreamFlow(), PlaylistSubscriberStream.this);
-				}
-			} catch (RuntimeException e) {
-				log.error("Error updating flow",e);
-			}
+			getStreamFlow().update(message);
 			msgOut.pushMessage(message);
 		}
 

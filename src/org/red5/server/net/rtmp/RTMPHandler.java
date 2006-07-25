@@ -436,12 +436,17 @@ public class RTMPHandler
 				if (stream != null && stream.getStreamFlow() != null) {
 					IStreamFlow flow = stream.getStreamFlow();
 					int buffer = ping.getValue3();
+					// TODO: pass this to application, so custom settings can be applied
 					flow.setClientTimeBuffer(buffer);
-					int minBuffer = buffer - (buffer / 2);
+					int minBuffer = buffer - (buffer / 4);
+					int maxBuffer = buffer + (buffer / 4);
 					if (minBuffer < 1000)
 						minBuffer = 1000;
+					if( maxBuffer < 5000)
+						maxBuffer = 5000;
 					flow.setMinTimeBuffer(minBuffer);
-					flow.setMaxTimeBuffer(buffer);
+					flow.setMaxTimeBuffer(maxBuffer);
+					log.info("Setting client buffer on stream flow: "+ping.getValue2());
 				}
 			} else {
 				// XXX: should we store the buffer time for future streams?

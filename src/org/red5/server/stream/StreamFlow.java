@@ -88,8 +88,9 @@ public class StreamFlow implements IStreamFlow {
 	}
 
 	public int getDataBitRate() {
-		if(combinedSegmentDataTime==0) return 0;
-		return ((segmentBytesTransfered / combinedSegmentDataTime ) * 10000);
+		int dataTime = getSegmentDataTime();
+		if(dataTime==0) return 0;
+		return ((segmentBytesTransfered * 8) / (dataTime / 1000));
 	}
 
 	public int getSegmentBytesTransfered() {
@@ -110,7 +111,7 @@ public class StreamFlow implements IStreamFlow {
 	}
 
 	public int getStreamBitRate() {
-		return (int)((segmentBytesTransfered / getSegmentStreamTime()) * 1000) ;
+		return (int)((segmentBytesTransfered * 8) / (getSegmentStreamTime() / 1000)) ;
 	}
 	
 	public boolean isBufferTimeIncreasing() {
@@ -120,7 +121,7 @@ public class StreamFlow implements IStreamFlow {
 		}
 		int newLastBufferTime = (combinedBufferTime/lastBufferTimes.length);
 		boolean isIncreasing = (newLastBufferTime >= lastBufferTime);
-		log.debug("lastBufferTime: "+lastBufferTime+" new:"+newLastBufferTime);
+		//log.debug("lastBufferTime: "+lastBufferTime+" new:"+newLastBufferTime);
 		lastBufferTime = newLastBufferTime;
 		return isIncreasing;
 	}
