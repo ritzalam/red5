@@ -713,6 +713,7 @@ implements IPlaylistSubscriberStream {
 			flowControlService.resetTokenBuckets(PlaylistSubscriberStream.this);
 			isWaitingForToken = false;
 			notifyItemStop(currentItem);
+			sendStopStatus(currentItem);
 			sendClearPing();
 			sendResetPing();
 		}
