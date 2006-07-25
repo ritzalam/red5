@@ -349,7 +349,7 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 		try {
 			IStreamableFile streamFile = service.getStreamableFile(file);
 			ITagReader reader = streamFile.getReader();
-			duration = reader.getDuration() / 1000;
+			duration = (double) reader.getDuration() / 1000;
 			reader.close();
 		} catch (IOException e) {
 			log.error("error read stream file " + file.getAbsolutePath(), e);

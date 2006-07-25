@@ -36,7 +36,7 @@ public class DefaultStreamFilenameGenerator implements IStreamFilenameGenerator 
 	}
 	
 	public String generateFilename(IScope scope, String name) {
-		return generateFilename(scope, name);
+		return generateFilename(scope, name, null);
 	}
 
 	public String generateFilename(IScope scope, String name, String extension) {
