@@ -253,7 +253,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder, IE
 		
 		buf.flip();	
 		
-		final IRTMPEvent message = decodeMessage(rtmp, header, buf);
+		final IRTMPEvent message = decodeMessage(rtmp, packet.getHeader(), buf);
 		packet.setMessage(message);
 		
 		if(message instanceof ChunkSize){
