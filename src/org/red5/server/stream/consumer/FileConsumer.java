@@ -110,7 +110,7 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 		}
 		
 		if (msg instanceof IStreamData) {
-			ByteBuffer data = ((IStreamData) msg).getData();
+			ByteBuffer data = ((IStreamData) msg).getData().asReadOnlyBuffer();
 			tag.setBodySize(data.limit());
 			tag.setBody(data);
 		}
