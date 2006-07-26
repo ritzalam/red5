@@ -131,12 +131,14 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	public void onPipeConnectionEvent(PipeConnectionEvent event) {
 		switch (event.getType()) {
 		case PipeConnectionEvent.CONSUMER_CONNECT_PUSH:
+			if (event.getConsumer() != this) break;
 			Map paramMap = event.getParamMap();
 			if (paramMap != null) mode = (String) paramMap.get("mode");
 			break;
 		case PipeConnectionEvent.CONSUMER_DISCONNECT:
+			if (event.getConsumer() != this) break;
 		case PipeConnectionEvent.PROVIDER_DISCONNECT:
-			// we only support on provider at a time
+			// we only support one provider at a time
 			// so do releasing when provider disconnects
 			uninit();
 			break;
