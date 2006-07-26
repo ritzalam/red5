@@ -73,11 +73,12 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	private IPipe livePipe;
 	private IPipe recordPipe;
 	private boolean sendStartNotification = true;
+	/** Stores absolute time for video stream. */
+	private long audioTime = -1;
+	/** Stores absolute time for audio stream. */
+	private long videoTime = -1;
+	private int audioAdd = 0;
 	
-	private long startTime;
-	private long lastAudio;
-	private long lastVideo;
-	private long lastData;
 	private int chunkSize = 0;
 	
 	public void start() {
@@ -94,10 +95,8 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		Map<Object, Object> recordParamMap = new HashMap<Object, Object>();
 		recordParamMap.put("record", null);
 		recordPipe.subscribe((IProvider) this, recordParamMap);
-		startTime = System.currentTimeMillis();
 		setCodecInfo(new StreamCodecInfo());
 		sendStartNotify();
-		lastAudio = lastVideo = lastData = startTime;
 		notifyBroadcastStart();
 	}
 
@@ -186,12 +185,6 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		}
 	}
 	
-	private int videoCounter = 0;
-	private int audioCounter = 0;
-	private long totalAudio = 0;
-	private long totalVideo = 0;
-	private int timerAdd = 0;
-	
 	public void dispatchEvent(IEvent event) {
 		if (!(event instanceof IRTMPEvent) && (event.getType() != IEvent.Type.STREAM_CONTROL) && (event.getType() != IEvent.Type.STREAM_DATA))
 			return;
@@ -202,18 +195,22 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			streamCodec = (StreamCodecInfo) codecInfo;
 		
 		IRTMPEvent rtmpEvent = (IRTMPEvent) event;
-		long delta = 0;
-		long now = System.currentTimeMillis();
+		long lastTime = -1;
+		long thisTime = -1;
 		if (rtmpEvent instanceof AudioData) {
 			if (streamCodec != null)
 				streamCodec.setHasAudio(true);
-			delta = now - lastAudio;
-			lastAudio = now;
-			IEventListener source = event.getSource();
+			lastTime = audioTime;
+			if (audioAdd != 0) {
+				rtmpEvent.setTimestamp(rtmpEvent.getTimestamp() + audioAdd);
+				rtmpEvent.getHeader().setTimer(rtmpEvent.getHeader().getTimer() + audioAdd);
+				audioAdd = 0;
+			}
 			if (rtmpEvent.getHeader().isTimerRelative())
-				totalAudio += rtmpEvent.getTimestamp();
+				audioTime += rtmpEvent.getTimestamp();
 			else
-				totalAudio = rtmpEvent.getTimestamp();
+				audioTime = rtmpEvent.getTimestamp();
+			thisTime = audioTime;
 		} else if (rtmpEvent instanceof VideoData) {
 			IVideoStreamCodec videoStreamCodec = null;
 			if (videoCodecFactory != null && checkVideoCodec) {
@@ -230,12 +227,6 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			
 			if (streamCodec != null)
 				streamCodec.setHasVideo(true);
-			delta = now - lastVideo;
-			lastVideo = now;
-			if (rtmpEvent.getHeader().isTimerRelative())
-				totalVideo += rtmpEvent.getTimestamp();
-			else
-				totalVideo = rtmpEvent.getTimestamp();
 			IEventListener source = event.getSource();
 			if (sendStartNotification) {
 				// Notify handler that stream starts publishing
@@ -249,48 +240,33 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 					}
 				}
 			}
-		} else {
-			delta = now - lastData;
-			lastData = now;
+			lastTime = videoTime;
+			if (rtmpEvent.getHeader().isTimerRelative())
+				videoTime += rtmpEvent.getTimestamp();
+			else
+				videoTime = rtmpEvent.getTimestamp();
+			thisTime = videoTime;
 		}
 		
-		// XXX: deltas for the different tag types don't seem to work, investigate!
-		delta = now - startTime;
-		startTime = now;
-		
-		//System.err.println("Input:  Audio " + totalAudio + ", Video " + totalVideo + ", Diff " + (totalAudio - totalVideo));
-		//rtmpEvent.setTimestamp((int) delta);
 		RTMPMessage msg = new RTMPMessage();
 		msg.setBody(rtmpEvent);
-		if (livePipe != null) {
-			// XXX probable race condition here
-			boolean send = true;
-			if (rtmpEvent instanceof VideoData) {
-				// Drop 1 in every 20 disposable interframe video packets, low tech lag fix.
-				VideoData.FrameType frameType = ((VideoData) rtmpEvent).getFrameType();
-				if (frameType == VideoData.FrameType.DISPOSABLE_INTERFRAME) {
-					send = (videoCounter++ % 20) != 0;
-					timerAdd += rtmpEvent.getTimestamp();
-				}
-				
-				/*
-				if (send && timerAdd > 0) {
-					// Adjust timestamp with previously skipped frame
-					// TODO: check if this increases lag again...
-					rtmpEvent.setTimestamp(rtmpEvent.getTimestamp() + timerAdd);
-					timerAdd = 0;
-				}
-				*/
-			} else if (rtmpEvent instanceof AudioData) {
-				// Low-tech audio lag fix, decrement timestamp by 1 in 4 of 5 audio packets
-				if (audioCounter > 0 && audioCounter % 5 != 0 && rtmpEvent.getTimestamp() > 0) {
-					rtmpEvent.setTimestamp(rtmpEvent.getTimestamp() - 1);
-				}
-				audioCounter++;
+		if (!rtmpEvent.getHeader().isTimerRelative() && lastTime != -1) {
+			// Make sure we only sent relative timestamps to the subscribers
+			int delta = (int) (thisTime - lastTime);
+			if (delta < 0) {
+				if (rtmpEvent instanceof VideoData)
+					// We can't move back the video but advance the audio instead
+					audioAdd += -delta;
+				// XXX: is this also needed for AudioData? never occured though while testing...
+				delta = 0;
 			}
-			if (send)
-				livePipe.pushMessage(msg);
-		}
+			msg.setTimerRelative(true);
+			msg.getBody().getHeader().setTimerRelative(true);
+			msg.getBody().setTimestamp(delta);
+			msg.getBody().getHeader().setTimer(delta);
+		} else
+			msg.setTimerRelative(rtmpEvent.getHeader().isTimerRelative());
+		if (livePipe != null) livePipe.pushMessage(msg);
 		recordPipe.pushMessage(msg);
 	}
 

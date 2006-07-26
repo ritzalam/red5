@@ -33,11 +33,11 @@ import org.red5.server.messaging.PipeConnectionEvent;
 import org.red5.server.net.rtmp.Channel;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.event.AudioData;
+import org.red5.server.net.rtmp.event.BytesRead;
 import org.red5.server.net.rtmp.event.ChunkSize;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.event.Ping;
-import org.red5.server.net.rtmp.event.BytesRead;
 import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.net.rtmp.message.Header;
@@ -54,8 +54,9 @@ public class ConnectionConsumer implements IPushableConsumer,
 	private Channel video;
 	private Channel audio;
 	private Channel data;
-	private int audioTime;
-	private boolean videoReceived;
+	private boolean videofirst=true;
+	private boolean audiofirst=true;
+	private int deltafirst=0;
 	private int chunkSize = -1;
 	
 	public ConnectionConsumer(RTMPConnection conn, byte videoChannel, byte audioChannel, byte dataChannel) {
@@ -63,12 +64,7 @@ public class ConnectionConsumer implements IPushableConsumer,
 		this.video = conn.getChannel(videoChannel);
 		this.audio = conn.getChannel(audioChannel);
 		this.data = conn.getChannel(dataChannel);
-		this.audioTime = 0;
-		this.videoReceived = false;
 	}
-
-	private long totalAudio = 0;
-	private long totalVideo = 0;
 
 	public void pushMessage(IPipe pipe, IMessage message) {
 		if (message instanceof StatusMessage) {
@@ -82,51 +78,48 @@ public class ConnectionConsumer implements IPushableConsumer,
 				msg.setHeader(new Header());
 			}
 			msg.getHeader().setTimerRelative(rtmpMsg.isTimerRelative());
-//			log.debug("ts :" + msg.getTimestamp());
-			switch(msg.getDataType()){
+			switch (msg.getDataType()) {
 			case Constants.TYPE_STREAM_METADATA:
 				Notify notify = new Notify(((Notify) msg).getData().asReadOnlyBuffer());
 				notify.setHeader(msg.getHeader());
 				notify.setTimestamp(msg.getTimestamp());
 				video.write(notify);
-				if (msg.getHeader().isTimerRelative())
-					totalVideo += msg.getTimestamp();
-				else
-					totalVideo = msg.getTimestamp();
 				break;
 			case Constants.TYPE_VIDEO_DATA:
 				VideoData videoData = new VideoData(((VideoData) msg).getData().asReadOnlyBuffer());
 				videoData.setHeader(msg.getHeader());
-				if (audioTime > 0) {
-					msg.setTimestamp(msg.getTimestamp() + audioTime);
-					if (msg.getTimestamp() < 0)
-						msg.setTimestamp(0);
-					videoData.getHeader().setTimer(msg.getTimestamp());
-					audioTime = 0;
-				}
 				videoData.setTimestamp(msg.getTimestamp());
-				videoReceived = true;
+				if (videofirst && audiofirst) {
+					videofirst = false;
+					deltafirst = videoData.getTimestamp();
+					videoData.setTimestamp(0);
+					videoData.getHeader().setTimerRelative(false);
+				}
+				if (videofirst && !audiofirst) {
+					videofirst = false;
+					videoData.setTimestamp(videoData.getTimestamp() - deltafirst);
+				}
 				video.write(videoData);
-				if (msg.getHeader().isTimerRelative())
-					totalVideo += msg.getTimestamp();
-				else
-					totalVideo = msg.getTimestamp();
 				break;
 			case Constants.TYPE_AUDIO_DATA:
 				AudioData audioData = new AudioData(((AudioData) msg).getData().asReadOnlyBuffer());
 				audioData.setHeader(msg.getHeader());
 				audioData.setTimestamp(msg.getTimestamp());
+				if (audiofirst && videofirst) {
+					audiofirst = false;
+					deltafirst = audioData.getTimestamp();
+					audioData.setTimestamp(0);
+					audioData.getHeader().setTimerRelative(false);
+					
+					AudioData blankAudio=new AudioData();
+					blankAudio.setTimestamp(0);
+					audio.write(blankAudio);
+				}
+				if (audiofirst && !videofirst) {
+					audiofirst = false;
+					audioData.setTimestamp(audioData.getTimestamp() - deltafirst);
+				}
 				audio.write(audioData);
-				if (!videoReceived)
-					if (msg.getHeader().isTimerRelative())
-						audioTime += msg.getTimestamp();
-					else
-						audioTime = msg.getTimestamp();
-				
-				if (msg.getHeader().isTimerRelative())
-					totalAudio += msg.getTimestamp();
-				else
-					totalAudio = msg.getTimestamp();
 				break;
 			case Constants.TYPE_PING:
 				msg.getHeader().setTimerRelative(false);
@@ -140,9 +133,8 @@ public class ConnectionConsumer implements IPushableConsumer,
 				break;
 			default:
 				data.write(msg);
-			break;
+				break;
 			}
-			//System.err.println("Audio: " + totalAudio + ", Video: " + totalVideo + ", Diff: " + (totalAudio - totalVideo));
 		}
 	}
 

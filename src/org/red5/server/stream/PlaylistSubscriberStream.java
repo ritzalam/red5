@@ -598,7 +598,7 @@ implements IPlaylistSubscriberStream {
 			}
 			if (sendNotifications) {
 				sendResetPing();
-				sendBlankAudio(0);
+				//sendBlankAudio(0);
 				//sendBlankVideo(0);
 				sendResetStatus(item);
 				sendStartStatus(item);
