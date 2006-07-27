@@ -32,6 +32,7 @@ import org.red5.server.BaseConnection;
 import org.red5.server.api.IBandwidthConfigure;
 import org.red5.server.api.IContext;
 import org.red5.server.api.IFlowControllable;
+import org.red5.server.api.Red5;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IPendingServiceCallback;
 import org.red5.server.api.service.IServiceCall;
@@ -241,6 +242,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	public void close() {
+		Red5.setConnectionLocal(this);
 		IStreamService streamService = (IStreamService) getScopeService(scope,
 				IStreamService.STREAM_SERVICE, StreamService.class);
 		if (streamService != null) {
