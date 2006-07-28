@@ -150,10 +150,30 @@ function updateScopeAttributes(path, container) {
  * Serializ a property that was received from Red5.
  */
 function outputProperty(property, container) {
-    if (isNaN(property) && property instanceof Object) {
-        dl = document.createElement("dl");
-        container.appendChild(dl);
+    if (property instanceof Array) {
+        for (var index in property) {
+            if (index == 'toXmlRpc')
+                continue;
+            
+            dl = document.createElement("dl");
+            container.appendChild(dl);
+            
+            dt = document.createElement("dt");
+            dl.appendChild(document.createTextNode(index));
+            
+            dd = document.createElement("dd");
+            dl.appendChild(dd);
+            outputProperty(property[index], dd);
+        }
+        return;
+    } else if (isNaN(property) && property instanceof Object) {
         for (var name in property) {
+            if (name == 'toXmlRpc')
+                continue;
+            
+            dl = document.createElement("dl");
+            container.appendChild(dl);
+            
             dt = document.createElement("dt");
             outputProperty(name, dt);
             dl.appendChild(dt);
@@ -197,6 +217,9 @@ function updateSharedObjects(path, container) {
             h4.appendChild(document.createTextNode("Non-persistent shared object \"" + name + "\""));
         sub_container.appendChild(h4);
         for (var property in info[1]) {
+            if (property == 'format' || property == 'pad' || property == 'mul' || property == 'toXmlRpc')
+                continue;
+            
             if (!table) {
                 table = document.createElement("table");
                 container.appendChild(table);

@@ -21,6 +21,7 @@ package org.red5.server.statistics;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -123,7 +124,7 @@ public class ScopeStatistics {
 	 */
 	private Object getXMLRPCValue(Object value) {
 		if (value == null) {
-			return null;
+			return "<null>";
 		}
 		
 		Class type = value.getClass();
@@ -133,6 +134,9 @@ public class ScopeStatistics {
 			|| type.equals(String.class)
 			|| type.equals(Date.class)) {
 			return value;
+		} else if (type.equals(Long.class)) {
+			// XXX: long values are not supported by XML-RPC, convert to string instead 
+			return ((Long) value).toString();
 		} else if (type.isArray() && type.getComponentType().equals(byte.class)) {
 			return value;
 		} else if (type.isArray()) {
@@ -149,6 +153,13 @@ public class ScopeStatistics {
 				res.put(entry.getKey(), getXMLRPCValue(entry.getValue()));
 			}
 			return res;
+		} else if (value instanceof Collection) {
+			Collection<Object> coll = (Collection<Object>) value;
+			Vector<Object> result = new Vector<Object>(coll.size());
+			for (Object item: coll) {
+				result.add(getXMLRPCValue(item));
+			}
+			return result;
 		}
 		
 		throw new RuntimeException("Don't know how to convert " + value);

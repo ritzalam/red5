@@ -44,7 +44,7 @@ h3 {
     clear: both;
 }
 #footer #last_updated {
-	float: right;
+    float: right;
 }
 .message {
     border: 1px solid red;
@@ -65,7 +65,9 @@ ul {
     padding-left: 0;
 }
 table {
+    /*
     table-layout: fixed;
+    */
     border-spacing: 0;
     border-collapse: collapse;
     width: 100%;
@@ -77,22 +79,22 @@ table {
 table tr th {
     border-top: 1px solid #aaa;
     border-left: 1px solid #aaa;
-	vertical-align: top;
+    vertical-align: top;
 }
 table tr th.property {
-    width: 15em;
+    min-width: 15em;
 }
 table tr td {
     border-top: 1px solid #aaa;
     border-left: 1px solid #aaa;
-	vertical-align: top;
+    vertical-align: top;
 }
 table tr td.property {
-    width: 15em;
+    min-width: 15em;
 }
 div.sharedObject h4 {
-	margin-bottom: 0.5em;
+    margin-bottom: 0.5em;
 }
 dl {
-	margin: 0;
+    margin: 0;
 }
