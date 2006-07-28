@@ -86,7 +86,10 @@ public class RTMPTConnection extends RTMPConnection {
 	}
 
 	public void close() {
-		this.buffer.release();
+		if (this.buffer != null) {
+			this.buffer.release();
+			this.buffer = null;
+		}
 		for (ByteBuffer buffer: pendingMessages) {
 			buffer.release();
 		}
