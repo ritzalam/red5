@@ -226,6 +226,8 @@ public class ServerStream extends AbstractStream implements IServerStream,
 			msgIn.unsubscribe(this);
 			msgIn = null;
 		}
+		if (nextRTMPMessage != null)
+			nextRTMPMessage.getBody().release();
 		state = State.STOPPED;
 	}
 
@@ -332,6 +334,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 		if (!(firstRTMPMsg.getBody() instanceof VideoData) &&
 				!(firstRTMPMsg.getBody() instanceof AudioData) &&
 				firstRTMPMsg.getBody().getTimestamp() == 0) {
+			firstRTMPMsg.getBody().release();
 			firstRTMPMsg = getNextRTMPMessage();
 			if (firstRTMPMsg == null) {
 				onItemEnd();
@@ -362,6 +365,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 			nextTS = nextDataTS;
 		}
 		msgOut.pushMessage(firstRTMPMsg);
+		firstRTMPMsg.getBody().release();
 		scheduleNextMessage();
 	}
 	
@@ -406,6 +410,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 					if (vodJobName == null) return;
 					vodJobName = null;
 					msgOut.pushMessage(nextRTMPMessage);
+					nextRTMPMessage.getBody().release();
 					long start = currentItem.getStart();
 					if (start < 0) start = 0;
 					if (currentItem.getLength() >= 0 &&
