@@ -32,6 +32,7 @@ public class Application extends ApplicationAdapter {
 			sbc.setOverallBandwidth(2*1024*1024);
 			streamConn.setBandwidthConfigure(sbc);
 		}
+		/*
 		if (appScope == conn.getScope()) {
 			serverStream =
 				StreamUtils.createServerStream(appScope, "live0");
@@ -47,6 +48,7 @@ public class Application extends ApplicationAdapter {
 			serverStream.addItem(item);
 			serverStream.start();
 		}
+		*/
 		return super.appConnect(conn, params);
 	}
 
