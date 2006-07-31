@@ -54,7 +54,7 @@ public class Application extends ApplicationAdapter {
 
 	@Override
 	public void appDisconnect(IConnection conn) {
-		if (appScope == conn.getScope()) {
+		if (appScope == conn.getScope() && serverStream != null) {
 			serverStream.close();
 		}
 		super.appDisconnect(conn);
