@@ -73,7 +73,6 @@ public class RTMPTConnection extends RTMPConnection {
 	protected long noPendingMessages = 0;
 	protected long readBytes = 0;
 	protected long writtenBytes = 0;
-	protected ThreadLocal<HttpServletRequest> request = new ThreadLocal<HttpServletRequest>();
 	
 	public RTMPTConnection(RTMPTHandler handler) {
 		super( POLLING );
@@ -99,19 +98,9 @@ public class RTMPTConnection extends RTMPConnection {
 	}
 	
 	public void setServletRequest(HttpServletRequest request) {
-		this.request.set(request);
-	}
-
-	public String getHost() {
-		return request.get().getLocalName();
-	}
-
-	public String getRemoteAddress() {
-		return request.get().getRemoteHost();
-	}
-
-	public int getRemotePort() {
-		return request.get().getRemotePort();
+		host = request.getLocalName();
+		remoteAddress = request.getRemoteAddr();
+		remotePort = request.getRemotePort();
 	}
 
 	/**
