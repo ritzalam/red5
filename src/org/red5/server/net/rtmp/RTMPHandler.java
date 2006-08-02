@@ -389,9 +389,6 @@ public class RTMPHandler
 					   action.equals(ACTION_RECEIVE_VIDEO) || action.equals(ACTION_RECEIVE_AUDIO)) {
 				IStreamService streamService = (IStreamService) getScopeService(conn.getScope(), IStreamService.STREAM_SERVICE, StreamService.class);
 				invokeCall(conn, call, streamService);
-			} else if (source.getStreamId() != 0) {
-				IStreamService streamService = (IStreamService) getScopeService(conn.getScope(), IStreamService.STREAM_SERVICE, StreamService.class);
-				streamService.send(call);
 			} else {
 				invokeCall(conn, call);
 			}

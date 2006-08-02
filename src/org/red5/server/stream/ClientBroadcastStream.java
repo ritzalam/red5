@@ -52,6 +52,7 @@ import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.messaging.PipeConnectionEvent;
 import org.red5.server.net.rtmp.event.AudioData;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
+import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.net.rtmp.status.Status;
 import org.red5.server.stream.codec.StreamCodecInfo;
@@ -77,6 +78,8 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	private long audioTime = -1;
 	/** Stores absolute time for audio stream. */
 	private long videoTime = -1;
+	/** Stores absolute time for data stream. */
+	private long dataTime = -1;
 	private int audioAdd = 0;
 	
 	private int chunkSize = 0;
@@ -186,7 +189,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	}
 	
 	public void dispatchEvent(IEvent event) {
-		if (!(event instanceof IRTMPEvent) && (event.getType() != IEvent.Type.STREAM_CONTROL) && (event.getType() != IEvent.Type.STREAM_DATA))
+		if (!(event instanceof IRTMPEvent) && (event.getType() != IEvent.Type.STREAM_CONTROL) && (event.getType() != IEvent.Type.STREAM_DATA) && !(event instanceof Notify))
 			return;
 		
 		IStreamCodecInfo codecInfo = getCodecInfo();
@@ -246,6 +249,13 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			else
 				videoTime = rtmpEvent.getTimestamp();
 			thisTime = videoTime;
+		} else if (rtmpEvent instanceof Notify) {
+			lastTime = dataTime;
+			if (rtmpEvent.getHeader().isTimerRelative())
+				dataTime += rtmpEvent.getTimestamp();
+			else
+				dataTime = rtmpEvent.getTimestamp();
+			thisTime = dataTime;
 		}
 		
 		RTMPMessage msg = new RTMPMessage();

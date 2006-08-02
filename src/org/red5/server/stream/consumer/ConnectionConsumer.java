@@ -83,7 +83,7 @@ public class ConnectionConsumer implements IPushableConsumer,
 				Notify notify = new Notify(((Notify) msg).getData().asReadOnlyBuffer());
 				notify.setHeader(msg.getHeader());
 				notify.setTimestamp(msg.getTimestamp());
-				video.write(notify);
+				data.write(notify);
 				break;
 			case Constants.TYPE_VIDEO_DATA:
 				VideoData videoData = new VideoData(((VideoData) msg).getData().asReadOnlyBuffer());
@@ -148,14 +148,6 @@ public class ConnectionConsumer implements IPushableConsumer,
 		
 		if ("pendingCount".equals(oobCtrlMsg.getServiceName())) {
 			oobCtrlMsg.setResult(conn.getPendingMessages());
-		} else if ("streamSend".equals(oobCtrlMsg.getServiceName())) {
-			IServiceCall call = null;
-			if (oobCtrlMsg.getServiceParamMap() != null)
-				call = (IServiceCall) oobCtrlMsg.getServiceParamMap().get("call");
-			
-			if (call != null)
-				// Call method on the stream
-				conn.notify(call, data.getId());
 		} else if ("pendingVideoCount".equals(oobCtrlMsg.getServiceName())) {
 			IClientStream stream = conn.getStreamByChannelId(video.getId());
 			oobCtrlMsg.setResult(conn.getPendingVideoMessages(stream.getStreamId()));

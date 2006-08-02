@@ -19,16 +19,12 @@ package org.red5.server.stream;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.red5.server.BaseConnection;
 import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IContext;
 import org.red5.server.api.IScope;
 import org.red5.server.api.Red5;
-import org.red5.server.api.service.IServiceCall;
 import org.red5.server.api.stream.IBroadcastStream;
 import org.red5.server.api.stream.IClientBroadcastStream;
 import org.red5.server.api.stream.IClientStream;
@@ -38,7 +34,6 @@ import org.red5.server.api.stream.IStreamCapableConnection;
 import org.red5.server.api.stream.IStreamService;
 import org.red5.server.api.stream.ISubscriberStream;
 import org.red5.server.api.stream.support.SimplePlayItem;
-import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.net.rtmp.RTMPHandler;
 
 public class StreamService implements IStreamService {
@@ -272,27 +267,6 @@ public class StreamService implements IStreamService {
 		subscriberStream.receiveAudio(receive);
 	}
 
-	public void send(IServiceCall call) {
-		IConnection conn = Red5.getConnectionLocal();
-		if (!(conn instanceof IStreamCapableConnection)) return;
-		IStreamCapableConnection streamConn = (IStreamCapableConnection) conn;
-		int streamId = getCurrentStreamId();
-		IClientStream stream = streamConn.getStreamById(streamId);
-		if (!(stream instanceof IBroadcastStream)) return;
-		IBroadcastStream bs = (IBroadcastStream) stream;
-		if (bs.getPublishedName() == null) return;
-		IBroadcastScope bsScope = getBroadcastScope(conn.getScope(), bs.getPublishedName());
-		if (bsScope != null) {
-			OOBControlMessage msg = new OOBControlMessage();
-			msg.setServiceName("streamSend");
-			msg.setTarget("ConnectionConsumer");
-			Map<String, Object> params = new HashMap<String, Object>();
-			params.put("call", call);
-			msg.setServiceParamMap(params);
-			bsScope.sendOOBControlMessage(bs.getProvider(), msg);
-		}
-	}
-	
 	private int getCurrentStreamId() {
 		// TODO: this must come from the current connection!
 		return RTMPHandler.getStreamId();

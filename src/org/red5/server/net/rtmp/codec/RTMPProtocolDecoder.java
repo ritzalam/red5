@@ -456,8 +456,18 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder, IE
 		return (Invoke) decodeNotifyOrInvoke(new Invoke(), in, null, null);
 	}
 	
-	private boolean isStreamMetadataAction(String action) {
-		return (action.equals("onMetaData") || action.equals("onCuePoint"));
+	/**
+	 * Checks if the passed action is a reserved stream method.
+	 * 
+	 * @param action
+	 * @return
+	 */
+	private boolean isStreamCommand(String action) {
+		return (ACTION_CREATE_STREAM.equals(action) || ACTION_DELETE_STREAM.equals(action) ||
+				ACTION_PUBLISH.equals(action) || ACTION_PLAY.equals(action) ||
+				ACTION_SEEK.equals(action) || ACTION_PAUSE.equals(action) ||
+				ACTION_CLOSE_STREAM.equals(action) || ACTION_RECEIVE_VIDEO.equals(action) ||
+				ACTION_RECEIVE_AUDIO.equals(action));
 	}
 	
 	protected Notify decodeNotifyOrInvoke(Notify notify, ByteBuffer in, Header header, RTMP rtmp) {
@@ -468,8 +478,8 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder, IE
 		String action = (String) deserializer.deserialize(input);
 		
 		if (!(notify instanceof Invoke) && rtmp != null && rtmp.getMode() == RTMP.MODE_SERVER &&
-			header != null && header.getStreamId() != 0 && isStreamMetadataAction(action)) {
-			// Don't decode stream metadata
+			header != null && header.getStreamId() != 0 && !isStreamCommand(action)) {
+			// Don't decode "NetStream.send" requests
 			in.position(start);
 			notify.setData(in.asReadOnlyBuffer());
 			return notify;

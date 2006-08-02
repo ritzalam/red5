@@ -1,7 +1,5 @@
 package org.red5.server.api.stream;
 
-import org.red5.server.api.service.IServiceCall;
-
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  * 
@@ -71,12 +69,5 @@ public interface IStreamService {
 	public void receiveVideo(boolean receive);
 	
 	public void receiveAudio(boolean receive);
-	
-	/**
-	 * Send a call to all subscribers of a stream.
-	 * 
-	 * @param call
-	 */
-	public void send(IServiceCall call);
 	
 }
