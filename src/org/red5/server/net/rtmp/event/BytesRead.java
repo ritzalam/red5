@@ -48,4 +48,9 @@ public class BytesRead extends BaseEvent {
 		return "StreamBytesRead: "+bytesRead;
 	}
 	
+	@Override
+	protected void releaseInternal() {
+		
+	}
+	
 }

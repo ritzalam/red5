@@ -37,6 +37,8 @@ public interface IRTMPEvent extends IEvent {
 	
 	public void setTimestamp(int timestamp);
 	
+	public void retain();
+	
 	/**
 	 * Hook to free buffers allocated by the event.
 	 */

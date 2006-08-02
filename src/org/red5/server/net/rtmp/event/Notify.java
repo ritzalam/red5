@@ -106,11 +106,12 @@ public class Notify extends BaseEvent implements IStreamData {
 		return true;
 	}
 	
-	public void release() {
+	@Override
+	protected void releaseInternal() {
 		if (data != null) {
 			data.release();
 			data = null;
 		}
-		super.release();
 	}
+	
 }

@@ -103,6 +103,11 @@ public class SharedObjectMessage extends BaseEvent implements ISharedObjectMessa
 	public Object getObject() {
 		return getEvents();
 	}
+	
+	@Override
+	protected void releaseInternal() {
+		
+	}
 
 	public String toString(){
 		final StringBuffer sb = new StringBuffer();

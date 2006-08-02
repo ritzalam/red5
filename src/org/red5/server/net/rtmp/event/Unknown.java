@@ -48,12 +48,13 @@ public class Unknown extends BaseEvent {
 		sb.append("Data:\n\n" + HexDump.formatHexDump(buf.getHexDump()));
 		return sb.toString();
 	}
-
-	public void release() {
+	
+	@Override
+	protected void releaseInternal() {
 		if (data != null) {
 			data.release();
 			data = null;
 		}
-		super.release();
 	}
+	
 }

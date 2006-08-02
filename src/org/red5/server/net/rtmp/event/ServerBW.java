@@ -25,4 +25,9 @@ public class ServerBW extends BaseEvent {
 		return "ServerBW: "+bandwidth;
 	}
 	
+	@Override
+	protected void releaseInternal() {
+		
+	}
+	
 }

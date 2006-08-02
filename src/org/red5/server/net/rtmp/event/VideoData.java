@@ -74,11 +74,12 @@ public class VideoData extends BaseEvent implements IoConstants, IStreamData {
 		return frameType;
 	}
 	
-	public void release() {
+	@Override
+	protected void releaseInternal() {
 		if (data != null) {
 			data.release();
 			data = null;
 		}
-		super.release();
 	}
+	
 }

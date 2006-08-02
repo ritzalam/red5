@@ -24,12 +24,17 @@ import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.net.rtmp.message.Header;
 
 public abstract class BaseEvent implements Constants, IRTMPEvent {
+	// XXX we need a better way to inject allocation debugging
+	// (1) make it configurable in xml
+	// (2) make it aspect oriented
+	private static final boolean allocationDebugging = false;
 	
 	private Type type;
 	protected Object object;
 	protected IEventListener source;
 	protected int timestamp;
 	protected Header header = null;
+	protected int refcount = 1;
 	
 	public BaseEvent(Type type) {
 		this(type, null);
@@ -38,6 +43,7 @@ public abstract class BaseEvent implements Constants, IRTMPEvent {
 	public BaseEvent(Type type, IEventListener source) {
 		this.type = type;
 		this.source = source;
+		if(allocationDebugging) AllocationDebugger.getInstance().create(this);
 	}
 	
 	public Type getType() {
@@ -78,7 +84,21 @@ public abstract class BaseEvent implements Constants, IRTMPEvent {
 		this.timestamp = timestamp;
 	}
 	
-	public void release() {
-		
+	public synchronized void retain() {
+		if (allocationDebugging) AllocationDebugger.getInstance().retain(this);
+		if (refcount > 0) {
+			refcount++;
+		}
 	}
+	
+	public synchronized void release() {
+		if (allocationDebugging) AllocationDebugger.getInstance().release(this);
+		if (refcount > 0) {
+			refcount--;
+			if (refcount == 0) releaseInternal();
+		}
+	}
+	
+	protected abstract void releaseInternal();
+	
 }

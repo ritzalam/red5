@@ -107,7 +107,7 @@ public class Ping extends BaseEvent {
 	public void setDebug(String debug) {
 		this.debug = debug;
 	}
-
+	
 	protected void doRelease() {
 		value1 = 0;
 		value2 = 0;
@@ -119,4 +119,9 @@ public class Ping extends BaseEvent {
 		return "Ping: "+value1+", "+value2+", "+value3+", "+value4+"\n" + debug;
 	}
 	
+	@Override
+	protected void releaseInternal() {
+		
+	}
+
 }

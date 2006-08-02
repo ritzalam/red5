@@ -1,7 +1,5 @@
 package org.red5.server.net.rtmp.event;
 
-import org.red5.server.api.event.IEvent.Type;
-
 public class ClientBW extends BaseEvent {
 	
 	private int bandwidth = 0;
@@ -36,4 +34,10 @@ public class ClientBW extends BaseEvent {
 	public String toString(){
 		return "ClientBW: "+bandwidth+" value2: "+value2;
 	}
+	
+	@Override
+	protected void releaseInternal() {
+		
+	}
+	
 }
