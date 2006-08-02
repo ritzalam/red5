@@ -106,7 +106,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter  {
 		SocketSessionConfig cfg = (SocketSessionConfig) session.getConfig();
 		//cfg.setReceiveBufferSize(256);
 		//cfg.setSendBufferSize(256);
-		log.warn("Is tcp delay enabled: "+cfg.isTcpNoDelay());
+		log.info("Is tcp delay enabled: "+cfg.isTcpNoDelay());
 		cfg.setTcpNoDelay(true);
 		super.sessionOpened(session);
 		
