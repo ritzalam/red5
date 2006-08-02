@@ -1102,7 +1102,7 @@ implements IPlaylistSubscriberStream {
 					if (videoCodec == null || videoCodec.canDropFrames()) {
 						// Only check for frame dropping if the codec supports it
 						long pendingVideos = pendingVideoMessages();
-						if (!videoFrameDropper.canSendPacket(body, pendingVideos)) {
+						if (!videoFrameDropper.canSendPacket(rtmpMessage, pendingVideos)) {
 							//System.err.println("Dropping1: " + body + " " + pendingVideos);
 							return;
 						}
@@ -1110,11 +1110,11 @@ implements IPlaylistSubscriberStream {
 						boolean drop = !videoBucket.acquireToken(size, 0);
 						if (!receiveVideo || pendingVideos > 1 || drop) {
 							//System.err.println("Dropping2: " + receiveVideo + " " + pendingVideos + " " + videoBucket + " size: " + size + " drop: " + drop);
-							videoFrameDropper.dropPacket(body);
+							videoFrameDropper.dropPacket(rtmpMessage);
 							return;
 						}
 	
-						videoFrameDropper.sendPacket(body);
+						videoFrameDropper.sendPacket(rtmpMessage);
 					}
 				} else if (body instanceof AudioData) {
 					if (!receiveAudio || !audioBucket.acquireToken(size, 0)) {

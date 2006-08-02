@@ -88,10 +88,12 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	private String liveJobName;
 	private String vodJobName;
 	
-	private int nextVideoTS;
-	private int nextAudioTS;
-	private int nextDataTS;
-	private int nextTS;
+	private long vodStartTS;
+	private long serverStartTS;
+	private long nextVideoTS;
+	private long nextAudioTS;
+	private long nextDataTS;
+	private long nextTS;
 	private RTMPMessage nextRTMPMessage;
 	
 	public ServerStream() {
@@ -320,52 +322,9 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	
 	private void startBroadcastVOD() {
 		nextVideoTS = nextAudioTS = nextDataTS = 0;
-		// send the first RTMP message
-		RTMPMessage firstRTMPMsg = getNextRTMPMessage();
-		if (firstRTMPMsg == null) {
-			onItemEnd();
-			return;
-		}
-		// FIXME hack the first Metadata Tag from FLVReader
-		// the FLVReader will issue a metadata tag of ts 0
-		// even if it is seeked to somewhere in the middle
-		// which will cause the stream to wait too long.
-		// Is this an FLVReader's bug?
-		if (!(firstRTMPMsg.getBody() instanceof VideoData) &&
-				!(firstRTMPMsg.getBody() instanceof AudioData) &&
-				firstRTMPMsg.getBody().getTimestamp() == 0) {
-			firstRTMPMsg.getBody().release();
-			firstRTMPMsg = getNextRTMPMessage();
-			if (firstRTMPMsg == null) {
-				onItemEnd();
-				return;
-			}
-		}
-		IRTMPEvent rtmpEvent = firstRTMPMsg.getBody();
-		if (rtmpEvent instanceof VideoData) {
-			if (!firstRTMPMsg.isTimerRelative()) {
-				nextVideoTS = rtmpEvent.getTimestamp();
-			} else {
-				nextVideoTS += rtmpEvent.getTimestamp();
-			}
-			nextTS = nextVideoTS;
-		} else if (rtmpEvent instanceof AudioData) {
-			if (!firstRTMPMsg.isTimerRelative()) {
-				nextAudioTS = rtmpEvent.getTimestamp();
-			} else {
-				nextAudioTS += rtmpEvent.getTimestamp();
-			}
-			nextTS = nextAudioTS;
-		} else {
-			if (!firstRTMPMsg.isTimerRelative()) {
-				nextDataTS = rtmpEvent.getTimestamp();
-			} else {
-				nextDataTS += rtmpEvent.getTimestamp();
-			}
-			nextTS = nextDataTS;
-		}
-		msgOut.pushMessage(firstRTMPMsg);
-		firstRTMPMsg.getBody().release();
+		nextRTMPMessage = null;
+		vodStartTS = 0;
+		serverStartTS = System.currentTimeMillis();
 		scheduleNextMessage();
 	}
 	
@@ -374,12 +333,32 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	 * it for push according to the timestamp.
 	 */
 	private void scheduleNextMessage() {
-		int currentTS = nextTS;
+		boolean first = nextRTMPMessage == null;
+		
 		nextRTMPMessage = getNextRTMPMessage();
 		if (nextRTMPMessage == null) {
 			onItemEnd();
 			return;
 		}
+
+		if (first) {
+			// FIXME hack the first Metadata Tag from FLVReader
+			// the FLVReader will issue a metadata tag of ts 0
+			// even if it is seeked to somewhere in the middle
+			// which will cause the stream to wait too long.
+			// Is this an FLVReader's bug?
+			if (!(nextRTMPMessage.getBody() instanceof VideoData) &&
+					!(nextRTMPMessage.getBody() instanceof AudioData) &&
+					nextRTMPMessage.getBody().getTimestamp() == 0) {
+				nextRTMPMessage.getBody().release();
+				nextRTMPMessage = getNextRTMPMessage();
+				if (nextRTMPMessage == null) {
+					onItemEnd();
+					return;
+				}
+			}
+		}
+		
 		IRTMPEvent rtmpEvent = nextRTMPMessage.getBody();
 		if (rtmpEvent instanceof VideoData) {
 			if (!nextRTMPMessage.isTimerRelative()) {
@@ -403,7 +382,11 @@ public class ServerStream extends AbstractStream implements IServerStream,
 			}
 			nextTS = nextDataTS;
 		}
-		int delta = nextTS - currentTS;
+		if (first) {
+			vodStartTS = nextTS;
+		}
+		long delta = nextTS - vodStartTS - (System.currentTimeMillis() - serverStartTS);
+		
 		vodJobName = scheduler.addScheduledOnceJob(delta, new IScheduledJob() {
 			public void execute(ISchedulingService service) {
 				synchronized (ServerStream.this) {

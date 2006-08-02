@@ -25,6 +25,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.event.VideoData;
+import org.red5.server.stream.message.RTMPMessage;
 
 /**
  * State machine for video frame dropping in live streams.
@@ -78,7 +79,8 @@ public class VideoFrameDropper implements IFrameDropper {
 		countDroppedTimes = (state != SEND_ALL);
 	}
 	
-	public boolean canSendPacket(IRTMPEvent packet, long pending) {
+	public boolean canSendPacket(RTMPMessage message, long pending) {
+		IRTMPEvent packet = message.getBody();
 		if (! (packet instanceof VideoData))
 			// We currently only drop video packets.
 			return true;
@@ -124,7 +126,7 @@ public class VideoFrameDropper implements IFrameDropper {
 		
 		// Store timestamp of dropped packet
 		if (!result && countDroppedTimes && type != FrameType.DISPOSABLE_INTERFRAME) {
-			if (packet.getHeader().isTimerRelative())
+			if (message.isTimerRelative())
 				droppedTimes += packet.getTimestamp();
 			else {
 				droppedTimes = packet.getTimestamp();
@@ -135,7 +137,8 @@ public class VideoFrameDropper implements IFrameDropper {
 		return result;
 	}
 
-	public void dropPacket(IRTMPEvent packet) {
+	public void dropPacket(RTMPMessage message) {
+		IRTMPEvent packet = message.getBody();
 		if (! (packet instanceof VideoData))
 			// Only check video packets.
 			return;
@@ -145,7 +148,7 @@ public class VideoFrameDropper implements IFrameDropper {
 		
 		// Store timestamp of dropped packet
 		if (countDroppedTimes && type != FrameType.DISPOSABLE_INTERFRAME) {
-			if (packet.getHeader().isTimerRelative())
+			if (message.isTimerRelative())
 				droppedTimes += packet.getTimestamp();
 			else {
 				droppedTimes = packet.getTimestamp();
@@ -196,7 +199,8 @@ public class VideoFrameDropper implements IFrameDropper {
 		}
 	}
 
-	public void sendPacket(IRTMPEvent packet) {
+	public void sendPacket(RTMPMessage message) {
+		IRTMPEvent packet = message.getBody();
 		if (! (packet instanceof VideoData))
 			// Only process video packets.
 			return;
@@ -208,7 +212,10 @@ public class VideoFrameDropper implements IFrameDropper {
 		VideoData video = (VideoData) packet;
 		if (droppedAbsolute) {
 			video.setTimestamp(droppedTimes);
-			video.getHeader().setTimerRelative(true);
+			message.setTimerRelative(true);
+			if (video.getHeader() != null) {
+				video.getHeader().setTimerRelative(true);
+			}
 			droppedAbsolute = true;
 		} else {
 			log.debug("Dropped " + droppedTimes + " ms packets");

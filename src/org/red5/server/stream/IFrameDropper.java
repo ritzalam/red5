@@ -20,6 +20,7 @@ package org.red5.server.stream;
  */
 
 import org.red5.server.net.rtmp.event.IRTMPEvent;
+import org.red5.server.stream.message.RTMPMessage;
 
 /**
  * Interface for classes that implement logic to drop frames.
@@ -39,31 +40,31 @@ public interface IFrameDropper {
 	public final static int SEND_KEYFRAMES_CHECK = 3;
 
 	/**
-	 * Checks if a packet may be sent to the subscriber.
+	 * Checks if a message may be sent to the subscriber.
 	 * 
-	 * @param packet
-	 * 			the packet to check
+	 * @param message
+	 * 			the message to check
 	 * @param pending
 	 * 			the number of pending messages
 	 * @return <code>true</code> if the packet may be sent, otherwise <code>false</code>
 	 */
-	boolean canSendPacket(IRTMPEvent packet, long pending);
+	boolean canSendPacket(RTMPMessage message, long pending);
 
 	/**
 	 * Notify that a packet has been dropped.
 	 * 
-	 * @param packet
-	 * 			the packet that was dropped
+	 * @param message
+	 * 			the message that was dropped
 	 */
-	void dropPacket(IRTMPEvent packet);
+	void dropPacket(RTMPMessage message);
 
 	/**
-	 * Notify that a packet has been sent.
+	 * Notify that a message has been sent.
 	 * 
-	 * @param packet
-	 * 			the packet that was sent
+	 * @param message
+	 * 			the message that was sent
 	 */
-	void sendPacket(IRTMPEvent packet);
+	void sendPacket(RTMPMessage message);
 
 	/** Reset the frame dropper. */
 	void reset();
