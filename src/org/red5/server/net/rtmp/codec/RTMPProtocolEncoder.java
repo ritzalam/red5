@@ -311,6 +311,16 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants, IE
 				//log.info(out.getHexDump());
 				break;
 				
+			case CLIENT_STATUS:
+				out.put(type);
+				mark = out.position();
+				out.skip(4); // we will be back
+				Output.putString(out, event.getKey());
+				Output.putString(out, (String) event.getValue());
+				len = out.position() - mark - 4;
+				out.putInt(mark,len);
+				break;
+				
 			default:
 				//log.error("Unknown event " + event.getType());
 	            // XXX: come back here, need to make this work in server or client mode

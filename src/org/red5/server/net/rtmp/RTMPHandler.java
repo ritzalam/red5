@@ -65,6 +65,8 @@ import org.red5.server.net.rtmp.status.StatusCodes;
 import org.red5.server.net.rtmp.status.StatusObject;
 import org.red5.server.net.rtmp.status.StatusObjectService;
 import org.red5.server.service.Call;
+import org.red5.server.so.ISharedObjectEvent;
+import org.red5.server.so.SharedObjectEvent;
 import org.red5.server.so.SharedObjectMessage;
 import org.red5.server.so.SharedObjectService;
 import org.red5.server.stream.IBroadcastScope;
@@ -483,14 +485,20 @@ public class RTMPHandler
 		final ISharedObject so;
 		final String name = object.getName();
 		IScope scope = conn.getScope();
-		if (scope == null)
+		if (scope == null) {
 			// The scope already has been deleted.
+			SharedObjectMessage msg = new SharedObjectMessage(name, 0, object.isPersistent());
+			msg.addEvent(new SharedObjectEvent(ISharedObjectEvent.Type.CLIENT_STATUS, "SharedObject.NoObjectFound", "error"));
+			conn.getChannel((byte) 3).write(msg);
 			return;
+		}
 		
 		ISharedObjectService sharedObjectService = (ISharedObjectService) getScopeService(scope, ISharedObjectService.SHARED_OBJECT_SERVICE, SharedObjectService.class);
 		if (!sharedObjectService.hasSharedObject(scope, name)) {
 			if (!sharedObjectService.createSharedObject(scope, name, object.isPersistent())) {
-				// TODO: return error to client.
+				SharedObjectMessage msg = new SharedObjectMessage(name, 0, object.isPersistent());
+				msg.addEvent(new SharedObjectEvent(ISharedObjectEvent.Type.CLIENT_STATUS, "SharedObject.ObjectCreationFailed", "error"));
+				conn.getChannel((byte) 3).write(msg);
 				return;
 			}
 		}

@@ -410,7 +410,12 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder, IE
 			
 			//SharedObjectEvent event = new SharedObjectEvent(,null,null);
 			final int length = in.getInt();
-			if (type != ISharedObjectEvent.Type.SERVER_SEND_MESSAGE && type != ISharedObjectEvent.Type.CLIENT_SEND_MESSAGE) {
+			if (type == ISharedObjectEvent.Type.CLIENT_STATUS) {
+				// Status code
+				key = Input.getString(in);
+				// Status level
+				value = Input.getString(in);
+			} else if (type != ISharedObjectEvent.Type.SERVER_SEND_MESSAGE && type != ISharedObjectEvent.Type.CLIENT_SEND_MESSAGE) {
 				if (length > 0){
 					key = Input.getString(in);
 					if (length > key.length()+2){
