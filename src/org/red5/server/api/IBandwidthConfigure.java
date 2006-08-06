@@ -28,10 +28,24 @@ package org.red5.server.api;
  * @author Steven Gong (steven.gong@gmail.com)
  */
 public interface IBandwidthConfigure {
+	/**
+	 * Set bandwidth available for audio streaming
+	 * @param bw	Bandwidth
+	 */
 	void setAudioBandwidth(long bw);
 	long getAudioBandwidth();
+
+	/**
+	 * Set bandwidth available for video streaming
+	 * @param bw	Bandwidth
+	 */
 	void setVideoBandwidth(long bw);
 	long getVideoBandwidth();
+	
+	/**
+	 * Set overall bandwidth available
+	 * @param bw	Bandwidth
+	 */	
 	void setOverallBandwidth(long bw);
 	long getOverallBandwidth();
 	
@@ -39,15 +53,21 @@ public interface IBandwidthConfigure {
 	 * Set the upstream bandwidth to be notified to the client.
 	 * Upstream is the data that is sent from the client to the server.
 	 * 
-	 * @param bw
+	 * @param bw	Bandwidth
 	 */
 	void setUpstreamBandwidth(long bw);
+	/**
+	 * Get the upstream bandwidth to be notified to the client.
+	 * Upstream is the data that is sent from the client to the server.
+	 * 
+	 * @param bw	Bandwidth
+	 */	
 	long getUpstreamBandwidth();
 	/**
 	 * Set the downstream bandwidth to be notified to the client.
 	 * Downstream is the data that is sent from the server to the client.
 	 * 
-	 * @param bw
+	 * @param bw	Bandwidth
 	 */
 	void setDownstreamBandwidth(long bw);
 	long getDownstreamBandwidth();

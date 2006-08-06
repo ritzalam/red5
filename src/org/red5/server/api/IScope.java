@@ -55,12 +55,38 @@ public interface IScope extends IBasicScope, ResourcePatternResolver, IServiceHa
 	 */
 	public boolean hasChildScope(String name);
 	
+	/**
+	 * Checks whether scope has a child scope with given name and type
+	 * 
+	 * @param type		Child scope type
+	 * @param name		Child scope name
+	 * @return			<code>true</code> if a child scope exists, otherwise <code>false</code>
+	 */
 	public boolean hasChildScope(String type, String name);
 	
+	/**
+	 * Creates child scope with name given and returns success value.
+	 * Returns <code>true</code> on success, <code>false</code> if given scope already exists among children. 
+	 * 
+	 * @param name		New child scope name
+	 * @return			<code>true</code> if child scope was successfully creates, <code>false</code> otherwise
+	 */
 	public boolean createChildScope(String name);
 
+	/**
+	 * Adds scope as a child scope. Returns <code>true</code> on success, <code>false</code> if given scope is already a child of current.
+	 * 
+	 * @param scope		Scope given
+	 * @return			<code>true</code> if child scope was successfully added, <code>false</code> otherwise
+	 */
 	public boolean addChildScope(IBasicScope scope);
-	
+
+	/**
+	 * Removes scope from the children scope list. Returns <code>false</code> if given scope isn't a child of the current scope. 
+	 * 
+	 * @param scope		Scope given
+	 * @return			<code>true</code> if child scope was successfully removed, <code>false</code> otherwise
+	 */
 	public void removeChildScope(IBasicScope scope);
 	
 	/**
@@ -87,7 +113,7 @@ public interface IScope extends IBasicScope, ResourcePatternResolver, IServiceHa
 	
 	/**
 	 * Get a set of connected clients.  You can get the connections by passing the
-	 * scope to the clients <code>getConnections</code> method.
+	 * scope to the clients {@link IClient#getConnections()} method.
 	 * 
 	 * @return set containing all connected clients
 	 * @see org.red5.server.api.IClient#getConnections(IScope)
@@ -96,6 +122,7 @@ public interface IScope extends IBasicScope, ResourcePatternResolver, IServiceHa
 		
 	/**
 	 * Get a connection iterator.  You can call remove, and the connection will be closed.
+	 * 
 	 * @return iterator holding all connections
 	 */
 	public Iterator<IConnection> getConnections();
@@ -108,17 +135,48 @@ public interface IScope extends IBasicScope, ResourcePatternResolver, IServiceHa
 	 */
 	public Set<IConnection> lookupConnections(IClient client);
 
+	/**
+	 * Returns scope context
+	 * @return	scope context
+	 */
 	public IContext getContext();
 	
-	/* ----------------------------------------------- */ 
-	
+	/**
+	 * Checks whether scope has handler or not. 
+	 * 
+	 * @return	<code>true</code> if scope has a handler, <code>false</code> otherwise
+	 */
 	public boolean hasHandler(); 
+	
+	/**
+	 * Return handler of the scope
+	 * 
+	 * @return	scope handler
+	 */
 	public IScopeHandler getHandler(); 
 	
+	/**
+	 * Return context path.
+	 * 
+	 * @return	context path
+	 */
 	public String getContextPath();
 	
+	/**
+	 * Adds given connection to the scope
+	 * 
+	 * @param conn	Given connection
+	 * @return		<code>true</code> on success, <code>false</code> if given connection already belongs to this scope
+	 */
 	public boolean connect(IConnection conn);
 	public boolean connect(IConnection conn, Object[] params);
+	
+	/**
+	 * Removes given connection from list of scope connections. This disconnects
+	 * all clients of given connection from the scope.
+	 * 
+	 * @param conn	Connection given
+	 */
 	public void disconnect(IConnection conn);
 	
 	

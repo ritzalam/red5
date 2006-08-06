@@ -35,7 +35,7 @@ public interface IBasicScope
 		IPersistable {
 	
 	/**
-	 * Does this scope have a parent?
+	 * Does this scope have a parent? You can think of scopes as of tree items where scope may have a parent and children (child).
 	 * 
 	 * @return <code>true</code> if this scope has a parent, otherwise <code>false</code>
 	 */
@@ -49,7 +49,8 @@ public interface IBasicScope
 	public IScope getParent();
 
 	/**
-	 * Get the scopes depth, how far down the scope tree is it.
+	 * Get the scopes depth, how far down the scope tree is it. The lowest depth is 0x00, the depth of Global scope.
+	 * Application scope depth is 0x01. Room depth is 0x02, 0x03 and so forth.
 	 * 
 	 * @return the depth
 	 */
