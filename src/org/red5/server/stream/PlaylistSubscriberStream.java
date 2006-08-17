@@ -986,6 +986,16 @@ implements IPlaylistSubscriberStream {
 			msgOut.pushMessage(resumeMsg);
 		}
 		
+		private void sendPublishedStatus(IPlayItem item) {
+			Status unpublished = new Status(Status.NS_PLAY_PUBLISHNOTIFY);
+			unpublished.setClientid(getStreamId());
+			unpublished.setDetails(item.getName());
+			
+			StatusMessage unpublishedMsg = new StatusMessage();
+			unpublishedMsg.setBody(unpublished);
+			msgOut.pushMessage(unpublishedMsg);
+		}
+		
 		private void sendUnpublishedStatus(IPlayItem item) {
 			Status unpublished = new Status(Status.NS_PLAY_UNPUBLISHNOTIFY);
 			unpublished.setClientid(getStreamId());
@@ -1050,6 +1060,7 @@ implements IPlaylistSubscriberStream {
 						}
 						isWaiting = false;
 					}
+					sendPublishedStatus(currentItem);
 				}
 				break;
 			case PipeConnectionEvent.PROVIDER_DISCONNECT:
