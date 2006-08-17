@@ -119,8 +119,21 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			
 			String filename = generator.generateFilename(scope, name, ".flv");
 			Resource res = scope.getResource(filename);
-			if (!isAppend && res.exists()) 
-				res.getFile().delete();
+			if (!isAppend) {
+				if (res.exists()) {
+					// Per livedoc of FCS/FMS:
+					// When "live" or "record" is used,
+					// any previously recorded stream with the same stream URI is deleted.
+					res.getFile().delete();
+				}
+			} else {
+				if (!res.exists()) {
+					// Per livedoc of FCS/FMS:
+					// If a recorded stream at the same URI does not already exist,
+					// "append" creates the stream as though "record" was passed.
+					isAppend = false;
+				}
+			}
 			
 			if (!res.exists()) {
 				// Make sure the destination directory exists
