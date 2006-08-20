@@ -108,6 +108,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			livePipe.unsubscribe((IProvider) this);
 		}
 		recordPipe.unsubscribe((IProvider) this);
+		sendStopNotify();
 		notifyBroadcastClose();
 	}
 
@@ -303,7 +304,6 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			break;
 		case PipeConnectionEvent.PROVIDER_DISCONNECT:
 			if (this.livePipe == event.getSource()) {
-				sendStopNotify();
 				this.livePipe = null;
 			}
 			break;
