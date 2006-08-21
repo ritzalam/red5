@@ -46,7 +46,7 @@ public interface IStreamService {
 	
 	public void deleteStream(IStreamCapableConnection conn, int streamId);
 	
-	public void play(boolean dontStop);
+	public void play(Boolean dontStop);
 	
 	public void play(String name);
 	
@@ -60,7 +60,7 @@ public interface IStreamService {
 	
 	public void publish(String name, String mode);
 	
-	public void publish(boolean dontStop);
+	public void publish(Boolean dontStop);
 	
 	public void seek(int position);
 	

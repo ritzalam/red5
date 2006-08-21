@@ -161,19 +161,21 @@ public class StreamService implements IStreamService {
 		play(name, -2000, -1, false);
 	}
 
-	public void play(boolean dontStop) {
+	public void play(Boolean dontStop) {
 		if (!dontStop) {
 			IConnection conn = Red5.getConnectionLocal();
 			if (!(conn instanceof IStreamCapableConnection)) return;
 			IStreamCapableConnection streamConn = (IStreamCapableConnection) conn;
 			int streamId = getCurrentStreamId();
 			IClientStream stream = streamConn.getStreamById(streamId);
-			stream.close();
-			streamConn.deleteStreamById(streamId);
+			if (stream != null) {
+				stream.close();
+				streamConn.deleteStreamById(streamId);
+			}
 		}
 	}
 	
-	public void publish(boolean dontStop) {
+	public void publish(Boolean dontStop) {
 		if (!dontStop) {
 			IConnection conn = Red5.getConnectionLocal();
 			if (!(conn instanceof IStreamCapableConnection)) return;

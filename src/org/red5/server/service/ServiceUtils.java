@@ -45,6 +45,7 @@ public class ServiceUtils {
 
 	/**
 	 * Returns (method, params) for the given service or (null, null) if not method was found.
+	 * XXX use ranking for method matching rather than exact type matching plus type conversion.
 	 */
 	public static Object[] findMethodWithExactParameters(Object service, String methodName, Object[] args) {
 		int numParams = (args==null) ? 0 : args.length;
