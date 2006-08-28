@@ -40,6 +40,7 @@ public class Test {
 
 		String MIDI_NAME = "USB Uno MIDI  In";
 		MidiDevice dev = getMidiDevice(MIDI_NAME);
+		dev.open();
 		MyReceiver rec = new MyReceiver();
 		dev.getTransmitter().setReceiver(rec);
 		Thread.sleep(30000);
