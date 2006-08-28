@@ -1,7 +1,5 @@
 package org.red5.server.midi;
 
-import java.io.File;
-
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.MidiSystem;
@@ -19,58 +17,41 @@ public class Test {
 	public static void main(String[] args) throws Exception {
 		Test t = new Test();
 	}
+	
+	public static MidiDevice getMidiDevice(String name){
+		
+		MidiDevice.Info[] info = MidiSystem.getMidiDeviceInfo();
+		
+		for (int i = 0; i < info.length; i++) {
+			if(info[i].getName().equals(name)) {
+				try {
+					return MidiSystem.getMidiDevice(info[i]);
+				} catch (MidiUnavailableException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		
+		return null;
+		
+	}
 
 	public Test() throws Exception {
 
-		// MidiPlayer player = new MidiPlayer(new
-		// File("/Users/luke/Desktop/Loops_Of_Fury.mid"));
-
-		// Trying to get the events..
-		// MidiSystem.getSequencer().getTransmitter().setReceiver(new
-		// MyReceiver());
-		// MidiSystem.getTransmitter().setReceiver(new MyReceiver());
-
-		MidiDevice.Info[] info = MidiSystem.getMidiDeviceInfo();
-
-		MidiDevice[] devices = new MidiDevice[info.length];
-
-		for (int i = 0; i < info.length; i++) {
-
-			try {
-
-				log.debug(info[i].getName());
-				MidiDevice device = MidiSystem.getMidiDevice(info[i]);
-				log.debug(device);
-				if (!device.isOpen())
-					device.open();
-				// Hook up a receiver to the transmitter
-				if (device.isOpen()) {
-					device.getTransmitter().setReceiver(new MyReceiver());
-					devices[i] = device;
-				}
-
-			} catch (MidiUnavailableException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-
-		}
-
-		// Wait long enough to play a few notes
-		// on the keyboard
+		String MIDI_NAME = "USB Uno MIDI  In";
+		MidiDevice dev = getMidiDevice(MIDI_NAME);
+		MyReceiver rec = new MyReceiver();
+		dev.getTransmitter().setReceiver(rec);
 		Thread.sleep(30000);
-
-		// Close the device (at program exit)
-		for (MidiDevice device : devices)
-			if (device != null)
-				device.close();
+		dev.close();
 
 	}
 
 	public class MyReceiver extends Object implements Receiver {
 
-		public void send(MidiMessage msg, long time) {
-			log.debug("Received message " + msg);
+		public void send(MidiMessage midi, long time) {
+			byte[] msg = midi.getMessage();
+			log.debug(""+msg[0]+":"+msg[1]);
 		}
 
 		public void close() {
