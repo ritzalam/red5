@@ -52,7 +52,13 @@ public class Test {
 
 		public void send(MidiMessage midi, long time) {
 			byte[] msg = midi.getMessage();
-			log.debug(""+msg[0]+":"+msg[1]);
+			int len = midi.getLength();
+			String out = "Status: "+msg[0]+" Data: [";
+			for(int i=1; i<len; i++){
+				out += msg[i] + ((i==len-1) ? "" : ","); 
+			}
+			out += "]";
+			log.debug(out);
 		}
 
 		public void close() {
