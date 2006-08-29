@@ -36,6 +36,10 @@ public class StreamFlowController {
 		IBandwidthConfigure parentBwConf = controllable.getParentFlowControllable().getBandwidthConfigure();
 		IBandwidthConfigure bwConf = controllable.getBandwidthConfigure();
 		if(bwConf == null){
+			if (parentBwConf == null)
+				// No informations about bandwidth settings available
+				return false;
+			
 			bwConf = parentBwConf.clone();
 			controllable.setBandwidthConfigure(bwConf);
 		}
