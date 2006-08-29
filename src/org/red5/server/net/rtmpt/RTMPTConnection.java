@@ -85,9 +85,6 @@ public class RTMPTConnection extends RTMPConnection {
 	}
 
 	public void close() {
-		if (state.getState() == RTMP.STATE_DISCONNECTED)
-			return;
-		
 		if (this.buffer != null) {
 			this.buffer.release();
 			this.buffer = null;
