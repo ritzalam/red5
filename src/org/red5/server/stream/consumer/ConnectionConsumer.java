@@ -150,7 +150,10 @@ public class ConnectionConsumer implements IPushableConsumer,
 			oobCtrlMsg.setResult(conn.getPendingMessages());
 		} else if ("pendingVideoCount".equals(oobCtrlMsg.getServiceName())) {
 			IClientStream stream = conn.getStreamByChannelId(video.getId());
-			oobCtrlMsg.setResult(conn.getPendingVideoMessages(stream.getStreamId()));
+			if (stream != null)
+				oobCtrlMsg.setResult(conn.getPendingVideoMessages(stream.getStreamId()));
+			else
+				oobCtrlMsg.setResult(0);
 		} else if ("chunkSize".equals(oobCtrlMsg.getServiceName())) {
 			int newSize = (Integer) oobCtrlMsg.getServiceParamMap().get("chunkSize");
 			if (newSize != chunkSize) {
