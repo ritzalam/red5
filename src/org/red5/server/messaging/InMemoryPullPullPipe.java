@@ -19,7 +19,6 @@ package org.red5.server.messaging;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
@@ -53,16 +52,17 @@ public class InMemoryPullPullPipe extends AbstractPipe {
 
 	public IMessage pullMessage() {
 		IMessage message = null;
+		IPullableProvider[] providerArray = null;
 		synchronized (providers) {
+			providerArray = providers.toArray(new IPullableProvider[]{});
+		}
+		for (IPullableProvider provider: providerArray) {
 			// choose the first available provider
-			for (Iterator iter = providers.iterator(); iter.hasNext(); ) {
-				IPullableProvider provider = (IPullableProvider) iter.next();
-				try {
-					message = provider.pullMessage(this);
-					if (message != null) break;
-				} catch (Throwable t) {
-					log.error("exception when pulling message from provider", t);
-				}
+			try {
+				message = provider.pullMessage(this);
+				if (message != null) break;
+			} catch (Throwable t) {
+				log.error("exception when pulling message from provider", t);
 			}
 		}
 		return message;
@@ -70,18 +70,19 @@ public class InMemoryPullPullPipe extends AbstractPipe {
 
 	public IMessage pullMessage(long wait) {
 		IMessage message = null;
+		IPullableProvider[] providerArray = null;
 		synchronized (providers) {
-			// divided evenly
-			long averageWait = providers.size() > 0 ? wait / providers.size() : 0;
-			// choose the first available provider
-			for (Iterator iter = providers.iterator(); iter.hasNext(); ) {
-				IPullableProvider provider = (IPullableProvider) iter.next();
-				try {
-					message = provider.pullMessage(this, averageWait);
-					if (message != null) break;
-				} catch (Throwable t) {
-					log.error("exception when pulling message from provider", t);
-				}
+			providerArray = providers.toArray(new IPullableProvider[]{});
+		}
+		// divided evenly
+		long averageWait = providerArray.length > 0 ? wait / providerArray.length : 0;
+		// choose the first available provider
+		for (IPullableProvider provider: providerArray) {
+			try {
+				message = provider.pullMessage(this, averageWait);
+				if (message != null) break;
+			} catch (Throwable t) {
+				log.error("exception when pulling message from provider", t);
 			}
 		}
 		return message;

@@ -19,7 +19,6 @@ package org.red5.server.messaging;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
@@ -60,14 +59,15 @@ public class InMemoryPushPushPipe extends AbstractPipe {
 	}
 
 	public void pushMessage(IMessage message) {
+		IPushableConsumer[] consumerArray = null;
 		synchronized (consumers) {
-			for (Iterator iter = consumers.iterator(); iter.hasNext(); ) {
-				IPushableConsumer consumer = (IPushableConsumer) iter.next();
-				try {
-					consumer.pushMessage(this, message);
-				} catch (Throwable t) {
-					log.error("exception when pushing message to consumer", t);
-				}
+			consumerArray = consumers.toArray(new IPushableConsumer[]{});
+		}
+		for (IPushableConsumer consumer: consumerArray) {
+			try {
+				consumer.pushMessage(this, message);
+			} catch (Throwable t) {
+				log.error("exception when pushing message to consumer", t);
 			}
 		}
 	}
