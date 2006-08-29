@@ -512,9 +512,6 @@ implements IPlaylistSubscriberStream {
 				if (isPublishedStream) {
 					decision = 0;
 				} else {
-					// TODO: Wait for stream to be created until timeout, otherwise continue
-					// with next item in playlist (see Macromedia documentation)
-					// NOTE: For now we create a temporary stream
 					decision = 2;
 				}
 				break;
