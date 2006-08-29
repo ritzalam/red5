@@ -436,8 +436,6 @@ implements IPlaylistSubscriberStream {
 	private class PlayEngine
 	implements IFilter, IPushableConsumer, IPipeConnectionListener,
 	ITokenBucketCallback, IScheduledJob {
-		// XXX shall we make this as a configurable property?
-		private static final long LIVE_WAIT_TIMEOUT = 5000;
 		
 		private State state;
 		
@@ -576,14 +574,17 @@ implements IPlaylistSubscriberStream {
 				msgIn = liveInput;
 				msgIn.subscribe(this, null);
 				isWaiting = true;
-				waitLiveJob = schedulingService.addScheduledOnceJob(LIVE_WAIT_TIMEOUT,
-						new IScheduledJob() {
-					public void execute(ISchedulingService service) {
-						waitLiveJob = null;
-						isWaiting = false;
-						onItemEnd();
-					}
-				});
+				if (type == -1 && item.getLength() >= 0) {
+					// Wait given timeout for stream to be published
+					waitLiveJob = schedulingService.addScheduledOnceJob(item.getLength(),
+							new IScheduledJob() {
+						public void execute(ISchedulingService service) {
+							waitLiveJob = null;
+							isWaiting = false;
+							onItemEnd();
+						}
+					});
+				}
 				break;
 			case 1:
 				msgIn = vodInput;
@@ -1068,11 +1069,6 @@ implements IPlaylistSubscriberStream {
 					sendStopStatus(currentItem);
 				else {
 					sendUnpublishedStatus(currentItem);
-					stop();
-					nextItem();
-					if (state == State.STOPPED)
-						// No more items in the playlist, close stream.
-						close();
 				}
 				break;
 			case PipeConnectionEvent.CONSUMER_CONNECT_PULL:
