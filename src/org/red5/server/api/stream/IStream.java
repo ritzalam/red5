@@ -29,7 +29,9 @@ public interface IStream {
 	
 	/**
 	 * Get the name of the stream.
-	 * The name is unique across the server.
+	 * The name is unique across the server. 
+	 * This is just an id of the stream and NOT the name that is used at client side to subscribe to the stream.
+	 * For that name, use {@link IBroadcastStream#getPublishedName()}
 	 * 
 	 * @return the name of the stream
 	 */

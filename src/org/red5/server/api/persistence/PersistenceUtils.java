@@ -31,7 +31,15 @@ import org.springframework.core.io.support.ResourcePatternResolver;
  */
 
 public class PersistenceUtils {
-
+	
+	/**
+	 * Returns persistence store object class constructor
+	 * 
+	 * @param theClass		Persistence store class
+	 * @param interfaces	Interfaces that are being implemented by persistence store object class
+	 * @return				Constructor
+	 * @throws Exception
+	 */
 	private static Constructor getPersistenceStoreConstructor(Class theClass, Class[] interfaces) throws Exception {
 		Constructor constructor = null;
 		for (Class interfaceClass : interfaces) {
@@ -50,6 +58,15 @@ public class PersistenceUtils {
 		return constructor;
 	}
 	
+	/**
+	 * Returns persistence store object. Persistence store is a special object that stores persistence objects 
+	 * and provides methods to manipulate them (save, load, remove, list).
+	 * 
+	 * @param resolver		Resolves connection pattern into Resource object
+	 * @param className		Name of persistence class
+	 * @return				IPersistence store object that provides methods for persistence object handling
+	 * @throws Exception
+	 */
 	public static IPersistenceStore getPersistenceStore(ResourcePatternResolver resolver, String className) throws Exception {
 		Class persistenceClass = Class.forName(className);
 		Constructor constructor = getPersistenceStoreConstructor(persistenceClass, resolver.getClass().getInterfaces());

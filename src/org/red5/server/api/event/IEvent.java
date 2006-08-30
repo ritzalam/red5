@@ -19,6 +19,9 @@ package org.red5.server.api.event;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+/**
+ * IEvent interfaces is the essential interface every Event should implement
+ */
 public interface IEvent {
 	
 	public Type getType();

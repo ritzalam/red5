@@ -19,6 +19,9 @@ package org.red5.server.api.stream;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+/**
+ * IPlaylistSubscriberStream has methods of both ISubscriberStream and IPlaylist but adds nothing new
+ */
 public interface IPlaylistSubscriberStream extends ISubscriberStream, IPlaylist {
 
 }

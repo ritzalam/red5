@@ -19,6 +19,9 @@ package org.red5.server.api.event;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+/**
+ * IEventDispatcher interface implementations dispatch events
+ */
 public interface IEventDispatcher {
 
 	public void dispatchEvent(IEvent event);

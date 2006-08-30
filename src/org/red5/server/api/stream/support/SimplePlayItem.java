@@ -28,22 +28,43 @@ public class SimplePlayItem implements IPlayItem {
 	private long start;
 	private IMessageInput msgInput;
 	
+	/**
+	 * Returns play item length in milliseconds
+	 * @return	Play item length in milliseconds
+	 */
 	public long getLength() {
 		return length;
 	}
-
+	
+	/**
+	 * Returns IMessageInput object. 
+	 * IMessageInput is an endpoint for a consumer to connect.
+	 * 
+	 * @return	IMessageInput object
+	 */
 	public IMessageInput getMessageInput() {
 		return msgInput;
 	}
-
+	
+	/**
+	 * Returns item name
+	 * @return	item name
+	 */
 	public String getName() {
 		return name;
 	}
-
+	
+	/**
+	 * Returns boolean value that specifies whether item can be played
+	 */
 	public long getStart() {
 		return start;
 	}
-
+	
+	/**
+	 * Alias for getMessageInput
+	 * @return
+	 */
 	public IMessageInput getMsgInput() {
 		return msgInput;
 	}

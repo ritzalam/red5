@@ -19,6 +19,10 @@ package org.red5.server.api.stream;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+/**
+ * IServerStream has both IPlaylist and IBroadcastStream methods but add nothing new.
+ * It represents a stream broadcasted from the server.
+ */
 public interface IServerStream extends IPlaylist, IBroadcastStream {
 
 }

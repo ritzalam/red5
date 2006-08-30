@@ -19,6 +19,10 @@ package org.red5.server.api.stream;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+/**
+ * ISubscriberStream is a stream from subscriber's point of view. 
+ * That is, it provides methods for common stream operations like play, pause or seek.
+ */ 
 public interface ISubscriberStream extends IClientStream {
 	/**
 	 * Start playing.
