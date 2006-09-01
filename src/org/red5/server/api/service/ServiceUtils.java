@@ -19,6 +19,8 @@ package org.red5.server.api.service;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 import org.red5.server.api.IClient;
@@ -192,7 +194,15 @@ public class ServiceUtils {
 	 * 			object to notify when result is received
 	 */
 	public static void invokeOnClient(IClient client, IScope scope, String method, Object[] params, IPendingServiceCallback callback) {
-		Set<IConnection> connections = scope.lookupConnections(client);
+		Set<IConnection> connections;
+		if (client == null) {
+			connections = new HashSet<IConnection>();
+			Iterator<IConnection> iter = scope.getConnections();
+			while (iter.hasNext())
+				connections.add(iter.next());
+		} else
+			connections = scope.lookupConnections(client);
+		
 		if (callback == null)
 			for (IConnection conn: connections)
 				invokeOnConnection(conn, method, params);
@@ -274,7 +284,15 @@ public class ServiceUtils {
 	 * 			parameters to pass to the method
 	 */
 	public static void notifyOnClient(IClient client, IScope scope, String method, Object[] params) {
-		Set<IConnection> connections = scope.lookupConnections(client);
+		Set<IConnection> connections;
+		if (client == null) {
+			connections = new HashSet<IConnection>();
+			Iterator<IConnection> iter = scope.getConnections();
+			while (iter.hasNext())
+				connections.add(iter.next());
+		} else
+			connections = scope.lookupConnections(client);
+		
 		for (IConnection conn: connections)
 			notifyOnConnection(conn, method, params);
 	}
