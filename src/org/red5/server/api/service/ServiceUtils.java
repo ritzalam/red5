@@ -19,9 +19,7 @@ package org.red5.server.api.service;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.Set;
 
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
@@ -194,14 +192,7 @@ public class ServiceUtils {
 	 * 			object to notify when result is received
 	 */
 	public static void invokeOnClient(IClient client, IScope scope, String method, Object[] params, IPendingServiceCallback callback) {
-		List<IConnection> connections = new ArrayList<IConnection>();
-		Iterator<IConnection> iter = scope.getConnections();
-		while (iter.hasNext()) {
-			IConnection conn = iter.next();
-			if (client == null || conn.getClient().equals(client))
-				connections.add(conn);
-		}
-		
+		Set<IConnection> connections = scope.lookupConnections(client);
 		if (callback == null)
 			for (IConnection conn: connections)
 				invokeOnConnection(conn, method, params);
@@ -283,14 +274,7 @@ public class ServiceUtils {
 	 * 			parameters to pass to the method
 	 */
 	public static void notifyOnClient(IClient client, IScope scope, String method, Object[] params) {
-		List<IConnection> connections = new ArrayList<IConnection>();
-		Iterator<IConnection> iter = scope.getConnections();
-		while (iter.hasNext()) {
-			IConnection conn = iter.next();
-			if (client == null || conn.getClient().equals(client))
-				connections.add(conn);
-		}
-		
+		Set<IConnection> connections = scope.lookupConnections(client);
 		for (IConnection conn: connections)
 			notifyOnConnection(conn, method, params);
 	}
