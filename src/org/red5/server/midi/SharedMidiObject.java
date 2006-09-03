@@ -11,9 +11,7 @@ import javax.sound.midi.Receiver;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.red5.demos.midi.Application;
 import org.red5.server.api.so.ISharedObject;
-import org.red5.server.midi.Test.MyReceiver;
 
 public class SharedMidiObject {
 

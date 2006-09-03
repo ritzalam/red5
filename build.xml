@@ -60,6 +60,8 @@
 		<mkdir dir="${testreports.dir}"/>
 		<mkdir dir="${src.dir}/../webapps/fitcDemo/WEB-INF/classes"/>
 		<mkdir dir="${src.dir}/../webapps/fitcDemo/WEB-INF/lib"/>
+		<mkdir dir="${src.dir}/../webapps/midiDemo/WEB-INF/classes"/>
+		<mkdir dir="${src.dir}/../webapps/midiDemo/WEB-INF/lib"/>
 		<mkdir dir="${src.dir}/../webapps/oflaDemo/WEB-INF/classes"/>
 		<mkdir dir="${src.dir}/../webapps/oflaDemo/WEB-INF/lib"/>
 		<mkdir dir="${src.dir}/../webapps/test/WEB-INF/classes"/>
@@ -78,6 +80,8 @@
 		<delete dir="${testdoc.dir}"/>
 		<delete dir="${src.dir}/../webapps/fitcDemo/WEB-INF/classes"/>
 		<delete dir="${src.dir}/../webapps/fitcDemo/WEB-INF/lib"/>
+		<delete dir="${src.dir}/../webapps/midi/WEB-INF/classes"/>
+	    <delete dir="${src.dir}/../webapps/midi/WEB-INF/lib"/>
 		<delete dir="${src.dir}/../webapps/oflaDemo/WEB-INF/classes"/>
 		<delete dir="${src.dir}/../webapps/oflaDemo/WEB-INF/lib"/>
 		<delete dir="${src.dir}/../webapps/test/WEB-INF/classes"/>
@@ -115,6 +119,20 @@
 
 		</javac>
 
+		<javac
+				sourcepath=""
+				srcdir="${src.dir}/../webapps/midiDemo/WEB-INF/src"
+				destdir="${src.dir}/../webapps/midiDemo/WEB-INF/classes"
+				debug="${debug.state}"
+				classpathref="webapps.classpath"
+				fork="yes"
+				verbose="no"
+				nowarn="yes"
+				executable="${java.home}/../bin/javac"
+				target="${java.target_version}">
+
+		</javac>
+		
 		<javac
 				sourcepath=""
 				srcdir="${src.dir}/../webapps/oflaDemo/WEB-INF/src"
@@ -211,6 +229,12 @@
 		
 		<jar destfile="${src.dir}/../webapps/fitcDemo/WEB-INF/lib/fitcDemo.jar">
 			<fileset dir="${src.dir}/../webapps/fitcDemo/WEB-INF/classes">
+				<include name="**"/>
+			</fileset>
+		</jar>
+		
+		<jar destfile="${src.dir}/../webapps/midiDemo/WEB-INF/lib/midiDemo.jar">
+			<fileset dir="${src.dir}/../webapps/midiDemo/WEB-INF/classes">
 				<include name="**"/>
 			</fileset>
 		</jar>
