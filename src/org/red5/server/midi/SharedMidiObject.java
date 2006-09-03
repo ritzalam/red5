@@ -31,6 +31,10 @@ public class SharedMidiObject {
 	public boolean connect(){
 		try {
 			dev = getMidiDevice(deviceName);
+			if(dev == null) {
+				log.error("Midi device not found: "+deviceName);
+				return false;
+			}
 			if(!dev.isOpen()) dev.open();
 			dev.getTransmitter().setReceiver(new MidiReceiver());
 			return true;
