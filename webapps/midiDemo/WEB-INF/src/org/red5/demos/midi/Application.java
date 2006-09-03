@@ -69,6 +69,15 @@ public class Application extends ApplicationAdapter {
 		return false;
 	}
 	
+	public String[] getMidiDeviceNames(){
+		MidiDevice.Info[] info = MidiSystem.getMidiDeviceInfo();
+		String[] names = new String[info.length];
+		for (int i = 0; i < info.length; i++) {
+			names[i] = info[i].getName();
+		}
+		return names;
+	}
+	
 	public static MidiDevice getMidiDevice(String name){
 		
 		MidiDevice.Info[] info = MidiSystem.getMidiDeviceInfo();
