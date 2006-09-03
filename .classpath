@@ -38,5 +38,6 @@
 	<classpathentry kind="lib" path="lib/slf4j-simple-1.0.1.jar"/>
 	<classpathentry kind="lib" path="lib/jsp-api-2.0.jar"/>
 	<classpathentry kind="lib" path="lib/jcl104-over-slf4j-1.0.1.jar"/>
+	<classpathentry output="webapps/midiDemo/WEB-INF/classes" kind="src" path="webapps/midiDemo/WEB-INF/src"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
