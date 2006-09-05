@@ -7,11 +7,24 @@ import org.red5.net.Connection;
 import com.acmewebworks.controls.BaseClip;
 import mx.controls.Alert;
 
+import flash.display.BitmapData;
+import flash.geom.Rectangle;
+import flash.geom.Point;
+import flash.geom.Matrix;
+import com.gskinner.geom.ColorMatrix;
+import flash.filters.ColorMatrixFilter;
+
 class org.red5.samples.messagerecorder.Recorder extends BaseClip 
 {
 // Constants:
 	public static var CLASS_REF = org.red5.samples.messagerecorder.Recorder;
 	public static var LINKAGE_ID:String = "org.red5.samples.messagerecorder.Recorder";
+	
+	private static var BRIGHTNESS_START = -30;
+	private static var CONTRAST_START = 10;
+	private static var SATURATION_START = -100;
+	private static var HUE_START = 0;
+	
 // Public Properties:
 	public var recording:Boolean = false;
 // Private Properties:
@@ -22,14 +35,19 @@ class org.red5.samples.messagerecorder.Recorder extends BaseClip
 	private var cam:Camera;
 	private var mic:Microphone;
 	private var timeoutSI:Number;
+	private var updateSI:Number;
+	private var matrix:Matrix;
+	private var bd:BitmapData;
+	private var cm:ColorMatrix;
 // UI Elements:
 
 // ** AUTO-UI ELEMENTS **
 	private var nameBG:MovieClip;
-	private var publish_video:Video;
+	private var videoContainer:MovieClip;
 	private var record:GraphicButton;
 	private var stopRecord:GraphicButton;
 	private var txtName:TextField;
+	private var videoBitmapContainer:MovieClip;
 // ** END AUTO-UI ELEMENTS **
 
 // Initialization:
@@ -51,12 +69,13 @@ class org.red5.samples.messagerecorder.Recorder extends BaseClip
 		txtName.type = "dynamic";
 		record.enabled = false;
 		stopRecord.enabled = true;
+		videoBitmapContainer._alpha = 100;
 	}
 	
 	public function enableControls():Void
 	{
 		// there isn't an enabled property on textfields, so we just switch them between dynamic and input.
-		
+		videoBitmapContainer._alpha = 0;
 		record.enabled = true;
 		stopRecord.enabled = false;
 		txtName.type = "input";
@@ -69,6 +88,17 @@ class org.red5.samples.messagerecorder.Recorder extends BaseClip
 	private function configUI():Void 
 	{
 		log = new XrayLog();
+		
+		// move videoContainer off wayyyyyy off
+		videoContainer._x = -1000;
+		
+		cm = new ColorMatrix();
+		cm.adjustColor(BRIGHTNESS_START,CONTRAST_START,SATURATION_START,HUE_START);
+		videoContainer.filters = [new ColorMatrixFilter(cm)];
+		
+		matrix = new Matrix();
+		bd = new BitmapData(videoContainer._width, videoContainer._height, false);
+		videoBitmapContainer.attachBitmap(bd, 1);
 		
 		charList = [" ", ".", "&", "@", ":", "\"", "'", ";", "/", "\\", ">", "<"];
 	
@@ -127,10 +157,19 @@ class org.red5.samples.messagerecorder.Recorder extends BaseClip
 		ns.attachAudio(mic);
 		
 		// attach to video object on stage
-		publish_video.attachVideo(cam);
+		videoContainer.publish_video.attachVideo(cam);
+		
+		// update the bitmapdataobject
+		clearInterval(updateSI);
+		updateSI = setInterval(this, "updateBitmap", 25);
 		
 		// turn off in 3 minutes if not already done so
 		timeoutSI = setInterval(this, "stopRecording", 180000);
+	}
+	
+	private function updateBitmap():Void
+	{
+		bd.draw(videoContainer, matrix);
 	}
 	
 	private function stopRecording():Void
@@ -141,8 +180,9 @@ class org.red5.samples.messagerecorder.Recorder extends BaseClip
 		recording = false;
 		
 		// clear video on stage
-		publish_video.attachVideo(null);
-		publish_video.clear();
+		videoContainer.publish_video.attachVideo(null);
+		videoContainer.publish_video.clear();
+		videoBitmapContainer._alpha = 0;
 		
 		// close netStream
 		ns.close();
