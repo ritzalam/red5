@@ -113,7 +113,7 @@ class org.red5.samples.messagerecorder.Recorder extends BaseClip
 		
 		// setup mic
 		mic = Microphone.get();
-		mic.setRate(44);
+		mic.setRate(11);
 		
 		enableControls();
 	}
