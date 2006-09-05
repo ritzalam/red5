@@ -56,9 +56,12 @@ class org.red5.samples.livestream.recorder.Main extends MovieClip {
 		
 		// setup cam
 		cam = Camera.get();
+		cam.setMode(320, 240, 30);
+		cam.setQuality(0,0);
 		
 		// setup mic
 		mic = Microphone.get();
+		mic.setRate(44);
 		
 		// get notified of connection changes
 		connector.addEventListener("connectionChange", this);
@@ -67,7 +70,9 @@ class org.red5.samples.livestream.recorder.Main extends MovieClip {
 		Connector.red5URI = "rtmp://localhost/oflaDemo";
 		
 		// initialize the connector
-		connector.configUI();	
+		connector.configUI();
+		
+		
 	}
 	
 	/*

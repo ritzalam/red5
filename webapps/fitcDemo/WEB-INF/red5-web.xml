@@ -20,7 +20,7 @@
 	</bean>
 
 	<bean id="web.handler" 
-	    class="org.red5.demos.fitc.Application" 
+	    class="org.red5.demos.fitc.Application"
 		singleton="true" />
 
 </beans>

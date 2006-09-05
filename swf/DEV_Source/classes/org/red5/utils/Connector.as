@@ -61,11 +61,8 @@ class org.red5.utils.Connector extends MovieClip
 		connection.addEventListener("success", Delegate.create(this, manageButtons));
 		connection.addEventListener("close", Delegate.create(this, manageButtons));
 	}
-// Semi-Private Methods:
-// Private Methods:
 	
-	
-	private function makeConnection(evtObj:Object):Void
+	public function makeConnection(evtObj:Object):Void
 	{
 		if(uri.length > 0) 
 		{
@@ -73,6 +70,8 @@ class org.red5.utils.Connector extends MovieClip
 			if(!goodURI) alert.show("Please check connection URI String and try again.");
 		}
 	}
+// Semi-Private Methods:
+// Private Methods:
 	
 	private function closeConnection(evtObj:Object):Void
 	{

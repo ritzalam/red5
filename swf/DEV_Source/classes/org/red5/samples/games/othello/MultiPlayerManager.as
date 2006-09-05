@@ -3,7 +3,7 @@ import mx.controls.TextInput;
 import mx.controls.Button;
 import mx.controls.List;
 // ** END AUTO-UI IMPORT STATEMENTS **
-import org.red5.utils.GlobalObject;
+import org.red5.samples.games.othello.GlobalObject;
 import org.red5.net.Connection;
 import com.gskinner.events.GDispatcher;
 import org.red5.utils.Delegate;
@@ -27,6 +27,8 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 	//private var updateResult:Object;
 	private var si:Number;
 	private var userAdded:Boolean;
+	private var hosting:Boolean;
+	private var soID:Number;
 // UI Elements:
 
 // ** AUTO-UI ELEMENTS **
@@ -68,12 +70,11 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 		*/
 		registerConnection(p_connection);
 			
-		
-		
 		so = new GlobalObject();
 		so.addEventListener("onSync", this);
-		soConnected = so.connect("othelloRoomList", p_connection, true);
-		
+		so.addEventListener("joinGameUpdate", Delegate.create(this, joinGameHandler));
+		so.addEventListener("acceptGameUpdate", Delegate.create(this, acceptGameHandler));
+		soConnected = so.connect("othelloRoomList", p_connection, false);
 		
 		//si = setInterval(this, "addUser", 250, localUserName);
 		
@@ -81,6 +82,29 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 	}
 // Semi-Private Methods:
 // Private Methods:
+
+	private function joinGameHandler(evtObj:Object):Void
+	{
+		_global.tt("joinGameHandler called", evtObj.localUserName, localUserName);
+		if(evtObj.localUserName == localUserName && hosting)
+		{
+			updateStatus(" is playing.");
+			white.text = evtObj.remoteUserName;
+			so.so.send("acceptGame", evtObj.localUserName, evtObj.remoteUserName);
+			/*THIS IS WHERE WE START THE GAME*/
+		}
+	}
+	
+	private function acceptGameHandler(evtObj:Object):Void
+	{
+		_global.tt("acceptGameHandler called", localUserName, evtObj.remoteUserName);
+		if(evtObj.remoteUserName == localUserName)
+		{
+			_global.tt("should update", localUserName);
+			updateStatus(" is playing.");
+			/*THIS IS WHERE WE START THE GAME*/
+		}
+	}
 
 	private function createGameSO():Void
 	{
@@ -90,6 +114,11 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 			alert.show("Please select a player who's waiting...");
 			return;
 		}
+		
+		_global.tt("JoinGame", players.selectedItem, so.so.send);
+		black.text = players.selectedItem.data;
+		white.text = localUserName;
+		so.so.send("joinGame", black.text, localUserName);
 	}
 
 	private function registerConnection(p_connection:Connection):Void
@@ -97,43 +126,15 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 		connection = p_connection;
 	}
 	
-	/*
-	private function getUserList():Void
-	{
-		connection.call("getUserList", loginResult);
-	}
-	*/
-	
-	/*
-	private function populateList(obj:Object):Void
-	{
-		_global.tt("got userlist", localUserName, obj);
-		players.removeAll();
-		for(var items:String in obj)
-		{
-			players.addItem({label:obj[items].userName, data:obj[items].userName})
-		}
-	}
-	*/
-	
 	private function getRoom():Void
 	{
-		// get the room list and set to the list view
-		//var userName:String = so.getData("mainLobby");
-		//_global.tt("getRoom", userName, localUserName);
-		//if(userName != localUserName)
-		//{
-			//_global.tt(0);
-			//connection.call("getUserList", updateResult);
-		//}
-		
-		//_global.tt("getRoom", ary);
-		var ary:Array = so.getData("othelloMainLobby");
-		_global.tt("getRoom", ary);
+		var obj:Object = so.getData("othelloMainLobby");
+		_global.tt("getRoom", obj);
 		players.removeAll();
-		for(var i:Number=0;i<ary.length;i++)
+
+		for(var items:String in obj)
 		{
-			players.addItem({label:ary[i].label, data:ary[i].data})
+			players.addItem({label:obj[items].label, data:obj[items].data})
 		}
 		
 		if(!userAdded) si= setInterval(this, "addUser", 500, localUserName);
@@ -150,7 +151,8 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 	{
 		disableStartGame();
 		black.text = localUserName;
-		updateStatus();
+		hosting = true;
+		updateStatus(" is waiting...");
 	}
 	
 	private function checkDuplicatePlayers(p_name:String):Boolean
@@ -177,14 +179,14 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 	}
 	*/
 	
-	private function updateStatus():Void
+	private function updateStatus(status:String):Void
 	{
 		for(var i:Number = 0;i<players.length;i++)
 		{
 			if(players.getItemAt(i).data == localUserName)
 			{
-				var label:String = players.getItemAt(i).label;
-				players.getItemAt(i).label = label + " is waiting...";
+				var label:String = players.getItemAt(i).data;
+				players.getItemAt(i).label = label + status;
 			}
 		}
 		
@@ -193,18 +195,19 @@ class org.red5.samples.games.othello.MultiPlayerManager extends MovieClip {
 	
 	private function updateSOList():Void
 	{
-		
+		soID = getTimer();
 		var ary:Array = new Array();
 		var obj:Object = players.dataProvider;
 		for(var items:String in obj)
 		{
-			ary.push({label: obj[items].label, data: obj[items].data});
+			ary.push({label: obj[items].label, data: obj[items].data, soID: soID});
 		}
 		ary.sortOn("label");
 		
 		
 		// we won't pass data, we'll just update mainLobby to tell the other clients to get the info
 		// send the localUserName so you don't re-update your list
+		_global.tt("setting mainLobby", localUserName);
 		so.setData("othelloMainLobby", ary);
 	}
 	

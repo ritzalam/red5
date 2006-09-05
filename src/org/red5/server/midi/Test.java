@@ -43,7 +43,7 @@ public class Test {
 		dev.open();
 		MyReceiver rec = new MyReceiver();
 		dev.getTransmitter().setReceiver(rec);
-		Thread.sleep(30000);
+		Thread.sleep(20000);
 		dev.close();
 
 	}

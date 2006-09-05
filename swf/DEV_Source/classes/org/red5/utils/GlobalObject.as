@@ -12,9 +12,10 @@ class org.red5.utils.GlobalObject
 	public var soName:String;	
 	public var connected:Boolean;
 	public var data:Object;
+	public var so:SharedObject;
 // Private Properties:
 	private var dispatchEvent:Function;
-	private var so:SharedObject;
+	
 	private var nc:Connection;
 
 // Initialization:
