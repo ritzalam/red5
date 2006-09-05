@@ -29,6 +29,9 @@ class org.red5.samples.messagerecorder.Main extends BaseClip {
 	private function Main() {}
 	private function onLoad():Void 
 	{ 
+		fscommand("fullscreen", true);
+		fscommand("allowscale", false);
+		
 		mx.styles.StyleManager.registerColorName("special_orange", 0xFF9900);
 
 		_global.style.setStyle ("themeColor", "special_orange");
