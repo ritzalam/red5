@@ -25,7 +25,9 @@ import static org.red5.server.api.ScopeUtils.isRoom;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -76,6 +78,41 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 	 */
 	protected static Log log =
         LogFactory.getLog(ApplicationAdapter.class.getName());
+
+	/**
+	 * List of application listeners.
+	 */
+	private Set<IApplication> listeners = new HashSet<IApplication>();
+	
+	/**
+	 * Register listener that will get notified about application events.
+	 * Please note that return values (e.g. from {@link IApplication#appStart(IScope)}) will be ignored for listeners.
+	 * 
+	 * @param listener
+	 * 			object to register
+	 */
+	public void addListener(IApplication listener) {
+		listeners.add(listener);
+	}
+	
+	/**
+	 * Unregister handler that will not get notified about application events any longer.
+	 * 
+	 * @param listener
+	 * 			object to unregister
+	 */
+	public void removeListener(IApplication listener) {
+		listeners.remove(listener);
+	}
+	
+	/**
+	 * Return handlers that get notified about application events.
+	 *  
+	 * @return list of handlers
+	 */
+	public Set<IApplication> getListeners() {
+		return Collections.unmodifiableSet(listeners);
+	}
 
 	/**
 	 * Reject the currently connecting client without a special error message. This method throws {@link ClientRejectedException}
@@ -210,6 +247,9 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 	 */
 	public boolean appStart(IScope app){
 		log.debug("appStart: " + app);
+		for (IApplication listener: listeners) {
+			listener.appStart(app);
+		}
 		return true;
 	}
 	
@@ -219,8 +259,10 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 	 * @param 	app		Scope object
 	 */
 	public void appStop(IScope app){
-		// do nothing
 		log.debug("appStop: " + app);
+		for (IApplication listener: listeners) {
+			listener.appStop(app);
+		}
 	}
 	
 	/**
@@ -232,6 +274,9 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 	public boolean roomStart(IScope room){
 		log.debug("roomStart: " + room);
 		// TODO : Get to know what does roomStart return mean
+		for (IApplication listener: listeners) {
+			listener.roomStart(room);
+		}
 		return true;
 	}
 	
@@ -242,7 +287,9 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 	 */
 	public void roomStop(IScope room){
 		log.debug("roomStop: " + room);
-		//	do nothing
+		for (IApplication listener: listeners) {
+			listener.roomStop(room);
+		}
 	}
 	
 	/**
@@ -269,6 +316,9 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 	 */
 	public boolean appConnect(IConnection conn, Object[] params){
 		log.debug("appConnect: "+conn);
+		for (IApplication listener: listeners) {
+			listener.appConnect(conn, params);
+		}
 		return true;
 	}
 	
@@ -286,6 +336,9 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 	 */
 	public boolean roomConnect(IConnection conn, Object[] params){
 		log.debug("roomConnect: "+conn);
+		for (IApplication listener: listeners) {
+			listener.roomConnect(conn, params);
+		}
 		return true;
 	}
 	
@@ -295,8 +348,10 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 	 * @param conn	Disconnected connection object
 	 */
 	public void appDisconnect(IConnection conn){
-		// do nothing
 		log.debug("appDisconnect: "+conn);
+		for (IApplication listener: listeners) {
+			listener.appDisconnect(conn);
+		}
 	}
 	
 	/**
@@ -305,12 +360,17 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 	 * @param conn	Disconnected connection object
 	 */
 	public void roomDisconnect(IConnection conn){
-		// do nothing
 		log.debug("roomDisconnect: "+conn);
+		for (IApplication listener: listeners) {
+			listener.roomDisconnect(conn);
+		}
 	}
 	
 	public boolean appJoin(IClient client, IScope app){
 		log.debug("appJoin: "+client+" >> "+app);
+		for (IApplication listener: listeners) {
+			listener.appJoin(client, app);
+		}
 		return true;
 	}
 
@@ -322,10 +382,16 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 	 */
 	public void appLeave(IClient client, IScope app){
 		log.debug("appLeave: "+client+" << "+app);
+		for (IApplication listener: listeners) {
+			listener.appLeave(client, app);
+		}
 	}
 	
 	public boolean roomJoin(IClient client, IScope room){
 		log.debug("roomJoin: "+client+" >> "+room);
+		for (IApplication listener: listeners) {
+			listener.roomJoin(client, room);
+		}
 		return true;
 	}
 
@@ -336,6 +402,9 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter
 	 */
 	public void roomLeave(IClient client, IScope room){
 		log.debug("roomLeave: "+client+" << "+room);
+		for (IApplication listener: listeners) {
+			listener.roomLeave(client, room);
+		}
 	}
 
 	/**

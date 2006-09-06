@@ -87,7 +87,7 @@ public interface IApplication  {
 	 * @param conn
 	 * @return
 	 */
-	public boolean roomConnect(IConnection conn);
+	public boolean roomConnect(IConnection conn, Object[] params);
 	
 	/**
 	 * Called when user joins room scope
