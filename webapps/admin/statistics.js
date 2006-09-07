@@ -1,6 +1,8 @@
 var state = "";
 var loading = false;
 
+var TRANSIENT_PREFIX = "_transient";
+
 /**
  * Browser independent method to add events to elements.
  */
@@ -109,16 +111,23 @@ function updateScopeAttributes(path, container) {
         return false;
     }
     
+    div = document.createElement("div");
+    div.className = "persistentAttributes";
+    container.appendChild(div);
+    
     var table = null;
     var idx = 1;
     for (var name in attributes) {
+        if (name.substr(0, TRANSIENT_PREFIX.length) == TRANSIENT_PREFIX)
+            continue;
+    
         if (!table) {
             h3 = document.createElement("h3");
-            h3.appendChild(document.createTextNode("Attributes"));
-            container.appendChild(h3);
+            h3.appendChild(document.createTextNode("Persistent attributes"));
+            div.appendChild(h3);
             
             table = document.createElement("table");
-            container.appendChild(table);
+            div.appendChild(table);
             row = table.insertRow(0);
 
             th = document.createElement("th");
@@ -140,8 +149,50 @@ function updateScopeAttributes(path, container) {
         outputProperty(attributes[name], td);
     }
     
-    if (container.childNodes.length == 0)
-        container.appendChild(document.createTextNode("Scope has no attributes."));
+    if (div.childNodes.length == 0)
+        div.appendChild(document.createTextNode("Scope has no persistent attributes."));
+    
+    
+    div = document.createElement("div");
+    div.className = "nonPersistentAttributes";
+    container.appendChild(div);
+    
+    var table = null;
+    var idx = 1;
+    for (var name in attributes) {
+        if (name.substr(0, TRANSIENT_PREFIX.length) != TRANSIENT_PREFIX)
+            continue;
+    
+        if (!table) {
+            h3 = document.createElement("h3");
+            h3.appendChild(document.createTextNode("Non-persistent attributes"));
+            div.appendChild(h3);
+            
+            table = document.createElement("table");
+            div.appendChild(table);
+            row = table.insertRow(0);
+
+            th = document.createElement("th");
+            th.className = "property";
+            th.appendChild(document.createTextNode("Name"));
+            row.appendChild(th);
+            
+            th = document.createElement("th");
+            th.appendChild(document.createTextNode("Value"));
+            row.appendChild(th);
+        }
+        
+        row = table.insertRow(idx++);
+        td = row.insertCell(0);
+        td.className = "property";
+        td.appendChild(document.createTextNode(name.substr(TRANSIENT_PREFIX.length)));
+        
+        td = row.insertCell(1);
+        outputProperty(attributes[name], td);
+    }
+    
+    if (div.childNodes.length == 0)
+        div.appendChild(document.createTextNode("Scope has no non-persistent attributes."));
     
     return true;
 }
