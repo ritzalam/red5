@@ -119,7 +119,7 @@ public class PersistableAttributeStore extends AttributeStore
 	
 	synchronized public boolean setAttribute(String name, Object value) {
 		boolean result = super.setAttribute(name, value);
-		if (result)
+		if (result && !name.startsWith(IPersistable.TRANSIENT_PREFIX))
 			modified();
 		return result;
 	}
@@ -136,7 +136,7 @@ public class PersistableAttributeStore extends AttributeStore
 	
 	synchronized public boolean removeAttribute(String name) {
 		boolean result = super.removeAttribute(name);
-		if (result)
+		if (result && !name.startsWith(IPersistable.TRANSIENT_PREFIX))
 			modified();
 		return result;
 	}
