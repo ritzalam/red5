@@ -72,6 +72,10 @@ public class SharedObjectScope extends BasicScope
 		// Nothing to do here, the shared object will take care of persistence.
 	}
 	
+	public IPersistenceStore getStore() {
+		return so.getStore();
+	}
+	
 	public boolean isPersistentObject() {
 		return so.isPersistentObject();
 	}
