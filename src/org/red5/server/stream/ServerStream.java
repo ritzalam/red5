@@ -237,9 +237,9 @@ public class ServerStream extends AbstractStream implements IServerStream,
 		if (state == State.PLAYING) {
 			stop();
 		}
-		IProviderService providerService =
-			(IProviderService) getScope().getContext().getBean(IProviderService.KEY);
-		providerService.unregisterBroadcastStream(getScope(), publishedName);
+		if (msgOut != null) {
+			msgOut.unsubscribe(this);
+		}
 		state = State.CLOSED;
 	}
 
@@ -361,25 +361,13 @@ public class ServerStream extends AbstractStream implements IServerStream,
 		
 		IRTMPEvent rtmpEvent = nextRTMPMessage.getBody();
 		if (rtmpEvent instanceof VideoData) {
-			if (!nextRTMPMessage.isTimerRelative()) {
-				nextVideoTS = rtmpEvent.getTimestamp();
-			} else {
-				nextVideoTS += rtmpEvent.getTimestamp();
-			}
+			nextVideoTS = rtmpEvent.getTimestamp();
 			nextTS = nextVideoTS;
 		} else if (rtmpEvent instanceof AudioData) {
-			if (!nextRTMPMessage.isTimerRelative()) {
-				nextAudioTS = rtmpEvent.getTimestamp();
-			} else {
-				nextAudioTS += rtmpEvent.getTimestamp();
-			}
+			nextAudioTS = rtmpEvent.getTimestamp();
 			nextTS = nextAudioTS;
 		} else {
-			if (!nextRTMPMessage.isTimerRelative()) {
-				nextDataTS = rtmpEvent.getTimestamp();
-			} else {
-				nextDataTS += rtmpEvent.getTimestamp();
-			}
+			nextDataTS = rtmpEvent.getTimestamp();
 			nextTS = nextDataTS;
 		}
 		if (first) {

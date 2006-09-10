@@ -57,12 +57,6 @@ public class VideoFrameDropper implements IFrameDropper {
 
 	/** Current state. */
 	private int state;
-	/** Timestamps of the dropped packets. */
-	private int droppedTimes;
-	/** Is the timestamp absolute? */
-	private boolean droppedAbsolute;
-	/** Should the timestamps of dropped packets be counted? */
-	private boolean countDroppedTimes;
 	
 	public VideoFrameDropper() {
 		reset();
@@ -74,9 +68,6 @@ public class VideoFrameDropper implements IFrameDropper {
 	
 	public void reset(int state) {
 		this.state = state;
-		droppedTimes = 0;
-		droppedAbsolute = false;
-		countDroppedTimes = (state != SEND_ALL);
 	}
 	
 	public boolean canSendPacket(RTMPMessage message, long pending) {
@@ -100,7 +91,6 @@ public class VideoFrameDropper implements IFrameDropper {
 				if (pending == 0) {
 					// Send all frames from now on.
 					state = SEND_ALL;
-					countDroppedTimes = true;
 				}
 				result = true;
 			} else if (type == FrameType.INTERFRAME)
@@ -124,16 +114,6 @@ public class VideoFrameDropper implements IFrameDropper {
 			break;
 		}
 		
-		// Store timestamp of dropped packet
-		if (!result && countDroppedTimes && type != FrameType.DISPOSABLE_INTERFRAME) {
-			if (message.isTimerRelative())
-				droppedTimes += packet.getTimestamp();
-			else {
-				droppedTimes = packet.getTimestamp();
-				droppedAbsolute = true;
-			}
-		}
-		
 		return result;
 	}
 
@@ -145,16 +125,6 @@ public class VideoFrameDropper implements IFrameDropper {
 		
 		VideoData video = (VideoData) packet;
 		FrameType type = video.getFrameType();
-		
-		// Store timestamp of dropped packet
-		if (countDroppedTimes && type != FrameType.DISPOSABLE_INTERFRAME) {
-			if (message.isTimerRelative())
-				droppedTimes += packet.getTimestamp();
-			else {
-				droppedTimes = packet.getTimestamp();
-				droppedAbsolute = true;
-			}
-		}
 		
 		switch (state) {
 		case SEND_ALL:
@@ -200,28 +170,7 @@ public class VideoFrameDropper implements IFrameDropper {
 	}
 
 	public void sendPacket(RTMPMessage message) {
-		IRTMPEvent packet = message.getBody();
-		if (! (packet instanceof VideoData))
-			// Only process video packets.
-			return;
 		
-		if (droppedTimes == 0)
-			return;
-		
-		// Modify packet to send to include dropped timestamps
-		VideoData video = (VideoData) packet;
-		if (droppedAbsolute) {
-			video.setTimestamp(droppedTimes);
-			message.setTimerRelative(true);
-			if (video.getHeader() != null) {
-				video.getHeader().setTimerRelative(true);
-			}
-			droppedAbsolute = true;
-		} else {
-			log.debug("Dropped " + droppedTimes + " ms packets");
-			video.setTimestamp(video.getTimestamp() + droppedTimes);
-		}
-		droppedTimes = 0;
 	}
 
 }

@@ -451,7 +451,6 @@ implements IPlaylistSubscriberStream {
 		private String adaptFlowJob;
 		private boolean isWaiting = false;
 		private int vodStartTS = 0;
-		private int duration = 0;
 		
 		private IPlayItem currentItem;
 		
@@ -540,8 +539,8 @@ implements IPlaylistSubscriberStream {
 							if (keyFrame != null) {
 								VideoData video = new VideoData(keyFrame);
 								try {
-									sendResetPing();
-									sendBlankAudio(0);
+									sendReset();
+									//sendBlankAudio(0);
 									//sendBlankVideo(0);
 									sendResetStatus(item);
 									sendStartStatus(item);
@@ -550,7 +549,6 @@ implements IPlaylistSubscriberStream {
 									
 									RTMPMessage videoMsg = new RTMPMessage();
 									videoMsg.setBody(video);
-									videoMsg.setTimerRelative(false);
 									msgOut.pushMessage(videoMsg);
 									sendNotifications = false;
 									// Don't wait for keyframe
@@ -595,9 +593,7 @@ implements IPlaylistSubscriberStream {
 				throw new StreamNotFoundException(item.getName());
 			}
 			if (sendNotifications) {
-				sendResetPing();
-				//sendBlankAudio(0);
-				//sendBlankVideo(0);
+				sendReset();
 				sendResetStatus(item);
 				sendStartStatus(item);
 			}
@@ -616,6 +612,7 @@ implements IPlaylistSubscriberStream {
 			if (isPullMode) {
 				state = State.PAUSED;
 				getStreamFlow().pause();
+				releasePendingMessage();
 				clearWaitJobs();
 				sendClearPing();
 				sendPauseStatus(currentItem);
@@ -634,10 +631,8 @@ implements IPlaylistSubscriberStream {
 					playLengthJob = schedulingService.addScheduledOnceJob(length, this);
 				}
 				flowControlService.resetTokenBuckets(PlaylistSubscriberStream.this);
+				sendReset();
 				sendResumeStatus(currentItem);
-				sendResetPing();
-				sendBlankAudio(position);
-				sendBlankVideo(position);
 				sendVODSeekCM(msgIn, position);
 				notifyItemResume(currentItem, position);
 			}
@@ -659,7 +654,7 @@ implements IPlaylistSubscriberStream {
 				flowControlService.resetTokenBuckets(PlaylistSubscriberStream.this);
 				isWaitingForToken = false;
 				sendClearPing();
-				sendResetPing();
+				sendReset();
 				sendSeekStatus(currentItem, position);
 				sendStartStatus(currentItem);
 				int seekPos = sendVODSeekCM(msgIn, position);
@@ -678,7 +673,6 @@ implements IPlaylistSubscriberStream {
 							IRTMPEvent body = rtmpMessage.getBody();
 							if (body instanceof VideoData &&
 									((VideoData) body).getFrameType() == FrameType.KEYFRAME) {
-								rtmpMessage.setTimerRelative(false);
 								body.setTimestamp(seekPos);
 								msgOut.pushMessage(rtmpMessage);
 								rtmpMessage.getBody().release();
@@ -686,9 +680,6 @@ implements IPlaylistSubscriberStream {
 							}
 						}
 					}
-				} else {
-					sendBlankAudio(seekPos);
-					sendBlankVideo(seekPos);
 				}
 			}
 		}
@@ -711,7 +702,7 @@ implements IPlaylistSubscriberStream {
 			notifyItemStop(currentItem);
 			sendStopStatus(currentItem);
 			sendClearPing();
-			sendResetPing();
+			sendReset();
 		}
 		
 		synchronized public void close() {
@@ -839,19 +830,11 @@ implements IPlaylistSubscriberStream {
 		
 		private void sendMessage(RTMPMessage message) {
 			if (vodStartTS == -1) {
-				if (!message.isTimerRelative()) {
-					vodStartTS = message.getBody().getTimestamp();
-					duration = vodStartTS;
-				}
+				vodStartTS = message.getBody().getTimestamp();
 			} else {
 				if (currentItem.getLength() >= 0) {
-					if (message.isTimerRelative()) {
-						duration += message.getBody().getTimestamp();
-					} else {
-						duration = message.getBody().getTimestamp();
-					}
-					int diff = duration - vodStartTS;
-					if (diff > currentItem.getLength() && playLengthJob == null) {
+					int duration = message.getBody().getTimestamp()-vodStartTS;
+					if (duration > currentItem.getLength() && playLengthJob == null) {
 						// stop this item
 						stop();
 						onItemEnd();
@@ -873,7 +856,7 @@ implements IPlaylistSubscriberStream {
 			msgOut.pushMessage(ping1Msg);
 		}
 		
-		private void sendResetPing() {
+		private void sendReset() {
 			if (isPullMode) {
 				Ping ping1 = new Ping();
 				ping1.setValue1((short) 4);
@@ -891,34 +874,9 @@ implements IPlaylistSubscriberStream {
 			RTMPMessage ping2Msg = new RTMPMessage();
 			ping2Msg.setBody(ping2);
 			msgOut.pushMessage(ping2Msg);
-		}
-		
-		private void sendBlankAudio(int ts) {
-			AudioData blankAudio = new AudioData();
-			try {
-				blankAudio.setTimestamp(ts);
-				
-				RTMPMessage blankAudioMsg = new RTMPMessage();
-				blankAudioMsg.setBody(blankAudio);
-				blankAudioMsg.setTimerRelative(false);
-				msgOut.pushMessage(blankAudioMsg);
-			} finally {
-				blankAudio.release();
-			}
-		}
-		
-		private void sendBlankVideo(int ts) {
-			VideoData blankVideo = new VideoData();
-			try {
-				blankVideo.setTimestamp(ts);
-				
-				RTMPMessage blankVideoMsg = new RTMPMessage();
-				blankVideoMsg.setBody(blankVideo);
-				blankVideoMsg.setTimerRelative(false);
-				msgOut.pushMessage(blankVideoMsg);
-			} finally {
-				blankVideo.release();
-			}
+			
+			ResetMessage reset = new ResetMessage();
+			msgOut.pushMessage(reset);
 		}
 		
 		private void sendResetStatus(IPlayItem item) {
@@ -1085,8 +1043,7 @@ implements IPlaylistSubscriberStream {
 
 		synchronized public void pushMessage(IPipe pipe, IMessage message) {
 			if (message instanceof ResetMessage) {
-				sendResetPing();
-				return;
+				sendReset();
 			}
 			if (message instanceof RTMPMessage) {
 				RTMPMessage rtmpMessage = (RTMPMessage) message;

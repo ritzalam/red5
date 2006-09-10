@@ -19,6 +19,7 @@ package org.red5.server.messaging;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -51,6 +52,8 @@ public interface IMessageOutput {
 	 * <tt>false</tt> otherwise.
 	 */
 	boolean unsubscribe(IProvider provider);
+	
+	List<IProvider> getProviders();
 	
 	/**
 	 * Send OOB Control Message to all consumers on the other side of pipe.

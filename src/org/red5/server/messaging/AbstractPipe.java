@@ -137,6 +137,14 @@ public abstract class AbstractPipe implements IPipe {
 		}
 	}
 
+	public List<IProvider> getProviders() {
+		return providers;
+	}
+	
+	public List<IConsumer> getConsumers() {
+		return consumers;
+	}    
+	
 	protected void fireConsumerConnectionEvent(IConsumer consumer, int type, Map paramMap) {
 		PipeConnectionEvent event = new PipeConnectionEvent(this);
 		event.setConsumer(consumer);

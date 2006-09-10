@@ -19,6 +19,7 @@ package org.red5.server.stream;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
@@ -74,7 +75,11 @@ public class BroadcastScope extends BasicScope implements IBroadcastScope, IPipe
 	public boolean unsubscribe(IConsumer consumer) {
 		return pipe.unsubscribe(consumer);
 	}
-
+	
+	public List<IConsumer> getConsumers() {
+		return pipe.getConsumers();
+	}
+	
 	public void sendOOBControlMessage(IConsumer consumer,
 			OOBControlMessage oobCtrlMsg) {
 		pipe.sendOOBControlMessage(consumer, oobCtrlMsg);
@@ -94,7 +99,11 @@ public class BroadcastScope extends BasicScope implements IBroadcastScope, IPipe
 	synchronized public boolean unsubscribe(IProvider provider) {
 		return pipe.unsubscribe(provider);
 	}
-
+	
+	public List<IProvider> getProviders() {
+		return pipe.getProviders();
+	}
+	
 	public void sendOOBControlMessage(IProvider provider,
 			OOBControlMessage oobCtrlMsg) {
 		pipe.sendOOBControlMessage(provider, oobCtrlMsg);
@@ -114,8 +123,11 @@ public class BroadcastScope extends BasicScope implements IBroadcastScope, IPipe
 				compCounter--;
 				if (compCounter <= 0) {
 					// XXX should we synchronize parent before removing?
-					if (hasParent())
-						getParent().removeChildScope(this);
+					if (hasParent()) {
+						IProviderService providerService =
+							(IProviderService) getParent().getContext().getBean(IProviderService.KEY);
+						providerService.unregisterBroadcastStream(getParent(), getName());
+					}
 					hasRemoved = true;
 				}
 				break;

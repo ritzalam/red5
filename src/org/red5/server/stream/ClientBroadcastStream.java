@@ -75,12 +75,11 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	private IPipe recordPipe;
 	private boolean sendStartNotification = true;
 	/** Stores absolute time for video stream. */
-	private long audioTime = -1;
+	private int audioTime = -1;
 	/** Stores absolute time for audio stream. */
-	private long videoTime = -1;
+	private int videoTime = -1;
 	/** Stores absolute time for data stream. */
-	private long dataTime = -1;
-	private int audioAdd = 0;
+	private int dataTime = -1;
 	
 	private int chunkSize = 0;
 	
@@ -212,17 +211,10 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			streamCodec = (StreamCodecInfo) codecInfo;
 		
 		IRTMPEvent rtmpEvent = (IRTMPEvent) event;
-		long lastTime = -1;
-		long thisTime = -1;
+		int thisTime = -1;
 		if (rtmpEvent instanceof AudioData) {
 			if (streamCodec != null)
 				streamCodec.setHasAudio(true);
-			lastTime = audioTime;
-			if (audioAdd != 0) {
-				rtmpEvent.setTimestamp(rtmpEvent.getTimestamp() + audioAdd);
-				rtmpEvent.getHeader().setTimer(rtmpEvent.getHeader().getTimer() + audioAdd);
-				audioAdd = 0;
-			}
 			if (rtmpEvent.getHeader().isTimerRelative())
 				audioTime += rtmpEvent.getTimestamp();
 			else
@@ -257,14 +249,12 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 					}
 				}
 			}
-			lastTime = videoTime;
 			if (rtmpEvent.getHeader().isTimerRelative())
 				videoTime += rtmpEvent.getTimestamp();
 			else
 				videoTime = rtmpEvent.getTimestamp();
 			thisTime = videoTime;
 		} else if (rtmpEvent instanceof Notify) {
-			lastTime = dataTime;
 			if (rtmpEvent.getHeader().isTimerRelative())
 				dataTime += rtmpEvent.getTimestamp();
 			else
@@ -274,22 +264,18 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		
 		RTMPMessage msg = new RTMPMessage();
 		msg.setBody(rtmpEvent);
-		if (!rtmpEvent.getHeader().isTimerRelative() && lastTime != -1) {
-			// Make sure we only sent relative timestamps to the subscribers
-			int delta = (int) (thisTime - lastTime);
-			if (delta < 0) {
-				if (rtmpEvent instanceof VideoData)
-					// We can't move back the video but advance the audio instead
-					audioAdd += -delta;
-				// XXX: is this also needed for AudioData? never occured though while testing...
-				delta = 0;
-			}
-			msg.setTimerRelative(true);
-			msg.getBody().getHeader().setTimerRelative(true);
-			msg.getBody().setTimestamp(delta);
-			msg.getBody().getHeader().setTimer(delta);
-		} else
-			msg.setTimerRelative(rtmpEvent.getHeader().isTimerRelative());
+		msg.getBody().setTimestamp(thisTime);
+		//System.err.println(msg);
+		//System.err.println("ts in "+thisTime);
+//		if(true) {
+//			long delay=(long)(Math.random()*200);
+//			try {
+//				Thread.sleep(delay);
+//			} catch (InterruptedException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//		}
 		if (livePipe != null) livePipe.pushMessage(msg);
 		recordPipe.pushMessage(msg);
 	}

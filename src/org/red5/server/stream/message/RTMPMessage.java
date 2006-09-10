@@ -33,13 +33,5 @@ public class RTMPMessage extends AbstractMessage {
 	public void setBody(IRTMPEvent body) {
 		this.body = body;
 	}
-
-	public boolean isTimerRelative() {
-		return timerRelative;
-	}
-
-	public void setTimerRelative(boolean timerRelative) {
-		this.timerRelative = timerRelative;
-	}
 	
 }

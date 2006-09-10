@@ -60,6 +60,8 @@ public class StreamFlow implements IStreamFlow {
 	private int lastBufferTime = 0;
 	private int lastBufferTimeIndex = 0;
 	
+	private StreamTracker streamTracker = new StreamTracker();
+	
 	public StreamFlow(){
 	}
 
@@ -173,6 +175,7 @@ public class StreamFlow implements IStreamFlow {
 		for(int i=0; i<lastBufferTimes.length; i++) lastBufferTimes[i] = 0;
 		zeroToStreamTime = -1;
 		segmentDataTimes[0] = segmentDataTimes[1] = segmentDataTimes[2] = 0;
+		streamTracker.reset();
 	}
 	
 	public void reset(){
@@ -186,10 +189,9 @@ public class StreamFlow implements IStreamFlow {
 	public void update(RTMPMessage rtmpMsg){
 		//log.info(">>>"+msg.getBody());
 		IRTMPEvent msg = rtmpMsg.getBody();
-		int ts = (rtmpMsg.isTimerRelative()) ? msg.getTimestamp() : 0;
-		
-		if(!rtmpMsg.isTimerRelative()){
-			log.debug("Absolute: "+msg.getTimestamp());
+		int ts = streamTracker.add(msg);
+		if (!streamTracker.isRelative()) {
+			ts = 0;
 		}
 		
 		switch(msg.getDataType()){
