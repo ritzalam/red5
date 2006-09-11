@@ -1,4 +1,4 @@
-package org.red5.server.service;
+package org.red5.server.api.service;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -19,35 +19,20 @@ package org.red5.server.service;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.red5.server.api.IScope;
-import org.red5.server.api.IScopeHandler;
-import org.red5.server.api.service.IServiceHandlerProvider;
-import org.red5.server.api.service.IServiceHandlerProviderAware;
-
 /**
- * Allow scope handlers to create service handlers dynamically.
- *
+ * Class that knows about objects which can provide service handlers.
+ * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
+ *
  */
-public class HandlerServiceResolver implements IServiceResolver {
+public interface IServiceHandlerProviderAware {
 
-	public Object resolveService(IScope scope, String serviceName) {
-		IScopeHandler handler = scope.getHandler();
-		if (handler instanceof IServiceHandlerProvider) {
-			// TODO: deprecate this?
-			Object result = ((IServiceHandlerProvider) handler).getServiceHandler(serviceName);
-			if (result != null)
-				return result;
-		}
-		
-		if (handler instanceof IServiceHandlerProviderAware) {
-			IServiceHandlerProvider shp = ((IServiceHandlerProviderAware) handler).getServiceHandlerProvider();
-			if (shp != null)
-				return shp.getServiceHandler(serviceName);
-		}
-		
-		return null;
-	}
-
+	/**
+	 * Return object that knows about service handlers.
+	 * 
+	 * @return
+	 */
+	public IServiceHandlerProvider getServiceHandlerProvider();
+	
 }
