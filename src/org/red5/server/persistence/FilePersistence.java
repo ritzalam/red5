@@ -51,18 +51,30 @@ public class FilePersistence extends RamPersistence implements IPersistenceStore
 
 	private Log log = LogFactory.getLog(FilePersistence.class.getName());
 	private String path = "persistence";
+	private String rootDir = "";
 	private String extension = ".red5";
+	// TODO: make this configurable
+	private boolean checkForEmptyDirectories = true;
 
 	public FilePersistence(ResourcePatternResolver resolver) {
 		super(resolver);
+		setPath(path);
 	}
 	
 	public FilePersistence(IScope scope) {
 		super(scope);
+		setPath(path);
 	}
 	
 	public void setPath(String path) {
 		this.path = path;
+		
+		Resource rootFile = resources.getResource(path);
+		try { 
+			rootDir = rootFile.getFile().getAbsolutePath();
+		} catch (IOException err) {
+			return;
+		}
 	}
 	
 	public void setExtension(String extension) {
@@ -273,6 +285,37 @@ public class FilePersistence extends RamPersistence implements IPersistenceStore
 		return persistent;
 	}
 
+	protected void checkRemoveEmptyDirectories(String base) {
+		if (!checkForEmptyDirectories)
+			return;
+		
+		String dir;
+		Resource resFile = resources.getResource(base.substring(0, base.lastIndexOf('/')));
+		try { 
+			dir = resFile.getFile().getAbsolutePath();
+		} catch (IOException err) {
+			return;
+		}
+
+		while (!dir.equals(rootDir)) {
+			File fp = new File(dir);
+			if (!fp.isDirectory())
+				// This should never happen
+				break;
+			
+			if (fp.list().length != 0)
+				// Directory is not empty
+				break;
+			
+			if (!fp.delete())
+				// Could not remove directory
+				break;
+			
+			// Move up one directory
+			dir = fp.getParent();
+		}
+	}
+	
 	public boolean remove(String name) {
 		if (!super.remove(name))
 			return false;
@@ -284,7 +327,10 @@ public class FilePersistence extends RamPersistence implements IPersistenceStore
 			return true;
 		
 		try {
-			return resFile.getFile().delete();
+			boolean result = resFile.getFile().delete();
+			if (result)
+				checkRemoveEmptyDirectories(filename);
+			return result;
 		} catch (IOException err) {
 			return false;
 		}
