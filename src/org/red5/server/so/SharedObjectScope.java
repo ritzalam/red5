@@ -57,9 +57,12 @@ public class SharedObjectScope extends BasicScope
 		super(parent,TYPE, name, persistent);
 		
 		// Create shared object wrapper around the attributes
-		so = (SharedObject) store.load(SharedObject.PERSISTENCE_TYPE + "/" + parent.getContextPath() + "/" + name);
+		String path = parent.getContextPath();
+		if (!path.startsWith("/"))
+			path = "/" + path;
+		so = (SharedObject) store.load(TYPE + path + "/" + name);
 		if (so == null) {
-			so = new SharedObject(attributes, name, parent.getContextPath(), persistent, store);
+			so = new SharedObject(attributes, name, path, persistent, store);
 
 			store.save(so);
 		} else {
@@ -74,6 +77,26 @@ public class SharedObjectScope extends BasicScope
 	
 	public IPersistenceStore getStore() {
 		return so.getStore();
+	}
+	
+	public String getName() {
+		return so.getName();
+	}
+	
+	public void setName(String name) {
+		so.setName(name);
+	}
+	
+	public String getPath() {
+		return so.getPath();
+	}
+	
+	public void setPath(String path) {
+		so.setPath(path);
+	}
+	
+	public String getType() {
+		return so.getType();
 	}
 	
 	public boolean isPersistentObject() {

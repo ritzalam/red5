@@ -19,6 +19,8 @@ package org.red5.server.so;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import static org.red5.server.api.so.ISharedObject.TYPE;
+
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -47,8 +49,6 @@ import org.red5.server.so.ISharedObjectEvent.Type;
 public class SharedObject implements IPersistable, Constants {
 
 	protected static Log log = LogFactory.getLog(SharedObject.class.getName());
-
-	public final static String PERSISTENCE_TYPE = "SharedObject";
 
 	protected String name = "";
 	protected String path = "";
@@ -120,7 +120,7 @@ public class SharedObject implements IPersistable, Constants {
 	}
 
 	public String getType() {
-		return PERSISTENCE_TYPE;
+		return TYPE;
 	}
 
 	public long getLastModified() {

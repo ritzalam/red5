@@ -50,7 +50,7 @@ import org.red5.server.api.event.IEventListener;
 
 public interface ISharedObject extends IBasicScope, ISharedObjectHandlerProvider {
 
-	public static final String TYPE = "so";
+	public static final String TYPE = "SharedObject";
 	
 	/**
 	 * Returns the version of the shared object. The version is incremented

@@ -86,7 +86,14 @@ public class FilePersistence extends RamPersistence implements IPersistenceStore
 		}
 		return result;
 	}
-	
+
+	protected String getObjectPath(String id, String name) {
+		if (id.startsWith(path))
+			id = id.substring(path.length()+1);
+		
+		return super.getObjectPath(id, name);
+	}
+
 	private String getObjectFilename(IPersistable object) {
 		String path = getObjectFilepath(object);
 		String name = object.getName();
@@ -172,8 +179,8 @@ public class FilePersistence extends RamPersistence implements IPersistenceStore
 					}
 					
 					// Set object's properties
-					result.setName(getObjectName(name)); 
-					result.setPath(getObjectPath(name)); 
+					result.setName(getObjectName(name));
+					result.setPath(getObjectPath(name, result.getName()));
 				} else {
 					// Initialize existing object
 					String resultClass = result.getClass().getName(); 
