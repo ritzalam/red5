@@ -407,7 +407,7 @@ Module("jsolait", "0.1.0", function(mod){
         }catch(e){
             throw new mod.Exception("Unable to load URL: '%s'.".format(url), e);
         }
-        if(xmlhttp.status == 200 || xmlhttp.status == 0){
+        if(xmlhttp.status == 200 || xmlhttp.status == 304 || xmlhttp.status == 0){
             return xmlhttp.responseText;
         }else{
              throw new mod.Exception("File not loaded: '%s'.".format(url));
