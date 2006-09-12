@@ -23,9 +23,9 @@ import org.red5.server.api.stream.IPlayItem;
 import org.red5.server.messaging.IMessageInput;
 
 public class SimplePlayItem implements IPlayItem {
-	private long length;
+	private long length = -1;
 	private String name;
-	private long start;
+	private long start = -2;
 	private IMessageInput msgInput;
 	
 	/**
