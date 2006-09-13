@@ -303,6 +303,12 @@ public class RTMPTServlet extends HttpServlet {
 		if (client == null) {
 			handleBadRequest("Unknown client.", resp);
 			return;
+		} else if (client.getState().getState() == RTMP.STATE_DISCONNECTED) {
+			synchronized (rtmptClients) {
+				rtmptClients.remove(client.getId());
+			}
+			handleBadRequest("Connection already closed.", resp);
+			return;
 		}
 		
 		client.setServletRequest(req);
@@ -354,8 +360,14 @@ public class RTMPTServlet extends HttpServlet {
 		if (client == null) {
 			handleBadRequest("Unknown client.", resp);
 			return;
+		} else if (client.getState().getState() == RTMP.STATE_DISCONNECTED) {
+			synchronized (rtmptClients) {
+				rtmptClients.remove(client.getId());
+			}
+			handleBadRequest("Connection already closed.", resp);
+			return;
 		}
-		
+			
 		client.setServletRequest(req);
 		returnPendingMessages(client, resp);
 	}
@@ -396,12 +408,9 @@ public class RTMPTServlet extends HttpServlet {
 	protected void service(HttpServletRequest req, HttpServletResponse resp) 
 		throws ServletException, IOException {
 
-		log.info("RTMPT service");
-		
-		if (!req.getMethod().equals(REQUEST_METHOD) ||
+		if (!REQUEST_METHOD.equals(req.getMethod()) ||
 			req.getContentLength() == 0 ||
-			req.getContentType() == null ||
-			!req.getContentType().equals(CONTENT_TYPE)) {
+			!CONTENT_TYPE.equals(req.getContentType())) {
 			// Bad request - return simple error page
 			handleBadRequest("Bad request, only RTMPT supported.", resp);
 			return;

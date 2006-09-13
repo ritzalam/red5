@@ -117,7 +117,7 @@ public class RTMPTConnection extends RTMPConnection {
 	 * 
 	 * @return the current decoder state.
 	 */
-	public ProtocolState getState() {
+	public RTMP getState() {
 		return this.state;
 	}
 	
@@ -127,6 +127,10 @@ public class RTMPTConnection extends RTMPConnection {
 	 * @return the polling delay
 	 */
 	public byte getPollingDelay() {
+		if (state.getState() == RTMP.STATE_DISCONNECTED)
+			// Special value to notify client about a closed connection.
+			return (byte) 0;
+		
 		return (byte) (this.pollingDelay + 1);
 	}
 	
