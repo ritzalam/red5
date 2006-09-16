@@ -64,9 +64,15 @@ public class Client extends AttributeStore
 	}
 	
 	public boolean equals(Object obj) {
-		if(!(obj instanceof Client)) return false;
-		final Client client = (Client) obj;
-		return client.getId() == getId();
+		if(!(obj instanceof Client)) {
+			return false;
+		}
+		return ((Client) obj).getId().equals(id);
+ 	}
+
+	//if overriding equals then also do hashCode
+	public int hashCode() {
+		return id.hashCode();
  	}
 
 	public String toString() {
