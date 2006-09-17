@@ -123,6 +123,18 @@ public class ServerStream extends AbstractStream implements IServerStream,
 		return items.size();
 	}
 
+	public int getCurrentItemIndex() {
+		return currentItemIndex;
+	}
+	
+	public IPlayItem getItem(int index) {
+		try {
+			return items.get(index);
+		} catch (IndexOutOfBoundsException e) {
+			return null;
+		}
+	}
+
 	synchronized public void previousItem() {
 		stop();
 		moveToPrevious();

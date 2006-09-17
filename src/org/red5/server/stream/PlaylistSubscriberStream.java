@@ -309,6 +309,18 @@ implements IPlaylistSubscriberStream {
 		return items.size();
 	}
 	
+	public int getCurrentItemIndex() {
+		return currentItemIndex;
+	}
+	
+	public IPlayItem getItem(int index) {
+		try {
+			return items.get(index);
+		} catch (IndexOutOfBoundsException e) {
+			return null;
+		}
+	}
+
 	@Override
 	public void setBandwidthConfigure(IBandwidthConfigure config) {
 		super.setBandwidthConfigure(config);

@@ -47,6 +47,19 @@ public interface IPlaylist {
 	int getItemSize();
 	
 	/**
+	 * Get currently playing item index.
+	 * @return
+	 */
+	int getCurrentItemIndex();
+	
+	/**
+	 * Get the item according to the index.
+	 * @param index
+	 * @return
+	 */
+	IPlayItem getItem(int index);
+	
+	/**
 	 * Go for the previous played item.
 	 */
 	void previousItem();
