@@ -112,6 +112,7 @@ public class Application extends ApplicationAdapter {
 			
 			conn.invoke("midi",new Object[]{time, msg});
 			
+			/*
 			String out = "Midi >> Status: "+msg[0]+" Data: [";
 			for(int i=1; i<len; i++){
 				out += msg[i] + ((i==len-1) ? "" : ","); 
@@ -119,6 +120,7 @@ public class Application extends ApplicationAdapter {
 			out += "]";
 			
 			log.debug(out);
+			*/
 		}
 
 		public void close() {
