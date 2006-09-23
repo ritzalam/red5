@@ -64,6 +64,11 @@ implements IPassive, ISeekableProvider, IPullableProvider, IPipeConnectionListen
 	private ITagReader reader;
 	private KeyFrameMeta keyFrameMeta = null;
 	private int start = 0;
+	private int lastAudio = 0;
+	private int lastVideo = 0;
+	private int lastNotify = 0;
+	private int lastInvoke = 0;
+	private int lastUnknown = 0;
 	
 	public FileProvider(IScope scope, File file) {
 		this.scope = scope;
@@ -89,19 +94,29 @@ implements IPassive, ISeekableProvider, IPullableProvider, IPipeConnectionListen
 		switch(tag.getDataType()){
 		case Constants.TYPE_AUDIO_DATA:
 			msg = new AudioData(tag.getBody());
+			timestamp += lastAudio;
+			lastAudio = timestamp;
 			break;
 		case Constants.TYPE_VIDEO_DATA:
 			msg = new VideoData(tag.getBody());
+			timestamp += lastVideo;
+			lastVideo = timestamp;
 			break;
 		case Constants.TYPE_INVOKE:
 			msg = new Invoke(tag.getBody());
+			timestamp += lastInvoke;
+			lastInvoke = timestamp;
 			break;
 		case Constants.TYPE_NOTIFY:
 			msg = new Notify(tag.getBody());
+			timestamp += lastNotify;
+			lastNotify = timestamp;
 			break;
 		default:
 			log.warn("Unexpected type? "+tag.getDataType());
 			msg = new Unknown(tag.getDataType(), tag.getBody());
+			timestamp += lastUnknown;
+			lastUnknown = timestamp;
 			break;
 		}
 		msg.setTimestamp(timestamp);
@@ -199,6 +214,8 @@ implements IPassive, ISeekableProvider, IPullableProvider, IPipeConnectionListen
 			frame = i;
 		}
 		reader.position(keyFrameMeta.positions[frame]);
+		lastVideo = keyFrameMeta.timestamps[frame];
+		// TODO adjust other absolute timestamps
 		return keyFrameMeta.timestamps[frame];
 	}
 }
