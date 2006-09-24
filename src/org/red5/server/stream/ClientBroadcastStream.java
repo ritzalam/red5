@@ -80,6 +80,8 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	private int videoTime = -1;
 	/** Stores absolute time for data stream. */
 	private int dataTime = -1;
+	/** Stores timestamp of first packet. */
+	private int firstTime = -1;
 	
 	private int chunkSize = 0;
 	
@@ -212,6 +214,8 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		
 		IRTMPEvent rtmpEvent = (IRTMPEvent) event;
 		int thisTime = -1;
+		if (firstTime == -1)
+			firstTime = rtmpEvent.getTimestamp();
 		if (rtmpEvent instanceof AudioData) {
 			if (streamCodec != null)
 				streamCodec.setHasAudio(true);
@@ -255,9 +259,11 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 				videoTime = rtmpEvent.getTimestamp();
 			thisTime = videoTime;
 		} else if (rtmpEvent instanceof Notify) {
-			if (rtmpEvent.getHeader().isTimerRelative())
+			if (rtmpEvent.getHeader().isTimerRelative()) {
+				if (dataTime == -1)
+					dataTime = firstTime;
 				dataTime += rtmpEvent.getTimestamp();
-			else
+			} else
 				dataTime = rtmpEvent.getTimestamp();
 			thisTime = dataTime;
 		}
