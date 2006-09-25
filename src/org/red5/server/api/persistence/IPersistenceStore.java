@@ -46,8 +46,8 @@ public interface IPersistenceStore {
 	 * 
 	 * @param name
 	 * 		the name of the object to load
-	 * @return
-	 * 		the loaded object or <code>null</code> if no such object was found
+	 * @return the loaded object or <code>null</code> if no such object was
+	 *         found
 	 */
 	public IPersistable load(String name);
 
@@ -56,8 +56,7 @@ public interface IPersistenceStore {
 	 * 
 	 * @param obj
 	 * 		the object to initializ
-	 * @return
-	 * 		true if the object was initialized, false otherwise
+	 * @return true if the object was initialized, false otherwise
 	 */
 	public boolean load(IPersistable obj);
 
@@ -78,18 +77,17 @@ public interface IPersistenceStore {
 	public boolean remove(String name);
 	
 	/**
-	 * Return iterator over the names of all already loaded objects in the storage.
+	 * Return iterator over the names of all already loaded objects in the
+	 * storage.
 	 * 
-	 * @return
-	 * 		iterator over all objects
+	 * @return iterator over all objects
 	 */
 	public Iterator<String> getObjectNames();
 	
 	/**
 	 * Return iterator over the already loaded objects in the storage.
 	 * 
-	 * @return
-	 * 		iterator over all objects
+	 * @return iterator over all objects
 	 */
 	public Iterator<IPersistable> getObjects();
 

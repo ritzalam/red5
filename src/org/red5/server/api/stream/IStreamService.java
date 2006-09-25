@@ -28,6 +28,7 @@ public interface IStreamService {
 	
 	/**
 	 * Create a stream and return a corresponding id.
+	 * 
 	 * @return
 	 */
 	public int createStream();

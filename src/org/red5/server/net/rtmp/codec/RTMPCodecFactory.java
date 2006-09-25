@@ -28,7 +28,8 @@ import org.red5.server.net.protocol.SimpleProtocolCodecFactory;
 import org.red5.server.net.protocol.SimpleProtocolDecoder;
 import org.red5.server.net.protocol.SimpleProtocolEncoder;
 
-public class RTMPCodecFactory implements ProtocolCodecFactory, SimpleProtocolCodecFactory {
+public class RTMPCodecFactory implements ProtocolCodecFactory,
+		SimpleProtocolCodecFactory {
 
 	protected Deserializer deserializer = null;
 	protected Serializer serializer = null;

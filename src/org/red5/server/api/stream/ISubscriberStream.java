@@ -20,8 +20,8 @@ package org.red5.server.api.stream;
  */
 
 /**
- * ISubscriberStream is a stream from subscriber's point of view. 
- * That is, it provides methods for common stream operations like play, pause or seek.
+ * ISubscriberStream is a stream from subscriber's point of view. That is, it
+ * provides methods for common stream operations like play, pause or seek.
  */ 
 public interface ISubscriberStream extends IClientStream {
 	/**
@@ -31,13 +31,17 @@ public interface ISubscriberStream extends IClientStream {
 	
 	/**
 	 * Pause at a position for current playing item.
-	 * @param position Position for pause in millisecond.
+	 * 
+	 * @param position
+	 *            Position for pause in millisecond.
 	 */
 	void pause(int position);
 	
 	/**
 	 * Resume from a position for current playing item.
-	 * @param position Position for resume in millisecond.
+	 * 
+	 * @param position
+	 *            Position for resume in millisecond.
 	 */
 	void resume(int position);
 	
@@ -48,12 +52,15 @@ public interface ISubscriberStream extends IClientStream {
 	
 	/**
 	 * Seek into a position for current playing item.
-	 * @param position Position for seek in millisecond.
+	 * 
+	 * @param position
+	 *            Position for seek in millisecond.
 	 */
 	void seek(int position);
 	
 	/**
 	 * Check if the stream is currently paused.
+	 * 
 	 * @return
 	 */
 	boolean isPaused();

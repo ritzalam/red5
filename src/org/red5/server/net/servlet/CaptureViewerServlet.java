@@ -8,7 +8,6 @@ import java.io.PrintWriter;
 import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.Date;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -107,20 +106,19 @@ public class CaptureViewerServlet extends HttpServlet {
 							if(cap.remaining() >= 12){
 								
 								time = cap.getLong();
-								if(offset == -1) offset = time;
+								if (offset == -1)
+									offset = time;
 								time -= offset;
 								
 								read = cap.getInt();
 								nextTimePos += read;
 								
-								out.write("<div class=\"time\">TIME: " + time+ " READ: "+read
-										+ "</div>");
+								out.write("<div class=\"time\">TIME: " + time
+										+ " READ: " + read + "</div>");
 							}
 						
 						}
 					
-						
-						
 						final int remaining = in.remaining();
 						if (state.canStartDecoding(remaining))
 							state.startDecoding();
@@ -131,8 +129,6 @@ public class CaptureViewerServlet extends HttpServlet {
 
 						if (state.hasDecodedObject()) {
 							// log.debug(decodedObject);
-							
-							
 
 							if (decodedObject instanceof Packet) {
 								out.write(formatHTML((Packet) decodedObject,

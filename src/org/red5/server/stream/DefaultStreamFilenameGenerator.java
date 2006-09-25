@@ -23,8 +23,8 @@ import org.red5.server.api.IScope;
 import org.red5.server.api.stream.IStreamFilenameGenerator;
 
 /**
- * Default filename generator for streams.  The files will be stored in a directory
- * "streams" in the application folder.
+ * Default filename generator for streams. The files will be stored in a
+ * directory "streams" in the application folder.
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (bauch@struktur.de)

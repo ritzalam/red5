@@ -22,9 +22,9 @@ package org.red5.server.api.stream;
 import org.red5.server.messaging.IProvider;
 
 /**
- * A broadcast stream is a stream source to be subscribed by clients.
- * To subscribe a stream from your client Flash application use NetStream.play method.
- * Broadcast stream can be saved at server-side. 
+ * A broadcast stream is a stream source to be subscribed by clients. To
+ * subscribe a stream from your client Flash application use NetStream.play
+ * method. Broadcast stream can be saved at server-side.
  *  
  * 
  * @author The Red5 Project (red5@osflash.org)
@@ -36,23 +36,30 @@ public interface IBroadcastStream extends IStream {
 	/**
 	 * Save the broadcast stream as a file. 
 	 * 
-	 * @param filePath The path of the file relative to the scope.
-	 * @param isAppend Whether to append to the end of file.
-	 * @throws ResourceExistException Resource exist when trying to create.
-	 * @throws ResourceNotFoundException Resource not exist when trying to append.
+	 * @param filePath
+	 *            The path of the file relative to the scope.
+	 * @param isAppend
+	 *            Whether to append to the end of file.
+	 * @throws ResourceExistException
+	 *             Resource exist when trying to create.
+	 * @throws ResourceNotFoundException
+	 *             Resource not exist when trying to append.
 	 */
 	void saveAs(String filePath, boolean isAppend)
 	throws ResourceNotFoundException, ResourceExistException;
 
 	/**
-	 * Get the provider corresponding to this stream. Provider objects are object that 
+	 * Get the provider corresponding to this stream. Provider objects are
+	 * object that
+	 * 
 	 * @return
 	 */
 	IProvider getProvider();
 	
 	/**
-	 * Get stream publish name. Publish name is the value of the first
-	 * parameter had been passed to <code>NetStream.publish</code> on client side in SWF.
+	 * Get stream publish name. Publish name is the value of the first parameter
+	 * had been passed to <code>NetStream.publish</code> on client side in
+	 * SWF.
 	 * 
 	 * @return	Stream publish name	
 	 */
@@ -60,7 +67,8 @@ public interface IBroadcastStream extends IStream {
 	
 	/**
 	 * 
-	 * @param name	Set stream publish name
+	 * @param name
+	 *            Set stream publish name
 	 */
 	void setPublishedName(String name);
 }

@@ -32,8 +32,9 @@ public class ServletUtils {
 	  public static final int DEFAULT_BUFFER_SIZE = 2048;
 
 	  /**
-	   * Copies information from the input stream to the output stream using
-	   * a default buffer size of 2048 bytes.
+	 * Copies information from the input stream to the output stream using a
+	 * default buffer size of 2048 bytes.
+	 * 
 	   * @throws java.io.IOException
 	   */
 	  public static void copy(InputStream input, OutputStream output)
@@ -42,14 +43,13 @@ public class ServletUtils {
 	  }
 
 	  /**
-	   * Copies information from the input stream to the output stream using
-	   * the specified buffer size
+	 * Copies information from the input stream to the output stream using the
+	 * specified buffer size
+	 * 
 	   * @throws java.io.IOException
 	   */
-	  public static void copy(InputStream input,
-	      OutputStream output,
-	      int bufferSize)
-	      throws IOException {
+	public static void copy(InputStream input, OutputStream output,
+			int bufferSize) throws IOException {
 	    byte[] buf = new byte[bufferSize];
 	    int bytesRead = input.read(buf);
 	    while (bytesRead != -1) {
@@ -60,8 +60,9 @@ public class ServletUtils {
 	  }
 
 	  /**
-	   * Copies information between specified streams and then closes
-	   * both of the streams.
+	 * Copies information between specified streams and then closes both of the
+	 * streams.
+	 * 
 	   * @throws java.io.IOException
 	   */
 	  public static void copyThenClose(InputStream input, OutputStream output)
@@ -72,17 +73,15 @@ public class ServletUtils {
 	  }
 
 	  /**
-	   * @returns a byte[] containing the information contained in the
-	   * specified InputStream.
+	 * @returns a byte[] containing the information contained in the specified
+	 *          InputStream.
 	   * @throws java.io.IOException
 	   */
-	  public static byte[] getBytes(InputStream input)
-	      throws IOException {
+	public static byte[] getBytes(InputStream input) throws IOException {
 	    ByteArrayOutputStream result = new ByteArrayOutputStream();
 	    copy(input, result);
 	    result.close();
 	    return result.toByteArray();
 	  }
-	
 	
 }

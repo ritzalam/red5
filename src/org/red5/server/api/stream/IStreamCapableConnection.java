@@ -24,11 +24,13 @@ import org.red5.server.api.IFlowControllable;
 
 /**
  * A connection that supports streaming.
+ * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard (luke@codegent.com)
  * @author Steven Gong (steven.gong@gmail.com)
  */
-public interface IStreamCapableConnection extends IConnection, IFlowControllable {
+public interface IStreamCapableConnection extends IConnection,
+		IFlowControllable {
 
 	/**
 	 * Return a reserved stream id for use.
@@ -39,6 +41,7 @@ public interface IStreamCapableConnection extends IConnection, IFlowControllable
 	
 	/**
 	 * Unreserve this id for future use.
+	 * 
 	 * @param streamId
 	 */
 	void unreserveStreamId(int streamId);
@@ -52,6 +55,7 @@ public interface IStreamCapableConnection extends IConnection, IFlowControllable
 	
 	/**
 	 * Get a stream by its id.
+	 * 
 	 * @param streamId
 	 * @return
 	 */
@@ -59,6 +63,7 @@ public interface IStreamCapableConnection extends IConnection, IFlowControllable
 
 	/**
 	 * Create a stream that can play only one item.
+	 * 
 	 * @param streamId
 	 * @return
 	 */
@@ -66,6 +71,7 @@ public interface IStreamCapableConnection extends IConnection, IFlowControllable
 	
 	/**
 	 * Create a stream that can play a list.
+	 * 
 	 * @param streamId
 	 * @return
 	 */
@@ -73,6 +79,7 @@ public interface IStreamCapableConnection extends IConnection, IFlowControllable
 
 	/**
 	 * Create a broadcast stream.
+	 * 
 	 * @param streamId
 	 * @return
 	 */

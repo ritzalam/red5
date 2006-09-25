@@ -33,11 +33,11 @@ import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
 import org.red5.server.api.event.IEvent;
 
-public abstract class BaseConnection extends AttributeStore 
-	implements IConnection {
+public abstract class BaseConnection extends AttributeStore implements
+		IConnection {
 	
-	protected static Log log =
-        LogFactory.getLog(BaseConnection.class.getName());
+	protected static Log log = LogFactory
+			.getLog(BaseConnection.class.getName());
 	
 	protected String type;
 	protected String host;
@@ -54,7 +54,9 @@ public abstract class BaseConnection extends AttributeStore
 	protected Scope scope = null;
 	protected Set<IBasicScope> basicScopes;
 	
-	public BaseConnection(String type, String host, String remoteAddress, int remotePort, String path, String sessionId, Map<String,String> params){
+	public BaseConnection(String type, String host, String remoteAddress,
+			int remotePort, String path, String sessionId,
+			Map<String, String> params) {
 		this.type = type;
 		this.host = host;
 		this.remoteAddress = remoteAddress;
@@ -140,7 +142,8 @@ public abstract class BaseConnection extends AttributeStore
 			
 			log.debug("Close, disconnect from scope, and children");
 			try {
-				Set<IBasicScope> tmpScopes = new HashSet<IBasicScope>(basicScopes);
+				Set<IBasicScope> tmpScopes = new HashSet<IBasicScope>(
+						basicScopes);
 				for(IBasicScope basicScope : tmpScopes){
 					unregisterBasicScope(basicScope);
 				}
@@ -214,14 +217,5 @@ public abstract class BaseConnection extends AttributeStore
 	public long getPendingVideoMessages(int streamId) {
 		return 0;
 	}
-	
-	/* This is really a utility
-	public boolean switchScope(String contextPath) {
-		// At the moment this method is not dealing with tree schematics
-		Scope newScope = (Scope) ScopeUtils.resolveScope(scope, contextPath);
-		if(newScope == null) return false;
-		return connect(scope);
-	}
-	*/
 	
 }

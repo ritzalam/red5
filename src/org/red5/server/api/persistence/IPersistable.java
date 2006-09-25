@@ -27,9 +27,9 @@ import org.red5.io.object.Output;
 /**
  * Base interface for objects that can be made persistent.
  * 
- * Every object that complies to this interface must provide either a constructor
- * that takes an input stream as only parameter or an empty constructor so it can
- * be loaded from the persistence store.
+ * Every object that complies to this interface must provide either a
+ * constructor that takes an input stream as only parameter or an empty
+ * constructor so it can be loaded from the persistence store.
  * 
  * However this is not required for objects that are created by the application
  * and initialized afterwards.
@@ -50,11 +50,10 @@ public interface IPersistable {
 	public static final String TRANSIENT_PREFIX = "_transient";
 	
 	/**
-	 * Returns <code>true</code> if the object is persistent, <code>false</code>
-	 * otherwise.
+	 * Returns <code>true</code> if the object is persistent,
+	 * <code>false</code> otherwise.
 	 * 
-	 * @return
-	 * 		true or false
+	 * @return true or false
 	 */
 	public boolean isPersistent();
 
@@ -69,8 +68,7 @@ public interface IPersistable {
 	/**
 	 * Returns the name of the persistent object.
 	 * 
-	 * @return
-	 * 		the name of the object
+	 * @return the name of the object
 	 */
 	public String getName();
 	
@@ -85,16 +83,14 @@ public interface IPersistable {
 	/**
 	 * Returns the type of the persistent object.
 	 * 
-	 * @return
-	 * 		the type of the object
+	 * @return the type of the object
 	 */
 	public String getType();
 	
 	/**
 	 * Returns the path of the persistent object.
 	 * 
-	 * @return
-	 * 		the path of the object
+	 * @return the path of the object
 	 */
 	public String getPath();
 
@@ -109,16 +105,14 @@ public interface IPersistable {
 	/**
 	 * Returns the timestamp when the object was last modified.
 	 * 
-	 * @return
-	 * 		last modification date in milliseconds
+	 * @return last modification date in milliseconds
 	 */
 	public long getLastModified();
 
 	/**
 	 * Returns the persistence store this object is stored in
 	 * 
-	 * @return
-	 * 		the store for this object
+	 * @return the store for this object
 	 */
 	public IPersistenceStore getStore();
 	

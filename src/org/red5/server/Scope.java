@@ -43,22 +43,29 @@ import org.springframework.core.style.ToStringCreator;
 
 public class Scope extends BasicScope implements IScope {
 	
-	protected static Log log =
-        LogFactory.getLog(Scope.class.getName());
+	protected static Log log = LogFactory.getLog(Scope.class.getName());
 	
 	private static final int UNSET = -1;
+
 	private static final String TYPE = "scope";
-	private static final String SERVICE_HANDLERS = IPersistable.TRANSIENT_PREFIX + "_scope_service_handlers";
+
+	private static final String SERVICE_HANDLERS = IPersistable.TRANSIENT_PREFIX
+			+ "_scope_service_handlers";
 	
 	private int depth = UNSET; 
+
 	private IContext context;
+
 	private IScopeHandler handler;
 	
 	private boolean autoStart = true;
+
 	private boolean enabled = true;
+
 	private boolean running = false;
 	
 	private HashMap<String,IBasicScope> children = new HashMap<String,IBasicScope>();
+
 	private HashMap<IClient,Set<IConnection>> clients = new HashMap<IClient,Set<IConnection>>();
 	
 	public Scope(){
@@ -99,33 +106,40 @@ public class Scope extends BasicScope implements IScope {
 	public void init(){
 		if(hasParent()){
 			if(!parent.hasChildScope(name)){
-				if(!parent.addChildScope(this)) return;
+				if (!parent.addChildScope(this))
+					return;
 			}
 		}
-		if(autoStart) start();
+		if (autoStart)
+			start();
 	}
 	
 	public boolean start(){
 		if(enabled && !running){
-			if(hasHandler() && !handler.start(this)) return false;
-			else return true;
-		} else return false;
+			if (hasHandler() && !handler.start(this))
+				return false;
+			else
+				return true;
+		} else
+			return false;
 	}
 	
 	public void stop(){
 	}
 	
 	public void destory(){
-		if(hasParent()) parent.removeChildScope(this);
-		if(hasHandler()) handler.stop(this);
+		if (hasParent())
+			parent.removeChildScope(this);
+		if (hasHandler())
+			handler.stop(this);
 		// TODO:  kill all child scopes
 	}
 
-	
 	public void setPersistenceClass(String persistenceClass) throws Exception {
 		this.persistenceClass = persistenceClass;
 		if (persistenceClass != null)
-			setStore(PersistenceUtils.getPersistenceStore(this, persistenceClass));
+			setStore(PersistenceUtils.getPersistenceStore(this,
+					persistenceClass));
 		else
 			setStore(null);
 	}
@@ -147,7 +161,8 @@ public class Scope extends BasicScope implements IScope {
 		if(scope instanceof IScope){
 			// start the scope
 			if (hasHandler() && !getHandler().start((IScope) scope)) {
-				log.debug("Failed to start child scope: "+scope+" in "+this);
+				log.debug("Failed to start child scope: " + scope + " in "
+						+ this);
 				return false;
 			}
 		}
@@ -182,7 +197,8 @@ public class Scope extends BasicScope implements IScope {
 	}
 	
 	public Iterator<String> getScopeNames() {
-		return new PrefixFilteringStringIterator(children.keySet().iterator(),"scope");
+		return new PrefixFilteringStringIterator(children.keySet().iterator(),
+				"scope");
 	}
 
 	public Set<IClient> getClients() {
@@ -197,17 +213,19 @@ public class Scope extends BasicScope implements IScope {
 		if( ! hasContext() && hasParent()) {
 			log.debug("returning parent context");
 			return parent.getContext();
-		}
-		else {
+		} else {
 			log.debug("returning context");
 			return context;
 		}
 	}
 
 	public String getContextPath(){
-		if(hasContext()) return "";
-		else if(hasParent()) return parent.getContextPath() + "/" + name;
-		else return null;
+		if (hasContext())
+			return "";
+		else if (hasParent())
+			return parent.getContextPath() + "/" + name;
+		else
+			return null;
 	}
 	
 	public void setName(String name){
@@ -215,8 +233,10 @@ public class Scope extends BasicScope implements IScope {
 	}
 	
 	public String getPath() {
-		if(hasParent()) return parent.getPath() + "/" + parent.getName();
-		else return "";
+		if (hasParent())
+			return parent.getPath() + "/" + parent.getName();
+		else
+			return "";
 	}
 
 	public void setParent(IScope parent){
@@ -228,9 +248,12 @@ public class Scope extends BasicScope implements IScope {
 	}
 	
 	public IScopeHandler getHandler() {
-		if(handler != null) return handler;
-		else if(hasParent()) return getParent().getHandler();
-		else return null;
+		if (handler != null)
+			return handler;
+		else if (hasParent())
+			return getParent().getHandler();
+		else
+			return null;
 	}
 		
 	public IScope getParent(){
@@ -248,13 +271,16 @@ public class Scope extends BasicScope implements IScope {
 	public synchronized boolean connect(IConnection conn, Object[] params) {
 	   //log.debug("Connect: "+conn+" to "+this);
 	   //log.debug("has handler? "+hasHandler());
-	   if(hasParent() && !parent.connect(conn, params)) return false;
-	   if(hasHandler() && !getHandler().connect(conn, this, params)) return false;
+		if (hasParent() && !parent.connect(conn, params))
+			return false;
+		if (hasHandler() && !getHandler().connect(conn, this, params))
+			return false;
 	   final IClient client = conn.getClient();
 	   //log.debug("connected to: "+this);
 	   if(!clients.containsKey(client)){
 		    //log.debug("Joining: "+this);
-		    if(hasHandler() && !getHandler().join(client, this)) return false;
+			if (hasHandler() && !getHandler().join(client, this))
+				return false;
 			final Set<IConnection> conns = new HashSet<IConnection>();
 			conns.add(conn);
 			clients.put(conn.getClient(), conns);
@@ -269,7 +295,8 @@ public class Scope extends BasicScope implements IScope {
 	
 	public synchronized void disconnect(IConnection conn){
 		// We call the disconnect handlers in reverse order they were called
-		// during connection, i.e. roomDisconnect is called before appDisconnect.
+		// during connection, i.e. roomDisconnect is called before
+		// appDisconnect.
 		final IClient client = conn.getClient();
 		if(clients.containsKey(client)){
 			final Set conns = clients.get(client);
@@ -280,7 +307,9 @@ public class Scope extends BasicScope implements IScope {
 				try {
 					handler.disconnect(conn, this);
 				} catch (Exception e) {
-					log.error("Error while executing \"disconnect\" for connection " + conn + " on handler " + handler, e);
+					log.error(
+							"Error while executing \"disconnect\" for connection "
+									+ conn + " on handler " + handler, e);
 				}
 			}
 			
@@ -291,13 +320,15 @@ public class Scope extends BasicScope implements IScope {
 						// there may be a timeout here ?
 						handler.leave(client, this);
 					} catch (Exception e) {
-						log.error("Error while executing \"leave\" for client " + client + " on handler " + handler, e);
+						log.error("Error while executing \"leave\" for client "
+								+ client + " on handler " + handler, e);
 					}
 				}
 			}
 			removeEventListener(conn);
 		}
-		if(hasParent()) parent.disconnect(conn);
+		if (hasParent())
+			parent.disconnect(conn);
 	}
 
 	public void setDepth(int depth){
@@ -316,12 +347,14 @@ public class Scope extends BasicScope implements IScope {
 	}
 
 	public Resource[] getResources(String path) throws IOException {
-		if(hasContext()) return context.getResources(path);
+		if (hasContext())
+			return context.getResources(path);
 		return getContext().getResources(getContextPath() + "/" + path);
 	}
 
 	public Resource getResource(String path) {
-		if(hasContext()) return context.getResource(path);
+		if (hasContext())
+			return context.getResource(path);
 		return getContext().getResource(getContextPath() + "/" + path);
 	}
 	
@@ -347,16 +380,20 @@ public class Scope extends BasicScope implements IScope {
 	class PrefixFilteringStringIterator implements Iterator<String>{
 
 		private Iterator<String> iterator; 
+
 		private String prefix;
+
 		private String next;
 		
-		public PrefixFilteringStringIterator(Iterator<String> iterator, String prefix){
+		public PrefixFilteringStringIterator(Iterator<String> iterator,
+				String prefix) {
 			this.iterator = iterator;
 			this.prefix = prefix;
 		}
 		
 		public boolean hasNext() {
-			if(next != null) return true;
+			if (next != null)
+				return true;
 			do {
 				next = (iterator.hasNext()) ? iterator.next() : null;
 			} while (next != null && !next.startsWith(prefix));
@@ -369,8 +406,10 @@ public class Scope extends BasicScope implements IScope {
 				next = null;
 				return result.substring(prefix.length());
 			}
-			if(hasNext()) return next();
-			else return null;
+			if (hasNext())
+				return next();
+			else
+				return null;
 		}
 
 		public void remove() {
@@ -382,7 +421,9 @@ public class Scope extends BasicScope implements IScope {
 	class ConnectionIterator implements Iterator<IConnection> {
 		
 		private Iterator setIterator; 
+
 		private Iterator connIterator = null;
+
 		private IConnection current = null;
 		
 		public ConnectionIterator(){
@@ -390,12 +431,14 @@ public class Scope extends BasicScope implements IScope {
 		}
 		
 		public boolean hasNext() {
-			return (connIterator != null && connIterator.hasNext()) || setIterator.hasNext();
+			return (connIterator != null && connIterator.hasNext())
+					|| setIterator.hasNext();
 		}
 
 		public IConnection next() {
 			if (connIterator == null || !connIterator.hasNext()){
-				if(!setIterator.hasNext()) return null;
+				if (!setIterator.hasNext())
+					return null;
 				connIterator = ((Set) setIterator.next()).iterator();
 			}
 			current = (IConnection) connIterator.next();
@@ -416,7 +459,6 @@ public class Scope extends BasicScope implements IScope {
 		return addChildScope(scope);
 	}
 	
-
 	public boolean handleEvent(IEvent event) {
 		// TODO Auto-generated method stub
 		return false;
@@ -427,8 +469,11 @@ public class Scope extends BasicScope implements IScope {
 	}
 
 	public Iterator<String> getBasicScopeNames(String type) {
-		if(type == null) return children.keySet().iterator();
-		else return new PrefixFilteringStringIterator(children.keySet().iterator(), type+SEPARATOR);
+		if (type == null)
+			return children.keySet().iterator();
+		else
+			return new PrefixFilteringStringIterator(children.keySet()
+					.iterator(), type + SEPARATOR);
 	}
 
 	public IScope getScope(String name){
@@ -442,16 +487,15 @@ public class Scope extends BasicScope implements IScope {
 
 	public String toString(){
 		final ToStringCreator tsc = new ToStringCreator(this);
-		return tsc.append("Depth",getDepth())
-			.append("Path",getPath())
-			.append("Name",getName())
-			.toString();
+		return tsc.append("Depth", getDepth()).append("Path", getPath())
+				.append("Name", getName()).toString();
 	}
 
 	/* IServiceHandlerProvider interface */
 	
 	protected Map<String, Object> getServiceHandlers() {
-		return (Map<String, Object>) getAttribute(SERVICE_HANDLERS, new HashMap<String, Object>());
+		return (Map<String, Object>) getAttribute(SERVICE_HANDLERS,
+				new HashMap<String, Object>());
 	}
 	
 	public void registerServiceHandler(String name, Object handler) {
@@ -474,4 +518,7 @@ public class Scope extends BasicScope implements IScope {
 		return serviceHandlers.keySet();
 	}
 	
+	public ClassLoader getClassLoader() {
+		return Thread.currentThread().getContextClassLoader();
+	}
 }

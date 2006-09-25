@@ -51,7 +51,8 @@ public class FileStreamSource implements ISeekableStreamSource, Constants {
 
 	public IRTMPEvent dequeue() {
 		
-		if(!reader.hasMoreTags()) return null;
+		if (!reader.hasMoreTags())
+			return null;
 		ITag tag = reader.readTag();
 		
 		IRTMPEvent msg = null;
@@ -99,7 +100,8 @@ public class FileStreamSource implements ISeekableStreamSource, Constants {
 		}
 		int frame = 0;
 		for (int i = 0; i < keyFrameMeta.positions.length; i++) {
-			if (keyFrameMeta.timestamps[i] > ts) break;
+			if (keyFrameMeta.timestamps[i] > ts)
+				break;
 			frame = i;
 		}
 		reader.position(keyFrameMeta.positions[frame]);

@@ -25,6 +25,7 @@ import org.red5.server.stream.ServerStream;
 
 /**
  * Stream helper methods.
+ * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Steven Gong (steven.gong@gmail.com)
  */
@@ -33,8 +34,10 @@ public abstract class StreamUtils {
 	/**
 	 * Creates server stream
 	 * 
-	 * @param scope	Scope of stream
-	 * @param name	Name of stream
+	 * @param scope
+	 *            Scope of stream
+	 * @param name
+	 *            Name of stream
 	 * @return		IServerStream object
 	 */
 	public static IServerStream createServerStream(IScope scope, String name) {

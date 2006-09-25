@@ -42,8 +42,9 @@ package org.red5.server.api;
 public final class Red5 {
 	
 	/**
-	 * Current connection thread. Each connection of Red5 application runs in a separate thread. 
-	 * This method returns thread object associated with current connection.
+	 * Current connection thread. Each connection of Red5 application runs in a
+	 * separate thread. This method returns thread object associated with
+	 * current connection.
 	 */
 	private static ThreadLocal<IConnection> connThreadLocal = new ThreadLocal<IConnection>();
 	
@@ -75,10 +76,10 @@ public final class Red5 {
 	}
 
 	/**
-	 * Get the connection associated with the current thread.
-	 * This method allows you to get connection object local to current thread.
-	 * When you need to get a connection associated with event handler and so forth,
-	 * this method provides you with it.
+	 * Get the connection associated with the current thread. This method allows
+	 * you to get connection object local to current thread. When you need to
+	 * get a connection associated with event handler and so forth, this method
+	 * provides you with it.
 	 * 
 	 * @return connection object
 	 */

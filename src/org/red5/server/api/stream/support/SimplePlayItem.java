@@ -30,6 +30,7 @@ public class SimplePlayItem implements IPlayItem {
 	
 	/**
 	 * Returns play item length in milliseconds
+	 * 
 	 * @return	Play item length in milliseconds
 	 */
 	public long getLength() {
@@ -37,8 +38,8 @@ public class SimplePlayItem implements IPlayItem {
 	}
 	
 	/**
-	 * Returns IMessageInput object. 
-	 * IMessageInput is an endpoint for a consumer to connect.
+	 * Returns IMessageInput object. IMessageInput is an endpoint for a consumer
+	 * to connect.
 	 * 
 	 * @return	IMessageInput object
 	 */
@@ -48,6 +49,7 @@ public class SimplePlayItem implements IPlayItem {
 	
 	/**
 	 * Returns item name
+	 * 
 	 * @return	item name
 	 */
 	public String getName() {
@@ -63,6 +65,7 @@ public class SimplePlayItem implements IPlayItem {
 	
 	/**
 	 * Alias for getMessageInput
+	 * 
 	 * @return
 	 */
 	public IMessageInput getMsgInput() {

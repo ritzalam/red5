@@ -100,15 +100,14 @@ public class Status implements StatusCodes, SerializerOpts {
 		this.description = description;
 	}
 
-	
 	public String toString(){
-		return "Status: code: "+getCode()
-			+ " desc: "+getDescription() 
+		return "Status: code: " + getCode() + " desc: " + getDescription()
 			+ " level: "+getLevel();
 	}
 
 	public Flag getSerializerOption(SerializerOption opt) {
-		if(opt == SerializerOption.SerializeClassName) return Flag.Disabled;
+		if (opt == SerializerOption.SerializeClassName)
+			return Flag.Disabled;
 		return Flag.Default;
 	}
 	

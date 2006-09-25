@@ -40,7 +40,8 @@ public interface IServiceResolver {
 	 * 			the scope to search in
 	 * @param serviceName
 	 * 			the name of the service
-	 * @return the object implemening the service or <code>null</code> if service doesn't exist
+	 * @return the object implemening the service or <code>null</code> if
+	 *         service doesn't exist
 	 */
 	public Object resolveService(IScope scope, String serviceName);
 	

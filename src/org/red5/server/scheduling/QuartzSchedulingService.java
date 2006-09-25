@@ -43,7 +43,8 @@ import org.red5.server.api.scheduling.ISchedulingService;
  */
 public class QuartzSchedulingService implements ISchedulingService {
 
-	private Log log = LogFactory.getLog(QuartzSchedulingService.class.getName());
+	private Log log = LogFactory
+			.getLog(QuartzSchedulingService.class.getName());
 
 	private static SchedulerFactory schedFact = new StdSchedulerFactory();
 	private Scheduler scheduler;
@@ -66,9 +67,12 @@ public class QuartzSchedulingService implements ISchedulingService {
 	
 	private void scheduleJob(String name, Trigger trigger, IScheduledJob job) {
 		// Store reference to applications job and service 
-		JobDetail jobDetail = new JobDetail(name, null, QuartzSchedulingServiceJob.class);
-		jobDetail.getJobDataMap().put(QuartzSchedulingServiceJob.SCHEDULING_SERVICE, this);
-		jobDetail.getJobDataMap().put(QuartzSchedulingServiceJob.SCHEDULED_JOB, job);
+		JobDetail jobDetail = new JobDetail(name, null,
+				QuartzSchedulingServiceJob.class);
+		jobDetail.getJobDataMap().put(
+				QuartzSchedulingServiceJob.SCHEDULING_SERVICE, this);
+		jobDetail.getJobDataMap().put(QuartzSchedulingServiceJob.SCHEDULED_JOB,
+				job);
 		
 		try {
 			scheduler.scheduleJob(jobDetail, trigger);
@@ -81,22 +85,24 @@ public class QuartzSchedulingService implements ISchedulingService {
 		String result = getJobName();
 		
 		// Create trigger that fires indefinitely every <interval> milliseconds
-		SimpleTrigger trigger = new SimpleTrigger("Trigger_" + result, null, new Date(),
-				null, SimpleTrigger.REPEAT_INDEFINITELY, interval);
+		SimpleTrigger trigger = new SimpleTrigger("Trigger_" + result, null,
+				new Date(), null, SimpleTrigger.REPEAT_INDEFINITELY, interval);
 		scheduleJob(result, trigger, job);
 		return result;
 	}
 
 	public String addScheduledOnceJob(long timeDelta, IScheduledJob job) {
 		// Create trigger that fires once in <timeDelta> milliseconds
-		return addScheduledOnceJob(new Date(System.currentTimeMillis() + timeDelta), job);
+		return addScheduledOnceJob(new Date(System.currentTimeMillis()
+				+ timeDelta), job);
 	}
 	
 	public String addScheduledOnceJob(Date date, IScheduledJob job) {
 		String result = getJobName();
 		
 		// Create trigger that fires once at <date>
-		SimpleTrigger trigger = new SimpleTrigger("Trigger_" + result, null, date);
+		SimpleTrigger trigger = new SimpleTrigger("Trigger_" + result, null,
+				date);
 		scheduleJob(result, trigger, job);
 		return result;
 	}

@@ -55,9 +55,10 @@ public class Standalone {
 	}
 	
 	/**
-	 * Main entry point for the Red5 Server 
-	 * usage java Standalone
-	 * @param args String passed in that points to a red5.xml config file
+	 * Main entry point for the Red5 Server usage java Standalone
+	 * 
+	 * @param args
+	 *            String passed in that points to a red5.xml config file
 	 */
 	public static void main(String[] args) throws Exception, Throwable {
 		
@@ -82,7 +83,8 @@ public class Standalone {
 		fp = fp.getCanonicalFile();
 		if (!fp.isFile()) {
 			// Given file does not exist, search it on the classpath
-			String[] paths = classpath.split(System.getProperty("path.separator"));
+			String[] paths = classpath.split(System
+					.getProperty("path.separator"));
 			for (int i=0; i<paths.length; i++) {
 				fp = new File(paths[i] + "/" + red5Config);
 				fp = fp.getCanonicalFile();
@@ -92,7 +94,8 @@ public class Standalone {
 		}
 		
 		if (!fp.isFile())
-			throw new Exception("could not find configuration file " + red5Config + " on your classpath " + classpath);
+			throw new Exception("could not find configuration file "
+					+ red5Config + " on your classpath " + classpath);
 		
 		root = fp.getAbsolutePath();
 		root = root.replace('\\', '/');
@@ -121,9 +124,11 @@ public class Standalone {
 		log.info("Setting Red5 root to " + root);
 		
 		try {
-			ContextSingletonBeanFactoryLocator.getInstance(red5Config).useBeanFactory("red5.common");
+			ContextSingletonBeanFactoryLocator.getInstance(red5Config)
+					.useBeanFactory("red5.common");
 		} catch (Exception e) {
-			// Don't raise wrapped exceptions as their stacktraces may confuse people...
+			// Don't raise wrapped exceptions as their stacktraces may confuse
+			// people...
 			raiseOriginalException(e);
 		}
 

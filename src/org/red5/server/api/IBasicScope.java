@@ -28,29 +28,30 @@ import org.red5.server.api.persistence.IPersistable;
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard (luke@codegent.com)
  */
-public interface IBasicScope 
-	extends ICoreObject, 
-		IEventObservable, 
-		Iterable<IBasicScope>,
-		IPersistable {
+public interface IBasicScope extends ICoreObject, IEventObservable,
+		Iterable<IBasicScope>, IPersistable {
 	
 	/**
-	 * Does this scope have a parent? You can think of scopes as of tree items where scope may have a parent and children (child).
+	 * Does this scope have a parent? You can think of scopes as of tree items
+	 * where scope may have a parent and children (child).
 	 * 
-	 * @return <code>true</code> if this scope has a parent, otherwise <code>false</code>
+	 * @return <code>true</code> if this scope has a parent, otherwise
+	 *         <code>false</code>
 	 */
 	public boolean hasParent();
 
 	/**
 	 * Get this scopes parent.
 	 * 
-	 * @return parent scope, or <code>null</code> if this scope doesn't have a parent
+	 * @return parent scope, or <code>null</code> if this scope doesn't have a
+	 *         parent
 	 */
 	public IScope getParent();
 
 	/**
-	 * Get the scopes depth, how far down the scope tree is it. The lowest depth is 0x00, the depth of Global scope.
-	 * Application scope depth is 0x01. Room depth is 0x02, 0x03 and so forth.
+	 * Get the scopes depth, how far down the scope tree is it. The lowest depth
+	 * is 0x00, the depth of Global scope. Application scope depth is 0x01. Room
+	 * depth is 0x02, 0x03 and so forth.
 	 * 
 	 * @return the depth
 	 */

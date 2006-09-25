@@ -3,12 +3,9 @@ package org.red5.server.webapp.oflaDemo;
 import org.red5.server.adapter.ApplicationAdapter;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
-import org.red5.server.api.stream.IPlayItem;
 import org.red5.server.api.stream.IServerStream;
 import org.red5.server.api.stream.IStreamCapableConnection;
 import org.red5.server.api.stream.support.SimpleBandwidthConfigure;
-import org.red5.server.api.stream.support.SimplePlayItem;
-import org.red5.server.api.stream.support.StreamUtils;
 
 public class Application extends ApplicationAdapter {
 	private IScope appScope;
@@ -33,21 +30,13 @@ public class Application extends ApplicationAdapter {
 			streamConn.setBandwidthConfigure(sbc);
 		}
 		/*
-		if (appScope == conn.getScope()) {
-			serverStream =
-				StreamUtils.createServerStream(appScope, "live0");
-			SimplePlayItem item = new SimplePlayItem();
-			item.setStart(0);
-			item.setLength(10000);
-			item.setName("on2_flash8_w_audio");
-			serverStream.addItem(item);
-			item = new SimplePlayItem();
-			item.setStart(20000);
-			item.setLength(10000);
-			item.setName("on2_flash8_w_audio");
-			serverStream.addItem(item);
-			serverStream.start();
-		}
+		 * if (appScope == conn.getScope()) { serverStream =
+		 * StreamUtils.createServerStream(appScope, "live0"); SimplePlayItem
+		 * item = new SimplePlayItem(); item.setStart(0); item.setLength(10000);
+		 * item.setName("on2_flash8_w_audio"); serverStream.addItem(item); item =
+		 * new SimplePlayItem(); item.setStart(20000); item.setLength(10000);
+		 * item.setName("on2_flash8_w_audio"); serverStream.addItem(item);
+		 * serverStream.start(); }
 		*/
 		return super.appConnect(conn, params);
 	}

@@ -22,21 +22,33 @@ package org.red5.server.net.rtmp.event;
 public class Ping extends BaseEvent {
 	
 	public static final short STREAM_CLEAR = 0;
+
 	public static final short STREAM_PLAY = 1;
+
 	public static final short UNKNOWN_2 = 2;
+
 	public static final short CLIENT_BUFFER = 3;
+
 	public static final short STREAM_RESET = 4;
+
 	public static final short UNKNOWN_5 = 5;
+
 	public static final short PING_CLIENT = 6;
+
 	public static final short PONG_SERVER = 7;
+
 	public static final short UNKNOWN_8 = 8;
 	
 	public static final int UNDEFINED = -1;
 	
 	private short value1 = 0; // XXX: can someone suggest better names? 
+
 	private int value2 = 0;
+
 	private int value3 = UNDEFINED;
+
 	private int value4 = UNDEFINED;
+
 	private String debug = "";
 	
 	public Ping(){
@@ -116,7 +128,8 @@ public class Ping extends BaseEvent {
 	}
 	
 	public String toString(){
-		return "Ping: "+value1+", "+value2+", "+value3+", "+value4+"\n" + debug;
+		return "Ping: " + value1 + ", " + value2 + ", " + value3 + ", "
+				+ value4 + "\n" + debug;
 	}
 	
 	@Override

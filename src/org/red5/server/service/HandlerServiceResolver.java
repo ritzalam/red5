@@ -36,13 +36,15 @@ public class HandlerServiceResolver implements IServiceResolver {
 		IScopeHandler handler = scope.getHandler();
 		if (handler instanceof IServiceHandlerProvider) {
 			// TODO: deprecate this?
-			Object result = ((IServiceHandlerProvider) handler).getServiceHandler(serviceName);
+			Object result = ((IServiceHandlerProvider) handler)
+					.getServiceHandler(serviceName);
 			if (result != null)
 				return result;
 		}
 		
 		if (handler instanceof IServiceHandlerProviderAware) {
-			IServiceHandlerProvider shp = ((IServiceHandlerProviderAware) handler).getServiceHandlerProvider();
+			IServiceHandlerProvider shp = ((IServiceHandlerProviderAware) handler)
+					.getServiceHandlerProvider();
 			if (shp != null)
 				return shp.getServiceHandler(serviceName);
 		}

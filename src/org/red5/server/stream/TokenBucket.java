@@ -21,8 +21,11 @@ package org.red5.server.stream;
 
 public class TokenBucket implements ITokenBucket {
 	private double speed;
+
 	private long capacity;
+
 	private double tokens = 0;
+
 	private WaitObject waitObject = null;
 	
 	public TokenBucket() {
@@ -48,7 +51,8 @@ public class TokenBucket implements ITokenBucket {
 	synchronized public boolean acquireTokenNonblocking(double tokenCount,
 			ITokenBucketCallback callback) {
 		// TODO use a wait queue instead
-		if (waitObject != null) return false;
+		if (waitObject != null)
+			return false;
 		if (tokens >= tokenCount) {
 			tokens -= tokenCount;
 			return true;
@@ -63,7 +67,8 @@ public class TokenBucket implements ITokenBucket {
 	}
 
 	synchronized public double acquireTokenBestEffort(double upperLimitCount) {
-		if (waitObject != null) return 0;
+		if (waitObject != null)
+			return 0;
 		if (tokens >= upperLimitCount) {
 			tokens -= upperLimitCount;
 			return upperLimitCount;
@@ -97,6 +102,7 @@ public class TokenBucket implements ITokenBucket {
 	
 	/**
 	 * Add some tokens to this bucket.
+	 * 
 	 * @param token
 	 */
 	synchronized void addToken(double token) {

@@ -31,17 +31,15 @@ public class ConsumerService implements IConsumerService {
 
 	public IMessageOutput getConsumerOutput(IClientStream stream) {
 		IStreamCapableConnection streamConn = stream.getConnection();
-		if (!(streamConn instanceof RTMPConnection)) return null;
+		if (!(streamConn instanceof RTMPConnection))
+			return null;
 		RTMPConnection conn = (RTMPConnection) streamConn;
 		// TODO Better manage channels.
 		// now we use OutputStream as a channel wrapper.
 		OutputStream o = conn.createOutputStream(stream.getStreamId());
 		IPipe pipe = new InMemoryPushPushPipe();
-		pipe.subscribe(new ConnectionConsumer(
-				conn,
-				o.getVideo().getId(),
-				o.getAudio().getId(),
-				o.getData().getId()), null);
+		pipe.subscribe(new ConnectionConsumer(conn, o.getVideo().getId(), o
+				.getAudio().getId(), o.getData().getId()), null);
 		return pipe;
 	}
 

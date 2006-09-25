@@ -31,9 +31,11 @@ import java.util.Set;
 public interface IServiceHandlerProvider {
 
 	/**
-	 * Register an object that provides methods which can be called from a client.
+	 * Register an object that provides methods which can be called from a
+	 * client.
 	 * 
-	 * <p>Example:<br>
+	 * <p>
+	 * Example:<br>
 	 * If you registered a handler with the name "<code>one.two</code>" that
 	 * provides a method "<code>callMe</code>", you can call a method
 	 * "<code>one.two.callMe</code>" from the client.</p>

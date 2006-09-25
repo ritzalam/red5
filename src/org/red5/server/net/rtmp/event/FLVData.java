@@ -24,21 +24,26 @@ import org.apache.mina.common.ByteBuffer;
 public class FLVData {
 
 	/*
-	 * 0×08 	 AUDIO 	 Contains an audio packet similar to a SWF SoundStreamBlock plus codec information
-0×09 	VIDEO 	Contains a video packet similar to a SWF VideoFrame plus codec information
-0×12 	META 	Contains two AMF packets, the name of the event and the data to go with it
+	 * 0×08 AUDIO Contains an audio packet similar to a SWF SoundStreamBlock
+	 * plus codec information 
+	 * 0×09 VIDEO Contains a video packet similar to a SWF VideoFrame plus
+	 * codec information 
+	 * 0×12 META Contains two AMF packets, the name of the event and the data
+	 * to go with it
 	 */
 	
 	/*
-	 *  soundType 	 (byte & 0×01) » 0 	 0: mono, 1: stereo
-soundSize 	(byte & 0×02) » 1 	0: 8-bit, 2: 16-bit
-soundRate 	(byte & 0x0C) » 2 	0: 5.5 kHz, 1: 11 kHz, 2: 22 kHz, 3: 44 kHz
-soundFormat 	(byte & 0xf0) » 4 	0: Uncompressed, 1: ADPCM, 2: MP3, 5: Nellymoser 8kHz mono, 6: Nellymoser
+	 * soundType (byte & 0×01) » 0 0: mono, 1: stereo 
+	 * soundSize (byte & 0×02) » 1 0: 8-bit, 2: 16-bit 
+	 * soundRate (byte & 0x0C) » 2 0: 5.5kHz, 1: 11kHz, 2: 22kHz, 3: 44kHz 
+	 * soundFormat (byte & 0xf0) » 4 0: Uncompressed, 1: ADPCM, 2: MP3, 
+	 *     5: Nellymoser 8kHz mono, 6: Nellymoser
 	 */
 	
 	/*
-	 codecID 	 (byte & 0x0f) » 0 	 2: Sorensen H.263, 3: Screen video, 4: On2 VP6
-	 frameType 	(byte & 0xf0) » 4 	1: keyframe, 2: inter frame, 3: disposable inter frame
+	 * codecID (byte & 0x0f) » 0 2: Sorensen H.263, 3: Screen video, 4: On2 VP6
+	 * frameType (byte & 0xf0) » 4 1: keyframe, 2: inter frame, 3: disposable
+	 * inter frame
 	*/
 
 	protected ByteBuffer data;
@@ -75,7 +80,7 @@ soundFormat 	(byte & 0xf0) » 4 	0: Uncompressed, 1: ADPCM, 2: MP3, 5: Nellymose
 	public static final int SOUND_RATE_44_KHZ = 4;
 	
 	/*
-	0: Uncompressed, 1: ADPCM, 2: MP3, 5: Nellymoser 8kHz mono, 6: Nellymoser
+	 * 0: Uncompressed, 1: ADPCM, 2: MP3, 5: Nellymoser 8kHz mono, 6: Nellymoser
 	 */
 	
 	public int getCodec(){

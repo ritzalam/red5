@@ -53,9 +53,11 @@ public class CoreHandler implements IScopeHandler {
 		
 		// Use client registry from scope the client connected to.
 		IScope connectionScope = Red5.getConnectionLocal().getScope(); 
-		IClientRegistry clientRegistry = connectionScope.getContext().getClientRegistry();
+		IClientRegistry clientRegistry = connectionScope.getContext()
+				.getClientRegistry();
 		
-		IClient client = clientRegistry.hasClient(id) ? clientRegistry.lookupClient(id) : clientRegistry.newClient(params);
+		IClient client = clientRegistry.hasClient(id) ? clientRegistry
+				.lookupClient(id) : clientRegistry.newClient(params);
 		
 		// We have a context, and a client object.. time to init the conneciton.
 		conn.initialize(client);
@@ -85,7 +87,8 @@ public class CoreHandler implements IScopeHandler {
 		if(call.getServiceName() != null){
 			context.getServiceInvoker().invoke(call, context);
 		} else {
-			context.getServiceInvoker().invoke(call, conn.getScope().getHandler());
+			context.getServiceInvoker().invoke(call,
+					conn.getScope().getHandler());
 		}
 		return true;
 	}

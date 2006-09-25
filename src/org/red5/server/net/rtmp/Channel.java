@@ -53,25 +53,14 @@ public class Channel {
 		return id;
 	}
 	
-	/*
-	public Stream getStream() {
-		return stream;
-	}
-	*/
-
 	public void write(IRTMPEvent event){
 		final IClientStream stream = connection.getStreamByChannelId(id);
 		if (id > 3 && stream == null) {
-			log.info("Stream doesn't exist any longer, discarding message " + event);
+			log.info("Stream doesn't exist any longer, discarding message "
+					+ event);
 			return;
 		}
-		/*
-		final int streamId = (
-				stream==null || (
-						message.getDataType() != Constants.TYPE_AUDIO_DATA && 
-						message.getDataType() != Constants.TYPE_VIDEO_DATA )
-				) ? 0 : stream.getStreamId();
-				*/
+
 		final int streamId = ( stream==null ) ? 0 : stream.getStreamId();
 		write(event, streamId);
 	}
@@ -94,15 +83,18 @@ public class Channel {
 	}
 
 	public void sendStatus(Status status) {
-		final boolean andReturn = !status.getCode().equals(Status.NS_DATA_START);
+		final boolean andReturn = !status.getCode()
+				.equals(Status.NS_DATA_START);
 		final Invoke invoke;
 		if (andReturn) {
-			final PendingCall call = new PendingCall(null,"onStatus",new Object[]{status});
+			final PendingCall call = new PendingCall(null, "onStatus",
+					new Object[] { status });
 			invoke = new Invoke();
 			invoke.setInvokeId(1);
 			invoke.setCall(call);
 		} else {
-			final Call call = new Call(null,"onStatus",new Object[]{status});
+			final Call call = new Call(null, "onStatus",
+					new Object[] { status });
 			invoke = (Invoke) new Notify();
 			invoke.setInvokeId(1);
 			((Notify) invoke).setCall(call);

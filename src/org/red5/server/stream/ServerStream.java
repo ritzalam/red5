@@ -53,6 +53,7 @@ import org.red5.server.stream.message.ResetMessage;
 
 /**
  * An implementation for server side stream.
+ * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Steven Gong (steven.gong@gmail.com)
  */
@@ -111,7 +112,8 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	}
 
 	synchronized public void removeItem(int index) {
-		if (index < 0 || index >= items.size()) return;
+		if (index < 0 || index >= items.size())
+			return;
 		items.remove(index);
 	}
 
@@ -138,7 +140,8 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	synchronized public void previousItem() {
 		stop();
 		moveToPrevious();
-		if (currentItemIndex == -1) return;
+		if (currentItemIndex == -1)
+			return;
 		IPlayItem item = items.get(currentItemIndex);
 		play(item);
 	}
@@ -146,13 +149,15 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	synchronized public void nextItem() {
 		stop();
 		moveToNext();
-		if (currentItemIndex == -1) return;
+		if (currentItemIndex == -1)
+			return;
 		IPlayItem item = items.get(currentItemIndex);
 		play(item);
 	}
 
 	synchronized public void setItem(int index) {
-		if (index < 0 || index >= items.size()) return;
+		if (index < 0 || index >= items.size())
+			return;
 		currentItemIndex = index;
 		IPlayItem item = items.get(currentItemIndex);
 		play(item);
@@ -209,25 +214,31 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	 */
 	public void start() {
 		if (state != State.UNINIT) {
-			throw new IllegalStateException("State " + state + " not valid to start");
+			throw new IllegalStateException("State " + state
+					+ " not valid to start");
 		}
 		if (items.size() == 0) {
-			throw new IllegalStateException("At least one item should be specified to start");
+			throw new IllegalStateException(
+					"At least one item should be specified to start");
 		}
 		if (publishedName == null) {
-			throw new IllegalStateException("A published name is needed to start");
+			throw new IllegalStateException(
+					"A published name is needed to start");
 		}
-		IProviderService providerService =
-			(IProviderService) getScope().getContext().getBean(IProviderService.KEY);
-		providerService.registerBroadcastStream(getScope(), publishedName, this);
-		scheduler = (ISchedulingService) getScope().getContext().getBean(ISchedulingService.SCHEDULING_SERVICE);
+		IProviderService providerService = (IProviderService) getScope()
+				.getContext().getBean(IProviderService.KEY);
+		providerService
+				.registerBroadcastStream(getScope(), publishedName, this);
+		scheduler = (ISchedulingService) getScope().getContext().getBean(
+				ISchedulingService.SCHEDULING_SERVICE);
 		state = State.STOPPED;
 		currentItemIndex = -1;
 		nextItem();
 	}
 	
 	synchronized public void stop() {
-		if (state != State.PLAYING) return;
+		if (state != State.PLAYING)
+			return;
 		if (liveJobName != null) {
 			scheduler.removeScheduledJob(liveJobName);
 			liveJobName = null;
@@ -266,8 +277,9 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	public void onPipeConnectionEvent(PipeConnectionEvent event) {
 		switch (event.getType()) {
 		case PipeConnectionEvent.PROVIDER_CONNECT_PUSH:
-			if (event.getProvider() == this &&
-					(event.getParamMap() == null || !event.getParamMap().containsKey("record"))) {
+			if (event.getProvider() == this
+					&& (event.getParamMap() == null || !event.getParamMap()
+							.containsKey("record"))) {
 				this.msgOut = (IMessageOutput) event.getSource();
 			}
 			break;
@@ -288,13 +300,15 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	 * @param item
 	 */
 	private void play(IPlayItem item) {
-		if (state != State.STOPPED) return;
+		if (state != State.STOPPED)
+			return;
 		boolean isLive = false;
-		IProviderService providerService =
-			(IProviderService) getScope().getContext().getBean(IProviderService.KEY);
+		IProviderService providerService = (IProviderService) getScope()
+				.getContext().getBean(IProviderService.KEY);
 		msgIn = providerService.getVODProviderInput(getScope(), item.getName());
 		if (msgIn == null) {
-			msgIn = providerService.getLiveProviderInput(getScope(), item.getName(), true);
+			msgIn = providerService.getLiveProviderInput(getScope(), item
+					.getName(), true);
 			isLive = true;
 		}
 		if (msgIn == null) {
@@ -306,10 +320,12 @@ public class ServerStream extends AbstractStream implements IServerStream,
 		sendResetMessage();
 		if (isLive) {
 			if (item.getLength() >= 0) {
-				liveJobName = scheduler.addScheduledOnceJob(item.getLength(), new IScheduledJob() {
+				liveJobName = scheduler.addScheduledOnceJob(item.getLength(),
+						new IScheduledJob() {
 					public void execute(ISchedulingService service) {
 						synchronized (ServerStream.this) {
-							if (liveJobName == null) return;
+									if (liveJobName == null)
+										return;
 							liveJobName = null;
 							onItemEnd();
 						}
@@ -318,7 +334,8 @@ public class ServerStream extends AbstractStream implements IServerStream,
 			}
 		} else {
 			long start = item.getStart();
-			if (start < 0) start = 0;
+			if (start < 0)
+				start = 0;
 			sendVODInitCM(msgIn, (int) start);
 			startBroadcastVOD();
 		}
@@ -359,9 +376,9 @@ public class ServerStream extends AbstractStream implements IServerStream,
 			// even if it is seeked to somewhere in the middle
 			// which will cause the stream to wait too long.
 			// Is this an FLVReader's bug?
-			if (!(nextRTMPMessage.getBody() instanceof VideoData) &&
-					!(nextRTMPMessage.getBody() instanceof AudioData) &&
-					nextRTMPMessage.getBody().getTimestamp() == 0) {
+			if (!(nextRTMPMessage.getBody() instanceof VideoData)
+					&& !(nextRTMPMessage.getBody() instanceof AudioData)
+					&& nextRTMPMessage.getBody().getTimestamp() == 0) {
 				nextRTMPMessage.getBody().release();
 				nextRTMPMessage = getNextRTMPMessage();
 				if (nextRTMPMessage == null) {
@@ -385,19 +402,23 @@ public class ServerStream extends AbstractStream implements IServerStream,
 		if (first) {
 			vodStartTS = nextTS;
 		}
-		long delta = nextTS - vodStartTS - (System.currentTimeMillis() - serverStartTS);
+		long delta = nextTS - vodStartTS
+				- (System.currentTimeMillis() - serverStartTS);
 		
 		vodJobName = scheduler.addScheduledOnceJob(delta, new IScheduledJob() {
 			public void execute(ISchedulingService service) {
 				synchronized (ServerStream.this) {
-					if (vodJobName == null) return;
+					if (vodJobName == null)
+						return;
 					vodJobName = null;
 					msgOut.pushMessage(nextRTMPMessage);
 					nextRTMPMessage.getBody().release();
 					long start = currentItem.getStart();
-					if (start < 0) start = 0;
-					if (currentItem.getLength() >= 0 &&
-							nextTS - currentItem.getStart() > currentItem.getLength()) {
+					if (start < 0)
+						start = 0;
+					if (currentItem.getLength() >= 0
+							&& nextTS - currentItem.getStart() > currentItem
+									.getLength()) {
 						onItemEnd();
 						return;
 					}
@@ -439,7 +460,8 @@ public class ServerStream extends AbstractStream implements IServerStream,
 		if (controller != null) {
 			currentItemIndex = controller.nextItem(this, currentItemIndex);
 		} else {
-			currentItemIndex = defaultController.nextItem(this, currentItemIndex);
+			currentItemIndex = defaultController.nextItem(this,
+					currentItemIndex);
 		}
 	}
 	
@@ -454,7 +476,8 @@ public class ServerStream extends AbstractStream implements IServerStream,
 		if (controller != null) {
 			currentItemIndex = controller.previousItem(this, currentItemIndex);
 		} else {
-			currentItemIndex = defaultController.previousItem(this, currentItemIndex);
+			currentItemIndex = defaultController.previousItem(this,
+					currentItemIndex);
 		}
 	}
 }

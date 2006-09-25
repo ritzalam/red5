@@ -46,10 +46,13 @@ public interface IClientRegistry {
 	 * @param params
 	 * 			the parameters the client passed during connection
 	 * @return the new client
-	 * @throws ClientNotFoundException no client could be created from the passed parameters
-	 * @throws ClientRejectedException the client is not allowed to connect
+	 * @throws ClientNotFoundException
+	 *             no client could be created from the passed parameters
+	 * @throws ClientRejectedException
+	 *             the client is not allowed to connect
 	 */
-	public IClient newClient(Object[] params) throws ClientNotFoundException, ClientRejectedException;
+	public IClient newClient(Object[] params) throws ClientNotFoundException,
+			ClientRejectedException;
 	
 	/**
 	 * Return an existing client from a client id.
@@ -57,7 +60,8 @@ public interface IClientRegistry {
 	 * @param id
 	 * 			the id of the client to return
 	 * @return the client object
-	 * @throws ClientNotFoundException no client with the passed id exists
+	 * @throws ClientNotFoundException
+	 *             no client with the passed id exists
 	 */
 	public IClient lookupClient(String id) throws ClientNotFoundException;
 

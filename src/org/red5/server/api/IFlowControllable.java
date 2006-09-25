@@ -22,8 +22,8 @@ package org.red5.server.api;
 /**
  * Mark an object that can be flow-controlled.
  * <p>
- * A flow-controlled object has the bandwidth config property
- * and a link to the parent controllable object.
+ * A flow-controlled object has the bandwidth config property and a link to the
+ * parent controllable object.
  * <p>
  * The parent controllable object acts as the bandwidth provider
  * for this object, thus generates a tree structure, in which
@@ -46,6 +46,7 @@ package org.red5.server.api;
 public interface IFlowControllable {
 	/**
 	 * Return parent IFlowControllable object
+	 * 
 	 * @return	parent
 	 */
 	IFlowControllable getParentFlowControllable();

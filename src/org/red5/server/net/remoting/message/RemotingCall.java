@@ -33,7 +33,8 @@ public class RemotingCall extends PendingCall {
 	
 	public String clientCallback = null;
 
-	public RemotingCall(String serviceName, String serviceMethod, Object[] args, String callback){
+	public RemotingCall(String serviceName, String serviceMethod,
+			Object[] args, String callback) {
 		super(serviceName, serviceMethod, args);
 		setClientCallback(callback);
 	}
@@ -44,8 +45,10 @@ public class RemotingCall extends PendingCall {
 
 	public String getClientResponse(){
 		if(clientCallback != null)
-			return clientCallback + (isSuccess() ? HANDLER_SUCCESS : HANDLER_ERROR);
-		else return null; 
+			return clientCallback
+					+ (isSuccess() ? HANDLER_SUCCESS : HANDLER_ERROR);
+		else
+			return null;
 	}
 	
 	public Object getClientResult(){

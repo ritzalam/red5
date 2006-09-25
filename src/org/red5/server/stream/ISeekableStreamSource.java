@@ -21,6 +21,7 @@ package org.red5.server.stream;
 
 /**
  * Stream source that can be seeked in timeline
+ * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Steven Gong (steven.gong@gmail.com)
  */

@@ -40,27 +40,33 @@ public class ProviderService implements IProviderService {
 	
 	public IMessageInput getProviderInput(IScope scope, String name) {
 		IMessageInput msgIn = getLiveProviderInput(scope, name, false);
-		if (msgIn == null) return getVODProviderInput(scope, name);
+		if (msgIn == null)
+			return getVODProviderInput(scope, name);
 		return msgIn;
 	}
 
-	public IMessageInput getLiveProviderInput(IScope scope, String name, boolean needCreate) {
+	public IMessageInput getLiveProviderInput(IScope scope, String name,
+			boolean needCreate) {
 		synchronized (scope) {
-			IBasicScope basicScope = scope.getBasicScope(IBroadcastScope.TYPE, name);
+			IBasicScope basicScope = scope.getBasicScope(IBroadcastScope.TYPE,
+					name);
 			if (basicScope == null) {
 				if (needCreate) {
 					basicScope = new BroadcastScope(scope, name);
 					scope.addChildScope(basicScope);
-				} else return null;
+				} else
+					return null;
 			}
-			if (!(basicScope instanceof IBroadcastScope)) return null;
+			if (!(basicScope instanceof IBroadcastScope))
+				return null;
 			return (IBroadcastScope) basicScope;
 		}
 	}
 
 	public IMessageInput getVODProviderInput(IScope scope, String name) {
 		File file = getVODProviderFile(scope, name);
-		if(file == null) return null;
+		if (file == null)
+			return null;
 		IPipe pipe = new InMemoryPullPullPipe();
 		pipe.subscribe(new FileProvider(scope, file), null);
 		return pipe;
@@ -69,26 +75,32 @@ public class ProviderService implements IProviderService {
 	public File getVODProviderFile(IScope scope, String name){
 		File file = null;
 		try {
-			file = scope.getResources(getStreamFilename(scope, name))[0].getFile();
-		} catch (IOException e) {}
+			file = scope.getResources(getStreamFilename(scope, name))[0]
+					.getFile();
+		} catch (IOException e) {
+		}
 		if (file == null || !file.exists()) {
 			return null;
 		}
 		return file;
 	}
 	
-	public boolean registerBroadcastStream(IScope scope, String name, IBroadcastStream bs) {
+	public boolean registerBroadcastStream(IScope scope, String name,
+			IBroadcastStream bs) {
 		synchronized (scope) {
-			IBasicScope basicScope = scope.getBasicScope(IBroadcastScope.TYPE, name);
+			IBasicScope basicScope = scope.getBasicScope(IBroadcastScope.TYPE,
+					name);
 			if (basicScope == null) {
 				basicScope = new BroadcastScope(scope, name);
 				scope.addChildScope(basicScope);
-				((IBroadcastScope) basicScope).subscribe(bs.getProvider(), null);
+				((IBroadcastScope) basicScope)
+						.subscribe(bs.getProvider(), null);
 				return true;
 			} else if (!(basicScope instanceof IBroadcastScope)) {
 				return false;
 			} else {
-				((IBroadcastScope) basicScope).subscribe(bs.getProvider(), null);
+				((IBroadcastScope) basicScope)
+						.subscribe(bs.getProvider(), null);
 				return true;
 			}
 		}
@@ -96,10 +108,12 @@ public class ProviderService implements IProviderService {
 
 	public List<String> getBroadcastStreamNames(IScope scope) {
 		synchronized (scope) {
-			// TODO: return result of "getBasicScopeNames" when the api has changed
+			// TODO: return result of "getBasicScopeNames" when the api has
+			// changed
 			//       to not return iterators
 			List<String> result = new ArrayList<String>();
-			Iterator<String> it = scope.getBasicScopeNames(IBroadcastScope.TYPE);
+			Iterator<String> it = scope
+					.getBasicScopeNames(IBroadcastScope.TYPE);
 			while (it.hasNext()) {
 				result.add(it.next());
 			}
@@ -109,7 +123,8 @@ public class ProviderService implements IProviderService {
 
 	public boolean unregisterBroadcastStream(IScope scope, String name) {
 		synchronized (scope) {
-			IBasicScope basicScope = scope.getBasicScope(IBroadcastScope.TYPE, name);
+			IBasicScope basicScope = scope.getBasicScope(IBroadcastScope.TYPE,
+					name);
 			if (basicScope instanceof IBroadcastScope) {
 				scope.removeChildScope(basicScope);
 				return true;
@@ -123,7 +138,8 @@ public class ProviderService implements IProviderService {
 	}
 	
 	private String getStreamFilename(IScope scope, String name) {
-		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils.getScopeService(scope, IStreamableFileFactory.KEY);
+		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils
+				.getScopeService(scope, IStreamableFileFactory.KEY);
 		if (!name.contains(":") && !name.contains("."))
 			// Default to .flv files if no prefix and no extension is given.
 			name = "flv:" + name;

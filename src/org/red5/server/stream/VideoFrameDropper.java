@@ -38,7 +38,8 @@ import org.red5.server.stream.message.RTMPMessage;
  * iteration as well. If these frames all went through, disposable interframes
  * are sent again.
  * 
- * <p>So from highest to lowest bandwidth and back, the states go as follows:
+ * <p>
+ * So from highest to lowest bandwidth and back, the states go as follows:
  * <ul>
  * <li>all frames</li>
  * <li>keyframes and interframes</li>

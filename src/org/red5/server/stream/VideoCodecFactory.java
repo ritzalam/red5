@@ -31,6 +31,7 @@ import org.red5.server.api.stream.IVideoStreamCodec;
 public class VideoCodecFactory {
 
 	public static final String KEY = "videoCodecFactory";
+
 	private Log log = LogFactory.getLog(VideoCodecFactory.class.getName());
 
 	private List codecs = new ArrayList();
@@ -45,10 +46,12 @@ public class VideoCodecFactory {
 		while (it.hasNext()) {
 			IVideoStreamCodec codec;
 			IVideoStreamCodec storedCodec = (IVideoStreamCodec) it.next();
-			// XXX: this is a bit of a hack to create new instances of the configured
+			// XXX: this is a bit of a hack to create new instances of the
+			// configured
 			//      video codec for each stream
 			try {
-				codec = (IVideoStreamCodec) storedCodec.getClass().newInstance();
+				codec = (IVideoStreamCodec) storedCodec.getClass()
+						.newInstance();
 			} catch (Exception e) {
 				log.error("Could not create video codec instance.", e);
 				continue;

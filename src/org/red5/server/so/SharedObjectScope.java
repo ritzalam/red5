@@ -43,8 +43,7 @@ import org.red5.server.api.so.ISharedObject;
 import org.red5.server.api.so.ISharedObjectListener;
 import org.red5.server.service.ServiceUtils;
 
-public class SharedObjectScope extends BasicScope 
-	implements ISharedObject {
+public class SharedObjectScope extends BasicScope implements ISharedObject {
 	
 	private Log log = LogFactory.getLog(SharedObjectScope.class.getName());
 	
@@ -53,7 +52,8 @@ public class SharedObjectScope extends BasicScope
 	private HashMap<String, Object> handlers = new HashMap<String, Object>();
 	protected SharedObject so;
 	
-	public SharedObjectScope(IScope parent, String name, boolean persistent, IPersistenceStore store){
+	public SharedObjectScope(IScope parent, String name, boolean persistent,
+			IPersistenceStore store) {
 		super(parent,TYPE, name, persistent);
 		
 		// Create shared object wrapper around the attributes
@@ -104,16 +104,16 @@ public class SharedObjectScope extends BasicScope
 	}
 	
 	public void beginUpdate() {
-		if (!lock.isHeldByCurrentThread())
+		if (!lock.isHeldByCurrentThread()) {
 			lock.lock();
-		
+		}
 		so.beginUpdate();
 	}
 
 	public void beginUpdate(IEventListener listener) {
-		if (!lock.isHeldByCurrentThread())
+		if (!lock.isHeldByCurrentThread()) {
 			lock.lock();
-		
+		}
 		so.beginUpdate(listener);
 	}
 
@@ -145,20 +145,25 @@ public class SharedObjectScope extends BasicScope
 		
 		Object soHandler = getServiceHandler(serviceName);
 		if (soHandler == null && hasParent()) {
-			// No custom handler, check for service defined in the scope's context
+			// No custom handler, check for service defined in the scope's
+			// context
 			IContext context = getParent().getContext();
 			try {
-				// The bean must have a name of "<SharedObjectName>.<DottedServiceName>.soservice"
-				soHandler = context.getBean(so.getName() + "." + serviceName + ".soservice");
+				// The bean must have a name of
+				// "<SharedObjectName>.<DottedServiceName>.soservice"
+				soHandler = context.getBean(so.getName() + "." + serviceName
+						+ ".soservice");
 			} catch (Exception err) {
 				// No such bean.
 			}
 		}
 		
 		if (soHandler != null) {
-			Object[] methodResult = ServiceUtils.findMethodWithExactParameters(soHandler, serviceMethod, arguments);
+			Object[] methodResult = ServiceUtils.findMethodWithExactParameters(
+					soHandler, serviceMethod, arguments);
 			if (methodResult.length == 0 || methodResult[0] == null)
-				methodResult = ServiceUtils.findMethodWithListParameters(soHandler, serviceMethod, arguments);
+				methodResult = ServiceUtils.findMethodWithListParameters(
+						soHandler, serviceMethod, arguments);
 			
 			if (methodResult.length > 0 && methodResult[0] != null) {
 				Method method = (Method) methodResult[0];
@@ -166,7 +171,8 @@ public class SharedObjectScope extends BasicScope
 				try {
 					method.invoke(soHandler, params);
 				} catch (Exception err) {
-					log.error("Error while invoking method " + serviceMethod + " on shared object handler " + handler, err);
+					log.error("Error while invoking method " + serviceMethod
+							+ " on shared object handler " + handler, err);
 				}
 			}
 		}
@@ -254,15 +260,18 @@ public class SharedObjectScope extends BasicScope
 	}
 
 	public void dispatchEvent(IEvent e) {
-		if (e.getType() != IEvent.Type.SHARED_OBJECT || !(e instanceof ISharedObjectMessage)) {
+		if (e.getType() != IEvent.Type.SHARED_OBJECT
+				|| !(e instanceof ISharedObjectMessage)) {
 			// Don't know how to handle this event.
 			super.dispatchEvent(e);
 			return;
 		}
 		
 		ISharedObjectMessage msg = (ISharedObjectMessage) e;
-		if (msg.hasSource()) beginUpdate(msg.getSource());
-		else beginUpdate();
+		if (msg.hasSource())
+			beginUpdate(msg.getSource());
+		else
+			beginUpdate();
 		for (ISharedObjectEvent event: msg.getEvents()) {
 			switch(event.getType()){
 			case SERVER_CONNECT:
@@ -346,11 +355,13 @@ public class SharedObjectScope extends BasicScope
 		return "Shared Object: "+getName();
 	}
 	
-	public synchronized void addSharedObjectListener(ISharedObjectListener listener) {
+	public synchronized void addSharedObjectListener(
+			ISharedObjectListener listener) {
 		serverListeners.add(listener);
 	}
 	
-	public synchronized void removeSharedObjectListener(ISharedObjectListener listener) {
+	public synchronized void removeSharedObjectListener(
+			ISharedObjectListener listener) {
 		serverListeners.remove(listener);
 	}
 
@@ -382,6 +393,40 @@ public class SharedObjectScope extends BasicScope
 	
 	public Set<String> getServiceHandlerNames() {
 		return Collections.unmodifiableSet(handlers.keySet());
+	}
+
+	/**
+	 * Locks the shared object instance. Prevents any changes to this object by
+	 * clients until the SharedObject.unlock() method is called.
+	 */
+	public void lock() {
+		lock.lock();
+	}
+
+	/**
+	 * Unlocks a shared object instance that was locked with
+	 * SharedObject.lock().
+	 */
+	public void unlock() {
+		lock.unlock();
+	}
+
+	/**
+	 * Returns the locked state of this SharedObject.
+	 * 
+	 * @return true if in a locked state; false otherwise
+	 */
+	public boolean isLocked() {
+		return lock.isLocked();
+	}
+
+	public boolean clear() {
+		return so.clear();
+	}
+
+	public void close() {
+		so.close();
+		so = null;
 	}
 
 }

@@ -135,7 +135,8 @@ public class ScopeStatistics {
 			|| type.equals(Date.class)) {
 			return value;
 		} else if (type.equals(Long.class)) {
-			// XXX: long values are not supported by XML-RPC, convert to string instead 
+			// XXX: long values are not supported by XML-RPC, convert to string
+			// instead
 			return ((Long) value).toString();
 		} else if (type.isArray() && type.getComponentType().equals(byte.class)) {
 			return value;
@@ -195,7 +196,9 @@ public class ScopeStatistics {
 	 */
 	public Map<String, Object> getSharedObjects(String path) {
 		IScope scope = getScope(path);
-		ISharedObjectService service = (ISharedObjectService) ScopeUtils.getScopeService(scope, ISharedObjectService.SHARED_OBJECT_SERVICE);
+		ISharedObjectService service = (ISharedObjectService) ScopeUtils
+				.getScopeService(scope,
+						ISharedObjectService.SHARED_OBJECT_SERVICE);
 		if (service == null)
 			return new Hashtable<String, Object>();
 		
@@ -203,10 +206,12 @@ public class ScopeStatistics {
 		for (String name : service.getSharedObjectNames(scope)) {
 			ISharedObject so = service.getSharedObject(scope, name);
 			try {
-				result.put(name, new Object[]{so.isPersistentObject(), getXMLRPCValue(so.getData())});
+				result.put(name, new Object[] { so.isPersistentObject(),
+						getXMLRPCValue(so.getData()) });
 			} catch (RuntimeException err) {
 				// Could not convert attribute for XML-RPC serialization.
-				result.put(name, "--- Error while serializing \"" + so.getData().toString() + "\" ---");
+				result.put(name, "--- Error while serializing \""
+						+ so.getData().toString() + "\" ---");
 			}
 		}
 		return result;

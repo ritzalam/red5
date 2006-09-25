@@ -70,9 +70,11 @@ public interface IServer {
 	 * 			the path to map
 	 * @param globalName
 	 * 			the name of the global scope to map to
-	 * @return <code>true</code> if the name was mapped, otherwise <code>false</code>
+	 * @return <code>true</code> if the name was mapped, otherwise
+	 *         <code>false</code>
 	 */
-	public boolean addMapping(String hostName, String contextPath, String globalName);
+	public boolean addMapping(String hostName, String contextPath,
+			String globalName);
 	
 	/**
 	 * Unregister a previously mapped global scope. 
@@ -81,7 +83,8 @@ public interface IServer {
 	 * 			the name of the host to unmap
 	 * @param contextPath
 	 * 			the path for this host to unmap
-	 * @return <code>true</code> if the global scope was unmapped, otherwise <code>false</code>
+	 * @return <code>true</code> if the global scope was unmapped, otherwise
+	 *         <code>false</code>
 	 */
 	public boolean removeMapping(String hostName, String contextPath);
 	

@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
-<beans>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:lang="http://www.springframework.org/schema/lang"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+                           http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-2.0.xsd">
 	
 	<bean id="placeholderConfig" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 	    <property name="location" value="/WEB-INF/red5-web.properties" />
@@ -19,14 +22,66 @@
 		<property name="virtualHosts" value="${webapp.virtualHosts}" />
 	</bean>
 
+	<bean class="org.springframework.scripting.support.ScriptFactoryPostProcessor"/>
+
+<!-- 
 	<bean id="web.handler" 
 	    class="org.red5.server.webapp.oflaDemo.Application" 
 		singleton="true" />
+-->
 	
-    <bean id="demoService.service" 
-	    class="org.red5.server.webapp.oflaDemo.DemoService" 
-		singleton="true" />
+	<bean id="web.handler" class="org.red5.server.script.rhino.RhinoScriptFactory">
+		<constructor-arg index="0" value="classpath:applications/main.js"/>
+		<!-- Implemented interfaces -->
+		<constructor-arg index="1">
+			<list>
+     			<value>org.red5.server.api.IScopeHandler</value>
+     			<value>org.red5.server.adapter.IApplication</value>
+  			</list>
+		</constructor-arg>
+		<!-- Extended class -->
+		<constructor-arg index="2">
+   			<value>org.red5.server.adapter.ApplicationAdapter</value>
+		</constructor-arg>
+	</bean>
 
+<!-- 
+	<bean id="web.handler" class="org.red5.server.script.jruby.JRubyScriptFactory">
+		<constructor-arg index="0" value="classpath:applications/main.rb"/>
+		<constructor-arg index="1">
+			<list>
+     			<value>org.red5.server.api.IScopeHandler</value>
+     			<value>org.red5.server.adapter.IApplication</value>
+  			</list>
+		</constructor-arg>
+	</bean>		
+-->
+
+<!-- 
+    <bean id="demoService.service" 
+	    class="org.red5.server.webapp.oflaDemo.DemoService" />
+ 
+	<bean id="demoService.service" class="org.red5.server.script.jruby.JRubyScriptFactory">
+		<constructor-arg index="0" value="classpath:applications/demoservice.rb"/>
+		<constructor-arg index="1">
+			<list>
+     			<value>org.red5.server.webapp.oflaDemo.IDemoService</value>
+  			</list>
+		</constructor-arg>
+	</bean>	
+ -->
+
+	<bean id="demoService.service" class="org.red5.server.script.rhino.RhinoScriptFactory">
+		<constructor-arg index="0" value="classpath:applications/demoservice.js"/>
+		<constructor-arg index="1">
+			<list>
+     			<value>org.red5.server.webapp.oflaDemo.IDemoService</value>
+  			</list>
+		</constructor-arg>
+		<constructor-arg index="2">
+   			<value>org.red5.server.webapp.oflaDemo.DemoServiceImpl</value>
+		</constructor-arg>		
+	</bean>
 
 
 </beans>

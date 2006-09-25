@@ -24,6 +24,7 @@ import org.red5.server.stream.IStreamFlow;
 
 /**
  * A stream that is bound to a client.
+ * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Steven Gong (steven.gong@gmail.com)
  */
@@ -35,12 +36,14 @@ public interface IClientStream extends IStream, IFlowControllable {
 	
 	/**
 	 * Get stream id allocated in a connection.
+	 * 
 	 * @return
 	 */
 	int getStreamId();
 	
 	/**
 	 * Get connection containing the stream.
+	 * 
 	 * @return
 	 */
 	IStreamCapableConnection getConnection();

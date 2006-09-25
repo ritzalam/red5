@@ -52,8 +52,8 @@ import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.stream.ISeekableProvider;
 import org.red5.server.stream.message.RTMPMessage;
 
-public class FileProvider
-implements IPassive, ISeekableProvider, IPullableProvider, IPipeConnectionListener {
+public class FileProvider implements IPassive, ISeekableProvider,
+		IPullableProvider, IPipeConnectionListener {
 	private static final Log log = LogFactory.getLog(FileProvider.class);
 	
 	public static final String KEY = FileProvider.class.getName();
@@ -75,8 +75,10 @@ implements IPassive, ISeekableProvider, IPullableProvider, IPipeConnectionListen
 	}
 	
 	public IMessage pullMessage(IPipe pipe) {
-		if (this.pipe != pipe) return null;
-		if (this.reader == null) init();
+		if (this.pipe != pipe)
+			return null;
+		if (this.reader == null)
+			init();
 		if(!reader.hasMoreTags()) {
 			// TODO send OOBCM to notify EOF
 			// Do not unsubscribe as this kills VOD seek while in buffer
@@ -136,16 +138,19 @@ implements IPassive, ISeekableProvider, IPullableProvider, IPipeConnectionListen
 		}
 	}
 	
-	public void onOOBControlMessage(IMessageComponent source, IPipe pipe, OOBControlMessage oobCtrlMsg) {
+	public void onOOBControlMessage(IMessageComponent source, IPipe pipe,
+			OOBControlMessage oobCtrlMsg) {
 		if (IPassive.KEY.equals(oobCtrlMsg.getTarget())) {
 			if (oobCtrlMsg.getServiceName().equals("init")) {
-				Integer startTS = (Integer) oobCtrlMsg.getServiceParamMap().get("startTS");
+				Integer startTS = (Integer) oobCtrlMsg.getServiceParamMap()
+						.get("startTS");
 				setStart(startTS.intValue());
 			}
 		}
 		if (ISeekableProvider.KEY.equals(oobCtrlMsg.getTarget())) {
 			if (oobCtrlMsg.getServiceName().equals("seek")) {
-				Integer position = (Integer) oobCtrlMsg.getServiceParamMap().get("position");
+				Integer position = (Integer) oobCtrlMsg.getServiceParamMap()
+						.get("position");
 				int seekPos = seek(position.intValue());
 				// Return position we seeked to
 				oobCtrlMsg.setResult(seekPos);
@@ -154,7 +159,9 @@ implements IPassive, ISeekableProvider, IPullableProvider, IPipeConnectionListen
 	}
 
 	private void init() {
-		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils.getScopeService(scope, IStreamableFileFactory.KEY, StreamableFileFactory.class);
+		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils
+				.getScopeService(scope, IStreamableFileFactory.KEY,
+						StreamableFileFactory.class);
 		IStreamableFileService service = factory.getService(file);
 		if (service == null) {
 			log.error("No service found for " + file.getAbsolutePath());
@@ -195,7 +202,8 @@ implements IPassive, ISeekableProvider, IPullableProvider, IPipeConnectionListen
 		}
 		int frame = 0;
 		for (int i = 0; i < keyFrameMeta.positions.length; i++) {
-			if (keyFrameMeta.timestamps[i] > ts) break;
+			if (keyFrameMeta.timestamps[i] > ts)
+				break;
 			frame = i;
 		}
 		reader.position(keyFrameMeta.positions[frame]);

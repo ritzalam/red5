@@ -54,14 +54,17 @@ public interface IScopeHandler extends IEventHandler {
 	void stop(IScope scope);
 	
 	/**
-	 * Called just before every connection to a scope. You can pass additional params from client using 
-	 * <code>NetConnection.connect</code> method (see below).
+	 * Called just before every connection to a scope. You can pass additional
+	 * params from client using <code>NetConnection.connect</code> method (see
+	 * below).
 	 * 
 	 * @param conn
 	 * 			connection object
 	 * @param params
-	 * 			list of params passed from client via <code>NetConnection.connect</code> method. All parameters but the first one passed
-	 * 			to <code>NetConnection.connect</code> method are available as params array.
+	 *            list of params passed from client via
+	 *            <code>NetConnection.connect</code> method. All parameters
+	 *            but the first one passed to <code>NetConnection.connect</code>
+	 *            method are available as params array.
 	 * 
 	 * 
 	 * @return <code>true</code> to allow, <code>false</code> to deny
@@ -100,7 +103,8 @@ public interface IScopeHandler extends IEventHandler {
 	 * 
 	 * @param client
 	 * 			client object
-	 * @return <code>true</code> to allow, <code>false</code> to deny connection
+	 * @return <code>true</code> to allow, <code>false</code> to deny
+	 *         connection
 	 */
 	boolean join(IClient client, IScope scope);
 

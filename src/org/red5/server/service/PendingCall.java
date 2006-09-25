@@ -42,15 +42,18 @@ public class PendingCall extends Call implements IPendingServiceCall {
     	super(name, method, args);
     }
     
-	
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.red5.server.service.ServiceCall#getResult()
 	 */
 	public Object getResult() {
 		return result;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.red5.server.service.temp#setResult(java.lang.Object)
 	 */
 	public void setResult(Object result) {

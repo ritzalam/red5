@@ -43,6 +43,7 @@ public class PlayBuffer {
 	
 	/**
 	 * Buffer capacity in bytes.
+	 * 
 	 * @return
 	 */
 	public long getCapacity() {
@@ -55,6 +56,7 @@ public class PlayBuffer {
 	
 	/**
 	 * Number of message in buffer.
+	 * 
 	 * @return
 	 */
 	public int getMessageCount() {
@@ -63,6 +65,7 @@ public class PlayBuffer {
 	
 	/**
 	 * Total message size in bytes.
+	 * 
 	 * @return
 	 */
 	public long getMessageSize() {
@@ -71,6 +74,7 @@ public class PlayBuffer {
 	
 	/**
 	 * Put a message into this buffer.
+	 * 
 	 * @param message
 	 * @return <tt>true</tt> indicates success and <tt>false</tt>
 	 * indicates buffer is full.
@@ -91,6 +95,7 @@ public class PlayBuffer {
 	
 	/**
 	 * Take a message from this buffer. The message count decreases.
+	 * 
 	 * @return <tt>null</tt> if buffer is empty.
 	 */
 	public RTMPMessage takeMessage() {

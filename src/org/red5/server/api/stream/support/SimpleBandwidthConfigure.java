@@ -23,15 +23,17 @@ import org.red5.server.api.IBandwidthConfigure;
 import org.springframework.core.style.ToStringCreator;
 
 /**
- * This class is the only IBandwidthConfigure implementation in 0.5.
- * It's a kind of ValueObject (item with a set of values that just stores data) 
- * that is used to configure Red5 application bandwidth settings. 
- *
- * This class helps you to configure maximum burst amount, level of bandwidth from server to client and
- * vice versa, set bandwidth amount for audio and video separately and so forth.
+ * This class is the only IBandwidthConfigure implementation in 0.5. It's a kind
+ * of ValueObject (item with a set of values that just stores data) that is used
+ * to configure Red5 application bandwidth settings.
  * 
- * Say if you need to limit bandwidth for each connection of create a copy of a stream with lower
- * quality you use instance of this class to set bandwidth parameters.
+ * This class helps you to configure maximum burst amount, level of bandwidth
+ * from server to client and vice versa, set bandwidth amount for audio and
+ * video separately and so forth.
+ * 
+ * Say if you need to limit bandwidth for each connection of create a copy of a
+ * stream with lower quality you use instance of this class to set bandwidth
+ * parameters.
  */
 public class SimpleBandwidthConfigure implements IBandwidthConfigure {
 	private long audioBandwidth;

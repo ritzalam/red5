@@ -48,7 +48,8 @@ public class ClientRegistry implements IClientRegistry {
 		return clients.get(id);
 	}
 
-	public IClient newClient(Object[] params) throws ClientNotFoundException, ClientRejectedException {
+	public IClient newClient(Object[] params) throws ClientNotFoundException,
+			ClientRejectedException {
 		IClient client = new Client(nextId(), this);
 		addClient(client);
 		return client;

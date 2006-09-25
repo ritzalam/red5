@@ -118,7 +118,8 @@ public class ConversionUtils {
 	
 	public static Object convertToArray(Object source, Class target) throws ConversionException {
 		try { 
-			Object[] targetInstance = (Object[]) Array.newInstance(target.getComponentType(),0);
+			Object[] targetInstance = (Object[]) Array.newInstance(target
+					.getComponentType(), 0);
 			if(source.getClass().isArray()){
 				Object[] sourceArray = (Object[]) source;
 				Class targetType = target.getComponentType();
@@ -139,12 +140,16 @@ public class ConversionUtils {
 	}
 	
 	public static Object convertToWrappedPrimitive(Object source, Class wrapper){
-		if(source == null || wrapper == null) return null;
-		if(wrapper.isInstance(source)) return source;
-		if(wrapper.isAssignableFrom(source.getClass())) return source;
+		if (source == null || wrapper == null)
+			return null;
+		if (wrapper.isInstance(source))
+			return source;
+		if (wrapper.isAssignableFrom(source.getClass()))
+			return source;
 		if(source instanceof Number)
 			return convertNumberToWrapper((Number) source, wrapper);
-		else return convertStringToWrapper(source.toString(), wrapper);
+		else
+			return convertStringToWrapper(source.toString(), wrapper);
 	}
 	
 	public static Object convertStringToWrapper(String str, Class wrapper){
@@ -189,7 +194,8 @@ public class ConversionUtils {
 		throw new ConversionException("Unable to convert number to: "+wrapper);
 	}
 	
-	public static List findMethodsByNameAndNumParams(Object object, String method, int numParam){
+	public static List findMethodsByNameAndNumParams(Object object,
+			String method, int numParam) {
 		LinkedList list = new LinkedList();
 		Method[] methods = object.getClass().getMethods();
 		for(int i=0; i<methods.length; i++){
@@ -208,7 +214,8 @@ public class ConversionUtils {
 		return list;
 	}
 	
-	public static Object[] convertParams(Object[] source, Class[] target) throws ConversionException {
+	public static Object[] convertParams(Object[] source, Class[] target)
+			throws ConversionException {
 		Object[] converted = new Object[target.length];
 		for(int i=0; i<target.length; i++){
 			converted[i] = convert(source[i], target[i]);
@@ -216,8 +223,8 @@ public class ConversionUtils {
 		return converted;
 	}
 	
-
-	public static List convertArrayToList(Object[] source) throws ConversionException {
+	public static List convertArrayToList(Object[] source)
+			throws ConversionException {
 		ArrayList list = new ArrayList(source.length);
 		for(int i=0; i<source.length; i++){
 			list.add(source[i]);
@@ -225,10 +232,12 @@ public class ConversionUtils {
 		return list;
 	}
 	
-	public static Object convertMapToBean(Map source, Class target) throws ConversionException {
+	public static Object convertMapToBean(Map source, Class target)
+			throws ConversionException {
 		Object bean = newInstance(target.getClass().getName());
 		if(bean == null){
-			throw new ConversionException("Unable to create bean using empty constructor");
+			throw new ConversionException(
+					"Unable to create bean using empty constructor");
 		}
 		try {
 			BeanUtils.populate(bean, source);
@@ -244,20 +253,21 @@ public class ConversionUtils {
 	
 	public static Set convertArrayToSet(Object[] source){
 		HashSet set = new HashSet();
-		for(int i=0; i<source.length; i++) set.add(source[i]);
+		for (int i = 0; i < source.length; i++)
+			set.add(source[i]);
 		return set;
 	}
 	
 	protected static Object newInstance(String className){
 		Object instance = null; 
 		try	{ 
-			Class clazz = Thread.currentThread().getContextClassLoader().loadClass(className);
+			Class clazz = Thread.currentThread().getContextClassLoader()
+					.loadClass(className);
 			instance = clazz.newInstance();
 		} catch(Exception ex){
 			log.error("Error loading class: "+className, ex);
 		} 
 		return instance;
 	}
-	
 	
 }

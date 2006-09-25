@@ -33,7 +33,8 @@ import org.red5.server.api.IScope;
 import org.red5.server.api.event.IEvent;
 
 /**
- * Simple connection class so the Red5 object works in methods invoked through remoting.
+ * Simple connection class so the Red5 object works in methods invoked through
+ * remoting.
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)

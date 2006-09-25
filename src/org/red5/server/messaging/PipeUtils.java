@@ -21,28 +21,33 @@ package org.red5.server.messaging;
 
 /**
  * Helper class for pipe structure.
+ * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Steven Gong (steven.gong@gmail.com)
  */
 public class PipeUtils {
 	/**
 	 * Connect a provider/consumer with a pipe.
+	 * 
 	 * @param provider
 	 * @param pipe
 	 * @param consumer
 	 */
-	public static void connect(IProvider provider, IPipe pipe, IConsumer consumer) {
+	public static void connect(IProvider provider, IPipe pipe,
+			IConsumer consumer) {
 		pipe.subscribe(provider, null);
 		pipe.subscribe(consumer, null);
 	}
 	
 	/**
 	 * Disconnect a provider/consumer from a pipe.
+	 * 
 	 * @param provider
 	 * @param pipe
 	 * @param consumer
 	 */
-	public static void disconnect(IProvider provider, IPipe pipe, IConsumer consumer) {
+	public static void disconnect(IProvider provider, IPipe pipe,
+			IConsumer consumer) {
 		pipe.unsubscribe(provider);
 		pipe.unsubscribe(consumer);
 	}

@@ -38,8 +38,8 @@ import org.red5.io.object.Serializer;
 public class SharedObjectSerializer extends Serializer {
 
 	// Initialize Logging
-	protected static Log log = LogFactory.getLog(SharedObjectSerializer.class.getName());
-	
+	protected static Log log = LogFactory.getLog(SharedObjectSerializer.class
+			.getName());
 
 	/**
 	 * Writes a map to the output.
@@ -61,10 +61,12 @@ public class SharedObjectSerializer extends Serializer {
 		boolean isBeanMap = (map instanceof BeanMap);
 		while(it.hasNext()){
 			Map.Entry entry = (Map.Entry) it.next();
-			if(isBeanMap && ((String)entry.getKey()).equals("class")) continue;
+			if (isBeanMap && ((String) entry.getKey()).equals("class"))
+				continue;
 			out.writeItemKey(entry.getKey().toString());
 			serialize(out,entry.getValue());
-			if(it.hasNext()) out.markPropertySeparator();
+			if (it.hasNext())
+				out.markPropertySeparator();
 		}
 		out.markEndObject();
 	}

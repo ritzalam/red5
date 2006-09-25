@@ -91,7 +91,8 @@ public class StreamFlow implements IStreamFlow {
 
 	public int getDataBitRate() {
 		int dataTime = getSegmentDataTime() / 1000;
-		if(dataTime==0) return 0;
+		if (dataTime == 0)
+			return 0;
 		return ((segmentBytesTransfered * 8) / dataTime);
 	}
 
@@ -100,15 +101,20 @@ public class StreamFlow implements IStreamFlow {
 	}
 
 	public int getSegmentDataTime() {
-		if(segmentDataTimes[VIDEO] >= segmentDataTimes[AUDIO] && segmentDataTimes[VIDEO] >= segmentDataTimes[DATA]){
+		if (segmentDataTimes[VIDEO] >= segmentDataTimes[AUDIO]
+				&& segmentDataTimes[VIDEO] >= segmentDataTimes[DATA]) {
 			return segmentDataTimes[VIDEO];
-		} else if(segmentDataTimes[AUDIO] >= segmentDataTimes[VIDEO] && segmentDataTimes[AUDIO] >= segmentDataTimes[DATA]){
+		} else if (segmentDataTimes[AUDIO] >= segmentDataTimes[VIDEO]
+				&& segmentDataTimes[AUDIO] >= segmentDataTimes[DATA]) {
 			return segmentDataTimes[AUDIO];
-		} else return segmentDataTimes[DATA];
+		} else {
+			return segmentDataTimes[DATA];
+        }
 	}
 
 	public long getSegmentStreamTime() {
-		if(segmentStartTime == 0) return 0;
+		if (segmentStartTime == 0)
+			return 0;
 		return System.currentTimeMillis() - segmentStartTime;
 	}
 
@@ -123,7 +129,8 @@ public class StreamFlow implements IStreamFlow {
 		}
 		int newLastBufferTime = (combinedBufferTime/lastBufferTimes.length);
 		boolean isIncreasing = (newLastBufferTime >= lastBufferTime);
-		//log.debug("lastBufferTime: "+lastBufferTime+" new:"+newLastBufferTime);
+		// log.debug("lastBufferTime: "+lastBufferTime+"
+		// new:"+newLastBufferTime);
 		lastBufferTime = newLastBufferTime;
 		return isIncreasing;
 	}
@@ -133,11 +140,15 @@ public class StreamFlow implements IStreamFlow {
 	}
 
 	public long getTotalDataTime() {
-		if(totalDataTimes[VIDEO] >= totalDataTimes[AUDIO] && totalDataTimes[VIDEO] >= totalDataTimes[DATA]){
+		if (totalDataTimes[VIDEO] >= totalDataTimes[AUDIO]
+				&& totalDataTimes[VIDEO] >= totalDataTimes[DATA]) {
 			return totalDataTimes[VIDEO];
-		} else if(totalDataTimes[AUDIO] >= totalDataTimes[VIDEO] && totalDataTimes[AUDIO] >= totalDataTimes[DATA]){
+		} else if (totalDataTimes[AUDIO] >= totalDataTimes[VIDEO]
+				&& totalDataTimes[AUDIO] >= totalDataTimes[DATA]) {
 			return totalDataTimes[AUDIO];
-		} else return totalDataTimes[DATA];
+		} else {
+			return totalDataTimes[DATA];
+        }
 	}
 
 	public long getTotalStreamTime() {
@@ -145,7 +156,8 @@ public class StreamFlow implements IStreamFlow {
 	}
 	
 	public long getZeroToStreamTime() {
-		if(zeroToStreamTime == -1) return System.currentTimeMillis() - segmentStartTime;
+		if (zeroToStreamTime == -1)
+			return System.currentTimeMillis() - segmentStartTime;
 		return zeroToStreamTime;
 	}
 
@@ -156,7 +168,8 @@ public class StreamFlow implements IStreamFlow {
 	void startSegment(){
 		streaming = true;
 		final long now = System.currentTimeMillis();
-		if(streamStartTime == 0) streamStartTime = now;
+		if (streamStartTime == 0)
+			streamStartTime = now;
 		segmentStartTime = now;
 	}
 	
@@ -172,7 +185,8 @@ public class StreamFlow implements IStreamFlow {
 		streaming = false;
 		segmentBytesTransfered = 0;
 		combinedSegmentDataTime = 0;
-		for(int i=0; i<lastBufferTimes.length; i++) lastBufferTimes[i] = 0;
+		for (int i = 0; i < lastBufferTimes.length; i++)
+			lastBufferTimes[i] = 0;
 		zeroToStreamTime = -1;
 		segmentDataTimes[0] = segmentDataTimes[1] = segmentDataTimes[2] = 0;
 		streamTracker.reset();
@@ -218,7 +232,8 @@ public class StreamFlow implements IStreamFlow {
 		}
 		
 		lastBufferTimes[lastBufferTimeIndex++] = bufferTime;
-		if(lastBufferTimeIndex == lastBufferTimes.length) lastBufferTimeIndex = 0;
+		if (lastBufferTimeIndex == lastBufferTimes.length)
+			lastBufferTimeIndex = 0;
 		int dataTime = getSegmentDataTime();
 		if( zeroToStreamTime == -1 && dataTime > clientTimeBuffer )
 			zeroToStreamTime = System.currentTimeMillis() - segmentStartTime;
@@ -226,7 +241,8 @@ public class StreamFlow implements IStreamFlow {
 	}
 	
 	void updateSegment(int index, int bytes, int relativeTime){
-		if(!streaming) startSegment();
+		if (!streaming)
+			startSegment();
 		segmentBytesTransfered += bytes;
 		segmentDataTimes[index] += relativeTime;
 		combinedSegmentDataTime += relativeTime;
@@ -244,11 +260,4 @@ public class StreamFlow implements IStreamFlow {
 			.toString();
 	}
 	
-	/*
-		 
-	  // protected
-	  startSegment
-	  clearSegment
-	  updateSegment ( bytes, relativeDataTime )
-	*/
 }

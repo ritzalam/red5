@@ -26,8 +26,8 @@ public interface ISubscriberStreamService {
 	public final static String SUBSCRIBER_STREAM_SERVICE = "subscriberStreamService";
 	
 	/**
-	 * Returns a stream that can subscribe a broadcast stream with the given name
-	 * using "IBroadcastStream.subscribe".
+	 * Returns a stream that can subscribe a broadcast stream with the given
+	 * name using "IBroadcastStream.subscribe".
 	 *  
 	 * @param scope
 	 * 			the scope to return the stream from

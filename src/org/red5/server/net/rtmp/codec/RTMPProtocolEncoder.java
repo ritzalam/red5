@@ -53,7 +53,8 @@ import org.red5.server.service.Call;
 import org.red5.server.so.ISharedObjectEvent;
 import org.red5.server.so.ISharedObjectMessage;
 
-public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants, IEventEncoder {
+public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
+		IEventEncoder {
 
 	protected static Log log =
         LogFactory.getLog(RTMPProtocolEncoder.class.getName());
@@ -63,11 +64,14 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants, IE
 	
 	private Serializer serializer = null;
 	
-	public ByteBuffer encode(ProtocolState state, Object message) throws Exception {
+	public ByteBuffer encode(ProtocolState state, Object message)
+			throws Exception {
 		try {
 			final RTMP rtmp = (RTMP) state;
-			if(message instanceof ByteBuffer) return (ByteBuffer) message; 
-		    else return encodePacket(rtmp, (Packet) message);
+			if (message instanceof ByteBuffer)
+				return (ByteBuffer) message;
+			else
+				return encodePacket(rtmp, (Packet) message);
 		} catch (RuntimeException e) {
 			log.error("Error encoding object: ",e);
 		}
@@ -98,14 +102,17 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants, IE
 			data.rewind();
 		header.setSize(data.limit());
 		
-		final ByteBuffer headers = encodeHeader(header,rtmp.getLastWriteHeader(channelId));
+		final ByteBuffer headers = encodeHeader(header, rtmp
+				.getLastWriteHeader(channelId));
 		
 		rtmp.setLastWriteHeader(channelId, header);
 		rtmp.setLastWritePacket(channelId, packet);
 		
 		final int chunkSize = rtmp.getWriteChunkSize();
-		final int numChunks = (int) Math.ceil(header.getSize() / (float) chunkSize);
-		final int bufSize = header.getSize() + headers.limit() + (numChunks - 1 * 1);
+		final int numChunks = (int) Math.ceil(header.getSize()
+				/ (float) chunkSize);
+		final int bufSize = header.getSize() + headers.limit()
+				+ (numChunks - 1 * 1);
 		final ByteBuffer out = ByteBuffer.allocate(bufSize);
 		
 		headers.flip();	
@@ -118,7 +125,8 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants, IE
 		} else {
 			for(int i=0; i<numChunks-1; i++){
 				BufferUtils.put(out,data,chunkSize);
-				out.put(RTMPUtils.encodeHeaderByte(HEADER_CONTINUE, header.getChannelId()));
+				out.put(RTMPUtils.encodeHeaderByte(HEADER_CONTINUE, header
+						.getChannelId()));
 			}
 			BufferUtils.put(out,data,out.remaining());
 		}
@@ -132,17 +140,22 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants, IE
 	public ByteBuffer encodeHeader(Header header, Header lastHeader){
 		
 		byte headerType = HEADER_NEW;
-		if(lastHeader==null || header.getStreamId() != lastHeader.getStreamId() || !header.isTimerRelative()){
+		if (lastHeader == null
+				|| header.getStreamId() != lastHeader.getStreamId()
+				|| !header.isTimerRelative()) {
 			headerType = HEADER_NEW;
-		} else if(header.getSize() != lastHeader.getSize() || header.getDataType() != lastHeader.getDataType()){
+		} else if (header.getSize() != lastHeader.getSize()
+				|| header.getDataType() != lastHeader.getDataType()) {
 			headerType = HEADER_SAME_SOURCE;
 		} else if(header.getTimer() != lastHeader.getTimer()){
 			headerType = HEADER_TIMER_CHANGE;
 		} else
 			headerType = HEADER_CONTINUE;
 		
-		final ByteBuffer buf = ByteBuffer.allocate(RTMPUtils.getHeaderLength(headerType));
-		final byte headerByte = RTMPUtils.encodeHeaderByte(headerType, header.getChannelId());
+		final ByteBuffer buf = ByteBuffer.allocate(RTMPUtils
+				.getHeaderLength(headerType));
+		final byte headerByte = RTMPUtils.encodeHeaderByte(headerType, header
+				.getChannelId());
 		
 		buf.put(headerByte);
 		
@@ -197,7 +210,8 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants, IE
 			return encodeServerBW((ServerBW) message);
 		case TYPE_CLIENT_BANDWIDTH:
 			return encodeClientBW((ClientBW) message);
-		default: return null;
+		default:
+			return null;
 		}
 	}
 
@@ -323,7 +337,8 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants, IE
 				
 			default:
 				//log.error("Unknown event " + event.getType());
-	            // XXX: come back here, need to make this work in server or client mode
+				// XXX: come back here, need to make this work in server or
+				// client mode
 			    // talk to joachim about this part.
 				out.put(type);
 				mark = out.position();
@@ -336,20 +351,23 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants, IE
 				out.putInt(mark,len);
 				break;
 				
-			
 			}
 		}
 		return out;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.red5.server.net.rtmp.codec.IEventEncoder#encodeNotify(org.red5.server.net.rtmp.event.Notify)
 	 */
 	public ByteBuffer encodeNotify(Notify notify){
 		return encodeNotifyOrInvoke(notify);
 	}
 	
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.red5.server.net.rtmp.codec.IEventEncoder#encodeInvoke(org.red5.server.net.rtmp.event.Invoke)
 	 */
 	public ByteBuffer encodeInvoke(Invoke invoke){
@@ -374,8 +392,9 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants, IE
 		} else {
 			if(log.isDebugEnabled())
 				log.debug("This is a pending call, send request");
-			final String action = (call.getServiceName()==null) ?
-					call.getServiceMethodName() : call.getServiceName() + "." + call.getServiceMethodName();
+			final String action = (call.getServiceName() == null) ? call
+					.getServiceMethodName() : call.getServiceName() + "."
+					+ call.getServiceMethodName();
 			serializer.serialize(output, action); // seems right
 		}
 		if (invoke instanceof Invoke) {
@@ -400,13 +419,17 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants, IE
 		return out;
 	}
 	
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.red5.server.net.rtmp.codec.IEventEncoder#encodePing(org.red5.server.net.rtmp.event.Ping)
 	 */
 	public ByteBuffer encodePing(Ping ping){
 		int len = 6;
-		if(ping.getValue3()!=Ping.UNDEFINED) len +=4;
-		if(ping.getValue4()!=Ping.UNDEFINED) len +=4;
+		if (ping.getValue3() != Ping.UNDEFINED)
+			len += 4;
+		if (ping.getValue4() != Ping.UNDEFINED)
+			len += 4;
 		final ByteBuffer out = ByteBuffer.allocate(len);
 		out.putShort(ping.getValue1());
 		out.putInt(ping.getValue2());
@@ -417,7 +440,9 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants, IE
 		return out;
 	}
 	
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.red5.server.net.rtmp.codec.IEventEncoder#encodeStreamBytesRead(org.red5.server.net.rtmp.event.StreamBytesRead)
 	 */
 	public ByteBuffer encodeBytesRead(BytesRead bytesRead){
@@ -426,14 +451,18 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants, IE
 		return out;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.red5.server.net.rtmp.codec.IEventEncoder#encodeAudioData(org.red5.server.net.rtmp.event.AudioData)
 	 */
 	public ByteBuffer encodeAudioData(AudioData audioData){
 		return audioData.getData().asReadOnlyBuffer();
 	}
 	
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.red5.server.net.rtmp.codec.IEventEncoder#encodeVideoData(org.red5.server.net.rtmp.event.VideoData)
 	 */
 	public ByteBuffer encodeVideoData(VideoData videoData){
@@ -452,5 +481,4 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants, IE
 		this.serializer = serializer;
 	}
 
-	
 }

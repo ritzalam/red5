@@ -26,7 +26,8 @@ import java.util.List;
 import org.red5.server.api.event.IEventListener;
 import org.red5.server.net.rtmp.event.BaseEvent;
 
-public class SharedObjectMessage extends BaseEvent implements ISharedObjectMessage {
+public class SharedObjectMessage extends BaseEvent implements
+		ISharedObjectMessage {
 
 	private String name;
 	private LinkedList<ISharedObjectEvent> events = new LinkedList<ISharedObjectEvent>();
@@ -37,7 +38,8 @@ public class SharedObjectMessage extends BaseEvent implements ISharedObjectMessa
 		this(null, name, version, persistent);
 	}
 	
-	public SharedObjectMessage(IEventListener source, String name, int version, boolean persistent){
+	public SharedObjectMessage(IEventListener source, String name, int version,
+			boolean persistent) {
 		super(Type.SHARED_OBJECT, source);
 		this.name = name;
 		this.version = version;
@@ -115,7 +117,8 @@ public class SharedObjectMessage extends BaseEvent implements ISharedObjectMessa
 		final Iterator it = events.iterator();
 		while(it.hasNext()){
 			sb.append(it.next());
-			if(it.hasNext()) sb.append(" , ");
+			if (it.hasNext())
+				sb.append(" , ");
 		}
 		sb.append(" } ");
 		return sb.toString();

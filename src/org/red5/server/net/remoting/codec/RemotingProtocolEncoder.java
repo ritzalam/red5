@@ -42,8 +42,8 @@ public class RemotingProtocolEncoder implements SimpleProtocolEncoder {
 	
 	private Serializer serializer = null;
 	
-	public ByteBuffer encode(ProtocolState state, Object message) throws Exception {
-		
+	public ByteBuffer encode(ProtocolState state, Object message)
+			throws Exception {
 
 		RemotingPacket resp = (RemotingPacket) message;
 		Iterator it = resp.getCalls().iterator();

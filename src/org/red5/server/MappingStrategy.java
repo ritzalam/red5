@@ -34,13 +34,17 @@ public class MappingStrategy implements IMappingStrategy {
 	}
 
 	public String mapResourcePrefix(String path) {
-		if(path == null || path.equals(ROOT)) return defaultApp + DIR;
-		else return path + DIR;
+		if (path == null || path.equals(ROOT))
+			return defaultApp + DIR;
+		else
+			return path + DIR;
 	}
 
 	public String mapScopeHandlerName(String path) {
-		if(path == null || path.equals(ROOT)) return defaultApp + HANDLER;
-		else return path + HANDLER;
+		if (path == null || path.equals(ROOT))
+			return defaultApp + HANDLER;
+		else
+			return path + HANDLER;
 	}
 
 	public String mapServiceName(String name) {

@@ -51,8 +51,10 @@ public class Invoke extends Notify {
 	}
 	
 	public boolean equals(Object obj){
-		if(obj == null) return false;
-		if(!(obj instanceof Invoke)) return false;
+		if (obj == null)
+			return false;
+		if (!(obj instanceof Invoke))
+			return false;
 		return  super.equals(obj);
 	}
 	

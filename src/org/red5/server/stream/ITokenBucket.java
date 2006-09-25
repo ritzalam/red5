@@ -21,6 +21,7 @@ package org.red5.server.stream;
 
 /**
  * A token bucket that is used to control bandwidth.
+ * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Steven Gong (steven.gong@gmail.com)
  */
@@ -41,6 +42,7 @@ public interface ITokenBucket {
 	 * <tt>task</tt> is not null, the callback will be executed when the token
 	 * is available. The tokens are not consumed automatically before callback,
 	 * so it's recommended to acquire token again in callback function.
+	 * 
 	 * @param tokenCount
 	 * @param callback
 	 * @return <tt>true</tt> if successfully acquired or <tt>false</tt>
@@ -59,12 +61,14 @@ public interface ITokenBucket {
 	
 	/**
 	 * Get the capacity of this bucket in Byte.
+	 * 
 	 * @return
 	 */
 	long getCapacity();
 	
 	/**
 	 * The amount of tokens increased per second in millisecond.
+	 * 
 	 * @return
 	 */
 	double getSpeed();

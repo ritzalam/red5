@@ -26,14 +26,16 @@ import org.red5.server.api.IFlowControllable;
 
 public class StreamFlowController {
 	
-	private static final Log log = LogFactory.getLog(StreamFlowController.class);
+	private static final Log log = LogFactory
+			.getLog(StreamFlowController.class);
 
 	private static final int FIXED_CHANGE = 1024 * 4;
 	
-	public boolean adaptBandwidthForFlow(IStreamFlow flow, IFlowControllable controllable){
+	public boolean adaptBandwidthForFlow(IStreamFlow flow,
+			IFlowControllable controllable) {
 		
-		
-		IBandwidthConfigure parentBwConf = controllable.getParentFlowControllable().getBandwidthConfigure();
+		IBandwidthConfigure parentBwConf = controllable
+				.getParentFlowControllable().getBandwidthConfigure();
 		IBandwidthConfigure bwConf = controllable.getBandwidthConfigure();
 		if(bwConf == null){
 			if (parentBwConf == null)
@@ -46,31 +48,37 @@ public class StreamFlowController {
 		boolean change = false;
 		final int bufferTime = flow.getBufferTime();
 		long bw = bwConf.getOverallBandwidth();
-		//log.info("Buffer: " + bufferTime + " min: " + flow.getMinTimeBuffer() + " max: " + flow.getMaxTimeBuffer());
+		// log.info("Buffer: " + bufferTime + " min: " + flow.getMinTimeBuffer()
+		// + " max: " + flow.getMaxTimeBuffer());
 		if(bufferTime > flow.getMaxTimeBuffer()){
 			if(flow.isBufferTimeIncreasing()){ 
-				if(bw > flow.getDataBitRate()) bw = flow.getDataBitRate();
+				if (bw > flow.getDataBitRate())
+					bw = flow.getDataBitRate();
 				bw -= computeChange(bw);
 				change = true;
 				//log.info("<<");
 			} 
 		} else if(bufferTime < flow.getMinTimeBuffer()){
 			if(!flow.isBufferTimeIncreasing()){	
-				if(bw < flow.getDataBitRate()) bw = flow.getDataBitRate();
+				if (bw < flow.getDataBitRate())
+					bw = flow.getDataBitRate();
 				bw += computeChange(bw) * 2;
 				change = true;
 				//log.info(">>");
 			} 
-		} else if(bufferTime < ( flow.getMinTimeBuffer() + ((flow.getMaxTimeBuffer() - flow.getMinTimeBuffer()) / 1.8) )){
+		} else if (bufferTime < (flow.getMinTimeBuffer() + ((flow
+				.getMaxTimeBuffer() - flow.getMinTimeBuffer()) / 1.8))) {
 			if(!flow.isBufferTimeIncreasing()){ 
-				if(bw < flow.getDataBitRate() * 0.9) bw = (int) (flow.getDataBitRate());
+				if (bw < flow.getDataBitRate() * 0.9)
+					bw = (int) (flow.getDataBitRate());
 				bw += computeChange(bw) / 2;
 				change = true;
 				//log.info(">");
 			} 
 		} else if(bufferTime < flow.getMaxTimeBuffer()){
 			if(flow.isBufferTimeIncreasing()){
-				if(bw > flow.getDataBitRate() * 1.1) bw = (int) (flow.getDataBitRate());
+				if (bw > flow.getDataBitRate() * 1.1)
+					bw = (int) (flow.getDataBitRate());
 				bw -= computeChange(bw) / 2;
 				change = true;
 				//log.info("<");
@@ -82,14 +90,17 @@ public class StreamFlowController {
 		//change = false;
 		if(change){
 			
-			if(bw > parentBwConf.getOverallBandwidth() ) bw = parentBwConf.getOverallBandwidth();
-			else if(bw < FIXED_CHANGE) bw = FIXED_CHANGE;
+			if (bw > parentBwConf.getOverallBandwidth())
+				bw = parentBwConf.getOverallBandwidth();
+			else if (bw < FIXED_CHANGE)
+				bw = FIXED_CHANGE;
 			
 			bwConf.setOverallBandwidth(bw);
 			controllable.setBandwidthConfigure(bwConf);
 		}
 		
-		log.debug("bw: "+bw+" buf: "+bufferTime+" data bit rate: "+flow.getDataBitRate());
+		log.debug("bw: " + bw + " buf: " + bufferTime + " data bit rate: "
+				+ flow.getDataBitRate());
 		
 		return change;
 	}

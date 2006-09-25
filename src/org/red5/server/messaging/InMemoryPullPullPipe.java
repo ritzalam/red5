@@ -33,7 +33,8 @@ import org.apache.commons.logging.LogFactory;
  * @author Steven Gong (steven.gong@gmail.com)
  */
 public class InMemoryPullPullPipe extends AbstractPipe {
-	private static final Log log = LogFactory.getLog(InMemoryPullPullPipe.class);
+	private static final Log log = LogFactory
+			.getLog(InMemoryPullPullPipe.class);
 	
 	public boolean subscribe(IConsumer consumer, Map paramMap) {
 		boolean success = super.subscribe(consumer, paramMap);
@@ -46,7 +47,9 @@ public class InMemoryPullPullPipe extends AbstractPipe {
 			throw new IllegalArgumentException("Non-pullable provider not supported by PullPullPipe");
 		}
 		boolean success = super.subscribe(provider, paramMap);
-		if (success) fireProviderConnectionEvent(provider, PipeConnectionEvent.PROVIDER_CONNECT_PULL, paramMap);
+		if (success)
+			fireProviderConnectionEvent(provider,
+					PipeConnectionEvent.PROVIDER_CONNECT_PULL, paramMap);
 		return success;
 	}
 
@@ -60,7 +63,8 @@ public class InMemoryPullPullPipe extends AbstractPipe {
 			// choose the first available provider
 			try {
 				message = provider.pullMessage(this);
-				if (message != null) break;
+				if (message != null)
+					break;
 			} catch (Throwable t) {
 				log.error("exception when pulling message from provider", t);
 			}
@@ -75,12 +79,14 @@ public class InMemoryPullPullPipe extends AbstractPipe {
 			providerArray = providers.toArray(new IPullableProvider[]{});
 		}
 		// divided evenly
-		long averageWait = providerArray.length > 0 ? wait / providerArray.length : 0;
+		long averageWait = providerArray.length > 0 ? wait
+				/ providerArray.length : 0;
 		// choose the first available provider
 		for (IPullableProvider provider: providerArray) {
 			try {
 				message = provider.pullMessage(this, averageWait);
-				if (message != null) break;
+				if (message != null)
+					break;
 			} catch (Throwable t) {
 				log.error("exception when pulling message from provider", t);
 			}

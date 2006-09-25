@@ -27,7 +27,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
-import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.protocol.SimpleProtocolDecoder;
 import org.red5.server.net.protocol.SimpleProtocolEncoder;
 import org.red5.server.net.rtmp.RTMPConnection;
@@ -192,7 +191,8 @@ public class RTMPTConnection extends RTMPConnection {
 	 * 
 	 * @param targetSize
 	 * 			the size the resulting buffer should have
-	 * @return a buffer containing the data to send or null if no messages are pending
+	 * @return a buffer containing the data to send or null if no messages are
+	 *         pending
 	 */
 	public ByteBuffer getPendingMessages(int targetSize) {
 		if (this.pendingMessages.isEmpty()) {
@@ -210,7 +210,8 @@ public class RTMPTConnection extends RTMPConnection {
 		ByteBuffer result = ByteBuffer.allocate(2048);
 		result.setAutoExpand(true);
 		
-		log.debug("Returning " + this.pendingMessages.size() + " messages to client.");
+		log.debug("Returning " + this.pendingMessages.size()
+				+ " messages to client.");
 		this.noPendingMessages = 0;
 		this.pollingDelay = INITIAL_POLLING_DELAY;
 		while (result.limit() < targetSize) {

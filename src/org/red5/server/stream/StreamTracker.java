@@ -1,7 +1,6 @@
 package org.red5.server.stream;
 
 import org.red5.server.net.rtmp.event.IRTMPEvent;
-import org.red5.server.net.rtmp.event.Ping;
 import org.red5.server.net.rtmp.message.Constants;
 
 public class StreamTracker implements Constants {

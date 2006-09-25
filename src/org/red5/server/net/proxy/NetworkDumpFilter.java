@@ -35,12 +35,14 @@ public class NetworkDumpFilter extends IoFilterAdapter {
 	protected WritableByteChannel raw;
 	protected WritableByteChannel headers;
 	
-	public NetworkDumpFilter(WritableByteChannel headers, WritableByteChannel raw){
+	public NetworkDumpFilter(WritableByteChannel headers,
+			WritableByteChannel raw) {
 		this.raw = raw;
 		this.headers = headers;
 	}
 	
-	public void messageReceived(NextFilter next, IoSession session, Object message) throws Exception {
+	public void messageReceived(NextFilter next, IoSession session,
+			Object message) throws Exception {
 		if(message instanceof ByteBuffer){
 			ByteBuffer out = (ByteBuffer) message;
 			if(headers != null){
@@ -57,9 +59,12 @@ public class NetworkDumpFilter extends IoFilterAdapter {
 		next.messageReceived(session, message);
 	}
 
-	public void sessionClosed(NextFilter next, IoSession session) throws Exception {
-		if(headers.isOpen()) headers.close();
-		if(raw.isOpen()) raw.close();
+	public void sessionClosed(NextFilter next, IoSession session)
+			throws Exception {
+		if (headers.isOpen())
+			headers.close();
+		if (raw.isOpen())
+			raw.close();
 		next.sessionClosed(session);
 	}
 

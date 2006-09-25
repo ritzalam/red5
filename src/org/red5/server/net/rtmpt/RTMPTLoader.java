@@ -52,7 +52,8 @@ public class RTMPTLoader implements ApplicationContextAware {
 		this.server = server;
 	}
 	
-	public void setApplicationContext(ApplicationContext context) throws BeansException {
+	public void setApplicationContext(ApplicationContext context)
+			throws BeansException {
 		applicationContext = context;
 	}
 	
@@ -64,11 +65,13 @@ public class RTMPTLoader implements ApplicationContextAware {
 		
 		// Originally this class was used to inspect the webapps.
 		// But now thats done using Red5WebPropertiesConfiguration
-		// So this class is left just starting jetty, we can probably use the old method 
+		// So this class is left just starting jetty, we can probably use the
+		// old method
 		
 		log.info("Loading RTMPT context from: "+rtmptConfig);
 		Server rtmptServer = new Server();
-		XmlConfiguration config = new XmlConfiguration(applicationContext.getResource(rtmptConfig).getInputStream());
+		XmlConfiguration config = new XmlConfiguration(applicationContext
+				.getResource(rtmptConfig).getInputStream());
 		config.configure(rtmptServer);
 		
 		// Setup configuration data in rtmptServer
@@ -82,7 +85,8 @@ public class RTMPTLoader implements ApplicationContextAware {
 		if (contextHandler == null)
 			throw new Exception("No context handler found in the server.");
 		
-		contextHandler.setAttribute(RTMPTHandler.HANDLER_ATTRIBUTE, this.handler);
+		contextHandler.setAttribute(RTMPTHandler.HANDLER_ATTRIBUTE,
+				this.handler);
 		log.info("Starting RTMPT server");
 		rtmptServer.start();
 		

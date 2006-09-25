@@ -44,7 +44,8 @@ public class ServiceUtils {
 	 * 			name of the method to invoke
 	 * @param params
 	 * 			parameters to pass to the method
-	 * @return <code>true</code> if the connection supports method calls, otherwise <code>false</code>
+	 * @return <code>true</code> if the connection supports method calls,
+	 *         otherwise <code>false</code>
 	 */
 	public static boolean invokeOnConnection(String method, Object[] params) {
 		return invokeOnConnection(method, params, null);
@@ -59,9 +60,11 @@ public class ServiceUtils {
 	 * 			parameters to pass to the method
 	 * @param callback
 	 * 			object to notify when result is received
-	 * @return <code>true</code> if the connection supports method calls, otherwise <code>false</code>
+	 * @return <code>true</code> if the connection supports method calls,
+	 *         otherwise <code>false</code>
 	 */
-	public static boolean invokeOnConnection(String method, Object[] params, IPendingServiceCallback callback) {
+	public static boolean invokeOnConnection(String method, Object[] params,
+			IPendingServiceCallback callback) {
 		IConnection conn = Red5.getConnectionLocal();
 		return invokeOnConnection(conn, method, params, callback);
 		
@@ -76,9 +79,11 @@ public class ServiceUtils {
 	 * 			name of the method to invoke
 	 * @param params
 	 * 			parameters to pass to the method
-	 * @return <code>true</code> if the connection supports method calls, otherwise <code>false</code>
+	 * @return <code>true</code> if the connection supports method calls,
+	 *         otherwise <code>false</code>
 	 */
-	public static boolean invokeOnConnection(IConnection conn, String method, Object[] params) {
+	public static boolean invokeOnConnection(IConnection conn, String method,
+			Object[] params) {
 		return invokeOnConnection(conn, method, params, null);
 	}
 
@@ -93,14 +98,17 @@ public class ServiceUtils {
 	 * 			parameters to pass to the method
 	 * @param callback
 	 * 			object to notify when result is received
-	 * @return <code>true</code> if the connection supports method calls, otherwise <code>false</code>
+	 * @return <code>true</code> if the connection supports method calls,
+	 *         otherwise <code>false</code>
 	 */
-	public static boolean invokeOnConnection(IConnection conn, String method, Object[] params, IPendingServiceCallback callback) {
+	public static boolean invokeOnConnection(IConnection conn, String method,
+			Object[] params, IPendingServiceCallback callback) {
 		if (conn instanceof IServiceCapableConnection) {
 			if (callback == null)
 				((IServiceCapableConnection) conn).invoke(method, params);
 			else
-				((IServiceCapableConnection) conn).invoke(method, params, callback);
+				((IServiceCapableConnection) conn).invoke(method, params,
+						callback);
 			return true;
 		} else
 			return false;
@@ -119,7 +127,8 @@ public class ServiceUtils {
 	}
 
 	/**
-	 * Invoke a method on all connections to the current scope and handle result.
+	 * Invoke a method on all connections to the current scope and handle
+	 * result.
 	 * 
 	 * @param method
 	 * 			name of the method to invoke
@@ -128,7 +137,8 @@ public class ServiceUtils {
 	 * @param callback
 	 * 			object to notify when result is received
 	 */
-	public static void invokeOnAllConnections(String method, Object[] params, IPendingServiceCallback callback) {
+	public static void invokeOnAllConnections(String method, Object[] params,
+			IPendingServiceCallback callback) {
 		IScope scope = Red5.getConnectionLocal().getScope();
 		invokeOnAllConnections(scope, method, params, callback);
 	}
@@ -143,7 +153,8 @@ public class ServiceUtils {
 	 * @param params
 	 * 			parameters to pass to the method
 	 */
-	public static void invokeOnAllConnections(IScope scope, String method, Object[] params) {
+	public static void invokeOnAllConnections(IScope scope, String method,
+			Object[] params) {
 		invokeOnAllConnections(scope, method, params, null);
 	}
 
@@ -159,7 +170,8 @@ public class ServiceUtils {
 	 * @param callback
 	 * 			object to notify when result is received
 	 */
-	public static void invokeOnAllConnections(IScope scope, String method, Object[] params, IPendingServiceCallback callback) {
+	public static void invokeOnAllConnections(IScope scope, String method,
+			Object[] params, IPendingServiceCallback callback) {
 		invokeOnClient(null, scope, method, params, callback);
 	}
 	
@@ -175,12 +187,14 @@ public class ServiceUtils {
 	 * @param params
 	 * 			parameters to pass to the method
 	 */
-	public static void invokeOnClient(IClient client, IScope scope, String method, Object[] params) {
+	public static void invokeOnClient(IClient client, IScope scope,
+			String method, Object[] params) {
 		invokeOnClient(client, scope, method, params, null);
 	}
 
 	/**
-	 * Invoke a method on all connections of a client to a given scope and handle result.
+	 * Invoke a method on all connections of a client to a given scope and
+	 * handle result.
 	 * 
 	 * @param client
 	 * 			client to get connections for
@@ -193,7 +207,8 @@ public class ServiceUtils {
 	 * @param callback
 	 * 			object to notify when result is received
 	 */
-	public static void invokeOnClient(IClient client, IScope scope, String method, Object[] params, IPendingServiceCallback callback) {
+	public static void invokeOnClient(IClient client, IScope scope,
+			String method, Object[] params, IPendingServiceCallback callback) {
 		Set<IConnection> connections;
 		if (client == null) {
 			connections = new HashSet<IConnection>();
@@ -218,7 +233,8 @@ public class ServiceUtils {
 	 * 			name of the method to notify
 	 * @param params
 	 * 			parameters to pass to the method
-	 * @return <code>true</code> if the connection supports method calls, otherwise <code>false</code>
+	 * @return <code>true</code> if the connection supports method calls,
+	 *         otherwise <code>false</code>
 	 */
 	public static boolean notifyOnConnection(String method, Object[] params) {
 		IConnection conn = Red5.getConnectionLocal();
@@ -234,9 +250,11 @@ public class ServiceUtils {
 	 * 			name of the method to notify
 	 * @param params
 	 * 			parameters to pass to the method
-	 * @return <code>true</code> if the connection supports method calls, otherwise <code>false</code>
+	 * @return <code>true</code> if the connection supports method calls,
+	 *         otherwise <code>false</code>
 	 */
-	public static boolean notifyOnConnection(IConnection conn, String method, Object[] params) {
+	public static boolean notifyOnConnection(IConnection conn, String method,
+			Object[] params) {
 		if (conn instanceof IServiceCapableConnection) {
 			((IServiceCapableConnection) conn).notify(method, params);
 			return true;
@@ -267,7 +285,8 @@ public class ServiceUtils {
 	 * @param params
 	 * 			parameters to pass to the method
 	 */
-	public static void notifyOnAllConnections(IScope scope, String method, Object[] params) {
+	public static void notifyOnAllConnections(IScope scope, String method,
+			Object[] params) {
 		notifyOnClient(null, scope, method, params);
 	}
 	
@@ -283,7 +302,8 @@ public class ServiceUtils {
 	 * @param params
 	 * 			parameters to pass to the method
 	 */
-	public static void notifyOnClient(IClient client, IScope scope, String method, Object[] params) {
+	public static void notifyOnClient(IClient client, IScope scope,
+			String method, Object[] params) {
 		Set<IConnection> connections;
 		if (client == null) {
 			connections = new HashSet<IConnection>();

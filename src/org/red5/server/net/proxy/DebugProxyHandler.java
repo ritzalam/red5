@@ -85,8 +85,6 @@ public class DebugProxyHandler extends IoHandlerAdapter
 
 	public void sessionCreated(IoSession session) throws Exception {
 
-
-		
 		boolean isClient = session.getRemoteAddress().equals(forward);
 		//session.getConfig();
 		
@@ -95,12 +93,12 @@ public class DebugProxyHandler extends IoHandlerAdapter
 		
 			session.setAttribute(RTMP.SESSION_KEY,new RTMP(isClient));
 		
-			session.getFilterChain().addFirst(
-                "protocol",new ProtocolCodecFilter(codecFactory) );
+			session.getFilterChain().addFirst("protocol",
+					new ProtocolCodecFilter(codecFactory));
 		}
 		
-		session.getFilterChain().addFirst(
-				"proxy", new ProxyFilter(isClient ? "client" : "server") );
+		session.getFilterChain().addFirst("proxy",
+				new ProxyFilter(isClient ? "client" : "server"));
 		
 		if(true){
 		
@@ -109,10 +107,12 @@ public class DebugProxyHandler extends IoHandlerAdapter
 				+ "_" + forward.getPort() 
 				+ "_" + (isClient ? "DOWNSTREAM" : "UPSTREAM");
 			
-			File headersFile = loader.getResource( dumpTo + fileName + ".cap" ).getFile();
+			File headersFile = loader.getResource(dumpTo + fileName + ".cap")
+					.getFile();
 			headersFile.createNewFile();
 			
-			File rawFile = loader.getResource( dumpTo + fileName + ".raw" ).getFile();
+			File rawFile = loader.getResource(dumpTo + fileName + ".raw")
+					.getFile();
 			rawFile.createNewFile();
 			
 			FileOutputStream headersFos = new FileOutputStream( headersFile );
@@ -126,8 +126,8 @@ public class DebugProxyHandler extends IoHandlerAdapter
 			header.flip();
 			headers.write( header.buf() );
 			
-			session.getFilterChain().addFirst(
-                "dump", new NetworkDumpFilter( headers, raw ) );
+			session.getFilterChain().addFirst("dump",
+					new NetworkDumpFilter(headers, raw));
 		}
 		
         //session.getFilterChain().addLast(

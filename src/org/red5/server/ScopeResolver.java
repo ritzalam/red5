@@ -40,7 +40,8 @@ public class ScopeResolver implements IScopeResolver {
 
 	public IScope resolveScope(String path){
 		IScope scope = globalScope;
-		if(path == null) return scope;
+		if (path == null)
+			return scope;
 		final String[] parts = path.split("/");
 		for(int i=0; i < parts.length; i++){
 			final String room = parts[i];
@@ -52,9 +53,12 @@ public class ScopeResolver implements IScopeResolver {
 			synchronized (scope) {
 				if (scope.hasChildScope(room)){
 					scope = scope.getScope(room);
-				} else if (!scope.equals(globalScope) && scope.createChildScope(room)){
+				} else if (!scope.equals(globalScope)
+						&& scope.createChildScope(room)) {
 					scope = scope.getScope(room);
-				} else throw new ScopeNotFoundException(scope,parts[i]);
+				} else {
+					throw new ScopeNotFoundException(scope, parts[i]);
+				}
 			}
 		}
 		return scope;

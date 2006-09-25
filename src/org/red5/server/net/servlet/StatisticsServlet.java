@@ -51,14 +51,16 @@ public class StatisticsServlet extends HttpServlet {
 	protected IContext webContext;
 	
 	public void init() throws ServletException {
-		webAppCtx = WebApplicationContextUtils.getWebApplicationContext(getServletContext());
+		webAppCtx = WebApplicationContextUtils
+				.getWebApplicationContext(getServletContext());
 		if (webAppCtx == null)
 			throw new ServletException("No web application context found.");
 		
 		webContext  = (IContext) webAppCtx.getBean("web.context");
 		
 		// Register handlers in XML-RPC server
-        server.addHandler("scopes", new ScopeStatistics(webContext.getGlobalScope()));		
+		server.addHandler("scopes", new ScopeStatistics(webContext
+				.getGlobalScope()));
 	}
 	
     public void doPost(HttpServletRequest request, HttpServletResponse response)

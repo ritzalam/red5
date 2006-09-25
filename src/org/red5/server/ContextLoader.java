@@ -42,7 +42,8 @@ public class ContextLoader implements ApplicationContextAware {
 	protected String contextsConfig;
 	protected HashMap<String, ApplicationContext> contextMap = new HashMap<String,ApplicationContext>();
 	
-	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+	public void setApplicationContext(ApplicationContext applicationContext)
+			throws BeansException {
 		this.applicationContext = applicationContext;		
 	}
 	
@@ -68,8 +69,10 @@ public class ContextLoader implements ApplicationContextAware {
     		String name = (String) key;
     		String config = props.getProperty(name);
     		// TODO: we should support arbitrary property substitution
-    		config = config.replace("${red5.root}", System.getProperty("red5.root"));
-    		config = config.replace("${red5.config_root}", System.getProperty("red5.config_root"));
+			config = config.replace("${red5.root}", System
+					.getProperty("red5.root"));
+			config = config.replace("${red5.config_root}", System
+					.getProperty("red5.config_root"));
     		log.info("Loading: "+name+" = "+config);
     		loadContext(name, config);
     	}
@@ -77,10 +80,12 @@ public class ContextLoader implements ApplicationContextAware {
 	}
 	
 	protected void loadContext(String name, String config){
-		ApplicationContext context = new FileSystemXmlApplicationContext(new String[]{config}, parentContext);
+		ApplicationContext context = new FileSystemXmlApplicationContext(
+				new String[] { config }, parentContext);
 		contextMap.put(name, context);
 		// add the context to the parent, this will be red5.xml
-		ConfigurableBeanFactory factory = ((ConfigurableApplicationContext) applicationContext).getBeanFactory();
+		ConfigurableBeanFactory factory = ((ConfigurableApplicationContext) applicationContext)
+				.getBeanFactory();
 		factory.registerSingleton(name,context);
 	}
 	

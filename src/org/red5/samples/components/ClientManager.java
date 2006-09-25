@@ -59,7 +59,9 @@ public class ClientManager {
 	 * @return the shared object to use
 	 */
 	private ISharedObject getSharedObject(IScope scope) {
-		ISharedObjectService service = (ISharedObjectService) ScopeUtils.getScopeService(scope, ISharedObjectService.SHARED_OBJECT_SERVICE);
+		ISharedObjectService service = (ISharedObjectService) ScopeUtils
+				.getScopeService(scope,
+						ISharedObjectService.SHARED_OBJECT_SERVICE);
 		return service.getSharedObject(scope, name, persistent);
 	}
 	
@@ -94,7 +96,8 @@ public class ClientManager {
 	public String removeClient(IScope scope, String uid) {
 		ISharedObject so = getSharedObject(scope);
 		if (!so.hasAttribute(uid))
-			// SharedObject is empty.  This happes when the last client disconnects.
+			// SharedObject is empty. This happes when the last client
+			// disconnects.
 			return null;
 		
 		String username = so.getStringAttribute(uid);

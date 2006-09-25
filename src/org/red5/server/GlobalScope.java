@@ -39,14 +39,14 @@ public class GlobalScope extends Scope implements IGlobalScope {
 			return store;
 		
 		try {
-			store = PersistenceUtils.getPersistenceStore(this, this.persistenceClass);
+			store = PersistenceUtils.getPersistenceStore(this,
+					this.persistenceClass);
 		} catch (Exception error) {
 			log.error("Could not create persistence store.", error);
 			store = null;
 		}
 		return store;
 	}
-	
 	
 	public void setServer(IServer server) {
 		this.server = server;

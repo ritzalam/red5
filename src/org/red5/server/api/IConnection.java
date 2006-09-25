@@ -77,7 +77,8 @@ public interface IConnection extends ICoreObject {
 	/**
 	 * Is the client connected to the scope.
 	 * 
-	 * @return <code>true</code> if the connection is persistent or polling, otherwise <code>false</code>
+	 * @return <code>true</code> if the connection is persistent or polling,
+	 *         otherwise <code>false</code>
 	 */
 	public boolean isConnected();
 
@@ -102,8 +103,8 @@ public interface IConnection extends ICoreObject {
 	public IClient getClient();
 
 	/**
-	 * Get the hostname that the client is connected to. If they are connected to an
-	 * IP, the IP address will be returned as a String.
+	 * Get the hostname that the client is connected to. If they are connected
+	 * to an IP, the IP address will be returned as a String.
 	 * 
 	 * @return String containing the hostname
 	 */

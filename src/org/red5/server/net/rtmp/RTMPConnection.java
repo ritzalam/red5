@@ -43,11 +43,11 @@ import org.red5.server.api.stream.IPlaylistSubscriberStream;
 import org.red5.server.api.stream.ISingleItemSubscriberStream;
 import org.red5.server.api.stream.IStreamCapableConnection;
 import org.red5.server.api.stream.IStreamService;
+import org.red5.server.net.rtmp.event.BytesRead;
 import org.red5.server.net.rtmp.event.ClientBW;
 import org.red5.server.net.rtmp.event.Invoke;
 import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.event.Ping;
-import org.red5.server.net.rtmp.event.BytesRead;
 import org.red5.server.net.rtmp.event.ServerBW;
 import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.net.rtmp.message.Packet;
@@ -260,8 +260,8 @@ public abstract class RTMPConnection extends BaseConnection implements
 		}
 		
 		if (getScope() != null && getScope().getContext() != null) {
-			IFlowControlService fcs = (IFlowControlService) getScope().getContext()
-					.getBean(IFlowControlService.KEY);
+			IFlowControlService fcs = (IFlowControlService) getScope()
+					.getContext().getBean(IFlowControlService.KEY);
 			// XXX: Workaround for #54
 			try {
 				fcs.releaseFlowControllable(this);
@@ -310,7 +310,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 	
 	public void receivedBytesRead(int bytes) {
-		log.info("Client received " + bytes + " bytes, written " + getWrittenBytes() + " bytes, " + getPendingMessages() + " messages pending");
+		log.info("Client received " + bytes + " bytes, written "
+				+ getWrittenBytes() + " bytes, " + getPendingMessages()
+				+ " messages pending");
 	}
 
 	public void invoke(IServiceCall call) {
@@ -389,11 +391,13 @@ public abstract class RTMPConnection extends BaseConnection implements
 		
 		// Notify client about new bandwidth settings (in bytes per second)
 		if (config.getDownstreamBandwidth() > 0) {
-			ServerBW serverBW = new ServerBW((int) config.getDownstreamBandwidth() / 8);
+			ServerBW serverBW = new ServerBW((int) config
+					.getDownstreamBandwidth() / 8);
 			getChannel((byte) 2).write(serverBW);
 		}
 		if (config.getUpstreamBandwidth() > 0) {
-			ClientBW clientBW = new ClientBW((int) config.getUpstreamBandwidth() / 8, (byte) 0);
+			ClientBW clientBW = new ClientBW((int) config
+					.getUpstreamBandwidth() / 8, (byte) 0);
 			getChannel((byte) 2).write(clientBW);
 			// Update generation of BytesRead messages
 			// TODO: what are the correct values here?
@@ -477,7 +481,8 @@ public abstract class RTMPConnection extends BaseConnection implements
 	public long getPendingVideoMessages(int streamId) {
 		synchronized (pendingVideos) {
 			Integer count = pendingVideos.get(streamId);
-			long result = (count != null ? count.intValue() - getUsedStreamCount() : 0);
+			long result = (count != null ? count.intValue()
+					- getUsedStreamCount() : 0);
 			return (result > 0 ? result : 0);
 		}
 	}
@@ -501,8 +506,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	public String toString() {
-		return getClass().getSimpleName() + " from " + getRemoteAddress() + ":" + getRemotePort() + 
-			" to " + getHost() + " (in: " + getReadBytes() + ", out: " + getWrittenBytes() + ")";
+		return getClass().getSimpleName() + " from " + getRemoteAddress() + ":"
+				+ getRemotePort() + " to " + getHost() + " (in: "
+				+ getReadBytes() + ", out: " + getWrittenBytes() + ")";
 	}
 
 }

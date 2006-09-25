@@ -23,6 +23,7 @@ import org.red5.server.api.IScopeHandler;
 
 /**
  * A scope handler that is stream aware.
+ * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Steven Gong (steven.gong@gmail.com)
  */
@@ -37,61 +38,76 @@ public interface IStreamAwareScopeHandler extends IScopeHandler {
 	
 	/**
 	 * Notified when a broadcaster starts.
+	 * 
 	 * @param stream
 	 */
 	public void streamBroadcastStart(IBroadcastStream stream);
 	
 	/**
 	 * Notified when a broadcaster closes.
+	 * 
 	 * @param stream
 	 */
 	public void streamBroadcastClose(IBroadcastStream stream);
 	
 	/**
 	 * Notified when a subscriber starts.
+	 * 
 	 * @param stream
 	 */
 	public void streamSubscriberStart(ISubscriberStream stream);
 	
 	/**
 	 * Notified when a subscriber closes.
+	 * 
 	 * @param stream
 	 */
 	public void streamSubscriberClose(ISubscriberStream stream);
 	
 	/**
 	 * Notified when a playlist item plays.
+	 * 
 	 * @param stream
 	 * @param item
-	 * @param isLive TODO
+	 * @param isLive
+	 *            TODO
 	 */
-	public void streamPlaylistItemPlay(IPlaylistSubscriberStream stream, IPlayItem item, boolean isLive);
+	public void streamPlaylistItemPlay(IPlaylistSubscriberStream stream,
+			IPlayItem item, boolean isLive);
 	
 	/**
 	 * Notified when a playlist item stops.
+	 * 
 	 * @param stream
 	 * @param item
 	 */
-	public void streamPlaylistItemStop(IPlaylistSubscriberStream stream, IPlayItem item);
+	public void streamPlaylistItemStop(IPlaylistSubscriberStream stream,
+			IPlayItem item);
 	
 	/**
 	 * Notified when a playlist vod item pauses.
+	 * 
 	 * @param stream
 	 * @param item
 	 */
-	public void streamPlaylistVODItemPause(IPlaylistSubscriberStream stream, IPlayItem item, int position);
+	public void streamPlaylistVODItemPause(IPlaylistSubscriberStream stream,
+			IPlayItem item, int position);
 	
 	/**
 	 * Notified when a playlist vod item resumes.
+	 * 
 	 * @param stream
 	 * @param item
 	 */
-	public void streamPlaylistVODItemResume(IPlaylistSubscriberStream stream, IPlayItem item, int position);
+	public void streamPlaylistVODItemResume(IPlaylistSubscriberStream stream,
+			IPlayItem item, int position);
 	
 	/**
 	 * Notified when a playlist vod item seeks.
+	 * 
 	 * @param stream
 	 * @param item
 	 */
-	public void streamPlaylistVODItemSeek(IPlaylistSubscriberStream stream, IPlayItem item, int position);
+	public void streamPlaylistVODItemSeek(IPlaylistSubscriberStream stream,
+			IPlayItem item, int position);
 }

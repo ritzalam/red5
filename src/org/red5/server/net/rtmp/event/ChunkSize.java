@@ -49,7 +49,8 @@ public class ChunkSize extends BaseEvent {
 	}
 	
 	public boolean equals(Object obj){
-		if(!(obj instanceof ChunkSize)) return false;
+		if (!(obj instanceof ChunkSize))
+			return false;
 		final ChunkSize other = (ChunkSize) obj;
 		return getSize() == other.getSize();
 	}
@@ -59,4 +60,9 @@ public class ChunkSize extends BaseEvent {
 		
 	}
 	
+	public int hashCode() {
+		// XXX Paul: use timestamp as the hash instead of Object.hashCode()
+		return timestamp;
+	}
+
 }

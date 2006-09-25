@@ -77,7 +77,8 @@ public class Header implements Constants {
 	}
 	
 	public boolean equals(Object other) {
-		if(!(other instanceof Header)) return false;
+		if (!(other instanceof Header))
+			return false;
 		final Header header = (Header) other;
 		return (header.getChannelId() == channelId 
 			&& header.getDataType() == dataType
@@ -89,7 +90,9 @@ public class Header implements Constants {
 	public String toString(){
 		StringBuffer sb = new StringBuffer();
 		sb.append("ChannelId: ").append(channelId).append(", ");
-		sb.append("Timer: ").append(timer).append(" ("+(timerRelative ? "relative" : "absolute")+")").append(", ");
+		sb.append("Timer: ").append(timer).append(
+				" (" + (timerRelative ? "relative" : "absolute") + ")").append(
+				", ");
 		sb.append("Size: ").append(size).append(", ");
 		sb.append("DateType: ").append(dataType).append(", ");
 		sb.append("StreamId: ").append(streamId);

@@ -23,8 +23,10 @@ public interface IMessageComponent {
 	/**
 	 * 
 	 * @param source
-	 * @param pipe TODO
+	 * @param pipe
+	 *            TODO
 	 * @param oobCtrlMsg
 	 */
-	void onOOBControlMessage(IMessageComponent source, IPipe pipe, OOBControlMessage oobCtrlMsg);
+	void onOOBControlMessage(IMessageComponent source, IPipe pipe,
+			OOBControlMessage oobCtrlMsg);
 }

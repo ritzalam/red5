@@ -30,7 +30,6 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
-import org.mortbay.thread.ThreadPool;
 import org.red5.io.amf.Input;
 import org.red5.io.amf.Output;
 import org.red5.io.object.Deserializer;
@@ -39,6 +38,8 @@ import org.red5.io.object.Serializer;
 import org.red5.server.api.IScope;
 import org.red5.server.api.Red5;
 import org.red5.server.net.servlet.ServletUtils;
+import org.red5.server.pooling.ThreadPool;
+import org.red5.server.pooling.WorkerThread;
 
 /**
  * Client interface for remoting calls.
@@ -49,7 +50,8 @@ import org.red5.server.net.servlet.ServletUtils;
  */
 public class RemotingClient {
 
-	protected static Log log = LogFactory.getLog(RemotingClient.class.getName());
+	protected static Log log = LogFactory
+			.getLog(RemotingClient.class.getName());
 	
 	/** Default timeout to use. */
 	public static final int DEFAULT_TIMEOUT = 30000;
@@ -95,7 +97,8 @@ public class RemotingClient {
 	 */
 	public RemotingClient(String url, int timeout) {
 		client = new HttpClient(connectionMgr);
-        client.getHttpConnectionManager().getParams().setConnectionTimeout(timeout);
+		client.getHttpConnectionManager().getParams().setConnectionTimeout(
+				timeout);
 		this.url = url;
 	}
 	
@@ -189,12 +192,16 @@ public class RemotingClient {
 				// Send a new header with each following request
 				if (value instanceof Map) {
 					Map<String, Object> valueMap = (Map) value;
-					RemotingHeader header = new RemotingHeader((String) valueMap.get("name"), (Boolean) valueMap.get("mustUnderstand"), valueMap.get("data"));
+					RemotingHeader header = new RemotingHeader(
+							(String) valueMap.get("name"), (Boolean) valueMap
+									.get("mustUnderstand"), valueMap
+									.get("data"));
 					headers.put(header.name, header);
 				} else
 					log.error("Expected Map but received " + value);
 			} else
-				log.warn("Unsupported remoting header \"" + name + "\" received with value " + value);
+				log.warn("Unsupported remoting header \"" + name
+						+ "\" received with value " + value);
 		}
 	}
 	
@@ -208,7 +215,8 @@ public class RemotingClient {
 		processHeaders(data);
 		int count = data.getUnsignedShort();
 		if (count != 1)
-			throw new RuntimeException("Expected exactly one result but got " + count);
+			throw new RuntimeException("Expected exactly one result but got "
+					+ count);
 		
 		// Read return value
 		Input input = new Input(data);
@@ -229,7 +237,8 @@ public class RemotingClient {
 		Map<String, String> data = new HashMap<String, String>();
 		data.put("userid", userid);
 		data.put("password", password);
-		RemotingHeader header = new RemotingHeader(RemotingHeader.CREDENTIALS, true, data);
+		RemotingHeader header = new RemotingHeader(RemotingHeader.CREDENTIALS,
+				true, data);
 		headers.put(RemotingHeader.CREDENTIALS, header);
 	}
 	
@@ -248,7 +257,8 @@ public class RemotingClient {
 	 * @param required
 	 * @param value
 	 */
-	public synchronized void addHeader(String name, boolean required, Object value) {
+	public synchronized void addHeader(String name, boolean required,
+			Object value) {
 		RemotingHeader header = new RemotingHeader(name, required, value);
 		headers.put(name, header);
 	}
@@ -273,14 +283,18 @@ public class RemotingClient {
 		PostMethod post = new PostMethod(this.url + appendToUrl);
 		ByteBuffer resultBuffer = null;
 		ByteBuffer data = encodeInvoke(method, params);
-		post.setRequestEntity(new InputStreamRequestEntity(data.asInputStream(), data.limit(), CONTENT_TYPE));
+		post.setRequestEntity(new InputStreamRequestEntity(
+				data.asInputStream(), data.limit(), CONTENT_TYPE));
         try {
             int resultCode = client.executeMethod(post);
             if (resultCode / 100 != 2)
-            	throw new RuntimeException("Didn't receive success from remoting server."); 
+				throw new RuntimeException(
+						"Didn't receive success from remoting server.");
             	
-            resultBuffer = ByteBuffer.allocate((int) post.getResponseContentLength());
-            ServletUtils.copy(post.getResponseBodyAsStream(), resultBuffer.asOutputStream());
+			resultBuffer = ByteBuffer.allocate((int) post
+					.getResponseContentLength());
+			ServletUtils.copy(post.getResponseBodyAsStream(), resultBuffer
+					.asOutputStream());
             resultBuffer.flip();
             Object result = decodeResult(resultBuffer);
             if (result instanceof RecordSet)
@@ -305,37 +319,38 @@ public class RemotingClient {
 	 * @param params
 	 * @param callback
 	 */
-	public void invokeMethod(String method, Object[] params, IRemotingCallback callback) {
+	public void invokeMethod(String method, Object[] methodParams,
+			IRemotingCallback callback) {
 		IScope scope = Red5.getConnectionLocal().getScope();
-		RemotingWorker worker = new RemotingWorker(this, method, params, callback);
 		
 		ThreadPool pool = (ThreadPool) scope.getContext().getBean(POOL_BEAN_ID);
-		pool.dispatch(worker);
+		try {
+			WorkerThread wt = (WorkerThread) pool.borrowObject();
+			Object[] params = new Object[] { this, method, methodParams,
+					callback };
+			Class[] paramTypes = new Class[] { RemotingClient.class,
+					String.class, Object.class, IRemotingCallback.class };
+			wt
+					.execute(
+							"org.red5.server.net.remoting.RemotingClient$RemotingWorker",
+							"executeTask", params, paramTypes, null);
+		} catch (Exception err) {
+			log.warn("Exception invoking method: " + method);
+		}
 	}
 	
 	/**
 	 * Worker class that is used for asynchronous remoting calls.
 	 */
-	protected class RemotingWorker implements Runnable {
+	protected class RemotingWorker {
 		
-		protected RemotingClient client;
-		protected String method;
-		protected Object[] params;
-		protected IRemotingCallback callback;
-		
-		protected RemotingWorker(RemotingClient client, String method, Object[] params, IRemotingCallback callback) {
-			this.client = client;
-			this.method = method;
-			this.params = params;
-			this.callback = callback;
-		}
-		
-		public void run() {
+		public void executeTask(RemotingClient client, String method,
+				Object[] params, IRemotingCallback callback) {
 			try {
-				Object result = this.client.invokeMethod(method, params);
-				this.callback.resultReceived(this.client, method, params, result);
+				Object result = client.invokeMethod(method, params);
+				callback.resultReceived(client, method, params, result);
 			} catch (Exception err) {
-				this.callback.errorReceived(this.client, method, params, err);
+				callback.errorReceived(client, method, params, err);
 			}
 		}
 	}

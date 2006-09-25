@@ -24,6 +24,7 @@ import java.util.Map;
 
 /**
  * Output Endpoint for a provider to connect.
+ * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Steven Gong (steven.gong@gmail.com)
  */
@@ -38,6 +39,7 @@ public interface IMessageOutput {
 	
 	/**
 	 * Connect to a provider.
+	 * 
 	 * @param provider
 	 * @param paramMap
 	 * @return <tt>true</tt> when successfully subscribed,
@@ -47,6 +49,7 @@ public interface IMessageOutput {
 	
 	/**
 	 * Disconnect from a provider.
+	 * 
 	 * @param provider
 	 * @return <tt>true</tt> when successfully unsubscribed,
 	 * <tt>false</tt> otherwise.
@@ -57,7 +60,9 @@ public interface IMessageOutput {
 	
 	/**
 	 * Send OOB Control Message to all consumers on the other side of pipe.
-	 * @param provider The provider that sends the message
+	 * 
+	 * @param provider
+	 *            The provider that sends the message
 	 * @param oobCtrlMsg
 	 */
 	void sendOOBControlMessage(IProvider provider, OOBControlMessage oobCtrlMsg);

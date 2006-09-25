@@ -36,7 +36,8 @@ public interface IRemotingCallback {
 	 * @param params
 	 * @param result
 	 */
-	public void resultReceived(RemotingClient client, String method, Object[] params, Object result);
+	public void resultReceived(RemotingClient client, String method,
+			Object[] params, Object result);
 	
 	/**
 	 * An error occured while performing the remoting call.
@@ -46,6 +47,7 @@ public interface IRemotingCallback {
 	 * @param params
 	 * @param error
 	 */
-	public void errorReceived(RemotingClient client, String method, Object[] params, Throwable error);
+	public void errorReceived(RemotingClient client, String method,
+			Object[] params, Throwable error);
 	
 }

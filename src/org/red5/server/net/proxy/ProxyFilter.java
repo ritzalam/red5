@@ -38,7 +38,8 @@ public class ProxyFilter extends IoFilterAdapter {
 		this.name = name;
 	}
 	
-	public void messageReceived(NextFilter next, IoSession session, Object message) throws Exception {
+	public void messageReceived(NextFilter next, IoSession session,
+			Object message) throws Exception {
 		IoSession forward = (IoSession) session.getAttribute(FORWARD_KEY);
 		if(forward != null && forward.isConnected()) {
 			
@@ -68,7 +69,8 @@ public class ProxyFilter extends IoFilterAdapter {
 		next.messageReceived(session, message);
 	}
 
-	public void sessionClosed(NextFilter next, IoSession session) throws Exception {
+	public void sessionClosed(NextFilter next, IoSession session)
+			throws Exception {
 		IoSession forward = (IoSession) session.getAttribute(FORWARD_KEY);
 		if(forward != null && forward.isConnected() && ! forward.isClosing()) {
 			log.debug("[ "+name+" ] Closing: "+forward);

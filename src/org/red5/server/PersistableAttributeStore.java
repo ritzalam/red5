@@ -31,8 +31,8 @@ import org.red5.server.api.IAttributeStore;
 import org.red5.server.api.persistence.IPersistable;
 import org.red5.server.api.persistence.IPersistenceStore;
 
-public class PersistableAttributeStore extends AttributeStore 
-	implements IPersistable {
+public class PersistableAttributeStore extends AttributeStore implements
+		IPersistable {
 	
 	protected boolean persistent = true;
 	protected String name;
@@ -41,7 +41,8 @@ public class PersistableAttributeStore extends AttributeStore
 	protected long lastModified = -1;
 	protected IPersistenceStore store = null;
 	
-	public PersistableAttributeStore(String type, String name, String path, boolean persistent){
+	public PersistableAttributeStore(String type, String name, String path,
+			boolean persistent) {
 		this.type = type;
 		this.name = name;
 		this.path = path;

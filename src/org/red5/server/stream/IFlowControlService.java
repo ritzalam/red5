@@ -25,8 +25,8 @@ import org.red5.server.api.IFlowControllable;
  * A service that controls bandwidth of IFlowControllable objects based
  * on token buckets.
  * <p>
- * 1. Each FC is recommended to release itself by calling releaseFlowControllable
- * on disposal.
+ * 1. Each FC is recommended to release itself by calling
+ * releaseFlowControllable on disposal.
  * <p>
  * 2. When parent FC has been released, child FC should be released or should
  * not use any functional method like getAudioTokenBucket etc.
@@ -40,8 +40,8 @@ public interface IFlowControlService {
 	public static final String KEY = "FlowControlService";
 	
 	/**
-	 * Release a flow controllable and related resources
-	 * when necessary.
+	 * Release a flow controllable and related resources when necessary.
+	 * 
 	 * @param fc
 	 */
 	void releaseFlowControllable(IFlowControllable fc);

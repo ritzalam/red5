@@ -30,12 +30,7 @@ import org.red5.server.api.event.IEventListener;
  * @author Luke Hubbard (luke@codegent.com)
  *
  */
-public interface ICoreObject 
-	extends 
-		IAttributeStore, 
-		ICastingAttributeStore, 
-		IEventDispatcher, 
-		IEventHandler, 
-		IEventListener {
+public interface ICoreObject extends IAttributeStore, ICastingAttributeStore,
+		IEventDispatcher, IEventHandler, IEventListener {
 
 }

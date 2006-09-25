@@ -34,7 +34,8 @@ import org.red5.server.messaging.InMemoryPushPushPipe;
 import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.messaging.PipeConnectionEvent;
 
-public class BroadcastScope extends BasicScope implements IBroadcastScope, IPipeConnectionListener {
+public class BroadcastScope extends BasicScope implements IBroadcastScope,
+		IPipeConnectionListener {
 	private static final Log log = LogFactory.getLog(BroadcastScope.class);
 	
 	private InMemoryPushPushPipe pipe;
@@ -67,7 +68,8 @@ public class BroadcastScope extends BasicScope implements IBroadcastScope, IPipe
 
 	public boolean subscribe(IConsumer consumer, Map paramMap) {
 		synchronized (pipe) {
-			if (hasRemoved) return false;
+			if (hasRemoved)
+				return false;
 			return pipe.subscribe(consumer, paramMap);
 		}
 	}
@@ -91,7 +93,8 @@ public class BroadcastScope extends BasicScope implements IBroadcastScope, IPipe
 
 	synchronized public boolean subscribe(IProvider provider, Map paramMap) {
 		synchronized (pipe) {
-			if (hasRemoved) return false;
+			if (hasRemoved)
+				return false;
 			return pipe.subscribe(provider, paramMap);
 		}
 	}
@@ -124,9 +127,10 @@ public class BroadcastScope extends BasicScope implements IBroadcastScope, IPipe
 				if (compCounter <= 0) {
 					// XXX should we synchronize parent before removing?
 					if (hasParent()) {
-						IProviderService providerService =
-							(IProviderService) getParent().getContext().getBean(IProviderService.KEY);
-						providerService.unregisterBroadcastStream(getParent(), getName());
+					IProviderService providerService = (IProviderService) getParent()
+							.getContext().getBean(IProviderService.KEY);
+					providerService.unregisterBroadcastStream(getParent(),
+							getName());
 					}
 					hasRemoved = true;
 				}

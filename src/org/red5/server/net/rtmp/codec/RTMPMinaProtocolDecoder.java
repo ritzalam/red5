@@ -29,12 +29,14 @@ import org.apache.mina.filter.codec.ProtocolDecoder;
 import org.apache.mina.filter.codec.ProtocolDecoderOutput;
 import org.red5.server.net.protocol.ProtocolState;
 
-public class RTMPMinaProtocolDecoder extends RTMPProtocolDecoder implements ProtocolDecoder {
+public class RTMPMinaProtocolDecoder extends RTMPProtocolDecoder implements
+		ProtocolDecoder {
 
     public void decode( IoSession session, ByteBuffer in,
             ProtocolDecoderOutput out ) throws ProtocolCodecException {
 		
-    	final ProtocolState state = (ProtocolState) session.getAttribute(ProtocolState.SESSION_KEY);
+		final ProtocolState state = (ProtocolState) session
+				.getAttribute(ProtocolState.SESSION_KEY);
     	
 		ByteBuffer buf = (ByteBuffer) session.getAttribute("buffer");
 		if(buf==null){
@@ -56,6 +58,10 @@ public class RTMPMinaProtocolDecoder extends RTMPProtocolDecoder implements Prot
 	
 	public void dispose(IoSession ioSession) throws Exception {
 		// TODO Auto-generated method stub
-		
 	}
+		
+	public void finishDecode(IoSession session, ProtocolDecoderOutput out) throws Exception {
+		// TODO Auto-generated method stub	
+	}
+	
 }

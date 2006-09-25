@@ -58,5 +58,4 @@ public interface IBroadcastStreamService {
 	 */
 	public List<String> getBroadcastStreamNames(IScope scope);
 	
-	
 }

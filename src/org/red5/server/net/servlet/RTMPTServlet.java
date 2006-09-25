@@ -150,8 +150,8 @@ public class RTMPTServlet extends HttpServlet {
 	 * @param resp
 	 * @throws IOException
 	 */
-	protected void returnMessage(RTMPTConnection client, ByteBuffer buffer, HttpServletResponse resp)
-		throws IOException {
+	protected void returnMessage(RTMPTConnection client, ByteBuffer buffer,
+			HttpServletResponse resp) throws IOException {
 		resp.setStatus(HttpServletResponse.SC_OK);
 		resp.setHeader("Connection", "Keep-Alive");
 		resp.setHeader("Cache-Control", "no-cache");
@@ -218,8 +218,8 @@ public class RTMPTServlet extends HttpServlet {
 	 * @param resp
 	 * @throws IOException
 	 */
-	protected void returnPendingMessages(RTMPTConnection client, HttpServletResponse resp)
-		throws IOException {
+	protected void returnPendingMessages(RTMPTConnection client,
+			HttpServletResponse resp) throws IOException {
 		
 		ByteBuffer data = client.getPendingMessages(RESPONSE_TARGET_SIZE);
 		if (data == null) {
@@ -247,7 +247,8 @@ public class RTMPTServlet extends HttpServlet {
 		
 		// TODO: should we evaluate the pathinfo?
 		
-		RTMPTHandler handler = (RTMPTHandler) getServletContext().getAttribute(RTMPTHandler.HANDLER_ATTRIBUTE);
+		RTMPTHandler handler = (RTMPTHandler) getServletContext().getAttribute(
+				RTMPTHandler.HANDLER_ATTRIBUTE);
 		RTMPTConnection client = new RTMPTConnection(handler);
 		synchronized (rtmptClients) {
 			rtmptClients.put(client.getId(), client);
@@ -281,7 +282,8 @@ public class RTMPTServlet extends HttpServlet {
 			rtmptClients.remove(client.getId());
 		}
 		
-		RTMPTHandler handler = (RTMPTHandler) getServletContext().getAttribute(RTMPTHandler.HANDLER_ATTRIBUTE);
+		RTMPTHandler handler = (RTMPTHandler) getServletContext().getAttribute(
+				RTMPTHandler.HANDLER_ATTRIBUTE);
 		client.setServletRequest(req);
 		handler.connectionClosed(client, (RTMP) client.getState());
 		
@@ -328,7 +330,8 @@ public class RTMPTServlet extends HttpServlet {
 		}
 		
 		// Execute the received RTMP messages
-		RTMPTHandler handler = (RTMPTHandler) getServletContext().getAttribute(RTMPTHandler.HANDLER_ATTRIBUTE);
+		RTMPTHandler handler = (RTMPTHandler) getServletContext().getAttribute(
+				RTMPTHandler.HANDLER_ATTRIBUTE);
 		Iterator it = messages.iterator();
 		while (it.hasNext()) {
 			try {
@@ -374,43 +377,13 @@ public class RTMPTServlet extends HttpServlet {
 	
 	/**
 	 * Main entry point for the servlet.
-	 * /
-	protected void service(HttpServletRequest req, HttpServletResponse resp) 
-		throws ServletException, IOException {
-
-		if (!req.getMethod().equals(REQUEST_METHOD) ||
-			req.getContentLength() == 0 ||
-			req.getContentType() == null ||
-			!req.getContentType().equals(CONTENT_TYPE)) {
-			// Bad request - return simple error page
-			handleBadRequest("Bad request, only RTMPT supported.", resp);
-			return;
-		}
-
-		String path = req.getServletPath();
-		if (path.equals(OPEN_REQUEST)) {
-			handleOpen(req, resp);
-		} else if (path.equals(CLOSE_REQUEST)) {
-			handleClose(req, resp);
-		} else if (path.equals(SEND_REQUEST)) {
-			handleSend(req, resp);
-		} else if (path.equals(IDLE_REQUEST)) {
-			handleIdle(req, resp);
-		} else {
-			handleBadRequest("RTMPT command " + path + " is not supported.", resp);
-		}
-	}
-	*/
-	
-	/**
-	 * Main entry point for the servlet.
 	 */
 	protected void service(HttpServletRequest req, HttpServletResponse resp) 
 		throws ServletException, IOException {
 
-		if (!REQUEST_METHOD.equals(req.getMethod()) ||
-			req.getContentLength() == 0 ||
-			!CONTENT_TYPE.equals(req.getContentType())) {
+		if (!REQUEST_METHOD.equals(req.getMethod())
+				|| req.getContentLength() == 0
+				|| !CONTENT_TYPE.equals(req.getContentType())) {
 			// Bad request - return simple error page
 			handleBadRequest("Bad request, only RTMPT supported.", resp);
 			return;
@@ -418,7 +391,8 @@ public class RTMPTServlet extends HttpServlet {
 
 		// XXX Paul: since the only current difference in the type of request
 		// that we are interested in is the 'second' character, we can double
-		// the speed of this entry point by using a switch on the second charater.
+		// the speed of this entry point by using a switch on the second
+		// charater.
 		char p = req.getServletPath().charAt(1);
 		switch (p) {
 			case 'o': //OPEN_REQUEST

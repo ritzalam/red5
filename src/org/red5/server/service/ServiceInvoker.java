@@ -110,20 +110,29 @@ public class ServiceInvoker  implements IServiceInvoker {
 		
 		Object[] methodResult = null;
 		// First, search for method with the connection as first parameter.
-		methodResult = ServiceUtils.findMethodWithExactParameters(service, methodName, argsWithConnection);
+		methodResult = ServiceUtils.findMethodWithExactParameters(service,
+				methodName, argsWithConnection);
 		if (methodResult.length == 0 || methodResult[0] == null) {
-			// Second, search for method without the connection as first parameter.
-			methodResult = ServiceUtils.findMethodWithExactParameters(service, methodName, args);
+			// Second, search for method without the connection as first
+			// parameter.
+			methodResult = ServiceUtils.findMethodWithExactParameters(service,
+					methodName, args);
 			if (methodResult.length == 0 || methodResult[0] == null) {
-				// Third, search for method with the connection as first parameter in a list argument.
-				methodResult = ServiceUtils.findMethodWithListParameters(service, methodName, argsWithConnection);
+				// Third, search for method with the connection as first
+				// parameter in a list argument.
+				methodResult = ServiceUtils.findMethodWithListParameters(
+						service, methodName, argsWithConnection);
 				if (methodResult.length == 0 || methodResult[0] == null) {
-					// Fourth, search for method without the connection as first parameter in a list argument.
-					methodResult = ServiceUtils.findMethodWithListParameters(service, methodName, args);
+					// Fourth, search for method without the connection as first
+					// parameter in a list argument.
+					methodResult = ServiceUtils.findMethodWithListParameters(
+							service, methodName, args);
 					if (methodResult.length == 0 || methodResult[0] == null) {
-						log.error("Method " + methodName + " not found in " + service);
+						log.error("Method " + methodName + " not found in "
+								+ service);
 						call.setStatus(Call.STATUS_METHOD_NOT_FOUND);
-						call.setException(new MethodNotFoundException(methodName));
+						call.setException(new MethodNotFoundException(
+								methodName));
 						return;
 					}
 				}
@@ -142,7 +151,8 @@ public class ServiceInvoker  implements IServiceInvoker {
 			} else {
 				result = method.invoke(service, params);
 				log.debug("result: "+result);
-				call.setStatus( result==null ? Call.STATUS_SUCCESS_NULL : Call.STATUS_SUCCESS_RESULT );
+				call.setStatus(result == null ? Call.STATUS_SUCCESS_NULL
+						: Call.STATUS_SUCCESS_RESULT);
 			}
 			if (call instanceof IPendingServiceCall)
 				((IPendingServiceCall) call).setResult(result);

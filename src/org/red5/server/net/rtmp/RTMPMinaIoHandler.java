@@ -51,14 +51,17 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter  {
 	
 	//	 ------------------------------------------------------------------------------
 	
-	public void exceptionCaught(IoSession session, Throwable cause) throws Exception {
+	public void exceptionCaught(IoSession session, Throwable cause)
+			throws Exception {
 		log.debug("Exception caught", cause);
 	}
 
 	public void messageReceived(IoSession session, Object in) throws Exception {
 		log.debug("messageRecieved");
-		final RTMPMinaConnection conn = (RTMPMinaConnection) session.getAttachment();
-		final ProtocolState state = (ProtocolState) session.getAttribute(RTMP.SESSION_KEY);
+		final RTMPMinaConnection conn = (RTMPMinaConnection) session
+				.getAttachment();
+		final ProtocolState state = (ProtocolState) session
+				.getAttribute(RTMP.SESSION_KEY);
 		
 		if(in instanceof ByteBuffer){
 			rawBufferRecieved(state, (ByteBuffer) in, session);
@@ -68,7 +71,8 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter  {
 		handler.messageReceived(conn, state, in);
 	}
 	
-	private void rawBufferRecieved(ProtocolState state, ByteBuffer in, IoSession session) {
+	private void rawBufferRecieved(ProtocolState state, ByteBuffer in,
+			IoSession session) {
 		
 		final RTMP rtmp = (RTMP) state;
 		
@@ -76,7 +80,8 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter  {
 			log.warn("Raw buffer after handshake, something odd going on");
 		}
 		
-		ByteBuffer out = ByteBuffer.allocate((Constants.HANDSHAKE_SIZE*2)+1);
+		ByteBuffer out = ByteBuffer
+				.allocate((Constants.HANDSHAKE_SIZE * 2) + 1);
 		
 		if(log.isDebugEnabled()){
 			log.debug("Writing handshake reply");
@@ -93,12 +98,11 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter  {
 	
 	public void messageSent(IoSession session, Object message) throws Exception {
 		log.debug("messageSent");		
-		final RTMPMinaConnection conn = (RTMPMinaConnection) session.getAttachment();
+		final RTMPMinaConnection conn = (RTMPMinaConnection) session
+				.getAttachment();
 		handler.messageSent(conn, message);
 	}
 	
-	
-
 	@Override
 	public void sessionOpened(IoSession session) throws Exception {
 		// TODO Auto-generated method stub
@@ -115,8 +119,10 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter  {
 	public void sessionClosed(IoSession session) throws Exception {
 		final RTMP rtmp = (RTMP) session.getAttribute(RTMP.SESSION_KEY);
 		ByteBuffer buf = (ByteBuffer) session.getAttribute("buffer");
-		if(buf !=null ) buf.release();
-		final RTMPMinaConnection conn = (RTMPMinaConnection) session.getAttachment();
+		if (buf != null)
+			buf.release();
+		final RTMPMinaConnection conn = (RTMPMinaConnection) session
+				.getAttachment();
 		this.handler.connectionClosed(conn, rtmp);
 	}
 
@@ -127,11 +133,10 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter  {
 		// moved protocol state from connection object to rtmp object
 		session.setAttribute(RTMP.SESSION_KEY, new RTMP(RTMP.MODE_SERVER));
 		
-		session.getFilterChain().addFirst(
-                "protocolFilter", new ProtocolCodecFilter(this.codecFactory) );
+		session.getFilterChain().addFirst("protocolFilter",
+				new ProtocolCodecFilter(this.codecFactory));
         if(log.isDebugEnabled()){
-        	session.getFilterChain().addLast(
-                "logger", new LoggingFilter() );
+			session.getFilterChain().addLast("logger", new LoggingFilter());
         }
 		session.setAttachment(new RTMPMinaConnection(session));		
 	}

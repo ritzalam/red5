@@ -1,12 +1,15 @@
 <?xml version="1.0"?>
 <project name="RED5" basedir="." default="all">
 
-	<!-- project properties -->
+    <!-- user overides for project properties -->
+    <property file="${user.home}/ant.properties" />
+    <!-- base project properties -->
+    <property file="build.properties" />
 
+    <!-- project properties -->
 	<property environment="env"/>
 
 	<property name="java.home" value="${env.JAVA_HOME}"/>
-	<property name="java.target_version" value="1.5"/>
 
 	<property name="src.dir" value="src"/>
 	<property name="bin.dir" value="bin"/>
@@ -91,89 +94,118 @@
 	</target>
 
 	<target name="compile" depends="-junit.check, prepare">
+        <condition property="java.target_version" value="1.5">
+            <not>
+                <isset property="java.target_version" />
+            </not>
+        </condition>
+        <echo message="Javac version: ${java.target_version}" />     
+
+        <condition property="compiler" value="${build.compiler}${java.target_version}">
+            <equals arg1="${build.compiler}" arg2="javac" />
+        </condition>        
+        <property name="compiler" value="${build.compiler}" />
+        <echo message="Compiler adapter name: ${compiler}" />
+        
 		<javac
-				sourcepath=""
-				srcdir="${src.dir}"
-				destdir="${classes.dir}"
-				debug="${debug.state}"
-				classpathref="project.classpath"
-				fork="yes"
-				verbose="no"
-				nowarn="yes"
-				executable="${java.home}/../bin/javac"
-				target="${java.target_version}">
-
-		</javac>
-
-		<javac
-				sourcepath=""
-				srcdir="${src.dir}/../webapps/fitcDemo/WEB-INF/src"
-				destdir="${src.dir}/../webapps/fitcDemo/WEB-INF/classes"
-				debug="${debug.state}"
-				classpathref="webapps.classpath"
-				fork="yes"
-				verbose="no"
-				nowarn="yes"
-				executable="${java.home}/../bin/javac"
-				target="${java.target_version}">
-
-		</javac>
+			sourcepath=""
+			srcdir="${src.dir}"
+			destdir="${classes.dir}"
+            classpathref="project.classpath"
+    
+            optimize="${build.optimize}" 
+            verbose="${build.verbose}" 
+            fork="${build.fork}" 
+            nowarn="${build.nowarn}"
+            deprecation="${build.deprecation}"
+  
+            debug="${debug.state}"
+            compiler="${compiler}"
+            source="${java.target_version}"
+            target="${java.target_version}" 
+            memoryMaximumSize="1024m" 
+            />
 
 		<javac
-				sourcepath=""
-				srcdir="${src.dir}/../webapps/midiDemo/WEB-INF/src"
-				destdir="${src.dir}/../webapps/midiDemo/WEB-INF/classes"
-				debug="${debug.state}"
-				classpathref="webapps.classpath"
-				fork="yes"
-				verbose="no"
-				nowarn="yes"
-				executable="${java.home}/../bin/javac"
-				target="${java.target_version}">
+			sourcepath=""
+			srcdir="${src.dir}/../webapps/fitcDemo/WEB-INF/src"
+			destdir="${src.dir}/../webapps/fitcDemo/WEB-INF/classes"
+			classpathref="webapps.classpath"
+            optimize="${build.optimize}" 
+            verbose="${build.verbose}" 
+            fork="${build.fork}" 
+            nowarn="${build.nowarn}"
+            deprecation="${build.deprecation}"
+            debug="${debug.state}"
+            compiler="${compiler}"
+            source="${java.target_version}"
+            target="${java.target_version}" 
+		/>
 
-		</javac>
+		<javac
+			sourcepath=""
+			srcdir="${src.dir}/../webapps/midiDemo/WEB-INF/src"
+			destdir="${src.dir}/../webapps/midiDemo/WEB-INF/classes"
+			classpathref="webapps.classpath"
+            optimize="${build.optimize}" 
+            verbose="${build.verbose}" 
+            fork="${build.fork}" 
+            nowarn="${build.nowarn}"
+            deprecation="${build.deprecation}"
+            debug="${debug.state}"
+            compiler="${compiler}"
+            source="${java.target_version}"
+            target="${java.target_version}" 
+        />
 		
 		<javac
-				sourcepath=""
-				srcdir="${src.dir}/../webapps/oflaDemo/WEB-INF/src"
-				destdir="${src.dir}/../webapps/oflaDemo/WEB-INF/classes"
-				debug="${debug.state}"
-				classpathref="webapps.classpath"
-				fork="yes"
-				verbose="no"
-				nowarn="yes"
-				executable="${java.home}/../bin/javac"
-				target="${java.target_version}">
-
-		</javac>
-
-		<javac
-				sourcepath=""
-				srcdir="${src.dir}/../webapps/test/WEB-INF/src"
-				destdir="${src.dir}/../webapps/test/WEB-INF/classes"
-				debug="${debug.state}"
-				classpathref="webapps.classpath"
-				fork="yes"
-				verbose="no"
-				nowarn="yes"
-				executable="${java.home}/../bin/javac"
-				target="${java.target_version}">
-
-		</javac>
+			sourcepath=""
+			srcdir="${src.dir}/../webapps/oflaDemo/WEB-INF/src"
+			destdir="${src.dir}/../webapps/oflaDemo/WEB-INF/classes"
+			classpathref="webapps.classpath"
+            optimize="${build.optimize}" 
+            verbose="${build.verbose}" 
+            fork="${build.fork}" 
+            nowarn="${build.nowarn}"
+            deprecation="${build.deprecation}"
+            debug="${debug.state}"
+            compiler="${compiler}"
+            source="${java.target_version}"
+            target="${java.target_version}" 
+		/>
 
 		<javac
-				sourcepath=""
-				srcdir="${src.dir}/../webapps/tutorial/WEB-INF/src"
-				destdir="${src.dir}/../webapps/tutorial/WEB-INF/classes"
-				debug="${debug.state}"
-				classpathref="webapps.classpath"
-				fork="yes"
-				verbose="no"
-				nowarn="yes"
-				executable="${java.home}/../bin/javac"
-				target="${java.target_version}">
+			sourcepath=""
+			srcdir="${src.dir}/../webapps/test/WEB-INF/src"
+			destdir="${src.dir}/../webapps/test/WEB-INF/classes"
+            classpathref="webapps.classpath"
+            optimize="${build.optimize}" 
+            verbose="${build.verbose}" 
+            fork="${build.fork}" 
+            nowarn="${build.nowarn}"
+            deprecation="${build.deprecation}"
+            debug="${debug.state}"
+            compiler="${compiler}"
+            source="${java.target_version}"
+            target="${java.target_version}" 
+        />
 
-		</javac>
+		<javac
+			sourcepath=""
+			srcdir="${src.dir}/../webapps/tutorial/WEB-INF/src"
+			destdir="${src.dir}/../webapps/tutorial/WEB-INF/classes"
+            classpathref="webapps.classpath"
+            optimize="${build.optimize}" 
+            verbose="${build.verbose}" 
+            fork="${build.fork}" 
+            nowarn="${build.nowarn}"
+            deprecation="${build.deprecation}"
+            debug="${debug.state}"
+            compiler="${compiler}"
+            source="${java.target_version}"
+            target="${java.target_version}" 
+        />
+        
 	</target>
 
 	<target name="javadoc" description="Generate JavaDoc">
@@ -209,7 +241,11 @@
 	</target>
 
 	<target name="jar" description="Make Archive" depends="compile">
-		<jar destfile="red5.jar">
+        <tstamp prefix="build">
+            <format property="TODAY" pattern="d-MMMM-yyyy" locale="en" />
+        </tstamp>
+
+        <jar destfile="red5.jar">
 			<fileset dir="${classes.dir}">
 				<include name="**"/>
 				<exclude name="testcases/**"/>
@@ -221,7 +257,8 @@
 		 -->
 			<manifest>
 				<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>
-				<attribute name="Main-Class" value="org.red5.server.Standalone"/>
+                <attribute name="Built-On" value="${build.TODAY}" />
+                <attribute name="Main-Class" value="org.red5.server.Standalone"/>
 				<attribute name="Class-Path"
 						   value="conf/ lib/slf4j-log4j12.jar lib/cglib-nodep-2.1_2.jar lib/jetty.jar lib/jetty-util.jar lib/commons-beanutils.jar lib/commons-collections.jar lib/commons-logging.jar lib/jpda.jar lib/log4j-1.2.9.jar lib/mina-filter-ssl-0.9.4.jar lib/mina-core-0.9.4.jar lib/mina-integration-spring-0.9.4.jar lib/servlet-api.jar lib/spring.jar lib/quartz-1.5.2.jar lib/xmlrpc-2.0.1.jar lib/commons-codec-1.3.jar lib/commons-httpclient-3.0.1.jar lib/jasper-compiler-5.5.15.jar lib/jasper-compiler-jdt-5.5.15.jar lib/servlet-api.jar lib/jasper-runtime-5.5.15.jar lib/xercesImpl-2.6.2.jar lib/jsp-api-2.0.jar lib/xmlParserAPIs-2.6.2.jar lib/jcl104-over-slf4j-1.0.1.jar lib/slf4j-simple-1.0.1.jar lib/commons-el-1.0.jar"/>
 			</manifest>
@@ -395,5 +432,9 @@
 	</target>
 
 	<target name="all" depends="clean, prepare, compile, jar, javadoc"/>
+    
+    <target name="usage">
+        <echo message="Type ant -p for available targets" />
+    </target>
 
 </project>

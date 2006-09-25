@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
-<beans>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:lang="http://www.springframework.org/schema/lang"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+                           http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-2.0.xsd">
 
 	<!-- This context is shared between all child contexts. -->
 
@@ -63,11 +66,69 @@
     
     <bean id="schedulingService" class="org.red5.server.scheduling.QuartzSchedulingService" />
     
+    <bean id="threadFactory" class="org.red5.server.pooling.ThreadObjectFactory" />
+
     <!-- threadpool settings for the remoting clients -->
-    <bean id="remotingPool" class="org.mortbay.thread.BoundedThreadPool"
-          init-method="start">
-        <property name="minThreads" value="4" />
-        <property name="maxThreads" value="16" />
+    <bean id="remotingPool" class="org.red5.server.pooling.ThreadPool">
+    	<constructor-arg><ref bean="threadFactory" /></constructor-arg> 
+        <!-- maxIdle: The maximum number of sleeping instances in the pool, 
+        	without extra objects being released. -->
+        <property name="maxIdle" value="8" />
+        <!-- minIdle: The minimum number of sleeping instances in the pool, 
+        	without extra objects being created. -->
+        <property name="minIdle" value="2" />
+        <!-- maxActive: The maximum number of active instances in the pool. -->
+        <property name="maxActive" value="8" />
+        <!-- timeBetweenEvictionRunsMillis: The number of milliseconds to 
+        	sleep between runs of the idle-object evictor thread. When negative, 
+        	no idle-object evictor thread will run. Use this parameter only when 
+        	you want the evictor thread to run. -->
+        <property name="timeBetweenEvictionRunsMillis" value="120000" />
+        <!-- minEvictableIdleTimeMillis: The minimum amount of time an object, 
+        	if active, may sit idle in the pool before it is eligible for eviction 
+        	by the idle-object evictor. If a negative value is supplied, no objects 
+        	are evicted due to idle time alone. -->
+        <property name="minEvictableIdleTimeMillis" value="-1" />
+        <!-- testOnBorrow: When "true," objects are validated. If the object fails
+        	validation, it will be dropped from the pool, and the pool will attempt 
+        	to borrow another. -->
+        <property name="testOnBorrow" value="true" />
+        <property name="whenExhaustedAction" value="2"/>    	
     </bean>
+    
+	<!-- Now we can load the cache engine -->
+	<!-- bean id="object.cache" class="org.red5.server.cache.CacheImpl" init-method="init" autowire="byType"> 
+		<property name="maxEntries"><value>5</value></property>
+	</bean -->
+	
+	<bean id="object.cache" class="org.red5.server.cache.WhirlyCacheImpl" init-method="init" autowire="byType">
+		<property name="maxEntries" value="5" />
+		<property name="cacheConfig">
+			<bean class="com.whirlycott.cache.CacheConfiguration">
+				<property name="name" value="flv.cache" />
+				<property name="maxSize" value="5" />
+				<!-- This policy removes cached items, biased towards least frequently used (LFU) Items -->
+				<property name="policy"><value>com.whirlycott.cache.policy.LFUMaintenancePolicy</value></property>
+				<!-- This policy removes cached items, biased towards least recently used (LRU) Items -->
+				<!-- property name="policy"><value>com.whirlycott.cache.policy.LRUMaintenancePolicy</value></property -->
+				<!-- This policy removes cache items in the order in which they were added -->
+				<!-- property name="policy"><value>com.whirlycott.cache.policy.FIFOMaintenancePolicy</value></property -->
+				<!-- A predicate for filtering Collections of Items based on their expiration time -->
+				<!-- property name="policy"><value>com.whirlycott.cache.policy.ExpirationTimePredicate</value></property -->		
+				<!-- property name="backend"><value>com.whirlycott.cache.impl.ConcurrentHashMapImpl</value></property -->
+				<property name="backend"><value>com.whirlycott.cache.impl.FastHashMapImpl</value></property>
+			</bean>
+		</property>
+	</bean>    
+	
+	<!-- Then we load the scripting context, with the common as parent --> 
+	<bean id="script.context" class="org.red5.server.script.ScriptObjectContext" init-method="init">
+		<property name="scriptBeanFactory">
+			<bean class="org.red5.server.script.ScriptBeanFactory" />
+		</property>
+		<property name="scriptManager">
+			<bean class="javax.script.ScriptEngineManager" />
+		</property>
+	</bean>
     
 </beans>

@@ -28,10 +28,10 @@ import org.red5.server.api.IScope;
 public interface IStream {
 	
 	/**
-	 * Get the name of the stream.
-	 * The name is unique across the server. 
-	 * This is just an id of the stream and NOT the name that is used at client side to subscribe to the stream.
-	 * For that name, use {@link IBroadcastStream#getPublishedName()}
+	 * Get the name of the stream. The name is unique across the server. This is
+	 * just an id of the stream and NOT the name that is used at client side to
+	 * subscribe to the stream. For that name, use
+	 * {@link IBroadcastStream#getPublishedName()}
 	 * 
 	 * @return the name of the stream
 	 */
@@ -39,6 +39,7 @@ public interface IStream {
 	
 	/**
 	 * Get Codec info for a stream.
+	 * 
 	 * @return
 	 */
 	IStreamCodecInfo getCodecInfo();

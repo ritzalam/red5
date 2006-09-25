@@ -48,8 +48,6 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 		this.deserializer = deserializer;
 	}
 	
-	
-	
 	public List decodeBuffer(ProtocolState state, ByteBuffer buffer) {
 		List list = new LinkedList();
 		Object packet = null;
@@ -59,7 +57,8 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 			log.error("Decoding error",e);
 			packet = null;
 		}
-		if(packet != null) list.add(packet);
+		if (packet != null)
+			list.add(packet);
 		return list;
 	}
 
@@ -75,7 +74,6 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 		// TODO Auto-generated method stub
 	}
 			
-	
 	protected void skipHeaders(ByteBuffer in){
 		log.debug("Skip headers");
 		int version = in.getUnsignedShort(); // skip the version
@@ -113,8 +111,7 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
             // set the limit and deserialize
             // NOTE: disabled because the FP sends wrong values here
             /*
-            if (length != -1)
-            	in.limit(in.position()+length);
+			 * if (length != -1) in.limit(in.position()+length);
             */
             Object value = deserializer.deserialize(input);
             
@@ -125,7 +122,8 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
             int dotPos = serviceString.lastIndexOf(".");
             if(dotPos!=-1){
         		serviceName = serviceString.substring(0, dotPos);
-        		serviceMethod = serviceString.substring(dotPos+1, serviceString.length());
+				serviceMethod = serviceString.substring(dotPos + 1,
+						serviceString.length());
             } else {
         		serviceName = serviceString;
         		serviceMethod = "";
@@ -155,7 +153,8 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 			}
             
             // Add the call to the list
-            calls.add(new RemotingCall(serviceName, serviceMethod, args, clientCallback));   
+			calls.add(new RemotingCall(serviceName, serviceMethod, args,
+					clientCallback));
         }
         return calls;
     }

@@ -28,7 +28,8 @@ public class MulticastEventProcessor {
 	}
 
 	public void disposeCached(Object obj) {
-		if(obj == null) return;
+		if (obj == null)
+			return;
 		final ByteBuffer[] chunks = (ByteBuffer[]) obj;
 		for(ByteBuffer buf : chunks){
 			buf.release();

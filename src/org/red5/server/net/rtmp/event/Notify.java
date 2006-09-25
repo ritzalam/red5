@@ -93,16 +93,28 @@ public class Notify extends BaseEvent implements IStreamData {
 	}
 	
 	public boolean equals(Object obj){
-		if(obj == null) return false;
-		if(!(obj instanceof Notify)) return false;
+		if (obj == null)
+			return false;
+		if (!(obj instanceof Notify))
+			return false;
 		Notify other = (Notify) obj;
-		if(getConnectionParams() == null && other.getConnectionParams() != null) return false;
-		if(getConnectionParams() != null && other.getConnectionParams() == null) return false;
-		if(getConnectionParams() != null && !getConnectionParams().equals(other.getConnectionParams())) return false;
-		if(getInvokeId() != other.getInvokeId()) return false;
-		if(getCall() == null && other.getCall() != null) return false;
-		if(getCall() != null && other.getCall() == null) return false;
-		if(getCall() != null && ! getCall().equals(other.getCall())) return false;
+		if (getConnectionParams() == null
+				&& other.getConnectionParams() != null)
+			return false;
+		if (getConnectionParams() != null
+				&& other.getConnectionParams() == null)
+			return false;
+		if (getConnectionParams() != null
+				&& !getConnectionParams().equals(other.getConnectionParams()))
+			return false;
+		if (getInvokeId() != other.getInvokeId())
+			return false;
+		if (getCall() == null && other.getCall() != null)
+			return false;
+		if (getCall() != null && other.getCall() == null)
+			return false;
+		if (getCall() != null && !getCall().equals(other.getCall()))
+			return false;
 		return true;
 	}
 	

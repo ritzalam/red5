@@ -51,7 +51,8 @@ import org.springframework.context.ApplicationContextAware;
  */
 public class BalancedFlowControlService extends TimerTask implements
 		IFlowControlService, ApplicationContextAware {
-	private static final Log log = LogFactory.getLog(BalancedFlowControlService.class);
+	private static final Log log = LogFactory
+			.getLog(BalancedFlowControlService.class);
 	
 	private static final int maxDepth = 10;
 	
@@ -106,8 +107,10 @@ public class BalancedFlowControlService extends TimerTask implements
 						boolean gotToken = false;
 						for (int channelId = 0; channelId < fcData.bwResources.length; channelId++) {
 							BandwidthResource thisResource = fcData.bwResources[channelId];
-							double tokenCount = fcData.bwResources[channelId].speed * interval;
-							BandwidthResource parentResource = getParentBandwidthResource(fcData, channelId);
+							double tokenCount = fcData.bwResources[channelId].speed
+									* interval;
+							BandwidthResource parentResource = getParentBandwidthResource(
+									fcData, channelId);
 							if (parentResource == null) {
 								thisResource.addToken(tokenCount);
 							} else {
@@ -162,41 +165,46 @@ public class BalancedFlowControlService extends TimerTask implements
 					data.bwResources = new BandwidthResource[0];
 					data.config = null;
 				} else {
-					long capacity = newConf.getMaxBurst() <= 0 ? defaultCapacity : newConf.getMaxBurst();
+					long capacity = newConf.getMaxBurst() <= 0 ? defaultCapacity
+							: newConf.getMaxBurst();
 					if (oldConf == null) {
 						data.config = new SimpleBandwidthConfigure(newConf);
 						if (data.config.getOverallBandwidth() >= 0) {
 							data.bwResources = new BandwidthResource[1];
 							data.bwResources[0] = new BandwidthResource(
-									capacity,
-									bps2Bpms(data.config.getOverallBandwidth()),
+									capacity, bps2Bpms(data.config
+											.getOverallBandwidth()),
 									data.config.getBurst());
 						} else {
 							data.bwResources = new BandwidthResource[2];
 							data.bwResources[0] = new BandwidthResource(
-									capacity,
-									bps2Bpms(data.config.getVideoBandwidth()),
-									data.config.getBurst());
+									capacity, bps2Bpms(data.config
+											.getVideoBandwidth()), data.config
+											.getBurst());
 							data.bwResources[1] = new BandwidthResource(
-									capacity,
-									bps2Bpms(data.config.getAudioBandwidth()),
-									data.config.getBurst());
+									capacity, bps2Bpms(data.config
+											.getAudioBandwidth()), data.config
+											.getBurst());
 						}
 					} else {
 						data.config = new SimpleBandwidthConfigure(newConf);
-						if (oldConf.getOverallBandwidth() < 0 &&
-								newConf.getOverallBandwidth() >= 0) {
+						if (oldConf.getOverallBandwidth() < 0
+								&& newConf.getOverallBandwidth() >= 0) {
 							data.bwResources[1] = null;
 							data.bwResources[0].capacity = capacity;
-							data.bwResources[0].speed = bps2Bpms(data.config.getOverallBandwidth());
+							data.bwResources[0].speed = bps2Bpms(data.config
+									.getOverallBandwidth());
 						} else if (newConf.getOverallBandwidth() < 0) {
 							data.bwResources[0].capacity = capacity;
-							data.bwResources[0].speed = bps2Bpms(data.config.getVideoBandwidth());
+							data.bwResources[0].speed = bps2Bpms(data.config
+									.getVideoBandwidth());
 							data.bwResources[1].capacity = capacity;
-							data.bwResources[1].speed = bps2Bpms(data.config.getAudioBandwidth());
+							data.bwResources[1].speed = bps2Bpms(data.config
+									.getAudioBandwidth());
 						} else {
 							data.bwResources[0].capacity = capacity;
-							data.bwResources[0].speed = bps2Bpms(data.config.getOverallBandwidth());
+							data.bwResources[0].speed = bps2Bpms(data.config
+									.getOverallBandwidth());
 						}
 					}
 				}
@@ -251,7 +259,8 @@ public class BalancedFlowControlService extends TimerTask implements
 	 * @param channelId
 	 * @return
 	 */
-	private BandwidthResource getParentBandwidthResource(FcData fcData, int channelId) {
+	private BandwidthResource getParentBandwidthResource(FcData fcData,
+			int channelId) {
 		IFlowControllable parentFC = fcData.fc.getParentFlowControllable();
 		while (parentFC != null) {
 			FcData data = getFcData(parentFC);
@@ -284,6 +293,7 @@ public class BalancedFlowControlService extends TimerTask implements
 	
 	/**
 	 * Get the FC depth in the tree.
+	 * 
 	 * @param fc
 	 * @return
 	 */
@@ -302,6 +312,7 @@ public class BalancedFlowControlService extends TimerTask implements
 	
 	/**
 	 * Put a request object to sleep state.
+	 * 
 	 * @param fcData
 	 * @param reqObj
 	 * @param channelId
@@ -341,7 +352,8 @@ public class BalancedFlowControlService extends TimerTask implements
 	private void wakeUpCallback(FcData fcData) {
 		try {
 			wakeUpQueue.put(fcData);
-		} catch (InterruptedException e) {}
+		} catch (InterruptedException e) {
+		}
 	}
 	
 	/**
@@ -369,7 +381,9 @@ public class BalancedFlowControlService extends TimerTask implements
 	
 	/**
 	 * Bit per second to Byte per millisecond.
-	 * @param bps Bit per second.
+	 * 
+	 * @param bps
+	 *            Bit per second.
 	 * @return Byte per millisecond.
 	 */
 	private double bps2Bpms(long bps) {
@@ -384,9 +398,12 @@ public class BalancedFlowControlService extends TimerTask implements
 		public BandwidthResource(long capacity, double speed, long initial) {
 			this.capacity = capacity;
 			this.speed = speed;
-			if (initial < 0) this.tokens = 0;
-			else if (initial > capacity) this.tokens = capacity;
-			else this.tokens = initial;
+			if (initial < 0)
+				this.tokens = 0;
+			else if (initial > capacity)
+				this.tokens = capacity;
+			else
+				this.tokens = initial;
 		}
 		
 		synchronized public boolean acquireToken(double token) {
@@ -440,9 +457,12 @@ public class BalancedFlowControlService extends TimerTask implements
 
 		public int compareTo(Object o) {
 			FcData toCompare = (FcData) o;
-			if (hungry < toCompare.hungry) return 1;
-			else if (hungry == toCompare.hungry) return 0;
-			else return -1;
+			if (hungry < toCompare.hungry)
+				return 1;
+			else if (hungry == toCompare.hungry)
+				return 0;
+			else
+				return -1;
 		}
 		
 	}
@@ -466,12 +486,14 @@ public class BalancedFlowControlService extends TimerTask implements
 			BandwidthResource resource = null;
 			lock.readLock().lock();
 			try {
-				if (isReset) return false;
+				if (isReset)
+					return false;
 				resource = getResource();
 			} finally {
 				lock.readLock().unlock();
 			}
-			if (resource == null) return true;
+			if (resource == null)
+				return true;
 			boolean success = resource.acquireToken(tokenCount);
 			// lock here to avoid sorting on concurrent modification
 			lock.readLock().lock();
@@ -491,12 +513,14 @@ public class BalancedFlowControlService extends TimerTask implements
 			BandwidthResource resource = null;
 			lock.readLock().lock();
 			try {
-				if (isReset) return 0;
+				if (isReset)
+					return 0;
 				resource = getResource();
 			} finally {
 				lock.readLock().unlock();
 			}
-			if (resource == null) return upperLimitCount;
+			if (resource == null)
+				return upperLimitCount;
 			double avail = resource.acquireTokenBestEffort(upperLimitCount);
 			// lock here to avoid sorting on concurrent modification
 			lock.readLock().lock();
@@ -512,16 +536,19 @@ public class BalancedFlowControlService extends TimerTask implements
 			return avail;
 		}
 
-		public boolean acquireTokenNonblocking(double tokenCount, ITokenBucketCallback callback) {
+		public boolean acquireTokenNonblocking(double tokenCount,
+				ITokenBucketCallback callback) {
 			BandwidthResource bwResource = null;
 			lock.readLock().lock();
 			try {
-				if (isReset) return false;
+				if (isReset)
+					return false;
 				bwResource = getResource();
 			} finally {
 				lock.readLock().unlock();
 			}
-			if (bwResource == null) return true;
+			if (bwResource == null)
+				return true;
 			boolean success = bwResource.acquireToken(tokenCount);
 			if (!success) {
 				RequestObject reqObj = new RequestObject();
@@ -607,9 +634,12 @@ public class BalancedFlowControlService extends TimerTask implements
 		
 		public int compareTo(Object o) {
 			RequestObject toCompare = (RequestObject) o;
-			if (hungry < toCompare.hungry) return 1;
-			else if (hungry == toCompare.hungry) return 0;
-			else return -1;
+			if (hungry < toCompare.hungry)
+				return 1;
+			else if (hungry == toCompare.hungry)
+				return 0;
+			else
+				return -1;
 		}
 	}
 	
@@ -633,13 +663,15 @@ public class BalancedFlowControlService extends TimerTask implements
 					}
 					try {
 						if (reqObj != null) {
-							reqObj.callback.available(reqObj.bucket, reqObj.tokenCount);
+							reqObj.callback.available(reqObj.bucket,
+									reqObj.tokenCount);
 						}
 					} catch (Throwable t) {
 						log.error("Exception in callback", t);
 					}
 				}
-			} catch (InterruptedException e) {}
+			} catch (InterruptedException e) {
+			}
 		}
 	}
 }

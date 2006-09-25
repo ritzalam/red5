@@ -36,15 +36,16 @@ import org.red5.server.api.IFlowControllable;
 import org.red5.server.api.IScope;
 import org.red5.server.stream.IFlowControlService;
 
-public class Client extends AttributeStore  
-	implements IClient {
+public class Client extends AttributeStore implements IClient {
 
-	protected static Log log =
-        LogFactory.getLog(Client.class.getName());
+	protected static Log log = LogFactory.getLog(Client.class.getName());
 	
 	protected String id;
+
 	protected long creationTime;
+
 	protected ClientRegistry registry;
+
 	protected HashMap<IConnection,IScope> connToScope = new HashMap<IConnection,IScope>();
 	
 	private IBandwidthConfigure bandwidthConfig;
@@ -100,15 +101,17 @@ public class Client extends AttributeStore
 	}
 
 	public void disconnect() {
-		log.debug("Disconnect, closing "+getConnections().size()+" connections");
+		log.debug("Disconnect, closing " + getConnections().size()
+				+ " connections");
 		Iterator<IConnection> conns = getConnections().iterator();
 		while(conns.hasNext()){
 			conns.next().close();
 		}
 		IContext context = getContextFromConnection();
-		if (context == null) return;
-		IFlowControlService fcs = (IFlowControlService) context.getBean(
-				IFlowControlService.KEY);
+		if (context == null)
+			return;
+		IFlowControlService fcs = (IFlowControlService) context
+				.getBean(IFlowControlService.KEY);
 		fcs.releaseFlowControllable(this);
 	}
 		
@@ -123,9 +126,10 @@ public class Client extends AttributeStore
 
 	public void setBandwidthConfigure(IBandwidthConfigure config) {
 		IContext context = getContextFromConnection();
-		if (context == null) return;
-		IFlowControlService fcs = (IFlowControlService) context.getBean(
-				IFlowControlService.KEY);
+		if (context == null)
+			return;
+		IFlowControlService fcs = (IFlowControlService) context
+				.getBean(IFlowControlService.KEY);
 		this.bandwidthConfig = config;
 		fcs.updateBWConfigure(this);
 	}
@@ -144,13 +148,15 @@ public class Client extends AttributeStore
 	
 	/**
 	 * Get the context from anyone of the IConnection.
+	 * 
 	 * @return
 	 */
 	private IContext getContextFromConnection() {
 		IConnection conn = null;
 		try {
 			conn = connToScope.keySet().iterator().next();
-		} catch (Exception e) {}
+		} catch (Exception e) {
+		}
 		if (conn != null) {
 			return conn.getScope().getContext();
 		}

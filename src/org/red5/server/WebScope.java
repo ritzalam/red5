@@ -54,7 +54,8 @@ public class WebScope extends Scope implements ServletContextAware {
 	}
 	
 	public void setParent(){
-		throw new RuntimeException("Cannot set parent, you must set global scope");
+		throw new RuntimeException(
+				"Cannot set parent, you must set global scope");
 	}
 	
 	public void setServer(IServer server) {
@@ -84,7 +85,8 @@ public class WebScope extends Scope implements ServletContextAware {
 	public void register(){
 		if(hostnames != null && hostnames.length > 0){
 			for (int i = 0; i < hostnames.length; i++) {
-				server.addMapping(hostnames[i], getName(),((IGlobalScope) getParent()).getName());
+				server.addMapping(hostnames[i], getName(),
+						((IGlobalScope) getParent()).getName());
 			}
 		} 
 		init();

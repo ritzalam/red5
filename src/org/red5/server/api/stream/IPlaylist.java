@@ -22,12 +22,14 @@ package org.red5.server.api.stream;
 public interface IPlaylist {
 	/**
 	 * Add an item to the list.
+	 * 
 	 * @param item
 	 */
 	void addItem(IPlayItem item);
 	
 	/**
 	 * Add an item to specific index.
+	 * 
 	 * @param item
 	 * @param index
 	 */
@@ -35,6 +37,7 @@ public interface IPlaylist {
 	
 	/**
 	 * Remove an item from list.
+	 * 
 	 * @param index
 	 */
 	void removeItem(int index);
@@ -71,48 +74,56 @@ public interface IPlaylist {
 	
 	/**
 	 * Set the current item for playing.
+	 * 
 	 * @param index
 	 */
 	void setItem(int index);
 	
 	/**
 	 * Whether items are randomly played.
+	 * 
 	 * @return
 	 */
 	boolean isRandom();
 
 	/**
 	 * Set whether items should be randomly played.
+	 * 
 	 * @param random
 	 */
 	void setRandom(boolean random);
 	
 	/**
 	 * Whether rewind the list.
+	 * 
 	 * @return
 	 */
 	boolean isRewind();
 	
 	/**
 	 * Set whether rewind the list.
+	 * 
 	 * @param rewind
 	 */
 	void setRewind(boolean rewind);
 	
 	/**
 	 * Whether repeat playing an item.
+	 * 
 	 * @return
 	 */
 	boolean isRepeat();
 	
 	/**
 	 * Set whether repeat playing an item.
+	 * 
 	 * @param repeat
 	 */
 	void setRepeat(boolean repeat);
 	
 	/**
 	 * Set list controller.
+	 * 
 	 * @param controller
 	 */
 	void setPlaylistController(IPlaylistController controller);

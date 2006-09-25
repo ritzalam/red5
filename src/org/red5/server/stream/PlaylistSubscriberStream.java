@@ -61,9 +61,10 @@ import org.red5.server.stream.message.RTMPMessage;
 import org.red5.server.stream.message.ResetMessage;
 import org.red5.server.stream.message.StatusMessage;
 
-public class PlaylistSubscriberStream extends AbstractClientStream
-implements IPlaylistSubscriberStream {
-	private static final Log log = LogFactory.getLog(PlaylistSubscriberStream.class);
+public class PlaylistSubscriberStream extends AbstractClientStream implements
+		IPlaylistSubscriberStream {
+	private static final Log log = LogFactory
+			.getLog(PlaylistSubscriberStream.class);
 	
 	private enum State {
 		UNINIT,
@@ -98,16 +99,18 @@ implements IPlaylistSubscriberStream {
 	}
 	
 	public void start() {
-		flowControlService =
-			(IFlowControlService) getScope().getContext().getBean(IFlowControlService.KEY);
+		flowControlService = (IFlowControlService) getScope().getContext()
+				.getBean(IFlowControlService.KEY);
 		engine.start();
 		notifySubscriberStart();
 	}
 
 	public void play() {
 		synchronized (items) {
-			if (items.size() == 0) return;
-			if (currentItemIndex == -1) moveToNext();
+			if (items.size() == 0)
+				return;
+			if (currentItemIndex == -1)
+				moveToNext();
 			IPlayItem item = items.get(currentItemIndex);
 			int count = items.size();
 			while (count-- > 0) {
@@ -133,25 +136,29 @@ implements IPlaylistSubscriberStream {
 	public void pause(int position) {
 		try {
 			engine.pause(position);
-		} catch (IllegalStateException e) {}
+		} catch (IllegalStateException e) {
+		}
 	}
 
 	public void resume(int position) {
 		try {
 			engine.resume(position);
-		} catch (IllegalStateException e) {}
+		} catch (IllegalStateException e) {
+		}
 	}
 
 	public void stop() {
 		try {
 			engine.stop();
-		} catch (IllegalStateException e) {}
+		} catch (IllegalStateException e) {
+		}
 	}
 
 	public void seek(int position) {
 		try {
 			engine.seek(position);
-		} catch (IllegalStateException e) {}
+		} catch (IllegalStateException e) {
+		}
 	}
 
 	public void close() {
@@ -178,7 +185,8 @@ implements IPlaylistSubscriberStream {
 
 	public void removeItem(int index) {
 		synchronized (items) {
-			if (index < 0 || index >= items.size()) return;
+			if (index < 0 || index >= items.size())
+				return;
 			int originSize = items.size();
 			items.remove(index);
 			if (currentItemIndex == index) {
@@ -202,7 +210,8 @@ implements IPlaylistSubscriberStream {
 		synchronized (items) {
 			stop();
 			moveToPrevious();
-			if (currentItemIndex == -1) return;
+			if (currentItemIndex == -1)
+				return;
 			IPlayItem item = items.get(currentItemIndex);
 			int count = items.size();
 			while (count-- > 0) {
@@ -229,7 +238,8 @@ implements IPlaylistSubscriberStream {
 		synchronized (items) {
 			stop();
 			moveToNext();
-			if (currentItemIndex == -1) return;
+			if (currentItemIndex == -1)
+				return;
 			IPlayItem item = items.get(currentItemIndex);
 			int count = items.size();
 			while (count-- > 0) {
@@ -254,7 +264,8 @@ implements IPlaylistSubscriberStream {
 
 	public void setItem(int index) {
 		synchronized (items) {
-			if (index < 0 || index >= items.size()) return;
+			if (index < 0 || index >= items.size())
+				return;
 			stop();
 			currentItemIndex = index;
 			IPlayItem item = items.get(currentItemIndex);
@@ -343,7 +354,8 @@ implements IPlaylistSubscriberStream {
 		if (controller != null) {
 			currentItemIndex = controller.nextItem(this, currentItemIndex);
 		} else {
-			currentItemIndex = defaultController.nextItem(this, currentItemIndex);
+			currentItemIndex = defaultController.nextItem(this,
+					currentItemIndex);
 		}
 	}
 	
@@ -354,7 +366,8 @@ implements IPlaylistSubscriberStream {
 		if (controller != null) {
 			currentItemIndex = controller.previousItem(this, currentItemIndex);
 		} else {
-			currentItemIndex = defaultController.previousItem(this, currentItemIndex);
+			currentItemIndex = defaultController.previousItem(this,
+					currentItemIndex);
 		}
 	}
 	
@@ -445,9 +458,8 @@ implements IPlaylistSubscriberStream {
 	/**
 	 * A play engine for playing an IPlayItem.
 	 */
-	private class PlayEngine
-	implements IFilter, IPushableConsumer, IPipeConnectionListener,
-	ITokenBucketCallback, IScheduledJob {
+	private class PlayEngine implements IFilter, IPushableConsumer,
+			IPipeConnectionListener, ITokenBucketCallback, IScheduledJob {
 		
 		private State state;
 		
@@ -479,27 +491,36 @@ implements IPlaylistSubscriberStream {
 		}
 		
 		synchronized public void start() {
-			if (state != State.UNINIT) throw new IllegalStateException();
+			if (state != State.UNINIT)
+				throw new IllegalStateException();
 			state = State.STOPPED;
-			schedulingService = (ISchedulingService) getScope().getContext().getBean(ISchedulingService.SCHEDULING_SERVICE);
-			IConsumerService consumerManager =
-				(IConsumerService) getScope().getContext().getBean(IConsumerService.KEY);
-			msgOut = consumerManager.getConsumerOutput(PlaylistSubscriberStream.this);
+			schedulingService = (ISchedulingService) getScope().getContext()
+					.getBean(ISchedulingService.SCHEDULING_SERVICE);
+			IConsumerService consumerManager = (IConsumerService) getScope()
+					.getContext().getBean(IConsumerService.KEY);
+			msgOut = consumerManager
+					.getConsumerOutput(PlaylistSubscriberStream.this);
 			msgOut.subscribe(this, null);
-			audioBucket = flowControlService.getAudioTokenBucket(PlaylistSubscriberStream.this);
-			videoBucket = flowControlService.getVideoTokenBucket(PlaylistSubscriberStream.this);
+			audioBucket = flowControlService
+					.getAudioTokenBucket(PlaylistSubscriberStream.this);
+			videoBucket = flowControlService
+					.getVideoTokenBucket(PlaylistSubscriberStream.this);
 		}
 		
 		synchronized public void play(IPlayItem item)
 		throws StreamNotFoundException, IllegalStateException {
-			if (state != State.STOPPED) throw new IllegalStateException();
+			if (state != State.STOPPED)
+				throw new IllegalStateException();
 			int type = (int) (item.getStart() / 1000);
 			// see if it's a published stream
 			IScope thisScope = getScope();
 			IContext context = thisScope.getContext();
-			IProviderService providerService = (IProviderService) context.getBean(IProviderService.KEY);
-			IMessageInput liveInput = providerService.getLiveProviderInput(thisScope, item.getName(), false);
-			IMessageInput vodInput = providerService.getVODProviderInput(thisScope, item.getName());
+			IProviderService providerService = (IProviderService) context
+					.getBean(IProviderService.KEY);
+			IMessageInput liveInput = providerService.getLiveProviderInput(
+					thisScope, item.getName(), false);
+			IMessageInput vodInput = providerService.getVODProviderInput(
+					thisScope, item.getName());
 			boolean isPublishedStream = liveInput != null;
 			boolean isFileStream = vodInput != null;
 			boolean sendNotifications = true;
@@ -533,8 +554,9 @@ implements IPlaylistSubscriberStream {
 				}
 				break;
 			}
-			if (decision == 2) liveInput = providerService.getLiveProviderInput(
-					thisScope, item.getName(), true);
+			if (decision == 2)
+				liveInput = providerService.getLiveProviderInput(thisScope,
+						item.getName(), true);
 			currentItem = item;
 			switch (decision) {
 			case 0:
@@ -543,9 +565,11 @@ implements IPlaylistSubscriberStream {
 				videoFrameDropper.reset(IFrameDropper.SEND_KEYFRAMES_CHECK);
 				if (msgIn instanceof IBroadcastScope) {
 					// Send initial keyframe
-					IClientBroadcastStream stream = (IClientBroadcastStream) ((IBroadcastScope) msgIn).getAttribute(IBroadcastScope.STREAM_ATTRIBUTE);
+					IClientBroadcastStream stream = (IClientBroadcastStream) ((IBroadcastScope) msgIn)
+							.getAttribute(IBroadcastScope.STREAM_ATTRIBUTE);
 					if (stream != null && stream.getCodecInfo() != null) {
-						IVideoStreamCodec videoCodec = stream.getCodecInfo().getVideoCodec();
+						IVideoStreamCodec videoCodec = stream.getCodecInfo()
+								.getVideoCodec();
 						if (videoCodec != null) {
 							ByteBuffer keyFrame = videoCodec.getKeyframe();
 							if (keyFrame != null) {
@@ -574,7 +598,8 @@ implements IPlaylistSubscriberStream {
 				}
 				msgIn.subscribe(this, null);
 				if (item.getLength() >= 0) {
-					playLengthJob = schedulingService.addScheduledOnceJob(item.getLength(), this);
+					playLengthJob = schedulingService.addScheduledOnceJob(item
+							.getLength(), this);
 				}
 				break;
 			case 2:
@@ -583,8 +608,8 @@ implements IPlaylistSubscriberStream {
 				isWaiting = true;
 				if (type == -1 && item.getLength() >= 0) {
 					// Wait given timeout for stream to be published
-					waitLiveJob = schedulingService.addScheduledOnceJob(item.getLength(),
-							new IScheduledJob() {
+					waitLiveJob = schedulingService.addScheduledOnceJob(item
+							.getLength(), new IScheduledJob() {
 						public void execute(ISchedulingService service) {
 							waitLiveJob = null;
 							isWaiting = false;
@@ -597,7 +622,8 @@ implements IPlaylistSubscriberStream {
 				msgIn = vodInput;
 				msgIn.subscribe(this, null);
 				if (item.getLength() >= 0) {
-					playLengthJob = schedulingService.addScheduledOnceJob(item.getLength(), this);
+					playLengthJob = schedulingService.addScheduledOnceJob(item
+							.getLength(), this);
 				}
 				break;
 			default:
@@ -619,8 +645,10 @@ implements IPlaylistSubscriberStream {
 			notifyItemPlay(currentItem, !isPullMode);
 		}
 		
-		synchronized public void pause(int position) throws IllegalStateException {
-			if (state != State.PLAYING) throw new IllegalStateException();
+		synchronized public void pause(int position)
+				throws IllegalStateException {
+			if (state != State.PLAYING)
+				throw new IllegalStateException();
 			if (isPullMode) {
 				state = State.PAUSED;
 				getStreamFlow().pause();
@@ -632,17 +660,23 @@ implements IPlaylistSubscriberStream {
 			}
 		}
 		
-		synchronized public void resume(int position) throws IllegalStateException {
-			if (state != State.PAUSED) throw new IllegalStateException();
+		synchronized public void resume(int position)
+				throws IllegalStateException {
+			if (state != State.PAUSED)
+				throw new IllegalStateException();
 			if (isPullMode) {
 				state = State.PLAYING;
 				getStreamFlow().resume();
 				if (currentItem.getLength() >= 0) {
-					long length = currentItem.getLength() - vodStartTS + position;
-					if (length < 0) length = 0;
-					playLengthJob = schedulingService.addScheduledOnceJob(length, this);
+					long length = currentItem.getLength() - vodStartTS
+							+ position;
+					if (length < 0)
+						length = 0;
+					playLengthJob = schedulingService.addScheduledOnceJob(
+							length, this);
 				}
-				flowControlService.resetTokenBuckets(PlaylistSubscriberStream.this);
+				flowControlService
+						.resetTokenBuckets(PlaylistSubscriberStream.this);
 				sendReset();
 				sendResumeStatus(currentItem);
 				sendVODSeekCM(msgIn, position);
@@ -650,20 +684,25 @@ implements IPlaylistSubscriberStream {
 			}
 		}
 		
-		synchronized public void seek(int position) throws IllegalStateException {
+		synchronized public void seek(int position)
+				throws IllegalStateException {
 			if (state != State.PLAYING && state != State.PAUSED) {
 				throw new IllegalStateException();
 			}
 			if (isPullMode) {
 				if (state == State.PLAYING && currentItem.getLength() >= 0) {
-					long length = currentItem.getLength() - vodStartTS + position;
-					if (length < 0) length = 0;
-					playLengthJob = schedulingService.addScheduledOnceJob(length, this);
+					long length = currentItem.getLength() - vodStartTS
+							+ position;
+					if (length < 0)
+						length = 0;
+					playLengthJob = schedulingService.addScheduledOnceJob(
+							length, this);
 				}
 				releasePendingMessage();
 				getStreamFlow().clear();
 				clearWaitJobs();
-				flowControlService.resetTokenBuckets(PlaylistSubscriberStream.this);
+				flowControlService
+						.resetTokenBuckets(PlaylistSubscriberStream.this);
 				isWaitingForToken = false;
 				sendClearPing();
 				sendReset();
@@ -683,8 +722,8 @@ implements IPlaylistSubscriberStream {
 						if (msg instanceof RTMPMessage) {
 							RTMPMessage rtmpMessage = (RTMPMessage) msg;
 							IRTMPEvent body = rtmpMessage.getBody();
-							if (body instanceof VideoData &&
-									((VideoData) body).getFrameType() == FrameType.KEYFRAME) {
+							if (body instanceof VideoData
+									&& ((VideoData) body).getFrameType() == FrameType.KEYFRAME) {
 								body.setTimestamp(seekPos);
 								msgOut.pushMessage(rtmpMessage);
 								rtmpMessage.getBody().release();
@@ -739,7 +778,8 @@ implements IPlaylistSubscriberStream {
 				if (pendingMessage != null) {
 					IRTMPEvent body = pendingMessage.getBody();
 					if (!(body instanceof IStreamData))
-						throw new RuntimeException("expected IStreamData but got " + body);
+						throw new RuntimeException(
+								"expected IStreamData but got " + body);
 					
 					size = ((IStreamData) body).getData().limit();
 					boolean toSend = true;
@@ -762,9 +802,14 @@ implements IPlaylistSubscriberStream {
 					while (true) {
 						IMessage msg = msgIn.pullMessage();
 						if(adaptFlowJob == null){
-							adaptFlowJob = schedulingService.addScheduledJob(100,new IScheduledJob(){
-								public void execute(ISchedulingService service){
-									streamFlowController.adaptBandwidthForFlow(getStreamFlow(), PlaylistSubscriberStream.this);
+							adaptFlowJob = schedulingService.addScheduledJob(
+									100, new IScheduledJob() {
+										public void execute(
+												ISchedulingService service) {
+											streamFlowController
+													.adaptBandwidthForFlow(
+															getStreamFlow(),
+															PlaylistSubscriberStream.this);
 								}
 							});
 						}
@@ -772,10 +817,12 @@ implements IPlaylistSubscriberStream {
 						if (msg == null) {
 							// end of the VOD stream
 							final IStreamFlow streamFlow = getStreamFlow();
-							int timeDelta = (int) (streamFlow.getBufferTime() + streamFlow.getZeroToStreamTime());
+							int timeDelta = (int) (streamFlow.getBufferTime() + streamFlow
+									.getZeroToStreamTime());
 							// wait until the client finishes
 							if(waitStopJob == null){
-								waitStopJob = schedulingService.addScheduledOnceJob(timeDelta,
+								waitStopJob = schedulingService
+										.addScheduledOnceJob(timeDelta,
 										new IScheduledJob() {
 									public void execute(ISchedulingService service) {
 										// OMFG: it works god dammit! now we stop it.
@@ -845,8 +892,10 @@ implements IPlaylistSubscriberStream {
 				vodStartTS = message.getBody().getTimestamp();
 			} else {
 				if (currentItem.getLength() >= 0) {
-					int duration = message.getBody().getTimestamp()-vodStartTS;
-					if (duration > currentItem.getLength() && playLengthJob == null) {
+					int duration = message.getBody().getTimestamp()
+							- vodStartTS;
+					if (duration > currentItem.getLength()
+							&& playLengthJob == null) {
 						// stop this item
 						stop();
 						onItemEnd();
@@ -927,7 +976,8 @@ implements IPlaylistSubscriberStream {
 			Status seek = new Status(Status.NS_SEEK_NOTIFY);
 			seek.setClientid(getStreamId());
 			seek.setDetails(item.getName());
-			seek.setDesciption("Seeking " + position + " (stream ID: " + getStreamId() + ").");
+			seek.setDesciption("Seeking " + position + " (stream ID: "
+					+ getStreamId() + ").");
 			
 			StatusMessage seekMsg = new StatusMessage();
 			seekMsg.setBody(seek);
@@ -1009,7 +1059,8 @@ implements IPlaylistSubscriberStream {
 				return -1;
 		}
 
-		public void onOOBControlMessage(IMessageComponent source, IPipe pipe, OOBControlMessage oobCtrlMsg) {
+		public void onOOBControlMessage(IMessageComponent source, IPipe pipe,
+				OOBControlMessage oobCtrlMsg) {
 			if ("ConnectionConsumer".equals(oobCtrlMsg.getTarget())) {
 				if (source instanceof IProvider)
 					msgOut.sendOOBControlMessage((IProvider) source, oobCtrlMsg);
@@ -1099,13 +1150,15 @@ implements IPlaylistSubscriberStream {
 		}
 
 		synchronized public void execute(ISchedulingService service) {
-			if (playLengthJob == null) return;
+			if (playLengthJob == null)
+				return;
 			playLengthJob = null;
 			stop();
 			onItemEnd();
 		}
 
-		synchronized public void available(ITokenBucket bucket, double tokenCount) {
+		synchronized public void available(ITokenBucket bucket,
+				double tokenCount) {
 			isWaitingForToken = false;
 			pullAndPush();
 		}

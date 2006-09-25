@@ -45,13 +45,13 @@ import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.messaging.PipeConnectionEvent;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.message.Constants;
-import org.red5.server.net.rtmp.status.StatusCodes;
 import org.red5.server.stream.IStreamData;
 import org.red5.server.stream.message.RTMPMessage;
 import org.red5.server.stream.message.ResetMessage;
 import org.red5.server.stream.message.StatusMessage;
 
-public class FileConsumer implements Constants, IPushableConsumer, IPipeConnectionListener {
+public class FileConsumer implements Constants, IPushableConsumer,
+		IPipeConnectionListener {
 	private static final Log log = LogFactory.getLog(FileConsumer.class);
 	
 	private IScope scope;
@@ -75,12 +75,12 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 			startTimestamp = -1;
 			offset += lastTimestamp;
 			return;
-		}
-		else if (message instanceof StatusMessage) {
+		} else if (message instanceof StatusMessage) {
 			StatusMessage statusMsg = (StatusMessage) message;
 			return;
 		}
-		if (!(message instanceof RTMPMessage)) return;
+		if (!(message instanceof RTMPMessage))
+			return;
 		if (writer == null) {
 			try {
 				init();
@@ -126,12 +126,15 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	public void onPipeConnectionEvent(PipeConnectionEvent event) {
 		switch (event.getType()) {
 		case PipeConnectionEvent.CONSUMER_CONNECT_PUSH:
-			if (event.getConsumer() != this) break;
+			if (event.getConsumer() != this)
+				break;
 			Map paramMap = event.getParamMap();
-			if (paramMap != null) mode = (String) paramMap.get("mode");
+			if (paramMap != null)
+				mode = (String) paramMap.get("mode");
 			break;
 		case PipeConnectionEvent.CONSUMER_DISCONNECT:
-			if (event.getConsumer() != this) break;
+			if (event.getConsumer() != this)
+				break;
 		case PipeConnectionEvent.PROVIDER_DISCONNECT:
 			// we only support one provider at a time
 			// so do releasing when provider disconnects
@@ -143,7 +146,9 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	}
 
 	private void init() throws IOException {
-		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils.getScopeService(scope, IStreamableFileFactory.KEY, StreamableFileFactory.class);
+		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils
+				.getScopeService(scope, IStreamableFileFactory.KEY,
+						StreamableFileFactory.class);
 		if (!file.isFile())
 			// Maybe the (previously existing) file has been deleted
 			file.createNewFile();
@@ -153,7 +158,8 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 			writer = flv.getWriter();
 		} else if (mode.equals(IClientStream.MODE_APPEND)) {
 			writer = flv.getAppendWriter();
-		} else throw new IllegalStateException("illegal mode type: " + mode);
+		} else
+			throw new IllegalStateException("illegal mode type: " + mode);
 	}
 	
 	private void uninit() {

@@ -32,12 +32,14 @@ public interface IPlayItem {
 	
 	/**
 	 * Start time in millisecond.
+	 * 
 	 * @return
 	 */
 	long getStart();
 	
 	/**
 	 * Play length in millisecond.
+	 * 
 	 * @return
 	 */
 	long getLength();

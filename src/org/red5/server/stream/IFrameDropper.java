@@ -19,7 +19,6 @@ package org.red5.server.stream;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.stream.message.RTMPMessage;
 
 /**
@@ -46,7 +45,8 @@ public interface IFrameDropper {
 	 * 			the message to check
 	 * @param pending
 	 * 			the number of pending messages
-	 * @return <code>true</code> if the packet may be sent, otherwise <code>false</code>
+	 * @return <code>true</code> if the packet may be sent, otherwise
+	 *         <code>false</code>
 	 */
 	boolean canSendPacket(RTMPMessage message, long pending);
 
@@ -74,7 +74,7 @@ public interface IFrameDropper {
 	 * 
 	 * @param state
 	 * 			the state to reset the frame dropper to
-	 * */
+	 */
 	void reset(int state);
 	
 }

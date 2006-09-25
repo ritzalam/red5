@@ -25,8 +25,10 @@ import org.red5.server.api.stream.IPlaylistController;
 public class SimplePlaylistController implements IPlaylistController {
 
 	public int nextItem(IPlaylist playlist, int itemIndex) {
-		if (itemIndex < 0) itemIndex = -1;
-		if (playlist.isRepeat()) return itemIndex;
+		if (itemIndex < 0)
+			itemIndex = -1;
+		if (playlist.isRepeat())
+			return itemIndex;
 		int nextIndex = itemIndex + 1;
 		if (nextIndex < playlist.getItemSize()) {
 			return nextIndex;
@@ -41,7 +43,8 @@ public class SimplePlaylistController implements IPlaylistController {
 		if (itemIndex > playlist.getItemSize()) {
 			return playlist.getItemSize() - 1;
 		}
-		if (playlist.isRepeat()) return itemIndex;
+		if (playlist.isRepeat())
+			return itemIndex;
 		int prevIndex = itemIndex - 1;
 		if (prevIndex >= 0) {
 			return prevIndex;

@@ -43,7 +43,8 @@ public abstract class BaseEvent implements Constants, IRTMPEvent {
 	public BaseEvent(Type type, IEventListener source) {
 		this.type = type;
 		this.source = source;
-		if(allocationDebugging) AllocationDebugger.getInstance().create(this);
+		if (allocationDebugging)
+			AllocationDebugger.getInstance().create(this);
 	}
 	
 	public Type getType() {
@@ -85,17 +86,20 @@ public abstract class BaseEvent implements Constants, IRTMPEvent {
 	}
 	
 	public synchronized void retain() {
-		if (allocationDebugging) AllocationDebugger.getInstance().retain(this);
+		if (allocationDebugging)
+			AllocationDebugger.getInstance().retain(this);
 		if (refcount > 0) {
 			refcount++;
 		}
 	}
 	
 	public synchronized void release() {
-		if (allocationDebugging) AllocationDebugger.getInstance().release(this);
+		if (allocationDebugging)
+			AllocationDebugger.getInstance().release(this);
 		if (refcount > 0) {
 			refcount--;
-			if (refcount == 0) releaseInternal();
+			if (refcount == 0)
+				releaseInternal();
 		}
 	}
 	

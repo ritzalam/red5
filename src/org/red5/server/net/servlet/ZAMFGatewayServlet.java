@@ -57,8 +57,7 @@ public class ZAMFGatewayServlet extends HttpServlet {
 		
 		log.info("Service");
 		
-		if( req.getContentLength() == 0 
-				|| req.getContentType() == null
+		if (req.getContentLength() == 0 || req.getContentType() == null
 				|| ! req.getContentType().equals(APPLICATION_AMF )){ 
 			resp.setStatus(HttpServletResponse.SC_OK);
 			resp.getWriter().write("Gateway");
@@ -114,12 +113,15 @@ public class ZAMFGatewayServlet extends HttpServlet {
 			this.resp = resp;
 		}
 	
-		public void messageReceived(IoSession session, Object message) throws Exception {
+		public void messageReceived(IoSession session, Object message)
+				throws Exception {
 			log.info("<< message " + message);
 			
 			if(message instanceof ByteBuffer){
-				final Continuation cont = ContinuationSupport.getContinuation(req, this);
-				if(cont.isPending()) cont.resume();
+				final Continuation cont = ContinuationSupport.getContinuation(
+						req, this);
+				if (cont.isPending())
+					cont.resume();
 				try {
 					final ServletOutputStream out = resp.getOutputStream();
 					ByteBuffer buf = (ByteBuffer) message;
@@ -136,5 +138,4 @@ public class ZAMFGatewayServlet extends HttpServlet {
 		}
 	}
 
-	
 }

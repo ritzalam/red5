@@ -47,7 +47,8 @@ import org.springframework.core.io.support.ResourcePatternResolver;
  * @author Joachim Bauch (jojo@struktur.de)
  *
  */
-public class FilePersistence extends RamPersistence implements IPersistenceStore {
+public class FilePersistence extends RamPersistence implements
+		IPersistenceStore {
 
 	private Log log = LogFactory.getLog(FilePersistence.class.getName());
 	private String path = "persistence";
@@ -169,13 +170,16 @@ public class FilePersistence extends RamPersistence implements IPersistenceStore
 							if (constructor == null)
 								throw new NoSuchMethodException();
 							
-							result = (IPersistable) constructor.newInstance(new Object[]{in});
+							result = (IPersistable) constructor
+									.newInstance(new Object[] { in });
 						} catch (NoSuchMethodException err) {
-							// No valid constructor found, use empty constructor.
+							// No valid constructor found, use empty
+							// constructor.
 							result = (IPersistable) theClass.newInstance(); 
 							result.deserialize(in);
 						} catch (InvocationTargetException err) {
-							// Error while invoking found constructor, use empty constructor.
+							// Error while invoking found constructor, use empty
+							// constructor.
 							result = (IPersistable) theClass.newInstance(); 
 							result.deserialize(in);
 						}
@@ -197,7 +201,8 @@ public class FilePersistence extends RamPersistence implements IPersistenceStore
 					// Initialize existing object
 					String resultClass = result.getClass().getName(); 
 					if (!resultClass.equals(className)) {
-						log.error("The classes differ: " + resultClass + " != " + className);
+						log.error("The classes differ: " + resultClass + " != "
+								+ className);
 						return null;
 					}
 					
@@ -209,7 +214,8 @@ public class FilePersistence extends RamPersistence implements IPersistenceStore
 			if (result.getStore() != this)
 				result.setStore(this);
 			super.save(result);
-			log.debug("Loaded persistent object " + result + " from " + filename);
+			log.debug("Loaded persistent object " + result + " from "
+					+ filename);
 		} catch (IOException e) {
 			log.error("Could not load file at " + filename);
 			return null;
@@ -262,7 +268,8 @@ public class FilePersistence extends RamPersistence implements IPersistenceStore
 				object.serialize(out);
 				buf.flip();
 				
-				FileOutputStream output = new FileOutputStream(resFile.getFile().getAbsolutePath());
+				FileOutputStream output = new FileOutputStream(resFile
+						.getFile().getAbsolutePath());
 				ServletUtils.copy(buf.asInputStream(), output);
 				output.close();
 			} finally {
@@ -290,7 +297,8 @@ public class FilePersistence extends RamPersistence implements IPersistenceStore
 			return;
 		
 		String dir;
-		Resource resFile = resources.getResource(base.substring(0, base.lastIndexOf('/')));
+		Resource resFile = resources.getResource(base.substring(0, base
+				.lastIndexOf('/')));
 		try { 
 			dir = resFile.getFile().getAbsolutePath();
 		} catch (IOException err) {

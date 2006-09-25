@@ -48,8 +48,10 @@ public class Server implements IServer, ApplicationContextAware {
 	}
 	
 	protected String getKey(String hostName, String contextPath){
-		if(hostName==null) hostName = EMPTY;
-		if(contextPath==null) contextPath = EMPTY;
+		if (hostName == null)
+			hostName = EMPTY;
+		if (contextPath == null)
+			contextPath = EMPTY;
 		return hostName +SLASH+ contextPath;
 	}
 
@@ -58,18 +60,23 @@ public class Server implements IServer, ApplicationContextAware {
 		while(contextPath.indexOf(SLASH) != -1){
 			key = getKey(hostName, contextPath);
 			log.debug("Check: "+key);
-			if(mapping.containsKey(key)) return getGlobal(mapping.get(key));
-			contextPath = contextPath.substring(0,contextPath.lastIndexOf(SLASH));
+			if (mapping.containsKey(key))
+				return getGlobal(mapping.get(key));
+			contextPath = contextPath.substring(0, contextPath
+					.lastIndexOf(SLASH));
 		}
 		key = getKey(hostName, contextPath);
 		log.debug("Check host and path: "+key);
-		if(mapping.containsKey(key)) return getGlobal(mapping.get(key));
+		if (mapping.containsKey(key))
+			return getGlobal(mapping.get(key));
 		key = getKey(EMPTY, contextPath);
 		log.debug("Check wildcard host with path: "+key);
-		if(mapping.containsKey(key)) return getGlobal(mapping.get(key));
+		if (mapping.containsKey(key))
+			return getGlobal(mapping.get(key));
 		key = getKey(hostName, EMPTY);
 		log.debug("Check host with no path: "+key);
-		if(mapping.containsKey(key)) return getGlobal(mapping.get(key));
+		if (mapping.containsKey(key))
+			return getGlobal(mapping.get(key));
 		key = getKey(EMPTY, EMPTY);
 		log.debug("Check default host, default path: "+key);
 		return getGlobal(mapping.get(key));
@@ -84,10 +91,12 @@ public class Server implements IServer, ApplicationContextAware {
 		globals.put(scope.getName(),scope);
 	}
 
-	public boolean addMapping(String hostName, String contextPath, String globalName){
+	public boolean addMapping(String hostName, String contextPath,
+			String globalName) {
 		final String key = getKey(hostName, contextPath);
 		log.debug("Add mapping: "+key+" => "+globalName);
-		if(mapping.containsKey(key)) return false;
+		if (mapping.containsKey(key))
+			return false;
 		mapping.put(key, globalName);
 		return true;
 	}
@@ -95,7 +104,8 @@ public class Server implements IServer, ApplicationContextAware {
 	public boolean removeMapping(String hostName, String contextPath){
 		final String key = getKey(hostName, contextPath);
 		log.debug("Remove mapping: "+key);
-		if(!mapping.containsKey(key)) return false;
+		if (!mapping.containsKey(key))
+			return false;
 		mapping.remove(key);
 		return true;
 	}
@@ -115,6 +125,5 @@ public class Server implements IServer, ApplicationContextAware {
 	public String toString(){
 		return new ToStringCreator(this).append(mapping).toString();
 	}
-	
 
 }

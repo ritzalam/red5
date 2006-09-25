@@ -23,7 +23,6 @@ import org.red5.server.api.IBandwidthConfigure;
 import org.red5.server.api.IFlowControllable;
 import org.red5.server.api.stream.IClientStream;
 import org.red5.server.api.stream.IStreamCapableConnection;
-import org.red5.server.stream.message.RTMPMessage;
 
 public abstract class AbstractClientStream extends AbstractStream implements
 		IClientStream {

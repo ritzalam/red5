@@ -42,7 +42,8 @@ public abstract class AbstractPipe implements IPipe {
 	
 	public boolean subscribe(IConsumer consumer, Map paramMap) {
 		synchronized (consumers) {
-			if (consumers.contains(consumer)) return false;
+			if (consumers.contains(consumer))
+				return false;
 			consumers.add(consumer);
 		}
 		if (consumer instanceof IPipeConnectionListener) {
@@ -55,7 +56,8 @@ public abstract class AbstractPipe implements IPipe {
 
 	public boolean subscribe(IProvider provider, Map paramMap) {
 		synchronized (providers) {
-			if (providers.contains(provider)) return false;
+			if (providers.contains(provider))
+				return false;
 			providers.add(provider);
 		}
 		if (provider instanceof IPipeConnectionListener) {
@@ -68,10 +70,12 @@ public abstract class AbstractPipe implements IPipe {
 
 	public boolean unsubscribe(IProvider provider) {
 		synchronized (providers) {
-			if (!providers.contains(provider)) return false;
+			if (!providers.contains(provider))
+				return false;
 			providers.remove(provider);
 		}
-		fireProviderConnectionEvent(provider, PipeConnectionEvent.PROVIDER_DISCONNECT, null);
+		fireProviderConnectionEvent(provider,
+				PipeConnectionEvent.PROVIDER_DISCONNECT, null);
 		if (provider instanceof IPipeConnectionListener) {
 			synchronized (listeners) {
 				listeners.remove(provider);
@@ -82,10 +86,12 @@ public abstract class AbstractPipe implements IPipe {
 
 	public boolean unsubscribe(IConsumer consumer) {
 		synchronized (consumers) {
-			if (!consumers.contains(consumer)) return false;
+			if (!consumers.contains(consumer))
+				return false;
 			consumers.remove(consumer);
 		}
-		fireConsumerConnectionEvent(consumer, PipeConnectionEvent.CONSUMER_DISCONNECT, null);
+		fireConsumerConnectionEvent(consumer,
+				PipeConnectionEvent.CONSUMER_DISCONNECT, null);
 		if (consumer instanceof IPipeConnectionListener) {
 			synchronized (listeners) {
 				listeners.remove(consumer);
@@ -107,7 +113,8 @@ public abstract class AbstractPipe implements IPipe {
 		
 	}
 
-	public void sendOOBControlMessage(IProvider provider, OOBControlMessage oobCtrlMsg) {
+	public void sendOOBControlMessage(IProvider provider,
+			OOBControlMessage oobCtrlMsg) {
 		IConsumer[] consumerArray = null;
 		// XXX: synchronizing this sometimes causes deadlocks in the code that
 		//      passes the ChunkSize message to the subscribers of a stream
@@ -123,7 +130,8 @@ public abstract class AbstractPipe implements IPipe {
 		}
 	}
 
-	public void sendOOBControlMessage(IConsumer consumer, OOBControlMessage oobCtrlMsg) {
+	public void sendOOBControlMessage(IConsumer consumer,
+			OOBControlMessage oobCtrlMsg) {
 		IProvider[] providerArray = null;
 		synchronized (providers) {
 			providerArray = providers.toArray(new IProvider[]{});
@@ -145,7 +153,8 @@ public abstract class AbstractPipe implements IPipe {
 		return consumers;
 	}    
 	
-	protected void fireConsumerConnectionEvent(IConsumer consumer, int type, Map paramMap) {
+	protected void fireConsumerConnectionEvent(IConsumer consumer, int type,
+			Map paramMap) {
 		PipeConnectionEvent event = new PipeConnectionEvent(this);
 		event.setConsumer(consumer);
 		event.setType(type);
@@ -153,7 +162,8 @@ public abstract class AbstractPipe implements IPipe {
 		firePipeConnectionEvent(event);
 	}
 	
-	protected void fireProviderConnectionEvent(IProvider provider, int type, Map paramMap) {
+	protected void fireProviderConnectionEvent(IProvider provider, int type,
+			Map paramMap) {
 		PipeConnectionEvent event = new PipeConnectionEvent(this);
 		event.setProvider(provider);
 		event.setType(type);
@@ -177,7 +187,8 @@ public abstract class AbstractPipe implements IPipe {
 		for (Runnable task : event.getTaskList()) {
 			try {
 				task.run();
-			} catch (Throwable t) {}
+			} catch (Throwable t) {
+			}
 		}
 		event.getTaskList().clear();
 	}

@@ -40,14 +40,17 @@ public interface IProviderService {
 	
 	/**
 	 * Get a named Live provider as the source of input.
+	 * 
 	 * @param scope
 	 * @param name
 	 * @return <tt>null</tt> if not found.
 	 */
-	IMessageInput getLiveProviderInput(IScope scope, String name, boolean needCreate);
+	IMessageInput getLiveProviderInput(IScope scope, String name,
+			boolean needCreate);
 	
 	/**
 	 * Get a named VOD provider as the source of input.
+	 * 
 	 * @param scope
 	 * @param name
 	 * @return <tt>null</tt> if not found.
@@ -56,6 +59,7 @@ public interface IProviderService {
 	
 	/**
 	 * Get a named VOD source file.
+	 * 
 	 * @param scope
 	 * @param name
 	 * @return <tt>null</tt> if not found.
@@ -64,15 +68,18 @@ public interface IProviderService {
 	
 	/**
 	 * Register a broadcast stream to a scope.
+	 * 
 	 * @param scope
 	 * @param name
 	 * @param bs
 	 * @return <tt>true</tt> if register successfully.
 	 */
-	boolean registerBroadcastStream(IScope scope, String name, IBroadcastStream bs);
+	boolean registerBroadcastStream(IScope scope, String name,
+			IBroadcastStream bs);
 
 	/**
 	 * Get names of existing broadcast streams in a scope. 
+	 * 
 	 * @param scope
 	 * @return list of stream names 
 	 */
@@ -80,6 +87,7 @@ public interface IProviderService {
 	
 	/**
 	 * Unregister a broadcast stream of a specific name from a scope.
+	 * 
 	 * @param scope
 	 * @param name
 	 * @return <tt>true</tt> if unregister successfully.

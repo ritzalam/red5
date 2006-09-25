@@ -32,9 +32,11 @@ public class ServiceUtils {
 	private static final Log log = LogFactory.getLog(ServiceUtils.class);
 
 	/**
-	 * Returns (method, params) for the given service or (null, null) if not method was found.
+	 * Returns (method, params) for the given service or (null, null) if not
+	 * method was found.
 	 */
-	public static Object[] findMethodWithExactParameters(Object service, String methodName, List args) {
+	public static Object[] findMethodWithExactParameters(Object service,
+			String methodName, List args) {
 		Object[] arguments = new Object[args.size()];
 		for (int i=0; i<args.size(); i++) {
 			arguments[i] = args.get(i);
@@ -44,12 +46,15 @@ public class ServiceUtils {
 	}
 
 	/**
-	 * Returns (method, params) for the given service or (null, null) if not method was found.
-	 * XXX use ranking for method matching rather than exact type matching plus type conversion.
+	 * Returns (method, params) for the given service or (null, null) if not
+	 * method was found. XXX use ranking for method matching rather than exact
+	 * type matching plus type conversion.
 	 */
-	public static Object[] findMethodWithExactParameters(Object service, String methodName, Object[] args) {
+	public static Object[] findMethodWithExactParameters(Object service,
+			String methodName, Object[] args) {
 		int numParams = (args==null) ? 0 : args.length;
-		List methods = ConversionUtils.findMethodsByNameAndNumParams(service, methodName, numParams);
+		List methods = ConversionUtils.findMethodsByNameAndNumParams(service,
+				methodName, numParams);
 		log.debug("Found " + methods.size() + " methods");
 		if (methods.isEmpty())
 			return new Object[]{null, null};
@@ -67,7 +72,9 @@ public class ServiceUtils {
 			boolean valid = true;
 			Class[] paramTypes = method.getParameterTypes(); 
 			for (int j=0; j<args.length; j++) {
-				if ((args[j]==null && paramTypes[j].isPrimitive()) || (args[j]!=null && !args[j].getClass().equals(paramTypes[j]))) {
+				if ((args[j] == null && paramTypes[j].isPrimitive())
+						|| (args[j] != null && !args[j].getClass().equals(
+								paramTypes[j]))) {
 					valid = false;
 					break;
 				}
@@ -81,8 +88,10 @@ public class ServiceUtils {
 		for(int i=0; i<methods.size(); i++){
 			try {
 				method = (Method) methods.get(i);
-				params = ConversionUtils.convertParams(args, method.getParameterTypes());
-				if (args.length > 0 && (args[0] instanceof IConnection) && (!(params[0] instanceof IConnection)))
+				params = ConversionUtils.convertParams(args, method
+						.getParameterTypes());
+				if (args.length > 0 && (args[0] instanceof IConnection)
+						&& (!(params[0] instanceof IConnection)))
 					// Don't convert first IConnection parameter
 					continue;
 				
@@ -96,9 +105,11 @@ public class ServiceUtils {
 	}
 	
 	/**
-	 * Returns (method, params) for the given service or (null, null) if not method was found.
+	 * Returns (method, params) for the given service or (null, null) if not
+	 * method was found.
 	 */
-	public static Object[] findMethodWithListParameters(Object service, String methodName, List args) {
+	public static Object[] findMethodWithListParameters(Object service,
+			String methodName, List args) {
 		Object[] arguments = new Object[args.size()];
 		for (int i=0; i<args.size(); i++) {
 			arguments[i] = args.get(i);
@@ -108,10 +119,13 @@ public class ServiceUtils {
 	}
 	
 	/**
-	 * Returns (method, params) for the given service or (null, null) if not method was found.
+	 * Returns (method, params) for the given service or (null, null) if not
+	 * method was found.
 	 */
-	public static Object[] findMethodWithListParameters(Object service, String methodName, Object[] args) {
-		List methods = ConversionUtils.findMethodsByNameAndNumParams(service, methodName, 1);
+	public static Object[] findMethodWithListParameters(Object service,
+			String methodName, Object[] args) {
+		List methods = ConversionUtils.findMethodsByNameAndNumParams(service,
+				methodName, 1);
 		log.debug("Found " + methods.size() + " methods");
 		if (methods.isEmpty())
 			return new Object[]{null, null};
@@ -133,8 +147,11 @@ public class ServiceUtils {
 		for(int i=0; i<methods.size(); i++){
 			try {
 				method = (Method) methods.get(i);
-				params = ConversionUtils.convertParams(args, method.getParameterTypes());
-				if (argsList.size() > 0 && (argsList.get(0) instanceof IConnection) && (!(params[0] instanceof IConnection)))
+				params = ConversionUtils.convertParams(args, method
+						.getParameterTypes());
+				if (argsList.size() > 0
+						&& (argsList.get(0) instanceof IConnection)
+						&& (!(params[0] instanceof IConnection)))
 					// Don't convert first IConnection parameter
 					continue;
 				

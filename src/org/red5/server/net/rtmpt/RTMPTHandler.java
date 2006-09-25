@@ -53,14 +53,16 @@ public class RTMPTHandler extends RTMPHandler implements Constants {
 		return this.codecFactory;		
 	}
 
-	private void rawBufferRecieved(RTMPConnection conn, ProtocolState state, ByteBuffer in) {
+	private void rawBufferRecieved(RTMPConnection conn, ProtocolState state,
+			ByteBuffer in) {
 		final RTMP rtmp = (RTMP) state;
 		
 		if(rtmp.getState() != RTMP.STATE_HANDSHAKE){
 			log.warn("Raw buffer after handshake, something odd going on");
 		}
 		
-		ByteBuffer out = ByteBuffer.allocate((Constants.HANDSHAKE_SIZE*2)+1);
+		ByteBuffer out = ByteBuffer
+				.allocate((Constants.HANDSHAKE_SIZE * 2) + 1);
 		
 		if(log.isDebugEnabled()){
 			log.debug("Writing handshake reply");
@@ -74,7 +76,8 @@ public class RTMPTHandler extends RTMPHandler implements Constants {
 		conn.rawWrite(out);
 	}
 	
-	public void messageReceived(RTMPConnection conn, ProtocolState state, Object in) throws Exception {
+	public void messageReceived(RTMPConnection conn, ProtocolState state,
+			Object in) throws Exception {
 		if (in instanceof ByteBuffer) {
 			rawBufferRecieved(conn, state, (ByteBuffer) in);
 			((ByteBuffer) in).release();

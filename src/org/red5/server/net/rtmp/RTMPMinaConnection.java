@@ -39,7 +39,8 @@ public class RTMPMinaConnection extends RTMPConnection {
 		super(PERSISTENT);
 		SocketAddress remote = protocolSession.getRemoteAddress();
 		if (remote instanceof InetSocketAddress) {
-			remoteAddress = ((InetSocketAddress) remote).getAddress().getHostAddress();
+			remoteAddress = ((InetSocketAddress) remote).getAddress()
+					.getHostAddress();
 			remotePort = ((InetSocketAddress) remote).getPort();
 		} else {
 			remoteAddress = remote.toString();
@@ -52,12 +53,6 @@ public class RTMPMinaConnection extends RTMPConnection {
 		return ioSession;
 	}
 
-	/*
-	public void dispatchEvent(Object packet){
-		ioSession.write(packet);
-	}
-	*/
-	
 	@Override
 	public void rawWrite(ByteBuffer out) {
 		ioSession.write(out);

@@ -33,8 +33,9 @@ import org.red5.server.api.IScopeAware;
 import org.springframework.core.io.Resource;
 
 /**
- * StatefulScopeWrappingAdapter class wraps stateful IScope functionality. That is, it has
- * attributes that you can work with, subscopes, associated resources and connections.
+ * StatefulScopeWrappingAdapter class wraps stateful IScope functionality. That
+ * is, it has attributes that you can work with, subscopes, associated resources
+ * and connections.
  *
  */
 public class StatefulScopeWrappingAdapter extends AbstractScopeAdapter 

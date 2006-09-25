@@ -65,7 +65,9 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		IClientBroadcastStream, IFilter, IPushableConsumer,
 		IPipeConnectionListener, IEventDispatcher {
 	
-	private static final Log log = LogFactory.getLog(ClientBroadcastStream.class);
+	private static final Log log = LogFactory
+			.getLog(ClientBroadcastStream.class);
+
 	private String publishedName;
 	
 	private IMessageOutput connMsgOut;
@@ -164,7 +166,8 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 				paramMap.put("mode", "record");
 			}
 			recordPipe.subscribe(fc, paramMap);
-		} catch (IOException e) {}
+		} catch (IOException e) {
+		}
 	}
 
 	public IProvider getProvider() {
@@ -194,18 +197,23 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		}
 	}
 	
-	public void onOOBControlMessage(IMessageComponent source, IPipe pipe, OOBControlMessage oobCtrlMsg) {
+	public void onOOBControlMessage(IMessageComponent source, IPipe pipe,
+			OOBControlMessage oobCtrlMsg) {
 		if (!"ClientBroadcastStream".equals(oobCtrlMsg.getTarget()))
 			return;
 		
 		if ("chunkSize".equals(oobCtrlMsg.getServiceName())) {
-			chunkSize = (Integer) oobCtrlMsg.getServiceParamMap().get("chunkSize");
+			chunkSize = (Integer) oobCtrlMsg.getServiceParamMap().get(
+					"chunkSize");
 			notifyChunkSize();
 		}
 	}
 	
 	public void dispatchEvent(IEvent event) {
-		if (!(event instanceof IRTMPEvent) && (event.getType() != IEvent.Type.STREAM_CONTROL) && (event.getType() != IEvent.Type.STREAM_DATA) && !(event instanceof Notify))
+		if (!(event instanceof IRTMPEvent)
+				&& (event.getType() != IEvent.Type.STREAM_CONTROL)
+				&& (event.getType() != IEvent.Type.STREAM_DATA)
+				&& !(event instanceof Notify))
 			return;
 		
 		IStreamCodecInfo codecInfo = getCodecInfo();
@@ -228,9 +236,11 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		} else if (rtmpEvent instanceof VideoData) {
 			IVideoStreamCodec videoStreamCodec = null;
 			if (videoCodecFactory != null && checkVideoCodec) {
-				videoStreamCodec = videoCodecFactory.getVideoCodec(((VideoData) rtmpEvent).getData());
+				videoStreamCodec = videoCodecFactory
+						.getVideoCodec(((VideoData) rtmpEvent).getData());
 				if (codecInfo instanceof StreamCodecInfo) {
-					((StreamCodecInfo) codecInfo).setVideoCodec(videoStreamCodec);
+					((StreamCodecInfo) codecInfo)
+							.setVideoCodec(videoStreamCodec);
 				}
 				checkVideoCodec = false;
 			} else if (codecInfo != null)
@@ -250,7 +260,8 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 					if (scope.hasHandler()) {
 						Object handler = scope.getHandler();
 						if (handler instanceof IStreamAwareScopeHandler)
-							((IStreamAwareScopeHandler) handler).streamPublishStart(this);
+							((IStreamAwareScopeHandler) handler)
+									.streamPublishStart(this);
 					}
 				}
 			}
@@ -260,11 +271,9 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 				videoTime = rtmpEvent.getTimestamp();
 			thisTime = videoTime;
 		} else if (rtmpEvent instanceof Notify) {
-			if (rtmpEvent.getHeader().isTimerRelative()) {
-				if (dataTime == -1)
-					dataTime = firstTime;
+			if (rtmpEvent.getHeader().isTimerRelative())
 				dataTime += rtmpEvent.getTimestamp();
-			} else
+			else
 				dataTime = rtmpEvent.getTimestamp();
 			thisTime = dataTime;
 		}
@@ -283,15 +292,17 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 //				e.printStackTrace();
 //			}
 //		}
-		if (livePipe != null) livePipe.pushMessage(msg);
+		if (livePipe != null)
+			livePipe.pushMessage(msg);
 		recordPipe.pushMessage(msg);
 	}
 
 	public void onPipeConnectionEvent(PipeConnectionEvent event) {
 		switch (event.getType()) {
 		case PipeConnectionEvent.PROVIDER_CONNECT_PUSH:
-			if (event.getProvider() == this &&
-					(event.getParamMap() == null || !event.getParamMap().containsKey("record"))) {
+			if (event.getProvider() == this
+					&& (event.getParamMap() == null || !event.getParamMap()
+							.containsKey("record"))) {
 				this.livePipe = (IPipe) event.getSource();
 			}
 			break;

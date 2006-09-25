@@ -42,12 +42,14 @@ public interface ISharedObjectMessage extends IRTMPEvent {
 	/**
 	 * Does the message affect a persistent shared object? 
 	 * 
-	 * @return true if a persistent shared object should be updated otherwise false
+	 * @return true if a persistent shared object should be updated otherwise
+	 *         false
 	 */
 	public boolean isPersistent();
 	
 	/**
-	 * Returns a set of ISharedObjectEvent objects containing informations what to change.
+	 * Returns a set of ISharedObjectEvent objects containing informations what
+	 * to change.
 	 *  
 	 * @return set of ISharedObjectEvents
 	 */

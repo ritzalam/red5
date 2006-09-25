@@ -44,11 +44,12 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.access.ContextSingletonBeanFactoryLocator;
 import org.springframework.web.context.support.GenericWebApplicationContext;
 
-public class Red5WebPropertiesConfiguration implements Configuration, EventListener {
+public class Red5WebPropertiesConfiguration implements Configuration,
+		EventListener {
 
 	// Initialize Logging
-	protected static Log log =
-        LogFactory.getLog(Red5WebPropertiesConfiguration.class.getName());
+	protected static Log log = LogFactory
+			.getLog(Red5WebPropertiesConfiguration.class.getName());
 	
 	protected static WebAppContext _context;
 	
@@ -69,7 +70,7 @@ public class Red5WebPropertiesConfiguration implements Configuration, EventListe
 	}
 	
 	public void configureWebApp () throws Exception{
-        
+		log.debug("Configuring Jetty webapp");
 		WebAppContext context = getWebAppContext();
 		if (context.isStarted()) {
             log.debug("Cannot configure webapp after it is started"); 
@@ -89,7 +90,8 @@ public class Red5WebPropertiesConfiguration implements Configuration, EventListe
         		for (int i = 0; i < hostnames.length; i++) {
         			hostnames[i] = hostnames[i].trim();
         			if(hostnames[i].equals("*")) {
-        				// A virtual host "null" must be used so requests for any host
+						// A virtual host "null" must be used so requests for
+						// any host
         				// will be served.
         				hostnames = null;
         				break;
@@ -100,8 +102,11 @@ public class Red5WebPropertiesConfiguration implements Configuration, EventListe
             }
         } else if (webInf == null) {
         	// No WEB-INF directory found, register as default application
-        	log.info("No WEB-INF directory found for " + context.getContextPath() + ", creating default application.");
-        	BeanFactoryLocator bfl = ContextSingletonBeanFactoryLocator.getInstance("red5.xml");
+			log.info("No WEB-INF directory found for "
+					+ context.getContextPath()
+					+ ", creating default application.");
+			BeanFactoryLocator bfl = ContextSingletonBeanFactoryLocator
+					.getInstance("red5.xml");
         	BeanFactoryReference bfr = bfl.useBeanFactory("red5.common");
         	
         	// Create WebScope dynamically
@@ -112,18 +117,24 @@ public class Red5WebPropertiesConfiguration implements Configuration, EventListe
         	
         	// Get default Red5 context
         	ApplicationContext appCtx = JettyLoader.getApplicationContext();
-        	ContextLoader loader = (ContextLoader) appCtx.getBean("context.loader");
+			ContextLoader loader = (ContextLoader) appCtx
+					.getBean("context.loader");
         	appCtx = loader.getContext("default.context");
         	
         	// Create context for the WebScope and initialize 
         	Context scopeContext = new Context();
         	scopeContext.setContextPath("/");
-        	scopeContext.setClientRegistry((IClientRegistry) appCtx.getBean("global.clientRegistry"));
-        	scopeContext.setMappingStrategy((IMappingStrategy) appCtx.getBean("global.mappingStrategy"));
-        	scopeContext.setServiceInvoker((IServiceInvoker) appCtx.getBean("global.serviceInvoker"));
-        	scopeContext.setScopeResolver((IScopeResolver) appCtx.getBean("red5.scopeResolver"));
+			scopeContext.setClientRegistry((IClientRegistry) appCtx
+					.getBean("global.clientRegistry"));
+			scopeContext.setMappingStrategy((IMappingStrategy) appCtx
+					.getBean("global.mappingStrategy"));
+			scopeContext.setServiceInvoker((IServiceInvoker) appCtx
+					.getBean("global.serviceInvoker"));
+			scopeContext.setScopeResolver((IScopeResolver) appCtx
+					.getBean("red5.scopeResolver"));
 
-        	// The context needs an ApplicationContext so resources can be resolved
+			// The context needs an ApplicationContext so resources can be
+			// resolved
         	GenericWebApplicationContext webCtx = new GenericWebApplicationContext();
         	webCtx.setDisplayName("Automatic generated WebAppContext");
         	webCtx.setParent(appCtx);
@@ -136,7 +147,8 @@ public class Red5WebPropertiesConfiguration implements Configuration, EventListe
         	// Use default ApplicationAdapter as handler
         	scope.setHandler(new ApplicationAdapter());
         	
-        	// Make available as "/<directoryName>" and allow access from all hosts
+			// Make available as "/<directoryName>" and allow access from all
+			// hosts
         	scope.setContextPath(context.getContextPath());
         	scope.setVirtualHosts("*");
         	

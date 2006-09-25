@@ -1,0 +1,61 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>FLV demos</title>
+<script type="text/javascript" src="swfobject.js"></script>
+<style type="text/css">
+	
+	body {
+		background-color: #eeeeee;
+		font: .8em/1.3em verdana,arial,helvetica,sans-serif;
+	}
+
+	#info {
+		width: 300px;
+		overflow: auto;
+	}
+
+	#flashcontent {
+		border: solid 1px #000;
+		width: 640px;
+		height: 480px;
+		float: left;
+		margin: 15px 20px;
+	}
+
+</style>
+</head>
+<body>
+
+	<div id="flashcontent">
+		<strong>You need to upgrade your Flash Player</strong>
+		This is replaced by the Flash content. 
+		Place your alternate content here and users without the Flash plugin or with 
+		Javascript turned off will see this. Content here allows you to leave out <code>noscript</code> 
+		tags. Include a link to <a href="flvdemo.html?detectflash=false">bypass the detection</a> if you wish.
+	</div>
+
+	<div id="info">
+		<p id="flashversion">
+		You do not have the Flash plugin installed, or your browser does not support Javascript (you should enable it, perhaps?)
+		</p>
+	</div>
+	
+	<script type="text/javascript">
+		// <![CDATA[
+		
+		var so = new SWFObject("demos/ofla_demo.swf", "ofla", "640", "480", "8");
+		so.addVariable("flashVarText", "this is passed in via FlashVars for example only"); 
+		so.write("flashcontent");
+		
+		var version = deconcept.SWFObjectUtil.getPlayerVersion();
+		if (document.getElementById && (version['major'] > 0)) {
+			document.getElementById('flashversion').innerHTML = "You have Flash player "+ version['major'] +"."+ version['minor'] +"."+ version['rev'] +" installed.";
+		}
+
+		// ]]>
+		</script>
+
+</body>
+</html>
