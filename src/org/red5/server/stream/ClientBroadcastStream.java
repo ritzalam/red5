@@ -94,6 +94,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		} catch (Exception err) {
 			log.warn("No video codec factory available.", err);
 		}
+		firstTime = audioTime = videoTime = dataTime = -1;
 		connMsgOut = consumerManager.getConsumerOutput(this);
 		recordPipe = new InMemoryPushPushPipe();
 		Map<Object, Object> recordParamMap = new HashMap<Object, Object>();
