@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <project name="RED5" basedir="." default="all">
 
-    <!-- user overides for project properties -->
-    <property file="${user.home}/ant.properties" />
+    <!-- user overides for project properties
+    <property file="${user.home}/ant.properties" /> -->
     <!-- base project properties -->
     <property file="build.properties" />
 
@@ -29,24 +29,26 @@
 	</target>
 
 	<path id="project.classpath">
-		<fileset dir="${lib.dir}">
-			<include name="*.jar"/>
-		</fileset>
+        <fileset dir="${lib.dir}" includesfile="${lib.dir}/library.properties" />
 	</path>
 
+    <path id="script.classpath">
+        <fileset dir="${lib.dir}" includesfile="${lib.dir}/script.properties" />
+        <pathelement location="${bin.dir}"/>
+    </path>    
+    
 	<path id="webapps.classpath">
 		<fileset dir="${lib.dir}">
-			<include name="*.jar"/>
+			<filename name="*.jar"/>
 		</fileset>
 		<pathelement location="${bin.dir}"/>
 	</path>
 
 	<path id="full.classpath">
-		<fileset dir="${lib.dir}">
-			<include name="*.jar"/>
-		</fileset>
+        <fileset dir="${lib.dir}" includesfile="${lib.dir}/library.properties" />
+        <fileset dir="${lib.dir}" includesfile="${lib.dir}/script.properties" />
 		<fileset dir="./">
-			<include name="red5.jar"/>
+			<filename name="red5.jar"/>
 		</fileset>
 	</path>
 
@@ -106,11 +108,11 @@
         </condition>        
         <property name="compiler" value="${build.compiler}" />
         <echo message="Compiler adapter name: ${compiler}" />
-        
+       
 		<javac
 			sourcepath=""
 			srcdir="${src.dir}"
-			destdir="${classes.dir}"
+			destdir="${classes.dir}"     
             classpathref="project.classpath"
     
             optimize="${build.optimize}" 
@@ -124,6 +126,8 @@
             source="${java.target_version}"
             target="${java.target_version}" 
             memoryMaximumSize="1024m" 
+            excludes="**/*.jsp,com/sun/**,org/red5/server/script/**" 
+            listfiles="false"      
             />
 
 		<javac
@@ -206,17 +210,37 @@
             target="${java.target_version}" 
         />
         
+        <javac
+            sourcepath=""
+            srcdir="${src.dir}"
+            destdir="${classes.dir}"     
+            classpathref="script.classpath"
+    
+            optimize="${build.optimize}" 
+            verbose="${build.verbose}" 
+            fork="${build.fork}" 
+            nowarn="${build.nowarn}"
+            deprecation="${build.deprecation}"
+  
+            debug="${debug.state}"
+            compiler="${compiler}"
+            source="${java.target_version}"
+            target="${java.target_version}" 
+            memoryMaximumSize="1024m" 
+            listfiles="false"      
+            />     
+        
 	</target>
 
 	<target name="javadoc" description="Generate JavaDoc">
 		<javadoc
-				classpathref="project.classpath"
+				classpathref="full.classpath"
 				destdir="${javadoc.dir}"
 				author="true"
 				version="true"
 				use="true"
 				splitindex="true"
-				windowtitle="Red5">
+				windowtitle="Red5 Server Documentation">
 
 			<fileset dir="src" defaultexcludes="yes">
 				<include name="org/red5/**"/>
