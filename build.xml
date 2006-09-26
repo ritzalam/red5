@@ -408,7 +408,7 @@
 		<java classname="org.red5.server.Standalone" fork="true">
 			<classpath>
 				<pathelement location="${classes.dir}"/>
-				<path refid="project.classpath"/>
+				<path refid="full.classpath"/>
 				<pathelement location="${config.dir}"/>
 			</classpath>
 			<jvmarg value="-Djava.security.manager"/>
