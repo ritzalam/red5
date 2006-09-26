@@ -20,22 +20,23 @@ function object(o) {
 		this.appScope;
 		this.serverStream;
 		this.className = 'Application';
-	  	this.testMe = function() {
-			print('Javascript testMe');
-		};
 	
 		this.getClassName = function() {
 			return this.className;
 		};
 		
 		appStart: function(app) {
-			print('Javascript appStart');
+			if (log.isDebugEnabled) {
+				print('Javascript appStart');
+			}
 			this.appScope = app;
 			return true;
 		};   
 	
 		appConnect: function(conn, params) {
-			print('Javascript appConnect');
+			if (log.isDebugEnabled) {
+				print('Javascript appConnect');
+			}
 			measureBandwidth(conn);
 			if (conn == typeof(IStreamCapableConnection)) {
 				var streamConn = conn;
@@ -49,12 +50,18 @@ function object(o) {
 		};
 		
 		appDisconnect: function(conn) {
-			print('Javascript appDisconnect');
+			if (log.isDebugEnabled) {
+				print('Javascript appDisconnect');
+			}
 			if (this.appScope == conn.getScope() && this.serverStream)  {
 				this.serverStream.close();
 			}
 			return this.__proto__.appDisconnect(conn);
 		};  			
+		
+		toString: function(string) {
+			return 'Javascript:Application';
+		};
 	}
 	Application.prototype = o;
 	return new Application();
@@ -62,8 +69,9 @@ function object(o) {
 
 //if a super class exists in the namespace / bindings
 if (supa) {
-	print('New instance of prototype: ' + supa);
-	//print('Result: ' + object(supa));
+	if (log.isDebugEnabled) {
+		print('New instance of prototype: ' + supa);
+	}
 	object(supa);
 }
 

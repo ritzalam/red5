@@ -20,14 +20,16 @@ function DemoService() {
 	this.className = 'DemoService';
 	log.debug('DemoService init');
 
-    for (property in this) {
-		try {
-			print('>>' + property);
-		} catch(e) {
-			e.rhinoException.printStackTrace();
-		}	
+	if (log.isDebugEnabled) {
+	    for (property in this) {
+			try {
+				print('>>' + property);
+			} catch(e) {
+				e.rhinoException.printStackTrace();
+			}	
+		}
 	}
-
+	
 	this.getListOfAvailableFLVs = function() {
 		log.debug('getListOfAvailableFLVs');
 		log.debug('Con local: ' + Red5.getConnectionLocal());
@@ -59,7 +61,7 @@ function DemoService() {
 				if ('length' in fso) {
 					flvBytes = fso.length();
 				} else {
-					log.debug('Length not found');
+					log.warn('Length not found');
 				}
 				log.debug('flvBytes: ' + flvBytes);
 				var lastMod = '0';
@@ -81,8 +83,7 @@ function DemoService() {
 				filesMap.put(flvName, fileInfo);
 			}
 		} catch (e) {
-			log.debug('Error in getListOfAvailableFLVs: ' + e);
-			//print('Exception: ' + e);
+			log.warn('Error in getListOfAvailableFLVs: ' + e);
 		}
 		return filesMap;
 	};
@@ -90,8 +91,10 @@ function DemoService() {
 }
 
 DemoService.prototype.formatDate = function(date) {
-	log.debug('formatDate');
 	//java 'thread-safe' date formatting
 	return new SimpleDateFormat("dd/MM/yyyy hh:mm:ss").format(date);
 };	
 
+DemoService.prototype.toString = function(string) {
+	return 'Javascript:DemoService';
+};
