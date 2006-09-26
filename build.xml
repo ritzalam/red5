@@ -269,23 +269,54 @@
             <format property="TODAY" pattern="d-MMMM-yyyy" locale="en" />
         </tstamp>
 
+        <!-- Load the library props files to generate a class-path for the jar -->
+        <loadfile
+          property="library.jars"
+          srcFile="${lib.dir}/library.properties">
+            <filterchain>
+                <tokenfilter>
+                    <trim/>
+                    <ignoreblank/>
+                </tokenfilter>
+                <striplinecomments>
+                    <comment value="#"/>
+                </striplinecomments>
+                <prefixlines prefix=" lib/"/>
+                <striplinebreaks/>
+            </filterchain>
+        </loadfile>
+        <loadfile
+          property="script.jars"
+          srcFile="${lib.dir}/script.properties">
+            <filterchain>
+                <tokenfilter>
+                    <trim/>
+                    <ignoreblank/>
+                </tokenfilter>
+                <striplinecomments>
+                    <comment value="#"/>
+                </striplinecomments>
+                <prefixlines prefix=" lib/"/>
+                <striplinebreaks/>
+            </filterchain>
+        </loadfile>
+        <echo message="Jar launch classpath: conf/${library.jars} ${script.jars}" />   
+              
         <jar destfile="red5.jar">
 			<fileset dir="${classes.dir}">
 				<include name="**"/>
 				<exclude name="testcases/**"/>
 			</fileset>
-			<!--
-		 <metainf dir="${src}/${metainf}">
-			 <include name="*.xml"/>
-		 </metainf>
-		 -->
 			<manifest>
 				<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>
                 <attribute name="Built-On" value="${build.TODAY}" />
                 <attribute name="Main-Class" value="org.red5.server.Standalone"/>
 				<attribute name="Class-Path"
-						   value="conf/ lib/slf4j-log4j12.jar lib/cglib-nodep-2.1_2.jar lib/jetty.jar lib/jetty-util.jar lib/commons-beanutils.jar lib/commons-collections.jar lib/commons-logging.jar lib/jpda.jar lib/log4j-1.2.9.jar lib/mina-filter-ssl-0.9.4.jar lib/mina-core-0.9.4.jar lib/mina-integration-spring-0.9.4.jar lib/servlet-api.jar lib/spring.jar lib/quartz-1.5.2.jar lib/xmlrpc-2.0.1.jar lib/commons-codec-1.3.jar lib/commons-httpclient-3.0.1.jar lib/jasper-compiler-5.5.15.jar lib/jasper-compiler-jdt-5.5.15.jar lib/servlet-api.jar lib/jasper-runtime-5.5.15.jar lib/xercesImpl-2.6.2.jar lib/jsp-api-2.0.jar lib/xmlParserAPIs-2.6.2.jar lib/jcl104-over-slf4j-1.0.1.jar lib/slf4j-simple-1.0.1.jar lib/commons-el-1.0.jar"/>
+						   value="conf/ ${library.jars} ${script.jars}"/>
 			</manifest>
+            <metainf dir="${src.dir}/META-INF">
+                <include name="**"/>
+            </metainf>
 		</jar>
 		
 		<jar destfile="${src.dir}/../webapps/fitcDemo/WEB-INF/lib/fitcDemo.jar">
