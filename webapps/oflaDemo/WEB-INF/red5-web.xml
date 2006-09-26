@@ -21,7 +21,7 @@
 		<property name="contextPath" value="${webapp.contextPath}" />
 		<property name="virtualHosts" value="${webapp.virtualHosts}" />
 	</bean>
-
+	
 	<bean class="org.springframework.scripting.support.ScriptFactoryPostProcessor"/>
 
 <!-- 
@@ -29,7 +29,7 @@
 	    class="org.red5.server.webapp.oflaDemo.Application" 
 		singleton="true" />
 -->
-	
+
 	<bean id="web.handler" class="org.red5.server.script.rhino.RhinoScriptFactory">
 		<constructor-arg index="0" value="classpath:applications/main.js"/>
 		<!-- Implemented interfaces -->
@@ -70,7 +70,7 @@
 		</constructor-arg>
 	</bean>	
  -->
-
+	
 	<bean id="demoService.service" class="org.red5.server.script.rhino.RhinoScriptFactory">
 		<constructor-arg index="0" value="classpath:applications/demoservice.js"/>
 		<constructor-arg index="1">
@@ -83,5 +83,5 @@
 		</constructor-arg>		
 	</bean>
 
-
+ 		
 </beans>
