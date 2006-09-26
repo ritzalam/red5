@@ -44,19 +44,19 @@ import org.red5.server.exception.ScopeNotFoundException;
 public class ScopeStatistics {
 
 	private IScope globalScope = null;
-	
+
 	public ScopeStatistics() {
-		
+
 	}
-	
+
 	public ScopeStatistics(IScope globalScope) {
 		this.globalScope = globalScope;
 	}
-	
+
 	public void setGlobalScope(IScope scope) {
 		globalScope = scope;
 	}
-	
+
 	/**
 	 * Resolve path to scope.
 	 * 
@@ -67,17 +67,19 @@ public class ScopeStatistics {
 	 */
 	private IScope getScope(String path) throws ScopeNotFoundException {
 		IScope scope;
-		if (path != null && !path.equals("")) 
+		if (path != null && !path.equals("")) {
 			scope = ScopeUtils.resolveScope(globalScope, path);
-		else
+		} else {
 			scope = globalScope;
-		
-		if (scope == null)
+		}
+
+		if (scope == null) {
 			throw new ScopeNotFoundException(globalScope, path);
-		
+		}
+
 		return scope;
 	}
-	
+
 	/**
 	 * Return available applications. 
 	 * 
@@ -86,7 +88,7 @@ public class ScopeStatistics {
 	public String[] getScopes() {
 		return getScopes(null);
 	}
-	
+
 	/**
 	 * Return subscopes of another scope.
 	 * 
@@ -100,12 +102,12 @@ public class ScopeStatistics {
 		Iterator<String> iter = scope.getScopeNames();
 		while (iter.hasNext()) {
 			String name = iter.next();
-			result.add(name.substring(name.indexOf(IScope.SEPARATOR)+1));
+			result.add(name.substring(name.indexOf(IScope.SEPARATOR) + 1));
 		}
-		
-		return (String[]) result.toArray(new String[result.size()]);
+
+		return result.toArray(new String[result.size()]);
 	}
-	
+
 	/**
 	 * Return attributes of the global scope.
 	 * 
@@ -114,7 +116,7 @@ public class ScopeStatistics {
 	public Map<String, Object> getScopeAttributes() {
 		return getScopeAttributes(null);
 	}
-	
+
 	/**
 	 * Return an object that can be serialized through XML-RPC.
 	 * Inspired by "Reflective XML-RPC" by "Stephan Maier".
@@ -126,13 +128,11 @@ public class ScopeStatistics {
 		if (value == null) {
 			return "<null>";
 		}
-		
+
 		Class type = value.getClass();
-		if (type.equals(Integer.class)
-			|| type.equals(Double.class)
-			|| type.equals(Boolean.class)
-			|| type.equals(String.class)
-			|| type.equals(Date.class)) {
+		if (type.equals(Integer.class) || type.equals(Double.class)
+				|| type.equals(Boolean.class) || type.equals(String.class)
+				|| type.equals(Date.class)) {
 			return value;
 		} else if (type.equals(Long.class)) {
 			// XXX: long values are not supported by XML-RPC, convert to string
@@ -143,8 +143,9 @@ public class ScopeStatistics {
 		} else if (type.isArray()) {
 			int length = Array.getLength(value);
 			Vector<Object> res = new Vector<Object>();
-			for (int i = 0; i < length; i++)
+			for (int i = 0; i < length; i++) {
 				res.add(getXMLRPCValue(Array.get(value, i)));
+			}
 			return res;
 		} else if (value instanceof Map) {
 			Hashtable<Object, Object> res = new Hashtable<Object, Object>();
@@ -157,15 +158,15 @@ public class ScopeStatistics {
 		} else if (value instanceof Collection) {
 			Collection<Object> coll = (Collection<Object>) value;
 			Vector<Object> result = new Vector<Object>(coll.size());
-			for (Object item: coll) {
+			for (Object item : coll) {
 				result.add(getXMLRPCValue(item));
 			}
 			return result;
 		}
-		
+
 		throw new RuntimeException("Don't know how to convert " + value);
 	}
-	
+
 	/**
 	 * Return attributes of a given scope.
 	 * 
@@ -199,9 +200,10 @@ public class ScopeStatistics {
 		ISharedObjectService service = (ISharedObjectService) ScopeUtils
 				.getScopeService(scope,
 						ISharedObjectService.SHARED_OBJECT_SERVICE);
-		if (service == null)
+		if (service == null) {
 			return new Hashtable<String, Object>();
-		
+		}
+
 		Map<String, Object> result = new Hashtable<String, Object>();
 		for (String name : service.getSharedObjectNames(scope)) {
 			ISharedObject so = service.getSharedObject(scope, name);

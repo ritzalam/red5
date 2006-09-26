@@ -26,22 +26,22 @@ import org.red5.server.net.rtmp.message.Header;
 public interface IRTMPEvent extends IEvent {
 
 	public byte getDataType();
-	
+
 	public void setSource(IEventListener source);
-	
+
 	public Header getHeader();
-	
+
 	public void setHeader(Header header);
-	
+
 	public int getTimestamp();
-	
+
 	public void setTimestamp(int timestamp);
-	
+
 	public void retain();
-	
+
 	/**
 	 * Hook to free buffers allocated by the event.
 	 */
 	public void release();
-	
+
 }

@@ -28,20 +28,21 @@ import org.red5.server.api.service.IPendingServiceCallback;
 public class PendingCall extends Call implements IPendingServiceCall {
 
 	private Object result = null;
+
 	private HashSet<IPendingServiceCallback> callbacks = new HashSet<IPendingServiceCallback>();
 
-    public PendingCall(String method){
-    	super(method);
-    }
-    
-    public PendingCall(String method, Object[] args){
-    	super(method, args);
-    }
-    
-    public PendingCall(String name, String method, Object[] args){
-    	super(name, method, args);
-    }
-    
+	public PendingCall(String method) {
+		super(method);
+	}
+
+	public PendingCall(String method, Object[] args) {
+		super(method, args);
+	}
+
+	public PendingCall(String name, String method, Object[] args) {
+		super(name, method, args);
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -63,7 +64,7 @@ public class PendingCall extends Call implements IPendingServiceCall {
 	public void registerCallback(IPendingServiceCallback callback) {
 		callbacks.add(callback);
 	}
-	
+
 	public void unregisterCallback(IPendingServiceCallback callback) {
 		callbacks.remove(callback);
 	}

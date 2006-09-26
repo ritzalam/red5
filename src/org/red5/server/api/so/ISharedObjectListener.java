@@ -110,5 +110,5 @@ public interface ISharedObjectListener {
 	 *            the arguments
 	 */
 	void onSharedObjectSend(ISharedObject so, String method, List params);
-	
+
 }

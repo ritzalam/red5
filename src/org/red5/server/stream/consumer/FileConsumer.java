@@ -53,13 +53,19 @@ import org.red5.server.stream.message.StatusMessage;
 public class FileConsumer implements Constants, IPushableConsumer,
 		IPipeConnectionListener {
 	private static final Log log = LogFactory.getLog(FileConsumer.class);
-	
+
 	private IScope scope;
+
 	private File file;
+
 	private ITagWriter writer;
+
 	private String mode;
+
 	private int offset;
+
 	private int lastTimestamp;
+
 	private int startTimestamp;
 
 	public FileConsumer(IScope scope, File file) {
@@ -69,18 +75,18 @@ public class FileConsumer implements Constants, IPushableConsumer,
 		lastTimestamp = 0;
 		startTimestamp = -1;
 	}
-	
+
 	public void pushMessage(IPipe pipe, IMessage message) {
 		if (message instanceof ResetMessage) {
 			startTimestamp = -1;
 			offset += lastTimestamp;
 			return;
 		} else if (message instanceof StatusMessage) {
-			StatusMessage statusMsg = (StatusMessage) message;
 			return;
 		}
-		if (!(message instanceof RTMPMessage))
+		if (!(message instanceof RTMPMessage)) {
 			return;
+		}
 		if (writer == null) {
 			try {
 				init();
@@ -90,18 +96,18 @@ public class FileConsumer implements Constants, IPushableConsumer,
 		}
 		RTMPMessage rtmpMsg = (RTMPMessage) message;
 		final IRTMPEvent msg = rtmpMsg.getBody();
-		if(startTimestamp == -1) {
+		if (startTimestamp == -1) {
 			startTimestamp = msg.getTimestamp();
 		}
 		int timestamp = msg.getTimestamp() - startTimestamp;
-		if(timestamp < 0) {
+		if (timestamp < 0) {
 			log.warn("Skipping message with negative timestamp.");
 			return;
 		}
 		lastTimestamp = timestamp;
-		
+
 		ITag tag = new Tag();
-		
+
 		tag.setDataType(msg.getDataType());
 		tag.setTimestamp(timestamp + offset);
 		if (msg instanceof IStreamData) {
@@ -109,7 +115,7 @@ public class FileConsumer implements Constants, IPushableConsumer,
 			tag.setBodySize(data.limit());
 			tag.setBody(data);
 		}
-		
+
 		try {
 			writer.writeTag(tag);
 		} catch (IOException e) {
@@ -125,23 +131,26 @@ public class FileConsumer implements Constants, IPushableConsumer,
 
 	public void onPipeConnectionEvent(PipeConnectionEvent event) {
 		switch (event.getType()) {
-		case PipeConnectionEvent.CONSUMER_CONNECT_PUSH:
-			if (event.getConsumer() != this)
+			case PipeConnectionEvent.CONSUMER_CONNECT_PUSH:
+				if (event.getConsumer() != this) {
+					break;
+				}
+				Map paramMap = event.getParamMap();
+				if (paramMap != null) {
+					mode = (String) paramMap.get("mode");
+				}
 				break;
-			Map paramMap = event.getParamMap();
-			if (paramMap != null)
-				mode = (String) paramMap.get("mode");
-			break;
-		case PipeConnectionEvent.CONSUMER_DISCONNECT:
-			if (event.getConsumer() != this)
+			case PipeConnectionEvent.CONSUMER_DISCONNECT:
+				if (event.getConsumer() != this) {
+					break;
+				}
+			case PipeConnectionEvent.PROVIDER_DISCONNECT:
+				// we only support one provider at a time
+				// so do releasing when provider disconnects
+				uninit();
 				break;
-		case PipeConnectionEvent.PROVIDER_DISCONNECT:
-			// we only support one provider at a time
-			// so do releasing when provider disconnects
-			uninit();
-			break;
-		default:
-			break;
+			default:
+				break;
 		}
 	}
 
@@ -149,24 +158,26 @@ public class FileConsumer implements Constants, IPushableConsumer,
 		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils
 				.getScopeService(scope, IStreamableFileFactory.KEY,
 						StreamableFileFactory.class);
-		if (!file.isFile())
+		if (!file.isFile()) {
 			// Maybe the (previously existing) file has been deleted
 			file.createNewFile();
+		}
 		IStreamableFileService service = factory.getService(file);
 		IStreamableFile flv = service.getStreamableFile(file);
 		if (mode == null || mode.equals(IClientStream.MODE_RECORD)) {
 			writer = flv.getWriter();
 		} else if (mode.equals(IClientStream.MODE_APPEND)) {
 			writer = flv.getAppendWriter();
-		} else
+		} else {
 			throw new IllegalStateException("illegal mode type: " + mode);
+		}
 	}
-	
+
 	private void uninit() {
 		if (writer != null) {
 			writer.close();
 			writer = null;
 		}
 	}
-	
+
 }

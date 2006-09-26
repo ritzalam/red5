@@ -98,8 +98,7 @@ public class ScriptBeanFactory extends DefaultListableBeanFactory implements
 			if (res == null || res.length == 0) {
 				log.info("No scripts found in location: " + path + ext);
 			} else {
-				for (int i = 0; i < res.length; i++) {
-					Resource resource = res[i];
+				for (Resource resource : res) {
 					String name = resource.getFilename();
 					Object bean = null;
 					log.info("Loading script for first time: " + name);
@@ -159,10 +158,12 @@ public class ScriptBeanFactory extends DefaultListableBeanFactory implements
 
 	// Public beanFactory methods
 
+	@Override
 	public Object getBean(String name) throws BeansException {
 		return getBean(name, null, null);
 	}
 
+	@Override
 	public Object getBean(String name, Class requiredType)
 			throws BeansException {
 		return getBean(name, requiredType, null);
@@ -179,10 +180,12 @@ public class ScriptBeanFactory extends DefaultListableBeanFactory implements
 	 *            arguments to a static factory method. It is invalid to use a
 	 *            non-null args value in any other case.
 	 */
+	@Override
 	public Object getBean(String name, Object[] args) throws BeansException {
 		return getBean(name, null, args);
 	}
 
+	@Override
 	public Object getBean(String name, Class requiredType, Object[] args)
 			throws BeansException {
 		log.debug("getBean - name: " + name + " type: "

@@ -35,6 +35,7 @@ public interface IBandwidthConfigure {
 	 *            Bandwidth
 	 */
 	void setAudioBandwidth(long bw);
+
 	long getAudioBandwidth();
 
 	/**
@@ -44,17 +45,19 @@ public interface IBandwidthConfigure {
 	 *            Bandwidth
 	 */
 	void setVideoBandwidth(long bw);
+
 	long getVideoBandwidth();
-	
+
 	/**
 	 * Set overall bandwidth available
 	 * 
 	 * @param bw
 	 *            Bandwidth
-	 */	
+	 */
 	void setOverallBandwidth(long bw);
+
 	long getOverallBandwidth();
-	
+
 	/**
 	 * Set the upstream bandwidth to be notified to the client.
 	 * Upstream is the data that is sent from the client to the server.
@@ -63,14 +66,16 @@ public interface IBandwidthConfigure {
 	 *            Bandwidth
 	 */
 	void setUpstreamBandwidth(long bw);
+
 	/**
 	 * Get the upstream bandwidth to be notified to the client.
 	 * Upstream is the data that is sent from the client to the server.
 	 * 
 	 * @param bw
 	 *            Bandwidth
-	 */	
+	 */
 	long getUpstreamBandwidth();
+
 	/**
 	 * Set the downstream bandwidth to be notified to the client.
 	 * Downstream is the data that is sent from the server to the client.
@@ -79,8 +84,9 @@ public interface IBandwidthConfigure {
 	 *            Bandwidth
 	 */
 	void setDownstreamBandwidth(long bw);
+
 	long getDownstreamBandwidth();
-	
+
 	/**
 	 * Set the maximum amount of burst in Byte.
 	 * This values controls the maximum amount of packets that
@@ -89,8 +95,9 @@ public interface IBandwidthConfigure {
 	 * is specified, the system default value will be used.
 	 */
 	void setMaxBurst(long maxBurst);
+
 	long getMaxBurst();
-	
+
 	/**
 	 * Set the burst amount in Byte. The burst amount controls
 	 * the initial amount of packets that burst to the client.
@@ -100,7 +107,8 @@ public interface IBandwidthConfigure {
 	 * <tt>0</tt> means don't use burst.
 	 */
 	void setBurst(long burst);
+
 	long getBurst();
-	
+
 	IBandwidthConfigure clone();
 }

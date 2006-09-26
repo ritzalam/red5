@@ -24,6 +24,6 @@ import org.red5.server.messaging.IMessageOutput;
 
 public interface IConsumerService {
 	public static final String KEY = "consumerService";
-	
+
 	IMessageOutput getConsumerOutput(IClientStream stream);
 }

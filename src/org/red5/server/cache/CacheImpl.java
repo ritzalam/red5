@@ -78,7 +78,7 @@ public class CacheImpl implements ICacheStore, ApplicationContextAware {
 
 	public void setApplicationContext(ApplicationContext context)
 			throws BeansException {
-		this.applicationContext = context;
+		CacheImpl.applicationContext = context;
 	}
 
 	public static ApplicationContext getApplicationContext() {
@@ -202,7 +202,7 @@ public class CacheImpl implements ICacheStore, ApplicationContextAware {
 
 	public void setMaxEntries(int max) {
 		log.debug("Setting max entries for this cache to " + max);
-		this.capacity = max;
+		CacheImpl.capacity = max;
 	}
 
 	public void destroy() {

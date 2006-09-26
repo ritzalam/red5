@@ -61,7 +61,6 @@
 	<classpathentry kind="lib" path="lib/naming-factory.jar"/>
 	<classpathentry kind="lib" path="lib/naming-resources.jar"/>
 	<classpathentry kind="lib" path="lib/ognl-2.6.9.jar"/>
-	<classpathentry kind="lib" path="lib/servlet-api.jar"/>
 	<classpathentry kind="lib" path="lib/servlets-default-5.5.17.jar"/>
 	<classpathentry kind="lib" path="lib/spring-aop.jar"/>
 	<classpathentry kind="lib" path="lib/spring-beans.jar"/>

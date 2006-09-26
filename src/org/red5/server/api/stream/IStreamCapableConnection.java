@@ -38,21 +38,21 @@ public interface IStreamCapableConnection extends IConnection,
 	 * @return
 	 */
 	int reserveStreamId();
-	
+
 	/**
 	 * Unreserve this id for future use.
 	 * 
 	 * @param streamId
 	 */
 	void unreserveStreamId(int streamId);
-	
+
 	/**
 	 * Deletes the stream with the given id.
 	 * 
 	 * @param streamId
 	 */
 	void deleteStreamById(int streamId);
-	
+
 	/**
 	 * Get a stream by its id.
 	 * 
@@ -68,7 +68,7 @@ public interface IStreamCapableConnection extends IConnection,
 	 * @return
 	 */
 	ISingleItemSubscriberStream newSingleItemSubscriberStream(int streamId);
-	
+
 	/**
 	 * Create a stream that can play a list.
 	 * 

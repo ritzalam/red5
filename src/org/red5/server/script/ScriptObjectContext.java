@@ -51,8 +51,6 @@ public class ScriptObjectContext implements ApplicationContextAware,
 	protected static Log log = LogFactory.getLog(ScriptObjectContext.class
 			.getName());
 
-	private ApplicationContext parentContext;
-
 	private ApplicationContext appCtx;
 
 	private ScriptBeanFactory scriptBeanFactory;
@@ -72,12 +70,11 @@ public class ScriptObjectContext implements ApplicationContextAware,
 
 	public ClassLoader getClassLoader() {
 		return Thread.currentThread().getContextClassLoader();
-	}	
-	
+	}
+
 	public void setParentContext(ApplicationContext parentContext) {
 		log.debug("Parent context for scripts: "
 				+ parentContext.getClass().getName());
-		this.parentContext = parentContext;
 	}
 
 	public ScriptEngineManager getScriptManager() {

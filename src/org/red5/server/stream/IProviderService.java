@@ -28,7 +28,7 @@ import org.red5.server.messaging.IMessageInput;
 
 public interface IProviderService {
 	public static final String KEY = "providerService";
-	
+
 	/**
 	 * Get a named provider as the source of input.
 	 * Live stream first, VOD stream second.
@@ -37,7 +37,7 @@ public interface IProviderService {
 	 * @return <tt>null</tt> if nothing found.
 	 */
 	IMessageInput getProviderInput(IScope scope, String name);
-	
+
 	/**
 	 * Get a named Live provider as the source of input.
 	 * 
@@ -47,7 +47,7 @@ public interface IProviderService {
 	 */
 	IMessageInput getLiveProviderInput(IScope scope, String name,
 			boolean needCreate);
-	
+
 	/**
 	 * Get a named VOD provider as the source of input.
 	 * 
@@ -56,7 +56,7 @@ public interface IProviderService {
 	 * @return <tt>null</tt> if not found.
 	 */
 	IMessageInput getVODProviderInput(IScope scope, String name);
-	
+
 	/**
 	 * Get a named VOD source file.
 	 * 
@@ -65,7 +65,7 @@ public interface IProviderService {
 	 * @return <tt>null</tt> if not found.
 	 */
 	File getVODProviderFile(IScope scope, String name);
-	
+
 	/**
 	 * Register a broadcast stream to a scope.
 	 * 
@@ -84,7 +84,7 @@ public interface IProviderService {
 	 * @return list of stream names 
 	 */
 	List<String> getBroadcastStreamNames(IScope scope);
-	
+
 	/**
 	 * Unregister a broadcast stream of a specific name from a scope.
 	 * 

@@ -30,14 +30,17 @@ public class SharedObjectMessage extends BaseEvent implements
 		ISharedObjectMessage {
 
 	private String name;
+
 	private LinkedList<ISharedObjectEvent> events = new LinkedList<ISharedObjectEvent>();
+
 	private int version = 0;
+
 	private boolean persistent = false;
-	
+
 	public SharedObjectMessage(String name, int version, boolean persistent) {
 		this(null, name, version, persistent);
 	}
-	
+
 	public SharedObjectMessage(IEventListener source, String name, int version,
 			boolean persistent) {
 		super(Type.SHARED_OBJECT, source);
@@ -46,14 +49,15 @@ public class SharedObjectMessage extends BaseEvent implements
 		this.persistent = persistent;
 	}
 
+	@Override
 	public byte getDataType() {
-		return TYPE_SHARED_OBJECT; 
+		return TYPE_SHARED_OBJECT;
 	}
-	
+
 	public int getVersion() {
 		return version;
 	}
-	
+
 	protected void setVersion(int version) {
 		this.version = version;
 	}
@@ -61,28 +65,28 @@ public class SharedObjectMessage extends BaseEvent implements
 	public String getName() {
 		return name;
 	}
-	
+
 	protected void setName(String name) {
 		this.name = name;
 	}
-	
+
 	public boolean isPersistent() {
 		return persistent;
 	}
-	
+
 	protected void setIsPersistent(boolean persistent) {
 		this.persistent = persistent;
 	}
-	
-	public void addEvent(ISharedObjectEvent event){
+
+	public void addEvent(ISharedObjectEvent event) {
 		events.add(event);
 	}
-	
-	public void addEvents(List<ISharedObjectEvent> events){
+
+	public void addEvents(List<ISharedObjectEvent> events) {
 		this.events.addAll(events);
 	}
-	
-	public LinkedList<ISharedObjectEvent> getEvents(){
+
+	public LinkedList<ISharedObjectEvent> getEvents() {
 		return events;
 	}
 
@@ -98,30 +102,34 @@ public class SharedObjectMessage extends BaseEvent implements
 		return events.isEmpty();
 	}
 
+	@Override
 	public Type getType() {
 		return Type.SHARED_OBJECT;
 	}
 
+	@Override
 	public Object getObject() {
 		return getEvents();
 	}
-	
+
 	@Override
 	protected void releaseInternal() {
-		
+
 	}
 
-	public String toString(){
+	@Override
+	public String toString() {
 		final StringBuffer sb = new StringBuffer();
 		sb.append("SharedObjectMessage: ").append(name).append(" { ");
 		final Iterator it = events.iterator();
-		while(it.hasNext()){
+		while (it.hasNext()) {
 			sb.append(it.next());
-			if (it.hasNext())
+			if (it.hasNext()) {
 				sb.append(" , ");
+			}
 		}
 		sb.append(" } ");
 		return sb.toString();
 	}
-	
+
 }

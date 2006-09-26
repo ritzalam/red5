@@ -26,7 +26,7 @@ public interface IPlaylist {
 	 * @param item
 	 */
 	void addItem(IPlayItem item);
-	
+
 	/**
 	 * Add an item to specific index.
 	 * 
@@ -34,51 +34,51 @@ public interface IPlaylist {
 	 * @param index
 	 */
 	void addItem(IPlayItem item, int index);
-	
+
 	/**
 	 * Remove an item from list.
 	 * 
 	 * @param index
 	 */
 	void removeItem(int index);
-	
+
 	/**
 	 * Remove all items.
 	 */
 	void removeAllItems();
-	
+
 	int getItemSize();
-	
+
 	/**
 	 * Get currently playing item index.
 	 * @return
 	 */
 	int getCurrentItemIndex();
-	
+
 	/**
 	 * Get the item according to the index.
 	 * @param index
 	 * @return
 	 */
 	IPlayItem getItem(int index);
-	
+
 	/**
 	 * Go for the previous played item.
 	 */
 	void previousItem();
-	
+
 	/**
 	 * Go for next item decided by controller logic.
 	 */
 	void nextItem();
-	
+
 	/**
 	 * Set the current item for playing.
 	 * 
 	 * @param index
 	 */
 	void setItem(int index);
-	
+
 	/**
 	 * Whether items are randomly played.
 	 * 
@@ -92,35 +92,35 @@ public interface IPlaylist {
 	 * @param random
 	 */
 	void setRandom(boolean random);
-	
+
 	/**
 	 * Whether rewind the list.
 	 * 
 	 * @return
 	 */
 	boolean isRewind();
-	
+
 	/**
 	 * Set whether rewind the list.
 	 * 
 	 * @param rewind
 	 */
 	void setRewind(boolean rewind);
-	
+
 	/**
 	 * Whether repeat playing an item.
 	 * 
 	 * @return
 	 */
 	boolean isRepeat();
-	
+
 	/**
 	 * Set whether repeat playing an item.
 	 * 
 	 * @param repeat
 	 */
 	void setRepeat(boolean repeat);
-	
+
 	/**
 	 * Set list controller.
 	 * 

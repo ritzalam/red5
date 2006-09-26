@@ -27,6 +27,6 @@ package org.red5.server.messaging;
  */
 public interface IPushableConsumer extends IConsumer {
 	public static final String KEY = IPushableConsumer.class.getName();
-	
+
 	void pushMessage(IPipe pipe, IMessage message);
 }

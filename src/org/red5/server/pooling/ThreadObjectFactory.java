@@ -63,7 +63,7 @@ public class ThreadObjectFactory implements PoolableObjectFactory {
 		if (obj instanceof WorkerThread) {
 			WorkerThread rt = (WorkerThread) obj;
 			if (!rt.isDone()) { // if the thread is running the previous task,
-								// get another one.
+				// get another one.
 				return false;
 			}
 			if (rt.isRunning()) {

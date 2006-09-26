@@ -40,57 +40,60 @@ public class ServiceInvokerTest extends TestCase {
 	// the correct types of status are returned (method not found) etc. 
 	// Also, we need to add tests which show the way the parameter conversion works.
 	// So have a few methods with the same name, and try with diff params, making sure right one gets called.
-	
-	protected static Log log =
-        LogFactory.getLog(ServiceInvokerTest.class.getName());
-	
+
+	protected static Log log = LogFactory.getLog(ServiceInvokerTest.class
+			.getName());
+
 	protected ApplicationContext appCtx = null;
-	
+
+	@Override
 	protected void setUp() throws Exception {
 		// TODO Auto-generated method stub
 		super.setUp();
-		appCtx = new ClassPathXmlApplicationContext("org/red5/server/service/test/testcontext.xml");
+		appCtx = new ClassPathXmlApplicationContext(
+				"org/red5/server/service/test/testcontext.xml");
 	}
-	
-	public void testAppContextLoaded(){
+
+	public void testAppContextLoaded() {
 		Assert.assertNotNull(appCtx);
 		Assert.assertNotNull(appCtx.getBean("serviceInvoker"));
 		Assert.assertNotNull(appCtx.getBean("echoService"));
 	}
 
-	public void testSimpleEchoCall(){
-		Object[] params = new Object[]{"Woot this is cool"};
-		PendingCall call = new PendingCall("echoService","echoString", params);
-		ServiceInvoker invoker = (ServiceInvoker) appCtx.getBean(ServiceInvoker.SERVICE_NAME);
+	public void testSimpleEchoCall() {
+		Object[] params = new Object[] { "Woot this is cool" };
+		PendingCall call = new PendingCall("echoService", "echoString", params);
+		ServiceInvoker invoker = (ServiceInvoker) appCtx
+				.getBean(ServiceInvoker.SERVICE_NAME);
 		invoker.invoke(call, appCtx);
 		Assert.assertEquals(call.isSuccess(), true);
 		Assert.assertEquals(call.getResult(), params[0]);
 	}
-	
-	public void testExceptionStatus(){
-		Object[] params = new Object[]{"Woot this is cool"};
-		Call call = new Call("doesntExist","echoString", params);
-		ServiceInvoker invoker = (ServiceInvoker) appCtx.getBean(ServiceInvoker.SERVICE_NAME);
+
+	public void testExceptionStatus() {
+		Object[] params = new Object[] { "Woot this is cool" };
+		Call call = new Call("doesntExist", "echoString", params);
+		ServiceInvoker invoker = (ServiceInvoker) appCtx
+				.getBean(ServiceInvoker.SERVICE_NAME);
 		invoker.invoke(call, appCtx);
 		Assert.assertEquals(call.isSuccess(), false);
 		Assert.assertEquals(call.getStatus(), Call.STATUS_SERVICE_NOT_FOUND);
-		call = new Call("echoService","doesntExist", params);
+		call = new Call("echoService", "doesntExist", params);
 		invoker.invoke(call, appCtx);
 		Assert.assertEquals(call.isSuccess(), false);
 		Assert.assertEquals(call.getStatus(), Call.STATUS_METHOD_NOT_FOUND);
-		params = new Object[]{"too","many","params"};
-		call = new Call("echoService","echoString", params);
+		params = new Object[] { "too", "many", "params" };
+		call = new Call("echoService", "echoString", params);
 		invoker.invoke(call, appCtx);
 		Assert.assertEquals(call.isSuccess(), false);
 		Assert.assertEquals(call.getStatus(), Call.STATUS_METHOD_NOT_FOUND);
 	}
-	
+
+	@Override
 	protected void tearDown() throws Exception {
 		// TODO Auto-generated method stub
 		super.tearDown();
-		
+
 	}
 
-	
-	
 }

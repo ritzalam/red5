@@ -33,7 +33,7 @@ import java.util.List;
 public interface ISchedulingService {
 
 	public static final String SCHEDULING_SERVICE = "schedulingService";
-	
+
 	/**
 	 * Schedule a job for periodic execution.
 	 * 
@@ -56,7 +56,7 @@ public interface ISchedulingService {
 	 * @return the name of the scheduled job
 	 */
 	public String addScheduledOnceJob(long timeDelta, IScheduledJob job);
-	
+
 	/**
 	 * Schedule a job for single execution at a given date.  Please note
 	 * that the jobs are not saved if Red5 is restarted in the meantime.  
@@ -68,7 +68,7 @@ public interface ISchedulingService {
 	 * @return the name of the scheduled job
 	 */
 	public String addScheduledOnceJob(Date date, IScheduledJob job);
-	
+
 	/**
 	 * Stop executing a previously scheduled job.
 	 * 
@@ -76,12 +76,12 @@ public interface ISchedulingService {
 	 * 			name of the job to stop
 	 */
 	public void removeScheduledJob(String name);
-	
+
 	/**
 	 * Return names of scheduled jobs.
 	 * 
 	 * @return list of job names
 	 */
 	public List<String> getScheduledJobNames();
-	
+
 }

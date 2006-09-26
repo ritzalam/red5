@@ -36,7 +36,7 @@ public interface IMessageOutput {
 	 * @param message Message to be pushed.
 	 */
 	void pushMessage(IMessage message);
-	
+
 	/**
 	 * Connect to a provider.
 	 * 
@@ -46,7 +46,7 @@ public interface IMessageOutput {
 	 * <tt>false</tt> otherwise.
 	 */
 	boolean subscribe(IProvider provider, Map paramMap);
-	
+
 	/**
 	 * Disconnect from a provider.
 	 * 
@@ -55,9 +55,9 @@ public interface IMessageOutput {
 	 * <tt>false</tt> otherwise.
 	 */
 	boolean unsubscribe(IProvider provider);
-	
+
 	List<IProvider> getProviders();
-	
+
 	/**
 	 * Send OOB Control Message to all consumers on the other side of pipe.
 	 * 

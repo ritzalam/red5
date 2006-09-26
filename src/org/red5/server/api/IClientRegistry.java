@@ -39,7 +39,7 @@ public interface IClientRegistry {
 	 * @return <code>true</code> if the client exists, <code>false</code> otherwise
 	 */
 	public boolean hasClient(String id);
-	
+
 	/**
 	 * Create a new client client object from connection params.
 	 * 
@@ -53,7 +53,7 @@ public interface IClientRegistry {
 	 */
 	public IClient newClient(Object[] params) throws ClientNotFoundException,
 			ClientRejectedException;
-	
+
 	/**
 	 * Return an existing client from a client id.
 	 *  

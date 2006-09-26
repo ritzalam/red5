@@ -27,5 +27,5 @@ import org.apache.mina.common.ByteBuffer;
 public interface IStreamData {
 
 	public ByteBuffer getData();
-	
+
 }

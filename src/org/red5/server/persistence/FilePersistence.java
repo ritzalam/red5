@@ -51,9 +51,13 @@ public class FilePersistence extends RamPersistence implements
 		IPersistenceStore {
 
 	private Log log = LogFactory.getLog(FilePersistence.class.getName());
+
 	private String path = "persistence";
+
 	private String rootDir = "";
+
 	private String extension = ".red5";
+
 	// TODO: make this configurable
 	private boolean checkForEmptyDirectories = true;
 
@@ -61,23 +65,23 @@ public class FilePersistence extends RamPersistence implements
 		super(resolver);
 		setPath(path);
 	}
-	
+
 	public FilePersistence(IScope scope) {
 		super(scope);
 		setPath(path);
 	}
-	
+
 	public void setPath(String path) {
 		this.path = path;
-		
+
 		Resource rootFile = resources.getResource(path);
-		try { 
+		try {
 			rootDir = rootFile.getFile().getAbsolutePath();
 		} catch (IOException err) {
 			return;
 		}
 	}
-	
+
 	public void setExtension(String extension) {
 		this.extension = extension;
 	}
@@ -85,47 +89,53 @@ public class FilePersistence extends RamPersistence implements
 	private String getObjectFilepath(IPersistable object) {
 		return getObjectFilepath(object, false);
 	}
-	
+
 	private String getObjectFilepath(IPersistable object, boolean completePath) {
 		String result = path + "/" + object.getType() + "/" + object.getPath();
-		if (!result.endsWith("/"))
+		if (!result.endsWith("/")) {
 			result += "/";
-		
+		}
+
 		if (completePath) {
 			String name = object.getName();
 			int pos = name.lastIndexOf("/");
-			if (pos >= 0)
+			if (pos >= 0) {
 				result += name.substring(0, pos);
+			}
 		}
 		return result;
 	}
 
+	@Override
 	protected String getObjectPath(String id, String name) {
-		if (id.startsWith(path))
-			id = id.substring(path.length()+1);
-		
+		if (id.startsWith(path)) {
+			id = id.substring(path.length() + 1);
+		}
+
 		return super.getObjectPath(id, name);
 	}
 
 	private String getObjectFilename(IPersistable object) {
 		String path = getObjectFilepath(object);
 		String name = object.getName();
-		if (name == null)
+		if (name == null) {
 			name = PERSISTENCE_NO_NAME;
+		}
 		return path + name + extension;
 	}
-	
+
 	private IPersistable doLoad(String name) {
 		return doLoad(name, null);
 	}
-	
+
 	private IPersistable doLoad(String name, IPersistable object) {
 		IPersistable result = object;
 		Resource data = resources.getResource(name);
-		if (data == null || !data.exists())
+		if (data == null || !data.exists()) {
 			// No such file
 			return null;
-		
+		}
+
 		FileInputStream input;
 		String filename;
 		try {
@@ -135,17 +145,19 @@ public class FilePersistence extends RamPersistence implements
 				log.error("The file at " + data.getFilename() + " is empty.");
 				return null;
 			}
-			
+
 			filename = fp.getAbsolutePath();
 			input = new FileInputStream(filename);
 		} catch (FileNotFoundException e) {
 			log.error("The file at " + data.getFilename() + " does not exist.");
 			return null;
 		} catch (IOException e) {
-			log.error("Could not load file from " + data.getFilename() + ".", e);
+			log
+					.error("Could not load file from " + data.getFilename()
+							+ ".", e);
 			return null;
 		}
-		
+
 		try {
 			ByteBuffer buf = ByteBuffer.allocate(input.available());
 			try {
@@ -157,30 +169,34 @@ public class FilePersistence extends RamPersistence implements
 				if (result == null) {
 					// We need to create the object first
 					try {
-						Class theClass  = Class.forName(className);
+						Class theClass = Class.forName(className);
 						Constructor constructor = null;
 						try {
 							// Try to create object by calling constructor with Input stream as
 							// parameter.
-							for (Class interfaceClass : in.getClass().getInterfaces()) {
-								constructor = theClass.getConstructor(new Class[]{interfaceClass});
-								if (constructor != null)
+							for (Class interfaceClass : in.getClass()
+									.getInterfaces()) {
+								constructor = theClass
+										.getConstructor(new Class[] { interfaceClass });
+								if (constructor != null) {
 									break;
+								}
 							}
-							if (constructor == null)
+							if (constructor == null) {
 								throw new NoSuchMethodException();
-							
+							}
+
 							result = (IPersistable) constructor
 									.newInstance(new Object[] { in });
 						} catch (NoSuchMethodException err) {
 							// No valid constructor found, use empty
 							// constructor.
-							result = (IPersistable) theClass.newInstance(); 
+							result = (IPersistable) theClass.newInstance();
 							result.deserialize(in);
 						} catch (InvocationTargetException err) {
 							// Error while invoking found constructor, use empty
 							// constructor.
-							result = (IPersistable) theClass.newInstance(); 
+							result = (IPersistable) theClass.newInstance();
 							result.deserialize(in);
 						}
 					} catch (ClassNotFoundException cnfe) {
@@ -193,26 +209,27 @@ public class FilePersistence extends RamPersistence implements
 						log.error("Could not instantiate class " + className);
 						return null;
 					}
-					
+
 					// Set object's properties
 					result.setName(getObjectName(name));
 					result.setPath(getObjectPath(name, result.getName()));
 				} else {
 					// Initialize existing object
-					String resultClass = result.getClass().getName(); 
+					String resultClass = result.getClass().getName();
 					if (!resultClass.equals(className)) {
 						log.error("The classes differ: " + resultClass + " != "
 								+ className);
 						return null;
 					}
-					
+
 					result.deserialize(in);
 				}
 			} finally {
 				buf.release();
 			}
-			if (result.getStore() != this)
+			if (result.getStore() != this) {
 				result.setStore(this);
+			}
 			super.save(result);
 			log.debug("Loaded persistent object " + result + " from "
 					+ filename);
@@ -220,27 +237,31 @@ public class FilePersistence extends RamPersistence implements
 			log.error("Could not load file at " + filename);
 			return null;
 		}
-		
+
 		return result;
 	}
-	
+
+	@Override
 	public IPersistable load(String name) {
 		IPersistable result = super.load(name);
-		if (result != null)
+		if (result != null) {
 			// Object has already been loaded
 			return result;
-		
+		}
+
 		return doLoad(path + "/" + name + extension);
 	}
-	
+
+	@Override
 	public boolean load(IPersistable object) {
-		if (object.isPersistent())
+		if (object.isPersistent()) {
 			// Already loaded
 			return true;
-		
+		}
+
 		return (doLoad(getObjectFilename(object), object) != null);
 	}
-	
+
 	private boolean saveObject(IPersistable object) {
 		String path = getObjectFilepath(object, true);
 		Resource resPath = resources.getResource(path);
@@ -251,12 +272,12 @@ public class FilePersistence extends RamPersistence implements
 			log.error("Could not create resource file for path " + path, err);
 			return false;
 		}
-		
+
 		if (!file.isDirectory() && !file.mkdirs()) {
 			log.error("Could not create directory " + file.getAbsolutePath());
 			return false;
 		}
-		
+
 		String filename = getObjectFilename(object);
 		Resource resFile = resources.getResource(filename);
 		try {
@@ -267,7 +288,7 @@ public class FilePersistence extends RamPersistence implements
 				out.writeString(object.getClass().getName());
 				object.serialize(out);
 				buf.flip();
-				
+
 				FileOutputStream output = new FileOutputStream(resFile
 						.getFile().getAbsolutePath());
 				ServletUtils.copy(buf.asInputStream(), output);
@@ -282,24 +303,27 @@ public class FilePersistence extends RamPersistence implements
 			return false;
 		}
 	}
-	
+
+	@Override
 	public boolean save(IPersistable object) {
-		if (!super.save(object))
+		if (!super.save(object)) {
 			return false;
-		
+		}
+
 		boolean persistent = this.saveObject(object);
 		object.setPersistent(persistent);
 		return persistent;
 	}
 
 	protected void checkRemoveEmptyDirectories(String base) {
-		if (!checkForEmptyDirectories)
+		if (!checkForEmptyDirectories) {
 			return;
-		
+		}
+
 		String dir;
 		Resource resFile = resources.getResource(base.substring(0, base
 				.lastIndexOf('/')));
-		try { 
+		try {
 			dir = resFile.getFile().getAbsolutePath();
 		} catch (IOException err) {
 			return;
@@ -307,43 +331,51 @@ public class FilePersistence extends RamPersistence implements
 
 		while (!dir.equals(rootDir)) {
 			File fp = new File(dir);
-			if (!fp.isDirectory())
+			if (!fp.isDirectory()) {
 				// This should never happen
 				break;
-			
-			if (fp.list().length != 0)
+			}
+
+			if (fp.list().length != 0) {
 				// Directory is not empty
 				break;
-			
-			if (!fp.delete())
+			}
+
+			if (!fp.delete()) {
 				// Could not remove directory
 				break;
-			
+			}
+
 			// Move up one directory
 			dir = fp.getParent();
 		}
 	}
-	
+
+	@Override
 	public boolean remove(String name) {
-		if (!super.remove(name))
+		if (!super.remove(name)) {
 			return false;
-		
+		}
+
 		String filename = path + "/" + name + extension;
 		Resource resFile = resources.getResource(filename);
-		if (!resFile.exists())
+		if (!resFile.exists()) {
 			// File already deleted
 			return true;
-		
+		}
+
 		try {
 			boolean result = resFile.getFile().delete();
-			if (result)
+			if (result) {
 				checkRemoveEmptyDirectories(filename);
+			}
 			return result;
 		} catch (IOException err) {
 			return false;
 		}
 	}
 
+	@Override
 	public boolean remove(IPersistable object) {
 		return remove(getObjectId(object));
 	}

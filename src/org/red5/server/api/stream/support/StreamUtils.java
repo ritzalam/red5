@@ -30,7 +30,7 @@ import org.red5.server.stream.ServerStream;
  * @author Steven Gong (steven.gong@gmail.com)
  */
 public abstract class StreamUtils {
-	
+
 	/**
 	 * Creates server stream
 	 * 

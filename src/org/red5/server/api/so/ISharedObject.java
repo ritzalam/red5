@@ -52,7 +52,7 @@ public interface ISharedObject extends IBasicScope,
 		ISharedObjectHandlerProvider {
 
 	public static final String TYPE = "SharedObject";
-	
+
 	/**
 	 * Returns the version of the shared object. The version is incremented
 	 * automatically on each modification.
@@ -75,7 +75,7 @@ public interface ISharedObject extends IBasicScope,
 	 * 
 	 * @return a map containing all attributes of the shared object
 	 */
-	public Map<String,Object> getData();
+	public Map<String, Object> getData();
 
 	/**
 	 * Send a message to a handler of the shared object.
@@ -105,7 +105,7 @@ public interface ISharedObject extends IBasicScope,
 	 * once.
 	 */
 	public void endUpdate();
-	
+
 	/**
 	 * Register object that will be notified about update events.
 	 * 
@@ -113,7 +113,7 @@ public interface ISharedObject extends IBasicScope,
 	 * 				the object to notify
 	 */
 	public void addSharedObjectListener(ISharedObjectListener listener);
-	
+
 	/**
 	 * Unregister object to not longer receive update events.
 	 *  

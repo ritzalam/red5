@@ -36,7 +36,7 @@ public interface IMessageInput {
 	 * not available.
 	 */
 	IMessage pullMessage();
-	
+
 	/**
 	 * Pull message from this input endpoint. Wait
 	 * <tt>wait</tt> milliseconds if message is not available.
@@ -46,7 +46,7 @@ public interface IMessageInput {
 	 * not available.
 	 */
 	IMessage pullMessage(long wait);
-	
+
 	/**
 	 * Connect to a consumer.
 	 * 
@@ -56,7 +56,7 @@ public interface IMessageInput {
 	 * <tt>false</tt> otherwise.
 	 */
 	boolean subscribe(IConsumer consumer, Map paramMap);
-	
+
 	/**
 	 * Disconnect from a consumer.
 	 * 
@@ -65,9 +65,9 @@ public interface IMessageInput {
 	 * <tt>false</tt> otherwise.
 	 */
 	boolean unsubscribe(IConsumer consumer);
-	
+
 	List<IConsumer> getConsumers();
-	
+
 	/**
 	 * Send OOB Control Message to all providers on the other side of pipe.
 	 * 

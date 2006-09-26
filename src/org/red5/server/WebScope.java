@@ -30,16 +30,19 @@ import org.springframework.web.context.ServletContextAware;
 public class WebScope extends Scope implements ServletContextAware {
 
 	// Initialize Logging
-	protected static Log log =
-        LogFactory.getLog(WebScope.class.getName());
-		
+	protected static Log log = LogFactory.getLog(WebScope.class.getName());
+
 	protected IServer server;
+
 	protected ServletContext servletContext;
+
 	protected String contextPath;
+
 	protected String virtualHosts;
+
 	protected String[] hostnames;
-	
-	public void setGlobalScope(IGlobalScope globalScope){
+
+	public void setGlobalScope(IGlobalScope globalScope) {
 		// XXX: this is called from nowhere, remove?
 		super.setParent(globalScope);
 		try {
@@ -49,15 +52,15 @@ public class WebScope extends Scope implements ServletContextAware {
 		}
 	}
 
-	public void setName(){
+	public void setName() {
 		throw new RuntimeException("Cannot set name, you must set context path");
 	}
-	
-	public void setParent(){
+
+	public void setParent() {
 		throw new RuntimeException(
 				"Cannot set parent, you must set global scope");
 	}
-	
+
 	public void setServer(IServer server) {
 		this.server = server;
 	}
@@ -65,7 +68,7 @@ public class WebScope extends Scope implements ServletContextAware {
 	public void setServletContext(ServletContext servletContext) {
 		this.servletContext = servletContext;
 	}
-	
+
 	public void setContextPath(String contextPath) {
 		this.contextPath = contextPath;
 		super.setName(contextPath.substring(1));
@@ -76,19 +79,19 @@ public class WebScope extends Scope implements ServletContextAware {
 		hostnames = virtualHosts.split(",");
 		for (int i = 0; i < hostnames.length; i++) {
 			hostnames[i] = hostnames[i].trim();
-			if(hostnames[i].equals("*")){
+			if (hostnames[i].equals("*")) {
 				hostnames[i] = "";
 			}
 		}
 	}
 
-	public void register(){
-		if(hostnames != null && hostnames.length > 0){
-			for (int i = 0; i < hostnames.length; i++) {
-				server.addMapping(hostnames[i], getName(),
+	public void register() {
+		if (hostnames != null && hostnames.length > 0) {
+			for (String element : hostnames) {
+				server.addMapping(element, getName(),
 						((IGlobalScope) getParent()).getName());
 			}
-		} 
+		}
 		init();
 	}
 

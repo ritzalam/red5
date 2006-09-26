@@ -33,47 +33,48 @@ import org.apache.commons.logging.LogFactory;
  * @author Steven Gong (steven.gong@gmail.com) on behalf of (ce@publishing-etc.de)
  */
 public class AllocationDebugger {
-	
+
 	private class Info {
 
 		public int refcount;
-		
+
 		public Info() {
 			refcount = 1;
 		}
-		
+
 	}
-	
+
 	private static AllocationDebugger instance;
-	
+
 	public static AllocationDebugger getInstance() {
-		if (instance == null)
+		if (instance == null) {
 			instance = new AllocationDebugger();
+		}
 		return instance;
 	}
-	
+
 	private Log log;
-	
-	private Map<BaseEvent,Info> events;	
-	
+
+	private Map<BaseEvent, Info> events;
+
 	private AllocationDebugger() {
 		log = LogFactory.getLog(getClass().getName());
-		events = new HashMap<BaseEvent,Info>();
+		events = new HashMap<BaseEvent, Info>();
 	}
-	
+
 	protected synchronized void create(BaseEvent event) {
-		events.put(event,new Info());
+		events.put(event, new Info());
 	}
-	
+
 	protected synchronized void retain(BaseEvent event) {
 		Info info = events.get(event);
-		if(info != null) {
+		if (info != null) {
 			info.refcount++;
 		} else {
 			log.warn("Retain called on already released event.");
 		}
 	}
-	
+
 	protected synchronized void release(BaseEvent event) {
 		Info info = events.get(event);
 		if (info != null) {
@@ -85,12 +86,12 @@ public class AllocationDebugger {
 			log.warn("Release called on already released event.");
 		}
 	}
-	
+
 	public synchronized void dump() {
-		log.debug("dumping allocations "+events.size());
+		log.debug("dumping allocations " + events.size());
 		for (Entry<BaseEvent, Info> entry : events.entrySet()) {
 			log.debug(entry.getKey() + " " + entry.getValue().refcount);
 		}
 	}
-	
+
 }

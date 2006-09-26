@@ -27,8 +27,7 @@ public class DemoService {
 			// Resource[] flvs = appCtx.getResources("../../../../flvs/*.flv");
 			Resource[] flvs = scope.getResources("streams/*.flv");
 			if (flvs != null) {
-				for (int i = 0; i < flvs.length; i++) {
-					Resource flv = flvs[i];
+				for (Resource flv : flvs) {
 					File file = flv.getFile();
 					Date lastModifiedDate = new Date(file.lastModified());
 					String lastModified = formatDate(lastModifiedDate);
@@ -50,8 +49,7 @@ public class DemoService {
 
 			Resource[] mp3s = scope.getResources("streams/*.mp3");
 			if (mp3s != null) {
-				for (int i = 0; i < mp3s.length; i++) {
-					Resource mp3 = mp3s[i];
+				for (Resource mp3 : mp3s) {
 					File file = mp3.getFile();
 					Date lastModifiedDate = new Date(file.lastModified());
 					String lastModified = formatDate(lastModifiedDate);

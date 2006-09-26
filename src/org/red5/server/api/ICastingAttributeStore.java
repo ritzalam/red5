@@ -30,7 +30,7 @@ import java.util.Set;
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public interface ICastingAttributeStore extends IAttributeStore {
-	
+
 	/**
 	 * Get Boolean attribute by name
 	 * 

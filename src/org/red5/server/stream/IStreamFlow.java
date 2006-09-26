@@ -32,9 +32,9 @@ public interface IStreamFlow {
 	public void setMinTimeBuffer(int minTimeBuffer);
 
 	public long getClientTimeBuffer();
-	
+
 	public void setClientTimeBuffer(long clientTimeBuffer);
-	
+
 	public int getDataBitRate();
 
 	public int getSegmentBytesTransfered();
@@ -52,19 +52,19 @@ public interface IStreamFlow {
 	public long getTotalDataTime();
 
 	public long getTotalStreamTime();
-	
+
 	public int getBufferTime();
 
 	public void reset();
-	
+
 	public void pause();
-	
+
 	public void resume();
-	
+
 	public void clear();
-	
+
 	public void update(RTMPMessage msg);
 
 	public long getZeroToStreamTime();
-	
+
 }

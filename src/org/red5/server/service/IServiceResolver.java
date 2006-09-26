@@ -44,5 +44,5 @@ public interface IServiceResolver {
 	 *         service doesn't exist
 	 */
 	public Object resolveService(IScope scope, String serviceName);
-	
+
 }

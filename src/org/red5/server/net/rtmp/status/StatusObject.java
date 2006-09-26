@@ -31,67 +31,74 @@ import org.red5.io.object.SerializerOpts;
 public class StatusObject implements Serializable, SerializerOpts {
 
 	private static final long serialVersionUID = 8817297676191096283L;
-	
+
 	public static final String ERROR = "error";
+
 	public static final String STATUS = "status";
+
 	public static final String WARNING = "warning";
-	
+
 	protected String code;
+
 	protected String level;
+
 	protected String description = "";
+
 	protected Object application = null;
-	
-	public StatusObject(){
-		
+
+	public StatusObject() {
+
 	}
-	
-	public StatusObject(String code, String level, String description){
+
+	public StatusObject(String code, String level, String description) {
 		this.code = code;
 		this.level = level;
 		this.description = description;
 	}
-	
+
 	public String getCode() {
 		return code;
 	}
-	
+
 	public void setCode(String code) {
 		this.code = code;
 	}
-	
+
 	public String getDescription() {
 		return description;
 	}
-	
+
 	public void setDesciption(String description) {
 		this.description = description;
 	}
-	
-	public String getLevel(){
+
+	public String getLevel() {
 		return level;
 	}
-	
+
 	public void setLevel(String level) {
 		this.level = level;
 	}
-	
+
 	public void setApplication(Object application) {
 		this.application = application;
 	}
-	
+
 	public Object getApplication() {
 		return application;
 	}
-	
-	public String toString(){
+
+	@Override
+	public String toString() {
 		return "Status code: " + getCode() + " desc: " + getDescription()
-			+ " level: "+getLevel();
+				+ " level: " + getLevel();
 	}
 
 	public Flag getSerializerOption(SerializerOption opt) {
-		if (opt == SerializerOption.SerializeClassName)
+		if (opt == SerializerOption.SerializeClassName) {
 			return Flag.Disabled;
+		}
 		return Flag.Default;
 	}
-	
+
 }

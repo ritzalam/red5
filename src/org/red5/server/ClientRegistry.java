@@ -30,21 +30,23 @@ import org.red5.server.exception.ClientRejectedException;
 
 public class ClientRegistry implements IClientRegistry {
 
-	private HashMap<String,IClient> clients = new HashMap<String,IClient>();
+	private HashMap<String, IClient> clients = new HashMap<String, IClient>();
+
 	private int nextId = 0;
-	
-	public synchronized String nextId(){
+
+	public synchronized String nextId() {
 		return "" + nextId++;
 	}
-	
+
 	public boolean hasClient(String id) {
 		return clients.containsKey(id);
 	}
 
 	public IClient lookupClient(String id) throws ClientNotFoundException {
-		if (!hasClient(id))
+		if (!hasClient(id)) {
 			throw new ClientNotFoundException(id);
-		
+		}
+
 		return clients.get(id);
 	}
 
@@ -58,11 +60,11 @@ public class ClientRegistry implements IClientRegistry {
 	protected void addClient(IClient client) {
 		clients.put(client.getId(), client);
 	}
-	
+
 	protected void removeClient(IClient client) {
 		clients.remove(client.getId());
 	}
-	
+
 	protected Collection<IClient> getClients() {
 		return Collections.unmodifiableCollection(clients.values());
 	}

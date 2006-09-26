@@ -28,7 +28,7 @@ package org.red5.server.api;
  *
  */
 public interface IScopeAware {
-	
+
 	/**
 	 * Set the scope the object is located in.
 	 * 
@@ -36,5 +36,5 @@ public interface IScopeAware {
 	 * 			scope for this object
 	 */
 	public void setScope(IScope scope);
-	
+
 }

@@ -29,8 +29,9 @@ import org.red5.server.service.PendingCall;
 public class RemotingCall extends PendingCall {
 
 	public static final String HANDLER_SUCCESS = "/onResult";
+
 	public static final String HANDLER_ERROR = "/onStatus";
-	
+
 	public String clientCallback = null;
 
 	public RemotingCall(String serviceName, String serviceMethod,
@@ -38,20 +39,21 @@ public class RemotingCall extends PendingCall {
 		super(serviceName, serviceMethod, args);
 		setClientCallback(callback);
 	}
-	
+
 	public void setClientCallback(String clientCallback) {
 		this.clientCallback = clientCallback;
 	}
 
-	public String getClientResponse(){
-		if(clientCallback != null)
+	public String getClientResponse() {
+		if (clientCallback != null) {
 			return clientCallback
 					+ (isSuccess() ? HANDLER_SUCCESS : HANDLER_ERROR);
-		else
+		} else {
 			return null;
+		}
 	}
-	
-	public Object getClientResult(){
+
+	public Object getClientResult() {
 		return isSuccess() ? getResult() : getException();
 	}
 

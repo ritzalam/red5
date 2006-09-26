@@ -50,7 +50,7 @@ public interface IFlowControllable {
 	 * @return	parent
 	 */
 	IFlowControllable getParentFlowControllable();
-	
+
 	/**
 	 * Return bandwidth configuration object. Bandwidth configuration
 	 * allows you to set bandwidth size for audio, video and total amount.
@@ -58,5 +58,6 @@ public interface IFlowControllable {
 	 * @return	bandwidth configuration object
 	 */
 	IBandwidthConfigure getBandwidthConfigure();
+
 	void setBandwidthConfigure(IBandwidthConfigure config);
 }

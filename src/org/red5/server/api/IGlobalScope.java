@@ -33,5 +33,5 @@ public interface IGlobalScope extends IScope {
 	 * 
 	 */
 	public void register();
-	
+
 }

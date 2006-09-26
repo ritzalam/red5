@@ -67,7 +67,7 @@ public class ServiceUtils {
 			IPendingServiceCallback callback) {
 		IConnection conn = Red5.getConnectionLocal();
 		return invokeOnConnection(conn, method, params, callback);
-		
+
 	}
 
 	/**
@@ -104,14 +104,16 @@ public class ServiceUtils {
 	public static boolean invokeOnConnection(IConnection conn, String method,
 			Object[] params, IPendingServiceCallback callback) {
 		if (conn instanceof IServiceCapableConnection) {
-			if (callback == null)
+			if (callback == null) {
 				((IServiceCapableConnection) conn).invoke(method, params);
-			else
+			} else {
 				((IServiceCapableConnection) conn).invoke(method, params,
 						callback);
+			}
 			return true;
-		} else
+		} else {
 			return false;
+		}
 	}
 
 	/**
@@ -174,7 +176,7 @@ public class ServiceUtils {
 			Object[] params, IPendingServiceCallback callback) {
 		invokeOnClient(null, scope, method, params, callback);
 	}
-	
+
 	/**
 	 * Invoke a method on all connections of a client to a given scope.
 	 *  
@@ -213,17 +215,22 @@ public class ServiceUtils {
 		if (client == null) {
 			connections = new HashSet<IConnection>();
 			Iterator<IConnection> iter = scope.getConnections();
-			while (iter.hasNext())
+			while (iter.hasNext()) {
 				connections.add(iter.next());
-		} else
+			}
+		} else {
 			connections = scope.lookupConnections(client);
-		
-		if (callback == null)
-			for (IConnection conn: connections)
+		}
+
+		if (callback == null) {
+			for (IConnection conn : connections) {
 				invokeOnConnection(conn, method, params);
-		else
-			for (IConnection conn: connections)
+			}
+		} else {
+			for (IConnection conn : connections) {
 				invokeOnConnection(conn, method, params, callback);
+			}
+		}
 	}
 
 	/**
@@ -258,8 +265,9 @@ public class ServiceUtils {
 		if (conn instanceof IServiceCapableConnection) {
 			((IServiceCapableConnection) conn).notify(method, params);
 			return true;
-		} else
+		} else {
 			return false;
+		}
 	}
 
 	/**
@@ -289,7 +297,7 @@ public class ServiceUtils {
 			Object[] params) {
 		notifyOnClient(null, scope, method, params);
 	}
-	
+
 	/**
 	 * Notify a method on all connections of a client to a given scope.
 	 *  
@@ -308,13 +316,16 @@ public class ServiceUtils {
 		if (client == null) {
 			connections = new HashSet<IConnection>();
 			Iterator<IConnection> iter = scope.getConnections();
-			while (iter.hasNext())
+			while (iter.hasNext()) {
 				connections.add(iter.next());
-		} else
+			}
+		} else {
 			connections = scope.lookupConnections(client);
-		
-		for (IConnection conn: connections)
+		}
+
+		for (IConnection conn : connections) {
 			notifyOnConnection(conn, method, params);
+		}
 	}
 
 }

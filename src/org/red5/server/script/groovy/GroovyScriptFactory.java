@@ -86,13 +86,15 @@ public class GroovyScriptFactory implements ScriptFactory {
 	 * Loads and parses the Groovy script via the GroovyClassLoader.
 	 * @see groovy.lang.GroovyClassLoader
 	 */
-	public Object getScriptedObject(ScriptSource actualScriptSource, Class[] actualInterfaces)
-			throws IOException, ScriptCompilationException {
+	public Object getScriptedObject(ScriptSource actualScriptSource,
+			Class[] actualInterfaces) throws IOException,
+			ScriptCompilationException {
 
 		ClassLoader cl = ClassUtils.getDefaultClassLoader();
 		GroovyClassLoader groovyClassLoader = new GroovyClassLoader(cl);
 		try {
-			Class clazz = groovyClassLoader.parseClass(actualScriptSource.getScriptAsString());
+			Class clazz = groovyClassLoader.parseClass(actualScriptSource
+					.getScriptAsString());
 			return clazz.newInstance();
 		} catch (CompilationFailedException ex) {
 			throw new ScriptCompilationException(

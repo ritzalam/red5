@@ -54,15 +54,15 @@ import org.apache.mina.util.ExpiringStack;
  * @version $Rev: 391231 $, $Date: 2006-04-04 15:21:55 +0900 (Tue, 04 Apr 2006) $
  */
 public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
-	
+
 	protected static Log log = LogFactory
 			.getLog(DebugPooledByteBufferAllocator.class.getName());
-	
+
 	protected static ThreadLocal local = new ThreadLocal();
-	
+
 	/** Contains stack traces where buffers were allocated. */
 	protected HashMap<UnexpandableByteBuffer, StackTraceElement[]> stacks = new HashMap<UnexpandableByteBuffer, StackTraceElement[]>();
-	
+
 	/**
 	 * Save a stack trace for every buffer allocated?
 	 * 
@@ -70,730 +70,798 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 	 * 
 	 */
 	protected boolean saveStacks = false;
-	
-	public static void setCodeSection(String section){
+
+	public static void setCodeSection(String section) {
 		local.set(section);
 	}
-	
-	public static String getCodeSection(){
-		return (local.get()==null)? "unknown" :  (String)local.get();
+
+	public static String getCodeSection() {
+		return (local.get() == null) ? "unknown" : (String) local.get();
 	}
-	
-    private static final int MINIMUM_CAPACITY = 1;
 
-    private static int threadId = 0;
+	private static final int MINIMUM_CAPACITY = 1;
 
-    private int count = 0;
-    
-    private final Expirer expirer;
+	private static int threadId = 0;
 
-    private final ExpiringStack containerStack = new ExpiringStack();
+	private int count = 0;
 
-    private final ExpiringStack[] heapBufferStacks = new ExpiringStack[] {
-            new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
-            new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
-            new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
-            new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
-            new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
-            new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
-            new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
-            new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
-            new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
-            new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
-            new ExpiringStack(), new ExpiringStack(), };
+	private final Expirer expirer;
 
-    private final ExpiringStack[] directBufferStacks = new ExpiringStack[] {
-            new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
-            new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
-            new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
-            new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
-            new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
-            new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
-            new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
-            new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
-            new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
-            new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
-            new ExpiringStack(), new ExpiringStack(), };
+	private final ExpiringStack containerStack = new ExpiringStack();
 
-    private int timeout;
+	private final ExpiringStack[] heapBufferStacks = new ExpiringStack[] {
+			new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
+			new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
+			new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
+			new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
+			new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
+			new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
+			new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
+			new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
+			new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
+			new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
+			new ExpiringStack(), new ExpiringStack(), };
 
-    private boolean disposed;
+	private final ExpiringStack[] directBufferStacks = new ExpiringStack[] {
+			new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
+			new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
+			new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
+			new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
+			new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
+			new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
+			new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
+			new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
+			new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
+			new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
+			new ExpiringStack(), new ExpiringStack(), };
 
-    /**
-     * Creates a new instance with the default timeout.
-     */
+	private int timeout;
+
+	private boolean disposed;
+
+	/**
+	 * Creates a new instance with the default timeout.
+	 */
 	public DebugPooledByteBufferAllocator() {
-        this(60, false);
-    }
+		this(60, false);
+	}
 
-    public DebugPooledByteBufferAllocator(boolean saveStacks) {
-    	this(60, saveStacks);
-    }
+	public DebugPooledByteBufferAllocator(boolean saveStacks) {
+		this(60, saveStacks);
+	}
 
-    /**
-     * Creates a new instance with the specified <tt>timeout</tt>.
-     */
+	/**
+	 * Creates a new instance with the specified <tt>timeout</tt>.
+	 */
 	public DebugPooledByteBufferAllocator(int timeout) {
-    	this(timeout, false);
-    }
+		this(timeout, false);
+	}
 
-    public DebugPooledByteBufferAllocator(int timeout, boolean saveStacks) {
-    	this.saveStacks = saveStacks;
-        setTimeout( timeout );
-        expirer = new Expirer();
-        expirer.start();
-    }
+	public DebugPooledByteBufferAllocator(int timeout, boolean saveStacks) {
+		this.saveStacks = saveStacks;
+		setTimeout(timeout);
+		expirer = new Expirer();
+		expirer.start();
+	}
 
-    /**
-     * Stops the thread which releases unused buffers and make this allocator
-     * unusable from now on.
-     */
+	/**
+	 * Stops the thread which releases unused buffers and make this allocator
+	 * unusable from now on.
+	 */
 	public void dispose() {
 		if (this == ByteBuffer.getAllocator()) {
-            throw new IllegalStateException( "This allocator is in use." );
-        }
+			throw new IllegalStateException("This allocator is in use.");
+		}
 
-        expirer.shutdown();
+		expirer.shutdown();
 		synchronized (containerStack) {
-            containerStack.clear();
-        }
-        
-		for (int i = directBufferStacks.length - 1; i >= 0; i--) {
-            ExpiringStack stack = directBufferStacks[i];
-			synchronized (stack) {
-                stack.clear();
-            }
-        }
-		for (int i = heapBufferStacks.length - 1; i >= 0; i--) {
-            ExpiringStack stack = heapBufferStacks[i];
-			synchronized (stack) {
-                stack.clear();
-            }
-        }
-        disposed = true;
-    }
+			containerStack.clear();
+		}
 
-    /**
-     * Returns the timeout value of this allocator in seconds. 
-     */
+		for (int i = directBufferStacks.length - 1; i >= 0; i--) {
+			ExpiringStack stack = directBufferStacks[i];
+			synchronized (stack) {
+				stack.clear();
+			}
+		}
+		for (int i = heapBufferStacks.length - 1; i >= 0; i--) {
+			ExpiringStack stack = heapBufferStacks[i];
+			synchronized (stack) {
+				stack.clear();
+			}
+		}
+		disposed = true;
+	}
+
+	/**
+	 * Returns the timeout value of this allocator in seconds. 
+	 */
 	public int getTimeout() {
-        return timeout;
-    }
-    
-    /**
-     * Returns the timeout value of this allocator in milliseconds. 
-     */
+		return timeout;
+	}
+
+	/**
+	 * Returns the timeout value of this allocator in milliseconds. 
+	 */
 	public long getTimeoutMillis() {
-        return timeout * 1000L;
-    }
-    
-    /**
-     * Sets the timeout value of this allocator in seconds.
-     * 
+		return timeout * 1000L;
+	}
+
+	/**
+	 * Sets the timeout value of this allocator in seconds.
+	 * 
 	 * @param timeout
 	 *            <tt>0</tt> or negative value to disable timeout.
-     */
+	 */
 	public void setTimeout(int timeout) {
 		if (timeout < 0) {
-            timeout = 0;
-        }
+			timeout = 0;
+		}
 
-        this.timeout = timeout;
-        
+		this.timeout = timeout;
+
 		if (timeout > 0) {
-            
-        }
-    }
-    
+
+		}
+	}
+
 	public ByteBuffer allocate(int capacity, boolean direct) {
-        ensureNotDisposed();
-        UnexpandableByteBuffer ubb = allocate0( capacity, direct );
-        PooledByteBuffer buf = allocateContainer();
-        buf.init( ubb, true );
-        return buf;
-    }
+		ensureNotDisposed();
+		UnexpandableByteBuffer ubb = allocate0(capacity, direct);
+		PooledByteBuffer buf = allocateContainer();
+		buf.init(ubb, true);
+		return buf;
+	}
 
 	private PooledByteBuffer allocateContainer() {
-        PooledByteBuffer buf;
+		PooledByteBuffer buf;
 		synchronized (containerStack) {
-            buf = ( PooledByteBuffer ) containerStack.pop();
-        }
-        
+			buf = (PooledByteBuffer) containerStack.pop();
+		}
+
 		if (buf == null) {
-            buf = new PooledByteBuffer();
-        }
-        return buf;
-    }
-    
-    public void resetStacks() {
-    	synchronized (stacks) {
-    		stacks.clear();
-    	}
-    }
-    
-    public void printStacks() {
-    	synchronized (stacks) {
+			buf = new PooledByteBuffer();
+		}
+		return buf;
+	}
+
+	public void resetStacks() {
+		synchronized (stacks) {
+			stacks.clear();
+		}
+	}
+
+	public void printStacks() {
+		synchronized (stacks) {
 			for (Entry<UnexpandableByteBuffer, StackTraceElement[]> entry : stacks
 					.entrySet()) {
-	    		System.out.println("Stack for buffer " + entry.getKey());
-	    		StackTraceElement[] stack = entry.getValue();
-	    		for (StackTraceElement element: stack) {
-	    			System.out.println("  " + element);
-	    		}
-	    		System.out.println();
-	    	}
-    	}
-    }
-    
+				System.out.println("Stack for buffer " + entry.getKey());
+				StackTraceElement[] stack = entry.getValue();
+				for (StackTraceElement element : stack) {
+					System.out.println("  " + element);
+				}
+				System.out.println();
+			}
+		}
+	}
+
 	private UnexpandableByteBuffer allocate0(int capacity, boolean direct) {
-        count++;
-       
+		count++;
+
 		ExpiringStack[] bufferStacks = direct ? directBufferStacks
 				: heapBufferStacks;
-        int idx = getBufferStackIndex( bufferStacks, capacity );
-        ExpiringStack stack = bufferStacks[ idx ];
+		int idx = getBufferStackIndex(bufferStacks, capacity);
+		ExpiringStack stack = bufferStacks[idx];
 
-        UnexpandableByteBuffer buf;
+		UnexpandableByteBuffer buf;
 		synchronized (stack) {
-            buf = ( UnexpandableByteBuffer ) stack.pop();
-        }
+			buf = (UnexpandableByteBuffer) stack.pop();
+		}
 
 		if (buf == null) {
 			java.nio.ByteBuffer nioBuf = direct ? java.nio.ByteBuffer
 					.allocateDirect(MINIMUM_CAPACITY << idx)
 					: java.nio.ByteBuffer.allocate(MINIMUM_CAPACITY << idx);
-            buf = new UnexpandableByteBuffer( nioBuf );
-        }
+			buf = new UnexpandableByteBuffer(nioBuf);
+		}
 
-        buf.init();
+		buf.init();
 		log.info("+++ " + count + " (" + buf.buf().capacity() + ") "
 				+ getCodeSection() + " req: " + capacity);
-        if (saveStacks)
-        	synchronized (stacks) {
-        		stacks.put(buf, Thread.currentThread().getStackTrace());
-        	}
-        
-        return buf;
-    }
-    
+		if (saveStacks) {
+			synchronized (stacks) {
+				stacks.put(buf, Thread.currentThread().getStackTrace());
+			}
+		}
+
+		return buf;
+	}
+
 	private void release0(UnexpandableByteBuffer buf) {
-    	
-        count--;
+
+		count--;
 		log.info("--- " + count + " (" + buf.buf().capacity() + ") "
 				+ getCodeSection());
-        if (saveStacks)
-        	synchronized (stacks) {
-        		stacks.remove(buf);
-        	}
+		if (saveStacks) {
+			synchronized (stacks) {
+				stacks.remove(buf);
+			}
+		}
 		ExpiringStack[] bufferStacks = buf.buf().isDirect() ? directBufferStacks
 				: heapBufferStacks;
 		ExpiringStack stack = bufferStacks[getBufferStackIndex(bufferStacks,
 				buf.buf().capacity())];
-        
+
 		synchronized (stack) {
-            // push back
-            stack.push( buf );
-        }
-    }
-    
+			// push back
+			stack.push(buf);
+		}
+	}
+
 	public ByteBuffer wrap(java.nio.ByteBuffer nioBuffer) {
-        ensureNotDisposed();
-        PooledByteBuffer buf = allocateContainer();
-        buf.init( new UnexpandableByteBuffer( nioBuffer ), false );
-        buf.buf.init();
-        buf.setPooled( false );
-        return buf;
-    }
+		ensureNotDisposed();
+		PooledByteBuffer buf = allocateContainer();
+		buf.init(new UnexpandableByteBuffer(nioBuffer), false);
+		buf.buf.init();
+		buf.setPooled(false);
+		return buf;
+	}
 
 	private int getBufferStackIndex(ExpiringStack[] bufferStacks, int size) {
-        int targetSize = MINIMUM_CAPACITY;
-        int stackIdx = 0;
+		int targetSize = MINIMUM_CAPACITY;
+		int stackIdx = 0;
 		while (size > targetSize) {
-            targetSize <<= 1;
-            stackIdx ++ ;
+			targetSize <<= 1;
+			stackIdx++;
 			if (stackIdx >= bufferStacks.length) {
 				throw new IllegalArgumentException("Buffer size is too big: "
 						+ size);
-            }
-        }
+			}
+		}
 
-        return stackIdx;
-    }
-    
+		return stackIdx;
+	}
+
 	private void ensureNotDisposed() {
 		if (disposed) {
 			throw new IllegalStateException(
 					"This allocator is disposed already.");
-        }
-    }
+		}
+	}
 
 	private class Expirer extends Thread {
-        private boolean timeToStop;
+		private boolean timeToStop;
 
 		public Expirer() {
-            super( "PooledByteBufferExpirer-" + threadId++ );
-            setDaemon( true );
-        }
-        
+			super("PooledByteBufferExpirer-" + threadId++);
+			setDaemon(true);
+		}
+
 		public void shutdown() {
-            timeToStop = true;
-            interrupt();
+			timeToStop = true;
+			interrupt();
 			while (isAlive()) {
 				try {
-                    join();
+					join();
 				} catch (InterruptedException e) {
-                }
-            }
-        }
-        
+				}
+			}
+		}
+
+		@Override
 		public void run() {
-            // Expire unused buffers every seconds
+			// Expire unused buffers every seconds
 			while (!timeToStop) {
 				try {
-                    Thread.sleep( 1000 );
+					Thread.sleep(1000);
 				} catch (InterruptedException e) {
-                }
+				}
 
-                // Check if expiration is disabled.
-                long timeout = getTimeoutMillis();
+				// Check if expiration is disabled.
+				long timeout = getTimeoutMillis();
 				if (timeout <= 0L) {
-                    continue;
-                }
+					continue;
+				}
 
-                // Expire old buffers
-                long expirationTime = System.currentTimeMillis() - timeout;
+				// Expire old buffers
+				long expirationTime = System.currentTimeMillis() - timeout;
 				synchronized (containerStack) {
-                    containerStack.expireBefore( expirationTime );
-                }
-                
+					containerStack.expireBefore(expirationTime);
+				}
+
 				for (int i = directBufferStacks.length - 1; i >= 0; i--) {
-                    ExpiringStack stack = directBufferStacks[ i ];
+					ExpiringStack stack = directBufferStacks[i];
 					synchronized (stack) {
-                        stack.expireBefore( expirationTime );
-                    }
-                }
+						stack.expireBefore(expirationTime);
+					}
+				}
 
 				for (int i = heapBufferStacks.length - 1; i >= 0; i--) {
-                    ExpiringStack stack = heapBufferStacks[ i ];
+					ExpiringStack stack = heapBufferStacks[i];
 					synchronized (stack) {
-                        stack.expireBefore( expirationTime );
-                    }
-                }
-            }
-        }
-    }
+						stack.expireBefore(expirationTime);
+					}
+				}
+			}
+		}
+	}
 
 	private class PooledByteBuffer extends ByteBuffer {
-        private UnexpandableByteBuffer buf;
+		private UnexpandableByteBuffer buf;
 
-        private int refCount = 1;
+		private int refCount = 1;
 
-        private boolean autoExpand;
+		private boolean autoExpand;
 
 		protected PooledByteBuffer() {
-        }
-        
+		}
+
 		public synchronized void init(UnexpandableByteBuffer buf, boolean clear) {
-            this.buf = buf;
+			this.buf = buf;
 			if (clear) {
-                buf.buf().clear();
-            }
-            buf.buf().order( ByteOrder.BIG_ENDIAN );
-            autoExpand = false;
-            refCount = 1;
-        }
-        
+				buf.buf().clear();
+			}
+			buf.buf().order(ByteOrder.BIG_ENDIAN);
+			autoExpand = false;
+			refCount = 1;
+		}
+
+		@Override
 		public synchronized void acquire() {
 			if (refCount <= 0) {
-                throw new IllegalStateException( "Already released buffer." );
-            }
+				throw new IllegalStateException("Already released buffer.");
+			}
 
-            refCount ++;
-        }
+			refCount++;
+		}
 
+		@Override
 		public void release() {
 			synchronized (this) {
 				if (refCount <= 0) {
-                    refCount = 0;
-                    throw new IllegalStateException(
-                            "Already released buffer.  You released the buffer too many times." );
-                }
+					refCount = 0;
+					throw new IllegalStateException(
+							"Already released buffer.  You released the buffer too many times.");
+				}
 
-                refCount --;
+				refCount--;
 				if (refCount > 0) {
-                    return;
-                }
-            }
+					return;
+				}
+			}
 
-            // No need to return buffers to the pool if it is disposed already.
+			// No need to return buffers to the pool if it is disposed already.
 			if (disposed) {
-                return;
-            }
+				return;
+			}
 
-            buf.release();
+			buf.release();
 
 			synchronized (containerStack) {
-                containerStack.push( this );
-            }
-        }
+				containerStack.push(this);
+			}
+		}
 
+		@Override
 		public java.nio.ByteBuffer buf() {
-            return buf.buf();
-        }
-        
+			return buf.buf();
+		}
+
+		@Override
 		public boolean isDirect() {
-            return buf.buf().isDirect();
-        }
-        
+			return buf.buf().isDirect();
+		}
+
+		@Override
 		public boolean isReadOnly() {
-            return buf.buf().isReadOnly();
-        }
-        
+			return buf.buf().isReadOnly();
+		}
+
+		@Override
 		public boolean isAutoExpand() {
-            return autoExpand;
-        }
-        
+			return autoExpand;
+		}
+
+		@Override
 		public ByteBuffer setAutoExpand(boolean autoExpand) {
-            this.autoExpand = autoExpand;
-            return this;
-        }
-        
+			this.autoExpand = autoExpand;
+			return this;
+		}
+
+		@Override
 		public boolean isPooled() {
-            return buf.isPooled();
-        }
-        
+			return buf.isPooled();
+		}
+
+		@Override
 		public void setPooled(boolean pooled) {
-            buf.setPooled(pooled);
-        }
+			buf.setPooled(pooled);
+		}
 
+		@Override
 		public int capacity() {
-            return buf.buf().capacity();
-        }
-        
+			return buf.buf().capacity();
+		}
+
+		@Override
 		public int position() {
-            return buf.buf().position();
-        }
+			return buf.buf().position();
+		}
 
+		@Override
 		public ByteBuffer position(int newPosition) {
-            autoExpand( newPosition, 0 );
-            buf.buf().position( newPosition );
-            return this;
-        }
+			autoExpand(newPosition, 0);
+			buf.buf().position(newPosition);
+			return this;
+		}
 
+		@Override
 		public int limit() {
-            return buf.buf().limit();
-        }
+			return buf.buf().limit();
+		}
 
+		@Override
 		public ByteBuffer limit(int newLimit) {
-            autoExpand( newLimit, 0 );
-            buf.buf().limit( newLimit );
-            return this;
-        }
+			autoExpand(newLimit, 0);
+			buf.buf().limit(newLimit);
+			return this;
+		}
 
+		@Override
 		public ByteBuffer mark() {
-            buf.buf().mark();
-            return this;
-        }
+			buf.buf().mark();
+			return this;
+		}
 
+		@Override
 		public ByteBuffer reset() {
-            buf.buf().reset();
-            return this;
-        }
+			buf.buf().reset();
+			return this;
+		}
 
+		@Override
 		public ByteBuffer clear() {
-            buf.buf().clear();
-            return this;
-        }
+			buf.buf().clear();
+			return this;
+		}
 
+		@Override
 		public ByteBuffer flip() {
-            buf.buf().flip();
-            return this;
-        }
+			buf.buf().flip();
+			return this;
+		}
 
+		@Override
 		public ByteBuffer rewind() {
-            buf.buf().rewind();
-            return this;
-        }
+			buf.buf().rewind();
+			return this;
+		}
 
+		@Override
 		public int remaining() {
-            return buf.buf().remaining();
-        }
+			return buf.buf().remaining();
+		}
 
+		@Override
 		public ByteBuffer duplicate() {
-            PooledByteBuffer newBuf = allocateContainer();
+			PooledByteBuffer newBuf = allocateContainer();
 			newBuf.init(new UnexpandableByteBuffer(buf.buf().duplicate(), buf),
 					false);
-            return newBuf;
-        }
+			return newBuf;
+		}
 
+		@Override
 		public ByteBuffer slice() {
-            PooledByteBuffer newBuf = allocateContainer();
+			PooledByteBuffer newBuf = allocateContainer();
 			newBuf.init(new UnexpandableByteBuffer(buf.buf().slice(), buf),
 					false);
-            return newBuf;
-        }
+			return newBuf;
+		}
 
+		@Override
 		public ByteBuffer asReadOnlyBuffer() {
-            PooledByteBuffer newBuf = allocateContainer();
+			PooledByteBuffer newBuf = allocateContainer();
 			newBuf.init(new UnexpandableByteBuffer(
 					buf.buf().asReadOnlyBuffer(), buf), false);
-            return newBuf;
-        }
+			return newBuf;
+		}
 
+		@Override
 		public byte get() {
-            return buf.buf().get();
-        }
+			return buf.buf().get();
+		}
 
+		@Override
 		public ByteBuffer put(byte b) {
-            autoExpand( 1 );
-            buf.buf().put( b );
-            return this;
-        }
+			autoExpand(1);
+			buf.buf().put(b);
+			return this;
+		}
 
+		@Override
 		public byte get(int index) {
-            return buf.buf().get( index );
-        }
+			return buf.buf().get(index);
+		}
 
+		@Override
 		public ByteBuffer put(int index, byte b) {
-            autoExpand( index, 1 );
-            buf.buf().put( index, b );
-            return this;
-        }
+			autoExpand(index, 1);
+			buf.buf().put(index, b);
+			return this;
+		}
 
+		@Override
 		public ByteBuffer get(byte[] dst, int offset, int length) {
-            buf.buf().get( dst, offset, length );
-            return this;
-        }
+			buf.buf().get(dst, offset, length);
+			return this;
+		}
 
+		@Override
 		public ByteBuffer put(java.nio.ByteBuffer src) {
-            autoExpand( src.remaining() );
-            buf.buf().put( src );
-            return this;
-        }
+			autoExpand(src.remaining());
+			buf.buf().put(src);
+			return this;
+		}
 
+		@Override
 		public ByteBuffer put(byte[] src, int offset, int length) {
-            autoExpand( length );
-            buf.buf().put( src, offset, length );
-            return this;
-        }
+			autoExpand(length);
+			buf.buf().put(src, offset, length);
+			return this;
+		}
 
+		@Override
 		public ByteBuffer compact() {
-            buf.buf().compact();
-            return this;
-        }
+			buf.buf().compact();
+			return this;
+		}
 
 		public int compareTo(ByteBuffer that) {
-            return this.buf.buf().compareTo( that.buf() );
-        }
+			return this.buf.buf().compareTo(that.buf());
+		}
 
+		@Override
 		public ByteOrder order() {
-            return buf.buf().order();
-        }
+			return buf.buf().order();
+		}
 
+		@Override
 		public ByteBuffer order(ByteOrder bo) {
-            buf.buf().order( bo );
-            return this;
-        }
+			buf.buf().order(bo);
+			return this;
+		}
 
+		@Override
 		public char getChar() {
-            return buf.buf().getChar();
-        }
+			return buf.buf().getChar();
+		}
 
+		@Override
 		public ByteBuffer putChar(char value) {
-            autoExpand( 2 );
-            buf.buf().putChar( value );
-            return this;
-        }
+			autoExpand(2);
+			buf.buf().putChar(value);
+			return this;
+		}
 
+		@Override
 		public char getChar(int index) {
-            return buf.buf().getChar( index );
-        }
+			return buf.buf().getChar(index);
+		}
 
+		@Override
 		public ByteBuffer putChar(int index, char value) {
-            autoExpand( index, 2 );
-            buf.buf().putChar( index, value );
-            return this;
-        }
+			autoExpand(index, 2);
+			buf.buf().putChar(index, value);
+			return this;
+		}
 
+		@Override
 		public CharBuffer asCharBuffer() {
-            return buf.buf().asCharBuffer();
-        }
+			return buf.buf().asCharBuffer();
+		}
 
+		@Override
 		public short getShort() {
-            return buf.buf().getShort();
-        }
+			return buf.buf().getShort();
+		}
 
+		@Override
 		public ByteBuffer putShort(short value) {
-            autoExpand( 2 );
-            buf.buf().putShort( value );
-            return this;
-        }
+			autoExpand(2);
+			buf.buf().putShort(value);
+			return this;
+		}
 
+		@Override
 		public short getShort(int index) {
-            return buf.buf().getShort( index );
-        }
+			return buf.buf().getShort(index);
+		}
 
+		@Override
 		public ByteBuffer putShort(int index, short value) {
-            autoExpand( index, 2 );
-            buf.buf().putShort( index, value );
-            return this;
-        }
+			autoExpand(index, 2);
+			buf.buf().putShort(index, value);
+			return this;
+		}
 
+		@Override
 		public ShortBuffer asShortBuffer() {
-            return buf.buf().asShortBuffer();
-        }
+			return buf.buf().asShortBuffer();
+		}
 
+		@Override
 		public int getInt() {
-            return buf.buf().getInt();
-        }
+			return buf.buf().getInt();
+		}
 
+		@Override
 		public ByteBuffer putInt(int value) {
-            autoExpand( 4 );
-            buf.buf().putInt( value );
-            return this;
-        }
+			autoExpand(4);
+			buf.buf().putInt(value);
+			return this;
+		}
 
+		@Override
 		public int getInt(int index) {
-            return buf.buf().getInt( index );
-        }
+			return buf.buf().getInt(index);
+		}
 
+		@Override
 		public ByteBuffer putInt(int index, int value) {
-            autoExpand( index, 4 );
-            buf.buf().putInt( index, value );
-            return this;
-        }
+			autoExpand(index, 4);
+			buf.buf().putInt(index, value);
+			return this;
+		}
 
+		@Override
 		public IntBuffer asIntBuffer() {
-            return buf.buf().asIntBuffer();
-        }
+			return buf.buf().asIntBuffer();
+		}
 
+		@Override
 		public long getLong() {
-            return buf.buf().getLong();
-        }
+			return buf.buf().getLong();
+		}
 
+		@Override
 		public ByteBuffer putLong(long value) {
-            autoExpand( 8 );
-            buf.buf().putLong( value );
-            return this;
-        }
+			autoExpand(8);
+			buf.buf().putLong(value);
+			return this;
+		}
 
+		@Override
 		public long getLong(int index) {
-            return buf.buf().getLong( index );
-        }
+			return buf.buf().getLong(index);
+		}
 
+		@Override
 		public ByteBuffer putLong(int index, long value) {
-            autoExpand( index, 8 );
-            buf.buf().putLong( index, value );
-            return this;
-        }
+			autoExpand(index, 8);
+			buf.buf().putLong(index, value);
+			return this;
+		}
 
+		@Override
 		public LongBuffer asLongBuffer() {
-            return buf.buf().asLongBuffer();
-        }
+			return buf.buf().asLongBuffer();
+		}
 
+		@Override
 		public float getFloat() {
-            return buf.buf().getFloat();
-        }
+			return buf.buf().getFloat();
+		}
 
+		@Override
 		public ByteBuffer putFloat(float value) {
-            autoExpand( 4 );
-            buf.buf().putFloat( value );
-            return this;
-        }
+			autoExpand(4);
+			buf.buf().putFloat(value);
+			return this;
+		}
 
+		@Override
 		public float getFloat(int index) {
-            return buf.buf().getFloat( index );
-        }
+			return buf.buf().getFloat(index);
+		}
 
+		@Override
 		public ByteBuffer putFloat(int index, float value) {
-            autoExpand( index, 4 );
-            buf.buf().putFloat( index, value );
-            return this;
-        }
+			autoExpand(index, 4);
+			buf.buf().putFloat(index, value);
+			return this;
+		}
 
+		@Override
 		public FloatBuffer asFloatBuffer() {
-            return buf.buf().asFloatBuffer();
-        }
+			return buf.buf().asFloatBuffer();
+		}
 
+		@Override
 		public double getDouble() {
-            return buf.buf().getDouble();
-        }
+			return buf.buf().getDouble();
+		}
 
+		@Override
 		public ByteBuffer putDouble(double value) {
-            autoExpand( 8 );
-            buf.buf().putDouble( value );
-            return this;
-        }
+			autoExpand(8);
+			buf.buf().putDouble(value);
+			return this;
+		}
 
+		@Override
 		public double getDouble(int index) {
-            return buf.buf().getDouble( index );
-        }
+			return buf.buf().getDouble(index);
+		}
 
+		@Override
 		public ByteBuffer putDouble(int index, double value) {
-            autoExpand( index, 8 );
-            buf.buf().putDouble( index, value );
-            return this;
-        }
+			autoExpand(index, 8);
+			buf.buf().putDouble(index, value);
+			return this;
+		}
 
+		@Override
 		public DoubleBuffer asDoubleBuffer() {
-            return buf.buf().asDoubleBuffer();
-        }
+			return buf.buf().asDoubleBuffer();
+		}
 
+		@Override
 		public ByteBuffer expand(int expectedRemaining) {
 			if (autoExpand) {
-                int pos = buf.buf().position();
-                int limit = buf.buf().limit();
-                int end = pos + expectedRemaining;
-                if( end > limit ) {
-                    ensureCapacity( end );
-                    buf.buf().limit( end );
-                }
-            }
-            return this;
-        }
-        
+				int pos = buf.buf().position();
+				int limit = buf.buf().limit();
+				int end = pos + expectedRemaining;
+				if (end > limit) {
+					ensureCapacity(end);
+					buf.buf().limit(end);
+				}
+			}
+			return this;
+		}
+
+		@Override
 		public ByteBuffer expand(int pos, int expectedRemaining) {
 			if (autoExpand) {
-                int limit = buf.buf().limit();
-                int end = pos + expectedRemaining;
-                if( end > limit ) {
-                    ensureCapacity( end );
-                    buf.buf().limit( end );
-                }
-            }
-            return this;
-        }
-        
+				int limit = buf.buf().limit();
+				int end = pos + expectedRemaining;
+				if (end > limit) {
+					ensureCapacity(end);
+					buf.buf().limit(end);
+				}
+			}
+			return this;
+		}
+
 		private void ensureCapacity(int requestedCapacity) {
 			if (requestedCapacity <= buf.buf().capacity()) {
-                return;
-            }
-            
+				return;
+			}
+
 			if (buf.isDerived()) {
 				throw new IllegalStateException(
 						"Derived buffers cannot be expanded.");
-            }
-            
-            int newCapacity = MINIMUM_CAPACITY;
-			while (newCapacity < requestedCapacity) {
-                newCapacity <<= 1;
-            }
-            
-            UnexpandableByteBuffer oldBuf = this.buf;
-            UnexpandableByteBuffer newBuf = allocate0( newCapacity, isDirect() );
-            newBuf.buf().clear();
-            newBuf.buf().order( oldBuf.buf().order() );
+			}
 
-            int pos = oldBuf.buf().position();
-            int limit = oldBuf.buf().limit();
-            oldBuf.buf().clear();
-            newBuf.buf().put( oldBuf.buf() );
-            newBuf.buf().position( 0 );
-            newBuf.buf().limit( limit );
-            newBuf.buf().position( pos );
-            this.buf = newBuf;
-            oldBuf.release();
-        }
+			int newCapacity = MINIMUM_CAPACITY;
+			while (newCapacity < requestedCapacity) {
+				newCapacity <<= 1;
+			}
+
+			UnexpandableByteBuffer oldBuf = this.buf;
+			UnexpandableByteBuffer newBuf = allocate0(newCapacity, isDirect());
+			newBuf.buf().clear();
+			newBuf.buf().order(oldBuf.buf().order());
+
+			int pos = oldBuf.buf().position();
+			int limit = oldBuf.buf().limit();
+			oldBuf.buf().clear();
+			newBuf.buf().put(oldBuf.buf());
+			newBuf.buf().position(0);
+			newBuf.buf().limit(limit);
+			newBuf.buf().position(pos);
+			this.buf = newBuf;
+			oldBuf.release();
+		}
 
 		@Override
 		public byte[] array() {
@@ -817,96 +885,96 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 		public int markValue() {
 			// TODO Auto-generated method stub
 			return 0;
-    }
+		}
 
 	}
 
 	private class UnexpandableByteBuffer {
-        private final java.nio.ByteBuffer buf;
+		private final java.nio.ByteBuffer buf;
 
-        private final UnexpandableByteBuffer parentBuf;
+		private final UnexpandableByteBuffer parentBuf;
 
-        private int refCount;
+		private int refCount;
 
-        private boolean pooled;
+		private boolean pooled;
 
 		protected UnexpandableByteBuffer(java.nio.ByteBuffer buf) {
-            this.buf = buf;
-            this.parentBuf = null;
-        }
-        
+			this.buf = buf;
+			this.parentBuf = null;
+		}
+
 		protected UnexpandableByteBuffer(java.nio.ByteBuffer buf,
 				UnexpandableByteBuffer parentBuf) {
-            parentBuf.acquire();
-            this.buf = buf;
-            this.parentBuf = parentBuf;
-        }
-        
-		public void init() {
-            refCount = 1;
-            pooled = true;
-        }
-        
-		public synchronized void acquire() {
-            if( isDerived() ) {
-                parentBuf.acquire();
-                return;
-            }
-            
-			if (refCount <= 0) {
-                throw new IllegalStateException( "Already released buffer." );
-            }
+			parentBuf.acquire();
+			this.buf = buf;
+			this.parentBuf = parentBuf;
+		}
 
-            refCount ++;
-        }
+		public void init() {
+			refCount = 1;
+			pooled = true;
+		}
+
+		public synchronized void acquire() {
+			if (isDerived()) {
+				parentBuf.acquire();
+				return;
+			}
+
+			if (refCount <= 0) {
+				throw new IllegalStateException("Already released buffer.");
+			}
+
+			refCount++;
+		}
 
 		public void release() {
-            if( isDerived() ) {
-                parentBuf.release();
-                return;
-            }
-            
+			if (isDerived()) {
+				parentBuf.release();
+				return;
+			}
+
 			synchronized (this) {
 				if (refCount <= 0) {
-                    refCount = 0;
-                    throw new IllegalStateException(
-                            "Already released buffer.  You released the buffer too many times." );
-                }
+					refCount = 0;
+					throw new IllegalStateException(
+							"Already released buffer.  You released the buffer too many times.");
+				}
 
-                refCount --;
+				refCount--;
 				if (refCount > 0) {
-                    return;
-                }
-            }
+					return;
+				}
+			}
 
-            // No need to return buffers to the pool if it is disposed already.
+			// No need to return buffers to the pool if it is disposed already.
 			if (disposed) {
-                return;
-            }
+				return;
+			}
 
 			if (pooled) {
 				if (parentBuf != null) {
-                    release0( parentBuf );
+					release0(parentBuf);
 				} else {
-                    release0( this );
-                }
-            }
-        }
+					release0(this);
+				}
+			}
+		}
 
 		public java.nio.ByteBuffer buf() {
-            return buf;
-        }
-        
+			return buf;
+		}
+
 		public boolean isPooled() {
-            return pooled;
-        }
-        
+			return pooled;
+		}
+
 		public void setPooled(boolean pooled) {
-            this.pooled = pooled;
-        }
-        
+			this.pooled = pooled;
+		}
+
 		public boolean isDerived() {
-            return parentBuf != null;
-        }
-    }
+			return parentBuf != null;
+		}
+	}
 }

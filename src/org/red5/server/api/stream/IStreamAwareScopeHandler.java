@@ -35,35 +35,35 @@ public interface IStreamAwareScopeHandler extends IScopeHandler {
 	 * @param stream
 	 */
 	public void streamPublishStart(IBroadcastStream stream);
-	
+
 	/**
 	 * Notified when a broadcaster starts.
 	 * 
 	 * @param stream
 	 */
 	public void streamBroadcastStart(IBroadcastStream stream);
-	
+
 	/**
 	 * Notified when a broadcaster closes.
 	 * 
 	 * @param stream
 	 */
 	public void streamBroadcastClose(IBroadcastStream stream);
-	
+
 	/**
 	 * Notified when a subscriber starts.
 	 * 
 	 * @param stream
 	 */
 	public void streamSubscriberStart(ISubscriberStream stream);
-	
+
 	/**
 	 * Notified when a subscriber closes.
 	 * 
 	 * @param stream
 	 */
 	public void streamSubscriberClose(ISubscriberStream stream);
-	
+
 	/**
 	 * Notified when a playlist item plays.
 	 * 
@@ -74,7 +74,7 @@ public interface IStreamAwareScopeHandler extends IScopeHandler {
 	 */
 	public void streamPlaylistItemPlay(IPlaylistSubscriberStream stream,
 			IPlayItem item, boolean isLive);
-	
+
 	/**
 	 * Notified when a playlist item stops.
 	 * 
@@ -83,7 +83,7 @@ public interface IStreamAwareScopeHandler extends IScopeHandler {
 	 */
 	public void streamPlaylistItemStop(IPlaylistSubscriberStream stream,
 			IPlayItem item);
-	
+
 	/**
 	 * Notified when a playlist vod item pauses.
 	 * 
@@ -92,7 +92,7 @@ public interface IStreamAwareScopeHandler extends IScopeHandler {
 	 */
 	public void streamPlaylistVODItemPause(IPlaylistSubscriberStream stream,
 			IPlayItem item, int position);
-	
+
 	/**
 	 * Notified when a playlist vod item resumes.
 	 * 
@@ -101,7 +101,7 @@ public interface IStreamAwareScopeHandler extends IScopeHandler {
 	 */
 	public void streamPlaylistVODItemResume(IPlaylistSubscriberStream stream,
 			IPlayItem item, int position);
-	
+
 	/**
 	 * Notified when a playlist vod item seeks.
 	 * 

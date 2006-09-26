@@ -30,7 +30,7 @@ import java.util.Iterator;
  */
 
 public interface IPersistenceStore {
-	
+
 	/**
 	 * Make the passed object persistent.
 	 *  
@@ -38,7 +38,7 @@ public interface IPersistenceStore {
 	 * 		the object to store
 	 */
 	public boolean save(IPersistable obj);
-	
+
 	/**
 	 * Load a persistent object with the given name.  The object must provide
 	 * either a constructor that takes an input stream as only parameter or an
@@ -67,7 +67,7 @@ public interface IPersistenceStore {
 	 * 		the object to delete
 	 */
 	public boolean remove(IPersistable obj);
-	
+
 	/**
 	 * Delete the persistent object with the given name.
 	 *  
@@ -75,7 +75,7 @@ public interface IPersistenceStore {
 	 * 		the name of the object to delete
 	 */
 	public boolean remove(String name);
-	
+
 	/**
 	 * Return iterator over the names of all already loaded objects in the
 	 * storage.
@@ -83,7 +83,7 @@ public interface IPersistenceStore {
 	 * @return iterator over all objects
 	 */
 	public Iterator<String> getObjectNames();
-	
+
 	/**
 	 * Return iterator over the already loaded objects in the storage.
 	 * 

@@ -30,14 +30,15 @@ import org.red5.server.api.ICastingAttributeStore;
 
 public class AttributeStore implements IAttributeStore, ICastingAttributeStore {
 
-	protected Map<String,Object> attributes = new HashMap<String,Object>();
+	protected Map<String, Object> attributes = new HashMap<String, Object>();
+
 	protected Map<String, Integer> hashes = new HashMap<String, Integer>();
-	
+
 	public AttributeStore() {
 		// Object is not associated with a persistence storage
 	}
-	
-	public Set<String> getAttributeNames(){
+
+	public Set<String> getAttributeNames() {
 		return attributes.keySet();
 	}
 
@@ -46,42 +47,45 @@ public class AttributeStore implements IAttributeStore, ICastingAttributeStore {
 	}
 
 	synchronized public Object getAttribute(String name, Object defaultValue) {
-		if (!hasAttribute(name))
+		if (!hasAttribute(name)) {
 			setAttribute(name, defaultValue);
-		
+		}
+
 		return getAttribute(name);
 	}
 
 	public boolean hasAttribute(String name) {
 		return attributes.containsKey(name);
 	}
-	
+
 	synchronized public boolean setAttribute(String name, Object value) {
-		if (name == null)
+		if (name == null) {
 			return false;
-		
+		}
+
 		Object old = attributes.get(name);
 		Integer newHash = (value != null ? value.hashCode() : 0);
 		if ((old == null && value != null)
 				|| (old != null && !old.equals(value))
 				|| !newHash.equals(hashes.get(name))) {
 			// Attribute value changed
-			attributes.put(name,value);
+			attributes.put(name, value);
 			hashes.put(name, newHash);
 			return true;
-		} else
+		} else {
 			return false;
+		}
 	}
 
-	synchronized public void setAttributes(Map<String,Object> values) {
+	synchronized public void setAttributes(Map<String, Object> values) {
 		attributes.putAll(values);
 		hashes.clear();
-		for (Map.Entry<String, Object> entry: attributes.entrySet()) {
+		for (Map.Entry<String, Object> entry : attributes.entrySet()) {
 			Object value = entry.getValue();
 			hashes.put(entry.getKey(), value != null ? value.hashCode() : 0);
 		}
 	}
-	
+
 	synchronized public void setAttributes(IAttributeStore values) {
 		Iterator it = values.getAttributeNames().iterator();
 		while (it.hasNext()) {
@@ -90,21 +94,22 @@ public class AttributeStore implements IAttributeStore, ICastingAttributeStore {
 			setAttribute(name, value);
 		}
 	}
-	
+
 	synchronized public boolean removeAttribute(String name) {
-		if (name == null)
+		if (name == null) {
 			return false;
-		
+		}
+
 		boolean result = hasAttribute(name);
 		attributes.remove(name);
 		hashes.remove(name);
 		return result;
 	}
-	
+
 	synchronized public void removeAttributes() {
 		attributes.clear();
 		hashes.clear();
-	}	
+	}
 
 	public Boolean getBoolAttribute(String name) {
 		return (Boolean) getAttribute(name);

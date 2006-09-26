@@ -46,9 +46,12 @@ public abstract class BshScriptUtils {
 	 * @return the scripted Java object
 	 * @throws EvalError in case of BeanShell parsing failure
 	 */
-	public static Object createBshObject(String scriptSource, Class[] interfaces) throws EvalError {
+	public static Object createBshObject(String scriptSource, Class[] interfaces)
+			throws EvalError {
 		Assert.hasText(scriptSource, "Script source must not be empty");
-		Assert.notEmpty(interfaces, "At least one script interface is required");
+		Assert
+				.notEmpty(interfaces,
+						"At least one script interface is required");
 		Interpreter interpreter = new Interpreter();
 		interpreter.eval(scriptSource);
 		XThis xt = (XThis) interpreter.eval("return this");
@@ -59,7 +62,8 @@ public abstract class BshScriptUtils {
 	/**
 	 * InvocationHandler that invokes a BeanShell script method.
 	 */
-	private static class BshObjectInvocationHandler implements InvocationHandler {
+	private static class BshObjectInvocationHandler implements
+			InvocationHandler {
 
 		private final XThis xt;
 
@@ -67,7 +71,8 @@ public abstract class BshScriptUtils {
 			this.xt = xt;
 		}
 
-		public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+		public Object invoke(Object proxy, Method method, Object[] args)
+				throws Throwable {
 			try {
 				Object result = this.xt.invokeMethod(method.getName(), args);
 				if (result == Primitive.NULL || result == Primitive.VOID) {
@@ -77,8 +82,7 @@ public abstract class BshScriptUtils {
 					return ((Primitive) result).getValue();
 				}
 				return result;
-			}
-			catch (EvalError ex) {
+			} catch (EvalError ex) {
 				throw new BshExecutionException(ex);
 			}
 		}

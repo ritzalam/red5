@@ -190,27 +190,27 @@ public class JaclScriptEngine extends GenericScriptEngine {
 			if (data != null && data instanceof ContextData) {
 				ScriptContext context = ((ContextData) data).getContext();
 				switch (argv.length) {
-				case 1:
-					// default variable is context itself!
-					getVariable(interp, context, "context");
-					break;
-				case 2:
-					getVariable(interp, context, argv[1].toString());
-					break;
-				case 3: {
-					String arg1 = argv[1].toString();
-					if (arg1.equals("-del")) {
-						String arg2 = argv[2].toString();
-						deleteVariable(interp, context, arg2);
-					} else {
-						setVariable(interp, context, argv[1].toString(),
-								argv[2]);
+					case 1:
+						// default variable is context itself!
+						getVariable(interp, context, "context");
+						break;
+					case 2:
+						getVariable(interp, context, argv[1].toString());
+						break;
+					case 3: {
+						String arg1 = argv[1].toString();
+						if (arg1.equals("-del")) {
+							String arg2 = argv[2].toString();
+							deleteVariable(interp, context, arg2);
+						} else {
+							setVariable(interp, context, argv[1].toString(),
+									argv[2]);
+						}
+						break;
 					}
-					break;
-				}
-				default:
-					throw new TclNumArgsException(interp, 1, argv,
-							"?varName? ?-del? ?newValue?");
+					default:
+						throw new TclNumArgsException(interp, 1, argv,
+								"?varName? ?-del? ?newValue?");
 				}
 			} else {
 				throw new TclException(interp, "invalid script context");

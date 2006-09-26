@@ -38,17 +38,19 @@ public class HandlerServiceResolver implements IServiceResolver {
 			// TODO: deprecate this?
 			Object result = ((IServiceHandlerProvider) handler)
 					.getServiceHandler(serviceName);
-			if (result != null)
+			if (result != null) {
 				return result;
+			}
 		}
-		
+
 		if (handler instanceof IServiceHandlerProviderAware) {
 			IServiceHandlerProvider shp = ((IServiceHandlerProviderAware) handler)
 					.getServiceHandlerProvider();
-			if (shp != null)
+			if (shp != null) {
 				return shp.getServiceHandler(serviceName);
+			}
 		}
-		
+
 		return null;
 	}
 

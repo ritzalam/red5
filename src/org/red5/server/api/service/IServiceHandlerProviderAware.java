@@ -34,5 +34,5 @@ public interface IServiceHandlerProviderAware {
 	 * @return
 	 */
 	public IServiceHandlerProvider getServiceHandlerProvider();
-	
+
 }

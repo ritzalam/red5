@@ -29,21 +29,21 @@ public interface IPlayItem {
 	 * @return
 	 */
 	String getName();
-	
+
 	/**
 	 * Start time in millisecond.
 	 * 
 	 * @return
 	 */
 	long getStart();
-	
+
 	/**
 	 * Play length in millisecond.
 	 * 
 	 * @return
 	 */
 	long getLength();
-	
+
 	/**
 	 * Get a message input for play.
 	 * This object overrides the default algorithm for finding

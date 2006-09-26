@@ -35,15 +35,18 @@ import org.apache.commons.logging.LogFactory;
  */
 public abstract class AbstractPipe implements IPipe {
 	private static final Log log = LogFactory.getLog(AbstractPipe.class);
-	
+
 	protected List<IConsumer> consumers = new ArrayList<IConsumer>();
+
 	protected List<IProvider> providers = new ArrayList<IProvider>();
+
 	protected List<IPipeConnectionListener> listeners = new ArrayList<IPipeConnectionListener>();
-	
+
 	public boolean subscribe(IConsumer consumer, Map paramMap) {
 		synchronized (consumers) {
-			if (consumers.contains(consumer))
+			if (consumers.contains(consumer)) {
 				return false;
+			}
 			consumers.add(consumer);
 		}
 		if (consumer instanceof IPipeConnectionListener) {
@@ -56,8 +59,9 @@ public abstract class AbstractPipe implements IPipe {
 
 	public boolean subscribe(IProvider provider, Map paramMap) {
 		synchronized (providers) {
-			if (providers.contains(provider))
+			if (providers.contains(provider)) {
 				return false;
+			}
 			providers.add(provider);
 		}
 		if (provider instanceof IPipeConnectionListener) {
@@ -70,8 +74,9 @@ public abstract class AbstractPipe implements IPipe {
 
 	public boolean unsubscribe(IProvider provider) {
 		synchronized (providers) {
-			if (!providers.contains(provider))
+			if (!providers.contains(provider)) {
 				return false;
+			}
 			providers.remove(provider);
 		}
 		fireProviderConnectionEvent(provider,
@@ -86,8 +91,9 @@ public abstract class AbstractPipe implements IPipe {
 
 	public boolean unsubscribe(IConsumer consumer) {
 		synchronized (consumers) {
-			if (!consumers.contains(consumer))
+			if (!consumers.contains(consumer)) {
 				return false;
+			}
 			consumers.remove(consumer);
 		}
 		fireConsumerConnectionEvent(consumer,
@@ -99,7 +105,7 @@ public abstract class AbstractPipe implements IPipe {
 		}
 		return true;
 	}
-	
+
 	public void addPipeConnectionListener(IPipeConnectionListener listener) {
 		synchronized (listeners) {
 			listeners.add(listener);
@@ -110,7 +116,7 @@ public abstract class AbstractPipe implements IPipe {
 		synchronized (listeners) {
 			listeners.remove(listener);
 		}
-		
+
 	}
 
 	public void sendOOBControlMessage(IProvider provider,
@@ -119,13 +125,16 @@ public abstract class AbstractPipe implements IPipe {
 		// XXX: synchronizing this sometimes causes deadlocks in the code that
 		//      passes the ChunkSize message to the subscribers of a stream
 		//synchronized (consumers) {
-			consumerArray = consumers.toArray(new IConsumer[]{});
+		consumerArray = consumers.toArray(new IConsumer[] {});
 		//}
 		for (IConsumer consumer : consumerArray) {
 			try {
 				consumer.onOOBControlMessage(provider, this, oobCtrlMsg);
 			} catch (Throwable t) {
-				log.error("exception when passing OOBCM from provider to consumers", t);
+				log
+						.error(
+								"exception when passing OOBCM from provider to consumers",
+								t);
 			}
 		}
 	}
@@ -134,13 +143,16 @@ public abstract class AbstractPipe implements IPipe {
 			OOBControlMessage oobCtrlMsg) {
 		IProvider[] providerArray = null;
 		synchronized (providers) {
-			providerArray = providers.toArray(new IProvider[]{});
+			providerArray = providers.toArray(new IProvider[] {});
 		}
 		for (IProvider provider : providerArray) {
 			try {
 				provider.onOOBControlMessage(consumer, this, oobCtrlMsg);
 			} catch (Throwable t) {
-				log.error("exception when passing OOBCM from consumer to providers", t);
+				log
+						.error(
+								"exception when passing OOBCM from consumer to providers",
+								t);
 			}
 		}
 	}
@@ -148,11 +160,11 @@ public abstract class AbstractPipe implements IPipe {
 	public List<IProvider> getProviders() {
 		return providers;
 	}
-	
+
 	public List<IConsumer> getConsumers() {
 		return consumers;
-	}    
-	
+	}
+
 	protected void fireConsumerConnectionEvent(IConsumer consumer, int type,
 			Map paramMap) {
 		PipeConnectionEvent event = new PipeConnectionEvent(this);
@@ -161,7 +173,7 @@ public abstract class AbstractPipe implements IPipe {
 		event.setParamMap(paramMap);
 		firePipeConnectionEvent(event);
 	}
-	
+
 	protected void fireProviderConnectionEvent(IProvider provider, int type,
 			Map paramMap) {
 		PipeConnectionEvent event = new PipeConnectionEvent(this);
@@ -170,20 +182,19 @@ public abstract class AbstractPipe implements IPipe {
 		event.setParamMap(paramMap);
 		firePipeConnectionEvent(event);
 	}
-	
+
 	protected void firePipeConnectionEvent(PipeConnectionEvent event) {
 		IPipeConnectionListener[] listenerArray = null;
 		synchronized (listeners) {
-			listenerArray = listeners.toArray(new IPipeConnectionListener[]{});
+			listenerArray = listeners.toArray(new IPipeConnectionListener[] {});
 		}
-		for (int i = 0; i < listenerArray.length; i++) {
+		for (IPipeConnectionListener element : listenerArray) {
 			try {
-				listenerArray[i].onPipeConnectionEvent(event);
+				element.onPipeConnectionEvent(event);
 			} catch (Throwable t) {
 				log.error("exception when handling pipe connection event", t);
 			}
 		}
-		// execute the pending tasks
 		for (Runnable task : event.getTaskList()) {
 			try {
 				task.run();

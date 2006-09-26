@@ -31,7 +31,7 @@ import org.springframework.core.io.support.ResourcePatternResolver;
  */
 
 public class PersistenceUtils {
-	
+
 	/**
 	 * Returns persistence store object class constructor
 	 * 
@@ -53,17 +53,19 @@ public class PersistenceUtils {
 			} catch (NoSuchMethodException err) {
 				// Ignore this error
 			}
-			if (constructor != null)
+			if (constructor != null) {
 				break;
-			
+			}
+
 			constructor = getPersistenceStoreConstructor(theClass,
 					interfaceClass.getInterfaces());
-			if (constructor != null)
+			if (constructor != null) {
 				break;
+			}
 		}
 		return constructor;
 	}
-	
+
 	/**
 	 * Returns persistence store object. Persistence store is a special object
 	 * that stores persistence objects and provides methods to manipulate them
@@ -89,18 +91,20 @@ public class PersistenceUtils {
 			while (superClass != null) {
 				constructor = getPersistenceStoreConstructor(persistenceClass,
 						superClass.getInterfaces());
-				if (constructor != null)
+				if (constructor != null) {
 					break;
-				
+				}
+
 				superClass = superClass.getSuperclass();
 			}
 		}
-		
-		if (constructor == null)
+
+		if (constructor == null) {
 			throw new NoSuchMethodException();
-		
+		}
+
 		return (IPersistenceStore) constructor
 				.newInstance(new Object[] { resolver });
 	}
-	
+
 }

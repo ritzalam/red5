@@ -70,14 +70,14 @@ public interface IClient extends IAttributeStore, IFlowControllable {
 	 * @return client id
 	 */
 	public String getId();
-	
+
 	/**
 	 * Get the creation time for this client object.
 	 * 
 	 * @return creation time in milliseconds
 	 */
-	public long getCreationTime();	
-	
+	public long getCreationTime();
+
 	/**
 	 * Get a set of scopes the client is connected to.
 	 * 
@@ -91,7 +91,7 @@ public interface IClient extends IAttributeStore, IFlowControllable {
 	 * @return set of connections
 	 */
 	public Set<IConnection> getConnections();
-	
+
 	/**
 	 * Get a set of connections of a given scope.
 	 * 
@@ -100,10 +100,10 @@ public interface IClient extends IAttributeStore, IFlowControllable {
 	 * @return set of connections to the passed scope
 	 */
 	public Set<IConnection> getConnections(IScope scope);
-	
+
 	/**
 	 * Closes all the connections.
 	 */
 	public void disconnect();
-	
+
 }

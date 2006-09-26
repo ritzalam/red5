@@ -32,15 +32,17 @@ import org.red5.server.stream.message.RTMPMessage;
  * @author Steven Gong (steven.gong@gmail.com)
  */
 public class PlayBuffer {
-	
+
 	private long capacity;
+
 	private long messageSize = 0;
+
 	private Queue<RTMPMessage> messageQueue = new LinkedList<RTMPMessage>();
-	
+
 	public PlayBuffer(long capacity) {
 		this.capacity = capacity;
 	}
-	
+
 	/**
 	 * Buffer capacity in bytes.
 	 * 
@@ -49,11 +51,11 @@ public class PlayBuffer {
 	public long getCapacity() {
 		return capacity;
 	}
-	
+
 	public void setCapacity(long capacity) {
 		this.capacity = capacity;
 	}
-	
+
 	/**
 	 * Number of message in buffer.
 	 * 
@@ -62,7 +64,7 @@ public class PlayBuffer {
 	public int getMessageCount() {
 		return messageQueue.size();
 	}
-	
+
 	/**
 	 * Total message size in bytes.
 	 * 
@@ -71,7 +73,7 @@ public class PlayBuffer {
 	public long getMessageSize() {
 		return messageSize;
 	}
-	
+
 	/**
 	 * Put a message into this buffer.
 	 * 
@@ -81,9 +83,10 @@ public class PlayBuffer {
 	 */
 	public boolean putMessage(RTMPMessage message) {
 		IRTMPEvent body = message.getBody();
-		if (!(body instanceof IStreamData))
+		if (!(body instanceof IStreamData)) {
 			throw new RuntimeException("expected IStreamData but got " + body);
-		
+		}
+
 		int size = ((IStreamData) body).getData().limit();
 		if (messageSize + size > capacity) {
 			return false;
@@ -92,7 +95,7 @@ public class PlayBuffer {
 		messageQueue.offer(message);
 		return true;
 	}
-	
+
 	/**
 	 * Take a message from this buffer. The message count decreases.
 	 * 
@@ -102,14 +105,16 @@ public class PlayBuffer {
 		RTMPMessage message = messageQueue.poll();
 		if (message != null) {
 			IRTMPEvent body = message.getBody();
-			if (!(body instanceof IStreamData))
-				throw new RuntimeException("expected IStreamData but got " + body);
-			
+			if (!(body instanceof IStreamData)) {
+				throw new RuntimeException("expected IStreamData but got "
+						+ body);
+			}
+
 			messageSize -= ((IStreamData) body).getData().limit();
 		}
 		return message;
 	}
-	
+
 	/**
 	 * Peek a message but not take it from the buffer. The message count
 	 * doesn't change.
@@ -118,7 +123,7 @@ public class PlayBuffer {
 	public RTMPMessage peekMessage() {
 		return messageQueue.peek();
 	}
-	
+
 	/**
 	 * Empty this buffer.
 	 */

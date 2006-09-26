@@ -28,24 +28,26 @@ public class MulticastEventProcessor {
 	}
 
 	public void disposeCached(Object obj) {
-		if (obj == null)
+		if (obj == null) {
 			return;
+		}
 		final ByteBuffer[] chunks = (ByteBuffer[]) obj;
-		for(ByteBuffer buf : chunks){
+		for (ByteBuffer buf : chunks) {
 			buf.release();
 		}
 	}
 
-	public static ByteBuffer[] chunkBuffer(ByteBuffer buf, int size){
+	public static ByteBuffer[] chunkBuffer(ByteBuffer buf, int size) {
 		final int num = (int) Math.ceil(buf.limit() / (float) size);
 		final ByteBuffer[] chunks = new ByteBuffer[num];
-		for(int i=0; i<num; i++){
-			chunks[i] = buf.asReadOnlyBuffer(); 
+		for (int i = 0; i < num; i++) {
+			chunks[i] = buf.asReadOnlyBuffer();
 			final ByteBuffer chunk = chunks[i];
-			int position = size*num;
+			int position = size * num;
 			chunk.position(position);
-			if(position + size < chunk.limit()) 
+			if (position + size < chunk.limit()) {
 				chunk.limit(position + size);
+			}
 		}
 		return chunks;
 	}

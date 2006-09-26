@@ -30,24 +30,27 @@ import org.red5.server.stream.IStreamFlow;
  */
 public interface IClientStream extends IStream, IFlowControllable {
 	public static final String MODE_READ = "read";
+
 	public static final String MODE_RECORD = "record";
+
 	public static final String MODE_APPEND = "append";
+
 	public static final String MODE_LIVE = "live";
-	
+
 	/**
 	 * Get stream id allocated in a connection.
 	 * 
 	 * @return
 	 */
 	int getStreamId();
-	
+
 	/**
 	 * Get connection containing the stream.
 	 * 
 	 * @return
 	 */
 	IStreamCapableConnection getConnection();
-	
+
 	/**
 	 * Get the flow settings for this stream.
 	 * 

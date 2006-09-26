@@ -55,6 +55,7 @@ import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.net.rtmp.status.Status;
+import org.red5.server.net.rtmp.status.StatusCodes;
 import org.red5.server.stream.codec.StreamCodecInfo;
 import org.red5.server.stream.consumer.FileConsumer;
 import org.red5.server.stream.message.RTMPMessage;
@@ -64,34 +65,44 @@ import org.springframework.core.io.Resource;
 public class ClientBroadcastStream extends AbstractClientStream implements
 		IClientBroadcastStream, IFilter, IPushableConsumer,
 		IPipeConnectionListener, IEventDispatcher {
-	
+
 	private static final Log log = LogFactory
 			.getLog(ClientBroadcastStream.class);
 
 	private String publishedName;
-	
+
 	private IMessageOutput connMsgOut;
+
 	private VideoCodecFactory videoCodecFactory = null;
+
 	private boolean checkVideoCodec = false;
+
 	private IPipe livePipe;
+
 	private IPipe recordPipe;
+
 	private boolean sendStartNotification = true;
+
 	/** Stores absolute time for video stream. */
 	private int audioTime = -1;
+
 	/** Stores absolute time for audio stream. */
 	private int videoTime = -1;
+
 	/** Stores absolute time for data stream. */
 	private int dataTime = -1;
+
 	/** Stores timestamp of first packet. */
 	private int firstTime = -1;
-	
+
 	private int chunkSize = 0;
-	
+
 	public void start() {
-		IConsumerService consumerManager =
-			(IConsumerService) getScope().getContext().getBean(IConsumerService.KEY);
+		IConsumerService consumerManager = (IConsumerService) getScope()
+				.getContext().getBean(IConsumerService.KEY);
 		try {
-			videoCodecFactory = (VideoCodecFactory) getScope().getContext().getBean(VideoCodecFactory.KEY);
+			videoCodecFactory = (VideoCodecFactory) getScope().getContext()
+					.getBean(VideoCodecFactory.KEY);
 			checkVideoCodec = true;
 		} catch (Exception err) {
 			log.warn("No video codec factory available.", err);
@@ -120,8 +131,10 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			throws ResourceNotFoundException, ResourceExistException {
 		try {
 			IScope scope = getConnection().getScope();
-			IStreamFilenameGenerator generator = (IStreamFilenameGenerator) ScopeUtils.getScopeService(scope, IStreamFilenameGenerator.KEY, DefaultStreamFilenameGenerator.class);
-			
+			IStreamFilenameGenerator generator = (IStreamFilenameGenerator) ScopeUtils
+					.getScopeService(scope, IStreamFilenameGenerator.KEY,
+							DefaultStreamFilenameGenerator.class);
+
 			String filename = generator.generateFilename(scope, name, ".flv");
 			Resource res = scope.getResource(filename);
 			if (!isAppend) {
@@ -139,25 +152,28 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 					isAppend = false;
 				}
 			}
-			
+
 			if (!res.exists()) {
 				// Make sure the destination directory exists
 				try {
 					String path = res.getFile().getAbsolutePath();
 					int slashPos = path.lastIndexOf(File.separator);
-					if (slashPos != -1)
+					if (slashPos != -1) {
 						path = path.substring(0, slashPos);
+					}
 					File tmp = new File(path);
-					if (!tmp.isDirectory())
+					if (!tmp.isDirectory()) {
 						tmp.mkdirs();
+					}
 				} catch (IOException err) {
 					log.error("Could not create destination directory.", err);
 				}
 				res = scope.getResource(filename);
 			}
-			
-			if (!res.exists())
+
+			if (!res.exists()) {
 				res.getFile().createNewFile();
+			}
 			FileConsumer fc = new FileConsumer(scope, res.getFile());
 			Map<Object, Object> paramMap = new HashMap<Object, Object>();
 			if (isAppend) {
@@ -190,48 +206,55 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			OOBControlMessage setChunkSize = new OOBControlMessage();
 			setChunkSize.setTarget("ConnectionConsumer");
 			setChunkSize.setServiceName("chunkSize");
-			if (setChunkSize.getServiceParamMap() == null)
+			if (setChunkSize.getServiceParamMap() == null) {
 				setChunkSize.setServiceParamMap(new HashMap());
+			}
 			setChunkSize.getServiceParamMap().put("chunkSize", chunkSize);
 			livePipe.sendOOBControlMessage(getProvider(), setChunkSize);
 		}
 	}
-	
+
 	public void onOOBControlMessage(IMessageComponent source, IPipe pipe,
 			OOBControlMessage oobCtrlMsg) {
-		if (!"ClientBroadcastStream".equals(oobCtrlMsg.getTarget()))
+		if (!"ClientBroadcastStream".equals(oobCtrlMsg.getTarget())) {
 			return;
-		
+		}
+
 		if ("chunkSize".equals(oobCtrlMsg.getServiceName())) {
 			chunkSize = (Integer) oobCtrlMsg.getServiceParamMap().get(
 					"chunkSize");
 			notifyChunkSize();
 		}
 	}
-	
+
 	public void dispatchEvent(IEvent event) {
 		if (!(event instanceof IRTMPEvent)
 				&& (event.getType() != IEvent.Type.STREAM_CONTROL)
 				&& (event.getType() != IEvent.Type.STREAM_DATA)
-				&& !(event instanceof Notify))
+				&& !(event instanceof Notify)) {
 			return;
-		
+		}
+
 		IStreamCodecInfo codecInfo = getCodecInfo();
 		StreamCodecInfo streamCodec = null;
-		if (codecInfo instanceof StreamCodecInfo)
+		if (codecInfo instanceof StreamCodecInfo) {
 			streamCodec = (StreamCodecInfo) codecInfo;
-		
+		}
+
 		IRTMPEvent rtmpEvent = (IRTMPEvent) event;
 		int thisTime = -1;
-		if (firstTime == -1)
+		if (firstTime == -1) {
 			firstTime = rtmpEvent.getTimestamp();
+		}
 		if (rtmpEvent instanceof AudioData) {
-			if (streamCodec != null)
+			if (streamCodec != null) {
 				streamCodec.setHasAudio(true);
-			if (rtmpEvent.getHeader().isTimerRelative())
+			}
+			if (rtmpEvent.getHeader().isTimerRelative()) {
 				audioTime += rtmpEvent.getTimestamp();
-			else
+			} else {
 				audioTime = rtmpEvent.getTimestamp();
+			}
 			thisTime = audioTime;
 		} else if (rtmpEvent instanceof VideoData) {
 			IVideoStreamCodec videoStreamCodec = null;
@@ -243,14 +266,17 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 							.setVideoCodec(videoStreamCodec);
 				}
 				checkVideoCodec = false;
-			} else if (codecInfo != null)
+			} else if (codecInfo != null) {
 				videoStreamCodec = codecInfo.getVideoCodec();
-			
-			if (videoStreamCodec != null)
+			}
+
+			if (videoStreamCodec != null) {
 				videoStreamCodec.addData(((VideoData) rtmpEvent).getData());
-			
-			if (streamCodec != null)
+			}
+
+			if (streamCodec != null) {
 				streamCodec.setHasVideo(true);
+			}
 			IEventListener source = event.getSource();
 			if (sendStartNotification) {
 				// Notify handler that stream starts publishing
@@ -259,88 +285,92 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 					IScope scope = ((IConnection) source).getScope();
 					if (scope.hasHandler()) {
 						Object handler = scope.getHandler();
-						if (handler instanceof IStreamAwareScopeHandler)
+						if (handler instanceof IStreamAwareScopeHandler) {
 							((IStreamAwareScopeHandler) handler)
 									.streamPublishStart(this);
+						}
 					}
 				}
 			}
-			if (rtmpEvent.getHeader().isTimerRelative())
+			if (rtmpEvent.getHeader().isTimerRelative()) {
 				videoTime += rtmpEvent.getTimestamp();
-			else
+			} else {
 				videoTime = rtmpEvent.getTimestamp();
+			}
 			thisTime = videoTime;
 		} else if (rtmpEvent instanceof Notify) {
-			if (rtmpEvent.getHeader().isTimerRelative())
+			if (rtmpEvent.getHeader().isTimerRelative()) {
 				dataTime += rtmpEvent.getTimestamp();
-			else
+			} else {
 				dataTime = rtmpEvent.getTimestamp();
+			}
 			thisTime = dataTime;
 		}
-		
+
 		RTMPMessage msg = new RTMPMessage();
 		msg.setBody(rtmpEvent);
 		msg.getBody().setTimestamp(thisTime);
 		//System.err.println(msg);
 		//System.err.println("ts in "+thisTime);
-//		if(true) {
-//			long delay=(long)(Math.random()*200);
-//			try {
-//				Thread.sleep(delay);
-//			} catch (InterruptedException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
-//		}
-		if (livePipe != null)
+		//		if(true) {
+		//			long delay=(long)(Math.random()*200);
+		//			try {
+		//				Thread.sleep(delay);
+		//			} catch (InterruptedException e) {
+		//				// TODO Auto-generated catch block
+		//				e.printStackTrace();
+		//			}
+		//		}
+		if (livePipe != null) {
 			livePipe.pushMessage(msg);
+		}
 		recordPipe.pushMessage(msg);
 	}
 
 	public void onPipeConnectionEvent(PipeConnectionEvent event) {
 		switch (event.getType()) {
-		case PipeConnectionEvent.PROVIDER_CONNECT_PUSH:
-			if (event.getProvider() == this
-					&& (event.getParamMap() == null || !event.getParamMap()
-							.containsKey("record"))) {
-				this.livePipe = (IPipe) event.getSource();
-			}
-			break;
-		case PipeConnectionEvent.PROVIDER_DISCONNECT:
-			if (this.livePipe == event.getSource()) {
-				this.livePipe = null;
-			}
-			break;
-		case PipeConnectionEvent.CONSUMER_CONNECT_PUSH:
-			if (this.livePipe == event.getSource()) {
-				notifyChunkSize();
-			}
-			break;
-		default:
-			break;
+			case PipeConnectionEvent.PROVIDER_CONNECT_PUSH:
+				if (event.getProvider() == this
+						&& (event.getParamMap() == null || !event.getParamMap()
+								.containsKey("record"))) {
+					this.livePipe = (IPipe) event.getSource();
+				}
+				break;
+			case PipeConnectionEvent.PROVIDER_DISCONNECT:
+				if (this.livePipe == event.getSource()) {
+					this.livePipe = null;
+				}
+				break;
+			case PipeConnectionEvent.CONSUMER_CONNECT_PUSH:
+				if (this.livePipe == event.getSource()) {
+					notifyChunkSize();
+				}
+				break;
+			default:
+				break;
 		}
 	}
-	
+
 	private void sendStartNotify() {
-		Status start = new Status(Status.NS_PUBLISH_START);
+		Status start = new Status(StatusCodes.NS_PUBLISH_START);
 		start.setClientid(getStreamId());
 		start.setDetails(getPublishedName());
-		
+
 		StatusMessage startMsg = new StatusMessage();
 		startMsg.setBody(start);
 		connMsgOut.pushMessage(startMsg);
 	}
-	
+
 	private void sendStopNotify() {
-		Status stop = new Status(Status.NS_UNPUBLISHED_SUCCESS);
+		Status stop = new Status(StatusCodes.NS_UNPUBLISHED_SUCCESS);
 		stop.setClientid(getStreamId());
 		stop.setDetails(getPublishedName());
-		
+
 		StatusMessage stopMsg = new StatusMessage();
 		stopMsg.setBody(stop);
 		connMsgOut.pushMessage(stopMsg);
 	}
-		
+
 	private void notifyBroadcastStart() {
 		IStreamAwareScopeHandler handler = getStreamAwareHandler();
 		if (handler != null) {
@@ -351,7 +381,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			}
 		}
 	}
-	
+
 	private void notifyBroadcastClose() {
 		IStreamAwareScopeHandler handler = getStreamAwareHandler();
 		if (handler != null) {

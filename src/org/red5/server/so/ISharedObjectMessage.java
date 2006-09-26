@@ -31,14 +31,14 @@ public interface ISharedObjectMessage extends IRTMPEvent {
 	 * @return name of the shared object
 	 */
 	public String getName();
-	
+
 	/**
 	 * Returns the version to modify.
 	 *  
 	 * @return version to modify
 	 */
 	public int getVersion();
-	
+
 	/**
 	 * Does the message affect a persistent shared object? 
 	 * 
@@ -46,7 +46,7 @@ public interface ISharedObjectMessage extends IRTMPEvent {
 	 *         false
 	 */
 	public boolean isPersistent();
-	
+
 	/**
 	 * Returns a set of ISharedObjectEvent objects containing informations what
 	 * to change.
@@ -56,11 +56,11 @@ public interface ISharedObjectMessage extends IRTMPEvent {
 	public List<ISharedObjectEvent> getEvents();
 
 	public void addEvent(ISharedObjectEvent.Type type, String key, Object value);
-	
+
 	public void addEvent(ISharedObjectEvent event);
-	
+
 	public void clear();
-	
-	public boolean isEmpty(); 
-	
+
+	public boolean isEmpty();
+
 }

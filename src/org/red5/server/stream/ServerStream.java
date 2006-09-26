@@ -60,49 +60,61 @@ import org.red5.server.stream.message.ResetMessage;
 public class ServerStream extends AbstractStream implements IServerStream,
 		IFilter, IPushableConsumer, IPipeConnectionListener {
 	private static final Log log = LogFactory.getLog(ServerStream.class);
-	
+
 	private enum State {
-		UNINIT,
-		CLOSED,
-		STOPPED,
-		PLAYING
+		UNINIT, CLOSED, STOPPED, PLAYING
 	}
-	
+
 	private State state;
-	
+
 	private String publishedName;
-	
+
 	private IPlaylistController controller;
+
 	private IPlaylistController defaultController;
+
 	private boolean isRewind = false;
+
 	private boolean isRandom = false;
+
 	private boolean isRepeat = false;
-	
+
 	private List<IPlayItem> items;
+
 	private int currentItemIndex;
+
 	private IPlayItem currentItem;
-	
+
 	private IMessageInput msgIn;
+
 	private IMessageOutput msgOut;
-	
+
 	private ISchedulingService scheduler;
+
 	private String liveJobName;
+
 	private String vodJobName;
-	
+
 	private long vodStartTS;
+
 	private long serverStartTS;
+
 	private long nextVideoTS;
+
 	private long nextAudioTS;
+
 	private long nextDataTS;
+
 	private long nextTS;
+
 	private RTMPMessage nextRTMPMessage;
-	
+
 	public ServerStream() {
 		defaultController = new SimplePlaylistController();
 		items = new ArrayList<IPlayItem>();
 		state = State.UNINIT;
 	}
-	
+
 	synchronized public void addItem(IPlayItem item) {
 		items.add(item);
 	}
@@ -112,8 +124,9 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	}
 
 	synchronized public void removeItem(int index) {
-		if (index < 0 || index >= items.size())
+		if (index < 0 || index >= items.size()) {
 			return;
+		}
 		items.remove(index);
 	}
 
@@ -128,7 +141,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	public int getCurrentItemIndex() {
 		return currentItemIndex;
 	}
-	
+
 	public IPlayItem getItem(int index) {
 		try {
 			return items.get(index);
@@ -140,8 +153,9 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	synchronized public void previousItem() {
 		stop();
 		moveToPrevious();
-		if (currentItemIndex == -1)
+		if (currentItemIndex == -1) {
 			return;
+		}
 		IPlayItem item = items.get(currentItemIndex);
 		play(item);
 	}
@@ -149,15 +163,17 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	synchronized public void nextItem() {
 		stop();
 		moveToNext();
-		if (currentItemIndex == -1)
+		if (currentItemIndex == -1) {
 			return;
+		}
 		IPlayItem item = items.get(currentItemIndex);
 		play(item);
 	}
 
 	synchronized public void setItem(int index) {
-		if (index < 0 || index >= items.size())
+		if (index < 0 || index >= items.size()) {
 			return;
+		}
 		currentItemIndex = index;
 		IPlayItem item = items.get(currentItemIndex);
 		play(item);
@@ -235,10 +251,11 @@ public class ServerStream extends AbstractStream implements IServerStream,
 		currentItemIndex = -1;
 		nextItem();
 	}
-	
+
 	synchronized public void stop() {
-		if (state != State.PLAYING)
+		if (state != State.PLAYING) {
 			return;
+		}
 		if (liveJobName != null) {
 			scheduler.removeScheduledJob(liveJobName);
 			liveJobName = null;
@@ -251,8 +268,9 @@ public class ServerStream extends AbstractStream implements IServerStream,
 			msgIn.unsubscribe(this);
 			msgIn = null;
 		}
-		if (nextRTMPMessage != null)
+		if (nextRTMPMessage != null) {
 			nextRTMPMessage.getBody().release();
+		}
 		state = State.STOPPED;
 	}
 
@@ -276,23 +294,23 @@ public class ServerStream extends AbstractStream implements IServerStream,
 
 	public void onPipeConnectionEvent(PipeConnectionEvent event) {
 		switch (event.getType()) {
-		case PipeConnectionEvent.PROVIDER_CONNECT_PUSH:
-			if (event.getProvider() == this
-					&& (event.getParamMap() == null || !event.getParamMap()
-							.containsKey("record"))) {
-				this.msgOut = (IMessageOutput) event.getSource();
-			}
-			break;
-		case PipeConnectionEvent.PROVIDER_DISCONNECT:
-			if (this.msgOut == event.getSource()) {
-				this.msgOut = null;
-			}
-			break;
-		default:
-			break;
+			case PipeConnectionEvent.PROVIDER_CONNECT_PUSH:
+				if (event.getProvider() == this
+						&& (event.getParamMap() == null || !event.getParamMap()
+								.containsKey("record"))) {
+					this.msgOut = (IMessageOutput) event.getSource();
+				}
+				break;
+			case PipeConnectionEvent.PROVIDER_DISCONNECT:
+				if (this.msgOut == event.getSource()) {
+					this.msgOut = null;
+				}
+				break;
+			default:
+				break;
 		}
 	}
-	
+
 	/**
 	 * Play a specific IPlayItem.
 	 * The strategy for now is VOD first, Live second.
@@ -300,8 +318,9 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	 * @param item
 	 */
 	private void play(IPlayItem item) {
-		if (state != State.STOPPED)
+		if (state != State.STOPPED) {
 			return;
+		}
 		boolean isLive = false;
 		IProviderService providerService = (IProviderService) getScope()
 				.getContext().getBean(IProviderService.KEY);
@@ -312,7 +331,8 @@ public class ServerStream extends AbstractStream implements IServerStream,
 			isLive = true;
 		}
 		if (msgIn == null) {
-			log.warn("ABNORMAL Can't get both VOD and Live input from providerService");
+			log
+					.warn("ABNORMAL Can't get both VOD and Live input from providerService");
 			return;
 		}
 		state = State.PLAYING;
@@ -322,25 +342,27 @@ public class ServerStream extends AbstractStream implements IServerStream,
 			if (item.getLength() >= 0) {
 				liveJobName = scheduler.addScheduledOnceJob(item.getLength(),
 						new IScheduledJob() {
-					public void execute(ISchedulingService service) {
-						synchronized (ServerStream.this) {
-									if (liveJobName == null)
+							public void execute(ISchedulingService service) {
+								synchronized (ServerStream.this) {
+									if (liveJobName == null) {
 										return;
-							liveJobName = null;
-							onItemEnd();
-						}
-					}
-				});
+									}
+									liveJobName = null;
+									onItemEnd();
+								}
+							}
+						});
 			}
 		} else {
 			long start = item.getStart();
-			if (start < 0)
+			if (start < 0) {
 				start = 0;
+			}
 			sendVODInitCM(msgIn, (int) start);
 			startBroadcastVOD();
 		}
 	}
-	
+
 	private void onItemEnd() {
 		nextItem();
 	}
@@ -348,7 +370,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	private void sendResetMessage() {
 		msgOut.pushMessage(new ResetMessage());
 	}
-	
+
 	private void startBroadcastVOD() {
 		nextVideoTS = nextAudioTS = nextDataTS = 0;
 		nextRTMPMessage = null;
@@ -356,14 +378,14 @@ public class ServerStream extends AbstractStream implements IServerStream,
 		serverStartTS = System.currentTimeMillis();
 		scheduleNextMessage();
 	}
-	
+
 	/**
 	 * Pull the next message from IMessageInput and schedule
 	 * it for push according to the timestamp.
 	 */
 	private void scheduleNextMessage() {
 		boolean first = nextRTMPMessage == null;
-		
+
 		nextRTMPMessage = getNextRTMPMessage();
 		if (nextRTMPMessage == null) {
 			onItemEnd();
@@ -387,7 +409,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 				}
 			}
 		}
-		
+
 		IRTMPEvent rtmpEvent = nextRTMPMessage.getBody();
 		if (rtmpEvent instanceof VideoData) {
 			nextVideoTS = rtmpEvent.getTimestamp();
@@ -404,18 +426,20 @@ public class ServerStream extends AbstractStream implements IServerStream,
 		}
 		long delta = nextTS - vodStartTS
 				- (System.currentTimeMillis() - serverStartTS);
-		
+
 		vodJobName = scheduler.addScheduledOnceJob(delta, new IScheduledJob() {
 			public void execute(ISchedulingService service) {
 				synchronized (ServerStream.this) {
-					if (vodJobName == null)
+					if (vodJobName == null) {
 						return;
+					}
 					vodJobName = null;
 					msgOut.pushMessage(nextRTMPMessage);
 					nextRTMPMessage.getBody().release();
 					long start = currentItem.getStart();
-					if (start < 0)
+					if (start < 0) {
 						start = 0;
+					}
 					if (currentItem.getLength() >= 0
 							&& nextTS - currentItem.getStart() > currentItem
 									.getLength()) {
@@ -427,7 +451,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 			}
 		});
 	}
-	
+
 	private RTMPMessage getNextRTMPMessage() {
 		IMessage message = null;
 		do {
@@ -438,7 +462,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 		} while (!(message instanceof RTMPMessage));
 		return (RTMPMessage) message;
 	}
-	
+
 	private void sendVODInitCM(IMessageInput msgIn, int start) {
 		OOBControlMessage oobCtrlMsg = new OOBControlMessage();
 		oobCtrlMsg.setTarget(IPassive.KEY);
@@ -448,7 +472,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 		oobCtrlMsg.setServiceParamMap(paramMap);
 		msgIn.sendOOBControlMessage(this, oobCtrlMsg);
 	}
-	
+
 	/**
 	 * Move to the next item updating the currentItemIndex.
 	 * Should be called in synchronized context.
@@ -464,7 +488,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 					currentItemIndex);
 		}
 	}
-	
+
 	/**
 	 * Move to the previous item updating the currentItemIndex.
 	 * Should be called in synchronized context.

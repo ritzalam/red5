@@ -30,7 +30,7 @@ import org.red5.server.api.persistence.IPersistable;
  */
 public interface IBasicScope extends ICoreObject, IEventObservable,
 		Iterable<IBasicScope>, IPersistable {
-	
+
 	/**
 	 * Does this scope have a parent? You can think of scopes as of tree items
 	 * where scope may have a parent and children (child).
@@ -70,12 +70,12 @@ public interface IBasicScope extends ICoreObject, IEventObservable,
 	 * @return the path
 	 */
 	public String getPath();
-	
+
 	/**
 	 * Get the type of the scope.
 	 * 
 	 * @return the type
 	 */
 	public String getType();
-	
+
 }

@@ -1,4 +1,5 @@
 package org.red5.server.stream.test;
+
 /**
  * @author m.j.milicevic <marijan at info.nl>
  * @version 1.0
@@ -7,6 +8,7 @@ package org.red5.server.stream.test;
 import junit.framework.JUnit4TestAdapter;
 import junit.framework.Test;
 import junit.framework.TestCase;
+
 import org.apache.mina.common.ByteBuffer;
 import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.stream.PlayBuffer;
@@ -17,8 +19,10 @@ import org.red5.server.stream.message.RTMPMessage;
  */
 public class PlayBufferTest extends TestCase {
 	PlayBuffer playBuffer;
+
 	private RTMPMessage rtmpMessage;
 
+	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
 		VideoData message = new VideoData(ByteBuffer.allocate(100));
@@ -61,7 +65,6 @@ public class PlayBufferTest extends TestCase {
 	public static Test suite() {
 		return new JUnit4TestAdapter(PlayBufferTest.class);
 	}
-
 
 	/**
 	 * enqueue with messages

@@ -36,5 +36,5 @@ public interface IScheduledJob {
 	 * 			the service that called the job
 	 */
 	public void execute(ISchedulingService service);
-	
+
 }

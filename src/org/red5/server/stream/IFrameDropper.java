@@ -30,11 +30,14 @@ import org.red5.server.stream.message.RTMPMessage;
 public interface IFrameDropper {
 
 	/** Send keyframes, interframes and disposable interframes. */
-	public final static int SEND_ALL = 0; 
+	public final static int SEND_ALL = 0;
+
 	/** Send keyframes and interframes. */
 	public final static int SEND_INTERFRAMES = 1;
+
 	/** Send keyframes only. */
 	public final static int SEND_KEYFRAMES = 2;
+
 	/** Send keyframes only and switch to SEND_INTERFRAMES later. */
 	public final static int SEND_KEYFRAMES_CHECK = 3;
 
@@ -68,7 +71,7 @@ public interface IFrameDropper {
 
 	/** Reset the frame dropper. */
 	void reset();
-	
+
 	/**
 	 * Reset the frame dropper to a given state.
 	 * 
@@ -76,5 +79,5 @@ public interface IFrameDropper {
 	 * 			the state to reset the frame dropper to
 	 */
 	void reset(int state);
-	
+
 }

@@ -38,17 +38,18 @@ import org.red5.server.api.service.IServiceInvoker;
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
-public class ServiceInvoker  implements IServiceInvoker {
+public class ServiceInvoker implements IServiceInvoker {
 
 	private static final Log log = LogFactory.getLog(ServiceInvoker.class);
-	
+
 	public static final String SERVICE_NAME = "serviceInvoker";
+
 	private Set<IServiceResolver> serviceResolvers = new HashSet<IServiceResolver>();
 
 	public void setServiceResolvers(Set<IServiceResolver> resolvers) {
 		serviceResolvers = resolvers;
 	}
-	
+
 	/**
 	 * Lookup a handler for the passed service name in the given scope.
 	 * 
@@ -59,55 +60,58 @@ public class ServiceInvoker  implements IServiceInvoker {
 	private Object getServiceHandler(IScope scope, String serviceName) {
 		// Get application scope handler first
 		Object service = scope.getHandler();
-		if (serviceName == null || serviceName.equals(""))
+		if (serviceName == null || serviceName.equals("")) {
 			// No service requested, return application scope handler
 			return service;
-		
-		// Search service resolver that knows about service name
-		for (IServiceResolver resolver: serviceResolvers) {
-			service = resolver.resolveService(scope, serviceName);
-			if (service != null)
-				return service;
 		}
-		
+
+		// Search service resolver that knows about service name
+		for (IServiceResolver resolver : serviceResolvers) {
+			service = resolver.resolveService(scope, serviceName);
+			if (service != null) {
+				return service;
+			}
+		}
+
 		// Requested service does not exist.
 		return null;
 	}
-	
+
 	public void invoke(IServiceCall call, IScope scope) {
 		String serviceName = call.getServiceName();
-		
+
 		log.debug("Service name " + serviceName);
 		Object service = getServiceHandler(scope, serviceName);
-		
-		if(service == null) {
+
+		if (service == null) {
 			call.setException(new ServiceNotFoundException(serviceName));
 			call.setStatus(Call.STATUS_SERVICE_NOT_FOUND);
-			log.warn("Service not found: "+serviceName);
+			log.warn("Service not found: " + serviceName);
 			return;
 		} else {
-			log.debug("Service found: "+serviceName);
+			log.debug("Service found: " + serviceName);
 		}
-		
+
 		invoke(call, service);
 	}
 
 	public void invoke(IServiceCall call, Object service) {
 		IConnection conn = Red5.getConnectionLocal();
 		String methodName = call.getServiceMethodName();
-		
+
 		Object[] args = call.getArguments();
 		Object[] argsWithConnection = null;
 		if (args != null) {
-			argsWithConnection = new Object[args.length+1];
+			argsWithConnection = new Object[args.length + 1];
 			argsWithConnection[0] = conn;
-			for (int i=0; i<args.length; i++) {
-				log.debug("   "+i+" => "+args[i]);
-				argsWithConnection[i+1] = args[i];
+			for (int i = 0; i < args.length; i++) {
+				log.debug("   " + i + " => " + args[i]);
+				argsWithConnection[i + 1] = args[i];
 			}
-		} else
-			argsWithConnection = new Object[]{conn};
-		
+		} else {
+			argsWithConnection = new Object[] { conn };
+		}
+
 		Object[] methodResult = null;
 		// First, search for method with the connection as first parameter.
 		methodResult = ServiceUtils.findMethodWithExactParameters(service,
@@ -138,39 +142,40 @@ public class ServiceInvoker  implements IServiceInvoker {
 				}
 			}
 		}
-		
+
 		Object result = null;
 		Method method = (Method) methodResult[0];
 		Object[] params = (Object[]) methodResult[1];
-		
+
 		try {
-			log.debug("Invoking method: "+method.toString());
+			log.debug("Invoking method: " + method.toString());
 			if (method.getReturnType() == Void.class) {
 				method.invoke(service, params);
 				call.setStatus(Call.STATUS_SUCCESS_VOID);
 			} else {
 				result = method.invoke(service, params);
-				log.debug("result: "+result);
+				log.debug("result: " + result);
 				call.setStatus(result == null ? Call.STATUS_SUCCESS_NULL
 						: Call.STATUS_SUCCESS_RESULT);
 			}
-			if (call instanceof IPendingServiceCall)
+			if (call instanceof IPendingServiceCall) {
 				((IPendingServiceCall) call).setResult(result);
-		} catch (IllegalAccessException accessEx){
+			}
+		} catch (IllegalAccessException accessEx) {
 			call.setException(accessEx);
 			call.setStatus(Call.STATUS_ACCESS_DENIED);
-			log.error("Error executing call: "+call);
-			log.error("Service invocation error",accessEx);
-		} catch (InvocationTargetException invocationEx){
+			log.error("Error executing call: " + call);
+			log.error("Service invocation error", accessEx);
+		} catch (InvocationTargetException invocationEx) {
 			call.setException(invocationEx);
 			call.setStatus(Call.STATUS_INVOCATION_EXCEPTION);
-			log.error("Error executing call: "+call);
-			log.error("Service invocation error",invocationEx);
-		} catch (Exception ex){
+			log.error("Error executing call: " + call);
+			log.error("Service invocation error", invocationEx);
+		} catch (Exception ex) {
 			call.setException(ex);
 			call.setStatus(Call.STATUS_GENERAL_EXCEPTION);
-			log.error("Error executing call: "+call);
-			log.error("Service invocation error",ex);
+			log.error("Error executing call: " + call);
+			log.error("Service invocation error", ex);
 		}
 	}
 

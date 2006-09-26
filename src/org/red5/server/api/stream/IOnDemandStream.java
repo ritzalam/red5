@@ -31,7 +31,7 @@ public interface IOnDemandStream extends IStream {
 	 * Start playback
 	 */
 	public void play();
-	
+
 	/**
 	 * Start playback with a given maximum duration.
 	 * 

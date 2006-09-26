@@ -37,11 +37,12 @@ import org.red5.server.messaging.InMemoryPullPullPipe;
 import org.red5.server.stream.provider.FileProvider;
 
 public class ProviderService implements IProviderService {
-	
+
 	public IMessageInput getProviderInput(IScope scope, String name) {
 		IMessageInput msgIn = getLiveProviderInput(scope, name, false);
-		if (msgIn == null)
+		if (msgIn == null) {
 			return getVODProviderInput(scope, name);
+		}
 		return msgIn;
 	}
 
@@ -54,25 +55,28 @@ public class ProviderService implements IProviderService {
 				if (needCreate) {
 					basicScope = new BroadcastScope(scope, name);
 					scope.addChildScope(basicScope);
-				} else
+				} else {
 					return null;
+				}
 			}
-			if (!(basicScope instanceof IBroadcastScope))
+			if (!(basicScope instanceof IBroadcastScope)) {
 				return null;
+			}
 			return (IBroadcastScope) basicScope;
 		}
 	}
 
 	public IMessageInput getVODProviderInput(IScope scope, String name) {
 		File file = getVODProviderFile(scope, name);
-		if (file == null)
+		if (file == null) {
 			return null;
+		}
 		IPipe pipe = new InMemoryPullPullPipe();
 		pipe.subscribe(new FileProvider(scope, file), null);
 		return pipe;
 	}
 
-	public File getVODProviderFile(IScope scope, String name){
+	public File getVODProviderFile(IScope scope, String name) {
 		File file = null;
 		try {
 			file = scope.getResources(getStreamFilename(scope, name))[0]
@@ -84,7 +88,7 @@ public class ProviderService implements IProviderService {
 		}
 		return file;
 	}
-	
+
 	public boolean registerBroadcastStream(IScope scope, String name,
 			IBroadcastStream bs) {
 		synchronized (scope) {
@@ -136,22 +140,23 @@ public class ProviderService implements IProviderService {
 	private String getStreamDirectory() {
 		return "streams/";
 	}
-	
+
 	private String getStreamFilename(IScope scope, String name) {
 		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils
 				.getScopeService(scope, IStreamableFileFactory.KEY);
-		if (!name.contains(":") && !name.contains("."))
+		if (!name.contains(":") && !name.contains(".")) {
 			// Default to .flv files if no prefix and no extension is given.
 			name = "flv:" + name;
-		
-		for (IStreamableFileService service: factory.getServices()) {
+		}
+
+		for (IStreamableFileService service : factory.getServices()) {
 			if (name.startsWith(service.getPrefix() + ":")) {
 				name = service.prepareFilename(name);
 				break;
 			}
 		}
-		
+
 		return getStreamDirectory() + name;
 	}
-	
+
 }

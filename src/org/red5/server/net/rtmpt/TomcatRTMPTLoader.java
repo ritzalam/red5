@@ -20,7 +20,6 @@ package org.red5.server.net.rtmpt;
  */
 
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.catalina.Context;
 import org.apache.catalina.Host;
@@ -65,6 +64,7 @@ public class TomcatRTMPTLoader extends TomcatLoader implements
 		this.handler = handler;
 	}
 
+	@Override
 	public void init() {
 		log.info("Loading RTMPT context");
 
@@ -118,7 +118,6 @@ public class TomcatRTMPTLoader extends TomcatLoader implements
 	//	log.debug("RTMPT setContext");
 	//	this.context = context;
 	//}
-
 	public void setContext(Map<String, String> contextMap) {
 		log.debug("RTMPT setContext (map)");
 		context = embedded.createContext(contextMap.get("path"), contextMap
@@ -143,7 +142,7 @@ public class TomcatRTMPTLoader extends TomcatLoader implements
 	 */
 	public void setMappings(Map<String, String> mappings) {
 		log.debug("Servlet mappings: " + mappings.size());
-		for (String key : (Set<String>) mappings.keySet()) {
+		for (String key : mappings.keySet()) {
 			context.addServletMapping(mappings.get(key), key);
 		}
 	}

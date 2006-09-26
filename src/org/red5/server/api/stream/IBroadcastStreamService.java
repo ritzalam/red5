@@ -26,7 +26,7 @@ import org.red5.server.api.IScope;
 public interface IBroadcastStreamService {
 
 	public final static String BROADCAST_STREAM_SERVICE = "broadcastStreamService";
-	
+
 	/**
 	 * Does the scope have a broadcast stream registered with a given name
 	 * 
@@ -57,5 +57,5 @@ public interface IBroadcastStreamService {
 	 * @return set containing all broadcast names
 	 */
 	public List<String> getBroadcastStreamNames(IScope scope);
-	
+
 }

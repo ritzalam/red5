@@ -35,21 +35,28 @@ import org.apache.commons.logging.LogFactory;
 public class InMemoryPullPullPipe extends AbstractPipe {
 	private static final Log log = LogFactory
 			.getLog(InMemoryPullPullPipe.class);
-	
+
+	@Override
 	public boolean subscribe(IConsumer consumer, Map paramMap) {
 		boolean success = super.subscribe(consumer, paramMap);
-		if (success) fireConsumerConnectionEvent(consumer, PipeConnectionEvent.CONSUMER_CONNECT_PULL, paramMap);
+		if (success) {
+			fireConsumerConnectionEvent(consumer,
+					PipeConnectionEvent.CONSUMER_CONNECT_PULL, paramMap);
+		}
 		return success;
 	}
 
+	@Override
 	public boolean subscribe(IProvider provider, Map paramMap) {
 		if (!(provider instanceof IPullableProvider)) {
-			throw new IllegalArgumentException("Non-pullable provider not supported by PullPullPipe");
+			throw new IllegalArgumentException(
+					"Non-pullable provider not supported by PullPullPipe");
 		}
 		boolean success = super.subscribe(provider, paramMap);
-		if (success)
+		if (success) {
 			fireProviderConnectionEvent(provider,
 					PipeConnectionEvent.PROVIDER_CONNECT_PULL, paramMap);
+		}
 		return success;
 	}
 
@@ -57,14 +64,15 @@ public class InMemoryPullPullPipe extends AbstractPipe {
 		IMessage message = null;
 		IPullableProvider[] providerArray = null;
 		synchronized (providers) {
-			providerArray = providers.toArray(new IPullableProvider[]{});
+			providerArray = providers.toArray(new IPullableProvider[] {});
 		}
-		for (IPullableProvider provider: providerArray) {
+		for (IPullableProvider provider : providerArray) {
 			// choose the first available provider
 			try {
 				message = provider.pullMessage(this);
-				if (message != null)
+				if (message != null) {
 					break;
+				}
 			} catch (Throwable t) {
 				log.error("exception when pulling message from provider", t);
 			}
@@ -76,17 +84,18 @@ public class InMemoryPullPullPipe extends AbstractPipe {
 		IMessage message = null;
 		IPullableProvider[] providerArray = null;
 		synchronized (providers) {
-			providerArray = providers.toArray(new IPullableProvider[]{});
+			providerArray = providers.toArray(new IPullableProvider[] {});
 		}
 		// divided evenly
 		long averageWait = providerArray.length > 0 ? wait
 				/ providerArray.length : 0;
 		// choose the first available provider
-		for (IPullableProvider provider: providerArray) {
+		for (IPullableProvider provider : providerArray) {
 			try {
 				message = provider.pullMessage(this, averageWait);
-				if (message != null)
+				if (message != null) {
 					break;
+				}
 			} catch (Throwable t) {
 				log.error("exception when pulling message from provider", t);
 			}

@@ -46,7 +46,7 @@ public interface IServiceHandlerProvider {
 	 * 			the handler object
 	 */
 	public void registerServiceHandler(String name, Object handler);
-	
+
 	/**
 	 * Unregister service handler.
 	 * 
@@ -54,7 +54,7 @@ public interface IServiceHandlerProvider {
 	 * 			the name of the handler
 	 */
 	public void unregisterServiceHandler(String name);
-	
+
 	/**
 	 * Return a previously registered service handler.
 	 * 

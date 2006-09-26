@@ -37,17 +37,23 @@ import org.springframework.core.style.ToStringCreator;
  */
 public class SimpleBandwidthConfigure implements IBandwidthConfigure {
 	private long audioBandwidth;
+
 	private long videoBandwidth;
+
 	private long overallBandwidth = -1;
+
 	private long upstreamBandwidth = -1;
+
 	private long downstreamBandwidth = -1;
+
 	private long burst = 0;
+
 	private long maxBurst = 0;
-	
+
 	public SimpleBandwidthConfigure() {
-		
+
 	}
-	
+
 	public SimpleBandwidthConfigure(IBandwidthConfigure config) {
 		this.audioBandwidth = config.getAudioBandwidth();
 		this.videoBandwidth = config.getVideoBandwidth();
@@ -55,19 +61,19 @@ public class SimpleBandwidthConfigure implements IBandwidthConfigure {
 		this.upstreamBandwidth = config.getUpstreamBandwidth();
 		this.downstreamBandwidth = config.getDownstreamBandwidth();
 	}
-	
+
 	public long getAudioBandwidth() {
 		return audioBandwidth;
 	}
-	
+
 	public void setAudioBandwidth(long audioBandwidth) {
 		this.audioBandwidth = audioBandwidth;
 	}
-	
+
 	public long getVideoBandwidth() {
 		return videoBandwidth;
 	}
-	
+
 	public void setVideoBandwidth(long videoBandwidth) {
 		this.videoBandwidth = videoBandwidth;
 	}
@@ -110,17 +116,17 @@ public class SimpleBandwidthConfigure implements IBandwidthConfigure {
 
 	public void setMaxBurst(long maxBurst) {
 		this.maxBurst = maxBurst;
-	}	
-	
-	public String toString(){
-		return new ToStringCreator(this)
-			.append("ALL",getOverallBandwidth())
-			.append("BURST",getBurst())
-			.append("MAX",getMaxBurst())
-			.toString();
 	}
-	
-	public IBandwidthConfigure clone(){
+
+	@Override
+	public String toString() {
+		return new ToStringCreator(this).append("ALL", getOverallBandwidth())
+				.append("BURST", getBurst()).append("MAX", getMaxBurst())
+				.toString();
+	}
+
+	@Override
+	public IBandwidthConfigure clone() {
 		IBandwidthConfigure clone = new SimpleBandwidthConfigure();
 		clone.setOverallBandwidth(getOverallBandwidth());
 		clone.setAudioBandwidth(getAudioBandwidth());
@@ -129,5 +135,5 @@ public class SimpleBandwidthConfigure implements IBandwidthConfigure {
 		clone.setBurst(getBurst());
 		return clone;
 	}
-	
+
 }

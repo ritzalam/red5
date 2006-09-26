@@ -42,8 +42,9 @@ import org.red5.server.api.event.IEvent;
 public class ServletConnection extends AttributeStore implements IConnection {
 
 	protected IScope scope;
+
 	protected HttpServletRequest request;
-	
+
 	public ServletConnection(HttpServletRequest request, IScope scope) {
 		this.request = request;
 		this.scope = scope;
@@ -52,7 +53,7 @@ public class ServletConnection extends AttributeStore implements IConnection {
 	private void notSupported() {
 		throw new RuntimeException("not supported for this type of connection");
 	}
-	
+
 	public String getType() {
 		return IConnection.TRANSIENT;
 	}
@@ -82,7 +83,7 @@ public class ServletConnection extends AttributeStore implements IConnection {
 	public Map<String, String> getConnectParams() {
 		return new HashMap<String, String>();
 	}
-	
+
 	public IClient getClient() {
 		return null;
 	}
@@ -101,10 +102,12 @@ public class ServletConnection extends AttributeStore implements IConnection {
 
 	public String getPath() {
 		String path = request.getContextPath();
-		if (request.getPathInfo() != null)
+		if (request.getPathInfo() != null) {
 			path += request.getPathInfo();
-		if (path.startsWith("/"))
+		}
+		if (path.startsWith("/")) {
 			path = path.substring(1);
+		}
 		return path;
 	}
 

@@ -84,13 +84,16 @@ public class BshScriptFactory implements ScriptFactory {
 	 * Load and parse the BeanShell script via {@link BshScriptUtils}.
 	 * @see BshScriptUtils#createBshObject(String, Class[])
 	 */
-	public Object getScriptedObject(ScriptSource actualScriptSource, Class[] actualInterfaces)
-			throws IOException, ScriptCompilationException {
+	public Object getScriptedObject(ScriptSource actualScriptSource,
+			Class[] actualInterfaces) throws IOException,
+			ScriptCompilationException {
 		try {
-			return BshScriptUtils.createBshObject(actualScriptSource.getScriptAsString(), actualInterfaces);
-		}
-		catch (EvalError ex) {
-			throw new ScriptCompilationException("Could not compile BeanShell script: " + actualScriptSource, ex);
+			return BshScriptUtils.createBshObject(actualScriptSource
+					.getScriptAsString(), actualInterfaces);
+		} catch (EvalError ex) {
+			throw new ScriptCompilationException(
+					"Could not compile BeanShell script: " + actualScriptSource,
+					ex);
 		}
 	}
 

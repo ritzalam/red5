@@ -57,7 +57,7 @@ public class WhirlyCacheImpl implements ICacheStore, ApplicationContextAware {
 
 	public void setApplicationContext(ApplicationContext context)
 			throws BeansException {
-		this.applicationContext = context;
+		WhirlyCacheImpl.applicationContext = context;
 	}
 
 	public static ApplicationContext getApplicationContext() {

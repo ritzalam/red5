@@ -43,12 +43,12 @@ import org.red5.io.object.Output;
  */
 
 public interface IPersistable {
-	
+
 	/**
 	 * Prefix for attribute names that should not be made persistent.
 	 */
 	public static final String TRANSIENT_PREFIX = "_transient";
-	
+
 	/**
 	 * Returns <code>true</code> if the object is persistent,
 	 * <code>false</code> otherwise.
@@ -71,7 +71,7 @@ public interface IPersistable {
 	 * @return the name of the object
 	 */
 	public String getName();
-	
+
 	/**
 	 * Set the name of the persistent object.
 	 * 
@@ -79,14 +79,14 @@ public interface IPersistable {
 	 * 		the new name of the object
 	 */
 	public void setName(String name);
-	
+
 	/**
 	 * Returns the type of the persistent object.
 	 * 
 	 * @return the type of the object
 	 */
 	public String getType();
-	
+
 	/**
 	 * Returns the path of the persistent object.
 	 * 
@@ -101,7 +101,7 @@ public interface IPersistable {
 	 * 		the new path of the object
 	 */
 	public void setPath(String path);
-	
+
 	/**
 	 * Returns the timestamp when the object was last modified.
 	 * 
@@ -115,7 +115,7 @@ public interface IPersistable {
 	 * @return the store for this object
 	 */
 	public IPersistenceStore getStore();
-	
+
 	/**
 	 * Store a reference to the persistence store in the object.
 	 * 
@@ -123,7 +123,7 @@ public interface IPersistable {
 	 * 		the store the object is saved in
 	 */
 	void setStore(IPersistenceStore store);
-	
+
 	/**
 	 * Write the object to the passed output stream.
 	 * 
@@ -131,7 +131,7 @@ public interface IPersistable {
 	 * 		the output stream to write to
 	 */
 	void serialize(Output output) throws IOException;
-	
+
 	/**
 	 * Load the object from the passed input stream.
 	 * 
@@ -139,5 +139,5 @@ public interface IPersistable {
 	 * 		the input stream to load from
 	 */
 	void deserialize(Input input) throws IOException;
-	
+
 }

@@ -20,18 +20,19 @@ package org.red5.server.net.rtmp.event;
  */
 
 public class ChunkSize extends BaseEvent {
-		
+
 	private int size = 0;
-	
-	public ChunkSize(int size){
+
+	public ChunkSize(int size) {
 		super(Type.SYSTEM);
 		this.size = size;
 	}
 
+	@Override
 	public byte getDataType() {
 		return TYPE_CHUNK_SIZE;
 	}
-	
+
 	public int getSize() {
 		return size;
 	}
@@ -43,23 +44,27 @@ public class ChunkSize extends BaseEvent {
 	protected void doRelease() {
 		size = 0;
 	}
-	
-	public String toString(){
-		return "ChunkSize: "+size;
+
+	@Override
+	public String toString() {
+		return "ChunkSize: " + size;
 	}
-	
-	public boolean equals(Object obj){
-		if (!(obj instanceof ChunkSize))
+
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof ChunkSize)) {
 			return false;
+		}
 		final ChunkSize other = (ChunkSize) obj;
 		return getSize() == other.getSize();
 	}
-	
+
 	@Override
 	protected void releaseInternal() {
-		
+
 	}
-	
+
+	@Override
 	public int hashCode() {
 		// XXX Paul: use timestamp as the hash instead of Object.hashCode()
 		return timestamp;

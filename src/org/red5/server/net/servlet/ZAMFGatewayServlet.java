@@ -39,102 +39,103 @@ import org.apache.mina.transport.vmpipe.VmPipeConnector;
 import org.mortbay.util.ajax.Continuation;
 import org.mortbay.util.ajax.ContinuationSupport;
 
-
 public class ZAMFGatewayServlet extends HttpServlet {
 
-	protected static Log log =
-        LogFactory.getLog(ZAMFGatewayServlet.class.getName());
-	
+	protected static Log log = LogFactory.getLog(ZAMFGatewayServlet.class
+			.getName());
+
 	public static final String APPLICATION_AMF = "application/x-amf";
-	
-	protected void service(HttpServletRequest req, HttpServletResponse resp) 
-		throws ServletException, IOException {
-		
+
+	@Override
+	protected void service(HttpServletRequest req, HttpServletResponse resp)
+			throws ServletException, IOException {
+
 		Continuation cont = ContinuationSupport.getContinuation(req, this);
-		if(cont.isNew()){
+		if (cont.isNew()) {
 			// read the packet and send it down the connection to the app
 		}
-		
+
 		log.info("Service");
-		
+
 		if (req.getContentLength() == 0 || req.getContentType() == null
-				|| ! req.getContentType().equals(APPLICATION_AMF )){ 
+				|| !req.getContentType().equals(APPLICATION_AMF)) {
 			resp.setStatus(HttpServletResponse.SC_OK);
 			resp.getWriter().write("Gateway");
 			resp.flushBuffer();
 			return;
 		}
-		
-		ByteBuffer reqBuffer = null;
-		ByteBuffer respBuffer = null;
-		
-		try {
-			
-			//req.getSession().getAttribute(REMOTING_CONNECTOR);
-			
-			reqBuffer = ByteBuffer.allocate(req.getContentLength());
-			ServletUtils.copy(req.getInputStream(),reqBuffer.asOutputStream());
-			reqBuffer.flip();
-			
-			 // Connect to the server.
-	        VmPipeConnector connector = new VmPipeConnector();
-	        
-	       // IoHandlerAdapter handler = 
-	        
-	        VmPipeAddress address = new VmPipeAddress( 5080 );
-		    
-	        IoHandler handler = new Handler(req, resp);
-	        ConnectFuture connectFuture = connector.connect(address, handler);
-	        connectFuture.join();
-	        IoSession session = connectFuture.getSession();
-	        session.setAttachment(resp);
 
-	        session.write(reqBuffer);
-			
-	        ContinuationSupport.getContinuation(req, handler).suspend(1000); 
-			
+		ByteBuffer reqBuffer = null;
+		try {
+
+			//req.getSession().getAttribute(REMOTING_CONNECTOR);
+
+			reqBuffer = ByteBuffer.allocate(req.getContentLength());
+			ServletUtils.copy(req.getInputStream(), reqBuffer.asOutputStream());
+			reqBuffer.flip();
+
+			// Connect to the server.
+			VmPipeConnector connector = new VmPipeConnector();
+
+			// IoHandlerAdapter handler = 
+
+			VmPipeAddress address = new VmPipeAddress(5080);
+
+			IoHandler handler = new Handler(req, resp);
+			ConnectFuture connectFuture = connector.connect(address, handler);
+			connectFuture.join();
+			IoSession session = connectFuture.getSession();
+			session.setAttachment(resp);
+
+			session.write(reqBuffer);
+
+			ContinuationSupport.getContinuation(req, handler).suspend(1000);
+
 		} catch (IOException e) {
-		
+
 			e.printStackTrace();
-		
+
 		} finally {
-						
+
 		}
 		log.info("End");
 	}
-	
+
 	protected class Handler extends IoHandlerAdapter {
 
 		protected HttpServletResponse resp;
+
 		protected HttpServletRequest req;
-		
-		public Handler(HttpServletRequest req, HttpServletResponse resp){
+
+		public Handler(HttpServletRequest req, HttpServletResponse resp) {
 			this.req = req;
 			this.resp = resp;
 		}
-	
+
+		@Override
 		public void messageReceived(IoSession session, Object message)
 				throws Exception {
 			log.info("<< message " + message);
-			
-			if(message instanceof ByteBuffer){
+
+			if (message instanceof ByteBuffer) {
 				final Continuation cont = ContinuationSupport.getContinuation(
 						req, this);
-				if (cont.isPending())
+				if (cont.isPending()) {
 					cont.resume();
+				}
 				try {
 					final ServletOutputStream out = resp.getOutputStream();
 					ByteBuffer buf = (ByteBuffer) message;
 					resp.setStatus(HttpServletResponse.SC_OK);
 					resp.setContentType(req.getContentType());
-			        resp.setContentLength(buf.limit());
-					ServletUtils.copy(buf.asInputStream(),out);
+					resp.setContentLength(buf.limit());
+					ServletUtils.copy(buf.asInputStream(), out);
 					out.flush();
 					out.close();
 				} catch (IOException e) {
-					log.error("Error sending response",e);
-				} 
-			}	
+					log.error("Error sending response", e);
+				}
+			}
 		}
 	}
 

@@ -32,8 +32,8 @@ import org.red5.server.api.IScope;
  * @author daccattato
  *
  */
-public interface IApplication  {
-	
+public interface IApplication {
+
 	/**
 	 * Called once when application or room starts
 	 * 
@@ -44,7 +44,7 @@ public interface IApplication  {
 	 *         terminates
 	 */
 	public boolean appStart(IScope app);
-	
+
 	/**
 	 * Called per each client connect
 	 * 
@@ -58,7 +58,7 @@ public interface IApplication  {
 	 *         rejects it
 	 */
 	public boolean appConnect(IConnection conn, Object[] params);
-	
+
 	/**
 	 * Called every time client joins app level scope
 	 * 
@@ -70,7 +70,7 @@ public interface IApplication  {
 	 *         rejects it
 	 */
 	public boolean appJoin(IClient client, IScope app);
-	
+
 	/**
 	 * Called every time client disconnects from the application
 	 * 
@@ -78,7 +78,7 @@ public interface IApplication  {
 	 *            Connection object See {@link org.red5.server.api.IConnection}
 	 */
 	public void appDisconnect(IConnection conn);
-	
+
 	/**
 	 * Called every time client leaves the application scope
 	 * 
@@ -88,7 +88,7 @@ public interface IApplication  {
 	 *            Scope object
 	 */
 	public void appLeave(IClient client, IScope app);
-	
+
 	/**
 	 * Called on application stop
 	 * 
@@ -96,7 +96,7 @@ public interface IApplication  {
 	 *            Scope object
 	 */
 	public void appStop(IScope app);
-	
+
 	/**
 	 * Called on application room start
 	 * 
@@ -106,7 +106,7 @@ public interface IApplication  {
 	 *         otherwise
 	 */
 	public boolean roomStart(IScope room);
-	
+
 	/**
 	 * Called every time client connects to the room
 	 * 
@@ -119,7 +119,7 @@ public interface IApplication  {
 	 *         rejects it
 	 */
 	public boolean roomConnect(IConnection conn, Object[] params);
-	
+
 	/**
 	 * Called when user joins room scope
 	 * 
@@ -131,7 +131,7 @@ public interface IApplication  {
 	 *         rejects it
 	 */
 	public boolean roomJoin(IClient client, IScope room);
-	
+
 	/**
 	 * Called when client disconnects from room  scope
 	 * 
@@ -140,7 +140,7 @@ public interface IApplication  {
 	 *            See {@link org.red5.server.api.IConnection}
 	 */
 	public void roomDisconnect(IConnection conn);
-	
+
 	/**
 	 * Called when user leaves room scope
 	 * 
@@ -150,7 +150,7 @@ public interface IApplication  {
 	 *            Scope object
 	 */
 	public void roomLeave(IClient client, IScope room);
-	
+
 	/**
 	 * Called on room scope stop
 	 * 
@@ -158,5 +158,5 @@ public interface IApplication  {
 	 *            Scope object
 	 */
 	public void roomStop(IScope room);
-	
+
 }

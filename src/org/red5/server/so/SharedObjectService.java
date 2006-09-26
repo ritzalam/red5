@@ -47,11 +47,11 @@ public class SharedObjectService implements ISharedObjectService {
 			+ "_SO_TRANSIENT_STORE_";
 
 	private String persistenceClassName = "org.red5.server.persistence.RamPersistence";
-	
+
 	public void setPersistenceClassName(String name) {
 		persistenceClassName = name;
 	}
-	
+
 	private IPersistenceStore getStore(IScope scope, boolean persistent) {
 		IPersistenceStore store;
 		if (!persistent) {
@@ -61,10 +61,10 @@ public class SharedObjectService implements ISharedObjectService {
 				scope.setAttribute(SO_TRANSIENT_STORE, store);
 				return store;
 			}
-			
+
 			return (IPersistenceStore) scope.getAttribute(SO_TRANSIENT_STORE);
 		}
-		
+
 		// Evaluate configuration for persistent shared objects
 		if (!scope.hasAttribute(SO_PERSISTENCE_STORE)) {
 			try {
@@ -73,50 +73,56 @@ public class SharedObjectService implements ISharedObjectService {
 				log.info("Created persistence store " + store
 						+ " for shared objects.");
 			} catch (Exception err) {
-				log.error("Could not create persistence store for shared objects, falling back to Ram persistence.", err);
+				log
+						.error(
+								"Could not create persistence store for shared objects, falling back to Ram persistence.",
+								err);
 				store = new RamPersistence(scope);
 			}
 			scope.setAttribute(SO_PERSISTENCE_STORE, store);
 			return store;
 		}
-		
+
 		return (IPersistenceStore) scope.getAttribute(SO_PERSISTENCE_STORE);
 	}
-	
+
 	public boolean createSharedObject(IScope scope, String name,
 			boolean persistent) {
-		if (hasSharedObject(scope, name))
+		if (hasSharedObject(scope, name)) {
 			// The shared object already exists.
 			return true;
-			
+		}
+
 		final IBasicScope soScope = new SharedObjectScope(scope, name,
 				persistent, getStore(scope, persistent));
 		return scope.addChildScope(soScope);
 	}
 
 	public ISharedObject getSharedObject(IScope scope, String name) {
-		return (ISharedObject) scope.getBasicScope(TYPE,name);
+		return (ISharedObject) scope.getBasicScope(TYPE, name);
 	}
 
 	public ISharedObject getSharedObject(IScope scope, String name,
 			boolean persistent) {
-		if (!hasSharedObject(scope, name))
+		if (!hasSharedObject(scope, name)) {
 			createSharedObject(scope, name, persistent);
+		}
 		return getSharedObject(scope, name);
 	}
 
 	public Set<String> getSharedObjectNames(IScope scope) {
 		Set<String> result = new HashSet<String>();
 		Iterator<String> iter = scope.getBasicScopeNames(TYPE);
-		while (iter.hasNext())
+		while (iter.hasNext()) {
 			result.add(iter.next());
+		}
 		return result;
 	}
 
 	public boolean hasSharedObject(IScope scope, String name) {
-		return scope.hasChildScope(TYPE,name);
+		return scope.hasChildScope(TYPE, name);
 	}
-	
+
 	public boolean clearSharedObjects(IScope scope, String name) {
 		boolean result = false;
 		if (hasSharedObject(scope, name)) {

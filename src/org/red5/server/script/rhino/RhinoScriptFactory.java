@@ -49,7 +49,7 @@ public class RhinoScriptFactory implements ScriptFactory {
 	private final String scriptSourceLocator;
 
 	private final Class[] scriptInterfaces;
-	
+
 	private final Class extendedClass;
 
 	private ScriptObjectContext scriptContext;
@@ -57,7 +57,7 @@ public class RhinoScriptFactory implements ScriptFactory {
 	public RhinoScriptFactory(String scriptSourceLocator) {
 		Assert.hasText(scriptSourceLocator);
 		this.scriptSourceLocator = scriptSourceLocator;
-		this.scriptInterfaces = new Class[]{};
+		this.scriptInterfaces = new Class[] {};
 		this.extendedClass = null;
 	}
 
@@ -66,7 +66,7 @@ public class RhinoScriptFactory implements ScriptFactory {
 		this.scriptSourceLocator = scriptSourceLocator;
 		this.extendedClass = null;
 		if (null == scriptInterface) {
-			this.scriptInterfaces = new Class[]{};
+			this.scriptInterfaces = new Class[] {};
 		} else {
 			this.scriptInterfaces = new Class[] { scriptInterface };
 		}
@@ -94,12 +94,12 @@ public class RhinoScriptFactory implements ScriptFactory {
 		this.scriptSourceLocator = scriptSourceLocator;
 		this.extendedClass = null;
 		if (null == scriptInterfaces || scriptInterfaces.length < 1) {
-			this.scriptInterfaces = new Class[]{};
+			this.scriptInterfaces = new Class[] {};
 		} else {
 			this.scriptInterfaces = scriptInterfaces;
 		}
 	}
-	
+
 	public RhinoScriptFactory(String scriptSourceLocator,
 			Class[] scriptInterfaces, Class extendedClass) {
 		Assert.hasText(scriptSourceLocator);
@@ -107,11 +107,11 @@ public class RhinoScriptFactory implements ScriptFactory {
 		this.scriptSourceLocator = scriptSourceLocator;
 		this.extendedClass = extendedClass;
 		if (null == scriptInterfaces || scriptInterfaces.length < 1) {
-			this.scriptInterfaces = new Class[]{};
+			this.scriptInterfaces = new Class[] {};
 		} else {
 			this.scriptInterfaces = scriptInterfaces;
 		}
-	}	
+	}
 
 	public ScriptObjectContext getScriptContext() {
 		return scriptContext;
@@ -155,5 +155,5 @@ public class RhinoScriptFactory implements ScriptFactory {
 					"Could not compile Rhino script: " + actualScriptSource, ex);
 		}
 	}
-	
+
 }

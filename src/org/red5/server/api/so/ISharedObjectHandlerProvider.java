@@ -38,10 +38,10 @@ public interface ISharedObjectHandlerProvider extends IServiceHandlerProvider {
 	 * 			the handler object
 	 */
 	public void registerServiceHandler(Object handler);
-	
+
 	/**
 	 * Unregister the shared object handler for calls without a service name.
 	 */
 	public void unregisterServiceHandler(String name);
-	
+
 }

@@ -56,7 +56,8 @@ public class JRubyScriptFactory implements ScriptFactory {
 	 * or the supplied <code>scriptSourceLocator</code> argument is composed wholly of whitespace;
 	 * or if the supplied <code>scriptInterfaces</code> argument array has no elements
 	 */
-	public JRubyScriptFactory(String scriptSourceLocator, Class[] scriptInterfaces) {
+	public JRubyScriptFactory(String scriptSourceLocator,
+			Class[] scriptInterfaces) {
 		Assert.hasText(scriptSourceLocator);
 		Assert.notEmpty(scriptInterfaces);
 		this.scriptSourceLocator = scriptSourceLocator;
@@ -83,13 +84,15 @@ public class JRubyScriptFactory implements ScriptFactory {
 	 * Load and parse the JRuby script via JRubyScriptUtils.
 	 * @see JRubyScriptUtils#createJRubyObject(String, Class[])
 	 */
-	public Object getScriptedObject(ScriptSource actualScriptSource, Class[] actualInterfaces)
-			throws IOException, ScriptCompilationException {
+	public Object getScriptedObject(ScriptSource actualScriptSource,
+			Class[] actualInterfaces) throws IOException,
+			ScriptCompilationException {
 		try {
-			return JRubyScriptUtils.createJRubyObject(actualScriptSource.getScriptAsString(), actualInterfaces);
-		}
-		catch (JumpException ex) {
-			throw new ScriptCompilationException("Could not compile JRuby script: " + actualScriptSource, ex);
+			return JRubyScriptUtils.createJRubyObject(actualScriptSource
+					.getScriptAsString(), actualInterfaces);
+		} catch (JumpException ex) {
+			throw new ScriptCompilationException(
+					"Could not compile JRuby script: " + actualScriptSource, ex);
 		}
 	}
 

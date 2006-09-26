@@ -5,6 +5,7 @@ import javax.sound.midi.MidiMessage;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Receiver;
+import javax.sound.midi.MidiDevice.Info;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -17,23 +18,23 @@ public class Test {
 	public static void main(String[] args) throws Exception {
 		Test t = new Test();
 	}
-	
-	public static MidiDevice getMidiDevice(String name){
-		
+
+	public static MidiDevice getMidiDevice(String name) {
+
 		MidiDevice.Info[] info = MidiSystem.getMidiDeviceInfo();
-		
-		for (int i = 0; i < info.length; i++) {
-			if(info[i].getName().equals(name)) {
+
+		for (Info element : info) {
+			if (element.getName().equals(name)) {
 				try {
-					return MidiSystem.getMidiDevice(info[i]);
+					return MidiSystem.getMidiDevice(element);
 				} catch (MidiUnavailableException e) {
 					e.printStackTrace();
 				}
 			}
 		}
-		
+
 		return null;
-		
+
 	}
 
 	public Test() throws Exception {
@@ -53,10 +54,12 @@ public class Test {
 		public void send(MidiMessage midi, long time) {
 			byte[] msg = midi.getMessage();
 			int len = midi.getLength();
-			if(len <= 1) return; 
-			String out = "Status: "+msg[0]+" Data: [";
-			for(int i=1; i<len; i++){
-				out += msg[i] + ((i==len-1) ? "" : ","); 
+			if (len <= 1) {
+				return;
+			}
+			String out = "Status: " + msg[0] + " Data: [";
+			for (int i = 1; i < len; i++) {
+				out += msg[i] + ((i == len - 1) ? "" : ",");
 			}
 			out += "]";
 			log.debug(out);

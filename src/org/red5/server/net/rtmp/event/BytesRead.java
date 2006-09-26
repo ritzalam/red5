@@ -20,19 +20,20 @@ package org.red5.server.net.rtmp.event;
  */
 
 public class BytesRead extends BaseEvent {
-	
+
 	private int bytesRead = 0;
 
-	public BytesRead(int bytesRead){
+	public BytesRead(int bytesRead) {
 		super(Type.STREAM_CONTROL);
 		this.bytesRead = bytesRead;
 	}
-	
+
+	@Override
 	public byte getDataType() {
 		return TYPE_BYTES_READ;
 	}
-	
-	public int getBytesRead(){
+
+	public int getBytesRead() {
 		return bytesRead;
 	}
 
@@ -43,14 +44,15 @@ public class BytesRead extends BaseEvent {
 	protected void doRelease() {
 		bytesRead = 0;
 	}
-	
-	public String toString(){
-		return "StreamBytesRead: "+bytesRead;
+
+	@Override
+	public String toString() {
+		return "StreamBytesRead: " + bytesRead;
 	}
-	
+
 	@Override
 	protected void releaseInternal() {
-		
+
 	}
-	
+
 }

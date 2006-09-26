@@ -34,83 +34,94 @@ import org.springframework.core.style.ToStringCreator;
 public class Server implements IServer, ApplicationContextAware {
 
 	// Initialize Logging
-	protected static Log log =
-        LogFactory.getLog(Server.class.getName());
-	
-	protected HashMap<String,IGlobalScope> globals = new HashMap<String,IGlobalScope>();
-	protected HashMap<String, String> mapping = new HashMap<String,String>();
+	protected static Log log = LogFactory.getLog(Server.class.getName());
+
+	protected HashMap<String, IGlobalScope> globals = new HashMap<String, IGlobalScope>();
+
+	protected HashMap<String, String> mapping = new HashMap<String, String>();
+
 	protected ApplicationContext applicationContext;
+
 	private static final String SLASH = "/";
+
 	private static final String EMPTY = "";
-	
+
 	public void setApplicationContext(ApplicationContext applicationContext) {
 		this.applicationContext = applicationContext;
 	}
-	
-	protected String getKey(String hostName, String contextPath){
-		if (hostName == null)
+
+	protected String getKey(String hostName, String contextPath) {
+		if (hostName == null) {
 			hostName = EMPTY;
-		if (contextPath == null)
+		}
+		if (contextPath == null) {
 			contextPath = EMPTY;
-		return hostName +SLASH+ contextPath;
+		}
+		return hostName + SLASH + contextPath;
 	}
 
-	public IGlobalScope lookupGlobal(String hostName, String contextPath){
+	public IGlobalScope lookupGlobal(String hostName, String contextPath) {
 		String key = getKey(hostName, contextPath);
-		while(contextPath.indexOf(SLASH) != -1){
+		while (contextPath.indexOf(SLASH) != -1) {
 			key = getKey(hostName, contextPath);
-			log.debug("Check: "+key);
-			if (mapping.containsKey(key))
+			log.debug("Check: " + key);
+			if (mapping.containsKey(key)) {
 				return getGlobal(mapping.get(key));
+			}
 			contextPath = contextPath.substring(0, contextPath
 					.lastIndexOf(SLASH));
 		}
 		key = getKey(hostName, contextPath);
-		log.debug("Check host and path: "+key);
-		if (mapping.containsKey(key))
+		log.debug("Check host and path: " + key);
+		if (mapping.containsKey(key)) {
 			return getGlobal(mapping.get(key));
+		}
 		key = getKey(EMPTY, contextPath);
-		log.debug("Check wildcard host with path: "+key);
-		if (mapping.containsKey(key))
+		log.debug("Check wildcard host with path: " + key);
+		if (mapping.containsKey(key)) {
 			return getGlobal(mapping.get(key));
+		}
 		key = getKey(hostName, EMPTY);
-		log.debug("Check host with no path: "+key);
-		if (mapping.containsKey(key))
+		log.debug("Check host with no path: " + key);
+		if (mapping.containsKey(key)) {
 			return getGlobal(mapping.get(key));
+		}
 		key = getKey(EMPTY, EMPTY);
-		log.debug("Check default host, default path: "+key);
+		log.debug("Check default host, default path: " + key);
 		return getGlobal(mapping.get(key));
 	}
-	
+
 	public IGlobalScope getGlobal(String name) {
 		return globals.get(name);
 	}
 
 	public void registerGlobal(IGlobalScope scope) {
-		log.info("Registering global scope: "+scope.getName());
-		globals.put(scope.getName(),scope);
+		log.info("Registering global scope: " + scope.getName());
+		globals.put(scope.getName(), scope);
 	}
 
 	public boolean addMapping(String hostName, String contextPath,
 			String globalName) {
 		final String key = getKey(hostName, contextPath);
-		log.debug("Add mapping: "+key+" => "+globalName);
-		if (mapping.containsKey(key))
+		log.debug("Add mapping: " + key + " => " + globalName);
+		if (mapping.containsKey(key)) {
 			return false;
+		}
 		mapping.put(key, globalName);
 		return true;
 	}
-	
-	public boolean removeMapping(String hostName, String contextPath){
+
+	public boolean removeMapping(String hostName, String contextPath) {
 		final String key = getKey(hostName, contextPath);
-		log.debug("Remove mapping: "+key);
-		if (!mapping.containsKey(key))
+		log.debug("Remove mapping: " + key);
+		if (!mapping.containsKey(key)) {
 			return false;
+		}
 		mapping.remove(key);
 		return true;
 	}
-	
-	public Map<String,String> getMappingTable(){
+
+	public Map<String, String> getMappingTable() {
 		return mapping;
 	}
 
@@ -121,8 +132,9 @@ public class Server implements IServer, ApplicationContextAware {
 	public Iterator<IGlobalScope> getGlobalScopes() {
 		return globals.values().iterator();
 	}
-	
-	public String toString(){
+
+	@Override
+	public String toString() {
 		return new ToStringCreator(this).append(mapping).toString();
 	}
 

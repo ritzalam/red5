@@ -20,7 +20,7 @@ package org.red5.server.api.stream;
  */
 
 public interface IStreamHandler {
-	
+
 	/**
 	 * Called when the client begins publishing
 	 * 

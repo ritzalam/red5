@@ -28,32 +28,34 @@ import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.message.Header;
 import org.red5.server.net.rtmp.message.Packet;
 import org.red5.server.net.rtmp.status.Status;
+import org.red5.server.net.rtmp.status.StatusCodes;
 import org.red5.server.service.Call;
 import org.red5.server.service.PendingCall;
 
 public class Channel {
 
-	protected static Log log =
-        LogFactory.getLog(Channel.class.getName());
-	
+	protected static Log log = LogFactory.getLog(Channel.class.getName());
+
 	private RTMPConnection connection = null;
+
 	private byte id = 0;
+
 	//private Stream stream;
 
-	public Channel(RTMPConnection conn, byte channelId){
+	public Channel(RTMPConnection conn, byte channelId) {
 		connection = conn;
 		id = channelId;
 	}
-	
+
 	public void close() {
 		connection.closeChannel(id);
 	}
-	
-	public byte getId(){
+
+	public byte getId() {
 		return id;
 	}
-	
-	public void write(IRTMPEvent event){
+
+	public void write(IRTMPEvent event) {
 		final IClientStream stream = connection.getStreamByChannelId(id);
 		if (id > 3 && stream == null) {
 			log.info("Stream doesn't exist any longer, discarding message "
@@ -61,30 +63,31 @@ public class Channel {
 			return;
 		}
 
-		final int streamId = ( stream==null ) ? 0 : stream.getStreamId();
+		final int streamId = (stream == null) ? 0 : stream.getStreamId();
 		write(event, streamId);
 	}
-	
-	private void write(IRTMPEvent event, int streamId){
-		
+
+	private void write(IRTMPEvent event, int streamId) {
+
 		final Header header = new Header();
 		final Packet packet = new Packet(header, event);
-		
+
 		header.setChannelId(id);
 		header.setTimer(event.getTimestamp());
 		header.setStreamId(streamId);
 		header.setDataType(event.getDataType());
-		if (event.getHeader() != null)
+		if (event.getHeader() != null) {
 			header.setTimerRelative(event.getHeader().isTimerRelative());
-		
+		}
+
 		// should use RTMPConnection specific method.. 
 		connection.write(packet);
-		
+
 	}
 
 	public void sendStatus(Status status) {
-		final boolean andReturn = !status.getCode()
-				.equals(Status.NS_DATA_START);
+		final boolean andReturn = !status.getCode().equals(
+				StatusCodes.NS_DATA_START);
 		final Invoke invoke;
 		if (andReturn) {
 			final PendingCall call = new PendingCall(null, "onStatus",

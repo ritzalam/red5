@@ -24,10 +24,13 @@ import org.red5.server.messaging.IMessageInput;
 
 public class SimplePlayItem implements IPlayItem {
 	private long length = -1;
+
 	private String name;
+
 	private long start = -2;
+
 	private IMessageInput msgInput;
-	
+
 	/**
 	 * Returns play item length in milliseconds
 	 * 
@@ -36,7 +39,7 @@ public class SimplePlayItem implements IPlayItem {
 	public long getLength() {
 		return length;
 	}
-	
+
 	/**
 	 * Returns IMessageInput object. IMessageInput is an endpoint for a consumer
 	 * to connect.
@@ -46,7 +49,7 @@ public class SimplePlayItem implements IPlayItem {
 	public IMessageInput getMessageInput() {
 		return msgInput;
 	}
-	
+
 	/**
 	 * Returns item name
 	 * 
@@ -55,14 +58,14 @@ public class SimplePlayItem implements IPlayItem {
 	public String getName() {
 		return name;
 	}
-	
+
 	/**
 	 * Returns boolean value that specifies whether item can be played
 	 */
 	public long getStart() {
 		return start;
 	}
-	
+
 	/**
 	 * Alias for getMessageInput
 	 * 

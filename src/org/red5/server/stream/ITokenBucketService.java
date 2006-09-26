@@ -27,7 +27,7 @@ package org.red5.server.stream;
  */
 public interface ITokenBucketService {
 	public static final String KEY = "TokenBucketService";
-	
+
 	/**
 	 * Create a token bucket.
 	 * @param capacity Capacity of the bucket.
@@ -35,7 +35,7 @@ public interface ITokenBucketService {
 	 * @return <tt>null</tt> if fail to create.
 	 */
 	ITokenBucket createTokenBucket(long capacity, long speed);
-	
+
 	/**
 	 * Remove this bucket.
 	 * 

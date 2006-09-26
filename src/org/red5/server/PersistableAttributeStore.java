@@ -33,14 +33,19 @@ import org.red5.server.api.persistence.IPersistenceStore;
 
 public class PersistableAttributeStore extends AttributeStore implements
 		IPersistable {
-	
+
 	protected boolean persistent = true;
+
 	protected String name;
+
 	protected String type;
+
 	protected String path;
+
 	protected long lastModified = -1;
+
 	protected IPersistenceStore store = null;
-	
+
 	public PersistableAttributeStore(String type, String name, String path,
 			boolean persistent) {
 		this.type = type;
@@ -48,13 +53,14 @@ public class PersistableAttributeStore extends AttributeStore implements
 		this.path = path;
 		this.persistent = persistent;
 	}
-	
-	protected void modified(){
+
+	protected void modified() {
 		lastModified = System.currentTimeMillis();
-		if (store != null)
+		if (store != null) {
 			store.save(this);
+		}
 	}
-	
+
 	public boolean isPersistent() {
 		return persistent;
 	}
@@ -74,7 +80,7 @@ public class PersistableAttributeStore extends AttributeStore implements
 	public void setName(String name) {
 		this.name = name;
 	}
-	
+
 	public String getPath() {
 		return path;
 	}
@@ -82,7 +88,7 @@ public class PersistableAttributeStore extends AttributeStore implements
 	public void setPath(String path) {
 		this.path = path;
 	}
-	
+
 	public String getType() {
 		return type;
 	}
@@ -91,9 +97,10 @@ public class PersistableAttributeStore extends AttributeStore implements
 		Serializer serializer = new Serializer();
 		Map<String, Object> persistentAttributes = new HashMap<String, Object>();
 		for (String name : attributes.keySet()) {
-			if (name.startsWith(IPersistable.TRANSIENT_PREFIX))
+			if (name.startsWith(IPersistable.TRANSIENT_PREFIX)) {
 				continue;
-			
+			}
+
 			persistentAttributes.put(name, attributes.get(name));
 		}
 		serializer.serialize(output, persistentAttributes);
@@ -102,46 +109,55 @@ public class PersistableAttributeStore extends AttributeStore implements
 	public void deserialize(Input input) throws IOException {
 		Deserializer deserializer = new Deserializer();
 		Object obj = deserializer.deserialize(input);
-		if (!(obj instanceof Map))
+		if (!(obj instanceof Map)) {
 			throw new IOException("required Map object");
-		
+		}
+
 		attributes.putAll((Map<String, Object>) obj);
 	}
 
 	public void setStore(IPersistenceStore store) {
 		this.store = store;
-		if (store != null)
+		if (store != null) {
 			store.load(this);
+		}
 	}
-	
+
 	public IPersistenceStore getStore() {
 		return store;
 	}
-	
+
+	@Override
 	synchronized public boolean setAttribute(String name, Object value) {
 		boolean result = super.setAttribute(name, value);
-		if (result && !name.startsWith(IPersistable.TRANSIENT_PREFIX))
+		if (result && !name.startsWith(IPersistable.TRANSIENT_PREFIX)) {
 			modified();
+		}
 		return result;
 	}
-	
-	synchronized public void setAttributes(Map<String,Object> values) {
+
+	@Override
+	synchronized public void setAttributes(Map<String, Object> values) {
 		super.setAttributes(values);
 		modified();
 	}
-	
+
+	@Override
 	synchronized public void setAttributes(IAttributeStore values) {
 		super.setAttributes(values);
 		modified();
 	}
-	
+
+	@Override
 	synchronized public boolean removeAttribute(String name) {
 		boolean result = super.removeAttribute(name);
-		if (result && !name.startsWith(IPersistable.TRANSIENT_PREFIX))
+		if (result && !name.startsWith(IPersistable.TRANSIENT_PREFIX)) {
 			modified();
+		}
 		return result;
 	}
-	
+
+	@Override
 	synchronized public void removeAttributes() {
 		super.removeAttributes();
 		modified();

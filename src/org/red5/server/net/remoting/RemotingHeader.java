@@ -31,31 +31,31 @@ package org.red5.server.net.remoting;
  */
 public class RemotingHeader {
 
-	/** Name of header specifying string to add to gateway url. */ 
-	public static String APPEND_TO_GATEWAY_URL = "AppendToGatewayUrl"; 
-	
-	/** Name of header specifying new gateway url to use. */ 
-	public static String REPLACE_GATEWAY_URL = "ReplaceGatewayUrl"; 
+	/** Name of header specifying string to add to gateway url. */
+	public static String APPEND_TO_GATEWAY_URL = "AppendToGatewayUrl";
+
+	/** Name of header specifying new gateway url to use. */
+	public static String REPLACE_GATEWAY_URL = "ReplaceGatewayUrl";
 
 	/** Name of header specifying new header to send. */
-	public static String PERSISTENT_HEADER = "RequestPersistentHeader"; 
-	
+	public static String PERSISTENT_HEADER = "RequestPersistentHeader";
+
 	/** Name of header containing authentication data. */
 	public static String CREDENTIALS = "Credentials";
 
 	/** Name of header to request debug informations from the server. */
 	public static String DEBUG_SERVER = "amf_server_debug";
-	
+
 	/**
 	 * The name of the header.
 	 */
 	protected String name;
-	
+
 	/**
 	 * Is this header required?
 	 */
 	protected boolean required;
-	
+
 	/**
 	 * The actual data of the header.
 	 */

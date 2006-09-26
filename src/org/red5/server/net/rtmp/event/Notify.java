@@ -26,46 +26,50 @@ import org.red5.server.api.service.IServiceCall;
 import org.red5.server.stream.IStreamData;
 
 public class Notify extends BaseEvent implements IStreamData {
-	
+
 	protected IServiceCall call = null;
+
 	protected ByteBuffer data = null;
+
 	private int invokeId = 0;
+
 	private Map connectionParams = null;
-	
+
 	public Notify() {
 		super(Type.SERVICE_CALL);
 	}
 
-	public Notify(ByteBuffer data){
+	public Notify(ByteBuffer data) {
 		super(Type.STREAM_DATA);
 		this.data = data;
 	}
-	
-	public Notify(IServiceCall call){
+
+	public Notify(IServiceCall call) {
 		super(Type.SERVICE_CALL);
 		this.call = call;
 	}
-	
+
+	@Override
 	public byte getDataType() {
 		return TYPE_NOTIFY;
 	}
-	
+
 	public void setData(ByteBuffer data) {
 		this.data = data;
 	}
-	
+
 	public void setCall(IServiceCall call) {
 		this.call = call;
 	}
-	
+
 	public IServiceCall getCall() {
 		return this.call;
 	}
-	
+
 	public ByteBuffer getData() {
 		return data;
 	}
-	
+
 	public int getInvokeId() {
 		return invokeId;
 	}
@@ -86,38 +90,49 @@ public class Notify extends BaseEvent implements IStreamData {
 		this.connectionParams = connectionParams;
 	}
 
-	public String toString(){
+	@Override
+	public String toString() {
 		StringBuffer sb = new StringBuffer();
 		sb.append("Notify: ").append(call);
 		return sb.toString();
 	}
-	
-	public boolean equals(Object obj){
-		if (obj == null)
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) {
 			return false;
-		if (!(obj instanceof Notify))
+		}
+		if (!(obj instanceof Notify)) {
 			return false;
+		}
 		Notify other = (Notify) obj;
 		if (getConnectionParams() == null
-				&& other.getConnectionParams() != null)
+				&& other.getConnectionParams() != null) {
 			return false;
+		}
 		if (getConnectionParams() != null
-				&& other.getConnectionParams() == null)
+				&& other.getConnectionParams() == null) {
 			return false;
+		}
 		if (getConnectionParams() != null
-				&& !getConnectionParams().equals(other.getConnectionParams()))
+				&& !getConnectionParams().equals(other.getConnectionParams())) {
 			return false;
-		if (getInvokeId() != other.getInvokeId())
+		}
+		if (getInvokeId() != other.getInvokeId()) {
 			return false;
-		if (getCall() == null && other.getCall() != null)
+		}
+		if (getCall() == null && other.getCall() != null) {
 			return false;
-		if (getCall() != null && other.getCall() == null)
+		}
+		if (getCall() != null && other.getCall() == null) {
 			return false;
-		if (getCall() != null && !getCall().equals(other.getCall()))
+		}
+		if (getCall() != null && !getCall().equals(other.getCall())) {
 			return false;
+		}
 		return true;
 	}
-	
+
 	@Override
 	protected void releaseInternal() {
 		if (data != null) {
@@ -125,5 +140,5 @@ public class Notify extends BaseEvent implements IStreamData {
 			data = null;
 		}
 	}
-	
+
 }

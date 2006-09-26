@@ -33,38 +33,41 @@ public class StreamBandwidthController implements IFilter,
 		IPipeConnectionListener, Runnable {
 	private static final Log log = LogFactory
 			.getLog(StreamBandwidthController.class);
-	
+
 	public static final String KEY = StreamBandwidthController.class.getName();
-	
+
 	private IPipe providerPipe;
+
 	private IPipe consumerPipe;
+
 	private Thread puller;
+
 	private boolean isStarted;
-	
+
 	public void onPipeConnectionEvent(PipeConnectionEvent event) {
 		switch (event.getType()) {
-		case PipeConnectionEvent.PROVIDER_CONNECT_PULL:
-			if (event.getProvider() != this && providerPipe == null) {
-				providerPipe = (IPipe) event.getSource();
-			}
-			break;
-		case PipeConnectionEvent.PROVIDER_DISCONNECT:
-			if (event.getSource() == providerPipe) {
-				providerPipe = null;
-			}
-			break;
-		case PipeConnectionEvent.CONSUMER_CONNECT_PUSH:
-			if (event.getConsumer() != this && consumerPipe == null) {
-				consumerPipe = (IPipe) event.getSource();
-			}
-			break;
-		case PipeConnectionEvent.CONSUMER_DISCONNECT:
-			if (event.getSource() == consumerPipe) {
-				consumerPipe = null;
-			}
-			break;
-		default:
-			break;
+			case PipeConnectionEvent.PROVIDER_CONNECT_PULL:
+				if (event.getProvider() != this && providerPipe == null) {
+					providerPipe = (IPipe) event.getSource();
+				}
+				break;
+			case PipeConnectionEvent.PROVIDER_DISCONNECT:
+				if (event.getSource() == providerPipe) {
+					providerPipe = null;
+				}
+				break;
+			case PipeConnectionEvent.CONSUMER_CONNECT_PUSH:
+				if (event.getConsumer() != this && consumerPipe == null) {
+					consumerPipe = (IPipe) event.getSource();
+				}
+				break;
+			case PipeConnectionEvent.CONSUMER_DISCONNECT:
+				if (event.getSource() == consumerPipe) {
+					consumerPipe = null;
+				}
+				break;
+			default:
+				break;
 		}
 	}
 
@@ -84,15 +87,15 @@ public class StreamBandwidthController implements IFilter,
 		}
 		isStarted = false;
 	}
-	
+
 	public void start() {
 		startThread();
 	}
-	
+
 	public void close() {
 		isStarted = false;
 	}
-	
+
 	synchronized private void startThread() {
 		if (!isStarted && providerPipe != null && consumerPipe != null) {
 			puller = new Thread(this);

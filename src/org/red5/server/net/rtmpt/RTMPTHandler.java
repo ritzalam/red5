@@ -38,51 +38,52 @@ import org.red5.server.net.rtmp.message.Constants;
 
 public class RTMPTHandler extends RTMPHandler implements Constants {
 
-	protected static Log log =
-        LogFactory.getLog(RTMPTHandler.class.getName());
-	
+	protected static Log log = LogFactory.getLog(RTMPTHandler.class.getName());
+
 	public static final String HANDLER_ATTRIBUTE = "red5.RMPTHandler";
-	
+
 	protected SimpleProtocolCodecFactory codecFactory = null;
-	
+
 	public void setCodecFactory(SimpleProtocolCodecFactory factory) {
-		this.codecFactory = factory;		
+		this.codecFactory = factory;
 	}
-	
+
 	public SimpleProtocolCodecFactory getCodecFactory() {
-		return this.codecFactory;		
+		return this.codecFactory;
 	}
 
 	private void rawBufferRecieved(RTMPConnection conn, ProtocolState state,
 			ByteBuffer in) {
 		final RTMP rtmp = (RTMP) state;
-		
-		if(rtmp.getState() != RTMP.STATE_HANDSHAKE){
+
+		if (rtmp.getState() != RTMP.STATE_HANDSHAKE) {
 			log.warn("Raw buffer after handshake, something odd going on");
 		}
-		
+
 		ByteBuffer out = ByteBuffer
 				.allocate((Constants.HANDSHAKE_SIZE * 2) + 1);
-		
-		if(log.isDebugEnabled()){
+
+		if (log.isDebugEnabled()) {
 			log.debug("Writing handshake reply");
-			log.debug("handskake size:"+in.remaining());
+			log.debug("handskake size:" + in.remaining());
 		}
-		
-		out.put((byte)0x03);
-		out.fill((byte)0x00,Constants.HANDSHAKE_SIZE);
+
+		out.put((byte) 0x03);
+		out.fill((byte) 0x00, Constants.HANDSHAKE_SIZE);
 		out.put(in).flip();
-		
+
 		conn.rawWrite(out);
 	}
-	
+
+	@Override
 	public void messageReceived(RTMPConnection conn, ProtocolState state,
 			Object in) throws Exception {
 		if (in instanceof ByteBuffer) {
 			rawBufferRecieved(conn, state, (ByteBuffer) in);
 			((ByteBuffer) in).release();
-		} else
+		} else {
 			super.messageReceived(conn, state, in);
+		}
 	}
-	
+
 }

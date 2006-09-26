@@ -31,8 +31,9 @@ public class ConsumerService implements IConsumerService {
 
 	public IMessageOutput getConsumerOutput(IClientStream stream) {
 		IStreamCapableConnection streamConn = stream.getConnection();
-		if (!(streamConn instanceof RTMPConnection))
+		if (!(streamConn instanceof RTMPConnection)) {
 			return null;
+		}
 		RTMPConnection conn = (RTMPConnection) streamConn;
 		// TODO Better manage channels.
 		// now we use OutputStream as a channel wrapper.

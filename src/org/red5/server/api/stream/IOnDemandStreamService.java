@@ -24,7 +24,7 @@ import org.red5.server.api.IScope;
 public interface IOnDemandStreamService {
 
 	public final static String ON_DEMAND_STREAM_SERVICE = "onDemandStreamService";
-	
+
 	/**
 	 * Has the service an on-demand stream with the passed name?
 	 *  
@@ -35,7 +35,7 @@ public interface IOnDemandStreamService {
 	 * @return true if the stream exists, false otherwise
 	 */
 	public boolean hasOnDemandStream(IScope scope, String name);
-	
+
 	/**
 	 * Get a stream that can be used for playback of the on-demand stream
 	 *  
@@ -46,5 +46,5 @@ public interface IOnDemandStreamService {
 	 * @return the on-demand stream
 	 */
 	public IOnDemandStream getOnDemandStream(IScope scope, String name);
-	
+
 }

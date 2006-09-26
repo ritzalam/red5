@@ -34,14 +34,14 @@ import org.red5.server.net.remoting.message.RemotingPacket;
 
 public class RemotingProtocolEncoder implements SimpleProtocolEncoder {
 
-	protected static Log log =
-        LogFactory.getLog(RemotingProtocolEncoder.class.getName());
+	protected static Log log = LogFactory.getLog(RemotingProtocolEncoder.class
+			.getName());
 
-	protected static Log ioLog =
-        LogFactory.getLog(RemotingProtocolEncoder.class.getName()+".out");
-	
+	protected static Log ioLog = LogFactory
+			.getLog(RemotingProtocolEncoder.class.getName() + ".out");
+
 	private Serializer serializer = null;
-	
+
 	public ByteBuffer encode(ProtocolState state, Object message)
 			throws Exception {
 
@@ -53,29 +53,29 @@ public class RemotingProtocolEncoder implements SimpleProtocolEncoder {
 		buf.putShort((short) 0); // write the version
 		buf.putShort((short) 0); // write the header count
 		buf.putShort((short) resp.getCalls().size()); // write the number of bodies
-		while(it.hasNext()){
+		while (it.hasNext()) {
 			log.debug("Call");
 			RemotingCall call = (RemotingCall) it.next();
-			Output.putString(buf,call.getClientResponse());
-		   	Output.putString(buf,"null");
-		   	buf.putInt(-1);
-		   	log.info("result:" + call.getResult());
-		   	serializer.serialize(output, call.getClientResult());
+			Output.putString(buf, call.getClientResponse());
+			Output.putString(buf, "null");
+			buf.putInt(-1);
+			log.info("result:" + call.getResult());
+			serializer.serialize(output, call.getClientResult());
 		}
 		//buf.compact();
 		buf.flip();
-		log.info(">>"+buf.getHexDump());
+		log.info(">>" + buf.getHexDump());
 		return buf;
 
-	}				
+	}
 
 	public void dispose(IoSession ioSession) throws Exception {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	public void setSerializer(Serializer serializer) {
 		this.serializer = serializer;
-	}	
-	
+	}
+
 }

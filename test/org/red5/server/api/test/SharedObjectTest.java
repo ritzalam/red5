@@ -11,34 +11,31 @@ import org.red5.server.api.so.ISharedObject;
 import org.red5.server.api.so.ISharedObjectService;
 import org.red5.server.so.SharedObjectService;
 
-public class SharedObjectTest extends BaseTest 
-	implements IEventListener {
+public class SharedObjectTest extends BaseTest implements IEventListener {
 
 	protected String name = "testso";
-	
-	@Test public void sharedObjectService(){
+
+	@Test
+	public void sharedObjectService() {
 		IScope scope = context.resolveScope(path_app);
 		ISharedObjectService service = new SharedObjectService();
-		assertTrue("should be empty",!service.hasSharedObject(scope,"blah"));
-		assertTrue("create so",service.createSharedObject(scope,name,false));
-		assertTrue("so exists?",service.hasSharedObject(scope,name));
-		ISharedObject so = service.getSharedObject(scope,name);
-		assertTrue("so not null",so!=null);
-		assertTrue("name same",so.getName().equals(name));
+		assertTrue("should be empty", !service.hasSharedObject(scope, "blah"));
+		assertTrue("create so", service.createSharedObject(scope, name, false));
+		assertTrue("so exists?", service.hasSharedObject(scope, name));
+		ISharedObject so = service.getSharedObject(scope, name);
+		assertTrue("so not null", so != null);
+		assertTrue("name same", so.getName().equals(name));
 		//assertTrue("persistent",!so.isPersistent());
 		so.addEventListener(this);
-		so.setAttribute("this","that");
+		so.setAttribute("this", "that");
 	}
-	
 
 	public void notifyEvent(IEvent event) {
-		log.debug("Event: "+event);
+		log.debug("Event: " + event);
 	}
 
-
-
-	public static junit.framework.Test suite(){
+	public static junit.framework.Test suite() {
 		return new JUnit4TestAdapter(SharedObjectTest.class);
 	}
-	
+
 }

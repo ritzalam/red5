@@ -38,28 +38,28 @@ import org.red5.server.api.IFlowControllable;
  */
 public interface IFlowControlService {
 	public static final String KEY = "FlowControlService";
-	
+
 	/**
 	 * Release a flow controllable and related resources when necessary.
 	 * 
 	 * @param fc
 	 */
 	void releaseFlowControllable(IFlowControllable fc);
-	
+
 	/**
 	 * Update configuration of buckets according to BW configuration
 	 * of the flow controllable.
 	 * @param fc
 	 */
 	void updateBWConfigure(IFlowControllable fc);
-	
+
 	/**
 	 * Reset all token buckets that are assigned to the
 	 * flow controllable.
 	 * @param fc
 	 */
 	void resetTokenBuckets(IFlowControllable fc);
-	
+
 	/**
 	 * Get the audio bucket for a flow controllable.
 	 * The bucket can be used till releasing regardless of
@@ -68,7 +68,7 @@ public interface IFlowControlService {
 	 * @return
 	 */
 	ITokenBucket getAudioTokenBucket(IFlowControllable fc);
-	
+
 	/**
 	 * Get the video bucket for a flow controllable.
 	 * The bucket can be used till releasing regardless of

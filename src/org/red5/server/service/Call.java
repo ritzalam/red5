@@ -18,7 +18,7 @@ package org.red5.server.service;
  * with this library; if not, write to the Free Software Foundation, Inc., 
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
- 
+
 import org.red5.server.api.service.IServiceCall;
 
 /**
@@ -35,7 +35,7 @@ public class Call implements IServiceCall {
 	public static final byte STATUS_SUCCESS_NULL = 0x03;
 
 	public static final byte STATUS_SUCCESS_VOID = 0x04;
-	
+
 	public static final byte STATUS_SERVICE_NOT_FOUND = 0x10;
 
 	public static final byte STATUS_METHOD_NOT_FOUND = 0x11;
@@ -45,43 +45,43 @@ public class Call implements IServiceCall {
 	public static final byte STATUS_INVOCATION_EXCEPTION = 0x13;
 
 	public static final byte STATUS_GENERAL_EXCEPTION = 0x14;
-	
-    protected String serviceName = null;
 
-    protected String serviceMethodName = null;
+	protected String serviceName = null;
 
-    protected Object[] arguments = null;
+	protected String serviceMethodName = null;
 
-    protected byte status = STATUS_PENDING;
+	protected Object[] arguments = null;
 
-    protected Exception exception = null;
-    
-    public Call(String method){
+	protected byte status = STATUS_PENDING;
+
+	protected Exception exception = null;
+
+	public Call(String method) {
 		serviceMethodName = method;
-    }
-    
-    public Call(String method, Object[] args){
+	}
+
+	public Call(String method, Object[] args) {
 		serviceMethodName = method;
 		arguments = args;
-    }
-    
-    public Call(String name, String method, Object[] args){
-    		serviceName = name;
-    		serviceMethodName = method;
-    		arguments = args;
-    }
-    
+	}
+
+	public Call(String name, String method, Object[] args) {
+		serviceName = name;
+		serviceMethodName = method;
+		arguments = args;
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.server.service.ServiceCall#isSuccess()
 	 */
-    public boolean isSuccess(){
+	public boolean isSuccess() {
 		return (status == STATUS_SUCCESS_RESULT)
 				|| (status == STATUS_SUCCESS_NULL)
 				|| (status == STATUS_SUCCESS_VOID);
-    }
-    
+	}
+
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -157,17 +157,19 @@ public class Call implements IServiceCall {
 		this.exception = exception;
 	}
 
-	public String toString(){
+	@Override
+	public String toString() {
 		StringBuffer sb = new StringBuffer();
-		sb.append("Service: "+serviceName+" Method: "+serviceMethodName);
-		if(arguments!=null) {
-			sb.append(" Num Params: "+arguments.length);
-			for(int i=0; i<arguments.length; i++){
+		sb.append("Service: " + serviceName + " Method: " + serviceMethodName);
+		if (arguments != null) {
+			sb.append(" Num Params: " + arguments.length);
+			for (int i = 0; i < arguments.length; i++) {
 				sb.append(i).append(": ").append(arguments[i]);
 			}
-		} else
+		} else {
 			sb.append(" No params");
+		}
 		return sb.toString();
 	}
-	
+
 }

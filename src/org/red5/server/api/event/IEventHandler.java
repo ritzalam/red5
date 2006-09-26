@@ -27,5 +27,5 @@ public interface IEventHandler {
 	 * @return true if event was handled, false if it should bubble
 	 */
 	public boolean handleEvent(IEvent event);
-	
+
 }

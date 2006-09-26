@@ -26,17 +26,20 @@ import org.springframework.context.ApplicationContext;
  * Collection of utils for working with scopes
  */
 public class ScopeUtils {
-	
+
 	private static final int GLOBAL = 0x00;
+
 	private static final int APPLICATION = 0x01;
+
 	private static final int ROOM = 0x02;
+
 	private static final String SERVICE_CACHE_PREFIX = "__service_cache:";
-	
+
 	/**
 	 * Constant for slash symbol
 	 */
 	private static final String SLASH = "/";
-	
+
 	/**
 	 * Resolves scope for specified scope and path. 
 	 * 
@@ -46,33 +49,35 @@ public class ScopeUtils {
 	 *            Path to resolve
 	 * @return	Resolved scope
 	 */
-	public static IScope resolveScope(IScope from, String path){
+	public static IScope resolveScope(IScope from, String path) {
 		IScope current = from;
-		if(path.startsWith(SLASH)){
+		if (path.startsWith(SLASH)) {
 			current = ScopeUtils.findRoot(current);
-			path = path.substring(1,path.length());
+			path = path.substring(1, path.length());
 		}
-		if(path.endsWith(SLASH)){
-			path = path.substring(0,path.length()-1);
+		if (path.endsWith(SLASH)) {
+			path = path.substring(0, path.length() - 1);
 		}
 		String[] parts = path.split(SLASH);
-		for(int i=0; i<parts.length; i++){
-			String part = parts[i];
-			if (part.equals("."))
+		for (String part : parts) {
+			if (part.equals(".")) {
 				continue;
-			if(part.equals("..")){
-				if (!current.hasParent())
+			}
+			if (part.equals("..")) {
+				if (!current.hasParent()) {
 					return null;
+				}
 				current = current.getParent();
 				continue;
 			}
-			if (!current.hasChildScope(part))
+			if (!current.hasChildScope(part)) {
 				return null;
+			}
 			current = current.getScope(part);
 		}
 		return current;
 	}
-	
+
 	/**
 	 * Finds root scope for specified scope object. Root scope is the top level
 	 * scope among scope's parents.
@@ -81,14 +86,14 @@ public class ScopeUtils {
 	 *            Scope to find root for
 	 * @return	Root scope object
 	 */
-	public static IScope findRoot(IScope from){
+	public static IScope findRoot(IScope from) {
 		IScope current = from;
-		while(current.hasParent()){
+		while (current.hasParent()) {
 			current = current.getParent();
 		}
 		return current;
 	}
-	
+
 	/**
 	 * Returns the application scope for specified scope. Application scope has
 	 * depth of 1 and has no parent.
@@ -98,15 +103,15 @@ public class ScopeUtils {
 	 * @param from
 	 *            Scope to find application for
 	 * @return		Application scope.
-	 */ 
-	public static IScope findApplication(IScope from){
+	 */
+	public static IScope findApplication(IScope from) {
 		IScope current = from;
-		while(current.hasParent() && current.getDepth() != APPLICATION){
+		while (current.hasParent() && current.getDepth() != APPLICATION) {
 			current = current.getParent();
 		}
 		return current;
 	}
-	
+
 	/**
 	 * Check whether one scope is an ancestor of another
 	 * 
@@ -117,12 +122,13 @@ public class ScopeUtils {
 	 * @return <code>true</code> if ancestor scope is really an ancestor of
 	 *         scope passed as from parameter, <code>false</code> otherwise.
 	 */
-	public static boolean isAncestor(IBasicScope from, IBasicScope ancestor){
+	public static boolean isAncestor(IBasicScope from, IBasicScope ancestor) {
 		IBasicScope current = from;
-		while(current.hasParent()){
+		while (current.hasParent()) {
 			current = current.getParent();
-			if (current.equals(ancestor))
+			if (current.equals(ancestor)) {
 				return true;
+			}
 		}
 		return false;
 	}
@@ -135,8 +141,8 @@ public class ScopeUtils {
 	 * @return <code>true</code> if scope is root scope (top level scope),
 	 *         <code>false</code> otherwise.
 	 */
-	public static boolean isRoot(IBasicScope scope){
-		return !scope.hasParent();	
+	public static boolean isRoot(IBasicScope scope) {
+		return !scope.hasParent();
 	}
 
 	/**
@@ -152,8 +158,8 @@ public class ScopeUtils {
 	 * @return <code>true</code> if scope is the global scope,
 	 *         <code>false</code> otherwise.
 	 */
-	public static boolean isGlobal(IBasicScope scope){
-		return scope.getDepth() == GLOBAL;	
+	public static boolean isGlobal(IBasicScope scope) {
+		return scope.getDepth() == GLOBAL;
 	}
 
 	/**
@@ -165,7 +171,7 @@ public class ScopeUtils {
 	 * @return <code>true</code> if scope is an application scope,
 	 *         <code>false</code> otherwise.
 	 */
-	public static boolean isApp(IBasicScope scope){
+	public static boolean isApp(IBasicScope scope) {
 		return scope.getDepth() == APPLICATION;
 	}
 
@@ -178,10 +184,10 @@ public class ScopeUtils {
 	 * @return <code>true</code> if scope is a room scope, <code>false</code>
 	 *         otherwise.
 	 */
-	public static boolean isRoom(IBasicScope scope){
+	public static boolean isRoom(IBasicScope scope) {
 		return scope.getDepth() >= ROOM;
 	}
-	
+
 	/**
 	 * Returns scope service by bean name. See overloaded method for details.
 	 * 
@@ -192,7 +198,7 @@ public class ScopeUtils {
 	public static Object getScopeService(IScope scope, String name) {
 		return getScopeService(scope, name, null);
 	}
-	
+
 	/**
 	 * Returns scope services (e.g. SharedObject, etc) for the scope. Method
 	 * uses either bean name passes as a string or class object.
@@ -207,31 +213,35 @@ public class ScopeUtils {
 	 */
 	public static Object getScopeService(IScope scope, String name,
 			Class defaultClass) {
-		if (scope == null)
+		if (scope == null) {
 			return null;
-		
+		}
+
 		if (scope.hasAttribute(IPersistable.TRANSIENT_PREFIX
-				+ SERVICE_CACHE_PREFIX + name))
+				+ SERVICE_CACHE_PREFIX + name)) {
 			// Return cached service
 			return scope.getAttribute(IPersistable.TRANSIENT_PREFIX
 					+ SERVICE_CACHE_PREFIX + name);
-		
+		}
+
 		final IContext context = scope.getContext();
 		ApplicationContext appCtx = context.getApplicationContext();
 		Object result;
 		if (!appCtx.containsBean(name)) {
-			if (defaultClass == null)
+			if (defaultClass == null) {
 				return null;
-			
+			}
+
 			try {
 				result = defaultClass.newInstance();
 			} catch (Exception e) {
 				e.printStackTrace();
 				return null;
 			}
-		} else
+		} else {
 			result = appCtx.getBean(name);
-		
+		}
+
 		// Cache service
 		scope.setAttribute(IPersistable.TRANSIENT_PREFIX + SERVICE_CACHE_PREFIX
 				+ name, result);

@@ -32,5 +32,5 @@ public class StatusMessage extends AbstractMessage {
 	public void setBody(Status body) {
 		this.body = body;
 	}
-	
+
 }

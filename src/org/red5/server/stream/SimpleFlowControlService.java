@@ -47,19 +47,20 @@ public class SimpleFlowControlService extends TimerTask implements
 		IFlowControlService, ApplicationContextAware {
 	private static final Log log = LogFactory
 			.getLog(SimpleFlowControlService.class);
-	
+
 	private long interval = 10;
+
 	private long defaultCapacity = 1024 * 100;
+
 	private Timer timer;
-	
-	private Map <IFlowControllable, FCData> fcsMap =
-		new HashMap<IFlowControllable, FCData>();
+
+	private Map<IFlowControllable, FCData> fcsMap = new HashMap<IFlowControllable, FCData>();
 
 	public void init() {
 		timer = new Timer("FlowControlService", true);
 		timer.scheduleAtFixedRate(this, interval, interval);
 	}
-	
+
 	@Override
 	public void run() {
 		synchronized (fcsMap) {
@@ -70,7 +71,8 @@ public class SimpleFlowControlService extends TimerTask implements
 					IFlowControllable parentFC = fc.getParentFlowControllable();
 					while (parentFC != null) {
 						FCData parentData = fcsMap.get(parentFC);
-						if (parentData != null && parentData.resources.length > 0) {
+						if (parentData != null
+								&& parentData.resources.length > 0) {
 							for (int i = 0; i < data.resources.length; i++) {
 								for (int j = i; j >= 0; j--) {
 									if (j < parentData.resources.length) {
@@ -91,11 +93,8 @@ public class SimpleFlowControlService extends TimerTask implements
 						parentFC = parentFC.getParentFlowControllable();
 					}
 					if (parentFC == null) {
-						// no bw limit
-						for (int i = 0; i < data.resources.length; i++) {
-							data.resources[i].addToken(data.resources[i]
-									.getSpeed(fc)
-									* interval);
+						for (BandwidthResource element : data.resources) {
+							element.addToken(element.getSpeed(fc) * interval);
 						}
 					}
 				}
@@ -208,7 +207,7 @@ public class SimpleFlowControlService extends TimerTask implements
 	public void setApplicationContext(ApplicationContext arg0)
 			throws BeansException {
 	}
-	
+
 	private FCData registerFlowControllable(IFlowControllable fc) {
 		synchronized (fcsMap) {
 			FCData data = new FCData();
@@ -223,7 +222,7 @@ public class SimpleFlowControlService extends TimerTask implements
 			return data;
 		}
 	}
-	
+
 	/**
 	 * Bit per second to Byte per millisecond.
 	 * @param bps Bit per second.
@@ -232,7 +231,7 @@ public class SimpleFlowControlService extends TimerTask implements
 	private long bps2Bpms(long bps) {
 		return bps / 1000 / 8;
 	}
-	
+
 	private void initFCDataByBWConfig(FCData data, IBandwidthConfigure bc) {
 		if (bc == null) {
 			data.resources = new BandwidthResource[0];
@@ -254,7 +253,7 @@ public class SimpleFlowControlService extends TimerTask implements
 			}
 		}
 	}
-	
+
 	/**
 	 * Move related resource from ancestor to this fc.
 	 * 
@@ -267,8 +266,9 @@ public class SimpleFlowControlService extends TimerTask implements
 		currentFC = fc;
 		while (true) {
 			parentFC = currentFC.getParentFlowControllable();
-			if (parentFC == null)
+			if (parentFC == null) {
 				break;
+			}
 			data = fcsMap.get(parentFC);
 			if (data != null) {
 				for (int i = 0; i < data.resources.length; i++) {
@@ -283,7 +283,7 @@ public class SimpleFlowControlService extends TimerTask implements
 			currentFC = parentFC;
 		}
 	}
-	
+
 	/**
 	 * Give away resource to ancestor that has assigned bw resource.
 	 * 
@@ -296,7 +296,7 @@ public class SimpleFlowControlService extends TimerTask implements
 			FCData data = fcsMap.get(parentFC);
 			if (data != null && data.resources.length > 0) {
 				for (int i = 0; i < thisData.resources.length; i++) {
-					for (int j = i; j >=0; j--) {
+					for (int j = i; j >= 0; j--) {
 						if (j < data.resources.length) {
 							data.resources[j].adopt(thisData.resources[i], fc);
 							break;
@@ -307,75 +307,88 @@ public class SimpleFlowControlService extends TimerTask implements
 			parentFC = parentFC.getParentFlowControllable();
 		}
 	}
-	
+
 	public void setInterval(long interval) {
 		this.interval = interval;
 	}
-	
+
 	public void setDefaultCapacity(long defaultCapacity) {
 		this.defaultCapacity = defaultCapacity;
 	}
-	
+
 	private class FCData {
 		private Bucket audioBucket;
+
 		private Bucket videoBucket;
+
 		private BandwidthResource[] resources;
+
 		private SimpleBandwidthConfigure sbc;
 	}
 
 	private class Bucket implements ITokenBucket {
 		private int bucketNum; // video:0, audio:1
+
 		private IFlowControllable fc;
+
 		private boolean isReset = false;
-		
+
 		public Bucket(IFlowControllable fc, int bucketNum) {
 			this.bucketNum = bucketNum;
 			this.fc = fc;
 		}
 
 		synchronized public boolean acquireToken(double tokenCount, long wait) {
-			if (isReset)
+			if (isReset) {
 				return false;
+			}
 			if (wait != 0) {
 				// XXX not support waiting for now
 				return false;
 			}
 			BandwidthResource resource = getResource();
-			if (resource == null)
+			if (resource == null) {
 				return true;
+			}
 			return resource.acquireToken(fc, tokenCount);
 		}
 
 		synchronized public double acquireTokenBestEffort(double upperLimitCount) {
-			if (isReset)
+			if (isReset) {
 				return 0;
+			}
 			BandwidthResource resource = getResource();
-			if (resource == null)
+			if (resource == null) {
 				return upperLimitCount;
+			}
 			return resource.acquireTokenBestEffort(fc, upperLimitCount);
 		}
 
 		synchronized public boolean acquireTokenNonblocking(double tokenCount,
 				ITokenBucketCallback callback) {
-			if (isReset)
+			if (isReset) {
 				return false;
+			}
 			BandwidthResource resource = getResource();
-			if (resource == null)
+			if (resource == null) {
 				return true;
+			}
 			return resource.acquireToken(fc, tokenCount, callback, this);
 		}
 
 		public long getCapacity() {
 			BandwidthResource resource = getResource();
-			if (resource == null)
+			if (resource == null) {
 				return -1; // infinite
+			}
 			return resource.getCapacity(fc);
 		}
 
 		public double getSpeed() {
 			BandwidthResource resource = getResource();
-			if (resource == null)
+			if (resource == null) {
 				return -1; // infinite
+			}
 			return resource.getSpeed(fc);
 		}
 
@@ -387,7 +400,7 @@ public class SimpleFlowControlService extends TimerTask implements
 				isReset = false;
 			}
 		}
-		
+
 		private BandwidthResource getResource() {
 			synchronized (fcsMap) {
 				FCData data = fcsMap.get(fc);
@@ -410,31 +423,35 @@ public class SimpleFlowControlService extends TimerTask implements
 			}
 		}
 	}
-	
+
 	private class BandwidthResource {
 		private double speed;
+
 		private long capacity;
+
 		private double tokens = 0;
 
 		private Map<IFlowControllable, Map<ITokenBucketCallback, RequestObject>> fcWaitingMap = new HashMap<IFlowControllable, Map<ITokenBucketCallback, RequestObject>>();
-		
+
 		public BandwidthResource(long capacity, double speed, double initial) {
 			this.capacity = capacity;
 			this.speed = speed;
-			if (initial < 0)
+			if (initial < 0) {
 				this.tokens = 0;
-			else if (initial > capacity)
+			} else if (initial > capacity) {
 				this.tokens = capacity;
-			else
+			} else {
 				this.tokens = initial;
+			}
 		}
-		
+
 		synchronized public void addToken(double tokenCount) {
 			double tmp = tokens + tokenCount;
-			if (tmp > capacity)
+			if (tmp > capacity) {
 				tokens = capacity;
-			else
+			} else {
 				tokens = tmp;
+			}
 			IFlowControllable toReleaseFC = null;
 			ITokenBucketCallback toReleaseCallback = null;
 			loop: for (IFlowControllable fc : fcWaitingMap.keySet()) {
@@ -468,7 +485,7 @@ public class SimpleFlowControlService extends TimerTask implements
 				}
 			}
 		}
-		
+
 		synchronized public boolean acquireToken(IFlowControllable fc,
 				double tokenCount, ITokenBucketCallback callback,
 				ITokenBucket requestBucket) {
@@ -493,15 +510,16 @@ public class SimpleFlowControlService extends TimerTask implements
 				return true;
 			}
 		}
-		
+
 		synchronized public boolean acquireToken(IFlowControllable fc,
 				double tokenCount) {
-			if (tokenCount > tokens)
+			if (tokenCount > tokens) {
 				return false;
+			}
 			tokens -= tokenCount;
 			return true;
 		}
-		
+
 		synchronized public double acquireTokenBestEffort(IFlowControllable fc,
 				double upperLimitCount) {
 			double available;
@@ -513,15 +531,15 @@ public class SimpleFlowControlService extends TimerTask implements
 			tokens -= available;
 			return available;
 		}
-		
+
 		public long getCapacity(IFlowControllable fc) {
 			return capacity;
 		}
-		
+
 		public double getSpeed(IFlowControllable fc) {
 			return speed;
 		}
-		
+
 		synchronized public void reset(IFlowControllable fc) {
 			Map<ITokenBucketCallback, RequestObject> callbackMap = fcWaitingMap
 					.get(fc);
@@ -537,7 +555,7 @@ public class SimpleFlowControlService extends TimerTask implements
 				fcWaitingMap.remove(callbackMap);
 			}
 		}
-		
+
 		synchronized public void adopt(BandwidthResource source,
 				IFlowControllable fc) {
 			Map<ITokenBucketCallback, RequestObject> srcMap = source.fcWaitingMap
@@ -552,7 +570,7 @@ public class SimpleFlowControlService extends TimerTask implements
 				dstMap.putAll(srcMap);
 			}
 		}
-		
+
 		synchronized public void adoptAll(BandwidthResource source) {
 			ArrayList<IFlowControllable> list = new ArrayList<IFlowControllable>();
 			list.addAll(source.fcWaitingMap.keySet());
@@ -560,9 +578,10 @@ public class SimpleFlowControlService extends TimerTask implements
 				adopt(source, fc);
 			}
 		}
-		
+
 		private class RequestObject {
 			private double requestTokenCount;
+
 			private ITokenBucket requestBucket;
 		}
 	}

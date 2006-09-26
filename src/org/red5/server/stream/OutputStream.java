@@ -25,25 +25,26 @@ import org.red5.server.net.rtmp.Channel;
 
 public class OutputStream {
 
-	protected static Log log =
-        LogFactory.getLog(OutputStream.class.getName());
-	
+	protected static Log log = LogFactory.getLog(OutputStream.class.getName());
+
 	private Channel video;
+
 	private Channel audio;
+
 	private Channel data;
-	
-	public OutputStream(Channel video, Channel audio, Channel data){
+
+	public OutputStream(Channel video, Channel audio, Channel data) {
 		this.video = video;
 		this.audio = audio;
 		this.data = data;
 	}
-	
+
 	public void close() {
 		this.video.close();
 		this.audio.close();
 		this.data.close();
 	}
-	
+
 	public Channel getAudio() {
 		return audio;
 	}

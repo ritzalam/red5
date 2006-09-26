@@ -27,17 +27,20 @@ import org.red5.server.api.persistence.PersistenceUtils;
 public class GlobalScope extends Scope implements IGlobalScope {
 
 	protected IServer server;
-	
+
+	@Override
 	public void setPersistenceClass(String persistenceClass) throws Exception {
 		this.persistenceClass = persistenceClass;
 		// We'll have to wait for creation of the store object
 		// until all classes have been initialized.
 	}
-	
+
+	@Override
 	public IPersistenceStore getStore() {
-		if (store != null)
+		if (store != null) {
 			return store;
-		
+		}
+
 		try {
 			store = PersistenceUtils.getPersistenceStore(this,
 					this.persistenceClass);
@@ -47,14 +50,14 @@ public class GlobalScope extends Scope implements IGlobalScope {
 		}
 		return store;
 	}
-	
+
 	public void setServer(IServer server) {
 		this.server = server;
 	}
-	
+
 	public void register() {
 		server.registerGlobal(this);
 		init();
 	}
-	
+
 }

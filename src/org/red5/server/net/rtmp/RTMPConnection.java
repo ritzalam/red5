@@ -89,9 +89,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 	private int nextBytesRead = 125000;
 
 	private IBandwidthConfigure bandwidthConfig;
-	
+
 	private Map<Integer, Integer> pendingVideos = new HashMap<Integer, Integer>();
-	
+
 	private int usedStreams = 0;
 
 	public RTMPConnection(String type) {
@@ -125,8 +125,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	public Channel getChannel(byte channelId) {
-		if (!isChannelUsed(channelId))
+		if (!isChannelUsed(channelId)) {
 			channels[channelId] = new Channel(this, channelId);
+		}
 		return channels[channelId];
 	}
 
@@ -137,7 +138,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	protected IClientStream[] getStreams() {
 		return streams;
 	}
-	
+
 	public int reserveStreamId() {
 		int result = -1;
 		synchronized (reservedStreams) {
@@ -165,28 +166,31 @@ public abstract class RTMPConnection extends BaseConnection implements
 	public VideoCodecFactory getVideoCodecFactory() {
 		final IContext context = scope.getContext();
 		ApplicationContext appCtx = context.getApplicationContext();
-		if (!appCtx.containsBean(VIDEO_CODEC_FACTORY))
+		if (!appCtx.containsBean(VIDEO_CODEC_FACTORY)) {
 			return null;
+		}
 
 		return (VideoCodecFactory) appCtx.getBean(VIDEO_CODEC_FACTORY);
 	}
 
 	public IClientBroadcastStream newBroadcastStream(int streamId) {
-		if (!reservedStreams[streamId - 1])
+		if (!reservedStreams[streamId - 1]) {
 			// StreamId has not been reserved before
 			return null;
+		}
 
 		synchronized (streams) {
-			if (streams[streamId - 1] != null)
+			if (streams[streamId - 1] != null) {
 				// Another stream already exists with this id
 				return null;
-	
+			}
+
 			ClientBroadcastStream cbs = new ClientBroadcastStream();
 			cbs.setStreamId(streamId);
 			cbs.setConnection(this);
 			cbs.setName(createStreamName());
 			cbs.setScope(this.getScope());
-	
+
 			streams[streamId - 1] = cbs;
 			usedStreams++;
 			return cbs;
@@ -200,15 +204,17 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	public IPlaylistSubscriberStream newPlaylistSubscriberStream(int streamId) {
-		if (!reservedStreams[streamId - 1])
+		if (!reservedStreams[streamId - 1]) {
 			// StreamId has not been reserved before
 			return null;
+		}
 
 		synchronized (streams) {
-			if (streams[streamId - 1] != null)
+			if (streams[streamId - 1] != null) {
 				// Another stream already exists with this id
 				return null;
-	
+			}
+
 			PlaylistSubscriberStream pss = new PlaylistSubscriberStream();
 			pss.setName(createStreamName());
 			pss.setConnection(this);
@@ -223,17 +229,19 @@ public abstract class RTMPConnection extends BaseConnection implements
 	protected int getUsedStreamCount() {
 		return usedStreams;
 	}
-	
+
 	public IClientStream getStreamById(int id) {
-		if (id <= 0 || id > MAX_STREAMS - 1)
+		if (id <= 0 || id > MAX_STREAMS - 1) {
 			return null;
+		}
 
 		return streams[id - 1];
 	}
 
 	public IClientStream getStreamByChannelId(byte channelId) {
-		if (channelId < 4)
+		if (channelId < 4) {
 			return null;
+		}
 
 		// log.debug("Channel id: "+channelId);
 		int id = (int) Math.floor((channelId - 4) / 5);
@@ -241,6 +249,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 		return streams[id];
 	}
 
+	@Override
 	public void close() {
 		Red5.setConnectionLocal(this);
 		IStreamService streamService = (IStreamService) getScopeService(scope,
@@ -258,7 +267,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 				}
 			}
 		}
-		
+
 		if (getScope() != null && getScope().getContext() != null) {
 			IFlowControlService fcs = (IFlowControlService) getScope()
 					.getContext().getBean(IFlowControlService.KEY);
@@ -266,7 +275,8 @@ public abstract class RTMPConnection extends BaseConnection implements
 			try {
 				fcs.releaseFlowControllable(this);
 			} catch (Exception err) {
-				log.error("Could not release flowcontrollable connection " + this, err);
+				log.error("Could not release flowcontrollable connection "
+						+ this, err);
 			}
 		}
 		super.close();
@@ -290,7 +300,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 			}
 		}
 	}
-	
+
 	public void ping(Ping ping) {
 		getChannel((byte) 2).write(ping);
 	}
@@ -303,12 +313,12 @@ public abstract class RTMPConnection extends BaseConnection implements
 		long bytesRead = getReadBytes();
 		if (bytesRead >= nextBytesRead) {
 			BytesRead sbr = new BytesRead((int) bytesRead);
-			getChannel((byte) 2).write((BytesRead) sbr);
+			getChannel((byte) 2).write(sbr);
 			log.info(sbr);
 			nextBytesRead += bytesReadInterval;
 		}
 	}
-	
+
 	public void receivedBytesRead(int bytes) {
 		log.info("Client received " + bytes + " bytes, written "
 				+ getWrittenBytes() + " bytes, " + getPendingMessages()
@@ -334,7 +344,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 		}
 		getChannel(channel).write(invoke);
 	}
-	
+
 	public void invoke(String method) {
 		invoke(method, null, null);
 	}
@@ -350,8 +360,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 	public void invoke(String method, Object[] params,
 			IPendingServiceCallback callback) {
 		IPendingServiceCall call = new PendingCall(method, params);
-		if (callback != null)
+		if (callback != null) {
 			call.registerCallback(callback);
+		}
 
 		invoke(call);
 	}
@@ -365,11 +376,11 @@ public abstract class RTMPConnection extends BaseConnection implements
 		notify.setCall(call);
 		getChannel(channel).write(notify);
 	}
-	
+
 	public void notify(String method) {
 		notify(method, null);
 	}
-	
+
 	public void notify(String method, Object[] params) {
 		IServiceCall call = new Call(method, params);
 		notify(call);
@@ -388,7 +399,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 				.getBean(IFlowControlService.KEY);
 		this.bandwidthConfig = config;
 		fcs.updateBWConfigure(this);
-		
+
 		// Notify client about new bandwidth settings (in bytes per second)
 		if (config.getDownstreamBandwidth() > 0) {
 			ServerBW serverBW = new ServerBW((int) config
@@ -422,8 +433,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 		IPendingServiceCall result;
 		synchronized (pendingCalls) {
 			result = pendingCalls.get(invokeId);
-			if (result != null)
+			if (result != null) {
 				pendingCalls.remove(invokeId);
+			}
 		}
 		return result;
 	}
@@ -442,13 +454,14 @@ public abstract class RTMPConnection extends BaseConnection implements
 			int streamId = message.getHeader().getStreamId();
 			synchronized (pendingVideos) {
 				Integer old = pendingVideos.get(streamId);
-				if (old == null)
+				if (old == null) {
 					old = new Integer(0);
-				pendingVideos.put(streamId, old+1);
+				}
+				pendingVideos.put(streamId, old + 1);
 			}
 		}
 	}
-	
+
 	protected void messageReceived() {
 		readMessages++;
 
@@ -466,11 +479,12 @@ public abstract class RTMPConnection extends BaseConnection implements
 			int streamId = message.getHeader().getStreamId();
 			synchronized (pendingVideos) {
 				Integer pending = pendingVideos.get(streamId);
-				if (pending != null)
-					pendingVideos.put(streamId, pending-1);
+				if (pending != null) {
+					pendingVideos.put(streamId, pending - 1);
+				}
 			}
 		}
-		
+
 		writtenMessages++;
 	}
 
@@ -478,6 +492,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 		droppedMessages++;
 	}
 
+	@Override
 	public long getPendingVideoMessages(int streamId) {
 		synchronized (pendingVideos) {
 			Integer count = pendingVideos.get(streamId);
@@ -505,6 +520,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 		return lastPingTime;
 	}
 
+	@Override
 	public String toString() {
 		return getClass().getSimpleName() + " from " + getRemoteAddress() + ":"
 				+ getRemotePort() + " to " + getHost() + " (in: "

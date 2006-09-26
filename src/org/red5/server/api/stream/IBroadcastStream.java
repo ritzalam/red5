@@ -32,7 +32,7 @@ import org.red5.server.messaging.IProvider;
  * @author Steven Gong (steven.gong@gmail.com)
  */
 public interface IBroadcastStream extends IStream {
-	
+
 	/**
 	 * Save the broadcast stream as a file. 
 	 * 
@@ -46,7 +46,7 @@ public interface IBroadcastStream extends IStream {
 	 *             Resource not exist when trying to append.
 	 */
 	void saveAs(String filePath, boolean isAppend)
-	throws ResourceNotFoundException, ResourceExistException;
+			throws ResourceNotFoundException, ResourceExistException;
 
 	/**
 	 * Get the provider corresponding to this stream. Provider objects are
@@ -55,7 +55,7 @@ public interface IBroadcastStream extends IStream {
 	 * @return
 	 */
 	IProvider getProvider();
-	
+
 	/**
 	 * Get stream publish name. Publish name is the value of the first parameter
 	 * had been passed to <code>NetStream.publish</code> on client side in
@@ -64,7 +64,7 @@ public interface IBroadcastStream extends IStream {
 	 * @return	Stream publish name	
 	 */
 	String getPublishedName();
-	
+
 	/**
 	 * 
 	 * @param name

@@ -30,11 +30,11 @@ import org.red5.server.net.rtmp.message.Packet;
 
 public class RTMPMinaConnection extends RTMPConnection {
 
-	protected static Log log =
-        LogFactory.getLog(RTMPMinaConnection.class.getName());
+	protected static Log log = LogFactory.getLog(RTMPMinaConnection.class
+			.getName());
 
 	private IoSession ioSession;
-	
+
 	public RTMPMinaConnection(IoSession protocolSession) {
 		super(PERSISTENT);
 		SocketAddress remote = protocolSession.getRemoteAddress();
@@ -48,7 +48,7 @@ public class RTMPMinaConnection extends RTMPConnection {
 		}
 		this.ioSession = protocolSession;
 	}
-		
+
 	public IoSession getIoSession() {
 		return ioSession;
 	}
@@ -64,22 +64,27 @@ public class RTMPMinaConnection extends RTMPConnection {
 		ioSession.write(out);
 	}
 
+	@Override
 	public boolean isConnected() {
 		return super.isConnected() && ioSession.isConnected();
 	}
-	
+
+	@Override
 	public long getReadBytes() {
 		return ioSession.getReadBytes();
 	}
-	
+
+	@Override
 	public long getWrittenBytes() {
 		return ioSession.getWrittenBytes();
 	}
-	
+
+	@Override
 	public long getPendingMessages() {
 		return ioSession.getScheduledWriteRequests();
 	}
 
+	@Override
 	public void close() {
 		super.close();
 		ioSession.close();

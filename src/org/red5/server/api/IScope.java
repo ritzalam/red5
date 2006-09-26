@@ -43,10 +43,11 @@ public interface IScope extends IBasicScope, ResourcePatternResolver,
 		IServiceHandlerProvider {
 
 	public static final String ID = "red5.scope";
-	
+
 	public static final String TYPE = "scope";
+
 	public static final String SEPARATOR = ":";
-	
+
 	/**
 	 * Check to see if this scope has a child scope matching a given name.
 	 * 
@@ -56,7 +57,7 @@ public interface IScope extends IBasicScope, ResourcePatternResolver,
 	 *         <code>false</code>
 	 */
 	public boolean hasChildScope(String name);
-	
+
 	/**
 	 * Checks whether scope has a child scope with given name and type
 	 * 
@@ -68,7 +69,7 @@ public interface IScope extends IBasicScope, ResourcePatternResolver,
 	 *         <code>false</code>
 	 */
 	public boolean hasChildScope(String type, String name);
-	
+
 	/**
 	 * Creates child scope with name given and returns success value. Returns
 	 * <code>true</code> on success, <code>false</code> if given scope
@@ -102,14 +103,14 @@ public interface IScope extends IBasicScope, ResourcePatternResolver,
 	 *         <code>false</code> otherwise
 	 */
 	public void removeChildScope(IBasicScope scope);
-	
+
 	/**
 	 * Get a set of the child scope names.
 	 * 
 	 * @return set containing child scope names
 	 */
 	public Iterator<String> getScopeNames();
-	
+
 	public Iterator<String> getBasicScopeNames(String type);
 
 	/**
@@ -122,7 +123,7 @@ public interface IScope extends IBasicScope, ResourcePatternResolver,
 	public IBasicScope getBasicScope(String type, String name);
 
 	public IScope getScope(String name);
-	
+
 	/**
 	 * Get a set of connected clients. You can get the connections by passing
 	 * the scope to the clients {@link IClient#getConnections()} method.
@@ -131,7 +132,7 @@ public interface IScope extends IBasicScope, ResourcePatternResolver,
 	 * @see org.red5.server.api.IClient#getConnections(IScope)
 	 */
 	public Set<IClient> getClients();
-		
+
 	/**
 	 * Get a connection iterator. You can call remove, and the connection will
 	 * be closed.
@@ -139,7 +140,7 @@ public interface IScope extends IBasicScope, ResourcePatternResolver,
 	 * @return iterator holding all connections
 	 */
 	public Iterator<IConnection> getConnections();
-		
+
 	/**
 	 * Lookup connections.
 	 * 
@@ -155,29 +156,29 @@ public interface IScope extends IBasicScope, ResourcePatternResolver,
 	 * @return	scope context
 	 */
 	public IContext getContext();
-	
+
 	/**
 	 * Checks whether scope has handler or not. 
 	 * 
 	 * @return <code>true</code> if scope has a handler, <code>false</code>
 	 *         otherwise
 	 */
-	public boolean hasHandler(); 
-	
+	public boolean hasHandler();
+
 	/**
 	 * Return handler of the scope
 	 * 
 	 * @return	scope handler
 	 */
-	public IScopeHandler getHandler(); 
-	
+	public IScopeHandler getHandler();
+
 	/**
 	 * Return context path.
 	 * 
 	 * @return	context path
 	 */
 	public String getContextPath();
-	
+
 	/**
 	 * Adds given connection to the scope
 	 * 
@@ -187,8 +188,9 @@ public interface IScope extends IBasicScope, ResourcePatternResolver,
 	 *         connection already belongs to this scope
 	 */
 	public boolean connect(IConnection conn);
+
 	public boolean connect(IConnection conn, Object[] params);
-	
+
 	/**
 	 * Removes given connection from list of scope connections. This disconnects
 	 * all clients of given connection from the scope.
@@ -197,5 +199,5 @@ public interface IScope extends IBasicScope, ResourcePatternResolver,
 	 *            Connection given
 	 */
 	public void disconnect(IConnection conn);
-	
+
 }

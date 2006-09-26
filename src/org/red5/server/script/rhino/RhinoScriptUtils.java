@@ -61,7 +61,8 @@ public abstract class RhinoScriptUtils {
 	 *             in case of Rhino parsing failure
 	 */
 	public static Object createRhinoObject(String scriptSource,
-			Class[] interfaces, Class extendedClass) throws ScriptCompilationException, Exception {
+			Class[] interfaces, Class extendedClass)
+			throws ScriptCompilationException, Exception {
 		//System.out.println("\n" + scriptSource + "\n");
 		//JSR223 style
 		ScriptEngineManager mgr = new ScriptEngineManager();
@@ -69,7 +70,8 @@ public abstract class RhinoScriptUtils {
 		// set engine scope namespace
 		Namespace nameSpace = engine.createNamespace();
 		if (null == nameSpace) {
-			RhinoScriptFactory.log.debug("Engine namespace not created, using simple");
+			RhinoScriptFactory.log
+					.debug("Engine namespace not created, using simple");
 			nameSpace = new SimpleNamespace();
 			//set namespace
 			RhinoScriptFactory.log.debug("Setting namespace");
@@ -83,7 +85,8 @@ public abstract class RhinoScriptUtils {
 		// add the logger to the script
 		nameSpace.put("log", RhinoScriptFactory.log);
 		if (null != extendedClass) {
-			RhinoScriptFactory.log.debug("Extended: " + extendedClass.getName());
+			RhinoScriptFactory.log
+					.debug("Extended: " + extendedClass.getName());
 			nameSpace.put("supa", extendedClass.newInstance());
 		}
 		//compile the script
@@ -97,96 +100,115 @@ public abstract class RhinoScriptUtils {
 			//if function name is not null call it
 			if (null != funcName) {
 				Object attr = engine.getContext().getAttribute(funcName);
-				RhinoScriptFactory.log.debug("Result of script attribute call: " + attr);
+				RhinoScriptFactory.log
+						.debug("Result of script attribute call: " + attr);
 				if (null != attr) {
 					dump(attr);
-			        Context cx = Context.enter();
-			        try {
-			        	Scriptable scope = cx.initStandardObjects();	
-			        	scope.put("className", scope, funcName);
-			        	Function f = (Function) attr;
-			        	Scriptable instance = f.construct(cx, scope, new Object[]{});
-			        	if (null != instance) dump(instance);
-			        	o = instance;
-			        } finally {
-			        	Context.exit();
-			        }				
-					RhinoScriptFactory.log.debug("Result of script constructor call: " + o);
+					Context cx = Context.enter();
+					try {
+						Scriptable scope = cx.initStandardObjects();
+						scope.put("className", scope, funcName);
+						Function f = (Function) attr;
+						Scriptable instance = f.construct(cx, scope,
+								new Object[] {});
+						if (null != instance) {
+							dump(instance);
+						}
+						o = instance;
+					} finally {
+						Context.exit();
+					}
+					RhinoScriptFactory.log
+							.debug("Result of script constructor call: " + o);
 				} else {
-					RhinoScriptFactory.log.debug("Script: " + o.getClass().getName());
+					RhinoScriptFactory.log.debug("Script: "
+							+ o.getClass().getName());
 					NativeObject no = (NativeObject) o;
-					RhinoScriptFactory.log.debug("Native object: " + no.getClassName());
+					RhinoScriptFactory.log.debug("Native object: "
+							+ no.getClassName());
 				}
 			}
 		}
-		return Proxy.newProxyInstance(ClassUtils.getDefaultClassLoader(), interfaces, new RhinoObjectInvocationHandler(engine, o));
+		return Proxy.newProxyInstance(ClassUtils.getDefaultClassLoader(),
+				interfaces, new RhinoObjectInvocationHandler(engine, o));
 	}
 
 	/**
 	 * InvocationHandler that invokes a Rhino script method.
 	 */
-	private static class RhinoObjectInvocationHandler implements InvocationHandler {
+	private static class RhinoObjectInvocationHandler implements
+			InvocationHandler {
 
 		private final ScriptEngine engine;
+
 		private final Object instance;
 
 		public RhinoObjectInvocationHandler(ScriptEngine engine, Object instance) {
 			this.engine = engine;
 			this.instance = instance;
 		}
-		
-		public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+
+		public Object invoke(Object proxy, Method method, Object[] args)
+				throws Throwable {
 			Object o = null;
 			//ensure a set of args are available
 			if (args == null || args.length == 0) {
-				args = new Object[]{""};
-			}		
+				args = new Object[] { "" };
+			}
 			String name = method.getName();
-			RhinoScriptFactory.log.debug("Calling: "  + name);
+			RhinoScriptFactory.log.debug("Calling: " + name);
 			try {
 				if (instance instanceof NativeObject) {
-					o = ScriptableObject.callMethod((NativeObject) instance, name, args);
-		        	RhinoScriptFactory.log.debug("ScriptableObject result: "  + o);
+					o = ScriptableObject.callMethod((NativeObject) instance,
+							name, args);
+					RhinoScriptFactory.log.debug("ScriptableObject result: "
+							+ o);
 				} else if (null == instance) {
 					Invocable invocable = (Invocable) engine;
-					o = invocable.call(name, args);					
-		        	RhinoScriptFactory.log.debug("Invoke result: "  + o);
+					o = invocable.call(name, args);
+					RhinoScriptFactory.log.debug("Invoke result: " + o);
 				} else {
 					Invocable invocable = (Invocable) engine;
 					o = invocable.call(name, instance, args);
-		        	RhinoScriptFactory.log.debug("Invocable result: "  + o);
+					RhinoScriptFactory.log.debug("Invocable result: " + o);
 				}
 				//not unwrapping can cause issues...
 				if (o instanceof NativeJavaObject) {
 					o = ((NativeJavaObject) o).unwrap();
 				}
-			} catch(NoSuchMethodException nex) {
+			} catch (NoSuchMethodException nex) {
 				RhinoScriptFactory.log.warn("Method not found");
-			} catch(Throwable t) {
+			} catch (Throwable t) {
 				RhinoScriptFactory.log.warn(t);
 			}
 			return o;
 		}
-	}	
+	}
 
 	private static void dump(Object c) {
 		if (!RhinoScriptFactory.log.isDebugEnabled()) {
 			return;
 		}
-		System.out.println("==============================================================================");
+		System.out
+				.println("==============================================================================");
 		System.out.println("Name: " + c.getClass().getName());
-		System.out.println("Result is a function: " + Function.class.isInstance(c) + " compiled script: " + CompiledScript.class.isInstance(c) + " undefined: " + Undefined.class.isInstance(c) + " rhino native: " + NativeObject.class.isInstance(c));
+		System.out.println("Result is a function: "
+				+ Function.class.isInstance(c) + " compiled script: "
+				+ CompiledScript.class.isInstance(c) + " undefined: "
+				+ Undefined.class.isInstance(c) + " rhino native: "
+				+ NativeObject.class.isInstance(c));
 		Method[] methods = c.getClass().getMethods();
-        Method m = null;
-        //String name = null;
-        for (Method element : methods) {
-            m = element;
-            //name = m.getName();			
-            RhinoScriptFactory.log.debug("Method: " + m.toGenericString()); 
-        }			
-        System.out.println("==============================================================================");
+		Method m = null;
+		//String name = null;
+		for (Method element : methods) {
+			m = element;
+			//name = m.getName();			
+			RhinoScriptFactory.log.debug("Method: " + m.toGenericString());
+		}
+		System.out
+				.println("==============================================================================");
 	}
-	
+
 	/**
 	 * Uses a regex to get the first "function" name, this name
 	 * is used to create an instance of the javascript object.
@@ -209,6 +231,4 @@ public abstract class RhinoScriptUtils {
 		return ret;
 	}
 
-	
-	
 }

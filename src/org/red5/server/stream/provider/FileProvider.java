@@ -55,31 +55,38 @@ import org.red5.server.stream.message.RTMPMessage;
 public class FileProvider implements IPassive, ISeekableProvider,
 		IPullableProvider, IPipeConnectionListener {
 	private static final Log log = LogFactory.getLog(FileProvider.class);
-	
+
 	public static final String KEY = FileProvider.class.getName();
-	
+
 	private IScope scope;
+
 	private File file;
+
 	private IPipe pipe;
+
 	private ITagReader reader;
+
 	private KeyFrameMeta keyFrameMeta = null;
+
 	private int start = 0;
-	
+
 	public FileProvider(IScope scope, File file) {
 		this.scope = scope;
 		this.file = file;
 	}
-	
+
 	public void setStart(int start) {
 		this.start = start;
 	}
-	
+
 	public IMessage pullMessage(IPipe pipe) {
-		if (this.pipe != pipe)
+		if (this.pipe != pipe) {
 			return null;
-		if (this.reader == null)
+		}
+		if (this.reader == null) {
 			init();
-		if(!reader.hasMoreTags()) {
+		}
+		if (!reader.hasMoreTags()) {
 			// TODO send OOBCM to notify EOF
 			// Do not unsubscribe as this kills VOD seek while in buffer
 			// this.pipe.unsubscribe(this);
@@ -88,23 +95,23 @@ public class FileProvider implements IPassive, ISeekableProvider,
 		ITag tag = reader.readTag();
 		IRTMPEvent msg = null;
 		int timestamp = tag.getTimestamp();
-		switch(tag.getDataType()){
-		case Constants.TYPE_AUDIO_DATA:
-			msg = new AudioData(tag.getBody());
-			break;
-		case Constants.TYPE_VIDEO_DATA:
-			msg = new VideoData(tag.getBody());
-			break;
-		case Constants.TYPE_INVOKE:
-			msg = new Invoke(tag.getBody());
-			break;
-		case Constants.TYPE_NOTIFY:
-			msg = new Notify(tag.getBody());
-			break;
-		default:
-			log.warn("Unexpected type? "+tag.getDataType());
-			msg = new Unknown(tag.getDataType(), tag.getBody());
-			break;
+		switch (tag.getDataType()) {
+			case Constants.TYPE_AUDIO_DATA:
+				msg = new AudioData(tag.getBody());
+				break;
+			case Constants.TYPE_VIDEO_DATA:
+				msg = new VideoData(tag.getBody());
+				break;
+			case Constants.TYPE_INVOKE:
+				msg = new Invoke(tag.getBody());
+				break;
+			case Constants.TYPE_NOTIFY:
+				msg = new Notify(tag.getBody());
+				break;
+			default:
+				log.warn("Unexpected type? " + tag.getDataType());
+				msg = new Unknown(tag.getDataType(), tag.getBody());
+				break;
 		}
 		msg.setTimestamp(timestamp);
 		RTMPMessage rtmpMsg = new RTMPMessage();
@@ -118,26 +125,26 @@ public class FileProvider implements IPassive, ISeekableProvider,
 
 	public void onPipeConnectionEvent(PipeConnectionEvent event) {
 		switch (event.getType()) {
-		case PipeConnectionEvent.PROVIDER_CONNECT_PULL:
-			if (pipe == null) {
-				pipe = (IPipe) event.getSource();
-			}
-			break;
-		case PipeConnectionEvent.PROVIDER_DISCONNECT:
-			if (pipe == event.getSource()) {
-				this.pipe = null;
-				uninit();
-			}
-			break;
-		case PipeConnectionEvent.CONSUMER_DISCONNECT:
-			if (pipe == event.getSource()) {
-				uninit();
-			}
-		default:
-			break;
+			case PipeConnectionEvent.PROVIDER_CONNECT_PULL:
+				if (pipe == null) {
+					pipe = (IPipe) event.getSource();
+				}
+				break;
+			case PipeConnectionEvent.PROVIDER_DISCONNECT:
+				if (pipe == event.getSource()) {
+					this.pipe = null;
+					uninit();
+				}
+				break;
+			case PipeConnectionEvent.CONSUMER_DISCONNECT:
+				if (pipe == event.getSource()) {
+					uninit();
+				}
+			default:
+				break;
 		}
 	}
-	
+
 	public void onOOBControlMessage(IMessageComponent source, IPipe pipe,
 			OOBControlMessage oobCtrlMsg) {
 		if (IPassive.KEY.equals(oobCtrlMsg.getTarget())) {
@@ -177,7 +184,7 @@ public class FileProvider implements IPassive, ISeekableProvider,
 			seek(start);
 		}
 	}
-	
+
 	private void uninit() {
 		if (this.reader != null) {
 			this.reader.close();
@@ -187,13 +194,14 @@ public class FileProvider implements IPassive, ISeekableProvider,
 
 	synchronized public int seek(int ts) {
 		if (keyFrameMeta == null) {
-			if (!(reader instanceof IKeyFrameDataAnalyzer))
+			if (!(reader instanceof IKeyFrameDataAnalyzer)) {
 				// Seeking not supported
 				return ts;
-		
+			}
+
 			keyFrameMeta = ((IKeyFrameDataAnalyzer) reader).analyzeKeyFrames();
 		}
-		
+
 		if (keyFrameMeta.positions.length == 0) {
 			// no video keyframe metainfo, it's an audio-only FLV
 			// we skip the seek for now.
@@ -202,8 +210,9 @@ public class FileProvider implements IPassive, ISeekableProvider,
 		}
 		int frame = 0;
 		for (int i = 0; i < keyFrameMeta.positions.length; i++) {
-			if (keyFrameMeta.timestamps[i] > ts)
+			if (keyFrameMeta.timestamps[i] > ts) {
 				break;
+			}
 			frame = i;
 		}
 		reader.position(keyFrameMeta.positions[frame]);

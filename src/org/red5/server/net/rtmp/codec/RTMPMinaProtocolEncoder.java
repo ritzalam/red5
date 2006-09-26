@@ -35,13 +35,14 @@ public class RTMPMinaProtocolEncoder extends RTMPProtocolEncoder implements
 			final ProtocolState state = (ProtocolState) session
 					.getAttribute(ProtocolState.SESSION_KEY);
 			final ByteBuffer buf = encode(state, message);
-			if (buf != null)
+			if (buf != null) {
 				out.write(buf);
-		} catch(Exception ex){
+			}
+		} catch (Exception ex) {
 			log.error(ex);
 		}
 	}
-	
+
 	public void dispose(IoSession ioSession) throws Exception {
 		// TODO Auto-generated method stub		
 	}

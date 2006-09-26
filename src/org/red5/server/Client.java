@@ -39,18 +39,18 @@ import org.red5.server.stream.IFlowControlService;
 public class Client extends AttributeStore implements IClient {
 
 	protected static Log log = LogFactory.getLog(Client.class.getName());
-	
+
 	protected String id;
 
 	protected long creationTime;
 
 	protected ClientRegistry registry;
 
-	protected HashMap<IConnection,IScope> connToScope = new HashMap<IConnection,IScope>();
-	
+	protected HashMap<IConnection, IScope> connToScope = new HashMap<IConnection, IScope>();
+
 	private IBandwidthConfigure bandwidthConfig;
-	
-	public Client(String id, ClientRegistry registry){
+
+	public Client(String id, ClientRegistry registry) {
 		this.id = id;
 		this.registry = registry;
 		this.creationTime = System.currentTimeMillis();
@@ -63,35 +63,40 @@ public class Client extends AttributeStore implements IClient {
 	public long getCreationTime() {
 		return creationTime;
 	}
-	
+
+	@Override
 	public boolean equals(Object obj) {
-		if(!(obj instanceof Client)) {
+		if (!(obj instanceof Client)) {
 			return false;
 		}
 		return ((Client) obj).getId().equals(id);
- 	}
+	}
 
 	//if overriding equals then also do hashCode
+	@Override
 	public int hashCode() {
 		return id.hashCode();
- 	}
-
-	public String toString() {
-		return "Client: "+id;
 	}
-	
+
+	@Override
+	public String toString() {
+		return "Client: " + id;
+	}
+
 	public Set<IConnection> getConnections() {
 		return connToScope.keySet();
 	}
-	
+
 	public Set<IConnection> getConnections(IScope scope) {
-		if (scope == null)
+		if (scope == null) {
 			return getConnections();
-		
+		}
+
 		Set<IConnection> result = new HashSet<IConnection>();
-		for (Entry<IConnection, IScope> entry: connToScope.entrySet()) {
-			if (scope.equals(entry.getValue()))
+		for (Entry<IConnection, IScope> entry : connToScope.entrySet()) {
+			if (scope.equals(entry.getValue())) {
 				result.add(entry.getKey());
+			}
 		}
 		return result;
 	}
@@ -104,17 +109,18 @@ public class Client extends AttributeStore implements IClient {
 		log.debug("Disconnect, closing " + getConnections().size()
 				+ " connections");
 		Iterator<IConnection> conns = getConnections().iterator();
-		while(conns.hasNext()){
+		while (conns.hasNext()) {
 			conns.next().close();
 		}
 		IContext context = getContextFromConnection();
-		if (context == null)
+		if (context == null) {
 			return;
+		}
 		IFlowControlService fcs = (IFlowControlService) context
 				.getBean(IFlowControlService.KEY);
 		fcs.releaseFlowControllable(this);
 	}
-		
+
 	public IBandwidthConfigure getBandwidthConfigure() {
 		return this.bandwidthConfig;
 	}
@@ -126,26 +132,27 @@ public class Client extends AttributeStore implements IClient {
 
 	public void setBandwidthConfigure(IBandwidthConfigure config) {
 		IContext context = getContextFromConnection();
-		if (context == null)
+		if (context == null) {
 			return;
+		}
 		IFlowControlService fcs = (IFlowControlService) context
 				.getBean(IFlowControlService.KEY);
 		this.bandwidthConfig = config;
 		fcs.updateBWConfigure(this);
 	}
 
-	protected void register(IConnection conn){
+	protected void register(IConnection conn) {
 		connToScope.put(conn, conn.getScope());
 	}
-	
-	protected void unregister(IConnection conn){
+
+	protected void unregister(IConnection conn) {
 		connToScope.remove(conn);
 		if (connToScope.isEmpty()) {
 			// This client is not connected to any scopes, remove from registry.
 			registry.removeClient(this);
 		}
 	}
-	
+
 	/**
 	 * Get the context from anyone of the IConnection.
 	 * 

@@ -32,7 +32,7 @@ public interface IScopeResolver {
 	 * @return global scope
 	 */
 	public IGlobalScope getGlobalScope();
-	
+
 	/**
 	 * Get the scope for a given path.
 	 * 
@@ -43,5 +43,5 @@ public interface IScopeResolver {
 	 *             if scope doesn't exist an can't be created
 	 */
 	public IScope resolveScope(String path);
-	
+
 }

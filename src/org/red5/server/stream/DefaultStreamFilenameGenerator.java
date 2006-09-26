@@ -34,15 +34,16 @@ public class DefaultStreamFilenameGenerator implements IStreamFilenameGenerator 
 	private String getStreamDirectory(IScope scope) {
 		return "streams/";
 	}
-	
+
 	public String generateFilename(IScope scope, String name) {
 		return generateFilename(scope, name, null);
 	}
 
 	public String generateFilename(IScope scope, String name, String extension) {
 		String result = getStreamDirectory(scope) + name;
-		if (extension != null && !extension.equals(""))
+		if (extension != null && !extension.equals("")) {
 			result += extension;
+		}
 		return result;
 	}
 

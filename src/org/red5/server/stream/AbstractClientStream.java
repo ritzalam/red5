@@ -27,10 +27,13 @@ import org.red5.server.api.stream.IStreamCapableConnection;
 public abstract class AbstractClientStream extends AbstractStream implements
 		IClientStream {
 	private int streamId;
+
 	private IStreamCapableConnection conn;
+
 	private IBandwidthConfigure bwConfig;
+
 	private IStreamFlow streamFlow = new StreamFlow();
-	
+
 	public int getStreamId() {
 		return streamId;
 	}
@@ -46,7 +49,7 @@ public abstract class AbstractClientStream extends AbstractStream implements
 	public void setBandwidthConfigure(IBandwidthConfigure config) {
 		this.bwConfig = config;
 	}
-	
+
 	public IFlowControllable getParentFlowControllable() {
 		return conn;
 	}
@@ -54,17 +57,17 @@ public abstract class AbstractClientStream extends AbstractStream implements
 	public void setStreamId(int streamId) {
 		this.streamId = streamId;
 	}
-	
+
 	public void setConnection(IStreamCapableConnection conn) {
 		this.conn = conn;
 	}
-	
-	protected void setStreamFlow(IStreamFlow streamFlow){
+
+	protected void setStreamFlow(IStreamFlow streamFlow) {
 		this.streamFlow = streamFlow;
 	}
-	
-	public IStreamFlow getStreamFlow(){
+
+	public IStreamFlow getStreamFlow() {
 		return streamFlow;
 	}
-	
+
 }

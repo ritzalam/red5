@@ -31,7 +31,7 @@ public interface IStreamFilenameGenerator {
 
 	/** Name of the bean to setup a custom filename generator in an application. */
 	public static final String KEY = "streamFilenameGenerator";
-	
+
 	/**
 	 * Generate a filename without an extension.
 	 * 
@@ -40,7 +40,7 @@ public interface IStreamFilenameGenerator {
 	 * @return
 	 */
 	public String generateFilename(IScope scope, String name);
-	
+
 	/**
 	 * Generate a filename with an extension.
 	 * 
@@ -50,5 +50,5 @@ public interface IStreamFilenameGenerator {
 	 * @return
 	 */
 	public String generateFilename(IScope scope, String name, String extension);
-	
+
 }

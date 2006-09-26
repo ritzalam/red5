@@ -27,15 +27,16 @@ import java.util.Set;
  *
  */
 public interface IPendingServiceCall extends IServiceCall {
-	
+
 	/**
 	 * Returns service call result
 	 * 
 	 * @return	
 	 */
 	public abstract Object getResult();
+
 	public abstract void setResult(Object result);
-	
+
 	/**
 	 * Registers callback object usually represented as an anonymous class
 	 * instance that implements IPendingServiceCallback interface.

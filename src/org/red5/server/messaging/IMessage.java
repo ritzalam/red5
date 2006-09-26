@@ -31,38 +31,50 @@ package org.red5.server.messaging;
  */
 public interface IMessage {
 	String getMessageID();
+
 	void setMessageID(String id);
-	
+
 	String getCorrelationID();
+
 	void setCorrelationID(String id);
-	
+
 	String getMessageType();
+
 	void setMessageType(String type);
-	
+
 	boolean getBooleanProperty(String name);
+
 	void setBooleanProperty(String name, boolean value);
-	
+
 	byte getByteProperty(String name);
+
 	void setByteProperty(String name, byte value);
-	
+
 	double getDoubleProperty(String name);
+
 	void setDoubleProperty(String name, double value);
-	
+
 	float getFloatProperty(String name);
+
 	void setFloatProperty(String name, float value);
-	
+
 	int getIntProperty(String name);
+
 	void setIntProperty(String name, int value);
-	
+
 	long getLongProperty(String name);
+
 	void setLongProperty(String name, long value);
-	
+
 	short getShortProperty(String name);
+
 	void setShortProperty(String name, short value);
-	
+
 	String getStringProperty(String name);
+
 	void setStringProperty(String name, String value);
-	
+
 	Object getObjectProperty(String name);
+
 	void setObjectProperty(String name, Object value);
 }

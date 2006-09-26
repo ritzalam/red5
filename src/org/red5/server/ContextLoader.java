@@ -34,19 +34,21 @@ import org.springframework.core.io.Resource;
 
 public class ContextLoader implements ApplicationContextAware {
 
-	protected static Log log =
-        LogFactory.getLog(ContextLoader.class.getName());
-	
+	protected static Log log = LogFactory.getLog(ContextLoader.class.getName());
+
 	protected ApplicationContext applicationContext;
+
 	protected ApplicationContext parentContext;
+
 	protected String contextsConfig;
-	protected HashMap<String, ApplicationContext> contextMap = new HashMap<String,ApplicationContext>();
-	
+
+	protected HashMap<String, ApplicationContext> contextMap = new HashMap<String, ApplicationContext>();
+
 	public void setApplicationContext(ApplicationContext applicationContext)
 			throws BeansException {
-		this.applicationContext = applicationContext;		
+		this.applicationContext = applicationContext;
 	}
-	
+
 	public void setParentContext(ApplicationContext parentContext) {
 		this.parentContext = parentContext;
 	}
@@ -58,37 +60,37 @@ public class ContextLoader implements ApplicationContextAware {
 	public void init() throws Exception {
 		Properties props = new Properties();
 		Resource res = applicationContext.getResource(contextsConfig);
-		if(!res.exists()){
+		if (!res.exists()) {
 			log.error("Contexts config must be set.");
 			return;
 		}
-    	
+
 		props.load(res.getInputStream());
-    	
-    	for(Object key : props.keySet()){
-    		String name = (String) key;
-    		String config = props.getProperty(name);
-    		// TODO: we should support arbitrary property substitution
+
+		for (Object key : props.keySet()) {
+			String name = (String) key;
+			String config = props.getProperty(name);
+			// TODO: we should support arbitrary property substitution
 			config = config.replace("${red5.root}", System
 					.getProperty("red5.root"));
 			config = config.replace("${red5.config_root}", System
 					.getProperty("red5.config_root"));
-    		log.info("Loading: "+name+" = "+config);
-    		loadContext(name, config);
-    	}
-    	
+			log.info("Loading: " + name + " = " + config);
+			loadContext(name, config);
+		}
+
 	}
-	
-	protected void loadContext(String name, String config){
+
+	protected void loadContext(String name, String config) {
 		ApplicationContext context = new FileSystemXmlApplicationContext(
 				new String[] { config }, parentContext);
 		contextMap.put(name, context);
 		// add the context to the parent, this will be red5.xml
 		ConfigurableBeanFactory factory = ((ConfigurableApplicationContext) applicationContext)
 				.getBeanFactory();
-		factory.registerSingleton(name,context);
+		factory.registerSingleton(name, context);
 	}
-	
+
 	public ApplicationContext getContext(String name) {
 		return contextMap.get(name);
 	}

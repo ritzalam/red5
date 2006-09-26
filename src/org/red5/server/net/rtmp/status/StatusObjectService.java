@@ -36,32 +36,33 @@ import org.red5.io.utils.HexDump;
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 public class StatusObjectService implements StatusCodes {
-	
+
 	// Note all status object should aim to be under 128 bytes
-	
+
 	protected static Log log = LogFactory.getLog(StatusObjectService.class
 			.getName());
-	
+
 	protected Serializer serializer;
-	
+
 	protected Map<String, StatusObject> statusObjects;
-	protected Map<String, byte[]> cachedStatusObjects; 
+
+	protected Map<String, byte[]> cachedStatusObjects;
 
 	public void setSerializer(Serializer serializer) {
 		this.serializer = serializer;
 	}
 
-	public void initialize(){
+	public void initialize() {
 		log.debug("Loading status objects");
 		loadStatusObjects();
 		log.debug("Caching status objects");
 		cacheStatusObjects();
 		log.debug("Status service ready");
 	}
-	
-	public void loadStatusObjects(){
+
+	public void loadStatusObjects() {
 		statusObjects = new HashMap<String, StatusObject>();
-		
+
 		statusObjects.put(NC_CALL_FAILED, new StatusObject(NC_CALL_FAILED,
 				StatusObject.ERROR, ""));
 		statusObjects.put(NC_CALL_BADVERSION, new StatusObject(
@@ -132,46 +133,47 @@ public class StatusObjectService implements StatusCodes {
 				StatusObject.STATUS, ""));
 		statusObjects.put(APP_GC, new StatusObject(APP_GC, StatusObject.STATUS,
 				""));
-		
+
 	}
-	
-	public void cacheStatusObjects(){
-		
+
+	public void cacheStatusObjects() {
+
 		cachedStatusObjects = new HashMap<String, byte[]>();
-		
+
 		Iterator<String> it = statusObjects.keySet().iterator();
-		
+
 		String statusCode;
 		ByteBuffer out = ByteBuffer.allocate(256);
 		out.setAutoExpand(true);
-		
-		while(it.hasNext()){
+
+		while (it.hasNext()) {
 			statusCode = it.next();
 			StatusObject statusObject = statusObjects.get(statusCode);
-			if (statusObject instanceof RuntimeStatusObject)
+			if (statusObject instanceof RuntimeStatusObject) {
 				continue;
+			}
 			serializeStatusObject(out, statusObject);
 			out.flip();
 			log.debug(HexDump.formatHexDump(out.getHexDump()));
 			byte[] cachedBytes = new byte[out.limit()];
 			out.get(cachedBytes);
 			out.clear();
-			cachedStatusObjects.put(statusCode,cachedBytes);
+			cachedStatusObjects.put(statusCode, cachedBytes);
 		}
 		out.release();
 	}
-	
-	public void serializeStatusObject(ByteBuffer out, StatusObject statusObject){
+
+	public void serializeStatusObject(ByteBuffer out, StatusObject statusObject) {
 		Map statusMap = new BeanMap(statusObject);
 		Output output = new Output(out);
 		serializer.serialize(output, statusMap);
 	}
-	
-	public StatusObject getStatusObject(String statusCode){
+
+	public StatusObject getStatusObject(String statusCode) {
 		return statusObjects.get(statusCode);
 	}
-	
-	public byte[] getCachedStatusObjectAsByteArray(String statusCode){
+
+	public byte[] getCachedStatusObjectAsByteArray(String statusCode) {
 		return cachedStatusObjects.get(statusCode);
 	}
 

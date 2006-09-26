@@ -35,25 +35,36 @@ import org.red5.server.api.event.IEvent;
 
 public abstract class BaseConnection extends AttributeStore implements
 		IConnection {
-	
+
 	protected static Log log = LogFactory
 			.getLog(BaseConnection.class.getName());
-	
+
 	protected String type;
+
 	protected String host;
+
 	protected String remoteAddress;
+
 	protected int remotePort;
+
 	protected String path;
+
 	protected String sessionId;
+
 	protected long readMessages = 0;
+
 	protected long writtenMessages = 0;
+
 	protected long droppedMessages = 0;
-	protected Map<String,String> params = null;
-	
+
+	protected Map<String, String> params = null;
+
 	protected IClient client = null;
+
 	protected Scope scope = null;
+
 	protected Set<IBasicScope> basicScopes;
-	
+
 	public BaseConnection(String type, String host, String remoteAddress,
 			int remotePort, String path, String sessionId,
 			Map<String, String> params) {
@@ -66,8 +77,8 @@ public abstract class BaseConnection extends AttributeStore implements
 		this.params = params;
 		this.basicScopes = new HashSet<IBasicScope>();
 	}
-	
-	public void initialize(IClient client){
+
+	public void initialize(IClient client) {
 		if (this.client != null && this.client instanceof Client) {
 			// Unregister old client
 			((Client) this.client).unregister(this);
@@ -78,8 +89,8 @@ public abstract class BaseConnection extends AttributeStore implements
 			((Client) this.client).register(this);
 		}
 	}
-	
-	public String getType(){
+
+	public String getType() {
 		return type;
 	}
 
@@ -94,8 +105,8 @@ public abstract class BaseConnection extends AttributeStore implements
 	public int getRemotePort() {
 		return remotePort;
 	}
-	
-	public String getPath(){
+
+	public String getPath() {
 		return path;
 	}
 
@@ -111,7 +122,7 @@ public abstract class BaseConnection extends AttributeStore implements
 		return client;
 	}
 
-	public boolean isConnected(){
+	public boolean isConnected() {
 		return scope != null;
 	}
 
@@ -122,11 +133,12 @@ public abstract class BaseConnection extends AttributeStore implements
 	public boolean connect(IScope newScope, Object[] params) {
 		final Scope oldScope = scope;
 		scope = (Scope) newScope;
-		if (scope.connect(this, params)){
-			if(oldScope != null) 
+		if (scope.connect(this, params)) {
+			if (oldScope != null) {
 				oldScope.disconnect(this);
+			}
 			return true;
-		} else 	{
+		} else {
 			scope = oldScope;
 			return false;
 		}
@@ -135,46 +147,46 @@ public abstract class BaseConnection extends AttributeStore implements
 	public IScope getScope() {
 		return scope;
 	}
-	
-	public void close(){
-	
-		if(scope != null) {
-			
+
+	public void close() {
+
+		if (scope != null) {
+
 			log.debug("Close, disconnect from scope, and children");
 			try {
 				Set<IBasicScope> tmpScopes = new HashSet<IBasicScope>(
 						basicScopes);
-				for(IBasicScope basicScope : tmpScopes){
+				for (IBasicScope basicScope : tmpScopes) {
 					unregisterBasicScope(basicScope);
 				}
 			} catch (Exception err) {
 				log.error("Error while unregistering basic scopes.", err);
 			}
-			
+
 			try {
 				scope.disconnect(this);
 			} catch (Exception err) {
 				log.error("Error while disconnecting from scope " + scope, err);
 			}
-			
+
 			if (client != null && client instanceof Client) {
 				((Client) client).unregister(this);
 				client = null;
 			}
-			
-			scope=null;
+
+			scope = null;
 		} else {
 			log.debug("Close, not connected nothing to do.");
 		}
-		
+
 	}
-	
+
 	public void notifyEvent(IEvent event) {
 		// TODO Auto-generated method stub		
 	}
 
 	public void dispatchEvent(IEvent event) {
-		
+
 	}
 
 	public boolean handleEvent(IEvent event) {
@@ -184,28 +196,29 @@ public abstract class BaseConnection extends AttributeStore implements
 	public Iterator<IBasicScope> getBasicScopes() {
 		return basicScopes.iterator();
 	}
-	
-	public void registerBasicScope(IBasicScope basicScope){
+
+	public void registerBasicScope(IBasicScope basicScope) {
 		basicScopes.add(basicScope);
 		basicScope.addEventListener(this);
 	}
-	
-	public void unregisterBasicScope(IBasicScope basicScope){
+
+	public void unregisterBasicScope(IBasicScope basicScope) {
 		basicScopes.remove(basicScope);
 		basicScope.removeEventListener(this);
 	}
 
 	public abstract long getReadBytes();
+
 	public abstract long getWrittenBytes();
-	
+
 	public long getReadMessages() {
 		return readMessages;
 	}
-	
+
 	public long getWrittenMessages() {
 		return writtenMessages;
 	}
-	
+
 	public long getDroppedMessages() {
 		return droppedMessages;
 	}
@@ -213,9 +226,9 @@ public abstract class BaseConnection extends AttributeStore implements
 	public long getPendingMessages() {
 		return 0;
 	}
-	
+
 	public long getPendingVideoMessages(int streamId) {
 		return 0;
 	}
-	
+
 }

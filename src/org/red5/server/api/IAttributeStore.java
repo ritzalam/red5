@@ -28,7 +28,7 @@ import java.util.Set;
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard (luke@codegent.com)
  */
-public interface IAttributeStore  {
+public interface IAttributeStore {
 
 	/**
 	 * Get the attribute names.
@@ -54,8 +54,8 @@ public interface IAttributeStore  {
 	 * @param values
 	 *            the attributes to set
 	 */
-	public void setAttributes(Map<String,Object> values);
-	
+	public void setAttributes(Map<String, Object> values);
+
 	/**
 	 * Set multiple attributes on this object.
 	 * 
@@ -63,7 +63,7 @@ public interface IAttributeStore  {
 	 *            the attributes to set
 	 */
 	public void setAttributes(IAttributeStore values);
-	
+
 	/**
 	 * Return the value for a given attribute.
 	 * 
@@ -117,5 +117,5 @@ public interface IAttributeStore  {
 	 * Remove all attributes.
 	 */
 	public void removeAttributes();
-	
+
 }

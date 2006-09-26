@@ -51,7 +51,8 @@ public abstract class JRubyScriptUtils {
 	 * @return the scripted Java object
 	 * @throws JumpException in case of JRuby parsing failure
 	 */
-	public static Object createJRubyObject(String scriptSource, Class[] interfaces) throws JumpException {
+	public static Object createJRubyObject(String scriptSource,
+			Class[] interfaces) throws JumpException {
 		IRuby ruby = Ruby.getDefaultInstance();
 		//node is a compiled script
 		Node scriptRootNode = ruby.parse(scriptSource, "");
@@ -64,7 +65,8 @@ public abstract class JRubyScriptUtils {
 		}
 		// still null?
 		if (rubyObject instanceof RubyNil) {
-			throw new ScriptCompilationException("Compilation of JRuby script returned '" + rubyObject + "'");
+			throw new ScriptCompilationException(
+					"Compilation of JRuby script returned '" + rubyObject + "'");
 		}
 		return Proxy.newProxyInstance(ClassUtils.getDefaultClassLoader(),
 				interfaces, new RubyObjectInvocationHandler(rubyObject, ruby));
@@ -78,7 +80,9 @@ public abstract class JRubyScriptUtils {
 	private static String findClassName(Node rootNode) {
 		ClassNode classNode = findClassNode(rootNode);
 		if (classNode == null) {
-			throw new IllegalArgumentException("Unable to determine class name for root node '" + rootNode + "'");
+			throw new IllegalArgumentException(
+					"Unable to determine class name for root node '" + rootNode
+							+ "'");
 		}
 		Colon2Node node = (Colon2Node) classNode.getCPath();
 		return node.getName();
@@ -97,8 +101,7 @@ public abstract class JRubyScriptUtils {
 			Node child = (Node) children.get(i);
 			if (child instanceof ClassNode) {
 				return (ClassNode) child;
-			}
-			else if (child instanceof NewlineNode) {
+			} else if (child instanceof NewlineNode) {
 				NewlineNode nn = (NewlineNode) child;
 				Node found = findClassNode(nn.getNextNode());
 				if (found instanceof ClassNode) {
@@ -120,9 +123,11 @@ public abstract class JRubyScriptUtils {
 	/**
 	 * InvocationHandler that invokes a JRuby script method.
 	 */
-	private static class RubyObjectInvocationHandler implements InvocationHandler {
+	private static class RubyObjectInvocationHandler implements
+			InvocationHandler {
 		//scripted instance
 		private final IRubyObject rubyObject;
+
 		//script engine
 		private final IRuby ruby;
 
@@ -134,7 +139,8 @@ public abstract class JRubyScriptUtils {
 		public Object invoke(Object proxy, Method method, Object[] args)
 				throws Throwable {
 			IRubyObject[] rubyArgs = convertToRuby(args);
-			IRubyObject result = this.rubyObject.callMethod(method.getName(), rubyArgs);
+			IRubyObject result = this.rubyObject.callMethod(method.getName(),
+					rubyArgs);
 			return JavaUtil.convertRubyToJava(result);
 		}
 

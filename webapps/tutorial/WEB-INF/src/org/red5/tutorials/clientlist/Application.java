@@ -21,7 +21,6 @@ package org.red5.tutorials.clientlist;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.red5.samples.components.ClientManager;
 import org.red5.server.adapter.ApplicationAdapter;
 import org.red5.server.api.IConnection;
@@ -38,10 +37,10 @@ import org.red5.server.api.service.ServiceUtils;
 public class Application extends ApplicationAdapter {
 
 	protected static Log log = LogFactory.getLog(Application.class.getName());
-	
+
 	/** Manager for the clients. */
 	private ClientManager clientMgr = new ClientManager("clientlist", false);
-	
+
 	@Override
 	public boolean connect(IConnection conn, IScope scope, Object[] params) {
 		// Check if the user passed valid parameters.
@@ -50,33 +49,38 @@ public class Application extends ApplicationAdapter {
 			// NOTE: "rejectClient" terminates the execution of the current method!
 			rejectClient("No username passed.");
 		}
-		
+
 		// Call original method of parent class.
-		if (!super.connect(conn, scope, params))
+		if (!super.connect(conn, scope, params)) {
 			return false;
-		
+		}
+
 		String username = params[0].toString();
 		String uid = conn.getClient().getId();
 		log.debug("Client \"" + username + "\" (" + uid + ") connected.");
 		// Register the user in the shared object.
 		clientMgr.addClient(scope, username, uid);
 		// Notify client about unique id.
-		ServiceUtils.invokeOnConnection(conn, "setClientID", new Object[]{uid});
+		ServiceUtils.invokeOnConnection(conn, "setClientID",
+				new Object[] { uid });
 		return true;
 	}
-	
+
 	@Override
 	public void disconnect(IConnection conn, IScope scope) {
 		// Get the previously stored username.
 		String uid = conn.getClient().getId();
 		// Unregister user.
 		String username = clientMgr.removeClient(scope, uid);
-		if (username != null)
-			log.debug("Client \"" + username + "\" (" + uid + ") disconnected.");
-		else
+		if (username != null) {
+			log
+					.debug("Client \"" + username + "\" (" + uid
+							+ ") disconnected.");
+		} else {
 			log.debug("Client (" + uid + ") disconnected.");
+		}
 		// Call original method of parent class.
 		super.disconnect(conn, scope);
 	}
-	
+
 }

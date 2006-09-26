@@ -40,14 +40,14 @@ package org.red5.server.api;
  * @author Luke Hubbard (luke@codegent.com)
  */
 public final class Red5 {
-	
+
 	/**
 	 * Current connection thread. Each connection of Red5 application runs in a
 	 * separate thread. This method returns thread object associated with
 	 * current connection.
 	 */
 	private static ThreadLocal<IConnection> connThreadLocal = new ThreadLocal<IConnection>();
-	
+
 	/**
 	 * Connection local to the current thread
 	 */

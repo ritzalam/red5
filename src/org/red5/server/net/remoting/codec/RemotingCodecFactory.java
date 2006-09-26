@@ -26,19 +26,22 @@ import org.red5.server.net.protocol.SimpleProtocolDecoder;
 import org.red5.server.net.protocol.SimpleProtocolEncoder;
 
 public class RemotingCodecFactory implements SimpleProtocolCodecFactory {
-	
+
 	protected Deserializer deserializer;
+
 	protected Serializer serializer;
+
 	protected RemotingProtocolDecoder decoder;
+
 	protected RemotingProtocolEncoder encoder;
-	
-	public void init(){
+
+	public void init() {
 		decoder = new RemotingProtocolDecoder();
 		decoder.setDeserializer(deserializer);
 		encoder = new RemotingProtocolEncoder();
 		encoder.setSerializer(serializer);
 	}
-	
+
 	public void setDeserializer(Deserializer deserializer) {
 		this.deserializer = deserializer;
 	}
@@ -53,6 +56,6 @@ public class RemotingCodecFactory implements SimpleProtocolCodecFactory {
 
 	public SimpleProtocolEncoder getSimpleEncoder() {
 		return encoder;
-	}	
-	
+	}
+
 }

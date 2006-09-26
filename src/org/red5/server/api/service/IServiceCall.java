@@ -22,8 +22,8 @@ package org.red5.server.api.service;
 /**
  * Container for a Service Call 
  */
-public interface IServiceCall  {
-	
+public interface IServiceCall {
+
 	/**
 	 * Whether call was successful or not
 	 * 
@@ -37,14 +37,14 @@ public interface IServiceCall  {
 	 * @return	Service method name as string
 	 */
 	public abstract String getServiceMethodName();
-	
+
 	/**
 	 * Returns service name
 	 * 
 	 * @return	Service name
 	 */
 	public abstract String getServiceName();
-	
+
 	/**
 	 * Returns array of service method arguments
 	 * 
@@ -58,14 +58,14 @@ public interface IServiceCall  {
 	 * @return	service call status
 	 */
 	public abstract byte getStatus();
-	
+
 	/**
 	 * Get service call exception
 	 * 
 	 * @return	service call exception
 	 */
 	public abstract Exception getException();
-	
+
 	/**
 	 * Sets status
 	 * 
@@ -73,7 +73,7 @@ public interface IServiceCall  {
 	 *            Status as byte
 	 */
 	public abstract void setStatus(byte status);
-	
+
 	/**
 	 * Sets exception
 	 * 

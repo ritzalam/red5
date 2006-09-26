@@ -31,9 +31,10 @@ function object(o) {
 			}
 			this.appScope = app;
 			return true;
-		};   
+		}; 
 	
 		appConnect: function(conn, params) {
+			log.error('Javascript appConnect');
 			if (log.isDebugEnabled) {
 				print('Javascript appConnect');
 			}
@@ -57,7 +58,7 @@ function object(o) {
 				this.serverStream.close();
 			}
 			return this.__proto__.appDisconnect(conn);
-		};  			
+		};		
 		
 		toString: function(string) {
 			return 'Javascript:Application';

@@ -32,7 +32,7 @@ public interface IMappingStrategy {
 	 * @return the name of the service with the passed name
 	 */
 	public String mapServiceName(String name);
-	
+
 	/**
 	 * Map a context path to the name of a scope handler.
 	 * 
@@ -41,7 +41,7 @@ public interface IMappingStrategy {
 	 * @return the name of a scope handler
 	 */
 	public String mapScopeHandlerName(String contextPath);
-	
+
 	/**
 	 * Map a context path to a path prefix for resources.
 	 * 
@@ -50,5 +50,5 @@ public interface IMappingStrategy {
 	 * @return the path prefix for resources with the given name 
 	 */
 	public String mapResourcePrefix(String contextPath);
-	
+
 }

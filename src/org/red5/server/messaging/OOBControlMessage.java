@@ -35,31 +35,41 @@ public class OOBControlMessage implements Serializable {
 	private static final long serialVersionUID = -6037348177653934300L;
 
 	private String target;
+
 	private String serviceName;
+
 	private Map serviceParamMap;
+
 	private Object result;
-	
+
 	public String getServiceName() {
 		return serviceName;
 	}
+
 	public void setServiceName(String serviceName) {
 		this.serviceName = serviceName;
 	}
+
 	public Map getServiceParamMap() {
 		return serviceParamMap;
 	}
+
 	public void setServiceParamMap(Map serviceParamMap) {
 		this.serviceParamMap = serviceParamMap;
 	}
+
 	public String getTarget() {
 		return target;
 	}
+
 	public void setTarget(String target) {
 		this.target = target;
 	}
+
 	public Object getResult() {
 		return result;
 	}
+
 	public void setResult(Object result) {
 		this.result = result;
 	}

@@ -48,16 +48,21 @@ import org.red5.server.stream.message.StatusMessage;
 public class ConnectionConsumer implements IPushableConsumer,
 		IPipeConnectionListener {
 	private static final Log log = LogFactory.getLog(ConnectionConsumer.class);
-	
+
 	public static final String KEY = ConnectionConsumer.class.getName();
-	
+
 	private RTMPConnection conn;
+
 	private Channel video;
+
 	private Channel audio;
+
 	private Channel data;
+
 	private int chunkSize = -1;
+
 	private StreamTracker streamTracker;
-	
+
 	public ConnectionConsumer(RTMPConnection conn, byte videoChannel,
 			byte audioChannel, byte dataChannel) {
 		this.conn = conn;
@@ -84,51 +89,51 @@ public class ConnectionConsumer implements IPushableConsumer,
 			}
 			header.setTimerRelative(streamTracker.isRelative());
 			header.setTimer(timestamp);
-			
+
 			switch (msg.getDataType()) {
-			case Constants.TYPE_STREAM_METADATA:
-				Notify notify = new Notify(((Notify) msg).getData()
-						.asReadOnlyBuffer());
-				notify.setHeader(header);
-				notify.setTimestamp(header.getTimer());
-				data.write(notify);
-				break;
-			case Constants.TYPE_VIDEO_DATA:
-				VideoData videoData = new VideoData(((VideoData) msg).getData()
-						.asReadOnlyBuffer());
-				videoData.setHeader(header);
-				videoData.setTimestamp(header.getTimer());
-				video.write(videoData);
-				break;
-			case Constants.TYPE_AUDIO_DATA:
-				AudioData audioData = new AudioData(((AudioData) msg).getData()
-						.asReadOnlyBuffer());
-				audioData.setHeader(header);
-				audioData.setTimestamp(header.getTimer());
-				audio.write(audioData);
-				break;
-			case Constants.TYPE_PING:
-				Ping ping = new Ping(((Ping) msg).getValue1(), ((Ping) msg)
-						.getValue2(), ((Ping) msg).getValue3(), ((Ping) msg)
-						.getValue4());
-				header.setTimerRelative(false);
-				header.setTimer(0);
-				ping.setHeader(header);
-				ping.setTimestamp(header.getTimer());
-				conn.ping(ping);
-				break;
-			case Constants.TYPE_BYTES_READ:
-				BytesRead bytesRead = new BytesRead(((BytesRead) msg)
-						.getBytesRead());
-				header.setTimerRelative(false);
-				header.setTimer(0);
-				bytesRead.setHeader(header);
-				bytesRead.setTimestamp(header.getTimer());
-				conn.getChannel((byte) 2).write(bytesRead);
-				break;
-			default:
-				data.write(msg);
-			break;
+				case Constants.TYPE_STREAM_METADATA:
+					Notify notify = new Notify(((Notify) msg).getData()
+							.asReadOnlyBuffer());
+					notify.setHeader(header);
+					notify.setTimestamp(header.getTimer());
+					data.write(notify);
+					break;
+				case Constants.TYPE_VIDEO_DATA:
+					VideoData videoData = new VideoData(((VideoData) msg)
+							.getData().asReadOnlyBuffer());
+					videoData.setHeader(header);
+					videoData.setTimestamp(header.getTimer());
+					video.write(videoData);
+					break;
+				case Constants.TYPE_AUDIO_DATA:
+					AudioData audioData = new AudioData(((AudioData) msg)
+							.getData().asReadOnlyBuffer());
+					audioData.setHeader(header);
+					audioData.setTimestamp(header.getTimer());
+					audio.write(audioData);
+					break;
+				case Constants.TYPE_PING:
+					Ping ping = new Ping(((Ping) msg).getValue1(), ((Ping) msg)
+							.getValue2(), ((Ping) msg).getValue3(),
+							((Ping) msg).getValue4());
+					header.setTimerRelative(false);
+					header.setTimer(0);
+					ping.setHeader(header);
+					ping.setTimestamp(header.getTimer());
+					conn.ping(ping);
+					break;
+				case Constants.TYPE_BYTES_READ:
+					BytesRead bytesRead = new BytesRead(((BytesRead) msg)
+							.getBytesRead());
+					header.setTimerRelative(false);
+					header.setTimer(0);
+					bytesRead.setHeader(header);
+					bytesRead.setTimestamp(header.getTimer());
+					conn.getChannel((byte) 2).write(bytesRead);
+					break;
+				default:
+					data.write(msg);
+					break;
 			}
 		}
 	}
@@ -139,18 +144,20 @@ public class ConnectionConsumer implements IPushableConsumer,
 
 	public void onOOBControlMessage(IMessageComponent source, IPipe pipe,
 			OOBControlMessage oobCtrlMsg) {
-		if (!"ConnectionConsumer".equals(oobCtrlMsg.getTarget()))
+		if (!"ConnectionConsumer".equals(oobCtrlMsg.getTarget())) {
 			return;
-		
+		}
+
 		if ("pendingCount".equals(oobCtrlMsg.getServiceName())) {
 			oobCtrlMsg.setResult(conn.getPendingMessages());
 		} else if ("pendingVideoCount".equals(oobCtrlMsg.getServiceName())) {
 			IClientStream stream = conn.getStreamByChannelId(video.getId());
-			if (stream != null)
+			if (stream != null) {
 				oobCtrlMsg.setResult(conn.getPendingVideoMessages(stream
 						.getStreamId()));
-			else
+			} else {
 				oobCtrlMsg.setResult(0);
+			}
 		} else if ("chunkSize".equals(oobCtrlMsg.getServiceName())) {
 			int newSize = (Integer) oobCtrlMsg.getServiceParamMap().get(
 					"chunkSize");

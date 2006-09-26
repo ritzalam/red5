@@ -37,11 +37,13 @@ import org.red5.server.messaging.PipeConnectionEvent;
 public class BroadcastScope extends BasicScope implements IBroadcastScope,
 		IPipeConnectionListener {
 	private static final Log log = LogFactory.getLog(BroadcastScope.class);
-	
+
 	private InMemoryPushPushPipe pipe;
+
 	private int compCounter;
+
 	private boolean hasRemoved;
-	
+
 	public BroadcastScope(IScope parent, String name) {
 		super(parent, TYPE, name, false);
 		pipe = new InMemoryPushPushPipe();
@@ -68,20 +70,21 @@ public class BroadcastScope extends BasicScope implements IBroadcastScope,
 
 	public boolean subscribe(IConsumer consumer, Map paramMap) {
 		synchronized (pipe) {
-			if (hasRemoved)
+			if (hasRemoved) {
 				return false;
+			}
 			return pipe.subscribe(consumer, paramMap);
 		}
 	}
-	
+
 	public boolean unsubscribe(IConsumer consumer) {
 		return pipe.unsubscribe(consumer);
 	}
-	
+
 	public List<IConsumer> getConsumers() {
 		return pipe.getConsumers();
 	}
-	
+
 	public void sendOOBControlMessage(IConsumer consumer,
 			OOBControlMessage oobCtrlMsg) {
 		pipe.sendOOBControlMessage(consumer, oobCtrlMsg);
@@ -93,8 +96,9 @@ public class BroadcastScope extends BasicScope implements IBroadcastScope,
 
 	synchronized public boolean subscribe(IProvider provider, Map paramMap) {
 		synchronized (pipe) {
-			if (hasRemoved)
+			if (hasRemoved) {
 				return false;
+			}
 			return pipe.subscribe(provider, paramMap);
 		}
 	}
@@ -102,18 +106,18 @@ public class BroadcastScope extends BasicScope implements IBroadcastScope,
 	synchronized public boolean unsubscribe(IProvider provider) {
 		return pipe.unsubscribe(provider);
 	}
-	
+
 	public List<IProvider> getProviders() {
 		return pipe.getProviders();
 	}
-	
+
 	public void sendOOBControlMessage(IProvider provider,
 			OOBControlMessage oobCtrlMsg) {
 		pipe.sendOOBControlMessage(provider, oobCtrlMsg);
 	}
 
 	public void onPipeConnectionEvent(PipeConnectionEvent event) {
-		switch(event.getType()) {
+		switch (event.getType()) {
 			case PipeConnectionEvent.CONSUMER_CONNECT_PULL:
 			case PipeConnectionEvent.CONSUMER_CONNECT_PUSH:
 			case PipeConnectionEvent.PROVIDER_CONNECT_PULL:
@@ -127,15 +131,15 @@ public class BroadcastScope extends BasicScope implements IBroadcastScope,
 				if (compCounter <= 0) {
 					// XXX should we synchronize parent before removing?
 					if (hasParent()) {
-					IProviderService providerService = (IProviderService) getParent()
-							.getContext().getBean(IProviderService.KEY);
-					providerService.unregisterBroadcastStream(getParent(),
-							getName());
+						IProviderService providerService = (IProviderService) getParent()
+								.getContext().getBean(IProviderService.KEY);
+						providerService.unregisterBroadcastStream(getParent(),
+								getName());
 					}
 					hasRemoved = true;
 				}
 				break;
 		}
 	}
-	
+
 }

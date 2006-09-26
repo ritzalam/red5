@@ -39,57 +39,61 @@ import org.springframework.context.ApplicationContextAware;
 public class RTMPTLoader implements ApplicationContextAware {
 
 	// Initialize Logging
-	protected static Log log =
-        LogFactory.getLog(RTMPTLoader.class.getName());
-	
+	protected static Log log = LogFactory.getLog(RTMPTLoader.class.getName());
+
 	protected ApplicationContext applicationContext;
+
 	protected String rtmptConfig = "classpath:/red5-rtmpt.xml";
+
 	protected Server rtmptServer;
+
 	protected IServer server;
+
 	protected RTMPTHandler handler;
 
-	public void setServer(IServer server){
+	public void setServer(IServer server) {
 		this.server = server;
 	}
-	
+
 	public void setApplicationContext(ApplicationContext context)
 			throws BeansException {
 		applicationContext = context;
 	}
-	
+
 	public void setRTMPTHandler(RTMPTHandler handler) {
 		this.handler = handler;
 	}
-	
+
 	public void init() throws Exception {
-		
+
 		// Originally this class was used to inspect the webapps.
 		// But now thats done using Red5WebPropertiesConfiguration
 		// So this class is left just starting jetty, we can probably use the
 		// old method
-		
-		log.info("Loading RTMPT context from: "+rtmptConfig);
+
+		log.info("Loading RTMPT context from: " + rtmptConfig);
 		Server rtmptServer = new Server();
 		XmlConfiguration config = new XmlConfiguration(applicationContext
 				.getResource(rtmptConfig).getInputStream());
 		config.configure(rtmptServer);
-		
+
 		// Setup configuration data in rtmptServer
 		ContextHandler contextHandler = null;
-		for (Handler handler: rtmptServer.getHandlers()) {
+		for (Handler handler : rtmptServer.getHandlers()) {
 			if (handler instanceof ContextHandler) {
 				contextHandler = (ContextHandler) handler;
 				break;
 			}
 		}
-		if (contextHandler == null)
+		if (contextHandler == null) {
 			throw new Exception("No context handler found in the server.");
-		
+		}
+
 		contextHandler.setAttribute(RTMPTHandler.HANDLER_ATTRIBUTE,
 				this.handler);
 		log.info("Starting RTMPT server");
 		rtmptServer.start();
-		
+
 	}
 
 }

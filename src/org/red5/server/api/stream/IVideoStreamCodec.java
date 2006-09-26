@@ -27,17 +27,17 @@ public interface IVideoStreamCodec {
 	 * Return the name of the video codec.
 	 */
 	public String getName();
-	
+
 	/**
 	 * Reset the codec to its initial state.
 	 */
 	public void reset();
-	
+
 	/**
 	 * Check if the codec supports frame dropping.
 	 */
 	public boolean canDropFrames();
-	
+
 	/**
 	 * Returns true if the codec knows how to handle the passed
 	 * stream data.

@@ -94,7 +94,7 @@ public interface IConnection extends ICoreObject {
 	 * @return
 	 */
 	public Map<String, String> getConnectParams();
-	
+
 	/**
 	 * Get the client object associated with this connection.
 	 * 
@@ -109,7 +109,7 @@ public interface IConnection extends ICoreObject {
 	 * @return String containing the hostname
 	 */
 	public String getHost();
-	
+
 	/**
 	 * Get the ip address the client is connected from.
 	 * 
@@ -131,7 +131,7 @@ public interface IConnection extends ICoreObject {
 	 * @return path
 	 */
 	public String getPath();
-	
+
 	/**
 	 * Get the session id, this may be <code>null</code>.
 	 * 
@@ -159,21 +159,21 @@ public interface IConnection extends ICoreObject {
 	 * @return number of read messages 
 	 */
 	public long getReadMessages();
-	
+
 	/**
 	 * Total number of messages written to the connection.
 	 * 
 	 * @return number of written messages
 	 */
 	public long getWrittenMessages();
-	
+
 	/**
 	 * Total number of messages that have been dropped.
 	 * 
 	 * @return number of dropped messages
 	 */
 	public long getDroppedMessages();
-	
+
 	/**
 	 * Total number of messages that are pending to be sent to the connection.
 	 * 
@@ -192,14 +192,14 @@ public interface IConnection extends ICoreObject {
 	 * @return roundtrip time in milliseconds
 	 */
 	public int getLastPingTime();
-	
+
 	/**
 	 * Get the scope this is connected to.
 	 * 
 	 * @return the connected scope
 	 */
 	public IScope getScope();
-	
+
 	/**
 	 * Get the basic scopes this connection has subscribed.  This list will
 	 * contain the shared objects and broadcast streams the connection
@@ -208,5 +208,5 @@ public interface IConnection extends ICoreObject {
 	 * @return list of basic scopes
 	 */
 	public Iterator<IBasicScope> getBasicScopes();
-	
+
 }

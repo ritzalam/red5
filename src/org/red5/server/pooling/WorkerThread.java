@@ -254,7 +254,7 @@ public class WorkerThread extends Thread {
 			this.setDaemon(true);
 			this.start();
 		} else { // we already have a thread running so wakeup the waiting
-					// thread.
+			// thread.
 			this.notifyAll();
 		}
 	}
@@ -264,6 +264,7 @@ public class WorkerThread extends Thread {
 	 * 
 	 * @see java.lang.Runnable#run()
 	 */
+	@Override
 	public void run() {
 		running = true;
 		while (!stopped) {

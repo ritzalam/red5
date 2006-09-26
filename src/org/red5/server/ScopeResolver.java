@@ -27,7 +27,7 @@ import org.red5.server.exception.ScopeNotFoundException;
 public class ScopeResolver implements IScopeResolver {
 
 	public static final String DEFAULT_HOST = "";
-	
+
 	protected IGlobalScope globalScope;
 
 	public IGlobalScope getGlobalScope() {
@@ -38,30 +38,32 @@ public class ScopeResolver implements IScopeResolver {
 		this.globalScope = root;
 	}
 
-	public IScope resolveScope(String path){
+	public IScope resolveScope(String path) {
 		IScope scope = globalScope;
-		if (path == null)
+		if (path == null) {
 			return scope;
+		}
 		final String[] parts = path.split("/");
-		for(int i=0; i < parts.length; i++){
-			final String room = parts[i];
-			if (room.equals(""))
+		for (String element : parts) {
+			final String room = element;
+			if (room.equals("")) {
 				// Skip empty path elements
 				continue;
-			
+			}
+
 			// Prevent the same subscope from getting created twice
 			synchronized (scope) {
-				if (scope.hasChildScope(room)){
+				if (scope.hasChildScope(room)) {
 					scope = scope.getScope(room);
 				} else if (!scope.equals(globalScope)
 						&& scope.createChildScope(room)) {
 					scope = scope.getScope(room);
 				} else {
-					throw new ScopeNotFoundException(scope, parts[i]);
+					throw new ScopeNotFoundException(scope, element);
 				}
 			}
 		}
 		return scope;
 	}
-	
+
 }

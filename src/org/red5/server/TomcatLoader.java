@@ -21,7 +21,6 @@ package org.red5.server;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.catalina.Engine;
 import org.apache.catalina.Host;
@@ -196,7 +195,7 @@ public class TomcatLoader implements ApplicationContextAware {
 	 */
 	public void setContexts(Map<String, String> contexts) {
 		log.debug("setContexts: " + contexts.size());
-		for (String key : (Set<String>) contexts.keySet()) {
+		for (String key : contexts.keySet()) {
 			baseHost.addChild(embedded.createContext(key, appRoot
 					+ contexts.get(key)));
 		}

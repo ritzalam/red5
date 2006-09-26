@@ -52,7 +52,7 @@ public interface IScopeHandler extends IEventHandler {
 	 * Called just before a scope is disposed.
 	 */
 	void stop(IScope scope);
-	
+
 	/**
 	 * Called just before every connection to a scope. You can pass additional
 	 * params from client using <code>NetConnection.connect</code> method (see
@@ -80,7 +80,7 @@ public interface IScopeHandler extends IEventHandler {
 	 * 			scope object
 	 */
 	void disconnect(IConnection conn, IScope scope);
-	
+
 	/**
 	 * Called just before a child scope is added.
 	 * 
@@ -89,7 +89,7 @@ public interface IScopeHandler extends IEventHandler {
 	 * @return <code>true</code> to allow, <code>false</code> to deny
 	 */
 	boolean addChildScope(IBasicScope scope);
-	
+
 	/**
 	 * Called just after a child scope has been removed.
 	 * 
@@ -129,5 +129,5 @@ public interface IScopeHandler extends IEventHandler {
 	 * @return <code>true</code> to allow, <code>false</code> to deny
 	 */
 	boolean serviceCall(IConnection conn, IServiceCall call);
-	
+
 }

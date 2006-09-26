@@ -25,7 +25,7 @@ import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.filter.codec.ProtocolCodecException;
 
 public interface SimpleProtocolDecoder {
-	
+
 	/**
 	 * @param state
 	 *            Stores state for the protocol, ProtocolState is just a marker
@@ -50,6 +50,6 @@ public interface SimpleProtocolDecoder {
 	 * @return a list of decoded objects, may be empty if nothing could be
 	 *         decoded
 	 */
-    public List decodeBuffer(ProtocolState state, ByteBuffer buffer);
-	
+	public List decodeBuffer(ProtocolState state, ByteBuffer buffer);
+
 }

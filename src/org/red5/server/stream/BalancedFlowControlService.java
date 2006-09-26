@@ -53,29 +53,32 @@ public class BalancedFlowControlService extends TimerTask implements
 		IFlowControlService, ApplicationContextAware {
 	private static final Log log = LogFactory
 			.getLog(BalancedFlowControlService.class);
-	
+
 	private static final int maxDepth = 10;
-	
+
 	private long interval = 10;
+
 	private long defaultCapacity = 1024 * 100;
-	
-	private Map<IFlowControllable, FcData> fcMap =
-		new HashMap<IFlowControllable, FcData>();
+
+	private Map<IFlowControllable, FcData> fcMap = new HashMap<IFlowControllable, FcData>();
+
 	private List<FcData>[] fcListArray;
-	
+
 	private Timer timer;
+
 	private Thread cbThread = new Thread(new CallbackRunnable());
+
 	private BlockingQueue<FcData> wakeUpQueue = new LinkedBlockingQueue<FcData>();
-	
+
 	private ReadWriteLock lock = new ReentrantReadWriteLock();
-	
+
 	public BalancedFlowControlService() {
 		fcListArray = (List<FcData>[]) Array.newInstance(List.class, maxDepth);
 		for (int i = 0; i < maxDepth; i++) {
 			fcListArray[i] = new ArrayList<FcData>();
 		}
 	}
-	
+
 	public void init() {
 		timer = new Timer("FlowControlService", true);
 		timer.scheduleAtFixedRate(this, interval, interval);
@@ -83,7 +86,7 @@ public class BalancedFlowControlService extends TimerTask implements
 		cbThread.setDaemon(true);
 		cbThread.start();
 	}
-	
+
 	@Override
 	public void run() {
 		// re-sort the fc list
@@ -243,15 +246,15 @@ public class BalancedFlowControlService extends TimerTask implements
 	public void setApplicationContext(ApplicationContext arg0)
 			throws BeansException {
 	}
-	
+
 	public void setInterval(long interval) {
 		this.interval = interval;
 	}
-	
+
 	public void setDefaultCapacity(long defaultCapacity) {
 		this.defaultCapacity = defaultCapacity;
 	}
-	
+
 	/**
 	 * Get bw resource from the parent tree nodes.
 	 * Read-lock should be held when calling into this method.
@@ -274,7 +277,7 @@ public class BalancedFlowControlService extends TimerTask implements
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Register an fc.
 	 * Write-lock should be held when calling into this method.
@@ -290,7 +293,7 @@ public class BalancedFlowControlService extends TimerTask implements
 		fcMap.put(fc, data);
 		updateBWConfigure(fc);
 	}
-	
+
 	/**
 	 * Get the FC depth in the tree.
 	 * 
@@ -309,7 +312,7 @@ public class BalancedFlowControlService extends TimerTask implements
 		}
 		return depth;
 	}
-	
+
 	/**
 	 * Put a request object to sleep state.
 	 * 
@@ -325,7 +328,7 @@ public class BalancedFlowControlService extends TimerTask implements
 			lock.writeLock().unlock();
 		}
 	}
-	
+
 	/**
 	 * Search nodes (including itself) along the parent path for
 	 * available bandwidth resource.
@@ -348,14 +351,14 @@ public class BalancedFlowControlService extends TimerTask implements
 			return bwResource;
 		}
 	}
-	
+
 	private void wakeUpCallback(FcData fcData) {
 		try {
 			wakeUpQueue.put(fcData);
 		} catch (InterruptedException e) {
 		}
 	}
-	
+
 	/**
 	 * Get the fcData from the fc map.
 	 * Readlock should be held when calling into this method.
@@ -378,7 +381,7 @@ public class BalancedFlowControlService extends TimerTask implements
 		}
 		return data;
 	}
-	
+
 	/**
 	 * Bit per second to Byte per millisecond.
 	 * 
@@ -387,25 +390,28 @@ public class BalancedFlowControlService extends TimerTask implements
 	 * @return Byte per millisecond.
 	 */
 	private double bps2Bpms(long bps) {
-		return (double) bps / 1000.0 / 8.0;
+		return bps / 1000.0 / 8.0;
 	}
-	
+
 	private class BandwidthResource {
 		private double speed;
+
 		private long capacity;
+
 		private double tokens = 0;
-		
+
 		public BandwidthResource(long capacity, double speed, long initial) {
 			this.capacity = capacity;
 			this.speed = speed;
-			if (initial < 0)
+			if (initial < 0) {
 				this.tokens = 0;
-			else if (initial > capacity)
+			} else if (initial > capacity) {
 				this.tokens = capacity;
-			else
+			} else {
 				this.tokens = initial;
+			}
 		}
-		
+
 		synchronized public boolean acquireToken(double token) {
 			if (tokens >= token) {
 				tokens -= token;
@@ -414,7 +420,7 @@ public class BalancedFlowControlService extends TimerTask implements
 				return false;
 			}
 		}
-		
+
 		synchronized public double acquireTokenBestEffort(double upperLimit) {
 			double avail = 0;
 			if (tokens < upperLimit) {
@@ -425,7 +431,7 @@ public class BalancedFlowControlService extends TimerTask implements
 				return upperLimit;
 			}
 		}
-		
+
 		synchronized public void addToken(double token) {
 			if (tokens + token > capacity) {
 				tokens = capacity;
@@ -440,38 +446,47 @@ public class BalancedFlowControlService extends TimerTask implements
 	 */
 	private class FcData implements Comparable {
 		private IFlowControllable fc;
+
 		private Bucket audioBucket;
+
 		private Bucket videoBucket;
+
 		private SimpleBandwidthConfigure config;
+
 		private BandwidthResource[] bwResources = new BandwidthResource[0];
+
 		private List<RequestObject> waitingList;
+
 		private int hungry = 0;
-		
+
 		public FcData() {
 			waitingList = new ArrayList<RequestObject>();
 		}
-		
+
 		private boolean hasBandwidthResource() {
 			return bwResources.length > 0;
 		}
 
 		public int compareTo(Object o) {
 			FcData toCompare = (FcData) o;
-			if (hungry < toCompare.hungry)
+			if (hungry < toCompare.hungry) {
 				return 1;
-			else if (hungry == toCompare.hungry)
+			} else if (hungry == toCompare.hungry) {
 				return 0;
-			else
+			} else {
 				return -1;
+			}
 		}
-		
+
 	}
-	
+
 	private class Bucket implements ITokenBucket {
 		private int channelId; // 0 for video and 1 for audio
+
 		private FcData fcData;
+
 		private boolean isReset;
-		
+
 		public Bucket(FcData fcData, int channelId) {
 			this.fcData = fcData;
 			this.channelId = channelId;
@@ -486,14 +501,16 @@ public class BalancedFlowControlService extends TimerTask implements
 			BandwidthResource resource = null;
 			lock.readLock().lock();
 			try {
-				if (isReset)
+				if (isReset) {
 					return false;
+				}
 				resource = getResource();
 			} finally {
 				lock.readLock().unlock();
 			}
-			if (resource == null)
+			if (resource == null) {
 				return true;
+			}
 			boolean success = resource.acquireToken(tokenCount);
 			// lock here to avoid sorting on concurrent modification
 			lock.readLock().lock();
@@ -513,14 +530,16 @@ public class BalancedFlowControlService extends TimerTask implements
 			BandwidthResource resource = null;
 			lock.readLock().lock();
 			try {
-				if (isReset)
+				if (isReset) {
 					return 0;
+				}
 				resource = getResource();
 			} finally {
 				lock.readLock().unlock();
 			}
-			if (resource == null)
+			if (resource == null) {
 				return upperLimitCount;
+			}
 			double avail = resource.acquireTokenBestEffort(upperLimitCount);
 			// lock here to avoid sorting on concurrent modification
 			lock.readLock().lock();
@@ -541,14 +560,16 @@ public class BalancedFlowControlService extends TimerTask implements
 			BandwidthResource bwResource = null;
 			lock.readLock().lock();
 			try {
-				if (isReset)
+				if (isReset) {
 					return false;
+				}
 				bwResource = getResource();
 			} finally {
 				lock.readLock().unlock();
 			}
-			if (bwResource == null)
+			if (bwResource == null) {
 				return true;
+			}
 			boolean success = bwResource.acquireToken(tokenCount);
 			if (!success) {
 				RequestObject reqObj = new RequestObject();
@@ -616,33 +637,37 @@ public class BalancedFlowControlService extends TimerTask implements
 				lock.writeLock().unlock();
 			}
 		}
-		
+
 		private BandwidthResource getResource() {
 			return getBandwidthResource(fcData, channelId);
 		}
-		
+
 	}
-	
+
 	/**
 	 * Note: this class has a natural ordering that is inconsistent with equals.
 	 */
 	private class RequestObject implements Comparable {
 		private double tokenCount;
+
 		private ITokenBucket bucket;
+
 		private ITokenBucketCallback callback;
+
 		private int hungry = 0;
-		
+
 		public int compareTo(Object o) {
 			RequestObject toCompare = (RequestObject) o;
-			if (hungry < toCompare.hungry)
+			if (hungry < toCompare.hungry) {
 				return 1;
-			else if (hungry == toCompare.hungry)
+			} else if (hungry == toCompare.hungry) {
 				return 0;
-			else
+			} else {
 				return -1;
+			}
 		}
 	}
-	
+
 	private class CallbackRunnable implements Runnable {
 		public void run() {
 			try {

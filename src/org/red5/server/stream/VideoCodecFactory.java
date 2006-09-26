@@ -35,11 +35,11 @@ public class VideoCodecFactory {
 	private Log log = LogFactory.getLog(VideoCodecFactory.class.getName());
 
 	private List codecs = new ArrayList();
-	
+
 	public void setCodecs(List codecs) {
 		this.codecs = codecs;
 	}
-	
+
 	public IVideoStreamCodec getVideoCodec(ByteBuffer data) {
 		IVideoStreamCodec result = null;
 		Iterator it = this.codecs.iterator();
@@ -50,20 +50,19 @@ public class VideoCodecFactory {
 			// configured
 			//      video codec for each stream
 			try {
-				codec = (IVideoStreamCodec) storedCodec.getClass()
-						.newInstance();
+				codec = storedCodec.getClass().newInstance();
 			} catch (Exception e) {
 				log.error("Could not create video codec instance.", e);
 				continue;
 			}
-			
+
 			log.info("Trying codec " + codec);
 			if (codec.canHandleData(data)) {
 				result = codec;
 				break;
 			}
 		}
-		
+
 		// No codec for this video data
 		return result;
 	}

@@ -22,6 +22,7 @@ package org.red5.server.net.rtmpt;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.logging.Log;
@@ -43,38 +44,48 @@ import org.red5.server.net.rtmp.message.Packet;
 
 public class RTMPTConnection extends RTMPConnection {
 
-	protected static Log log =
-        LogFactory.getLog(RTMPTConnection.class.getName());
-	
+	protected static Log log = LogFactory.getLog(RTMPTConnection.class
+			.getName());
+
 	/**
 	 * Start to increase the polling delay after this many empty results
 	 */
 	protected static final long INCREASE_POLLING_DELAY_COUNT = 10;
-	
+
 	/**
 	 * Polling delay to start with.
 	 */
 	protected static final byte INITIAL_POLLING_DELAY = 0;
-	
+
 	/**
 	 * Maximum polling delay. 
 	 */
 	protected static final byte MAX_POLLING_DELAY = 32;
-	
+
 	protected RTMP state;
+
 	protected SimpleProtocolDecoder decoder;
+
 	protected SimpleProtocolEncoder encoder;
+
 	protected RTMPHandler handler;
+
 	protected ByteBuffer buffer;
+
 	protected List<ByteBuffer> pendingMessages = new LinkedList<ByteBuffer>();
+
 	protected List<Object> notifyMessages = new LinkedList<Object>();
+
 	protected byte pollingDelay = INITIAL_POLLING_DELAY;
+
 	protected long noPendingMessages = 0;
+
 	protected long readBytes = 0;
+
 	protected long writtenBytes = 0;
-	
+
 	public RTMPTConnection(RTMPTHandler handler) {
-		super( POLLING );
+		super(POLLING);
 		this.state = new RTMP(RTMP.MODE_SERVER);
 		this.buffer = ByteBuffer.allocate(2048);
 		this.buffer.setAutoExpand(true);
@@ -83,19 +94,20 @@ public class RTMPTConnection extends RTMPConnection {
 		this.encoder = handler.getCodecFactory().getSimpleEncoder();
 	}
 
+	@Override
 	public void close() {
 		if (this.buffer != null) {
 			this.buffer.release();
 			this.buffer = null;
 		}
-		for (ByteBuffer buffer: pendingMessages) {
+		for (ByteBuffer buffer : pendingMessages) {
 			buffer.release();
 		}
 		pendingMessages.clear();
 		state.setState(RTMP.STATE_DISCONNECTED);
 		super.close();
 	}
-	
+
 	public void setServletRequest(HttpServletRequest request) {
 		host = request.getLocalName();
 		remoteAddress = request.getRemoteAddr();
@@ -110,7 +122,7 @@ public class RTMPTConnection extends RTMPConnection {
 	public String getId() {
 		return new Integer(this.hashCode()).toString();
 	}
-	
+
 	/**
 	 * Return the current decoder state.
 	 * 
@@ -119,20 +131,21 @@ public class RTMPTConnection extends RTMPConnection {
 	public RTMP getState() {
 		return this.state;
 	}
-	
+
 	/**
 	 * Return the polling delay to use.
 	 * 
 	 * @return the polling delay
 	 */
 	public byte getPollingDelay() {
-		if (state.getState() == RTMP.STATE_DISCONNECTED)
+		if (state.getState() == RTMP.STATE_DISCONNECTED) {
 			// Special value to notify client about a closed connection.
 			return (byte) 0;
-		
+		}
+
 		return (byte) (this.pollingDelay + 1);
 	}
-	
+
 	/**
 	 * Decode data sent by the client.
 	 * 
@@ -153,7 +166,8 @@ public class RTMPTConnection extends RTMPConnection {
 	 * @param packet
 	 * 			the packet to send
 	 */
-	public void write(Packet packet){
+	@Override
+	public void write(Packet packet) {
 		ByteBuffer data;
 		try {
 			data = this.encoder.encode(this.state, packet);
@@ -161,13 +175,13 @@ public class RTMPTConnection extends RTMPConnection {
 			log.error("Could not encode message " + packet, e);
 			return;
 		}
-		
+
 		// Mark packet as being written
 		writingMessage(packet);
-		
+
 		// Enqueue encoded packet data to be sent to client
 		rawWrite(data);
-		
+
 		// Make sure stream subsystem will be notified about sent packet later
 		synchronized (this.notifyMessages) {
 			this.notifyMessages.add(packet);
@@ -180,12 +194,13 @@ public class RTMPTConnection extends RTMPConnection {
 	 * @param packet
 	 * 			the buffer containing the raw data
 	 */
-	public void rawWrite(ByteBuffer packet){
+	@Override
+	public void rawWrite(ByteBuffer packet) {
 		synchronized (this.pendingMessages) {
 			this.pendingMessages.add(packet);
 		}
 	}
-	
+
 	/**
 	 * Return any pending messages up to a given size.
 	 * 
@@ -198,26 +213,29 @@ public class RTMPTConnection extends RTMPConnection {
 		if (this.pendingMessages.isEmpty()) {
 			this.noPendingMessages += 1;
 			if (this.noPendingMessages > INCREASE_POLLING_DELAY_COUNT) {
-				if (this.pollingDelay == 0)
+				if (this.pollingDelay == 0) {
 					this.pollingDelay = 1;
+				}
 				this.pollingDelay = (byte) (this.pollingDelay * 2);
-				if (this.pollingDelay > MAX_POLLING_DELAY)
+				if (this.pollingDelay > MAX_POLLING_DELAY) {
 					this.pollingDelay = MAX_POLLING_DELAY;
+				}
 			}
 			return null;
-		}		
-		
+		}
+
 		ByteBuffer result = ByteBuffer.allocate(2048);
 		result.setAutoExpand(true);
-		
+
 		log.debug("Returning " + this.pendingMessages.size()
 				+ " messages to client.");
 		this.noPendingMessages = 0;
 		this.pollingDelay = INITIAL_POLLING_DELAY;
 		while (result.limit() < targetSize) {
-			if (this.pendingMessages.isEmpty())
+			if (this.pendingMessages.isEmpty()) {
 				break;
-			
+			}
+
 			synchronized (this.pendingMessages) {
 				Iterator<ByteBuffer> it = this.pendingMessages.iterator();
 				while (it.hasNext()) {
@@ -225,41 +243,47 @@ public class RTMPTConnection extends RTMPConnection {
 					result.put(buffer);
 					buffer.release();
 				}
-				
+
 				this.pendingMessages.clear();
 			}
-			
+
 			// We'll have to create a copy here to avoid endless recursion
 			List<Object> toNotify = new LinkedList<Object>();
 			synchronized (this.notifyMessages) {
 				toNotify.addAll(this.notifyMessages);
 				this.notifyMessages.clear();
 			}
-			
+
 			Iterator<Object> it = toNotify.iterator();
 			while (it.hasNext()) {
 				try {
 					handler.messageSent(this, it.next());
 				} catch (Exception e) {
-					log.error("Could not notify stream subsystem about sent message.", e);
+					log
+							.error(
+									"Could not notify stream subsystem about sent message.",
+									e);
 					continue;
 				}
 			}
 		}
-		
+
 		result.flip();
 		writtenBytes += result.limit();
 		return result;
 	}
-	
+
+	@Override
 	public long getReadBytes() {
 		return readBytes;
 	}
 
+	@Override
 	public long getWrittenBytes() {
 		return writtenBytes;
 	}
 
+	@Override
 	public long getPendingMessages() {
 		return pendingMessages.size();
 	}

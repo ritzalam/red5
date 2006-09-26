@@ -29,13 +29,13 @@ import org.red5.server.api.IFlowControllable;
  */
 public class DummyFlowControlService implements IFlowControlService {
 	private ITokenBucket dummyBucket = new DummyTokenBukcet();
-	
+
 	public void init() {
 	}
-	
+
 	public void setInterval(long interval) {
 	}
-	
+
 	public void setDefaultCapacity(long defaultCapacity) {
 	}
 
@@ -81,6 +81,6 @@ public class DummyFlowControlService implements IFlowControlService {
 
 		public void reset() {
 		}
-		
+
 	}
 }

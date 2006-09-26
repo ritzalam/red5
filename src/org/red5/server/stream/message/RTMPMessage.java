@@ -23,7 +23,6 @@ import org.red5.server.messaging.AbstractMessage;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
 
 public class RTMPMessage extends AbstractMessage {
-	private boolean timerRelative = true;
 	private IRTMPEvent body;
 
 	public IRTMPEvent getBody() {
@@ -33,5 +32,5 @@ public class RTMPMessage extends AbstractMessage {
 	public void setBody(IRTMPEvent body) {
 		this.body = body;
 	}
-	
+
 }

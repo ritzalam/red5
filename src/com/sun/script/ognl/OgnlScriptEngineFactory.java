@@ -88,15 +88,15 @@ public class OgnlScriptEngineFactory implements ScriptEngineFactory {
 		for (int i = 0; i < len; i++) {
 			char ch = toDisplay.charAt(i);
 			switch (ch) {
-			case '"':
-				buf.append("\\\"");
-				break;
-			case '\\':
-				buf.append("\\\\");
-				break;
-			default:
-				buf.append(ch);
-				break;
+				case '"':
+					buf.append("\\\"");
+					break;
+				case '\\':
+					buf.append("\\\\");
+					break;
+				default:
+					buf.append(ch);
+					break;
 			}
 		}
 		buf.append("\")");

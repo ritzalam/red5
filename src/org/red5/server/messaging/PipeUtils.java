@@ -38,7 +38,7 @@ public class PipeUtils {
 		pipe.subscribe(provider, null);
 		pipe.subscribe(consumer, null);
 	}
-	
+
 	/**
 	 * Disconnect a provider/consumer from a pipe.
 	 * 

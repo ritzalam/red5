@@ -26,54 +26,55 @@ import org.red5.server.stream.IStreamData;
 public class VideoData extends BaseEvent implements IoConstants, IStreamData {
 
 	public static enum FrameType {
-		UNKNOWN,
-		KEYFRAME,
-		INTERFRAME,
-		DISPOSABLE_INTERFRAME,
+		UNKNOWN, KEYFRAME, INTERFRAME, DISPOSABLE_INTERFRAME,
 	}
-	
+
 	protected ByteBuffer data = null;
+
 	private FrameType frameType = FrameType.UNKNOWN;
-	
+
 	public VideoData() {
 		this(ByteBuffer.allocate(0).flip());
 	}
-	
-	public VideoData(ByteBuffer data){
+
+	public VideoData(ByteBuffer data) {
 		super(Type.STREAM_DATA);
 		this.data = data;
 		if (data != null && data.limit() > 0) {
 			int oldPos = data.position();
-			int firstByte = ((int) data.get()) & 0xff;
+			int firstByte = (data.get()) & 0xff;
 			data.position(oldPos);
 			int frameType = (firstByte & MASK_VIDEO_FRAMETYPE) >> 4;
-			if (frameType == FLAG_FRAMETYPE_KEYFRAME)
+			if (frameType == FLAG_FRAMETYPE_KEYFRAME) {
 				this.frameType = FrameType.KEYFRAME;
-			else if (frameType == FLAG_FRAMETYPE_INTERFRAME)
+			} else if (frameType == FLAG_FRAMETYPE_INTERFRAME) {
 				this.frameType = FrameType.INTERFRAME;
-			else if (frameType == FLAG_FRAMETYPE_DISPOSABLE)
+			} else if (frameType == FLAG_FRAMETYPE_DISPOSABLE) {
 				this.frameType = FrameType.DISPOSABLE_INTERFRAME;
-			else
+			} else {
 				this.frameType = FrameType.UNKNOWN;
+			}
 		}
 	}
 
+	@Override
 	public byte getDataType() {
 		return TYPE_VIDEO_DATA;
 	}
-	
-	public ByteBuffer getData(){
+
+	public ByteBuffer getData() {
 		return data;
 	}
-	
-	public String toString(){
-		return "Video  ts: "+getTimestamp();
+
+	@Override
+	public String toString() {
+		return "Video  ts: " + getTimestamp();
 	}
-	
+
 	public FrameType getFrameType() {
 		return frameType;
 	}
-	
+
 	@Override
 	protected void releaseInternal() {
 		if (data != null) {
@@ -81,5 +82,5 @@ public class VideoData extends BaseEvent implements IoConstants, IStreamData {
 			data = null;
 		}
 	}
-	
+
 }

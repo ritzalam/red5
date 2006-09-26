@@ -34,40 +34,41 @@ import org.red5.io.utils.HexDump;
 
 public class RequestDumpServlet extends HttpServlet {
 
-	protected static Log log =
-        LogFactory.getLog(RequestDumpServlet.class.getName());
-	
+	protected static Log log = LogFactory.getLog(RequestDumpServlet.class
+			.getName());
+
 	public static final String APPLICATION_AMF = "application/x-amf";
-	
-	protected void service(HttpServletRequest req, HttpServletResponse resp) 
-		throws ServletException, IOException {
-		
+
+	@Override
+	protected void service(HttpServletRequest req, HttpServletResponse resp)
+			throws ServletException, IOException {
+
 		Enumeration en = req.getHeaderNames();
-		while(en.hasMoreElements()){
+		while (en.hasMoreElements()) {
 			String name = (String) en.nextElement();
-			log.info(name + " => "+req.getHeader(name));
+			log.info(name + " => " + req.getHeader(name));
 		}
-		
+
 		ByteBuffer reqBuffer = null;
-		
+
 		try {
-			
+
 			//req.getSession().getAttribute(REMOTING_CONNECTOR);
-			
+
 			reqBuffer = ByteBuffer.allocate(req.getContentLength());
-			ServletUtils.copy(req.getInputStream(),reqBuffer.asOutputStream());
+			ServletUtils.copy(req.getInputStream(), reqBuffer.asOutputStream());
 			//reqBuffer.flip();
-			
-			log.info( HexDump.formatHexDump(reqBuffer.getHexDump()) );
-			
+
+			log.info(HexDump.formatHexDump(reqBuffer.getHexDump()));
+
 		} catch (IOException e) {
-		
+
 			e.printStackTrace();
-		
+
 		} finally {
-						
+
 		}
 		log.info("End");
 	}
-		
+
 }

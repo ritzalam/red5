@@ -35,44 +35,46 @@ import org.red5.server.net.rtmp.message.Constants;
 
 public class FileStreamSource implements ISeekableStreamSource, Constants {
 
-	protected static Log log =
-        LogFactory.getLog(FileStreamSource.class.getName());
-	
+	protected static Log log = LogFactory.getLog(FileStreamSource.class
+			.getName());
+
 	private ITagReader reader = null;
+
 	private KeyFrameMeta keyFrameMeta = null;
-	
-	public FileStreamSource(ITagReader reader){
+
+	public FileStreamSource(ITagReader reader) {
 		this.reader = reader;
 	}
-	
+
 	public void close() {
 		reader.close();
 	}
 
 	public IRTMPEvent dequeue() {
-		
-		if (!reader.hasMoreTags())
+
+		if (!reader.hasMoreTags()) {
 			return null;
+		}
 		ITag tag = reader.readTag();
-		
+
 		IRTMPEvent msg = null;
-		switch(tag.getDataType()){
-		case TYPE_AUDIO_DATA:
-			msg = new AudioData(tag.getBody());
-			break;
-		case TYPE_VIDEO_DATA:
-			msg = new VideoData(tag.getBody());
-			break;
-		case TYPE_INVOKE:
-			msg = new Invoke(tag.getBody());
-			break;
-		case TYPE_NOTIFY:
-			msg = new Notify(tag.getBody());
-			break;
-		default:
-			log.warn("Unexpected type? "+tag.getDataType());
-			msg = new Unknown(tag.getDataType(), tag.getBody());
-			break;
+		switch (tag.getDataType()) {
+			case TYPE_AUDIO_DATA:
+				msg = new AudioData(tag.getBody());
+				break;
+			case TYPE_VIDEO_DATA:
+				msg = new VideoData(tag.getBody());
+				break;
+			case TYPE_INVOKE:
+				msg = new Invoke(tag.getBody());
+				break;
+			case TYPE_NOTIFY:
+				msg = new Notify(tag.getBody());
+				break;
+			default:
+				log.warn("Unexpected type? " + tag.getDataType());
+				msg = new Unknown(tag.getDataType(), tag.getBody());
+				break;
 		}
 		msg.setTimestamp(tag.getTimestamp());
 		//msg.setSealed(true);
@@ -85,13 +87,14 @@ public class FileStreamSource implements ISeekableStreamSource, Constants {
 
 	synchronized public int seek(int ts) {
 		if (keyFrameMeta == null) {
-			if (!(reader instanceof IKeyFrameDataAnalyzer))
+			if (!(reader instanceof IKeyFrameDataAnalyzer)) {
 				// Seeking not supported
 				return ts;
-		
+			}
+
 			keyFrameMeta = ((IKeyFrameDataAnalyzer) reader).analyzeKeyFrames();
 		}
-		
+
 		if (keyFrameMeta.positions.length == 0) {
 			// no video keyframe metainfo, it's an audio-only FLV
 			// we skip the seek for now.
@@ -100,8 +103,9 @@ public class FileStreamSource implements ISeekableStreamSource, Constants {
 		}
 		int frame = 0;
 		for (int i = 0; i < keyFrameMeta.positions.length; i++) {
-			if (keyFrameMeta.timestamps[i] > ts)
+			if (keyFrameMeta.timestamps[i] > ts) {
 				break;
+			}
 			frame = i;
 		}
 		reader.position(keyFrameMeta.positions[frame]);

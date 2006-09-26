@@ -93,37 +93,39 @@ public class CaptureViewerServlet extends HttpServlet {
 			int id = 0;
 			try {
 
-				int nextTimePos = 0; 
-				long time = 0; 
+				int nextTimePos = 0;
+				long time = 0;
 				long offset = -1;
 				long read = 0;
-				
+
 				try {
 					while (true) {
-						
-						while(in.position() >= nextTimePos){
-						
-							if(cap.remaining() >= 12){
-								
+
+						while (in.position() >= nextTimePos) {
+
+							if (cap.remaining() >= 12) {
+
 								time = cap.getLong();
-								if (offset == -1)
+								if (offset == -1) {
 									offset = time;
+								}
 								time -= offset;
-								
+
 								read = cap.getInt();
 								nextTimePos += read;
-								
+
 								out.write("<div class=\"time\">TIME: " + time
 										+ " READ: " + read + "</div>");
 							}
-						
+
 						}
-					
+
 						final int remaining = in.remaining();
-						if (state.canStartDecoding(remaining))
+						if (state.canStartDecoding(remaining)) {
 							state.startDecoding();
-						else
+						} else {
 							break;
+						}
 
 						final Object decodedObject = decoder.decode(state, in);
 
@@ -141,13 +143,15 @@ public class CaptureViewerServlet extends HttpServlet {
 														.getHexDump())
 												+ "</pre></div>");
 							}
-						} else if (state.canContinueDecoding())
+						} else if (state.canContinueDecoding()) {
 							continue;
-						else
+						} else {
 							break;
+						}
 
-						if (!in.hasRemaining())
+						if (!in.hasRemaining()) {
 							break;
+						}
 					}
 				} catch (ProtocolException pvx) {
 					log.error("Error decoding buffer", pvx);

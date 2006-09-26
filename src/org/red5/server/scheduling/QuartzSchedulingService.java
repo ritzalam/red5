@@ -47,9 +47,11 @@ public class QuartzSchedulingService implements ISchedulingService {
 			.getLog(QuartzSchedulingService.class.getName());
 
 	private static SchedulerFactory schedFact = new StdSchedulerFactory();
+
 	private Scheduler scheduler;
+
 	private long jobDetailCounter = 0;
-	
+
 	public QuartzSchedulingService() {
 		try {
 			scheduler = schedFact.getScheduler();
@@ -64,7 +66,7 @@ public class QuartzSchedulingService implements ISchedulingService {
 		jobDetailCounter++;
 		return result;
 	}
-	
+
 	private void scheduleJob(String name, Trigger trigger, IScheduledJob job) {
 		// Store reference to applications job and service 
 		JobDetail jobDetail = new JobDetail(name, null,
@@ -73,17 +75,17 @@ public class QuartzSchedulingService implements ISchedulingService {
 				QuartzSchedulingServiceJob.SCHEDULING_SERVICE, this);
 		jobDetail.getJobDataMap().put(QuartzSchedulingServiceJob.SCHEDULED_JOB,
 				job);
-		
+
 		try {
 			scheduler.scheduleJob(jobDetail, trigger);
 		} catch (SchedulerException ex) {
 			throw new RuntimeException(ex);
 		}
 	}
-	
+
 	public String addScheduledJob(int interval, IScheduledJob job) {
 		String result = getJobName();
-		
+
 		// Create trigger that fires indefinitely every <interval> milliseconds
 		SimpleTrigger trigger = new SimpleTrigger("Trigger_" + result, null,
 				new Date(), null, SimpleTrigger.REPEAT_INDEFINITELY, interval);
@@ -96,10 +98,10 @@ public class QuartzSchedulingService implements ISchedulingService {
 		return addScheduledOnceJob(new Date(System.currentTimeMillis()
 				+ timeDelta), job);
 	}
-	
+
 	public String addScheduledOnceJob(Date date, IScheduledJob job) {
 		String result = getJobName();
-		
+
 		// Create trigger that fires once at <date>
 		SimpleTrigger trigger = new SimpleTrigger("Trigger_" + result, null,
 				date);
@@ -118,8 +120,9 @@ public class QuartzSchedulingService implements ISchedulingService {
 	public List<String> getScheduledJobNames() {
 		List<String> result = new ArrayList<String>();
 		try {
-			for (String name: scheduler.getJobNames(null))
+			for (String name : scheduler.getJobNames(null)) {
 				result.add(name);
+			}
 		} catch (SchedulerException ex) {
 			throw new RuntimeException(ex);
 		}

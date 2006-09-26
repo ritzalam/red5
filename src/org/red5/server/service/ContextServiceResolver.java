@@ -36,9 +36,10 @@ public class ContextServiceResolver implements IServiceResolver {
 		} catch (ServiceNotFoundException err) {
 			return null;
 		}
-		if (service != null)
+		if (service != null) {
 			return service;
-		
+		}
+
 		return null;
 	}
 

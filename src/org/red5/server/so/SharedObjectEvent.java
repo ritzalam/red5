@@ -22,15 +22,17 @@ package org.red5.server.so;
 public class SharedObjectEvent implements ISharedObjectEvent {
 
 	private Type type;
+
 	private String key;
+
 	private Object value;
-	
-	public SharedObjectEvent(Type type, String key, Object value){
+
+	public SharedObjectEvent(Type type, String key, Object value) {
 		this.type = type;
 		this.key = key;
 		this.value = value;
 	}
-	
+
 	public String getKey() {
 		return key;
 	}
@@ -42,8 +44,10 @@ public class SharedObjectEvent implements ISharedObjectEvent {
 	public Object getValue() {
 		return value;
 	}
-	
+
+	@Override
 	public String toString() {
-		return "SOEvent(" + getType() + ", " + getKey() + ", " + getValue() + ")";
+		return "SOEvent(" + getType() + ", " + getKey() + ", " + getValue()
+				+ ")";
 	}
 }

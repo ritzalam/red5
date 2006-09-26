@@ -25,28 +25,16 @@ package org.red5.server.so;
 public interface ISharedObjectEvent {
 
 	enum Type {
-		SERVER_CONNECT,
-		SERVER_DISCONNECT,
-		SERVER_SET_ATTRIBUTE,
-		SERVER_DELETE_ATTRIBUTE,
-		SERVER_SEND_MESSAGE,
-		CLIENT_CLEAR_DATA,
-		CLIENT_DELETE_ATTRIBUTE,
-		CLIENT_DELETE_DATA,
-		CLIENT_INITIAL_DATA,
-		CLIENT_STATUS,
-		CLIENT_UPDATE_DATA,
-		CLIENT_UPDATE_ATTRIBUTE,
-		CLIENT_SEND_MESSAGE
+		SERVER_CONNECT, SERVER_DISCONNECT, SERVER_SET_ATTRIBUTE, SERVER_DELETE_ATTRIBUTE, SERVER_SEND_MESSAGE, CLIENT_CLEAR_DATA, CLIENT_DELETE_ATTRIBUTE, CLIENT_DELETE_DATA, CLIENT_INITIAL_DATA, CLIENT_STATUS, CLIENT_UPDATE_DATA, CLIENT_UPDATE_ATTRIBUTE, CLIENT_SEND_MESSAGE
 	};
-	
+
 	/**
 	 * Returns the type of the event.
 	 * 
 	 * @return the type of the event.
 	 */
 	public Type getType();
-	
+
 	/**
 	 * Returns the key of the event.
 	 * 
@@ -61,7 +49,7 @@ public interface ISharedObjectEvent {
 	 * @return the key of the event
 	 */
 	public String getKey();
-	
+
 	/**
 	 * Returns the value of the event.
 	 * 

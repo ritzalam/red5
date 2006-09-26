@@ -30,7 +30,7 @@ import org.red5.server.api.IScope;
 public interface ISharedObjectService {
 
 	public final static String SHARED_OBJECT_SERVICE = "sharedObjectService";
-	
+
 	/**
 	 * Get a set of the shared object names.
 	 * 
@@ -91,7 +91,7 @@ public interface ISharedObjectService {
 	 *         <code>false</code>
 	 */
 	public boolean hasSharedObject(IScope scope, String name);
-	
+
 	/**
 	 * <p>
 	 * Deletes persistent shared objects specified by name and clears all

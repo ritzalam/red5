@@ -27,10 +27,13 @@ import javax.servlet.http.HttpServletRequest;
 public class RemotingPacket {
 
 	protected HttpServletRequest request;
+
 	protected ByteBuffer data;
+
 	protected List calls;
+
 	protected String scopePath;
-	
+
 	public RemotingPacket(List calls) {
 		this.calls = calls;
 	}
@@ -42,9 +45,9 @@ public class RemotingPacket {
 	public void setScopePath(String path) {
 		scopePath = path;
 	}
-	
+
 	public String getScopePath() {
 		return scopePath;
 	}
-	
+
 }

@@ -26,7 +26,7 @@ import org.red5.server.api.IScope;
  * A stream object is always associated with a scope. 
  */
 public interface IStream {
-	
+
 	/**
 	 * Get the name of the stream. The name is unique across the server. This is
 	 * just an id of the stream and NOT the name that is used at client side to
@@ -36,7 +36,7 @@ public interface IStream {
 	 * @return the name of the stream
 	 */
 	public String getName();
-	
+
 	/**
 	 * Get Codec info for a stream.
 	 * 
@@ -55,7 +55,7 @@ public interface IStream {
 	 * Start this stream.
 	 */
 	public void start();
-	
+
 	/**
 	 * Close this stream.
 	 */

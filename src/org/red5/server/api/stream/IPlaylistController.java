@@ -37,7 +37,7 @@ public interface IPlaylistController {
 	 * @return The next item index to play. <tt>-1</tt> reaches the end.
 	 */
 	int nextItem(IPlaylist playlist, int itemIndex);
-	
+
 	/**
 	 * Get previous item to play.
 	 * 

@@ -39,7 +39,7 @@ public interface IServiceInvoker {
 	 * 			the scope to search for a handler
 	 */
 	public void invoke(IServiceCall call, IScope scope);
-	
+
 	/**
 	 * Execute the passed service call in the given object.
 	 * 
@@ -49,5 +49,5 @@ public interface IServiceInvoker {
 	 * 			the service to use
 	 */
 	public void invoke(IServiceCall call, Object service);
-	
+
 }
