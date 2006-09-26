@@ -50,17 +50,28 @@
 		<constructor-arg index="0" value="classpath:applications/main.rb"/>
 		<constructor-arg index="1">
 			<list>
+				<value>org.red5.server.api.IScopeHandler</value>
+				<value>org.red5.server.adapter.IApplication</value>
+			</list>
+		</constructor-arg>
+	</bean>		
+-->
+<!--
+	<bean id="web.handler" class="org.red5.server.script.jython.JythonScriptFactory">
+		<constructor-arg index="0" value="classpath:applications/main.py"/>
+		<constructor-arg index="1">
+			<list>
      			<value>org.red5.server.api.IScopeHandler</value>
      			<value>org.red5.server.adapter.IApplication</value>
   			</list>
 		</constructor-arg>
-	</bean>		
+	</bean>
 -->
 
 <!-- 
     <bean id="demoService.service" 
 	    class="org.red5.server.webapp.oflaDemo.DemoService" />
- 
+
 	<bean id="demoService.service" class="org.red5.server.script.jruby.JRubyScriptFactory">
 		<constructor-arg index="0" value="classpath:applications/demoservice.rb"/>
 		<constructor-arg index="1">
@@ -69,8 +80,8 @@
   			</list>
 		</constructor-arg>
 	</bean>	
- -->
-	
+-->
+
 	<bean id="demoService.service" class="org.red5.server.script.rhino.RhinoScriptFactory">
 		<constructor-arg index="0" value="classpath:applications/demoservice.js"/>
 		<constructor-arg index="1">
@@ -83,5 +94,18 @@
 		</constructor-arg>		
 	</bean>
 
- 		
+<!--
+	<bean id="demoService.service" class="org.red5.server.script.jython.JythonScriptFactory">
+		<constructor-arg index="0" value="classpath:applications/demoservice.py"/>
+		<constructor-arg index="1">
+			<list>
+				<value>org.red5.server.webapp.oflaDemo.IDemoService</value>
+			</list>
+		</constructor-arg>
+		<constructor-arg index="2">
+			<value>org.red5.server.webapp.oflaDemo.DemoServiceImpl</value>
+		</constructor-arg>		
+	</bean>
+-->
+
 </beans>
