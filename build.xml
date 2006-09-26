@@ -301,7 +301,12 @@
             </filterchain>
         </loadfile>
         <echo message="Jar launch classpath: conf/${library.jars} ${script.jars}" />   
-              
+     
+        <mkdir dir="${classes.dir}/conf"/>   
+        <copy todir="${classes.dir}/conf">
+          <fileset dir="${config.dir}"/>
+        </copy>
+        
         <jar destfile="red5.jar">
 			<fileset dir="${classes.dir}">
 				<include name="**"/>
@@ -311,8 +316,7 @@
 				<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>
                 <attribute name="Built-On" value="${build.TODAY}" />
                 <attribute name="Main-Class" value="org.red5.server.Standalone"/>
-				<attribute name="Class-Path"
-						   value="conf/ ${library.jars} ${script.jars}"/>
+				<attribute name="Class-Path" value="conf/ ${library.jars} ${script.jars}"/>
 			</manifest>
             <metainf dir="${src.dir}/META-INF">
                 <include name="**"/>
