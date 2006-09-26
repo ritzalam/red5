@@ -336,8 +336,14 @@
 			</fileset>
 		</jar>
 		
-		<jar destfile="${src.dir}/../webapps/oflaDemo/WEB-INF/lib/oflaDemo.jar">
-			<fileset dir="${src.dir}/../webapps/oflaDemo/WEB-INF/classes">
+        <!-- copy scripts -->
+        <mkdir dir="webapps/oflaDemo/WEB-INF/classes/applications"/>   
+        <copy todir="webapps/oflaDemo/WEB-INF/classes/applications">
+          <fileset dir="webapps/oflaDemo/WEB-INF/src/applications"/>
+        </copy>           
+        
+		<jar destfile="webapps/oflaDemo/WEB-INF/lib/oflaDemo.jar">
+			<fileset dir="webapps/oflaDemo/WEB-INF/classes">
 				<include name="**"/>
 			</fileset>
 		</jar>
