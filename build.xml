@@ -239,7 +239,11 @@
 	</target>
 
 	<target name="javadoc" description="Generate JavaDoc">
+	    <echo message="Path: ${env.Path}" />
 		<javadoc
+		        useexternalfile="true"
+		        failonerror="false"
+		        verbose="false"
 				classpathref="full.classpath"
 				destdir="${javadoc.dir}"
 				author="true"
@@ -264,7 +268,6 @@
 			<group title="Scripting" packages="org.red5.server.script:org.red5.server.script.*"/>
 			<link href="http://java.sun.com/j2se/1.5.0/docs/api"/>
 			<link href="http://jetty.mortbay.org/apidocs"/>
-			<link href="http://java.sun.com/j2se/1.5.0/docs/api"/>
 			<link href="http://directory.apache.org/subprojects/mina/apidocs"/>
 			<link href="http://www.springframework.org/docs/api"/>
 			<link href="http://www.opensymphony.com/quartz/api"/>
