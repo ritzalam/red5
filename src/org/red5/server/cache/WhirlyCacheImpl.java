@@ -33,6 +33,7 @@ import org.springframework.context.ApplicationContextAware;
 import com.whirlycott.cache.Cache;
 import com.whirlycott.cache.CacheConfiguration;
 import com.whirlycott.cache.CacheManager;
+import com.whirlycott.cache.RecordKeeper;
 
 /**
  * Provides an implementation of an object cache using whirlycache.
@@ -131,9 +132,33 @@ public class WhirlyCacheImpl implements ICacheStore, ApplicationContextAware {
 
 	public void setMaxEntries(int capacity) {
 		log.debug("Setting max entries for this cache to " + capacity);
-		// cacheConfig.setMaxSize(capacity);
 	}
 
+	public static long getCacheHit() {
+		RecordKeeper rec = new RecordKeeper();
+		return rec.getHits();
+	}
+
+	public static long getCacheMiss() {
+		long misses = 0;
+		RecordKeeper rec = new RecordKeeper();
+		long hits = rec.getHits();		
+		long ops = rec.getTotalOperations();
+		log.debug("Hits: " + hits + " Operations: " + ops);
+		if (hits > 0 && ops > 0) {
+			if (ops > hits) {
+				misses = ops - hits;
+			} else {
+				misses = hits - ops;
+			}
+		} else {
+			if (hits < 0 && ops > 0) {
+				misses = ops;
+			}
+		}
+		return misses;
+	}	
+	
 	public void destroy() {
 		// Shut down the cache manager
 		try {

@@ -97,7 +97,7 @@
     </bean>
     
 	<!-- Now we can load the cache engine -->
-	<bean id="object.cache" class="org.red5.server.cache.NoCacheImpl" /> 
+	<!-- bean id="object.cache" class="org.red5.server.cache.NoCacheImpl" / -->
 
 	<!-- bean id="object.cache" class="org.red5.server.cache.CacheImpl" init-method="init" autowire="byType"> 
 		<property name="maxEntries"><value>5</value></property>
@@ -115,4 +115,23 @@
 		</property>
 	</bean -->   
     
+	<bean id="object.cache" class="org.red5.server.cache.EhCacheImpl" init-method="init">
+		<property name="diskStore" value="java.io.tmpdir" />
+		<property name="memoryStoreEvictionPolicy" value="LFU" />
+		<property name="cacheManagerEventListener"><null/></property>		
+		<property name="cacheConfigs">
+			<list>
+				<bean class="net.sf.ehcache.config.CacheConfiguration">
+					<property name="name" value="flv.cache" />
+					<property name="maxElementsInMemory" value="5" />
+					<property name="eternal" value="false" />
+					<property name="timeToIdleSeconds" value="0" />
+					<property name="timeToLiveSeconds" value="0" />
+					<property name="overflowToDisk" value="false" />
+					<property name="diskPersistent" value="false" />
+				</bean>			
+			</list>
+		</property>
+	</bean> 	
+	
 </beans>
