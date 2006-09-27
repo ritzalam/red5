@@ -422,9 +422,9 @@
 	<target name="server" depends="compile">
 		<java classname="org.red5.server.Standalone" fork="true">
 			<classpath>
+				<pathelement location="${config.dir}"/>
 				<pathelement location="${classes.dir}"/>
 				<path refid="full.classpath"/>
-				<pathelement location="${config.dir}"/>
 			</classpath>
 			<jvmarg value="-Djava.security.manager"/>
 			<jvmarg value="-Djava.security.policy=${config.dir}/red5.policy"/>

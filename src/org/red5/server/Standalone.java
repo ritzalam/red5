@@ -137,7 +137,7 @@ public class Standalone {
 		}
 
 		long startupIn = System.currentTimeMillis() - time;
-		log.debug("Startup done in: " + startupIn + " ms");
+		log.info("Startup done in: " + startupIn + " ms");
 
 	}
 
