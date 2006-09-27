@@ -177,7 +177,13 @@
             source="${java.target_version}"
             target="${java.target_version}" 
 		/>
-
+        
+        <mkdir dir="webapps/oflaDemo/WEB-INF/classes/applications"/>
+        
+        <copy todir="webapps/oflaDemo/WEB-INF/classes/applications">
+            <fileset dir="webapps/oflaDemo/WEB-INF/src/applications"/>
+        </copy>
+        
 		<javac
 			sourcepath=""
 			srcdir="${src.dir}/../webapps/test/WEB-INF/src"
