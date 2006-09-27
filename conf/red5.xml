@@ -31,24 +31,13 @@
 	</bean>	
 	
 	<!-- Now we can load the servlet engine, this has to happen after the context are loaded -->
-	<!-- bean id="jetty6.server" class="org.red5.server.JettyLoader" init-method="init" autowire="byType" / -->
+	<bean id="jetty6.server" class="org.red5.server.JettyLoader" init-method="init" autowire="byType" />
 
-	<bean id="tomcat.server" class="org.red5.server.TomcatLoader" init-method="init" destroy-method="shutdown" autowire="byType">
-	    <!-- Use this to configure Tomcat via Spring -->
+	<!-- bean id="tomcat.server" class="org.red5.server.TomcatLoader" init-method="init" destroy-method="shutdown" autowire="byType">
 	    <property name="embedded">
 	    	<bean class="org.apache.catalina.startup.Embedded" />
 	    </property>
-
-	    <!-- You should set jvmRoute to support load-balancing via AJP ie : - - >
-	    <property name="engine.standalone">
-			<bean class="org.apache.catalina.core.StandardEngine">
-		        <property name="defaultHost" value="localhost" />
-		        <property name="jvmRoute" value="jvm1" />
-			</bean>	   
-	    </property>		
-	    --> 
 	  
-	    <!-- Top level container in our container hierarchy -->
 	    <property name="engine">
 			<bean class="org.apache.catalina.core.StandardEngine">
 		        <property name="name" value="red5Engine" />
@@ -56,89 +45,18 @@
 			</bean>	  
 	    </property>
 	    
-	    <!-- This Realm uses the UserDatabase configured in the global JNDI
-	        resources under the key "UserDatabase". Any edits that are performed
-	        against this UserDatabase are immediately available for use by the Realm. - - > 
-	    <property name="realm">
-		    <bean class="org.apache.catalina.realm.UserDatabaseRealm">
-		        <property name="resourceName">
-		            <bean id="UserDatabase" class="org.apache.catalina.UserDatabase">
-		                <property name="auth" value="Container" />
-		                <property name="factory" value="org.apache.catalina.users.MemoryUserDatabaseFactory" />
-		                <property name="pathname" value="conf/tomcat-users.xml" />             
-		            </bean>
-		        </property>
-		    </bean>            
-		</property>
-		-->
-	    
-	    <!-- Comment out the old realm but leave here for now in case we
-	       need to go back quickly -->
 	    <property name="realm">
 	    	<bean class="org.apache.catalina.realm.MemoryRealm" />
 		</property>
 			      
-	    <!-- Replace the above Realm with one of the following to get a Realm
-	       stored in a database and accessed via JDBC - - >
-	    <property name="realm">   
-		    <bean class="org.apache.catalina.realm.JDBCRealm">
-		        <property name="driverName">
-		            <bean id="UserDatabase" class="org.gjt.mm.mysql.Driver">
-		                <property name="connectionURL" value="jdbc:mysql://localhost/authority" />
-		                <property name="connectionName" value="test" />
-		                <property name="connectionPassword" value="test" />
-		                <property name="userTable" value="users" />
-		                <property name="userNameCol" value="user_name" />
-		                <property name="userCredCol" value="user_pass" />             
-		                <property name="userRoleTable" value="user_roles" />             
-		                <property name="roleNameCol" value="role_name" />             
-					</bean>
-		        </property>
-		    </bean>  
-	    </property>
-	    -->      
-	      
-		<!-- Non-SSL HTTP/1.1 Connector -->
 	    <property name="connector">
 			<bean class="org.apache.catalina.connector.Connector">
 		        <property name="port"><value>5080</value></property>
 		        <property name="redirectPort"><value>8443</value></property>
 		        <property name="enableLookups"><value>false</value></property>
-		        <!-- 
-		        <property name="scheme"><value>http</value></property>
-		        <property name="secure" value="false" />
-		        <property name="proxyName" value="??" />
-		        <property name="proxyPort" value="8090" />
-		        <property name="maxPostSize" value="2048" />
-		        <property name="maxSavePostSize" value="4" />
- 				-->
 			</bean>
 	    </property>
 	    	
-	    <!-- SSL HTTP/1.1 Connector - - >
-	    <property name="connector.https">
-			<bean class="org.apache.catalina.connector.Connector">
-		        <property name="port"><value>8443</value></property>
-		        <property name="scheme"><value>https</value></property>
-		        <property name="secure"><value>true</value></property>
-		        <property name="clientAuth"><value>false</value></property>
-		        <property name="sslProtocol"><value>TLS</value></property>
-			</bean>	  
-	    </property>		  
-		-->
-	
-	    <!-- An AJP 1.3 Connector - - >
-	    <property name="connector.ajp">
-			<bean class="org.apache.coyote.tomcat5.CoyoteConnector">
-		        <property name="port"><value>8009</value></property>
-		        <property name="protocol"><value>AJP/1.3</value></property>
-		        <property name="protocolHandlerClassName">
-		            <bean class="org.apache.jk.server.JkCoyoteHandler" />
-		        </property>
-			</bean>	   
-	    </property>
-	    -->
-
         <property name="baseHost">
 	       <bean class="org.apache.catalina.core.StandardHost">
 	           <property name="name" value="localhost" />
@@ -151,7 +69,6 @@
 
 		<property name="valves">
       		<list>
-      			<!-- 
 	    		<bean id="valve.access" class="org.apache.catalina.valves.AccessLogValve">
 	                <property name="directory" value="." />
 	                <property name="prefix" value="localhost_access." />
@@ -160,16 +77,6 @@
 	                <property name="resolveHosts" value="false" />
 	                <property name="rotatable" value="true" />
 	        	</bean>
-	    		<bean id="valve.extended" class="org.apache.catalina.valves.ExtendedAccessLogValve">
-	                <property name="directory" value="." />
-	                <property name="prefix" value="localhost_ext." />
-	                <property name="suffix" value=".log" />
-	                <property name="pattern" value="common" />
-	                <property name="rotatable" value="true" />
-	                <property name="fileDateFormat" value="[MM/dd/yyyy HH:mm:ss:SSS zz]" />
-	        	</bean>
-	    		<bean id="valve.reqs" class="org.apache.catalina.valves.RequestDumperValve" />
- 				-->
         	</list>
         </property>
 	    
@@ -190,7 +97,7 @@
 		    </map>
   		</property>
 
-	</bean>     	
+	</bean -->     	
 	
 	<!-- Default context. This can be shared between web app contexts -->
 	<!--

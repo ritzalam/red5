@@ -97,38 +97,22 @@
     </bean>
     
 	<!-- Now we can load the cache engine -->
+	<bean id="object.cache" class="org.red5.server.cache.NoCacheImpl" /> 
+
 	<!-- bean id="object.cache" class="org.red5.server.cache.CacheImpl" init-method="init" autowire="byType"> 
 		<property name="maxEntries"><value>5</value></property>
 	</bean -->
 	
-	<bean id="object.cache" class="org.red5.server.cache.WhirlyCacheImpl" init-method="init" autowire="byType">
+	<!-- bean id="object.cache" class="org.red5.server.cache.WhirlyCacheImpl" init-method="init" autowire="byType">
 		<property name="maxEntries" value="5" />
 		<property name="cacheConfig">
 			<bean class="com.whirlycott.cache.CacheConfiguration">
 				<property name="name" value="flv.cache" />
 				<property name="maxSize" value="5" />
-				<!-- This policy removes cached items, biased towards least frequently used (LFU) Items -->
 				<property name="policy"><value>com.whirlycott.cache.policy.LFUMaintenancePolicy</value></property>
-				<!-- This policy removes cached items, biased towards least recently used (LRU) Items -->
-				<!-- property name="policy"><value>com.whirlycott.cache.policy.LRUMaintenancePolicy</value></property -->
-				<!-- This policy removes cache items in the order in which they were added -->
-				<!-- property name="policy"><value>com.whirlycott.cache.policy.FIFOMaintenancePolicy</value></property -->
-				<!-- A predicate for filtering Collections of Items based on their expiration time -->
-				<!-- property name="policy"><value>com.whirlycott.cache.policy.ExpirationTimePredicate</value></property -->		
-				<!-- property name="backend"><value>com.whirlycott.cache.impl.ConcurrentHashMapImpl</value></property -->
 				<property name="backend"><value>com.whirlycott.cache.impl.FastHashMapImpl</value></property>
 			</bean>
 		</property>
-	</bean>    
-	
-	<!-- Then we load the scripting context, with the common as parent --> 
-	<bean id="script.context" class="org.red5.server.script.ScriptObjectContext" init-method="init">
-		<property name="scriptBeanFactory">
-			<bean class="org.red5.server.script.ScriptBeanFactory" />
-		</property>
-		<property name="scriptManager">
-			<bean class="javax.script.ScriptEngineManager" />
-		</property>
-	</bean>
+	</bean -->   
     
 </beans>
