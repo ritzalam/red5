@@ -96,14 +96,17 @@
         <property name="whenExhaustedAction" value="2"/>    	
     </bean>
     
-	<!-- Now we can load the cache engine -->
-	<!-- bean id="object.cache" class="org.red5.server.cache.NoCacheImpl" / -->
-
-	<!-- bean id="object.cache" class="org.red5.server.cache.CacheImpl" init-method="init" autowire="byType"> 
+	<!-- 
+	Now we can load the cache engine, only one may be enabled at a time. If no-caching is required select the
+	NoCacheImpl. Three other implementations based on EhCache, WhirlyCache, and Red5Cache are also available.
+	-->
+	<bean id="object.cache" class="org.red5.server.cache.NoCacheImpl" />
+<!-- 
+	<bean id="object.cache" class="org.red5.server.cache.CacheImpl" init-method="init" autowire="byType"> 
 		<property name="maxEntries"><value>5</value></property>
-	</bean -->
+	</bean>
 	
-	<!-- bean id="object.cache" class="org.red5.server.cache.WhirlyCacheImpl" init-method="init" autowire="byType">
+	<bean id="object.cache" class="org.red5.server.cache.WhirlyCacheImpl" init-method="init" autowire="byType">
 		<property name="maxEntries" value="5" />
 		<property name="cacheConfig">
 			<bean class="com.whirlycott.cache.CacheConfiguration">
@@ -113,7 +116,7 @@
 				<property name="backend"><value>com.whirlycott.cache.impl.FastHashMapImpl</value></property>
 			</bean>
 		</property>
-	</bean -->   
+	</bean>   
     
 	<bean id="object.cache" class="org.red5.server.cache.EhCacheImpl" init-method="init">
 		<property name="diskStore" value="java.io.tmpdir" />
@@ -133,5 +136,5 @@
 			</list>
 		</property>
 	</bean> 	
-	
+-->
 </beans>

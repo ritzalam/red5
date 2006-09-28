@@ -61,11 +61,15 @@ public class TomcatLoader implements ApplicationContextAware {
 		// root location for servlet container
 		String serverRoot = System.getProperty("red5.root");
 		log.info("Server root: " + serverRoot);
+		String confRoot = System.getProperty("red5.config_root");
+		log.info("Config root: " + confRoot);
 		// root location for servlet container
 		appRoot = serverRoot + "/webapps";
 		log.info("Application root: " + appRoot);
 		// set in the system for tomcat classes
+		System.setProperty("tomcat.home", serverRoot);
 		System.setProperty("catalina.home", serverRoot);
+		System.setProperty("catalina.base", serverRoot);
 	}
 
 	public void setApplicationContext(ApplicationContext context)
@@ -86,7 +90,11 @@ public class TomcatLoader implements ApplicationContextAware {
 			log.error("Error loading tomcat configuration", e);
 		}
 
+		//set a realm
 		embedded.setRealm(realm);
+		
+		//dont start tomcats jndi
+		embedded.setUseNaming(false);
 
 		// baseHost = embedded.createHost(hostName, appRoot);
 		engine.addChild(baseHost);

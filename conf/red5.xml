@@ -31,9 +31,10 @@
 	</bean>	
 	
 	<!-- Now we can load the servlet engine, this has to happen after the context are loaded -->
-	<bean id="jetty6.server" class="org.red5.server.JettyLoader" init-method="init" autowire="byType" />
 
-	<!-- bean id="tomcat.server" class="org.red5.server.TomcatLoader" init-method="init" destroy-method="shutdown" autowire="byType">
+	<bean id="jetty6.server" class="org.red5.server.JettyLoader" init-method="init" autowire="byType" />
+<!--
+	<bean id="tomcat.server" class="org.red5.server.TomcatLoader" init-method="init" destroy-method="shutdown" autowire="byType" depends-on="context.loader">
 	    <property name="embedded">
 	    	<bean class="org.apache.catalina.startup.Embedded" />
 	    </property>
@@ -87,18 +88,46 @@
 		        <value>/root</value>
 		      </entry>
 		      <entry>
-		        <key><value>oflaDemo</value></key>
+		        <key><value>/admin</value></key>
+		        <value>/admin</value>
+		      </entry>		      
+		      <entry>
+		        <key><value>/dump</value></key>
+		        <value>/dump</value>
+		      </entry>		      
+		      <entry>
+		        <key><value>/fitcDemo</value></key>
+		        <value>/fitcDemo</value>
+		      </entry>
+		      <entry>
+		        <key><value>/oflaDemo</value></key>
 		        <value>/oflaDemo</value>
 		      </entry>
 		      <entry>
-		        <key><value>SOSample</value></key>
+		        <key><value>/messageRecorder</value></key>
+		        <value>/messageRecorder</value>
+		      </entry>		      
+		      <entry>
+		        <key><value>/midiDemo</value></key>
+		        <value>/midiDemo</value>
+		      </entry>		      
+		      <entry>
+		        <key><value>/SOSample</value></key>
 		        <value>/SOSample</value>
 		      </entry>		      
+		      <entry>
+		        <key><value>/test</value></key>
+		        <value>/test</value>
+		      </entry>		      
+		      <entry>
+		        <key><value>/tutorial</value></key>
+		        <value>/tutorial</value>
+		      </entry>	
 		    </map>
   		</property>
 
-	</bean -->     	
-	
+	</bean>     	
+-->	
 	<!-- Default context. This can be shared between web app contexts -->
 	<!--
 	<bean id="default.context"
