@@ -274,6 +274,72 @@
 		</javadoc>
 	</target>
 
+    <!--  
+    yDoc - Javadoc UML Extension
+    This will enable you to generate and automatically integrate clear and concise UML diagrams into your Java API documentation.
+    http://www.yworks.com/en/products_ydoc.htm
+    -->
+    <target name="javadoc-ydoc">
+        <property name="ydoc.home" value="C:/dev/ydoc"/>
+        <property name="ps" value="${path.separator}"/>
+
+        <javadoc
+            source="${java.target_version}"
+            destdir="${javadoc.dir}"
+            additionalparam="-breakiterator"
+	        useexternalfile="true"
+	        failonerror="false"
+	        verbose="false"
+			classpathref="full.classpath"
+			author="true"
+			version="true"
+			use="true"
+			splitindex="true"
+			windowtitle="Red5 Server Documentation">
+
+			<fileset dir="src" defaultexcludes="yes">
+				<include name="org/red5/**"/>
+				<exclude name="**/*.xml"/>
+				<exclude name="**/*.xsd"/>
+			</fileset>            
+
+            <packageset dir="${src.dir}">
+                <include name="org/red5/**"/>
+            </packageset>
+
+            <doclet
+                name="ydoc.doclets.YStandard"
+                path="${ydoc.home}/lib/ydoc.jar${ps}${ydoc.home}/lib/class2svg.jar${ps}${ydoc.home}/resources${ps}${ydoc.home}/doc">
+                <param name="-author"/>
+                <param name="-generic"/>
+                <param name="-umlautogen"/>
+                <param name="-filterpath" value="${ydoc.home}/lib/ydoc.jar"/>
+                <param name="-filter"     value="ydoc.filters.ExcludeFilter"/>
+                <param name="-tag" value="y.precondition"/>
+                <param name="-tag" value="y.postcondition"/>
+                <param name="-tag" value="y.complexity"/>
+                <param name="-tag" value="param"/>
+                <param name="-tag" value="return"/>
+                <param name="-tag" value="see"/>
+                <param name="-tag" value="y.uml"/>
+            </doclet>
+            
+			<doctitle><![CDATA[<h1>Red5 Server Documentation</h1>]]></doctitle>
+			<bottom><![CDATA[<i>Copyright &#169; 2006 <a href="http://osflash.org/red5" target="_blank">the Red5 project</a>.</i>]]></bottom>
+			<tag name="todo" scope="all" description="To do:"/>
+			<group title="Public API" packages="org.red5.server.api:org.red5.server.api.*"/>
+			<group title="Network Protocols" packages="org.red5.server.net:org.red5.server.net.*"/>
+			<group title="Streaming" packages="org.red5.server.stream:org.red5.server.stream.*"/>
+			<group title="IO Packages" packages="org.red5.io:org.red5.io.*"/>
+			<group title="Scripting" packages="org.red5.server.script:org.red5.server.script.*"/>
+			<link href="http://java.sun.com/j2se/1.5.0/docs/api"/>
+			<link href="http://jetty.mortbay.org/apidocs"/>
+			<link href="http://directory.apache.org/subprojects/mina/apidocs"/>
+			<link href="http://www.springframework.org/docs/api"/>
+			<link href="http://www.opensymphony.com/quartz/api"/>
+		</javadoc>
+    </target>
+
 	<target name="jar" description="Make Archive" depends="compile">
         <tstamp prefix="build">
             <format property="TODAY" pattern="d-MMMM-yyyy" locale="en" />
