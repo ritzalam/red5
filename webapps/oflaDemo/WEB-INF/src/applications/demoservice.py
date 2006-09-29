@@ -57,5 +57,6 @@ class DemoService(IDemoService):
     def formatDate(self, date):
         return SimpleDateFormat("dd/MM/yyyy hh:mm:ss").format(date)
 
-def getInstance():
+def getInstance(*args):
+    print 'Arguments:', args
     return DemoService()

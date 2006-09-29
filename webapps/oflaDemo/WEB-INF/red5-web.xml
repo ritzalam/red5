@@ -61,6 +61,13 @@
      			<value>org.red5.server.adapter.IApplication</value>
   			</list>
 		</constructor-arg>
+        <constructor-arg index="2">
+            <list>
+                <value>One</value>
+                <value>2</value>
+                <value>III</value>
+            </list>
+        </constructor-arg>
 	</bean>
 -->
 
@@ -98,9 +105,7 @@
 				<value>org.red5.server.webapp.oflaDemo.IDemoService</value>
 			</list>
 		</constructor-arg>
-		<constructor-arg index="2">
-			<value>org.red5.server.webapp.oflaDemo.DemoServiceImpl</value>
-		</constructor-arg>		
+		<constructor-arg index="2" ref="web.handler"/>
 	</bean>
 -->
 

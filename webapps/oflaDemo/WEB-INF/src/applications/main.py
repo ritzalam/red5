@@ -34,5 +34,6 @@ class Application(ApplicationAdapter):
     def toString(self):
         return 'Python:Application'
 
-def getInstance():
+def getInstance(*args):
+    print 'Arguments:', args
     return Application()

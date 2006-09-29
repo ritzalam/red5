@@ -1,8 +1,12 @@
 package org.red5.server.script.jython;
 
 import java.io.IOException;
+import java.util.Properties;
 
 import org.apache.log4j.Logger;
+import org.python.core.PyFunction;
+import org.python.core.PyJavaInstance;
+import org.python.core.PyObject;
 import org.python.util.PythonInterpreter;
 import org.springframework.scripting.ScriptCompilationException;
 import org.springframework.scripting.ScriptFactory;
@@ -22,13 +26,13 @@ public class JythonScriptFactory implements ScriptFactory {
 	
 	private final String scriptSourceLocator;
 	private final Class[] scriptInterfaces;
-	private final Class extendedClass;
+	private final Object[] arguments;
 
 	public JythonScriptFactory(String scriptSourceLocator) {
 		Assert.hasText(scriptSourceLocator);
 		this.scriptSourceLocator = scriptSourceLocator;
 		this.scriptInterfaces = new Class[]{};
-		this.extendedClass = null;
+		this.arguments = null;
 	}
 	
 	public JythonScriptFactory(String scriptSourceLocator, Class[] scriptInterfaces) {
@@ -36,16 +40,18 @@ public class JythonScriptFactory implements ScriptFactory {
 		Assert.notEmpty(scriptInterfaces);
 		this.scriptSourceLocator = scriptSourceLocator;
 		this.scriptInterfaces = scriptInterfaces;
-		this.extendedClass = null;
+		this.arguments = null;
 	}
 	
-	public JythonScriptFactory(String scriptSourceLocator, Class[] scriptInterfaces, Class extendedClass) {
+	public JythonScriptFactory(String scriptSourceLocator, Class[] scriptInterfaces, Object[] arguments) {
 		Assert.hasText(scriptSourceLocator);
 		Assert.notEmpty(scriptInterfaces);
-		Assert.notNull(extendedClass);
 		this.scriptSourceLocator = scriptSourceLocator;
 		this.scriptInterfaces = scriptInterfaces;
-		this.extendedClass = extendedClass;
+		if (arguments == null || arguments.length == 0)
+			this.arguments = null;
+		else
+			this.arguments = arguments;
 	}
 	
 	public String getScriptSourceLocator() {
@@ -68,8 +74,20 @@ public class JythonScriptFactory implements ScriptFactory {
 			try {
 				PythonInterpreter interp = new PythonInterpreter();
 				interp.exec(strScript);
-				interp.exec("this = getInstance()");    
-				return interp.get("this", scriptInterfaces[0]);    
+				PyObject getInstance = interp.get("getInstance");
+				if (!(getInstance instanceof PyFunction)) {
+					throw new ScriptCompilationException("\"getInstance\" is not a function.");
+				}
+				PyObject _this;
+				if (arguments == null)
+					_this = ((PyFunction) getInstance).__call__();
+				else {
+					PyObject[] args = new PyObject[arguments.length];
+					for (int i=0; i<arguments.length; i++)
+						args[i] = new PyJavaInstance(arguments[i]);
+					_this = ((PyFunction) getInstance).__call__(args);
+				}
+				return _this.__tojava__(scriptInterfaces[0]);
 			} catch (Exception ex) {
 				throw new ScriptCompilationException(ex.getMessage());
 			}
