@@ -127,7 +127,7 @@
   		</property>
 
 	</bean>     	
--->	
+-->
 	<!-- Default context. This can be shared between web app contexts -->
 	<!--
 	<bean id="default.context"

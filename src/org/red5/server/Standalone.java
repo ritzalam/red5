@@ -62,6 +62,8 @@ public class Standalone {
 	 */
 	public static void main(String[] args) throws Exception, Throwable {
 
+        //System.setProperty("DEBUG", "true");
+
 		if (false) {
 			allocator = new DebugPooledByteBufferAllocator(true);
 			ByteBuffer.setAllocator(allocator);

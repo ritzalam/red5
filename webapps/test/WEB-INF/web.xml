@@ -55,4 +55,8 @@
         <url-pattern>/gateway</url-pattern>
     </servlet-mapping>
 
+    <taglib>
+        <taglib-uri>/tlds/c</taglib-uri>
+        <taglib-location>/WEB-INF/tlds/c.tld</taglib-location>
+    </taglib>
 </web-app>
