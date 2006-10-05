@@ -134,7 +134,7 @@ public class CacheImpl implements ICacheStore, ApplicationContextAware {
 				CACHE.put(name, value);
 				// set acceptance
 				accepted = true;
-				log.warn(name + " has been added to the cache. Current size: "
+				log.info(name + " has been added to the cache. Current size: "
 						+ CACHE.size());
 			}
 		} else {
@@ -156,7 +156,7 @@ public class CacheImpl implements ICacheStore, ApplicationContextAware {
 		SoftReference<ICacheable> value = new SoftReference<ICacheable>(obj);
 		// put an object into the cache
 		CACHE.put(name, value);
-		log.warn(name + " has been added to the cache. Current size: "
+		log.info(name + " has been added to the cache. Current size: "
 				+ CACHE.size());
 	}
 
@@ -201,7 +201,7 @@ public class CacheImpl implements ICacheStore, ApplicationContextAware {
 	}
 
 	public void setMaxEntries(int max) {
-		log.debug("Setting max entries for this cache to " + max);
+		log.info("Setting max entries for this cache to " + max);
 		CacheImpl.capacity = max;
 	}
 

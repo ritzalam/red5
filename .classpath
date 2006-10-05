@@ -1,37 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry excluding=".svn/*" kind="src" path="src"/>
-	<classpathentry excluding=".svn/*" output="webapps/tutorial/WEB-INF/classes" kind="src" path="webapps/tutorial/WEB-INF/src"/>
-	<classpathentry excluding=".svn/*" output="webapps/fitcDemo/WEB-INF/classes" kind="src" path="webapps/fitcDemo/WEB-INF/src"/>
-	<classpathentry excluding=".svn/*" output="webapps/oflaDemo/WEB-INF/classes" kind="src" path="webapps/oflaDemo/WEB-INF/src"/>
+	<classpathentry excluding=".svn/*" kind="src" output="webapps/tutorial/WEB-INF/classes" path="webapps/tutorial/WEB-INF/src"/>
+	<classpathentry excluding=".svn/*" kind="src" output="webapps/fitcDemo/WEB-INF/classes" path="webapps/fitcDemo/WEB-INF/src"/>
+	<classpathentry excluding=".svn/*" kind="src" output="webapps/oflaDemo/WEB-INF/classes" path="webapps/oflaDemo/WEB-INF/src"/>
 	<classpathentry excluding=".svn/*" kind="src" path="conf"/>
 	<classpathentry kind="lib" path="lib/slf4j-log4j12.jar"/>
-	<classpathentry kind="lib" path="lib/log4j-1.2.9.jar"/>
 	<classpathentry kind="lib" path="lib/junit.jar"/>
 	<classpathentry kind="lib" path="lib/jpda.jar"/>
 	<classpathentry kind="lib" path="lib/commons-collections.jar"/>
 	<classpathentry kind="lib" path="lib/commons-beanutils.jar"/>
 	<classpathentry excluding=".svn/*" kind="src" path="test"/>
 	<classpathentry kind="lib" path="lib/commons-el-1.0.jar"/>
-	<classpathentry kind="lib" path="lib/jetty.jar"/>
 	<classpathentry kind="lib" path="lib/servlet-api-2.5.jar"/>
 	<classpathentry kind="lib" path="lib/junit-4.0.jar"/>
-	<classpathentry excluding=".svn/*" output="webapps/test/WEB-INF/classes" kind="src" path="webapps/test/WEB-INF/src"/>
+	<classpathentry excluding=".svn/*" kind="src" output="webapps/test/WEB-INF/classes" path="webapps/test/WEB-INF/src"/>
 	<classpathentry kind="lib" path="lib/quartz-1.5.2.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="lib/jetty-util.jar"/>
 	<classpathentry kind="lib" path="lib/xmlrpc-2.0.1.jar"/>
 	<classpathentry kind="lib" path="lib/commons-codec-1.3.jar"/>
 	<classpathentry kind="lib" path="lib/commons-httpclient-3.0.1.jar"/>
-	<classpathentry kind="lib" path="lib/slf4j-simple-1.0.1.jar"/>
 	<classpathentry kind="lib" path="lib/jsp-api-2.0.jar"/>
-	<classpathentry kind="lib" path="lib/jcl104-over-slf4j-1.0.1.jar"/>
-	<classpathentry excluding=".svn/*" output="webapps/midiDemo/WEB-INF/classes" kind="src" path="webapps/midiDemo/WEB-INF/src"/>
+	<classpathentry excluding=".svn/*" kind="src" output="webapps/midiDemo/WEB-INF/classes" path="webapps/midiDemo/WEB-INF/src"/>
 	<classpathentry kind="lib" path="lib/aopalliance.jar"/>
 	<classpathentry kind="lib" path="lib/asm-2.2.2.jar"/>
 	<classpathentry kind="lib" path="lib/bsh-2.0b5.jar"/>
-	<classpathentry kind="lib" path="lib/catalina-5.5.17.jar"/>
-	<classpathentry kind="lib" path="lib/catalina-optional-5.5.17.jar"/>
 	<classpathentry kind="lib" path="lib/cglib-nodep-2.1_3.jar"/>
 	<classpathentry kind="lib" path="lib/commons-lang-2.1.jar"/>
 	<classpathentry kind="lib" path="lib/commons-modeler.jar"/>
@@ -39,9 +32,6 @@
 	<classpathentry kind="lib" path="lib/groovy-all-1.0-JSR-06.jar"/>
 	<classpathentry kind="lib" path="lib/jacl.jar"/>
 	<classpathentry kind="lib" path="lib/jaskell-1.0.jar"/>
-	<classpathentry kind="lib" path="lib/jasper-compiler-5.5.17.jar"/>
-	<classpathentry kind="lib" path="lib/jasper-compiler-jdt-5.5.17.jar"/>
-	<classpathentry kind="lib" path="lib/jasper-runtime-5.5.17.jar"/>
 	<classpathentry kind="lib" path="lib/jawk_ex.0_14.jar"/>
 	<classpathentry kind="lib" path="lib/jawk.0_14.jar"/>
 	<classpathentry kind="lib" path="lib/jfunutil.jar"/>
@@ -52,14 +42,9 @@
 	<classpathentry kind="lib" path="lib/jsr-223-1.0-pr.jar"/>
 	<classpathentry kind="lib" path="lib/judo.jar"/>
 	<classpathentry kind="lib" path="lib/jython.jar"/>
-	<classpathentry kind="lib" path="lib/mina-core-0.9.5.jar"/>
-	<classpathentry kind="lib" path="lib/mina-filter-compression-0.9.5.jar"/>
-	<classpathentry kind="lib" path="lib/mina-filter-ssl-0.9.5.jar"/>
-	<classpathentry kind="lib" path="lib/mina-integration-spring-0.9.5.jar"/>
 	<classpathentry kind="lib" path="lib/naming-factory.jar"/>
 	<classpathentry kind="lib" path="lib/naming-resources.jar"/>
 	<classpathentry kind="lib" path="lib/ognl-2.6.9.jar"/>
-	<classpathentry kind="lib" path="lib/servlets-default-5.5.17.jar"/>
 	<classpathentry kind="lib" path="lib/spring-aop.jar"/>
 	<classpathentry kind="lib" path="lib/spring-beans.jar"/>
 	<classpathentry kind="lib" path="lib/spring-context.jar"/>
@@ -67,16 +52,34 @@
 	<classpathentry kind="lib" path="lib/spring-support.jar"/>
 	<classpathentry kind="lib" path="lib/spring-web.jar"/>
 	<classpathentry kind="lib" path="lib/tcljava.jar"/>
-	<classpathentry kind="lib" path="lib/tomcat-coyote-5.5.17.jar"/>
-	<classpathentry kind="lib" path="lib/tomcat-http-5.5.17.jar"/>
-	<classpathentry kind="lib" path="lib/tomcat-util-5.5.17.jar"/>
 	<classpathentry kind="lib" path="lib/whirlycache-1.0.1_lite.jar"/>
-	<classpathentry kind="lib" path="lib/xbean.jar"/>
 	<classpathentry kind="lib" path="lib/xercesImpl-2.8.1.jar"/>
 	<classpathentry kind="lib" path="lib/xmlParserAPIs-2.8.1.jar"/>
 	<classpathentry kind="lib" path="lib/commons-logging-1.1.jar"/>
 	<classpathentry kind="lib" path="lib/antlr-2.7.6.jar"/>
 	<classpathentry kind="lib" path="lib/commons-jexl-1.1.jar"/>
 	<classpathentry kind="lib" path="lib/ehcache-1.2.3.jar"/>
+	<classpathentry kind="lib" path="lib/catalina-5.5.20.jar"/>
+	<classpathentry kind="lib" path="lib/catalina-optional-5.5.20.jar"/>
+	<classpathentry kind="lib" path="lib/jasper-compiler-5.5.20.jar"/>
+	<classpathentry kind="lib" path="lib/jasper-compiler-jdt-5.5.20.jar"/>
+	<classpathentry kind="lib" path="lib/jasper-runtime-5.5.20.jar"/>
+	<classpathentry kind="lib" path="lib/mina-core-1.0.0.jar"/>
+	<classpathentry kind="lib" path="lib/mina-filter-compression-1.0.0.jar"/>
+	<classpathentry kind="lib" path="lib/mina-filter-ssl-1.0.0.jar"/>
+	<classpathentry kind="lib" path="lib/mina-integration-spring-1.0.0.jar"/>
+	<classpathentry kind="lib" path="lib/servlets-default-5.5.20.jar"/>
+	<classpathentry kind="lib" path="lib/slf4j-simple.jar"/>
+	<classpathentry kind="lib" path="lib/tomcat-coyote-5.5.20.jar"/>
+	<classpathentry kind="lib" path="lib/tomcat-http-5.5.20.jar"/>
+	<classpathentry kind="lib" path="lib/tomcat-util-5.5.20.jar"/>
+	<classpathentry kind="lib" path="lib/xbean.jar"/>
+	<classpathentry kind="lib" path="lib/servlet-api.jar"/>
+	<classpathentry kind="lib" path="lib/log4j-1.2.14.jar"/>
+	<classpathentry kind="lib" path="lib/activation-1.1.jar"/>
+	<classpathentry kind="lib" path="lib/jetty-6.0.1.jar"/>
+	<classpathentry kind="lib" path="lib/jetty-util-6.0.1.jar"/>
+	<classpathentry kind="lib" path="lib/jetty-xbean-6.0.1.jar"/>
+	<classpathentry kind="lib" path="lib/jcl104-over-slf4j-1.0.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

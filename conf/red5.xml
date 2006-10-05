@@ -31,7 +31,6 @@
 	</bean>	
 	
 	<!-- Now we can load the servlet engine, this has to happen after the context are loaded -->
-
 	<bean id="jetty6.server" class="org.red5.server.JettyLoader" init-method="init" autowire="byType" />
 <!--
 	<bean id="tomcat.server" class="org.red5.server.TomcatLoader" init-method="init" destroy-method="shutdown" autowire="byType" depends-on="context.loader">
@@ -128,6 +127,7 @@
 
 	</bean>     	
 -->
+
 	<!-- Default context. This can be shared between web app contexts -->
 	<!--
 	<bean id="default.context"

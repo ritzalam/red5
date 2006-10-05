@@ -26,13 +26,7 @@
         class="org.apache.mina.integration.spring.DefaultIoFilterChainBuilderFactoryBean">
 		<property name="filters">
 	    	<list>
-	    		<!-- mina 0.9.4 -->
-				<!--  bean class="org.apache.mina.filter.ThreadPoolFilter" -->
-					<!-- Threads will be named IoWorker-1, IoWorker-2, etc - - >
-					<constructor-arg value="IoWorker" />
-					<property name="maximumPoolSize" value="128"/>
- 					-->
-				<!-- mina 0.9.x snapshot with java5 executor class -->
+				<!-- mina 1.0 with java5 executor class -->
 				<bean class="org.red5.io.filter.ExecutorFilter">
 					<!-- int corePoolSize, int maximumPoolSize, long keepAliveTime (seconds) -->
 					<constructor-arg index="0" value="16" />
@@ -94,11 +88,11 @@
 	</bean>
 
     <!-- Jetty Container -->
-
+    
 	<bean id="rtmpt.server" class="org.red5.server.net.rtmpt.RTMPTLoader" init-method="init" autowire="byType" />
-
+	
     <!-- Tomcat Container -->
-<!-- 
+<!--
 	<bean id="rtmpt.server" class="org.red5.server.net.rtmpt.TomcatRTMPTLoader" init-method="init" autowire="byType">
 	    <property name="embedded">
 	    	<bean class="org.apache.catalina.startup.Embedded" />
@@ -174,7 +168,8 @@
   		</property>
 
     </bean>
--->	
+-->
+
 
 	<bean id="debugProxyIoHandler" class="org.red5.server.net.proxy.DebugProxyHandler">
         <property name="codecFactory" ref="rtmpCodecFactory" />
