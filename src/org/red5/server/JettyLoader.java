@@ -22,8 +22,8 @@ package org.red5.server;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.mortbay.jetty.Server;
-import org.mortbay.xml.XmlConfiguration;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.xml.XmlBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
@@ -37,8 +37,7 @@ public class JettyLoader implements ApplicationContextAware {
 	protected Server jetty;
 
 	// We store the application context in a ThreadLocal so we can access it
-	// from
-	// "org.red5.server.jetty.Red5WebPropertiesConfiguration" later.
+	// from "org.red5.server.jetty.Red5WebPropertiesConfiguration" later.
 	private static ThreadLocal<ApplicationContext> applicationContext = new ThreadLocal<ApplicationContext>();
 
 	public void setApplicationContext(ApplicationContext context)
@@ -51,17 +50,11 @@ public class JettyLoader implements ApplicationContextAware {
 	}
 
 	public void init() {
-		// Originally this class was used to inspect the webapps.
-		// But now thats done using Red5WebPropertiesConfiguration
-		// So this class is left just starting jetty, we can probably use the
-		// old method
+		// So this class is left just starting jetty
 		try {
 			log.info("Loading jetty6 context from: " + jettyConfig);
-			Server jetty = new Server();
-			XmlConfiguration config = new XmlConfiguration(
-					getApplicationContext().getResource(jettyConfig)
-							.getInputStream());
-			config.configure(jetty);
+			XmlBeanFactory bf = new XmlBeanFactory(getApplicationContext().getResource(jettyConfig));
+			Server jetty = (Server) bf.getBean("Server");
 			log.info("Starting jetty servlet engine");
 			jetty.start();
 		} catch (Exception e) {

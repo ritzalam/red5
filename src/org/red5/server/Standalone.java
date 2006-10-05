@@ -129,6 +129,9 @@ public class Standalone {
 		System.setProperty("red5.root", root);
 		log.info("Setting Red5 root to " + root);
 
+		System.setProperty("red5.webapp.root", root+"/webapps/");
+		log.info("Setting webapp root to " + root);		
+		
 		try {
 			ContextSingletonBeanFactoryLocator.getInstance(red5Config)
 					.useBeanFactory("red5.common");

@@ -12,7 +12,7 @@
 	<bean id="serializer" class="org.red5.io.object.Serializer" />
 	
 	<bean id="deserializer" class="org.red5.io.object.Deserializer" />
-	
+
 	<bean id="statusObjectService" class="org.red5.server.net.rtmp.status.StatusObjectService" 
 		autowire="byType" init-method="initialize" />
 	

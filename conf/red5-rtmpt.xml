@@ -1,225 +1,155 @@
-<?xml version="1.0"?>
-<!DOCTYPE Configure PUBLIC "-//Mort Bay Consulting//DTD Configure//EN" "http://jetty.mortbay.org/configure.dtd">
-
-
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 <!-- =============================================================== -->
-<!-- Configure the Jetty Server                                      -->
+<!-- Configure the Jetty Server with Spring                          -->
+<!-- This file is the equivalent of jetty.xml, but written in spring -->
+<!-- XmlBeanFactory format.                                          -->
+<!-- The modules/spring/src/org/mortbay/spring/Main.java may be used -->
+<!-- to run this file - or any other spring infrastructure that      -->
+<!-- accepts uses an XmlBeanFactory                                  -->
 <!-- =============================================================== -->
-<Configure id="Server" class="org.mortbay.jetty.Server">
+<beans>
 
-    <!-- =========================================================== -->
-    <!-- Initialize management framework                             -->
-    <!-- =========================================================== -->
-    <!--
-    <Call id="MBeanServer" class="javax.management.MBeanServerFactory" name="createMBeanServer">
-       <Arg>org.mortbay.jetty</Arg>
-    </Call>
-    <Get id="Container" name="container"/>
-    <New class="org.mortbay.management.MBeanContainer">
-      <Arg><Ref id="MBeanServer" /></Arg>
-      <Arg><Ref id="Container"/></Arg>
-      <Set name="managementPort">8082</Set>
-      <Call name="start" />
-    </New>
-    -->
+	<bean id="sysProps" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+		<property name="targetClass"><value>java.lang.System</value></property>
+		<property name="targetMethod"><value>getProperties</value></property>
+	</bean>
 
-    <!-- =========================================================== -->
-    <!-- Server Thread Pool                                          -->
-    <!-- =========================================================== -->
-    <Set name="ThreadPool">
-      <New class="org.mortbay.thread.BoundedThreadPool">
-        <Set name="minThreads">10</Set>
-        <Set name="maxThreads">100</Set>
-      </New>
-    </Set>
+	<bean id="webappRoot"
+		class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+		<property name="targetObject">
+			<ref bean="sysProps" />
+		</property>
+		<property name="targetMethod">
+			<value>getProperty</value>
+		</property>
+		<property name="arguments">
+			<list>
+				<value>red5.webapp.root</value>
+			</list>
+		</property>
+	</bean>
 
-    <!-- =========================================================== -->
-    <!-- Set connectors                                              -->
-    <!-- =========================================================== -->
-    <!-- One of each type!                                           -->
-    <!-- =========================================================== -->
-    <Set name="connectors">
-      <Array type="org.mortbay.jetty.Connector">
+	<bean id="rtmptHost"
+		class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+		<property name="targetObject">
+			<ref bean="sysProps" />
+		</property>
+		<property name="targetMethod">
+			<value>getProperty</value>
+		</property>
+		<property name="arguments">
+			<list>
+				<value>rtmpt.host</value>
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="rtmptPort"
+		class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+		<property name="targetObject">
+			<ref bean="sysProps" />
+		</property>
+		<property name="targetMethod">
+			<value>getProperty</value>
+		</property>
+		<property name="arguments">
+			<list>
+				<value>rtmpt.port</value>
+			</list>
+		</property>
+	</bean>
 
-        <!-- Use this connector if NIO is not available.
-        <Item>
-          <New class="org.mortbay.jetty.bio.SocketConnector">
-            <Set name="port">8080</Set>
-            <Set name="maxIdleTime">50000</Set>
-          </New>
-        </Item>
-        -->
+	<bean id="Server" class="org.mortbay.jetty.Server" init-method="start" destroy-method="stop">
 
-        <!-- Use this connector for few very active connections.
-        <Item>
-          <New class="org.mortbay.jetty.nio.BlockingChannelConnector">
-            <Set name="port">8080</Set>
-          </New>
-        </Item>
-        -->
+		<property name="threadPool">
+			<bean id="ThreadPool"
+				class="org.mortbay.thread.BoundedThreadPool">
+				<property name="minThreads" value="3" />
+				<property name="lowThreads" value="5" />
+				<property name="maxThreads" value="10" />
+			</bean>
+		</property>
 
-        <!-- Use this connector for many frequently idle connections
-             and for threadless continuations.
-        -->
-        <Item>
-          <New class="org.mortbay.jetty.nio.SelectChannelConnector">
-            <Set name="port"><SystemProperty name="rtmpt.port" default="8088" /></Set>
-            <Set name="host"><SystemProperty name="rtmpt.host" default="0.0.0.0" /></Set>
-            <Set name="maxIdleTime">50000</Set>
-            <Set name="Acceptors">1</Set>
-          </New>
-        </Item>
+		<property name="connectors">
+			<list>
+				<bean id="Connector"
+					class="org.mortbay.jetty.nio.SelectChannelConnector">
+					<property name="host">
+						<ref local="rtmptHost" />
+					</property>
+					<property name="port">
+						<ref local="rtmptPort" />
+					</property>
+					<property name="maxIdleTime" value="30000" />
+					<property name="acceptors" value="2" />
+					<property name="confidentialPort" value="8443" />
+				</bean>
+			</list>
+		</property>
 
-        <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
-        <!-- Add a HTTPS SSL listener on port 8443                           -->
-        <!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
-        <!--
-        <Item>
-          <New class="org.mortbay.jetty.security.SslSocketConnector">
-            <Set name="Port">8443</Set>
-            <Set name="maxIdleTime">30000</Set>
-            <Set name="Keystore"><SystemProperty name="jetty.home" default="." />/conf/keystore</Set>
-            <Set name="Password">OBF:1vny1zlo1x8e1vnw1vn61x8g1zlu1vn4</Set>
-            <Set name="KeyPassword">OBF:1u2u1wml1z7s1z7a1wnl1u2g</Set>
-          </New>
-        </Item>
-        -->
-      </Array>
-    </Set>
+		<property name="handler">
+			<bean id="handlers"	class="org.mortbay.jetty.handler.HandlerCollection">
+				<property name="handlers">
+					<list>
+						<bean id="contexts" class="org.mortbay.jetty.handler.ContextHandlerCollection">
+							<property name="handlers">
+								<list>
+									<bean id="rtmptContext" class="org.mortbay.jetty.handler.ContextHandler">
+										<property name="contextPath" value="/" />
+										<property name="handler">
+              								<bean id="rtmptServletHandler" class="org.mortbay.jetty.servlet.ServletHandler">
+                								<property name="servlets">
+                									<list>
+							                           <bean class="org.mortbay.jetty.servlet.ServletHolder">
+							                               <property name="name" value="RTMPTServlet" />
+							                               <property name="className" value="org.red5.server.net.servlet.RTMPTServlet" />
+							                           </bean>
+													</list>
+												</property>
+												<property name="servletMappings">
+                    								<list>
+                    									<bean class="org.mortbay.jetty.servlet.ServletMapping">
+                    										<property name="pathSpec" value="/open/*" />
+                    										<property name="servletName" value="RTMPTServlet" />
+                    									</bean>
+                    									<bean class="org.mortbay.jetty.servlet.ServletMapping">
+                    										<property name="pathSpec" value="/close/*" />
+                    										<property name="servletName" value="RTMPTServlet" />
+                    									</bean>
+                    									<bean class="org.mortbay.jetty.servlet.ServletMapping">
+                    										<property name="pathSpec" value="/send/*" />
+                    										<property name="servletName" value="RTMPTServlet" />
+                    									</bean>
+                    									<bean class="org.mortbay.jetty.servlet.ServletMapping">
+                    										<property name="pathSpec" value="/idle/*" />
+                    										<property name="servletName" value="RTMPTServlet" />
+                    									</bean>
+                    								</list>
+                    							</property>
+                    						</bean>
+                    					</property>
+									</bean>
+								</list>
+							</property>
+						</bean>
+					</list>
+				</property>
+			</bean>
+		</property>
 
-    <!-- =========================================================== -->
-    <!-- Set handlers                                                -->
-    <!-- =========================================================== -->
-    <Set name="handlers">
-      <Array type="org.mortbay.jetty.Handler">
+		<property name="userRealms">
+			<list>
+				<bean class="org.mortbay.jetty.security.HashUserRealm">
+					<property name="name" value="Test Realm" />
+					<property name="config" value="conf/realm.properties" />
+				</bean>
+			</list>
+		</property>
 
-        <!-- ======================================================= -->
-        <!-- Configure a test web application with web.xml           -->
-        <!-- ======================================================= -->
-        <!--
-        <Item>
-          <New id="testWebAppContext"  class="org.mortbay.jetty.webapp.WebAppContext">
-            <Set name="contextPath">/test</Set>
-            <Set name="war">./webapps/test</Set>
-            <Set name="VirtualHosts"><Array type="java.lang.String"></Array></Set>
-            <Get name="SessionHandler">
-              <Set name="SessionManager"><New class="org.mortbay.jetty.servlet.HashSessionManager"/></Set>
-            </Get>
-          </New>
-        </Item>
-        -->
-        <Item>
-          <New id="rtmptContext" class="org.mortbay.jetty.handler.ContextHandler">
-            <Set name="contextPath">/</Set>
-            <Set name="handler">
-              <New id="rtmptServletHandler" class="org.mortbay.jetty.servlet.ServletHandler">
-                <Set name="servlets">
-                    <Array type="org.mortbay.jetty.servlet.ServletHolder">
-                        <Item>
-                           <New class="org.mortbay.jetty.servlet.ServletHolder">
-                               <Set name="name">RTMPTServlet</Set>
-                               <Set name="className">org.red5.server.net.servlet.RTMPTServlet</Set>
-                           </New>
-                        </Item>
-                     </Array>
-                 </Set>
+	</bean>
 
-                <Set name="servletMappings">
-                    <Array type="org.mortbay.jetty.servlet.ServletMapping">
-                        <Item>
-                           <New class="org.mortbay.jetty.servlet.ServletMapping">
-                             <Set name="pathSpec">/open/*</Set>
-                             <Set name="servletName">RTMPTServlet</Set>
-                           </New>
-                        </Item>
-                        <Item>
-                           <New class="org.mortbay.jetty.servlet.ServletMapping">
-                             <Set name="pathSpec">/close/*</Set>
-                             <Set name="servletName">RTMPTServlet</Set>
-                           </New>
-                        </Item>
-                        <Item>
-                           <New class="org.mortbay.jetty.servlet.ServletMapping">
-                             <Set name="pathSpec">/send/*</Set>
-                             <Set name="servletName">RTMPTServlet</Set>
-                           </New>
-                        </Item>
-                        <Item>
-                           <New class="org.mortbay.jetty.servlet.ServletMapping">
-                             <Set name="pathSpec">/idle/*</Set>
-                             <Set name="servletName">RTMPTServlet</Set>
-                           </New>
-                        </Item>
-                    </Array>
-                </Set>
-              </New>
-            </Set>
-          </New>
-        </Item>
-        <!-- ======================================================= -->
-        <!-- Configure a context directly - no XML parser required   -->
-        <!-- ======================================================= -->
-        <!--
-        <Item>
-          <New id="javadocContext"  class="org.mortbay.jetty.handler.ContextHandler">
-            <Set name="contextPath">/javadoc</Set>
-            <Set name="resourceBase">./javadoc</Set>
-            <Set name="handler">
-              <New id="javadocServletHandler" class="org.mortbay.jetty.servlet.ServletHandler">
-                <Set name="servlets">
-                    <Array type="org.mortbay.jetty.servlet.ServletHolder">
-                        <Item>
-                           <New class="org.mortbay.jetty.servlet.ServletHolder">
-                               <Set name="name">Default</Set>
-                               <Set name="className">org.mortbay.jetty.servlet.DefaultServlet</Set>
-                           </New>
-                        </Item>
-                     </Array>
-                 </Set>
-
-                <Set name="servletMappings">
-                    <Array type="org.mortbay.jetty.servlet.ServletMapping">
-                        <Item>
-                           <New class="org.mortbay.jetty.servlet.ServletMapping">
-                             <Set name="pathSpec">/</Set>
-                             <Set name="servletName">Default</Set>
-                           </New>
-                        </Item>
-                    </Array>
-                </Set>
-              </New>
-            </Set>
-          </New>
-        </Item>
-        -->
-
-      </Array>
-    </Set>
-
-
-
-    <!-- =========================================================== -->
-    <!-- Configure Realms                                            -->
-    <!-- =========================================================== -->
-    <Set name="UserRealms">
-      <Array type="org.mortbay.jetty.security.UserRealm">
-        <Item>
-          <New class="org.mortbay.jetty.security.HashUserRealm">
-            <Set name="name">Test Realm</Set>
-            <Set name="config"><SystemProperty name="red5.config_root" default="conf" />/realm.properties</Set>
-          </New>
-        </Item>
-      </Array>
-    </Set>
-
-    <!-- =========================================================== -->
-    <!-- Start the server                                            -->
-    <!-- =========================================================== -->
-    <Set name="stopAtShutdown">true</Set>
-    <Call name="start"/>
-
-</Configure>
-
+</beans>
 
 
 

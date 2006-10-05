@@ -24,9 +24,9 @@ import org.apache.commons.logging.LogFactory;
 import org.mortbay.jetty.Handler;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.handler.ContextHandler;
-import org.mortbay.xml.XmlConfiguration;
 import org.red5.server.api.IServer;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.xml.XmlBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
@@ -65,32 +65,24 @@ public class RTMPTLoader implements ApplicationContextAware {
 	}
 
 	public void init() throws Exception {
-
-		// Originally this class was used to inspect the webapps.
-		// But now thats done using Red5WebPropertiesConfiguration
-		// So this class is left just starting jetty, we can probably use the
-		// old method
-
+		// So this class is left just starting jetty
 		log.info("Loading RTMPT context from: " + rtmptConfig);
-		Server rtmptServer = new Server();
-		XmlConfiguration config = new XmlConfiguration(applicationContext
-				.getResource(rtmptConfig).getInputStream());
-		config.configure(rtmptServer);
+		XmlBeanFactory bf = new XmlBeanFactory(applicationContext.getResource(rtmptConfig));
+		Server rtmptServer = (Server) bf.getBean("Server");
 
 		// Setup configuration data in rtmptServer
-		ContextHandler contextHandler = null;
-		for (Handler handler : rtmptServer.getHandlers()) {
-			if (handler instanceof ContextHandler) {
-				contextHandler = (ContextHandler) handler;
-				break;
-			}
-		}
-		if (contextHandler == null) {
-			throw new Exception("No context handler found in the server.");
-		}
+//		ContextHandler contextHandler = null;
+//		for (Handler handler : rtmptServer.getHandlers()) {
+//			if (handler instanceof ContextHandler) {
+//				contextHandler = (ContextHandler) handler;
+//				break;
+//			}
+//		}
+//		if (contextHandler == null) {
+//			throw new Exception("No context handler found in the server.");
+//		}
+//		contextHandler.setAttribute(RTMPTHandler.HANDLER_ATTRIBUTE, this.handler);
 
-		contextHandler.setAttribute(RTMPTHandler.HANDLER_ATTRIBUTE,
-				this.handler);
 		log.info("Starting RTMPT server");
 		rtmptServer.start();
 
