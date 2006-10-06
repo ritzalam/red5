@@ -19,9 +19,12 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.io.File;
+import java.io.FilenameFilter;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.catalina.Container;
 import org.apache.catalina.Engine;
 import org.apache.catalina.Host;
 import org.apache.catalina.Realm;
@@ -29,15 +32,15 @@ import org.apache.catalina.Valve;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.core.StandardHost;
 import org.apache.catalina.startup.Embedded;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Logger;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
 public class TomcatLoader implements ApplicationContextAware {
 	// Initialize Logging
-	protected static Log log = LogFactory.getLog(TomcatLoader.class.getName());
+	protected static Logger log = Logger
+			.getLogger(TomcatLoader.class.getName());
 
 	protected Embedded embedded;
 
@@ -90,9 +93,28 @@ public class TomcatLoader implements ApplicationContextAware {
 			log.error("Error loading tomcat configuration", e);
 		}
 
+		//scan for additional webapp contexts
+		log.debug("Approot: " + appRoot);
+		File appDirBase = new File(appRoot);
+		File[] dirs = appDirBase.listFiles(new DirectoryFilter());
+		for (File dir : dirs) {
+			String dirName = '/' + dir.getName();
+			//check to see if the directory is already mapped 
+			if (null == baseHost.findChild(dirName)) {
+				log.debug("Adding context from directory scan: " + dirName);
+				this.addContext(dirName, appRoot + '/' + dirName);
+			}
+		}
+
+		//dump context list
+		if (log.isDebugEnabled()) {
+			for (Container cont : baseHost.findChildren()) {
+				log.debug("Context child name: " + cont.getName());
+			}
+		}
 		//set a realm
 		embedded.setRealm(realm);
-		
+
 		//dont start tomcats jndi
 		embedded.setUseNaming(false);
 
@@ -221,6 +243,16 @@ public class TomcatLoader implements ApplicationContextAware {
 			embedded.stop();
 		} catch (Exception e) {
 			log.warn("Tomcat could not be stopped", e);
+		}
+	}
+
+	class DirectoryFilter implements FilenameFilter {
+		public boolean accept(File dir, String name) {
+			log.debug("Filtering: " + dir.getName() + " name: " + name);
+			File f = new File(dir, name);
+			log.debug("Constructed dir: " + f.getAbsolutePath());
+			//filter out all non-directories that are hidden and/or not readable
+			return f.isDirectory() && f.canRead() && !f.isHidden();
 		}
 	}
 
