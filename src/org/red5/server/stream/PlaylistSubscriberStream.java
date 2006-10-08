@@ -246,14 +246,24 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 		synchronized (items) {
 			stop();
 			moveToNext();
+			boolean needPause = false;
 			if (currentItemIndex == -1) {
-				return;
+				if (items.size() > 0) {
+					// move to the head of the list and pause at the beginning
+					moveToNext();
+					if (currentItemIndex >= 0) {
+						needPause = true;
+					} else return;
+				} else return;
 			}
 			IPlayItem item = items.get(currentItemIndex);
 			int count = items.size();
 			while (count-- > 0) {
 				try {
 					engine.play(item);
+					if (needPause) {
+						engine.pause(0);
+					}
 					break;
 				} catch (StreamNotFoundException e) {
 					// go for next item
