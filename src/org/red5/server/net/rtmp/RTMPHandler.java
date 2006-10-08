@@ -141,6 +141,12 @@ public class RTMPHandler implements Constants, StatusCodes {
 
 				case TYPE_INVOKE:
 					onInvoke(conn, channel, header, (Invoke) message);
+					if(message.getHeader().getStreamId()!=0  
+							&& ((Invoke)message).getCall().getServiceName()==null
+							&& ACTION_PUBLISH.equals(((Invoke)message).getCall().getServiceMethodName())) {
+						IClientStream s = conn.getStreamById(header.getStreamId());
+						((IEventDispatcher) s).dispatchEvent(message);
+					}
 					break;
 
 				case TYPE_NOTIFY: // just like invoke, but does not return

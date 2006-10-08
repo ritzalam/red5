@@ -52,6 +52,7 @@ import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.messaging.PipeConnectionEvent;
 import org.red5.server.net.rtmp.event.AudioData;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
+import org.red5.server.net.rtmp.event.Invoke;
 import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.net.rtmp.status.Status;
@@ -298,6 +299,12 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 				videoTime = rtmpEvent.getTimestamp();
 			}
 			thisTime = videoTime;
+		} else if(rtmpEvent instanceof Invoke) {
+			if (rtmpEvent.getHeader().isTimerRelative())
+				dataTime += rtmpEvent.getTimestamp();
+			else
+				dataTime = rtmpEvent.getTimestamp();
+			return;
 		} else if (rtmpEvent instanceof Notify) {
 			if (rtmpEvent.getHeader().isTimerRelative()) {
 				dataTime += rtmpEvent.getTimestamp();
@@ -310,17 +317,6 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		RTMPMessage msg = new RTMPMessage();
 		msg.setBody(rtmpEvent);
 		msg.getBody().setTimestamp(thisTime);
-		//System.err.println(msg);
-		//System.err.println("ts in "+thisTime);
-		//		if(true) {
-		//			long delay=(long)(Math.random()*200);
-		//			try {
-		//				Thread.sleep(delay);
-		//			} catch (InterruptedException e) {
-		//				// TODO Auto-generated catch block
-		//				e.printStackTrace();
-		//			}
-		//		}
 		if (livePipe != null) {
 			livePipe.pushMessage(msg);
 		}
