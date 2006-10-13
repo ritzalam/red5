@@ -23,13 +23,31 @@ package org.red5.server.api.event;
  * IEvent interfaces is the essential interface every Event should implement
  */
 public interface IEvent {
-
+	
+	/**
+	 * Returns even type
+	 * 
+	 * @return Event type enumeration
+	 */
 	public Type getType();
-
+	
+	/**
+	 * Returns event context object
+	 * 
+	 * @return Event context object
+	 */
 	public Object getObject();
-
+	
+	/**
+	 * Whether event has source (event listener(s))
+	 * @return	<code>true</code> if so, <code>false</code> otherwise
+	 */
 	public boolean hasSource();
-
+	
+	/**
+	 * Returns event listener
+	 * @return	Event listener object
+	 */
 	public IEventListener getSource();
 
 	enum Type {

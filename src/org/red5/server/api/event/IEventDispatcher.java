@@ -23,7 +23,11 @@ package org.red5.server.api.event;
  * IEventDispatcher interface implementations dispatch events
  */
 public interface IEventDispatcher {
-
+	
+	/**
+	 * Dispatches event
+	 * @param event	Event object
+	 */
 	public void dispatchEvent(IEvent event);
 
 }

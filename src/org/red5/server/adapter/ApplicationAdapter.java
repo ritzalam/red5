@@ -70,6 +70,29 @@ import org.red5.server.stream.StreamService;
  * ApplicationAdapter is an application level IScope. To handle streaming
  * processes in your application you should implement
  * {@link IStreamAwareScopeHandler} interface and implement handling methods.
+ * 
+ * Application adapter provides you with useful event handlers that can be used to intercept streams,
+ * authorize users, etc. Also, all methods added in subclasses can be called from client side with NetConnection.call
+ * method. Unlike to Flash Media server which requires you to keep methods on Client object at server side, Red5
+ * offers much more convenient way to add methods for remote invocation to your applications.
+ * 
+ * EXAMPLE:
+ * 
+ * <code>
+ * public List<String> getLiveStreams() {
+ *   // Implementation goes here, say, use Red5 object to obtain scope and all it's streams
+ * }
+ * </code>
+ * 
+ * This methos added to ApplicationAdapter sublass can be called from client side with the following code:
+ * 
+ * <code>
+ * var nc:NetConnection = new NetConnection();
+ * nc.connect(...);
+ * nc.call("getLiveStreams", resultHandlerObj);
+ * </code>
+ * 
+ * If you want to build a server-side framework this is a place to start and wrap it around ApplicationAdapter subclass.
  *
  */
 public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements

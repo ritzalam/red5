@@ -34,20 +34,39 @@ public class ProtocolState {
 	private int decoderBufferAmount = 0;
 
 	private byte decoderState = DECODER_OK;
-
+	
+	/**
+	 * Returns current buffer amount
+	 * @return	Buffer amount
+	 */
 	public int getDecoderBufferAmount() {
 		return decoderBufferAmount;
 	}
-
+	
+	/**
+	 * Specifies buffer decoding amount
+	 * 
+	 * @param amount
+	 */
 	public void bufferDecoding(int amount) {
 		decoderState = DECODER_BUFFER;
 		decoderBufferAmount = amount;
 	}
-
+	
+	/**
+	 * Set decoding state as "needed to be continued"
+	 *
+	 */
 	public void continueDecoding() {
 		decoderState = DECODER_CONTINUE;
 	}
-
+	
+	/**
+	 * Checks whether remaining buffer size is greater or equal than buffer amount and so if it makes sense to start decoding
+	 * 
+	 * @param remaining		Remaining buffer size
+	 * @return				<code>true</code> or <code>false</code>
+	 */
 	public boolean canStartDecoding(int remaining) {
 		if (remaining >= decoderBufferAmount) {
 			return true;
@@ -55,16 +74,28 @@ public class ProtocolState {
 			return false;
 		}
 	}
-
+	
+	/**
+	 * Starts decoding. Sets state to "ready" and clears buffer amount.
+	 *
+	 */
 	public void startDecoding() {
 		decoderState = DECODER_OK;
 		decoderBufferAmount = 0;
 	}
-
+	
+	/**
+	 * Checks whether decoding is complete
+	 * @return	<code>true</code> or <code>false</code>
+	 */
 	public boolean hasDecodedObject() {
 		return (decoderState == DECODER_OK);
 	}
-
+	
+	/**
+	 * Checks whether decoding process can be continued
+	 * @return	<code>true</code> or <code>false</code>
+	 */
 	public boolean canContinueDecoding() {
 		return (decoderState != DECODER_BUFFER);
 	}

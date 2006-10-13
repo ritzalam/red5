@@ -31,7 +31,7 @@ public class ThreadObjectFactory implements PoolableObjectFactory {
 	private static final Log log = LogFactory.getLog(ThreadObjectFactory.class);
 
 	/*
-	 * (non-Javadoc)
+	 * Creates a new worker thread object
 	 * 
 	 * @see org.apache.commons.pool.PoolableObjectFactory#makeObject()
 	 */

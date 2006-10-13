@@ -21,8 +21,20 @@ package org.red5.server.net.protocol;
 
 import org.apache.mina.common.ByteBuffer;
 
+/**
+ *  Every protocol encoder should implement this
+ *
+ */
 public interface SimpleProtocolEncoder {
-
+	
+	/**
+	 * Encodes object with given protocol state to byte buffer
+	 * 
+	 * @param state			Protocol state
+	 * @param out			Object to encode
+	 * @return				Byte buffer with encoded data
+	 * @throws Exception
+	 */
 	public ByteBuffer encode(ProtocolState state, Object out) throws Exception;
 
 }
