@@ -335,7 +335,7 @@ public class RemotingClient {
 			Object[] params = new Object[] { this, method, methodParams,
 					callback };
 			Class[] paramTypes = new Class[] { RemotingClient.class,
-					String.class, Object.class, IRemotingCallback.class };
+					String.class, Object[].class, IRemotingCallback.class };
 			wt
 					.execute(
 							"org.red5.server.net.remoting.RemotingClient$RemotingWorker",
@@ -348,7 +348,7 @@ public class RemotingClient {
 	/**
 	 * Worker class that is used for asynchronous remoting calls.
 	 */
-	protected class RemotingWorker {
+	public static class RemotingWorker {
 
 		public void executeTask(RemotingClient client, String method,
 				Object[] params, IRemotingCallback callback) {
