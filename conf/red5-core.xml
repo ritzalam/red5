@@ -88,10 +88,11 @@
 	</bean>
 
     <!-- Jetty Container -->
+<!--  
 	<bean id="rtmpt.server" class="org.red5.server.net.rtmpt.RTMPTLoader" init-method="init" autowire="byType" />
-
+-->
     <!-- Tomcat Container -->
-<!--   
+<!--  
 	<bean id="rtmpt.server" class="org.red5.server.net.rtmpt.TomcatRTMPTLoader" init-method="init" autowire="byType">
 	    <property name="embedded">
 	    	<bean class="org.apache.catalina.startup.Embedded" />
@@ -167,7 +168,6 @@
   		</property>
     </bean>
 -->
-
 	<bean id="debugProxyIoHandler" class="org.red5.server.net.proxy.DebugProxyHandler">
         <property name="codecFactory" ref="rtmpCodecFactory" />
         <property name="forward" value="${proxy_forward.host_port}" />
