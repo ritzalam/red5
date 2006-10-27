@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:lang="http://www.springframework.org/schema/lang"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
-                           http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-2.0.xsd">
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+<!-- =============================================================== -->
+<!-- Configure the Jetty Server with Spring                          -->
+<!-- This file is the equivalent of jetty.xml, but written in spring -->
+<!-- XmlBeanFactory format.                                          -->
+<!-- The modules/spring/src/org/mortbay/spring/Main.java may be used -->
+<!-- to run this file - or any other spring infrastructure that      -->
+<!-- accepts uses an XmlBeanFactory                                  -->
+<!-- =============================================================== -->
+<beans>
 
 	<bean id="sysProps" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
 		<property name="targetClass"><value>java.lang.System</value></property>
@@ -162,11 +167,13 @@
 										<property name="contextPath" value="/tutorial" />
 										<property name="war" value="webapps/tutorial" />
 									</bean>
+									<!-- 
 									<bean
 										class="org.mortbay.jetty.webapp.WebAppContext">
 										<property name="contextPath" value="/hibernate" />
 										<property name="war" value="webapps/hibernate" />
 									</bean>
+									 -->
 								</list>
 							</property>
 						</bean>
