@@ -1,13 +1,3 @@
 #list of ScriptEngineFactory's in this package
-#org.red5.script.rhino.RhinoScriptEngineFactory #javascript
-com.sun.script.javascript.RhinoScriptEngineFactory #javascript
-com.sun.script.php.PHPScriptEngineFactory #PHP stateless
-com.sun.script.groovy.GroovyScriptEngineFactory #groovy
-com.sun.script.jacl.JaclScriptEngineFactory #tcl
-com.sun.script.jaskell.JaskellScriptEngineFactory #haskell
-com.sun.script.jawk.JawkScriptEngineFactory #awk
-com.sun.script.jexl.JexlScriptEngineFactory #jexl
-com.sun.script.jruby.JRubyScriptEngineFactory #ruby
-com.sun.script.judo.JudoScriptEngineFactory #judoscript
-com.sun.script.jython.JythonScriptEngineFactory #python
-com.sun.script.ognl.OgnlScriptEngineFactory #ognl
+#org.red5.server.script.rhino.RhinoScriptEngineFactory #javascript
+

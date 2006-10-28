@@ -20,7 +20,6 @@ import java.io.IOException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.red5.server.script.ScriptObjectContext;
 import org.springframework.scripting.ScriptCompilationException;
 import org.springframework.scripting.ScriptFactory;
 import org.springframework.scripting.ScriptSource;
@@ -52,8 +51,8 @@ public class RhinoScriptFactory implements ScriptFactory {
 
 	private final Class extendedClass;
 
-	private ScriptObjectContext scriptContext;
-
+//	private ScriptObjectContext scriptContext;
+	
 	public RhinoScriptFactory(String scriptSourceLocator) {
 		Assert.hasText(scriptSourceLocator);
 		this.scriptSourceLocator = scriptSourceLocator;
@@ -113,13 +112,13 @@ public class RhinoScriptFactory implements ScriptFactory {
 		}
 	}
 
-	public ScriptObjectContext getScriptContext() {
-		return scriptContext;
-	}
-
-	public void setScriptContext(ScriptObjectContext scriptContext) {
-		this.scriptContext = scriptContext;
-	}
+//	public ScriptObjectContext getScriptContext() {
+//		return scriptContext;
+//	}
+//
+//	public void setScriptContext(ScriptObjectContext scriptContext) {
+//		this.scriptContext = scriptContext;
+//	}
 
 	public String getScriptSourceLocator() {
 		return this.scriptSourceLocator;
@@ -135,7 +134,7 @@ public class RhinoScriptFactory implements ScriptFactory {
 	 * @return <code>false</code> always
 	 */
 	public boolean requiresConfigInterface() {
-		return false;
+		return true;
 	}
 
 	/**

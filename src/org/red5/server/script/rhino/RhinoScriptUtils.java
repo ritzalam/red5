@@ -16,6 +16,7 @@
 
 package org.red5.server.script.rhino;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -46,8 +47,11 @@ import org.springframework.util.ClassUtils;
  * @author Paul Gregoire
  * @since 0.6
  */
-public abstract class RhinoScriptUtils {
+public class RhinoScriptUtils {
 
+	// ScriptEngine manager
+	private static ScriptEngineManager mgr = new ScriptEngineManager();
+	
 	/**
 	 * Create a new Rhino-scripted object from the given script source.
 	 * 
@@ -62,10 +66,11 @@ public abstract class RhinoScriptUtils {
 	 */
 	public static Object createRhinoObject(String scriptSource,
 			Class[] interfaces, Class extendedClass)
-			throws ScriptCompilationException, Exception {
+			throws ScriptCompilationException, IOException, Exception {
 		//System.out.println("\n" + scriptSource + "\n");
 		//JSR223 style
-		ScriptEngineManager mgr = new ScriptEngineManager();
+		//ScriptEngineManager mgr = new ScriptEngineManager();
+		System.out.println("Script Engine Manager: " + mgr.getClass().getName());
 		ScriptEngine engine = mgr.getEngineByName("rhino");
 		// set engine scope namespace
 		Namespace nameSpace = engine.createNamespace();
