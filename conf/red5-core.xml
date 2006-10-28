@@ -73,9 +73,12 @@
        </list>
      </property>
    </bean> 	
-      
-	<bean id="rtmpHandler" class="org.red5.server.net.rtmp.RTMPHandler"
-		autowire="byType" />
+    
+    <!-- RTMPHandler -->  
+	<bean id="rtmpHandler" class="org.red5.server.net.rtmp.RTMPHandler">
+		<property name="server" ref="red5.server"/>
+        <property name="statusObjectService" ref="statusObjectService"/>
+	</bean>
 		
 	<bean id="rtmpMinaIoHandler" class="org.red5.server.net.rtmp.RTMPMinaIoHandler">
         <property name="handler" ref="rtmpHandler"/>
