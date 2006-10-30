@@ -62,11 +62,9 @@ public class Red5WebPropertiesConfiguration implements Configuration,
 	}
 
 	public void configureClassLoader() throws Exception {
-		// TODO Auto-generated method stub
 	}
 
 	public void configureDefaults() throws Exception {
-		// TODO Auto-generated method stub
 	}
 
 	public void configureWebApp() throws Exception {
@@ -158,7 +156,6 @@ public class Red5WebPropertiesConfiguration implements Configuration,
 	}
 
 	public void deconfigureWebApp() throws Exception {
-		// TODO Auto-generated method stub
 	}
 
 }

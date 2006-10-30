@@ -10,9 +10,14 @@
 <!-- =============================================================== -->
 <beans>
 
-	<bean id="sysProps" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
-		<property name="targetClass"><value>java.lang.System</value></property>
-		<property name="targetMethod"><value>getProperties</value></property>
+	<bean id="sysProps"
+		class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+		<property name="targetClass">
+			<value>java.lang.System</value>
+		</property>
+		<property name="targetMethod">
+			<value>getProperties</value>
+		</property>
 	</bean>
 
 	<bean id="webappRoot"
@@ -45,47 +50,7 @@
 		</property>
 	</bean>
 
-	<bean id="jettyWebCtx" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
-		<property name="targetClass"><value>org.mortbay.jetty.webapp.WebAppContext</value></property>
-		<property name="targetMethod"><value>getCurrentWebAppContext</value></property>
-	</bean>
-
-	<bean id="webappContext" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
-		<property name="targetObject">
-			<ref bean="jettyWebCtx" />
-		</property>
-		<property name="targetMethod">
-			<value>addWebApplications</value>
-		</property>
-		<property name="arguments">
-			<list>
-				<ref local="Server" />
-				<ref local="webappRoot" />
-				<value>web-default.xml</value>
-				<list>
-					<value>
-						org.mortbay.jetty.webapp.WebInfConfiguration
-					</value>
-					<value>
-						org.mortbay.jetty.webapp.WebXmlConfiguration
-					</value>
-					<value>
-						org.mortbay.jetty.webapp.JettyWebXmlConfiguration
-					</value>
-					<value>
-						org.mortbay.jetty.webapp.TagLibConfiguration
-					</value>
-					<!-- value>
-						org.red5.server.jetty.Red5WebPropertiesConfiguration
-					</value -->
-				</list>
-				<value>true</value>
-				<value>true</value>
-			</list>
-		</property>
-	</bean>
-
-	<bean id="Server" class="org.mortbay.jetty.Server" init-method="start" destroy-method="stop">
+	<bean id="Server" class="org.mortbay.jetty.Server" destroy-method="stop"> <!-- init-method="start" -->
 
 		<property name="threadPool">
 			<bean id="ThreadPool"
@@ -110,88 +75,27 @@
 			</list>
 		</property>
 
-		<property name="handler">
-			<bean id="handlers" class="org.mortbay.jetty.handler.HandlerCollection">
-				<property name="handlers">
-					<list>
-						<bean id="contexts" class="org.mortbay.jetty.handler.ContextHandlerCollection">
-							<property name="handlers">
-								<list>
-									<bean
-										class="org.mortbay.jetty.webapp.WebAppContext">
-										<property name="contextPath" value="/" />
-										<property name="war" value="webapps/root" />
-									</bean>
-									<bean
-										class="org.mortbay.jetty.webapp.WebAppContext">
-										<property name="contextPath" value="/admin" />
-										<property name="war" value="webapps/admin" />
-									</bean>     
-									<bean
-										class="org.mortbay.jetty.webapp.WebAppContext">
-										<property name="contextPath" value="/dump" />
-										<property name="war" value="webapps/dump" />
-									</bean>     
-									<bean
-										class="org.mortbay.jetty.webapp.WebAppContext">
-										<property name="contextPath" value="/fitcDemo" />
-										<property name="war" value="webapps/fitcDemo" />
-									</bean>
-									<bean
-										class="org.mortbay.jetty.webapp.WebAppContext">
-										<property name="contextPath" value="/messageRecorder" />
-										<property name="war" value="webapps/messageRecorder" />
-									</bean>
-									<bean
-										class="org.mortbay.jetty.webapp.WebAppContext">
-										<property name="contextPath" value="/midiDemo" />
-										<property name="war" value="webapps/midiDemo" />
-									</bean>
-									<bean
-										class="org.mortbay.jetty.webapp.WebAppContext">
-										<property name="contextPath" value="/oflaDemo" />
-										<property name="war" value="webapps/oflaDemo" />
-									</bean>
-									<bean
-										class="org.mortbay.jetty.webapp.WebAppContext">
-										<property name="contextPath" value="/SOSample" />
-										<property name="war" value="webapps/SOSample" />
-									</bean>
-									<bean
-										class="org.mortbay.jetty.webapp.WebAppContext">
-										<property name="contextPath" value="/test" />
-										<property name="war" value="webapps/test" />
-									</bean>
-									<bean
-										class="org.mortbay.jetty.webapp.WebAppContext">
-										<property name="contextPath" value="/tutorial" />
-										<property name="war" value="webapps/tutorial" />
-									</bean>
-									<!-- 
-									<bean
-										class="org.mortbay.jetty.webapp.WebAppContext">
-										<property name="contextPath" value="/hibernate" />
-										<property name="war" value="webapps/hibernate" />
-									</bean>
-									 -->
-								</list>
-							</property>
-						</bean>
-						<bean id="defaultHandler" class="org.mortbay.jetty.handler.DefaultHandler" />
-						<!-- bean id="requestLog" class="org.mortbay.jetty.handler.RequestLogHandler"/ -->
-					</list>
-				</property>
-			</bean>
-		</property>
-
 		<property name="userRealms">
 			<list>
 				<bean
 					class="org.mortbay.jetty.security.HashUserRealm">
 					<property name="name" value="Test Realm" />
-					<property name="config"	value="conf/realm.properties" />
+					<property name="config"
+						value="conf/realm.properties" />
 				</bean>
 			</list>
+		</property>
+
+		<property name="handler">
+			<bean id="handlers"
+				class="org.mortbay.jetty.handler.HandlerCollection">
+				<property name="handlers">
+					<list>
+						<bean id="defaultHandler" class="org.mortbay.jetty.handler.DefaultHandler" />
+						<bean id="requestLog" class="org.mortbay.jetty.handler.RequestLogHandler" />					
+					</list>
+				</property>
+			</bean>
 		</property>
 
 	</bean>

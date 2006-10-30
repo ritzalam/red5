@@ -66,7 +66,7 @@
 	<classpathentry kind="lib" path="lib/servlet-api.jar"/>
 	<classpathentry kind="lib" path="lib/log4j-1.2.14.jar"/>
 	<classpathentry kind="lib" path="lib/activation-1.1.jar"/>
-	<classpathentry kind="lib" path="lib/jetty-6.0.1.jar"/>
+	<classpathentry kind="lib" path="lib/jetty-6.0.1.jar" sourcepath="D:/dev/shared/jetty-6.0.1/modules/jetty/src/main/java"/>
 	<classpathentry kind="lib" path="lib/jetty-util-6.0.1.jar"/>
 	<classpathentry kind="lib" path="lib/jetty-xbean-6.0.1.jar"/>
 	<classpathentry kind="lib" path="lib/jcl104-over-slf4j-1.0.1.jar"/>
