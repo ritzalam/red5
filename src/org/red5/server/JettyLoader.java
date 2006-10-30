@@ -29,9 +29,9 @@ import org.mortbay.jetty.handler.DefaultHandler;
 import org.mortbay.jetty.handler.HandlerCollection;
 import org.mortbay.jetty.webapp.WebAppContext;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.xml.XmlBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 public class JettyLoader implements ApplicationContextAware {
 
@@ -63,8 +63,8 @@ public class JettyLoader implements ApplicationContextAware {
 		// So this class is left just starting jetty
 		try {
 			log.info("Loading jetty6 context from: " + jettyConfig);
-			XmlBeanFactory bf = new XmlBeanFactory(getApplicationContext().getResource(jettyConfig));
-			Server jetty = (Server) bf.getBean("Server");
+			ApplicationContext appCtx = new ClassPathXmlApplicationContext(jettyConfig);
+			Server jetty = (Server) appCtx.getBean("Server");
 
 			// root location for servlet container
 			String serverRoot = System.getProperty("red5.root");

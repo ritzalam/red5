@@ -10,6 +10,8 @@
 <!-- =============================================================== -->
 <beans>
 
+	<bean id="placeholderConfig" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer" />
+
 	<bean id="sysProps" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
 		<property name="targetClass"><value>java.lang.System</value></property>
 		<property name="targetMethod"><value>getProperties</value></property>
@@ -140,9 +142,10 @@
 
 		<property name="userRealms">
 			<list>
-				<bean class="org.mortbay.jetty.security.HashUserRealm">
+				<bean
+					class="org.mortbay.jetty.security.HashUserRealm" depends-on="placeholderConfig">
 					<property name="name" value="Test Realm" />
-					<property name="config" value="conf/realm.properties" />
+					<property name="config"><value>${red5.config_root}/realm.properties</value></property>
 				</bean>
 			</list>
 		</property>

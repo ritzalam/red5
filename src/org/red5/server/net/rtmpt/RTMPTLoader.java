@@ -24,9 +24,9 @@ import org.apache.commons.logging.LogFactory;
 import org.mortbay.jetty.Server;
 import org.red5.server.api.IServer;
 import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.xml.XmlBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
  * Loader for the RTMPT server.
@@ -65,8 +65,8 @@ public class RTMPTLoader implements ApplicationContextAware {
 	public void init() throws Exception {
 		// So this class is left just starting jetty
 		log.info("Loading RTMPT context from: " + rtmptConfig);
-		XmlBeanFactory bf = new XmlBeanFactory(applicationContext.getResource(rtmptConfig));
-		Server rtmptServer = (Server) bf.getBean("Server");
+		ApplicationContext appCtx = new ClassPathXmlApplicationContext(rtmptConfig);
+		Server rtmptServer = (Server) appCtx.getBean("Server");
 
 		// Setup configuration data in rtmptServer
 //		ContextHandler contextHandler = null;
