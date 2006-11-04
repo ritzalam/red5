@@ -32,13 +32,13 @@ public class DemoService {
 					Date lastModifiedDate = new Date(file.lastModified());
 					String lastModified = formatDate(lastModifiedDate);
 					String flvName = flv.getFile().getName();
-					String flvBytes = new Long(file.length()).toString();
-
-					log.debug("flvName: " + flvName);
-					log.debug("lastModified date: " + lastModified);
-					log.debug("flvBytes: " + flvBytes);
-					log.debug("-------");
-
+					String flvBytes = Long.toString(file.length());
+					if (log.isDebugEnabled()) {
+						log.debug("flvName: " + flvName);
+						log.debug("lastModified date: " + lastModified);
+						log.debug("flvBytes: " + flvBytes);
+						log.debug("-------");
+					}
 					fileInfo = new HashMap<String, Object>();
 					fileInfo.put("name", flvName);
 					fileInfo.put("lastModified", lastModified);
@@ -54,13 +54,13 @@ public class DemoService {
 					Date lastModifiedDate = new Date(file.lastModified());
 					String lastModified = formatDate(lastModifiedDate);
 					String flvName = mp3.getFile().getName();
-					String flvBytes = new Long(file.length()).toString();
-
-					log.debug("flvName: " + flvName);
-					log.debug("lastModified date: " + lastModified);
-					log.debug("flvBytes: " + flvBytes);
-					log.debug("-------");
-
+					String flvBytes = Long.toString(file.length());
+					if (log.isDebugEnabled()) {
+						log.debug("flvName: " + flvName);
+						log.debug("lastModified date: " + lastModified);
+						log.debug("flvBytes: " + flvBytes);
+						log.debug("-------");
+					}
 					fileInfo = new HashMap<String, Object>();
 					fileInfo.put("name", flvName);
 					fileInfo.put("lastModified", lastModified);
@@ -69,7 +69,7 @@ public class DemoService {
 				}
 			}
 		} catch (IOException e) {
-			e.printStackTrace();
+			log.error(e);
 		}
 		return filesMap;
 	}

@@ -34,6 +34,11 @@ import org.red5.io.utils.HexDump;
 
 public class RequestDumpServlet extends HttpServlet {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -7805924991663536258L;
+
 	protected static Log log = LogFactory.getLog(RequestDumpServlet.class
 			.getName());
 
@@ -62,11 +67,7 @@ public class RequestDumpServlet extends HttpServlet {
 			log.info(HexDump.formatHexDump(reqBuffer.getHexDump()));
 
 		} catch (IOException e) {
-
-			e.printStackTrace();
-
-		} finally {
-
+			log.error(e);
 		}
 		log.info("End");
 	}

@@ -159,12 +159,17 @@ public class Call implements IServiceCall {
 
 	@Override
 	public String toString() {
-		StringBuffer sb = new StringBuffer();
-		sb.append("Service: " + serviceName + " Method: " + serviceMethodName);
+		StringBuilder sb = new StringBuilder("Service: ");
+		sb.append(serviceName);
+		sb.append(" Method: ");
+		sb.append(serviceMethodName);
 		if (arguments != null) {
-			sb.append(" Num Params: " + arguments.length);
+			sb.append(" Num Params: ");
+			sb.append(arguments.length);
 			for (int i = 0; i < arguments.length; i++) {
-				sb.append(i).append(": ").append(arguments[i]);
+				sb.append(i);
+				sb.append(": ");
+				sb.append(arguments[i]);
 			}
 		} else {
 			sb.append(" No params");

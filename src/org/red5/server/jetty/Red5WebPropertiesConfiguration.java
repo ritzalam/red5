@@ -47,6 +47,11 @@ import org.springframework.web.context.support.GenericWebApplicationContext;
 public class Red5WebPropertiesConfiguration implements Configuration,
 		EventListener {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 951479449391784526L;
+
 	// Initialize Logging
 	protected static Log log = LogFactory
 			.getLog(Red5WebPropertiesConfiguration.class.getName());
@@ -87,7 +92,7 @@ public class Red5WebPropertiesConfiguration implements Configuration,
 				String[] hostnames = virtualHosts.split(",");
 				for (int i = 0; i < hostnames.length; i++) {
 					hostnames[i] = hostnames[i].trim();
-					if (hostnames[i].equals("*")) {
+					if (hostnames[i].equals('*')) {
 						// A virtual host "null" must be used so requests for
 						// any host
 						// will be served.

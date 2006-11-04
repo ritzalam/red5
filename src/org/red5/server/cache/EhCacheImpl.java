@@ -65,7 +65,7 @@ public class EhCacheImpl implements ICacheStore, ApplicationContextAware {
 
 	// We store the application context in a ThreadLocal so we can access it
 	// later.
-	private static ApplicationContext applicationContext = null;
+	private static ApplicationContext applicationContext;
 
 	public void setApplicationContext(ApplicationContext context)
 			throws BeansException {
@@ -109,20 +109,26 @@ public class EhCacheImpl implements ICacheStore, ApplicationContextAware {
 			cache.bootstrap();			
 			//create the un-init'd caches
 			Set<Cache> caches = helper.createCaches();
-			log.debug("Number of caches: " + caches.size() + " Default cache: " + (cache != null ? 1 : 0));
+			if (log.isDebugEnabled()) {
+				log.debug("Number of caches: " + caches.size() + " Default cache: " + (cache != null ? 1 : 0));
+			}
 			for (Cache cache : caches) {
 				cache.initialise();
 				cache.bootstrap();
 				//set first cache to be main local member
 				if (null == cache) {
-					log.debug("Default cache name: " + defaultCacheName);
+					if (log.isDebugEnabled()) {
+						log.debug("Default cache name: " + defaultCacheName);
+					}
 					cache = cm.getCache(defaultCacheName);
 				}
 			}
 		} catch (Exception e) {
 			log.warn("Error on cache init", e);
 		}
-		log.debug("Cache is null? " + (null == cache));
+		if (log.isDebugEnabled()) {
+			log.debug("Cache is null? " + (null == cache));
+		}
 	}
 
 	public ICacheable get(String name) {
@@ -145,7 +151,7 @@ public class EhCacheImpl implements ICacheStore, ApplicationContextAware {
 	}
 
 	public Iterator<String> getObjectNames() {
-		return (Iterator<String>) cache.getKeys().iterator();
+		return cache.getKeys().iterator();
 	}
 
 	public Iterator<SoftReference<? extends ICacheable>> getObjects() {
@@ -181,7 +187,9 @@ public class EhCacheImpl implements ICacheStore, ApplicationContextAware {
 	}
 
 	public void setMaxEntries(int capacity) {
-		log.debug("Setting max entries for this cache to " + capacity);
+		if (log.isDebugEnabled()) {
+			log.debug("Setting max entries for this cache to " + capacity);
+		}
 	}
 
 	public String getMemoryStoreEvictionPolicy() {

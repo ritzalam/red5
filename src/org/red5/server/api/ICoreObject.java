@@ -24,13 +24,12 @@ import org.red5.server.api.event.IEventHandler;
 import org.red5.server.api.event.IEventListener;
 
 /**
- * Base interface containing common methods and attributs for all core objects.
+ * Base interface containing common methods and attributes for all core objects.
  *  
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard (luke@codegent.com)
  *
  */
-public interface ICoreObject extends IAttributeStore, ICastingAttributeStore,
-		IEventDispatcher, IEventHandler, IEventListener {
+public interface ICoreObject extends ICastingAttributeStore, IEventDispatcher, IEventHandler, IEventListener {
 
 }

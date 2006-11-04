@@ -62,7 +62,7 @@ public interface IClient extends IAttributeStore, IFlowControllable {
 	 * 		try {
 	 * 			connection.getClient().setStreamId( params[0] );
 	 * 		} catch(Exception e){<br/>
-	 * 			e.printStackTrace();
+	 * 			log.error(e);
 	 * 		}
 	 * }
 	 * </code>

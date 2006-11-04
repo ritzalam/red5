@@ -61,10 +61,10 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
 
 		// Create shared object wrapper around the attributes
 		String path = parent.getContextPath();
-		if (!path.startsWith("/")) {
-			path = "/" + path;
+		if (path.charAt(0) != '/') {
+			path = '/' + path;
 		}
-		so = (SharedObject) store.load(TYPE + path + "/" + name);
+		so = (SharedObject) store.load(TYPE + path + '/' + name);
 		if (so == null) {
 			so = new SharedObject(attributes, name, path, persistent, store);
 
@@ -145,7 +145,7 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
 
 		// Invoke method on registered handler
 		String serviceName, serviceMethod;
-		int dotPos = handler.lastIndexOf(".");
+		int dotPos = handler.lastIndexOf('.');
 		if (dotPos != -1) {
 			serviceName = handler.substring(0, dotPos);
 			serviceMethod = handler.substring(dotPos + 1);
@@ -162,10 +162,10 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
 			try {
 				// The bean must have a name of
 				// "<SharedObjectName>.<DottedServiceName>.soservice"
-				soHandler = context.getBean(so.getName() + "." + serviceName
+				soHandler = context.getBean(so.getName() + '.' + serviceName
 						+ ".soservice");
 			} catch (Exception err) {
-				// No such bean.
+				log.debug("No such bean");
 			}
 		}
 

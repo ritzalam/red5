@@ -31,6 +31,7 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.SimpleNamespace;
 
+import org.apache.log4j.Logger;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.NativeJavaObject;
@@ -49,9 +50,11 @@ import org.springframework.util.ClassUtils;
  */
 public class RhinoScriptUtils {
 
+	private static final Logger log = Logger.getLogger(RhinoScriptUtils.class);
+
 	// ScriptEngine manager
 	private static ScriptEngineManager mgr = new ScriptEngineManager();
-	
+
 	/**
 	 * Create a new Rhino-scripted object from the given script source.
 	 * 
@@ -70,43 +73,50 @@ public class RhinoScriptUtils {
 		//System.out.println("\n" + scriptSource + "\n");
 		//JSR223 style
 		//ScriptEngineManager mgr = new ScriptEngineManager();
-		System.out.println("Script Engine Manager: " + mgr.getClass().getName());
+		if (log.isDebugEnabled()) {
+			log.debug("Script Engine Manager: " + mgr.getClass().getName());
+		}
 		ScriptEngine engine = mgr.getEngineByName("rhino");
 		// set engine scope namespace
 		Namespace nameSpace = engine.createNamespace();
 		if (null == nameSpace) {
-			RhinoScriptFactory.log
-					.debug("Engine namespace not created, using simple");
+			log.debug("Engine namespace not created, using simple");
 			nameSpace = new SimpleNamespace();
 			//set namespace
-			RhinoScriptFactory.log.debug("Setting namespace");
+			log.debug("Setting namespace");
 			engine.setNamespace(nameSpace, ScriptContext.ENGINE_SCOPE);
 		}
 		//get the function name ie. class name / ctor
 		String funcName = RhinoScriptUtils.getFunctionName(scriptSource);
-		RhinoScriptFactory.log.debug("New script function: " + funcName);
+		if (log.isDebugEnabled()) {
+			log.debug("New script function: " + funcName);
+		}
 		//set the 'filename'
 		nameSpace.put(ScriptEngine.FILENAME, funcName);
 		// add the logger to the script
-		nameSpace.put("log", RhinoScriptFactory.log);
+		nameSpace.put("log", log);
 		if (null != extendedClass) {
-			RhinoScriptFactory.log
-					.debug("Extended: " + extendedClass.getName());
+			if (log.isDebugEnabled()) {
+				log.debug("Extended: " + extendedClass.getName());
+			}
 			nameSpace.put("supa", extendedClass.newInstance());
 		}
 		//compile the script
 		CompiledScript script = ((Compilable) engine).compile(scriptSource);
 		//eval the script with the associated namespace
 		Object o = script.eval(nameSpace);
-		RhinoScriptFactory.log.debug("Result of script call: " + o);
+		if (log.isDebugEnabled()) {
+			log.debug("Result of script call: " + o);
+		}
 		//null result so try constructor
 		if (null != o) {
 			dump(o);
 			//if function name is not null call it
 			if (null != funcName) {
 				Object attr = engine.getContext().getAttribute(funcName);
-				RhinoScriptFactory.log
-						.debug("Result of script attribute call: " + attr);
+				if (log.isDebugEnabled()) {
+					log.debug("Result of script attribute call: " + attr);
+				}
 				if (null != attr) {
 					dump(attr);
 					Context cx = Context.enter();
@@ -123,14 +133,17 @@ public class RhinoScriptUtils {
 					} finally {
 						Context.exit();
 					}
-					RhinoScriptFactory.log
-							.debug("Result of script constructor call: " + o);
+					if (log.isDebugEnabled()) {
+						log.debug("Result of script constructor call: " + o);
+					}
 				} else {
-					RhinoScriptFactory.log.debug("Script: "
-							+ o.getClass().getName());
+					if (log.isDebugEnabled()) {
+						log.debug("Script: " + o.getClass().getName());
+					}
 					NativeObject no = (NativeObject) o;
-					RhinoScriptFactory.log.debug("Native object: "
-							+ no.getClassName());
+					if (log.isDebugEnabled()) {
+						log.debug("Native object: " + no.getClassName());
+					}
 				}
 			}
 		}
@@ -161,43 +174,49 @@ public class RhinoScriptUtils {
 				args = new Object[] { "" };
 			}
 			String name = method.getName();
-			RhinoScriptFactory.log.debug("Calling: " + name);
+			if (log.isDebugEnabled()) {
+				log.debug("Calling: " + name);
+			}
 			try {
 				if (instance instanceof NativeObject) {
 					o = ScriptableObject.callMethod((NativeObject) instance,
 							name, args);
-					RhinoScriptFactory.log.debug("ScriptableObject result: "
-							+ o);
+					if (log.isDebugEnabled()) {
+						log.debug("ScriptableObject result: " + o);
+					}
 				} else if (null == instance) {
 					Invocable invocable = (Invocable) engine;
 					o = invocable.call(name, args);
-					RhinoScriptFactory.log.debug("Invoke result: " + o);
+					if (log.isDebugEnabled()) {
+						log.debug("Invoke result: " + o);
+					}
 				} else {
 					Invocable invocable = (Invocable) engine;
 					o = invocable.call(name, instance, args);
-					RhinoScriptFactory.log.debug("Invocable result: " + o);
+					if (log.isDebugEnabled()) {
+						log.debug("Invocable result: " + o);
+					}
 				}
 				//not unwrapping can cause issues...
 				if (o instanceof NativeJavaObject) {
 					o = ((NativeJavaObject) o).unwrap();
 				}
 			} catch (NoSuchMethodException nex) {
-				RhinoScriptFactory.log.warn("Method not found");
+				log.warn("Method not found");
 			} catch (Throwable t) {
-				RhinoScriptFactory.log.warn(t);
+				log.warn(t);
 			}
 			return o;
 		}
 	}
 
 	private static void dump(Object c) {
-		if (!RhinoScriptFactory.log.isDebugEnabled()) {
+		if (!log.isDebugEnabled()) {
 			return;
 		}
-		System.out
-				.println("==============================================================================");
-		System.out.println("Name: " + c.getClass().getName());
-		System.out.println("Result is a function: "
+		log.debug("==============================================================================");
+		log.debug("Name: " + c.getClass().getName());
+		log.debug("Result is a function: "
 				+ Function.class.isInstance(c) + " compiled script: "
 				+ CompiledScript.class.isInstance(c) + " undefined: "
 				+ Undefined.class.isInstance(c) + " rhino native: "
@@ -207,11 +226,9 @@ public class RhinoScriptUtils {
 		//String name = null;
 		for (Method element : methods) {
 			m = element;
-			//name = m.getName();			
-			RhinoScriptFactory.log.debug("Method: " + m.toGenericString());
+			log.debug("Method: " + m.toGenericString());
 		}
-		System.out
-				.println("==============================================================================");
+		log.debug("==============================================================================");
 	}
 
 	/**
@@ -224,14 +241,13 @@ public class RhinoScriptUtils {
 	private static String getFunctionName(String scriptSource) {
 		String ret = "undefined";
 		try {
-			ret = scriptSource.replaceAll(
-					"[\\S\\w\\s]*?function ([\\w]+)\\(\\)[\\S\\w\\s]+", "$1");
+			ret = scriptSource.replaceAll("[\\S\\w\\s]*?function ([\\w]+)\\(\\)[\\S\\w\\s]+", "$1");
 		} catch (PatternSyntaxException ex) {
-			// Syntax error in the regular expression
+			log.error("Syntax error in the regular expression");
 		} catch (IllegalArgumentException ex) {
-			// Syntax error in the replacement text (unescaped $ signs?)
+			log.error("Syntax error in the replacement text (unescaped $ signs?)");
 		} catch (IndexOutOfBoundsException ex) {
-			// Non-existent backreference used the replacement text
+			log.error("Non-existent backreference used the replacement text");
 		}
 		return ret;
 	}

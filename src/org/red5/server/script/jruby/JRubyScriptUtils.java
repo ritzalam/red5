@@ -66,7 +66,7 @@ public abstract class JRubyScriptUtils {
 		// still null?
 		if (rubyObject instanceof RubyNil) {
 			throw new ScriptCompilationException(
-					"Compilation of JRuby script returned '" + rubyObject + "'");
+					"Compilation of JRuby script returned '" + rubyObject + "' ");
 		}
 		return Proxy.newProxyInstance(ClassUtils.getDefaultClassLoader(),
 				interfaces, new RubyObjectInvocationHandler(rubyObject, ruby));
@@ -81,8 +81,7 @@ public abstract class JRubyScriptUtils {
 		ClassNode classNode = findClassNode(rootNode);
 		if (classNode == null) {
 			throw new IllegalArgumentException(
-					"Unable to determine class name for root node '" + rootNode
-							+ "'");
+					"Unable to determine class name for root node '" + rootNode + "' ");
 		}
 		Colon2Node node = (Colon2Node) classNode.getCPath();
 		return node.getName();

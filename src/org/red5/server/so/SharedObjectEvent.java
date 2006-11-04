@@ -48,6 +48,6 @@ public class SharedObjectEvent implements ISharedObjectEvent {
 	@Override
 	public String toString() {
 		return "SOEvent(" + getType() + ", " + getKey() + ", " + getValue()
-				+ ")";
+				+ ')';
 	}
 }

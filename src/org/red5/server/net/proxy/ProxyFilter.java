@@ -73,7 +73,9 @@ public class ProxyFilter extends IoFilterAdapter {
 			throws Exception {
 		IoSession forward = (IoSession) session.getAttribute(FORWARD_KEY);
 		if (forward != null && forward.isConnected() && !forward.isClosing()) {
-			log.debug("[ " + name + " ] Closing: " + forward);
+			if (log.isDebugEnabled()) {
+				log.debug("[ " + name + " ] Closing: " + forward);
+			}
 			forward.close();
 		}
 		next.sessionClosed(session);

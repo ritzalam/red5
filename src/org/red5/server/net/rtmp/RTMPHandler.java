@@ -130,9 +130,9 @@ public class RTMPHandler implements Constants, StatusCodes {
 			// Increase number of received messages
 			conn.messageReceived();
 
-			if (message instanceof IRTMPEvent) {
-				message.setSource(conn);
-			}
+			//if (message instanceof IRTMPEvent) {
+			message.setSource(conn);
+			//}
 
 			switch (header.getDataType()) {
 				case TYPE_CHUNK_SIZE:
@@ -173,7 +173,7 @@ public class RTMPHandler implements Constants, StatusCodes {
 					try {
 						((IEventDispatcher) stream).dispatchEvent(message);
 					} catch (NullPointerException e) {
-						//e.printStackTrace();
+						log.error(e);
 					}
 					break;
 				case TYPE_SHARED_OBJECT:
@@ -240,8 +240,9 @@ public class RTMPHandler implements Constants, StatusCodes {
 				setChunkSize.getServiceParamMap().put("chunkSize",
 						chunkSize.getSize());
 				scope.sendOOBControlMessage((IConsumer) null, setChunkSize);
-				log.debug("Sending chunksize " + chunkSize + " to "
-						+ bs.getProvider());
+				if (log.isDebugEnabled()) {
+					log.debug("Sending chunksize " + chunkSize + " to " + bs.getProvider());
+				}
 			}
 		}
 	}
@@ -250,8 +251,10 @@ public class RTMPHandler implements Constants, StatusCodes {
 		final IScope scope = conn.getScope();
 		if (scope.hasHandler()) {
 			final IScopeHandler handler = scope.getHandler();
-			log.debug("Scope: " + scope);
-			log.debug("Handler: " + handler);
+			if (log.isDebugEnabled()) {
+				log.debug("Scope: " + scope);
+				log.debug("Handler: " + handler);
+			}
 			if (!handler.serviceCall(conn, call)) {
 				// XXX: What do do here? Return an error?
 				return;
@@ -259,7 +262,9 @@ public class RTMPHandler implements Constants, StatusCodes {
 		}
 
 		final IContext context = scope.getContext();
-		log.debug("Context: " + context);
+		if (log.isDebugEnabled()) {
+			log.debug("Context: " + context);
+		}
 		context.getServiceInvoker().invoke(call, scope);
 	}
 
@@ -267,16 +272,20 @@ public class RTMPHandler implements Constants, StatusCodes {
 			Object service) {
 		final IScope scope = conn.getScope();
 		final IContext context = scope.getContext();
-		log.debug("Scope: " + scope);
-		log.debug("Service: " + service);
-		log.debug("Context: " + context);
+		if (log.isDebugEnabled()) {
+			log.debug("Scope: " + scope);
+			log.debug("Service: " + service);
+			log.debug("Context: " + context);
+		}
 		context.getServiceInvoker().invoke(call, service);
 	}
 
 	// ------------------------------------------------------------------------------
 
 	protected String getHostname(String url) {
-		log.debug("url: " + url);
+		if (log.isDebugEnabled()) {
+			log.debug("url: " + url);
+		}
 		String[] parts = url.split("/");
 		if (parts.length == 2) {
 			// TODO: is this a good default hostname?
@@ -389,19 +398,17 @@ public class RTMPHandler implements Constants, StatusCodes {
 										okayToConnect = conn.connect(scope);
 									}
 									if (okayToConnect) {
-										log.debug("connected");
-										log
-												.debug("client: "
-														+ conn.getClient());
-										call
-												.setStatus(Call.STATUS_SUCCESS_RESULT);
+										if (log.isDebugEnabled()) {
+											log.debug("connected");
+											log.debug("client: " + conn.getClient());
+										}
+										call.setStatus(Call.STATUS_SUCCESS_RESULT);
 										if (call instanceof IPendingServiceCall) {
 											((IPendingServiceCall) call)
 													.setResult(getStatus(NC_CONNECT_SUCCESS));
 										}
 										// Measure initial roundtrip time after connecting
-										conn.getChannel((byte) 2).write(
-												new Ping((short) 0, 0, -1));
+										conn.getChannel((byte) 2).write(new Ping((short) 0, 0, -1));
 										conn.ping();
 									} else {
 										log.debug("connect failed");

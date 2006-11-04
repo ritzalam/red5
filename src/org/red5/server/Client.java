@@ -106,8 +106,10 @@ public class Client extends AttributeStore implements IClient {
 	}
 
 	public void disconnect() {
-		log.debug("Disconnect, closing " + getConnections().size()
+		if (log.isDebugEnabled()) {
+			log.debug("Disconnect, closing " + getConnections().size()
 				+ " connections");
+		}
 		Iterator<IConnection> conns = getConnections().iterator();
 		while (conns.hasNext()) {
 			conns.next().close();

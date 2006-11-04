@@ -78,7 +78,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	private boolean[] reservedStreams = new boolean[MAX_STREAMS];
 
-	protected Integer invokeId = new Integer(1);
+	protected Integer invokeId = Integer.valueOf(1);
 
 	protected HashMap<Integer, IPendingServiceCall> pendingCalls = new HashMap<Integer, IPendingServiceCall>();
 
@@ -92,7 +92,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	private Map<Integer, Integer> pendingVideos = new HashMap<Integer, Integer>();
 
-	private int usedStreams = 0;
+	private int usedStreams;
 
 	public RTMPConnection(String type) {
 		// We start with an anonymous connection without a scope.
@@ -259,7 +259,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 				for (int i = 0; i < streams.length; i++) {
 					IClientStream stream = streams[i];
 					if (stream != null) {
-						log.debug("Closing stream: " + stream.getStreamId());
+						if (log.isDebugEnabled()) {
+							log.debug("Closing stream: " + stream.getStreamId());
+						}
 						streamService.deleteStream(this, stream.getStreamId());
 						streams[i] = null;
 						usedStreams--;
@@ -455,7 +457,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 			synchronized (pendingVideos) {
 				Integer old = pendingVideos.get(streamId);
 				if (old == null) {
-					old = new Integer(0);
+					old = Integer.valueOf(0);
 				}
 				pendingVideos.put(streamId, old + 1);
 			}
@@ -522,9 +524,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	@Override
 	public String toString() {
-		return getClass().getSimpleName() + " from " + getRemoteAddress() + ":"
+		return getClass().getSimpleName() + " from " + getRemoteAddress() + ':'
 				+ getRemotePort() + " to " + getHost() + " (in: "
-				+ getReadBytes() + ", out: " + getWrittenBytes() + ")";
+				+ getReadBytes() + ", out: " + getWrittenBytes() + ')';
 	}
 
 }

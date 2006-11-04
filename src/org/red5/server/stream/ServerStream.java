@@ -73,11 +73,11 @@ public class ServerStream extends AbstractStream implements IServerStream,
 
 	private IPlaylistController defaultController;
 
-	private boolean isRewind = false;
+	private boolean isRewind;
 
-	private boolean isRandom = false;
+	private boolean isRandom;
 
-	private boolean isRepeat = false;
+	private boolean isRepeat;
 
 	private List<IPlayItem> items;
 
@@ -468,7 +468,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 		oobCtrlMsg.setTarget(IPassive.KEY);
 		oobCtrlMsg.setServiceName("init");
 		Map<Object, Object> paramMap = new HashMap<Object, Object>();
-		paramMap.put("startTS", new Integer(start));
+		paramMap.put("startTS", Integer.valueOf(start));
 		oobCtrlMsg.setServiceParamMap(paramMap);
 		msgIn.sendOOBControlMessage(this, oobCtrlMsg);
 	}

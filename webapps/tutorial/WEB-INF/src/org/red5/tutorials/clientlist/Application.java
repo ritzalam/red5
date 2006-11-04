@@ -57,7 +57,9 @@ public class Application extends ApplicationAdapter {
 
 		String username = params[0].toString();
 		String uid = conn.getClient().getId();
-		log.debug("Client \"" + username + "\" (" + uid + ") connected.");
+		if (log.isDebugEnabled()) {
+			log.debug("Client \"" + username + "\" (" + uid + ") connected.");
+		}
 		// Register the user in the shared object.
 		clientMgr.addClient(scope, username, uid);
 		// Notify client about unique id.
@@ -72,12 +74,12 @@ public class Application extends ApplicationAdapter {
 		String uid = conn.getClient().getId();
 		// Unregister user.
 		String username = clientMgr.removeClient(scope, uid);
-		if (username != null) {
-			log
-					.debug("Client \"" + username + "\" (" + uid
-							+ ") disconnected.");
-		} else {
-			log.debug("Client (" + uid + ") disconnected.");
+		if (log.isDebugEnabled()) {
+			if (username != null) {
+				log.debug("Client \"" + username + "\" (" + uid + ") disconnected.");
+			} else {
+				log.debug("Client (" + uid + ") disconnected.");
+			}
 		}
 		// Call original method of parent class.
 		super.disconnect(conn, scope);

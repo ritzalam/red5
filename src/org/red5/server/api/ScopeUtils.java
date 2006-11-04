@@ -19,6 +19,7 @@ package org.red5.server.api;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import org.apache.log4j.Logger;
 import org.red5.server.api.persistence.IPersistable;
 import org.springframework.context.ApplicationContext;
 
@@ -27,6 +28,8 @@ import org.springframework.context.ApplicationContext;
  */
 public class ScopeUtils {
 
+	private static final Logger log = Logger.getLogger(ScopeUtils.class);
+	
 	private static final int GLOBAL = 0x00;
 
 	private static final int APPLICATION = 0x01;
@@ -60,7 +63,7 @@ public class ScopeUtils {
 		}
 		String[] parts = path.split(SLASH);
 		for (String part : parts) {
-			if (part.equals(".")) {
+			if (part.equals('.')) {
 				continue;
 			}
 			if (part.equals("..")) {
@@ -235,7 +238,7 @@ public class ScopeUtils {
 			try {
 				result = defaultClass.newInstance();
 			} catch (Exception e) {
-				e.printStackTrace();
+				log.error(e);
 				return null;
 			}
 		} else {

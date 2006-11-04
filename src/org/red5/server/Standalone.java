@@ -88,7 +88,7 @@ public class Standalone {
 			String[] paths = classpath.split(System
 					.getProperty("path.separator"));
 			for (String element : paths) {
-				fp = new File(element + "/" + red5Config);
+				fp = new File(element + '/' + red5Config);
 				fp = fp.getCanonicalFile();
 				if (fp.isFile()) {
 					break;
@@ -122,9 +122,9 @@ public class Standalone {
 		// Store root directory of Red5
 		idx = root.lastIndexOf('/');
 		root = root.substring(0, idx);
-		if (System.getProperty("file.separator").equals("/")) {
+		if (System.getProperty("file.separator").equals('/')) {
 			// Workaround for linux systems
-			root = "/" + root;
+			root = '/' + root;
 		}
 		System.setProperty("red5.root", root);
 		log.info("Setting Red5 root to " + root);

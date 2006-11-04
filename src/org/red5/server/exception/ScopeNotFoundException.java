@@ -23,6 +23,11 @@ import org.red5.server.api.IScope;
 
 public class ScopeNotFoundException extends RuntimeException {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -8512088658139018041L;
+
 	public ScopeNotFoundException(IScope scope, String childName) {
 		super("Scope not found: " + childName + " in " + scope);
 	}

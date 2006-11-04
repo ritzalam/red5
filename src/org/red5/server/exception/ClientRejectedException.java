@@ -25,6 +25,10 @@ package org.red5.server.exception;
  */
 public class ClientRejectedException extends RuntimeException {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 9204597649465357898L;
 	private Object reason;
 
 	public ClientRejectedException() {

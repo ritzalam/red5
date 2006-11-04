@@ -28,7 +28,7 @@ public class Test {
 				try {
 					return MidiSystem.getMidiDevice(element);
 				} catch (MidiUnavailableException e) {
-					e.printStackTrace();
+					log.error(e);
 				}
 			}
 		}
@@ -61,7 +61,7 @@ public class Test {
 			for (int i = 1; i < len; i++) {
 				out += msg[i] + ((i == len - 1) ? "" : ",");
 			}
-			out += "]";
+			out += ']';
 			log.debug(out);
 		}
 

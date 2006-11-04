@@ -53,9 +53,9 @@ public class CacheImpl implements ICacheStore, ApplicationContextAware {
 
 	private static int capacity = 5;
 
-	private static volatile long cacheHit = 0;
+	private static volatile long cacheHit;
 
-	private static volatile long cacheMiss = 0;
+	private static volatile long cacheMiss;
 
 	static {
 		// create an instance
@@ -96,7 +96,9 @@ public class CacheImpl implements ICacheStore, ApplicationContextAware {
 
 	public void init() {
 		log.info("Loading generic object cache");
-		log.debug("Appcontext: " + applicationContext.toString());
+		if (log.isDebugEnabled()) {
+			log.debug("Appcontext: " + applicationContext.toString());
+		}
 	}
 
 	public Iterator<String> getObjectNames() {
@@ -161,8 +163,9 @@ public class CacheImpl implements ICacheStore, ApplicationContextAware {
 	}
 
 	public ICacheable get(String name) {
-		log.debug("Looking up " + name + " in the cache. Current size: "
-				+ CACHE.size());
+		if (log.isDebugEnabled()) {
+			log.debug("Looking up " + name + " in the cache. Current size: " + CACHE.size());
+		}
 		ICacheable ic = null;
 		SoftReference sr = null;
 		if (!CACHE.isEmpty() && null != (sr = CACHE.get(name))) {
@@ -178,13 +181,16 @@ public class CacheImpl implements ICacheStore, ApplicationContextAware {
 			// increment cache misses
 			cacheMiss += 1;
 		}
-		log.debug("Registry on get: " + registry.toString());
+		if (log.isDebugEnabled()) {
+			log.debug("Registry on get: " + registry.toString());
+		}
 		return ic;
 	}
 
 	public boolean remove(ICacheable obj) {
-		log.debug("Looking up " + obj.getName()
-				+ " in the cache. Current size: " + CACHE.size());
+		if (log.isDebugEnabled()) {
+			log.debug("Looking up " + obj.getName() + " in the cache. Current size: " + CACHE.size());
+		}
 		return remove(obj.getName());
 	}
 

@@ -21,4 +21,9 @@ package org.red5.server.exception;
 
 public class ServiceNotFoundException extends RuntimeException {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -2400159517485748708L;
+
 }

@@ -109,7 +109,7 @@ public class Context implements IContext, ApplicationContextAware {
 
 	public void setContextPath(String contextPath) {
 		if (!contextPath.endsWith("/")) {
-			contextPath += "/";
+			contextPath += '/';
 		}
 		this.contextPath = contextPath;
 	}

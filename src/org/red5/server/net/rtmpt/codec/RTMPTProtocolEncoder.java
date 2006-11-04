@@ -19,11 +19,9 @@ package org.red5.server.net.rtmpt.codec;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.red5.server.net.protocol.SimpleProtocolEncoder;
 import org.red5.server.net.rtmp.codec.RTMPProtocolEncoder;
 
-public class RTMPTProtocolEncoder extends RTMPProtocolEncoder implements
-		SimpleProtocolEncoder {
+public class RTMPTProtocolEncoder extends RTMPProtocolEncoder {
 
 	/*
 	 * Nothing special here right now...

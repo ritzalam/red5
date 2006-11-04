@@ -43,7 +43,7 @@ import org.red5.server.exception.ScopeNotFoundException;
  */
 public class ScopeStatistics {
 
-	private IScope globalScope = null;
+	private IScope globalScope;
 
 	public ScopeStatistics() {
 

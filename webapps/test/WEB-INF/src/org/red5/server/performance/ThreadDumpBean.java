@@ -1,7 +1,10 @@
 package org.red5.server.performance;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
     Thread dump bean
@@ -9,7 +12,11 @@ import java.util.*;
     @author Heinz
 */
 public class ThreadDumpBean implements Serializable {
-  private final Map<Thread, StackTraceElement[]> traces;
+  /**
+	 * 
+	 */
+	private static final long serialVersionUID = 8017588342022980524L;
+private final Map<Thread, StackTraceElement[]> traces;
 
   public ThreadDumpBean() {
     traces = new TreeMap<Thread, StackTraceElement[]>(THREAD_COMP);

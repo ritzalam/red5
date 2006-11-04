@@ -79,7 +79,9 @@ public class StreamBandwidthController implements IFilter,
 		while (isStarted && providerPipe != null && consumerPipe != null) {
 			try {
 				IMessage message = providerPipe.pullMessage();
-				log.debug("got message: " + message);
+				if (log.isDebugEnabled()) {
+					log.debug("got message: " + message);
+				}
 				consumerPipe.pushMessage(message);
 			} catch (Exception e) {
 				break;

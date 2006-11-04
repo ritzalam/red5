@@ -55,7 +55,9 @@ public class ServiceUtils {
 		int numParams = (args == null) ? 0 : args.length;
 		List methods = ConversionUtils.findMethodsByNameAndNumParams(service,
 				methodName, numParams);
-		log.debug("Found " + methods.size() + " methods");
+		if (log.isDebugEnabled()) {
+			log.debug("Found " + methods.size() + " methods");
+		}
 		if (methods.isEmpty()) {
 			return new Object[] { null, null };
 		} else if (methods.size() > 1) {
@@ -129,12 +131,13 @@ public class ServiceUtils {
 			String methodName, Object[] args) {
 		List methods = ConversionUtils.findMethodsByNameAndNumParams(service,
 				methodName, 1);
-		log.debug("Found " + methods.size() + " methods");
+		if (log.isDebugEnabled()) {
+			log.debug("Found " + methods.size() + " methods");
+		}
 		if (methods.isEmpty()) {
 			return new Object[] { null, null };
 		} else if (methods.size() > 1) {
-			log
-					.debug("Multiple methods found with same name and parameter count.");
+			log.debug("Multiple methods found with same name and parameter count.");
 			log.debug("Parameter conversion will be attempted in order.");
 		}
 

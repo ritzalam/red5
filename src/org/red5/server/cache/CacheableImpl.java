@@ -54,10 +54,11 @@ public class CacheableImpl implements ICacheable {
 	}
 
 	public CacheableImpl(ByteBuffer buffer) {
-		log.debug("Buffer is direct: " + buffer.isDirect() + " capacity: "
-				+ buffer.capacity());
-		log.debug("Buffer limit: " + buffer.limit() + " remaining: "
+		if (log.isDebugEnabled()) {
+			log.debug("Buffer is direct: " + buffer.isDirect() + " capacity: " + buffer.capacity());
+			log.debug("Buffer limit: " + buffer.limit() + " remaining: "
 				+ buffer.remaining() + " position: " + buffer.position());
+		}
 		bytes = new byte[buffer.capacity()];
 		buffer.rewind();
 		int i = 0;
@@ -68,7 +69,9 @@ public class CacheableImpl implements ICacheable {
 			}
 		}
 		cached = true;
-		log.debug("Buffer size: " + buffer.capacity());
+		if (log.isDebugEnabled()) {
+			log.debug("Buffer size: " + buffer.capacity());
+		}
 		buffer.release();
 	}
 

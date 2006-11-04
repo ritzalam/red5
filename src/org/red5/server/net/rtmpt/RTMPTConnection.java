@@ -78,11 +78,11 @@ public class RTMPTConnection extends RTMPConnection {
 
 	protected byte pollingDelay = INITIAL_POLLING_DELAY;
 
-	protected long noPendingMessages = 0;
+	protected long noPendingMessages;
 
-	protected long readBytes = 0;
+	protected long readBytes;
 
-	protected long writtenBytes = 0;
+	protected long writtenBytes;
 
 	public RTMPTConnection(RTMPTHandler handler) {
 		super(POLLING);
@@ -120,7 +120,7 @@ public class RTMPTConnection extends RTMPConnection {
 	 * @return the client id
 	 */
 	public String getId() {
-		return new Integer(this.hashCode()).toString();
+		return Integer.toString(this.hashCode());
 	}
 
 	/**
@@ -227,8 +227,9 @@ public class RTMPTConnection extends RTMPConnection {
 		ByteBuffer result = ByteBuffer.allocate(2048);
 		result.setAutoExpand(true);
 
-		log.debug("Returning " + this.pendingMessages.size()
-				+ " messages to client.");
+		if (log.isDebugEnabled()) {
+			log.debug("Returning " + this.pendingMessages.size() + " messages to client.");
+		}
 		this.noPendingMessages = 0;
 		this.pollingDelay = INITIAL_POLLING_DELAY;
 		while (result.limit() < targetSize) {

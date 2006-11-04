@@ -300,10 +300,11 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			}
 			thisTime = videoTime;
 		} else if(rtmpEvent instanceof Invoke) {
-			if (rtmpEvent.getHeader().isTimerRelative())
+			if (rtmpEvent.getHeader().isTimerRelative()) {
 				dataTime += rtmpEvent.getTimestamp();
-			else
+			} else {
 				dataTime = rtmpEvent.getTimestamp();
+			}
 			return;
 		} else if (rtmpEvent instanceof Notify) {
 			if (rtmpEvent.getHeader().isTimerRelative()) {

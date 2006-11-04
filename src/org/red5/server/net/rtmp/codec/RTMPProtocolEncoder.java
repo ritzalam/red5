@@ -63,7 +63,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 			.getName()
 			+ ".out");
 
-	private Serializer serializer = null;
+	private Serializer serializer;
 
 	public ByteBuffer encode(ProtocolState state, Object message)
 			throws Exception {
@@ -400,12 +400,12 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 				log.debug("This is a pending call, send request");
 			}
 			final String action = (call.getServiceName() == null) ? call
-					.getServiceMethodName() : call.getServiceName() + "."
+					.getServiceMethodName() : call.getServiceName() + '.'
 					+ call.getServiceMethodName();
 			serializer.serialize(output, action); // seems right
 		}
 		if (invoke instanceof Invoke) {
-			serializer.serialize(output, new Integer(invoke.getInvokeId()));
+			serializer.serialize(output, Integer.valueOf(invoke.getInvokeId()));
 			serializer.serialize(output, null);
 		}
 		if (!isPending && (invoke instanceof Invoke)) {

@@ -35,7 +35,6 @@ import org.red5.io.amf.Output;
 import org.red5.io.object.Deserializer;
 import org.red5.server.api.IScope;
 import org.red5.server.api.persistence.IPersistable;
-import org.red5.server.api.persistence.IPersistenceStore;
 import org.red5.server.net.servlet.ServletUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourcePatternResolver;
@@ -47,8 +46,7 @@ import org.springframework.core.io.support.ResourcePatternResolver;
  * @author Joachim Bauch (jojo@struktur.de)
  *
  */
-public class FilePersistence extends RamPersistence implements
-		IPersistenceStore {
+public class FilePersistence extends RamPersistence {
 
 	private Log log = LogFactory.getLog(FilePersistence.class.getName());
 
@@ -91,14 +89,14 @@ public class FilePersistence extends RamPersistence implements
 	}
 
 	private String getObjectFilepath(IPersistable object, boolean completePath) {
-		String result = path + "/" + object.getType() + "/" + object.getPath();
+		String result = path + '/' + object.getType() + '/' + object.getPath();
 		if (!result.endsWith("/")) {
-			result += "/";
+			result += '/';
 		}
 
 		if (completePath) {
 			String name = object.getName();
-			int pos = name.lastIndexOf("/");
+			int pos = name.lastIndexOf('/');
 			if (pos >= 0) {
 				result += name.substring(0, pos);
 			}
@@ -152,9 +150,7 @@ public class FilePersistence extends RamPersistence implements
 			log.error("The file at " + data.getFilename() + " does not exist.");
 			return null;
 		} catch (IOException e) {
-			log
-					.error("Could not load file from " + data.getFilename()
-							+ ".", e);
+			log.error("Could not load file from " + data.getFilename() + '.', e);
 			return null;
 		}
 
@@ -231,8 +227,9 @@ public class FilePersistence extends RamPersistence implements
 				result.setStore(this);
 			}
 			super.save(result);
-			log.debug("Loaded persistent object " + result + " from "
-					+ filename);
+			if (log.isDebugEnabled()) {
+				log.debug("Loaded persistent object " + result + " from " + filename);
+			}
 		} catch (IOException e) {
 			log.error("Could not load file at " + filename);
 			return null;
@@ -249,7 +246,7 @@ public class FilePersistence extends RamPersistence implements
 			return result;
 		}
 
-		return doLoad(path + "/" + name + extension);
+		return doLoad(path + '/' + name + extension);
 	}
 
 	@Override
@@ -296,7 +293,9 @@ public class FilePersistence extends RamPersistence implements
 			} finally {
 				buf.release();
 			}
-			log.debug("Stored persistent object " + object + " at " + filename);
+			if (log.isDebugEnabled()) {
+				log.debug("Stored persistent object " + object + " at " + filename);
+			}
 			return true;
 		} catch (IOException e) {
 			log.error("Could not create / write file " + filename);
@@ -357,7 +356,7 @@ public class FilePersistence extends RamPersistence implements
 			return false;
 		}
 
-		String filename = path + "/" + name + extension;
+		String filename = path + '/' + name + extension;
 		Resource resFile = resources.getResource(filename);
 		if (!resFile.exists()) {
 			// File already deleted

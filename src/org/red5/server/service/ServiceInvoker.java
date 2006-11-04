@@ -79,19 +79,20 @@ public class ServiceInvoker implements IServiceInvoker {
 
 	public void invoke(IServiceCall call, IScope scope) {
 		String serviceName = call.getServiceName();
-
-		log.debug("Service name " + serviceName);
+		if (log.isDebugEnabled()) {
+			log.debug("Service name " + serviceName);
+		}
 		Object service = getServiceHandler(scope, serviceName);
-
 		if (service == null) {
 			call.setException(new ServiceNotFoundException(serviceName));
 			call.setStatus(Call.STATUS_SERVICE_NOT_FOUND);
 			log.warn("Service not found: " + serviceName);
 			return;
 		} else {
-			log.debug("Service found: " + serviceName);
+			if (log.isDebugEnabled()) {
+				log.debug("Service found: " + serviceName);
+			}
 		}
-
 		invoke(call, service);
 	}
 
@@ -105,7 +106,9 @@ public class ServiceInvoker implements IServiceInvoker {
 			argsWithConnection = new Object[args.length + 1];
 			argsWithConnection[0] = conn;
 			for (int i = 0; i < args.length; i++) {
-				log.debug("   " + i + " => " + args[i]);
+				if (log.isDebugEnabled()) {
+					log.debug("   " + i + " => " + args[i]);
+				}
 				argsWithConnection[i + 1] = args[i];
 			}
 		} else {
@@ -148,13 +151,17 @@ public class ServiceInvoker implements IServiceInvoker {
 		Object[] params = (Object[]) methodResult[1];
 
 		try {
-			log.debug("Invoking method: " + method.toString());
+			if (log.isDebugEnabled()) {
+				log.debug("Invoking method: " + method.toString());
+			}
 			if (method.getReturnType() == Void.class) {
 				method.invoke(service, params);
 				call.setStatus(Call.STATUS_SUCCESS_VOID);
 			} else {
 				result = method.invoke(service, params);
-				log.debug("result: " + result);
+				if (log.isDebugEnabled()) {
+					log.debug("result: " + result);
+				}
 				call.setStatus(result == null ? Call.STATUS_SUCCESS_NULL
 						: Call.STATUS_SUCCESS_RESULT);
 			}

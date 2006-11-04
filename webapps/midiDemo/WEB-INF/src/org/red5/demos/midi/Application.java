@@ -91,7 +91,7 @@ public class Application extends ApplicationAdapter {
 				try {
 					return MidiSystem.getMidiDevice(element);
 				} catch (MidiUnavailableException e) {
-					e.printStackTrace();
+					log.error(e);
 				}
 			}
 		}
@@ -121,9 +121,9 @@ public class Application extends ApplicationAdapter {
 			/*
 			 String out = "Midi >> Status: "+msg[0]+" Data: [";
 			 for(int i=1; i<len; i++){
-			 out += msg[i] + ((i==len-1) ? "" : ","); 
+			 out += msg[i] + ((i==len-1) ? "" : ','); 
 			 }
-			 out += "]";
+			 out += ']';
 			 
 			 log.debug(out);
 			 */

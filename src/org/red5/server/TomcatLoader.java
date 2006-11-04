@@ -94,14 +94,18 @@ public class TomcatLoader implements ApplicationContextAware {
 		}
 
 		//scan for additional webapp contexts
-		log.debug("Approot: " + appRoot);
+		if (log.isDebugEnabled()) {
+			log.debug("Approot: " + appRoot);
+		}
 		File appDirBase = new File(appRoot);
 		File[] dirs = appDirBase.listFiles(new DirectoryFilter());
 		for (File dir : dirs) {
 			String dirName = '/' + dir.getName();
 			//check to see if the directory is already mapped 
 			if (null == baseHost.findChild(dirName)) {
-				log.debug("Adding context from directory scan: " + dirName);
+				if (log.isDebugEnabled()) {
+					log.debug("Adding context from directory scan: " + dirName);
+				}
 				this.addContext(dirName, appRoot + '/' + dirName);
 			}
 		}
@@ -188,7 +192,9 @@ public class TomcatLoader implements ApplicationContextAware {
 	 * @param connectors
 	 */
 	public void setConnectors(List<Connector> connectors) {
-		log.debug("setConnectors: " + connectors.size());
+		if (log.isDebugEnabled()) {
+			log.debug("setConnectors: " + connectors.size());
+		}
 		for (Connector ctr : connectors) {
 			embedded.addConnector(ctr);
 		}
@@ -200,7 +206,9 @@ public class TomcatLoader implements ApplicationContextAware {
 	 * @param hosts
 	 */
 	public void setHosts(List<Host> hosts) {
-		log.debug("setHosts: " + hosts.size());
+		if (log.isDebugEnabled()) {
+			log.debug("setHosts: " + hosts.size());
+		}
 		for (Host host : hosts) {
 			engine.addChild(host);
 		}
@@ -212,7 +220,9 @@ public class TomcatLoader implements ApplicationContextAware {
 	 * @param valves
 	 */
 	public void setValves(List<Valve> valves) {
-		log.debug("setValves: " + valves.size());
+		if (log.isDebugEnabled()) {
+			log.debug("setValves: " + valves.size());
+		}
 		for (Valve valve : valves) {
 			((StandardHost) baseHost).addValve(valve);
 		}
@@ -224,7 +234,9 @@ public class TomcatLoader implements ApplicationContextAware {
 	 * @param contexts
 	 */
 	public void setContexts(Map<String, String> contexts) {
-		log.debug("setContexts: " + contexts.size());
+		if (log.isDebugEnabled()) {
+			log.debug("setContexts: " + contexts.size());
+		}
 		for (String key : contexts.keySet()) {
 			baseHost.addChild(embedded.createContext(key, appRoot
 					+ contexts.get(key)));
@@ -248,9 +260,11 @@ public class TomcatLoader implements ApplicationContextAware {
 
 	class DirectoryFilter implements FilenameFilter {
 		public boolean accept(File dir, String name) {
-			log.debug("Filtering: " + dir.getName() + " name: " + name);
 			File f = new File(dir, name);
-			log.debug("Constructed dir: " + f.getAbsolutePath());
+			if (log.isDebugEnabled()) {
+				log.debug("Filtering: " + dir.getName() + " name: " + name);
+				log.debug("Constructed dir: " + f.getAbsolutePath());
+			}
 			//filter out all non-directories that are hidden and/or not readable
 			return f.isDirectory() && f.canRead() && !f.isHidden();
 		}

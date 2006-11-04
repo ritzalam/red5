@@ -34,8 +34,8 @@ import org.red5.server.api.event.IEventListener;
  * <p>
  * <code>
  * SharedObject.beginUpdate();<br />
- * SharedObject.setAttribute("One", "1");<br />
- * SharedObject.setAttribute("Two", "2");<br />
+ * SharedObject.setAttribute("One", '1');<br />
+ * SharedObject.setAttribute("Two", '2');<br />
  * SharedObject.removeAttribute("Three");<br />
  * SharedObject.endUpdate();<br />
  * </code>

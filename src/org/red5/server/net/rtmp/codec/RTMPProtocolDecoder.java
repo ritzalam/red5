@@ -65,7 +65,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 			.getName()
 			+ ".in");
 
-	private Deserializer deserializer = null;
+	private Deserializer deserializer;
 
 	public RTMPProtocolDecoder() {
 
@@ -144,9 +144,9 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 			if (rtmp.getState() == RTMP.STATE_CONNECT) {
 
 				if (remaining < HANDSHAKE_SIZE + 1) {
-					log
-							.debug("Handshake init too small, buffering. remaining: "
-									+ remaining);
+					if (log.isDebugEnabled()) {
+						log.debug("Handshake init too small, buffering. remaining: " + remaining);
+					}
 					rtmp.bufferDecoding(HANDSHAKE_SIZE + 1);
 					return null;
 				} else {
@@ -162,9 +162,9 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 			if (rtmp.getState() == RTMP.STATE_HANDSHAKE) {
 				log.debug("Handshake reply");
 				if (remaining < HANDSHAKE_SIZE) {
-					log
-							.debug("Handshake reply too small, buffering. remaining: "
-									+ remaining);
+					if (log.isDebugEnabled()) {
+						log.debug("Handshake reply too small, buffering. remaining: " + remaining);
+					}
 					rtmp.bufferDecoding(HANDSHAKE_SIZE);
 					return null;
 				} else {
@@ -180,9 +180,9 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 			if (rtmp.getState() == RTMP.STATE_CONNECT) {
 				final int size = (2 * HANDSHAKE_SIZE) + 1;
 				if (remaining < size) {
-					log
-							.debug("Handshake init too small, buffering. remaining: "
-									+ remaining);
+					if (log.isDebugEnabled()) {
+						log.debug("Handshake init too small, buffering. remaining: " + remaining);
+					}
 					rtmp.bufferDecoding(size);
 					return null;
 				} else {
@@ -220,7 +220,9 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 		int headerLength = RTMPUtils.getHeaderLength(headerSize);
 
 		if (headerLength > remaining) {
-			log.debug("Header too small, buffering. remaining: " + remaining);
+			if (log.isDebugEnabled()) {
+				log.debug("Header too small, buffering. remaining: " + remaining);
+			}
 			in.position(position);
 			rtmp.bufferDecoding(headerLength);
 			return null;
@@ -257,7 +259,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 
 		if (in.remaining() < readAmount) {
 			if (log.isDebugEnabled()) {
-				log.debug("Chunk too small, buffering (" + in.remaining() + ","
+				log.debug("Chunk too small, buffering (" + in.remaining() + ','
 						+ readAmount);
 			}
 			// skip the position back to the start
@@ -339,7 +341,9 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 		if (header.getTimer() == 0xffffff) {
 			// Skip first four bytes
 			int unknown = in.getInt();
-			log.debug("Unknown 4 bytes: " + unknown);
+			if (log.isDebugEnabled()) {
+				log.debug("Unknown 4 bytes: " + unknown);
+			}
 		}
 
 		switch (header.getDataType()) {
@@ -567,7 +571,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 			}
 		}
 
-		final int dotIndex = action.lastIndexOf(".");
+		final int dotIndex = action.lastIndexOf('.');
 		String serviceName = (dotIndex == -1) ? null : action.substring(0,
 				dotIndex);
 		String serviceMethod = (dotIndex == -1) ? action : action.substring(

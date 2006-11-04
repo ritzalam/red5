@@ -36,13 +36,13 @@ import org.red5.server.net.rtmp.message.Constants;
  * @author Joachim Bauch (jojo@struktur.de)
  */
 
-public class RTMPTHandler extends RTMPHandler implements Constants {
+public class RTMPTHandler extends RTMPHandler {
 
 	protected static Log log = LogFactory.getLog(RTMPTHandler.class.getName());
 
 	public static final String HANDLER_ATTRIBUTE = "red5.RMPTHandler";
 
-	protected SimpleProtocolCodecFactory codecFactory = null;
+	protected SimpleProtocolCodecFactory codecFactory;
 
 	public void setCodecFactory(SimpleProtocolCodecFactory factory) {
 		this.codecFactory = factory;

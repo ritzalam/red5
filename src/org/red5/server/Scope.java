@@ -62,7 +62,7 @@ public class Scope extends BasicScope implements IScope {
 
 	private boolean enabled = true;
 
-	private boolean running = false;
+	private boolean running;
 
 	private HashMap<String, IBasicScope> children = new HashMap<String, IBasicScope>();
 
@@ -163,18 +163,23 @@ public class Scope extends BasicScope implements IScope {
 			}
 		}
 		if (hasHandler() && !getHandler().addChildScope(scope)) {
-			log.debug("Failed to add child scope: " + scope + " to " + this);
+			if (log.isDebugEnabled()) {
+				log.debug("Failed to add child scope: " + scope + " to " + this);
+			}
 			return false;
 		}
 		if (scope instanceof IScope) {
 			// start the scope
 			if (hasHandler() && !getHandler().start((IScope) scope)) {
-				log.debug("Failed to start child scope: " + scope + " in "
-						+ this);
+				if (log.isDebugEnabled()) {
+					log.debug("Failed to start child scope: " + scope + " in " + this);
+				}
 				return false;
 			}
 		}
-		log.debug("Add child scope: " + scope + " to " + this);
+		if (log.isDebugEnabled()) {
+			log.debug("Add child scope: " + scope + " to " + this);
+		}
 		children.put(scope.getType() + SEPARATOR + scope.getName(), scope);
 		return true;
 	}
@@ -197,7 +202,9 @@ public class Scope extends BasicScope implements IScope {
 	}
 
 	public boolean hasChildScope(String name) {
-		log.debug("Has child scope? " + name + " in " + this);
+		if (log.isDebugEnabled()) {
+			log.debug("Has child scope? " + name + " in " + this);
+		}
 		return children.containsKey(TYPE + SEPARATOR + name);
 	}
 
@@ -232,7 +239,7 @@ public class Scope extends BasicScope implements IScope {
 		if (hasContext()) {
 			return "";
 		} else if (hasParent()) {
-			return parent.getContextPath() + "/" + name;
+			return parent.getContextPath() + '/' + name;
 		} else {
 			return null;
 		}
@@ -246,7 +253,7 @@ public class Scope extends BasicScope implements IScope {
 	@Override
 	public String getPath() {
 		if (hasParent()) {
-			return parent.getPath() + "/" + parent.getName();
+			return parent.getPath() + '/' + parent.getName();
 		} else {
 			return "";
 		}
@@ -371,14 +378,14 @@ public class Scope extends BasicScope implements IScope {
 		if (hasContext()) {
 			return context.getResources(path);
 		}
-		return getContext().getResources(getContextPath() + "/" + path);
+		return getContext().getResources(getContextPath() + '/' + path);
 	}
 
 	public Resource getResource(String path) {
 		if (hasContext()) {
 			return context.getResource(path);
 		}
-		return getContext().getResource(getContextPath() + "/" + path);
+		return getContext().getResource(getContextPath() + '/' + path);
 	}
 
 	public Iterator<IConnection> getConnections() {
@@ -448,9 +455,9 @@ public class Scope extends BasicScope implements IScope {
 
 		private Iterator setIterator;
 
-		private Iterator connIterator = null;
+		private Iterator connIterator;
 
-		private IConnection current = null;
+		private IConnection current;
 
 		public ConnectionIterator() {
 			setIterator = clients.values().iterator();

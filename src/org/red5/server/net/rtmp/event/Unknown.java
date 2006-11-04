@@ -24,7 +24,7 @@ import org.red5.io.utils.HexDump;
 
 public class Unknown extends BaseEvent {
 
-	protected ByteBuffer data = null;
+	protected ByteBuffer data;
 
 	protected byte dataType;
 

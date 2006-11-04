@@ -27,6 +27,11 @@ import org.red5.server.net.rtmp.message.Packet;
 
 public class CaptureViewerServlet extends HttpServlet {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -1306102075849918166L;
+
 	private static Log log = LogFactory.getLog(CaptureViewerServlet.class
 			.getName());
 
@@ -43,7 +48,7 @@ public class CaptureViewerServlet extends HttpServlet {
 			decoder.setDeserializer(deserializer);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.error(e);
 		}
 	}
 
@@ -157,21 +162,16 @@ public class CaptureViewerServlet extends HttpServlet {
 					log.error("Error decoding buffer", pvx);
 				} catch (Exception ex) {
 					log.error("Error decoding buffer", ex);
-				} finally {
-					// dont compact.
 				}
 
 			} catch (RuntimeException e) {
 				log.error("Error", e);
-
 			}
 			out.flush();
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.error(e);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.error(e);
 		}
 
 	}
@@ -182,18 +182,22 @@ public class CaptureViewerServlet extends HttpServlet {
 	}
 
 	public String formatHTML(Packet packet, int id, long time) {
-		StringBuffer out = new StringBuffer();
-		String classes = "";
-		classes += "channel_" + packet.getHeader().getChannelId() + " ";
-		classes += "datatype_" + packet.getHeader().getDataType() + " ";
+		StringBuilder out = new StringBuilder();
 		// classes += "sec_"+ time +
-		out.append("<div id=\"packet_").append(id).append("\" class=").append(
-				classes).append("\">\n");
-		out.append("<pre>\n");
-		out.append(packet.getHeader().toString()).append("\n");
-		out.append(packet.getMessage().toString()).append("\n");
-		out.append("<pre>\n");
-		out.append("</div>\n\n");
+		out.append("<div id=\"packet_");
+		out.append(id);
+		out.append("\" class=");
+		
+		out.append("channel_");
+		out.append(packet.getHeader().getChannelId());
+		out.append(" datatype_");
+		out.append(packet.getHeader().getDataType());
+		
+		out.append("\">\n<pre>\n");
+		out.append(packet.getHeader().toString());
+		out.append("\n");
+		out.append(packet.getMessage().toString());
+		out.append("\n<pre>\n</div>\n\n");
 		return out.toString();
 	}
 

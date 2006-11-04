@@ -81,7 +81,9 @@ public class ThreadPool extends GenericObjectPool {
 	 */
 	@Override
 	public void returnObject(Object obj) throws Exception {
-		log.debug(" returning object.." + obj);
+		if (log.isDebugEnabled()) {
+			log.debug(" returning object.." + obj);
+		}
 		super.returnObject(obj);
 	}
 

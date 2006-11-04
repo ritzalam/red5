@@ -28,7 +28,7 @@ import java.util.Set;
 import org.red5.server.api.IAttributeStore;
 import org.red5.server.api.ICastingAttributeStore;
 
-public class AttributeStore implements IAttributeStore, ICastingAttributeStore {
+public class AttributeStore implements ICastingAttributeStore {
 
 	protected Map<String, Object> attributes = new HashMap<String, Object>();
 

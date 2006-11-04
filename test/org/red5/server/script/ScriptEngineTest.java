@@ -2,7 +2,6 @@ package org.red5.server.script;
 
 import static org.junit.Assert.assertFalse;
 
-import java.io.FileReader;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -10,6 +9,7 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
 import javax.script.ScriptEngineManager;
 
+import org.apache.log4j.Logger;
 import org.junit.Test;
 
 /**
@@ -20,6 +20,8 @@ import org.junit.Test;
  */
 public class ScriptEngineTest {
 
+	private static final Logger log = Logger.getLogger(ScriptEngineTest.class);
+	
 	// ScriptEngine manager
 	private static ScriptEngineManager mgr = new ScriptEngineManager();
 
@@ -32,7 +34,7 @@ public class ScriptEngineTest {
 			jsEngine.eval("print('Javascript - Hello, world!')");
 		} catch (Throwable ex) {
 			System.err.println("Get by name failed for: javascript");
-			//ex.printStackTrace();
+			////ex.printStackTrace();
 			//assertFalse(true);
 			jsEngine = null;
 		}
@@ -42,7 +44,7 @@ public class ScriptEngineTest {
 				jsEngine.eval("print('Javascript - Hello, world!')");
 			} catch (Throwable ex) {
 				System.err.println("Get by name failed for: rhino");
-				//ex.printStackTrace();
+				////ex.printStackTrace();
 				assertFalse(true);
 			}
 		}
@@ -55,7 +57,7 @@ public class ScriptEngineTest {
 		try {
 			rbEngine.eval("puts 'Ruby - Hello, world!'");
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			//ex.printStackTrace();
 			assertFalse(true);
 		}
 	}
@@ -67,7 +69,7 @@ public class ScriptEngineTest {
 		try {
 			pyEngine.eval("print \"Python - Hello, world!\"");
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			//ex.printStackTrace();
 			assertFalse(true);
 		}
 	}
@@ -79,7 +81,7 @@ public class ScriptEngineTest {
 		try {
 			gvyEngine.eval("println  \"Groovy - Hello, world!\"");
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			//ex.printStackTrace();
 			assertFalse(true);
 		}
 	}
@@ -89,9 +91,9 @@ public class ScriptEngineTest {
 	public void testJudoscriptHelloWorld() {
 		ScriptEngine jdEngine = mgr.getEngineByName("judo");
 		try {
-			jdEngine.eval(". \"Judoscript - Hello World\";");
+			jdEngine.eval(". \"Judoscript - Hello World\';');
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			//ex.printStackTrace();
 			assertFalse(true);
 		}
 	}
@@ -111,7 +113,7 @@ public class ScriptEngineTest {
 	// }
 	// catch (Exception ex)
 	// {
-	// ex.printStackTrace();
+	// //ex.printStackTrace();
 	// assertFalse(true);
 	// }
 	// }
@@ -126,7 +128,7 @@ public class ScriptEngineTest {
 	//			sb.append("puts \"Tcl - Hello World!\"");
 	//			tEngine.eval(sb.toString());
 	//		} catch (Exception ex) {
-	//			ex.printStackTrace();
+	//			//ex.printStackTrace();
 	//			assertFalse(true);
 	//		}
 	//	}
@@ -144,7 +146,7 @@ public class ScriptEngineTest {
 	// }
 	// catch (Exception ex)
 	// {
-	// ex.printStackTrace();
+	// //ex.printStackTrace();
 	// assertFalse(true);
 	// }
 	// }
@@ -157,12 +159,12 @@ public class ScriptEngineTest {
 			//Compilable compiler = (Compilable) eEngine;
 			//CompiledScript script = compiler.compile("var d = new XML('<d><item>Hello</item><item>World!</item></d>');print(d..item);");
 			//Namespace ns = eEngine.createNamespace();
-			//ns.put("d", "new XML('<d><item>Hello</item><item>World!</item></d>');");
+			//ns.put('d', "new XML('<d><item>Hello</item><item>World!</item></d>');");
 			//System.out.println("E4X - " + script.eval(ns));
 			eEngine
 					.eval("var d = new XML('<d><item>Hello</item><item>World!</item></d>');print('E4X - ' + d..item);");
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			//ex.printStackTrace();
 			assertFalse(true);
 		}
 	}
@@ -182,7 +184,7 @@ public class ScriptEngineTest {
 	// }
 	// catch (Exception ex)
 	// {
-	// ex.printStackTrace();
+	// //ex.printStackTrace();
 	// assertFalse(true);
 	// }
 	// }
@@ -199,7 +201,7 @@ public class ScriptEngineTest {
 	// }
 	// catch (Exception ex)
 	// {
-	// ex.printStackTrace();
+	// //ex.printStackTrace();
 	// assertFalse(true);
 	// }
 	// }
@@ -211,7 +213,7 @@ public class ScriptEngineTest {
 	//			// jsEngine.eval(new FileReader("samples/application.js"));
 	//			jsEngine.eval(new FileReader("samples/application2.js"));
 	//		} catch (Exception ex) {
-	//			ex.printStackTrace();
+	//			//ex.printStackTrace();
 	//			assertFalse(true);
 	//		}
 	//	}
@@ -222,7 +224,7 @@ public class ScriptEngineTest {
 	//		try {
 	//			rbEngine.eval(new FileReader("samples/application.rb"));
 	//		} catch (Exception ex) {
-	//			ex.printStackTrace();
+	//			//ex.printStackTrace();
 	//			assertFalse(true);
 	//		}
 	//	}
@@ -235,7 +237,7 @@ public class ScriptEngineTest {
 	//			// gvyEngine.eval("def ap = new Application();println
 	//			// ap.toString();");
 	//		} catch (Exception ex) {
-	//			ex.printStackTrace();
+	//			//ex.printStackTrace();
 	//			assertFalse(true);
 	//		}
 	//	}
@@ -267,7 +269,7 @@ public class ScriptEngineTest {
 					System.out.printf("%s ", name);
 				}
 			} catch (Throwable e) {
-				e.printStackTrace();
+				log.error(e);
 			}
 		}
 	}

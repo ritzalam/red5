@@ -43,9 +43,6 @@ public class JettyLoader implements ApplicationContextAware {
 
 	protected Server jetty;
 	
-	// used during context creation
-	private static String appRoot;	
-
 	// We store the application context in a ThreadLocal so we can access it
 	// from "org.red5.server.jetty.Red5WebPropertiesConfiguration" later.
 	private static ThreadLocal<ApplicationContext> applicationContext = new ThreadLocal<ApplicationContext>();
@@ -68,7 +65,9 @@ public class JettyLoader implements ApplicationContextAware {
 
 			// root location for servlet container
 			String serverRoot = System.getProperty("red5.root");
-			log.debug("Server root: " + serverRoot);
+			if (log.isDebugEnabled()) {
+				log.debug("Server root: " + serverRoot);
+			}
 			// set in the system for tomcat classes
 			System.setProperty("jetty.home", serverRoot);
 			System.setProperty("jetty.class.path", serverRoot + "/lib");
@@ -94,9 +93,9 @@ public class JettyLoader implements ApplicationContextAware {
 			try {
 				WebAppContext.addWebApplications(jetty, webAppRoot, defaultWebConfig, handlersArr, true, true);
 			} catch (IOException e) {
-				e.printStackTrace();
+				log.error(e);
 			} catch (Exception e) {
-				e.printStackTrace();
+				log.error(e);
 			}
 			
 			jetty.start();

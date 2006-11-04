@@ -52,7 +52,9 @@ public class Application extends ApplicationAdapter implements
 
 	public void streamPublishStart(IBroadcastStream stream) {
 		// Notify all the clients that the stream had been started
-		log.debug("stream broadcast start: " + stream.getPublishedName());
+		if (log.isDebugEnabled()) {
+			log.debug("stream broadcast start: " + stream.getPublishedName());
+		}
 		IConnection current = Red5.getConnectionLocal();
 		Iterator<IConnection> it = scope.getConnections();
 		while (it.hasNext()) {
@@ -65,7 +67,9 @@ public class Application extends ApplicationAdapter implements
 			if (conn instanceof IServiceCapableConnection) {
 				((IServiceCapableConnection) conn).invoke("newStream",
 						new Object[] { stream.getPublishedName() }, this);
-				log.debug("sending notification to " + conn);
+				if (log.isDebugEnabled()) {
+					log.debug("sending notification to " + conn);
+				}
 			}
 		}
 	}

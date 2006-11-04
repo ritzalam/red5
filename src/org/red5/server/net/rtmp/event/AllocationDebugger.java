@@ -88,9 +88,11 @@ public class AllocationDebugger {
 	}
 
 	public synchronized void dump() {
-		log.debug("dumping allocations " + events.size());
-		for (Entry<BaseEvent, Info> entry : events.entrySet()) {
-			log.debug(entry.getKey() + " " + entry.getValue().refcount);
+		if (log.isDebugEnabled()) {
+			log.debug("dumping allocations " + events.size());
+			for (Entry<BaseEvent, Info> entry : events.entrySet()) {
+				log.debug(entry.getKey() + " " + entry.getValue().refcount);
+			}
 		}
 	}
 

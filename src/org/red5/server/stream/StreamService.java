@@ -94,7 +94,7 @@ public class StreamService implements IStreamService {
 	}
 
 	public void pause(boolean pausePlayback, int position) {
-		pause(new Boolean(pausePlayback), position);
+		pause(Boolean.valueOf(pausePlayback), position);
 	}
 
 	// Required as "pausePlayback" can be "null" if no flag is passed by the
@@ -111,19 +111,19 @@ public class StreamService implements IStreamService {
 			return;
 		}
 		ISubscriberStream subscriberStream = (ISubscriberStream) stream;
-		if (pausePlayback instanceof Boolean) {
+//		if (pausePlayback instanceof Boolean) {
 			if (pausePlayback) {
 				subscriberStream.pause(position);
 			} else {
 				subscriberStream.resume(position);
 			}
-		} else {
-			if (!subscriberStream.isPaused()) {
-				subscriberStream.pause(position);
-			} else {
-				subscriberStream.resume(position);
-			}
-		}
+//		} else {
+//			if (!subscriberStream.isPaused()) {
+//				subscriberStream.pause(position);
+//			} else {
+//				subscriberStream.resume(position);
+//			}
+//		}
 	}
 
 	// "play" sometimes is called with "null" as last parameter.

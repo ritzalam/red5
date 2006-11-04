@@ -42,7 +42,7 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 	protected static Log ioLog = LogFactory
 			.getLog(RemotingProtocolDecoder.class.getName() + ".in");
 
-	private Deserializer deserializer = null;
+	private Deserializer deserializer;
 
 	public void setDeserializer(Deserializer deserializer) {
 		this.deserializer = deserializer;
@@ -74,15 +74,19 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 	}
 
 	protected void skipHeaders(ByteBuffer in) {
-		log.debug("Skip headers");
 		int version = in.getUnsignedShort(); // skip the version
 		int count = in.getUnsignedShort();
-		log.debug("Version: " + version);
-		log.debug("Count: " + count);
+		if (log.isDebugEnabled()) {
+			log.debug("Skip headers");
+			log.debug("Version: " + version);
+			log.debug("Count: " + count);
+		}
 		for (int i = 0; i < count; i++) {
-			log.debug("Header: " + Input.getString(in));
 			boolean required = in.get() == 0x01;
-			log.debug("Required: " + required);
+			if (log.isDebugEnabled()) {
+				log.debug("Header: " + Input.getString(in));
+				log.debug("Required: " + required);
+			}
 			in.skip(in.getInt());
 		}
 	}
@@ -93,7 +97,9 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 		List<RemotingCall> calls = new LinkedList<RemotingCall>();
 		Input input = new Input(in);
 		int count = in.getUnsignedShort();
-		log.debug("Calls: " + count);
+		if (log.isDebugEnabled()) {
+			log.debug("Calls: " + count);
+		}
 		int limit = in.limit();
 
 		// Loop over all the body elements
@@ -104,9 +110,10 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 
 			String serviceString = Input.getString(in);
 			String clientCallback = Input.getString(in);
-			log.debug("callback: " + clientCallback);
-			int length = in.getInt();
-
+			if (log.isDebugEnabled()) {
+				log.debug("callback: " + clientCallback);
+			}
+			//int length = in.getInt();
 			// set the limit and deserialize
 			// NOTE: disabled because the FP sends wrong values here
 			/*
@@ -118,7 +125,7 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 
 			String serviceName;
 			String serviceMethod;
-			int dotPos = serviceString.lastIndexOf(".");
+			int dotPos = serviceString.lastIndexOf('.');
 			if (dotPos != -1) {
 				serviceName = serviceString.substring(0, dotPos);
 				serviceMethod = serviceString.substring(dotPos + 1,

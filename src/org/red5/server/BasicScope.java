@@ -59,7 +59,7 @@ public class BasicScope extends PersistableAttributeStore implements
 
 	@Override
 	public String getPath() {
-		return parent.getPath() + "/" + parent.getName();
+		return parent.getPath() + '/' + parent.getName();
 	}
 
 	public void addEventListener(IEventListener listener) {

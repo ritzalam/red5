@@ -64,7 +64,9 @@ public class Server implements IServer, ApplicationContextAware {
 		String key = getKey(hostName, contextPath);
 		while (contextPath.indexOf(SLASH) != -1) {
 			key = getKey(hostName, contextPath);
-			log.debug("Check: " + key);
+			if (log.isDebugEnabled()) {
+				log.debug("Check: " + key);
+			}
 			if (mapping.containsKey(key)) {
 				return getGlobal(mapping.get(key));
 			}
@@ -72,22 +74,30 @@ public class Server implements IServer, ApplicationContextAware {
 					.lastIndexOf(SLASH));
 		}
 		key = getKey(hostName, contextPath);
-		log.debug("Check host and path: " + key);
+		if (log.isDebugEnabled()) {
+			log.debug("Check host and path: " + key);
+		}
 		if (mapping.containsKey(key)) {
 			return getGlobal(mapping.get(key));
 		}
 		key = getKey(EMPTY, contextPath);
-		log.debug("Check wildcard host with path: " + key);
+		if (log.isDebugEnabled()) {
+			log.debug("Check wildcard host with path: " + key);
+		}
 		if (mapping.containsKey(key)) {
 			return getGlobal(mapping.get(key));
 		}
 		key = getKey(hostName, EMPTY);
-		log.debug("Check host with no path: " + key);
+		if (log.isDebugEnabled()) {
+			log.debug("Check host with no path: " + key);
+		}
 		if (mapping.containsKey(key)) {
 			return getGlobal(mapping.get(key));
 		}
 		key = getKey(EMPTY, EMPTY);
-		log.debug("Check default host, default path: " + key);
+		if (log.isDebugEnabled()) {
+			log.debug("Check default host, default path: " + key);
+		}
 		return getGlobal(mapping.get(key));
 	}
 
@@ -103,7 +113,9 @@ public class Server implements IServer, ApplicationContextAware {
 	public boolean addMapping(String hostName, String contextPath,
 			String globalName) {
 		final String key = getKey(hostName, contextPath);
-		log.debug("Add mapping: " + key + " => " + globalName);
+		if (log.isDebugEnabled()) {
+			log.debug("Add mapping: " + key + " => " + globalName);
+		}
 		if (mapping.containsKey(key)) {
 			return false;
 		}
@@ -113,7 +125,9 @@ public class Server implements IServer, ApplicationContextAware {
 
 	public boolean removeMapping(String hostName, String contextPath) {
 		final String key = getKey(hostName, contextPath);
-		log.debug("Remove mapping: " + key);
+		if (log.isDebugEnabled()) {
+			log.debug("Remove mapping: " + key);
+		}
 		if (!mapping.containsKey(key)) {
 			return false;
 		}

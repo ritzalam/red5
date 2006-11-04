@@ -26,6 +26,11 @@ package org.red5.server.service;
  */
 public class MethodNotFoundException extends RuntimeException {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 7559230924102506068L;
+
 	public MethodNotFoundException(String methodName) {
 		super("Method not found: " + methodName);
 	}

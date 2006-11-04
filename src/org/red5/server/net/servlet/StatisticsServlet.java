@@ -43,6 +43,11 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
  */
 public class StatisticsServlet extends HttpServlet {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 5810139109603229027L;
+
 	private static Log log = LogFactory.getLog(StatisticsServlet.class
 			.getName());
 

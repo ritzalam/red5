@@ -41,6 +41,11 @@ import org.mortbay.util.ajax.ContinuationSupport;
 
 public class ZAMFGatewayServlet extends HttpServlet {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 8763226003362000834L;
+
 	protected static Log log = LogFactory.getLog(ZAMFGatewayServlet.class
 			.getName());
 
@@ -93,9 +98,7 @@ public class ZAMFGatewayServlet extends HttpServlet {
 
 		} catch (IOException e) {
 
-			e.printStackTrace();
-
-		} finally {
+			log.error(e);
 
 		}
 		log.info("End");

@@ -93,6 +93,11 @@ public abstract class BshScriptUtils {
 	 */
 	public static class BshExecutionException extends NestedRuntimeException {
 
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -3813167816555659946L;
+
 		private BshExecutionException(EvalError ex) {
 			super("BeanShell script execution failed", ex);
 		}

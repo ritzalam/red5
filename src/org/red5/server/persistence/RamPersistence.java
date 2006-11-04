@@ -65,29 +65,30 @@ public class RamPersistence implements IPersistenceStore {
 	protected String getObjectPath(String id, String name) {
 		// The format of the object id is <type>/<path>/<objectName>
 		id = id.substring(id.indexOf('/') + 1);
-		if (id.startsWith("/")) {
+		if (id.charAt(0) == '/') {
 			id = id.substring(1);
 		}
-		if (id.lastIndexOf(name) == -1)
+		if (id.lastIndexOf(name) == -1) {
 			return id;
+		}
 		return id.substring(0, id.lastIndexOf(name)-1);
 	}
 
 	protected String getObjectId(IPersistable object) {
 		// The format of the object id is <type>/<path>/<objectName>
 		String result = object.getType();
-		if (!object.getPath().startsWith("/")) {
-			result += "/";
+		if (object.getPath().charAt(0) != '/') {
+			result += '/';
 		}
 		result += object.getPath();
 		if (!result.endsWith("/")) {
-			result += "/";
+			result += '/';
 		}
 		String name = object.getName();
 		if (name == null) {
 			name = PERSISTENCE_NO_NAME;
 		}
-		if (name.startsWith("/")) {
+		if (name.charAt(0) == '/') {
 			// "result" already ends with a slash
 			name = name.substring(1);
 		}

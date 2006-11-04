@@ -54,7 +54,7 @@ public class WhirlyCacheImpl implements ICacheStore, ApplicationContextAware {
 
 	// We store the application context in a ThreadLocal so we can access it
 	// later.
-	private static ApplicationContext applicationContext = null;
+	private static ApplicationContext applicationContext;
 
 	public void setApplicationContext(ApplicationContext context)
 			throws BeansException {
@@ -82,7 +82,9 @@ public class WhirlyCacheImpl implements ICacheStore, ApplicationContextAware {
 			// get the default cache that is created when a config file is not
 			// found - we want to wire ours via Spring
 			for (String nm : cm.getCacheNames()) {
-				log.debug("Cache name: " + nm);
+				if (log.isDebugEnabled()) {
+					log.debug("Cache name: " + nm);
+				}
 				if (nm.equals("default")) {
 					// destroy the default cache
 					cm.destroy("default");
@@ -182,7 +184,9 @@ public class WhirlyCacheImpl implements ICacheStore, ApplicationContextAware {
 	 * 
 	 */
 	public void setMaxEntries(int capacity) {
-		log.debug("Setting max entries for this cache to " + capacity);
+		if (log.isDebugEnabled()) {
+			log.debug("Setting max entries for this cache to " + capacity);
+		}
 	}
 	
 	/**
@@ -205,7 +209,9 @@ public class WhirlyCacheImpl implements ICacheStore, ApplicationContextAware {
 		RecordKeeper rec = new RecordKeeper();
 		long hits = rec.getHits();		
 		long ops = rec.getTotalOperations();
-		log.debug("Hits: " + hits + " Operations: " + ops);
+		if (log.isDebugEnabled()) {
+			log.debug("Hits: " + hits + " Operations: " + ops);
+		}
 		if (hits > 0 && ops > 0) {
 			if (ops > hits) {
 				misses = ops - hits;

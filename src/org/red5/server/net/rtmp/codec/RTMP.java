@@ -47,8 +47,6 @@ public class RTMP extends ProtocolState {
 
 	private boolean debug = false;
 
-	private final static int MAX_STREAMS = 12;
-
 	private byte lastReadChannel = 0x00;
 
 	private byte lastWriteChannel = 0x00;

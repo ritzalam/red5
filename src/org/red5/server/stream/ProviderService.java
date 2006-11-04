@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.red5.io.IStreamableFileFactory;
 import org.red5.io.IStreamableFileService;
 import org.red5.server.api.IBasicScope;
@@ -38,6 +39,8 @@ import org.red5.server.stream.provider.FileProvider;
 
 public class ProviderService implements IProviderService {
 
+	private static final Logger log = Logger.getLogger(ProviderService.class);
+	
 	public IMessageInput getProviderInput(IScope scope, String name) {
 		IMessageInput msgIn = getLiveProviderInput(scope, name, false);
 		if (msgIn == null) {
@@ -82,6 +85,7 @@ public class ProviderService implements IProviderService {
 			file = scope.getResources(getStreamFilename(scope, name))[0]
 					.getFile();
 		} catch (IOException e) {
+			log.error("Problem getting file: " + name);
 		}
 		if (file == null || !file.exists()) {
 			return null;
@@ -144,13 +148,14 @@ public class ProviderService implements IProviderService {
 	private String getStreamFilename(IScope scope, String name) {
 		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils
 				.getScopeService(scope, IStreamableFileFactory.KEY);
-		if (!name.contains(":") && !name.contains(".")) {
+		if (name.indexOf(':') == -1 && name.indexOf('.') == -1) {
+		//if (!name.contains(':') && !name.contains('.')) {
 			// Default to .flv files if no prefix and no extension is given.
 			name = "flv:" + name;
 		}
 
 		for (IStreamableFileService service : factory.getServices()) {
-			if (name.startsWith(service.getPrefix() + ":")) {
+			if (name.startsWith(service.getPrefix() + ':')) {
 				name = service.prepareFilename(name);
 				break;
 			}

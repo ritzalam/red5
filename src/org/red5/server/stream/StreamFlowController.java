@@ -77,7 +77,7 @@ public class StreamFlowController {
 				}
 				bw += computeChange(bw) / 2;
 				change = true;
-				//log.info(">");
+				//log.info('>');
 			}
 		} else if (bufferTime < flow.getMaxTimeBuffer()) {
 			if (flow.isBufferTimeIncreasing()) {
@@ -86,7 +86,7 @@ public class StreamFlowController {
 				}
 				bw -= computeChange(bw) / 2;
 				change = true;
-				//log.info("<");
+				//log.info('<');
 			}
 		} else {
 			//log.info("GOOD!");

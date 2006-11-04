@@ -49,9 +49,9 @@ public class DebugProxyHandler extends IoHandlerAdapter implements
 
 	private ResourceLoader loader;
 
-	private ProtocolCodecFactory codecFactory = null;
+	private ProtocolCodecFactory codecFactory;
 
-	private InetSocketAddress forward = null;
+	private InetSocketAddress forward;
 
 	private String dumpTo = "./dumps/";
 
@@ -108,8 +108,8 @@ public class DebugProxyHandler extends IoHandlerAdapter implements
 
 		if (true) {
 
-			String fileName = System.currentTimeMillis() + "_"
-					+ forward.getHostName() + "_" + forward.getPort() + "_"
+			String fileName = System.currentTimeMillis() + '_'
+					+ forward.getHostName() + '_' + forward.getPort() + '_'
 					+ (isClient ? "DOWNSTREAM" : "UPSTREAM");
 
 			File headersFile = loader.getResource(dumpTo + fileName + ".cap")
@@ -144,7 +144,9 @@ public class DebugProxyHandler extends IoHandlerAdapter implements
 			ConnectFuture future = connector.connect(forward, this);
 			future.join(); // wait for connect, or timeout
 			if (future.isConnected()) {
-				log.debug("Connected: " + forward);
+				if (log.isDebugEnabled()) {
+					log.debug("Connected: " + forward);
+				}
 				IoSession client = future.getSession();
 				client.setAttribute(ProxyFilter.FORWARD_KEY, session);
 				session.setAttribute(ProxyFilter.FORWARD_KEY, client);

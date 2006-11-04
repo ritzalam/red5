@@ -47,10 +47,11 @@ public class JythonScriptFactory implements ScriptFactory {
 		Assert.notEmpty(scriptInterfaces);
 		this.scriptSourceLocator = scriptSourceLocator;
 		this.scriptInterfaces = scriptInterfaces;
-		if (arguments == null || arguments.length == 0)
+		if (arguments == null || arguments.length == 0) {
 			this.arguments = null;
-		else
+		} else {
 			this.arguments = arguments;
+		}
 	}
 	
 	public String getScriptSourceLocator() {
@@ -78,12 +79,13 @@ public class JythonScriptFactory implements ScriptFactory {
 					throw new ScriptCompilationException("\"getInstance\" is not a function.");
 				}
 				PyObject _this;
-				if (arguments == null)
+				if (arguments == null) {
 					_this = ((PyFunction) getInstance).__call__();
-				else {
+				} else {
 					PyObject[] args = new PyObject[arguments.length];
-					for (int i=0; i<arguments.length; i++)
+					for (int i=0; i<arguments.length; i++) {
 						args[i] = new PyJavaInstance(arguments[i]);
+					}
 					_this = ((PyFunction) getInstance).__call__(args);
 				}
 				return _this.__tojava__(scriptInterfaces[0]);

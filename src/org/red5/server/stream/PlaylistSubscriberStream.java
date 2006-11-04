@@ -85,11 +85,11 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 
 	private StreamFlowController streamFlowController = new StreamFlowController();
 
-	private boolean isRewind = false;
+	private boolean isRewind;
 
-	private boolean isRandom = false;
+	private boolean isRandom;
 
-	private boolean isRepeat = false;
+	private boolean isRepeat;
 
 	private boolean receiveVideo = true;
 
@@ -253,8 +253,12 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 					moveToNext();
 					if (currentItemIndex >= 0) {
 						needPause = true;
-					} else return;
-				} else return;
+					} else {
+						return;
+					}
+				} else {
+					return;
+				}
 			}
 			IPlayItem item = items.get(currentItemIndex);
 			int count = items.size();
@@ -487,9 +491,9 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 
 		private IMessageOutput msgOut;
 
-		private boolean isPullMode = false;
+		private boolean isPullMode;
 
-		private ISchedulingService schedulingService = null;
+		private ISchedulingService schedulingService;
 
 		private String waitLiveJob;
 
@@ -499,9 +503,9 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 
 		private String adaptFlowJob;
 
-		private boolean isWaiting = false;
+		private boolean isWaiting;
 
-		private int vodStartTS = 0;
+		private int vodStartTS;
 
 		private IPlayItem currentItem;
 
@@ -511,7 +515,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 
 		private RTMPMessage pendingMessage;
 
-		private boolean isWaitingForToken = false;
+		private boolean isWaitingForToken;
 
 		// State machine for video frame dropping in live streams
 		private IFrameDropper videoFrameDropper = new VideoFrameDropper();
@@ -992,7 +996,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			reset.setDetails(item.getName());
 			reset
 					.setDesciption("Playing and resetting " + item.getName()
-							+ ".");
+							+ '.');
 
 			StatusMessage resetMsg = new StatusMessage();
 			resetMsg.setBody(reset);
@@ -1003,7 +1007,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			Status start = new Status(StatusCodes.NS_PLAY_START);
 			start.setClientid(getStreamId());
 			start.setDetails(item.getName());
-			start.setDesciption("Started playing " + item.getName() + ".");
+			start.setDesciption("Started playing " + item.getName() + '.');
 
 			StatusMessage startMsg = new StatusMessage();
 			startMsg.setBody(start);
@@ -1088,7 +1092,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			oobCtrlMsg.setTarget(IPassive.KEY);
 			oobCtrlMsg.setServiceName("init");
 			Map<Object, Object> paramMap = new HashMap<Object, Object>();
-			paramMap.put("startTS", new Integer((int) item.getStart()));
+			paramMap.put("startTS", Integer.valueOf((int) item.getStart()));
 			oobCtrlMsg.setServiceParamMap(paramMap);
 			msgIn.sendOOBControlMessage(this, oobCtrlMsg);
 		}
@@ -1098,7 +1102,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			oobCtrlMsg.setTarget(ISeekableProvider.KEY);
 			oobCtrlMsg.setServiceName("seek");
 			Map<Object, Object> paramMap = new HashMap<Object, Object>();
-			paramMap.put("position", new Integer(position));
+			paramMap.put("position", Integer.valueOf(position));
 			oobCtrlMsg.setServiceParamMap(paramMap);
 			msgIn.sendOOBControlMessage(this, oobCtrlMsg);
 			if (oobCtrlMsg.getResult() instanceof Integer) {
@@ -1186,13 +1190,13 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 						long pendingVideos = pendingVideoMessages();
 						if (!videoFrameDropper.canSendPacket(rtmpMessage,
 								pendingVideos)) {
-							//System.err.println("Dropping1: " + body + " " + pendingVideos);
+							//System.err.println("Dropping1: " + body + ' ' + pendingVideos);
 							return;
 						}
 
 						boolean drop = !videoBucket.acquireToken(size, 0);
 						if (!receiveVideo || pendingVideos > 1 || drop) {
-							//System.err.println("Dropping2: " + receiveVideo + " " + pendingVideos + " " + videoBucket + " size: " + size + " drop: " + drop);
+							//System.err.println("Dropping2: " + receiveVideo + ' ' + pendingVideos + ' ' + videoBucket + " size: " + size + " drop: " + drop);
 							videoFrameDropper.dropPacket(rtmpMessage);
 							return;
 						}

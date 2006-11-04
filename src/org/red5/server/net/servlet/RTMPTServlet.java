@@ -45,7 +45,12 @@ import org.red5.server.net.rtmpt.RTMPTHandler;
  */
 public class RTMPTServlet extends HttpServlet {
 
-	protected static Log log = LogFactory.getLog(RTMPTServlet.class.getName());
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 5925399677454936613L;
+
+	protected static Log log = LogFactory.getLog(RTMPTServlet.class);
 
 	/**
 	 * HTTP request method to use for RTMPT calls.
@@ -135,7 +140,9 @@ public class RTMPTServlet extends HttpServlet {
 		resp.setHeader("Connection", "Keep-Alive");
 		resp.setHeader("Cache-Control", "no-cache");
 		resp.setContentType(CONTENT_TYPE);
-		log.debug("Sending " + buffer.limit() + " bytes.");
+		if (log.isDebugEnabled()) {
+			log.debug("Sending " + buffer.limit() + " bytes.");
+		}
 		resp.setContentLength(buffer.limit() + 1);
 		ServletOutputStream output = resp.getOutputStream();
 		output.write(client.getPollingDelay());
@@ -172,11 +179,12 @@ public class RTMPTServlet extends HttpServlet {
 	 */
 	protected RTMPTConnection getClient(HttpServletRequest req) {
 		String id = getClientId(req);
-		if (id == "" || !rtmptClients.containsKey(id)) {
-			log.debug("Unknown client id: " + id);
+		if (id.length() == 0 || !rtmptClients.containsKey(id)) {
+			if (log.isDebugEnabled()) {
+				log.debug("Unknown client id: " + id);
+			}
 			return null;
 		}
-
 		return (RTMPTConnection) rtmptClients.get(id);
 	}
 

@@ -21,6 +21,11 @@ package org.red5.server.net.rtmp.status;
 
 public class RuntimeStatusObject extends StatusObject {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 6990998992583246039L;
+
 	protected String details = "";
 
 	protected int clientid = 0;

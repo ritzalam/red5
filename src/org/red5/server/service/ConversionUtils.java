@@ -196,22 +196,23 @@ public class ConversionUtils {
 	}
 
 	public static Object convertNumberToWrapper(Number num, Class wrapper) {
+		//XXX Paul: Using valueOf will reduce object creation
 		if (wrapper.equals(String.class)) {
 			return num.toString();
 		} else if (wrapper.equals(Boolean.class)) {
-			return new Boolean(num.intValue() == 1);
+			return Boolean.valueOf(num.intValue() == 1);
 		} else if (wrapper.equals(Double.class)) {
-			return new Double(num.doubleValue());
+			return Double.valueOf(num.doubleValue());
 		} else if (wrapper.equals(Long.class)) {
-			return new Long(num.longValue());
+			return Long.valueOf(num.longValue());
 		} else if (wrapper.equals(Float.class)) {
-			return new Float(num.floatValue());
+			return Float.valueOf(num.floatValue());
 		} else if (wrapper.equals(Integer.class)) {
-			return new Integer(num.intValue());
+			return Integer.valueOf(num.intValue());
 		} else if (wrapper.equals(Short.class)) {
-			return new Short(num.shortValue());
+			return Short.valueOf(num.shortValue());
 		} else if (wrapper.equals(Byte.class)) {
-			return new Byte(num.byteValue());
+			return Byte.valueOf(num.byteValue());
 		}
 		throw new ConversionException("Unable to convert number to: " + wrapper);
 	}
@@ -221,7 +222,9 @@ public class ConversionUtils {
 		LinkedList list = new LinkedList();
 		Method[] methods = object.getClass().getMethods();
 		for (Method m : methods) {
-			log.debug("Method name: " + m.getName());
+			if (log.isDebugEnabled()) {
+				log.debug("Method name: " + m.getName());
+			}
 			if (!m.getName().equals(method)) {
 				log.debug("Method name not the same");
 				continue;

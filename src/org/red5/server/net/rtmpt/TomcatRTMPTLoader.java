@@ -29,7 +29,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.TomcatLoader;
 import org.red5.server.api.IServer;
-import org.springframework.context.ApplicationContextAware;
 
 /**
  * Loader for the RTMPT server which uses Tomcat.
@@ -37,8 +36,7 @@ import org.springframework.context.ApplicationContextAware;
  * @author The Red5 Project (red5@osflash.org)
  * @author Paul Gregoire (mondain@gmail.com)
  */
-public class TomcatRTMPTLoader extends TomcatLoader implements
-		ApplicationContextAware {
+public class TomcatRTMPTLoader extends TomcatLoader {
 
 	// Initialize Logging
 	protected static Log log = LogFactory.getLog(TomcatRTMPTLoader.class
@@ -77,9 +75,9 @@ public class TomcatRTMPTLoader extends TomcatLoader implements
 		// embedded.setRealm(realm);
 
 		host.addChild(context);
-
-		log.debug("Null check - engine: " + (null == engine) + " host: "
-				+ (null == host));
+		if (log.isDebugEnabled()) {
+			log.debug("Null check - engine: " + (null == engine) + " host: " + (null == host));
+		}
 		engine.addChild(host);
 
 		// add new Engine to set of Engine for embedded server
@@ -141,7 +139,9 @@ public class TomcatRTMPTLoader extends TomcatLoader implements
 	 * @param mappings
 	 */
 	public void setMappings(Map<String, String> mappings) {
-		log.debug("Servlet mappings: " + mappings.size());
+		if (log.isDebugEnabled()) {
+			log.debug("Servlet mappings: " + mappings.size());
+		}
 		for (String key : mappings.keySet()) {
 			context.addServletMapping(mappings.get(key), key);
 		}

@@ -51,8 +51,7 @@ public class AMFGatewayServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 7174018823796785619L;
 
-	protected static Log log = LogFactory.getLog(AMFGatewayServlet.class
-			.getName());
+	protected static Log log = LogFactory.getLog(AMFGatewayServlet.class);
 
 	public static final String APPLICATION_AMF = "application/x-amf";
 
@@ -80,10 +79,10 @@ public class AMFGatewayServlet extends HttpServlet {
 	@Override
 	public void service(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
-		log.debug("Remoting request" + req.getContextPath() + ""
-				+ req.getServletPath());
-		if (req.getContentType() != null
-				&& req.getContentType().equals(APPLICATION_AMF)) {
+		if (log.isDebugEnabled()) {
+			log.debug("Remoting request" + req.getContextPath() + ' ' + req.getServletPath());
+		}
+		if (req.getContentType() != null && req.getContentType().equals(APPLICATION_AMF)) {
 			serviceAMF(req, resp);
 		} else {
 			resp.getWriter().write("Red5 : Remoting Gateway");
@@ -119,7 +118,7 @@ public class AMFGatewayServlet extends HttpServlet {
 		if (req.getPathInfo() != null) {
 			path += req.getPathInfo();
 		}
-		if (path.startsWith("/")) {
+		if (path.charAt(0) == '/') {
 			path = path.substring(1);
 		}
 		packet.setScopePath(path);

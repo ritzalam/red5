@@ -331,7 +331,7 @@ public class SimpleFlowControlService extends TimerTask implements
 
 		private IFlowControllable fc;
 
-		private boolean isReset = false;
+		private boolean isReset;
 
 		public Bucket(IFlowControllable fc, int bucketNum) {
 			this.bucketNum = bucketNum;
@@ -429,7 +429,7 @@ public class SimpleFlowControlService extends TimerTask implements
 
 		private long capacity;
 
-		private double tokens = 0;
+		private double tokens;
 
 		private Map<IFlowControllable, Map<ITokenBucketCallback, RequestObject>> fcWaitingMap = new HashMap<IFlowControllable, Map<ITokenBucketCallback, RequestObject>>();
 
@@ -475,9 +475,11 @@ public class SimpleFlowControlService extends TimerTask implements
 				}
 				// finally call back
 				try {
-					log.debug("Token available and calling callback: request "
+					if (log.isDebugEnabled()) {
+						log.debug("Token available and calling callback: request "
 							+ reqObj.requestTokenCount + ", available "
 							+ tokens);
+					}
 					toReleaseCallback.available(reqObj.requestBucket,
 							reqObj.requestTokenCount);
 				} catch (Throwable t) {
@@ -490,8 +492,9 @@ public class SimpleFlowControlService extends TimerTask implements
 				double tokenCount, ITokenBucketCallback callback,
 				ITokenBucket requestBucket) {
 			if (tokenCount > tokens) {
-				log.debug("Token not enough: request " + tokenCount
-						+ ", available " + tokens);
+				if (log.isDebugEnabled()) {
+					log.debug("Token not enough: request " + tokenCount + ", available " + tokens);
+				}
 				Map<ITokenBucketCallback, RequestObject> callbackMap = fcWaitingMap
 						.get(fc);
 				if (callbackMap == null) {

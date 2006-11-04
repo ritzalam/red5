@@ -105,7 +105,7 @@ public class ServletConnection extends AttributeStore implements IConnection {
 		if (request.getPathInfo() != null) {
 			path += request.getPathInfo();
 		}
-		if (path.startsWith("/")) {
+		if (path.charAt(0) == '/') {
 			path = path.substring(1);
 		}
 		return path;

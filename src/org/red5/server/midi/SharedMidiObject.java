@@ -62,7 +62,7 @@ public class SharedMidiObject {
 				try {
 					return MidiSystem.getMidiDevice(element);
 				} catch (MidiUnavailableException e) {
-					e.printStackTrace();
+					log.error(e);
 				}
 			}
 		}
@@ -81,7 +81,7 @@ public class SharedMidiObject {
 				return;
 			}
 
-			List list = new ArrayList();
+			List list = new ArrayList(3);
 			list.add(time);
 			list.add(len);
 			list.add(msg);
@@ -93,7 +93,7 @@ public class SharedMidiObject {
 			for (int i = 1; i < len; i++) {
 				out += msg[i] + ((i == len - 1) ? "" : ",");
 			}
-			out += "]";
+			out += ']';
 
 			log.debug(out);
 		}
