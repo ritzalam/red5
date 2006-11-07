@@ -366,12 +366,13 @@ public class RTMPHandler implements Constants, StatusCodes {
 						if (global == null) {
 							call.setStatus(Call.STATUS_SERVICE_NOT_FOUND);
 							if (call instanceof IPendingServiceCall) {
-								((IPendingServiceCall) call)
-										.setResult(getStatus(NC_CONNECT_FAILED));
+								StatusObject status = (StatusObject) getStatus(NC_CONNECT_REJECTED);
+								status.setDesciption("No scope \""+path+"\" on this server.");
+								((IPendingServiceCall) call).setResult(status);
 							}
 							log.info("No global scope found for " + path
 									+ " on " + host);
-							conn.close();
+							disconnectOnReturn = true;
 						} else {
 							final IContext context = global.getContext();
 							IScope scope = null;
@@ -380,8 +381,9 @@ public class RTMPHandler implements Constants, StatusCodes {
 							} catch (ScopeNotFoundException err) {
 								call.setStatus(Call.STATUS_SERVICE_NOT_FOUND);
 								if (call instanceof IPendingServiceCall) {
-									((IPendingServiceCall) call)
-											.setResult(getStatus(NC_CONNECT_FAILED));
+									StatusObject status = (StatusObject) getStatus(NC_CONNECT_REJECTED);
+									status.setDesciption("No scope \""+path+"\" on this server.");
+									((IPendingServiceCall) call).setResult(status);
 								}
 								log.info("Scope " + path + " not found on "
 										+ host);
