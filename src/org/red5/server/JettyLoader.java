@@ -25,6 +25,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.mortbay.jetty.Handler;
 import org.mortbay.jetty.Server;
+import org.mortbay.jetty.handler.ContextHandlerCollection;
 import org.mortbay.jetty.handler.DefaultHandler;
 import org.mortbay.jetty.handler.HandlerCollection;
 import org.mortbay.jetty.webapp.WebAppContext;
@@ -80,14 +81,9 @@ public class JettyLoader implements ApplicationContextAware {
 					"org.mortbay.jetty.webapp.JettyWebXmlConfiguration", 
 					"org.mortbay.jetty.webapp.TagLibConfiguration", 
 					"org.red5.server.jetty.Red5WebPropertiesConfiguration"};
-				
-			//root context
-			WebAppContext ctx = new WebAppContext();
-			ctx.setContextPath("/");
-			ctx.setWar(webAppRoot + "root");
 
 			HandlerCollection handlers = new HandlerCollection();
-			handlers.setHandlers(new Handler[]{ctx, new DefaultHandler()});
+			handlers.setHandlers(new Handler[]{new ContextHandlerCollection(), new DefaultHandler()});
 			jetty.setHandler(handlers);
 			
 			try {
