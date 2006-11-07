@@ -139,5 +139,15 @@
 		<property name="arguments" value="auto" />
 	</bean>
 
+	<!-- ClientBroadcastStream and PlaylistSubscriberStream 
+		that will be used by RTMPConnection and maybe other classes.
+		These beans are lazy-init because most likely server will need
+		to be up and running before we can get a smart implementation 
+		of these streams
+	-->
+	<bean id="playlistSubscriberStream" scope="prototype" lazy-init="true"
+                 class="org.red5.server.stream.PlaylistSubscriberStream"/>
+    <bean id="clientBroadcastStream" scope="prototype" lazy-init="true"
+                 class="org.red5.server.stream.ClientBroadcastStream"/>	
 	
 </beans>

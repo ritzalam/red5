@@ -183,9 +183,15 @@ public abstract class RTMPConnection extends BaseConnection implements
 			if (streams[streamId - 1] != null) {
 				// Another stream already exists with this id
 				return null;
-			}
-
-			ClientBroadcastStream cbs = new ClientBroadcastStream();
+			}			
+			ApplicationContext appCtx = 
+				scope.getContext().getApplicationContext();
+			ClientBroadcastStream cbs = (ClientBroadcastStream) 
+				appCtx.getBean("clientBroadcastStream");
+			/**
+			 * Picking up the ClientBroadcastStream defined as a spring prototype
+			 * in red5-common.xml
+			 */
 			cbs.setStreamId(streamId);
 			cbs.setConnection(this);
 			cbs.setName(createStreamName());
@@ -213,9 +219,15 @@ public abstract class RTMPConnection extends BaseConnection implements
 			if (streams[streamId - 1] != null) {
 				// Another stream already exists with this id
 				return null;
-			}
-
-			PlaylistSubscriberStream pss = new PlaylistSubscriberStream();
+			}			
+			ApplicationContext appCtx = 
+				scope.getContext().getApplicationContext();
+			/**
+			 * Picking up the PlaylistSubscriberStream defined as a spring prototype
+			 * in red5-common.xml
+			 */
+			PlaylistSubscriberStream pss = (PlaylistSubscriberStream) 
+				appCtx.getBean("playlistSubscriberStream");
 			pss.setName(createStreamName());
 			pss.setConnection(this);
 			pss.setScope(this.getScope());
