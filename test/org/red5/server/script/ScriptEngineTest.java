@@ -87,16 +87,16 @@ public class ScriptEngineTest {
 	}
 
 	// Judoscript
-	@Test
-	public void testJudoscriptHelloWorld() {
-		ScriptEngine jdEngine = mgr.getEngineByName("judo");
-		try {
-			jdEngine.eval(". \"Judoscript - Hello World\';');
-		} catch (Exception ex) {
-			//ex.printStackTrace();
-			assertFalse(true);
-		}
-	}
+//	@Test
+//	public void testJudoscriptHelloWorld() {
+//		ScriptEngine jdEngine = mgr.getEngineByName("judo");
+//		try {
+//			jdEngine.eval(". \'Judoscript - Hello World\';");
+//		} catch (Exception ex) {
+//			//ex.printStackTrace();
+//			assertFalse(true);
+//		}
+//	}
 
 	// Haskell
 	// @Test
