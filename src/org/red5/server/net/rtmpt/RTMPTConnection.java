@@ -84,6 +84,8 @@ public class RTMPTConnection extends RTMPConnection {
 
 	protected long writtenBytes;
 
+	protected boolean closing = false;
+	
 	public RTMPTConnection(RTMPTHandler handler) {
 		super(POLLING);
 		this.state = new RTMP(RTMP.MODE_SERVER);
@@ -96,6 +98,18 @@ public class RTMPTConnection extends RTMPConnection {
 
 	@Override
 	public void close() {
+		// Defer actual closing so we can send back pending messages to the client.
+		closing = true;
+	}
+
+	public boolean isClosing() {
+		return closing;
+	}
+	
+	public void realClose() {
+		if (!isClosing())
+			return;
+		
 		if (this.buffer != null) {
 			this.buffer.release();
 			this.buffer = null;
@@ -107,7 +121,7 @@ public class RTMPTConnection extends RTMPConnection {
 		state.setState(RTMP.STATE_DISCONNECTED);
 		super.close();
 	}
-
+	
 	public void setServletRequest(HttpServletRequest request) {
 		host = request.getLocalName();
 		remoteAddress = request.getRemoteAddr();

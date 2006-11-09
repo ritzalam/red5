@@ -72,7 +72,7 @@ public class RTMPTServlet extends HttpServlet {
 	/**
 	 * Holds a map of client id -> client object.
 	 */
-	protected HashMap rtmptClients = new HashMap();
+	protected HashMap<String, RTMPTConnection> rtmptClients = new HashMap<String, RTMPTConnection>();
 
 	/**
 	 * Return an error message to the client.
@@ -214,7 +214,11 @@ public class RTMPTServlet extends HttpServlet {
 		ByteBuffer data = client.getPendingMessages(RESPONSE_TARGET_SIZE);
 		if (data == null) {
 			// no more messages to send...
-			returnMessage(client.getPollingDelay(), resp);
+			if (client.isClosing())
+				// Tell client to close connection 
+				returnMessage((byte) 0, resp);
+			else
+				returnMessage(client.getPollingDelay(), resp);
 			return;
 		}
 
@@ -278,6 +282,7 @@ public class RTMPTServlet extends HttpServlet {
 		handler.connectionClosed(client, client.getState());
 
 		returnMessage((byte) 0, resp);
+		client.realClose();
 	}
 
 	/**
@@ -333,6 +338,8 @@ public class RTMPTServlet extends HttpServlet {
 
 		// Send results to client
 		returnPendingMessages(client, resp);
+		if (client.isClosing())
+			client.realClose();
 	}
 
 	/**
@@ -352,6 +359,11 @@ public class RTMPTServlet extends HttpServlet {
 		RTMPTConnection client = getClient(req);
 		if (client == null) {
 			handleBadRequest("Unknown client.", resp);
+			return;
+		} else if (client.isClosing()) {
+			// Tell client to close the connection
+			returnMessage((byte) 0, resp);
+			client.realClose();
 			return;
 		} else if (client.getState().getState() == RTMP.STATE_DISCONNECTED) {
 			synchronized (rtmptClients) {
