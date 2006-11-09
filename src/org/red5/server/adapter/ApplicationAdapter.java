@@ -50,14 +50,17 @@ import org.red5.server.api.so.ISharedObject;
 import org.red5.server.api.so.ISharedObjectService;
 import org.red5.server.api.stream.IBroadcastStream;
 import org.red5.server.api.stream.IBroadcastStreamService;
+import org.red5.server.api.stream.IClientBroadcastStream;
 import org.red5.server.api.stream.IOnDemandStream;
 import org.red5.server.api.stream.IOnDemandStreamService;
 import org.red5.server.api.stream.IStreamAwareScopeHandler;
+import org.red5.server.api.stream.IStreamService;
 import org.red5.server.api.stream.ISubscriberStream;
 import org.red5.server.api.stream.ISubscriberStreamService;
 import org.red5.server.exception.ClientRejectedException;
 import org.red5.server.scheduling.QuartzSchedulingService;
 import org.red5.server.so.SharedObjectService;
+import org.red5.server.stream.IBroadcastScope;
 import org.red5.server.stream.IProviderService;
 import org.red5.server.stream.ProviderService;
 import org.red5.server.stream.StreamService;
@@ -674,11 +677,15 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 	}
 
 	public IBroadcastStream getBroadcastStream(IScope scope, String name) {
-		log.warn("This won't work until the refactoring of the streaming code is complete.");
-		IBroadcastStreamService service = (IBroadcastStreamService) getScopeService(
-				scope, IBroadcastStreamService.BROADCAST_STREAM_SERVICE,
+		IStreamService service = (IStreamService) getScopeService(
+				scope, IStreamService.STREAM_SERVICE,
 				StreamService.class);
-		return service.getBroadcastStream(scope, name);
+		if (!(service instanceof StreamService))
+			return null;
+		
+		IBroadcastScope bs = ((StreamService) service).getBroadcastScope(scope, name);
+		IClientBroadcastStream stream = (IClientBroadcastStream) bs.getAttribute(IBroadcastScope.STREAM_ATTRIBUTE);
+		return stream;
 	}
 
 	/**
