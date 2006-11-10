@@ -74,7 +74,7 @@ import org.red5.server.stream.IStreamFlow;
 import org.red5.server.stream.PlaylistSubscriberStream;
 import org.red5.server.stream.StreamService;
 
-public class RTMPHandler implements Constants, StatusCodes {
+public class RTMPHandler implements IRTMPHandler, Constants, StatusCodes {
 
 	protected static Log log = LogFactory.getLog(RTMPHandler.class.getName());
 
@@ -102,6 +102,10 @@ public class RTMPHandler implements Constants, StatusCodes {
 		streamLocal.set(id);
 	}
 
+	public void connectionOpened(RTMPConnection conn, RTMP state) {
+		// Nothing to do here...
+	}
+	
 	public void messageReceived(RTMPConnection conn, ProtocolState state,
 			Object in) throws Exception {
 

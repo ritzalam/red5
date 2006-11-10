@@ -406,7 +406,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 		}
 		if (invoke instanceof Invoke) {
 			serializer.serialize(output, Integer.valueOf(invoke.getInvokeId()));
-			serializer.serialize(output, null);
+			serializer.serialize(output, invoke.getConnectionParams());
 		}
 		if (!isPending && (invoke instanceof Invoke)) {
 			IPendingServiceCall pendingCall = (IPendingServiceCall) call;

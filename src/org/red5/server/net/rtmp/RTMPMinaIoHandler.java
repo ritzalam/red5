@@ -37,10 +37,15 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 	protected static Log log = LogFactory.getLog(RTMPMinaIoHandler.class
 			.getName());
 
-	protected RTMPHandler handler;
+	protected IRTMPHandler handler;
+	protected boolean mode = RTMP.MODE_SERVER;
 
-	public void setHandler(RTMPHandler handler) {
+	public void setHandler(IRTMPHandler handler) {
 		this.handler = handler;
+	}
+	
+	public void setMode(boolean mode) {
+		this.mode = mode;
 	}
 
 	private ProtocolCodecFactory codecFactory = null;
@@ -77,33 +82,53 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 			IoSession session) {
 
 		final RTMP rtmp = (RTMP) state;
+		if (rtmp.getMode()==RTMP.MODE_SERVER) {
+			if (rtmp.getState() != RTMP.STATE_HANDSHAKE) {
+				log.warn("Raw buffer after handshake, something odd going on");
+			}
 
-		if (rtmp.getState() != RTMP.STATE_HANDSHAKE) {
-			log.warn("Raw buffer after handshake, something odd going on");
+			if (log.isDebugEnabled()){
+				log.debug("Handshake 2nd phase");
+				log.debug("handshake size:"+in.remaining());
+			}
+			ByteBuffer out = ByteBuffer.allocate((Constants.HANDSHAKE_SIZE*2)+1);
+			out.put((byte)0x03);
+			out.fill((byte)0x00,Constants.HANDSHAKE_SIZE);
+			out.put(in);
+			out.flip();
+			//in.release();
+			session.write(out); 
+		} else {
+			if (log.isDebugEnabled()) {
+				log.debug("Handshake 3d phase");
+				log.debug("handshake size:"+in.remaining());
+			}
+			in.skip(1);
+			ByteBuffer out = ByteBuffer.allocate(Constants.HANDSHAKE_SIZE);
+			int limit=in.limit();
+			in.limit(in.position()+Constants.HANDSHAKE_SIZE);
+			out.put(in); 
+			out.flip();
+			in.limit(limit);
+			in.skip(Constants.HANDSHAKE_SIZE);
+			session.write(out);
 		}
-
-		ByteBuffer out = ByteBuffer
-				.allocate((Constants.HANDSHAKE_SIZE * 2) + 1);
-
-		if (log.isDebugEnabled()) {
-			log.debug("Writing handshake reply");
-			log.debug("handskake size:" + in.remaining());
-		}
-
-		out.put((byte) 0x03);
-		out.fill((byte) 0x00, Constants.HANDSHAKE_SIZE);
-		out.put(in).flip();
-		//in.release();
-		session.write(out);
-
 	}
 
 	@Override
 	public void messageSent(IoSession session, Object message) throws Exception {
 		log.debug("messageSent");
+		final RTMP rtmp = (RTMP) session.getAttribute(RTMP.SESSION_KEY);
 		final RTMPMinaConnection conn = (RTMPMinaConnection) session
 				.getAttachment();
 		handler.messageSent(conn, message);
+		if (mode == RTMP.MODE_CLIENT) {
+			if (message instanceof ByteBuffer) {
+				if (((ByteBuffer)message).limit() == Constants.HANDSHAKE_SIZE) {
+					handler.connectionOpened((RTMPMinaConnection)session.getAttachment(), (RTMP)session.getAttribute(RTMP.SESSION_KEY));
+				}
+			}
+		}
 	}
 
 	@Override
@@ -117,6 +142,17 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 		cfg.setTcpNoDelay(true);
 		super.sessionOpened(session);
 
+		RTMP rtmp=(RTMP)session.getAttribute(RTMP.SESSION_KEY);
+		if (rtmp.getMode()==RTMP.MODE_CLIENT) {
+			if (log.isDebugEnabled()){
+				log.debug("Handshake 1st phase");
+			}
+			ByteBuffer out = ByteBuffer.allocate(Constants.HANDSHAKE_SIZE+1);
+			out.put((byte)0x03);
+			out.fill((byte)0x00,Constants.HANDSHAKE_SIZE);
+			out.flip();
+			session.write(out);
+		}
 	}
 
 	@Override
@@ -139,8 +175,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 		}
 
 		// moved protocol state from connection object to rtmp object
-		session.setAttribute(ProtocolState.SESSION_KEY, new RTMP(
-				RTMP.MODE_SERVER));
+		session.setAttribute(ProtocolState.SESSION_KEY, new RTMP(mode));
 
 		session.getFilterChain().addFirst("protocolFilter",
 				new ProtocolCodecFilter(this.codecFactory));
