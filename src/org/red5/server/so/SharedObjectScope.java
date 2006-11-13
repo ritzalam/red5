@@ -61,7 +61,7 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
 
 		// Create shared object wrapper around the attributes
 		String path = parent.getContextPath();
-		if (path.charAt(0) != '/') {
+		if ("".equals(path) || path.charAt(0) != '/') {
 			path = '/' + path;
 		}
 		so = (SharedObject) store.load(TYPE + path + '/' + name);
