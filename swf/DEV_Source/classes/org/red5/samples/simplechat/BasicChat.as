@@ -70,6 +70,7 @@ class org.red5.samples.simplechat.BasicChat extends MovieClip {
 		// setup the clearChat button
 		clearChat.addEventListener("click", Delegate.create(this, clear))
 		clearChat.tooltip = "Clear Chat";
+		chatBody.html = true;
 	}	
 	
 	private function onKeyUp():Void
@@ -99,7 +100,7 @@ class org.red5.samples.simplechat.BasicChat extends MovieClip {
 		chatBody.text = "";
 		
 		// clear doesn't work on Red5 yet
-		so.clear();
+		//so.clear();
 	}
 	
 	private function newMessageHandler(evtObj:Object):Void
