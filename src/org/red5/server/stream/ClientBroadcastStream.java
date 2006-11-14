@@ -39,6 +39,7 @@ import org.red5.server.api.stream.IStreamFilenameGenerator;
 import org.red5.server.api.stream.IVideoStreamCodec;
 import org.red5.server.api.stream.ResourceExistException;
 import org.red5.server.api.stream.ResourceNotFoundException;
+import org.red5.server.api.stream.IStreamFilenameGenerator.GenerationType;
 import org.red5.server.messaging.IFilter;
 import org.red5.server.messaging.IMessage;
 import org.red5.server.messaging.IMessageComponent;
@@ -136,7 +137,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 					.getScopeService(scope, IStreamFilenameGenerator.class,
 							DefaultStreamFilenameGenerator.class);
 
-			String filename = generator.generateFilename(scope, name, ".flv");
+			String filename = generator.generateFilename(scope, name, ".flv", GenerationType.RECORD);
 			Resource res = scope.getResource(filename);
 			if (!isAppend) {
 				if (res.exists()) {

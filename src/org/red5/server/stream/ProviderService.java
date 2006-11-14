@@ -33,6 +33,7 @@ import org.red5.server.api.IScope;
 import org.red5.server.api.ScopeUtils;
 import org.red5.server.api.stream.IBroadcastStream;
 import org.red5.server.api.stream.IStreamFilenameGenerator;
+import org.red5.server.api.stream.IStreamFilenameGenerator.GenerationType;
 import org.red5.server.messaging.IMessageInput;
 import org.red5.server.messaging.IPipe;
 import org.red5.server.messaging.InMemoryPullPullPipe;
@@ -161,7 +162,7 @@ public class ProviderService implements IProviderService {
 		IStreamFilenameGenerator filenameGenerator = (IStreamFilenameGenerator)
 			ScopeUtils.getScopeService(scope, IStreamFilenameGenerator.class, DefaultStreamFilenameGenerator.class);
 		
-		return filenameGenerator.generateFilename(scope, name);
+		return filenameGenerator.generateFilename(scope, name, GenerationType.PLAYBACK);
 	}
 
 }

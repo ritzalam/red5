@@ -1,3 +1,4 @@
+
 package org.red5.server.stream;
 
 /*
@@ -35,11 +36,11 @@ public class DefaultStreamFilenameGenerator implements IStreamFilenameGenerator 
 		return "streams/";
 	}
 
-	public String generateFilename(IScope scope, String name) {
-		return generateFilename(scope, name, null);
+	public String generateFilename(IScope scope, String name, GenerationType type) {
+		return generateFilename(scope, name, null, type);
 	}
 
-	public String generateFilename(IScope scope, String name, String extension) {
+	public String generateFilename(IScope scope, String name, String extension, GenerationType type) {
 		String result = getStreamDirectory(scope) + name;
 		if (extension != null && !extension.equals("")) {
 			result += extension;

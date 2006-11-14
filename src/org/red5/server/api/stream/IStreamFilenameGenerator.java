@@ -33,6 +33,12 @@ public interface IStreamFilenameGenerator extends IScopeService {
 	/** Name of the bean to setup a custom filename generator in an application. */
 	public static String BEAN_NAME = "streamFilenameGenerator";
 
+	/** Possible filename generation types. */
+	public static enum GenerationType {
+			PLAYBACK,
+			RECORD
+	};
+	
 	/**
 	 * Generate a filename without an extension.
 	 * 
@@ -40,7 +46,7 @@ public interface IStreamFilenameGenerator extends IScopeService {
 	 * @param name
 	 * @return
 	 */
-	public String generateFilename(IScope scope, String name);
+	public String generateFilename(IScope scope, String name, GenerationType type);
 
 	/**
 	 * Generate a filename with an extension.
@@ -50,6 +56,6 @@ public interface IStreamFilenameGenerator extends IScopeService {
 	 * @param extension
 	 * @return
 	 */
-	public String generateFilename(IScope scope, String name, String extension);
+	public String generateFilename(IScope scope, String name, String extension, GenerationType type);
 
 }
