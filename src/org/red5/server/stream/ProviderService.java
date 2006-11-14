@@ -32,6 +32,7 @@ import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IScope;
 import org.red5.server.api.ScopeUtils;
 import org.red5.server.api.stream.IBroadcastStream;
+import org.red5.server.api.stream.IStreamFilenameGenerator;
 import org.red5.server.messaging.IMessageInput;
 import org.red5.server.messaging.IPipe;
 import org.red5.server.messaging.InMemoryPullPullPipe;
@@ -141,10 +142,6 @@ public class ProviderService implements IProviderService {
 		}
 	}
 
-	private String getStreamDirectory() {
-		return "streams/";
-	}
-
 	private String getStreamFilename(IScope scope, String name) {
 		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils
 				.getScopeService(scope, IStreamableFileFactory.KEY);
@@ -161,7 +158,10 @@ public class ProviderService implements IProviderService {
 			}
 		}
 
-		return getStreamDirectory() + name;
+		IStreamFilenameGenerator filenameGenerator = (IStreamFilenameGenerator)
+			ScopeUtils.getScopeService(scope, IStreamFilenameGenerator.KEY, DefaultStreamFilenameGenerator.class);
+		
+		return filenameGenerator.generateFilename(scope, name);
 	}
 
 }
