@@ -469,12 +469,12 @@ public class BalancedFlowControlService extends TimerTask implements
 
 		public int compareTo(Object o) {
 			FcData toCompare = (FcData) o;
-			if (hungry < toCompare.hungry) {
-				return 1;
+			if (toCompare == null || hungry > toCompare.hungry) {
+				return -1;
 			} else if (hungry == toCompare.hungry) {
 				return 0;
 			} else {
-				return -1;
+				return 1;
 			}
 		}
 
