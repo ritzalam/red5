@@ -61,7 +61,7 @@ public class ClientManager {
 	private ISharedObject getSharedObject(IScope scope) {
 		ISharedObjectService service = (ISharedObjectService) ScopeUtils
 				.getScopeService(scope,
-						ISharedObjectService.SHARED_OBJECT_SERVICE);
+						ISharedObjectService.class);
 		return service.getSharedObject(scope, name, persistent);
 	}
 

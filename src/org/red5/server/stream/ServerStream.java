@@ -242,11 +242,11 @@ public class ServerStream extends AbstractStream implements IServerStream,
 					"A published name is needed to start");
 		}
 		IProviderService providerService = (IProviderService) getScope()
-				.getContext().getBean(IProviderService.KEY);
+				.getContext().getBean(IProviderService.BEAN_NAME);
 		providerService
 				.registerBroadcastStream(getScope(), publishedName, this);
 		scheduler = (ISchedulingService) getScope().getContext().getBean(
-				ISchedulingService.SCHEDULING_SERVICE);
+				ISchedulingService.BEAN_NAME);
 		state = State.STOPPED;
 		currentItemIndex = -1;
 		nextItem();
@@ -323,7 +323,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 		}
 		boolean isLive = false;
 		IProviderService providerService = (IProviderService) getScope()
-				.getContext().getBean(IProviderService.KEY);
+				.getContext().getBean(IProviderService.BEAN_NAME);
 		msgIn = providerService.getVODProviderInput(getScope(), item.getName());
 		if (msgIn == null) {
 			msgIn = providerService.getLiveProviderInput(getScope(), item

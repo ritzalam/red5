@@ -133,7 +133,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		try {
 			IScope scope = getConnection().getScope();
 			IStreamFilenameGenerator generator = (IStreamFilenameGenerator) ScopeUtils
-					.getScopeService(scope, IStreamFilenameGenerator.KEY,
+					.getScopeService(scope, IStreamFilenameGenerator.class,
 							DefaultStreamFilenameGenerator.class);
 
 			String filename = generator.generateFilename(scope, name, ".flv");

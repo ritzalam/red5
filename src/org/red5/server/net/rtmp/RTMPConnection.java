@@ -265,7 +265,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	public void close() {
 		Red5.setConnectionLocal(this);
 		IStreamService streamService = (IStreamService) getScopeService(scope,
-				IStreamService.STREAM_SERVICE, StreamService.class);
+				IStreamService.class, StreamService.class);
 		if (streamService != null) {
 			synchronized (streams) {
 				for (int i = 0; i < streams.length; i++) {

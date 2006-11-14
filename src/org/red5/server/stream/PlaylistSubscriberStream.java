@@ -530,7 +530,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			}
 			state = State.STOPPED;
 			schedulingService = (ISchedulingService) getScope().getContext()
-					.getBean(ISchedulingService.SCHEDULING_SERVICE);
+					.getBean(ISchedulingService.BEAN_NAME);
 			IConsumerService consumerManager = (IConsumerService) getScope()
 					.getContext().getBean(IConsumerService.KEY);
 			msgOut = consumerManager
@@ -552,7 +552,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			IScope thisScope = getScope();
 			IContext context = thisScope.getContext();
 			IProviderService providerService = (IProviderService) context
-					.getBean(IProviderService.KEY);
+					.getBean(IProviderService.BEAN_NAME);
 			IMessageInput liveInput = providerService.getLiveProviderInput(
 					thisScope, item.getName(), false);
 			IMessageInput vodInput = providerService.getVODProviderInput(

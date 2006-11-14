@@ -254,7 +254,7 @@ public class StreamService implements IStreamService {
 			} else if (IClientStream.MODE_LIVE.equals(mode)) {
 				IContext context = conn.getScope().getContext();
 				IProviderService providerService = (IProviderService) context
-						.getBean(IProviderService.KEY);
+						.getBean(IProviderService.BEAN_NAME);
 				bs.setPublishedName(name);
 				// TODO handle registration failure
 				if (providerService.registerBroadcastStream(conn.getScope(),

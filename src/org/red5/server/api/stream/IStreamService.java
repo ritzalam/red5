@@ -1,5 +1,7 @@
 package org.red5.server.api.stream;
 
+import org.red5.server.api.IScopeService;
+
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  * 
@@ -22,9 +24,9 @@ package org.red5.server.api.stream;
 /**
  * This interface represents the stream methods that can be called throug RTMP.
  */
-public interface IStreamService {
+public interface IStreamService extends IScopeService {
 
-	public static final String STREAM_SERVICE = "streamService";
+	public static String BEAN_NAME = "streamService";
 
 	/**
 	 * Create a stream and return a corresponding id.

@@ -167,7 +167,7 @@ public class FileProvider implements IPassive, ISeekableProvider,
 
 	private void init() {
 		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils
-				.getScopeService(scope, IStreamableFileFactory.KEY,
+				.getScopeService(scope, IStreamableFileFactory.class,
 						StreamableFileFactory.class);
 		IStreamableFileService service = factory.getService(file);
 		if (service == null) {

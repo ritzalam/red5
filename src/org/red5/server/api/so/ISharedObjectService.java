@@ -22,14 +22,15 @@ package org.red5.server.api.so;
 import java.util.Set;
 
 import org.red5.server.api.IScope;
+import org.red5.server.api.IScopeService;
 
 /**
  * Service that manages shared objects.
  * 
  */
-public interface ISharedObjectService {
+public interface ISharedObjectService extends IScopeService {
 
-	public final static String SHARED_OBJECT_SERVICE = "sharedObjectService";
+	public static String BEAN_NAME = "sharedObjectService";
 
 	/**
 	 * Get a set of the shared object names.

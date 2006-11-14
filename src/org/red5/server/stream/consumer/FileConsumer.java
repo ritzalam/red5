@@ -156,7 +156,7 @@ public class FileConsumer implements Constants, IPushableConsumer,
 
 	private void init() throws IOException {
 		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils
-				.getScopeService(scope, IStreamableFileFactory.KEY,
+				.getScopeService(scope, IStreamableFileFactory.class,
 						StreamableFileFactory.class);
 		if (!file.isFile()) {
 			// Maybe the (previously existing) file has been deleted

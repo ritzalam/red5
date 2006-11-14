@@ -19,6 +19,8 @@ package org.red5.server.api;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.lang.reflect.Field;
+
 import org.apache.log4j.Logger;
 import org.red5.server.api.persistence.IPersistable;
 import org.springframework.context.ApplicationContext;
@@ -198,7 +200,7 @@ public class ScopeUtils {
 	 * @param name
 	 * @return
 	 */
-	public static Object getScopeService(IScope scope, String name) {
+	protected static Object getScopeService(IScope scope, String name) {
 		return getScopeService(scope, name, null);
 	}
 
@@ -214,17 +216,10 @@ public class ScopeUtils {
 	 *            Class of service
 	 * @return				Service object
 	 */
-	public static Object getScopeService(IScope scope, String name,
+	protected static Object getScopeService(IScope scope, String name,
 			Class defaultClass) {
 		if (scope == null) {
 			return null;
-		}
-
-		if (scope.hasAttribute(IPersistable.TRANSIENT_PREFIX
-				+ SERVICE_CACHE_PREFIX + name)) {
-			// Return cached service
-			return scope.getAttribute(IPersistable.TRANSIENT_PREFIX
-					+ SERVICE_CACHE_PREFIX + name);
 		}
 
 		final IContext context = scope.getContext();
@@ -245,10 +240,92 @@ public class ScopeUtils {
 			result = appCtx.getBean(name);
 		}
 
-		// Cache service
-		scope.setAttribute(IPersistable.TRANSIENT_PREFIX + SERVICE_CACHE_PREFIX
-				+ name, result);
 		return result;
 	}
 
+	/**
+	 * Returns scope service that implements a given interface.
+	 * 
+	 * @param scope
+	 *            The scope service belongs to
+	 * @param intf
+	 *            The interface the service must implement
+	 * @return Service object
+	 */
+	public static Object getScopeService(IScope scope, Class intf) {
+		return getScopeService(scope, intf, null);
+	}
+	
+	/**
+	 * Returns scope service that implements a given interface.
+	 * 
+	 * @param scope
+	 *            The scope service belongs to
+	 * @param intf
+	 *            The interface the service must implement
+	 * @param defaultClass
+	 *            Class that should be used to create a new service if no service was found.
+	 * @return Service object
+	 */
+	public static Object getScopeService(IScope scope, Class intf,
+			Class defaultClass) {
+		if (scope == null || intf == null) {
+			return null;
+		}
+		// We expect an interface
+		assert intf.isInterface();
+
+		if (scope.hasAttribute(IPersistable.TRANSIENT_PREFIX
+				+ SERVICE_CACHE_PREFIX + intf.getCanonicalName())) {
+			// Return cached service
+			return scope.getAttribute(IPersistable.TRANSIENT_PREFIX
+					+ SERVICE_CACHE_PREFIX + intf.getCanonicalName());
+		}
+
+		Object handler = null;
+		IScope current = scope;
+		while (current != null) {
+			IScopeHandler scopeHandler = current.getHandler();
+			if (intf.isInstance(scopeHandler)) {
+				handler = scopeHandler;
+				break;
+			}
+			
+			if (!current.hasParent())
+				break;
+			
+			current = current.getParent();
+		}
+		
+		if (handler == null && IScopeService.class.isAssignableFrom(intf)) {
+			// We got an IScopeService, try to lookup bean
+			Field key = null;
+			Object serviceName = null;
+			try {
+				key = intf.getField("BEAN_NAME");
+				serviceName = key.get(null);
+				if (!(serviceName instanceof String))
+					serviceName = null;
+			} catch (Exception e) {
+				// No string field "BEAN_NAME" in that interface
+			}
+			
+			if (serviceName != null)
+				handler = getScopeService(scope, (String) serviceName, defaultClass);
+		}
+		
+		if (handler == null && defaultClass != null) {
+			try {
+				handler = defaultClass.newInstance();
+			} catch (Exception e) {
+				log.error(e);
+			}
+		}
+		
+		// Cache service
+		scope.setAttribute(IPersistable.TRANSIENT_PREFIX + SERVICE_CACHE_PREFIX
+				+ intf.getCanonicalName(), handler);
+		return handler;
+	}
+			
 }

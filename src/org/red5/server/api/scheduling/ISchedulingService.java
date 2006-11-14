@@ -22,6 +22,8 @@ package org.red5.server.api.scheduling;
 import java.util.Date;
 import java.util.List;
 
+import org.red5.server.api.IScopeService;
+
 /**
  * Service that supports periodic execution of jobs, adding, removing and
  * getting their name as list.
@@ -30,9 +32,9 @@ import java.util.List;
  * @author Joachim Bauch (jojo@struktur.de)
  *
  */
-public interface ISchedulingService {
+public interface ISchedulingService extends IScopeService {
 
-	public static final String SCHEDULING_SERVICE = "schedulingService";
+	public static String BEAN_NAME = "schedulingService";
 
 	/**
 	 * Schedule a job for periodic execution.

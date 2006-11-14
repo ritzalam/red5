@@ -144,7 +144,7 @@ public class ProviderService implements IProviderService {
 
 	private String getStreamFilename(IScope scope, String name) {
 		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils
-				.getScopeService(scope, IStreamableFileFactory.KEY);
+				.getScopeService(scope, IStreamableFileFactory.class);
 		if (name.indexOf(':') == -1 && name.indexOf('.') == -1) {
 		//if (!name.contains(':') && !name.contains('.')) {
 			// Default to .flv files if no prefix and no extension is given.
@@ -159,7 +159,7 @@ public class ProviderService implements IProviderService {
 		}
 
 		IStreamFilenameGenerator filenameGenerator = (IStreamFilenameGenerator)
-			ScopeUtils.getScopeService(scope, IStreamFilenameGenerator.KEY, DefaultStreamFilenameGenerator.class);
+			ScopeUtils.getScopeService(scope, IStreamFilenameGenerator.class, DefaultStreamFilenameGenerator.class);
 		
 		return filenameGenerator.generateFilename(scope, name);
 	}

@@ -20,10 +20,11 @@ package org.red5.server.api.stream;
  */
 
 import org.red5.server.api.IScope;
+import org.red5.server.api.IScopeService;
 
-public interface IOnDemandStreamService {
+public interface IOnDemandStreamService extends IScopeService {
 
-	public final static String ON_DEMAND_STREAM_SERVICE = "onDemandStreamService";
+	public static String BEAN_NAME = "onDemandStreamService";
 
 	/**
 	 * Has the service an on-demand stream with the passed name?

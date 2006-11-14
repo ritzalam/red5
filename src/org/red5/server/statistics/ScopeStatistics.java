@@ -199,7 +199,7 @@ public class ScopeStatistics {
 		IScope scope = getScope(path);
 		ISharedObjectService service = (ISharedObjectService) ScopeUtils
 				.getScopeService(scope,
-						ISharedObjectService.SHARED_OBJECT_SERVICE);
+						ISharedObjectService.class);
 		if (service == null) {
 			return new Hashtable<String, Object>();
 		}

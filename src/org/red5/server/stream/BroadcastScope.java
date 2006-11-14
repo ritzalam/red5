@@ -132,7 +132,7 @@ public class BroadcastScope extends BasicScope implements IBroadcastScope,
 					// XXX should we synchronize parent before removing?
 					if (hasParent()) {
 						IProviderService providerService = (IProviderService) getParent()
-								.getContext().getBean(IProviderService.KEY);
+								.getContext().getBean(IProviderService.BEAN_NAME);
 						providerService.unregisterBroadcastStream(getParent(),
 								getName());
 					}

@@ -461,7 +461,7 @@ public class RTMPHandler implements IRTMPHandler, Constants, StatusCodes {
 					|| action.equals(ACTION_RECEIVE_VIDEO)
 					|| action.equals(ACTION_RECEIVE_AUDIO)) {
 				IStreamService streamService = (IStreamService) getScopeService(
-						conn.getScope(), IStreamService.STREAM_SERVICE,
+						conn.getScope(), IStreamService.class,
 						StreamService.class);
 				invokeCall(conn, call, streamService);
 			} else {
@@ -566,7 +566,7 @@ public class RTMPHandler implements IRTMPHandler, Constants, StatusCodes {
 		}
 
 		ISharedObjectService sharedObjectService = (ISharedObjectService) getScopeService(
-				scope, ISharedObjectService.SHARED_OBJECT_SERVICE,
+				scope, ISharedObjectService.class,
 				SharedObjectService.class);
 		if (!sharedObjectService.hasSharedObject(scope, name)) {
 			if (!sharedObjectService.createSharedObject(scope, name, object

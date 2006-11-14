@@ -23,11 +23,12 @@ import java.io.File;
 import java.util.List;
 
 import org.red5.server.api.IScope;
+import org.red5.server.api.IScopeService;
 import org.red5.server.api.stream.IBroadcastStream;
 import org.red5.server.messaging.IMessageInput;
 
-public interface IProviderService {
-	public static final String KEY = "providerService";
+public interface IProviderService extends IScopeService {
+	public static String BEAN_NAME = "providerService";
 
 	/**
 	 * Get a named provider as the source of input.

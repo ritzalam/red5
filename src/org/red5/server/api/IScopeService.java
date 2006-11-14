@@ -1,4 +1,4 @@
-package org.red5.server.api.stream;
+package org.red5.server.api;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -19,37 +19,20 @@ package org.red5.server.api.stream;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.red5.server.api.IScope;
-import org.red5.server.api.IScopeService;
-
 /**
- * A class that can generate filenames for streams.
+ * Base interface for all scope services. Used by the ScopeUtils to lookup
+ * services defined in beans. A scope service usually can perform various
+ * tasks on a scope like managing shared objects, streams, etc.
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (bauch@struktur.de)
  */
-public interface IStreamFilenameGenerator extends IScopeService {
+public interface IScopeService {
 
-	/** Name of the bean to setup a custom filename generator in an application. */
-	public static String BEAN_NAME = "streamFilenameGenerator";
-
-	/**
-	 * Generate a filename without an extension.
-	 * 
-	 * @param scope
-	 * @param name
-	 * @return
-	 */
-	public String generateFilename(IScope scope, String name);
-
-	/**
-	 * Generate a filename with an extension.
-	 * 
-	 * @param scope
-	 * @param name
-	 * @param extension
-	 * @return
-	 */
-	public String generateFilename(IScope scope, String name, String extension);
+	/** 
+	 * Name of a bean defining that scope service. Override in
+	 * subinterfaces.
+	 * */
+	public static String BEAN_NAME = null;
 
 }
