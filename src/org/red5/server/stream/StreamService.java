@@ -245,6 +245,7 @@ public class StreamService implements IStreamService {
 
 		IClientBroadcastStream bs = (IClientBroadcastStream) stream;
 		try {
+			bs.setPublishedName(name);
 			if (IClientStream.MODE_RECORD.equals(mode)) {
 				bs.start();
 				bs.saveAs(name, false);
@@ -255,7 +256,6 @@ public class StreamService implements IStreamService {
 				IContext context = conn.getScope().getContext();
 				IProviderService providerService = (IProviderService) context
 						.getBean(IProviderService.BEAN_NAME);
-				bs.setPublishedName(name);
 				// TODO handle registration failure
 				if (providerService.registerBroadcastStream(conn.getScope(),
 						name, bs)) {

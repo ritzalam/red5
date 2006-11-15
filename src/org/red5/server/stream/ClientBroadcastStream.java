@@ -82,6 +82,8 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	private IPipe livePipe;
 
 	private IPipe recordPipe;
+	
+	private boolean recording = false;
 
 	private boolean sendStartNotification = true;
 
@@ -115,9 +117,8 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		Map<Object, Object> recordParamMap = new HashMap<Object, Object>();
 		recordParamMap.put("record", null);
 		recordPipe.subscribe((IProvider) this, recordParamMap);
+		recording = false;
 		setCodecInfo(new StreamCodecInfo());
-		sendStartNotify();
-		notifyBroadcastStart();
 	}
 
 	public void close() {
@@ -125,7 +126,10 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			livePipe.unsubscribe((IProvider) this);
 		}
 		recordPipe.unsubscribe((IProvider) this);
-		sendStopNotify();
+		if (recording)
+			sendRecordStopNotify();
+		else
+			sendPublishStopNotify();
 		notifyBroadcastClose();
 	}
 
@@ -184,6 +188,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 				paramMap.put("mode", "record");
 			}
 			recordPipe.subscribe(fc, paramMap);
+			recording = true;
 		} catch (IOException e) {
 		}
 	}
@@ -279,21 +284,6 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			if (streamCodec != null) {
 				streamCodec.setHasVideo(true);
 			}
-			IEventListener source = event.getSource();
-			if (sendStartNotification) {
-				// Notify handler that stream starts publishing
-				sendStartNotification = false;
-				if (source instanceof IConnection) {
-					IScope scope = ((IConnection) source).getScope();
-					if (scope.hasHandler()) {
-						Object handler = scope.getHandler();
-						if (handler instanceof IStreamAwareScopeHandler) {
-							((IStreamAwareScopeHandler) handler)
-									.streamPublishStart(this);
-						}
-					}
-				}
-			}
 			if (rtmpEvent.getHeader().isTimerRelative()) {
 				videoTime += rtmpEvent.getTimestamp();
 			} else {
@@ -315,6 +305,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			}
 			thisTime = dataTime;
 		}
+		checkSendNotifications(event);
 
 		RTMPMessage msg = new RTMPMessage();
 		msg.setBody(rtmpEvent);
@@ -323,6 +314,30 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			livePipe.pushMessage(msg);
 		}
 		recordPipe.pushMessage(msg);
+	}
+
+	private void checkSendNotifications(IEvent event) {
+		IEventListener source = event.getSource();
+		if (sendStartNotification) {
+			// Notify handler that stream starts recording/publishing
+			sendStartNotification = false;
+			if (source instanceof IConnection) {
+				IScope scope = ((IConnection) source).getScope();
+				if (scope.hasHandler()) {
+					Object handler = scope.getHandler();
+					if (handler instanceof IStreamAwareScopeHandler) {
+						((IStreamAwareScopeHandler) handler)
+								.streamPublishStart(this);
+					}
+				}
+			}
+			
+			if (recording) {
+				sendRecordStartNotify();
+			} else
+				sendPublishStartNotify();
+			notifyBroadcastStart();
+		}
 	}
 
 	public void onPipeConnectionEvent(PipeConnectionEvent event) {
@@ -349,7 +364,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		}
 	}
 
-	private void sendStartNotify() {
+	private void sendPublishStartNotify() {
 		Status start = new Status(StatusCodes.NS_PUBLISH_START);
 		start.setClientid(getStreamId());
 		start.setDetails(getPublishedName());
@@ -359,7 +374,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		connMsgOut.pushMessage(startMsg);
 	}
 
-	private void sendStopNotify() {
+	private void sendPublishStopNotify() {
 		Status stop = new Status(StatusCodes.NS_UNPUBLISHED_SUCCESS);
 		stop.setClientid(getStreamId());
 		stop.setDetails(getPublishedName());
@@ -367,6 +382,26 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		StatusMessage stopMsg = new StatusMessage();
 		stopMsg.setBody(stop);
 		connMsgOut.pushMessage(stopMsg);
+	}
+
+	private void sendRecordStartNotify() {
+		Status start = new Status(StatusCodes.NS_RECORD_START);
+		start.setClientid(getStreamId());
+		start.setDetails(getPublishedName());
+
+		StatusMessage startMsg = new StatusMessage();
+		startMsg.setBody(start);
+		connMsgOut.pushMessage(startMsg);
+	}
+
+	private void sendRecordStopNotify() {
+		Status start = new Status(StatusCodes.NS_RECORD_STOP);
+		start.setClientid(getStreamId());
+		start.setDetails(getPublishedName());
+
+		StatusMessage startMsg = new StatusMessage();
+		startMsg.setBody(start);
+		connMsgOut.pushMessage(startMsg);
 	}
 
 	private void notifyBroadcastStart() {
