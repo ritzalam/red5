@@ -65,7 +65,7 @@ public class ScopeUtils {
 		}
 		String[] parts = path.split(SLASH);
 		for (String part : parts) {
-			if (part.equals('.')) {
+			if (part.equals(".")) {
 				continue;
 			}
 			if (part.equals("..")) {

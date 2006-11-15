@@ -92,10 +92,9 @@ public class Red5WebPropertiesConfiguration implements Configuration,
 				String[] hostnames = virtualHosts.split(",");
 				for (int i = 0; i < hostnames.length; i++) {
 					hostnames[i] = hostnames[i].trim();
-					if (hostnames[i].equals('*')) {
+					if (hostnames[i].equals("*")) {
 						// A virtual host "null" must be used so requests for
-						// any host
-						// will be served.
+						// any host will be served.
 						hostnames = null;
 						break;
 					}
