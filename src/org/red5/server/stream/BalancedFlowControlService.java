@@ -117,8 +117,9 @@ public class BalancedFlowControlService extends TimerTask implements
 							if (parentResource == null) {
 								thisResource.addToken(tokenCount);
 							} else {
-								if (parentResource.acquireToken(tokenCount)) {
-									thisResource.addToken(tokenCount);
+								double acquired = parentResource.acquireTokenBestEffort(tokenCount);
+								if (acquired > 0) {
+									thisResource.addToken(acquired);
 									gotToken = true;
 								}
 							}
