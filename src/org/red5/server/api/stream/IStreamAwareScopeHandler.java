@@ -37,6 +37,14 @@ public interface IStreamAwareScopeHandler extends IScopeHandler {
 	public void streamPublishStart(IBroadcastStream stream);
 
 	/**
+	 * A broadcast stream starts being recorded. This will be called
+	 * when the first video packet has been received.
+	 * 
+	 * @param stream
+	 */
+	public void streamRecordStart(IBroadcastStream stream);
+
+	/**
 	 * Notified when a broadcaster starts.
 	 * 
 	 * @param stream

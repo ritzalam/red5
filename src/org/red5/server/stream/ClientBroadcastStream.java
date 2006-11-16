@@ -326,8 +326,11 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 				if (scope.hasHandler()) {
 					Object handler = scope.getHandler();
 					if (handler instanceof IStreamAwareScopeHandler) {
-						((IStreamAwareScopeHandler) handler)
-								.streamPublishStart(this);
+						if (recording) {
+							((IStreamAwareScopeHandler) handler).streamRecordStart(this);
+						} else {
+							((IStreamAwareScopeHandler) handler).streamPublishStart(this);
+						}
 					}
 				}
 			}
