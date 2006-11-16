@@ -290,8 +290,13 @@ public class BalancedFlowControlService extends TimerTask implements
 		data.fc = fc;
 		data.videoBucket = new Bucket(data, 0);
 		data.audioBucket = new Bucket(data, 1);
-		fcListArray[depth].add(data);
-		fcMap.put(fc, data);
+		lock.writeLock().lock();
+		try {
+			fcListArray[depth].add(data);
+			fcMap.put(fc, data);
+		} finally {
+			lock.writeLock().unlock();
+		}
 		updateBWConfigure(fc);
 	}
 
