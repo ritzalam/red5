@@ -74,6 +74,9 @@ public class Application extends ApplicationAdapter implements
 		}
 	}
 
+	public void streamRecordStart(IBroadcastStream stream) {
+	}
+
 	public void streamBroadcastClose(IBroadcastStream stream) {
 	}
 
