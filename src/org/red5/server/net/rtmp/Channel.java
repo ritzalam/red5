@@ -102,7 +102,10 @@ public class Channel {
 			invoke.setInvokeId(1);
 			((Notify) invoke).setCall(call);
 		}
-		write(invoke);
+		// We send directly to the corresponding stream as for
+		// some status codes, no stream has been created and thus
+		// "getStreamByChannelId" will fail.
+		write(invoke, connection.getStreamIdForChannel(id));
 	}
 
 }

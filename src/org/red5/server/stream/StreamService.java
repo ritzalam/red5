@@ -34,7 +34,11 @@ import org.red5.server.api.stream.IStreamCapableConnection;
 import org.red5.server.api.stream.IStreamService;
 import org.red5.server.api.stream.ISubscriberStream;
 import org.red5.server.api.stream.support.SimplePlayItem;
+import org.red5.server.net.rtmp.Channel;
+import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.RTMPHandler;
+import org.red5.server.net.rtmp.status.Status;
+import org.red5.server.net.rtmp.status.StatusCodes;
 
 public class StreamService implements IStreamService {
 
@@ -235,6 +239,21 @@ public class StreamService implements IStreamService {
 		}
 		IStreamCapableConnection streamConn = (IStreamCapableConnection) conn;
 		int streamId = getCurrentStreamId();
+		
+		IBroadcastScope bsScope = getBroadcastScope(conn.getScope(), name);
+		if (bsScope != null) {
+			// Another stream with that name is already published.
+			Status badName = new Status(StatusCodes.NS_PUBLISH_BADNAME);
+			badName.setClientid(streamId);
+			badName.setDetails(name);
+			badName.setLevel("error");
+
+			// FIXME: there should be a direct way to send the status
+			Channel channel = ((RTMPConnection) streamConn).getChannel((byte) (4 + ((streamId-1) * 5)));
+			channel.sendStatus(badName);
+			return;
+		}
+		
 		IClientStream stream = streamConn.getStreamById(streamId);
 		if (stream != null && !(stream instanceof IClientBroadcastStream)) {
 			return;
@@ -259,8 +278,7 @@ public class StreamService implements IStreamService {
 				// TODO handle registration failure
 				if (providerService.registerBroadcastStream(conn.getScope(),
 						name, bs)) {
-					IBroadcastScope bsScope = getBroadcastScope(
-							conn.getScope(), bs.getPublishedName());
+					bsScope = getBroadcastScope(conn.getScope(), name);
 					bsScope.setAttribute(IBroadcastScope.STREAM_ATTRIBUTE, bs);
 					if (conn instanceof BaseConnection) {
 						((BaseConnection) conn).registerBasicScope(bsScope);

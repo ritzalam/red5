@@ -250,15 +250,20 @@ public abstract class RTMPConnection extends BaseConnection implements
 		return streams[id - 1];
 	}
 
+	public int getStreamIdForChannel(byte channelId) {
+		if (channelId < 4) {
+			return 0;
+		}
+		
+		return (int) Math.floor((channelId - 4) / 5) + 1;
+	}
+	
 	public IClientStream getStreamByChannelId(byte channelId) {
 		if (channelId < 4) {
 			return null;
 		}
 
-		// log.debug("Channel id: "+channelId);
-		int id = (int) Math.floor((channelId - 4) / 5);
-		// log.debug("Stream: "+streamId);
-		return streams[id];
+		return streams[getStreamIdForChannel(channelId) - 1];
 	}
 
 	@Override

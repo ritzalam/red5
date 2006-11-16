@@ -149,7 +149,9 @@ public class RTMPHandler implements IRTMPHandler, Constants, StatusCodes {
 							&& ((Invoke)message).getCall().getServiceName()==null
 							&& ACTION_PUBLISH.equals(((Invoke)message).getCall().getServiceMethodName())) {
 						IClientStream s = conn.getStreamById(header.getStreamId());
-						((IEventDispatcher) s).dispatchEvent(message);
+						if (s != null)
+							// Only dispatch if stream really was created 
+							((IEventDispatcher) s).dispatchEvent(message);
 					}
 					break;
 
@@ -174,11 +176,12 @@ public class RTMPHandler implements IRTMPHandler, Constants, StatusCodes {
 				case TYPE_VIDEO_DATA:
 					// log.info("in packet: "+source.getSize()+"
 					// ts:"+source.getTimer());
-					try {
+					
+					// NOTE: If we respond to "publish" with "NetStream.Publish.BadName",
+					// the client sends a few stream packets before stopping. We need to
+					// ignore them.
+					if (stream != null)
 						((IEventDispatcher) stream).dispatchEvent(message);
-					} catch (NullPointerException e) {
-						log.error(e);
-					}
 					break;
 				case TYPE_SHARED_OBJECT:
 					onSharedObject(conn, channel, header,
