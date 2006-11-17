@@ -256,6 +256,10 @@ public class ScopeUtils {
 		return getScopeService(scope, intf, null);
 	}
 	
+	public static Object getScopeService(IScope scope, Class intf, boolean checkHandler) {
+		return getScopeService(scope, intf, null, checkHandler);
+	}
+
 	/**
 	 * Returns scope service that implements a given interface.
 	 * 
@@ -269,6 +273,11 @@ public class ScopeUtils {
 	 */
 	public static Object getScopeService(IScope scope, Class intf,
 			Class defaultClass) {
+		return getScopeService(scope, intf, defaultClass, true);
+	}
+	
+	public static Object getScopeService(IScope scope, Class intf,
+			Class defaultClass, boolean checkHandler) {
 		if (scope == null || intf == null) {
 			return null;
 		}
@@ -283,18 +292,20 @@ public class ScopeUtils {
 		}
 
 		Object handler = null;
-		IScope current = scope;
-		while (current != null) {
-			IScopeHandler scopeHandler = current.getHandler();
-			if (intf.isInstance(scopeHandler)) {
-				handler = scopeHandler;
-				break;
+		if (checkHandler) {
+			IScope current = scope;
+			while (current != null) {
+				IScopeHandler scopeHandler = current.getHandler();
+				if (intf.isInstance(scopeHandler)) {
+					handler = scopeHandler;
+					break;
+				}
+				
+				if (!current.hasParent())
+					break;
+				
+				current = current.getParent();
 			}
-			
-			if (!current.hasParent())
-				break;
-			
-			current = current.getParent();
 		}
 		
 		if (handler == null && IScopeService.class.isAssignableFrom(intf)) {
