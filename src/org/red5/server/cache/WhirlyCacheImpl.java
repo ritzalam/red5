@@ -113,18 +113,11 @@ public class WhirlyCacheImpl implements ICacheStore, ApplicationContextAware {
 	 */
 	public void put(String name, Object obj) {
 		// Put an object into the cache
-		cache.store(name, new CacheableImpl(obj));
-	}
-	
-	/**
-	 * Puts object in cache under given name, overloaded method.
-	 * 
-	 * @param	name	Name
-	 * @param	obj		Object to store in cache
-	 */
-	public void put(String name, ICacheable obj) {
-		// Put an object into the cache
-		cache.store(name, obj);
+		if (obj instanceof ICacheable) {
+			cache.store(name, (ICacheable) obj);
+		} else {
+			cache.store(name, new CacheableImpl(obj));
+		}
 	}
 	
 	/**
@@ -149,7 +142,7 @@ public class WhirlyCacheImpl implements ICacheStore, ApplicationContextAware {
 	 * @param	name	Name of stored object
 	 * @param	obj		Object to store
 	 */
-	public boolean offer(String name, ICacheable obj) {
+	public boolean offer(String name, Object obj) {
 		// Put an object into the cache
 		cache.store(name, obj);
 		// almost always returns true because store does not return a status

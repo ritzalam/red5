@@ -73,14 +73,11 @@ public class NoCacheImpl implements ICacheStore, ApplicationContextAware {
 		return false;
 	}
 
-	public boolean offer(String name, ICacheable obj) {
+	public boolean offer(String name, Object obj) {
 		return false;
 	}
 
 	public void put(String name, Object obj) {
-	}
-
-	public void put(String name, ICacheable obj) {
 	}
 
 	public ICacheable get(String name) {

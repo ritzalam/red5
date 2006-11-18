@@ -141,13 +141,11 @@ public class EhCacheImpl implements ICacheStore, ApplicationContextAware {
 	}
 
 	public void put(String name, Object obj) {
-		// Put an object into the cache
-		cache.put(new Element(name, new CacheableImpl(obj)));
-	}
-
-	public void put(String name, ICacheable obj) {
-		// Put an object into the cache
-		cache.put(new Element(name, obj));
+		if (obj instanceof ICacheable) {
+			cache.put(new Element(name, (ICacheable) obj));
+		} else {
+			cache.put(new Element(name, new CacheableImpl(obj)));
+		}
 	}
 
 	public Iterator<String> getObjectNames() {
@@ -158,7 +156,7 @@ public class EhCacheImpl implements ICacheStore, ApplicationContextAware {
 		return null;
 	}
 
-	public boolean offer(String name, ICacheable obj) {
+	public boolean offer(String name, Object obj) {
 		boolean result = false;
 		try {
 			result = cache.isKeyInCache(name);

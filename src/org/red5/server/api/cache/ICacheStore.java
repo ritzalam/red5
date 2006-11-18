@@ -41,6 +41,7 @@ public interface ICacheStore {
 
 	/**
 	 * Offer an object to the cache with an associated key.
+	 * If the named object exists in cache, it will not be accepted.
 	 * 
 	 * @param name
 	 *            string name representing the object
@@ -48,7 +49,7 @@ public interface ICacheStore {
 	 *            cacheable object
 	 * @return true if accepted, false otherwise
 	 */
-	public boolean offer(String name, ICacheable obj);
+	public boolean offer(String name, Object obj);
 
 	/**
 	 * Puts an object in the cache with the associated key.
@@ -59,16 +60,6 @@ public interface ICacheStore {
 	 *            cacheable object
 	 */
 	public void put(String name, Object obj);
-
-	/**
-	 * Puts an object in the cache with the associated key.
-	 * 
-	 * @param name
-	 *            string name representing the object
-	 * @param obj
-	 *            cacheable object
-	 */
-	public void put(String name, ICacheable obj);
 
 	/**
 	 * Return a cached object with the given name.

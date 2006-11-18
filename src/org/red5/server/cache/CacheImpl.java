@@ -113,7 +113,7 @@ public class CacheImpl implements ICacheStore, ApplicationContextAware {
 		return offer(key, new CacheableImpl(obj));
 	}
 
-	public boolean offer(String name, ICacheable obj) {
+	public boolean offer(String name, Object obj) {
 		boolean accepted = false;
 		// check map size
 		if (CACHE.size() < capacity) {
@@ -126,13 +126,19 @@ public class CacheImpl implements ICacheStore, ApplicationContextAware {
 			// log.debug("Softreference value: " + (null == tmp.get()));
 			// }
 			if (null == tmp || null == tmp.get()) {
+				ICacheable cacheable = null;
+				if (obj instanceof ICacheable) {
+					cacheable = (ICacheable) obj;
+				} else {
+					cacheable = new CacheableImpl(obj);
+				}
 				// set the objects name
-				obj.setName(name);
+				cacheable.setName(name);
 				// set a registry entry
 				registry.put(name, 1);
 				// create a soft reference
 				SoftReference<ICacheable> value = new SoftReference<ICacheable>(
-						obj);
+						cacheable);
 				CACHE.put(name, value);
 				// set acceptance
 				accepted = true;
@@ -146,10 +152,14 @@ public class CacheImpl implements ICacheStore, ApplicationContextAware {
 	}
 
 	public void put(String name, Object obj) {
-		put(name, new CacheableImpl(obj));
+		if (obj instanceof ICacheable) {
+			put(name, (ICacheable) obj);
+		} else {
+			put(name, new CacheableImpl(obj));
+		}
 	}
 
-	public void put(String name, ICacheable obj) {
+	protected void put(String name, ICacheable obj) {
 		// set the objects name
 		obj.setName(name);
 		// set a registry entry
