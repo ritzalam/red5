@@ -142,7 +142,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 							DefaultStreamFilenameGenerator.class);
 
 			String filename = generator.generateFilename(scope, name, ".flv", GenerationType.RECORD);
-			Resource res = scope.getResource(filename);
+			Resource res = scope.getContext().getResource(filename);
 			if (!isAppend) {
 				if (res.exists()) {
 					// Per livedoc of FCS/FMS:

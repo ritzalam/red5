@@ -19,6 +19,8 @@ package org.red5.server.stream;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,13 +28,17 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.red5.server.api.IScope;
+import org.red5.server.api.ScopeUtils;
 import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.api.stream.IPlayItem;
 import org.red5.server.api.stream.IPlaylistController;
 import org.red5.server.api.stream.IServerStream;
+import org.red5.server.api.stream.IStreamFilenameGenerator;
 import org.red5.server.api.stream.ResourceExistException;
 import org.red5.server.api.stream.ResourceNotFoundException;
+import org.red5.server.api.stream.IStreamFilenameGenerator.GenerationType;
 import org.red5.server.messaging.IFilter;
 import org.red5.server.messaging.IMessage;
 import org.red5.server.messaging.IMessageComponent;
@@ -43,13 +49,16 @@ import org.red5.server.messaging.IPipe;
 import org.red5.server.messaging.IPipeConnectionListener;
 import org.red5.server.messaging.IProvider;
 import org.red5.server.messaging.IPushableConsumer;
+import org.red5.server.messaging.InMemoryPushPushPipe;
 import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.messaging.PipeConnectionEvent;
 import org.red5.server.net.rtmp.event.AudioData;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.event.VideoData;
+import org.red5.server.stream.consumer.FileConsumer;
 import org.red5.server.stream.message.RTMPMessage;
 import org.red5.server.stream.message.ResetMessage;
+import org.springframework.core.io.Resource;
 
 /**
  * An implementation for server side stream.
@@ -88,6 +97,8 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	private IMessageInput msgIn;
 
 	private IMessageOutput msgOut;
+	
+	private IPipe recordPipe;
 
 	private ISchedulingService scheduler;
 
@@ -207,10 +218,63 @@ public class ServerStream extends AbstractStream implements IServerStream,
 		this.controller = controller;
 	}
 
-	public void saveAs(String filePath, boolean isAppend)
+	public void saveAs(String name, boolean isAppend)
 			throws ResourceNotFoundException, ResourceExistException {
-		// TODO Auto-generated method stub
+		try {
+			IScope scope = getScope();
+			IStreamFilenameGenerator generator = (IStreamFilenameGenerator) ScopeUtils
+			.getScopeService(scope, IStreamFilenameGenerator.class,
+					DefaultStreamFilenameGenerator.class);
+			
+			String filename = generator.generateFilename(scope, name, ".flv", GenerationType.RECORD);
+			Resource res = scope.getContext().getResource(filename);
+			if (!isAppend) {
+				if (res.exists()) {
+					// Per livedoc of FCS/FMS:
+					// When "live" or "record" is used,
+					// any previously recorded stream with the same stream URI is deleted.
+					res.getFile().delete();
+				}
+			} else {
+				if (!res.exists()) {
+					// Per livedoc of FCS/FMS:
+					// If a recorded stream at the same URI does not already exist,
+					// "append" creates the stream as though "record" was passed.
+					isAppend = false;
+				}
+			}
 
+			if (!res.exists()) {
+				// Make sure the destination directory exists
+				try {
+					String path = res.getFile().getAbsolutePath();
+					int slashPos = path.lastIndexOf(File.separator);
+					if (slashPos != -1) {
+						path = path.substring(0, slashPos);
+					}
+					File tmp = new File(path);
+					if (!tmp.isDirectory()) {
+						tmp.mkdirs();
+					}
+				} catch (IOException err) {
+					log.error("Could not create destination directory.", err);
+				}
+				res = scope.getResource(filename);
+			}
+
+			if (!res.exists()) {
+				res.getFile().createNewFile();
+			}
+			FileConsumer fc = new FileConsumer(scope, res.getFile());
+			Map<Object, Object> paramMap = new HashMap<Object, Object>();
+			if (isAppend) {
+				paramMap.put("mode", "append");
+			} else {
+				paramMap.put("mode", "record");
+			}
+			recordPipe.subscribe(fc, paramMap);
+		} catch (IOException e) {
+		}
 	}
 
 	public IProvider getProvider() {
@@ -241,10 +305,15 @@ public class ServerStream extends AbstractStream implements IServerStream,
 			throw new IllegalStateException(
 					"A published name is needed to start");
 		}
+		// publish this server-side stream
 		IProviderService providerService = (IProviderService) getScope()
 				.getContext().getBean(IProviderService.BEAN_NAME);
 		providerService
 				.registerBroadcastStream(getScope(), publishedName, this);
+		Map<Object, Object> recordParamMap = new HashMap<Object, Object>();
+		recordPipe = new InMemoryPushPushPipe();
+		recordParamMap.put("record", null);
+		recordPipe.subscribe((IProvider) this, recordParamMap);
 		scheduler = (ISchedulingService) getScope().getContext().getBean(
 				ISchedulingService.BEAN_NAME);
 		state = State.STOPPED;
@@ -281,6 +350,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 		if (msgOut != null) {
 			msgOut.unsubscribe(this);
 		}
+		recordPipe.unsubscribe((IProvider) this);
 		state = State.CLOSED;
 	}
 
@@ -289,7 +359,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	}
 
 	public void pushMessage(IPipe pipe, IMessage message) {
-		msgOut.pushMessage(message);
+		pushMessage(message);
 	}
 
 	public void onPipeConnectionEvent(PipeConnectionEvent event) {
@@ -366,9 +436,14 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	private void onItemEnd() {
 		nextItem();
 	}
+	
+	private void pushMessage(IMessage message) {
+		msgOut.pushMessage(message);
+		recordPipe.pushMessage(message);
+	}
 
 	private void sendResetMessage() {
-		msgOut.pushMessage(new ResetMessage());
+		pushMessage(new ResetMessage());
 	}
 
 	private void startBroadcastVOD() {
@@ -434,7 +509,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 						return;
 					}
 					vodJobName = null;
-					msgOut.pushMessage(nextRTMPMessage);
+					pushMessage(nextRTMPMessage);
 					nextRTMPMessage.getBody().release();
 					long start = currentItem.getStart();
 					if (start < 0) {
