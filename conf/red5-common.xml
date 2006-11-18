@@ -130,13 +130,25 @@
 	<!-- Use injection to set the buffer type for reading FLV files -->
 	<bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
 		<property name="targetObject">
-			<bean id="flv.reader" class="org.red5.io.flv.impl.FLVReader" />
+			<bean class="org.red5.io.flv.impl.FLVReader" />
 		</property>
 		<property name="targetMethod">
 			<value>setBufferType</value>
 		</property>
 		<!-- Three buffer types are available 'auto', 'heap', and 'direct' -->
 		<property name="arguments" value="auto" />
+	</bean>
+	
+	<!-- Use injection to set the buffer type for reading FLV files -->
+	<bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+		<property name="targetObject">
+			<bean class="org.red5.io.flv.impl.FLVReader" />
+		</property>
+		<property name="targetMethod">
+			<value>setMaxBufferSize</value>
+		</property>
+		<!-- Three buffer types are available 'auto', 'heap', and 'direct' -->
+		<property name="arguments" value="10000000" />
 	</bean>
 
 	<!-- ClientBroadcastStream and PlaylistSubscriberStream 
