@@ -30,12 +30,12 @@ import java.util.TreeSet;
 import junit.framework.TestCase;
 
 import org.apache.mina.common.ByteBuffer;
+import org.red5.io.ITag;
+import org.red5.io.ITagReader;
+import org.red5.io.ITagWriter;
 import org.red5.io.amf.Output;
 import org.red5.io.flv.IFLV;
 import org.red5.io.flv.IFLVService;
-import org.red5.io.flv.IReader;
-import org.red5.io.flv.ITag;
-import org.red5.io.flv.IWriter;
 import org.red5.io.flv.impl.FLVService;
 import org.red5.io.flv.impl.Tag;
 import org.red5.io.flv.meta.MetaCue;
@@ -78,17 +78,17 @@ public class MetaDataInjectionTest extends TestCase {
 		f.createNewFile();
 		
 		// Use service to grab FLV file
-		IFLV flv = service.getFLV(f);
+		IFLV flv = (IFLV) service.getStreamableFile(f);
 		
 		// Grab a writer for writing a new FLV
-		IWriter writer = flv.writer();
+		ITagWriter writer = flv.getWriter();
 		
 		// Create a reader for testing
 		File readfile = new File("tests/test_cue.flv");
-		IFLV readflv = service.getFLV(readfile);
+		IFLV readflv = (IFLV) service.getStreamableFile(readfile);
 		
 		// Grab a reader for reading a FLV in
-		IReader reader = readflv.reader();
+		ITagReader reader = readflv.getReader();
 		
 		// Inject MetaData
 		writeTagsWithInjection(reader, writer);	
@@ -101,7 +101,7 @@ public class MetaDataInjectionTest extends TestCase {
 	 * @param writer
 	 * @throws IOException
 	 */
-	private void writeTagsWithInjection(IReader reader, IWriter writer) throws IOException {
+	private void writeTagsWithInjection(ITagReader reader, ITagWriter writer) throws IOException {
 				
 		IMetaCue cp = new MetaCue();
 		cp.setName("cue_1");

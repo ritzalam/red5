@@ -34,16 +34,16 @@ import java.util.Map;
 import java.util.TreeSet;
 
 import org.apache.mina.common.ByteBuffer;
+import org.red5.io.ITag;
+import org.red5.io.ITagReader;
+import org.red5.io.ITagWriter;
 import org.red5.io.amf.Output;
 import org.red5.io.flv.IFLV;
 import org.red5.io.flv.impl.FLV;
 import org.red5.io.flv.IFLVService;
 import org.red5.io.flv.impl.FLVService;
-import org.red5.io.flv.IReader;
-import org.red5.io.flv.ITag;
 import org.red5.io.flv.impl.Tag;
 import org.red5.io.flv.meta.MetaData;
-import org.red5.io.flv.IWriter;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Serializer;
 import org.red5.io.utils.IOUtils;
@@ -108,9 +108,9 @@ public class FLVServiceImplTest extends TestCase {
 	public void testFLVFile() throws FileNotFoundException, IOException  {
 		File f = new File("tests/test.flv");
 		System.out.println("test: " + f);
-		IFLV flv = service.getFLV(f);	
+		IFLV flv = (IFLV) service.getStreamableFile(f);	
 		System.out.println("test: " + flv);
-		IReader reader = flv.reader();
+		ITagReader reader = flv.getReader();
 		System.out.println("test: " + reader);
 		ITag tag = null;
 		System.out.println("test: " + reader.hasMoreTags());
@@ -201,7 +201,7 @@ public class FLVServiceImplTest extends TestCase {
 	}
 	*/
 	
-	private void writeTags(IReader reader, IWriter writer) throws IOException {
+	private void writeTags(ITagReader reader, ITagWriter writer) throws IOException {
 		
 		ITag tag = null;
 		

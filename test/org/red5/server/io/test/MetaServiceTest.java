@@ -49,7 +49,7 @@ public class MetaServiceTest extends TestCase {
 		// set the MetaService
 		// set the MetaData
 		File tmp = new File("tests/test.flv");
-		IFLV flv = service.getFLV(tmp);
+		IFLV flv = (IFLV) service.getStreamableFile(tmp);
 		flv.setMetaService(metaService);
 		flv.setMetaData(meta);
 		
