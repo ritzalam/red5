@@ -176,15 +176,15 @@ public class StreamService implements IStreamService {
 	}
 
 	public void play(String name, int start, int length) {
-		play(name, start, length, false);
+		play(name, start, length, true);
 	}
 
 	public void play(String name, int start) {
-		play(name, start, -1, false);
+		play(name, start, -1, true);
 	}
 
 	public void play(String name) {
-		play(name, -2000, -1, false);
+		play(name, -2000, -1, true);
 	}
 
 	public void play(Boolean dontStop) {
