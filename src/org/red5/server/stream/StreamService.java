@@ -140,6 +140,10 @@ public class StreamService implements IStreamService {
 	}
 
 	public void play(String name, int start, int length, boolean flushPlaylist) {
+		if (length == 0)
+			// Workaround for APPSERVER-7: ignore play requests with zero length
+			return;
+		
 		IConnection conn = Red5.getConnectionLocal();
 		if (!(conn instanceof IStreamCapableConnection)) {
 			return;
