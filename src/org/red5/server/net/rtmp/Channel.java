@@ -54,6 +54,10 @@ public class Channel {
 	public byte getId() {
 		return id;
 	}
+	
+	protected RTMPConnection getConnection() {
+		return connection;
+	}
 
 	public void write(IRTMPEvent event) {
 		final IClientStream stream = connection.getStreamByChannelId(id);

@@ -22,6 +22,7 @@ package org.red5.server.net.rtmp;
 import static org.red5.server.api.ScopeUtils.getScopeService;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.UUID;
 
@@ -81,6 +82,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	protected Integer invokeId = Integer.valueOf(1);
 
 	protected HashMap<Integer, IPendingServiceCall> pendingCalls = new HashMap<Integer, IPendingServiceCall>();
+	protected HashSet<DeferredResult> deferredResults = new HashSet<DeferredResult>();
 
 	protected int lastPingTime = -1;
 
@@ -546,4 +548,11 @@ public abstract class RTMPConnection extends BaseConnection implements
 				+ getReadBytes() + ", out: " + getWrittenBytes() + ')';
 	}
 
+	protected void registerDeferredResult(DeferredResult result) {
+		deferredResults.add(result);
+	}
+	
+	protected void unregisterDeferredResult(DeferredResult result) {
+		deferredResults.remove(result);
+	}
 }

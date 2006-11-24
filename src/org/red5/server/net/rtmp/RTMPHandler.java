@@ -488,14 +488,31 @@ public class RTMPHandler implements IRTMPHandler, Constants, StatusCodes {
 				return;
 			}
 
-			// The client expects a result for the method call.
-			Invoke reply = new Invoke();
-			reply.setCall(call);
-			reply.setInvokeId(invoke.getInvokeId());
-			log.debug("sending reply");
-			channel.write(reply);
-			if (disconnectOnReturn) {
-				conn.close();
+			boolean sendResult = true;
+			if (call instanceof IPendingServiceCall) {
+				IPendingServiceCall psc = (IPendingServiceCall) call;
+				Object result = psc.getResult();
+				if (result instanceof DeferredResult) {
+					// Remember the deferred result to be sent later
+					DeferredResult dr = (DeferredResult) result;
+					dr.setServiceCall(psc);
+					dr.setChannel(channel);
+					dr.setInvokeId(invoke.getInvokeId());
+					conn.registerDeferredResult(dr);
+					sendResult = false;
+				}
+			};
+			
+			if (sendResult) {
+				// The client expects a result for the method call.
+				Invoke reply = new Invoke();
+				reply.setCall(call);
+				reply.setInvokeId(invoke.getInvokeId());
+				log.debug("sending reply");
+				channel.write(reply);
+				if (disconnectOnReturn) {
+					conn.close();
+				}
 			}
 		}
 	}
