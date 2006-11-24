@@ -587,7 +587,7 @@ public class RTMPHandler implements IRTMPHandler, Constants, StatusCodes {
 
 		ISharedObjectService sharedObjectService = (ISharedObjectService) getScopeService(
 				scope, ISharedObjectService.class,
-				SharedObjectService.class);
+				SharedObjectService.class, false);
 		if (!sharedObjectService.hasSharedObject(scope, name)) {
 			if (!sharedObjectService.createSharedObject(scope, name, object
 					.isPersistent())) {
