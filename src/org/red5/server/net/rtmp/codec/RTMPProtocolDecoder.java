@@ -20,6 +20,7 @@ package org.red5.server.net.rtmp.codec;
  */
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -449,6 +450,16 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 				key = Input.getString(in);
 				// Status level
 				value = Input.getString(in);
+			} else if (type == ISharedObjectEvent.Type.CLIENT_UPDATE_DATA) {
+				key = null;
+				// Map containing new attribute values
+				final Map<String, Object> map = new HashMap<String, Object>();
+				final int start = in.position();
+				while (in.position() - start < length) {
+					String tmp = Input.getString(in);
+					map.put(tmp, deserializer.deserialize(input));
+				}
+				value = map;
 			} else if (type != ISharedObjectEvent.Type.SERVER_SEND_MESSAGE
 					&& type != ISharedObjectEvent.Type.CLIENT_SEND_MESSAGE) {
 				if (length > 0) {

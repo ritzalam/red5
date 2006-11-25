@@ -261,12 +261,14 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 			byte type = SharedObjectTypeMapping.toByte(event.getType());
 
 			switch (event.getType()) {
+				case SERVER_CONNECT:
 				case CLIENT_INITIAL_DATA:
 				case CLIENT_CLEAR_DATA:
 					out.put(type);
 					out.putInt(0);
 					break;
 
+				case SERVER_DELETE_ATTRIBUTE:
 				case CLIENT_DELETE_DATA:
 				case CLIENT_UPDATE_ATTRIBUTE:
 					out.put(type);
@@ -277,6 +279,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 					out.putInt(mark, len);
 					break;
 
+				case SERVER_SET_ATTRIBUTE:
 				case CLIENT_UPDATE_DATA:
 					if (event.getKey() == null) {
 						// Update multiple attributes in one request

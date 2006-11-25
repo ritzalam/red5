@@ -113,21 +113,21 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
 		return so.isPersistentObject();
 	}
 
-	public void beginUpdate() {
+	public synchronized void beginUpdate() {
 		if (!lock.isHeldByCurrentThread()) {
 			lock.lock();
 		}
 		so.beginUpdate();
 	}
 
-	public void beginUpdate(IEventListener listener) {
+	public synchronized void beginUpdate(IEventListener listener) {
 		if (!lock.isHeldByCurrentThread()) {
 			lock.lock();
 		}
 		so.beginUpdate(listener);
 	}
 
-	public void endUpdate() {
+	public synchronized void endUpdate() {
 		so.endUpdate();
 		if (so.updateCounter == 0) {
 			lock.unlock();

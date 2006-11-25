@@ -1,5 +1,7 @@
 package org.red5.server.api.so;
 
+import org.red5.server.api.IConnection;
+
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  * 
@@ -19,18 +21,27 @@ package org.red5.server.api.so;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.red5.server.api.IBasicScope;
-
 /**
- * Serverside access to shared objects.
+ * Clientside access to shared objects.
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
  */
 
-public interface ISharedObject extends IBasicScope,
-		ISharedObjectBase {
+public interface IClientSharedObject extends ISharedObjectBase {
 
-	public static final String TYPE = "SharedObject";
-
+	/**
+	 * Connect the shared object using the passed connection.
+	 * 
+	 * @param conn
+	 */
+	public void connect(IConnection conn);
+	
+	/**
+	 * Check if the shared object is connected to the server.
+	 * 
+	 * @return
+	 */
+	public boolean isConnected();
+	
 }

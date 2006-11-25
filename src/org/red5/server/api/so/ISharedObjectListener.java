@@ -25,7 +25,7 @@ import java.util.Map;
 import org.red5.server.api.IAttributeStore;
 
 /**
- * Serverside notifications about shared object updates.
+ * Notifications about shared object updates.
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard (luke@codegent.com)
@@ -39,7 +39,7 @@ public interface ISharedObjectListener {
 	 * @param so
 	 *            the shared object
 	 */
-	void onSharedObjectConnect(ISharedObject so);
+	void onSharedObjectConnect(ISharedObjectBase so);
 
 	/**
 	 * Called when a client disconnects from a shared object.
@@ -47,7 +47,7 @@ public interface ISharedObjectListener {
 	 * @param so
 	 *            the shared object
 	 */
-	void onSharedObjectDisconnect(ISharedObject so);
+	void onSharedObjectDisconnect(ISharedObjectBase so);
 
 	/**
 	 * Called when a shared object attribute is updated.
@@ -59,7 +59,7 @@ public interface ISharedObjectListener {
 	 * @param value
 	 *            the value of the attribute
 	 */
-	void onSharedObjectUpdate(ISharedObject so, String key, Object value);
+	void onSharedObjectUpdate(ISharedObjectBase so, String key, Object value);
 
 	/**
 	 * Called when multiple attributes of a shared object are updated.
@@ -69,7 +69,7 @@ public interface ISharedObjectListener {
 	 * @param values
 	 *            the new attributes of the shared object
 	 */
-	void onSharedObjectUpdate(ISharedObject so, IAttributeStore values);
+	void onSharedObjectUpdate(ISharedObjectBase so, IAttributeStore values);
 
 	/**
 	 * Called when multiple attributes of a shared object are updated.
@@ -79,7 +79,7 @@ public interface ISharedObjectListener {
 	 * @param values
 	 *            the new attributes of the shared object
 	 */
-	void onSharedObjectUpdate(ISharedObject so, Map<String, Object> values);
+	void onSharedObjectUpdate(ISharedObjectBase so, Map<String, Object> values);
 
 	/**
 	 * Called when an attribute is deleted from the shared object.
@@ -89,7 +89,7 @@ public interface ISharedObjectListener {
 	 * @param key
 	 *            the name of the attribute to delete
 	 */
-	void onSharedObjectDelete(ISharedObject so, String key);
+	void onSharedObjectDelete(ISharedObjectBase so, String key);
 
 	/**
 	 * Called when all attributes of a shared object are removed.
@@ -97,7 +97,7 @@ public interface ISharedObjectListener {
 	 * @param so
 	 *            the shared object
 	 */
-	void onSharedObjectClear(ISharedObject so);
+	void onSharedObjectClear(ISharedObjectBase so);
 
 	/**
 	 * Called when a shared object method call is sent.
@@ -109,6 +109,6 @@ public interface ISharedObjectListener {
 	 * @param params
 	 *            the arguments
 	 */
-	void onSharedObjectSend(ISharedObject so, String method, List params);
+	void onSharedObjectSend(ISharedObjectBase so, String method, List params);
 
 }

@@ -74,13 +74,13 @@ public class SharedObject implements IPersistable, Constants {
 
 	protected long lastModified = -1;
 
-	private SharedObjectMessage ownerMessage;
+	protected SharedObjectMessage ownerMessage;
 
-	private LinkedList<ISharedObjectEvent> syncEvents = new LinkedList<ISharedObjectEvent>();
+	protected LinkedList<ISharedObjectEvent> syncEvents = new LinkedList<ISharedObjectEvent>();
 
 	protected HashSet<IEventListener> listeners = new HashSet<IEventListener>();
 
-	private IEventListener source = null;
+	protected IEventListener source = null;
 
 	public SharedObject() {
 		// This is used by the persistence framework
@@ -151,7 +151,7 @@ public class SharedObject implements IPersistable, Constants {
 		this.persistent = persistent;
 	}
 
-	private void sendUpdates() {
+	protected void sendUpdates() {
 		if (!ownerMessage.getEvents().isEmpty()) {
 			// Send update to "owner" of this update request
 			SharedObjectMessage syncOwner = new SharedObjectMessage(null, name,
@@ -174,7 +174,7 @@ public class SharedObject implements IPersistable, Constants {
 			}
 			ownerMessage.getEvents().clear();
 		}
-
+		
 		if (!syncEvents.isEmpty()) {
 			// Synchronize updates with all registered clients of this shared
 
@@ -216,7 +216,7 @@ public class SharedObject implements IPersistable, Constants {
 		}
 	}
 
-	private void notifyModified() {
+	protected void notifyModified() {
 		if (updateCounter > 0) {
 			// we're inside a beginUpdate...endUpdate block
 			return;
@@ -250,7 +250,7 @@ public class SharedObject implements IPersistable, Constants {
 		return data.get(name);
 	}
 
-	public boolean setAttribute(String name, Object value) {
+	public synchronized boolean setAttribute(String name, Object value) {
 		ownerMessage.addEvent(Type.CLIENT_UPDATE_ATTRIBUTE, name, null);
 		Object old = data.get(name);
 		Integer oldHash = (value != null ? value.hashCode() : 0);
@@ -269,7 +269,7 @@ public class SharedObject implements IPersistable, Constants {
 		}
 	}
 
-	public void setAttributes(Map values) {
+	public synchronized void setAttributes(Map values) {
 		if (values == null) {
 			return;
 		}
@@ -283,7 +283,7 @@ public class SharedObject implements IPersistable, Constants {
 		endUpdate();
 	}
 
-	public void setAttributes(IAttributeStore values) {
+	public synchronized void setAttributes(IAttributeStore values) {
 		if (values == null) {
 			return;
 		}
@@ -297,7 +297,7 @@ public class SharedObject implements IPersistable, Constants {
 		endUpdate();
 	}
 
-	public boolean removeAttribute(String name) {
+	public synchronized boolean removeAttribute(String name) {
 		boolean result = data.containsKey(name);
 		if (result) {
 			data.remove(name);
@@ -313,7 +313,7 @@ public class SharedObject implements IPersistable, Constants {
 		return result;
 	}
 
-	public void sendMessage(String handler, List arguments) {
+	public synchronized void sendMessage(String handler, List arguments) {
 		ownerMessage.addEvent(Type.CLIENT_SEND_MESSAGE, handler, arguments);
 		syncEvents.add(new SharedObjectEvent(Type.CLIENT_SEND_MESSAGE, handler,
 				arguments));
@@ -331,7 +331,7 @@ public class SharedObject implements IPersistable, Constants {
 		version += 1;
 	}
 
-	public void removeAttributes() {
+	public synchronized void removeAttributes() {
 		// TODO: there must be a direct way to clear the SO on the client
 		// side...
 		Iterator keys = data.keySet().iterator();
@@ -347,7 +347,7 @@ public class SharedObject implements IPersistable, Constants {
 		notifyModified();
 	}
 
-	public void register(IEventListener listener) {
+	public synchronized void register(IEventListener listener) {
 		listeners.add(listener);
 
 		// prepare response for new client
@@ -365,7 +365,7 @@ public class SharedObject implements IPersistable, Constants {
 		notifyModified();
 	}
 
-	public void unregister(IEventListener listener) {
+	public synchronized void unregister(IEventListener listener) {
 		listeners.remove(listener);
 		if (!isPersistentObject() && listeners.isEmpty()) {
 			log.info("Deleting shared object " + name
@@ -387,12 +387,12 @@ public class SharedObject implements IPersistable, Constants {
 		beginUpdate(source);
 	}
 
-	public void beginUpdate(IEventListener listener) {
+	public synchronized void beginUpdate(IEventListener listener) {
 		source = listener;
 		updateCounter += 1;
 	}
 
-	public void endUpdate() {
+	public synchronized void endUpdate() {
 		updateCounter -= 1;
 
 		if (updateCounter == 0) {
@@ -432,7 +432,7 @@ public class SharedObject implements IPersistable, Constants {
 	 * 
 	 * @return true if successful; false otherwise
 	 */
-	public boolean clear() {
+	public synchronized boolean clear() {
 		data.clear();
 		// Send confirmation to client
 		ownerMessage.addEvent(Type.CLIENT_CLEAR_DATA, name, null);
@@ -444,7 +444,7 @@ public class SharedObject implements IPersistable, Constants {
 	 * reference immediately. This is useful when you don't want to proxy a
 	 * shared object any longer.
 	 */
-	public void close() {
+	public synchronized void close() {
 		// clear collections
 		data.clear();
 		listeners.clear();
