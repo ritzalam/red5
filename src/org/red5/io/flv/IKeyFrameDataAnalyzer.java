@@ -30,6 +30,6 @@ public interface IKeyFrameDataAnalyzer {
 
 		public int timestamps[];
 
-		public int positions[];
+		public long positions[];
 	}
 }

@@ -79,7 +79,7 @@ public class FileProvider implements IPassive, ISeekableProvider,
 		this.start = start;
 	}
 
-	public IMessage pullMessage(IPipe pipe) {
+	synchronized public IMessage pullMessage(IPipe pipe) {
 		if (this.pipe != pipe) {
 			return null;
 		}
@@ -185,7 +185,7 @@ public class FileProvider implements IPassive, ISeekableProvider,
 		}
 	}
 
-	private void uninit() {
+	synchronized private void uninit() {
 		if (this.reader != null) {
 			this.reader.close();
 			this.reader = null;

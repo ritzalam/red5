@@ -347,7 +347,7 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 		dataRate = (int) (rate / count);
 		posTimeMap = new HashMap<Integer, Double>();
 		frameMeta = new KeyFrameMeta();
-		frameMeta.positions = new int[positionList.size()];
+		frameMeta.positions = new long[positionList.size()];
 		frameMeta.timestamps = new int[timestampList.size()];
 		for (int i = 0; i < frameMeta.positions.length; i++) {
 			frameMeta.positions[i] = positionList.get(i);

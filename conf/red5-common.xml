@@ -145,10 +145,10 @@
 			<bean class="org.red5.io.flv.impl.FLVReader" />
 		</property>
 		<property name="targetMethod">
-			<value>setMaxBufferSize</value>
+			<value>setBufferSize</value>
 		</property>
 		<!-- Three buffer types are available 'auto', 'heap', and 'direct' -->
-		<property name="arguments" value="10000000" />
+		<property name="arguments" value="4096" />
 	</bean>
 
 	<!-- ClientBroadcastStream and PlaylistSubscriberStream 

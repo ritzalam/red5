@@ -173,7 +173,7 @@ public class FLV implements IFLV {
 				// get a ref to the mapped byte buffer
 				fileData = reader.getFileData();
 				// offer the uncached file to the cache
-				if (cache.offer(fileName, fileData)) {
+				if (fileData != null && cache.offer(fileName, fileData)) {
 					if (log.isDebugEnabled()) {
 						log.debug("Item accepted by the cache: " + fileName);
 					}
