@@ -453,14 +453,17 @@ public class Scope extends BasicScope implements IScope {
 
 	class ConnectionIterator implements Iterator<IConnection> {
 
-		private Iterator setIterator;
+		private Iterator<Set<IConnection>> setIterator;
 
-		private Iterator connIterator;
+		private Iterator<IConnection> connIterator;
 
 		private IConnection current;
 
 		public ConnectionIterator() {
-			setIterator = clients.values().iterator();
+			// NOTE: we create a copy of the client connections here
+			//       to prevent ConcurrentModificationExceptions while
+			//       traversing the iterator.
+			setIterator = new HashSet<Set<IConnection>>(clients.values()).iterator();
 		}
 
 		public boolean hasNext() {
@@ -473,7 +476,7 @@ public class Scope extends BasicScope implements IScope {
 				if (!setIterator.hasNext()) {
 					return null;
 				}
-				connIterator = ((Set) setIterator.next()).iterator();
+				connIterator = new HashSet<IConnection>(setIterator.next()).iterator();
 			}
 			current = (IConnection) connIterator.next();
 			return current;
