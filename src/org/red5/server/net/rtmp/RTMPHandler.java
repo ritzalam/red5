@@ -225,7 +225,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 										}
 										// Measure initial roundtrip time after connecting
 										conn.getChannel((byte) 2).write(new Ping((short) 0, 0, -1));
-										conn.ping();
+										conn.startRoundTripMeasurement();
 									} else {
 										log.debug("connect failed");
 										call

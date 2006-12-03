@@ -31,14 +31,20 @@ import org.apache.mina.transport.socket.nio.SocketSessionConfig;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.message.Constants;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
-public class RTMPMinaIoHandler extends IoHandlerAdapter {
+public class RTMPMinaIoHandler extends IoHandlerAdapter
+implements ApplicationContextAware {
 
 	protected static Log log = LogFactory.getLog(RTMPMinaIoHandler.class
 			.getName());
 
 	protected IRTMPHandler handler;
 	protected boolean mode = RTMP.MODE_SERVER;
+	
+	protected ApplicationContext appCtx;
 
 	public void setHandler(IRTMPHandler handler) {
 		this.handler = handler;
@@ -118,7 +124,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 	@Override
 	public void messageSent(IoSession session, Object message) throws Exception {
 		log.debug("messageSent");
-		final RTMP rtmp = (RTMP) session.getAttribute(RTMP.SESSION_KEY);
+		session.getAttribute(RTMP.SESSION_KEY);
 		final RTMPMinaConnection conn = (RTMPMinaConnection) session
 				.getAttachment();
 		handler.messageSent(conn, message);
@@ -182,7 +188,14 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter {
 		if (log.isDebugEnabled()) {
 			session.getFilterChain().addLast("logger", new LoggingFilter());
 		}
-		session.setAttachment(new RTMPMinaConnection(session));
+		RTMPMinaConnection conn =
+			(RTMPMinaConnection) appCtx.getBean("rtmpMinaConnection");
+		conn.setIoSession(session);
+		session.setAttachment(conn);
+	}
+
+	public void setApplicationContext(ApplicationContext appCtx) throws BeansException {
+		this.appCtx = appCtx;
 	}
 
 }

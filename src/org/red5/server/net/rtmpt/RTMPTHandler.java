@@ -28,6 +28,9 @@ import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.RTMPHandler;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.message.Constants;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 /**
  * Handler for RTMPT messages.
@@ -36,13 +39,16 @@ import org.red5.server.net.rtmp.message.Constants;
  * @author Joachim Bauch (jojo@struktur.de)
  */
 
-public class RTMPTHandler extends RTMPHandler {
+public class RTMPTHandler extends RTMPHandler
+implements ApplicationContextAware {
 
 	protected static Log log = LogFactory.getLog(RTMPTHandler.class.getName());
 
 	public static final String HANDLER_ATTRIBUTE = "red5.RMPTHandler";
 
 	protected SimpleProtocolCodecFactory codecFactory;
+	
+	protected ApplicationContext appCtx;
 
 	public void setCodecFactory(SimpleProtocolCodecFactory factory) {
 		this.codecFactory = factory;
@@ -86,4 +92,14 @@ public class RTMPTHandler extends RTMPHandler {
 		}
 	}
 
+	public void setApplicationContext(ApplicationContext appCtx) throws BeansException {
+		this.appCtx = appCtx;
+	}
+
+	RTMPTConnection createRTMPTConnection() {
+		RTMPTConnection client =
+			(RTMPTConnection) appCtx.getBean("rtmptConnection");
+		client.setRTMPTHandle(this);
+		return client;
+	}
 }

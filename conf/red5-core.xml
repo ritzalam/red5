@@ -89,6 +89,14 @@
 		autowire="byType">
 		<property name="codecFactory" ref="rtmpCodecFactory" />
 	</bean>
+	
+	<bean id="rtmpMinaConnection" scope="prototype" class="org.red5.server.net.rtmp.RTMPMinaConnection">
+		<property name="keepAliveInterval" value="10000"/>
+	</bean>
+	
+	<bean id="rtmptConnection" scope="prototype" class="org.red5.server.net.rtmpt.RTMPTConnection">
+		<property name="keepAliveInterval" value="10000"/>
+	</bean>
 
     <!-- Jetty Container -->  
 	<bean id="rtmpt.server" class="org.red5.server.net.rtmpt.RTMPTLoader" init-method="init" autowire="byType" />

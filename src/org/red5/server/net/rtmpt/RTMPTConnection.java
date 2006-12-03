@@ -19,6 +19,7 @@ package org.red5.server.net.rtmpt;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.BitSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -61,6 +62,8 @@ public class RTMPTConnection extends RTMPConnection {
 	 * Maximum polling delay. 
 	 */
 	protected static final byte MAX_POLLING_DELAY = 32;
+	
+	private static BitSet idSet = new BitSet(1000);
 
 	protected RTMP state;
 
@@ -86,16 +89,35 @@ public class RTMPTConnection extends RTMPConnection {
 
 	protected boolean closing = false;
 	
-	public RTMPTConnection(RTMPTHandler handler) {
+	protected int clientId;
+	
+	static {
+		// the first id is reserved
+		idSet.set(0);
+	}
+	
+	RTMPTConnection() {
 		super(POLLING);
+	}
+	
+	void setRTMPTHandle(RTMPTHandler handler) {
 		this.state = new RTMP(RTMP.MODE_SERVER);
 		this.buffer = ByteBuffer.allocate(2048);
 		this.buffer.setAutoExpand(true);
 		this.handler = handler;
 		this.decoder = handler.getCodecFactory().getSimpleDecoder();
 		this.encoder = handler.getCodecFactory().getSimpleEncoder();
+		synchronized (idSet) {
+			int id = idSet.nextClearBit(0);
+			if (id == Integer.MAX_VALUE) {
+				clientId = 0;
+			} else {
+				clientId = id;
+				idSet.set(id);
+			}
+		}
 	}
-
+	
 	@Override
 	public void close() {
 		// Defer actual closing so we can send back pending messages to the client.
@@ -119,7 +141,16 @@ public class RTMPTConnection extends RTMPConnection {
 		}
 		pendingMessages.clear();
 		state.setState(RTMP.STATE_DISCONNECTED);
+		synchronized (idSet) {
+			int id = Integer.valueOf(clientId);
+			idSet.clear(id);
+		}
 		super.close();
+	}
+	
+	protected void onInactive() {
+		close();
+		realClose();
 	}
 	
 	public void setServletRequest(HttpServletRequest request) {
@@ -133,8 +164,8 @@ public class RTMPTConnection extends RTMPConnection {
 	 * 
 	 * @return the client id
 	 */
-	public String getId() {
-		return Integer.toString(this.hashCode());
+	public int getId() {
+		return clientId;
 	}
 
 	/**

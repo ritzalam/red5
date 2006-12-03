@@ -1,4 +1,4 @@
-package org.red5.server.net.servlet;
+package org.red5.server.net.rtmpt;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -34,8 +34,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.server.net.rtmp.codec.RTMP;
-import org.red5.server.net.rtmpt.RTMPTConnection;
-import org.red5.server.net.rtmpt.RTMPTHandler;
+import org.red5.server.net.servlet.ServletUtils;
+import org.springframework.web.context.WebApplicationContext;
 
 /**
  * Servlet that handles all RTMPT requests.
@@ -68,11 +68,13 @@ public class RTMPTServlet extends HttpServlet {
 	 * also increases the latency.
 	 */
 	private static final int RESPONSE_TARGET_SIZE = 32768;
-
+	
 	/**
 	 * Holds a map of client id -> client object.
 	 */
-	protected HashMap<String, RTMPTConnection> rtmptClients = new HashMap<String, RTMPTConnection>();
+	protected HashMap<Integer, RTMPTConnection> rtmptClients = new HashMap<Integer, RTMPTConnection>();
+	
+	protected WebApplicationContext appCtx;
 
 	/**
 	 * Return an error message to the client.
@@ -153,10 +155,10 @@ public class RTMPTServlet extends HttpServlet {
 	/**
 	 * Return the client id from a url like /send/123456/12 -> 123456
 	 */
-	protected String getClientId(HttpServletRequest req) {
+	protected Integer getClientId(HttpServletRequest req) {
 		String path = req.getPathInfo();
 		if (path.equals("")) {
-			return "";
+			return null;
 		}
 
 		if (path.charAt(0) == '/') {
@@ -167,8 +169,11 @@ public class RTMPTServlet extends HttpServlet {
 		if (endPos != -1) {
 			path = path.substring(0, endPos);
 		}
-
-		return path;
+		try {
+			return Integer.parseInt(path);
+		} catch (NumberFormatException e) {
+			return null;
+		}
 	}
 
 	/**
@@ -178,8 +183,8 @@ public class RTMPTServlet extends HttpServlet {
 	 * @return
 	 */
 	protected RTMPTConnection getClient(HttpServletRequest req) {
-		String id = getClientId(req);
-		if (id.length() == 0 || !rtmptClients.containsKey(id)) {
+		Integer id = getClientId(req);
+		if (id == null || !rtmptClients.containsKey(id)) {
 			if (log.isDebugEnabled()) {
 				log.debug("Unknown client id: " + id);
 			}
@@ -240,10 +245,14 @@ public class RTMPTServlet extends HttpServlet {
 		skipData(req);
 
 		// TODO: should we evaluate the pathinfo?
-
 		RTMPTHandler handler = (RTMPTHandler) getServletContext().getAttribute(
 				RTMPTHandler.HANDLER_ATTRIBUTE);
-		RTMPTConnection client = new RTMPTConnection(handler);
+		RTMPTConnection client = handler.createRTMPTConnection();
+		if (client.getId() == 0) {
+			// no more clients are available for serving
+			returnMessage((byte) 0, resp);
+			return;
+		}
 		synchronized (rtmptClients) {
 			rtmptClients.put(client.getId(), client);
 		}
@@ -417,4 +426,11 @@ public class RTMPTServlet extends HttpServlet {
 
 	}
 
+	@Override
+	public void init() throws ServletException {
+		super.init();
+		appCtx = (WebApplicationContext) getServletContext().getAttribute(
+				WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
+	}
+	
 }

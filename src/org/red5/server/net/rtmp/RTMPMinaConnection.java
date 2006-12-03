@@ -35,8 +35,11 @@ public class RTMPMinaConnection extends RTMPConnection {
 
 	private IoSession ioSession;
 
-	public RTMPMinaConnection(IoSession protocolSession) {
+	RTMPMinaConnection() {
 		super(PERSISTENT);
+	}
+
+	void setIoSession(IoSession protocolSession) {
 		SocketAddress remote = protocolSession.getRemoteAddress();
 		if (remote instanceof InetSocketAddress) {
 			remoteAddress = ((InetSocketAddress) remote).getAddress()
@@ -48,7 +51,7 @@ public class RTMPMinaConnection extends RTMPConnection {
 		}
 		this.ioSession = protocolSession;
 	}
-
+	
 	public IoSession getIoSession() {
 		return ioSession;
 	}
@@ -88,5 +91,9 @@ public class RTMPMinaConnection extends RTMPConnection {
 	public void close() {
 		super.close();
 		ioSession.close();
+	}
+	
+	protected void onInactive() {
+		this.close();
 	}
 }

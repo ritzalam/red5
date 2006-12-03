@@ -34,6 +34,8 @@ import org.red5.server.api.IBandwidthConfigure;
 import org.red5.server.api.IContext;
 import org.red5.server.api.IFlowControllable;
 import org.red5.server.api.Red5;
+import org.red5.server.api.scheduling.IScheduledJob;
+import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IPendingServiceCallback;
 import org.red5.server.api.service.IServiceCall;
@@ -85,6 +87,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 	protected HashSet<DeferredResult> deferredResults = new HashSet<DeferredResult>();
 
 	protected int lastPingTime = -1;
+	protected boolean pingReplied = true;
+	protected String keepAliveJobName;
+	protected int keepAliveInterval = 1000;
 
 	private int bytesReadInterval = 125000;
 
@@ -270,6 +275,12 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	@Override
 	public void close() {
+		if (keepAliveJobName != null) {
+			ISchedulingService schedulingService =
+				(ISchedulingService) getScope().getContext().getBean(ISchedulingService.BEAN_NAME);
+			schedulingService.removeScheduledJob(keepAliveJobName);
+			keepAliveJobName = null;
+		}
 		Red5.setConnectionLocal(this);
 		IStreamService streamService = (IStreamService) getScopeService(scope,
 				IStreamService.class, StreamService.class);
@@ -534,10 +545,12 @@ public abstract class RTMPConnection extends BaseConnection implements
 		int now = (int) (System.currentTimeMillis() & 0xffffffff);
 		pingRequest.setValue2(now);
 		pingRequest.setValue3(Ping.UNDEFINED);
+		pingReplied = false;
 		ping(pingRequest);
 	}
 
 	protected void pingReceived(Ping pong) {
+		pingReplied = true;
 		int now = (int) (System.currentTimeMillis() & 0xffffffff);
 		lastPingTime = now - pong.getValue2();
 	}
@@ -545,7 +558,20 @@ public abstract class RTMPConnection extends BaseConnection implements
 	public int getLastPingTime() {
 		return lastPingTime;
 	}
+	
+	public void setKeepAliveInterval(int keepAliveInterval) {
+		this.keepAliveInterval = keepAliveInterval;
+	}
+	
+	public void startRoundTripMeasurement() {
+		ISchedulingService schedulingService =
+			(ISchedulingService) getScope().getContext().getBean(ISchedulingService.BEAN_NAME);
+		IScheduledJob keepAliveJob = new KeepAliveJob();
+		keepAliveJobName = schedulingService.addScheduledJob(keepAliveInterval, keepAliveJob);
+	}
 
+	protected abstract void onInactive();
+	
 	@Override
 	public String toString() {
 		return getClass().getSimpleName() + " from " + getRemoteAddress() + ':'
@@ -559,5 +585,14 @@ public abstract class RTMPConnection extends BaseConnection implements
 	
 	protected void unregisterDeferredResult(DeferredResult result) {
 		deferredResults.remove(result);
+	}
+	
+	private class KeepAliveJob implements IScheduledJob {
+		public void execute(ISchedulingService service) {
+			if (!pingReplied) {
+				onInactive();
+			}
+			ping();
+		}
 	}
 }
