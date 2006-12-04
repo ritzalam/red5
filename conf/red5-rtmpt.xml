@@ -105,7 +105,7 @@
                 									<list>
 							                           <bean class="org.mortbay.jetty.servlet.ServletHolder">
 							                               <property name="name" value="RTMPTServlet" />
-							                               <property name="className" value="org.red5.server.net.servlet.RTMPTServlet" />
+							                               <property name="className" value="org.red5.server.net.rtmpt.RTMPTServlet" />
 							                           </bean>
 													</list>
 												</property>
