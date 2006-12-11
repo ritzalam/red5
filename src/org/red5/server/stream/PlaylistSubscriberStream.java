@@ -109,65 +109,63 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 		notifySubscriberStart();
 	}
 
-	public void play() {
-		synchronized (items) {
-			if (items.size() == 0) {
-				return;
-			}
-			if (currentItemIndex == -1) {
+	synchronized public void play() {
+		if (items.size() == 0) {
+			return;
+		}
+		if (currentItemIndex == -1) {
+			moveToNext();
+		}
+		IPlayItem item = items.get(currentItemIndex);
+		int count = items.size();
+		while (count-- > 0) {
+			try {
+				engine.play(item);
+				break;
+			} catch (StreamNotFoundException e) {
+				// go for next item
 				moveToNext();
-			}
-			IPlayItem item = items.get(currentItemIndex);
-			int count = items.size();
-			while (count-- > 0) {
-				try {
-					engine.play(item);
-					break;
-				} catch (StreamNotFoundException e) {
-					// go for next item
-					moveToNext();
-					if (currentItemIndex == -1) {
-						// we reaches the end.
-						break;
-					}
-					item = items.get(currentItemIndex);
-				} catch (IllegalStateException e) {
-					// an stream is already playing
+				if (currentItemIndex == -1) {
+					// we reaches the end.
 					break;
 				}
+				item = items.get(currentItemIndex);
+			} catch (IllegalStateException e) {
+				// an stream is already playing
+				break;
 			}
 		}
 	}
 
-	public void pause(int position) {
+	synchronized public void pause(int position) {
 		try {
 			engine.pause(position);
 		} catch (IllegalStateException e) {
 		}
 	}
 
-	public void resume(int position) {
+	synchronized public void resume(int position) {
 		try {
 			engine.resume(position);
 		} catch (IllegalStateException e) {
 		}
 	}
 
-	public void stop() {
+	synchronized public void stop() {
 		try {
 			engine.stop();
 		} catch (IllegalStateException e) {
 		}
 	}
 
-	public void seek(int position) {
+	synchronized public void seek(int position) {
 		try {
 			engine.seek(position);
 		} catch (IllegalStateException e) {
 		}
 	}
 
-	public void close() {
+	synchronized public void close() {
 		engine.close();
 		flowControlService.releaseFlowControllable(this);
 		notifySubscriberClose();
@@ -177,130 +175,116 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 		return (engine.state == State.PAUSED);
 	}
 
-	public void addItem(IPlayItem item) {
-		synchronized (items) {
-			items.add(item);
-		}
+	synchronized public void addItem(IPlayItem item) {
+		items.add(item);
 	}
 
-	public void addItem(IPlayItem item, int index) {
-		synchronized (items) {
-			items.add(index, item);
-		}
+	synchronized public void addItem(IPlayItem item, int index) {
+		items.add(index, item);
 	}
 
-	public void removeItem(int index) {
-		synchronized (items) {
-			if (index < 0 || index >= items.size()) {
-				return;
-			}
-			int originSize = items.size();
-			items.remove(index);
-			if (currentItemIndex == index) {
-				// set the next item.
-				if (index == originSize - 1) {
-					currentItemIndex = index - 1;
-				}
+	synchronized public void removeItem(int index) {
+		if (index < 0 || index >= items.size()) {
+			return;
+		}
+		int originSize = items.size();
+		items.remove(index);
+		if (currentItemIndex == index) {
+			// set the next item.
+			if (index == originSize - 1) {
+				currentItemIndex = index - 1;
 			}
 		}
 	}
 
-	public void removeAllItems() {
-		synchronized (items) {
-			// we try to stop the engine first
-			stop();
-			items.clear();
-		}
+	synchronized public void removeAllItems() {
+		// we try to stop the engine first
+		stop();
+		items.clear();
 	}
 
-	public void previousItem() {
-		synchronized (items) {
-			stop();
-			moveToPrevious();
-			if (currentItemIndex == -1) {
-				return;
-			}
-			IPlayItem item = items.get(currentItemIndex);
-			int count = items.size();
-			while (count-- > 0) {
-				try {
-					engine.play(item);
-					break;
-				} catch (StreamNotFoundException e) {
-					// go for next item
-					moveToPrevious();
-					if (currentItemIndex == -1) {
-						// we reaches the end.
-						break;
-					}
-					item = items.get(currentItemIndex);
-				} catch (IllegalStateException e) {
-					// an stream is already playing
+	synchronized public void previousItem() {
+		stop();
+		moveToPrevious();
+		if (currentItemIndex == -1) {
+			return;
+		}
+		IPlayItem item = items.get(currentItemIndex);
+		int count = items.size();
+		while (count-- > 0) {
+			try {
+				engine.play(item);
+				break;
+			} catch (StreamNotFoundException e) {
+				// go for next item
+				moveToPrevious();
+				if (currentItemIndex == -1) {
+					// we reaches the end.
 					break;
 				}
+				item = items.get(currentItemIndex);
+			} catch (IllegalStateException e) {
+				// an stream is already playing
+				break;
 			}
 		}
 	}
 
-	public void nextItem() {
-		synchronized (items) {
-			stop();
-			moveToNext();
-			boolean needPause = false;
-			if (currentItemIndex == -1) {
-				if (items.size() > 0) {
-					// move to the head of the list and pause at the beginning
-					moveToNext();
-					if (currentItemIndex >= 0) {
-						needPause = true;
-					} else {
-						return;
-					}
+	synchronized public void nextItem() {
+		stop();
+		moveToNext();
+		boolean needPause = false;
+		if (currentItemIndex == -1) {
+			if (items.size() > 0) {
+				// move to the head of the list and pause at the beginning
+				moveToNext();
+				if (currentItemIndex >= 0) {
+					needPause = true;
 				} else {
 					return;
 				}
+			} else {
+				return;
 			}
-			IPlayItem item = items.get(currentItemIndex);
-			int count = items.size();
-			while (count-- > 0) {
-				try {
-					engine.play(item);
-					if (needPause) {
-						engine.pause(0);
-					}
-					break;
-				} catch (StreamNotFoundException e) {
-					// go for next item
-					moveToNext();
-					if (currentItemIndex == -1) {
-						// we reaches the end.
-						break;
-					}
-					item = items.get(currentItemIndex);
-				} catch (IllegalStateException e) {
-					// an stream is already playing
+		}
+		IPlayItem item = items.get(currentItemIndex);
+		int count = items.size();
+		while (count-- > 0) {
+			try {
+				engine.play(item);
+				if (needPause) {
+					engine.pause(0);
+				}
+				break;
+			} catch (StreamNotFoundException e) {
+				// go for next item
+				moveToNext();
+				if (currentItemIndex == -1) {
+					// we reaches the end.
 					break;
 				}
+				item = items.get(currentItemIndex);
+			} catch (IllegalStateException e) {
+				// an stream is already playing
+				break;
 			}
 		}
 	}
 
-	public void setItem(int index) {
-		synchronized (items) {
-			if (index < 0 || index >= items.size()) {
-				return;
-			}
-			stop();
-			currentItemIndex = index;
-			IPlayItem item = items.get(currentItemIndex);
-			try {
-				engine.play(item);
-			} catch (StreamNotFoundException e) {
-				// let the engine retain the STOPPED state
-				// and wait for control from outside
-			} catch (IllegalStateException e) {
+	synchronized public void setItem(int index) {
+		if (index < 0 || index >= items.size()) {
+			return;
+		}
+		stop();
+		currentItemIndex = index;
+		IPlayItem item = items.get(currentItemIndex);
+		try {
+			engine.play(item);
+		} catch (StreamNotFoundException e) {
+			// let the engine retain the STOPPED state
+			// and wait for control from outside
+		} catch (IllegalStateException e) {
 
-			}
 		}
 	}
 
@@ -367,7 +351,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 	 * Glue for old code base.
 	 * @param message
 	 */
-	public void written(Object message) {
+	synchronized public void written(Object message) {
 		engine.pullAndPush();
 	}
 
@@ -524,7 +508,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			state = State.UNINIT;
 		}
 
-		synchronized public void start() {
+		public void start() {
 			if (state != State.UNINIT) {
 				throw new IllegalStateException();
 			}
@@ -542,7 +526,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 					.getVideoTokenBucket(PlaylistSubscriberStream.this);
 		}
 
-		synchronized public void play(IPlayItem item)
+		public void play(IPlayItem item)
 				throws StreamNotFoundException, IllegalStateException {
 			if (state != State.STOPPED) {
 				throw new IllegalStateException();
@@ -649,9 +633,11 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 								item.getLength(), new IScheduledJob() {
 									public void execute(
 											ISchedulingService service) {
-										waitLiveJob = null;
-										isWaiting = false;
-										onItemEnd();
+										synchronized (PlaylistSubscriberStream.this) {
+											waitLiveJob = null;
+											isWaiting = false;
+											onItemEnd();
+										}
 									}
 								});
 					}
@@ -683,7 +669,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			notifyItemPlay(currentItem, !isPullMode);
 		}
 
-		synchronized public void pause(int position)
+		public void pause(int position)
 				throws IllegalStateException {
 			if (state != State.PLAYING) {
 				throw new IllegalStateException();
@@ -699,7 +685,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			}
 		}
 
-		synchronized public void resume(int position)
+		public void resume(int position)
 				throws IllegalStateException {
 			if (state != State.PAUSED) {
 				throw new IllegalStateException();
@@ -725,7 +711,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			}
 		}
 
-		synchronized public void seek(int position)
+		public void seek(int position)
 				throws IllegalStateException {
 			if (state != State.PLAYING && state != State.PAUSED) {
 				throw new IllegalStateException();
@@ -778,7 +764,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			}
 		}
 
-		synchronized public void stop() throws IllegalStateException {
+		public void stop() throws IllegalStateException {
 
 			if (state != State.PLAYING && state != State.PAUSED) {
 				throw new IllegalStateException();
@@ -799,7 +785,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			sendReset();
 		}
 
-		synchronized public void close() {
+		public void close() {
 
 			if (state == State.PLAYING || state == State.PAUSED) {
 				if (msgIn != null) {
@@ -815,7 +801,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			sendClearPing();
 		}
 
-		synchronized private void pullAndPush() {
+		private void pullAndPush() {
 			if (state == State.PLAYING && isPullMode && !isWaitingForToken) {
 				int size;
 				if (pendingMessage != null) {
@@ -870,10 +856,12 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 												new IScheduledJob() {
 													public void execute(
 															ISchedulingService service) {
-														// OMFG: it works god dammit! now we stop it.
-														stop();
-														onItemEnd();
-														log.info("Stop");
+														synchronized (PlaylistSubscriberStream.this) {
+															// OMFG: it works god dammit! now we stop it.
+															stop();
+															onItemEnd();
+															log.info("Stop");
+														}
 													}
 												});
 								log.info("Scheduled stop in: " + timeDelta);
@@ -1162,7 +1150,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			}
 		}
 
-		synchronized public void pushMessage(IPipe pipe, IMessage message) {
+		public void pushMessage(IPipe pipe, IMessage message) {
 			if (message instanceof ResetMessage) {
 				sendReset();
 			}
@@ -1212,16 +1200,18 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			msgOut.pushMessage(message);
 		}
 
-		synchronized public void execute(ISchedulingService service) {
-			if (playLengthJob == null) {
-				return;
+		public void execute(ISchedulingService service) {
+			synchronized (PlaylistSubscriberStream.this) {
+				if (playLengthJob == null) {
+					return;
+				}
+				playLengthJob = null;
+				stop();
+				onItemEnd();
 			}
-			playLengthJob = null;
-			stop();
-			onItemEnd();
 		}
 
-		synchronized public void available(ITokenBucket bucket,
+		public void available(ITokenBucket bucket,
 				double tokenCount) {
 			isWaitingForToken = false;
 			pullAndPush();
