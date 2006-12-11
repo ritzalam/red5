@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -64,9 +65,9 @@ public class Scope extends BasicScope implements IScope {
 
 	private boolean running;
 
-	private HashMap<String, IBasicScope> children = new HashMap<String, IBasicScope>();
+	private Map<String, IBasicScope> children = new ConcurrentHashMap<String, IBasicScope>();
 
-	private HashMap<IClient, Set<IConnection>> clients = new HashMap<IClient, Set<IConnection>>();
+	private Map<IClient, Set<IConnection>> clients = new ConcurrentHashMap<IClient, Set<IConnection>>();
 
 	public Scope() {
 		this(null);
@@ -460,10 +461,7 @@ public class Scope extends BasicScope implements IScope {
 		private IConnection current;
 
 		public ConnectionIterator() {
-			// NOTE: we create a copy of the client connections here
-			//       to prevent ConcurrentModificationExceptions while
-			//       traversing the iterator.
-			setIterator = new HashSet<Set<IConnection>>(clients.values()).iterator();
+			setIterator = clients.values().iterator();
 		}
 
 		public boolean hasNext() {
@@ -476,7 +474,7 @@ public class Scope extends BasicScope implements IScope {
 				if (!setIterator.hasNext()) {
 					return null;
 				}
-				connIterator = new HashSet<IConnection>(setIterator.next()).iterator();
+				connIterator = setIterator.next().iterator();
 			}
 			current = (IConnection) connIterator.next();
 			return current;
