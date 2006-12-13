@@ -31,12 +31,19 @@ import java.util.Set;
 public interface IAttributeStore {
 
 	/**
-	 * Get the attribute names.
+	 * Get the attribute names. The resulting set will be read-only.
 	 * 
 	 * @return set containing all attribute names
 	 */
 	public Set<String> getAttributeNames();
 
+	/**
+	 * Get the attributes. The resulting map will be read-only.
+	 * 
+	 * @return map containing all attributes
+	 */
+	public Map<String, Object> getAttributes();
+	
 	/**
 	 * Set an attribute on this object.
 	 * 

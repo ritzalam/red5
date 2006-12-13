@@ -19,18 +19,20 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.red5.server.api.IAttributeStore;
 import org.red5.server.api.ICastingAttributeStore;
 
 public class AttributeStore implements ICastingAttributeStore {
 
-	protected Map<String, Object> attributes = new HashMap<String, Object>();
+	protected Map<String, Object> attributes = new ConcurrentHashMap<String, Object>();
 
 	protected Map<String, Integer> hashes = new HashMap<String, Integer>();
 
@@ -39,9 +41,13 @@ public class AttributeStore implements ICastingAttributeStore {
 	}
 
 	public Set<String> getAttributeNames() {
-		return attributes.keySet();
+		return Collections.unmodifiableSet(attributes.keySet());
 	}
 
+	public Map<String, Object> getAttributes() {
+		return Collections.unmodifiableMap(attributes);
+	}
+	
 	public Object getAttribute(String name) {
 		return attributes.get(name);
 	}

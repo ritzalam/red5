@@ -63,6 +63,10 @@ public class StatefulScopeWrappingAdapter extends AbstractScopeAdapter
 		return scope.getAttributeNames();
 	}
 
+	public Map<String, Object> getAttributes() {
+		return scope.getAttributes();
+	}
+
 	public boolean hasAttribute(String name) {
 		return scope.hasAttribute(name);
 	}

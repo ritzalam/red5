@@ -30,6 +30,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -84,7 +85,7 @@ public class SharedObject implements IPersistable, Constants {
 
 	public SharedObject() {
 		// This is used by the persistence framework
-		data = new HashMap<String, Object>();
+		data = new ConcurrentHashMap<String, Object>();
 
 		ownerMessage = new SharedObjectMessage(null, null, -1, false);
 	}
@@ -96,7 +97,8 @@ public class SharedObject implements IPersistable, Constants {
 
 	public SharedObject(Map<String, Object> data, String name, String path,
 			boolean persistent) {
-		this.data = data;
+		this.data = new ConcurrentHashMap<String, Object>();
+		this.data.putAll(data);
 		this.name = name;
 		this.path = path;
 		this.persistentSO = persistent;
@@ -106,7 +108,8 @@ public class SharedObject implements IPersistable, Constants {
 
 	public SharedObject(Map<String, Object> data, String name, String path,
 			boolean persistent, IPersistenceStore storage) {
-		this.data = data;
+		this.data = new ConcurrentHashMap<String, Object>();
+		this.data.putAll(data);
 		this.name = name;
 		this.path = path;
 		this.persistentSO = persistent;
@@ -244,6 +247,10 @@ public class SharedObject implements IPersistable, Constants {
 
 	public Set<String> getAttributeNames() {
 		return Collections.unmodifiableSet(data.keySet());
+	}
+
+	public Map<String, Object> getAttributes() {
+		return Collections.unmodifiableMap(data);
 	}
 
 	public Object getAttribute(String name) {
