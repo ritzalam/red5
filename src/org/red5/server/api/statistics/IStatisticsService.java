@@ -32,7 +32,7 @@ import org.red5.server.exception.SharedObjectException;
  * properties of different shared objects.
  * 
  * Use <code>getScopeStatisticsSO</code> and <code>getSharedObjectStatisticsSO</code>
- * to get these shared objects. The property names are <code>scopeName</scope>
+ * to get these shared objects. The property names are <code>scopeName</code>
  * for scope attributes and <code>scopeName|sharedObjectName</code> for
  * shared object attributes. Each property holds a Map containing key/value
  * mappings of the corresponding attributes.
