@@ -39,74 +39,144 @@ import org.springframework.context.access.ContextSingletonBeanFactoryLocator;
 import org.springframework.core.io.Resource;
 
 public class Context implements IContext, ApplicationContextAware {
-
+    /**
+     *  Spring application context
+     */
 	private ApplicationContext applicationContext;
 
-	private BeanFactory coreContext;
-
+    /**
+     *  Core context
+     */
+    private BeanFactory coreContext;
+    /**
+     *  Context path
+     */
 	private String contextPath = "";
-
+    /**
+     *  Scope resolver collaborator
+     */
 	private IScopeResolver scopeResolver;
-
+    /**
+     *  Client registry
+     */
 	private IClientRegistry clientRegistry;
-
+    /**
+     *  Service invoker collaborator
+     */
 	private IServiceInvoker serviceInvoker;
-
+    /**
+     *  Mapping stategy collaborator
+     */
 	private IMappingStrategy mappingStrategy;
-
+    /**
+     *  Persistence store
+     */
 	private IPersistenceStore persistanceStore;
 
+    /**
+     *  Initializes core context bean factory using red5.core bean factory from ref5.xml context
+     */
 	public Context() {
 		coreContext = ContextSingletonBeanFactoryLocator
 				.getInstance("red5.xml").useBeanFactory("red5.core")
 				.getFactory();
 	}
 
+    /**
+     * Initializes app context and context path from given parameters
+     * @param context                  Application context
+     * @param contextPath              Context path
+     */
 	public Context(ApplicationContext context, String contextPath) {
 		this.applicationContext = context;
 		this.contextPath = contextPath;
 	}
 
+    /**
+     * Return global scope
+     * @return            Global scope
+     */
 	public IScope getGlobalScope() {
 		return scopeResolver.getGlobalScope();
 	}
 
+    /**
+     * Resolves scope using scope resolvep collaborator
+     * @param path            Path to resolve
+     * @return                Scope resolution result
+     */
 	public IScope resolveScope(String path) {
 		return scopeResolver.resolveScope(path);
 	}
 
+    /**
+     * Setter for client registry
+     * @param clientRegistry     Client registry
+     */
 	public void setClientRegistry(IClientRegistry clientRegistry) {
 		this.clientRegistry = clientRegistry;
 	}
 
+    /**
+     * Setter for mapping stategy
+     * @param mappingStrategy    Mapping strategy
+     */
 	public void setMappingStrategy(IMappingStrategy mappingStrategy) {
 		this.mappingStrategy = mappingStrategy;
 	}
 
+    /**
+     * Setter for scope resolver
+     * @param scopeResolver      Scope resolver used to resolve scopes
+     */
 	public void setScopeResolver(IScopeResolver scopeResolver) {
 		this.scopeResolver = scopeResolver;
 	}
 
+    /**
+     *  Setter for service invoker
+     * @param serviceInvoker
+     */
 	public void setServiceInvoker(IServiceInvoker serviceInvoker) {
 		this.serviceInvoker = serviceInvoker;
 	}
 
+    /**
+     * Return persistence store
+     * @return                   Persistence store
+     */
 	public IPersistenceStore getPersistanceStore() {
 		return persistanceStore;
 	}
 
+    /**
+     *  Setter for persistence store
+     * @param persistanceStore   Persistence store
+     */
 	public void setPersistanceStore(IPersistenceStore persistanceStore) {
 		this.persistanceStore = persistanceStore;
 	}
 
+    /**
+     * Setter for application context
+     * @param context            App context
+     */
 	public void setApplicationContext(ApplicationContext context) {
 		this.applicationContext = context;
 	}
 
+    /**
+     * Return application context
+     * @return                  App context
+     */
 	public ApplicationContext getApplicationContext() {
 		return applicationContext;
 	}
 
+    /**
+     * Setter for context path. Adds slash at the end of path if there's no one
+     * @param contextPath       Context path
+     */
 	public void setContextPath(String contextPath) {
 		if (!contextPath.endsWith("/")) {
 			contextPath += '/';
@@ -114,19 +184,38 @@ public class Context implements IContext, ApplicationContextAware {
 		this.contextPath = contextPath;
 	}
 
+    /**
+     * Return client registry
+     * @return                  Client registry
+     */
 	public IClientRegistry getClientRegistry() {
 		return clientRegistry;
 	}
 
+    /**
+     * Return scope
+     * @return                   null
+     */
 	public IScope getScope() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
+    /**
+     * Return service invoker
+     * @return                  Service invoker
+     */
 	public IServiceInvoker getServiceInvoker() {
 		return serviceInvoker;
 	}
 
+    /**
+     * Look up service by name
+     *
+     * @param serviceName     Service name
+     * @return                Service object
+     * @throws                ServiceNotFoundException          When service found but null
+     * @throws                NoSuchBeanDefinitionException     When bean with given name doesn't exist
+     */
 	public Object lookupService(String serviceName) {
 		serviceName = getMappingStrategy().mapServiceName(serviceName);
 		try {
@@ -145,10 +234,18 @@ public class Context implements IContext, ApplicationContextAware {
 	 * public IScopeResolver getScopeResolver() { return scopeResolver; }
 	 */
 
-	public IScopeHandler lookupScopeHandler(String contextPath) {
-		String scopeHandlerName = getMappingStrategy().mapScopeHandlerName(
+    /**
+     * Look up scope handler for context path
+     * @param contextPath                Context path
+     * @return                           Scope handler
+     * @throws                           ScopeHandlerNotFoundException      If there's no handler for given context path
+     */
+    public IScopeHandler lookupScopeHandler(String contextPath) {
+        // Get target scope handler name
+        String scopeHandlerName = getMappingStrategy().mapScopeHandlerName(
 				contextPath);
-		Object bean = applicationContext.getBean(scopeHandlerName);
+        // Get bean from bean factory
+        Object bean = applicationContext.getBean(scopeHandlerName);
 		if (bean != null && bean instanceof IScopeHandler) {
 			return (IScopeHandler) bean;
 		} else {
@@ -156,30 +253,77 @@ public class Context implements IContext, ApplicationContextAware {
 		}
 	}
 
+    /**
+     * Return mapping stategy
+     * @return               Mapping strategy
+     */
 	public IMappingStrategy getMappingStrategy() {
 		return mappingStrategy;
 	}
 
+    /**
+     * Return array or resournce that match given pattern
+     * @param pattern        Pattern to check against
+     * @return               Array of Resource objects
+     * @throws IOException   On I/O exception
+     *
+     * @see                  org.springframework.core.io.Resource
+     */
 	public Resource[] getResources(String pattern) throws IOException {
 		return applicationContext.getResources(contextPath + pattern);
 	}
 
+    /**
+     * Return resouce by path
+     * @param path           Resource path
+     * @return               Resource
+     *
+     * @see                  org.springframework.core.io.Resource
+     */
 	public Resource getResource(String path) {
 		return applicationContext.getResource(contextPath + path);
 	}
 
+    /**
+     * Resolve scope from host and path
+     *
+     * @param host      Host
+     * @param path      Path
+     * @return          Scope
+     *
+     * @see             org.red5.server.api.IScope
+     * @see             org.red5.server.Scope
+     */
 	public IScope resolveScope(String host, String path) {
 		return scopeResolver.resolveScope(path);
 	}
 
+    /**
+     * Return bean instantiated by bean factory
+     * @param beanId    Bean name
+     * @return          Instantiated bean
+     *
+     * @see             org.springframework.beans.factory.BeanFactory
+     */
 	public Object getBean(String beanId) {
 		return applicationContext.getBean(beanId);
 	}
 
+    /**
+     * Return core Red5 service instantiated by core context bean factory
+     * @param beanId    Bean name
+     * @return          Core Red5 service instantiated
+     *
+     * @see             org.springframework.beans.factory.BeanFactory
+     */
 	public Object getCoreService(String beanId) {
 		return coreContext.getBean(beanId);
 	}
 
+    /**
+     * Return current thread's context classloader
+     * @return          Classloder context of current thread
+     */
 	public ClassLoader getClassLoader() {
 		return Thread.currentThread().getContextClassLoader();
 	}

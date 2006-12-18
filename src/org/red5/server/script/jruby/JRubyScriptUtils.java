@@ -75,6 +75,8 @@ public abstract class JRubyScriptUtils {
 	/**
 	 * Given the root {@link Node} in a JRuby AST will locate the name of the class defined
 	 * by that AST.
+     * @param rootNode
+     * @return
 	 * @throws IllegalArgumentException if no class is defined by the supplied AST.
 	 */
 	private static String findClassName(Node rootNode) {
@@ -90,7 +92,9 @@ public abstract class JRubyScriptUtils {
 	/**
 	 * Finds the first {@link ClassNode} under the supplied {@link Node}. Returns
 	 * '<code>null</code>' if no {@link ClassNode} is found.
-	 */
+     * @param node
+     * @return
+     */
 	private static ClassNode findClassNode(Node node) {
 		if (node instanceof ClassNode) {
 			return (ClassNode) node;

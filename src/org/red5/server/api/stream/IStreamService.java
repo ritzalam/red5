@@ -43,7 +43,7 @@ public interface IStreamService extends IScopeService {
 	/**
 	 * Close the stream if not been closed.
 	 * Deallocate the related resources.
-	 * @param number
+     * @param streamId
 	 */
 	public void deleteStream(int streamId);
 

@@ -31,25 +31,49 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.style.ToStringCreator;
 
+/**
+ * Red5 server core class implementation.
+ */
 public class Server implements IServer, ApplicationContextAware {
 
 	// Initialize Logging
 	protected static Log log = LogFactory.getLog(Server.class.getName());
-
+    /**
+     *  List of global scopes
+     */
 	protected HashMap<String, IGlobalScope> globals = new HashMap<String, IGlobalScope>();
-
+    /**
+     * Mappings
+     */
 	protected HashMap<String, String> mapping = new HashMap<String, String>();
-
+    /**
+     *  Spring application context
+     */
 	protected ApplicationContext applicationContext;
-
+    /**
+     *  Constant for slash
+     */
 	private static final String SLASH = "/";
-
+    /**
+     *  Constant for empty string
+     */
 	private static final String EMPTY = "";
 
+    /**
+     *
+     * @param applicationContext
+     */
 	public void setApplicationContext(ApplicationContext applicationContext) {
 		this.applicationContext = applicationContext;
 	}
 
+    /**
+     * Return scope key. Scope key consists of host name concatenated with context path by slash symbol
+     *
+     * @param hostName           Host name
+     * @param contextPath        Context path
+     * @return                   Scope key as string
+     */
 	protected String getKey(String hostName, String contextPath) {
 		if (hostName == null) {
 			hostName = EMPTY;
@@ -60,6 +84,13 @@ public class Server implements IServer, ApplicationContextAware {
 		return hostName + SLASH + contextPath;
 	}
 
+    /**
+     * Does global scope lookup for host name and context path
+     *
+     * @param hostName              Host name
+     * @param contextPath           Context path
+     * @return                      Global scope
+     */
 	public IGlobalScope lookupGlobal(String hostName, String contextPath) {
 		String key = getKey(hostName, contextPath);
 		while (contextPath.indexOf(SLASH) != -1) {
@@ -101,15 +132,34 @@ public class Server implements IServer, ApplicationContextAware {
 		return getGlobal(mapping.get(key));
 	}
 
+    /**
+     * Return global scope by name
+     *
+     * @param name       Global scope name
+     * @return           Global scope
+     */
 	public IGlobalScope getGlobal(String name) {
 		return globals.get(name);
 	}
 
+    /**
+     * Register global scope
+     *
+     * @param scope       Global scope to register
+     */
 	public void registerGlobal(IGlobalScope scope) {
 		log.info("Registering global scope: " + scope.getName());
 		globals.put(scope.getName(), scope);
 	}
 
+    /**
+     * Map key (host + / + context path) and global scope name
+     *
+     * @param hostName          Host name
+     * @param contextPath       Context path
+     * @param globalName        Global scope name
+     * @return                  true if mapping was added, false if already exist
+     */
 	public boolean addMapping(String hostName, String contextPath,
 			String globalName) {
 		final String key = getKey(hostName, contextPath);
@@ -123,6 +173,13 @@ public class Server implements IServer, ApplicationContextAware {
 		return true;
 	}
 
+    /**
+     * Remove mapping with given key
+     *
+     * @param hostName              Host name
+     * @param contextPath           Context path
+     * @return                      true if mapping was removed, false if key doesn't exist
+     */
 	public boolean removeMapping(String hostName, String contextPath) {
 		final String key = getKey(hostName, contextPath);
 		if (log.isDebugEnabled()) {
@@ -135,18 +192,38 @@ public class Server implements IServer, ApplicationContextAware {
 		return true;
 	}
 
+    /**
+     * Return mapping
+     *
+     * @return             Map of "scope key / scope name" pairs
+     */
 	public Map<String, String> getMappingTable() {
 		return mapping;
 	}
 
+    /**
+     * Return global scope names set iterator
+     *
+     * @return           Iterator
+     */
 	public Iterator<String> getGlobalNames() {
 		return globals.keySet().iterator();
 	}
 
+    /**
+     * Return global scopes set iterator
+     *
+     * @return           Iterator
+     */
 	public Iterator<IGlobalScope> getGlobalScopes() {
 		return globals.values().iterator();
 	}
 
+    /**
+     * String representation of server
+     *
+     * @return            String representation of server
+     */
 	@Override
 	public String toString() {
 		return new ToStringCreator(this).append(mapping).toString();

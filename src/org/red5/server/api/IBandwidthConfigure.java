@@ -73,6 +73,7 @@ public interface IBandwidthConfigure {
 	 * 
 	 * @param bw
 	 *            Bandwidth
+     * @return
 	 */
 	long getUpstreamBandwidth();
 

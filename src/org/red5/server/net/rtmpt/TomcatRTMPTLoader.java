@@ -110,7 +110,7 @@ public class TomcatRTMPTLoader extends TomcatLoader {
 	/**
 	 * Set primary context
 	 * 
-	 * @param context
+     * @param contextMap
 	 */
 	//public void setContext(Context context) {
 	//	log.debug("RTMPT setContext");

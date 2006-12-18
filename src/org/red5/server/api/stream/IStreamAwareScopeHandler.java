@@ -97,6 +97,7 @@ public interface IStreamAwareScopeHandler extends IScopeHandler {
 	 * 
 	 * @param stream
 	 * @param item
+     * @param position
 	 */
 	public void streamPlaylistVODItemPause(IPlaylistSubscriberStream stream,
 			IPlayItem item, int position);
@@ -106,6 +107,7 @@ public interface IStreamAwareScopeHandler extends IScopeHandler {
 	 * 
 	 * @param stream
 	 * @param item
+     * @param position
 	 */
 	public void streamPlaylistVODItemResume(IPlaylistSubscriberStream stream,
 			IPlayItem item, int position);
@@ -115,6 +117,7 @@ public interface IStreamAwareScopeHandler extends IScopeHandler {
 	 * 
 	 * @param stream
 	 * @param item
+     * @param position
 	 */
 	public void streamPlaylistVODItemSeek(IPlaylistSubscriberStream stream,
 			IPlayItem item, int position);

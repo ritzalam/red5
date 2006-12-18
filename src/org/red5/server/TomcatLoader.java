@@ -41,23 +41,37 @@ public class TomcatLoader implements ApplicationContextAware {
 	// Initialize Logging
 	protected static Logger log = Logger
 			.getLogger(TomcatLoader.class.getName());
-
+    /**
+     * Embedded Tomcat service (like Catalina)
+     */
 	protected Embedded embedded;
-
+    /**
+     * Tomcat engine
+     */
 	protected Engine engine;
-
+    /**
+     * Tomcat realm
+     */
 	protected Realm realm;
-
+    /**
+     * Tomcat connector
+     */
 	protected Connector connector;
-
+    /**
+     * Base container host
+     */
 	private Host baseHost;
 
-	// We store the application context in a ThreadLocal so we can access it
-	// later.
-	protected static ThreadLocal<ApplicationContext> applicationContext = new ThreadLocal<ApplicationContext>();
+    /**
+     * We store the application context in a ThreadLocal so we can access it
+	 * later
+     */
+    protected static ThreadLocal<ApplicationContext> applicationContext = new ThreadLocal<ApplicationContext>();
 
-	// used during context creation
-	private static String appRoot;
+    /**
+     * Used during context creation
+     */
+    private static String appRoot;
 
 	static {
 		log.info("Init tomcat");
@@ -75,15 +89,27 @@ public class TomcatLoader implements ApplicationContextAware {
 		System.setProperty("catalina.base", serverRoot);
 	}
 
+    /**
+     * Setter for application context
+     * @param context                Application context
+     * @throws BeansException        Abstract superclass for all exceptions thrown in the beans package and subpackages
+     */
 	public void setApplicationContext(ApplicationContext context)
 			throws BeansException {
 		applicationContext.set(context);
 	}
 
+    /**
+     * Getter for application context
+     * @return         Application context
+     */
 	public static ApplicationContext getApplicationContext() {
 		return applicationContext.get();
 	}
 
+    /**
+     * Initialization
+     */
 	public void init() {
 		log.info("Loading tomcat context");
 
@@ -97,9 +123,12 @@ public class TomcatLoader implements ApplicationContextAware {
 		if (log.isDebugEnabled()) {
 			log.debug("Approot: " + appRoot);
 		}
-		File appDirBase = new File(appRoot);
-		File[] dirs = appDirBase.listFiles(new DirectoryFilter());
-		for (File dir : dirs) {
+        // Root applications directory
+        File appDirBase = new File(appRoot);
+        // Subdirs of root apps dir
+        File[] dirs = appDirBase.listFiles(new DirectoryFilter());
+        // Search for additional context files
+        for (File dir : dirs) {
 			String dirName = '/' + dir.getName();
 			//check to see if the directory is already mapped 
 			if (null == baseHost.findChild(dirName)) {
@@ -141,28 +170,52 @@ public class TomcatLoader implements ApplicationContextAware {
 		}
 	}
 
+    /**
+     * Getter for realm
+     * @return         Realm
+     */
 	public Realm getRealm() {
 		return realm;
 	}
 
+    /**
+     * Setter for realm
+     * @param realm    Realm
+     */
 	public void setRealm(Realm realm) {
 		log.info("Setting realm: " + realm.getClass().getName());
 		this.realm = realm;
 	}
 
+    /**
+     *
+     * @return
+     */
 	public Engine getEngine() {
 		return engine;
 	}
 
+    /**
+     *
+     * @param engine
+     */
 	public void setEngine(Engine engine) {
 		log.info("Setting engine: " + engine.getClass().getName());
 		this.engine = engine;
 	}
 
+    /**
+     *
+     * @return
+     */
 	public Host getBaseHost() {
 		return baseHost;
 	}
 
+    /**
+     *
+     * @param baseHost
+     */
 	public void setBaseHost(Host baseHost) {
 		log.debug("setBaseHost");
 		this.baseHost = baseHost;
@@ -172,15 +225,27 @@ public class TomcatLoader implements ApplicationContextAware {
 		return embedded;
 	}
 
+    /**
+     *
+     * @param embedded
+     */
 	public void setEmbedded(Embedded embedded) {
 		log.info("Setting embedded: " + embedded.getClass().getName());
 		this.embedded = embedded;
 	}
 
+    /**
+     *
+     * @return
+     */
 	public Connector getConnector() {
 		return connector;
 	}
 
+    /**
+     *
+     * @param connector
+     */
 	public void setConnector(Connector connector) {
 		log.info("Setting connector: " + connector.getClass().getName());
 		this.connector = connector;
@@ -203,7 +268,7 @@ public class TomcatLoader implements ApplicationContextAware {
 	/**
 	 * Set additional hosts
 	 * 
-	 * @param hosts
+	 * @param hosts        List of hosts added to engine
 	 */
 	public void setHosts(List<Host> hosts) {
 		if (log.isDebugEnabled()) {
@@ -217,7 +282,7 @@ public class TomcatLoader implements ApplicationContextAware {
 	/**
 	 * Set additional valves
 	 * 
-	 * @param valves
+	 * @param valves        List of valves
 	 */
 	public void setValves(List<Valve> valves) {
 		if (log.isDebugEnabled()) {
@@ -231,7 +296,7 @@ public class TomcatLoader implements ApplicationContextAware {
 	/**
 	 * Set additional contexts
 	 * 
-	 * @param contexts
+	 * @param contexts      Map of contexts
 	 */
 	public void setContexts(Map<String, String> contexts) {
 		if (log.isDebugEnabled()) {
@@ -243,12 +308,21 @@ public class TomcatLoader implements ApplicationContextAware {
 		}
 	}
 
+    /**
+     * Add context from path and docbase
+     * @param path                      Path
+     * @param docBase                   Docbase
+     * @return                          Catalina context (that is, web application)
+     */
 	public org.apache.catalina.Context addContext(String path, String docBase) {
 		org.apache.catalina.Context c = embedded.createContext(path, docBase);
 		baseHost.addChild(c);
 		return c;
 	}
 
+    /**
+     * Shut server down
+     */
 	public void shutdown() {
 		log.info("Shutting down tomcat context");
 		try {
@@ -258,8 +332,18 @@ public class TomcatLoader implements ApplicationContextAware {
 		}
 	}
 
+    /**
+     * Filters directory content
+     */
 	class DirectoryFilter implements FilenameFilter {
-		public boolean accept(File dir, String name) {
+        /**
+         * Check whether file matches filter rules
+         *
+         * @param dir         Dir
+         * @param name        File name
+         * @return            true if file does match filter rules, false otherwise
+         */
+        public boolean accept(File dir, String name) {
 			File f = new File(dir, name);
 			if (log.isDebugEnabled()) {
 				log.debug("Filtering: " + dir.getName() + " name: " + name);

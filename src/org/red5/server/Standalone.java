@@ -39,12 +39,24 @@ import org.springframework.context.access.ContextSingletonBeanFactoryLocator;
 public class Standalone {
 
 	// Initialize Logging
-	protected static Log log = LogFactory.getLog(Standalone.class.getName());
-
+    /**
+     *
+     */
+    protected static Log log = LogFactory.getLog(Standalone.class.getName());
+    /**
+     *
+     */
 	protected static String red5Config = "red5.xml";
-
+    /**
+     *
+     */
 	public static DebugPooledByteBufferAllocator allocator = null;
 
+    /**
+     *
+     * @param e
+     * @throws Throwable
+     */
 	public static void raiseOriginalException(Throwable e) throws Throwable {
 		// Search for root exception
 		while (e.getCause() != null) {
@@ -59,6 +71,8 @@ public class Standalone {
 	 * 
 	 * @param args
 	 *            String passed in that points to a red5.xml config file
+     * @throws Exception
+     * @throws Throwable
 	 */
 	public static void main(String[] args) throws Exception, Throwable {
 

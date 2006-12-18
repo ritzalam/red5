@@ -36,34 +36,73 @@ import org.red5.server.api.IFlowControllable;
 import org.red5.server.api.IScope;
 import org.red5.server.stream.IFlowControlService;
 
+/**
+ * Client is an abstraction representing user connected to Red5 application.
+ * Clients are tied to connections and registred in ClientRegistry
+ */
 public class Client extends AttributeStore implements IClient {
-
+    /**
+     *  Logger
+     */
 	protected static Log log = LogFactory.getLog(Client.class.getName());
-
+    /**
+     *  Clients identificator
+     */
 	protected String id;
-
+    /**
+     *  Creation time as Timestamp
+     */
 	protected long creationTime;
-
+    /**
+     *  Client registry where Client is registred
+     */
 	protected ClientRegistry registry;
-
+    /**
+     *  Scopes this client connected to
+     */
 	protected HashMap<IConnection, IScope> connToScope = new HashMap<IConnection, IScope>();
-
+    /**
+     *  Bandwith configuration context. For each connection server-side application may vary
+     *  broadcasting quality preferences. These are stored in special object of type IBandwidthConfigure
+     *
+     *  @see  org.red5.server.api.stream.support.SimpleBandwidthConfigure
+     */
 	private IBandwidthConfigure bandwidthConfig;
 
+    /**
+     * Creates client, sets creation time and registers it in ClientRegistry
+     *
+     * @param id             Client id
+     * @param registry       ClientRegistry
+     */
 	public Client(String id, ClientRegistry registry) {
 		this.id = id;
 		this.registry = registry;
 		this.creationTime = System.currentTimeMillis();
 	}
 
+    /**
+     *
+     * @return
+     */
 	public String getId() {
 		return id;
 	}
 
+    /**
+     *
+     * @return
+     */
 	public long getCreationTime() {
 		return creationTime;
 	}
 
+    /**
+     * Check clients equality by id
+     *
+     * @param obj        Object to check against
+     * @return           true if clients ids are the same, false otherwise
+     */
 	@Override
 	public boolean equals(Object obj) {
 		if (!(obj instanceof Client)) {
@@ -72,21 +111,39 @@ public class Client extends AttributeStore implements IClient {
 		return ((Client) obj).getId().equals(id);
 	}
 
-	//if overriding equals then also do hashCode
-	@Override
+    /**
+     * if overriding equals then also do hashCode
+     * @return
+     */
+    @Override
 	public int hashCode() {
 		return id.hashCode();
 	}
 
+    /**
+     *
+     * @return
+     */
 	@Override
 	public String toString() {
 		return "Client: " + id;
 	}
 
+    /**
+     * Return set of connections for this client
+     *
+     * @return           Set of connections
+     */
 	public Set<IConnection> getConnections() {
 		return connToScope.keySet();
 	}
 
+    /**
+     * Return client connections to given scope
+     *
+     * @param scope           Scope
+     * @return                Set of connections for that scope
+     */
 	public Set<IConnection> getConnections(IScope scope) {
 		if (scope == null) {
 			return getConnections();
@@ -101,16 +158,25 @@ public class Client extends AttributeStore implements IClient {
 		return result;
 	}
 
+    /**
+     *
+     * @return
+     */
 	public Collection<IScope> getScopes() {
 		return connToScope.values();
 	}
 
+    /**
+     *  Disconnects client from Red5 application
+     */
 	public void disconnect() {
 		if (log.isDebugEnabled()) {
 			log.debug("Disconnect, closing " + getConnections().size()
 				+ " connections");
 		}
-		Iterator<IConnection> conns = getConnections().iterator();
+
+        // Close all associated connections
+        Iterator<IConnection> conns = getConnections().iterator();
 		while (conns.hasNext()) {
 			conns.next().close();
 		}
@@ -118,20 +184,36 @@ public class Client extends AttributeStore implements IClient {
 		if (context == null) {
 			return;
 		}
-		IFlowControlService fcs = (IFlowControlService) context
+
+        // Release flow controllable
+        IFlowControlService fcs = (IFlowControlService) context
 				.getBean(IFlowControlService.KEY);
 		fcs.releaseFlowControllable(this);
 	}
 
+    /**
+     * Return bandwidth configuration context, that is, broadcasting bandwidth and quality settings for this client
+     * @return      Bandwidth configuration context
+     */
 	public IBandwidthConfigure getBandwidthConfigure() {
 		return this.bandwidthConfig;
 	}
 
+    /**
+     * Parent flow controllable object, that is, parent object that is used to determine client broadcast bandwidth
+     * settings. In case of base Client class parent is host.
+     *
+     * @return     IFlowControllable instance
+     */
 	public IFlowControllable getParentFlowControllable() {
 		// parent is host
 		return null;
 	}
 
+    /**
+     * Set new bandwidth configuration context
+     * @param config             Bandwidth configuration context
+     */
 	public void setBandwidthConfigure(IBandwidthConfigure config) {
 		IContext context = getContextFromConnection();
 		if (context == null) {
@@ -143,13 +225,23 @@ public class Client extends AttributeStore implements IClient {
 		fcs.updateBWConfigure(this);
 	}
 
+    /**
+     * Associate connection with client
+     * @param conn         Connection object
+     */
 	protected void register(IConnection conn) {
 		connToScope.put(conn, conn.getScope());
 	}
 
+    /**
+     * Removes client-connection association for given connection
+     * @param conn         Connection object
+     */
 	protected void unregister(IConnection conn) {
-		connToScope.remove(conn);
-		if (connToScope.isEmpty()) {
+        // Remove connection from connected scopes list
+        connToScope.remove(conn);
+        // If client is not connected to any scope any longer then remove
+        if (connToScope.isEmpty()) {
 			// This client is not connected to any scopes, remove from registry.
 			registry.removeClient(this);
 		}
@@ -158,7 +250,7 @@ public class Client extends AttributeStore implements IClient {
 	/**
 	 * Get the context from anyone of the IConnection.
 	 * 
-	 * @return
+	 * @return            Context
 	 */
 	private IContext getContextFromConnection() {
 		IConnection conn = null;

@@ -154,7 +154,9 @@ public class RTMPTServlet extends HttpServlet {
 
 	/**
 	 * Return the client id from a url like /send/123456/12 -> 123456
-	 */
+     * @param req
+     * @return
+     */
 	protected Integer getClientId(HttpServletRequest req) {
 		String path = req.getPathInfo();
 		if (path.equals("")) {

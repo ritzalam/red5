@@ -24,18 +24,34 @@ import org.red5.server.api.IServer;
 import org.red5.server.api.persistence.IPersistenceStore;
 import org.red5.server.api.persistence.PersistenceUtils;
 
+/**
+ * Global scope is a top level scope
+ *
+ * @see  org.red5.server.api.IGlobalScope
+ * @see  org.red5.server.api.IScope
+ */
 public class GlobalScope extends Scope implements IGlobalScope {
-
+    // Red5 Server instance
 	protected IServer server;
 
-	@Override
+    /**
+     *
+     * @param persistenceClass
+     * @throws Exception
+     */
+    @Override
 	public void setPersistenceClass(String persistenceClass) throws Exception {
 		this.persistenceClass = persistenceClass;
 		// We'll have to wait for creation of the store object
 		// until all classes have been initialized.
 	}
 
-	@Override
+    /**
+     * Get persistence store for scope
+     *
+     * @return            Persistence store
+     */
+    @Override
 	public IPersistenceStore getStore() {
 		if (store != null) {
 			return store;
@@ -55,7 +71,10 @@ public class GlobalScope extends Scope implements IGlobalScope {
 		this.server = server;
 	}
 
-	public void register() {
+    /**
+     *  Register global scope in server instance, then call initialization
+     */
+    public void register() {
 		server.registerGlobal(this);
 		init();
 	}

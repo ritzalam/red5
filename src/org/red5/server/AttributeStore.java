@@ -30,29 +30,59 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.red5.server.api.IAttributeStore;
 import org.red5.server.api.ICastingAttributeStore;
 
+
+/**
+ * Basic attribute store implemetation
+ */
 public class AttributeStore implements ICastingAttributeStore {
 
 	protected Map<String, Object> attributes = new ConcurrentHashMap<String, Object>();
-
+	
 	protected Map<String, Integer> hashes = new HashMap<String, Integer>();
 
-	public AttributeStore() {
+    
+    public AttributeStore() {
 		// Object is not associated with a persistence storage
 	}
-
+	
+	
+	/**
+	 * Returns attribute names as Set.
+     *
+	 * @return      Set of store attributes
+	 * @see org.red5.server.api.IAttributeStore#getAttributeNames()
+	 */
 	public Set<String> getAttributeNames() {
 		return Collections.unmodifiableSet(attributes.keySet());
 	}
 
+    /**
+     * Return all attributes
+     *
+     * @return                 Map containing attributes
+     */
 	public Map<String, Object> getAttributes() {
 		return Collections.unmodifiableMap(attributes);
 	}
 	
+    /**
+     * Return attribute by name
+     *
+     * @param name             Attribute name
+     * @return                 Attribute value
+     */
 	public Object getAttribute(String name) {
 		return attributes.get(name);
 	}
 
-	synchronized public Object getAttribute(String name, Object defaultValue) {
+    /**
+     * Sets attribute and reterns new value immediately. Thread safe 
+     *
+     * @param name                 Attribute name
+     * @param defaultValue         Attribute value to set
+     * @return                     New attribute value
+     */
+    synchronized public Object getAttribute(String name, Object defaultValue) {
 		if (!hasAttribute(name)) {
 			setAttribute(name, defaultValue);
 		}
@@ -60,16 +90,30 @@ public class AttributeStore implements ICastingAttributeStore {
 		return getAttribute(name);
 	}
 
-	public boolean hasAttribute(String name) {
+    /**
+     * Check whether attributes store has attribute with given name
+     *
+     * @param name        Attribute name
+     * @return            <code>true</code> if attribute store has attribute with given name, <code>false</code> otherwise
+     */
+    public boolean hasAttribute(String name) {
 		return attributes.containsKey(name);
 	}
 
-	synchronized public boolean setAttribute(String name, Object value) {
+    /**
+     * Sets attribute value and returns success as boolean
+     *
+     * @param name        Attribute name
+     * @param value       Attribute value
+     * @return            true if attribute was set, false otherwise
+     */
+    synchronized public boolean setAttribute(String name, Object value) {
 		if (name == null) {
 			return false;
 		}
 
-		Object old = attributes.get(name);
+        // Get old attribute and check if it has been changed
+        Object old = attributes.get(name);
 		Integer newHash = (value != null ? value.hashCode() : 0);
 		if ((old == null && value != null)
 				|| (old != null && !old.equals(value))
@@ -83,7 +127,12 @@ public class AttributeStore implements ICastingAttributeStore {
 		}
 	}
 
-	synchronized public void setAttributes(Map<String, Object> values) {
+    /**
+     * Sets attributes from Map
+     *
+     * @param values        Attributes to set
+     */
+    synchronized public void setAttributes(Map<String, Object> values) {
 		attributes.putAll(values);
 		hashes.clear();
 		for (Map.Entry<String, Object> entry : attributes.entrySet()) {
@@ -92,7 +141,12 @@ public class AttributeStore implements ICastingAttributeStore {
 		}
 	}
 
-	synchronized public void setAttributes(IAttributeStore values) {
+    /**
+     * Bulk set attributes from another attributes store
+     *
+     * @param values      Attributes store
+     */
+    synchronized public void setAttributes(IAttributeStore values) {
 		Iterator it = values.getAttributeNames().iterator();
 		while (it.hasNext()) {
 			String name = (String) it.next();
@@ -101,7 +155,13 @@ public class AttributeStore implements ICastingAttributeStore {
 		}
 	}
 
-	synchronized public boolean removeAttribute(String name) {
+    /**
+     * Removes attribute
+     *
+     * @param name      Attribute name
+     * @return          Whether attribute was removed or not
+     */
+    synchronized public boolean removeAttribute(String name) {
 		if (name == null) {
 			return false;
 		}
@@ -112,48 +172,111 @@ public class AttributeStore implements ICastingAttributeStore {
 		return result;
 	}
 
-	synchronized public void removeAttributes() {
+    /**
+     * Clears all attributes
+     */
+    synchronized public void removeAttributes() {
 		attributes.clear();
 		hashes.clear();
 	}
 
-	public Boolean getBoolAttribute(String name) {
+    /**
+     * Return attribute casted to Boolean
+     *
+     * @param name     Attribute name
+     * @return         Attribute value casted to Boolean
+     */
+    public Boolean getBoolAttribute(String name) {
 		return (Boolean) getAttribute(name);
 	}
 
-	public Byte getByteAttribute(String name) {
+    /**
+     * Return attribute casted to Byte
+     *
+     * @param name     Attribute name
+     * @return         Attribute value casted to Byte
+     */
+    public Byte getByteAttribute(String name) {
 		return (Byte) getAttribute(name);
 	}
 
-	public Double getDoubleAttribute(String name) {
+    /**
+     * Return attribute casted to Double
+     *
+     * @param name     Attribute name
+     * @return         Attribute value casted to Double
+     */
+    public Double getDoubleAttribute(String name) {
 		return (Double) getAttribute(name);
 	}
 
-	public Integer getIntAttribute(String name) {
+    /**
+     * Return attribute casted to Integer
+     *
+     * @param name     Attribute name
+     * @return         Attribute value casted to Integer
+     */
+    public Integer getIntAttribute(String name) {
 		return (Integer) getAttribute(name);
 	}
 
-	public List getListAttribute(String name) {
+    /**
+     * Return attribute casted to List
+     *
+     * @param name     Attribute name
+     * @return         Attribute value casted to List
+     */
+    public List getListAttribute(String name) {
 		return (List) getAttribute(name);
 	}
 
-	public Long getLongAttribute(String name) {
+    /**
+     * Return attribute casted to Long
+     *
+     * @param name     Attribute name
+     * @return         Attribute value casted to Long
+     */
+    public Long getLongAttribute(String name) {
 		return (Long) getAttribute(name);
 	}
 
-	public Map getMapAttribute(String name) {
+    /**
+     * Return attribute casted to Map
+     *
+     * @param name     Attribute name
+     * @return         Attribute value casted to Map
+     */
+    public Map getMapAttribute(String name) {
 		return (Map) getAttribute(name);
 	}
 
-	public Set getSetAttribute(String name) {
+    /**
+     * Return attribute casted to Set
+     *
+     * @param name     Attribute name
+     * @return         Attribute value casted to Set
+     */
+    public Set getSetAttribute(String name) {
 		return (Set) getAttribute(name);
 	}
 
-	public Short getShortAttribute(String name) {
+    /**
+     * Return attribute casted to Short
+     *
+     * @param name     Attribute name
+     * @return         Attribute value casted to Short
+     */
+    public Short getShortAttribute(String name) {
 		return (Short) getAttribute(name);
 	}
 
-	public String getStringAttribute(String name) {
+    /**
+     * Return attribute casted to String
+     *
+     * @param name     Attribute name
+     * @return         Attribute value casted to String
+     */
+    public String getStringAttribute(String name) {
 		return (String) getAttribute(name);
 	}
 }

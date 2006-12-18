@@ -44,6 +44,7 @@ public interface IStreamFilenameGenerator extends IScopeService {
 	 * 
 	 * @param scope
 	 * @param name
+     * @param type
 	 * @return
 	 */
 	public String generateFilename(IScope scope, String name, GenerationType type);
@@ -54,6 +55,7 @@ public interface IStreamFilenameGenerator extends IScopeService {
 	 * @param scope
 	 * @param name
 	 * @param extension
+     * @param type
 	 * @return
 	 */
 	public String generateFilename(IScope scope, String name, String extension, GenerationType type);

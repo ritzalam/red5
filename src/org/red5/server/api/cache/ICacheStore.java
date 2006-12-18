@@ -75,6 +75,7 @@ public interface ICacheStore {
 	 * 
 	 * @param obj
 	 *            the object to delete
+     * @return
 	 */
 	public boolean remove(ICacheable obj);
 
@@ -83,6 +84,7 @@ public interface ICacheStore {
 	 * 
 	 * @param name
 	 *            the name of the object to delete
+     * @return
 	 */
 	public boolean remove(String name);
 

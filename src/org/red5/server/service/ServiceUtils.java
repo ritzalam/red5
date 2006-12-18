@@ -34,7 +34,11 @@ public class ServiceUtils {
 	/**
 	 * Returns (method, params) for the given service or (null, null) if not
 	 * method was found.
-	 */
+     * @param service
+     * @param methodName
+     * @param args
+     * @return
+     */
 	public static Object[] findMethodWithExactParameters(Object service,
 			String methodName, List args) {
 		Object[] arguments = new Object[args.size()];
@@ -49,7 +53,11 @@ public class ServiceUtils {
 	 * Returns (method, params) for the given service or (null, null) if not
 	 * method was found. XXX use ranking for method matching rather than exact
 	 * type matching plus type conversion.
-	 */
+     * @param service
+     * @param methodName
+     * @param args
+     * @return
+     */
 	public static Object[] findMethodWithExactParameters(Object service,
 			String methodName, Object[] args) {
 		int numParams = (args == null) ? 0 : args.length;
@@ -112,7 +120,11 @@ public class ServiceUtils {
 	/**
 	 * Returns (method, params) for the given service or (null, null) if not
 	 * method was found.
-	 */
+     * @param service
+     * @param methodName
+     * @param args
+     * @return
+     */
 	public static Object[] findMethodWithListParameters(Object service,
 			String methodName, List args) {
 		Object[] arguments = new Object[args.size()];
@@ -126,7 +138,11 @@ public class ServiceUtils {
 	/**
 	 * Returns (method, params) for the given service or (null, null) if not
 	 * method was found.
-	 */
+     * @param service
+     * @param methodName
+     * @param args
+     * @return
+     */
 	public static Object[] findMethodWithListParameters(Object service,
 			String methodName, Object[] args) {
 		List methods = ConversionUtils.findMethodsByNameAndNumParams(service,

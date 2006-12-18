@@ -119,6 +119,7 @@ public interface IScope extends IBasicScope, ResourcePatternResolver,
 	 * @param name
 	 *            name of the child scope
 	 * @return the child scope, or null if no scope is found
+     * @param type
 	 */
 	public IBasicScope getBasicScope(String type, String name);
 

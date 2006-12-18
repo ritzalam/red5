@@ -61,17 +61,23 @@ public interface IConnection extends ICoreObject {
 
 	/**
 	 * Initialize the connection.
-	 */
+     * @param client
+     */
 	public void initialize(IClient client);
 
 	/**
 	 * Try to connect to the scope.
-	 */
+     * @return
+     * @param scope
+     */
 	public boolean connect(IScope scope);
 
 	/**
 	 * Try to connect to the scope with a list of connection parameters.
-	 */
+     * @param params
+     * @return
+     * @param scope
+     */
 	public boolean connect(IScope scope, Object[] params);
 
 	/**

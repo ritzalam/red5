@@ -27,21 +27,49 @@ import org.red5.server.api.IGlobalScope;
 import org.red5.server.api.IServer;
 import org.springframework.web.context.ServletContextAware;
 
+/**
+ *  Web scope is special scope that is aware of servlet context and
+ * represents scope of Red5 application in servlet container (or application server) like Tomcat, Jetty or JBoss.
+ *
+ * Web scope is aware of virtual hosts configuration for Red5 application and is the first scope that instantiated
+ * after Red5 application got started.
+ * Then it loads virtual hosts configuration, adds mappings of paths to global scope that is injected thru Spring
+ * IoC context file and runs initialization process.
+ *
+ * Red5 server implementation instance and ServletContext are injected as well.
+ */
 public class WebScope extends Scope implements ServletContextAware {
 
-	// Initialize Logging
-	protected static Log log = LogFactory.getLog(WebScope.class.getName());
-
+    /**
+     * Logger
+     */
+    protected static Log log = LogFactory.getLog(WebScope.class.getName());
+    /**
+     * Server instance
+     */
 	protected IServer server;
-
+    /**
+     * Servlet context
+     */
 	protected ServletContext servletContext;
-
+    /**
+     * Context path
+     */
 	protected String contextPath;
-
+    /**
+     * Virtual hosts list as string
+     */
 	protected String virtualHosts;
-
+    /**
+     * Hostnames
+     */
 	protected String[] hostnames;
 
+    /**
+     * Setter for global scope. Sets persistence class.
+     *
+     * @param globalScope       Red5 global scope
+     */
 	public void setGlobalScope(IGlobalScope globalScope) {
 		// XXX: this is called from nowhere, remove?
 		super.setParent(globalScope);
@@ -52,31 +80,54 @@ public class WebScope extends Scope implements ServletContextAware {
 		}
 	}
 
+    /**
+     * Web scope has no name
+     */
 	public void setName() {
 		throw new RuntimeException("Cannot set name, you must set context path");
 	}
 
+    /**
+     * Can't set parent to Web scope. Web scope is top level.
+     */
 	public void setParent() {
 		throw new RuntimeException(
 				"Cannot set parent, you must set global scope");
 	}
 
+    /**
+     * Setter for server
+     * @param server            Server instance
+     */
 	public void setServer(IServer server) {
 		this.server = server;
 	}
 
+    /**
+     * Servlet context
+     * @param servletContext
+     */
 	public void setServletContext(ServletContext servletContext) {
 		this.servletContext = servletContext;
 	}
 
+    /**
+     * Setter for context path
+     * @param contextPath     Context path
+     */
 	public void setContextPath(String contextPath) {
 		this.contextPath = contextPath;
 		super.setName(contextPath.substring(1));
 	}
 
+    /**
+     * Setter for virtual hosts. Creates array of hostnames.
+     * @param virtualHosts           Virtual hosts list as string
+     */
 	public void setVirtualHosts(String virtualHosts) {
 		this.virtualHosts = virtualHosts;
-		hostnames = virtualHosts.split(",");
+        // Split string into array of vhosts
+        hostnames = virtualHosts.split(",");
 		for (int i = 0; i < hostnames.length; i++) {
 			hostnames[i] = hostnames[i].trim();
 			if (hostnames[i].equals("*")) {
@@ -85,6 +136,9 @@ public class WebScope extends Scope implements ServletContextAware {
 		}
 	}
 
+    /**
+     *  Map all vhosts to global scope then initialize
+     */
 	public void register() {
 		if (hostnames != null && hostnames.length > 0) {
 			for (String element : hostnames) {

@@ -24,27 +24,52 @@ import org.red5.server.api.IScope;
 import org.red5.server.api.IScopeResolver;
 import org.red5.server.exception.ScopeNotFoundException;
 
+/**
+ * Resolves scopes from path
+ */
 public class ScopeResolver implements IScopeResolver {
-
+    /**
+     *  Default host constant
+     */
 	public static final String DEFAULT_HOST = "";
-
+    /**
+     *  Global scope
+     */
 	protected IGlobalScope globalScope;
 
+    /**
+     * Getter for global scope
+     * @return      Global scope
+     */
 	public IGlobalScope getGlobalScope() {
 		return globalScope;
 	}
 
+    /**
+     * Setter for global scope
+     * @param root        Global scope
+     */
 	public void setGlobalScope(IGlobalScope root) {
 		this.globalScope = root;
 	}
 
+    /**
+     * Return scope associated with given path
+     *
+     * @param path        Scope path
+     * @return            Scope object
+     */
 	public IScope resolveScope(String path) {
-		IScope scope = globalScope;
-		if (path == null) {
+        // Start from global scope
+        IScope scope = globalScope;
+        // If there's no path return global scope (e.i. root path scope)
+        if (path == null) {
 			return scope;
 		}
-		final String[] parts = path.split("/");
-		for (String element : parts) {
+        // Split path to parts
+        final String[] parts = path.split("/");
+        // Iterate thru them, skip empty parts
+        for (String element : parts) {
 			final String room = element;
 			if (room.equals("")) {
 				// Skip empty path elements

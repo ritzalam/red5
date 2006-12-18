@@ -25,7 +25,8 @@ public interface IVideoStreamCodec {
 
 	/**
 	 * Return the name of the video codec.
-	 */
+     * @return
+     */
 	public String getName();
 
 	/**
@@ -35,22 +36,28 @@ public interface IVideoStreamCodec {
 
 	/**
 	 * Check if the codec supports frame dropping.
-	 */
+     * @return
+     */
 	public boolean canDropFrames();
 
 	/**
 	 * Returns true if the codec knows how to handle the passed
 	 * stream data.
-	 */
+     * @return
+     * @param data
+     */
 	public boolean canHandleData(ByteBuffer data);
 
 	/**
 	 * Update the state of the codec with the passed data.
-	 */
+     * @param data
+     * @return
+     */
 	public boolean addData(ByteBuffer data);
 
 	/**
 	 * Return the data for a keyframe.
-	 */
+     * @return
+     */
 	public ByteBuffer getKeyframe();
 }

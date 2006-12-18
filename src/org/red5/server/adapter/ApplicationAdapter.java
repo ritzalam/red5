@@ -329,6 +329,7 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 	 *            Scope object
 	 * @return <code>true</code> if scope can be started, <code>false</code>
 	 *         otherwise
+     * @param app
 	 */
 	public boolean appStart(IScope app) {
 		if (log.isDebugEnabled()) {
@@ -526,6 +527,8 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 	 * 
 	 * @param conn
 	 *            Disconnected connection object
+     * @param room
+     * @param client
 	 */
 	public void roomLeave(IClient client, IScope room) {
 		if (log.isDebugEnabled()) {

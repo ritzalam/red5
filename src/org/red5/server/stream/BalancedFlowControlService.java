@@ -51,27 +51,51 @@ import org.springframework.context.ApplicationContextAware;
  */
 public class BalancedFlowControlService extends TimerTask implements
 		IFlowControlService, ApplicationContextAware {
-	private static final Log log = LogFactory
+    /**
+     * 
+     */
+    private static final Log log = LogFactory
 			.getLog(BalancedFlowControlService.class);
-
+    /**
+     *
+     */
 	private static final int maxDepth = 10;
-
+    /**
+     *
+     */
 	private long interval = 10;
-
+    /**
+     *
+     */
 	private long defaultCapacity = 1024 * 100;
-
+    /**
+     *
+     */
 	private Map<IFlowControllable, FcData> fcMap = new HashMap<IFlowControllable, FcData>();
-
+    /**
+     *
+     */
 	private List<FcData>[] fcListArray;
-
+    /**
+     *
+     */
 	private Timer timer;
-
+    /**
+     *
+     */
 	private Thread cbThread = new Thread(new CallbackRunnable());
-
+    /**
+     *
+     */
 	private BlockingQueue<FcData> wakeUpQueue = new LinkedBlockingQueue<FcData>();
-
+    /**
+     *
+     */
 	private ReadWriteLock lock = new ReentrantReadWriteLock();
 
+    /**
+     *
+     */
 	public BalancedFlowControlService() {
 		fcListArray = (List<FcData>[]) Array.newInstance(List.class, maxDepth);
 		for (int i = 0; i < maxDepth; i++) {
@@ -79,6 +103,9 @@ public class BalancedFlowControlService extends TimerTask implements
 		}
 	}
 
+    /**
+     *
+     */
 	public void init() {
 		timer = new Timer("FlowControlService", true);
 		timer.scheduleAtFixedRate(this, interval, interval);
@@ -87,6 +114,9 @@ public class BalancedFlowControlService extends TimerTask implements
 		cbThread.start();
 	}
 
+    /**
+     *
+     */
 	@Override
 	public void run() {
 		// re-sort the fc list
@@ -140,6 +170,10 @@ public class BalancedFlowControlService extends TimerTask implements
 		}
 	}
 
+    /**
+     *
+     * @param fc
+     */
 	public void releaseFlowControllable(IFlowControllable fc) {
 		int depth = getFCDepth(fc);
 		lock.writeLock().lock();
@@ -153,6 +187,10 @@ public class BalancedFlowControlService extends TimerTask implements
 		}
 	}
 
+    /**
+     *
+     * @param fc
+     */
 	public void updateBWConfigure(IFlowControllable fc) {
 		lock.readLock().lock();
 		try {
@@ -221,11 +259,20 @@ public class BalancedFlowControlService extends TimerTask implements
 		}
 	}
 
+    /**
+     *
+     * @param fc
+     */
 	public void resetTokenBuckets(IFlowControllable fc) {
 		getAudioTokenBucket(fc).reset();
 		getVideoTokenBucket(fc).reset();
 	}
 
+    /**
+     *
+     * @param fc
+     * @return
+     */
 	public ITokenBucket getAudioTokenBucket(IFlowControllable fc) {
 		lock.readLock().lock();
 		try {
@@ -235,6 +282,11 @@ public class BalancedFlowControlService extends TimerTask implements
 		}
 	}
 
+    /**
+     *
+     * @param fc
+     * @return
+     */
 	public ITokenBucket getVideoTokenBucket(IFlowControllable fc) {
 		lock.readLock().lock();
 		try {
@@ -244,11 +296,20 @@ public class BalancedFlowControlService extends TimerTask implements
 		}
 	}
 
+    /**
+     *
+     * @param arg0
+     * @throws BeansException
+     */
 	public void setApplicationContext(ApplicationContext arg0)
 			throws BeansException {
 	}
 
-	public void setInterval(long interval) {
+    /**
+     *
+     * @param interval
+     */
+    public void setInterval(long interval) {
 		this.interval = interval;
 	}
 
@@ -358,7 +419,11 @@ public class BalancedFlowControlService extends TimerTask implements
 		}
 	}
 
-	private void wakeUpCallback(FcData fcData) {
+    /**
+     *
+     * @param fcData
+     */
+    private void wakeUpCallback(FcData fcData) {
 		try {
 			wakeUpQueue.put(fcData);
 		} catch (InterruptedException e) {
@@ -399,7 +464,10 @@ public class BalancedFlowControlService extends TimerTask implements
 		return bps / 1000.0 / 8.0;
 	}
 
-	private class BandwidthResource {
+    /**
+     *
+     */
+    private class BandwidthResource {
 		private double speed;
 
 		private long capacity;
@@ -451,7 +519,8 @@ public class BalancedFlowControlService extends TimerTask implements
 	 * Note: this class has a natural ordering that is inconsistent with equals.
 	 */
 	private class FcData implements Comparable {
-		private IFlowControllable fc;
+        // Bandwidth configuration aware
+        private IFlowControllable fc;
 
 		private Bucket audioBucket;
 
@@ -486,7 +555,10 @@ public class BalancedFlowControlService extends TimerTask implements
 
 	}
 
-	private class Bucket implements ITokenBucket {
+    /**
+     *
+     */
+    private class Bucket implements ITokenBucket {
 		private int channelId; // 0 for video and 1 for audio
 
 		private FcData fcData;

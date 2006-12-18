@@ -34,7 +34,7 @@ public interface IServer {
 	public static final String ID = "red5.server";
 
 	/**
-	 * Get the global scope with a given name.
+	 * Get the global scope with given name.
 	 * 
 	 * @param name
 	 * 			name of the global scope

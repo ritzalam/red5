@@ -129,6 +129,7 @@ public interface IPersistable {
 	 * 
 	 * @param output
 	 * 		the output stream to write to
+     * @throws java.io.IOException
 	 */
 	void serialize(Output output) throws IOException;
 
@@ -137,6 +138,7 @@ public interface IPersistable {
 	 * 
 	 * @param input
 	 * 		the input stream to load from
+     * @throws java.io.IOException
 	 */
 	void deserialize(Input input) throws IOException;
 

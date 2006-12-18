@@ -31,22 +31,51 @@ import org.red5.server.api.IAttributeStore;
 import org.red5.server.api.persistence.IPersistable;
 import org.red5.server.api.persistence.IPersistenceStore;
 
+/**
+ * Persistable attributes store. Server-side SharedObjects feature based on this class.
+ */
 public class PersistableAttributeStore extends AttributeStore implements
 		IPersistable {
 
-	protected boolean persistent = true;
+    /**
+     * Persistence flag
+     */
+    protected boolean persistent = true;
 
-	protected String name;
+    /**
+     * Attribute store name
+     */
+    protected String name;
 
-	protected String type;
+    /**
+     * Attribute store type
+     */
+    protected String type;
 
-	protected String path;
+    /**
+     * Attribute store path (on local hard drive)
+     */
+    protected String path;
 
-	protected long lastModified = -1;
+    /**
+     * Last modified Timestamp
+     */
+    protected long lastModified = -1;
 
-	protected IPersistenceStore store = null;
+    /**
+     * Store object that deals with save/load routines
+     */
+    protected IPersistenceStore store = null;
 
-	public PersistableAttributeStore(String type, String name, String path,
+    /**
+     * Creates persistable attribute store
+     *
+     * @param type             Attribute store type
+     * @param name             Attribute store name
+     * @param path             Attribute store path
+     * @param persistent       Whether store is persistent or not
+     */
+    public PersistableAttributeStore(String type, String name, String path,
 			boolean persistent) {
 		this.type = type;
 		this.name = name;
@@ -54,46 +83,88 @@ public class PersistableAttributeStore extends AttributeStore implements
 		this.persistent = persistent;
 	}
 
-	protected void modified() {
+    /**
+     *  Set last modified flag to current system time
+     */
+    protected void modified() {
 		lastModified = System.currentTimeMillis();
 		if (store != null) {
 			store.save(this);
 		}
 	}
 
-	public boolean isPersistent() {
+    /**
+     * Check whether object is persistent or not
+     *
+     * @return   true if object is persistent, false otherwise
+     */
+    public boolean isPersistent() {
 		return persistent;
 	}
 
-	public void setPersistent(boolean persistent) {
+    /**
+     * Set for persistence
+     * @param persistent
+     */
+    public void setPersistent(boolean persistent) {
 		this.persistent = persistent;
 	}
 
-	public long getLastModified() {
+    /**
+     * Returns last modification time as timestamp
+     * @return      Timestamp of last attribute modification
+     */
+    public long getLastModified() {
 		return lastModified;
 	}
 
-	public String getName() {
+    /**
+     * Return store name
+     * @return               Store name
+     */
+    public String getName() {
 		return name;
 	}
 
-	public void setName(String name) {
+    /**
+     *
+     * @param name
+     */
+    public void setName(String name) {
 		this.name = name;
 	}
 
-	public String getPath() {
+    /**
+     *
+     * @return
+     */
+    public String getPath() {
 		return path;
 	}
 
-	public void setPath(String path) {
+    /**
+     *
+     * @param path
+     */
+    public void setPath(String path) {
 		this.path = path;
 	}
 
-	public String getType() {
+    /**
+     *
+     * @return
+     */
+    public String getType() {
 		return type;
 	}
 
-	public void serialize(Output output) throws IOException {
+    /**
+     * Serializes byte buffer output, storing them to attributes
+     *
+     * @param output
+     * @throws IOException
+     */
+    public void serialize(Output output) throws IOException {
 		Serializer serializer = new Serializer();
 		Map<String, Object> persistentAttributes = new HashMap<String, Object>();
 		for (String name : attributes.keySet()) {
@@ -106,7 +177,13 @@ public class PersistableAttributeStore extends AttributeStore implements
 		serializer.serialize(output, persistentAttributes);
 	}
 
-	public void deserialize(Input input) throws IOException {
+    /**
+     * Deserializes data from input to attributes
+     *
+     * @param input              Input object
+     * @throws IOException       I/O exception
+     */
+    public void deserialize(Input input) throws IOException {
 		Deserializer deserializer = new Deserializer();
 		Object obj = deserializer.deserialize(input);
 		if (!(obj instanceof Map)) {
@@ -116,18 +193,34 @@ public class PersistableAttributeStore extends AttributeStore implements
 		attributes.putAll((Map<String, Object>) obj);
 	}
 
-	public void setStore(IPersistenceStore store) {
+    /**
+     * Load data from another persistent store
+     *
+     * @param store         Persistent store
+     */
+    public void setStore(IPersistenceStore store) {
 		this.store = store;
 		if (store != null) {
 			store.load(this);
 		}
 	}
 
-	public IPersistenceStore getStore() {
+    /**
+     * Return persistent store
+     * @return               Persistence store
+     */
+    public IPersistenceStore getStore() {
 		return store;
 	}
 
-	@Override
+    /**
+     * Set attribute by name and return success as boolean
+     *
+     * @param name          Attribute name
+     * @param value         Attribute value
+     * @return              true if attribute was set, false otherwise
+     */
+    @Override
 	synchronized public boolean setAttribute(String name, Object value) {
 		boolean result = super.setAttribute(name, value);
 		if (result && !name.startsWith(IPersistable.TRANSIENT_PREFIX)) {
@@ -136,19 +229,34 @@ public class PersistableAttributeStore extends AttributeStore implements
 		return result;
 	}
 
-	@Override
+    /**
+     * Set attributes from Map
+     *
+     * @param values          Attributes as Map
+     */
+    @Override
 	synchronized public void setAttributes(Map<String, Object> values) {
 		super.setAttributes(values);
 		modified();
 	}
 
-	@Override
+    /**
+     * Bulk set of attributes from another attributes store
+     *
+     * @param values      Attributes store
+     */
+    @Override
 	synchronized public void setAttributes(IAttributeStore values) {
 		super.setAttributes(values);
 		modified();
 	}
 
-	@Override
+    /**
+     * Removes attribute
+     * @param name          Attribute name
+     * @return              true if attribute was removed, false otherwise
+     */
+    @Override
 	synchronized public boolean removeAttribute(String name) {
 		boolean result = super.removeAttribute(name);
 		if (result && !name.startsWith(IPersistable.TRANSIENT_PREFIX)) {
@@ -157,7 +265,10 @@ public class PersistableAttributeStore extends AttributeStore implements
 		return result;
 	}
 
-	@Override
+    /**
+     * Removes all attributes and sets modified flag
+     */
+    @Override
 	synchronized public void removeAttributes() {
 		super.removeAttributes();
 		modified();

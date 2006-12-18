@@ -32,30 +32,53 @@ import org.red5.server.api.Red5;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.service.IServiceCall;
 
+/**
+ * Base IScopeHandler implementation
+ */
 public class CoreHandler implements IScopeHandler {
 
 	protected static Log log = LogFactory.getLog(CoreHandler.class.getName());
 
-	public boolean addChildScope(IBasicScope scope) {
+	/** {@inheritDoc} */
+    public boolean addChildScope(IBasicScope scope) {
 		return true;
 	}
 
-	public boolean connect(IConnection conn, IScope scope) {
+    /**
+     * Connects client to the scope
+     *
+     * @param conn                 Client conneciton
+     * @param scope                Scope
+     * @return                     true if client was registred within scope, false otherwise
+     */
+    public boolean connect(IConnection conn, IScope scope) {
 		return connect(conn, scope, null);
 	}
 
-	public boolean connect(IConnection conn, IScope scope, Object[] params) {
+    /**
+     * Connects client to the scope
+     *
+     * @param conn                  Client conneciton
+     * @param scope                 Scope
+     * @param params                Params passed from client side with connect call
+     * @return                      true if client was registred within scope, false otherwise
+     */
+    public boolean connect(IConnection conn, IScope scope, Object[] params) {
 
 		log.debug("Connect to core handler ?");
 
-		String id = conn.getSessionId();
+        // Get session id
+        String id = conn.getSessionId();
 
 		// Use client registry from scope the client connected to.
 		IScope connectionScope = Red5.getConnectionLocal().getScope();
-		IClientRegistry clientRegistry = connectionScope.getContext()
+
+        // Get client registry for connection scope
+        IClientRegistry clientRegistry = connectionScope.getContext()
 				.getClientRegistry();
 
-		IClient client = clientRegistry.hasClient(id) ? clientRegistry
+        // Get client from registry by id or create a new one
+        IClient client = clientRegistry.hasClient(id) ? clientRegistry
 				.lookupClient(id) : clientRegistry.newClient(params);
 
 		// We have a context, and a client object.. time to init the conneciton.
@@ -65,23 +88,34 @@ public class CoreHandler implements IScopeHandler {
 		return true;
 	}
 
-	public void disconnect(IConnection conn, IScope scope) {
+	/** {@inheritDoc} */
+    public void disconnect(IConnection conn, IScope scope) {
 		// do nothing here
 	}
 
-	public boolean join(IClient client, IScope scope) {
+	/** {@inheritDoc} */
+    public boolean join(IClient client, IScope scope) {
 		return true;
 	}
 
-	public void leave(IClient client, IScope scope) {
+	/** {@inheritDoc} */
+    public void leave(IClient client, IScope scope) {
 		// do nothing here
 	}
 
-	public void removeChildScope(IBasicScope scope) {
+	/** {@inheritDoc} */
+    public void removeChildScope(IBasicScope scope) {
 		// do nothing here
 	}
 
-	public boolean serviceCall(IConnection conn, IServiceCall call) {
+    /**
+     * Remote method invokation
+     *
+     * @param conn         Connection to invoke method on
+     * @param call         Service call context
+     * @return             true on success
+     */
+    public boolean serviceCall(IConnection conn, IServiceCall call) {
 		final IContext context = conn.getScope().getContext();
 		if (call.getServiceName() != null) {
 			context.getServiceInvoker().invoke(call, context);
@@ -92,15 +126,18 @@ public class CoreHandler implements IScopeHandler {
 		return true;
 	}
 
-	public boolean start(IScope scope) {
+	/** {@inheritDoc} */
+    public boolean start(IScope scope) {
 		return true;
 	}
 
-	public void stop(IScope scope) {
+	/** {@inheritDoc} */
+    public void stop(IScope scope) {
 		// do nothing here
 	}
 
-	public boolean handleEvent(IEvent event) {
+	/** {@inheritDoc} */
+    public boolean handleEvent(IEvent event) {
 		return false;
 	}
 

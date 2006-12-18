@@ -44,6 +44,7 @@ public interface IProviderService extends IScopeService {
 	 * 
 	 * @param scope
 	 * @param name
+     * @param needCreate
 	 * @return <tt>null</tt> if not found.
 	 */
 	IMessageInput getLiveProviderInput(IScope scope, String name,

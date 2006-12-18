@@ -62,6 +62,7 @@ public interface IPendingServiceCall extends IServiceCall {
 	 *  
 	 * @param callback
 	 *            Callback object
+     * @return
 	 */
 	public Set<IPendingServiceCallback> getCallbacks();
 }

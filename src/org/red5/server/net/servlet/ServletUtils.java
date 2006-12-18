@@ -36,6 +36,8 @@ public class ServletUtils {
 	 * default buffer size of 2048 bytes.
 	 * 
 	 * @throws java.io.IOException
+     * @param input
+     * @param output
 	 */
 	public static void copy(InputStream input, OutputStream output)
 			throws IOException {
@@ -47,6 +49,9 @@ public class ServletUtils {
 	 * specified buffer size
 	 * 
 	 * @throws java.io.IOException
+     * @param input
+     * @param bufferSize
+     * @param output
 	 */
 	public static void copy(InputStream input, OutputStream output,
 			int bufferSize) throws IOException {
@@ -64,6 +69,8 @@ public class ServletUtils {
 	 * streams.
 	 * 
 	 * @throws java.io.IOException
+     * @param output
+     * @param input
 	 */
 	public static void copyThenClose(InputStream input, OutputStream output)
 			throws IOException {
@@ -76,6 +83,8 @@ public class ServletUtils {
 	 * @returns a byte[] containing the information contained in the specified
 	 *          InputStream.
 	 * @throws java.io.IOException
+     * @return
+     * @param input
 	 */
 	public static byte[] getBytes(InputStream input) throws IOException {
 		ByteArrayOutputStream result = new ByteArrayOutputStream();

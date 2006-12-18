@@ -3,16 +3,29 @@
 	 xmlns:lang="http://www.springframework.org/schema/lang" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd                            http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-2.0.xsd">
 	<!-- This context is shared between all child contexts. -->
 
-	<bean id="red5.server" class="org.red5.server.Server"/>
-	<bean id="serializer" class="org.red5.io.object.Serializer"/>
-	<bean id="deserializer" class="org.red5.io.object.Deserializer"/>
-	<bean id="statusObjectService" class="org.red5.server.net.rtmp.status.StatusObjectService"
+    <!-- Server bean -->
+    <bean id="red5.server" class="org.red5.server.Server"/>
+
+    <!-- Serializes objects to AMF binary -->
+    <bean id="serializer" class="org.red5.io.object.Serializer"/>
+
+    <!-- Deserializes objects from AMF binary -->
+    <bean id="deserializer" class="org.red5.io.object.Deserializer"/>
+
+    <!-- Deals with StatusObjects representing statuses like FMS NetConnection.Connect.Success status -->
+    <bean id="statusObjectService" class="org.red5.server.net.rtmp.status.StatusObjectService"
 		 autowire="byType" init-method="initialize"/>
-	<bean id="rtmpCodecFactory" class="org.red5.server.net.rtmp.codec.RTMPMinaCodecFactory"
+
+    <!-- RTMP codec factory -->
+    <bean id="rtmpCodecFactory" class="org.red5.server.net.rtmp.codec.RTMPMinaCodecFactory"
 		 autowire="byType" init-method="init"/>
-	<bean id="remotingCodecFactory" class="org.red5.server.net.remoting.codec.RemotingCodecFactory"
+
+    <!-- Remoting calls codec factory -->
+    <bean id="remotingCodecFactory" class="org.red5.server.net.remoting.codec.RemotingCodecFactory"
 		 autowire="byType" init-method="init"/>
-	<bean id="videoCodecFactory" class="org.red5.server.stream.VideoCodecFactory">
+
+    <!-- Video codec factory -->
+    <bean id="videoCodecFactory" class="org.red5.server.stream.VideoCodecFactory">
 		<property name="codecs">
 			<list>
 				<bean id="screenVideoCodec" class="org.red5.server.stream.codec.ScreenVideo"/>
@@ -22,7 +35,9 @@
 			</list>
 		</property>
 	</bean>
-	<bean id="streamableFileFactory" class="org.red5.io.StreamableFileFactory">
+
+    <!-- Streamable file factory -->
+    <bean id="streamableFileFactory" class="org.red5.io.StreamableFileFactory">
 		<property name="services">
 			<list>
 				<bean id="flvFileService" class="org.red5.io.flv.impl.FLVService">
@@ -32,24 +47,37 @@
 			</list>
 		</property>
 	</bean>
-	<!-- handles creation / lookup of shared objects -->
+
+    <!-- Handles creation / lookup of shared objects -->
 	<bean id="sharedObjectService" class="org.red5.server.so.SharedObjectService">
 		<property name="persistenceClassName">
 			<value>org.red5.server.persistence.FilePersistence</value>
 		</property>
 	</bean>
-	<!-- high level access to streams -->
+
+    <!-- High level access to streams -->
 	<bean id="streamService" class="org.red5.server.stream.StreamService"/>
-	<bean id="providerService" class="org.red5.server.stream.ProviderService"/>
-	<bean id="consumerService" class="org.red5.server.stream.ConsumerService"/>
-	<bean id="FlowControlService" class="org.red5.server.stream.BalancedFlowControlService"
+
+    <!-- Hight level access to broadcasted streams -->
+    <bean id="providerService" class="org.red5.server.stream.ProviderService"/>
+
+    <!-- Provides output to consumers -->
+    <bean id="consumerService" class="org.red5.server.stream.ConsumerService"/>
+
+    <!-- Balances flow control -->
+    <bean id="FlowControlService" class="org.red5.server.stream.BalancedFlowControlService"
 		 init-method="init">
 		<property name="interval" value="10"/>
 		<property name="defaultCapacity" value="102400"/>
 	</bean>
-	<bean id="schedulingService" class="org.red5.server.scheduling.QuartzSchedulingService"/>
-	<bean id="threadFactory" class="org.red5.server.pooling.ThreadObjectFactory"/>
-	<!-- threadpool settings for the remoting clients -->
+
+    <!-- Scheduling service -->
+    <bean id="schedulingService" class="org.red5.server.scheduling.QuartzSchedulingService"/>
+
+    <!-- Thread factory -->
+    <bean id="threadFactory" class="org.red5.server.pooling.ThreadObjectFactory"/>
+
+    <!-- Threadpool settings for the remoting clients -->
 	<bean id="remotingPool" class="org.red5.server.pooling.ThreadPool">
 		<constructor-arg>
 			<ref bean="threadFactory"/>
@@ -120,7 +148,10 @@
 	</bean> 	
 -->
 
-	<!-- Use injection to set the cache impl to be used with flvs -->
+	<!--
+	    Represents FLV files
+	    Use injection to set the cache impl to be used with flvs
+	-->
 	<bean id="flv.impl" class="org.red5.io.flv.impl.FLV">
 		<property name="cache">
 			<ref bean="object.cache"/>

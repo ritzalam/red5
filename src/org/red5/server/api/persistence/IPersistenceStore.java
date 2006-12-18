@@ -36,6 +36,7 @@ public interface IPersistenceStore {
 	 *  
 	 * @param obj
 	 * 		the object to store
+     * @return
 	 */
 	public boolean save(IPersistable obj);
 
@@ -65,6 +66,7 @@ public interface IPersistenceStore {
 	 *  
 	 * @param obj
 	 * 		the object to delete
+     * @return
 	 */
 	public boolean remove(IPersistable obj);
 
@@ -73,6 +75,7 @@ public interface IPersistenceStore {
 	 *  
 	 * @param name
 	 * 		the name of the object to delete
+     * @return
 	 */
 	public boolean remove(String name);
 

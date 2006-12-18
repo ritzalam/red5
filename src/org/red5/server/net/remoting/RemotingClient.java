@@ -322,7 +322,7 @@ public class RemotingClient {
 	 * Invoke a method asynchronously on the remoting server.
 	 * 
 	 * @param method
-	 * @param params
+	 * @param methodParams
 	 * @param callback
 	 */
 	public void invokeMethod(String method, Object[] methodParams,

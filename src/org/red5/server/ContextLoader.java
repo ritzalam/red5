@@ -32,31 +32,61 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 import org.springframework.core.io.Resource;
 
+/**
+ *  Red5 applications loader
+ */
 public class ContextLoader implements ApplicationContextAware {
-
+    /**
+     *  Logger
+     */
 	protected static Log log = LogFactory.getLog(ContextLoader.class.getName());
-
+    /**
+     *  Spring Application context
+     */
 	protected ApplicationContext applicationContext;
-
+    /**
+     *  Spring parent app context
+     */
 	protected ApplicationContext parentContext;
-
+    /**
+     *  Context location files
+     */
 	protected String contextsConfig;
-
+    /**
+     *  Context map
+     */
 	protected HashMap<String, ApplicationContext> contextMap = new HashMap<String, ApplicationContext>();
 
+    /**
+     * @param applicationContext
+     * @throws BeansException
+     */
 	public void setApplicationContext(ApplicationContext applicationContext)
 			throws BeansException {
 		this.applicationContext = applicationContext;
 	}
 
+    /**
+     *
+     * @param parentContext
+     */
 	public void setParentContext(ApplicationContext parentContext) {
 		this.parentContext = parentContext;
 	}
 
+    /**
+     *
+     * @param contextsConfig
+     */
 	public void setContextsConfig(String contextsConfig) {
 		this.contextsConfig = contextsConfig;
 	}
 
+    /**
+     * Loads context settings from ResourceBundle (.properties file)
+     *
+     * @throws Exception        I/O exception, casting exception and others
+     */
 	public void init() throws Exception {
 		Properties props = new Properties();
 		Resource res = applicationContext.getResource(contextsConfig);
@@ -65,9 +95,11 @@ public class ContextLoader implements ApplicationContextAware {
 			return;
 		}
 
-		props.load(res.getInputStream());
+        // Load properties file
+        props.load(res.getInputStream());
 
-		for (Object key : props.keySet()) {
+        // Iterate thru properties keys and replace config attributes with system attributes
+        for (Object key : props.keySet()) {
 			String name = (String) key;
 			String config = props.getProperty(name);
 			// TODO: we should support arbitrary property substitution
@@ -76,21 +108,35 @@ public class ContextLoader implements ApplicationContextAware {
 			config = config.replace("${red5.config_root}", System
 					.getProperty("red5.config_root"));
 			log.info("Loading: " + name + " = " + config);
-			loadContext(name, config);
+
+            // Load context
+            loadContext(name, config);
 		}
 
 	}
 
+    /**
+     * Loads context (Red5 application) and stores it in context map, then adds
+     * it's beans to parent (that is, Red5) 
+     *
+     * @param name          Context name
+     * @param config        Filename
+     */
 	protected void loadContext(String name, String config) {
 		ApplicationContext context = new FileSystemXmlApplicationContext(
 				new String[] { config }, parentContext);
 		contextMap.put(name, context);
 		// add the context to the parent, this will be red5.xml
-		ConfigurableBeanFactory factory = ((ConfigurableApplicationContext) applicationContext)
-				.getBeanFactory();
-		factory.registerSingleton(name, context);
+		ConfigurableBeanFactory factory = ((ConfigurableApplicationContext) applicationContext).getBeanFactory();
+		// Register context in parent bean factory
+        factory.registerSingleton(name, context);
 	}
 
+    /**
+     * Return context by name
+     * @param name
+     * @return
+     */
 	public ApplicationContext getContext(String name) {
 		return contextMap.get(name);
 	}

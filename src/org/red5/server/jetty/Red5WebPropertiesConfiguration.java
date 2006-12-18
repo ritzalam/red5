@@ -117,7 +117,7 @@ public class Red5WebPropertiesConfiguration implements Configuration,
 			scope.setServer(server);
 			scope.setGlobalScope(server.getGlobal("default"));
 
-			// Get default Red5 context
+			// Get default Red5 context from context loader that is JettyLoader in this case
 			ApplicationContext appCtx = JettyLoader.getApplicationContext();
 			ContextLoader loader = (ContextLoader) appCtx
 					.getBean("context.loader");

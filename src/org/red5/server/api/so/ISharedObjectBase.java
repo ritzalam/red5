@@ -95,7 +95,8 @@ public interface ISharedObjectBase extends ISharedObjectHandlerProvider,
 	/**
 	 * Start performing multiple updates to the shared object from a connected
 	 * client.
-	 */
+     * @param source
+     */
 	public void beginUpdate(IEventListener source);
 
 	/**

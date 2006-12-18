@@ -73,9 +73,10 @@ public class FLVServiceImplTest extends TestCase {
 
 	/**
 	 * Tests: getFlv(String s)
+     * @param tag
 	 * @return void
 	 * @throws IOException 
-	 * @throws FileNotFoundException 
+	 * @throws FileNotFoundException
 	 */
 	/*
 	public void testFLVString() throws FileNotFoundException, IOException  {
@@ -149,9 +150,11 @@ public class FLVServiceImplTest extends TestCase {
 	
 	/**
 	 * Tests: getFLVFileInputStream(FileInputStream fis)
+     * @param writer
+     * @param reader
 	 * @return void
 	 * @throws IOException 
-	 * @throws FileNotFoundException 
+	 * @throws FileNotFoundException
 	 */
 	/*
 	public void testFLVFileInputStream() throws FileNotFoundException, IOException  {

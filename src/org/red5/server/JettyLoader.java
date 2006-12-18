@@ -34,35 +34,63 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
+/**
+ *
+ */
 public class JettyLoader implements ApplicationContextAware {
 
-	// Initialize Logging
-	protected static Log log = LogFactory.getLog(JettyLoader.class.getName());
-
+    /**
+     *  Logger
+     */
+    protected static Log log = LogFactory.getLog(JettyLoader.class.getName());
+    /**
+     *  Jetty config path
+     */
 	protected String jettyConfig = "classpath:/jetty.xml";
-	protected String defaultWebConfig = "web-default.xml";
-
+    /**
+     *  Default web config filename
+     */
+    protected String defaultWebConfig = "web-default.xml";
+    /**
+     *  IServer implementation
+     */
 	protected Server jetty;
 	
 	// We store the application context in a ThreadLocal so we can access it
 	// from "org.red5.server.jetty.Red5WebPropertiesConfiguration" later.
-	private static ThreadLocal<ApplicationContext> applicationContext = new ThreadLocal<ApplicationContext>();
+    /**
+     *
+     */
+    private static ThreadLocal<ApplicationContext> applicationContext = new ThreadLocal<ApplicationContext>();
 
+    /**
+     *
+     * @param context
+     * @throws BeansException
+     */
 	public void setApplicationContext(ApplicationContext context)
 			throws BeansException {
 		applicationContext.set(context);
 	}
 
+    /**
+     *
+     * @return
+     */
 	public static ApplicationContext getApplicationContext() {
 		return applicationContext.get();
 	}
 
+    /**
+     *
+     */
 	public void init() {
 		// So this class is left just starting jetty
 		try {
 			log.info("Loading jetty6 context from: " + jettyConfig);
 			ApplicationContext appCtx = new ClassPathXmlApplicationContext(jettyConfig);
-			Server jetty = (Server) appCtx.getBean("Server");
+            // Get server bean from BeanFactory
+            Server jetty = (Server) appCtx.getBean("Server");
 
 			// root location for servlet container
 			String serverRoot = System.getProperty("red5.root");
@@ -82,19 +110,23 @@ public class JettyLoader implements ApplicationContextAware {
 					"org.mortbay.jetty.webapp.TagLibConfiguration", 
 					"org.red5.server.jetty.Red5WebPropertiesConfiguration"};
 
-			HandlerCollection handlers = new HandlerCollection();
+
+            // Handler collection
+            HandlerCollection handlers = new HandlerCollection();
 			handlers.setHandlers(new Handler[]{new ContextHandlerCollection(), new DefaultHandler()});
 			jetty.setHandler(handlers);
 			
 			try {
-				WebAppContext.addWebApplications(jetty, webAppRoot, defaultWebConfig, handlersArr, true, true);
+                // Add web applications from web app root with web config 
+                WebAppContext.addWebApplications(jetty, webAppRoot, defaultWebConfig, handlersArr, true, true);
 			} catch (IOException e) {
 				log.error(e);
 			} catch (Exception e) {
 				log.error(e);
 			}
-			
-			jetty.start();
+
+            // Start Jetty
+            jetty.start();
 			
 		} catch (Exception e) {
 			log.error("Error loading jetty", e);

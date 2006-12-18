@@ -43,60 +43,115 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.style.ToStringCreator;
 
 public class Scope extends BasicScope implements IScope {
-
+    /**
+     *
+     */
 	protected static Log log = LogFactory.getLog(Scope.class.getName());
-
+    /**
+     *
+     */
 	private static final int UNSET = -1;
-
+    /**
+     *
+     */
 	private static final String TYPE = "scope";
-
+    /**
+     *
+     */
 	private static final String SERVICE_HANDLERS = IPersistable.TRANSIENT_PREFIX
 			+ "_scope_service_handlers";
-
+    /**
+     *
+     */
 	private int depth = UNSET;
-
+    /**
+     *
+     */
 	private IContext context;
-
+    /**
+     *
+     */
 	private IScopeHandler handler;
-
+    /**
+     *
+     */
 	private boolean autoStart = true;
-
+    /**
+     *
+     */
 	private boolean enabled = true;
-
+    /**
+     *
+     */
 	private boolean running;
-
+    /**
+     *
+     */
 	private Map<String, IBasicScope> children = new ConcurrentHashMap<String, IBasicScope>();
-
+    /**
+     *
+     */
 	private Map<IClient, Set<IConnection>> clients = new ConcurrentHashMap<IClient, Set<IConnection>>();
 
+    /**
+     *
+     */
 	public Scope() {
 		this(null);
 	}
 
+    /**
+     *
+     * @param name
+     */
 	public Scope(String name) {
 		super(null, TYPE, name, false);
 	}
 
+    /**
+     *
+     * @return
+     */
 	public boolean isEnabled() {
 		return enabled;
 	}
 
+    /**
+     *
+     * @param enabled
+     */
 	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
 	}
 
+    /**
+     *
+     * @return
+     */
 	public boolean isRunning() {
 		return running;
 	}
 
+    /**
+     *
+     * @param autoStart
+     */
 	public void setAutoStart(boolean autoStart) {
 		this.autoStart = autoStart;
 	}
 
+    /**
+     *
+     * @param context
+     */
 	public void setContext(IContext context) {
 		this.context = context;
 	}
 
+    /**
+     *
+     * @param handler
+     */
 	public void setHandler(IScopeHandler handler) {
 		this.handler = handler;
 		if (handler instanceof IScopeAware) {
@@ -104,6 +159,9 @@ public class Scope extends BasicScope implements IScope {
 		}
 	}
 
+    /**
+     *
+     */
 	public void init() {
 		if (hasParent()) {
 			if (!parent.hasChildScope(name)) {
@@ -117,6 +175,10 @@ public class Scope extends BasicScope implements IScope {
 		}
 	}
 
+    /**
+     *
+     * @return
+     */
 	public boolean start() {
 		if (enabled && !running) {
 			if (hasHandler() && !handler.start(this)) {
@@ -129,9 +191,15 @@ public class Scope extends BasicScope implements IScope {
 		}
 	}
 
+    /**
+     *
+     */
 	public void stop() {
 	}
 
+    /**
+     *
+     */
 	public void destory() {
 		if (hasParent()) {
 			parent.removeChildScope(this);
@@ -142,6 +210,11 @@ public class Scope extends BasicScope implements IScope {
 		}
 	}
 
+    /**
+     *
+     * @param persistenceClass
+     * @throws Exception
+     */
 	public void setPersistenceClass(String persistenceClass) throws Exception {
 		this.persistenceClass = persistenceClass;
 		if (persistenceClass != null) {
@@ -152,6 +225,11 @@ public class Scope extends BasicScope implements IScope {
 		}
 	}
 
+    /**
+     *
+     * @param scope
+     * @return
+     */
 	public boolean addChildScope(IBasicScope scope) {
 		if (scope.getStore() == null) {
 			// Child scope has no persistence store, use same class as parent.
@@ -185,10 +263,18 @@ public class Scope extends BasicScope implements IScope {
 		return true;
 	}
 
+    /**
+     *
+     * @param pattern
+     */
 	public void setChildLoadPath(String pattern) {
 
 	}
 
+    /**
+     *
+     * @param scope
+     */
 	public void removeChildScope(IBasicScope scope) {
 		if (scope instanceof IScope) {
 			if (hasHandler()) {
@@ -202,6 +288,11 @@ public class Scope extends BasicScope implements IScope {
 		}
 	}
 
+    /**
+     *
+     * @param name
+     * @return
+     */
 	public boolean hasChildScope(String name) {
 		if (log.isDebugEnabled()) {
 			log.debug("Has child scope? " + name + " in " + this);
@@ -209,23 +300,45 @@ public class Scope extends BasicScope implements IScope {
 		return children.containsKey(TYPE + SEPARATOR + name);
 	}
 
+    /**
+     *
+     * @param type
+     * @param name
+     * @return
+     */
 	public boolean hasChildScope(String type, String name) {
 		return children.containsKey(type + SEPARATOR + name);
 	}
 
+    /**
+     *
+     * @return
+     */
 	public Iterator<String> getScopeNames() {
 		return new PrefixFilteringStringIterator(children.keySet().iterator(),
 				"scope");
 	}
 
+    /**
+     *
+     * @return
+     */
 	public Set<IClient> getClients() {
 		return clients.keySet();
 	}
 
+    /**
+     *
+     * @return
+     */
 	public boolean hasContext() {
 		return context != null;
 	}
 
+    /**
+     *
+     * @return
+     */
 	public IContext getContext() {
 		if (!hasContext() && hasParent()) {
 			log.debug("returning parent context");
@@ -236,6 +349,10 @@ public class Scope extends BasicScope implements IScope {
 		}
 	}
 
+    /**
+     *
+     * @return
+     */
 	public String getContextPath() {
 		if (hasContext()) {
 			return "";
@@ -246,12 +363,20 @@ public class Scope extends BasicScope implements IScope {
 		}
 	}
 
-	@Override
+    /**
+     *
+     * @param name
+     */
+    @Override
 	public void setName(String name) {
 		this.name = name;
 	}
 
-	@Override
+    /**
+     *
+     * @return
+     */
+    @Override
 	public String getPath() {
 		if (hasParent()) {
 			return parent.getPath() + '/' + parent.getName();
@@ -260,14 +385,26 @@ public class Scope extends BasicScope implements IScope {
 		}
 	}
 
+    /**
+     *
+     * @param parent
+     */
 	public void setParent(IScope parent) {
 		this.parent = parent;
 	}
 
+    /**
+     *
+     * @return
+     */
 	public boolean hasHandler() {
 		return (handler != null || (hasParent() && getParent().hasHandler()));
 	}
 
+    /**
+     *
+     * @return
+     */
 	public IScopeHandler getHandler() {
 		if (handler != null) {
 			return handler;
@@ -278,20 +415,39 @@ public class Scope extends BasicScope implements IScope {
 		}
 	}
 
+    /**
+     *
+     * @return
+     */
 	@Override
 	public IScope getParent() {
 		return parent;
 	}
 
+    /**
+     *
+     * @return
+     */
 	@Override
 	public boolean hasParent() {
 		return (parent != null);
 	}
 
+    /**
+     *
+     * @param conn
+     * @return
+     */
 	public synchronized boolean connect(IConnection conn) {
 		return connect(conn, null);
 	}
 
+    /**
+     *
+     * @param conn
+     * @param params
+     * @return
+     */
 	public synchronized boolean connect(IConnection conn, Object[] params) {
 		//log.debug("Connect: "+conn+" to "+this);
 		//log.debug("has handler? "+hasHandler());
@@ -320,6 +476,10 @@ public class Scope extends BasicScope implements IScope {
 		return true;
 	}
 
+    /**
+     *
+     * @param conn
+     */
 	public synchronized void disconnect(IConnection conn) {
 		// We call the disconnect handlers in reverse order they were called
 		// during connection, i.e. roomDisconnect is called before
@@ -359,10 +519,18 @@ public class Scope extends BasicScope implements IScope {
 		}
 	}
 
+    /**
+     *
+     * @param depth
+     */
 	public void setDepth(int depth) {
 		this.depth = depth;
 	}
 
+    /**
+     *
+     * @return
+     */
 	@Override
 	public int getDepth() {
 		if (depth == UNSET) {
@@ -375,6 +543,12 @@ public class Scope extends BasicScope implements IScope {
 		return depth;
 	}
 
+    /**
+     *
+     * @param path
+     * @return
+     * @throws IOException
+     */
 	public Resource[] getResources(String path) throws IOException {
 		if (hasContext()) {
 			return context.getResources(path);
@@ -382,6 +556,11 @@ public class Scope extends BasicScope implements IScope {
 		return getContext().getResources(getContextPath() + '/' + path);
 	}
 
+    /**
+     *
+     * @param path
+     * @return
+     */
 	public Resource getResource(String path) {
 		if (hasContext()) {
 			return context.getResource(path);
@@ -389,10 +568,19 @@ public class Scope extends BasicScope implements IScope {
 		return getContext().getResource(getContextPath() + '/' + path);
 	}
 
+    /**
+     *
+     * @return
+     */
 	public Iterator<IConnection> getConnections() {
 		return new ConnectionIterator();
 	}
 
+    /**
+     *
+     * @param client
+     * @return
+     */
 	public Set<IConnection> lookupConnections(IClient client) {
 		return clients.get(client);
 	}
@@ -409,6 +597,9 @@ public class Scope extends BasicScope implements IScope {
 		}
 	}
 
+    /**
+     *
+     */
 	class PrefixFilteringStringIterator implements Iterator<String> {
 
 		private Iterator<String> iterator;
@@ -452,23 +643,43 @@ public class Scope extends BasicScope implements IScope {
 
 	}
 
+    /**
+     *
+     */
 	class ConnectionIterator implements Iterator<IConnection> {
-
+        /**
+         *
+         */
 		private Iterator<Set<IConnection>> setIterator;
-
+        /**
+         *
+         */
 		private Iterator<IConnection> connIterator;
-
+        /**
+         *
+         */
 		private IConnection current;
 
+        /**
+         *
+         */
 		public ConnectionIterator() {
 			setIterator = clients.values().iterator();
 		}
 
+        /**
+         *
+         * @return
+         */
 		public boolean hasNext() {
 			return (connIterator != null && connIterator.hasNext())
 					|| setIterator.hasNext();
 		}
 
+        /**
+         *
+         * @return
+         */
 		public IConnection next() {
 			if (connIterator == null || !connIterator.hasNext()) {
 				if (!setIterator.hasNext()) {
@@ -480,6 +691,9 @@ public class Scope extends BasicScope implements IScope {
 			return current;
 		}
 
+        /**
+         *
+         */
 		public void remove() {
 			if (current != null) {
 				disconnect(current);
@@ -488,22 +702,43 @@ public class Scope extends BasicScope implements IScope {
 
 	}
 
+    /**
+     *
+     * @param name
+     * @return
+     */
 	public boolean createChildScope(String name) {
 		final Scope scope = new Scope(name);
 		scope.setParent(this);
 		return addChildScope(scope);
 	}
 
+    /**
+     *
+     * @param event
+     * @return
+     */
 	@Override
 	public boolean handleEvent(IEvent event) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
+    /**
+     *
+     * @param type
+     * @param name
+     * @return
+     */
 	public IBasicScope getBasicScope(String type, String name) {
 		return children.get(type + SEPARATOR + name);
 	}
 
+    /**
+     *
+     * @param type
+     * @return
+     */
 	public Iterator<String> getBasicScopeNames(String type) {
 		if (type == null) {
 			return children.keySet().iterator();
@@ -513,15 +748,28 @@ public class Scope extends BasicScope implements IScope {
 		}
 	}
 
+    /**
+     *
+     * @param name
+     * @return
+     */
 	public IScope getScope(String name) {
 		return (IScope) children.get(TYPE + SEPARATOR + name);
 	}
 
+    /**
+     *
+     * @return
+     */
 	@Override
 	public Iterator<IBasicScope> iterator() {
 		return children.values().iterator();
 	}
 
+    /**
+     *
+     * @return
+     */
 	@Override
 	public String toString() {
 		final ToStringCreator tsc = new ToStringCreator(this);
@@ -530,32 +778,57 @@ public class Scope extends BasicScope implements IScope {
 	}
 
 	/* IServiceHandlerProvider interface */
-
+    /**
+     *
+     * @return
+     */
 	protected Map<String, Object> getServiceHandlers() {
 		return (Map<String, Object>) getAttribute(SERVICE_HANDLERS,
 				new HashMap<String, Object>());
 	}
 
+    /**
+     *
+     * @param name
+     * @param handler
+     */
 	public void registerServiceHandler(String name, Object handler) {
 		Map<String, Object> serviceHandlers = getServiceHandlers();
 		serviceHandlers.put(name, handler);
 	}
 
+    /**
+     *
+     * @param name
+     */
 	public void unregisterServiceHandler(String name) {
 		Map<String, Object> serviceHandlers = getServiceHandlers();
 		serviceHandlers.remove(name);
 	}
 
+    /**
+     *
+     * @param name
+     * @return
+     */
 	public Object getServiceHandler(String name) {
 		Map<String, Object> serviceHandlers = getServiceHandlers();
 		return serviceHandlers.get(name);
 	}
 
+    /**
+     *
+     * @return
+     */
 	public Set<String> getServiceHandlerNames() {
 		Map<String, Object> serviceHandlers = getServiceHandlers();
 		return serviceHandlers.keySet();
 	}
 
+    /**
+     *
+     * @return
+     */
 	public ClassLoader getClassLoader() {
 		return Thread.currentThread().getContextClassLoader();
 	}
