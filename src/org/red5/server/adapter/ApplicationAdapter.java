@@ -79,23 +79,24 @@ import org.red5.server.stream.StreamService;
  * method. Unlike to Flash Media server which requires you to keep methods on Client object at server side, Red5
  * offers much more convenient way to add methods for remote invocation to your applications.
  * 
- * EXAMPLE:
- * 
+ * <p><strong>EXAMPLE:</strong></p>
+ * <p>
  * <code>
- * public List<String> getLiveStreams() {
- *   // Implementation goes here, say, use Red5 object to obtain scope and all it's streams
- * }
+ * public List<String> getLiveStreams() {<br />
+ *   // Implementation goes here, say, use Red5 object to obtain scope and all it's streams<br />
+ * }<br />
  * </code>
  * 
- * This methos added to ApplicationAdapter sublass can be called from client side with the following code:
+ * <p>This method added to ApplicationAdapter sublass can be called from client side with the following code:</p>
  * 
  * <code>
- * var nc:NetConnection = new NetConnection();
- * nc.connect(...);
- * nc.call("getLiveStreams", resultHandlerObj);
+ * var nc:NetConnection = new NetConnection();<br />
+ * nc.connect(...);<br />
+ * nc.call("getLiveStreams", resultHandlerObj);<br />
  * </code>
  * 
- * If you want to build a server-side framework this is a place to start and wrap it around ApplicationAdapter subclass.
+ * <p>If you want to build a server-side framework this is a place to start and wrap it around ApplicationAdapter subclass.</p>
+ * </p>
  *
  */
 public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
@@ -172,7 +173,7 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 	 * scope is room or app level scope, this method distinguishes it and acts
 	 * accordingly. You override
 	 * {@link ApplicationAdapter#appConnect(IConnection, Object[])} or
-	 * {@link ApplicationAdapter#roomConnect(IConnection, Object[])}} in your
+	 * {@link ApplicationAdapter#roomConnect(IConnection, Object[])} in your
 	 * application to make it act the way you want.
 	 * 
 	 * @param conn
@@ -392,18 +393,15 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 	 * You override this method to pass additional data from client to server
 	 * application using <code>NetConnection.connect</code> method.
 	 * 
-	 * EXAMPLE: 
-	 * 
+	 * <p><strong>EXAMPLE:</strong><br /> 
 	 * In this simple example we pass user's skin of choice identifier from
-	 * client to th server.
+	 * client to th server.</p>
 	 * 
-	 * Client-side: 
+	 * <p><strong>Client-side:</strong><br />
+	 * <code>NetConnection.connect("rtmp://localhost/killerred5app", "silver");</code></p>
 	 * 
-	 * <code>NetConnection.connect( "rtmp://localhost/killerred5app", "silver" );</code>
-	 * 
-	 * Server-side:
-	 * 
-	 * <code>if (params.length > 0) System.out.println( "Theme selected: " + params[0] );</code>
+	 * <p><strong>Server-side:</strong><br /> 
+	 * <code>if (params.length > 0) System.out.println("Theme selected: " + params[0]);</code></p>
 	 * 
 	 * @param conn
 	 *            Connection object
