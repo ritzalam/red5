@@ -17,7 +17,7 @@ import org.springframework.util.Assert;
  * Python script.
  * 
  * @author Yan Weng
- * @see http://yanweng.blogspot.com/2006/02/prototype-of-jython-scriptfactory-for.html
+ * @see <a href="http://yanweng.blogspot.com/2006/02/prototype-of-jython-scriptfactory-for.html">A prototype of Jython ScriptFactory for Spring Framework</a>
  */
 public class JythonScriptFactory implements ScriptFactory {
 

@@ -171,7 +171,7 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 	 * Returns connection result for given scope and parameters. Whether the
 	 * scope is room or app level scope, this method distinguishes it and acts
 	 * accordingly. You override
-	 * {@link ApplicationAdapter#appConnect(IConnection, Object[]))} or
+	 * {@link ApplicationAdapter#appConnect(IConnection, Object[])} or
 	 * {@link ApplicationAdapter#roomConnect(IConnection, Object[])}} in your
 	 * application to make it act the way you want.
 	 * 
@@ -235,10 +235,6 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 	 *            Connection object
 	 * @param scope
 	 *            Scope
-	 * @param params
-	 *            List of params passed to connection handler
-	 * @return <code>true</code> if disconnect is successful,
-	 *         <code>false</code> otherwise
 	 */
 	@Override
 	public void disconnect(IConnection conn, IScope scope) {
@@ -255,7 +251,7 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 	 * Stops scope handling (that is, stops application if given scope is app
 	 * level scope and stops room handling if given scope has lower scope
 	 * level). This method calls {@link ApplicationAdapter#appStop(IScope)} or
-	 * {@link ApplicationAdapter#roomStop(IScope))} handlers respectively.
+	 * {@link ApplicationAdapter#roomStop(IScope)} handlers respectively.
 	 * 
 	 * @param scope
 	 *            Scope to stop
@@ -274,7 +270,7 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 	 * Adds client to scope. Scope can be both application or room. Can be
 	 * applied to both application scope and scopes of lower level. This method
 	 * calls {@link ApplicationAdapter#appJoin(IClient, IScope)} or
-	 * {@link ApplicationAdapter#roomJoin(IClient, IScope))} handlers
+	 * {@link ApplicationAdapter#roomJoin(IClient, IScope)} handlers
 	 * respectively.
 	 * 
 	 * @param client
@@ -325,11 +321,10 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 	 * {@link ApplicationAdapter#roomStart(IScope)}} in your application to
 	 * make it act the way you want.
 	 * 
-	 * @param scope
-	 *            Scope object
+     * @param app
+	 *            Application scope object
 	 * @return <code>true</code> if scope can be started, <code>false</code>
 	 *         otherwise
-     * @param app
 	 */
 	public boolean appStart(IScope app) {
 		if (log.isDebugEnabled()) {
@@ -525,10 +520,9 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 	/**
 	 * Handler method. Called every time client leaves room scope.
 	 * 
-	 * @param conn
-	 *            Disconnected connection object
+	 * @param client
+	 *            Disconnected client object
      * @param room
-     * @param client
 	 */
 	public void roomLeave(IClient client, IScope room) {
 		if (log.isDebugEnabled()) {

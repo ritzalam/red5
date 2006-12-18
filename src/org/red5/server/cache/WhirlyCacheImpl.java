@@ -38,7 +38,7 @@ import com.whirlycott.cache.RecordKeeper;
 /**
  * Provides an implementation of an object cache using whirlycache.
  * 
- * @see https://whirlycache.dev.java.net/
+ * @see <a href="https://whirlycache.dev.java.net/">whirlycache homepage</a>
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Paul Gregoire (mondain@gmail.com)

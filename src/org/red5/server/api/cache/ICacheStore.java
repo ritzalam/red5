@@ -28,10 +28,10 @@ import java.util.Iterator;
  * 
  * <p>
  * 
- * @see http://www-128.ibm.com/developerworks/java/library/j-jtp01246.html
- * @see http://java.sun.com/developer/technicalArticles/ALT/RefObj/
- * @see http://www.onjava.com/pub/a/onjava/2002/10/02/javanio.html?page=3
- * @see http://csci.csusb.edu/turner/archive/courses/aiit2004/proxy_cache_solution.html
+ * @see <a href="http://www-128.ibm.com/developerworks/java/library/j-jtp01246.html">Soft references provide for quick-and-dirty caching</a>
+ * @see <a href="http://java.sun.com/developer/technicalArticles/ALT/RefObj/">Reference Objects and Garbage Collection</a>
+ * @see <a href="http://www.onjava.com/pub/a/onjava/2002/10/02/javanio.html?page=3">Top Ten New Things You Can Do with NIO</a>
+ * @see <a href="http://csci.csusb.edu/turner/archive/courses/aiit2004/proxy_cache_solution.html">http://csci.csusb.edu/turner/archive/courses/aiit2004/proxy_cache_solution.html</a>
  *      </p>
  * 
  * @author The Red5 Project (red5@osflash.org)
