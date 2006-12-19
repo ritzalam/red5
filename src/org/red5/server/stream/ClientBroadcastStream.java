@@ -183,7 +183,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
      * @throws ResourceExistException        Resource exist when trying to create.
      */
     public void saveAs(String name, boolean isAppend)
-            throws ResourceNotFoundException, ResourceExistException, IOException {
+            throws ResourceNotFoundException, ResourceExistException {
 		try {
             // Get stream scope
             IScope scope = getConnection().getScope();
@@ -244,7 +244,6 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			recordPipe.subscribe(fc, paramMap);
 			recording = true;
 		} catch (IOException e) {
-            throw e;
         }
 	}
 
