@@ -44,7 +44,8 @@ public class StreamBandwidthController implements IFilter,
 
 	private boolean isStarted;
 
-	public void onPipeConnectionEvent(PipeConnectionEvent event) {
+	/** {@inheritDoc} */
+    public void onPipeConnectionEvent(PipeConnectionEvent event) {
 		switch (event.getType()) {
 			case PipeConnectionEvent.PROVIDER_CONNECT_PULL:
 				if (event.getProvider() != this && providerPipe == null) {
@@ -71,11 +72,13 @@ public class StreamBandwidthController implements IFilter,
 		}
 	}
 
-	public void onOOBControlMessage(IMessageComponent source, IPipe pipe,
+	/** {@inheritDoc} */
+    public void onOOBControlMessage(IMessageComponent source, IPipe pipe,
 			OOBControlMessage oobCtrlMsg) {
 	}
 
-	public void run() {
+	/** {@inheritDoc} */
+    public void run() {
 		while (isStarted && providerPipe != null && consumerPipe != null) {
 			try {
 				IMessage message = providerPipe.pullMessage();

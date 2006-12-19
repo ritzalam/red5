@@ -76,34 +76,42 @@ public class StreamFlow implements IStreamFlow {
 
 	private StreamTracker streamTracker = new StreamTracker();
 
-	public StreamFlow() {
+	/** Constructs a new StreamFlow. */
+    public StreamFlow() {
 	}
 
-	public int getMaxTimeBuffer() {
+	/** {@inheritDoc} */
+    public int getMaxTimeBuffer() {
 		return maxTimeBuffer;
 	}
 
-	public void setMaxTimeBuffer(int maxTimeBuffer) {
+	/** {@inheritDoc} */
+    public void setMaxTimeBuffer(int maxTimeBuffer) {
 		this.maxTimeBuffer = maxTimeBuffer;
 	}
 
-	public int getMinTimeBuffer() {
+	/** {@inheritDoc} */
+    public int getMinTimeBuffer() {
 		return minTimeBuffer;
 	}
 
-	public void setMinTimeBuffer(int minTimeBuffer) {
+	/** {@inheritDoc} */
+    public void setMinTimeBuffer(int minTimeBuffer) {
 		this.minTimeBuffer = minTimeBuffer;
 	}
 
-	public long getClientTimeBuffer() {
+	/** {@inheritDoc} */
+    public long getClientTimeBuffer() {
 		return clientTimeBuffer;
 	}
 
-	public void setClientTimeBuffer(long clientTimeBuffer) {
+	/** {@inheritDoc} */
+    public void setClientTimeBuffer(long clientTimeBuffer) {
 		this.clientTimeBuffer = clientTimeBuffer;
 	}
 
-	public int getDataBitRate() {
+	/** {@inheritDoc} */
+    public int getDataBitRate() {
 		int dataTime = getSegmentDataTime() / 1000;
 		if (dataTime == 0) {
 			return 0;
@@ -111,11 +119,13 @@ public class StreamFlow implements IStreamFlow {
 		return ((segmentBytesTransfered * 8) / dataTime);
 	}
 
-	public int getSegmentBytesTransfered() {
+	/** {@inheritDoc} */
+    public int getSegmentBytesTransfered() {
 		return segmentBytesTransfered;
 	}
 
-	public int getSegmentDataTime() {
+	/** {@inheritDoc} */
+    public int getSegmentDataTime() {
 		if (segmentDataTimes[VIDEO] >= segmentDataTimes[AUDIO]
 				&& segmentDataTimes[VIDEO] >= segmentDataTimes[DATA]) {
 			return segmentDataTimes[VIDEO];
@@ -127,18 +137,21 @@ public class StreamFlow implements IStreamFlow {
 		}
 	}
 
-	public long getSegmentStreamTime() {
+	/** {@inheritDoc} */
+    public long getSegmentStreamTime() {
 		if (segmentStartTime == 0) {
 			return 0;
 		}
 		return System.currentTimeMillis() - segmentStartTime;
 	}
 
-	public int getStreamBitRate() {
+	/** {@inheritDoc} */
+    public int getStreamBitRate() {
 		return (int) ((segmentBytesTransfered * 8) / (getSegmentStreamTime() / 1000));
 	}
 
-	public boolean isBufferTimeIncreasing() {
+	/** {@inheritDoc} */
+    public boolean isBufferTimeIncreasing() {
 		int combinedBufferTime = 0;
 		for (int element : lastBufferTimes) {
 			combinedBufferTime += element;
@@ -151,11 +164,13 @@ public class StreamFlow implements IStreamFlow {
 		return isIncreasing;
 	}
 
-	public long getTotalBytesTransfered() {
+	/** {@inheritDoc} */
+    public long getTotalBytesTransfered() {
 		return totalBytesTransfered;
 	}
 
-	public long getTotalDataTime() {
+	/** {@inheritDoc} */
+    public long getTotalDataTime() {
 		if (totalDataTimes[VIDEO] >= totalDataTimes[AUDIO]
 				&& totalDataTimes[VIDEO] >= totalDataTimes[DATA]) {
 			return totalDataTimes[VIDEO];
@@ -167,18 +182,21 @@ public class StreamFlow implements IStreamFlow {
 		}
 	}
 
-	public long getTotalStreamTime() {
+	/** {@inheritDoc} */
+    public long getTotalStreamTime() {
 		return System.currentTimeMillis() - streamStartTime;
 	}
 
-	public long getZeroToStreamTime() {
+	/** {@inheritDoc} */
+    public long getZeroToStreamTime() {
 		if (zeroToStreamTime == -1) {
 			return System.currentTimeMillis() - segmentStartTime;
 		}
 		return zeroToStreamTime;
 	}
 
-	public int getBufferTime() {
+	/** {@inheritDoc} */
+    public int getBufferTime() {
 		return (int) (getSegmentDataTime() - getSegmentStreamTime());
 	}
 
@@ -191,15 +209,18 @@ public class StreamFlow implements IStreamFlow {
 		segmentStartTime = now;
 	}
 
-	public void pause() {
+	/** {@inheritDoc} */
+    public void pause() {
 		clear();
 	}
 
-	public void resume() {
+	/** {@inheritDoc} */
+    public void resume() {
 		startSegment();
 	}
 
-	public void clear() {
+	/** {@inheritDoc} */
+    public void clear() {
 		streaming = false;
 		segmentBytesTransfered = 0;
 		combinedSegmentDataTime = 0;
@@ -211,7 +232,8 @@ public class StreamFlow implements IStreamFlow {
 		streamTracker.reset();
 	}
 
-	public void reset() {
+	/** {@inheritDoc} */
+    public void reset() {
 		clear();
 		streamStartTime = 0;
 		totalBytesTransfered = 0;
@@ -219,7 +241,8 @@ public class StreamFlow implements IStreamFlow {
 		totalDataTimes[0] = totalDataTimes[1] = totalDataTimes[2] = 0;
 	}
 
-	public void update(RTMPMessage rtmpMsg) {
+	/** {@inheritDoc} */
+    public void update(RTMPMessage rtmpMsg) {
 		//log.info(">>>"+msg.getBody());
 		IRTMPEvent msg = rtmpMsg.getBody();
 		int ts = streamTracker.add(msg);
@@ -273,7 +296,8 @@ public class StreamFlow implements IStreamFlow {
 		combinedTotalDataTime += relativeTime;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public String toString() {
 		return new ToStringCreator(this).append("BT", getBufferTime()).append(
 				"SBT", segmentBytesTransfered).append("SDT",

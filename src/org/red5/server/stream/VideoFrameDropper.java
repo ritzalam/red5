@@ -58,19 +58,23 @@ public class VideoFrameDropper implements IFrameDropper {
 	/** Current state. */
 	private int state;
 
-	public VideoFrameDropper() {
+	/** Constructs a new VideoFrameDropper. */
+    public VideoFrameDropper() {
 		reset();
 	}
 
-	public void reset() {
+	/** {@inheritDoc} */
+    public void reset() {
 		reset(SEND_ALL);
 	}
 
-	public void reset(int state) {
+	/** {@inheritDoc} */
+    public void reset(int state) {
 		this.state = state;
 	}
 
-	public boolean canSendPacket(RTMPMessage message, long pending) {
+	/** {@inheritDoc} */
+    public boolean canSendPacket(RTMPMessage message, long pending) {
 		IRTMPEvent packet = message.getBody();
 		if (!(packet instanceof VideoData)) {
 			// We currently only drop video packets.
@@ -121,7 +125,8 @@ public class VideoFrameDropper implements IFrameDropper {
 		return result;
 	}
 
-	public void dropPacket(RTMPMessage message) {
+	/** {@inheritDoc} */
+    public void dropPacket(RTMPMessage message) {
 		IRTMPEvent packet = message.getBody();
 		if (!(packet instanceof VideoData)) {
 			// Only check video packets.
@@ -174,7 +179,8 @@ public class VideoFrameDropper implements IFrameDropper {
 		}
 	}
 
-	public void sendPacket(RTMPMessage message) {
+	/** {@inheritDoc} */
+    public void sendPacket(RTMPMessage message) {
 
 	}
 

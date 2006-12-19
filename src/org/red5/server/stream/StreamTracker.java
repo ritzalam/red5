@@ -19,7 +19,8 @@ public class StreamTracker implements Constants {
 
 	private boolean firstNotify;
 
-	public StreamTracker() {
+	/** Constructs a new StreamTracker. */
+    public StreamTracker() {
 		reset();
 	}
 
@@ -81,7 +82,12 @@ public class StreamTracker implements Constants {
 		return tsOut;
 	}
 
-	public boolean isRelative() {
+	/**
+     * Getter for property 'relative'.
+     *
+     * @return Value for property 'relative'.
+     */
+    public boolean isRelative() {
 		return relative;
 	}
 }

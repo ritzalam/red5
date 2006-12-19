@@ -75,11 +75,17 @@ public class FileProvider implements IPassive, ISeekableProvider,
 		this.file = file;
 	}
 
-	public void setStart(int start) {
+	/**
+     * Setter for property 'start'.
+     *
+     * @param start Value to set for property 'start'.
+     */
+    public void setStart(int start) {
 		this.start = start;
 	}
 
-	synchronized public IMessage pullMessage(IPipe pipe) {
+	/** {@inheritDoc} */
+    synchronized public IMessage pullMessage(IPipe pipe) {
 		if (this.pipe != pipe) {
 			return null;
 		}
@@ -119,11 +125,13 @@ public class FileProvider implements IPassive, ISeekableProvider,
 		return rtmpMsg;
 	}
 
-	public IMessage pullMessage(IPipe pipe, long wait) {
+	/** {@inheritDoc} */
+    public IMessage pullMessage(IPipe pipe, long wait) {
 		return pullMessage(pipe);
 	}
 
-	public void onPipeConnectionEvent(PipeConnectionEvent event) {
+	/** {@inheritDoc} */
+    public void onPipeConnectionEvent(PipeConnectionEvent event) {
 		switch (event.getType()) {
 			case PipeConnectionEvent.PROVIDER_CONNECT_PULL:
 				if (pipe == null) {
@@ -145,7 +153,8 @@ public class FileProvider implements IPassive, ISeekableProvider,
 		}
 	}
 
-	public void onOOBControlMessage(IMessageComponent source, IPipe pipe,
+	/** {@inheritDoc} */
+    public void onOOBControlMessage(IMessageComponent source, IPipe pipe,
 			OOBControlMessage oobCtrlMsg) {
 		if (IPassive.KEY.equals(oobCtrlMsg.getTarget())) {
 			if (oobCtrlMsg.getServiceName().equals("init")) {
@@ -192,7 +201,8 @@ public class FileProvider implements IPassive, ISeekableProvider,
 		}
 	}
 
-	synchronized public int seek(int ts) {
+	/** {@inheritDoc} */
+    synchronized public int seek(int ts) {
 		if (keyFrameMeta == null) {
 			if (!(reader instanceof IKeyFrameDataAnalyzer)) {
 				// Seeking not supported

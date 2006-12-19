@@ -36,7 +36,12 @@ public class VideoCodecFactory {
 
 	private List codecs = new ArrayList();
 
-	public void setCodecs(List codecs) {
+	/**
+     * Setter for property 'codecs'.
+     *
+     * @param codecs Value to set for property 'codecs'.
+     */
+    public void setCodecs(List codecs) {
 		this.codecs = codecs;
 	}
 

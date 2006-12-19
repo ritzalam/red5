@@ -26,6 +26,11 @@ import org.apache.mina.common.ByteBuffer;
  */
 public interface IStreamData {
 
-	public ByteBuffer getData();
+	/**
+     * Getter for property 'data'.
+     *
+     * @return Value for property 'data'.
+     */
+    public ByteBuffer getData();
 
 }

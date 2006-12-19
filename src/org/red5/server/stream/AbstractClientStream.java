@@ -24,48 +24,97 @@ import org.red5.server.api.IFlowControllable;
 import org.red5.server.api.stream.IClientStream;
 import org.red5.server.api.stream.IStreamCapableConnection;
 
+/**
+ * Abstract base for client streams
+ */
 public abstract class AbstractClientStream extends AbstractStream implements
 		IClientStream {
-	private int streamId;
 
+    /**
+     *  Stream identifier. Unique across server.
+     */
+    private int streamId;
+    /**
+     *  Connection that works with streams
+     */
 	private IStreamCapableConnection conn;
-
+    /**
+     *  Bandwidth configuration
+     */
 	private IBandwidthConfigure bwConfig;
-
+    /**
+     *  Stream flow
+     */
 	private IStreamFlow streamFlow = new StreamFlow();
 
+    /**
+     * Return stream id
+     * @return           Stream id
+     */
 	public int getStreamId() {
 		return streamId;
 	}
 
+    /**
+     * Return connection associated with stream
+     * @return           Stream capable connection object
+     */
 	public IStreamCapableConnection getConnection() {
 		return conn;
 	}
 
+    /**
+     * Return stream bandwidth configuration
+     * @return            Bandwidth config
+     */
 	public IBandwidthConfigure getBandwidthConfigure() {
 		return bwConfig;
 	}
 
+    /**
+     * Setter for bandwidth config
+     * @param config              Bandwidth config
+     */
 	public void setBandwidthConfigure(IBandwidthConfigure config) {
 		this.bwConfig = config;
 	}
 
+    /**
+     * Return parent flow controllable object (bandwidth preferences holder)
+     * @return          IFlowControllable object
+     */
 	public IFlowControllable getParentFlowControllable() {
 		return conn;
 	}
 
+    /**
+     * Setter for stream id
+     * @param streamId       Stream id
+     */
 	public void setStreamId(int streamId) {
 		this.streamId = streamId;
 	}
 
+    /**
+     * Setter for stream capable connection
+     * @param conn           IStreamCapableConnection object
+     */
 	public void setConnection(IStreamCapableConnection conn) {
 		this.conn = conn;
 	}
 
+    /**
+     * Setter fpr stream flow
+     * @param streamFlow     IStreamFlow object
+     */
 	protected void setStreamFlow(IStreamFlow streamFlow) {
 		this.streamFlow = streamFlow;
 	}
 
+    /**
+     * Return stream flow
+     * @return               IStreamFlow object
+     */
 	public IStreamFlow getStreamFlow() {
 		return streamFlow;
 	}

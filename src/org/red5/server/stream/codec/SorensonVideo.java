@@ -48,25 +48,30 @@ public class SorensonVideo implements IVideoStreamCodec {
 
 	private int blockSize;
 
-	public SorensonVideo() {
+	/** Constructs a new SorensonVideo. */
+    public SorensonVideo() {
 		this.reset();
 	}
 
-	public String getName() {
+	/** {@inheritDoc} */
+    public String getName() {
 		return CODEC_NAME;
 	}
 
-	public boolean canDropFrames() {
+	/** {@inheritDoc} */
+    public boolean canDropFrames() {
 		return true;
 	}
 
-	public void reset() {
+	/** {@inheritDoc} */
+    public void reset() {
 		this.blockData = null;
 		this.blockSize = 0;
 		this.dataCount = 0;
 	}
 
-	public boolean canHandleData(ByteBuffer data) {
+	/** {@inheritDoc} */
+    public boolean canHandleData(ByteBuffer data) {
 		if (data.limit() == 0) {
 			// Empty buffer
 			return false;
@@ -78,7 +83,8 @@ public class SorensonVideo implements IVideoStreamCodec {
 		return result;
 	}
 
-	public boolean addData(ByteBuffer data) {
+	/** {@inheritDoc} */
+    public boolean addData(ByteBuffer data) {
 		if (data.limit() == 0) {
 			// Empty buffer
 			return true;
@@ -107,7 +113,8 @@ public class SorensonVideo implements IVideoStreamCodec {
 		return true;
 	}
 
-	public ByteBuffer getKeyframe() {
+	/** {@inheritDoc} */
+    public ByteBuffer getKeyframe() {
 		if (this.dataCount == 0) {
 			return null;
 		}

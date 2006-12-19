@@ -20,7 +20,13 @@ package org.red5.server.stream;
  */
 
 /**
- * A token bucket that is used to control bandwidth.
+ * Basically token bucket is used to control the bandwidth used by a stream or a connection or a client.
+ * There's a background thread that distributes tokens to the buckets in the system according
+ * to the configuration of the bucket. The configuration includes how fast the tokens are distributed.
+ * When a stream, for example, needs to send out a packet, the packet's byte count is calculated and
+ * each byte corresponds to a token in the bucket. The stream is assigned a bucket and the tokens in
+ * the bucket are acquired before the packet can be sent out. So if the speed(or bandwidth) in
+ * configuration is low, the stream can't send out packets fast. 
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Steven Gong (steven.gong@gmail.com)
@@ -55,34 +61,47 @@ public interface ITokenBucket {
 	 * Nonblockingly acquire token. The upper limit is specified. If
 	 * not enough tokens are left in bucket, all remaining will be
 	 * returned.
-	 * @param upperLimitCount
-	 * @return
+	 * @param upperLimitCount      Upper limit of aquisition
+	 * @return                     Remaining tokens from bucket
 	 */
 	double acquireTokenBestEffort(double upperLimitCount);
 
 	/**
 	 * Get the capacity of this bucket in Byte.
 	 * 
-	 * @return
+	 * @return                     Capacity of this bucket in bytes
 	 */
 	long getCapacity();
 
 	/**
 	 * The amount of tokens increased per second in millisecond.
 	 * 
-	 * @return
+	 * @return                     Amount of tokens increased per second in millisecond.
 	 */
 	double getSpeed();
 
 	/**
 	 * Reset this token bucket. All pending threads are woken up with <tt>false</tt>
-	 * returned for acquiring token and callback is removed w/o calling back.
+	 * returned for acquiring token and callback is removed without calling back.
 	 */
 	void reset();
 
-	public interface ITokenBucketCallback {
-		void available(ITokenBucket bucket, double tokenCount);
+    /**
+     * Callback for tocket bucket
+     */
+    public interface ITokenBucketCallback {
+        /**
+         * Check if there's given number of tokens available for bucket
+         * @param bucket          Bucket
+         * @param tokenCount      Number of tokens
+         */
+        void available(ITokenBucket bucket, double tokenCount);
 
-		void reset(ITokenBucket bucket, double tokenCount);
+        /**
+         * Resets tokens in bucket
+         * @param bucket          Bucket
+         * @param tokenCount      Number of tokens
+         */
+        void reset(ITokenBucket bucket, double tokenCount);
 	}
 }

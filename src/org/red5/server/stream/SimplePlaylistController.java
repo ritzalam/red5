@@ -24,7 +24,8 @@ import org.red5.server.api.stream.IPlaylistController;
 
 public class SimplePlaylistController implements IPlaylistController {
 
-	public int nextItem(IPlaylist playlist, int itemIndex) {
+	/** {@inheritDoc} */
+    public int nextItem(IPlaylist playlist, int itemIndex) {
 		if (itemIndex < 0) {
 			itemIndex = -1;
 		}
@@ -41,7 +42,8 @@ public class SimplePlaylistController implements IPlaylistController {
 		}
 	}
 
-	public int previousItem(IPlaylist playlist, int itemIndex) {
+	/** {@inheritDoc} */
+    public int previousItem(IPlaylist playlist, int itemIndex) {
 		if (itemIndex > playlist.getItemSize()) {
 			return playlist.getItemSize() - 1;
 		}

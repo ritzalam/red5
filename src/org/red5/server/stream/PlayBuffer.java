@@ -52,7 +52,12 @@ public class PlayBuffer {
 		return capacity;
 	}
 
-	public void setCapacity(long capacity) {
+	/**
+     * Setter for property 'capacity'.
+     *
+     * @param capacity Value to set for property 'capacity'.
+     */
+    public void setCapacity(long capacity) {
 		this.capacity = capacity;
 	}
 

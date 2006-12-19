@@ -61,7 +61,8 @@ public class SimpleFlowControlService extends TimerTask implements
 		timer.scheduleAtFixedRate(this, interval, interval);
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void run() {
 		synchronized (fcsMap) {
 			for (IFlowControllable fc : fcsMap.keySet()) {
@@ -102,14 +103,16 @@ public class SimpleFlowControlService extends TimerTask implements
 		}
 	}
 
-	public void releaseFlowControllable(IFlowControllable fc) {
+	/** {@inheritDoc} */
+    public void releaseFlowControllable(IFlowControllable fc) {
 		synchronized (fcsMap) {
 			yieldResourceToAncestor(fc);
 			fcsMap.remove(fc);
 		}
 	}
 
-	public void updateBWConfigure(IFlowControllable fc) {
+	/** {@inheritDoc} */
+    public void updateBWConfigure(IFlowControllable fc) {
 		synchronized (fcsMap) {
 			FCData data = fcsMap.get(fc);
 			if (data == null) {
@@ -179,12 +182,14 @@ public class SimpleFlowControlService extends TimerTask implements
 		}
 	}
 
-	public void resetTokenBuckets(IFlowControllable fc) {
+	/** {@inheritDoc} */
+    public void resetTokenBuckets(IFlowControllable fc) {
 		getAudioTokenBucket(fc).reset();
 		getVideoTokenBucket(fc).reset();
 	}
 
-	public ITokenBucket getAudioTokenBucket(IFlowControllable fc) {
+	/** {@inheritDoc} */
+    public ITokenBucket getAudioTokenBucket(IFlowControllable fc) {
 		synchronized (fcsMap) {
 			FCData data = fcsMap.get(fc);
 			if (data == null) {
@@ -194,7 +199,8 @@ public class SimpleFlowControlService extends TimerTask implements
 		}
 	}
 
-	public ITokenBucket getVideoTokenBucket(IFlowControllable fc) {
+	/** {@inheritDoc} */
+    public ITokenBucket getVideoTokenBucket(IFlowControllable fc) {
 		synchronized (fcsMap) {
 			FCData data = fcsMap.get(fc);
 			if (data == null) {
@@ -204,7 +210,8 @@ public class SimpleFlowControlService extends TimerTask implements
 		}
 	}
 
-	public void setApplicationContext(ApplicationContext arg0)
+	/** {@inheritDoc} */
+    public void setApplicationContext(ApplicationContext arg0)
 			throws BeansException {
 	}
 
@@ -308,11 +315,21 @@ public class SimpleFlowControlService extends TimerTask implements
 		}
 	}
 
-	public void setInterval(long interval) {
+	/**
+     * Setter for property 'interval'.
+     *
+     * @param interval Value to set for property 'interval'.
+     */
+    public void setInterval(long interval) {
 		this.interval = interval;
 	}
 
-	public void setDefaultCapacity(long defaultCapacity) {
+	/**
+     * Setter for property 'defaultCapacity'.
+     *
+     * @param defaultCapacity Value to set for property 'defaultCapacity'.
+     */
+    public void setDefaultCapacity(long defaultCapacity) {
 		this.defaultCapacity = defaultCapacity;
 	}
 
@@ -338,7 +355,8 @@ public class SimpleFlowControlService extends TimerTask implements
 			this.fc = fc;
 		}
 
-		synchronized public boolean acquireToken(double tokenCount, long wait) {
+		/** {@inheritDoc} */
+        synchronized public boolean acquireToken(double tokenCount, long wait) {
 			if (isReset) {
 				return false;
 			}
@@ -353,7 +371,8 @@ public class SimpleFlowControlService extends TimerTask implements
 			return resource.acquireToken(fc, tokenCount);
 		}
 
-		synchronized public double acquireTokenBestEffort(double upperLimitCount) {
+		/** {@inheritDoc} */
+        synchronized public double acquireTokenBestEffort(double upperLimitCount) {
 			if (isReset) {
 				return 0;
 			}
@@ -364,7 +383,8 @@ public class SimpleFlowControlService extends TimerTask implements
 			return resource.acquireTokenBestEffort(fc, upperLimitCount);
 		}
 
-		synchronized public boolean acquireTokenNonblocking(double tokenCount,
+		/** {@inheritDoc} */
+        synchronized public boolean acquireTokenNonblocking(double tokenCount,
 				ITokenBucketCallback callback) {
 			if (isReset) {
 				return false;
@@ -376,7 +396,8 @@ public class SimpleFlowControlService extends TimerTask implements
 			return resource.acquireToken(fc, tokenCount, callback, this);
 		}
 
-		public long getCapacity() {
+		/** {@inheritDoc} */
+        public long getCapacity() {
 			BandwidthResource resource = getResource();
 			if (resource == null) {
 				return -1; // infinite
@@ -384,7 +405,8 @@ public class SimpleFlowControlService extends TimerTask implements
 			return resource.getCapacity(fc);
 		}
 
-		public double getSpeed() {
+		/** {@inheritDoc} */
+        public double getSpeed() {
 			BandwidthResource resource = getResource();
 			if (resource == null) {
 				return -1; // infinite
@@ -392,7 +414,8 @@ public class SimpleFlowControlService extends TimerTask implements
 			return resource.getSpeed(fc);
 		}
 
-		synchronized public void reset() {
+		/** {@inheritDoc} */
+        synchronized public void reset() {
 			BandwidthResource resource = getResource();
 			if (resource != null) {
 				isReset = true;
@@ -401,7 +424,12 @@ public class SimpleFlowControlService extends TimerTask implements
 			}
 		}
 
-		private BandwidthResource getResource() {
+		/**
+         * Getter for property 'resource'.
+         *
+         * @return Value for property 'resource'.
+         */
+        private BandwidthResource getResource() {
 			synchronized (fcsMap) {
 				FCData data = fcsMap.get(fc);
 				IFlowControllable currentFC = fc;

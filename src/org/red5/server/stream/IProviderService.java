@@ -27,14 +27,17 @@ import org.red5.server.api.IScopeService;
 import org.red5.server.api.stream.IBroadcastStream;
 import org.red5.server.messaging.IMessageInput;
 
+/**
+ *  Central unit to get access to different types of provider inputs
+ */
 public interface IProviderService extends IScopeService {
 	public static String BEAN_NAME = "providerService";
 
 	/**
 	 * Get a named provider as the source of input.
 	 * Live stream first, VOD stream second.
-	 * @param scope
-	 * @param name
+	 * @param scope         Scope of provider
+	 * @param name          Name of provider
 	 * @return <tt>null</tt> if nothing found.
 	 */
 	IMessageInput getProviderInput(IScope scope, String name);
@@ -42,10 +45,11 @@ public interface IProviderService extends IScopeService {
 	/**
 	 * Get a named Live provider as the source of input.
 	 * 
-	 * @param scope
-	 * @param name
-     * @param needCreate
+	 * @param scope         Scope of provider
+	 * @param name          Name of provider
+     * @param needCreate    Whether there's need to create basic scope if that doesn't exist
 	 * @return <tt>null</tt> if not found.
+     * @param needCreate    Whether there's need to create new live provider if this doesn't exist
 	 */
 	IMessageInput getLiveProviderInput(IScope scope, String name,
 			boolean needCreate);
@@ -53,8 +57,8 @@ public interface IProviderService extends IScopeService {
 	/**
 	 * Get a named VOD provider as the source of input.
 	 * 
-	 * @param scope
-	 * @param name
+	 * @param scope         Scope of provider
+	 * @param name          Name of provider
 	 * @return <tt>null</tt> if not found.
 	 */
 	IMessageInput getVODProviderInput(IScope scope, String name);
@@ -62,8 +66,8 @@ public interface IProviderService extends IScopeService {
 	/**
 	 * Get a named VOD source file.
 	 * 
-	 * @param scope
-	 * @param name
+	 * @param scope         Scope of provider
+	 * @param name          Name of provider
 	 * @return <tt>null</tt> if not found.
 	 */
 	File getVODProviderFile(IScope scope, String name);
@@ -71,9 +75,9 @@ public interface IProviderService extends IScopeService {
 	/**
 	 * Register a broadcast stream to a scope.
 	 * 
-	 * @param scope
-	 * @param name
-	 * @param bs
+	 * @param scope         Scope
+	 * @param name          Name of stream
+	 * @param bs            Broadcast stream to register
 	 * @return <tt>true</tt> if register successfully.
 	 */
 	boolean registerBroadcastStream(IScope scope, String name,
@@ -82,16 +86,16 @@ public interface IProviderService extends IScopeService {
 	/**
 	 * Get names of existing broadcast streams in a scope. 
 	 * 
-	 * @param scope
-	 * @return list of stream names 
+	 * @param scope         Scope to get stream names from
+	 * @return              List of stream names
 	 */
 	List<String> getBroadcastStreamNames(IScope scope);
 
 	/**
 	 * Unregister a broadcast stream of a specific name from a scope.
 	 * 
-	 * @param scope
-	 * @param name
+	 * @param scope         Scope
+	 * @param name          Stream name
 	 * @return <tt>true</tt> if unregister successfully.
 	 */
 	boolean unregisterBroadcastStream(IScope scope, String name);

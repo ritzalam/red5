@@ -25,22 +25,30 @@ import org.red5.server.api.stream.IStreamFilenameGenerator;
 
 /**
  * Default filename generator for streams. The files will be stored in a
- * directory "streams" in the application folder.
+ * directory "streams" in the application folder. Option for changing directory
+ * streams are saved to is investigated as of 0.6RC1.
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (bauch@struktur.de)
  */
 public class DefaultStreamFilenameGenerator implements IStreamFilenameGenerator {
 
-	private String getStreamDirectory(IScope scope) {
+    /**
+     * For now, return "streams/" as streams directory path for each scope
+     * @param scope            Scope
+     * @return                 For now, "streams/" as streams directory path
+     */
+    private String getStreamDirectory(IScope scope) {
 		return "streams/";
 	}
 
-	public String generateFilename(IScope scope, String name, GenerationType type) {
+	/** {@inheritDoc} */
+    public String generateFilename(IScope scope, String name, GenerationType type) {
 		return generateFilename(scope, name, null, type);
 	}
 
-	public String generateFilename(IScope scope, String name, String extension, GenerationType type) {
+	/** {@inheritDoc} */
+    public String generateFilename(IScope scope, String name, String extension, GenerationType type) {
 		String result = getStreamDirectory(scope) + name;
 		if (extension != null && !extension.equals("")) {
 			result += extension;

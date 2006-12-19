@@ -20,7 +20,7 @@ package org.red5.server.messaging;
  */
 
 /**
- * A consumer that supports event-driven message handling.
+ * A consumer that supports event-driven message handling and message pushing through pipes.
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Steven Gong (steven.gong@gmail.com)
@@ -28,5 +28,11 @@ package org.red5.server.messaging;
 public interface IPushableConsumer extends IConsumer {
 	public static final String KEY = IPushableConsumer.class.getName();
 
-	void pushMessage(IPipe pipe, IMessage message);
+    /**
+     * Pushes message through pipe
+     *
+     * @param pipe         Pipe
+     * @param message      Message
+     */
+    void pushMessage(IPipe pipe, IMessage message);
 }

@@ -42,7 +42,8 @@ import org.red5.server.net.rtmp.status.StatusCodes;
 
 public class StreamService implements IStreamService {
 
-	public void closeStream() {
+	/** {@inheritDoc} */
+    public void closeStream() {
 		IConnection conn = Red5.getConnectionLocal();
 		if (!(conn instanceof IStreamCapableConnection)) {
 			return;
@@ -64,7 +65,8 @@ public class StreamService implements IStreamService {
 				.deleteStreamById(getCurrentStreamId());
 	}
 
-	public int createStream() {
+	/** {@inheritDoc} */
+    public int createStream() {
 		IConnection conn = Red5.getConnectionLocal();
 		if (!(conn instanceof IStreamCapableConnection)) {
 			return -1;
@@ -72,7 +74,8 @@ public class StreamService implements IStreamService {
 		return ((IStreamCapableConnection) conn).reserveStreamId();
 	}
 
-	public void deleteStream(int streamId) {
+	/** {@inheritDoc} */
+    public void deleteStream(int streamId) {
 		IConnection conn = Red5.getConnectionLocal();
 		if (!(conn instanceof IStreamCapableConnection)) {
 			return;
@@ -81,7 +84,8 @@ public class StreamService implements IStreamService {
 		deleteStream(streamConn, streamId);
 	}
 
-	public void deleteStream(IStreamCapableConnection conn, int streamId) {
+	/** {@inheritDoc} */
+    public void deleteStream(IStreamCapableConnection conn, int streamId) {
 		IClientStream stream = conn.getStreamById(streamId);
 		if (stream != null) {
 			if (stream instanceof IClientBroadcastStream) {
@@ -97,7 +101,8 @@ public class StreamService implements IStreamService {
 		conn.unreserveStreamId(streamId);
 	}
 
-	public void pause(boolean pausePlayback, int position) {
+	/** {@inheritDoc} */
+    public void pause(boolean pausePlayback, int position) {
 		pause(Boolean.valueOf(pausePlayback), position);
 	}
 
@@ -139,7 +144,8 @@ public class StreamService implements IStreamService {
 		}
 	}
 
-	public void play(String name, int start, int length, boolean flushPlaylist) {
+	/** {@inheritDoc} */
+    public void play(String name, int start, int length, boolean flushPlaylist) {
 		IConnection conn = Red5.getConnectionLocal();
 		if (!(conn instanceof IStreamCapableConnection)) {
 			return;
@@ -175,19 +181,23 @@ public class StreamService implements IStreamService {
 		subscriberStream.play();
 	}
 
-	public void play(String name, int start, int length) {
+	/** {@inheritDoc} */
+    public void play(String name, int start, int length) {
 		play(name, start, length, true);
 	}
 
-	public void play(String name, int start) {
+	/** {@inheritDoc} */
+    public void play(String name, int start) {
 		play(name, start, -1, true);
 	}
 
-	public void play(String name) {
+	/** {@inheritDoc} */
+    public void play(String name) {
 		play(name, -2000, -1, true);
 	}
 
-	public void play(Boolean dontStop) {
+	/** {@inheritDoc} */
+    public void play(Boolean dontStop) {
 		if (!dontStop) {
 			IConnection conn = Red5.getConnectionLocal();
 			if (!(conn instanceof IStreamCapableConnection)) {
@@ -203,7 +213,8 @@ public class StreamService implements IStreamService {
 		}
 	}
 
-	public void publish(Boolean dontStop) {
+	/** {@inheritDoc} */
+    public void publish(Boolean dontStop) {
 		if (!dontStop) {
 			IConnection conn = Red5.getConnectionLocal();
 			if (!(conn instanceof IStreamCapableConnection)) {
@@ -232,7 +243,8 @@ public class StreamService implements IStreamService {
 		}
 	}
 
-	public void publish(String name, String mode) {
+	/** {@inheritDoc} */
+    public void publish(String name, String mode) {
 		IConnection conn = Red5.getConnectionLocal();
 		if (!(conn instanceof IStreamCapableConnection)) {
 			return;
@@ -291,11 +303,13 @@ public class StreamService implements IStreamService {
 		}
 	}
 
-	public void publish(String name) {
+	/** {@inheritDoc} */
+    public void publish(String name) {
 		publish(name, IClientStream.MODE_LIVE);
 	}
 
-	public void seek(int position) {
+	/** {@inheritDoc} */
+    public void seek(int position) {
 		IConnection conn = Red5.getConnectionLocal();
 		if (!(conn instanceof IStreamCapableConnection)) {
 			return;
@@ -310,7 +324,8 @@ public class StreamService implements IStreamService {
 		subscriberStream.seek(position);
 	}
 
-	public void receiveVideo(boolean receive) {
+	/** {@inheritDoc} */
+    public void receiveVideo(boolean receive) {
 		IConnection conn = Red5.getConnectionLocal();
 		if (!(conn instanceof IStreamCapableConnection)) {
 			return;
@@ -325,7 +340,8 @@ public class StreamService implements IStreamService {
 		subscriberStream.receiveVideo(receive);
 	}
 
-	public void receiveAudio(boolean receive) {
+	/** {@inheritDoc} */
+    public void receiveAudio(boolean receive) {
 		IConnection conn = Red5.getConnectionLocal();
 		if (!(conn instanceof IStreamCapableConnection)) {
 			return;
@@ -340,7 +356,12 @@ public class StreamService implements IStreamService {
 		subscriberStream.receiveAudio(receive);
 	}
 
-	private int getCurrentStreamId() {
+	/**
+     * Getter for property 'currentStreamId'.
+     *
+     * @return Value for property 'currentStreamId'.
+     */
+    private int getCurrentStreamId() {
 		// TODO: this must come from the current connection!
 		return RTMPHandler.getStreamId();
 	}

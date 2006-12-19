@@ -33,53 +33,74 @@ public class DummyFlowControlService implements IFlowControlService {
 	public void init() {
 	}
 
-	public void setInterval(long interval) {
+	/**
+     * Setter for property 'interval'.
+     *
+     * @param interval Value to set for property 'interval'.
+     */
+    public void setInterval(long interval) {
 	}
 
-	public void setDefaultCapacity(long defaultCapacity) {
+	/**
+     * Setter for property 'defaultCapacity'.
+     *
+     * @param defaultCapacity Value to set for property 'defaultCapacity'.
+     */
+    public void setDefaultCapacity(long defaultCapacity) {
 	}
 
-	public void releaseFlowControllable(IFlowControllable fc) {
+	/** {@inheritDoc} */
+    public void releaseFlowControllable(IFlowControllable fc) {
 	}
 
-	public void updateBWConfigure(IFlowControllable fc) {
+	/** {@inheritDoc} */
+    public void updateBWConfigure(IFlowControllable fc) {
 	}
 
-	public void resetTokenBuckets(IFlowControllable fc) {
+	/** {@inheritDoc} */
+    public void resetTokenBuckets(IFlowControllable fc) {
 	}
 
-	public ITokenBucket getAudioTokenBucket(IFlowControllable fc) {
+	/** {@inheritDoc} */
+    public ITokenBucket getAudioTokenBucket(IFlowControllable fc) {
 		return dummyBucket;
 	}
 
-	public ITokenBucket getVideoTokenBucket(IFlowControllable fc) {
+	/** {@inheritDoc} */
+    public ITokenBucket getVideoTokenBucket(IFlowControllable fc) {
 		return dummyBucket;
 	}
 
 	private class DummyTokenBukcet implements ITokenBucket {
 
-		public boolean acquireToken(double tokenCount, long wait) {
+		/** {@inheritDoc} */
+        public boolean acquireToken(double tokenCount, long wait) {
 			return true;
 		}
 
-		public double acquireTokenBestEffort(double upperLimitCount) {
+		/** {@inheritDoc} */
+        public double acquireTokenBestEffort(double upperLimitCount) {
 			return upperLimitCount;
 		}
 
-		public boolean acquireTokenNonblocking(double tokenCount,
+		/** {@inheritDoc} */
+        public boolean acquireTokenNonblocking(double tokenCount,
 				ITokenBucketCallback callback) {
 			return true;
 		}
 
-		public long getCapacity() {
+		/** {@inheritDoc} */
+        public long getCapacity() {
 			return 0;
 		}
 
-		public double getSpeed() {
+		/** {@inheritDoc} */
+        public double getSpeed() {
 			return 0;
 		}
 
-		public void reset() {
+		/** {@inheritDoc} */
+        public void reset() {
 		}
 
 	}

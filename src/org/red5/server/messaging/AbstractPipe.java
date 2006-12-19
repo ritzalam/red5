@@ -28,28 +28,55 @@ import org.apache.commons.logging.LogFactory;
 
 /**
  * Abstract pipe that books providers/consumers and listeners.
- * Aim to ease the implementation of concrete pipes.
+ * Aim to ease the implementation of concrete pipes. For more
+ * information on what pipe is, see IPipe interface documentation.
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Steven Gong (steven.gong@gmail.com)
+ *
+ * @see     org.red5.server.messaging.IPipe
  */
 public abstract class AbstractPipe implements IPipe {
-	private static final Log log = LogFactory.getLog(AbstractPipe.class);
+    /**
+     * Logger
+     */
+    private static final Log log = LogFactory.getLog(AbstractPipe.class);
 
-	protected List<IConsumer> consumers = new ArrayList<IConsumer>();
+    /**
+     * Pipe consumers list
+     */
+    protected List<IConsumer> consumers = new ArrayList<IConsumer>();
 
-	protected List<IProvider> providers = new ArrayList<IProvider>();
+    /**
+     * Pipe providers list
+     */
+    protected List<IProvider> providers = new ArrayList<IProvider>();
 
-	protected List<IPipeConnectionListener> listeners = new ArrayList<IPipeConnectionListener>();
+    /**
+     * Event listeners
+     */
+    protected List<IPipeConnectionListener> listeners = new ArrayList<IPipeConnectionListener>();
 
-	public boolean subscribe(IConsumer consumer, Map paramMap) {
-		synchronized (consumers) {
-			if (consumers.contains(consumer)) {
+    /**
+     * Connect consumer to this pipe. Doesn't allow to connect one consumer twice.
+     * Does register event listeners if instance of IPipeConnectionListener is given.
+     *
+     * @param consumer        Consumer
+     * @param paramMap        Parameters passed with connection, used in concrete pipe implementations
+     * @return                <code>true</code> if consumer was added, <code>false</code> otherwise
+     */
+    public boolean subscribe(IConsumer consumer, Map paramMap) {
+        // Pipe is possibly used by dozends of Threads at once (like many subscribers for one server stream) 
+        // so make it synchronized
+        synchronized (consumers) {
+            // Can't add one consumer twice
+            if (consumers.contains(consumer)) {
 				return false;
 			}
 			consumers.add(consumer);
 		}
-		if (consumer instanceof IPipeConnectionListener) {
+        // If consumer is listener object register it as listener
+        if (consumer instanceof IPipeConnectionListener) {
 			synchronized (listeners) {
 				listeners.add((IPipeConnectionListener) consumer);
 			}
@@ -57,14 +84,25 @@ public abstract class AbstractPipe implements IPipe {
 		return true;
 	}
 
-	public boolean subscribe(IProvider provider, Map paramMap) {
-		synchronized (providers) {
+    /**
+     * Connect provider to this pipe. Doesn't allow to connect one provider twice.
+     * Does register event listeners if instance of IPipeConnectionListener is given.
+     *
+     * @param provider        Provider
+     * @param paramMap        Parameters passed with connection, used in concrete pipe implementations
+     * @return                <code>true</code> if provider was added, <code>false</code> otherwise
+     */
+    public boolean subscribe(IProvider provider, Map paramMap) {
+        // Shared between possibly dozens of Threads so make it synchronized
+        synchronized (providers) {
 			if (providers.contains(provider)) {
 				return false;
 			}
 			providers.add(provider);
 		}
-		if (provider instanceof IPipeConnectionListener) {
+
+        // Register event listener if given
+        if (provider instanceof IPipeConnectionListener) {
 			synchronized (listeners) {
 				listeners.add((IPipeConnectionListener) provider);
 			}
@@ -72,7 +110,12 @@ public abstract class AbstractPipe implements IPipe {
 		return true;
 	}
 
-	public boolean unsubscribe(IProvider provider) {
+    /**
+     * Disconnects provider from this pipe. Fires pipe connection event.
+     * @param provider        Provider that should be removed
+     * @return                 <code>true</code> on success, <code>false</code> otherwise
+     */
+    public boolean unsubscribe(IProvider provider) {
 		synchronized (providers) {
 			if (!providers.contains(provider)) {
 				return false;
@@ -89,7 +132,12 @@ public abstract class AbstractPipe implements IPipe {
 		return true;
 	}
 
-	public boolean unsubscribe(IConsumer consumer) {
+    /**
+     * Disconnects consumer from this pipe. Fires pipe connection event.
+     * @param   consumer       Consumer that should be removed
+     * @return                 <code>true</code> on success, <code>false</code> otherwise
+     */
+    public boolean unsubscribe(IConsumer consumer) {
 		synchronized (consumers) {
 			if (!consumers.contains(consumer)) {
 				return false;
@@ -106,21 +154,34 @@ public abstract class AbstractPipe implements IPipe {
 		return true;
 	}
 
-	public void addPipeConnectionListener(IPipeConnectionListener listener) {
+    /**
+     * Registers pipe connect events listener
+     * @param listener      Listener
+     */
+    public void addPipeConnectionListener(IPipeConnectionListener listener) {
 		synchronized (listeners) {
 			listeners.add(listener);
 		}
 	}
 
-	public void removePipeConnectionListener(IPipeConnectionListener listener) {
+    /**
+     * Removes pipe connection listener
+     * @param listener      Listener
+     */
+    public void removePipeConnectionListener(IPipeConnectionListener listener) {
 		synchronized (listeners) {
 			listeners.remove(listener);
 		}
 
 	}
 
-	public void sendOOBControlMessage(IProvider provider,
-			OOBControlMessage oobCtrlMsg) {
+    /**
+     * Send out-of-band ("special") control message to all consumers
+     *
+     * @param provider           Provider, may be used in concrete implementations
+     * @param oobCtrlMsg         Out-of-band control message
+     */
+    public void sendOOBControlMessage(IProvider provider, OOBControlMessage oobCtrlMsg) {
 		IConsumer[] consumerArray = null;
 		// XXX: synchronizing this sometimes causes deadlocks in the code that
 		//      passes the ChunkSize message to the subscribers of a stream
@@ -139,7 +200,13 @@ public abstract class AbstractPipe implements IPipe {
 		}
 	}
 
-	public void sendOOBControlMessage(IConsumer consumer,
+    /**
+     * Send out-of-band ("special") control message to all providers
+     *
+     * @param consumer          Consumer, may be used in concrete implementations
+     * @param oobCtrlMsg        Out-of-band control message
+     */
+    public void sendOOBControlMessage(IConsumer consumer,
 			OOBControlMessage oobCtrlMsg) {
 		IProvider[] providerArray = null;
 		synchronized (providers) {
@@ -157,24 +224,66 @@ public abstract class AbstractPipe implements IPipe {
 		}
 	}
 
-	public List<IProvider> getProviders() {
+    /**
+     * Getter for pipe connection events listeners
+     *
+     * @return  Listeners
+     */
+    public List<IPipeConnectionListener> getListeners() {
+        return listeners;
+    }
+
+    /**
+     * Setter for pipe connection events listeners
+     *
+     * @param listeners  Listeners
+     */
+    public void setListeners(List<IPipeConnectionListener> listeners) {
+        this.listeners = listeners;
+    }
+    /**
+     * Getter for providers
+     *
+     * @return  Providers list
+     */
+    public List<IProvider> getProviders() {
 		return providers;
 	}
-
+    /**
+     * Getter for consumers
+     *
+     * @return  consumers list
+     */
 	public List<IConsumer> getConsumers() {
 		return consumers;
 	}
 
-	protected void fireConsumerConnectionEvent(IConsumer consumer, int type,
+    /**
+     * Broadcast consumer connection event
+     *
+     * @param consumer        Consumer that has connected
+     * @param type            Event type
+     * @param paramMap        Parameters passed with connection
+     */
+    protected void fireConsumerConnectionEvent(IConsumer consumer, int type,
 			Map paramMap) {
-		PipeConnectionEvent event = new PipeConnectionEvent(this);
-		event.setConsumer(consumer);
+        // Create event object
+        PipeConnectionEvent event = new PipeConnectionEvent(this);
+        // Fill it up
+        event.setConsumer(consumer);
 		event.setType(type);
 		event.setParamMap(paramMap);
-		firePipeConnectionEvent(event);
+        // Fire it
+        firePipeConnectionEvent(event);
 	}
 
-	protected void fireProviderConnectionEvent(IProvider provider, int type,
+    /**
+     * Broadcast provider connection event
+     * @param provider        Provider that has connected
+     * @param type            Event type
+     * @param paramMap        Parameters passed with connection
+     */
+    protected void fireProviderConnectionEvent(IProvider provider, int type,
 			Map paramMap) {
 		PipeConnectionEvent event = new PipeConnectionEvent(this);
 		event.setProvider(provider);
@@ -183,7 +292,11 @@ public abstract class AbstractPipe implements IPipe {
 		firePipeConnectionEvent(event);
 	}
 
-	protected void firePipeConnectionEvent(PipeConnectionEvent event) {
+    /**
+     * Fire any pipe connection event and run all it's tasks
+     * @param event            Pipe connection event
+     */
+    protected void firePipeConnectionEvent(PipeConnectionEvent event) {
 		IPipeConnectionListener[] listenerArray = null;
 		synchronized (listeners) {
 			listenerArray = listeners.toArray(new IPipeConnectionListener[] {});
@@ -195,12 +308,16 @@ public abstract class AbstractPipe implements IPipe {
 				log.error("exception when handling pipe connection event", t);
 			}
 		}
-		for (Runnable task : event.getTaskList()) {
+
+        // Run all of event's tasks
+        for (Runnable task : event.getTaskList()) {
 			try {
 				task.run();
 			} catch (Throwable t) {
 			}
 		}
-		event.getTaskList().clear();
+
+        // Clear event's tasks list
+        event.getTaskList().clear();
 	}
 }

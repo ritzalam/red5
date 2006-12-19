@@ -66,13 +66,26 @@ public class PipeConnectionEvent extends EventObject {
 	 */
 	public static final int CONSUMER_DISCONNECT = 5;
 
-	private IProvider provider;
+    /**
+     * Provider
+     */
+    private IProvider provider;
 
-	private IConsumer consumer;
+    /**
+     * Consumer
+     */
+    private IConsumer consumer;
 
-	private int type;
+    /**
+     * Event type
+     */
+    private int type;
 
-	private Map paramMap;
+    /**
+     * Params map.
+     * TODO : investigate what this map for
+     */
+    private Map paramMap;
 
 	/**
 	 * Construct an object with the specific pipe as the
@@ -83,43 +96,83 @@ public class PipeConnectionEvent extends EventObject {
 		super(source);
 	}
 
-	public IProvider getProvider() {
+    /**
+     * Return pipe connection provider
+     * @return          Provider
+     */
+    public IProvider getProvider() {
 		return provider;
 	}
 
-	public void setProvider(IProvider provider) {
+    /**
+     * Setter for pipe connection provider
+     * @param provider  Provider
+     */
+    public void setProvider(IProvider provider) {
 		this.provider = provider;
 	}
 
-	public IConsumer getConsumer() {
+    /**
+     * Return pipe connection consumer
+     * @return          Consumer
+     */
+    public IConsumer getConsumer() {
 		return consumer;
 	}
 
-	public void setConsumer(IConsumer consumer) {
+    /**
+     * Setter for pipe connection consumer
+     * @param consumer  Consumer
+     */
+    public void setConsumer(IConsumer consumer) {
 		this.consumer = consumer;
 	}
 
-	public int getType() {
+    /**
+     * Return event type
+     * @return             Event type
+     */
+    public int getType() {
 		return type;
 	}
 
-	public void setType(int type) {
+    /**
+     * Setter for event type
+     * @param type         Event type
+     */
+    public void setType(int type) {
 		this.type = type;
 	}
 
-	public Map getParamMap() {
+    /**
+     * Return event parameters as Map
+     * @return             Event parameters as Map
+     */
+    public Map getParamMap() {
 		return paramMap;
 	}
 
-	public void setParamMap(Map paramMap) {
+    /**
+     * Setter for event parameters map
+     * @param paramMap     Event parameters as Map
+     */
+    public void setParamMap(Map paramMap) {
 		this.paramMap = paramMap;
 	}
 
-	public void addTask(Runnable task) {
+    /**
+     * Add task to list
+     * @param task     Task to add
+     */
+    public void addTask(Runnable task) {
 		taskList.add(task);
 	}
 
-	List<Runnable> getTaskList() {
+    /**
+     * Return list of tasks
+     * @return       List of tasks
+     */
+    List<Runnable> getTaskList() {
 		return taskList;
 	}
 }

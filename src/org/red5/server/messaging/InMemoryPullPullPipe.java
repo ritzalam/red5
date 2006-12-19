@@ -36,7 +36,8 @@ public class InMemoryPullPullPipe extends AbstractPipe {
 	private static final Log log = LogFactory
 			.getLog(InMemoryPullPullPipe.class);
 
-	@Override
+    /** {@inheritDoc} */
+    @Override
 	public boolean subscribe(IConsumer consumer, Map paramMap) {
 		boolean success = super.subscribe(consumer, paramMap);
 		if (success) {
@@ -46,7 +47,8 @@ public class InMemoryPullPullPipe extends AbstractPipe {
 		return success;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public boolean subscribe(IProvider provider, Map paramMap) {
 		if (!(provider instanceof IPullableProvider)) {
 			throw new IllegalArgumentException(
@@ -60,7 +62,8 @@ public class InMemoryPullPullPipe extends AbstractPipe {
 		return success;
 	}
 
-	public IMessage pullMessage() {
+	/** {@inheritDoc} */
+    public IMessage pullMessage() {
 		IMessage message = null;
 		IPullableProvider[] providerArray = null;
 		synchronized (providers) {
@@ -80,7 +83,8 @@ public class InMemoryPullPullPipe extends AbstractPipe {
 		return message;
 	}
 
-	public IMessage pullMessage(long wait) {
+	/** {@inheritDoc} */
+    public IMessage pullMessage(long wait) {
 		IMessage message = null;
 		IPullableProvider[] providerArray = null;
 		synchronized (providers) {
@@ -103,7 +107,8 @@ public class InMemoryPullPullPipe extends AbstractPipe {
 		return message;
 	}
 
-	public void pushMessage(IMessage message) {
+	/** {@inheritDoc} */
+    public void pushMessage(IMessage message) {
 		// push mode ignored
 	}
 

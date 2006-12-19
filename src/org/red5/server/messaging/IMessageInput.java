@@ -60,13 +60,18 @@ public interface IMessageInput {
 	/**
 	 * Disconnect from a consumer.
 	 * 
-	 * @param consumer
+	 * @param consumer    Consumer to disconnect
 	 * @return <tt>true</tt> when successfully unsubscribed,
 	 * <tt>false</tt> otherwise.
 	 */
 	boolean unsubscribe(IConsumer consumer);
 
-	List<IConsumer> getConsumers();
+	/**
+     * Getter for consumers list.
+     *
+     * @return Consumers.
+     */
+    List<IConsumer> getConsumers();
 
 	/**
 	 * Send OOB Control Message to all providers on the other side of pipe.
@@ -74,6 +79,7 @@ public interface IMessageInput {
 	 * @param consumer
 	 *            The consumer that sends the message
 	 * @param oobCtrlMsg
+     *            Out-of-band control message
 	 */
 	void sendOOBControlMessage(IConsumer consumer, OOBControlMessage oobCtrlMsg);
 }

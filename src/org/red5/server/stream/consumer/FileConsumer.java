@@ -50,24 +50,49 @@ import org.red5.server.stream.message.RTMPMessage;
 import org.red5.server.stream.message.ResetMessage;
 import org.red5.server.stream.message.StatusMessage;
 
+/**
+ * Consumer that pushes messages to file. Used when recording live streams.
+ */
 public class FileConsumer implements Constants, IPushableConsumer,
 		IPipeConnectionListener {
-	private static final Log log = LogFactory.getLog(FileConsumer.class);
-
+    /**
+     * Logger
+     */
+    private static final Log log = LogFactory.getLog(FileConsumer.class);
+    /**
+     * Scope
+     */
 	private IScope scope;
-
+    /**
+     * File
+     */
 	private File file;
-
+    /**
+     * Tag writer
+     */
 	private ITagWriter writer;
-
+    /**
+     * Operation mode
+     */
 	private String mode;
-
+    /**
+     * Offset
+     */
 	private int offset;
-
+    /**
+     * Last write timestamp
+     */
 	private int lastTimestamp;
-
+    /**
+     * Start timestamp
+     */
 	private int startTimestamp;
 
+    /**
+     * Creates file consumer
+     * @param scope        Scope of consumer
+     * @param file         File
+     */
 	public FileConsumer(IScope scope, File file) {
 		this.scope = scope;
 		this.file = file;
@@ -76,7 +101,12 @@ public class FileConsumer implements Constants, IPushableConsumer,
 		startTimestamp = -1;
 	}
 
-	public void pushMessage(IPipe pipe, IMessage message) {
+    /**
+     * Push message through pipe
+     * @param pipe         Pipe
+     * @param message      Message to push
+     */
+    public void pushMessage(IPipe pipe, IMessage message) {
 		if (message instanceof ResetMessage) {
 			startTimestamp = -1;
 			offset += lastTimestamp;
@@ -123,13 +153,23 @@ public class FileConsumer implements Constants, IPushableConsumer,
 		}
 	}
 
-	public void onOOBControlMessage(IMessageComponent source, IPipe pipe,
+    /**
+     * Out-of-band control message handler
+     *
+     * @param source            Source of message
+     * @param pipe              Pipe that is used to transmit OOB message
+     * @param oobCtrlMsg        OOB control message
+     */
+    public void onOOBControlMessage(IMessageComponent source, IPipe pipe,
 			OOBControlMessage oobCtrlMsg) {
 		// TODO Auto-generated method stub
-
 	}
 
-	public void onPipeConnectionEvent(PipeConnectionEvent event) {
+    /**
+     * Pipe connection event handler
+     * @param event       Pipe connection event
+     */
+    public void onPipeConnectionEvent(PipeConnectionEvent event) {
 		switch (event.getType()) {
 			case PipeConnectionEvent.CONSUMER_CONNECT_PUSH:
 				if (event.getConsumer() != this) {
@@ -154,7 +194,12 @@ public class FileConsumer implements Constants, IPushableConsumer,
 		}
 	}
 
-	private void init() throws IOException {
+    /**
+     * Initialization
+     *
+     * @throws IOException          I/O exception
+     */
+    private void init() throws IOException {
 		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils
 				.getScopeService(scope, IStreamableFileFactory.class,
 						StreamableFileFactory.class);
@@ -173,7 +218,10 @@ public class FileConsumer implements Constants, IPushableConsumer,
 		}
 	}
 
-	private void uninit() {
+    /**
+     * Reset
+     */
+    private void uninit() {
 		if (writer != null) {
 			writer.close();
 			writer = null;

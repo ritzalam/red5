@@ -34,16 +34,34 @@ import org.red5.server.messaging.InMemoryPushPushPipe;
 import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.messaging.PipeConnectionEvent;
 
+/**
+ * Scope type for publishing that deals with pipe connection events,
+ * like async message listening in JMS
+ */
 public class BroadcastScope extends BasicScope implements IBroadcastScope,
 		IPipeConnectionListener {
-	private static final Log log = LogFactory.getLog(BroadcastScope.class);
-
+    /**
+     * Logger
+     */
+    private static final Log log = LogFactory.getLog(BroadcastScope.class);
+    /**
+     *  Simple in memory push pipe, triggered by an active provider to push messages to consumer
+     */
 	private InMemoryPushPushPipe pipe;
-
+    /**
+     *  Number of components.
+     */
 	private int compCounter;
-
+    /**
+     *  Remove flag
+     */
 	private boolean hasRemoved;
 
+    /**
+     * Creates broadcast scope
+     * @param parent            Parent scope
+     * @param name              Scope name
+     */
 	public BroadcastScope(IScope parent, String name) {
 		super(parent, TYPE, name, false);
 		pipe = new InMemoryPushPushPipe();
@@ -52,72 +70,146 @@ public class BroadcastScope extends BasicScope implements IBroadcastScope,
 		hasRemoved = false;
 	}
 
+    /**
+     * Register pipe connection event listener with this scope's pipe.
+     * A listener that wants to listen to events when
+     * provider/consumer connects to or disconnects from
+     * a specific pipe.
+     * @param listener         Pipe connection event listener
+     *
+     * @see org.red5.server.messaging.IPipeConnectionListener
+     */
 	public void addPipeConnectionListener(IPipeConnectionListener listener) {
 		pipe.addPipeConnectionListener(listener);
 	}
 
+    /**
+     * Unregisters pipe connection event listener with this scope's pipe
+     * @param listener         Pipe connection event listener
+     *
+     * @see org.red5.server.messaging.IPipeConnectionListener
+     */
 	public void removePipeConnectionListener(IPipeConnectionListener listener) {
 		pipe.removePipeConnectionListener(listener);
 	}
 
+    /**
+     * Pull message from pipe
+     * @return      Message object
+     *
+     * @see         org.red5.server.messaging.IMessage
+     */
 	public IMessage pullMessage() {
 		return pipe.pullMessage();
 	}
 
+    /**
+     * Pull message with timeout
+     * @param wait  Timeout
+     * @return      Message object
+     *
+     * @see         org.red5.server.messaging.IMessage
+     */
 	public IMessage pullMessage(long wait) {
 		return pipe.pullMessage(wait);
 	}
 
+    /**
+     * Connect scope's pipe to given consumer
+     *
+     * @param consumer       Consumer
+     * @param paramMap       Parameters passed with connection
+     * @return               <code>true</code> on success, <code>false</code> otherwise
+     */
 	public boolean subscribe(IConsumer consumer, Map paramMap) {
 		synchronized (pipe) {
-			if (hasRemoved) {
-				return false;
-			}
-			return pipe.subscribe(consumer, paramMap);
-		}
+            return !hasRemoved && pipe.subscribe(consumer, paramMap);
+        }
 	}
 
+    /**
+     * Disconnects scope's pipe from given consumer
+     * @param consumer       Consumer
+     * @return               <code>true</code> on success, <code>false</code> otherwise
+     */
 	public boolean unsubscribe(IConsumer consumer) {
 		return pipe.unsubscribe(consumer);
 	}
 
+    /**
+     * Getter for pipe consumers
+     * @return    Pipe consumers
+     */
 	public List<IConsumer> getConsumers() {
 		return pipe.getConsumers();
 	}
 
-	public void sendOOBControlMessage(IConsumer consumer,
-			OOBControlMessage oobCtrlMsg) {
+    /**
+     * Send out-of-band ("special") control message
+     *
+     * @param consumer          Consumer, may be used in concrete implementations
+     * @param oobCtrlMsg        Out-of-band control message
+     */
+	public void sendOOBControlMessage(IConsumer consumer, OOBControlMessage oobCtrlMsg) {
 		pipe.sendOOBControlMessage(consumer, oobCtrlMsg);
 	}
 
+    /**
+	 * Push a message to this output endpoint. May block
+	 * the pusher when output can't handle the message at
+	 * the time.
+	 * @param message Message to be pushed.
+	 */
 	public void pushMessage(IMessage message) {
 		pipe.pushMessage(message);
 	}
 
+    /**
+     * Connect scope's pipe with given provider
+     * @param provider         Provider
+     * @param paramMap         Parameters passed on connection
+     * @return                 <code>true</code> on success, <code>false</code> otherwise
+     */
 	synchronized public boolean subscribe(IProvider provider, Map paramMap) {
 		synchronized (pipe) {
-			if (hasRemoved) {
-				return false;
-			}
-			return pipe.subscribe(provider, paramMap);
-		}
+            return !hasRemoved && pipe.subscribe(provider, paramMap);
+        }
 	}
 
+    /**
+     * Disconnects scope's pipe from given provider
+     * @param provider         Provider
+     * @return                 <code>true</code> on success, <code>false</code> otherwise
+     */
 	synchronized public boolean unsubscribe(IProvider provider) {
 		return pipe.unsubscribe(provider);
 	}
 
+    /**
+     * Getter for providers list
+     * @return    List of providers
+     */
 	public List<IProvider> getProviders() {
 		return pipe.getProviders();
 	}
 
-	public void sendOOBControlMessage(IProvider provider,
-			OOBControlMessage oobCtrlMsg) {
+    /**
+     * Send out-of-band ("special") control message
+     *
+     * @param provider          Provider, may be used in concrete implementations
+     * @param oobCtrlMsg        Out-of-band control message
+     */
+	public void sendOOBControlMessage(IProvider provider, OOBControlMessage oobCtrlMsg) {
 		pipe.sendOOBControlMessage(provider, oobCtrlMsg);
 	}
 
+    /**
+     * Pipe connection event handler
+     * @param event              Pipe connection event
+     */
 	public void onPipeConnectionEvent(PipeConnectionEvent event) {
-		switch (event.getType()) {
+        // Switch event type
+        switch (event.getType()) {
 			case PipeConnectionEvent.CONSUMER_CONNECT_PULL:
 			case PipeConnectionEvent.CONSUMER_CONNECT_PUSH:
 			case PipeConnectionEvent.PROVIDER_CONNECT_PULL:

@@ -25,11 +25,21 @@ import org.red5.server.net.rtmp.status.Status;
 public class StatusMessage extends AbstractMessage {
 	private Status body;
 
-	public Status getBody() {
+	/**
+     * Getter for property 'body'.
+     *
+     * @return Value for property 'body'.
+     */
+    public Status getBody() {
 		return body;
 	}
 
-	public void setBody(Status body) {
+	/**
+     * Setter for property 'body'.
+     *
+     * @param body Value to set for property 'body'.
+     */
+    public void setBody(Status body) {
 		this.body = body;
 	}
 

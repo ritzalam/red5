@@ -22,7 +22,8 @@ public class PlayBufferTest extends TestCase {
 
 	private RTMPMessage rtmpMessage;
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	protected void setUp() throws Exception {
 		super.setUp();
 		VideoData message = new VideoData(ByteBuffer.allocate(100));

@@ -39,11 +39,18 @@ import org.red5.server.messaging.IPipe;
 import org.red5.server.messaging.InMemoryPullPullPipe;
 import org.red5.server.stream.provider.FileProvider;
 
+/**
+ * {@inheritDoc}
+ */
 public class ProviderService implements IProviderService {
 
-	private static final Logger log = Logger.getLogger(ProviderService.class);
+    /**
+     * Logger
+     */
+    private static final Logger log = Logger.getLogger(ProviderService.class);
 	
-	public IMessageInput getProviderInput(IScope scope, String name) {
+	/** {@inheritDoc} */
+    public IMessageInput getProviderInput(IScope scope, String name) {
 		IMessageInput msgIn = getLiveProviderInput(scope, name, false);
 		if (msgIn == null) {
 			return getVODProviderInput(scope, name);
@@ -51,7 +58,8 @@ public class ProviderService implements IProviderService {
 		return msgIn;
 	}
 
-	public IMessageInput getLiveProviderInput(IScope scope, String name,
+	/** {@inheritDoc} */
+    public IMessageInput getLiveProviderInput(IScope scope, String name,
 			boolean needCreate) {
 		synchronized (scope) {
 			IBasicScope basicScope = scope.getBasicScope(IBroadcastScope.TYPE,
@@ -71,7 +79,8 @@ public class ProviderService implements IProviderService {
 		}
 	}
 
-	public IMessageInput getVODProviderInput(IScope scope, String name) {
+	/** {@inheritDoc} */
+    public IMessageInput getVODProviderInput(IScope scope, String name) {
 		File file = getVODProviderFile(scope, name);
 		if (file == null) {
 			return null;
@@ -81,7 +90,8 @@ public class ProviderService implements IProviderService {
 		return pipe;
 	}
 
-	public File getVODProviderFile(IScope scope, String name) {
+	/** {@inheritDoc} */
+    public File getVODProviderFile(IScope scope, String name) {
 		File file = null;
 		try {
 			file = scope.getResources(getStreamFilename(scope, name))[0]
@@ -95,7 +105,8 @@ public class ProviderService implements IProviderService {
 		return file;
 	}
 
-	public boolean registerBroadcastStream(IScope scope, String name,
+	/** {@inheritDoc} */
+    public boolean registerBroadcastStream(IScope scope, String name,
 			IBroadcastStream bs) {
 		synchronized (scope) {
 			IBasicScope basicScope = scope.getBasicScope(IBroadcastScope.TYPE,
@@ -116,7 +127,8 @@ public class ProviderService implements IProviderService {
 		}
 	}
 
-	public List<String> getBroadcastStreamNames(IScope scope) {
+	/** {@inheritDoc} */
+    public List<String> getBroadcastStreamNames(IScope scope) {
 		synchronized (scope) {
 			// TODO: return result of "getBasicScopeNames" when the api has
 			// changed
@@ -131,7 +143,8 @@ public class ProviderService implements IProviderService {
 		}
 	}
 
-	public boolean unregisterBroadcastStream(IScope scope, String name) {
+	/** {@inheritDoc} */
+    public boolean unregisterBroadcastStream(IScope scope, String name) {
 		synchronized (scope) {
 			IBasicScope basicScope = scope.getBasicScope(IBroadcastScope.TYPE,
 					name);

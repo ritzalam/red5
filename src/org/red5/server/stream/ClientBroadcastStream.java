@@ -64,27 +64,57 @@ import org.red5.server.stream.message.RTMPMessage;
 import org.red5.server.stream.message.StatusMessage;
 import org.springframework.core.io.Resource;
 
+/**
+ * Represents live stream broadcasted from client. As Flash Media Server, Red5 supports
+ * recording mode for live streams, that is, broadcasted stream has broadcast mode. It can be either
+ * "live" or "record" and latter causes server-side application to record broadcasted stream.
+ *
+ * Note that recorded streams are recorded as FLV files. The same is correct for audio, because
+ * NellyMoser codec that Flash Player uses prohibits on-the-fly transcoding to audio formats like MP3
+ * without paying of licensing fee or buying SDK.
+ *
+ * This type of stream uses two different pipes for live streaming and recording.
+ */
 public class ClientBroadcastStream extends AbstractClientStream implements
 		IClientBroadcastStream, IFilter, IPushableConsumer,
 		IPipeConnectionListener, IEventDispatcher {
 
-	private static final Log log = LogFactory
+    /**
+     * Logger
+     */
+    private static final Log log = LogFactory
 			.getLog(ClientBroadcastStream.class);
-
+    /**
+     * Stream published name
+     */
 	private String publishedName;
-
+    /**
+     * Output endpoint that providers use
+     */
 	private IMessageOutput connMsgOut;
-
+    /**
+     * Factory object for video codecs
+     */
 	private VideoCodecFactory videoCodecFactory = null;
-
+    /**
+     * Is there need to check video codec?
+     */
 	private boolean checkVideoCodec = false;
-
+    /**
+     * Pipe for live streaming
+     */
 	private IPipe livePipe;
-
+    /**
+     * Pipe for recording
+     */
 	private IPipe recordPipe;
-	
+    /**
+     * Whether we are recording or not
+     */
 	private boolean recording = false;
-
+    /**
+     * Is there need to send start notification?
+     */
 	private boolean sendStartNotification = true;
 
 	/** Stores absolute time for video stream. */
@@ -99,9 +129,16 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	/** Stores timestamp of first packet. */
 	private int firstTime = -1;
 
-	private int chunkSize = 0;
+    /**
+     * Data is sent by chunks, each of them has size
+     */
+    private int chunkSize = 0;
 
-	public void start() {
+	/**
+     * Starts stream. Creates pipes, video codec from video codec factory bean,
+     * connects 
+     */
+    public void start() {
 		IConsumerService consumerManager = (IConsumerService) getScope()
 				.getContext().getBean(IConsumerService.KEY);
 		try {
@@ -115,13 +152,17 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		connMsgOut = consumerManager.getConsumerOutput(this);
 		recordPipe = new InMemoryPushPushPipe();
 		Map<Object, Object> recordParamMap = new HashMap<Object, Object>();
-		recordParamMap.put("record", null);
+        // Clear record flag
+        recordParamMap.put("record", null);
 		recordPipe.subscribe((IProvider) this, recordParamMap);
 		recording = false;
 		setCodecInfo(new StreamCodecInfo());
 	}
 
-	public void close() {
+	/**
+     * Closes stream, unsubscribes provides, sends stoppage notifications and broadcast close notification.
+     */
+    public void close() {
 		if (livePipe != null) {
 			livePipe.unsubscribe((IProvider) this);
 		}
@@ -133,17 +174,30 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		notifyBroadcastClose();
 	}
 
-	public void saveAs(String name, boolean isAppend)
-			throws ResourceNotFoundException, ResourceExistException {
+    /**
+     * Save broadcasted stream.
+     *
+     * @param name                           Stream name
+     * @param isAppend                       Append mode
+     * @throws ResourceNotFoundException     Resource doesn't exist when trying to append.
+     * @throws ResourceExistException        Resource exist when trying to create.
+     */
+    public void saveAs(String name, boolean isAppend)
+            throws ResourceNotFoundException, ResourceExistException, IOException {
 		try {
-			IScope scope = getConnection().getScope();
-			IStreamFilenameGenerator generator = (IStreamFilenameGenerator) ScopeUtils
+            // Get stream scope
+            IScope scope = getConnection().getScope();
+            // Get stream filename generator
+            IStreamFilenameGenerator generator = (IStreamFilenameGenerator) ScopeUtils
 					.getScopeService(scope, IStreamFilenameGenerator.class,
 							DefaultStreamFilenameGenerator.class);
 
-			String filename = generator.generateFilename(scope, name, ".flv", GenerationType.RECORD);
-			Resource res = scope.getContext().getResource(filename);
-			if (!isAppend) {
+            // Generate filename
+            String filename = generator.generateFilename(scope, name, ".flv", GenerationType.RECORD);
+            // Get resource for that filename
+            Resource res = scope.getContext().getResource(filename);
+            // If append mode is on...
+            if (!isAppend) {
 				if (res.exists()) {
 					// Per livedoc of FCS/FMS:
 					// When "live" or "record" is used,
@@ -190,25 +244,47 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			recordPipe.subscribe(fc, paramMap);
 			recording = true;
 		} catch (IOException e) {
-		}
+            throw e;
+        }
 	}
 
-	public IProvider getProvider() {
+    /**
+     * Getter for provider
+     * @return            Provider
+     */
+    public IProvider getProvider() {
 		return this;
 	}
 
-	public String getPublishedName() {
+    /**
+     * Getter for published name
+     * @return        Stream published name
+     */
+    public String getPublishedName() {
 		return publishedName;
 	}
 
-	public void setPublishedName(String name) {
+    /**
+     * Setter for stream published name
+     * @param name       Name that used for publishing. Set at client side when begin to broadcast with NetStream#publish.
+     */
+    public void setPublishedName(String name) {
 		this.publishedName = name;
 	}
 
-	public void pushMessage(IPipe pipe, IMessage message) {
+    /**
+     * Currently not implemented
+     *
+     * @param pipe           Pipe
+     * @param message        Message
+     */
+    public void pushMessage(IPipe pipe, IMessage message) {
 	}
 
-	private void notifyChunkSize() {
+    /**
+     * Send OOB control message with chunk size
+     */
+    private void notifyChunkSize() {
 		if (chunkSize > 0 && livePipe != null) {
 			OOBControlMessage setChunkSize = new OOBControlMessage();
 			setChunkSize.setTarget("ConnectionConsumer");
@@ -221,7 +297,14 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		}
 	}
 
-	public void onOOBControlMessage(IMessageComponent source, IPipe pipe,
+    /**
+     * Out-of-band control message handler
+     *
+     * @param source           OOB message source
+     * @param pipe             Pipe that used to send OOB message
+     * @param oobCtrlMsg       Out-of-band control message
+     */
+    public void onOOBControlMessage(IMessageComponent source, IPipe pipe,
 			OOBControlMessage oobCtrlMsg) {
 		if (!"ClientBroadcastStream".equals(oobCtrlMsg.getTarget())) {
 			return;
@@ -234,7 +317,11 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		}
 	}
 
-	public void dispatchEvent(IEvent event) {
+    /**
+     * Dispatches event
+     * @param event          Event to dispatch
+     */
+    public void dispatchEvent(IEvent event) {
 		if (!(event instanceof IRTMPEvent)
 				&& (event.getType() != IEvent.Type.STREAM_CONTROL)
 				&& (event.getType() != IEvent.Type.STREAM_DATA)
@@ -316,7 +403,11 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		recordPipe.pushMessage(msg);
 	}
 
-	private void checkSendNotifications(IEvent event) {
+    /**
+     * Check send notification
+     * @param event          Event
+     */
+    private void checkSendNotifications(IEvent event) {
 		IEventListener source = event.getSource();
 		if (sendStartNotification) {
 			// Notify handler that stream starts recording/publishing
@@ -334,7 +425,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 					}
 				}
 			}
-			
+			// Send start notifications
 			if (recording) {
 				sendRecordStartNotify();
 			} else
@@ -343,7 +434,11 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		}
 	}
 
-	public void onPipeConnectionEvent(PipeConnectionEvent event) {
+    /**
+     * Pipe connection event handler
+     * @param event          Pipe connection event
+     */
+    public void onPipeConnectionEvent(PipeConnectionEvent event) {
 		switch (event.getType()) {
 			case PipeConnectionEvent.PROVIDER_CONNECT_PUSH:
 				if (event.getProvider() == this
@@ -367,7 +462,10 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		}
 	}
 
-	private void sendPublishStartNotify() {
+    /**
+     * Sends publish start notifications
+     */
+    private void sendPublishStartNotify() {
 		Status start = new Status(StatusCodes.NS_PUBLISH_START);
 		start.setClientid(getStreamId());
 		start.setDetails(getPublishedName());
@@ -377,6 +475,9 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		connMsgOut.pushMessage(startMsg);
 	}
 
+    /**
+     *  Sends publish stop notifications
+     */
 	private void sendPublishStopNotify() {
 		Status stop = new Status(StatusCodes.NS_UNPUBLISHED_SUCCESS);
 		stop.setClientid(getStreamId());
@@ -387,6 +488,9 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		connMsgOut.pushMessage(stopMsg);
 	}
 
+    /**
+     *  Sends record start notifications
+     */
 	private void sendRecordStartNotify() {
 		Status start = new Status(StatusCodes.NS_RECORD_START);
 		start.setClientid(getStreamId());
@@ -397,6 +501,9 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		connMsgOut.pushMessage(startMsg);
 	}
 
+    /**
+     *  Sends record stop notifications
+     */
 	private void sendRecordStopNotify() {
 		Status start = new Status(StatusCodes.NS_RECORD_STOP);
 		start.setClientid(getStreamId());
@@ -407,6 +514,9 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		connMsgOut.pushMessage(startMsg);
 	}
 
+    /**
+     *  Notifies handler on stream broadcast start
+     */
 	private void notifyBroadcastStart() {
 		IStreamAwareScopeHandler handler = getStreamAwareHandler();
 		if (handler != null) {
@@ -418,6 +528,9 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		}
 	}
 
+    /**
+     *  Notifies handler on stream broadcast stop
+     */
 	private void notifyBroadcastClose() {
 		IStreamAwareScopeHandler handler = getStreamAwareHandler();
 		if (handler != null) {

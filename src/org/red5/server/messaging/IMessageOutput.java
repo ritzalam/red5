@@ -38,10 +38,11 @@ public interface IMessageOutput {
 	void pushMessage(IMessage message);
 
 	/**
-	 * Connect to a provider.
+	 * Connect to a provider. Note that params passed has nothing to deal with
+     *  NetConnection.connect in client-side Flex/Flash RIA.
 	 * 
-	 * @param provider
-	 * @param paramMap
+	 * @param provider       Provider
+	 * @param paramMap       Params passed with connection
 	 * @return <tt>true</tt> when successfully subscribed,
 	 * <tt>false</tt> otherwise.
 	 */
@@ -50,13 +51,18 @@ public interface IMessageOutput {
 	/**
 	 * Disconnect from a provider.
 	 * 
-	 * @param provider
+	 * @param provider       Provider
 	 * @return <tt>true</tt> when successfully unsubscribed,
 	 * <tt>false</tt> otherwise.
 	 */
 	boolean unsubscribe(IProvider provider);
 
-	List<IProvider> getProviders();
+	/**
+     * Getter for providers
+     *
+     * @return  Providers
+     */
+    List<IProvider> getProviders();
 
 	/**
 	 * Send OOB Control Message to all consumers on the other side of pipe.
@@ -64,6 +70,7 @@ public interface IMessageOutput {
 	 * @param provider
 	 *            The provider that sends the message
 	 * @param oobCtrlMsg
+     *            Out-of-band control message
 	 */
 	void sendOOBControlMessage(IProvider provider, OOBControlMessage oobCtrlMsg);
 }

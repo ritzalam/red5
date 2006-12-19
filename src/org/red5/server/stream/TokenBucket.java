@@ -28,14 +28,16 @@ public class TokenBucket implements ITokenBucket {
 
 	private WaitObject waitObject = null;
 
-	public TokenBucket() {
+	/** Constructs a new TokenBucket. */
+    public TokenBucket() {
 	}
 
 	public TokenBucket(double initialTokens) {
 		tokens = initialTokens;
 	}
 
-	synchronized public boolean acquireToken(double tokenCount, long wait) {
+	/** {@inheritDoc} */
+    synchronized public boolean acquireToken(double tokenCount, long wait) {
 		if (wait > 0) {
 			// as of now, we don't support blocking mode
 			throw new IllegalArgumentException("blocking wait unsupported");
@@ -48,7 +50,8 @@ public class TokenBucket implements ITokenBucket {
 		}
 	}
 
-	synchronized public boolean acquireTokenNonblocking(double tokenCount,
+	/** {@inheritDoc} */
+    synchronized public boolean acquireTokenNonblocking(double tokenCount,
 			ITokenBucketCallback callback) {
 		// TODO use a wait queue instead
 		if (waitObject != null) {
@@ -67,7 +70,8 @@ public class TokenBucket implements ITokenBucket {
 		}
 	}
 
-	synchronized public double acquireTokenBestEffort(double upperLimitCount) {
+	/** {@inheritDoc} */
+    synchronized public double acquireTokenBestEffort(double upperLimitCount) {
 		if (waitObject != null) {
 			return 0;
 		}
@@ -81,24 +85,37 @@ public class TokenBucket implements ITokenBucket {
 		}
 	}
 
-	public long getCapacity() {
+	/** {@inheritDoc} */
+    public long getCapacity() {
 		return capacity;
 	}
 
-	public double getSpeed() {
+	/** {@inheritDoc} */
+    public double getSpeed() {
 		return speed;
 	}
 
-	synchronized public void reset() {
+	/** {@inheritDoc} */
+    synchronized public void reset() {
 		waitObject = null;
 		tokens = 0;
 	}
 
-	void setCapacity(long capacity) {
+	/**
+     * Setter for property 'capacity'.
+     *
+     * @param capacity Value to set for property 'capacity'.
+     */
+    void setCapacity(long capacity) {
 		this.capacity = capacity;
 	}
 
-	void setSpeed(double speed) {
+	/**
+     * Setter for property 'speed'.
+     *
+     * @param speed Value to set for property 'speed'.
+     */
+    void setSpeed(double speed) {
 		this.speed = speed;
 	}
 

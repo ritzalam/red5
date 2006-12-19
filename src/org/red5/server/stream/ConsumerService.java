@@ -27,9 +27,13 @@ import org.red5.server.messaging.InMemoryPushPushPipe;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.stream.consumer.ConnectionConsumer;
 
+/**
+ * Basic consumer service implementation. Used to get pushed messages at consumer endpoint.
+ */
 public class ConsumerService implements IConsumerService {
 
-	public IMessageOutput getConsumerOutput(IClientStream stream) {
+	/** {@inheritDoc} */
+    public IMessageOutput getConsumerOutput(IClientStream stream) {
 		IStreamCapableConnection streamConn = stream.getConnection();
 		if (!(streamConn instanceof RTMPConnection)) {
 			return null;

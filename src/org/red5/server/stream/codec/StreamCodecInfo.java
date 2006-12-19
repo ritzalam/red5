@@ -30,27 +30,41 @@ public class StreamCodecInfo implements IStreamCodecInfo {
 
 	private IVideoStreamCodec videoCodec = null;
 
-	public boolean hasAudio() {
+	/** {@inheritDoc} */
+    public boolean hasAudio() {
 		return audio;
 	}
 
-	public void setHasAudio(boolean value) {
+	/**
+     * Setter for property 'hasAudio'.
+     *
+     * @param value Value to set for property 'hasAudio'.
+     */
+    public void setHasAudio(boolean value) {
 		this.audio = value;
 	}
 
-	public boolean hasVideo() {
+	/** {@inheritDoc} */
+    public boolean hasVideo() {
 		return video;
 	}
 
-	public void setHasVideo(boolean value) {
+	/**
+     * Setter for property 'hasVideo'.
+     *
+     * @param value Value to set for property 'hasVideo'.
+     */
+    public void setHasVideo(boolean value) {
 		this.video = value;
 	}
 
-	public String getAudioCodecName() {
+	/** {@inheritDoc} */
+    public String getAudioCodecName() {
 		return null;
 	}
 
-	public String getVideoCodecName() {
+	/** {@inheritDoc} */
+    public String getVideoCodecName() {
 		if (videoCodec == null) {
 			return null;
 		}
@@ -58,11 +72,17 @@ public class StreamCodecInfo implements IStreamCodecInfo {
 		return videoCodec.getName();
 	}
 
-	public IVideoStreamCodec getVideoCodec() {
+	/** {@inheritDoc} */
+    public IVideoStreamCodec getVideoCodec() {
 		return videoCodec;
 	}
 
-	public void setVideoCodec(IVideoStreamCodec codec) {
+	/**
+     * Setter for property 'videoCodec'.
+     *
+     * @param codec Value to set for property 'videoCodec'.
+     */
+    public void setVideoCodec(IVideoStreamCodec codec) {
 		this.videoCodec = codec;
 	}
 }

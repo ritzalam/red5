@@ -45,15 +45,30 @@ public class OutputStream {
 		this.data.close();
 	}
 
-	public Channel getAudio() {
+	/**
+     * Getter for property 'audio'.
+     *
+     * @return Value for property 'audio'.
+     */
+    public Channel getAudio() {
 		return audio;
 	}
 
-	public Channel getData() {
+	/**
+     * Getter for property 'data'.
+     *
+     * @return Value for property 'data'.
+     */
+    public Channel getData() {
 		return data;
 	}
 
-	public Channel getVideo() {
+	/**
+     * Getter for property 'video'.
+     *
+     * @return Value for property 'video'.
+     */
+    public Channel getVideo() {
 		return video;
 	}
 }

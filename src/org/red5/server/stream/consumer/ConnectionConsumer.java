@@ -72,7 +72,8 @@ public class ConnectionConsumer implements IPushableConsumer,
 		streamTracker = new StreamTracker();
 	}
 
-	public void pushMessage(IPipe pipe, IMessage message) {
+	/** {@inheritDoc} */
+    public void pushMessage(IPipe pipe, IMessage message) {
 		if (message instanceof ResetMessage) {
 			streamTracker.reset();
 		} else if (message instanceof StatusMessage) {
@@ -138,11 +139,13 @@ public class ConnectionConsumer implements IPushableConsumer,
 		}
 	}
 
-	public void onPipeConnectionEvent(PipeConnectionEvent event) {
+	/** {@inheritDoc} */
+    public void onPipeConnectionEvent(PipeConnectionEvent event) {
 		// TODO close channels on pipe disconnect
 	}
 
-	public void onOOBControlMessage(IMessageComponent source, IPipe pipe,
+	/** {@inheritDoc} */
+    public void onOOBControlMessage(IMessageComponent source, IPipe pipe,
 			OOBControlMessage oobCtrlMsg) {
 		if (!"ConnectionConsumer".equals(oobCtrlMsg.getTarget())) {
 			return;

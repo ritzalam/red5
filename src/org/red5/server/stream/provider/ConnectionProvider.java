@@ -29,13 +29,15 @@ import org.red5.server.messaging.PipeConnectionEvent;
 public class ConnectionProvider implements IProvider, IPipeConnectionListener {
 	private IPipe pipe;
 
-	public void onOOBControlMessage(IMessageComponent source, IPipe pipe,
+	/** {@inheritDoc} */
+    public void onOOBControlMessage(IMessageComponent source, IPipe pipe,
 			OOBControlMessage oobCtrlMsg) {
 		// TODO Auto-generated method stub
 
 	}
 
-	public void onPipeConnectionEvent(PipeConnectionEvent event) {
+	/** {@inheritDoc} */
+    public void onPipeConnectionEvent(PipeConnectionEvent event) {
 		switch (event.getType()) {
 			case PipeConnectionEvent.PROVIDER_CONNECT_PUSH:
 				if (event.getProvider() == this) {

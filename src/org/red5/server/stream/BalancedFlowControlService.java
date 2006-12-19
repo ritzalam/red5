@@ -52,7 +52,7 @@ import org.springframework.context.ApplicationContextAware;
 public class BalancedFlowControlService extends TimerTask implements
 		IFlowControlService, ApplicationContextAware {
     /**
-     * 
+     *
      */
     private static final Log log = LogFactory
 			.getLog(BalancedFlowControlService.class);
@@ -313,7 +313,12 @@ public class BalancedFlowControlService extends TimerTask implements
 		this.interval = interval;
 	}
 
-	public void setDefaultCapacity(long defaultCapacity) {
+	/**
+     * Setter for property 'defaultCapacity'.
+     *
+     * @param defaultCapacity Value to set for property 'defaultCapacity'.
+     */
+    public void setDefaultCapacity(long defaultCapacity) {
 		this.defaultCapacity = defaultCapacity;
 	}
 
@@ -363,7 +368,7 @@ public class BalancedFlowControlService extends TimerTask implements
 
 	/**
 	 * Get the FC depth in the tree.
-	 * 
+	 *
 	 * @param fc
 	 * @return
 	 */
@@ -382,7 +387,7 @@ public class BalancedFlowControlService extends TimerTask implements
 
 	/**
 	 * Put a request object to sleep state.
-	 * 
+	 *
 	 * @param fcData
 	 * @param reqObj
 	 * @param channelId
@@ -455,7 +460,7 @@ public class BalancedFlowControlService extends TimerTask implements
 
 	/**
 	 * Bit per second to Byte per millisecond.
-	 * 
+	 *
 	 * @param bps
 	 *            Bit per second.
 	 * @return Byte per millisecond.
@@ -542,7 +547,8 @@ public class BalancedFlowControlService extends TimerTask implements
 			return bwResources.length > 0;
 		}
 
-		public int compareTo(Object o) {
+		/** {@inheritDoc} */
+        public int compareTo(Object o) {
 			FcData toCompare = (FcData) o;
 			if (toCompare == null || hungry > toCompare.hungry) {
 				return -1;
@@ -556,7 +562,7 @@ public class BalancedFlowControlService extends TimerTask implements
 	}
 
     /**
-     *
+     * {@inheritDoc}
      */
     private class Bucket implements ITokenBucket {
 		private int channelId; // 0 for video and 1 for audio
@@ -571,7 +577,8 @@ public class BalancedFlowControlService extends TimerTask implements
 			this.isReset = false;
 		}
 
-		public boolean acquireToken(double tokenCount, long wait) {
+		/** {@inheritDoc} */
+        public boolean acquireToken(double tokenCount, long wait) {
 			if (wait != 0) {
 				// XXX not support waiting for now
 				return false;

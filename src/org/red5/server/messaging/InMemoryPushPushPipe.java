@@ -36,7 +36,8 @@ public class InMemoryPushPushPipe extends AbstractPipe {
 	private static final Log log = LogFactory
 			.getLog(InMemoryPushPushPipe.class);
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public boolean subscribe(IConsumer consumer, Map paramMap) {
 		if (!(consumer instanceof IPushableConsumer)) {
 			throw new IllegalArgumentException(
@@ -50,7 +51,8 @@ public class InMemoryPushPushPipe extends AbstractPipe {
 		return success;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public boolean subscribe(IProvider provider, Map paramMap) {
 		boolean success = super.subscribe(provider, paramMap);
 		if (success) {
@@ -60,15 +62,18 @@ public class InMemoryPushPushPipe extends AbstractPipe {
 		return success;
 	}
 
-	public IMessage pullMessage() {
+	/** {@inheritDoc} */
+    public IMessage pullMessage() {
 		return null;
 	}
 
-	public IMessage pullMessage(long wait) {
+	/** {@inheritDoc} */
+    public IMessage pullMessage(long wait) {
 		return null;
 	}
 
-	public void pushMessage(IMessage message) {
+	/** {@inheritDoc} */
+    public void pushMessage(IMessage message) {
 		IPushableConsumer[] consumerArray = null;
 		synchronized (consumers) {
 			consumerArray = consumers.toArray(new IPushableConsumer[] {});

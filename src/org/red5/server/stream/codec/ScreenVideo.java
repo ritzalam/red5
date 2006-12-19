@@ -62,15 +62,18 @@ public class ScreenVideo implements IVideoStreamCodec {
 
 	private int totalBlockDataSize;
 
-	public ScreenVideo() {
+	/** Constructs a new ScreenVideo. */
+    public ScreenVideo() {
 		this.reset();
 	}
 
-	public String getName() {
+	/** {@inheritDoc} */
+    public String getName() {
 		return CODEC_NAME;
 	}
 
-	public void reset() {
+	/** {@inheritDoc} */
+    public void reset() {
 		this.blockData = null;
 		this.blockSize = null;
 		this.width = 0;
@@ -84,14 +87,16 @@ public class ScreenVideo implements IVideoStreamCodec {
 		this.totalBlockDataSize = 0;
 	}
 
-	public boolean canHandleData(ByteBuffer data) {
+	/** {@inheritDoc} */
+    public boolean canHandleData(ByteBuffer data) {
 		byte first = data.get();
 		boolean result = ((first & 0x0f) == FLV_CODEC_SCREEN);
 		data.rewind();
 		return result;
 	}
 
-	public boolean canDropFrames() {
+	/** {@inheritDoc} */
+    public boolean canDropFrames() {
 		return false;
 	}
 
@@ -143,7 +148,8 @@ public class ScreenVideo implements IVideoStreamCodec {
 		}
 	}
 
-	public boolean addData(ByteBuffer data) {
+	/** {@inheritDoc} */
+    public boolean addData(ByteBuffer data) {
 		if (!this.canHandleData(data)) {
 			return false;
 		}
@@ -175,7 +181,8 @@ public class ScreenVideo implements IVideoStreamCodec {
 		return true;
 	}
 
-	public ByteBuffer getKeyframe() {
+	/** {@inheritDoc} */
+    public ByteBuffer getKeyframe() {
 		ByteBuffer result = ByteBuffer.allocate(1024);
 		result.setAutoExpand(true);
 

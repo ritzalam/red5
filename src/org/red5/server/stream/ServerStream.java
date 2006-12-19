@@ -120,40 +120,48 @@ public class ServerStream extends AbstractStream implements IServerStream,
 
 	private RTMPMessage nextRTMPMessage;
 
-	public ServerStream() {
+	/** Constructs a new ServerStream. */
+    public ServerStream() {
 		defaultController = new SimplePlaylistController();
 		items = new ArrayList<IPlayItem>();
 		state = State.UNINIT;
 	}
 
-	synchronized public void addItem(IPlayItem item) {
+	/** {@inheritDoc} */
+    synchronized public void addItem(IPlayItem item) {
 		items.add(item);
 	}
 
-	synchronized public void addItem(IPlayItem item, int index) {
+	/** {@inheritDoc} */
+    synchronized public void addItem(IPlayItem item, int index) {
 		items.add(index, item);
 	}
 
-	synchronized public void removeItem(int index) {
+	/** {@inheritDoc} */
+    synchronized public void removeItem(int index) {
 		if (index < 0 || index >= items.size()) {
 			return;
 		}
 		items.remove(index);
 	}
 
-	synchronized public void removeAllItems() {
+	/** {@inheritDoc} */
+    synchronized public void removeAllItems() {
 		items.clear();
 	}
 
-	public int getItemSize() {
+	/** {@inheritDoc} */
+    public int getItemSize() {
 		return items.size();
 	}
 
-	public int getCurrentItemIndex() {
+	/** {@inheritDoc} */
+    public int getCurrentItemIndex() {
 		return currentItemIndex;
 	}
 
-	public IPlayItem getItem(int index) {
+	/** {@inheritDoc} */
+    public IPlayItem getItem(int index) {
 		try {
 			return items.get(index);
 		} catch (IndexOutOfBoundsException e) {
@@ -161,7 +169,8 @@ public class ServerStream extends AbstractStream implements IServerStream,
 		}
 	}
 
-	synchronized public void previousItem() {
+	/** {@inheritDoc} */
+    synchronized public void previousItem() {
 		stop();
 		moveToPrevious();
 		if (currentItemIndex == -1) {
@@ -171,7 +180,8 @@ public class ServerStream extends AbstractStream implements IServerStream,
 		play(item);
 	}
 
-	synchronized public void nextItem() {
+	/** {@inheritDoc} */
+    synchronized public void nextItem() {
 		stop();
 		moveToNext();
 		if (currentItemIndex == -1) {
@@ -181,7 +191,8 @@ public class ServerStream extends AbstractStream implements IServerStream,
 		play(item);
 	}
 
-	synchronized public void setItem(int index) {
+	/** {@inheritDoc} */
+    synchronized public void setItem(int index) {
 		if (index < 0 || index >= items.size()) {
 			return;
 		}
@@ -190,35 +201,43 @@ public class ServerStream extends AbstractStream implements IServerStream,
 		play(item);
 	}
 
-	public boolean isRandom() {
+	/** {@inheritDoc} */
+    public boolean isRandom() {
 		return isRandom;
 	}
 
-	public void setRandom(boolean random) {
+	/** {@inheritDoc} */
+    public void setRandom(boolean random) {
 		isRandom = random;
 	}
 
-	public boolean isRewind() {
+	/** {@inheritDoc} */
+    public boolean isRewind() {
 		return isRewind;
 	}
 
-	public void setRewind(boolean rewind) {
+	/** {@inheritDoc} */
+    public void setRewind(boolean rewind) {
 		isRewind = rewind;
 	}
 
-	public boolean isRepeat() {
+	/** {@inheritDoc} */
+    public boolean isRepeat() {
 		return isRepeat;
 	}
 
-	public void setRepeat(boolean repeat) {
+	/** {@inheritDoc} */
+    public void setRepeat(boolean repeat) {
 		isRepeat = repeat;
 	}
 
-	public void setPlaylistController(IPlaylistController controller) {
+	/** {@inheritDoc} */
+    public void setPlaylistController(IPlaylistController controller) {
 		this.controller = controller;
 	}
 
-	public void saveAs(String name, boolean isAppend)
+	/** {@inheritDoc} */
+    public void saveAs(String name, boolean isAppend)
 			throws ResourceNotFoundException, ResourceExistException {
 		try {
 			IScope scope = getScope();
@@ -277,15 +296,18 @@ public class ServerStream extends AbstractStream implements IServerStream,
 		}
 	}
 
-	public IProvider getProvider() {
+	/** {@inheritDoc} */
+    public IProvider getProvider() {
 		return this;
 	}
 
-	public String getPublishedName() {
+	/** {@inheritDoc} */
+    public String getPublishedName() {
 		return publishedName;
 	}
 
-	public void setPublishedName(String name) {
+	/** {@inheritDoc} */
+    public void setPublishedName(String name) {
 		publishedName = name;
 	}
 
@@ -343,7 +365,8 @@ public class ServerStream extends AbstractStream implements IServerStream,
 		state = State.STOPPED;
 	}
 
-	synchronized public void close() {
+	/** {@inheritDoc} */
+    synchronized public void close() {
 		if (state == State.PLAYING) {
 			stop();
 		}
@@ -354,15 +377,26 @@ public class ServerStream extends AbstractStream implements IServerStream,
 		state = State.CLOSED;
 	}
 
-	public void onOOBControlMessage(IMessageComponent source, IPipe pipe,
+	/** {@inheritDoc} */
+    public void onOOBControlMessage(IMessageComponent source, IPipe pipe,
 			OOBControlMessage oobCtrlMsg) {
 	}
 
-	public void pushMessage(IPipe pipe, IMessage message) {
+	/** {@inheritDoc} */
+    public void pushMessage(IPipe pipe, IMessage message) {
 		pushMessage(message);
 	}
 
-	public void onPipeConnectionEvent(PipeConnectionEvent event) {
+
+    /**
+     * Pipe connection event handler. There are two types of pipe connection events so far,
+     * provider push connection event and provider disconnection event.
+     *
+     * Pipe events handling is the most common way of working with pipes.
+     *
+     * @param event        Pipe connection event context
+     */
+    public void onPipeConnectionEvent(PipeConnectionEvent event) {
 		switch (event.getType()) {
 			case PipeConnectionEvent.PROVIDER_CONNECT_PUSH:
 				if (event.getProvider() == this
@@ -385,14 +419,18 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	 * Play a specific IPlayItem.
 	 * The strategy for now is VOD first, Live second.
 	 * Should be called in a synchronized context.
-	 * @param item
+     *
+	 * @param item        Item to play
 	 */
 	private void play(IPlayItem item) {
-		if (state != State.STOPPED) {
+        // Return if already playing
+        if (state != State.STOPPED) {
 			return;
 		}
-		boolean isLive = false;
-		IProviderService providerService = (IProviderService) getScope()
+        // Assume this is not live stream
+        boolean isLive = false;
+        // Get provider service from Spring bean factory
+        IProviderService providerService = (IProviderService) getScope()
 				.getContext().getBean(IProviderService.BEAN_NAME);
 		msgIn = providerService.getVODProviderInput(getScope(), item.getName());
 		if (msgIn == null) {
@@ -412,7 +450,8 @@ public class ServerStream extends AbstractStream implements IServerStream,
 			if (item.getLength() >= 0) {
 				liveJobName = scheduler.addScheduledOnceJob(item.getLength(),
 						new IScheduledJob() {
-							public void execute(ISchedulingService service) {
+							/** {@inheritDoc} */
+                            public void execute(ISchedulingService service) {
 								synchronized (ServerStream.this) {
 									if (liveJobName == null) {
 										return;
@@ -433,20 +472,34 @@ public class ServerStream extends AbstractStream implements IServerStream,
 		}
 	}
 
-	private void onItemEnd() {
+    /**
+     * Play next item on item end
+     */
+    private void onItemEnd() {
 		nextItem();
 	}
-	
-	private void pushMessage(IMessage message) {
+
+    /**
+     * Push message
+     * @param message     Message
+     */
+    private void pushMessage(IMessage message) {
 		msgOut.pushMessage(message);
 		recordPipe.pushMessage(message);
 	}
 
-	private void sendResetMessage() {
-		pushMessage(new ResetMessage());
+    /**
+     * Send reset message
+     */
+    private void sendResetMessage() {
+        // Send new reset message
+        pushMessage(new ResetMessage());
 	}
 
-	private void startBroadcastVOD() {
+    /**
+     * Begin VOD broadcasting
+     */
+    private void startBroadcastVOD() {
 		nextVideoTS = nextAudioTS = nextDataTS = 0;
 		nextRTMPMessage = null;
 		vodStartTS = 0;
@@ -503,7 +556,8 @@ public class ServerStream extends AbstractStream implements IServerStream,
 				- (System.currentTimeMillis() - serverStartTS);
 
 		vodJobName = scheduler.addScheduledOnceJob(delta, new IScheduledJob() {
-			public void execute(ISchedulingService service) {
+			/** {@inheritDoc} */
+            public void execute(ISchedulingService service) {
 				synchronized (ServerStream.this) {
 					if (vodJobName == null) {
 						return;
@@ -527,24 +581,43 @@ public class ServerStream extends AbstractStream implements IServerStream,
 		});
 	}
 
-	private RTMPMessage getNextRTMPMessage() {
+	/**
+     * Getter for next RTMP message.
+     *
+     * @return  Next RTMP message
+     */
+    private RTMPMessage getNextRTMPMessage() {
 		IMessage message = null;
 		do {
-			message = msgIn.pullMessage();
-			if (message == null) {
+            // Pull message from message input object...
+            message = msgIn.pullMessage();
+            // If message is null then return null
+            if (message == null) {
 				return null;
 			}
 		} while (!(message instanceof RTMPMessage));
-		return (RTMPMessage) message;
+        // Cast and return
+        return (RTMPMessage) message;
 	}
 
-	private void sendVODInitCM(IMessageInput msgIn, int start) {
-		OOBControlMessage oobCtrlMsg = new OOBControlMessage();
-		oobCtrlMsg.setTarget(IPassive.KEY);
-		oobCtrlMsg.setServiceName("init");
-		Map<Object, Object> paramMap = new HashMap<Object, Object>();
-		paramMap.put("startTS", Integer.valueOf(start));
-		oobCtrlMsg.setServiceParamMap(paramMap);
+    /**
+     *
+     * @param msgIn
+     * @param start
+     */
+    private void sendVODInitCM(IMessageInput msgIn, int start) {
+        // Create new out-of-band control message
+        OOBControlMessage oobCtrlMsg = new OOBControlMessage();
+        // Set passive type
+        oobCtrlMsg.setTarget(IPassive.KEY);
+        // Set service name of init
+        oobCtrlMsg.setServiceName("init");
+        // Create map for parameters
+        Map<Object, Object> paramMap = new HashMap<Object, Object>();
+        // Put start timestamp into Map of params
+        paramMap.put("startTS", Integer.valueOf(start));
+        // Attach to OOB control message and send it
+        oobCtrlMsg.setServiceParamMap(paramMap);
 		msgIn.sendOOBControlMessage(this, oobCtrlMsg);
 	}
 
