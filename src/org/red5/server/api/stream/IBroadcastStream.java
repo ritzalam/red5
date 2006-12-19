@@ -21,6 +21,8 @@ package org.red5.server.api.stream;
 
 import org.red5.server.messaging.IProvider;
 
+import java.io.IOException;
+
 /**
  * A broadcast stream is a stream source to be subscribed by clients. To
  * subscribe a stream from your client Flash application use NetStream.play
@@ -46,7 +48,7 @@ public interface IBroadcastStream extends IStream {
 	 *             Resource not exist when trying to append.
 	 */
 	void saveAs(String filePath, boolean isAppend)
-			throws ResourceNotFoundException, ResourceExistException;
+            throws ResourceNotFoundException, ResourceExistException;
 
 	/**
 	 * Get the provider corresponding to this stream. Provider objects are
