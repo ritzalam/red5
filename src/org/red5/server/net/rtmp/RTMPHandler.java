@@ -220,8 +220,17 @@ public class RTMPHandler extends BaseRTMPHandler {
 										}
 										call.setStatus(Call.STATUS_SUCCESS_RESULT);
 										if (call instanceof IPendingServiceCall) {
-											((IPendingServiceCall) call)
-													.setResult(getStatus(NC_CONNECT_SUCCESS));
+											IPendingServiceCall pc = (IPendingServiceCall) call;
+											Map<String, Object> result = new HashMap<String, Object>();
+											StatusObject status = getStatus(NC_CONNECT_SUCCESS);
+											result.put("code", status.getCode());
+											result.put("description", status.getDescription());
+											result.put("application", status.getApplication());
+											result.put("level", status.getLevel());
+											if (params.get("objectEncoding") == Integer.valueOf(3))
+												// Client wants to use AMF3 encoding
+												result.put("objectEncoding", 3);
+											pc.setResult(result);
 										}
 										// Measure initial roundtrip time after connecting
 										conn.getChannel((byte) 2).write(new Ping((short) 0, 0, -1));
@@ -324,7 +333,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 		}
 	}
 
-	public Object getStatus(String code) {
+	public StatusObject getStatus(String code) {
 		return statusObjectService.getStatusObject(code);
 	}
 

@@ -63,6 +63,10 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		return (Number) getNext();
 	}
 
+	public String getString() {
+		return (String) getNext();
+	}
+
 	public String readString() {
 		return (String) getNext();
 	}

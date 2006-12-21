@@ -69,6 +69,8 @@ public class AMF {
 
 	public final static byte TYPE_CLASS_OBJECT = 0x10;
 
+	public final static byte TYPE_AMF3_OBJECT = 0x11;
+
 	public final static byte VALUE_TRUE = 0x01;
 
 	public final static byte VALUE_FALSE = 0x00;

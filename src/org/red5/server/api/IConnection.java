@@ -38,6 +38,14 @@ import java.util.Map;
 public interface IConnection extends ICoreObject {
 
 	/**
+	 * Encoding types.
+	 */
+	public static enum Encoding {
+		AMF0,
+		AMF3
+	};
+	
+	/**
 	 * Persistent connection type, eg RTMP.
 	 */
 	public static final String PERSISTENT = "persistent";
@@ -59,6 +67,13 @@ public interface IConnection extends ICoreObject {
 	 */
 	public String getType(); // PERSISTENT | POLLING | TRANSIENT
 
+	/**
+	 * Get the object encoding for this connection.
+	 * 
+	 * @return the used encoding.
+	 */
+	public Encoding getEncoding();
+	
 	/**
 	 * Initialize the connection.
      * @param client
@@ -99,7 +114,7 @@ public interface IConnection extends ICoreObject {
 	 * 
 	 * @return
 	 */
-	public Map<String, String> getConnectParams();
+	public Map<String, Object> getConnectParams();
 
 	/**
 	 * Get the client object associated with this connection.

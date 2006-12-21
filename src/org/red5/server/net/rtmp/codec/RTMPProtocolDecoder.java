@@ -28,9 +28,13 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
-import org.red5.io.amf.Input;
+import org.red5.io.amf.AMF;
 import org.red5.io.object.Deserializer;
+import org.red5.io.object.Input;
 import org.red5.io.utils.BufferUtils;
+import org.red5.server.api.IConnection;
+import org.red5.server.api.Red5;
+import org.red5.server.api.IConnection.Encoding;
 import org.red5.server.net.protocol.ProtocolException;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.protocol.SimpleProtocolDecoder;
@@ -39,6 +43,7 @@ import org.red5.server.net.rtmp.event.AudioData;
 import org.red5.server.net.rtmp.event.BytesRead;
 import org.red5.server.net.rtmp.event.ChunkSize;
 import org.red5.server.net.rtmp.event.ClientBW;
+import org.red5.server.net.rtmp.event.FlexMessage;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.event.Invoke;
 import org.red5.server.net.rtmp.event.Notify;
@@ -70,6 +75,15 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 
 	public RTMPProtocolDecoder() {
 
+	}
+
+	private Input getInput(ByteBuffer buffer) {
+		IConnection conn = Red5.getConnectionLocal();
+		if (conn != null && conn.getEncoding() == Encoding.AMF3) {
+			return new org.red5.io.amf3.Input(buffer);
+		} else {
+			return new org.red5.io.amf.Input(buffer);
+		}
 	}
 
 	public void setDeserializer(Deserializer deserializer) {
@@ -378,6 +392,9 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 			case TYPE_CLIENT_BANDWIDTH:
 				message = decodeClientBW(in);
 				break;
+			case TYPE_FLEX_MESSAGE:
+				message = decodeFlexMessage(in);
+				break;
 			default:
 				message = decodeUnknown(header.getDataType(), in);
 				break;
@@ -420,8 +437,8 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	 */
 	public ISharedObjectMessage decodeSharedObject(ByteBuffer in) {
 
-		final Input input = new Input(in);
-		String name = Input.getString(in);
+		final Input input = getInput(in);
+		String name = input.getString();
 		// Read version of SO to modify
 		int version = in.getInt();
 		// Read persistence informations
@@ -447,23 +464,23 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 			final int length = in.getInt();
 			if (type == ISharedObjectEvent.Type.CLIENT_STATUS) {
 				// Status code
-				key = Input.getString(in);
+				key = input.getString();
 				// Status level
-				value = Input.getString(in);
+				value = input.getString();
 			} else if (type == ISharedObjectEvent.Type.CLIENT_UPDATE_DATA) {
 				key = null;
 				// Map containing new attribute values
 				final Map<String, Object> map = new HashMap<String, Object>();
 				final int start = in.position();
 				while (in.position() - start < length) {
-					String tmp = Input.getString(in);
+					String tmp = input.getString();
 					map.put(tmp, deserializer.deserialize(input));
 				}
 				value = map;
 			} else if (type != ISharedObjectEvent.Type.SERVER_SEND_MESSAGE
 					&& type != ISharedObjectEvent.Type.CLIENT_SEND_MESSAGE) {
 				if (length > 0) {
-					key = Input.getString(in);
+					key = input.getString();
 					if (length > key.length() + 2) {
 						value = deserializer.deserialize(input);
 					}
@@ -529,7 +546,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 			Header header, RTMP rtmp) {
 		// TODO: we should use different code depending on server or client mode
 		int start = in.position();
-		Input input = new Input(in);
+		Input input = getInput(in);
 
 		String action = (String) deserializer.deserialize(input);
 
@@ -646,4 +663,54 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 		return new VideoData(in.asReadOnlyBuffer());
 	}
 
+	public FlexMessage decodeFlexMessage(ByteBuffer in) {
+		// Unknown byte, always 0?
+		in.skip(1);
+		Input input = new org.red5.io.amf.Input(in);
+		String action = (String) deserializer.deserialize(input);
+		int invokeId = ((Number) deserializer.deserialize(input)).intValue();
+		FlexMessage msg = new FlexMessage();
+		msg.setInvokeId(invokeId);
+		Object[] params = new Object[] {};
+
+		if (in.hasRemaining()) {
+			ArrayList paramList = new ArrayList();
+
+			final Object obj = deserializer.deserialize(input);
+			if (obj != null) {
+				paramList.add(obj);
+			}
+			
+			if (in.hasRemaining()) {
+				// Check for AMF3 encoding of parameters
+				byte tmp = in.get();
+				in.position(in.position()-1);
+				if (tmp == AMF.TYPE_AMF3_OBJECT) {
+					// All further parameters are encoded using AMF3
+					input = new org.red5.io.amf3.Input(in);
+				}
+				while (in.hasRemaining()) {
+					paramList.add(deserializer.deserialize(input));
+				}
+			}
+			params = paramList.toArray();
+			if (log.isDebugEnabled()) {
+				log.debug("Num params: " + paramList.size());
+				for (int i = 0; i < params.length; i++) {
+					log.debug(" > " + i + ": " + params[i]);
+				}
+			}
+		}
+
+		final int dotIndex = action.lastIndexOf('.');
+		String serviceName = (dotIndex == -1) ? null : action.substring(0,
+				dotIndex);
+		String serviceMethod = (dotIndex == -1) ? action : action.substring(
+				dotIndex + 1, action.length());
+
+		PendingCall call = new PendingCall(serviceName, serviceMethod, params);
+		msg.setCall(call);
+		return msg;
+	}
+	
 }

@@ -33,14 +33,14 @@ public class BaseInput {
 
 	protected Map refMap = new HashMap();
 
-	protected short refId;
+	protected int refId;
 
 	/**
 	 * Store an object into a map
 	 * @param obj
 	 */
 	public void storeReference(Object obj) {
-		refMap.put(Short.valueOf(refId++), obj);
+		refMap.put(Integer.valueOf(refId++), obj);
 	}
 
 	/**
@@ -56,8 +56,8 @@ public class BaseInput {
 	 * @param id
 	 * @return Object
 	 */
-	protected Object getReference(short id) {
-		return refMap.get(Short.valueOf(id));
+	protected Object getReference(int id) {
+		return refMap.get(Integer.valueOf(id));
 	}
 
 }

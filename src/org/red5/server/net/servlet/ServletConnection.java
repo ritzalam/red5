@@ -54,6 +54,10 @@ public class ServletConnection extends AttributeStore implements IConnection {
 		throw new RuntimeException("not supported for this type of connection");
 	}
 
+	public Encoding getEncoding() {
+		return Encoding.AMF0;
+	}
+	
 	public String getType() {
 		return IConnection.TRANSIENT;
 	}
@@ -80,8 +84,8 @@ public class ServletConnection extends AttributeStore implements IConnection {
 		// Nothing to do.
 	}
 
-	public Map<String, String> getConnectParams() {
-		return new HashMap<String, String>();
+	public Map<String, Object> getConnectParams() {
+		return new HashMap<String, Object>();
 	}
 
 	public IClient getClient() {

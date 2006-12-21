@@ -27,6 +27,8 @@ import org.apache.mina.common.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecException;
 import org.apache.mina.filter.codec.ProtocolDecoder;
 import org.apache.mina.filter.codec.ProtocolDecoderOutput;
+import org.red5.server.api.IConnection;
+import org.red5.server.api.Red5;
 import org.red5.server.net.protocol.ProtocolState;
 
 public class RTMPMinaProtocolDecoder extends RTMPProtocolDecoder implements
@@ -37,6 +39,11 @@ public class RTMPMinaProtocolDecoder extends RTMPProtocolDecoder implements
 
 		final ProtocolState state = (ProtocolState) session
 				.getAttribute(ProtocolState.SESSION_KEY);
+
+		IConnection conn = (IConnection) session.getAttachment();
+		
+		// Set thread local here so we have the connection during decoding of packets
+		Red5.setConnectionLocal(conn);
 
 		ByteBuffer buf = (ByteBuffer) session.getAttribute("buffer");
 		if (buf == null) {

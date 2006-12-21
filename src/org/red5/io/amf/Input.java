@@ -60,7 +60,6 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	 * @return byte
 	 */
 	public byte readDataType() {
-
 		if (buf != null) {
 			// XXX Paul: prevent an NPE here by returning the current data type
 			// when there is a null buffer
@@ -68,7 +67,10 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		} else {
 			log.error("Why is buf null?");
 		}
+		return readDataType(currentDataType);
+	}
 
+	protected byte readDataType(byte dataType) {
 		byte coreType;
 
 		switch (currentDataType) {
@@ -173,6 +175,10 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		}
 	}
 
+	public String getString() {
+		return getString(buf);
+	}
+	
 	/**
 	 * Reads a string
 	 * 

@@ -404,9 +404,9 @@ public class Serializer implements SerializerOpts {
 		final Set set = map.entrySet();
 		// NOTE: we encode maps as objects so the flash client
 		//       can access the entries through attributes
-		out.writeStartObject(null);
 		Iterator it = set.iterator();
 		boolean isBeanMap = (map instanceof BeanMap);
+		out.writeStartObject(null, isBeanMap ? map.size() - 1 : map.size());
 		while (it.hasNext()) {
 			Map.Entry entry = (Map.Entry) it.next();
 			if (isBeanMap && ((String) entry.getKey()).equals("class")) {
@@ -439,7 +439,7 @@ public class Serializer implements SerializerOpts {
 		if (isOptEnabled(bean, SerializerOption.SerializeClassName)) {
 			out.writeStartObject(bean.getClass().getName());
 		} else {
-			out.writeStartObject(null);
+			out.writeStartObject(null, set.size() - 1);
 		}
 		Iterator it = set.iterator();
 		while (it.hasNext()) {

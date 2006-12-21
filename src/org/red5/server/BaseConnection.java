@@ -86,7 +86,7 @@ public abstract class BaseConnection extends AttributeStore implements
      * @see  NetConnection in Flash Media Server Server-side ActionScript guide
      */
 	@SuppressWarnings({"JavadocReference"})
-    protected Map<String, String> params = null;
+    protected Map<String, Object> params = null;
     /**
      *  Client bound to connection
      */
@@ -112,7 +112,7 @@ public abstract class BaseConnection extends AttributeStore implements
      */
 	public BaseConnection(String type, String host, String remoteAddress,
 			int remotePort, String path, String sessionId,
-			Map<String, String> params) {
+			Map<String, Object> params) {
 		this.type = type;
 		this.host = host;
 		this.remoteAddress = remoteAddress;
@@ -191,7 +191,7 @@ public abstract class BaseConnection extends AttributeStore implements
      * Return connection parameters
      * @return
      */
-	public Map<String, String> getConnectParams() {
+	public Map<String, Object> getConnectParams() {
 		return Collections.unmodifiableMap(params);
 	}
 

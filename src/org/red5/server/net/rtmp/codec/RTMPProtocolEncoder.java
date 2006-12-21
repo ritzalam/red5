@@ -26,9 +26,12 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
-import org.red5.io.amf.Output;
+import org.red5.io.object.Output;
 import org.red5.io.object.Serializer;
 import org.red5.io.utils.BufferUtils;
+import org.red5.server.api.IConnection;
+import org.red5.server.api.Red5;
+import org.red5.server.api.IConnection.Encoding;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IServiceCall;
 import org.red5.server.net.protocol.ProtocolState;
@@ -38,6 +41,7 @@ import org.red5.server.net.rtmp.event.AudioData;
 import org.red5.server.net.rtmp.event.BytesRead;
 import org.red5.server.net.rtmp.event.ChunkSize;
 import org.red5.server.net.rtmp.event.ClientBW;
+import org.red5.server.net.rtmp.event.FlexMessage;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.event.Invoke;
 import org.red5.server.net.rtmp.event.Notify;
@@ -64,6 +68,15 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 			+ ".out");
 
 	private Serializer serializer;
+	
+	private Output getOutput(ByteBuffer buffer) {
+		IConnection conn = Red5.getConnectionLocal();
+		if (conn.getEncoding() == Encoding.AMF3) {
+			return new org.red5.io.amf3.Output(buffer);
+		} else {
+			return new org.red5.io.amf.Output(buffer);
+		}
+	}
 
 	public ByteBuffer encode(ProtocolState state, Object message)
 			throws Exception {
@@ -215,6 +228,8 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 				return encodeServerBW((ServerBW) message);
 			case TYPE_CLIENT_BANDWIDTH:
 				return encodeClientBW((ClientBW) message);
+			case TYPE_FLEX_MESSAGE:
+				return encodeFlexMessage((FlexMessage) message);
 			default:
 				return null;
 		}
@@ -243,8 +258,9 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 
 		final ByteBuffer out = ByteBuffer.allocate(128);
 		out.setAutoExpand(true);
+		final Output output = getOutput(out);
 
-		Output.putString(out, so.getName());
+		output.putString(so.getName());
 		// SO version
 		out.putInt(so.getVersion());
 		// Encoding (this always seems to be 2 for persistent shared objects)
@@ -274,7 +290,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 					out.put(type);
 					mark = out.position();
 					out.skip(4); // we will be back
-					Output.putString(out, event.getKey());
+					output.putString(event.getKey());
 					len = out.position() - mark - 4;
 					out.putInt(mark, len);
 					break;
@@ -293,8 +309,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 							out.skip(4); // we will be back
 
 							String key = (String) keys.next();
-							Output.putString(out, key);
-							final Output output = new Output(out);
+							output.putString(key);
 							serializer.serialize(output, initialData.get(key));
 
 							len = out.position() - mark - 4;
@@ -305,8 +320,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 						mark = out.position();
 						out.skip(4); // we will be back
 
-						Output.putString(out, event.getKey());
-						final Output output = new Output(out);
+						output.putString(event.getKey());
 						serializer.serialize(output, event.getValue());
 
 						len = out.position() - mark - 4;
@@ -321,7 +335,6 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 					mark = out.position();
 					out.skip(4);
 					// Serialize name of the handler to call...
-					final Output output = new Output(out);
 					serializer.serialize(output, event.getKey());
 					// ...and the arguments
 					for (Object arg : (List) event.getValue()) {
@@ -337,8 +350,8 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 					out.put(type);
 					mark = out.position();
 					out.skip(4); // we will be back
-					Output.putString(out, event.getKey());
-					Output.putString(out, (String) event.getValue());
+					output.putString(event.getKey());
+					output.putString((String) event.getValue());
 					len = out.position() - mark - 4;
 					out.putInt(mark, len);
 					break;
@@ -352,9 +365,8 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 					mark = out.position();
 					//out.putInt(0);
 					out.skip(4); // we will be back
-					Output.putString(out, event.getKey());
-					final Output output2 = new Output(out);
-					serializer.serialize(output2, event.getValue());
+					output.putString(event.getKey());
+					serializer.serialize(output, event.getValue());
 					len = out.position() - mark - 4;
 					out.putInt(mark, len);
 					break;
@@ -383,13 +395,16 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 	}
 
 	protected ByteBuffer encodeNotifyOrInvoke(Notify invoke) {
-		// TODO: tidy up here
-		// log.debug("Encode invoke");
-
 		ByteBuffer out = ByteBuffer.allocate(1024);
 		out.setAutoExpand(true);
-		Output output = new Output(out);
-
+		encodeNotifyOrInvoke(out, invoke);
+		return out;
+	}
+	
+	protected void encodeNotifyOrInvoke(ByteBuffer out, Notify invoke) {
+		// TODO: tidy up here
+		// log.debug("Encode invoke");
+		Output output = new org.red5.io.amf.Output(out);
 		final IServiceCall call = invoke.getCall();
 		final boolean isPending = (call.getStatus() == Call.STATUS_PENDING);
 
@@ -411,6 +426,14 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 			serializer.serialize(output, Integer.valueOf(invoke.getInvokeId()));
 			serializer.serialize(output, invoke.getConnectionParams());
 		}
+
+		if (call.getServiceName() == null && "connect".equals(call.getServiceMethodName())) {
+			// Response to initial connect, always use AMF0
+			output = new org.red5.io.amf.Output(out);
+		} else {
+			output = getOutput(out);
+		}
+		
 		if (!isPending && (invoke instanceof Invoke)) {
 			IPendingServiceCall pendingCall = (IPendingServiceCall) call;
 			if (log.isDebugEnabled()) {
@@ -428,7 +451,6 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 				}
 			}
 		}
-		return out;
 	}
 
 	/*
@@ -497,4 +519,13 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 		this.serializer = serializer;
 	}
 
+	public ByteBuffer encodeFlexMessage(FlexMessage msg) {
+		ByteBuffer out = ByteBuffer.allocate(1024);
+		out.setAutoExpand(true);
+		// Unknown byte, always 0?
+		out.put((byte) 0);
+		encodeNotifyOrInvoke(out, msg);
+		return out;
+	}
+	
 }

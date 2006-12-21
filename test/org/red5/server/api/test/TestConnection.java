@@ -8,6 +8,10 @@ public class TestConnection extends BaseConnection {
 		super(PERSISTENT, host, null, 0, path, sessionId, null);
 	}
 
+	public Encoding getEncoding() {
+		return Encoding.AMF0;
+	}
+	
 	@Override
 	public long getReadBytes() {
 		return 0;

@@ -43,6 +43,10 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		return false;
 	}
 
+	public void putString(String string) {
+		list.add(string);
+	}
+	
 	// DONE
 	public void markElementSeparator() {
 		list.add(Byte.valueOf(Mock.TYPE_ELEMENT_SEPARATOR));
@@ -129,6 +133,12 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 	public void writeStartObject(String className) {
 		list.add(Byte.valueOf(DataTypes.CORE_OBJECT));
 		list.add(className == null ? null : className);
+	}
+
+	public void writeStartObject(String className, int numMembers) {
+		list.add(Byte.valueOf(DataTypes.CORE_OBJECT));
+		list.add(className == null ? null : className);
+		list.add(numMembers);
 	}
 
 	public void writeString(String string) {

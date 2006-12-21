@@ -100,6 +100,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	private Map<Integer, Integer> pendingVideos = new HashMap<Integer, Integer>();
 
 	private int usedStreams;
+	protected Encoding encoding = Encoding.AMF0;
 
 	public RTMPConnection(String type) {
 		// We start with an anonymous connection without a scope.
@@ -109,13 +110,19 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	public void setup(String host, String path, String sessionId,
-			Map<String, String> params) {
+			Map<String, Object> params) {
 		this.host = host;
 		this.path = path;
 		this.sessionId = sessionId;
 		this.params = params;
+		if (params.get("objectEncoding") == Integer.valueOf(3))
+			encoding = Encoding.AMF3;
 	}
 
+	public Encoding getEncoding() {
+		return encoding;
+	}
+	
 	public int getNextAvailableChannelId() {
 		int result = -1;
 		for (byte i = 4; i < channels.length; i++) {

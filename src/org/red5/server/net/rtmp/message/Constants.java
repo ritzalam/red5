@@ -39,7 +39,9 @@ public interface Constants {
 
 	public static final byte TYPE_VIDEO_DATA = 0x09;
 
-	// Unknown: 0x0A ...  0x11
+	// Unknown: 0x0A ...  0x10
+	public static final byte TYPE_FLEX_MESSAGE = 0x11;
+
 	public static final byte TYPE_NOTIFY = 0x12;
 
 	public static final byte TYPE_STREAM_METADATA = 0x12;

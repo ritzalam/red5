@@ -111,6 +111,7 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 					break;
 
 				case TYPE_INVOKE:
+				case TYPE_FLEX_MESSAGE:
 					onInvoke(conn, channel, header, (Invoke) message);
 					if(message.getHeader().getStreamId()!=0  
 							&& ((Invoke)message).getCall().getServiceName()==null

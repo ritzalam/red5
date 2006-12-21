@@ -118,7 +118,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		if (log.isDebugEnabled()) {
 			log.debug("Put property: " + name);
 		}
-		putString(buf, name);
+		putString(name);
 	}
 
 	public void writeReference(Object obj) {
@@ -158,7 +158,10 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		if (log.isDebugEnabled()) {
 			log.debug("Start object: " + className);
 		}
+	}
 
+	public void writeStartObject(String classname, int numMembers) {
+		writeStartObject(classname);
 	}
 
 	public void writeString(String string) {
@@ -178,6 +181,10 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		final java.nio.ByteBuffer strBuf = AMF.CHARSET.encode(string);
 		buf.putShort((short) strBuf.limit());
 		buf.put(strBuf);
+	}
+
+	public void putString(String string) {
+		putString(buf, string);
 	}
 
 	public void writeXML(String xml) {

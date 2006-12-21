@@ -28,6 +28,7 @@ import java.util.TimeZone;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
+import org.red5.io.amf.AMF;
 import org.red5.io.object.BaseInput;
 import org.red5.io.object.DataTypes;
 
@@ -36,14 +37,11 @@ import org.red5.io.object.DataTypes;
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
+ * @author Joachim Bauch (jojo@struktur.de)
  */
-public class Input extends BaseInput implements org.red5.io.object.Input {
+public class Input extends org.red5.io.amf.Input implements org.red5.io.object.Input {
 
 	protected static Log log = LogFactory.getLog(Input.class.getName());
-
-	protected ByteBuffer buf;
-
-	protected byte currentDataType;
 
 	/**
 	 * Input Constructor
@@ -51,8 +49,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	 * @param buf
 	 */
 	public Input(ByteBuffer buf) {
-		super();
-		this.buf = buf;
+		super(buf);
 	}
 
 	/**
@@ -69,8 +66,14 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		currentDataType = buf.get();
 		byte coreType;
 
-		switch (currentDataType) {
+		if (currentDataType == AMF.TYPE_AMF3_OBJECT) {
+			currentDataType = buf.get();
+		} else {
+			// AMF0 object
+			return readDataType(currentDataType);
+		}
 
+		switch (currentDataType) {
 			case AMF3.TYPE_NULL:
 				coreType = DataTypes.CORE_NULL;
 				break;
@@ -157,15 +160,21 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	 * @return String
 	 */
 	public String readString() {
-		int len = buf.getInt();
-		// shift by one bit ?
-		// is it a reference ? if not continue
+		int len = readAMF3Integer();
+		if (len == 0)
+			return "";
+		
+		if ((len & 1) == 0) {
+			// Reference
+			return (String) getReference(len >> 1);
+		}
+		len >>= 1;
 		int limit = buf.limit();
 		final java.nio.ByteBuffer strBuf = buf.buf();
 		strBuf.limit(strBuf.position() + len);
 		final String string = AMF3.CHARSET.decode(strBuf).toString();
 		buf.limit(limit); // Reset the limit
-		// save a reference
+		storeReference(string);
 		return string;
 	}
 
@@ -202,6 +211,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	 * @return int
 	 */
 	public int readStartArray() {
+		System.err.println("MISSING: readStartArray");
 		return buf.getInt();
 	}
 
@@ -227,6 +237,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	 * @return int
 	 */
 	public int readStartMap() {
+		System.err.println("MISSING: readStartMap");
 		return buf.getInt();
 	}
 
@@ -245,7 +256,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	 * @return int
 	 */
 	public String readItemKey() {
-		return "";
+		return readString();
 	}
 
 	/**
@@ -270,6 +281,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	 * @return String
 	 */
 	public String readStartObject() {
+		System.err.println("MISSING: readStartObject");
 		return null;
 	}
 
@@ -279,7 +291,9 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	 * @return boolean
 	 */
 	public boolean hasMoreProperties() {
-		return false;
+		boolean isEnd = (buf.get() == 0);
+		buf.position(buf.position()-1);
+		return isEnd;
 	}
 
 	/**
@@ -288,7 +302,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	 * @return String
 	 */
 	public String readPropertyName() {
-		return null;
+		return readString();
 	}
 
 	/**
@@ -302,10 +316,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	 * Skips end object
 	 */
 	public void skipEndObject() {
-		// skip two marker bytes
-		// then end of object byte
-		buf.skip(3);
-		// byte nextType = buf.get();
+		buf.skip(1);
 	}
 
 	// Others
@@ -327,15 +338,6 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	public Object readCustom() {
 		// Return null for now
 		return null;
-	}
-
-	/**
-	 * Reads Reference
-	 * 
-	 * @return Object
-	 */
-	public Object readReference() {
-		return getReference(buf.getShort());
 	}
 
 	/**

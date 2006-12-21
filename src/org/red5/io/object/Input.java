@@ -32,6 +32,13 @@ public interface Input {
 
 	byte readDataType();
 
+	/**
+	 * Read a string without the string type header.
+	 * 
+	 * @return
+	 */
+	String getString();
+	
 	// Data Types
 	Object readNull();
 

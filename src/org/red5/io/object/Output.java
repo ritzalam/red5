@@ -31,6 +31,8 @@ public interface Output {
 
 	boolean supportsDataType(byte type);
 
+	void putString(String string);
+	
 	// Basic Data Types
 	void writeNumber(Number num);
 
@@ -58,6 +60,8 @@ public interface Output {
 	void markEndMap();
 
 	void writeStartObject(String classname);
+
+	void writeStartObject(String classname, int numMembers);
 
 	void writePropertyName(String name);
 
