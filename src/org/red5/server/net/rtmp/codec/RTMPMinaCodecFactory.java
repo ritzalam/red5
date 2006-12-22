@@ -46,27 +46,41 @@ public class RTMPMinaCodecFactory implements ProtocolCodecFactory,
 		encoder.setSerializer(serializer);
 	}
 
-	public void setDeserializer(Deserializer deserializer) {
+	/**
+     * Setter for property 'deserializer'.
+     *
+     * @param deserializer Value to set for property 'deserializer'.
+     */
+    public void setDeserializer(Deserializer deserializer) {
 		this.deserializer = deserializer;
 	}
 
-	public void setSerializer(Serializer serializer) {
+	/**
+     * Setter for property 'serializer'.
+     *
+     * @param serializer Value to set for property 'serializer'.
+     */
+    public void setSerializer(Serializer serializer) {
 		this.serializer = serializer;
 	}
 
-	public ProtocolDecoder getDecoder() {
+	/** {@inheritDoc} */
+    public ProtocolDecoder getDecoder() {
 		return decoder;
 	}
 
-	public ProtocolEncoder getEncoder() {
+	/** {@inheritDoc} */
+    public ProtocolEncoder getEncoder() {
 		return encoder;
 	}
 
-	public SimpleProtocolDecoder getSimpleDecoder() {
+	/** {@inheritDoc} */
+    public SimpleProtocolDecoder getSimpleDecoder() {
 		return decoder;
 	}
 
-	public SimpleProtocolEncoder getSimpleEncoder() {
+	/** {@inheritDoc} */
+    public SimpleProtocolEncoder getSimpleEncoder() {
 		return encoder;
 	}
 

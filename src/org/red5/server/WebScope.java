@@ -105,7 +105,7 @@ public class WebScope extends Scope implements ServletContextAware {
 
     /**
      * Servlet context
-     * @param servletContext
+     * @param servletContext     Servlet context
      */
 	public void setServletContext(ServletContext servletContext) {
 		this.servletContext = servletContext;
@@ -142,8 +142,7 @@ public class WebScope extends Scope implements ServletContextAware {
 	public void register() {
 		if (hostnames != null && hostnames.length > 0) {
 			for (String element : hostnames) {
-				server.addMapping(element, getName(),
-						((IGlobalScope) getParent()).getName());
+				server.addMapping(element, getName(), getParent().getName());
 			}
 		}
 		init();

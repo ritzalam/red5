@@ -60,20 +60,31 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 	// XXX: HACK HACK HACK to support stream ids
 	private static ThreadLocal<Integer> streamLocal = new ThreadLocal<Integer>();
 
-	// XXX: HACK HACK HACK to support stream ids
+	/**
+     * Getter for property 'streamId'.
+     *
+     * @return Value for property 'streamId'.
+     */ // XXX: HACK HACK HACK to support stream ids
 	public static int getStreamId() {
 		return streamLocal.get().intValue();
 	}
 
-	private static void setStreamId(int id) {
+	/**
+     * Setter for property 'streamId'.
+     *
+     * @param id Value to set for property 'streamId'.
+     */
+    private static void setStreamId(int id) {
 		streamLocal.set(id);
 	}
 
-	public void connectionOpened(RTMPConnection conn, RTMP state) {
+	/** {@inheritDoc} */
+    public void connectionOpened(RTMPConnection conn, RTMP state) {
 		// Nothing to do here
 	}
 
-	public void messageReceived(RTMPConnection conn, ProtocolState state,
+	/** {@inheritDoc} */
+    public void messageReceived(RTMPConnection conn, ProtocolState state,
 			Object in) throws Exception {
 
 		IRTMPEvent message = null;
@@ -168,7 +179,8 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 		}
 	}
 
-	public void messageSent(RTMPConnection conn, Object message) {
+	/** {@inheritDoc} */
+    public void messageSent(RTMPConnection conn, Object message) {
 		if (log.isDebugEnabled()) {
 			log.debug("Message sent");
 		}
@@ -189,7 +201,8 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 		}
 	}
 
-	public void connectionClosed(RTMPConnection conn, RTMP state) {
+	/** {@inheritDoc} */
+    public void connectionClosed(RTMPConnection conn, RTMP state) {
 		state.setState(RTMP.STATE_DISCONNECTED);
 		conn.close();
 	}

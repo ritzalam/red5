@@ -42,7 +42,7 @@ public class NoCacheImpl implements ICacheStore, ApplicationContextAware {
 
 	protected static Log log = LogFactory.getLog(NoCacheImpl.class.getName());
 
-	/*
+	/** Do not instantiate NoCacheImpl. */ /*
 	 * This constructor helps to ensure that we are singleton.
 	 */
 	private NoCacheImpl() {
@@ -52,20 +52,28 @@ public class NoCacheImpl implements ICacheStore, ApplicationContextAware {
 	// later.
 	private static ApplicationContext applicationContext = null;
 
-	public void setApplicationContext(ApplicationContext context)
+	/** {@inheritDoc} */
+    public void setApplicationContext(ApplicationContext context)
 			throws BeansException {
 		NoCacheImpl.applicationContext = context;
 	}
 
-	public static ApplicationContext getApplicationContext() {
+	/**
+     * Getter for property 'applicationContext'.
+     *
+     * @return Value for property 'applicationContext'.
+     */
+    public static ApplicationContext getApplicationContext() {
 		return applicationContext;
 	}
 
-	public Iterator<String> getObjectNames() {
+	/** {@inheritDoc} */
+    public Iterator<String> getObjectNames() {
 		return null;
 	}
 
-	public Iterator<SoftReference<? extends ICacheable>> getObjects() {
+	/** {@inheritDoc} */
+    public Iterator<SoftReference<? extends ICacheable>> getObjects() {
 		return null;
 	}
 
@@ -73,36 +81,53 @@ public class NoCacheImpl implements ICacheStore, ApplicationContextAware {
 		return false;
 	}
 
-	public boolean offer(String name, Object obj) {
+	/** {@inheritDoc} */
+    public boolean offer(String name, Object obj) {
 		return false;
 	}
 
-	public void put(String name, Object obj) {
+	/** {@inheritDoc} */
+    public void put(String name, Object obj) {
 	}
 
-	public ICacheable get(String name) {
+	/** {@inheritDoc} */
+    public ICacheable get(String name) {
 		return null;
 	}
 
-	public boolean remove(ICacheable obj) {
+	/** {@inheritDoc} */
+    public boolean remove(ICacheable obj) {
 		return false;
 	}
 
-	public boolean remove(String name) {
+	/** {@inheritDoc} */
+    public boolean remove(String name) {
 	    return false;
 	}
 
-	public static long getCacheHit() {
+	/**
+     * Getter for property 'cacheHit'.
+     *
+     * @return Value for property 'cacheHit'.
+     */
+    public static long getCacheHit() {
 		return 0;
 	}
 
-	public static long getCacheMiss() {
+	/**
+     * Getter for property 'cacheMiss'.
+     *
+     * @return Value for property 'cacheMiss'.
+     */
+    public static long getCacheMiss() {
 		return 0;
 	}
 
-	public void setMaxEntries(int max) {
+	/** {@inheritDoc} */
+    public void setMaxEntries(int max) {
 	}
 
-	public void destroy() {
+	/** {@inheritDoc} */
+    public void destroy() {
 	}
 }

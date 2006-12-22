@@ -75,15 +75,30 @@ public class DeferredResult {
 		return resultSent;
 	}
 	
-	protected void setInvokeId(int id) {
+	/**
+     * Setter for property 'invokeId'.
+     *
+     * @param id Value to set for property 'invokeId'.
+     */
+    protected void setInvokeId(int id) {
 		this.invokeId = id;
 	}
 	
-	protected void setServiceCall(IPendingServiceCall call) {
+	/**
+     * Setter for property 'serviceCall'.
+     *
+     * @param call Value to set for property 'serviceCall'.
+     */
+    protected void setServiceCall(IPendingServiceCall call) {
 		this.call = call;
 	}
 	
-	protected void setChannel(Channel channel) {
+	/**
+     * Setter for property 'channel'.
+     *
+     * @param channel Value to set for property 'channel'.
+     */
+    protected void setChannel(Channel channel) {
 		this.channel = new WeakReference<Channel>(channel);
 	}
 }

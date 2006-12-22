@@ -33,19 +33,23 @@ public class SharedObjectEvent implements ISharedObjectEvent {
 		this.value = value;
 	}
 
-	public String getKey() {
+	/** {@inheritDoc} */
+    public String getKey() {
 		return key;
 	}
 
-	public Type getType() {
+	/** {@inheritDoc} */
+    public Type getType() {
 		return type;
 	}
 
-	public Object getValue() {
+	/** {@inheritDoc} */
+    public Object getValue() {
 		return value;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public String toString() {
 		return "SOEvent(" + getType() + ", " + getKey() + ", " + getValue()
 				+ ')';

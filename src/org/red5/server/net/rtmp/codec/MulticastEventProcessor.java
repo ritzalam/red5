@@ -23,7 +23,12 @@ import org.apache.mina.common.ByteBuffer;
 
 public class MulticastEventProcessor {
 
-	public byte getCacheId() {
+	/**
+     * Getter for property 'cacheId'.
+     *
+     * @return Value for property 'cacheId'.
+     */
+    public byte getCacheId() {
 		return 0;
 	}
 

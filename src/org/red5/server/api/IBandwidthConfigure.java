@@ -36,7 +36,12 @@ public interface IBandwidthConfigure {
 	 */
 	void setAudioBandwidth(long bw);
 
-	long getAudioBandwidth();
+	/**
+     * Getter for property 'audioBandwidth'.
+     *
+     * @return Value for property 'audioBandwidth'.
+     */
+    long getAudioBandwidth();
 
 	/**
 	 * Set bandwidth available for video streaming
@@ -46,7 +51,12 @@ public interface IBandwidthConfigure {
 	 */
 	void setVideoBandwidth(long bw);
 
-	long getVideoBandwidth();
+	/**
+     * Getter for property 'videoBandwidth'.
+     *
+     * @return Value for property 'videoBandwidth'.
+     */
+    long getVideoBandwidth();
 
 	/**
 	 * Set overall bandwidth available
@@ -56,7 +66,12 @@ public interface IBandwidthConfigure {
 	 */
 	void setOverallBandwidth(long bw);
 
-	long getOverallBandwidth();
+	/**
+     * Getter for property 'overallBandwidth'.
+     *
+     * @return Value for property 'overallBandwidth'.
+     */
+    long getOverallBandwidth();
 
 	/**
 	 * Set the upstream bandwidth to be notified to the client.
@@ -71,9 +86,7 @@ public interface IBandwidthConfigure {
 	 * Get the upstream bandwidth to be notified to the client.
 	 * Upstream is the data that is sent from the client to the server.
 	 * 
-	 * @param bw
-	 *            Bandwidth
-     * @return
+     * @return      Upstream (from client to server) bandwidth configuration
 	 */
 	long getUpstreamBandwidth();
 
@@ -86,7 +99,12 @@ public interface IBandwidthConfigure {
 	 */
 	void setDownstreamBandwidth(long bw);
 
-	long getDownstreamBandwidth();
+	/**
+     * Getter for property 'downstreamBandwidth'.
+     *
+     * @return Value for property 'downstreamBandwidth'.
+     */
+    long getDownstreamBandwidth();
 
 	/**
 	 * Set the maximum amount of burst in Byte.
@@ -97,7 +115,12 @@ public interface IBandwidthConfigure {
 	 */
 	void setMaxBurst(long maxBurst);
 
-	long getMaxBurst();
+	/**
+     * Getter for property 'maxBurst'.
+     *
+     * @return Value for property 'maxBurst'.
+     */
+    long getMaxBurst();
 
 	/**
 	 * Set the burst amount in Byte. The burst amount controls
@@ -109,7 +132,13 @@ public interface IBandwidthConfigure {
 	 */
 	void setBurst(long burst);
 
-	long getBurst();
+	/**
+     * Getter for property 'burst'.
+     *
+     * @return Value for property 'burst'.
+     */
+    long getBurst();
 
-	IBandwidthConfigure clone();
+	/** {@inheritDoc} */
+    IBandwidthConfigure clone();
 }

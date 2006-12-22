@@ -48,7 +48,12 @@ public class SharedObjectService implements ISharedObjectService {
 
 	private String persistenceClassName = "org.red5.server.persistence.RamPersistence";
 
-	public void setPersistenceClassName(String name) {
+	/**
+     * Setter for property 'persistenceClassName'.
+     *
+     * @param name Value to set for property 'persistenceClassName'.
+     */
+    public void setPersistenceClassName(String name) {
 		persistenceClassName = name;
 	}
 
@@ -86,7 +91,8 @@ public class SharedObjectService implements ISharedObjectService {
 		return (IPersistenceStore) scope.getAttribute(SO_PERSISTENCE_STORE);
 	}
 
-	public boolean createSharedObject(IScope scope, String name,
+	/** {@inheritDoc} */
+    public boolean createSharedObject(IScope scope, String name,
 			boolean persistent) {
 		synchronized (scope) {
 			if (hasSharedObject(scope, name)) {
@@ -100,11 +106,13 @@ public class SharedObjectService implements ISharedObjectService {
 		}
 	}
 
-	public ISharedObject getSharedObject(IScope scope, String name) {
+	/** {@inheritDoc} */
+    public ISharedObject getSharedObject(IScope scope, String name) {
 		return (ISharedObject) scope.getBasicScope(TYPE, name);
 	}
 
-	public ISharedObject getSharedObject(IScope scope, String name,
+	/** {@inheritDoc} */
+    public ISharedObject getSharedObject(IScope scope, String name,
 			boolean persistent) {
 		synchronized (scope) {
 			if (!hasSharedObject(scope, name)) {
@@ -114,7 +122,8 @@ public class SharedObjectService implements ISharedObjectService {
 		}
 	}
 
-	public Set<String> getSharedObjectNames(IScope scope) {
+	/** {@inheritDoc} */
+    public Set<String> getSharedObjectNames(IScope scope) {
 		Set<String> result = new HashSet<String>();
 		Iterator<String> iter = scope.getBasicScopeNames(TYPE);
 		while (iter.hasNext()) {
@@ -123,11 +132,13 @@ public class SharedObjectService implements ISharedObjectService {
 		return result;
 	}
 
-	public boolean hasSharedObject(IScope scope, String name) {
+	/** {@inheritDoc} */
+    public boolean hasSharedObject(IScope scope, String name) {
 		return scope.hasChildScope(TYPE, name);
 	}
 
-	public boolean clearSharedObjects(IScope scope, String name) {
+	/** {@inheritDoc} */
+    public boolean clearSharedObjects(IScope scope, String name) {
 		boolean result = false;
 		synchronized (scope) {
 			if (hasSharedObject(scope, name)) {

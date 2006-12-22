@@ -73,7 +73,8 @@ public class SharedMidiObject {
 
 	public class MidiReceiver extends Object implements Receiver {
 
-		public void send(MidiMessage midi, long time) {
+		/** {@inheritDoc} */
+        public void send(MidiMessage midi, long time) {
 
 			byte[] msg = midi.getMessage();
 			int len = midi.getLength();
@@ -98,7 +99,8 @@ public class SharedMidiObject {
 			log.debug(out);
 		}
 
-		public void close() {
+		/** {@inheritDoc} */
+        public void close() {
 			log.debug("Midi device closed");
 		}
 

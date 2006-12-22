@@ -96,11 +96,17 @@ public class RTMPTConnection extends RTMPConnection {
 		idSet.set(0);
 	}
 	
-	RTMPTConnection() {
+	/** Constructs a new RTMPTConnection. */
+    RTMPTConnection() {
 		super(POLLING);
 	}
 	
-	void setRTMPTHandle(RTMPTHandler handler) {
+	/**
+     * Setter for property 'RTMPTHandle'.
+     *
+     * @param handler Value to set for property 'RTMPTHandle'.
+     */
+    void setRTMPTHandle(RTMPTHandler handler) {
 		this.state = new RTMP(RTMP.MODE_SERVER);
 		this.buffer = ByteBuffer.allocate(2048);
 		this.buffer.setAutoExpand(true);
@@ -118,13 +124,19 @@ public class RTMPTConnection extends RTMPConnection {
 		}
 	}
 	
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void close() {
 		// Defer actual closing so we can send back pending messages to the client.
 		closing = true;
 	}
 
-	public boolean isClosing() {
+	/**
+     * Getter for property 'closing'.
+     *
+     * @return Value for property 'closing'.
+     */
+    public boolean isClosing() {
 		return closing;
 	}
 	
@@ -148,12 +160,18 @@ public class RTMPTConnection extends RTMPConnection {
 		super.close();
 	}
 	
-	protected void onInactive() {
+	/** {@inheritDoc} */
+    protected void onInactive() {
 		close();
 		realClose();
 	}
 	
-	public void setServletRequest(HttpServletRequest request) {
+	/**
+     * Setter for property 'servletRequest'.
+     *
+     * @param request Value to set for property 'servletRequest'.
+     */
+    public void setServletRequest(HttpServletRequest request) {
 		host = request.getLocalName();
 		remoteAddress = request.getRemoteAddr();
 		remotePort = request.getRemotePort();
@@ -319,17 +337,20 @@ public class RTMPTConnection extends RTMPConnection {
 		return result;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public long getReadBytes() {
 		return readBytes;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public long getWrittenBytes() {
 		return writtenBytes;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public long getPendingMessages() {
 		return pendingMessages.size();
 	}

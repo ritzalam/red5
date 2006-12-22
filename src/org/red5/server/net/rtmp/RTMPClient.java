@@ -69,7 +69,8 @@ public class RTMPClient extends BaseRTMPHandler {
 	private IServiceInvoker serviceInvoker = new ServiceInvoker();
 	private Map<String, ClientSharedObject> sharedObjects = new HashMap<String, ClientSharedObject>();
 
-	public RTMPClient() {
+	/** Constructs a new RTMPClient. */
+    public RTMPClient() {
 		RTMPCodecFactory codecFactory = new RTMPCodecFactory();
 		codecFactory.setDeserializer(new Deserializer());
 		codecFactory.setSerializer(new Serializer());
@@ -163,7 +164,8 @@ public class RTMPClient extends BaseRTMPHandler {
 			((IServiceCapableConnection) conn).invoke(method, params, callback);
 	}
 	
-	public void connectionOpened(RTMPConnection conn, RTMP state) {
+	/** {@inheritDoc} */
+    public void connectionOpened(RTMPConnection conn, RTMP state) {
 		// Send "connect" call to the server
 		Channel channel = conn.getChannel((byte) 3);
 		PendingCall pendingCall = new PendingCall("connect");
@@ -176,7 +178,8 @@ public class RTMPClient extends BaseRTMPHandler {
 		channel.write(invoke);
 	}
 	
-	protected void onInvoke(RTMPConnection conn, Channel channel,
+	/** {@inheritDoc} */
+    protected void onInvoke(RTMPConnection conn, Channel channel,
 			Header source, Notify invoke) {
 		final IServiceCall call = invoke.getCall();
 		if (call.getServiceMethodName().equals("_result")
@@ -212,13 +215,15 @@ public class RTMPClient extends BaseRTMPHandler {
 		}
 	}
 
-	protected void onChunkSize(RTMPConnection conn, Channel channel,
+	/** {@inheritDoc} */
+    protected void onChunkSize(RTMPConnection conn, Channel channel,
 			Header source, ChunkSize chunkSize) {
 		// TODO: implement this
 		log.info("ChunkSize is not implemented yet: " + chunkSize);
 	}
 
-	protected void onPing(RTMPConnection conn, Channel channel,
+	/** {@inheritDoc} */
+    protected void onPing(RTMPConnection conn, Channel channel,
 			Header source, Ping ping) {
 		switch (ping.getValue1()) {
 			case 6:
@@ -236,7 +241,8 @@ public class RTMPClient extends BaseRTMPHandler {
 		}
 	}
 
-	protected void onSharedObject(RTMPConnection conn, Channel channel,
+	/** {@inheritDoc} */
+    protected void onSharedObject(RTMPConnection conn, Channel channel,
 			Header source, SharedObjectMessage object) {
 		ClientSharedObject so = sharedObjects.get(object.getName());
 		if (so == null) {

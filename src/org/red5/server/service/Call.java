@@ -71,7 +71,7 @@ public class Call implements IServiceCall {
 		arguments = args;
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.server.service.ServiceCall#isSuccess()
@@ -82,7 +82,7 @@ public class Call implements IServiceCall {
 				|| (status == STATUS_SUCCESS_VOID);
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.server.service.ServiceCall#getServiceMethodName()
@@ -91,11 +91,16 @@ public class Call implements IServiceCall {
 		return serviceMethodName;
 	}
 
-	public void setServiceMethodName(String serviceMethodName) {
+	/**
+     * Setter for property 'serviceMethodName'.
+     *
+     * @param serviceMethodName Value to set for property 'serviceMethodName'.
+     */
+    public void setServiceMethodName(String serviceMethodName) {
 		this.serviceMethodName = serviceMethodName;
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.server.service.ServiceCall#getServiceName()
@@ -104,11 +109,16 @@ public class Call implements IServiceCall {
 		return serviceName;
 	}
 
-	public void setServiceName(String serviceName) {
+	/**
+     * Setter for property 'serviceName'.
+     *
+     * @param serviceName Value to set for property 'serviceName'.
+     */
+    public void setServiceName(String serviceName) {
 		this.serviceName = serviceName;
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.server.service.ServiceCall#getArguments()
@@ -117,11 +127,16 @@ public class Call implements IServiceCall {
 		return arguments;
 	}
 
-	public void setArguments(Object[] args) {
+	/**
+     * Setter for property 'arguments'.
+     *
+     * @param args Value to set for property 'arguments'.
+     */
+    public void setArguments(Object[] args) {
 		arguments = args;
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.server.service.ServiceCall#getStatus()
@@ -130,7 +145,7 @@ public class Call implements IServiceCall {
 		return status;
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.server.service.temp#setStatus(byte)
@@ -139,7 +154,7 @@ public class Call implements IServiceCall {
 		this.status = status;
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.server.service.ServiceCall#getException()
@@ -148,7 +163,7 @@ public class Call implements IServiceCall {
 		return exception;
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.server.service.temp#setException(java.lang.Exception)
@@ -157,7 +172,8 @@ public class Call implements IServiceCall {
 		this.exception = exception;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder("Service: ");
 		sb.append(serviceName);

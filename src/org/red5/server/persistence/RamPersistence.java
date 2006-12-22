@@ -95,25 +95,30 @@ public class RamPersistence implements IPersistenceStore {
 		return result + name;
 	}
 
-	public synchronized boolean save(IPersistable object) {
+	/** {@inheritDoc} */
+    public synchronized boolean save(IPersistable object) {
 		objects.put(getObjectId(object), object);
 		object.setPersistent(true);
 		return true;
 	}
 
-	public synchronized IPersistable load(String name) {
+	/** {@inheritDoc} */
+    public synchronized IPersistable load(String name) {
 		return objects.get(name);
 	}
 
-	public boolean load(IPersistable obj) {
+	/** {@inheritDoc} */
+    public boolean load(IPersistable obj) {
 		return obj.isPersistent();
 	}
 
-	public synchronized boolean remove(IPersistable object) {
+	/** {@inheritDoc} */
+    public synchronized boolean remove(IPersistable object) {
 		return remove(getObjectId(object));
 	}
 
-	public synchronized boolean remove(String name) {
+	/** {@inheritDoc} */
+    public synchronized boolean remove(String name) {
 		if (!objects.containsKey(name)) {
 			return false;
 		}
@@ -123,11 +128,13 @@ public class RamPersistence implements IPersistenceStore {
 		return true;
 	}
 
-	public Iterator<String> getObjectNames() {
+	/** {@inheritDoc} */
+    public Iterator<String> getObjectNames() {
 		return objects.keySet().iterator();
 	}
 
-	public Iterator<IPersistable> getObjects() {
+	/** {@inheritDoc} */
+    public Iterator<IPersistable> getObjects() {
 		return objects.values().iterator();
 	}
 }

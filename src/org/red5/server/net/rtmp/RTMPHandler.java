@@ -66,15 +66,26 @@ public class RTMPHandler extends BaseRTMPHandler {
 
 	protected IServer server;
 
-	public void setServer(IServer server) {
+	/**
+     * Setter for property 'server'.
+     *
+     * @param server Value to set for property 'server'.
+     */
+    public void setServer(IServer server) {
 		this.server = server;
 	}
 
-	public void setStatusObjectService(StatusObjectService statusObjectService) {
+	/**
+     * Setter for property 'statusObjectService'.
+     *
+     * @param statusObjectService Value to set for property 'statusObjectService'.
+     */
+    public void setStatusObjectService(StatusObjectService statusObjectService) {
 		this.statusObjectService = statusObjectService;
 	}
 
-	protected void onChunkSize(RTMPConnection conn, Channel channel,
+	/** {@inheritDoc} */
+    protected void onChunkSize(RTMPConnection conn, Channel channel,
 			Header source, ChunkSize chunkSize) {
 		for (IClientStream stream : conn.getStreams()) {
 			if (stream instanceof IClientBroadcastStream) {
@@ -137,7 +148,8 @@ public class RTMPHandler extends BaseRTMPHandler {
 
 	// ------------------------------------------------------------------------------
 
-	protected void onInvoke(RTMPConnection conn, Channel channel, Header source,
+	/** {@inheritDoc} */
+    protected void onInvoke(RTMPConnection conn, Channel channel, Header source,
 			Notify invoke) {
 
 		log.debug("Invoke");
@@ -337,7 +349,8 @@ public class RTMPHandler extends BaseRTMPHandler {
 		return statusObjectService.getStatusObject(code);
 	}
 
-	protected void onPing(RTMPConnection conn, Channel channel, Header source,
+	/** {@inheritDoc} */
+    protected void onPing(RTMPConnection conn, Channel channel, Header source,
 			Ping ping) {
 		switch (ping.getValue1()) {
 			case 3:
@@ -380,7 +393,8 @@ public class RTMPHandler extends BaseRTMPHandler {
 
 	}
 
-	protected void onSharedObject(RTMPConnection conn, Channel channel,
+	/** {@inheritDoc} */
+    protected void onSharedObject(RTMPConnection conn, Channel channel,
 			Header source, SharedObjectMessage object) {
 		final ISharedObject so;
 		final String name = object.getName();

@@ -31,7 +31,8 @@ public class ClientRejectedException extends RuntimeException {
 	private static final long serialVersionUID = 9204597649465357898L;
 	private Object reason;
 
-	public ClientRejectedException() {
+	/** Constructs a new ClientRejectedException. */
+    public ClientRejectedException() {
 		this(null);
 	}
 
@@ -40,7 +41,12 @@ public class ClientRejectedException extends RuntimeException {
 		this.reason = reason;
 	}
 
-	public Object getReason() {
+	/**
+     * Getter for property 'reason'.
+     *
+     * @return Value for property 'reason'.
+     */
+    public Object getReason() {
 		return reason;
 	}
 

@@ -63,7 +63,7 @@ public class ThreadPool extends GenericObjectPool {
 		super(objFactory, config);
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.apache.commons.pool.ObjectPool#borrowObject()
@@ -74,7 +74,7 @@ public class ThreadPool extends GenericObjectPool {
 		return super.borrowObject();
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.apache.commons.pool.ObjectPool#returnObject(java.lang.Object)

@@ -61,6 +61,11 @@ public interface ISharedObjectMessage extends IRTMPEvent {
 
 	public void clear();
 
-	public boolean isEmpty();
+	/**
+     * Getter for property 'empty'.
+     *
+     * @return Value for property 'empty'.
+     */
+    public boolean isEmpty();
 
 }

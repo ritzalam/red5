@@ -35,7 +35,8 @@ public class Notify extends BaseEvent implements IStreamData {
 
 	private Map connectionParams = null;
 
-	public Notify() {
+	/** Constructs a new Notify. */
+    public Notify() {
 		super(Type.SERVICE_CALL);
 	}
 
@@ -49,32 +50,59 @@ public class Notify extends BaseEvent implements IStreamData {
 		this.call = call;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public byte getDataType() {
 		return TYPE_NOTIFY;
 	}
 
-	public void setData(ByteBuffer data) {
+	/**
+     * Setter for property 'data'.
+     *
+     * @param data Value to set for property 'data'.
+     */
+    public void setData(ByteBuffer data) {
 		this.data = data;
 	}
 
-	public void setCall(IServiceCall call) {
+	/**
+     * Setter for property 'call'.
+     *
+     * @param call Value to set for property 'call'.
+     */
+    public void setCall(IServiceCall call) {
 		this.call = call;
 	}
 
-	public IServiceCall getCall() {
+	/**
+     * Getter for property 'call'.
+     *
+     * @return Value for property 'call'.
+     */
+    public IServiceCall getCall() {
 		return this.call;
 	}
 
-	public ByteBuffer getData() {
+	/** {@inheritDoc} */
+    public ByteBuffer getData() {
 		return data;
 	}
 
-	public int getInvokeId() {
+	/**
+     * Getter for property 'invokeId'.
+     *
+     * @return Value for property 'invokeId'.
+     */
+    public int getInvokeId() {
 		return invokeId;
 	}
 
-	public void setInvokeId(int invokeId) {
+	/**
+     * Setter for property 'invokeId'.
+     *
+     * @param invokeId Value to set for property 'invokeId'.
+     */
+    public void setInvokeId(int invokeId) {
 		this.invokeId = invokeId;
 	}
 
@@ -82,22 +110,34 @@ public class Notify extends BaseEvent implements IStreamData {
 		call = null;
 	}
 
-	public Map getConnectionParams() {
+	/**
+     * Getter for property 'connectionParams'.
+     *
+     * @return Value for property 'connectionParams'.
+     */
+    public Map getConnectionParams() {
 		return connectionParams;
 	}
 
-	public void setConnectionParams(Map connectionParams) {
+	/**
+     * Setter for property 'connectionParams'.
+     *
+     * @param connectionParams Value to set for property 'connectionParams'.
+     */
+    public void setConnectionParams(Map connectionParams) {
 		this.connectionParams = connectionParams;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
 		sb.append("Notify: ").append(call);
 		return sb.toString();
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public boolean equals(Object obj) {
 		if (obj == null) {
 			return false;
@@ -133,7 +173,8 @@ public class Notify extends BaseEvent implements IStreamData {
 		return true;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	protected void releaseInternal() {
 		if (data != null) {
 			data.release();

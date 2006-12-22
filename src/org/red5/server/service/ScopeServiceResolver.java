@@ -30,7 +30,8 @@ import org.red5.server.api.IScope;
  */
 public class ScopeServiceResolver implements IServiceResolver {
 
-	public Object resolveService(IScope scope, String serviceName) {
+	/** {@inheritDoc} */
+    public Object resolveService(IScope scope, String serviceName) {
 		return scope.getServiceHandler(serviceName);
 	}
 

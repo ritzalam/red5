@@ -83,7 +83,8 @@ public class SharedObject implements IPersistable, Constants {
 
 	protected IEventListener source = null;
 
-	public SharedObject() {
+	/** Constructs a new SharedObject. */
+    public SharedObject() {
 		// This is used by the persistence framework
 		data = new ConcurrentHashMap<String, Object>();
 
@@ -118,39 +119,52 @@ public class SharedObject implements IPersistable, Constants {
 		ownerMessage = new SharedObjectMessage(null, name, 0, persistent);
 	}
 
-	public String getName() {
+	/** {@inheritDoc} */
+    public String getName() {
 		return name;
 	}
 
-	public void setName(String name) {
+	/** {@inheritDoc} */
+    public void setName(String name) {
 		// Shared objects don't support setting of their names
 	}
 
-	public String getPath() {
+	/** {@inheritDoc} */
+    public String getPath() {
 		return path;
 	}
 
-	public void setPath(String path) {
+	/** {@inheritDoc} */
+    public void setPath(String path) {
 		this.path = path;
 	}
 
-	public String getType() {
+	/** {@inheritDoc} */
+    public String getType() {
 		return TYPE;
 	}
 
-	public long getLastModified() {
+	/** {@inheritDoc} */
+    public long getLastModified() {
 		return lastModified;
 	}
 
-	public boolean isPersistentObject() {
+	/**
+     * Getter for property 'persistentObject'.
+     *
+     * @return Value for property 'persistentObject'.
+     */
+    public boolean isPersistentObject() {
 		return persistentSO;
 	}
 
-	public boolean isPersistent() {
+	/** {@inheritDoc} */
+    public boolean isPersistent() {
 		return persistent;
 	}
 
-	public void setPersistent(boolean persistent) {
+	/** {@inheritDoc} */
+    public void setPersistent(boolean persistent) {
 		this.persistent = persistent;
 	}
 
@@ -245,7 +259,12 @@ public class SharedObject implements IPersistable, Constants {
 		return data.containsKey(name);
 	}
 
-	public Set<String> getAttributeNames() {
+	/**
+     * Getter for property 'attributeNames'.
+     *
+     * @return Value for property 'attributeNames'.
+     */
+    public Set<String> getAttributeNames() {
 		return Collections.unmodifiableSet(data.keySet());
 	}
 
@@ -276,7 +295,12 @@ public class SharedObject implements IPersistable, Constants {
 		}
 	}
 
-	public synchronized void setAttributes(Map values) {
+	/**
+     * Setter for property 'attributes'.
+     *
+     * @param values Value to set for property 'attributes'.
+     */
+    public synchronized void setAttributes(Map values) {
 		if (values == null) {
 			return;
 		}
@@ -290,7 +314,12 @@ public class SharedObject implements IPersistable, Constants {
 		endUpdate();
 	}
 
-	public synchronized void setAttributes(IAttributeStore values) {
+	/**
+     * Setter for property 'attributes'.
+     *
+     * @param values Value to set for property 'attributes'.
+     */
+    public synchronized void setAttributes(IAttributeStore values) {
 		if (values == null) {
 			return;
 		}
@@ -326,11 +355,21 @@ public class SharedObject implements IPersistable, Constants {
 				arguments));
 	}
 
-	public Map<String, Object> getData() {
+	/**
+     * Getter for property 'data'.
+     *
+     * @return Value for property 'data'.
+     */
+    public Map<String, Object> getData() {
 		return Collections.unmodifiableMap(data);
 	}
 
-	public int getVersion() {
+	/**
+     * Getter for property 'version'.
+     *
+     * @return Value for property 'version'.
+     */
+    public int getVersion() {
 		return version;
 	}
 
@@ -386,7 +425,12 @@ public class SharedObject implements IPersistable, Constants {
 		}
 	}
 
-	public HashSet getListeners() {
+	/**
+     * Getter for property 'listeners'.
+     *
+     * @return Value for property 'listeners'.
+     */
+    public HashSet getListeners() {
 		return listeners;
 	}
 
@@ -408,13 +452,15 @@ public class SharedObject implements IPersistable, Constants {
 		}
 	}
 
-	public void serialize(Output output) throws IOException {
+	/** {@inheritDoc} */
+    public void serialize(Output output) throws IOException {
 		Serializer ser = new Serializer();
 		ser.serialize(output, getName());
 		ser.serialize(output, data);
 	}
 
-	public void deserialize(Input input) throws IOException {
+	/** {@inheritDoc} */
+    public void deserialize(Input input) throws IOException {
 		Deserializer deserializer = new Deserializer();
 		name = (String) deserializer.deserialize(input);
 		persistentSO = persistent = true;
@@ -425,11 +471,13 @@ public class SharedObject implements IPersistable, Constants {
 		ownerMessage.setIsPersistent(true);
 	}
 
-	public void setStore(IPersistenceStore store) {
+	/** {@inheritDoc} */
+    public void setStore(IPersistenceStore store) {
 		this.storage = store;
 	}
 
-	public IPersistenceStore getStore() {
+	/** {@inheritDoc} */
+    public IPersistenceStore getStore() {
 		return storage;
 	}
 

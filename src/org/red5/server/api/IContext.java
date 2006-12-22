@@ -33,7 +33,12 @@ public interface IContext extends ResourcePatternResolver {
 
 	public static final String ID = "red5.context";
 
-	public ApplicationContext getApplicationContext();
+	/**
+     * Getter for property 'applicationContext'.
+     *
+     * @return Value for property 'applicationContext'.
+     */
+    public ApplicationContext getApplicationContext();
 
 	// public IScopeResolver getScopeResolver();
 	/**

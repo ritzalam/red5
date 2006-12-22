@@ -69,7 +69,12 @@ public class FilePersistence extends RamPersistence {
 		setPath(path);
 	}
 
-	public void setPath(String path) {
+	/**
+     * Setter for property 'path'.
+     *
+     * @param path Value to set for property 'path'.
+     */
+    public void setPath(String path) {
 		this.path = path;
 
 		Resource rootFile = resources.getResource(path);
@@ -80,7 +85,12 @@ public class FilePersistence extends RamPersistence {
 		}
 	}
 
-	public void setExtension(String extension) {
+	/**
+     * Setter for property 'extension'.
+     *
+     * @param extension Value to set for property 'extension'.
+     */
+    public void setExtension(String extension) {
 		this.extension = extension;
 	}
 
@@ -104,7 +114,8 @@ public class FilePersistence extends RamPersistence {
 		return result;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	protected String getObjectPath(String id, String name) {
 		if (id.startsWith(path)) {
 			id = id.substring(path.length() + 1);
@@ -238,7 +249,8 @@ public class FilePersistence extends RamPersistence {
 		return result;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public IPersistable load(String name) {
 		IPersistable result = super.load(name);
 		if (result != null) {
@@ -249,7 +261,8 @@ public class FilePersistence extends RamPersistence {
 		return doLoad(path + '/' + name + extension);
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public boolean load(IPersistable object) {
 		if (object.isPersistent()) {
 			// Already loaded
@@ -303,7 +316,8 @@ public class FilePersistence extends RamPersistence {
 		}
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public boolean save(IPersistable object) {
 		if (!super.save(object)) {
 			return false;
@@ -350,7 +364,8 @@ public class FilePersistence extends RamPersistence {
 		}
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public boolean remove(String name) {
 		if (!super.remove(name)) {
 			return false;
@@ -374,7 +389,8 @@ public class FilePersistence extends RamPersistence {
 		}
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public boolean remove(IPersistable object) {
 		return remove(getObjectId(object));
 	}

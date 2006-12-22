@@ -78,7 +78,8 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 		}
 	}
 
-	public ByteBuffer encode(ProtocolState state, Object message)
+	/** {@inheritDoc} */
+    public ByteBuffer encode(ProtocolState state, Object message)
 			throws Exception {
 		try {
 			final RTMP rtmp = (RTMP) state;
@@ -248,13 +249,15 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 		return out;
 	}
 
-	public ByteBuffer encodeChunkSize(ChunkSize chunkSize) {
+	/** {@inheritDoc} */
+    public ByteBuffer encodeChunkSize(ChunkSize chunkSize) {
 		final ByteBuffer out = ByteBuffer.allocate(4);
 		out.putInt(chunkSize.getSize());
 		return out;
 	}
 
-	public ByteBuffer encodeSharedObject(ISharedObjectMessage so) {
+	/** {@inheritDoc} */
+    public ByteBuffer encodeSharedObject(ISharedObjectMessage so) {
 
 		final ByteBuffer out = ByteBuffer.allocate(128);
 		out.setAutoExpand(true);
@@ -376,7 +379,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 		return out;
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.server.net.rtmp.codec.IEventEncoder#encodeNotify(org.red5.server.net.rtmp.event.Notify)
@@ -385,7 +388,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 		return encodeNotifyOrInvoke(notify);
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.server.net.rtmp.codec.IEventEncoder#encodeInvoke(org.red5.server.net.rtmp.event.Invoke)
@@ -453,7 +456,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 		}
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.server.net.rtmp.codec.IEventEncoder#encodePing(org.red5.server.net.rtmp.event.Ping)
@@ -478,7 +481,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 		return out;
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.server.net.rtmp.codec.IEventEncoder#encodeStreamBytesRead(org.red5.server.net.rtmp.event.StreamBytesRead)
@@ -489,7 +492,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 		return out;
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.server.net.rtmp.codec.IEventEncoder#encodeAudioData(org.red5.server.net.rtmp.event.AudioData)
@@ -498,7 +501,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 		return audioData.getData().asReadOnlyBuffer();
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.server.net.rtmp.codec.IEventEncoder#encodeVideoData(org.red5.server.net.rtmp.event.VideoData)
@@ -507,7 +510,8 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 		return videoData.getData().asReadOnlyBuffer();
 	}
 
-	public ByteBuffer encodeUnknown(Unknown unknown) {
+	/** {@inheritDoc} */
+    public ByteBuffer encodeUnknown(Unknown unknown) {
 		return unknown.getData().asReadOnlyBuffer();
 	}
 
@@ -515,7 +519,12 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 		return metaData.getData().asReadOnlyBuffer();
 	}
 
-	public void setSerializer(org.red5.io.object.Serializer serializer) {
+	/**
+     * Setter for property 'serializer'.
+     *
+     * @param serializer Value to set for property 'serializer'.
+     */
+    public void setSerializer(org.red5.io.object.Serializer serializer) {
 		this.serializer = serializer;
 	}
 

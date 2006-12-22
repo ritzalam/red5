@@ -46,7 +46,12 @@ public class ServiceInvoker implements IServiceInvoker {
 
 	private Set<IServiceResolver> serviceResolvers = new HashSet<IServiceResolver>();
 
-	public void setServiceResolvers(Set<IServiceResolver> resolvers) {
+	/**
+     * Setter for property 'serviceResolvers'.
+     *
+     * @param resolvers Value to set for property 'serviceResolvers'.
+     */
+    public void setServiceResolvers(Set<IServiceResolver> resolvers) {
 		serviceResolvers = resolvers;
 	}
 
@@ -77,7 +82,8 @@ public class ServiceInvoker implements IServiceInvoker {
 		return null;
 	}
 
-	public void invoke(IServiceCall call, IScope scope) {
+	/** {@inheritDoc} */
+    public void invoke(IServiceCall call, IScope scope) {
 		String serviceName = call.getServiceName();
 		if (log.isDebugEnabled()) {
 			log.debug("Service name " + serviceName);
@@ -96,7 +102,8 @@ public class ServiceInvoker implements IServiceInvoker {
 		invoke(call, service);
 	}
 
-	public void invoke(IServiceCall call, Object service) {
+	/** {@inheritDoc} */
+    public void invoke(IServiceCall call, Object service) {
 		IConnection conn = Red5.getConnectionLocal();
 		String methodName = call.getServiceMethodName();
 

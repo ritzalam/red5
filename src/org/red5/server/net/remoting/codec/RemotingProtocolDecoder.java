@@ -44,11 +44,17 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 
 	private Deserializer deserializer;
 
-	public void setDeserializer(Deserializer deserializer) {
+	/**
+     * Setter for property 'deserializer'.
+     *
+     * @param deserializer Value to set for property 'deserializer'.
+     */
+    public void setDeserializer(Deserializer deserializer) {
 		this.deserializer = deserializer;
 	}
 
-	public List decodeBuffer(ProtocolState state, ByteBuffer buffer) {
+	/** {@inheritDoc} */
+    public List decodeBuffer(ProtocolState state, ByteBuffer buffer) {
 		List list = new LinkedList();
 		Object packet = null;
 		try {
@@ -63,7 +69,8 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 		return list;
 	}
 
-	public Object decode(ProtocolState state, ByteBuffer in) throws Exception {
+	/** {@inheritDoc} */
+    public Object decode(ProtocolState state, ByteBuffer in) throws Exception {
 		skipHeaders(in);
 		List calls = decodeCalls(in);
 		return new RemotingPacket(calls);

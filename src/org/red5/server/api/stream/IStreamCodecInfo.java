@@ -24,9 +24,24 @@ public interface IStreamCodecInfo {
 
 	boolean hasVideo();
 
-	String getAudioCodecName();
+	/**
+     * Getter for property 'audioCodecName'.
+     *
+     * @return Value for property 'audioCodecName'.
+     */
+    String getAudioCodecName();
 
-	String getVideoCodecName();
+	/**
+     * Getter for property 'videoCodecName'.
+     *
+     * @return Value for property 'videoCodecName'.
+     */
+    String getVideoCodecName();
 
-	IVideoStreamCodec getVideoCodec();
+	/**
+     * Getter for property 'videoCodec'.
+     *
+     * @return Value for property 'videoCodec'.
+     */
+    IVideoStreamCodec getVideoCodec();
 }

@@ -32,7 +32,8 @@ import org.red5.server.api.service.IServiceHandlerProviderAware;
  */
 public class HandlerServiceResolver implements IServiceResolver {
 
-	public Object resolveService(IScope scope, String serviceName) {
+	/** {@inheritDoc} */
+    public Object resolveService(IScope scope, String serviceName) {
 		IScopeHandler handler = scope.getHandler();
 		if (handler instanceof IServiceHandlerProvider) {
 			// TODO: deprecate this?

@@ -57,7 +57,8 @@ public class StatisticsServlet extends HttpServlet {
 
 	protected IContext webContext;
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void init() throws ServletException {
 		webAppCtx = WebApplicationContextUtils
 				.getWebApplicationContext(getServletContext());
@@ -72,7 +73,8 @@ public class StatisticsServlet extends HttpServlet {
 				.getGlobalScope()));
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		// Process request with XML-RPC server

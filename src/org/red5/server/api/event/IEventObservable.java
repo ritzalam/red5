@@ -32,6 +32,11 @@ public interface IEventObservable {
 
 	public void removeEventListener(IEventListener listener);
 
-	public Iterator<IEventListener> getEventListeners();
+	/**
+     * Getter for property 'eventListeners'.
+     *
+     * @return Value for property 'eventListeners'.
+     */
+    public Iterator<IEventListener> getEventListeners();
 
 }

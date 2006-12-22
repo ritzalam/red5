@@ -22,7 +22,8 @@ package org.red5.server.api.stream;
 public class ResourceExistException extends Exception {
 	private static final long serialVersionUID = 443389396219999143L;
 
-	public ResourceExistException() {
+	/** Constructs a new ResourceExistException. */
+    public ResourceExistException() {
 		super();
 	}
 

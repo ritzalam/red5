@@ -52,17 +52,28 @@ public class TomcatRTMPTLoader extends TomcatLoader {
 
 	private Context context;
 
-	public void setServer(IServer server) {
+	/**
+     * Setter for property 'server'.
+     *
+     * @param server Value to set for property 'server'.
+     */
+    public void setServer(IServer server) {
 		log.debug("RTMPT setServer");
 		this.server = server;
 	}
 
-	public void setRTMPTHandler(RTMPTHandler handler) {
+	/**
+     * Setter for property 'RTMPTHandler'.
+     *
+     * @param handler Value to set for property 'RTMPTHandler'.
+     */
+    public void setRTMPTHandler(RTMPTHandler handler) {
 		log.debug("RTMPT setRTMPTHandler");
 		this.handler = handler;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void init() {
 		log.info("Loading RTMPT context");
 
@@ -110,6 +121,7 @@ public class TomcatRTMPTLoader extends TomcatLoader {
 	/**
 	 * Set primary context
 	 * 
+     * @param contextMap
      * @param contextMap
 	 */
 	//public void setContext(Context context) {

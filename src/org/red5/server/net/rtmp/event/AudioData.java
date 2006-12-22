@@ -26,7 +26,8 @@ public class AudioData extends BaseEvent implements IStreamData {
 
 	protected ByteBuffer data = null;
 
-	public AudioData() {
+	/** Constructs a new AudioData. */
+    public AudioData() {
 		this(ByteBuffer.allocate(0).flip());
 	}
 
@@ -35,21 +36,25 @@ public class AudioData extends BaseEvent implements IStreamData {
 		this.data = data;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public byte getDataType() {
 		return TYPE_AUDIO_DATA;
 	}
 
-	public ByteBuffer getData() {
+	/** {@inheritDoc} */
+    public ByteBuffer getData() {
 		return data;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public String toString() {
 		return "Audio  ts: " + getTimestamp();
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	protected void releaseInternal() {
 		if (data != null) {
 			data.release();

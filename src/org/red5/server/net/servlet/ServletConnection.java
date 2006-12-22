@@ -50,37 +50,50 @@ public class ServletConnection extends AttributeStore implements IConnection {
 		this.scope = scope;
 	}
 
-	private void notSupported() {
+    /**
+     * Throws Not supported runtime exception
+     */
+    private void notSupported() {
 		throw new RuntimeException("not supported for this type of connection");
 	}
 
-	public Encoding getEncoding() {
+    /**
+     * Return encoding (AMF0 or AMF3)
+     * @return        Encoding, currently AMF0
+     */
+    public Encoding getEncoding() {
 		return Encoding.AMF0;
 	}
-	
-	public String getType() {
+
+    /** {@inheritDoc} */
+    public String getType() {
 		return IConnection.TRANSIENT;
 	}
 
-	public void initialize(IClient client) {
+	/** {@inheritDoc} */
+    public void initialize(IClient client) {
 		notSupported();
 	}
 
-	public boolean connect(IScope scope) {
-		notSupported();
-		return false;
-	}
-
-	public boolean connect(IScope scope, Object[] params) {
+	/** {@inheritDoc} */
+    public boolean connect(IScope scope) {
 		notSupported();
 		return false;
 	}
 
-	public boolean isConnected() {
+	/** {@inheritDoc} */
+    public boolean connect(IScope scope, Object[] params) {
+		notSupported();
 		return false;
 	}
 
-	public void close() {
+	/** {@inheritDoc} */
+    public boolean isConnected() {
+		return false;
+	}
+
+	/** {@inheritDoc} */
+    public void close() {
 		// Nothing to do.
 	}
 
@@ -88,23 +101,28 @@ public class ServletConnection extends AttributeStore implements IConnection {
 		return new HashMap<String, Object>();
 	}
 
-	public IClient getClient() {
+	/** {@inheritDoc} */
+    public IClient getClient() {
 		return null;
 	}
 
-	public String getHost() {
+	/** {@inheritDoc} */
+    public String getHost() {
 		return request.getLocalName();
 	}
 
-	public String getRemoteAddress() {
+	/** {@inheritDoc} */
+    public String getRemoteAddress() {
 		return request.getRemoteAddr();
 	}
 
-	public int getRemotePort() {
+	/** {@inheritDoc} */
+    public int getRemotePort() {
 		return request.getRemotePort();
 	}
 
-	public String getPath() {
+	/** {@inheritDoc} */
+    public String getPath() {
 		String path = request.getContextPath();
 		if (request.getPathInfo() != null) {
 			path += request.getPathInfo();
@@ -115,51 +133,67 @@ public class ServletConnection extends AttributeStore implements IConnection {
 		return path;
 	}
 
-	public String getSessionId() {
+	/** {@inheritDoc} */
+    public String getSessionId() {
 		return null;
 	}
 
-	public long getReadBytes() {
+	/** {@inheritDoc} */
+    public long getReadBytes() {
 		return request.getContentLength();
 	}
 
-	public long getWrittenBytes() {
+	/** {@inheritDoc} */
+    public long getWrittenBytes() {
 		return 0;
 	}
 
-	public long getPendingMessages() {
+	/** {@inheritDoc} */
+    public long getPendingMessages() {
 		return 0;
 	}
 
-	public long getPendingVideoMessages() {
+	/**
+     * Getter for property 'pendingVideoMessages'.
+     *
+     * @return Value for property 'pendingVideoMessages'.
+     */
+    public long getPendingVideoMessages() {
 		return 0;
 	}
 
-	public long getReadMessages() {
+	/** {@inheritDoc} */
+    public long getReadMessages() {
 		return 1;
 	}
 
-	public long getWrittenMessages() {
+	/** {@inheritDoc} */
+    public long getWrittenMessages() {
 		return 0;
 	}
 
-	public long getDroppedMessages() {
+	/** {@inheritDoc} */
+    public long getDroppedMessages() {
 		return 0;
 	}
 
-	public void ping() {
+	/** {@inheritDoc} */
+    public void ping() {
 		notSupported();
 	}
 
-	public int getLastPingTime() {
+	/** {@inheritDoc} */
+    public int getLastPingTime() {
 		return -1;
 	}
 
-	public IScope getScope() {
+	/** {@inheritDoc} */
+    public IScope getScope() {
 		return scope;
 	}
 
-	public Iterator<IBasicScope> getBasicScopes() {
+	/** {@inheritDoc} */
+    public Iterator<IBasicScope> getBasicScopes() {
 		notSupported();
 		return null;
 	}
@@ -168,16 +202,19 @@ public class ServletConnection extends AttributeStore implements IConnection {
 		notSupported();
 	}
 
-	public void dispatchEvent(IEvent event) {
+	/** {@inheritDoc} */
+    public void dispatchEvent(IEvent event) {
 		notSupported();
 	}
 
-	public boolean handleEvent(IEvent event) {
+	/** {@inheritDoc} */
+    public boolean handleEvent(IEvent event) {
 		notSupported();
 		return false;
 	}
 
-	public void notifyEvent(IEvent event) {
+	/** {@inheritDoc} */
+    public void notifyEvent(IEvent event) {
 		notSupported();
 	}
 

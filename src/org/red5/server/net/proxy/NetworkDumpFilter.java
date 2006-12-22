@@ -41,7 +41,8 @@ public class NetworkDumpFilter extends IoFilterAdapter {
 		this.headers = headers;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void messageReceived(NextFilter next, IoSession session,
 			Object message) throws Exception {
 		if (message instanceof ByteBuffer) {
@@ -60,7 +61,8 @@ public class NetworkDumpFilter extends IoFilterAdapter {
 		next.messageReceived(session, message);
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void sessionClosed(NextFilter next, IoSession session)
 			throws Exception {
 		if (headers.isOpen()) {

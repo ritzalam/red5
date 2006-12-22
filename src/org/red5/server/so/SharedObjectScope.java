@@ -75,70 +75,87 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
 		}
 	}
 
-	public void setPersistenceClass(String persistenceClass) {
+	/**
+     * Setter for property 'persistenceClass'.
+     *
+     * @param persistenceClass Value to set for property 'persistenceClass'.
+     */
+    public void setPersistenceClass(String persistenceClass) {
 		// Nothing to do here, the shared object will take care of persistence.
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public IPersistenceStore getStore() {
 		return so.getStore();
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public String getName() {
 		return so.getName();
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void setName(String name) {
 		so.setName(name);
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public String getPath() {
 		return so.getPath();
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void setPath(String path) {
 		so.setPath(path);
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public String getType() {
 		return so.getType();
 	}
 
-	public boolean isPersistentObject() {
+	/** {@inheritDoc} */
+    public boolean isPersistentObject() {
 		return so.isPersistentObject();
 	}
 
-	public synchronized void beginUpdate() {
+	/** {@inheritDoc} */
+    public synchronized void beginUpdate() {
 		if (!lock.isHeldByCurrentThread()) {
 			lock.lock();
 		}
 		so.beginUpdate();
 	}
 
-	public synchronized void beginUpdate(IEventListener listener) {
+	/** {@inheritDoc} */
+    public synchronized void beginUpdate(IEventListener listener) {
 		if (!lock.isHeldByCurrentThread()) {
 			lock.lock();
 		}
 		so.beginUpdate(listener);
 	}
 
-	public synchronized void endUpdate() {
+	/** {@inheritDoc} */
+    public synchronized void endUpdate() {
 		so.endUpdate();
 		if (so.updateCounter == 0) {
 			lock.unlock();
 		}
 	}
 
-	public int getVersion() {
+	/** {@inheritDoc} */
+    public int getVersion() {
 		return so.getVersion();
 	}
 
-	public void sendMessage(String handler, List arguments) {
+	/** {@inheritDoc} */
+    public void sendMessage(String handler, List arguments) {
 		beginUpdate();
 		so.sendMessage(handler, arguments);
 		endUpdate();
@@ -197,7 +214,8 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
 		}
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public synchronized boolean removeAttribute(String name) {
 		beginUpdate();
 		boolean success = so.removeAttribute(name);
@@ -213,7 +231,8 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
 		return success;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public synchronized void removeAttributes() {
 		beginUpdate();
 		so.removeAttributes();
@@ -226,7 +245,8 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
 		}
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void addEventListener(IEventListener listener) {
 		super.addEventListener(listener);
 		so.register(listener);
@@ -238,7 +258,8 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
 		}
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void removeEventListener(IEventListener listener) {
 		so.unregister(listener);
 		super.removeEventListener(listener);
@@ -253,26 +274,31 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
 		}
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public boolean hasAttribute(String name) {
 		return so.hasAttribute(name);
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public Object getAttribute(String name) {
 		return so.getAttribute(name);
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public Set<String> getAttributeNames() {
 		return so.getAttributeNames();
 	}
 
-	public Map<String, Object> getData() {
+	/** {@inheritDoc} */
+    public Map<String, Object> getData() {
 		return so.getData();
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void dispatchEvent(IEvent e) {
 		if (e.getType() != IEvent.Type.SHARED_OBJECT
 				|| !(e instanceof ISharedObjectMessage)) {
@@ -326,7 +352,8 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
 		endUpdate();
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public synchronized boolean setAttribute(String name, Object value) {
 		beginUpdate();
 		boolean success = so.setAttribute(name, value);
@@ -342,7 +369,8 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
 		return success;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public synchronized void setAttributes(IAttributeStore values) {
 		beginUpdate();
 		so.setAttributes(values);
@@ -355,7 +383,8 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
 		}
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public synchronized void setAttributes(Map<String, Object> values) {
 		beginUpdate();
 		so.setAttributes(values);
@@ -368,26 +397,31 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
 		}
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public String toString() {
 		return "Shared Object: " + getName();
 	}
 
-	public synchronized void addSharedObjectListener(
+	/** {@inheritDoc} */
+    public synchronized void addSharedObjectListener(
 			ISharedObjectListener listener) {
 		serverListeners.add(listener);
 	}
 
-	public synchronized void removeSharedObjectListener(
+	/** {@inheritDoc} */
+    public synchronized void removeSharedObjectListener(
 			ISharedObjectListener listener) {
 		serverListeners.remove(listener);
 	}
 
-	public void registerServiceHandler(Object handler) {
+	/** {@inheritDoc} */
+    public void registerServiceHandler(Object handler) {
 		registerServiceHandler("", handler);
 	}
 
-	public void registerServiceHandler(String name, Object handler) {
+	/** {@inheritDoc} */
+    public void registerServiceHandler(String name, Object handler) {
 		if (name == null) {
 			name = "";
 		}
@@ -398,21 +432,24 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
 		unregisterServiceHandler("");
 	}
 
-	public void unregisterServiceHandler(String name) {
+	/** {@inheritDoc} */
+    public void unregisterServiceHandler(String name) {
 		if (name == null) {
 			name = "";
 		}
 		handlers.remove(name);
 	}
 
-	public Object getServiceHandler(String name) {
+	/** {@inheritDoc} */
+    public Object getServiceHandler(String name) {
 		if (name == null) {
 			name = "";
 		}
 		return handlers.get(name);
 	}
 
-	public Set<String> getServiceHandlerNames() {
+	/** {@inheritDoc} */
+    public Set<String> getServiceHandlerNames() {
 		return Collections.unmodifiableSet(handlers.keySet());
 	}
 
@@ -441,11 +478,13 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
 		return lock.isLocked();
 	}
 
-	public boolean clear() {
+	/** {@inheritDoc} */
+    public boolean clear() {
 		return so.clear();
 	}
 
-	public void close() {
+	/** {@inheritDoc} */
+    public void close() {
 		so.close();
 		so = null;
 	}

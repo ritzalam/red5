@@ -45,7 +45,8 @@ public class ScopeStatistics {
 
 	private IScope globalScope;
 
-	public ScopeStatistics() {
+	/** Constructs a new ScopeStatistics. */
+    public ScopeStatistics() {
 
 	}
 
@@ -53,7 +54,12 @@ public class ScopeStatistics {
 		this.globalScope = globalScope;
 	}
 
-	public void setGlobalScope(IScope scope) {
+	/**
+     * Setter for property 'globalScope'.
+     *
+     * @param scope Value to set for property 'globalScope'.
+     */
+    public void setGlobalScope(IScope scope) {
 		globalScope = scope;
 	}
 

@@ -46,7 +46,8 @@ public class StatusObject implements Serializable, SerializerOpts {
 
 	protected Object application = null;
 
-	public StatusObject() {
+	/** Constructs a new StatusObject. */
+    public StatusObject() {
 
 	}
 
@@ -56,45 +57,87 @@ public class StatusObject implements Serializable, SerializerOpts {
 		this.description = description;
 	}
 
-	public String getCode() {
+	/**
+     * Getter for property 'code'.
+     *
+     * @return Value for property 'code'.
+     */
+    public String getCode() {
 		return code;
 	}
 
-	public void setCode(String code) {
+	/**
+     * Setter for property 'code'.
+     *
+     * @param code Value to set for property 'code'.
+     */
+    public void setCode(String code) {
 		this.code = code;
 	}
 
-	public String getDescription() {
+	/**
+     * Getter for property 'description'.
+     *
+     * @return Value for property 'description'.
+     */
+    public String getDescription() {
 		return description;
 	}
 
-	public void setDescription(String description) {
+	/**
+     * Setter for property 'description'.
+     *
+     * @param description Value to set for property 'description'.
+     */
+    public void setDescription(String description) {
 		this.description = description;
 	}
 
-	public String getLevel() {
+	/**
+     * Getter for property 'level'.
+     *
+     * @return Value for property 'level'.
+     */
+    public String getLevel() {
 		return level;
 	}
 
-	public void setLevel(String level) {
+	/**
+     * Setter for property 'level'.
+     *
+     * @param level Value to set for property 'level'.
+     */
+    public void setLevel(String level) {
 		this.level = level;
 	}
 
-	public void setApplication(Object application) {
+	/**
+     * Setter for property 'application'.
+     *
+     * @param application Value to set for property 'application'.
+     */
+    public void setApplication(Object application) {
 		this.application = application;
 	}
 
-	public Object getApplication() {
+	/**
+     * Getter for property 'application'.
+     *
+     * @return Value for property 'application'.
+     */
+    public Object getApplication() {
 		return application;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public String toString() {
 		return "Status code: " + getCode() + " desc: " + getDescription()
 				+ " level: " + getLevel();
 	}
 
-	public Flag getSerializerOption(SerializerOption opt) {
+	/** {@inheritDoc} */
+    public Flag getSerializerOption(SerializerOption opt) {
 		if (opt == SerializerOption.SerializeClassName) {
 			return Flag.Disabled;
 		}

@@ -19,6 +19,9 @@ package org.red5.server.net.rtmp.event;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+/**
+ * Ping even, actually combination of different events
+ */
 public class Ping extends BaseEvent {
 
 	public static final short STREAM_CLEAR = 0;
@@ -51,7 +54,8 @@ public class Ping extends BaseEvent {
 
 	private String debug = "";
 
-	public Ping() {
+	/** Constructs a new Ping. */
+    public Ping() {
 		super(Type.SYSTEM);
 	}
 
@@ -76,48 +80,99 @@ public class Ping extends BaseEvent {
 		this.value4 = value4;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public byte getDataType() {
 		return TYPE_PING;
 	}
 
-	public short getValue1() {
+	/**
+     * Getter for property 'value1'.
+     *
+     * @return Value for property 'value1'.
+     */
+    public short getValue1() {
 		return value1;
 	}
 
-	public void setValue1(short value1) {
+	/**
+     * Setter for property 'value1'.
+     *
+     * @param value1 Value to set for property 'value1'.
+     */
+    public void setValue1(short value1) {
 		this.value1 = value1;
 	}
 
-	public int getValue2() {
+	/**
+     * Getter for property 'value2'.
+     *
+     * @return Value for property 'value2'.
+     */
+    public int getValue2() {
 		return value2;
 	}
 
-	public void setValue2(int value2) {
+	/**
+     * Setter for property 'value2'.
+     *
+     * @param value2 Value to set for property 'value2'.
+     */
+    public void setValue2(int value2) {
 		this.value2 = value2;
 	}
 
-	public int getValue3() {
+	/**
+     * Getter for property 'value3'.
+     *
+     * @return Value for property 'value3'.
+     */
+    public int getValue3() {
 		return value3;
 	}
 
-	public void setValue3(int value3) {
+	/**
+     * Setter for property 'value3'.
+     *
+     * @param value3 Value to set for property 'value3'.
+     */
+    public void setValue3(int value3) {
 		this.value3 = value3;
 	}
 
-	public int getValue4() {
+	/**
+     * Getter for property 'value4'.
+     *
+     * @return Value for property 'value4'.
+     */
+    public int getValue4() {
 		return value4;
 	}
 
-	public void setValue4(int value4) {
+	/**
+     * Setter for property 'value4'.
+     *
+     * @param value4 Value to set for property 'value4'.
+     */
+    public void setValue4(int value4) {
 		this.value4 = value4;
 	}
 
-	public String getDebug() {
+	/**
+     * Getter for property 'debug'.
+     *
+     * @return Value for property 'debug'.
+     */
+    public String getDebug() {
 		return debug;
 	}
 
-	public void setDebug(String debug) {
+	/**
+     * Setter for property 'debug'.
+     *
+     * @param debug Value to set for property 'debug'.
+     */
+    public void setDebug(String debug) {
 		this.debug = debug;
 	}
 
@@ -128,13 +183,15 @@ public class Ping extends BaseEvent {
 		value4 = UNDEFINED;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public String toString() {
 		return "Ping: " + value1 + ", " + value2 + ", " + value3 + ", "
 				+ value4 + "\n" + debug;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	protected void releaseInternal() {
 
 	}

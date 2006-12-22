@@ -9,25 +9,38 @@ public class ServerBW extends BaseEvent {
 		this.bandwidth = bandwidth;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public byte getDataType() {
 		return TYPE_SERVER_BANDWIDTH;
 	}
 
-	public int getBandwidth() {
+	/**
+     * Getter for property 'bandwidth'.
+     *
+     * @return Value for property 'bandwidth'.
+     */
+    public int getBandwidth() {
 		return bandwidth;
 	}
 
-	public void setBandwidth(int bandwidth) {
+	/**
+     * Setter for property 'bandwidth'.
+     *
+     * @param bandwidth Value to set for property 'bandwidth'.
+     */
+    public void setBandwidth(int bandwidth) {
 		this.bandwidth = bandwidth;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public String toString() {
 		return "ServerBW: " + bandwidth;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	protected void releaseInternal() {
 
 	}

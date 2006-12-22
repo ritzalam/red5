@@ -30,7 +30,8 @@ public class RuntimeStatusObject extends StatusObject {
 
 	protected int clientid = 0;
 
-	public RuntimeStatusObject() {
+	/** Constructs a new RuntimeStatusObject. */
+    public RuntimeStatusObject() {
 		super();
 	}
 
@@ -45,19 +46,39 @@ public class RuntimeStatusObject extends StatusObject {
 		this.clientid = clientid;
 	}
 
-	public int getClientid() {
+	/**
+     * Getter for property 'clientid'.
+     *
+     * @return Value for property 'clientid'.
+     */
+    public int getClientid() {
 		return clientid;
 	}
 
-	public void setClientid(int clientid) {
+	/**
+     * Setter for property 'clientid'.
+     *
+     * @param clientid Value to set for property 'clientid'.
+     */
+    public void setClientid(int clientid) {
 		this.clientid = clientid;
 	}
 
-	public String getDetails() {
+	/**
+     * Getter for property 'details'.
+     *
+     * @return Value for property 'details'.
+     */
+    public String getDetails() {
 		return details;
 	}
 
-	public void setDetails(String details) {
+	/**
+     * Setter for property 'details'.
+     *
+     * @param details Value to set for property 'details'.
+     */
+    public void setDetails(String details) {
 		this.details = details;
 	}
 

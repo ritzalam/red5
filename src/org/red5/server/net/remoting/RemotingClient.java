@@ -324,6 +324,7 @@ public class RemotingClient {
 	 * @param method
 	 * @param methodParams
 	 * @param callback
+     * @param methodParams
 	 */
 	public void invokeMethod(String method, Object[] methodParams,
 			IRemotingCallback callback) {

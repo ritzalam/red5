@@ -46,29 +46,46 @@ implements ApplicationContextAware {
 	
 	protected ApplicationContext appCtx;
 
-	public void setHandler(IRTMPHandler handler) {
+	/**
+     * Setter for property 'handler'.
+     *
+     * @param handler Value to set for property 'handler'.
+     */
+    public void setHandler(IRTMPHandler handler) {
 		this.handler = handler;
 	}
 	
-	public void setMode(boolean mode) {
+	/**
+     * Setter for property 'mode'.
+     *
+     * @param mode Value to set for property 'mode'.
+     */
+    public void setMode(boolean mode) {
 		this.mode = mode;
 	}
 
 	private ProtocolCodecFactory codecFactory = null;
 
-	public void setCodecFactory(ProtocolCodecFactory codecFactory) {
+	/**
+     * Setter for property 'codecFactory'.
+     *
+     * @param codecFactory Value to set for property 'codecFactory'.
+     */
+    public void setCodecFactory(ProtocolCodecFactory codecFactory) {
 		this.codecFactory = codecFactory;
 	}
 
 	//	 ------------------------------------------------------------------------------
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void exceptionCaught(IoSession session, Throwable cause)
 			throws Exception {
 		log.debug("Exception caught", cause);
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void messageReceived(IoSession session, Object in) throws Exception {
 		log.debug("messageRecieved");
 		final RTMPMinaConnection conn = (RTMPMinaConnection) session
@@ -121,7 +138,8 @@ implements ApplicationContextAware {
 		}
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void messageSent(IoSession session, Object message) throws Exception {
 		log.debug("messageSent");
 		session.getAttribute(RTMP.SESSION_KEY);
@@ -137,7 +155,8 @@ implements ApplicationContextAware {
 		}
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void sessionOpened(IoSession session) throws Exception {
 		// TODO Auto-generated method stub
 
@@ -161,7 +180,8 @@ implements ApplicationContextAware {
 		}
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void sessionClosed(IoSession session) throws Exception {
 		final RTMP rtmp = (RTMP) session
 				.getAttribute(ProtocolState.SESSION_KEY);
@@ -174,7 +194,8 @@ implements ApplicationContextAware {
 		this.handler.connectionClosed(conn, rtmp);
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void sessionCreated(IoSession session) throws Exception {
 		if (log.isDebugEnabled()) {
 			log.debug("Session created");
@@ -194,7 +215,8 @@ implements ApplicationContextAware {
 		session.setAttachment(conn);
 	}
 
-	public void setApplicationContext(ApplicationContext appCtx) throws BeansException {
+	/** {@inheritDoc} */
+    public void setApplicationContext(ApplicationContext appCtx) throws BeansException {
 		this.appCtx = appCtx;
 	}
 

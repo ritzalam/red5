@@ -30,7 +30,7 @@ public class ThreadObjectFactory implements PoolableObjectFactory {
 	 */
 	private static final Log log = LogFactory.getLog(ThreadObjectFactory.class);
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * Creates a new worker thread object
 	 * 
 	 * @see org.apache.commons.pool.PoolableObjectFactory#makeObject()
@@ -42,7 +42,7 @@ public class ThreadObjectFactory implements PoolableObjectFactory {
 		return new WorkerThread();
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.apache.commons.pool.PoolableObjectFactory#destroyObject(java.lang.Object)
@@ -57,7 +57,7 @@ public class ThreadObjectFactory implements PoolableObjectFactory {
 		}
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.apache.commons.pool.PoolableObjectFactory#validateObject(java.lang.Object)
@@ -82,7 +82,7 @@ public class ThreadObjectFactory implements PoolableObjectFactory {
 		return true;
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.apache.commons.pool.PoolableObjectFactory#activateObject(java.lang.Object)
@@ -91,7 +91,7 @@ public class ThreadObjectFactory implements PoolableObjectFactory {
 		log.debug(" activateObject...");
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.apache.commons.pool.PoolableObjectFactory#passivateObject(java.lang.Object)

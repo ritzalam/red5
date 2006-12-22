@@ -41,23 +41,48 @@ public class Packet {
 		this.message = event;
 	}
 
-	public Header getHeader() {
+	/**
+     * Getter for property 'header'.
+     *
+     * @return Value for property 'header'.
+     */
+    public Header getHeader() {
 		return header;
 	}
 
-	public void setMessage(IRTMPEvent message) {
+	/**
+     * Setter for property 'message'.
+     *
+     * @param message Value to set for property 'message'.
+     */
+    public void setMessage(IRTMPEvent message) {
 		this.message = message;
 	}
 
-	public IRTMPEvent getMessage() {
+	/**
+     * Getter for property 'message'.
+     *
+     * @return Value for property 'message'.
+     */
+    public IRTMPEvent getMessage() {
 		return message;
 	}
 
-	public void setData(ByteBuffer data) {
+	/**
+     * Setter for property 'data'.
+     *
+     * @param data Value to set for property 'data'.
+     */
+    public void setData(ByteBuffer data) {
 		this.data = data;
 	}
 
-	public ByteBuffer getData() {
+	/**
+     * Getter for property 'data'.
+     *
+     * @return Value for property 'data'.
+     */
+    public ByteBuffer getData() {
 		return data;
 	}
 

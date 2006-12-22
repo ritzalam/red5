@@ -38,15 +38,30 @@ public class RemotingPacket {
 		this.calls = calls;
 	}
 
-	public List getCalls() {
+	/**
+     * Getter for property 'calls'.
+     *
+     * @return Value for property 'calls'.
+     */
+    public List getCalls() {
 		return calls;
 	}
 
-	public void setScopePath(String path) {
+	/**
+     * Setter for property 'scopePath'.
+     *
+     * @param path Value to set for property 'scopePath'.
+     */
+    public void setScopePath(String path) {
 		scopePath = path;
 	}
 
-	public String getScopePath() {
+	/**
+     * Getter for property 'scopePath'.
+     *
+     * @return Value for property 'scopePath'.
+     */
+    public String getScopePath() {
 		return scopePath;
 	}
 

@@ -79,27 +79,33 @@ public class CacheableImpl implements ICacheable {
 		log.info("Adding request for: " + name);
 	}
 
-	public byte[] getBytes() {
+	/** {@inheritDoc} */
+    public byte[] getBytes() {
 		return bytes;
 	}
 
-	public ByteBuffer getByteBuffer() {
+	/** {@inheritDoc} */
+    public ByteBuffer getByteBuffer() {
 		return ByteBuffer.wrap(bytes).asReadOnlyBuffer();
 	}
 
-	public String getName() {
+	/** {@inheritDoc} */
+    public String getName() {
 		return name;
 	}
 
-	public boolean isCached() {
+	/** {@inheritDoc} */
+    public boolean isCached() {
 		return cached;
 	}
 
-	public void setCached(boolean cached) {
+	/** {@inheritDoc} */
+    public void setCached(boolean cached) {
 		this.cached = cached;
 	}
 
-	public void setName(String name) {
+	/** {@inheritDoc} */
+    public void setName(String name) {
 		this.name = name;
 	}
 

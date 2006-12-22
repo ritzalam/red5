@@ -55,15 +55,26 @@ public class DebugProxyHandler extends IoHandlerAdapter implements
 
 	private String dumpTo = "./dumps/";
 
-	public void setResourceLoader(ResourceLoader loader) {
+	/** {@inheritDoc} */
+    public void setResourceLoader(ResourceLoader loader) {
 		this.loader = loader;
 	}
 
-	public void setCodecFactory(ProtocolCodecFactory codecFactory) {
+	/**
+     * Setter for property 'codecFactory'.
+     *
+     * @param codecFactory Value to set for property 'codecFactory'.
+     */
+    public void setCodecFactory(ProtocolCodecFactory codecFactory) {
 		this.codecFactory = codecFactory;
 	}
 
-	public void setForward(String forward) {
+	/**
+     * Setter for property 'forward'.
+     *
+     * @param forward Value to set for property 'forward'.
+     */
+    public void setForward(String forward) {
 		int split = forward.indexOf(':');
 		String host = forward.substring(0, split);
 		int port = Integer.parseInt(forward.substring(split + 1, forward
@@ -71,11 +82,17 @@ public class DebugProxyHandler extends IoHandlerAdapter implements
 		this.forward = new InetSocketAddress(host, port);
 	}
 
-	public void setDumpTo(String dumpTo) {
+	/**
+     * Setter for property 'dumpTo'.
+     *
+     * @param dumpTo Value to set for property 'dumpTo'.
+     */
+    public void setDumpTo(String dumpTo) {
 		this.dumpTo = dumpTo;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void sessionOpened(IoSession session) throws Exception {
 		// TODO Auto-generated method stub
 
@@ -88,7 +105,8 @@ public class DebugProxyHandler extends IoHandlerAdapter implements
 
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void sessionCreated(IoSession session) throws Exception {
 
 		boolean isClient = session.getRemoteAddress().equals(forward);
@@ -155,7 +173,8 @@ public class DebugProxyHandler extends IoHandlerAdapter implements
 		super.sessionCreated(session);
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void messageReceived(IoSession session, Object in) {
 
 		if (!log.isDebugEnabled()) {

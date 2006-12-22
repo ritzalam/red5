@@ -428,7 +428,8 @@ public class RTMPTServlet extends HttpServlet {
 
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void init() throws ServletException {
 		super.init();
 		appCtx = (WebApplicationContext) getServletContext().getAttribute(

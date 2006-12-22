@@ -40,11 +40,21 @@ public class RemotingCall extends PendingCall {
 		setClientCallback(callback);
 	}
 
-	public void setClientCallback(String clientCallback) {
+	/**
+     * Setter for property 'clientCallback'.
+     *
+     * @param clientCallback Value to set for property 'clientCallback'.
+     */
+    public void setClientCallback(String clientCallback) {
 		this.clientCallback = clientCallback;
 	}
 
-	public String getClientResponse() {
+	/**
+     * Getter for property 'clientResponse'.
+     *
+     * @return Value for property 'clientResponse'.
+     */
+    public String getClientResponse() {
 		if (clientCallback != null) {
 			return clientCallback
 					+ (isSuccess() ? HANDLER_SUCCESS : HANDLER_ERROR);
@@ -53,7 +63,12 @@ public class RemotingCall extends PendingCall {
 		}
 	}
 
-	public Object getClientResult() {
+	/**
+     * Getter for property 'clientResult'.
+     *
+     * @return Value for property 'clientResult'.
+     */
+    public Object getClientResult() {
 		return isSuccess() ? getResult() : getException();
 	}
 

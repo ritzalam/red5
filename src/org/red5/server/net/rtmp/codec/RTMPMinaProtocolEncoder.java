@@ -29,7 +29,8 @@ import org.red5.server.net.protocol.ProtocolState;
 public class RTMPMinaProtocolEncoder extends RTMPProtocolEncoder implements
 		ProtocolEncoder {
 
-	public void encode(IoSession session, Object message,
+	/** {@inheritDoc} */
+    public void encode(IoSession session, Object message,
 			ProtocolEncoderOutput out) throws ProtocolCodecException {
 		try {
 			final ProtocolState state = (ProtocolState) session
@@ -43,7 +44,8 @@ public class RTMPMinaProtocolEncoder extends RTMPProtocolEncoder implements
 		}
 	}
 
-	public void dispose(IoSession ioSession) throws Exception {
+	/** {@inheritDoc} */
+    public void dispose(IoSession ioSession) throws Exception {
 		// TODO Auto-generated method stub		
 	}
 }

@@ -33,55 +33,116 @@ public class Header implements Constants {
 
 	private boolean timerRelative = true;
 
-	public byte getChannelId() {
+	/**
+     * Getter for property 'channelId'.
+     *
+     * @return Value for property 'channelId'.
+     */
+    public byte getChannelId() {
 		return channelId;
 	}
 
-	public void setChannelId(byte channelId) {
+	/**
+     * Setter for property 'channelId'.
+     *
+     * @param channelId Value to set for property 'channelId'.
+     */
+    public void setChannelId(byte channelId) {
 		this.channelId = channelId;
 	}
 
-	public byte getDataType() {
+	/**
+     * Getter for property 'dataType'.
+     *
+     * @return Value for property 'dataType'.
+     */
+    public byte getDataType() {
 		return dataType;
 	}
 
-	public void setDataType(byte dataType) {
+	/**
+     * Setter for property 'dataType'.
+     *
+     * @param dataType Value to set for property 'dataType'.
+     */
+    public void setDataType(byte dataType) {
 		this.dataType = dataType;
 	}
 
-	public int getSize() {
+	/**
+     * Getter for property 'size'.
+     *
+     * @return Value for property 'size'.
+     */
+    public int getSize() {
 		return size;
 	}
 
-	public void setSize(int size) {
+	/**
+     * Setter for property 'size'.
+     *
+     * @param size Value to set for property 'size'.
+     */
+    public void setSize(int size) {
 		this.size = size;
 	}
 
-	public int getStreamId() {
+	/**
+     * Getter for property 'streamId'.
+     *
+     * @return Value for property 'streamId'.
+     */
+    public int getStreamId() {
 		return streamId;
 	}
 
-	public void setStreamId(int streamId) {
+	/**
+     * Setter for property 'streamId'.
+     *
+     * @param streamId Value to set for property 'streamId'.
+     */
+    public void setStreamId(int streamId) {
 		this.streamId = streamId;
 	}
 
-	public int getTimer() {
+	/**
+     * Getter for property 'timer'.
+     *
+     * @return Value for property 'timer'.
+     */
+    public int getTimer() {
 		return timer;
 	}
 
-	public void setTimer(int timer) {
+	/**
+     * Setter for property 'timer'.
+     *
+     * @param timer Value to set for property 'timer'.
+     */
+    public void setTimer(int timer) {
 		this.timer = timer;
 	}
 
-	public boolean isTimerRelative() {
+	/**
+     * Getter for property 'timerRelative'.
+     *
+     * @return Value for property 'timerRelative'.
+     */
+    public boolean isTimerRelative() {
 		return timerRelative;
 	}
 
-	public void setTimerRelative(boolean timerRelative) {
+	/**
+     * Setter for property 'timerRelative'.
+     *
+     * @param timerRelative Value to set for property 'timerRelative'.
+     */
+    public void setTimerRelative(boolean timerRelative) {
 		this.timerRelative = timerRelative;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public boolean equals(Object other) {
 		if (!(other instanceof Header)) {
 			return false;
@@ -92,7 +153,8 @@ public class Header implements Constants {
 				&& header.getTimer() == timer && header.getStreamId() == streamId);
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
 		sb.append("ChannelId: ").append(channelId).append(", ");
@@ -103,7 +165,8 @@ public class Header implements Constants {
 		return sb.toString();
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public Object clone() {
 		final Header header = new Header();
 		header.setChannelId(channelId);

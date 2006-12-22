@@ -53,45 +53,56 @@ public abstract class BaseEvent implements Constants, IRTMPEvent {
 		}
 	}
 
-	public Type getType() {
+	/** {@inheritDoc} */
+    public Type getType() {
 		return type;
 	}
 
-	public Object getObject() {
+	/** {@inheritDoc} */
+    public Object getObject() {
 		return object;
 	}
 
-	public Header getHeader() {
+	/** {@inheritDoc} */
+    public Header getHeader() {
 		return header;
 	}
 
-	public void setHeader(Header header) {
+	/** {@inheritDoc} */
+    public void setHeader(Header header) {
 		this.header = header;
 	}
 
-	public boolean hasSource() {
+	/** {@inheritDoc} */
+    public boolean hasSource() {
 		return source != null;
 	}
 
-	public IEventListener getSource() {
+	/** {@inheritDoc} */
+    public IEventListener getSource() {
 		return source;
 	}
 
-	public void setSource(IEventListener source) {
+	/** {@inheritDoc} */
+    public void setSource(IEventListener source) {
 		this.source = source;
 	}
 
-	public abstract byte getDataType();
+	/** {@inheritDoc} */
+    public abstract byte getDataType();
 
-	public int getTimestamp() {
+	/** {@inheritDoc} */
+    public int getTimestamp() {
 		return timestamp;
 	}
 
-	public void setTimestamp(int timestamp) {
+	/** {@inheritDoc} */
+    public void setTimestamp(int timestamp) {
 		this.timestamp = timestamp;
 	}
 
-	public synchronized void retain() {
+	/** {@inheritDoc} */
+    public synchronized void retain() {
 		if (allocationDebugging) {
 			AllocationDebugger.getInstance().retain(this);
 		}
@@ -100,7 +111,8 @@ public abstract class BaseEvent implements Constants, IRTMPEvent {
 		}
 	}
 
-	public synchronized void release() {
+	/** {@inheritDoc} */
+    public synchronized void release() {
 		if (allocationDebugging) {
 			AllocationDebugger.getInstance().release(this);
 		}

@@ -52,16 +52,27 @@ public class RTMPTLoader implements ApplicationContextAware {
 
 	protected RTMPTHandler handler;
 
-	public void setServer(IServer server) {
+	/**
+     * Setter for property 'server'.
+     *
+     * @param server Value to set for property 'server'.
+     */
+    public void setServer(IServer server) {
 		this.server = server;
 	}
 
-	public void setApplicationContext(ApplicationContext context)
+	/** {@inheritDoc} */
+    public void setApplicationContext(ApplicationContext context)
 			throws BeansException {
 		applicationContext = context;
 	}
 
-	public void setRTMPTHandler(RTMPTHandler handler) {
+	/**
+     * Setter for property 'RTMPTHandler'.
+     *
+     * @param handler Value to set for property 'RTMPTHandler'.
+     */
+    public void setRTMPTHandler(RTMPTHandler handler) {
 		this.handler = handler;
 	}
 

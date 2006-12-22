@@ -41,59 +41,89 @@ public abstract class AbstractScopeAdapter implements IScopeHandler {
 
 	private boolean canHandleEvent = true;
 
-	public void setCanStart(boolean canStart) {
+	/**
+     * Setter for property 'canStart'.
+     *
+     * @param canStart Value to set for property 'canStart'.
+     */
+    public void setCanStart(boolean canStart) {
 		this.canStart = canStart;
 	}
 
-	public void setCanCallService(boolean canCallService) {
+	/**
+     * Setter for property 'canCallService'.
+     *
+     * @param canCallService Value to set for property 'canCallService'.
+     */
+    public void setCanCallService(boolean canCallService) {
 		this.canCallService = canCallService;
 	}
 
-	public void setCanConnect(boolean canConnect) {
+	/**
+     * Setter for property 'canConnect'.
+     *
+     * @param canConnect Value to set for property 'canConnect'.
+     */
+    public void setCanConnect(boolean canConnect) {
 		this.canConnect = canConnect;
 	}
 
-	public void setJoin(boolean canJoin) {
+	/**
+     * Setter for property 'join'.
+     *
+     * @param canJoin Value to set for property 'join'.
+     */
+    public void setJoin(boolean canJoin) {
 		this.canJoin = canJoin;
 	}
 
-	public boolean start(IScope scope) {
+	/** {@inheritDoc} */
+    public boolean start(IScope scope) {
 		return canStart;
 	}
 
-	public void stop(IScope scope) {
+	/** {@inheritDoc} */
+    public void stop(IScope scope) {
 		// nothing
 	}
 
-	public boolean connect(IConnection conn, IScope scope, Object[] params) {
+	/** {@inheritDoc} */
+    public boolean connect(IConnection conn, IScope scope, Object[] params) {
 		return canConnect;
 	}
 
-	public void disconnect(IConnection conn, IScope scope) {
+	/** {@inheritDoc} */
+    public void disconnect(IConnection conn, IScope scope) {
 		// nothing
 	}
 
-	public boolean join(IClient client, IScope scope) {
+	/** {@inheritDoc} */
+    public boolean join(IClient client, IScope scope) {
 		return canJoin;
 	}
 
-	public void leave(IClient client, IScope scope) {
+	/** {@inheritDoc} */
+    public void leave(IClient client, IScope scope) {
 		// nothing
 	}
 
-	public boolean serviceCall(IConnection conn, IServiceCall call) {
+	/** {@inheritDoc} */
+    public boolean serviceCall(IConnection conn, IServiceCall call) {
 		return canCallService;
 	}
 
-	public boolean addChildScope(IBasicScope scope) {
+	/** {@inheritDoc} */
+    public boolean addChildScope(IBasicScope scope) {
 		return canAddChildScope;
 	}
 
-	public void removeChildScope(IBasicScope scope) {
+	/** {@inheritDoc} */
+    public void removeChildScope(IBasicScope scope) {
 		// TODO Auto-generated method stub	
 	}
 
-	public boolean handleEvent(IEvent event) {
+	/** {@inheritDoc} */
+    public boolean handleEvent(IEvent event) {
 		return canHandleEvent;
 	}
 

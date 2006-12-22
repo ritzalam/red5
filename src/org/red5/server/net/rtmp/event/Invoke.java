@@ -24,11 +24,13 @@ import org.red5.server.api.service.IPendingServiceCall;
 
 public class Invoke extends Notify {
 
-	public Invoke() {
+	/** Constructs a new Invoke. */
+    public Invoke() {
 		super();
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public byte getDataType() {
 		return TYPE_INVOKE;
 	}
@@ -41,19 +43,22 @@ public class Invoke extends Notify {
 		super(call);
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public IPendingServiceCall getCall() {
 		return (IPendingServiceCall) call;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
 		sb.append("Invoke: ").append(call);
 		return sb.toString();
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public boolean equals(Object obj) {
 		if (obj == null) {
 			return false;

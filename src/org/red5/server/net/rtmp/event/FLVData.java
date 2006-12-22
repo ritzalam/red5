@@ -50,7 +50,12 @@ public class FLVData {
 
 	protected int timestamp = -1;
 
-	public boolean isDisposable() {
+	/**
+     * Getter for property 'disposable'.
+     *
+     * @return Value for property 'disposable'.
+     */
+    public boolean isDisposable() {
 		return false;
 	}
 
@@ -98,7 +103,12 @@ public class FLVData {
 	 * 0: Uncompressed, 1: ADPCM, 2: MP3, 5: Nellymoser 8kHz mono, 6: Nellymoser
 	 */
 
-	public int getCodec() {
+	/**
+     * Getter for property 'codec'.
+     *
+     * @return Value for property 'codec'.
+     */
+    public int getCodec() {
 		return 0;
 	}
 

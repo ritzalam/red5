@@ -52,7 +52,8 @@ public class QuartzSchedulingService implements ISchedulingService {
 
 	private long jobDetailCounter = 0;
 
-	public QuartzSchedulingService() {
+	/** Constructs a new QuartzSchedulingService. */
+    public QuartzSchedulingService() {
 		try {
 			scheduler = schedFact.getScheduler();
 			scheduler.start();
@@ -61,7 +62,12 @@ public class QuartzSchedulingService implements ISchedulingService {
 		}
 	}
 
-	private synchronized String getJobName() {
+	/**
+     * Getter for property 'jobName'.
+     *
+     * @return Value for property 'jobName'.
+     */
+    private synchronized String getJobName() {
 		String result = "ScheduledJob_" + jobDetailCounter;
 		jobDetailCounter++;
 		return result;
@@ -83,7 +89,8 @@ public class QuartzSchedulingService implements ISchedulingService {
 		}
 	}
 
-	public String addScheduledJob(int interval, IScheduledJob job) {
+	/** {@inheritDoc} */
+    public String addScheduledJob(int interval, IScheduledJob job) {
 		String result = getJobName();
 
 		// Create trigger that fires indefinitely every <interval> milliseconds
@@ -93,13 +100,15 @@ public class QuartzSchedulingService implements ISchedulingService {
 		return result;
 	}
 
-	public String addScheduledOnceJob(long timeDelta, IScheduledJob job) {
+	/** {@inheritDoc} */
+    public String addScheduledOnceJob(long timeDelta, IScheduledJob job) {
 		// Create trigger that fires once in <timeDelta> milliseconds
 		return addScheduledOnceJob(new Date(System.currentTimeMillis()
 				+ timeDelta), job);
 	}
 
-	public String addScheduledOnceJob(Date date, IScheduledJob job) {
+	/** {@inheritDoc} */
+    public String addScheduledOnceJob(Date date, IScheduledJob job) {
 		String result = getJobName();
 
 		// Create trigger that fires once at <date>
@@ -109,7 +118,8 @@ public class QuartzSchedulingService implements ISchedulingService {
 		return result;
 	}
 
-	public void removeScheduledJob(String name) {
+	/** {@inheritDoc} */
+    public void removeScheduledJob(String name) {
 		try {
 			scheduler.deleteJob(name, null);
 		} catch (SchedulerException ex) {
@@ -117,7 +127,8 @@ public class QuartzSchedulingService implements ISchedulingService {
 		}
 	}
 
-	public List<String> getScheduledJobNames() {
+	/** {@inheritDoc} */
+    public List<String> getScheduledJobNames() {
 		List<String> result = new ArrayList<String>();
 		try {
 			for (String name : scheduler.getJobNames(null)) {

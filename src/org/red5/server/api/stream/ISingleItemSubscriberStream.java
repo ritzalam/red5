@@ -26,5 +26,10 @@ package org.red5.server.api.stream;
  * @author Steven Gong (steven.gong@gmail.com)
  */
 public interface ISingleItemSubscriberStream extends ISubscriberStream {
-	void setPlayItem(IPlayItem item);
+	/**
+     * Setter for property 'playItem'.
+     *
+     * @param item Value to set for property 'playItem'.
+     */
+    void setPlayItem(IPlayItem item);
 }

@@ -58,21 +58,26 @@ public class Red5WebPropertiesConfiguration implements Configuration,
 
 	protected static WebAppContext _context;
 
-	public void setWebAppContext(WebAppContext context) {
+	/** {@inheritDoc} */
+    public void setWebAppContext(WebAppContext context) {
 		_context = context;
 	}
 
-	public WebAppContext getWebAppContext() {
+	/** {@inheritDoc} */
+    public WebAppContext getWebAppContext() {
 		return _context;
 	}
 
-	public void configureClassLoader() throws Exception {
+	/** {@inheritDoc} */
+    public void configureClassLoader() throws Exception {
 	}
 
-	public void configureDefaults() throws Exception {
+	/** {@inheritDoc} */
+    public void configureDefaults() throws Exception {
 	}
 
-	public void configureWebApp() throws Exception {
+	/** {@inheritDoc} */
+    public void configureWebApp() throws Exception {
 		log.debug("Configuring Jetty webapp");
 		WebAppContext context = getWebAppContext();
 		if (context.isStarted()) {
@@ -159,7 +164,8 @@ public class Red5WebPropertiesConfiguration implements Configuration,
 		}
 	}
 
-	public void deconfigureWebApp() throws Exception {
+	/** {@inheritDoc} */
+    public void deconfigureWebApp() throws Exception {
 	}
 
 }

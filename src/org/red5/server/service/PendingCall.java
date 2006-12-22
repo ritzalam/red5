@@ -43,7 +43,7 @@ public class PendingCall extends Call implements IPendingServiceCall {
 		super(name, method, args);
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.server.service.ServiceCall#getResult()
@@ -52,7 +52,7 @@ public class PendingCall extends Call implements IPendingServiceCall {
 		return result;
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.server.service.temp#setResult(java.lang.Object)
@@ -61,15 +61,18 @@ public class PendingCall extends Call implements IPendingServiceCall {
 		this.result = result;
 	}
 
-	public void registerCallback(IPendingServiceCallback callback) {
+	/** {@inheritDoc} */
+    public void registerCallback(IPendingServiceCallback callback) {
 		callbacks.add(callback);
 	}
 
-	public void unregisterCallback(IPendingServiceCallback callback) {
+	/** {@inheritDoc} */
+    public void unregisterCallback(IPendingServiceCallback callback) {
 		callbacks.remove(callback);
 	}
 
-	public Set<IPendingServiceCallback> getCallbacks() {
+	/** {@inheritDoc} */
+    public Set<IPendingServiceCallback> getCallbacks() {
 		return callbacks;
 	}
 }

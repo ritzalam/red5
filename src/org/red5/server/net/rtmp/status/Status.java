@@ -21,6 +21,9 @@ import org.red5.io.object.SerializerOpts;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+/**
+ * Represents status object that are transferred between server and client
+ */
 public class Status implements StatusCodes, SerializerOpts {
 
 	public static final String ERROR = "error";
@@ -39,7 +42,8 @@ public class Status implements StatusCodes, SerializerOpts {
 
 	protected int clientid = 0;
 
-	public Status() {
+	/** Constructs a new Status. */
+    public Status() {
 
 	}
 
@@ -54,57 +58,114 @@ public class Status implements StatusCodes, SerializerOpts {
 		this.description = description;
 	}
 
-	public String getCode() {
+	/**
+     * Getter for property 'code'.
+     *
+     * @return Value for property 'code'.
+     */
+    public String getCode() {
 		return code;
 	}
 
-	public void setCode(String code) {
+	/**
+     * Setter for property 'code'.
+     *
+     * @param code Value to set for property 'code'.
+     */
+    public void setCode(String code) {
 		this.code = code;
 	}
 
-	public String getDescription() {
+	/**
+     * Getter for property 'description'.
+     *
+     * @return Value for property 'description'.
+     */
+    public String getDescription() {
 		return description;
 	}
 
-	public void setDesciption(String description) {
+	/**
+     * Setter for property 'desciption'.
+     *
+     * @param description Value to set for property 'desciption'.
+     */
+    public void setDesciption(String description) {
 		this.description = description;
 	}
 
-	public String getLevel() {
+	/**
+     * Getter for property 'level'.
+     *
+     * @return Value for property 'level'.
+     */
+    public String getLevel() {
 		return level;
 	}
 
-	public void setLevel(String level) {
+	/**
+     * Setter for property 'level'.
+     *
+     * @param level Value to set for property 'level'.
+     */
+    public void setLevel(String level) {
 		this.level = level;
 	}
 
-	public int getClientid() {
+	/**
+     * Getter for property 'clientid'.
+     *
+     * @return Value for property 'clientid'.
+     */
+    public int getClientid() {
 		return clientid;
 	}
 
-	public void setClientid(int clientid) {
+	/**
+     * Setter for property 'clientid'.
+     *
+     * @param clientid Value to set for property 'clientid'.
+     */
+    public void setClientid(int clientid) {
 		this.clientid = clientid;
 	}
 
-	public String getDetails() {
+	/**
+     * Getter for property 'details'.
+     *
+     * @return Value for property 'details'.
+     */
+    public String getDetails() {
 		return details;
 	}
 
-	public void setDetails(String details) {
+	/**
+     * Setter for property 'details'.
+     *
+     * @param details Value to set for property 'details'.
+     */
+    public void setDetails(String details) {
 		this.details = details;
 	}
 
-	public void setDescription(String description) {
+	/**
+     * Setter for property 'description'.
+     *
+     * @param description Value to set for property 'description'.
+     */
+    public void setDescription(String description) {
 		this.description = description;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public String toString() {
 		return "Status: code: " + getCode() + " desc: " + getDescription()
 				+ " level: " + getLevel();
 	}
 
-	public Flag getSerializerOption(SerializerOption opt) {
+	/** {@inheritDoc} */
+    public Flag getSerializerOption(SerializerOption opt) {
 		if (opt == SerializerOption.SerializeClassName) {
 			return Flag.Disabled;
 		}

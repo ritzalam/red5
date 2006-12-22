@@ -30,7 +30,8 @@ public class WorkerThread extends Thread {
 
 	private static Log log = LogFactory.getLog(WorkerThread.class);
 
-	public WorkerThread() {
+	/** Constructs a new WorkerThread. */
+    public WorkerThread() {
 		// default constructor
 	}
 
@@ -241,6 +242,7 @@ public class WorkerThread extends Thread {
 	 * @param params
      * @param paramTypes
 	 * @param synObj
+     * @param paramTypes
 	 */
 	public synchronized void execute(String clsName, String methName,
 			Object[] params, Class[] paramTypes, Object synObj) {
@@ -260,7 +262,7 @@ public class WorkerThread extends Thread {
 		}
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see java.lang.Runnable#run()

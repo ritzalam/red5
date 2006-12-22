@@ -48,7 +48,12 @@ public class StatusObjectService implements StatusCodes {
 
 	protected Map<String, byte[]> cachedStatusObjects;
 
-	public void setSerializer(Serializer serializer) {
+	/**
+     * Setter for property 'serializer'.
+     *
+     * @param serializer Value to set for property 'serializer'.
+     */
+    public void setSerializer(Serializer serializer) {
 		this.serializer = serializer;
 	}
 

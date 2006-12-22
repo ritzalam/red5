@@ -34,16 +34,23 @@ public class Unknown extends BaseEvent {
 		this.data = data;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public byte getDataType() {
 		return dataType;
 	}
 
-	public ByteBuffer getData() {
+	/**
+     * Getter for property 'data'.
+     *
+     * @return Value for property 'data'.
+     */
+    public ByteBuffer getData() {
 		return data;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public String toString() {
 		final ByteBuffer buf = getData();
 		StringBuffer sb = new StringBuffer();
@@ -52,7 +59,8 @@ public class Unknown extends BaseEvent {
 		return sb.toString();
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	protected void releaseInternal() {
 		if (data != null) {
 			data.release();

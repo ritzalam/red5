@@ -75,19 +75,39 @@ public class SimplePlayItem implements IPlayItem {
 		return msgInput;
 	}
 
-	public void setMsgInput(IMessageInput msgInput) {
+	/**
+     * Setter for property 'msgInput'.
+     *
+     * @param msgInput Value to set for property 'msgInput'.
+     */
+    public void setMsgInput(IMessageInput msgInput) {
 		this.msgInput = msgInput;
 	}
 
-	public void setLength(long length) {
+	/**
+     * Setter for property 'length'.
+     *
+     * @param length Value to set for property 'length'.
+     */
+    public void setLength(long length) {
 		this.length = length;
 	}
 
-	public void setName(String name) {
+	/**
+     * Setter for property 'name'.
+     *
+     * @param name Value to set for property 'name'.
+     */
+    public void setName(String name) {
 		this.name = name;
 	}
 
-	public void setStart(long start) {
+	/**
+     * Setter for property 'start'.
+     *
+     * @param start Value to set for property 'start'.
+     */
+    public void setStart(long start) {
 		this.start = start;
 	}
 

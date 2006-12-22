@@ -49,36 +49,56 @@ public class SharedObjectMessage extends BaseEvent implements
 		this.persistent = persistent;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public byte getDataType() {
 		return TYPE_SHARED_OBJECT;
 	}
 
-	public int getVersion() {
+	/** {@inheritDoc} */
+    public int getVersion() {
 		return version;
 	}
 
-	protected void setVersion(int version) {
+	/**
+     * Setter for property 'version'.
+     *
+     * @param version Value to set for property 'version'.
+     */
+    protected void setVersion(int version) {
 		this.version = version;
 	}
 
-	public String getName() {
+	/** {@inheritDoc} */
+    public String getName() {
 		return name;
 	}
 
-	protected void setName(String name) {
+	/**
+     * Setter for property 'name'.
+     *
+     * @param name Value to set for property 'name'.
+     */
+    protected void setName(String name) {
 		this.name = name;
 	}
 
-	public boolean isPersistent() {
+	/** {@inheritDoc} */
+    public boolean isPersistent() {
 		return persistent;
 	}
 
-	protected void setIsPersistent(boolean persistent) {
+	/**
+     * Setter for property 'isPersistent'.
+     *
+     * @param persistent Value to set for property 'isPersistent'.
+     */
+    protected void setIsPersistent(boolean persistent) {
 		this.persistent = persistent;
 	}
 
-	public void addEvent(ISharedObjectEvent event) {
+	/** {@inheritDoc} */
+    public void addEvent(ISharedObjectEvent event) {
 		events.add(event);
 	}
 
@@ -86,38 +106,46 @@ public class SharedObjectMessage extends BaseEvent implements
 		this.events.addAll(events);
 	}
 
-	public LinkedList<ISharedObjectEvent> getEvents() {
+	/** {@inheritDoc} */
+    public LinkedList<ISharedObjectEvent> getEvents() {
 		return events;
 	}
 
-	public void addEvent(ISharedObjectEvent.Type type, String key, Object value) {
+	/** {@inheritDoc} */
+    public void addEvent(ISharedObjectEvent.Type type, String key, Object value) {
 		events.add(new SharedObjectEvent(type, key, value));
 	}
 
-	public void clear() {
+	/** {@inheritDoc} */
+    public void clear() {
 		events.clear();
 	}
 
-	public boolean isEmpty() {
+	/** {@inheritDoc} */
+    public boolean isEmpty() {
 		return events.isEmpty();
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public Type getType() {
 		return Type.SHARED_OBJECT;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public Object getObject() {
 		return getEvents();
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	protected void releaseInternal() {
 
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public String toString() {
 		final StringBuffer sb = new StringBuffer();
 		sb.append("SharedObjectMessage: ").append(name).append(" { ");

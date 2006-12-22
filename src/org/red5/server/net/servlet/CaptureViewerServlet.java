@@ -39,7 +39,8 @@ public class CaptureViewerServlet extends HttpServlet {
 
 	private Deserializer deserializer;
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void init() throws ServletException {
 		super.init();
 		try {
@@ -52,7 +53,8 @@ public class CaptureViewerServlet extends HttpServlet {
 		}
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	protected void service(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException {
 

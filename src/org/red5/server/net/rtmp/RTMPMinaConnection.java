@@ -35,11 +35,17 @@ public class RTMPMinaConnection extends RTMPConnection {
 
 	private IoSession ioSession;
 
-	RTMPMinaConnection() {
+	/** Constructs a new RTMPMinaConnection. */
+    RTMPMinaConnection() {
 		super(PERSISTENT);
 	}
 
-	void setIoSession(IoSession protocolSession) {
+	/**
+     * Setter for property 'ioSession'.
+     *
+     * @param protocolSession Value to set for property 'ioSession'.
+     */
+    void setIoSession(IoSession protocolSession) {
 		SocketAddress remote = protocolSession.getRemoteAddress();
 		if (remote instanceof InetSocketAddress) {
 			remoteAddress = ((InetSocketAddress) remote).getAddress()
@@ -52,48 +58,61 @@ public class RTMPMinaConnection extends RTMPConnection {
 		this.ioSession = protocolSession;
 	}
 	
-	public IoSession getIoSession() {
+	/**
+     * Getter for property 'ioSession'.
+     *
+     * @return Value for property 'ioSession'.
+     */
+    public IoSession getIoSession() {
 		return ioSession;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void rawWrite(ByteBuffer out) {
 		ioSession.write(out);
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void write(Packet out) {
 		writingMessage(out);
 		ioSession.write(out);
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public boolean isConnected() {
 		return super.isConnected() && ioSession.isConnected();
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public long getReadBytes() {
 		return ioSession.getReadBytes();
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public long getWrittenBytes() {
 		return ioSession.getWrittenBytes();
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public long getPendingMessages() {
 		return ioSession.getScheduledWriteRequests();
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void close() {
 		super.close();
 		ioSession.close();
 	}
 	
-	protected void onInactive() {
+	/** {@inheritDoc} */
+    protected void onInactive() {
 		this.close();
 	}
 }

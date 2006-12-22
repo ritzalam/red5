@@ -35,7 +35,12 @@ public interface IPendingServiceCall extends IServiceCall {
 	 */
 	public abstract Object getResult();
 
-	public abstract void setResult(Object result);
+	/**
+     * Setter for property 'result'.
+     *
+     * @param result Value to set for property 'result'.
+     */
+    public abstract void setResult(Object result);
 
 	/**
 	 * Registers callback object usually represented as an anonymous class
@@ -60,9 +65,7 @@ public interface IPendingServiceCall extends IServiceCall {
 	 * an anonymous class instance that implements IPendingServiceCallback
 	 * interface.
 	 *  
-	 * @param callback
-	 *            Callback object
-     * @return
+     * @return         Set of pending operations callbacks
 	 */
 	public Set<IPendingServiceCallback> getCallbacks();
 }

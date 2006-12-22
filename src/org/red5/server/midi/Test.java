@@ -37,7 +37,8 @@ public class Test {
 
 	}
 
-	public Test() throws Exception {
+	/** Constructs a new Test. */
+    public Test() throws Exception {
 
 		String MIDI_NAME = "USB Uno MIDI  In";
 		MidiDevice dev = getMidiDevice(MIDI_NAME);
@@ -51,7 +52,8 @@ public class Test {
 
 	public class MyReceiver extends Object implements Receiver {
 
-		public void send(MidiMessage midi, long time) {
+		/** {@inheritDoc} */
+        public void send(MidiMessage midi, long time) {
 			byte[] msg = midi.getMessage();
 			int len = midi.getLength();
 			if (len <= 1) {
@@ -65,7 +67,8 @@ public class Test {
 			log.debug(out);
 		}
 
-		public void close() {
+		/** {@inheritDoc} */
+        public void close() {
 			log.debug("Closing");
 		}
 	}

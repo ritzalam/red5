@@ -28,16 +28,27 @@ public class ChunkSize extends BaseEvent {
 		this.size = size;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public byte getDataType() {
 		return TYPE_CHUNK_SIZE;
 	}
 
-	public int getSize() {
+	/**
+     * Getter for property 'size'.
+     *
+     * @return Value for property 'size'.
+     */
+    public int getSize() {
 		return size;
 	}
 
-	public void setSize(int size) {
+	/**
+     * Setter for property 'size'.
+     *
+     * @param size Value to set for property 'size'.
+     */
+    public void setSize(int size) {
 		this.size = size;
 	}
 
@@ -45,12 +56,14 @@ public class ChunkSize extends BaseEvent {
 		size = 0;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public String toString() {
 		return "ChunkSize: " + size;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public boolean equals(Object obj) {
 		if (!(obj instanceof ChunkSize)) {
 			return false;
@@ -59,12 +72,14 @@ public class ChunkSize extends BaseEvent {
 		return getSize() == other.getSize();
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	protected void releaseInternal() {
 
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public int hashCode() {
 		// XXX Paul: use timestamp as the hash instead of Object.hashCode()
 		return timestamp;

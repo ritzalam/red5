@@ -42,7 +42,8 @@ public class RemotingProtocolEncoder implements SimpleProtocolEncoder {
 
 	private Serializer serializer = null;
 
-	public ByteBuffer encode(ProtocolState state, Object message)
+	/** {@inheritDoc} */
+    public ByteBuffer encode(ProtocolState state, Object message)
 			throws Exception {
 
 		RemotingPacket resp = (RemotingPacket) message;
@@ -74,7 +75,12 @@ public class RemotingProtocolEncoder implements SimpleProtocolEncoder {
 
 	}
 
-	public void setSerializer(Serializer serializer) {
+	/**
+     * Setter for property 'serializer'.
+     *
+     * @param serializer Value to set for property 'serializer'.
+     */
+    public void setSerializer(Serializer serializer) {
 		this.serializer = serializer;
 	}
 

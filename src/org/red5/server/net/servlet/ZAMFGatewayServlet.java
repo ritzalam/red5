@@ -51,7 +51,8 @@ public class ZAMFGatewayServlet extends HttpServlet {
 
 	public static final String APPLICATION_AMF = "application/x-amf";
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	protected void service(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 
@@ -115,7 +116,8 @@ public class ZAMFGatewayServlet extends HttpServlet {
 			this.resp = resp;
 		}
 
-		@Override
+		/** {@inheritDoc} */
+        @Override
 		public void messageReceived(IoSession session, Object message)
 				throws Exception {
 			log.info("<< message " + message);

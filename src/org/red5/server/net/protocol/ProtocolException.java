@@ -31,7 +31,8 @@ public class ProtocolException extends RuntimeException {
 		this.message = message;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public String getMessage() {
 		return message;
 	}

@@ -42,22 +42,22 @@ public interface IStreamFilenameGenerator extends IScopeService {
 	/**
 	 * Generate a filename without an extension.
 	 * 
-	 * @param scope
-	 * @param name
-     * @param type
-	 * @return
+	 * @param scope           Scope to use
+	 * @param name            Stream name
+     * @param type            Generation strategy (either playback or record)
+     * @return                Full filename
 	 */
 	public String generateFilename(IScope scope, String name, GenerationType type);
 
 	/**
 	 * Generate a filename with an extension.
-	 * 
-	 * @param scope
-	 * @param name
-	 * @param extension
-     * @param type
-	 * @return
-	 */
+	 *
+	 * @param scope           Scope to use
+	 * @param name            Stream filename
+	 * @param extension       Extension
+     * @param type            Generation strategy (either playback or record)
+	 * @return                Full filename with extension
+     */
 	public String generateFilename(IScope scope, String name, String extension, GenerationType type);
 
 }

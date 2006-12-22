@@ -33,7 +33,8 @@ public class VideoData extends BaseEvent implements IoConstants, IStreamData {
 
 	private FrameType frameType = FrameType.UNKNOWN;
 
-	public VideoData() {
+	/** Constructs a new VideoData. */
+    public VideoData() {
 		this(ByteBuffer.allocate(0).flip());
 	}
 
@@ -57,25 +58,34 @@ public class VideoData extends BaseEvent implements IoConstants, IStreamData {
 		}
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public byte getDataType() {
 		return TYPE_VIDEO_DATA;
 	}
 
-	public ByteBuffer getData() {
+	/** {@inheritDoc} */
+    public ByteBuffer getData() {
 		return data;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public String toString() {
 		return "Video  ts: " + getTimestamp();
 	}
 
-	public FrameType getFrameType() {
+	/**
+     * Getter for property 'frameType'.
+     *
+     * @return Value for property 'frameType'.
+     */
+    public FrameType getFrameType() {
 		return frameType;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	protected void releaseInternal() {
 		if (data != null) {
 			data.release();

@@ -38,7 +38,8 @@ public class AllocationDebugger {
 
 		public int refcount;
 
-		public Info() {
+		/** Constructs a new Info. */
+        public Info() {
 			refcount = 1;
 		}
 
@@ -46,7 +47,12 @@ public class AllocationDebugger {
 
 	private static AllocationDebugger instance;
 
-	public static AllocationDebugger getInstance() {
+	/**
+     * Getter for property 'instance'.
+     *
+     * @return Value for property 'instance'.
+     */
+    public static AllocationDebugger getInstance() {
 		if (instance == null) {
 			instance = new AllocationDebugger();
 		}
@@ -57,7 +63,8 @@ public class AllocationDebugger {
 
 	private Map<BaseEvent, Info> events;
 
-	private AllocationDebugger() {
+	/** Do not instantiate AllocationDebugger. */
+    private AllocationDebugger() {
 		log = LogFactory.getLog(getClass().getName());
 		events = new HashMap<BaseEvent, Info>();
 	}

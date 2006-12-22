@@ -37,7 +37,8 @@ public class ProxyFilter extends IoFilterAdapter {
 		this.name = name;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void messageReceived(NextFilter next, IoSession session,
 			Object message) throws Exception {
 		IoSession forward = (IoSession) session.getAttribute(FORWARD_KEY);
@@ -68,7 +69,8 @@ public class ProxyFilter extends IoFilterAdapter {
 		next.messageReceived(session, message);
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void sessionClosed(NextFilter next, IoSession session)
 			throws Exception {
 		IoSession forward = (IoSession) session.getAttribute(FORWARD_KEY);

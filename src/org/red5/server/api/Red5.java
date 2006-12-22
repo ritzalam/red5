@@ -71,7 +71,12 @@ public final class Red5 {
 		conn = Red5.getConnectionLocal();
 	}
 
-	public static void setConnectionLocal(IConnection connection) {
+	/**
+     * Setter for property 'connectionLocal'.
+     *
+     * @param connection Value to set for property 'connectionLocal'.
+     */
+    public static void setConnectionLocal(IConnection connection) {
 		connThreadLocal.set(connection);
 	}
 

@@ -28,16 +28,27 @@ public class BytesRead extends BaseEvent {
 		this.bytesRead = bytesRead;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public byte getDataType() {
 		return TYPE_BYTES_READ;
 	}
 
-	public int getBytesRead() {
+	/**
+     * Getter for property 'bytesRead'.
+     *
+     * @return Value for property 'bytesRead'.
+     */
+    public int getBytesRead() {
 		return bytesRead;
 	}
 
-	public void setBytesRead(int bytesRead) {
+	/**
+     * Setter for property 'bytesRead'.
+     *
+     * @param bytesRead Value to set for property 'bytesRead'.
+     */
+    public void setBytesRead(int bytesRead) {
 		this.bytesRead = bytesRead;
 	}
 
@@ -45,12 +56,14 @@ public class BytesRead extends BaseEvent {
 		bytesRead = 0;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public String toString() {
 		return "StreamBytesRead: " + bytesRead;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	protected void releaseInternal() {
 
 	}

@@ -63,7 +63,8 @@ public class AMFGatewayServlet extends HttpServlet {
 
 	protected RemotingCodecFactory codecFactory;
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void init() throws ServletException {
 		webAppCtx = WebApplicationContextUtils
 				.getWebApplicationContext(getServletContext());
@@ -76,7 +77,8 @@ public class AMFGatewayServlet extends HttpServlet {
 		}
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void service(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 		if (log.isDebugEnabled()) {

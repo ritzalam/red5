@@ -21,8 +21,18 @@ package org.red5.server.net.protocol;
 
 public interface SimpleProtocolCodecFactory {
 
-	public SimpleProtocolDecoder getSimpleDecoder();
+	/**
+     * Getter for property 'simpleDecoder'.
+     *
+     * @return Value for property 'simpleDecoder'.
+     */
+    public SimpleProtocolDecoder getSimpleDecoder();
 
-	public SimpleProtocolEncoder getSimpleEncoder();
+	/**
+     * Getter for property 'simpleEncoder'.
+     *
+     * @return Value for property 'simpleEncoder'.
+     */
+    public SimpleProtocolEncoder getSimpleEncoder();
 
 }

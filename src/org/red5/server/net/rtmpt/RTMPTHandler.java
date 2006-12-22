@@ -50,11 +50,21 @@ implements ApplicationContextAware {
 	
 	protected ApplicationContext appCtx;
 
-	public void setCodecFactory(SimpleProtocolCodecFactory factory) {
+	/**
+     * Setter for property 'codecFactory'.
+     *
+     * @param factory Value to set for property 'codecFactory'.
+     */
+    public void setCodecFactory(SimpleProtocolCodecFactory factory) {
 		this.codecFactory = factory;
 	}
 
-	public SimpleProtocolCodecFactory getCodecFactory() {
+	/**
+     * Getter for property 'codecFactory'.
+     *
+     * @return Value for property 'codecFactory'.
+     */
+    public SimpleProtocolCodecFactory getCodecFactory() {
 		return this.codecFactory;
 	}
 
@@ -81,7 +91,8 @@ implements ApplicationContextAware {
 		conn.rawWrite(out);
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void messageReceived(RTMPConnection conn, ProtocolState state,
 			Object in) throws Exception {
 		if (in instanceof ByteBuffer) {
@@ -92,7 +103,8 @@ implements ApplicationContextAware {
 		}
 	}
 
-	public void setApplicationContext(ApplicationContext appCtx) throws BeansException {
+	/** {@inheritDoc} */
+    public void setApplicationContext(ApplicationContext appCtx) throws BeansException {
 		this.appCtx = appCtx;
 	}
 

@@ -87,19 +87,23 @@ public class ClientSharedObject extends SharedObject implements
 		initialSyncReceived = false;
 	}
 	
-	public boolean isConnected() {
+	/** {@inheritDoc} */
+    public boolean isConnected() {
 		return initialSyncReceived;
 	}
 	
-	public void addSharedObjectListener(ISharedObjectListener listener) {
+	/** {@inheritDoc} */
+    public void addSharedObjectListener(ISharedObjectListener listener) {
 		listeners.add(listener);
 	}
 
-	public void removeSharedObjectListener(ISharedObjectListener listener) {
+	/** {@inheritDoc} */
+    public void removeSharedObjectListener(ISharedObjectListener listener) {
 		listeners.remove(listener);
 	}
 
-	public void dispatchEvent(IEvent e) {
+	/** {@inheritDoc} */
+    public void dispatchEvent(IEvent e) {
 		if (e.getType() != IEvent.Type.SHARED_OBJECT
 				|| !(e instanceof ISharedObjectMessage)) {
 			// Don't know how to handle this event.
@@ -212,27 +216,31 @@ public class ClientSharedObject extends SharedObject implements
 		}
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public synchronized boolean setAttribute(String name, Object value) {
 		ownerMessage.addEvent(Type.SERVER_SET_ATTRIBUTE, name, null);
 		notifyModified();
 		return true;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public synchronized boolean removeAttribute(String name) {
 		ownerMessage.addEvent(Type.SERVER_DELETE_ATTRIBUTE, name, null);
 		notifyModified();
 		return true;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public synchronized void sendMessage(String handler, List arguments) {
 		ownerMessage.addEvent(Type.SERVER_SEND_MESSAGE, handler, arguments);
 		notifyModified();
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public synchronized void removeAttributes() {
 		// TODO: there must be a direct way to clear the SO on the client
 		// side...
@@ -244,7 +252,8 @@ public class ClientSharedObject extends SharedObject implements
 		notifyModified();
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public synchronized void beginUpdate() {
 		if (!lock.isHeldByCurrentThread()) {
 			lock.lock();
@@ -252,7 +261,8 @@ public class ClientSharedObject extends SharedObject implements
 		super.beginUpdate();
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public synchronized void beginUpdate(IEventListener listener) {
 		if (!lock.isHeldByCurrentThread()) {
 			lock.lock();
@@ -260,7 +270,8 @@ public class ClientSharedObject extends SharedObject implements
 		super.beginUpdate(listener);
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public synchronized void endUpdate() {
 		super.endUpdate();
 		if (updateCounter == 0) {
@@ -268,85 +279,104 @@ public class ClientSharedObject extends SharedObject implements
 		}
 	}
 
-	public void lock() {
+	/** {@inheritDoc} */
+    public void lock() {
 		lock.lock();
 	}
 
-	public void unlock() {
+	/** {@inheritDoc} */
+    public void unlock() {
 		lock.unlock();
 	}
 
-	public boolean isLocked() {
+	/** {@inheritDoc} */
+    public boolean isLocked() {
 		return lock.isLocked();
 	}
 
-	public void registerServiceHandler(Object handler) {
+	/** {@inheritDoc} */
+    public void registerServiceHandler(Object handler) {
 		registerServiceHandler("", handler);
 	}
 
-	public void unregisterServiceHandler(String name) {
+	/** {@inheritDoc} */
+    public void unregisterServiceHandler(String name) {
 		handlers.remove(name);
 	}
 
-	public void registerServiceHandler(String name, Object handler) {
+	/** {@inheritDoc} */
+    public void registerServiceHandler(String name, Object handler) {
 		if (name == null) {
 			name = "";
 		}
 		handlers.put(name, handler);
 	}
 
-	public Object getServiceHandler(String name) {
+	/** {@inheritDoc} */
+    public Object getServiceHandler(String name) {
 		if (name == null) {
 			name = "";
 		}
 		return handlers.get(name);
 	}
 
-	public Set<String> getServiceHandlerNames() {
+	/** {@inheritDoc} */
+    public Set<String> getServiceHandlerNames() {
 		return Collections.unmodifiableSet(handlers.keySet());
 	}
 
-	public Boolean getBoolAttribute(String name) {
+	/** {@inheritDoc} */
+    public Boolean getBoolAttribute(String name) {
 		return (Boolean) getAttribute(name);
 	}
 
-	public Byte getByteAttribute(String name) {
+	/** {@inheritDoc} */
+    public Byte getByteAttribute(String name) {
 		return (Byte) getAttribute(name);
 	}
 
-	public Double getDoubleAttribute(String name) {
+	/** {@inheritDoc} */
+    public Double getDoubleAttribute(String name) {
 		return (Double) getAttribute(name);
 	}
 
-	public Integer getIntAttribute(String name) {
+	/** {@inheritDoc} */
+    public Integer getIntAttribute(String name) {
 		return (Integer) getAttribute(name);
 	}
 
-	public List getListAttribute(String name) {
+	/** {@inheritDoc} */
+    public List getListAttribute(String name) {
 		return (List) getAttribute(name);
 	}
 
-	public Long getLongAttribute(String name) {
+	/** {@inheritDoc} */
+    public Long getLongAttribute(String name) {
 		return (Long) getAttribute(name);
 	}
 
-	public Map getMapAttribute(String name) {
+	/** {@inheritDoc} */
+    public Map getMapAttribute(String name) {
 		return (Map) getAttribute(name);
 	}
 
-	public Set getSetAttribute(String name) {
+	/** {@inheritDoc} */
+    public Set getSetAttribute(String name) {
 		return (Set) getAttribute(name);
 	}
 
-	public Short getShortAttribute(String name) {
+	/** {@inheritDoc} */
+    public Short getShortAttribute(String name) {
 		return (Short) getAttribute(name);
 	}
 
-	public String getStringAttribute(String name) {
+	/** {@inheritDoc} */
+    public String getStringAttribute(String name) {
 		return (String) getAttribute(name);
 	}
 
-	synchronized public Object getAttribute(String name, Object defaultValue) {
+	/** {@inheritDoc} */
+    synchronized public Object getAttribute(String name, Object defaultValue) {
 		if (!hasAttribute(name)) {
 			setAttribute(name, defaultValue);
 		}

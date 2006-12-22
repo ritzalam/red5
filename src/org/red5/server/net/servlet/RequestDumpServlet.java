@@ -44,7 +44,8 @@ public class RequestDumpServlet extends HttpServlet {
 
 	public static final String APPLICATION_AMF = "application/x-amf";
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	protected void service(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 

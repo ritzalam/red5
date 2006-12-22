@@ -29,7 +29,8 @@ import org.red5.server.api.IScope;
  */
 public class ContextServiceResolver implements IServiceResolver {
 
-	public Object resolveService(IScope scope, String serviceName) {
+	/** {@inheritDoc} */
+    public Object resolveService(IScope scope, String serviceName) {
 		Object service;
 		try {
 			service = scope.getContext().lookupService(serviceName);

@@ -73,11 +73,12 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 
 	private Deserializer deserializer;
 
-	public RTMPProtocolDecoder() {
+	/** Constructs a new RTMPProtocolDecoder. */
+    public RTMPProtocolDecoder() {
 
 	}
 
-	private Input getInput(ByteBuffer buffer) {
+    private Input getInput(ByteBuffer buffer) {
 		IConnection conn = Red5.getConnectionLocal();
 		if (conn != null && conn.getEncoding() == Encoding.AMF3) {
 			return new org.red5.io.amf3.Input(buffer);
@@ -86,11 +87,17 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 		}
 	}
 
-	public void setDeserializer(Deserializer deserializer) {
+    /**
+     * Setter for property 'deserializer'.
+     *
+     * @param deserializer Value to set for property 'deserializer'.
+     */
+    public void setDeserializer(Deserializer deserializer) {
 		this.deserializer = deserializer;
 	}
 
-	public List decodeBuffer(ProtocolState state, ByteBuffer buffer) {
+	/** {@inheritDoc} */
+    public List decodeBuffer(ProtocolState state, ByteBuffer buffer) {
 
 		final List<Object> result = new LinkedList<Object>();
 
@@ -137,7 +144,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 				case RTMP.STATE_CONNECTED:
 					return decodePacket(rtmp, in);
 				case RTMP.STATE_ERROR:
-					// attempt to correct error 
+					// attempt to correct error
 				case RTMP.STATE_CONNECT:
 				case RTMP.STATE_HANDSHAKE:
 					return decodeHandshake(rtmp, in);
@@ -191,7 +198,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 			}
 
 		} else {
-			// else, this is client mode. 
+			// else, this is client mode.
 			if (rtmp.getState() == RTMP.STATE_CONNECT) {
 				final int size = (2 * HANDSHAKE_SIZE) + 1;
 				if (remaining < size) {
@@ -412,29 +419,17 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 		return new ClientBW(in.getInt(), in.get());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.server.net.rtmp.codec.IEventDecoder#decodeUnknown(org.apache.mina.common.ByteBuffer)
-	 */
+	/** {@inheritDoc} */
 	public Unknown decodeUnknown(byte dataType, ByteBuffer in) {
 		return new Unknown(dataType, in.asReadOnlyBuffer());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.server.net.rtmp.codec.IEventDecoder#decodeChunkSize(org.apache.mina.common.ByteBuffer)
-	 */
+	/** {@inheritDoc} */
 	public ChunkSize decodeChunkSize(ByteBuffer in) {
 		return new ChunkSize(in.getInt());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.server.net.rtmp.codec.IEventDecoder#decodeSharedObject(org.apache.mina.common.ByteBuffer)
-	 */
+	/** {@inheritDoc} */
 	public ISharedObjectMessage decodeSharedObject(ByteBuffer in) {
 
 		final Input input = getInput(in);
@@ -457,7 +452,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 			String key = null;
 			Object value = null;
 
-			//if(log.isDebugEnabled()) 
+			//if(log.isDebugEnabled())
 			//	log.debug("type: "+SharedObjectTypeMapping.toString(type));
 
 			//SharedObjectEvent event = new SharedObjectEvent(,null,null);
@@ -504,11 +499,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 		return so;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.server.net.rtmp.codec.IEventDecoder#decodeNotify(org.apache.mina.common.ByteBuffer)
-	 */
+	/** {@inheritDoc} */
 	public Notify decodeNotify(ByteBuffer in) {
 		return decodeNotify(in, null, null);
 	}
@@ -517,20 +508,16 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 		return decodeNotifyOrInvoke(new Notify(), in, header, rtmp);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.server.net.rtmp.codec.IEventDecoder#decodeInvoke(org.apache.mina.common.ByteBuffer)
-	 */
+	/** {@inheritDoc} */
 	public Invoke decodeInvoke(ByteBuffer in) {
 		return (Invoke) decodeNotifyOrInvoke(new Invoke(), in, null, null);
 	}
 
 	/**
 	 * Checks if the passed action is a reserved stream method.
-	 * 
-	 * @param action
-	 * @return
+	 *
+	 * @param action          Action to check
+	 * @return                <code>true</code> if passed action is a reserved stream method, <code>false</code> otherwise
 	 */
 	private boolean isStreamCommand(String action) {
 		return (ACTION_CREATE_STREAM.equals(action)
@@ -580,7 +567,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 				// Before the actual parameters we sometimes (connect) get a map
 				// of parameters, this is usually null, but if set should be
 				// passed
-				// to the connection object. 
+				// to the connection object.
 				final Map connParams = (Map) obj;
 				notify.setConnectionParams(connParams);
 			} else if (obj != null) {
@@ -619,7 +606,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 
 	/*
 	 * (non-Javadoc)
-	 * 
+	 *
 	 * @see org.red5.server.net.rtmp.codec.IEventDecoder#decodePing(org.apache.mina.common.ByteBuffer)
 	 */
 	public Ping decodePing(ByteBuffer in) {
@@ -636,29 +623,17 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 		return ping;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.server.net.rtmp.codec.IEventDecoder#decodeStreamBytesRead(org.apache.mina.common.ByteBuffer)
-	 */
+	/** {@inheritDoc} */
 	public BytesRead decodeBytesRead(ByteBuffer in) {
 		return new BytesRead(in.getInt());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.server.net.rtmp.codec.IEventDecoder#decodeAudioData(org.apache.mina.common.ByteBuffer)
-	 */
+	/** {@inheritDoc} */
 	public AudioData decodeAudioData(ByteBuffer in) {
 		return new AudioData(in.asReadOnlyBuffer());
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.server.net.rtmp.codec.IEventDecoder#decodeVideoData(org.apache.mina.common.ByteBuffer)
-	 */
+	/** {@inheritDoc} */
 	public VideoData decodeVideoData(ByteBuffer in) {
 		return new VideoData(in.asReadOnlyBuffer());
 	}
@@ -680,7 +655,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 			if (obj != null) {
 				paramList.add(obj);
 			}
-			
+
 			if (in.hasRemaining()) {
 				// Check for AMF3 encoding of parameters
 				byte tmp = in.get();
@@ -712,5 +687,5 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 		msg.setCall(call);
 		return msg;
 	}
-	
+
 }

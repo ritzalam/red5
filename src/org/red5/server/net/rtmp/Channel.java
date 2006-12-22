@@ -34,34 +34,65 @@ import org.red5.server.net.rtmp.status.StatusCodes;
 import org.red5.server.service.Call;
 import org.red5.server.service.PendingCall;
 
+/**
+ * Identified connection that transfers packets
+ */
 public class Channel {
-
+    /**
+     * Logger
+     */
 	protected static Log log = LogFactory.getLog(Channel.class.getName());
-
+    /**
+     * RTMP connection used to transfer packets
+     */
 	private RTMPConnection connection = null;
 
-	private byte id = 0;
+    /**
+     * Channel id
+     */
+    private byte id = 0;
 
 	//private Stream stream;
-
+    /**
+     * Creates channel from connection and channel id
+     * @param conn                Connection
+     * @param channelId           Channel id
+     */
 	public Channel(RTMPConnection conn, byte channelId) {
 		connection = conn;
 		id = channelId;
 	}
 
-	public void close() {
+    /**
+     * Closes channel with this id on RTMP connection
+     */
+    public void close() {
 		connection.closeChannel(id);
 	}
 
-	public byte getId() {
+	/**
+     * Getter for property 'id'.
+     *
+     * @return Value for property 'id'.
+     */
+    public byte getId() {
 		return id;
 	}
 	
-	protected RTMPConnection getConnection() {
+	/**
+     * Getter for  RTMP connection.
+     *
+     * @return  RTMP connection
+     */
+    protected RTMPConnection getConnection() {
 		return connection;
 	}
 
-	public void write(IRTMPEvent event) {
+    /**
+     * Writes packet from event data to RTMP connection
+     * @param event          Event data
+     */
+    public void write(IRTMPEvent event) {
 		final IClientStream stream = connection.getStreamByChannelId(id);
 		if (id > 3 && stream == null) {
 			log.info("Stream doesn't exist any longer, discarding message "
@@ -73,7 +104,12 @@ public class Channel {
 		write(event, streamId);
 	}
 
-	private void write(IRTMPEvent event, int streamId) {
+    /**
+     * Writes packet from event data to RTMP connection and stream id
+     * @param event           Event data
+     * @param streamId        Stream id
+     */
+    private void write(IRTMPEvent event, int streamId) {
 
 		final Header header = new Header();
 		final Packet packet = new Packet(header, event);
@@ -91,7 +127,11 @@ public class Channel {
 
 	}
 
-	public void sendStatus(Status status) {
+    /**
+     * Sends status notification
+     * @param status           Status
+     */
+    public void sendStatus(Status status) {
 		final boolean andReturn = !status.getCode().equals(
 				StatusCodes.NS_DATA_START);
 		final Invoke invoke;
