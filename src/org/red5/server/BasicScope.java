@@ -19,15 +19,15 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-
 import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IScope;
 import org.red5.server.api.ScopeUtils;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.event.IEventListener;
+
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 /**
  *  Generalizations of one of main Red5 object types, Scope.
@@ -51,7 +51,7 @@ public abstract class BasicScope extends PersistableAttributeStore implements
     /**
      * Scope persistence storate type
      */
-	protected String persistenceClass = null;
+	protected String persistenceClass;
 
     /**
      * Constructor for basic scope
@@ -69,32 +69,28 @@ public abstract class BasicScope extends PersistableAttributeStore implements
 	}
 
     /**
-     *
-     * @return
+     * {@inheritDoc}
      */
 	public boolean hasParent() {
 		return true;
 	}
 
     /**
-     *
-     * @return
+     *{@inheritDoc}
      */
 	public IScope getParent() {
 		return parent;
 	}
 
     /**
-     *
-     * @return
+     *{@inheritDoc}
      */
 	public int getDepth() {
 		return parent.getDepth() + 1;
 	}
 
     /**
-     *
-     * @return
+     *{@inheritDoc}
      */
 	@Override
 	public String getPath() {
@@ -132,7 +128,7 @@ public abstract class BasicScope extends PersistableAttributeStore implements
 
     /**
      * Setter for persistent property
-     * @param persistent
+     * @param persistent       Persistence flag value
      */
     @Override
 	public void setPersistent(boolean persistent) {
@@ -151,11 +147,10 @@ public abstract class BasicScope extends PersistableAttributeStore implements
 	}
 
     /**
-     * Noifies listeners on event. To be implemented in subclass realization
+     * Notifies listeners on event. Current implementation is empty. To be implemented in subclass realization
      * @param event      Event to broadcast
      */
 	public void notifyEvent(IEvent event) {
-		// TODO Auto-generated method stub
 
 	}
 
@@ -175,27 +170,29 @@ public abstract class BasicScope extends PersistableAttributeStore implements
     /**
      * Getter for subscopes list iterator. Returns null because this is a base implementation
      *
-     * @return
+     * @return           Iterator for subscopes
      */
     public Iterator<IBasicScope> iterator() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
     /**
-     * 
+     * Iterator for basic scope
      */
     public class EmptyBasicScopeIterator implements Iterator<IBasicScope> {
 
-		public boolean hasNext() {
+		/** {@inheritDoc} */
+        public boolean hasNext() {
 			return false;
 		}
 
-		public IBasicScope next() {
+		/** {@inheritDoc} */
+        public IBasicScope next() {
 			return null;
 		}
 
-		public void remove() {
+		/** {@inheritDoc} */
+        public void remove() {
 			// nothing
 		}
 

@@ -65,7 +65,7 @@ public class PersistableAttributeStore extends AttributeStore implements
     /**
      * Store object that deals with save/load routines
      */
-    protected IPersistenceStore store = null;
+    protected IPersistenceStore store;
 
     /**
      * Creates persistable attribute store
@@ -104,7 +104,7 @@ public class PersistableAttributeStore extends AttributeStore implements
 
     /**
      * Set for persistence
-     * @param persistent
+     * @param persistent        Persistence flag value
      */
     public void setPersistent(boolean persistent) {
 		this.persistent = persistent;
@@ -127,32 +127,32 @@ public class PersistableAttributeStore extends AttributeStore implements
 	}
 
     /**
-     *
-     * @param name
+     * Setter for name
+     * @param name    Name
      */
     public void setName(String name) {
 		this.name = name;
 	}
 
     /**
-     *
-     * @return
+     * Ruturn scope path
+     * @return          Path
      */
     public String getPath() {
 		return path;
 	}
 
     /**
-     *
-     * @param path
+     * Setter for scope path
+     * @param path      Path
      */
     public void setPath(String path) {
 		this.path = path;
 	}
 
     /**
-     *
-     * @return
+     * Return scope type
+     * @return          Scope type
      */
     public String getType() {
 		return type;
@@ -161,7 +161,7 @@ public class PersistableAttributeStore extends AttributeStore implements
     /**
      * Serializes byte buffer output, storing them to attributes
      *
-     * @param output
+     * @param output               Output object
      * @throws IOException
      */
     public void serialize(Output output) throws IOException {
@@ -221,7 +221,7 @@ public class PersistableAttributeStore extends AttributeStore implements
      * @return              true if attribute was set, false otherwise
      */
     @Override
-	synchronized public boolean setAttribute(String name, Object value) {
+    public synchronized boolean setAttribute(String name, Object value) {
 		boolean result = super.setAttribute(name, value);
 		if (result && !name.startsWith(IPersistable.TRANSIENT_PREFIX)) {
 			modified();
@@ -235,7 +235,7 @@ public class PersistableAttributeStore extends AttributeStore implements
      * @param values          Attributes as Map
      */
     @Override
-	synchronized public void setAttributes(Map<String, Object> values) {
+    public synchronized void setAttributes(Map<String, Object> values) {
 		super.setAttributes(values);
 		modified();
 	}
@@ -246,7 +246,7 @@ public class PersistableAttributeStore extends AttributeStore implements
      * @param values      Attributes store
      */
     @Override
-	synchronized public void setAttributes(IAttributeStore values) {
+    public synchronized void setAttributes(IAttributeStore values) {
 		super.setAttributes(values);
 		modified();
 	}
@@ -257,7 +257,7 @@ public class PersistableAttributeStore extends AttributeStore implements
      * @return              true if attribute was removed, false otherwise
      */
     @Override
-	synchronized public boolean removeAttribute(String name) {
+    public synchronized boolean removeAttribute(String name) {
 		boolean result = super.removeAttribute(name);
 		if (result && !name.startsWith(IPersistable.TRANSIENT_PREFIX)) {
 			modified();
@@ -269,7 +269,7 @@ public class PersistableAttributeStore extends AttributeStore implements
      * Removes all attributes and sets modified flag
      */
     @Override
-	synchronized public void removeAttributes() {
+    public synchronized void removeAttributes() {
 		super.removeAttributes();
 		modified();
 	}

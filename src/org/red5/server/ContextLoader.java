@@ -19,9 +19,6 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.HashMap;
-import java.util.Properties;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.BeansException;
@@ -31,6 +28,9 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 import org.springframework.core.io.Resource;
+
+import java.util.HashMap;
+import java.util.Properties;
 
 /**
  *  Red5 applications loader
@@ -58,8 +58,8 @@ public class ContextLoader implements ApplicationContextAware {
 	protected HashMap<String, ApplicationContext> contextMap = new HashMap<String, ApplicationContext>();
 
     /**
-     * @param applicationContext
-     * @throws BeansException
+     * @param applicationContext       Spring application context
+     * @throws BeansException          Top level exception for app context (that is, in fact, beans factory)
      */
 	public void setApplicationContext(ApplicationContext applicationContext)
 			throws BeansException {
@@ -67,16 +67,16 @@ public class ContextLoader implements ApplicationContextAware {
 	}
 
     /**
-     *
-     * @param parentContext
+     * Setter for parent app context
+     * @param parentContext            Parent Spring application context
      */
 	public void setParentContext(ApplicationContext parentContext) {
 		this.parentContext = parentContext;
 	}
 
     /**
-     *
-     * @param contextsConfig
+     * Setter for context config name
+     * @param contextsConfig           Context config name
      */
 	public void setContextsConfig(String contextsConfig) {
 		this.contextsConfig = contextsConfig;
@@ -134,8 +134,8 @@ public class ContextLoader implements ApplicationContextAware {
 
     /**
      * Return context by name
-     * @param name
-     * @return
+     * @param name          Context name
+     * @return              Application context for given name
      */
 	public ApplicationContext getContext(String name) {
 		return contextMap.get(name);

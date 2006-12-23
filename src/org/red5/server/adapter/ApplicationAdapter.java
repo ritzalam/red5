@@ -220,12 +220,8 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 		}
 		if (isApp(scope)) {
 			return appStart(scope);
-		} else if (isRoom(scope)) {
-			return roomStart(scope);
-		} else {
-			return false;
-		}
-	}
+		} else return isRoom(scope) && roomStart(scope);
+    }
 
 	/**
 	 * Returns disconnection result for given scope and parameters. Whether the
@@ -286,12 +282,8 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 		}
 		if (isApp(scope)) {
 			return appJoin(client, scope);
-		} else if (isRoom(scope)) {
-			return roomJoin(client, scope);
-		} else {
-			return false;
-		}
-	}
+		} else return isRoom(scope) && roomJoin(client, scope);
+    }
 
 	/**
 	 * Disconnects client from scope. Can be applied to both application scope
@@ -322,8 +314,7 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 	 * {@link ApplicationAdapter#roomStart(IScope)}} in your application to
 	 * make it act the way you want.
 	 * 
-     * @param app
-	 *            Application scope object
+     * @param app Application scope object
 	 * @return <code>true</code> if scope can be started, <code>false</code>
 	 *         otherwise
 	 */
@@ -518,9 +509,8 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 	/**
 	 * Handler method. Called every time client leaves room scope.
 	 * 
-	 * @param client
-	 *            Disconnected client object
-     * @param room
+	 * @param client    Disconnected client object
+     * @param room      Room scope
 	 */
 	public void roomLeave(IClient client, IScope room) {
 		if (log.isDebugEnabled()) {
@@ -665,13 +655,15 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 
 	/* Wrapper around the stream interfaces */
 
-	public boolean hasBroadcastStream(IScope scope, String name) {
+	/** {@inheritDoc} */
+    public boolean hasBroadcastStream(IScope scope, String name) {
 		IProviderService service = (IProviderService) getScopeService(scope,
 				IProviderService.class, ProviderService.class);
 		return (service.getLiveProviderInput(scope, name, false) != null);
 	}
 
-	public IBroadcastStream getBroadcastStream(IScope scope, String name) {
+	/** {@inheritDoc} */
+    public IBroadcastStream getBroadcastStream(IScope scope, String name) {
 		IStreamService service = (IStreamService) getScopeService(
 				scope, IStreamService.class,
 				StreamService.class);
@@ -679,8 +671,7 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 			return null;
 		
 		IBroadcastScope bs = ((StreamService) service).getBroadcastScope(scope, name);
-		IClientBroadcastStream stream = (IClientBroadcastStream) bs.getAttribute(IBroadcastScope.STREAM_ATTRIBUTE);
-		return stream;
+        return (IClientBroadcastStream) bs.getAttribute(IBroadcastScope.STREAM_ATTRIBUTE);
 	}
 
 	/**
@@ -875,7 +866,8 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 		return duration;
 	}
 
-	public boolean clearSharedObjects(IScope scope, String name) {
+	/** {@inheritDoc} */
+    public boolean clearSharedObjects(IScope scope, String name) {
 		// TODO Auto-generated method stub
 		return false;
 	}

@@ -36,8 +36,8 @@ public class GlobalScope extends Scope implements IGlobalScope {
 
     /**
      *
-     * @param persistenceClass
-     * @throws Exception
+     * @param persistenceClass          Persistent class name
+     * @throws Exception                Exception
      */
     @Override
 	public void setPersistenceClass(String persistenceClass) throws Exception {
@@ -67,7 +67,12 @@ public class GlobalScope extends Scope implements IGlobalScope {
 		return store;
 	}
 
-	public void setServer(IServer server) {
+	/**
+     * Setter for server
+     *
+     * @param server Server
+     */
+    public void setServer(IServer server) {
 		this.server = server;
 	}
 
