@@ -19,16 +19,7 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.catalina.Container;
-import org.apache.catalina.Engine;
-import org.apache.catalina.Host;
-import org.apache.catalina.Realm;
-import org.apache.catalina.Valve;
+import org.apache.catalina.*;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.core.StandardHost;
 import org.apache.catalina.startup.Embedded;
@@ -37,6 +28,14 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
+import java.io.File;
+import java.io.FilenameFilter;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Red5 loader for Tomcat
+ */
 public class TomcatLoader implements ApplicationContextAware {
 	// Initialize Logging
 	protected static Logger log = Logger
@@ -188,16 +187,16 @@ public class TomcatLoader implements ApplicationContextAware {
 	}
 
     /**
-     *
-     * @return
+     * Return Tomcat engine
+     * @return          Tomcat engine
      */
 	public Engine getEngine() {
 		return engine;
 	}
 
     /**
-     *
-     * @param engine
+     * Set Tomcat engine implementation
+     * @param engine    Tomcat engine
      */
 	public void setEngine(Engine engine) {
 		log.info("Setting engine: " + engine.getClass().getName());
@@ -205,29 +204,34 @@ public class TomcatLoader implements ApplicationContextAware {
 	}
 
     /**
-     *
-     * @return
+     * Get base host
+     * @return      Base host
      */
 	public Host getBaseHost() {
 		return baseHost;
 	}
 
     /**
-     *
-     * @param baseHost
+     * Set base host
+     * @param baseHost          Base host
      */
 	public void setBaseHost(Host baseHost) {
 		log.debug("setBaseHost");
 		this.baseHost = baseHost;
 	}
 
-	public Embedded getEmbedded() {
+	/**
+     * Getter for embedded object
+     *
+     * @return  Embedded object
+     */
+    public Embedded getEmbedded() {
 		return embedded;
 	}
 
     /**
-     *
-     * @param embedded
+     * Setter for embedded object
+     * @param embedded   Embedded object
      */
 	public void setEmbedded(Embedded embedded) {
 		log.info("Setting embedded: " + embedded.getClass().getName());
@@ -235,16 +239,16 @@ public class TomcatLoader implements ApplicationContextAware {
 	}
 
     /**
-     *
-     * @return
+     * Return connector
+     * @return         Connector
      */
 	public Connector getConnector() {
 		return connector;
 	}
 
     /**
-     *
-     * @param connector
+     * Set connector
+     * @param connector    Connector
      */
 	public void setConnector(Connector connector) {
 		log.info("Setting connector: " + connector.getClass().getName());
@@ -254,7 +258,7 @@ public class TomcatLoader implements ApplicationContextAware {
 	/**
 	 * Set additional connectors
 	 * 
-	 * @param connectors
+	 * @param connectors         Additional connectors
 	 */
 	public void setConnectors(List<Connector> connectors) {
 		if (log.isDebugEnabled()) {
