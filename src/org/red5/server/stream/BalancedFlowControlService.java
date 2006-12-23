@@ -753,8 +753,14 @@ public class BalancedFlowControlService extends TimerTask implements
 		}
 	}
 
-	private class CallbackRunnable implements Runnable {
-		public void run() {
+    /**
+     * Callback runnable object
+     */
+    private class CallbackRunnable implements Runnable {
+        /**
+         * {@inheritDoc}
+         */
+        public void run() {
 			try {
 				while (true) {
 					FcData data = wakeUpQueue.take();
