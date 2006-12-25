@@ -19,16 +19,6 @@ package org.red5.server.so;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.lang.reflect.Method;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.locks.ReentrantLock;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.BaseConnection;
@@ -43,18 +33,42 @@ import org.red5.server.api.so.ISharedObject;
 import org.red5.server.api.so.ISharedObjectListener;
 import org.red5.server.service.ServiceUtils;
 
+import java.lang.reflect.Method;
+import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
+
+/**
+ * Special scope for shared objects
+ */
 public class SharedObjectScope extends BasicScope implements ISharedObject {
-
+    /**
+     *
+     */
 	private Log log = LogFactory.getLog(SharedObjectScope.class.getName());
-
+    /**
+     * Lock to synchronize shared object updates from multiple threads
+     */
 	private final ReentrantLock lock = new ReentrantLock();
-
+    /**
+     * Server-side listeners
+     */
 	private HashSet<ISharedObjectListener> serverListeners = new HashSet<ISharedObjectListener>();
-
+    /**
+     * Event handlers
+     */
 	private HashMap<String, Object> handlers = new HashMap<String, Object>();
-
+    /**
+     * Scoped shared object
+     */
 	protected SharedObject so;
 
+    /**
+     * Creates shared object with given parent scope, name, persistence flag state and store object
+     * @param parent                    Parent scope
+     * @param name                      Name
+     * @param persistent                Persistence flag state
+     * @param store                     Persistence store
+     */
 	public SharedObjectScope(IScope parent, String name, boolean persistent,
 			IPersistenceStore store) {
 		super(parent, TYPE, name, persistent);
@@ -64,21 +78,24 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
 		if ("".equals(path) || path.charAt(0) != '/') {
 			path = '/' + path;
 		}
-		so = (SharedObject) store.load(TYPE + path + '/' + name);
-		if (so == null) {
+        // Load SO
+        so = (SharedObject) store.load(TYPE + path + '/' + name);
+		// Create if it doesn't exist
+        if (so == null) {
 			so = new SharedObject(attributes, name, path, persistent, store);
-
+            // Save
 			store.save(so);
 		} else {
-			so.setName(name);
+            // Rename and set path
+            so.setName(name);
 			so.setPath(parent.getContextPath());
 		}
 	}
 
 	/**
-     * Setter for property 'persistenceClass'.
+     * Setter for persistence class.
      *
-     * @param persistenceClass Value to set for property 'persistenceClass'.
+     * @param persistenceClass  Persistence class.
      */
     public void setPersistenceClass(String persistenceClass) {
 		// Nothing to do here, the shared object will take care of persistence.
@@ -135,16 +152,20 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
 
 	/** {@inheritDoc} */
     public synchronized void beginUpdate(IEventListener listener) {
-		if (!lock.isHeldByCurrentThread()) {
+        // If lock is not held by current thread then lock it
+        if (!lock.isHeldByCurrentThread()) {
 			lock.lock();
 		}
-		so.beginUpdate(listener);
+        // Begin updating SO with this listener
+        so.beginUpdate(listener);
 	}
 
 	/** {@inheritDoc} */
     public synchronized void endUpdate() {
-		so.endUpdate();
-		if (so.updateCounter == 0) {
+		// End update of SO
+        so.endUpdate();
+        // Release lock
+        if (so.updateCounter == 0) {
 			lock.unlock();
 		}
 	}
@@ -207,12 +228,10 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
 		}
 
 		// Notify server listeners
-		Iterator<ISharedObjectListener> it = serverListeners.iterator();
-		while (it.hasNext()) {
-			ISharedObjectListener listener = it.next();
-			listener.onSharedObjectSend(this, handler, arguments);
-		}
-	}
+        for (ISharedObjectListener listener : serverListeners) {
+            listener.onSharedObjectSend(this, handler, arguments);
+        }
+    }
 
 	/** {@inheritDoc} */
     @Override
@@ -222,12 +241,10 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
 		endUpdate();
 
 		if (success) {
-			Iterator<ISharedObjectListener> it = serverListeners.iterator();
-			while (it.hasNext()) {
-				ISharedObjectListener listener = it.next();
-				listener.onSharedObjectDelete(this, name);
-			}
-		}
+            for (ISharedObjectListener listener : serverListeners) {
+                listener.onSharedObjectDelete(this, name);
+            }
+        }
 		return success;
 	}
 
@@ -238,12 +255,10 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
 		so.removeAttributes();
 		endUpdate();
 
-		Iterator<ISharedObjectListener> it = serverListeners.iterator();
-		while (it.hasNext()) {
-			ISharedObjectListener listener = it.next();
-			listener.onSharedObjectClear(this);
-		}
-	}
+        for (ISharedObjectListener listener : serverListeners) {
+            listener.onSharedObjectClear(this);
+        }
+    }
 
 	/** {@inheritDoc} */
     @Override
@@ -251,12 +266,10 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
 		super.addEventListener(listener);
 		so.register(listener);
 
-		Iterator<ISharedObjectListener> it = serverListeners.iterator();
-		while (it.hasNext()) {
-			ISharedObjectListener soListener = it.next();
-			soListener.onSharedObjectConnect(this);
-		}
-	}
+        for (ISharedObjectListener soListener : serverListeners) {
+            soListener.onSharedObjectConnect(this);
+        }
+    }
 
 	/** {@inheritDoc} */
     @Override
@@ -267,12 +280,10 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
 			getParent().removeChildScope(this);
 		}
 
-		Iterator<ISharedObjectListener> it = serverListeners.iterator();
-		while (it.hasNext()) {
-			ISharedObjectListener soListener = it.next();
-			soListener.onSharedObjectDisconnect(this);
-		}
-	}
+        for (ISharedObjectListener soListener : serverListeners) {
+            soListener.onSharedObjectDisconnect(this);
+        }
+    }
 
 	/** {@inheritDoc} */
     @Override
@@ -360,12 +371,10 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
 		endUpdate();
 
 		if (success) {
-			Iterator<ISharedObjectListener> it = serverListeners.iterator();
-			while (it.hasNext()) {
-				ISharedObjectListener listener = it.next();
-				listener.onSharedObjectUpdate(this, name, value);
-			}
-		}
+            for (ISharedObjectListener listener : serverListeners) {
+                listener.onSharedObjectUpdate(this, name, value);
+            }
+        }
 		return success;
 	}
 
@@ -376,12 +385,10 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
 		so.setAttributes(values);
 		endUpdate();
 
-		Iterator<ISharedObjectListener> it = serverListeners.iterator();
-		while (it.hasNext()) {
-			ISharedObjectListener listener = it.next();
-			listener.onSharedObjectUpdate(this, values);
-		}
-	}
+        for (ISharedObjectListener listener : serverListeners) {
+            listener.onSharedObjectUpdate(this, values);
+        }
+    }
 
 	/** {@inheritDoc} */
     @Override
@@ -390,12 +397,10 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
 		so.setAttributes(values);
 		endUpdate();
 
-		Iterator<ISharedObjectListener> it = serverListeners.iterator();
-		while (it.hasNext()) {
-			ISharedObjectListener listener = it.next();
-			listener.onSharedObjectUpdate(this, values);
-		}
-	}
+        for (ISharedObjectListener listener : serverListeners) {
+            listener.onSharedObjectUpdate(this, values);
+        }
+    }
 
 	/** {@inheritDoc} */
     @Override

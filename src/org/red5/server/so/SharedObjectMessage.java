@@ -19,29 +19,57 @@ package org.red5.server.so;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import org.red5.server.api.event.IEventListener;
+import org.red5.server.net.rtmp.event.BaseEvent;
+
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.red5.server.api.event.IEventListener;
-import org.red5.server.net.rtmp.event.BaseEvent;
-
+/**
+ * Shared object event
+ */
 public class SharedObjectMessage extends BaseEvent implements
 		ISharedObjectMessage {
 
-	private String name;
+    /**
+     * SO event name
+     */
+    private String name;
 
-	private LinkedList<ISharedObjectEvent> events = new LinkedList<ISharedObjectEvent>();
+    /**
+     * SO events chain
+     */
+    private LinkedList<ISharedObjectEvent> events = new LinkedList<ISharedObjectEvent>();
+    /**
+     * SO version, used for synchronization purposes
+     */
+	private int version;
+    /**
+     * Whether SO persistent
+     */
+	private boolean persistent;
 
-	private int version = 0;
-
-	private boolean persistent = false;
-
-	public SharedObjectMessage(String name, int version, boolean persistent) {
+    /**
+     * Creates Shared Object event with given name, version and persistence flag
+     *
+     * @param name          Event name
+     * @param version       SO version
+     * @param persistent    SO persistence flag
+     */
+    public SharedObjectMessage(String name, int version, boolean persistent) {
 		this(null, name, version, persistent);
 	}
 
-	public SharedObjectMessage(IEventListener source, String name, int version,
+    /**
+     * Creates Shared Object event with given listener, name, SO version and persistence flag
+     *
+     * @param source         Event listener
+     * @param name           Event name
+     * @param version        SO version
+     * @param persistent     SO persistence flag
+     */
+    public SharedObjectMessage(IEventListener source, String name, int version,
 			boolean persistent) {
 		super(Type.SHARED_OBJECT, source);
 		this.name = name;
@@ -61,9 +89,9 @@ public class SharedObjectMessage extends BaseEvent implements
 	}
 
 	/**
-     * Setter for property 'version'.
+     * Setter for version
      *
-     * @param version Value to set for property 'version'.
+     * @param version  New version
      */
     protected void setVersion(int version) {
 		this.version = version;
@@ -75,9 +103,9 @@ public class SharedObjectMessage extends BaseEvent implements
 	}
 
 	/**
-     * Setter for property 'name'.
+     * Setter for name
      *
-     * @param name Value to set for property 'name'.
+     * @param name  Event name
      */
     protected void setName(String name) {
 		this.name = name;
@@ -89,9 +117,9 @@ public class SharedObjectMessage extends BaseEvent implements
 	}
 
 	/**
-     * Setter for property 'isPersistent'.
+     * Setter for persistence flag
      *
-     * @param persistent Value to set for property 'isPersistent'.
+     * @param persistent  Persistence flag
      */
     protected void setIsPersistent(boolean persistent) {
 		this.persistent = persistent;

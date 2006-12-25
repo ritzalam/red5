@@ -19,10 +19,13 @@ package org.red5.server.so;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.List;
-
 import org.red5.server.net.rtmp.event.IRTMPEvent;
 
+import java.util.List;
+
+/**
+ * Shared object message
+ */
 public interface ISharedObjectMessage extends IRTMPEvent {
 
 	/**
@@ -55,16 +58,29 @@ public interface ISharedObjectMessage extends IRTMPEvent {
 	 */
 	public List<ISharedObjectEvent> getEvents();
 
-	public void addEvent(ISharedObjectEvent.Type type, String key, Object value);
+    /**
+     * Addition event handler
+     * @param type           Event type
+     * @param key            Handler key
+     * @param value          Event value (like arguments)
+     */
+    public void addEvent(ISharedObjectEvent.Type type, String key, Object value);
 
+    /**
+     * Add event handler
+     * @param event          SO event
+     */
 	public void addEvent(ISharedObjectEvent event);
 
-	public void clear();
+    /**
+     * Clear shared object
+     */
+    public void clear();
 
 	/**
-     * Getter for property 'empty'.
+     * Is empty?
      *
-     * @return Value for property 'empty'.
+     * @return  <code>true</code> if shared object is empty, <code>false</code> otherwise
      */
     public boolean isEmpty();
 

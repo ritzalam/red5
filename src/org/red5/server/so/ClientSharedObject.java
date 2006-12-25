@@ -19,15 +19,6 @@ package org.red5.server.so;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.locks.ReentrantLock;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.IConnection;
@@ -40,17 +31,42 @@ import org.red5.server.net.rtmp.Channel;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.so.ISharedObjectEvent.Type;
 
+import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
+
+/**
+ * Works with client-side shared object
+ */
 public class ClientSharedObject extends SharedObject implements
 		IClientSharedObject, IEventDispatcher {
 
-	protected static Log log = LogFactory.getLog(ClientSharedObject.class.getName());
+    /**
+     * Logger
+     */
+    protected static Log log = LogFactory.getLog(ClientSharedObject.class.getName());
+    /**
+     * Initial synchronization flag
+     */
+	private boolean initialSyncReceived;
+    /**
+     * Synchronization lock
+     */
+    private final ReentrantLock lock = new ReentrantLock();
+    /**
+     * Set of listeners
+     */
+    private HashSet<ISharedObjectListener> listeners = new HashSet<ISharedObjectListener>();
+    /**
+     * Set of event handlers
+     */
+    private HashMap<String, Object> handlers = new HashMap<String, Object>();
 
-	private boolean initialSyncReceived = false;
-	private final ReentrantLock lock = new ReentrantLock();
-	private HashSet<ISharedObjectListener> listeners = new HashSet<ISharedObjectListener>();
-	private HashMap<String, Object> handlers = new HashMap<String, Object>();
-
-	public ClientSharedObject(String name, boolean persistent) {
+    /**
+     * Create new client SO with
+     * @param name              Shared Object name
+     * @param persistent        Persistence flag
+     */
+    public ClientSharedObject(String name, boolean persistent) {
 		super();
 		this.name = name;
 		persistentSO = persistent;
@@ -59,7 +75,7 @@ public class ClientSharedObject extends SharedObject implements
 	/**
 	 * Connect the shared object using the passed connection.
 	 * 
-	 * @param conn
+	 * @param conn              Attach SO to given connection
 	 */
 	public void connect(IConnection conn) {
 		if (!(conn instanceof RTMPConnection))
@@ -76,7 +92,7 @@ public class ClientSharedObject extends SharedObject implements
 	}
 	
 	/**
-	 * Disconnect the shared object.
+	 * Disconnect shared object.
 	 */
 	public void disconnect() {
 		SharedObjectMessage msg = new SharedObjectMessage(name, 0, isPersistentObject());
@@ -155,66 +171,80 @@ public class ClientSharedObject extends SharedObject implements
 		endUpdate();
 	}
 
-	protected void notifyConnect() {
-		Iterator<ISharedObjectListener> it = listeners.iterator();
-		while (it.hasNext()) {
-			ISharedObjectListener listener = it.next();
-			listener.onSharedObjectConnect(this);
-		}
-	}
-	
-	protected void notifyDisconnect() {
-		Iterator<ISharedObjectListener> it = listeners.iterator();
-		while (it.hasNext()) {
-			ISharedObjectListener listener = it.next();
-			listener.onSharedObjectDisconnect(this);
-		}
-	}
-	
-	protected void notifyUpdate(String key, Object value) {
-		Iterator<ISharedObjectListener> it = listeners.iterator();
-		while (it.hasNext()) {
-			ISharedObjectListener listener = it.next();
-			listener.onSharedObjectUpdate(this, key, value);
-		}
-	}
-	
-	protected void notifyUpdate(String key, Map<String, Object> value) {
+    /**
+     * Notify listeners on event
+     */
+    protected void notifyConnect() {
+        for (ISharedObjectListener listener : listeners) {
+            listener.onSharedObjectConnect(this);
+        }
+    }
+
+    /**
+     * Notify listeners on disconnect
+     */
+    protected void notifyDisconnect() {
+        for (ISharedObjectListener listener : listeners) {
+            listener.onSharedObjectDisconnect(this);
+        }
+    }
+
+    /**
+     * Notify listeners on update
+     * @param key         Updated attribute key
+     * @param value       Updated attribute value
+     */
+    protected void notifyUpdate(String key, Object value) {
+        for (ISharedObjectListener listener : listeners) {
+            listener.onSharedObjectUpdate(this, key, value);
+        }
+    }
+
+    /**
+     * Notify listeners on map attribute update
+     * @param key         Updated attribute key
+     * @param value       Updated attribute value
+     */
+    protected void notifyUpdate(String key, Map<String, Object> value) {
 		if (value.size() == 1) {
 			Map.Entry<String, Object> entry = value.entrySet().iterator().next();
 			notifyUpdate(entry.getKey(), entry.getValue());
 			return;
 		}
-		Iterator<ISharedObjectListener> it = listeners.iterator();
-		while (it.hasNext()) {
-			ISharedObjectListener listener = it.next();
-			listener.onSharedObjectUpdate(this, key, value);
-		}
-	}
-	
-	protected void notifyDelete(String key) {
-		Iterator<ISharedObjectListener> it = listeners.iterator();
-		while (it.hasNext()) {
-			ISharedObjectListener listener = it.next();
-			listener.onSharedObjectDelete(this, key);
-		}
-	}
+        for (ISharedObjectListener listener : listeners) {
+            listener.onSharedObjectUpdate(this, key, value);
+        }
+    }
 
-	protected void notifyClear() {
-		Iterator<ISharedObjectListener> it = listeners.iterator();
-		while (it.hasNext()) {
-			ISharedObjectListener listener = it.next();
-			listener.onSharedObjectClear(this);
-		}
-	}
+    /**
+     * Notify listeners on attribute delete
+     * @param key       Attribute name
+     */
+    protected void notifyDelete(String key) {
+        for (ISharedObjectListener listener : listeners) {
+            listener.onSharedObjectDelete(this, key);
+        }
+    }
 
-	protected void notifySendMessage(String method, List params) {
-		Iterator<ISharedObjectListener> it = listeners.iterator();
-		while (it.hasNext()) {
-			ISharedObjectListener listener = it.next();
-			listener.onSharedObjectSend(this, method, params);
-		}
-	}
+    /**
+     * Notify listeners on clear
+     */
+    protected void notifyClear() {
+        for (ISharedObjectListener listener : listeners) {
+            listener.onSharedObjectClear(this);
+        }
+    }
+
+    /**
+     * Broadcast send event to listeners
+     * @param method        Method name
+     * @param params        Params
+     */
+    protected void notifySendMessage(String method, List params) {
+        for (ISharedObjectListener listener : listeners) {
+            listener.onSharedObjectSend(this, method, params);
+        }
+    }
 
 	/** {@inheritDoc} */
     @Override
@@ -244,12 +274,10 @@ public class ClientSharedObject extends SharedObject implements
 	public synchronized void removeAttributes() {
 		// TODO: there must be a direct way to clear the SO on the client
 		// side...
-		Iterator keys = data.keySet().iterator();
-		while (keys.hasNext()) {
-			String key = (String) keys.next();
-			ownerMessage.addEvent(Type.SERVER_DELETE_ATTRIBUTE, key, null);
-		}
-		notifyModified();
+        for (String key : data.keySet()) {
+            ownerMessage.addEvent(Type.SERVER_DELETE_ATTRIBUTE, key, null);
+        }
+        notifyModified();
 	}
 
 	/** {@inheritDoc} */
@@ -376,7 +404,7 @@ public class ClientSharedObject extends SharedObject implements
 	}
 
 	/** {@inheritDoc} */
-    synchronized public Object getAttribute(String name, Object defaultValue) {
+    public synchronized Object getAttribute(String name, Object defaultValue) {
 		if (!hasAttribute(name)) {
 			setAttribute(name, defaultValue);
 		}

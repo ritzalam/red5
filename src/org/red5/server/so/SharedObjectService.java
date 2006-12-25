@@ -19,12 +19,6 @@ package org.red5.server.so;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import static org.red5.server.api.so.ISharedObject.TYPE;
-
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.IBasicScope;
@@ -33,31 +27,53 @@ import org.red5.server.api.persistence.IPersistable;
 import org.red5.server.api.persistence.IPersistenceStore;
 import org.red5.server.api.persistence.PersistenceUtils;
 import org.red5.server.api.so.ISharedObject;
+import static org.red5.server.api.so.ISharedObject.TYPE;
 import org.red5.server.api.so.ISharedObjectService;
 import org.red5.server.persistence.RamPersistence;
 
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+
+/**
+ * Shared object service
+ */
 public class SharedObjectService implements ISharedObjectService {
-
+    /**
+     * Logger
+     */
 	private Log log = LogFactory.getLog(SharedObjectService.class.getName());
-
+    /**
+     * Persistence store prefix
+     */
 	private static final String SO_PERSISTENCE_STORE = IPersistable.TRANSIENT_PREFIX
 			+ "_SO_PERSISTENCE_STORE_";
-
+    /**
+     * Transient store prefix
+     */
 	private static final String SO_TRANSIENT_STORE = IPersistable.TRANSIENT_PREFIX
 			+ "_SO_TRANSIENT_STORE_";
-
+    /**
+     * Persistence class name
+     */
 	private String persistenceClassName = "org.red5.server.persistence.RamPersistence";
 
 	/**
-     * Setter for property 'persistenceClassName'.
+     * Setter for persistence class name.
      *
-     * @param name Value to set for property 'persistenceClassName'.
+     * @param name  Setter for persistence class name
      */
     public void setPersistenceClassName(String name) {
 		persistenceClassName = name;
 	}
 
-	private IPersistenceStore getStore(IScope scope, boolean persistent) {
+    /**
+     * Return scope store
+     * @param scope                Scope
+     * @param persistent           Persistent store or not?
+     * @return                     Scope's store
+     */
+    private IPersistenceStore getStore(IScope scope, boolean persistent) {
 		IPersistenceStore store;
 		if (!persistent) {
 			// Use special store for non-persistent shared objects

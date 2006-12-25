@@ -22,13 +22,27 @@ package org.red5.server.messaging;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Abstract base for all messages
+ *
+ * @see org.red5.server.messaging.IMessage
+ */
 public class AbstractMessage implements IMessage {
-	protected String messageID;
-
+    /**
+     * {@inheritDoc}
+     */
+    protected String messageID;
+    /**
+     * {@inheritDoc}
+     */
 	protected String correlationID;
-
+    /**
+     * {@inheritDoc}
+     */
 	protected String messageType;
-
+    /**
+     * {@inheritDoc}
+     */
 	protected Map extraHeaders = new HashMap();
 
 	/** {@inheritDoc} */

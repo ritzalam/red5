@@ -19,14 +19,26 @@ package org.red5.server.so;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+/**
+ * {@inheritDoc}
+ */
 public class SharedObjectEvent implements ISharedObjectEvent {
-
+    /**
+     * Event type
+     */
 	private Type type;
-
+    /**
+     * Changed pair key
+     */
 	private String key;
-
+    /**
+     * Changed pair value
+     */
 	private Object value;
 
+    /**
+     * {@inheritDoc}
+     */
 	public SharedObjectEvent(Type type, String key, Object value) {
 		this.type = type;
 		this.key = key;
