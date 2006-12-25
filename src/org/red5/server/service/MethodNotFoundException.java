@@ -20,6 +20,7 @@ package org.red5.server.service;
  */
 
 /**
+ * Thrown if service method is not found so call throws exception
  *
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
@@ -31,7 +32,11 @@ public class MethodNotFoundException extends RuntimeException {
 	 */
 	private static final long serialVersionUID = 7559230924102506068L;
 
-	public MethodNotFoundException(String methodName) {
+    /**
+     * Creates exception with given method name
+     * @param methodName      Service method name that can't be found
+     */
+    public MethodNotFoundException(String methodName) {
 		super("Method not found: " + methodName);
 	}
 

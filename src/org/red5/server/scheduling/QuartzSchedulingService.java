@@ -19,21 +19,16 @@ package org.red5.server.scheduling;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.quartz.JobDetail;
-import org.quartz.Scheduler;
-import org.quartz.SchedulerException;
-import org.quartz.SchedulerFactory;
-import org.quartz.SimpleTrigger;
-import org.quartz.Trigger;
+import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
 import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Scheduling service that uses Quartz as backend. 
@@ -42,15 +37,26 @@ import org.red5.server.api.scheduling.ISchedulingService;
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public class QuartzSchedulingService implements ISchedulingService {
-
+    /**
+     * Logger
+     */
 	private Log log = LogFactory
 			.getLog(QuartzSchedulingService.class.getName());
 
-	private static SchedulerFactory schedFact = new StdSchedulerFactory();
+    /**
+     * Creates schedulers
+     */
+    private static SchedulerFactory schedFact = new StdSchedulerFactory();
 
-	private Scheduler scheduler;
+    /**
+     * Service scheduler
+     */
+    private Scheduler scheduler;
 
-	private long jobDetailCounter = 0;
+    /**
+     * Number of job details
+     */
+    private long jobDetailCounter;
 
 	/** Constructs a new QuartzSchedulingService. */
     public QuartzSchedulingService() {
@@ -63,9 +69,9 @@ public class QuartzSchedulingService implements ISchedulingService {
 	}
 
 	/**
-     * Getter for property 'jobName'.
+     * Getter for job name.
      *
-     * @return Value for property 'jobName'.
+     * @return  Job name
      */
     private synchronized String getJobName() {
 		String result = "ScheduledJob_" + jobDetailCounter;
@@ -73,7 +79,15 @@ public class QuartzSchedulingService implements ISchedulingService {
 		return result;
 	}
 
-	private void scheduleJob(String name, Trigger trigger, IScheduledJob job) {
+    /**
+     * Schedules job
+     * @param name               Job name
+     * @param trigger            Job trigger
+     * @param job                Scheduled job object
+     *
+     * @see org.red5.server.api.scheduling.IScheduledJob
+     */
+    private void scheduleJob(String name, Trigger trigger, IScheduledJob job) {
 		// Store reference to applications job and service 
 		JobDetail jobDetail = new JobDetail(name, null,
 				QuartzSchedulingServiceJob.class);

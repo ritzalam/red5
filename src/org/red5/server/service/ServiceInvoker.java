@@ -19,11 +19,6 @@ package org.red5.server.service;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.HashSet;
-import java.util.Set;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.IConnection;
@@ -33,23 +28,38 @@ import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IServiceCall;
 import org.red5.server.api.service.IServiceInvoker;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.HashSet;
+import java.util.Set;
+
 /**
+ * Makes remote calls, invoking services, resolves service handlers
  *
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 public class ServiceInvoker implements IServiceInvoker {
 
-	private static final Log log = LogFactory.getLog(ServiceInvoker.class);
+    /**
+     * Logger
+     */
+    private static final Log log = LogFactory.getLog(ServiceInvoker.class);
 
-	public static final String SERVICE_NAME = "serviceInvoker";
+    /**
+     * Service name
+     */
+    public static final String SERVICE_NAME = "serviceInvoker";
 
-	private Set<IServiceResolver> serviceResolvers = new HashSet<IServiceResolver>();
+    /**
+     * Service resolvers set
+     */
+    private Set<IServiceResolver> serviceResolvers = new HashSet<IServiceResolver>();
 
 	/**
-     * Setter for property 'serviceResolvers'.
+     * Setter for service resolvers.
      *
-     * @param resolvers Value to set for property 'serviceResolvers'.
+     * @param resolvers  Service resolvers
      */
     public void setServiceResolvers(Set<IServiceResolver> resolvers) {
 		serviceResolvers = resolvers;
@@ -58,9 +68,9 @@ public class ServiceInvoker implements IServiceInvoker {
 	/**
 	 * Lookup a handler for the passed service name in the given scope.
 	 * 
-	 * @param scope
-	 * @param serviceName
-	 * @return
+	 * @param scope              Scope
+	 * @param serviceName        Service name
+	 * @return                   Service handler
 	 */
 	private Object getServiceHandler(IScope scope, String serviceName) {
 		// Get application scope handler first
@@ -90,8 +100,10 @@ public class ServiceInvoker implements IServiceInvoker {
 		}
 		Object service = getServiceHandler(scope, serviceName);
 		if (service == null) {
-			call.setException(new ServiceNotFoundException(serviceName));
-			call.setStatus(Call.STATUS_SERVICE_NOT_FOUND);
+            // Exception must be thrown if service was not found
+            call.setException(new ServiceNotFoundException(serviceName));
+            // Set call status
+            call.setStatus(Call.STATUS_SERVICE_NOT_FOUND);
 			log.warn("Service not found: " + serviceName);
 			return;
 		} else {
@@ -99,7 +111,8 @@ public class ServiceInvoker implements IServiceInvoker {
 				log.debug("Service found: " + serviceName);
 			}
 		}
-		invoke(call, service);
+        // Invoke if everything is ok
+        invoke(call, service);
 	}
 
 	/** {@inheritDoc} */
@@ -108,7 +121,7 @@ public class ServiceInvoker implements IServiceInvoker {
 		String methodName = call.getServiceMethodName();
 
 		Object[] args = call.getArguments();
-		Object[] argsWithConnection = null;
+		Object[] argsWithConnection;
 		if (args != null) {
 			argsWithConnection = new Object[args.length + 1];
 			argsWithConnection[0] = conn;

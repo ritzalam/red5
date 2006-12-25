@@ -19,43 +19,63 @@ package org.red5.server.service;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.HashSet;
-import java.util.Set;
-
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IPendingServiceCallback;
 
+import java.util.HashSet;
+import java.util.Set;
+
+/**
+ * Pending call is remote call operation that is in pending state. Remote calls to services
+ * are asynchronous, that is, after call but before result callback remote calls are in
+ * pending state.
+ */
 public class PendingCall extends Call implements IPendingServiceCall {
+    /**
+     * Result object
+     */
+	private Object result;
 
-	private Object result = null;
+    /**
+     * List of callbacks (event listeners)
+     */
+    private HashSet<IPendingServiceCallback> callbacks = new HashSet<IPendingServiceCallback>();
 
-	private HashSet<IPendingServiceCallback> callbacks = new HashSet<IPendingServiceCallback>();
-
-	public PendingCall(String method) {
+    /**
+     * Creates pending call with given method name
+     * @param method    Method name
+     */
+    public PendingCall(String method) {
 		super(method);
 	}
 
+    /**
+     * Creates pending call with given method name and array of parameters
+     * @param method    Method name
+     * @param args      Parameters
+     */
 	public PendingCall(String method, Object[] args) {
 		super(method, args);
 	}
 
+    /**
+     * Creates pending call with given method name, service name and array of parametes
+     *
+     * @param name      Service name
+     * @param method    Method name
+     * @param args      Parameters
+     */
 	public PendingCall(String name, String method, Object[] args) {
 		super(name, method, args);
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.server.service.ServiceCall#getResult()
+	/** {@inheritDoc}
 	 */
 	public Object getResult() {
 		return result;
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.server.service.temp#setResult(java.lang.Object)
+	/** {@inheritDoc}
 	 */
 	public void setResult(Object result) {
 		this.result = result;

@@ -19,6 +19,8 @@ package org.red5.server.scheduling;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -32,18 +34,33 @@ import org.red5.server.api.scheduling.ISchedulingService;
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public class QuartzSchedulingServiceJob implements Job {
+    /**
+     * Scheduling service constant
+     */
+    protected static final String SCHEDULING_SERVICE = "scheduling_service";
 
-	protected static final String SCHEDULING_SERVICE = "scheduling_service";
+    /**
+     * Scheduled job constant
+     */
+    protected static final String SCHEDULED_JOB = "scheduled_job";
 
-	protected static final String SCHEDULED_JOB = "scheduled_job";
+    /**
+     * Logger
+     */
+    private Log log = LogFactory.getLog( QuartzSchedulingService.class );
 
-	/** {@inheritDoc} */
+    /** {@inheritDoc} */
     public void execute(JobExecutionContext arg0) throws JobExecutionException {
 		ISchedulingService service = (ISchedulingService) arg0.getJobDetail()
 				.getJobDataMap().get(SCHEDULING_SERVICE);
 		IScheduledJob job = (IScheduledJob) arg0.getJobDetail().getJobDataMap()
 				.get(SCHEDULED_JOB);
-		job.execute(service);
-	}
+        try {
+            job.execute(service);
+        } catch (CloneNotSupportedException e) {
+            log.error("Job " + job.toString() + " execution failed, clone not supported.");
+            throw new RuntimeException(e);
+        }
+    }
 
 }

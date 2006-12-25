@@ -22,59 +22,104 @@ package org.red5.server.service;
 import org.red5.server.api.service.IServiceCall;
 
 /**
+ * Basic service call (remote call) implementation
  *
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 public class Call implements IServiceCall {
-
+    /**
+     * Pending status constant
+     */
 	public static final byte STATUS_PENDING = 0x01;
-
+    /**
+     * Success result constant
+     */
 	public static final byte STATUS_SUCCESS_RESULT = 0x02;
-
+    /**
+     * Returned value is null constant
+     */
 	public static final byte STATUS_SUCCESS_NULL = 0x03;
-
+    /**
+     * Service returns no value constant
+     */
 	public static final byte STATUS_SUCCESS_VOID = 0x04;
-
+    /**
+     * Service not found constant
+     */
 	public static final byte STATUS_SERVICE_NOT_FOUND = 0x10;
-
+    /**
+     * Service's method not found constant
+     */
 	public static final byte STATUS_METHOD_NOT_FOUND = 0x11;
-
+    /**
+     * Access denied constant
+     */
 	public static final byte STATUS_ACCESS_DENIED = 0x12;
 
-	public static final byte STATUS_INVOCATION_EXCEPTION = 0x13;
+    /**
+     * Exception on invocation constant
+     */
+    public static final byte STATUS_INVOCATION_EXCEPTION = 0x13;
 
-	public static final byte STATUS_GENERAL_EXCEPTION = 0x14;
+    /**
+     * General exception constant
+     */
+    public static final byte STATUS_GENERAL_EXCEPTION = 0x14;
 
-	protected String serviceName = null;
-
-	protected String serviceMethodName = null;
-
+    /**
+     * Service name
+     */
+    protected String serviceName;
+    /**
+     * Service method name
+     */
+	protected String serviceMethodName;
+    /**
+     * Call arguments
+     */
 	protected Object[] arguments = null;
-
+    /**
+     * Call status, initial one is pending
+     */
 	protected byte status = STATUS_PENDING;
+    /**
+     * Call exception if any, null by default
+     */
+	protected Exception exception;
 
-	protected Exception exception = null;
-
+    /**
+     * Creates call from method name
+     * @param method        Method name
+     */
 	public Call(String method) {
 		serviceMethodName = method;
 	}
 
-	public Call(String method, Object[] args) {
+    /**
+     * Creates call from method name and array of call parameters
+     * @param method        Method name
+     * @param args          Call parameters
+     */
+    public Call(String method, Object[] args) {
 		serviceMethodName = method;
 		arguments = args;
 	}
 
-	public Call(String name, String method, Object[] args) {
+    /**
+     * Creates call from given service name, method name and array of call parameters
+     * @param name         Service name
+     * @param method       Service method name
+     * @param args         Call parameters
+     */
+    public Call(String name, String method, Object[] args) {
 		serviceName = name;
 		serviceMethodName = method;
 		arguments = args;
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.server.service.ServiceCall#isSuccess()
+	/**
+     * {@inheritDoc}
 	 */
 	public boolean isSuccess() {
 		return (status == STATUS_SUCCESS_RESULT)
@@ -82,91 +127,77 @@ public class Call implements IServiceCall {
 				|| (status == STATUS_SUCCESS_VOID);
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.server.service.ServiceCall#getServiceMethodName()
+	/**
+     * {@inheritDoc}
 	 */
 	public String getServiceMethodName() {
 		return serviceMethodName;
 	}
 
 	/**
-     * Setter for property 'serviceMethodName'.
+     * Setter for service method name
      *
-     * @param serviceMethodName Value to set for property 'serviceMethodName'.
+     * @param serviceMethodName  New service method name value
      */
     public void setServiceMethodName(String serviceMethodName) {
 		this.serviceMethodName = serviceMethodName;
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.server.service.ServiceCall#getServiceName()
+	/**
+     * {@inheritDoc}
 	 */
 	public String getServiceName() {
 		return serviceName;
 	}
 
 	/**
-     * Setter for property 'serviceName'.
+     * Setter for service name
      *
-     * @param serviceName Value to set for property 'serviceName'.
+     * @param serviceName  New service name value
      */
     public void setServiceName(String serviceName) {
 		this.serviceName = serviceName;
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.server.service.ServiceCall#getArguments()
+	/**
+     * {@inheritDoc}
 	 */
 	public Object[] getArguments() {
 		return arguments;
 	}
 
 	/**
-     * Setter for property 'arguments'.
+     * Setter for arguments.
      *
-     * @param args Value to set for property 'arguments'.
+     * @param args  Arguments.
      */
     public void setArguments(Object[] args) {
 		arguments = args;
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.server.service.ServiceCall#getStatus()
+	/**
+     * {@inheritDoc}
 	 */
 	public byte getStatus() {
 		return status;
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.server.service.temp#setStatus(byte)
+	/**
+     * {@inheritDoc}
 	 */
 	public void setStatus(byte status) {
 		this.status = status;
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.server.service.ServiceCall#getException()
+	/**
+     * {@inheritDoc}
 	 */
 	public Exception getException() {
 		return exception;
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.server.service.temp#setException(java.lang.Exception)
+	/**
+     * {@inheritDoc}
 	 */
 	public void setException(Exception exception) {
 		this.exception = exception;

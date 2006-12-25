@@ -19,18 +19,6 @@ package org.red5.server.service;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.lang.reflect.Array;
-import java.lang.reflect.Method;
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.commons.beanutils.BeanMap;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.ConversionException;
@@ -39,8 +27,14 @@ import org.apache.commons.logging.LogFactory;
 import org.red5.io.object.Deserializer;
 import org.red5.server.api.IConnection;
 
+import java.lang.reflect.Array;
+import java.lang.reflect.Method;
+import java.text.NumberFormat;
+import java.util.*;
+
 /**
- *
+ * Misc utils for convertions
+ * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
@@ -56,7 +50,10 @@ public class ConversionUtils {
 			Character.class, Short.class, Integer.class, Long.class,
 			Float.class, Double.class };
 
-	private static final Class[][] PARAMETER_CHAINS = {
+    /**
+     * Parameter chains
+     */
+    private static final Class[][] PARAMETER_CHAINS = {
 			{ boolean.class, null }, { byte.class, Short.class },
 			{ char.class, Integer.class }, { short.class, Integer.class },
 			{ int.class, Long.class }, { long.class, Float.class },
@@ -86,7 +83,15 @@ public class ConversionUtils {
 		}
 	}
 
-	public static Object convert(Object source, Class target)
+    /**
+     * Convert source to given class
+     * @param source         Source object
+     * @param target         Target class
+     * @return               Converted object
+     * @throws ConversionException           If object can't be converted
+     *
+     */
+    public static Object convert(Object source, Class target)
 			throws ConversionException {
 		if (target == null) {
 			throw new ConversionException("Unable to perform conversion");
@@ -133,7 +138,14 @@ public class ConversionUtils {
 		throw new ConversionException("Unable to preform conversion");
 	}
 
-	public static Object convertToArray(Object source, Class target)
+    /**
+     * Convert to array
+     * @param source         Source object
+     * @param target         Target class
+     * @return               Converted object
+     * @throws ConversionException           If object can't be converted
+     */
+    public static Object convertToArray(Object source, Class target)
 			throws ConversionException {
 		try {
 			Object[] targetInstance = (Object[]) Array.newInstance(target
@@ -157,7 +169,13 @@ public class ConversionUtils {
 		}
 	}
 
-	public static Object convertToWrappedPrimitive(Object source, Class wrapper) {
+    /**
+     * Convert to wrapped primitive
+     * @param source            Source object
+     * @param wrapper           Primitive wrapper type
+     * @return                  Converted object
+     */
+    public static Object convertToWrappedPrimitive(Object source, Class wrapper) {
 		if (source == null || wrapper == null) {
 			return null;
 		}
@@ -174,7 +192,13 @@ public class ConversionUtils {
 		}
 	}
 
-	public static Object convertStringToWrapper(String str, Class wrapper) {
+    /**
+     * Convert string to primitive wrapper like Boolean or Float
+     * @param str               String to convert
+     * @param wrapper           Primitive wrapper type
+     * @return                  Converted object
+     */
+    public static Object convertStringToWrapper(String str, Class wrapper) {
 		if (wrapper.equals(String.class)) {
 			return str;
 		} else if (wrapper.equals(Boolean.class)) {
@@ -195,7 +219,13 @@ public class ConversionUtils {
 		throw new ConversionException("Unable to convert string to: " + wrapper);
 	}
 
-	public static Object convertNumberToWrapper(Number num, Class wrapper) {
+    /**
+     * Convert number to primitive wrapper like Boolean or Float
+     * @param num               Number to conver
+     * @param wrapper           Primitive wrapper type
+     * @return                  Converted object
+     */
+    public static Object convertNumberToWrapper(Number num, Class wrapper) {
 		//XXX Paul: Using valueOf will reduce object creation
 		if (wrapper.equals(String.class)) {
 			return num.toString();
@@ -217,9 +247,16 @@ public class ConversionUtils {
 		throw new ConversionException("Unable to convert number to: " + wrapper);
 	}
 
-	public static List findMethodsByNameAndNumParams(Object object,
+    /**
+     * Find method by name and number of parameters
+     * @param object            Object to find method on
+     * @param method            Method name
+     * @param numParam          Number of parameters
+     * @return                  List of methods that match by name and number of parameters
+     */
+    public static List<Method> findMethodsByNameAndNumParams(Object object,
 			String method, int numParam) {
-		LinkedList list = new LinkedList();
+		LinkedList<Method> list = new LinkedList<Method>();
 		Method[] methods = object.getClass().getMethods();
 		for (Method m : methods) {
 			if (log.isDebugEnabled()) {
@@ -238,7 +275,14 @@ public class ConversionUtils {
 		return list;
 	}
 
-	public static Object[] convertParams(Object[] source, Class[] target)
+    /**
+     * Convert parameters using methods of this utility class
+     * @param source                Array of source object
+     * @param target                Array of target classes
+     * @return                      Array of converted objects
+     * @throws ConversionException  If object can't be converted
+     */
+    public static Object[] convertParams(Object[] source, Class[] target)
 			throws ConversionException {
 		Object[] converted = new Object[target.length];
 		for (int i = 0; i < target.length; i++) {
@@ -247,7 +291,13 @@ public class ConversionUtils {
 		return converted;
 	}
 
-	public static List convertArrayToList(Object[] source)
+    /**
+     *
+     * @param source
+     * @return
+     * @throws ConversionException
+     */
+    public static List convertArrayToList(Object[] source)
 			throws ConversionException {
 		ArrayList list = new ArrayList(source.length);
 		for (Object element : source) {
@@ -256,7 +306,14 @@ public class ConversionUtils {
 		return list;
 	}
 
-	public static Object convertMapToBean(Map source, Class target)
+    /**
+     * Convert map to bean
+     * @param source                Source map
+     * @param target                Target class
+     * @return                      Bean of that class
+     * @throws ConversionException
+     */
+    public static Object convertMapToBean(Map source, Class target)
 			throws ConversionException {
 		Object bean = newInstance(target.getClass().getName());
 		if (bean == null) {
@@ -271,11 +328,21 @@ public class ConversionUtils {
 		return bean;
 	}
 
-	public static Map convertBeanToMap(Object source) {
+    /**
+     * Convert bean to map
+     * @param source      Source bean
+     * @return            Converted map
+     */
+    public static Map convertBeanToMap(Object source) {
 		return new BeanMap(source);
 	}
 
-	public static Set convertArrayToSet(Object[] source) {
+    /**
+     * Convert array to set, removing duplicates
+     * @param source      Source array
+     * @return            Set
+     */
+    public static Set convertArrayToSet(Object[] source) {
 		HashSet set = new HashSet();
 		for (Object element : source) {
 			set.add(element);
@@ -283,10 +350,15 @@ public class ConversionUtils {
 		return set;
 	}
 
-	protected static Object newInstance(String className) {
+    /**
+     * Create new class instance
+     * @param className   Class name; may not be loaded by JVM yet
+     * @return            Instance of given class
+     */
+    protected static Object newInstance(String className) {
 		Object instance = null;
 		try {
-			Class clazz = Thread.currentThread().getContextClassLoader()
+			Class<?> clazz = Thread.currentThread().getContextClassLoader()
 					.loadClass(className);
 			instance = clazz.newInstance();
 		} catch (Exception ex) {

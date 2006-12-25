@@ -20,6 +20,7 @@ package org.red5.server.service;
  */
 
 /**
+ * Thrown when service can't be found thus remote call throws an exception
  *
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
@@ -31,7 +32,11 @@ public class ServiceNotFoundException extends RuntimeException {
 	 */
 	private static final long serialVersionUID = 7543755414829244027L;
 
-	public ServiceNotFoundException(String serviceName) {
+    /**
+     * Creates new exception with service name
+     * @param serviceName       Name of service that couldn't been found
+     */
+    public ServiceNotFoundException(String serviceName) {
 		super("Service not found: " + serviceName);
 	}
 
