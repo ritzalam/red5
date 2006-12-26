@@ -35,41 +35,57 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
+/**
+ * Handles all RTMP protocol events fired by MINA framework
+ */
 public class RTMPMinaIoHandler extends IoHandlerAdapter
 implements ApplicationContextAware {
-
+    /**
+     * Logger
+     */
 	protected static Log log = LogFactory.getLog(RTMPMinaIoHandler.class
 			.getName());
 
-	protected IRTMPHandler handler;
-	protected boolean mode = RTMP.MODE_SERVER;
-	
+    /**
+     * RTMP events handler
+     */
+    protected IRTMPHandler handler;
+    /**
+     * Mode
+     */
+    protected boolean mode = RTMP.MODE_SERVER;
+    /**
+     * Application context
+     */
 	protected ApplicationContext appCtx;
 
-	/**
-     * Setter for property 'handler'.
+    /**
+     * RTMP protocol codec factory
+     */
+    private ProtocolCodecFactory codecFactory = null;
+
+    /**
+     * Setter for handler.
      *
-     * @param handler Value to set for property 'handler'.
+     * @param handler  RTMP events handler
      */
     public void setHandler(IRTMPHandler handler) {
 		this.handler = handler;
 	}
 	
 	/**
-     * Setter for property 'mode'.
+     * Setter for mode.
      *
-     * @param mode Value to set for property 'mode'.
+     * @param mode     <code>true</code> if handler should work in server mode, <code>false</code> otherwise
      */
     public void setMode(boolean mode) {
 		this.mode = mode;
 	}
 
-	private ProtocolCodecFactory codecFactory = null;
-
 	/**
-     * Setter for property 'codecFactory'.
+     * Setter for codec factory.
      *
-     * @param codecFactory Value to set for property 'codecFactory'.
+     * @param codecFactory  RTMP protocol codec factory
      */
     public void setCodecFactory(ProtocolCodecFactory codecFactory) {
 		this.codecFactory = codecFactory;
@@ -101,11 +117,17 @@ implements ApplicationContextAware {
 		handler.messageReceived(conn, state, in);
 	}
 
-	private void rawBufferRecieved(ProtocolState state, ByteBuffer in,
+    /**
+     * Handle raw buffer receiving event
+     * @param state        Protocol state
+     * @param in           Data buffer
+     * @param session      I/O session, that is, connection between two endpoints
+     */
+    private void rawBufferRecieved(ProtocolState state, ByteBuffer in,
 			IoSession session) {
 
 		final RTMP rtmp = (RTMP) state;
-		if (rtmp.getMode()==RTMP.MODE_SERVER) {
+		if (rtmp.getMode() == RTMP.MODE_SERVER) {
 			if (rtmp.getState() != RTMP.STATE_HANDSHAKE) {
 				log.warn("Raw buffer after handshake, something odd going on");
 			}

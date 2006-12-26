@@ -45,12 +45,12 @@ public class Channel {
     /**
      * RTMP connection used to transfer packets
      */
-	private RTMPConnection connection = null;
+	private RTMPConnection connection;
 
     /**
      * Channel id
      */
-    private byte id = 0;
+    private byte id;
 
 	//private Stream stream;
     /**
@@ -71,16 +71,16 @@ public class Channel {
 	}
 
 	/**
-     * Getter for property 'id'.
+     * Getter for id.
      *
-     * @return Value for property 'id'.
+     * @return  Channel ID
      */
     public byte getId() {
 		return id;
 	}
 	
 	/**
-     * Getter for  RTMP connection.
+     * Getter for RTMP connection.
      *
      * @return  RTMP connection
      */
@@ -145,11 +145,10 @@ public class Channel {
 			invoke.setInvokeId(1);
 			invoke.setCall(call);
 		} else {
-			final Call call = new Call(null, "onStatus",
-					new Object[] { status });
+			final Call call = new Call(null, "onStatus", new Object[] { status });
 			invoke = (Invoke) new Notify();
 			invoke.setInvokeId(1);
-			((Notify) invoke).setCall(call);
+			invoke.setCall(call);
 		}
 		// We send directly to the corresponding stream as for
 		// some status codes, no stream has been created and thus

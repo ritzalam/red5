@@ -19,18 +19,10 @@ package org.red5.server.net.rtmp;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import static org.red5.server.api.ScopeUtils.getScopeService;
-
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.red5.server.api.IContext;
-import org.red5.server.api.IGlobalScope;
-import org.red5.server.api.IScope;
-import org.red5.server.api.IScopeHandler;
-import org.red5.server.api.IServer;
+import org.red5.server.api.*;
+import static org.red5.server.api.ScopeUtils.getScopeService;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IServiceCall;
 import org.red5.server.api.so.ISharedObject;
@@ -58,27 +50,39 @@ import org.red5.server.stream.IBroadcastScope;
 import org.red5.server.stream.IStreamFlow;
 import org.red5.server.stream.StreamService;
 
+import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * RTMP events handler
+ */
 public class RTMPHandler extends BaseRTMPHandler {
-
+    /**
+     * Logger
+     */
 	protected static Log log = LogFactory.getLog(RTMPHandler.class.getName());
-
+    /**
+     * Status object service
+     */
 	protected StatusObjectService statusObjectService;
-
+    /**
+     * Red5 server instance
+     */
 	protected IServer server;
 
 	/**
-     * Setter for property 'server'.
+     * Setter for server object.
      *
-     * @param server Value to set for property 'server'.
+     * @param server  Red5 server instance
      */
     public void setServer(IServer server) {
 		this.server = server;
 	}
 
 	/**
-     * Setter for property 'statusObjectService'.
+     * Setter for status object service.
      *
-     * @param statusObjectService Value to set for property 'statusObjectService'.
+     * @param statusObjectService Status object service.
      */
     public void setStatusObjectService(StatusObjectService statusObjectService) {
 		this.statusObjectService = statusObjectService;
@@ -113,7 +117,12 @@ public class RTMPHandler extends BaseRTMPHandler {
 		}
 	}
 
-	protected void invokeCall(RTMPConnection conn, IServiceCall call) {
+    /**
+     * Remoting call invocation handler
+     * @param conn             RTMP connection
+     * @param call             Service call
+     */
+    protected void invokeCall(RTMPConnection conn, IServiceCall call) {
 		final IScope scope = conn.getScope();
 		if (scope.hasHandler()) {
 			final IScopeHandler handler = scope.getHandler();
@@ -134,7 +143,13 @@ public class RTMPHandler extends BaseRTMPHandler {
 		context.getServiceInvoker().invoke(call, scope);
 	}
 
-	private void invokeCall(RTMPConnection conn, IServiceCall call,
+    /**
+     * Remoting call invocation handler
+     * @param conn             RTMP connection
+     * @param call             Service call
+     * @param service          Server-side service object
+     */
+    private void invokeCall(RTMPConnection conn, IServiceCall call,
 			Object service) {
 		final IScope scope = conn.getScope();
 		final IContext context = scope.getContext();

@@ -20,7 +20,7 @@ package org.red5.server.net.rtmp.event;
  */
 
 /**
- * Ping even, actually combination of different events
+ * Ping event, actually combination of different events
  */
 public class Ping extends BaseEvent {
 

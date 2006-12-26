@@ -19,21 +19,26 @@ package org.red5.server.net.rtmp;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoSession;
 import org.red5.server.net.rtmp.message.Packet;
 
-public class RTMPMinaConnection extends RTMPConnection {
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 
+public class RTMPMinaConnection extends RTMPConnection {
+    /**
+     * Logger
+     */
 	protected static Log log = LogFactory.getLog(RTMPMinaConnection.class
 			.getName());
 
-	private IoSession ioSession;
+    /**
+     * MINA I/O session, connection between two endpoints
+     */
+    private IoSession ioSession;
 
 	/** Constructs a new RTMPMinaConnection. */
     RTMPMinaConnection() {
@@ -41,9 +46,9 @@ public class RTMPMinaConnection extends RTMPConnection {
 	}
 
 	/**
-     * Setter for property 'ioSession'.
+     * Setter for MINA I/O session (connection)
      *
-     * @param protocolSession Value to set for property 'ioSession'.
+     * @param protocolSession  Protocol session
      */
     void setIoSession(IoSession protocolSession) {
 		SocketAddress remote = protocolSession.getRemoteAddress();
@@ -59,9 +64,9 @@ public class RTMPMinaConnection extends RTMPConnection {
 	}
 	
 	/**
-     * Getter for property 'ioSession'.
+     * Return MINA I/O session
      *
-     * @return Value for property 'ioSession'.
+     * @return MINA O/I session, connection between two endpoints
      */
     public IoSession getIoSession() {
 		return ioSession;

@@ -19,12 +19,12 @@ package org.red5.server.net.rtmp;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.lang.ref.WeakReference;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.net.rtmp.event.Invoke;
+
+import java.lang.ref.WeakReference;
 
 /**
  * Can be returned to delay returning the result of invoked methods.
@@ -33,7 +33,9 @@ import org.red5.server.net.rtmp.event.Invoke;
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public class DeferredResult {
-
+    /**
+     * Logger
+     */
 	protected static Log log = LogFactory.getLog(DeferredResult.class.getName());
 	
 	private WeakReference<Channel> channel;

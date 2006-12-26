@@ -23,12 +23,16 @@ import org.apache.mina.common.ByteBuffer;
 import org.red5.server.net.rtmp.message.Constants;
 
 /**
- *
+ * RTMP utilities class
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 public class RTMPUtils implements Constants {
-
+    /**
+     * 
+     * @param out
+     * @param value
+     */
 	public static void writeReverseIntOld(ByteBuffer out, int value) {
 		byte[] bytes = new byte[4];
 		ByteBuffer rev = ByteBuffer.allocate(4);
@@ -42,6 +46,11 @@ public class RTMPUtils implements Constants {
 		out.put(bytes);
 	}
 
+    /**
+     *
+     * @param out
+     * @param value
+     */
 	public static void writeReverseInt(ByteBuffer out, int value) {
 		byte[] bytes = new byte[4];
 		bytes[3] = (byte) (0xFF & (value >> 24));
@@ -51,6 +60,11 @@ public class RTMPUtils implements Constants {
 		out.put(bytes);
 	}
 
+    /**
+     *
+     * @param out
+     * @param value
+     */
 	public static void writeMediumInt(ByteBuffer out, int value) {
 		byte[] bytes = new byte[3];
 		bytes[0] = (byte) (0xFF & (value >> 16));
@@ -59,6 +73,11 @@ public class RTMPUtils implements Constants {
 		out.put(bytes);
 	}
 
+    /**
+     *
+     * @param in
+     * @return
+     */
 	public static int readUnsignedMediumInt(ByteBuffer in) {
 		byte[] bytes = new byte[3];
 		in.get(bytes);
@@ -82,6 +101,11 @@ public class RTMPUtils implements Constants {
 		return val;
 	}
 
+    /**
+     *
+     * @param in
+     * @return
+     */
 	public static int readUnsignedMediumIntOld(ByteBuffer in) {
 		byte[] bytes = new byte[3];
 		in.get(bytes);
@@ -92,6 +116,11 @@ public class RTMPUtils implements Constants {
 		return val;
 	}
 
+    /**
+     *
+     * @param in
+     * @return
+     */
 	public static int readMediumIntOld(ByteBuffer in) {
 		ByteBuffer buf = ByteBuffer.allocate(4);
 		buf.put((byte) 0x00);
@@ -104,6 +133,11 @@ public class RTMPUtils implements Constants {
 		return value;
 	}
 
+    /**
+     *
+     * @param in
+     * @return
+     */
 	public static int readMediumInt(ByteBuffer in) {
 		byte[] bytes = new byte[3];
 		in.get(bytes);
@@ -127,6 +161,11 @@ public class RTMPUtils implements Constants {
 		return val;
 	}
 
+    /**
+     *
+     * @param in
+     * @return
+     */
 	public static int readReverseInt(ByteBuffer in) {
 		byte[] bytes = new byte[4];
 		in.get(bytes);
@@ -138,6 +177,11 @@ public class RTMPUtils implements Constants {
 		return val;
 	}
 
+    /**
+     *
+     * @param in
+     * @return
+     */
 	public static int readReverseIntOld(ByteBuffer in) {
 		byte[] bytes = new byte[4];
 		in.get(bytes);
@@ -149,21 +193,42 @@ public class RTMPUtils implements Constants {
 		return val;
 	}
 
+    /**
+     *
+     * @param headerSize
+     * @param channelId
+     * @return
+     */
 	public static byte encodeHeaderByte(byte headerSize, byte channelId) {
 		return (byte) ((headerSize << 6) + channelId);
 	}
 
+    /**
+     *
+     * @param header
+     * @return
+     */
 	public static byte decodeChannelId(byte header) {
 		return (byte) (header & 0x3f);
 	}
 
-	public static byte decodeHeaderSize(byte header) {
+    /**
+     *
+     * @param header
+     * @return
+     */
+    public static byte decodeHeaderSize(byte header) {
 		int headerInt = (header >= 0) ? header : header + 256;
 		byte size = (byte) (headerInt >> 6);
 		return size;
 	}
 
-	public static int getHeaderLength(byte headerSize) {
+    /**
+     * 
+     * @param headerSize
+     * @return
+     */
+    public static int getHeaderLength(byte headerSize) {
 		switch (headerSize) {
 			case HEADER_NEW:
 				return 12;

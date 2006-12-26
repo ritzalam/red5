@@ -22,14 +22,38 @@ package org.red5.server.net.rtmp;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.codec.RTMP;
 
+/**
+ * RTMP events handler
+ */
 public interface IRTMPHandler {
-	
+    /**
+     * Connection open event
+     * @param conn          Connection
+     * @param state         RTMP state
+     */
 	public void connectionOpened(RTMPConnection conn, RTMP state);
-	
+
+    /**
+     * Message recieved
+     * @param conn          Connection
+     * @param state         RTMP state
+     * @param message       Message
+     * @throws Exception    Exception
+     */
 	public void messageReceived(RTMPConnection conn, ProtocolState state, Object message) throws Exception;
-	
+
+    /**
+     * Message sent
+     * @param conn          Connection
+     * @param message       Message
+     */
 	public void messageSent(RTMPConnection conn, Object message);
-	
+
+    /**
+     * Connection closed
+     * @param conn          Connection
+     * @param state         RTMP state
+     */
 	public void connectionClosed(RTMPConnection conn, RTMP state);
 	
 }
