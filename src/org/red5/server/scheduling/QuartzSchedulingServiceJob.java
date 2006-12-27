@@ -57,8 +57,8 @@ public class QuartzSchedulingServiceJob implements Job {
 				.get(SCHEDULED_JOB);
         try {
             job.execute(service);
-        } catch (CloneNotSupportedException e) {
-            log.error("Job " + job.toString() + " execution failed, clone not supported.");
+        } catch (Exception e) {
+            log.error("Job " + job.toString() + " execution failed: " + e.getMessage());
             throw new RuntimeException(e);
         }
     }
