@@ -19,6 +19,9 @@ package org.red5.server.exception;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+/**
+ * Thrown on stream data exception
+ */
 public class StreamDataException extends RuntimeException {
 
 	/**

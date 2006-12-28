@@ -19,6 +19,9 @@ package org.red5.server.exception;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+/**
+ * Client not found
+ */
 public class ClientNotFoundException extends RuntimeException {
 
 	/**
@@ -26,7 +29,11 @@ public class ClientNotFoundException extends RuntimeException {
 	 */
 	private static final long serialVersionUID = 3135070223941800751L;
 
-	public ClientNotFoundException(String id) {
+    /**
+     * Create exception from given string message
+     * @param id
+     */
+    public ClientNotFoundException(String id) {
 		super("Client \"" + id + "\" not found.");
 	}
 

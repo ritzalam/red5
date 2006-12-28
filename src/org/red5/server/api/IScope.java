@@ -19,11 +19,11 @@ package org.red5.server.api;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.Iterator;
-import java.util.Set;
-
 import org.red5.server.api.service.IServiceHandlerProvider;
 import org.springframework.core.io.support.ResourcePatternResolver;
+
+import java.util.Iterator;
+import java.util.Set;
 
 /**
  * The scope object.
@@ -42,10 +42,17 @@ import org.springframework.core.io.support.ResourcePatternResolver;
 public interface IScope extends IBasicScope, ResourcePatternResolver,
 		IServiceHandlerProvider {
 
-	public static final String ID = "red5.scope";
-
+    /**
+     * ID constant
+     */
+    public static final String ID = "red5.scope";
+    /**
+     * Type constant
+     */
 	public static final String TYPE = "scope";
-
+    /**
+     * Scope separator
+     */
 	public static final String SEPARATOR = ":";
 
 	/**
@@ -99,8 +106,6 @@ public interface IScope extends IBasicScope, ResourcePatternResolver,
 	 * 
 	 * @param scope
 	 *            Scope given
-	 * @return <code>true</code> if child scope was successfully removed,
-	 *         <code>false</code> otherwise
 	 */
 	public void removeChildScope(IBasicScope scope);
 
@@ -119,11 +124,16 @@ public interface IScope extends IBasicScope, ResourcePatternResolver,
 	 * @param name
 	 *            name of the child scope
 	 * @return the child scope, or null if no scope is found
-     * @param type
+     * @param type     Child scope type
 	 */
 	public IBasicScope getBasicScope(String type, String name);
 
-	public IScope getScope(String name);
+    /**
+     * Return scope by name
+     * @param name     Scope name
+     * @return         Scope with given name
+     */
+    public IScope getScope(String name);
 
 	/**
 	 * Get a set of connected clients. You can get the connections by passing

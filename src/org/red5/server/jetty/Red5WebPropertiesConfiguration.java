@@ -19,9 +19,6 @@ package org.red5.server.jetty;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.EventListener;
-import java.util.Properties;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.mortbay.jetty.handler.ContextHandler;
@@ -44,6 +41,12 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.access.ContextSingletonBeanFactoryLocator;
 import org.springframework.web.context.support.GenericWebApplicationContext;
 
+import java.util.EventListener;
+import java.util.Properties;
+
+/**
+ * Red web properties configuration
+ */
 public class Red5WebPropertiesConfiguration implements Configuration,
 		EventListener {
 
@@ -52,11 +55,16 @@ public class Red5WebPropertiesConfiguration implements Configuration,
 	 */
 	private static final long serialVersionUID = 951479449391784526L;
 
-	// Initialize Logging
+    /**
+     * Logger
+     */
 	protected static Log log = LogFactory
 			.getLog(Red5WebPropertiesConfiguration.class.getName());
 
-	protected static WebAppContext _context;
+    /**
+     * Web application context
+     */
+    protected static WebAppContext _context;
 
 	/** {@inheritDoc} */
     public void setWebAppContext(WebAppContext context) {
@@ -90,11 +98,15 @@ public class Red5WebPropertiesConfiguration implements Configuration,
 			Resource config = webInf.addPath("red5-web.properties");
 			if (config.exists()) {
 				log.debug("Configuring red5-web.properties");
-				Properties props = new Properties();
+                // Load configuration properties
+                Properties props = new Properties();
 				props.load(config.getInputStream());
-				String contextPath = props.getProperty("webapp.contextPath");
+                // Get context path and virtual hosts
+                String contextPath = props.getProperty("webapp.contextPath");
 				String virtualHosts = props.getProperty("webapp.virtualHosts");
-				String[] hostnames = virtualHosts.split(",");
+
+                // Get hostnames
+                String[] hostnames = virtualHosts.split(",");
 				for (int i = 0; i < hostnames.length; i++) {
 					hostnames[i] = hostnames[i].trim();
 					if (hostnames[i].equals("*")) {
@@ -104,7 +116,9 @@ public class Red5WebPropertiesConfiguration implements Configuration,
 						break;
 					}
 				}
-				context.setVirtualHosts(hostnames);
+
+                // Set virtual hosts and context path to context
+                context.setVirtualHosts(hostnames);
 				context.setContextPath(contextPath);
 			}
 		} else if (webInf == null) {

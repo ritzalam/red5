@@ -28,20 +28,39 @@ import org.red5.server.api.statistics.ISharedObjectStatistics;
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public class SharedObjectStatistics implements ISharedObjectStatistics {
-
+    /**
+     * Shared object name
+     */
 	private String name;
-	private boolean persistent;
-	
-	protected SharedObjectStatistics(String name, boolean persistent) {
+
+    /**
+     * Shared object persistence flag
+     */
+    private boolean persistent;
+
+    /**
+     * Create new shared object statistics with given name and persistence options
+     * @param name
+     * @param persistent
+     */
+    protected SharedObjectStatistics(String name, boolean persistent) {
 		this.name = name;
 		this.persistent = persistent;
 	}
-	
-	public String getName() {
+
+    /**
+     * Return SO name
+     * @return          SO name
+     */
+    public String getName() {
 		return name;
 	}
 
-	public boolean isPersistent() {
+    /**
+     * Chech whether SO is persistent
+     * @return          <code>true</code> if inspected SO is persistent, <code>false</code> otherwise
+     */
+    public boolean isPersistent() {
 		return persistent;
 	}
 

@@ -19,21 +19,14 @@ package org.red5.server.statistics;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Vector;
-
 import org.red5.server.api.IScope;
 import org.red5.server.api.ScopeUtils;
 import org.red5.server.api.so.ISharedObject;
 import org.red5.server.api.so.ISharedObjectService;
 import org.red5.server.exception.ScopeNotFoundException;
+
+import java.lang.reflect.Array;
+import java.util.*;
 
 /**
  * Public methods for XML-RPC scope statistics service.
@@ -42,7 +35,9 @@ import org.red5.server.exception.ScopeNotFoundException;
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public class ScopeStatistics {
-
+    /**
+     * Global scope
+     */
 	private IScope globalScope;
 
 	/** Constructs a new ScopeStatistics. */
@@ -50,12 +45,16 @@ public class ScopeStatistics {
 
 	}
 
-	public ScopeStatistics(IScope globalScope) {
+    /**
+     * Create new scope statistic
+     * @param globalScope        Global scope ref
+     */
+    public ScopeStatistics(IScope globalScope) {
 		this.globalScope = globalScope;
 	}
 
 	/**
-     * Setter for property 'globalScope'.
+     * Setter for global scope
      *
      * @param scope Value to set for property 'globalScope'.
      */
@@ -69,7 +68,7 @@ public class ScopeStatistics {
 	 * @param path
 	 * 			path to return scope for
 	 * @return the scope for the given path
-	 * @throws ScopeNotFoundException
+	 * @throws ScopeNotFoundException         Thrown when scope with given path can't be resolved
 	 */
 	private IScope getScope(String path) throws ScopeNotFoundException {
 		IScope scope;
