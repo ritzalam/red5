@@ -19,23 +19,39 @@ package org.red5.server.net.proxy;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.nio.channels.WritableByteChannel;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoFilterAdapter;
 import org.apache.mina.common.IoSession;
 
-public class NetworkDumpFilter extends IoFilterAdapter {
+import java.nio.channels.WritableByteChannel;
 
+/**
+ * Network dump filter, performs raw data and headers dump on message recieve
+ */
+public class NetworkDumpFilter extends IoFilterAdapter {
+    /**
+     * Logger
+     */
 	protected static Log log = LogFactory.getLog(ProxyFilter.class.getName());
 
-	protected WritableByteChannel raw;
+    /**
+     * Raw data byte channel
+     */
+    protected WritableByteChannel raw;
 
-	protected WritableByteChannel headers;
+    /**
+     * Headers byte channel
+     */
+    protected WritableByteChannel headers;
 
-	public NetworkDumpFilter(WritableByteChannel headers,
+    /**
+     * Create network dump filter from given dump channels
+     * @param headers           Channel to dump headers
+     * @param raw               Channel to dump raw data
+     */
+    public NetworkDumpFilter(WritableByteChannel headers,
 			WritableByteChannel raw) {
 		this.raw = raw;
 		this.headers = headers;

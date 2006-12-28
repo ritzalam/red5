@@ -23,7 +23,6 @@ import org.apache.mina.common.ByteBuffer;
 
 /**
  *  Every protocol encoder should implement this
- *
  */
 public interface SimpleProtocolEncoder {
 	
@@ -33,7 +32,7 @@ public interface SimpleProtocolEncoder {
 	 * @param state			Protocol state
 	 * @param out			Object to encode
 	 * @return				Byte buffer with encoded data
-	 * @throws Exception
+	 * @throws Exception    Any decoding exception
 	 */
 	public ByteBuffer encode(ProtocolState state, Object out) throws Exception;
 

@@ -41,7 +41,8 @@ public class Application extends ApplicationAdapter {
 	/** Manager for the clients. */
 	private ClientManager clientMgr = new ClientManager("clientlist", false);
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public boolean connect(IConnection conn, IScope scope, Object[] params) {
 		// Check if the user passed valid parameters.
 		if (params == null || params.length == 0) {
@@ -68,7 +69,8 @@ public class Application extends ApplicationAdapter {
 		return true;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void disconnect(IConnection conn, IScope scope) {
 		// Get the previously stored username.
 		String uid = conn.getClient().getId();

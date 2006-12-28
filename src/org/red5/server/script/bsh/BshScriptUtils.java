@@ -71,7 +71,8 @@ public abstract class BshScriptUtils {
 			this.xt = xt;
 		}
 
-		public Object invoke(Object proxy, Method method, Object[] args)
+		/** {@inheritDoc} */
+        public Object invoke(Object proxy, Method method, Object[] args)
 				throws Throwable {
 			try {
 				Object result = this.xt.invokeMethod(method.getName(), args);

@@ -21,6 +21,9 @@ package org.red5.server.stream;
 
 import org.red5.server.stream.message.RTMPMessage;
 
+/**
+ * Stream flow object contains information about buffering, bit rate of stream, segmentation, etc
+ */
 public interface IStreamFlow {
 
 	/**

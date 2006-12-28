@@ -29,20 +29,38 @@ import org.red5.server.messaging.IPipeConnectionListener;
 import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.messaging.PipeConnectionEvent;
 
+/**
+ * Controls stream bandwidth
+ */
 public class StreamBandwidthController implements IFilter,
 		IPipeConnectionListener, Runnable {
-	private static final Log log = LogFactory
+
+    /**
+     * Logger
+     */
+    private static final Log log = LogFactory
 			.getLog(StreamBandwidthController.class);
-
+    /**
+     * Class name
+     */
 	public static final String KEY = StreamBandwidthController.class.getName();
-
+    /**
+     * Stream provider pipe
+     */
 	private IPipe providerPipe;
-
+    /**
+     * Stream consumer pipe
+     */
 	private IPipe consumerPipe;
-
+    /**
+     * Daemon thread that pulls data from provider and pushes to consumer, using this controller
+     */
 	private Thread puller;
 
-	private boolean isStarted;
+    /**
+     * Start state
+     */
+    private boolean isStarted;
 
 	/** {@inheritDoc} */
     public void onPipeConnectionEvent(PipeConnectionEvent event) {
@@ -93,15 +111,24 @@ public class StreamBandwidthController implements IFilter,
 		isStarted = false;
 	}
 
-	public void start() {
+    /**
+     * Start pulling (streaming)
+     */
+    public void start() {
 		startThread();
 	}
 
-	public void close() {
+    /**
+     * Stop pulling, close stream
+     */
+    public void close() {
 		isStarted = false;
 	}
 
-	synchronized private void startThread() {
+    /**
+     * Start puller thread
+     */
+    private synchronized void startThread() {
 		if (!isStarted && providerPipe != null && consumerPipe != null) {
 			puller = new Thread(this);
 			puller.setDaemon(true);

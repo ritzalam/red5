@@ -20,24 +20,37 @@ package org.red5.server.stream;
  */
 
 public class TokenBucket implements ITokenBucket {
-	private double speed;
-
+    /**
+     *
+     */
+    private double speed;
+    /**
+     *
+     */
 	private long capacity;
-
-	private double tokens = 0;
-
-	private WaitObject waitObject = null;
+    /**
+     * 
+     */
+	private double tokens;
+    /**
+     *
+     */
+	private WaitObject waitObject;
 
 	/** Constructs a new TokenBucket. */
     public TokenBucket() {
 	}
 
+    /**
+     * Creates new Token bucket with initial tockens
+     * @param initialTokens    Initial tokens
+     */
 	public TokenBucket(double initialTokens) {
 		tokens = initialTokens;
 	}
 
 	/** {@inheritDoc} */
-    synchronized public boolean acquireToken(double tokenCount, long wait) {
+    public synchronized boolean acquireToken(double tokenCount, long wait) {
 		if (wait > 0) {
 			// as of now, we don't support blocking mode
 			throw new IllegalArgumentException("blocking wait unsupported");
@@ -51,7 +64,7 @@ public class TokenBucket implements ITokenBucket {
 	}
 
 	/** {@inheritDoc} */
-    synchronized public boolean acquireTokenNonblocking(double tokenCount,
+    public synchronized boolean acquireTokenNonblocking(double tokenCount,
 			ITokenBucketCallback callback) {
 		// TODO use a wait queue instead
 		if (waitObject != null) {
@@ -71,7 +84,7 @@ public class TokenBucket implements ITokenBucket {
 	}
 
 	/** {@inheritDoc} */
-    synchronized public double acquireTokenBestEffort(double upperLimitCount) {
+    public synchronized double acquireTokenBestEffort(double upperLimitCount) {
 		if (waitObject != null) {
 			return 0;
 		}
@@ -96,24 +109,24 @@ public class TokenBucket implements ITokenBucket {
 	}
 
 	/** {@inheritDoc} */
-    synchronized public void reset() {
+    public synchronized void reset() {
 		waitObject = null;
 		tokens = 0;
 	}
 
 	/**
-     * Setter for property 'capacity'.
+     * Setter for capacity
      *
-     * @param capacity Value to set for property 'capacity'.
+     * @param capacity  New capacity
      */
     void setCapacity(long capacity) {
 		this.capacity = capacity;
 	}
 
 	/**
-     * Setter for property 'speed'.
+     * Setter for speed
      *
-     * @param speed Value to set for property 'speed'.
+     * @param speed  New speed
      */
     void setSpeed(double speed) {
 		this.speed = speed;
@@ -122,7 +135,7 @@ public class TokenBucket implements ITokenBucket {
 	/**
 	 * Add some tokens to this bucket.
 	 * 
-	 * @param token
+	 * @param token        Token to add
 	 */
 	synchronized void addToken(double token) {
 		if (tokens + token > capacity) {
@@ -138,9 +151,17 @@ public class TokenBucket implements ITokenBucket {
 		}
 	}
 
-	private class WaitObject {
-		private ITokenBucketCallback callback;
-
+    /**
+     * Wait object with token bucket callback and token count
+     */
+    private class WaitObject {
+        /**
+         * Token item bucket callback
+         */
+        private ITokenBucketCallback callback;
+        /**
+         * Token count
+         */
 		private double tokenCount;
 	}
 }

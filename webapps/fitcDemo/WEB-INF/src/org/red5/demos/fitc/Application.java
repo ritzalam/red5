@@ -24,13 +24,15 @@ public class Application extends ApplicationAdapter implements
 
 	private static final Log log = LogFactory.getLog(Application.class);
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public boolean appStart(IScope scope) {
 		// init your handler here
 		return true;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public boolean appConnect(IConnection conn, Object[] params) {
 		IServiceCapableConnection service = (IServiceCapableConnection) conn;
 		log.info("Client connected " + conn.getClient().getId() + " conn "
@@ -42,7 +44,8 @@ public class Application extends ApplicationAdapter implements
 		return true;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public boolean appJoin(IClient client, IScope scope) {
 		log.info("Client joined app " + client.getId());
 		// If you need the connecion object you can access it via.
@@ -50,7 +53,8 @@ public class Application extends ApplicationAdapter implements
 		return true;
 	}
 
-	public void streamPublishStart(IBroadcastStream stream) {
+	/** {@inheritDoc} */
+    public void streamPublishStart(IBroadcastStream stream) {
 		// Notify all the clients that the stream had been started
 		if (log.isDebugEnabled()) {
 			log.debug("stream broadcast start: " + stream.getPublishedName());
@@ -74,44 +78,54 @@ public class Application extends ApplicationAdapter implements
 		}
 	}
 
-	public void streamRecordStart(IBroadcastStream stream) {
+	/** {@inheritDoc} */
+    public void streamRecordStart(IBroadcastStream stream) {
 	}
 
-	public void streamBroadcastClose(IBroadcastStream stream) {
+	/** {@inheritDoc} */
+    public void streamBroadcastClose(IBroadcastStream stream) {
 	}
 
-	public void streamBroadcastStart(IBroadcastStream stream) {
+	/** {@inheritDoc} */
+    public void streamBroadcastStart(IBroadcastStream stream) {
 	}
 
-	public void streamPlaylistItemPlay(IPlaylistSubscriberStream stream,
+	/** {@inheritDoc} */
+    public void streamPlaylistItemPlay(IPlaylistSubscriberStream stream,
 			IPlayItem item, boolean isLive) {
 	}
 
-	public void streamPlaylistItemStop(IPlaylistSubscriberStream stream,
+	/** {@inheritDoc} */
+    public void streamPlaylistItemStop(IPlaylistSubscriberStream stream,
 			IPlayItem item) {
 
 	}
 
-	public void streamPlaylistVODItemPause(IPlaylistSubscriberStream stream,
+	/** {@inheritDoc} */
+    public void streamPlaylistVODItemPause(IPlaylistSubscriberStream stream,
 			IPlayItem item, int position) {
 
 	}
 
-	public void streamPlaylistVODItemResume(IPlaylistSubscriberStream stream,
+	/** {@inheritDoc} */
+    public void streamPlaylistVODItemResume(IPlaylistSubscriberStream stream,
 			IPlayItem item, int position) {
 
 	}
 
-	public void streamPlaylistVODItemSeek(IPlaylistSubscriberStream stream,
+	/** {@inheritDoc} */
+    public void streamPlaylistVODItemSeek(IPlaylistSubscriberStream stream,
 			IPlayItem item, int position) {
 
 	}
 
-	public void streamSubscriberClose(ISubscriberStream stream) {
+	/** {@inheritDoc} */
+    public void streamSubscriberClose(ISubscriberStream stream) {
 
 	}
 
-	public void streamSubscriberStart(ISubscriberStream stream) {
+	/** {@inheritDoc} */
+    public void streamSubscriberStart(ISubscriberStream stream) {
 	}
 
 	/**

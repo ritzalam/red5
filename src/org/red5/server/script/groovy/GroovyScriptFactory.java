@@ -60,7 +60,8 @@ public class GroovyScriptFactory implements ScriptFactory {
 		this.scriptSourceLocator = scriptSourceLocator;
 	}
 
-	public String getScriptSourceLocator() {
+	/** {@inheritDoc} */
+    public String getScriptSourceLocator() {
 		return this.scriptSourceLocator;
 	}
 

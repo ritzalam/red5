@@ -26,15 +26,26 @@ public class CircularRefBean extends SimpleJavaBean {
 
 	private CircularRefBean refToSelf;
 	
-	public CircularRefBean(){
+	/** Constructs a new CircularRefBean. */
+    public CircularRefBean(){
 		super();
 	}
 
-	public CircularRefBean getRefToSelf() {
+	/**
+     * Getter for property 'refToSelf'.
+     *
+     * @return Value for property 'refToSelf'.
+     */
+    public CircularRefBean getRefToSelf() {
 		return refToSelf;
 	}
 
-	public void setRefToSelf(CircularRefBean refToSelf) {
+	/**
+     * Setter for property 'refToSelf'.
+     *
+     * @param refToSelf Value to set for property 'refToSelf'.
+     */
+    public void setRefToSelf(CircularRefBean refToSelf) {
 		this.refToSelf = refToSelf;
 	}
 	

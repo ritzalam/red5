@@ -62,7 +62,9 @@ public class XMLUtils {
 
 	/**
 	 * Convert a DOM tree into a String using Dom2Writer
-	 */
+     * @return
+     * @param dom
+     */
 	public static String docToString1(Document dom) {
 		StringWriter sw = new StringWriter();
 		DOM2Writer.serializeAsXML(dom, sw);
@@ -71,7 +73,10 @@ public class XMLUtils {
 
 	/**
 	 * Convert a DOM tree into a String using transform
-	 */
+     * @param domDoc
+     * @throws java.io.IOException
+     * @return
+     */
 	public static String docToString2(Document domDoc) throws IOException {
 		try {
 			TransformerFactory transFact = TransformerFactory.newInstance();

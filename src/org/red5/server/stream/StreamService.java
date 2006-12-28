@@ -40,6 +40,9 @@ import org.red5.server.net.rtmp.RTMPHandler;
 import org.red5.server.net.rtmp.status.Status;
 import org.red5.server.net.rtmp.status.StatusCodes;
 
+/**
+ * Stream service
+ */
 public class StreamService implements IStreamService {
 
 	/** {@inheritDoc} */
@@ -106,9 +109,13 @@ public class StreamService implements IStreamService {
 		pause(Boolean.valueOf(pausePlayback), position);
 	}
 
-	// Required as "pausePlayback" can be "null" if no flag is passed by the
-	// client
-	public void pause(Boolean pausePlayback, int position) {
+    /**
+     * Pause at given position. Required as "pausePlayback" can be "null" if no flag is passed by the
+	 * client
+     * @param pausePlayback         Pause playback or not
+     * @param position              Pause position
+     */
+    public void pause(Boolean pausePlayback, int position) {
 		IConnection conn = Red5.getConnectionLocal();
 		if (!(conn instanceof IStreamCapableConnection)) {
 			return;
@@ -135,8 +142,10 @@ public class StreamService implements IStreamService {
 //		}
 	}
 
-	// "play" sometimes is called with "null" as last parameter.
-	public void play(String name, int start, int length, Object flushPlaylist) {
+    /**
+     * {@inheritDoc}
+     */
+    public void play(String name, int start, int length, Object flushPlaylist) {
 		if (flushPlaylist instanceof Boolean) {
 			play(name, start, length, ((Boolean) flushPlaylist).booleanValue());
 		} else {

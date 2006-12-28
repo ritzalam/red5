@@ -22,65 +22,83 @@ package org.red5.server.net.rtmp.message;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
 
+/**
+ * RTMP packet. Consists of packet header, data and event context.
+ */
 public class Packet {
-
+    /**
+     * Header
+     */
 	protected Header header;
-
+    /**
+     * RTMP event
+     */
 	protected IRTMPEvent message;
-
+    /**
+     * Packet data
+     */
 	protected ByteBuffer data;
 
-	public Packet(Header header) {
+    /**
+     * Create packet with given header
+     * @param header       Packet header
+     */
+    public Packet(Header header) {
 		this.header = header;
 		data = ByteBuffer.allocate(header.getSize()
 				+ (header.getTimer() == 0xffffff ? 4 : 0));
 	}
 
-	public Packet(Header header, IRTMPEvent event) {
+    /**
+     * Create packet with given header and event context
+     * @param header
+     * @param event
+     */
+    public Packet(Header header, IRTMPEvent event) {
 		this.header = header;
 		this.message = event;
 	}
 
 	/**
-     * Getter for property 'header'.
+     * Getter for header
      *
-     * @return Value for property 'header'.
+     * @return  Packet header
      */
     public Header getHeader() {
 		return header;
 	}
 
 	/**
-     * Setter for property 'message'.
+     * Setter for event context
      *
-     * @param message Value to set for property 'message'.
+     * @param message  RTMP event context
      */
     public void setMessage(IRTMPEvent message) {
 		this.message = message;
 	}
 
 	/**
-     * Getter for property 'message'.
+     * Getter for event context
      *
-     * @return Value for property 'message'.
+     * @return RTMP event context
      */
     public IRTMPEvent getMessage() {
 		return message;
 	}
 
 	/**
-     * Setter for property 'data'.
+     * Setter for data
      *
-     * @param data Value to set for property 'data'.
+     * @param data Packet data
      */
     public void setData(ByteBuffer data) {
 		this.data = data;
 	}
 
 	/**
-     * Getter for property 'data'.
+     * Getter for data
      *
-     * @return Value for property 'data'.
+     * @return Packet data
      */
     public ByteBuffer getData() {
 		return data;

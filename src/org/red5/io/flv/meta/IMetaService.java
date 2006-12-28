@@ -51,15 +51,15 @@ public interface IMetaService {
 	/**
 	 * Initiates writing of the MetaData
 	 * 
-	 * @param meta 
-	 * @throws IOException 
+	 * @param meta              Metadata
+	 * @throws IOException      I/O exception
 	 */
 	public void write(IMetaData meta) throws IOException;
 
 	/**
 	 * Writes the MetaData
 	 * 
-	 * @param metaData
+	 * @param metaData          Metadata
 	 */
 	public void writeMetaData(IMetaData metaData);
 
@@ -71,7 +71,8 @@ public interface IMetaService {
 	/**
 	 * Read the MetaData
 	 * 
-	 * @return metaData
+	 * @return metaData         Metadata
+     * @param buffer            Byte buffer source
 	 */
 	public MetaData readMetaData(ByteBuffer buffer);
 
@@ -82,8 +83,18 @@ public interface IMetaService {
 	 */
 	public IMetaCue[] readMetaCue();
 
-	public void setInStream(FileInputStream fis);
+	/**
+     * Setter for  input stream
+     *
+     * @param fis  File input stream
+     */
+    public void setInStream(FileInputStream fis);
 
-	public void setOutStream(FileOutputStream fos);
+	/**
+     * Setter for output stream
+     *
+     * @param fos  File output stream
+     */
+    public void setOutStream(FileOutputStream fos);
 
 }

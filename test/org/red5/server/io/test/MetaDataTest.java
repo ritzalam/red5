@@ -38,11 +38,13 @@ import junit.framework.TestCase;
 public class MetaDataTest extends TestCase {
 	MetaData data;
 	
-	public MetaDataTest() {
+	/** Constructs a new MetaDataTest. */
+    public MetaDataTest() {
 		data = new MetaData();
 	}
 	
-	protected void setUp() throws Exception {
+	/** {@inheritDoc} */
+    protected void setUp() throws Exception {
 		super.setUp();
 		
 		data.setCanSeekToEnd(true);
@@ -54,7 +56,8 @@ public class MetaDataTest extends TestCase {
 		data.setWidth(300);
 	}
 	
-	public void tearDown() {
+	/** {@inheritDoc} */
+    public void tearDown() {
 		data = null;
 	}
 	

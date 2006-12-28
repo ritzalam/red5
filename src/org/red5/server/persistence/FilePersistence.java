@@ -19,14 +19,6 @@ package org.red5.server.persistence;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
@@ -39,8 +31,12 @@ import org.red5.server.net.servlet.ServletUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourcePatternResolver;
 
+import java.io.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+
 /**
- * Simple file-based persistence for objects.
+ * Simple file-based persistence for objects. Lowers memory usage if used instead of RAM memoty storage.
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
@@ -48,57 +44,88 @@ import org.springframework.core.io.support.ResourcePatternResolver;
  */
 public class FilePersistence extends RamPersistence {
 
-	private Log log = LogFactory.getLog(FilePersistence.class.getName());
-
+    /**
+     * Logger
+     */
+    private Log log = LogFactory.getLog(FilePersistence.class.getName());
+    /**
+     * Files path
+     */
 	private String path = "persistence";
-
+    /**
+     * Root directory under file storage path
+     */
 	private String rootDir = "";
-
+    /**
+     * File extension for persistent objects
+     */
 	private String extension = ".red5";
 
-	// TODO: make this configurable
+    /**
+     * Whether there's ned to check for empty directories
+     */
+    // TODO: make this configurable
 	private boolean checkForEmptyDirectories = true;
 
-	public FilePersistence(ResourcePatternResolver resolver) {
+    /**
+     * Create file persistence object from given resource pattern resolver
+     * @param resolver            Resource pattern resolver and loader
+     */
+    public FilePersistence(ResourcePatternResolver resolver) {
 		super(resolver);
 		setPath(path);
 	}
 
-	public FilePersistence(IScope scope) {
+    /**
+     * Create file persistence object for given scope
+     * @param scope               Scope
+     */
+    public FilePersistence(IScope scope) {
 		super(scope);
 		setPath(path);
 	}
 
 	/**
-     * Setter for property 'path'.
+     * Setter for file path.
      *
-     * @param path Value to set for property 'path'.
+     * @param path  New path
      */
     public void setPath(String path) {
-		this.path = path;
-
 		Resource rootFile = resources.getResource(path);
 		try {
 			rootDir = rootFile.getFile().getAbsolutePath();
-		} catch (IOException err) {
-			return;
+            this.path = path;
+        } catch (IOException err) {
+            log.error("I/O exception thrown when setting file path to " + path);
+            throw (new RuntimeException(err));
 		}
 	}
 
 	/**
-     * Setter for property 'extension'.
+     * Setter for extension.
      *
-     * @param extension Value to set for property 'extension'.
+     * @param extension  New extension.
      */
     public void setExtension(String extension) {
 		this.extension = extension;
 	}
 
+    /**
+     * Return file path for persistable object
+     * @param object          Object to obtain file path for
+     * @return                Path on disk
+     */
 	private String getObjectFilepath(IPersistable object) {
 		return getObjectFilepath(object, false);
 	}
 
-	private String getObjectFilepath(IPersistable object, boolean completePath) {
+    /**
+     * Return file path for persistable object
+     * @param object          Object to obtain file path for
+     * @param completePath    Whether it full path full path sould be returned
+     * @return                Path on disk
+     */
+    private String getObjectFilepath(IPersistable object, boolean completePath) {
 		String result = path + '/' + object.getType() + '/' + object.getPath();
 		if (!result.endsWith("/")) {
 			result += '/';
@@ -124,6 +151,11 @@ public class FilePersistence extends RamPersistence {
 		return super.getObjectPath(id, name);
 	}
 
+    /**
+     * Get filename for persistable object
+     * @param object          Persistable object
+     * @return                Name of file where given object is persisted to
+     */
 	private String getObjectFilename(IPersistable object) {
 		String path = getObjectFilepath(object);
 		String name = object.getName();
@@ -133,11 +165,22 @@ public class FilePersistence extends RamPersistence {
 		return path + name + extension;
 	}
 
-	private IPersistable doLoad(String name) {
+    /**
+     * Load resource with given name
+     * @param name             Resource name
+     * @return                 Persistable object
+     */
+    private IPersistable doLoad(String name) {
 		return doLoad(name, null);
 	}
 
-	private IPersistable doLoad(String name, IPersistable object) {
+    /**
+     * Load resource with given name and attaches to persistable object
+     * @param name             Resource name
+     * @param object           Object to attach to
+     * @return                 Persistable object
+     */
+    private IPersistable doLoad(String name, IPersistable object) {
 		IPersistable result = object;
 		Resource data = resources.getResource(name);
 		if (data == null || !data.exists()) {
@@ -181,10 +224,8 @@ public class FilePersistence extends RamPersistence {
 						try {
 							// Try to create object by calling constructor with Input stream as
 							// parameter.
-							for (Class interfaceClass : in.getClass()
-									.getInterfaces()) {
-								constructor = theClass
-										.getConstructor(new Class[] { interfaceClass });
+							for (Class interfaceClass : in.getClass().getInterfaces()) {
+								constructor = theClass.getConstructor(new Class[] { interfaceClass });
 								if (constructor != null) {
 									break;
 								}
@@ -193,8 +234,7 @@ public class FilePersistence extends RamPersistence {
 								throw new NoSuchMethodException();
 							}
 
-							result = (IPersistable) constructor
-									.newInstance(new Object[] { in });
+							result = (IPersistable) constructor.newInstance(new Object[] { in });
 						} catch (NoSuchMethodException err) {
 							// No valid constructor found, use empty
 							// constructor.
@@ -272,7 +312,12 @@ public class FilePersistence extends RamPersistence {
 		return (doLoad(getObjectFilename(object), object) != null);
 	}
 
-	private boolean saveObject(IPersistable object) {
+    /**
+     * Save persistable object
+     * @param object           Persistable object
+     * @return                 <code>true</code> on success, <code>false</code> otherwise
+     */
+    private boolean saveObject(IPersistable object) {
 		String path = getObjectFilepath(object, true);
 		Resource resPath = resources.getResource(path);
 		File file;
@@ -328,7 +373,11 @@ public class FilePersistence extends RamPersistence {
 		return persistent;
 	}
 
-	protected void checkRemoveEmptyDirectories(String base) {
+    /**
+     * Remove empty dirs
+     * @param base             Base directory
+     */
+    protected void checkRemoveEmptyDirectories(String base) {
 		if (!checkForEmptyDirectories) {
 			return;
 		}

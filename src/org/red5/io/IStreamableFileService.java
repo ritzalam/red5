@@ -27,9 +27,19 @@ import java.io.IOException;
  */
 public interface IStreamableFileService {
 
-	public String getPrefix();
+	/**
+     * Getter for property 'prefix'.
+     *
+     * @return Value for property 'prefix'.
+     */
+    public String getPrefix();
 
-	public String getExtension();
+	/**
+     * Getter for property 'extension'.
+     *
+     * @return Value for property 'extension'.
+     */
+    public String getExtension();
 
 	public String prepareFilename(String name);
 

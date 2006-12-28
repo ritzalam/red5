@@ -1,10 +1,18 @@
 package org.red5.server.net.rtmp.event;
 
+/**
+ * Client bandwidth event
+ */
 public class ClientBW extends BaseEvent {
+    /**
+     * Bandwidth
+     */
+	private int bandwidth;
 
-	private int bandwidth = 0;
-
-	private byte value2 = 0;
+    /**
+     * /XXX : what is this?
+     */
+    private byte value2;
 
 	public ClientBW(int bandwidth, byte value2) {
 		super(Type.STREAM_CONTROL);
@@ -28,16 +36,16 @@ public class ClientBW extends BaseEvent {
 	}
 
 	/**
-     * Setter for property 'bandwidth'.
+     * Setter for bandwidth
      *
-     * @param bandwidth Value to set for property 'bandwidth'.
+     * @param bandwidth  New bandwidth
      */
     public void setBandwidth(int bandwidth) {
 		this.bandwidth = bandwidth;
 	}
 
 	/**
-     * Getter for property 'value2'.
+     * Getter for value2
      *
      * @return Value for property 'value2'.
      */

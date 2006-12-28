@@ -19,13 +19,6 @@ package org.red5.server.net.rtmp;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import static org.red5.server.api.ScopeUtils.getScopeService;
-
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.UUID;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
@@ -34,35 +27,25 @@ import org.red5.server.api.IBandwidthConfigure;
 import org.red5.server.api.IContext;
 import org.red5.server.api.IFlowControllable;
 import org.red5.server.api.Red5;
+import static org.red5.server.api.ScopeUtils.getScopeService;
 import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IPendingServiceCallback;
 import org.red5.server.api.service.IServiceCall;
 import org.red5.server.api.service.IServiceCapableConnection;
-import org.red5.server.api.stream.IClientBroadcastStream;
-import org.red5.server.api.stream.IClientStream;
-import org.red5.server.api.stream.IPlaylistSubscriberStream;
-import org.red5.server.api.stream.ISingleItemSubscriberStream;
-import org.red5.server.api.stream.IStreamCapableConnection;
-import org.red5.server.api.stream.IStreamService;
-import org.red5.server.net.rtmp.event.BytesRead;
-import org.red5.server.net.rtmp.event.ClientBW;
-import org.red5.server.net.rtmp.event.Invoke;
-import org.red5.server.net.rtmp.event.Notify;
-import org.red5.server.net.rtmp.event.Ping;
-import org.red5.server.net.rtmp.event.ServerBW;
-import org.red5.server.net.rtmp.event.VideoData;
+import org.red5.server.api.stream.*;
+import org.red5.server.net.rtmp.event.*;
 import org.red5.server.net.rtmp.message.Packet;
 import org.red5.server.service.Call;
 import org.red5.server.service.PendingCall;
-import org.red5.server.stream.ClientBroadcastStream;
-import org.red5.server.stream.IFlowControlService;
-import org.red5.server.stream.OutputStream;
-import org.red5.server.stream.PlaylistSubscriberStream;
-import org.red5.server.stream.StreamService;
-import org.red5.server.stream.VideoCodecFactory;
+import org.red5.server.stream.*;
 import org.springframework.context.ApplicationContext;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * RTMP connection. Stores information about client streams, data transfer channels,
@@ -227,18 +210,18 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
     /**
-     *
-      * @param channelId
-     * @return
+     * Checks whether channel is used
+     * @param channelId        Channel id
+     * @return                 <code>true</code> if channel is in use, <code>false</code> otherwise
      */
     public boolean isChannelUsed(byte channelId) {
 		return (channels[channelId] != null);
 	}
 
     /**
-     *
-     * @param channelId
-     * @return
+     * Return channel by id
+     * @param channelId        Channel id
+     * @return                 Channel by id
      */
     public Channel getChannel(byte channelId) {
 		if (!isChannelUsed(channelId)) {
@@ -248,8 +231,8 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
     /**
-     *
-     * @param channelId
+     * Closes channel
+     * @param channelId       Channel id
      */
     public void closeChannel(byte channelId) {
 		channels[channelId] = null;
@@ -489,8 +472,8 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
     /**
-     * Call ping via data channel
-     * @param ping
+     * Handler for ping event
+     * @param ping        Ping event context
      */
     public void ping(Ping ping) {
 		getChannel((byte) 2).write(ping);
@@ -781,9 +764,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	/**
-     * Setter for property 'keepAliveInterval'.
+     * Setter for keep alive interval
      *
-     * @param keepAliveInterval Value to set for property 'keepAliveInterval'.
+     * @param keepAliveInterval Keep alive interval
      */
     public void setKeepAliveInterval(int keepAliveInterval) {
 		this.keepAliveInterval = keepAliveInterval;

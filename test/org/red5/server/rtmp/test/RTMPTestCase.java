@@ -26,7 +26,8 @@ public class RTMPTestCase extends TestCase implements Constants {
 
 	protected RTMPProtocolDecoder decoder;
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	protected void setUp() throws Exception {
 		// TODO Auto-generated method stub
 		super.setUp();

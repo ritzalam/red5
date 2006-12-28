@@ -99,112 +99,98 @@ public class SimpleBandwidthConfigure implements IBandwidthConfigure {
 	}
 
     /**
-     *
-     * @param audioBandwidth
+     * {@inheritDoc}
      */
 	public void setAudioBandwidth(long audioBandwidth) {
 		this.audioBandwidth = audioBandwidth;
 	}
 
     /**
-     *
-     * @return
+     * {@inheritDoc}
      */
 	public long getVideoBandwidth() {
 		return videoBandwidth;
 	}
 
     /**
-     *
-     * @param videoBandwidth
+     * {@inheritDoc}
      */
 	public void setVideoBandwidth(long videoBandwidth) {
 		this.videoBandwidth = videoBandwidth;
 	}
 
     /**
-     *
-     * @return
+     * {@inheritDoc}
      */
 	public long getOverallBandwidth() {
 		return overallBandwidth;
 	}
 
     /**
-     *
-     * @param overallBandwidth
+     * {@inheritDoc} 
      */
 	public void setOverallBandwidth(long overallBandwidth) {
 		this.overallBandwidth = overallBandwidth;
 	}
 
     /**
-     *
-     * @return
+     * {@inheritDoc}
      */
 	public long getUpstreamBandwidth() {
 		return upstreamBandwidth;
 	}
 
     /**
-     *
-     * @param upstreamBandwidth
+     * {@inheritDoc}
      */
 	public void setUpstreamBandwidth(long upstreamBandwidth) {
 		this.upstreamBandwidth = upstreamBandwidth;
 	}
 
     /**
-     *
-     * @return
+     * {@inheritDoc}
      */
 	public long getDownstreamBandwidth() {
 		return downstreamBandwidth;
 	}
 
     /**
-     *
-     * @param downstreamBandwidth
+     * {@inheritDoc}
      */
 	public void setDownstreamBandwidth(long downstreamBandwidth) {
 		this.downstreamBandwidth = downstreamBandwidth;
 	}
 
     /**
-     *
-     * @return
+     * {@inheritDoc}
      */
 	public long getBurst() {
 		return burst;
 	}
 
     /**
-     *
-     * @param burst
+     * {@inheritDoc}
      */
 	public void setBurst(long burst) {
 		this.burst = burst;
 	}
 
     /**
-     *
-     * @return
+     * {@inheritDoc}
      */
 	public long getMaxBurst() {
 		return maxBurst;
 	}
 
     /**
-     *
-     * @param maxBurst
+     * {@inheritDoc}
      */
 	public void setMaxBurst(long maxBurst) {
 		this.maxBurst = maxBurst;
 	}
 
     /**
-     *
-     * @return
+     * {@inheritDoc}
      */
     @Override
 	public String toString() {

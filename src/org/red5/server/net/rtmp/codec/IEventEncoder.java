@@ -30,24 +30,71 @@ import org.red5.server.net.rtmp.event.Unknown;
 import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.so.ISharedObjectMessage;
 
+/**
+ * Encodes events to byte buffer
+ */
 public interface IEventEncoder {
-
+    /**
+     * Encodes Notify event to byte buffer
+     * @param notify         Notify event
+     * @return               Byte buffer
+     */
 	public abstract ByteBuffer encodeNotify(Notify notify);
 
+    /**
+     * Encodes Invoke event to byte buffer
+     * @param invoke         Invoke event
+     * @return               Byte buffer
+     */
 	public abstract ByteBuffer encodeInvoke(Invoke invoke);
 
-	public abstract ByteBuffer encodePing(Ping ping);
+    /**
+     * Encodes Ping event to byte buffer
+     * @param ping           Ping event
+     * @return               Byte buffer
+     */
+    public abstract ByteBuffer encodePing(Ping ping);
 
-	public abstract ByteBuffer encodeBytesRead(BytesRead streamBytesRead);
+    /**
+     * Encodes BytesRead event to byte buffer
+     * @param streamBytesRead    BytesRead event
+     * @return                   Byte buffer
+     */
+    public abstract ByteBuffer encodeBytesRead(BytesRead streamBytesRead);
 
-	public abstract ByteBuffer encodeAudioData(AudioData audioData);
+    /**
+     * Encodes AudioData event to byte buffer
+     * @param audioData          AudioData event
+     * @return                   Byte buffer
+     */
+    public abstract ByteBuffer encodeAudioData(AudioData audioData);
 
-	public abstract ByteBuffer encodeVideoData(VideoData videoData);
+    /**
+     * Encodes VideoData event to byte buffer
+     * @param videoData          VideoData event
+     * @return                   Byte buffer
+     */
+    public abstract ByteBuffer encodeVideoData(VideoData videoData);
 
-	public abstract ByteBuffer encodeUnknown(Unknown unknown);
+    /**
+     * Encodes Unknown event to byte buffer
+     * @param unknown            Unknown event
+     * @return                   Byte buffer
+     */
+    public abstract ByteBuffer encodeUnknown(Unknown unknown);
 
-	public abstract ByteBuffer encodeChunkSize(ChunkSize chunkSize);
+    /**
+     * Encodes ChunkSize event to byte buffer
+     * @param chunkSize          ChunkSize event
+     * @return                   Byte buffer
+     */
+    public abstract ByteBuffer encodeChunkSize(ChunkSize chunkSize);
 
-	public abstract ByteBuffer encodeSharedObject(ISharedObjectMessage so);
+    /**
+     * Encodes SharedObjectMessage event to byte buffer
+     * @param so                 ISharedObjectMessage event
+     * @return                   Byte buffer
+     */
+    public abstract ByteBuffer encodeSharedObject(ISharedObjectMessage so);
 
 }

@@ -32,39 +32,49 @@ import org.red5.server.stream.message.RTMPMessage;
  * @author Steven Gong (steven.gong@gmail.com)
  */
 public class PlayBuffer {
-
+    /**
+     * Buffer capacity
+     */
 	private long capacity;
-
-	private long messageSize = 0;
-
+    /**
+     * Message size
+     */
+	private long messageSize;
+    /**
+     * Queue of RTMP messages
+     */
 	private Queue<RTMPMessage> messageQueue = new LinkedList<RTMPMessage>();
 
-	public PlayBuffer(long capacity) {
+    /**
+     * Create play buffer with given capacity
+     * @param capacity          Capacity of buffer
+     */
+    public PlayBuffer(long capacity) {
 		this.capacity = capacity;
 	}
 
 	/**
 	 * Buffer capacity in bytes.
 	 * 
-	 * @return
+	 * @return          Buffer capacity in bytes
 	 */
 	public long getCapacity() {
 		return capacity;
 	}
 
 	/**
-     * Setter for property 'capacity'.
+     * Setter for capacity
      *
-     * @param capacity Value to set for property 'capacity'.
+     * @param capacity  New capacity
      */
     public void setCapacity(long capacity) {
 		this.capacity = capacity;
 	}
 
 	/**
-	 * Number of message in buffer.
+	 * Number of messages in buffer.
 	 * 
-	 * @return
+	 * @return          Number of messages in buffer
 	 */
 	public int getMessageCount() {
 		return messageQueue.size();
@@ -73,7 +83,7 @@ public class PlayBuffer {
 	/**
 	 * Total message size in bytes.
 	 * 
-	 * @return
+	 * @return          Total message size in bytes
 	 */
 	public long getMessageSize() {
 		return messageSize;
@@ -82,7 +92,7 @@ public class PlayBuffer {
 	/**
 	 * Put a message into this buffer.
 	 * 
-	 * @param message
+	 * @param message          RTMP message
 	 * @return <tt>true</tt> indicates success and <tt>false</tt>
 	 * indicates buffer is full.
 	 */

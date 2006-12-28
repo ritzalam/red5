@@ -64,9 +64,9 @@ public class RemotingHeader {
 	/**
 	 * Create a new header to be sent through remoting.
 	 * 
-	 * @param name
-	 * @param required
-	 * @param data
+	 * @param name            Header name
+	 * @param required        Header required?
+	 * @param data            Header data
 	 */
 	public RemotingHeader(String name, boolean required, Object data) {
 		this.name = name;

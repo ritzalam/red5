@@ -26,6 +26,9 @@ import org.apache.mina.filter.codec.ProtocolEncoder;
 import org.apache.mina.filter.codec.ProtocolEncoderOutput;
 import org.red5.server.net.protocol.ProtocolState;
 
+/**
+ * Mina protocol encoder for RTMP
+ */
 public class RTMPMinaProtocolEncoder extends RTMPProtocolEncoder implements
 		ProtocolEncoder {
 

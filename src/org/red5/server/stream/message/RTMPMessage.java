@@ -22,11 +22,14 @@ package org.red5.server.stream.message;
 import org.red5.server.messaging.AbstractMessage;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
 
+/**
+ * RTMP message
+ */
 public class RTMPMessage extends AbstractMessage {
 	private IRTMPEvent body;
 
 	/**
-     * Getter for property 'body'.
+     * Return RTMP message body
      *
      * @return Value for property 'body'.
      */
@@ -35,7 +38,7 @@ public class RTMPMessage extends AbstractMessage {
 	}
 
 	/**
-     * Setter for property 'body'.
+     * Setter for RTMP message body
      *
      * @param body Value to set for property 'body'.
      */

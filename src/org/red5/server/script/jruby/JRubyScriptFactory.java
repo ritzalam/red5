@@ -64,11 +64,13 @@ public class JRubyScriptFactory implements ScriptFactory {
 		this.scriptInterfaces = scriptInterfaces;
 	}
 
-	public String getScriptSourceLocator() {
+	/** {@inheritDoc} */
+    public String getScriptSourceLocator() {
 		return this.scriptSourceLocator;
 	}
 
-	public Class[] getScriptInterfaces() {
+	/** {@inheritDoc} */
+    public Class[] getScriptInterfaces() {
 		return this.scriptInterfaces;
 	}
 

@@ -19,8 +19,6 @@ package org.red5.server.net.remoting.codec;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.Iterator;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
@@ -32,20 +30,28 @@ import org.red5.server.net.protocol.SimpleProtocolEncoder;
 import org.red5.server.net.remoting.message.RemotingCall;
 import org.red5.server.net.remoting.message.RemotingPacket;
 
+import java.util.Iterator;
+
+/**
+ * Remoting protocol encoder
+ */
 public class RemotingProtocolEncoder implements SimpleProtocolEncoder {
+    /**
+     * Logger
+     */
+	protected static Log log = LogFactory.getLog(RemotingProtocolEncoder.class.getName());
+    /**
+     * I/O logger
+     */
+	protected static Log ioLog = LogFactory.getLog(RemotingProtocolEncoder.class.getName() + ".out");
 
-	protected static Log log = LogFactory.getLog(RemotingProtocolEncoder.class
-			.getName());
-
-	protected static Log ioLog = LogFactory
-			.getLog(RemotingProtocolEncoder.class.getName() + ".out");
-
-	private Serializer serializer = null;
+    /**
+     * Data serializer
+     */
+    private Serializer serializer;
 
 	/** {@inheritDoc} */
-    public ByteBuffer encode(ProtocolState state, Object message)
-			throws Exception {
-
+    public ByteBuffer encode(ProtocolState state, Object message) throws Exception {
 		RemotingPacket resp = (RemotingPacket) message;
 		Iterator it = resp.getCalls().iterator();
 		ByteBuffer buf = ByteBuffer.allocate(1024);
@@ -70,15 +76,19 @@ public class RemotingProtocolEncoder implements SimpleProtocolEncoder {
 
 	}
 
+    /**
+     * Dispose I/O session, not implemented yet
+     * @param ioSession         I/O session
+     * @throws Exception        Exception
+     */
 	public void dispose(IoSession ioSession) throws Exception {
 		// TODO Auto-generated method stub
-
 	}
 
 	/**
-     * Setter for property 'serializer'.
+     * Setter for serializer.
      *
-     * @param serializer Value to set for property 'serializer'.
+     * @param serializer  New serializer
      */
     public void setSerializer(Serializer serializer) {
 		this.serializer = serializer;

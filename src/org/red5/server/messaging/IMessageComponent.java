@@ -19,13 +19,16 @@ package org.red5.server.messaging;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+/**
+ * Message component handles out-of-band control messages
+ */
 public interface IMessageComponent {
 	/**
 	 * 
-	 * @param source
-	 * @param pipe
+	 * @param source               Message component source
+	 * @param pipe                 Connection pipe
 	 *            TODO
-	 * @param oobCtrlMsg
+	 * @param oobCtrlMsg           Out-of-band control message
 	 */
 	void onOOBControlMessage(IMessageComponent source, IPipe pipe,
 			OOBControlMessage oobCtrlMsg);

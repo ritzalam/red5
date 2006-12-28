@@ -24,7 +24,8 @@ public class MetaServiceTest extends TestCase {
 	private FLVService service;
 	private MetaService metaService;
 
-	protected void setUp() throws Exception {
+	/** {@inheritDoc} */
+    protected void setUp() throws Exception {
 		super.setUp();
 				
 		// Create a FLV Service

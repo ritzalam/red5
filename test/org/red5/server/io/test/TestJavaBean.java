@@ -34,46 +34,116 @@ public class TestJavaBean {
 	private Boolean testBooleanObject = Boolean.FALSE;
 	private boolean testBoolean = true;
 	
-	public byte getTestByte() {
+	/**
+     * Getter for property 'testByte'.
+     *
+     * @return Value for property 'testByte'.
+     */
+    public byte getTestByte() {
 		return testByte;
 	}
-	public void setTestByte(byte testByte) {
+	/**
+     * Setter for property 'testByte'.
+     *
+     * @param testByte Value to set for property 'testByte'.
+     */
+    public void setTestByte(byte testByte) {
 		this.testByte = testByte;
 	}
-	public boolean isTestBoolean() {
+	/**
+     * Getter for property 'testBoolean'.
+     *
+     * @return Value for property 'testBoolean'.
+     */
+    public boolean isTestBoolean() {
 		return testBoolean;
 	}
-	public void setTestBoolean(boolean testBoolean) {
+	/**
+     * Setter for property 'testBoolean'.
+     *
+     * @param testBoolean Value to set for property 'testBoolean'.
+     */
+    public void setTestBoolean(boolean testBoolean) {
 		this.testBoolean = testBoolean;
 	}
-	public Boolean getTestBooleanObject() {
+	/**
+     * Getter for property 'testBooleanObject'.
+     *
+     * @return Value for property 'testBooleanObject'.
+     */
+    public Boolean getTestBooleanObject() {
 		return testBooleanObject;
 	}
-	public void setTestBooleanObject(Boolean testBooleanObject) {
+	/**
+     * Setter for property 'testBooleanObject'.
+     *
+     * @param testBooleanObject Value to set for property 'testBooleanObject'.
+     */
+    public void setTestBooleanObject(Boolean testBooleanObject) {
 		this.testBooleanObject = testBooleanObject;
 	}
-	public Date getTestDate() {
+	/**
+     * Getter for property 'testDate'.
+     *
+     * @return Value for property 'testDate'.
+     */
+    public Date getTestDate() {
 		return testDate;
 	}
-	public void setTestDate(Date testDate) {
+	/**
+     * Setter for property 'testDate'.
+     *
+     * @param testDate Value to set for property 'testDate'.
+     */
+    public void setTestDate(Date testDate) {
 		this.testDate = testDate;
 	}
-	public Integer getTestNumberObject() {
+	/**
+     * Getter for property 'testNumberObject'.
+     *
+     * @return Value for property 'testNumberObject'.
+     */
+    public Integer getTestNumberObject() {
 		return testNumberObject;
 	}
-	public void setTestNumberObject(Integer testNumberObject) {
+	/**
+     * Setter for property 'testNumberObject'.
+     *
+     * @param testNumberObject Value to set for property 'testNumberObject'.
+     */
+    public void setTestNumberObject(Integer testNumberObject) {
 		this.testNumberObject = testNumberObject;
 	}
-	public int getTestPrimitiveNumber() {
+	/**
+     * Getter for property 'testPrimitiveNumber'.
+     *
+     * @return Value for property 'testPrimitiveNumber'.
+     */
+    public int getTestPrimitiveNumber() {
 		return testPrimitiveNumber;
 	}
-	public void setTestPrimitiveNumber(int testPrimitiveNumber) {
+	/**
+     * Setter for property 'testPrimitiveNumber'.
+     *
+     * @param testPrimitiveNumber Value to set for property 'testPrimitiveNumber'.
+     */
+    public void setTestPrimitiveNumber(int testPrimitiveNumber) {
 		this.testPrimitiveNumber = testPrimitiveNumber;
 	}
-	public String getTestString() {
+	/**
+     * Getter for property 'testString'.
+     *
+     * @return Value for property 'testString'.
+     */
+    public String getTestString() {
 		return testString;
 	}
-	public void setTestString(String testString) {
+	/**
+     * Setter for property 'testString'.
+     *
+     * @param testString Value to set for property 'testString'.
+     */
+    public void setTestString(String testString) {
 		this.testString = testString;
 	}
 	

@@ -23,50 +23,73 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.net.rtmp.Channel;
 
+/**
+ * Output stream that consists of audio, video and data channels
+ *
+ * @see org.red5.server.net.rtmp.Channel
+ */
 public class OutputStream {
-
+    /**
+     * Logger
+     */
 	protected static Log log = LogFactory.getLog(OutputStream.class.getName());
-
+    /**
+     * Video channel
+     */
 	private Channel video;
-
+    /**
+     * Audio channel
+     */
 	private Channel audio;
-
+    /**
+     * Data channel
+     */
 	private Channel data;
 
-	public OutputStream(Channel video, Channel audio, Channel data) {
+    /**
+     * Creates output stream from channels
+     *
+     * @param video        Video channel
+     * @param audio        Audio channel
+     * @param data         Data channel
+     */
+    public OutputStream(Channel video, Channel audio, Channel data) {
 		this.video = video;
 		this.audio = audio;
 		this.data = data;
 	}
 
-	public void close() {
+    /**
+     * Closes audion, video and data channels
+     */
+    public void close() {
 		this.video.close();
 		this.audio.close();
 		this.data.close();
 	}
 
 	/**
-     * Getter for property 'audio'.
+     * Getter for audio channel
      *
-     * @return Value for property 'audio'.
+     * @return  Audio channel
      */
     public Channel getAudio() {
 		return audio;
 	}
 
 	/**
-     * Getter for property 'data'.
+     * Getter for data channel
      *
-     * @return Value for property 'data'.
+     * @return   Data channel
      */
     public Channel getData() {
 		return data;
 	}
 
 	/**
-     * Getter for property 'video'.
+     * Getter for video channel
      *
-     * @return Value for property 'video'.
+     * @return Video channel
      */
     public Channel getVideo() {
 		return video;

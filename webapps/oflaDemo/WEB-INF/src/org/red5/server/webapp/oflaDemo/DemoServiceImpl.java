@@ -4,7 +4,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DemoServiceImpl {
-	public Map getListOfAvailableFLVs() {
+	/**
+     * Getter for property 'listOfAvailableFLVs'.
+     *
+     * @return Value for property 'listOfAvailableFLVs'.
+     */
+    public Map getListOfAvailableFLVs() {
 		return new HashMap(1);
 	}
 }

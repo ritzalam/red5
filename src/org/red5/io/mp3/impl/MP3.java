@@ -35,16 +35,19 @@ public class MP3 implements IMP3 {
 		this.file = file;
 	}
 
-	public ITagReader getReader() throws IOException {
+	/** {@inheritDoc} */
+    public ITagReader getReader() throws IOException {
 		FileInputStream stream = new FileInputStream(file);
 		return new MP3Reader(stream);
 	}
 
-	public ITagWriter getWriter() throws IOException {
+	/** {@inheritDoc} */
+    public ITagWriter getWriter() throws IOException {
 		return null;
 	}
 
-	public ITagWriter getAppendWriter() throws IOException {
+	/** {@inheritDoc} */
+    public ITagWriter getAppendWriter() throws IOException {
 		return null;
 	}
 

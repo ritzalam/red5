@@ -109,7 +109,7 @@ public class MetaService implements IMetaService {
 		super();
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.io.flv.meta.IMetaService#write()
@@ -239,7 +239,7 @@ public class MetaService implements IMetaService {
 
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.io.flv.meta.IMetaService#writeMetaData()
@@ -252,7 +252,7 @@ public class MetaService implements IMetaService {
 
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.io.flv.meta.IMetaService#writeMetaCue()
@@ -276,15 +276,17 @@ public class MetaService implements IMetaService {
 		this.file = file;
 	}
 
-	public void setInStream(FileInputStream fis) {
+	/** {@inheritDoc} */
+    public void setInStream(FileInputStream fis) {
 		this.fis = fis;
 	}
 
-	public void setOutStream(FileOutputStream fos) {
+	/** {@inheritDoc} */
+    public void setOutStream(FileOutputStream fos) {
 		this.fos = fos;
 	}
 
-	// TODO need to fix
+	/** {@inheritDoc} */ // TODO need to fix
 	public MetaData readMetaData(ByteBuffer buffer) {
 		MetaData retMeta = new MetaData();
 		Input input = new Input(buffer);
@@ -295,7 +297,8 @@ public class MetaService implements IMetaService {
 		return retMeta;
 	}
 
-	public IMetaCue[] readMetaCue() {
+	/** {@inheritDoc} */
+    public IMetaCue[] readMetaCue() {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -48,13 +48,15 @@ public class TestEchoService extends TestCase {
 
 	private IEchoService echoService;
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	protected void setUp() throws Exception {
 		super.setUp();
 		echoService = new EchoService();
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	protected void tearDown() throws Exception {
 		super.tearDown();
 		echoService = null;

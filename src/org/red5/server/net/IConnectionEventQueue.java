@@ -19,15 +19,27 @@ package org.red5.server.net;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.Iterator;
-
 import org.red5.server.api.IConnection;
 import org.red5.server.api.event.IEvent;
 
-public interface IConnectionEventQueue {
+import java.util.Iterator;
 
+/**
+ * Queue of connection events
+ */
+public interface IConnectionEventQueue {
+    /**
+     * Whether queue has waiting connection events
+     * @param conn       Connection
+     * @return           <code>true</code> if queue has waiting events for connection, <code>false</code> otherwise
+     */
 	public boolean hasEventsWaiting(IConnection conn);
 
-	public Iterator<IEvent> pickupEvents(IConnection conn);
+    /**
+     * Return iterator over waiting events
+     * @param conn       Connection
+     * @return           Iterator over events
+     */
+    public Iterator<IEvent> pickupEvents(IConnection conn);
 
 }

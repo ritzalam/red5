@@ -77,13 +77,13 @@ public class FLV implements IFLV {
 	/**
 	 * Sets the cache implementation to be used.
 	 * 
-	 * @param cache
+	 * @param cache          Cache store
 	 */
 	public void setCache(ICacheStore cache) {
 		FLV.cache = cache;
 	}
 	
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.io.flv.FLV#hasMetaData()
@@ -93,7 +93,7 @@ public class FLV implements IFLV {
 		return false;
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.io.flv.FLV#getMetaData()
@@ -103,7 +103,7 @@ public class FLV implements IFLV {
 		return null;
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.io.flv.FLV#hasKeyFrameData()
@@ -113,7 +113,7 @@ public class FLV implements IFLV {
 		return false;
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.io.flv.FLV#setKeyFrameData(java.util.Map)
@@ -121,7 +121,7 @@ public class FLV implements IFLV {
 	public void setKeyFrameData(Map keyframedata) {
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.io.flv.FLV#getKeyFrameData()
@@ -131,7 +131,7 @@ public class FLV implements IFLV {
 		return null;
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.io.flv.FLV#refreshHeaders()
@@ -141,7 +141,7 @@ public class FLV implements IFLV {
 
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.io.flv.FLV#flushHeaders()
@@ -151,14 +151,14 @@ public class FLV implements IFLV {
 
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.io.flv.FLV#reader()
 	 */
 	public ITagReader getReader() throws IOException {
 		FLVReader reader = null;
-		ByteBuffer fileData = null;
+		ByteBuffer fileData;
 		String fileName = file.getName();
 
 		ICacheable ic = cache.get(fileName);
@@ -193,7 +193,7 @@ public class FLV implements IFLV {
 		return reader;
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.io.flv.FLV#readerFromNearestKeyFrame(int)
@@ -203,7 +203,7 @@ public class FLV implements IFLV {
 		return null;
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.io.flv.FLV#writer()
@@ -218,7 +218,8 @@ public class FLV implements IFLV {
 		return writer;
 	}
 
-	public ITagWriter getAppendWriter() throws IOException {
+	/** {@inheritDoc} */
+    public ITagWriter getAppendWriter() throws IOException {
 		// If the file doesnt exist, we cant append to it, so return a writer
 		if (!file.exists()) {
 			log
@@ -239,11 +240,10 @@ public class FLV implements IFLV {
 		}
 		reader.close();
 		FileOutputStream fos = new FileOutputStream(file, true);
-		ITagWriter writer = new FLVWriter(fos, lastTag);
-		return writer;
+        return new FLVWriter(fos, lastTag);
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.io.flv.FLV#writerFromNearestKeyFrame(int)
@@ -253,7 +253,8 @@ public class FLV implements IFLV {
 		return null;
 	}
 
-	public void setMetaData(IMetaData meta) throws IOException {
+	/** {@inheritDoc} */
+    public void setMetaData(IMetaData meta) throws IOException {
 		File tmpFile = new File("tests/tmp.flv");
 		tmpFile.createNewFile();
 		metaService.setInStream(new FileInputStream(file));
@@ -261,7 +262,8 @@ public class FLV implements IFLV {
 		metaService.write(meta);
 	}
 
-	public void setMetaService(IMetaService service) {
+	/** {@inheritDoc} */
+    public void setMetaService(IMetaService service) {
 		metaService = service;
 	}
 }

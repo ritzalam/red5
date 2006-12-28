@@ -68,56 +68,109 @@ import org.springframework.core.io.Resource;
  */
 public class ServerStream extends AbstractStream implements IServerStream,
 		IFilter, IPushableConsumer, IPipeConnectionListener {
-	private static final Log log = LogFactory.getLog(ServerStream.class);
+    /**
+     * Logger
+     */
+    private static final Log log = LogFactory.getLog(ServerStream.class);
 
-	private enum State {
+    /**
+     * Enumeration for states
+     */
+    private enum State {
 		UNINIT, CLOSED, STOPPED, PLAYING
 	}
 
-	private State state;
-
+    /**
+     * Current state
+     */
+    private State state;
+    /**
+     * Stream published name
+     */
 	private String publishedName;
-
+    /**
+     * Actual playlist controller
+     */
 	private IPlaylistController controller;
-
+    /**
+     * Default playlist controller
+     */
 	private IPlaylistController defaultController;
-
+    /**
+     * Rewind flag state
+     */
 	private boolean isRewind;
-
+    /**
+     * Random flag state
+     */
 	private boolean isRandom;
-
+    /**
+     * Repeat flag state
+     */
 	private boolean isRepeat;
-
+    /**
+     * List of items in this playlist
+     */
 	private List<IPlayItem> items;
-
+    /**
+     * Current item index
+     */
 	private int currentItemIndex;
-
+    /**
+     * Current item
+     */
 	private IPlayItem currentItem;
-
+    /**
+     * Message input
+     */
 	private IMessageInput msgIn;
-
+    /**
+     * Message output
+     */
 	private IMessageOutput msgOut;
-	
+    /**
+     * Pipe for recording
+     */
 	private IPipe recordPipe;
-
+    /**
+     * Scheduling service
+     */
 	private ISchedulingService scheduler;
-
+    /**
+     * Live broadcasting scheduled job name
+     */
 	private String liveJobName;
-
+    /**
+     * VOD scheduled job name
+     */
 	private String vodJobName;
-
+    /**
+     * VOD start timestamp
+     */
 	private long vodStartTS;
-
+    /**
+     * Server start timestamp
+     */
 	private long serverStartTS;
-
+    /**
+     * Next msg's video timestamp
+     */
 	private long nextVideoTS;
-
+    /**
+     * Next msg's audio timestamp
+     */
 	private long nextAudioTS;
-
+    /**
+     * Next msg's data timestamp
+     */
 	private long nextDataTS;
-
+    /**
+     * Next msg's timestamp
+     */
 	private long nextTS;
-
+    /**
+     * Next RTMP message
+     */
 	private RTMPMessage nextRTMPMessage;
 
 	/** Constructs a new ServerStream. */
@@ -128,17 +181,17 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	}
 
 	/** {@inheritDoc} */
-    synchronized public void addItem(IPlayItem item) {
+    public synchronized void addItem(IPlayItem item) {
 		items.add(item);
 	}
 
 	/** {@inheritDoc} */
-    synchronized public void addItem(IPlayItem item, int index) {
+    public synchronized void addItem(IPlayItem item, int index) {
 		items.add(index, item);
 	}
 
 	/** {@inheritDoc} */
-    synchronized public void removeItem(int index) {
+    public synchronized void removeItem(int index) {
 		if (index < 0 || index >= items.size()) {
 			return;
 		}
@@ -146,7 +199,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	}
 
 	/** {@inheritDoc} */
-    synchronized public void removeAllItems() {
+    public synchronized void removeAllItems() {
 		items.clear();
 	}
 
@@ -170,7 +223,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	}
 
 	/** {@inheritDoc} */
-    synchronized public void previousItem() {
+    public synchronized void previousItem() {
 		stop();
 		moveToPrevious();
 		if (currentItemIndex == -1) {
@@ -181,7 +234,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	}
 
 	/** {@inheritDoc} */
-    synchronized public void nextItem() {
+    public synchronized void nextItem() {
 		stop();
 		moveToNext();
 		if (currentItemIndex == -1) {
@@ -192,7 +245,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	}
 
 	/** {@inheritDoc} */
-    synchronized public void setItem(int index) {
+    public synchronized void setItem(int index) {
 		if (index < 0 || index >= items.size()) {
 			return;
 		}
@@ -312,7 +365,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	}
 
 	/**
-	 * Start the server-side stream
+	 * Start this server-side stream
 	 */
 	public void start() {
 		if (state != State.UNINIT) {
@@ -343,7 +396,10 @@ public class ServerStream extends AbstractStream implements IServerStream,
 		nextItem();
 	}
 
-	synchronized public void stop() {
+    /**
+     * Stop this server-side stream
+     */
+    public synchronized void stop() {
 		if (state != State.PLAYING) {
 			return;
 		}
@@ -366,7 +422,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	}
 
 	/** {@inheritDoc} */
-    synchronized public void close() {
+    public synchronized void close() {
 		if (state == State.PLAYING) {
 			stop();
 		}
@@ -587,7 +643,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
      * @return  Next RTMP message
      */
     private RTMPMessage getNextRTMPMessage() {
-		IMessage message = null;
+		IMessage message;
 		do {
             // Pull message from message input object...
             message = msgIn.pullMessage();
@@ -601,9 +657,9 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	}
 
     /**
-     *
-     * @param msgIn
-     * @param start
+     * Send VOD initialization control message
+     * @param msgIn            Message input
+     * @param start            Start timestamp
      */
     private void sendVODInitCM(IMessageInput msgIn, int start) {
         // Create new out-of-band control message
@@ -615,7 +671,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
         // Create map for parameters
         Map<Object, Object> paramMap = new HashMap<Object, Object>();
         // Put start timestamp into Map of params
-        paramMap.put("startTS", Integer.valueOf(start));
+        paramMap.put("startTS", start);
         // Attach to OOB control message and send it
         oobCtrlMsg.setServiceParamMap(paramMap);
 		msgIn.sendOOBControlMessage(this, oobCtrlMsg);

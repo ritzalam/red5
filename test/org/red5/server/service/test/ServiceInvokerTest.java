@@ -46,7 +46,8 @@ public class ServiceInvokerTest extends TestCase {
 
 	protected ApplicationContext appCtx = null;
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	protected void setUp() throws Exception {
 		// TODO Auto-generated method stub
 		super.setUp();
@@ -89,7 +90,8 @@ public class ServiceInvokerTest extends TestCase {
 		Assert.assertEquals(call.getStatus(), Call.STATUS_METHOD_NOT_FOUND);
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	protected void tearDown() throws Exception {
 		// TODO Auto-generated method stub
 		super.tearDown();

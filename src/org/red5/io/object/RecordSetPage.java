@@ -48,11 +48,21 @@ public class RecordSetPage {
 		data = (List<List<Object>>) mapResult.get("Page");
 	}
 
-	protected int getCursor() {
+	/**
+     * Getter for property 'cursor'.
+     *
+     * @return Value for property 'cursor'.
+     */
+    protected int getCursor() {
 		return cursor;
 	}
 
-	protected List<List<Object>> getData() {
+	/**
+     * Getter for property 'data'.
+     *
+     * @return Value for property 'data'.
+     */
+    protected List<List<Object>> getData() {
 		return Collections.unmodifiableList(data);
 	}
 

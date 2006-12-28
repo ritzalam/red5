@@ -19,12 +19,12 @@ package org.red5.server.net.rtmp.event;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 /**
  * Simple allocation debugger for Event reference counting.
@@ -33,9 +33,13 @@ import org.apache.commons.logging.LogFactory;
  * @author Steven Gong (steven.gong@gmail.com) on behalf of (ce@publishing-etc.de)
  */
 public class AllocationDebugger {
-
+    /**
+     * Information on references count
+     */
 	private class Info {
-
+        /**
+         * References count
+         */
 		public int refcount;
 
 		/** Constructs a new Info. */
@@ -45,12 +49,15 @@ public class AllocationDebugger {
 
 	}
 
-	private static AllocationDebugger instance;
+    /**
+     * Allocation debugger istance
+     */
+    private static AllocationDebugger instance;
 
 	/**
-     * Getter for property 'instance'.
+     * Getter for instance
      *
-     * @return Value for property 'instance'.
+     * @return  Allocation debugger instance
      */
     public static AllocationDebugger getInstance() {
 		if (instance == null) {
@@ -59,8 +66,13 @@ public class AllocationDebugger {
 		return instance;
 	}
 
-	private Log log;
-
+    /**
+     * Logger
+     */
+    private Log log;
+    /**
+     * Events-to-information objects map
+     */
 	private Map<BaseEvent, Info> events;
 
 	/** Do not instantiate AllocationDebugger. */
@@ -69,11 +81,19 @@ public class AllocationDebugger {
 		events = new HashMap<BaseEvent, Info>();
 	}
 
-	protected synchronized void create(BaseEvent event) {
+    /**
+     * Add event to map
+     * @param event         Event
+     */
+    protected synchronized void create(BaseEvent event) {
 		events.put(event, new Info());
 	}
 
-	protected synchronized void retain(BaseEvent event) {
+    /**
+     * Retain event
+     * @param event         Event
+     */
+    protected synchronized void retain(BaseEvent event) {
 		Info info = events.get(event);
 		if (info != null) {
 			info.refcount++;
@@ -82,7 +102,11 @@ public class AllocationDebugger {
 		}
 	}
 
-	protected synchronized void release(BaseEvent event) {
+    /**
+     * Release event if there's no more references to it
+     * @param event         Event
+     */
+    protected synchronized void release(BaseEvent event) {
 		Info info = events.get(event);
 		if (info != null) {
 			info.refcount--;
@@ -94,7 +118,10 @@ public class AllocationDebugger {
 		}
 	}
 
-	public synchronized void dump() {
+    /**
+     * Dumps allocations
+     */
+    public synchronized void dump() {
 		if (log.isDebugEnabled()) {
 			log.debug("dumping allocations " + events.size());
 			for (Entry<BaseEvent, Info> entry : events.entrySet()) {

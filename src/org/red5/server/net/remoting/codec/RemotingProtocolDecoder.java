@@ -19,10 +19,6 @@ package org.red5.server.net.remoting.codec;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
@@ -34,20 +30,28 @@ import org.red5.server.net.protocol.SimpleProtocolDecoder;
 import org.red5.server.net.remoting.message.RemotingCall;
 import org.red5.server.net.remoting.message.RemotingPacket;
 
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+
 public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
-
-	protected static Log log = LogFactory.getLog(RemotingProtocolDecoder.class
-			.getName());
-
-	protected static Log ioLog = LogFactory
-			.getLog(RemotingProtocolDecoder.class.getName() + ".in");
-
+    /**
+     * Logger
+     */
+	protected static Log log = LogFactory.getLog(RemotingProtocolDecoder.class.getName());
+    /**
+     * I/O logger
+     */
+	protected static Log ioLog = LogFactory.getLog(RemotingProtocolDecoder.class.getName() + ".in");
+    /**
+     * Data deserializer
+     */
 	private Deserializer deserializer;
 
 	/**
-     * Setter for property 'deserializer'.
+     * Setter for deserializer
      *
-     * @param deserializer Value to set for property 'deserializer'.
+     * @param deserializer  Deserializer
      */
     public void setDeserializer(Deserializer deserializer) {
 		this.deserializer = deserializer;
@@ -76,11 +80,20 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 		return new RemotingPacket(calls);
 	}
 
-	public void dispose(IoSession arg0) throws Exception {
+    /**
+     * Disposes session. Not yet implemented.
+     * @param session          Session to dispose
+     * @throws Exception       Any exception can be raised on desposal
+     */
+    public void dispose(IoSession session) throws Exception {
 		// TODO Auto-generated method stub
 	}
 
-	protected void skipHeaders(ByteBuffer in) {
+    /**
+     * Skip headers
+     * @param in         Input data as byte buffer
+     */
+    protected void skipHeaders(ByteBuffer in) {
 		int version = in.getUnsignedShort(); // skip the version
 		int count = in.getUnsignedShort();
 		if (log.isDebugEnabled()) {
@@ -98,6 +111,11 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 		}
 	}
 
+    /**
+     * Decode calls
+     * @param in         Input data as byte buffer
+     * @return           List of pending calls
+     */
 	protected List decodeCalls(ByteBuffer in) {
 		log.debug("Decode calls");
 		//in.getInt();
@@ -168,8 +186,7 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 			}
 
 			// Add the call to the list
-			calls.add(new RemotingCall(serviceName, serviceMethod, args,
-					clientCallback));
+			calls.add(new RemotingCall(serviceName, serviceMethod, args, clientCallback));
 		}
 		return calls;
 	}

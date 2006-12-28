@@ -19,15 +19,15 @@ package org.red5.server.persistence;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-
 import org.red5.server.api.IScope;
 import org.red5.server.api.ScopeUtils;
 import org.red5.server.api.persistence.IPersistable;
 import org.red5.server.api.persistence.IPersistenceStore;
 import org.springframework.core.io.support.ResourcePatternResolver;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * Persistence implementation that stores the objects in memory.
@@ -41,19 +41,38 @@ public class RamPersistence implements IPersistenceStore {
 	/** This is used in the id for objects that have a name of <code>null</code> **/
 	protected static final String PERSISTENCE_NO_NAME = "__null__";
 
-	protected Map<String, IPersistable> objects = new HashMap<String, IPersistable>();
+    /**
+     * Map for persistable objects
+     */
+    protected Map<String, IPersistable> objects = new HashMap<String, IPersistable>();
 
-	protected ResourcePatternResolver resources;
+    /**
+     * Resource pattern resolver. Resolves resources from patterns, loads resources.
+     */
+    protected ResourcePatternResolver resources;
 
-	public RamPersistence(ResourcePatternResolver resources) {
+    /**
+     * Creates RAM persistence object from resource pattern resolvers
+     * @param resources            Resource pattern resolver and loader
+     */
+    public RamPersistence(ResourcePatternResolver resources) {
 		this.resources = resources;
 	}
 
+    /**
+     * Creates RAM persistence object from scope
+     * @param scope                Scope
+     */
 	public RamPersistence(IScope scope) {
 		this((ResourcePatternResolver) ScopeUtils.findApplication(scope));
 	}
 
-	protected String getObjectName(String id) {
+    /**
+     * Get resource name from path
+     * @param id                   Object ID. The format of the object id is <type>/<path>/<objectName>.
+     * @return                     Resource name
+     */
+    protected String getObjectName(String id) {
 		// The format of the object id is <type>/<path>/<objectName>
 		String result = id.substring(id.lastIndexOf('/') + 1);
 		if (result.equals(PERSISTENCE_NO_NAME)) {
@@ -62,6 +81,12 @@ public class RamPersistence implements IPersistenceStore {
 		return result;
 	}
 
+    /**
+     * Get object path for given id and name
+     * @param id                   Object ID. The format of the object id is <type>/<path>/<objectName>
+     * @param name                 Object name
+     * @return                     Resource path
+     */
 	protected String getObjectPath(String id, String name) {
 		// The format of the object id is <type>/<path>/<objectName>
 		id = id.substring(id.indexOf('/') + 1);
@@ -74,6 +99,11 @@ public class RamPersistence implements IPersistenceStore {
 		return id.substring(0, id.lastIndexOf(name)-1);
 	}
 
+    /**
+     * Get object id
+     * @param object               Persistable object whose id is asked for
+     * @return                     Given persistable object id
+     */
 	protected String getObjectId(IPersistable object) {
 		// The format of the object id is <type>/<path>/<objectName>
 		String result = object.getType();

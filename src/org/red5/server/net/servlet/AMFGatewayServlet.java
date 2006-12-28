@@ -19,15 +19,6 @@ package org.red5.server.net.servlet;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.io.IOException;
-import java.util.Iterator;
-
-import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
@@ -41,6 +32,13 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
+import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
 /**
  * Servlet that handles remoting requests.
  * 
@@ -50,17 +48,29 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
 public class AMFGatewayServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 7174018823796785619L;
-
+    /**
+     * Logger
+     */
 	protected static Log log = LogFactory.getLog(AMFGatewayServlet.class);
-
+    /**
+     * AMF MIME type
+     */
 	public static final String APPLICATION_AMF = "application/x-amf";
-
+    /**
+     * Web app context
+     */
 	protected WebApplicationContext webAppCtx;
-
+    /**
+     * Web context
+     */
 	protected IContext webContext;
-
+    /**
+     * Bean factory
+     */
 	protected BeanFactory netContext;
-
+    /**
+     * Remoting codec factory
+     */
 	protected RemotingCodecFactory codecFactory;
 
 	/** {@inheritDoc} */
@@ -91,7 +101,14 @@ public class AMFGatewayServlet extends HttpServlet {
 		}
 	}
 
-	protected void serviceAMF(HttpServletRequest req, HttpServletResponse resp)
+    /**
+     * Works out AMF request
+     * @param req                     Request
+     * @param resp                    Response
+     * @throws ServletException       Servlet exception
+     * @throws IOException            I/O exception
+     */
+    protected void serviceAMF(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 		try {
 			RemotingPacket packet = decodeRequest(req);
@@ -109,7 +126,13 @@ public class AMFGatewayServlet extends HttpServlet {
 		}
 	}
 
-	protected RemotingPacket decodeRequest(HttpServletRequest req)
+    /**
+     * Decode request
+     * @param req                    Request
+     * @return                       Remoting packet
+     * @throws Exception             General exception
+     */
+    protected RemotingPacket decodeRequest(HttpServletRequest req)
 			throws Exception {
 		ByteBuffer reqBuffer = ByteBuffer.allocate(req.getContentLength());
 		ServletUtils.copy(req.getInputStream(), reqBuffer.asOutputStream());
@@ -128,21 +151,32 @@ public class AMFGatewayServlet extends HttpServlet {
 		return packet;
 	}
 
-	protected boolean handleRemotingPacket(HttpServletRequest req,
+    /**
+     * Handles AMF request by making calls
+     * @param req              Request
+     * @param message          Remoting packet
+     * @return                 <code>true</code> on success
+     */
+    protected boolean handleRemotingPacket(HttpServletRequest req,
 			RemotingPacket message) {
 		IScope scope = webContext.resolveScope(message.getScopePath());
 		// Provide a valid IConnection in the Red5 object
 		Red5.setConnectionLocal(new ServletConnection(req, scope));
 
-		Iterator it = message.getCalls().iterator();
-		while (it.hasNext()) {
-			RemotingCall call = (RemotingCall) it.next();
-			webContext.getServiceInvoker().invoke(call, scope);
-		}
-		return true;
+        for (Object o : message.getCalls()) {
+            RemotingCall call = (RemotingCall) o;
+            webContext.getServiceInvoker().invoke(call, scope);
+        }
+        return true;
 	}
 
-	protected void sendResponse(HttpServletResponse resp, RemotingPacket packet)
+    /**
+     * Sends response to client
+     * @param resp             Response
+     * @param packet           Remoting packet
+     * @throws Exception       General exception
+     */
+    protected void sendResponse(HttpServletResponse resp, RemotingPacket packet)
 			throws Exception {
 		ByteBuffer respBuffer = codecFactory.getSimpleEncoder().encode(null,
 				packet);

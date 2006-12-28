@@ -37,11 +37,22 @@ public class DeferredResult {
      * Logger
      */
 	protected static Log log = LogFactory.getLog(DeferredResult.class.getName());
-	
+    /**
+     * Weak reference to used channel
+     */
 	private WeakReference<Channel> channel;
-	private IPendingServiceCall call;
-	private int invokeId;
-	private boolean resultSent = false;
+    /**
+     * Pending call object
+     */
+    private IPendingServiceCall call;
+    /**
+     * Invocation id
+     */
+    private int invokeId;
+    /**
+     * Results sent flag
+     */
+    private boolean resultSent = false;
 	
 	/**
 	 * Set the result of a method call and send to the caller.
@@ -78,27 +89,27 @@ public class DeferredResult {
 	}
 	
 	/**
-     * Setter for property 'invokeId'.
+     * Setter for invoke Id.
      *
-     * @param id Value to set for property 'invokeId'.
+     * @param id  Invocation object identifier
      */
     protected void setInvokeId(int id) {
 		this.invokeId = id;
 	}
 	
 	/**
-     * Setter for property 'serviceCall'.
+     * Setter for service call.
      *
-     * @param call Value to set for property 'serviceCall'.
+     * @param call  Service call
      */
     protected void setServiceCall(IPendingServiceCall call) {
 		this.call = call;
 	}
 	
 	/**
-     * Setter for property 'channel'.
+     * Setter for channel.
      *
-     * @param channel Value to set for property 'channel'.
+     * @param channel  Channel
      */
     protected void setChannel(Channel channel) {
 		this.channel = new WeakReference<Channel>(channel);

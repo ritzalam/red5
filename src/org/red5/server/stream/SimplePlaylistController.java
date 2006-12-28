@@ -22,6 +22,9 @@ package org.red5.server.stream;
 import org.red5.server.api.stream.IPlaylist;
 import org.red5.server.api.stream.IPlaylistController;
 
+/**
+ * Simple playlist controller implementation
+ */
 public class SimplePlaylistController implements IPlaylistController {
 
 	/** {@inheritDoc} */

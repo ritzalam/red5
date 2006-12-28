@@ -62,33 +62,67 @@ public class RTMPTConnection extends RTMPConnection {
 	 * Maximum polling delay. 
 	 */
 	protected static final byte MAX_POLLING_DELAY = 32;
-	
-	private static BitSet idSet = new BitSet(1000);
 
-	protected RTMP state;
+    /**
+     * ID set
+     */
+    private static BitSet idSet = new BitSet(1000);
 
-	protected SimpleProtocolDecoder decoder;
+    /**
+     * RTMP protocol state
+     */
+    protected RTMP state;
 
-	protected SimpleProtocolEncoder encoder;
+    /**
+     * Protocol decoder
+     */
+    protected SimpleProtocolDecoder decoder;
 
-	protected RTMPHandler handler;
+    /**
+     * Protocol encoder
+     */
+    protected SimpleProtocolEncoder encoder;
 
+    /**
+     * RTMP events handler
+     */
+    protected RTMPHandler handler;
+    /**
+     * Byte buffer
+     */
 	protected ByteBuffer buffer;
-
+    /**
+     * List of pending messages
+     */
 	protected List<ByteBuffer> pendingMessages = new LinkedList<ByteBuffer>();
-
+    /**
+     * List of notification messages
+     */
 	protected List<Object> notifyMessages = new LinkedList<Object>();
-
+    /**
+     * Polling delay value
+     */
 	protected byte pollingDelay = INITIAL_POLLING_DELAY;
-
+    /**
+     * Timeframe without pending messages. If this time is greater then polling delay,
+     * then polling delay increased
+     */
 	protected long noPendingMessages;
-
+    /**
+     * Number of read bytes
+     */
 	protected long readBytes;
-
+    /**
+     * Number of written bytes
+     */
 	protected long writtenBytes;
-
+    /**
+     * Closing flag
+     */
 	protected boolean closing = false;
-	
+    /**
+     * Connection client id
+     */
 	protected int clientId;
 	
 	static {
@@ -102,9 +136,9 @@ public class RTMPTConnection extends RTMPConnection {
 	}
 	
 	/**
-     * Setter for property 'RTMPTHandle'.
+     * Setter for RTMP events handler
      *
-     * @param handler Value to set for property 'RTMPTHandle'.
+     * @param handler  Handler
      */
     void setRTMPTHandle(RTMPTHandler handler) {
 		this.state = new RTMP(RTMP.MODE_SERVER);
@@ -139,8 +173,11 @@ public class RTMPTConnection extends RTMPConnection {
     public boolean isClosing() {
 		return closing;
 	}
-	
-	public void realClose() {
+
+    /**
+     * Real close
+     */
+    public void realClose() {
 		if (!isClosing())
 			return;
 		
@@ -167,9 +204,9 @@ public class RTMPTConnection extends RTMPConnection {
 	}
 	
 	/**
-     * Setter for property 'servletRequest'.
+     * Setter for servlet request.
      *
-     * @param request Value to set for property 'servletRequest'.
+     * @param request  Servlet request
      */
     public void setServletRequest(HttpServletRequest request) {
 		host = request.getLocalName();

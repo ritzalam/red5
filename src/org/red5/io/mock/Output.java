@@ -38,115 +38,130 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		this.list = list;
 	}
 
-	public boolean isCustom(Object custom) {
+	/** {@inheritDoc} */
+    public boolean isCustom(Object custom) {
 		// No custom types supported
 		return false;
 	}
 
-	public void putString(String string) {
+    /** {@inheritDoc} */
+    public void putString(String string) {
 		list.add(string);
 	}
-	
-	// DONE
+
+	/** {@inheritDoc} */
 	public void markElementSeparator() {
 		list.add(Byte.valueOf(Mock.TYPE_ELEMENT_SEPARATOR));
 	}
 
-	// DONE
+	/** {@inheritDoc} */ // DONE
 	public void markEndArray() {
 		list.add(Byte.valueOf(Mock.TYPE_END_OF_ARRAY));
 	}
 
-	public void markEndObject() {
+	/** {@inheritDoc} */
+    public void markEndObject() {
 		list.add(Byte.valueOf(Mock.TYPE_END_OF_OBJECT));
 	}
 
-	public void markEndMap() {
+	/** {@inheritDoc} */
+    public void markEndMap() {
 		list.add(Byte.valueOf(Mock.TYPE_END_OF_MAP));
 	}
 
-	// DONE
+	/** {@inheritDoc} */
 	public void markPropertySeparator() {
 		log.info("PROPERTY SEPARATOR");
 		list.add(Byte.valueOf(Mock.TYPE_PROPERTY_SEPARATOR));
 	}
 
-	public void markItemSeparator() {
+	/** {@inheritDoc} */
+    public void markItemSeparator() {
 		log.info("ITEM SEPARATOR");
 		list.add(Byte.valueOf(Mock.TYPE_ITEM_SEPARATOR));
 	}
 
-	public boolean supportsDataType(byte type) {
-		// does not yet support references 
+	/** {@inheritDoc} */
+    public boolean supportsDataType(byte type) {
+		// does not yet support references
 		return type <= DataTypes.OPT_REFERENCE;
 	}
 
-	// DONE
+	/** {@inheritDoc} */
 	public void writeBoolean(Boolean bol) {
 		list.add(Byte.valueOf(DataTypes.CORE_BOOLEAN));
 		list.add(bol);
 	}
 
-	public void writeCustom(Object custom) {
+	/** {@inheritDoc} */
+    public void writeCustom(Object custom) {
 		// Customs not supported by this version
 	}
 
-	public void writeDate(Date date) {
+	/** {@inheritDoc} */
+    public void writeDate(Date date) {
 		list.add(Byte.valueOf(DataTypes.CORE_DATE));
 		list.add(date);
 	}
 
-	// DONE
+	/** {@inheritDoc} */ // DONE
 	public void writeNull() {
 		list.add(Byte.valueOf(DataTypes.CORE_NULL));
 	}
 
-	// DONE
+	/** {@inheritDoc} */ // DONE
 	public void writeNumber(Number num) {
 		list.add(Byte.valueOf(DataTypes.CORE_NUMBER));
 		list.add(num);
 	}
 
-	public void writePropertyName(String name) {
+	/** {@inheritDoc} */
+    public void writePropertyName(String name) {
 		list.add(name);
 	}
 
-	public void writeItemKey(String key) {
+	/** {@inheritDoc} */
+    public void writeItemKey(String key) {
 		list.add(key);
 	}
 
-	public void writeReference(Object obj) {
+	/** {@inheritDoc} */
+    public void writeReference(Object obj) {
 		list.add(Byte.valueOf(DataTypes.OPT_REFERENCE));
 		list.add(Short.valueOf(getReferenceId(obj)));
 	}
 
-	public void writeStartArray(int length) {
+	/** {@inheritDoc} */
+    public void writeStartArray(int length) {
 		list.add(Byte.valueOf(DataTypes.CORE_ARRAY));
 		list.add(Integer.valueOf(length));
 	}
 
-	public void writeStartMap(int highestIndex) {
+	/** {@inheritDoc} */
+    public void writeStartMap(int highestIndex) {
 		list.add(Byte.valueOf(DataTypes.CORE_MAP));
 		list.add(Integer.valueOf(highestIndex));
 	}
 
-	public void writeStartObject(String className) {
+	/** {@inheritDoc} */
+    public void writeStartObject(String className) {
 		list.add(Byte.valueOf(DataTypes.CORE_OBJECT));
 		list.add(className == null ? null : className);
 	}
-
+    /** {@inheritDoc} */
 	public void writeStartObject(String className, int numMembers) {
 		list.add(Byte.valueOf(DataTypes.CORE_OBJECT));
 		list.add(className == null ? null : className);
 		list.add(numMembers);
 	}
-
+    /** {@inheritDoc} */
 	public void writeString(String string) {
 		list.add(Byte.valueOf(DataTypes.CORE_STRING));
 		list.add(string);
 	}
 
-	public void writeXML(String xml) {
+	/** {@inheritDoc} */
+    public void writeXML(String xml) {
 		list.add(Byte.valueOf(DataTypes.CORE_XML));
 		list.add(xml);
 	}

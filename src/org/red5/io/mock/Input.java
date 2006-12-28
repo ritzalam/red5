@@ -40,57 +40,71 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		this.idx = 0;
 	}
 
-	protected Object getNext() {
+	/**
+     * Getter for property 'next'.
+     *
+     * @return Value for property 'next'.
+     */
+    protected Object getNext() {
 		return list.get(idx++);
 	}
 
-	public byte readDataType() {
+	/** {@inheritDoc} */
+    public byte readDataType() {
 		Byte b = (Byte) getNext();
 		return b.byteValue();
 	}
 
 	// Basic
 
-	public Object readNull() {
+	/** {@inheritDoc} */
+    public Object readNull() {
 		return null;
 	}
 
-	public Boolean readBoolean() {
+	/** {@inheritDoc} */
+    public Boolean readBoolean() {
 		return (Boolean) getNext();
 	}
 
-	public Number readNumber() {
+	/** {@inheritDoc} */
+    public Number readNumber() {
 		return (Number) getNext();
 	}
-
+    /** {@inheritDoc} */
 	public String getString() {
 		return (String) getNext();
 	}
-
+    /** {@inheritDoc} */
 	public String readString() {
 		return (String) getNext();
 	}
 
-	public Date readDate() {
+	/** {@inheritDoc} */
+    public Date readDate() {
 		return (Date) getNext();
 	}
 
 	// Array
 
-	public int readStartArray() {
+	/** {@inheritDoc} */
+    public int readStartArray() {
 		Integer i = (Integer) getNext();
 		return i.intValue();
 	}
 
-	public void skipElementSeparator() {
+	/** {@inheritDoc} */
+    public void skipElementSeparator() {
 		getNext();
 	}
 
-	public void skipEndArray() {
+	/** {@inheritDoc} */
+    public void skipEndArray() {
 		// SKIP
 	}
 
-	public boolean hasMoreItems() {
+	/** {@inheritDoc} */
+    public boolean hasMoreItems() {
 		Object next = list.get(idx);
 		if (!(next instanceof Byte)) {
 			return true;
@@ -99,29 +113,35 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		return (b.byteValue() != Mock.TYPE_END_OF_MAP);
 	}
 
-	public String readItemKey() {
+	/** {@inheritDoc} */
+    public String readItemKey() {
 		return (String) getNext();
 	}
 
-	public int readStartMap() {
+	/** {@inheritDoc} */
+    public int readStartMap() {
 		return ((Integer) getNext()).intValue();
 	}
 
-	public void skipEndMap() {
+	/** {@inheritDoc} */
+    public void skipEndMap() {
 		getNext();
 	}
 
-	public void skipItemSeparator() {
+	/** {@inheritDoc} */
+    public void skipItemSeparator() {
 		getNext();
 	}
 
 	// Object
 
-	public String readStartObject() {
+	/** {@inheritDoc} */
+    public String readStartObject() {
 		return readString();
 	}
 
-	public boolean hasMoreProperties() {
+	/** {@inheritDoc} */
+    public boolean hasMoreProperties() {
 		Object next = list.get(idx);
 		if (!(next instanceof Byte)) {
 			return true;
@@ -130,30 +150,36 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		return (b.byteValue() != Mock.TYPE_END_OF_OBJECT);
 	}
 
-	public String readPropertyName() {
+	/** {@inheritDoc} */
+    public String readPropertyName() {
 		return (String) getNext();
 	}
 
-	public void skipPropertySeparator() {
+	/** {@inheritDoc} */
+    public void skipPropertySeparator() {
 		getNext();
 	}
 
-	public void skipEndObject() {
+	/** {@inheritDoc} */
+    public void skipEndObject() {
 		getNext();
 	}
 
 	// Others
 
-	public String readXML() {
+	/** {@inheritDoc} */
+    public String readXML() {
 		return readString();
 	}
 
-	public Object readCustom() {
+	/** {@inheritDoc} */
+    public Object readCustom() {
 		// Not supported
 		return null;
 	}
 
-	public Object readReference() {
+	/** {@inheritDoc} */
+    public Object readReference() {
 		final Short num = (Short) getNext();
 		return getReference(num.shortValue());
 	}

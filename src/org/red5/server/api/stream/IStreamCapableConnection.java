@@ -35,61 +35,61 @@ public interface IStreamCapableConnection extends IConnection,
 	/**
 	 * Return a reserved stream id for use.
 	 * According to FCS/FMS regulation, the base is 1.
-	 * @return
+	 * @return              Reserved stream id
 	 */
 	int reserveStreamId();
 
 	/**
 	 * Unreserve this id for future use.
 	 * 
-	 * @param streamId
+	 * @param streamId      ID of stream to unreserve
 	 */
 	void unreserveStreamId(int streamId);
 
 	/**
 	 * Deletes the stream with the given id.
 	 * 
-	 * @param streamId
+	 * @param streamId      ID of stream to delete
 	 */
 	void deleteStreamById(int streamId);
 
 	/**
 	 * Get a stream by its id.
 	 * 
-	 * @param streamId
-	 * @return
+	 * @param streamId      Stream id
+	 * @return              Stream with given id
 	 */
 	IClientStream getStreamById(int streamId);
 
 	/**
 	 * Create a stream that can play only one item.
 	 * 
-	 * @param streamId
-	 * @return
+	 * @param streamId      Stream id
+	 * @return              New subscriber stream that can play only one item
 	 */
 	ISingleItemSubscriberStream newSingleItemSubscriberStream(int streamId);
 
 	/**
 	 * Create a stream that can play a list.
 	 * 
-	 * @param streamId
-	 * @return
+	 * @param streamId      Stream id
+	 * @return              New stream that can play sequence of items
 	 */
 	IPlaylistSubscriberStream newPlaylistSubscriberStream(int streamId);
 
 	/**
 	 * Create a broadcast stream.
 	 * 
-	 * @param streamId
-	 * @return
+	 * @param streamId      Stream id
+	 * @return              New broadcast stream
 	 */
 	IClientBroadcastStream newBroadcastStream(int streamId);
 
 	/**
 	 * Total number of video messages that are pending to be sent to a stream.
 	 *
-	 * @param streamId
-	 * @return number of pending video messages
+	 * @param streamId       Stream id
+	 * @return               Number of pending video messages
 	 */
 	long getPendingVideoMessages(int streamId);
 

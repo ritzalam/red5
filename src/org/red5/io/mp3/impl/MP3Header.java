@@ -83,19 +83,39 @@ public class MP3Header {
 		channelMode = (byte) ((data >> 6) & 3);
 	}
 
-	public int getData() {
+	/**
+     * Getter for property 'data'.
+     *
+     * @return Value for property 'data'.
+     */
+    public int getData() {
 		return data;
 	}
 
-	public boolean isStereo() {
+	/**
+     * Getter for property 'stereo'.
+     *
+     * @return Value for property 'stereo'.
+     */
+    public boolean isStereo() {
 		return (channelMode != 3);
 	}
 
-	public boolean isProtected() {
+	/**
+     * Getter for property 'protected'.
+     *
+     * @return Value for property 'protected'.
+     */
+    public boolean isProtected() {
 		return protectionBit;
 	}
 
-	public int getBitRate() {
+	/**
+     * Getter for property 'bitRate'.
+     *
+     * @return Value for property 'bitRate'.
+     */
+    public int getBitRate() {
 		int result;
 		switch (audioVersionId) {
 			case 1:
@@ -142,7 +162,12 @@ public class MP3Header {
 		return result * 1000;
 	}
 
-	public int getSampleRate() {
+	/**
+     * Getter for property 'sampleRate'.
+     *
+     * @return Value for property 'sampleRate'.
+     */
+    public int getSampleRate() {
 		return SAMPLERATES[audioVersionId][samplingRateIndex];
 	}
 

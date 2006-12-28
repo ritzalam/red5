@@ -19,8 +19,6 @@ package org.red5.server.net.rtmpt;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.Map;
-
 import org.apache.catalina.Context;
 import org.apache.catalina.Host;
 import org.apache.catalina.Server;
@@ -29,6 +27,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.TomcatLoader;
 import org.red5.server.api.IServer;
+
+import java.util.Map;
 
 /**
  * Loader for the RTMPT server which uses Tomcat.
@@ -39,21 +39,31 @@ import org.red5.server.api.IServer;
 public class TomcatRTMPTLoader extends TomcatLoader {
 
 	// Initialize Logging
-	protected static Log log = LogFactory.getLog(TomcatRTMPTLoader.class
-			.getName());
+	protected static Log log = LogFactory.getLog(TomcatRTMPTLoader.class.getName());
 
-	protected Server rtmptServer;
-
+    /**
+     * RTMP server instance
+     */
+    protected Server rtmptServer;
+    /**
+     * Server instance
+     */
 	protected IServer server;
-
+    /**
+     * RTMP handler
+     */
 	protected RTMPTHandler handler;
-
+    /**
+     * Host
+     */
 	private Host host;
-
+    /**
+     * Context, in terms of JEE context is web application in a servlet container
+     */
 	private Context context;
 
 	/**
-     * Setter for property 'server'.
+     * Setter for server
      *
      * @param server Value to set for property 'server'.
      */
@@ -63,9 +73,9 @@ public class TomcatRTMPTLoader extends TomcatLoader {
 	}
 
 	/**
-     * Setter for property 'RTMPTHandler'.
+     * Setter for RTMPHandler
      *
-     * @param handler Value to set for property 'RTMPTHandler'.
+     * @param handler RTMPHandler
      */
     public void setRTMPTHandler(RTMPTHandler handler) {
 		log.debug("RTMPT setRTMPTHandler");
@@ -130,8 +140,7 @@ public class TomcatRTMPTLoader extends TomcatLoader {
 	//}
 	public void setContext(Map<String, String> contextMap) {
 		log.debug("RTMPT setContext (map)");
-		context = embedded.createContext(contextMap.get("path"), contextMap
-				.get("docBase"));
+		context = embedded.createContext(contextMap.get("path"), contextMap.get("docBase"));
 		context.setReloadable(false);
 	}
 

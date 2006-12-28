@@ -36,25 +36,25 @@ package org.red5.server.messaging;
 public interface IMessage {
     /**
      * Return message id
-     * @return
+     * @return           Message id
      */
     String getMessageID();
 
     /**
      * Setter for new message id
-     * @param id
+     * @param id        Message id
      */
 	void setMessageID(String id);
 
     /**
      * Return correlation id
-     * @return
+     * @return         Correlation id
      */
 	String getCorrelationID();
 
     /**
      * Setter for correlation id
-     * @param id
+     * @param id       Correlation id
      */
 	void setCorrelationID(String id);
 

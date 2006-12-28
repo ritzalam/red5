@@ -35,6 +35,6 @@ public interface IScheduledJob {
 	 * @param service
 	 * 			the service that called the job
 	 */
-	public void execute(ISchedulingService service);
+	public void execute(ISchedulingService service) throws CloneNotSupportedException;
 
 }

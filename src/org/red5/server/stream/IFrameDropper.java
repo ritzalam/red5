@@ -30,16 +30,16 @@ import org.red5.server.stream.message.RTMPMessage;
 public interface IFrameDropper {
 
 	/** Send keyframes, interframes and disposable interframes. */
-	public final static int SEND_ALL = 0;
+    public static final int SEND_ALL = 0;
 
 	/** Send keyframes and interframes. */
-	public final static int SEND_INTERFRAMES = 1;
+    public static final int SEND_INTERFRAMES = 1;
 
 	/** Send keyframes only. */
-	public final static int SEND_KEYFRAMES = 2;
+    public static final int SEND_KEYFRAMES = 2;
 
 	/** Send keyframes only and switch to SEND_INTERFRAMES later. */
-	public final static int SEND_KEYFRAMES_CHECK = 3;
+    public static final int SEND_KEYFRAMES_CHECK = 3;
 
 	/**
 	 * Checks if a message may be sent to the subscriber.

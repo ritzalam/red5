@@ -19,11 +19,20 @@ package org.red5.server.net.rtmp.event;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+/**
+ * Chunk size event
+ */
 public class ChunkSize extends BaseEvent {
+    /**
+     * Chunk size
+     */
+	private int size;
 
-	private int size = 0;
-
-	public ChunkSize(int size) {
+    /**
+     * Create chunk size event with given size
+     * @param size         Chunk size
+     */
+    public ChunkSize(int size) {
 		super(Type.SYSTEM);
 		this.size = size;
 	}
@@ -35,24 +44,27 @@ public class ChunkSize extends BaseEvent {
 	}
 
 	/**
-     * Getter for property 'size'.
+     * Getter for size.
      *
-     * @return Value for property 'size'.
+     * @return  Chunk size
      */
     public int getSize() {
 		return size;
 	}
 
 	/**
-     * Setter for property 'size'.
+     * Setter for size.
      *
-     * @param size Value to set for property 'size'.
+     * @param size  Chunk size
      */
     public void setSize(int size) {
 		this.size = size;
 	}
 
-	protected void doRelease() {
+    /**
+     * Releases chunk (set size to zero)
+     */
+    protected void doRelease() {
 		size = 0;
 	}
 

@@ -26,18 +26,29 @@ public class SimpleJavaBean {
 
 	private String nameOfBean = "jeff";
 
-	public String getNameOfBean() {
+	/**
+     * Getter for property 'nameOfBean'.
+     *
+     * @return Value for property 'nameOfBean'.
+     */
+    public String getNameOfBean() {
 		return nameOfBean;
 	}
 
-	public void setNameOfBean(String nameOfBean) {
+	/**
+     * Setter for property 'nameOfBean'.
+     *
+     * @param nameOfBean Value to set for property 'nameOfBean'.
+     */
+    public void setNameOfBean(String nameOfBean) {
 		this.nameOfBean = nameOfBean;
 	}
 	
-	public boolean equals(Object obj){
+	/** {@inheritDoc} */
+    public boolean equals(Object obj){
 		if(obj instanceof SimpleJavaBean){
 			SimpleJavaBean sjb = (SimpleJavaBean) obj;
-			return sjb.getNameOfBean() == sjb.getNameOfBean();
+			return sjb.getNameOfBean().equals(sjb.getNameOfBean());
 		}
 		return false;
 	}

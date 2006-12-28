@@ -19,12 +19,12 @@ package org.red5.server.net.rtmp.status;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.io.Serializable;
-
 import org.red5.io.object.SerializerOpts;
 
+import java.io.Serializable;
+
 /**
- *
+ * Status object that is sent to client with every status event
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */

@@ -40,7 +40,7 @@ public class MetaCue<K, V> extends HashMap<String, Object> implements IMetaCue {
 
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.io.flv.ICuePoint#setName(java.lang.String)
@@ -49,7 +49,7 @@ public class MetaCue<K, V> extends HashMap<String, Object> implements IMetaCue {
 		this.put("name", name);
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.io.flv.ICuePoint#getName()
@@ -58,7 +58,7 @@ public class MetaCue<K, V> extends HashMap<String, Object> implements IMetaCue {
 		return (String) this.get("name");
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.io.flv.ICuePoint#setType(java.lang.String)
@@ -67,7 +67,7 @@ public class MetaCue<K, V> extends HashMap<String, Object> implements IMetaCue {
 		this.put("type", type);
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.io.flv.ICuePoint#getType()
@@ -76,7 +76,7 @@ public class MetaCue<K, V> extends HashMap<String, Object> implements IMetaCue {
 		return (String) this.get("type");
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.io.flv.ICuePoint#setTime(double)
@@ -85,7 +85,7 @@ public class MetaCue<K, V> extends HashMap<String, Object> implements IMetaCue {
 		this.put("time", d);
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.io.flv.ICuePoint#getTime()
@@ -94,7 +94,8 @@ public class MetaCue<K, V> extends HashMap<String, Object> implements IMetaCue {
 		return (Double) this.get("time");
 	}
 
-	public int compareTo(Object arg0) {
+	/** {@inheritDoc} */
+    public int compareTo(Object arg0) {
 		MetaCue cp = (MetaCue) arg0;
 		double cpTime = cp.getTime();
 		double thisTime = this.getTime();
@@ -108,7 +109,8 @@ public class MetaCue<K, V> extends HashMap<String, Object> implements IMetaCue {
 		return 0;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public String toString() {
 		return "MetaCue{" + this + '}';
 	}

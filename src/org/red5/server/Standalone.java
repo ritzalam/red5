@@ -19,15 +19,14 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.context.access.ContextSingletonBeanFactoryLocator;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.Iterator;
 import java.util.Properties;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.mina.common.ByteBuffer;
-import org.springframework.context.access.ContextSingletonBeanFactoryLocator;
 
 /**
  * Entry point from which the server config file is loaded
@@ -74,14 +73,14 @@ public class Standalone {
      * @throws Exception
      * @throws Throwable
 	 */
-	public static void main(String[] args) throws Exception, Throwable {
+	public static void main(String[] args) throws Throwable {
 
         //System.setProperty("DEBUG", "true");
 
-		if (false) {
-			allocator = new DebugPooledByteBufferAllocator(true);
-			ByteBuffer.setAllocator(allocator);
-		}
+		//if (false) {
+		//	allocator = new DebugPooledByteBufferAllocator(true);
+		//	ByteBuffer.setAllocator(allocator);
+		//}
 
 		if (args.length == 1) {
 			red5Config = args[0];

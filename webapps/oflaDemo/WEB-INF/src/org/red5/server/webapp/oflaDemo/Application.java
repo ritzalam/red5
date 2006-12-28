@@ -6,21 +6,21 @@ import org.red5.server.api.IScope;
 import org.red5.server.api.stream.IServerStream;
 import org.red5.server.api.stream.IStreamCapableConnection;
 import org.red5.server.api.stream.support.SimpleBandwidthConfigure;
-import org.red5.server.api.stream.support.SimplePlayItem;
-import org.red5.server.api.stream.support.StreamUtils;
 
 public class Application extends ApplicationAdapter {
 	private IScope appScope;
 
 	private IServerStream serverStream;
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public boolean appStart(IScope app) {
 		appScope = app;
 		return true;
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public boolean appConnect(IConnection conn, Object[] params) {
 		// Trigger calling of "onBWDone", required for some FLV players
 		measureBandwidth(conn);
@@ -55,7 +55,8 @@ public class Application extends ApplicationAdapter {
 		return super.appConnect(conn, params);
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void appDisconnect(IConnection conn) {
 		if (appScope == conn.getScope() && serverStream != null) {
 			serverStream.close();

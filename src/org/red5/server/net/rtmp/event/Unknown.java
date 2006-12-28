@@ -22,13 +22,25 @@ package org.red5.server.net.rtmp.event;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.io.utils.HexDump;
 
+/**
+ * Unknown event
+ */
 public class Unknown extends BaseEvent {
-
+    /**
+     * Event data
+     */
 	protected ByteBuffer data;
-
+    /**
+     * Type of data
+     */
 	protected byte dataType;
 
-	public Unknown(byte dataType, ByteBuffer data) {
+    /**
+     * Create new unknown event with given data and data type
+     * @param dataType             Data type
+     * @param data                 Event data
+     */
+    public Unknown(byte dataType, ByteBuffer data) {
 		super(Type.SYSTEM);
 		this.dataType = dataType;
 		this.data = data;
@@ -41,9 +53,9 @@ public class Unknown extends BaseEvent {
 	}
 
 	/**
-     * Getter for property 'data'.
+     * Getter for data
      *
-     * @return Value for property 'data'.
+     * @return  Data
      */
     public ByteBuffer getData() {
 		return data;

@@ -19,6 +19,9 @@ package org.red5.server.messaging;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+/**
+ * Filter marker interface groups consumer and provider interfaces
+ */
 public interface IFilter extends IConsumer, IProvider {
 
 }

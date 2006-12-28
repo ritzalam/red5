@@ -36,34 +36,43 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 
 	protected static Log log = LogFactory.getLog(Output.class.getName());
 
-	protected ByteBuffer buf;
+    /**
+     * Output buffer
+     */
+    protected ByteBuffer buf;
 
-	public Output(ByteBuffer buf) {
+    /**
+     * Creates output with given byte buffer
+     * @param buf         Bute buffer
+     */
+    public Output(ByteBuffer buf) {
 		super();
 		this.buf = buf;
 	}
 
-	public boolean isCustom(Object custom) {
+	/** {@inheritDoc} */
+    public boolean isCustom(Object custom) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
-	// DONE
+	/** {@inheritDoc} */
 	public void markElementSeparator() {
 		// SKIP
 	}
 
-	// DONE
+	/** {@inheritDoc} */
 	public void markEndArray() {
 		// SKIP
 	}
 
-	// DONE
+	/** {@inheritDoc} */
 	public void markEndMap() {
 		markEndObject();
 	}
 
-	public void markEndObject() {
+	/** {@inheritDoc} */
+    public void markEndObject() {
 		// TODO: marker bytes ?
 		if (log.isDebugEnabled()) {
 			log.debug("Mark End Object");
@@ -74,54 +83,59 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		buf.put(AMF.TYPE_END_OF_OBJECT);
 	}
 
-	// DONE
+	/** {@inheritDoc} */
 	public void markPropertySeparator() {
 		// SKIP
 	}
 
-	public boolean supportsDataType(byte type) {
+	/** {@inheritDoc} */
+    public boolean supportsDataType(byte type) {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
-	// DONE
+	/** {@inheritDoc} */
 	public void writeBoolean(Boolean bol) {
 		buf.put(AMF.TYPE_BOOLEAN);
-		buf.put(bol.booleanValue() ? AMF.VALUE_TRUE : AMF.VALUE_FALSE);
+		buf.put(bol ? AMF.VALUE_TRUE : AMF.VALUE_FALSE);
 	}
 
-	public void writeCustom(Object custom) {
+	/** {@inheritDoc} */
+    public void writeCustom(Object custom) {
 		// TODO Auto-generated method stub
 
 	}
 
-	public void writeDate(Date date) {
+	/** {@inheritDoc} */
+    public void writeDate(Date date) {
 		buf.put(AMF.TYPE_DATE);
 		buf.putDouble(date.getTime());
 		buf
 				.putShort((short) (TimeZone.getDefault().getRawOffset() / 60 / 1000));
 	}
 
-	// DONE
+	/** {@inheritDoc} */
 	public void writeNull() {
 		// System.err.println("Write null");
 		buf.put(AMF.TYPE_NULL);
 	}
 
-	// DONE
+	/** {@inheritDoc} */
 	public void writeNumber(Number num) {
 		buf.put(AMF.TYPE_NUMBER);
 		buf.putDouble(num.doubleValue());
 	}
 
-	public void writePropertyName(String name) {
+	/** {@inheritDoc} */
+    public void writePropertyName(String name) {
 		if (log.isDebugEnabled()) {
 			log.debug("Put property: " + name);
 		}
 		putString(name);
 	}
 
-	public void writeReference(Object obj) {
+	/** {@inheritDoc} */
+    public void writeReference(Object obj) {
 		if (log.isDebugEnabled()) {
 			log.debug("Write reference");
 		}
@@ -129,25 +143,30 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		buf.putShort(getReferenceId(obj));
 	}
 
-	public void writeStartMap(int length) {
+	/** {@inheritDoc} */
+    public void writeStartMap(int length) {
 		buf.put(AMF.TYPE_MIXED_ARRAY);
 		buf.putInt(length);
 	}
 
-	public void markItemSeparator() {
+	/** {@inheritDoc} */
+    public void markItemSeparator() {
 		// nothing
 	}
 
-	public void writeItemKey(String key) {
+	/** {@inheritDoc} */
+    public void writeItemKey(String key) {
 		writePropertyName(key);
 	}
 
-	public void writeStartArray(int length) {
+	/** {@inheritDoc} */
+    public void writeStartArray(int length) {
 		buf.put(AMF.TYPE_ARRAY);
 		buf.putInt(length);
 	}
 
-	public void writeStartObject(String className) {
+	/** {@inheritDoc} */
+    public void writeStartObject(String className) {
 		if (className == null) {
 			buf.put(AMF.TYPE_OBJECT);
 		} else {
@@ -164,7 +183,8 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		writeStartObject(classname);
 	}
 
-	public void writeString(String string) {
+	/** {@inheritDoc} */
+    public void writeString(String string) {
 		final java.nio.ByteBuffer strBuf = AMF.CHARSET.encode(string);
 		final int len = strBuf.limit();
 		if (len < AMF.LONG_STRING_LENGTH) {
@@ -177,22 +197,31 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		buf.put(strBuf);
 	}
 
-	public static void putString(ByteBuffer buf, String string) {
+    /**
+     * Write out string
+     * @param buf         Byte buffer to write to
+     * @param string      String to write
+     */
+    public static void putString(ByteBuffer buf, String string) {
 		final java.nio.ByteBuffer strBuf = AMF.CHARSET.encode(string);
 		buf.putShort((short) strBuf.limit());
 		buf.put(strBuf);
 	}
-
+    /** {@inheritDoc} */
 	public void putString(String string) {
 		putString(buf, string);
 	}
-
+    /** {@inheritDoc} */
 	public void writeXML(String xml) {
 		// TODO Auto-generated method stub
 
 	}
 
-	public ByteBuffer buf() {
+    /**
+     * Return buffer of this Output object
+     * @return        Byte buffer of this Output object
+     */
+    public ByteBuffer buf() {
 		return this.buf;
 	}
 

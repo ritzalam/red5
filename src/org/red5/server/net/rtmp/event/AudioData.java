@@ -24,7 +24,7 @@ import org.red5.server.stream.IStreamData;
 
 public class AudioData extends BaseEvent implements IStreamData {
 
-	protected ByteBuffer data = null;
+	protected ByteBuffer data;
 
 	/** Constructs a new AudioData. */
     public AudioData() {

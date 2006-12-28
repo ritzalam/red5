@@ -31,25 +31,78 @@ import org.red5.server.net.rtmp.event.Unknown;
 import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.so.ISharedObjectMessage;
 
+/**
+ * Event decoder decodes event objects from incoming byte buffer
+ */
 public interface IEventDecoder {
-
+    /**
+     * Decodes event of Unknown type
+     * @param dataType               Data type
+     * @param in                     Byte buffer to decode
+     * @return                       Unknown event
+     */
 	public abstract Unknown decodeUnknown(byte dataType, ByteBuffer in);
 
+    /**
+     * Decodes chunk size event
+     * @param in                     Byte buffer to decode
+     * @return                       ChunkSize event
+     */
 	public abstract ChunkSize decodeChunkSize(ByteBuffer in);
 
+    /**
+     * Decodes shared object message event
+     * @param in                     Byte buffer to decode
+     * @return                       ISharedObjectMessage event
+     */
 	public abstract ISharedObjectMessage decodeSharedObject(ByteBuffer in);
 
-	public abstract Notify decodeNotify(ByteBuffer in);
+    /**
+     * Decodes notification event
+     * @param in                     Byte buffer to decode
+     * @return                       Notify event
+     */
+    public abstract Notify decodeNotify(ByteBuffer in);
 
-	public abstract Invoke decodeInvoke(ByteBuffer in);
+    /**
+     * Decodes invocation event
+     * @param in                     Byte buffer to decode
+     * @return                       Invoke event
+     */
+    public abstract Invoke decodeInvoke(ByteBuffer in);
 
-	public abstract Ping decodePing(ByteBuffer in);
+    /**
+     * Decodes ping event
+     * @param in                     Byte buffer to decode
+     * @return                       Ping event
+     */
+    public abstract Ping decodePing(ByteBuffer in);
 
-	public abstract BytesRead decodeBytesRead(ByteBuffer in);
+    /**
+     * Decodes BytesRead event
+     * @param in                     Byte buffer to decode
+     * @return                       BytesRead event
+     */
+    public abstract BytesRead decodeBytesRead(ByteBuffer in);
 
-	public abstract AudioData decodeAudioData(ByteBuffer in);
+    /**
+     * Decodes audio data event
+     * @param in                     Byte buffer to decode
+     * @return                       AudioData event
+     */
+    public abstract AudioData decodeAudioData(ByteBuffer in);
 
-	public abstract VideoData decodeVideoData(ByteBuffer in);
+    /**
+     * Decodes video data event
+     * @param in                     Byte buffer to decode
+     * @return                       VideoData event
+     */
+    public abstract VideoData decodeVideoData(ByteBuffer in);
 
-	public abstract FlexMessage decodeFlexMessage(ByteBuffer in);
+    /**
+     * Decodes Flex message event
+     * @param in                     Byte buffer to decode
+     * @return                       FlexMessage event
+     */
+    public abstract FlexMessage decodeFlexMessage(ByteBuffer in);
 }

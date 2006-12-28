@@ -43,29 +43,30 @@ public class FLVWriter implements ITagWriter {
 
 	private static Log log = LogFactory.getLog(FLVWriter.class.getName());
 
-	private FileOutputStream fos = null;
+	private FileOutputStream fos;
 
 	private WritableByteChannel channel;
 
 	//private MappedByteBuffer mappedFile;
 	private ByteBuffer out;
 
-	private ITag lastTag = null;
+	private ITag lastTag;
 
-	private IFLV flv = null;
+	private IFLV flv;
 
-	private long bytesWritten = 0;
+	private long bytesWritten;
 
-	private int offset = 0;
+	private int offset;
 
 	public FLVWriter(FileOutputStream fos) {
 		this(fos, null);
 	}
 
 	/**
-	 * WriterImpl Constructor
+	 * Creates writer implementation with given file output stream and last tag
 	 *
-	 * @param fos
+	 * @param fos               File output stream
+     * @param lastTag           Last tag
 	 */
 	public FLVWriter(FileOutputStream fos, ITag lastTag) {
 		this.fos = fos;
@@ -109,7 +110,7 @@ public class FLVWriter implements ITagWriter {
 
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.io.flv.Writer#getFLV()
@@ -118,7 +119,11 @@ public class FLVWriter implements ITagWriter {
 		return flv;
 	}
 
-	/*
+	/**
+     * Setter for property 'FLV'.
+     *
+     * @param flv Value to set for property 'FLV'.
+     */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.io.flv.Writer#setFLV()
@@ -127,7 +132,7 @@ public class FLVWriter implements ITagWriter {
 		this.flv = flv;
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.io.flv.Writer#getOffset()
@@ -136,11 +141,16 @@ public class FLVWriter implements ITagWriter {
 		return offset;
 	}
 
-	public void setOffset(int offset) {
+	/**
+     * Setter for property 'offset'.
+     *
+     * @param offset Value to set for property 'offset'.
+     */
+    public void setOffset(int offset) {
 		this.offset = offset;
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.io.flv.Writer#getBytesWritten()
@@ -149,7 +159,7 @@ public class FLVWriter implements ITagWriter {
 		return bytesWritten;
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.io.flv.Writer#writeTag(org.red5.io.flv.Tag)
@@ -184,7 +194,7 @@ public class FLVWriter implements ITagWriter {
 		return false;
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.io.flv.Writer#writeTag(byte, java.nio.ByteBuffer)
@@ -194,7 +204,7 @@ public class FLVWriter implements ITagWriter {
 		return false;
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.io.flv.Writer#close()
@@ -223,7 +233,8 @@ public class FLVWriter implements ITagWriter {
 
 	}
 
-	public boolean writeStream(byte[] b) {
+	/** {@inheritDoc} */
+    public boolean writeStream(byte[] b) {
 		// TODO
 		return false;
 	}

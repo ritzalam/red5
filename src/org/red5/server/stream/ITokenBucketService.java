@@ -39,7 +39,7 @@ public interface ITokenBucketService {
 	/**
 	 * Remove this bucket.
 	 * 
-	 * @param bucket
+	 * @param bucket      Bucket to remove
 	 */
 	void removeTokenBucket(ITokenBucket bucket);
 }

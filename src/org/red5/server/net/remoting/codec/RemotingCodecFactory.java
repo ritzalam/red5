@@ -25,17 +25,31 @@ import org.red5.server.net.protocol.SimpleProtocolCodecFactory;
 import org.red5.server.net.protocol.SimpleProtocolDecoder;
 import org.red5.server.net.protocol.SimpleProtocolEncoder;
 
+/**
+ * Factory for remoting codec
+ */
 public class RemotingCodecFactory implements SimpleProtocolCodecFactory {
-
+    /**
+     * Deserializer
+     */
 	protected Deserializer deserializer;
-
+    /**
+     * Serializers
+     */
 	protected Serializer serializer;
-
+    /**
+     * Remoting protocol decoder
+     */
 	protected RemotingProtocolDecoder decoder;
-
+    /**
+     * Remoting protocol encoder
+     */
 	protected RemotingProtocolEncoder encoder;
 
-	public void init() {
+    /**
+     * Initialization, creates and binds encoder and decoder to serializer and deserializer
+     */
+    public void init() {
 		decoder = new RemotingProtocolDecoder();
 		decoder.setDeserializer(deserializer);
 		encoder = new RemotingProtocolEncoder();
@@ -43,18 +57,18 @@ public class RemotingCodecFactory implements SimpleProtocolCodecFactory {
 	}
 
 	/**
-     * Setter for property 'deserializer'.
+     * Setter for deserializer.
      *
-     * @param deserializer Value to set for property 'deserializer'.
+     * @param deserializer Deserializer.
      */
     public void setDeserializer(Deserializer deserializer) {
 		this.deserializer = deserializer;
 	}
 
 	/**
-     * Setter for property 'serializer'.
+     * Setter for serializer.
      *
-     * @param serializer Value to set for property 'serializer'.
+     * @param serializer Sserializer.
      */
     public void setSerializer(Serializer serializer) {
 		this.serializer = serializer;

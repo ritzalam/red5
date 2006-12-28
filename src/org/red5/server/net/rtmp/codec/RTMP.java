@@ -115,25 +115,25 @@ public class RTMP extends ProtocolState {
 	/**
      * Return current mode
      *
-     * @return Value for property 'mode'.
+     * @return  Current mode
      */
     public boolean getMode() {
 		return mode;
 	}
 
 	/**
-     * Getter for property 'debug'.
+     * Getter for debug
      *
-     * @return Value for property 'debug'.
+     * @return  Debug state
      */
     public boolean isDebug() {
 		return debug;
 	}
 
 	/**
-     * Setter for property 'debug'.
+     * Setter for debug
      *
-     * @param debug Value to set for property 'debug'.
+     * @param debug  Debug flag new value
      */
     public void setDebug(boolean debug) {
 		this.debug = debug;

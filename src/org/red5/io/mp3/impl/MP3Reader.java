@@ -158,25 +158,30 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 		}
 	}
 
-	public IStreamableFile getFile() {
+	/** {@inheritDoc} */
+    public IStreamableFile getFile() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	public int getOffset() {
+	/** {@inheritDoc} */
+    public int getOffset() {
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
-	public long getBytesRead() {
+	/** {@inheritDoc} */
+    public long getBytesRead() {
 		return in.position();
 	}
 
-	public long getDuration() {
+	/** {@inheritDoc} */
+    public long getDuration() {
 		return duration;
 	}
 
-	public boolean hasMoreTags() {
+	/** {@inheritDoc} */
+    public boolean hasMoreTags() {
 		MP3Header header = null;
 		while (header == null && in.remaining() > 4) {
 			try {
@@ -218,7 +223,8 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 		return header;
 	}
 
-	public synchronized ITag readTag() {
+	/** {@inheritDoc} */
+    public synchronized ITag readTag() {
 		if (firstFrame) {
 			// Return file metadata as first tag.
 			firstFrame = false;
@@ -272,7 +278,8 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 		return tag;
 	}
 
-	public void close() {
+	/** {@inheritDoc} */
+    public void close() {
 		if (posTimeMap != null) {
 			posTimeMap.clear();
 		}
@@ -289,10 +296,12 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 		}
 	}
 
-	public void decodeHeader() {
+	/** {@inheritDoc} */
+    public void decodeHeader() {
 	}
 
-	public void position(long pos) {
+	/** {@inheritDoc} */
+    public void position(long pos) {
 		in.position((int) pos);
 		// Advance to next frame
 		searchNextFrame();
@@ -307,7 +316,8 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 		}
 	}
 
-	public synchronized KeyFrameMeta analyzeKeyFrames() {
+	/** {@inheritDoc} */
+    public synchronized KeyFrameMeta analyzeKeyFrames() {
 		if (frameMeta != null) {
 			return frameMeta;
 		}

@@ -49,8 +49,8 @@ public interface ITokenBucket {
 	 * is available. The tokens are not consumed automatically before callback,
 	 * so it's recommended to acquire token again in callback function.
 	 * 
-	 * @param tokenCount
-	 * @param callback
+	 * @param tokenCount        Number of tokens
+	 * @param callback          Callback
 	 * @return <tt>true</tt> if successfully acquired or <tt>false</tt>
 	 * if not acquired.
 	 */

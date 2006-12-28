@@ -48,10 +48,11 @@ public class Tag implements ITag {
 	/**
 	 * TagImpl Constructor
 	 * 
-	 * @param dataType
-	 * @param timestamp
-	 * @param bodySize
-	 * @param body
+	 * @param dataType              Tag data type
+	 * @param timestamp             Timestamp
+	 * @param bodySize              Tag body size
+	 * @param body                  Tag body
+     * @param previousTagSize       Previous tag size information
 	 */
 	public Tag(byte dataType, int timestamp, int bodySize, ByteBuffer body,
 			int previousTagSize) {
@@ -62,11 +63,16 @@ public class Tag implements ITag {
 		this.previuosTagSize = previousTagSize;
 	}
 
-	public Tag() {
+	/** Constructs a new Tag. */
+    public Tag() {
 
 	}
 
-	/*
+	/**
+     * Getter for property 'bitflags'.
+     *
+     * @return Value for property 'bitflags'.
+     */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.io.flv.Tag#setBitflags()
@@ -75,7 +81,11 @@ public class Tag implements ITag {
 		return bitflags;
 	}
 
-	/*
+	/**
+     * Setter for property 'bitflags'.
+     *
+     * @param bitflags Value to set for property 'bitflags'.
+     */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.io.flv.Tag#setBitflags()
@@ -84,7 +94,11 @@ public class Tag implements ITag {
 		this.bitflags = bitflags;
 	}
 
-	/*
+	/**
+     * Getter for property 'previuosTagSize'.
+     *
+     * @return Value for property 'previuosTagSize'.
+     */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.io.flv.Tag#getPreviuosTagSize()
@@ -93,7 +107,11 @@ public class Tag implements ITag {
 		return previuosTagSize;
 	}
 
-	/*
+	/**
+     * Setter for property 'previuosTagSize'.
+     *
+     * @param previuosTagSize Value to set for property 'previuosTagSize'.
+     */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.io.flv.Tag#setPreviuosTagSize()
@@ -102,7 +120,7 @@ public class Tag implements ITag {
 		this.previuosTagSize = previuosTagSize;
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.io.flv.Tag#getData()
@@ -172,27 +190,41 @@ public class Tag implements ITag {
 		return ret;
 	}
 
-	public byte getType() {
+	/**
+     * Getter for property 'type'.
+     *
+     * @return Value for property 'type'.
+     */
+    public byte getType() {
 		return type;
 	}
 
-	public void setType(byte type) {
+	/**
+     * Setter for property 'type'.
+     *
+     * @param type Value to set for property 'type'.
+     */
+    public void setType(byte type) {
 		this.type = type;
 	}
 
-	public void setBody(ByteBuffer body) {
+	/** {@inheritDoc} */
+    public void setBody(ByteBuffer body) {
 		this.body = body;
 	}
 
-	public void setBodySize(int bodySize) {
+	/** {@inheritDoc} */
+    public void setBodySize(int bodySize) {
 		this.bodySize = bodySize;
 	}
 
-	public void setDataType(byte dataType) {
+	/** {@inheritDoc} */
+    public void setDataType(byte dataType) {
 		this.dataType = dataType;
 	}
 
-	public void setTimestamp(int timestamp) {
+	/** {@inheritDoc} */
+    public void setTimestamp(int timestamp) {
 		this.timestamp = timestamp;
 	}
 
@@ -201,7 +233,8 @@ public class Tag implements ITag {
 
 	}
 
-	public void setPreviousTagSize(int size) {
+	/** {@inheritDoc} */
+    public void setPreviousTagSize(int size) {
 		this.previuosTagSize = size;
 
 	}

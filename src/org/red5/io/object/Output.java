@@ -32,56 +32,138 @@ public interface Output {
 	boolean supportsDataType(byte type);
 
 	void putString(String string);
-	
+
 	// Basic Data Types
-	void writeNumber(Number num);
+    /**
+     * Write number
+     * @param num       Number
+     */
+    void writeNumber(Number num);
 
-	void writeBoolean(Boolean bol);
+    /**
+     * Write boolean
+     * @param bol       Boolean
+     */
+    void writeBoolean(Boolean bol);
 
-	void writeString(String string);
+    /**
+     * Write string
+     * @param string    String
+     */
+    void writeString(String string);
 
-	void writeDate(Date date);
+    /**
+     * Write date
+     * @param date      Date
+     */
+    void writeDate(Date date);
 
 	void writeNull();
 
-	// Complex Data Types
-	void writeStartArray(int length);
+    /**
+     * Write start of array marker
+     * @param length              Array length
+     */
+    void writeStartArray(int length);
 
-	void markElementSeparator();
+    /**
+     * Write array element separator mark
+     */
+    void markElementSeparator();
 
-	void markEndArray();
+    /**
+     * Write end of array marker
+     *
+     */
+    void markEndArray();
 
-	void writeStartMap(int size);
+    /**
+     * Write map object
+     * @param size     Map size
+     */
+    void writeStartMap(int size);
 
-	void writeItemKey(String key);
+    /**
+     * Write map item key
+     * @param key   Key name
+     */
+    void writeItemKey(String key);
 
-	void markItemSeparator();
+    /**
+     * Write map items separator mark
+     */
+    void markItemSeparator();
 
-	void markEndMap();
+    /**
+     * Write end of map object marker
+     */
+    void markEndMap();
 
-	void writeStartObject(String classname);
+    void writeStartObject(String classname, int numMembers);
 
-	void writeStartObject(String classname, int numMembers);
+    /**
+     * Write start of object marker
+     * @param classname    Object class name
+     */
+    void writeStartObject(String classname);
 
-	void writePropertyName(String name);
+    /**
+     * Write property name
+     * @param name        Property name
+     */
+    void writePropertyName(String name);
 
-	void markPropertySeparator();
+    /**
+     * Write object property separator marker
+     */
+    void markPropertySeparator();
 
-	void markEndObject();
+    /**
+     * Writes end of object marker
+     */
+    void markEndObject();
 
-	void writeXML(String xml);
+    /**
+     * Write XML object
+     * @param xml      XML as string
+     */
+    void writeXML(String xml);
 
-	// Reference to Complex Data Type
+    /**
+     * Write reference to complex data type
+     * @param obj   Referenced object
+     */
 	void writeReference(Object obj);
 
-	// Custom datatypes can be handled by
+    /**
+     * Whether object is custom
+     *
+     * @param custom           Object
+     * @return                 true if object is of user type, false otherwise
+     */
 	boolean isCustom(Object custom);
 
-	void writeCustom(Object custom);
+    /**
+     * Write custom (user) object
+     * @param custom
+     */
+    void writeCustom(Object custom);
 
-	void storeReference(Object obj);
+    /**
+     * Store reference to object
+     * @param obj              Referenced object
+     */
+    void storeReference(Object obj);
 
-	boolean hasReference(Object obj);
+    /**
+     * Check whether object is referenced
+     * @param obj              Object
+     * @return                 true if object is referenced, false otherwise
+     */
+    boolean hasReference(Object obj);
 
-	void clearReferences();
+    /**
+     * Clear references
+     */
+    void clearReferences();
 }

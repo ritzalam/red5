@@ -26,8 +26,14 @@ import org.red5.server.messaging.IProvider;
 import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.messaging.PipeConnectionEvent;
 
+/**
+ * Provides connection via pipe
+ */
 public class ConnectionProvider implements IProvider, IPipeConnectionListener {
-	private IPipe pipe;
+    /**
+     * Pipe used by connection
+     */
+    private IPipe pipe;
 
 	/** {@inheritDoc} */
     public void onOOBControlMessage(IMessageComponent source, IPipe pipe,

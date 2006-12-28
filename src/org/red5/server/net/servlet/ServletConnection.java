@@ -40,12 +40,21 @@ import org.red5.server.api.event.IEvent;
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public class ServletConnection extends AttributeStore implements IConnection {
-
+    /**
+     * Scope
+     */
 	protected IScope scope;
-
+    /**
+     * Servlet request
+     */
 	protected HttpServletRequest request;
 
-	public ServletConnection(HttpServletRequest request, IScope scope) {
+    /**
+     * Create servlet connection from request and scope
+     * @param request           Servlet request
+     * @param scope             Scope
+     */
+    public ServletConnection(HttpServletRequest request, IScope scope) {
 		this.request = request;
 		this.scope = scope;
 	}
@@ -154,9 +163,9 @@ public class ServletConnection extends AttributeStore implements IConnection {
 	}
 
 	/**
-     * Getter for property 'pendingVideoMessages'.
+     * Return pending video messages number.
      *
-     * @return Value for property 'pendingVideoMessages'.
+     * @return  Pending video messages number
      */
     public long getPendingVideoMessages() {
 		return 0;

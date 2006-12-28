@@ -23,22 +23,38 @@ import org.apache.mina.common.ByteBuffer;
 import org.red5.io.IoConstants;
 import org.red5.server.stream.IStreamData;
 
+/**
+ * Video data event
+ */
 public class VideoData extends BaseEvent implements IoConstants, IStreamData {
 
-	public static enum FrameType {
+    /**
+     * Videoframe type
+     */
+    public static enum FrameType {
 		UNKNOWN, KEYFRAME, INTERFRAME, DISPOSABLE_INTERFRAME,
 	}
 
-	protected ByteBuffer data = null;
+    /**
+     * Video data
+     */
+    protected ByteBuffer data;
 
-	private FrameType frameType = FrameType.UNKNOWN;
+    /**
+     * Frame type, unknown by default
+     */
+    private FrameType frameType = FrameType.UNKNOWN;
 
 	/** Constructs a new VideoData. */
     public VideoData() {
 		this(ByteBuffer.allocate(0).flip());
 	}
 
-	public VideoData(ByteBuffer data) {
+    /**
+     * Create video data event with given data buffer
+     * @param data            Video data
+     */
+    public VideoData(ByteBuffer data) {
 		super(Type.STREAM_DATA);
 		this.data = data;
 		if (data != null && data.limit() > 0) {
@@ -76,9 +92,9 @@ public class VideoData extends BaseEvent implements IoConstants, IStreamData {
 	}
 
 	/**
-     * Getter for property 'frameType'.
+     * Getter for frame type
      *
-     * @return Value for property 'frameType'.
+     * @return  Type of video frame
      */
     public FrameType getFrameType() {
 		return frameType;

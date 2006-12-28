@@ -19,9 +19,6 @@ package org.red5.server.net.remoting;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpConnectionManager;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
@@ -41,6 +38,9 @@ import org.red5.server.net.servlet.ServletUtils;
 import org.red5.server.pooling.ThreadPool;
 import org.red5.server.pooling.WorkerThread;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Client interface for remoting calls.
  * 
@@ -49,14 +49,16 @@ import org.red5.server.pooling.WorkerThread;
  *
  */
 public class RemotingClient {
-
+    /**
+     * Logger
+     */
 	protected static Log log = LogFactory
 			.getLog(RemotingClient.class.getName());
 
 	/** Default timeout to use. */
 	public static final int DEFAULT_TIMEOUT = 30000;
 
-	/** Content type for HTTP requests. */
+	/** Content MIME type for HTTP requests. */
 	private static final String CONTENT_TYPE = "application/x-amf";
 
 	/** Name of the bean defining the thread pool. */
@@ -105,20 +107,22 @@ public class RemotingClient {
 	/**
 	 * Encode the method call.
 	 * 
-	 * @param method
-	 * @param params
-	 * @return
+	 * @param method              Remote method being called
+	 * @param params              Method parameters
+	 * @return                    Byte buffer with data to perform remoting call
 	 */
 	private synchronized ByteBuffer encodeInvoke(String method, Object[] params) {
 		ByteBuffer result = ByteBuffer.allocate(1024);
 		result.setAutoExpand(true);
-		Output out = new Output(result);
+
+        // FIX : Michael : variable is never used, should this be removed?
+        Output out = new Output(result);
 
 		// XXX: which is the correct version?
 		result.putShort((short) 0);
 		// Headers
 		result.putShort((short) headers.size());
-		for (RemotingHeader header : headers.values()) {
+        for (RemotingHeader header : headers.values()) {
 			Output.putString(result, header.name);
 			result.put(header.required ? (byte) 0x01 : (byte) 0x00);
 
@@ -167,10 +171,10 @@ public class RemotingClient {
 	/**
 	 * Process any headers sent in the response.
 	 * 
-	 * @param in
+	 * @param in                  Byte buffer with response data
 	 */
 	protected void processHeaders(ByteBuffer in) {
-		int version = in.getUnsignedShort(); // skip the version
+		int version = in.getUnsignedShort(); // skip the version by now, AMF3 is not yet implemented
 		int count = in.getUnsignedShort();
 		Deserializer deserializer = new Deserializer();
 		Input input = new Input(in);
@@ -210,8 +214,8 @@ public class RemotingClient {
 	/**
 	 * Decode response received from remoting server.
 	 * 
-	 * @param data
-	 * @return
+	 * @param data                Result data to decode
+	 * @return                    Object deserialized from byte buffer data
 	 */
 	private synchronized Object decodeResult(ByteBuffer data) {
 		processHeaders(data);
@@ -233,8 +237,8 @@ public class RemotingClient {
 	/**
 	 * Send authentication data with each remoting request.
 	 * 
-	 * @param userid
-	 * @param password
+	 * @param userid              User identifier
+	 * @param password            Password
 	 */
 	public synchronized void setCredentials(String userid, String password) {
 		Map<String, String> data = new HashMap<String, String>();
@@ -247,7 +251,6 @@ public class RemotingClient {
 
 	/**
 	 * Stop sending authentication data.
-	 *
 	 */
 	public synchronized void resetCredentials() {
 		removeHeader(RemotingHeader.CREDENTIALS);
@@ -256,12 +259,11 @@ public class RemotingClient {
 	/**
 	 * Send an additional header to the server.
 	 * 
-	 * @param name
-	 * @param required
-	 * @param value
+	 * @param name                 Header name
+	 * @param required             Header required?
+	 * @param value                Header body
 	 */
-	public synchronized void addHeader(String name, boolean required,
-			Object value) {
+	public synchronized void addHeader(String name, boolean required, Object value) {
 		RemotingHeader header = new RemotingHeader(name, required, value);
 		headers.put(name, header);
 	}
@@ -269,7 +271,7 @@ public class RemotingClient {
 	/**
 	 * Stop sending a given header.
 	 * 
-	 * @param name
+	 * @param name                 Header name
 	 */
 	public synchronized void removeHeader(String name) {
 		headers.remove(name);
@@ -278,8 +280,8 @@ public class RemotingClient {
 	/**
 	 * Invoke a method synchronously on the remoting server.
 	 * 
-	 * @param method
-	 * @param params
+	 * @param method               Method name
+	 * @param params               Parameters passed to method
 	 * @return the result of the method call
 	 */
 	public Object invokeMethod(String method, Object[] params) {
@@ -321,13 +323,11 @@ public class RemotingClient {
 	/**
 	 * Invoke a method asynchronously on the remoting server.
 	 * 
-	 * @param method
-	 * @param methodParams
-	 * @param callback
-     * @param methodParams
+	 * @param method               Method name
+	 * @param methodParams         Parameters passed to method
+	 * @param callback             Callback
 	 */
-	public void invokeMethod(String method, Object[] methodParams,
-			IRemotingCallback callback) {
+	public void invokeMethod(String method, Object[] methodParams, IRemotingCallback callback) {
 		IScope scope = Red5.getConnectionLocal().getScope();
 
 		ThreadPool pool = (ThreadPool) scope.getContext().getBean(POOL_BEAN_ID);
@@ -351,7 +351,14 @@ public class RemotingClient {
 	 */
 	public static class RemotingWorker {
 
-		public void executeTask(RemotingClient client, String method,
+        /**
+         * Execute task
+         * @param client            Remoting client
+         * @param method            Method name
+         * @param params            Parameters to pass to method on call
+         * @param callback          Callback
+         */
+        public void executeTask(RemotingClient client, String method,
 				Object[] params, IRemotingCallback callback) {
 			try {
 				Object result = client.invokeMethod(method, params);

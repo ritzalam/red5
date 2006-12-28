@@ -37,9 +37,9 @@ public interface IBandwidthConfigure {
 	void setAudioBandwidth(long bw);
 
 	/**
-     * Getter for property 'audioBandwidth'.
+     * Return bandwidth available for audio streaming
      *
-     * @return Value for property 'audioBandwidth'.
+     * @return  Audio bandwidth
      */
     long getAudioBandwidth();
 
@@ -52,9 +52,9 @@ public interface IBandwidthConfigure {
 	void setVideoBandwidth(long bw);
 
 	/**
-     * Getter for property 'videoBandwidth'.
+     * Return bandwidth available for video streaming
      *
-     * @return Value for property 'videoBandwidth'.
+     * @return  Video bandwidth
      */
     long getVideoBandwidth();
 
@@ -67,9 +67,9 @@ public interface IBandwidthConfigure {
 	void setOverallBandwidth(long bw);
 
 	/**
-     * Getter for property 'overallBandwidth'.
+     * Getter for overall bandwidth
      *
-     * @return Value for property 'overallBandwidth'.
+     * @return  Overall bandwidth
      */
     long getOverallBandwidth();
 
@@ -140,5 +140,5 @@ public interface IBandwidthConfigure {
     long getBurst();
 
 	/** {@inheritDoc} */
-    IBandwidthConfigure clone();
+    IBandwidthConfigure clone() throws CloneNotSupportedException;
 }

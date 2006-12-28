@@ -19,123 +19,138 @@ package org.red5.server.net.rtmp.message;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+/**
+ * RTMP packet header
+ */
 public class Header implements Constants {
-
-	private byte channelId = 0;
-
-	private int timer = 0;
-
-	private int size = 0;
-
-	private byte dataType = 0;
-
-	private int streamId = 0;
-
+    /**
+     * Channel
+     */
+	private byte channelId;
+    /**
+     * Timer
+     */
+	private int timer;
+    /**
+     * Header size
+     */
+	private int size;
+    /**
+     * Type of data
+     */
+	private byte dataType;
+    /**
+     * Stream id
+     */
+	private int streamId;
+    /**
+     * Whether timer value is relative
+     */
 	private boolean timerRelative = true;
 
 	/**
-     * Getter for property 'channelId'.
+     * Getter for channel id
      *
-     * @return Value for property 'channelId'.
+     * @return  Channel id
      */
     public byte getChannelId() {
 		return channelId;
 	}
 
 	/**
-     * Setter for property 'channelId'.
+     * Setter for channel id
      *
-     * @param channelId Value to set for property 'channelId'.
+     * @param channelId  Header channel id
      */
     public void setChannelId(byte channelId) {
 		this.channelId = channelId;
 	}
 
 	/**
-     * Getter for property 'dataType'.
+     * Getter for data type
      *
-     * @return Value for property 'dataType'.
+     * @return  Data type
      */
     public byte getDataType() {
 		return dataType;
 	}
 
 	/**
-     * Setter for property 'dataType'.
+     * Setter for data type
      *
-     * @param dataType Value to set for property 'dataType'.
+     * @param dataType  Data type
      */
     public void setDataType(byte dataType) {
 		this.dataType = dataType;
 	}
 
 	/**
-     * Getter for property 'size'.
+     * Getter for size.
      *
-     * @return Value for property 'size'.
+     * @return  Header size
      */
     public int getSize() {
 		return size;
 	}
 
 	/**
-     * Setter for property 'size'.
+     * Setter for size
      *
-     * @param size Value to set for property 'size'.
+     * @param size  Header size
      */
     public void setSize(int size) {
 		this.size = size;
 	}
 
 	/**
-     * Getter for property 'streamId'.
+     * Getter for stream id
      *
-     * @return Value for property 'streamId'.
+     * @return  Stream id
      */
     public int getStreamId() {
 		return streamId;
 	}
 
 	/**
-     * Setter for property 'streamId'.
+     * Setter for stream id
      *
-     * @param streamId Value to set for property 'streamId'.
+     * @param streamId  Stream id
      */
     public void setStreamId(int streamId) {
 		this.streamId = streamId;
 	}
 
 	/**
-     * Getter for property 'timer'.
+     * Getter for timer
      *
-     * @return Value for property 'timer'.
+     * @return  Timer
      */
     public int getTimer() {
 		return timer;
 	}
 
 	/**
-     * Setter for property 'timer'.
+     * Setter for timer
      *
-     * @param timer Value to set for property 'timer'.
+     * @param timer  Timer
      */
     public void setTimer(int timer) {
 		this.timer = timer;
 	}
 
 	/**
-     * Getter for property 'timerRelative'.
+     * Getter for timer relative flag
      *
-     * @return Value for property 'timerRelative'.
+     * @return  <code>true</code> if timer value is relative, <code>false</code> otherwise
      */
     public boolean isTimerRelative() {
 		return timerRelative;
 	}
 
 	/**
-     * Setter for property 'timerRelative'.
+     * Setter for timer relative flag
      *
-     * @param timerRelative Value to set for property 'timerRelative'.
+     * @param timerRelative <code>true</code> if timer values are relative, <code>false</code> otherwise
      */
     public void setTimerRelative(boolean timerRelative) {
 		this.timerRelative = timerRelative;

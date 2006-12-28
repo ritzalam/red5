@@ -4,6 +4,11 @@ import java.util.Map;
 
 public interface IDemoService {
 
-	public Map getListOfAvailableFLVs();
+	/**
+     * Getter for property 'listOfAvailableFLVs'.
+     *
+     * @return Value for property 'listOfAvailableFLVs'.
+     */
+    public Map getListOfAvailableFLVs();
 
 }

@@ -19,11 +19,20 @@ package org.red5.server.net.rtmp.event;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+/**
+ * Bytes read event
+ */
 public class BytesRead extends BaseEvent {
+    /**
+     * Bytes read
+     */
+	private int bytesRead;
 
-	private int bytesRead = 0;
-
-	public BytesRead(int bytesRead) {
+    /**
+     * Creates new event with given bytes number
+     * @param bytesRead       Number of bytes read
+     */
+    public BytesRead(int bytesRead) {
 		super(Type.STREAM_CONTROL);
 		this.bytesRead = bytesRead;
 	}
@@ -35,24 +44,27 @@ public class BytesRead extends BaseEvent {
 	}
 
 	/**
-     * Getter for property 'bytesRead'.
+     * Return number of bytes read
      *
-     * @return Value for property 'bytesRead'.
+     * @return  Number of bytes
      */
     public int getBytesRead() {
 		return bytesRead;
 	}
 
 	/**
-     * Setter for property 'bytesRead'.
+     * Setter for bytes read
      *
-     * @param bytesRead Value to set for property 'bytesRead'.
+     * @param bytesRead  Number of bytes read
      */
     public void setBytesRead(int bytesRead) {
 		this.bytesRead = bytesRead;
 	}
 
-	protected void doRelease() {
+    /**
+     * Release event (set bytes read to zero)
+     */
+    protected void doRelease() {
 		bytesRead = 0;
 	}
 

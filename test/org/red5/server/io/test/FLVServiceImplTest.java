@@ -23,12 +23,7 @@ package org.red5.server.io.test;
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeSet;
@@ -76,7 +71,12 @@ public class FLVServiceImplTest extends TestCase {
      * @param tag
 	 * @return void
 	 * @throws IOException 
+<<<<<<< .mine
 	 * @throws FileNotFoundException
+     * @param tag
+=======
+	 * @throws FileNotFoundException
+>>>>>>> .r1592
 	 */
 	/*
 	public void testFLVString() throws FileNotFoundException, IOException  {
@@ -150,14 +150,11 @@ public class FLVServiceImplTest extends TestCase {
 	
 	/**
 	 * Tests: getFLVFileInputStream(FileInputStream fis)
-     * @param writer
-     * @param reader
 	 * @return void
 	 * @throws IOException 
-	 * @throws FileNotFoundException
 	 */
-	/*
-	public void testFLVFileInputStream() throws FileNotFoundException, IOException  {
+    /*
+    public void testFLVFileInputStream() throws FileNotFoundException, IOException  {
 		File f = new File("tests/test_cue3.flv");
 		FileInputStream fis = new FileInputStream(f);
 		FLV flv = service.getFLV(fis);

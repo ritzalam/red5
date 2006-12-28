@@ -23,43 +23,68 @@ package org.red5.server.net.rtmp.event;
  * Ping event, actually combination of different events
  */
 public class Ping extends BaseEvent {
-
+    /**
+     * Stream clear event
+     */
 	public static final short STREAM_CLEAR = 0;
-
+    /**
+     * Stream play
+     */
 	public static final short STREAM_PLAY = 1;
-
+    /**
+     * Unknown event
+     */
 	public static final short UNKNOWN_2 = 2;
-
+    /**
+     * Client buffer
+     */
 	public static final short CLIENT_BUFFER = 3;
-
+    /**
+     * Stream reset
+     */
 	public static final short STREAM_RESET = 4;
-
+    /**
+     * One more unknown event
+     */
 	public static final short UNKNOWN_5 = 5;
-
+    /**
+     * Client ping event
+     */
 	public static final short PING_CLIENT = 6;
-
+    /**
+     * Server response event
+     */
 	public static final short PONG_SERVER = 7;
 
-	public static final short UNKNOWN_8 = 8;
+    /**
+     * One more unknown event
+     */
+    public static final short UNKNOWN_8 = 8;
 
-	public static final int UNDEFINED = -1;
+    /**
+     * Event type is undefined
+     */
+    public static final int UNDEFINED = -1;
 
-	private short value1 = 0; // XXX: can someone suggest better names? 
+	private short value1; // XXX: can someone suggest better names?
 
-	private int value2 = 0;
+	private int value2;
 
 	private int value3 = UNDEFINED;
 
 	private int value4 = UNDEFINED;
 
-	private String debug = "";
+    /**
+     * Debug string
+     */
+    private String debug = "";
 
 	/** Constructs a new Ping. */
     public Ping() {
 		super(Type.SYSTEM);
 	}
 
-	public Ping(short value1, int value2) {
+    public Ping(short value1, int value2) {
 		super(Type.SYSTEM);
 		this.value1 = value1;
 		this.value2 = value2;

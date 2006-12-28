@@ -19,11 +19,14 @@ package org.red5.server.net.protocol;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.List;
-
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.filter.codec.ProtocolCodecException;
 
+import java.util.List;
+
+/**
+ * Simple protocol decoder
+ */
 public interface SimpleProtocolDecoder {
 
 	/**

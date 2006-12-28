@@ -31,35 +31,65 @@ import org.red5.server.api.stream.IVideoStreamCodec;
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public class ScreenVideo implements IVideoStreamCodec {
-
+    /**
+     *
+     */
 	private Log log = LogFactory.getLog(ScreenVideo.class.getName());
-
+    /**
+     * FLV codec name constant
+     */
 	static final String CODEC_NAME = "ScreenVideo";
-
+    /**
+     * FLV frame key marker constant
+     */
 	static final byte FLV_FRAME_KEY = 0x10;
-
+    /**
+     * FLV codec screen marker constant
+     */
 	static final byte FLV_CODEC_SCREEN = 0x03;
-
+    /**
+     * Block data
+     */
 	private byte[] blockData;
-
+    /**
+     * Block size
+     */
 	private int[] blockSize;
-
+    /**
+     * Video width
+     */
 	private int width;
-
+    /**
+     * Video height
+     */
 	private int height;
-
+    /**
+     * Width info
+     */
 	private int widthInfo;
-
+    /**
+     * Height info
+     */
 	private int heightInfo;
-
+    /**
+     * Block width
+     */
 	private int blockWidth;
-
+    /**
+     * Block height
+     */
 	private int blockHeight;
-
+    /**
+     * Number of blocks
+     */
 	private int blockCount;
-
+    /**
+     * Block data size
+     */
 	private int blockDataSize;
-
+    /**
+     * Total block data size
+     */
 	private int totalBlockDataSize;
 
 	/** Constructs a new ScreenVideo. */
@@ -107,6 +137,10 @@ public class ScreenVideo implements IVideoStreamCodec {
 		return size + (size >> 12) + (size >> 14) + 11;
 	}
 
+    /**
+     * Update total block size
+     * @param data      Byte buffer
+     */
 	private void updateSize(ByteBuffer data) {
 		this.widthInfo = data.getShort();
 		this.heightInfo = data.getShort();

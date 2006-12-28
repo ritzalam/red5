@@ -215,6 +215,7 @@ public class RecordSet {
 	 * available yet, it will be received from the server.
 	 * 
 	 * @param index
+     * @return
 	 */
 	public List<Object> getItemAt(int index) {
 		if (index < 0 || index >= totalCount) {

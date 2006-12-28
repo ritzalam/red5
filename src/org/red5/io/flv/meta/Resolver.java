@@ -32,7 +32,7 @@ public class Resolver implements IResolver {
 		super();
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.io.flv.meta.IResolver#resolve(org.red5.io.flv.meta.IMeta,

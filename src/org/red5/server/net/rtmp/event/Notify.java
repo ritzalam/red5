@@ -19,32 +19,52 @@ package org.red5.server.net.rtmp.event;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.Map;
-
 import org.apache.mina.common.ByteBuffer;
 import org.red5.server.api.service.IServiceCall;
 import org.red5.server.stream.IStreamData;
 
+import java.util.Map;
+
+/**
+ * Stream notification event
+ */
 public class Notify extends BaseEvent implements IStreamData {
-
-	protected IServiceCall call = null;
-
-	protected ByteBuffer data = null;
-
+    /**
+     * Service call
+     */
+	protected IServiceCall call;
+    /**
+     * Event data
+     */
+	protected ByteBuffer data;
+    /**
+     * Invoke id
+     */
 	private int invokeId = 0;
 
-	private Map connectionParams = null;
+    /**
+     * Connection parameters
+     */
+    private Map connectionParams;
 
 	/** Constructs a new Notify. */
     public Notify() {
 		super(Type.SERVICE_CALL);
 	}
 
-	public Notify(ByteBuffer data) {
+    /**
+     * Create new notification event with given byte buffer
+     * @param data       Byte buffer
+     */
+    public Notify(ByteBuffer data) {
 		super(Type.STREAM_DATA);
 		this.data = data;
 	}
 
+    /**
+     * Create new notification event with given service call
+     * @param call        Service call
+     */
 	public Notify(IServiceCall call) {
 		super(Type.SERVICE_CALL);
 		this.call = call;
@@ -57,27 +77,27 @@ public class Notify extends BaseEvent implements IStreamData {
 	}
 
 	/**
-     * Setter for property 'data'.
+     * Setter for data
      *
-     * @param data Value to set for property 'data'.
+     * @param data  Data
      */
     public void setData(ByteBuffer data) {
 		this.data = data;
 	}
 
 	/**
-     * Setter for property 'call'.
+     * Setter for call
      *
-     * @param call Value to set for property 'call'.
+     * @param call Service call
      */
     public void setCall(IServiceCall call) {
 		this.call = call;
 	}
 
 	/**
-     * Getter for property 'call'.
+     * Getter for service call
      *
-     * @return Value for property 'call'.
+     * @return  Service call
      */
     public IServiceCall getCall() {
 		return this.call;
@@ -89,40 +109,43 @@ public class Notify extends BaseEvent implements IStreamData {
 	}
 
 	/**
-     * Getter for property 'invokeId'.
+     * Getter for invoke id
      *
-     * @return Value for property 'invokeId'.
+     * @return  Invoke id
      */
     public int getInvokeId() {
 		return invokeId;
 	}
 
 	/**
-     * Setter for property 'invokeId'.
+     * Setter for invoke id
      *
-     * @param invokeId Value to set for property 'invokeId'.
+     * @param invokeId  Invoke id
      */
     public void setInvokeId(int invokeId) {
 		this.invokeId = invokeId;
 	}
 
-	protected void doRelease() {
+    /**
+     * Release event (nullify call object)
+     */
+    protected void doRelease() {
 		call = null;
 	}
 
 	/**
-     * Getter for property 'connectionParams'.
+     * Getter for connection parameters
      *
-     * @return Value for property 'connectionParams'.
+     * @return Connection parameters
      */
     public Map getConnectionParams() {
 		return connectionParams;
 	}
 
 	/**
-     * Setter for property 'connectionParams'.
+     * Setter for connection parameters
      *
-     * @param connectionParams Value to set for property 'connectionParams'.
+     * @param connectionParams  Connection parameters
      */
     public void setConnectionParams(Map connectionParams) {
 		this.connectionParams = connectionParams;

@@ -120,11 +120,13 @@ public class RhinoScriptFactory implements ScriptFactory {
 //		this.scriptContext = scriptContext;
 //	}
 
-	public String getScriptSourceLocator() {
+	/** {@inheritDoc} */
+    public String getScriptSourceLocator() {
 		return this.scriptSourceLocator;
 	}
 
-	public Class[] getScriptInterfaces() {
+	/** {@inheritDoc} */
+    public Class[] getScriptInterfaces() {
 		return this.scriptInterfaces;
 	}
 

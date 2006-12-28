@@ -19,73 +19,81 @@ package org.red5.server.stream.provider;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.io.File;
-import java.io.IOException;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.red5.io.IStreamableFile;
-import org.red5.io.IStreamableFileFactory;
-import org.red5.io.IStreamableFileService;
-import org.red5.io.ITag;
-import org.red5.io.ITagReader;
-import org.red5.io.StreamableFileFactory;
+import org.red5.io.*;
 import org.red5.io.flv.IKeyFrameDataAnalyzer;
 import org.red5.io.flv.IKeyFrameDataAnalyzer.KeyFrameMeta;
 import org.red5.server.api.IScope;
 import org.red5.server.api.ScopeUtils;
-import org.red5.server.messaging.IMessage;
-import org.red5.server.messaging.IMessageComponent;
-import org.red5.server.messaging.IPassive;
-import org.red5.server.messaging.IPipe;
-import org.red5.server.messaging.IPipeConnectionListener;
-import org.red5.server.messaging.IPullableProvider;
-import org.red5.server.messaging.OOBControlMessage;
-import org.red5.server.messaging.PipeConnectionEvent;
-import org.red5.server.net.rtmp.event.AudioData;
-import org.red5.server.net.rtmp.event.IRTMPEvent;
-import org.red5.server.net.rtmp.event.Invoke;
-import org.red5.server.net.rtmp.event.Notify;
-import org.red5.server.net.rtmp.event.Unknown;
-import org.red5.server.net.rtmp.event.VideoData;
+import org.red5.server.messaging.*;
+import org.red5.server.net.rtmp.event.*;
 import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.stream.ISeekableProvider;
 import org.red5.server.stream.message.RTMPMessage;
 
+import java.io.File;
+import java.io.IOException;
+
+/**
+ * Pullable provider for files
+ */
 public class FileProvider implements IPassive, ISeekableProvider,
 		IPullableProvider, IPipeConnectionListener {
-	private static final Log log = LogFactory.getLog(FileProvider.class);
-
+    /**
+     * Logger
+     */
+    private static final Log log = LogFactory.getLog(FileProvider.class);
+    /**
+     * Class name
+     */
 	public static final String KEY = FileProvider.class.getName();
-
+    /**
+     * Provider scope
+     */
 	private IScope scope;
-
+    /**
+     * Source file
+     */
 	private File file;
-
+    /**
+     * Consumer pipe
+     */
 	private IPipe pipe;
-
+    /**
+     * Tag reader
+     */
 	private ITagReader reader;
+    /**
+     * Keyframe metadata
+     */
+	private KeyFrameMeta keyFrameMeta;
+    /**
+     * Position at start
+     */
+	private int start;
 
-	private KeyFrameMeta keyFrameMeta = null;
-
-	private int start = 0;
-
-	public FileProvider(IScope scope, File file) {
+    /**
+     * Create file provider for given file and scope
+     * @param scope            Scope
+     * @param file             File
+     */
+    public FileProvider(IScope scope, File file) {
 		this.scope = scope;
 		this.file = file;
 	}
 
 	/**
-     * Setter for property 'start'.
+     * Setter for start position
      *
-     * @param start Value to set for property 'start'.
+     * @param start Start position
      */
     public void setStart(int start) {
 		this.start = start;
 	}
 
 	/** {@inheritDoc} */
-    synchronized public IMessage pullMessage(IPipe pipe) {
+    public synchronized IMessage pullMessage(IPipe pipe) {
 		if (this.pipe != pipe) {
 			return null;
 		}
@@ -160,7 +168,7 @@ public class FileProvider implements IPassive, ISeekableProvider,
 			if (oobCtrlMsg.getServiceName().equals("init")) {
 				Integer startTS = (Integer) oobCtrlMsg.getServiceParamMap()
 						.get("startTS");
-				setStart(startTS.intValue());
+				setStart(startTS);
 			}
 		}
 		if (ISeekableProvider.KEY.equals(oobCtrlMsg.getTarget())) {
@@ -174,7 +182,10 @@ public class FileProvider implements IPassive, ISeekableProvider,
 		}
 	}
 
-	private void init() {
+    /**
+     * Initializes file provider. Creates streamable file factory and service, seeks to start position
+     */
+    private void init() {
 		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils
 				.getScopeService(scope, IStreamableFileFactory.class,
 						StreamableFileFactory.class);
@@ -194,7 +205,10 @@ public class FileProvider implements IPassive, ISeekableProvider,
 		}
 	}
 
-	synchronized private void uninit() {
+    /**
+     * Reset
+     */
+    private synchronized void uninit() {
 		if (this.reader != null) {
 			this.reader.close();
 			this.reader = null;
@@ -202,7 +216,7 @@ public class FileProvider implements IPassive, ISeekableProvider,
 	}
 
 	/** {@inheritDoc} */
-    synchronized public int seek(int ts) {
+    public synchronized int seek(int ts) {
 		if (keyFrameMeta == null) {
 			if (!(reader instanceof IKeyFrameDataAnalyzer)) {
 				// Seeking not supported

@@ -19,15 +19,22 @@ package org.red5.server.net.rtmp.status;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+/**
+ * Runtime status object
+ */
 public class RuntimeStatusObject extends StatusObject {
 
 	/**
-	 * 
+	 * Serializable
 	 */
 	private static final long serialVersionUID = 6990998992583246039L;
-
+    /**
+     * Status event details
+     */
 	protected String details = "";
-
+    /**
+     * Client id
+     */
 	protected int clientid = 0;
 
 	/** Constructs a new RuntimeStatusObject. */
@@ -35,10 +42,24 @@ public class RuntimeStatusObject extends StatusObject {
 		super();
 	}
 
+    /**
+     * Create runtime status object with given code, level and description
+     * @param code                  Status code
+     * @param level                 Level
+     * @param description           Status event description
+     */
 	public RuntimeStatusObject(String code, String level, String description) {
 		super(code, level, description);
 	}
 
+    /**
+     * Create runtime status object with given code, level, description, details and client id
+     * @param code                  Status code
+     * @param level                 Level
+     * @param description           Status event description
+     * @param details               Status event details
+     * @param clientid              Client id
+     */
 	public RuntimeStatusObject(String code, String level, String description,
 			String details, int clientid) {
 		super(code, level, description);
@@ -47,36 +68,36 @@ public class RuntimeStatusObject extends StatusObject {
 	}
 
 	/**
-     * Getter for property 'clientid'.
+     * Getter for client id
      *
-     * @return Value for property 'clientid'.
+     * @return  Client id
      */
     public int getClientid() {
 		return clientid;
 	}
 
 	/**
-     * Setter for property 'clientid'.
+     * Setter for client id
      *
-     * @param clientid Value to set for property 'clientid'.
+     * @param clientid  Client id
      */
     public void setClientid(int clientid) {
 		this.clientid = clientid;
 	}
 
 	/**
-     * Getter for property 'details'.
+     * Getter for details
      *
-     * @return Value for property 'details'.
+     * @return  Status event details
      */
     public String getDetails() {
 		return details;
 	}
 
 	/**
-     * Setter for property 'details'.
+     * Setter for details
      *
-     * @param details Value to set for property 'details'.
+     * @param details Status event details
      */
     public void setDetails(String details) {
 		this.details = details;

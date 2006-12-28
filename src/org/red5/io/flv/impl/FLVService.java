@@ -39,25 +39,36 @@ import org.red5.io.object.Serializer;
  */
 public class FLVService extends BaseStreamableFileService implements
 		IFLVService {
-	private Serializer serializer;
 
-	private Deserializer deserializer;
+    /**
+     * Serializer
+     */
+    private Serializer serializer;
 
-	private boolean generateMetadata = false;
+    /**
+     * Deserializer
+     */
+    private Deserializer deserializer;
 
-	@Override
+    /**
+     * Generate FLV metadata?
+     */
+    private boolean generateMetadata;
+
+	/** {@inheritDoc} */
+    @Override
 	public String getPrefix() {
 		return "flv";
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public String getExtension() {
 		return ".flv";
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
+	/** {@inheritDoc} */ /*
+	 *
 	 * @see org.red5.io.flv.FLVService#setSerializer(org.red5.io.object.Serializer)
 	 */
 	public void setSerializer(Serializer serializer) {
@@ -65,9 +76,8 @@ public class FLVService extends BaseStreamableFileService implements
 
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
+	/** {@inheritDoc} */ /*
+	 *
 	 * @see org.red5.io.flv.FLVService#setDeserializer(org.red5.io.object.Deserializer)
 	 */
 	public void setDeserializer(Deserializer deserializer) {
@@ -75,8 +85,7 @@ public class FLVService extends BaseStreamableFileService implements
 
 	}
 
-	/*
-	 * (non-Javadoc)
+	/** {@inheritDoc} */ /*
 	 * 
 	 * @see org.red5.io.flv.FLVService#getFLV(java.io.File)
 	 */
@@ -85,15 +94,30 @@ public class FLVService extends BaseStreamableFileService implements
 		return new FLV(file, generateMetadata);
 	}
 
-	public void setGenerateMetadata(boolean generate) {
+	/**
+     * Setter for property 'generateMetadata'.
+     *
+     * @param generate Value to set for property 'generateMetadata'.
+     */
+    public void setGenerateMetadata(boolean generate) {
 		generateMetadata = generate;
 	}
 
-	public Serializer getSerializer() {
+	/**
+     * Getter for property 'serializer'.
+     *
+     * @return Value for property 'serializer'.
+     */
+    public Serializer getSerializer() {
 		return serializer;
 	}
 
-	public Deserializer getDeserializer() {
+	/**
+     * Getter for property 'deserializer'.
+     *
+     * @return Value for property 'deserializer'.
+     */
+    public Deserializer getDeserializer() {
 		return deserializer;
 	}
 }

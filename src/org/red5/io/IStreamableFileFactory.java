@@ -30,6 +30,11 @@ public interface IStreamableFileFactory extends IScopeService {
 
 	public abstract IStreamableFileService getService(File fp);
 
-	public abstract Set<IStreamableFileService> getServices();
+	/**
+     * Getter for property 'services'.
+     *
+     * @return Value for property 'services'.
+     */
+    public abstract Set<IStreamableFileService> getServices();
 
 }

@@ -24,15 +24,29 @@ import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.IBandwidthConfigure;
 import org.red5.server.api.IFlowControllable;
 
+/**
+ * Controller for stream flow. Adapts flow bandwidth to given configuration.
+ */
 public class StreamFlowController {
-
+    /**
+     * Logger
+     */
 	private static final Log log = LogFactory
 			.getLog(StreamFlowController.class);
-
+    /**
+     * Fixed change value (4 kb)
+     */
 	private static final int FIXED_CHANGE = 1024 * 4;
 
+    /**
+     * Adapt stream flow to bandwidth from given controllable
+     * @param flow                    Stream flow
+     * @param controllable            Flow controllable object
+     * @return                        <code>true</code> on success, <code>false</code> otherwise
+     * @throws CloneNotSupportedException   Clone operation is not supported by object
+     */
 	public boolean adaptBandwidthForFlow(IStreamFlow flow,
-			IFlowControllable controllable) {
+			IFlowControllable controllable) throws CloneNotSupportedException {
 
 		IBandwidthConfigure parentBwConf = controllable
 				.getParentFlowControllable().getBandwidthConfigure();
@@ -111,7 +125,12 @@ public class StreamFlowController {
 		return change;
 	}
 
-	int computeChange(long bw) {
+    /**
+     * Return fixed change by now
+     * @param bw                 Bandwidth value
+     * @return                   Fixed change, 1024 * 4
+     */
+    int computeChange(long bw) {
 		return FIXED_CHANGE;
 	}
 

@@ -39,23 +39,35 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
  */
 public class RTMPTLoader implements ApplicationContextAware {
 
-	// Initialize Logging
+    /**
+     * Logger
+     */
 	protected static Log log = LogFactory.getLog(RTMPTLoader.class.getName());
-
+    /**
+     * Application context
+     */
 	protected ApplicationContext applicationContext;
-
+    /**
+     * RTMP config path
+     */
 	protected String rtmptConfig = "classpath:/red5-rtmpt.xml";
-
+    /**
+     * RTMP server
+     */
 	protected Server rtmptServer;
-
+    /**
+     * Red5 server instance
+     */
 	protected IServer server;
-
+    /**
+     * RTMP handler
+     */
 	protected RTMPTHandler handler;
 
 	/**
-     * Setter for property 'server'.
+     * Setter for server
      *
-     * @param server Value to set for property 'server'.
+     * @param server Server instance
      */
     public void setServer(IServer server) {
 		this.server = server;
@@ -68,15 +80,19 @@ public class RTMPTLoader implements ApplicationContextAware {
 	}
 
 	/**
-     * Setter for property 'RTMPTHandler'.
+     * Setter for RTMPTHandler
      *
-     * @param handler Value to set for property 'RTMPTHandler'.
+     * @param handler RTMPTHandler
      */
     public void setRTMPTHandler(RTMPTHandler handler) {
 		this.handler = handler;
 	}
 
-	public void init() throws Exception {
+    /**
+     * Initialization
+     * @throws Exception       Exception
+     */
+    public void init() throws Exception {
 		// So this class is left just starting jetty
 		log.info("Loading RTMPT context from: " + rtmptConfig);
 		ApplicationContext appCtx = new ClassPathXmlApplicationContext(rtmptConfig);

@@ -23,11 +23,18 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.so.ISharedObjectEvent.Type;
 
+/**
+ * SO event types mapping
+ */
 public class SharedObjectTypeMapping {
-
+    /**
+     * Logger
+     */
 	protected static Log log = LogFactory.getLog(SharedObjectTypeMapping.class
 			.getName());
-
+    /**
+     * Types map
+     */
 	public static final Type[] typeMap = new Type[] { null,
 			Type.SERVER_CONNECT, // 01
 			Type.SERVER_DISCONNECT, // 02
@@ -42,11 +49,21 @@ public class SharedObjectTypeMapping {
 			Type.CLIENT_INITIAL_DATA, // 0B
 	};
 
-	public static Type toType(byte rtmpType) {
+    /**
+     * Convert byte value of RTMP marker to event type
+     * @param rtmpType            RTMP marker value
+     * @return                    Corresponding Shared Object event type
+     */
+    public static Type toType(byte rtmpType) {
 		return typeMap[rtmpType];
 	}
 
-	public static byte toByte(Type type) {
+    /**
+     * Convert SO event type to byte representation that RTMP uses
+     * @param type                Event type
+     * @return                    Byte representation of given event type
+     */
+    public static byte toByte(Type type) {
 		switch (type) {
 			case SERVER_CONNECT:
 				return 0x01;
@@ -78,7 +95,12 @@ public class SharedObjectTypeMapping {
 		}
 	}
 
-	public static String toString(Type type) {
+    /**
+     * String representation of type
+     * @param type                Type
+     * @return                    String representation of type
+     */
+    public static String toString(Type type) {
 		switch (type) {
 			case SERVER_CONNECT:
 				return "server connect";

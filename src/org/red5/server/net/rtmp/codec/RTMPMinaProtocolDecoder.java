@@ -19,9 +19,6 @@ package org.red5.server.net.rtmp.codec;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.Iterator;
-import java.util.List;
-
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecException;
@@ -31,6 +28,11 @@ import org.red5.server.api.IConnection;
 import org.red5.server.api.Red5;
 import org.red5.server.net.protocol.ProtocolState;
 
+import java.util.List;
+
+/**
+ * RTMP protocol decoder
+ */
 public class RTMPMinaProtocolDecoder extends RTMPProtocolDecoder implements
 		ProtocolDecoder {
 
@@ -60,11 +62,10 @@ public class RTMPMinaProtocolDecoder extends RTMPProtocolDecoder implements
 			return;
 		}
 
-		Iterator it = objects.iterator();
-		while (it.hasNext()) {
-			out.write(it.next());
-		}
-	}
+        for (Object object : objects) {
+            out.write(object);
+        }
+    }
 
 	/** {@inheritDoc} */
     public void dispose(IoSession ioSession) throws Exception {

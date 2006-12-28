@@ -31,10 +31,10 @@ public interface IRemotingCallback {
 	/**
 	 * The result of a remoting call has been received.
 	 *  
-	 * @param client
-	 * @param method
-	 * @param params
-	 * @param result
+	 * @param client          Remoting client
+	 * @param method          Remote method name
+	 * @param params          Call parameters
+	 * @param result          Call result
 	 */
 	public void resultReceived(RemotingClient client, String method,
 			Object[] params, Object result);
@@ -42,10 +42,10 @@ public interface IRemotingCallback {
 	/**
 	 * An error occured while performing the remoting call.
 	 * 
-	 * @param client
-	 * @param method
-	 * @param params
-	 * @param error
+	 * @param client          Remoting client
+	 * @param method          Remoting method
+	 * @param params          Call parameters
+	 * @param error           Call result
 	 */
 	public void errorReceived(RemotingClient client, String method,
 			Object[] params, Throwable error);

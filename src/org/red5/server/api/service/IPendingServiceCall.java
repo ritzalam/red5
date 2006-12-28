@@ -31,7 +31,7 @@ public interface IPendingServiceCall extends IServiceCall {
 	/**
 	 * Returns service call result
 	 * 
-	 * @return	
+	 * @return	       Remote call result
 	 */
 	public abstract Object getResult();
 

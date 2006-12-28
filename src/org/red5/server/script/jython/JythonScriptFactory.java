@@ -54,19 +54,23 @@ public class JythonScriptFactory implements ScriptFactory {
 		}
 	}
 	
-	public String getScriptSourceLocator() {
+	/** {@inheritDoc} */
+    public String getScriptSourceLocator() {
 		return scriptSourceLocator;
 	}
 
-	public Class[] getScriptInterfaces() {
+	/** {@inheritDoc} */
+    public Class[] getScriptInterfaces() {
 		return scriptInterfaces;
 	}
 
-	public boolean requiresConfigInterface() {
+	/** {@inheritDoc} */
+    public boolean requiresConfigInterface() {
 		return true;
 	}
 
-	public Object getScriptedObject(ScriptSource scriptSourceLocator, Class[] scriptInterfaces)
+	/** {@inheritDoc} */
+    public Object getScriptedObject(ScriptSource scriptSourceLocator, Class[] scriptInterfaces)
 			throws IOException, ScriptCompilationException {
 		String strScript = scriptSourceLocator.getScriptAsString();
 		

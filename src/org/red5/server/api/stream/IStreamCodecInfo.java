@@ -19,29 +19,40 @@ package org.red5.server.api.stream;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+/**
+ * Stream codec information
+ */
 public interface IStreamCodecInfo {
-	boolean hasAudio();
+    /**
+     * Has audio support?
+     * @return           <code>true</code> if stream codec has audio support, <code>false</code> otherwise
+     */
+    boolean hasAudio();
 
+    /**
+     * Has video support?
+     * @return           <code>true</code> if stream codec has video support, <code>false</code> otherwise
+     */
 	boolean hasVideo();
 
 	/**
-     * Getter for property 'audioCodecName'.
+     * Getter for audio codec name
      *
-     * @return Value for property 'audioCodecName'.
+     * @return Audio codec name
      */
     String getAudioCodecName();
 
 	/**
-     * Getter for property 'videoCodecName'.
+     * Getter for video codec name
      *
-     * @return Value for property 'videoCodecName'.
+     * @return Video codec name
      */
     String getVideoCodecName();
 
 	/**
-     * Getter for property 'videoCodec'.
+     * Return video codec
      *
-     * @return Value for property 'videoCodec'.
+     * @return Video codec used by stream codec
      */
     IVideoStreamCodec getVideoCodec();
 }

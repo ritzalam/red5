@@ -29,9 +29,9 @@ public class PipeUtils {
 	/**
 	 * Connect a provider/consumer with a pipe.
 	 * 
-	 * @param provider
-	 * @param pipe
-	 * @param consumer
+	 * @param provider         Provider
+	 * @param pipe             Pipe that used to estabilish connection
+	 * @param consumer         Consumer
 	 */
 	public static void connect(IProvider provider, IPipe pipe,
 			IConsumer consumer) {
@@ -42,9 +42,9 @@ public class PipeUtils {
 	/**
 	 * Disconnect a provider/consumer from a pipe.
 	 * 
-	 * @param provider
-	 * @param pipe
-	 * @param consumer
+	 * @param provider         Provider
+	 * @param pipe             Pipe to disconnect from
+	 * @param consumer         Consumer
 	 */
 	public static void disconnect(IProvider provider, IPipe pipe,
 			IConsumer consumer) {

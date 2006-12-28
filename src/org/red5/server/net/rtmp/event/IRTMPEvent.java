@@ -26,48 +26,51 @@ import org.red5.server.net.rtmp.message.Header;
 public interface IRTMPEvent extends IEvent {
 
 	/**
-     * Getter for property 'dataType'.
+     * Getter for data type
      *
-     * @return Value for property 'dataType'.
+     * @return  Data type
      */
     public byte getDataType();
 
 	/**
-     * Setter for property 'source'.
+     * Setter for source
      *
-     * @param source Value to set for property 'source'.
+     * @param source Source
      */
     public void setSource(IEventListener source);
 
 	/**
-     * Getter for property 'header'.
+     * Getter for header
      *
-     * @return Value for property 'header'.
+     * @return  RTMP packet header
      */
     public Header getHeader();
 
 	/**
-     * Setter for property 'header'.
+     * Setter for header
      *
-     * @param header Value to set for property 'header'.
+     * @param header RTMP packet header
      */
     public void setHeader(Header header);
 
 	/**
-     * Getter for property 'timestamp'.
+     * Getter for timestamp
      *
-     * @return Value for property 'timestamp'.
+     * @return  Event timestamp
      */
     public int getTimestamp();
 
 	/**
-     * Setter for property 'timestamp'.
+     * Setter for timestamp
      *
-     * @param timestamp Value to set for property 'timestamp'.
+     * @param timestamp  New event timestamp
      */
     public void setTimestamp(int timestamp);
 
-	public void retain();
+    /**
+     * Retain event
+     */
+    public void retain();
 
 	/**
 	 * Hook to free buffers allocated by the event.

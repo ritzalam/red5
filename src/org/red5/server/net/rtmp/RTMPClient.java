@@ -19,10 +19,6 @@ package org.red5.server.net.rtmp;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.net.InetSocketAddress;
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.transport.socket.nio.SocketConnector;
@@ -30,11 +26,7 @@ import org.red5.io.object.Deserializer;
 import org.red5.io.object.Serializer;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.Red5;
-import org.red5.server.api.service.IPendingServiceCall;
-import org.red5.server.api.service.IPendingServiceCallback;
-import org.red5.server.api.service.IServiceCall;
-import org.red5.server.api.service.IServiceCapableConnection;
-import org.red5.server.api.service.IServiceInvoker;
+import org.red5.server.api.service.*;
 import org.red5.server.api.so.IClientSharedObject;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.codec.RTMPCodecFactory;
@@ -50,6 +42,10 @@ import org.red5.server.service.ServiceInvoker;
 import org.red5.server.so.ClientSharedObject;
 import org.red5.server.so.SharedObjectMessage;
 
+import java.net.InetSocketAddress;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * RTMP client object. Initial client mode code by Christian Eckerle.
  * 
@@ -59,15 +55,34 @@ import org.red5.server.so.SharedObjectMessage;
  *
  */
 public class RTMPClient extends BaseRTMPHandler {
-
+    /**
+     * Logger
+     */
 	protected static Log log = LogFactory.getLog(RTMPClient.class.getName());
-
+    /**
+     * I/O handler
+     */
 	private RTMPMinaIoHandler ioHandler;
-	private Map<String, Object> connectionParams;
-	private IPendingServiceCallback connectCallback;
-	private Object serviceProvider = null;
-	private IServiceInvoker serviceInvoker = new ServiceInvoker();
-	private Map<String, ClientSharedObject> sharedObjects = new HashMap<String, ClientSharedObject>();
+    /**
+     * Connection parameters
+     */
+    private Map<String, Object> connectionParams;
+    /**
+     * Connection callback
+     */
+    private IPendingServiceCallback connectCallback;
+    /**
+     * Service provider
+      */
+    private Object serviceProvider;
+    /**
+     * Service invoker
+     */
+    private IServiceInvoker serviceInvoker = new ServiceInvoker();
+    /**
+     * Shared objects map
+     */
+    private Map<String, ClientSharedObject> sharedObjects = new HashMap<String, ClientSharedObject>();
 
 	/** Constructs a new RTMPClient. */
     public RTMPClient() {
@@ -81,12 +96,25 @@ public class RTMPClient extends BaseRTMPHandler {
 		ioHandler.setMode(RTMP.MODE_CLIENT);
 		ioHandler.setHandler(this);
 	}
-	
-	public void connect(String server, int port, String application) {
+
+    /**
+     * Connect RTMP client to server's application via given port
+     * @param server                 Server
+     * @param port                   Connection port
+     * @param application            Application at that server
+     */
+    public void connect(String server, int port, String application) {
 		connect(server, port, application, null);
 	}
 
-	public void connect(String server, int port, String application, IPendingServiceCallback connectCallback) {
+    /**
+     * Connect RTMP client to server's application via given port with given connection callback
+     * @param server                Server
+     * @param port                  Connection port
+     * @param application           Application at that server
+     * @param connectCallback       Connection callback
+     */
+    public void connect(String server, int port, String application, IPendingServiceCallback connectCallback) {
 		// Initialize default connection parameters
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("app", application);
@@ -94,11 +122,24 @@ public class RTMPClient extends BaseRTMPHandler {
 		connect(server, port, params, connectCallback);
 	}
 
-	public void connect(String server, int port, Map<String, Object> connectionParams) {
+    /**
+     * Connect RTMP client to server via given port and with given connection parameters
+     * @param server                 Server
+     * @param port                   Connection port
+     * @param connectionParams       Connection parameters
+     */
+    public void connect(String server, int port, Map<String, Object> connectionParams) {
 		connect(server, port, connectionParams, null);
 	}
 
-	public void connect(String server, int port, Map<String, Object> connectionParams, IPendingServiceCallback connectCallback) {
+    /**
+     * 
+     * @param server
+     * @param port
+     * @param connectionParams
+     * @param connectCallback
+     */
+    public void connect(String server, int port, Map<String, Object> connectionParams, IPendingServiceCallback connectCallback) {
 		this.connectionParams = connectionParams;
 		if (!connectionParams.containsKey("objectEncoding"))
 			connectionParams.put("objectEncoding", (double) 0);
@@ -111,18 +152,18 @@ public class RTMPClient extends BaseRTMPHandler {
 	/**
 	 * Register object that provides methods that can be called by the server.
 	 * 
-	 * @param serviceProvider
+	 * @param serviceProvider         Service provider
 	 */
 	public void setServiceProvider(Object serviceProvider) {
 		this.serviceProvider = serviceProvider;
 	}
 	
 	/**
-	 * Connect to a shared object.
+	 * Connect to client shared object.
 	 * 
-	 * @param name
-	 * @param persistent
-	 * @return
+	 * @param name                    Client shared object name
+	 * @param persistent              SO persistence flag
+	 * @return                        Client shared object instance
 	 */
 	public synchronized IClientSharedObject getSharedObject(String name, boolean persistent) {
 		ClientSharedObject result = sharedObjects.get(name);
@@ -141,8 +182,8 @@ public class RTMPClient extends BaseRTMPHandler {
 	/**
 	 * Invoke a method on the server.
 	 * 
-	 * @param method
-	 * @param callback
+	 * @param method                  Method name
+	 * @param callback                Callback handler
 	 */
 	public void invoke(String method, IPendingServiceCallback callback) {
 		IConnection conn = Red5.getConnectionLocal();
@@ -153,9 +194,9 @@ public class RTMPClient extends BaseRTMPHandler {
 	/**
 	 * Invoke a method on the server and pass parameters.
 	 * 
-	 * @param method
-	 * @param params
-	 * @param callback
+	 * @param method                 Method
+	 * @param params                 Method call parameters
+	 * @param callback               Callback object
 	 */
 	public void invoke(String method, Object[] params,
 			IPendingServiceCallback callback) {

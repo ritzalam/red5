@@ -27,11 +27,17 @@ public class StreamableFileFactory implements IStreamableFileFactory {
 
 	private Set<IStreamableFileService> services = new HashSet<IStreamableFileService>();
 
-	public void setServices(Set<IStreamableFileService> services) {
+	/**
+     * Setter for property 'services'.
+     *
+     * @param services Value to set for property 'services'.
+     */
+    public void setServices(Set<IStreamableFileService> services) {
 		this.services = services;
 	}
 
-	public IStreamableFileService getService(File fp) {
+	/** {@inheritDoc} */
+    public IStreamableFileService getService(File fp) {
 		// Return first service that can handle the passed file
 		for (IStreamableFileService service : this.services) {
 			if (service.canHandle(fp)) {
@@ -42,7 +48,8 @@ public class StreamableFileFactory implements IStreamableFileFactory {
 		return null;
 	}
 
-	public Set<IStreamableFileService> getServices() {
+	/** {@inheritDoc} */
+    public Set<IStreamableFileService> getServices() {
 		return services;
 	}
 }

@@ -45,25 +45,52 @@ import org.red5.server.stream.message.RTMPMessage;
 import org.red5.server.stream.message.ResetMessage;
 import org.red5.server.stream.message.StatusMessage;
 
+/**
+ * RTMP connection consumer.
+ */
 public class ConnectionConsumer implements IPushableConsumer,
 		IPipeConnectionListener {
-	private static final Log log = LogFactory.getLog(ConnectionConsumer.class);
-
+    /**
+     * Logger
+     */
+    private static final Log log = LogFactory.getLog(ConnectionConsumer.class);
+    /**
+     * Connection consumer class name
+     */
 	public static final String KEY = ConnectionConsumer.class.getName();
-
+    /**
+     * Connection object
+     */
 	private RTMPConnection conn;
-
+    /**
+     * Video channel
+     */
 	private Channel video;
-
+    /**
+     * Audio channel
+     */
 	private Channel audio;
-
+    /**
+     * Data channel
+     */
 	private Channel data;
-
+    /**
+     * Chunk size. Packets are sent chunk-by-chunk.
+     */
 	private int chunkSize = -1;
-
+    /**
+     * Stream tracker
+     */
 	private StreamTracker streamTracker;
 
-	public ConnectionConsumer(RTMPConnection conn, byte videoChannel,
+    /**
+     * Create rtmp connection consumer for given connection and channels
+     * @param conn                 RTMP connection
+     * @param videoChannel         Video channel
+     * @param audioChannel         Audio channel
+     * @param dataChannel          Data channel
+     */
+    public ConnectionConsumer(RTMPConnection conn, byte videoChannel,
 			byte audioChannel, byte dataChannel) {
 		this.conn = conn;
 		this.video = conn.getChannel(videoChannel);
@@ -159,7 +186,7 @@ public class ConnectionConsumer implements IPushableConsumer,
 				oobCtrlMsg.setResult(conn.getPendingVideoMessages(stream
 						.getStreamId()));
 			} else {
-				oobCtrlMsg.setResult(Long.valueOf(0));
+				oobCtrlMsg.setResult((long) 0);
 			}
 		} else if ("chunkSize".equals(oobCtrlMsg.getServiceName())) {
 			int newSize = (Integer) oobCtrlMsg.getServiceParamMap().get(

@@ -18,15 +18,26 @@ public class ThreadDumpBean implements Serializable {
 	private static final long serialVersionUID = 8017588342022980524L;
 private final Map<Thread, StackTraceElement[]> traces;
 
+  /** Constructs a new ThreadDumpBean. */
   public ThreadDumpBean() {
     traces = new TreeMap<Thread, StackTraceElement[]>(THREAD_COMP);
     traces.putAll(Thread.getAllStackTraces());
   }
 
+  /**
+   * Getter for property 'threads'.
+   *
+   * @return Value for property 'threads'.
+   */
   public Collection<Thread> getThreads() {
     return traces.keySet();
   }
 
+  /**
+   * Getter for property 'traces'.
+   *
+   * @return Value for property 'traces'.
+   */
   public Map<Thread, StackTraceElement[]> getTraces() {
     return traces;
   }
@@ -36,6 +47,7 @@ private final Map<Thread, StackTraceElement[]> traces;
    */
   private static final Comparator<Thread> THREAD_COMP =
       new Comparator<Thread>() {
+        /** {@inheritDoc} */
         public int compare(Thread o1, Thread o2) {
           int result = o1.getName().compareTo(o2.getName());
           if (result == 0) {

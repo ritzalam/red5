@@ -29,51 +29,99 @@ import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.stream.message.RTMPMessage;
 import org.springframework.core.style.ToStringCreator;
 
+/**
+ * Stream flow
+ */
 public class StreamFlow implements IStreamFlow {
-
+    /**
+     * Logger
+     */
 	private static final Log log = LogFactory.getLog(StreamFlow.class);
-
+    /**
+     * Data segment constant
+     */
 	private static final int DATA = 0;
-
+    /**
+     * Audio segment constant
+     */
 	private static final int AUDIO = 1;
-
+    /**
+     * Video segment constant
+     */
 	private static final int VIDEO = 2;
-
-	private boolean streaming = false;
-
+    /**
+     * Streaming flag
+     */
+	private boolean streaming;
+    /**
+     * Stream start time
+     */
 	private long streamStartTime;
-
-	private long totalBytesTransfered = 0;
-
+    /**
+     * Total number of bytes transferred
+     */
+	private long totalBytesTransfered;
+    /**
+     * Data times
+     */
 	private int[] totalDataTimes = new int[] { 0, 0, 0 };
-
-	private long combinedTotalDataTime = 0;
-
+    /**
+     * Combined totalBytesTransfered data time
+     * Not used?
+     */
+	private long combinedTotalDataTime;
+    /**
+     * Segment start time
+     */
 	private long segmentStartTime;
-
-	private int segmentBytesTransfered = 0;
-
+    /**
+     * Segment bytes transfered
+     */
+	private int segmentBytesTransfered;
+    /**
+     * Segment data times
+     */
 	private int[] segmentDataTimes = new int[] { 0, 0, 0 };
-
-	private int combinedSegmentDataTime = 0;
-
+    /**
+     * Combined segment data time
+     */
+	private int combinedSegmentDataTime;
+    /**
+     * Minimal time buffer
+     */
 	private int minTimeBuffer = 10000;
-
-	private int maxTimeBuffer = 20000;
-
+    /**
+     * Max time buffer
+     */
+    private int maxTimeBuffer = 20000;
+    /**
+     * Client time buffer
+     */
 	private long clientTimeBuffer = 10000;
-
+    /**
+     * TODO : Ask Steven what the hell is this
+     */
 	private long zeroToStreamTime = -1;
-
-	private int bufferTime = 0;
-
+    /**
+     * Buffer time
+     */
+	private int bufferTime;
+    /**
+     * Array of last buffer times
+     */
 	private int lastBufferTimes[] = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 			0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-
-	private int lastBufferTime = 0;
-
-	private int lastBufferTimeIndex = 0;
-
+    /**
+     * Last buffer time
+     */
+	private int lastBufferTime;
+    /**
+     * Last buffer time index
+     */
+	private int lastBufferTimeIndex;
+    /**
+     * Stream tracker
+     */
 	private StreamTracker streamTracker = new StreamTracker();
 
 	/** Constructs a new StreamFlow. */

@@ -42,7 +42,8 @@ public class SimpleClient implements IRTMPHandler {
 		connector.connect(new InetSocketAddress("localhost",1935), ioHandler);
 	}
 	
-	public void connectionOpened(RTMPConnection conn, RTMP state) {
+	/** {@inheritDoc} */
+    public void connectionOpened(RTMPConnection conn, RTMP state) {
 		System.out.println("opened");
 		Channel channel=conn.getChannel((byte)3);
 		Map<String,Object> params=new HashMap<String, Object>();
@@ -62,7 +63,8 @@ public class SimpleClient implements IRTMPHandler {
 		channel.write(invoke);
 	}
 	
-	public void messageReceived(RTMPConnection conn, ProtocolState state, Object message) throws Exception {
+	/** {@inheritDoc} */
+    public void messageReceived(RTMPConnection conn, ProtocolState state, Object message) throws Exception {
 		System.out.println("message received "+message);
 		if(message instanceof Packet) {
 			Packet p=(Packet)message;
@@ -70,12 +72,14 @@ public class SimpleClient implements IRTMPHandler {
 		}
 	}
 	
-	public void messageSent(RTMPConnection conn, Object message) {
+	/** {@inheritDoc} */
+    public void messageSent(RTMPConnection conn, Object message) {
 		System.out.println("message sent "+message);
 		
 	}
 
-	public void connectionClosed(RTMPConnection conn, RTMP state) {
+	/** {@inheritDoc} */
+    public void connectionClosed(RTMPConnection conn, RTMP state) {
 		System.out.println("connection closed");
 		
 	}

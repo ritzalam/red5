@@ -19,29 +19,32 @@ package org.red5.server.net.servlet;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.io.IOException;
-import java.util.Enumeration;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.io.utils.HexDump;
 
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Enumeration;
+
+/**
+ * Servlet that dumps request data
+ */
 public class RequestDumpServlet extends HttpServlet {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = -7805924991663536258L;
 
-	protected static Log log = LogFactory.getLog(RequestDumpServlet.class
-			.getName());
-
+    /**
+     * Logger
+     */
+    protected static Log log = LogFactory.getLog(RequestDumpServlet.class.getName());
+    /**
+     * AMF MIME type
+     */
 	public static final String APPLICATION_AMF = "application/x-amf";
 
 	/** {@inheritDoc} */

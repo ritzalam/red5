@@ -25,17 +25,31 @@ import org.red5.server.net.protocol.SimpleProtocolCodecFactory;
 import org.red5.server.net.protocol.SimpleProtocolDecoder;
 import org.red5.server.net.protocol.SimpleProtocolEncoder;
 
+/**
+ * RTMP codec factory creates RTMP codec objects
+ */
 public class RTMPTCodecFactory implements SimpleProtocolCodecFactory {
-
-	protected Deserializer deserializer = null;
-
-	protected Serializer serializer = null;
-
+    /**
+     * Deserializer
+     */
+	protected Deserializer deserializer;
+    /**
+     * Serializer
+     */
+	protected Serializer serializer;
+    /**
+     * RTMP decoder
+     */
 	protected RTMPTProtocolDecoder decoder;
-
+    /**
+     * RTMP encoder
+     */
 	protected RTMPTProtocolEncoder encoder;
 
-	public void init() {
+    /**
+     * Initialization
+     */
+    public void init() {
 		decoder = new RTMPTProtocolDecoder();
 		decoder.setDeserializer(deserializer);
 		encoder = new RTMPTProtocolEncoder();
@@ -43,16 +57,16 @@ public class RTMPTCodecFactory implements SimpleProtocolCodecFactory {
 	}
 
 	/**
-     * Setter for property 'deserializer'.
+     * Setter for deserializer.
      *
-     * @param deserializer Value to set for property 'deserializer'.
+     * @param deserializer  Deserializer used by this codec factory.
      */
     public void setDeserializer(Deserializer deserializer) {
 		this.deserializer = deserializer;
 	}
 
 	/**
-     * Setter for property 'serializer'.
+     * Setter for serializer
      *
      * @param serializer Value to set for property 'serializer'.
      */

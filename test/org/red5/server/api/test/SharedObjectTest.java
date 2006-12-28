@@ -30,7 +30,8 @@ public class SharedObjectTest extends BaseTest implements IEventListener {
 		so.setAttribute("this", "that");
 	}
 
-	public void notifyEvent(IEvent event) {
+	/** {@inheritDoc} */
+    public void notifyEvent(IEvent event) {
 		log.debug("Event: " + event);
 	}
 

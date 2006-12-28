@@ -90,7 +90,8 @@ public class FLVReader implements IoConstants, ITagReader,
 	/** Use load buffer */
 	private boolean useLoadBuf = false;
 
-	FLVReader() {
+	/** Constructs a new FLVReader. */
+    FLVReader() {
 	}
 
 	public FLVReader(FileInputStream f) {
@@ -155,7 +156,12 @@ public class FLVReader implements IoConstants, ITagReader,
 		}
 	}
 
-	private void setCurrentPosition(long pos) {
+	/**
+     * Setter for property 'currentPosition'.
+     *
+     * @param pos Value to set for property 'currentPosition'.
+     */
+    private void setCurrentPosition(long pos) {
 		if (!useLoadBuf) {
 			in.position((int) pos);
 			return;
@@ -278,8 +284,8 @@ public class FLVReader implements IoConstants, ITagReader,
 	/**
 	 * Accepts mapped file bytes to construct internal members.
 	 * 
-	 * @param mappedFile
 	 * @param generateMetadata
+     * @param buffer
 	 */
 	public FLVReader(ByteBuffer buffer, boolean generateMetadata) {
 		this.generateMetadata = generateMetadata;
@@ -288,7 +294,12 @@ public class FLVReader implements IoConstants, ITagReader,
 		postInitialize();
 	}
 
-	public static String getBufferType() {
+	/**
+     * Getter for property 'bufferType'.
+     *
+     * @return Value for property 'bufferType'.
+     */
+    public static String getBufferType() {
 		switch (bufferType) {
 			case AUTO:
 				return "auto";
@@ -301,7 +312,12 @@ public class FLVReader implements IoConstants, ITagReader,
 		}
 	}
 
-	public static void setBufferType(String bufferType) {
+	/**
+     * Setter for property 'bufferType'.
+     *
+     * @param bufferType Value to set for property 'bufferType'.
+     */
+    public static void setBufferType(String bufferType) {
 		int bufferTypeHash = bufferType.hashCode();
 		 switch (bufferTypeHash) {
 			 case 3198444: //heap
@@ -321,11 +337,21 @@ public class FLVReader implements IoConstants, ITagReader,
 			 }
 	}
 
-	public static int getBufferSize() {
+	/**
+     * Getter for property 'bufferSize'.
+     *
+     * @return Value for property 'bufferSize'.
+     */
+    public static int getBufferSize() {
 		return bufferSize;
 	}
 
-	public static void setBufferSize(int bufferSize) {
+	/**
+     * Setter for property 'bufferSize'.
+     *
+     * @param bufferSize Value to set for property 'bufferSize'.
+     */
+    public static void setBufferSize(int bufferSize) {
 		// make sure buffer size is no less than 1024 bytes.
 		if (bufferSize < 1024) {
 			bufferSize = 1024;
@@ -346,7 +372,8 @@ public class FLVReader implements IoConstants, ITagReader,
 		return null;
 	}
 
-	public void decodeHeader() {
+	/** {@inheritDoc} */
+    public void decodeHeader() {
 		// XXX check signature?
 		// SIGNATURE, lets just skip
 		fillBuffer(9);
@@ -360,7 +387,7 @@ public class FLVReader implements IoConstants, ITagReader,
 		}
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.io.flv.Reader#getFLV()
@@ -370,7 +397,7 @@ public class FLVReader implements IoConstants, ITagReader,
 		return null;
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.io.flv.Reader#getOffset()
@@ -380,7 +407,7 @@ public class FLVReader implements IoConstants, ITagReader,
 		return 0;
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.io.flv.Reader#getBytesRead()
@@ -391,11 +418,12 @@ public class FLVReader implements IoConstants, ITagReader,
 		return getCurrentPosition();
 	}
 
-	public long getDuration() {
+	/** {@inheritDoc} */
+    public long getDuration() {
 		return duration;
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.io.flv.Reader#hasMoreTags()
@@ -444,7 +472,7 @@ public class FLVReader implements IoConstants, ITagReader,
 		return result;
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.io.flv.Reader#readTag()
@@ -490,7 +518,7 @@ public class FLVReader implements IoConstants, ITagReader,
 		return tag;
 	}
 
-	/*
+	/** {@inheritDoc} */ /*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.red5.io.flv.Reader#close()

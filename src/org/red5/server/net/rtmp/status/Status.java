@@ -25,133 +25,159 @@ import org.red5.io.object.SerializerOpts;
  * Represents status object that are transferred between server and client
  */
 public class Status implements StatusCodes, SerializerOpts {
-
+    /**
+     * Error constant
+     */
 	public static final String ERROR = "error";
-
+    /**
+     * Status constant
+     */
 	public static final String STATUS = "status";
-
+    /**
+     * Warning constant
+     */
 	public static final String WARNING = "warning";
-
+    /**
+     * Status code
+     */
 	protected String code;
-
+    /**
+     * Status level
+     */
 	protected String level;
-
+    /**
+     * Status event description
+     */
 	protected String description = "";
-
+    /**
+     * Status event details
+     */
 	protected String details = "";
-
-	protected int clientid = 0;
+    /**
+     * Id of client
+     */
+	protected int clientid;
 
 	/** Constructs a new Status. */
     public Status() {
 
 	}
 
+    /**
+     * Creates status object with given status code
+     * @param code            Status code
+     */
 	public Status(String code) {
 		this.code = code;
 		this.level = STATUS;
 	}
 
-	public Status(String code, String level, String description) {
+    /**
+     * Creates status object with given level, description and status code
+     * @param code            Status code
+     * @param level           Level
+     * @param description     Description
+     */
+    public Status(String code, String level, String description) {
 		this.code = code;
 		this.level = level;
 		this.description = description;
 	}
 
 	/**
-     * Getter for property 'code'.
+     * Getter for status code.
      *
-     * @return Value for property 'code'.
+     * @return  Status code
      */
     public String getCode() {
 		return code;
 	}
 
 	/**
-     * Setter for property 'code'.
+     * Setter for code
      *
-     * @param code Value to set for property 'code'.
+     * @param code Status code
      */
     public void setCode(String code) {
 		this.code = code;
 	}
 
 	/**
-     * Getter for property 'description'.
+     * Getter for description.
      *
-     * @return Value for property 'description'.
+     * @return Status event description.
      */
     public String getDescription() {
 		return description;
 	}
 
 	/**
-     * Setter for property 'desciption'.
+     * Setter for desciption.
      *
-     * @param description Value to set for property 'desciption'.
+     * @param description Status event description.
      */
     public void setDesciption(String description) {
 		this.description = description;
 	}
 
 	/**
-     * Getter for property 'level'.
+     * Getter for level.
      *
-     * @return Value for property 'level'.
+     * @return Level
      */
     public String getLevel() {
 		return level;
 	}
 
 	/**
-     * Setter for property 'level'.
+     * Setter for level
      *
-     * @param level Value to set for property 'level'.
+     * @param level Level
      */
     public void setLevel(String level) {
 		this.level = level;
 	}
 
 	/**
-     * Getter for property 'clientid'.
+     * Getter for client id
      *
-     * @return Value for property 'clientid'.
+     * @return  Client id
      */
     public int getClientid() {
 		return clientid;
 	}
 
 	/**
-     * Setter for property 'clientid'.
+     * Setter for client id
      *
-     * @param clientid Value to set for property 'clientid'.
+     * @param clientid  Client id
      */
     public void setClientid(int clientid) {
 		this.clientid = clientid;
 	}
 
 	/**
-     * Getter for property 'details'.
+     * Getter for details
      *
-     * @return Value for property 'details'.
+     * @return  Status event details
      */
     public String getDetails() {
 		return details;
 	}
 
 	/**
-     * Setter for property 'details'.
+     * Setter for details.
      *
-     * @param details Value to set for property 'details'.
+     * @param details  Status event details
      */
     public void setDetails(String details) {
 		this.details = details;
 	}
 
 	/**
-     * Setter for property 'description'.
+     * Setter for description.
      *
-     * @param description Value to set for property 'description'.
+     * @param description  Status event description
      */
     public void setDescription(String description) {
 		this.description = description;

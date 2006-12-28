@@ -28,23 +28,37 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.server.api.stream.IVideoStreamCodec;
 
+/**
+ * Factory for video codecs. Creates and returns video codecs
+ */
 public class VideoCodecFactory {
-
+    /**
+     * Object key
+     */
 	public static final String KEY = "videoCodecFactory";
-
+    /**
+     * Logger for video factory
+     */
 	private Log log = LogFactory.getLog(VideoCodecFactory.class.getName());
-
+    /**
+     * List of available codecs
+     */
 	private List codecs = new ArrayList();
 
 	/**
-     * Setter for property 'codecs'.
+     * Setter for codecs
      *
-     * @param codecs Value to set for property 'codecs'.
+     * @param codecs List of codecs
      */
     public void setCodecs(List codecs) {
 		this.codecs = codecs;
 	}
 
+    /**
+     * Create and return new video codec applicable for byte buffer data
+     * @param data                 Byte buffer data
+     * @return                     Video codec
+     */
 	public IVideoStreamCodec getVideoCodec(ByteBuffer data) {
 		IVideoStreamCodec result = null;
 		Iterator it = this.codecs.iterator();

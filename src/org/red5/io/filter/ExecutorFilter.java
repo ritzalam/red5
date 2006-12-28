@@ -64,7 +64,8 @@ public class ExecutorFilter extends IoFilterAdapter {
 
 	/**
 	 * Creates a new instance with the specified <tt>executor</tt>.
-	 */
+     * @param executor          Executor
+     */
 	public ExecutorFilter(Executor executor) {
 		if (executor == null) {
 			throw new NullPointerException("executor");
@@ -79,7 +80,8 @@ public class ExecutorFilter extends IoFilterAdapter {
 
 	/**
 	 * Returns the underlying {@link Executor} instance this filter uses.
-	 */
+     * @return
+     */
 	public Executor getExecutor() {
 		return executor;
 	}
@@ -152,7 +154,8 @@ public class ExecutorFilter extends IoFilterAdapter {
 			this.value = value;
 		}
 
-		@Override
+		/** {@inheritDoc} */
+        @Override
 		public String toString() {
 			return value;
 		}
@@ -171,54 +174,76 @@ public class ExecutorFilter extends IoFilterAdapter {
 			this.data = data;
 		}
 
-		public Object getData() {
+		/**
+         * Getter for property 'data'.
+         *
+         * @return Value for property 'data'.
+         */
+        public Object getData() {
 			return data;
 		}
 
-		public NextFilter getNextFilter() {
+		/**
+         * Getter for property 'nextFilter'.
+         *
+         * @return Value for property 'nextFilter'.
+         */
+        public NextFilter getNextFilter() {
 			return nextFilter;
 		}
 
-		public EventType getType() {
+		/**
+         * Getter for property 'type'.
+         *
+         * @return Value for property 'type'.
+         */
+        public EventType getType() {
 			return type;
 		}
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void sessionCreated(NextFilter nextFilter, IoSession session) {
 		nextFilter.sessionCreated(session);
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void sessionOpened(NextFilter nextFilter, IoSession session) {
 		fireEvent(nextFilter, session, EventType.OPENED, null);
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void sessionClosed(NextFilter nextFilter, IoSession session) {
 		fireEvent(nextFilter, session, EventType.CLOSED, null);
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void sessionIdle(NextFilter nextFilter, IoSession session,
 			IdleStatus status) {
 		fireEvent(nextFilter, session, EventType.IDLE, status);
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void exceptionCaught(NextFilter nextFilter, IoSession session,
 			Throwable cause) {
 		fireEvent(nextFilter, session, EventType.EXCEPTION, cause);
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void messageReceived(NextFilter nextFilter, IoSession session,
 			Object message) {
 		ByteBufferUtil.acquireIfPossible(message);
 		fireEvent(nextFilter, session, EventType.RECEIVED, message);
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void messageSent(NextFilter nextFilter, IoSession session,
 			Object message) {
 		ByteBufferUtil.acquireIfPossible(message);
@@ -244,13 +269,15 @@ public class ExecutorFilter extends IoFilterAdapter {
 		}
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void filterWrite(NextFilter nextFilter, IoSession session,
 			WriteRequest writeRequest) {
 		nextFilter.filterWrite(session, writeRequest);
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void filterClose(NextFilter nextFilter, IoSession session)
 			throws Exception {
 		nextFilter.filterClose(session);
@@ -263,7 +290,8 @@ public class ExecutorFilter extends IoFilterAdapter {
 			this.buffer = buffer;
 		}
 
-		public void run() {
+		/** {@inheritDoc} */
+        public void run() {
 			while (true) {
 				Event event;
 

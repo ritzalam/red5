@@ -31,11 +31,14 @@ import java.io.IOException;
 public abstract class BaseStreamableFileService implements
 		IStreamableFileService {
 
-	public abstract String getPrefix();
+	/** {@inheritDoc} */
+    public abstract String getPrefix();
 
-	public abstract String getExtension();
+	/** {@inheritDoc} */
+    public abstract String getExtension();
 
-	public String prepareFilename(String name) {
+	/** {@inheritDoc} */
+    public String prepareFilename(String name) {
 		if (name.startsWith(getPrefix() + ':')) {
 			name = name.substring(getPrefix().length() + 1);
 			if (!name.endsWith(getExtension())) {
@@ -46,13 +49,15 @@ public abstract class BaseStreamableFileService implements
 		return name;
 	}
 
-	public boolean canHandle(File file) {
+	/** {@inheritDoc} */
+    public boolean canHandle(File file) {
 		return file.exists()
 				&& file.getAbsolutePath().toLowerCase()
 						.endsWith(getExtension());
 	}
 
-	public abstract IStreamableFile getStreamableFile(File file)
+	/** {@inheritDoc} */
+    public abstract IStreamableFile getStreamableFile(File file)
 			throws IOException;
 
 }

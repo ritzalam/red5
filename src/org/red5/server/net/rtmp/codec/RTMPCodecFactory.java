@@ -28,18 +28,36 @@ import org.red5.server.net.protocol.SimpleProtocolCodecFactory;
 import org.red5.server.net.protocol.SimpleProtocolDecoder;
 import org.red5.server.net.protocol.SimpleProtocolEncoder;
 
+/**
+ * RTMP codec factory creates RTMP encoders/decoders
+ */
 public class RTMPCodecFactory implements ProtocolCodecFactory,
 		SimpleProtocolCodecFactory {
 
-	protected Deserializer deserializer = null;
+    /**
+     * Deserializer
+     */
+    protected Deserializer deserializer;
 
-	protected Serializer serializer = null;
+    /**
+     * Serializer
+     */
+    protected Serializer serializer;
 
-	protected RTMPMinaProtocolDecoder decoder;
+    /**
+     * Mina protocol decoder for RTMP
+     */
+    protected RTMPMinaProtocolDecoder decoder;
 
-	protected RTMPMinaProtocolEncoder encoder;
+    /**
+     * Mina protocol encoder for RTMP
+     */
+    protected RTMPMinaProtocolEncoder encoder;
 
-	public void init() {
+    /**
+     * Initialization
+     */
+    public void init() {
 		decoder = new RTMPMinaProtocolDecoder();
 		decoder.setDeserializer(deserializer);
 		encoder = new RTMPMinaProtocolEncoder();
@@ -47,18 +65,18 @@ public class RTMPCodecFactory implements ProtocolCodecFactory,
 	}
 
 	/**
-     * Setter for property 'deserializer'.
+     * Setter for deserializer
      *
-     * @param deserializer Value to set for property 'deserializer'.
+     * @param deserializer  Deserializer
      */
     public void setDeserializer(Deserializer deserializer) {
 		this.deserializer = deserializer;
 	}
 
 	/**
-     * Setter for property 'serializer'.
+     * Setter for serializer
      *
-     * @param serializer Value to set for property 'serializer'.
+     * @param serializer  Serializer
      */
     public void setSerializer(Serializer serializer) {
 		this.serializer = serializer;

@@ -41,7 +41,8 @@ public class EchoService implements IEchoService {
 
 	private Log log = LogFactory.getLog(EchoService.class.getName());
 
-	public void startUp() {
+	/** {@inheritDoc} */
+    public void startUp() {
 		log.info("The Echo Service has started...");
 	}
 

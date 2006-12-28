@@ -21,6 +21,9 @@ package org.red5.server.stream;
 
 import org.red5.server.messaging.IProvider;
 
+/**
+ * Provider that is seekable
+ */
 public interface ISeekableProvider extends IProvider {
 	public static final String KEY = ISeekableProvider.class.getName();
 

@@ -50,8 +50,8 @@ public interface IMessageInput {
 	/**
 	 * Connect to a consumer.
 	 * 
-	 * @param consumer
-	 * @param paramMap
+	 * @param consumer         Consumer
+	 * @param paramMap         Parameters map
 	 * @return <tt>true</tt> when successfully subscribed,
 	 * <tt>false</tt> otherwise.
 	 */

@@ -25,14 +25,27 @@ import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoFilterAdapter;
 import org.apache.mina.common.IoSession;
 
+/**
+ * Proxy filter
+ */
 public class ProxyFilter extends IoFilterAdapter {
-
+    /**
+     * Forwarding key constant
+     */
 	public static final String FORWARD_KEY = "proxy_forward_key";
-
+    /**
+     * Logger
+     */
 	protected static Log log = LogFactory.getLog(ProxyFilter.class.getName());
-
+    /**
+     * Filter name
+     */
 	protected String name;
 
+    /**
+     * Create proxy filter with given name
+     * @param name
+     */
 	public ProxyFilter(String name) {
 		this.name = name;
 	}
@@ -41,7 +54,8 @@ public class ProxyFilter extends IoFilterAdapter {
     @Override
 	public void messageReceived(NextFilter next, IoSession session,
 			Object message) throws Exception {
-		IoSession forward = (IoSession) session.getAttribute(FORWARD_KEY);
+        // Create forwarding IO session
+        IoSession forward = (IoSession) session.getAttribute(FORWARD_KEY);
 		if (forward != null && forward.isConnected()) {
 
 			if (message instanceof ByteBuffer) {

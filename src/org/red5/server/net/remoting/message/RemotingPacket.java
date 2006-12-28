@@ -19,36 +19,50 @@ package org.red5.server.net.remoting.message;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import javax.servlet.http.HttpServletRequest;
 import java.nio.ByteBuffer;
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-
+/**
+ * Packet of remote calls. Used by RemoteProtocolDecoder.
+ */
 public class RemotingPacket {
-
+    /**
+     * HTTP request object
+     */
 	protected HttpServletRequest request;
-
+    /**
+     * Byte buffer data
+     */
 	protected ByteBuffer data;
-
+    /**
+     * List of calls
+     */
 	protected List calls;
-
+    /**
+     * Scope path
+     */
 	protected String scopePath;
 
-	public RemotingPacket(List calls) {
+    /**
+     * Create remoting packet from list of pending calls
+     * @param calls              List of call objects
+     */
+    public RemotingPacket(List calls) {
 		this.calls = calls;
 	}
 
 	/**
-     * Getter for property 'calls'.
+     * Getter for calls.
      *
-     * @return Value for property 'calls'.
+     * @return   List of remote calls
      */
     public List getCalls() {
 		return calls;
 	}
 
 	/**
-     * Setter for property 'scopePath'.
+     * Setter for scope path.
      *
      * @param path Value to set for property 'scopePath'.
      */
@@ -57,9 +71,9 @@ public class RemotingPacket {
 	}
 
 	/**
-     * Getter for property 'scopePath'.
+     * Getter for property scope path.
      *
-     * @return Value for property 'scopePath'.
+     * @return  Scope path to set
      */
     public String getScopePath() {
 		return scopePath;

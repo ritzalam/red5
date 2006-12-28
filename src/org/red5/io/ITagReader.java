@@ -44,7 +44,8 @@ public interface ITagReader {
 
 	/**
 	 * Return length in seconds
-	 */
+     * @return
+     */
 	public long getDuration();
 
 	/**

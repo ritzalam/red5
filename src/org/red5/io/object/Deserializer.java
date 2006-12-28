@@ -342,7 +342,9 @@ public class Deserializer {
 	/**
 	 * Post processes the result
 	 * TODO Extension Point
-	 */
+     * @param result
+     * @return
+     */
 	protected Object postProcessExtension(Object result) {
 		// does nothing at the moment, but will later!
 		return result;

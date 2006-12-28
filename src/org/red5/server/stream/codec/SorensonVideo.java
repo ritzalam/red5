@@ -33,19 +33,33 @@ import org.red5.server.api.stream.IVideoStreamCodec;
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public class SorensonVideo implements IVideoStreamCodec {
-
+    /**
+     * Logger
+     */
 	private Log log = LogFactory.getLog(SorensonVideo.class.getName());
-
+    /**
+     * Sorenson video codec constant
+     */
 	static final String CODEC_NAME = "SorensonVideo";
-
+    /**
+     * FLV frame marker constant
+     */
 	static final byte FLV_FRAME_KEY = 0x10;
-
+    /**
+     * Sorenson codec marker constant
+     */
 	static final byte FLV_CODEC_SORENSON = 0x02;
-
+    /**
+     * Block of data
+     */
 	private byte[] blockData;
-
+    /**
+     * Number of data blocks
+     */
 	private int dataCount;
-
+    /**
+     * Data block size
+     */
 	private int blockSize;
 
 	/** Constructs a new SorensonVideo. */

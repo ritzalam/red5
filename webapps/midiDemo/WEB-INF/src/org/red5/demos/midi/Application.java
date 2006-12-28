@@ -19,13 +19,15 @@ public class Application extends ApplicationAdapter {
 
 	private static final Log log = LogFactory.getLog(Application.class);
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public boolean appStart(IScope app) {
 		log.info("Midi demo app started");
 		return super.appStart(app);
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public void appDisconnect(IConnection conn) {
 		if (conn.hasAttribute("midi")) {
 			MidiDevice dev = (MidiDevice) conn.getAttribute("midi");
@@ -73,7 +75,12 @@ public class Application extends ApplicationAdapter {
 		return false;
 	}
 
-	public String[] getMidiDeviceNames() {
+	/**
+     * Getter for property 'midiDeviceNames'.
+     *
+     * @return Value for property 'midiDeviceNames'.
+     */
+    public String[] getMidiDeviceNames() {
 		MidiDevice.Info[] info = MidiSystem.getMidiDeviceInfo();
 		String[] names = new String[info.length];
 		for (int i = 0; i < info.length; i++) {
@@ -108,7 +115,8 @@ public class Application extends ApplicationAdapter {
 			this.conn = conn;
 		}
 
-		public void send(MidiMessage midi, long time) {
+		/** {@inheritDoc} */
+        public void send(MidiMessage midi, long time) {
 
 			byte[] msg = midi.getMessage();
 			int len = midi.getLength();
@@ -129,7 +137,8 @@ public class Application extends ApplicationAdapter {
 			 */
 		}
 
-		public void close() {
+		/** {@inheritDoc} */
+        public void close() {
 			log.debug("Midi device closed");
 		}
 

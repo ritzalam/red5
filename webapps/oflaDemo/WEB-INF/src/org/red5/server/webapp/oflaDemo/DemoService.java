@@ -18,7 +18,12 @@ public class DemoService {
 
 	protected static Log log = LogFactory.getLog(DemoService.class.getName());
 
-	public Map getListOfAvailableFLVs() {
+	/**
+     * Getter for property 'listOfAvailableFLVs'.
+     *
+     * @return Value for property 'listOfAvailableFLVs'.
+     */
+    public Map getListOfAvailableFLVs() {
 		IScope scope = Red5.getConnectionLocal().getScope();
 		Map<String, Map> filesMap = new HashMap<String, Map>();
 		Map<String, Object> fileInfo;

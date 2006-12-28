@@ -23,28 +23,51 @@ import org.red5.server.api.event.IEventListener;
 import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.net.rtmp.message.Header;
 
+/**
+ * Base abstract class for all RTMP events
+ */
 public abstract class BaseEvent implements Constants, IRTMPEvent {
 	// XXX we need a better way to inject allocation debugging
 	// (1) make it configurable in xml
 	// (2) make it aspect oriented
 	private static final boolean allocationDebugging = false;
-
+    /**
+     * Event type
+     */
 	private Type type;
-
+    /**
+     * Event target object
+     */
 	protected Object object;
-
+    /**
+     * Event listener
+     */
 	protected IEventListener source;
-
+    /**
+     * Event listener
+     */
 	protected int timestamp;
-
+    /**
+     * Event RTMP packet header
+     */
 	protected Header header = null;
-
+    /**
+     * Event references count
+     */
 	protected int refcount = 1;
 
-	public BaseEvent(Type type) {
+    /**
+     * Create new event of given type
+     * @param type             Event type
+     */
+    public BaseEvent(Type type) {
 		this(type, null);
 	}
-
+    /**
+     * Create new event of given type
+     * @param type             Event type
+     * @param source           Event source
+     */
 	public BaseEvent(Type type, IEventListener source) {
 		this.type = type;
 		this.source = source;
@@ -124,6 +147,9 @@ public abstract class BaseEvent implements Constants, IRTMPEvent {
 		}
 	}
 
-	protected abstract void releaseInternal();
+    /**
+     * Rekease event
+     */
+    protected abstract void releaseInternal();
 
 }

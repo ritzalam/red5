@@ -38,37 +38,52 @@ import org.springframework.context.ApplicationContextAware;
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
  */
+public class RTMPTHandler extends RTMPHandler implements ApplicationContextAware {
 
-public class RTMPTHandler extends RTMPHandler
-implements ApplicationContextAware {
+    /**
+     * Logger
+     */
+    protected static Log log = LogFactory.getLog(RTMPTHandler.class.getName());
 
-	protected static Log log = LogFactory.getLog(RTMPTHandler.class.getName());
+    /**
+     * Handler constant
+     */
+    public static final String HANDLER_ATTRIBUTE = "red5.RMPTHandler";
 
-	public static final String HANDLER_ATTRIBUTE = "red5.RMPTHandler";
-
-	protected SimpleProtocolCodecFactory codecFactory;
-	
+    /**
+     * Protocol codec factory
+     */
+    protected SimpleProtocolCodecFactory codecFactory;
+    /**
+     * App context
+     */
 	protected ApplicationContext appCtx;
 
 	/**
-     * Setter for property 'codecFactory'.
+     * Setter for codec factory
      *
-     * @param factory Value to set for property 'codecFactory'.
+     * @param factory  Codec factory to use
      */
     public void setCodecFactory(SimpleProtocolCodecFactory factory) {
 		this.codecFactory = factory;
 	}
 
 	/**
-     * Getter for property 'codecFactory'.
+     * Getter for codec factory
      *
-     * @return Value for property 'codecFactory'.
+     * @return Codec factory
      */
     public SimpleProtocolCodecFactory getCodecFactory() {
 		return this.codecFactory;
 	}
 
-	private void rawBufferRecieved(RTMPConnection conn, ProtocolState state,
+    /**
+     * Handle raw buffer reciept
+     * @param conn        RTMP connection
+     * @param state       Protocol state
+     * @param in          Byte buffer with input raw data
+     */
+    private void rawBufferRecieved(RTMPConnection conn, ProtocolState state,
 			ByteBuffer in) {
 		final RTMP rtmp = (RTMP) state;
 
@@ -108,7 +123,11 @@ implements ApplicationContextAware {
 		this.appCtx = appCtx;
 	}
 
-	RTMPTConnection createRTMPTConnection() {
+    /**
+     * Creates RTMP connection
+     * @return       RTMP connection
+     */
+    RTMPTConnection createRTMPTConnection() {
 		RTMPTConnection client =
 			(RTMPTConnection) appCtx.getBean("rtmptConnection");
 		client.setRTMPTHandle(this);

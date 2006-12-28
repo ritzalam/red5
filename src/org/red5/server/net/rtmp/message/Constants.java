@@ -19,6 +19,9 @@ package org.red5.server.net.rtmp.message;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+/**
+ * Class for AMF and RTMP marker values constants
+ */
 public interface Constants {
 
 	public static final int MEDIUM_INT_MAX = 16777215;

@@ -21,6 +21,9 @@ package org.red5.server.net.rtmpt.codec;
 
 import org.red5.server.net.rtmp.codec.RTMPProtocolEncoder;
 
+/**
+ * RTMPT protocol encoder. To be implemented.
+ */
 public class RTMPTProtocolEncoder extends RTMPProtocolEncoder {
 
 	/*

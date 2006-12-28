@@ -22,37 +22,50 @@ package org.red5.server.net.remoting.message;
 import org.red5.server.service.PendingCall;
 
 /**
+ * Remoting method call, specific pending call. 
  *
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 public class RemotingCall extends PendingCall {
-
+    /**
+     * Handler success posfix constant
+     */
 	public static final String HANDLER_SUCCESS = "/onResult";
-
+    /**
+     * Handler error posfix constant
+     */
 	public static final String HANDLER_ERROR = "/onStatus";
+    /**
+     * Client callback name
+     */
+	public String clientCallback;
 
-	public String clientCallback = null;
-
-	public RemotingCall(String serviceName, String serviceMethod,
-			Object[] args, String callback) {
+    /**
+     * Create remoting call from service name, method name, list of arguments and callback name
+     * @param serviceName                Service name
+     * @param serviceMethod              Service method name
+     * @param args                       Parameters passed to method
+     * @param callback                   Name of client callback
+     */
+    public RemotingCall(String serviceName, String serviceMethod, Object[] args, String callback) {
 		super(serviceName, serviceMethod, args);
 		setClientCallback(callback);
 	}
 
 	/**
-     * Setter for property 'clientCallback'.
+     * Setter for client callback.
      *
-     * @param clientCallback Value to set for property 'clientCallback'.
+     * @param clientCallback  Client callback
      */
     public void setClientCallback(String clientCallback) {
 		this.clientCallback = clientCallback;
 	}
 
 	/**
-     * Getter for property 'clientResponse'.
+     * Getter for client response.
      *
-     * @return Value for property 'clientResponse'.
+     * @return  Client response
      */
     public String getClientResponse() {
 		if (clientCallback != null) {
@@ -64,9 +77,9 @@ public class RemotingCall extends PendingCall {
 	}
 
 	/**
-     * Getter for property 'clientResult'.
+     * Getter for client result.
      *
-     * @return Value for property 'clientResult'.
+     * @return Client result
      */
     public Object getClientResult() {
 		return isSuccess() ? getResult() : getException();

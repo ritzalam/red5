@@ -23,12 +23,18 @@ import org.red5.server.api.stream.IStreamCodecInfo;
 import org.red5.server.api.stream.IVideoStreamCodec;
 
 public class StreamCodecInfo implements IStreamCodecInfo {
-
-	private boolean audio = false;
-
-	private boolean video = false;
-
-	private IVideoStreamCodec videoCodec = null;
+    /**
+     * Audio support flag
+     */
+	private boolean audio;
+    /**
+     * Video support flag
+     */
+	private boolean video;
+    /**
+     * Video codec
+     */
+	private IVideoStreamCodec videoCodec;
 
 	/** {@inheritDoc} */
     public boolean hasAudio() {
@@ -36,9 +42,9 @@ public class StreamCodecInfo implements IStreamCodecInfo {
 	}
 
 	/**
-     * Setter for property 'hasAudio'.
+     * New value for audio support
      *
-     * @param value Value to set for property 'hasAudio'.
+     * @param value Audio support
      */
     public void setHasAudio(boolean value) {
 		this.audio = value;
@@ -50,9 +56,9 @@ public class StreamCodecInfo implements IStreamCodecInfo {
 	}
 
 	/**
-     * Setter for property 'hasVideo'.
+     * New value for video support
      *
-     * @param value Value to set for property 'hasVideo'.
+     * @param value Video support
      */
     public void setHasVideo(boolean value) {
 		this.video = value;
@@ -78,9 +84,9 @@ public class StreamCodecInfo implements IStreamCodecInfo {
 	}
 
 	/**
-     * Setter for property 'videoCodec'.
+     * Setter for video codec
      *
-     * @param codec Value to set for property 'videoCodec'.
+     * @param codec  Video codec
      */
     public void setVideoCodec(IVideoStreamCodec codec) {
 		this.videoCodec = codec;

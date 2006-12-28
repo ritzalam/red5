@@ -38,7 +38,7 @@ import org.red5.server.net.rtmp.message.Constants;
  */
 public class FileStreamSource implements ISeekableStreamSource, Constants {
     /**
-     *
+     * Logger
      */
 	protected static Log log = LogFactory.getLog(FileStreamSource.class
 			.getName());
@@ -67,8 +67,8 @@ public class FileStreamSource implements ISeekableStreamSource, Constants {
 	}
 
     /**
-     *
-     * @return
+     * Get tag from queue and convert to message
+     * @return  RTMP event
      */
     public IRTMPEvent dequeue() {
 

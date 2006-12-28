@@ -29,17 +29,20 @@ import org.red5.io.mp3.IMP3Service;
 public class MP3Service extends BaseStreamableFileService implements
 		IMP3Service {
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public String getPrefix() {
 		return "mp3";
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public String getExtension() {
 		return ".mp3";
 	}
 
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public IStreamableFile getStreamableFile(File file) throws IOException {
 		return new MP3(file);
 	}

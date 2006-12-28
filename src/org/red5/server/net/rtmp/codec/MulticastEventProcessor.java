@@ -21,18 +21,25 @@ package org.red5.server.net.rtmp.codec;
 
 import org.apache.mina.common.ByteBuffer;
 
+/**
+ * Processes multicast events
+ */
 public class MulticastEventProcessor {
 
 	/**
-     * Getter for property 'cacheId'.
+     * Getter for cache ID
      *
-     * @return Value for property 'cacheId'.
+     * @return  Cache ID
      */
     public byte getCacheId() {
 		return 0;
 	}
 
-	public void disposeCached(Object obj) {
+    /**
+     * Disposes cached object
+     * @param obj                Cached object
+     */
+    public void disposeCached(Object obj) {
 		if (obj == null) {
 			return;
 		}
@@ -42,7 +49,13 @@ public class MulticastEventProcessor {
 		}
 	}
 
-	public static ByteBuffer[] chunkBuffer(ByteBuffer buf, int size) {
+    /**
+     * Breaks buffer into chunks of given size
+     * @param buf                Byte buffer
+     * @param size               Chunk size
+     * @return                   Array of byte buffers, chunks
+     */
+    public static ByteBuffer[] chunkBuffer(ByteBuffer buf, int size) {
 		final int num = (int) Math.ceil(buf.limit() / (float) size);
 		final ByteBuffer[] chunks = new ByteBuffer[num];
 		for (int i = 0; i < num; i++) {

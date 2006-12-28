@@ -19,17 +19,20 @@ package org.red5.server.net.protocol;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+/**
+ * Simple protocol codec factory
+ */
 public interface SimpleProtocolCodecFactory {
 
 	/**
-     * Getter for property 'simpleDecoder'.
+     * Getter for simple decoder.
      *
      * @return Value for property 'simpleDecoder'.
      */
     public SimpleProtocolDecoder getSimpleDecoder();
 
 	/**
-     * Getter for property 'simpleEncoder'.
+     * Getter for simple encoder.
      *
      * @return Value for property 'simpleEncoder'.
      */
