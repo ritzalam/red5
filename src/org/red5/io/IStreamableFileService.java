@@ -28,23 +28,43 @@ import java.io.IOException;
 public interface IStreamableFileService {
 
 	/**
-     * Getter for property 'prefix'.
+     * Getter for prefix. Prefix is used in filename composition to fetch real file name.
      *
-     * @return Value for property 'prefix'.
+     * @return  Prefix
      */
     public String getPrefix();
 
 	/**
-     * Getter for property 'extension'.
+     * Getter for extension of file
      *
-     * @return Value for property 'extension'.
+     * @return  File extension that is used
      */
     public String getExtension();
 
-	public String prepareFilename(String name);
+    /**
+     * Prepair given string to conform filename requirements, for example, add
+     * extension to the end if missing.
+     * @param name            String to format
+     * @return                Correct filename
+     */
+    public String prepareFilename(String name);
 
-	public boolean canHandle(File file);
+    /**
+     * Check whether file can be used by file service, that is, it does exist and have valid extension
+     * @param file            File object
+     * @return                <code>true</code> if file exist and has valid extension,
+     *                        <code>false</code> otherwise
+     */
+    public boolean canHandle(File file);
 
-	public IStreamableFile getStreamableFile(File file) throws IOException;
+    /**
+     * Return streamable file reference. For FLV files returned streamable file already has
+     * generated metadata injected.
+     *
+     * @param file             File resource
+     * @return                 Streamable file resource
+     * @throws IOException     Thrown if there were problems accessing given file
+     */
+    public IStreamableFile getStreamableFile(File file) throws IOException;
 
 }

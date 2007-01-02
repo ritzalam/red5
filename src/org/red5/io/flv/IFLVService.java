@@ -36,14 +36,14 @@ public interface IFLVService extends IStreamableFileService {
 	/**
 	 * Sets the serializer
 	 * 
-	 * @param serializer
+	 * @param serializer        Serializer object
 	 */
 	public void setSerializer(Serializer serializer);
 
 	/**
 	 * Sets the deserializer
 	 * 
-	 * @param deserializer
+	 * @param deserializer      Deserializer object
 	 */
 	public void setDeserializer(Deserializer deserializer);
 

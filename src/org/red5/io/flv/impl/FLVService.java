@@ -19,14 +19,14 @@ package org.red5.io.flv.impl;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.io.File;
-import java.io.IOException;
-
 import org.red5.io.BaseStreamableFileService;
 import org.red5.io.IStreamableFile;
 import org.red5.io.flv.IFLVService;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Serializer;
+
+import java.io.File;
+import java.io.IOException;
 
 /**
  * A FLVServiceImpl sets up the service and hands out FLV objects to 
@@ -67,27 +67,22 @@ public class FLVService extends BaseStreamableFileService implements
 		return ".flv";
 	}
 
-	/** {@inheritDoc} */ /*
-	 *
-	 * @see org.red5.io.flv.FLVService#setSerializer(org.red5.io.object.Serializer)
+	/** 
+     * {@inheritDoc}
 	 */
 	public void setSerializer(Serializer serializer) {
 		this.serializer = serializer;
 
 	}
 
-	/** {@inheritDoc} */ /*
-	 *
-	 * @see org.red5.io.flv.FLVService#setDeserializer(org.red5.io.object.Deserializer)
+	/** {@inheritDoc}
 	 */
 	public void setDeserializer(Deserializer deserializer) {
 		this.deserializer = deserializer;
 
 	}
 
-	/** {@inheritDoc} */ /*
-	 * 
-	 * @see org.red5.io.flv.FLVService#getFLV(java.io.File)
+	/** {@inheritDoc}
 	 */
 	@Override
 	public IStreamableFile getStreamableFile(File file) throws IOException {
@@ -95,27 +90,27 @@ public class FLVService extends BaseStreamableFileService implements
 	}
 
 	/**
-     * Setter for property 'generateMetadata'.
+     * Generate metadata or not
      *
-     * @param generate Value to set for property 'generateMetadata'.
+     * @param generate  <code>true</code> if there's need to generate metadata, <code>false</code> otherwise
      */
     public void setGenerateMetadata(boolean generate) {
 		generateMetadata = generate;
 	}
 
 	/**
-     * Getter for property 'serializer'.
+     * Getter for serializer
      *
-     * @return Value for property 'serializer'.
+     * @return  Serializer
      */
     public Serializer getSerializer() {
 		return serializer;
 	}
 
 	/**
-     * Getter for property 'deserializer'.
+     * Getter for deserializer
      *
-     * @return Value for property 'deserializer'.
+     * @return  Deserializer
      */
     public Deserializer getDeserializer() {
 		return deserializer;

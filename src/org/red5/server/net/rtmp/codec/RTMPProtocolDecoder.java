@@ -59,7 +59,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 			.getName());
 
     /**
-     * Filesystem logger
+     * I/O logger
      */
     protected static Log ioLog = LogFactory.getLog(RTMPProtocolDecoder.class
 			.getName()

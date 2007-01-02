@@ -19,13 +19,13 @@ package org.red5.io.amf;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.Date;
-import java.util.TimeZone;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.io.object.BaseOutput;
+
+import java.util.Date;
+import java.util.TimeZone;
 
 /**
  * 
@@ -179,7 +179,12 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		}
 	}
 
-	public void writeStartObject(String classname, int numMembers) {
+    /**
+     * Writes start of object marker
+     * @param classname             Object class
+     * @param numMembers            Number of members. Used in AMF3 override.
+     */
+    public void writeStartObject(String classname, int numMembers) {
 		writeStartObject(classname);
 	}
 

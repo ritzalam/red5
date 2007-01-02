@@ -30,14 +30,19 @@ import java.util.Map;
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 public class BaseInput {
-
+    /**
+     * References map
+     */
 	protected Map refMap = new HashMap();
 
-	protected int refId;
+    /**
+     * References id
+     */
+    protected int refId;
 
 	/**
 	 * Store an object into a map
-	 * @param obj
+	 * @param obj  Object to store
 	 */
 	public void storeReference(Object obj) {
 		refMap.put(Integer.valueOf(refId++), obj);
@@ -53,8 +58,8 @@ public class BaseInput {
 
 	/**
 	 * Returns the object with the parameters id
-	 * @param id
-	 * @return Object
+	 * @param id        Object reference id
+	 * @return Object   Object reference with given id
 	 */
 	protected Object getReference(int id) {
 		return refMap.get(Integer.valueOf(id));

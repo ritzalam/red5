@@ -145,7 +145,7 @@ public interface Output {
 
     /**
      * Write custom (user) object
-     * @param custom
+     * @param custom     Custom data type object
      */
     void writeCustom(Object custom);
 

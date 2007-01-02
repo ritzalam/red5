@@ -23,14 +23,17 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Creates streamable file services
+ */
 public class StreamableFileFactory implements IStreamableFileFactory {
 
 	private Set<IStreamableFileService> services = new HashSet<IStreamableFileService>();
 
 	/**
-     * Setter for property 'services'.
+     * Setter for services
      *
-     * @param services Value to set for property 'services'.
+     * @param services Set of streamable file services
      */
     public void setServices(Set<IStreamableFileService> services) {
 		this.services = services;

@@ -19,11 +19,14 @@ package org.red5.io;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import org.red5.server.api.IScopeService;
+
 import java.io.File;
 import java.util.Set;
 
-import org.red5.server.api.IScopeService;
-
+/**
+ * Scope service extension that provides method to get streamable file services set
+ */
 public interface IStreamableFileFactory extends IScopeService {
 
 	public static String BEAN_NAME = "streamableFileFactory";
@@ -31,9 +34,9 @@ public interface IStreamableFileFactory extends IScopeService {
 	public abstract IStreamableFileService getService(File fp);
 
 	/**
-     * Getter for property 'services'.
+     * Getter for services
      *
-     * @return Value for property 'services'.
+     * @return  Set of streamable file services
      */
     public abstract Set<IStreamableFileService> getServices();
 

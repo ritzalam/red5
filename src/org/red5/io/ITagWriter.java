@@ -19,9 +19,9 @@ package org.red5.io;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.io.IOException;
-
 import org.apache.mina.common.ByteBuffer;
+
+import java.io.IOException;
 
 /**
  * Writes tags to FLV file
@@ -38,14 +38,14 @@ public interface ITagWriter {
 	/**
 	 * Return the offset
 	 * 
-	 * @return int Offset value
+	 * @return  Offset value
 	 */
 	public int getOffset();
 
 	/**
 	 * Return the bytes written
 	 * 
-	 * @return long Number of bytes written
+	 * @return  Number of bytes written
 	 */
 	public long getBytesWritten();
 
@@ -60,7 +60,7 @@ public interface ITagWriter {
 	 * Writes a Tag object
 	 * 
 	 * @param tag                    Tag to write
-	 * @return boolean               <code>true</code> on success, <code>false</code> otherwise
+	 * @return                       <code>true</code> on success, <code>false</code> otherwise
 	 * @throws IOException           I/O exception
 	 */
 	public boolean writeTag(ITag tag) throws IOException;
@@ -70,7 +70,7 @@ public interface ITagWriter {
 	 * 
 	 * @param type                   Tag type
 	 * @param data                   Byte data
-	 * @return boolean               <code>true</code> on success, <code>false</code> otherwise
+	 * @return                       <code>true</code> on success, <code>false</code> otherwise
 	 * @throws IOException           I/O exception
 	 */
 	public boolean writeTag(byte type, ByteBuffer data) throws IOException;
@@ -79,7 +79,7 @@ public interface ITagWriter {
 	 * Write a Stream to disk using bytes
 	 * 
 	 * @param b                      Array of bytes to write
-	 * @return boolean               <code>true</code> on success, <code>false</code> otherwise
+	 * @return                       <code>true</code> on success, <code>false</code> otherwise
 	 * @throws IOException           I/O exception
 	 */
 	public boolean writeStream(byte[] b);

@@ -19,11 +19,11 @@ package org.red5.io.flv.meta;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import org.apache.mina.common.ByteBuffer;
+
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-
-import org.apache.mina.common.ByteBuffer;
 
 /**
  * IMetaService Defines the MetaData Service API
@@ -79,7 +79,7 @@ public interface IMetaService {
 	/**
 	 * Read the Meta Cue Points
 	 * 
-	 * @return IMetaCue[] metaCue[]
+	 * @return  Meta cue points
 	 */
 	public IMetaCue[] readMetaCue();
 

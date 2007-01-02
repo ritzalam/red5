@@ -19,19 +19,28 @@ package org.red5.io.mp3.impl;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-
 import org.red5.io.ITagReader;
 import org.red5.io.ITagWriter;
 import org.red5.io.mp3.IMP3;
 
-public class MP3 implements IMP3 {
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 
+/**
+ * Represents MP3 file
+ */
+public class MP3 implements IMP3 {
+    /**
+     * Actual file object
+     */
 	private File file;
 
-	public MP3(File file) {
+    /**
+     * Creates MP3 object using given file
+     * @param file           File object to use
+     */
+    public MP3(File file) {
 		this.file = file;
 	}
 

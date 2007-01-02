@@ -30,66 +30,153 @@ import java.util.Date;
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 public interface Input {
-
+    /**
+     * Read type of data
+     * @return         Type of data as byte
+     */
 	byte readDataType();
 
 	/**
 	 * Read a string without the string type header.
 	 * 
-	 * @return
+	 * @return         String
 	 */
 	String getString();
-	
-	// Data Types
+
+    /**
+     * Read Null data type
+     * @return         Null datatype (AS)
+     */
 	Object readNull();
 
-	Boolean readBoolean();
+    /**
+     * Read Boolean value
+     * @return         Boolean
+     */
+    Boolean readBoolean();
 
-	Number readNumber();
+    /**
+     * Read Number object
+     * @return         Number
+     */
+    Number readNumber();
 
-	String readString();
+    /**
+     * Read String object
+     * @return         String
+     */
+    String readString();
 
-	Date readDate();
+    /**
+     * Read date object
+     * @return         Date
+     */
+    Date readDate();
 
 	// Stuctures
-	int readStartArray();
 
-	void skipElementSeparator();
+    /**
+     * Read start of array marker.
+     * @return               Size of array
+     */
+    int readStartArray();
 
-	void skipEndArray();
+    /**
+     * Skip array element separator marker
+     */
+    void skipElementSeparator();
 
-	int readStartMap();
+    /**
+     * Skip end of array separator marker
+     */
+    void skipEndArray();
 
-	String readItemKey();
+    /**
+     * Read start of map marker
+     * @return           Map size
+     */
+    int readStartMap();
 
-	void skipItemSeparator();
+    /**
+     * Read item key from map
+     * @return           Key name as String
+     */
+    String readItemKey();
 
-	boolean hasMoreItems();
+    /**
+     * Skip item separator
+     */
+    void skipItemSeparator();
 
-	void skipEndMap();
+    /**
+     * Check whether there's more items in map to read and deserialize
+     * @return        <code>true</code> if there are items to read, <code>false</code> otherwise
+     */
+    boolean hasMoreItems();
 
-	String readStartObject();
+    /**
+     * Skip map end marker
+     */
+    void skipEndMap();
 
-	String readPropertyName();
+    /**
+     *
+     * @return
+     */
+    String readStartObject();
 
-	void skipPropertySeparator();
+    /**
+     * 
+     * @return
+     */
+    String readPropertyName();
 
-	boolean hasMoreProperties();
+    /**
+     * Skip object property separator
+     */
+    void skipPropertySeparator();
 
-	void skipEndObject();
+    /**
+     * Check whether more object properties are available
+     * @return     <code>true</code> if there are properties to read, <code>false</code> otherwise
+     */
+    boolean hasMoreProperties();
 
-	//int readStartXML();
+    /**
+     * Slip object end marker
+     */
+    void skipEndObject();
+
+    /**
+     * Read XML as String
+     * @return       String representation of XML object
+     */
 	String readXML();
 
-	Object readCustom();
+    /**
+     * Read custom object
+     * @return          Custom object
+     */
+    Object readCustom();
 
 	//void readEndXML();
 
-	// Reference to Complex Data Type
+    /**
+     * Read reference to Complex Data Type. Objects that are collaborators (properties) of other
+     * objects must be stored as references in map of id-reference pairs.
+     */
 	Object readReference();
 
-	void storeReference(Object obj);
+    /**
+     * Store object reference. Objects that are collaborators (properties) of other
+     * objects must be stored as references in map of id-reference pairs.
+     * @param obj            Object
+     */
+    void storeReference(Object obj);
 
-	void clearReferences();
+    /**
+     * Clears all references
+     */
+    void clearReferences();
 
 }

@@ -28,7 +28,9 @@ package org.red5.io.mp3.impl;
  */
 
 public class MP3Header {
-
+    /**
+     * MP3 bitrates
+     */
 	private static final int[][] BITRATES = {
 			{ 0, 32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 352, 384, 416,
 					448, -1 },
@@ -40,7 +42,10 @@ public class MP3Header {
 					256, -1 },
 			{ 0, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 112, 128, 144, 160, -1 }, };
 
-	private static final int[][] SAMPLERATES = {
+    /**
+     * Sample rates
+     */
+    private static final int[][] SAMPLERATES = {
 	// Version 2.5
 			{ 11025, 12000, 8000, -1 },
 			// Unknown version
@@ -50,23 +55,52 @@ public class MP3Header {
 			// Version 1
 			{ 44100, 44800, 32000, -1 }, };
 
-	private int data;
+    /**
+     * Frame sync data
+     */
+    private int data;
 
-	private byte audioVersionId;
+    /**
+     * Audio version id
+     */
+    private byte audioVersionId;
 
-	private byte layerDescription;
+    /**
+     * Layer description
+     */
+    private byte layerDescription;
 
-	private boolean protectionBit;
+    /**
+     * Protection bit
+     */
+    private boolean protectionBit;
 
-	private byte bitRateIndex;
+    /**
+     * Bitrate used (index in array of bitrates)
+     */
+    private byte bitRateIndex;
 
-	private byte samplingRateIndex;
+    /**
+     * Sampling rate used (index in array of sample rates)
+     */
+    private byte samplingRateIndex;
 
-	private boolean paddingBit;
+    /**
+     * Padding bit
+     */
+    private boolean paddingBit;
 
-	private byte channelMode;
+    /**
+     * Channel mode
+     */
+    private byte channelMode;
 
-	public MP3Header(int data) throws Exception {
+    /**
+     * Creates MP3 header from frame sync value
+     * @param data              Frame sync data
+     * @throws Exception        On invalid frame synchronization
+     */
+    public MP3Header(int data) throws Exception {
 		if ((data & 0xffe00000) != 0xffe00000) {
 			throw new Exception("invalid frame sync");
 		}
@@ -84,36 +118,36 @@ public class MP3Header {
 	}
 
 	/**
-     * Getter for property 'data'.
+     * Getter for data
      *
-     * @return Value for property 'data'.
+     * @return  Frame sync data
      */
     public int getData() {
 		return data;
 	}
 
 	/**
-     * Getter for property 'stereo'.
+     * Whether stereo playback mode is used
      *
-     * @return Value for property 'stereo'.
+     * @return  <code>true</code> if stereo mode is used, <code>false</code> otherwise
      */
     public boolean isStereo() {
 		return (channelMode != 3);
 	}
 
 	/**
-     * Getter for property 'protected'.
+     * Whether MP3 has protection bit
      *
-     * @return Value for property 'protected'.
+     * @return  <code>true</code> if MP3 has protection bit, <code>false</code> otherwise
      */
     public boolean isProtected() {
 		return protectionBit;
 	}
 
 	/**
-     * Getter for property 'bitRate'.
+     * Getter for bitrate
      *
-     * @return Value for property 'bitRate'.
+     * @return  File bitrate
      */
     public int getBitRate() {
 		int result;
@@ -163,9 +197,9 @@ public class MP3Header {
 	}
 
 	/**
-     * Getter for property 'sampleRate'.
+     * Getter for sample rate
      *
-     * @return Value for property 'sampleRate'.
+     * @return  Sampling rate
      */
     public int getSampleRate() {
 		return SAMPLERATES[audioVersionId][samplingRateIndex];
@@ -205,7 +239,7 @@ public class MP3Header {
 	/**
 	 * Return the duration of the frame for this header.
 	 * 
-	 * @return the duration in milliseconds
+	 * @return The duration in milliseconds
 	 */
 	public double frameDuration() {
 		switch (layerDescription) {

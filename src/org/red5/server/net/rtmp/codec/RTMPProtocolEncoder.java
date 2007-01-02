@@ -19,10 +19,6 @@ package org.red5.server.net.rtmp.codec;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
@@ -30,25 +26,14 @@ import org.red5.io.object.Output;
 import org.red5.io.object.Serializer;
 import org.red5.io.utils.BufferUtils;
 import org.red5.server.api.IConnection;
-import org.red5.server.api.Red5;
 import org.red5.server.api.IConnection.Encoding;
+import org.red5.server.api.Red5;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IServiceCall;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.protocol.SimpleProtocolEncoder;
 import org.red5.server.net.rtmp.RTMPUtils;
-import org.red5.server.net.rtmp.event.AudioData;
-import org.red5.server.net.rtmp.event.BytesRead;
-import org.red5.server.net.rtmp.event.ChunkSize;
-import org.red5.server.net.rtmp.event.ClientBW;
-import org.red5.server.net.rtmp.event.FlexMessage;
-import org.red5.server.net.rtmp.event.IRTMPEvent;
-import org.red5.server.net.rtmp.event.Invoke;
-import org.red5.server.net.rtmp.event.Notify;
-import org.red5.server.net.rtmp.event.Ping;
-import org.red5.server.net.rtmp.event.ServerBW;
-import org.red5.server.net.rtmp.event.Unknown;
-import org.red5.server.net.rtmp.event.VideoData;
+import org.red5.server.net.rtmp.event.*;
 import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.net.rtmp.message.Header;
 import org.red5.server.net.rtmp.message.Packet;
@@ -57,19 +42,39 @@ import org.red5.server.service.Call;
 import org.red5.server.so.ISharedObjectEvent;
 import org.red5.server.so.ISharedObjectMessage;
 
+import java.util.List;
+import java.util.Map;
+
+/**
+ * RTMP protocol encoder encodes RTMP messages and packets to byte buffers.
+ */
 public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 		IEventEncoder {
 
-	protected static Log log = LogFactory.getLog(RTMPProtocolEncoder.class
+    /**
+     * Logger
+     */
+    protected static Log log = LogFactory.getLog(RTMPProtocolEncoder.class
 			.getName());
 
-	protected static Log ioLog = LogFactory.getLog(RTMPProtocolEncoder.class
+    /**
+     * I/O operations logger
+     */
+    protected static Log ioLog = LogFactory.getLog(RTMPProtocolEncoder.class
 			.getName()
 			+ ".out");
 
-	private Serializer serializer;
-	
-	private Output getOutput(ByteBuffer buffer) {
+    /**
+     * Serializer object
+     */
+    private Serializer serializer;
+
+    /**
+     * Creates output object from byte buffer
+     * @param buffer
+     * @return
+     */
+    private Output getOutput(ByteBuffer buffer) {
 		IConnection conn = Red5.getConnectionLocal();
 		if (conn.getEncoding() == Encoding.AMF3) {
 			return new org.red5.io.amf3.Output(buffer);
@@ -94,7 +99,13 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 		return null;
 	}
 
-	public ByteBuffer encodePacket(RTMP rtmp, Packet packet) {
+    /**
+     * Encode packet
+     * @param rtmp        RTMP protocol state
+     * @param packet      RTMP packet
+     * @return            Encoded data
+     */
+    public ByteBuffer encodePacket(RTMP rtmp, Packet packet) {
 
 		final Header header = packet.getHeader();
 		final byte channelId = header.getChannelId();
@@ -119,8 +130,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 		}
 		header.setSize(data.limit());
 
-		final ByteBuffer headers = encodeHeader(header, rtmp
-				.getLastWriteHeader(channelId));
+		final ByteBuffer headers = encodeHeader(header, rtmp.getLastWriteHeader(channelId));
 
 		rtmp.setLastWriteHeader(channelId, header);
 		rtmp.setLastWritePacket(channelId, packet);
@@ -129,7 +139,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 		final int numChunks = (int) Math.ceil(header.getSize()
 				/ (float) chunkSize);
 		final int bufSize = header.getSize() + headers.limit()
-				+ (numChunks - 1 * 1);
+				+ (numChunks - 1);
 		final ByteBuffer out = ByteBuffer.allocate(bufSize);
 
 		headers.flip();
@@ -154,7 +164,13 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 		return out;
 	}
 
-	public ByteBuffer encodeHeader(Header header, Header lastHeader) {
+    /**
+     * Encode RTMP header
+     * @param header      RTMP message header
+     * @param lastHeader  Previous header
+     * @return            Encoded header data
+     */
+    public ByteBuffer encodeHeader(Header header, Header lastHeader) {
 
 		byte headerType = HEADER_NEW;
 		if (lastHeader == null
@@ -203,7 +219,13 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 		return buf;
 	}
 
-	public ByteBuffer encodeMessage(Header header, IRTMPEvent message) {
+    /**
+     * Encode message
+     * @param header      RTMP message header
+     * @param message     RTMP message (event)
+     * @return            Encoded message data
+     */
+    public ByteBuffer encodeMessage(Header header, IRTMPEvent message) {
 		switch (header.getDataType()) {
 			case TYPE_CHUNK_SIZE:
 				return encodeChunkSize((ChunkSize) message);
@@ -236,13 +258,23 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 		}
 	}
 
-	private ByteBuffer encodeServerBW(ServerBW serverBW) {
+    /**
+     * Encode server-side bandwidth event
+     * @param serverBW    Server-side bandwidth event
+     * @return            Encoded event data
+     */
+    private ByteBuffer encodeServerBW(ServerBW serverBW) {
 		final ByteBuffer out = ByteBuffer.allocate(4);
 		out.putInt(serverBW.getBandwidth());
 		return out;
 	}
 
-	private ByteBuffer encodeClientBW(ClientBW clientBW) {
+    /**
+     * Encode client-side bandwidth event
+     * @param clientBW    Client-side bandwidth event
+     * @return            Encoded event data
+     */
+    private ByteBuffer encodeClientBW(ClientBW clientBW) {
 		final ByteBuffer out = ByteBuffer.allocate(5);
 		out.putInt(clientBW.getBandwidth());
 		out.put(clientBW.getValue2());
@@ -271,139 +303,139 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 		// unknown field
 		out.putInt(0);
 
-		int mark, len = 0;
+		int mark, len;
 
-		final Iterator iter = so.getEvents().iterator();
-		while (iter.hasNext()) {
+        for (ISharedObjectEvent event1 : so.getEvents()) {
 
-			ISharedObjectEvent event = (ISharedObjectEvent) iter.next();
-			byte type = SharedObjectTypeMapping.toByte(event.getType());
+            ISharedObjectEvent event = (ISharedObjectEvent) event1;
+            byte type = SharedObjectTypeMapping.toByte(event.getType());
 
-			switch (event.getType()) {
-				case SERVER_CONNECT:
-				case CLIENT_INITIAL_DATA:
-				case CLIENT_CLEAR_DATA:
-					out.put(type);
-					out.putInt(0);
-					break;
+            switch (event.getType()) {
+                case SERVER_CONNECT:
+                case CLIENT_INITIAL_DATA:
+                case CLIENT_CLEAR_DATA:
+                    out.put(type);
+                    out.putInt(0);
+                    break;
 
-				case SERVER_DELETE_ATTRIBUTE:
-				case CLIENT_DELETE_DATA:
-				case CLIENT_UPDATE_ATTRIBUTE:
-					out.put(type);
-					mark = out.position();
-					out.skip(4); // we will be back
-					output.putString(event.getKey());
-					len = out.position() - mark - 4;
-					out.putInt(mark, len);
-					break;
+                case SERVER_DELETE_ATTRIBUTE:
+                case CLIENT_DELETE_DATA:
+                case CLIENT_UPDATE_ATTRIBUTE:
+                    out.put(type);
+                    mark = out.position();
+                    out.skip(4); // we will be back
+                    output.putString(event.getKey());
+                    len = out.position() - mark - 4;
+                    out.putInt(mark, len);
+                    break;
 
-				case SERVER_SET_ATTRIBUTE:
-				case CLIENT_UPDATE_DATA:
-					if (event.getKey() == null) {
-						// Update multiple attributes in one request
-						Map initialData = (Map) event.getValue();
+                case SERVER_SET_ATTRIBUTE:
+                case CLIENT_UPDATE_DATA:
+                    if (event.getKey() == null) {
+                        // Update multiple attributes in one request
+                        Map initialData = (Map) event.getValue();
 
-						Iterator keys = initialData.keySet().iterator();
-						while (keys.hasNext()) {
+                        for (Object o : initialData.keySet()) {
 
-							out.put(type);
-							mark = out.position();
-							out.skip(4); // we will be back
+                            out.put(type);
+                            mark = out.position();
+                            out.skip(4); // we will be back
 
-							String key = (String) keys.next();
-							output.putString(key);
-							serializer.serialize(output, initialData.get(key));
+                            String key = (String) o;
+                            output.putString(key);
+                            serializer.serialize(output, initialData.get(key));
 
-							len = out.position() - mark - 4;
-							out.putInt(mark, len);
-						}
-					} else {
-						out.put(type);
-						mark = out.position();
-						out.skip(4); // we will be back
+                            len = out.position() - mark - 4;
+                            out.putInt(mark, len);
+                        }
+                    } else {
+                        out.put(type);
+                        mark = out.position();
+                        out.skip(4); // we will be back
 
-						output.putString(event.getKey());
-						serializer.serialize(output, event.getValue());
+                        output.putString(event.getKey());
+                        serializer.serialize(output, event.getValue());
 
-						len = out.position() - mark - 4;
-						out.putInt(mark, len);
-					}
-					break;
+                        len = out.position() - mark - 4;
+                        out.putInt(mark, len);
+                    }
+                    break;
 
-				case CLIENT_SEND_MESSAGE:
-				case SERVER_SEND_MESSAGE:
-					// Send method name and value
-					out.put(type);
-					mark = out.position();
-					out.skip(4);
-					// Serialize name of the handler to call...
-					serializer.serialize(output, event.getKey());
-					// ...and the arguments
-					for (Object arg : (List) event.getValue()) {
-						serializer.serialize(output, arg);
-					}
-					len = out.position() - mark - 4;
-					//log.debug(len);
-					out.putInt(mark, len);
-					//log.info(out.getHexDump());
-					break;
+                case CLIENT_SEND_MESSAGE:
+                case SERVER_SEND_MESSAGE:
+                    // Send method name and value
+                    out.put(type);
+                    mark = out.position();
+                    out.skip(4);
+                    // Serialize name of the handler to call...
+                    serializer.serialize(output, event.getKey());
+                    // ...and the arguments
+                    for (Object arg : (List) event.getValue()) {
+                        serializer.serialize(output, arg);
+                    }
+                    len = out.position() - mark - 4;
+                    //log.debug(len);
+                    out.putInt(mark, len);
+                    //log.info(out.getHexDump());
+                    break;
 
-				case CLIENT_STATUS:
-					out.put(type);
-					mark = out.position();
-					out.skip(4); // we will be back
-					output.putString(event.getKey());
-					output.putString((String) event.getValue());
-					len = out.position() - mark - 4;
-					out.putInt(mark, len);
-					break;
+                case CLIENT_STATUS:
+                    out.put(type);
+                    mark = out.position();
+                    out.skip(4); // we will be back
+                    output.putString(event.getKey());
+                    output.putString((String) event.getValue());
+                    len = out.position() - mark - 4;
+                    out.putInt(mark, len);
+                    break;
 
-				default:
-					//log.error("Unknown event " + event.getType());
-					// XXX: come back here, need to make this work in server or
-					// client mode
-					// talk to joachim about this part.
-					out.put(type);
-					mark = out.position();
-					//out.putInt(0);
-					out.skip(4); // we will be back
-					output.putString(event.getKey());
-					serializer.serialize(output, event.getValue());
-					len = out.position() - mark - 4;
-					out.putInt(mark, len);
-					break;
+                default:
+                    //log.error("Unknown event " + event.getType());
+                    // XXX: come back here, need to make this work in server or
+                    // client mode
+                    // talk to joachim about this part.
+                    out.put(type);
+                    mark = out.position();
+                    //out.putInt(0);
+                    out.skip(4); // we will be back
+                    output.putString(event.getKey());
+                    serializer.serialize(output, event.getValue());
+                    len = out.position() - mark - 4;
+                    out.putInt(mark, len);
+                    break;
 
-			}
-		}
-		return out;
+            }
+        }
+        return out;
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.server.net.rtmp.codec.IEventEncoder#encodeNotify(org.red5.server.net.rtmp.event.Notify)
-	 */
+	/** {@inheritDoc} */
 	public ByteBuffer encodeNotify(Notify notify) {
 		return encodeNotifyOrInvoke(notify);
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.server.net.rtmp.codec.IEventEncoder#encodeInvoke(org.red5.server.net.rtmp.event.Invoke)
-	 */
+	/** {@inheritDoc} */
 	public ByteBuffer encodeInvoke(Invoke invoke) {
 		return encodeNotifyOrInvoke(invoke);
 	}
 
-	protected ByteBuffer encodeNotifyOrInvoke(Notify invoke) {
+    /**
+     * Encode notification event
+     * @param invoke            Notification event
+     * @return                  Encoded event data
+     */
+    protected ByteBuffer encodeNotifyOrInvoke(Notify invoke) {
 		ByteBuffer out = ByteBuffer.allocate(1024);
 		out.setAutoExpand(true);
 		encodeNotifyOrInvoke(out, invoke);
 		return out;
 	}
-	
+
+    /**
+     * Encode notification event and fill given byte buffer
+     * @param out               Byte buffer to fill
+     * @param invoke            Notification event
+     */
 	protected void encodeNotifyOrInvoke(ByteBuffer out, Notify invoke) {
 		// TODO: tidy up here
 		// log.debug("Encode invoke");
@@ -456,11 +488,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 		}
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.server.net.rtmp.codec.IEventEncoder#encodePing(org.red5.server.net.rtmp.event.Ping)
-	 */
+	/** {@inheritDoc} */
 	public ByteBuffer encodePing(Ping ping) {
 		int len = 6;
 		if (ping.getValue3() != Ping.UNDEFINED) {
@@ -481,31 +509,19 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 		return out;
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.server.net.rtmp.codec.IEventEncoder#encodeStreamBytesRead(org.red5.server.net.rtmp.event.StreamBytesRead)
-	 */
+	/** {@inheritDoc} */
 	public ByteBuffer encodeBytesRead(BytesRead bytesRead) {
 		final ByteBuffer out = ByteBuffer.allocate(4);
 		out.putInt(bytesRead.getBytesRead());
 		return out;
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.server.net.rtmp.codec.IEventEncoder#encodeAudioData(org.red5.server.net.rtmp.event.AudioData)
-	 */
+	/** {@inheritDoc} */
 	public ByteBuffer encodeAudioData(AudioData audioData) {
 		return audioData.getData().asReadOnlyBuffer();
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.server.net.rtmp.codec.IEventEncoder#encodeVideoData(org.red5.server.net.rtmp.event.VideoData)
-	 */
+	/** {@inheritDoc} */
 	public ByteBuffer encodeVideoData(VideoData videoData) {
 		return videoData.getData().asReadOnlyBuffer();
 	}
@@ -520,15 +536,20 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 	}
 
 	/**
-     * Setter for property 'serializer'.
+     * Setter for serializer
      *
-     * @param serializer Value to set for property 'serializer'.
+     * @param serializer Serializer
      */
     public void setSerializer(org.red5.io.object.Serializer serializer) {
 		this.serializer = serializer;
 	}
 
-	public ByteBuffer encodeFlexMessage(FlexMessage msg) {
+    /**
+     * Encodes Flex message event
+     * @param msg                Flex message event
+     * @return                   Encoded data
+     */
+    public ByteBuffer encodeFlexMessage(FlexMessage msg) {
 		ByteBuffer out = ByteBuffer.allocate(1024);
 		out.setAutoExpand(true);
 		// Unknown byte, always 0?

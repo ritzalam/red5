@@ -19,31 +19,34 @@ package org.red5.io.flv;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.Map;
-
 import org.red5.io.IStreamableFile;
 import org.red5.io.ITagReader;
 import org.red5.io.ITagWriter;
 import org.red5.io.flv.meta.IMetaData;
 import org.red5.io.flv.meta.IMetaService;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Map;
+
+/**
+ * Represents FLV file
+ */
 public interface IFLV extends IStreamableFile {
 
 	/**
 	 * Returns a boolean stating whether the flv has metadata
 	 * 
-	 * @return boolean
+	 * @return boolean        <code>true</code> if file has injected metadata, <code>false</code> otherwise
 	 */
 	public boolean hasMetaData();
 
 	/**
 	 * Sets the metadata
 	 * 
-	 * @param metadata
-	 * @throws FileNotFoundException 
-	 * @throws IOException 
+	 * @param metadata                   Metadata object
+	 * @throws FileNotFoundException     File not found
+	 * @throws IOException               Any other I/O exception
 	 */
 	public void setMetaData(IMetaData metadata) throws FileNotFoundException,
 			IOException;
@@ -51,66 +54,66 @@ public interface IFLV extends IStreamableFile {
 	/**
 	 * Sets the MetaService through Spring
 	 * 
-	 * @param service
+	 * @param service                    Metadata service
 	 */
 	public void setMetaService(IMetaService service);
 
 	/**
 	 * Returns a map of the metadata
 	 * 
-	 * @return metadata
-	 * @throws FileNotFoundException 
+	 * @return metadata                  File metadata
+	 * @throws FileNotFoundException     File not found
 	 */
 	public IMetaData getMetaData() throws FileNotFoundException;
 
 	/**
 	 * Returns a boolean stating whether a flv has keyframedata
 	 * 
-	 * @return boolean
+	 * @return boolean                   <code>true</code> if file has keyframe metadata, <code>false</code> otherwise
 	 */
 	public boolean hasKeyFrameData();
 
 	/**
 	 * Sets the keyframe data of a flv file
 	 * 
-	 * @param keyframedata
+	 * @param keyframedata              Keyframe metadata
 	 */
 	public void setKeyFrameData(Map keyframedata);
 
 	/**
 	 * Gets the keyframe data
 	 * 
-	 * @return keyframedata
+	 * @return keyframedata             Keyframe metadata
 	 */
 	public Map getKeyFrameData();
 
 	/**
 	 * Refreshes the headers. Usually used after data is added to the flv file
 	 * 
-	 * @throws IOException
+	 * @throws IOException              Any I/O exception
 	 */
 	public void refreshHeaders() throws IOException;
 
 	/**
 	 * Flushes Header
 	 * 
-	 * @throws IOException
+	 * @throws IOException              Any I/O exception
 	 */
 	public void flushHeaders() throws IOException;
 
 	/**
 	 * Returns a Reader closest to the nearest keyframe
 	 * 
-	 * @param seekPoint
-	 * @return reader
+	 * @param seekPoint                Point in file we are seeking around
+	 * @return reader                  Tag reader closest to that point
 	 */
 	public ITagReader readerFromNearestKeyFrame(int seekPoint);
 
 	/**
 	 * Returns a Writer based on the nearest key frame
 	 * 
-	 * @param seekPoint
-	 * @return writer
+	 * @param seekPoint                Point in file we are seeking around
+	 * @return writer                  Tag writer closest to that point
 	 */
 	public ITagWriter writerFromNearestKeyFrame(int seekPoint);
 

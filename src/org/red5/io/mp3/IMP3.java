@@ -22,7 +22,7 @@ package org.red5.io.mp3;
 import org.red5.io.IStreamableFile;
 
 /**
- * Informations about a MP3 file.
+ * Informations about a MP3 file. Marker interface by now.
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)

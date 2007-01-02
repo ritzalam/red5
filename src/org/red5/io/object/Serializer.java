@@ -39,11 +39,13 @@ import java.util.*;
  */
 public class Serializer implements SerializerOpts {
 
-	// Initialize Logging
+    /**
+     * Logger
+     */
 	protected static Log log = LogFactory.getLog(Serializer.class.getName());
 
 	/**
-	 * serializes output to a core data type object
+	 * Serializes output to a core data type object
 	 * 
 	 * @param out          Output writer
 	 * @param any          Object to serialize

@@ -31,34 +31,69 @@ import java.nio.charset.Charset;
  * @see <a href="http://osflash.org/amf/astypes">specifictation AMF (external)</a>
  */
 public class AMF3 {
-
+    /**
+     * UTF-8 is used
+     */
 	public static final Charset CHARSET = Charset.forName("UTF-8");
 
-	public static final int LONG_STRING_LENGTH = 65535;
+    /**
+     * Max string length
+     */
+    public static final int LONG_STRING_LENGTH = 65535;
 
-	public final static byte TYPE_NULL = 0x01;
+    /**
+     * Null marker
+     */
+    public static final byte TYPE_NULL = 0x01;
 
-	public final static byte TYPE_BOOLEAN_TRUE = 0x02;
+    /**
+     * Boolean true marker
+     */
+    public static final byte TYPE_BOOLEAN_TRUE = 0x02;
 
-	public final static byte TYPE_BOOLEAN_FALSE = 0x03;
+    /**
+     * Boolean false marker
+     */
+    public static final byte TYPE_BOOLEAN_FALSE = 0x03;
 
-	public final static byte TYPE_INTEGER = 0x04;
+    /**
+     * Integer marker
+     */
+    public static final byte TYPE_INTEGER = 0x04;
 
-	public final static byte TYPE_NUMBER = 0x05;
+    /**
+     * Number marker
+     */
+    public static final byte TYPE_NUMBER = 0x05;
 
-	public final static byte TYPE_STRING = 0x06;
+    /**
+     * String marker
+     */
+    public static final byte TYPE_STRING = 0x06;
 
 	// TODO m.j.m hm..not defined on site, says it's only XML type, so i'll
 	// assume it is for the time being..
-	public final static byte TYPE_XML_SPECIAL = 0x07;
+    public static final byte TYPE_XML_SPECIAL = 0x07;
 
-	public final static byte TYPE_DATE = 0x08;
+    /**
+     * Date marker
+     */
+    public static final byte TYPE_DATE = 0x08;
 
-	public final static byte TYPE_ARRAY = 0x09;
+    /**
+     * Array start marker
+     */
+    public static final byte TYPE_ARRAY = 0x09;
 
-	public final static byte TYPE_OBJECT = 0x0A;
+    /**
+     * Object start marker
+     */
+    public static final byte TYPE_OBJECT = 0x0A;
 
-	public final static byte TYPE_XML = 0x0B;
+    /**
+     * XML start marker
+     */
+    public static final byte TYPE_XML = 0x0B;
 
 	//public final static byte TYPE_YYY = 0x0C;
 	//public final static byte TYPE_ZZZ = 0x0D;
@@ -69,7 +104,7 @@ public class AMF3 {
 	 * The property names are read as string-data.<br />
 	 * The values are then read as amf3-data.
 	 */
-	public final static byte TYPE_OBJECT_PROPERTY = 0x00;
+    public static final byte TYPE_OBJECT_PROPERTY = 0x00;
 
 	/**
 	 * 01 = single anonymous property. <br />
@@ -77,7 +112,7 @@ public class AMF3 {
 	 * The property name should be declared in the class-def reference but this doesn’t seem <b />
 	 * to always be the case - more to come here.
 	 */
-	public final static byte TYPE_OBJECT_ANONYMOUS_PROPERTY = 0x01;
+    public static final byte TYPE_OBJECT_ANONYMOUS_PROPERTY = 0x01;
 
 	/**
 	 * 10 = name value encoding.<br />
@@ -86,11 +121,11 @@ public class AMF3 {
 	 * If there is a class-def reference there are no property names and the number of values <br />
 	 * is equal to the number of properties in the class-def.
 	 */
-	public final static byte TYPE_OBJECT_VALUE = 0x0A;
+    public static final byte TYPE_OBJECT_VALUE = 0x0A;
 
 	/**
 	 * 11 = unseen / unknown
 	 */
-	public final static byte TYPE_OBJECT_UNKNOWN = 0x0B;
+    public static final byte TYPE_OBJECT_UNKNOWN = 0x0B;
 
 }

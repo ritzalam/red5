@@ -24,19 +24,27 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Result of paged request.
+ * Result of pageable request, one page of data.
  *
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
  * @see <a href="http://www.osflash.org/amf/recordset">osflash.org documentation</a>
  */
 public class RecordSetPage {
-
+    /**
+     * Recordset cursor
+     */
 	private int cursor;
-
+    /**
+     * Data as List
+     */
 	private List<List<Object>> data;
 
-	public RecordSetPage(Input input) {
+    /**
+     * Creates recordset page from Input object
+     * @param input       Input object to use as source for data that has to be deserialized
+     */
+    public RecordSetPage(Input input) {
 		Deserializer deserizalizer = new Deserializer();
 		Object result = deserizalizer.deserialize(input);
 		if (!(result instanceof Map)) {
@@ -49,18 +57,18 @@ public class RecordSetPage {
 	}
 
 	/**
-     * Getter for property 'cursor'.
+     * Getter for recordset cursor
      *
-     * @return Value for property 'cursor'.
+     * @return  Recordset cursor
      */
     protected int getCursor() {
 		return cursor;
 	}
 
 	/**
-     * Getter for property 'data'.
+     * Getter for page data
      *
-     * @return Value for property 'data'.
+     * @return Page data as unmodifiable list
      */
     protected List<List<Object>> getData() {
 		return Collections.unmodifiableList(data);

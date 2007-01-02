@@ -1,5 +1,8 @@
 package org.red5.io.object;
 
+/**
+ * Serializer options
+ */
 public interface SerializerOpts {
 
 	public enum Flag {
@@ -10,5 +13,10 @@ public interface SerializerOpts {
 		SerializeClassName
 	}
 
-	public Flag getSerializerOption(SerializerOption opt);
+    /**
+     * Return serializer options flag
+     * @param opt         Serializer option
+     * @return            Option flag (enabled, disabled or default)
+     */
+    public Flag getSerializerOption(SerializerOption opt);
 }

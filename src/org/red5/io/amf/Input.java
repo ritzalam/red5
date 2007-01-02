@@ -19,16 +19,16 @@ package org.red5.io.amf;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.TimeZone;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.io.object.BaseInput;
 import org.red5.io.object.DataTypes;
+
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
 /**
  * Input for red5 data types
@@ -45,9 +45,9 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	protected byte currentDataType;
 
 	/**
-	 * Input Constructor
+	 * Creates Input object from byte buffer
 	 * 
-	 * @param buf
+	 * @param buf           Byte buffer
 	 */
 	public Input(ByteBuffer buf) {
 		super();
@@ -57,7 +57,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	/**
 	 * Reads the data type
 	 * 
-	 * @return byte
+	 * @return byte         Data type
 	 */
 	public byte readDataType() {
 		if (buf != null) {
@@ -70,7 +70,13 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		return readDataType(currentDataType);
 	}
 
-	protected byte readDataType(byte dataType) {
+    /**
+     * Reads data type
+     * @param dataType       Data type as byte
+     * @return               One of AMF class constants with type
+     * @see                  {@link org.red5.io.amf.AMF}
+     */
+    protected byte readDataType(byte dataType) {
 		byte coreType;
 
 		switch (currentDataType) {
@@ -122,8 +128,8 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 			case AMF.TYPE_MOVIECLIP:
 			case AMF.TYPE_RECORDSET:
 				// These types are not handled by core datatypes
-				// So add the amf mast to them, this way the deserializer
-				// will call back to readCustom, we can then handle or reutrn null
+				// So add the amf mask to them, this way the deserializer
+				// will call back to readCustom, we can then handle or return null
 				coreType = (byte) (currentDataType + DataTypes.CUSTOM_AMF_MASK);
 				break;
 
@@ -138,7 +144,8 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	}
 
 	// Basic
-	/**
+    
+    /**
 	 * Reads a null
 	 * 
 	 * @return Object
@@ -158,7 +165,8 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	}
 
 	/**
-	 * Reads a Number
+	 * Reads a Number. In ActionScript 1 and 2 Number type represents all numbers,
+     * both floats and integers
 	 * 
 	 * @return Number
 	 */
@@ -166,16 +174,20 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		double num = buf.getDouble();
 		if (num == Math.round(num)) {
 			if (num < Integer.MAX_VALUE) {
-				return Integer.valueOf((int) num);
+				return (int) num;
 			} else {
-				return Long.valueOf(Math.round(num));
+				return Math.round(num);
 			}
 		} else {
-			return Double.valueOf(num);
+			return num;
 		}
 	}
 
-	public String getString() {
+    /**
+     * Reads string from buffer
+     * @return             String
+     */
+    public String getString() {
 		return getString(buf);
 	}
 	
@@ -205,8 +217,8 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	/**
 	 * Returns a string based on the buffer
 	 * 
-	 * @param buf
-	 * @return String
+	 * @param buf       Byte buffer with data
+	 * @return String   Decoded string
 	 */
 	public static String getString(ByteBuffer buf) {
 		short len = buf.getShort();
@@ -225,7 +237,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	/**
 	 * Returns a date
 	 * 
-	 * @return Date
+	 * @return Date      Decoded string object
 	 */
 	public Date readDate() {
 		/*
@@ -248,10 +260,11 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	}
 
 	// Array
-	/**
+
+    /**
 	 * Returns an array
 	 * 
-	 * @return int
+	 * @return int     Array length
 	 */
 	public int readStartArray() {
 		return buf.getInt();
@@ -272,10 +285,11 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	}
 
 	// Object
-	/**
+
+    /**
 	 * Reads start list
 	 * 
-	 * @return int
+	 * @return int     Map size
 	 */
 	public int readStartMap() {
 		return buf.getInt();
@@ -284,7 +298,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	/**
 	 * Returns a boolean stating whether this has more items
 	 * 
-	 * @return boolean
+	 * @return boolean   <code>true</code> if there are array/map items in buffer, <code>false</code> otherwise
 	 */
 	public boolean hasMoreItems() {
 		return hasMoreProperties();
@@ -293,7 +307,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	/**
 	 * Reads the item index
 	 * 
-	 * @return int
+	 * @return int       Array item index
 	 */
 	public String readItemKey() {
 		return getString(buf);
@@ -330,7 +344,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	/**
 	 * Returns a boolean stating whether there are more properties
 	 * 
-	 * @return boolean
+	 * @return boolean       <code>true</code> if there are more properties to read, <code>false</code> otherwise
 	 */
 	public boolean hasMoreProperties() {
 		byte pad = 0x00;
@@ -349,7 +363,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	/**
 	 * Reads property name
 	 * 
-	 * @return String
+	 * @return String        Object property name
 	 */
 	public String readPropertyName() {
 		return getString(buf);
@@ -376,7 +390,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	/**
 	 * Reads xml
 	 * 
-	 * @return String
+	 * @return String       XML as string
 	 */
 	public String readXML() {
 		return readString();
@@ -385,7 +399,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	/**
 	 * Reads Custom
 	 * 
-	 * @return Object
+	 * @return Object       Custom type object
 	 */
 	public Object readCustom() {
 		// Return null for now
@@ -395,7 +409,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	/**
 	 * Reads Reference
 	 * 
-	 * @return Object
+	 * @return Object       Read reference to object
 	 */
 	public Object readReference() {
 		return getReference(buf.getShort());

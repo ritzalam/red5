@@ -19,51 +19,88 @@ package org.red5.io.object;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.red5.server.net.remoting.RemotingClient;
 
+import java.util.*;
+
 /**
- * Readonly RecordSet object that might be received through remoting.
+ * Read only RecordSet object that might be received through remoting calls. There are 3 types of data fetching:
+ *
+ * <ul>
+ *  <li>On demand (used by default)</li>
+ *  <li>Fetch all at once</li>
+ *  <li>Page-by-page fetching</li>
+ * </ul>
+ *
+ * <p>For last mode, use <tt>page size</tt> property to specify maximum number of rows on one page</p>
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
  * @see <a href="http://www.osflash.org/amf/recordset">osflash.org documentation</a>
  */
 public class RecordSet {
-
+    /**
+     * On demand fetching mode
+     */
 	private static final String MODE_ONDEMAND = "ondemand";
-
+    /**
+     * Fetch all at once fetching mode
+     */
 	private static final String MODE_FETCHALL = "fetchall";
-
+    /**
+     * Page-by-page fetching mode
+     */
 	private static final String MODE_PAGE = "page";
-
+    /**
+     * Total number of pages
+     */
 	private int totalCount;
-
+    /**
+     * Recordset data
+     */
 	private List<List<Object>> data;
-
+    /**
+     * Recordset cursor
+     */
 	private int cursor;
 
-	private String serviceName;
+    /**
+     * Name of service
+     */
+    private String serviceName;
 
-	private List<String> columns;
-
+    /**
+     * Recordset column names set
+     */
+    private List<String> columns;
+    /**
+     * Recordset version
+     */
 	private int version;
-
+    /**
+     * Recordset id
+     */
 	private Object id;
-
-	private RemotingClient client = null;
-
+    /**
+     * Remoting client that fetches data
+     */
+	private RemotingClient client;
+    /**
+     * Fetching mode, on demand by default
+     */
 	private String mode = MODE_ONDEMAND;
-
+    /**
+     * Page size
+     */
 	private int pageSize = 25;
 
-	public RecordSet(Input input) {
-		Deserializer deserializer = new Deserializer();
+    /**
+     * Creates recordset from Input object
+     * @param input
+     */
+    public RecordSet(Input input) {
+        // Create deserializer
+        Deserializer deserializer = new Deserializer();
 		Map<String, Object> dataMap = new HashMap<String, Object>();
 		while (input.hasMoreProperties()) {
 			String key = input.readPropertyName();
@@ -72,8 +109,7 @@ public class RecordSet {
 		}
 		input.skipEndObject();
 
-		Map<String, Object> serverInfo = (Map<String, Object>) dataMap
-				.get("serverinfo");
+		Map<String, Object> serverInfo = (Map<String, Object>) dataMap.get("serverinfo");
 		if (serverInfo == null) {
 			// This is right according to the specs on osflash.org
 			serverInfo = (Map<String, Object>) dataMap.get("serverInfo");
@@ -84,8 +120,7 @@ public class RecordSet {
 		}
 
 		totalCount = (Integer) serverInfo.get("totalCount");
-		List<List<Object>> initialData = (List<List<Object>>) serverInfo
-				.get("initialData");
+		List<List<Object>> initialData = (List<List<Object>>) serverInfo.get("initialData");
 		cursor = (Integer) serverInfo.get("cursor");
 		serviceName = (String) serverInfo.get("serviceName");
 		columns = (List<String>) serverInfo.get("columnNames");
@@ -101,7 +136,7 @@ public class RecordSet {
 	/**
 	 * Set the remoting client to use for retrieving of paged results.
 	 * 
-	 * @param client
+	 * @param client     Remoting client that works with this Recordset
 	 */
 	public void setRemotingClient(RemotingClient client) {
 		this.client = client;
@@ -110,38 +145,39 @@ public class RecordSet {
 	/**
 	 * Set the mode for fetching paged results.
 	 * 
-	 * @param mode
+	 * @param mode       Mode for fetching of results
 	 */
 	public void setDeliveryMode(String mode) {
 		setDeliveryMode(mode, 25, 0);
 	}
 
 	/**
-	 * Set the mode for fetching paged results.
+	 * Set the mode for fetching paged results with given max page size.
 	 * 
-	 * @param mode
-	 * @param pageSize
+	 * @param mode       Mode for fetching of results
+	 * @param pageSize   Max page size
 	 */
 	public void setDeliveryMode(String mode, int pageSize) {
 		setDeliveryMode(mode, pageSize, 0);
 	}
 
 	/**
-	 * Set the mode for fetching paged results.
+	 * Set the mode for fetching paged results with given max page size and number of prefetched pages.
 	 * 
-	 * @param mode
-	 * @param pageSize
-	 * @param prefetchCount
+	 * @param mode              Mode for fetching of results
+	 * @param pageSize          Max page size
+	 * @param prefetchCount     Number of prefetched pages (not implemented yet)
 	 */
 	public void setDeliveryMode(String mode, int pageSize, int prefetchCount) {
 		this.mode = mode;
 		this.pageSize = pageSize;
 	}
 
-	/**
+
+    /**
 	 * Return a list containing the names of the columns in the recordset.
 	 * 
-	 * @return column names
+	 * @return Column names set
 	 */
 	public List<String> getColumnNames() {
 		return Collections.unmodifiableList(columns);
@@ -150,7 +186,7 @@ public class RecordSet {
 	/**
 	 * Make sure the passed item has been fetched from the server.
 	 * 
-	 * @param index
+	 * @param index  Item index
 	 */
 	private void ensureAvailable(int index) {
 		if (data.get(index) != null) {
@@ -214,8 +250,8 @@ public class RecordSet {
 	 * Return a specified item from the recordset.  If the item is not
 	 * available yet, it will be received from the server.
 	 * 
-	 * @param index
-     * @return
+	 * @param index         Item index
+     * @return              Item from recordset
 	 */
 	public List<Object> getItemAt(int index) {
 		if (index < 0 || index >= totalCount) {
@@ -230,7 +266,7 @@ public class RecordSet {
 	/**
 	 * Get the total number of items.
 	 * 
-	 * @return number of items
+	 * @return Number of items
 	 */
 	public int getLength() {
 		return totalCount;
@@ -239,7 +275,7 @@ public class RecordSet {
 	/**
 	 * Get the number of items already received from the server.
 	 * 
-	 * @return number of received items
+	 * @return Nsumber of received items
 	 */
 	public int getNumberAvailable() {
 		int result = 0;

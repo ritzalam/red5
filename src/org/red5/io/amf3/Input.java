@@ -19,18 +19,17 @@ package org.red5.io.amf3;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.mina.common.ByteBuffer;
+import org.red5.io.amf.AMF;
+import org.red5.io.object.DataTypes;
+
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.mina.common.ByteBuffer;
-import org.red5.io.amf.AMF;
-import org.red5.io.object.BaseInput;
-import org.red5.io.object.DataTypes;
 
 /**
  * Input for red5 data (AMF3) types
@@ -40,13 +39,15 @@ import org.red5.io.object.DataTypes;
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public class Input extends org.red5.io.amf.Input implements org.red5.io.object.Input {
-
+    /**
+     * Logger
+     */
 	protected static Log log = LogFactory.getLog(Input.class.getName());
 
 	/**
-	 * Input Constructor
+	 * Creates Input object for AMF3 from byte buffer
 	 * 
-	 * @param buf
+	 * @param buf        Byte buffer
 	 */
 	public Input(ByteBuffer buf) {
 		super(buf);
@@ -55,7 +56,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	/**
 	 * Reads the data type
 	 * 
-	 * @return byte
+	 * @return byte      Data type
 	 */
 	public byte readDataType() {
 
@@ -122,9 +123,9 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	// Basic
 
 	/**
-	 * Reads a null
+	 * Reads a null (value)
 	 * 
-	 * @return Object
+	 * @return Object    null
 	 */
 	public Object readNull() {
 		return null;
@@ -133,7 +134,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	/**
 	 * Reads a boolean
 	 * 
-	 * @return boolean
+	 * @return boolean     Boolean value
 	 */
 	public Boolean readBoolean() {
 		return (currentDataType == AMF3.TYPE_BOOLEAN_TRUE) ? Boolean.TRUE
@@ -143,7 +144,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	/**
 	 * Reads a Number
 	 * 
-	 * @return Number
+	 * @return Number      Number
 	 */
 	public Number readNumber() {
 		if (currentDataType == AMF3.TYPE_NUMBER) {
@@ -157,7 +158,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	/**
 	 * Reads a string
 	 * 
-	 * @return String
+	 * @return String       String
 	 */
 	public String readString() {
 		int len = readAMF3Integer();
@@ -181,7 +182,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	/**
 	 * Returns a date
 	 * 
-	 * @return Date
+	 * @return Date        Date object
 	 */
 	public Date readDate() {
 		/*
@@ -208,7 +209,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	/**
 	 * Returns an array
 	 * 
-	 * @return int
+	 * @return int        Length of array
 	 */
 	public int readStartArray() {
 		System.err.println("MISSING: readStartArray");
@@ -234,7 +235,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	/**
 	 * Reads start list
 	 * 
-	 * @return int
+	 * @return int        Size of map
 	 */
 	public int readStartMap() {
 		System.err.println("MISSING: readStartMap");
@@ -244,7 +245,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	/**
 	 * Returns a boolean stating whether this has more items
 	 * 
-	 * @return boolean
+	 * @return boolean    <code>true</code> if this Input's buffer has more items, <code>false</code> otherwise
 	 */
 	public boolean hasMoreItems() {
 		return hasMoreProperties();
@@ -253,7 +254,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	/**
 	 * Reads the item index
 	 * 
-	 * @return int
+	 * @return int        Array item index
 	 */
 	public String readItemKey() {
 		return readString();
@@ -288,7 +289,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	/**
 	 * Returns a boolean stating whether there are more properties
 	 * 
-	 * @return boolean
+	 * @return boolean       <code>true</code> if there are more properties to read, <code>false</code> otherwise
 	 */
 	public boolean hasMoreProperties() {
 		boolean isEnd = (buf.get() == 0);
@@ -299,7 +300,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	/**
 	 * Reads property name
 	 * 
-	 * @return String
+	 * @return String       Object property name
 	 */
 	public String readPropertyName() {
 		return readString();
@@ -324,7 +325,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	/**
 	 * Reads xml
 	 * 
-	 * @return String
+	 * @return String     XML as String
 	 */
 	public String readXML() {
 		return readString();
@@ -333,7 +334,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	/**
 	 * Reads Custom
 	 * 
-	 * @return Object
+	 * @return Object     Custom type object
 	 */
 	public Object readCustom() {
 		// Return null for now
@@ -351,7 +352,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 * Parser of AMF3 "compressed" integer data type
 	 * 
 	 * @return a converted integer value
-	 * @throws IOException
+	 * @throws IOException        I/O exception
 	 * @see <a href="http://osflash.org/amf3/parsing_integers">parsing AMF3
 	 *      integers (external)</a>
 	 */

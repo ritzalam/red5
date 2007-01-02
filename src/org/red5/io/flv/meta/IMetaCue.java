@@ -31,7 +31,7 @@ public interface IMetaCue extends IMeta, Comparable {
 	/**
 	 * Sets the name
 	 * 
-	 * @param name
+	 * @param name          Cue point name
 	 * 
 	 */
 	public void setName(String name);
@@ -39,7 +39,7 @@ public interface IMetaCue extends IMeta, Comparable {
 	/**
 	 * Gets the name
 	 * 
-	 * @return name
+	 * @return name         Cue point name
 	 * 
 	 */
 	public String getName();
@@ -47,7 +47,7 @@ public interface IMetaCue extends IMeta, Comparable {
 	/**
 	 * Sets the type type can be "event" or "navigation"
 	 * 
-	 * @param type
+	 * @param type          Cue point type
 	 *
 	 */
 	public void setType(String type);
@@ -55,7 +55,7 @@ public interface IMetaCue extends IMeta, Comparable {
 	/**
 	 * Gets the type
 	 * 
-	 * @return type 
+	 * @return type         Cue point type
 	 *
 	 */
 	public String getType();
@@ -63,7 +63,7 @@ public interface IMetaCue extends IMeta, Comparable {
 	/**
 	 * Sets the time
 	 * 
-	 * @param d
+	 * @param d              Timestamp
 	 *
 	 */
 	public void setTime(double d);
@@ -71,7 +71,7 @@ public interface IMetaCue extends IMeta, Comparable {
 	/**
 	 * Gets the time
 	 * 
-	 * @return time 
+	 * @return time          Timestamp
 	 *
 	 */
 	public double getTime();

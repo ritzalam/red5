@@ -20,26 +20,23 @@ package org.red5.io.flv.meta;
  */
 
 /**
+ * Metadata resolver implementation, merges metadata objects
+ *
  * @author The Red5 Project (red5@osflash.org)
  * @author daccattato(daccattato@gmail.com)
  */
 public class Resolver implements IResolver {
 
-	/**
-	 * 
-	 */
+    /**
+	*  Creates resolver object
+	*/
 	public Resolver() {
 		super();
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.io.flv.meta.IResolver#resolve(org.red5.io.flv.meta.IMeta,
-	 *      org.red5.io.flv.meta.IMeta)
+	/** {@inheritDoc}
 	 */
 	public IMeta resolve(IMeta m1, IMeta m2) {
-
 		return m2;
 	}
 

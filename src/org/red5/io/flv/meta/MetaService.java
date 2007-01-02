@@ -19,12 +19,6 @@ package org.red5.io.flv.meta;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.Map;
-
 import org.apache.mina.common.ByteBuffer;
 import org.red5.io.ITag;
 import org.red5.io.IoConstants;
@@ -36,6 +30,12 @@ import org.red5.io.flv.impl.Tag;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Serializer;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Map;
+
 /**
  * MetaService represents a MetaData service in Spring
  * 
@@ -45,17 +45,35 @@ import org.red5.io.object.Serializer;
  */
 public class MetaService implements IMetaService {
 
-	File file = null;
+    /**
+     * Source file
+     */
+    File file;
 
-	private FileInputStream fis;
+    /**
+     * File input stream
+     */
+    private FileInputStream fis;
 
-	private FileOutputStream fos;
+    /**
+     * File output stream
+     */
+    private FileOutputStream fos;
 
-	private Serializer serializer;
+    /**
+     * Serializer
+     */
+    private Serializer serializer;
 
-	private Deserializer deserializer;
+    /**
+     * Deserializer
+     */
+    private Deserializer deserializer;
 
-	private Resolver resolver;
+    /**
+     * Merges metadata objects
+     */
+    private Resolver resolver;
 
 	/**
 	 * @return Returns the resolver.
@@ -109,30 +127,32 @@ public class MetaService implements IMetaService {
 		super();
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.io.flv.meta.IMetaService#write()
+	/** {@inheritDoc}
 	 */
 	public void write(IMetaData meta) throws IOException {
-
+        // Get cue points, FLV reader and writer
 		IMetaCue[] metaArr = meta.getMetaCue();
 		FLVReader reader = new FLVReader(fis);
 		FLVWriter writer = new FLVWriter(fos);
-		writer.writeHeader();
+
+        // Write header (version, data offset, etc)
+        writer.writeHeader();
 
 		IMetaData metaData = null;
 		ITag tag = null;
 		// Read first tag
 		if (reader.hasMoreTags()) {
 			tag = reader.readTag();
-			if (tag.getDataType() == IoConstants.TYPE_METADATA) {
+            // If tag is metadata, parse it's body
+            if (tag.getDataType() == IoConstants.TYPE_METADATA) {
 				metaData = this.readMetaData(tag.getBody());
 			}
 		}
 
-		IMetaData mergedMeta = (IMetaData) mergeMeta(metaData, meta);
-		ITag injectedTag = injectMetaData(mergedMeta, tag);
+        // Merged metadata
+        IMetaData mergedMeta = (IMetaData) mergeMeta(metaData, meta);
+        // Inject metadata
+        ITag injectedTag = injectMetaData(mergedMeta, tag);
 		//		System.out.println("tag: \n--------\n" + injectedTag);
 		writer.writeTag(injectedTag);
 
@@ -177,15 +197,21 @@ public class MetaService implements IMetaService {
 	/**
 	 * Merges the two Meta objects according to user
 	 * 
-	 * @param metaData
-	 * @param md
-	 * @return
+	 * @param metaData        First metadata object
+	 * @param md              Second metadata object
+	 * @return                Merged metadata
 	 */
 	private IMeta mergeMeta(IMetaData metaData, IMetaData md) {
 		return resolver.resolve(metaData, md);
 	}
 
-	private ITag injectMetaData(IMetaData meta, ITag tag) {
+    /**
+     * Injects metadata (other than Cue points) into a tag
+     * @param meta           Metadata
+     * @param tag            Tag
+     * @return               New tag with injected metadata
+     */
+    private ITag injectMetaData(IMetaData meta, ITag tag) {
 
 		Output out = new Output(ByteBuffer.allocate(1000));
 		Serializer ser = new Serializer();
@@ -205,9 +231,9 @@ public class MetaService implements IMetaService {
 	/**
 	 * Injects metadata (Cue Points) into a tag
 	 * 
-	 * @param meta
-	 * @param tag
-	 * @return ITag tag
+	 * @param meta           Metadata (cue points)
+	 * @param tag            Tag
+	 * @return ITag tag      New tag with injected metadata
 	 */
 	private ITag injectMetaCue(IMetaCue meta, ITag tag) {
 
@@ -229,20 +255,17 @@ public class MetaService implements IMetaService {
 	}
 
 	/**
-	 * Returns a timestamp in milliseconds
+	 * Returns a timestamp of cue point in milliseconds
 	 * 
-	 * @param metaCue
-	 * @return int time
+	 * @param metaCue          Cue point
+	 * @return int time        Timestamp of given cue point (in milliseconds)
 	 */
 	private int getTimeInMilliseconds(IMetaCue metaCue) {
 		return (int) (metaCue.getTime() * 1000.00);
 
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.io.flv.meta.IMetaService#writeMetaData()
+	/** {@inheritDoc}
 	 */
 	public void writeMetaData(IMetaData metaData) {
 		IMetaCue meta = (MetaCue) metaData;
@@ -252,10 +275,7 @@ public class MetaService implements IMetaService {
 
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.io.flv.meta.IMetaService#writeMetaCue()
+	/** {@inheritDoc}
 	 */
 	public void writeMetaCue() {
 

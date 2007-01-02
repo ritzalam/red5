@@ -22,53 +22,117 @@ package org.red5.io.amf;
 import java.nio.charset.Charset;
 
 /**
- * These are the core AMF data types supported by Red5
+ * These are the core AMF data types supported by Red5.
+ * For detailed specification please see <strong>specification AMF3</strong>
+ * link below.
+ *
+ * @see org.red5.io.amf.AMF
+ * @see <a href="http://osflash.org/amf3/index">specifictation AMF3 (external)</a>
+ * @see <a href="http://osflash.org/amf/astypes">specifictation AMF (external)</a>
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 public class AMF {
 
-	// add link to amf docs on the osflash wiki
+    /**
+     * UTF-8 is used
+     */
+    public static final Charset CHARSET = Charset.forName("UTF-8");
 
-	public static final Charset CHARSET = Charset.forName("UTF-8");
+    /**
+     * Max string lenght constant
+     */
+    public static final int LONG_STRING_LENGTH = 65535;
 
-	public static final int LONG_STRING_LENGTH = 65535;
-
+    /**
+     * Number marker constant
+     */
     public static final byte TYPE_NUMBER = 0x00;
 
+    /**
+     * Boolean value marker constant
+     */
     public static final byte TYPE_BOOLEAN = 0x01;
 
+    /**
+     * String marker constant
+     */
     public static final byte TYPE_STRING = 0x02;
 
+    /**
+     * Object marker constant
+     */
     public static final byte TYPE_OBJECT = 0x03;
 
+    /**
+     * Movieclip marker constant
+     */
     public static final byte TYPE_MOVIECLIP = 0x04;
 
+    /**
+     * Null marker constant
+     */
     public static final byte TYPE_NULL = 0x05;
 
+    /**
+     * Undefined marker constant
+     */
     public static final byte TYPE_UNDEFINED = 0x06;
 
+    /**
+     * Object reference marker constant
+     */
     public static final byte TYPE_REFERENCE = 0x07;
 
+    /**
+     * Mixed array marker constant
+     */
     public static final byte TYPE_MIXED_ARRAY = 0x08;
 
+    /**
+     * End of object marker constant
+     */
     public static final byte TYPE_END_OF_OBJECT = 0x09;
 
+    /**
+     * Array marker constant
+     */
     public static final byte TYPE_ARRAY = 0x0A;
 
+    /**
+     * Date marker constant
+     */
     public static final byte TYPE_DATE = 0x0B;
 
+    /**
+     * Long string marker constant
+     */
     public static final byte TYPE_LONG_STRING = 0x0C;
 
+    /**
+     * Unsupported type marker constant
+     */
     public static final byte TYPE_UNSUPPORTED = 0x0D;
 
+    /**
+     * Recordset marker constant
+     */
     public static final byte TYPE_RECORDSET = 0x0E;
 
+    /**
+     * XML marker constant
+     */
     public static final byte TYPE_XML = 0x0F;
 
+    /**
+     * Class marker constant
+     */
     public static final byte TYPE_CLASS_OBJECT = 0x10;
 
+    /**
+     * Object marker constant (for AMF3)
+     */
     public static final byte TYPE_AMF3_OBJECT = 0x11;
 
     /**

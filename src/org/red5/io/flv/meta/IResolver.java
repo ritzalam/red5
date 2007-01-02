@@ -20,6 +20,8 @@ package org.red5.io.flv.meta;
  */
 
 /**
+ * Merge metadata objects
+ *
  * @author The Red5 Project (red5@osflash.org)
  * @author daccattato(daccattato@gmail.com)
  */

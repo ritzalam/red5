@@ -19,13 +19,6 @@ package org.red5.io.flv.impl;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.channels.FileChannel;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
@@ -37,6 +30,13 @@ import org.red5.io.amf.Output;
 import org.red5.io.flv.FLVHeader;
 import org.red5.io.flv.IKeyFrameDataAnalyzer;
 import org.red5.io.utils.IOUtils;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.channels.FileChannel;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * A Reader is used to read the contents of a FLV file.
@@ -51,15 +51,29 @@ import org.red5.io.utils.IOUtils;
 public class FLVReader implements IoConstants, ITagReader,
 		IKeyFrameDataAnalyzer {
 
-	private static Log log = LogFactory.getLog(FLVReader.class.getName());
+    /**
+     * Logger
+     */
+    private static Log log = LogFactory.getLog(FLVReader.class.getName());
 
-	private FileInputStream fis;
+    /**
+     * File input stream
+     */
+    private FileInputStream fis;
 
-	private FileChannel channel;
-
+    /**
+     * File channel
+     */
+    private FileChannel channel;
+    /**
+     * Keyframe metadata
+     */
 	private KeyFrameMeta keyframeMeta;
 
-	private ByteBuffer in;
+    /**
+     * Input byte buffer
+     */
+    private ByteBuffer in;
 
 	/** Set to true to generate metadata automatically before the first tag. */
 	private boolean generateMetadata;
@@ -94,11 +108,45 @@ public class FLVReader implements IoConstants, ITagReader,
     FLVReader() {
 	}
 
-	public FLVReader(FileInputStream f) {
+    /**
+     * Creates FLV reader from file input stream
+     * @param f         File input stream
+     */
+    public FLVReader(FileInputStream f) {
 		this(f, false);
 	}
 
-	/**
+    /**
+     * Creates FLV reader from file input stream, sets up metadata generation flag
+     * @param f                    File input stream
+     * @param generateMetadata     <code>true</code> if metadata generation required, <code>false</code> otherwise
+     */
+    public FLVReader(FileInputStream f, boolean generateMetadata) {
+		this.fis = f;
+		this.generateMetadata = generateMetadata;
+		channel = fis.getChannel();
+		
+		in = null;
+		fillBuffer();
+
+		postInitialize();
+	}
+
+
+    /**
+	 * Accepts mapped file bytes to construct internal members.
+	 *
+	 * @param generateMetadata         <code>true</code> if metadata generation required, <code>false</code> otherwise
+     * @param buffer                   Byte buffer
+	 */
+	public FLVReader(ByteBuffer buffer, boolean generateMetadata) {
+		this.generateMetadata = generateMetadata;
+		in = buffer;
+
+		postInitialize();
+	}
+    
+    /**
 	 * Get the remaining bytes that could be read from a file or ByteBuffer
 	 * @return
 	 */
@@ -117,7 +165,7 @@ public class FLVReader implements IoConstants, ITagReader,
 
 	/**
 	 * Get the total readable bytes in a file or ByteBuffer
-	 * @return
+	 * @return          Total readable bytes
 	 */
 	private long getTotalBytes() {
 		if (!useLoadBuf) {
@@ -134,7 +182,7 @@ public class FLVReader implements IoConstants, ITagReader,
 
 	/**
 	 * Get the current position in a file or ByteBuffer
-	 * @return
+	 * @return           Current position in a file
 	 */
 	private long getCurrentPosition() {
 		long pos = 0;
@@ -157,9 +205,9 @@ public class FLVReader implements IoConstants, ITagReader,
 	}
 
 	/**
-     * Setter for property 'currentPosition'.
+     * Modifies current position
      *
-     * @param pos Value to set for property 'currentPosition'.
+     * @param pos  Current position in file
      */
     private void setCurrentPosition(long pos) {
 		if (!useLoadBuf) {
@@ -181,13 +229,16 @@ public class FLVReader implements IoConstants, ITagReader,
 
 	}
 
-	private void fillBuffer() {
+    /**
+     * Loads whole buffer from file channel, with no reloading (that is, appending)
+     */
+    private void fillBuffer() {
 		fillBuffer(bufferSize, false);
 	}
 
 	/**
-	 * 
-	 * @param amount
+	 * Loads data from channel to buffer
+	 * @param amount         Amount of data to load with no reloading
 	 */
 	private void fillBuffer(long amount) {
 		fillBuffer(amount, false);
@@ -244,13 +295,13 @@ public class FLVReader implements IoConstants, ITagReader,
 					in.clear();
 				}
 
-				java.nio.ByteBuffer tmpbuf = java.nio.ByteBuffer
-						.allocate((int) toRead);
+				java.nio.ByteBuffer tmpbuf = java.nio.ByteBuffer.allocate((int) toRead);
 				channel.read(tmpbuf);
 				tmpbuf.flip();
 				in.put(tmpbuf);
 				in.flip();
-				tmpbuf = null;
+                // Let GC sweep it
+                tmpbuf = null;
 			}
 
 		} catch (Exception e) {
@@ -258,7 +309,10 @@ public class FLVReader implements IoConstants, ITagReader,
 		}
 	}
 
-	private void postInitialize() {
+    /**
+     * Post-initialization hook, reads keyframe metadata and decodes header (if any)
+     */
+    private void postInitialize() {
 		if (log.isDebugEnabled()) {
 			log.debug("FLVReader 1 - Buffer size: " + getTotalBytes()
 					+ " position: " + getCurrentPosition() + " remaining: "
@@ -270,32 +324,12 @@ public class FLVReader implements IoConstants, ITagReader,
 		keyframeMeta = analyzeKeyFrames();
 	}
 	
-	public FLVReader(FileInputStream f, boolean generateMetadata) {
-		this.fis = f;
-		this.generateMetadata = generateMetadata;
-		channel = fis.getChannel();
-		
-		in = null;
-		fillBuffer();
 
-		postInitialize();
-	}
+
+
 
 	/**
-	 * Accepts mapped file bytes to construct internal members.
-	 * 
-	 * @param generateMetadata
-     * @param buffer
-	 */
-	public FLVReader(ByteBuffer buffer, boolean generateMetadata) {
-		this.generateMetadata = generateMetadata;
-		in = buffer;
-
-		postInitialize();
-	}
-
-	/**
-     * Getter for property 'bufferType'.
+     * Getter for buffer type (auto, direct or heap)
      *
      * @return Value for property 'bufferType'.
      */
@@ -313,7 +347,7 @@ public class FLVReader implements IoConstants, ITagReader,
 	}
 
 	/**
-     * Setter for property 'bufferType'.
+     * Setter for buffer type
      *
      * @param bufferType Value to set for property 'bufferType'.
      */
@@ -338,7 +372,7 @@ public class FLVReader implements IoConstants, ITagReader,
 	}
 
 	/**
-     * Getter for property 'bufferSize'.
+     * Getter for buffer size
      *
      * @return Value for property 'bufferSize'.
      */
@@ -362,7 +396,7 @@ public class FLVReader implements IoConstants, ITagReader,
 	/**
 	 * Returns the file buffer.
 	 * 
-	 * @return file bytes
+	 * @return  File contents as byte buffer
 	 */
 	public ByteBuffer getFileData() {
 		// TODO as of now, return null will disable cache
@@ -387,30 +421,21 @@ public class FLVReader implements IoConstants, ITagReader,
 		}
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.io.flv.Reader#getFLV()
+	/** {@inheritDoc}
 	 */
 	public IStreamableFile getFile() {
 		// TODO wondering if we need to have a reference
 		return null;
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.io.flv.Reader#getOffset()
+	/** {@inheritDoc}
 	 */
 	public int getOffset() {
 		// XXX what's the difference from getBytesRead
 		return 0;
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.io.flv.Reader#getBytesRead()
+	/** {@inheritDoc}
 	 */
 	public long getBytesRead() {
 		// XXX should summarize the total bytes read or
@@ -423,21 +448,24 @@ public class FLVReader implements IoConstants, ITagReader,
 		return duration;
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.io.flv.Reader#hasMoreTags()
+	/** {@inheritDoc}
 	 */
 	public boolean hasMoreTags() {
 		return getRemainingBytes() > 4;
 	}
 
-	private ITag createFileMeta() {
+    /**
+     * Create tag for metadata event
+     * @return         Metadata event tag
+     */
+    private ITag createFileMeta() {
 		// Create tag for onMetaData event
 		ByteBuffer buf = ByteBuffer.allocate(1024);
 		buf.setAutoExpand(true);
 		Output out = new Output(buf);
-		out.writeString("onMetaData");
+
+        // Duration property
+        out.writeString("onMetaData");
 		out.writeStartMap(3);
 		out.writePropertyName("duration");
 		out.writeNumber(duration / 1000.0);
@@ -447,7 +475,8 @@ public class FLVReader implements IoConstants, ITagReader,
 			readTagHeader();
 			fillBuffer(1);
 			byte frametype = in.get();
-			out.writePropertyName("videocodecid");
+            // Video codec id
+            out.writePropertyName("videocodecid");
 			out.writeNumber(frametype & MASK_VIDEO_CODEC);
 			setCurrentPosition(old);
 		}
@@ -457,7 +486,8 @@ public class FLVReader implements IoConstants, ITagReader,
 			readTagHeader();
 			fillBuffer(1);
 			byte frametype = in.get();
-			out.writePropertyName("audiocodecid");
+            // Audio codec id
+            out.writePropertyName("audiocodecid");
 			out.writeNumber((frametype & MASK_SOUND_FORMAT) >> 4);
 			setCurrentPosition(old);
 		}
@@ -472,12 +502,9 @@ public class FLVReader implements IoConstants, ITagReader,
 		return result;
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.io.flv.Reader#readTag()
+	/** {@inheritDoc}
 	 */
-	synchronized public ITag readTag() {
+    public synchronized ITag readTag() {
 		long oldPos = getCurrentPosition();
 		ITag tag = readTagHeader();
 

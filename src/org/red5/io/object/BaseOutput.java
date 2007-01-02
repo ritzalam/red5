@@ -84,7 +84,7 @@ public class BaseOutput {
 	/**
 	 * Store an object into a map
 	 * 
-	 * @param obj
+	 * @param obj   Object to store
 	 */
 	public void storeReference(Object obj) {
 		refMap.put(new IdentityWrapper(obj), Short.valueOf(refId++));

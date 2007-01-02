@@ -19,21 +19,17 @@
  */
 package org.red5.io.filter;
 
+import org.apache.mina.common.*;
+import org.apache.mina.util.ByteBufferUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
-import org.apache.mina.common.IdleStatus;
-import org.apache.mina.common.IoFilterAdapter;
-import org.apache.mina.common.IoFilterChain;
-import org.apache.mina.common.IoSession;
-import org.apache.mina.common.ThreadModel;
-import org.apache.mina.util.ByteBufferUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A filter that forward events to {@link Executor}.
@@ -53,7 +49,10 @@ public class ExecutorFilter extends IoFilterAdapter {
 	private static final Logger logger = LoggerFactory
 			.getLogger(ExecutorFilter.class.getName());
 
-	private final Executor executor;
+    /**
+     * Executes submitted runnable tasks
+     */
+    private final Executor executor;
 
 	/**
 	 * Creates a new instace with the default thread pool implementation (<tt>new ThreadPoolExecutor(16, 16, 60, TimeUnit.SECONDS, new LinkedBlockingQueue() )</tt>).
@@ -74,19 +73,32 @@ public class ExecutorFilter extends IoFilterAdapter {
 		this.executor = executor;
 	}
 
-	public ExecutorFilter(int corePoolSize, int maximumPoolSize, long keepAliveTime) {
+    /**
+     * Creates new instance with specified core pool size, maximum pool size and keep alive time
+     * @param corePoolSize                    Core pool size
+     * @param maximumPoolSize                 Maximum pool size
+     * @param keepAliveTime                   Keep alive time (in seconds)
+     */
+    public ExecutorFilter(int corePoolSize, int maximumPoolSize, long keepAliveTime) {
 		this(new ThreadPoolExecutor(corePoolSize, maximumPoolSize, keepAliveTime, TimeUnit.SECONDS, new LinkedBlockingQueue()));
 	}
 
 	/**
 	 * Returns the underlying {@link Executor} instance this filter uses.
-     * @return
+     * @return             Executor object
      */
 	public Executor getExecutor() {
 		return executor;
 	}
 
-	private void fireEvent(NextFilter nextFilter, IoSession session,
+    /**
+     * Dispatches event to next filter
+     * @param nextFilter          Next filter
+     * @param session             IoSession object
+     * @param type                Event type (opened, closed, read, written, etc)
+     * @param data                Data
+     */
+    private void fireEvent(NextFilter nextFilter, IoSession session,
 			EventType type, Object data) {
 		Event event = new Event(type, nextFilter, data);
 		SessionBuffer buf = SessionBuffer.getSessionBuffer(session);
@@ -105,11 +117,22 @@ public class ExecutorFilter extends IoFilterAdapter {
 		}
 	}
 
-	private static class SessionBuffer {
-		private static final String KEY = SessionBuffer.class.getName()
+    /**
+     * Holds sessions
+     */
+    private static class SessionBuffer {
+        /**
+         * Key
+         */
+        private static final String KEY = SessionBuffer.class.getName()
 				+ ".KEY";
 
-		private static SessionBuffer getSessionBuffer(IoSession session) {
+        /**
+         * Creates session buffer from I/O session (connection)
+         * @param session            Connection between two ends
+         * @return                   Session buffer
+         */
+        private static SessionBuffer getSessionBuffer(IoSession session) {
 			synchronized (session) {
 				SessionBuffer buf = (SessionBuffer) session.getAttribute(KEY);
 				if (buf == null) {
@@ -120,37 +143,82 @@ public class ExecutorFilter extends IoFilterAdapter {
 			}
 		}
 
+        /**
+         * MINA session
+         */
 		private final IoSession session;
-
+        /**
+         * Event queue
+         */
 		private final List eventQueue = new ArrayList();
-
+        /**
+         * Whether there's more events to process
+         */
 		private boolean processingCompleted = true;
 
+        /**
+         * Session buffer
+         * @param session             I/O session
+         */
 		private SessionBuffer(IoSession session) {
 			this.session = session;
 		}
 	}
 
+    /**
+     * Type of event
+     */
 	protected static class EventType {
-		public static final EventType OPENED = new EventType("OPENED");
+        /**
+         * On connection opened
+         */
+        public static final EventType OPENED = new EventType("OPENED");
 
-		public static final EventType CLOSED = new EventType("CLOSED");
+        /**
+         * On connection closed
+         */
+        public static final EventType CLOSED = new EventType("CLOSED");
 
-		public static final EventType READ = new EventType("READ");
+        /**
+         * On data read
+         */
+        public static final EventType READ = new EventType("READ");
 
-		public static final EventType WRITTEN = new EventType("WRITTEN");
+        /**
+         * On data written
+         */
+        public static final EventType WRITTEN = new EventType("WRITTEN");
 
-		public static final EventType RECEIVED = new EventType("RECEIVED");
+        /**
+         * On data recieved
+         */
+        public static final EventType RECEIVED = new EventType("RECEIVED");
 
-		public static final EventType SENT = new EventType("SENT");
+        /**
+         * On data sent
+         */
+        public static final EventType SENT = new EventType("SENT");
 
-		public static final EventType IDLE = new EventType("IDLE");
+        /**
+         * On connection idle
+         */
+        public static final EventType IDLE = new EventType("IDLE");
 
-		public static final EventType EXCEPTION = new EventType("EXCEPTION");
+        /**
+         * On exception
+         */
+        public static final EventType EXCEPTION = new EventType("EXCEPTION");
 
-		private final String value;
+        /**
+         * Type value
+         */
+        private final String value;
 
-		private EventType(String value) {
+        /**
+         * Creates event type
+         * @param value      Type
+         */
+        private EventType(String value) {
 			this.value = value;
 		}
 
@@ -161,41 +229,59 @@ public class ExecutorFilter extends IoFilterAdapter {
 		}
 	}
 
-	protected static class Event {
-		private final EventType type;
+    /**
+     * Connection event
+     */
+    protected static class Event {
+        /**
+         * Event type
+         */
+        private final EventType type;
 
-		private final NextFilter nextFilter;
+        /**
+         * Next filter object
+         */
+        private final NextFilter nextFilter;
 
-		private final Object data;
+        /**
+         * Event data
+         */
+        private final Object data;
 
-		Event(EventType type, NextFilter nextFilter, Object data) {
+        /**
+         * Creates new event object of specified type
+         * @param type               Event type
+         * @param nextFilter         Filter to run next
+         * @param data               Event data
+         */
+        Event(EventType type, NextFilter nextFilter, Object data) {
 			this.type = type;
 			this.nextFilter = nextFilter;
 			this.data = data;
 		}
 
 		/**
-         * Getter for property 'data'.
+         * Getter for event data
          *
-         * @return Value for property 'data'.
+         * @return  Event data
          */
         public Object getData() {
 			return data;
 		}
 
 		/**
-         * Getter for property 'nextFilter'.
+         * Getter for next filter in queue
          *
-         * @return Value for property 'nextFilter'.
+         * @return  Next filter
          */
         public NextFilter getNextFilter() {
 			return nextFilter;
 		}
 
 		/**
-         * Getter for property 'type'.
+         * Getter for type
          *
-         * @return Value for property 'type'.
+         * @return  Type of event
          */
         public EventType getType() {
 			return type;
@@ -250,7 +336,14 @@ public class ExecutorFilter extends IoFilterAdapter {
 		fireEvent(nextFilter, session, EventType.SENT, message);
 	}
 
-	protected void processEvent(NextFilter nextFilter, IoSession session,
+    /**
+     * Handles event
+     * @param nextFilter           Next filter in queue
+     * @param session              IoSession object (connection between two ends)
+     * @param type                 Event type
+     * @param data                 Event data
+     */
+    protected void processEvent(NextFilter nextFilter, IoSession session,
 			EventType type, Object data) {
 		if (type == EventType.RECEIVED) {
 			nextFilter.messageReceived(session, data);
@@ -283,10 +376,20 @@ public class ExecutorFilter extends IoFilterAdapter {
 		nextFilter.filterClose(session);
 	}
 
-	private class ProcessEventsRunnable implements Runnable {
-		private final SessionBuffer buffer;
+    /**
+     * Runnable implementation that processes events and is runned by Executor
+     */
+    private class ProcessEventsRunnable implements Runnable {
+        /**
+         * Session buffer
+         */
+        private final SessionBuffer buffer;
 
-		ProcessEventsRunnable(SessionBuffer buffer) {
+        /**
+         * Creates Runnable task with given session buffer
+         * @param buffer        Session buffer to use
+         */
+        ProcessEventsRunnable(SessionBuffer buffer) {
 			this.buffer = buffer;
 		}
 
