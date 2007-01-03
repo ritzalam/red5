@@ -42,7 +42,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class SharedObjectScope extends BasicScope implements ISharedObject {
     /**
-     *
+     * Logger
      */
 	private Log log = LogFactory.getLog(SharedObjectScope.class.getName());
     /**
@@ -183,16 +183,20 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
 
 		// Invoke method on registered handler
 		String serviceName, serviceMethod;
-		int dotPos = handler.lastIndexOf('.');
-		if (dotPos != -1) {
+        // Find out last dot position
+        int dotPos = handler.lastIndexOf('.');
+        // If any, split service name and service method name
+        if (dotPos != -1) {
 			serviceName = handler.substring(0, dotPos);
 			serviceMethod = handler.substring(dotPos + 1);
 		} else {
-			serviceName = "";
+            // Otherwise only service method name is available
+            serviceName = "";
 			serviceMethod = handler;
 		}
 
-		Object soHandler = getServiceHandler(serviceName);
+        // Get previously registred handler for service
+        Object soHandler = getServiceHandler(serviceName);
 		if (soHandler == null && hasParent()) {
 			// No custom handler, check for service defined in the scope's
 			// context
@@ -207,18 +211,23 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
 			}
 		}
 
-		if (soHandler != null) {
-			Object[] methodResult = ServiceUtils.findMethodWithExactParameters(
+        // Once handler is found, find matching method
+        if (soHandler != null) {
+            // With exact params...
+            Object[] methodResult = ServiceUtils.findMethodWithExactParameters(
 					soHandler, serviceMethod, arguments);
-			if (methodResult.length == 0 || methodResult[0] == null) {
+            // Or at least with suitable list params
+            if (methodResult.length == 0 || methodResult[0] == null) {
 				methodResult = ServiceUtils.findMethodWithListParameters(
 						soHandler, serviceMethod, arguments);
 			}
 
-			if (methodResult.length > 0 && methodResult[0] != null) {
+            // If method is found...
+            if (methodResult.length > 0 && methodResult[0] != null) {
 				Method method = (Method) methodResult[0];
 				Object[] params = (Object[]) methodResult[1];
-				try {
+                //...try to invoke it and handle exceptions
+                try {
 					method.invoke(soHandler, params);
 				} catch (Exception err) {
 					log.error("Error while invoking method " + serviceMethod
@@ -236,11 +245,15 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
 	/** {@inheritDoc} */
     @Override
 	public synchronized boolean removeAttribute(String name) {
-		beginUpdate();
-		boolean success = so.removeAttribute(name);
-		endUpdate();
+        // Begin update of shared object
+        beginUpdate();
+        // Try to remove attribute
+        boolean success = so.removeAttribute(name);
+        // End update of SO
+        endUpdate();
 
-		if (success) {
+        // Notify listeners on success and return true
+        if (success) {
             for (ISharedObjectListener listener : serverListeners) {
                 listener.onSharedObjectDelete(this, name);
             }
@@ -251,10 +264,14 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
 	/** {@inheritDoc} */
     @Override
 	public synchronized void removeAttributes() {
-		beginUpdate();
-		so.removeAttributes();
-		endUpdate();
+        // Begin update
+        beginUpdate();
+        // Remove all attributes
+        so.removeAttributes();
+        // End update
+        endUpdate();
 
+        // Notify listeners on atributes clear
         for (ISharedObjectListener listener : serverListeners) {
             listener.onSharedObjectClear(this);
         }

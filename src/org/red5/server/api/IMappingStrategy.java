@@ -29,7 +29,7 @@ public interface IMappingStrategy {
 	 * 
 	 * @param name
 	 * 			name to map
-	 * @return the name of the service with the passed name
+	 * @return      The name of the service with the passed name
 	 */
 	public String mapServiceName(String name);
 
@@ -38,7 +38,7 @@ public interface IMappingStrategy {
 	 * 
 	 * @param contextPath
 	 * 			context path to map
-	 * @return the name of a scope handler
+	 * @return      The name of a scope handler
 	 */
 	public String mapScopeHandlerName(String contextPath);
 
@@ -47,7 +47,7 @@ public interface IMappingStrategy {
 	 * 
 	 * @param contextPath
 	 * 			context path to map
-	 * @return the path prefix for resources with the given name 
+	 * @return      The path prefix for resources with the given name 
 	 */
 	public String mapResourcePrefix(String contextPath);
 

@@ -38,7 +38,7 @@ import java.util.Map;
 public interface IConnection extends ICoreObject {
 
 	/**
-	 * Encoding types.
+	 * AMF version types, either AMF0 or AMF3.
 	 */
 	public static enum Encoding {
 		AMF0,
@@ -68,7 +68,7 @@ public interface IConnection extends ICoreObject {
 	public String getType(); // PERSISTENT | POLLING | TRANSIENT
 
 	/**
-	 * Get the object encoding for this connection.
+	 * Get the object encoding (AMF version) for this connection.
 	 * 
 	 * @return the used encoding.
 	 */
@@ -76,27 +76,28 @@ public interface IConnection extends ICoreObject {
 	
 	/**
 	 * Initialize the connection.
-     * @param client
+     * @param client        Client object associated with connection
      */
 	public void initialize(IClient client);
 
 	/**
 	 * Try to connect to the scope.
-     * @return
-     * @param scope
+     * @return              <code>true</code> on success, <code>false</code> otherwise
+     * @param scope         Scope object
      */
 	public boolean connect(IScope scope);
 
 	/**
 	 * Try to connect to the scope with a list of connection parameters.
-     * @param params
-     * @return
-     * @param scope
+     * @param params        Connections parameters
+     * @return              <code>true</code> on success, <code>false</code> otherwise
+     * @param scope         Scope object
      */
 	public boolean connect(IScope scope, Object[] params);
 
 	/**
-	 * Is the client connected to the scope.
+	 * Is the client connected to the scope. Result depends on connection type,
+     * <code>true</code> for persistent and polling connections, <code>false</code> for transient.
 	 * 
 	 * @return <code>true</code> if the connection is persistent or polling,
 	 *         otherwise <code>false</code>
@@ -112,14 +113,14 @@ public interface IConnection extends ICoreObject {
 	/**
 	 * Return the parameters that were given in the call to "connect".
 	 * 
-	 * @return
+	 * @return                 Connection parameters passed from client-side (Flex/Flash application)
 	 */
 	public Map<String, Object> getConnectParams();
 
 	/**
 	 * Get the client object associated with this connection.
 	 * 
-	 * @return client object
+	 * @return Client object
 	 */
 	public IClient getClient();
 
@@ -132,16 +133,16 @@ public interface IConnection extends ICoreObject {
 	public String getHost();
 
 	/**
-	 * Get the ip address the client is connected from.
+	 * Get the IP address the client is connected from.
 	 * 
-	 * @return the ip address of the client
+	 * @return The IP address of the client
 	 */
 	public String getRemoteAddress();
 
 	/**
 	 * Get the port the client is connected from.
 	 * 
-	 * @return the port of the client
+	 * @return The port of the client
 	 */
 	public int getRemotePort();
 
@@ -149,56 +150,56 @@ public interface IConnection extends ICoreObject {
 	 * Get the path for this connection.
 	 * This is not updated if you switch scope.
 	 * 
-	 * @return path
+	 * @return path           Connection path
 	 */
 	public String getPath();
 
 	/**
 	 * Get the session id, this may be <code>null</code>.
 	 * 
-	 * @return session id
+	 * @return                Session id
 	 */
 	public String getSessionId();
 
 	/**
 	 * Total number of bytes read from the connection.
 	 * 
-	 * @return number of read bytes
+	 * @return                Number of read bytes
 	 */
 	public long getReadBytes();
 
 	/**
 	 * Total number of bytes written to the connection.
 	 * 
-	 * @return number of written bytes
+	 * @return                Number of written bytes
 	 */
 	public long getWrittenBytes();
 
 	/**
 	 * Total number of messages read from the connection.
 	 * 
-	 * @return number of read messages 
+	 * @return          Number of read messages
 	 */
 	public long getReadMessages();
 
 	/**
 	 * Total number of messages written to the connection.
 	 * 
-	 * @return number of written messages
+	 * @return          Number of written messages
 	 */
 	public long getWrittenMessages();
 
 	/**
 	 * Total number of messages that have been dropped.
 	 * 
-	 * @return number of dropped messages
+	 * @return          Number of dropped messages
 	 */
 	public long getDroppedMessages();
 
 	/**
 	 * Total number of messages that are pending to be sent to the connection.
 	 * 
-	 * @return number of pending messages
+	 * @return          Number of pending messages
 	 */
 	public long getPendingMessages();
 
@@ -217,7 +218,7 @@ public interface IConnection extends ICoreObject {
 	/**
 	 * Get the scope this is connected to.
 	 * 
-	 * @return the connected scope
+	 * @return          The connected scope
 	 */
 	public IScope getScope();
 
@@ -226,7 +227,7 @@ public interface IConnection extends ICoreObject {
 	 * contain the shared objects and broadcast streams the connection
 	 * connected to.
 	 * 
-	 * @return list of basic scopes
+	 * @return          List of basic scopes
 	 */
 	public Iterator<IBasicScope> getBasicScopes();
 

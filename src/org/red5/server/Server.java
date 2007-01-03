@@ -19,10 +19,6 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.IGlobalScope;
@@ -30,6 +26,10 @@ import org.red5.server.api.IServer;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.style.ToStringCreator;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * Red5 server core class implementation.
@@ -60,8 +60,8 @@ public class Server implements IServer, ApplicationContextAware {
 	private static final String EMPTY = "";
 
     /**
-     *
-     * @param applicationContext
+     * Setter for Spring application context
+     * @param applicationContext     Application context
      */
 	public void setApplicationContext(ApplicationContext applicationContext) {
 		this.applicationContext = applicationContext;
@@ -92,8 +92,10 @@ public class Server implements IServer, ApplicationContextAware {
      * @return                      Global scope
      */
 	public IGlobalScope lookupGlobal(String hostName, String contextPath) {
-		String key = getKey(hostName, contextPath);
-		while (contextPath.indexOf(SLASH) != -1) {
+        // Init mappings key
+        String key = getKey(hostName, contextPath);
+        // If context path contains slashes get complex key and look up for it in mappings
+        while (contextPath.indexOf(SLASH) != -1) {
 			key = getKey(hostName, contextPath);
 			if (log.isDebugEnabled()) {
 				log.debug("Check: " + key);
@@ -101,14 +103,19 @@ public class Server implements IServer, ApplicationContextAware {
 			if (mapping.containsKey(key)) {
 				return getGlobal(mapping.get(key));
 			}
-			contextPath = contextPath.substring(0, contextPath
-					.lastIndexOf(SLASH));
+            final int slashIndex = contextPath.lastIndexOf(SLASH);
+            // Context path is substring from the beginning and till last slash index
+            contextPath = contextPath.substring( 0, slashIndex );
 		}
-		key = getKey(hostName, contextPath);
+
+        // Get global scope key
+        key = getKey(hostName, contextPath);
 		if (log.isDebugEnabled()) {
 			log.debug("Check host and path: " + key);
 		}
-		if (mapping.containsKey(key)) {
+
+        // Look up for global scope switching keys if still not found
+        if (mapping.containsKey(key)) {
 			return getGlobal(mapping.get(key));
 		}
 		key = getKey(EMPTY, contextPath);

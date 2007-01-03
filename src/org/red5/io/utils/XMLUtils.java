@@ -19,8 +19,10 @@ package org.red5.io.utils;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.io.IOException;
-import java.io.StringWriter;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -30,22 +32,28 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
+import java.io.IOException;
+import java.io.StringWriter;
 
 /**
+ *Misc XML utils
  *
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 public class XMLUtils {
-
+    /**
+     * Logger
+     */
 	protected static Log log = LogFactory.getLog(XMLUtils.class.getName());
 
-	public static Document stringToDoc(String str) throws IOException {
+    /**
+     * Converts string representation of XML into Document
+     * @param str              String representation of XML
+     * @return                 DOM object
+     * @throws IOException     I/O exception
+     */
+    public static Document stringToDoc(String str) throws IOException {
 		try {
 			DocumentBuilder db = DocumentBuilderFactory.newInstance()
 					.newDocumentBuilder();
@@ -56,14 +64,19 @@ public class XMLUtils {
 		}
 	}
 
-	public static String docToString(Document dom) {
+    /**
+     * Converts doc to String
+     * @param dom            DOM object to convert
+     * @return               XML as String
+     */
+    public static String docToString(Document dom) {
 		return XMLUtils.docToString1(dom);
 	}
 
 	/**
 	 * Convert a DOM tree into a String using Dom2Writer
-     * @return
-     * @param dom
+     * @return               XML as String
+     * @param dom            DOM object to convert
      */
 	public static String docToString1(Document dom) {
 		StringWriter sw = new StringWriter();
@@ -73,9 +86,9 @@ public class XMLUtils {
 
 	/**
 	 * Convert a DOM tree into a String using transform
-     * @param domDoc
-     * @throws java.io.IOException
-     * @return
+     * @param domDoc                  DOM object
+     * @throws java.io.IOException    I/O exception
+     * @return                        XML as String
      */
 	public static String docToString2(Document domDoc) throws IOException {
 		try {

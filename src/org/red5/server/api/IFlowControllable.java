@@ -31,7 +31,8 @@ package org.red5.server.api;
  * the <tt>null</tt> parent means the host. The next depth level
  * is the <tt>IClient</tt>. The following is
  * <tt>IStreamCapableConnection</tt>. The deepest level is
- * <tt>IClientStream</tt>.
+ * <tt>IClientStream</tt>. That is, bandwidth can be separately configured for
+ * client stream or connection, or client or the whole application.
  * </p>
  * <p>
  * The child node consumes the parent's bandwidth. We say that
@@ -40,7 +41,7 @@ package org.red5.server.api;
  * </p>
  * <p>
  * We predefine the bandwidth configure for host and the host is
- * always a bandwidth provider. While the streams are always the
+ * always the root bandwidth provider. While the streams are always the
  * bandwidth consumer. The internal node is both provider and
  * consumer.
  * </p>

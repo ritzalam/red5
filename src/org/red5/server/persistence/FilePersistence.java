@@ -234,7 +234,7 @@ public class FilePersistence extends RamPersistence {
 								throw new NoSuchMethodException();
 							}
 
-							result = (IPersistable) constructor.newInstance(new Object[] { in });
+							result = (IPersistable) constructor.newInstance(in);
 						} catch (NoSuchMethodException err) {
 							// No valid constructor found, use empty
 							// constructor.

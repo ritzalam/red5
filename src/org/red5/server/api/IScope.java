@@ -29,10 +29,11 @@ import java.util.Set;
  * The scope object.
  * 
  * A statefull object shared between a group of clients connected to the same
- * context path. Scopes are arranged in a hierarchical way, so its possible for
- * a scope to have a parent. If a client is connect to a scope then they are
+ * <tt>context path</tt>. Scopes are arranged in hierarchical way, so its possible for
+ * a scope to have a parent and children scopes. If a client connects to a scope then they are
  * also connected to its parent scope. The scope object is used to access
- * resources, shared object, streams, etc.
+ * resources, shared object, streams, etc. That is, scope are general option for grouping things
+ * in application.
  * 
  * The following are all names for scopes: application, room, place, lobby.
  * 
@@ -122,7 +123,7 @@ public interface IScope extends IBasicScope, ResourcePatternResolver,
 	 * Get a child scope by name.
 	 * 
 	 * @param name
-	 *            name of the child scope
+	 *            Name of the child scope
 	 * @return the child scope, or null if no scope is found
      * @param type     Child scope type
 	 */
@@ -139,7 +140,7 @@ public interface IScope extends IBasicScope, ResourcePatternResolver,
 	 * Get a set of connected clients. You can get the connections by passing
 	 * the scope to the clients {@link IClient#getConnections()} method.
 	 * 
-	 * @return set containing all connected clients
+	 * @return Set containing all connected clients
 	 * @see org.red5.server.api.IClient#getConnections(IScope)
 	 */
 	public Set<IClient> getClients();
@@ -148,7 +149,7 @@ public interface IScope extends IBasicScope, ResourcePatternResolver,
 	 * Get a connection iterator. You can call remove, and the connection will
 	 * be closed.
 	 * 
-	 * @return iterator holding all connections
+	 * @return Iterator holding all connections
 	 */
 	public Iterator<IConnection> getConnections();
 
@@ -157,14 +158,14 @@ public interface IScope extends IBasicScope, ResourcePatternResolver,
 	 * 
 	 * @param client
 	 *            object
-	 * @return set of connection objects (readonly)
+	 * @return Set of connection objects (readonly)
 	 */
 	public Set<IConnection> lookupConnections(IClient client);
 
 	/**
 	 * Returns scope context
 	 * 
-	 * @return	scope context
+	 * @return	Scope context
 	 */
 	public IContext getContext();
 
@@ -179,14 +180,14 @@ public interface IScope extends IBasicScope, ResourcePatternResolver,
 	/**
 	 * Return handler of the scope
 	 * 
-	 * @return	scope handler
+	 * @return	Scope handler
 	 */
 	public IScopeHandler getHandler();
 
 	/**
 	 * Return context path.
 	 * 
-	 * @return	context path
+	 * @return	Context path
 	 */
 	public String getContextPath();
 
@@ -200,7 +201,14 @@ public interface IScope extends IBasicScope, ResourcePatternResolver,
 	 */
 	public boolean connect(IConnection conn);
 
-	public boolean connect(IConnection conn, Object[] params);
+    /**
+     * Add given connection to the scope, overloaded for parameters pass case.
+     * @param conn             Given connection
+     * @param params           Parameters passed
+     * @return                 <code>true</code> on success, <code>false</code> if given
+	 *                         connection already belongs to this scope
+     */
+    public boolean connect(IConnection conn, Object[] params);
 
 	/**
 	 * Removes given connection from list of scope connections. This disconnects

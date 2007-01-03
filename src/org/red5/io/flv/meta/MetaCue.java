@@ -22,6 +22,8 @@ package org.red5.io.flv.meta;
 import java.util.HashMap;
 
 /**
+ * Cue point
+ *
  * @author The Red5 Project (red5@osflash.org)
  * @author Dominick Accattato (daccattato@gmail.com)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
@@ -40,55 +42,37 @@ public class MetaCue<K, V> extends HashMap<String, Object> implements IMetaCue {
 
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.io.flv.ICuePoint#setName(java.lang.String)
+	/** {@inheritDoc}
 	 */
 	public void setName(String name) {
 		this.put("name", name);
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.io.flv.ICuePoint#getName()
+	/** {@inheritDoc}
 	 */
 	public String getName() {
 		return (String) this.get("name");
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.io.flv.ICuePoint#setType(java.lang.String)
+	/** {@inheritDoc}
 	 */
 	public void setType(String type) {
 		this.put("type", type);
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.io.flv.ICuePoint#getType()
+	/** {@inheritDoc}
 	 */
 	public String getType() {
 		return (String) this.get("type");
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.io.flv.ICuePoint#setTime(double)
+	/** {@inheritDoc}
 	 */
 	public void setTime(double d) {
 		this.put("time", d);
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.io.flv.ICuePoint#getTime()
+	/** {@inheritDoc}
 	 */
 	public double getTime() {
 		return (Double) this.get("time");

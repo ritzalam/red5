@@ -35,21 +35,21 @@ public interface ICacheable {
 	 * Returns <code>true</code> if the object is cached, <code>false</code>
 	 * otherwise.
 	 * 
-	 * @return true or false
+	 * @return <code>true</code> if object is cached, <code>false</code> otherwise
 	 */
 	public boolean isCached();
 
 	/**
 	 * Sets a flag to represent the cached status of a cacheable object.
 	 * 
-	 * @param cached
+	 * @param cached    <code>true</code> if object is cached, <code>false</code> otherwise
 	 */
 	public void setCached(boolean cached);
 
 	/**
 	 * Returns the name of the cached object.
 	 * 
-	 * @return the name of the object
+	 * @return  Object name
 	 */
 	public String getName();
 
@@ -57,21 +57,21 @@ public interface ICacheable {
 	 * Set the name of the cached object.
 	 * 
 	 * @param name
-	 *            the new name of the object
+	 *            New object name
 	 */
 	public void setName(String name);
 
 	/**
 	 * Returns the object contained within the cacheable reference.
 	 * 
-	 * @return
+	 * @return    Cached representation of object
 	 */
 	public byte[] getBytes();
 
 	/**
 	 * Returns a readonly byte buffer.
 	 * 
-	 * @return
+	 * @return     Read-only byte buffer with cached data
 	 */
 	public ByteBuffer getByteBuffer();
 

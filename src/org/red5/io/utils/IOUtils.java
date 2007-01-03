@@ -19,16 +19,27 @@ package org.red5.io.utils;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.nio.charset.Charset;
-
 import org.apache.commons.logging.Log;
 import org.apache.mina.common.ByteBuffer;
 
+import java.nio.charset.Charset;
+
+/**
+ * Misc I/O util methods
+ */
 public class IOUtils {
 
-	public static final Charset CHARSET = Charset.forName("UTF-8");
+    /**
+     * UTF-8 is used
+     */
+    public static final Charset CHARSET = Charset.forName("UTF-8");
 
-	public static void writeReverseInt(ByteBuffer out, int value) {
+    /**
+     * Writes integer in reverse order
+     * @param out         Data buffer to fill
+     * @param value       Integer
+     */
+    public static void writeReverseInt(ByteBuffer out, int value) {
 		byte[] bytes = new byte[4];
 		ByteBuffer rev = ByteBuffer.allocate(4);
 		rev.putInt(value);
@@ -41,6 +52,11 @@ public class IOUtils {
 		out.put(bytes);
 	}
 
+    /**
+     * Writes medium integer
+     * @param out           Output buffer
+     * @param value         Integer to write
+     */
 	public static void writeMediumInt(ByteBuffer out, int value) {
 		byte[] bytes = new byte[3];
 		bytes[0] = (byte) ((value >>> 16) & 0x000000FF);

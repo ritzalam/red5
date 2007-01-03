@@ -23,7 +23,7 @@ import org.red5.server.api.event.IEventObservable;
 import org.red5.server.api.persistence.IPersistable;
 
 /**
- * Base interface for all scope objects.
+ * Base interface for all scope objects, including SharedObjects.
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard (luke@codegent.com)
@@ -67,14 +67,14 @@ public interface IBasicScope extends ICoreObject, IEventObservable,
 	/**
 	 * Get the full absolute path. Eg. <code>host/myapp/someroom</code>.
 	 * 
-	 * @return the path
+	 * @return Absolute scope path
 	 */
 	public String getPath();
 
 	/**
 	 * Get the type of the scope.
 	 * 
-	 * @return the type
+	 * @return Type of scope
 	 */
 	public String getType();
 

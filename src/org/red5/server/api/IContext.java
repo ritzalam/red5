@@ -25,7 +25,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.support.ResourcePatternResolver;
 
 /**
- * The current context, this object basically wraps the spring context
+ * The current context, this object basically wraps the Spring context
  * or in the case of the .Net version, any similar system.
  * 
  */
@@ -34,9 +34,9 @@ public interface IContext extends ResourcePatternResolver {
 	public static final String ID = "red5.context";
 
 	/**
-     * Getter for property 'applicationContext'.
+     * Getter for application context
      *
-     * @return Value for property 'applicationContext'.
+     * @return  Application context
      */
     public ApplicationContext getApplicationContext();
 
@@ -61,12 +61,12 @@ public interface IContext extends ResourcePatternResolver {
 	 * Returns persistence store object, a storage for persistent objects like
 	 * persistent SharedObjects.
 	 * 
-	 * @return	persistence store object
+	 * @return	Persistence store object
 	 */
 	public IPersistenceStore getPersistanceStore();
 
 	/**
-	 * Returns scope handler (object that handler all actions related to the
+	 * Returns scope handler (object that handle all actions related to the
 	 * scope) by path. See {@link IScopeHandler} for details.
 	 * 
 	 * @param path

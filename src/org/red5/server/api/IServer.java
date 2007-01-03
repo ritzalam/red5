@@ -30,14 +30,16 @@ import java.util.Map;
  *
  */
 public interface IServer {
-
+    /**
+     * Server ID
+     */
 	public static final String ID = "red5.server";
 
 	/**
 	 * Get the global scope with given name.
 	 * 
 	 * @param name
-	 * 			name of the global scope
+	 * 			Name of the global scope
 	 * @return the global scope
 	 */
 	public IGlobalScope getGlobal(String name);
@@ -46,7 +48,7 @@ public interface IServer {
 	 * Register a global scope.
 	 * 
 	 * @param scope
-	 * 			the global scope to register
+	 * 			The global scope to register
 	 */
 	public void registerGlobal(IGlobalScope scope);
 
@@ -54,10 +56,10 @@ public interface IServer {
 	 * Lookup the global scope for a host.
 	 * 
 	 * @param hostName
-	 * 			the name of the host
+	 * 			The name of the host
 	 * @param contextPath
-	 * 			the path in the host 
-	 * @return the found global scope or <code>null</code>
+	 * 			The path in the host
+	 * @return  The found global scope or <code>null</code>
 	 */
 	public IGlobalScope lookupGlobal(String hostName, String contextPath);
 
@@ -65,11 +67,11 @@ public interface IServer {
 	 * Map a virtual hostname and a path to the name of a global scope.
 	 * 
 	 * @param hostName
-	 * 			the name of the host to map
+	 * 			The name of the host to map
 	 * @param contextPath
-	 * 			the path to map
+	 * 			The path to map
 	 * @param globalName
-	 * 			the name of the global scope to map to
+	 * 			The name of the global scope to map to
 	 * @return <code>true</code> if the name was mapped, otherwise
 	 *         <code>false</code>
 	 */
@@ -80,9 +82,9 @@ public interface IServer {
 	 * Unregister a previously mapped global scope. 
 	 *  
 	 * @param hostName
-	 * 			the name of the host to unmap
+	 * 			The name of the host to unmap
 	 * @param contextPath
-	 * 			the path for this host to unmap
+	 * 			The path for this host to unmap
 	 * @return <code>true</code> if the global scope was unmapped, otherwise
 	 *         <code>false</code>
 	 */
@@ -91,21 +93,21 @@ public interface IServer {
 	/**
 	 * Query informations about the global scope mappings.
 	 *  
-	 * @return a map containing informations about the mappings
+	 * @return  Map containing informations about the mappings
 	 */
 	public Map<String, String> getMappingTable();
 
 	/**
 	 * Get list of global scope names.
 	 * 
-	 * @return names of global scopes
+	 * @return  Iterator for names of global scopes
 	 */
 	public Iterator<String> getGlobalNames();
 
 	/**
 	 * Get list of global scopes.
 	 * 
-	 * @return list of global scopes
+	 * @return Iterator for global scopes objects
 	 */
 	public Iterator<IGlobalScope> getGlobalScopes();
 

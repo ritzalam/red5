@@ -102,7 +102,7 @@ public class FLVReader implements IoConstants, ITagReader,
 	private static int bufferSize = 1024;
 	
 	/** Use load buffer */
-	private boolean useLoadBuf = false;
+	private boolean useLoadBuf;
 
 	/** Constructs a new FLVReader. */
     FLVReader() {
@@ -148,7 +148,7 @@ public class FLVReader implements IoConstants, ITagReader,
     
     /**
 	 * Get the remaining bytes that could be read from a file or ByteBuffer
-	 * @return
+	 * @return          Number of remaining bytes
 	 */
 	private long getRemainingBytes() {
 		if (!useLoadBuf) {
@@ -185,7 +185,7 @@ public class FLVReader implements IoConstants, ITagReader,
 	 * @return           Current position in a file
 	 */
 	private long getCurrentPosition() {
-		long pos = 0;
+		long pos;
 
 		if (!useLoadBuf) {
 			return in.position();
@@ -545,10 +545,7 @@ public class FLVReader implements IoConstants, ITagReader,
 		return tag;
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.io.flv.Reader#close()
+	/** {@inheritDoc}
 	 */
 	public void close() {
 		log.debug("Reader close");
@@ -566,26 +563,32 @@ public class FLVReader implements IoConstants, ITagReader,
 		}
 	}
 
-	/**
-	 * Key frames analysis may be used as a utility method so
+    /**
+     * Key frames analysis may be used as a utility method so
 	 * synchronize it.
-	 */
-	synchronized public KeyFrameMeta analyzeKeyFrames() {
+     * @return             Keyframe metadata
+     */
+    public synchronized KeyFrameMeta analyzeKeyFrames() {
 		if (keyframeMeta != null) {
 			return keyframeMeta;
 		}
 
-		List<Long> positionList = new ArrayList<Long>();
-		List<Integer> timestampList = new ArrayList<Integer>();
+        // List of positions
+        List<Long> positionList = new ArrayList<Long>();
+        // ... and timestamps
+        List<Integer> timestampList = new ArrayList<Integer>();
 		long origPos = getCurrentPosition();
 		// point to the first tag
 		setCurrentPosition(9);
-		posTagMap = new HashMap<Long, Integer>();
+
+        // Maps positions to tags
+        posTagMap = new HashMap<Long, Integer>();
 		int idx = 0;
 		while (this.hasMoreTags()) {
 			long pos = getCurrentPosition();
-			posTagMap.put((long) pos, idx++);
-			ITag tmpTag = this.readTagHeader();
+			posTagMap.put(pos, idx++);
+            // Read tag header and duration
+            ITag tmpTag = this.readTagHeader();
 			duration = tmpTag.getTimestamp();
 			if (tmpTag.getDataType() == IoConstants.TYPE_VIDEO) {
 				if (firstVideoTag == -1) {
@@ -647,7 +650,7 @@ public class FLVReader implements IoConstants, ITagReader,
 	 * Put the current position to pos.
 	 * The caller must ensure the pos is a valid one
 	 * (eg. not sit in the middle of a frame)
-	 * @param pos
+	 * @param pos         New position in file
 	 */
 	public void position(long pos) {
 		setCurrentPosition(pos);
@@ -665,7 +668,7 @@ public class FLVReader implements IoConstants, ITagReader,
 	/**
 	 * Read only header part of a tag
 	 *
-	 * @return
+	 * @return              Tag header
 	 */
 	private ITag readTagHeader() {
 		// PREVIOUS TAG SIZE
@@ -687,8 +690,11 @@ public class FLVReader implements IoConstants, ITagReader,
 
 		return new Tag(dataType, timestamp, bodySize, null, previousTagSize);
 	}
-	
-	public enum BufferType {
+
+    /**
+     * Buffer types (auto, direct or heap)
+     */
+    public enum BufferType {
 		AUTO,
 		DIRECT,
 		HEAP

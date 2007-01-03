@@ -25,7 +25,8 @@ import org.red5.server.api.persistence.IPersistenceStore;
 import org.red5.server.api.persistence.PersistenceUtils;
 
 /**
- * Global scope is a top level scope
+ * Global scope is a top level scope. Server instance is meant to be injected with Spring before
+ * initialization (otherwise NullPointerException is thrown).
  *
  * @see  org.red5.server.api.IGlobalScope
  * @see  org.red5.server.api.IScope

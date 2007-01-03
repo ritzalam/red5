@@ -27,15 +27,22 @@ import java.util.Iterator;
  *
  */
 public interface IEventObservable {
-
+    /**
+     * Add event listener to this observable
+     * @param listener      Event listener
+     */
 	public void addEventListener(IEventListener listener);
 
-	public void removeEventListener(IEventListener listener);
+    /**
+     * Remove event listener from this observable
+     * @param listener      Event listener
+     */
+    public void removeEventListener(IEventListener listener);
 
 	/**
-     * Getter for property 'eventListeners'.
+     * Iterator for event listeners
      *
-     * @return Value for property 'eventListeners'.
+     * @return  Event listeners iterator
      */
     public Iterator<IEventListener> getEventListeners();
 

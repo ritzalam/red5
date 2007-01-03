@@ -19,44 +19,17 @@ package org.red5.server.adapter;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import static org.red5.server.api.ScopeUtils.getScopeService;
-import static org.red5.server.api.ScopeUtils.isApp;
-import static org.red5.server.api.ScopeUtils.isRoom;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.red5.io.IStreamableFile;
-import org.red5.io.IStreamableFileFactory;
-import org.red5.io.IStreamableFileService;
-import org.red5.io.ITagReader;
-import org.red5.io.StreamableFileFactory;
-import org.red5.server.api.IClient;
-import org.red5.server.api.IConnection;
-import org.red5.server.api.IScope;
-import org.red5.server.api.Red5;
-import org.red5.server.api.ScopeUtils;
+import org.red5.io.*;
+import org.red5.server.api.*;
+import static org.red5.server.api.ScopeUtils.*;
 import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.api.service.ServiceUtils;
 import org.red5.server.api.so.ISharedObject;
 import org.red5.server.api.so.ISharedObjectService;
-import org.red5.server.api.stream.IBroadcastStream;
-import org.red5.server.api.stream.IBroadcastStreamService;
-import org.red5.server.api.stream.IClientBroadcastStream;
-import org.red5.server.api.stream.IOnDemandStream;
-import org.red5.server.api.stream.IOnDemandStreamService;
-import org.red5.server.api.stream.IStreamAwareScopeHandler;
-import org.red5.server.api.stream.IStreamService;
-import org.red5.server.api.stream.ISubscriberStream;
-import org.red5.server.api.stream.ISubscriberStreamService;
+import org.red5.server.api.stream.*;
 import org.red5.server.exception.ClientRejectedException;
 import org.red5.server.scheduling.QuartzSchedulingService;
 import org.red5.server.so.SharedObjectService;
@@ -64,6 +37,10 @@ import org.red5.server.stream.IBroadcastScope;
 import org.red5.server.stream.IProviderService;
 import org.red5.server.stream.ProviderService;
 import org.red5.server.stream.StreamService;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 
 /**
  * ApplicationAdapter class serves as a base class for your Red5 applications.
@@ -150,8 +127,10 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 	 * Reject the currently connecting client without a special error message.
 	 * This method throws {@link ClientRejectedException} exception.
 	 *
-	 */
-	protected void rejectClient() {
+     * @throws org.red5.server.exception.ClientRejectedException
+     *                  Thrown when client connection must be rejected by application logic
+     */
+	protected void rejectClient() throws ClientRejectedException {
 		throw new ClientRejectedException();
 	}
 
@@ -162,9 +141,12 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 	 * information object that is returned to the caller. 
 	 * 
 	 * @param reason
-	 * 			additional error message to return
+	 * 			Additional error message to return to client-side Flex/Flash application
+     *
+     * @throws org.red5.server.exception.ClientRejectedException
+     *                  Thrown when client connection must be rejected by application logic
 	 */
-	protected void rejectClient(Object reason) {
+	protected void rejectClient(Object reason) throws ClientRejectedException{
 		throw new ClientRejectedException(reason);
 	}
 

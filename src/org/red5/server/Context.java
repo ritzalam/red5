@@ -19,14 +19,7 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.io.IOException;
-
-import org.red5.server.api.IClientRegistry;
-import org.red5.server.api.IContext;
-import org.red5.server.api.IMappingStrategy;
-import org.red5.server.api.IScope;
-import org.red5.server.api.IScopeHandler;
-import org.red5.server.api.IScopeResolver;
+import org.red5.server.api.*;
 import org.red5.server.api.persistence.IPersistenceStore;
 import org.red5.server.api.service.IServiceInvoker;
 import org.red5.server.exception.ScopeHandlerNotFoundException;
@@ -38,6 +31,13 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.access.ContextSingletonBeanFactoryLocator;
 import org.springframework.core.io.Resource;
 
+import java.io.IOException;
+
+/**
+ * {@inheritDoc}
+ *
+ * <p>This is basic context implementation used by Red5.</p>
+ */
 public class Context implements IContext, ApplicationContextAware {
     /**
      *  Spring application context
@@ -135,7 +135,7 @@ public class Context implements IContext, ApplicationContextAware {
 
     /**
      *  Setter for service invoker
-     * @param serviceInvoker
+     * @param serviceInvoker     Service invoker object
      */
 	public void setServiceInvoker(IServiceInvoker serviceInvoker) {
 		this.serviceInvoker = serviceInvoker;
@@ -242,8 +242,7 @@ public class Context implements IContext, ApplicationContextAware {
      */
     public IScopeHandler lookupScopeHandler(String contextPath) {
         // Get target scope handler name
-        String scopeHandlerName = getMappingStrategy().mapScopeHandlerName(
-				contextPath);
+        String scopeHandlerName = getMappingStrategy().mapScopeHandlerName(contextPath);
         // Get bean from bean factory
         Object bean = applicationContext.getBean(scopeHandlerName);
 		if (bean != null && bean instanceof IScopeHandler) {
@@ -254,7 +253,9 @@ public class Context implements IContext, ApplicationContextAware {
 	}
 
     /**
-     * Return mapping stategy
+     * Return mapping strategy used by this context. Mapping strategy define
+     * naming rules (prefixes, postfixes, default application name, etc) for all named objects
+     * in context.
      * @return               Mapping strategy
      */
 	public IMappingStrategy getMappingStrategy() {

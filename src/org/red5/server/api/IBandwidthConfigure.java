@@ -100,9 +100,9 @@ public interface IBandwidthConfigure {
 	void setDownstreamBandwidth(long bw);
 
 	/**
-     * Getter for property 'downstreamBandwidth'.
+     * Getter for downstream bandwidth
      *
-     * @return Value for property 'downstreamBandwidth'.
+     * @return Downstream bandwidth, from server to client
      */
     long getDownstreamBandwidth();
 
@@ -116,9 +116,9 @@ public interface IBandwidthConfigure {
 	void setMaxBurst(long maxBurst);
 
 	/**
-     * Getter for property 'maxBurst'.
+     * Getter for max burst value
      *
-     * @return Value for property 'maxBurst'.
+     * @return Max burst value
      */
     long getMaxBurst();
 
@@ -133,9 +133,9 @@ public interface IBandwidthConfigure {
 	void setBurst(long burst);
 
 	/**
-     * Getter for property 'burst'.
+     * Getter for burst.
      *
-     * @return Value for property 'burst'.
+     * @return  Burst value
      */
     long getBurst();
 

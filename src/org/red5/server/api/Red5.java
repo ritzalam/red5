@@ -43,7 +43,7 @@ public final class Red5 {
 
 	/**
 	 * Current connection thread. Each connection of Red5 application runs in a
-	 * separate thread. This method returns thread object associated with
+	 * separate thread. This is thread object associated with
 	 * current connection.
 	 */
 	private static ThreadLocal<IConnection> connThreadLocal = new ThreadLocal<IConnection>();
@@ -51,7 +51,7 @@ public final class Red5 {
 	/**
 	 * Connection local to the current thread
 	 */
-	public IConnection conn = null;
+	public IConnection conn;
 
 	/**
 	 * Create a new Red5 object using given connection
@@ -72,9 +72,9 @@ public final class Red5 {
 	}
 
 	/**
-     * Setter for property 'connectionLocal'.
+     * Setter for connection
      *
-     * @param connection Value to set for property 'connectionLocal'.
+     * @param connection     Thread local connection
      */
     public static void setConnectionLocal(IConnection connection) {
 		connThreadLocal.set(connection);
@@ -86,7 +86,7 @@ public final class Red5 {
 	 * get a connection associated with event handler and so forth, this method
 	 * provides you with it.
 	 * 
-	 * @return connection object
+	 * @return Connection object
 	 */
 	public static IConnection getConnectionLocal() {
 		return connThreadLocal.get();
@@ -95,7 +95,7 @@ public final class Red5 {
 	/**
 	 * Get the connection object
 	 * 
-	 * @return connection object
+	 * @return Connection object
 	 */
 	public IConnection getConnection() {
 		return conn;
@@ -104,7 +104,7 @@ public final class Red5 {
 	/**
 	 * Get the scope
 	 * 
-	 * @return scope object
+	 * @return Scope object
 	 */
 	public IScope getScope() {
 		return conn.getScope();
@@ -113,7 +113,7 @@ public final class Red5 {
 	/**
 	 * Get the client
 	 * 
-	 * @return client object
+	 * @return Client object
 	 */
 	public IClient getClient() {
 		return conn.getClient();
@@ -122,7 +122,7 @@ public final class Red5 {
 	/**
 	 * Get the spring application context
 	 * 
-	 * @return application context
+	 * @return Application context
 	 */
 	public IContext getContext() {
 		return conn.getScope().getContext();

@@ -19,59 +19,76 @@ package org.red5.server.adapter;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.red5.server.api.IBasicScope;
-import org.red5.server.api.IClient;
-import org.red5.server.api.IConnection;
-import org.red5.server.api.IScope;
-import org.red5.server.api.IScopeHandler;
+import org.red5.server.api.*;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.service.IServiceCall;
 
+/**
+ * Base scope handler implementation. Mean to be subclassed.
+ */
 public abstract class AbstractScopeAdapter implements IScopeHandler {
-
+    /**
+     * Can start flag.
+     * <code>true</code> if scope is ready to be activated, <code>false</code> otherwise
+     */
 	private boolean canStart = true;
-
+    /**
+     * Can connect flag.
+     * <code>true</code> if connections to scope are allowed, <code>false</code> otherwise
+     */
 	private boolean canConnect = true;
-
+    /**
+     * Can join flag.
+     * <code>true</code> if scope may be joined by users, <code>false</code> otherwise
+     */
 	private boolean canJoin = true;
-
+    /**
+     * Can call service flag.
+     * <code>true</code> if remote service calls are allowed for the scope, <code>false</code> otherwise
+     */
 	private boolean canCallService = true;
-
+    /**
+     * Can add child scope flag. <code>true</code> if scope is allowed to add child scopes, <code>false</code> otherwise
+     */
 	private boolean canAddChildScope = true;
 
-	private boolean canHandleEvent = true;
+    /**
+     * Can handle event flag.
+     * <code>true</code> if events handling is allowed, <code>false</code> otherwise
+     */
+    private boolean canHandleEvent = true;
 
 	/**
-     * Setter for property 'canStart'.
+     * Setter for can start flag.
      *
-     * @param canStart Value to set for property 'canStart'.
+     * @param canStart  <code>true</code> if scope is ready to be activated, <code>false</code> otherwise
      */
     public void setCanStart(boolean canStart) {
 		this.canStart = canStart;
 	}
 
 	/**
-     * Setter for property 'canCallService'.
+     * Setter for can call service flag
      *
-     * @param canCallService Value to set for property 'canCallService'.
+     * @param canCallService <code>true</code> if remote service calls are allowed for the scope, <code>false</code> otherwise
      */
     public void setCanCallService(boolean canCallService) {
 		this.canCallService = canCallService;
 	}
 
 	/**
-     * Setter for property 'canConnect'.
+     * Setter for can connect flag
      *
-     * @param canConnect Value to set for property 'canConnect'.
+     * @param canConnect <code>true</code> if connections to scope are allowed, <code>false</code> otherwise
      */
     public void setCanConnect(boolean canConnect) {
 		this.canConnect = canConnect;
 	}
 
 	/**
-     * Setter for property 'join'.
+     * Setter for 'can join' flag
      *
-     * @param canJoin Value to set for property 'join'.
+     * @param canJoin <code>true</code> if scope may be joined by users, <code>false</code> otherwise
      */
     public void setJoin(boolean canJoin) {
 		this.canJoin = canJoin;

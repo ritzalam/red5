@@ -28,8 +28,7 @@ import org.red5.server.api.IScope;
  * will use. This interface defines the methods that are called by Red5 through
  * an applications life.
  * 
- * @author unknown
- * @author daccattato
+ * @author Dominick Accattato
  *
  */
 public interface IApplication {

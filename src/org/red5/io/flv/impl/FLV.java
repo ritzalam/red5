@@ -19,13 +19,6 @@ package org.red5.io.flv.impl;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.Map;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
@@ -37,6 +30,9 @@ import org.red5.io.flv.meta.IMetaData;
 import org.red5.io.flv.meta.IMetaService;
 import org.red5.server.api.cache.ICacheStore;
 import org.red5.server.api.cache.ICacheable;
+
+import java.io.*;
+import java.util.Map;
 
 /**
  * A FLVImpl implements the FLV api
@@ -64,12 +60,21 @@ public class FLV implements IFLV {
 	 */
 	public FLV() {
 	}
-	
-	public FLV(File file) {
+
+    /**
+     * Create FLV from given file source
+     * @param file       File source
+     */
+    public FLV(File file) {
 		this(file, false);
 	}
 
-	public FLV(File file, boolean generateMetadata) {
+    /**
+     * Create FLV from given file source and with specified metadata generation option
+     * @param file                    File source
+     * @param generateMetadata        Metadata generation option
+     */
+    public FLV(File file, boolean generateMetadata) {
 		this.file = file;
 		this.generateMetadata = generateMetadata;
 	}
@@ -83,78 +88,54 @@ public class FLV implements IFLV {
 		FLV.cache = cache;
 	}
 	
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.io.flv.FLV#hasMetaData()
+	/** {@inheritDoc}
 	 */
 	public boolean hasMetaData() {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.io.flv.FLV#getMetaData()
+	/** {@inheritDoc}
 	 */
 	public IMetaData getMetaData() throws FileNotFoundException {
 		metaService.setInStream(new FileInputStream(file));
 		return null;
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.io.flv.FLV#hasKeyFrameData()
+	/** {@inheritDoc}
 	 */
 	public boolean hasKeyFrameData() {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.io.flv.FLV#setKeyFrameData(java.util.Map)
+	/** {@inheritDoc}
 	 */
 	public void setKeyFrameData(Map keyframedata) {
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.io.flv.FLV#getKeyFrameData()
+	/** {@inheritDoc}
 	 */
 	public Map getKeyFrameData() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.io.flv.FLV#refreshHeaders()
+	/** {@inheritDoc}
 	 */
 	public void refreshHeaders() throws IOException {
 		// TODO Auto-generated method stub
 
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.io.flv.FLV#flushHeaders()
+	/** {@inheritDoc}
 	 */
 	public void flushHeaders() throws IOException {
 		// TODO Auto-generated method stub
 
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.io.flv.FLV#reader()
+	/** {@inheritDoc}
 	 */
 	public ITagReader getReader() throws IOException {
 		FLVReader reader = null;
@@ -193,20 +174,14 @@ public class FLV implements IFLV {
 		return reader;
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.io.flv.FLV#readerFromNearestKeyFrame(int)
+	/** {@inheritDoc}
 	 */
 	public ITagReader readerFromNearestKeyFrame(int seekPoint) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.io.flv.FLV#writer()
+	/** {@inheritDoc}
 	 */
 	public ITagWriter getWriter() throws IOException {
 		if (file.exists()) {
@@ -243,10 +218,7 @@ public class FLV implements IFLV {
         return new FLVWriter(fos, lastTag);
 	}
 
-	/** {@inheritDoc} */ /*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.red5.io.flv.FLV#writerFromNearestKeyFrame(int)
+	/** {@inheritDoc}
 	 */
 	public ITagWriter writerFromNearestKeyFrame(int seekPoint) {
 		// TODO Auto-generated method stub

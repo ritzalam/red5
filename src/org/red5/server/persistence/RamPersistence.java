@@ -35,6 +35,7 @@ import java.util.Map;
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
+ * @author Michael Klishin (michael@novemberain.com)
  */
 public class RamPersistence implements IPersistenceStore {
 
@@ -127,10 +128,12 @@ public class RamPersistence implements IPersistenceStore {
 
 	/** {@inheritDoc} */
     public synchronized boolean save(IPersistable object) {
-		objects.put(getObjectId(object), object);
-		object.setPersistent(true);
-		return true;
-	}
+        final String key = getObjectId(object);
+        
+        objects.put(key, object);
+        object.setPersistent(true);
+        return true;
+    }
 
 	/** {@inheritDoc} */
     public synchronized IPersistable load(String name) {
