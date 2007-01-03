@@ -22,7 +22,20 @@ package org.red5.io.flv.meta;
 import java.util.HashMap;
 
 /**
- * Cue point
+ * Cue point is metadata marker used to control and accompany video playback with client-side application
+ * events. Each cue point have at least one attribute, timestamp. Timestamp specifies position of cue point in
+ * FLV file.
+ *
+ * <p>Cue points are usually used as event triggers down video flow or navigation points in a file. Cue points are
+ * of two types:
+ * <ul>
+ *  <li>Embedded into FLV or SWF</li>
+ *  <li>External, or added on fly (e.g. with FLVPlayback component or ActionScript) on both server-side and client-side.</li>
+ * </ul>
+ * </p>
+ *
+ * <p>To add cue point trigger event listener at client-side in Flex/Flash application, use NetStream.onCuePoint event
+ * handler.</p>
  *
  * @author The Red5 Project (red5@osflash.org)
  * @author Dominick Accattato (daccattato@gmail.com)

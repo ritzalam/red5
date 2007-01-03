@@ -43,7 +43,10 @@ public class MetaData<K, V> extends HashMap<String, Object> implements
 	/** serialVersionUID = -5681069577717669925L; */
 	private static final long serialVersionUID = -5681069577717669925L;
 
-	IMetaCue cuePoints[]; //CuePoint array
+    /**
+     * Cue points array. Cue points can be injected on fly like any other data even on client-side.
+     */
+    IMetaCue cuePoints[]; //CuePoint array
 
 	/** MetaData constructor */
 	public MetaData() {
