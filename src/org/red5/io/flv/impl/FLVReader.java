@@ -295,13 +295,8 @@ public class FLVReader implements IoConstants, ITagReader,
 					in.clear();
 				}
 
-				java.nio.ByteBuffer tmpbuf = java.nio.ByteBuffer.allocate((int) toRead);
-				channel.read(tmpbuf);
-				tmpbuf.flip();
-				in.put(tmpbuf);
+				channel.read(in.buf());
 				in.flip();
-                // Let GC sweep it
-                tmpbuf = null;
 			}
 
 		} catch (Exception e) {
