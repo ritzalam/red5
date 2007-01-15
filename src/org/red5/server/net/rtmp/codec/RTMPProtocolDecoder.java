@@ -260,8 +260,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 		}
 
 		// Get the header size and length
-		final byte headerSize = RTMPUtils.decodeHeaderSize(headerByte);
-		int headerLength = RTMPUtils.getHeaderLength(headerSize);
+		int headerLength = RTMPUtils.getHeaderLength(RTMPUtils.decodeHeaderSize(headerByte));
 
 		if (headerLength > remaining) {
 			if (log.isDebugEnabled()) {
@@ -308,7 +307,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 			}
 			// skip the position back to the start
 			in.position(position);
-			rtmp.bufferDecoding(headerSize + readAmount);
+			rtmp.bufferDecoding(headerLength + readAmount);
 			return null;
 		}
 
