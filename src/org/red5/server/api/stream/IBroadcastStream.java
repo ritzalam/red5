@@ -21,8 +21,6 @@ package org.red5.server.api.stream;
 
 import org.red5.server.messaging.IProvider;
 
-import java.io.IOException;
-
 /**
  * A broadcast stream is a stream source to be subscribed by clients. To
  * subscribe a stream from your client Flash application use NetStream.play

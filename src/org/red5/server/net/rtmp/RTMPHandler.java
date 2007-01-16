@@ -207,7 +207,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 						if (global == null) {
 							call.setStatus(Call.STATUS_SERVICE_NOT_FOUND);
 							if (call instanceof IPendingServiceCall) {
-								StatusObject status = (StatusObject) getStatus(NC_CONNECT_REJECTED);
+								StatusObject status = getStatus(NC_CONNECT_REJECTED);
 								status.setDescription("No scope \""+path+"\" on this server.");
 								((IPendingServiceCall) call).setResult(status);
 							}
@@ -222,7 +222,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 							} catch (ScopeNotFoundException err) {
 								call.setStatus(Call.STATUS_SERVICE_NOT_FOUND);
 								if (call instanceof IPendingServiceCall) {
-									StatusObject status = (StatusObject) getStatus(NC_CONNECT_REJECTED);
+									StatusObject status = getStatus(NC_CONNECT_REJECTED);
 									status.setDescription("No scope \""+path+"\" on this server.");
 									((IPendingServiceCall) call).setResult(status);
 								}
@@ -276,7 +276,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 									log.debug("connect rejected");
 									call.setStatus(Call.STATUS_ACCESS_DENIED);
 									if (call instanceof IPendingServiceCall) {
-										StatusObject status = (StatusObject) getStatus(NC_CONNECT_REJECTED);
+										StatusObject status = getStatus(NC_CONNECT_REJECTED);
 										status.setApplication(rejected
 												.getReason());
 										((IPendingServiceCall) call)

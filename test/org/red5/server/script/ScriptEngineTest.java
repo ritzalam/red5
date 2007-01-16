@@ -3,6 +3,7 @@ package org.red5.server.script;
 import static org.junit.Assert.assertFalse;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.script.ScriptEngine;
@@ -246,7 +247,8 @@ public class ScriptEngineTest {
 	public void testEngines() {
 		Map<String, ScriptEngineFactory> engineFactories = new HashMap<String, ScriptEngineFactory>(
 				7);
-		ScriptEngineFactory[] factories = mgr.getEngineFactories();
+		List<ScriptEngineFactory> factories = mgr.getEngineFactories();	//jdk6
+		//ScriptEngineFactory[] factories = mgr.getEngineFactories(); //jdk5
 		for (ScriptEngineFactory factory : factories) {
 			try {
 				System.out
@@ -258,12 +260,14 @@ public class ScriptEngineTest {
 				System.out.printf("Script Engine: %s (%s) Language: %s (%s)",
 						engName, engVersion, langName, langVersion);
 				engineFactories.put(engName, factory);
-				String[] engNames = factory.getNames();
+				List<String> engNames = factory.getNames();
+				//String[] engNames = factory.getNames(); //jdk5
 				System.out.print("\nEngine Alias(es):");
 				for (String name : engNames) {
 					System.out.printf("%s ", name);
 				}
-				String[] ext = factory.getExtensions();
+				List<String> ext = factory.getExtensions();
+				//String[] ext = factory.getExtensions(); //jdk5
 				System.out.printf("\nExtension: ");
 				for (String name : ext) {
 					System.out.printf("%s ", name);

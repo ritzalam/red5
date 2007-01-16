@@ -109,27 +109,24 @@ public class RecordSet {
 		}
 		input.skipEndObject();
 
-		Map<String, Object> serverInfo = (Map<String, Object>) dataMap.get("serverinfo");
-		if (serverInfo == null) {
-			// This is right according to the specs on osflash.org
-			serverInfo = (Map<String, Object>) dataMap.get("serverInfo");
-		}
+		Object map = dataMap.get("serverinfo");
+		Map<String, Object> serverInfo = null;
+		if (map != null) {
+			serverInfo = (Map<String, Object>) map;
+			totalCount = (Integer) serverInfo.get("totalCount");
+			List<List<Object>> initialData = (List<List<Object>>) serverInfo.get("initialData");
+			cursor = (Integer) serverInfo.get("cursor");
+			serviceName = (String) serverInfo.get("serviceName");
+			columns = (List<String>) serverInfo.get("columnNames");
+			version = (Integer) serverInfo.get("version");
+			id = serverInfo.get("id");
 
-		if (!(serverInfo instanceof Map)) {
-			throw new RuntimeException("Expected Map but got " + serverInfo);
-		}
-
-		totalCount = (Integer) serverInfo.get("totalCount");
-		List<List<Object>> initialData = (List<List<Object>>) serverInfo.get("initialData");
-		cursor = (Integer) serverInfo.get("cursor");
-		serviceName = (String) serverInfo.get("serviceName");
-		columns = (List<String>) serverInfo.get("columnNames");
-		version = (Integer) serverInfo.get("version");
-		id = serverInfo.get("id");
-
-		this.data = new ArrayList<List<Object>>(totalCount);
-		for (int i = 0; i < initialData.size(); i++) {
-			this.data.add(i + cursor - 1, initialData.get(i));
+			this.data = new ArrayList<List<Object>>(totalCount);
+			for (int i = 0; i < initialData.size(); i++) {
+				this.data.add(i + cursor - 1, initialData.get(i));
+			}		
+		} else if (!(map instanceof Map)) {
+			throw new RuntimeException("Expected Map but got " + map.getClass().getName());
 		}
 	}
 

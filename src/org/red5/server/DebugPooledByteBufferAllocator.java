@@ -240,12 +240,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 		if (timeout < 0) {
 			timeout = 0;
 		}
-
 		this.timeout = timeout;
-
-		if (timeout > 0) {
-
-		}
 	}
 
     /**

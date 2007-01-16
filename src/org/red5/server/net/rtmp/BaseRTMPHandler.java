@@ -248,21 +248,18 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 	
 			Set<IPendingServiceCallback> callbacks = pendingCall
 					.getCallbacks();
-			if (callbacks.isEmpty()) {
-				return;
+			if (!callbacks.isEmpty()) {
+				HashSet<IPendingServiceCallback> tmp = new HashSet<IPendingServiceCallback>();
+				tmp.addAll(callbacks);
+	            for (IPendingServiceCallback callback : tmp) {
+	                try {
+	                    callback.resultReceived(pendingCall);
+	                } catch (Exception e) {
+	                    log.error("Error while executing callback " + callback, e);
+	                }
+	            }
 			}
-	
-			HashSet<IPendingServiceCallback> tmp = new HashSet<IPendingServiceCallback>();
-			tmp.addAll(callbacks);
-            for (IPendingServiceCallback callback : tmp) {
-                try {
-                    callback.resultReceived(pendingCall);
-                } catch (Exception e) {
-                    log.error("Error while executing callback " + callback, e);
-                }
-            }
         }
-		return;
 	}
 
     /**

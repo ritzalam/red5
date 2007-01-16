@@ -118,7 +118,7 @@ public class RTMPClient extends BaseRTMPHandler {
 		// Initialize default connection parameters
 		Map<String, Object> params = new HashMap<String, Object>();
 		params.put("app", application);
-		params.put("tcUrl", "rtmp://"+server+":"+port+"/"+application);
+		params.put("tcUrl", "rtmp://"+server+':'+port+'/'+application);
 		connect(server, port, params, connectCallback);
 	}
 

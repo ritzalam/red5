@@ -88,7 +88,7 @@ public abstract class AbstractIOTest extends TestCase {
 	public void testNumber(){
 		log.debug("Testing number");
 		int num = 1000;
-		serializer.serialize(out, new Integer(num));
+		serializer.serialize(out, Integer.valueOf(num));
 		dumpOutput();
 		Number n = (Number) deserializer.deserialize(in);
 		Assert.assertEquals(n.intValue(), num);
@@ -133,7 +133,7 @@ public abstract class AbstractIOTest extends TestCase {
 		listIn.add(null);
 		listIn.add(Boolean.FALSE);
 		listIn.add(Boolean.TRUE);
-		listIn.add(new Integer(1));
+		listIn.add(Integer.valueOf(1));
 		listIn.add("This is a test string");
 		listIn.add(new Date());
 		serializer.serialize(out,listIn);
@@ -155,7 +155,7 @@ public abstract class AbstractIOTest extends TestCase {
 		beanIn.setTestString("test string here");
 		beanIn.setTestBoolean((System.currentTimeMillis()%2==0) ? true : false);
 		beanIn.setTestBooleanObject((System.currentTimeMillis()%2==0) ? Boolean.TRUE : Boolean.FALSE );
-		beanIn.setTestNumberObject(new Integer((int)System.currentTimeMillis()/1000));
+		beanIn.setTestNumberObject(Integer.valueOf((int)System.currentTimeMillis()/1000));
 		serializer.serialize(out,beanIn);
 		dumpOutput();
 		Object mapOrBean = deserializer.deserialize(in);
@@ -177,7 +177,7 @@ public abstract class AbstractIOTest extends TestCase {
 	
 	public void testMap(){
 		Map mapIn = new HashMap();
-		mapIn.put("testNumber",new Integer(34));
+		mapIn.put("testNumber",Integer.valueOf(34));
 		mapIn.put("testString","wicked");
 		mapIn.put("testBean",new SimpleJavaBean());
 		serializer.serialize(out,mapIn);

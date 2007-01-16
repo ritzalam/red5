@@ -305,9 +305,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 
 		int mark, len;
 
-        for (ISharedObjectEvent event1 : so.getEvents()) {
-
-            ISharedObjectEvent event = (ISharedObjectEvent) event1;
+        for (ISharedObjectEvent event : so.getEvents()) {
             byte type = SharedObjectTypeMapping.toByte(event.getType());
 
             switch (event.getType()) {

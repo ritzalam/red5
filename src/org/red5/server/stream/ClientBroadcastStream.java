@@ -317,7 +317,6 @@ public class ClientBroadcastStream extends AbstractClientStream implements
         try {
             rtmpEvent = (IRTMPEvent) event;
         } catch (ClassCastException e) {
-            e.printStackTrace();
             log.error("Class cast exception in event dispatch", e);
             return;
         }
