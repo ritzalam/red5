@@ -918,7 +918,7 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
         cancelGhostConnectionsCleanup();
 
         // Store name so we can cancel it later
-        ghostCleanupJobName = schedulingService.addScheduledJob( ghostConnsCleanupPeriod, job );
+        ghostCleanupJobName = schedulingService.addScheduledJob( ghostConnsCleanupPeriod * 1000, job );
     }
 
     /**
