@@ -28,6 +28,7 @@ import org.w3c.dom.Document;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.*;
 
 /**
@@ -486,14 +487,30 @@ public class Serializer implements SerializerOpts {
 		}
 		Iterator it = set.iterator();
         // Iterate thru entries and write out property names with separators
+		Class beanClass = bean.getClass();
         while (it.hasNext()) {
 			BeanMap.Entry entry = (BeanMap.Entry) it.next();
 			if (entry.getKey().toString().equals("class")) {
 				continue;
 			}
 
-			out.writePropertyName(entry.getKey().toString());
-			//log.info(entry.getKey().toString()+" = "+entry.getValue());
+			String keyName = entry.getKey().toString();
+			// Check if the Field corresponding to the getter/setter pair is transient
+			try {
+				Field field = beanClass.getDeclaredField(keyName);
+				int modifiers = field.getModifiers();
+				
+				if (Modifier.isTransient(modifiers)) {
+					if (log.isDebugEnabled()) {
+						log.debug("Skipping " + field.getName() + " because its transient");
+					}
+					continue;
+				}
+			} catch (NoSuchFieldException nfe) {
+				// Ignore this exception and use the default behaviour
+			}
+			
+			out.writePropertyName(keyName);
 			serialize(out, entry.getValue());
 			if (it.hasNext()) {
 				out.markPropertySeparator();
