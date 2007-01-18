@@ -22,7 +22,7 @@ package org.red5.server.api.service;
 import org.red5.server.api.IScope;
 
 /**
- * Interface for objects that execute service calls.
+ * Interface for objects that execute service calls (remote calls from client).
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard (luke@codegent.com)
@@ -38,7 +38,7 @@ public interface IServiceInvoker {
 	 * @param scope
 	 * 			the scope to search for a handler
 	 */
-	public void invoke(IServiceCall call, IScope scope);
+    void invoke(IServiceCall call, IScope scope);
 
 	/**
 	 * Execute the passed service call in the given object.
@@ -48,6 +48,6 @@ public interface IServiceInvoker {
 	 * @param service
 	 * 			the service to use
 	 */
-	public void invoke(IServiceCall call, Object service);
+    void invoke(IServiceCall call, Object service);
 
 }

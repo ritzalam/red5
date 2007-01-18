@@ -71,7 +71,9 @@ import java.util.*;
  * nc.connect(...);<br />
  * nc.call("getLiveStreams", resultHandlerObj);<br />
  * </code>
+ *
  * 
+ *
  * <p>If you want to build a server-side framework this is a place to start and wrap it around ApplicationAdapter subclass.</p>
  * </p>
  *

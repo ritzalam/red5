@@ -92,15 +92,6 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
 		}
 	}
 
-	/**
-     * Setter for persistence class.
-     *
-     * @param persistenceClass  Persistence class.
-     */
-    public void setPersistenceClass(String persistenceClass) {
-		// Nothing to do here, the shared object will take care of persistence.
-	}
-
 	/** {@inheritDoc} */
     @Override
 	public IPersistenceStore getStore() {

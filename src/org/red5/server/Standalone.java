@@ -52,9 +52,9 @@ public class Standalone {
 	public static DebugPooledByteBufferAllocator allocator = null;
 
     /**
-     *
-     * @param e
-     * @throws Throwable
+     * Re-throws exception
+     * @param e               Exception
+     * @throws Throwable      Re-thrown exception
      */
 	public static void raiseOriginalException(Throwable e) throws Throwable {
 		// Search for root exception
@@ -125,14 +125,14 @@ public class Standalone {
 		Properties props = new Properties();
 		props.load(new FileInputStream(root + "/red5.properties"));
 		Iterator it = props.keySet().iterator();
-		while (it.hasNext()) {
-			String key = (String) it.next();
-			if (key != null && !key.equals("")) {
-				System.setProperty(key, props.getProperty(key));
-			}
-		}
+        for (Object o : props.keySet()) {
+            String key = (String) o;
+            if (key != null && !key.equals("")) {
+                System.setProperty(key, props.getProperty(key));
+            }
+        }
 
-		// Store root directory of Red5
+        // Store root directory of Red5
 		idx = root.lastIndexOf('/');
 		root = root.substring(0, idx);
 		if (System.getProperty("file.separator").equals("/")) {
