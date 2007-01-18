@@ -19,20 +19,14 @@ package org.red5.server.stream;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.BasicScope;
 import org.red5.server.api.IScope;
-import org.red5.server.messaging.IConsumer;
-import org.red5.server.messaging.IMessage;
-import org.red5.server.messaging.IPipeConnectionListener;
-import org.red5.server.messaging.IProvider;
-import org.red5.server.messaging.InMemoryPushPushPipe;
-import org.red5.server.messaging.OOBControlMessage;
-import org.red5.server.messaging.PipeConnectionEvent;
+import org.red5.server.messaging.*;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Scope type for publishing that deals with pipe connection events,
@@ -170,7 +164,7 @@ public class BroadcastScope extends BasicScope implements IBroadcastScope,
      * @param paramMap         Parameters passed on connection
      * @return                 <code>true</code> on success, <code>false</code> otherwise
      */
-	synchronized public boolean subscribe(IProvider provider, Map paramMap) {
+    public synchronized boolean subscribe(IProvider provider, Map paramMap) {
 		synchronized (pipe) {
             return !hasRemoved && pipe.subscribe(provider, paramMap);
         }
@@ -181,7 +175,7 @@ public class BroadcastScope extends BasicScope implements IBroadcastScope,
      * @param provider         Provider
      * @return                 <code>true</code> on success, <code>false</code> otherwise
      */
-	synchronized public boolean unsubscribe(IProvider provider) {
+    public synchronized boolean unsubscribe(IProvider provider) {
 		return pipe.unsubscribe(provider);
 	}
 

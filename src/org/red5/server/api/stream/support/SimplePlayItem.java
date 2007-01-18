@@ -22,13 +22,25 @@ package org.red5.server.api.stream.support;
 import org.red5.server.api.stream.IPlayItem;
 import org.red5.server.messaging.IMessageInput;
 
+/**
+ * Simple playlist item implementation
+ */
 public class SimplePlayItem implements IPlayItem {
-	private long length = -1;
-
+    /**
+     * Length
+     */
+    private long length = -1;
+    /**
+     * Playlist item name
+     */
 	private String name;
-
+    /**
+     * Start mark
+     */
 	private long start = -2;
-
+    /**
+     * Message source
+     */
 	private IMessageInput msgInput;
 
 	/**
@@ -69,43 +81,43 @@ public class SimplePlayItem implements IPlayItem {
 	/**
 	 * Alias for getMessageInput
 	 * 
-	 * @return
+	 * @return      Message input source
 	 */
 	public IMessageInput getMsgInput() {
 		return msgInput;
 	}
 
 	/**
-     * Setter for property 'msgInput'.
+     * Setter for message input
      *
-     * @param msgInput Value to set for property 'msgInput'.
+     * @param msgInput Message input
      */
     public void setMsgInput(IMessageInput msgInput) {
 		this.msgInput = msgInput;
 	}
 
 	/**
-     * Setter for property 'length'.
+     * Setter for length
      *
-     * @param length Value to set for property 'length'.
+     * @param length Item length.
      */
     public void setLength(long length) {
 		this.length = length;
 	}
 
 	/**
-     * Setter for property 'name'.
+     * Setter name
      *
-     * @param name Value to set for property 'name'.
+     * @param name Item name
      */
     public void setName(String name) {
 		this.name = name;
 	}
 
 	/**
-     * Setter for property 'start'.
+     * Setter for start.
      *
-     * @param start Value to set for property 'start'.
+     * @param start Start position.
      */
     public void setStart(long start) {
 		this.start = start;

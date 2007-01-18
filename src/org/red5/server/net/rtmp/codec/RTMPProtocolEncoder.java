@@ -171,19 +171,23 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
      * @return            Encoded header data
      */
     public ByteBuffer encodeHeader(Header header, Header lastHeader) {
-
+        // Put new header mark
 		byte headerType = HEADER_NEW;
 		if (lastHeader == null
 				|| header.getStreamId() != lastHeader.getStreamId()
 				|| !header.isTimerRelative()) {
-			headerType = HEADER_NEW;
+            // New header mark if header for another stream
+            headerType = HEADER_NEW;
 		} else if (header.getSize() != lastHeader.getSize()
 				|| header.getDataType() != lastHeader.getDataType()) {
-			headerType = HEADER_SAME_SOURCE;
+            // Same source header if last header data type or size differ
+            headerType = HEADER_SAME_SOURCE;
 		} else if (header.getTimer() != lastHeader.getTimer()) {
-			headerType = HEADER_TIMER_CHANGE;
+            // Timer change marker if there's time gap between headers timestamps
+            headerType = HEADER_TIMER_CHANGE;
 		} else {
-			headerType = HEADER_CONTINUE;
+            // Continue encoding
+            headerType = HEADER_CONTINUE;
 		}
 
 		final ByteBuffer buf = ByteBuffer.allocate(RTMPUtils

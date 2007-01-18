@@ -342,7 +342,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				// let the engine retain the STOPPED state
 				// and wait for control from outside
 			} catch (IllegalStateException e) {
-
+               log.error( "Illegal state exception on playlist item setup", e );
 			}
 		}
 	}
@@ -402,7 +402,15 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 		return currentItemIndex;
 	}
 
-	/** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
+    public IPlayItem getCurrentItem() {
+        return getItem( getCurrentItemIndex() );
+    }
+
+
+    /** {@inheritDoc} */
     public IPlayItem getItem(int index) {
 		try {
 			return items.get(index);

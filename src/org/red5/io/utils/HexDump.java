@@ -17,26 +17,28 @@
 
 package org.red5.io.utils;
 
-import java.io.ByteArrayOutputStream;
-
 import org.apache.log4j.Logger;
-
 import sun.misc.HexDumpEncoder;
 
+import java.io.ByteArrayOutputStream;
+
 /**
- *
+ * Hexadecimal byte dumper
  * @author Niko Schweitzer
  */
 public class HexDump {
-	
-	private static final Logger logger = Logger.getLogger(HexDump.class);
+
+    /**
+     * Logger
+     */
+    private static final Logger logger = Logger.getLogger(HexDump.class);
 	
 	/**
 	 * Method prettyPrintHex
 	 *
 	 *
-	 * @param baToConvert
-	 * @return hexdump string
+	 * @param baToConvert         Array of bytes to encode
+	 * @return                    Hexdump string
 	 */
 	public static String prettyPrintHex(byte[] baToConvert) {
 
@@ -57,14 +59,14 @@ public class HexDump {
 	}
 
 	/** Field HEX_DIGITS */
-	private final static char[] HEX_DIGITS = { '0', '1', '2', '3', '4', '5',
+    private static final char[] HEX_DIGITS = { '0', '1', '2', '3', '4', '5',
 			'6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
 
 	/** Field BIT_DIGIT */
 	private static char[] BIT_DIGIT = { '0', '1' };
 
 	/** Field COMPARE_BITS */
-	private final static byte[] COMPARE_BITS = { (byte) 0x80, (byte) 0x40,
+    private static final byte[] COMPARE_BITS = { (byte) 0x80, (byte) 0x40,
 			(byte) 0x20, (byte) 0x10, (byte) 0x08, (byte) 0x04, (byte) 0x02,
 			(byte) 0x01 };
 

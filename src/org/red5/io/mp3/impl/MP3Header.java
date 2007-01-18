@@ -102,7 +102,7 @@ public class MP3Header {
      */
     public MP3Header(int data) throws Exception {
 		if ((data & 0xffe00000) != 0xffe00000) {
-			throw new Exception("invalid frame sync");
+			throw new Exception("invalid frame sync word");
 		}
 
 		this.data = data;
@@ -118,9 +118,9 @@ public class MP3Header {
 	}
 
 	/**
-     * Getter for data
+     * Getter for frame sync word data
      *
-     * @return  Frame sync data
+     * @return  Frame sync word data
      */
     public int getData() {
 		return data;

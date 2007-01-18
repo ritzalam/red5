@@ -29,9 +29,9 @@ import org.red5.server.net.rtmp.message.Constants;
  */
 public class RTMPUtils implements Constants {
     /**
-     * 
-     * @param out
-     * @param value
+     * Writes reversed integer to buffer
+     * @param out          Buffer
+     * @param value        Integer to write
      */
 	public static void writeReverseIntOld(ByteBuffer out, int value) {
 		byte[] bytes = new byte[4];
@@ -47,9 +47,9 @@ public class RTMPUtils implements Constants {
 	}
 
     /**
-     *
-     * @param out
-     * @param value
+     * Writes reversed integer to buffer
+     * @param out          Buffer
+     * @param value        Integer to write
      */
 	public static void writeReverseInt(ByteBuffer out, int value) {
 		byte[] bytes = new byte[4];
@@ -162,9 +162,9 @@ public class RTMPUtils implements Constants {
 	}
 
     /**
-     *
-     * @param in
-     * @return
+     * Read integer in reversed order
+     * @param in         Input buffer
+     * @return           Integer
      */
 	public static int readReverseInt(ByteBuffer in) {
 		byte[] bytes = new byte[4];
@@ -178,9 +178,9 @@ public class RTMPUtils implements Constants {
 	}
 
     /**
-     *
-     * @param in
-     * @return
+     * Read integer in reversed order
+     * @param in         Input buffer
+     * @return           Integer
      */
 	public static int readReverseIntOld(ByteBuffer in) {
 		byte[] bytes = new byte[4];
@@ -194,39 +194,38 @@ public class RTMPUtils implements Constants {
 	}
 
     /**
-     *
-     * @param headerSize
-     * @param channelId
-     * @return
+     * Encodes header size marker and channel id into header marker
+     * @param headerSize         Header size marker
+     * @param channelId          Channel used
+     * @return                   Header id
      */
 	public static byte encodeHeaderByte(byte headerSize, byte channelId) {
 		return (byte) ((headerSize << 6) + channelId);
 	}
 
     /**
-     *
-     * @param header
-     * @return
+     * Decode channel id
+     * @param header        Header
+     * @return              Channel id
      */
 	public static byte decodeChannelId(byte header) {
 		return (byte) (header & 0x3f);
 	}
 
     /**
-     *
-     * @param header
-     * @return
+     * Decode header size
+     * @param header      Header byte
+     * @return            Header size byte
      */
     public static byte decodeHeaderSize(byte header) {
 		int headerInt = (header >= 0) ? header : header + 256;
-		byte size = (byte) (headerInt >> 6);
-		return size;
+        return (byte) (headerInt >> 6);
 	}
 
     /**
-     * 
-     * @param headerSize
-     * @return
+     * Return header length from marker value
+     * @param headerSize       Header size marker value
+     * @return                 Header length
      */
     public static int getHeaderLength(byte headerSize) {
 		switch (headerSize) {

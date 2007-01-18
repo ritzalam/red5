@@ -65,7 +65,12 @@ public class IOUtils {
 		out.put(bytes);
 	}
 
-	public static int readUnsignedMediumInt(ByteBuffer in) {
+    /**
+     * Reads unsigned medium integer
+     * @param in              Unsigned medium int source
+     * @return                int value
+     */
+    public static int readUnsignedMediumInt(ByteBuffer in) {
 		//byte[] bytes = new byte[3];
 		//in.get(bytes);
 		int val = 0;
@@ -75,7 +80,12 @@ public class IOUtils {
 		return val;
 	}
 
-	public static int readMediumInt(ByteBuffer in) {
+    /**
+     * Reads medium int
+     * @param in       Source
+     * @return         int value
+     */
+    public static int readMediumInt(ByteBuffer in) {
 		ByteBuffer buf = ByteBuffer.allocate(4);
 		buf.put((byte) 0x00);
 		buf.put(in.get());
@@ -85,7 +95,12 @@ public class IOUtils {
 		return buf.getInt();
 	}
 
-	public static int readMediumInt2(ByteBuffer in) {
+    /**
+     * Alternate method for reading medium int
+     * @param in       Source
+     * @return         int value
+     */
+    public static int readMediumInt2(ByteBuffer in) {
 		byte[] bytes = new byte[3];
 		in.get(bytes);
 		int val = 0;
@@ -98,7 +113,12 @@ public class IOUtils {
 		return val;
 	}
 
-	public static int readReverseInt(ByteBuffer in) {
+    /**
+     * Reads reverse int
+     * @param in       Source
+     * @return         int
+     */
+    public static int readReverseInt(ByteBuffer in) {
 		byte[] bytes = new byte[4];
 		in.get(bytes);
 		int val = 0;
@@ -109,7 +129,13 @@ public class IOUtils {
 		return val;
 	}
 
-	public static void debug(Log log, String msg, ByteBuffer buf) {
+    /**
+     * Format debug message
+     * @param log          Logger
+     * @param msg          Message
+     * @param buf          Byte buffer to debug
+     */
+    public static void debug(Log log, String msg, ByteBuffer buf) {
 		if (log.isDebugEnabled()) {
 
 			log.debug(msg);
@@ -124,7 +150,12 @@ public class IOUtils {
 		}
 	}
 
-	public static String toString(ByteBuffer buf) {
+    /**
+     * String representation of byte buffer
+     * @param buf           Byte buffer
+     * @return              String representation
+     */
+    public static String toString(ByteBuffer buf) {
 		int pos = buf.position();
 		int limit = buf.limit();
 		final java.nio.ByteBuffer strBuf = buf.buf();

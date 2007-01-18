@@ -21,6 +21,10 @@ package org.red5.server.api.stream;
 
 import org.red5.server.messaging.IMessageInput;
 
+/**
+ * Playlist item. Each playlist item has name, start time, length in milliseconds and
+ * message input source.
+ */
 public interface IPlayItem {
 	/**
 	 * Get name of item.

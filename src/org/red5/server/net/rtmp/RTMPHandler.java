@@ -169,8 +169,12 @@ public class RTMPHandler extends BaseRTMPHandler {
 
 		log.debug("Invoke");
 
-		final IServiceCall call = invoke.getCall();
-		if (call.getServiceMethodName().equals("_result")
+        // Get call
+        final IServiceCall call = invoke.getCall();
+
+        // If it's a callback for server remote call then pass it over to callbacks handler
+        // and return
+        if (call.getServiceMethodName().equals("_result")
 				|| call.getServiceMethodName().equals("_error")) {
 			handlePendingCallResult(conn, invoke);
 			return;
@@ -184,26 +188,37 @@ public class RTMPHandler extends BaseRTMPHandler {
 		}
 
 		boolean disconnectOnReturn = false;
-		if (call.getServiceName() == null) {
+
+        // If this is not a service call then handle connection...
+        if (call.getServiceName() == null) {
 			log.info("call: " + call);
 			final String action = call.getServiceMethodName();
 			log.info("--" + action);
 			if (!conn.isConnected()) {
-
+                // Handle connection
 				if (action.equals(ACTION_CONNECT)) {
 					log.debug("connect");
-					final Map params = invoke.getConnectionParams();
-					String host = getHostname((String) params.get("tcUrl"));
-					if (host.endsWith(":1935")) {
+
+                    // Get parameters passed from client to NetConnection#connection
+                    final Map params = invoke.getConnectionParams();
+
+                    // Get hostname
+                    String host = getHostname((String) params.get("tcUrl"));
+
+                    // Check up port
+                    if (host.endsWith(":1935")) {
 						// Remove default port from connection string
 						host = host.substring(0, host.length() - 5);
 					}
-					final String path = (String) params.get("app");
+
+                    // App name as path
+                    final String path = (String) params.get("app");
 					final String sessionId = null;
 					conn.setup(host, path, sessionId, params);
 					try {
-						final IGlobalScope global = server.lookupGlobal(host,
-								path);
+                        // Lookup server scope when connected
+                        // Use host and application name
+                        final IGlobalScope global = server.lookupGlobal(host, path);
 						if (global == null) {
 							call.setStatus(Call.STATUS_SERVICE_NOT_FOUND);
 							if (call instanceof IPendingServiceCall) {
@@ -211,8 +226,8 @@ public class RTMPHandler extends BaseRTMPHandler {
 								status.setDescription("No scope \""+path+"\" on this server.");
 								((IPendingServiceCall) call).setResult(status);
 							}
-							log.info("No global scope found for " + path
-									+ " on " + host);
+							log.info("No application scope found for " + path
+									+ " on host " + host + ". Mispelled or missing application folder?");
 							disconnectOnReturn = true;
 						} else {
 							final IContext context = global.getContext();

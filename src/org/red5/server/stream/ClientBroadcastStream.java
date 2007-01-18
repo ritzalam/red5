@@ -107,7 +107,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	private int dataTime = -1;
 
 	/** Stores timestamp of first packet. */
-	private int firstTime = -1;
+	private int firstPacketTime = -1;
 
     /**
      * Data is sent by chunks, each of them has size
@@ -128,7 +128,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		} catch (Exception err) {
 			log.warn("No video codec factory available.", err);
 		}
-		firstTime = audioTime = videoTime = dataTime = -1;
+		firstPacketTime = audioTime = videoTime = dataTime = -1;
 		connMsgOut = consumerManager.getConsumerOutput(this);
 		recordPipe = new InMemoryPushPushPipe();
 		Map<Object, Object> recordParamMap = new HashMap<Object, Object>();
@@ -306,34 +306,35 @@ public class ClientBroadcastStream extends AbstractClientStream implements
                         && (event.getType() != IEvent.Type.STREAM_DATA)) {
 			return;
 		}
-
+        // Get stream codec
 		IStreamCodecInfo codecInfo = getCodecInfo();
-		StreamCodecInfo streamCodec = null;
+		StreamCodecInfo info = null;
 		if (codecInfo instanceof StreamCodecInfo) {
-			streamCodec = (StreamCodecInfo) codecInfo;
+			info = (StreamCodecInfo) codecInfo;
 		}
 
-        IRTMPEvent rtmpEvent = null;
+        IRTMPEvent rtmpEvent;
         try {
             rtmpEvent = (IRTMPEvent) event;
         } catch (ClassCastException e) {
             log.error("Class cast exception in event dispatch", e);
             return;
         }
-        int thisTime = -1;
-		if (firstTime == -1) {
-			firstTime = rtmpEvent.getTimestamp();
+        int eventTime = -1;
+        // If this is first packet save it's timestamp
+        if (firstPacketTime == -1) {
+			firstPacketTime = rtmpEvent.getTimestamp();
 		}
 		if (rtmpEvent instanceof AudioData) {
-			if (streamCodec != null) {
-				streamCodec.setHasAudio(true);
+			if (info != null) {
+				info.setHasAudio(true);
 			}
 			if (rtmpEvent.getHeader().isTimerRelative()) {
 				audioTime += rtmpEvent.getTimestamp();
 			} else {
 				audioTime = rtmpEvent.getTimestamp();
 			}
-			thisTime = audioTime;
+			eventTime = audioTime;
 		} else if (rtmpEvent instanceof VideoData) {
 			IVideoStreamCodec videoStreamCodec = null;
 			if (videoCodecFactory != null && checkVideoCodec) {
@@ -352,15 +353,15 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 				videoStreamCodec.addData(((VideoData) rtmpEvent).getData());
 			}
 
-			if (streamCodec != null) {
-				streamCodec.setHasVideo(true);
+			if (info != null) {
+				info.setHasVideo(true);
 			}
 			if (rtmpEvent.getHeader().isTimerRelative()) {
 				videoTime += rtmpEvent.getTimestamp();
 			} else {
 				videoTime = rtmpEvent.getTimestamp();
 			}
-			thisTime = videoTime;
+			eventTime = videoTime;
 		} else if(rtmpEvent instanceof Invoke) {
 			if (rtmpEvent.getHeader().isTimerRelative()) {
 				dataTime += rtmpEvent.getTimestamp();
@@ -374,13 +375,16 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			} else {
 				dataTime = rtmpEvent.getTimestamp();
 			}
-			thisTime = dataTime;
+			eventTime = dataTime;
 		}
-		checkSendNotifications(event);
 
-		RTMPMessage msg = new RTMPMessage();
+        // Notify event listeners
+        checkSendNotifications(event);
+
+        // Create new RTMP message, initialize it and push through pipe
+        RTMPMessage msg = new RTMPMessage();
 		msg.setBody(rtmpEvent);
-		msg.getBody().setTimestamp(thisTime);
+		msg.getBody().setTimestamp(eventTime);
 		if (livePipe != null) {
 			livePipe.pushMessage(msg);
 		}
@@ -388,7 +392,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	}
 
     /**
-     * Check send notification
+     * Check and send notification if necessary
      * @param event          Event
      */
     private void checkSendNotifications(IEvent event) {
@@ -450,12 +454,12 @@ public class ClientBroadcastStream extends AbstractClientStream implements
      * Sends publish start notifications
      */
     private void sendPublishStartNotify() {
-		Status start = new Status(StatusCodes.NS_PUBLISH_START);
-		start.setClientid(getStreamId());
-		start.setDetails(getPublishedName());
+		Status publishStatus = new Status(StatusCodes.NS_PUBLISH_START);
+		publishStatus.setClientid(getStreamId());
+		publishStatus.setDetails(getPublishedName());
 
 		StatusMessage startMsg = new StatusMessage();
-		startMsg.setBody(start);
+		startMsg.setBody(publishStatus);
 		connMsgOut.pushMessage(startMsg);
 	}
 
@@ -463,12 +467,12 @@ public class ClientBroadcastStream extends AbstractClientStream implements
      *  Sends publish stop notifications
      */
 	private void sendPublishStopNotify() {
-		Status stop = new Status(StatusCodes.NS_UNPUBLISHED_SUCCESS);
-		stop.setClientid(getStreamId());
-		stop.setDetails(getPublishedName());
+		Status stopStatus = new Status(StatusCodes.NS_UNPUBLISHED_SUCCESS);
+		stopStatus.setClientid(getStreamId());
+		stopStatus.setDetails(getPublishedName());
 
 		StatusMessage stopMsg = new StatusMessage();
-		stopMsg.setBody(stop);
+		stopMsg.setBody(stopStatus);
 		connMsgOut.pushMessage(stopMsg);
 	}
 
@@ -476,12 +480,12 @@ public class ClientBroadcastStream extends AbstractClientStream implements
      *  Sends record start notifications
      */
 	private void sendRecordStartNotify() {
-		Status start = new Status(StatusCodes.NS_RECORD_START);
-		start.setClientid(getStreamId());
-		start.setDetails(getPublishedName());
+		Status recordStatus = new Status(StatusCodes.NS_RECORD_START);
+		recordStatus.setClientid(getStreamId());
+		recordStatus.setDetails(getPublishedName());
 
 		StatusMessage startMsg = new StatusMessage();
-		startMsg.setBody(start);
+		startMsg.setBody(recordStatus);
 		connMsgOut.pushMessage(startMsg);
 	}
 
@@ -489,12 +493,12 @@ public class ClientBroadcastStream extends AbstractClientStream implements
      *  Sends record stop notifications
      */
 	private void sendRecordStopNotify() {
-		Status start = new Status(StatusCodes.NS_RECORD_STOP);
-		start.setClientid(getStreamId());
-		start.setDetails(getPublishedName());
+		Status stopStatus = new Status(StatusCodes.NS_RECORD_STOP);
+		stopStatus.setClientid(getStreamId());
+		stopStatus.setDetails(getPublishedName());
 
 		StatusMessage startMsg = new StatusMessage();
-		startMsg.setBody(start);
+		startMsg.setBody(stopStatus);
 		connMsgOut.pushMessage(startMsg);
 	}
 

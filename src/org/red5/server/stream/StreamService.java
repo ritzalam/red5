@@ -20,19 +20,8 @@ package org.red5.server.stream;
  */
 
 import org.red5.server.BaseConnection;
-import org.red5.server.api.IBasicScope;
-import org.red5.server.api.IConnection;
-import org.red5.server.api.IContext;
-import org.red5.server.api.IScope;
-import org.red5.server.api.Red5;
-import org.red5.server.api.stream.IBroadcastStream;
-import org.red5.server.api.stream.IClientBroadcastStream;
-import org.red5.server.api.stream.IClientStream;
-import org.red5.server.api.stream.IPlaylistSubscriberStream;
-import org.red5.server.api.stream.ISingleItemSubscriberStream;
-import org.red5.server.api.stream.IStreamCapableConnection;
-import org.red5.server.api.stream.IStreamService;
-import org.red5.server.api.stream.ISubscriberStream;
+import org.red5.server.api.*;
+import org.red5.server.api.stream.*;
 import org.red5.server.api.stream.support.SimplePlayItem;
 import org.red5.server.net.rtmp.Channel;
 import org.red5.server.net.rtmp.RTMPConnection;
@@ -366,16 +355,22 @@ public class StreamService implements IStreamService {
 	}
 
 	/**
-     * Getter for property 'currentStreamId'.
+     * Getter for current stream id.
      *
-     * @return Value for property 'currentStreamId'.
+     * @return  Current stream id
      */
     private int getCurrentStreamId() {
 		// TODO: this must come from the current connection!
 		return RTMPHandler.getStreamId();
 	}
 
-	public IBroadcastScope getBroadcastScope(IScope scope, String name) {
+    /**
+     * Return broadcast scope object for given scope and child scope name
+     * @param scope          Scope object
+     * @param name           Child scope name
+     * @return               Broadcast scope
+     */
+    public IBroadcastScope getBroadcastScope(IScope scope, String name) {
 		synchronized (scope) {
 			IBasicScope basicScope = scope.getBasicScope(IBroadcastScope.TYPE,
 					name);

@@ -51,8 +51,8 @@ public class Packet {
 
     /**
      * Create packet with given header and event context
-     * @param header
-     * @param event
+     * @param header     RTMP header
+     * @param event      RTMP message
      */
     public Packet(Header header, IRTMPEvent event) {
 		this.header = header;

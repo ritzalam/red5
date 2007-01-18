@@ -42,7 +42,7 @@ public class ScopeResolver implements IScopeResolver {
      * @return      Global scope
      */
 	public IGlobalScope getGlobalScope() {
-		return globalScope;
+		return globalScope;  
 	}
 
     /**

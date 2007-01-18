@@ -16,13 +16,13 @@ package org.red5.io.utils;
  * limitations under the License.
  */
 
-import java.io.PrintWriter;
-import java.io.Writer;
-
 import org.w3c.dom.Attr;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
+import java.io.PrintWriter;
+import java.io.Writer;
 
 /**
  * This class is a utility to serialize a DOM node as XML. This class uses the
@@ -36,16 +36,21 @@ public class DOM2Writer {
 
 	/**
 	 * Serialize this node into the writer as XML.
-     * @param writer
-     * @param node
+     * @param writer            Writer object
+     * @param node              DOM node
      */
 	public static void serializeAsXML(Node node, Writer writer) {
 		PrintWriter out = new PrintWriter(writer);
-		print(node, node, out);
+		print(node, out);
 		out.flush();
 	}
 
-	private static void print(Node node, Node startnode, PrintWriter out) {
+    /**
+     * Dumps DOM node
+     * @param node            Node to dump
+     * @param out             Writer object
+     */
+    private static void print(Node node, PrintWriter out) {
 		if (node == null) {
 			return;
 		}
@@ -61,7 +66,7 @@ public class DOM2Writer {
 					int numChildren = children.getLength();
 
 					for (int i = 0; i < numChildren; i++) {
-						print(children.item(i), startnode, out);
+						print(children.item(i), out);
 					}
 				}
 				break;
@@ -93,7 +98,7 @@ public class DOM2Writer {
 					}
 
 					for (int i = 0; i < numChildren; i++) {
-						print(children.item(i), startnode, out);
+						print(children.item(i), out);
 					}
 				} else {
 					hasChildren = false;

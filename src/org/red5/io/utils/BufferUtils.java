@@ -32,8 +32,8 @@ public class BufferUtils {
 	/**
 	 * Writes a Medium Int to the output buffer
 	 * 
-	 * @param out
-	 * @param value
+	 * @param out          Container to write to
+	 * @param value        Integer to write
 	 */
 	public static void writeMediumInt(ByteBuffer out, int value) {
 		byte[] bytes = new byte[3];
@@ -46,8 +46,8 @@ public class BufferUtils {
 	/**
 	 * Reads an unsigned Medium Int from the in buffer
 	 * 
-	 * @param in
-	 * @return int
+	 * @param in           Source
+	 * @return int         Integer value
 	 */
 	public static int readUnsignedMediumInt(ByteBuffer in) {
 		byte[] bytes = new byte[3];
@@ -62,8 +62,8 @@ public class BufferUtils {
 	/**
 	 * Reads a Medium Int to the in buffer
 	 * 
-	 * @param in
-	 * @return int
+	 * @param in           Source
+	 * @return int         Medium int
 	 */
 	public static int readMediumInt(ByteBuffer in) {
 		byte[] bytes = new byte[3];
@@ -79,12 +79,12 @@ public class BufferUtils {
 	}
 
 	/**
-	 * Puts an in buffer stream onto an out buffer stream
-	 * and returns the bytes written
-	 * @param out
-	 * @param in
-	 * @param numBytesMax
-	 * @return int
+	 * Puts input buffer stream to output buffer
+	 * and returns number of bytes written
+	 * @param out                Output buffer
+	 * @param in                 Input buffer
+	 * @param numBytesMax        Number of bytes max
+	 * @return int               Number of bytes written
 	 */
 	public static int put(ByteBuffer out, ByteBuffer in, int numBytesMax) {
 		final int limit = in.limit();

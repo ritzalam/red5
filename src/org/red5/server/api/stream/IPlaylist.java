@@ -63,7 +63,13 @@ public interface IPlaylist {
 	 */
 	int getCurrentItemIndex();
 
-	/**
+    /**
+     * Get currently playing item
+     * @return       Item
+     */
+    IPlayItem getCurrentItem();
+
+    /**
 	 * Get the item according to the index.
 	 * @param index  Item index
 	 * @return       Item at that index in list

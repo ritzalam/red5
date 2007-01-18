@@ -146,11 +146,12 @@ public class StatefulScopeWrappingAdapter extends AbstractScopeAdapter
      *
      * @return  Connections
      */
-    public Iterator<IConnection> getConnections() {
+    public Iterator<IConnection> getConnectionsIter() {
 		return scope.getConnections();
 	}
 
-	/**
+
+    /**
      * Getter for context
      *
      * @return Value for context

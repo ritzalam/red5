@@ -19,18 +19,14 @@ package org.red5.io.object;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.io.utils.XMLUtils;
 import org.w3c.dom.Document;
+
+import java.io.IOException;
+import java.util.*;
 
 /**
  * The Deserializer class reads data input and handles the data 
@@ -62,7 +58,7 @@ public class Deserializer {
 			log.debug("Datatype: " + DataTypes.toStringValue(type));
 		}
 
-		Object result = null;
+		Object result;
 
 		switch (type) {
 			case DataTypes.CORE_NULL:

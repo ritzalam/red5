@@ -19,15 +19,6 @@ package org.red5.io.mp3.impl;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.ByteOrder;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
@@ -39,56 +30,114 @@ import org.red5.io.amf.Output;
 import org.red5.io.flv.IKeyFrameDataAnalyzer;
 import org.red5.io.flv.impl.Tag;
 
-public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.ByteOrder;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
+/**
+ * Read MP3 files
+ */
+public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
+    /**
+     * Logger
+     */
 	protected static Log log = LogFactory.getLog(MP3Reader.class.getName());
 
-	private FileInputStream fis = null;
+    /**
+     * File input stream
+     */
+    private FileInputStream fis;
+    /**
+     * File channel
+     */
+	private FileChannel channel;
+    /**
+     * Memory-mapped buffer for file content
+     */
+	private MappedByteBuffer mappedFile;
+    /**
+     * Source byte buffer
+     */
+	private ByteBuffer in;
+    /**
+     * Last read tag object
+     */
+	private ITag tag;
+    /**
+     * Previous tag size
+     */
+	private int prevSize;
+    /**
+     * Current time
+     */
+	private double currentTime;
+    /**
+     * Frame metadata
+     */
+	private KeyFrameMeta frameMeta;
+    /**
+     * Positions and time map
+     */
+	private HashMap<Integer, Double> posTimeMap;
 
-	private FileChannel channel = null;
-
-	private MappedByteBuffer mappedFile = null;
-
-	private ByteBuffer in = null;
-
-	private ITag tag = null;
-
-	private int prevSize = 0;
-
-	private double currentTime = 0;
-
-	private KeyFrameMeta frameMeta = null;
-
-	private HashMap<Integer, Double> posTimeMap = null;
-
-	private int dataRate = 0;
-
+	private int dataRate;
+    /**
+     * Whether first frame is read
+     */
 	private boolean firstFrame;
-
+    /**
+     * File metadata
+     */
 	private ITag fileMeta;
+    /**
+     * File duration
+     */
+	private long duration;
 
-	private long duration = 0;
-
-	public MP3Reader(FileInputStream stream) {
+    /**
+     * Creates reader from file input stream
+     * @param stream          File input stream source
+     */
+    public MP3Reader(FileInputStream stream) {
 		fis = stream;
-		channel = fis.getChannel();
+        // Grab file channel and map it to memory-mapped byte buffer in read-only mode
+        channel = fis.getChannel();
 		try {
 			mappedFile = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel
 					.size());
 		} catch (IOException e) {
 			log.error("MP3Reader :: MP3Reader ::>\n", e);
 		}
-		mappedFile.order(ByteOrder.BIG_ENDIAN);
-		in = ByteBuffer.wrap(mappedFile);
-		analyzeKeyFrames();
+
+        // Use Big Endian bytes order
+        mappedFile.order(ByteOrder.BIG_ENDIAN);
+        // Wrap mapped byte buffer to MINA buffer
+        in = ByteBuffer.wrap(mappedFile);
+        // Analyze keyframes data
+        analyzeKeyFrames();
 		firstFrame = true;
-		fileMeta = createFileMeta();
-		if (in.remaining() > 4) {
-			searchNextFrame();
-			int pos = in.position();
-			MP3Header header = readHeader();
-			in.position(pos);
-			if (header != null) {
+        // Create file metadata object
+        fileMeta = createFileMeta();
+
+        // MP3 header is length of 32 bits, that is, 4 bytes
+        // Read further if there's still data
+        if (in.remaining() > 4) {
+            // Look to next frame
+            searchNextFrame();
+            // Set position
+            int pos = in.position();
+            // Read header...
+            // Data in MP3 file goes header-data-header-data...header-data
+            MP3Header header = readHeader();
+            // Set position
+            in.position(pos);
+            // Check header
+            if (header != null) {
 				checkValidHeader(header);
 			} else {
 				throw new RuntimeException("No initial header found.");
@@ -97,8 +146,10 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 	}
 
 	/**
-	 * Check if the file can be played back with Flash. 
-	 * @param header
+	 * Check if the file can be played back with Flash. Supported sample rates are
+     * 44KHz, 22KHz, 11KHz and 5.5KHz
+     * 
+	 * @param header       Header to check
 	 */
 	private void checkValidHeader(MP3Header header) {
 		switch (header.getSampleRate()) {
@@ -115,7 +166,11 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 		}
 	}
 
-	private ITag createFileMeta() {
+    /**
+     * Creates file metadata object
+     * @return         Tag
+     */
+    private ITag createFileMeta() {
 		// Create tag for onMetaData event
 		ByteBuffer buf = ByteBuffer.allocate(1024);
 		buf.setAutoExpand(true);
@@ -142,7 +197,7 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 		return result;
 	}
 
-	/** Search for next frame sync. */
+	/** Search for next frame sync word. Sync word identifies valid frame. */
 	public void searchNextFrame() {
 		while (in.remaining() > 1) {
 			int ch = in.get() & 0xff;
