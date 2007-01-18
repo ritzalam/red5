@@ -117,7 +117,7 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 
 				case TYPE_INVOKE:
 				case TYPE_FLEX_MESSAGE:
-					onInvoke(conn, channel, header, (Invoke) message);
+					onInvoke(conn, channel, header, (Invoke) message, (RTMP) state);
 					if(message.getHeader().getStreamId()!=0  
 							&& ((Invoke)message).getCall().getServiceName()==null
 							&& ACTION_PUBLISH.equals(((Invoke)message).getCall().getServiceMethodName())) {
@@ -133,7 +133,7 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 						// Stream metadata
 						((IEventDispatcher) stream).dispatchEvent(message);
 					} else {
-						onInvoke(conn, channel, header, (Notify) message);
+						onInvoke(conn, channel, header, (Notify) message, (RTMP) state);
 					}
 					break;
 				case TYPE_PING:
@@ -268,9 +268,10 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
      * @param channel      Channel
      * @param source       Header
      * @param invoke       Invocation event context
+     * @param rtmp		   RTMP connection state
      */
     protected abstract void onInvoke(RTMPConnection conn, Channel channel,
-			Header source, Notify invoke);
+			Header source, Notify invoke, RTMP rtmp);
 
     /**
      * Ping event handler

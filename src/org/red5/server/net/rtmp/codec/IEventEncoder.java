@@ -37,16 +37,18 @@ public interface IEventEncoder {
     /**
      * Encodes Notify event to byte buffer
      * @param notify         Notify event
+     * @param rtmp			 RTMP protocol state
      * @return               Byte buffer
      */
-	public abstract ByteBuffer encodeNotify(Notify notify);
+	public abstract ByteBuffer encodeNotify(Notify notify, RTMP rtmp);
 
     /**
      * Encodes Invoke event to byte buffer
      * @param invoke         Invoke event
+     * @param rtmp			 RTMP protocol state
      * @return               Byte buffer
      */
-	public abstract ByteBuffer encodeInvoke(Invoke invoke);
+	public abstract ByteBuffer encodeInvoke(Invoke invoke, RTMP rtmp);
 
     /**
      * Encodes Ping event to byte buffer
@@ -93,8 +95,9 @@ public interface IEventEncoder {
     /**
      * Encodes SharedObjectMessage event to byte buffer
      * @param so                 ISharedObjectMessage event
+     * @param rtmp			 RTMP protocol state
      * @return                   Byte buffer
      */
-    public abstract ByteBuffer encodeSharedObject(ISharedObjectMessage so);
+    public abstract ByteBuffer encodeSharedObject(ISharedObjectMessage so, RTMP rtmp);
 
 }

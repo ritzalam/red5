@@ -19,6 +19,7 @@ package org.red5.server.net.rtmp.codec;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import org.red5.server.api.IConnection.Encoding;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.message.Header;
 import org.red5.server.net.rtmp.message.Packet;
@@ -103,7 +104,11 @@ public class RTMP extends ProtocolState {
      * Write chunk size. Packets are read and written chunk-by-chunk
      */
 	private int writeChunkSize = DEFAULT_CHUNK_SIZE;
-
+	/**
+	 * Encoding type for objects
+	 */
+	private Encoding encoding = Encoding.AMF0;
+	
     /**
      * Creates RTMP object with initial mode
      * @param mode            Initial mode
@@ -315,4 +320,22 @@ public class RTMP extends ProtocolState {
 		this.writeChunkSize = writeChunkSize;
 	}
 
+    /**
+     * Getter for encoding version.
+     * 
+     * @return Encoding version
+     */
+    public Encoding getEncoding() {
+    	return encoding;
+    }
+    
+    /**
+     * Setter for encoding version.
+     * 
+     * @param encoding	Encoding version
+     */
+    public void setEncoding(Encoding encoding) {
+    	this.encoding = encoding;
+    }
+    
 }

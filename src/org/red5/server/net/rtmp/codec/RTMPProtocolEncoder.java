@@ -74,9 +74,8 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
      * @param buffer
      * @return
      */
-    private Output getOutput(ByteBuffer buffer) {
-		IConnection conn = Red5.getConnectionLocal();
-		if (conn.getEncoding() == Encoding.AMF3) {
+    private Output getOutput(RTMP rtmp, ByteBuffer buffer) {
+		if (rtmp.getEncoding() == Encoding.AMF3) {
 			return new org.red5.io.amf3.Output(buffer);
 		} else {
 			return new org.red5.io.amf.Output(buffer);
@@ -118,7 +117,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 		}
 
 		try {
-			data = encodeMessage(header, message);
+			data = encodeMessage(rtmp, header, message);
 		} finally {
 			message.release();
 		}
@@ -225,21 +224,22 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 
     /**
      * Encode message
+     * @param rtmp        RTMP protocol state
      * @param header      RTMP message header
      * @param message     RTMP message (event)
      * @return            Encoded message data
      */
-    public ByteBuffer encodeMessage(Header header, IRTMPEvent message) {
+    public ByteBuffer encodeMessage(RTMP rtmp, Header header, IRTMPEvent message) {
 		switch (header.getDataType()) {
 			case TYPE_CHUNK_SIZE:
 				return encodeChunkSize((ChunkSize) message);
 			case TYPE_INVOKE:
-				return encodeInvoke((Invoke) message);
+				return encodeInvoke((Invoke) message, rtmp);
 			case TYPE_NOTIFY:
 				if (((Notify) message).getCall() == null) {
 					return encodeStreamMetadata((Notify) message);
 				} else {
-					return encodeNotify((Notify) message);
+					return encodeNotify((Notify) message, rtmp);
 				}
 			case TYPE_PING:
 				return encodePing((Ping) message);
@@ -250,13 +250,13 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 			case TYPE_VIDEO_DATA:
 				return encodeVideoData((VideoData) message);
 			case TYPE_SHARED_OBJECT:
-				return encodeSharedObject((ISharedObjectMessage) message);
+				return encodeSharedObject((ISharedObjectMessage) message, rtmp);
 			case TYPE_SERVER_BANDWIDTH:
 				return encodeServerBW((ServerBW) message);
 			case TYPE_CLIENT_BANDWIDTH:
 				return encodeClientBW((ClientBW) message);
 			case TYPE_FLEX_MESSAGE:
-				return encodeFlexMessage((FlexMessage) message);
+				return encodeFlexMessage((FlexMessage) message, rtmp);
 			default:
 				return null;
 		}
@@ -293,11 +293,11 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 	}
 
 	/** {@inheritDoc} */
-    public ByteBuffer encodeSharedObject(ISharedObjectMessage so) {
+    public ByteBuffer encodeSharedObject(ISharedObjectMessage so, RTMP rtmp) {
 
 		final ByteBuffer out = ByteBuffer.allocate(128);
 		out.setAutoExpand(true);
-		final Output output = getOutput(out);
+		final Output output = getOutput(rtmp, out);
 
 		output.putString(so.getName());
 		// SO version
@@ -412,13 +412,13 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 	}
 
 	/** {@inheritDoc} */
-	public ByteBuffer encodeNotify(Notify notify) {
-		return encodeNotifyOrInvoke(notify);
+	public ByteBuffer encodeNotify(Notify notify, RTMP rtmp) {
+		return encodeNotifyOrInvoke(notify, rtmp);
 	}
 
 	/** {@inheritDoc} */
-	public ByteBuffer encodeInvoke(Invoke invoke) {
-		return encodeNotifyOrInvoke(invoke);
+	public ByteBuffer encodeInvoke(Invoke invoke, RTMP rtmp) {
+		return encodeNotifyOrInvoke(invoke, rtmp);
 	}
 
     /**
@@ -426,10 +426,10 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
      * @param invoke            Notification event
      * @return                  Encoded event data
      */
-    protected ByteBuffer encodeNotifyOrInvoke(Notify invoke) {
+    protected ByteBuffer encodeNotifyOrInvoke(Notify invoke, RTMP rtmp) {
 		ByteBuffer out = ByteBuffer.allocate(1024);
 		out.setAutoExpand(true);
-		encodeNotifyOrInvoke(out, invoke);
+		encodeNotifyOrInvoke(out, invoke, rtmp);
 		return out;
 	}
 
@@ -438,7 +438,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
      * @param out               Byte buffer to fill
      * @param invoke            Notification event
      */
-	protected void encodeNotifyOrInvoke(ByteBuffer out, Notify invoke) {
+	protected void encodeNotifyOrInvoke(ByteBuffer out, Notify invoke, RTMP rtmp) {
 		// TODO: tidy up here
 		// log.debug("Encode invoke");
 		Output output = new org.red5.io.amf.Output(out);
@@ -468,7 +468,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 			// Response to initial connect, always use AMF0
 			output = new org.red5.io.amf.Output(out);
 		} else {
-			output = getOutput(out);
+			output = getOutput(rtmp, out);
 		}
 		
 		if (!isPending && (invoke instanceof Invoke)) {
@@ -551,12 +551,12 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
      * @param msg                Flex message event
      * @return                   Encoded data
      */
-    public ByteBuffer encodeFlexMessage(FlexMessage msg) {
+    public ByteBuffer encodeFlexMessage(FlexMessage msg, RTMP rtmp) {
 		ByteBuffer out = ByteBuffer.allocate(1024);
 		out.setAutoExpand(true);
 		// Unknown byte, always 0?
 		out.put((byte) 0);
-		encodeNotifyOrInvoke(out, msg);
+		encodeNotifyOrInvoke(out, msg, rtmp);
 		return out;
 	}
 	

@@ -23,6 +23,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.*;
 import static org.red5.server.api.ScopeUtils.getScopeService;
+
+import org.red5.server.api.IConnection.Encoding;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IServiceCall;
 import org.red5.server.api.so.ISharedObject;
@@ -34,6 +36,7 @@ import org.red5.server.exception.ClientRejectedException;
 import org.red5.server.exception.ScopeNotFoundException;
 import org.red5.server.messaging.IConsumer;
 import org.red5.server.messaging.OOBControlMessage;
+import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.event.ChunkSize;
 import org.red5.server.net.rtmp.event.Invoke;
 import org.red5.server.net.rtmp.event.Notify;
@@ -165,7 +168,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 
 	/** {@inheritDoc} */
     protected void onInvoke(RTMPConnection conn, Channel channel, Header source,
-			Notify invoke) {
+			Notify invoke, RTMP rtmp) {
 
 		log.debug("Invoke");
 
@@ -269,9 +272,11 @@ public class RTMPHandler extends BaseRTMPHandler {
 											result.put("description", status.getDescription());
 											result.put("application", status.getApplication());
 											result.put("level", status.getLevel());
-											if (params.get("objectEncoding") == Integer.valueOf(3))
+											if (params.get("objectEncoding") == Integer.valueOf(3)) {
 												// Client wants to use AMF3 encoding
 												result.put("objectEncoding", 3);
+												rtmp.setEncoding(Encoding.AMF3);
+											}
 											pc.setResult(result);
 										}
 										// Measure initial roundtrip time after connecting

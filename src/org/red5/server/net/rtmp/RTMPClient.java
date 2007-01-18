@@ -221,7 +221,7 @@ public class RTMPClient extends BaseRTMPHandler {
 	
 	/** {@inheritDoc} */
     protected void onInvoke(RTMPConnection conn, Channel channel,
-			Header source, Notify invoke) {
+			Header source, Notify invoke, RTMP rtmp) {
 		final IServiceCall call = invoke.getCall();
 		if (call.getServiceMethodName().equals("_result")
 				|| call.getServiceMethodName().equals("_error")) {

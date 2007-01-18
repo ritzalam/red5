@@ -78,12 +78,12 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
     /**
      * Return input (data values provider) object from byte buffer. 
      *
+     * @param rtmp			RTMP protocol state
      * @param buffer        Byte buffer
      * @return              Input object
      */
-    private Input getInput(ByteBuffer buffer) {
-		IConnection conn = Red5.getConnectionLocal();
-		if (conn != null && conn.getEncoding() == Encoding.AMF3) {
+    private Input getInput(RTMP rtmp, ByteBuffer buffer) {
+		if (rtmp.getEncoding() == Encoding.AMF3) {
 			return new org.red5.io.amf3.Input(buffer);
 		} else {
 			return new org.red5.io.amf.Input(buffer);
@@ -407,7 +407,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 				message = decodeChunkSize(in);
 				break;
 			case TYPE_INVOKE:
-				message = decodeInvoke(in);
+				message = decodeInvoke(in, rtmp);
 				break;
 			case TYPE_NOTIFY:
 				message = decodeNotify(in, header, rtmp);
@@ -425,7 +425,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 				message = decodeVideoData(in);
 				break;
 			case TYPE_SHARED_OBJECT:
-				message = decodeSharedObject(in);
+				message = decodeSharedObject(in, rtmp);
 				break;
 			case TYPE_SERVER_BANDWIDTH:
 				message = decodeServerBW(in);
@@ -434,7 +434,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 				message = decodeClientBW(in);
 				break;
 			case TYPE_FLEX_MESSAGE:
-				message = decodeFlexMessage(in);
+				message = decodeFlexMessage(in, rtmp);
 				break;
 			default:
 				message = decodeUnknown(header.getDataType(), in);
@@ -474,9 +474,9 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	}
 
 	/** {@inheritDoc} */
-	public ISharedObjectMessage decodeSharedObject(ByteBuffer in) {
+	public ISharedObjectMessage decodeSharedObject(ByteBuffer in, RTMP rtmp) {
 
-		final Input input = getInput(in);
+		final Input input = getInput(rtmp, in);
 		String name = input.getString();
 		// Read version of SO to modify
 		int version = in.getInt();
@@ -544,8 +544,8 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	}
 
 	/** {@inheritDoc} */
-	public Notify decodeNotify(ByteBuffer in) {
-		return decodeNotify(in, null, null);
+	public Notify decodeNotify(ByteBuffer in, RTMP rtmp) {
+		return decodeNotify(in, null, rtmp);
 	}
 
 	public Notify decodeNotify(ByteBuffer in, Header header, RTMP rtmp) {
@@ -553,8 +553,8 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	}
 
 	/** {@inheritDoc} */
-	public Invoke decodeInvoke(ByteBuffer in) {
-		return (Invoke) decodeNotifyOrInvoke(new Invoke(), in, null, null);
+	public Invoke decodeInvoke(ByteBuffer in, RTMP rtmp) {
+		return (Invoke) decodeNotifyOrInvoke(new Invoke(), in, null, rtmp);
 	}
 
 	/**
@@ -584,7 +584,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
     protected Notify decodeNotifyOrInvoke(Notify notify, ByteBuffer in, Header header, RTMP rtmp) {
 		// TODO: we should use different code depending on server or client mode
 		int start = in.position();
-		Input input = getInput(in);
+		Input input = getInput(rtmp, in);
 
 		String action = (String) deserializer.deserialize(input);
 
@@ -691,9 +691,10 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
     /**
      * Decodes FlexMessage event
      * @param in               Byte buffer
+     * @param rtmp			   RTMP protocol state
      * @return                 FlexMessage event
      */
-    public FlexMessage decodeFlexMessage(ByteBuffer in) {
+    public FlexMessage decodeFlexMessage(ByteBuffer in, RTMP rtmp) {
 		// Unknown byte, always 0?
 		in.skip(1);
 		Input input = new org.red5.io.amf.Input(in);

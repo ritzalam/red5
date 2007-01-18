@@ -53,23 +53,26 @@ public interface IEventDecoder {
     /**
      * Decodes shared object message event
      * @param in                     Byte buffer to decode
+     * @param rtmp					 RTMP protocol state
      * @return                       ISharedObjectMessage event
      */
-	public abstract ISharedObjectMessage decodeSharedObject(ByteBuffer in);
+	public abstract ISharedObjectMessage decodeSharedObject(ByteBuffer in, RTMP rtmp);
 
     /**
      * Decodes notification event
      * @param in                     Byte buffer to decode
+     * @param rtmp					 RTMP protocol state
      * @return                       Notify event
      */
-    public abstract Notify decodeNotify(ByteBuffer in);
+    public abstract Notify decodeNotify(ByteBuffer in, RTMP rtmp);
 
     /**
      * Decodes invocation event
      * @param in                     Byte buffer to decode
+     * @param rtmp					 RTMP protocol state
      * @return                       Invoke event
      */
-    public abstract Invoke decodeInvoke(ByteBuffer in);
+    public abstract Invoke decodeInvoke(ByteBuffer in, RTMP rtmp);
 
     /**
      * Decodes ping event
@@ -102,7 +105,8 @@ public interface IEventDecoder {
     /**
      * Decodes Flex message event
      * @param in                     Byte buffer to decode
+     * @param rtmp					 RTMP protocol state
      * @return                       FlexMessage event
      */
-    public abstract FlexMessage decodeFlexMessage(ByteBuffer in);
+    public abstract FlexMessage decodeFlexMessage(ByteBuffer in, RTMP rtmp);
 }
