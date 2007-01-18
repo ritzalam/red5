@@ -116,19 +116,19 @@ public class StreamService implements IStreamService {
 			return;
 		}
 		ISubscriberStream subscriberStream = (ISubscriberStream) stream;
-//		if (pausePlayback instanceof Boolean) {
+		if (pausePlayback instanceof Boolean) {
 			if (pausePlayback) {
 				subscriberStream.pause(position);
 			} else {
 				subscriberStream.resume(position);
 			}
-//		} else {
-//			if (!subscriberStream.isPaused()) {
-//				subscriberStream.pause(position);
-//			} else {
-//				subscriberStream.resume(position);
-//			}
-//		}
+		} else {
+			if (!subscriberStream.isPaused()) {
+				subscriberStream.pause(position);
+			} else {
+				subscriberStream.resume(position);
+			}
+		}
 	}
 
     /**
