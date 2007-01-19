@@ -251,7 +251,7 @@ public class StreamService implements IStreamService {
 		int streamId = getCurrentStreamId();
 		
 		IBroadcastScope bsScope = getBroadcastScope(conn.getScope(), name);
-		if (bsScope != null) {
+		if (bsScope != null && !bsScope.getProviders().isEmpty()) {
 			// Another stream with that name is already published.
 			Status badName = new Status(StatusCodes.NS_PUBLISH_BADNAME);
 			badName.setClientid(streamId);
