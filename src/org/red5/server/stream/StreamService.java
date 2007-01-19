@@ -275,6 +275,18 @@ public class StreamService implements IStreamService {
 		IClientBroadcastStream bs = (IClientBroadcastStream) stream;
 		try {
 			bs.setPublishedName(name);
+			IContext context = conn.getScope().getContext();
+			IProviderService providerService = (IProviderService) context
+					.getBean(IProviderService.BEAN_NAME);
+			// TODO handle registration failure
+			if (providerService.registerBroadcastStream(conn.getScope(),
+					name, bs)) {
+				bsScope = getBroadcastScope(conn.getScope(), name);
+				bsScope.setAttribute(IBroadcastScope.STREAM_ATTRIBUTE, bs);
+				if (conn instanceof BaseConnection) {
+					((BaseConnection) conn).registerBasicScope(bsScope);
+				}
+			}
 			if (IClientStream.MODE_RECORD.equals(mode)) {
 				bs.start();
 				bs.saveAs(name, false);
@@ -282,18 +294,6 @@ public class StreamService implements IStreamService {
 				bs.start();
 				bs.saveAs(name, true);
 			} else if (IClientStream.MODE_LIVE.equals(mode)) {
-				IContext context = conn.getScope().getContext();
-				IProviderService providerService = (IProviderService) context
-						.getBean(IProviderService.BEAN_NAME);
-				// TODO handle registration failure
-				if (providerService.registerBroadcastStream(conn.getScope(),
-						name, bs)) {
-					bsScope = getBroadcastScope(conn.getScope(), name);
-					bsScope.setAttribute(IBroadcastScope.STREAM_ATTRIBUTE, bs);
-					if (conn instanceof BaseConnection) {
-						((BaseConnection) conn).registerBasicScope(bsScope);
-					}
-				}
 				bs.start();
 			}
 		} catch (Exception e) {
