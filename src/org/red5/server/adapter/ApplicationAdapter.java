@@ -132,28 +132,6 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
     private String ghostCleanupJobName;
 
     /**
-     * Creates new application adapter
-     */
-    public ApplicationAdapter() {
-        sharedObjectService = (ISharedObjectService) getScopeService(
-                scope, ISharedObjectService.class,
-                SharedObjectService.class, false);
-
-        providerService = (IProviderService) getScopeService(scope,
-                IProviderService.class, ProviderService.class);
-
-        vodService = (IOnDemandStreamService) getScopeService(
-                scope, IOnDemandStreamService.class,
-                StreamService.class, false);
-
-        schedulingService = (ISchedulingService) getScopeService(
-                scope, ISchedulingService.class,
-                QuartzSchedulingService.class, false);
-
-        
-    }
-
-    /**
 	 * Register listener that will get notified about application events. Please
 	 * note that return values (e.g. from {@link IApplication#appStart(IScope)})
 	 * will be ignored for listeners.
@@ -628,8 +606,10 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 	 */
 	public boolean createSharedObject(IScope scope, String name,
 			boolean persistent) {
-
-        return sharedObjectService.createSharedObject(scope, name, persistent);
+		ISharedObjectService service = (ISharedObjectService) getScopeService(
+				scope, ISharedObjectService.class,
+				SharedObjectService.class, false);
+		return service.createSharedObject(scope, name, persistent);
     }
 
     /**
@@ -642,7 +622,10 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 	 * @return					Shared object instance with name given
 	 */
 	public ISharedObject getSharedObject(IScope scope, String name) {
-		return sharedObjectService.getSharedObject(scope, name);
+		ISharedObjectService service = (ISharedObjectService) getScopeService(
+				scope, ISharedObjectService.class,
+				SharedObjectService.class, false);
+		return service.getSharedObject(scope, name);
 	}
 
 	/**
@@ -658,7 +641,10 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 	 */
 	public ISharedObject getSharedObject(IScope scope, String name,
 			boolean persistent) {
-		return sharedObjectService.getSharedObject(scope, name, persistent);
+		ISharedObjectService service = (ISharedObjectService) getScopeService(
+				scope, ISharedObjectService.class,
+				SharedObjectService.class, false);
+		return service.getSharedObject(scope, name, persistent);
 	}
 
 	/**
@@ -668,7 +654,10 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 	 *            Scope that SO belong to
 	 */
 	public Set<String> getSharedObjectNames(IScope scope) {
-		return sharedObjectService.getSharedObjectNames(scope);
+		ISharedObjectService service = (ISharedObjectService) getScopeService(
+				scope, ISharedObjectService.class,
+				SharedObjectService.class, false);
+		return service.getSharedObjectNames(scope);
 	}
 
 	/**
@@ -680,15 +669,19 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 	 *            Name of SharedObject
 	 */
 	public boolean hasSharedObject(IScope scope, String name) {
-		return sharedObjectService.hasSharedObject(scope, name);
+		ISharedObjectService service = (ISharedObjectService) getScopeService(
+				scope, ISharedObjectService.class,
+				SharedObjectService.class, false);
+		return service.hasSharedObject(scope, name);
 	}
 
 	/* Wrapper around the stream interfaces */
 
 	/** {@inheritDoc} */
     public boolean hasBroadcastStream(IScope scope, String name) {
-
-        return (providerService.getLiveProviderInput(scope, name, false) != null);
+		IProviderService service = (IProviderService) getScopeService(scope,
+				IProviderService.class, ProviderService.class);
+		return (service.getLiveProviderInput(scope, name, false) != null);
 	}
 
 	/** {@inheritDoc} */
@@ -712,7 +705,9 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 	 * @return	List of broadcasted stream names.
 	 */
 	public List<String> getBroadcastStreamNames(IScope scope) {
-		return providerService.getBroadcastStreamNames(scope);
+		IProviderService service = (IProviderService) getScopeService(scope,
+				IProviderService.class, ProviderService.class);
+		return service.getBroadcastStreamNames(scope);
 	}
 
 	/**
@@ -727,7 +722,9 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 	 *         <code>false</code> otherwise.
 	 */
 	public boolean hasOnDemandStream(IScope scope, String name) {
-		return (providerService.getVODProviderInput(scope, name) != null);
+		IProviderService service = (IProviderService) getScopeService(scope,
+				IProviderService.class, ProviderService.class);
+		return (service.getVODProviderInput(scope, name) != null);
 	}
 
 	/**
@@ -744,7 +741,10 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 	 */
 	public IOnDemandStream getOnDemandStream(IScope scope, String name) {
 		log.warn("This won't work until the refactoring of the streaming code is complete.");
-        return vodService.getOnDemandStream(scope, name);
+		IOnDemandStreamService service = (IOnDemandStreamService) getScopeService(
+				scope, IOnDemandStreamService.class,
+				StreamService.class, false);
+		return service.getOnDemandStream(scope, name);
 	}
 
 	/**
@@ -779,7 +779,10 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 	 * @return	Name of the scheduled job
 	 */
 	public String addScheduledJob(int interval, IScheduledJob job) {
-        return schedulingService.addScheduledJob(interval, job);
+		ISchedulingService service = (ISchedulingService) getScopeService(
+				scope, ISchedulingService.class,
+				QuartzSchedulingService.class, false);
+		return service.addScheduledJob(interval, job);
 	}
 
 	/**
@@ -795,7 +798,10 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 	 * @return	Name of the scheduled job
 	 */
 	public String addScheduledOnceJob(long timeDelta, IScheduledJob job) {
-		return schedulingService.addScheduledOnceJob(timeDelta, job);
+		ISchedulingService service = (ISchedulingService) getScopeService(
+				scope, ISchedulingService.class,
+				QuartzSchedulingService.class, false);
+		return service.addScheduledOnceJob(timeDelta, job);
 	}
 
 	/**
@@ -810,7 +816,10 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 	 * @return	Name of the scheduled job
 	 */
 	public String addScheduledOnceJob(Date date, IScheduledJob job) {
-		return schedulingService.addScheduledOnceJob(date, job);
+		ISchedulingService service = (ISchedulingService) getScopeService(
+				scope, ISchedulingService.class,
+				QuartzSchedulingService.class, false);
+		return service.addScheduledOnceJob(date, job);
 	}
 
 	/**
@@ -820,7 +829,10 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 	 *            Scheduled job name
 	 */
 	public void removeScheduledJob(String name) {
-		schedulingService.removeScheduledJob(name);
+		ISchedulingService service = (ISchedulingService) getScopeService(
+				scope, ISchedulingService.class,
+				QuartzSchedulingService.class, false);
+		service.removeScheduledJob(name);
 	}
 
 	/**
@@ -829,7 +841,10 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 	 * @return	List of scheduled job names as list of Strings.
 	 */
 	public List<String> getScheduledJobNames() {
-		return schedulingService.getScheduledJobNames();
+		ISchedulingService service = (ISchedulingService) getScopeService(
+				scope, ISchedulingService.class,
+				QuartzSchedulingService.class, false);
+		return service.getScheduledJobNames();
 	}
 
 	// NOTE: Method added to get flv player to work.
@@ -842,7 +857,9 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 	 * @return	Stream length in seconds (?)
 	 */
 	public double getStreamLength(String name) {
-		File file = providerService.getVODProviderFile(scope, name);
+		IProviderService provider = (IProviderService) getScopeService(scope,
+				IProviderService.class, ProviderService.class);
+		File file = provider.getVODProviderFile(scope, name);
 		if (file == null) {
 			return 0;
 		}
@@ -871,7 +888,14 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 
 	/** {@inheritDoc} */
     public boolean clearSharedObjects(IScope scope, String name) {
-		return sharedObjectService.clearSharedObjects( scope, name );
+		ISharedObjectService service = (ISharedObjectService) getScopeService(
+                scope,
+                ISharedObjectService.class,
+                SharedObjectService.class,
+                false
+        );
+
+        return service.clearSharedObjects(scope, name);
     }
 
     /**

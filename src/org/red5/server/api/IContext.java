@@ -38,7 +38,7 @@ public interface IContext extends ResourcePatternResolver {
      *
      * @return  Application context
      */
-    public ApplicationContext getApplicationContext();
+    ApplicationContext getApplicationContext();
 
 	// public IScopeResolver getScopeResolver();
 	/**
@@ -47,7 +47,7 @@ public interface IContext extends ResourcePatternResolver {
 	 * 
 	 * @return	Client registry object
 	 */
-	public IClientRegistry getClientRegistry();
+    IClientRegistry getClientRegistry();
 
 	/**
 	 * Returns service invoker object. Service invokers are objects that make
@@ -55,7 +55,7 @@ public interface IContext extends ResourcePatternResolver {
 	 * 
 	 * @return		Service invoker object
 	 */
-	public IServiceInvoker getServiceInvoker();
+    IServiceInvoker getServiceInvoker();
 
 	/**
 	 * Returns persistence store object, a storage for persistent objects like
@@ -63,7 +63,7 @@ public interface IContext extends ResourcePatternResolver {
 	 * 
 	 * @return	Persistence store object
 	 */
-	public IPersistenceStore getPersistanceStore();
+    IPersistenceStore getPersistanceStore();
 
 	/**
 	 * Returns scope handler (object that handle all actions related to the
@@ -73,7 +73,7 @@ public interface IContext extends ResourcePatternResolver {
 	 *            Path of scope handler
 	 * @return		Scope handler
 	 */
-	public IScopeHandler lookupScopeHandler(String path);
+    IScopeHandler lookupScopeHandler(String path);
 
 	/**
 	 * Returns scope by path. You can think of IScope as of tree items, used to
@@ -84,14 +84,14 @@ public interface IContext extends ResourcePatternResolver {
 	 *            Path of scope
 	 * @return		IScope object
 	 */
-	public IScope resolveScope(String path);
+    IScope resolveScope(String path);
 
 	/**
 	 * Returns global scope reference
 	 * 
 	 * @return	global scope reference
 	 */
-	public IScope getGlobalScope();
+    IScope getGlobalScope();
 
 	/**
 	 * Returns service by name. 
@@ -100,7 +100,7 @@ public interface IContext extends ResourcePatternResolver {
 	 *            Name of service
 	 * @return				Service object
 	 */
-	public Object lookupService(String serviceName);
+    Object lookupService(String serviceName);
 
 	/**
 	 * Returns bean by ID
@@ -109,7 +109,7 @@ public interface IContext extends ResourcePatternResolver {
 	 *            Bean ID
 	 * @return			Given bean instance
 	 */
-	public Object getBean(String beanId);
+    Object getBean(String beanId);
 
 	/**
 	 * Returns core service by bean id
@@ -118,7 +118,7 @@ public interface IContext extends ResourcePatternResolver {
 	 *            Bean ID
 	 * @return			Core service
 	 */
-	public Object getCoreService(String beanId);
+    Object getCoreService(String beanId);
 
 	/**
 	 * Returns IMappingStrategy object

@@ -19,8 +19,6 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.io.IOException;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.mortbay.jetty.Handler;
@@ -33,6 +31,8 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+import java.io.IOException;
 
 /**
  *
@@ -64,9 +64,9 @@ public class JettyLoader implements ApplicationContextAware {
     private static ThreadLocal<ApplicationContext> applicationContext = new ThreadLocal<ApplicationContext>();
 
     /**
-     *
-     * @param context
-     * @throws BeansException
+     * App context
+     * @param context           App context
+     * @throws BeansException   Bean exception
      */
 	public void setApplicationContext(ApplicationContext context)
 			throws BeansException {
@@ -74,8 +74,8 @@ public class JettyLoader implements ApplicationContextAware {
 	}
 
     /**
-     *
-     * @return
+     * Return app context
+     * @return                  App context
      */
 	public static ApplicationContext getApplicationContext() {
 		return applicationContext.get();
@@ -102,8 +102,9 @@ public class JettyLoader implements ApplicationContextAware {
 			System.setProperty("jetty.class.path", serverRoot + "/lib");
 
 			log.info("Starting jetty servlet engine");
-			
-			String webAppRoot = System.getProperty("red5.webapp.root");
+
+            // Get Red5 applications directory
+            String webAppRoot = System.getProperty("red5.webapp.root");
 			String[] handlersArr = new String[]{"org.mortbay.jetty.webapp.WebInfConfiguration", 
 					"org.mortbay.jetty.webapp.WebXmlConfiguration", 
 					"org.mortbay.jetty.webapp.JettyWebXmlConfiguration", 

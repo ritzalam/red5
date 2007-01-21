@@ -87,20 +87,27 @@ public class Red5WebPropertiesConfiguration implements Configuration,
 	/** {@inheritDoc} */
     public void configureWebApp() throws Exception {
 		log.debug("Configuring Jetty webapp");
-		WebAppContext context = getWebAppContext();
-		if (context.isStarted()) {
+
+        // Get context
+        WebAppContext context = getWebAppContext();
+
+        // If app is already started...
+        if (context.isStarted()) {
 			log.debug("Cannot configure webapp after it is started");
 			return;
 		}
 
-		Resource webInf = context.getWebInf();
+        // Get WEB_INF directory
+        Resource webInf = context.getWebInf();
 		if (webInf != null && webInf.isDirectory()) {
-			Resource config = webInf.addPath("red5-web.properties");
+            // Get properties file with virtualHosts and context path
+            Resource config = webInf.addPath("red5-web.properties");
 			if (config.exists()) {
 				log.debug("Configuring red5-web.properties");
                 // Load configuration properties
                 Properties props = new Properties();
 				props.load(config.getInputStream());
+
                 // Get context path and virtual hosts
                 String contextPath = props.getProperty("webapp.contextPath");
 				String virtualHosts = props.getProperty("webapp.virtualHosts");

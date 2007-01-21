@@ -88,7 +88,8 @@ public class ContextLoader implements ApplicationContextAware {
      * @throws Exception        I/O exception, casting exception and others
      */
 	public void init() throws Exception {
-		Properties props = new Properties();
+        // Load properties bundle
+        Properties props = new Properties();
 		Resource res = applicationContext.getResource(contextsConfig);
 		if (!res.exists()) {
 			log.error("Contexts config must be set.");

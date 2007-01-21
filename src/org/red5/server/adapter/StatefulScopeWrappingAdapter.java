@@ -36,7 +36,10 @@ import java.util.Set;
 public class StatefulScopeWrappingAdapter extends AbstractScopeAdapter
 		implements IScopeAware, IAttributeStore {
 
-	protected IScope scope;
+    /**
+     * Wrapped scope
+     */
+    protected IScope scope;
 
 	/** {@inheritDoc} */
     public void setScope(IScope scope) {
