@@ -97,21 +97,6 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 	private Set<IApplication> listeners = new HashSet<IApplication>();
 
     /**
-     * SharedObject service
-     */
-    protected ISharedObjectService sharedObjectService;
-
-    /**
-     * Provides input objects
-     */
-    protected IProviderService providerService;
-
-    /**
-     * OD streams service
-     */
-    protected IOnDemandStreamService vodService;
-
-    /**
      * Scheduling service. Uses Quartz. Adds and removes scheduled jobs.
      */
     protected ISchedulingService schedulingService;
