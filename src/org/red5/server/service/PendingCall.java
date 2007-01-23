@@ -79,6 +79,7 @@ public class PendingCall extends Call implements IPendingServiceCall {
 	 */
 	public void setResult(Object result) {
 		this.result = result;
+		setStatus(result == null ? STATUS_SUCCESS_NULL : STATUS_SUCCESS_RESULT);
 	}
 
 	/** {@inheritDoc} */
