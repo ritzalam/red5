@@ -68,10 +68,5 @@
 	<classpathentry kind="lib" path="lib/mina-filter-ssl-2.0.0-M1.jar"/>
 	<classpathentry kind="lib" path="lib/mina-integration-spring-2.0.0-M1.jar"/>
 	<classpathentry kind="lib" path="lib/groovy-1.0.jar"/>
-	<classpathentry kind="lib" path="lib/groovy-1.0.jar"/>
-	<classpathentry kind="lib" path="lib/mina-core-2.0.0-M1.jar" sourcepath="C:/dev/other/mina/trunk/core/src/main/java"/>
-	<classpathentry kind="lib" path="lib/mina-filter-compression-2.0.0-M1.jar" sourcepath="C:/dev/other/mina/trunk/filter-compression/src/main/java"/>
-	<classpathentry kind="lib" path="lib/mina-filter-ssl-2.0.0-M1.jar" sourcepath="C:/dev/other/mina/trunk/filter-ssl/src/main/java"/>
-	<classpathentry kind="lib" path="lib/mina-integration-spring-2.0.0-M1.jar" sourcepath="C:/dev/other/mina/trunk/integration-spring/src/main/java"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
