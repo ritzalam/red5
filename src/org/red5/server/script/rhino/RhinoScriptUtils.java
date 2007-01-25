@@ -48,9 +48,7 @@ public class RhinoScriptUtils {
 	private static ScriptEngineManager mgr = new ScriptEngineManager();
 	
 	//Javascript wrapper
-	//private static final String jsWrapper = "function Wrapper(obj){return new JSAdapter(){ __has__ : function(name){return true;}, __get__ : function(name){if(name in obj){return obj[name];}else if(name in obj['parentClass']){return obj.parentClass.call(name, arguments);}else if(typeof(obj['doesNotUnderstand']) == 'function'){return function(){return obj.doesNotUnderstand(name, arguments);}}else{return undefined;}}};}";	
 	private static final String jsWrapper = "function Wrapper(obj){return new JSAdapter(){ __has__ : function(name){return true;}, __get__ : function(name){if(name in obj){return obj[name];}else if(typeof(obj['doesNotUnderstand']) == 'function'){return function(){return obj.doesNotUnderstand(name, arguments);}}else{return undefined;}}};}";	
-	//private static final String jsWrapper = "function Wrapper(obj){return new JSAdapter(){ __has__ : function(name){return true;}, __get__ : function(name){if(name in obj){return obj[name];}else if(name in obj['parentClass']){var methd=obj.parentClass[name];return methd(arguments);}else if(typeof(obj['doesNotUnderstand']) == 'function'){return function(){return obj.doesNotUnderstand(name, arguments);}}else{return undefined;}}};}";	
 	 
 	/**
 	 * Create a new Rhino-scripted object from the given script source.
@@ -103,8 +101,7 @@ public class RhinoScriptUtils {
 		try {
 			o = script.eval();
 		} catch(Exception e) {
-			//log.error("Problem evaluating script", e);
-			log.error("Problem evaluating script");
+			log.error("Problem evaluating script", e);
 		}
 		if (log.isDebugEnabled()) {
 			log.debug("Result of script call: " + o);

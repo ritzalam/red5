@@ -11,4 +11,6 @@ public interface IDemoService {
      */
     public Map getListOfAvailableFLVs();
 
+    public Map getListOfAvailableFLVs(String string);
+
 }

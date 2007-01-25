@@ -71,7 +71,7 @@ function object(o) {
 //if a super class exists in the namespace / bindings
 if (supa) {
 	if (log.isDebugEnabled) {
-		print('New instance of prototype: ' + supa);
+		print('New instance of prototype: ' + supa + '\n');
 	}
 	object(supa);
 }
