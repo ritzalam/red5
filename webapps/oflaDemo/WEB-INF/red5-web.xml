@@ -37,6 +37,7 @@
    			<value>org.red5.server.adapter.ApplicationAdapter</value>
 		</constructor-arg>
 	</bean>
+-->
 <!-- 
 	<bean id="web.handler" class="org.red5.server.script.jruby.JRubyScriptFactory">
 		<constructor-arg index="0" value="classpath:applications/main.rb"/>
