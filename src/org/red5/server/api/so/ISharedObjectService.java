@@ -25,7 +25,7 @@ import org.red5.server.api.IScope;
 import org.red5.server.api.IScopeService;
 
 /**
- * Service that manages shared objects.
+ * Service that manages shared objects for given scope.
  * 
  */
 public interface ISharedObjectService extends IScopeService {

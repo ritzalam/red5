@@ -70,7 +70,7 @@ public class RhinoScriptUtils {
 		if (log.isDebugEnabled()) {
 			log.debug("Script Engine Manager: " + mgr.getClass().getName());
 		}
-		ScriptEngine engine = mgr.getEngineByName("rhino");
+		ScriptEngine engine = mgr.getEngineByName("javascript");
 		// set engine scope namespace
 		Bindings nameSpace = engine.getBindings(ScriptContext.ENGINE_SCOPE);
 		// add the logger to the script

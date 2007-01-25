@@ -33,8 +33,6 @@ import org.apache.mina.common.ByteBuffer;
 import org.red5.io.amf.AMF;
 import org.red5.io.object.DataTypes;
 import org.red5.io.object.Deserializer;
-import org.red5.io.object.RecordSet;
-import org.red5.io.object.RecordSetPage;
 import org.red5.io.utils.ObjectMap;
 
 /**
@@ -112,7 +110,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 			// TODO check XML_SPECIAL
 			case AMF3.TYPE_XML:
 			case AMF3.TYPE_XML_SPECIAL:
-				coreType = DataTypes.CORE_XML;
+                coreType = DataTypes.CORE_XML;
 				break;
 			case AMF3.TYPE_OBJECT:
 				coreType = DataTypes.CORE_OBJECT;
@@ -237,7 +235,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		count = (count >> 1);
 		String key = readString();
 		amf3_mode += 1;
-		Object result = null;
+		Object result;
 		if (key.equals("")) {
 			// normal array
 			List<Object> resultList = new ArrayList<Object>(count);
@@ -287,7 +285,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		
 		type >>= 1;
 		String className = readString();
-		Object result = null;
+		Object result;
 		amf3_mode += 1;
 		// Load object properties into map
 		Map<String, Object> properties = new ObjectMap<String, Object>();
@@ -378,7 +376,6 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 * Parser of AMF3 "compressed" integer data type
 	 * 
 	 * @return a converted integer value
-	 * @throws IOException        I/O exception
 	 * @see <a href="http://osflash.org/amf3/parsing_integers">parsing AMF3
 	 *      integers (external)</a>
 	 */

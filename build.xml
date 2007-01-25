@@ -9,7 +9,7 @@
     <!-- project properties -->
 	<property environment="env"/>
 
-	<property name="java.home" value="${env.JAVA_HOME}"/>
+	<property name="java.home" value="${env.JDK_HOME}"/>
 
 	<property name="src.dir" value="src"/>
 	<property name="bin.dir" value="bin"/>

@@ -109,7 +109,7 @@ public class AMF3 {
 	/**
 	 * 01 = single anonymous property. <br />
 	 * A single amf3-data contains a single value. <br />
-	 * The property name should be declared in the class-def reference but this doesn’t seem <b />
+	 * The property name should be declared in the class-def reference but this doesn't seem <b />
 	 * to always be the case - more to come here.
 	 */
     public static final byte TYPE_OBJECT_ANONYMOUS_PROPERTY = 0x01;

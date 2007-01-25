@@ -256,8 +256,8 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		/*
 		 * Date: 0x0B T7 T6 .. T0 Z1 Z2 T7 to T0 form a 64 bit Big Endian number
 		 * that specifies the number of nanoseconds that have passed since
-		 * 1/1/1970 0:00 to the specified time. This format is “UTC 1970”. Z1 an
-		 * Z0 for a 16 bit Big Endian number indicating the indicated time’s
+		 * 1/1/1970 0:00 to the specified time. This format is UTC 1970. Z1 an
+		 * Z0 for a 16 bit Big Endian number indicating the indicated time's
 		 * timezone in minutes.
 		 */
 		long ms = (long) buf.getDouble();
@@ -296,9 +296,11 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		readKeyValues(result, deserializer);
 		return result;
     }
-	
+
     /**
      * Read key - value pairs into Map object
+     * @param result            Map to put resulting pair to
+     * @param deserializer      Deserializer used
      */
 	protected void readKeyValues(Map<String, Object> result, Deserializer deserializer) {
 		while (hasMoreProperties()) {
@@ -368,8 +370,8 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	/**
 	 * Creats a new instance of the className parameter and 
 	 * returns as an Object
-	 * @param className
-	 * @return Object
+	 * @param className        Class name as String
+	 * @return Object          New object instance (for given class)
 	 */
 	protected Object newInstance(String className) {
 		Object instance = null;
@@ -383,13 +385,12 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		return instance;
 	}
 
-	/**
-	 * Reads the input as a bean and returns an object
-	 * 
-	 * @param in
-	 * @param bean
-	 * @return Object
-	 */
+    /**
+     * Reads the input as a bean and returns an object
+     * @param deserializer       Deserializer used
+     * @param bean               Input as bean
+     * @return                   Decoded object
+     */
 	protected Object readBean(Deserializer deserializer, Object bean) {
 		if (log.isDebugEnabled()) {
 			log.debug("read bean");
@@ -424,12 +425,11 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		return bean;
 	}
 
-	/**
-	 * Reads the input as a map and returns a Map
-	 * 
-	 * @param in
-	 * @return Map
-	 */
+    /**
+     * Reads the input as a map and returns a Map
+     * @param deserializer     Deserializer to use
+     * @return                 Read map
+     */
 	protected Map<String, Object> readSimpleObject(Deserializer deserializer) {
 		if (log.isDebugEnabled()) {
 			log.debug("read map");
@@ -439,12 +439,12 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		storeReference(result);
 		return result;
 	}
-	
-	/**
-	 * Reads start object
-	 * 
-	 * @return String
-	 */
+
+    /**
+     * Reads start object
+     * @param deserializer    Deserializer to use
+     * @return                Read object
+     */
 	public Object readObject(Deserializer deserializer) {
 		String className;
 		if (currentDataType == AMF.TYPE_CLASS_OBJECT) {

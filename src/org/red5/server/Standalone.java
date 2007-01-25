@@ -65,8 +65,7 @@ public class Standalone {
 	 * 
 	 * @param args
 	 *            String passed in that points to a red5.xml config file
-     * @throws Exception
-     * @throws Throwable
+     * @throws Throwable            Base type of all exceptions
 	 */
 	public static void main(String[] args) throws Throwable {
 
@@ -118,7 +117,10 @@ public class Standalone {
 
 		// Setup system properties so they can be evaluated by Jetty
 		Properties props = new Properties();
-		props.load(new FileInputStream(root + "/red5.properties"));
+
+        // Load properties
+        props.load(new FileInputStream(root + "/red5.properties"));
+
         for (Object o : props.keySet()) {
             String key = (String) o;
             if (key != null && !key.equals("")) {
@@ -133,7 +135,9 @@ public class Standalone {
 			// Workaround for linux systems
 			root = '/' + root;
 		}
-		System.setProperty("red5.root", root);
+
+        // Set Red5 root as environment variable
+        System.setProperty("red5.root", root);
 		log.info("Setting Red5 root to " + root);
 
 		System.setProperty("red5.webapp.root", root+"/webapps/");

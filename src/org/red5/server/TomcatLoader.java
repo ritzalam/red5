@@ -125,7 +125,8 @@ public class TomcatLoader implements ApplicationContextAware {
 		//scan for additional webapp contexts
 		if (log.isDebugEnabled()) {
 			log.debug("Approot: " + appRoot);
-		}
+            
+        }
         // Root applications directory
         File appDirBase = new File(appRoot);
         // Subdirs of root apps dir
