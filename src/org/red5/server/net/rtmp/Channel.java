@@ -138,10 +138,7 @@ public class Channel {
 		if (andReturn) {
 			final PendingCall call = new PendingCall(null, "onStatus",
 					new Object[] { status });
-			if (connection.getEncoding() == Encoding.AMF3)
-				invoke = new FlexMessage();
-			else
-				invoke = new Invoke();
+			invoke = new Invoke();
 			invoke.setInvokeId(1);
 			invoke.setCall(call);
 		} else {
