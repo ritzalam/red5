@@ -37,6 +37,21 @@
 		</property>
 	</bean>
 
+	<bean id="httpHost"
+		class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+		<property name="targetObject">
+			<ref bean="sysProps" />
+		</property>
+		<property name="targetMethod">
+			<value>getProperty</value>
+		</property>
+		<property name="arguments">
+			<list>
+				<value>http.host</value>
+			</list>
+		</property>
+	</bean>
+
 	<bean id="httpPort"
 		class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
 		<property name="targetObject">
@@ -67,6 +82,9 @@
 			<list>
 				<bean id="Connector"
 					class="org.mortbay.jetty.nio.SelectChannelConnector">
+					<property name="host">
+						<ref local="httpHost" />
+					</property>
 					<property name="port">
 						<ref local="httpPort" />
 					</property>
