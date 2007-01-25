@@ -19,21 +19,22 @@ package org.red5.server.net.rtmpt;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.mina.common.ByteBuffer;
-import org.red5.server.net.rtmp.codec.RTMP;
-import org.red5.server.net.servlet.ServletUtils;
-import org.springframework.web.context.WebApplicationContext;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.mina.common.ByteBuffer;
+import org.red5.server.net.rtmp.codec.RTMP;
+import org.red5.server.net.servlet.ServletUtils;
+import org.springframework.web.context.WebApplicationContext;
 
 /**
  * Servlet that handles all RTMPT requests.
@@ -153,7 +154,7 @@ public class RTMPTServlet extends HttpServlet {
 		ServletOutputStream output = resp.getOutputStream();
 		output.write(client.getPollingDelay());
 		ServletUtils.copy(buffer.asInputStream(), output);
-		buffer.release();
+		buffer = null;
 	}
 
 	/**
@@ -209,7 +210,7 @@ public class RTMPTServlet extends HttpServlet {
 		ByteBuffer data = ByteBuffer.allocate(req.getContentLength());
 		ServletUtils.copy(req.getInputStream(), data.asOutputStream());
 		data.flip();
-		data.release();
+		data = null;
 	}
 
 	/**
@@ -333,7 +334,7 @@ public class RTMPTServlet extends HttpServlet {
 
 		// Decode the objects in the data
 		List messages = client.decode(data);
-		data.release();
+		data = null;
 		if (messages == null || messages.isEmpty()) {
 			returnMessage(client.getPollingDelay(), resp);
 			return;
@@ -351,8 +352,9 @@ public class RTMPTServlet extends HttpServlet {
 
         // Send results to client
 		returnPendingMessages(client, resp);
-		if (client.isClosing())
+		if (client.isClosing()) {
 			client.realClose();
+		}
 	}
 
 	/**

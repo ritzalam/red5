@@ -42,8 +42,8 @@ public class RTMPUtils implements Constants {
 		bytes[2] = rev.get();
 		bytes[1] = rev.get();
 		bytes[0] = rev.get();
-		rev.release();
 		out.put(bytes);
+		rev = null;
 	}
 
     /**
@@ -129,7 +129,7 @@ public class RTMPUtils implements Constants {
 		buf.put(in.get());
 		buf.flip();
 		int value = buf.getInt();
-		buf.release();
+		buf = null;
 		return value;
 	}
 

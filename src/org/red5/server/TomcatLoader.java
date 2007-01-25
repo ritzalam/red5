@@ -19,7 +19,16 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.apache.catalina.*;
+import java.io.File;
+import java.io.FilenameFilter;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.catalina.Container;
+import org.apache.catalina.Engine;
+import org.apache.catalina.Host;
+import org.apache.catalina.Realm;
+import org.apache.catalina.Valve;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.core.StandardHost;
 import org.apache.catalina.startup.Embedded;
@@ -27,11 +36,6 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-
-import java.io.File;
-import java.io.FilenameFilter;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Red5 loader for Tomcat

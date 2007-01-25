@@ -19,10 +19,10 @@ package org.red5.server.api.persistence;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.io.IOException;
+
 import org.red5.io.object.Input;
 import org.red5.io.object.Output;
-
-import java.io.IOException;
 
 /**
  * Base interface for objects that can be made persistent.

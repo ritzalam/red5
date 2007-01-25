@@ -23,28 +23,21 @@ package org.red5.server.io.test;
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 
-import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeSet;
-
-import org.apache.mina.common.ByteBuffer;
-import org.red5.io.ITag;
-import org.red5.io.ITagReader;
-import org.red5.io.ITagWriter;
-import org.red5.io.amf.Output;
-import org.red5.io.flv.IFLV;
-import org.red5.io.flv.impl.FLV;
-import org.red5.io.flv.IFLVService;
-import org.red5.io.flv.impl.FLVService;
-import org.red5.io.flv.impl.Tag;
-import org.red5.io.flv.meta.MetaData;
-import org.red5.io.object.Deserializer;
-import org.red5.io.object.Serializer;
-import org.red5.io.utils.IOUtils;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import junit.framework.Assert;
 import junit.framework.TestCase;
+
+import org.red5.io.ITag;
+import org.red5.io.ITagReader;
+import org.red5.io.ITagWriter;
+import org.red5.io.flv.IFLV;
+import org.red5.io.flv.IFLVService;
+import org.red5.io.flv.impl.FLVService;
+import org.red5.io.object.Deserializer;
+import org.red5.io.object.Serializer;
 
 /**
  * A FLVServiceImpl TestCase
@@ -60,6 +53,7 @@ public class FLVServiceImplTest extends TestCase {
 	 * SetUp is called before each test
 	 * @return void
 	 */
+	@Override
 	public void setUp() {
 		service = new FLVService();
 		service.setSerializer(new Serializer());

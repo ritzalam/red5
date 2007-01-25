@@ -19,7 +19,14 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.red5.server.api.*;
+import java.io.IOException;
+
+import org.red5.server.api.IClientRegistry;
+import org.red5.server.api.IContext;
+import org.red5.server.api.IMappingStrategy;
+import org.red5.server.api.IScope;
+import org.red5.server.api.IScopeHandler;
+import org.red5.server.api.IScopeResolver;
 import org.red5.server.api.persistence.IPersistenceStore;
 import org.red5.server.api.service.IServiceInvoker;
 import org.red5.server.exception.ScopeHandlerNotFoundException;
@@ -30,8 +37,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.access.ContextSingletonBeanFactoryLocator;
 import org.springframework.core.io.Resource;
-
-import java.io.IOException;
 
 /**
  * {@inheritDoc}

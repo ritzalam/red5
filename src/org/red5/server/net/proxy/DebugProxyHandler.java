@@ -159,7 +159,7 @@ public class DebugProxyHandler extends IoHandlerAdapter implements
 		if (!isClient) {
 			log.debug("Connecting..");
 			SocketConnector connector = new SocketConnector();
-			ConnectFuture future = connector.connect(forward, this);
+			ConnectFuture future = connector.connect(forward); //, this);
 			future.join(); // wait for connect, or timeout
 			if (future.isConnected()) {
 				if (log.isDebugEnabled()) {
@@ -178,12 +178,6 @@ public class DebugProxyHandler extends IoHandlerAdapter implements
 	public void messageReceived(IoSession session, Object in) {
 
 		if (!log.isDebugEnabled()) {
-			if (false) {
-				if (in instanceof ByteBuffer) {
-					ByteBuffer buf = (ByteBuffer) in;
-					buf.release();
-				}
-			}
 			return;
 		}
 

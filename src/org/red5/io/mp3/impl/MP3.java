@@ -19,13 +19,13 @@ package org.red5.io.mp3.impl;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.red5.io.ITagReader;
-import org.red5.io.ITagWriter;
-import org.red5.io.mp3.IMP3;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+
+import org.red5.io.ITagReader;
+import org.red5.io.ITagWriter;
+import org.red5.io.mp3.IMP3;
 
 /**
  * Represents MP3 file

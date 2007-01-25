@@ -164,14 +164,14 @@ implements ApplicationContextAware {
     @Override
 	public void messageSent(IoSession session, Object message) throws Exception {
 		log.debug("messageSent");
-		session.getAttribute(RTMP.SESSION_KEY);
+		session.getAttribute(ProtocolState.SESSION_KEY);
 		final RTMPMinaConnection conn = (RTMPMinaConnection) session
 				.getAttachment();
 		handler.messageSent(conn, message);
 		if (mode == RTMP.MODE_CLIENT) {
 			if (message instanceof ByteBuffer) {
 				if (((ByteBuffer)message).limit() == Constants.HANDSHAKE_SIZE) {
-					handler.connectionOpened((RTMPMinaConnection)session.getAttachment(), (RTMP)session.getAttribute(RTMP.SESSION_KEY));
+					handler.connectionOpened((RTMPMinaConnection)session.getAttachment(), (RTMP)session.getAttribute(ProtocolState.SESSION_KEY));
 				}
 			}
 		}
@@ -189,7 +189,7 @@ implements ApplicationContextAware {
 		cfg.setTcpNoDelay(true);
 		super.sessionOpened(session);
 
-		RTMP rtmp=(RTMP)session.getAttribute(RTMP.SESSION_KEY);
+		RTMP rtmp=(RTMP)session.getAttribute(ProtocolState.SESSION_KEY);
 		if (rtmp.getMode()==RTMP.MODE_CLIENT) {
 			if (log.isDebugEnabled()){
 				log.debug("Handshake 1st phase");
@@ -209,7 +209,7 @@ implements ApplicationContextAware {
 				.getAttribute(ProtocolState.SESSION_KEY);
 		ByteBuffer buf = (ByteBuffer) session.getAttribute("buffer");
 		if (buf != null) {
-			buf.release();
+			buf = null;
 		}
 		final RTMPMinaConnection conn = (RTMPMinaConnection) session
 				.getAttachment();

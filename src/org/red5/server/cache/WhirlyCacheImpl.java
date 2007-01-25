@@ -115,7 +115,7 @@ public class WhirlyCacheImpl implements ICacheStore, ApplicationContextAware {
 	public void put(String name, Object obj) {
 		// Put an object into the cache
 		if (obj instanceof ICacheable) {
-			cache.store(name, (ICacheable) obj);
+			cache.store(name, obj);
 		} else {
 			cache.store(name, new CacheableImpl(obj));
 		}

@@ -19,17 +19,17 @@ package org.red5.io.amf3;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.mina.common.ByteBuffer;
-import org.red5.io.amf.AMF;
-import org.red5.io.object.DataTypes;
-
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.mina.common.ByteBuffer;
+import org.red5.io.amf.AMF;
+import org.red5.io.object.DataTypes;
 
 /**
  * Input for red5 data (AMF3) types
@@ -58,6 +58,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 * 
 	 * @return byte      Data type
 	 */
+	@Override
 	public byte readDataType() {
 
 		if (buf == null) {
@@ -127,6 +128,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 * 
 	 * @return Object    null
 	 */
+	@Override
 	public Object readNull() {
 		return null;
 	}
@@ -136,6 +138,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 * 
 	 * @return boolean     Boolean value
 	 */
+	@Override
 	public Boolean readBoolean() {
 		return (currentDataType == AMF3.TYPE_BOOLEAN_TRUE) ? Boolean.TRUE
 				: Boolean.FALSE;
@@ -146,6 +149,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 * 
 	 * @return Number      Number
 	 */
+	@Override
 	public Number readNumber() {
 		if (currentDataType == AMF3.TYPE_NUMBER) {
 			return buf.getDouble();
@@ -160,6 +164,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 * 
 	 * @return String       String
 	 */
+	@Override
 	public String readString() {
 		int len = readAMF3Integer();
 		if (len == 0)
@@ -184,6 +189,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 * 
 	 * @return Date        Date object
 	 */
+	@Override
 	public Date readDate() {
 		/*
 		 * Date: 0x0B T7 T6 .. T0 Z1 Z2 T7 to T0 form a 64 bit Big Endian number
@@ -211,6 +217,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 * 
 	 * @return int        Length of array
 	 */
+	@Override
 	public int readStartArray() {
 		System.err.println("MISSING: readStartArray");
 		return buf.getInt();
@@ -219,6 +226,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	/**
 	 * Skips elements TODO
 	 */
+	@Override
 	public void skipElementSeparator() {
 		// SKIP
 	}
@@ -226,6 +234,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	/**
 	 * Skips end array TODO
 	 */
+	@Override
 	public void skipEndArray() {
 		// SKIP
 	}
@@ -237,6 +246,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 * 
 	 * @return int        Size of map
 	 */
+	@Override
 	public int readStartMap() {
 		System.err.println("MISSING: readStartMap");
 		return buf.getInt();
@@ -247,6 +257,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 * 
 	 * @return boolean    <code>true</code> if this Input's buffer has more items, <code>false</code> otherwise
 	 */
+	@Override
 	public boolean hasMoreItems() {
 		return hasMoreProperties();
 	}
@@ -256,6 +267,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 * 
 	 * @return int        Array item index
 	 */
+	@Override
 	public String readItemKey() {
 		return readString();
 	}
@@ -263,6 +275,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	/**
 	 * Skips item seperator
 	 */
+	@Override
 	public void skipItemSeparator() {
 		// SKIP
 	}
@@ -270,6 +283,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	/**
 	 * Skips end list
 	 */
+	@Override
 	public void skipEndMap() {
 		skipEndObject();
 	}
@@ -281,6 +295,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 * 
 	 * @return String
 	 */
+	@Override
 	public String readStartObject() {
 		System.err.println("MISSING: readStartObject");
 		return null;
@@ -291,6 +306,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 * 
 	 * @return boolean       <code>true</code> if there are more properties to read, <code>false</code> otherwise
 	 */
+	@Override
 	public boolean hasMoreProperties() {
 		boolean isEnd = (buf.get() == 0);
 		buf.position(buf.position()-1);
@@ -302,6 +318,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 * 
 	 * @return String       Object property name
 	 */
+	@Override
 	public String readPropertyName() {
 		return readString();
 	}
@@ -309,6 +326,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	/**
 	 * Skips property seperator
 	 */
+	@Override
 	public void skipPropertySeparator() {
 		// SKIP
 	}
@@ -316,6 +334,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	/**
 	 * Skips end object
 	 */
+	@Override
 	public void skipEndObject() {
 		buf.skip(1);
 	}
@@ -327,6 +346,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 * 
 	 * @return String     XML as String
 	 */
+	@Override
 	public String readXML() {
 		return readString();
 	}
@@ -336,6 +356,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 * 
 	 * @return Object     Custom type object
 	 */
+	@Override
 	public Object readCustom() {
 		// Return null for now
 		return null;
@@ -344,6 +365,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	/**
 	 * Resets map
 	 */
+	@Override
 	public void reset() {
 		this.clearReferences();
 	}

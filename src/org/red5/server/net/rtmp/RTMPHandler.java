@@ -19,11 +19,18 @@ package org.red5.server.net.rtmp;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.red5.server.api.*;
 import static org.red5.server.api.ScopeUtils.getScopeService;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.red5.server.api.IContext;
+import org.red5.server.api.IGlobalScope;
+import org.red5.server.api.IScope;
+import org.red5.server.api.IScopeHandler;
+import org.red5.server.api.IServer;
 import org.red5.server.api.IConnection.Encoding;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IServiceCall;
@@ -52,9 +59,6 @@ import org.red5.server.so.SharedObjectService;
 import org.red5.server.stream.IBroadcastScope;
 import org.red5.server.stream.IStreamFlow;
 import org.red5.server.stream.StreamService;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * RTMP events handler
@@ -92,7 +96,8 @@ public class RTMPHandler extends BaseRTMPHandler {
 	}
 
 	/** {@inheritDoc} */
-    protected void onChunkSize(RTMPConnection conn, Channel channel,
+    @Override
+	protected void onChunkSize(RTMPConnection conn, Channel channel,
 			Header source, ChunkSize chunkSize) {
 		for (IClientStream stream : conn.getStreams()) {
 			if (stream instanceof IClientBroadcastStream) {
@@ -167,7 +172,8 @@ public class RTMPHandler extends BaseRTMPHandler {
 	// ------------------------------------------------------------------------------
 
 	/** {@inheritDoc} */
-    protected void onInvoke(RTMPConnection conn, Channel channel, Header source,
+    @Override
+	protected void onInvoke(RTMPConnection conn, Channel channel, Header source,
 			Notify invoke, RTMP rtmp) {
 
 		log.debug("Invoke");
@@ -385,7 +391,8 @@ public class RTMPHandler extends BaseRTMPHandler {
 	}
 
 	/** {@inheritDoc} */
-    protected void onPing(RTMPConnection conn, Channel channel, Header source,
+    @Override
+	protected void onPing(RTMPConnection conn, Channel channel, Header source,
 			Ping ping) {
 		switch (ping.getValue1()) {
 			case 3:
@@ -429,7 +436,8 @@ public class RTMPHandler extends BaseRTMPHandler {
 	}
 
 	/** {@inheritDoc} */
-    protected void onSharedObject(RTMPConnection conn, Channel channel,
+    @Override
+	protected void onSharedObject(RTMPConnection conn, Channel channel,
 			Header source, SharedObjectMessage object) {
 		final ISharedObject so;
 		final String name = object.getName();

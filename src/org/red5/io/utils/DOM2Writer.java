@@ -16,13 +16,13 @@ package org.red5.io.utils;
  * limitations under the License.
  */
 
+import java.io.PrintWriter;
+import java.io.Writer;
+
 import org.w3c.dom.Attr;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
-import java.io.PrintWriter;
-import java.io.Writer;
 
 /**
  * This class is a utility to serialize a DOM node as XML. This class uses the

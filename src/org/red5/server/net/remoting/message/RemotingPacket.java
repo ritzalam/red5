@@ -19,9 +19,10 @@ package org.red5.server.net.remoting.message;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import javax.servlet.http.HttpServletRequest;
 import java.nio.ByteBuffer;
 import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * Packet of remote calls. Used by RemoteProtocolDecoder.

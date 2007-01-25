@@ -39,7 +39,8 @@ public class SimpleClient implements IRTMPHandler {
 		ioHandler.setHandler(new SimpleClient());
 		
 		SocketConnector connector = new SocketConnector();
-		connector.connect(new InetSocketAddress("localhost",1935), ioHandler);
+		connector.setHandler(ioHandler);
+		connector.connect(new InetSocketAddress("localhost",1935));
 	}
 	
 	/** {@inheritDoc} */

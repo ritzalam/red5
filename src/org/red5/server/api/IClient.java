@@ -19,10 +19,10 @@ package org.red5.server.api;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.red5.server.adapter.IApplication;
-
 import java.util.Collection;
 import java.util.Set;
+
+import org.red5.server.adapter.IApplication;
 
 /**
  * The client object represents a single client. One client may have multiple

@@ -19,21 +19,33 @@ package org.red5.server.net.rtmp.codec;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.io.object.Output;
 import org.red5.io.object.Serializer;
 import org.red5.io.utils.BufferUtils;
-import org.red5.server.api.IConnection;
 import org.red5.server.api.IConnection.Encoding;
-import org.red5.server.api.Red5;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IServiceCall;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.protocol.SimpleProtocolEncoder;
 import org.red5.server.net.rtmp.RTMPUtils;
-import org.red5.server.net.rtmp.event.*;
+import org.red5.server.net.rtmp.event.AudioData;
+import org.red5.server.net.rtmp.event.BytesRead;
+import org.red5.server.net.rtmp.event.ChunkSize;
+import org.red5.server.net.rtmp.event.ClientBW;
+import org.red5.server.net.rtmp.event.FlexMessage;
+import org.red5.server.net.rtmp.event.IRTMPEvent;
+import org.red5.server.net.rtmp.event.Invoke;
+import org.red5.server.net.rtmp.event.Notify;
+import org.red5.server.net.rtmp.event.Ping;
+import org.red5.server.net.rtmp.event.ServerBW;
+import org.red5.server.net.rtmp.event.Unknown;
+import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.net.rtmp.message.Header;
 import org.red5.server.net.rtmp.message.Packet;
@@ -41,9 +53,6 @@ import org.red5.server.net.rtmp.message.SharedObjectTypeMapping;
 import org.red5.server.service.Call;
 import org.red5.server.so.ISharedObjectEvent;
 import org.red5.server.so.ISharedObjectMessage;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * RTMP protocol encoder encodes RTMP messages and packets to byte buffers.
@@ -129,7 +138,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 		}
 		header.setSize(data.limit());
 
-		final ByteBuffer headers = encodeHeader(header, rtmp.getLastWriteHeader(channelId));
+		ByteBuffer headers = encodeHeader(header, rtmp.getLastWriteHeader(channelId));
 
 		rtmp.setLastWriteHeader(channelId, header);
 		rtmp.setLastWritePacket(channelId, packet);
@@ -143,7 +152,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 
 		headers.flip();
 		out.put(headers);
-		headers.release();
+		headers = null;
 
 		if (numChunks == 1) {
 			// we can do it with a single copy
@@ -157,8 +166,8 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 			BufferUtils.put(out, data, out.remaining());
 		}
 
-		data.release();
 		out.flip();
+		data = null;
 
 		return out;
 	}

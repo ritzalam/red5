@@ -19,14 +19,20 @@ package org.red5.server.stream;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.BasicScope;
 import org.red5.server.api.IScope;
-import org.red5.server.messaging.*;
-
-import java.util.List;
-import java.util.Map;
+import org.red5.server.messaging.IConsumer;
+import org.red5.server.messaging.IMessage;
+import org.red5.server.messaging.IPipeConnectionListener;
+import org.red5.server.messaging.IProvider;
+import org.red5.server.messaging.InMemoryPushPushPipe;
+import org.red5.server.messaging.OOBControlMessage;
+import org.red5.server.messaging.PipeConnectionEvent;
 
 /**
  * Scope type for publishing that deals with pipe connection events,

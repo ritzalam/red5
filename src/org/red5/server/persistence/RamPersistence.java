@@ -19,15 +19,15 @@ package org.red5.server.persistence;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
 import org.red5.server.api.IScope;
 import org.red5.server.api.ScopeUtils;
 import org.red5.server.api.persistence.IPersistable;
 import org.red5.server.api.persistence.IPersistenceStore;
 import org.springframework.core.io.support.ResourcePatternResolver;
-
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 
 /**
  * Persistence implementation that stores the objects in memory.

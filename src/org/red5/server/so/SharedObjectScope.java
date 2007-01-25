@@ -19,6 +19,15 @@ package org.red5.server.so;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.lang.reflect.Method;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.locks.ReentrantLock;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.BaseConnection;
@@ -32,10 +41,6 @@ import org.red5.server.api.persistence.IPersistenceStore;
 import org.red5.server.api.so.ISharedObject;
 import org.red5.server.api.so.ISharedObjectListener;
 import org.red5.server.service.ServiceUtils;
-
-import java.lang.reflect.Method;
-import java.util.*;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Special scope for shared objects

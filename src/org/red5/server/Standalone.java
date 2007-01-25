@@ -19,14 +19,13 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.util.Properties;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.context.access.ContextSingletonBeanFactoryLocator;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.util.Iterator;
-import java.util.Properties;
 
 /**
  * Entry point from which the server config file is loaded
@@ -46,12 +45,8 @@ public class Standalone {
      *
      */
 	protected static String red5Config = "red5.xml";
-    /**
-     *
-     */
-	public static DebugPooledByteBufferAllocator allocator = null;
 
-    /**
+	/**
      * Re-throws exception
      * @param e               Exception
      * @throws Throwable      Re-thrown exception
@@ -124,7 +119,6 @@ public class Standalone {
 		// Setup system properties so they can be evaluated by Jetty
 		Properties props = new Properties();
 		props.load(new FileInputStream(root + "/red5.properties"));
-		Iterator it = props.keySet().iterator();
         for (Object o : props.keySet()) {
             String key = (String) o;
             if (key != null && !key.equals("")) {

@@ -19,10 +19,10 @@ package org.red5.io;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.red5.server.api.IScopeService;
-
 import java.io.File;
 import java.util.Set;
+
+import org.red5.server.api.IScopeService;
 
 /**
  * Scope service extension that provides method to get streamable file services set

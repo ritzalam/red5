@@ -19,11 +19,11 @@ package org.red5.server.api;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.red5.server.api.service.IServiceHandlerProvider;
-import org.springframework.core.io.support.ResourcePatternResolver;
-
 import java.util.Iterator;
 import java.util.Set;
+
+import org.red5.server.api.service.IServiceHandlerProvider;
+import org.springframework.core.io.support.ResourcePatternResolver;
 
 /**
  * The scope object.

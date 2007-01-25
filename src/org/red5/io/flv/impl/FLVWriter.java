@@ -19,6 +19,10 @@ package org.red5.io.flv.impl;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.channels.WritableByteChannel;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
@@ -27,10 +31,6 @@ import org.red5.io.ITag;
 import org.red5.io.ITagWriter;
 import org.red5.io.flv.IFLV;
 import org.red5.io.utils.IOUtils;
-
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.channels.WritableByteChannel;
 
 /**
  * A Writer is used to write the contents of a FLV file
@@ -227,8 +227,6 @@ public class FLVWriter implements ITagWriter {
 			} catch (IOException err) {
 				log.error("Could not write size of last tag to file.", err);
 			}
-			
-			out.release();
 			out = null;
 		}
 		try {

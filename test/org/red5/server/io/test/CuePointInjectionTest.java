@@ -24,39 +24,27 @@ package org.red5.server.io.test;
  */
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.TreeSet;
-import java.util.Vector;
+
+import junit.framework.Assert;
+import junit.framework.TestCase;
 
 import org.apache.mina.common.ByteBuffer;
 import org.red5.io.ITag;
 import org.red5.io.ITagReader;
 import org.red5.io.ITagWriter;
-import org.red5.io.amf.AMF;
+import org.red5.io.IoConstants;
 import org.red5.io.amf.Output;
 import org.red5.io.flv.IFLV;
 import org.red5.io.flv.IFLVService;
 import org.red5.io.flv.impl.FLVService;
 import org.red5.io.flv.impl.Tag;
-import org.red5.io.flv.meta.MetaCue;
-import org.red5.io.flv.meta.IMetaCue;
 import org.red5.io.flv.meta.ICueType;
-import org.red5.io.flv.meta.MetaData;
+import org.red5.io.flv.meta.IMetaCue;
+import org.red5.io.flv.meta.MetaCue;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Serializer;
-import org.red5.io.utils.IOUtils;
-
-import junit.framework.Assert;
-import junit.framework.TestCase;
 
 /**
  * @author The Red5 Project (red5@osflash.org)
@@ -71,6 +59,7 @@ public class CuePointInjectionTest extends TestCase {
 	 * SetUp is called before each test
 	 * @return void
 	 */
+	@Override
 	public void setUp() {
 		service = new FLVService();
 		service.setSerializer(new Serializer());
@@ -147,7 +136,7 @@ public class CuePointInjectionTest extends TestCase {
 				// cuePointTimeStamp, then inject the tag
 				while(tag.getTimestamp() > cuePointTimeStamp) {
 					
-					injectedTag = (ITag) injectCuePoint(ts.first(), tag);
+					injectedTag = injectCuePoint(ts.first(), tag);
 					writer.writeTag(injectedTag);					
 					tag.setPreviousTagSize((injectedTag.getBodySize() + 11));
 					
@@ -185,7 +174,7 @@ public class CuePointInjectionTest extends TestCase {
 		ByteBuffer tmpBody = out.buf().flip();		
 		int tmpBodySize = out.buf().limit();	
 		int tmpPreviousTagSize = tag.getPreviousTagSize();
-		byte tmpDataType = ((byte)(ITag.TYPE_METADATA));
+		byte tmpDataType = ((IoConstants.TYPE_METADATA));
 		int tmpTimestamp = getTimeInMilliseconds(cp);
 								
 		return new Tag(tmpDataType, tmpTimestamp, tmpBodySize, tmpBody, tmpPreviousTagSize);

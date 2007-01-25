@@ -19,13 +19,13 @@ package org.red5.server.net.proxy;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.nio.channels.WritableByteChannel;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoFilterAdapter;
 import org.apache.mina.common.IoSession;
-
-import java.nio.channels.WritableByteChannel;
 
 /**
  * Network dump filter, performs raw data and headers dump on message recieve

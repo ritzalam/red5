@@ -82,17 +82,12 @@ public class ZAMFGatewayServlet extends HttpServlet {
 
 			// Connect to the server.
 			VmPipeConnector connector = new VmPipeConnector();
-
-			// IoHandlerAdapter handler = 
-
-			VmPipeAddress address = new VmPipeAddress(5080);
-
 			IoHandler handler = new Handler(req, resp);
-			ConnectFuture connectFuture = connector.connect(address, handler);
+			connector.setHandler(handler);
+			ConnectFuture connectFuture = connector.connect(new VmPipeAddress(5080));
 			connectFuture.join();
 			IoSession session = connectFuture.getSession();
 			session.setAttachment(resp);
-
 			session.write(reqBuffer);
 
 			ContinuationSupport.getContinuation(req, handler).suspend(1000);

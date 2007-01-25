@@ -45,7 +45,7 @@ public class MulticastEventProcessor {
 		}
 		final ByteBuffer[] chunks = (ByteBuffer[]) obj;
 		for (ByteBuffer buf : chunks) {
-			buf.release();
+			buf = null;
 		}
 	}
 

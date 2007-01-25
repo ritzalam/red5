@@ -19,6 +19,14 @@ package org.red5.server.persistence;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
@@ -30,10 +38,6 @@ import org.red5.server.api.persistence.IPersistable;
 import org.red5.server.net.servlet.ServletUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourcePatternResolver;
-
-import java.io.*;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 
 /**
  * Simple file-based persistence for objects. Lowers memory usage if used instead of RAM memoty storage.
@@ -272,7 +276,7 @@ public class FilePersistence extends RamPersistence {
 					result.deserialize(in);
 				}
 			} finally {
-				buf.release();
+				buf = null;
 			}
 			if (result.getStore() != this) {
 				result.setStore(this);
@@ -349,7 +353,7 @@ public class FilePersistence extends RamPersistence {
 				ServletUtils.copy(buf.asInputStream(), output);
 				output.close();
 			} finally {
-				buf.release();
+				buf = null;
 			}
 			if (log.isDebugEnabled()) {
 				log.debug("Stored persistent object " + object + " at " + filename);

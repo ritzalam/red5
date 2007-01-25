@@ -20,12 +20,23 @@ package org.red5.server.stream;
  */
 
 import org.red5.server.BaseConnection;
-import org.red5.server.api.*;
-import org.red5.server.api.stream.*;
+import org.red5.server.api.IBasicScope;
+import org.red5.server.api.IConnection;
+import org.red5.server.api.IContext;
+import org.red5.server.api.IScope;
+import org.red5.server.api.Red5;
+import org.red5.server.api.stream.IBroadcastStream;
+import org.red5.server.api.stream.IClientBroadcastStream;
+import org.red5.server.api.stream.IClientStream;
+import org.red5.server.api.stream.IPlaylistSubscriberStream;
+import org.red5.server.api.stream.ISingleItemSubscriberStream;
+import org.red5.server.api.stream.IStreamCapableConnection;
+import org.red5.server.api.stream.IStreamService;
+import org.red5.server.api.stream.ISubscriberStream;
 import org.red5.server.api.stream.support.SimplePlayItem;
+import org.red5.server.net.rtmp.BaseRTMPHandler;
 import org.red5.server.net.rtmp.Channel;
 import org.red5.server.net.rtmp.RTMPConnection;
-import org.red5.server.net.rtmp.RTMPHandler;
 import org.red5.server.net.rtmp.status.Status;
 import org.red5.server.net.rtmp.status.StatusCodes;
 
@@ -361,7 +372,7 @@ public class StreamService implements IStreamService {
      */
     private int getCurrentStreamId() {
 		// TODO: this must come from the current connection!
-		return RTMPHandler.getStreamId();
+		return BaseRTMPHandler.getStreamId();
 	}
 
     /**

@@ -19,13 +19,13 @@ package org.red5.io.amf;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.Date;
+import java.util.TimeZone;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.io.object.BaseOutput;
-
-import java.util.Date;
-import java.util.TimeZone;
 
 /**
  * 

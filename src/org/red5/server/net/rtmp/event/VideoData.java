@@ -104,7 +104,6 @@ public class VideoData extends BaseEvent implements IoConstants, IStreamData {
     @Override
 	protected void releaseInternal() {
 		if (data != null) {
-			data.release();
 			data = null;
 		}
 	}

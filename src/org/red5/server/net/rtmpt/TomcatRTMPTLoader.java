@@ -19,6 +19,8 @@ package org.red5.server.net.rtmpt;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.Map;
+
 import org.apache.catalina.Context;
 import org.apache.catalina.Host;
 import org.apache.catalina.Server;
@@ -27,8 +29,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.TomcatLoader;
 import org.red5.server.api.IServer;
-
-import java.util.Map;
 
 /**
  * Loader for the RTMPT server which uses Tomcat.

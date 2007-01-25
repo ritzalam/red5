@@ -19,6 +19,17 @@ package org.red5.server.service;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.lang.reflect.Array;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.commons.beanutils.BeanMap;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.ConversionException;
@@ -26,11 +37,6 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.io.object.Deserializer;
 import org.red5.server.api.IConnection;
-
-import java.lang.reflect.Array;
-import java.lang.reflect.Method;
-import java.text.NumberFormat;
-import java.util.*;
 
 /**
  * Misc utils for convertions
@@ -71,9 +77,6 @@ public class ConversionUtils {
 	 * (for no chaining) or the next class to try
 	 */
 	private static Map<Class, Class[]> parameterMap = new HashMap<Class, Class[]>();
-
-	/** Default number format */
-	private static NumberFormat NUMBER_FORMAT = NumberFormat.getInstance();
 
 	static {
 		for (int i = 0; i < PRIMITIVES.length; i++) {

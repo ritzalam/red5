@@ -19,6 +19,18 @@ package org.red5.server.so;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import static org.red5.server.api.so.ISharedObject.TYPE;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.io.object.Deserializer;
@@ -29,15 +41,10 @@ import org.red5.server.api.IAttributeStore;
 import org.red5.server.api.event.IEventListener;
 import org.red5.server.api.persistence.IPersistable;
 import org.red5.server.api.persistence.IPersistenceStore;
-import static org.red5.server.api.so.ISharedObject.TYPE;
 import org.red5.server.net.rtmp.Channel;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.so.ISharedObjectEvent.Type;
-
-import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Represents shared object on server-side. Shared Objects in Flash are like cookies that are stored

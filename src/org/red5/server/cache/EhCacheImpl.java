@@ -150,7 +150,7 @@ public class EhCacheImpl implements ICacheStore, ApplicationContextAware {
 	/** {@inheritDoc} */
     public void put(String name, Object obj) {
 		if (obj instanceof ICacheable) {
-			cache.put(new Element(name, (ICacheable) obj));
+			cache.put(new Element(name, obj));
 		} else {
 			cache.put(new Element(name, new CacheableImpl(obj)));
 		}

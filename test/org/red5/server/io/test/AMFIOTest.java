@@ -32,7 +32,8 @@ public class AMFIOTest extends AbstractIOTest {
 	ByteBuffer buf;
 	
 	/** {@inheritDoc} */
-    void setupIO() {
+    @Override
+	void setupIO() {
 		buf = ByteBuffer.allocate(0); // 1kb
 		buf.setAutoExpand(true);
 		in = new Input(buf);
@@ -40,13 +41,15 @@ public class AMFIOTest extends AbstractIOTest {
 	}
 
 	/** {@inheritDoc} */
-    void dumpOutput() {
+    @Override
+	void dumpOutput() {
 		buf.flip();
 		System.err.println(HexDump.formatHexDump(buf.getHexDump()));
 	}
 
 	/** {@inheritDoc} */
-    void resetOutput() {
+    @Override
+	void resetOutput() {
 		 setupIO();
 	}
 

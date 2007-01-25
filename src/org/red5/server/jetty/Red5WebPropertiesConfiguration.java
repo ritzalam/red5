@@ -19,6 +19,9 @@ package org.red5.server.jetty;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.EventListener;
+import java.util.Properties;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.mortbay.jetty.handler.ContextHandler;
@@ -40,9 +43,6 @@ import org.springframework.beans.factory.access.BeanFactoryReference;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.access.ContextSingletonBeanFactoryLocator;
 import org.springframework.web.context.support.GenericWebApplicationContext;
-
-import java.util.EventListener;
-import java.util.Properties;
 
 /**
  * Red web properties configuration

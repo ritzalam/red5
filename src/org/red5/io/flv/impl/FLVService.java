@@ -19,14 +19,14 @@ package org.red5.io.flv.impl;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.io.File;
+import java.io.IOException;
+
 import org.red5.io.BaseStreamableFileService;
 import org.red5.io.IStreamableFile;
 import org.red5.io.flv.IFLVService;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Serializer;
-
-import java.io.File;
-import java.io.IOException;
 
 /**
  * A FLVServiceImpl sets up the service and hands out FLV objects to 

@@ -49,8 +49,8 @@ public class CacheableImpl implements ICacheable {
 		tmp.putObject(obj);
 		bytes = new byte[tmp.capacity()];
 		tmp.get(bytes);
-		tmp.release();
 		cached = true;
+		tmp = null;
 	}
 
 	public CacheableImpl(ByteBuffer buffer) {
@@ -72,7 +72,7 @@ public class CacheableImpl implements ICacheable {
 		if (log.isDebugEnabled()) {
 			log.debug("Buffer size: " + buffer.capacity());
 		}
-		buffer.release();
+		buffer = null;
 	}
 
 	public void addRequest() {

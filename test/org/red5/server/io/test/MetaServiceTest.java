@@ -1,12 +1,11 @@
 package org.red5.server.io.test;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 
+import junit.framework.TestCase;
+
 import org.red5.io.flv.IFLV;
-import org.red5.io.flv.impl.FLV;
 import org.red5.io.flv.impl.FLVService;
 import org.red5.io.flv.meta.ICueType;
 import org.red5.io.flv.meta.IMetaCue;
@@ -17,15 +16,14 @@ import org.red5.io.flv.meta.Resolver;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Serializer;
 
-import junit.framework.TestCase;
-
 public class MetaServiceTest extends TestCase {
 
 	private FLVService service;
 	private MetaService metaService;
 
 	/** {@inheritDoc} */
-    protected void setUp() throws Exception {
+    @Override
+	protected void setUp() throws Exception {
 		super.setUp();
 				
 		// Create a FLV Service

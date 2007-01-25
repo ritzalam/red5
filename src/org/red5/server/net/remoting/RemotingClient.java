@@ -19,6 +19,9 @@ package org.red5.server.net.remoting;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpConnectionManager;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
@@ -37,9 +40,6 @@ import org.red5.server.api.Red5;
 import org.red5.server.net.servlet.ServletUtils;
 import org.red5.server.pooling.ThreadPool;
 import org.red5.server.pooling.WorkerThread;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Client interface for remoting calls.
@@ -115,9 +115,6 @@ public class RemotingClient {
 		ByteBuffer result = ByteBuffer.allocate(1024);
 		result.setAutoExpand(true);
 
-        // FIX : Michael : variable is never used, should this be removed?
-        Output out = new Output(result);
-
 		// XXX: which is the correct version?
 		result.putShort((short) 0);
 		// Headers
@@ -136,7 +133,7 @@ public class RemotingClient {
 			result.putInt(tmp.limit());
 			// Header data
 			result.put(tmp);
-			tmp.release();
+			tmp = null;
 		}
 		// One body
 		result.putShort((short) 1);
@@ -162,7 +159,7 @@ public class RemotingClient {
 		// Store size and parameters
 		result.putInt(tmp.limit());
 		result.put(tmp);
-		tmp.release();
+		tmp = null;
 
 		result.flip();
 		return result;
@@ -195,7 +192,7 @@ public class RemotingClient {
 			} else if (name.equals(RemotingHeader.PERSISTENT_HEADER)) {
 				// Send a new header with each following request
 				if (value instanceof Map) {
-					Map<String, Object> valueMap = (Map) value;
+					Map<String, Object> valueMap = (Map<String, Object>) value;
 					RemotingHeader header = new RemotingHeader(
 							(String) valueMap.get("name"), (Boolean) valueMap
 									.get("mustUnderstand"), valueMap
@@ -226,12 +223,8 @@ public class RemotingClient {
 		}
 
 		// Read return value
-		Input input = new Input(data);
 		Deserializer deserializer = new Deserializer();
-		String target = Input.getString(data);
-		String response = Input.getString(data); // "null"
-		int tmp = data.getInt(); // -1
-		return deserializer.deserialize(input);
+		return deserializer.deserialize(new Input(data));
 	}
 
 	/**
@@ -313,9 +306,9 @@ public class RemotingClient {
 		} finally {
 			post.releaseConnection();
 			if (resultBuffer != null) {
-				resultBuffer.release();
+				resultBuffer = null;
 			}
-			data.release();
+			data = null;
 		}
 		return null;
 	}

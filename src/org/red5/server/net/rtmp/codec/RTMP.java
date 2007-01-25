@@ -160,8 +160,8 @@ public class RTMP extends ProtocolState {
     private void freePackets(Packet[] packets) {
 		for (Packet packet : packets) {
 			if (packet != null && packet.getData() != null) {
-				packet.getData().release();
 				packet.setData(null);
+				packet = null;
 			}
 		}
 	}
@@ -226,8 +226,8 @@ public class RTMP extends ProtocolState {
 	public void setLastReadPacket(byte channelId, Packet packet) {
 		Packet prevPacket = readPackets[channelId];
 		if (prevPacket != null && prevPacket.getData() != null) {
-			prevPacket.getData().release();
 			prevPacket.setData(null);
+			prevPacket = null;
 		}
 
 		readPackets[channelId] = packet;
@@ -250,8 +250,8 @@ public class RTMP extends ProtocolState {
 	public void setLastWritePacket(byte channelId, Packet packet) {
 		Packet prevPacket = writePackets[channelId];
 		if (prevPacket != null && prevPacket.getData() != null) {
-			prevPacket.getData().release();
 			prevPacket.setData(null);
+			prevPacket = null;
 		}
 
 		writePackets[channelId] = packet;

@@ -19,6 +19,12 @@ package org.red5.server.so;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import static org.red5.server.api.so.ISharedObject.TYPE;
+
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.IBasicScope;
@@ -27,13 +33,8 @@ import org.red5.server.api.persistence.IPersistable;
 import org.red5.server.api.persistence.IPersistenceStore;
 import org.red5.server.api.persistence.PersistenceUtils;
 import org.red5.server.api.so.ISharedObject;
-import static org.red5.server.api.so.ISharedObject.TYPE;
 import org.red5.server.api.so.ISharedObjectService;
 import org.red5.server.persistence.RamPersistence;
-
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
 
 /**
  * Shared object service

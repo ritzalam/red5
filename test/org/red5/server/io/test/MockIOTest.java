@@ -34,19 +34,22 @@ public class MockIOTest extends AbstractIOTest {
 	protected List list;
 	
 	/** {@inheritDoc} */
-    void setupIO() {
+    @Override
+	void setupIO() {
 		list = new LinkedList();
 		in = new Input(list);
 		out = new Output(list);
 	}
 	
 	/** {@inheritDoc} */
-    void dumpOutput() {
+    @Override
+	void dumpOutput() {
 		System.out.println(Mock.listToString(list));
 	}
 
 	/** {@inheritDoc} */
-    void resetOutput() {
+    @Override
+	void resetOutput() {
 		setupIO();
 	}
 

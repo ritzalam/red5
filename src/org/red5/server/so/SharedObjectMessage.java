@@ -19,12 +19,12 @@ package org.red5.server.so;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.red5.server.api.event.IEventListener;
-import org.red5.server.net.rtmp.event.BaseEvent;
-
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+
+import org.red5.server.api.event.IEventListener;
+import org.red5.server.net.rtmp.event.BaseEvent;
 
 /**
  * Shared object event

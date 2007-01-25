@@ -19,15 +19,15 @@ package org.red5.io.flv;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Map;
+
 import org.red5.io.IStreamableFile;
 import org.red5.io.ITagReader;
 import org.red5.io.ITagWriter;
 import org.red5.io.flv.meta.IMetaData;
 import org.red5.io.flv.meta.IMetaService;
-
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.Map;
 
 /**
  * Represents FLV file

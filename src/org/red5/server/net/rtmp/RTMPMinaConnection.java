@@ -19,14 +19,14 @@ package org.red5.server.net.rtmp;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoSession;
 import org.red5.server.net.rtmp.message.Packet;
-
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 
 public class RTMPMinaConnection extends RTMPConnection {
     /**
@@ -106,7 +106,7 @@ public class RTMPMinaConnection extends RTMPConnection {
 	/** {@inheritDoc} */
     @Override
 	public long getPendingMessages() {
-		return ioSession.getScheduledWriteRequests();
+		return ioSession.getScheduledWriteMessages();
 	}
 
 	/** {@inheritDoc} */
@@ -117,7 +117,8 @@ public class RTMPMinaConnection extends RTMPConnection {
 	}
 	
 	/** {@inheritDoc} */
-    protected void onInactive() {
+    @Override
+	protected void onInactive() {
 		this.close();
 	}
 }

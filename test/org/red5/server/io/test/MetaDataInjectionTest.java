@@ -33,14 +33,15 @@ import org.apache.mina.common.ByteBuffer;
 import org.red5.io.ITag;
 import org.red5.io.ITagReader;
 import org.red5.io.ITagWriter;
+import org.red5.io.IoConstants;
 import org.red5.io.amf.Output;
 import org.red5.io.flv.IFLV;
 import org.red5.io.flv.IFLVService;
 import org.red5.io.flv.impl.FLVService;
 import org.red5.io.flv.impl.Tag;
-import org.red5.io.flv.meta.MetaCue;
-import org.red5.io.flv.meta.IMetaCue;
 import org.red5.io.flv.meta.ICueType;
+import org.red5.io.flv.meta.IMetaCue;
+import org.red5.io.flv.meta.MetaCue;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Serializer;
 
@@ -57,6 +58,7 @@ public class MetaDataInjectionTest extends TestCase {
 	 * SetUp is called before each test
 	 * @return void
 	 */
+	@Override
 	public void setUp() {
 		service = new FLVService();
 		service.setSerializer(new Serializer());
@@ -126,7 +128,7 @@ public class MetaDataInjectionTest extends TestCase {
 		while(reader.hasMoreTags()) {
 			tag = reader.readTag();
 			
-			if(tag.getDataType() != Tag.TYPE_METADATA) {
+			if(tag.getDataType() != IoConstants.TYPE_METADATA) {
 				//injectNewMetaData();
 			} else {
 				//in
@@ -139,7 +141,7 @@ public class MetaDataInjectionTest extends TestCase {
 				// cuePointTimeStamp, then inject the tag
 				while(tag.getTimestamp() > cuePointTimeStamp) {
 					
-					injectedTag = (ITag) injectMetaData(ts.first(), tag);
+					injectedTag = injectMetaData(ts.first(), tag);
 					writer.writeTag(injectedTag);					
 					tag.setPreviousTagSize((injectedTag.getBodySize() + 11));
 					
@@ -177,7 +179,7 @@ public class MetaDataInjectionTest extends TestCase {
 		ByteBuffer tmpBody = out.buf().flip();		
 		int tmpBodySize = out.buf().limit();	
 		int tmpPreviousTagSize = tag.getPreviousTagSize();
-		byte tmpDataType = ((byte)(ITag.TYPE_METADATA));
+		byte tmpDataType = ((IoConstants.TYPE_METADATA));
 		int tmpTimestamp = getTimeInMilliseconds(cp);
 								
 		return new Tag(tmpDataType, tmpTimestamp, tmpBodySize, tmpBody, tmpPreviousTagSize);

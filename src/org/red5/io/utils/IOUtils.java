@@ -19,10 +19,10 @@ package org.red5.io.utils;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.nio.charset.Charset;
+
 import org.apache.commons.logging.Log;
 import org.apache.mina.common.ByteBuffer;
-
-import java.nio.charset.Charset;
 
 /**
  * Misc I/O util methods
@@ -48,9 +48,9 @@ public class IOUtils {
 		bytes[2] = rev.get();
 		bytes[1] = rev.get();
 		bytes[0] = rev.get();
-		rev.release();
 		out.put(bytes);
-	}
+		rev = null;
+    }
 
     /**
      * Writes medium integer

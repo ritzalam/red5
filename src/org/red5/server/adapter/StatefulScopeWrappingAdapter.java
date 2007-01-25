@@ -19,13 +19,18 @@ package org.red5.server.adapter;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.red5.server.api.*;
-import org.springframework.core.io.Resource;
-
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+
+import org.red5.server.api.IAttributeStore;
+import org.red5.server.api.IClient;
+import org.red5.server.api.IConnection;
+import org.red5.server.api.IContext;
+import org.red5.server.api.IScope;
+import org.red5.server.api.IScopeAware;
+import org.springframework.core.io.Resource;
 
 /**
  * StatefulScopeWrappingAdapter class wraps stateful IScope functionality. That

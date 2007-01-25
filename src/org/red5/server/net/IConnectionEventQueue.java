@@ -19,10 +19,10 @@ package org.red5.server.net;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.Iterator;
+
 import org.red5.server.api.IConnection;
 import org.red5.server.api.event.IEvent;
-
-import java.util.Iterator;
 
 /**
  * Queue of connection events

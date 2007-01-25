@@ -19,15 +19,15 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+
 import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IScope;
 import org.red5.server.api.ScopeUtils;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.event.IEventListener;
-
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
 
 /**
  *  Generalizations of one of main Red5 object types, Scope.

@@ -19,6 +19,13 @@ package org.red5.io.flv.impl;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.channels.FileChannel;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
@@ -30,13 +37,6 @@ import org.red5.io.amf.Output;
 import org.red5.io.flv.FLVHeader;
 import org.red5.io.flv.IKeyFrameDataAnalyzer;
 import org.red5.io.utils.IOUtils;
-
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.channels.FileChannel;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 
 /**
  * A Reader is used to read the contents of a FLV file.
@@ -287,14 +287,11 @@ public class FLVReader implements IoConstants, ITagReader,
 			}
 
 			if (reload || in.remaining() < amount) {
-				long toRead = amount;
 				if (!reload) {
-					toRead = (bufferSize - in.remaining());
 					in.compact();
 				} else {
 					in.clear();
 				}
-
 				channel.read(in.buf());
 				in.flip();
 			}
@@ -545,7 +542,6 @@ public class FLVReader implements IoConstants, ITagReader,
 	public void close() {
 		log.debug("Reader close");
 		if (in != null) {
-			in.release();
 			in = null;
 		}
 		if (channel != null) {

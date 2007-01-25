@@ -52,7 +52,8 @@ public abstract class AbstractIOTest extends TestCase {
 	protected Output out;
 	
 	/** {@inheritDoc} */
-    protected void setUp(){
+    @Override
+	protected void setUp(){
 		serializer = new Serializer();
 		deserializer = new Deserializer();
 		setupIO();

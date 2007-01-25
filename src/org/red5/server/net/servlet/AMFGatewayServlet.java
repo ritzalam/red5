@@ -19,6 +19,14 @@ package org.red5.server.net.servlet;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.io.IOException;
+
+import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
@@ -31,13 +39,6 @@ import org.red5.server.net.remoting.message.RemotingPacket;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
-
-import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
 /**
  * Servlet that handles remoting requests.
@@ -147,7 +148,7 @@ public class AMFGatewayServlet extends HttpServlet {
 			path = path.substring(1);
 		}
 		packet.setScopePath(path);
-		reqBuffer.release();
+		reqBuffer = null;
 		return packet;
 	}
 
@@ -183,9 +184,9 @@ public class AMFGatewayServlet extends HttpServlet {
 		final ServletOutputStream out = resp.getOutputStream();
 		resp.setContentLength(respBuffer.limit());
 		ServletUtils.copy(respBuffer.asInputStream(), out);
-		respBuffer.release();
 		out.flush();
 		out.close();
-	}
+		respBuffer = null;
+    }
 
 }

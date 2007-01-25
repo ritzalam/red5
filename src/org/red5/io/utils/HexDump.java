@@ -17,10 +17,12 @@
 
 package org.red5.io.utils;
 
+import java.io.ByteArrayOutputStream;
+
 import org.apache.log4j.Logger;
+
 import sun.misc.HexDumpEncoder;
 
-import java.io.ByteArrayOutputStream;
 
 /**
  * Hexadecimal byte dumper

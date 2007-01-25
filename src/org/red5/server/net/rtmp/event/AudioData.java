@@ -57,7 +57,6 @@ public class AudioData extends BaseEvent implements IStreamData {
     @Override
 	protected void releaseInternal() {
 		if (data != null) {
-			data.release();
 			data = null;
 		}
 	}

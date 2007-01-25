@@ -136,7 +136,7 @@ public class RhinoScriptFactory implements ScriptFactory {
 	 * @return <code>false</code> always
 	 */
 	public boolean requiresConfigInterface() {
-		return true;
+		return false;
 	}
 
 	/**

@@ -19,11 +19,11 @@ package org.red5.server.net.rtmp.event;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.Map;
+
 import org.apache.mina.common.ByteBuffer;
 import org.red5.server.api.service.IServiceCall;
 import org.red5.server.stream.IStreamData;
-
-import java.util.Map;
 
 /**
  * Stream notification event
@@ -200,7 +200,6 @@ public class Notify extends BaseEvent implements IStreamData {
     @Override
 	protected void releaseInternal() {
 		if (data != null) {
-			data.release();
 			data = null;
 		}
 	}

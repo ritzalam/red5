@@ -22,10 +22,10 @@ package org.red5.server.io.test;
  * @author Dominick Accattato (daccattato@gmail.com)
  */
 
-import org.red5.io.flv.meta.MetaData;
-
 import junit.framework.Assert;
 import junit.framework.TestCase;
+
+import org.red5.io.flv.meta.MetaData;
 
 
 /**
@@ -44,7 +44,8 @@ public class MetaDataTest extends TestCase {
 	}
 	
 	/** {@inheritDoc} */
-    protected void setUp() throws Exception {
+    @Override
+	protected void setUp() throws Exception {
 		super.setUp();
 		
 		data.setCanSeekToEnd(true);
@@ -57,7 +58,8 @@ public class MetaDataTest extends TestCase {
 	}
 	
 	/** {@inheritDoc} */
-    public void tearDown() {
+    @Override
+	public void tearDown() {
 		data = null;
 	}
 	

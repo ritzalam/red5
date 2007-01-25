@@ -19,6 +19,13 @@ package org.red5.io.flv.impl;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Map;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
@@ -30,9 +37,6 @@ import org.red5.io.flv.meta.IMetaData;
 import org.red5.io.flv.meta.IMetaService;
 import org.red5.server.api.cache.ICacheStore;
 import org.red5.server.api.cache.ICacheable;
-
-import java.io.*;
-import java.util.Map;
 
 /**
  * A FLVImpl implements the FLV api

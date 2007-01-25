@@ -19,6 +19,11 @@ package org.red5.server.stream;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
@@ -27,8 +32,24 @@ import org.red5.server.api.IContext;
 import org.red5.server.api.IScope;
 import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
-import org.red5.server.api.stream.*;
-import org.red5.server.messaging.*;
+import org.red5.server.api.stream.IClientBroadcastStream;
+import org.red5.server.api.stream.IPlayItem;
+import org.red5.server.api.stream.IPlaylistController;
+import org.red5.server.api.stream.IPlaylistSubscriberStream;
+import org.red5.server.api.stream.IStreamAwareScopeHandler;
+import org.red5.server.api.stream.IVideoStreamCodec;
+import org.red5.server.messaging.IFilter;
+import org.red5.server.messaging.IMessage;
+import org.red5.server.messaging.IMessageComponent;
+import org.red5.server.messaging.IMessageInput;
+import org.red5.server.messaging.IMessageOutput;
+import org.red5.server.messaging.IPassive;
+import org.red5.server.messaging.IPipe;
+import org.red5.server.messaging.IPipeConnectionListener;
+import org.red5.server.messaging.IProvider;
+import org.red5.server.messaging.IPushableConsumer;
+import org.red5.server.messaging.OOBControlMessage;
+import org.red5.server.messaging.PipeConnectionEvent;
 import org.red5.server.net.rtmp.event.AudioData;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.event.Ping;
@@ -40,11 +61,6 @@ import org.red5.server.stream.ITokenBucket.ITokenBucketCallback;
 import org.red5.server.stream.message.RTMPMessage;
 import org.red5.server.stream.message.ResetMessage;
 import org.red5.server.stream.message.StatusMessage;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Stream of playlist subsciber
@@ -1078,7 +1094,6 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 								}
 								if (toSend) {
 									sendMessage(rtmpMessage);
-									((IStreamData) body).getData().release();
 								} else {
 									pendingMessage = rtmpMessage;
 								}
@@ -1499,10 +1514,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 		private void releasePendingMessage() {
 			if (pendingMessage != null) {
 				IRTMPEvent body = pendingMessage.getBody();
-				if (body instanceof IStreamData) {
-					((IStreamData) body).getData().release();
-				}
-
+				body = null;
 				pendingMessage = null;
 			}
 		}

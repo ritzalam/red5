@@ -19,6 +19,9 @@ package org.red5.server.net.rtmp.status;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.commons.collections.BeanMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -26,9 +29,6 @@ import org.apache.mina.common.ByteBuffer;
 import org.red5.io.amf.Output;
 import org.red5.io.object.Serializer;
 import org.red5.io.utils.HexDump;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Service that works with status objects.
@@ -183,7 +183,7 @@ public class StatusObjectService implements StatusCodes {
             cachedStatusObjects.put(statusCode, cachedBytes);
         }
         
-        out.release();
+        out = null;
 	}
 
     /**

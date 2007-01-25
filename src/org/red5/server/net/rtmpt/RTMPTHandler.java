@@ -112,7 +112,7 @@ public class RTMPTHandler extends RTMPHandler implements ApplicationContextAware
 			Object in) throws Exception {
 		if (in instanceof ByteBuffer) {
 			rawBufferRecieved(conn, state, (ByteBuffer) in);
-			((ByteBuffer) in).release();
+			in = null;
 		} else {
 			super.messageReceived(conn, state, in);
 		}

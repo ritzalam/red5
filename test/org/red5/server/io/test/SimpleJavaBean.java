@@ -45,7 +45,8 @@ public class SimpleJavaBean {
 	}
 	
 	/** {@inheritDoc} */
-    public boolean equals(Object obj){
+    @Override
+	public boolean equals(Object obj){
 		if(obj instanceof SimpleJavaBean){
 			SimpleJavaBean sjb = (SimpleJavaBean) obj;
 			return sjb.getNameOfBean().equals(sjb.getNameOfBean());

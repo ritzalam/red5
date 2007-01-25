@@ -49,15 +49,18 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		super(buf);
 	}
     /** {@inheritDoc} */
+	@Override
 	public boolean supportsDataType(byte type) {
 		return true;
 	}// Basic Data Types
     /** {@inheritDoc} */
+	@Override
 	public void writeBoolean(Boolean bol) {
 		buf.put(AMF.TYPE_AMF3_OBJECT);
 		buf.put(bol ? AMF3.TYPE_BOOLEAN_TRUE : AMF3.TYPE_BOOLEAN_FALSE);
 	}
     /** {@inheritDoc} */
+	@Override
 	public void writeNull() {
 		buf.put(AMF.TYPE_AMF3_OBJECT);
 		buf.put(AMF3.TYPE_NULL);
@@ -93,11 +96,13 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		buf.put(string);
 	}
     /** {@inheritDoc} */
+	@Override
 	public void putString(String string) {
 		final java.nio.ByteBuffer strBuf = AMF3.CHARSET.encode(string);
 		putString(strBuf);
 	}
     /** {@inheritDoc} */
+	@Override
 	public void writeNumber(Number num) {
 		if (num instanceof Long || num instanceof Integer || num instanceof Short || num instanceof Byte) {
 			buf.put(AMF.TYPE_AMF3_OBJECT);
@@ -110,6 +115,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		}
 	}
     /** {@inheritDoc} */
+	@Override
 	public void writeString(String string) {
 		final java.nio.ByteBuffer strBuf = AMF3.CHARSET.encode(string);
 		buf.put(AMF.TYPE_AMF3_OBJECT);
@@ -117,6 +123,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		putString(strBuf);
 	}
     /** {@inheritDoc} */
+	@Override
 	public void writeDate(Date date) {
 		buf.put(AMF.TYPE_AMF3_OBJECT);
 		buf.put(AMF3.TYPE_DATE);
@@ -125,18 +132,22 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		buf.putDouble(date.getTime());
 	}
     /** {@inheritDoc} */
+	@Override
 	public void writeStartArray(int length) {
 		System.err.println("MISSING: writeStartArray");
 	}
     /** {@inheritDoc} */
+	@Override
 	public void markElementSeparator() {
 		System.err.println("MISSING: markElementSeparator");
 	}
     /** {@inheritDoc} */
+	@Override
 	public void markEndArray() {
 		System.err.println("MISSING: markEndArray");
 	}
     /** {@inheritDoc} */
+	@Override
 	public void writeStartMap(int size) {
 		buf.put(AMF.TYPE_AMF3_OBJECT);
 		buf.put(AMF3.TYPE_ARRAY);
@@ -144,22 +155,27 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		putInteger(size << 1 | 1);
 	}
     /** {@inheritDoc} */
+	@Override
 	public void writeItemKey(String key) {
 		putString(key);
 	}
     /** {@inheritDoc} */
+	@Override
 	public void markItemSeparator() {
 		System.err.println("MISSING: markItemSeparator");
 	}
     /** {@inheritDoc} */
+	@Override
 	public void markEndMap() {
 		System.err.println("MISSING: markEndMap");
 	}
     /** {@inheritDoc} */
+	@Override
 	public void writeStartObject(String classname) {
 		System.err.println("MISSING: writeStartObject");
 	}
     /** {@inheritDoc} */
+	@Override
 	public void writeStartObject(String classname, int numMembers) {
 		buf.put(AMF.TYPE_AMF3_OBJECT);
 		buf.put(AMF3.TYPE_OBJECT);
@@ -173,18 +189,22 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		}
 	}
     /** {@inheritDoc} */
+	@Override
 	public void writePropertyName(String name) {
 		putString(name);
 	}
     /** {@inheritDoc} */
+	@Override
 	public void markPropertySeparator() {
 
 	}
     /** {@inheritDoc} */
+	@Override
 	public void markEndObject() {
 		putInteger(0);
 	}
     /** {@inheritDoc} */
+	@Override
 	public void writeXML(String xml) {
 		buf.put(AMF.TYPE_AMF3_OBJECT);
 		buf.put(AMF3.TYPE_XML);

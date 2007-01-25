@@ -19,6 +19,12 @@ package org.red5.io.flv.meta;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Map;
+
 import org.apache.mina.common.ByteBuffer;
 import org.red5.io.ITag;
 import org.red5.io.IoConstants;
@@ -29,12 +35,6 @@ import org.red5.io.flv.impl.FLVWriter;
 import org.red5.io.flv.impl.Tag;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Serializer;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.Map;
 
 /**
  * MetaService represents a MetaData service in Spring

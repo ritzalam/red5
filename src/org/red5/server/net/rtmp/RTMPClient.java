@@ -19,6 +19,10 @@ package org.red5.server.net.rtmp;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.net.InetSocketAddress;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.transport.socket.nio.SocketConnector;
@@ -26,7 +30,11 @@ import org.red5.io.object.Deserializer;
 import org.red5.io.object.Serializer;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.Red5;
-import org.red5.server.api.service.*;
+import org.red5.server.api.service.IPendingServiceCall;
+import org.red5.server.api.service.IPendingServiceCallback;
+import org.red5.server.api.service.IServiceCall;
+import org.red5.server.api.service.IServiceCapableConnection;
+import org.red5.server.api.service.IServiceInvoker;
 import org.red5.server.api.so.IClientSharedObject;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.codec.RTMPCodecFactory;
@@ -41,10 +49,6 @@ import org.red5.server.service.PendingCall;
 import org.red5.server.service.ServiceInvoker;
 import org.red5.server.so.ClientSharedObject;
 import org.red5.server.so.SharedObjectMessage;
-
-import java.net.InetSocketAddress;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * RTMP client object. Initial client mode code by Christian Eckerle.
@@ -146,7 +150,8 @@ public class RTMPClient extends BaseRTMPHandler {
 		
 		this.connectCallback = connectCallback;
 		SocketConnector connector = new SocketConnector();
-		connector.connect(new InetSocketAddress(server, port), ioHandler);
+		connector.setHandler(ioHandler);
+		connector.connect(new InetSocketAddress(server, port));
 	}
 	
 	/**
@@ -206,7 +211,8 @@ public class RTMPClient extends BaseRTMPHandler {
 	}
 	
 	/** {@inheritDoc} */
-    public void connectionOpened(RTMPConnection conn, RTMP state) {
+    @Override
+	public void connectionOpened(RTMPConnection conn, RTMP state) {
 		// Send "connect" call to the server
 		Channel channel = conn.getChannel((byte) 3);
 		PendingCall pendingCall = new PendingCall("connect");
@@ -220,7 +226,8 @@ public class RTMPClient extends BaseRTMPHandler {
 	}
 	
 	/** {@inheritDoc} */
-    protected void onInvoke(RTMPConnection conn, Channel channel,
+    @Override
+	protected void onInvoke(RTMPConnection conn, Channel channel,
 			Header source, Notify invoke, RTMP rtmp) {
 		final IServiceCall call = invoke.getCall();
 		if (call.getServiceMethodName().equals("_result")
@@ -257,14 +264,16 @@ public class RTMPClient extends BaseRTMPHandler {
 	}
 
 	/** {@inheritDoc} */
-    protected void onChunkSize(RTMPConnection conn, Channel channel,
+    @Override
+	protected void onChunkSize(RTMPConnection conn, Channel channel,
 			Header source, ChunkSize chunkSize) {
 		// TODO: implement this
 		log.info("ChunkSize is not implemented yet: " + chunkSize);
 	}
 
 	/** {@inheritDoc} */
-    protected void onPing(RTMPConnection conn, Channel channel,
+    @Override
+	protected void onPing(RTMPConnection conn, Channel channel,
 			Header source, Ping ping) {
 		switch (ping.getValue1()) {
 			case 6:
@@ -283,7 +292,8 @@ public class RTMPClient extends BaseRTMPHandler {
 	}
 
 	/** {@inheritDoc} */
-    protected void onSharedObject(RTMPConnection conn, Channel channel,
+    @Override
+	protected void onSharedObject(RTMPConnection conn, Channel channel,
 			Header source, SharedObjectMessage object) {
 		ClientSharedObject so = sharedObjects.get(object.getName());
 		if (so == null) {

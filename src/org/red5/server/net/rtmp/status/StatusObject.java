@@ -19,9 +19,9 @@ package org.red5.server.net.rtmp.status;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.red5.io.object.SerializerOpts;
-
 import java.io.Serializable;
+
+import org.red5.io.object.SerializerOpts;
 
 /**
  * Status object that is sent to client with every status event

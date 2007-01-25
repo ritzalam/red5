@@ -19,17 +19,27 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.red5.server.api.*;
+import org.red5.server.api.IBasicScope;
+import org.red5.server.api.IClient;
+import org.red5.server.api.IConnection;
+import org.red5.server.api.IContext;
+import org.red5.server.api.IScope;
+import org.red5.server.api.IScopeAware;
+import org.red5.server.api.IScopeHandler;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.persistence.IPersistable;
 import org.red5.server.api.persistence.PersistenceUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.core.style.ToStringCreator;
-
-import java.io.IOException;
-import java.util.*;
 
 /**
  * The scope object.
