@@ -47,14 +47,14 @@ public class AMF3 {
     public static final byte TYPE_NULL = 0x01;
 
     /**
-     * Boolean true marker
-     */
-    public static final byte TYPE_BOOLEAN_TRUE = 0x02;
-
-    /**
      * Boolean false marker
      */
-    public static final byte TYPE_BOOLEAN_FALSE = 0x03;
+    public static final byte TYPE_BOOLEAN_FALSE = 0x02;
+
+    /**
+     * Boolean true marker
+     */
+    public static final byte TYPE_BOOLEAN_TRUE = 0x03;
 
     /**
      * Integer marker
@@ -121,11 +121,11 @@ public class AMF3 {
 	 * If there is a class-def reference there are no property names and the number of values <br />
 	 * is equal to the number of properties in the class-def.
 	 */
-    public static final byte TYPE_OBJECT_VALUE = 0x0A;
+    public static final byte TYPE_OBJECT_VALUE = 0x02;
 
 	/**
 	 * 11 = unseen / unknown
 	 */
-    public static final byte TYPE_OBJECT_UNKNOWN = 0x0B;
+    public static final byte TYPE_OBJECT_UNKNOWN = 0x03;
 
 }

@@ -55,6 +55,7 @@ import org.red5.server.net.rtmp.message.Packet;
 import org.red5.server.net.rtmp.message.SharedObjectTypeMapping;
 import org.red5.server.service.Call;
 import org.red5.server.service.PendingCall;
+import org.red5.server.so.FlexSharedObjectMessage;
 import org.red5.server.so.ISharedObjectEvent;
 import org.red5.server.so.ISharedObjectMessage;
 import org.red5.server.so.SharedObjectMessage;
@@ -86,21 +87,6 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	/** Constructs a new RTMPProtocolDecoder. */
     public RTMPProtocolDecoder() {
 
-	}
-
-    /**
-     * Return input (data values provider) object from byte buffer. 
-     *
-     * @param rtmp			RTMP protocol state
-     * @param buffer        Byte buffer
-     * @return              Input object
-     */
-    private Input getInput(RTMP rtmp, ByteBuffer buffer) {
-		if (rtmp.getEncoding() == Encoding.AMF3) {
-			return new org.red5.io.amf3.Input(buffer);
-		} else {
-			return new org.red5.io.amf.Input(buffer);
-		}
 	}
 
     /**
@@ -437,6 +423,9 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 			case TYPE_VIDEO_DATA:
 				message = decodeVideoData(in);
 				break;
+			case TYPE_FLEX_SHARED_OBJECT:
+				message = decodeFlexSharedObject(in, rtmp);
+				break;
 			case TYPE_SHARED_OBJECT:
 				message = decodeSharedObject(in, rtmp);
 				break;
@@ -450,6 +439,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 				message = decodeFlexMessage(in, rtmp);
 				break;
 			default:
+				log.warn("Unknown object type: " + header.getDataType());
 				message = decodeUnknown(header.getDataType(), in);
 				break;
 		}
@@ -487,9 +477,10 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	}
 
 	/** {@inheritDoc} */
-	public ISharedObjectMessage decodeSharedObject(ByteBuffer in, RTMP rtmp) {
-
-		final Input input = getInput(rtmp, in);
+	public ISharedObjectMessage decodeFlexSharedObject(ByteBuffer in, RTMP rtmp) {
+		// Unknown byte, always 0?
+		in.skip(1);
+		final Input input = new org.red5.io.amf.Input(in);
 		String name = input.getString();
 		// Read version of SO to modify
 		int version = in.getInt();
@@ -498,9 +489,37 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 		// Skip unknown bytes
 		in.skip(4);
 
-		final SharedObjectMessage so = new SharedObjectMessage(null, name,
+		final SharedObjectMessage so = new FlexSharedObjectMessage(null, name,
 				version, persistent);
+		doDecodeSharedObject(so, in, input);
+		return so;
+	}
+	
+	/** {@inheritDoc} */
+	public ISharedObjectMessage decodeSharedObject(ByteBuffer in, RTMP rtmp) {
+		final Input input = new org.red5.io.amf.Input(in);
+		String name = input.getString();
+		// Read version of SO to modify
+		int version = in.getInt();
+		// Read persistence informations
+		boolean persistent = in.getInt() == 2;
+		// Skip unknown bytes
+		in.skip(4);
 
+		final SharedObjectMessage so = new FlexSharedObjectMessage(null, name,
+				version, persistent);
+		doDecodeSharedObject(so, in, input);
+		return so;
+	}
+
+	/**
+	 * Perform the actual decoding of the shared object contents.
+	 * 
+	 * @param so
+	 * @param in
+	 * @param rtmp
+	 */
+	protected void doDecodeSharedObject(SharedObjectMessage so, ByteBuffer in, Input input) {
 		// Parse request body
 		while (in.hasRemaining()) {
 
@@ -553,7 +572,6 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 			}
 			so.addEvent(type, key, value);
 		}
-		return so;
 	}
 
 	/** {@inheritDoc} */
@@ -597,7 +615,11 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
     protected Notify decodeNotifyOrInvoke(Notify notify, ByteBuffer in, Header header, RTMP rtmp) {
 		// TODO: we should use different code depending on server or client mode
 		int start = in.position();
-		Input input = getInput(rtmp, in);
+		Input input;
+		if (rtmp.getEncoding() == Encoding.AMF3)
+			input = new org.red5.io.amf3.Input(in);
+		else
+			input = new org.red5.io.amf.Input(in);
 
 		String action = (String) deserializer.deserialize(input);
 

@@ -148,12 +148,7 @@ public class RemotingClient {
 		ByteBuffer tmp = ByteBuffer.allocate(1024);
 		tmp.setAutoExpand(true);
 		Output tmpOut = new Output(tmp);
-		Serializer serializer = new Serializer();
-		tmpOut.writeStartArray(params.length);
-		for (Object param : params) {
-			serializer.serialize(tmpOut, param);
-		}
-		tmpOut.markEndArray();
+		tmpOut.writeArray(params, new Serializer());
 		tmp.flip();
 
 		// Store size and parameters

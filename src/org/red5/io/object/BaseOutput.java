@@ -86,7 +86,7 @@ public class BaseOutput {
 	 * 
 	 * @param obj   Object to store
 	 */
-	public void storeReference(Object obj) {
+	protected void storeReference(Object obj) {
 		refMap.put(new IdentityWrapper(obj), Short.valueOf(refId++));
 	}
 
@@ -96,7 +96,7 @@ public class BaseOutput {
 	 * @param obj            Object
 	 * @return boolean       <code>true</code> if it does contain it, <code>false</code> otherwise
 	 */
-	public boolean hasReference(Object obj) {
+	protected boolean hasReference(Object obj) {
 		return refMap.containsKey(new IdentityWrapper(obj));
 	}
 

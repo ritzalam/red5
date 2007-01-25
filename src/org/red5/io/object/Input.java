@@ -20,6 +20,9 @@ package org.red5.io.object;
  */
 
 import java.util.Date;
+import java.util.Map;
+
+import org.w3c.dom.Document;
 
 /**
  * Interface for Input which defines the contract methods which are
@@ -73,93 +76,41 @@ public interface Input {
      */
     Date readDate();
 
-	// Stuctures
-
     /**
-     * Read start of array marker.
-     * @return               Size of array
-     */
-    int readStartArray();
-
-    /**
-     * Skip array element separator marker
-     */
-    void skipElementSeparator();
-
-    /**
-     * Skip end of array separator marker
-     */
-    void skipEndArray();
-
-    /**
-     * Read start of map marker
-     * @return           Map size
-     */
-    int readStartMap();
-
-    /**
-     * Read item key from map
-     * @return           Key name as String
-     */
-    String readItemKey();
-
-    /**
-     * Skip item separator
-     */
-    void skipItemSeparator();
-
-    /**
-     * Check whether there's more items in map to read and deserialize
-     * @return        <code>true</code> if there are items to read, <code>false</code> otherwise
-     */
-    boolean hasMoreItems();
-
-    /**
-     * Skip map end marker
-     */
-    void skipEndMap();
-
-    /**
-     *
-     * @return
-     */
-    String readStartObject();
-
-    /**
+     * Read an array. This can result in a List or Map being
+     * deserialized depending on the array type found.
      * 
-     * @return
+     * @return		   array
      */
-    String readPropertyName();
+    Object readArray(Deserializer deserializer);
+    
+    /**
+     * Read a map containing key - value pairs. This can result
+     * in a List or Map being deserialized depending on the
+     * map type found.
+     * 
+     * @return		   Map
+     */
+    Object readMap(Deserializer deserializer);
+    
+    /**
+     * Read an object.
+     * 
+     * @return		   object
+     */
+    Object readObject(Deserializer deserializer);
 
     /**
-     * Skip object property separator
+     * Read XML document
+     * @return       XML DOM document
      */
-    void skipPropertySeparator();
-
-    /**
-     * Check whether more object properties are available
-     * @return     <code>true</code> if there are properties to read, <code>false</code> otherwise
-     */
-    boolean hasMoreProperties();
-
-    /**
-     * Slip object end marker
-     */
-    void skipEndObject();
-
-    /**
-     * Read XML as String
-     * @return       String representation of XML object
-     */
-	String readXML();
+	Document readXML();
 
     /**
      * Read custom object
      * @return          Custom object
      */
     Object readCustom();
-
-	//void readEndXML();
 
     /**
      * Read reference to Complex Data Type. Objects that are collaborators (properties) of other
@@ -168,15 +119,14 @@ public interface Input {
 	Object readReference();
 
     /**
-     * Store object reference. Objects that are collaborators (properties) of other
-     * objects must be stored as references in map of id-reference pairs.
-     * @param obj            Object
-     */
-    void storeReference(Object obj);
-
-    /**
      * Clears all references
      */
     void clearReferences();
 
+    /**
+     * Read key - value pairs. This is required for the RecordSet
+     * deserializer.
+     */
+    Map<String, Object> readKeyValues(Deserializer deserializer);
+    
 }

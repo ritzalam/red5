@@ -85,6 +85,8 @@
 		<mkdir dir="${dist.dir}"/>
 		<mkdir dir="${testclass.dir}"/>
 		<mkdir dir="${testreports.dir}"/>
+		<mkdir dir="${src.dir}/../webapps/echo/WEB-INF/classes"/>
+		<mkdir dir="${src.dir}/../webapps/echo/WEB-INF/lib"/>
 		<mkdir dir="${src.dir}/../webapps/fitcDemo/WEB-INF/classes"/>
 		<mkdir dir="${src.dir}/../webapps/fitcDemo/WEB-INF/lib"/>
 		<mkdir dir="${src.dir}/../webapps/midiDemo/WEB-INF/classes"/>
@@ -105,6 +107,8 @@
 		<delete dir="${dist.dir}"/>
 		<delete dir="${javadoc.dir}"/>
 		<delete dir="${testdoc.dir}"/>
+		<delete dir="${src.dir}/../webapps/echo/WEB-INF/classes"/>
+		<delete dir="${src.dir}/../webapps/echo/WEB-INF/lib"/>
 		<delete dir="${src.dir}/../webapps/fitcDemo/WEB-INF/classes"/>
 		<delete dir="${src.dir}/../webapps/fitcDemo/WEB-INF/lib"/>
 		<delete dir="${src.dir}/../webapps/midi/WEB-INF/classes"/>
@@ -133,6 +137,22 @@
        
         <antcall target="compile_core" inheritAll="true" inheritRefs="true" />
         <antcall target="compile_core_compatibility" inheritAll="true" inheritRefs="true" />
+
+		<javac
+			sourcepath=""
+			srcdir="${src.dir}/../webapps/echo/WEB-INF/src"
+			destdir="${src.dir}/../webapps/echo/WEB-INF/classes"
+			classpathref="webapps.classpath"
+            optimize="${build.optimize}" 
+            verbose="${build.verbose}" 
+            fork="${build.fork}" 
+            nowarn="${build.nowarn}"
+            deprecation="${build.deprecation}"
+            debug="${debug.state}"
+            compiler="${compiler}"
+            source="${java.target_version}"
+            target="${java.target_version}" 
+		/>
 
 		<javac
 			sourcepath=""
@@ -493,6 +513,12 @@
             <metainf dir="${src.dir}/META-INF">
                 <include name="**"/>
             </metainf>
+		</jar>
+		
+		<jar destfile="${src.dir}/../webapps/echo/WEB-INF/lib/echo.jar">
+			<fileset dir="${src.dir}/../webapps/echo/WEB-INF/classes">
+				<include name="**"/>
+			</fileset>
 		</jar>
 		
 		<jar destfile="${src.dir}/../webapps/fitcDemo/WEB-INF/lib/fitcDemo.jar">

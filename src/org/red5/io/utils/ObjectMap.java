@@ -1,4 +1,4 @@
-package org.red5.io.object;
+package org.red5.io.utils;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -20,49 +20,18 @@ package org.red5.io.object;
  */
 
 import java.util.HashMap;
-import java.util.Map;
 
 /**
- * BaseInput represents a way to map input to a HashMap.  This class
- * is meant to be extended.
+ * Map that should be transmitted as object through RTMP.
  * 
  * @author The Red5 Project (red5@osflash.org)
- * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
+ * @author Joachim Bauch (jojo@struktur.de)
  */
-public class BaseInput {
-    /**
-     * References map
-     */
-	protected Map refMap = new HashMap();
-
-    /**
-     * References id
-     */
-    protected int refId;
+public class ObjectMap<K, V> extends HashMap<K, V> {
 
 	/**
-	 * Store an object into a map
-	 * @param obj  Object to store
+	 * 
 	 */
-	protected void storeReference(Object obj) {
-		refMap.put(Integer.valueOf(refId++), obj);
-	}
-
-	/**
-	 * Clears the map
-	 */
-	public void clearReferences() {
-		refMap.clear();
-		refId = 0;
-	}
-
-	/**
-	 * Returns the object with the parameters id
-	 * @param id        Object reference id
-	 * @return Object   Object reference with given id
-	 */
-	protected Object getReference(int id) {
-		return refMap.get(Integer.valueOf(id));
-	}
+	private static final long serialVersionUID = 5146266119400305646L;
 
 }

@@ -19,16 +19,29 @@ package org.red5.io.amf;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.io.object.BaseInput;
 import org.red5.io.object.DataTypes;
+import org.red5.io.object.Deserializer;
+import org.red5.io.object.RecordSet;
+import org.red5.io.object.RecordSetPage;
+import org.red5.io.utils.ObjectMap;
+import org.red5.io.utils.XMLUtils;
+import org.w3c.dom.Document;
 
 /**
  * Input for red5 data types
@@ -256,89 +269,211 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		if (cal.getTimeZone().inDaylightTime(date)) {
 			date.setTime(date.getTime() - cal.getTimeZone().getDSTSavings());
 		}
+		storeReference(date);
 		return date;
 	}
 
 	// Array
+	
+	public Object readArray(Deserializer deserializer) {
+		int count = buf.getInt();
+		List<Object> result = new ArrayList<Object>(count);
+		storeReference(result);
+		for (int i=0; i<count; i++) {
+			result.add(deserializer.deserialize(this));
+		}
+		return result;
+	}
+
+	// Map
 
     /**
-	 * Returns an array
-	 * 
-	 * @return int     Array length
-	 */
-	public int readStartArray() {
-		return buf.getInt();
-	}
-
-	/**
-	 * Skips elements TODO
-	 */
-	public void skipElementSeparator() {
-		// SKIP
-	}
-
-	/**
-	 * Skips end array TODO
-	 */
-	public void skipEndArray() {
-		// SKIP
-	}
-
-	// Object
-
+     * Read key - value pairs. This is required for the RecordSet
+     * deserializer.
+     */
+    public Map<String, Object> readKeyValues(Deserializer deserializer) {
+		Map<String, Object> result = new HashMap<String, Object>();
+		readKeyValues(result, deserializer);
+		return result;
+    }
+	
     /**
-	 * Reads start list
-	 * 
-	 * @return int     Map size
-	 */
-	public int readStartMap() {
-		return buf.getInt();
-	}
-
-	/**
-	 * Returns a boolean stating whether this has more items
-	 * 
-	 * @return boolean   <code>true</code> if there are array/map items in buffer, <code>false</code> otherwise
-	 */
-	public boolean hasMoreItems() {
-		return hasMoreProperties();
-	}
-
-	/**
-	 * Reads the item index
-	 * 
-	 * @return int       Array item index
-	 */
-	public String readItemKey() {
-		return getString(buf);
-	}
-
-	/**
-	 * Skips item seperator
-	 */
-	public void skipItemSeparator() {
-		// SKIP
-	}
-
-	/**
-	 * Skips end list
-	 */
-	public void skipEndMap() {
+     * Read key - value pairs into Map object
+     */
+	protected void readKeyValues(Map<String, Object> result, Deserializer deserializer) {
+		while (hasMoreProperties()) {
+			String name = readPropertyName();
+			if (log.isDebugEnabled()) {
+				log.debug("property: " + name);
+			}
+			Object property = deserializer.deserialize(this);
+			if (log.isDebugEnabled()) {
+				log.debug("val: " + property);
+			}
+			result.put(name, property);
+			if (hasMoreProperties()) {
+				skipPropertySeparator();
+			}
+		}
 		skipEndObject();
+    }
+
+	public Object readMap(Deserializer deserializer) {
+		// The maximum number used in this mixed array.
+		int maxNumber = buf.getInt();
+		if (log.isDebugEnabled()) {
+			log.debug("Read start mixed array: " + maxNumber);
+		}
+
+		Object result;
+		final Map<Object, Object> mixedResult = new LinkedHashMap<Object, Object>(maxNumber);
+		while (hasMoreProperties()) {
+			String key = getString(buf);
+			if (log.isDebugEnabled()) {
+				log.debug("key: " + key);
+			}
+			Object item = deserializer.deserialize(this);
+			if (log.isDebugEnabled()) {
+				log.debug("item: " + item);
+			}
+			mixedResult.put(key, item);
+		}
+
+		if (mixedResult.size() <= maxNumber+1 && maxNumber == (Integer) mixedResult.get("length")) {
+			// MixedArray actually is a regular array
+			if (log.isDebugEnabled()) {
+				log.debug("mixed array is a regular array");
+			}
+			final List<Object> listResult = new ArrayList<Object>(maxNumber);
+			for (int i=0; i<maxNumber; i++) {
+				listResult.add(i, mixedResult.get(String.valueOf(i)));
+			}
+			result = listResult;
+		} else {
+			// Convert initial indexes
+			mixedResult.remove("length");
+			for (int i=0; i<maxNumber; i++) {
+				final Object value = mixedResult.remove(String.valueOf(i));
+				mixedResult.put(i, value);
+			}
+			result = mixedResult;
+		}
+		storeReference(result);
+		skipEndObject();
+		return result;
+	}
+	
+	// Object
+	
+	/**
+	 * Creats a new instance of the className parameter and 
+	 * returns as an Object
+	 * @param className
+	 * @return Object
+	 */
+	protected Object newInstance(String className) {
+		Object instance = null;
+		try {
+			Class clazz = Thread.currentThread().getContextClassLoader()
+					.loadClass(className);
+			instance = clazz.newInstance();
+		} catch (Exception ex) {
+			log.error("Error loading class: " + className, ex);
+		}
+		return instance;
 	}
 
-	// Object
+	/**
+	 * Reads the input as a bean and returns an object
+	 * 
+	 * @param in
+	 * @param bean
+	 * @return Object
+	 */
+	protected Object readBean(Deserializer deserializer, Object bean) {
+		if (log.isDebugEnabled()) {
+			log.debug("read bean");
+		}
+		storeReference(bean);
+		while (hasMoreProperties()) {
+			String name = readPropertyName();
+			if (log.isDebugEnabled()) {
+				log.debug("property: " + name);
+			}
+			Object property = deserializer.deserialize(this);
+			if (log.isDebugEnabled()) {
+				log.debug("val: " + property);
+			}
+			//log.debug("val: "+property.getClass().getName());
+			try {
+				if (property != null) {
+					BeanUtils.setProperty(bean, name, property);
+				} else {
+					if (log.isDebugEnabled()) {
+						log.debug("Skipping null property: " + name);
+					}
+				}
+			} catch (Exception ex) {
+				log.error("Error mapping property: " + name);
+			}
+			if (hasMoreProperties()) {
+				skipPropertySeparator();
+			}
+		}
+		skipEndObject();
+		return bean;
+	}
+
+	/**
+	 * Reads the input as a map and returns a Map
+	 * 
+	 * @param in
+	 * @return Map
+	 */
+	protected Map<String, Object> readSimpleObject(Deserializer deserializer) {
+		if (log.isDebugEnabled()) {
+			log.debug("read map");
+		}
+		Map<String, Object> result = new ObjectMap<String, Object>();
+		readKeyValues(result, deserializer);
+		storeReference(result);
+		return result;
+	}
+	
 	/**
 	 * Reads start object
 	 * 
 	 * @return String
 	 */
-	public String readStartObject() {
+	public Object readObject(Deserializer deserializer) {
+		String className;
 		if (currentDataType == AMF.TYPE_CLASS_OBJECT) {
-			return getString(buf);
+			className = getString(buf);
 		} else {
-			return null;
+			className = null;
 		}
+		Object result = null;
+		if (className != null) {
+			if (log.isDebugEnabled()) {
+				log.debug("read class object");
+			}
+			Object instance;
+			if (className.equals("RecordSet")) {
+				result = new RecordSet(this);
+				storeReference(result);
+			} else if (className.equals("RecordSetPage")) {
+				result = new RecordSetPage(this);
+				storeReference(result);
+			} else {
+				instance = newInstance(className);
+				if (instance != null) {
+					result = readBean(deserializer, instance);
+				} // else fall through
+			}
+		} else {
+			result = readSimpleObject(deserializer);
+		}
+		return result;
 	}
 
 	/**
@@ -392,8 +527,16 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	 * 
 	 * @return String       XML as string
 	 */
-	public String readXML() {
-		return readString();
+	public Document readXML() {
+		final String xmlString = readString();
+		Document doc = null;
+		try {
+			doc = XMLUtils.stringToDoc(xmlString);
+		} catch (IOException ioex) {
+			log.error("IOException converting xml to dom", ioex);
+		}
+		storeReference(doc);
+		return doc;
 	}
 
 	/**
@@ -412,7 +555,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	 * @return Object       Read reference to object
 	 */
 	public Object readReference() {
-		return getReference(buf.getShort());
+		return getReference(buf.getShort() - 1);
 	}
 
 	/**

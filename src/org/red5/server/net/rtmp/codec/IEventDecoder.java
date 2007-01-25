@@ -59,6 +59,14 @@ public interface IEventDecoder {
 	public abstract ISharedObjectMessage decodeSharedObject(ByteBuffer in, RTMP rtmp);
 
     /**
+     * Decodes shared object message event from AMF3 encoding
+     * @param in                     Byte buffer to decode
+     * @param rtmp					 RTMP protocol state
+     * @return                       ISharedObjectMessage event
+     */
+	public abstract ISharedObjectMessage decodeFlexSharedObject(ByteBuffer in, RTMP rtmp);
+
+    /**
      * Decodes notification event
      * @param in                     Byte buffer to decode
      * @param rtmp					 RTMP protocol state

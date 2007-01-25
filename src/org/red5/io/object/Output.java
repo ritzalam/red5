@@ -19,7 +19,10 @@ package org.red5.io.object;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.Collection;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * Output interface which defines contract methods to be implemented
@@ -61,68 +64,66 @@ public interface Output {
 	void writeNull();
 
     /**
-     * Write start of array marker
-     * @param length              Array length
+     * Write array.
+     * @param array     	Array to write.
+     * @param serializer	Serializer to use for subobjects.
      */
-    void writeStartArray(int length);
+    void writeArray(Collection array, Serializer serializer);
 
     /**
-     * Write array element separator mark
+     * Write array.
+     * @param array     	Array to write.
+     * @param serializer	Serializer to use for subobjects.
      */
-    void markElementSeparator();
+    void writeArray(Object[] array, Serializer serializer);
 
     /**
-     * Write end of array marker
-     *
+     * Write primitive array.
+     * @param array     	Array to write.
+     * @param serializer	Serializer to use for subobjects.
      */
-    void markEndArray();
+    void writeArray(Object array, Serializer serializer);
 
     /**
-     * Write map object
-     * @param size     Map size
+     * Write map.
+     * 
+     * @param map			Map to write
+     * @param serializer	Serializer to use for subobjects.
      */
-    void writeStartMap(int size);
+    void writeMap(Map<Object, Object> map, Serializer serializer);
 
     /**
-     * Write map item key
-     * @param key   Key name
+     * Write array as map.
+     * 
+     * @param array			Array to write
+     * @param serializer	Serializer to use for subobjects.
      */
-    void writeItemKey(String key);
+    void writeMap(Collection array, Serializer serializer);
 
     /**
-     * Write map items separator mark
+     * Write object.
+     * 
+     * @param object		Object to write
+     * @param serializer	Serializer to use for subobjects.
      */
-    void markItemSeparator();
+    void writeObject(Object object, Serializer serializer);
 
     /**
-     * Write end of map object marker
+     * Write map as object.
+     * 
+     * @param map			Map to write
+     * @param serializer	Serializer to use for subobjects.
      */
-    void markEndMap();
-
-    void writeStartObject(String classname, int numMembers);
+    void writeObject(Map<Object, Object> map, Serializer serializer);
 
     /**
-     * Write start of object marker
-     * @param classname    Object class name
+     * Write recordset.
+     * 
+     * @param recordset		Recordset to write.
+     * @param serializer	Serializer to use for subobjects.
      */
-    void writeStartObject(String classname);
-
-    /**
-     * Write property name
-     * @param name        Property name
-     */
-    void writePropertyName(String name);
-
-    /**
-     * Write object property separator marker
-     */
-    void markPropertySeparator();
-
-    /**
-     * Writes end of object marker
-     */
-    void markEndObject();
-
+    void writeRecordSet(RecordSet recordset, Serializer serializer);
+    
     /**
      * Write XML object
      * @param xml      XML as string
@@ -148,19 +149,6 @@ public interface Output {
      * @param custom     Custom data type object
      */
     void writeCustom(Object custom);
-
-    /**
-     * Store reference to object
-     * @param obj              Referenced object
-     */
-    void storeReference(Object obj);
-
-    /**
-     * Check whether object is referenced
-     * @param obj              Object
-     * @return                 true if object is referenced, false otherwise
-     */
-    boolean hasReference(Object obj);
 
     /**
      * Clear references

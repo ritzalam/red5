@@ -19,14 +19,26 @@ package org.red5.io.amf;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+
+import java.lang.reflect.Array;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
 
+import org.apache.commons.collections.BeanMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.io.object.BaseOutput;
-
+import org.red5.io.object.RecordSet;
+import org.red5.io.object.Serializer;
+import org.red5.io.object.SerializerOpts.SerializerOption;
 /**
  * 
  * @author The Red5 Project (red5@osflash.org)
@@ -56,37 +68,130 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		return false;
 	}
 
+    protected boolean checkWriteReference(Object obj) {
+    	if (hasReference(obj)) {
+    		writeReference(obj);
+    		return true;
+    	} else
+    		return false;
+    }
+    
 	/** {@inheritDoc} */
-	public void markElementSeparator() {
-		// SKIP
-	}
-
-	/** {@inheritDoc} */
-	public void markEndArray() {
-		// SKIP
-	}
-
-	/** {@inheritDoc} */
-	public void markEndMap() {
-		markEndObject();
-	}
-
-	/** {@inheritDoc} */
-    public void markEndObject() {
-		// TODO: marker bytes ?
-		if (log.isDebugEnabled()) {
-			log.debug("Mark End Object");
+	public void writeArray(Collection array, Serializer serializer) {
+		if (checkWriteReference(array))
+			return;
+		
+		storeReference(array);
+		buf.put(AMF.TYPE_ARRAY);
+		buf.putInt(array.size());
+		for (Object item : array) {
+			serializer.serialize(this, item);
 		}
-		final byte pad = 0x00;
-		buf.put(pad);
-		buf.put(pad);
+	}
+
+	/** {@inheritDoc} */
+	public void writeArray(Object[] array, Serializer serializer) {
+		if (checkWriteReference(array))
+			return;
+		
+		storeReference(array);
+		buf.put(AMF.TYPE_ARRAY);
+		buf.putInt(array.length);
+		for (Object item : array) {
+			serializer.serialize(this, item);
+		}
+	}
+
+	/** {@inheritDoc} */
+    public void writeArray(Object array, Serializer serializer) {
+		if (checkWriteReference(array))
+			return;
+		
+		storeReference(array);
+		buf.put(AMF.TYPE_ARRAY);
+		buf.putInt(Array.getLength(array));
+		for (int i=0; i<Array.getLength(array); i++) {
+			serializer.serialize(this, Array.get(array, i));
+		}
+    }
+
+	/** {@inheritDoc} */
+	public void writeMap(Map<Object, Object> map, Serializer serializer) {
+		if (checkWriteReference(map))
+			return;
+		
+		storeReference(map);
+		buf.put(AMF.TYPE_MIXED_ARRAY);
+		int maxInt=-1;
+		for (int i=0; i<map.size(); i++) {
+			if (!map.containsKey(i))
+				break;
+			
+			maxInt = i;
+		}
+		buf.putInt(maxInt+1);
+		for (Map.Entry<Object, Object> entry : map.entrySet()) {
+			final String key = entry.getKey().toString(); 
+			if ("length".equals(key))
+				continue;
+			
+			putString(key);
+			serializer.serialize(this, entry.getValue());
+		}
+		if (maxInt >= 0) {
+			putString("length");
+			serializer.serialize(this, maxInt+1);
+		}
+		buf.put((byte) 0x00);
+		buf.put((byte) 0x00);
+		buf.put(AMF.TYPE_END_OF_OBJECT);
+	}
+	
+	/** {@inheritDoc} */
+	public void writeMap(Collection array, Serializer serializer) {
+		if (checkWriteReference(array))
+			return;
+		
+		storeReference(array);
+		buf.put(AMF.TYPE_MIXED_ARRAY);
+		buf.putInt(array.size()+1);
+		int idx=0;
+		for (Object item: array) {
+			if (item != null) {
+				putString(String.valueOf(idx++));
+				serializer.serialize(this, item);
+			} else {
+				idx++;
+			}
+		}
+		putString("length");
+		serializer.serialize(this, array.size()+1);
+		
+		buf.put((byte) 0x00);
+		buf.put((byte) 0x00);
 		buf.put(AMF.TYPE_END_OF_OBJECT);
 	}
 
 	/** {@inheritDoc} */
-	public void markPropertySeparator() {
-		// SKIP
-	}
+    public void writeRecordSet(RecordSet recordset, Serializer serializer) {
+		if (checkWriteReference(recordset))
+			return;
+		
+		storeReference(recordset);
+        // Write out start of object marker
+		buf.put(AMF.TYPE_CLASS_OBJECT);
+		putString("RecordSet");
+        // Serialize
+        Map<String, Object> info = recordset.serialize();
+        // Write out serverInfo key
+        putString("serverInfo");
+        // Serialize
+        serializer.serialize(this, info);
+        // Write out end of object marker
+		buf.put((byte) 0x00);
+		buf.put((byte) 0x00);
+		buf.put(AMF.TYPE_END_OF_OBJECT);
+    }
 
 	/** {@inheritDoc} */
     public boolean supportsDataType(byte type) {
@@ -127,14 +232,6 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 	}
 
 	/** {@inheritDoc} */
-    public void writePropertyName(String name) {
-		if (log.isDebugEnabled()) {
-			log.debug("Put property: " + name);
-		}
-		putString(name);
-	}
-
-	/** {@inheritDoc} */
     public void writeReference(Object obj) {
 		if (log.isDebugEnabled()) {
 			log.debug("Write reference");
@@ -144,49 +241,143 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 	}
 
 	/** {@inheritDoc} */
-    public void writeStartMap(int length) {
-		buf.put(AMF.TYPE_MIXED_ARRAY);
-		buf.putInt(length);
-	}
+    public void writeObject(Object object, Serializer serializer) {
+		if (checkWriteReference(object))
+			return;
+		
+		storeReference(object);
+        // Create new map out of bean properties
+        BeanMap beanMap = new BeanMap(object);
+        // Set of bean attributes
+        Set set = beanMap.entrySet();
+		if ((set.size() == 0) || (set.size() == 1 && beanMap.containsKey("class"))) {
+			// BeanMap is empty or can only access "class" attribute, skip it
+			writeArbitraryObject(object, serializer);
+			return;
+		}
 
-	/** {@inheritDoc} */
-    public void markItemSeparator() {
-		// nothing
-	}
-
-	/** {@inheritDoc} */
-    public void writeItemKey(String key) {
-		writePropertyName(key);
-	}
-
-	/** {@inheritDoc} */
-    public void writeStartArray(int length) {
-		buf.put(AMF.TYPE_ARRAY);
-		buf.putInt(length);
-	}
-
-	/** {@inheritDoc} */
-    public void writeStartObject(String className) {
-		if (className == null) {
-			buf.put(AMF.TYPE_OBJECT);
-		} else {
+        // Write out either start of object marker for class name or "empty" start of object marker
+		Class objectClass = object.getClass();
+        if (serializer.isOptEnabled(object, SerializerOption.SerializeClassName)) {
 			buf.put(AMF.TYPE_CLASS_OBJECT);
-			putString(buf, className);
+			putString(buf, objectClass.getName());
+		} else {
+			buf.put(AMF.TYPE_OBJECT);
 		}
+		Iterator it = set.iterator();
+        // Iterate thru entries and write out property names with separators
+        while (it.hasNext()) {
+			BeanMap.Entry entry = (BeanMap.Entry) it.next();
+			if (entry.getKey().toString().equals("class")) {
+				continue;
+			}
 
+			String keyName = entry.getKey().toString();
+			// Check if the Field corresponding to the getter/setter pair is transient
+			try {
+				Field field = objectClass.getDeclaredField(keyName);
+				int modifiers = field.getModifiers();
+				
+				if (Modifier.isTransient(modifiers)) {
+					if (log.isDebugEnabled()) {
+						log.debug("Skipping " + field.getName() + " because its transient");
+					}
+					continue;
+				}
+			} catch (NoSuchFieldException nfe) {
+				// Ignore this exception and use the default behaviour
+			}
+			
+			putString(buf, keyName);
+			serializer.serialize(this, entry.getValue());
+		}
+        // Write out end of object mark
+		buf.put((byte) 0x00);
+		buf.put((byte) 0x00);
+		buf.put(AMF.TYPE_END_OF_OBJECT);
+	}
+
+	/** {@inheritDoc} */
+    public void writeObject(Map<Object, Object> map, Serializer serializer) {
+		if (checkWriteReference(map))
+			return;
+		
+		storeReference(map);
+		buf.put(AMF.TYPE_OBJECT);
+		boolean isBeanMap = (map instanceof BeanMap);
+		for (Map.Entry<Object, Object> entry : map.entrySet()) {
+			if (isBeanMap && "class".equals(entry.getKey()))
+				continue;
+			
+			putString(entry.getKey().toString());
+			serializer.serialize(this, entry.getValue());
+		}
+		buf.put((byte) 0x00);
+		buf.put((byte) 0x00);
+		buf.put(AMF.TYPE_END_OF_OBJECT);
+    }
+
+	/**
+	 * Writes an arbitrary object to the output.
+	 *
+	 * @param out           Output writer
+	 * @param object        Object to write
+	 */
+	protected void writeArbitraryObject(Object object, Serializer serializer) {
 		if (log.isDebugEnabled()) {
-			log.debug("Start object: " + className);
+			log.debug("writeObject");
 		}
+        // If we need to serialize class information...
+		Class objectClass = object.getClass();
+        if (serializer.isOptEnabled(object, SerializerOption.SerializeClassName)) {
+            // Write out start object marker for class name
+			buf.put(AMF.TYPE_CLASS_OBJECT);
+			putString(buf, objectClass.getName());
+		} else {
+            // Write out start object marker without class name
+			buf.put(AMF.TYPE_OBJECT);
+		}
+
+		// Get public field values
+		Map<String, Object> values = new HashMap<String, Object>();
+        // Iterate thru fields of an object to build "name-value" map from it
+        for (Field field : objectClass.getFields()) {
+			int modifiers = field.getModifiers();
+			if (Modifier.isTransient(modifiers)) {
+				if (log.isDebugEnabled()) {
+					log.debug("Skipping " + field.getName() + " because its transient");
+				}
+				continue;
+			}
+			
+			Object value;
+			try {
+                // Get field value
+                value = field.get(object);
+			} catch (IllegalAccessException err) {
+                // Swallow on private and protected properties access exception
+                continue;
+			}
+            // Put field to the map of "name-value" pairs
+            values.put(field.getName(), value);
+		}
+
+		// Output public values
+		Iterator<Map.Entry<String, Object>> it = values.entrySet().iterator();
+        // Iterate thru map and write out properties with separators
+        while (it.hasNext()) {
+			Map.Entry<String, Object> entry = it.next();
+            // Write out prop name
+			putString(buf, entry.getKey());
+            // Write out
+            serializer.serialize(this, entry.getValue());
+		}
+        // Write out end of object marker
+		buf.put((byte) 0x00);
+		buf.put((byte) 0x00);
+		buf.put(AMF.TYPE_END_OF_OBJECT);
 	}
 
-    /**
-     * Writes start of object marker
-     * @param classname             Object class
-     * @param numMembers            Number of members. Used in AMF3 override.
-     */
-    public void writeStartObject(String classname, int numMembers) {
-		writeStartObject(classname);
-	}
 
 	/** {@inheritDoc} */
     public void writeString(String string) {
@@ -212,10 +403,12 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		buf.putShort((short) strBuf.limit());
 		buf.put(strBuf);
 	}
+    
     /** {@inheritDoc} */
 	public void putString(String string) {
 		putString(buf, string);
 	}
+	
     /** {@inheritDoc} */
 	public void writeXML(String xml) {
 		// TODO Auto-generated method stub

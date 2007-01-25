@@ -100,4 +100,12 @@ public interface IEventEncoder {
      */
     public abstract ByteBuffer encodeSharedObject(ISharedObjectMessage so, RTMP rtmp);
 
+    /**
+     * Encodes SharedObjectMessage event to byte buffer using AMF3 encoding
+     * @param so                 ISharedObjectMessage event
+     * @param rtmp			 RTMP protocol state
+     * @return                   Byte buffer
+     */
+    public ByteBuffer encodeFlexSharedObject(ISharedObjectMessage so, RTMP rtmp);
+
 }

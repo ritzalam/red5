@@ -1,0 +1,188 @@
+<?xml version="1.0"?>
+<!-- @mxmlc -library-path+=./classes -source-path+=./classes -->
+<mx:Application
+	pageTitle="AMF3 Echo Client"
+	xmlns:mx="http://www.adobe.com/2006/mxml"
+	xmlns:fx="com.fusiox.ui.*"
+	initialize="initApp()"
+	backgroundColor="#F4F4F4" themeColor="haloBlue" layout="vertical">
+
+    <mx:Script>
+    <![CDATA[
+		import mx.controls.Alert;
+		import org.red5.samples.echo.EchoClass;
+		
+		[Bindable]
+		private var nc: NetConnection;
+		
+		[Bindable]
+		private var testParams: Array;
+		
+		[Bindable]
+		private var testIndex: Number;
+		
+		[Bindable]
+		private var testsFailed: Number;
+		
+        private function initApp(): void
+        {
+			// Prepare test values
+			testParams = new Array();
+			testParams.push(null);
+			testParams.push(true);
+			testParams.push(false);
+			testParams.push("");
+			testParams.push("Hello world!");
+			testParams.push(0);
+			testParams.push(1);
+			testParams.push(-1);
+			testParams.push(256);
+			testParams.push(-256);
+			testParams.push(65536);
+			testParams.push(-65536);
+			testParams.push(0.0);
+			testParams.push(1.5);
+			testParams.push(-1.5);
+			testParams.push(new Array());
+			var tmp1: Array = new Array();
+			tmp1.push(1);
+			testParams.push(tmp1);
+			testParams.push(new Array(1, 2));
+			testParams.push(new Array(1, 2, 3));
+			var tmp2: Array = new Array();
+			tmp2.push(1);
+			tmp2[100] = 100;
+			testParams.push(tmp2);
+			var tmp3: Array = new Array();
+			tmp3.push(1);
+			tmp3["one"] = 1;
+			testParams.push(tmp3);
+			var tmp4: Object = {a: "foo", b: "bar"};
+			testParams.push(tmp4);
+			var tmp5: Array = new Array();
+			tmp5.push(tmp4);
+			tmp5.push(tmp4);
+			testParams.push(tmp5);
+			var now: Date = new Date();
+			testParams.push(now);
+			var tmp6: Array = new Array();
+			tmp6.push(now);
+			tmp6.push(now);
+			testParams.push(tmp6);
+			var tmp7: EchoClass = new EchoClass();
+			tmp7.attr1 = "one";
+			tmp7.attr2 = 1;
+			testParams.push(tmp7);
+			nc = new NetConnection();
+			nc.addEventListener(NetStatusEvent.NET_STATUS, netStatusHandler); 
+			onConnect(ObjectEncoding.AMF3);
+        }
+		
+		private function onConnect(proto: uint): void {
+			if (nc.connected) {
+				nc.close();
+			}
+			nc.objectEncoding = proto;
+			nc.connect("rtmp://localhost/echo");
+			textArea.text = "Connecting using " + proto + "...\n";
+		}
+		
+		private function netStatusHandler(event: NetStatusEvent): void {
+			textArea.text += event.info.code + ": " + event.info.description + "\n";
+			switch(event.info.code) {
+				case "NetConnection.Connect.Success":
+					btnTest.enabled = true;
+					onTest();
+				break;
+				case "NetConnection.Connect.Failed":
+					btnTest.enabled = false;
+				break;
+			}
+		}
+		
+		private function doTest(): void {
+			textArea.text += "Testing " + testParams[testIndex] + ": ";
+			nc.call("echo", new Responder(this.onResult), testParams[testIndex]);
+		}
+		
+		private function onTest(): void {
+			testIndex = 0;
+			testsFailed = 0;
+			doTest();
+		}
+		
+		private function extendedEqual(a: Object, b: Object): Boolean {
+			var key: String;
+			if (a == null && b != null) {
+				return false;
+			} else if (a != null && b == null) {
+				return false;
+			} else if (a is Array && b is Array) {
+				if (a.length != (b as Array).length) {
+					return false;
+				}
+				var i: Number;
+				for (i=0; i<(a as Array).length; i++) {
+					if (!extendedEqual((a as Array)[i], (b as Array)[i])) {
+						return false;
+					}
+				}
+				return true;
+			} else if (a is Object && !(b is Object)) {
+				for (key in a) {
+					if (!extendedEqual(a[key], (b as Array)[key])) {
+						return false;
+					}
+				}
+				return true;
+			} else if (!(a is Object) && b is Object) {
+				for (key in b) {
+					if (!extendedEqual((a as Array)[key], b[key])) {
+						return false;
+					}
+				}
+				return true;
+			} else if (a is Object && b is Object) {
+				for (key in a) {
+					if (!extendedEqual(a[key], b[key])) {
+						return false;
+					}
+				}
+				return true;
+			} else {
+				return (a == b);
+			}
+		}
+		
+		private function onResult(result: Object): void {
+		    if (extendedEqual(testParams[testIndex], result)) {
+				if (result == null)
+					textArea.text += "OK (null)\n";
+				else
+					textArea.text += "OK (" + result.toString() + ")\n";
+			} else {
+				if (result == null)
+					textArea.text += "FAILED (null)\n";
+				else
+					textArea.text += "FAILED (" + result.toString() + ")\n";
+				testsFailed++;
+			}
+			testIndex += 1;
+			if (testIndex < testParams.length) {
+				doTest();
+			} else if (testsFailed == 0) {
+				textArea.text += "Successfully ran " + testParams.length + " tests\n";
+			} else {
+				textArea.text += "Ran " + testParams.length + " tests, " + testsFailed + " failed\n";
+			}
+		}
+
+    ]]>
+    </mx:Script>
+	
+	<mx:Button id="btnConnect0" label="Connect AMF0" labelPlacement="left" click="onConnect(ObjectEncoding.AMF0)" />
+	<mx:Button id="btnConnect3" label="Connect AMF3" labelPlacement="left" click="onConnect(ObjectEncoding.AMF3)" />
+	<mx:Button id="btnTest" label="Test" labelPlacement="left" click="onTest()" enabled="false" />
+	<mx:TextArea id="textArea" width="400" height="100%">
+    </mx:TextArea>
+</mx:Application>

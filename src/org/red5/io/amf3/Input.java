@@ -20,16 +20,22 @@ package org.red5.io.amf3;
  */
 
 import java.io.IOException;
-import java.util.Calendar;
+import java.util.ArrayList;
 import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.TimeZone;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.io.amf.AMF;
 import org.red5.io.object.DataTypes;
+import org.red5.io.object.Deserializer;
+import org.red5.io.object.RecordSet;
+import org.red5.io.object.RecordSetPage;
+import org.red5.io.utils.ObjectMap;
 
 /**
  * Input for red5 data (AMF3) types
@@ -43,6 +49,14 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
      * Logger
      */
 	protected static Log log = LogFactory.getLog(Input.class.getName());
+	/**
+	 * Set to a value above <tt>0</tt> to enforce AMF3 decoding mode.
+	 */
+	private int amf3_mode;
+	/**
+	 * List of string values found in the input stream.
+	 */
+	private List<String> stringReferences;
 
 	/**
 	 * Creates Input object for AMF3 from byte buffer
@@ -51,6 +65,8 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 */
 	public Input(ByteBuffer buf) {
 		super(buf);
+		amf3_mode = 0;
+		stringReferences = new ArrayList<String>();
 	}
 
 	/**
@@ -70,7 +86,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 
 		if (currentDataType == AMF.TYPE_AMF3_OBJECT) {
 			currentDataType = buf.get();
-		} else {
+		} else if (amf3_mode == 0) {
 			// AMF0 object
 			return readDataType(currentDataType);
 		}
@@ -167,12 +183,13 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	@Override
 	public String readString() {
 		int len = readAMF3Integer();
-		if (len == 0)
+		if (len == 1)
+			// Empty string
 			return "";
 		
 		if ((len & 1) == 0) {
 			// Reference
-			return (String) getReference(len >> 1);
+			return stringReferences.get(len >> 1);
 		}
 		len >>= 1;
 		int limit = buf.limit();
@@ -180,7 +197,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		strBuf.limit(strBuf.position() + len);
 		final String string = AMF3.CHARSET.decode(strBuf).toString();
 		buf.limit(limit); // Reset the limit
-		storeReference(string);
+		stringReferences.add(string);
 		return string;
 	}
 
@@ -191,22 +208,15 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 */
 	@Override
 	public Date readDate() {
-		/*
-		 * Date: 0x0B T7 T6 .. T0 Z1 Z2 T7 to T0 form a 64 bit Big Endian number
-		 * that specifies the number of nanoseconds that have passed since
-		 * 1/1/1970 0:00 to the specified time. This format is ÒUTC 1970Ó. Z1 an
-		 * Z0 for a 16 bit Big Endian number indicating the indicated timeÕs
-		 * timezone in minutes.
-		 */
-		long ms = (long) buf.getDouble();
-		short clientTimeZoneMins = buf.getShort();
-		ms += clientTimeZoneMins * 60 * 1000;
-		Calendar cal = new GregorianCalendar();
-		cal.setTime(new Date(ms - TimeZone.getDefault().getRawOffset()));
-		Date date = cal.getTime();
-		if (cal.getTimeZone().inDaylightTime(date)) {
-			date.setTime(date.getTime() - cal.getTimeZone().getDSTSavings());
+		int ref = readAMF3Integer();
+		if ((ref & 1) == 0) {
+			// Reference to previously found date
+			return (Date) getReference(ref >> 1);
 		}
+		
+		long ms = (long) buf.getDouble();
+		Date date = new Date(ms);
+		storeReference(date);
 		return date;
 	}
 
@@ -217,139 +227,127 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 * 
 	 * @return int        Length of array
 	 */
-	@Override
-	public int readStartArray() {
-		System.err.println("MISSING: readStartArray");
-		return buf.getInt();
+    public Object readArray(Deserializer deserializer) {
+		int count = readAMF3Integer();
+		if ((count & 1) == 0) {
+			// Reference
+			return getReference(count >> 1);
+		}
+		
+		count = (count >> 1);
+		String key = readString();
+		amf3_mode += 1;
+		Object result = null;
+		if (key.equals("")) {
+			// normal array
+			List<Object> resultList = new ArrayList<Object>(count);
+			storeReference(resultList);
+			for (int i=0; i<count; i++) {
+				final Object value = deserializer.deserialize(this);
+				resultList.add(value);
+			}
+			result = resultList;
+		} else {
+			// associative array
+			Map<Object, Object> resultMap = new HashMap<Object, Object>();
+			storeReference(resultMap);
+			while (!key.equals("")) {
+				final Object value = deserializer.deserialize(this);
+				resultMap.put(key, value);
+				key = readString();
+			}
+			for (int i=0; i<count; i++) {
+				final Object value = deserializer.deserialize(this);
+				resultMap.put(i, value);
+			}
+			result = resultMap;
+		}
+		amf3_mode -= 1;
+		return result;			
 	}
 
-	/**
-	 * Skips elements TODO
-	 */
-	@Override
-	public void skipElementSeparator() {
-		// SKIP
-	}
-
-	/**
-	 * Skips end array TODO
-	 */
-	@Override
-	public void skipEndArray() {
-		// SKIP
-	}
-
+    public Object readMap(Deserializer deserializer) {
+    	throw new RuntimeException("AMF3 doesn't support maps.");
+    }
+    
 	// Object
 
-	/**
-	 * Reads start list
-	 * 
-	 * @return int        Size of map
-	 */
-	@Override
-	public int readStartMap() {
-		System.err.println("MISSING: readStartMap");
-		return buf.getInt();
-	}
-
-	/**
-	 * Returns a boolean stating whether this has more items
-	 * 
-	 * @return boolean    <code>true</code> if this Input's buffer has more items, <code>false</code> otherwise
-	 */
-	@Override
-	public boolean hasMoreItems() {
-		return hasMoreProperties();
-	}
-
-	/**
-	 * Reads the item index
-	 * 
-	 * @return int        Array item index
-	 */
-	@Override
-	public String readItemKey() {
-		return readString();
-	}
-
-	/**
-	 * Skips item seperator
-	 */
-	@Override
-	public void skipItemSeparator() {
-		// SKIP
-	}
-
-	/**
-	 * Skips end list
-	 */
-	@Override
-	public void skipEndMap() {
-		skipEndObject();
-	}
-
-	// Object
-
-	/**
-	 * Reads start object
-	 * 
-	 * @return String
-	 */
-	@Override
-	public String readStartObject() {
-		System.err.println("MISSING: readStartObject");
-		return null;
-	}
-
-	/**
-	 * Returns a boolean stating whether there are more properties
-	 * 
-	 * @return boolean       <code>true</code> if there are more properties to read, <code>false</code> otherwise
-	 */
-	@Override
-	public boolean hasMoreProperties() {
-		boolean isEnd = (buf.get() == 0);
-		buf.position(buf.position()-1);
-		return isEnd;
-	}
-
-	/**
-	 * Reads property name
-	 * 
-	 * @return String       Object property name
-	 */
-	@Override
-	public String readPropertyName() {
-		return readString();
-	}
-
-	/**
-	 * Skips property seperator
-	 */
-	@Override
-	public void skipPropertySeparator() {
-		// SKIP
-	}
-
-	/**
-	 * Skips end object
-	 */
-	@Override
-	public void skipEndObject() {
-		buf.skip(1);
-	}
-
+    public Object readObject(Deserializer deserializer) {
+		int type = readAMF3Integer();
+		if ((type & 1) == 0) {
+			// Reference
+			return getReference(type >> 1);
+		}
+		
+		type >>= 1;
+		boolean inlineClass = (type & 1) == 1;
+		if (!inlineClass) {
+			throw new RuntimeException("Class references not supported yet.");
+		}
+		
+		type >>= 1;
+		String className = readString();
+		Object result = null;
+		amf3_mode += 1;
+		// Load object properties into map
+		Map<String, Object> properties = new ObjectMap<String, Object>();
+		switch (type & 0x03) {
+		case AMF3.TYPE_OBJECT_PROPERTY:
+			int count = type >> 2;
+			List<String> propertyNames = new ArrayList<String>(count);
+			for (int i=0; i<count; i++) {
+				propertyNames.add(readString());					
+			}
+			for (int i=0; i<count; i++) {
+				properties.put(propertyNames.get(i), deserializer.deserialize(this));
+			}
+			break;
+		case AMF3.TYPE_OBJECT_ANONYMOUS_PROPERTY:
+			properties.put("", deserializer.deserialize(this));
+			break;
+		case AMF3.TYPE_OBJECT_VALUE:
+			String key = readString();
+			while (!"".equals(key)) {
+				Object value = deserializer.deserialize(this);
+				properties.put(key, value);
+				key = readString();
+			}
+			break;
+		default:
+		case AMF3.TYPE_OBJECT_UNKNOWN:
+			throw new RuntimeException("Unknown object type: " + (type & 0x03));
+		}
+		amf3_mode -= 1;
+		
+		// Create result object based on classname
+		if ("".equals(className)) {
+			// "anonymous" object, load as Map
+			storeReference(properties);
+			result = properties;
+		} else if ("RecordSet".equals(className)) {
+			// TODO: how are RecordSet objects encoded?
+			throw new RuntimeException("Objects of type " + className + " not supported yet.");
+		} else if ("RecordSetPage".equals(className)) {
+			// TODO: how are RecordSetPage objects encoded?
+			throw new RuntimeException("Objects of type " + className + " not supported yet.");
+		} else {
+			// Apply properties to object
+			result = newInstance(className);
+			if (result != null) {
+				storeReference(properties);
+				for (Map.Entry<String, Object> entry: properties.entrySet()) {
+					try {
+						BeanUtils.setProperty(result, entry.getKey(), entry.getValue());
+					} catch (Exception e) {
+						log.error("Error mapping property: " + entry.getKey() + " (" + entry.getValue() + ")");
+					}
+				}
+			} // else fall through
+		}
+		return result;
+    }
+    
 	// Others
-
-	/**
-	 * Reads xml
-	 * 
-	 * @return String     XML as String
-	 */
-	@Override
-	public String readXML() {
-		return readString();
-	}
 
 	/**
 	 * Reads Custom
@@ -362,12 +360,18 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		return null;
 	}
 
+	/** {@inheritDoc} */
+	public Object readReference() {
+		throw new RuntimeException("AMF3 doesn't support direct references.");
+	}
+
 	/**
 	 * Resets map
 	 */
 	@Override
 	public void reset() {
-		this.clearReferences();
+		super.reset();
+		stringReferences.clear();
 	}
 
 	/**

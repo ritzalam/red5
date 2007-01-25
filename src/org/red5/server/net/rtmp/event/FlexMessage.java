@@ -9,9 +9,9 @@ public class FlexMessage extends Invoke {
 		super();
 	}
 	
-	@Override
+	/** {@inheritDoc} */
+    @Override
 	public byte getDataType() {
-		// TODO Auto-generated method stub
 		return TYPE_FLEX_MESSAGE;
 	}
 

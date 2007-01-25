@@ -21,10 +21,13 @@ package org.red5.io.mock;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.io.object.BaseInput;
+import org.red5.io.object.Deserializer;
+import org.w3c.dom.Document;
 
 public class Input extends BaseInput implements org.red5.io.object.Input {
 
@@ -88,88 +91,30 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	// Array
 
 	/** {@inheritDoc} */
-    public int readStartArray() {
-		Integer i = (Integer) getNext();
-		return i.intValue();
-	}
-
+    public Object readArray(Deserializer deserializer) {
+    	return getNext();
+    }
+    
 	/** {@inheritDoc} */
-    public void skipElementSeparator() {
-		getNext();
+    public Object readMap(Deserializer deserializer) {
+		return getNext();
 	}
-
+    
 	/** {@inheritDoc} */
-    public void skipEndArray() {
-		// SKIP
+    public Map<String, Object> readKeyValues(Deserializer deserializer) {
+		return (Map<String, Object>) getNext();
 	}
-
-	/** {@inheritDoc} */
-    public boolean hasMoreItems() {
-		Object next = list.get(idx);
-		if (!(next instanceof Byte)) {
-			return true;
-		}
-		Byte b = (Byte) next;
-		return (b.byteValue() != Mock.TYPE_END_OF_MAP);
-	}
-
-	/** {@inheritDoc} */
-    public String readItemKey() {
-		return (String) getNext();
-	}
-
-	/** {@inheritDoc} */
-    public int readStartMap() {
-		return ((Integer) getNext()).intValue();
-	}
-
-	/** {@inheritDoc} */
-    public void skipEndMap() {
-		getNext();
-	}
-
-	/** {@inheritDoc} */
-    public void skipItemSeparator() {
-		getNext();
-	}
-
+    
 	// Object
 
 	/** {@inheritDoc} */
-    public String readStartObject() {
-		return readString();
+    public Object readObject(Deserializer deserializer) {
+		return getNext();
 	}
 
 	/** {@inheritDoc} */
-    public boolean hasMoreProperties() {
-		Object next = list.get(idx);
-		if (!(next instanceof Byte)) {
-			return true;
-		}
-		Byte b = (Byte) next;
-		return (b.byteValue() != Mock.TYPE_END_OF_OBJECT);
-	}
-
-	/** {@inheritDoc} */
-    public String readPropertyName() {
-		return (String) getNext();
-	}
-
-	/** {@inheritDoc} */
-    public void skipPropertySeparator() {
-		getNext();
-	}
-
-	/** {@inheritDoc} */
-    public void skipEndObject() {
-		getNext();
-	}
-
-	// Others
-
-	/** {@inheritDoc} */
-    public String readXML() {
-		return readString();
+	public Document readXML() {
+		return (Document) getNext();
 	}
 
 	/** {@inheritDoc} */

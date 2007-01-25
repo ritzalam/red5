@@ -1,4 +1,4 @@
-package org.red5.io.object;
+package org.red5.server.webapp.echo;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -19,50 +19,24 @@ package org.red5.io.object;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.HashMap;
-import java.util.Map;
+import org.red5.server.adapter.ApplicationAdapter;
 
 /**
- * BaseInput represents a way to map input to a HashMap.  This class
- * is meant to be extended.
+ * Echo sample application.
  * 
  * @author The Red5 Project (red5@osflash.org)
- * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
+ * @author Joachim Bauch (jojo@struktur.de)
  */
-public class BaseInput {
-    /**
-     * References map
-     */
-	protected Map refMap = new HashMap();
-
-    /**
-     * References id
-     */
-    protected int refId;
+public class Application extends ApplicationAdapter {
 
 	/**
-	 * Store an object into a map
-	 * @param obj  Object to store
+	 * Return passed parameter back to client.
+	 * 
+	 * @param param		Parameter to return.
+	 * @return			Passed parameter.
 	 */
-	protected void storeReference(Object obj) {
-		refMap.put(Integer.valueOf(refId++), obj);
-	}
-
-	/**
-	 * Clears the map
-	 */
-	public void clearReferences() {
-		refMap.clear();
-		refId = 0;
-	}
-
-	/**
-	 * Returns the object with the parameters id
-	 * @param id        Object reference id
-	 * @return Object   Object reference with given id
-	 */
-	protected Object getReference(int id) {
-		return refMap.get(Integer.valueOf(id));
-	}
+    public Object echo(Object param) {
+    	return param;
+    }
 
 }

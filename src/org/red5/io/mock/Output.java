@@ -19,13 +19,17 @@ package org.red5.io.mock;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.io.object.BaseOutput;
 import org.red5.io.object.DataTypes;
+import org.red5.io.object.RecordSet;
+import org.red5.io.object.Serializer;
 
 public class Output extends BaseOutput implements org.red5.io.object.Output {
 
@@ -47,38 +51,6 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
     /** {@inheritDoc} */
     public void putString(String string) {
 		list.add(string);
-	}
-
-	/** {@inheritDoc} */
-	public void markElementSeparator() {
-		list.add(Byte.valueOf(Mock.TYPE_ELEMENT_SEPARATOR));
-	}
-
-	/** {@inheritDoc} */ // DONE
-	public void markEndArray() {
-		list.add(Byte.valueOf(Mock.TYPE_END_OF_ARRAY));
-	}
-
-	/** {@inheritDoc} */
-    public void markEndObject() {
-		list.add(Byte.valueOf(Mock.TYPE_END_OF_OBJECT));
-	}
-
-	/** {@inheritDoc} */
-    public void markEndMap() {
-		list.add(Byte.valueOf(Mock.TYPE_END_OF_MAP));
-	}
-
-	/** {@inheritDoc} */
-	public void markPropertySeparator() {
-		log.info("PROPERTY SEPARATOR");
-		list.add(Byte.valueOf(Mock.TYPE_PROPERTY_SEPARATOR));
-	}
-
-	/** {@inheritDoc} */
-    public void markItemSeparator() {
-		log.info("ITEM SEPARATOR");
-		list.add(Byte.valueOf(Mock.TYPE_ITEM_SEPARATOR));
 	}
 
 	/** {@inheritDoc} */
@@ -116,44 +88,11 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 	}
 
 	/** {@inheritDoc} */
-    public void writePropertyName(String name) {
-		list.add(name);
-	}
-
-	/** {@inheritDoc} */
-    public void writeItemKey(String key) {
-		list.add(key);
-	}
-
-	/** {@inheritDoc} */
     public void writeReference(Object obj) {
 		list.add(Byte.valueOf(DataTypes.OPT_REFERENCE));
 		list.add(Short.valueOf(getReferenceId(obj)));
 	}
 
-	/** {@inheritDoc} */
-    public void writeStartArray(int length) {
-		list.add(Byte.valueOf(DataTypes.CORE_ARRAY));
-		list.add(Integer.valueOf(length));
-	}
-
-	/** {@inheritDoc} */
-    public void writeStartMap(int highestIndex) {
-		list.add(Byte.valueOf(DataTypes.CORE_MAP));
-		list.add(Integer.valueOf(highestIndex));
-	}
-
-	/** {@inheritDoc} */
-    public void writeStartObject(String className) {
-		list.add(Byte.valueOf(DataTypes.CORE_OBJECT));
-		list.add(className == null ? null : className);
-	}
-    /** {@inheritDoc} */
-	public void writeStartObject(String className, int numMembers) {
-		list.add(Byte.valueOf(DataTypes.CORE_OBJECT));
-		list.add(className == null ? null : className);
-		list.add(numMembers);
-	}
     /** {@inheritDoc} */
 	public void writeString(String string) {
 		list.add(Byte.valueOf(DataTypes.CORE_STRING));
@@ -164,6 +103,54 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
     public void writeXML(String xml) {
 		list.add(Byte.valueOf(DataTypes.CORE_XML));
 		list.add(xml);
+	}
+
+	/** {@inheritDoc} */
+	public void writeArray(Collection array, Serializer serializer) {
+		list.add(Byte.valueOf(DataTypes.CORE_ARRAY));
+		list.add(array);
+	}
+
+	/** {@inheritDoc} */
+	public void writeArray(Object[] array, Serializer serializer) {
+		list.add(Byte.valueOf(DataTypes.CORE_ARRAY));
+		list.add(array);
+	}
+
+	/** {@inheritDoc} */
+	public void writeArray(Object array, Serializer serializer) {
+		list.add(Byte.valueOf(DataTypes.CORE_ARRAY));
+		list.add(array);
+	}
+
+	/** {@inheritDoc} */
+	public void writeMap(Map<Object, Object> map, Serializer serializer) {
+		list.add(Byte.valueOf(DataTypes.CORE_MAP));
+		list.add(map);
+	}
+
+	/** {@inheritDoc} */
+	public void writeMap(Collection array, Serializer serializer) {
+		list.add(Byte.valueOf(DataTypes.CORE_MAP));
+		list.add(array);
+	}
+
+	/** {@inheritDoc} */
+	public void writeObject(Object object, Serializer serializer) {
+		list.add(Byte.valueOf(DataTypes.CORE_OBJECT));
+		list.add(object);
+	}
+
+	/** {@inheritDoc} */
+	public void writeObject(Map<Object, Object> map, Serializer serializer) {
+		list.add(Byte.valueOf(DataTypes.CORE_OBJECT));
+		list.add(map);
+	}
+
+	/** {@inheritDoc} */
+	public void writeRecordSet(RecordSet recordset, Serializer serializer) {
+		list.add(Byte.valueOf(DataTypes.CORE_OBJECT));
+		list.add(recordset);
 	}
 
 }

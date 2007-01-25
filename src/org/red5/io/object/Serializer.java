@@ -19,22 +19,17 @@ package org.red5.io.object;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.lang.reflect.Array;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.commons.collections.BeanMap;
-import org.apache.commons.collections.IteratorUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.red5.io.utils.ObjectMap;
 import org.red5.io.utils.XMLUtils;
 import org.w3c.dom.Document;
 
@@ -69,20 +64,6 @@ public class Serializer implements SerializerOpts {
 			return;
 		}
 
-		// Extension point
-		if (out.hasReference(any)) {
-			if (log.isDebugEnabled()) {
-				log.debug("write ref");
-			}
-            // Write referemce
-            out.writeReference(any);
-			return;
-		}
-
-		if (log.isDebugEnabled()) {
-			log.debug("Store reference: " + any);
-		}
-		out.storeReference(any);
 		if (!writeComplex(out, any)) {
 			if (log.isDebugEnabled()) {
 				log.debug("Unable to serialize: " + any);
@@ -168,7 +149,7 @@ public class Serializer implements SerializerOpts {
 	protected void writeList(Output out, List list) {
 		// if its a small list, write it as an array
 		if (list.size() < 100) {
-			writeListAsArray(out, list);
+			out.writeArray(list, this);
 			return;
 		}
 		// else we should check for lots of null values,
@@ -181,55 +162,10 @@ public class Serializer implements SerializerOpts {
 			}
 		}
 		if (nullCount > (size * 0.8)) {
-			writeListAsMap(out, list);
+			out.writeMap(list, this);
 		} else {
-			writeListAsArray(out, list);
+			out.writeArray(list, this);
 		}
-	}
-
-    /**
-     * Writes list as map
-     *
-     * @param out        Output writer
-     * @param list       List to write
-     */
-    protected void writeListAsMap(Output out, List list) {
-		int size = list.size();
-        // Write start map marker
-        out.writeStartMap(size);
-		for (int i = 0; i < size; i++) {
-			Object item = list.get(i);
-			if (item != null) {
-                // Write key
-                out.writeItemKey(Integer.toString(i));
-                // Serialize
-                serialize(out, item);
-                // Write item separator mark
-                out.markItemSeparator();
-			}
-		}
-		out.markEndMap();
-	}
-
-    /**
-     * Write list as array. Used for small sized lists (size < 100)
-     * @param out           Output object
-     * @param list          List to write
-     */
-    protected void writeListAsArray(Output out, List list) {
-		int size = list.size();
-        // Write begin of array marker
-        out.writeStartArray(size);
-		for (int i = 0; i < size; i++) {
-			if (i > 0) {
-                // Write element separator
-                out.markElementSeparator();
-			}
-			//log.info(i);
-			serialize(out, list.get(i));
-		}
-        // Write end of array marker
-        out.markEndArray();
 	}
 
 	/**
@@ -245,102 +181,18 @@ public class Serializer implements SerializerOpts {
 			log.debug("writeArrayType");
 		}
 		if (arrType instanceof Collection) {
-			writeCollection(out, (Collection<Object>) arrType);
+			out.writeArray((Collection<Object>) arrType, this);
 		} else if (arrType instanceof Iterator) {
 			writeIterator(out, (Iterator<Object>) arrType);
 		} else if (arrType.getClass().isArray()
 				&& arrType.getClass().getComponentType().isPrimitive()) {
-			writePrimitiveArray(out, arrType);
+			out.writeArray(arrType, this);
 		} else if (arrType instanceof Object[]) {
-			writeObjectArray(out, (Object[]) arrType);
+			out.writeArray((Object[]) arrType, this);
 		} else {
 			return false;
 		}
 		return true;
-	}
-
-	/**
-	 * Writes a collection to the output
-	 *
-	 * @param out        Output object
-	 * @param col        Collection
-	 */
-	protected void writeCollection(Output out, Collection<Object> col) {
-		if (log.isDebugEnabled()) {
-			log.debug("writeCollection");
-		}
-        // Write begin of array marker
-        out.writeStartArray(col.size());
-		Iterator<Object> it = col.iterator();
-		boolean isFirst = true;
-        // Iterate thru elements to write element separators
-        while (it.hasNext()) {
-			if (!isFirst) {
-                // Write element separator
-                out.markElementSeparator();
-			} else {
-                // Do not write separator before first object
-                isFirst = false;
-			}
-            // Serialize
-            serialize(out, it.next());
-		}
-        // Write end of array marker
-        out.markEndArray();
-	}
-
-	/**
-	 * Writes a primitive array to the output
-	 *
-	 * @param out           Output writer
-	 * @param array         Array
-	 */
-	protected void writePrimitiveArray(Output out, Object array) {
-		//out.writeS
-		if (log.isDebugEnabled()) {
-			log.debug("write primitive array");
-		}
-        // Write start of array marker
-        out.writeStartArray(Array.getLength(array));
-		Iterator it = IteratorUtils.arrayIterator(array);
-		while (it.hasNext()) {
-            // Serialize element
-            serialize(out, it.next());
-			if (it.hasNext()) {
-                // Write element separator
-                out.markElementSeparator();
-			}
-		}
-        // Write end of array marker
-        out.markEndArray();
-	}
-
-	/**
-	 * Writes an object array out to the output
-	 *
-	 * @param out         Output writer
-	 * @param array       Array of objects
-	 */
-	protected void writeObjectArray(Output out, Object[] array) {
-		//out.writeS
-		if (log.isDebugEnabled()) {
-			log.debug("write object array");
-		}
-        // Write out array start marker
-        out.writeStartArray(array.length);
-
-		for (int i = 0; i < array.length; i++) {
-			if (i > 0) {
-                // Write element separator
-                out.markElementSeparator();
-			}
-			//log.info(i);
-            // Serialize array item
-            serialize(out, array[i]);
-		}
-
-        // Write out end of array marker
-        out.markEndArray();
 	}
 
 	/**
@@ -359,7 +211,7 @@ public class Serializer implements SerializerOpts {
 			list.addLast(it.next());
 		}
         // Write out collection
-        writeCollection(out, list);
+		out.writeArray(list, this);
 	}
 
 	/**
@@ -402,183 +254,16 @@ public class Serializer implements SerializerOpts {
 	 *         <code>false</code>
 	 */
 	protected boolean writeObjectType(Output out, Object obj) {
-		if (obj instanceof Map) {
-			writeMap(out, (Map) obj);
+		if (obj instanceof ObjectMap || obj instanceof BeanMap) {
+			out.writeObject((Map) obj, this);
+		} else if (obj instanceof Map) {
+			out.writeMap((Map) obj, this);
 		} else if (obj instanceof RecordSet) {
-			writeRecordSet(out, (RecordSet) obj);
-		} else if (!writeBean(out, obj)) {
-			writeObject(out, obj);
+			out.writeRecordSet((RecordSet) obj, this);
+		} else {
+			out.writeObject(obj, this);
 		}
 		return true;
-	}
-
-	/**
-	 * Writes a RecordSet to the output.
-	 *
-	 * @param out          Output writer
-	 * @param set          RecordSet to write
-	 */
-	protected void writeRecordSet(Output out, RecordSet set) {
-		if (log.isDebugEnabled()) {
-			log.debug("writeRecordSet");
-		}
-
-        // Write out start of object marker
-        out.writeStartObject("RecordSet");
-        // Serialize
-        Map<String, Object> info = set.serialize();
-        // Write out serverInfo key
-        out.writeItemKey("serverInfo");
-        // Serialize
-        serialize(out, info);
-        // Write out end of object marker
-        out.markEndObject();
-	}
-
-	/**
-	 * Writes a map to the output
-	 *
-	 * @param out       Output writer
-	 * @param map       Map to write
-	 */
-	public void writeMap(Output out, Map map) {
-		if (log.isDebugEnabled()) {
-			log.debug("writeMap");
-		}
-
-		final Set set = map.entrySet();
-		// NOTE: we encode maps as objects so the flash client
-		//       can access the entries through attributes
-		Iterator it = set.iterator();
-		boolean isBeanMap = (map instanceof BeanMap);
-		out.writeStartObject(null, isBeanMap ? map.size() - 1 : map.size());
-		while (it.hasNext()) {
-			Map.Entry entry = (Map.Entry) it.next();
-			if (isBeanMap && entry.getKey().equals("class")) {
-				continue;
-			}
-			out.writeItemKey(entry.getKey().toString());
-			serialize(out, entry.getValue());
-            // ...only write separator if there's
-            if (it.hasNext()) {
-                out.markPropertySeparator();
-			}
-		}
-        // Write out end of map mark
-        out.markEndMap();
-	}
-
-	/**
-	 * Write object as bean to the output.
-	 *
-	 * @param out         Output writer
-	 * @param bean        Bean to write
-     * @return            true if bean was successfully written, false otherwise
-	 */
-	public boolean writeBean(Output out, Object bean) {
-        // Create new map out of bean properties
-        BeanMap beanMap = new BeanMap(bean);
-        // Set of bean attributes
-        Set set = beanMap.entrySet();
-		if ((set.size() == 0)
-				|| (set.size() == 1 && beanMap.containsKey("class"))) {
-			// BeanMap is empty or can only access "class" attribute, skip it
-			return false;
-		}
-
-        // Write out either start of object marker for class name or "empty" start of object marker
-        if (isOptEnabled(bean, SerializerOption.SerializeClassName)) {
-			out.writeStartObject(bean.getClass().getName());
-		} else {
-			out.writeStartObject(null, set.size() - 1);
-		}
-		Iterator it = set.iterator();
-        // Iterate thru entries and write out property names with separators
-		Class beanClass = bean.getClass();
-        while (it.hasNext()) {
-			BeanMap.Entry entry = (BeanMap.Entry) it.next();
-			if (entry.getKey().toString().equals("class")) {
-				continue;
-			}
-
-			String keyName = entry.getKey().toString();
-			// Check if the Field corresponding to the getter/setter pair is transient
-			try {
-				Field field = beanClass.getDeclaredField(keyName);
-				int modifiers = field.getModifiers();
-				
-				if (Modifier.isTransient(modifiers)) {
-					if (log.isDebugEnabled()) {
-						log.debug("Skipping " + field.getName() + " because its transient");
-					}
-					continue;
-				}
-			} catch (NoSuchFieldException nfe) {
-				// Ignore this exception and use the default behaviour
-			}
-			
-			out.writePropertyName(keyName);
-			serialize(out, entry.getValue());
-			if (it.hasNext()) {
-				out.markPropertySeparator();
-			}
-		}
-        // Write out end of object mark
-		out.markEndObject();
-		return true;
-	}
-
-	/**
-	 * Writes an arbitrary object to the output.
-	 *
-	 * @param out           Output writer
-	 * @param object        Object to write
-	 */
-	public void writeObject(Output out, Object object) {
-		if (log.isDebugEnabled()) {
-			log.debug("writeObject");
-		}
-        // If we need to serialize class information...
-        if (isOptEnabled(object, SerializerOption.SerializeClassName)) {
-            // Write out start object marker for class name
-            out.writeStartObject(object.getClass().getName());
-		} else {
-            // Write out start object marker without class name
-            out.writeStartObject(null);
-		}
-
-		// Get public field values
-		Map<String, Object> values = new HashMap<String, Object>();
-        // Iterate thru fields of an object to build "name-value" map from it
-        for (Field field : object.getClass().getFields()) {
-			Object value;
-			try {
-                // Get field value
-                value = field.get(object);
-			} catch (IllegalAccessException err) {
-                // Swallow on private and protected properties access exception
-                continue;
-			}
-            // Put field to the map of "name-value" pairs
-            values.put(field.getName(), value);
-		}
-
-		// Output public values
-		Iterator<Map.Entry<String, Object>> it = values.entrySet().iterator();
-        // Iterate thru map and write out properties with separators
-        while (it.hasNext()) {
-			Map.Entry<String, Object> entry = it.next();
-            // Write out prop name
-            out.writePropertyName(entry.getKey());
-            // Write out
-            serialize(out, entry.getValue());
-			if (it.hasNext()) {
-                // Write out property separator
-                out.markPropertySeparator();
-			}
-		}
-        // Write out end of object marker
-		out.markEndObject();
 	}
 
 	// Extension points

@@ -162,6 +162,7 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 					if (stream != null)
 						((IEventDispatcher) stream).dispatchEvent(message);
 					break;
+				case TYPE_FLEX_SHARED_OBJECT:
 				case TYPE_SHARED_OBJECT:
 					onSharedObject(conn, channel, header,
 							(SharedObjectMessage) message);
