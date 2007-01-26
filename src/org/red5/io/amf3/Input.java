@@ -68,6 +68,15 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	}
 
 	/**
+	 * Provide access to raw data.
+	 * 
+	 * @return ByteBuffer
+	 */
+	protected ByteBuffer getBuffer() {
+		return buf;
+	}
+	
+	/**
 	 * Reads the data type
 	 * 
 	 * @return byte      Data type
@@ -285,13 +294,14 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		
 		type >>= 1;
 		String className = readString();
-		Object result;
+		Object result = null;
 		amf3_mode += 1;
-		// Load object properties into map
-		Map<String, Object> properties = new ObjectMap<String, Object>();
+		Map<String, Object> properties = null;
 		switch (type & 0x03) {
 		case AMF3.TYPE_OBJECT_PROPERTY:
+			// Load object properties into map
 			int count = type >> 2;
+			properties = new ObjectMap<String, Object>();
 			List<String> propertyNames = new ArrayList<String>(count);
 			for (int i=0; i<count; i++) {
 				propertyNames.add(readString());					
@@ -300,10 +310,23 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 				properties.put(propertyNames.get(i), deserializer.deserialize(this));
 			}
 			break;
-		case AMF3.TYPE_OBJECT_ANONYMOUS_PROPERTY:
-			properties.put("", deserializer.deserialize(this));
+		case AMF3.TYPE_OBJECT_EXTERNALIZABLE:
+			// Use custom class to deserialize the object
+			if ("".equals(className))
+				throw new RuntimeException("need a classname to load an externalizable object");
+			
+			result = newInstance(className);
+			if (result == null)
+				throw new RuntimeException("could not instantiate class");
+			
+			if (!(result instanceof IExternalizable))
+				throw new RuntimeException("the class must implement the IExternalizable interface");
+			
+			((IExternalizable) result).readExternal(new DataInput(this, deserializer));
 			break;
 		case AMF3.TYPE_OBJECT_VALUE:
+			// Load object properties into map
+			properties = new ObjectMap<String, Object>();
 			String key = readString();
 			while (!"".equals(key)) {
 				Object value = deserializer.deserialize(this);
@@ -317,30 +340,32 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		}
 		amf3_mode -= 1;
 		
-		// Create result object based on classname
-		if ("".equals(className)) {
-			// "anonymous" object, load as Map
-			storeReference(properties);
-			result = properties;
-		} else if ("RecordSet".equals(className)) {
-			// TODO: how are RecordSet objects encoded?
-			throw new RuntimeException("Objects of type " + className + " not supported yet.");
-		} else if ("RecordSetPage".equals(className)) {
-			// TODO: how are RecordSetPage objects encoded?
-			throw new RuntimeException("Objects of type " + className + " not supported yet.");
-		} else {
-			// Apply properties to object
-			result = newInstance(className);
-			if (result != null) {
+		if (result == null) {
+			// Create result object based on classname
+			if ("".equals(className)) {
+				// "anonymous" object, load as Map
 				storeReference(properties);
-				for (Map.Entry<String, Object> entry: properties.entrySet()) {
-					try {
-						BeanUtils.setProperty(result, entry.getKey(), entry.getValue());
-					} catch (Exception e) {
-						log.error("Error mapping property: " + entry.getKey() + " (" + entry.getValue() + ")");
+				result = properties;
+			} else if ("RecordSet".equals(className)) {
+				// TODO: how are RecordSet objects encoded?
+				throw new RuntimeException("Objects of type " + className + " not supported yet.");
+			} else if ("RecordSetPage".equals(className)) {
+				// TODO: how are RecordSetPage objects encoded?
+				throw new RuntimeException("Objects of type " + className + " not supported yet.");
+			} else {
+				// Apply properties to object
+				result = newInstance(className);
+				if (result != null) {
+					storeReference(properties);
+					for (Map.Entry<String, Object> entry: properties.entrySet()) {
+						try {
+							BeanUtils.setProperty(result, entry.getKey(), entry.getValue());
+						} catch (Exception e) {
+							log.error("Error mapping property: " + entry.getKey() + " (" + entry.getValue() + ")");
+						}
 					}
-				}
-			} // else fall through
+				} // else fall through
+			}
 		}
 		return result;
     }

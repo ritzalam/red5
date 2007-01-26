@@ -74,6 +74,15 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		stringReferences = new LinkedList<String>();
 	}
 	
+	/**
+	 * Provide access to raw data.
+	 * 
+	 * @return ByteBuffer
+	 */
+	protected ByteBuffer getBuffer() {
+		return buf;
+	}
+	
     /** {@inheritDoc} */
 	@Override
 	public boolean supportsDataType(byte type) {
@@ -392,6 +401,17 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
     		return;
     	}
 
+    	if (object instanceof IExternalizable) {
+    		// The object knows how to serialize itself.
+        	int type = AMF3.TYPE_OBJECT_EXTERNALIZABLE << 2 | 1 << 1 | 1;
+        	putInteger(type);
+        	putString(object.getClass().getName());
+        	amf3_mode += 1;
+        	((IExternalizable) object).writeExternal(new DataOutput(this, serializer));
+        	amf3_mode -= 1;
+        	return;
+    	}
+    	
     	// We have an inline class that is not a reference.
     	// We store the properties using key/value pairs
     	int type = AMF3.TYPE_OBJECT_VALUE << 2 | 1 << 1 | 1;

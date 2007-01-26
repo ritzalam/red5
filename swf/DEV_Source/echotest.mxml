@@ -11,6 +11,7 @@
     <![CDATA[
 		import mx.controls.Alert;
 		import org.red5.samples.echo.EchoClass;
+		import org.red5.samples.echo.ExternalizableClass;
 		
 		[Bindable]
 		private var nc: NetConnection;
@@ -20,6 +21,9 @@
 		
 		[Bindable]
 		private var testIndex: Number;
+		
+		[Bindable]
+		private var AMF0Count: Number;
 		
 		[Bindable]
 		private var testsFailed: Number;
@@ -73,6 +77,12 @@
 			tmp7.attr1 = "one";
 			tmp7.attr2 = 1;
 			testParams.push(tmp7);
+			AMF0Count = testParams.length;
+			
+			// Add AMF3 specific tests below
+			var ext: ExternalizableClass = new ExternalizableClass();
+			testParams.push(ext);
+			
 			nc = new NetConnection();
 			nc.addEventListener(NetStatusEvent.NET_STATUS, netStatusHandler); 
 			onConnect(ObjectEncoding.AMF3);
@@ -128,6 +138,8 @@
 					}
 				}
 				return true;
+			} else if (a is ExternalizableClass && b is ExternalizableClass) {
+				return (a.failed == b.failed && a.failed == 0);
 			} else if (a is Object && !(b is Object)) {
 				for (key in a) {
 					if (!extendedEqual(a[key], (b as Array)[key])) {
@@ -168,12 +180,15 @@
 				testsFailed++;
 			}
 			testIndex += 1;
-			if (testIndex < testParams.length) {
+			var testCount: Number = testParams.length;
+			if (nc.objectEncoding == ObjectEncoding.AMF0)
+				testCount = AMF0Count;
+			if (testIndex < testCount) {
 				doTest();
 			} else if (testsFailed == 0) {
-				textArea.text += "Successfully ran " + testParams.length + " tests\n";
+				textArea.text += "Successfully ran " + testCount + " tests\n";
 			} else {
-				textArea.text += "Ran " + testParams.length + " tests, " + testsFailed + " failed\n";
+				textArea.text += "Ran " + testCount + " tests, " + testsFailed + " failed\n";
 			}
 		}
 

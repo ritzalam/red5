@@ -107,12 +107,11 @@ public class AMF3 {
     public static final byte TYPE_OBJECT_PROPERTY = 0x00;
 
 	/**
-	 * 01 = single anonymous property. <br />
-	 * A single amf3-data contains a single value. <br />
-	 * The property name should be declared in the class-def reference but this doesn't seem <b />
-	 * to always be the case - more to come here.
+	 * 01 = Externalizable object. What follows is the value of the "inner" object,
+	 * including type code. This value appears for objects that implement
+	 * IExternalizable, such as ArrayCollection and ObjectProxy.
 	 */
-    public static final byte TYPE_OBJECT_ANONYMOUS_PROPERTY = 0x01;
+    public static final byte TYPE_OBJECT_EXTERNALIZABLE = 0x01;
 
 	/**
 	 * 10 = name value encoding.<br />
