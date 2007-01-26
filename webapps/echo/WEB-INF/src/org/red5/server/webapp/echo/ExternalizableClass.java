@@ -12,6 +12,7 @@ public class ExternalizableClass implements IExternalizable {
 	private float d;
 	private int[] e = new int[3];
 	private String[] f = new String[2];
+	private Object ob;
 	private short[] g = new short[3];
 	private long[] h = new long[2];
 	private String i;
@@ -33,7 +34,7 @@ public class ExternalizableClass implements IExternalizable {
 		e[2] = input.readInt();
 		f[0] = input.readMultiByte(7, "iso-8859-1");
 		f[1] = input.readMultiByte(14, "utf-8");
-		// TODO: input.readObject
+		ob = input.readObject();
 		g[0] = input.readShort();
 		g[1] = input.readShort();
 		g[2] = input.readShort();
@@ -58,6 +59,7 @@ public class ExternalizableClass implements IExternalizable {
 		output.writeInt(e[2]);
 		output.writeMultiByte(f[0], "iso-8859-1");
 		output.writeMultiByte(f[1], "utf-8");
+		output.writeObject(ob);
 		output.writeShort(g[0]);
 		output.writeShort(g[1]);
 		output.writeShort(g[2]);
