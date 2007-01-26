@@ -19,6 +19,7 @@ package org.red5.io.amf3;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 
 import org.apache.mina.common.ByteBuffer;
@@ -53,6 +54,16 @@ public class DataInput implements IDataInput {
 		this.input = input;
 		this.deserializer = deserializer;
 		buffer = input.getBuffer();
+	}
+
+	/** {@inheritDoc} */
+	public ByteOrder getEndian() {
+		return buffer.order();
+	}
+
+	/** {@inheritDoc} */
+	public void setEndian(ByteOrder endian) {
+		buffer.order(endian);
 	}
 	
 	/** {@inheritDoc} */

@@ -1,5 +1,7 @@
 package org.red5.io.amf3;
 
+import java.nio.ByteOrder;
+
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  * 
@@ -21,6 +23,10 @@ package org.red5.io.amf3;
 
 public interface IDataOutput {
 
+	public ByteOrder getEndian();
+	
+	public void setEndian(ByteOrder endian);
+	
 	public void writeBoolean(boolean value);
 	
 	public void writeByte(byte value);

@@ -19,8 +19,14 @@ package org.red5.io.amf3;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.nio.ByteOrder;
+
 public interface IDataInput {
 
+	public ByteOrder getEndian();
+	
+	public void setEndian(ByteOrder endian);
+	
 	public boolean readBoolean();
 	
 	public byte readByte();
