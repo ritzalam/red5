@@ -33,7 +33,11 @@ public class ExternalizableClass implements IExternalizable {
 		output.writeInt(1);
 		output.writeMultiByte("\xe4\xf6\xfc\xc4\xd6\xdc\xdf", "iso-8859-1");
 		output.writeMultiByte("\xe4\xf6\xfc\xc4\xd6\xdc\xdf", "utf-8");
-		// TODO: output.writeObject
+		var ob: Array = new Array();
+		ob.push(1);
+		ob.push("one");
+		ob.push(1.0);
+		output.writeObject(ob);
 		output.writeShort(0);
 		output.writeShort(-1);
 		output.writeShort(1);
@@ -67,7 +71,19 @@ public class ExternalizableClass implements IExternalizable {
 		checkEqual(input.readInt(), 1);
 		checkEqual(input.readMultiByte(7, "iso-8859-1"), "\xe4\xf6\xfc\xc4\xd6\xdc\xdf");
 		checkEqual(input.readMultiByte(14, "utf-8"), "\xe4\xf6\xfc\xc4\xd6\xdc\xdf");
-		// TODO: input.readObject
+		var ob: Object = input.readObject();
+		if (ob is Array) {
+			if (ob.length == 3) {
+				if (ob[0] == 1 && ob[1] == "one" && ob[2] == 1.0)
+					valid += 1;
+				else
+					failed += 1;
+			} else {
+				failed += 1;
+			}
+		} else {
+			failed += 1;
+		}
 		checkEqual(input.readShort(), 0);
 		checkEqual(input.readShort(), -1);
 		checkEqual(input.readShort(), 1);

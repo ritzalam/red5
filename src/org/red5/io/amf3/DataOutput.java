@@ -104,7 +104,7 @@ public class DataOutput implements IDataOutput {
 
     /** {@inheritDoc} */
 	public void writeObject(Object value) {
-		output.writeObject(value, serializer);
+		serializer.serialize(output, value);
 	}
 
     /** {@inheritDoc} */
