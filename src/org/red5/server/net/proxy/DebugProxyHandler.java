@@ -159,6 +159,7 @@ public class DebugProxyHandler extends IoHandlerAdapter implements
 		if (!isClient) {
 			log.debug("Connecting..");
 			SocketConnector connector = new SocketConnector();
+			connector.setHandler(this);
 			ConnectFuture future = connector.connect(forward); //, this);
 			future.join(); // wait for connect, or timeout
 			if (future.isConnected()) {
