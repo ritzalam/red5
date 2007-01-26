@@ -2,6 +2,7 @@
 require 'java'
 module RedFive
     include_package "org.springframework.core.io"
+    include_package "org.red5.server.webapp.oflaDemo"
 end
 include_class "org.red5.server.api.Red5"
 include_class "java.util.HashMap"
@@ -11,7 +12,7 @@ include_class "java.util.HashMap"
 #
 # @author Paul Gregoire
 #
-class DemoService
+class DemoService < RedFive::DemoServiceImpl
 
     attr_reader :filesMap
     attr_writer :filesMap
@@ -24,9 +25,10 @@ class DemoService
 	def getListOfAvailableFLVs
 		puts "Getting the FLV files"
 		begin
-		    #puts "R5 con local: #{Red5::getConnectionLocal}"
-		    #puts "Scope: #{Red5::getConnectionLocal.getScope}"
+		    puts "R5 con local: #{Red5::getConnectionLocal}"
+		    puts "Scope: #{Red5::getConnectionLocal.getScope}"
 			flvs = Red5::getConnectionLocal.getScope.getResources("streams/*.flv")
+			puts "FLV list #{flvs}"
 			for flv in flvs
 				file = flv.getFile
 				lastModified = formatDate(Time.at(file.lastModified))
@@ -45,7 +47,8 @@ class DemoService
 				@filesMap[flvName] = fileInfo
 			end
 		rescue
-			puts "Error in getListOfAvailableFLVs"
+			puts "Error in getListOfAvailableFLVs #{errorType}\n"
+			puts caller.join("\n");
 		end
 		return filesMap
 	end

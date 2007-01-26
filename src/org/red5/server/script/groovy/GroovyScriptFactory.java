@@ -47,6 +47,8 @@ public class GroovyScriptFactory implements ScriptFactory {
 
 	private final String scriptSourceLocator;
 
+	private final Class[] scriptInterfaces;	
+	
 	/**
 	 * Create a new GroovyScriptFactory for the given script source.
 	 * <p>We don't need to specify script interfaces here, since
@@ -58,8 +60,29 @@ public class GroovyScriptFactory implements ScriptFactory {
 	public GroovyScriptFactory(String scriptSourceLocator) {
 		Assert.hasText(scriptSourceLocator);
 		this.scriptSourceLocator = scriptSourceLocator;
+		this.scriptInterfaces = null;
 	}
+	
+	public GroovyScriptFactory(String scriptSourceLocator, Class scriptInterface) {
+		Assert.hasText(scriptSourceLocator);
+		this.scriptSourceLocator = scriptSourceLocator;
+		if (null == scriptInterface) {
+			this.scriptInterfaces = new Class[] {};
+		} else {
+			this.scriptInterfaces = new Class[] { scriptInterface };
+		}
+	}	
 
+	public GroovyScriptFactory(String scriptSourceLocator, Class[] scriptInterfaces) {
+		Assert.hasText(scriptSourceLocator);
+		this.scriptSourceLocator = scriptSourceLocator;
+		if (null == scriptInterfaces || scriptInterfaces.length < 1) {
+			this.scriptInterfaces = new Class[] {};
+		} else {
+			this.scriptInterfaces = scriptInterfaces;
+		}
+	}	
+	
 	/** {@inheritDoc} */
     public String getScriptSourceLocator() {
 		return this.scriptSourceLocator;
@@ -71,7 +94,7 @@ public class GroovyScriptFactory implements ScriptFactory {
 	 * @return <code>null</code> always
 	 */
 	public Class[] getScriptInterfaces() {
-		return null;
+		return scriptInterfaces;
 	}
 
 	/**

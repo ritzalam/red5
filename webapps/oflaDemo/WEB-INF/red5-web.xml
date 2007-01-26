@@ -21,10 +21,11 @@
 		<property name="contextPath" value="${webapp.contextPath}" />
 		<property name="virtualHosts" value="${webapp.virtualHosts}" />
 	</bean>
-	
+	 	
 	<bean id="web.handler" 
 	    class="org.red5.server.webapp.oflaDemo.Application" />
-<!-- 
+
+<!--
 	<bean id="web.handler" class="org.red5.server.script.rhino.RhinoScriptFactory">
 		<constructor-arg index="0" value="classpath:applications/main.js"/>
 		<constructor-arg index="1">
@@ -37,9 +38,8 @@
    			<value>org.red5.server.adapter.ApplicationAdapter</value>
 		</constructor-arg>
 	</bean>
--->
-<!-- 
-	<bean id="web.handler" class="org.red5.server.script.jruby.JRubyScriptFactory">
+
+	<bean id="web.handler" class="org.springframework.scripting.jruby.JRubyScriptFactory">
 		<constructor-arg index="0" value="classpath:applications/main.rb"/>
 		<constructor-arg index="1">
 			<list>
@@ -48,6 +48,16 @@
 			</list>
 		</constructor-arg>
 	</bean>		
+
+	<bean id="web.handler" class="org.red5.server.script.groovy.GroovyScriptFactory">
+		<constructor-arg index="0" value="classpath:applications/main.groovy"/>
+		<constructor-arg index="1">
+			<list>
+				<value>org.red5.server.api.IScopeHandler</value>
+				<value>org.red5.server.adapter.IApplication</value>
+			</list>
+		</constructor-arg>
+	</bean>	
 
 	<bean id="web.handler" class="org.red5.server.script.jython.JythonScriptFactory">
 		<constructor-arg index="0" value="classpath:applications/main.py"/>
@@ -82,7 +92,7 @@
 		</constructor-arg>		
 	</bean>
 
-	<bean id="demoService.service" class="org.red5.server.script.jruby.JRubyScriptFactory">
+	<bean id="demoService.service" class="org.springframework.scripting.jruby.JRubyScriptFactory">
 		<constructor-arg index="0" value="classpath:applications/demoservice.rb"/>
 		<constructor-arg index="1">
 			<list>
@@ -90,7 +100,7 @@
   			</list>
 		</constructor-arg>
 	</bean>	
-
+	
 	<bean id="demoService.service" class="org.red5.server.script.jython.JythonScriptFactory">
 		<constructor-arg index="0" value="classpath:applications/demoservice.py"/>
 		<constructor-arg index="1">
