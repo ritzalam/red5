@@ -118,7 +118,7 @@
 			}
 			nc.objectEncoding = proto;
 			nc.connect("rtmp://localhost/echo");
-			textArea.text = "Connecting using " + proto + "...\n";
+			textArea.text = "Connecting using AMF" + proto + "...\n";
 		}
 		
 		private function netStatusHandler(event: NetStatusEvent): void {
@@ -126,10 +126,12 @@
 			switch(event.info.code) {
 				case "NetConnection.Connect.Success":
 					btnTest.enabled = true;
+					btnDisconnect.enabled = true;
 					onTest();
 				break;
 				case "NetConnection.Connect.Failed":
-					btnTest.enabled = false;
+				case "NetConnection.Connect.Closed":
+					onDisconnect();
 				break;
 			}
 		}
@@ -140,11 +142,19 @@
 		}
 		
 		private function onTest(): void {
+			textArea.text = "";
 			testIndex = 0;
 			testsFailed = 0;
 			doTest();
 		}
-		
+
+		private function onDisconnect(): void {
+			btnConnect0.enabled = true;
+			btnConnect3.enabled = true;
+			btnTest.enabled = false;
+			btnDisconnect.enabled = false;
+		}
+
 		private function extendedEqual(a: Object, b: Object): Boolean {
 			var key: String;
 			if (a == null && b != null) {
@@ -219,9 +229,12 @@
     ]]>
     </mx:Script>
 	
-	<mx:Button id="btnConnect0" label="Connect AMF0" labelPlacement="left" click="onConnect(ObjectEncoding.AMF0)" />
-	<mx:Button id="btnConnect3" label="Connect AMF3" labelPlacement="left" click="onConnect(ObjectEncoding.AMF3)" />
-	<mx:Button id="btnTest" label="Test" labelPlacement="left" click="onTest()" enabled="false" />
-	<mx:TextArea id="textArea" width="400" height="100%">
+	<mx:HBox>
+		<mx:Button id="btnConnect0" label="Connect AMF0" labelPlacement="left" click="onConnect(ObjectEncoding.AMF0)" />
+		<mx:Button id="btnConnect3" label="Connect AMF3" labelPlacement="left" click="onConnect(ObjectEncoding.AMF3)" />
+		<mx:Button id="btnTest" label="Test again" labelPlacement="left" click="onTest()" enabled="false" />
+		<mx:Button id="btnDisconnect" label="Disconnect" labelPlacement="left" click="onDisconnect()" enabled="false" />
+	</mx:HBox>
+	<mx:TextArea id="textArea" width="100%" height="100%">
     </mx:TextArea>
 </mx:Application>
