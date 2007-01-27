@@ -31,12 +31,13 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 
 import org.apache.log4j.Logger;
+import org.red5.server.adapter.IApplication;
 import org.springframework.scripting.ScriptCompilationException;
 import org.springframework.util.ClassUtils;
 
 /**
  * Utility methods for handling Rhino / Javascript objects.
- * 
+ *
  * @author Paul Gregoire
  * @since 0.6
  */
@@ -46,19 +47,19 @@ public class RhinoScriptUtils {
 
 	// ScriptEngine manager
 	private static ScriptEngineManager mgr = new ScriptEngineManager();
-	
+
 	//Javascript wrapper
-	private static final String jsWrapper = "function Wrapper(obj){return new JSAdapter(){ __has__ : function(name){return true;}, __get__ : function(name){if(name in obj){return obj[name];}else if(typeof(obj['doesNotUnderstand']) == 'function'){return function(){return obj.doesNotUnderstand(name, arguments);}}else{return undefined;}}};}";	
-	 
+	private static final String jsWrapper = "function Wrapper(obj){return new JSAdapter(){ __has__ : function(name){return true;}, __get__ : function(name){if(name in obj){return obj[name];}else if(typeof(obj['doesNotUnderstand']) == 'function'){return function(){return obj.doesNotUnderstand(name, arguments);}}else{return undefined;}}};}";
+
 	/**
 	 * Create a new Rhino-scripted object from the given script source.
-	 * 
+	 *
 	 * @param scriptSource
 	 *            the script source text
 	 * @param interfaces
 	 *            the interfaces that the scripted Java object is supposed to
 	 *            implement
-     * @param extendedClass      
+     * @param extendedClass
 	 * @return the scripted Java object
 	 * @throws ScriptCompilationException
 	 *             in case of Rhino parsing failure
@@ -78,7 +79,7 @@ public class RhinoScriptUtils {
 		//compile the wrapper script
 		CompiledScript wrapper = ((Compilable) engine).compile(jsWrapper);
 		nameSpace.put("Wrapper", wrapper);
-		
+
 		//get the function name ie. class name / ctor
 		String funcName = RhinoScriptUtils.getFunctionName(scriptSource);
 		if (log.isDebugEnabled()) {
@@ -86,6 +87,10 @@ public class RhinoScriptUtils {
 		}
 		//set the 'filename'
 		nameSpace.put(ScriptEngine.FILENAME, funcName);
+
+		if (null != interfaces) {
+			nameSpace.put("interfaces", interfaces);
+		}
 
 		if (null != extendedClass) {
 			if (log.isDebugEnabled()) {
@@ -109,11 +114,17 @@ public class RhinoScriptUtils {
 		//script didnt return anything we can use so try the wrapper
 		if (null == o) {
 			wrapper.eval();
+			//o = ((Invocable) engine).invokeFunction("Wrapper", new Object[]{engine.get(funcName)});
+			//if (log.isDebugEnabled()) {
+			//	log.debug("Result of invokeFunction: " + o);
+			//}
+		} else {
+			wrapper.eval();
 			o = ((Invocable) engine).invokeFunction("Wrapper", new Object[]{engine.get(funcName)});
 			if (log.isDebugEnabled()) {
 				log.debug("Result of invokeFunction: " + o);
 			}
-		}		
+		}
 		return Proxy.newProxyInstance(ClassUtils.getDefaultClassLoader(),
 				interfaces, new RhinoObjectInvocationHandler(engine, o));
 	}
@@ -149,7 +160,26 @@ public class RhinoScriptUtils {
 				if (null == instance) {
 					o = invocable.invokeFunction(name, args);
 				} else {
-					o = invocable.invokeMethod(instance, name, args);
+					try {
+						o = invocable.invokeMethod(instance, name, args);
+					} catch (NoSuchMethodException nex) {
+						log.debug("Method not found: " + name);
+						try {
+							//try to invoke it directly, this will work if the function is in the engine context
+							//ie. the script has been already evaluated
+							o = invocable.invokeFunction(name, args);
+						} catch (Exception ex) {
+							log.debug("Function not found: " + name);
+							Class[] interfaces = (Class[]) engine.get("interfaces");
+							for (Class clazz : interfaces) {
+								o = invocable.getInterface(engine.get((String) engine.get("className")), clazz);
+								if (null != o) {
+									log.debug("Interface return type: " + o.getClass().getName());
+									break;
+								}
+							}
+						}
+					}
 				}
 				if (log.isDebugEnabled()) {
 					log.debug("Invocable result: " + o);
@@ -166,7 +196,7 @@ public class RhinoScriptUtils {
 	/**
 	 * Uses a regex to get the first "function" name, this name
 	 * is used to create an instance of the javascript object.
-	 * 
+	 *
 	 * @param scriptSource
 	 * @return
 	 */

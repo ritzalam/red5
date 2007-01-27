@@ -10,13 +10,14 @@ public class DemoServiceImpl implements IDemoService {
      * @return Value for property 'listOfAvailableFLVs'.
      */
     public Map getListOfAvailableFLVs() {
+    	System.out.println("getListOfAvailableFLVs empty");
 		return new HashMap(1);
 	}
-    
+
     public Map getListOfAvailableFLVs(String string) {
-    	System.out.println("Got a string: " + string);
+    	System.out.println("getListOfAvailableFLVs, Got a string: " + string);
     	return getListOfAvailableFLVs();
     }
-    
+
 }
 

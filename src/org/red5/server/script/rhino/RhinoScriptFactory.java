@@ -28,14 +28,14 @@ import org.springframework.util.Assert;
 /**
  * {@link org.springframework.scripting.ScriptFactory} implementation for a
  * Rhino / Javascript script.
- * 
+ *
  * <p>
  * Typically used in combination with a
  * {@link org.springframework.scripting.support.ScriptFactoryPostProcessor};
  * see the latter's
  * {@link org.springframework.scripting.support.ScriptFactoryPostProcessor Javadoc}
  * for a configuration example.
- * 
+ *
  * @author Paul Gregoire
  * @since 0.6
  * @see org.springframework.scripting.support.ScriptFactoryPostProcessor
@@ -51,8 +51,6 @@ public class RhinoScriptFactory implements ScriptFactory {
 
 	private final Class extendedClass;
 
-//	private ScriptObjectContext scriptContext;
-	
 	public RhinoScriptFactory(String scriptSourceLocator) {
 		Assert.hasText(scriptSourceLocator);
 		this.scriptSourceLocator = scriptSourceLocator;
@@ -73,7 +71,7 @@ public class RhinoScriptFactory implements ScriptFactory {
 
 	/**
 	 * Create a new RhinoScriptFactory for the given script source.
-	 * 
+	 *
 	 * @param scriptSourceLocator
 	 *            a locator that points to the source of the script. Interpreted
 	 *            by the post-processor that actually creates the script.
@@ -112,14 +110,6 @@ public class RhinoScriptFactory implements ScriptFactory {
 		}
 	}
 
-//	public ScriptObjectContext getScriptContext() {
-//		return scriptContext;
-//	}
-//
-//	public void setScriptContext(ScriptObjectContext scriptContext) {
-//		this.scriptContext = scriptContext;
-//	}
-
 	/** {@inheritDoc} */
     public String getScriptSourceLocator() {
 		return this.scriptSourceLocator;
@@ -132,7 +122,7 @@ public class RhinoScriptFactory implements ScriptFactory {
 
 	/**
 	 * Rhino scripts do not require a config interface.
-	 * 
+	 *
 	 * @return <code>false</code> always
 	 */
 	public boolean requiresConfigInterface() {
@@ -141,7 +131,7 @@ public class RhinoScriptFactory implements ScriptFactory {
 
 	/**
 	 * Load and parse the Rhino script via RhinoScriptUtils.
-	 * 
+	 *
 	 * @see RhinoScriptUtils#createRhinoObject(String, Class[])
 	 */
 	public Object getScriptedObject(ScriptSource actualScriptSource,

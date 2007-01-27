@@ -19,35 +19,35 @@ class DemoService < RedFive::DemoServiceImpl
 
 	def initialize
 	   puts "Initializing ruby demoservice"
+	   super
 	   @filesMap = HashMap.new
 	end
 
 	def getListOfAvailableFLVs
 		puts "Getting the FLV files"
 		begin
-		    puts "R5 con local: #{Red5::getConnectionLocal}"
-		    puts "Scope: #{Red5::getConnectionLocal.getScope}"
-			flvs = Red5::getConnectionLocal.getScope.getResources("streams/*.flv")
-			puts "FLV list #{flvs}"
-			for flv in flvs
-				file = flv.getFile
-				lastModified = formatDate(Time.at(file.lastModified))
-				#File.mtime("testfile")
-				flvName = file.getName
-				flvBytes = file.length
-				#File.size("testfile")
-				puts "FLV Name: #{flvName}"
-				puts "Last modified date: #{lastModified}"
-				puts "Size: #{flvBytes}"
-				puts "-------"
-				fileInfo = HashMap.new
-				fileInfo["name"] = flvName
-				fileInfo["lastModified"] = lastModified
-				fileInfo["size"] = flvBytes
-				@filesMap[flvName] = fileInfo
-			end
-		rescue
-			puts "Error in getListOfAvailableFLVs #{errorType}\n"
+#		    puts "R5 con local: #{Red5::getConnectionLocal}"
+#		    puts "Scope: #{Red5::getConnectionLocal.getScope}"
+#		    puts "Root path: #{File.expand_path('/')}"
+#		    puts "Current path:  #{File.expand_path('webapps/oflaDemo/')}"
+            dirname = File.expand_path('webapps/oflaDemo/streams').to_s
+			Dir.open(dirname).entries.grep(/\.flv$/) do |dir|
+			    dir.each do |flvName|
+      			    fileInfo = HashMap.new
+      			    stats = File.stat(dirname+'/'+flvName)
+      			    fileInfo["name"] = flvName
+      			    fileInfo["lastModified"] = stats.mtime
+      			    fileInfo["size"] = stats.size || 0
+                    @filesMap[flvName] = fileInfo
+                    print 'FLV Name:', flvName
+                    print 'Last modified date:', stats.mtime
+                    print 'Size:', stats.size || 0
+                    print '-------'
+                end
+            end
+		rescue Exception => ex
+			puts "Error in getListOfAvailableFLVs #{errorType} \n"
+			puts "Exception: #{ex} \n"
 			puts caller.join("\n");
 		end
 		return filesMap
@@ -58,7 +58,7 @@ class DemoService < RedFive::DemoServiceImpl
 	end
 
     def method_missing(m, *args)
-      super unless @value.respond_to?(m) 
+      super unless @value.respond_to?(m)
       return @value.send(m, *args)
     end
 

@@ -15,66 +15,92 @@ importClass(Packages.org.red5.server.api.IScopeHandler);
 
 var IStreamCapableConnection = Packages.org.red5.server.api.stream.IStreamCapableConnection;
 
-function object(o) {
-	function Application() {
-		this.appScope;
-		this.serverStream;
-		this.className = 'Application';
-	
-		this.getClassName = function() {
-			return this.className;
-		};
-		
-		appStart: function(app) {
-			if (log.isDebugEnabled) {
-				print('Javascript appStart');
-			}
-			this.appScope = app;
-			return true;
-		}; 
-	
-		appConnect: function(conn, params) {
-			log.error('Javascript appConnect');
-			if (log.isDebugEnabled) {
-				print('Javascript appConnect');
-			}
-			measureBandwidth(conn);
-			if (conn == typeof(IStreamCapableConnection)) {
-				var streamConn = conn;
-				var sbc = new Packages.org.red5.server.api.stream.support.SimpleBandwidthConfigure();
-				sbc.setMaxBurst(8388608);
-				sbc.setBurst(8388608);
-				sbc.setOverallBandwidth(2097152);
-				streamConn.setBandwidthConfigure(sbc);
-			}
-			return this.__proto__.appConnect(conn, params);
-		};
-		
-		appDisconnect: function(conn) {
-			if (log.isDebugEnabled) {
-				print('Javascript appDisconnect');
-			}
-			if (this.appScope == conn.getScope() && this.serverStream)  {
-				this.serverStream.close();
-			}
-			return this.__proto__.appDisconnect(conn);
-		};		
-		
-		toString: function(string) {
-			return 'Javascript:Application';
-		};
-	}
-	Application.prototype = o;
-	return new Application();
+function Application() {
+	this.appScope = undefined;
+	this.serverStream = undefined;
+	this.className = 'Application';
+	log.debug('Application init');
+
+	if (supa) {
+        Application.prototype = supa;
+        log.debug('Instance of '+supa);
+    }
+
+	appStart = function(app) {
+		if (log.isDebugEnabled) {
+			print('Javascript appStart');
+		}
+		this.appScope = app;
+		return true;
+	};
+
+	appConnect = function(conn, params) {
+		log.error('Javascript appConnect');
+		if (log.isDebugEnabled) {
+			print('Javascript appConnect');
+		}
+		measureBandwidth(conn);
+		if (conn == typeof(IStreamCapableConnection)) {
+			var streamConn = conn;
+			var sbc = new Packages.org.red5.server.api.stream.support.SimpleBandwidthConfigure();
+			sbc.setMaxBurst(8388608);
+			sbc.setBurst(8388608);
+			sbc.setOverallBandwidth(2097152);
+			streamConn.setBandwidthConfigure(sbc);
+		}
+		return this.__proto__.appConnect(conn, params);
+	};
+
+	appDisconnect = function(conn) {
+		if (log.isDebugEnabled) {
+			print('Javascript appDisconnect');
+		}
+		if (this.appScope == conn.getScope() && this.serverStream)  {
+			this.serverStream.close();
+		}
+		return this.__proto__.appDisconnect(conn);
+	};
+
+	toString = function(string) {
+		return 'Javascript:Application';
+	};
+
+    doesNotUnderstand = function(name) {
+        print("Unknown method called: " + name + "\n");
+        for (n in context) {
+            print('Context: '+n);
+        }
+        if (name in this.__proto__) {
+            if (arguments.length > 0) {
+                return this.__proto__[name](arguments);
+            } else {
+                return this.__proto__[name]();
+            }
+        }
+    };
+
 }
 
-//if a super class exists in the namespace / bindings
-if (supa) {
-	if (log.isDebugEnabled) {
-		print('New instance of prototype: ' + supa + '\n');
-	}
-	object(supa);
-}
+Application.__has__ = function(name) {
+    println('Has: '+name);
+    return true;
+};
+
+Application.__get__ = function(name) {
+    println('Get: '+name);
+    if (name in this) {
+        return this[name];
+    } else if (typeof(this['doesNotUnderstand']) == 'function') {
+        return function() {
+            return this.doesNotUnderstand(name, arguments);
+        }
+    } else {
+        return undefined;
+    }
+};
+
+Application();
+
 
 
 
