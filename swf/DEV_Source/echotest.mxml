@@ -11,6 +11,7 @@
     <![CDATA[
 		import mx.controls.Alert;
 		import org.red5.samples.echo.EchoClass;
+		import org.red5.samples.echo.RemoteClass;
 		import org.red5.samples.echo.ExternalizableClass;
 		
 		[Bindable]
@@ -77,11 +78,34 @@
 			tmp7.attr1 = "one";
 			tmp7.attr2 = 1;
 			testParams.push(tmp7);
+			var tmp8: Array = new Array();
+			tmp8.push(tmp7);
+			tmp8.push(tmp7);
+			testParams.push(tmp8);
+			var remote: RemoteClass = new RemoteClass();
+			remote.attribute1 = "one";
+			remote.attribute2 = 2;
+			testParams.push(remote);
+			var tmp9: Array = new Array();
+			var remote1: RemoteClass = new RemoteClass();
+			remote1.attribute1 = "one";
+			remote1.attribute2 = 1;
+			tmp8.push(remote1);
+			var remote2: RemoteClass = new RemoteClass();
+			remote2.attribute1 = "two";
+			remote2.attribute2 = 2;
+			tmp9.push(remote2);
+			testParams.push(tmp9);
+
 			AMF0Count = testParams.length;
 			
 			// Add AMF3 specific tests below
 			var ext: ExternalizableClass = new ExternalizableClass();
 			testParams.push(ext);
+			var tmp_1: Array = new Array();
+			tmp_1.push(ext);
+			tmp_1.push(ext);
+			testParams.push(tmp_1);
 			
 			nc = new NetConnection();
 			nc.addEventListener(NetStatusEvent.NET_STATUS, netStatusHandler); 

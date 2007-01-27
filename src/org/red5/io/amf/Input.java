@@ -396,6 +396,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 			log.debug("read bean");
 		}
 		storeReference(bean);
+		Class theClass = bean.getClass();
 		while (hasMoreProperties()) {
 			String name = readPropertyName();
 			if (log.isDebugEnabled()) {
@@ -408,14 +409,18 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 			//log.debug("val: "+property.getClass().getName());
 			try {
 				if (property != null) {
-					BeanUtils.setProperty(bean, name, property);
+					try {
+						theClass.getField(name).set(bean, property);
+					} catch (Exception ex2) {
+						BeanUtils.setProperty(bean, name, property);
+					} 
 				} else {
 					if (log.isDebugEnabled()) {
 						log.debug("Skipping null property: " + name);
 					}
 				}
 			} catch (Exception ex) {
-				log.error("Error mapping property: " + name);
+				log.error("Error mapping property: " + name + " (" + property + ")");
 			}
 			if (hasMoreProperties()) {
 				skipPropertySeparator();

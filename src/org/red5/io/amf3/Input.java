@@ -19,10 +19,10 @@ package org.red5.io.amf3;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -43,6 +43,24 @@ import org.red5.io.utils.ObjectMap;
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public class Input extends org.red5.io.amf.Input implements org.red5.io.object.Input {
+
+	/**
+	 * Holds informations about already deserialized classes.
+	 */
+	protected class ClassReference {
+		
+		/** Name of the deserialized class. */
+		protected String className;
+		/** Names of the attributes of the class. */
+		protected List<String> attributeNames;
+		
+		/** Create new informations about a class. */
+		public ClassReference(String className, List<String> attributeNames) {
+			this.className = className;
+			this.attributeNames = attributeNames;
+		}
+	}
+	
     /**
      * Logger
      */
@@ -55,6 +73,10 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 * List of string values found in the input stream.
 	 */
 	private List<String> stringReferences;
+	/**
+	 * Informations about already deserialized classes.
+	 */
+	private List<ClassReference> classReferences;
 
 	/**
 	 * Creates Input object for AMF3 from byte buffer
@@ -65,6 +87,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		super(buf);
 		amf3_mode = 0;
 		stringReferences = new ArrayList<String>();
+		classReferences = new ArrayList<ClassReference>();
 	}
 
 	/**
@@ -287,14 +310,19 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		}
 		
 		type >>= 1;
+		List<String> attributes = null;
+		String className;
+		Object result = null;
 		boolean inlineClass = (type & 1) == 1;
 		if (!inlineClass) {
-			throw new RuntimeException("Class references not supported yet.");
+			ClassReference info = classReferences.get(type >> 1);
+			className = info.className;
+			attributes = info.attributeNames;
+			type = attributes.size() << 2 | AMF3.TYPE_OBJECT_PROPERTY;
+		} else {
+			type >>= 1;
+			className = readString();
 		}
-		
-		type >>= 1;
-		String className = readString();
-		Object result = null;
 		amf3_mode += 1;
 		Map<String, Object> properties = null;
 		switch (type & 0x03) {
@@ -302,12 +330,15 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 			// Load object properties into map
 			int count = type >> 2;
 			properties = new ObjectMap<String, Object>();
-			List<String> propertyNames = new ArrayList<String>(count);
-			for (int i=0; i<count; i++) {
-				propertyNames.add(readString());					
+			if (attributes == null) {
+				attributes = new ArrayList<String>(count);
+				for (int i=0; i<count; i++) {
+					attributes.add(readString());					
+				}
+				classReferences.add(new ClassReference(className, attributes));
 			}
 			for (int i=0; i<count; i++) {
-				properties.put(propertyNames.get(i), deserializer.deserialize(this));
+				properties.put(attributes.get(i), deserializer.deserialize(this));
 			}
 			break;
 		case AMF3.TYPE_OBJECT_EXTERNALIZABLE:
@@ -327,12 +358,15 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		case AMF3.TYPE_OBJECT_VALUE:
 			// Load object properties into map
 			properties = new ObjectMap<String, Object>();
+			attributes = new LinkedList<String>();
 			String key = readString();
 			while (!"".equals(key)) {
+				attributes.add(key);
 				Object value = deserializer.deserialize(this);
 				properties.put(key, value);
 				key = readString();
 			}
+			classReferences.add(new ClassReference(className, attributes));
 			break;
 		default:
 		case AMF3.TYPE_OBJECT_UNKNOWN:
@@ -357,9 +391,14 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 				result = newInstance(className);
 				if (result != null) {
 					storeReference(properties);
+					Class resultClass = result.getClass();
 					for (Map.Entry<String, Object> entry: properties.entrySet()) {
 						try {
-							BeanUtils.setProperty(result, entry.getKey(), entry.getValue());
+							try {
+								resultClass.getField(entry.getKey()).set(result, entry.getValue());
+							} catch (Exception e) {
+								BeanUtils.setProperty(result, entry.getKey(), entry.getValue());
+							}
 						} catch (Exception e) {
 							log.error("Error mapping property: " + entry.getKey() + " (" + entry.getValue() + ")");
 						}
