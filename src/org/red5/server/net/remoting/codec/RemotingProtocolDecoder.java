@@ -138,7 +138,7 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 			if (log.isDebugEnabled()) {
 				log.debug("callback: " + clientCallback);
 			}
-			//int length = in.getInt();
+			int length = in.getInt();
 			// set the limit and deserialize
 			// NOTE: disabled because the FP sends wrong values here
 			/*
