@@ -134,7 +134,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 		final int numChunks = (int) Math.ceil(header.getSize()
 				/ (float) chunkSize);
 		final int bufSize = header.getSize() + headers.limit()
-				+ (numChunks - 1);
+				+ (numChunks > 0 ? numChunks - 1 : 0);
 		final ByteBuffer out = ByteBuffer.allocate(bufSize);
 
 		headers.flip();
