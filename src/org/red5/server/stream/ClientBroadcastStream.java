@@ -112,6 +112,10 @@ public class ClientBroadcastStream extends AbstractClientStream implements
      * Whether we are recording or not
      */
 	private boolean recording = false;
+	/**
+	 * The filename we are recording to.
+	 */
+	private String recordingFilename;
     /**
      * Is there need to send start notification?
      */
@@ -156,6 +160,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
         recordParamMap.put("record", null);
 		recordPipe.subscribe((IProvider) this, recordParamMap);
 		recording = false;
+		recordingFilename = null;
 		setCodecInfo(new StreamCodecInfo());
 	}
 
@@ -243,8 +248,14 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			}
 			recordPipe.subscribe(fc, paramMap);
 			recording = true;
+			recordingFilename = filename;
 		} catch (IOException e) {
         }
+	}
+
+    /** {@inheritDoc} */
+	public String getSaveFilename() {
+		return recordingFilename;
 	}
 
     /**

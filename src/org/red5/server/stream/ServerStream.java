@@ -132,6 +132,10 @@ public class ServerStream extends AbstractStream implements IServerStream,
      * Pipe for recording
      */
 	private IPipe recordPipe;
+	/**
+	 * The filename we are recording to.
+	 */
+	private String recordingFilename;
     /**
      * Scheduling service
      */
@@ -350,8 +354,14 @@ public class ServerStream extends AbstractStream implements IServerStream,
 				paramMap.put("mode", "record");
 			}
 			recordPipe.subscribe(fc, paramMap);
+			recordingFilename = filename;
 		} catch (IOException e) {
 		}
+	}
+
+	/** {@inheritDoc} */
+	public String getSaveFilename() {
+		return recordingFilename;
 	}
 
 	/** {@inheritDoc} */
@@ -394,6 +404,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 		recordPipe = new InMemoryPushPushPipe();
 		recordParamMap.put("record", null);
 		recordPipe.subscribe((IProvider) this, recordParamMap);
+		recordingFilename = null;
 		scheduler = (ISchedulingService) getScope().getContext().getBean(
 				ISchedulingService.BEAN_NAME);
 		state = State.STOPPED;

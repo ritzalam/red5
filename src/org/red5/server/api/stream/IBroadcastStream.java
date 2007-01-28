@@ -49,6 +49,14 @@ public interface IBroadcastStream extends IStream {
             throws ResourceNotFoundException, ResourceExistException;
 
 	/**
+	 * Get the filename the stream is being saved as.
+	 * 
+	 * @return	The filename relative to the scope or <code>null</code>
+	 * 			if the stream is not being saved. 
+	 */
+	String getSaveFilename();
+	
+	/**
 	 * Get the provider corresponding to this stream. Provider objects are
 	 * object that
 	 * 
