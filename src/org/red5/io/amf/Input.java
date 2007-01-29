@@ -341,7 +341,8 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 			mixedResult.put(key, item);
 		}
 
-		if (mixedResult.size() <= maxNumber+1 && maxNumber == (Integer) mixedResult.get("length")) {
+		Object length = mixedResult.get("length");
+		if (mixedResult.size() <= maxNumber+1 && length instanceof Integer && maxNumber == (Integer) length) {
 			// MixedArray actually is a regular array
 			if (log.isDebugEnabled()) {
 				log.debug("mixed array is a regular array");
