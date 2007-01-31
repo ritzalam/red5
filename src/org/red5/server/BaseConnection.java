@@ -251,7 +251,7 @@ public abstract class BaseConnection extends AttributeStore implements
     /**
      *  Closes connection
      */
-	public void close() {
+	public synchronized void close() {
 
 		if (scope != null) {
 
