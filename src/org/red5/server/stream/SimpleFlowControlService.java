@@ -2,21 +2,21 @@ package org.red5.server.stream;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
- * 
+ *
  * Copyright (c) 2006 by respective authors (see below). All rights reserved.
- * 
- * This library is free software; you can redistribute it and/or modify it under the 
- * terms of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either version 2.1 of the License, or (at your option) any later 
- * version. 
- * 
- * This library is distributed in the hope that it will be useful, but WITHOUT ANY 
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+ *
+ * This library is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free Software
+ * Foundation; either version 2.1 of the License, or (at your option) any later
+ * version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
  * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public License along 
- * with this library; if not, write to the Free Software Foundation, Inc., 
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ *
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with this library; if not, write to the Free Software Foundation, Inc.,
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 import java.util.ArrayList;
@@ -140,9 +140,7 @@ public class SimpleFlowControlService extends TimerTask implements
 					capacity = newBC.getMaxBurst() <= 0 ? defaultCapacity
 							: newBC.getMaxBurst();
 				}
-				if (data.sbc == null && newBC == null) {
-					// nothing changes
-				} else if (data.sbc != null && newBC == null) {
+				if (data.sbc != null && newBC == null) {
 					// configuration removed
 					yieldResourceToAncestor(fc);
 					data.sbc = null;
@@ -289,7 +287,7 @@ public class SimpleFlowControlService extends TimerTask implements
 
 	/**
 	 * Move related resource from ancestor to this fc.
-	 * 
+	 *
 	 * @param fc                  Flow controllable that acts as reciever
 	 */
 	private void adoptAncestorResource(IFlowControllable fc) {
@@ -319,7 +317,7 @@ public class SimpleFlowControlService extends TimerTask implements
 
 	/**
 	 * Give away resource to ancestor that has assigned bw resource.
-	 * 
+	 *
 	 * @param fc                    Flow controllable of ancestor
 	 */
 	private void yieldResourceToAncestor(IFlowControllable fc) {
@@ -688,9 +686,9 @@ public class SimpleFlowControlService extends TimerTask implements
 				for (ITokenBucketCallback callback : callbackMap.keySet()) {
 					RequestObject reqObj = callbackMap.get(callback);
 					try {
-						callback.reset(reqObj.requestBucket,
-								reqObj.requestTokenCount);
+						callback.reset(reqObj.requestBucket, reqObj.requestTokenCount);
 					} catch (Throwable t) {
+						log.debug("reset caught Throwable");
 					}
 				}
 				fcWaitingMap.remove(callbackMap);

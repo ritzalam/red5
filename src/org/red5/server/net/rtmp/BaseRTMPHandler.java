@@ -2,21 +2,21 @@ package org.red5.server.net.rtmp;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
- * 
+ *
  * Copyright (c) 2006 by respective authors (see below). All rights reserved.
- * 
- * This library is free software; you can redistribute it and/or modify it under the 
- * terms of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either version 2.1 of the License, or (at your option) any later 
- * version. 
- * 
- * This library is distributed in the hope that it will be useful, but WITHOUT ANY 
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+ *
+ * This library is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free Software
+ * Foundation; either version 2.1 of the License, or (at your option) any later
+ * version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
  * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public License along 
- * with this library; if not, write to the Free Software Foundation, Inc., 
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ *
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with this library; if not, write to the Free Software Foundation, Inc.,
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 import java.util.HashSet;
@@ -49,7 +49,7 @@ import org.red5.server.stream.PlaylistSubscriberStream;
 
 /**
  * Base class for all RTMP handlers.
- * 
+ *
  * @author The Red5 Project (red5@osflash.org)
  */
 public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, StatusCodes {
@@ -124,12 +124,12 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 				case TYPE_INVOKE:
 				case TYPE_FLEX_MESSAGE:
 					onInvoke(conn, channel, header, (Invoke) message, (RTMP) state);
-					if(message.getHeader().getStreamId()!=0  
+					if(message.getHeader().getStreamId()!=0
 							&& ((Invoke)message).getCall().getServiceName()==null
 							&& ACTION_PUBLISH.equals(((Invoke)message).getCall().getServiceMethodName())) {
 						IClientStream s = conn.getStreamById(header.getStreamId());
 						if (s != null)
-							// Only dispatch if stream really was created 
+							// Only dispatch if stream really was created
 							((IEventDispatcher) s).dispatchEvent(message);
 					}
 					break;
@@ -155,7 +155,7 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 				case TYPE_VIDEO_DATA:
 					// log.info("in packet: "+source.getSize()+"
 					// ts:"+source.getTimer());
-					
+
 					// NOTE: If we respond to "publish" with "NetStream.Publish.BadName",
 					// the client sends a few stream packets before stopping. We need to
 					// ignore them.
@@ -167,6 +167,10 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 					onSharedObject(conn, channel, header,
 							(SharedObjectMessage) message);
 					break;
+				default:
+					if (log.isDebugEnabled()) {
+						log.debug("Unknown type: "+header.getDataType());
+					}
 			}
 			if (message instanceof Unknown) {
 				log.info(message);
@@ -252,7 +256,7 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 				// TODO: can a client return multiple results?
 				pendingCall.setResult(args[0]);
 			}
-	
+
 			Set<IPendingServiceCallback> callbacks = pendingCall
 					.getCallbacks();
 			if (!callbacks.isEmpty()) {

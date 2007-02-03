@@ -16,7 +16,7 @@ public class Test {
 	protected static Log log = LogFactory.getLog(Test.class.getName());
 
 	public static void main(String[] args) throws Exception {
-		Test t = new Test();
+		@SuppressWarnings("unused") Test t = new Test();
 	}
 
 	public static MidiDevice getMidiDevice(String name) {

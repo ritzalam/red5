@@ -2,21 +2,21 @@ package org.red5.server;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
- * 
+ *
  * Copyright (c) 2006 by respective authors (see below). All rights reserved.
- * 
- * This library is free software; you can redistribute it and/or modify it under the 
- * terms of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either version 2.1 of the License, or (at your option) any later 
- * version. 
- * 
- * This library is distributed in the hope that it will be useful, but WITHOUT ANY 
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+ *
+ * This library is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free Software
+ * Foundation; either version 2.1 of the License, or (at your option) any later
+ * version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
  * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public License along 
- * with this library; if not, write to the Free Software Foundation, Inc., 
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ *
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with this library; if not, write to the Free Software Foundation, Inc.,
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 import java.util.Collections;
@@ -71,30 +71,30 @@ public abstract class BaseConnection extends AttributeStore implements
     /**
      *  Number of read messages
      */
-	protected long readMessages = 0;
+	protected long readMessages;
     /**
      *  Number of written messages
      */
-	protected long writtenMessages = 0;
+	protected long writtenMessages;
     /**
      *  Number of dropped messages
      */
-	protected long droppedMessages = 0;
+	protected long droppedMessages;
     /**
      *  Connection params passed from client with NetConnection.connect call
      *
      * @see  NetConnection in Flash Media Server Server-side ActionScript guide
      */
-	@SuppressWarnings({"JavadocReference"})
+	@SuppressWarnings("all")
     protected Map<String, Object> params = null;
     /**
      *  Client bound to connection
      */
-	protected IClient client = null;
+	protected IClient client;
     /**
      *  Scope that connection belongs to
      */
-	protected Scope scope = null;
+	protected Scope scope;
     /**
      *  Set of basic scopes.
      */
@@ -292,7 +292,7 @@ public abstract class BaseConnection extends AttributeStore implements
      * @param event       Event
      */
 	public void notifyEvent(IEvent event) {
-		// TODO Auto-generated method stub		
+		// TODO Auto-generated method stub
 	}
 
     /**
@@ -384,7 +384,7 @@ public abstract class BaseConnection extends AttributeStore implements
 	}
 
     /**
-     * 
+     *
      * @param streamId
      * @return
      */

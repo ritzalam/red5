@@ -49,7 +49,7 @@ import org.apache.mina.util.ExpiringStack;
  * periodically, a daemon thread is started when a new instance of the allocator
  * is created.  You can stop the thread by calling {@link #dispose()}.
  * </p>
- * 
+ *
  * @author The Apache Directory Project (mina-dev@directory.apache.org)
  * @version $Rev: 391231 $, $Date: 2006-04-04 15:21:55 +0900 (Tue, 04 Apr 2006) $
  */
@@ -69,16 +69,17 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 	/**
 	 * Save a stack trace for every buffer allocated?
-	 * 
+	 *
 	 * Warning: This slows down the Red5 a lot!
-	 * 
+	 *
 	 */
-	protected boolean saveStacks = false;
+	protected boolean saveStacks;
 
     /**
      *
      * @param section
      */
+	@SuppressWarnings("all")
 	public static void setCodeSection(String section) {
 		local.set(section);
 	}
@@ -98,11 +99,11 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
     /**
      *
      */
-	private static int threadId = 0;
+	private static int threadId;
     /**
      *
      */
-	private int count = 0;
+	private int count;
     /**
      *
      */
@@ -232,7 +233,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 	/**
 	 * Sets the timeout value of this allocator in seconds.
-	 * 
+	 *
 	 * @param timeout
 	 *            <tt>0</tt> or negative value to disable timeout.
 	 */
@@ -289,12 +290,11 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 		synchronized (stacks) {
 			for (Entry<UnexpandableByteBuffer, StackTraceElement[]> entry : stacks
 					.entrySet()) {
-				System.out.println("Stack for buffer " + entry.getKey());
+				log.info("Stack for buffer " + entry.getKey());
 				StackTraceElement[] stack = entry.getValue();
 				for (StackTraceElement element : stack) {
-					System.out.println("  " + element);
+					log.info("  " + element);
 				}
-				System.out.println();
 			}
 		}
 	}
@@ -434,6 +434,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 				try {
 					join();
 				} catch (InterruptedException e) {
+					break;
 				}
 			}
 		}
@@ -448,6 +449,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {
+					log.debug("InterruptedEx");
 				}
 
 				// Check if expiration is disabled.
@@ -490,7 +492,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
         /**
          *
          */
-		private int refCount = 1;
+        @SuppressWarnings("unused") private int refCount = 1;
         /**
          *
          */
@@ -977,7 +979,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 		}
 
         /**
-         * 
+         *
          * @param index
          * @param value
          * @return
@@ -1304,7 +1306,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 		}
 
         /**
-         * 
+         *
          * @param newCapacity
          * @return
          */

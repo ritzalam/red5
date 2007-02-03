@@ -2,21 +2,21 @@ package org.red5.server.net.remoting;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
- * 
+ *
  * Copyright (c) 2006 by respective authors (see below). All rights reserved.
- * 
- * This library is free software; you can redistribute it and/or modify it under the 
- * terms of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either version 2.1 of the License, or (at your option) any later 
- * version. 
- * 
- * This library is distributed in the hope that it will be useful, but WITHOUT ANY 
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+ *
+ * This library is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free Software
+ * Foundation; either version 2.1 of the License, or (at your option) any later
+ * version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
  * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public License along 
- * with this library; if not, write to the Free Software Foundation, Inc., 
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ *
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with this library; if not, write to the Free Software Foundation, Inc.,
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 import java.util.HashMap;
@@ -43,7 +43,7 @@ import org.red5.server.pooling.WorkerThread;
 
 /**
  * Client interface for remoting calls.
- * 
+ *
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
  *
@@ -81,7 +81,7 @@ public class RemotingClient {
 
 	/**
 	 * Create new remoting client for the given url.
-	 * 
+	 *
 	 * @param url
 	 * 			url to connect to
 	 */
@@ -91,7 +91,7 @@ public class RemotingClient {
 
 	/**
 	 * Create new remoting client for the given url and given timeout.
-	 * 
+	 *
 	 * @param url
 	 * 			url to connect to
 	 * @param timeout
@@ -106,7 +106,7 @@ public class RemotingClient {
 
 	/**
 	 * Encode the method call.
-	 * 
+	 *
 	 * @param method              Remote method being called
 	 * @param params              Method parameters
 	 * @return                    Byte buffer with data to perform remoting call
@@ -162,18 +162,18 @@ public class RemotingClient {
 
 	/**
 	 * Process any headers sent in the response.
-	 * 
+	 *
 	 * @param in                  Byte buffer with response data
 	 */
 	protected void processHeaders(ByteBuffer in) {
-		int version = in.getUnsignedShort(); // skip the version by now, AMF3 is not yet implemented
+		@SuppressWarnings("unused") int version = in.getUnsignedShort(); // skip the version by now, AMF3 is not yet implemented
 		int count = in.getUnsignedShort();
 		Deserializer deserializer = new Deserializer();
 		Input input = new Input(in);
 		for (int i = 0; i < count; i++) {
 			String name = Input.getString(in);
-			boolean required = (in.get() == 0x01);
-			int len = in.getInt();
+			@SuppressWarnings("unused") boolean required = (in.get() == 0x01);
+			@SuppressWarnings("unused") int len = in.getInt();
 			Object value = deserializer.deserialize(input);
 
 			// XXX: this is pretty much untested!!!
@@ -187,7 +187,7 @@ public class RemotingClient {
 			} else if (name.equals(RemotingHeader.PERSISTENT_HEADER)) {
 				// Send a new header with each following request
 				if (value instanceof Map) {
-					Map<String, Object> valueMap = (Map<String, Object>) value;
+					@SuppressWarnings("unchecked") Map<String, Object> valueMap = (Map<String, Object>) value;
 					RemotingHeader header = new RemotingHeader(
 							(String) valueMap.get("name"), (Boolean) valueMap
 									.get("mustUnderstand"), valueMap
@@ -205,7 +205,7 @@ public class RemotingClient {
 
 	/**
 	 * Decode response received from remoting server.
-	 * 
+	 *
 	 * @param data                Result data to decode
 	 * @return                    Object deserialized from byte buffer data
 	 */
@@ -224,7 +224,7 @@ public class RemotingClient {
 
 	/**
 	 * Send authentication data with each remoting request.
-	 * 
+	 *
 	 * @param userid              User identifier
 	 * @param password            Password
 	 */
@@ -246,7 +246,7 @@ public class RemotingClient {
 
 	/**
 	 * Send an additional header to the server.
-	 * 
+	 *
 	 * @param name                 Header name
 	 * @param required             Header required?
 	 * @param value                Header body
@@ -258,7 +258,7 @@ public class RemotingClient {
 
 	/**
 	 * Stop sending a given header.
-	 * 
+	 *
 	 * @param name                 Header name
 	 */
 	public synchronized void removeHeader(String name) {
@@ -267,7 +267,7 @@ public class RemotingClient {
 
 	/**
 	 * Invoke a method synchronously on the remoting server.
-	 * 
+	 *
 	 * @param method               Method name
 	 * @param params               Parameters passed to method
 	 * @return the result of the method call
@@ -310,7 +310,7 @@ public class RemotingClient {
 
 	/**
 	 * Invoke a method asynchronously on the remoting server.
-	 * 
+	 *
 	 * @param method               Method name
 	 * @param methodParams         Parameters passed to method
 	 * @param callback             Callback

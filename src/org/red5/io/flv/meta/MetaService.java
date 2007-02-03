@@ -2,21 +2,21 @@ package org.red5.io.flv.meta;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
- * 
+ *
  * Copyright (c) 2006 by respective authors (see below). All rights reserved.
- * 
- * This library is free software; you can redistribute it and/or modify it under the 
- * terms of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either version 2.1 of the License, or (at your option) any later 
- * version. 
- * 
- * This library is distributed in the hope that it will be useful, but WITHOUT ANY 
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+ *
+ * This library is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free Software
+ * Foundation; either version 2.1 of the License, or (at your option) any later
+ * version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
  * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public License along 
- * with this library; if not, write to the Free Software Foundation, Inc., 
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ *
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with this library; if not, write to the Free Software Foundation, Inc.,
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 import java.io.File;
@@ -38,7 +38,7 @@ import org.red5.io.object.Serializer;
 
 /**
  * MetaService represents a MetaData service in Spring
- * 
+ *
  * @author The Red5 Project (red5@osflash.org)
  * @author Dominick Accattato (daccattato@gmail.com)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
@@ -196,7 +196,7 @@ public class MetaService implements IMetaService {
 
 	/**
 	 * Merges the two Meta objects according to user
-	 * 
+	 *
 	 * @param metaData        First metadata object
 	 * @param md              Second metadata object
 	 * @return                Merged metadata
@@ -230,7 +230,7 @@ public class MetaService implements IMetaService {
 
 	/**
 	 * Injects metadata (Cue Points) into a tag
-	 * 
+	 *
 	 * @param meta           Metadata (cue points)
 	 * @param tag            Tag
 	 * @return ITag tag      New tag with injected metadata
@@ -256,7 +256,7 @@ public class MetaService implements IMetaService {
 
 	/**
 	 * Returns a timestamp of cue point in milliseconds
-	 * 
+	 *
 	 * @param metaCue          Cue point
 	 * @return int time        Timestamp of given cue point (in milliseconds)
 	 */
@@ -310,10 +310,9 @@ public class MetaService implements IMetaService {
 	public MetaData readMetaData(ByteBuffer buffer) {
 		MetaData retMeta = new MetaData();
 		Input input = new Input(buffer);
-		String metaType = (String) deserializer.deserialize(input);
+		@SuppressWarnings("unused") String metaType = (String) deserializer.deserialize(input);
 		Map m = (Map) deserializer.deserialize(input);
 		retMeta.putAll(m);
-
 		return retMeta;
 	}
 

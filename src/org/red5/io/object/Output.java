@@ -2,31 +2,30 @@ package org.red5.io.object;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
- * 
+ *
  * Copyright (c) 2006 by respective authors (see below). All rights reserved.
- * 
- * This library is free software; you can redistribute it and/or modify it under the 
- * terms of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either version 2.1 of the License, or (at your option) any later 
- * version. 
- * 
- * This library is distributed in the hope that it will be useful, but WITHOUT ANY 
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+ *
+ * This library is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free Software
+ * Foundation; either version 2.1 of the License, or (at your option) any later
+ * version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
  * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public License along 
- * with this library; if not, write to the Free Software Foundation, Inc., 
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ *
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with this library; if not, write to the Free Software Foundation, Inc.,
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 import java.util.Collection;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.Map;
 
 /**
  * Output interface which defines contract methods to be implemented
- * 
+ *
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
@@ -86,7 +85,7 @@ public interface Output {
 
     /**
      * Write map.
-     * 
+     *
      * @param map			Map to write
      * @param serializer	Serializer to use for subobjects.
      */
@@ -94,7 +93,7 @@ public interface Output {
 
     /**
      * Write array as map.
-     * 
+     *
      * @param array			Array to write
      * @param serializer	Serializer to use for subobjects.
      */
@@ -102,7 +101,7 @@ public interface Output {
 
     /**
      * Write object.
-     * 
+     *
      * @param object		Object to write
      * @param serializer	Serializer to use for subobjects.
      */
@@ -110,7 +109,7 @@ public interface Output {
 
     /**
      * Write map as object.
-     * 
+     *
      * @param map			Map to write
      * @param serializer	Serializer to use for subobjects.
      */
@@ -118,12 +117,12 @@ public interface Output {
 
     /**
      * Write recordset.
-     * 
+     *
      * @param recordset		Recordset to write.
      * @param serializer	Serializer to use for subobjects.
      */
     void writeRecordSet(RecordSet recordset, Serializer serializer);
-    
+
     /**
      * Write XML object
      * @param xml      XML as string

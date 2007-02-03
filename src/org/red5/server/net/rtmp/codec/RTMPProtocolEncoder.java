@@ -2,21 +2,21 @@ package org.red5.server.net.rtmp.codec;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
- * 
+ *
  * Copyright (c) 2006 by respective authors (see below). All rights reserved.
- * 
- * This library is free software; you can redistribute it and/or modify it under the 
- * terms of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either version 2.1 of the License, or (at your option) any later 
- * version. 
- * 
- * This library is distributed in the hope that it will be useful, but WITHOUT ANY 
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+ *
+ * This library is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free Software
+ * Foundation; either version 2.1 of the License, or (at your option) any later
+ * version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
  * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public License along 
- * with this library; if not, write to the Free Software Foundation, Inc., 
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ *
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with this library; if not, write to the Free Software Foundation, Inc.,
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 import java.util.List;
@@ -193,27 +193,23 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 		buf.put(headerByte);
 
 		switch (headerType) {
-
 			case HEADER_NEW:
 				RTMPUtils.writeMediumInt(buf, header.getTimer());
 				RTMPUtils.writeMediumInt(buf, header.getSize());
 				buf.put(header.getDataType());
 				RTMPUtils.writeReverseInt(buf, header.getStreamId());
 				break;
-
 			case HEADER_SAME_SOURCE:
 				RTMPUtils.writeMediumInt(buf, header.getTimer());
 				RTMPUtils.writeMediumInt(buf, header.getSize());
 				buf.put(header.getDataType());
 				break;
-
 			case HEADER_TIMER_CHANGE:
 				RTMPUtils.writeMediumInt(buf, header.getTimer());
 				break;
-
 			case HEADER_CONTINUE:
 				break;
-
+			default:
 		}
 		return buf;
 	}
@@ -299,7 +295,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
     	doEncodeSharedObject(so, rtmp, out);
     	return out;
     }
-    
+
 	/** {@inheritDoc} */
     public ByteBuffer encodeSharedObject(ISharedObjectMessage so, RTMP rtmp) {
 		final ByteBuffer out = ByteBuffer.allocate(128);
@@ -310,7 +306,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 
     /**
      * Perform the actual encoding of the shared object contents.
-     * 
+     *
      * @param so
      * @param rtmp
      * @param out
@@ -492,7 +488,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 				output = new org.red5.io.amf.Output(out);
 			}
 		}
-		
+
 		if (!isPending && (invoke instanceof Invoke)) {
 			IPendingServiceCall pendingCall = (IPendingServiceCall) call;
 			if (log.isDebugEnabled()) {
@@ -581,5 +577,5 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 		encodeNotifyOrInvoke(out, msg, rtmp);
 		return out;
 	}
-	
+
 }

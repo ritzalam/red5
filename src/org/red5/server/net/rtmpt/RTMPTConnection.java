@@ -2,21 +2,21 @@ package org.red5.server.net.rtmpt;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
- * 
+ *
  * Copyright (c) 2006 by respective authors (see below). All rights reserved.
- * 
- * This library is free software; you can redistribute it and/or modify it under the 
- * terms of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either version 2.1 of the License, or (at your option) any later 
- * version. 
- * 
- * This library is distributed in the hope that it will be useful, but WITHOUT ANY 
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+ *
+ * This library is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free Software
+ * Foundation; either version 2.1 of the License, or (at your option) any later
+ * version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
  * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public License along 
- * with this library; if not, write to the Free Software Foundation, Inc., 
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ *
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with this library; if not, write to the Free Software Foundation, Inc.,
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 import java.util.BitSet;
@@ -38,7 +38,7 @@ import org.red5.server.net.rtmp.message.Packet;
 
 /**
  * A RTMPT client / session.
- * 
+ *
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
  */
@@ -59,7 +59,7 @@ public class RTMPTConnection extends RTMPConnection {
 	protected static final byte INITIAL_POLLING_DELAY = 0;
 
 	/**
-	 * Maximum polling delay. 
+	 * Maximum polling delay.
 	 */
 	protected static final byte MAX_POLLING_DELAY = 32;
 
@@ -119,22 +119,22 @@ public class RTMPTConnection extends RTMPConnection {
     /**
      * Closing flag
      */
-	protected boolean closing = false;
+	protected boolean closing;
     /**
      * Connection client id
      */
 	protected int clientId;
-	
+
 	static {
 		// the first id is reserved
 		idSet.set(0);
 	}
-	
+
 	/** Constructs a new RTMPTConnection. */
     RTMPTConnection() {
 		super(POLLING);
 	}
-	
+
 	/**
      * Setter for RTMP events handler
      *
@@ -157,7 +157,7 @@ public class RTMPTConnection extends RTMPConnection {
 			}
 		}
 	}
-	
+
 	/** {@inheritDoc} */
     @Override
 	public void close() {
@@ -180,12 +180,12 @@ public class RTMPTConnection extends RTMPConnection {
     public void realClose() {
 		if (!isClosing())
 			return;
-		
+
 		if (this.buffer != null) {
 			this.buffer = null;
 		}
-		for (ByteBuffer buffer : pendingMessages) {
-			buffer = null;
+		for (int b=0;b < pendingMessages.size();b++) {
+			pendingMessages.add(b, null);
 		}
 		pendingMessages.clear();
 		state.setState(RTMP.STATE_DISCONNECTED);
@@ -195,14 +195,14 @@ public class RTMPTConnection extends RTMPConnection {
 		}
 		super.close();
 	}
-	
+
 	/** {@inheritDoc} */
     @Override
 	protected void onInactive() {
 		close();
 		realClose();
 	}
-	
+
 	/**
      * Setter for servlet request.
      *
@@ -216,7 +216,7 @@ public class RTMPTConnection extends RTMPConnection {
 
 	/**
 	 * Return the client id for this connection.
-	 * 
+	 *
 	 * @return the client id
 	 */
 	public int getId() {
@@ -225,7 +225,7 @@ public class RTMPTConnection extends RTMPConnection {
 
 	/**
 	 * Return the current decoder state.
-	 * 
+	 *
 	 * @return the current decoder state.
 	 */
 	public RTMP getState() {
@@ -234,7 +234,7 @@ public class RTMPTConnection extends RTMPConnection {
 
 	/**
 	 * Return the polling delay to use.
-	 * 
+	 *
 	 * @return the polling delay
 	 */
 	public byte getPollingDelay() {
@@ -248,7 +248,7 @@ public class RTMPTConnection extends RTMPConnection {
 
 	/**
 	 * Decode data sent by the client.
-	 * 
+	 *
 	 * @param data
 	 * 			the data to decode
 	 * @return a list of decoded objects
@@ -262,7 +262,7 @@ public class RTMPTConnection extends RTMPConnection {
 
 	/**
 	 * Send RTMP packet down the connection.
-	 * 
+	 *
 	 * @param packet
 	 * 			the packet to send
 	 */
@@ -290,7 +290,7 @@ public class RTMPTConnection extends RTMPConnection {
 
 	/**
 	 * Send raw data down the connection.
-	 * 
+	 *
 	 * @param packet
 	 * 			the buffer containing the raw data
 	 */
@@ -303,7 +303,7 @@ public class RTMPTConnection extends RTMPConnection {
 
 	/**
 	 * Return any pending messages up to a given size.
-	 * 
+	 *
 	 * @param targetSize
 	 * 			the size the resulting buffer should have
 	 * @return a buffer containing the data to send or null if no messages are

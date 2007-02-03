@@ -2,21 +2,21 @@ package org.red5.server.stream;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
- * 
+ *
  * Copyright (c) 2006 by respective authors (see below). All rights reserved.
- * 
- * This library is free software; you can redistribute it and/or modify it under the 
- * terms of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either version 2.1 of the License, or (at your option) any later 
- * version. 
- * 
- * This library is distributed in the hope that it will be useful, but WITHOUT ANY 
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+ *
+ * This library is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free Software
+ * Foundation; either version 2.1 of the License, or (at your option) any later
+ * version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
  * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public License along 
- * with this library; if not, write to the Free Software Foundation, Inc., 
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ *
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with this library; if not, write to the Free Software Foundation, Inc.,
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 import org.apache.commons.logging.Log;
@@ -36,7 +36,7 @@ import org.red5.server.stream.message.RTMPMessage;
  * have been successfully sent, regular interframes will be sent in the next
  * iteration as well. If these frames all went through, disposable interframes
  * are sent again.
- * 
+ *
  * <p>
  * So from highest to lowest bandwidth and back, the states go as follows:
  * <ul>
@@ -46,7 +46,7 @@ import org.red5.server.stream.message.RTMPMessage;
  * <li>keyframes and interframes</li>
  * <li>all frames</li>
  * </ul>
- * 
+ *
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
  */
@@ -89,7 +89,6 @@ public class VideoFrameDropper implements IFrameDropper {
 				// All packets will be sent.
 				result = true;
 				break;
-
 			case SEND_INTERFRAMES:
 				// Only keyframes and interframes will be sent.
 				if (type == FrameType.KEYFRAME) {
@@ -102,7 +101,6 @@ public class VideoFrameDropper implements IFrameDropper {
 					result = true;
 				}
 				break;
-
 			case SEND_KEYFRAMES:
 				// Only keyframes will be sent.
 				result = (type == FrameType.KEYFRAME);
@@ -111,7 +109,6 @@ public class VideoFrameDropper implements IFrameDropper {
 					state = SEND_KEYFRAMES_CHECK;
 				}
 				break;
-
 			case SEND_KEYFRAMES_CHECK:
 				// Only keyframes will be sent.
 				result = (type == FrameType.KEYFRAME);
@@ -120,6 +117,7 @@ public class VideoFrameDropper implements IFrameDropper {
 					state = SEND_INTERFRAMES;
 				}
 				break;
+			default:
 		}
 
 		return result;
@@ -151,7 +149,6 @@ public class VideoFrameDropper implements IFrameDropper {
 					return;
 				}
 				break;
-
 			case SEND_INTERFRAMES:
 				if (type == FrameType.INTERFRAME) {
 					// Drop all frames until the next keyframe.
@@ -163,11 +160,9 @@ public class VideoFrameDropper implements IFrameDropper {
 					return;
 				}
 				break;
-
 			case SEND_KEYFRAMES:
 				// Remain in state.
 				break;
-
 			case SEND_KEYFRAMES_CHECK:
 				if (type == FrameType.KEYFRAME) {
 					// Switch back to sending keyframes, but don't move to
@@ -176,6 +171,7 @@ public class VideoFrameDropper implements IFrameDropper {
 					return;
 				}
 				break;
+			default:
 		}
 	}
 

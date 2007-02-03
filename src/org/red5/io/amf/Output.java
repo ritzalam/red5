@@ -2,21 +2,21 @@ package org.red5.io.amf;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
- * 
+ *
  * Copyright (c) 2006 by respective authors (see below). All rights reserved.
- * 
- * This library is free software; you can redistribute it and/or modify it under the 
- * terms of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either version 2.1 of the License, or (at your option) any later 
- * version. 
- * 
- * This library is distributed in the hope that it will be useful, but WITHOUT ANY 
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+ *
+ * This library is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free Software
+ * Foundation; either version 2.1 of the License, or (at your option) any later
+ * version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
  * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public License along 
- * with this library; if not, write to the Free Software Foundation, Inc., 
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ *
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with this library; if not, write to the Free Software Foundation, Inc.,
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 
@@ -38,9 +38,9 @@ import org.apache.mina.common.ByteBuffer;
 import org.red5.io.object.BaseOutput;
 import org.red5.io.object.RecordSet;
 import org.red5.io.object.Serializer;
-import org.red5.io.object.SerializerOpts.SerializerOption;
+import org.red5.io.object.SerializerOption;
 /**
- * 
+ *
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
@@ -75,12 +75,12 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
     	} else
     		return false;
     }
-    
+
 	/** {@inheritDoc} */
 	public void writeArray(Collection array, Serializer serializer) {
 		if (checkWriteReference(array))
 			return;
-		
+
 		storeReference(array);
 		buf.put(AMF.TYPE_ARRAY);
 		buf.putInt(array.size());
@@ -93,7 +93,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 	public void writeArray(Object[] array, Serializer serializer) {
 		if (checkWriteReference(array))
 			return;
-		
+
 		storeReference(array);
 		buf.put(AMF.TYPE_ARRAY);
 		buf.putInt(array.length);
@@ -106,7 +106,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
     public void writeArray(Object array, Serializer serializer) {
 		if (checkWriteReference(array))
 			return;
-		
+
 		storeReference(array);
 		buf.put(AMF.TYPE_ARRAY);
 		buf.putInt(Array.getLength(array));
@@ -119,22 +119,22 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 	public void writeMap(Map<Object, Object> map, Serializer serializer) {
 		if (checkWriteReference(map))
 			return;
-		
+
 		storeReference(map);
 		buf.put(AMF.TYPE_MIXED_ARRAY);
 		int maxInt=-1;
 		for (int i=0; i<map.size(); i++) {
 			if (!map.containsKey(i))
 				break;
-			
+
 			maxInt = i;
 		}
 		buf.putInt(maxInt+1);
 		for (Map.Entry<Object, Object> entry : map.entrySet()) {
-			final String key = entry.getKey().toString(); 
+			final String key = entry.getKey().toString();
 			if ("length".equals(key))
 				continue;
-			
+
 			putString(key);
 			serializer.serialize(this, entry.getValue());
 		}
@@ -146,12 +146,12 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		buf.put((byte) 0x00);
 		buf.put(AMF.TYPE_END_OF_OBJECT);
 	}
-	
+
 	/** {@inheritDoc} */
 	public void writeMap(Collection array, Serializer serializer) {
 		if (checkWriteReference(array))
 			return;
-		
+
 		storeReference(array);
 		buf.put(AMF.TYPE_MIXED_ARRAY);
 		buf.putInt(array.size()+1);
@@ -166,7 +166,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		}
 		putString("length");
 		serializer.serialize(this, array.size()+1);
-		
+
 		buf.put((byte) 0x00);
 		buf.put((byte) 0x00);
 		buf.put(AMF.TYPE_END_OF_OBJECT);
@@ -176,7 +176,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
     public void writeRecordSet(RecordSet recordset, Serializer serializer) {
 		if (checkWriteReference(recordset))
 			return;
-		
+
 		storeReference(recordset);
         // Write out start of object marker
 		buf.put(AMF.TYPE_CLASS_OBJECT);
@@ -244,7 +244,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
     public void writeObject(Object object, Serializer serializer) {
 		if (checkWriteReference(object))
 			return;
-		
+
 		storeReference(object);
         // Create new map out of bean properties
         BeanMap beanMap = new BeanMap(object);
@@ -277,7 +277,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 			try {
 				Field field = objectClass.getDeclaredField(keyName);
 				int modifiers = field.getModifiers();
-				
+
 				if (Modifier.isTransient(modifiers)) {
 					if (log.isDebugEnabled()) {
 						log.debug("Skipping " + field.getName() + " because its transient");
@@ -286,8 +286,9 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 				}
 			} catch (NoSuchFieldException nfe) {
 				// Ignore this exception and use the default behaviour
+				log.debug("writeObject caught NoSuchFieldException");
 			}
-			
+
 			putString(buf, keyName);
 			serializer.serialize(this, entry.getValue());
 		}
@@ -301,14 +302,14 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
     public void writeObject(Map<Object, Object> map, Serializer serializer) {
 		if (checkWriteReference(map))
 			return;
-		
+
 		storeReference(map);
 		buf.put(AMF.TYPE_OBJECT);
 		boolean isBeanMap = (map instanceof BeanMap);
 		for (Map.Entry<Object, Object> entry : map.entrySet()) {
 			if (isBeanMap && "class".equals(entry.getKey()))
 				continue;
-			
+
 			putString(entry.getKey().toString());
 			serializer.serialize(this, entry.getValue());
 		}
@@ -349,7 +350,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 				}
 				continue;
 			}
-			
+
 			Object value;
 			try {
                 // Get field value
@@ -403,12 +404,12 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		buf.putShort((short) strBuf.limit());
 		buf.put(strBuf);
 	}
-    
+
     /** {@inheritDoc} */
 	public void putString(String string) {
 		putString(buf, string);
 	}
-	
+
     /** {@inheritDoc} */
 	public void writeXML(String xml) {
 		// TODO Auto-generated method stub

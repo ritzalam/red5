@@ -2,21 +2,21 @@ package org.red5.io.amf;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
- * 
+ *
  * Copyright (c) 2006 by respective authors (see below). All rights reserved.
- * 
- * This library is free software; you can redistribute it and/or modify it under the 
- * terms of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either version 2.1 of the License, or (at your option) any later 
- * version. 
- * 
- * This library is distributed in the hope that it will be useful, but WITHOUT ANY 
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+ *
+ * This library is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free Software
+ * Foundation; either version 2.1 of the License, or (at your option) any later
+ * version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
  * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public License along 
- * with this library; if not, write to the Free Software Foundation, Inc., 
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ *
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with this library; if not, write to the Free Software Foundation, Inc.,
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 import java.io.IOException;
@@ -45,7 +45,7 @@ import org.w3c.dom.Document;
 
 /**
  * Input for red5 data types
- * 
+ *
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
@@ -59,7 +59,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 
 	/**
 	 * Creates Input object from byte buffer
-	 * 
+	 *
 	 * @param buf           Byte buffer
 	 */
 	public Input(ByteBuffer buf) {
@@ -69,7 +69,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 
 	/**
 	 * Reads the data type
-	 * 
+	 *
 	 * @return byte         Data type
 	 */
 	public byte readDataType() {
@@ -157,10 +157,10 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	}
 
 	// Basic
-    
+
     /**
 	 * Reads a null
-	 * 
+	 *
 	 * @return Object
 	 */
 	public Object readNull() {
@@ -169,7 +169,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 
 	/**
 	 * Reads a boolean
-	 * 
+	 *
 	 * @return boolean
 	 */
 	public Boolean readBoolean() {
@@ -180,7 +180,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	/**
 	 * Reads a Number. In ActionScript 1 and 2 Number type represents all numbers,
      * both floats and integers
-	 * 
+	 *
 	 * @return Number
 	 */
 	public Number readNumber() {
@@ -203,10 +203,10 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
     public String getString() {
 		return getString(buf);
 	}
-	
+
 	/**
 	 * Reads a string
-	 * 
+	 *
 	 * @return String
 	 */
 	public String readString() {
@@ -218,6 +218,10 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 			case AMF.TYPE_STRING:
 				len = buf.getShort();
 				break;
+			default:
+				if (log.isDebugEnabled()) {
+					log.debug("Unknown AMF type: "+currentDataType);
+				}
 		}
 		int limit = buf.limit();
 		final java.nio.ByteBuffer strBuf = buf.buf();
@@ -229,7 +233,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 
 	/**
 	 * Returns a string based on the buffer
-	 * 
+	 *
 	 * @param buf       Byte buffer with data
 	 * @return String   Decoded string
 	 */
@@ -249,7 +253,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 
 	/**
 	 * Returns a date
-	 * 
+	 *
 	 * @return Date      Decoded string object
 	 */
 	public Date readDate() {
@@ -274,7 +278,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	}
 
 	// Array
-	
+
 	public Object readArray(Deserializer deserializer) {
 		int count = buf.getInt();
 		List<Object> result = new ArrayList<Object>(count);
@@ -365,11 +369,11 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		skipEndObject();
 		return result;
 	}
-	
+
 	// Object
-	
+
 	/**
-	 * Creats a new instance of the className parameter and 
+	 * Creats a new instance of the className parameter and
 	 * returns as an Object
 	 * @param className        Class name as String
 	 * @return Object          New object instance (for given class)
@@ -414,14 +418,14 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 						theClass.getField(name).set(bean, property);
 					} catch (Exception ex2) {
 						BeanUtils.setProperty(bean, name, property);
-					} 
+					}
 				} else {
 					if (log.isDebugEnabled()) {
 						log.debug("Skipping null property: " + name);
 					}
 				}
 			} catch (Exception ex) {
-				log.error("Error mapping property: " + name + " (" + property + ")");
+				log.error("Error mapping property: " + name + " (" + property + ')');
 			}
 			if (hasMoreProperties()) {
 				skipPropertySeparator();
@@ -484,7 +488,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 
 	/**
 	 * Returns a boolean stating whether there are more properties
-	 * 
+	 *
 	 * @return boolean       <code>true</code> if there are more properties to read, <code>false</code> otherwise
 	 */
 	public boolean hasMoreProperties() {
@@ -503,7 +507,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 
 	/**
 	 * Reads property name
-	 * 
+	 *
 	 * @return String        Object property name
 	 */
 	public String readPropertyName() {
@@ -530,7 +534,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	// Others
 	/**
 	 * Reads xml
-	 * 
+	 *
 	 * @return String       XML as string
 	 */
 	public Document readXML() {
@@ -547,7 +551,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 
 	/**
 	 * Reads Custom
-	 * 
+	 *
 	 * @return Object       Custom type object
 	 */
 	public Object readCustom() {
@@ -557,7 +561,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 
 	/**
 	 * Reads Reference
-	 * 
+	 *
 	 * @return Object       Read reference to object
 	 */
 	public Object readReference() {

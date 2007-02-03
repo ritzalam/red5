@@ -2,21 +2,21 @@ package org.red5.io.object;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
- * 
+ *
  * Copyright (c) 2006 by respective authors (see below). All rights reserved.
- * 
- * This library is free software; you can redistribute it and/or modify it under the 
- * terms of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either version 2.1 of the License, or (at your option) any later 
- * version. 
- * 
- * This library is distributed in the hope that it will be useful, but WITHOUT ANY 
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+ *
+ * This library is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free Software
+ * Foundation; either version 2.1 of the License, or (at your option) any later
+ * version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
  * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public License along 
- * with this library; if not, write to the Free Software Foundation, Inc., 
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ *
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with this library; if not, write to the Free Software Foundation, Inc.,
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 import java.util.Collection;
@@ -36,11 +36,11 @@ import org.w3c.dom.Document;
 /**
  * The Serializer class writes data output and handles the data according to the
  * core data types
- * 
+ *
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
-public class Serializer implements SerializerOpts {
+public class Serializer {
 
     /**
      * Logger
@@ -49,7 +49,7 @@ public class Serializer implements SerializerOpts {
 
 	/**
 	 * Serializes output to a core data type object
-	 * 
+	 *
 	 * @param out          Output writer
 	 * @param any          Object to serialize
 	 */
@@ -176,6 +176,7 @@ public class Serializer implements SerializerOpts {
 	 * @return <code>true</code> if the object has been written, otherwise
 	 *         <code>false</code>
 	 */
+	@SuppressWarnings("all")
 	protected boolean writeArrayType(Output out, Object arrType) {
 		if (log.isDebugEnabled()) {
 			log.debug("writeArrayType");
@@ -253,6 +254,7 @@ public class Serializer implements SerializerOpts {
 	 * @return <code>true</code> if the object has been written, otherwise
 	 *         <code>false</code>
 	 */
+	@SuppressWarnings("all")
 	protected boolean writeObjectType(Output out, Object obj) {
 		if (obj instanceof ObjectMap || obj instanceof BeanMap) {
 			out.writeObject((Map) obj, this);
@@ -306,15 +308,11 @@ public class Serializer implements SerializerOpts {
      */
     public boolean isOptEnabled(Object obj, SerializerOption opt) {
 		if (obj != null) {
-			if (obj instanceof SerializerOpts) {
-                // Cast to SerializerOption
-                SerializerOpts opts = (SerializerOpts) obj;
-                // Get flag
-                Flag flag = opts.getSerializerOption(opt);
-                // Check against Default first
-                if (flag != Flag.Default) {
-					return (flag == Flag.Enabled);
-				}
+            // Get flag
+            Flag flag = getSerializerOption(opt);
+            // Check against Default first
+            if (flag != Flag.Default) {
+				return (flag == Flag.Enabled);
 			}
 		}
         // Check against Enabled flag
@@ -329,9 +327,8 @@ public class Serializer implements SerializerOpts {
      */
     public Flag getSerializerOption(SerializerOption opt) {
 		// We can now return defaults
-		switch (opt) {
-			case SerializeClassName:
-                return Flag.Enabled;
+		if (opt == SerializerOption.SerializeClassName) {
+			return Flag.Enabled;
 		}
         // Return disabled otherwise
         return Flag.Disabled;

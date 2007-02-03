@@ -2,21 +2,21 @@ package org.red5.io.amf3;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
- * 
+ *
  * Copyright (c) 2006 by respective authors (see below). All rights reserved.
- * 
- * This library is free software; you can redistribute it and/or modify it under the 
- * terms of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either version 2.1 of the License, or (at your option) any later 
- * version. 
- * 
- * This library is distributed in the hope that it will be useful, but WITHOUT ANY 
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+ *
+ * This library is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free Software
+ * Foundation; either version 2.1 of the License, or (at your option) any later
+ * version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
  * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public License along 
- * with this library; if not, write to the Free Software Foundation, Inc., 
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ *
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with this library; if not, write to the Free Software Foundation, Inc.,
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 import java.lang.reflect.Array;
@@ -38,7 +38,7 @@ import org.apache.mina.common.ByteBuffer;
 import org.red5.io.amf.AMF;
 import org.red5.io.object.RecordSet;
 import org.red5.io.object.Serializer;
-import org.red5.io.object.SerializerOpts.SerializerOption;
+import org.red5.io.object.SerializerOption;
 
 /**
  * AMF3 output writer
@@ -60,7 +60,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 	 * List of strings already written.
 	 * */
 	private List<String> stringReferences;
-	
+
 	/**
 	 * Constructor of AMF3 output.
 	 *
@@ -73,43 +73,43 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		amf3_mode = 0;
 		stringReferences = new LinkedList<String>();
 	}
-	
+
 	/**
 	 * Provide access to raw data.
-	 * 
+	 *
 	 * @return ByteBuffer
 	 */
 	protected ByteBuffer getBuffer() {
 		return buf;
 	}
-	
+
     /** {@inheritDoc} */
 	@Override
 	public boolean supportsDataType(byte type) {
 		return true;
 	}
-	
+
 	// Basic Data Types
-	
+
 	protected void writeAMF3() {
 		if (amf3_mode == 0)
 			buf.put(AMF.TYPE_AMF3_OBJECT);
 	}
-	
+
     /** {@inheritDoc} */
 	@Override
 	public void writeBoolean(Boolean bol) {
 		writeAMF3();
 		buf.put(bol ? AMF3.TYPE_BOOLEAN_TRUE : AMF3.TYPE_BOOLEAN_FALSE);
 	}
-	
+
     /** {@inheritDoc} */
 	@Override
 	public void writeNull() {
 		writeAMF3();
 		buf.put(AMF3.TYPE_NULL);
 	}
-	
+
     /** {@inheritDoc} */
 	protected void putInteger(long value) {
 		if (value < 0) {
@@ -133,7 +133,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 			buf.put((byte) (value & 0xff));
 		}
 	}
-	
+
 	/** {@inheritDoc} */
 	protected void putString(String str, java.nio.ByteBuffer string) {
 		final int len = string.limit();
@@ -143,11 +143,11 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 			putInteger(pos << 1);
 			return;
 		}
-		
+
 		putInteger(len << 1 | 1);
 		buf.put(string);
 	}
-	
+
     /** {@inheritDoc} */
 	@Override
 	public void putString(String string) {
@@ -156,11 +156,11 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 			putInteger(1);
 			return;
 		}
-		
+
 		final java.nio.ByteBuffer strBuf = AMF3.CHARSET.encode(string);
 		putString(string, strBuf);
 	}
-	
+
     /** {@inheritDoc} */
 	@Override
 	public void writeNumber(Number num) {
@@ -173,7 +173,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 			buf.putDouble(num.doubleValue());
 		}
 	}
-	
+
     /** {@inheritDoc} */
 	@Override
 	public void writeString(String string) {
@@ -186,7 +186,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 			putString(string, strBuf);
 		}
 	}
-	
+
     /** {@inheritDoc} */
 	@Override
 	public void writeDate(Date date) {
@@ -196,12 +196,12 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 			putInteger(getReferenceId(date) << 1);
 			return;
 		}
-		
+
 		storeReference(date);
 		putInteger(1);
 		buf.putDouble(date.getTime());
 	}
-	
+
     /** {@inheritDoc} */
     public void writeArray(Collection array, Serializer serializer) {
 		writeAMF3();
@@ -210,7 +210,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
     		putInteger(getReferenceId(array) << 1);
     		return;
     	}
-    	
+
     	storeReference(array);
 		amf3_mode += 1;
 		int count = array.size();
@@ -230,7 +230,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
     		putInteger(getReferenceId(array) << 1);
     		return;
     	}
-    	
+
     	storeReference(array);
 		amf3_mode += 1;
 		int count = array.length;
@@ -250,7 +250,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
     		putInteger(getReferenceId(array) << 1);
     		return;
     	}
-    	
+
     	storeReference(array);
 		amf3_mode += 1;
 		int count = Array.getLength(array);
@@ -270,7 +270,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
     		putInteger(getReferenceId(map) << 1);
     		return;
     	}
-    	
+
     	storeReference(map);
 		// Search number of starting integer keys
 		int count = 0;
@@ -281,7 +281,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 				break;
 			}
 		}
-		
+
 		amf3_mode += 1;
 		if (count == map.size()) {
 			// All integer keys starting from zero: serialize as regular array
@@ -293,7 +293,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 			amf3_mode -= 1;
 			return;
 		}
-		
+
 		putInteger(count << 1 | 1);
 		// Serialize key-value pairs first
 		for (Map.Entry<Object, Object> entry: map.entrySet()) {
@@ -322,7 +322,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
     		putInteger(getReferenceId(array) << 1);
     		return;
     	}
-    	
+
     	storeReference(array);
     	// TODO: we could optimize this by storing the first integer
     	//       keys after the key-value pairs
@@ -364,7 +364,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 				}
 				continue;
 			}
-			
+
 			Object value;
 			try {
                 // Get field value
@@ -411,12 +411,12 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
         	amf3_mode -= 1;
         	return;
     	}
-    	
+
     	// We have an inline class that is not a reference.
     	// We store the properties using key/value pairs
     	int type = AMF3.TYPE_OBJECT_VALUE << 2 | 1 << 1 | 1;
     	putInteger(type);
-    	
+
         // Create new map out of bean properties
         BeanMap beanMap = new BeanMap(object);
         // Set of bean attributes
@@ -435,7 +435,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		} else {
 			putString("");
 		}
-        
+
     	// Store key/value pairs
     	amf3_mode += 1;
 		Iterator it = set.iterator();
@@ -450,7 +450,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 			try {
 				Field field = objectClass.getDeclaredField(keyName);
 				int modifiers = field.getModifiers();
-				
+
 				if (Modifier.isTransient(modifiers)) {
 					if (log.isDebugEnabled()) {
 						log.debug("Skipping " + field.getName() + " because its transient");
@@ -459,13 +459,14 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 				}
 			} catch (NoSuchFieldException nfe) {
 				// Ignore this exception and use the default behaviour
+				log.debug("writeObject caught NoSuchFieldException");
 			}
-			
+
 			putString(keyName);
 			serializer.serialize(this, entry.getValue());
 		}
     	amf3_mode -= 1;
-    	
+
     	// End of object marker
     	putString("");
     }
@@ -479,16 +480,16 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
     		putInteger(getReferenceId(map) << 1);
     		return;
     	}
-    	
+
     	storeReference(map);
     	// We have an inline class that is not a reference.
     	// We store the properties using key/value pairs
     	int type = AMF3.TYPE_OBJECT_VALUE << 2 | 1 << 1 | 1;
     	putInteger(type);
-    	
+
     	// No classname
     	putString("");
-    	
+
     	// Store key/value pairs
     	amf3_mode += 1;
     	for (Map.Entry<Object, Object> entry: map.entrySet()) {
@@ -496,7 +497,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
     		serializer.serialize(this, entry.getValue());
     	}
     	amf3_mode -= 1;
-    	
+
     	// End of object marker
     	putString("");
     }

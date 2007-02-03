@@ -31,7 +31,6 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 
 import org.apache.log4j.Logger;
-import org.red5.server.adapter.IApplication;
 import org.springframework.scripting.ScriptCompilationException;
 import org.springframework.util.ClassUtils;
 

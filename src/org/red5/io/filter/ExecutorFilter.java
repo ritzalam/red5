@@ -6,16 +6,16 @@
  *  to you under the Apache License, Version 2.0 (the
  *  "License"); you may not use this file except in compliance
  *  with the License.  You may obtain a copy of the License at
- *  
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- *  
+ *
  *  Unless required by applicable law or agreed to in writing,
  *  software distributed under the License is distributed on an
  *  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  *  KIND, either express or implied.  See the License for the
  *  specific language governing permissions and limitations
- *  under the License. 
- *  
+ *  under the License.
+ *
  */
 package org.red5.io.filter;
 
@@ -30,7 +30,6 @@ import org.apache.mina.common.IdleStatus;
 import org.apache.mina.common.IoFilterAdapter;
 import org.apache.mina.common.IoFilterChain;
 import org.apache.mina.common.IoSession;
-import org.red5.io.utils.ByteBufferUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,11 +42,12 @@ import org.slf4j.LoggerFactory;
  * <p>
  * Please note that this filter doesn't manage the life cycle of the underlying
  * {@link Executor}. You have to destroy or stop it by yourself.
- * 
+ *
  * <a href="mailto:dev@directory.apache.org">Apache Directory Project</a>
- * 
+ *
  * @version $Rev: 350169 $, $Date: 2005-12-01 00:17:41 -0500 (Thu, 01 Dec 2005) $
  */
+@SuppressWarnings("unchecked")
 public class ExecutorFilter extends IoFilterAdapter {
 	private static final Logger logger = LoggerFactory
 			.getLogger(ExecutorFilter.class.getName());
@@ -327,7 +327,7 @@ public class ExecutorFilter extends IoFilterAdapter {
     @Override
 	public void messageReceived(NextFilter nextFilter, IoSession session,
 			Object message) {
-		ByteBufferUtil.acquireIfPossible(message);
+		//ByteBufferUtil.acquireIfPossible(message);
 		fireEvent(nextFilter, session, EventType.RECEIVED, message);
 	}
 
@@ -335,7 +335,7 @@ public class ExecutorFilter extends IoFilterAdapter {
     @Override
 	public void messageSent(NextFilter nextFilter, IoSession session,
 			Object message) {
-		ByteBufferUtil.acquireIfPossible(message);
+		//ByteBufferUtil.acquireIfPossible(message);
 		fireEvent(nextFilter, session, EventType.SENT, message);
 	}
 
@@ -350,10 +350,10 @@ public class ExecutorFilter extends IoFilterAdapter {
 			EventType type, Object data) {
 		if (type == EventType.RECEIVED) {
 			nextFilter.messageReceived(session, data);
-			ByteBufferUtil.releaseIfPossible(data);
+			//ByteBufferUtil.releaseIfPossible(data);
 		} else if (type == EventType.SENT) {
 			nextFilter.messageSent(session, data);
-			ByteBufferUtil.releaseIfPossible(data);
+			//ByteBufferUtil.releaseIfPossible(data);
 		} else if (type == EventType.EXCEPTION) {
 			nextFilter.exceptionCaught(session, (Throwable) data);
 		} else if (type == EventType.IDLE) {

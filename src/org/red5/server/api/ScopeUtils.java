@@ -2,21 +2,21 @@ package org.red5.server.api;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
- * 
+ *
  * Copyright (c) 2006 by respective authors (see below). All rights reserved.
- * 
- * This library is free software; you can redistribute it and/or modify it under the 
- * terms of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either version 2.1 of the License, or (at your option) any later 
- * version. 
- * 
- * This library is distributed in the hope that it will be useful, but WITHOUT ANY 
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+ *
+ * This library is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free Software
+ * Foundation; either version 2.1 of the License, or (at your option) any later
+ * version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
  * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public License along 
- * with this library; if not, write to the Free Software Foundation, Inc., 
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ *
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with this library; if not, write to the Free Software Foundation, Inc.,
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 import java.lang.reflect.Field;
@@ -31,7 +31,7 @@ import org.springframework.context.ApplicationContext;
 public class ScopeUtils {
 
 	private static final Logger log = Logger.getLogger(ScopeUtils.class);
-	
+
 	private static final int GLOBAL = 0x00;
 
 	private static final int APPLICATION = 0x01;
@@ -46,8 +46,8 @@ public class ScopeUtils {
 	private static final String SLASH = "/";
 
 	/**
-	 * Resolves scope for specified scope and path. 
-	 * 
+	 * Resolves scope for specified scope and path.
+	 *
 	 * @param from
 	 *            Scope to use as context (to start from)
 	 * @param path
@@ -86,7 +86,7 @@ public class ScopeUtils {
 	/**
 	 * Finds root scope for specified scope object. Root scope is the top level
 	 * scope among scope's parents.
-	 * 
+	 *
 	 * @param from
 	 *            Scope to find root for
 	 * @return	Root scope object
@@ -102,9 +102,9 @@ public class ScopeUtils {
 	/**
 	 * Returns the application scope for specified scope. Application scope has
 	 * depth of 1 and has no parent.
-	 * 
+	 *
 	 * See <code>isApp</code> method for details.
-	 * 
+	 *
 	 * @param from
 	 *            Scope to find application for
 	 * @return		Application scope.
@@ -119,7 +119,7 @@ public class ScopeUtils {
 
 	/**
 	 * Check whether one scope is an ancestor of another
-	 * 
+	 *
 	 * @param from
 	 *            Scope
 	 * @param ancestor
@@ -140,7 +140,7 @@ public class ScopeUtils {
 
 	/**
 	 * Checks whether scope is root or not
-	 * 
+	 *
 	 * @param scope
 	 *            Scope to check
 	 * @return <code>true</code> if scope is root scope (top level scope),
@@ -153,11 +153,11 @@ public class ScopeUtils {
 	/**
 	 * Check whether scope is the global scope (level 0 leaf in scope tree) or
 	 * not
-	 * 
+	 *
 	 * When user connects the following URL: rtmp://localhost/myapp/foo/bar then /
 	 * is the global level scope, myapp is app level, foo is room level and bar
 	 * is room level as well (but with higher depth level)
-	 * 
+	 *
 	 * @param scope
 	 *            Scope to check
 	 * @return <code>true</code> if scope is the global scope,
@@ -170,7 +170,7 @@ public class ScopeUtils {
 	/**
 	 * Check whether scope is an application scope (level 1 leaf in scope tree)
 	 * or not
-	 * 
+	 *
 	 * @param scope
 	 *            Scope to check
 	 * @return <code>true</code> if scope is an application scope,
@@ -183,7 +183,7 @@ public class ScopeUtils {
 	/**
 	 * Check whether scope is a room scope (level 2 leaf in scope tree or lower,
 	 * e.g. 3, 4, ...) or not
-	 * 
+	 *
 	 * @param scope
 	 *            Scope to check
 	 * @return <code>true</code> if scope is a room scope, <code>false</code>
@@ -195,7 +195,7 @@ public class ScopeUtils {
 
 	/**
 	 * Returns scope service by bean name. See overloaded method for details.
-	 * 
+	 *
 	 * @param scope
 	 * @param name
 	 * @return
@@ -207,7 +207,7 @@ public class ScopeUtils {
 	/**
 	 * Returns scope services (e.g. SharedObject, etc) for the scope. Method
 	 * uses either bean name passes as a string or class object.
-	 * 
+	 *
 	 * @param scope
 	 *            The scope service belongs to
 	 * @param name
@@ -245,7 +245,7 @@ public class ScopeUtils {
 
 	/**
 	 * Returns scope service that implements a given interface.
-	 * 
+	 *
 	 * @param scope
 	 *            The scope service belongs to
 	 * @param intf
@@ -255,14 +255,14 @@ public class ScopeUtils {
 	public static Object getScopeService(IScope scope, Class intf) {
 		return getScopeService(scope, intf, null);
 	}
-	
+
 	public static Object getScopeService(IScope scope, Class intf, boolean checkHandler) {
 		return getScopeService(scope, intf, null, checkHandler);
 	}
 
 	/**
 	 * Returns scope service that implements a given interface.
-	 * 
+	 *
 	 * @param scope
 	 *            The scope service belongs to
 	 * @param intf
@@ -275,7 +275,7 @@ public class ScopeUtils {
 			Class defaultClass) {
 		return getScopeService(scope, intf, defaultClass, true);
 	}
-	
+
 	public static Object getScopeService(IScope scope, Class intf,
 			Class defaultClass, boolean checkHandler) {
 		if (scope == null || intf == null) {
@@ -300,14 +300,14 @@ public class ScopeUtils {
 					handler = scopeHandler;
 					break;
 				}
-				
+
 				if (!current.hasParent())
 					break;
-				
+
 				current = current.getParent();
 			}
 		}
-		
+
 		if (handler == null && IScopeService.class.isAssignableFrom(intf)) {
 			// We got an IScopeService, try to lookup bean
 			Field key = null;
@@ -318,13 +318,13 @@ public class ScopeUtils {
 				if (!(serviceName instanceof String))
 					serviceName = null;
 			} catch (Exception e) {
-				// No string field "BEAN_NAME" in that interface
+				log.debug("No string field 'BEAN_NAME' in that interface");
 			}
-			
+
 			if (serviceName != null)
 				handler = getScopeService(scope, (String) serviceName, defaultClass);
 		}
-		
+
 		if (handler == null && defaultClass != null) {
 			try {
 				handler = defaultClass.newInstance();
@@ -332,11 +332,11 @@ public class ScopeUtils {
 				log.error(e);
 			}
 		}
-		
+
 		// Cache service
 		scope.setAttribute(IPersistable.TRANSIENT_PREFIX + SERVICE_CACHE_PREFIX
 				+ intf.getCanonicalName(), handler);
 		return handler;
 	}
-			
+
 }

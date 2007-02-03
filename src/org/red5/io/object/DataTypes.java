@@ -2,21 +2,21 @@ package org.red5.io.object;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
- * 
+ *
  * Copyright (c) 2006 by respective authors (see below). All rights reserved.
- * 
- * This library is free software; you can redistribute it and/or modify it under the 
- * terms of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either version 2.1 of the License, or (at your option) any later 
- * version. 
- * 
- * This library is distributed in the hope that it will be useful, but WITHOUT ANY 
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+ *
+ * This library is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free Software
+ * Foundation; either version 2.1 of the License, or (at your option) any later
+ * version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
  * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public License along 
- * with this library; if not, write to the Free Software Foundation, Inc., 
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ *
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with this library; if not, write to the Free Software Foundation, Inc.,
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 /**
@@ -24,7 +24,7 @@ package org.red5.io.object;
  * up for debate).
  * If a codec returns one of these datatypes its handled by the base
  * serializer.
- * 
+ *
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
@@ -109,12 +109,11 @@ public class DataTypes {
 
 	/**
 	 * Returns the string value of the data type
-	 * 
+	 *
 	 * @return String        String value of given ActionScript data type
      * @param dataType       AS data type as byte
 	 */
 	public static String toStringValue(byte dataType) {
-
 		switch (dataType) {
 			case CORE_SKIP:
 				return "skip";
@@ -138,6 +137,7 @@ public class DataTypes {
 				return "Object";
 			case OPT_REFERENCE:
 				return "Reference";
+			default:
 		}
 
 		if (dataType >= CUSTOM_MOCK_MASK && dataType < CUSTOM_AMF_MASK) {
@@ -162,7 +162,7 @@ public class DataTypes {
 
 	/**
 	 * Returns whether it is a basic data type
-	 * 
+	 *
 	 * @param type           Data type as byte
 	 * @return boolean       <code>true</code> if data type is primitive, <code>false</code> otherwise
 	 */
@@ -172,7 +172,7 @@ public class DataTypes {
 
 	/**
 	 * Returns whether it is a complex data type
-	 * 
+	 *
 	 * @param type           Data type as byte
 	 * @return boolean       <code>true</code> if data type is complex (non-primitive), <code>false</code> otherwise
 	 */
@@ -182,7 +182,7 @@ public class DataTypes {
 
 	/**
 	 * Returns whether it is a custom data type
-	 * 
+	 *
 	 * @param type           Data type as byte
 	 * @return boolean       Whether given type is of custom type
 	 */

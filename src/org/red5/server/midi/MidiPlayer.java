@@ -63,6 +63,6 @@ public class MidiPlayer {
 	/** Provides help message and exits the program */
 	private static void helpAndExit() {
 		System.out.println("Usage: java MidiPlayer midifile.mid");
-		System.exit(1);
+		//System.exit(1);
 	}
 }

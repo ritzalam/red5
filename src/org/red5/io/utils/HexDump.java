@@ -34,7 +34,7 @@ public class HexDump {
      * Logger
      */
     private static final Logger logger = Logger.getLogger(HexDump.class);
-	
+
 	/**
 	 * Method prettyPrintHex
 	 *
@@ -647,6 +647,8 @@ public class HexDump {
 						nextCharIsUpper = true;
 					}
 					break;
+
+				default: break;
 			}
 		}
 
@@ -768,6 +770,7 @@ public class HexDump {
 		try {
 			setBitDigits(bd);
 		} catch (Exception ex) {
+			logger.debug(ex);
 			//ex.printStackTrace();
 		}
 

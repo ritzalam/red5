@@ -21,9 +21,7 @@ package org.red5.server.net.rtmp;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.red5.server.api.IConnection.Encoding;
 import org.red5.server.api.stream.IClientStream;
-import org.red5.server.net.rtmp.event.FlexMessage;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.event.Invoke;
 import org.red5.server.net.rtmp.event.Notify;
