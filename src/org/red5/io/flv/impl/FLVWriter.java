@@ -81,6 +81,8 @@ public class FLVWriter implements ITagWriter {
      * Position in file
      */
     private int offset;
+    
+    private boolean appendMode = false;
 
     /**
      * Creates new FLV writer from file output stream
@@ -98,9 +100,9 @@ public class FLVWriter implements ITagWriter {
 	 */
 	public FLVWriter(FileOutputStream fos, ITag lastTag) {
 		this.fos = fos;
-		this.lastTag = lastTag;
 		if (lastTag != null) {
 			offset = lastTag.getTimestamp();
+			appendMode = true;
 		}
 		channel = this.fos.getChannel();
 		out = ByteBuffer.allocate(1024);
@@ -182,7 +184,11 @@ public class FLVWriter implements ITagWriter {
 		//out = out.reset();
 		out.clear();
 
-		out.putInt((lastTag == null) ? 0 : (lastTag.getBodySize() + 11));
+		// append mode and the first tag to write
+		// the last tag size is already at the end of file
+		if (!appendMode || lastTag != null) {
+			out.putInt((lastTag == null) ? 0 : (lastTag.getBodySize() + 11));
+		}
 
 		// Data Type
 		out.put(tag.getDataType());

@@ -103,10 +103,11 @@ public class FileConsumer implements Constants, IPushableConsumer,
 
     /**
      * Push message through pipe
+     * Synchronize this method to avoid FLV corruption from abrupt disconnection
      * @param pipe         Pipe
      * @param message      Message to push
      */
-    public void pushMessage(IPipe pipe, IMessage message) {
+    synchronized public void pushMessage(IPipe pipe, IMessage message) {
 		if (message instanceof ResetMessage) {
 			startTimestamp = -1;
 			offset += lastTimestamp;
@@ -221,7 +222,7 @@ public class FileConsumer implements Constants, IPushableConsumer,
     /**
      * Reset
      */
-    private void uninit() {
+    synchronized private void uninit() {
 		if (writer != null) {
 			writer.close();
 			writer = null;
