@@ -42,7 +42,7 @@ public class ScriptEngineTest {
 		if (null == jsEngine) {
 			try {
 				jsEngine = mgr.getEngineByName("rhino");
-				jsEngine.eval("print('Javascript - Hello, world!')");
+				jsEngine.eval("print('Javascript/Rhino - Hello, world!')");
 			} catch (Throwable ex) {
 				System.err.println("Get by name failed for: rhino");
 				////ex.printStackTrace();
