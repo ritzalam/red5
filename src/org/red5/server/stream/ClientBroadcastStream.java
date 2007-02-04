@@ -154,6 +154,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		}
 		firstPacketTime = audioTime = videoTime = dataTime = -1;
 		connMsgOut = consumerManager.getConsumerOutput(this);
+		connMsgOut.subscribe(this, null);
 		recordPipe = new InMemoryPushPushPipe();
 		Map<Object, Object> recordParamMap = new HashMap<Object, Object>();
         // Clear record flag
@@ -176,6 +177,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			sendRecordStopNotify();
 		else
 			sendPublishStopNotify();
+		connMsgOut.unsubscribe(this);
 		notifyBroadcastClose();
 	}
 
@@ -460,8 +462,8 @@ public class ClientBroadcastStream extends AbstractClientStream implements
     public void onPipeConnectionEvent(PipeConnectionEvent event) {
 		switch (event.getType()) {
 			case PipeConnectionEvent.PROVIDER_CONNECT_PUSH:
-				if (event.getProvider() == this
-						&& (event.getParamMap() == null || !event.getParamMap()
+				if (event.getProvider() == this	&& event.getSource() != connMsgOut &&
+						(event.getParamMap() == null || !event.getParamMap()
 								.containsKey("record"))) {
 					this.livePipe = (IPipe) event.getSource();
 				}
