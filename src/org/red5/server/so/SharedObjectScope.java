@@ -312,6 +312,12 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
 
 	/** {@inheritDoc} */
     @Override
+	public Map<String, Object> getAttributes() {
+		return so.getAttributes();
+	}
+
+	/** {@inheritDoc} */
+    @Override
 	public Set<String> getAttributeNames() {
 		return so.getAttributeNames();
 	}
