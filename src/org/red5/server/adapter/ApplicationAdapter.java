@@ -55,6 +55,9 @@ import org.red5.server.api.stream.IClientBroadcastStream;
 import org.red5.server.api.stream.IOnDemandStream;
 import org.red5.server.api.stream.IOnDemandStreamService;
 import org.red5.server.api.stream.IStreamAwareScopeHandler;
+import org.red5.server.api.stream.IStreamPlaybackSecurity;
+import org.red5.server.api.stream.IStreamPublishSecurity;
+import org.red5.server.api.stream.IStreamSecurityService;
 import org.red5.server.api.stream.IStreamService;
 import org.red5.server.api.stream.ISubscriberStream;
 import org.red5.server.api.stream.ISubscriberStreamService;
@@ -107,7 +110,7 @@ import org.red5.server.stream.StreamService;
  */
 public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 		ISharedObjectService, IBroadcastStreamService, IOnDemandStreamService,
-		ISubscriberStreamService, ISchedulingService {
+		ISubscriberStreamService, ISchedulingService, IStreamSecurityService {
 
 	/**
 	 * Logger object
@@ -141,6 +144,16 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
     private String ghostCleanupJobName;
 
     /**
+     * List of handlers that protect stream publishing.
+     */
+    private Set<IStreamPublishSecurity> publishSecurity = new HashSet<IStreamPublishSecurity>();
+
+    /**
+     * List of handlers that protect stream playback.
+     */
+    private Set<IStreamPlaybackSecurity> playbackSecurity = new HashSet<IStreamPlaybackSecurity>();
+
+    /**
 	 * Register listener that will get notified about application events. Please
 	 * note that return values (e.g. from {@link IApplication#appStart(IScope)})
 	 * will be ignored for listeners.
@@ -172,6 +185,36 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 		return Collections.unmodifiableSet(listeners);
 	}
 
+	/** {@inheritDoc} */
+	public void registerStreamPublishSecurity(IStreamPublishSecurity handler) {
+		publishSecurity.add(handler);
+	}
+
+	/** {@inheritDoc} */
+	public void unregisterStreamPublishSecurity(IStreamPublishSecurity handler) {
+		publishSecurity.remove(handler);
+	}
+	
+	/** {@inheritDoc} */
+	public Set<IStreamPublishSecurity> getStreamPublishSecurity() {
+		return publishSecurity;
+	}
+
+	/** {@inheritDoc} */
+	public void registerStreamPlaybackSecurity(IStreamPlaybackSecurity handler) {
+		playbackSecurity.add(handler);
+	}
+	
+	/** {@inheritDoc} */
+	public void unregisterStreamPlaybackSecurity(IStreamPlaybackSecurity handler) {
+		playbackSecurity.remove(handler);
+	}
+	
+	/** {@inheritDoc} */
+	public Set<IStreamPlaybackSecurity> getStreamPlaybackSecurity() {
+		return playbackSecurity;
+	}
+	
 	/**
 	 * Reject the currently connecting client without a special error message.
 	 * This method throws {@link ClientRejectedException} exception.

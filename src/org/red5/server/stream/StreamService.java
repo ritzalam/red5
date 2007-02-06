@@ -19,6 +19,8 @@ package org.red5.server.stream;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+import java.util.Set;
+
 import org.apache.log4j.Logger;
 import org.red5.server.BaseConnection;
 import org.red5.server.api.IBasicScope;
@@ -26,12 +28,16 @@ import org.red5.server.api.IConnection;
 import org.red5.server.api.IContext;
 import org.red5.server.api.IScope;
 import org.red5.server.api.Red5;
+import org.red5.server.api.ScopeUtils;
 import org.red5.server.api.stream.IBroadcastStream;
 import org.red5.server.api.stream.IClientBroadcastStream;
 import org.red5.server.api.stream.IClientStream;
 import org.red5.server.api.stream.IPlaylistSubscriberStream;
 import org.red5.server.api.stream.ISingleItemSubscriberStream;
 import org.red5.server.api.stream.IStreamCapableConnection;
+import org.red5.server.api.stream.IStreamPlaybackSecurity;
+import org.red5.server.api.stream.IStreamPublishSecurity;
+import org.red5.server.api.stream.IStreamSecurityService;
 import org.red5.server.api.stream.IStreamService;
 import org.red5.server.api.stream.ISubscriberStream;
 import org.red5.server.api.stream.support.SimplePlayItem;
@@ -154,8 +160,28 @@ public class StreamService implements IStreamService {
 		if (!(conn instanceof IStreamCapableConnection)) {
 			return;
 		}
+		IScope scope = conn.getScope();
 		IStreamCapableConnection streamConn = (IStreamCapableConnection) conn;
 		int streamId = getCurrentStreamId();
+		IStreamSecurityService security = (IStreamSecurityService) ScopeUtils.getScopeService(scope, IStreamSecurityService.class);
+		if (security != null) {
+			Set<IStreamPlaybackSecurity> handlers = security.getStreamPlaybackSecurity();
+			for (IStreamPlaybackSecurity handler: handlers) {
+				if (!handler.isPlaybackAllowed(scope, name, start, length, flushPlaylist)) {
+					Status accessDenied = new Status(StatusCodes.NS_FAILED);
+					accessDenied.setClientid(streamId);
+					accessDenied.setDesciption("You are not allowed to play the stream.");
+					accessDenied.setDetails(name);
+					accessDenied.setLevel("error");
+
+					// FIXME: there should be a direct way to send the status
+					Channel channel = ((RTMPConnection) streamConn).getChannel((byte) (4 + ((streamId-1) * 5)));
+					channel.sendStatus(accessDenied);
+					return;
+				}
+			}
+		}
+		
 		IClientStream stream = streamConn.getStreamById(streamId);
 		if (stream == null) {
 			stream = streamConn.newPlaylistSubscriberStream(streamId);
@@ -253,10 +279,31 @@ public class StreamService implements IStreamService {
 		if (!(conn instanceof IStreamCapableConnection)) {
 			return;
 		}
+		
+		IScope scope = conn.getScope();
 		IStreamCapableConnection streamConn = (IStreamCapableConnection) conn;
 		int streamId = getCurrentStreamId();
 
-		IBroadcastScope bsScope = getBroadcastScope(conn.getScope(), name);
+		IStreamSecurityService security = (IStreamSecurityService) ScopeUtils.getScopeService(scope, IStreamSecurityService.class);
+		if (security != null) {
+			Set<IStreamPublishSecurity> handlers = security.getStreamPublishSecurity();
+			for (IStreamPublishSecurity handler: handlers) {
+				if (!handler.isPublishAllowed(scope, name, mode)) {
+					Status accessDenied = new Status(StatusCodes.NS_FAILED);
+					accessDenied.setClientid(streamId);
+					accessDenied.setDesciption("You are not allowed to publish the stream.");
+					accessDenied.setDetails(name);
+					accessDenied.setLevel("error");
+
+					// FIXME: there should be a direct way to send the status
+					Channel channel = ((RTMPConnection) streamConn).getChannel((byte) (4 + ((streamId-1) * 5)));
+					channel.sendStatus(accessDenied);
+					return;
+				}
+			}
+		}
+		
+		IBroadcastScope bsScope = getBroadcastScope(scope, name);
 		if (bsScope != null && !bsScope.getProviders().isEmpty()) {
 			// Another stream with that name is already published.
 			Status badName = new Status(StatusCodes.NS_PUBLISH_BADNAME);
