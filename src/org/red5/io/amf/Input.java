@@ -216,7 +216,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 				len = buf.getInt();
 				break;
 			case AMF.TYPE_STRING:
-				len = buf.getShort();
+				len = buf.getUnsignedShort();
 				break;
 			default:
 				if (log.isDebugEnabled()) {
@@ -238,7 +238,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	 * @return String   Decoded string
 	 */
 	public static String getString(ByteBuffer buf) {
-		short len = buf.getShort();
+		int len = buf.getUnsignedShort();
 		int limit = buf.limit();
 		final java.nio.ByteBuffer strBuf = buf.buf();
 		// if(log.isDebugEnabled()) {
@@ -565,7 +565,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	 * @return Object       Read reference to object
 	 */
 	public Object readReference() {
-		return getReference(buf.getShort() - 1);
+		return getReference(buf.getUnsignedShort() - 1);
 	}
 
 	/**

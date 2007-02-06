@@ -38,6 +38,19 @@
 			testParams.push(false);
 			testParams.push("");
 			testParams.push("Hello world!");
+			var i: Number;
+			var longString: String = "";
+			for (i=0; i<4000; i++)
+				longString = longString + "0123456789";
+			testParams.push(longString);
+			var reallyLongString: String = "";
+			for (i=0; i<7000; i++)
+				reallyLongString = reallyLongString + "0123456789";
+			testParams.push(reallyLongString);
+			var evenLongerString: String = "";
+			for (i=0; i<100000; i++)
+				evenLongerString = evenLongerString + "0123456789";
+			testParams.push(evenLongerString);
 			testParams.push(0);
 			testParams.push(1);
 			testParams.push(-1);
@@ -137,7 +150,10 @@
 		}
 		
 		private function doTest(): void {
-			textArea.text += "Testing " + testParams[testIndex] + ": ";
+			if (testParams[testIndex] is String && (testParams[testIndex] as String).length >= 100)
+				textArea.text += "Testing String with " + testParams[testIndex].length + " chars: ";
+			else
+				textArea.text += "Testing " + testParams[testIndex] + ": ";
 			nc.call("echo", new Responder(this.onResult), testParams[testIndex]);
 		}
 		
@@ -204,11 +220,15 @@
 		    if (extendedEqual(testParams[testIndex], result)) {
 				if (result == null)
 					textArea.text += "OK (null)\n";
+				else if (result is String && (result as String).length >= 1000)
+					textArea.text += "OK (String with " + result.length + " chars)\n";
 				else
 					textArea.text += "OK (" + result.toString() + ")\n";
 			} else {
 				if (result == null)
 					textArea.text += "FAILED (null)\n";
+				else if (result is String && (result as String).length >= 1000)
+					textArea.text += "FAILED (String with " + result.length + " chars)\n";
 				else
 					textArea.text += "FAILED (" + result.toString() + ")\n";
 				testsFailed++;
