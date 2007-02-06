@@ -123,6 +123,10 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
         // Analyze keyframes data
         analyzeKeyFrames();
 		firstFrame = true;
+		
+        // Process ID3v2 header if present
+		processID3v2Header();
+		
         // Create file metadata object
         fileMeta = createFileMeta();
 
@@ -381,6 +385,7 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 		int origPos = in.position();
 		double time = 0;
 		in.position(0);
+		processID3v2Header();
 		searchNextFrame();
 		while (this.hasMoreTags()) {
 			MP3Header header = readHeader();
@@ -419,4 +424,27 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 		return frameMeta;
 	}
 
+    private void processID3v2Header() {
+    	if (in.remaining() <= 10)
+    		// We need at least 10 bytes ID3v2 header + data
+    		return;
+    	
+    	int start = in.position();
+    	byte a, b, c;
+    	a = in.get();
+    	b = in.get();
+    	c = in.get();
+    	if (a != 'I' || b != 'D' || c != '3') {
+    		// No ID3v2 header
+    		in.position(start);
+    		return;
+    	}
+    	
+    	// Skip version and flags
+    	in.skip(3);
+    	int size = in.get() << 21 | in.get() << 14 | in.get() << 7 | in.get();
+    	// Skip ID3v2 header for now
+    	in.skip(size);
+    }
+    
 }
