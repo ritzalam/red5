@@ -563,10 +563,12 @@ public class FLVReader implements IoConstants, ITagReader,
 			return keyframeMeta;
 		}
 
-        // List of positions
+        // Lists of video positions and timestamps
         List<Long> positionList = new ArrayList<Long>();
-        // ... and timestamps
         List<Integer> timestampList = new ArrayList<Integer>();
+        // Lists of audio positions and timestamps
+        List<Long> audioPositionList = new ArrayList<Long>();
+        List<Integer> audioTimestampList = new ArrayList<Integer>();
 		long origPos = getCurrentPosition();
 		// point to the first tag
 		setCurrentPosition(9);
@@ -574,6 +576,7 @@ public class FLVReader implements IoConstants, ITagReader,
         // Maps positions to tags
         posTagMap = new HashMap<Long, Integer>();
 		int idx = 0;
+		boolean audioOnly = true;
 		while (this.hasMoreTags()) {
 			long pos = getCurrentPosition();
 			posTagMap.put(pos, idx++);
@@ -581,6 +584,11 @@ public class FLVReader implements IoConstants, ITagReader,
             ITag tmpTag = this.readTagHeader();
 			duration = tmpTag.getTimestamp();
 			if (tmpTag.getDataType() == IoConstants.TYPE_VIDEO) {
+				if (audioOnly) {
+					audioOnly = false;
+					audioPositionList.clear();
+					audioTimestampList.clear();
+				}
 				if (firstVideoTag == -1) {
 					firstVideoTag = pos;
 				}
@@ -596,6 +604,10 @@ public class FLVReader implements IoConstants, ITagReader,
 			} else if (tmpTag.getDataType() == IoConstants.TYPE_AUDIO) {
 				if (firstAudioTag == -1) {
 					firstAudioTag = pos;
+				}
+				if (audioOnly) {
+					audioPositionList.add(pos);
+					audioTimestampList.add(tmpTag.getTimestamp());
 				}
 			}
 			// XXX Paul: this 'properly' handles damaged FLV files - as far as
@@ -625,6 +637,12 @@ public class FLVReader implements IoConstants, ITagReader,
 
 		keyframeMeta = new KeyFrameMeta();
 		posTimeMap = new HashMap<Long, Long>();
+		if (audioOnly) {
+			// The flv only contains audio tags, use their lists
+			// to support pause and seeking
+			positionList = audioPositionList;
+			timestampList = audioTimestampList;
+		}
 		keyframeMeta.positions = new long[positionList.size()];
 		keyframeMeta.timestamps = new int[timestampList.size()];
 		for (int i = 0; i < keyframeMeta.positions.length; i++) {
