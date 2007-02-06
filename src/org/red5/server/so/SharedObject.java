@@ -144,6 +144,11 @@ public class SharedObject implements IPersistable, Constants {
      * Event listener, actually RTMP connection
      */
     protected IEventListener source;
+    
+    /**
+     * Number of times the SO has been acquired
+     */
+    protected int acquireCount;
 
 	/** Constructs a new SharedObject. */
     public SharedObject() {
@@ -548,21 +553,28 @@ public class SharedObject implements IPersistable, Constants {
 	}
 
     /**
-     * Unregister event listener
-     * @param listener        Event listener
+     * Check if shared object must be released.
      */
-    public synchronized void unregister(IEventListener listener) {
-		listeners.remove(listener);
-		if (!isPersistentObject() && listeners.isEmpty()) {
+    protected void checkRelease() {
+		if (!isPersistentObject() && listeners.isEmpty() && !isAcquired()) {
 			log.info("Deleting shared object " + name
-					+ " because all clients disconnected.");
-			data.clear();
+					+ " because all clients disconnected and it is no longer acquired.");
 			if (storage != null) {
 				if (!storage.remove(this)) {
 					log.error("Could not remove shared object.");
 				}
 			}
+			close();
 		}
+    }
+    
+    /**
+     * Unregister event listener
+     * @param listener        Event listener
+     */
+    public synchronized void unregister(IEventListener listener) {
+		listeners.remove(listener);
+		checkRelease();
 	}
 
 	/**
@@ -669,6 +681,38 @@ public class SharedObject implements IPersistable, Constants {
 		source = null;
 		syncEvents = null;
 		storage = null;
+		acquireCount = 0;
 	}
 
+	/**
+	 * Prevent shared object from being released. Each call to <code>acquire</code>
+	 * must be paired with a call to <code>release</code> so the SO isn't held
+	 * forever. This is only valid for non-persistent SOs.
+	 */
+	public synchronized void acquire() {
+		acquireCount++;
+	}
+	
+	/**
+	 * Check if shared object currently is acquired.
+	 * 
+	 * @return <code>true</code> if the SO is acquired, otherwise <code>false</code>
+	 */
+	public synchronized boolean isAcquired() {
+		return acquireCount > 0;
+	}
+	
+	/**
+	 * Release previously acquired shared object. If the SO is non-persistent,
+	 * no more clients are connected the SO isn't acquired any more, the data
+	 * is released. 
+	 */
+	public synchronized void release() {
+		if (acquireCount == 0)
+			throw new RuntimeException("The shared object was not acquired before.");
+		
+		acquireCount--;
+		if (acquireCount == 0)
+			checkRelease();
+	}
 }

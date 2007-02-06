@@ -512,5 +512,20 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
 		so.close();
 		so = null;
 	}
+    
+	/** {@inheritDoc} */
+    public void acquire() {
+		so.acquire();
+	}
+
+	/** {@inheritDoc} */
+    public boolean isAcquired() {
+		return so.isAcquired();
+	}
+
+	/** {@inheritDoc} */
+    public void release() {
+		so.release();
+	}
 
 }
