@@ -36,7 +36,10 @@ public interface ISharedObject extends IBasicScope,
 	/**
 	 * Prevent shared object from being released. Each call to <code>acquire</code>
 	 * must be paired with a call to <code>release</code> so the SO isn't held
-	 * forever. This is only valid for non-persistent SOs.
+	 * forever.
+	 * 
+	 * This method basically is a noop for persistent SOs as their data is stored
+	 * and they can be released without losing their contents.
 	 */
 	public void acquire();
 	
