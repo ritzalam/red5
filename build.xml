@@ -27,6 +27,7 @@
 
 	<path id="project.classpath">
         <fileset dir="${lib.dir}" includesfile="${lib.dir}/library.properties" />
+        <fileset dir="${lib.dir}" includesfile="${lib.dir}/java6.properties" />
 	</path>
 
     <path id="script.classpath">
@@ -36,7 +37,7 @@
     
     <!-- For use with pre-java6 environment -->
 	<path id="project_compatibility.classpath">
-        <fileset dir="${lib.dir}" includesfile="${lib.dir}/library.properties" excludesfile="${lib.dir}/java6.properties" />
+        <fileset dir="${lib.dir}" includesfile="${lib.dir}/library.properties" />
         <fileset dir="${lib.dir}/java5" includesfile="${lib.dir}/java5/java5.properties" />
 	</path>
 
@@ -56,6 +57,7 @@
 
 	<path id="full.classpath">
         <fileset dir="${lib.dir}" includesfile="${lib.dir}/library.properties" />
+        <fileset dir="${lib.dir}" includesfile="${lib.dir}/java6.properties" />
         <fileset dir="${lib.dir}" includesfile="${lib.dir}/script.properties" />
 		<fileset dir="./">
 			<filename name="red5.jar"/>
@@ -63,7 +65,7 @@
 	</path>
 
 	<path id="full_compatibility.classpath">
-		<fileset dir="${lib.dir}" includesfile="${lib.dir}/library.properties" excludesfile="${lib.dir}/java6.properties" />
+		<fileset dir="${lib.dir}" includesfile="${lib.dir}/library.properties" />
 		<fileset dir="${lib.dir}/java5" includesfile="${lib.dir}/java5/java5.properties" />
 		<fileset dir="${lib.dir}" includesfile="${lib.dir}/script.properties" />
 		<fileset dir="./">
@@ -512,6 +514,74 @@
 		</javadoc>
     </target>
 
+	<target name="jar_java5" unless="java6.installed">
+        <loadfile
+          property="library.java5.jars"
+          srcFile="${lib.dir}/java5/java5.properties">
+            <filterchain>
+                <tokenfilter>
+                    <trim/>
+                    <ignoreblank/>
+                </tokenfilter>
+                <striplinecomments>
+                    <comment value="#"/>
+                </striplinecomments>
+                <prefixlines prefix=" lib/java5/"/>
+                <striplinebreaks/>
+            </filterchain>
+        </loadfile>
+        <echo message="Jar launch classpath: conf/${library.jars} ${library.java5.jars} ${script.jars}" />   
+        <jar destfile="red5.jar">
+			<fileset dir="${classes.dir}">
+				<include name="**"/>
+				<exclude name="testcases/**"/>
+			</fileset>
+			<manifest>
+				<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>
+                <attribute name="Built-On" value="${build.TODAY}" />
+                <attribute name="Main-Class" value="org.red5.server.Standalone"/>
+				<attribute name="Class-Path" value="conf/ ${library.jars} ${library.java5.jars} ${script.jars}"/>
+			</manifest>
+            <metainf dir="${src.dir}/META-INF">
+                <include name="**"/>
+            </metainf>
+		</jar>
+    </target>
+
+	<target name="jar_java6" if="java6.installed">
+        <loadfile
+          property="library.java6.jars"
+          srcFile="${lib.dir}/java6.properties">
+            <filterchain>
+                <tokenfilter>
+                    <trim/>
+                    <ignoreblank/>
+                </tokenfilter>
+                <striplinecomments>
+                    <comment value="#"/>
+                </striplinecomments>
+                <prefixlines prefix=" lib"/>
+                <striplinebreaks/>
+            </filterchain>
+        </loadfile>
+        <echo message="Jar launch classpath: conf/${library.jars} ${library.java6.jars} ${script.jars}" />   
+        <jar destfile="red5.jar">
+			<fileset dir="${classes.dir}">
+				<include name="**"/>
+				<exclude name="testcases/**"/>
+			</fileset>
+			<manifest>
+				<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>
+                <attribute name="Built-On" value="${build.TODAY}" />
+                <attribute name="Main-Class" value="org.red5.server.Standalone"/>
+				<attribute name="Class-Path" value="conf/ ${library.jars} ${library.java6.jars} ${script.jars}"/>
+			</manifest>
+            <metainf dir="${src.dir}/META-INF">
+                <include name="**"/>
+            </metainf>
+		</jar>
+    </target>
+    
 	<target name="jar" description="Make Archive" depends="compile">
         <tstamp prefix="build">
             <format property="TODAY" pattern="d-MMMM-yyyy" locale="en" />
@@ -548,29 +618,15 @@
                 <striplinebreaks/>
             </filterchain>
         </loadfile>
-        <echo message="Jar launch classpath: conf/${library.jars} ${script.jars}" />   
      
         <mkdir dir="${classes.dir}/conf"/>   
         <copy todir="${classes.dir}/conf">
           <fileset dir="${config.dir}"/>
         </copy>
         
-        <jar destfile="red5.jar">
-			<fileset dir="${classes.dir}">
-				<include name="**"/>
-				<exclude name="testcases/**"/>
-			</fileset>
-			<manifest>
-				<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>
-                <attribute name="Built-On" value="${build.TODAY}" />
-                <attribute name="Main-Class" value="org.red5.server.Standalone"/>
-				<attribute name="Class-Path" value="conf/ ${library.jars} ${script.jars}"/>
-			</manifest>
-            <metainf dir="${src.dir}/META-INF">
-                <include name="**"/>
-            </metainf>
-		</jar>
-		
+        <antcall target="jar_java5" inheritAll="true" inheritRefs="true" />
+        <antcall target="jar_java6" inheritAll="true" inheritRefs="true" />
+        
 		<jar destfile="${src.dir}/../webapps/echo/WEB-INF/lib/echo.jar">
 			<fileset dir="${src.dir}/../webapps/echo/WEB-INF/classes">
 				<include name="**"/>
@@ -664,7 +720,19 @@
 		</copy>
 	</target>
 
-	<target name="server" depends="compile">
+	<target name="server_java5" depends="compile" unless="java6.installed">
+		<java classname="org.red5.server.Standalone" fork="true">
+			<classpath>
+				<pathelement location="${config.dir}"/>
+				<pathelement location="${classes.dir}"/>
+				<path refid="full_compatibility.classpath"/>
+			</classpath>
+			<jvmarg value="-Djava.security.manager"/>
+			<jvmarg value="-Djava.security.policy=${config.dir}/red5.policy"/>
+		</java>
+	</target>
+	
+	<target name="server_java6" depends="compile" if="java6.installed">
 		<java classname="org.red5.server.Standalone" fork="true">
 			<classpath>
 				<pathelement location="${config.dir}"/>
@@ -676,6 +744,11 @@
 		</java>
 	</target>
 	
+    <target name="server">
+        <antcall target="server_java5" inheritAll="true" inheritRefs="true" />
+        <antcall target="server_java6" inheritAll="true" inheritRefs="true" />
+    </target>
+    
 	<!-- I have disabled this until we know its has been tested - Luke
 	<target name="webwar" depends="compile">
 		<delete dir="webdir"/>
