@@ -648,6 +648,7 @@
 				<include name=".project"/>
 				<include name=".springBeans"/>
 				<include name="build.xml"/>
+                <include name="build.properties"/>
 			</fileset>
 		</copy>
 		<copy todir="${dist.dir}/src">
