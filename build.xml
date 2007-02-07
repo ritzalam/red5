@@ -369,7 +369,7 @@
 			</fileset>
 
 			<doctitle><![CDATA[<h1>Red5 Server Documentation</h1>]]></doctitle>
-			<bottom><![CDATA[<i>Copyright &#169; 2006 <a href="http://osflash.org/red5" target="_blank">the Red5 project</a>.</i>]]></bottom>
+			<bottom><![CDATA[<i>Copyright &#169; 2006-2007 <a href="http://osflash.org/red5" target="_blank">the Red5 project</a>.</i>]]></bottom>
 			<tag name="todo" scope="all" description="To do:"/>
 			<group title="Public API" packages="org.red5.server.api:org.red5.server.api.*"/>
 			<group title="Network Protocols" packages="org.red5.server.net:org.red5.server.net.*"/>
@@ -441,7 +441,7 @@
             </doclet>
             
 			<doctitle><![CDATA[<h1>Red5 Server Documentation</h1>]]></doctitle>
-			<bottom><![CDATA[<i>Copyright &#169; 2006 <a href="http://osflash.org/red5" target="_blank">the Red5 project</a>.</i>]]></bottom>
+			<bottom><![CDATA[<i>Copyright &#169; 2006-2007 <a href="http://osflash.org/red5" target="_blank">the Red5 project</a>.</i>]]></bottom>
 			<tag name="todo" scope="all" description="To do:"/>
 			<group title="Public API" packages="org.red5.server.api:org.red5.server.api.*"/>
 			<group title="Network Protocols" packages="org.red5.server.net:org.red5.server.net.*"/>
