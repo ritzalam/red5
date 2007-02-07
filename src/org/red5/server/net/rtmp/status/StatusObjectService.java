@@ -117,8 +117,8 @@ public class StatusObjectService implements StatusCodes {
 
 		statusObjects.put(NS_RECORD_START, new StatusObject(NS_RECORD_START,
 				StatusObject.STATUS, ""));
-		statusObjects.put(NS_RECOED_NOACCESS, new StatusObject(
-				NS_RECOED_NOACCESS, StatusObject.ERROR, ""));
+		statusObjects.put(NS_RECORD_NOACCESS, new StatusObject(
+				NS_RECORD_NOACCESS, StatusObject.ERROR, ""));
 		statusObjects.put(NS_RECORD_STOP, new StatusObject(NS_RECORD_STOP,
 				StatusObject.STATUS, ""));
 		statusObjects.put(NS_RECORD_FAILED, new StatusObject(NS_RECORD_FAILED,

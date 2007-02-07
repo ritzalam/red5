@@ -90,7 +90,7 @@ public interface StatusCodes {
     /**
      * An attempt was made to record a read-only stream
      */
-	public static final String NS_RECOED_NOACCESS = "NetStream.Record.NoAccess";
+	public static final String NS_RECORD_NOACCESS = "NetStream.Record.NoAccess";
     /**
      * Recording was stopped
      */
