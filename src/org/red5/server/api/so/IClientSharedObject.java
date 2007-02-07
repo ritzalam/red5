@@ -44,4 +44,9 @@ public interface IClientSharedObject extends ISharedObjectBase {
 	 */
 	public boolean isConnected();
 	
+	/**
+	 * Disconnect the shared object.
+	 */
+	public void disconnect();
+	
 }

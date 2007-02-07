@@ -96,9 +96,7 @@ public class ClientSharedObject extends SharedObject implements
 		c.write(msg);
 	}
 	
-	/**
-	 * Disconnect shared object.
-	 */
+	/** {@inheritDoc} */
 	public void disconnect() {
 		SharedObjectMessage msg = new SharedObjectMessage(name, 0, isPersistentObject());
 		msg.addEvent(new SharedObjectEvent(Type.SERVER_DISCONNECT, null, null));
