@@ -231,8 +231,12 @@ implements ApplicationContextAware {
 		if (log.isDebugEnabled()) {
 			session.getFilterChain().addLast("logger", new LoggingFilter());
 		}
-		RTMPMinaConnection conn =
-			(RTMPMinaConnection) appCtx.getBean("rtmpMinaConnection");
+		RTMPMinaConnection conn;
+		if (appCtx != null) {
+			conn = (RTMPMinaConnection) appCtx.getBean("rtmpMinaConnection");
+		} else {
+			conn = new RTMPMinaConnection();
+		}
 		conn.setIoSession(session);
 		session.setAttachment(conn);
 	}
