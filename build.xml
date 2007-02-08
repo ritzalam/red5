@@ -33,8 +33,8 @@
     <path id="script.classpath">
         <fileset dir="${lib.dir}" includesfile="${lib.dir}/script.properties" />
         <pathelement location="${bin.dir}"/>
-    </path>    
-    
+    </path>
+
     <!-- For use with pre-java6 environment -->
 	<path id="project_compatibility.classpath">
         <fileset dir="${lib.dir}" includesfile="${lib.dir}/library.properties" />
@@ -46,8 +46,8 @@
         <fileset dir="${lib.dir}" includesfile="${lib.dir}/script.properties" />
         <fileset dir="${lib.dir}/java5" includesfile="${lib.dir}/java5/java5.properties" />
         <pathelement location="${bin.dir}"/>
-    </path>       
-    
+    </path>
+
 	<path id="webapps.classpath">
 		<fileset dir="${lib.dir}">
 			<filename name="*.jar"/>
@@ -85,7 +85,7 @@
         		<available property="java6.installed" classname="javax.script.Bindings" />
         		<equals arg1="${java.target_version}" arg2="1.6" />
             </and>
-        </condition>	
+        </condition>
 	</target>
 
 	<!-- setup the directories for building -->
@@ -138,14 +138,14 @@
                 <isset property="java.target_version" />
             </not>
         </condition>
-        <echo message="Javac version: ${java.target_version}" />     
+        <echo message="Javac version: ${java.target_version}" />
 
         <condition property="compiler" value="${build.compiler}${java.target_version}">
             <equals arg1="${build.compiler}" arg2="javac" />
-        </condition>        
+        </condition>
         <property name="compiler" value="${build.compiler}" />
         <echo message="Compiler adapter name: ${compiler}" />
-       
+
         <antcall target="compile_core" inheritAll="true" inheritRefs="true" />
         <antcall target="compile_core_compatibility" inheritAll="true" inheritRefs="true" />
 
@@ -154,15 +154,15 @@
 			srcdir="${src.dir}/../webapps/echo/WEB-INF/src"
 			destdir="${src.dir}/../webapps/echo/WEB-INF/classes"
 			classpathref="webapps.classpath"
-            optimize="${build.optimize}" 
-            verbose="${build.verbose}" 
-            fork="${build.fork}" 
+            optimize="${build.optimize}"
+            verbose="${build.verbose}"
+            fork="${build.fork}"
             nowarn="${build.nowarn}"
             deprecation="${build.deprecation}"
             debug="${debug.state}"
             compiler="${compiler}"
             source="${java.target_version}"
-            target="${java.target_version}" 
+            target="${java.target_version}"
 		/>
 
 		<javac
@@ -170,15 +170,15 @@
 			srcdir="${src.dir}/../webapps/fitcDemo/WEB-INF/src"
 			destdir="${src.dir}/../webapps/fitcDemo/WEB-INF/classes"
 			classpathref="webapps.classpath"
-            optimize="${build.optimize}" 
-            verbose="${build.verbose}" 
-            fork="${build.fork}" 
+            optimize="${build.optimize}"
+            verbose="${build.verbose}"
+            fork="${build.fork}"
             nowarn="${build.nowarn}"
             deprecation="${build.deprecation}"
             debug="${debug.state}"
             compiler="${compiler}"
             source="${java.target_version}"
-            target="${java.target_version}" 
+            target="${java.target_version}"
 		/>
 
 		<javac
@@ -186,53 +186,53 @@
 			srcdir="${src.dir}/../webapps/midiDemo/WEB-INF/src"
 			destdir="${src.dir}/../webapps/midiDemo/WEB-INF/classes"
 			classpathref="webapps.classpath"
-            optimize="${build.optimize}" 
-            verbose="${build.verbose}" 
-            fork="${build.fork}" 
+            optimize="${build.optimize}"
+            verbose="${build.verbose}"
+            fork="${build.fork}"
             nowarn="${build.nowarn}"
             deprecation="${build.deprecation}"
             debug="${debug.state}"
             compiler="${compiler}"
             source="${java.target_version}"
-            target="${java.target_version}" 
+            target="${java.target_version}"
         />
-		
+
 		<javac
 			sourcepath=""
 			srcdir="${src.dir}/../webapps/oflaDemo/WEB-INF/src"
 			destdir="${src.dir}/../webapps/oflaDemo/WEB-INF/classes"
 			classpathref="webapps.classpath"
-            optimize="${build.optimize}" 
-            verbose="${build.verbose}" 
-            fork="${build.fork}" 
+            optimize="${build.optimize}"
+            verbose="${build.verbose}"
+            fork="${build.fork}"
             nowarn="${build.nowarn}"
             deprecation="${build.deprecation}"
             debug="${debug.state}"
             compiler="${compiler}"
             source="${java.target_version}"
-            target="${java.target_version}" 
+            target="${java.target_version}"
 		/>
-        
+
         <mkdir dir="webapps/oflaDemo/WEB-INF/classes/applications"/>
-        
+
         <copy todir="webapps/oflaDemo/WEB-INF/classes/applications">
             <fileset dir="webapps/oflaDemo/WEB-INF/src/applications"/>
         </copy>
-        
+
 		<javac
 			sourcepath=""
 			srcdir="${src.dir}/../webapps/test/WEB-INF/src"
 			destdir="${src.dir}/../webapps/test/WEB-INF/classes"
             classpathref="webapps.classpath"
-            optimize="${build.optimize}" 
-            verbose="${build.verbose}" 
-            fork="${build.fork}" 
+            optimize="${build.optimize}"
+            verbose="${build.verbose}"
+            fork="${build.fork}"
             nowarn="${build.nowarn}"
             deprecation="${build.deprecation}"
             debug="${debug.state}"
             compiler="${compiler}"
             source="${java.target_version}"
-            target="${java.target_version}" 
+            target="${java.target_version}"
         />
 
 		<javac
@@ -240,20 +240,20 @@
 			srcdir="${src.dir}/../webapps/tutorial/WEB-INF/src"
 			destdir="${src.dir}/../webapps/tutorial/WEB-INF/classes"
             classpathref="webapps.classpath"
-            optimize="${build.optimize}" 
-            verbose="${build.verbose}" 
-            fork="${build.fork}" 
+            optimize="${build.optimize}"
+            verbose="${build.verbose}"
+            fork="${build.fork}"
             nowarn="${build.nowarn}"
             deprecation="${build.deprecation}"
             debug="${debug.state}"
             compiler="${compiler}"
             source="${java.target_version}"
-            target="${java.target_version}" 
+            target="${java.target_version}"
         />
-        
+
         <antcall target="compile_script" inheritAll="true" inheritRefs="true" />
-        <antcall target="compile_script_compatibility" inheritAll="true" inheritRefs="true" />        
-        
+        <antcall target="compile_script_compatibility" inheritAll="true" inheritRefs="true" />
+
 	</target>
 
     <!-- Core -->
@@ -261,45 +261,45 @@
 		<javac
 			sourcepath=""
 			srcdir="${src.dir}"
-			destdir="${classes.dir}"     
+			destdir="${classes.dir}"
             classpathref="project.classpath"
-    
-            optimize="${build.optimize}" 
-            verbose="${build.verbose}" 
-            fork="${build.fork}" 
+
+            optimize="${build.optimize}"
+            verbose="${build.verbose}"
+            fork="${build.fork}"
             nowarn="${build.nowarn}"
             deprecation="${build.deprecation}"
-  
+
             debug="${debug.state}"
             compiler="${compiler}"
             source="${java.target_version}"
-            target="${java.target_version}" 
-            memoryMaximumSize="1024m" 
-            excludes="**/*.jsp,com/sun/**,org/red5/server/script/**" 
-            listfiles="false"      
-            />           
+            target="${java.target_version}"
+            memoryMaximumSize="1024m"
+            excludes="**/*.jsp,com/sun/**,org/red5/server/script/**"
+            listfiles="false"
+            />
     </target>
 
     <target name="compile_core_compatibility" unless="java6.installed">
 		<javac
 			sourcepath=""
 			srcdir="${src.dir}"
-			destdir="${classes.dir}"     
+			destdir="${classes.dir}"
             classpathref="project_compatibility.classpath"
-    
-            optimize="${build.optimize}" 
-            verbose="${build.verbose}" 
-            fork="${build.fork}" 
+
+            optimize="${build.optimize}"
+            verbose="${build.verbose}"
+            fork="${build.fork}"
             nowarn="${build.nowarn}"
             deprecation="${build.deprecation}"
-  
+
             debug="${debug.state}"
             compiler="${compiler}"
             source="${java.target_version}"
-            target="${java.target_version}" 
-            memoryMaximumSize="1024m" 
-            excludes="**/*.jsp,com/sun/**,org/red5/server/script/**" 
-            listfiles="false"      
+            target="${java.target_version}"
+            memoryMaximumSize="1024m"
+            excludes="**/*.jsp,com/sun/**,org/red5/server/script/**"
+            listfiles="false"
             />
     </target>
 
@@ -308,44 +308,44 @@
         <javac
             sourcepath=""
             srcdir="${src.dir}"
-            destdir="${classes.dir}"     
+            destdir="${classes.dir}"
             classpathref="script.classpath"
-    
-            optimize="${build.optimize}" 
-            verbose="${build.verbose}" 
-            fork="${build.fork}" 
+
+            optimize="${build.optimize}"
+            verbose="${build.verbose}"
+            fork="${build.fork}"
             nowarn="${build.nowarn}"
             deprecation="${build.deprecation}"
-  
+
             debug="${debug.state}"
             compiler="${compiler}"
             source="${java.target_version}"
-            target="${java.target_version}" 
-            memoryMaximumSize="1024m" 
-            listfiles="false"      
-            />   
+            target="${java.target_version}"
+            memoryMaximumSize="1024m"
+            listfiles="false"
+            />
     </target>
 
     <target name="compile_script_compatibility" unless="java6.installed">
         <javac
             sourcepath=""
             srcdir="${src.dir}"
-            destdir="${classes.dir}"     
+            destdir="${classes.dir}"
             classpathref="script_compatibility.classpath"
-    
-            optimize="${build.optimize}" 
-            verbose="${build.verbose}" 
-            fork="${build.fork}" 
+
+            optimize="${build.optimize}"
+            verbose="${build.verbose}"
+            fork="${build.fork}"
             nowarn="${build.nowarn}"
             deprecation="${build.deprecation}"
-  
+
             debug="${debug.state}"
             compiler="${compiler}"
             source="${java.target_version}"
-            target="${java.target_version}" 
-            memoryMaximumSize="1024m" 
-            listfiles="false"      
-            />   
+            target="${java.target_version}"
+            memoryMaximumSize="1024m"
+            listfiles="false"
+            />
     </target>
 
 	<target name="javadoc_compatibility" description="Generate JavaDoc" unless="java6.installed">
@@ -353,14 +353,14 @@
         <!-- Determine the location of Suns api docs -->
         <condition property="javadoc.loc" value="javase/6">
             <equals arg1="${java6.installed}" arg2="true" />
-        </condition>   
+        </condition>
         <condition property="javadoc.loc" value="j2se/1.5.0">
             <not>
                 <equals arg1="${java6.installed}" arg2="true" />
             </not>
-        </condition>               
+        </condition>
 	    <echo message="Javadoc api stub: ${javadoc.loc}" />
-        
+
 		<javadoc
 		        useexternalfile="true"
 		        failonerror="false"
@@ -400,14 +400,14 @@
         <!-- Determine the location of Suns api docs -->
         <condition property="javadoc.loc" value="javase/6">
             <equals arg1="${java6.installed}" arg2="true" />
-        </condition>   
+        </condition>
         <condition property="javadoc.loc" value="j2se/1.5.0">
             <not>
                 <equals arg1="${java6.installed}" arg2="true" />
             </not>
-        </condition>               
+        </condition>
 	    <echo message="Javadoc api stub: ${javadoc.loc}" />
-        
+
 		<javadoc
 		        useexternalfile="true"
 		        failonerror="false"
@@ -442,7 +442,7 @@
 		</javadoc>
 	</target>
 
-    <!--  
+    <!--
     yDoc - Javadoc UML Extension
     This will enable you to generate and automatically integrate clear and concise UML diagrams into your Java API documentation.
     http://www.yworks.com/en/products_ydoc.htm
@@ -451,13 +451,13 @@
         <!-- Determine the location of Suns api docs -->
         <condition property="javadoc.loc" value="javase/6">
             <equals arg1="${java6.installed}" arg2="true" />
-        </condition>   
+        </condition>
         <condition property="javadoc.loc" value="j2se/1.5.0">
             <not>
                 <equals arg1="${java6.installed}" arg2="true" />
             </not>
-        </condition>               
-	    <echo message="Javadoc api stub: ${javadoc.loc}" />    
+        </condition>
+	    <echo message="Javadoc api stub: ${javadoc.loc}" />
         <property name="ydoc.home" value="C:/dev/ydoc"/>
         <property name="ps" value="${path.separator}"/>
 
@@ -497,7 +497,7 @@
                 <param name="-tag" value="see"/>
                 <param name="-tag" value="y.uml"/>
             </doclet>
-            
+
 			<doctitle><![CDATA[<h1>Red5 Server Documentation</h1>]]></doctitle>
 			<bottom><![CDATA[<i>Copyright &#169; 2006-2007 <a href="http://osflash.org/red5" target="_blank">the Red5 project</a>.</i>]]></bottom>
 			<tag name="todo" scope="all" description="To do:"/>
@@ -530,7 +530,7 @@
                 <striplinebreaks/>
             </filterchain>
         </loadfile>
-        <echo message="Jar launch classpath: conf/${library.jars} ${library.java5.jars} ${script.jars}" />   
+        <echo message="Jar launch classpath: conf/${library.jars} ${library.java5.jars} ${script.jars}" />
         <jar destfile="red5.jar">
 			<fileset dir="${classes.dir}">
 				<include name="**"/>
@@ -560,11 +560,11 @@
                 <striplinecomments>
                     <comment value="#"/>
                 </striplinecomments>
-                <prefixlines prefix=" lib"/>
+                <prefixlines prefix=" lib/"/>
                 <striplinebreaks/>
             </filterchain>
         </loadfile>
-        <echo message="Jar launch classpath: conf/${library.jars} ${library.java6.jars} ${script.jars}" />   
+        <echo message="Jar launch classpath: conf/${library.jars} ${library.java6.jars} ${script.jars}" />
         <jar destfile="red5.jar">
 			<fileset dir="${classes.dir}">
 				<include name="**"/>
@@ -581,7 +581,7 @@
             </metainf>
 		</jar>
     </target>
-    
+
 	<target name="jar" description="Make Archive" depends="compile">
         <tstamp prefix="build">
             <format property="TODAY" pattern="d-MMMM-yyyy" locale="en" />
@@ -618,51 +618,51 @@
                 <striplinebreaks/>
             </filterchain>
         </loadfile>
-     
-        <mkdir dir="${classes.dir}/conf"/>   
+
+        <mkdir dir="${classes.dir}/conf"/>
         <copy todir="${classes.dir}/conf">
           <fileset dir="${config.dir}"/>
         </copy>
-        
+
         <antcall target="jar_java5" inheritAll="true" inheritRefs="true" />
         <antcall target="jar_java6" inheritAll="true" inheritRefs="true" />
-        
+
 		<jar destfile="${src.dir}/../webapps/echo/WEB-INF/lib/echo.jar">
 			<fileset dir="${src.dir}/../webapps/echo/WEB-INF/classes">
 				<include name="**"/>
 			</fileset>
 		</jar>
-		
+
 		<jar destfile="${src.dir}/../webapps/fitcDemo/WEB-INF/lib/fitcDemo.jar">
 			<fileset dir="${src.dir}/../webapps/fitcDemo/WEB-INF/classes">
 				<include name="**"/>
 			</fileset>
 		</jar>
-		
+
 		<jar destfile="${src.dir}/../webapps/midiDemo/WEB-INF/lib/midiDemo.jar">
 			<fileset dir="${src.dir}/../webapps/midiDemo/WEB-INF/classes">
 				<include name="**"/>
 			</fileset>
 		</jar>
-		
+
         <!-- copy scripts -->
-        <mkdir dir="webapps/oflaDemo/WEB-INF/classes/applications"/>   
+        <mkdir dir="webapps/oflaDemo/WEB-INF/classes/applications"/>
         <copy todir="webapps/oflaDemo/WEB-INF/classes/applications">
           <fileset dir="webapps/oflaDemo/WEB-INF/src/applications"/>
-        </copy>           
-        
+        </copy>
+
 		<jar destfile="webapps/oflaDemo/WEB-INF/lib/oflaDemo.jar">
 			<fileset dir="webapps/oflaDemo/WEB-INF/classes">
 				<include name="**"/>
 			</fileset>
 		</jar>
-		
+
 		<jar destfile="${src.dir}/../webapps/test/WEB-INF/lib/test.jar">
 			<fileset dir="${src.dir}/../webapps/test/WEB-INF/classes">
 				<include name="**"/>
 			</fileset>
 		</jar>
-		
+
 		<jar destfile="${src.dir}/../webapps/tutorial/WEB-INF/lib/tutorial.jar">
 			<fileset dir="${src.dir}/../webapps/tutorial/WEB-INF/classes">
 				<include name="**"/>
@@ -731,7 +731,7 @@
 			<jvmarg value="-Djava.security.policy=${config.dir}/red5.policy"/>
 		</java>
 	</target>
-	
+
 	<target name="server_java6" depends="compile" if="java6.installed">
 		<java classname="org.red5.server.Standalone" fork="true">
 			<classpath>
@@ -743,12 +743,12 @@
 			<jvmarg value="-Djava.security.policy=${config.dir}/red5.policy"/>
 		</java>
 	</target>
-	
+
     <target name="server">
         <antcall target="server_java5" inheritAll="true" inheritRefs="true" />
         <antcall target="server_java6" inheritAll="true" inheritRefs="true" />
     </target>
-    
+
 	<!-- I have disabled this until we know its has been tested - Luke
 	<target name="webwar" depends="compile">
 		<delete dir="webdir"/>
@@ -825,7 +825,7 @@
 	</target>
 
 	<target name="all" depends="clean, prepare, compile, jar, javadoc"/>
-    
+
     <target name="usage">
         <echo message="Type ant -p for available targets" />
     </target>
