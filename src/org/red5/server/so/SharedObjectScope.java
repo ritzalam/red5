@@ -289,7 +289,7 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
 	public void removeEventListener(IEventListener listener) {
 		so.unregister(listener);
 		super.removeEventListener(listener);
-		if (!so.isPersistentObject() && so.getListeners().isEmpty()) {
+		if (!so.isPersistentObject() && (so.getListeners() == null || so.getListeners().isEmpty())) {
 			getParent().removeChildScope(this);
 		}
 
