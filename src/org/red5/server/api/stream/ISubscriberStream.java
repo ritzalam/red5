@@ -1,5 +1,7 @@
 package org.red5.server.api.stream;
 
+import java.io.IOException;
+
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  * 
@@ -26,8 +28,10 @@ package org.red5.server.api.stream;
 public interface ISubscriberStream extends IClientStream {
 	/**
 	 * Start playing.
+	 * 
+	 * @throws IOException if an IO error occurred while starting to play the stream
 	 */
-	void play();
+	void play() throws IOException;
 
 	/**
 	 * Pause at a position for current playing item.

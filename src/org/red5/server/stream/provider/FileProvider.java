@@ -110,7 +110,7 @@ public class FileProvider implements IPassive, ISeekableProvider,
 	}
 
 	/** {@inheritDoc} */
-    public synchronized IMessage pullMessage(IPipe pipe) {
+    public synchronized IMessage pullMessage(IPipe pipe) throws IOException {
 		if (this.pipe != pipe) {
 			return null;
 		}
@@ -151,7 +151,7 @@ public class FileProvider implements IPassive, ISeekableProvider,
 	}
 
 	/** {@inheritDoc} */
-    public IMessage pullMessage(IPipe pipe, long wait) {
+    public IMessage pullMessage(IPipe pipe, long wait) throws IOException {
 		return pullMessage(pipe);
 	}
 
@@ -202,7 +202,7 @@ public class FileProvider implements IPassive, ISeekableProvider,
     /**
      * Initializes file provider. Creates streamable file factory and service, seeks to start position
      */
-    private void init() {
+    private void init() throws IOException {
 		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils
 				.getScopeService(scope, IStreamableFileFactory.class,
 						StreamableFileFactory.class);
@@ -211,12 +211,8 @@ public class FileProvider implements IPassive, ISeekableProvider,
 			log.error("No service found for " + file.getAbsolutePath());
 			return;
 		}
-		try {
-			IStreamableFile streamFile = service.getStreamableFile(file);
-			reader = streamFile.getReader();
-		} catch (IOException e) {
-			log.error("error read stream file " + file.getAbsolutePath(), e);
-		}
+		IStreamableFile streamFile = service.getStreamableFile(file);
+		reader = streamFile.getReader();
 		if (start > 0) {
 			seek(start);
 		}

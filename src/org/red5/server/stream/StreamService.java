@@ -19,6 +19,7 @@ package org.red5.server.stream;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+import java.io.IOException;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
@@ -183,9 +184,11 @@ public class StreamService implements IStreamService {
 		}
 		
 		IClientStream stream = streamConn.getStreamById(streamId);
+		boolean created = false;
 		if (stream == null) {
 			stream = streamConn.newPlaylistSubscriberStream(streamId);
 			stream.start();
+			created = true;
 		}
 		if (!(stream instanceof ISubscriberStream)) {
 			return;
@@ -208,7 +211,23 @@ public class StreamService implements IStreamService {
 			// not supported by this stream service
 			return;
 		}
-		subscriberStream.play();
+		try {
+			subscriberStream.play();
+		} catch (IOException err) {
+			if (created) {
+				stream.close();
+				streamConn.deleteStreamById(streamId);
+			}
+			Status accessDenied = new Status(StatusCodes.NS_PLAY_FAILED);
+			accessDenied.setClientid(streamId);
+			accessDenied.setDesciption(err.getMessage());
+			accessDenied.setDetails(name);
+			accessDenied.setLevel("error");
+
+			// FIXME: there should be a direct way to send the status
+			Channel channel = ((RTMPConnection) streamConn).getChannel((byte) (4 + ((streamId-1) * 5)));
+			channel.sendStatus(accessDenied);
+		}
 	}
 
 	/** {@inheritDoc} */

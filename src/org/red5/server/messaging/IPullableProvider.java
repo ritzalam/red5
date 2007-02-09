@@ -1,5 +1,7 @@
 package org.red5.server.messaging;
 
+import java.io.IOException;
+
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  * 
@@ -28,7 +30,7 @@ package org.red5.server.messaging;
 public interface IPullableProvider extends IProvider {
 	public static final String KEY = IPullableProvider.class.getName();
 
-	IMessage pullMessage(IPipe pipe);
+	IMessage pullMessage(IPipe pipe) throws IOException;
 
-	IMessage pullMessage(IPipe pipe, long wait);
+	IMessage pullMessage(IPipe pipe, long wait) throws IOException;
 }
