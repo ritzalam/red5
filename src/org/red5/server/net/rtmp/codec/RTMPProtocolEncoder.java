@@ -103,7 +103,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
     public ByteBuffer encodePacket(RTMP rtmp, Packet packet) {
 
 		final Header header = packet.getHeader();
-		final byte channelId = header.getChannelId();
+		final int channelId = header.getChannelId();
 		final IRTMPEvent message = packet.getMessage();
 		ByteBuffer data;
 
@@ -147,8 +147,8 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 		} else {
 			for (int i = 0; i < numChunks - 1; i++) {
 				BufferUtils.put(out, data, chunkSize);
-				out.put(RTMPUtils.encodeHeaderByte(HEADER_CONTINUE, header
-						.getChannelId()));
+				RTMPUtils.encodeHeaderByte(out, HEADER_CONTINUE, header
+						.getChannelId());
 			}
 			BufferUtils.put(out, data, out.remaining());
 		}
@@ -187,10 +187,8 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 
 		final ByteBuffer buf = ByteBuffer.allocate(RTMPUtils
 				.getHeaderLength(headerType));
-		final byte headerByte = RTMPUtils.encodeHeaderByte(headerType, header
+		RTMPUtils.encodeHeaderByte(buf, headerType, header
 				.getChannelId());
-
-		buf.put(headerByte);
 
 		switch (headerType) {
 			case HEADER_NEW:

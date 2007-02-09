@@ -46,29 +46,29 @@ public class RTMPUtilsTest extends TestCase {
 			 */
 		}
 		byte test;
-		test = (byte) (0x03);
+		test = 0x03;
 		if (log.isDebugEnabled()) {
 			log.debug(HexDump.byteArrayToHexString(new byte[] { test }));
 			log.debug("" + test);
-			log.debug("" + RTMPUtils.decodeHeaderSize(test));
+			log.debug("" + RTMPUtils.decodeHeaderSize(test, 1));
 		}
 		test = (byte) (0x43);
 		if (log.isDebugEnabled()) {
 			log.debug(HexDump.byteArrayToHexString(new byte[] { test }));
 			log.debug("" + test);
-			log.debug("" + RTMPUtils.decodeHeaderSize(test));
+			log.debug("" + RTMPUtils.decodeHeaderSize(test, 1));
 		}
 		test = (byte) (0x83);
 		if (log.isDebugEnabled()) {
 			log.debug(HexDump.byteArrayToHexString(new byte[] { test }));
 			log.debug("" + test);
-			log.debug("" + RTMPUtils.decodeHeaderSize(test));
+			log.debug("" + RTMPUtils.decodeHeaderSize(test, 1));
 		}
 		test = (byte) (0xC3 - 256);
 		if (log.isDebugEnabled()) {
 			log.debug(HexDump.byteArrayToHexString(new byte[] { test }));
 			log.debug("" + test);
-			log.debug("" + RTMPUtils.decodeHeaderSize(test));
+			log.debug("" + RTMPUtils.decodeHeaderSize(test, 1));
 		}
 		Assert.assertEquals(true, false);
 	}

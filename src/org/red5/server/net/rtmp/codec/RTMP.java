@@ -19,6 +19,9 @@ package org.red5.server.net.rtmp.codec;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.red5.server.api.IConnection.Encoding;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.message.Header;
@@ -75,27 +78,27 @@ public class RTMP extends ProtocolState {
     /**
      * Last read channel
      */
-	private byte lastReadChannel = 0x00;
+	private int lastReadChannel = 0x00;
     /**
      * Last write channel
      */
-	private byte lastWriteChannel = 0x00;
+	private int lastWriteChannel = 0x00;
     /**
      * Read headers
      */
-	private Header[] readHeaders = new Header[128];
+	private Map<Integer, Header> readHeaders = new HashMap<Integer, Header>();
     /**
      * Write headers
      */
-	private Header[] writeHeaders = new Header[128];
+	private Map<Integer, Header> writeHeaders = new HashMap<Integer, Header>();
     /**
      * Read packets
      */
-	private Packet[] readPackets = new Packet[128];
+	private Map<Integer, Packet> readPackets = new HashMap<Integer, Packet>();
     /**
      * Written packets
      */
-	private Packet[] writePackets = new Packet[128];
+	private Map<Integer, Packet> writePackets = new HashMap<Integer, Packet>();
     /**
      * Read chunk size. Packets are read and written chunk-by-chunk
      */
@@ -157,13 +160,14 @@ public class RTMP extends ProtocolState {
      * Releases number of packets
      * @param packets            Packets to release
      */
-    private void freePackets(Packet[] packets) {
-		for (Packet packet : packets) {
+    private void freePackets(Map<Integer, Packet> packets) {
+		for (Packet packet : packets.values()) {
 			if (packet != null && packet.getData() != null) {
 				packet.setData(null);
 				packet = null;
 			}
 		}
+		packets.clear();
 	}
 
 	/**
@@ -185,9 +189,9 @@ public class RTMP extends ProtocolState {
      * @param channelId            Channel id
      * @param header               Header
      */
-    public void setLastReadHeader(byte channelId, Header header) {
+    public void setLastReadHeader(int channelId, Header header) {
 		lastReadChannel = channelId;
-		readHeaders[channelId] = header;
+		readHeaders.put(channelId, header);
 	}
 
     /**
@@ -195,8 +199,8 @@ public class RTMP extends ProtocolState {
      * @param channelId             Channel id
      * @return                      Last read header
      */
-	public Header getLastReadHeader(byte channelId) {
-		return readHeaders[channelId];
+	public Header getLastReadHeader(int channelId) {
+		return readHeaders.get(channelId);
 	}
 
     /**
@@ -204,9 +208,9 @@ public class RTMP extends ProtocolState {
      * @param channelId             Channel id
      * @param header                Header
      */
-	public void setLastWriteHeader(byte channelId, Header header) {
+	public void setLastWriteHeader(int channelId, Header header) {
 		lastWriteChannel = channelId;
-		writeHeaders[channelId] = header;
+		writeHeaders.put(channelId, header);
 	}
 
     /**
@@ -214,8 +218,8 @@ public class RTMP extends ProtocolState {
      * @param channelId             Channel id
      * @return                      Last written header
      */
-	public Header getLastWriteHeader(byte channelId) {
-		return writeHeaders[channelId];
+	public Header getLastWriteHeader(int channelId) {
+		return writeHeaders.get(channelId);
 	}
 
     /**
@@ -223,14 +227,13 @@ public class RTMP extends ProtocolState {
      * @param channelId           Channel id
      * @param packet              Packet
      */
-	public void setLastReadPacket(byte channelId, Packet packet) {
-		Packet prevPacket = readPackets[channelId];
+	public void setLastReadPacket(int channelId, Packet packet) {
+		Packet prevPacket = readPackets.get(channelId);
 		if (prevPacket != null && prevPacket.getData() != null) {
 			prevPacket.setData(null);
-			prevPacket = null;
 		}
 
-		readPackets[channelId] = packet;
+		readPackets.put(channelId, packet);
 	}
 
     /**
@@ -238,8 +241,8 @@ public class RTMP extends ProtocolState {
      * @param channelId           Channel id
      * @return                    Last read packet for that channel
      */
-	public Packet getLastReadPacket(byte channelId) {
-		return readPackets[channelId];
+	public Packet getLastReadPacket(int channelId) {
+		return readPackets.get(channelId);
 	}
 
     /**
@@ -247,14 +250,13 @@ public class RTMP extends ProtocolState {
      * @param channelId           Channel id
      * @param packet              Last written packet
      */
-	public void setLastWritePacket(byte channelId, Packet packet) {
-		Packet prevPacket = writePackets[channelId];
+	public void setLastWritePacket(int channelId, Packet packet) {
+		Packet prevPacket = writePackets.get(channelId);
 		if (prevPacket != null && prevPacket.getData() != null) {
 			prevPacket.setData(null);
-			prevPacket = null;
 		}
 
-		writePackets[channelId] = packet;
+		writePackets.put(channelId, packet);
 	}
 
     /**
@@ -262,8 +264,8 @@ public class RTMP extends ProtocolState {
      * @param channelId           Channel id
      * @return                    Packet that has been written last
      */
-	public Packet getLastWritePacket(byte channelId) {
-		return writePackets[channelId];
+	public Packet getLastWritePacket(int channelId) {
+		return writePackets.get(channelId);
 	}
 
 	/**
@@ -271,7 +273,7 @@ public class RTMP extends ProtocolState {
      *
      * @return  Last read channel
      */
-    public byte getLastReadChannel() {
+    public int getLastReadChannel() {
 		return lastReadChannel;
 	}
 
@@ -280,7 +282,7 @@ public class RTMP extends ProtocolState {
      *
      * @return  Last write channel
      */
-    public byte getLastWriteChannel() {
+    public int getLastWriteChannel() {
 		return lastWriteChannel;
 	}
 

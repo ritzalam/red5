@@ -21,6 +21,7 @@ package org.red5.server.net.rtmp;
 
 import static org.red5.server.api.ScopeUtils.getScopeService;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -78,11 +79,6 @@ public abstract class RTMPConnection extends BaseConnection implements
 			.getLog(RTMPConnection.class.getName());
 
     /**
-     * Streams limit
-     */
-    protected static final int MAX_STREAMS = 12;
-
-    /**
      * Video codec factory constant
      */
     private static final String VIDEO_CODEC_FACTORY = "videoCodecFactory";
@@ -94,16 +90,16 @@ public abstract class RTMPConnection extends BaseConnection implements
      *
      * @see org.red5.server.net.rtmp.Channel
      */
-    private Channel[] channels = new Channel[64];
+    private Map<Integer, Channel> channels = new HashMap<Integer, Channel>();
 
     /**
      * Client streams
      *
      * @see org.red5.server.api.stream.IClientStream
      */
-    private IClientStream[] streams = new IClientStream[MAX_STREAMS];
+    private Map<Integer, IClientStream> streams = new HashMap<Integer, IClientStream>();
 
-	private boolean[] reservedStreams = new boolean[MAX_STREAMS];
+	private Map<Integer, Boolean> reservedStreams = new HashMap<Integer, Boolean>();
 
     /**
      * Identifier for remote calls
@@ -215,14 +211,10 @@ public abstract class RTMPConnection extends BaseConnection implements
      *
      * @return  Next available channel id
      */
-	public int getNextAvailableChannelId() {
-		int result = -1;
-		for (byte i = 4; i < channels.length; i++) {
-			if (!isChannelUsed(i)) {
-				result = i;
-				break;
-			}
-		}
+	public synchronized int getNextAvailableChannelId() {
+		int result = 4;
+		while (isChannelUsed(result))
+			result++;
 		return result;
 	}
 
@@ -231,8 +223,8 @@ public abstract class RTMPConnection extends BaseConnection implements
      * @param channelId        Channel id
      * @return                 <code>true</code> if channel is in use, <code>false</code> otherwise
      */
-    public boolean isChannelUsed(byte channelId) {
-		return (channels[channelId] != null);
+    public boolean isChannelUsed(int channelId) {
+		return channels.get(channelId) != null;
 	}
 
     /**
@@ -240,19 +232,21 @@ public abstract class RTMPConnection extends BaseConnection implements
      * @param channelId        Channel id
      * @return                 Channel by id
      */
-    public Channel getChannel(byte channelId) {
-		if (!isChannelUsed(channelId)) {
-			channels[channelId] = new Channel(this, channelId);
+    public Channel getChannel(int channelId) {
+    	Channel result = channels.get(channelId);
+		if (result == null) {
+			result = new Channel(this, channelId);
+			channels.put(channelId, result);
 		}
-		return channels[channelId];
+		return result;
 	}
 
     /**
      * Closes channel
      * @param channelId       Channel id
      */
-    public void closeChannel(byte channelId) {
-		channels[channelId] = null;
+    public void closeChannel(int channelId) {
+		channels.remove(channelId);
 	}
 
 	/**
@@ -260,17 +254,18 @@ public abstract class RTMPConnection extends BaseConnection implements
      *
      * @return  Client streams as array
      */
-    protected IClientStream[] getStreams() {
-		return streams;
+    protected Collection<IClientStream> getStreams() {
+		return streams.values();
 	}
 
 	/** {@inheritDoc} */
     public int reserveStreamId() {
 		int result = -1;
 		synchronized (reservedStreams) {
-			for (int i = 0; i < reservedStreams.length; i++) {
-				if (!reservedStreams[i]) {
-					reservedStreams[i] = true;
+			for (int i = 0; true; i++) {
+				Boolean value = reservedStreams.get(i);
+				if (value == null || !value) {
+					reservedStreams.put(i, true);
 					result = i;
 					break;
 				}
@@ -287,7 +282,7 @@ public abstract class RTMPConnection extends BaseConnection implements
      * @return                  Output stream object
      */
     public OutputStream createOutputStream(int streamId) {
-		byte channelId = (byte) (4 + ((streamId - 1) * 5));
+		int channelId = (4 + ((streamId - 1) * 5));
 		final Channel data = getChannel(channelId++);
 		final Channel video = getChannel(channelId++);
 		final Channel audio = getChannel(channelId++);
@@ -313,13 +308,14 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	/** {@inheritDoc} */
     public IClientBroadcastStream newBroadcastStream(int streamId) {
-		if (!reservedStreams[streamId - 1]) {
+    	Boolean value = reservedStreams.get(streamId - 1);
+		if (value == null || !value) {
 			// StreamId has not been reserved before
 			return null;
 		}
 
 		synchronized (streams) {
-			if (streams[streamId - 1] != null) {
+			if (streams.get(streamId - 1) != null) {
 				// Another stream already exists with this id
 				return null;
 			}
@@ -336,7 +332,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 			cbs.setName(createStreamName());
 			cbs.setScope(this.getScope());
 
-			streams[streamId - 1] = cbs;
+			streams.put(streamId - 1, cbs);
 			usedStreams++;
 			return cbs;
 		}
@@ -353,13 +349,14 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	/** {@inheritDoc} */
     public IPlaylistSubscriberStream newPlaylistSubscriberStream(int streamId) {
-		if (!reservedStreams[streamId - 1]) {
+    	Boolean value = reservedStreams.get(streamId - 1);
+		if (value == null || !value) {
 			// StreamId has not been reserved before
 			return null;
 		}
 
 		synchronized (streams) {
-			if (streams[streamId - 1] != null) {
+			if (streams.get(streamId - 1) != null) {
 				// Another stream already exists with this id
 				return null;
 			}
@@ -375,7 +372,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 			pss.setConnection(this);
 			pss.setScope(this.getScope());
 			pss.setStreamId(streamId);
-			streams[streamId - 1] = pss;
+			streams.put(streamId - 1, pss);
 			usedStreams++;
 			return pss;
 		}
@@ -392,11 +389,11 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	/** {@inheritDoc} */
     public IClientStream getStreamById(int id) {
-		if (id <= 0 || id > MAX_STREAMS - 1) {
+		if (id <= 0) {
 			return null;
 		}
 
-		return streams[id - 1];
+		return streams.get(id - 1);
 	}
 
     /**
@@ -404,7 +401,7 @@ public abstract class RTMPConnection extends BaseConnection implements
      * @param channelId        Channel id
      * @return                 ID of stream that channel belongs to
      */
-    public int getStreamIdForChannel(byte channelId) {
+    public int getStreamIdForChannel(int channelId) {
 		if (channelId < 4) {
 			return 0;
 		}
@@ -417,12 +414,12 @@ public abstract class RTMPConnection extends BaseConnection implements
      * @param channelId        Channel id
      * @return                 Stream that channel belongs to
      */
-    public IClientStream getStreamByChannelId(byte channelId) {
+    public IClientStream getStreamByChannelId(int channelId) {
 		if (channelId < 4) {
 			return null;
 		}
 
-		return streams[getStreamIdForChannel(channelId) - 1];
+		return streams.get(getStreamIdForChannel(channelId) - 1);
 	}
 
 	/** {@inheritDoc} */
@@ -439,17 +436,17 @@ public abstract class RTMPConnection extends BaseConnection implements
 				IStreamService.class, StreamService.class);
 		if (streamService != null) {
 			synchronized (streams) {
-				for (int i = 0; i < streams.length; i++) {
-					IClientStream stream = streams[i];
+				for (Map.Entry<Integer, IClientStream> entry: streams.entrySet()) {
+					IClientStream stream = entry.getValue();
 					if (stream != null) {
 						if (log.isDebugEnabled()) {
 							log.debug("Closing stream: " + stream.getStreamId());
 						}
 						streamService.deleteStream(this, stream.getStreamId());
-						streams[i] = null;
 						usedStreams--;
 					}
 				}
+				streams.clear();
 			}
 		}
 
@@ -470,20 +467,20 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/** {@inheritDoc} */
     public void unreserveStreamId(int streamId) {
 		deleteStreamById(streamId);
-		if (streamId > 0 && streamId <= MAX_STREAMS) {
-			reservedStreams[streamId - 1] = false;
+		if (streamId > 0) {
+			reservedStreams.remove(streamId - 1);
 		}
 	}
 
 	/** {@inheritDoc} */
     public void deleteStreamById(int streamId) {
-		if (streamId > 0 && streamId <= MAX_STREAMS) {
-			if (streams[streamId - 1] != null) {
+		if (streamId > 0) {
+			if (streams.get(streamId - 1) != null) {
 				synchronized (pendingVideos) {
 					pendingVideos.remove(streamId);
 				}
 				usedStreams--;
-				streams[streamId - 1] = null;
+				streams.remove(streamId - 1);
 			}
 		}
 	}

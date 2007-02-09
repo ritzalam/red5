@@ -48,7 +48,7 @@ public class Channel {
     /**
      * Channel id
      */
-    private byte id;
+    private int id;
 
 	//private Stream stream;
     /**
@@ -56,7 +56,7 @@ public class Channel {
      * @param conn                Connection
      * @param channelId           Channel id
      */
-	public Channel(RTMPConnection conn, byte channelId) {
+	public Channel(RTMPConnection conn, int channelId) {
 		connection = conn;
 		id = channelId;
 	}
@@ -73,7 +73,7 @@ public class Channel {
      *
      * @return  Channel ID
      */
-    public byte getId() {
+    public int getId() {
 		return id;
 	}
 	

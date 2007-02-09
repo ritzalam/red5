@@ -26,7 +26,7 @@ public class Header implements Constants {
     /**
      * Channel
      */
-	private byte channelId;
+	private int channelId;
     /**
      * Timer
      */
@@ -53,7 +53,7 @@ public class Header implements Constants {
      *
      * @return  Channel id
      */
-    public byte getChannelId() {
+    public int getChannelId() {
 		return channelId;
 	}
 
@@ -62,7 +62,7 @@ public class Header implements Constants {
      *
      * @param channelId  Header channel id
      */
-    public void setChannelId(byte channelId) {
+    public void setChannelId(int channelId) {
 		this.channelId = channelId;
 	}
 

@@ -90,8 +90,8 @@ public class ConnectionConsumer implements IPushableConsumer,
      * @param audioChannel         Audio channel
      * @param dataChannel          Data channel
      */
-    public ConnectionConsumer(RTMPConnection conn, byte videoChannel,
-			byte audioChannel, byte dataChannel) {
+    public ConnectionConsumer(RTMPConnection conn, int videoChannel,
+    		int audioChannel, int dataChannel) {
 		this.conn = conn;
 		this.video = conn.getChannel(videoChannel);
 		this.audio = conn.getChannel(audioChannel);

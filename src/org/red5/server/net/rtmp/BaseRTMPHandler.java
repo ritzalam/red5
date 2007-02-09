@@ -198,7 +198,7 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 		conn.messageSent((Packet) message);
 
 		Packet sent = (Packet) message;
-		final byte channelId = sent.getHeader().getChannelId();
+		final int channelId = sent.getHeader().getChannelId();
 		final IClientStream stream = conn.getStreamByChannelId(channelId);
 		// XXX we'd better use new event model for notification
 		if (stream != null && (stream instanceof PlaylistSubscriberStream)) {
