@@ -130,11 +130,17 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 		rtmp.setLastWriteHeader(channelId, header);
 		rtmp.setLastWritePacket(channelId, packet);
 
+		
 		final int chunkSize = rtmp.getWriteChunkSize();
+		int chunkHeaderSize = 1;
+		if (header.getChannelId() > 320)
+			chunkHeaderSize = 3;
+		else if (header.getChannelId() > 63)
+			chunkHeaderSize = 2;
 		final int numChunks = (int) Math.ceil(header.getSize()
 				/ (float) chunkSize);
 		final int bufSize = header.getSize() + headers.limit()
-				+ (numChunks > 0 ? numChunks - 1 : 0);
+				+ (numChunks > 0 ? (numChunks - 1) * chunkHeaderSize : 0);
 		final ByteBuffer out = ByteBuffer.allocate(bufSize);
 
 		headers.flip();
@@ -185,8 +191,13 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
             headerType = HEADER_CONTINUE;
 		}
 
+		int channelIdAdd = 0;
+		if (header.getChannelId() > 320)
+			channelIdAdd = 2;
+		else if (header.getChannelId() > 63)
+			channelIdAdd = 1;
 		final ByteBuffer buf = ByteBuffer.allocate(RTMPUtils
-				.getHeaderLength(headerType));
+				.getHeaderLength(headerType) + channelIdAdd);
 		RTMPUtils.encodeHeaderByte(buf, headerType, header
 				.getChannelId());
 
