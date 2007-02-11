@@ -65,7 +65,15 @@
     <bean id="consumerService" class="org.red5.server.stream.ConsumerService"/>
 
     <!-- Balances flow control -->
+    <!-- 
     <bean id="FlowControlService" class="org.red5.server.stream.BalancedFlowControlService"
+		 init-method="init">
+		<property name="interval" value="10"/>
+		<property name="defaultCapacity" value="102400"/>
+	</bean> -->
+	
+	<!-- Dummy flow control that does nothing -->
+    <bean id="FlowControlService" class="org.red5.server.stream.DummyFlowControlService"
 		 init-method="init">
 		<property name="interval" value="10"/>
 		<property name="defaultCapacity" value="102400"/>
