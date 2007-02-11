@@ -232,7 +232,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 						if (global == null) {
 							call.setStatus(Call.STATUS_SERVICE_NOT_FOUND);
 							if (call instanceof IPendingServiceCall) {
-								StatusObject status = getStatus(NC_CONNECT_REJECTED);
+								StatusObject status = getStatus(NC_CONNECT_INVALID_APPLICATION);
 								status.setDescription("No scope \""+path+"\" on this server.");
 								((IPendingServiceCall) call).setResult(status);
 							}

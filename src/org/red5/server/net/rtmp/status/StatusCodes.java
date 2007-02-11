@@ -59,6 +59,10 @@ public interface StatusCodes {
      * The connection attempt succeeded.
      */
 	public static final String NC_CONNECT_SUCCESS = "NetConnection.Connect.Success";
+    /**
+     * The application name specified during connect is invalid.
+     */
+	public static final String NC_CONNECT_INVALID_APPLICATION = "NetConnection.Connect.InvalidApp";
 	/**
 	 * Invalid arguments were passed to a NetStream method.
 	 */

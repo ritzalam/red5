@@ -100,6 +100,8 @@ public class StatusObjectService implements StatusCodes {
 		statusObjects.put(NC_CONNECT_SUCCESS, new StatusObject(
 				NC_CONNECT_SUCCESS, StatusObject.STATUS,
 				"Connection succeeded."));
+		statusObjects.put(NC_CONNECT_INVALID_APPLICATION, new StatusObject(
+				NC_CONNECT_INVALID_APPLICATION, StatusObject.ERROR, ""));
 
 		statusObjects.put(NS_INVALID_ARGUMENT, new StatusObject(NS_INVALID_ARGUMENT,
 				StatusObject.ERROR, ""));
