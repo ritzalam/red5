@@ -93,7 +93,7 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
 		} else {
             // Rename and set path
             so.setName(name);
-			so.setPath(parent.getContextPath());
+			so.setPath(path);
 		}
 	}
 
