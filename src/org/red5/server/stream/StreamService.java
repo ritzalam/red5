@@ -137,6 +137,10 @@ public class StreamService implements IStreamService {
 			return;
 		}
 		ISubscriberStream subscriberStream = (ISubscriberStream) stream;
+		// pausePlayback can be "null" if "pause" is called without any parameters from flash
+		if (pausePlayback == null) {
+			pausePlayback = !subscriberStream.isPaused();
+		}
 		if (pausePlayback) {
 			subscriberStream.pause(position);
 		} else {
