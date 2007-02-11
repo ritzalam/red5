@@ -59,6 +59,10 @@ public interface StatusCodes {
      * The connection attempt succeeded.
      */
 	public static final String NC_CONNECT_SUCCESS = "NetConnection.Connect.Success";
+	/**
+	 * Invalid arguments were passed to a NetStream method.
+	 */
+	public static final String NS_INVALID_ARGUMENT = "NetStream.InvalidArg";
     /**
      * A recorded stream was deleted successfully.
      */

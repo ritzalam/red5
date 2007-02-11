@@ -105,7 +105,12 @@ public class ConversionUtils {
 						"Unable to convert null to primitive value");
 			}
 			return source;
+		} else if ((source instanceof Float && ((Float) source).isNaN()) || 
+				   (source instanceof Double && ((Double) source).isNaN())) {
+			// Don't convert NaN values
+			return source;
 		}
+		
 		if (IConnection.class.isAssignableFrom(source.getClass())
 				&& !target.equals(IConnection.class)) {
 			throw new ConversionException("IConnection must match exact.");

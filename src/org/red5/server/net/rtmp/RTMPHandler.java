@@ -156,8 +156,9 @@ public class RTMPHandler extends BaseRTMPHandler {
      * @param conn             RTMP connection
      * @param call             Service call
      * @param service          Server-side service object
+     * @return <code>true</code> if the call was performed, otherwise <code>false</code>
      */
-    private void invokeCall(RTMPConnection conn, IServiceCall call,
+    private boolean invokeCall(RTMPConnection conn, IServiceCall call,
 			Object service) {
 		final IScope scope = conn.getScope();
 		final IContext context = scope.getContext();
@@ -166,7 +167,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 			log.debug("Service: " + service);
 			log.debug("Context: " + context);
 		}
-		context.getServiceInvoker().invoke(call, service);
+		return context.getServiceInvoker().invoke(call, service);
 	}
 
 	// ------------------------------------------------------------------------------
@@ -335,7 +336,11 @@ public class RTMPHandler extends BaseRTMPHandler {
 				IStreamService streamService = (IStreamService) getScopeService(
 						conn.getScope(), IStreamService.class,
 						StreamService.class);
-				invokeCall(conn, call, streamService);
+				if (!invokeCall(conn, call, streamService)) {
+					StatusObject status = getStatus(NS_INVALID_ARGUMENT);
+					status.setDescription("Failed to " + action + " (stream ID: " + source.getStreamId() + ")");
+					channel.sendStatus(status.asStatus());
+				}
 			} else {
 				invokeCall(conn, call);
 			}

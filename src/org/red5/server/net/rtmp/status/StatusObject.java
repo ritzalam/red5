@@ -145,4 +145,13 @@ public class StatusObject implements Serializable {
 		return Flag.Default;
 	}
 
+    /**
+     * Generate Status object that can be returned through a RTMP channel.
+     * 
+     * @return
+     */ 
+    public Status asStatus() {
+    	return new Status(getCode(), getLevel(), getDescription());
+    }
+    
 }

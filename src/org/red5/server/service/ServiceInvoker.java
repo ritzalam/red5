@@ -93,7 +93,7 @@ public class ServiceInvoker implements IServiceInvoker {
 	}
 
 	/** {@inheritDoc} */
-    public void invoke(IServiceCall call, IScope scope) {
+    public boolean invoke(IServiceCall call, IScope scope) {
 		String serviceName = call.getServiceName();
 		if (log.isDebugEnabled()) {
 			log.debug("Service name " + serviceName);
@@ -105,18 +105,18 @@ public class ServiceInvoker implements IServiceInvoker {
             // Set call status
             call.setStatus(Call.STATUS_SERVICE_NOT_FOUND);
 			log.warn("Service not found: " + serviceName);
-			return;
+			return false;
 		} else {
 			if (log.isDebugEnabled()) {
 				log.debug("Service found: " + serviceName);
 			}
 		}
         // Invoke if everything is ok
-        invoke(call, service);
+        return invoke(call, service);
 	}
 
 	/** {@inheritDoc} */
-    public void invoke(IServiceCall call, Object service) {
+    public boolean invoke(IServiceCall call, Object service) {
 		IConnection conn = Red5.getConnectionLocal();
 		String methodName = call.getServiceMethodName();
 
@@ -160,7 +160,7 @@ public class ServiceInvoker implements IServiceInvoker {
 						call.setStatus(Call.STATUS_METHOD_NOT_FOUND);
 						call.setException(new MethodNotFoundException(
 								methodName));
-						return;
+						return false;
 					}
 				}
 			}
@@ -193,17 +193,21 @@ public class ServiceInvoker implements IServiceInvoker {
 			call.setStatus(Call.STATUS_ACCESS_DENIED);
 			log.error("Error executing call: " + call);
 			log.error("Service invocation error", accessEx);
+			return false;
 		} catch (InvocationTargetException invocationEx) {
 			call.setException(invocationEx);
 			call.setStatus(Call.STATUS_INVOCATION_EXCEPTION);
 			log.error("Error executing call: " + call);
 			log.error("Service invocation error", invocationEx);
+			return false;
 		} catch (Exception ex) {
 			call.setException(ex);
 			call.setStatus(Call.STATUS_GENERAL_EXCEPTION);
 			log.error("Error executing call: " + call);
 			log.error("Service invocation error", ex);
+			return false;
 		}
+		return true;
 	}
 
 }
