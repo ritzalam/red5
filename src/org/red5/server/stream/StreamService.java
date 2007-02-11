@@ -344,8 +344,10 @@ public class StreamService implements IStreamService {
 		if (stream != null && !(stream instanceof IClientBroadcastStream)) {
 			return;
 		}
+		boolean created = false;
 		if (stream == null) {
 			stream = streamConn.newBroadcastStream(streamId);
+			created = true;
 		}
 
 		IClientBroadcastStream bs = (IClientBroadcastStream) stream;
@@ -372,6 +374,20 @@ public class StreamService implements IStreamService {
 			} else if (IClientStream.MODE_LIVE.equals(mode)) {
 				bs.start();
 			}
+		} catch (IOException e) {
+			Status accessDenied = new Status(StatusCodes.NS_RECORD_NOACCESS);
+			accessDenied.setClientid(streamId);
+			accessDenied.setDesciption("The file could not be created/written to.");
+			accessDenied.setDetails(name);
+			accessDenied.setLevel("error");
+
+			// FIXME: there should be a direct way to send the status
+			Channel channel = ((RTMPConnection) streamConn).getChannel((byte) (4 + ((streamId-1) * 5)));
+			channel.sendStatus(accessDenied);
+			bs.close();
+			if (created)
+				streamConn.deleteStreamById(streamId);
+			return;
 		} catch (Exception e) {
 			logger.warn("publish caught Exception");
 		}

@@ -19,6 +19,8 @@ package org.red5.server.api.stream;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.io.IOException;
+
 import org.red5.server.messaging.IProvider;
 
 /**
@@ -40,13 +42,15 @@ public interface IBroadcastStream extends IStream {
 	 *            The path of the file relative to the scope.
 	 * @param isAppend
 	 *            Whether to append to the end of file.
+	 * @throws IOException
+	 * 			   File could not be created/written to.
 	 * @throws ResourceExistException
 	 *             Resource exist when trying to create.
 	 * @throws ResourceNotFoundException
 	 *             Resource not exist when trying to append.
 	 */
 	void saveAs(String filePath, boolean isAppend)
-            throws ResourceNotFoundException, ResourceExistException;
+            throws IOException, ResourceNotFoundException, ResourceExistException;
 
 	/**
 	 * Get the filename the stream is being saved as.

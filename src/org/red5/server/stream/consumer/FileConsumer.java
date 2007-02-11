@@ -106,8 +106,9 @@ public class FileConsumer implements Constants, IPushableConsumer,
      * Synchronize this method to avoid FLV corruption from abrupt disconnection
      * @param pipe         Pipe
      * @param message      Message to push
+     * @throws IOException if message could not be written
      */
-    synchronized public void pushMessage(IPipe pipe, IMessage message) {
+    synchronized public void pushMessage(IPipe pipe, IMessage message) throws IOException {
 		if (message instanceof ResetMessage) {
 			startTimestamp = -1;
 			offset += lastTimestamp;
@@ -119,11 +120,7 @@ public class FileConsumer implements Constants, IPushableConsumer,
 			return;
 		}
 		if (writer == null) {
-			try {
-				init();
-			} catch (Exception e) {
-				log.error("error init file consumer", e);
-			}
+			init();
 		}
 		RTMPMessage rtmpMsg = (RTMPMessage) message;
 		final IRTMPEvent msg = rtmpMsg.getBody();
@@ -207,7 +204,9 @@ public class FileConsumer implements Constants, IPushableConsumer,
 		if (!file.isFile()) {
 			// Maybe the (previously existing) file has been deleted
 			file.createNewFile();
-		}
+		} else if (!file.canWrite())
+			throw new IOException("the file is read-only");
+
 		IStreamableFileService service = factory.getService(file);
 		IStreamableFile flv = service.getStreamableFile(file);
 		if (mode == null || mode.equals(IClientStream.MODE_RECORD)) {

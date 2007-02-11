@@ -1,5 +1,7 @@
 package org.red5.server.messaging;
 
+import java.io.IOException;
+
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  * 
@@ -33,6 +35,7 @@ public interface IPushableConsumer extends IConsumer {
      *
      * @param pipe         Pipe
      * @param message      Message
+     * @throws IOException if message could not be written
      */
-    void pushMessage(IPipe pipe, IMessage message);
+    void pushMessage(IPipe pipe, IMessage message) throws IOException;
 }
