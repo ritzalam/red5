@@ -13,6 +13,37 @@ import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoHandlerAdapter;
 import org.apache.mina.common.IoSession;
 
+import sun.misc.HexDumpEncoder;
+
+/**
+ *
+ * => client send to server
+ * <= server send to client
+ * << server broadcast
+ *
+ * Connecting to the server
+ *
+ * => byte(join)
+ * << byte(join) int(id)
+ * => byte(list)
+ * <= byte(list) int(count) int(id) int(id) ...
+ *
+ * Sending a message to all
+ *
+ * => byte(send) [..anything..]
+ * << byte(send) [..anything..]
+ *
+ * Server ping client to keep alive, every second
+ *
+ * <= byte(noop)
+ * => byte(noop)
+ *
+ * Timeouts (after 10s no reply)
+ *
+ * << byte(exit)
+ *
+ * @author luke
+ */
 public class BasicHandler extends IoHandlerAdapter {
 
 	protected static Log log = LogFactory.getLog(BasicHandler.class.getName());
@@ -20,13 +51,15 @@ public class BasicHandler extends IoHandlerAdapter {
 	static final int TICK = 1000;
 	static final int TIMEOUT = 10000;
 
-	static final byte NOOP = 0x01; // byte
-	static final byte LIST = 0x02; // byte, int count, int id, int id, ..
-	static final byte JOIN = 0x03; // byte, int id
-	static final byte SEND = 0x04; // byte, anything
-	static final byte EXIT = 0x05; // byte, int id
+	static final byte NOOP = 0x00;
+	static final byte JOIN = 0x01;
+	static final byte LIST = 0x02;
+	static final byte SEND = 0x03;
+	static final byte EXIT = 0x04;
 
-	final ByteBuffer NOOP_MSG = ByteBuffer.wrap(new byte[]{NOOP});
+	static final HexDumpEncoder dumper = new HexDumpEncoder();
+
+	final ByteBuffer NOOP_MSG = ByteBuffer.wrap(new byte[]{NOOP}).asReadOnlyBuffer();
 
 	protected Timer timer = new Timer("Timer", true);
 	protected Set<IoSession> sessions = Collections.synchronizedSet(new HashSet<IoSession>());
@@ -46,19 +79,25 @@ public class BasicHandler extends IoHandlerAdapter {
 	@Override
 	public void messageReceived(IoSession session, Object message) throws Exception {
 		if(showInfo) log.info("Incomming: "+session.getRemoteAddress().toString());
+
 		ByteBuffer data = (ByteBuffer) message;
+
+		// IN HEX DUMP
+		log.info(dumper.encode(data.asReadOnlyBuffer().buf()));
+
 		final byte type = data.get();
 		data.position(0);
+
 		switch(type){
 		case NOOP:
-			echo(session, data);
-			break;
-		case LIST:
-			list(session);
+			// drop
 			break;
 		case JOIN:
 			sessions.add(session);
 			join(session);
+			break;
+		case LIST:
+			list(session);
 			break;
 		case SEND:
 			broadcast(session, data);
@@ -69,6 +108,7 @@ public class BasicHandler extends IoHandlerAdapter {
 			leave(session);
 			break;
 		default:
+			if(showInfo) log.info("Unknown (play echo): "+session.getRemoteAddress().toString());
 			echo(session, data);
 			break;
 		}
@@ -119,9 +159,7 @@ public class BasicHandler extends IoHandlerAdapter {
 	@Override
 	public void sessionCreated(IoSession session) throws Exception {
 		if(showInfo) log.info("Created: "+session.getRemoteAddress().toString());
-		sessions.add(session);
-		join(session);
-		list(session);
+		if(showInfo) log.info("Created: "+session.getRemoteAddress().toString());
 	}
 
 	protected class TimeoutTask extends TimerTask {
