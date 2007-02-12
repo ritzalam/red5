@@ -40,7 +40,7 @@ import sun.misc.HexDumpEncoder;
  *
  * Timeouts (after 10s no reply)
  *
- * << byte(exit)
+ * << byte(exit) int(id)
  *
  * @author luke
  */
@@ -93,8 +93,10 @@ public class BasicHandler extends IoHandlerAdapter {
 			// drop
 			break;
 		case JOIN:
-			sessions.add(session);
-			join(session);
+			if(!sessions.contains(session)){
+				sessions.add(session);
+				join(session);
+			}
 			break;
 		case LIST:
 			list(session);
@@ -103,9 +105,11 @@ public class BasicHandler extends IoHandlerAdapter {
 			broadcast(session, data);
 			break;
 		case EXIT:
-			sessions.remove(session);
-			session.close();
-			leave(session);
+			if(sessions.contains(session)){
+				sessions.remove(session);
+				session.close();
+				leave(session);
+			}
 			break;
 		default:
 			if(showInfo) log.info("Unknown (play echo): "+session.getRemoteAddress().toString());
