@@ -749,6 +749,36 @@
         <antcall target="server_java6" inheritAll="true" inheritRefs="true" />
     </target>
 
+	<!-- Experimental UDP Server -->
+	<target name="udp_java5" depends="compile" unless="java6.installed">
+		<java classname="org.red5.server.net.udp.Standalone" fork="true">
+			<classpath>
+				<pathelement location="${config.dir}"/>
+				<pathelement location="${classes.dir}"/>
+				<path refid="full_compatibility.classpath"/>
+			</classpath>
+			<jvmarg value="-Djava.security.manager"/>
+			<jvmarg value="-Djava.security.policy=${config.dir}/red5.policy"/>
+		</java>
+	</target>
+
+	<target name="udp_java6" depends="compile" if="java6.installed">
+		<java classname="org.red5.server.net.udp.Standalone" fork="true">
+			<classpath>
+				<pathelement location="${config.dir}"/>
+				<pathelement location="${classes.dir}"/>
+				<path refid="full.classpath"/>
+			</classpath>
+			<jvmarg value="-Djava.security.manager"/>
+			<jvmarg value="-Djava.security.policy=${config.dir}/red5.policy"/>
+		</java>
+	</target>
+
+    <target name="udp">
+        <antcall target="udp_java5" inheritAll="true" inheritRefs="true" />
+        <antcall target="udp_java6" inheritAll="true" inheritRefs="true" />
+    </target>
+
 	<!-- I have disabled this until we know its has been tested - Luke
 	<target name="webwar" depends="compile">
 		<delete dir="webdir"/>
