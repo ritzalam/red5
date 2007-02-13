@@ -275,11 +275,14 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		// Search number of starting integer keys
 		int count = 0;
 		for (int i=0; i<map.size(); i++) {
-			if (map.containsKey(i)) {
-				count++;
-			} else {
+			try {
+				if (!map.containsKey(i))
+					break;
+			} catch (ClassCastException err) {
+				// Map has non-number keys.
 				break;
 			}
+			count++;
 		}
 
 		amf3_mode += 1;

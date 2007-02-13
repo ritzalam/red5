@@ -124,8 +124,13 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		buf.put(AMF.TYPE_MIXED_ARRAY);
 		int maxInt=-1;
 		for (int i=0; i<map.size(); i++) {
-			if (!map.containsKey(i))
+			try {
+				if (!map.containsKey(i))
+					break;
+			} catch (ClassCastException err) {
+				// Map has non-number keys.
 				break;
+			}
 
 			maxInt = i;
 		}
