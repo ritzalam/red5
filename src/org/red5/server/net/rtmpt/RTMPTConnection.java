@@ -181,13 +181,9 @@ public class RTMPTConnection extends RTMPConnection {
 		if (!isClosing())
 			return;
 
-		if (this.buffer != null) {
-			this.buffer = null;
-		}
-		for (int b=0;b < pendingMessages.size();b++) {
-			pendingMessages.add(b, null);
-		}
+		buffer = null;
 		pendingMessages.clear();
+		notifyMessages.clear();
 		state.setState(RTMP.STATE_DISCONNECTED);
 		synchronized (idSet) {
 			int id = Integer.valueOf(clientId);
