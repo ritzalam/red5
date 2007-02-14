@@ -23,9 +23,19 @@
 		<property name="location" value="classpath:/red5.properties" />
 	</bean>
 	
+    <bean id="threadExecutor"
+        class="org.apache.mina.integration.spring.ThreadPoolExecutorFactoryBean">
+        <!-- use configured thread count as core pool size -->
+        <property name="corePoolSize" value="${rtmp.threadcount}" />
+        <!-- use a SynchronousQueue to handle requests to the threads -->
+        <property name="queueCapacity" value="0" />
+    </bean>
+    
 	<bean class="org.apache.mina.transport.socket.nio.SocketAcceptor"
 		init-method="bind" destroy-method="unbind">
 		<!-- RTMP -->
+		<constructor-arg value="${rtmp.threadcount}" />
+		<constructor-arg><ref bean="threadExecutor"/></constructor-arg>
 		<property name="localAddress" value="${rtmp.host_port}" />
 		<property name="handler" ref="rtmpMinaIoHandler" />
 		<property name="sessionConfig">
