@@ -29,7 +29,6 @@
 	<classpathentry kind="lib" path="lib/commons-modeler.jar"/>
 	<classpathentry kind="lib" path="lib/commons-pool-1.3.jar"/>
 	<classpathentry kind="lib" path="lib/jruby.jar"/>
-	<classpathentry kind="lib" path="lib/judo.jar"/>
 	<classpathentry kind="lib" path="lib/jython.jar"/>
 	<classpathentry kind="lib" path="lib/naming-factory.jar"/>
 	<classpathentry kind="lib" path="lib/naming-resources.jar"/>
