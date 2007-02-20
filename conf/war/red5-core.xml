@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:lang="http://www.springframework.org/schema/lang"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
+	http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-2.0.xsd">
+	<!-- This context holds all the networking: mina -->
+
+	<bean id="customEditorConfigurer"
+		class="org.springframework.beans.factory.config.CustomEditorConfigurer">
+		<property name="customEditors">
+			<map>
+				<entry key="java.net.SocketAddress">
+					<bean
+						class="org.apache.mina.integration.spring.InetSocketAddressEditor" />
+				</entry>
+			</map>
+		</property>
+	</bean>
+
+	<bean id="placeholderConfig"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="location" value="classpath:/red5.properties" />
+	</bean>
+
+    <bean id="threadExecutor"
+        class="org.apache.mina.integration.spring.ThreadPoolExecutorFactoryBean">
+        <!-- use configured thread count as core pool size -->
+        <property name="corePoolSize" value="${rtmp.threadcount}" />
+        <!-- use a SynchronousQueue to handle requests to the threads -->
+        <property name="queueCapacity" value="0" />
+    </bean>
+
+	<bean class="org.apache.mina.transport.socket.nio.SocketAcceptor"
+		init-method="bind" destroy-method="unbind">
+		<!-- RTMP -->
+		<constructor-arg value="${rtmp.threadcount}" />
+		<constructor-arg><ref bean="threadExecutor"/></constructor-arg>
+		<property name="localAddress" value="${rtmp.host_port}" />
+		<property name="handler" ref="rtmpMinaIoHandler" />
+		<property name="sessionConfig">
+			<bean
+				class="org.apache.mina.transport.socket.nio.DefaultSocketSessionConfig">
+				<property name="reuseAddress" value="true" />
+				<!--
+				<property name="tcpNoDelay" value="true"/>
+				<property name="sendBufferSize" value="1024"/>
+				<property name="receiveBufferSize" value="1024"/>
+				<property name="soLinger" value="10"/>
+				<property name="oobInline" value="false"/>
+				<property name="keepAlive" value="true"/>
+				 -->
+			</bean>
+		</property>
+	</bean>
+
+	<!-- RTMPHandler -->
+	<bean id="rtmpHandler"
+		class="org.red5.server.net.rtmp.RTMPHandler">
+		<property name="server" ref="red5.server" />
+		<property name="statusObjectService" ref="statusObjectService" />
+	</bean>
+
+	<bean id="rtmpMinaIoHandler"
+		class="org.red5.server.net.rtmp.RTMPMinaIoHandler">
+		<property name="handler" ref="rtmpHandler" />
+		<property name="codecFactory" ref="rtmpCodecFactory" />
+	</bean>
+
+	<bean id="rtmptHandler"
+		class="org.red5.server.net.rtmpt.RTMPTHandler" autowire="byType">
+		<property name="codecFactory" ref="rtmpCodecFactory" />
+	</bean>
+
+	<bean id="rtmpMinaConnection" scope="prototype"
+		class="org.red5.server.net.rtmp.RTMPMinaConnection">
+		<property name="keepAliveInterval" value="10000" />
+	</bean>
+
+	<bean id="rtmptConnection" scope="prototype"
+		class="org.red5.server.net.rtmpt.RTMPTConnection">
+		<property name="keepAliveInterval" value="10000" />
+	</bean>
+
+</beans>

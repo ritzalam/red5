@@ -36,7 +36,9 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.access.ContextSingletonBeanFactoryLocator;
+import org.springframework.context.support.FileSystemXmlApplicationContext;
 import org.springframework.core.io.Resource;
+import org.springframework.web.context.ConfigurableWebApplicationContext;
 
 /**
  * {@inheritDoc}
@@ -79,12 +81,9 @@ public class Context implements IContext, ApplicationContextAware {
 	private IPersistenceStore persistanceStore;
 
     /**
-     *  Initializes core context bean factory using red5.core bean factory from ref5.xml context
+     *  Initializes core context bean factory using red5.core bean factory from red5.xml context
      */
 	public Context() {
-		coreContext = ContextSingletonBeanFactoryLocator
-				.getInstance("red5.xml").useBeanFactory("red5.core")
-				.getFactory();
 	}
 
     /**
@@ -93,7 +92,7 @@ public class Context implements IContext, ApplicationContextAware {
      * @param contextPath              Context path
      */
 	public Context(ApplicationContext context, String contextPath) {
-		this.applicationContext = context;
+		setApplicationContext(context);
 		this.contextPath = contextPath;
 	}
 
@@ -168,6 +167,13 @@ public class Context implements IContext, ApplicationContextAware {
      */
 	public void setApplicationContext(ApplicationContext context) {
 		this.applicationContext = context;
+		if (context instanceof FileSystemXmlApplicationContext) {
+			//standalone core context
+			coreContext = ContextSingletonBeanFactoryLocator.getInstance("red5.xml").useBeanFactory("red5.core").getFactory();			
+		} else {
+			//used by the WAR version
+			coreContext = ((ConfigurableWebApplicationContext) applicationContext).getBeanFactory();
+		}
 	}
 
     /**
