@@ -422,6 +422,7 @@
             <fileset dir="${webapps.dir}/oflaDemo/streams"/>
         </copy>
         
+        <!-- remove directories we dont want in the war -->
         <delete dir="${classes.dir}/tmp"/>
         <delete dir="${classes.dir}/testcases"/>
 
