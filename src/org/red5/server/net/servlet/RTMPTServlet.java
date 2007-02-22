@@ -33,7 +33,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.mina.common.ByteBuffer;
-import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmpt.RTMPTConnection;
 import org.red5.server.net.rtmpt.RTMPTHandler;
 
@@ -44,6 +43,8 @@ import org.red5.server.net.rtmpt.RTMPTHandler;
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public class RTMPTServlet extends HttpServlet {
+
+	private static final long serialVersionUID = -3097083526127047079L;
 
 	protected static Logger log = Logger.getLogger(RTMPTServlet.class);
 
@@ -155,7 +156,10 @@ public class RTMPTServlet extends HttpServlet {
 		resp.setHeader("Connection", "Keep-Alive");
 		resp.setHeader("Cache-Control", "no-cache");
 		resp.setContentType(CONTENT_TYPE);
-		log.debug("Sending " + buffer.limit() + " bytes.");
+		//this will prevent stringbuffers from being created when not in debug mode
+		if (log.isDebugEnabled()) {
+			log.debug("Sending " + buffer.limit() + " bytes.");
+		}
 		resp.setContentLength(buffer.limit() + 1);
 		ServletOutputStream output = resp.getOutputStream();
 		output.write(client.getPollingDelay());
@@ -168,15 +172,18 @@ public class RTMPTServlet extends HttpServlet {
 	 */
 	protected String getClientId(HttpServletRequest req) {
 		String path = req.getPathInfo();
-		if (path.equals(""))
+		if (path.equals("")) {
 			return "";
+		}
 
-		if (path.charAt(0) == '/')
+		if (path.charAt(0) == '/') {
 			path = path.substring(1);
+		}
 
 		int endPos = path.indexOf('/');
-		if (endPos != -1)
+		if (endPos != -1) {
 			path = path.substring(0, endPos);
+		}
 
 		return path;
 	}
@@ -190,7 +197,10 @@ public class RTMPTServlet extends HttpServlet {
 	protected RTMPTConnection getClient(HttpServletRequest req) {
 		String id = getClientId(req);
 		if (StringUtils.isEmpty(id) || !rtmptClients.containsKey(id)) {
-			log.debug("Unknown client id: " + id);
+			//this will prevent stringbuffers from being created when not in debug mode
+			if (log.isDebugEnabled()) {
+				log.debug("Unknown client id: " + id);
+			}
 			return null;
 		}
 
@@ -282,7 +292,7 @@ public class RTMPTServlet extends HttpServlet {
 
 		RTMPTHandler handler = (RTMPTHandler) getServletContext().getAttribute(RTMPTHandler.HANDLER_ATTRIBUTE);
 		client.setServletRequest(req);
-		handler.connectionClosed(client, (RTMP) client.getState());
+		handler.connectionClosed(client, client.getState());
 
 		returnMessage((byte) 0, resp);
 	}
@@ -361,37 +371,8 @@ public class RTMPTServlet extends HttpServlet {
 
 	/**
 	 * Main entry point for the servlet.
-	 * /
-	protected void service(HttpServletRequest req, HttpServletResponse resp)
-		throws ServletException, IOException {
-
-		if (!req.getMethod().equals(REQUEST_METHOD) ||
-			req.getContentLength() == 0 ||
-			req.getContentType() == null ||
-			!req.getContentType().equals(CONTENT_TYPE)) {
-			// Bad request - return simple error page
-			handleBadRequest("Bad request, only RTMPT supported.", resp);
-			return;
-		}
-
-		String path = req.getServletPath();
-		if (path.equals(OPEN_REQUEST)) {
-			handleOpen(req, resp);
-		} else if (path.equals(CLOSE_REQUEST)) {
-			handleClose(req, resp);
-		} else if (path.equals(SEND_REQUEST)) {
-			handleSend(req, resp);
-		} else if (path.equals(IDLE_REQUEST)) {
-			handleIdle(req, resp);
-		} else {
-			handleBadRequest("RTMPT command " + path + " is not supported.", resp);
-		}
-	}
-	*/
-
-	/**
-	 * Main entry point for the servlet.
 	 */
+	@Override
 	protected void service(HttpServletRequest req, HttpServletResponse resp)
 		throws ServletException, IOException {
 

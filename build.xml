@@ -12,14 +12,15 @@
 	<property name="java.home" value="${env.JDK_HOME}"/>
 
 	<property name="src.dir" value="src"/>
-	<property name="bin.dir" value="bin"/>
 	<property name="dist.dir" value="dist"/>
 	<property name="lib.dir" value="lib"/>
 	<property name="classes.dir" value="bin"/>
-	<property name="build.dir" value="build"/>	
+	<property name="webapps.dir" value="webapps"/>
 	<property name="debug.state" value="true"/>
 	<property name="config.dir" value="conf"/>
 	<property name="javadoc.dir" value="doc/api"/>
+	<!-- Special directory destination for build war - unused in normal server build -->
+	<property name="tmp.war.dir" value=""/>
 	<!-- JUNIT TESTING -->
 	<property name="test.dir" value="test"/>
 	<property name="testclass.dir" value="bin/testcases"/>
@@ -33,7 +34,7 @@
 
     <path id="script.classpath">
         <fileset dir="${lib.dir}" includesfile="${lib.dir}/script.properties" />
-        <pathelement location="${bin.dir}"/>
+        <pathelement location="${classes.dir}"/>
     </path>
 
     <!-- For use with pre-java6 environment -->
@@ -46,14 +47,14 @@
     <path id="script_compatibility.classpath">
         <fileset dir="${lib.dir}" includesfile="${lib.dir}/script.properties" />
         <fileset dir="${lib.dir}/java5" includesfile="${lib.dir}/java5/java5.properties" />
-        <pathelement location="${bin.dir}"/>
+        <pathelement location="${classes.dir}"/>
     </path>
 
 	<path id="webapps.classpath">
 		<fileset dir="${lib.dir}">
 			<filename name="*.jar"/>
 		</fileset>
-		<pathelement location="${bin.dir}"/>
+		<pathelement location="${classes.dir}"/>
 	</path>
 
 	<path id="full.classpath">
@@ -93,45 +94,32 @@
 
 	<target name="prepare">
 		<mkdir dir="${classes.dir}"/>
-		<mkdir dir="${bin.dir}"/>
 		<mkdir dir="${dist.dir}"/>
 		<mkdir dir="${testclass.dir}"/>
 		<mkdir dir="${testreports.dir}"/>
-		<mkdir dir="${src.dir}/../webapps/echo/WEB-INF/classes"/>
-		<mkdir dir="${src.dir}/../webapps/echo/WEB-INF/lib"/>
-		<mkdir dir="${src.dir}/../webapps/fitcDemo/WEB-INF/classes"/>
-		<mkdir dir="${src.dir}/../webapps/fitcDemo/WEB-INF/lib"/>
-		<mkdir dir="${src.dir}/../webapps/midiDemo/WEB-INF/classes"/>
-		<mkdir dir="${src.dir}/../webapps/midiDemo/WEB-INF/lib"/>
-		<mkdir dir="${src.dir}/../webapps/oflaDemo/WEB-INF/classes"/>
-		<mkdir dir="${src.dir}/../webapps/oflaDemo/WEB-INF/lib"/>
-		<mkdir dir="${src.dir}/../webapps/test/WEB-INF/classes"/>
-		<mkdir dir="${src.dir}/../webapps/test/WEB-INF/lib"/>
-		<mkdir dir="${src.dir}/../webapps/tutorial/WEB-INF/classes"/>
-		<mkdir dir="${src.dir}/../webapps/tutorial/WEB-INF/lib"/>
+		<mkdir dir="${webapps.dir}/echo/WEB-INF/classes"/>
+		<mkdir dir="${webapps.dir}/echo/WEB-INF/lib"/>
+		<mkdir dir="${webapps.dir}/fitcDemo/WEB-INF/classes"/>
+		<mkdir dir="${webapps.dir}/fitcDemo/WEB-INF/lib"/>
+		<mkdir dir="${webapps.dir}/midiDemo/WEB-INF/classes"/>
+		<mkdir dir="${webapps.dir}/midiDemo/WEB-INF/lib"/>
+		<mkdir dir="${webapps.dir}/oflaDemo/WEB-INF/classes"/>
+		<mkdir dir="${webapps.dir}/oflaDemo/WEB-INF/lib"/>
+		<mkdir dir="${webapps.dir}/test/WEB-INF/classes"/>
+		<mkdir dir="${webapps.dir}/test/WEB-INF/lib"/>
+		<mkdir dir="${webapps.dir}/tutorial/WEB-INF/classes"/>
+		<mkdir dir="${webapps.dir}/tutorial/WEB-INF/lib"/>
 	</target>
 
 	<!-- do a clean -->
 
 	<target name="clean">
-		<delete dir="${build.dir}"/>
 		<delete dir="${classes.dir}"/>
-		<delete dir="${bin.dir}"/>
 		<delete dir="${dist.dir}"/>
 		<delete dir="${javadoc.dir}"/>
 		<delete dir="${testdoc.dir}"/>
-		<delete dir="${src.dir}/../webapps/echo/WEB-INF/classes"/>
-		<delete dir="${src.dir}/../webapps/echo/WEB-INF/lib"/>
-		<delete dir="${src.dir}/../webapps/fitcDemo/WEB-INF/classes"/>
-		<delete dir="${src.dir}/../webapps/fitcDemo/WEB-INF/lib"/>
-		<delete dir="${src.dir}/../webapps/midi/WEB-INF/classes"/>
-	    <delete dir="${src.dir}/../webapps/midi/WEB-INF/lib"/>
-		<delete dir="${src.dir}/../webapps/oflaDemo/WEB-INF/classes"/>
-		<delete dir="${src.dir}/../webapps/oflaDemo/WEB-INF/lib"/>
-		<delete dir="${src.dir}/../webapps/test/WEB-INF/classes"/>
-		<delete dir="${src.dir}/../webapps/test/WEB-INF/lib"/>
-		<delete dir="${src.dir}/../webapps/tutorial/WEB-INF/classes"/>
-		<delete dir="${src.dir}/../webapps/tutorial/WEB-INF/lib"/>
+		<delete dir="${webapps.dir}/**/WEB-INF/classes"/>
+		<delete dir="${webapps.dir}/**/WEB-INF/lib"/>
 	</target>
 
 	<target name="compile" depends="-java6.check, -junit.check, prepare">
@@ -151,107 +139,7 @@
         <antcall target="compile_core" inheritAll="true" inheritRefs="true" />
         <antcall target="compile_core_compatibility" inheritAll="true" inheritRefs="true" />
 
-		<javac
-			sourcepath=""
-			srcdir="${src.dir}/../webapps/echo/WEB-INF/src"
-			destdir="${src.dir}/../webapps/echo/WEB-INF/classes"
-			classpathref="webapps.classpath"
-            optimize="${build.optimize}"
-            verbose="${build.verbose}"
-            fork="${build.fork}"
-            nowarn="${build.nowarn}"
-            deprecation="${build.deprecation}"
-            debug="${debug.state}"
-            compiler="${compiler}"
-            source="${java.target_version}"
-            target="${java.target_version}"
-		/>
-
-		<javac
-			sourcepath=""
-			srcdir="${src.dir}/../webapps/fitcDemo/WEB-INF/src"
-			destdir="${src.dir}/../webapps/fitcDemo/WEB-INF/classes"
-			classpathref="webapps.classpath"
-            optimize="${build.optimize}"
-            verbose="${build.verbose}"
-            fork="${build.fork}"
-            nowarn="${build.nowarn}"
-            deprecation="${build.deprecation}"
-            debug="${debug.state}"
-            compiler="${compiler}"
-            source="${java.target_version}"
-            target="${java.target_version}"
-		/>
-
-		<javac
-			sourcepath=""
-			srcdir="${src.dir}/../webapps/midiDemo/WEB-INF/src"
-			destdir="${src.dir}/../webapps/midiDemo/WEB-INF/classes"
-			classpathref="webapps.classpath"
-            optimize="${build.optimize}"
-            verbose="${build.verbose}"
-            fork="${build.fork}"
-            nowarn="${build.nowarn}"
-            deprecation="${build.deprecation}"
-            debug="${debug.state}"
-            compiler="${compiler}"
-            source="${java.target_version}"
-            target="${java.target_version}"
-        />
-
-		<javac
-			sourcepath=""
-			srcdir="${src.dir}/../webapps/oflaDemo/WEB-INF/src"
-			destdir="${src.dir}/../webapps/oflaDemo/WEB-INF/classes"
-			classpathref="webapps.classpath"
-            optimize="${build.optimize}"
-            verbose="${build.verbose}"
-            fork="${build.fork}"
-            nowarn="${build.nowarn}"
-            deprecation="${build.deprecation}"
-            debug="${debug.state}"
-            compiler="${compiler}"
-            source="${java.target_version}"
-            target="${java.target_version}"
-		/>
-
-        <mkdir dir="webapps/oflaDemo/WEB-INF/classes/applications"/>
-
-        <copy todir="webapps/oflaDemo/WEB-INF/classes/applications">
-            <fileset dir="webapps/oflaDemo/WEB-INF/src/applications"/>
-        </copy>
-
-		<javac
-			sourcepath=""
-			srcdir="${src.dir}/../webapps/test/WEB-INF/src"
-			destdir="${src.dir}/../webapps/test/WEB-INF/classes"
-            classpathref="webapps.classpath"
-            optimize="${build.optimize}"
-            verbose="${build.verbose}"
-            fork="${build.fork}"
-            nowarn="${build.nowarn}"
-            deprecation="${build.deprecation}"
-            debug="${debug.state}"
-            compiler="${compiler}"
-            source="${java.target_version}"
-            target="${java.target_version}"
-        />
-
-		<javac
-			sourcepath=""
-			srcdir="${src.dir}/../webapps/tutorial/WEB-INF/src"
-			destdir="${src.dir}/../webapps/tutorial/WEB-INF/classes"
-            classpathref="webapps.classpath"
-            optimize="${build.optimize}"
-            verbose="${build.verbose}"
-            fork="${build.fork}"
-            nowarn="${build.nowarn}"
-            deprecation="${build.deprecation}"
-            debug="${debug.state}"
-            compiler="${compiler}"
-            source="${java.target_version}"
-            target="${java.target_version}"
-        />
+        <antcall target="compile_demos" inheritAll="true" inheritRefs="true" />
 
         <antcall target="compile_script" inheritAll="true" inheritRefs="true" />
         <antcall target="compile_script_compatibility" inheritAll="true" inheritRefs="true" />
@@ -277,7 +165,7 @@
             source="${java.target_version}"
             target="${java.target_version}"
             memoryMaximumSize="1024m"
-            excludes="**/*.jsp,com/sun/**,org/red5/server/script/**"
+            excludes="**/*.jsp,org/red5/server/script/**"
             listfiles="false"
             />
     </target>
@@ -300,9 +188,114 @@
             source="${java.target_version}"
             target="${java.target_version}"
             memoryMaximumSize="1024m"
-            excludes="**/*.jsp,com/sun/**,org/red5/server/script/**"
+            excludes="**/*.jsp,org/red5/server/script/**"
             listfiles="false"
             />
+    </target>
+    
+    <!-- Demos -->
+    <target name="compile_demos">    
+		<javac
+			sourcepath=""
+			srcdir="${webapps.dir}/echo/WEB-INF/src"
+			destdir="${webapps.dir}${tmp.war.dir}/echo/WEB-INF/classes"
+			classpathref="webapps.classpath"
+            optimize="${build.optimize}"
+            verbose="${build.verbose}"
+            fork="${build.fork}"
+            nowarn="${build.nowarn}"
+            deprecation="${build.deprecation}"
+            debug="${debug.state}"
+            compiler="${compiler}"
+            source="${java.target_version}"
+            target="${java.target_version}"
+		/>
+
+		<javac
+			sourcepath=""
+			srcdir="${webapps.dir}/fitcDemo/WEB-INF/src"
+			destdir="${webapps.dir}${tmp.war.dir}/fitcDemo/WEB-INF/classes"
+			classpathref="webapps.classpath"
+            optimize="${build.optimize}"
+            verbose="${build.verbose}"
+            fork="${build.fork}"
+            nowarn="${build.nowarn}"
+            deprecation="${build.deprecation}"
+            debug="${debug.state}"
+            compiler="${compiler}"
+            source="${java.target_version}"
+            target="${java.target_version}"
+		/>
+
+		<javac
+			sourcepath=""
+			srcdir="${webapps.dir}/midiDemo/WEB-INF/src"
+			destdir="${webapps.dir}/midiDemo/WEB-INF/classes"
+			classpathref="webapps.classpath"
+            optimize="${build.optimize}"
+            verbose="${build.verbose}"
+            fork="${build.fork}"
+            nowarn="${build.nowarn}"
+            deprecation="${build.deprecation}"
+            debug="${debug.state}"
+            compiler="${compiler}"
+            source="${java.target_version}"
+            target="${java.target_version}"
+        />
+
+		<javac
+			sourcepath=""
+			srcdir="${webapps.dir}/oflaDemo/WEB-INF/src"
+			destdir="${webapps.dir}${tmp.war.dir}/oflaDemo/WEB-INF/classes"
+			classpathref="webapps.classpath"
+            optimize="${build.optimize}"
+            verbose="${build.verbose}"
+            fork="${build.fork}"
+            nowarn="${build.nowarn}"
+            deprecation="${build.deprecation}"
+            debug="${debug.state}"
+            compiler="${compiler}"
+            source="${java.target_version}"
+            target="${java.target_version}"
+		/>
+
+        <mkdir dir="${webapps.dir}/oflaDemo/WEB-INF/classes/applications"/>
+
+        <copy todir="${webapps.dir}/oflaDemo/WEB-INF/classes/applications">
+            <fileset dir="${webapps.dir}/oflaDemo/WEB-INF/src/applications"/>
+        </copy>
+
+		<javac
+			sourcepath=""
+			srcdir="${webapps.dir}/test/WEB-INF/src"
+			destdir="${webapps.dir}/test/WEB-INF/classes"
+            classpathref="webapps.classpath"
+            optimize="${build.optimize}"
+            verbose="${build.verbose}"
+            fork="${build.fork}"
+            nowarn="${build.nowarn}"
+            deprecation="${build.deprecation}"
+            debug="${debug.state}"
+            compiler="${compiler}"
+            source="${java.target_version}"
+            target="${java.target_version}"
+        />
+
+		<javac
+			sourcepath=""
+			srcdir="${webapps.dir}/tutorial/WEB-INF/src"
+			destdir="${webapps.dir}${tmp.war.dir}/tutorial/WEB-INF/classes"
+            classpathref="webapps.classpath"
+            optimize="${build.optimize}"
+            verbose="${build.verbose}"
+            fork="${build.fork}"
+            nowarn="${build.nowarn}"
+            deprecation="${build.deprecation}"
+            debug="${debug.state}"
+            compiler="${compiler}"
+            source="${java.target_version}"
+            target="${java.target_version}"
+        />    
     </target>
 
     <!-- Scripting -->
@@ -324,6 +317,7 @@
             source="${java.target_version}"
             target="${java.target_version}"
             memoryMaximumSize="1024m"
+            includes="org/red5/server/script/**"
             listfiles="false"
             />
     </target>
@@ -346,6 +340,7 @@
             source="${java.target_version}"
             target="${java.target_version}"
             memoryMaximumSize="1024m"
+            includes="org/red5/server/script/**"           
             listfiles="false"
             />
     </target>
@@ -364,12 +359,12 @@
         <property name="compiler" value="${build.compiler}" />
         <echo message="Compiler adapter name: ${compiler}" />
 
-    	<mkdir dir="${build.dir}/WEB-INF/classes"/>
+    	<mkdir dir="${classes.dir}/WEB-INF/classes"/>
 		
 		<javac
 			sourcepath=""
 			srcdir="${src.dir}"
-			destdir="${build.dir}/WEB-INF/classes"
+			destdir="${classes.dir}/WEB-INF/classes"
             classpathref="project.classpath"
 
             optimize="${build.optimize}"
@@ -384,14 +379,11 @@
             target="${java.target_version}"
             memoryMaximumSize="1024m"
             excludes="**/*.jsp,
-                com/sun/**,
                 org/red5/server/script/**,
                 org/red5/io/filter/**,
-                org/red5/samples/**,
                 org/red5/server/jetty/**,
                 org/red5/server/midi/**,                
-                org/red5/server/net/rtmpt/RTMPTLoader.java,
-                org/red5/server/net/rtmpt/TomcatRTMPTLoader.java,
+                org/red5/server/net/rtmpt/*Loader.java,
                 org/red5/server/net/servlet/RTMPTServlet.java,
                 org/red5/server/net/servlet/StatisticsServlet.java,
                 org/red5/server/net/servlet/ZAMFGatewayServlet.java,
@@ -403,10 +395,43 @@
             listfiles="false"
             />
 
-<!--
-        <antcall target="compile_script" inheritAll="true" inheritRefs="true" />
-        <antcall target="compile_script_compatibility" inheritAll="true" inheritRefs="true" />
--->
+        <!-- only certain classes from selected demos are copied to the war -->
+		<mkdir dir="${classes.dir}/tmp/echo/WEB-INF/classes"/>
+		<mkdir dir="${classes.dir}/tmp/fitcDemo/WEB-INF/classes"/>
+		<mkdir dir="${classes.dir}/tmp/oflaDemo/WEB-INF/classes"/>
+		<mkdir dir="${classes.dir}/tmp/SOSample/WEB-INF/classes"/>
+		<mkdir dir="${classes.dir}/tmp/tutorial/WEB-INF/classes"/>
+		
+		<!-- demos are compiled to a temporary directory -->
+        <antcall target="compile_demos" inheritAll="true" inheritRefs="true">
+            <param name="classes.dir" value="${classes.dir}/WEB-INF/classes" />
+            <param name="tmp.war.dir" value="/../${classes.dir}/tmp" />
+        </antcall>
+
+        <!-- copy compiled demo classes to the primary war classes directory -->
+        <copy todir="${classes.dir}/WEB-INF/classes">
+            <fileset dir="${classes.dir}/tmp/echo/WEB-INF/classes"/>
+            <fileset dir="${classes.dir}/tmp/fitcDemo/WEB-INF/classes"/>
+            <fileset dir="${classes.dir}/tmp/oflaDemo/WEB-INF/classes"/>
+            <fileset dir="${classes.dir}/tmp/SOSample/WEB-INF/classes"/>
+            <fileset dir="${classes.dir}/tmp/tutorial/WEB-INF/classes"/>
+        </copy>
+
+        <!-- demo stream files -->
+        <copy todir="${classes.dir}/streams">
+            <fileset dir="${webapps.dir}/oflaDemo/streams"/>
+        </copy>
+        
+        <delete dir="${classes.dir}/tmp"/>
+        <delete dir="${classes.dir}/testcases"/>
+
+        <antcall target="compile_script" inheritAll="true" inheritRefs="true">
+            <param name="classes.dir" value="${classes.dir}/WEB-INF/classes" />
+        </antcall>
+        <antcall target="compile_script_compatibility" inheritAll="true" inheritRefs="true">
+            <param name="classes.dir" value="${classes.dir}/WEB-INF/classes" />
+        </antcall>
+
 	</target>	
 	
 	<target name="javadoc_compatibility" description="Generate JavaDoc" unless="java6.installed">
@@ -688,20 +713,20 @@
         <antcall target="jar_java5" inheritAll="true" inheritRefs="true" />
         <antcall target="jar_java6" inheritAll="true" inheritRefs="true" />
 
-		<jar destfile="${src.dir}/../webapps/echo/WEB-INF/lib/echo.jar">
-			<fileset dir="${src.dir}/../webapps/echo/WEB-INF/classes">
+		<jar destfile="${webapps.dir}/echo/WEB-INF/lib/echo.jar">
+			<fileset dir="${webapps.dir}/echo/WEB-INF/classes">
 				<include name="**"/>
 			</fileset>
 		</jar>
 
-		<jar destfile="${src.dir}/../webapps/fitcDemo/WEB-INF/lib/fitcDemo.jar">
-			<fileset dir="${src.dir}/../webapps/fitcDemo/WEB-INF/classes">
+		<jar destfile="${webapps.dir}/fitcDemo/WEB-INF/lib/fitcDemo.jar">
+			<fileset dir="${webapps.dir}/fitcDemo/WEB-INF/classes">
 				<include name="**"/>
 			</fileset>
 		</jar>
 
-		<jar destfile="${src.dir}/../webapps/midiDemo/WEB-INF/lib/midiDemo.jar">
-			<fileset dir="${src.dir}/../webapps/midiDemo/WEB-INF/classes">
+		<jar destfile="${webapps.dir}/midiDemo/WEB-INF/lib/midiDemo.jar">
+			<fileset dir="${webapps.dir}/midiDemo/WEB-INF/classes">
 				<include name="**"/>
 			</fileset>
 		</jar>
@@ -718,14 +743,14 @@
 			</fileset>
 		</jar>
 
-		<jar destfile="${src.dir}/../webapps/test/WEB-INF/lib/test.jar">
-			<fileset dir="${src.dir}/../webapps/test/WEB-INF/classes">
+		<jar destfile="${webapps.dir}/test/WEB-INF/lib/test.jar">
+			<fileset dir="${webapps.dir}/test/WEB-INF/classes">
 				<include name="**"/>
 			</fileset>
 		</jar>
 
-		<jar destfile="${src.dir}/../webapps/tutorial/WEB-INF/lib/tutorial.jar">
-			<fileset dir="${src.dir}/../webapps/tutorial/WEB-INF/classes">
+		<jar destfile="${webapps.dir}/tutorial/WEB-INF/lib/tutorial.jar">
+			<fileset dir="${webapps.dir}/tutorial/WEB-INF/classes">
 				<include name="**"/>
 			</fileset>
 		</jar>
@@ -872,22 +897,16 @@
 		</javac>
 	</target>
 
-	<target name="all" depends="clean, prepare, compile, jar, javadoc"/>
-
-    <target name="usage">
-        <echo message="Type ant -p for available targets" />
-    </target>
-
 	<target name="webwar" description="Make Web Archive" depends="compile_war">
         <tstamp prefix="build">
             <format property="TODAY" pattern="d-MMMM-yyyy" locale="en" />
         </tstamp>
-		<copy todir="${build.dir}">
+		<copy todir="${classes.dir}">
 			<fileset dir=".">
 				<include name="license.txt"/>
 			</fileset>
 		</copy>
-		<copy todir="${build.dir}">
+		<copy todir="${classes.dir}">
 			<fileset dir="webapps/root">
 				<include name="**/*.html"/>
 				<include name="**/*.jsp"/>
@@ -899,15 +918,17 @@
 				<exclude name="WEB-INF"/>
 			</fileset>
 		</copy>
-		<copy todir="${build.dir}/WEB-INF">
+		<copy todir="${classes.dir}/WEB-INF">
 			<fileset dir="conf/war">
 				<include name="*.xml"/>
 				<include name="*.properties"/>
 				<exclude name="web.xml"/>
 			</fileset>
 		</copy>
+        <!-- copy the red5 properties into the webapp classpath -->
+        <copy todir="${classes.dir}/WEB-INF/classes" file="${classes.dir}/WEB-INF/red5.properties"/>		
 		<war destfile="${dist.dir}/red5.war" webxml="conf/war/web.xml">
-			<fileset dir="${build.dir}"/>
+			<fileset dir="${classes.dir}"/>
             <lib dir="${lib.dir}">
                 <exclude name="test/**"/>
                 <exclude name="java5/**"/>
@@ -927,48 +948,11 @@
 			</manifest>
 		</war>
 	</target>
-
-<!--
-1. Files to skip when building war:
-org.red5.server.net.rtmpt
-    RTMPTLoader
-    TomcatRTMPTLoader
-
-org.red5.server.net.servlet
-    RTMPTServlet
-    StatisticsServlet
-    ZAMFGatewayServlet
-
-org.red5.server
-    ContextLoader
-    DebugPooledByteBufferAllocator
-    JettyLoader
-    Standalone
-    TomcatLoader
-
-2. Directories to skip:
-org.red5.io
-    filter
-
-org.red5
-    samples
-
-org.red5.server
-    jetty
-    midi
-    
-3. Special war classes: - added to main trunk PG
-org.red5.server
-    MainServlet
-    
-4. Special war directories:
-org.red5.server
-    webapp
-    
-5. Shared classes that differ slightly - fixed PG
-org.red5.server
-    Context
-
--->	
 	
+	<target name="all" depends="clean, prepare, compile, jar, javadoc"/>
+
+    <target name="usage">
+        <echo message="Type ant -p for available targets" />
+    </target>	
+
 </project>
