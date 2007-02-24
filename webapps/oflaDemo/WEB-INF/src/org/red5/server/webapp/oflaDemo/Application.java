@@ -1,11 +1,12 @@
 package org.red5.server.webapp.oflaDemo;
 
 import org.red5.server.adapter.ApplicationAdapter;
+import org.red5.server.api.IBandwidthConfigure;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
 import org.red5.server.api.stream.IServerStream;
 import org.red5.server.api.stream.IStreamCapableConnection;
-import org.red5.server.api.stream.support.SimpleBandwidthConfigure;
+import org.red5.server.api.stream.support.SimpleConnectionBWConfig;
 
 public class Application extends ApplicationAdapter {
 	private IScope appScope;
@@ -26,11 +27,12 @@ public class Application extends ApplicationAdapter {
 		measureBandwidth(conn);
 		if (conn instanceof IStreamCapableConnection) {
 			IStreamCapableConnection streamConn = (IStreamCapableConnection) conn;
-			SimpleBandwidthConfigure sbc = new SimpleBandwidthConfigure();
-			sbc.setMaxBurst(8 * 1024 * 1024);
-			sbc.setBurst(8 * 1024 * 1024);
-			sbc.setOverallBandwidth(2 * 1024 * 1024);
-			streamConn.setBandwidthConfigure(sbc);
+			SimpleConnectionBWConfig bwConfig = new SimpleConnectionBWConfig();
+			bwConfig.getChannelBandwidth()[IBandwidthConfigure.OVERALL_CHANNEL] =
+				1024 * 1024;
+			bwConfig.getChannelInitialBurst()[IBandwidthConfigure.OVERALL_CHANNEL] =
+				128 * 1024;
+			streamConn.setBandwidthConfigure(bwConfig);
 		}
 		
 //		if (appScope == conn.getScope()) {

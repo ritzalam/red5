@@ -102,9 +102,13 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
      */
 	private PlayEngine engine;
     /**
-     * Service that controls flow (that is, bandwidth)
+     * Service that controls bandwidth
      */
-	private IFlowControlService flowControlService;
+	private IBWControlService bwController;
+	/**
+	 * Operating context for bandwidth controller
+	 */
+	private IBWControlContext bwContext;
     /**
      * Stream flow controller
      */
@@ -140,9 +144,15 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 
 	/** {@inheritDoc} */
     public void start() {
-        // Create flow control service from Spring bean factory
-        flowControlService = (IFlowControlService) getScope().getContext()
-				.getBean(IFlowControlService.KEY);
+        // Create bw control service from Spring bean factory
+    	// and register myself
+    	// XXX Bandwidth control service should not be bound to
+    	// a specific scope because it's designed to control
+    	// the bandwidth system-wide.
+        bwController = (IBWControlService) getScope().getContext()
+				.getBean(IBWControlService.KEY);
+        bwContext = bwController.registerBWControllable(this);
+        
         // Start playback engine
         engine.start();
         // Notify subscribers on start
@@ -224,7 +234,8 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 	/** {@inheritDoc} */
     public void close() {
 		engine.close();
-		flowControlService.releaseFlowControllable(this);
+		// unregister myself from bandwidth controller
+		bwController.unregisterBWControllable(bwContext);
 		notifySubscriberClose();
 	}
 
@@ -326,9 +337,14 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			int count = items.size();
 			while (count-- > 0) {
 				try {
-					engine.play(item);
-					if (needPause) {
-						engine.pause(0);
+					// synchronize play engine to make sure
+					// the pause and seek to start atomic
+					synchronized (engine) {
+						engine.play(item);
+						if (needPause) {
+							engine.pause(0);
+							engine.seek(0);
+						}
 					}
 					break;
 				} catch (StreamNotFoundException e) {
@@ -662,7 +678,9 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
         /**
          *
          */
-		private boolean isWaitingForToken;
+		private boolean isWaitingForToken = false;
+		
+		private boolean needCheckBandwidth = true;
 
         /**
          * State machine for video frame dropping in live streams
@@ -691,10 +709,10 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			msgOut = consumerManager
 					.getConsumerOutput(PlaylistSubscriberStream.this);
 			msgOut.subscribe(this, null);
-			audioBucket = flowControlService
-					.getAudioTokenBucket(PlaylistSubscriberStream.this);
-			videoBucket = flowControlService
-					.getVideoTokenBucket(PlaylistSubscriberStream.this);
+			audioBucket = bwController
+					.getAudioBucket(bwContext);
+			videoBucket = bwController
+					.getVideoBucket(bwContext);
 		}
 
         /**
@@ -892,8 +910,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 					playLengthJob = schedulingService.addScheduledOnceJob(
 							length, this);
 				}
-				flowControlService
-						.resetTokenBuckets(PlaylistSubscriberStream.this);
+				bwController.resetBuckets(bwContext);
 				sendReset();
 				sendResumeStatus(currentItem);
 				sendVODSeekCM(msgIn, position);
@@ -924,8 +941,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				releasePendingMessage();
 				getStreamFlow().clear();
 				clearWaitJobs();
-				flowControlService
-						.resetTokenBuckets(PlaylistSubscriberStream.this);
+				bwController.resetBuckets(bwContext);
 				isWaitingForToken = false;
 				sendClearPing();
 				sendReset();
@@ -972,11 +988,12 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				msgIn.unsubscribe(this);
 				msgIn = null;
 			}
+			log.info("in stop");
 			state = State.STOPPED;
 			releasePendingMessage();
 			getStreamFlow().reset();
 			clearWaitJobs();
-			flowControlService.resetTokenBuckets(PlaylistSubscriberStream.this);
+			bwController.resetBuckets(bwContext);
 			isWaitingForToken = false;
 			notifyItemStop(currentItem);
 			sendStopStatus(currentItem);
@@ -1019,12 +1036,12 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 					size = ((IStreamData) body).getData().limit();
 					boolean toSend = true;
 					if (body instanceof VideoData) {
-						if (!videoBucket.acquireTokenNonblocking(size, this)) {
+						if (needCheckBandwidth && !videoBucket.acquireTokenNonblocking(size, this)) {
 							isWaitingForToken = true;
 							toSend = false;
 						}
 					} else if (body instanceof AudioData) {
-						if (!audioBucket.acquireTokenNonblocking(size, this)) {
+						if (needCheckBandwidth && !audioBucket.acquireTokenNonblocking(size, this)) {
 							isWaitingForToken = true;
 							toSend = false;
 						}
@@ -1036,19 +1053,19 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				} else {
 					while (true) {
 						IMessage msg = msgIn.pullMessage();
-						if (adaptFlowJob == null) {
-							adaptFlowJob = schedulingService.addScheduledJob(
-									100, new IScheduledJob() {
-										/** {@inheritDoc} */
-                                        public void execute(
-												ISchedulingService service) throws CloneNotSupportedException {
-											streamFlowController
-													.adaptBandwidthForFlow(
-															getStreamFlow(),
-															PlaylistSubscriberStream.this);
-										}
-									});
-						}
+//						if (adaptFlowJob == null) {
+//							adaptFlowJob = schedulingService.addScheduledJob(
+//									100, new IScheduledJob() {
+//										/** {@inheritDoc} */
+//                                        public void execute(
+//												ISchedulingService service) throws CloneNotSupportedException {
+//											streamFlowController
+//													.adaptBandwidthForFlow(
+//															getStreamFlow(),
+//															PlaylistSubscriberStream.this);
+//										}
+//									});
+//						}
 
 						if (msg == null) {
 							// end of the VOD stream
@@ -1085,19 +1102,20 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 								size = ((IStreamData) body).getData().limit();
 								boolean toSend = true;
 								if (body instanceof VideoData) {
-									if (!videoBucket.acquireTokenNonblocking(
+									if (needCheckBandwidth && !videoBucket.acquireTokenNonblocking(
 											size, this)) {
 										isWaitingForToken = true;
 										toSend = false;
 									}
 								} else if (body instanceof AudioData) {
-									if (!audioBucket.acquireTokenNonblocking(
+									if (needCheckBandwidth && !audioBucket.acquireTokenNonblocking(
 											size, this)) {
 										isWaitingForToken = true;
 										toSend = false;
 									}
 								}
 								if (toSend) {
+									//System.err.println("ts: " + rtmpMessage.getBody().getTimestamp());
 									sendMessage(rtmpMessage);
 								} else {
 									pendingMessage = rtmpMessage;
@@ -1480,13 +1498,15 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 
 		/** {@inheritDoc} */
         public synchronized void available(ITokenBucket bucket,
-				double tokenCount) {
+				long tokenCount) {
 			isWaitingForToken = false;
+			needCheckBandwidth = false;
 			pullAndPush();
+			needCheckBandwidth = true;
 		}
 
 		/** {@inheritDoc} */
-        public void reset(ITokenBucket bucket, double tokenCount) {
+        public void reset(ITokenBucket bucket, long tokenCount) {
 			isWaitingForToken = false;
 		}
 
@@ -1494,7 +1514,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
          * Update bandwidth configuration
          */
 		public void updateBandwithConfigure() {
-			flowControlService.updateBWConfigure(PlaylistSubscriberStream.this);
+			bwController.updateBWConfigure(bwContext);
 		}
 
         /**

@@ -20,7 +20,7 @@ package org.red5.server.api.stream;
  */
 
 import org.red5.server.api.IConnection;
-import org.red5.server.api.IFlowControllable;
+import org.red5.server.api.IBWControllable;
 
 /**
  * A connection that supports streaming.
@@ -30,7 +30,7 @@ import org.red5.server.api.IFlowControllable;
  * @author Steven Gong (steven.gong@gmail.com)
  */
 public interface IStreamCapableConnection extends IConnection,
-		IFlowControllable {
+		IBWControllable {
 
 	/**
 	 * Return a reserved stream id for use.

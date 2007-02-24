@@ -19,199 +19,59 @@ package org.red5.server.api.stream.support;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.Arrays;
+
 import org.red5.server.api.IBandwidthConfigure;
-import org.springframework.core.style.ToStringCreator;
+import org.red5.server.api.IConnectionBWConfig;
 
 /**
  * This class is the only IBandwidthConfigure implementation provided in 0.6. It's a kind
  * of ValueObject (item with a set of values that just stores data) that is used
  * to configure Red5 application bandwidth settings.
  * 
- * This class helps you to configure maximum burst amount, level of bandwidth
- * from server to client and vice versa, set bandwidth amount for audio and
- * video separately and so forth.
+ * Note: To configure the connection's bandwidth, you should use the
+ * implementation of {@link IConnectionBWConfig} instead.
  * 
- * Say if you need to limit bandwidth for each connection of create a copy of a
- * stream with lower quality you use instance of this class to set bandwidth
- * parameters.
+ * @see IConnectionBWConfig
+ * @see SimpleConnectionBWConfig
  */
 public class SimpleBandwidthConfigure implements IBandwidthConfigure {
-    /**
-     *  Audio bandwidth limit
-     */
-    private long audioBandwidth;
-
-    /**
-     *  Video bandwidth limit
-     */
-    private long videoBandwidth;
-
-    /**
-     *  Overall bandwidth limit
-     */
-    private long overallBandwidth = -1;
-
-    /**
-     *  Upstream (from client to server) banwidth limit
-     */
-    private long upstreamBandwidth = -1;
-
-    /**
-     *  Downstream (from client to server) banwidth limit
-     */
-    private long downstreamBandwidth = -1;
-
-    /**
-     *  Burst value
-     */
-    private long burst = 0;
-
-    /**
-     *  Max burst value
-     */
-    private long maxBurst = 0;
-
-    /**
-     *
-     */
-    public SimpleBandwidthConfigure() {
-
+	private long[] channelBandwidth;
+	private long[] channelInitialBurst;
+	
+	public SimpleBandwidthConfigure() {
+		channelBandwidth = new long[4];
+		Arrays.fill(channelBandwidth, -1);
+		channelInitialBurst = new long[4];
+		Arrays.fill(channelInitialBurst, -1);
+	}
+	
+	public SimpleBandwidthConfigure(IBandwidthConfigure config) {
+		channelBandwidth = new long[4];
+		channelInitialBurst = new long[4];
+		for (int i = 0; i < 4; i++) {
+			channelBandwidth[i] = config.getChannelBandwidth()[i];
+			channelInitialBurst[i] = config.getChannelInitialBurst()[i];
+		}
 	}
 
-    /**
-     * Create SimpleBandwidthConfigure from bandwidth configuration context
-     * @param config
-     */
-    public SimpleBandwidthConfigure(IBandwidthConfigure config) {
-		this.audioBandwidth = config.getAudioBandwidth();
-		this.videoBandwidth = config.getVideoBandwidth();
-		this.overallBandwidth = config.getOverallBandwidth();
-		this.upstreamBandwidth = config.getUpstreamBandwidth();
-		this.downstreamBandwidth = config.getDownstreamBandwidth();
+	public long[] getChannelBandwidth() {
+		return channelBandwidth;
 	}
 
-    /**
-     * Getter for audio bandwidth limit
-     * @return            Audio bandwidth limit
-     */
-    public long getAudioBandwidth() {
-		return audioBandwidth;
+	public long[] getChannelInitialBurst() {
+		return channelInitialBurst;
 	}
 
-    /**
-     * {@inheritDoc}
-     */
-	public void setAudioBandwidth(long audioBandwidth) {
-		this.audioBandwidth = audioBandwidth;
+	@Override
+	protected Object clone() throws CloneNotSupportedException {
+		SimpleBandwidthConfigure cloned = new SimpleBandwidthConfigure();
+		cloned.channelBandwidth = new long[4];
+		cloned.channelInitialBurst = new long[4];
+		for (int i = 0; i < 4; i++) {
+			cloned.channelBandwidth[i] = this.channelBandwidth[i];
+			cloned.channelInitialBurst[i] = this.channelInitialBurst[i];
+		}
+		return cloned;
 	}
-
-    /**
-     * {@inheritDoc}
-     */
-	public long getVideoBandwidth() {
-		return videoBandwidth;
-	}
-
-    /**
-     * {@inheritDoc}
-     */
-	public void setVideoBandwidth(long videoBandwidth) {
-		this.videoBandwidth = videoBandwidth;
-	}
-
-    /**
-     * {@inheritDoc}
-     */
-	public long getOverallBandwidth() {
-		return overallBandwidth;
-	}
-
-    /**
-     * {@inheritDoc} 
-     */
-	public void setOverallBandwidth(long overallBandwidth) {
-		this.overallBandwidth = overallBandwidth;
-	}
-
-    /**
-     * {@inheritDoc}
-     */
-	public long getUpstreamBandwidth() {
-		return upstreamBandwidth;
-	}
-
-    /**
-     * {@inheritDoc}
-     */
-	public void setUpstreamBandwidth(long upstreamBandwidth) {
-		this.upstreamBandwidth = upstreamBandwidth;
-	}
-
-    /**
-     * {@inheritDoc}
-     */
-	public long getDownstreamBandwidth() {
-		return downstreamBandwidth;
-	}
-
-    /**
-     * {@inheritDoc}
-     */
-	public void setDownstreamBandwidth(long downstreamBandwidth) {
-		this.downstreamBandwidth = downstreamBandwidth;
-	}
-
-    /**
-     * {@inheritDoc}
-     */
-	public long getBurst() {
-		return burst;
-	}
-
-    /**
-     * {@inheritDoc}
-     */
-	public void setBurst(long burst) {
-		this.burst = burst;
-	}
-
-    /**
-     * {@inheritDoc}
-     */
-	public long getMaxBurst() {
-		return maxBurst;
-	}
-
-    /**
-     * {@inheritDoc}
-     */
-	public void setMaxBurst(long maxBurst) {
-		this.maxBurst = maxBurst;
-	}
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-	public String toString() {
-		return new ToStringCreator(this).append("ALL", getOverallBandwidth())
-				.append("BURST", getBurst()).append("MAX", getMaxBurst())
-				.toString();
-	}
-
-    /**
-     * Clone bandwidth configuration object
-     * @return            Clone of current bandwidth configuration
-     */
-    @Override
-	public IBandwidthConfigure clone() {
-		IBandwidthConfigure clone = new SimpleBandwidthConfigure();
-		clone.setOverallBandwidth(getOverallBandwidth());
-		clone.setAudioBandwidth(getAudioBandwidth());
-		clone.setMaxBurst(getMaxBurst());
-		clone.setVideoBandwidth(getVideoBandwidth());
-		clone.setBurst(getBurst());
-		return clone;
-	}
-
 }

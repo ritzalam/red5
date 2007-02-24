@@ -28,13 +28,11 @@ import java.util.Map.Entry;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.red5.server.api.IBWControllable;
 import org.red5.server.api.IBandwidthConfigure;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
-import org.red5.server.api.IContext;
-import org.red5.server.api.IFlowControllable;
 import org.red5.server.api.IScope;
-import org.red5.server.stream.IFlowControlService;
 
 /**
  * Client is an abstraction representing user connected to Red5 application.
@@ -61,13 +59,6 @@ public class Client extends AttributeStore implements IClient {
      *  Scopes this client connected to
      */
 	protected HashMap<IConnection, IScope> connToScope = new HashMap<IConnection, IScope>();
-    /**
-     *  Bandwith configuration context. For each connection server-side application may vary
-     *  broadcasting quality preferences. These are stored in special object of type IBandwidthConfigure
-     *
-     *  @see  org.red5.server.api.stream.support.SimpleBandwidthConfigure
-     */
-	private IBandwidthConfigure bandwidthConfig;
 
     /**
      * Creates client, sets creation time and registers it in ClientRegistry
@@ -180,15 +171,6 @@ public class Client extends AttributeStore implements IClient {
 		while (conns.hasNext()) {
 			conns.next().close();
 		}
-		IContext context = getContextFromConnection();
-		if (context == null) {
-			return;
-		}
-
-        // Release flow controllable
-        IFlowControlService fcs = (IFlowControlService) context
-				.getBean(IFlowControlService.KEY);
-		fcs.releaseFlowControllable(this);
 	}
 
     /**
@@ -196,7 +178,8 @@ public class Client extends AttributeStore implements IClient {
      * @return      Bandwidth configuration context
      */
 	public IBandwidthConfigure getBandwidthConfigure() {
-		return this.bandwidthConfig;
+		// TODO implement it
+		return null;
 	}
 
     /**
@@ -205,7 +188,7 @@ public class Client extends AttributeStore implements IClient {
      *
      * @return     IFlowControllable instance
      */
-	public IFlowControllable getParentFlowControllable() {
+	public IBWControllable getParentBWControllable() {
 		// parent is host
 		return null;
 	}
@@ -215,14 +198,7 @@ public class Client extends AttributeStore implements IClient {
      * @param config             Bandwidth configuration context
      */
 	public void setBandwidthConfigure(IBandwidthConfigure config) {
-		IContext context = getContextFromConnection();
-		if (context == null) {
-			return;
-		}
-		IFlowControlService fcs = (IFlowControlService) context
-				.getBean(IFlowControlService.KEY);
-		this.bandwidthConfig = config;
-		fcs.updateBWConfigure(this);
+		// TODO implement it
 	}
 
     /**
@@ -246,23 +222,4 @@ public class Client extends AttributeStore implements IClient {
 			registry.removeClient(this);
 		}
 	}
-
-	/**
-	 * Get the context from anyone of the IConnection.
-	 *
-	 * @return            Context
-	 */
-	private IContext getContextFromConnection() {
-		IConnection conn = null;
-		try {
-			conn = connToScope.keySet().iterator().next();
-		} catch (Exception e) {
-			log.debug("getContextFromConnection caught Exception");
-		}
-		if (conn != null) {
-			return conn.getScope().getContext();
-		}
-		return null;
-	}
-
 }

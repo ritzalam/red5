@@ -20,9 +20,9 @@ package org.red5.server.api;
  */
 
 /**
- * Mark an object that can be flow-controlled.
+ * Mark an object that can be bandwidth controlled.
  * <p>
- * A flow-controlled object has the bandwidth config property and a link to the
+ * A bw-controlled object has the bandwidth config property and a link to the
  * parent controllable object.
  * </p>
  * <p>
@@ -35,27 +35,21 @@ package org.red5.server.api;
  * client stream or connection, or client or the whole application.
  * </p>
  * <p>
- * The child node consumes the parent's bandwidth. We say that
- * the child node is the bandwidth consumer while the parent is
- * the bandwidth provider.
- * </p>
- * <p>
- * We predefine the bandwidth configure for host and the host is
- * always the root bandwidth provider. While the streams are always the
- * bandwidth consumer. The internal node is both provider and
- * consumer.
+ * The summary of children's bandwidth can't exceed the parent's bandwidth
+ * even though the children's bandwidth could be configured larger than the
+ * parent's bandwidth.
  * </p>
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Steven Gong (steven.gong@gmail.com)
  */
-public interface IFlowControllable {
+public interface IBWControllable {
 	/**
 	 * Return parent IFlowControllable object
 	 * 
 	 * @return	parent     Parent flow controllable
 	 */
-	IFlowControllable getParentFlowControllable();
+	IBWControllable getParentBWControllable();
 
 	/**
 	 * Return bandwidth configuration object. Bandwidth configuration

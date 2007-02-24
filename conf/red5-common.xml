@@ -64,20 +64,16 @@
     <!-- Provides output to consumers -->
     <bean id="consumerService" class="org.red5.server.stream.ConsumerService"/>
 
-    <!-- Balances flow control -->
-    <!-- 
-    <bean id="FlowControlService" class="org.red5.server.stream.BalancedFlowControlService"
+    <!-- Simple bandwidth control -->
+    <bean id="BWControlService" class="org.red5.server.stream.SimpleBWControlService"
 		 init-method="init">
-		<property name="interval" value="10"/>
-		<property name="defaultCapacity" value="102400"/>
-	</bean> -->
-	
-	<!-- Dummy flow control that does nothing -->
-    <bean id="FlowControlService" class="org.red5.server.stream.DummyFlowControlService"
-		 init-method="init">
-		<property name="interval" value="10"/>
-		<property name="defaultCapacity" value="102400"/>
+		<property name="interval" value="100"/>
+		<property name="defaultCapacity" value="104857600"/> <!-- 100MB -->
 	</bean>
+		
+	<!-- Dummy bandwidth control that does nothing -->
+	<!-- 
+    <bean id="BWControlService" class="org.red5.server.stream.DummyBWControlService"/> -->
 
     <!-- Scheduling service -->
     <bean id="schedulingService" class="org.red5.server.scheduling.QuartzSchedulingService"/>

@@ -22,12 +22,15 @@ package org.red5.server.stream;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.IBandwidthConfigure;
-import org.red5.server.api.IFlowControllable;
+import org.red5.server.api.IBWControllable;
+import org.red5.server.api.stream.support.SimpleBandwidthConfigure;
 
 /**
+ * TODO Make stream flow controller independent from Bandwidth Controller
  * Controller for stream flow. Adapts flow bandwidth to given configuration.
  */
 public class StreamFlowController {
+	public static final String KEY = "StreamFlowController";
     /**
      * Logger
      */
@@ -40,29 +43,37 @@ public class StreamFlowController {
 
     /**
      * Adapt stream flow to bandwidth from given controllable
+     * NOTE: Only takes effect on the controllable that has overall bandwidth config
      * @param flow                    Stream flow
      * @param controllable            Flow controllable object
      * @return                        <code>true</code> on success, <code>false</code> otherwise
      * @throws CloneNotSupportedException   Clone operation is not supported by object
      */
 	public boolean adaptBandwidthForFlow(IStreamFlow flow,
-			IFlowControllable controllable) throws CloneNotSupportedException {
-
+			IBWControllable controllable) throws CloneNotSupportedException {
 		IBandwidthConfigure parentBwConf = controllable
-				.getParentFlowControllable().getBandwidthConfigure();
+				.getParentBWControllable().getBandwidthConfigure();
 		IBandwidthConfigure bwConf = controllable.getBandwidthConfigure();
+		long[] parentBandwidth = null;
 		if (bwConf == null) {
 			if (parentBwConf == null) {
 				// No informations about bandwidth settings available
 				return false;
 			}
-
-			bwConf = parentBwConf.clone();
+			parentBandwidth = parentBwConf.getChannelBandwidth();
+			if (parentBandwidth[IBandwidthConfigure.OVERALL_CHANNEL] < 0) return false;
+			bwConf = new SimpleBandwidthConfigure(parentBwConf);
 			controllable.setBandwidthConfigure(bwConf);
+		} else {
+			if (parentBwConf != null) {
+				parentBandwidth = parentBwConf.getChannelBandwidth();
+			}
 		}
+		long[] channelBandwidth = bwConf.getChannelBandwidth();
+		if (channelBandwidth[IBandwidthConfigure.OVERALL_CHANNEL] < 0) return false;
 		boolean change = false;
 		final int bufferTime = flow.getBufferTime();
-		long bw = bwConf.getOverallBandwidth();
+		long bw = channelBandwidth[IBandwidthConfigure.OVERALL_CHANNEL];
 		// log.info("Buffer: " + bufferTime + " min: " + flow.getMinTimeBuffer()
 		// + " max: " + flow.getMaxTimeBuffer());
 		if (bufferTime > flow.getMaxTimeBuffer()) {
@@ -106,12 +117,12 @@ public class StreamFlowController {
 
 		//change = false;
 		if (change) {
-			if (bw > parentBwConf.getOverallBandwidth()) {
-				bw = parentBwConf.getOverallBandwidth();
+			if (parentBandwidth != null && bw > parentBandwidth[IBandwidthConfigure.OVERALL_CHANNEL]) {
+				bw = parentBandwidth[IBandwidthConfigure.OVERALL_CHANNEL];
 			} else if (bw < FIXED_CHANGE) {
 				bw = FIXED_CHANGE;
 			}
-			bwConf.setOverallBandwidth(bw);
+			channelBandwidth[IBandwidthConfigure.OVERALL_CHANNEL] = bw; 
 			controllable.setBandwidthConfigure(bwConf);
 		}
 		if (log.isDebugEnabled()) {
@@ -128,5 +139,4 @@ public class StreamFlowController {
     int computeChange(long bw) {
 		return FIXED_CHANGE;
 	}
-
 }

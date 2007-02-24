@@ -32,8 +32,10 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.server.BaseConnection;
 import org.red5.server.api.IBandwidthConfigure;
+import org.red5.server.api.IConnectionBWConfig;
 import org.red5.server.api.IContext;
-import org.red5.server.api.IFlowControllable;
+import org.red5.server.api.IBWControllable;
+import org.red5.server.api.IScope;
 import org.red5.server.api.Red5;
 import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
@@ -58,7 +60,8 @@ import org.red5.server.net.rtmp.message.Packet;
 import org.red5.server.service.Call;
 import org.red5.server.service.PendingCall;
 import org.red5.server.stream.ClientBroadcastStream;
-import org.red5.server.stream.IFlowControlService;
+import org.red5.server.stream.IBWControlContext;
+import org.red5.server.stream.IBWControlService;
 import org.red5.server.stream.OutputStream;
 import org.red5.server.stream.PlaylistSubscriberStream;
 import org.red5.server.stream.StreamService;
@@ -149,11 +152,14 @@ public abstract class RTMPConnection extends BaseConnection implements
     private int nextBytesRead = 125000;
 
     /**
-     * Bandwidth configuration
-     *
-     * @see org.red5.server.api.IBandwidthConfigure
+     * Bandwidth configure
      */
-    private IBandwidthConfigure bandwidthConfig;
+    private IConnectionBWConfig bwConfig;
+    
+    /**
+     * Bandwidth context used by bandwidth controller
+     */
+    private IBWControlContext bwContext;
 
     /**
      * Map for pending video packets and stream IDs
@@ -180,8 +186,24 @@ public abstract class RTMPConnection extends BaseConnection implements
 		// super(null, ""); temp fix to get things to compile
 		super(type, null, null, 0, null, null, null);
 	}
+    
+    @Override
+	public boolean connect(IScope newScope, Object[] params) {
+		boolean success = super.connect(newScope, params);
+		if (success) {
+	    	// XXX Bandwidth control service should not be bound to
+	    	// a specific scope because it's designed to control
+	    	// the bandwidth system-wide.
+			if (getScope() != null && getScope().getContext() != null) {
+				IBWControlService bwController = (IBWControlService) getScope()
+						.getContext().getBean(IBWControlService.KEY);
+				bwContext = bwController.registerBWControllable(this);
+			}
+		}
+		return success;
+	}
 
-    /**
+	/**
      * Initialize connection
      *
      * @param host             Connection host
@@ -451,15 +473,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 		}
 
 		if (getScope() != null && getScope().getContext() != null) {
-			IFlowControlService fcs = (IFlowControlService) getScope()
-					.getContext().getBean(IFlowControlService.KEY);
-			// XXX: Workaround for #54
-			try {
-				fcs.releaseFlowControllable(this);
-			} catch (Exception err) {
-				log.error("Could not release flowcontrollable connection "
-						+ this, err);
-			}
+			IBWControlService bwController = (IBWControlService) getScope()
+					.getContext().getBean(IBWControlService.KEY);
+			bwController.unregisterBWControllable(bwContext);
 		}
 		super.close();
 	}
@@ -616,35 +632,41 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	/** {@inheritDoc} */
     public IBandwidthConfigure getBandwidthConfigure() {
-		return bandwidthConfig;
+		return bwConfig;
 	}
 
 	/** {@inheritDoc} */
-    public IFlowControllable getParentFlowControllable() {
-		return this.getClient();
+    public IBWControllable getParentBWControllable() {
+    	// TODO return the client object
+		return null;
 	}
 
 	/** {@inheritDoc} */
     public void setBandwidthConfigure(IBandwidthConfigure config) {
-		IFlowControlService fcs = (IFlowControlService) getScope().getContext()
-				.getBean(IFlowControlService.KEY);
-		this.bandwidthConfig = config;
-		fcs.updateBWConfigure(this);
+    	if (!(config instanceof IConnectionBWConfig)) {
+    		return;
+    	}
 
+		this.bwConfig = (IConnectionBWConfig) config;
 		// Notify client about new bandwidth settings (in bytes per second)
-		if (config.getDownstreamBandwidth() > 0) {
-			ServerBW serverBW = new ServerBW((int) config
+		if (bwConfig.getDownstreamBandwidth() > 0) {
+			ServerBW serverBW = new ServerBW((int) bwConfig
 					.getDownstreamBandwidth() / 8);
 			getChannel((byte) 2).write(serverBW);
 		}
-		if (config.getUpstreamBandwidth() > 0) {
-			ClientBW clientBW = new ClientBW((int) config
+		if (bwConfig.getUpstreamBandwidth() > 0) {
+			ClientBW clientBW = new ClientBW((int) bwConfig
 					.getUpstreamBandwidth() / 8, (byte) 0);
 			getChannel((byte) 2).write(clientBW);
 			// Update generation of BytesRead messages
 			// TODO: what are the correct values here?
-			bytesReadInterval = (int) config.getUpstreamBandwidth() / 8;
+			bytesReadInterval = (int) bwConfig.getUpstreamBandwidth() / 8;
 			nextBytesRead = (int) getWrittenBytes();
+		}
+		if (bwContext != null) {
+			IBWControlService bwController = (IBWControlService) getScope().getContext()
+				.getBean(IBWControlService.KEY);
+			bwController.updateBWConfigure(bwContext);
 		}
 	}
 

@@ -41,7 +41,7 @@ public interface ITokenBucket {
 	 * @return <tt>true</tt> if successfully acquired or <tt>false</tt>
 	 * if not acquired.
 	 */
-	boolean acquireToken(double tokenCount, long wait);
+	boolean acquireToken(long tokenCount, long wait);
 
 	/**
 	 * Nonblockingly acquire token. If the token is not available and
@@ -54,7 +54,7 @@ public interface ITokenBucket {
 	 * @return <tt>true</tt> if successfully acquired or <tt>false</tt>
 	 * if not acquired.
 	 */
-	boolean acquireTokenNonblocking(double tokenCount,
+	boolean acquireTokenNonblocking(long tokenCount,
 			ITokenBucketCallback callback);
 
 	/**
@@ -64,7 +64,7 @@ public interface ITokenBucket {
 	 * @param upperLimitCount      Upper limit of aquisition
 	 * @return                     Remaining tokens from bucket
 	 */
-	double acquireTokenBestEffort(double upperLimitCount);
+	long acquireTokenBestEffort(long upperLimitCount);
 
 	/**
 	 * Get the capacity of this bucket in Byte.
@@ -74,9 +74,9 @@ public interface ITokenBucket {
 	long getCapacity();
 
 	/**
-	 * The amount of tokens increased per second in millisecond.
+	 * The amount of tokens increased per millisecond.
 	 * 
-	 * @return                     Amount of tokens increased per second in millisecond.
+	 * @return                     Amount of tokens increased per millisecond.
 	 */
 	double getSpeed();
 
@@ -95,13 +95,13 @@ public interface ITokenBucket {
          * @param bucket          Bucket
          * @param tokenCount      Number of tokens
          */
-        void available(ITokenBucket bucket, double tokenCount);
+        void available(ITokenBucket bucket, long tokenCount);
 
         /**
          * Resets tokens in bucket
          * @param bucket          Bucket
          * @param tokenCount      Number of tokens
          */
-        void reset(ITokenBucket bucket, double tokenCount);
+        void reset(ITokenBucket bucket, long tokenCount);
 	}
 }

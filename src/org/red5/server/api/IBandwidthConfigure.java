@@ -21,124 +21,39 @@ package org.red5.server.api;
 
 /**
  * Interface for setting/getting bandwidth configure.
- * If overallBandwidth is <tt>-1</tt>, A/V bandwidth settings are valid.
- * Or overallBandwidth will be used, thus Audio and Video share the
- * bandwidth setting. All bandwidth is specified in bits per second.
+ * 
+ * Two properties are provided for bandwidth configuration. The property
+ * "channelBandwidth" is used to configure the bandwidth of each channel.
+ * The property "channelInitialBurst" is used to configure the initial
+ * bytes that can be sent to client in each channel.
+ * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Steven Gong (steven.gong@gmail.com)
  */
-public interface IBandwidthConfigure {
+public interface IBandwidthConfigure extends Cloneable {
+	public static final int AUDIO_CHANNEL = 0;
+	public static final int VIDEO_CHANNEL = 1;
+	public static final int DATA_CHANNEL = 2;
+	public static final int OVERALL_CHANNEL = 3;
+	public static final int MAX_CHANNEL_CONFIG_COUNT = 4;
+	
 	/**
-	 * Set bandwidth available for audio streaming
-	 * 
-	 * @param bw
-	 *            Bandwidth
+	 * Return the bandwidth configure for 3 channels: audio, video, data and
+	 * the overall bandwidth.
+	 * The unit is bit per second. A value of <tt>-1</tt> means "don't care"
+	 * so that there's no limit on bandwidth for that channel.
+	 * The last element is the overall bandwidth. If it's not <tt>-1</tt>,
+	 * the value of the first three elements will be ignored.
+	 * @return The 4-element array of bandwidth configure.
 	 */
-	void setAudioBandwidth(long bw);
-
+	long[] getChannelBandwidth();
+	
 	/**
-     * Return bandwidth available for audio streaming
-     *
-     * @return  Audio bandwidth
-     */
-    long getAudioBandwidth();
-
-	/**
-	 * Set bandwidth available for video streaming
-	 * 
-	 * @param bw
-	 *            Bandwidth
+	 * Return the byte count of initial burst value for 3 channels: audio,
+	 * video, data and the overall bandwidth.
+	 * If the value is <tt>-1</tt>, the default will be used per the implementation
+	 * of bandwidth controller.
+	 * @return The 4-element array of byte count of initial burst value.
 	 */
-	void setVideoBandwidth(long bw);
-
-	/**
-     * Return bandwidth available for video streaming
-     *
-     * @return  Video bandwidth
-     */
-    long getVideoBandwidth();
-
-	/**
-	 * Set overall bandwidth available
-	 * 
-	 * @param bw
-	 *            Bandwidth
-	 */
-	void setOverallBandwidth(long bw);
-
-	/**
-     * Getter for overall bandwidth
-     *
-     * @return  Overall bandwidth
-     */
-    long getOverallBandwidth();
-
-	/**
-	 * Set the upstream bandwidth to be notified to the client.
-	 * Upstream is the data that is sent from the client to the server.
-	 * 
-	 * @param bw
-	 *            Bandwidth
-	 */
-	void setUpstreamBandwidth(long bw);
-
-	/**
-	 * Get the upstream bandwidth to be notified to the client.
-	 * Upstream is the data that is sent from the client to the server.
-	 * 
-     * @return      Upstream (from client to server) bandwidth configuration
-	 */
-	long getUpstreamBandwidth();
-
-	/**
-	 * Set the downstream bandwidth to be notified to the client.
-	 * Downstream is the data that is sent from the server to the client.
-	 * 
-	 * @param bw
-	 *            Bandwidth
-	 */
-	void setDownstreamBandwidth(long bw);
-
-	/**
-     * Getter for downstream bandwidth
-     *
-     * @return Downstream bandwidth, from server to client
-     */
-    long getDownstreamBandwidth();
-
-	/**
-	 * Set the maximum amount of burst in Byte.
-	 * This values controls the maximum amount of packets that
-	 * can burst to the client at any time.
-	 * @param maxBurst The maximum burst amount. If <tt>0</tt> or less
-	 * is specified, the system default value will be used.
-	 */
-	void setMaxBurst(long maxBurst);
-
-	/**
-     * Getter for max burst value
-     *
-     * @return Max burst value
-     */
-    long getMaxBurst();
-
-	/**
-	 * Set the burst amount in Byte. The burst amount controls
-	 * the initial amount of packets that burst to the client.
-	 * It should be no bigger than the maximum burst amount. If it is,
-	 * the maximum burst value will be used instead.
-	 * @param burst The burst amount. A value that is not bigger than
-	 * <tt>0</tt> means don't use burst.
-	 */
-	void setBurst(long burst);
-
-	/**
-     * Getter for burst.
-     *
-     * @return  Burst value
-     */
-    long getBurst();
-
-	/** {@inheritDoc} */
-    IBandwidthConfigure clone() throws CloneNotSupportedException;
+	long[] getChannelInitialBurst();
 }

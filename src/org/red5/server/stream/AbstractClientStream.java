@@ -20,7 +20,7 @@ package org.red5.server.stream;
  */
 
 import org.red5.server.api.IBandwidthConfigure;
-import org.red5.server.api.IFlowControllable;
+import org.red5.server.api.IBWControllable;
 import org.red5.server.api.stream.IClientStream;
 import org.red5.server.api.stream.IStreamCapableConnection;
 
@@ -83,7 +83,7 @@ public abstract class AbstractClientStream extends AbstractStream implements
      * Return parent flow controllable object (bandwidth preferences holder)
      * @return          IFlowControllable object
      */
-	public IFlowControllable getParentFlowControllable() {
+	public IBWControllable getParentBWControllable() {
 		return conn;
 	}
 

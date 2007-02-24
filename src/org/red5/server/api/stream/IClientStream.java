@@ -19,7 +19,7 @@ package org.red5.server.api.stream;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.red5.server.api.IFlowControllable;
+import org.red5.server.api.IBWControllable;
 import org.red5.server.stream.IStreamFlow;
 
 /**
@@ -28,7 +28,7 @@ import org.red5.server.stream.IStreamFlow;
  * @author The Red5 Project (red5@osflash.org)
  * @author Steven Gong (steven.gong@gmail.com)
  */
-public interface IClientStream extends IStream, IFlowControllable {
+public interface IClientStream extends IStream, IBWControllable {
 	public static final String MODE_READ = "read";
 
 	public static final String MODE_RECORD = "record";
