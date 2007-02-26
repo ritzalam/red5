@@ -673,15 +673,7 @@ public class SharedObject implements IPersistable, Constants {
 		listeners.clear();
 		hashes.clear();
 		syncEvents.clear();
-		// dereference objects
-		data = null;
-		listeners = null;
-		hashes = null;
-		ownerMessage = null;
-		source = null;
-		syncEvents = null;
-		storage = null;
-		acquireCount = 0;
+		ownerMessage.getEvents().clear();
 	}
 
 	/**
