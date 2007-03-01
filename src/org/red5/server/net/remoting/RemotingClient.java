@@ -217,9 +217,13 @@ public class RemotingClient {
 					+ count);
 		}
 
+		Input input = new Input(data);
+		@SuppressWarnings("unused") String target = input.getString();  	// expect "/onResult"
+		@SuppressWarnings("unused") String nullString = input.getString();  // expect "null"
+		
 		// Read return value
 		Deserializer deserializer = new Deserializer();
-		return deserializer.deserialize(new Input(data));
+		return deserializer.deserialize(input);
 	}
 
 	/**
