@@ -22,10 +22,10 @@ package org.red5.server.net.rtmp;
 import static org.red5.server.api.ScopeUtils.getScopeService;
 
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -93,16 +93,16 @@ public abstract class RTMPConnection extends BaseConnection implements
      *
      * @see org.red5.server.net.rtmp.Channel
      */
-    private Map<Integer, Channel> channels = new HashMap<Integer, Channel>();
+    private Map<Integer, Channel> channels = new ConcurrentHashMap<Integer, Channel>();
 
     /**
      * Client streams
      *
      * @see org.red5.server.api.stream.IClientStream
      */
-    private Map<Integer, IClientStream> streams = new HashMap<Integer, IClientStream>();
+    private Map<Integer, IClientStream> streams = new ConcurrentHashMap<Integer, IClientStream>();
 
-	private Map<Integer, Boolean> reservedStreams = new HashMap<Integer, Boolean>();
+	private Map<Integer, Boolean> reservedStreams = new ConcurrentHashMap<Integer, Boolean>();
 
     /**
      * Identifier for remote calls
@@ -112,7 +112,7 @@ public abstract class RTMPConnection extends BaseConnection implements
     /**
      * Hash map that stores pending calls and ids as pairs.
      */
-    protected HashMap<Integer, IPendingServiceCall> pendingCalls = new HashMap<Integer, IPendingServiceCall>();
+    protected Map<Integer, IPendingServiceCall> pendingCalls = new ConcurrentHashMap<Integer, IPendingServiceCall>();
 
     /**
      * Deferred results set
@@ -164,7 +164,7 @@ public abstract class RTMPConnection extends BaseConnection implements
     /**
      * Map for pending video packets and stream IDs
      */
-    private Map<Integer, Integer> pendingVideos = new HashMap<Integer, Integer>();
+    private Map<Integer, Integer> pendingVideos = new ConcurrentHashMap<Integer, Integer>();
 
     /**
      * Number of streams used
