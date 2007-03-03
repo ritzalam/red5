@@ -273,29 +273,17 @@ public class RTMPHandler extends BaseRTMPHandler {
 										call.setStatus(Call.STATUS_SUCCESS_RESULT);
 										if (call instanceof IPendingServiceCall) {
 											IPendingServiceCall pc = (IPendingServiceCall) call;
-											Map<String, Object> result = new HashMap<String, Object>();
-											StatusObject status = getStatus(NC_CONNECT_SUCCESS);
-											result.put("code", status.getCode());
-											result.put("description", status.getDescription());
-											result.put("application", status.getApplication());
-											result.put("level", status.getLevel());
-											if (params.get("objectEncoding") == Integer.valueOf(3)) {
-												// Client wants to use AMF3 encoding
-												result.put("objectEncoding", 3);
-												rtmp.setEncoding(Encoding.AMF3);
-											}
-											pc.setResult(result);
+											pc.setResult(getStatus(NC_CONNECT_SUCCESS));
 										}
 										// Measure initial roundtrip time after connecting
 										conn.getChannel((byte) 2).write(new Ping((short) 0, 0, -1));
 										conn.startRoundTripMeasurement();
 									} else {
 										log.debug("connect failed");
-										call
-												.setStatus(Call.STATUS_ACCESS_DENIED);
+										call.setStatus(Call.STATUS_ACCESS_DENIED);
 										if (call instanceof IPendingServiceCall) {
-											((IPendingServiceCall) call)
-													.setResult(getStatus(NC_CONNECT_REJECTED));
+											IPendingServiceCall pc = (IPendingServiceCall) call;
+											pc.setResult(getStatus(NC_CONNECT_REJECTED));
 										}
 										disconnectOnReturn = true;
 									}
@@ -303,11 +291,11 @@ public class RTMPHandler extends BaseRTMPHandler {
 									log.debug("connect rejected");
 									call.setStatus(Call.STATUS_ACCESS_DENIED);
 									if (call instanceof IPendingServiceCall) {
+										IPendingServiceCall pc = (IPendingServiceCall) call;
 										StatusObject status = getStatus(NC_CONNECT_REJECTED);
-										status.setApplication(rejected
-												.getReason());
-										((IPendingServiceCall) call)
-												.setResult(status);
+										if (rejected.getReason() != null)
+											status.setApplication(rejected.getReason());
+										pc.setResult(status);
 									}
 									disconnectOnReturn = true;
 								}
@@ -316,11 +304,32 @@ public class RTMPHandler extends BaseRTMPHandler {
 					} catch (RuntimeException e) {
 						call.setStatus(Call.STATUS_GENERAL_EXCEPTION);
 						if (call instanceof IPendingServiceCall) {
-							((IPendingServiceCall) call)
-									.setResult(getStatus(NC_CONNECT_FAILED));
+							IPendingServiceCall pc = (IPendingServiceCall) call;
+							pc.setResult(getStatus(NC_CONNECT_FAILED));
 						}
 						log.error("Error connecting", e);
 						disconnectOnReturn = true;
+					}
+					
+					// Evaluate request for AMF3 encoding
+					if (params.get("objectEncoding") == Integer.valueOf(3) && call instanceof IPendingServiceCall) {
+						Object pcResult = ((IPendingServiceCall) call).getResult();
+						Map<String, Object> result;
+						if (pcResult instanceof Map) {
+							result = (Map) pcResult;
+							result.put("objectEncoding", 3);
+						} else if (pcResult instanceof StatusObject) {
+							result = new HashMap<String, Object>();
+							StatusObject status = (StatusObject) pcResult;
+							result.put("code", status.getCode());
+							result.put("description", status.getDescription());
+							result.put("application", status.getApplication());
+							result.put("level", status.getLevel());
+							result.put("objectEncoding", 3);
+							((IPendingServiceCall) call).setResult(result);
+						}
+						
+						rtmp.setEncoding(Encoding.AMF3);
 					}
 				}
 			} else if (action.equals(ACTION_DISCONNECT)) {
