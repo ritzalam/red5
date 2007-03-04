@@ -19,7 +19,9 @@ package org.red5.io.flv.impl;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
@@ -30,6 +32,7 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
+import org.red5.io.IKeyFrameMetaCache;
 import org.red5.io.IStreamableFile;
 import org.red5.io.ITag;
 import org.red5.io.ITagReader;
@@ -59,6 +62,11 @@ public class FLVReader implements IoConstants, ITagReader,
      */
     private static Log log = LogFactory.getLog(FLVReader.class.getName());
 
+    /**
+     * File
+     */
+    private File file;
+    
     /**
      * File input stream
      */
@@ -107,15 +115,18 @@ public class FLVReader implements IoConstants, ITagReader,
 	/** Use load buffer */
 	private boolean useLoadBuf;
 
+	/** Cache for keyframe informations. */
+	private static IKeyFrameMetaCache keyframeCache;
+	
 	/** Constructs a new FLVReader. */
     FLVReader() {
 	}
 
     /**
      * Creates FLV reader from file input stream
-     * @param f         File input stream
+     * @param f         File
      */
-    public FLVReader(FileInputStream f) {
+    public FLVReader(File f) throws FileNotFoundException {
 		this(f, false);
 	}
 
@@ -124,8 +135,9 @@ public class FLVReader implements IoConstants, ITagReader,
      * @param f                    File input stream
      * @param generateMetadata     <code>true</code> if metadata generation required, <code>false</code> otherwise
      */
-    public FLVReader(FileInputStream f, boolean generateMetadata) {
-		this.fis = f;
+    public FLVReader(File f, boolean generateMetadata) throws FileNotFoundException {
+    	this.file = f;
+		this.fis = new FileInputStream(f);
 		this.generateMetadata = generateMetadata;
 		channel = fis.getChannel();
 		
@@ -134,7 +146,6 @@ public class FLVReader implements IoConstants, ITagReader,
 
 		postInitialize();
 	}
-
 
     /**
 	 * Accepts mapped file bytes to construct internal members.
@@ -149,6 +160,10 @@ public class FLVReader implements IoConstants, ITagReader,
 		postInitialize();
 	}
     
+    public void setKeyFrameCache(IKeyFrameMetaCache keyframeCache) {
+    	FLVReader.keyframeCache = keyframeCache;
+    }
+
     /**
 	 * Get the remaining bytes that could be read from a file or ByteBuffer
 	 * @return          Number of remaining bytes
@@ -563,6 +578,22 @@ public class FLVReader implements IoConstants, ITagReader,
 			return keyframeMeta;
 		}
 
+		// check for cached keyframe informations
+		if (keyframeCache != null) {
+			keyframeMeta = keyframeCache.loadKeyFrameMeta(file);
+			if (keyframeMeta != null) {
+				// Keyframe data loaded, create other mappings
+				posTimeMap = new HashMap<Long, Long>();
+				for (int i=0; i<keyframeMeta.positions.length; i++) {
+					posTimeMap.put(keyframeMeta.positions[i], (long) keyframeMeta.timestamps[i]);
+				}
+				// XXX: We currently lose pos -> tag mapping, but that isn't used anywhere, so that's okay for now... 
+				posTagMap = new HashMap<Long, Integer>();
+				posTagMap.put((long) 0, 0);
+				return keyframeMeta;
+			}
+		}
+		
         // Lists of video positions and timestamps
         List<Long> positionList = new ArrayList<Long>();
         List<Integer> timestampList = new ArrayList<Integer>();
@@ -651,6 +682,8 @@ public class FLVReader implements IoConstants, ITagReader,
 			posTimeMap.put((long) positionList.get(i), (long) timestampList
 					.get(i));
 		}
+		if (keyframeCache != null)
+			keyframeCache.saveKeyFrameMeta(file, keyframeMeta);
 		return keyframeMeta;
 	}
 

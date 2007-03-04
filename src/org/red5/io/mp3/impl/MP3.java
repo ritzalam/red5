@@ -20,7 +20,6 @@ package org.red5.io.mp3.impl;
  */
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 
 import org.red5.io.ITagReader;
@@ -46,8 +45,7 @@ public class MP3 implements IMP3 {
 
 	/** {@inheritDoc} */
     public ITagReader getReader() throws IOException {
-		FileInputStream stream = new FileInputStream(file);
-		return new MP3Reader(stream);
+		return new MP3Reader(file);
 	}
 
 	/** {@inheritDoc} */

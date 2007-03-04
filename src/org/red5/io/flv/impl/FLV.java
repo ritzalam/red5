@@ -154,7 +154,7 @@ public class FLV implements IFLV {
 				if (log.isDebugEnabled()) {
 					log.debug("File size: " + file.length());
 				}
-				reader = new FLVReader(new FileInputStream(file), generateMetadata);
+				reader = new FLVReader(file, generateMetadata);
 				// get a ref to the mapped byte buffer
 				fileData = reader.getFileData();
 				// offer the uncached file to the cache

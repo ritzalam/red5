@@ -19,7 +19,9 @@ package org.red5.io.mp3.impl;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
@@ -32,6 +34,7 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
+import org.red5.io.IKeyFrameMetaCache;
 import org.red5.io.IStreamableFile;
 import org.red5.io.ITag;
 import org.red5.io.ITagReader;
@@ -50,6 +53,10 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
      */
 	protected static Log log = LogFactory.getLog(MP3Reader.class.getName());
 
+    /**
+     * File
+     */
+    private File file;
     /**
      * File input stream
      */
@@ -100,13 +107,22 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
      * File duration
      */
 	private long duration;
+    /**
+     * Frame cache
+     */
+	static private IKeyFrameMetaCache frameCache;
 
+	MP3Reader() {
+		// Only used by the bean startup code to initialize the frame cache
+	}
+	
     /**
      * Creates reader from file input stream
      * @param stream          File input stream source
      */
-    public MP3Reader(FileInputStream stream) {
-		fis = stream;
+    public MP3Reader(File file) throws FileNotFoundException {
+    	this.file = file;
+		fis = new FileInputStream(file);
         // Grab file channel and map it to memory-mapped byte buffer in read-only mode
         channel = fis.getChannel();
 		try {
@@ -151,6 +167,10 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 		}
 	}
 
+    public void setFrameCache(IKeyFrameMetaCache frameCache) {
+    	MP3Reader.frameCache = frameCache;
+    }
+    
 	/**
 	 * Check if the file can be played back with Flash. Supported sample rates are
      * 44KHz, 22KHz, 11KHz and 5.5KHz
@@ -377,6 +397,20 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 			return frameMeta;
 		}
 
+		// check for cached frame informations
+		if (frameCache != null) {
+			frameMeta = frameCache.loadKeyFrameMeta(file);
+			if (frameMeta != null) {
+				// Frame data loaded, create other mappings
+				posTimeMap = new HashMap<Integer, Double>();
+				for (int i=0; i<frameMeta.positions.length; i++) {
+					posTimeMap.put((int) frameMeta.positions[i], (double) frameMeta.timestamps[i]);
+				}
+				duration = frameMeta.timestamps[frameMeta.positions.length-1];
+				return frameMeta;
+			}
+		}
+
 		List<Integer> positionList = new ArrayList<Integer>();
 		List<Double> timestampList = new ArrayList<Double>();
 		dataRate = 0;
@@ -421,6 +455,9 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 			posTimeMap.put(positionList.get(i), timestampList.get(i));
 		}
 		duration = (long) time;
+		if (frameCache != null)
+			frameCache.saveKeyFrameMeta(file, frameMeta);
+		
 		return frameMeta;
 	}
 
