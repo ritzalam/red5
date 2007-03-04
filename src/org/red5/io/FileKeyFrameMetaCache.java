@@ -86,7 +86,7 @@ public class FileKeyFrameMetaCache implements IKeyFrameMetaCache {
 		
 		Element root = dom.getDocumentElement();
 		// Check if .xml file is valid and for this .flv file
-		if (!"FLVMetadata".equals(root.getNodeName()))
+		if (!"FrameMetadata".equals(root.getNodeName()))
 			// Invalid XML
 			return null;
 		
@@ -144,7 +144,7 @@ public class FileKeyFrameMetaCache implements IKeyFrameMetaCache {
 		}
 		
 		// Create file and add keyframe informations
-		Element root = dom.createElement("FLVMetadata");
+		Element root = dom.createElement("FrameMetadata");
 		root.setAttribute("modified", String.valueOf(file.lastModified()));
 		dom.appendChild(root);
 		
