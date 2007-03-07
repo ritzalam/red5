@@ -2,30 +2,24 @@
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	 xmlns:lang="http://www.springframework.org/schema/lang" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd                            http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-2.0.xsd">
 	<!-- This context is shared between all child contexts. -->
+	<!-- Server bean -->
 
-    <!-- Server bean -->
-    <bean id="red5.server" class="org.red5.server.Server"/>
-
-    <!-- Serializes objects to AMF binary -->
-    <bean id="serializer" class="org.red5.io.object.Serializer"/>
-
-    <!-- Deserializes objects from AMF binary -->
-    <bean id="deserializer" class="org.red5.io.object.Deserializer"/>
-
-    <!-- Deals with StatusObjects representing statuses like FMS NetConnection.Connect.Success status -->
-    <bean id="statusObjectService" class="org.red5.server.net.rtmp.status.StatusObjectService"
+	<bean id="red5.server" class="org.red5.server.Server"/>
+	<!-- Serializes objects to AMF binary -->
+	<bean id="serializer" class="org.red5.io.object.Serializer"/>
+	<!-- Deserializes objects from AMF binary -->
+	<bean id="deserializer" class="org.red5.io.object.Deserializer"/>
+	<!-- Deals with StatusObjects representing statuses like FMS NetConnection.Connect.Success status -->
+	<bean id="statusObjectService" class="org.red5.server.net.rtmp.status.StatusObjectService"
 		 autowire="byType" init-method="initialize"/>
-
-    <!-- RTMP codec factory -->
-    <bean id="rtmpCodecFactory" class="org.red5.server.net.rtmp.codec.RTMPMinaCodecFactory"
+	<!-- RTMP codec factory -->
+	<bean id="rtmpCodecFactory" class="org.red5.server.net.rtmp.codec.RTMPMinaCodecFactory"
 		 autowire="byType" init-method="init"/>
-
-    <!-- Remoting calls codec factory -->
-    <bean id="remotingCodecFactory" class="org.red5.server.net.remoting.codec.RemotingCodecFactory"
+	<!-- Remoting calls codec factory -->
+	<bean id="remotingCodecFactory" class="org.red5.server.net.remoting.codec.RemotingCodecFactory"
 		 autowire="byType" init-method="init"/>
-
-    <!-- Video codec factory -->
-    <bean id="videoCodecFactory" class="org.red5.server.stream.VideoCodecFactory">
+	<!-- Video codec factory -->
+	<bean id="videoCodecFactory" class="org.red5.server.stream.VideoCodecFactory">
 		<property name="codecs">
 			<list>
 				<bean id="screenVideoCodec" class="org.red5.server.stream.codec.ScreenVideo"/>
@@ -35,9 +29,8 @@
 			</list>
 		</property>
 	</bean>
-
-    <!-- Streamable file factory -->
-    <bean id="streamableFileFactory" class="org.red5.io.StreamableFileFactory">
+	<!-- Streamable file factory -->
+	<bean id="streamableFileFactory" class="org.red5.io.StreamableFileFactory">
 		<property name="services">
 			<list>
 				<bean id="flvFileService" class="org.red5.io.flv.impl.FLVService">
@@ -47,41 +40,32 @@
 			</list>
 		</property>
 	</bean>
-
-    <!-- Handles creation / lookup of shared objects -->
+	<!-- Handles creation / lookup of shared objects -->
 	<bean id="sharedObjectService" class="org.red5.server.so.SharedObjectService">
 		<property name="persistenceClassName">
 			<value>org.red5.server.persistence.FilePersistence</value>
 		</property>
 	</bean>
-
-    <!-- High level access to streams -->
+	<!-- High level access to streams -->
 	<bean id="streamService" class="org.red5.server.stream.StreamService"/>
-
-    <!-- Hight level access to broadcasted streams -->
-    <bean id="providerService" class="org.red5.server.stream.ProviderService"/>
-
-    <!-- Provides output to consumers -->
-    <bean id="consumerService" class="org.red5.server.stream.ConsumerService"/>
-
-    <!-- Simple bandwidth control -->
-    <bean id="BWControlService" class="org.red5.server.stream.SimpleBWControlService"
-		 init-method="init">
+	<!-- Hight level access to broadcasted streams -->
+	<bean id="providerService" class="org.red5.server.stream.ProviderService"/>
+	<!-- Provides output to consumers -->
+	<bean id="consumerService" class="org.red5.server.stream.ConsumerService"/>
+	<!-- Simple bandwidth control -->
+	<bean id="BWControlService" class="org.red5.server.stream.SimpleBWControlService" init-method="init">
 		<property name="interval" value="100"/>
-		<property name="defaultCapacity" value="104857600"/> <!-- 100MB -->
+		<property name="defaultCapacity" value="104857600"/>
+		<!-- 100MB -->
 	</bean>
-		
 	<!-- Dummy bandwidth control that does nothing -->
 	<!-- 
     <bean id="BWControlService" class="org.red5.server.stream.DummyBWControlService"/> -->
-
-    <!-- Scheduling service -->
-    <bean id="schedulingService" class="org.red5.server.scheduling.QuartzSchedulingService"/>
-
-    <!-- Thread factory -->
-    <bean id="threadFactory" class="org.red5.server.pooling.ThreadObjectFactory"/>
-
-    <!-- Threadpool settings for the remoting clients -->
+	<!-- Scheduling service -->
+	<bean id="schedulingService" class="org.red5.server.scheduling.QuartzSchedulingService"/>
+	<!-- Thread factory -->
+	<bean id="threadFactory" class="org.red5.server.pooling.ThreadObjectFactory"/>
+	<!-- Threadpool settings for the remoting clients -->
 	<bean id="remotingPool" class="org.red5.server.pooling.ThreadPool">
 		<constructor-arg>
 			<ref bean="threadFactory"/>
@@ -115,8 +99,8 @@
 	NoCacheImpl. Three other implementations based on EhCache, WhirlyCache, and Red5Cache are also available.
 	-->
 	<bean id="object.cache" class="org.red5.server.cache.NoCacheImpl"/>
-	<!-- 
-	<bean id="object.cache" class="org.red5.server.cache.CacheImpl" init-method="init" autowire="byType"> 
+	<!--
+	<bean id="object.cache" class="org.red5.server.cache.CacheImpl" init-method="init" autowire="byType">
 		<property name="maxEntries"><value>5</value></property>
 	</bean>
 	
@@ -135,7 +119,7 @@
 	<bean id="object.cache" class="org.red5.server.cache.EhCacheImpl" init-method="init">
 		<property name="diskStore" value="java.io.tmpdir" />
 		<property name="memoryStoreEvictionPolicy" value="LFU" />
-		<property name="cacheManagerEventListener"><null/></property>		
+		<property name="cacheManagerEventListener"><null/></property>
 		<property name="cacheConfigs">
 			<list>
 				<bean class="net.sf.ehcache.config.CacheConfiguration">
@@ -146,17 +130,15 @@
 					<property name="timeToLiveSeconds" value="0" />
 					<property name="overflowToDisk" value="false" />
 					<property name="diskPersistent" value="false" />
-				</bean>			
+				</bean>
 			</list>
 		</property>
-	</bean> 	
+	</bean>
 -->
-
 	<!--
 	    Cache to use for keyframe metadata.
 	-->
-	<bean id="keyframe.cache" class="org.red5.io.FileKeyFrameMetaCache" />
-
+	<bean id="keyframe.cache" class="org.red5.io.FileKeyFrameMetaCache"/>
 	<!--
 	    Represents FLV files
 	    Use injection to set the cache impl to be used with flvs
@@ -166,54 +148,46 @@
 			<ref bean="object.cache"/>
 		</property>
 	</bean>
-
 	<!-- Use injection to set the buffer type for reading FLV files -->
 	<bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
 		<property name="targetObject">
-			<bean class="org.red5.io.flv.impl.FLVReader" />
+			<bean class="org.red5.io.flv.impl.FLVReader"/>
 		</property>
 		<property name="targetMethod">
 			<value>setBufferType</value>
 		</property>
 		<!-- Three buffer types are available 'auto', 'heap', and 'direct' -->
-		<property name="arguments" value="auto" />
+		<property name="arguments" value="auto"/>
 	</bean>
-	
 	<!-- Use injection to set the buffer size for reading FLV files -->
 	<bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
 		<property name="targetObject">
-			<bean class="org.red5.io.flv.impl.FLVReader" />
+			<bean class="org.red5.io.flv.impl.FLVReader"/>
 		</property>
 		<property name="targetMethod">
 			<value>setBufferSize</value>
 		</property>
 		<!-- Three buffer types are available 'auto', 'heap', and 'direct' -->
-		<property name="arguments" value="4096" />
+		<property name="arguments" value="4096"/>
 	</bean>
-
 	<!-- Use injection to set the keyframe cache for FLV files -->
 	<bean id="flvreader.impl" class="org.red5.io.flv.impl.FLVReader">
 		<property name="keyFrameCache">
 			<ref bean="keyframe.cache"/>
 		</property>
 	</bean>
-
 	<!-- Use injection to set the keyframe cache for MP3 files -->
 	<bean id="mp3reader.impl" class="org.red5.io.mp3.impl.MP3Reader">
 		<property name="frameCache">
 			<ref bean="keyframe.cache"/>
 		</property>
 	</bean>
-
 	<!-- ClientBroadcastStream and PlaylistSubscriberStream 
 		that will be used by RTMPConnection and maybe other classes.
 		These beans are lazy-init because most likely server will need
-		to be up and running before we can get a smart implementation 
+		to be up and running before we can get a smart implementation
 		of these streams
 	-->
-	<bean id="playlistSubscriberStream" scope="prototype" lazy-init="true"
-                 class="org.red5.server.stream.PlaylistSubscriberStream"/>
-    <bean id="clientBroadcastStream" scope="prototype" lazy-init="true"
-                 class="org.red5.server.stream.ClientBroadcastStream"/>	
-	
+	<bean id="playlistSubscriberStream" scope="prototype" lazy-init="true" class="org.red5.server.stream.PlaylistSubscriberStream"/>
+	<bean id="clientBroadcastStream" scope="prototype" lazy-init="true" class="org.red5.server.stream.ClientBroadcastStream"/>
 </beans>
