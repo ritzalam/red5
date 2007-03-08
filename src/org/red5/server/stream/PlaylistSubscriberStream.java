@@ -324,11 +324,17 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				if (items.size() > 0) {
 					// move to the head of the list and pause at the beginning
 					moveToNext();
+					engine.sendClearPing();
+					return;
+					// Joachim: commenting stuff out as it causes additional Play, Pause and Seek
+					//          events at the end of a stream (APPSERVER-70)
+					/*
 					if (currentItemIndex >= 0) {
 						needPause = true;
 					} else {
 						return;
 					}
+					*/
 				} else {
 					return;
 				}
