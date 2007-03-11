@@ -472,7 +472,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 			}
 		}
 
-		if (getScope() != null && getScope().getContext() != null) {
+		if (bwContext != null && getScope() != null && getScope().getContext() != null) {
 			IBWControlService bwController = (IBWControlService) getScope()
 					.getContext().getBean(IBWControlService.KEY);
 			bwController.unregisterBWControllable(bwContext);
