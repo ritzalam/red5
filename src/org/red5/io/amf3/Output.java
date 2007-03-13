@@ -146,6 +146,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 
 		putInteger(len << 1 | 1);
 		buf.put(string);
+		stringReferences.add(str);
 	}
 
     /** {@inheritDoc} */
@@ -404,6 +405,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
     		return;
     	}
 
+    	storeReference(object);
     	if (object instanceof IExternalizable) {
     		// The object knows how to serialize itself.
         	int type = AMF3.TYPE_OBJECT_EXTERNALIZABLE << 2 | 1 << 1 | 1;

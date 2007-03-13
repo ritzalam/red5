@@ -51,6 +51,12 @@
 			for (i=0; i<100000; i++)
 				evenLongerString = evenLongerString + "0123456789";
 			testParams.push(evenLongerString);
+			var strings: Array = new Array();
+			strings.push("test");
+			strings.push("test");
+			strings.push("test");
+			strings.push("test");
+			testParams.push(strings);
 			testParams.push(0);
 			testParams.push(1);
 			testParams.push(-1);
