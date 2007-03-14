@@ -662,7 +662,12 @@ public class ServerStream extends AbstractStream implements IServerStream,
 		IMessage message;
 		do {
             // Pull message from message input object...
-            message = msgIn.pullMessage();
+			try {
+				message = msgIn.pullMessage();
+			} catch (IOException err) {
+				log.error("Error while pulling message.", err);
+				message = null;
+			}
             // If message is null then return null
             if (message == null) {
 				return null;
