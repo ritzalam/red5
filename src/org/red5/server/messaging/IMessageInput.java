@@ -19,6 +19,7 @@ package org.red5.server.messaging;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -35,7 +36,7 @@ public interface IMessageInput {
 	 * @return The pulled message or <tt>null</tt> if message is
 	 * not available.
 	 */
-	IMessage pullMessage();
+	IMessage pullMessage() throws IOException;
 
 	/**
 	 * Pull message from this input endpoint. Wait

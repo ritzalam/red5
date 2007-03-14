@@ -19,6 +19,7 @@ package org.red5.server.messaging;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.io.IOException;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
@@ -63,7 +64,7 @@ public class InMemoryPullPullPipe extends AbstractPipe {
 	}
 
 	/** {@inheritDoc} */
-    public IMessage pullMessage() {
+    public IMessage pullMessage() throws IOException {
 		IMessage message = null;
 		IPullableProvider[] providerArray = null;
 		synchronized (providers) {
@@ -77,6 +78,9 @@ public class InMemoryPullPullPipe extends AbstractPipe {
 					break;
 				}
 			} catch (Throwable t) {
+				if (t instanceof IOException)
+					// Pass this along
+					throw (IOException) t;
 				log.error("exception when pulling message from provider", t);
 			}
 		}

@@ -19,6 +19,7 @@ package org.red5.server.stream;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -160,7 +161,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 	}
 
 	/** {@inheritDoc} */
-    public void play() {
+    public void play() throws IOException {
 		synchronized (items) {
             // Return if playlist is empty
             if (items.size() == 0) {
@@ -298,6 +299,15 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				try {
 					engine.play(item);
 					break;
+				} catch (IOException err) {
+					log.error("Error while starting to play item, moving to next.", err);
+					// go for next item
+					moveToPrevious();
+					if (currentItemIndex == -1) {
+						// we reaches the end.
+						break;
+					}
+					item = items.get(currentItemIndex);
 				} catch (StreamNotFoundException e) {
 					// go for next item
 					moveToPrevious();
@@ -353,6 +363,15 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 						}
 					}
 					break;
+				} catch (IOException err) {
+					log.error("Error while starting to play item, moving to next.", err);
+					// go for next item
+					moveToNext();
+					if (currentItemIndex == -1) {
+						// we reaches the end.
+						break;
+					}
+					item = items.get(currentItemIndex);
 				} catch (StreamNotFoundException e) {
 					// go for next item
 					moveToNext();
@@ -380,6 +399,8 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			IPlayItem item = items.get(currentItemIndex);
 			try {
 				engine.play(item);
+			} catch (IOException e) {
+				log.error("setItem caught a IOException", e);
 			} catch (StreamNotFoundException e) {
 				// let the engine retain the STOPPED state
 				// and wait for control from outside
@@ -475,7 +496,11 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 	 * @param message          Message that has been written
 	 */
 	public void written(Object message) {
-		engine.pullAndPush();
+		try {
+			engine.pullAndPush();
+		} catch (Throwable err) {
+			log.error("Error while pulling message.", err);
+		}
 	}
 
 	/**
@@ -726,9 +751,10 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
          * @param item                  Playlist item
          * @throws StreamNotFoundException       Stream not found
          * @throws IllegalStateException         Stream is in stopped state
+         * @throws IOException
          */
         public synchronized void play(IPlayItem item)
-				throws StreamNotFoundException, IllegalStateException {
+				throws StreamNotFoundException, IllegalStateException, IOException {
             // Can't play if state is stopped
             if (state != State.STOPPED) {
 				throw new IllegalStateException();
@@ -858,17 +884,17 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 					sendStreamNotFoundStatus(currentItem);
 					throw new StreamNotFoundException(item.getName());
 			}
-			if (sendNotifications) {
-				sendReset();
-				sendResetStatus(item);
-				sendStartStatus(item);
-			}
 			state = State.PLAYING;
 			if (decision == 1) {
 				releasePendingMessage();
 				sendVODInitCM(msgIn, item);
 				vodStartTS = -1;
 				pullAndPush();
+			}
+			if (sendNotifications) {
+				sendReset();
+				sendResetStatus(item);
+				sendStartStatus(item);
 			}
 			notifyItemPlay(currentItem, !isPullMode);
 		}
@@ -963,7 +989,13 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 					// we send a single snapshot on pause.
 					// XXX we need to take BWC into account, for
 					// now send forcefully.
-					IMessage msg = msgIn.pullMessage();
+					IMessage msg;
+					try {
+						msg = msgIn.pullMessage();
+					} catch (Throwable err) {
+						log.error("Error while pulling message.", err);
+						msg = null;
+					}
 					while (msg != null) {
 						if (msg instanceof RTMPMessage) {
 							RTMPMessage rtmpMessage = (RTMPMessage) msg;
@@ -1029,7 +1061,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
         /**
          * Recieve then send if message is data (not audio or video)
          */
-        private synchronized void pullAndPush() {
+        private synchronized void pullAndPush() throws IOException {
 			if (state == State.PLAYING && isPullMode && !isWaitingForToken) {
 				int size;
 				if (pendingMessage != null) {
@@ -1507,7 +1539,11 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				long tokenCount) {
 			isWaitingForToken = false;
 			needCheckBandwidth = false;
-			pullAndPush();
+			try {
+				pullAndPush();
+			} catch (Throwable err) {
+				log.error("Error while pulling message.", err);
+			}
 			needCheckBandwidth = true;
 		}
 
