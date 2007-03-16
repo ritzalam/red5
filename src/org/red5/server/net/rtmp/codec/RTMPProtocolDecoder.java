@@ -439,7 +439,10 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 				message = decodeInvoke(in, rtmp);
 				break;
 			case TYPE_NOTIFY:
-				message = decodeNotify(in, header, rtmp);
+				if (header.getStreamId() == 0)
+					message = decodeNotify(in, header, rtmp);
+				else
+					message = decodeStreamMetadata(in);
 				break;
 			case TYPE_PING:
 				message = decodePing(in);
@@ -753,6 +756,10 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 		return new VideoData(in.asReadOnlyBuffer());
 	}
 
+	public Notify decodeStreamMetadata(ByteBuffer in) {
+		return new Notify(in.asReadOnlyBuffer());
+	}
+	
     /**
      * Decodes FlexMessage event
      * @param in               Byte buffer

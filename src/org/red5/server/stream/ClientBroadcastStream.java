@@ -28,6 +28,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
+import org.red5.server.api.Red5;
 import org.red5.server.api.ScopeUtils;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.event.IEventDispatcher;
@@ -163,6 +164,9 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		recording = false;
 		recordingFilename = null;
 		setCodecInfo(new StreamCodecInfo());
+		// We send the start messages before the first packet is received.
+		// This is required so FME actually starts publishing.
+		sendStartNotifications(Red5.getConnectionLocal());
 	}
 
 	/**
@@ -425,6 +429,10 @@ public class ClientBroadcastStream extends AbstractClientStream implements
      */
     private void checkSendNotifications(IEvent event) {
 		IEventListener source = event.getSource();
+		sendStartNotifications(source);
+	}
+
+    private void sendStartNotifications(IEventListener source) {
 		if (sendStartNotification) {
 			// Notify handler that stream starts recording/publishing
 			sendStartNotification = false;

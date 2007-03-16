@@ -36,6 +36,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.io.object.BaseOutput;
+import org.red5.io.object.ICustomSerializable;
 import org.red5.io.object.RecordSet;
 import org.red5.io.object.Serializer;
 import org.red5.io.object.SerializerOption;
@@ -269,6 +270,15 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		} else {
 			buf.put(AMF.TYPE_OBJECT);
 		}
+        
+        if (object instanceof ICustomSerializable) {
+        	((ICustomSerializable) object).serialize(this, serializer);
+    		buf.put((byte) 0x00);
+    		buf.put((byte) 0x00);
+    		buf.put(AMF.TYPE_END_OF_OBJECT);
+    		return;
+        }
+        
 		Iterator it = set.iterator();
         // Iterate thru entries and write out property names with separators
         while (it.hasNext()) {

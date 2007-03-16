@@ -1,6 +1,10 @@
 package org.red5.server.net.rtmp.status;
 
 import org.red5.io.object.Flag;
+import org.red5.io.object.ICustomSerializable;
+import org.red5.io.object.ISerializerOptionAware;
+import org.red5.io.object.Output;
+import org.red5.io.object.Serializer;
 import org.red5.io.object.SerializerOption;
 
 /*
@@ -25,7 +29,7 @@ import org.red5.io.object.SerializerOption;
 /**
  * Represents status object that are transferred between server and client
  */
-public class Status implements StatusCodes {
+public class Status implements StatusCodes, ISerializerOptionAware, ICustomSerializable {
     /**
      * Error constant
      */
@@ -198,5 +202,18 @@ public class Status implements StatusCodes {
 		}
 		return Flag.Default;
 	}
+
+    public void serialize(Output output, Serializer serializer) {
+    	output.putString("level");
+    	output.writeString(getLevel());
+    	output.putString("code");
+    	output.writeString(getCode());
+    	output.putString("description");
+    	output.writeString(getDescription());
+    	output.putString("details");
+    	output.writeString(getDetails());
+    	output.putString("clientid");
+    	output.writeNumber(getClientid());
+    }
 
 }

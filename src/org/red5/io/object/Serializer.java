@@ -307,9 +307,9 @@ public class Serializer {
      * @return              true if options is enabled, false otherwise
      */
     public boolean isOptEnabled(Object obj, SerializerOption opt) {
-		if (obj != null) {
+		if (obj instanceof ISerializerOptionAware) {
             // Get flag
-            Flag flag = getSerializerOption(opt);
+            Flag flag = ((ISerializerOptionAware) obj).getSerializerOption(opt);
             // Check against Default first
             if (flag != Flag.Default) {
 				return (flag == Flag.Enabled);

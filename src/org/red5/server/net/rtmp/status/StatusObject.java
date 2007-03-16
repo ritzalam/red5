@@ -22,6 +22,10 @@ package org.red5.server.net.rtmp.status;
 import java.io.Serializable;
 
 import org.red5.io.object.Flag;
+import org.red5.io.object.ICustomSerializable;
+import org.red5.io.object.ISerializerOptionAware;
+import org.red5.io.object.Output;
+import org.red5.io.object.Serializer;
 import org.red5.io.object.SerializerOption;
 
 /**
@@ -29,7 +33,7 @@ import org.red5.io.object.SerializerOption;
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
-public class StatusObject implements Serializable {
+public class StatusObject implements Serializable, ISerializerOptionAware, ICustomSerializable {
 
 	private static final long serialVersionUID = 8817297676191096283L;
 
@@ -153,5 +157,18 @@ public class StatusObject implements Serializable {
     public Status asStatus() {
     	return new Status(getCode(), getLevel(), getDescription());
     }
-    
+
+    public void serialize(Output output, Serializer serializer) {
+    	output.putString("level");
+    	output.writeString(getLevel());
+    	output.putString("code");
+    	output.writeString(getCode());
+    	output.putString("description");
+    	output.writeString(getDescription());
+    	if (getApplication() != null) {
+    		output.putString("application");
+    		serializer.serialize(output, getApplication());
+    	}
+    }
+
 }
