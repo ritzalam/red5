@@ -195,6 +195,8 @@ public interface Constants {
 
 	public static final String ACTION_CLOSE_STREAM = "closeStream";
 
+	public static final String ACTION_RELEASE_STREAM = "releaseStream";
+
 	public static final String ACTION_PUBLISH = "publish";
 
 	public static final String ACTION_PAUSE = "pause";

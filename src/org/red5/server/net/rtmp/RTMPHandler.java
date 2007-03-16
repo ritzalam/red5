@@ -336,6 +336,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 				conn.close();
 			} else if (action.equals(ACTION_CREATE_STREAM)
 					|| action.equals(ACTION_DELETE_STREAM)
+					|| action.equals(ACTION_RELEASE_STREAM)
 					|| action.equals(ACTION_PUBLISH)
 					|| action.equals(ACTION_PLAY) || action.equals(ACTION_SEEK)
 					|| action.equals(ACTION_PAUSE)

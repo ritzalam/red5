@@ -47,6 +47,13 @@ public interface IStreamService extends IScopeService {
 	 */
 	public void deleteStream(int streamId);
 
+	/**
+	 * Called by FME.
+	 * 
+	 * @param streamName
+	 */
+	public void releaseStream(String streamName);
+
     /**
      * Delete stream
      * @param conn            Stream capable connection

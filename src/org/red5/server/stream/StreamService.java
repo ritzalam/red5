@@ -113,6 +113,11 @@ public class StreamService implements IStreamService {
 		}
 		conn.unreserveStreamId(streamId);
 	}
+    
+	/** {@inheritDoc} */
+    public void releaseStream(String streamName) {
+    	// XXX: what to do here?
+    }
 
 	/** {@inheritDoc} */
     public void pause(boolean pausePlayback, int position) {

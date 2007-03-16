@@ -1025,4 +1025,21 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
             }
         }
     }
+    
+    /**
+     * Notification method that is sent by FME just before publishing starts.
+     * 
+     * @param streamName	Name of stream that is about to be published.
+     */
+    public void FCPublish(String streamName) {
+    	// Override if necessary.
+    }
+    
+    /**
+     * Notification method that is sent by FME when publishing of a stream ends.
+     */
+    public void FCUnpublish() {
+    	// Override if necessary.
+    }
+    
 }
