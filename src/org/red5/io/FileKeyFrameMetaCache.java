@@ -165,7 +165,7 @@ public class FileKeyFrameMetaCache implements IKeyFrameMetaCache {
 				new FileOutputStream(new File(filename)), format);
 			serializer.serialize(dom);
 		} catch (IOException err) {
-			log.error("could not save keyframe data");
+			log.error("could not save keyframe data", err);
 		}
 	}
 
