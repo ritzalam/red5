@@ -143,6 +143,10 @@ public interface StatusCodes {
      * The subscriber has used the seek command to move to a particular location in the recorded stream.
      */
 	public static final String NS_SEEK_NOTIFY = "NetStream.Seek.Notify";
+	/**
+	 * The stream doesn't support seeking.
+	 */
+	public static final String NS_SEEK_FAILED = "NetStream.Seek.Failed";
     /**
      * The subscriber has used the seek command to move to a particular location in the recorded stream.
      */

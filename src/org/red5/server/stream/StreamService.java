@@ -41,6 +41,7 @@ import org.red5.server.api.stream.IStreamPublishSecurity;
 import org.red5.server.api.stream.IStreamSecurityService;
 import org.red5.server.api.stream.IStreamService;
 import org.red5.server.api.stream.ISubscriberStream;
+import org.red5.server.api.stream.OperationNotSupportedException;
 import org.red5.server.api.stream.support.SimplePlayItem;
 import org.red5.server.net.rtmp.BaseRTMPHandler;
 import org.red5.server.net.rtmp.Channel;
@@ -416,7 +417,18 @@ public class StreamService implements IStreamService {
 			return;
 		}
 		ISubscriberStream subscriberStream = (ISubscriberStream) stream;
-		subscriberStream.seek(position);
+		try {
+			subscriberStream.seek(position);
+		} catch (OperationNotSupportedException err) {
+			Status seekFailed = new Status(StatusCodes.NS_SEEK_FAILED);
+			seekFailed.setClientid(streamId);
+			seekFailed.setDesciption("The stream doesn't support seeking.");
+			seekFailed.setLevel("error");
+
+			// FIXME: there should be a direct way to send the status
+			Channel channel = ((RTMPConnection) streamConn).getChannel((byte) (4 + ((streamId-1) * 5)));
+			channel.sendStatus(seekFailed);
+		}
 	}
 
 	/** {@inheritDoc} */

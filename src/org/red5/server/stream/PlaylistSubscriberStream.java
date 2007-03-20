@@ -39,6 +39,7 @@ import org.red5.server.api.stream.IPlaylistController;
 import org.red5.server.api.stream.IPlaylistSubscriberStream;
 import org.red5.server.api.stream.IStreamAwareScopeHandler;
 import org.red5.server.api.stream.IVideoStreamCodec;
+import org.red5.server.api.stream.OperationNotSupportedException;
 import org.red5.server.messaging.IFilter;
 import org.red5.server.messaging.IMessage;
 import org.red5.server.messaging.IMessageComponent;
@@ -224,7 +225,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 	}
 
 	/** {@inheritDoc} */
-    public void seek(int position) {
+    public void seek(int position) throws OperationNotSupportedException {
 		try {
 			engine.seek(position);
 		} catch (IllegalStateException e) {
@@ -359,7 +360,11 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 						engine.play(item);
 						if (needPause) {
 							engine.pause(0);
-							engine.seek(0);
+							try {
+								engine.seek(0);
+							} catch (OperationNotSupportedException err) {
+								// Ignore errors for streams that don't support seeking.
+							}
 						}
 					}
 					break;
@@ -961,57 +966,59 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
          * @throws IllegalStateException    If stream is in stopped state
          */
         public synchronized void seek(int position)
-				throws IllegalStateException {
+				throws IllegalStateException, OperationNotSupportedException {
 			if (state != State.PLAYING && state != State.PAUSED) {
 				throw new IllegalStateException();
 			}
-			if (isPullMode) {
-				if (state == State.PLAYING && currentItem.getLength() >= 0) {
-					long length = currentItem.getLength() - vodStartTS
-							+ position;
-					if (length < 0) {
-						length = 0;
-					}
-					playLengthJob = schedulingService.addScheduledOnceJob(
-							length, this);
+			if (!isPullMode) {
+				throw new OperationNotSupportedException();
+			}
+			
+			if (state == State.PLAYING && currentItem.getLength() >= 0) {
+				long length = currentItem.getLength() - vodStartTS
+						+ position;
+				if (length < 0) {
+					length = 0;
 				}
-				releasePendingMessage();
-				getStreamFlow().clear();
-				clearWaitJobs();
-				bwController.resetBuckets(bwContext);
-				isWaitingForToken = false;
-				sendClearPing();
-				sendReset();
-				sendSeekStatus(currentItem, position);
-				sendStartStatus(currentItem);
-				int seekPos = sendVODSeekCM(msgIn, position);
-				// We seeked to the nearest keyframe so use real timestamp now
-				if (seekPos == -1) {
-					seekPos = position;
+				playLengthJob = schedulingService.addScheduledOnceJob(
+						length, this);
+			}
+			releasePendingMessage();
+			getStreamFlow().clear();
+			clearWaitJobs();
+			bwController.resetBuckets(bwContext);
+			isWaitingForToken = false;
+			sendClearPing();
+			sendReset();
+			sendSeekStatus(currentItem, position);
+			sendStartStatus(currentItem);
+			int seekPos = sendVODSeekCM(msgIn, position);
+			// We seeked to the nearest keyframe so use real timestamp now
+			if (seekPos == -1) {
+				seekPos = position;
+			}
+			notifyItemSeek(currentItem, seekPos);
+			if (state == State.PAUSED) {
+				// we send a single snapshot on pause.
+				// XXX we need to take BWC into account, for
+				// now send forcefully.
+				IMessage msg;
+				try {
+					msg = msgIn.pullMessage();
+				} catch (Throwable err) {
+					log.error("Error while pulling message.", err);
+					msg = null;
 				}
-				notifyItemSeek(currentItem, seekPos);
-				if (state == State.PAUSED) {
-					// we send a single snapshot on pause.
-					// XXX we need to take BWC into account, for
-					// now send forcefully.
-					IMessage msg;
-					try {
-						msg = msgIn.pullMessage();
-					} catch (Throwable err) {
-						log.error("Error while pulling message.", err);
-						msg = null;
-					}
-					while (msg != null) {
-						if (msg instanceof RTMPMessage) {
-							RTMPMessage rtmpMessage = (RTMPMessage) msg;
-							IRTMPEvent body = rtmpMessage.getBody();
-							if (body instanceof VideoData
-									&& ((VideoData) body).getFrameType() == FrameType.KEYFRAME) {
-								body.setTimestamp(seekPos);
-								msgOut.pushMessage(rtmpMessage);
-								rtmpMessage.getBody().release();
-								break;
-							}
+				while (msg != null) {
+					if (msg instanceof RTMPMessage) {
+						RTMPMessage rtmpMessage = (RTMPMessage) msg;
+						IRTMPEvent body = rtmpMessage.getBody();
+						if (body instanceof VideoData
+								&& ((VideoData) body).getFrameType() == FrameType.KEYFRAME) {
+							body.setTimestamp(seekPos);
+							msgOut.pushMessage(rtmpMessage);
+							rtmpMessage.getBody().release();
+							break;
 						}
 					}
 				}

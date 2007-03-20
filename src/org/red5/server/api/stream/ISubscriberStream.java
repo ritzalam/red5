@@ -59,8 +59,9 @@ public interface ISubscriberStream extends IClientStream {
 	 * 
 	 * @param position
 	 *            Position for seek in millisecond.
+	 * @throws OperationNotSupportedException if the stream doesn't support seeking.
 	 */
-	void seek(int position);
+	void seek(int position) throws OperationNotSupportedException;
 
 	/**
 	 * Check if the stream is currently paused.
