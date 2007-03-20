@@ -71,7 +71,9 @@ implements IBWControlService {
 
 	public void run() {
 		List<BWContext> contexts = new ArrayList<BWContext>();
-		contexts.addAll(contextMap.values());
+		synchronized (contextMap) {
+			contexts.addAll(contextMap.values());
+		}
 		for (BWContext context : contexts) {
 			synchronized (context) {
 				if (context.bwConfig != null) {
@@ -147,7 +149,9 @@ implements IBWControlService {
 		} else {
 			context.lastSchedule = -1;
 		}
-		contextMap.put(bc, context);
+		synchronized (contextMap) {
+			contextMap.put(bc, context);
+		}
 		return context;
 	}
 
@@ -161,7 +165,9 @@ implements IBWControlService {
 
 	public void unregisterBWControllable(IBWControlContext context) {
 		resetBuckets(context);
-		contextMap.remove(context.getBWControllable());
+		synchronized (contextMap) {
+			contextMap.remove(context.getBWControllable());
+		}
 	}
 	
 	public IBWControlContext lookupContext(IBWControllable bc) {
