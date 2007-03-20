@@ -479,7 +479,7 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
     	
     	// Skip version and flags
     	in.skip(3);
-    	int size = in.get() << 21 | in.get() << 14 | in.get() << 7 | in.get();
+    	int size = (in.get() & 0x7f) << 21 | (in.get() & 0x7f) << 14 | (in.get() & 0x7f) << 7 | (in.get() & 0x7f);
     	// Skip ID3v2 header for now
     	in.skip(size);
     }
