@@ -885,17 +885,22 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 					throw new StreamNotFoundException(item.getName());
 			}
 			state = State.PLAYING;
+			IMessage msg = null;
 			if (decision == 1) {
 				releasePendingMessage();
 				sendVODInitCM(msgIn, item);
 				vodStartTS = -1;
-				pullAndPush();
+				// Don't use pullAndPush to detect IOExceptions prior to sending
+				// NetStream.Play.Start
+				msg = msgIn.pullMessage();
 			}
 			if (sendNotifications) {
 				sendReset();
 				sendResetStatus(item);
 				sendStartStatus(item);
 			}
+			if (msg != null)
+				sendMessage((RTMPMessage) msg);
 			notifyItemPlay(currentItem, !isPullMode);
 		}
 
