@@ -49,6 +49,7 @@ import org.red5.server.net.rtmp.event.Invoke;
 import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.event.Ping;
 import org.red5.server.net.rtmp.message.Header;
+import org.red5.server.net.rtmp.status.Status;
 import org.red5.server.net.rtmp.status.StatusObject;
 import org.red5.server.net.rtmp.status.StatusObjectService;
 import org.red5.server.service.Call;
@@ -346,10 +347,20 @@ public class RTMPHandler extends BaseRTMPHandler {
 				IStreamService streamService = (IStreamService) getScopeService(
 						conn.getScope(), IStreamService.class,
 						StreamService.class);
-				if (!invokeCall(conn, call, streamService)) {
-					StatusObject status = getStatus(NS_INVALID_ARGUMENT);
-					status.setDescription("Failed to " + action + " (stream ID: " + source.getStreamId() + ")");
-					channel.sendStatus(status.asStatus());
+				Status status = null;
+				try {
+					if (!invokeCall(conn, call, streamService)) {
+						status = getStatus(NS_INVALID_ARGUMENT).asStatus();
+						status.setDescription("Failed to " + action + " (stream ID: " + source.getStreamId() + ")");
+					}
+				} catch (Throwable err) {
+					log.error("Error while invoking " + action + " on stream service.", err);
+					status = getStatus(NS_FAILED).asStatus();
+					status.setDescription("Error while invoking " + action + " (stream ID: " + source.getStreamId() + ")");
+					status.setDetails(err.getMessage());
+				}
+				if (status != null) {
+					channel.sendStatus(status);
 				}
 			} else {
 				invokeCall(conn, call);
