@@ -37,6 +37,10 @@ public interface IKeyFrameDataAnalyzer {
      */
     public static class KeyFrameMeta implements Serializable {
 		private static final long serialVersionUID = 5436632873705625365L;
+		/**
+		 * Duration in milliseconds
+		 */
+		public long duration;
         /**
          * Keyframe timestamps
          */

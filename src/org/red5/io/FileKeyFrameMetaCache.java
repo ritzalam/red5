@@ -95,11 +95,15 @@ public class FileKeyFrameMetaCache implements IKeyFrameMetaCache {
 			// File has changed in the meantime
 			return null;
 		
+		if (!root.hasAttribute("duration"))
+			// Old file without duration informations
+			return null;
+		
 		XPathFactory factory = XPathFactory.newInstance();
         XPath xpath = factory.newXPath();
         NodeList keyFrames;
         try {
-            XPathExpression xexpr = xpath.compile("/FLVMetadata/KeyFrame");
+            XPathExpression xexpr = xpath.compile("/FrameMetadata/KeyFrame");
             keyFrames = (NodeList) xexpr.evaluate(dom, XPathConstants.NODESET);
         } catch (XPathExpressionException err) {
         	log.error("could not compile xpath expression", err);
@@ -112,6 +116,7 @@ public class FileKeyFrameMetaCache implements IKeyFrameMetaCache {
         	return null;
 		
         KeyFrameMeta result = new KeyFrameMeta();
+        result.duration = Long.parseLong(root.getAttribute("duration"));
         result.positions = new long[length];
         result.timestamps = new int[length];
 		for (int i=0; i<length; i++) {
@@ -146,6 +151,7 @@ public class FileKeyFrameMetaCache implements IKeyFrameMetaCache {
 		// Create file and add keyframe informations
 		Element root = dom.createElement("FrameMetadata");
 		root.setAttribute("modified", String.valueOf(file.lastModified()));
+		root.setAttribute("duration", String.valueOf(meta.duration));
 		dom.appendChild(root);
 		
 		for (int i=0; i<meta.positions.length; i++) {

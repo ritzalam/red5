@@ -402,11 +402,11 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 			frameMeta = frameCache.loadKeyFrameMeta(file);
 			if (frameMeta != null) {
 				// Frame data loaded, create other mappings
+				duration = frameMeta.duration;
 				posTimeMap = new HashMap<Integer, Double>();
 				for (int i=0; i<frameMeta.positions.length; i++) {
 					posTimeMap.put((int) frameMeta.positions[i], (double) frameMeta.timestamps[i]);
 				}
-				duration = frameMeta.timestamps[frameMeta.positions.length-1];
 				return frameMeta;
 			}
 		}
@@ -447,6 +447,7 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 		dataRate = (int) (rate / count);
 		posTimeMap = new HashMap<Integer, Double>();
 		frameMeta = new KeyFrameMeta();
+		frameMeta.duration = duration;
 		frameMeta.positions = new long[positionList.size()];
 		frameMeta.timestamps = new int[timestampList.size()];
 		for (int i = 0; i < frameMeta.positions.length; i++) {

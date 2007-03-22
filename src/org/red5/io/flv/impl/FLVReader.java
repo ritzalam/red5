@@ -583,6 +583,7 @@ public class FLVReader implements IoConstants, ITagReader,
 			keyframeMeta = keyframeCache.loadKeyFrameMeta(file);
 			if (keyframeMeta != null) {
 				// Keyframe data loaded, create other mappings
+				duration = keyframeMeta.duration;
 				posTimeMap = new HashMap<Long, Long>();
 				for (int i=0; i<keyframeMeta.positions.length; i++) {
 					posTimeMap.put(keyframeMeta.positions[i], (long) keyframeMeta.timestamps[i]);
@@ -667,6 +668,7 @@ public class FLVReader implements IoConstants, ITagReader,
 		setCurrentPosition(origPos);
 
 		keyframeMeta = new KeyFrameMeta();
+		keyframeMeta.duration = duration;
 		posTimeMap = new HashMap<Long, Long>();
 		if (audioOnly) {
 			// The flv only contains audio tags, use their lists
