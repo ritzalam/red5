@@ -57,6 +57,7 @@ import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.event.Ping;
 import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.net.rtmp.event.VideoData.FrameType;
+import org.red5.server.net.rtmp.message.Header;
 import org.red5.server.net.rtmp.status.Status;
 import org.red5.server.net.rtmp.status.StatusCodes;
 import org.red5.server.stream.ITokenBucket.ITokenBucketCallback;
@@ -1022,6 +1023,16 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 						}
 					}
 				}
+			} else {
+				// Send blank audio packet to notify client about new position
+				AudioData audio = new AudioData();
+				audio.setTimestamp(seekPos);
+				audio.setHeader(new Header());
+				audio.getHeader().setTimer(seekPos);
+				audio.getHeader().setTimerRelative(false);
+				RTMPMessage audioMessage = new RTMPMessage();
+				audioMessage.setBody(audio);
+				msgOut.pushMessage(audioMessage);
 			}
 		}
 

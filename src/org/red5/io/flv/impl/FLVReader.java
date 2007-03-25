@@ -228,6 +228,9 @@ public class FLVReader implements IoConstants, ITagReader,
      * @param pos  Current position in file
      */
     private void setCurrentPosition(long pos) {
+		if (pos == Long.MAX_VALUE) {
+			pos = file.length();
+		}
 		if (!useLoadBuf) {
 			in.position((int) pos);
 			return;
@@ -694,10 +697,14 @@ public class FLVReader implements IoConstants, ITagReader,
 	 * Put the current position to pos.
 	 * The caller must ensure the pos is a valid one
 	 * (eg. not sit in the middle of a frame)
-	 * @param pos         New position in file
+	 * @param pos         New position in file. Pass <code>Long.MAX_VALUE</code> to seek to end of file.
 	 */
 	public void position(long pos) {
 		setCurrentPosition(pos);
+		if (pos == Long.MAX_VALUE) {
+			tagPosition = posTagMap.size()+1;
+			return;
+		}
 		// Make sure we have informations about the keyframes.
 		analyzeKeyFrames();
 		// Update the current tag number

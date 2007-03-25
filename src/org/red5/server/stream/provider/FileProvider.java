@@ -245,6 +245,11 @@ public class FileProvider implements IPassive, ISeekableProvider,
 			// TODO add audio-seek capability
 			return ts;
 		}
+		if (ts >= keyFrameMeta.duration) {
+			// Seek at or beyond EOF
+			reader.position(Long.MAX_VALUE);
+			return (int) keyFrameMeta.duration;
+		}
 		int frame = 0;
 		for (int i = 0; i < keyFrameMeta.positions.length; i++) {
 			if (keyFrameMeta.timestamps[i] > ts) {

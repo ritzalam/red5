@@ -378,6 +378,12 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 
 	/** {@inheritDoc} */
     public void position(long pos) {
+    	if (pos == Long.MAX_VALUE) {
+    		// Seek at EOF
+    		in.position(in.limit());
+    		currentTime = duration;
+    		return;
+    	}
 		in.position((int) pos);
 		// Advance to next frame
 		searchNextFrame();
