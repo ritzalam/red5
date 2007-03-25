@@ -380,7 +380,6 @@
             memoryMaximumSize="1024m"
             excludes="**/*.jsp,
                 org/red5/server/script/**,
-                org/red5/io/filter/**,
                 org/red5/server/jetty/**,
                 org/red5/server/midi/**,                
                 org/red5/server/net/rtmpt/*Loader.java,
