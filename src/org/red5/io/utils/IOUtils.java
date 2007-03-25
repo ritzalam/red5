@@ -49,6 +49,7 @@ public class IOUtils {
 		bytes[1] = rev.get();
 		bytes[0] = rev.get();
 		out.put(bytes);
+		rev.release();
 		rev = null;
     }
 

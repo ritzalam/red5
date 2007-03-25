@@ -290,10 +290,10 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 		synchronized (stacks) {
 			for (Entry<UnexpandableByteBuffer, StackTraceElement[]> entry : stacks
 					.entrySet()) {
-				log.info("Stack for buffer " + entry.getKey());
+				System.err.println("Stack for buffer " + entry.getKey());
 				StackTraceElement[] stack = entry.getValue();
 				for (StackTraceElement element : stack) {
-					log.info("  " + element);
+					System.err.println("  " + element);
 				}
 			}
 		}
@@ -372,7 +372,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 		PooledByteBuffer buf = allocateContainer();
 		buf.init(new UnexpandableByteBuffer(nioBuffer), false);
 		buf.buf.init();
-		//buf.setPooled(false);
+		buf.setPooled(false);
 		return buf;
 	}
 
@@ -522,45 +522,45 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
         /**
          *
          */
-//		@Override
-//		public synchronized void acquire() {
-//			if (refCount <= 0) {
-//				throw new IllegalStateException("Already released buffer.");
-//			}
-//
-//			refCount++;
-//		}
+		@Override
+		public synchronized void acquire() {
+			if (refCount <= 0) {
+				throw new IllegalStateException("Already released buffer.");
+			}
+
+			refCount++;
+		}
 
         /**
          *
          */
-//		@Override
-//		public void release() {
-//			synchronized (this) {
-//				if (refCount <= 0) {
-//					refCount = 0;
-//					throw new IllegalStateException(
-//							"Already released buffer.  You released the buffer too many times.");
-//				}
-//
-//				refCount--;
-//				if (refCount > 0) {
-//					return;
-//				}
-//			}
-//
-//			// No need to return buffers to the pool if it is disposed already.
-//			if (disposed) {
-//				return;
-//			}
-//
-//			buf.release();
-//
-//			synchronized (containerStack) {
-//				containerStack.push(this);
-//			}
-//		}
+		@Override
+		public void release() {
+			synchronized (this) {
+				if (refCount <= 0) {
+					refCount = 0;
+					throw new IllegalStateException(
+							"Already released buffer.  You released the buffer too many times.");
+				}
 
+				refCount--;
+				if (refCount > 0) {
+					return;
+				}
+			}
+
+			// No need to return buffers to the pool if it is disposed already.
+			if (disposed) {
+				return;
+			}
+
+			buf.release();
+
+			synchronized (containerStack) {
+				containerStack.push(this);
+			}
+		}
+		
         /**
          *
          * @return
@@ -612,19 +612,19 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
          *
          * @return
          */
-//		@Override
-//		public boolean isPooled() {
-//			return buf.isPooled();
-//		}
+		@Override
+		public boolean isPooled() {
+			return buf.isPooled();
+		}
 
         /**
          *
          * @param pooled
          */
-//		@Override
-//		public void setPooled(boolean pooled) {
-//			buf.setPooled(pooled);
-//		}
+		@Override
+		public void setPooled(boolean pooled) {
+			buf.setPooled(pooled);
+		}
 
         /**
          *
@@ -1324,12 +1324,6 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 		public int markValue() {
 			// TODO Auto-generated method stub
 			return 0;
-		}
-
-		@Override
-		public boolean hasArray() {
-			// TODO Auto-generated method stub
-			return false;
 		}
 
 	}

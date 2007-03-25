@@ -1167,6 +1167,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 								if (toSend) {
 									//System.err.println("ts: " + rtmpMessage.getBody().getTimestamp());
 									sendMessage(rtmpMessage);
+									((IStreamData) body).getData().release();
 								} else {
 									pendingMessage = rtmpMessage;
 								}
@@ -1592,6 +1593,10 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
          */
 		private void releasePendingMessage() {
 			if (pendingMessage != null) {
+				IRTMPEvent body = pendingMessage.getBody(); 
+				if (body instanceof IStreamData) { 
+					((IStreamData) body).getData().release(); 
+				} 
 				pendingMessage.setBody(null);
 				pendingMessage = null;
 			}

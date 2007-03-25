@@ -125,7 +125,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 		}
 		header.setSize(data.limit());
 
-		ByteBuffer headers = encodeHeader(header, rtmp.getLastWriteHeader(channelId));
+		final ByteBuffer headers = encodeHeader(header, rtmp.getLastWriteHeader(channelId));
 
 		rtmp.setLastWriteHeader(channelId, header);
 		rtmp.setLastWritePacket(channelId, packet);
@@ -145,7 +145,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 
 		headers.flip();
 		out.put(headers);
-		headers = null;
+		headers.release();
 
 		if (numChunks == 1) {
 			// we can do it with a single copy
@@ -159,6 +159,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 			BufferUtils.put(out, data, out.remaining());
 		}
 
+		data.release();
 		out.flip();
 		data = null;
 

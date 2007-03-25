@@ -181,7 +181,13 @@ public class RTMPTConnection extends RTMPConnection {
 		if (!isClosing())
 			return;
 
-		buffer = null;
+		if (buffer != null) {
+			buffer.release();
+			buffer = null;
+		}
+		for (ByteBuffer buf: pendingMessages) {
+			buf.release();
+		}
 		pendingMessages.clear();
 		notifyMessages.clear();
 		state.setState(RTMP.STATE_DISCONNECTED);
@@ -338,6 +344,7 @@ public class RTMPTConnection extends RTMPConnection {
 				while (it.hasNext()) {
 					ByteBuffer buffer = it.next();
 					result.put(buffer);
+					buffer.release();
 					buffer = null;
 				}
 

@@ -556,6 +556,7 @@ public class FLVReader implements IoConstants, ITagReader,
 	public void close() {
 		log.debug("Reader close");
 		if (in != null) {
+			in.release();
 			in = null;
 		}
 		if (channel != null) {

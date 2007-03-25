@@ -276,6 +276,7 @@ public class FilePersistence extends RamPersistence {
 					result.deserialize(in);
 				}
 			} finally {
+				buf.release();
 				buf = null;
 			}
 			if (result.getStore() != this) {
@@ -353,6 +354,7 @@ public class FilePersistence extends RamPersistence {
 				ServletUtils.copy(buf.asInputStream(), output);
 				output.close();
 			} finally {
+				buf.release();
 				buf = null;
 			}
 			if (log.isDebugEnabled()) {

@@ -30,43 +30,61 @@
         <!-- use a SynchronousQueue to handle requests to the threads -->
         <property name="queueCapacity" value="0" />
     </bean>
+
+	<bean id="filterChainBuilder" 
+        class="org.apache.mina.integration.spring.DefaultIoFilterChainBuilderFactoryBean">
+		<property name="filters">
+	    	<list>
+				<!-- mina 1.0 with java5 executor class -->
+				<bean class="org.red5.io.filter.ExecutorFilter">
+					<!-- int corePoolSize, int maximumPoolSize, long keepAliveTime (seconds) -->
+					<constructor-arg index="0" value="16" />
+					<constructor-arg index="1" value="128" />
+					<constructor-arg index="2" value="60" />
+				</bean>
+			</list>
+		</property>
+	</bean>
     
-	<bean class="org.apache.mina.transport.socket.nio.SocketAcceptor"
-		init-method="bind" destroy-method="unbind">
-		<!-- RTMP -->
-		<constructor-arg value="${rtmp.threadcount}" />
-		<constructor-arg><ref bean="threadExecutor"/></constructor-arg>
-		<property name="localAddress" value="${rtmp.host_port}" />
-		<property name="handler" ref="rtmpMinaIoHandler" />
-		<property name="sessionConfig">
-			<bean
-				class="org.apache.mina.transport.socket.nio.DefaultSocketSessionConfig">
-				<property name="reuseAddress" value="true" />
-				<!-- 
-				<property name="tcpNoDelay" value="true"/>
-				<property name="sendBufferSize" value="1024"/>
-				<property name="receiveBufferSize" value="1024"/>
-				<property name="soLinger" value="10"/>
-				<property name="oobInline" value="false"/>
-				<property name="keepAlive" value="true"/>				
-				 -->
-			</bean>
-		</property>
-	</bean>
-	
-	<bean class="org.apache.mina.transport.socket.nio.SocketAcceptor"
-		init-method="bind" destroy-method="unbind">
-		<!-- DEBUG PROXY -->
-		<property name="localAddress" value="${debug_proxy.host_port}" />
-		<property name="handler" ref="debugProxyIoHandler" />
-		<property name="sessionConfig">
-			<bean
-				class="org.apache.mina.transport.socket.nio.DefaultSocketSessionConfig">
-				<property name="reuseAddress" value="true" />
-			</bean>
-		</property>
-	</bean>
-	
+    <bean id="socketAcceptor" class="org.apache.mina.integration.spring.IoAcceptorFactoryBean">
+      <property name="target">
+        <bean class="org.apache.mina.transport.socket.nio.SocketAcceptor">
+            <constructor-arg value="${rtmp.threadcount}" />
+            <constructor-arg><ref bean="threadExecutor"/></constructor-arg>
+        </bean>
+      </property>
+      <property name="bindings">
+        <list>
+         <!-- RTMP -->
+         <bean class="org.apache.mina.integration.spring.Binding">
+           <property name="address" value="${rtmp.host_port}"/>
+           <property name="handler" ref="rtmpMinaIoHandler"/>
+           <property name="serviceConfig">
+             <bean class="org.apache.mina.transport.socket.nio.SocketAcceptorConfig">
+               <property name="filterChainBuilder" ref="filterChainBuilder"/>
+               <property name="reuseAddress" value="true"/>
+               <property name="sessionConfig.reuseAddress" value="true"/>
+             </bean>
+           </property>
+         </bean>
+         
+         <!-- DEBUG PROXY -->
+         <bean class="org.apache.mina.integration.spring.Binding">
+           <property name="address" value="${debug_proxy.host_port}"/>
+           <property name="handler" ref="debugProxyIoHandler"/>
+           <property name="serviceConfig">
+             <bean class="org.apache.mina.transport.socket.nio.SocketAcceptorConfig">
+               <property name="filterChainBuilder" ref="filterChainBuilder"/>
+               <property name="reuseAddress" value="true"/>
+               <property name="sessionConfig.reuseAddress" value="true"/>
+             </bean>
+           </property>
+        </bean>
+       
+       </list>
+      </property>
+    </bean>
+   
 	<!-- RTMPHandler -->
 	<bean id="rtmpHandler"
 		class="org.red5.server.net.rtmp.RTMPHandler">

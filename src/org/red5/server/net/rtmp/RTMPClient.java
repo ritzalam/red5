@@ -150,8 +150,7 @@ public class RTMPClient extends BaseRTMPHandler {
 		
 		this.connectCallback = connectCallback;
 		SocketConnector connector = new SocketConnector();
-		connector.setHandler(ioHandler);
-		connector.connect(new InetSocketAddress(server, port));
+		connector.connect(new InetSocketAddress(server, port), ioHandler);
 	}
 	
 	/**

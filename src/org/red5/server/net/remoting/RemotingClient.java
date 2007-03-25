@@ -133,6 +133,7 @@ public class RemotingClient {
 			result.putInt(tmp.limit());
 			// Header data
 			result.put(tmp);
+			tmp.release();
 			tmp = null;
 		}
 		// One body
@@ -154,6 +155,7 @@ public class RemotingClient {
 		// Store size and parameters
 		result.putInt(tmp.limit());
 		result.put(tmp);
+		tmp.release();
 		tmp = null;
 
 		result.flip();
@@ -305,8 +307,10 @@ public class RemotingClient {
 		} finally {
 			post.releaseConnection();
 			if (resultBuffer != null) {
+				resultBuffer.release();
 				resultBuffer = null;
 			}
+			data.release();
 			data = null;
 		}
 		return null;

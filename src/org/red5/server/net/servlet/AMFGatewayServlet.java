@@ -148,6 +148,7 @@ public class AMFGatewayServlet extends HttpServlet {
 			path = path.substring(1);
 		}
 		packet.setScopePath(path);
+		reqBuffer.release();
 		reqBuffer = null;
 		return packet;
 	}
@@ -186,6 +187,7 @@ public class AMFGatewayServlet extends HttpServlet {
 		ServletUtils.copy(respBuffer.asInputStream(), out);
 		out.flush();
 		out.close();
+		respBuffer.release();
 		respBuffer = null;
     }
 

@@ -106,7 +106,7 @@ public class RTMPMinaConnection extends RTMPConnection {
 	/** {@inheritDoc} */
     @Override
 	public long getPendingMessages() {
-		return ioSession.getScheduledWriteMessages();
+		return ioSession.getScheduledWriteRequests();
 	}
 
 	/** {@inheritDoc} */

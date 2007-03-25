@@ -154,6 +154,7 @@ public class RTMPTServlet extends HttpServlet {
 		ServletOutputStream output = resp.getOutputStream();
 		output.write(client.getPollingDelay());
 		ServletUtils.copy(buffer.asInputStream(), output);
+		buffer.release();
 		buffer = null;
 	}
 
@@ -210,6 +211,7 @@ public class RTMPTServlet extends HttpServlet {
 		ByteBuffer data = ByteBuffer.allocate(req.getContentLength());
 		ServletUtils.copy(req.getInputStream(), data.asOutputStream());
 		data.flip();
+		data.release();
 		data = null;
 	}
 
@@ -334,6 +336,7 @@ public class RTMPTServlet extends HttpServlet {
 
 		// Decode the objects in the data
 		List messages = client.decode(data);
+		data.release();
 		data = null;
 		if (messages == null || messages.isEmpty()) {
 			returnMessage(client.getPollingDelay(), resp);

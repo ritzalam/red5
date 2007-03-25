@@ -50,6 +50,7 @@ public class CacheableImpl implements ICacheable {
 		bytes = new byte[tmp.capacity()];
 		tmp.get(bytes);
 		cached = true;
+		tmp.release();
 		tmp = null;
 	}
 

@@ -75,6 +75,7 @@ public class Unknown extends BaseEvent {
     @Override
 	protected void releaseInternal() {
 		if (data != null) {
+			data.release();
 			data = null;
 		}
 	}

@@ -25,6 +25,8 @@ import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.common.ByteBufferAllocator;
 import org.springframework.context.access.ContextSingletonBeanFactoryLocator;
 
 /**
@@ -45,6 +47,8 @@ public class Standalone {
      *
      */
 	protected static String red5Config = "red5.xml";
+
+	public static DebugPooledByteBufferAllocator allocator;
 
 	/**
      * Re-throws exception
@@ -71,10 +75,10 @@ public class Standalone {
 
         //System.setProperty("DEBUG", "true");
 
-		//if (false) {
-		//	allocator = new DebugPooledByteBufferAllocator(true);
-		//	ByteBuffer.setAllocator(allocator);
-		//}
+		if (false) {
+			allocator = new DebugPooledByteBufferAllocator(true);
+			ByteBuffer.setAllocator(allocator);
+		}
 
 		if (args.length == 1) {
 			red5Config = args[0];

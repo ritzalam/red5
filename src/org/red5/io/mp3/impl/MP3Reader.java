@@ -361,6 +361,7 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 		}
 		mappedFile.clear();
 		if (in != null) {
+			in.release();
 			in = null;
 		}
 		try {

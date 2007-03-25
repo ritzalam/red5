@@ -28,6 +28,7 @@ import org.apache.mina.filter.LoggingFilter;
 import org.apache.mina.filter.codec.ProtocolCodecFactory;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.transport.socket.nio.SocketSessionConfig;
+import org.red5.server.Standalone;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.message.Constants;
@@ -209,11 +210,16 @@ implements ApplicationContextAware {
 				.getAttribute(ProtocolState.SESSION_KEY);
 		ByteBuffer buf = (ByteBuffer) session.getAttribute("buffer");
 		if (buf != null) {
-			buf = null;
+			buf.release();
 		}
 		final RTMPMinaConnection conn = (RTMPMinaConnection) session
 				.getAttachment();
 		this.handler.connectionClosed(conn, rtmp);
+		session.removeAttribute(ProtocolState.SESSION_KEY);
+		session.setAttachment(null);
+		if (Standalone.allocator != null) {
+			Standalone.allocator.printStacks();
+		}
 	}
 
 	/** {@inheritDoc} */
@@ -223,6 +229,9 @@ implements ApplicationContextAware {
 			log.debug("Session created");
 		}
 
+		if (Standalone.allocator != null) {
+			Standalone.allocator.resetStacks();
+		}
 		// moved protocol state from connection object to rtmp object
 		session.setAttribute(ProtocolState.SESSION_KEY, new RTMP(mode));
 

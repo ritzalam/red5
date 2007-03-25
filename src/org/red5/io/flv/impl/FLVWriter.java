@@ -233,6 +233,7 @@ public class FLVWriter implements ITagWriter {
 			} catch (IOException err) {
 				log.error("Could not write size of last tag to file.", err);
 			}
+			out.release();
 			out = null;
 		}
 		try {

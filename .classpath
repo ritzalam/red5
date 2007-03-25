@@ -65,11 +65,11 @@
 	<classpathentry kind="lib" path="lib/bsh-2.0b4.jar"/>
 	<classpathentry kind="lib" path="lib/jetty-6.1.0.jar"/>
 	<classpathentry kind="lib" path="lib/jetty-util-6.1.0.jar"/>
-	<classpathentry kind="lib" path="lib/mina-core-2.0.0-M1.jar"/>
-	<classpathentry kind="lib" path="lib/mina-filter-compression-2.0.0-M1.jar"/>
-	<classpathentry kind="lib" path="lib/mina-filter-ssl-2.0.0-M1.jar"/>
-	<classpathentry kind="lib" path="lib/mina-integration-spring-2.0.0-M1.jar"/>
 	<classpathentry kind="lib" path="lib/groovy-1.0.jar"/>
 	<classpathentry kind="lib" path="lib/jta.jar"/>
+	<classpathentry kind="lib" path="lib/mina-core-1.0.1.jar"/>
+	<classpathentry kind="lib" path="lib/mina-filter-compression-1.0.1.jar"/>
+	<classpathentry kind="lib" path="lib/mina-filter-ssl-1.0.1.jar"/>
+	<classpathentry kind="lib" path="lib/mina-integration-spring-1.0.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
