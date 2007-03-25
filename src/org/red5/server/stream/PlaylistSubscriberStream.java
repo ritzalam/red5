@@ -1022,6 +1022,13 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 							break;
 						}
 					}
+					
+					try {
+						msg = msgIn.pullMessage();
+					} catch (Throwable err) {
+						log.error("Error while pulling message.", err);
+						msg = null;
+					}
 				}
 			} else {
 				// Send blank audio packet to notify client about new position
