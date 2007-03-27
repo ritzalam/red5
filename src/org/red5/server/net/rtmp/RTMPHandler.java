@@ -31,10 +31,13 @@ import org.red5.server.api.IGlobalScope;
 import org.red5.server.api.IScope;
 import org.red5.server.api.IScopeHandler;
 import org.red5.server.api.IServer;
+import org.red5.server.api.ScopeUtils;
 import org.red5.server.api.IConnection.Encoding;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IServiceCall;
 import org.red5.server.api.so.ISharedObject;
+import org.red5.server.api.so.ISharedObjectSecurity;
+import org.red5.server.api.so.ISharedObjectSecurityService;
 import org.red5.server.api.so.ISharedObjectService;
 import org.red5.server.api.stream.IClientBroadcastStream;
 import org.red5.server.api.stream.IClientStream;
@@ -461,21 +464,32 @@ public class RTMPHandler extends BaseRTMPHandler {
 
 	}
 
+    /**
+     * Create and send SO message stating that a SO could not be created.
+     * 
+     * @param conn
+     * @param name
+     * @param persistent
+     */
+    private void sendSOCreationFailed(RTMPConnection conn, String name, boolean persistent) {
+		SharedObjectMessage msg = new SharedObjectMessage(name, 0, persistent);
+		msg.addEvent(new SharedObjectEvent(
+				ISharedObjectEvent.Type.CLIENT_STATUS,
+				SO_CREATION_FAILED, "error"));
+		conn.getChannel((byte) 3).write(msg);
+    }
+    
 	/** {@inheritDoc} */
     @Override
 	protected void onSharedObject(RTMPConnection conn, Channel channel,
 			Header source, SharedObjectMessage object) {
 		final ISharedObject so;
 		final String name = object.getName();
-		IScope scope = conn.getScope();
+		final boolean persistent = object.isPersistent();
+		final IScope scope = conn.getScope();
 		if (scope == null) {
 			// The scope already has been deleted.
-			SharedObjectMessage msg = new SharedObjectMessage(name, 0, object
-					.isPersistent());
-			msg.addEvent(new SharedObjectEvent(
-					ISharedObjectEvent.Type.CLIENT_STATUS,
-					"SharedObject.NoObjectFound", "error"));
-			conn.getChannel((byte) 3).write(msg);
+			sendSOCreationFailed(conn, name, persistent);
 			return;
 		}
 
@@ -483,18 +497,30 @@ public class RTMPHandler extends BaseRTMPHandler {
 				scope, ISharedObjectService.class,
 				SharedObjectService.class, false);
 		if (!sharedObjectService.hasSharedObject(scope, name)) {
-			if (!sharedObjectService.createSharedObject(scope, name, object
-					.isPersistent())) {
-				SharedObjectMessage msg = new SharedObjectMessage(name, 0,
-						object.isPersistent());
-				msg.addEvent(new SharedObjectEvent(
-						ISharedObjectEvent.Type.CLIENT_STATUS,
-						"SharedObject.ObjectCreationFailed", "error"));
-				conn.getChannel((byte) 3).write(msg);
+			ISharedObjectSecurityService security = (ISharedObjectSecurityService) ScopeUtils.getScopeService(scope, ISharedObjectSecurityService.class);
+			if (security != null) {
+				// Check handlers to see if creation is allowed
+				for (ISharedObjectSecurity handler: security.getSharedObjectSecurity()) {
+					if (!handler.isCreationAllowed(scope, name, persistent)) {
+						sendSOCreationFailed(conn, name, persistent);
+						return;
+					}
+				}
+			}
+			
+			if (!sharedObjectService.createSharedObject(scope, name, persistent)) {
+				sendSOCreationFailed(conn, name, persistent);
 				return;
 			}
 		}
 		so = sharedObjectService.getSharedObject(scope, name);
+		if (so.isPersistentObject() != persistent) {
+			SharedObjectMessage msg = new SharedObjectMessage(name, 0, persistent);
+			msg.addEvent(new SharedObjectEvent(
+					ISharedObjectEvent.Type.CLIENT_STATUS,
+					SO_PERSISTENCE_MISMATCH, "error"));
+			conn.getChannel((byte) 3).write(msg);
+		}
 		so.dispatchEvent(object);
 	}
 

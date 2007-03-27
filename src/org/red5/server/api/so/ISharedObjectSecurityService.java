@@ -19,42 +19,44 @@ package org.red5.server.api.so;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.red5.server.api.IBasicScope;
+import java.util.Set;
+
+import org.red5.server.api.IScopeService;
 
 /**
- * Serverside access to shared objects.
+ * Service that supports protecting access to shared objects.
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
  */
+public interface ISharedObjectSecurityService extends IScopeService {
 
-public interface ISharedObject extends IBasicScope,
-		ISharedObjectBase, ISharedObjectSecurityService {
-
-	public static final String TYPE = "SharedObject";
+	/** 
+	 * Name of a bean defining that scope service.
+	 * */
+	public static final String BEAN_NAME = "sharedObjectSecurityService";
 
 	/**
-	 * Prevent shared object from being released. Each call to <code>acquire</code>
-	 * must be paired with a call to <code>release</code> so the SO isn't held
-	 * forever.
+	 * Add handler that protects shared objects.
 	 * 
-	 * This method basically is a noop for persistent SOs as their data is stored
-	 * and they can be released without losing their contents.
+	 * @param handler
+	 * 			Handler to add.
 	 */
-	public void acquire();
+	public void registerSharedObjectSecurity(ISharedObjectSecurity handler);
 	
 	/**
-	 * Check if shared object currently is acquired.
+	 * Remove handler that protects shared objects.
 	 * 
-	 * @return <code>true</code> if the SO is acquired, otherwise <code>false</code>
+	 * @param handler
+	 * 			Handler to remove.
 	 */
-	public boolean isAcquired();
+	public void unregisterSharedObjectSecurity(ISharedObjectSecurity handler);
 	
 	/**
-	 * Release previously acquired shared object. If the SO is non-persistent,
-	 * no more clients are connected the SO isn't acquired any more, the data
-	 * is released. 
+	 * Get handlers that protect shared objects.
+	 * 
+	 * @return list of handlers
 	 */
-	public void release();
-	
+	public Set<ISharedObjectSecurity> getSharedObjectSecurity();
+
 }

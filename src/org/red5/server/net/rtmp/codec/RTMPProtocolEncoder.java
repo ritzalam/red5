@@ -408,14 +408,13 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 
                 case CLIENT_STATUS:
                     out.put(type);
-                    mark = out.position();
-                    out.skip(4); // we will be back
-                    output.putString(event.getKey());
-                    output.putString((String) event.getValue());
-                    len = out.position() - mark - 4;
-                    out.putInt(mark, len);
+                	final String status = event.getKey();
+                	final String message = (String) event.getValue();
+                	out.putInt(message.length() + status.length() + 4);
+                	output.putString(message);
+                	output.putString(status);
                     break;
-
+                    
                 default:
                     //log.error("Unknown event " + event.getType());
                     // XXX: come back here, need to make this work in server or

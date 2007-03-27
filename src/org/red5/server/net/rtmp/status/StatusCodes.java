@@ -193,5 +193,22 @@ public interface StatusCodes {
      * is about to be destroyed by the server.
      */
 	public static final String APP_GC = "Application.GC";
+	/**
+	 * Read access to a shared object was denied.
+	 */
+	public static final String SO_NO_READ_ACCESS = "SharedObject.NoReadAccess";
+	/**
+	 * Write access to a shared object was denied.
+	 */
+	public static final String SO_NO_WRITE_ACCESS = "SharedObject.NoWriteAccess";
+	/**
+	 * The creation of a shared object was denied.
+	 */
+	public static final String SO_CREATION_FAILED = "SharedObject.ObjectCreationFailed";
+	/**
+	 * The persistence parameter passed to SharedObject.getRemote() is different from the one used
+	 * when the shared object was created.
+	 */
+	public static final String SO_PERSISTENCE_MISMATCH = "SharedObject.BadPersistence";
 
 }

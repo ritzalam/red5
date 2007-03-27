@@ -35,17 +35,21 @@ import org.red5.server.BasicScope;
 import org.red5.server.api.IAttributeStore;
 import org.red5.server.api.IContext;
 import org.red5.server.api.IScope;
+import org.red5.server.api.ScopeUtils;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.event.IEventListener;
 import org.red5.server.api.persistence.IPersistenceStore;
 import org.red5.server.api.so.ISharedObject;
 import org.red5.server.api.so.ISharedObjectListener;
+import org.red5.server.api.so.ISharedObjectSecurity;
+import org.red5.server.api.so.ISharedObjectSecurityService;
+import org.red5.server.net.rtmp.status.StatusCodes;
 import org.red5.server.service.ServiceUtils;
 
 /**
  * Special scope for shared objects
  */
-public class SharedObjectScope extends BasicScope implements ISharedObject {
+public class SharedObjectScope extends BasicScope implements ISharedObject, StatusCodes {
     /**
      * Logger
      */
@@ -62,6 +66,10 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
      * Event handlers
      */
 	private HashMap<String, Object> handlers = new HashMap<String, Object>();
+	/**
+	 * Security handlers
+	 */
+	private Set<ISharedObjectSecurity> securityHandlers = new HashSet<ISharedObjectSecurity>();
     /**
      * Scoped shared object
      */
@@ -95,6 +103,21 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
             so.setName(name);
 			so.setPath(path);
 		}
+	}
+
+	/** {@inheritDoc} */
+	public void registerSharedObjectSecurity(ISharedObjectSecurity handler) {
+		securityHandlers.add(handler);
+	}
+	
+	/** {@inheritDoc} */
+	public void unregisterSharedObjectSecurity(ISharedObjectSecurity handler) {
+		securityHandlers.remove(handler);
+	}
+	
+	/** {@inheritDoc} */
+	public Set<ISharedObjectSecurity> getSharedObjectSecurity() {
+		return securityHandlers;
 	}
 
 	/** {@inheritDoc} */
@@ -327,6 +350,137 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
 		return so.getData();
 	}
 
+    /**
+     * Return security handlers for this shared object or <code>null</code> if none are found.
+     * 
+     * @return
+     */
+    private Set<ISharedObjectSecurity> getSecurityHandlers() {
+    	ISharedObjectSecurityService security = (ISharedObjectSecurityService) ScopeUtils.getScopeService(getParent(), ISharedObjectSecurityService.class);
+    	if (security == null)
+    		return null;
+    	
+    	return security.getSharedObjectSecurity();
+    }
+    
+    /**
+     * Call handlers and check if connection to the existing SO is allowed.
+     * 
+     * @return
+     */
+    protected boolean isConnectionAllowed() {
+    	// Check internal handlers first
+    	for (ISharedObjectSecurity handler: securityHandlers) {
+    		if (!handler.isConnectionAllowed(this)) {
+    			return false;
+    		}
+    	}
+    	
+    	// Check global SO handlers next
+    	final Set<ISharedObjectSecurity> handlers = getSecurityHandlers();
+    	if (handlers == null) {
+    		return true;
+    	}
+    	
+    	for (ISharedObjectSecurity handler: handlers) {
+    		if (!handler.isConnectionAllowed(this)) {
+    			return false;
+    		}
+    	}
+    	
+    	return true;
+    }
+    
+    /**
+     * Call handlers and check if writing to the SO is allowed.
+     * 
+     * @param key
+     * @param value
+     * @return
+     */
+    protected boolean isWriteAllowed(String key, Object value) {
+    	// Check internal handlers first
+    	for (ISharedObjectSecurity handler: securityHandlers) {
+    		if (!handler.isWriteAllowed(this, key, value)) {
+    			return false;
+    		}
+    	}
+    	
+    	// Check global SO handlers next
+    	final Set<ISharedObjectSecurity> handlers = getSecurityHandlers();
+    	if (handlers == null) {
+    		return true;
+    	}
+    	
+    	for (ISharedObjectSecurity handler: handlers) {
+    		if (!handler.isWriteAllowed(this, key, value)) {
+    			return false;
+    		}
+    	}
+    	
+    	return true;
+    }
+    
+    /**
+     * Call handlers and check if deleting a property from the SO is allowed.
+     * 
+     * @param key
+     * @return
+     */
+    protected boolean isDeleteAllowed(String key) {
+    	// Check internal handlers first
+    	for (ISharedObjectSecurity handler: securityHandlers) {
+    		if (!handler.isDeleteAllowed(this, key)) {
+    			return false;
+    		}
+    	}
+    	
+    	// Check global SO handlers next
+    	final Set<ISharedObjectSecurity> handlers = getSecurityHandlers();
+    	if (handlers == null) {
+    		return true;
+    	}
+    	
+    	for (ISharedObjectSecurity handler: handlers) {
+    		if (!handler.isDeleteAllowed(this, key)) {
+    			return false;
+    		}
+    	}
+    	
+    	return true;
+    }
+    
+    /**
+     * Call handlers and check if sending a message to the clients connected to the
+     * SO is allowed.
+     * 
+     * @param message
+     * @param arguments
+     * @return
+     */
+    protected boolean isSendAllowed(String message, List arguments) {
+    	// Check internal handlers first
+    	for (ISharedObjectSecurity handler: securityHandlers) {
+    		if (!handler.isSendAllowed(this, message, arguments)) {
+    			return false;
+    		}
+    	}
+    	
+    	// Check global SO handlers next
+    	final Set<ISharedObjectSecurity> handlers = getSecurityHandlers();
+    	if (handlers == null) {
+    		return true;
+    	}
+    	
+    	for (ISharedObjectSecurity handler: handlers) {
+    		if (!handler.isSendAllowed(this, message, arguments)) {
+    			return false;
+    		}
+    	}
+    	
+    	return true;
+    }
+    
 	/** {@inheritDoc} */
     @Override
 	public void dispatchEvent(IEvent e) {
@@ -346,7 +500,9 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
 		for (ISharedObjectEvent event : msg.getEvents()) {
 			switch (event.getType()) {
 				case SERVER_CONNECT:
-					if (msg.hasSource()) {
+					if (!isConnectionAllowed()) {
+						so.returnError(SO_NO_READ_ACCESS);
+					} else if (msg.hasSource()) {
 						IEventListener source = msg.getSource();
 						if (source instanceof BaseConnection) {
 							((BaseConnection) source).registerBasicScope(this);
@@ -367,13 +523,31 @@ public class SharedObjectScope extends BasicScope implements ISharedObject {
 					}
 					break;
 				case SERVER_SET_ATTRIBUTE:
-					setAttribute(event.getKey(), event.getValue());
+					final String key = event.getKey();
+					final Object value = event.getValue();
+					if (!isWriteAllowed(key, value)) {
+						so.returnAttributeValue(key);
+						so.returnError(SO_NO_WRITE_ACCESS);
+					} else {
+						setAttribute(key, value);
+					}
 					break;
 				case SERVER_DELETE_ATTRIBUTE:
-					removeAttribute(event.getKey());
+					final String property = event.getKey();
+					if (!isDeleteAllowed(property)) {
+						so.returnAttributeValue(property);
+						so.returnError(SO_NO_WRITE_ACCESS);
+					} else {
+						removeAttribute(property);
+					}
 					break;
 				case SERVER_SEND_MESSAGE:
-					sendMessage(event.getKey(), (List) event.getValue());
+					final String message = event.getKey();
+					final List arguments = (List) event.getValue();
+					// Ignore request silently if not allowed
+					if (isSendAllowed(message, arguments)) {
+						sendMessage(message, arguments);
+					}
 					break;
 				default:
 					log.warn("Unknown SO event: " + event.getType());

@@ -48,6 +48,8 @@ import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.api.service.ServiceUtils;
 import org.red5.server.api.so.ISharedObject;
+import org.red5.server.api.so.ISharedObjectSecurity;
+import org.red5.server.api.so.ISharedObjectSecurityService;
 import org.red5.server.api.so.ISharedObjectService;
 import org.red5.server.api.stream.IBroadcastStream;
 import org.red5.server.api.stream.IBroadcastStreamService;
@@ -110,7 +112,8 @@ import org.red5.server.stream.StreamService;
  */
 public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 		ISharedObjectService, IBroadcastStreamService, IOnDemandStreamService,
-		ISubscriberStreamService, ISchedulingService, IStreamSecurityService {
+		ISubscriberStreamService, ISchedulingService, IStreamSecurityService,
+		ISharedObjectSecurityService {
 
 	/**
 	 * Logger object
@@ -152,6 +155,11 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
      * List of handlers that protect stream playback.
      */
     private Set<IStreamPlaybackSecurity> playbackSecurity = new HashSet<IStreamPlaybackSecurity>();
+
+    /**
+     * List of handlers that protect shared objects.
+     */
+    private Set<ISharedObjectSecurity> sharedObjectSecurity = new HashSet<ISharedObjectSecurity>();
 
     /**
 	 * Register listener that will get notified about application events. Please
@@ -213,6 +221,21 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 	/** {@inheritDoc} */
 	public Set<IStreamPlaybackSecurity> getStreamPlaybackSecurity() {
 		return playbackSecurity;
+	}
+	
+	/** {@inheritDoc} */
+	public void registerSharedObjectSecurity(ISharedObjectSecurity handler) {
+		sharedObjectSecurity.add(handler);
+	}
+	
+	/** {@inheritDoc} */
+	public void unregisterSharedObjectSecurity(ISharedObjectSecurity handler) {
+		sharedObjectSecurity.remove(handler);
+	}
+	
+	/** {@inheritDoc} */
+	public Set<ISharedObjectSecurity> getSharedObjectSecurity() {
+		return sharedObjectSecurity;
 	}
 	
 	/**

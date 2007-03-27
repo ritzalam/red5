@@ -361,6 +361,24 @@ public class SharedObject implements IPersistable, Constants {
 	}
 
     /**
+     * Return an error message to the client.
+     * 
+     * @param message
+     */
+    protected void returnError(String message) {
+		ownerMessage.addEvent(Type.CLIENT_STATUS, message, "error");
+    }
+    
+    /**
+     * Return an attribute value to the owner.
+     * 
+     * @param name
+     */
+    protected void returnAttributeValue(String name) {
+		ownerMessage.addEvent(Type.CLIENT_UPDATE_DATA, name, getAttribute(name));
+    }
+    
+    /**
      * Check whether this SO has given attribute
      * @param name          Attribute name
      * @return              <code>true</code> if this SO has attribute with given name, <code>false</code> otherwise
