@@ -26,6 +26,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -101,11 +102,11 @@ public class Scope extends BasicScope implements IScope {
     /**
      * Child scopes map (child scopes are named)
      */
-	private HashMap<String, IBasicScope> children = new HashMap<String, IBasicScope>();
+	private Map<String, IBasicScope> children = new ConcurrentHashMap<String, IBasicScope>();
     /**
      * Clients and connection map
      */
-	private HashMap<IClient, Set<IConnection>> clients = new HashMap<IClient, Set<IConnection>>();
+	private Map<IClient, Set<IConnection>> clients = new ConcurrentHashMap<IClient, Set<IConnection>>();
 
     /**
      * Creates unnamed scope
@@ -663,7 +664,7 @@ public class Scope extends BasicScope implements IScope {
 
 		/** {@inheritDoc} */
         public void remove() {
-			// not possible
+			throw new UnsupportedOperationException();
 		}
 
 	}
