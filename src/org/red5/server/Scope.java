@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 import org.apache.commons.logging.Log;
@@ -695,8 +696,32 @@ public class Scope extends BasicScope implements IScope {
          * {@inheritDoc}
          */
 		public boolean hasNext() {
-			return (connIterator != null && connIterator.hasNext())
-					|| setIterator.hasNext();
+			if (connIterator != null && connIterator.hasNext()) {
+				// More connections for this client
+				return true;
+			}
+			
+			if (!setIterator.hasNext()) {
+				// No more clients
+				return false;
+			}
+			
+			connIterator = setIterator.next().iterator();
+			while (connIterator != null) {
+				if (connIterator.hasNext()) {
+					// Found client with connections
+					return true;
+				}
+				
+				if (!setIterator.hasNext()) {
+					// No more clients
+					return false;
+				}
+				
+				// Advance to next client
+				connIterator = setIterator.next().iterator();
+			}
+			return false;
 		}
 
         /**
@@ -705,9 +730,20 @@ public class Scope extends BasicScope implements IScope {
 		public IConnection next() {
 			if (connIterator == null || !connIterator.hasNext()) {
 				if (!setIterator.hasNext()) {
-					return null;
+					// No more clients
+					throw new NoSuchElementException();
 				}
+				
 				connIterator = setIterator.next().iterator();
+				while (!connIterator.hasNext()) {
+					// Client has no connections, search next one
+					if (!setIterator.hasNext()) {
+						// No more clients
+						throw new NoSuchElementException();
+					}
+					
+					connIterator = setIterator.next().iterator();
+				}
 			}
             // Always of type IConnection, no need to cast
             current = connIterator.next();
