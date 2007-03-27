@@ -366,7 +366,7 @@ public class SharedObject implements IPersistable, Constants {
      * @param message
      */
     protected void returnError(String message) {
-		ownerMessage.addEvent(Type.CLIENT_STATUS, message, "error");
+		ownerMessage.addEvent(Type.CLIENT_STATUS, "error", message);
     }
     
     /**

@@ -475,7 +475,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 		SharedObjectMessage msg = new SharedObjectMessage(name, 0, persistent);
 		msg.addEvent(new SharedObjectEvent(
 				ISharedObjectEvent.Type.CLIENT_STATUS,
-				SO_CREATION_FAILED, "error"));
+				"error", SO_CREATION_FAILED));
 		conn.getChannel((byte) 3).write(msg);
     }
     
@@ -518,7 +518,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 			SharedObjectMessage msg = new SharedObjectMessage(name, 0, persistent);
 			msg.addEvent(new SharedObjectEvent(
 					ISharedObjectEvent.Type.CLIENT_STATUS,
-					SO_PERSISTENCE_MISMATCH, "error"));
+					"error", SO_PERSISTENCE_MISMATCH));
 			conn.getChannel((byte) 3).write(msg);
 		}
 		so.dispatchEvent(object);
