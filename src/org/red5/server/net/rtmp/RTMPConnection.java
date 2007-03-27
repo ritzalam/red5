@@ -255,12 +255,14 @@ public abstract class RTMPConnection extends BaseConnection implements
      * @return                 Channel by id
      */
     public Channel getChannel(int channelId) {
-    	Channel result = channels.get(channelId);
-		if (result == null) {
-			result = new Channel(this, channelId);
-			channels.put(channelId, result);
-		}
-		return result;
+    	synchronized (channels) {
+    		Channel result = channels.get(channelId);
+    		if (result == null) {
+    			result = new Channel(this, channelId);
+    			channels.put(channelId, result);
+    		}
+    		return result;
+    	}
 	}
 
     /**
