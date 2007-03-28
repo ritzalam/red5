@@ -434,6 +434,95 @@
 
 	</target>	
 	
+	<target name="compile_war_java5"  depends="-junit.check, prepare">
+        <condition property="java.target_version" value="1.5">
+            <not>
+                <isset property="java.target_version" />
+            </not>
+        </condition>
+        <echo message="Javac version: ${java.target_version}" />
+
+        <condition property="compiler" value="${build.compiler}${java.target_version}">
+            <equals arg1="${build.compiler}" arg2="javac" />
+        </condition>
+        <property name="compiler" value="${build.compiler}" />
+        <echo message="Compiler adapter name: ${compiler}" />
+
+    	<mkdir dir="${classes.dir}/WEB-INF/classes"/>
+		
+		<javac
+			sourcepath=""
+			srcdir="${src.dir}"
+			destdir="${classes.dir}/WEB-INF/classes"
+            classpathref="project_compatibility.classpath"
+
+            optimize="${build.optimize}"
+            verbose="${build.verbose}"
+            fork="${build.fork}"
+            nowarn="${build.nowarn}"
+            deprecation="${build.deprecation}"
+
+            debug="${debug.state}"
+            compiler="${compiler}"
+            source="${java.target_version}"
+            target="${java.target_version}"
+            memoryMaximumSize="1024m"
+            excludes="**/*.jsp,
+                org/red5/server/script/**,
+                org/red5/server/jetty/**,
+                org/red5/server/midi/**,                
+                org/red5/server/net/rtmpt/*Loader.java,
+                org/red5/server/net/servlet/RTMPTServlet.java,
+                org/red5/server/net/servlet/StatisticsServlet.java,
+                org/red5/server/net/servlet/ZAMFGatewayServlet.java,
+                org/red5/server/ContextLoader.java,
+                org/red5/server/DebugPooledByteBufferAllocator.java,
+                org/red5/server/JettyLoader.java,
+                org/red5/server/Standalone.java,
+                org/red5/server/TomcatLoader.java"
+            listfiles="false"
+            />
+
+        <!-- only certain classes from selected demos are copied to the war -->
+		<mkdir dir="${classes.dir}/tmp/echo/WEB-INF/classes"/>
+		<mkdir dir="${classes.dir}/tmp/fitcDemo/WEB-INF/classes"/>
+		<mkdir dir="${classes.dir}/tmp/oflaDemo/WEB-INF/classes"/>
+		<mkdir dir="${classes.dir}/tmp/SOSample/WEB-INF/classes"/>
+		<mkdir dir="${classes.dir}/tmp/tutorial/WEB-INF/classes"/>
+		
+		<!-- demos are compiled to a temporary directory -->
+        <antcall target="compile_demos" inheritAll="true" inheritRefs="true">
+            <param name="classes.dir" value="${classes.dir}/WEB-INF/classes" />
+            <param name="tmp.war.dir" value="/../${classes.dir}/tmp" />
+        </antcall>
+
+        <!-- copy compiled demo classes to the primary war classes directory -->
+        <copy todir="${classes.dir}/WEB-INF/classes">
+            <fileset dir="${classes.dir}/tmp/echo/WEB-INF/classes"/>
+            <fileset dir="${classes.dir}/tmp/fitcDemo/WEB-INF/classes"/>
+            <fileset dir="${classes.dir}/tmp/oflaDemo/WEB-INF/classes"/>
+            <fileset dir="${classes.dir}/tmp/SOSample/WEB-INF/classes"/>
+            <fileset dir="${classes.dir}/tmp/tutorial/WEB-INF/classes"/>
+        </copy>
+
+        <!-- demo stream files -->
+        <copy todir="${classes.dir}/streams">
+            <fileset dir="${webapps.dir}/oflaDemo/streams"/>
+        </copy>
+        
+        <!-- remove directories we dont want in the war -->
+        <delete dir="${classes.dir}/tmp"/>
+        <delete dir="${classes.dir}/testcases"/>
+
+        <antcall target="compile_script" inheritAll="true" inheritRefs="true">
+            <param name="classes.dir" value="${classes.dir}/WEB-INF/classes" />
+        </antcall>
+        <antcall target="compile_script_compatibility" inheritAll="true" inheritRefs="true">
+            <param name="classes.dir" value="${classes.dir}/WEB-INF/classes" />
+        </antcall>
+
+	</target>	
+	
 	<target name="javadoc_compatibility" description="Generate JavaDoc" unless="java6.installed">
 	    <echo message="Path: ${env.Path}" />
         <!-- Determine the location of Suns api docs -->
@@ -941,6 +1030,62 @@
                 <exclude name="jasper*.jar"/>
             	<exclude name="ehcache-1.2.3.jar"/>
                 <exclude name="whirlycache-1.0.1_lite.jar"/>
+            </lib>
+			<manifest>
+				<attribute name="Built-By" value="RED5 Project - red5@osflash.org" />
+                <attribute name="Built-On" value="${build.TODAY}" />
+			</manifest>
+		</war>
+	</target>
+	
+	<target name="webwar_java5" description="Make Web Archive for Java 1.5" depends="compile_war_java5">
+        <tstamp prefix="build">
+            <format property="TODAY" pattern="d-MMMM-yyyy" locale="en" />
+        </tstamp>
+		<copy todir="${classes.dir}">
+			<fileset dir=".">
+				<include name="license.txt"/>
+			</fileset>
+		</copy>
+		<copy todir="${classes.dir}">
+			<fileset dir="webapps/root">
+				<include name="**/*.html"/>
+				<include name="**/*.jsp"/>
+				<include name="**/*.js"/>
+				<include name="**/*.css"/>
+				<include name="**/*.ico"/>
+				<include name="**/*.swf"/>
+				<include name="**/*.flv"/>
+				<exclude name="WEB-INF"/>
+			</fileset>
+		</copy>
+		<copy todir="${classes.dir}/WEB-INF">
+			<fileset dir="conf/war">
+				<include name="*.xml"/>
+				<include name="*.properties"/>
+				<exclude name="web.xml"/>
+			</fileset>
+		</copy>
+        <!-- copy the red5 properties into the webapp classpath -->
+        <copy todir="${classes.dir}/WEB-INF/classes" file="${classes.dir}/WEB-INF/red5.properties"/>		
+		<war destfile="${dist.dir}/red5.war" webxml="conf/war/web.xml">
+			<fileset dir="${classes.dir}"/>
+            <lib dir="${lib.dir}">
+                <exclude name="test/**"/>
+                <exclude name="java5/**"/>
+                <exclude name="mina*.jar"/>
+                <exclude name="*.properties"/>
+                <exclude name="jsp*.jar"/>
+                <exclude name="servlet*.jar"/>
+            	<exclude name="catalina*.jar"/>
+            	<exclude name="tomcat*.jar"/>
+                <exclude name="jetty*.jar"/>
+                <exclude name="jasper*.jar"/>
+            	<exclude name="ehcache-1.2.3.jar"/>
+                <exclude name="whirlycache-1.0.1_lite.jar"/>
+            </lib>
+            <lib dir="${lib.dir}/java5">
+                <exclude name="*.properties"/>
             </lib>
 			<manifest>
 				<attribute name="Built-By" value="RED5 Project - red5@osflash.org" />
