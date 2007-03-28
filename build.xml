@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <project name="RED5" basedir="." default="all">
 
-    <!-- user overides for project properties
-    <property file="${user.home}/ant.properties" /> -->
+    <!-- user overides for project properties -->
+    <property file="${user.home}/build.properties" />
     <!-- base project properties -->
     <property file="build.properties" />
 
@@ -192,9 +192,9 @@
             listfiles="false"
             />
     </target>
-    
+
     <!-- Demos -->
-    <target name="compile_demos">    
+    <target name="compile_demos">
 		<javac
 			sourcepath=""
 			srcdir="${webapps.dir}/echo/WEB-INF/src"
@@ -295,7 +295,7 @@
             compiler="${compiler}"
             source="${java.target_version}"
             target="${java.target_version}"
-        />    
+        />
     </target>
 
     <!-- Scripting -->
@@ -340,7 +340,7 @@
             source="${java.target_version}"
             target="${java.target_version}"
             memoryMaximumSize="1024m"
-            includes="org/red5/server/script/**"           
+            includes="org/red5/server/script/**"
             listfiles="false"
             />
     </target>
@@ -360,7 +360,7 @@
         <echo message="Compiler adapter name: ${compiler}" />
 
     	<mkdir dir="${classes.dir}/WEB-INF/classes"/>
-		
+
 		<javac
 			sourcepath=""
 			srcdir="${src.dir}"
@@ -381,7 +381,7 @@
             excludes="**/*.jsp,
                 org/red5/server/script/**,
                 org/red5/server/jetty/**,
-                org/red5/server/midi/**,                
+                org/red5/server/midi/**,
                 org/red5/server/net/rtmpt/*Loader.java,
                 org/red5/server/net/servlet/RTMPTServlet.java,
                 org/red5/server/net/servlet/StatisticsServlet.java,
@@ -400,7 +400,7 @@
 		<mkdir dir="${classes.dir}/tmp/oflaDemo/WEB-INF/classes"/>
 		<mkdir dir="${classes.dir}/tmp/SOSample/WEB-INF/classes"/>
 		<mkdir dir="${classes.dir}/tmp/tutorial/WEB-INF/classes"/>
-		
+
 		<!-- demos are compiled to a temporary directory -->
         <antcall target="compile_demos" inheritAll="true" inheritRefs="true">
             <param name="classes.dir" value="${classes.dir}/WEB-INF/classes" />
@@ -420,7 +420,7 @@
         <copy todir="${classes.dir}/streams">
             <fileset dir="${webapps.dir}/oflaDemo/streams"/>
         </copy>
-        
+
         <!-- remove directories we dont want in the war -->
         <delete dir="${classes.dir}/tmp"/>
         <delete dir="${classes.dir}/testcases"/>
@@ -432,8 +432,8 @@
             <param name="classes.dir" value="${classes.dir}/WEB-INF/classes" />
         </antcall>
 
-	</target>	
-	
+	</target>
+
 	<target name="compile_war_java5"  depends="-junit.check, prepare">
         <condition property="java.target_version" value="1.5">
             <not>
@@ -449,7 +449,7 @@
         <echo message="Compiler adapter name: ${compiler}" />
 
     	<mkdir dir="${classes.dir}/WEB-INF/classes"/>
-		
+
 		<javac
 			sourcepath=""
 			srcdir="${src.dir}"
@@ -470,7 +470,7 @@
             excludes="**/*.jsp,
                 org/red5/server/script/**,
                 org/red5/server/jetty/**,
-                org/red5/server/midi/**,                
+                org/red5/server/midi/**,
                 org/red5/server/net/rtmpt/*Loader.java,
                 org/red5/server/net/servlet/RTMPTServlet.java,
                 org/red5/server/net/servlet/StatisticsServlet.java,
@@ -489,7 +489,7 @@
 		<mkdir dir="${classes.dir}/tmp/oflaDemo/WEB-INF/classes"/>
 		<mkdir dir="${classes.dir}/tmp/SOSample/WEB-INF/classes"/>
 		<mkdir dir="${classes.dir}/tmp/tutorial/WEB-INF/classes"/>
-		
+
 		<!-- demos are compiled to a temporary directory -->
         <antcall target="compile_demos" inheritAll="true" inheritRefs="true">
             <param name="classes.dir" value="${classes.dir}/WEB-INF/classes" />
@@ -509,7 +509,7 @@
         <copy todir="${classes.dir}/streams">
             <fileset dir="${webapps.dir}/oflaDemo/streams"/>
         </copy>
-        
+
         <!-- remove directories we dont want in the war -->
         <delete dir="${classes.dir}/tmp"/>
         <delete dir="${classes.dir}/testcases"/>
@@ -521,8 +521,8 @@
             <param name="classes.dir" value="${classes.dir}/WEB-INF/classes" />
         </antcall>
 
-	</target>	
-	
+	</target>
+
 	<target name="javadoc_compatibility" description="Generate JavaDoc" unless="java6.installed">
 	    <echo message="Path: ${env.Path}" />
         <!-- Determine the location of Suns api docs -->
@@ -1015,7 +1015,7 @@
 			</fileset>
 		</copy>
         <!-- copy the red5 properties into the webapp classpath -->
-        <copy todir="${classes.dir}/WEB-INF/classes" file="${classes.dir}/WEB-INF/red5.properties"/>		
+        <copy todir="${classes.dir}/WEB-INF/classes" file="${classes.dir}/WEB-INF/red5.properties"/>
 		<war destfile="${dist.dir}/red5.war" webxml="conf/war/web.xml">
 			<fileset dir="${classes.dir}"/>
             <lib dir="${lib.dir}">
@@ -1037,7 +1037,7 @@
 			</manifest>
 		</war>
 	</target>
-	
+
 	<target name="webwar_java5" description="Make Web Archive for Java 1.5" depends="compile_war_java5">
         <tstamp prefix="build">
             <format property="TODAY" pattern="d-MMMM-yyyy" locale="en" />
@@ -1067,7 +1067,7 @@
 			</fileset>
 		</copy>
         <!-- copy the red5 properties into the webapp classpath -->
-        <copy todir="${classes.dir}/WEB-INF/classes" file="${classes.dir}/WEB-INF/red5.properties"/>		
+        <copy todir="${classes.dir}/WEB-INF/classes" file="${classes.dir}/WEB-INF/red5.properties"/>
 		<war destfile="${dist.dir}/red5.war" webxml="conf/war/web.xml">
 			<fileset dir="${classes.dir}"/>
             <lib dir="${lib.dir}">
@@ -1093,11 +1093,11 @@
 			</manifest>
 		</war>
 	</target>
-	
+
 	<target name="all" depends="clean, prepare, compile, jar, javadoc"/>
 
     <target name="usage">
         <echo message="Type ant -p for available targets" />
-    </target>	
+    </target>
 
 </project>

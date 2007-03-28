@@ -20,14 +20,15 @@ import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.Map;
 import java.util.regex.PatternSyntaxException;
 
-import javax.script.Bindings;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
 import javax.script.Invocable;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
+import javax.script.ScriptEngineFactory;
 import javax.script.ScriptEngineManager;
 
 import org.apache.log4j.Logger;
@@ -44,6 +45,9 @@ public class RhinoScriptUtils {
 
 	private static final Logger log = Logger.getLogger(RhinoScriptUtils.class);
 
+	// keep track of whether we are using pre-java6
+	private static boolean isJava6 = false;
+
 	// ScriptEngine manager
 	private static ScriptEngineManager mgr = new ScriptEngineManager();
 
@@ -58,11 +62,11 @@ public class RhinoScriptUtils {
 	 * @param interfaces
 	 *            the interfaces that the scripted Java object is supposed to
 	 *            implement
-     * @param extendedClass
+	 * @param extendedClass
 	 * @return the scripted Java object
 	 * @throws ScriptCompilationException
 	 *             in case of Rhino parsing failure
-     * @throws java.io.IOException
+	 * @throws java.io.IOException
 	 */
 	public static Object createRhinoObject(String scriptSource,
 			Class[] interfaces, Class extendedClass)
@@ -70,9 +74,35 @@ public class RhinoScriptUtils {
 		if (log.isDebugEnabled()) {
 			log.debug("Script Engine Manager: " + mgr.getClass().getName());
 		}
-		ScriptEngine engine = mgr.getEngineByName("javascript");
+		//ScriptEngine engine = mgr.getEngineByName("javascript");
+		// hack to support java5
+		ScriptEngine engine = null;
+		for (ScriptEngineFactory factory : mgr.getEngineFactories()) {
+			if (factory.getEngineName().toLowerCase().matches(
+					".*(rhino|javascript|ecma).*")) {
+				engine = factory.getScriptEngine();
+			}
+		}
+		if (null == engine) {
+			log.fatal("Javascript is not supported in this build");
+		}
 		// set engine scope namespace
-		Bindings nameSpace = engine.getBindings(ScriptContext.ENGINE_SCOPE);
+		//Bindings nameSpace = engine.getBindings(ScriptContext.ENGINE_SCOPE);
+		// part2 of java5 hack
+		Map<String, Object> nameSpace = null;
+		//use reflection to determine which api is supported
+		Method method = null;
+		try {
+			method = engine.getClass().getMethod("getBindings",
+					new Class[] { int.class });
+			isJava6 = true;
+		} catch (NoSuchMethodException e) {
+			method = engine.getClass().getMethod("getNamespace",
+					new Class[] { int.class });
+		}
+		nameSpace = (Map<String, Object>) method.invoke(engine,
+				new Object[] { ScriptContext.ENGINE_SCOPE });
+
 		// add the logger to the script
 		nameSpace.put("log", log);
 		//compile the wrapper script
@@ -104,7 +134,7 @@ public class RhinoScriptUtils {
 		Object o = null;
 		try {
 			o = script.eval();
-		} catch(Exception e) {
+		} catch (Exception e) {
 			log.error("Problem evaluating script", e);
 		}
 		if (log.isDebugEnabled()) {
@@ -113,13 +143,21 @@ public class RhinoScriptUtils {
 		//script didnt return anything we can use so try the wrapper
 		if (null == o) {
 			wrapper.eval();
-			//o = ((Invocable) engine).invokeFunction("Wrapper", new Object[]{engine.get(funcName)});
-			//if (log.isDebugEnabled()) {
-			//	log.debug("Result of invokeFunction: " + o);
-			//}
 		} else {
 			wrapper.eval();
-			o = ((Invocable) engine).invokeFunction("Wrapper", new Object[]{engine.get(funcName)});
+			//o = ((Invocable) engine).invokeFunction("Wrapper", new Object[] { engine.get(funcName) });
+			if (isJava6) {
+				method = ((Invocable) engine).getClass().getMethod(
+						"invokeFunction",
+						new Class[] { String.class, Object[].class });
+				o = method.invoke(engine, new Object[] { "Wrapper",
+						new Object[] { engine.get(funcName) } });
+			} else {
+				method = ((Invocable) engine).getClass().getMethod("call",
+						new Class[] { String.class, Object[].class });
+				o = method.invoke(engine, new Object[] { "Wrapper",
+						new Object[] { engine.get(funcName) } });
+			}
 			if (log.isDebugEnabled()) {
 				log.debug("Result of invokeFunction: " + o);
 			}
@@ -155,25 +193,93 @@ public class RhinoScriptUtils {
 				log.debug("Calling: " + name);
 			}
 			try {
+				Method apiMethod = null;
 				Invocable invocable = (Invocable) engine;
 				if (null == instance) {
-					o = invocable.invokeFunction(name, args);
+					//o = invocable.invokeFunction(name, args);
+					if (isJava6) {
+						apiMethod = invocable.getClass().getMethod(
+								"invokeFunction",
+								new Class[] { String.class, Object[].class });
+						o = apiMethod.invoke(invocable, new Object[] { name,
+								args });
+					} else {
+						apiMethod = invocable.getClass().getMethod("call",
+								new Class[] { String.class, Object[].class });
+						o = apiMethod.invoke(invocable, new Object[] { name,
+								args });
+					}
 				} else {
 					try {
-						o = invocable.invokeMethod(instance, name, args);
+						//o = invocable.invokeMethod(instance, name, args);
+						if (isJava6) {
+							apiMethod = invocable.getClass().getMethod(
+									"invokeMethod",
+									new Class[] { Object.class, String.class,
+											Object[].class });
+							o = apiMethod.invoke(invocable, new Object[] {
+									instance, name, args });
+						} else {
+							apiMethod = invocable.getClass().getMethod(
+									"call",
+									new Class[] { Object.class, String.class,
+											Object[].class });
+							o = apiMethod.invoke(invocable, new Object[] {
+									instance, name, args });
+						}
 					} catch (NoSuchMethodException nex) {
 						log.debug("Method not found: " + name);
 						try {
 							//try to invoke it directly, this will work if the function is in the engine context
 							//ie. the script has been already evaluated
-							o = invocable.invokeFunction(name, args);
+							//o = invocable.invokeFunction(name, args);
+							if (isJava6) {
+								apiMethod = invocable.getClass().getMethod(
+										"invokeFunction",
+										new Class[] { String.class,
+												Object[].class });
+								o = apiMethod.invoke(invocable, new Object[] {
+										name, args });
+							} else {
+								apiMethod = invocable.getClass().getMethod(
+										"call",
+										new Class[] { String.class,
+												Object[].class });
+								o = apiMethod.invoke(invocable, new Object[] {
+										name, args });
+							}
 						} catch (Exception ex) {
 							log.debug("Function not found: " + name);
-							Class[] interfaces = (Class[]) engine.get("interfaces");
+							Class[] interfaces = (Class[]) engine
+									.get("interfaces");
 							for (Class clazz : interfaces) {
-								o = invocable.getInterface(engine.get((String) engine.get("className")), clazz);
+								/*
+								 * java6 style
+								 o = invocable.getInterface(engine
+								 .get((String) engine.get("className")),
+								 clazz);
+								 */
+								if (isJava6) {
+									apiMethod = invocable.getClass().getMethod(
+											"getInterface",
+											new Class[] { Object.class,
+													Class.class });
+									o = apiMethod.invoke(invocable,
+											new Object[] {
+													((String) engine
+															.get("className")),
+													clazz });
+								} else {
+									apiMethod = invocable.getClass().getMethod(
+											"getInterface",
+											new Class[] { Class.class });
+									o = apiMethod.invoke(invocable,
+											new Object[] { clazz });
+								}
+
 								if (null != o) {
-									log.debug("Interface return type: " + o.getClass().getName());
+									log.debug("Interface return type: "
+											+ o.getClass().getName());
 									break;
 								}
 							}
@@ -202,19 +308,22 @@ public class RhinoScriptUtils {
 	private static String getFunctionName(String scriptSource) {
 		String ret = "undefined";
 		try {
-			ret = scriptSource.replaceAll("[\\S\\w\\s]*?function ([\\w]+)\\(\\)[\\S\\w\\s]+", "$1");
+			ret = scriptSource.replaceAll(
+					"[\\S\\w\\s]*?function ([\\w]+)\\(\\)[\\S\\w\\s]+", "$1");
 			//if undefined then look for the first var
 			if (ret.equals("undefined") || ret.length() > 64) {
-				ret = scriptSource.replaceAll("[\\S\\w\\s]*?var ([\\w]+)[\\S\\w\\s]+", "$1");
+				ret = scriptSource.replaceAll(
+						"[\\S\\w\\s]*?var ([\\w]+)[\\S\\w\\s]+", "$1");
 			}
 		} catch (PatternSyntaxException ex) {
 			log.error("Syntax error in the regular expression");
 		} catch (IllegalArgumentException ex) {
-			log.error("Syntax error in the replacement text (unescaped $ signs?)");
+			log
+					.error("Syntax error in the replacement text (unescaped $ signs?)");
 		} catch (IndexOutOfBoundsException ex) {
 			log.error("Non-existent backreference used the replacement text");
 		}
-		log.debug("Got a function name: "+ret);
+		log.debug("Got a function name: " + ret);
 		return ret;
 	}
 

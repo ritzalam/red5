@@ -3,7 +3,6 @@ package org.red5.server.script;
 import static org.junit.Assert.assertFalse;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.script.ScriptEngine;
@@ -16,13 +15,13 @@ import org.junit.Test;
 /**
  * Simple script engine tests. Some of the hello world scripts found here:
  * http://www.roesler-ac.de/wolfram/hello.htm
- * 
+ *
  * @author paul.gregoire
  */
 public class ScriptEngineTest {
 
 	private static final Logger log = Logger.getLogger(ScriptEngineTest.class);
-	
+
 	// ScriptEngine manager
 	private static ScriptEngineManager mgr = new ScriptEngineManager();
 
@@ -30,25 +29,35 @@ public class ScriptEngineTest {
 	@Test
 	public void testJavascriptHelloWorld() {
 		ScriptEngine jsEngine = null;
-		try {
-			jsEngine = mgr.getEngineByName("javascript");
-			jsEngine.eval("print('Javascript - Hello, world!')");
-		} catch (Throwable ex) {
-			System.err.println("Get by name failed for: javascript");
-			////ex.printStackTrace();
-			//assertFalse(true);
-			jsEngine = null;
-		}
-		if (null == jsEngine) {
-			try {
-				jsEngine = mgr.getEngineByName("rhino");
-				jsEngine.eval("print('Javascript/Rhino - Hello, world!')");
-			} catch (Throwable ex) {
-				System.err.println("Get by name failed for: rhino");
-				////ex.printStackTrace();
-				assertFalse(true);
+		for (ScriptEngineFactory factory : mgr.getEngineFactories()) {
+			if (factory.getEngineName().toLowerCase().matches(
+					".*(rhino|javascript|ecma).*")) {
+				jsEngine = factory.getScriptEngine();
 			}
 		}
+		if (null == jsEngine) {
+			log.fatal("Javascript is not supported in this build");
+		}
+		/*
+		 try {
+		 jsEngine = mgr.getEngineByName("javascript");
+		 jsEngine.eval("print('Javascript - Hello, world!')");
+		 } catch (Throwable ex) {
+		 System.err.println("Get by name failed for: javascript");
+		 //ex.printStackTrace();
+		 jsEngine = null;
+		 }
+		 if (null == jsEngine) {
+		 try {
+		 jsEngine = mgr.getEngineByName("rhino");
+		 jsEngine.eval("print('Javascript/Rhino - Hello, world!')");
+		 } catch (Throwable ex) {
+		 System.err.println("Get by name failed for: rhino");
+		 //ex.printStackTrace();
+		 assertFalse(true);
+		 }
+		 }
+		 */
 	}
 
 	// Ruby
@@ -88,16 +97,16 @@ public class ScriptEngineTest {
 	}
 
 	// Judoscript
-//	@Test
-//	public void testJudoscriptHelloWorld() {
-//		ScriptEngine jdEngine = mgr.getEngineByName("judo");
-//		try {
-//			jdEngine.eval(". \'Judoscript - Hello World\';");
-//		} catch (Exception ex) {
-//			//ex.printStackTrace();
-//			assertFalse(true);
-//		}
-//	}
+	//	@Test
+	//	public void testJudoscriptHelloWorld() {
+	//		ScriptEngine jdEngine = mgr.getEngineByName("judo");
+	//		try {
+	//			jdEngine.eval(". \'Judoscript - Hello World\';");
+	//		} catch (Exception ex) {
+	//			//ex.printStackTrace();
+	//			assertFalse(true);
+	//		}
+	//	}
 
 	// Haskell
 	// @Test
@@ -247,9 +256,9 @@ public class ScriptEngineTest {
 	public void testEngines() {
 		Map<String, ScriptEngineFactory> engineFactories = new HashMap<String, ScriptEngineFactory>(
 				7);
-		List<ScriptEngineFactory> factories = mgr.getEngineFactories();	//jdk6
+		//List<ScriptEngineFactory> factories = mgr.getEngineFactories(); //jdk6
 		//ScriptEngineFactory[] factories = mgr.getEngineFactories(); //jdk5
-		for (ScriptEngineFactory factory : factories) {
+		for (ScriptEngineFactory factory : mgr.getEngineFactories()) {
 			try {
 				System.out
 						.println("\n--------------------------------------------------------------");
@@ -260,16 +269,12 @@ public class ScriptEngineTest {
 				System.out.printf("Script Engine: %s (%s) Language: %s (%s)",
 						engName, engVersion, langName, langVersion);
 				engineFactories.put(engName, factory);
-				List<String> engNames = factory.getNames();
-				//String[] engNames = factory.getNames(); //jdk5
 				System.out.print("\nEngine Alias(es):");
-				for (String name : engNames) {
+				for (String name : factory.getNames()) {
 					System.out.printf("%s ", name);
 				}
-				List<String> ext = factory.getExtensions();
-				//String[] ext = factory.getExtensions(); //jdk5
 				System.out.printf("\nExtension: ");
-				for (String name : ext) {
+				for (String name : factory.getExtensions()) {
 					System.out.printf("%s ", name);
 				}
 			} catch (Throwable e) {
