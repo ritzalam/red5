@@ -33,7 +33,7 @@ public class BaseInput {
     /**
      * References map
      */
-	protected Map refMap = new HashMap();
+	protected Map<Integer, Object> refMap = new HashMap<Integer, Object>();
 
     /**
      * References id
@@ -44,10 +44,23 @@ public class BaseInput {
 	 * Store an object into a map
 	 * @param obj  Object to store
 	 */
-	protected void storeReference(Object obj) {
-		refMap.put(Integer.valueOf(refId++), obj);
+	protected int storeReference(Object obj) {
+		int newRefId = refId++;
+		refMap.put(Integer.valueOf(newRefId), obj);
+		return newRefId;
 	}
 
+	/**
+	 * Replace a referenced object with another one. This is used
+	 * by the AMF3 deserializer to handle circular references.
+	 * 
+	 * @param refId
+	 * @param newRef
+	 */
+	protected void storeReference(int refId, Object newRef) {
+		refMap.put(Integer.valueOf(refId), newRef);
+	}
+	
 	/**
 	 * Clears the map
 	 */

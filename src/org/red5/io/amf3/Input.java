@@ -61,6 +61,13 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		}
 	}
 	
+	/**
+	 * Dummy class that is stored as reference for objects currently
+	 * being deserialized that reference themselves. 
+	 */
+	protected class PendingObject {
+	}
+	
     /**
      * Logger
      */
@@ -325,6 +332,8 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		}
 		amf3_mode += 1;
 		Map<String, Object> properties = null;
+		PendingObject pending = new PendingObject();
+		int tempRefId = storeReference(pending);
 		switch (type & 0x03) {
 		case AMF3.TYPE_OBJECT_PROPERTY:
 			// Load object properties into map
@@ -378,7 +387,14 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 			// Create result object based on classname
 			if ("".equals(className)) {
 				// "anonymous" object, load as Map
-				storeReference(properties);
+				// Resolve circular references
+				for (Map.Entry<String, Object> entry: properties.entrySet()) {
+					if (entry.getValue() == pending) {
+						entry.setValue(properties);
+					}
+				}
+				
+				storeReference(tempRefId, properties);
 				result = properties;
 			} else if ("RecordSet".equals(className)) {
 				// TODO: how are RecordSet objects encoded?
@@ -390,9 +406,14 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 				// Apply properties to object
 				result = newInstance(className);
 				if (result != null) {
-					storeReference(properties);
+					storeReference(tempRefId, result);
 					Class resultClass = result.getClass();
 					for (Map.Entry<String, Object> entry: properties.entrySet()) {
+						// Resolve circular references
+						if (entry.getValue() == pending) {
+							entry.setValue(result);
+						}
+						
 						try {
 							try {
 								resultClass.getField(entry.getKey()).set(result, entry.getValue());
