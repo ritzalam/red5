@@ -167,12 +167,12 @@ public class Context implements IContext, ApplicationContextAware {
      */
 	public void setApplicationContext(ApplicationContext context) {
 		this.applicationContext = context;
-		if (context instanceof FileSystemXmlApplicationContext) {
-			//standalone core context
-			coreContext = ContextSingletonBeanFactoryLocator.getInstance("red5.xml").useBeanFactory("red5.core").getFactory();			
-		} else {
-			//used by the WAR version
+		if (context instanceof ConfigurableWebApplicationContext) {
+			//	used by the WAR version
 			coreContext = ((ConfigurableWebApplicationContext) applicationContext).getBeanFactory();
+		} else {
+			//	standalone core context
+			coreContext = ContextSingletonBeanFactoryLocator.getInstance("red5.xml").useBeanFactory("red5.core").getFactory();			
 		}
 	}
 
