@@ -1121,19 +1121,19 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				} else {
 					while (true) {
 						IMessage msg = msgIn.pullMessage();
-//						if (adaptFlowJob == null) {
-//							adaptFlowJob = schedulingService.addScheduledJob(
-//									100, new IScheduledJob() {
-//										/** {@inheritDoc} */
-//                                        public void execute(
-//												ISchedulingService service) throws CloneNotSupportedException {
-//											streamFlowController
-//													.adaptBandwidthForFlow(
-//															getStreamFlow(),
-//															PlaylistSubscriberStream.this);
-//										}
-//									});
-//						}
+						if (adaptFlowJob == null) {
+							adaptFlowJob = schedulingService.addScheduledJob(
+									100, new IScheduledJob() {
+										/** {@inheritDoc} */
+                                        public void execute(
+												ISchedulingService service) throws CloneNotSupportedException {
+											streamFlowController
+													.adaptBandwidthForFlow(
+															getStreamFlow(),
+															PlaylistSubscriberStream.this);
+										}
+									});
+						}
 
 						if (msg == null) {
 							// end of the VOD stream
