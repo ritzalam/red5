@@ -1,10 +1,12 @@
 package org.red5.demos.midi;
 
+import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiMessage;
 import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Receiver;
+import javax.sound.midi.ShortMessage;
 import javax.sound.midi.MidiDevice.Info;
 
 import org.apache.commons.logging.Log;
@@ -75,6 +77,43 @@ public class Application extends ApplicationAdapter {
 		return false;
 	}
 
+	public boolean sendMidiShortMessage(int[] args, long time) 
+		throws InvalidMidiDataException, MidiUnavailableException {
+		
+		MidiDevice dev = getCurrentMidiDevice();
+		if(dev == null){
+			log.error("Midi device is null, call connectToMidi first");
+			return false;
+		}
+		
+		final ShortMessage msg = new ShortMessage();
+		switch(args.length){
+		case 1:
+			msg.setMessage(args[0]);
+			break;
+		case 3:
+			msg.setMessage(args[0], args[1], args[2]);
+			break;
+		case 4:
+			msg.setMessage(args[0], args[1], args[2], args[3]);
+			break;
+		default:
+			log.error("Args array must have length 1, 3, or 4");
+			return false;
+		}
+		
+		dev.getReceiver().send(msg, time);
+		return true;
+	}
+	
+	private MidiDevice getCurrentMidiDevice(){
+		IServiceCapableConnection conn = (IServiceCapableConnection) Red5.getConnectionLocal();
+		if (conn.hasAttribute("midi")) {
+			return (MidiDevice) conn.getAttribute("midi");
+		}
+		return null;
+	}
+		
 	/**
      * Getter for property 'midiDeviceNames'.
      *
@@ -143,5 +182,5 @@ public class Application extends ApplicationAdapter {
 		}
 
 	}
-
+	
 }
