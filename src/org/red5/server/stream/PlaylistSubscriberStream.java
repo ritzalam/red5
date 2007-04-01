@@ -901,6 +901,11 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				// Don't use pullAndPush to detect IOExceptions prior to sending
 				// NetStream.Play.Start
 				msg = msgIn.pullMessage();
+				if (msg instanceof RTMPMessage) {
+					// Adjust timestamp when playing lists
+					final IRTMPEvent body = ((RTMPMessage) msg).getBody();
+					body.setTimestamp(body.getTimestamp() + timestampOffset);
+				}
 			}
 			if (sendNotifications) {
 				if (withReset) { 
@@ -1055,18 +1060,18 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			}
 			state = State.STOPPED;
 			notifyItemStop(currentItem);
-			sendClearPing();
 			clearWaitJobs();
 			if (!hasMoreItems()) {
 				releasePendingMessage();
 				getStreamFlow().reset();
 				bwController.resetBuckets(bwContext);
 				isWaitingForToken = false;
-				sendStopStatus(currentItem);
 				if (getItemSize() > 0) {
 					sendCompleteStatus();
 				}
 				bytesSent = 0;
+				sendClearPing();
+				sendStopStatus(currentItem);
 			} else {
 				if (lastMessage != null) {
 					// Remember last timestamp so we can generate correct
@@ -1212,8 +1217,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				vodStartTS = message.getBody().getTimestamp();
 			} else {
 				if (currentItem.getLength() > 0) {
-					int duration = message.getBody().getTimestamp()
-							- vodStartTS - timestampOffset;
+					int duration = message.getBody().getTimestamp() - vodStartTS;
 					if (duration >= currentItem.getLength()) {
 						// Sent enough data to client
 						stop();
@@ -1329,9 +1333,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 
 			IRTMPEvent event = new Notify(buf);
 			if (lastMessage != null) {
-				int timestamp = lastMessage.getTimestamp() - timestampOffset;
-				if (timestamp > 0)
-					timestamp -= 1;
+				int timestamp = lastMessage.getTimestamp();
 				event.setTimestamp(timestamp);
 			} else {
 				event.setTimestamp(0);
@@ -1339,6 +1341,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			RTMPMessage msg = new RTMPMessage();
 			msg.setBody(event);
 			msgOut.pushMessage(msg);
+			getStreamFlow().update(msg);
 		}
 		
         /**
