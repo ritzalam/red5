@@ -186,10 +186,10 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			livePipe.unsubscribe((IProvider) this);
 		}
 		recordPipe.unsubscribe((IProvider) this);
-		if (recording)
+		if (recording) {
 			sendRecordStopNotify();
-		else
-			sendPublishStopNotify();
+		}
+		sendPublishStopNotify();
 		connMsgOut.unsubscribe(this);
 		notifyBroadcastClose();
 	}
@@ -459,10 +459,10 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 				}
 			}
 			// Send start notifications
+			sendPublishStartNotify();
 			if (recording) {
 				sendRecordStartNotify();
-			} else
-				sendPublishStartNotify();
+			}
 			notifyBroadcastStart();
 		}
 	}
