@@ -1,5 +1,5 @@
 /*
- * demoservice.js - a translation into JavaScript of the olfa demo DemoService class, a red5 example.
+ * demoservice.js - a translation into JavaScript of the ofla demo DemoService class, a red5 example.
  *
  * @see http://developer.mozilla.org/en/docs/Core_JavaScript_1.5_Reference
  * @author Paul Gregoire

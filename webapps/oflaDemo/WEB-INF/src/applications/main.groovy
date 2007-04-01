@@ -10,7 +10,7 @@ import org.red5.server.api.stream.support.SimplePlayItem
 import org.red5.server.api.stream.support.StreamUtils
 
 /**
- * application.groovy - a translation into Groovy of the olfa demo application, a red5 example.
+ * application.groovy - a translation into Groovy of the ofla demo application, a red5 example.
  *
  * @author Paul Gregoire
  */

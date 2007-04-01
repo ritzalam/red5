@@ -1,5 +1,5 @@
 """
-demoservice.py - a translation into Python of the olfa demo application, a Red5 example.
+demoservice.py - a translation into Python of the ofla demo application, a Red5 example.
 
 @author The Red5 Project (red5@osflash.org)
 @author Joachim Bauch (jojo@struktur.de)

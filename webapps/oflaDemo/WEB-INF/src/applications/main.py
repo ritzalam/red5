@@ -1,5 +1,5 @@
 """
-main.py - a translation into Python of the olfa demo Application class, a Red5 example.
+main.py - a translation into Python of the ofla demo Application class, a Red5 example.
 
 @author The Red5 Project (red5@osflash.org)
 @author Joachim Bauch (jojo@struktur.de)

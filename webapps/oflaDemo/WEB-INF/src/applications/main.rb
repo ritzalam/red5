@@ -9,7 +9,7 @@ module RedFive
 end
 
 #
-# application.rb - a translation into Ruby of the olfa demo application, a red5 example.
+# application.rb - a translation into Ruby of the ofla demo application, a red5 example.
 #
 # @author Paul Gregoire
 #

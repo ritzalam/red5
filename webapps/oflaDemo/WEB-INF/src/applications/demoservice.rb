@@ -8,7 +8,7 @@ include_class "org.red5.server.api.Red5"
 include_class "java.util.HashMap"
 
 #
-# demoservice.rb - a translation into Ruby of the olfa demo application, a red5 example.
+# demoservice.rb - a translation into Ruby of the ofla demo application, a red5 example.
 #
 # @author Paul Gregoire
 #

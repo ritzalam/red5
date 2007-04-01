@@ -1,5 +1,5 @@
 /*
- * main.js - a translation into JavaScript of the olfa demo Application class, a red5 example.
+ * main.js - a translation into JavaScript of the ofla demo Application class, a red5 example.
  *
  * @author Paul Gregoire
  */
