@@ -164,11 +164,15 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		recording = false;
 		recordingFilename = null;
 		setCodecInfo(new StreamCodecInfo());
+	}
+
+    /** {@inheritDoc} */
+    public void startPublishing() {
 		// We send the start messages before the first packet is received.
 		// This is required so FME actually starts publishing.
 		sendStartNotifications(Red5.getConnectionLocal());
-	}
-
+    }
+    
     /** {@inheritDoc} */
     public void stop() {
     	close();

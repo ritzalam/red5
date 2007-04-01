@@ -27,4 +27,9 @@ package org.red5.server.api.stream;
  */
 public interface IClientBroadcastStream extends IClientStream, IBroadcastStream {
 
+	/**
+	 * Notify client that stream is ready for publishing.
+	 */
+	public void startPublishing();
+	
 }

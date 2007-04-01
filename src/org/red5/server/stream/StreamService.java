@@ -379,6 +379,7 @@ public class StreamService implements IStreamService {
 			} else if (IClientStream.MODE_LIVE.equals(mode)) {
 				bs.start();
 			}
+			bs.startPublishing();
 		} catch (IOException e) {
 			Status accessDenied = new Status(StatusCodes.NS_RECORD_NOACCESS);
 			accessDenied.setClientid(streamId);
