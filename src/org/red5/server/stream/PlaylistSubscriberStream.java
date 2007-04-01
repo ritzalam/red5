@@ -767,7 +767,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
          */
         public synchronized void play(IPlayItem item, boolean withReset)
 				throws StreamNotFoundException, IllegalStateException, IOException {
-            // Can't play if state is stopped
+            // Can't play if state is not stopped
             if (state != State.STOPPED) {
 				throw new IllegalStateException();
 			}
@@ -911,8 +911,10 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				if (withReset) { 
 					sendReset();
 					sendResetStatus(item);
-					sendStartStatus(item);
-				} else {
+				}
+				
+				sendStartStatus(item);
+				if (!withReset) {
 					sendSwitchStatus();
 				}
 			}
