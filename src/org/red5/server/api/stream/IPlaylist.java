@@ -77,6 +77,14 @@ public interface IPlaylist {
 	IPlayItem getItem(int index);
 
 	/**
+	 * Check if the playlist has more items after the currently
+	 * playing one.
+	 * 
+	 * @return <code>true</code> if more items are available, <code>false</code> otherwise
+	 */
+	boolean hasMoreItems();
+	
+	/**
 	 * Go for the previous played item.
 	 */
 	void previousItem();

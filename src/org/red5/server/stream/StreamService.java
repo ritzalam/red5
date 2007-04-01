@@ -266,8 +266,7 @@ public class StreamService implements IStreamService {
 			int streamId = getCurrentStreamId();
 			IClientStream stream = streamConn.getStreamById(streamId);
 			if (stream != null) {
-				stream.close();
-				streamConn.deleteStreamById(streamId);
+				stream.stop();
 			}
 		}
 	}

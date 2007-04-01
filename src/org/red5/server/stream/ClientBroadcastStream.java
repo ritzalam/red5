@@ -169,6 +169,11 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		sendStartNotifications(Red5.getConnectionLocal());
 	}
 
+    /** {@inheritDoc} */
+    public void stop() {
+    	close();
+    }
+    
 	/**
      * Closes stream, unsubscribes provides, sends stoppage notifications and broadcast close notification.
      */

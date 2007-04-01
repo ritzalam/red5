@@ -243,6 +243,16 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	}
 
 	/** {@inheritDoc} */
+    public synchronized boolean hasMoreItems() {
+    	int nextItem = currentItemIndex + 1;
+    	if (nextItem >= items.size() && !isRepeat) {
+    		return false;
+    	} else {
+    		return true;
+    	}
+    }
+
+	/** {@inheritDoc} */
     public synchronized void nextItem() {
 		stop();
 		moveToNext();

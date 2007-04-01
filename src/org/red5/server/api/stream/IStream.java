@@ -57,6 +57,11 @@ public interface IStream {
 	public void start();
 
 	/**
+	 * Stop this stream.
+	 */
+	public void stop();
+
+	/**
 	 * Close this stream.
 	 */
 	public void close();

@@ -28,6 +28,8 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
+import org.red5.io.amf.Output;
+import org.red5.io.object.Serializer;
 import org.red5.server.api.IBandwidthConfigure;
 import org.red5.server.api.IContext;
 import org.red5.server.api.IScope;
@@ -54,6 +56,7 @@ import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.messaging.PipeConnectionEvent;
 import org.red5.server.net.rtmp.event.AudioData;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
+import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.event.Ping;
 import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.net.rtmp.event.VideoData.FrameType;
@@ -327,47 +330,29 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 	}
 
 	/** {@inheritDoc} */
+    public boolean hasMoreItems() {
+    	synchronized (items) {
+    		int nextItem = currentItemIndex + 1;
+    		if (nextItem >= items.size() && !isRepeat) {
+    			return false;
+    		} else {
+    			return true;
+    		}
+    	}
+    }
+    
+	/** {@inheritDoc} */
     public void nextItem() {
 		synchronized (items) {
-			stop();
 			moveToNext();
-			boolean needPause = false;
 			if (currentItemIndex == -1) {
-				if (items.size() > 0) {
-					// move to the head of the list and pause at the beginning
-					moveToNext();
-					engine.sendClearPing();
-					return;
-					// Joachim: commenting stuff out as it causes additional Play, Pause and Seek
-					//          events at the end of a stream (APPSERVER-70)
-					/*
-					if (currentItemIndex >= 0) {
-						needPause = true;
-					} else {
-						return;
-					}
-					*/
-				} else {
-					return;
-				}
+				return;
 			}
 			IPlayItem item = items.get(currentItemIndex);
 			int count = items.size();
 			while (count-- > 0) {
 				try {
-					// synchronize play engine to make sure
-					// the pause and seek to start atomic
-					synchronized (engine) {
-						engine.play(item);
-						if (needPause) {
-							engine.pause(0);
-							try {
-								engine.seek(0);
-							} catch (OperationNotSupportedException err) {
-								// Ignore errors for streams that don't support seeking.
-							}
-						}
-					}
+					engine.play(item, false);
 					break;
 				} catch (IOException err) {
 					log.error("Error while starting to play item, moving to next.", err);
@@ -651,7 +636,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 	 * A play engine for playing an IPlayItem.
 	 */
 	private class PlayEngine implements IFilter, IPushableConsumer,
-			IPipeConnectionListener, ITokenBucketCallback, IScheduledJob {
+			IPipeConnectionListener, ITokenBucketCallback {
         /**
          *
          */
@@ -676,10 +661,6 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
          *
          */
 		private String waitLiveJob;
-        /**
-         *
-         */
-		private String playLengthJob;
         /**
          *
          */
@@ -723,6 +704,18 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
          * State machine for video frame dropping in live streams
          */
         private IFrameDropper videoFrameDropper = new VideoFrameDropper();
+        /**
+         * 
+         */
+        private int timestampOffset = 0;
+        /**
+         * Last message sent to the client.
+         */
+        private IRTMPEvent lastMessage;
+        /**
+         * Number of bytes sent.
+         */
+        private long bytesSent = 0;
 
 		/**
          * Constructs a new PlayEngine.
@@ -760,6 +753,19 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
          * @throws IOException
          */
         public synchronized void play(IPlayItem item)
+			throws StreamNotFoundException, IllegalStateException, IOException {
+        	play(item, true);
+        }
+
+        /**
+         * Play stream
+         * @param item                  Playlist item
+         * @param withReset				Send reset status before playing.
+         * @throws StreamNotFoundException       Stream not found
+         * @throws IllegalStateException         Stream is in stopped state
+         * @throws IOException
+         */
+        public synchronized void play(IPlayItem item, boolean withReset)
 				throws StreamNotFoundException, IllegalStateException, IOException {
             // Can't play if state is stopped
             if (state != State.STOPPED) {
@@ -833,11 +839,13 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 								if (keyFrame != null) {
 									VideoData video = new VideoData(keyFrame);
 									try {
-										sendReset();
-										//sendBlankAudio(0);
-										//sendBlankVideo(0);
-										sendResetStatus(item);
-										sendStartStatus(item);
+										if (withReset) {
+											sendReset();
+											//sendBlankAudio(0);
+											//sendBlankVideo(0);
+											sendResetStatus(item);
+											sendStartStatus(item);
+										}
 
 										video.setTimestamp(0);
 
@@ -855,10 +863,6 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 						}
 					}
 					msgIn.subscribe(this, null);
-					if (item.getLength() >= 0) {
-						playLengthJob = schedulingService.addScheduledOnceJob(
-								item.getLength(), this);
-					}
 					break;
 				case 2:
 					msgIn = liveInput;
@@ -881,10 +885,6 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				case 1:
 					msgIn = vodInput;
 					msgIn.subscribe(this, null);
-					if (item.getLength() >= 0) {
-						playLengthJob = schedulingService.addScheduledOnceJob(
-								item.getLength(), this);
-					}
 					break;
 				default:
 					sendStreamNotFoundStatus(currentItem);
@@ -893,7 +893,9 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			state = State.PLAYING;
 			IMessage msg = null;
 			if (decision == 1) {
-				releasePendingMessage();
+				if (withReset) {
+					releasePendingMessage();
+				}
 				sendVODInitCM(msgIn, item);
 				vodStartTS = -1;
 				// Don't use pullAndPush to detect IOExceptions prior to sending
@@ -901,9 +903,13 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				msg = msgIn.pullMessage();
 			}
 			if (sendNotifications) {
-				sendReset();
-				sendResetStatus(item);
-				sendStartStatus(item);
+				if (withReset) { 
+					sendReset();
+					sendResetStatus(item);
+					sendStartStatus(item);
+				} else {
+					sendSwitchStatus();
+				}
 			}
 			if (msg != null)
 				sendMessage((RTMPMessage) msg);
@@ -944,20 +950,15 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			if (isPullMode) {
 				state = State.PLAYING;
 				getStreamFlow().resume();
-				if (currentItem.getLength() >= 0) {
-					long length = currentItem.getLength() - vodStartTS
-							+ position;
-					if (length < 0) {
-						length = 0;
-					}
-					playLengthJob = schedulingService.addScheduledOnceJob(
-							length, this);
-				}
 				bwController.resetBuckets(bwContext);
 				sendReset();
 				sendResumeStatus(currentItem);
 				sendVODSeekCM(msgIn, position);
 				notifyItemResume(currentItem, position);
+				if (currentItem.getLength() > 0 && position >= currentItem.getLength()) {
+					// Resume after end of stream
+					stop();
+				}
 			}
 		}
 
@@ -968,22 +969,13 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
          */
         public synchronized void seek(int position)
 				throws IllegalStateException, OperationNotSupportedException {
-			if (state != State.PLAYING && state != State.PAUSED) {
+			if (state != State.PLAYING && state != State.PAUSED && state != State.STOPPED) {
 				throw new IllegalStateException();
 			}
 			if (!isPullMode) {
 				throw new OperationNotSupportedException();
 			}
 			
-			if (state == State.PLAYING && currentItem.getLength() >= 0) {
-				long length = currentItem.getLength() - vodStartTS
-						+ position;
-				if (length < 0) {
-					length = 0;
-				}
-				playLengthJob = schedulingService.addScheduledOnceJob(
-						length, this);
-			}
 			releasePendingMessage();
 			getStreamFlow().clear();
 			clearWaitJobs();
@@ -999,7 +991,8 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				seekPos = position;
 			}
 			notifyItemSeek(currentItem, seekPos);
-			if (state == State.PAUSED) {
+			boolean messageSent = false;
+			if (state == State.PAUSED || state == State.STOPPED) {
 				// we send a single snapshot on pause.
 				// XXX we need to take BWC into account, for
 				// now send forcefully.
@@ -1019,6 +1012,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 							body.setTimestamp(seekPos);
 							msgOut.pushMessage(rtmpMessage);
 							rtmpMessage.getBody().release();
+							messageSent = true;
 							break;
 						}
 					}
@@ -1030,7 +1024,9 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 						msg = null;
 					}
 				}
-			} else {
+			}
+			
+			if (!messageSent) {
 				// Send blank audio packet to notify client about new position
 				AudioData audio = new AudioData();
 				audio.setTimestamp(seekPos);
@@ -1041,6 +1037,12 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				audioMessage.setBody(audio);
 				msgOut.pushMessage(audioMessage);
 			}
+			
+			if (state != State.STOPPED && currentItem.getLength() > 0 && position >= currentItem.getLength()) {
+				// Seeked after end of stream
+				stop();
+				return;
+			}
 		}
 
         /**
@@ -1048,40 +1050,43 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
          * @throws IllegalStateException    If stream is in stopped state
          */
         public synchronized void stop() throws IllegalStateException {
-
-			if (state != State.PLAYING && state != State.PAUSED) {
+        	if (state != State.PLAYING && state != State.PAUSED) {
 				throw new IllegalStateException();
 			}
-			if (msgIn != null) {
-				msgIn.unsubscribe(this);
-				msgIn = null;
-			}
-			log.info("in stop");
 			state = State.STOPPED;
-			releasePendingMessage();
-			getStreamFlow().reset();
-			clearWaitJobs();
-			bwController.resetBuckets(bwContext);
-			isWaitingForToken = false;
 			notifyItemStop(currentItem);
-			sendStopStatus(currentItem);
 			sendClearPing();
-			sendReset();
+			clearWaitJobs();
+			if (!hasMoreItems()) {
+				releasePendingMessage();
+				getStreamFlow().reset();
+				bwController.resetBuckets(bwContext);
+				isWaitingForToken = false;
+				sendStopStatus(currentItem);
+				if (getItemSize() > 0) {
+					sendCompleteStatus();
+				}
+				bytesSent = 0;
+			} else {
+				if (lastMessage != null) {
+					// Remember last timestamp so we can generate correct
+					// headers in playlists.
+					timestampOffset = lastMessage.getTimestamp();
+				}
+				nextItem();
+			}
 		}
 
         /**
          * Close stream
          */
         public synchronized void close() {
-
-			if (state == State.PLAYING || state == State.PAUSED) {
-				if (msgIn != null) {
-					msgIn.unsubscribe(this);
-					msgIn = null;
-				}
+			if (msgIn != null) {
+				msgIn.unsubscribe(this);
+				msgIn = null;
 			}
 			releasePendingMessage();
-
+			lastMessage = null;
 			state = State.CLOSED;
 			getStreamFlow().reset();
 			clearWaitJobs();
@@ -1136,26 +1141,8 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 						}
 
 						if (msg == null) {
-							// end of the VOD stream
-							final IStreamFlow streamFlow = getStreamFlow();
-							int timeDelta = (int) (streamFlow.getBufferTime() + streamFlow
-									.getZeroToStreamTime());
-							// wait until the client finishes
-							if (waitStopJob == null) {
-								waitStopJob = schedulingService
-										.addScheduledOnceJob(timeDelta,
-												new IScheduledJob() {
-													/** {@inheritDoc} */
-                                                    public void execute(
-															ISchedulingService service) {
-														// OMFG: it works god dammit! now we stop it.
-														stop();
-														onItemEnd();
-														log.info("Stop");
-													}
-												});
-								log.info("Scheduled stop in: " + timeDelta);
-							}
+							// No more packets to send
+							stop();
 							break;
 						} else {
 							if (msg instanceof RTMPMessage) {
@@ -1166,7 +1153,8 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 											"expected IStreamData but got "
 													+ body);
 								}
-
+								// Adjust timestamp when playing lists
+								body.setTimestamp(body.getTimestamp() + timestampOffset);
 								size = ((IStreamData) body).getData().limit();
 								boolean toSend = true;
 								if (body instanceof VideoData) {
@@ -1213,10 +1201,6 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				schedulingService.removeScheduledJob(waitLiveJob);
 				waitLiveJob = null;
 			}
-			if (playLengthJob != null) {
-				schedulingService.removeScheduledJob(playLengthJob);
-				playLengthJob = null;
-			}
 		}
 
         /**
@@ -1227,19 +1211,21 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			if (vodStartTS == -1) {
 				vodStartTS = message.getBody().getTimestamp();
 			} else {
-				if (currentItem.getLength() >= 0) {
+				if (currentItem.getLength() > 0) {
 					int duration = message.getBody().getTimestamp()
-							- vodStartTS;
-					if (duration > currentItem.getLength()
-							&& playLengthJob == null) {
-						// stop this item
+							- vodStartTS - timestampOffset;
+					if (duration >= currentItem.getLength()) {
+						// Sent enough data to client
 						stop();
-						onItemEnd();
 						return;
 					}
 				}
 			}
 			getStreamFlow().update(message);
+			lastMessage = message.getBody();
+			if (lastMessage instanceof IStreamData) {
+				bytesSent += ((IStreamData) lastMessage).getData().limit();
+			}
 			msgOut.pushMessage(message);
 		}
 
@@ -1326,6 +1312,52 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			StatusMessage stopMsg = new StatusMessage();
 			stopMsg.setBody(stop);
 			msgOut.pushMessage(stopMsg);
+		}
+
+		private void sendOnPlayStatus(String code, int duration, long bytes) {
+			ByteBuffer buf = ByteBuffer.allocate(1024);
+			buf.setAutoExpand(true);
+			Output out = new Output(buf);
+			out.writeString("onPlayStatus");
+			Map<Object, Object> props = new HashMap<Object, Object>();
+			props.put("code", code);
+			props.put("level", "status");
+			props.put("duration", duration);
+			props.put("bytes", bytes);
+			out.writeMap(props, new Serializer());
+			buf.flip();
+
+			IRTMPEvent event = new Notify(buf);
+			if (lastMessage != null) {
+				int timestamp = lastMessage.getTimestamp() - timestampOffset;
+				if (timestamp > 0)
+					timestamp -= 1;
+				event.setTimestamp(timestamp);
+			} else {
+				event.setTimestamp(0);
+			}
+			RTMPMessage msg = new RTMPMessage();
+			msg.setBody(event);
+			msgOut.pushMessage(msg);
+		}
+		
+        /**
+         * Send playlist switch status notification
+         */
+		private void sendSwitchStatus() {
+			// TODO: find correct duration to sent
+			int duration = 1;
+			sendOnPlayStatus(StatusCodes.NS_PLAY_SWITCH, duration, bytesSent);
+		}
+
+		/**
+		 * Send playlist complete status notification
+		 *
+		 */
+		private void sendCompleteStatus() {
+			// TODO: find correct duration to sent
+			int duration = 1;
+			sendOnPlayStatus(StatusCodes.NS_PLAY_COMPLETE, duration, bytesSent);
 		}
 
         /**
@@ -1472,11 +1504,6 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 						if (isWaiting) {
 							schedulingService.removeScheduledJob(waitLiveJob);
 							waitLiveJob = null;
-							if (currentItem.getLength() >= 0) {
-								playLengthJob = schedulingService
-										.addScheduledOnceJob(currentItem
-												.getLength(), this);
-							}
 							isWaiting = false;
 						}
 						sendPublishedStatus(currentItem);
@@ -1553,16 +1580,6 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				}
 			}
 			msgOut.pushMessage(message);
-		}
-
-		/** {@inheritDoc} */
-        public synchronized void execute(ISchedulingService service) {
-			if (playLengthJob == null) {
-				return;
-			}
-			playLengthJob = null;
-			stop();
-			onItemEnd();
 		}
 
 		/** {@inheritDoc} */

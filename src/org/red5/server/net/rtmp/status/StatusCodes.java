@@ -140,6 +140,14 @@ public interface StatusCodes {
      */
 	public static final String NS_PLAY_UNPUBLISHNOTIFY = "NetStream.Play.UnpublishNotify";
     /**
+     * Playlist playback switched from one stream to another.
+     */
+	public static final String NS_PLAY_SWITCH = "NetStream.Play.Switch";
+    /**
+     * Playlist playback is complete.
+     */
+	public static final String NS_PLAY_COMPLETE = "NetStream.Play.Complete";
+    /**
      * The subscriber has used the seek command to move to a particular location in the recorded stream.
      */
 	public static final String NS_SEEK_NOTIFY = "NetStream.Seek.Notify";
