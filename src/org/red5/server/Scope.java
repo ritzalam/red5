@@ -496,7 +496,7 @@ public class Scope extends BasicScope implements IScope {
 		// during connection, i.e. roomDisconnect is called before
 		// appDisconnect.
 		final IClient client = conn.getClient();
-		if (clients.containsKey(client)) {
+		if (client != null && clients.containsKey(client)) {
 			final Set<IConnection> conns = clients.get(client);
 			conns.remove(conn);
 			IScopeHandler handler = null;
