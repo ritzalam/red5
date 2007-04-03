@@ -247,12 +247,12 @@ public class StreamService implements IStreamService {
 
 	/** {@inheritDoc} */
     public void play(String name, int start) {
-		play(name, start, -1, true);
+		play(name, start, -1000, true);
 	}
 
 	/** {@inheritDoc} */
     public void play(String name) {
-		play(name, -2000, -1, true);
+		play(name, -2000, -1000, true);
 	}
 
 	/** {@inheritDoc} */

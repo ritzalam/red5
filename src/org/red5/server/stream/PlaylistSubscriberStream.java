@@ -902,9 +902,26 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				// NetStream.Play.Start
 				msg = msgIn.pullMessage();
 				if (msg instanceof RTMPMessage) {
-					// Adjust timestamp when playing lists
-					final IRTMPEvent body = ((RTMPMessage) msg).getBody();
-					body.setTimestamp(body.getTimestamp() + timestampOffset);
+					IRTMPEvent body = ((RTMPMessage) msg).getBody();
+					if (item.getLength() == 0) {
+						// Only send first video frame
+						body = ((RTMPMessage) msg).getBody();
+						while (body != null && !(body instanceof VideoData)) {
+							msg = msgIn.pullMessage();
+							if (msg == null)
+								break;
+							
+							if (!(msg instanceof RTMPMessage))
+								continue;
+							
+							body = ((RTMPMessage) msg).getBody();
+						}
+					}
+					
+					if (body != null) {
+						// Adjust timestamp when playing lists
+						body.setTimestamp(body.getTimestamp() + timestampOffset);
+					}
 				}
 			}
 			if (sendNotifications) {
@@ -962,7 +979,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				sendResumeStatus(currentItem);
 				sendVODSeekCM(msgIn, position);
 				notifyItemResume(currentItem, position);
-				if (currentItem.getLength() > 0 && position >= currentItem.getLength()) {
+				if (currentItem.getLength() >= 0 && position >= currentItem.getLength()) {
 					// Resume after end of stream
 					stop();
 				}
@@ -1045,7 +1062,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				msgOut.pushMessage(audioMessage);
 			}
 			
-			if (state != State.STOPPED && currentItem.getLength() > 0 && position >= currentItem.getLength()) {
+			if (state != State.STOPPED && currentItem.getLength() >= 0 && position >= currentItem.getLength()) {
 				// Seeked after end of stream
 				stop();
 				return;
@@ -1218,7 +1235,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			if (vodStartTS == -1) {
 				vodStartTS = message.getBody().getTimestamp();
 			} else {
-				if (currentItem.getLength() > 0) {
+				if (currentItem.getLength() >= 0) {
 					int duration = message.getBody().getTimestamp() - vodStartTS;
 					if (duration >= currentItem.getLength()) {
 						// Sent enough data to client
@@ -1313,6 +1330,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 		private void sendStopStatus(IPlayItem item) {
 			Status stop = new Status(StatusCodes.NS_PLAY_STOP);
 			stop.setClientid(getStreamId());
+			stop.setDesciption("Stopped playing " + item.getName() + ".");
 			stop.setDetails(item.getName());
 
 			StatusMessage stopMsg = new StatusMessage();
