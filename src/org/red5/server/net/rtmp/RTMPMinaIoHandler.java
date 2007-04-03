@@ -123,7 +123,7 @@ implements ApplicationContextAware {
      * @param in           Data buffer
      * @param session      I/O session, that is, connection between two endpoints
      */
-    private void rawBufferRecieved(ProtocolState state, ByteBuffer in,
+    protected void rawBufferRecieved(ProtocolState state, ByteBuffer in,
 			IoSession session) {
 
 		final RTMP rtmp = (RTMP) state;
