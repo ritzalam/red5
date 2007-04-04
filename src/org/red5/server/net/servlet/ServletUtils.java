@@ -23,6 +23,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
 
 public class ServletUtils {
 
@@ -93,4 +98,39 @@ public class ServletUtils {
 		return result.toByteArray();
 	}
 
+	/**
+	 * Return all remote addresses that were involved in the passed request.
+	 * 
+	 * @param request
+	 * @return
+	 */
+	public static List<String> getRemoteAddresses(HttpServletRequest request) {
+		List<String> addresses = new ArrayList<String>();
+		addresses.add(request.getRemoteHost());
+		if (!request.getRemoteAddr().equals(request.getRemoteHost())) {
+			// Store both remote host and remote address 
+			addresses.add(request.getRemoteAddr());
+		}
+		
+		final String forwardedFor = request.getHeader("X-Forwarded-For");
+		if (forwardedFor != null) {
+			// Also store address this request was forwarded for.
+			final String[] parts = forwardedFor.split(",");
+			for (String part: parts) {
+				addresses.add(part);
+			}
+		}
+		
+		final String httpVia = request.getHeader("Via");
+		if (httpVia != null) {
+			// Also store address this request was forwarded for.
+			final String[] parts = httpVia.split(",");
+			for (String part: parts) {
+				addresses.add(part);
+			}
+		}
+		
+		return Collections.unmodifiableList(addresses);
+	}
+	
 }

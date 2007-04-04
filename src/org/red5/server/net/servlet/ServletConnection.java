@@ -21,6 +21,7 @@ package org.red5.server.net.servlet;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
@@ -123,6 +124,11 @@ public class ServletConnection extends AttributeStore implements IConnection {
 	/** {@inheritDoc} */
     public String getRemoteAddress() {
 		return request.getRemoteAddr();
+	}
+
+	/** {@inheritDoc} */
+    public List<String> getRemoteAddresses() {
+		return ServletUtils.getRemoteAddresses(request);
 	}
 
 	/** {@inheritDoc} */
