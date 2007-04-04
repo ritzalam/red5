@@ -21,6 +21,8 @@ package org.red5.server.net.rtmp;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.ArrayList;
+import java.util.Collections;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -60,6 +62,9 @@ public class RTMPMinaConnection extends RTMPConnection {
 			remoteAddress = remote.toString();
 			remotePort = -1;
 		}
+		remoteAddresses = new ArrayList<String>();
+		remoteAddresses.add(remoteAddress);
+		remoteAddresses = Collections.unmodifiableList(remoteAddresses);
 		this.ioSession = protocolSession;
 	}
 	
