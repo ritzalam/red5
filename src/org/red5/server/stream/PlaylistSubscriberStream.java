@@ -1184,7 +1184,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			if (pullAndPushThread == null) {
 				pullAndPushThread = new PullAndPushThread();
 				pullAndPushThread.setDaemon(true);
-				pullAndPushThread.setName("PullAndPushThread_" + this);
+				pullAndPushThread.setName("PullAndPushThread_" + currentItem.getName());
 				pullAndPushThread.start();
 			}
         }
@@ -1237,11 +1237,8 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 		private void clearWaitJobs() {
 			if (pullAndPushThread != null) {
 				pullAndPushThread.notifyStop();
-				try {
-					pullAndPushThread.join();
-				} catch (InterruptedException err) {
-					// Ignore this one...
-				}
+				// NOTE: We don't wait for the thread to stop because this would
+				// hang forever if this is called from the PullAndPush thread.
 				pullAndPushThread = null;
 			}
 			if (waitLiveJob != null) {
@@ -1707,6 +1704,10 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				while (isRunning) {
 					try {
 						pullAndPush();
+						if (!isRunning)
+							// Stopped, terminate at once
+							break;
+						
 						// Now wait a bit to avoid having 100% load
 						try {
 							Thread.sleep(10);
