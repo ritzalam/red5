@@ -664,14 +664,6 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
         /**
          *
          */
-		private String waitStopJob;
-        /**
-         *
-         */
-		private String adaptFlowJob;
-        /**
-         *
-         */
 		private boolean isWaiting;
         /**
          *
@@ -716,6 +708,14 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
          * Number of bytes sent.
          */
         private long bytesSent = 0;
+        /**
+         * Start time of stream playback.
+         */
+        private long playbackStart;
+        /**
+         * Thread that makes sure messages are sent to the client.
+         */
+        private PullAndPushThread pullAndPushThread = null;
 
 		/**
          * Constructs a new PlayEngine.
@@ -938,6 +938,12 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			if (msg != null)
 				sendMessage((RTMPMessage) msg);
 			notifyItemPlay(currentItem, !isPullMode);
+			if (withReset) {
+				playbackStart = System.currentTimeMillis();
+				if (currentItem.getLength() > 0) {
+					ensurePullAndPushThread();
+				}
+			}
 		}
 
         /**
@@ -982,6 +988,8 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				if (currentItem.getLength() >= 0 && position >= currentItem.getLength()) {
 					// Resume after end of stream
 					stop();
+				} else {
+					ensurePullAndPushThread();
 				}
 			}
 		}
@@ -1048,6 +1056,8 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 						msg = null;
 					}
 				}
+			} else {
+				ensurePullAndPushThread();
 			}
 			
 			if (!messageSent) {
@@ -1118,52 +1128,80 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 		}
 
         /**
+         * Check if it's okay to send the client more data. This takes the configured
+         * bandwidth as well as the requested client buffer into account.
+         * 
+         * @param message
+         * @return
+         */
+        private boolean okayToSendMessage(IRTMPEvent message) {
+			final long now = System.currentTimeMillis();
+			// Duration the stream is playing
+			final long delta = now - playbackStart;
+			// Buffer size as requested by the client
+			final long buffer = getStreamFlow().getClientTimeBuffer();
+			// Expected amount of data present in client buffer
+			final long buffered = lastMessage.getTimestamp() - delta;
+			
+			if (log.isDebugEnabled()) {
+				log.debug("okayToSendMessage: " + lastMessage.getTimestamp() + " " + delta + " " + buffered + " " + buffer);
+			}
+			
+			if (buffer > 0 && buffered > buffer) {
+				// Client is likely to have enough data in the buffer
+				return false;
+			}
+			
+			if (!(message instanceof IStreamData)) {
+				throw new RuntimeException(
+						"expected IStreamData but got " + message);
+			}
+
+			final int size = ((IStreamData) message).getData().limit();
+			if (message instanceof VideoData) {
+				if (needCheckBandwidth && !videoBucket.acquireTokenNonblocking(size, this)) {
+					isWaitingForToken = true;
+					return false;
+				}
+			} else if (message instanceof AudioData) {
+				if (needCheckBandwidth && !audioBucket.acquireTokenNonblocking(size, this)) {
+					isWaitingForToken = true;
+					return false;
+				}
+			}
+			
+			return true;
+        }
+
+        /**
+         * Make sure the pull and push thread is running.
+         */
+        private synchronized void ensurePullAndPushThread() {
+			if (pullAndPushThread == null) {
+				pullAndPushThread = new PullAndPushThread();
+				pullAndPushThread.setDaemon(true);
+				pullAndPushThread.setName("PullAndPushThread_" + this);
+				pullAndPushThread.start();
+			}
+        }
+        
+        /**
          * Recieve then send if message is data (not audio or video)
          */
         private synchronized void pullAndPush() throws IOException {
 			if (state == State.PLAYING && isPullMode && !isWaitingForToken) {
-				int size;
 				if (pendingMessage != null) {
 					IRTMPEvent body = pendingMessage.getBody();
-					if (!(body instanceof IStreamData)) {
-						throw new RuntimeException(
-								"expected IStreamData but got " + body);
+					if (!okayToSendMessage(body)) {
+						return;
 					}
-
-					size = ((IStreamData) body).getData().limit();
-					boolean toSend = true;
-					if (body instanceof VideoData) {
-						if (needCheckBandwidth && !videoBucket.acquireTokenNonblocking(size, this)) {
-							isWaitingForToken = true;
-							toSend = false;
-						}
-					} else if (body instanceof AudioData) {
-						if (needCheckBandwidth && !audioBucket.acquireTokenNonblocking(size, this)) {
-							isWaitingForToken = true;
-							toSend = false;
-						}
-					}
-					if (toSend) {
-						sendMessage(pendingMessage);
-						releasePendingMessage();
-					}
+					
+					sendMessage(pendingMessage);
+					releasePendingMessage();
 				} else {
 					while (true) {
 						IMessage msg = msgIn.pullMessage();
-						if (adaptFlowJob == null) {
-							adaptFlowJob = schedulingService.addScheduledJob(
-									100, new IScheduledJob() {
-										/** {@inheritDoc} */
-                                        public void execute(
-												ISchedulingService service) throws CloneNotSupportedException {
-											streamFlowController
-													.adaptBandwidthForFlow(
-															getStreamFlow(),
-															PlaylistSubscriberStream.this);
-										}
-									});
-						}
-
+						ensurePullAndPushThread();
 						if (msg == null) {
 							// No more packets to send
 							stop();
@@ -1172,29 +1210,9 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 							if (msg instanceof RTMPMessage) {
 								RTMPMessage rtmpMessage = (RTMPMessage) msg;
 								IRTMPEvent body = rtmpMessage.getBody();
-								if (!(body instanceof IStreamData)) {
-									throw new RuntimeException(
-											"expected IStreamData but got "
-													+ body);
-								}
 								// Adjust timestamp when playing lists
 								body.setTimestamp(body.getTimestamp() + timestampOffset);
-								size = ((IStreamData) body).getData().limit();
-								boolean toSend = true;
-								if (body instanceof VideoData) {
-									if (needCheckBandwidth && !videoBucket.acquireTokenNonblocking(
-											size, this)) {
-										isWaitingForToken = true;
-										toSend = false;
-									}
-								} else if (body instanceof AudioData) {
-									if (needCheckBandwidth && !audioBucket.acquireTokenNonblocking(
-											size, this)) {
-										isWaitingForToken = true;
-										toSend = false;
-									}
-								}
-								if (toSend) {
+								if (okayToSendMessage(body)) {
 									//System.err.println("ts: " + rtmpMessage.getBody().getTimestamp());
 									sendMessage(rtmpMessage);
 									((IStreamData) body).getData().release();
@@ -1213,13 +1231,14 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
          * Clear all scheduled waiting jobs
          */
 		private void clearWaitJobs() {
-			if (adaptFlowJob != null) {
-				schedulingService.removeScheduledJob(adaptFlowJob);
-				adaptFlowJob = null;
-			}
-			if (waitStopJob != null) {
-				schedulingService.removeScheduledJob(waitStopJob);
-				waitStopJob = null;
+			if (pullAndPushThread != null) {
+				pullAndPushThread.notifyStop();
+				try {
+					pullAndPushThread.join();
+				} catch (InterruptedException err) {
+					// Ignore this one...
+				}
+				pullAndPushThread = null;
 			}
 			if (waitLiveJob != null) {
 				schedulingService.removeScheduledJob(waitLiveJob);
@@ -1659,6 +1678,48 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				pendingMessage = null;
 			}
 		}
+		
+		/**
+		 * Thread that periodically triggers sending of messages to the client.
+		 */
+		private class PullAndPushThread extends Thread {
+			
+			/**
+			 * Is the thread running?
+			 */
+			private boolean isRunning = true;
+			
+			/**
+			 * Notify the thread to stop.
+			 */
+			public void notifyStop() {
+				isRunning = false;
+			}
+			
+			/**
+			 * Trigger sending of messages.
+			 */
+			public void run() {
+				while (isRunning) {
+					try {
+						pullAndPush();
+						// Now wait a bit to avoid having 100% load
+						try {
+							Thread.sleep(10);
+						} catch (InterruptedException err) {
+							// Ignore interruptions
+							Thread.yield();
+						}
+					} catch (IOException err) {
+                		// We couldn't get more data, stop stream.
+                		log.error("Error while getting message.", err);
+                		PlayEngine.this.stop();
+					}
+				}
+			}
+			
+		}
+		
 	}
 
     /**
@@ -1672,4 +1733,5 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 		}
 
 	}
+	
 }
