@@ -162,31 +162,24 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 	}
 
 	/** {@inheritDoc} */
-    public synchronized void beginUpdate() {
-		if (!lock.isHeldByCurrentThread()) {
-			lock.lock();
-		}
+    public void beginUpdate() {
+        // Make sure only one thread can update the SO
+		lock.lock();
 		so.beginUpdate();
 	}
 
 	/** {@inheritDoc} */
-    public synchronized void beginUpdate(IEventListener listener) {
-        // If lock is not held by current thread then lock it
-        if (!lock.isHeldByCurrentThread()) {
-			lock.lock();
-		}
-        // Begin updating SO with this listener
+    public void beginUpdate(IEventListener listener) {
+        // Make sure only one thread can update the SO
+		lock.lock();
         so.beginUpdate(listener);
 	}
 
 	/** {@inheritDoc} */
-    public synchronized void endUpdate() {
+    public void endUpdate() {
 		// End update of SO
         so.endUpdate();
-        // Release lock
-        if (so.updateCounter == 0) {
-			lock.unlock();
-		}
+		lock.unlock();
 	}
 
 	/** {@inheritDoc} */
