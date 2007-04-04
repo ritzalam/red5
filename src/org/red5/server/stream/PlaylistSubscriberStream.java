@@ -985,6 +985,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				sendResumeStatus(currentItem);
 				sendVODSeekCM(msgIn, position);
 				notifyItemResume(currentItem, position);
+				playbackStart = System.currentTimeMillis() - position;
 				if (currentItem.getLength() >= 0 && position >= currentItem.getLength()) {
 					// Resume after end of stream
 					stop();
@@ -1022,6 +1023,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			if (seekPos == -1) {
 				seekPos = position;
 			}
+			playbackStart = System.currentTimeMillis() - seekPos;
 			notifyItemSeek(currentItem, seekPos);
 			boolean messageSent = false;
 			if (state == State.PAUSED || state == State.STOPPED) {
@@ -1045,6 +1047,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 							msgOut.pushMessage(rtmpMessage);
 							rtmpMessage.getBody().release();
 							messageSent = true;
+							lastMessage = body;
 							break;
 						}
 					}
@@ -1069,6 +1072,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				audio.getHeader().setTimerRelative(false);
 				RTMPMessage audioMessage = new RTMPMessage();
 				audioMessage.setBody(audio);
+				lastMessage = audio;
 				msgOut.pushMessage(audioMessage);
 			}
 			
