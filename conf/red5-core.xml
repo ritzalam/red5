@@ -114,6 +114,7 @@
 	</bean>
 	
 	<!-- Jetty Container -->
+
 	<bean id="rtmpt.server"
 		class="org.red5.server.net.rtmpt.RTMPTLoader" init-method="init"
 		autowire="byType" />
