@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<view:MonitorControlBarClass xmlns:mx="http://www.adobe.com/2006/mxml"
+							 xmlns:view="org.red5.samples.publisher.view.monitor.*">
+	
+	<mx:StringValidator source="{ playback_txt }" property="text" 
+	        tooShortError="{ tooShortError }" 
+	        minLength="1" trigger="{ playButton }" triggerEvent="click" 
+	        enabled="{ monitorTransaction.netConnected }"
+	        valid="viewStream()"/>
+	
+	<mx:StringValidator source="{ playback_txt }" property="text" 
+	        tooShortError="{ tooShortError }" 
+	        minLength="1" trigger="{ playback_txt }" triggerEvent="enter" 
+	        enabled="{ monitorTransaction.netConnected }"
+	        valid="viewStream()"/>
+	
+	<mx:StringValidator source="{ publish_txt }" property="text" 
+	        tooShortError="{ tooShortError }" 
+	        minLength="1" trigger="{ publishButton }" triggerEvent="click" 
+	        enabled="{ monitorTransaction.netConnected }"
+	        valid="recordStream()"/>
+	
+	<mx:StringValidator source="{ publish_txt }" property="text" 
+	        tooShortError="{ tooShortError }" 
+	        minLength="1" trigger="{ publish_txt }" triggerEvent="enter" 
+	        enabled="{ monitorTransaction.netConnected }"
+	        valid="recordStream()"/>
+	           
+	<mx:ApplicationControlBar horizontalAlign="center" verticalAlign="middle" 
+							  paddingTop="0" paddingBottom="0" horizontalGap="4"
+							  width="100%" height="40" shadowDistance="1" dock="true">
+		
+		<mx:ViewStack selectedIndex="{ monitorTransaction.monitorDisplayViewing }" width="100%" height="100%">
+			
+			<!-- server -->
+			<mx:Canvas width="100%" height="100%"/>
+			
+			<!-- view -->
+			<mx:Canvas width="100%" height="100%">
+				<mx:HBox width="100%" height="100%" verticalAlign="middle">
+					
+					<mx:Label text="Name"/>
+					
+					<mx:TextInput id="playback_txt" textIndent="2" focusThickness="0.5" width="100%"
+								  fontWeight="bold" text="{ monitorTransaction.streamName }"/>
+								  
+					<mx:Button id="playButton" label="{ monitorTransaction.playButtonLabel }"
+							   enabled="{ monitorTransaction.netConnected }" tabEnabled="false"/>
+					
+				</mx:HBox>
+			</mx:Canvas>
+			
+			<!-- record -->
+			<mx:Canvas width="100%" height="100%">		
+				<mx:HBox width="100%" height="100%" verticalAlign="middle">
+					
+					<mx:Label text="Name"/>
+					
+					<mx:TextInput id="publish_txt" textIndent="2" focusThickness="0.5" width="100%"
+								  fontWeight="bold" text="{ monitorTransaction.streamName }"/>
+								  
+					<mx:ComboBox id="publish_cb" width="85" dataProvider="{ monitorTransaction.publishTypes }"
+								 fontWeight="bold" enabled="{ !monitorTransaction.publishState }"
+								 selectedIndex="{ monitorTransaction.publishMode }"/>
+								 
+					<mx:Button id="publishButton" label="{ monitorTransaction.publishButtonLabel }"
+							   enabled="{ monitorTransaction.netConnected }" tabEnabled="false"/>
+					
+				</mx:HBox>
+			</mx:Canvas>
+		</mx:ViewStack>
+	</mx:ApplicationControlBar>
+</view:MonitorControlBarClass>

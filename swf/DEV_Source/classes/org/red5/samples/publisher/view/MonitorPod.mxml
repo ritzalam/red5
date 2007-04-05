@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<view:MonitorPodClass xmlns:mx="http://www.adobe.com/2006/mxml"
+					  xmlns:view="org.red5.samples.publisher.view.*"
+					  xmlns:monitor="org.red5.samples.publisher.view.monitor.*"
+					  xmlns:settings="org.red5.samples.publisher.view.settings.*">
+
+	<monitor:MonitorAppBar dock="true" width="100%" shadowDistance="0.5"
+						   paddingTop="5" paddingBottom="0"/>
+
+	<monitor:MonitorDisplay width="320" height="240" 
+						 	selectedIndex="{ monitorTransaction.monitorDisplayViewing }"
+						 	monitorTransaction="{ monitorTransaction }"
+							borderStyle="solid" borderColor="0xD0D0D0"
+						 	backgroundColor="0xFFFFFF" 
+						 	backgroundImage="{ monitorTransaction.images.serverLogo }"
+						 	paddingBottom="0" cornerRadius="2"/>
+	
+	<monitor:MonitorControlBar direction="horizontal" width="100%" height="50"
+							   horizontalAlign="center" paddingTop="0" 
+							   monitorTransaction="{ monitorTransaction }"/>
+
+	 <settings:SettingsAppBar dock="true" width="100%" height="35"
+	 					  	  paddingTop="0" paddingBottom="-7"
+	 					  	  shadowDistance="0.5" horizontalGap="2"/>
+	
+	<settings:SettingsDisplay id="settings" width="100%" height="150" 
+						  	  cornerRadius="4" borderStyle="solid"
+							  paddingRight="8" paddingLeft="5" 
+							  paddingTop="10" paddingBottom="0"
+							  selectedIndex="{ monitorTransaction.settingsViewing }"
+							  borderColor="0xD0D0D0" backgroundColor="0xFFFFFF"/>
+	
+	<settings:SettingsStatusBar dock="true" width="100%" height="40"
+								paddingTop="-2" paddingBottom="0"
+								shadowDistance="1"
+								monitorTransaction="{ monitorTransaction }"/>
+</view:MonitorPodClass>
