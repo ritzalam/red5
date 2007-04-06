@@ -32,7 +32,6 @@
 	<property 
 		name="main.application.debug.out" 
 		location="${debug.build.dir}/${output.swf.name}-debug.swf"/>
-	
 	<!-- wrapper -->
 	<property 
 		name="wrapper.dir" 
@@ -77,7 +76,7 @@
          ================================= -->
     <target 
     	name="build" 
-    	depends="clear,
+    	depends="clean,
     			 init,
     			 compile.release,
     			 compile.debug,
@@ -120,7 +119,7 @@
     		version.minor="${swf.version.minor}"
     		version.revision="${swf.version.revision}"
     		application="${swf.application}}"
-    		swf="${swf.swf}"
+    		swf="${swf.swf}-debug"
     		bgcolor="${swf.bgcolor}"
     		wrapper.dir="${wrapper.dir}"
     		output.dir="${debug.build.dir}"
@@ -135,7 +134,7 @@
     	<mxmlc.compile
     		in="${main.application}"
     		out="${main.application.release.out}"
-    	    additional='-benchmark -optimize=true -title "${swf.release.title}"'/>
+    	    additional='-benchmark -optimize=true -title "${swf.release.title}" -description "${swf.release.title}"' />
     </target>
 	
     <!-- - - - - - - - - - - - - - - - - - 
@@ -150,22 +149,18 @@
     </target>
 	
 	<!-- - - - - - - - - - - - - - - - - - 
-          target: clear                      
+          target: clean                      
          - - - - - - - - - - - - - - - - - -->
     <target 
-    	name="clear">
-		<delete 
-			failonerror="false">
-			<fileset 
-				dir="${asdoc.output.dir}" 
-				includes="**/*.*" />
-		</delete>
+    	name="clean">
     	<delete 
-			failonerror="false">
-			<fileset 
-				dir="${build.dir}" 
-				includes="**/*.*" />
-		</delete>
+    		dir="${asdoc.output.dir}" 
+    		failOnError="false" 
+    		includeEmptyDirs="true" />
+    	<delete 
+    		dir="${build.dir}" 
+    		failOnError="false" 
+    		includeEmptyDirs="true" />
     </target>
 	
 	<!-- - - - - - - - - - - - - - - - - - 
@@ -179,8 +174,6 @@
     		dir="${release.build.dir}"/>
     	<mkdir 
     		dir="${debug.build.dir}"/>
-    	<mkdir 
-    	    dir="${asdoc.output.dir}"/>
     </target>
 	
 	<!-- - - - - - - - - - - - - - - - - - 
@@ -188,10 +181,13 @@
          - - - - - - - - - - - - - - - - - -->
     <target 
     	name="docs">
+    	<mkdir 
+    	    dir="${asdoc.output.dir}"/>
     	<exec executable="${asdoc.exe}" 
     		failonerror="true">
 			<arg line='-source-path ${src.dir}'/>
 			<arg line='-doc-sources ${asdoc.domainextensions}'/>
+    		<arg value='-load-config=${flex.config.xml}'/>
 			<arg line='-output ${asdoc.output.dir}'/>
 			<arg line='-templates-path ${asdoc.templates.dir}'/>
 			<arg line='"-library-path+=${lib.cairngorm.swc}"'/>
