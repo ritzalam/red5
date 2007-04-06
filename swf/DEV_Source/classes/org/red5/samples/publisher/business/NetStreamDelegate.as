@@ -91,12 +91,12 @@ package org.red5.samples.publisher.business
 		/**
 		*  
 		*/		
-		private var camera : Camera = monitorTransaction.media.camera;
+		private var camera : Camera;
 		
 		/**
 		*  
 		*/		
-		private var microphone : Microphone = monitorTransaction.media.microphone;
+		private var microphone : Microphone;
 		
 		/**
 		 * 
@@ -189,6 +189,8 @@ package org.red5.samples.publisher.business
 		{
 			try 
 			{
+				camera = monitorTransaction.media.camera;
+				microphone = monitorTransaction.media.microphone;
 				//
 				if ( microphone != null || camera != null ) 
 				{
