@@ -332,7 +332,6 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	/** {@inheritDoc} */
     public IClientBroadcastStream newBroadcastStream(int streamId) {
-    	log.debug("New broadcast stream: " + streamId);
     	Boolean value = reservedStreams.get(streamId - 1);
 		if (value == null || !value) {
 			// StreamId has not been reserved before
@@ -374,7 +373,6 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	/** {@inheritDoc} */
     public IPlaylistSubscriberStream newPlaylistSubscriberStream(int streamId) {
-    	log.debug("New subscriber stream: " + streamId);
     	Boolean value = reservedStreams.get(streamId - 1);
 		if (value == null || !value) {
 			// StreamId has not been reserved before

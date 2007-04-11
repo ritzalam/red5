@@ -204,9 +204,9 @@ public class FileConsumer implements Constants, IPushableConsumer,
 		if (!file.isFile()) {
 			// Maybe the (previously existing) file has been deleted
 			file.createNewFile();
-		} else if (!file.canWrite()) {
+		} else if (!file.canWrite())
 			throw new IOException("the file is read-only");
-		}
+
 		IStreamableFileService service = factory.getService(file);
 		IStreamableFile flv = service.getStreamableFile(file);
 		if (mode == null || mode.equals(IClientStream.MODE_RECORD)) {
