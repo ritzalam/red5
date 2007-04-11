@@ -179,6 +179,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 
 	/** Constructs a new ServerStream. */
     public ServerStream() {
+    	log.debug("ServerStream created");
 		defaultController = new SimplePlaylistController();
 		items = new ArrayList<IPlayItem>();
 		state = State.UNINIT;
@@ -319,6 +320,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 			
 			String filename = generator.generateFilename(scope, name, ".flv", GenerationType.RECORD);
 			Resource res = scope.getContext().getResource(filename);
+			
 			if (!isAppend) {
 				if (res.exists()) {
 					// Per livedoc of FCS/FMS:
@@ -339,6 +341,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 				// Make sure the destination directory exists
 				try {
 					String path = res.getFile().getAbsolutePath();
+					log.debug("Path: " + path);
 					int slashPos = path.lastIndexOf(File.separator);
 					if (slashPos != -1) {
 						path = path.substring(0, slashPos);
@@ -347,15 +350,19 @@ public class ServerStream extends AbstractStream implements IServerStream,
 					if (!tmp.isDirectory()) {
 						tmp.mkdirs();
 					}
+					tmp = null;
 				} catch (IOException err) {
 					log.error("Could not create destination directory.", err);
 				}
-				res = scope.getResource(filename);
+				//res = scope.getResource(filename);
+				res = scope.getContext().getResource(filename);
 			}
 
 			if (!res.exists()) {
+				log.debug("Resource doesnt exist, trying res.createNew");
 				res.getFile().createNewFile();
 			}
+			
 			FileConsumer fc = new FileConsumer(scope, res.getFile());
 			Map<Object, Object> paramMap = new HashMap<Object, Object>();
 			if (isAppend) {
@@ -365,7 +372,9 @@ public class ServerStream extends AbstractStream implements IServerStream,
 			}
 			recordPipe.subscribe(fc, paramMap);
 			recordingFilename = filename;
+			
 		} catch (IOException e) {
+			log.error("SaveAs error", e);
 		}
 	}
 
@@ -466,6 +475,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 
 	/** {@inheritDoc} */
     public void pushMessage(IPipe pipe, IMessage message) {
+    	log.debug("Push message");
 		pushMessage(message);
 	}
 
@@ -479,6 +489,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
      * @param event        Pipe connection event context
      */
     public void onPipeConnectionEvent(PipeConnectionEvent event) {
+    	log.debug("PipeConnectionEvent: " + event.getType());
 		switch (event.getType()) {
 			case PipeConnectionEvent.PROVIDER_CONNECT_PUSH:
 				if (event.getProvider() == this
