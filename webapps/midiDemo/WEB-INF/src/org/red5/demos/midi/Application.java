@@ -44,7 +44,7 @@ public class Application extends ApplicationAdapter {
 
 	public boolean connectToMidi(String deviceName) {
 		IServiceCapableConnection conn = (IServiceCapableConnection) Red5
-				.getConnectionLocal();
+				.getConnectionLocal(); 
 		log.info("Connecting midi device: " + deviceName);
 		try {
 			MidiDevice dev = null;
@@ -81,7 +81,6 @@ public class Application extends ApplicationAdapter {
 
 	public boolean sendMidiShortMessage(List<Integer> args, Long time) 
 		throws InvalidMidiDataException, MidiUnavailableException {
-		System.err.println("hahahaha");
 		try {
 			MidiDevice dev = getCurrentMidiDevice();
 			if(dev == null){
@@ -105,6 +104,60 @@ public class Application extends ApplicationAdapter {
 				return false;
 			}
 
+			dev.getReceiver().send(msg, time);}
+		catch (Exception e) {
+			e.printStackTrace(System.err);
+		}
+		return true;
+	}
+	
+	public boolean sendMidiShortMessage1(Integer arg0, Long time) 
+		throws InvalidMidiDataException, MidiUnavailableException {
+		try {
+			MidiDevice dev = getCurrentMidiDevice();
+			if(dev == null){
+				log.error("Midi device is null, call connectToMidi first");
+				return false;
+			}
+	
+			final ShortMessage msg = new ShortMessage();
+			msg.setMessage(arg0);
+			dev.getReceiver().send(msg, time);}
+		catch (Exception e) {
+			e.printStackTrace(System.err);
+		}
+		return true;
+	}
+	
+	public boolean sendMidiShortMessage3(Integer arg0, Integer arg1, Integer arg2, Long time) 
+		throws InvalidMidiDataException, MidiUnavailableException {
+		try {
+			MidiDevice dev = getCurrentMidiDevice();
+			if(dev == null){
+				log.error("Midi device is null, call connectToMidi first");
+				return false;
+			}
+	
+			final ShortMessage msg = new ShortMessage();
+			msg.setMessage(arg0, arg1, arg2);
+			dev.getReceiver().send(msg, time);}
+		catch (Exception e) {
+			e.printStackTrace(System.err);
+		}
+		return true;
+	}
+	
+	public boolean sendMidiShortMessage4(Integer arg0, Integer arg1, Integer arg2, Integer arg3, Long time) 
+		throws InvalidMidiDataException, MidiUnavailableException {
+		try {
+			MidiDevice dev = getCurrentMidiDevice();
+			if(dev == null){
+				log.error("Midi device is null, call connectToMidi first");
+				return false;
+			}
+	
+			final ShortMessage msg = new ShortMessage();
+			msg.setMessage(arg0, arg1, arg2, arg3);
 			dev.getReceiver().send(msg, time);}
 		catch (Exception e) {
 			e.printStackTrace(System.err);
