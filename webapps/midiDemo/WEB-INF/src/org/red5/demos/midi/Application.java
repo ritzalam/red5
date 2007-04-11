@@ -79,30 +79,33 @@ public class Application extends ApplicationAdapter {
 
 	public boolean sendMidiShortMessage(int[] args, long time) 
 		throws InvalidMidiDataException, MidiUnavailableException {
-		
-		MidiDevice dev = getCurrentMidiDevice();
-		if(dev == null){
-			log.error("Midi device is null, call connectToMidi first");
-			return false;
+		try {
+			MidiDevice dev = getCurrentMidiDevice();
+			if(dev == null){
+				log.error("Midi device is null, call connectToMidi first");
+				return false;
+			}
+
+			final ShortMessage msg = new ShortMessage();
+			switch(args.length){
+				case 1:
+					msg.setMessage(args[0]);
+					break;
+				case 3:
+					msg.setMessage(args[0], args[1], args[2]);
+					break;
+				case 4:
+					msg.setMessage(args[0], args[1], args[2], args[3]);
+					break;
+				default:
+					log.error("Args array must have length 1, 3, or 4");
+				return false;
+			}
+
+			dev.getReceiver().send(msg, time);}
+		catch (Exception e) {
+			e.printStackTrace(System.err);
 		}
-		
-		final ShortMessage msg = new ShortMessage();
-		switch(args.length){
-		case 1:
-			msg.setMessage(args[0]);
-			break;
-		case 3:
-			msg.setMessage(args[0], args[1], args[2]);
-			break;
-		case 4:
-			msg.setMessage(args[0], args[1], args[2], args[3]);
-			break;
-		default:
-			log.error("Args array must have length 1, 3, or 4");
-			return false;
-		}
-		
-		dev.getReceiver().send(msg, time);
 		return true;
 	}
 	
