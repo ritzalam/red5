@@ -777,24 +777,25 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 		Object[] params = new Object[] {};
 
 		if (in.hasRemaining()) {
-			ArrayList paramList = new ArrayList();
+			ArrayList<Object> paramList = new ArrayList<Object>();
 
 			final Object obj = deserializer.deserialize(input);
 			if (obj != null) {
 				paramList.add(obj);
 			}
 
-			if (in.hasRemaining()) {
+			while (in.hasRemaining()) {
 				// Check for AMF3 encoding of parameters
 				byte tmp = in.get();
 				in.position(in.position()-1);
 				if (tmp == AMF.TYPE_AMF3_OBJECT) {
-					// All further parameters are encoded using AMF3
+					// The next parameter is encoded using AMF3
 					input = new org.red5.io.amf3.Input(in);
+				} else {
+					// The next parameter is encoded using AMF0
+					input = new org.red5.io.amf.Input(in);
 				}
-				while (in.hasRemaining()) {
-					paramList.add(deserializer.deserialize(input));
-				}
+				paramList.add(deserializer.deserialize(input));
 			}
 			params = paramList.toArray();
 			if (log.isDebugEnabled()) {
