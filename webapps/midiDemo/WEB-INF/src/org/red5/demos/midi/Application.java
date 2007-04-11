@@ -1,5 +1,7 @@
 package org.red5.demos.midi;
 
+import java.util.List;
+
 import javax.sound.midi.InvalidMidiDataException;
 import javax.sound.midi.MidiDevice;
 import javax.sound.midi.MidiMessage;
@@ -77,8 +79,9 @@ public class Application extends ApplicationAdapter {
 		return false;
 	}
 
-	public boolean sendMidiShortMessage(int[] args, long time) 
+	public boolean sendMidiShortMessage(List<Integer> args, Long time) 
 		throws InvalidMidiDataException, MidiUnavailableException {
+		System.err.println("hahahaha");
 		try {
 			MidiDevice dev = getCurrentMidiDevice();
 			if(dev == null){
@@ -87,15 +90,15 @@ public class Application extends ApplicationAdapter {
 			}
 
 			final ShortMessage msg = new ShortMessage();
-			switch(args.length){
+			switch(args.size()){
 				case 1:
-					msg.setMessage(args[0]);
+					msg.setMessage(args.get(0));
 					break;
 				case 3:
-					msg.setMessage(args[0], args[1], args[2]);
+					msg.setMessage(args.get(0), args.get(1), args.get(2));
 					break;
 				case 4:
-					msg.setMessage(args[0], args[1], args[2], args[3]);
+					msg.setMessage(args.get(0), args.get(1), args.get(2), args.get(3));
 					break;
 				default:
 					log.error("Args array must have length 1, 3, or 4");
