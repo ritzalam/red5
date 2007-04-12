@@ -27,7 +27,6 @@ import org.apache.mina.common.IoSession;
 import org.apache.mina.filter.LoggingFilter;
 import org.apache.mina.filter.codec.ProtocolCodecFactory;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
-import org.apache.mina.transport.socket.nio.SocketSessionConfig;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.message.Constants;
@@ -182,11 +181,13 @@ implements ApplicationContextAware {
 	public void sessionOpened(IoSession session) throws Exception {
 		// TODO Auto-generated method stub
 
-		SocketSessionConfig cfg = (SocketSessionConfig) session.getConfig();
-		//cfg.setReceiveBufferSize(256);
-		//cfg.setSendBufferSize(256);
-		log.info("Is tcp delay enabled: " + cfg.isTcpNoDelay());
-		cfg.setTcpNoDelay(true);
+    	// This is now done in red5-core.xml
+		//SocketSessionConfig cfg = (SocketSessionConfig) session.getConfig();
+		//cfg.setReceiveBufferSize(64*1024);
+		//cfg.setSendBufferSize(64*1024);
+		//log.info("Is tcp delay enabled: " + cfg.isTcpNoDelay());
+		//cfg.setTcpNoDelay(true);
+    	
 		super.sessionOpened(session);
 
 		RTMP rtmp=(RTMP)session.getAttribute(ProtocolState.SESSION_KEY);
