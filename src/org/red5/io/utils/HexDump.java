@@ -18,11 +18,9 @@
 package org.red5.io.utils;
 
 import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
 
 import org.apache.log4j.Logger;
-
-import sun.misc.HexDumpEncoder;
-
 
 /**
  * Hexadecimal byte dumper
@@ -39,14 +37,23 @@ public class HexDump {
 	 * Method prettyPrintHex
 	 *
 	 *
+	 * @param bbToConvert         ByteBuffer to encode
+	 * @return                    Hexdump string
+	 */
+	public static String prettyPrintHex(ByteBuffer bbToConvert) {
+		return prettyPrintHex(bbToConvert.array());
+	}
+
+	/**
+	 * Method prettyPrintHex
+	 *
+	 *
 	 * @param baToConvert         Array of bytes to encode
 	 * @return                    Hexdump string
 	 */
 	public static String prettyPrintHex(byte[] baToConvert) {
-
-		HexDumpEncoder hde = new HexDumpEncoder();
-
-		return hde.encodeBuffer(baToConvert);
+		HexCharset hde = (HexCharset) HexCharset.forName("HEX");
+		return new String(hde.encode(new String(baToConvert)).array());
 	}
 
 	/**
@@ -57,7 +64,8 @@ public class HexDump {
 	 * @return hexdump string
 	 */
 	public static String prettyPrintHex(String sToConvert) {
-		return prettyPrintHex(sToConvert.getBytes());
+		HexCharset hde = (HexCharset) HexCharset.forName("HEX");
+		return new String(hde.encode(sToConvert).array());
 	}
 
 	/** Field HEX_DIGITS */
@@ -648,7 +656,8 @@ public class HexDump {
 					}
 					break;
 
-				default: break;
+				default:
+					break;
 			}
 		}
 
@@ -736,8 +745,7 @@ public class HexDump {
 
 		logger.info("to convert: " + str);
 		logger.info("converted1: " + byteArrayToHexString(ba));
-		logger.info("converted1: "
-				+ byteArrayToHexString(ba, 0, ba.length));
+		logger.info("converted1: " + byteArrayToHexString(ba, 0, ba.length));
 		logger.info("converted3: " + stringToHexString(str));
 		logger.info("----Convert integer to hexString...");
 
@@ -797,42 +805,36 @@ public class HexDump {
 
 		i = -1;
 
-		logger.info(i + " = 0x" + toHexString(i) + " = "
-				+ toBinaryString(i));
+		logger.info(i + " = 0x" + toHexString(i) + " = " + toBinaryString(i));
 
 		i++;
 
-		logger.info(i + " = 0x" + toHexString(i) + " = "
-				+ toBinaryString(i));
+		logger.info(i + " = 0x" + toHexString(i) + " = " + toBinaryString(i));
 
 		//------------------------------------------------//
 		logger.info("---- toHexString(long) ");
 
 		long l = 100;
 
-		logger.info(l + " = 0x" + toHexString(l) + " = "
-				+ toBinaryString(l));
+		logger.info(l + " = 0x" + toHexString(l) + " = " + toBinaryString(l));
 
 		java.util.Random rnd = new java.util.Random();
 
 		l = rnd.nextLong();
 
-		logger.info(l + " = 0x" + toHexString(l) + " = "
-				+ toBinaryString(l));
+		logger.info(l + " = 0x" + toHexString(l) + " = " + toBinaryString(l));
 
 		//------------------------------------------------//
 		logger.info("---- toHexString(short) ");
 
 		short s = 100;
 
-		logger.info(s + " = 0x" + toHexString(s) + " = "
-				+ toBinaryString(s));
+		logger.info(s + " = 0x" + toHexString(s) + " = " + toBinaryString(s));
 
 		rnd = new java.util.Random();
 		s = (short) rnd.nextInt();
 
-		logger.info(s + " = 0x" + toHexString(s) + " = "
-				+ toBinaryString(s));
+		logger.info(s + " = 0x" + toHexString(s) + " = " + toBinaryString(s));
 
 		//---------------------------------------------------------------------------//
 		// convert dezimal-String to binary
@@ -840,8 +842,7 @@ public class HexDump {
 
 		String strToConvert = "12345654321";
 
-		logger.info(strToConvert + " = "
-				+ stringToHexString(strToConvert));
+		logger.info(strToConvert + " = " + stringToHexString(strToConvert));
 		logger.info("Das ist die Hex-Darstellung des obigen Strings");
 
 		logger.info("ba = " + toHexString(ba));

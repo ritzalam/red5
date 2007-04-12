@@ -12,8 +12,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoHandlerAdapter;
 import org.apache.mina.common.IoSession;
-
-import sun.misc.HexDumpEncoder;
+import org.red5.io.utils.HexDump;
 
 /**
  *
@@ -57,8 +56,6 @@ public class BasicHandler extends IoHandlerAdapter {
 	static final byte SEND = 0x03;
 	static final byte EXIT = 0x04;
 
-	static final HexDumpEncoder dumper = new HexDumpEncoder();
-
 	final ByteBuffer NOOP_MSG = ByteBuffer.wrap(new byte[]{NOOP}).asReadOnlyBuffer();
 
 	protected Timer timer = new Timer("Timer", true);
@@ -83,7 +80,7 @@ public class BasicHandler extends IoHandlerAdapter {
 		ByteBuffer data = (ByteBuffer) message;
 
 		// IN HEX DUMP
-		log.info(dumper.encode(data.asReadOnlyBuffer().buf()));
+		log.info(HexDump.prettyPrintHex(data.asReadOnlyBuffer().array()));
 
 		final byte type = data.get();
 		data.position(0);
