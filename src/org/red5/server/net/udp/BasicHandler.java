@@ -73,7 +73,7 @@ public class BasicHandler extends IoHandlerAdapter {
 	@Override
 	public void exceptionCaught(IoSession session, Throwable ex) throws Exception {
 		if(showInfo) log.info("Exception: "+session.getRemoteAddress().toString(), ex);
-		//sessions.remove(session);
+		sessions.remove(session);
 	}
 
 	@Override
