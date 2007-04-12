@@ -63,6 +63,9 @@
              <bean class="org.apache.mina.transport.socket.nio.SocketAcceptorConfig">
                <property name="filterChainBuilder" ref="filterChainBuilder"/>
                <property name="reuseAddress" value="true"/>
+               <property name="sessionConfig.receiveBufferSize" value="65536" /><!-- 64k -->
+               <property name="sessionConfig.sendBufferSize" value="271360" /><!-- 256k -->
+               <property name="sessionConfig.tcpNoDelay" value="true" />
                <property name="sessionConfig.reuseAddress" value="true"/>
              </bean>
            </property>
