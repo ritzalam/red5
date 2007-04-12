@@ -123,10 +123,10 @@ public class BasicHandler extends IoHandlerAdapter {
 	}
 
 	protected void broadcast(IoSession exclude, ByteBuffer data){
-		data.acquire();
 		for(IoSession session : sessions){
 			if(exclude != null && exclude.equals(session)) continue;
 			if(showInfo) log.info("Sending: "+session.getRemoteAddress().toString());
+			data.acquire();
 			session.write(data);
 		}
 		data.release();
