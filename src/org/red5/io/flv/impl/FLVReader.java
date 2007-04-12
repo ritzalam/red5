@@ -377,8 +377,6 @@ public class FLVReader implements IoConstants, ITagReader,
 				 break;
 			 case 3005871: //auto
 				 //Let MINA choose
-				 FLVReader.bufferType = BufferType.AUTO;
-				 break;
 			 default:
 				 FLVReader.bufferType = BufferType.AUTO;
 			 }

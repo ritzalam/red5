@@ -24,7 +24,6 @@
 
 	<bean id="web.handler"
 	    class="org.red5.server.webapp.oflaDemo.Application" />
-
 <!--
 	<bean id="web.handler" class="org.red5.server.script.rhino.RhinoScriptFactory">
 		<constructor-arg index="0" value="classpath:applications/main.js"/>
@@ -76,10 +75,8 @@
         </constructor-arg>
 	</bean>
 -->
-
     <bean id="demoService.service"
 	    class="org.red5.server.webapp.oflaDemo.DemoService" />
-
 <!--
 	<bean id="demoService.service" class="org.red5.server.script.rhino.RhinoScriptFactory">
 		<constructor-arg index="0" value="classpath:applications/demoservice.js"/>

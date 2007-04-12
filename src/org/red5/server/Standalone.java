@@ -39,15 +39,12 @@ import org.springframework.context.access.ContextSingletonBeanFactoryLocator;
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 public class Standalone {
-
-	// Initialize Logging
+ 
     /**
-     *
+     * Initialize Logging
      */
     protected static Log log = LogFactory.getLog(Standalone.class.getName());
-    /**
-     *
-     */
+
 	protected static String red5Config = "red5.xml";
 
 	//public static DebugPooledByteBufferAllocator allocator;
@@ -62,7 +59,6 @@ public class Standalone {
 		while (e.getCause() != null) {
 			e = e.getCause();
 		}
-
 		throw e;
 	}
 

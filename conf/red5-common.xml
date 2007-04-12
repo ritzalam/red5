@@ -148,28 +148,6 @@
 			<ref bean="object.cache"/>
 		</property>
 	</bean>
-	<!-- Use injection to set the buffer type for reading FLV files -->
-	<bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
-		<property name="targetObject">
-			<bean class="org.red5.io.flv.impl.FLVReader"/>
-		</property>
-		<property name="targetMethod">
-			<value>setBufferType</value>
-		</property>
-		<!-- Three buffer types are available 'auto', 'heap', and 'direct' -->
-		<property name="arguments" value="auto"/>
-	</bean>
-	<!-- Use injection to set the buffer size for reading FLV files -->
-	<bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
-		<property name="targetObject">
-			<bean class="org.red5.io.flv.impl.FLVReader"/>
-		</property>
-		<property name="targetMethod">
-			<value>setBufferSize</value>
-		</property>
-		<!-- Three buffer types are available 'auto', 'heap', and 'direct' -->
-		<property name="arguments" value="4096"/>
-	</bean>
 	<!-- Use injection to set the keyframe cache for FLV files -->
 	<bean id="flvreader.impl" class="org.red5.io.flv.impl.FLVReader">
 		<property name="keyFrameCache">
@@ -182,6 +160,21 @@
 			<ref bean="keyframe.cache"/>
 		</property>
 	</bean>
+
+	<!-- Use injection to set the buffer type for reading FLV files -->
+	<bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+		<property name="staticMethod"><value>org.red5.io.flv.impl.FLVReader.setBufferType</value></property>
+		<!-- Three buffer types are available 'auto', 'heap', and 'direct' -->
+		<property name="arguments" value="auto"/>
+	</bean>
+	
+	<!-- Use injection to set the buffer size for reading FLV files -->
+	<bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+		<property name="staticMethod"><value>org.red5.io.flv.impl.FLVReader.setBufferSize</value></property>
+		<!-- Three buffer types are available 'auto', 'heap', and 'direct' -->
+		<property name="arguments" value="4096"/>
+	</bean>
+
 	<!-- ClientBroadcastStream and PlaylistSubscriberStream 
 		that will be used by RTMPConnection and maybe other classes.
 		These beans are lazy-init because most likely server will need

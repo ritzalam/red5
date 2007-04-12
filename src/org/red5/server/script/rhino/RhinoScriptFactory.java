@@ -147,4 +147,9 @@ public class RhinoScriptFactory implements ScriptFactory {
 		}
 	}
 
+	public Class getScriptedObjectType(ScriptSource arg0) throws IOException, ScriptCompilationException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }
