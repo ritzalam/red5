@@ -122,12 +122,14 @@ public class BasicHandler extends IoHandlerAdapter {
 		session.write(data);
 	}
 
-	protected void broadcast(IoSession exclude, Object message){
+	protected void broadcast(IoSession exclude, ByteBuffer data){
+		data.acquire();
 		for(IoSession session : sessions){
 			if(exclude != null && exclude.equals(session)) continue;
 			if(showInfo) log.info("Sending: "+session.getRemoteAddress().toString());
-			session.write(message);
+			session.write(data);
 		}
+		data.release();
 	}
 
 	protected void list(IoSession to){
