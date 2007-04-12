@@ -73,7 +73,7 @@ public class BasicHandler extends IoHandlerAdapter {
 	@Override
 	public void exceptionCaught(IoSession session, Throwable ex) throws Exception {
 		if(showInfo) log.info("Exception: "+session.getRemoteAddress().toString(), ex);
-		sessions.remove(session);
+		//sessions.remove(session);
 	}
 
 	@Override
@@ -129,7 +129,6 @@ public class BasicHandler extends IoHandlerAdapter {
 			data.acquire();
 			session.write(data);
 		}
-		data.release();
 	}
 
 	protected void list(IoSession to){
@@ -165,7 +164,6 @@ public class BasicHandler extends IoHandlerAdapter {
 	@Override
 	public void sessionCreated(IoSession session) throws Exception {
 		if(showInfo) log.info("Created: "+session.getRemoteAddress().toString());
-		if(showInfo) log.info("Created: "+session.getRemoteAddress().toString());
 	}
 
 	protected class TimeoutTask extends TimerTask {
@@ -178,7 +176,7 @@ public class BasicHandler extends IoHandlerAdapter {
 					if(showInfo) log.info("Timout: "+session.getRemoteAddress().toString());
 					remove.add(session);
 				} else {
-					session.write(NOOP_MSG);
+					session.write(NOOP_MSG.asReadOnlyBuffer());
 				}
 			}
 			if(remove.size() == 0) return;
