@@ -158,6 +158,7 @@ public class Application extends ApplicationAdapter {
 	
 			final ShortMessage msg = new ShortMessage();
 			msg.setMessage(arg0, arg1, arg2, arg3);
+			//dev.getTransmitter().getReceiver().s
 			dev.getReceiver().send(msg, time);}
 		catch (Exception e) {
 			e.printStackTrace(System.err);
@@ -194,7 +195,11 @@ public class Application extends ApplicationAdapter {
 		for (Info element : info) {
 			if (element.getName().equals(name)) {
 				try {
-					return MidiSystem.getMidiDevice(element);
+					MidiDevice device = MidiSystem.getMidiDevice(element);
+					if(!device.isOpen()){
+						log.info("Opening device");
+						device.open();
+					}
 				} catch (MidiUnavailableException e) {
 					log.error(e);
 				}
