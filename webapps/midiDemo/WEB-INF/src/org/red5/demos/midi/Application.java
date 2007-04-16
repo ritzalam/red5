@@ -19,6 +19,11 @@ import org.red5.server.api.IScope;
 import org.red5.server.api.Red5;
 import org.red5.server.api.service.IServiceCapableConnection;
 
+/**
+ * Further informations about Java and MIDI:
+ * http://www.jsresources.org/faq_midi.html
+ * 
+ */
 public class Application extends ApplicationAdapter {
 
 	private static final Log log = LogFactory.getLog(Application.class);
@@ -60,7 +65,7 @@ public class Application extends ApplicationAdapter {
 			}
 			*/
 			// Lookup the current device
-			dev = getMidiDevice(deviceName);
+			dev = getMidiDevice(deviceName, false);
 			if (dev == null) {
 				log.error("Midi device not found: " + deviceName);
 				return false;
@@ -69,6 +74,7 @@ public class Application extends ApplicationAdapter {
 			if (!dev.isOpen()) {
 				dev.open();
 			}
+			dev.close();
 			dev.getTransmitter().setReceiver(new MidiReceiver(conn));
 			log.info("It worked!");
 			// Save for later
@@ -88,7 +94,7 @@ public class Application extends ApplicationAdapter {
 		throws InvalidMidiDataException, MidiUnavailableException {
 		try {
 			System.err.println("Args: " + args);
-			MidiDevice dev = getCurrentMidiDevice();
+			MidiDevice dev = getCurrentMidiDevice(true);
 			if(dev == null){
 				log.error("Midi device is null, call connectToMidi first");
 				return false;
@@ -120,7 +126,7 @@ public class Application extends ApplicationAdapter {
 	public boolean sendMidiShortMessage1(Integer arg0, Long time) 
 		throws InvalidMidiDataException, MidiUnavailableException {
 		try {
-			MidiDevice dev = getCurrentMidiDevice();
+			MidiDevice dev = getCurrentMidiDevice(true);
 			if(dev == null){
 				log.error("Midi device is null, call connectToMidi first");
 				return false;
@@ -138,7 +144,7 @@ public class Application extends ApplicationAdapter {
 	public boolean sendMidiShortMessage3(Integer arg0, Integer arg1, Integer arg2, Long time) 
 		throws InvalidMidiDataException, MidiUnavailableException {
 		try {
-			MidiDevice dev = getCurrentMidiDevice();
+			MidiDevice dev = getCurrentMidiDevice(true);
 			if(dev == null){
 				log.error("Midi device is null, call connectToMidi first");
 				return false;
@@ -156,7 +162,7 @@ public class Application extends ApplicationAdapter {
 	public boolean sendMidiShortMessage4(Integer arg0, Integer arg1, Integer arg2, Integer arg3, Long time) 
 		throws InvalidMidiDataException, MidiUnavailableException {
 		try {
-			MidiDevice dev = getCurrentMidiDevice();
+			MidiDevice dev = getCurrentMidiDevice(true);
 			if(dev == null){
 				log.error("Midi device is null, call connectToMidi first");
 				return false;
@@ -172,22 +178,25 @@ public class Application extends ApplicationAdapter {
 		return true;
 	}
 	
-	private MidiDevice getCurrentMidiDevice(){
+	private MidiDevice getCurrentMidiDevice(boolean receiver) {
 		IServiceCapableConnection conn = (IServiceCapableConnection) Red5.getConnectionLocal();
 		if (conn.hasAttribute("midi")) {
 			String deviceName = conn.getStringAttribute("midi");
 			// Lookup the current device
-			MidiDevice dev = getMidiDevice(deviceName);
+			MidiDevice dev = getMidiDevice(deviceName, receiver);
 			if (dev == null) {
 				log.error("Midi device not found: " + deviceName);
 				return null;
 			}
 			try {
+				if (!receiver) {
+					dev.getTransmitter().setReceiver(new MidiReceiver(conn));
+				}
+				//System.err.println("Opening: " + deviceName + " " + dev.getDeviceInfo().hashCode());
 				// Open if needed
 				if (!dev.isOpen()) {
 					dev.open();
 				}
-				dev.getTransmitter().setReceiver(new MidiReceiver(conn));
 			} catch (MidiUnavailableException err) {
 				err.printStackTrace();
 				dev = null;
@@ -208,11 +217,12 @@ public class Application extends ApplicationAdapter {
 		String[] names = new String[info.length];
 		for (int i = 0; i < info.length; i++) {
 			names[i] = info[i].getName();
+			//System.err.println(names[i] + " " + info[i].hashCode());
 		}
 		return names;
 	}
 
-	public static MidiDevice getMidiDevice(String name) {
+	public static MidiDevice getMidiDevice(String name, boolean receiver) {
 
 		MidiDevice.Info[] info = MidiSystem.getMidiDeviceInfo();
 
@@ -220,6 +230,9 @@ public class Application extends ApplicationAdapter {
 			if (element.getName().equals(name)) {
 				try {
 					MidiDevice device = MidiSystem.getMidiDevice(element);
+					if (receiver && device.getMaxReceivers() == 0)
+						continue;
+					
 					/*if(!device.isOpen()){
 						log.info("Opening device");
 						device.open();
