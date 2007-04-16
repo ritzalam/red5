@@ -897,6 +897,7 @@ public abstract class RTMPConnection extends BaseConnection implements
         		// Client didn't send response to ping command for too long, disconnect
     			service.removeScheduledJob(keepAliveJobName);
     			keepAliveJobName = null;
+    			log.warn("Closing " + RTMPConnection.this + " due to too much inactivity (" + (lastPingSent - lastPongReceived) + ").");
 				onInactive();
 			}
         	
