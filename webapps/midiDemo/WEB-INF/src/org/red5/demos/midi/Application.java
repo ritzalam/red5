@@ -33,12 +33,14 @@ public class Application extends ApplicationAdapter {
 	/** {@inheritDoc} */
     @Override
 	public void appDisconnect(IConnection conn) {
+    	/*
 		if (conn.hasAttribute("midi")) {
 			MidiDevice dev = (MidiDevice) conn.getAttribute("midi");
 			if (dev.isOpen()) {
 				dev.close();
 			}
 		}
+		*/
 		super.appDisconnect(conn);
 	}
 
@@ -49,12 +51,14 @@ public class Application extends ApplicationAdapter {
 		try {
 			MidiDevice dev = null;
 			// Close any existing device
+			/*
 			if (conn.hasAttribute("midi")) {
 				dev = (MidiDevice) conn.getAttribute("midi");
 				if (dev.isOpen()) {
 					dev.close();
 				}
 			}
+			*/
 			// Lookup the current device
 			dev = getMidiDevice(deviceName);
 			if (dev == null) {
@@ -68,7 +72,8 @@ public class Application extends ApplicationAdapter {
 			dev.getTransmitter().setReceiver(new MidiReceiver(conn));
 			log.info("It worked!");
 			// Save for later
-			conn.setAttribute("midi", dev);
+			//conn.setAttribute("midi", dev);
+			conn.setAttribute("midi", deviceName);
 			return true;
 		} catch (MidiUnavailableException e) {
 			log.error("Error connecting to midi device", e);
@@ -170,7 +175,25 @@ public class Application extends ApplicationAdapter {
 	private MidiDevice getCurrentMidiDevice(){
 		IServiceCapableConnection conn = (IServiceCapableConnection) Red5.getConnectionLocal();
 		if (conn.hasAttribute("midi")) {
-			return (MidiDevice) conn.getAttribute("midi");
+			String deviceName = conn.getStringAttribute("midi");
+			// Lookup the current device
+			MidiDevice dev = getMidiDevice(deviceName);
+			if (dev == null) {
+				log.error("Midi device not found: " + deviceName);
+				return null;
+			}
+			try {
+				// Open if needed
+				if (!dev.isOpen()) {
+					dev.open();
+				}
+				dev.getTransmitter().setReceiver(new MidiReceiver(conn));
+			} catch (MidiUnavailableException err) {
+				err.printStackTrace();
+				dev = null;
+			}
+			return dev;
+
 		}
 		return null;
 	}
