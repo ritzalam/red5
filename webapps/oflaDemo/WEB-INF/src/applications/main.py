@@ -6,7 +6,7 @@ main.py - a translation into Python of the ofla demo Application class, a Red5 e
 """
 
 from org.red5.server.adapter import ApplicationAdapter
-from org.red5.server.api import IBandwidthConfigure;
+from org.red5.server.api import IBandwidthConfigure
 from org.red5.server.api.stream import IStreamCapableConnection
 from org.red5.server.api.stream.support import SimpleConnectionBWConfig
 
