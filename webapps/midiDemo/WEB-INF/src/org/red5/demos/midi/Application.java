@@ -82,6 +82,7 @@ public class Application extends ApplicationAdapter {
 	public boolean sendMidiShortMessage(List<Integer> args, Long time) 
 		throws InvalidMidiDataException, MidiUnavailableException {
 		try {
+			System.err.println("Args: " + args);
 			MidiDevice dev = getCurrentMidiDevice();
 			if(dev == null){
 				log.error("Midi device is null, call connectToMidi first");
@@ -200,6 +201,7 @@ public class Application extends ApplicationAdapter {
 						log.info("Opening device");
 						device.open();
 					}*/
+					return device;
 				} catch (MidiUnavailableException e) {
 					log.error(e);
 				}
