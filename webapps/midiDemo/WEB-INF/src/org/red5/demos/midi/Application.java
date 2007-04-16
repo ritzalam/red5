@@ -196,10 +196,10 @@ public class Application extends ApplicationAdapter {
 			if (element.getName().equals(name)) {
 				try {
 					MidiDevice device = MidiSystem.getMidiDevice(element);
-					if(!device.isOpen()){
+					/*if(!device.isOpen()){
 						log.info("Opening device");
 						device.open();
-					}
+					}*/
 				} catch (MidiUnavailableException e) {
 					log.error(e);
 				}
