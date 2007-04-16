@@ -116,10 +116,6 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 	 */
 	private IBWControlContext bwContext;
     /**
-     * Stream flow controller
-     */
-	private StreamFlowController streamFlowController = new StreamFlowController();
-    /**
      * Rewind mode state
      */
 	private boolean isRewind;
