@@ -127,25 +127,40 @@ public abstract class RTMPConnection extends BaseConnection implements
     protected int lastPingTime = -1;
 
     /**
-     * Whether ping replied or not
+     * Timestamp when last ping command was sent.
      */
-    protected boolean pingReplied = true;
-
+    protected long lastPingSent;
+    
+    /**
+     * Timestamp when last ping result was received.
+     */
+    protected long lastPongReceived;
+    
     /**
      * Name of quartz job that keeps connection alive
      */
     protected String keepAliveJobName;
 
     /**
-     * Keep alive interval
+     * Ping interval in ms to detect dead clients
      */
-    protected int keepAliveInterval = 1000;
+    protected int pingInterval = 5000;
 
+    /**
+     * Max. time in ms after a client is disconnected because of inactivity
+     */
+    protected int maxInactivity = 60000;
+    
     /**
      * Data read interval
      */
     private int bytesReadInterval = 125000;
 
+    /**
+     * Previously number of bytes read from connection.
+     */
+    private long lastBytesRead = 0;
+    
     /**
      * Number of bytes to read next
      */
@@ -781,10 +796,10 @@ public abstract class RTMPConnection extends BaseConnection implements
     public void ping() {
 		Ping pingRequest = new Ping();
 		pingRequest.setValue1((short) 6);
-		int now = (int) (System.currentTimeMillis() & 0xffffffff);
+		lastPingSent = System.currentTimeMillis();
+		int now = (int) (lastPingSent & 0xffffffff);
 		pingRequest.setValue2(now);
 		pingRequest.setValue3(Ping.UNDEFINED);
-		pingReplied = false;
 		ping(pingRequest);
 	}
 
@@ -793,8 +808,8 @@ public abstract class RTMPConnection extends BaseConnection implements
      * @param pong            Ping object
      */
     protected void pingReceived(Ping pong) {
-		pingReplied = true;
-		int now = (int) (System.currentTimeMillis() & 0xffffffff);
+		lastPongReceived = System.currentTimeMillis();
+		int now = (int) (lastPongReceived & 0xffffffff);
 		lastPingTime = now - pong.getValue2();
 	}
 
@@ -804,22 +819,35 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	/**
-     * Setter for keep alive interval
+     * Setter for ping interval
      *
-     * @param keepAliveInterval Keep alive interval
+     * @param pingInterval Interval in ms to ping clients. Set to <code>0</code> to disable ghost detection code.
      */
-    public void setKeepAliveInterval(int keepAliveInterval) {
-		this.keepAliveInterval = keepAliveInterval;
+    public void setPingInterval(int pingInterval) {
+		this.pingInterval = pingInterval;
+	}
+
+    /**
+     * Setter for max. inactivity
+     * 
+     * @param maxInactivity Max. time in ms after which a client is disconnected in case of inactivity.
+     */
+    public void setMaxInactivity(int maxInactivity) {
+		this.maxInactivity = maxInactivity;
 	}
 
     /**
      * Starts measurement
      */
     public void startRoundTripMeasurement() {
+    	if (pingInterval <= 0)
+    		// Ghost detection code disabled
+    		return;
+    	
 		ISchedulingService schedulingService =
 			(ISchedulingService) getScope().getContext().getBean(ISchedulingService.BEAN_NAME);
 		IScheduledJob keepAliveJob = new KeepAliveJob();
-		keepAliveJobName = schedulingService.addScheduledJob(keepAliveInterval, keepAliveJob);
+		keepAliveJobName = schedulingService.addScheduledJob(pingInterval, keepAliveJob);
 	}
 
     /**
@@ -852,15 +880,28 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
     /**
-     * Quartz job that keeps connection alive
+     * Quartz job that keeps connection alive and disconnects if client is dead.
      */
     private class KeepAliveJob implements IScheduledJob {
+    	
 		/** {@inheritDoc} */
         public void execute(ISchedulingService service) {
-			if (!pingReplied) {
+        	long thisRead = getReadBytes();
+        	if (thisRead > lastBytesRead) {
+        		// Client sent data since last check and thus is not dead. No need to ping.
+        		lastBytesRead = thisRead;
+        		return;
+        	}
+        	
+        	if (lastPingSent - lastPongReceived > maxInactivity) {
+        		// Client didn't send response to ping command for too long, disconnect
+    			service.removeScheduledJob(keepAliveJobName);
+    			keepAliveJobName = null;
 				onInactive();
 			}
-			ping();
+        	
+        	// Send ping command to client to trigger sending of data.
+        	ping();
 		}
 	}
 }

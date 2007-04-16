@@ -108,7 +108,10 @@
 	
 	<bean id="rtmpMinaConnection" scope="prototype"
 		class="org.red5.server.net.rtmp.RTMPMinaConnection">
-		<property name="keepAliveInterval" value="10000" />
+		<!-- Ping clients every X ms. Set to 0 to disable ghost detection code. -->
+		<property name="pingInterval" value="5000" />
+		<!-- Disconnect client after X ms of not responding. -->
+		<property name="maxInactivity" value="60000" />
 	</bean>
 	
 	<bean id="rtmptConnection" scope="prototype"
