@@ -274,6 +274,12 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 			return false;
 		}
 
+		if (header.frameSize() == 0) {
+			// TODO find better solution how to deal with broken files...
+			// See APPSERVER-62 for details
+			return false;
+		}
+		
 		if (in.position() + header.frameSize() - 4 > in.limit()) {
 			// Last frame is incomplete
 			in.position(in.limit());
@@ -313,6 +319,12 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 		}
 
 		int frameSize = header.frameSize();
+		if (frameSize == 0) {
+			// TODO find better solution how to deal with broken files...
+			// See APPSERVER-62 for details
+			return null;
+		}
+		
 		if (in.position() + frameSize - 4 > in.limit()) {
 			// Last frame is incomplete
 			in.position(in.limit());
@@ -435,6 +447,12 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 				break;
 			}
 
+			if (header.frameSize() == 0) {
+				// TODO find better solution how to deal with broken files...
+				// See APPSERVER-62 for details
+				break;
+			}
+			
 			int pos = in.position() - 4;
 			if (pos + header.frameSize() > in.limit()) {
 				// Last frame is incomplete
