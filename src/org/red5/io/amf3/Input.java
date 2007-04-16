@@ -66,6 +66,46 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 * being deserialized that reference themselves. 
 	 */
 	protected class PendingObject {
+		
+		class PendingProperty {
+			Object obj;
+			Class klass;
+			String name;
+			
+			PendingProperty(Object obj, Class klass, String name) {
+				this.obj = obj;
+				this.klass = klass;
+				this.name = name;
+			}
+		}
+		
+		private List<PendingProperty> properties;
+		
+		public void addPendingProperty(Object obj, Class klass, String name) {
+			if (properties == null) {
+				properties = new ArrayList<PendingProperty>();
+			}
+			properties.add(new PendingProperty(obj, klass, name));
+		}
+		
+		public void resolveProperties(Object result) {
+			if (properties == null)
+				// No pending properties
+				return;
+			
+			for (PendingProperty prop: properties) {
+				try {
+					try {
+						prop.klass.getField(prop.name).set(prop.obj, result);
+					} catch (Exception e) {
+						BeanUtils.setProperty(prop.obj, prop.name, result);
+					}
+				} catch (Exception e) {
+					log.error("Error mapping property: " + prop.name + " (" + result + ")");
+				}
+			}
+			properties.clear();
+		}
 	}
 	
     /**
@@ -408,20 +448,29 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 				if (result != null) {
 					storeReference(tempRefId, result);
 					Class resultClass = result.getClass();
+					pending.resolveProperties(result);
 					for (Map.Entry<String, Object> entry: properties.entrySet()) {
 						// Resolve circular references
-						if (entry.getValue() == pending) {
-							entry.setValue(result);
+						final String key = entry.getKey();
+						Object value = entry.getValue();
+						if (value == pending) {
+							value = result;
+						}
+						
+						if (value instanceof PendingObject) {
+							// Deferr setting of value until real object is created
+							((PendingObject) value).addPendingProperty(result, resultClass, key);
+							continue;
 						}
 						
 						try {
 							try {
-								resultClass.getField(entry.getKey()).set(result, entry.getValue());
+								resultClass.getField(key).set(result, value);
 							} catch (Exception e) {
-								BeanUtils.setProperty(result, entry.getKey(), entry.getValue());
+								BeanUtils.setProperty(result, key, value);
 							}
 						} catch (Exception e) {
-							log.error("Error mapping property: " + entry.getKey() + " (" + entry.getValue() + ")");
+							log.error("Error mapping property: " + key + " (" + value + ")");
 						}
 					}
 				} // else fall through
