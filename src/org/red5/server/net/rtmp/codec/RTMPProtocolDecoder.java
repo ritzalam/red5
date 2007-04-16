@@ -32,6 +32,10 @@ import org.red5.io.amf.AMF;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Input;
 import org.red5.io.utils.BufferUtils;
+import org.red5.server.api.IConnection;
+import org.red5.server.api.IContext;
+import org.red5.server.api.IScope;
+import org.red5.server.api.Red5;
 import org.red5.server.api.IConnection.Encoding;
 import org.red5.server.net.protocol.ProtocolException;
 import org.red5.server.net.protocol.ProtocolState;
@@ -135,6 +139,20 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 			buffer.compact();
 		}
 		return result;
+	}
+
+    /**
+     * Setup the classloader to use when deserializing custom objects.
+     */
+	protected void setupClassLoader() {
+		IConnection conn = Red5.getConnectionLocal();
+		IScope scope = conn.getScope();
+		if (scope != null) {
+			IContext context = scope.getContext();
+			if (context != null) {
+				Thread.currentThread().setContextClassLoader(context.getApplicationContext().getClassLoader());
+			}
+		}
 	}
 
     /**
@@ -554,6 +572,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	 */
 	protected void doDecodeSharedObject(SharedObjectMessage so, ByteBuffer in, Input input) {
 		// Parse request body
+		setupClassLoader();
 		while (in.hasRemaining()) {
 
 			final ISharedObjectEvent.Type type = SharedObjectTypeMapping
@@ -677,6 +696,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 		Object[] params = new Object[] {};
 
 		if (in.hasRemaining()) {
+			setupClassLoader();
 			ArrayList paramList = new ArrayList();
 
 			final Object obj = deserializer.deserialize(input);
@@ -777,6 +797,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 		Object[] params = new Object[] {};
 
 		if (in.hasRemaining()) {
+			setupClassLoader();
 			ArrayList<Object> paramList = new ArrayList<Object>();
 
 			final Object obj = deserializer.deserialize(input);
