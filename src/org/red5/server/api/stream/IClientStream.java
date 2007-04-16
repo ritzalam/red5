@@ -20,7 +20,6 @@ package org.red5.server.api.stream;
  */
 
 import org.red5.server.api.IBWControllable;
-import org.red5.server.stream.IStreamFlow;
 
 /**
  * A stream that is bound to a client.
@@ -52,10 +51,10 @@ public interface IClientStream extends IStream, IBWControllable {
 	IStreamCapableConnection getConnection();
 
 	/**
-	 * Get the flow settings for this stream.
+	 * Set the buffer duration for this stream as requested by the client.
 	 * 
-	 * @return
+	 * @param bufferTime duration in ms the client wants to buffer
 	 */
-	IStreamFlow getStreamFlow();
-
+	void setClientBufferDuration(int bufferTime);
+	
 }

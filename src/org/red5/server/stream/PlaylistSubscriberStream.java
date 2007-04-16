@@ -958,7 +958,6 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			}
 			if (isPullMode) {
 				state = State.PAUSED;
-				getStreamFlow().pause();
 				releasePendingMessage();
 				clearWaitJobs();
 				sendClearPing();
@@ -979,8 +978,6 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			}
 			if (isPullMode) {
 				state = State.PLAYING;
-				getStreamFlow().resume();
-				bwController.resetBuckets(bwContext);
 				sendReset();
 				sendResumeStatus(currentItem);
 				sendVODSeekCM(msgIn, position);
@@ -1010,7 +1007,6 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			}
 			
 			releasePendingMessage();
-			getStreamFlow().clear();
 			clearWaitJobs();
 			bwController.resetBuckets(bwContext);
 			isWaitingForToken = false;
@@ -1096,7 +1092,6 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			clearWaitJobs();
 			if (!hasMoreItems()) {
 				releasePendingMessage();
-				getStreamFlow().reset();
 				bwController.resetBuckets(bwContext);
 				isWaitingForToken = false;
 				if (getItemSize() > 0) {
@@ -1126,7 +1121,6 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			releasePendingMessage();
 			lastMessage = null;
 			state = State.CLOSED;
-			getStreamFlow().reset();
 			clearWaitJobs();
 			sendClearPing();
 		}
@@ -1143,7 +1137,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			// Duration the stream is playing
 			final long delta = now - playbackStart;
 			// Buffer size as requested by the client
-			final long buffer = getStreamFlow().getClientTimeBuffer();
+			final long buffer = getClientBufferDuration();
 			// Expected amount of data present in client buffer
 			final long buffered = lastMessage.getTimestamp() - delta;
 			
@@ -1264,7 +1258,6 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 					}
 				}
 			}
-			getStreamFlow().update(message);
 			lastMessage = message.getBody();
 			if (lastMessage instanceof IStreamData) {
 				bytesSent += ((IStreamData) lastMessage).getData().limit();
@@ -1381,7 +1374,6 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			RTMPMessage msg = new RTMPMessage();
 			msg.setBody(event);
 			msgOut.pushMessage(msg);
-			getStreamFlow().update(msg);
 		}
 		
         /**

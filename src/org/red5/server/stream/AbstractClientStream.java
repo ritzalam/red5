@@ -42,10 +42,10 @@ public abstract class AbstractClientStream extends AbstractStream implements
      *  Bandwidth configuration
      */
 	private IBandwidthConfigure bwConfig;
-    /**
-     *  Stream flow
-     */
-	private IStreamFlow streamFlow = new StreamFlow();
+	/**
+	 * Buffer duration in ms as requested by the client
+	 */
+	private int clientBufferDuration;
 
     /**
      * Return stream id
@@ -103,20 +103,20 @@ public abstract class AbstractClientStream extends AbstractStream implements
 		this.conn = conn;
 	}
 
-    /**
-     * Setter fpr stream flow
-     * @param streamFlow     IStreamFlow object
-     */
-	protected void setStreamFlow(IStreamFlow streamFlow) {
-		this.streamFlow = streamFlow;
+	/** {@inheritDoc} */
+	public void setClientBufferDuration(int duration) {
+		clientBufferDuration = duration;
 	}
 
-    /**
-     * Return stream flow
-     * @return               IStreamFlow object
-     */
-	public IStreamFlow getStreamFlow() {
-		return streamFlow;
+	/**
+	 * Get duration in ms as requested by the client.
+	 *
+	 * @return
+	 */
+	public int getClientBufferDuration() {
+		return clientBufferDuration;
 	}
-
+	
+	
+	
 }
