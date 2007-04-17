@@ -94,6 +94,7 @@ public class JythonScriptFactory implements ScriptFactory {
 				}
 				return _this.__tojava__(scriptInterfaces[0]);
 			} catch (Exception ex) {
+				logger.error("Error while loading script.", ex);
 				if (ex instanceof IOException) {
 					// Raise to caller
 					throw (IOException) ex;
