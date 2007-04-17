@@ -433,7 +433,9 @@ public class RTMPHandler extends BaseRTMPHandler {
 						stream.setClientBufferDuration(buffer);
 						log.info("Setting client buffer on stream: " + buffer);
 					} else {
-						log.warn("Received client buffer request for non-existing stream: " + ping.getValue2());
+						if (log.isDebugEnabled()) {
+							log.debug("Received client buffer request for non-existing stream: " + ping.getValue2());
+						}
 					}
 				} else {
 					// XXX: should we store the buffer time for future streams?
