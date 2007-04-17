@@ -146,12 +146,18 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
      */
 	protected void setupClassLoader() {
 		IConnection conn = Red5.getConnectionLocal();
+		if (conn == null) {
+			return;
+		}
+		
 		IScope scope = conn.getScope();
-		if (scope != null) {
-			IContext context = scope.getContext();
-			if (context != null) {
-				Thread.currentThread().setContextClassLoader(context.getApplicationContext().getClassLoader());
-			}
+		if (scope == null) {
+			return;
+		}
+		
+		IContext context = scope.getContext();
+		if (context != null) {
+			Thread.currentThread().setContextClassLoader(context.getApplicationContext().getClassLoader());
 		}
 	}
 
