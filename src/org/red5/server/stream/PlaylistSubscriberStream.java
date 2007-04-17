@@ -712,6 +712,10 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
          * Thread that makes sure messages are sent to the client.
          */
         private PullAndPushThread pullAndPushThread = null;
+        /**
+         * Offset in ms the stream started.
+         */
+        private int streamOffset;
 
 		/**
          * Constructs a new PlayEngine.
@@ -888,6 +892,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			}
 			state = State.PLAYING;
 			IMessage msg = null;
+			streamOffset = 0;
 			if (decision == 1) {
 				if (withReset) {
 					releasePendingMessage();
@@ -896,6 +901,13 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				vodStartTS = -1;
 				// Don't use pullAndPush to detect IOExceptions prior to sending
 				// NetStream.Play.Start
+				if (item.getStart() > 0) {
+					streamOffset = sendVODSeekCM(msgIn, (int) item.getStart());
+					// We seeked to the nearest keyframe so use real timestamp now
+					if (streamOffset == -1) {
+						streamOffset = (int) item.getStart();
+					}
+				}
 				msg = msgIn.pullMessage();
 				if (msg instanceof RTMPMessage) {
 					IRTMPEvent body = ((RTMPMessage) msg).getBody();
@@ -935,7 +947,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				sendMessage((RTMPMessage) msg);
 			notifyItemPlay(currentItem, !isPullMode);
 			if (withReset) {
-				playbackStart = System.currentTimeMillis();
+				playbackStart = System.currentTimeMillis() - streamOffset;
 				if (currentItem.getLength() > 0) {
 					ensurePullAndPushThread();
 				}
@@ -979,7 +991,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				sendVODSeekCM(msgIn, position);
 				notifyItemResume(currentItem, position);
 				playbackStart = System.currentTimeMillis() - position;
-				if (currentItem.getLength() >= 0 && position >= currentItem.getLength()) {
+				if (currentItem.getLength() >= 0 && (position - streamOffset) >= currentItem.getLength()) {
 					// Resume after end of stream
 					stop();
 				} else {
@@ -1068,7 +1080,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				msgOut.pushMessage(audioMessage);
 			}
 			
-			if (state != State.STOPPED && currentItem.getLength() >= 0 && position >= currentItem.getLength()) {
+			if (state != State.STOPPED && currentItem.getLength() >= 0 && (position - streamOffset) >= currentItem.getLength()) {
 				// Seeked after end of stream
 				stop();
 				return;
@@ -1247,7 +1259,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			} else {
 				if (currentItem.getLength() >= 0) {
 					int duration = message.getBody().getTimestamp() - vodStartTS;
-					if (duration >= currentItem.getLength()) {
+					if (duration - streamOffset >= currentItem.getLength()) {
 						// Sent enough data to client
 						stop();
 						return;
