@@ -99,6 +99,10 @@ public class FileKeyFrameMetaCache implements IKeyFrameMetaCache {
 			// Old file without duration informations
 			return null;
 		
+		if (!root.hasAttribute("audioOnly"))
+			// Old file without audio/video informations
+			return null;
+		
 		XPathFactory factory = XPathFactory.newInstance();
         XPath xpath = factory.newXPath();
         NodeList keyFrames;
@@ -125,6 +129,7 @@ public class FileKeyFrameMetaCache implements IKeyFrameMetaCache {
 			result.positions[i] = Long.parseLong(attrs.getNamedItem("position").getNodeValue());
 			result.timestamps[i] = Integer.parseInt(attrs.getNamedItem("timestamp").getNodeValue());
 		}
+		result.audioOnly = "true".equals(root.getAttribute("audioOnly"));
         
 		return result;
 	}
@@ -152,6 +157,7 @@ public class FileKeyFrameMetaCache implements IKeyFrameMetaCache {
 		Element root = dom.createElement("FrameMetadata");
 		root.setAttribute("modified", String.valueOf(file.lastModified()));
 		root.setAttribute("duration", String.valueOf(meta.duration));
+		root.setAttribute("audioOnly", meta.audioOnly ? "true" : "false");
 		dom.appendChild(root);
 		
 		for (int i=0; i<meta.positions.length; i++) {

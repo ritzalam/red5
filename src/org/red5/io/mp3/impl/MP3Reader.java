@@ -431,6 +431,7 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 			if (frameMeta != null && frameMeta.duration > 0) {
 				// Frame data loaded, create other mappings
 				duration = frameMeta.duration;
+				frameMeta.audioOnly = true;
 				posTimeMap = new HashMap<Integer, Double>();
 				for (int i=0; i<frameMeta.positions.length; i++) {
 					posTimeMap.put((int) frameMeta.positions[i], (double) frameMeta.timestamps[i]);
@@ -485,6 +486,7 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 		frameMeta.duration = duration;
 		frameMeta.positions = new long[positionList.size()];
 		frameMeta.timestamps = new int[timestampList.size()];
+		frameMeta.audioOnly = true;
 		for (int i = 0; i < frameMeta.positions.length; i++) {
 			frameMeta.positions[i] = positionList.get(i);
 			frameMeta.timestamps[i] = timestampList.get(i).intValue();

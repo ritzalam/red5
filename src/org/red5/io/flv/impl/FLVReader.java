@@ -346,7 +346,7 @@ public class FLVReader implements IoConstants, ITagReader,
     	if (meta == null)
     		return false;
     	
-    	return meta.positions.length > 0;
+    	return (!meta.audioOnly && meta.positions.length > 0);
     }
 
 
@@ -687,6 +687,7 @@ public class FLVReader implements IoConstants, ITagReader,
 			positionList = audioPositionList;
 			timestampList = audioTimestampList;
 		}
+		keyframeMeta.audioOnly = audioOnly;
 		keyframeMeta.positions = new long[positionList.size()];
 		keyframeMeta.timestamps = new int[timestampList.size()];
 		for (int i = 0; i < keyframeMeta.positions.length; i++) {

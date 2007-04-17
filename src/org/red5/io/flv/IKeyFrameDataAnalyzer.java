@@ -41,6 +41,10 @@ public interface IKeyFrameDataAnalyzer {
 		 * Duration in milliseconds
 		 */
 		public long duration;
+		/**
+		 * Only audio frames?
+		 */
+		public boolean audioOnly;
         /**
          * Keyframe timestamps
          */
