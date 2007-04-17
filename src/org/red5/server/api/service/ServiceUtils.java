@@ -220,6 +220,9 @@ public class ServiceUtils {
 			}
 		} else {
 			connections = scope.lookupConnections(client);
+			if (connections == null)
+				// Client is not connected to the scope
+				return;
 		}
 
 		if (callback == null) {
