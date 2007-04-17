@@ -278,7 +278,7 @@ public class RTMPClient extends BaseRTMPHandler {
 			case 6:
 				// The server wants to measure the RTT
 				Ping pong = new Ping();
-				pong.setValue1((short) 7);
+				pong.setValue1((short) Ping.PONG_SERVER);
 				int now = (int) (System.currentTimeMillis() & 0xffffffff);
 				pong.setValue2(now);
 				pong.setValue3(Ping.UNDEFINED);

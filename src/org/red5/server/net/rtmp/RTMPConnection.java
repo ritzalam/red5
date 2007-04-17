@@ -795,7 +795,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/** {@inheritDoc} */
     public void ping() {
 		Ping pingRequest = new Ping();
-		pingRequest.setValue1((short) 6);
+		pingRequest.setValue1((short) Ping.PING_CLIENT);
 		lastPingSent = System.currentTimeMillis();
 		int now = (int) (lastPingSent & 0xffffffff);
 		pingRequest.setValue2(now);

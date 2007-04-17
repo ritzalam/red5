@@ -30,7 +30,7 @@ public class Ping extends BaseEvent {
     /**
      * Stream play
      */
-	public static final short STREAM_PLAY = 1;
+	public static final short STREAM_PLAYBUFFER_CLEAR = 1;
     /**
      * Unknown event
      */

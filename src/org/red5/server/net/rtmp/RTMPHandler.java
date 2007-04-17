@@ -280,7 +280,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 											pc.setResult(getStatus(NC_CONNECT_SUCCESS));
 										}
 										// Measure initial roundtrip time after connecting
-										conn.getChannel(2).write(new Ping((short) 0, 0, -1));
+										conn.getChannel(2).write(new Ping((short) Ping.STREAM_CLEAR, 0, -1));
 										conn.startRoundTripMeasurement();
 									} else {
 										log.debug("connect failed");
@@ -424,7 +424,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 	protected void onPing(RTMPConnection conn, Channel channel, Header source,
 			Ping ping) {
 		switch (ping.getValue1()) {
-			case 3:
+			case Ping.CLIENT_BUFFER:
 				if (ping.getValue2() != 0) {
 					// The client wants to set the buffer time
 					IClientStream stream = conn.getStreamById(ping.getValue2());
@@ -441,7 +441,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 				}
 				break;
 
-			case 7:
+			case Ping.PONG_SERVER:
 				// This is the response to an IConnection.ping request
 				conn.pingReceived(ping);
 				break;

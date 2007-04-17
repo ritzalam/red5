@@ -1266,7 +1266,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
          */
 		private void sendClearPing() {
 			Ping ping1 = new Ping();
-			ping1.setValue1((short) 1);
+			ping1.setValue1((short) Ping.STREAM_PLAYBUFFER_CLEAR);
 			ping1.setValue2(getStreamId());
 
 			RTMPMessage ping1Msg = new RTMPMessage();
@@ -1280,7 +1280,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 		private void sendReset() {
 			if (isPullMode) {
 				Ping ping1 = new Ping();
-				ping1.setValue1((short) 4);
+				ping1.setValue1((short) Ping.STREAM_RESET);
 				ping1.setValue2(getStreamId());
 
 				RTMPMessage ping1Msg = new RTMPMessage();
@@ -1289,7 +1289,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			}
 
 			Ping ping2 = new Ping();
-			ping2.setValue1((short) 0);
+			ping2.setValue1((short) Ping.STREAM_CLEAR);
 			ping2.setValue2(getStreamId());
 
 			RTMPMessage ping2Msg = new RTMPMessage();
