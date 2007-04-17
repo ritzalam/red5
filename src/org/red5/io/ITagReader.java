@@ -80,5 +80,12 @@ public interface ITagReader {
 	 * Closes the reader and free any allocated memory.
 	 */
 	public void close();
+	
+	/**
+	 * Check if the reader also has video tags.
+	 * 
+	 * @return
+	 */
+	public boolean hasVideo();
 
 }

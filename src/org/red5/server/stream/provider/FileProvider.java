@@ -50,13 +50,14 @@ import org.red5.server.net.rtmp.event.Unknown;
 import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.stream.ISeekableProvider;
+import org.red5.server.stream.IStreamTypeAwareProvider;
 import org.red5.server.stream.message.RTMPMessage;
 
 /**
  * Pullable provider for files
  */
 public class FileProvider implements IPassive, ISeekableProvider,
-		IPullableProvider, IPipeConnectionListener {
+		IPullableProvider, IPipeConnectionListener, IStreamTypeAwareProvider {
     /**
      * Logger
      */
@@ -109,6 +110,11 @@ public class FileProvider implements IPassive, ISeekableProvider,
 		this.start = start;
 	}
 
+    /** {@inheritDoc} */
+    public boolean hasVideo() {
+    	return (reader != null && reader.hasVideo());
+    }
+    
 	/** {@inheritDoc} */
     public synchronized IMessage pullMessage(IPipe pipe) throws IOException {
 		if (this.pipe != pipe) {
@@ -187,14 +193,17 @@ public class FileProvider implements IPassive, ISeekableProvider,
 						.get("startTS");
 				setStart(startTS);
 			}
-		}
-		if (ISeekableProvider.KEY.equals(oobCtrlMsg.getTarget())) {
+		} else if (ISeekableProvider.KEY.equals(oobCtrlMsg.getTarget())) {
 			if (oobCtrlMsg.getServiceName().equals("seek")) {
 				Integer position = (Integer) oobCtrlMsg.getServiceParamMap()
 						.get("position");
 				int seekPos = seek(position.intValue());
 				// Return position we seeked to
 				oobCtrlMsg.setResult(seekPos);
+			}
+		} else if (IStreamTypeAwareProvider.KEY.equals(oobCtrlMsg.getTarget())) {
+			if (oobCtrlMsg.getServiceName().equals("hasVideo")) {
+				oobCtrlMsg.setResult(hasVideo());
 			}
 		}
 	}

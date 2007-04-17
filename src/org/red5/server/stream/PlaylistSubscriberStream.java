@@ -1030,7 +1030,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			playbackStart = System.currentTimeMillis() - seekPos;
 			notifyItemSeek(currentItem, seekPos);
 			boolean messageSent = false;
-			if (state == State.PAUSED || state == State.STOPPED) {
+			if ((state == State.PAUSED || state == State.STOPPED) && sendCheckVideoCM(msgIn)) {
 				// we send a single snapshot on pause.
 				// XXX we need to take BWC into account, for
 				// now send forcefully.
@@ -1524,6 +1524,24 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				return (Integer) oobCtrlMsg.getResult();
 			} else {
 				return -1;
+			}
+		}
+
+		/**
+		 * Send VOD check video control message
+		 * 
+		 * @param msgIn
+		 * @return
+		 */
+		private boolean sendCheckVideoCM(IMessageInput msgIn) {
+			OOBControlMessage oobCtrlMsg = new OOBControlMessage();
+			oobCtrlMsg.setTarget(IStreamTypeAwareProvider.KEY);
+			oobCtrlMsg.setServiceName("hasVideo");
+			msgIn.sendOOBControlMessage(this, oobCtrlMsg);
+			if (oobCtrlMsg.getResult() instanceof Boolean) {
+				return (Boolean) oobCtrlMsg.getResult();
+			} else {
+				return false;
 			}
 		}
 

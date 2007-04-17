@@ -118,6 +118,9 @@ public class FLVReader implements IoConstants, ITagReader,
 	/** Cache for keyframe informations. */
 	private static IKeyFrameMetaCache keyframeCache;
 	
+	/** The header of this FLV file. */
+	private FLVHeader header;
+	
 	/** Constructs a new FLVReader. */
     FLVReader() {
 	}
@@ -337,8 +340,14 @@ public class FLVReader implements IoConstants, ITagReader,
 		keyframeMeta = analyzeKeyFrames();
 	}
 	
-
-
+    /** {@inheritDoc} */
+    public boolean hasVideo() {
+    	KeyFrameMeta meta = analyzeKeyFrames();
+    	if (meta == null)
+    		return false;
+    	
+    	return meta.positions.length > 0;
+    }
 
 
 	/**
@@ -422,7 +431,7 @@ public class FLVReader implements IoConstants, ITagReader,
 		// XXX check signature?
 		// SIGNATURE, lets just skip
 		fillBuffer(9);
-		FLVHeader header = new FLVHeader();
+		header = new FLVHeader();
 		in.skip(3);
 		header.setVersion(in.get());
 		header.setTypeFlags(in.get());

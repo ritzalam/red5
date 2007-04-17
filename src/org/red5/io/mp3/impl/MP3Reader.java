@@ -167,6 +167,15 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 		}
 	}
 
+    /**
+     * A MP3 stream never has video.
+     * 
+     * @return always returns <code>false</code>
+     */
+    public boolean hasVideo() {
+    	return false;
+    }
+    
     public void setFrameCache(IKeyFrameMetaCache frameCache) {
     	MP3Reader.frameCache = frameCache;
     }
@@ -419,7 +428,7 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 		// check for cached frame informations
 		if (frameCache != null) {
 			frameMeta = frameCache.loadKeyFrameMeta(file);
-			if (frameMeta != null) {
+			if (frameMeta != null && frameMeta.duration > 0) {
 				// Frame data loaded, create other mappings
 				duration = frameMeta.duration;
 				posTimeMap = new HashMap<Integer, Double>();
@@ -469,6 +478,7 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 		// restore the pos
 		in.position(origPos);
 
+		duration = (long) time;
 		dataRate = (int) (rate / count);
 		posTimeMap = new HashMap<Integer, Double>();
 		frameMeta = new KeyFrameMeta();
@@ -480,7 +490,6 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 			frameMeta.timestamps[i] = timestampList.get(i).intValue();
 			posTimeMap.put(positionList.get(i), timestampList.get(i));
 		}
-		duration = (long) time;
 		if (frameCache != null)
 			frameCache.saveKeyFrameMeta(file, frameMeta);
 		
