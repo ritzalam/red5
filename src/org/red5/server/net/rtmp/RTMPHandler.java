@@ -428,9 +428,13 @@ public class RTMPHandler extends BaseRTMPHandler {
 				if (ping.getValue2() != 0) {
 					// The client wants to set the buffer time
 					IClientStream stream = conn.getStreamById(ping.getValue2());
-					int buffer = ping.getValue3();
-					stream.setClientBufferDuration(buffer);
-					log.info("Setting client buffer on stream: " + buffer);
+					if (stream != null) {
+						int buffer = ping.getValue3();
+						stream.setClientBufferDuration(buffer);
+						log.info("Setting client buffer on stream: " + buffer);
+					} else {
+						log.warn("Received client buffer request for non-existing stream: " + ping.getValue2());
+					}
 				} else {
 					// XXX: should we store the buffer time for future streams?
 					log.warn("Unhandled ping: " + ping);
