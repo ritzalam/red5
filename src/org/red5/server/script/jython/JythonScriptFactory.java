@@ -94,6 +94,14 @@ public class JythonScriptFactory implements ScriptFactory {
 				}
 				return _this.__tojava__(scriptInterfaces[0]);
 			} catch (Exception ex) {
+				if (ex instanceof IOException) {
+					// Raise to caller
+					throw (IOException) ex;
+				} else if (ex instanceof ScriptCompilationException) {
+					// Raise to caller
+					throw (ScriptCompilationException) ex;
+				}
+				
 				throw new ScriptCompilationException(ex.getMessage());
 			}
 		}
