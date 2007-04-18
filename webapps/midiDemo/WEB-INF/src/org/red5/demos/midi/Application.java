@@ -1,5 +1,6 @@
 package org.red5.demos.midi;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.sound.midi.InvalidMidiDataException;
@@ -38,8 +39,14 @@ public class Application extends ApplicationAdapter {
 	/** {@inheritDoc} */
     @Override
 	public void appDisconnect(IConnection conn) {
-		if (conn.hasAttribute("midi")) {
-			MidiDevice dev = (MidiDevice) conn.getAttribute("midi");
+		if (conn.hasAttribute("midiIn")) {
+			MidiDevice dev = (MidiDevice) conn.getAttribute("midiIn");
+			if (dev.isOpen()) {
+				dev.close();
+			}
+		}
+		if (conn.hasAttribute("midiOut")) {
+			MidiDevice dev = (MidiDevice) conn.getAttribute("midiOut");
 			if (dev.isOpen()) {
 				dev.close();
 			}
@@ -47,39 +54,61 @@ public class Application extends ApplicationAdapter {
 		super.appDisconnect(conn);
 	}
 
-	public boolean connectToMidi(String deviceName) {
+	public boolean connectToMidi(String inDeviceName, String outDeviceName) {
 		IServiceCapableConnection conn = (IServiceCapableConnection) Red5
 				.getConnectionLocal(); 
-		log.info("Connecting midi device: " + deviceName);
+		log.info("Connecting IN midi device: " + inDeviceName);
 		try {
 			MidiDevice dev = null;
 			// Close any existing device
-			if (conn.hasAttribute("midi")) {
-				dev = (MidiDevice) conn.getAttribute("midi");
+			if (conn.hasAttribute("midiIn")) {
+				dev = (MidiDevice) conn.getAttribute("midiIn");
 				if (dev.isOpen()) {
 					dev.close();
 				}
 			}
 			// Lookup the current device (we need the transmitter here)
-			dev = getMidiDevice(deviceName, false);
+			dev = getMidiDevice(inDeviceName, false);
 			if (dev == null) {
-				log.error("Midi device not found: " + deviceName);
+				log.error("Midi IN device not found: " + inDeviceName);
 				return false;
 			}
+			
 			// Open if needed
 			if (!dev.isOpen()) {
 				dev.open();
 			}
 			dev.getTransmitter().setReceiver(new MidiReceiver(conn));
-			log.info("It worked!");
 			// Save for later
-			conn.setAttribute("midi", dev);
-			conn.setAttribute("midiDeviceName", deviceName);
+			conn.setAttribute("midiIn", dev);
+
+			log.info("Connecting OUT midi device: " + outDeviceName);
+			// Close any existing device
+			if (conn.hasAttribute("midiOut")) {
+				dev = (MidiDevice) conn.getAttribute("midiOut");
+				if (dev.isOpen()) {
+					dev.close();
+				}
+			}
+			// Lookup the current device (we need the transmitter here)
+			dev = getMidiDevice(outDeviceName, false);
+			if (dev == null) {
+				log.error("Midi OUT device not found: " + outDeviceName);
+				return false;
+			}
+			
+			// Open if needed
+			if (!dev.isOpen()) {
+				dev.open();
+			}
+			// Save for later
+			conn.setAttribute("midiOut", dev);
+			log.info("It worked!");
 			return true;
 		} catch (MidiUnavailableException e) {
-			log.error("Error connecting to midi device", e);
+			log.error("Error connecting to midi devices", e);
 		} catch (RuntimeException e) {
-			log.error("Error connecting to midi device", e);
+			log.error("Error connecting to midi devices", e);
 		}
 		log.error("Doh!");
 		return false;
@@ -175,48 +204,56 @@ public class Application extends ApplicationAdapter {
 	
 	private MidiDevice getCurrentMidiDevice(boolean receiver) {
 		IServiceCapableConnection conn = (IServiceCapableConnection) Red5.getConnectionLocal();
-		if (conn.hasAttribute("midiDeviceName")) {
-			String deviceName = conn.getStringAttribute("midiDeviceName");
-			// Lookup the current device
-			MidiDevice dev = getMidiDevice(deviceName, receiver);
-			if (dev == null) {
-				log.error("Midi device not found: " + deviceName);
-				return null;
-			}
-			try {
-				if (!receiver) {
-					dev.getTransmitter().setReceiver(new MidiReceiver(conn));
-				}
-				//System.err.println("Opening: " + deviceName + " " + dev.getDeviceInfo().hashCode());
-				// Open if needed
-				if (!dev.isOpen()) {
-					dev.open();
-				}
-			} catch (MidiUnavailableException err) {
-				err.printStackTrace();
-				dev = null;
-			}
-			return dev;
-
-		}
-		return null;
+		String name = receiver ? "midiOut" : "midiIn";
+		return (MidiDevice) conn.getAttribute(name);
 	}
-		
+
 	/**
-     * Getter for property 'midiDeviceNames'.
+     * Return list of Midi IN device names.
      *
-     * @return Value for property 'midiDeviceNames'.
+     * @return list of names
      */
-    public String[] getMidiDeviceNames() {
+    public String[] getMidiInDeviceNames() {
 		MidiDevice.Info[] info = MidiSystem.getMidiDeviceInfo();
-		String[] names = new String[info.length];
+		List<String> names = new ArrayList<String>();
 		for (int i = 0; i < info.length; i++) {
-			names[i] = info[i].getName();
-			//System.err.println(names[i] + " " + info[i].hashCode());
+			try {
+				MidiDevice device = MidiSystem.getMidiDevice(info[i]);
+				if (device.getMaxTransmitters() == 0)
+					continue;
+				
+				names.add(info[i].getName());
+			} catch (MidiUnavailableException err) {
+				log.error(err);
+			}
+			
 		}
-		return names;
+		return names.toArray(new String[]{});
 	}
 
+    /**
+     * Return list of Midi OUT device names.
+     * 
+     * @return list of names
+     */
+    public String[] getMidiOutDeviceNames() {
+		MidiDevice.Info[] info = MidiSystem.getMidiDeviceInfo();
+		List<String> names = new ArrayList<String>();
+		for (int i = 0; i < info.length; i++) {
+			try {
+				MidiDevice device = MidiSystem.getMidiDevice(info[i]);
+				if (device.getMaxReceivers() == 0)
+					continue;
+				
+				names.add(info[i].getName());
+			} catch (MidiUnavailableException err) {
+				log.error(err);
+			}
+			
+		}
+		return names.toArray(new String[]{});
+    }
+    
 	public static MidiDevice getMidiDevice(String name, boolean receiver) {
 
 		MidiDevice.Info[] info = MidiSystem.getMidiDeviceInfo();
