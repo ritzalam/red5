@@ -186,10 +186,6 @@ public class RTMPTConnection extends RTMPConnection {
 			buffer.release();
 			buffer = null;
 		}
-		for (ByteBuffer buf: pendingMessages) {
-			buf.release();
-		}
-		pendingMessages.clear();
 		notifyMessages.clear();
 		state.setState(RTMP.STATE_DISCONNECTED);
 		synchronized (idSet) {
@@ -197,6 +193,10 @@ public class RTMPTConnection extends RTMPConnection {
 			idSet.clear(id);
 		}
 		super.close();
+		for (ByteBuffer buf: pendingMessages) {
+			buf.release();
+		}
+		pendingMessages.clear();
 	}
 
 	/** {@inheritDoc} */
