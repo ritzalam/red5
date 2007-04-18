@@ -1160,7 +1160,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			
 			if (!(message instanceof IStreamData)) {
 				throw new RuntimeException(
-						"expected IStreamData but got " + message);
+						"expected IStreamData but got " + message.getClass() + " (type " + message.getDataType() + ")");
 			}
 
 			final int size = ((IStreamData) message).getData().limit();
@@ -1602,7 +1602,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				IRTMPEvent body = rtmpMessage.getBody();
 				if (!(body instanceof IStreamData)) {
 					throw new RuntimeException("expected IStreamData but got "
-							+ body);
+							+ body.getClass() + " (type " + body.getDataType() + ")");
 				}
 
 				int size = ((IStreamData) body).getData().limit();
