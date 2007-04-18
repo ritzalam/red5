@@ -26,12 +26,12 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.log4j.Logger;
 import org.apache.mina.common.IdleStatus;
 import org.apache.mina.common.IoFilterAdapter;
 import org.apache.mina.common.IoFilterChain;
 import org.apache.mina.common.IoSession;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.mina.common.ThreadModel;
 
 /**
  * A filter that forward events to {@link Executor}.
@@ -49,8 +49,8 @@ import org.slf4j.LoggerFactory;
  */
 @SuppressWarnings("unchecked")
 public class ExecutorFilter extends IoFilterAdapter {
-	private static final Logger logger = LoggerFactory
-			.getLogger(ExecutorFilter.class.getName());
+
+	private static final Logger logger = Logger.getLogger(ExecutorFilter.class);
 
     /**
      * Executes submitted runnable tasks
@@ -61,7 +61,8 @@ public class ExecutorFilter extends IoFilterAdapter {
 	 * Creates a new instace with the default thread pool implementation (<tt>new ThreadPoolExecutor(16, 16, 60, TimeUnit.SECONDS, new LinkedBlockingQueue() )</tt>).
 	 */
 	public ExecutorFilter() {
-		this(new ThreadPoolExecutor(16, 16, 60, TimeUnit.SECONDS, new LinkedBlockingQueue()));
+		this(new ThreadPoolExecutor(16, 16, 60, TimeUnit.SECONDS,
+				new LinkedBlockingQueue()));
 	}
 
 	/**
@@ -82,8 +83,10 @@ public class ExecutorFilter extends IoFilterAdapter {
      * @param maximumPoolSize                 Maximum pool size
      * @param keepAliveTime                   Keep alive time (in seconds)
      */
-    public ExecutorFilter(int corePoolSize, int maximumPoolSize, long keepAliveTime) {
-		this(new ThreadPoolExecutor(corePoolSize, maximumPoolSize, keepAliveTime, TimeUnit.SECONDS, new LinkedBlockingQueue()));
+	public ExecutorFilter(int corePoolSize, int maximumPoolSize,
+			long keepAliveTime) {
+		this(new ThreadPoolExecutor(corePoolSize, maximumPoolSize,
+				keepAliveTime, TimeUnit.SECONDS, new LinkedBlockingQueue()));
 	}
 
 	/**

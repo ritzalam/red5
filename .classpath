@@ -6,7 +6,6 @@
 	<classpathentry excluding=".svn/*" kind="src" path="webapps/fitcDemo/WEB-INF/src"/>
 	<classpathentry excluding=".svn/*" kind="src" path="webapps/oflaDemo/WEB-INF/src"/>
 	<classpathentry excluding=".svn/*" kind="src" path="conf"/>
-	<classpathentry kind="lib" path="lib/slf4j-log4j12.jar"/>
 	<classpathentry kind="lib" path="lib/junit.jar"/>
 	<classpathentry kind="lib" path="lib/jpda.jar"/>
 	<classpathentry kind="lib" path="lib/commons-collections.jar"/>
@@ -42,12 +41,10 @@
 	<classpathentry kind="lib" path="lib/commons-logging-1.1.jar"/>
 	<classpathentry kind="lib" path="lib/antlr-2.7.6.jar"/>
 	<classpathentry kind="lib" path="lib/ehcache-1.2.3.jar"/>
-	<classpathentry kind="lib" path="lib/slf4j-simple.jar"/>
 	<classpathentry kind="lib" path="lib/xbean.jar"/>
 	<classpathentry kind="lib" path="lib/servlet-api.jar"/>
 	<classpathentry kind="lib" path="lib/log4j-1.2.14.jar"/>
 	<classpathentry kind="lib" path="lib/activation-1.1.jar"/>
-	<classpathentry kind="lib" path="lib/jcl104-over-slf4j-1.0.1.jar"/>
 	<classpathentry kind="lib" path="lib/commons-lang-2.2.jar"/>
 	<classpathentry kind="lib" path="lib/bsh-2.0b4.jar"/>
 	<classpathentry kind="lib" path="lib/jetty-6.1.0.jar"/>
@@ -67,5 +64,10 @@
 	<classpathentry kind="lib" path="lib/jsp-api.jar"/>
 	<classpathentry kind="lib" path="lib/catalina-6.0.10.jar"/>
 	<classpathentry kind="lib" path="lib/asm-2.2.3.jar"/>
+	<classpathentry kind="lib" path="lib/jcl104-over-slf4j-1.3.1.jar"/>
+	<classpathentry kind="lib" path="lib/slf4j-log4j12-1.3.1.jar"/>
+	<classpathentry kind="lib" path="lib/slf4j-simple-1.3.1.jar"/>
+	<classpathentry kind="lib" path="lib/slf4j-api-1.3.1.jar"/>
+	<classpathentry kind="lib" path="lib/annotations-api.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
