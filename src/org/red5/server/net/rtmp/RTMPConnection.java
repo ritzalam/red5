@@ -22,6 +22,7 @@ package org.red5.server.net.rtmp;
 import static org.red5.server.api.ScopeUtils.getScopeService;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.UUID;
@@ -191,6 +192,11 @@ public abstract class RTMPConnection extends BaseConnection implements
      */
     protected Encoding encoding = Encoding.AMF0;
 
+    /**
+     * Remembered stream buffer durations
+     */
+    protected Map<Integer, Integer> streamBuffers = new HashMap<Integer, Integer>();
+    
     /**
      * Creates anonymous RTMP connection without scope
      * @param type          Connection type
@@ -366,6 +372,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 			 * Picking up the ClientBroadcastStream defined as a spring prototype
 			 * in red5-common.xml
 			 */
+			Integer buffer = streamBuffers.get(streamId - 1);
+			if (buffer != null)
+				cbs.setClientBufferDuration(buffer);
 			cbs.setStreamId(streamId);
 			cbs.setConnection(this);
 			cbs.setName(createStreamName());
@@ -407,6 +416,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 			 */
 			PlaylistSubscriberStream pss = (PlaylistSubscriberStream)
 				appCtx.getBean("playlistSubscriberStream");
+			Integer buffer = streamBuffers.get(streamId - 1);
+			if (buffer != null)
+				pss.setClientBufferDuration(buffer);
 			pss.setName(createStreamName());
 			pss.setConnection(this);
 			pss.setScope(this.getScope());
@@ -516,6 +528,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 				}
 				usedStreams--;
 				streams.remove(streamId - 1);
+				streamBuffers.remove(streamId - 1);
 			}
 		}
 	}
@@ -879,6 +892,10 @@ public abstract class RTMPConnection extends BaseConnection implements
 		deferredResults.remove(result);
 	}
 
+    protected void rememberStreamBufferDuration(int streamId, int bufferDuration) {
+    	streamBuffers.put(streamId - 1, bufferDuration);
+    }
+    
     /**
      * Quartz job that keeps connection alive and disconnects if client is dead.
      */
