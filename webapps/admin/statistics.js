@@ -56,6 +56,20 @@ function updateScope(path, id, noUpdate) {
 }
 
 /**
+ * Compare two strings and ignore the case.
+ */
+function cmp_ignore_case(a, b) {
+    a = a.toLowerCase();
+    b = b.toLowerCase();
+    if (a < b)
+        return -1;
+    else if (a > b)
+        return 1;
+    else
+        return 0;
+}
+
+/**
  * Add entries to the navigation menu on the left depending on the
  * subscopes of the passed path.
  */
@@ -79,6 +93,7 @@ function addSubScopes(path, element) {
         return false;
     }
     
+    scopes.sort(cmp_ignore_case);
     submenu = document.createElement("ul");
     element.appendChild(submenu);
     for (var i=0; i<scopes.length; i++) {
