@@ -24,6 +24,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -135,6 +138,11 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
      * Recieve audio?
      */
 	private boolean receiveAudio = true;
+	/**
+	 * Executor that will be used to schedule stream playback to keep
+	 * the client buffer filled.
+	 */
+	private volatile ScheduledThreadPoolExecutor executor;
 
 	/** Constructs a new PlaylistSubscriberStream. */
     public PlaylistSubscriberStream() {
@@ -144,6 +152,10 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 		currentItemIndex = 0;
 	}
 
+    public void setExecutor(ScheduledThreadPoolExecutor executor) {
+    	this.executor = executor;
+    }
+    
 	/** {@inheritDoc} */
     public void start() {
         // Create bw control service from Spring bean factory
@@ -709,9 +721,9 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
          */
         private long playbackStart;
         /**
-         * Thread that makes sure messages are sent to the client.
+         * Scheduled future job that makes sure messages are sent to the client.
          */
-        private PullAndPushThread pullAndPushThread = null;
+        private ScheduledFuture<?> pullAndPushFuture = null;
         /**
          * Offset in ms the stream started.
          */
@@ -949,7 +961,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			if (withReset) {
 				playbackStart = System.currentTimeMillis() - streamOffset;
 				if (currentItem.getLength() > 0) {
-					ensurePullAndPushThread();
+					ensurePullAndPushRunning();
 				}
 			}
 		}
@@ -995,7 +1007,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 					// Resume after end of stream
 					stop();
 				} else {
-					ensurePullAndPushThread();
+					ensurePullAndPushRunning();
 				}
 			}
 		}
@@ -1064,7 +1076,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 					}
 				}
 			} else {
-				ensurePullAndPushThread();
+				ensurePullAndPushRunning();
 			}
 			
 			if (!messageSent) {
@@ -1126,10 +1138,10 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				msgIn.unsubscribe(this);
 				msgIn = null;
 			}
-			releasePendingMessage();
-			lastMessage = null;
 			state = State.CLOSED;
 			clearWaitJobs();
+			releasePendingMessage();
+			lastMessage = null;
 			sendClearPing();
 		}
 
@@ -1180,14 +1192,19 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
         }
 
         /**
-         * Make sure the pull and push thread is running.
+         * Make sure the pull and push processing is running.
          */
-        private synchronized void ensurePullAndPushThread() {
-			if (pullAndPushThread == null) {
-				pullAndPushThread = new PullAndPushThread();
-				pullAndPushThread.setDaemon(true);
-				pullAndPushThread.setName("PullAndPushThread_" + currentItem.getName());
-				pullAndPushThread.start();
+        private synchronized void ensurePullAndPushRunning() {
+			if (pullAndPushFuture == null) {
+				if (executor == null) {
+					synchronized (PlaylistSubscriberStream.this) {
+						if (executor == null) {
+							// Default executor
+							executor = new ScheduledThreadPoolExecutor(16);
+						}
+					}
+				}
+				pullAndPushFuture = executor.scheduleWithFixedDelay(new PullAndPushRunnable(), 0, 10, TimeUnit.MILLISECONDS);
 			}
         }
         
@@ -1207,7 +1224,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				} else {
 					while (true) {
 						IMessage msg = msgIn.pullMessage();
-						ensurePullAndPushThread();
+						ensurePullAndPushRunning();
 						if (msg == null) {
 							// No more packets to send
 							stop();
@@ -1237,11 +1254,9 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
          * Clear all scheduled waiting jobs
          */
 		private void clearWaitJobs() {
-			if (pullAndPushThread != null) {
-				pullAndPushThread.notifyStop();
-				// NOTE: We don't wait for the thread to stop because this would
-				// hang forever if this is called from the PullAndPush thread.
-				pullAndPushThread = null;
+			if (pullAndPushFuture != null) {
+				pullAndPushFuture.cancel(false);
+				pullAndPushFuture = null;
 			}
 			if (waitLiveJob != null) {
 				schedulingService.removeScheduledJob(waitLiveJob);
@@ -1699,45 +1714,20 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 		}
 		
 		/**
-		 * Thread that periodically triggers sending of messages to the client.
+		 * Periodically triggered by executor to send messages to the client.
 		 */
-		private class PullAndPushThread extends Thread {
-			
-			/**
-			 * Is the thread running?
-			 */
-			private boolean isRunning = true;
-			
-			/**
-			 * Notify the thread to stop.
-			 */
-			public void notifyStop() {
-				isRunning = false;
-			}
+		private class PullAndPushRunnable implements Runnable {
 			
 			/**
 			 * Trigger sending of messages.
 			 */
 			public void run() {
-				while (isRunning) {
-					try {
-						pullAndPush();
-						if (!isRunning)
-							// Stopped, terminate at once
-							break;
-						
-						// Now wait a bit to avoid having 100% load
-						try {
-							Thread.sleep(10);
-						} catch (InterruptedException err) {
-							// Ignore interruptions
-							Thread.yield();
-						}
-					} catch (IOException err) {
-                		// We couldn't get more data, stop stream.
-                		log.error("Error while getting message.", err);
-                		PlayEngine.this.stop();
-					}
+				try {
+					pullAndPush();
+				} catch (IOException err) {
+					// We couldn't get more data, stop stream.
+					log.error("Error while getting message.", err);
+					PlayEngine.this.stop();
 				}
 			}
 			
