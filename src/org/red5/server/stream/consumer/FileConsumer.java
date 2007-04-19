@@ -201,6 +201,10 @@ public class FileConsumer implements Constants, IPushableConsumer,
 		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils
 				.getScopeService(scope, IStreamableFileFactory.class,
 						StreamableFileFactory.class);
+		File folder = file.getParentFile();
+		if (!folder.exists())
+			if (!folder.mkdirs())
+				throw new IOException("can't create parent folder");
 		if (!file.isFile()) {
 			// Maybe the (previously existing) file has been deleted
 			file.createNewFile();

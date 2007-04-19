@@ -94,7 +94,7 @@ public class ProviderService implements IProviderService {
     public File getVODProviderFile(IScope scope, String name) {
 		File file = null;
 		try {
-			file = scope.getResources(getStreamFilename(scope, name))[0]
+			file = scope.getContext().getResources(getStreamFilename(scope, name))[0]
 					.getFile();
 		} catch (IOException e) {
 			log.error("Problem getting file: " + name);

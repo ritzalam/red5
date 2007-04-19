@@ -245,7 +245,6 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			if (!tmp.isDirectory()) {
 				tmp.mkdirs();
 			}
-			res = scope.getResource(filename);
 		}
 
 		if (!res.exists()) {

@@ -21,6 +21,7 @@ package org.red5.server.stream;
  */
 
 import org.red5.server.api.IScope;
+import org.red5.server.api.ScopeUtils;
 import org.red5.server.api.stream.IStreamFilenameGenerator;
 
 /**
@@ -34,12 +35,21 @@ import org.red5.server.api.stream.IStreamFilenameGenerator;
 public class DefaultStreamFilenameGenerator implements IStreamFilenameGenerator {
 
     /**
-     * For now, return "streams/" as streams directory path for each scope
+     * Generate stream directory based on relative scope path. The base directory is
+     * <code>streams</code>, e.g. a scope <code>/application/one/two</code> will
+     * generate a directory <code>/streams/one/two</code> inside the application.
+     * 
      * @param scope            Scope
-     * @return                 For now, "streams/" as streams directory path
+     * @return                 Directory based on relative scope path
      */
     private String getStreamDirectory(IScope scope) {
-		return "streams/";
+		final StringBuilder result = new StringBuilder();
+		final IScope app = ScopeUtils.findApplication(scope);
+		while (scope != null && scope != app) {
+			result.insert(0, scope.getName() + "/");
+			scope = scope.getParent();
+		}
+		return "streams/" + result.toString();
 	}
 
 	/** {@inheritDoc} */
