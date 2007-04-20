@@ -1158,6 +1158,10 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			final long delta = now - playbackStart;
 			// Buffer size as requested by the client
 			final long buffer = getClientBufferDuration();
+			if (lastMessage == null)
+				// No message sent before, always allow
+				return true;
+			
 			// Expected amount of data present in client buffer
 			final long buffered = lastMessage.getTimestamp() - delta;
 			
@@ -1702,7 +1706,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
         /**
          * Releases pending message body, nullifies pending message object
          */
-		private void releasePendingMessage() {
+		private synchronized void releasePendingMessage() {
 			if (pendingMessage != null) {
 				IRTMPEvent body = pendingMessage.getBody(); 
 				if (body instanceof IStreamData) { 
