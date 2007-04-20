@@ -46,7 +46,7 @@ public interface IClientStream extends IStream, IBWControllable {
 	/**
 	 * Get connection containing the stream.
 	 * 
-	 * @return
+	 * @return the connection object or <code>null</code> if the connection is no longer active
 	 */
 	IStreamCapableConnection getConnection();
 
