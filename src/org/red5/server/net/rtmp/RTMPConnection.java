@@ -916,6 +916,7 @@ public abstract class RTMPConnection extends BaseConnection implements
     			keepAliveJobName = null;
     			log.warn("Closing " + RTMPConnection.this + " due to too much inactivity (" + (lastPingSent - lastPongReceived) + ").");
 				onInactive();
+				return;
 			}
         	
         	// Send ping command to client to trigger sending of data.
