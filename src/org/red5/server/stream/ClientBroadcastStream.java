@@ -35,6 +35,7 @@ import org.red5.server.api.event.IEventDispatcher;
 import org.red5.server.api.event.IEventListener;
 import org.red5.server.api.stream.IClientBroadcastStream;
 import org.red5.server.api.stream.IStreamAwareScopeHandler;
+import org.red5.server.api.stream.IStreamCapableConnection;
 import org.red5.server.api.stream.IStreamCodecInfo;
 import org.red5.server.api.stream.IStreamFilenameGenerator;
 import org.red5.server.api.stream.IVideoStreamCodec;
@@ -206,7 +207,12 @@ public class ClientBroadcastStream extends AbstractClientStream implements
     public void saveAs(String name, boolean isAppend)
             throws IOException, ResourceNotFoundException, ResourceExistException {
         // Get stream scope
-        IScope scope = getConnection().getScope();
+    	IStreamCapableConnection conn = getConnection();
+    	if (conn == null) {
+    		// TODO: throw other exception here?
+    		throw new IOException("stream is no longer connected");
+    	}
+        IScope scope = conn.getScope();
         // Get stream filename generator
         IStreamFilenameGenerator generator = (IStreamFilenameGenerator) ScopeUtils
 				.getScopeService(scope, IStreamFilenameGenerator.class,

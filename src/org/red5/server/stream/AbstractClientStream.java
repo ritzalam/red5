@@ -19,6 +19,8 @@ package org.red5.server.stream;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.lang.ref.WeakReference;
+
 import org.red5.server.api.IBandwidthConfigure;
 import org.red5.server.api.IBWControllable;
 import org.red5.server.api.stream.IClientStream;
@@ -37,7 +39,7 @@ public abstract class AbstractClientStream extends AbstractStream implements
     /**
      *  Connection that works with streams
      */
-	private IStreamCapableConnection conn;
+	private WeakReference<IStreamCapableConnection> conn;
     /**
      *  Bandwidth configuration
      */
@@ -60,7 +62,7 @@ public abstract class AbstractClientStream extends AbstractStream implements
      * @return           Stream capable connection object
      */
 	public IStreamCapableConnection getConnection() {
-		return conn;
+		return conn.get();
 	}
 
     /**
@@ -84,7 +86,7 @@ public abstract class AbstractClientStream extends AbstractStream implements
      * @return          IFlowControllable object
      */
 	public IBWControllable getParentBWControllable() {
-		return conn;
+		return conn.get();
 	}
 
     /**
@@ -100,7 +102,7 @@ public abstract class AbstractClientStream extends AbstractStream implements
      * @param conn           IStreamCapableConnection object
      */
 	public void setConnection(IStreamCapableConnection conn) {
-		this.conn = conn;
+		this.conn = new WeakReference<IStreamCapableConnection>(conn);
 	}
 
 	/** {@inheritDoc} */

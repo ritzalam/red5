@@ -35,7 +35,7 @@ public class ConsumerService implements IConsumerService {
 	/** {@inheritDoc} */
     public IMessageOutput getConsumerOutput(IClientStream stream) {
 		IStreamCapableConnection streamConn = stream.getConnection();
-		if (!(streamConn instanceof RTMPConnection)) {
+		if (streamConn == null || !(streamConn instanceof RTMPConnection)) {
 			return null;
 		}
 		RTMPConnection conn = (RTMPConnection) streamConn;
