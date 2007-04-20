@@ -21,7 +21,8 @@ package org.red5.server;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.red5.server.api.IClient;
 import org.red5.server.api.IClientRegistry;
@@ -36,7 +37,7 @@ public class ClientRegistry implements IClientRegistry {
     /**
      * Clients map
      */
-	private HashMap<String, IClient> clients = new HashMap<String, IClient>();
+	private Map<String, IClient> clients = new ConcurrentHashMap<String, IClient>();
     /**
      *  Next client id
      */
