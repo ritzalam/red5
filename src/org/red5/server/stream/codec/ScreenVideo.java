@@ -148,8 +148,13 @@ public class ScreenVideo implements IVideoStreamCodec {
 		this.width = this.widthInfo & 0xfff;
 		this.height = this.heightInfo & 0xfff;
 		// calculate size of blocks
-		this.blockWidth = ((this.widthInfo >> 12) + 1) << 4;
-		this.blockHeight = ((this.heightInfo >> 12) + 1) << 4;
+		this.blockWidth = this.widthInfo & 0xf000; 
+		this.blockWidth = (this.blockWidth >> 12) + 1;
+		this.blockWidth <<= 4;
+		
+		this.blockHeight = this.heightInfo & 0xf000;
+		this.blockHeight = (this.blockHeight >> 12) + 1;
+		this.blockHeight <<= 4;
 
 		int xblocks = this.width / this.blockWidth;
 		if ((this.width % this.blockWidth) != 0) {
@@ -194,8 +199,10 @@ public class ScreenVideo implements IVideoStreamCodec {
 		int pos = 0;
 		byte[] tmpData = new byte[this.blockDataSize];
 
-		while (data.remaining() > 0) {
+		int countBlocks = this.blockCount;
+		while (data.remaining() > 0 && countBlocks > 0) {
 			short size = data.getShort();
+			countBlocks--;
 			if (size == 0) {
 				// Block has not been modified
 				idx += 1;
