@@ -58,6 +58,10 @@ public class ClientRegistry implements IClientRegistry {
      * @return           true if client with given id was register with this registry, false otherwise
      */
 	public boolean hasClient(String id) {
+		if (id == null)
+			// null ids are not supported
+			return false;
+		
 		return clients.containsKey(id);
 	}
 
