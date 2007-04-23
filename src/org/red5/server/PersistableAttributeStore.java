@@ -190,7 +190,19 @@ public class PersistableAttributeStore extends AttributeStore implements
 			throw new IOException("required Map object");
 		}
 
-		attributes.putAll((Map<String, Object>) obj);
+		// We can't store null values
+		@SuppressWarnings("unchecked") Map<String, Object> values = (Map<String, Object>) obj;
+		values.remove(null);
+		
+		synchronized (attributes) {
+			for (Map.Entry<String, Object> entry : values.entrySet()) {
+				Object value = entry.getValue();
+				if (value != null) {
+					attributes.put(entry.getKey(), value);
+					hashes.put(entry.getKey(), value.hashCode());
+				}
+			}
+		}
 	}
 
     /**
