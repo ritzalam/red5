@@ -21,6 +21,9 @@ package org.red5.server.stream.consumer;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.red5.server.api.IBWControllable;
+import org.red5.server.api.IBandwidthConfigure;
+import org.red5.server.api.IConnectionBWConfig;
 import org.red5.server.api.stream.IClientStream;
 import org.red5.server.messaging.IMessage;
 import org.red5.server.messaging.IMessageComponent;
@@ -197,6 +200,29 @@ public class ConnectionConsumer implements IPushableConsumer,
 			} else {
 				oobCtrlMsg.setResult((long) 0);
 			}
+		} else if ("writeDelta".equals(oobCtrlMsg.getServiceName())) {
+			long maxStream = 0;
+			IBWControllable bwControllable = conn;
+			// Search FC containing valid BWC
+			while (bwControllable != null && bwControllable.getBandwidthConfigure() == null) {
+				bwControllable = bwControllable.getParentBWControllable();
+			}
+			if (bwControllable != null && bwControllable.getBandwidthConfigure() != null) {
+				IBandwidthConfigure bwc = bwControllable.getBandwidthConfigure();
+				if (bwc instanceof IConnectionBWConfig) {
+					maxStream = ((IConnectionBWConfig) bwc).getDownstreamBandwidth() / 8;
+				}
+			}
+			if (maxStream <= 0) {
+				// Use default value
+				// TODO: this should be configured somewhere and sent to the client when connecting
+				maxStream = 120*1024;
+			}
+			
+			// Return the current delta between sent bytes and bytes the client
+			// reported to have received, and the interval the client should use
+			// for generating BytesRead messages (half of the allowed bandwidth).
+			oobCtrlMsg.setResult(new Long[]{conn.getWrittenBytes() - conn.getClientBytesRead(), maxStream / 2});
 		} else if ("chunkSize".equals(oobCtrlMsg.getServiceName())) {
 			int newSize = (Integer) oobCtrlMsg.getServiceParamMap().get(
 					"chunkSize");

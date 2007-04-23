@@ -155,7 +155,7 @@ public abstract class RTMPConnection extends BaseConnection implements
     /**
      * Data read interval
      */
-    private int bytesReadInterval = 125000;
+    private int bytesReadInterval = 120*1024;
 
     /**
      * Previously number of bytes read from connection.
@@ -165,8 +165,13 @@ public abstract class RTMPConnection extends BaseConnection implements
     /**
      * Number of bytes to read next
      */
-    private int nextBytesRead = 125000;
+    private int nextBytesRead = 120*1024;
 
+    /**
+     * Number of bytes the client reported to have received
+     */
+    private int clientBytesRead = 0;
+    
     /**
      * Bandwidth configure
      */
@@ -574,8 +579,18 @@ public abstract class RTMPConnection extends BaseConnection implements
 		log.info("Client received " + bytes + " bytes, written "
 				+ getWrittenBytes() + " bytes, " + getPendingMessages()
 				+ " messages pending");
+		clientBytesRead = bytes;
 	}
 
+    /**
+     * Get number of bytes the client reported to have received.
+     * 
+     * @return number of bytes
+     */
+    public int getClientBytesRead() {
+    	return clientBytesRead;
+    }
+    
 	/** {@inheritDoc} */
     public void invoke(IServiceCall call) {
 		invoke(call, (byte) 3);

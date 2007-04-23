@@ -191,6 +191,10 @@
 	-->
 	<bean id="playlistSubscriberStream" scope="prototype" lazy-init="true" class="org.red5.server.stream.PlaylistSubscriberStream">
 		<property name="executor" ref="streamExecutor"/>
+		<!-- Check for buffer underruns every X ms and generate NetStream.Play.InsufficientBW accordingly. Set to 0 to disable. -->
+		<property name="bufferCheckInterval" value="5000"/>
+		<!-- A NetStream.Play.InsufficientBW message is generated if more than X messages are queued for sending on the connection. -->
+		<property name="underrunTrigger" value="10"/>
 	</bean>
 	<bean id="clientBroadcastStream" scope="prototype" lazy-init="true" class="org.red5.server.stream.ClientBroadcastStream"/>
 </beans>

@@ -143,6 +143,15 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 	 * the client buffer filled.
 	 */
 	private volatile ScheduledThreadPoolExecutor executor;
+	/**
+	 * Interval in ms to check for buffer underruns in VOD streams.
+	 */
+	private int bufferCheckInterval = 0;
+	/**
+	 * Number of pending messages at which a <code>NetStream.Play.InsufficientBW</code>
+	 * message is generated for VOD streams.
+	 */
+	private int underrunTrigger = 10;
 
 	/** Constructs a new PlaylistSubscriberStream. */
     public PlaylistSubscriberStream() {
@@ -152,8 +161,34 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 		currentItemIndex = 0;
 	}
 
+    /**
+     * Set the executor to use.
+     * 
+     * @param executor the executor
+     */
     public void setExecutor(ScheduledThreadPoolExecutor executor) {
     	this.executor = executor;
+    }
+    
+    /**
+     * Set interval to check for buffer underruns. Set to <code>0</code> to
+     * disable.
+     * 
+     * @param bufferCheckInterval interval in ms
+     */
+    public void setBufferCheckInterval(int bufferCheckInterval) {
+    	this.bufferCheckInterval = bufferCheckInterval;
+    }
+    
+    /**
+     * Set maximum number of pending messages at which a
+     * <code>NetStream.Play.InsufficientBW</code> message will be
+     * generated for VOD streams
+     * 
+     * @param underrunTrigger the maximum number of pending messages
+     */
+    public void setUnderrunTrigger(int underrunTrigger) {
+    	this.underrunTrigger = underrunTrigger;
     }
     
 	/** {@inheritDoc} */
@@ -728,7 +763,11 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
          * Offset in ms the stream started.
          */
         private int streamOffset;
-
+        /**
+         * Timestamp when buffer should be checked for underruns next. 
+         */
+        private long nextCheckBufferUnderrun;
+        
 		/**
          * Constructs a new PlayEngine.
          */
@@ -960,6 +999,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			notifyItemPlay(currentItem, !isPullMode);
 			if (withReset) {
 				playbackStart = System.currentTimeMillis() - streamOffset;
+				nextCheckBufferUnderrun = System.currentTimeMillis() + bufferCheckInterval;
 				if (currentItem.getLength() > 0) {
 					ensurePullAndPushRunning();
 				}
@@ -1171,6 +1211,20 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			
 			if (buffer > 0 && buffered > buffer) {
 				// Client is likely to have enough data in the buffer
+				return false;
+			}
+			
+			long pending = pendingMessages();
+			if (bufferCheckInterval > 0 && now >= nextCheckBufferUnderrun) {
+				if (pending >= underrunTrigger) {
+					// Client is playing behind speed, notify him
+					sendInsufficientBandwidthStatus(currentItem);
+				}
+				nextCheckBufferUnderrun = now + bufferCheckInterval;
+			}
+			
+			if (pending > Math.max(underrunTrigger, 10)) {
+				// Too many messages already queued on the connection
 				return false;
 			}
 			
@@ -1511,6 +1565,22 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 		}
 
         /**
+         * Insufficient bandwidth notification
+         * @param item            Playlist item
+         */
+		private void sendInsufficientBandwidthStatus(IPlayItem item) {
+			Status insufficientBW = new Status(StatusCodes.NS_PLAY_INSUFFICIENT_BW);
+			insufficientBW.setClientid(getStreamId());
+			insufficientBW.setLevel(Status.WARNING);
+			insufficientBW.setDetails(item.getName());
+			insufficientBW.setDesciption("Data is playing behind the normal speed.");
+
+			StatusMessage insufficientBWMsg = new StatusMessage();
+			insufficientBWMsg.setBody(insufficientBW);
+			msgOut.pushMessage(insufficientBWMsg);
+		}
+
+        /**
          * Send VOD init control message
          * @param msgIn           Message input
          * @param item            Playlist item
@@ -1640,17 +1710,31 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 						long pendingVideos = pendingVideoMessages();
 						if (!videoFrameDropper.canSendPacket(rtmpMessage,
 								pendingVideos)) {
-							//System.err.println("Dropping1: " + body + ' ' + pendingVideos);
+							// Drop frame as it depends on other frames that were dropped before.
 							return;
 						}
 
 						boolean drop = !videoBucket.acquireToken(size, 0);
-						if (!receiveVideo || pendingVideos > 1 || drop) {
-							//System.err.println("Dropping2: " + receiveVideo + ' ' + pendingVideos + ' ' + videoBucket + " size: " + size + " drop: " + drop);
+						if (!receiveVideo || drop) {
+							// The client disabled video or the app doesn't have enough bandwidth
+							// allowed for this stream.
 							videoFrameDropper.dropPacket(rtmpMessage);
 							return;
 						}
 
+						Long[] writeDelta = getWriteDelta();
+						if (pendingVideos > 1 || writeDelta[0] > writeDelta[1]) {
+							// We drop because the client has insufficient bandwidth.
+							long now = System.currentTimeMillis();
+							if (bufferCheckInterval > 0 && now >= nextCheckBufferUnderrun) {
+								// Notify client about frame dropping (keyframe)
+								sendInsufficientBandwidthStatus(currentItem);
+								nextCheckBufferUnderrun = now + bufferCheckInterval;
+							}
+							videoFrameDropper.dropPacket(rtmpMessage);
+							return;
+						}
+						
 						videoFrameDropper.sendPacket(rtmpMessage);
 					}
 				} else if (body instanceof AudioData) {
@@ -1700,6 +1784,40 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				return (Long) pendingRequest.getResult();
 			} else {
 				return 0;
+			}
+		}
+		
+        /**
+         * Get number of pending messages to be sent
+         * @return          Number of pending messages
+         */
+		private long pendingMessages() {
+			OOBControlMessage pendingRequest = new OOBControlMessage();
+			pendingRequest.setTarget("ConnectionConsumer");
+			pendingRequest.setServiceName("pendingCount");
+			msgOut.sendOOBControlMessage(this, pendingRequest);
+			if (pendingRequest.getResult() != null) {
+				return (Long) pendingRequest.getResult();
+			} else {
+				return 0;
+			}
+		}
+
+        /**
+         * Get informations about bytes send and number of bytes the client reports
+         * to have received.
+         * 
+         * @return          Written bytes and number of bytes the client received
+         */
+		private Long[] getWriteDelta() {
+			OOBControlMessage pendingRequest = new OOBControlMessage();
+			pendingRequest.setTarget("ConnectionConsumer");
+			pendingRequest.setServiceName("writeDelta");
+			msgOut.sendOOBControlMessage(this, pendingRequest);
+			if (pendingRequest.getResult() != null) {
+				return (Long[]) pendingRequest.getResult();
+			} else {
+				return new Long[]{Long.valueOf(0), Long.valueOf(0)};
 			}
 		}
 
