@@ -91,7 +91,7 @@ public interface ITokenBucket {
      */
     public interface ITokenBucketCallback {
         /**
-         * Check if there's given number of tokens available for bucket
+         * Being called when the tokens requested are available.
          * @param bucket          Bucket
          * @param tokenCount      Number of tokens
          */

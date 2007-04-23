@@ -753,6 +753,11 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
         private long bytesSent = 0;
         /**
          * Start time of stream playback.
+         * It's not a time when the stream is being played but
+         * the time when the stream should be played if it's played
+         * from the very beginning.
+         * Eg. A stream is played at timestamp 5s on 1:00:05. The
+         * playbackStart is 1:00:00.
          */
         private long playbackStart;
         /**
@@ -1193,25 +1198,29 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
          * @return
          */
         private boolean okayToSendMessage(IRTMPEvent message) {
-			final long now = System.currentTimeMillis();
-			// Duration the stream is playing
-			final long delta = now - playbackStart;
-			// Buffer size as requested by the client
-			final long buffer = getClientBufferDuration();
-			if (lastMessage == null)
-				// No message sent before, always allow
-				return true;
-			
-			// Expected amount of data present in client buffer
-			final long buffered = lastMessage.getTimestamp() - delta;
-			
-			if (log.isDebugEnabled()) {
-				log.debug("okayToSendMessage: " + lastMessage.getTimestamp() + " " + delta + " " + buffered + " " + buffer);
+			if (!(message instanceof IStreamData)) {
+				throw new RuntimeException(
+						"expected IStreamData but got " + message.getClass() + " (type " + message.getDataType() + ")");
 			}
-			
-			if (buffer > 0 && buffered > buffer) {
-				// Client is likely to have enough data in the buffer
-				return false;
+			final long now = System.currentTimeMillis();
+			// check client buffer length when we've already sent some messages
+			if (lastMessage != null) {
+				// Duration the stream is playing
+				final long delta = now - playbackStart;
+				// Buffer size as requested by the client
+				final long buffer = getClientBufferDuration();
+
+				// Expected amount of data present in client buffer
+				final long buffered = lastMessage.getTimestamp() - delta;
+
+				if (log.isDebugEnabled()) {
+					log.debug("okayToSendMessage: " + lastMessage.getTimestamp() + " " + delta + " " + buffered + " " + buffer);
+				}
+
+				if (buffer > 0 && buffered > buffer) {
+					// Client is likely to have enough data in the buffer
+					return false;
+				}
 			}
 			
 			long pending = pendingMessages();
@@ -1228,11 +1237,6 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				return false;
 			}
 			
-			if (!(message instanceof IStreamData)) {
-				throw new RuntimeException(
-						"expected IStreamData but got " + message.getClass() + " (type " + message.getDataType() + ")");
-			}
-
 			final int size = ((IStreamData) message).getData().limit();
 			if (message instanceof VideoData) {
 				if (needCheckBandwidth && !videoBucket.acquireTokenNonblocking(size, this)) {
