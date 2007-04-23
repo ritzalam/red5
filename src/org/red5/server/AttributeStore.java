@@ -19,11 +19,13 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.red5.server.api.IAttributeStore;
 import org.red5.server.api.ICastingAttributeStore;
@@ -33,7 +35,7 @@ public class AttributeStore implements ICastingAttributeStore {
     /**
      * Map for attributes
      */
-    protected Map<String, Object> attributes = new HashMap<String, Object>();
+    protected Map<String, Object> attributes = new ConcurrentHashMap<String, Object>();
     /**
      * Map for hashes
      */
@@ -52,7 +54,7 @@ public class AttributeStore implements ICastingAttributeStore {
      * @return set containing all attribute names
      */
     public Set<String> getAttributeNames() {
-        return attributes.keySet();
+        return Collections.unmodifiableSet(attributes.keySet());
     }
 
     /**
@@ -61,7 +63,7 @@ public class AttributeStore implements ICastingAttributeStore {
      * @return map containing all attributes
      */
     public Map<String, Object> getAttributes() {
-        return attributes;
+        return Collections.unmodifiableMap(attributes);
     }
 
     /**
@@ -92,10 +94,12 @@ public class AttributeStore implements ICastingAttributeStore {
      *                     exist
      * @return the attribute value
      */
-    public synchronized Object getAttribute(String name, Object defaultValue) {
-        if (!hasAttribute(name)) {
-            setAttribute(name, defaultValue);
-        }
+    public Object getAttribute(String name, Object defaultValue) {
+    	synchronized (attributes) {
+    		if (!hasAttribute(name)) {
+    			setAttribute(name, defaultValue);
+    		}
+    	}
 
         return getAttribute(name);
     }
@@ -117,22 +121,24 @@ public class AttributeStore implements ICastingAttributeStore {
      * @param value the new value of the attribute
      * @return true if the attribute value changed otherwise false
      */
-    public synchronized boolean setAttribute(String name, Object value) {
+    public boolean setAttribute(String name, Object value) {
         if (name == null) {
             return false;
         }
 
-        Object old = attributes.get(name);
-        Integer newHash = (value != null ? value.hashCode() : 0);
-        if ((old == null && value != null)
-                || (old != null && !old.equals(value))
-                || !newHash.equals(hashes.get(name))) {
-            // Attribute value changed
-            attributes.put(name, value);
-            hashes.put(name, newHash);
-            return true;
-        } else {
-            return false;
+        synchronized (attributes) {
+	        Object old = attributes.get(name);
+	        Integer newHash = (value != null ? value.hashCode() : 0);
+	        if ((old == null && value != null)
+	                || (old != null && !old.equals(value))
+	                || !newHash.equals(hashes.get(name))) {
+	            // Attribute value changed
+	            attributes.put(name, value);
+	            hashes.put(name, newHash);
+	            return true;
+	        } else {
+	            return false;
+	        }
         }
     }
 
@@ -141,13 +147,15 @@ public class AttributeStore implements ICastingAttributeStore {
      *
      * @param values the attributes to set
      */
-    public synchronized void setAttributes(Map<String, Object> values) {
-        attributes.putAll(values);
-        hashes.clear();
-        for (Map.Entry<String, Object> entry : attributes.entrySet()) {
-            Object value = entry.getValue();
-            hashes.put(entry.getKey(), value != null ? value.hashCode() : 0);
-        }
+    public void setAttributes(Map<String, Object> values) {
+    	synchronized (attributes) {
+	        attributes.putAll(values);
+	        hashes.clear();
+	        for (Map.Entry<String, Object> entry : attributes.entrySet()) {
+	            Object value = entry.getValue();
+	            hashes.put(entry.getKey(), value != null ? value.hashCode() : 0);
+	        }
+    	}
     }
 
     /**
@@ -155,13 +163,15 @@ public class AttributeStore implements ICastingAttributeStore {
      *
      * @param values the attributes to set
      */
-    public synchronized void setAttributes(IAttributeStore values) {
-        Iterator it = values.getAttributeNames().iterator();
-        while (it.hasNext()) {
-            String name = (String) it.next();
-            Object value = values.getAttribute(name);
-            setAttribute(name, value);
-        }
+    public void setAttributes(IAttributeStore values) {
+    	synchronized (attributes) {
+    		Iterator it = values.getAttributeNames().iterator();
+	        while (it.hasNext()) {
+	            String name = (String) it.next();
+	            Object value = values.getAttribute(name);
+	            setAttribute(name, value);
+	        }
+    	}
     }
 
     /**
@@ -170,23 +180,27 @@ public class AttributeStore implements ICastingAttributeStore {
      * @param name the name of the attribute to remove
      * @return true if the attribute was found and removed otherwise false
      */
-    public synchronized boolean removeAttribute(String name) {
+    public boolean removeAttribute(String name) {
         if (name == null) {
             return false;
         }
 
-        boolean result = hasAttribute(name);
-        attributes.remove(name);
-        hashes.remove(name);
-        return result;
+        synchronized (attributes) {
+	        boolean result = hasAttribute(name);
+	        attributes.remove(name);
+	        hashes.remove(name);
+	        return result;
+        }
     }
 
     /**
      * Remove all attributes.
      */
-    public synchronized void removeAttributes() {
-        attributes.clear();
-        hashes.clear();
+    public void removeAttributes() {
+    	synchronized (attributes) {
+    		attributes.clear();
+    		hashes.clear();
+    	}
     }
 
     /**
