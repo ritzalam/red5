@@ -56,6 +56,8 @@ import org.red5.server.api.stream.IBroadcastStreamService;
 import org.red5.server.api.stream.IClientBroadcastStream;
 import org.red5.server.api.stream.IOnDemandStream;
 import org.red5.server.api.stream.IOnDemandStreamService;
+import org.red5.server.api.stream.IPlayItem;
+import org.red5.server.api.stream.IPlaylistSubscriberStream;
 import org.red5.server.api.stream.IStreamAwareScopeHandler;
 import org.red5.server.api.stream.IStreamPlaybackSecurity;
 import org.red5.server.api.stream.IStreamPublishSecurity;
@@ -113,7 +115,7 @@ import org.red5.server.stream.StreamService;
 public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 		ISharedObjectService, IBroadcastStreamService, IOnDemandStreamService,
 		ISubscriberStreamService, ISchedulingService, IStreamSecurityService,
-		ISharedObjectSecurityService {
+		ISharedObjectSecurityService, IStreamAwareScopeHandler {
 
 	/**
 	 * Logger object
@@ -1064,5 +1066,49 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
     public void FCUnpublish() {
     	// Override if necessary.
     }
+
+	public void streamBroadcastClose(IBroadcastStream stream) {
+    	// Override if necessary.
+	}
+
+	public void streamBroadcastStart(IBroadcastStream stream) {
+    	// Override if necessary.
+	}
+
+	public void streamPlaylistItemPlay(IPlaylistSubscriberStream stream, IPlayItem item, boolean isLive) {
+    	// Override if necessary.
+	}
+
+	public void streamPlaylistItemStop(IPlaylistSubscriberStream stream, IPlayItem item) {
+    	// Override if necessary.
+	}
+
+	public void streamPlaylistVODItemPause(IPlaylistSubscriberStream stream, IPlayItem item, int position) {
+    	// Override if necessary.
+	}
+
+	public void streamPlaylistVODItemResume(IPlaylistSubscriberStream stream, IPlayItem item, int position) {
+    	// Override if necessary.
+	}
+
+	public void streamPlaylistVODItemSeek(IPlaylistSubscriberStream stream, IPlayItem item, int position) {
+    	// Override if necessary.
+	}
+
+	public void streamPublishStart(IBroadcastStream stream) {
+    	// Override if necessary.
+	}
+
+	public void streamRecordStart(IBroadcastStream stream) {
+    	// Override if necessary.
+	}
+
+	public void streamSubscriberClose(ISubscriberStream stream) {
+    	// Override if necessary.
+	}
+
+	public void streamSubscriberStart(ISubscriberStream stream) {
+    	// Override if necessary.
+	}
     
 }
