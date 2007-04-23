@@ -37,6 +37,11 @@ h3 {
     margin: 0 1em 0 21em;
 }
 #footer {
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    width: 99%;
+    height: 2em;
     border-top: 1px solid red;
     font-size: 70%;
     margin: 0;
