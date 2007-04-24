@@ -139,6 +139,11 @@ public class ClientBroadcastStream extends AbstractClientStream implements
      * Data is sent by chunks, each of them has size
      */
     private int chunkSize = 0;
+    
+    /**
+     * Is this stream still active?
+     */
+    private boolean closed = false;
 
 	/**
      * Starts stream. Creates pipes, video codec from video codec factory bean,
@@ -165,6 +170,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		recording = false;
 		recordingFilename = null;
 		setCodecInfo(new StreamCodecInfo());
+		closed = false;
 	}
 
     /** {@inheritDoc} */
@@ -183,6 +189,12 @@ public class ClientBroadcastStream extends AbstractClientStream implements
      * Closes stream, unsubscribes provides, sends stoppage notifications and broadcast close notification.
      */
     public void close() {
+    	if (closed) {
+    		// Already closed
+    		return;
+    	}
+    	
+		closed = true;
 		if (livePipe != null) {
 			livePipe.unsubscribe((IProvider) this);
 		}
@@ -191,6 +203,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			sendRecordStopNotify();
 		}
 		sendPublishStopNotify();
+		// TODO: can we sent the client something to make sure he stops sending data?
 		connMsgOut.unsubscribe(this);
 		notifyBroadcastClose();
 	}
@@ -352,6 +365,10 @@ public class ClientBroadcastStream extends AbstractClientStream implements
                         && (event.getType() != IEvent.Type.STREAM_DATA)) {
 			return;
 		}
+		if (closed) {
+			return;
+		}
+		
         // Get stream codec
 		IStreamCodecInfo codecInfo = getCodecInfo();
 		StreamCodecInfo info = null;
@@ -431,11 +448,16 @@ public class ClientBroadcastStream extends AbstractClientStream implements
         RTMPMessage msg = new RTMPMessage();
 		msg.setBody(rtmpEvent);
 		msg.getBody().setTimestamp(eventTime);
-		if (livePipe != null) {
-			livePipe.pushMessage(msg);
+		try {
+			if (livePipe != null) {
+				livePipe.pushMessage(msg);
+			}
+			recordPipe.pushMessage(msg);
+		} catch (IOException err) {
+			sendRecordFailedNotify(err.getMessage());
+			stop();
 		}
-		recordPipe.pushMessage(msg);
-	}
+    }
 
     /**
      * Check and send notification if necessary
@@ -510,7 +532,11 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 
 		StatusMessage startMsg = new StatusMessage();
 		startMsg.setBody(publishStatus);
-		connMsgOut.pushMessage(startMsg);
+		try {
+			connMsgOut.pushMessage(startMsg);
+		} catch (IOException err) {
+			log.error("Error while pushing message.", err);
+		}
 	}
 
     /**
@@ -523,7 +549,11 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 
 		StatusMessage stopMsg = new StatusMessage();
 		stopMsg.setBody(stopStatus);
-		connMsgOut.pushMessage(stopMsg);
+		try {
+			connMsgOut.pushMessage(stopMsg);
+		} catch (IOException err) {
+			log.error("Error while pushing message.", err);
+		}
 	}
 
     /**
@@ -536,7 +566,11 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 
 		StatusMessage startMsg = new StatusMessage();
 		startMsg.setBody(recordStatus);
-		connMsgOut.pushMessage(startMsg);
+		try {
+			connMsgOut.pushMessage(startMsg);
+		} catch (IOException err) {
+			log.error("Error while pushing message.", err);
+		}
 	}
 
     /**
@@ -549,7 +583,30 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 
 		StatusMessage startMsg = new StatusMessage();
 		startMsg.setBody(stopStatus);
-		connMsgOut.pushMessage(startMsg);
+		try {
+			connMsgOut.pushMessage(startMsg);
+		} catch (IOException err) {
+			log.error("Error while pushing message.", err);
+		}
+	}
+
+    /**
+     *  Sends record failed notifications
+     */
+	private void sendRecordFailedNotify(String reason) {
+		Status failedStatus = new Status(StatusCodes.NS_RECORD_FAILED);
+		failedStatus.setLevel(Status.ERROR);
+		failedStatus.setClientid(getStreamId());
+		failedStatus.setDetails(getPublishedName());
+		failedStatus.setDesciption(reason);
+
+		StatusMessage failedMsg = new StatusMessage();
+		failedMsg.setBody(failedStatus);
+		try {
+			connMsgOut.pushMessage(failedMsg);
+		} catch (IOException err) {
+			log.error("Error while pushing message.", err);
+		}
 	}
 
     /**

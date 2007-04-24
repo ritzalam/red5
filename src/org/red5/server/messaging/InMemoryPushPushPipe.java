@@ -19,6 +19,7 @@ package org.red5.server.messaging;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.io.IOException;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
@@ -73,7 +74,7 @@ public class InMemoryPushPushPipe extends AbstractPipe {
 	}
 
 	/** {@inheritDoc} */
-    public void pushMessage(IMessage message) {
+    public void pushMessage(IMessage message) throws IOException {
 		IPushableConsumer[] consumerArray = null;
 		synchronized (consumers) {
 			consumerArray = consumers.toArray(new IPushableConsumer[] {});
@@ -82,6 +83,9 @@ public class InMemoryPushPushPipe extends AbstractPipe {
 			try {
 				consumer.pushMessage(this, message);
 			} catch (Throwable t) {
+				if (t instanceof IOException)
+					// Pass this along
+					throw (IOException) t;
 				log.error("exception when pushing message to consumer", t);
 			}
 		}

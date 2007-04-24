@@ -45,6 +45,7 @@ import org.red5.server.api.stream.IPlaylistSubscriberStream;
 import org.red5.server.api.stream.IStreamAwareScopeHandler;
 import org.red5.server.api.stream.IVideoStreamCodec;
 import org.red5.server.api.stream.OperationNotSupportedException;
+import org.red5.server.messaging.AbstractMessage;
 import org.red5.server.messaging.IFilter;
 import org.red5.server.messaging.IMessage;
 import org.red5.server.messaging.IMessageComponent;
@@ -1105,7 +1106,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 						if (body instanceof VideoData
 								&& ((VideoData) body).getFrameType() == FrameType.KEYFRAME) {
 							body.setTimestamp(seekPos);
-							msgOut.pushMessage(rtmpMessage);
+							doPushMessage(rtmpMessage);
 							rtmpMessage.getBody().release();
 							messageSent = true;
 							lastMessage = body;
@@ -1134,7 +1135,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				RTMPMessage audioMessage = new RTMPMessage();
 				audioMessage.setBody(audio);
 				lastMessage = audio;
-				msgOut.pushMessage(audioMessage);
+				doPushMessage(audioMessage);
 			}
 			
 			if (state != State.STOPPED && currentItem.getLength() >= 0 && (position - streamOffset) >= currentItem.getLength()) {
@@ -1326,6 +1327,19 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			}
 		}
 
+		/**
+		 * Send message to output stream and handle exceptions.
+		 * 
+		 * @param message The message to send.
+		 */
+		private void doPushMessage(AbstractMessage message) {
+			try {
+				msgOut.pushMessage(message);
+			} catch (IOException err) {
+				log.error("Error while pushing message.", err);
+			}
+		}
+		
         /**
          * Send RTMP message
          * @param message        RTMP message
@@ -1347,7 +1361,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			if (lastMessage instanceof IStreamData) {
 				bytesSent += ((IStreamData) lastMessage).getData().limit();
 			}
-			msgOut.pushMessage(message);
+			doPushMessage(message);
 		}
 
         /**
@@ -1360,7 +1374,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 
 			RTMPMessage ping1Msg = new RTMPMessage();
 			ping1Msg.setBody(ping1);
-			msgOut.pushMessage(ping1Msg);
+			doPushMessage(ping1Msg);
 		}
 
         /**
@@ -1374,7 +1388,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 
 				RTMPMessage ping1Msg = new RTMPMessage();
 				ping1Msg.setBody(ping1);
-				msgOut.pushMessage(ping1Msg);
+				doPushMessage(ping1Msg);
 			}
 
 			Ping ping2 = new Ping();
@@ -1383,10 +1397,10 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 
 			RTMPMessage ping2Msg = new RTMPMessage();
 			ping2Msg.setBody(ping2);
-			msgOut.pushMessage(ping2Msg);
+			doPushMessage(ping2Msg);
 
 			ResetMessage reset = new ResetMessage();
-			msgOut.pushMessage(reset);
+			doPushMessage(reset);
 		}
 
         /**
@@ -1403,7 +1417,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 
 			StatusMessage resetMsg = new StatusMessage();
 			resetMsg.setBody(reset);
-			msgOut.pushMessage(resetMsg);
+			doPushMessage(resetMsg);
 		}
 
         /**
@@ -1418,7 +1432,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 
 			StatusMessage startMsg = new StatusMessage();
 			startMsg.setBody(start);
-			msgOut.pushMessage(startMsg);
+			doPushMessage(startMsg);
 		}
 
         /**
@@ -1433,7 +1447,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 
 			StatusMessage stopMsg = new StatusMessage();
 			stopMsg.setBody(stop);
-			msgOut.pushMessage(stopMsg);
+			doPushMessage(stopMsg);
 		}
 
 		private void sendOnPlayStatus(String code, int duration, long bytes) {
@@ -1458,7 +1472,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			}
 			RTMPMessage msg = new RTMPMessage();
 			msg.setBody(event);
-			msgOut.pushMessage(msg);
+			doPushMessage(msg);
 		}
 		
         /**
@@ -1494,7 +1508,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 
 			StatusMessage seekMsg = new StatusMessage();
 			seekMsg.setBody(seek);
-			msgOut.pushMessage(seekMsg);
+			doPushMessage(seekMsg);
 		}
 
         /**
@@ -1508,7 +1522,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 
 			StatusMessage pauseMsg = new StatusMessage();
 			pauseMsg.setBody(pause);
-			msgOut.pushMessage(pauseMsg);
+			doPushMessage(pauseMsg);
 		}
 
         /**
@@ -1522,7 +1536,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 
 			StatusMessage resumeMsg = new StatusMessage();
 			resumeMsg.setBody(resume);
-			msgOut.pushMessage(resumeMsg);
+			doPushMessage(resumeMsg);
 		}
 
         /**
@@ -1536,7 +1550,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 
 			StatusMessage unpublishedMsg = new StatusMessage();
 			unpublishedMsg.setBody(published);
-			msgOut.pushMessage(unpublishedMsg);
+			doPushMessage(unpublishedMsg);
 		}
 
         /**
@@ -1550,7 +1564,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 
 			StatusMessage unpublishedMsg = new StatusMessage();
 			unpublishedMsg.setBody(unpublished);
-			msgOut.pushMessage(unpublishedMsg);
+			doPushMessage(unpublishedMsg);
 		}
 
         /**
@@ -1565,7 +1579,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 
 			StatusMessage notFoundMsg = new StatusMessage();
 			notFoundMsg.setBody(notFound);
-			msgOut.pushMessage(notFoundMsg);
+			doPushMessage(notFoundMsg);
 		}
 
         /**
@@ -1581,7 +1595,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 
 			StatusMessage insufficientBWMsg = new StatusMessage();
 			insufficientBWMsg.setBody(insufficientBW);
-			msgOut.pushMessage(insufficientBWMsg);
+			doPushMessage(insufficientBWMsg);
 		}
 
         /**
@@ -1686,7 +1700,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 		}
 
 		/** {@inheritDoc} */
-        public synchronized void pushMessage(IPipe pipe, IMessage message) {
+        public synchronized void pushMessage(IPipe pipe, IMessage message) throws IOException {
 			if (message instanceof ResetMessage) {
 				sendReset();
 			}

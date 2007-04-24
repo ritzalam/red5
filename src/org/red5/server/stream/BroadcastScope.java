@@ -19,6 +19,7 @@ package org.red5.server.stream;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -154,8 +155,9 @@ public class BroadcastScope extends BasicScope implements IBroadcastScope,
 	 * the pusher when output can't handle the message at
 	 * the time.
 	 * @param message Message to be pushed.
+	 * @throws IOException If message could not be pushed.
 	 */
-	public void pushMessage(IMessage message) {
+	public void pushMessage(IMessage message) throws IOException {
 		pipe.pushMessage(message);
 	}
 
