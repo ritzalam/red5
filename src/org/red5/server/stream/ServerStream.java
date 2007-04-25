@@ -310,63 +310,56 @@ public class ServerStream extends AbstractStream implements IServerStream,
 
 	/** {@inheritDoc} */
     public void saveAs(String name, boolean isAppend)
-			throws ResourceNotFoundException, ResourceExistException {
-		try {
-			IScope scope = getScope();
-			IStreamFilenameGenerator generator = (IStreamFilenameGenerator) ScopeUtils
-			.getScopeService(scope, IStreamFilenameGenerator.class,
-					DefaultStreamFilenameGenerator.class);
-			
-			String filename = generator.generateFilename(scope, name, ".flv", GenerationType.RECORD);
-			Resource res = scope.getContext().getResource(filename);
-			if (!isAppend) {
-				if (res.exists()) {
-					// Per livedoc of FCS/FMS:
-					// When "live" or "record" is used,
-					// any previously recorded stream with the same stream URI is deleted.
-					res.getFile().delete();
-				}
-			} else {
-				if (!res.exists()) {
-					// Per livedoc of FCS/FMS:
-					// If a recorded stream at the same URI does not already exist,
-					// "append" creates the stream as though "record" was passed.
-					isAppend = false;
-				}
+			throws IOException, ResourceNotFoundException, ResourceExistException {
+		IScope scope = getScope();
+		IStreamFilenameGenerator generator = (IStreamFilenameGenerator) ScopeUtils
+		.getScopeService(scope, IStreamFilenameGenerator.class,
+				DefaultStreamFilenameGenerator.class);
+		
+		String filename = generator.generateFilename(scope, name, ".flv", GenerationType.RECORD);
+		Resource res = scope.getContext().getResource(filename);
+		if (!isAppend) {
+			if (res.exists()) {
+				// Per livedoc of FCS/FMS:
+				// When "live" or "record" is used,
+				// any previously recorded stream with the same stream URI is deleted.
+				if (!res.getFile().delete())
+					throw new IOException("file could not be deleted");
 			}
-
+		} else {
 			if (!res.exists()) {
-				// Make sure the destination directory exists
-				try {
-					String path = res.getFile().getAbsolutePath();
-					int slashPos = path.lastIndexOf(File.separator);
-					if (slashPos != -1) {
-						path = path.substring(0, slashPos);
-					}
-					File tmp = new File(path);
-					if (!tmp.isDirectory()) {
-						tmp.mkdirs();
-					}
-				} catch (IOException err) {
-					log.error("Could not create destination directory.", err);
-				}
-				res = scope.getResource(filename);
+				// Per livedoc of FCS/FMS:
+				// If a recorded stream at the same URI does not already exist,
+				// "append" creates the stream as though "record" was passed.
+				isAppend = false;
 			}
-
-			if (!res.exists()) {
-				res.getFile().createNewFile();
-			}
-			FileConsumer fc = new FileConsumer(scope, res.getFile());
-			Map<Object, Object> paramMap = new HashMap<Object, Object>();
-			if (isAppend) {
-				paramMap.put("mode", "append");
-			} else {
-				paramMap.put("mode", "record");
-			}
-			recordPipe.subscribe(fc, paramMap);
-			recordingFilename = filename;
-		} catch (IOException e) {
 		}
+
+		if (!res.exists()) {
+			// Make sure the destination directory exists
+			String path = res.getFile().getAbsolutePath();
+			int slashPos = path.lastIndexOf(File.separator);
+			if (slashPos != -1) {
+				path = path.substring(0, slashPos);
+			}
+			File tmp = new File(path);
+			if (!tmp.isDirectory()) {
+				tmp.mkdirs();
+			}
+		}
+
+		if (!res.exists()) {
+			res.getFile().createNewFile();
+		}
+		FileConsumer fc = new FileConsumer(scope, res.getFile());
+		Map<Object, Object> paramMap = new HashMap<Object, Object>();
+		if (isAppend) {
+			paramMap.put("mode", "append");
+		} else {
+			paramMap.put("mode", "record");
+		}
+		recordPipe.subscribe(fc, paramMap);
+		recordingFilename = filename;
 	}
 
 	/** {@inheritDoc} */
