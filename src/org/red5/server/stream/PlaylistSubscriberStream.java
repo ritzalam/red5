@@ -1741,7 +1741,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 						}
 
 						Long[] writeDelta = getWriteDelta();
-						if (pendingVideos > 1 || writeDelta[0] > writeDelta[1]) {
+						if (pendingVideos > 1 /*|| writeDelta[0] > writeDelta[1]*/) {
 							// We drop because the client has insufficient bandwidth.
 							long now = System.currentTimeMillis();
 							if (bufferCheckInterval > 0 && now >= nextCheckBufferUnderrun) {
