@@ -20,11 +20,13 @@ package org.red5.server;
  */
 
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -58,7 +60,7 @@ public class Client extends AttributeStore implements IClient {
     /**
      *  Scopes this client connected to
      */
-	protected HashMap<IConnection, IScope> connToScope = new HashMap<IConnection, IScope>();
+	protected Map<IConnection, IScope> connToScope = new ConcurrentHashMap<IConnection, IScope>();
 
     /**
      * Creates client, sets creation time and registers it in ClientRegistry
