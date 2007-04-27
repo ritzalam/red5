@@ -19,7 +19,7 @@ package org.red5.server.net.servlet;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -107,8 +107,9 @@ public class ServletConnection extends AttributeStore implements IConnection {
 		// Nothing to do.
 	}
 
+    @SuppressWarnings("unchecked")
 	public Map<String, Object> getConnectParams() {
-		return new HashMap<String, Object>();
+		return Collections.EMPTY_MAP;
 	}
 
 	/** {@inheritDoc} */
