@@ -20,6 +20,7 @@ package org.red5.server;
  */
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -70,11 +71,6 @@ public class Scope extends BasicScope implements IScope {
      */
 	private static final String TYPE = "scope";
     /**
-     * Scope service handler constant
-     */
-	private static final String SERVICE_HANDLERS = IPersistable.TRANSIENT_PREFIX
-			+ "_scope_service_handlers";
-    /**
      * Scope nesting depth, unset by default
      */
 	private int depth = UNSET;
@@ -107,6 +103,11 @@ public class Scope extends BasicScope implements IScope {
      * Clients and connection map
      */
 	private Map<IClient, Set<IConnection>> clients = new ConcurrentHashMap<IClient, Set<IConnection>>();
+	/**
+	 * Registered service handlers for this scope. The map is created on-demand only
+	 * if it's accessed for writing.
+	 */
+	private volatile Map<String, Object> serviceHandlers;
 
     /**
      * Creates unnamed scope
@@ -836,12 +837,31 @@ public class Scope extends BasicScope implements IScope {
 	}
 
     /**
-     * Return map of service handlers
+     * Return map of service handlers. The map is created if it doesn't exist yet.
      * @return                Map of service handlers
      */
 	protected Map<String, Object> getServiceHandlers() {
-		return (Map<String, Object>) getAttribute(SERVICE_HANDLERS,
-				new HashMap<String, Object>());
+		return getServiceHandlers(true);
+	}
+	
+    /**
+     * Return map of service handlers and optionally created it if it doesn't exist.
+     * @param allowCreate     Should the map be created if it doesn't exist?
+     * @return                Map of service handlers
+     */
+	protected Map<String, Object> getServiceHandlers(boolean allowCreate) {
+		if (serviceHandlers == null) {
+			if (!allowCreate)
+				return null;
+			
+			// Only synchronize if potentially needs to be created
+			synchronized (this) {
+				if (serviceHandlers == null) {
+					serviceHandlers = new ConcurrentHashMap<String, Object>();
+				}
+			}
+		}
+		return serviceHandlers;
 	}
 
     /**
@@ -859,7 +879,10 @@ public class Scope extends BasicScope implements IScope {
      * @param name        Service handler name
      */
 	public void unregisterServiceHandler(String name) {
-		Map<String, Object> serviceHandlers = getServiceHandlers();
+		Map<String, Object> serviceHandlers = getServiceHandlers(false);
+		if (serviceHandlers == null)
+			return;
+		
 		serviceHandlers.remove(name);
 	}
 
@@ -869,16 +892,23 @@ public class Scope extends BasicScope implements IScope {
      * @return            Service handler with given name
      */
 	public Object getServiceHandler(String name) {
-		Map<String, Object> serviceHandlers = getServiceHandlers();
+		Map<String, Object> serviceHandlers = getServiceHandlers(false);
+		if (serviceHandlers == null)
+			return null;
+		
 		return serviceHandlers.get(name);
 	}
 
     /**
-     * Return set of service handler names
+     * Return set of service handler names. Removing entries from the
+     * set unregisters the corresponding service handler.
      * @return            Set of service handler names
      */
 	public Set<String> getServiceHandlerNames() {
-		Map<String, Object> serviceHandlers = getServiceHandlers();
+		Map<String, Object> serviceHandlers = getServiceHandlers(false);
+		if (serviceHandlers == null)
+			return Collections.EMPTY_SET;
+		
 		return serviceHandlers.keySet();
 	}
 
