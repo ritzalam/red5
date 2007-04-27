@@ -19,7 +19,8 @@ package org.red5.server.api.persistence;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.Iterator;
+import java.util.Collection;
+import java.util.Set;
 
 /**
  * Storage for persistent objects. 
@@ -83,15 +84,15 @@ public interface IPersistenceStore {
 	 * Return iterator over the names of all already loaded objects in the
 	 * storage.
 	 * 
-	 * @return Iterator over all object names
+	 * @return Set of all object names
 	 */
-	public Iterator<String> getObjectNames();
+	public Set<String> getObjectNames();
 
 	/**
 	 * Return iterator over the already loaded objects in the storage.
 	 * 
-	 * @return Iterator over all objects
+	 * @return Set of all objects
 	 */
-	public Iterator<IPersistable> getObjects();
+	public Collection<IPersistable> getObjects();
 
 }

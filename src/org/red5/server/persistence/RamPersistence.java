@@ -19,9 +19,10 @@ package org.red5.server.persistence;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.red5.server.api.IScope;
 import org.red5.server.api.ScopeUtils;
@@ -45,7 +46,7 @@ public class RamPersistence implements IPersistenceStore {
     /**
      * Map for persistable objects
      */
-    protected Map<String, IPersistable> objects = new HashMap<String, IPersistable>();
+    protected Map<String, IPersistable> objects = new ConcurrentHashMap<String, IPersistable>();
 
     /**
      * Resource pattern resolver. Resolves resources from patterns, loads resources.
@@ -127,7 +128,7 @@ public class RamPersistence implements IPersistenceStore {
 	}
 
 	/** {@inheritDoc} */
-    public synchronized boolean save(IPersistable object) {
+    public boolean save(IPersistable object) {
         final String key = getObjectId(object);
         
         objects.put(key, object);
@@ -136,7 +137,7 @@ public class RamPersistence implements IPersistenceStore {
     }
 
 	/** {@inheritDoc} */
-    public synchronized IPersistable load(String name) {
+    public IPersistable load(String name) {
 		return objects.get(name);
 	}
 
@@ -146,28 +147,30 @@ public class RamPersistence implements IPersistenceStore {
 	}
 
 	/** {@inheritDoc} */
-    public synchronized boolean remove(IPersistable object) {
+    public boolean remove(IPersistable object) {
 		return remove(getObjectId(object));
 	}
 
 	/** {@inheritDoc} */
-    public synchronized boolean remove(String name) {
-		if (!objects.containsKey(name)) {
-			return false;
-		}
-
-		IPersistable object = objects.remove(name);
-		object.setPersistent(false);
+    public boolean remove(String name) {
+    	synchronized (objects) {
+			if (!objects.containsKey(name)) {
+				return false;
+			}
+	
+			IPersistable object = objects.remove(name);
+			object.setPersistent(false);
+    	}
 		return true;
 	}
 
 	/** {@inheritDoc} */
-    public Iterator<String> getObjectNames() {
-		return objects.keySet().iterator();
+    public Set<String> getObjectNames() {
+		return objects.keySet();
 	}
 
 	/** {@inheritDoc} */
-    public Iterator<IPersistable> getObjects() {
-		return objects.values().iterator();
+    public Collection<IPersistable> getObjects() {
+		return objects.values();
 	}
 }
