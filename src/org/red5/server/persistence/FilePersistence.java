@@ -422,10 +422,7 @@ public class FilePersistence extends RamPersistence {
 	/** {@inheritDoc} */
     @Override
 	public boolean remove(String name) {
-		if (!super.remove(name)) {
-			return false;
-		}
-
+		super.remove(name);
 		String filename = path + '/' + name + extension;
 		Resource resFile = resources.getResource(filename);
 		if (!resFile.exists()) {
