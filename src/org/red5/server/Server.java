@@ -22,6 +22,7 @@ package org.red5.server;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -41,11 +42,11 @@ public class Server implements IServer, ApplicationContextAware {
     /**
      *  List of global scopes
      */
-	protected HashMap<String, IGlobalScope> globals = new HashMap<String, IGlobalScope>();
+	protected ConcurrentHashMap<String, IGlobalScope> globals = new ConcurrentHashMap<String, IGlobalScope>();
     /**
      * Mappings
      */
-	protected HashMap<String, String> mapping = new HashMap<String, String>();
+	protected ConcurrentHashMap<String, String> mapping = new ConcurrentHashMap<String, String>();
     /**
      *  Spring application context
      */

@@ -22,108 +22,56 @@
 		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 		<property name="location" value="classpath:/red5.properties" />
 	</bean>
-	
-    <bean id="threadExecutor"
-        class="org.apache.mina.integration.spring.ThreadPoolExecutorFactoryBean">
-        <!-- use configured thread count as core pool size -->
-        <property name="corePoolSize" value="${rtmp.threadcount}" />
-        <!-- use a SynchronousQueue to handle requests to the threads -->
-        <property name="queueCapacity" value="0" />
-    </bean>
-
-	<bean id="filterChainBuilder" 
-        class="org.apache.mina.integration.spring.DefaultIoFilterChainBuilderFactoryBean">
-		<property name="filters">
-	    	<list>
-				<!-- mina 1.0 with java5 executor class -->
-				<bean class="org.red5.io.filter.ExecutorFilter">
-					<!-- int corePoolSize, int maximumPoolSize, long keepAliveTime (seconds) -->
-					<constructor-arg index="0" value="16" />
-					<constructor-arg index="1" value="128" />
-					<constructor-arg index="2" value="60" />
-				</bean>
-			</list>
-		</property>
-	</bean>
-    
-    <bean id="socketAcceptor" class="org.apache.mina.integration.spring.IoAcceptorFactoryBean">
-      <property name="target">
-        <bean class="org.apache.mina.transport.socket.nio.SocketAcceptor">
-            <constructor-arg value="${rtmp.threadcount}" />
-            <constructor-arg><ref bean="threadExecutor"/></constructor-arg>
-        </bean>
-      </property>
-      <property name="bindings">
-        <list>
-         <!-- RTMP -->
-         <bean class="org.apache.mina.integration.spring.Binding">
-           <property name="address" value="${rtmp.host_port}"/>
-           <property name="handler" ref="rtmpMinaIoHandler"/>
-           <property name="serviceConfig">
-             <bean class="org.apache.mina.transport.socket.nio.SocketAcceptorConfig">
-               <property name="filterChainBuilder" ref="filterChainBuilder"/>
-               <property name="reuseAddress" value="true"/>
-               <property name="sessionConfig.receiveBufferSize" value="65536" /><!-- 64k -->
-               <property name="sessionConfig.sendBufferSize" value="271360" /><!-- 256k -->
-               <property name="sessionConfig.tcpNoDelay" value="true" />
-               <property name="sessionConfig.reuseAddress" value="true"/>
-             </bean>
-           </property>
-         </bean>
-         
-         <!-- DEBUG PROXY -->
-         <bean class="org.apache.mina.integration.spring.Binding">
-           <property name="address" value="${debug_proxy.host_port}"/>
-           <property name="handler" ref="debugProxyIoHandler"/>
-           <property name="serviceConfig">
-             <bean class="org.apache.mina.transport.socket.nio.SocketAcceptorConfig">
-               <property name="filterChainBuilder" ref="filterChainBuilder"/>
-               <property name="reuseAddress" value="true"/>
-               <property name="sessionConfig.reuseAddress" value="true"/>
-             </bean>
-           </property>
-        </bean>
-       
-       </list>
-      </property>
-    </bean>
-   
-	<!-- RTMPHandler -->
+	   
+	<!-- RTMP Handler -->
 	<bean id="rtmpHandler"
 		class="org.red5.server.net.rtmp.RTMPHandler">
 		<property name="server" ref="red5.server" />
 		<property name="statusObjectService" ref="statusObjectService" />
 	</bean>
 	
+	<!-- RTMP Mina IO Handler -->
 	<bean id="rtmpMinaIoHandler"
 		class="org.red5.server.net.rtmp.RTMPMinaIoHandler">
 		<property name="handler" ref="rtmpHandler" />
 		<property name="codecFactory" ref="rtmpCodecFactory" />
 	</bean>
 	
+	<!-- RTMP Mina Transport -->
+	<bean id="rtmpTransport" class="org.red5.server.net.rtmp.RTMPMinaTransport" init-method="start" destroy-method="stop">
+		<property name="ioHandler" ref="rtmpMinaIoHandler" />
+		<property name="address" value="${rtmp.host}" />
+		<property name="port" value="${rtmp.port}" />
+		<property name="receiveBufferSize" value="${rtmp.receive_buffer_size}" />
+		<property name="sendBufferSize" value="${rtmp.send_buffer_size}" />
+		<property name="eventThreads" value="${rtmp.event_threads}" />
+	</bean>
+	
+	<!-- RTMP Mina Connection -->
+	<bean id="rtmpMinaConnection" scope="prototype"
+		class="org.red5.server.net.rtmp.RTMPMinaConnection">
+		<!-- Ping clients every X ms. Set to 0 to disable ghost detection code. -->
+		<property name="pingInterval" value="${rtmp.ping_interval}" />
+		<!-- Disconnect client after X ms of not responding. -->
+		<property name="maxInactivity" value="${rtmp.max_inactivity}" />
+	</bean>
+	
+	<!-- RTMPT Handler -->
 	<bean id="rtmptHandler"
 		class="org.red5.server.net.rtmpt.RTMPTHandler" autowire="byType">
 		<property name="codecFactory" ref="rtmpCodecFactory" />
 	</bean>
 	
-	<bean id="rtmpMinaConnection" scope="prototype"
-		class="org.red5.server.net.rtmp.RTMPMinaConnection">
-		<!-- Ping clients every X ms. Set to 0 to disable ghost detection code. -->
-		<property name="pingInterval" value="5000" />
-		<!-- Disconnect client after X ms of not responding. -->
-		<property name="maxInactivity" value="60000" />
-	</bean>
-	
+	<!-- RTMPT Connection -->
 	<bean id="rtmptConnection" scope="prototype"
 		class="org.red5.server.net.rtmpt.RTMPTConnection">
 		<!-- Ping clients every X ms. Set to 0 to disable ghost detection code. -->
-		<property name="pingInterval" value="5000" />
+		<property name="pingInterval" value="${rtmp.ping_interval}" />
 		<!-- Disconnect client after X ms of not responding. -->
-		<property name="maxInactivity" value="60000" />
+		<property name="maxInactivity" value="${rtmp.max_inactivity}" />
 	</bean>
 	
-	<!-- Jetty Container -->
-
+	<!-- Jetty RTMPT Container -->
 	<bean id="rtmpt.server"
 		class="org.red5.server.net.rtmpt.RTMPTLoader" init-method="init"
 		autowire="byType" />
@@ -205,11 +153,13 @@
 		</property>
 		</bean>
 	-->
+	<!-- Enable when you need it. 
 	<bean id="debugProxyIoHandler"
 		class="org.red5.server.net.proxy.DebugProxyHandler">
 		<property name="codecFactory" ref="rtmpCodecFactory" />
 		<property name="forward" value="${proxy_forward.host_port}" />
 		<property name="dumpTo" value="./webapps/dump/" />
 	</bean>
+	-->
 </beans>
 

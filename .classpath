@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry excluding=".svn/*" kind="src" path="src"/>
+	<classpathentry excluding=".svn/*|org/red5/server/script/rhino/" kind="src" path="src"/>
 	<classpathentry excluding=".svn/*" kind="src" path="webapps/echo/WEB-INF/src"/>
 	<classpathentry excluding=".svn/*" kind="src" path="webapps/tutorial/WEB-INF/src"/>
 	<classpathentry excluding=".svn/*" kind="src" path="webapps/fitcDemo/WEB-INF/src"/>
@@ -12,11 +12,9 @@
 	<classpathentry kind="lib" path="lib/commons-beanutils.jar"/>
 	<classpathentry kind="lib" path="lib/spring-mock.jar"/>
 	<classpathentry kind="lib" path="lib/GroboUtils-5-core.jar"/>
-	<classpathentry excluding=".svn/*" kind="src" path="test"/>
 	<classpathentry kind="lib" path="lib/junit-4.0.jar"/>
 	<classpathentry excluding=".svn/*" kind="src" path="webapps/test/WEB-INF/src"/>
 	<classpathentry kind="lib" path="lib/quartz-1.6.0.jar"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/java6"/>
 	<classpathentry kind="lib" path="lib/xmlrpc-2.0.1.jar"/>
 	<classpathentry kind="lib" path="lib/commons-codec-1.3.jar"/>
 	<classpathentry kind="lib" path="lib/commons-httpclient-3.0.1.jar"/>
@@ -51,10 +49,6 @@
 	<classpathentry kind="lib" path="lib/jetty-util-6.1.0.jar"/>
 	<classpathentry kind="lib" path="lib/groovy-1.0.jar"/>
 	<classpathentry kind="lib" path="lib/jta.jar"/>
-	<classpathentry kind="lib" path="lib/mina-core-1.0.1.jar"/>
-	<classpathentry kind="lib" path="lib/mina-filter-compression-1.0.1.jar"/>
-	<classpathentry kind="lib" path="lib/mina-filter-ssl-1.0.1.jar"/>
-	<classpathentry kind="lib" path="lib/mina-integration-spring-1.0.1.jar"/>
 	<classpathentry kind="lib" path="lib/tomcat-coyote-6.0.10.jar"/>
 	<classpathentry kind="lib" path="lib/tomcat-juli-6.0.10.jar"/>
 	<classpathentry kind="lib" path="lib/el-api.jar"/>
@@ -69,5 +63,9 @@
 	<classpathentry kind="lib" path="lib/slf4j-simple-1.3.1.jar"/>
 	<classpathentry kind="lib" path="lib/slf4j-api-1.3.1.jar"/>
 	<classpathentry kind="lib" path="lib/annotations-api.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/mina-integration-spring-1.1.0.jar"/>
+	<classpathentry kind="lib" path="lib/mina-filter-ssl-1.1.0.jar"/>
+	<classpathentry kind="lib" path="lib/mina-core-1.1.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
