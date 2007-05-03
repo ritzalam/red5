@@ -40,7 +40,7 @@ import org.red5.server.api.event.IEvent;
  * to AttributeStore.
  */
 public abstract class BaseConnection extends AttributeStore implements
-		IConnection {
+		IConnection, BaseConnectionMBean {
     /**
      *  Logger
      */

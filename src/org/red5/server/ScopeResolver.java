@@ -69,23 +69,20 @@ public class ScopeResolver implements IScopeResolver {
         // Split path to parts
         final String[] parts = path.split("/");
         // Iterate thru them, skip empty parts
-        for (String element : parts) {
-			final String room = element;
+		for (String room : parts) {
 			if (room.equals("")) {
 				// Skip empty path elements
 				continue;
 			}
 
 			// Prevent the same subscope from getting created twice
-			synchronized (scope) {
 				if (scope.hasChildScope(room)) {
 					scope = scope.getScope(room);
 				} else if (!scope.equals(globalScope)
 						&& scope.createChildScope(room)) {
 					scope = scope.getScope(room);
 				} else {
-					throw new ScopeNotFoundException(scope, element);
-				}
+				throw new ScopeNotFoundException(scope, room);
 			}
 		}
 		return scope;

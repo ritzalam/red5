@@ -35,7 +35,7 @@ import org.red5.server.api.service.IServiceCall;
 /**
  * Base IScopeHandler implementation
  */
-public class CoreHandler implements IScopeHandler {
+public class CoreHandler implements IScopeHandler, CoreHandlerMBean {
 
 	protected static Log log = LogFactory.getLog(CoreHandler.class.getName());
 

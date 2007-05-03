@@ -36,7 +36,6 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.access.ContextSingletonBeanFactoryLocator;
-import org.springframework.context.support.FileSystemXmlApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.web.context.ConfigurableWebApplicationContext;
 
@@ -45,7 +44,7 @@ import org.springframework.web.context.ConfigurableWebApplicationContext;
  *
  * <p>This is basic context implementation used by Red5.</p>
  */
-public class Context implements IContext, ApplicationContextAware {
+public class Context implements IContext, ApplicationContextAware, ContextMBean {
     /**
      *  Spring application context
      */

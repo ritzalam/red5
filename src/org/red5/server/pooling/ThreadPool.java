@@ -18,6 +18,7 @@ package org.red5.server.pooling;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.pool.impl.GenericObjectPool;
+import org.red5.server.jmx.JMXFactory;
 
 /**
  * ThreadPool - Extends GenericObjectPool. Overrides some methods and provides
@@ -25,7 +26,7 @@ import org.apache.commons.pool.impl.GenericObjectPool;
  * 
  * @author Murali Kosaraju
  */
-public class ThreadPool extends GenericObjectPool {
+public class ThreadPool extends GenericObjectPool implements ThreadPoolMBean {
 	/**
 	 * Logger for this class
 	 */
@@ -46,8 +47,9 @@ public class ThreadPool extends GenericObjectPool {
 		this.setMinEvictableIdleTimeMillis(30000); // Evictor runs every 30
 		// secs.
 		this.setTestOnBorrow(true); // check if the thread is still valid
-		// this.setMaxWait(1000); // 1 second wait when threads are not
-		// available.
+
+		JMXFactory.registerMBean(this, this.getClass().getName(),
+				ThreadPoolMBean.class, "threadpool");
 	}
 
 	/**
@@ -63,7 +65,8 @@ public class ThreadPool extends GenericObjectPool {
 		super(objFactory, config);
 	}
 
-	/** {@inheritDoc} */ /*
+	/** {@inheritDoc} */
+	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.apache.commons.pool.ObjectPool#borrowObject()
@@ -74,7 +77,8 @@ public class ThreadPool extends GenericObjectPool {
 		return super.borrowObject();
 	}
 
-	/** {@inheritDoc} */ /*
+	/** {@inheritDoc} */
+	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see org.apache.commons.pool.ObjectPool#returnObject(java.lang.Object)

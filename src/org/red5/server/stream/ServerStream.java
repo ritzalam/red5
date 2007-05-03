@@ -21,10 +21,10 @@ package org.red5.server.stream;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -111,7 +111,8 @@ public class ServerStream extends AbstractStream implements IServerStream,
     /**
      * List of items in this playlist
      */
-	private List<IPlayItem> items;
+	private volatile List<IPlayItem> items;
+
     /**
      * Current item index
      */
@@ -180,22 +181,22 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	/** Constructs a new ServerStream. */
     public ServerStream() {
 		defaultController = new SimplePlaylistController();
-		items = new ArrayList<IPlayItem>();
+		items = new CopyOnWriteArrayList<IPlayItem>();
 		state = State.UNINIT;
 	}
 
 	/** {@inheritDoc} */
-    public synchronized void addItem(IPlayItem item) {
+	public void addItem(IPlayItem item) {
 		items.add(item);
 	}
 
 	/** {@inheritDoc} */
-    public synchronized void addItem(IPlayItem item, int index) {
+	public void addItem(IPlayItem item, int index) {
 		items.add(index, item);
 	}
 
 	/** {@inheritDoc} */
-    public synchronized void removeItem(int index) {
+	public void removeItem(int index) {
 		if (index < 0 || index >= items.size()) {
 			return;
 		}
@@ -203,7 +204,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	}
 
 	/** {@inheritDoc} */
-    public synchronized void removeAllItems() {
+	public void removeAllItems() {
 		items.clear();
 	}
 
@@ -232,7 +233,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	}
 
 	/** {@inheritDoc} */
-    public synchronized void previousItem() {
+	public void previousItem() {
 		stop();
 		moveToPrevious();
 		if (currentItemIndex == -1) {
@@ -243,7 +244,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	}
 
 	/** {@inheritDoc} */
-    public synchronized boolean hasMoreItems() {
+	public boolean hasMoreItems() {
     	int nextItem = currentItemIndex + 1;
     	if (nextItem >= items.size() && !isRepeat) {
     		return false;
@@ -253,7 +254,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
     }
 
 	/** {@inheritDoc} */
-    public synchronized void nextItem() {
+	public void nextItem() {
 		stop();
 		moveToNext();
 		if (currentItemIndex == -1) {
@@ -264,7 +265,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	}
 
 	/** {@inheritDoc} */
-    public synchronized void setItem(int index) {
+	public void setItem(int index) {
 		if (index < 0 || index >= items.size()) {
 			return;
 		}
@@ -309,8 +310,9 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	}
 
 	/** {@inheritDoc} */
-    public void saveAs(String name, boolean isAppend)
-			throws IOException, ResourceNotFoundException, ResourceExistException {
+	public void saveAs(String name, boolean isAppend) throws IOException,
+			ResourceNotFoundException, ResourceExistException {
+		try {
 		IScope scope = getScope();
 		IStreamFilenameGenerator generator = (IStreamFilenameGenerator) ScopeUtils
 		.getScopeService(scope, IStreamFilenameGenerator.class,
@@ -337,6 +339,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 
 		if (!res.exists()) {
 			// Make sure the destination directory exists
+				try {
 			String path = res.getFile().getAbsolutePath();
 			int slashPos = path.lastIndexOf(File.separator);
 			if (slashPos != -1) {
@@ -346,9 +349,17 @@ public class ServerStream extends AbstractStream implements IServerStream,
 			if (!tmp.isDirectory()) {
 				tmp.mkdirs();
 			}
+				} catch (IOException err) {
+					log.error("Could not create destination directory.", err);
+				}
+				res = scope.getResource(filename);
 		}
 
 		if (!res.exists()) {
+				if (!res.getFile().canWrite()) {
+					log.warn("File cannot be written to "
+							+ res.getFile().getCanonicalPath());
+				}
 			res.getFile().createNewFile();
 		}
 		FileConsumer fc = new FileConsumer(scope, res.getFile());
@@ -358,8 +369,14 @@ public class ServerStream extends AbstractStream implements IServerStream,
 		} else {
 			paramMap.put("mode", "record");
 		}
+			if (null == recordPipe) {
+				recordPipe = new InMemoryPushPushPipe();
+			}
 		recordPipe.subscribe(fc, paramMap);
 		recordingFilename = filename;
+		} catch (IOException e) {
+			log.warn("Save as exception", e);
+		}
 	}
 
 	/** {@inheritDoc} */
@@ -599,16 +616,19 @@ public class ServerStream extends AbstractStream implements IServerStream,
 			return;
 		}
 
+		IRTMPEvent rtmpEvent = null;
+
 		if (first) {
+			rtmpEvent = nextRTMPMessage.getBody();
 			// FIXME hack the first Metadata Tag from FLVReader
 			// the FLVReader will issue a metadata tag of ts 0
 			// even if it is seeked to somewhere in the middle
 			// which will cause the stream to wait too long.
 			// Is this an FLVReader's bug?
-			if (!(nextRTMPMessage.getBody() instanceof VideoData)
-					&& !(nextRTMPMessage.getBody() instanceof AudioData)
-					&& nextRTMPMessage.getBody().getTimestamp() == 0) {
-				nextRTMPMessage.getBody().release();
+			if (!(rtmpEvent instanceof VideoData)
+					&& !(rtmpEvent instanceof AudioData)
+					&& rtmpEvent.getTimestamp() == 0) {
+				rtmpEvent.release();
 				nextRTMPMessage = getNextRTMPMessage();
 				if (nextRTMPMessage == null) {
 					onItemEnd();
@@ -617,7 +637,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 			}
 		}
 
-		IRTMPEvent rtmpEvent = nextRTMPMessage.getBody();
+		rtmpEvent = nextRTMPMessage.getBody();
 		if (rtmpEvent instanceof VideoData) {
 			nextVideoTS = rtmpEvent.getTimestamp();
 			nextTS = nextVideoTS;

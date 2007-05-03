@@ -108,7 +108,7 @@ public class FileConsumer implements Constants, IPushableConsumer,
      * @param message      Message to push
      * @throws IOException if message could not be written
      */
-    synchronized public void pushMessage(IPipe pipe, IMessage message) throws IOException {
+    public void pushMessage(IPipe pipe, IMessage message) throws IOException {
 		if (message instanceof ResetMessage) {
 			startTimestamp = -1;
 			offset += lastTimestamp;
@@ -144,7 +144,11 @@ public class FileConsumer implements Constants, IPushableConsumer,
 			tag.setBody(data);
 		}
 
+		try {
 		writer.writeTag(tag);
+		} catch (IOException e) {
+			log.error("error writing tag", e);
+		}
 	}
 
     /**
@@ -204,9 +208,9 @@ public class FileConsumer implements Constants, IPushableConsumer,
 		if (!file.isFile()) {
 			// Maybe the (previously existing) file has been deleted
 			file.createNewFile();
-		} else if (!file.canWrite())
+		} else if (!file.canWrite()) {
 			throw new IOException("the file is read-only");
-
+		}
 		IStreamableFileService service = factory.getService(file);
 		IStreamableFile flv = service.getStreamableFile(file);
 		if (mode == null || mode.equals(IClientStream.MODE_RECORD)) {

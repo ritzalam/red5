@@ -28,7 +28,7 @@ import java.util.Set;
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard (luke@codegent.com)
  */
-public interface IAttributeStore {
+public interface IAttributeStore extends AttributeStoreMBean {
 
 	/**
 	 * Get the attribute names. The resulting set will be read-only.

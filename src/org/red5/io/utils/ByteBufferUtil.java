@@ -27,11 +27,10 @@ import org.apache.mina.common.ByteBuffer;
  * <i>Note: Paul added this back in for use with Mina due to its removal from Mina 2.0</i>
  *
  * @author The Apache Directory Project (mina-dev@directory.apache.org)
- * @version $Rev: 436993 $, $Date: 2006-08-25 15:36:56 -0700 (Fri, 25 Aug 2006) $
  */
 @Deprecated
-@SuppressWarnings("all") public class ByteBufferUtil
-{
+@SuppressWarnings("all")
+public class ByteBufferUtil {
 
     public static void acquireIfPossible( Object message )
     {

@@ -33,6 +33,7 @@ import org.apache.catalina.connector.Connector;
 import org.apache.catalina.core.StandardHost;
 import org.apache.catalina.startup.Embedded;
 import org.apache.log4j.Logger;
+import org.red5.server.jmx.JMXFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -40,7 +41,7 @@ import org.springframework.context.ApplicationContextAware;
 /**
  * Red5 loader for Tomcat
  */
-public class TomcatLoader implements ApplicationContextAware {
+public class TomcatLoader implements ApplicationContextAware, LoaderMBean {
 	// Initialize Logging
 	protected static Logger log = Logger
 			.getLogger(TomcatLoader.class.getName());
@@ -90,6 +91,11 @@ public class TomcatLoader implements ApplicationContextAware {
 		System.setProperty("tomcat.home", serverRoot);
 		System.setProperty("catalina.home", serverRoot);
 		System.setProperty("catalina.base", serverRoot);
+	}
+
+	{
+		JMXFactory.registerMBean(this, this.getClass().getName(),
+				LoaderMBean.class);
 	}
 
     /**
@@ -336,8 +342,10 @@ public class TomcatLoader implements ApplicationContextAware {
 		log.info("Shutting down tomcat context");
 		try {
 			embedded.stop();
+			System.exit(0);
 		} catch (Exception e) {
 			log.warn("Tomcat could not be stopped", e);
+			System.exit(1);
 		}
 	}
 

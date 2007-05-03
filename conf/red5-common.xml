@@ -3,8 +3,14 @@
 	 xmlns:lang="http://www.springframework.org/schema/lang" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd                            http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-2.0.xsd">
 	<!-- This context is shared between all child contexts. -->
 	<!-- Server bean -->
-
 	<bean id="red5.server" class="org.red5.server.Server"/>
+	<!-- JMX server -->
+	<bean id="jmxFactory" class="org.red5.server.jmx.JMXFactory">
+		<property name="domain" value="org.red5.server"/>
+	</bean>
+	<bean id="jmxAgent" class="org.red5.server.jmx.JMXAgent" init-method="init">
+		<property name="htmlAdapterPort" value="8082"/>
+	</bean>
 	<!-- Serializes objects to AMF binary -->
 	<bean id="serializer" class="org.red5.io.object.Serializer"/>
 	<!-- Deserializes objects from AMF binary -->
@@ -59,7 +65,7 @@
 		<!-- 100MB -->
 	</bean>
 	<!-- Dummy bandwidth control that does nothing -->
-	<!-- 
+	<!--
     <bean id="BWControlService" class="org.red5.server.stream.DummyBWControlService"/> -->
 	<!-- Scheduling service -->
 	<bean id="schedulingService" class="org.red5.server.scheduling.QuartzSchedulingService"/>
@@ -70,31 +76,31 @@
 		<constructor-arg>
 			<ref bean="threadFactory"/>
 		</constructor-arg>
-		<!-- maxIdle: The maximum number of sleeping instances in the pool, 
+		<!-- maxIdle: The maximum number of sleeping instances in the pool,
         	without extra objects being released. -->
 		<property name="maxIdle" value="8"/>
-		<!-- minIdle: The minimum number of sleeping instances in the pool, 
+		<!-- minIdle: The minimum number of sleeping instances in the pool,
         	without extra objects being created. -->
 		<property name="minIdle" value="2"/>
 		<!-- maxActive: The maximum number of active instances in the pool. -->
 		<property name="maxActive" value="8"/>
-		<!-- timeBetweenEvictionRunsMillis: The number of milliseconds to 
-        	sleep between runs of the idle-object evictor thread. When negative, 
-        	no idle-object evictor thread will run. Use this parameter only when 
+		<!-- timeBetweenEvictionRunsMillis: The number of milliseconds to
+        	sleep between runs of the idle-object evictor thread. When negative,
+        	no idle-object evictor thread will run. Use this parameter only when
         	you want the evictor thread to run. -->
 		<property name="timeBetweenEvictionRunsMillis" value="120000"/>
-		<!-- minEvictableIdleTimeMillis: The minimum amount of time an object, 
-        	if active, may sit idle in the pool before it is eligible for eviction 
-        	by the idle-object evictor. If a negative value is supplied, no objects 
+		<!-- minEvictableIdleTimeMillis: The minimum amount of time an object,
+        	if active, may sit idle in the pool before it is eligible for eviction
+        	by the idle-object evictor. If a negative value is supplied, no objects
         	are evicted due to idle time alone. -->
 		<property name="minEvictableIdleTimeMillis" value="-1"/>
 		<!-- testOnBorrow: When "true," objects are validated. If the object fails
-        	validation, it will be dropped from the pool, and the pool will attempt 
+        	validation, it will be dropped from the pool, and the pool will attempt
         	to borrow another. -->
 		<property name="testOnBorrow" value="true"/>
 		<property name="whenExhaustedAction" value="2"/>
 	</bean>
-	<!-- 
+	<!--
 	Now we can load the cache engine, only one may be enabled at a time. If no-caching is required select the
 	NoCacheImpl. Three other implementations based on EhCache, WhirlyCache, and Red5Cache are also available.
 	-->
@@ -103,7 +109,7 @@
 	<bean id="object.cache" class="org.red5.server.cache.CacheImpl" init-method="init" autowire="byType">
 		<property name="maxEntries"><value>5</value></property>
 	</bean>
-	
+
 	<bean id="object.cache" class="org.red5.server.cache.WhirlyCacheImpl" init-method="init" autowire="byType">
 		<property name="maxEntries" value="5" />
 		<property name="cacheConfig">
@@ -114,8 +120,8 @@
 				<property name="backend"><value>com.whirlycott.cache.impl.FastHashMapImpl</value></property>
 			</bean>
 		</property>
-	</bean>   
-    
+	</bean>
+
 	<bean id="object.cache" class="org.red5.server.cache.EhCacheImpl" init-method="init">
 		<property name="diskStore" value="java.io.tmpdir" />
 		<property name="memoryStoreEvictionPolicy" value="LFU" />
@@ -167,7 +173,7 @@
 		<!-- Three buffer types are available 'auto', 'heap', and 'direct' -->
 		<property name="arguments" value="auto"/>
 	</bean>
-	
+
 	<!-- Use injection to set the buffer size for reading FLV files -->
 	<bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
 		<property name="staticMethod"><value>org.red5.io.flv.impl.FLVReader.setBufferSize</value></property>
@@ -183,7 +189,7 @@
 		<property name="maximumPoolSize" value="64"/>
 	</bean>
 
-	<!-- ClientBroadcastStream and PlaylistSubscriberStream 
+	<!-- ClientBroadcastStream and PlaylistSubscriberStream
 		that will be used by RTMPConnection and maybe other classes.
 		These beans are lazy-init because most likely server will need
 		to be up and running before we can get a smart implementation

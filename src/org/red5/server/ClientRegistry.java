@@ -28,12 +28,13 @@ import org.red5.server.api.IClient;
 import org.red5.server.api.IClientRegistry;
 import org.red5.server.exception.ClientNotFoundException;
 import org.red5.server.exception.ClientRejectedException;
+import org.red5.server.jmx.JMXFactory;
 
 /**
  * Registry for clients. Associates client with it's id so it's possible to get client by id
  * from whenever we need
  */
-public class ClientRegistry implements IClientRegistry {
+public class ClientRegistry implements IClientRegistry, ClientRegistryMBean {
     /**
      * Clients map
      */
@@ -42,6 +43,11 @@ public class ClientRegistry implements IClientRegistry {
      *  Next client id
      */
 	private int nextId = 0;
+
+	{
+		JMXFactory.registerMBean(this, this.getClass().getName(),
+				ClientRegistryMBean.class);
+	}
 
     /**
      * Return next client id
@@ -118,4 +124,23 @@ public class ClientRegistry implements IClientRegistry {
 	protected Collection<IClient> getClients() {
 		return Collections.unmodifiableCollection(clients.values());
 	}
+
+	/**
+	 * Returns a list of Clients.
+	 */
+	public ClientList<Client> getClientList() {
+		ClientList<Client> list = new ClientList<Client>();
+		for (IClient c : clients.values()) {
+			list.add((Client) c);
+		}
+		return list;
+	}
+
+	public Client getClient(String id) throws ClientNotFoundException {
+		if (!hasClient(id)) {
+			throw new ClientNotFoundException(id);
+		}
+		return (Client) clients.get(id);
+	}
+
 }

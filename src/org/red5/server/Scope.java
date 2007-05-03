@@ -21,7 +21,6 @@ package org.red5.server;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -39,8 +38,8 @@ import org.red5.server.api.IScope;
 import org.red5.server.api.IScopeAware;
 import org.red5.server.api.IScopeHandler;
 import org.red5.server.api.event.IEvent;
-import org.red5.server.api.persistence.IPersistable;
 import org.red5.server.api.persistence.PersistenceUtils;
+import org.red5.server.jmx.JMXFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.core.style.ToStringCreator;
 
@@ -57,7 +56,7 @@ import org.springframework.core.style.ToStringCreator;
  *
  * @author The Red5 Project (red5@osflash.org)
  */
-public class Scope extends BasicScope implements IScope {
+public class Scope extends BasicScope implements IScope, ScopeMBean {
     /**
      * Logger
      */
@@ -98,11 +97,13 @@ public class Scope extends BasicScope implements IScope {
     /**
      * Child scopes map (child scopes are named)
      */
-	private Map<String, IBasicScope> children = new ConcurrentHashMap<String, IBasicScope>();
+	private volatile Map<String, IBasicScope> children = new ConcurrentHashMap<String, IBasicScope>();
+
     /**
      * Clients and connection map
      */
-	private Map<IClient, Set<IConnection>> clients = new ConcurrentHashMap<IClient, Set<IConnection>>();
+	private volatile Map<IClient, Set<IConnection>> clients = new ConcurrentHashMap<IClient, Set<IConnection>>();
+
 	/**
 	 * Registered service handlers for this scope. The map is created on-demand only
 	 * if it's accessed for writing.
@@ -379,6 +380,9 @@ public class Scope extends BasicScope implements IScope {
     @Override
 	public void setName(String name) {
 		this.name = name;
+
+		JMXFactory.registerMBean(this, this.getClass().getName(),
+				ScopeMBean.class, name);
 	}
 
     /**
@@ -855,12 +859,10 @@ public class Scope extends BasicScope implements IScope {
 				return null;
 			
 			// Only synchronize if potentially needs to be created
-			synchronized (this) {
 				if (serviceHandlers == null) {
 					serviceHandlers = new ConcurrentHashMap<String, Object>();
 				}
 			}
-		}
 		return serviceHandlers;
 	}
 
@@ -880,9 +882,9 @@ public class Scope extends BasicScope implements IScope {
      */
 	public void unregisterServiceHandler(String name) {
 		Map<String, Object> serviceHandlers = getServiceHandlers(false);
-		if (serviceHandlers == null)
+		if (serviceHandlers == null) {
 			return;
-		
+		}
 		serviceHandlers.remove(name);
 	}
 
@@ -893,9 +895,9 @@ public class Scope extends BasicScope implements IScope {
      */
 	public Object getServiceHandler(String name) {
 		Map<String, Object> serviceHandlers = getServiceHandlers(false);
-		if (serviceHandlers == null)
+		if (serviceHandlers == null) {
 			return null;
-		
+		}
 		return serviceHandlers.get(name);
 	}
 
@@ -906,9 +908,9 @@ public class Scope extends BasicScope implements IScope {
      */
 	public Set<String> getServiceHandlerNames() {
 		Map<String, Object> serviceHandlers = getServiceHandlers(false);
-		if (serviceHandlers == null)
+		if (serviceHandlers == null) {
 			return Collections.EMPTY_SET;
-		
+		}
 		return serviceHandlers.keySet();
 	}
 

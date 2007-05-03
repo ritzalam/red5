@@ -19,14 +19,16 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+
+import javax.management.ObjectName;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -35,12 +37,13 @@ import org.red5.server.api.IBandwidthConfigure;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
+import org.red5.server.jmx.JMXFactory;
 
 /**
  * Client is an abstraction representing user connected to Red5 application.
  * Clients are tied to connections and registred in ClientRegistry
  */
-public class Client extends AttributeStore implements IClient {
+public class Client extends AttributeStore implements IClient, ClientMBean {
     /**
      *  Logger
      */
@@ -63,6 +66,15 @@ public class Client extends AttributeStore implements IClient {
 	protected Map<IConnection, IScope> connToScope = new ConcurrentHashMap<IConnection, IScope>();
 
     /**
+	 * MBean object name used for de/registration purposes.
+	 */
+	private ObjectName oName;
+
+	public Client() {
+		//here for jmx reference only
+	}
+
+	/**
      * Creates client, sets creation time and registers it in ClientRegistry
      *
      * @param id             Client id
@@ -72,6 +84,8 @@ public class Client extends AttributeStore implements IClient {
 		this.id = id;
 		this.registry = registry;
 		this.creationTime = System.currentTimeMillis();
+		//create a new mbean for this instance
+		oName = JMXFactory.createMBean("org.red5.server.Client", "id=" + id);
 	}
 
     /**
@@ -169,9 +183,8 @@ public class Client extends AttributeStore implements IClient {
 		}
 
         // Close all associated connections
-        Iterator<IConnection> conns = getConnections().iterator();
-		while (conns.hasNext()) {
-			conns.next().close();
+		for (IConnection con : getConnections()) {
+			con.close();
 		}
 	}
 
@@ -208,6 +221,7 @@ public class Client extends AttributeStore implements IClient {
      * @param conn         Connection object
      */
 	protected void register(IConnection conn) {
+		log.debug("Registering connection for this client");
 		connToScope.put(conn, conn.getScope());
 	}
 
@@ -222,6 +236,32 @@ public class Client extends AttributeStore implements IClient {
         if (connToScope.isEmpty()) {
 			// This client is not connected to any scopes, remove from registry.
 			registry.removeClient(this);
+			try {
+				// deregister with jmx
+				JMXFactory.getMBeanServer().unregisterMBean(oName);
+			} catch (Exception e) {
+				log.error("Exception unregistering mbean", e);
+			}
 		}
+	}
+
+	/**
+	 * Iterate through the scopes and their attributes.
+	 * Used by JMX
+	 *
+	 * @return list of scope attributes
+	 */
+	public List<String> iterateScopeNameList() {
+		log.debug("iterateScopeNameList called");
+		List<String> scopeNames = new ArrayList<String>();
+		log.debug("Scopes: " + connToScope.values().size());
+		for (IScope scope : connToScope.values()) {
+			log.debug("Client scope: " + scope);
+			for (Map.Entry entry : scope.getAttributes().entrySet()) {
+				log.debug("Client scope attr: " + entry.getKey() + " = "
+						+ entry.getValue());
+			}
+		}
+		return scopeNames;
 	}
 }

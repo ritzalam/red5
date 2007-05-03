@@ -26,7 +26,7 @@ import org.apache.commons.logging.LogFactory;
  *         gets pooled for re-use. We should customize this for the desired
  *         behaviour.
  */
-public class WorkerThread extends Thread {
+public class WorkerThread extends Thread implements WorkerThreadMBean {
 
 	private static Log log = LogFactory.getLog(WorkerThread.class);
 
@@ -262,7 +262,8 @@ public class WorkerThread extends Thread {
 		}
 	}
 
-	/** {@inheritDoc} */ /*
+	/** {@inheritDoc} */
+	/*
 	 * (non-Javadoc)
 	 * 
 	 * @see java.lang.Runnable#run()

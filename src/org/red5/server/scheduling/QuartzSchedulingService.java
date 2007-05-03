@@ -32,6 +32,7 @@ import org.quartz.Trigger;
 import org.quartz.impl.StdSchedulerFactory;
 import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
+import org.red5.server.jmx.JMXFactory;
 
 /**
  * Scheduling service that uses Quartz as backend.
@@ -39,7 +40,8 @@ import org.red5.server.api.scheduling.ISchedulingService;
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
  */
-public class QuartzSchedulingService implements ISchedulingService {
+public class QuartzSchedulingService implements ISchedulingService,
+		QuartzSchedulingServiceMBean {
 
     /**
      * Creates schedulers
@@ -61,6 +63,9 @@ public class QuartzSchedulingService implements ISchedulingService {
 		try {
 			scheduler = schedFact.getScheduler();
 			scheduler.start();
+			//register with jmx server
+			JMXFactory.registerMBean(this, this.getClass().getName(),
+					QuartzSchedulingServiceMBean.class);
 		} catch (SchedulerException ex) {
 			throw new RuntimeException(ex);
 		}
@@ -71,7 +76,7 @@ public class QuartzSchedulingService implements ISchedulingService {
      *
      * @return  Job name
      */
-    private synchronized String getJobName() {
+	public synchronized String getJobName() {
 		String result = "ScheduledJob_" + jobDetailCounter;
 		jobDetailCounter++;
 		return result;

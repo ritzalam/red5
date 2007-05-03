@@ -24,6 +24,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.management.MBeanServer;
+import javax.management.ObjectName;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.IConnection;
@@ -42,6 +45,7 @@ import org.red5.server.api.stream.IVideoStreamCodec;
 import org.red5.server.api.stream.ResourceExistException;
 import org.red5.server.api.stream.ResourceNotFoundException;
 import org.red5.server.api.stream.IStreamFilenameGenerator.GenerationType;
+import org.red5.server.jmx.JMXFactory;
 import org.red5.server.messaging.IFilter;
 import org.red5.server.messaging.IMessage;
 import org.red5.server.messaging.IMessageComponent;
@@ -79,7 +83,7 @@ import org.springframework.core.io.Resource;
  */
 public class ClientBroadcastStream extends AbstractClientStream implements
 		IClientBroadcastStream, IFilter, IPushableConsumer,
-		IPipeConnectionListener, IEventDispatcher {
+		IPipeConnectionListener, IEventDispatcher, ClientBroadcastStreamMBean {
 
     /**
      * Logger
@@ -118,6 +122,12 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	 * The filename we are recording to.
 	 */
 	private String recordingFilename;
+
+	/**
+	 * FileConsumer used to output recording to disk
+	 */
+	private FileConsumer recordingFile;
+
     /**
      * Is there need to send start notification?
      */
@@ -144,6 +154,11 @@ public class ClientBroadcastStream extends AbstractClientStream implements
      * Is this stream still active?
      */
     private boolean closed = false;
+
+	/**
+	 * MBean object name used for de/registration purposes.
+	 */
+	private ObjectName oName;
 
 	/**
      * Starts stream. Creates pipes, video codec from video codec factory bean,
@@ -180,8 +195,21 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		sendStartNotifications(Red5.getConnectionLocal());
     }
     
+	/**
+	 * Stops any currently active recordings.
+	 */
+	public void stopRecording() {
+		if (recording) {
+			recording = false;
+			recordingFilename = null;
+			recordPipe.unsubscribe(recordingFile);
+			sendRecordStopNotify();
+		}
+	}
+
     /** {@inheritDoc} */
     public void stop() {
+		stopRecording();
     	close();
     }
     
@@ -193,7 +221,6 @@ public class ClientBroadcastStream extends AbstractClientStream implements
     		// Already closed
     		return;
     	}
-    	
 		closed = true;
 		if (livePipe != null) {
 			livePipe.unsubscribe((IProvider) this);
@@ -206,6 +233,12 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		// TODO: can we sent the client something to make sure he stops sending data?
 		connMsgOut.unsubscribe(this);
 		notifyBroadcastClose();
+		try {
+			// deregister with jmx
+			JMXFactory.getMBeanServer().unregisterMBean(oName);
+		} catch (Exception e) {
+			log.error("Exception unregistering mbean", e);
+		}
 	}
 
     /**
@@ -217,8 +250,9 @@ public class ClientBroadcastStream extends AbstractClientStream implements
      * @throws ResourceNotFoundException     Resource doesn't exist when trying to append.
      * @throws ResourceExistException        Resource exist when trying to create.
      */
-    public void saveAs(String name, boolean isAppend)
-            throws IOException, ResourceNotFoundException, ResourceExistException {
+	public void saveAs(String name, boolean isAppend) throws IOException,
+			ResourceNotFoundException, ResourceExistException {
+		log.debug("SaveAs - name: " + name + " append: " + isAppend);
         // Get stream scope
     	IStreamCapableConnection conn = getConnection();
     	if (conn == null) {
@@ -241,8 +275,9 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 				// Per livedoc of FCS/FMS:
 				// When "live" or "record" is used,
 				// any previously recorded stream with the same stream URI is deleted.
-				if (!res.getFile().delete())
+				if (!res.getFile().delete()) {
 					throw new IOException("file could not be deleted");
+			}
 			}
 		} else {
 			if (!res.exists()) {
@@ -269,14 +304,15 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		if (!res.exists()) {
 			res.getFile().createNewFile();
 		}
-		FileConsumer fc = new FileConsumer(scope, res.getFile());
+		log.debug("Recording file: " + res.getFile().getCanonicalPath());
+		recordingFile = new FileConsumer(scope, res.getFile());
 		Map<Object, Object> paramMap = new HashMap<Object, Object>();
 		if (isAppend) {
 			paramMap.put("mode", "append");
 		} else {
 			paramMap.put("mode", "record");
 		}
-		recordPipe.subscribe(fc, paramMap);
+		recordPipe.subscribe(recordingFile, paramMap);
 		recording = true;
 		recordingFilename = filename;
 	}
@@ -307,6 +343,29 @@ public class ClientBroadcastStream extends AbstractClientStream implements
      * @param name       Name that used for publishing. Set at client side when begin to broadcast with NetStream#publish.
      */
     public void setPublishedName(String name) {
+		log.debug("setPublishedName: " + name);
+		//check to see if we are setting the name to the same string
+		if (!name.equals(publishedName)) {
+			if (null != oName) {
+				//unregister the mbean with the previous name
+				try {
+					// deregister with jmx
+					MBeanServer mbs = JMXFactory.getMBeanServer();
+					if (mbs.isRegistered(oName)) {
+						mbs.setAttribute(oName, new javax.management.Attribute(
+								"publishedName", name));
+						//mbs.unregisterMBean(oName);
+					}
+				} catch (Exception e) {
+					log.error("Exception unregistering mbean", e);
+				}
+			} else {
+				//create a new mbean for this instance with the new name
+				oName = JMXFactory.createMBean(
+						"org.red5.server.stream.ClientBroadcastStream",
+						"publishedName=" + name);
+			}
+		}
 		this.publishedName = name;
 	}
 
@@ -362,10 +421,9 @@ public class ClientBroadcastStream extends AbstractClientStream implements
     public void dispatchEvent(IEvent event) {
 		if (!(event instanceof IRTMPEvent)
                         && (event.getType() != IEvent.Type.STREAM_CONTROL)
-                        && (event.getType() != IEvent.Type.STREAM_DATA)) {
-			return;
-		}
-		if (closed) {
+				&& (event.getType() != IEvent.Type.STREAM_DATA) || closed) {
+			//ignored event
+			log.debug("dispatchEvent: " + event.getType());
 			return;
 		}
 		
@@ -501,8 +559,9 @@ public class ClientBroadcastStream extends AbstractClientStream implements
     public void onPipeConnectionEvent(PipeConnectionEvent event) {
 		switch (event.getType()) {
 			case PipeConnectionEvent.PROVIDER_CONNECT_PUSH:
-				if (event.getProvider() == this	&& event.getSource() != connMsgOut &&
-						(event.getParamMap() == null || !event.getParamMap()
+				if (event.getProvider() == this
+						&& event.getSource() != connMsgOut
+						&& (event.getParamMap() == null || !event.getParamMap()
 								.containsKey("record"))) {
 					this.livePipe = (IPipe) event.getSource();
 				}

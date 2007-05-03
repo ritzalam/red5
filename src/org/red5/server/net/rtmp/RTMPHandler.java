@@ -61,7 +61,6 @@ import org.red5.server.so.SharedObjectEvent;
 import org.red5.server.so.SharedObjectMessage;
 import org.red5.server.so.SharedObjectService;
 import org.red5.server.stream.IBroadcastScope;
-import org.red5.server.stream.IStreamFlow;
 import org.red5.server.stream.StreamService;
 
 /**

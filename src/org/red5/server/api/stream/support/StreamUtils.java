@@ -19,6 +19,10 @@ package org.red5.server.api.stream.support;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.apache.log4j.Logger;
 import org.red5.server.api.IScope;
 import org.red5.server.api.stream.IServerStream;
 import org.red5.server.stream.ServerStream;
@@ -28,8 +32,14 @@ import org.red5.server.stream.ServerStream;
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Steven Gong (steven.gong@gmail.com)
+ * @author Paul Gregoire (mondain@gmail.com)
  */
 public abstract class StreamUtils {
+
+	private static final Logger logger = Logger.getLogger(StreamUtils.class);
+
+	/* Map to hold reference to the instanced server streams */
+	private static volatile Map<String, ServerStream> serverStreamMap = new ConcurrentHashMap<String, ServerStream>();
 
 	/**
 	 * Creates server stream
@@ -41,10 +51,34 @@ public abstract class StreamUtils {
 	 * @return		IServerStream object
 	 */
 	public static IServerStream createServerStream(IScope scope, String name) {
+		logger.debug("Creating server stream: " + name + " Scope: " + scope);
 		ServerStream stream = new ServerStream();
 		stream.setScope(scope);
 		stream.setName(name);
 		stream.setPublishedName(name);
+		//save to the list for later lookups
+		String key = scope.getName() + name;
+		serverStreamMap.put(key, stream);
 		return stream;
+	}
+
+	/**
+	 * Looks up a server stream
+	 *
+	 * @param scope
+	 *            Scope of stream
+	 * @param name
+	 *            Name of stream
+	 * @return		IServerStream object
+	 */
+	public static IServerStream getServerStream(IScope scope, String name) {
+		logger.debug("Looking up server stream: " + name + " Scope: " + scope);
+		String key = scope.getName() + name;
+		if (serverStreamMap.containsKey(key)) {
+			return serverStreamMap.get(key);
+		} else {
+			logger.warn("Server stream not found with key: " + key);
+			return null;
+		}
 	}
 }

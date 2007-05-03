@@ -303,6 +303,7 @@ public class StreamService implements IStreamService {
 
 	/** {@inheritDoc} */
     public void publish(String name, String mode) {
+		logger.debug("Publish - name: " + name + " mode: " + mode);
 		IConnection conn = Red5.getConnectionLocal();
 		if (!(conn instanceof IStreamCapableConnection)) {
 			return;

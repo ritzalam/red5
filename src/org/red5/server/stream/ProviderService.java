@@ -108,31 +108,27 @@ public class ProviderService implements IProviderService {
 	/** {@inheritDoc} */
     public boolean registerBroadcastStream(IScope scope, String name,
 			IBroadcastStream bs) {
+		boolean status = false;
 		synchronized (scope) {
 			IBasicScope basicScope = scope.getBasicScope(IBroadcastScope.TYPE,
 					name);
 			if (basicScope == null) {
 				basicScope = new BroadcastScope(scope, name);
 				scope.addChildScope(basicScope);
-				((IBroadcastScope) basicScope)
-						.subscribe(bs.getProvider(), null);
-				return true;
-			} else if (!(basicScope instanceof IBroadcastScope)) {
-				return false;
-			} else {
-				((IBroadcastScope) basicScope)
-						.subscribe(bs.getProvider(), null);
-				return true;
+			}
+			if (basicScope instanceof IBroadcastScope) {
+				((IBroadcastScope) basicScope).subscribe(bs.getProvider(), null);
+				status = true;
 			}
 		}
+		return status;
 	}
 
 	/** {@inheritDoc} */
     public List<String> getBroadcastStreamNames(IScope scope) {
 		synchronized (scope) {
 			// TODO: return result of "getBasicScopeNames" when the api has
-			// changed
-			//       to not return iterators
+			// changed to not return iterators
 			List<String> result = new ArrayList<String>();
 			Iterator<String> it = scope
 					.getBasicScopeNames(IBroadcastScope.TYPE);
@@ -145,15 +141,16 @@ public class ProviderService implements IProviderService {
 
 	/** {@inheritDoc} */
     public boolean unregisterBroadcastStream(IScope scope, String name) {
+		boolean status = false;
 		synchronized (scope) {
 			IBasicScope basicScope = scope.getBasicScope(IBroadcastScope.TYPE,
 					name);
 			if (basicScope instanceof IBroadcastScope) {
 				scope.removeChildScope(basicScope);
-				return true;
+				status = true;
 			}
-			return false;
 		}
+		return status;
 	}
 
 	private String getStreamFilename(IScope scope, String name) {
