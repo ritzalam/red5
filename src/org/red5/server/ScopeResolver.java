@@ -76,13 +76,15 @@ public class ScopeResolver implements IScopeResolver {
 			}
 
 			// Prevent the same subscope from getting created twice
+			synchronized (scope) {
 				if (scope.hasChildScope(room)) {
 					scope = scope.getScope(room);
 				} else if (!scope.equals(globalScope)
 						&& scope.createChildScope(room)) {
 					scope = scope.getScope(room);
 				} else {
-				throw new ScopeNotFoundException(scope, room);
+					throw new ScopeNotFoundException(scope, room);
+				}
 			}
 		}
 		return scope;

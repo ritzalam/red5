@@ -859,10 +859,12 @@ public class Scope extends BasicScope implements IScope, ScopeMBean {
 				return null;
 			
 			// Only synchronize if potentially needs to be created
+			synchronized (this) {
 				if (serviceHandlers == null) {
 					serviceHandlers = new ConcurrentHashMap<String, Object>();
 				}
 			}
+		}
 		return serviceHandlers;
 	}
 
