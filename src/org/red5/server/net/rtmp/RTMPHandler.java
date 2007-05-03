@@ -225,8 +225,15 @@ public class RTMPHandler extends BaseRTMPHandler {
 						host = host.substring(0, host.length() - 5);
 					}
 
-                    // App name as path
-                    final String path = (String) params.get("app");
+                    // App name as path, but without query string if there is one
+                    String path = (String) params.get("app");
+                    if(path.indexOf("?")!=-1){
+                    	int idx = path.indexOf("?");
+                    	params.put("queryString", path.substring(idx));
+                    	path = path.substring(0, idx);
+                    }
+                    params.put("path", path);
+                    
 					final String sessionId = null;
 					conn.setup(host, path, sessionId, params);
 					try {

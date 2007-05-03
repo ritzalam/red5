@@ -2,21 +2,26 @@ package org.red5.server.net.rtmp;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoFilter;
+import org.apache.mina.common.SimpleByteBufferAllocator;
+import org.apache.mina.common.ThreadModel;
 import org.apache.mina.filter.LoggingFilter;
+import org.apache.mina.filter.executor.ExecutorFilter;
 import org.apache.mina.transport.socket.nio.SocketAcceptor;
 import org.apache.mina.transport.socket.nio.SocketAcceptorConfig;
 import org.apache.mina.transport.socket.nio.SocketSessionConfig;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.red5.io.filter.ExecutorFilter;
 
 /** 
  * Transport setup class configures socket acceptor and thread pools for RTMP in mina.
@@ -27,48 +32,31 @@ public class RTMPMinaTransport {
 	private static final Log log = LogFactory.getLog(RTMPMinaTransport.class);
 
 	private static final int DEFAULT_PORT = 1935;
-
-	private static final int DEFAULT_IO_THREADS = Runtime.getRuntime()
-			.availableProcessors();
-
-	private static final int DEFAULT_EVENT_THREADS = 16;
-	
-	private static final int DEFAULT_MAX_EVENT_THREADS = 128;
-	
-	private static final int DEFAULT_THREAD_KEEP_ALIVE_TIME = 60;
-
+	private static final int DEFAULT_IO_THREADS = Runtime.getRuntime().availableProcessors();
+	private static final int DEFAULT_EVENT_THREADS_CORE = 16;
+	private static final int DEFAULT_EVENT_THREADS_MAX = 32;
+	private static final int DEFAULT_EVENT_THREADS_QUEUE = -1;
+	private static final int DEFAULT_EVENT_THREADS_KEEPALIVE = 60;
 	private static final int DEFAULT_SEND_BUFFER_SIZE = 64 * 1024;
-
 	private static final int DEFAULT_RECEIVE_BUFFER_SIZE = 256 * 1024;
-
 	private static final boolean DEFAULT_TCP_NO_DELAY = false;
-	
 	private static final boolean DEFAULT_USE_HEAP_BUFFERS = true;
 
-	private SocketAcceptor acceptor;
-
-	private ExecutorService ioExecutor;
-
 	private String address = null;
-
 	private int port = DEFAULT_PORT;
-
 	private int ioThreads = DEFAULT_IO_THREADS;
-
-	private int eventThreads = DEFAULT_EVENT_THREADS;
-	
-	private int maxEventThreads = DEFAULT_MAX_EVENT_THREADS;
-	
-	private int threadKeepAliveTime = DEFAULT_THREAD_KEEP_ALIVE_TIME;
-
+	private int eventThreadsCore = DEFAULT_EVENT_THREADS_CORE;
+	private int eventThreadsMax = DEFAULT_EVENT_THREADS_MAX;
+	private int eventThreadsKeepalive = DEFAULT_EVENT_THREADS_KEEPALIVE;
+	private int eventThreadsQueue = DEFAULT_EVENT_THREADS_QUEUE;
 	private int sendBufferSize = DEFAULT_SEND_BUFFER_SIZE;
-
 	private int receiveBufferSize = DEFAULT_RECEIVE_BUFFER_SIZE;
-
 	private boolean tcpNoDelay = DEFAULT_TCP_NO_DELAY;
-	
 	private boolean useHeapBuffers = DEFAULT_USE_HEAP_BUFFERS;
 
+	private SocketAcceptor acceptor;
+	private ExecutorService ioExecutor;
+	private ExecutorService eventExecutor;
 	private RTMPMinaIoHandler ioHandler;
 
 	private boolean isLoggingTraffic = false;
@@ -84,22 +72,26 @@ public class RTMPMinaTransport {
 		this.port = port;
 	}
 
-	public int getIoThreads() {
-		return ioThreads;
-	}
-
 	public void setIoThreads(int ioThreads) {
 		this.ioThreads = ioThreads;
 	}
 
-	public int getEventThreads() {
-		return eventThreads;
+	public void setEventThreadsCore(int eventThreadsCore) {
+		this.eventThreadsCore = eventThreadsCore;
+	}
+	
+	public void setEventThreadsMax(int eventThreadsMax) {
+		this.eventThreadsMax = eventThreadsMax;
 	}
 
-	public void setEventThreads(int eventThreads) {
-		this.eventThreads = eventThreads;
+	public void setEventThreadsKeepalive(int eventThreadsKeepalive) {
+		this.eventThreadsKeepalive = eventThreadsKeepalive;
 	}
-
+	
+	public void setEventThreadsQueue(int eventThreadsQueue) {
+		this.eventThreadsQueue = eventThreadsQueue;
+	}
+	
 	public void setIsLoggingTraffic(boolean isLoggingTraffic) {
 		this.isLoggingTraffic = isLoggingTraffic;
 	}
@@ -124,37 +116,43 @@ public class RTMPMinaTransport {
 		this.useHeapBuffers = useHeapBuffers;
 	}
 
-	public int getMaxEventThreads() {
-		return maxEventThreads;
-	}
-
-	public void setMaxEventThreads(int maxEventThreads) {
-		this.maxEventThreads = maxEventThreads;
-	}
-
-	public int getThreadKeepAliveTime() {
-		return threadKeepAliveTime;
-	}
-
-	public void setThreadKeepAliveTime(int threadKeepAliveTime) {
-		this.threadKeepAliveTime = threadKeepAliveTime;
-	}
-
 	public void start() throws Exception {
 		initIOHandler();
 		
 		ByteBuffer.setUseDirectBuffers(!useHeapBuffers); // this is global, oh well.
+		if(useHeapBuffers) ByteBuffer.setAllocator(new SimpleByteBufferAllocator()); // dont pool for heap buffers.
 		
-		ioExecutor = new ThreadPoolExecutor(ioThreads + 1, ioThreads + 1, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+		log.info("RTMP Mina Transport Settings");
+		log.info("IO Threads: "+ioThreads+"+1");
+		log.info("Event Threads:"
+				+" core: "+eventThreadsCore+"+1"
+				+" max: "+eventThreadsMax+"+1"
+				+" queue: "+eventThreadsQueue 
+				+" keepalive: "+eventThreadsKeepalive);
+		
+		ioExecutor = new ThreadPoolExecutor(
+				ioThreads + 1, ioThreads + 1, 
+				60, TimeUnit.SECONDS, 
+				new LinkedBlockingQueue<Runnable>());
+		
+		eventExecutor = new ThreadPoolExecutor(
+				eventThreadsCore + 1, eventThreadsMax + 1, 
+				eventThreadsKeepalive, TimeUnit.SECONDS, 
+				threadQueue(eventThreadsQueue));
 		
 		acceptor = new SocketAcceptor(ioThreads, ioExecutor);
 		
 		acceptor.getFilterChain().addLast("threadPool",
-				new ExecutorFilter(eventThreads, maxEventThreads, threadKeepAliveTime));
-
+				new ExecutorFilter(eventExecutor));
+		
 		SocketAcceptorConfig config = acceptor.getDefaultConfig();
+		config.setThreadModel(ThreadModel.MANUAL);
 		config.setReuseAddress(true);
 		config.setBacklog(100);
+		
+		log.info("TCP No Delay: "+tcpNoDelay);
+		log.info("Receive Buffer Size: "+ receiveBufferSize);
+		log.info("Send Buffer Size: "+sendBufferSize);
 		
 		SocketSessionConfig sessionConf = (SocketSessionConfig) config.getSessionConfig();
 		sessionConf.setReuseAddress(true);
@@ -171,24 +169,36 @@ public class RTMPMinaTransport {
 		SocketAddress socketAddress = (address == null) ? new InetSocketAddress(port) : new InetSocketAddress(address, port);
 		acceptor.bind(socketAddress, ioHandler);
 
-		log.info("RTMP Transport bound to " + socketAddress.toString());
+		log.info("RTMP Mina Transport bound to " + socketAddress.toString());
 
 	}
 
 	public void stop() {
-		log.info("RTMP Transport unbind");
+		log.info("RTMP Mina Transport unbind");
 		acceptor.unbindAll();
 		ioExecutor.shutdown();
+		eventExecutor.shutdown();
 	}
 
 	public String toString() {
-		return "RTMP Transport [port=" + port + "]";
+		return "RTMP Mina Transport [port=" + port + "]";
 	}
 
 	private void initIOHandler() {
 		if (ioHandler == null) {
 			log.info("No rtmp IO Handler associated - using defaults");
 			ioHandler = new RTMPMinaIoHandler();
+		}
+	}
+	
+	private BlockingQueue<Runnable> threadQueue(int size){
+		switch(size){
+		case -1: 
+			return new LinkedBlockingQueue<Runnable>();
+		case 0:
+			return new SynchronousQueue<Runnable>();
+		default: 
+			return new ArrayBlockingQueue<Runnable>(size);	
 		}
 	}
 }
