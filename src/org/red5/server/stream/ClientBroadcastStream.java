@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
 import org.apache.commons.logging.Log;
@@ -351,25 +350,13 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		log.debug("setPublishedName: " + name);
 		//check to see if we are setting the name to the same string
 		if (!name.equals(publishedName)) {
-			if (null != oName) {
-				//unregister the mbean with the previous name
-				try {
-					// deregister with jmx
-					MBeanServer mbs = JMXFactory.getMBeanServer();
-					if (mbs.isRegistered(oName)) {
-						mbs.setAttribute(oName, new javax.management.Attribute(
-								"publishedName", name));
-						//mbs.unregisterMBean(oName);
-					}
-				} catch (Exception e) {
-					log.error("Exception unregistering mbean", e);
-				}
-			} else {
-				//create a new mbean for this instance with the new name
-				oName = JMXFactory.createMBean(
-						"org.red5.server.stream.ClientBroadcastStream",
-						"publishedName=" + name);
-			}
+			// update an attribute
+			JMXFactory.updateMBeanAttribute(oName, "publishedName", name);
+		} else {
+			//create a new mbean for this instance with the new name
+			oName = JMXFactory.createMBean(
+					"org.red5.server.stream.ClientBroadcastStream",
+					"publishedName=" + name);
 		}
 		this.publishedName = name;
 	}

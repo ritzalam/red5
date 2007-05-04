@@ -10,7 +10,6 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
 import org.apache.commons.logging.Log;
@@ -98,39 +97,14 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 		}
 		this.address = address;
 		//update the mbean
-		if (null != oName) {
-			try {
-				// update the attribute
-				MBeanServer mbs = JMXFactory.getMBeanServer();
-				if (mbs.isRegistered(oName)) {
-					//TODO: get the correct address for fallback when address is null
-					mbs
-							.setAttribute(oName,
-									new javax.management.Attribute("address",
-											(address == null ? "0.0.0.0"
-													: address)));
-				}
-			} catch (Exception e) {
-				log.error("Exception updating mbean", e);
-			}
-		}
+		//TODO: get the correct address for fallback when address is null
+		JMXFactory.updateMBeanAttribute(oName, "address",
+				(address == null ? "0.0.0.0" : address));
 	}
 
 	public void setPort(int port) {
 		this.port = port;
-		if (null != oName) {
-			//update the mbean
-			try {
-				// update the attribute
-				MBeanServer mbs = JMXFactory.getMBeanServer();
-				if (mbs.isRegistered(oName)) {
-					mbs.setAttribute(oName, new javax.management.Attribute(
-							"port", port));
-				}
-			} catch (Exception e) {
-				log.error("Exception updating mbean", e);
-			}
-		}
+		JMXFactory.updateMBeanAttribute(oName, "port", port);
 	}
 
 	public void setIoThreads(int ioThreads) {

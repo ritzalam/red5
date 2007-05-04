@@ -26,8 +26,7 @@ public class JMXFactory {
 	private static MBeanServer mbs;
 
 	static {
-		// create the MBeanServer for our domain
-		//mbs = MBeanServerFactory.createMBeanServer(domain);
+		// grab a reference to the "platform" MBeanServer
 		mbs = ManagementFactory.getPlatformMBeanServer();
 	}
 
@@ -165,6 +164,58 @@ public class JMXFactory {
 			}
 		}
 		return unregistered;
+	}
+
+	/**
+	 * Updates a named attribute of a registered mbean.
+	 *
+	 * @param oName
+	 * @param key
+	 * @param value
+	 * @return
+	 */
+	public static boolean updateMBeanAttribute(ObjectName oName, String key,
+			String value) {
+		boolean updated = false;
+		if (null != oName) {
+			try {
+				// update the attribute
+				if (mbs.isRegistered(oName)) {
+					mbs.setAttribute(oName, new javax.management.Attribute(
+							"key", value));
+					updated = true;
+				}
+			} catch (Exception e) {
+				log.error("Exception updating mbean attribute", e);
+			}
+		}
+		return updated;
+	}
+
+	/**
+	 * Updates a named attribute of a registered mbean.
+	 *
+	 * @param oName
+	 * @param key
+	 * @param value
+	 * @return
+	 */
+	public static boolean updateMBeanAttribute(ObjectName oName, String key,
+			int value) {
+		boolean updated = false;
+		if (null != oName) {
+			try {
+				// update the attribute
+				if (mbs.isRegistered(oName)) {
+					mbs.setAttribute(oName, new javax.management.Attribute(
+							"key", value));
+					updated = true;
+				}
+			} catch (Exception e) {
+				log.error("Exception updating mbean attribute", e);
+			}
+		}
+		return updated;
 	}
 
 	public static String getDefaultDomain() {
