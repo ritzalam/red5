@@ -624,9 +624,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	 * @param call                 Call service
 	 */
 	protected void registerPendingCall(int invokeId, IPendingServiceCall call) {
-		synchronized (pendingCalls) {
-			pendingCalls.put(invokeId, call);
-		}
+		pendingCalls.put(invokeId, call);
 	}
 
 	/** {@inheritDoc} */
@@ -751,14 +749,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	 * @return                       Pending call service object
 	 */
 	protected IPendingServiceCall getPendingCall(int invokeId) {
-		IPendingServiceCall result;
-		synchronized (pendingCalls) {
-			result = pendingCalls.get(invokeId);
-			if (result != null) {
-				pendingCalls.remove(invokeId);
-			}
-		}
-		return result;
+		return pendingCalls.remove(invokeId);
 	}
 
 	/**
@@ -826,12 +817,10 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/** {@inheritDoc} */
 	@Override
 	public long getPendingVideoMessages(int streamId) {
-		synchronized (pendingVideos) {
-			Integer count = pendingVideos.get(streamId);
-			long result = (count != null ? count.intValue()
-					- getUsedStreamCount() : 0);
-			return (result > 0 ? result : 0);
-		}
+		Integer count = pendingVideos.get(streamId);
+		long result = (count != null ? count.intValue()
+				- getUsedStreamCount() : 0);
+		return (result > 0 ? result : 0);
 	}
 
 	/** {@inheritDoc} */
