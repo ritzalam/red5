@@ -53,11 +53,19 @@ public class RTMPMinaConnection extends RTMPConnection implements
 	@Override
 	public boolean connect(IScope newScope, Object[] params) {
 		boolean success = super.connect(newScope, params);
+		if (!success) return false;
 		try {
+			String hostStr = host;
+			int port = 1935;
+			if (host != null && host.indexOf(":") > -1) {
+				int idx = host.indexOf(":");
+				hostStr = host.substring(0, idx);
+				port = Integer.parseInt(host.substring(idx + 1));
+			}
 			//create a new mbean for this instance
 			oName = JMXFactory.createMBean(
 					"org.red5.server.net.rtmp.RTMPMinaConnection",
-					"connectionType=" + type + ",host=" + host + ",clientId="
+					"connectionType=" + type + ",host=" + hostStr + ",port=" + port + ",clientId="
 							+ client.getId());
 		} catch (Exception e) {
 			log.warn("Exception registering mbean", e);
