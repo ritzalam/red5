@@ -19,7 +19,6 @@ package org.red5.server.net.rtmpt;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-import java.util.BitSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -63,11 +62,6 @@ public class RTMPTConnection extends RTMPConnection {
 	 * Maximum polling delay.
 	 */
 	protected static final byte MAX_POLLING_DELAY = 32;
-
-    /**
-     * ID set
-     */
-    private static BitSet idSet = new BitSet(1000);
 
     /**
      * RTMP protocol state
@@ -126,11 +120,6 @@ public class RTMPTConnection extends RTMPConnection {
      */
 	protected int clientId;
 
-	static {
-		// the first id is reserved
-		idSet.set(0);
-	}
-
 	/** Constructs a new RTMPTConnection. */
     RTMPTConnection() {
 		super(POLLING);
@@ -148,15 +137,9 @@ public class RTMPTConnection extends RTMPConnection {
 		this.handler = handler;
 		this.decoder = handler.getCodecFactory().getSimpleDecoder();
 		this.encoder = handler.getCodecFactory().getSimpleEncoder();
-		synchronized (idSet) {
-			int id = idSet.nextClearBit(0);
-			if (id == Integer.MAX_VALUE) {
-				clientId = 0;
-			} else {
-				clientId = id;
-				idSet.set(id);
-			}
-		}
+		// Use internal (Java) id of object to make guessing of client ids
+		// more difficult.
+		clientId = hashCode();
 	}
 
 	/** {@inheritDoc} */
@@ -188,10 +171,6 @@ public class RTMPTConnection extends RTMPConnection {
 		}
 		notifyMessages.clear();
 		state.setState(RTMP.STATE_DISCONNECTED);
-		synchronized (idSet) {
-			int id = Integer.valueOf(clientId);
-			idSet.clear(id);
-		}
 		super.close();
 		for (ByteBuffer buf: pendingMessages) {
 			buf.release();
