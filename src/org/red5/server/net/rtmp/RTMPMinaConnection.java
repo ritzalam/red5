@@ -144,7 +144,9 @@ public class RTMPMinaConnection extends RTMPConnection implements
 
 		try {
 			// deregister with jmx
-			JMXFactory.getMBeanServer().unregisterMBean(oName);
+			if (oName != null) {
+				JMXFactory.getMBeanServer().unregisterMBean(oName);
+			}
 		} catch (Exception e) {
 			log.error("Exception unregistering mbean", e);
 		}

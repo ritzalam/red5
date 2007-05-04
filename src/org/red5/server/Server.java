@@ -146,6 +146,9 @@ public class Server implements IServer, ApplicationContextAware {
      * @return           Global scope
      */
 	public IGlobalScope getGlobal(String name) {
+		if (name == null) {
+			return null;
+		}
 		return globals.get(name);
 	}
 
