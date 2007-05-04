@@ -66,14 +66,13 @@ public class InMemoryPullPullPipe extends AbstractPipe {
 	/** {@inheritDoc} */
     public IMessage pullMessage() throws IOException {
 		IMessage message = null;
-		IPullableProvider[] providerArray = null;
-		synchronized (providers) {
-			providerArray = providers.toArray(new IPullableProvider[] {});
-		}
-		for (IPullableProvider provider : providerArray) {
+		for (IProvider provider : providers) {
+			if (!(provider instanceof IPullableProvider))
+				continue;
+			
 			// choose the first available provider
 			try {
-				message = provider.pullMessage(this);
+				message = ((IPullableProvider) provider).pullMessage(this);
 				if (message != null) {
 					break;
 				}
@@ -90,17 +89,16 @@ public class InMemoryPullPullPipe extends AbstractPipe {
 	/** {@inheritDoc} */
     public IMessage pullMessage(long wait) {
 		IMessage message = null;
-		IPullableProvider[] providerArray = null;
-		synchronized (providers) {
-			providerArray = providers.toArray(new IPullableProvider[] {});
-		}
 		// divided evenly
-		long averageWait = providerArray.length > 0 ? wait
-				/ providerArray.length : 0;
+		int size = providers.size();
+		long averageWait = size > 0 ? wait / size : 0;
 		// choose the first available provider
-		for (IPullableProvider provider : providerArray) {
+		for (IProvider provider : providers) {
+			if (!(provider instanceof IPullableProvider))
+				continue;
+			
 			try {
-				message = provider.pullMessage(this, averageWait);
+				message = ((IPullableProvider) provider).pullMessage(this, averageWait);
 				if (message != null) {
 					break;
 				}
