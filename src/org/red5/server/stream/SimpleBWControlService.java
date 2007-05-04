@@ -19,7 +19,6 @@ package org.red5.server.stream;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -340,11 +339,8 @@ implements IBWControlService {
 		for (int i = 0; i < 3; i++) {
 			List<TokenRequest> pendingList = context.pendingRequestArray[i];
 			if (!pendingList.isEmpty()) {
-				List<TokenRequest> tmpList = new ArrayList<TokenRequest>();
-				tmpList.addAll(pendingList);
-				pendingList.clear();
 				// loop through all pending requests in a channel
-				for (TokenRequest request : tmpList) {
+				for (TokenRequest request : pendingList) {
 					IBWControllable bc = context.getBWControllable();
 					while (bc != null) {
 						BWContext c = contextMap.get(bc);
@@ -373,6 +369,7 @@ implements IBWControlService {
 						}
 					}
 				}
+				pendingList.clear();
 			}
 		}
 	}
