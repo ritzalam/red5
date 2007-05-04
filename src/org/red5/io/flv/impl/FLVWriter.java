@@ -21,7 +21,9 @@ package org.red5.io.flv.impl;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.channels.WritableByteChannel;
+import java.nio.channels.FileChannel;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -29,7 +31,9 @@ import org.apache.mina.common.ByteBuffer;
 import org.red5.io.IStreamableFile;
 import org.red5.io.ITag;
 import org.red5.io.ITagWriter;
+import org.red5.io.amf.Output;
 import org.red5.io.flv.IFLV;
+import org.red5.io.object.Serializer;
 import org.red5.io.utils.IOUtils;
 
 /**
@@ -53,7 +57,7 @@ public class FLVWriter implements ITagWriter {
     /**
      * Writable byte channel (not concurrent)
      */
-    private WritableByteChannel channel;
+    private FileChannel channel;
 
 	//private MappedByteBuffer mappedFile;
 
@@ -83,6 +87,26 @@ public class FLVWriter implements ITagWriter {
     private int offset;
     
     private boolean appendMode = false;
+
+    /**
+     * Position of onMetaData tag in file.
+     */
+	private long fileMetaPosition = 0;
+	
+	/**
+	 * Size of tag containing onMetaData.
+	 */
+	private int fileMetaSize = 0;
+	
+	/**
+	 * Id of the video codec used.
+	 */
+	private int videoCodecId = -1;
+	
+	/**
+	 * Id of the audio codec used.
+	 */
+	private int audioCodecId = -1;
 
     /**
      * Creates new FLV writer from file output stream
@@ -138,6 +162,8 @@ public class FLVWriter implements ITagWriter {
 
 		channel.write(out.buf());
 
+		// Write intermediate onMetaData tag, will be replaced later
+		writeMetadataTag(0, -1, -1);
 	}
 
 	/** {@inheritDoc}
@@ -208,6 +234,16 @@ public class FLVWriter implements ITagWriter {
 		ByteBuffer bodyBuf = tag.getBody();
 		bytesWritten += channel.write(bodyBuf.buf());
 
+		if (audioCodecId == -1 && tag.getDataType() == ITag.TYPE_AUDIO) {
+			bodyBuf.flip();
+			byte id = bodyBuf.get();
+			audioCodecId = (id & ITag.MASK_SOUND_FORMAT) >> 4;
+		} else if (videoCodecId == -1 && tag.getDataType() == ITag.TYPE_VIDEO) {
+			bodyBuf.flip();
+			byte id = bodyBuf.get();
+			videoCodecId = id & ITag.MASK_VIDEO_CODEC;
+		}
+		
 		lastTag = tag;
 
 		return false;
@@ -223,6 +259,16 @@ public class FLVWriter implements ITagWriter {
 	/** {@inheritDoc}
 	 */
 	public void close() {
+		if (lastTag != null && !appendMode) {
+			// TODO: update existing metadata when appending audio/video to adjust duration
+			try {
+				writeMetadataTag((lastTag.getTimestamp() + offset) * 0.001,
+						videoCodecId != -1 ? videoCodecId : null,
+						audioCodecId != -1 ? audioCodecId : null);
+			} catch (IOException err) {
+				log.error("Could not update onMetaData tag.", err);
+			}
+		}
 		if (out != null) {
 			// Write size of last tag to file before closing it.
 			out.clear();
@@ -250,5 +296,55 @@ public class FLVWriter implements ITagWriter {
 		// TODO
 		return false;
 	}
+
+    /**
+     * Write "onMetaData" tag to the file.
+     * 
+     * @param duration			Duration to write in milliseconds.
+     * @param videoCodecId		Id of the video codec used while recording.
+     * @param audioCodecId		Id of the audio codec used while recording.
+     * @throws IOException if the tag could not be written
+     */
+	private void writeMetadataTag(double duration, Integer videoCodecId, Integer audioCodecId) throws IOException {
+		ByteBuffer buf = ByteBuffer.allocate(1024);
+		buf.setAutoExpand(true);
+		Output out = new Output(buf);
+		out.writeString("onMetaData");
+		Map<Object, Object> params = new HashMap<Object, Object>();
+		params.put("duration", duration);
+		if (videoCodecId != null) {
+			params.put("videocodecid", videoCodecId.intValue());
+		}
+		if (audioCodecId != null) {
+			params.put("audiocodecid", audioCodecId.intValue());
+		}
+		params.put("canSeekToEnd", true);
+		out.writeMap(params, new Serializer());
+		buf.flip();
+		
+		if (fileMetaSize == 0) {
+			fileMetaSize = buf.limit();
+		}
+		
+		ITag onMetaData = new Tag(ITag.TYPE_METADATA, 0, fileMetaSize, buf, 0);
+		if (fileMetaPosition == 0) {
+			// Remember where we wrote the intermediate tag so we can update it later
+			fileMetaPosition = channel.position();
+			writeTag(onMetaData);
+		} else {
+			long old = channel.position();
+			ITag last = lastTag;
+			try {
+				// We don't have a previous tag when writing metadata
+				lastTag = null;
+				channel.position(fileMetaPosition);
+				writeTag(onMetaData);
+			} finally {
+				lastTag = last;
+				channel.position(old);
+			}
+		}
+	}
+	
 
 }
