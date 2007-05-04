@@ -22,6 +22,7 @@ package org.red5.server.scheduling;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.quartz.JobDetail;
 import org.quartz.Scheduler;
@@ -56,7 +57,7 @@ public class QuartzSchedulingService implements ISchedulingService,
     /**
      * Number of job details
      */
-    private long jobDetailCounter;
+    private AtomicLong jobDetailCounter = new AtomicLong(0);;
 
 	/** Constructs a new QuartzSchedulingService. */
     public QuartzSchedulingService() {
@@ -76,9 +77,8 @@ public class QuartzSchedulingService implements ISchedulingService,
      *
      * @return  Job name
      */
-	public synchronized String getJobName() {
-		String result = "ScheduledJob_" + jobDetailCounter;
-		jobDetailCounter++;
+	public String getJobName() {
+		String result = "ScheduledJob_" + jobDetailCounter.getAndIncrement();
 		return result;
 	}
 
