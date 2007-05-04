@@ -169,7 +169,7 @@ public class RTMPTServlet extends HttpServlet {
 			return null;
 		}
 
-		if (path.charAt(0) == '/') {
+		while (path.length() > 1 && path.charAt(0) == '/') {
 			path = path.substring(1);
 		}
 
