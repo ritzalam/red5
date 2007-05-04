@@ -28,31 +28,49 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoSession;
+import org.red5.server.api.IScope;
+import org.red5.server.jmx.JMXFactory;
 import org.red5.server.net.rtmp.message.Packet;
 
-public class RTMPMinaConnection extends RTMPConnection {
-    /**
-     * Logger
-     */
+public class RTMPMinaConnection extends RTMPConnection implements
+		RTMPMinaConnectionMBean {
+	/**
+	 * Logger
+	 */
 	protected static Log log = LogFactory.getLog(RTMPMinaConnection.class
 			.getName());
 
-    /**
-     * MINA I/O session, connection between two endpoints
-     */
-    private IoSession ioSession;
+	/**
+	 * MINA I/O session, connection between two endpoints
+	 */
+	private IoSession ioSession;
 
 	/** Constructs a new RTMPMinaConnection. */
-    RTMPMinaConnection() {
+	public RTMPMinaConnection() {
 		super(PERSISTENT);
 	}
 
+	@Override
+	public boolean connect(IScope newScope, Object[] params) {
+		boolean success = super.connect(newScope, params);
+		try {
+			//create a new mbean for this instance
+			oName = JMXFactory.createMBean(
+					"org.red5.server.net.rtmp.RTMPMinaConnection",
+					"connectionType=" + type + ",host=" + host + ",clientId="
+							+ client.getId());
+		} catch (Exception e) {
+			log.warn("Exception registering mbean", e);
+		}
+		return success;
+	}
+
 	/**
-     * Setter for MINA I/O session (connection)
-     *
-     * @param protocolSession  Protocol session
-     */
-    void setIoSession(IoSession protocolSession) {
+	 * Setter for MINA I/O session (connection)
+	 *
+	 * @param protocolSession  Protocol session
+	 */
+	void setIoSession(IoSession protocolSession) {
 		SocketAddress remote = protocolSession.getRemoteAddress();
 		if (remote instanceof InetSocketAddress) {
 			remoteAddress = ((InetSocketAddress) remote).getAddress()
@@ -67,62 +85,73 @@ public class RTMPMinaConnection extends RTMPConnection {
 		remoteAddresses = Collections.unmodifiableList(remoteAddresses);
 		this.ioSession = protocolSession;
 	}
-	
+
 	/**
-     * Return MINA I/O session
-     *
-     * @return MINA O/I session, connection between two endpoints
-     */
-    public IoSession getIoSession() {
+	 * Return MINA I/O session
+	 *
+	 * @return MINA O/I session, connection between two endpoints
+	 */
+	public IoSession getIoSession() {
 		return ioSession;
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public void rawWrite(ByteBuffer out) {
 		ioSession.write(out);
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public void write(Packet out) {
 		writingMessage(out);
 		ioSession.write(out);
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public boolean isConnected() {
 		return super.isConnected() && ioSession.isConnected();
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public long getReadBytes() {
 		return ioSession.getReadBytes();
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public long getWrittenBytes() {
 		return ioSession.getWrittenBytes();
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public long getPendingMessages() {
 		return ioSession.getScheduledWriteRequests();
 	}
 
+	public void invokeMethod(String method) {
+		invoke(method);
+	}
+
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public void close() {
 		super.close();
 		ioSession.close();
+
+		try {
+			// deregister with jmx
+			JMXFactory.getMBeanServer().unregisterMBean(oName);
+		} catch (Exception e) {
+			log.error("Exception unregistering mbean", e);
+		}
 	}
-	
+
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	protected void onInactive() {
 		this.close();
 	}

@@ -40,82 +40,96 @@ import org.red5.server.api.event.IEvent;
  * to AttributeStore.
  */
 public abstract class BaseConnection extends AttributeStore implements
-		IConnection, BaseConnectionMBean {
-    /**
-     *  Logger
-     */
+		IConnection {
+	/**
+	 *  Logger
+	 */
 	protected static Log log = LogFactory
 			.getLog(BaseConnection.class.getName());
-    /**
-     *  Connection type
-     */
+
+	/**
+	 *  Connection type
+	 */
 	protected String type;
-    /**
-     *  Connection host
-     */
+
+	/**
+	 *  Connection host
+	 */
 	protected String host;
-    /**
-     *  Connection remote address
-     */
+
+	/**
+	 *  Connection remote address
+	 */
 	protected String remoteAddress;
-    /**
-     *  Connection remote addresses
-     */
+
+	/**
+	 *  Connection remote addresses
+	 */
 	protected List<String> remoteAddresses;
-    /**
-     *  Remote port
-     */
+
+	/**
+	 *  Remote port
+	 */
 	protected int remotePort;
-    /**
-     *  Path of scope client connected to
-      */
-    protected String path;
-    /**
-     *  Connection session identifier
-     */
+
+	/**
+	 *  Path of scope client connected to
+	 */
+	protected String path;
+
+	/**
+	 *  Connection session identifier
+	 */
 	protected String sessionId;
-    /**
-     *  Number of read messages
-     */
+
+	/**
+	 *  Number of read messages
+	 */
 	protected long readMessages;
-    /**
-     *  Number of written messages
-     */
+
+	/**
+	 *  Number of written messages
+	 */
 	protected long writtenMessages;
-    /**
-     *  Number of dropped messages
-     */
+
+	/**
+	 *  Number of dropped messages
+	 */
 	protected long droppedMessages;
-    /**
-     *  Connection params passed from client with NetConnection.connect call
-     *
-     * @see  NetConnection in Flash Media Server Server-side ActionScript guide
-     */
+
+	/**
+	 *  Connection params passed from client with NetConnection.connect call
+	 *
+	 * @see  NetConnection in Flash Media Server Server-side ActionScript guide
+	 */
 	@SuppressWarnings("all")
-    protected Map<String, Object> params = null;
-    /**
-     *  Client bound to connection
-     */
+	protected Map<String, Object> params = null;
+
+	/**
+	 *  Client bound to connection
+	 */
 	protected IClient client;
-    /**
-     *  Scope that connection belongs to
-     */
+
+	/**
+	 *  Scope that connection belongs to
+	 */
 	protected Scope scope;
-    /**
-     *  Set of basic scopes.
-     */
+
+	/**
+	 *  Set of basic scopes.
+	 */
 	protected Set<IBasicScope> basicScopes;
 
-    /**
-     *
-     * @param type                Connection type
-     * @param host                Host
-     * @param remoteAddress       Remote address
-     * @param remotePort          Remote port
-     * @param path                Scope path on server
-     * @param sessionId           Session id
-     * @param params              Params passed from client
-     */
+	/**
+	 *
+	 * @param type                Connection type
+	 * @param host                Host
+	 * @param remoteAddress       Remote address
+	 * @param remotePort          Remote port
+	 * @param path                Scope path on server
+	 * @param sessionId           Session id
+	 * @param params              Params passed from client
+	 */
 	public BaseConnection(String type, String host, String remoteAddress,
 			int remotePort, String path, String sessionId,
 			Map<String, Object> params) {
@@ -124,7 +138,8 @@ public abstract class BaseConnection extends AttributeStore implements
 		this.remoteAddress = remoteAddress;
 		this.remoteAddresses = new ArrayList<String>();
 		this.remoteAddresses.add(remoteAddress);
-		this.remoteAddresses = Collections.unmodifiableList(this.remoteAddresses);
+		this.remoteAddresses = Collections
+				.unmodifiableList(this.remoteAddresses);
 		this.remotePort = remotePort;
 		this.path = path;
 		this.sessionId = sessionId;
@@ -132,10 +147,10 @@ public abstract class BaseConnection extends AttributeStore implements
 		this.basicScopes = new HashSet<IBasicScope>();
 	}
 
-    /**
-     * Initializes client
-     * @param client        Client bound to connection
-     */
+	/**
+	 * Initializes client
+	 * @param client        Client bound to connection
+	 */
 	public void initialize(IClient client) {
 		if (this.client != null && this.client instanceof Client) {
 			// Unregister old client
@@ -148,101 +163,101 @@ public abstract class BaseConnection extends AttributeStore implements
 		}
 	}
 
-    /**
-     *
-     * @return
-     */
+	/**
+	 *
+	 * @return
+	 */
 	public String getType() {
 		return type;
 	}
 
-    /**
-     *
-     * @return
-     */
+	/**
+	 *
+	 * @return
+	 */
 	public String getHost() {
 		return host;
 	}
 
-    /**
-     *
-     * @return
-     */
+	/**
+	 *
+	 * @return
+	 */
 	public String getRemoteAddress() {
 		return remoteAddress;
 	}
 
-    /**
-    *
-    * @return
-    */
+	/**
+	 *
+	 * @return
+	 */
 	public List<String> getRemoteAddresses() {
 		return remoteAddresses;
 	}
 
-    /**
-     *
-     * @return
-     */
+	/**
+	 *
+	 * @return
+	 */
 	public int getRemotePort() {
 		return remotePort;
 	}
 
-    /**
-     *
-     * @return
-     */
+	/**
+	 *
+	 * @return
+	 */
 	public String getPath() {
 		return path;
 	}
 
-    /**
-     *
-     * @return
-     */
+	/**
+	 *
+	 * @return
+	 */
 	public String getSessionId() {
 		return sessionId;
 	}
 
-    /**
-     * Return connection parameters
-     * @return
-     */
+	/**
+	 * Return connection parameters
+	 * @return
+	 */
 	public Map<String, Object> getConnectParams() {
 		return Collections.unmodifiableMap(params);
 	}
 
-    /**
-     *
-     * @return
-     */
+	/**
+	 *
+	 * @return
+	 */
 	public IClient getClient() {
 		return client;
 	}
 
-    /**
-     * Check whether connection is alive
-     * @return       true if connection is bound to scope, false otherwise
-     */
+	/**
+	 * Check whether connection is alive
+	 * @return       true if connection is bound to scope, false otherwise
+	 */
 	public boolean isConnected() {
 		return scope != null;
 	}
 
-    /**
-     * Connect to another scope on server
-     * @param newScope     New scope
-     * @return             true on success, false otherwise
-     */
+	/**
+	 * Connect to another scope on server
+	 * @param newScope     New scope
+	 * @return             true on success, false otherwise
+	 */
 	public boolean connect(IScope newScope) {
 		return connect(newScope, null);
 	}
 
-    /**
-     * Connect to another scope on server with given parameters
-     * @param newScope        New scope
-     * @param params          Parameters to connect with
-     * @return                true on success, false otherwise
-     */
+	/**
+	 * Connect to another scope on server with given parameters
+	 * @param newScope        New scope
+	 * @param params          Parameters to connect with
+	 * @return                true on success, false otherwise
+	 */
 	public boolean connect(IScope newScope, Object[] params) {
 		final Scope oldScope = scope;
 		scope = (Scope) newScope;
@@ -257,25 +272,25 @@ public abstract class BaseConnection extends AttributeStore implements
 		}
 	}
 
-    /**
-     *
-     * @return
-     */
+	/**
+	 *
+	 * @return
+	 */
 	public IScope getScope() {
 		return scope;
 	}
 
-    /**
-     *  Closes connection
-     */
+	/**
+	 *  Closes connection
+	 */
 	public synchronized void close() {
 
 		if (scope != null) {
 
 			log.debug("Close, disconnect from scope, and children");
 			try {
-                // Unregister all child scopes first
-                Set<IBasicScope> tmpScopes = new HashSet<IBasicScope>(
+				// Unregister all child scopes first
+				Set<IBasicScope> tmpScopes = new HashSet<IBasicScope>(
 						basicScopes);
 				for (IBasicScope basicScope : tmpScopes) {
 					unregisterBasicScope(basicScope);
@@ -284,15 +299,15 @@ public abstract class BaseConnection extends AttributeStore implements
 				log.error("Error while unregistering basic scopes.", err);
 			}
 
-            // Disconnect
-            try {
+			// Disconnect
+			try {
 				scope.disconnect(this);
 			} catch (Exception err) {
 				log.error("Error while disconnecting from scope " + scope, err);
 			}
 
-            // Unregister client
-            if (client != null && client instanceof Client) {
+			// Unregister client
+			if (client != null && client instanceof Client) {
 				((Client) client).unregister(this);
 				client = null;
 			}
@@ -304,107 +319,107 @@ public abstract class BaseConnection extends AttributeStore implements
 
 	}
 
-    /**
-     * Notified on event
-     * @param event       Event
-     */
+	/**
+	 * Notified on event
+	 * @param event       Event
+	 */
 	public void notifyEvent(IEvent event) {
 		// TODO Auto-generated method stub
 	}
 
-    /**
-     * Dispatches event
-     * @param event       Event
-     */
+	/**
+	 * Dispatches event
+	 * @param event       Event
+	 */
 	public void dispatchEvent(IEvent event) {
 
 	}
 
-    /**
-     * Handles event
-     * @param event        Event
-     * @return             true if associated scope was able to handle event, false otherwise
-     */
+	/**
+	 * Handles event
+	 * @param event        Event
+	 * @return             true if associated scope was able to handle event, false otherwise
+	 */
 	public boolean handleEvent(IEvent event) {
 		return getScope().handleEvent(event);
 	}
 
-    /**
-     *
-     * @return
-     */
+	/**
+	 *
+	 * @return
+	 */
 	public Iterator<IBasicScope> getBasicScopes() {
 		return basicScopes.iterator();
 	}
 
-    /**
-     * Registers basic scope
-     * @param basicScope      Basic scope to register
-     */
+	/**
+	 * Registers basic scope
+	 * @param basicScope      Basic scope to register
+	 */
 	public void registerBasicScope(IBasicScope basicScope) {
 		basicScopes.add(basicScope);
 		basicScope.addEventListener(this);
 	}
 
-    /**
-     * Unregister basic scope
-     *
-     * @param basicScope      Unregister basic scope
-     */
+	/**
+	 * Unregister basic scope
+	 *
+	 * @param basicScope      Unregister basic scope
+	 */
 	public void unregisterBasicScope(IBasicScope basicScope) {
 		basicScopes.remove(basicScope);
 		basicScope.removeEventListener(this);
 	}
 
-    /**
-     *
-     * @return
-     */
+	/**
+	 *
+	 * @return
+	 */
 	public abstract long getReadBytes();
 
-    /**
-     *
-     * @return
-     */
+	/**
+	 *
+	 * @return
+	 */
 	public abstract long getWrittenBytes();
 
-    /**
-     *
-     * @return
-     */
+	/**
+	 *
+	 * @return
+	 */
 	public long getReadMessages() {
 		return readMessages;
 	}
 
-    /**
-     *
-     * @return
-     */
+	/**
+	 *
+	 * @return
+	 */
 	public long getWrittenMessages() {
 		return writtenMessages;
 	}
 
-    /**
-     *
-     * @return
-     */
+	/**
+	 *
+	 * @return
+	 */
 	public long getDroppedMessages() {
 		return droppedMessages;
 	}
 
-    /**
-     *
-     * @return
-     */
+	/**
+	 *
+	 * @return
+	 */
 	public long getPendingMessages() {
 		return 0;
 	}
 
-    /**
-     *
-     * @param streamId
-     * @return
-     */
+	/**
+	 *
+	 * @param streamId
+	 * @return
+	 */
 	public long getPendingVideoMessages(int streamId) {
 		return 0;
 	}
