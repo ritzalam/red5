@@ -9,6 +9,7 @@
 		<property name="domain" value="org.red5.server"/>
 	</bean>
 	<bean id="jmxAgent" class="org.red5.server.jmx.JMXAgent" init-method="init">
+		<property name="enableHtmlAdapter" value="false" />
 		<property name="htmlAdapterPort" value="8082"/>
 	</bean>
 	<!-- Serializes objects to AMF binary -->

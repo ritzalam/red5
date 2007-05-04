@@ -22,6 +22,8 @@ public class JMXAgent {
 
 	private static String htmlAdapterPort = "8082";
 
+	private static boolean enableHtmlAdapter;
+
 	private static MBeanServer mbs;
 
 	public void init() {
@@ -38,24 +40,29 @@ public class JMXAgent {
 				}
 			}
 		}
-		// setup the agent
-		try {
-			//instance an html adaptor
-			int port = htmlAdapterPort == null ? 9080 : Integer
-					.valueOf(htmlAdapterPort);
-			HtmlAdaptorServer html = new HtmlAdaptorServer(port);
-			ObjectName htmlName = new ObjectName(JMXFactory.getDefaultDomain()
-					+ ":type=HtmlAdaptorServer,port=" + port);
-			log.debug("Created HTML adaptor on port: " + port);
-			//add the adaptor to the server
-			mbs.registerMBean(html, htmlName);
-			//start the adaptor
-			html.start();
+		if (enableHtmlAdapter) {
+			// setup the adapter
+			try {
+				//instance an html adaptor
+				int port = htmlAdapterPort == null ? 9080 : Integer
+						.valueOf(htmlAdapterPort);
+				HtmlAdaptorServer html = new HtmlAdaptorServer(port);
+				ObjectName htmlName = new ObjectName(JMXFactory
+						.getDefaultDomain()
+						+ ":type=HtmlAdaptorServer,port=" + port);
+				log.debug("Created HTML adaptor on port: " + port);
+				//add the adaptor to the server
+				mbs.registerMBean(html, htmlName);
+				//start the adaptor
+				html.start();
 
-			log.debug("JMX default domain: " + mbs.getDefaultDomain());
+				log.debug("JMX default domain: " + mbs.getDefaultDomain());
 
-		} catch (Exception e) {
-			log.error("Error in setup of JMX subsystem", e);
+			} catch (Exception e) {
+				log.error("Error in setup of JMX subsystem", e);
+			}
+		} else {
+			log.info("JMX HTML adapter was not enabled");
 		}
 	}
 
@@ -105,6 +112,15 @@ public class JMXAgent {
 
 	public void setHtmlAdapterPort(String htmlAdapterPort) {
 		JMXAgent.htmlAdapterPort = htmlAdapterPort;
+	}
+
+	public void setEnableHtmlAdapter(boolean enableHtmlAdapter) {
+		JMXAgent.enableHtmlAdapter = enableHtmlAdapter;
+	}
+
+	public void setEnableHtmlAdapter(String enableHtmlAdapterString) {
+		JMXAgent.enableHtmlAdapter = enableHtmlAdapterString
+				.matches("true|on|yes");
 	}
 
 }

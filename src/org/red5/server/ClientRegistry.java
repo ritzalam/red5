@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.red5.server.api.IClient;
 import org.red5.server.api.IClientRegistry;
@@ -35,49 +36,58 @@ import org.red5.server.jmx.JMXFactory;
  * from whenever we need
  */
 public class ClientRegistry implements IClientRegistry, ClientRegistryMBean {
-    /**
-     * Clients map
-     */
+	/**
+	 * Clients map
+	 */
 	private Map<String, IClient> clients = new ConcurrentHashMap<String, IClient>();
-    /**
-     *  Next client id
-     */
-	private int nextId = 0;
+
+	/**
+	 *  Next client id
+	 */
+	private AtomicInteger nextId;
 
 	{
 		JMXFactory.registerMBean(this, this.getClass().getName(),
 				ClientRegistryMBean.class);
 	}
 
-    /**
-     * Return next client id
-     * @return         Next client id
-     */
-	public synchronized String nextId() {
-		return "" + nextId++;
+	/**
+	 * Return next client id
+	 * @return         Next client id
+	 */
+	public String nextId() {
+		return "" + nextId.getAndIncrement();
 	}
 
-    /**
-     * Check whether registry has client with given id
-     *
-     * @param id         Client id
-     * @return           true if client with given id was register with this registry, false otherwise
-     */
+	/**
+	 * Return previous client id
+	 * @return        Previous client id
+	 */
+	public String previousId() {
+		return "" + nextId.get();
+	}
+
+	/**
+	 * Check whether registry has client with given id
+	 *
+	 * @param id         Client id
+	 * @return           true if client with given id was register with this registry, false otherwise
+	 */
 	public boolean hasClient(String id) {
-		if (id == null)
+		if (id == null) {
 			// null ids are not supported
 			return false;
-		
+		}
 		return clients.containsKey(id);
 	}
 
-    /**
-     * Return client by id
-     *
-     * @param id          Client id
-     * @return            Client object associated with given id
-     * @throws ClientNotFoundException
-     */
+	/**
+	 * Return client by id
+	 *
+	 * @param id          Client id
+	 * @return            Client object associated with given id
+	 * @throws ClientNotFoundException
+	 */
 	public IClient lookupClient(String id) throws ClientNotFoundException {
 		if (!hasClient(id)) {
 			throw new ClientNotFoundException(id);
@@ -86,14 +96,14 @@ public class ClientRegistry implements IClientRegistry, ClientRegistryMBean {
 		return clients.get(id);
 	}
 
-    /**
-     * Return client from next id with given params
-     *
-     * @param params                         Client params
-     * @return                               Client object
-     * @throws ClientNotFoundException
-     * @throws ClientRejectedException
-     */
+	/**
+	 * Return client from next id with given params
+	 *
+	 * @param params                         Client params
+	 * @return                               Client object
+	 * @throws ClientNotFoundException
+	 * @throws ClientRejectedException
+	 */
 	public IClient newClient(Object[] params) throws ClientNotFoundException,
 			ClientRejectedException {
 		IClient client = new Client(nextId(), this);
@@ -101,26 +111,26 @@ public class ClientRegistry implements IClientRegistry, ClientRegistryMBean {
 		return client;
 	}
 
-    /**
-     * Add client to registry
-     * @param client           Client to add
-     */
+	/**
+	 * Add client to registry
+	 * @param client           Client to add
+	 */
 	protected void addClient(IClient client) {
 		clients.put(client.getId(), client);
 	}
 
-    /**
-     * Removes client from registry
-     * @param client           Client to remove
-     */
+	/**
+	 * Removes client from registry
+	 * @param client           Client to remove
+	 */
 	protected void removeClient(IClient client) {
 		clients.remove(client.getId());
 	}
 
-    /**
-     * Return collection of clients
-     * @return             Collection of clients
-     */
+	/**
+	 * Return collection of clients
+	 * @return             Collection of clients
+	 */
 	protected Collection<IClient> getClients() {
 		return Collections.unmodifiableCollection(clients.values());
 	}

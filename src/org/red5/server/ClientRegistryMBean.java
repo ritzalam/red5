@@ -21,7 +21,6 @@ package org.red5.server;
 
 import java.util.List;
 
-import org.red5.server.api.IClient;
 import org.red5.server.exception.ClientNotFoundException;
 
 /**
@@ -34,9 +33,9 @@ public interface ClientRegistryMBean {
 
 	public String nextId();
 
-	public boolean hasClient(String id);
+	public String previousId();
 
-	public IClient lookupClient(String id) throws ClientNotFoundException;
+	public boolean hasClient(String id);
 
 	public List<Client> getClientList();
 
