@@ -170,6 +170,23 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
     public void setExecutor(ScheduledThreadPoolExecutor executor) {
     	this.executor = executor;
     }
+
+    /**
+     * Return the executor to use.
+     * 
+     * @return the executor
+     */
+    public ScheduledThreadPoolExecutor getExecutor() {
+		if (executor == null) {
+			synchronized (this) {
+				if (executor == null) {
+					// Default executor
+					executor = new ScheduledThreadPoolExecutor(16);
+				}
+			}
+		}
+		return executor;
+    }
     
     /**
      * Set interval to check for buffer underruns. Set to <code>0</code> to
@@ -764,7 +781,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
         /**
          * Scheduled future job that makes sure messages are sent to the client.
          */
-        private ScheduledFuture<?> pullAndPushFuture = null;
+        private volatile ScheduledFuture<?> pullAndPushFuture = null;
         /**
          * Offset in ms the stream started.
          */
@@ -1257,17 +1274,13 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
         /**
          * Make sure the pull and push processing is running.
          */
-        private synchronized void ensurePullAndPushRunning() {
+        private void ensurePullAndPushRunning() {
 			if (pullAndPushFuture == null) {
-				if (executor == null) {
-					synchronized (PlaylistSubscriberStream.this) {
-						if (executor == null) {
-							// Default executor
-							executor = new ScheduledThreadPoolExecutor(16);
-						}
+				synchronized (this) {
+					if (pullAndPushFuture == null) {
+						pullAndPushFuture = getExecutor().scheduleWithFixedDelay(new PullAndPushRunnable(), 0, 10, TimeUnit.MILLISECONDS);
 					}
 				}
-				pullAndPushFuture = executor.scheduleWithFixedDelay(new PullAndPushRunnable(), 0, 10, TimeUnit.MILLISECONDS);
 			}
         }
         
