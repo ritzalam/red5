@@ -21,13 +21,14 @@ package org.red5.server.stream;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -59,7 +60,7 @@ implements IBWControlService {
 	private static final Log log = LogFactory.getLog(SimpleBWControlService.class);
 	
 	protected Map<IBWControllable, BWContext> contextMap =
-		new HashMap<IBWControllable, BWContext>();
+		new ConcurrentHashMap<IBWControllable, BWContext>();
 	protected Timer tokenDistributor;
 	protected long interval;
 	protected long defaultCapacity;
@@ -70,10 +71,7 @@ implements IBWControlService {
 	}
 
 	public void run() {
-		List<BWContext> contexts = new ArrayList<BWContext>();
-		synchronized (contextMap) {
-			contexts.addAll(contextMap.values());
-		}
+		Collection<BWContext> contexts = contextMap.values();
 		for (BWContext context : contexts) {
 			synchronized (context) {
 				if (context.bwConfig != null) {
@@ -149,9 +147,7 @@ implements IBWControlService {
 		} else {
 			context.lastSchedule = -1;
 		}
-		synchronized (contextMap) {
-			contextMap.put(bc, context);
-		}
+		contextMap.put(bc, context);
 		return context;
 	}
 
@@ -165,9 +161,7 @@ implements IBWControlService {
 
 	public void unregisterBWControllable(IBWControlContext context) {
 		resetBuckets(context);
-		synchronized (contextMap) {
-			contextMap.remove(context.getBWControllable());
-		}
+		contextMap.remove(context.getBWControllable());
 	}
 	
 	public IBWControlContext lookupContext(IBWControllable bc) {
