@@ -44,7 +44,7 @@ public class ClientRegistry implements IClientRegistry, ClientRegistryMBean {
 	/**
 	 *  Next client id
 	 */
-	private AtomicInteger nextId;
+	private AtomicInteger nextId = new AtomicInteger();
 
 	{
 		JMXFactory.registerMBean(this, this.getClass().getName(),
