@@ -44,28 +44,32 @@ import org.red5.server.jmx.JMXFactory;
  * Clients are tied to connections and registred in ClientRegistry
  */
 public class Client extends AttributeStore implements IClient, ClientMBean {
-    /**
-     *  Logger
-     */
+	/**
+	 *  Logger
+	 */
 	protected static Log log = LogFactory.getLog(Client.class.getName());
-    /**
-     *  Clients identificator
-     */
+
+	/**
+	 *  Clients identificator
+	 */
 	protected String id;
-    /**
-     *  Creation time as Timestamp
-     */
+
+	/**
+	 *  Creation time as Timestamp
+	 */
 	protected long creationTime;
-    /**
-     *  Client registry where Client is registred
-     */
+
+	/**
+	 *  Client registry where Client is registred
+	 */
 	protected ClientRegistry registry;
-    /**
-     *  Scopes this client connected to
-     */
+
+	/**
+	 *  Scopes this client connected to
+	 */
 	protected Map<IConnection, IScope> connToScope = new ConcurrentHashMap<IConnection, IScope>();
 
-    /**
+	/**
 	 * MBean object name used for de/registration purposes.
 	 */
 	private ObjectName oName;
@@ -75,11 +79,11 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 	}
 
 	/**
-     * Creates client, sets creation time and registers it in ClientRegistry
-     *
-     * @param id             Client id
-     * @param registry       ClientRegistry
-     */
+	 * Creates client, sets creation time and registers it in ClientRegistry
+	 *
+	 * @param id             Client id
+	 * @param registry       ClientRegistry
+	 */
 	public Client(String id, ClientRegistry registry) {
 		this.id = id;
 		this.registry = registry;
@@ -88,28 +92,28 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 		oName = JMXFactory.createMBean("org.red5.server.Client", "id=" + id);
 	}
 
-    /**
-     *
-     * @return
-     */
+	/**
+	 *
+	 * @return
+	 */
 	public String getId() {
 		return id;
 	}
 
-    /**
-     *
-     * @return
-     */
+	/**
+	 *
+	 * @return
+	 */
 	public long getCreationTime() {
 		return creationTime;
 	}
 
-    /**
-     * Check clients equality by id
-     *
-     * @param obj        Object to check against
-     * @return           true if clients ids are the same, false otherwise
-     */
+	/**
+	 * Check clients equality by id
+	 *
+	 * @param obj        Object to check against
+	 * @return           true if clients ids are the same, false otherwise
+	 */
 	@Override
 	public boolean equals(Object obj) {
 		if (!(obj instanceof Client)) {
@@ -118,39 +122,39 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 		return ((Client) obj).getId().equals(id);
 	}
 
-    /**
-     * if overriding equals then also do hashCode
-     * @return
-     */
-    @Override
+	/**
+	 * if overriding equals then also do hashCode
+	 * @return
+	 */
+	@Override
 	public int hashCode() {
 		return id.hashCode();
 	}
 
-    /**
-     *
-     * @return
-     */
+	/**
+	 *
+	 * @return
+	 */
 	@Override
 	public String toString() {
 		return "Client: " + id;
 	}
 
-    /**
-     * Return set of connections for this client
-     *
-     * @return           Set of connections
-     */
+	/**
+	 * Return set of connections for this client
+	 *
+	 * @return           Set of connections
+	 */
 	public Set<IConnection> getConnections() {
 		return connToScope.keySet();
 	}
 
-    /**
-     * Return client connections to given scope
-     *
-     * @param scope           Scope
-     * @return                Set of connections for that scope
-     */
+	/**
+	 * Return client connections to given scope
+	 *
+	 * @param scope           Scope
+	 * @return                Set of connections for that scope
+	 */
 	public Set<IConnection> getConnections(IScope scope) {
 		if (scope == null) {
 			return getConnections();
@@ -165,83 +169,79 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 		return result;
 	}
 
-    /**
-     *
-     * @return
-     */
+	/**
+	 *
+	 * @return
+	 */
 	public Collection<IScope> getScopes() {
 		return connToScope.values();
 	}
 
-    /**
-     *  Disconnects client from Red5 application
-     */
+	/**
+	 *  Disconnects client from Red5 application
+	 */
 	public void disconnect() {
 		if (log.isDebugEnabled()) {
 			log.debug("Disconnect, closing " + getConnections().size()
-				+ " connections");
+					+ " connections");
 		}
 
-        // Close all associated connections
+		// Close all associated connections
 		for (IConnection con : getConnections()) {
 			con.close();
 		}
 	}
 
-    /**
-     * Return bandwidth configuration context, that is, broadcasting bandwidth and quality settings for this client
-     * @return      Bandwidth configuration context
-     */
+	/**
+	 * Return bandwidth configuration context, that is, broadcasting bandwidth and quality settings for this client
+	 * @return      Bandwidth configuration context
+	 */
 	public IBandwidthConfigure getBandwidthConfigure() {
 		// TODO implement it
 		return null;
 	}
 
-    /**
-     * Parent flow controllable object, that is, parent object that is used to determine client broadcast bandwidth
-     * settings. In case of base Client class parent is host.
-     *
-     * @return     IFlowControllable instance
-     */
+	/**
+	 * Parent flow controllable object, that is, parent object that is used to determine client broadcast bandwidth
+	 * settings. In case of base Client class parent is host.
+	 *
+	 * @return     IFlowControllable instance
+	 */
 	public IBWControllable getParentBWControllable() {
 		// parent is host
 		return null;
 	}
 
-    /**
-     * Set new bandwidth configuration context
-     * @param config             Bandwidth configuration context
-     */
+	/**
+	 * Set new bandwidth configuration context
+	 * @param config             Bandwidth configuration context
+	 */
 	public void setBandwidthConfigure(IBandwidthConfigure config) {
 		// TODO implement it
 	}
 
-    /**
-     * Associate connection with client
-     * @param conn         Connection object
-     */
+	/**
+	 * Associate connection with client
+	 * @param conn         Connection object
+	 */
 	protected void register(IConnection conn) {
 		log.debug("Registering connection for this client");
 		connToScope.put(conn, conn.getScope());
 	}
 
-    /**
-     * Removes client-connection association for given connection
-     * @param conn         Connection object
-     */
+	/**
+	 * Removes client-connection association for given connection
+	 * @param conn         Connection object
+	 */
 	protected void unregister(IConnection conn) {
-        // Remove connection from connected scopes list
-        connToScope.remove(conn);
-        // If client is not connected to any scope any longer then remove
-        if (connToScope.isEmpty()) {
+		// Remove connection from connected scopes list
+		connToScope.remove(conn);
+		// If client is not connected to any scope any longer then remove
+		if (connToScope.isEmpty()) {
 			// This client is not connected to any scopes, remove from registry.
 			registry.removeClient(this);
-			try {
-				// deregister with jmx
-				JMXFactory.getMBeanServer().unregisterMBean(oName);
-			} catch (Exception e) {
-				log.error("Exception unregistering mbean", e);
-			}
+			// deregister with jmx
+			JMXFactory.unregisterMBean(oName);
 		}
 	}
 

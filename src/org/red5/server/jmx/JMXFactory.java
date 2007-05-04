@@ -144,6 +144,29 @@ public class JMXFactory {
 		return status;
 	}
 
+	/**
+	 * Unregisters an mbean instance. If the instance is not found or if a failure occurs, false will be returned.
+	 * @param oName
+	 * @return
+	 */
+	public static boolean unregisterMBean(ObjectName oName) {
+		boolean unregistered = false;
+		if (null != oName) {
+			try {
+				if (mbs.isRegistered(oName)) {
+					mbs.unregisterMBean(oName);
+					//set flag based on registration status
+					unregistered = mbs.isRegistered(oName);
+				} else {
+					log.debug("Mbean is not currently registered");
+				}
+			} catch (Exception e) {
+				log.error("Exception unregistering mbean", e);
+			}
+		}
+		return unregistered;
+	}
+
 	public static String getDefaultDomain() {
 		return domain;
 	}

@@ -243,13 +243,8 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 		acceptor.unbindAll();
 		ioExecutor.shutdown();
 		eventExecutor.shutdown();
-
-		try {
-			// deregister with jmx
-			JMXFactory.getMBeanServer().unregisterMBean(oName);
-		} catch (Exception e) {
-			log.error("Exception unregistering mbean", e);
-		}
+		// deregister with jmx
+		JMXFactory.unregisterMBean(oName);
 	}
 
 	public String toString() {

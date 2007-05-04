@@ -2,21 +2,21 @@ package org.red5.server.net.rtmp;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
- * 
+ *
  * Copyright (c) 2006-2007 by respective authors (see below). All rights reserved.
- * 
- * This library is free software; you can redistribute it and/or modify it under the 
- * terms of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either version 2.1 of the License, or (at your option) any later 
- * version. 
- * 
- * This library is distributed in the hope that it will be useful, but WITHOUT ANY 
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+ *
+ * This library is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free Software
+ * Foundation; either version 2.1 of the License, or (at your option) any later
+ * version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
  * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public License along 
- * with this library; if not, write to the Free Software Foundation, Inc., 
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ *
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with this library; if not, write to the Free Software Foundation, Inc.,
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 import java.net.InetSocketAddress;
@@ -53,7 +53,9 @@ public class RTMPMinaConnection extends RTMPConnection implements
 	@Override
 	public boolean connect(IScope newScope, Object[] params) {
 		boolean success = super.connect(newScope, params);
-		if (!success) return false;
+		if (!success) {
+			return false;
+		}
 		try {
 			String hostStr = host;
 			int port = 1935;
@@ -65,8 +67,8 @@ public class RTMPMinaConnection extends RTMPConnection implements
 			//create a new mbean for this instance
 			oName = JMXFactory.createMBean(
 					"org.red5.server.net.rtmp.RTMPMinaConnection",
-					"connectionType=" + type + ",host=" + hostStr + ",port=" + port + ",clientId="
-							+ client.getId());
+					"connectionType=" + type + ",host=" + hostStr + ",port="
+							+ port + ",clientId=" + client.getId());
 		} catch (Exception e) {
 			log.warn("Exception registering mbean", e);
 		}
@@ -149,15 +151,8 @@ public class RTMPMinaConnection extends RTMPConnection implements
 	public void close() {
 		super.close();
 		ioSession.close();
-
-		try {
-			// deregister with jmx
-			if (oName != null) {
-				JMXFactory.getMBeanServer().unregisterMBean(oName);
-			}
-		} catch (Exception e) {
-			log.error("Exception unregistering mbean", e);
-		}
+		// deregister with jmx
+		JMXFactory.unregisterMBean(oName);
 	}
 
 	/** {@inheritDoc} */
