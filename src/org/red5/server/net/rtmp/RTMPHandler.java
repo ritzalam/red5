@@ -193,13 +193,6 @@ public class RTMPHandler extends BaseRTMPHandler {
 			return;
 		}
 
-		// Make sure we don't use invoke ids that are used by the client
-		synchronized (conn.invokeId) {
-			if (conn.invokeId <= invoke.getInvokeId()) {
-				conn.invokeId = invoke.getInvokeId() + 1;
-			}
-		}
-
 		boolean disconnectOnReturn = false;
 
         // If this is not a service call then handle connection...

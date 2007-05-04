@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.management.ObjectName;
 
@@ -110,7 +111,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/**
 	 * Identifier for remote calls
 	 */
-	protected Integer invokeId = 1;
+	protected AtomicInteger invokeId = new AtomicInteger(1);
 
 	/**
 	 * Hash map that stores pending calls and ids as pairs.
@@ -613,8 +614,8 @@ public abstract class RTMPConnection extends BaseConnection implements
 	 *
 	 * @return  Next invoke id for RPC
 	 */
-	protected synchronized int getInvokeId() {
-		return invokeId++;
+	protected int getInvokeId() {
+		return invokeId.incrementAndGet();
 	}
 
 	/**
