@@ -262,9 +262,7 @@ public class RTMPTServlet extends HttpServlet {
 			returnMessage((byte) 0, resp);
 			return;
 		}
-		synchronized (rtmptClients) {
-			rtmptClients.put(client.getId(), client);
-		}
+		rtmptClients.put(client.getId(), client);
 
 		// Return connection id to client
 		returnMessage(client.getId() + "\n", resp);
@@ -289,10 +287,7 @@ public class RTMPTServlet extends HttpServlet {
 			handleBadRequest("Unknown client.", resp);
 			return;
 		}
-
-		synchronized (rtmptClients) {
-			rtmptClients.remove(client.getId());
-		}
+		rtmptClients.remove(client.getId());
 
 		RTMPTHandler handler = (RTMPTHandler) getServletContext().getAttribute(
 				RTMPTHandler.HANDLER_ATTRIBUTE);
@@ -319,9 +314,7 @@ public class RTMPTServlet extends HttpServlet {
 			handleBadRequest("Unknown client.", resp);
 			return;
 		} else if (client.getState().getState() == RTMP.STATE_DISCONNECTED) {
-			synchronized (rtmptClients) {
-				rtmptClients.remove(client.getId());
-			}
+			rtmptClients.remove(client.getId());
 			handleBadRequest("Connection already closed.", resp);
 			return;
 		}
@@ -384,9 +377,7 @@ public class RTMPTServlet extends HttpServlet {
 			client.realClose();
 			return;
 		} else if (client.getState().getState() == RTMP.STATE_DISCONNECTED) {
-			synchronized (rtmptClients) {
-				rtmptClients.remove(client.getId());
-			}
+			rtmptClients.remove(client.getId());
 			handleBadRequest("Connection already closed.", resp);
 			return;
 		}

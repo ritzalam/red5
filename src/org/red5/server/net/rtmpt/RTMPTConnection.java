@@ -19,7 +19,6 @@ package org.red5.server.net.rtmpt;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -321,12 +320,9 @@ public class RTMPTConnection extends RTMPConnection {
 			}
 
 			synchronized (this.pendingMessages) {
-				Iterator<ByteBuffer> it = this.pendingMessages.iterator();
-				while (it.hasNext()) {
-					ByteBuffer buffer = it.next();
+				for (ByteBuffer buffer: this.pendingMessages) {
 					result.put(buffer);
 					buffer.release();
-					buffer = null;
 				}
 
 				this.pendingMessages.clear();
@@ -339,10 +335,9 @@ public class RTMPTConnection extends RTMPConnection {
 				this.notifyMessages.clear();
 			}
 
-			Iterator<Object> it = toNotify.iterator();
-			while (it.hasNext()) {
+			for (Object message: toNotify) {
 				try {
-					handler.messageSent(this, it.next());
+					handler.messageSent(this, message);
 				} catch (Exception e) {
 					log
 							.error(
