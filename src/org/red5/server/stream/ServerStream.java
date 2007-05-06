@@ -55,6 +55,7 @@ import org.red5.server.messaging.PipeConnectionEvent;
 import org.red5.server.net.rtmp.event.AudioData;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.event.VideoData;
+import org.red5.server.net.rtmp.message.Header;
 import org.red5.server.stream.consumer.FileConsumer;
 import org.red5.server.stream.message.RTMPMessage;
 import org.red5.server.stream.message.ResetMessage;
@@ -538,6 +539,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 		state = State.PLAYING;
 		currentItem = item;
 		sendResetMessage();
+		msgIn.subscribe(this, null);
 		if (isLive) {
 			if (item.getLength() >= 0) {
 				liveJobName = scheduler.addScheduledOnceJob(item.getLength(),

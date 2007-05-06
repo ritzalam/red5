@@ -1716,6 +1716,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
         public synchronized void pushMessage(IPipe pipe, IMessage message) throws IOException {
 			if (message instanceof ResetMessage) {
 				sendReset();
+				return;
 			}
 			if (message instanceof RTMPMessage) {
 				RTMPMessage rtmpMessage = (RTMPMessage) message;
