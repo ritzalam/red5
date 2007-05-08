@@ -97,7 +97,7 @@ public class StatisticsService implements IStatisticsService {
 		Set<ISharedObjectStatistics> result = new HashSet<ISharedObjectStatistics>();
 		for (String name: soService.getSharedObjectNames(scope)) {
 			ISharedObject so = soService.getSharedObject(scope, name);
-			result.add(new SharedObjectStatistics(name, so.isPersistentObject()));
+			result.add(so.getStatistics());
 		}
 		return result;
 	}

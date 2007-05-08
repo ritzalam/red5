@@ -1,4 +1,4 @@
-package org.red5.server.api.stream;
+package org.red5.server.api.statistics;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -19,19 +19,19 @@ package org.red5.server.api.stream;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.red5.server.api.statistics.IPlaylistSubscriberStreamStatistics;
-
 /**
- * IPlaylistSubscriberStream has methods of both ISubscriberStream and IPlaylist
- * but adds nothing new
+ * Base class for all stream statistics.
+ * 
+ * @author The Red5 Project (red5@osflash.org)
+ * @author Joachim Bauch (jojo@struktur.de)
  */
-public interface IPlaylistSubscriberStream extends ISubscriberStream, IPlaylist {
+public interface IStreamStatistics extends IStatisticsBase {
 
 	/**
-	 * Return statistics about this stream.
+	 * Return the currently active timestamp inside the stream.
 	 * 
-	 * @return statistics
+	 * @return the timestamp in milliseconds
 	 */
-	public IPlaylistSubscriberStreamStatistics getStatistics();
+	public int getCurrentTimestamp();
 	
 }

@@ -29,7 +29,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.xmlrpc.XmlRpcServer;
 import org.red5.server.api.IContext;
-import org.red5.server.statistics.ScopeStatistics;
+import org.red5.server.statistics.XmlRpcScopeStatistics;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
@@ -64,7 +64,7 @@ public class StatisticsServlet extends HttpServlet {
 		webContext = (IContext) webAppCtx.getBean("web.context");
 
 		// Register handlers in XML-RPC server
-		server.addHandler("scopes", new ScopeStatistics(webContext
+		server.addHandler("scopes", new XmlRpcScopeStatistics(webContext
 				.getGlobalScope()));
 	}
 

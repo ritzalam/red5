@@ -39,6 +39,8 @@ import org.red5.server.api.IScopeAware;
 import org.red5.server.api.IScopeHandler;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.persistence.PersistenceUtils;
+import org.red5.server.api.statistics.IScopeStatistics;
+import org.red5.server.api.statistics.support.StatisticsCounter;
 import org.red5.server.jmx.JMXFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.core.style.ToStringCreator;
@@ -56,7 +58,7 @@ import org.springframework.core.style.ToStringCreator;
  *
  * @author The Red5 Project (red5@osflash.org)
  */
-public class Scope extends BasicScope implements IScope, ScopeMBean {
+public class Scope extends BasicScope implements IScope, IScopeStatistics, ScopeMBean {
     /**
      * Logger
      */
@@ -110,11 +112,32 @@ public class Scope extends BasicScope implements IScope, ScopeMBean {
 	 */
 	private volatile Map<String, Object> serviceHandlers;
 
+	/**
+	 * Timestamp the scope was created.
+	 */
+	private long creationTime;
+	
+	/**
+	 * Statistics about connections to the scope.
+	 */
+	private StatisticsCounter connectionStats = new StatisticsCounter();
+	
+	/**
+	 * Statistics about clients connected to the scope.
+	 */
+	private StatisticsCounter clientStats = new StatisticsCounter();
+
+	/**
+	 * Statistics about subscopes. 
+	 */
+	private StatisticsCounter subscopeStats = new StatisticsCounter();
+	
     /**
      * Creates unnamed scope
      */
 	public Scope() {
 		this(null);
+		creationTime = System.currentTimeMillis();
 	}
 
     /**
@@ -123,6 +146,7 @@ public class Scope extends BasicScope implements IScope, ScopeMBean {
      */
 	public Scope(String name) {
 		super(null, TYPE, name, false);
+		creationTime = System.currentTimeMillis();
 	}
 
     /**
@@ -290,6 +314,7 @@ public class Scope extends BasicScope implements IScope, ScopeMBean {
 			if (hasHandler()) {
 				getHandler().stop((IScope) scope);
 			}
+			subscopeStats.decrement();
 		}
 		children.remove(scope.getType() + SEPARATOR + scope.getName());
 		if (hasHandler()) {
@@ -484,11 +509,13 @@ public class Scope extends BasicScope implements IScope, ScopeMBean {
 			conns.add(conn);
 			clients.put(conn.getClient(), conns);
 			log.debug("adding client");
+			clientStats.increment();
 		} else {
 			final Set<IConnection> conns = clients.get(client);
 			conns.add(conn);
 		}
 		addEventListener(conn);
+		connectionStats.increment();
 		return true;
 	}
 
@@ -518,6 +545,7 @@ public class Scope extends BasicScope implements IScope, ScopeMBean {
 
 			if (conns.isEmpty()) {
 				clients.remove(client);
+				clientStats.decrement();
 				if (handler != null) {
 					try {
 						// there may be a timeout here ?
@@ -529,6 +557,7 @@ public class Scope extends BasicScope implements IScope, ScopeMBean {
 				}
 			}
 			removeEventListener(conn);
+			connectionStats.decrement();
 		}
 		if (hasParent()) {
 			parent.disconnect(conn);
@@ -775,6 +804,7 @@ public class Scope extends BasicScope implements IScope, ScopeMBean {
 	public boolean createChildScope(String name) {
 		final Scope scope = new Scope(name);
 		scope.setParent(this);
+		subscopeStats.increment();
 		return addChildScope(scope);
 	}
 
@@ -923,4 +953,60 @@ public class Scope extends BasicScope implements IScope, ScopeMBean {
 	public ClassLoader getClassLoader() {
 		return Thread.currentThread().getContextClassLoader();
 	}
+
+	/** {@inheritDoc} */
+	public IScopeStatistics getStatistics() {
+		return this;
+	}
+	
+	/** {@inheritDoc} */
+	public long getCreationTime() {
+		return creationTime;
+	}
+	
+	/** {@inheritDoc} */
+	public int getTotalConnections() {
+		return connectionStats.getTotal();
+	}
+	
+	/** {@inheritDoc} */
+	public int getMaxConnections() {
+		return connectionStats.getMax();
+	}
+	
+	/** {@inheritDoc} */
+	public int getActiveConnections() {
+		return connectionStats.getCurrent();
+	}
+
+	/** {@inheritDoc} */
+	public int getTotalClients() {
+		return clientStats.getTotal();
+	}
+	
+	/** {@inheritDoc} */
+	public int getMaxClients() {
+		return clientStats.getMax();
+	}
+	
+	/** {@inheritDoc} */
+	public int getActiveClients() {
+		return clients.size();
+	}
+
+	/** {@inheritDoc} */
+	public int getTotalSubscopes() {
+		return subscopeStats.getTotal();
+	}
+	
+	/** {@inheritDoc} */
+	public int getMaxSubscopes() {
+		return subscopeStats.getMax();
+	}
+	
+	/** {@inheritDoc} */
+	public int getActiveSubscopes() {
+		return subscopeStats.getCurrent();
+	}
+
 }

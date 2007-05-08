@@ -35,6 +35,8 @@ import org.red5.server.api.ScopeUtils;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.event.IEventDispatcher;
 import org.red5.server.api.event.IEventListener;
+import org.red5.server.api.statistics.IClientBroadcastStreamStatistics;
+import org.red5.server.api.statistics.support.StatisticsCounter;
 import org.red5.server.api.stream.IClientBroadcastStream;
 import org.red5.server.api.stream.IStreamAwareScopeHandler;
 import org.red5.server.api.stream.IStreamCapableConnection;
@@ -45,6 +47,7 @@ import org.red5.server.api.stream.ResourceExistException;
 import org.red5.server.api.stream.ResourceNotFoundException;
 import org.red5.server.api.stream.IStreamFilenameGenerator.GenerationType;
 import org.red5.server.jmx.JMXFactory;
+import org.red5.server.messaging.IConsumer;
 import org.red5.server.messaging.IFilter;
 import org.red5.server.messaging.IMessage;
 import org.red5.server.messaging.IMessageComponent;
@@ -82,7 +85,8 @@ import org.springframework.core.io.Resource;
  */
 public class ClientBroadcastStream extends AbstractClientStream implements
 		IClientBroadcastStream, IFilter, IPushableConsumer,
-		IPipeConnectionListener, IEventDispatcher, ClientBroadcastStreamMBean {
+		IPipeConnectionListener, IEventDispatcher, IClientBroadcastStreamStatistics,
+		ClientBroadcastStreamMBean {
 
 	/**
 	 * Logger
@@ -168,6 +172,21 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	private ObjectName oName;
 
 	/**
+	 * Timestamp the stream was created.
+	 */
+	private long creationTime;
+	
+	/**
+	 * Stores statistics about subscribers.
+	 */
+	private StatisticsCounter subscriberStats = new StatisticsCounter();
+	
+	/**
+	 * Total number of bytes received.
+	 */
+	private long bytesReceived;
+	
+	/**
 	 * Starts stream. Creates pipes, video codec from video codec factory bean,
 	 * connects
 	 */
@@ -193,6 +212,8 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		recordingFilename = null;
 		setCodecInfo(new StreamCodecInfo());
 		closed = false;
+		bytesReceived = 0;
+		creationTime = System.currentTimeMillis();
 	}
 
 	/** {@inheritDoc} */
@@ -491,6 +512,10 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			eventTime = dataTime;
 		}
 
+		if (rtmpEvent instanceof IStreamData && ((IStreamData) rtmpEvent).getData() != null) {
+			bytesReceived += ((IStreamData) rtmpEvent).getData().limit();
+		}
+
 		// Notify event listeners
 		checkSendNotifications(event);
 
@@ -558,6 +583,9 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 						&& (event.getParamMap() == null || !event.getParamMap()
 								.containsKey("record"))) {
 					this.livePipe = (IPipe) event.getSource();
+					for (IConsumer consumer: this.livePipe.getConsumers()) {
+						subscriberStats.increment();
+					}
 				}
 				break;
 			case PipeConnectionEvent.PROVIDER_DISCONNECT:
@@ -569,6 +597,10 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 				if (this.livePipe == event.getSource()) {
 					notifyChunkSize();
 				}
+				subscriberStats.increment();
+				break;
+			case PipeConnectionEvent.CONSUMER_DISCONNECT:
+				subscriberStats.decrement();
 				break;
 			default:
 				break;
@@ -689,4 +721,40 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			}
 		}
 	}
+
+	/** {@inheritDoc} */
+	public IClientBroadcastStreamStatistics getStatistics() {
+		return this;
+	}
+
+	/** {@inheritDoc} */
+	public long getCreationTime() {
+		return creationTime;
+	}
+	
+	/** {@inheritDoc} */
+	public int getCurrentTimestamp() {
+		return Math.max(Math.max(videoTime, audioTime), dataTime);
+	}
+	
+	/** {@inheritDoc} */
+	public int getTotalSubscribers() {
+		return subscriberStats.getTotal();
+	}
+	
+	/** {@inheritDoc} */
+	public int getMaxSubscribers() {
+		return subscriberStats.getMax();
+	}
+	
+	/** {@inheritDoc} */
+	public int getActiveSubscribers() {
+		return subscriberStats.getCurrent();
+	}
+	
+	/** {@inheritDoc} */
+	public long getBytesReceived() {
+		return bytesReceived;
+	}
+
 }

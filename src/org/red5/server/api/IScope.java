@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 import org.red5.server.api.service.IServiceHandlerProvider;
+import org.red5.server.api.statistics.IScopeStatistics;
 import org.springframework.core.io.support.ResourcePatternResolver;
 
 /**
@@ -219,4 +220,11 @@ public interface IScope extends IBasicScope, ResourcePatternResolver,
 	 */
 	public void disconnect(IConnection conn);
 
+	/**
+	 * Return statistics informations about the scope.
+	 * 
+	 * @return the statistics
+	 */
+	public IScopeStatistics getStatistics();
+	
 }

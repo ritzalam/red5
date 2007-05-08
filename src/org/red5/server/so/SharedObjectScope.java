@@ -43,6 +43,7 @@ import org.red5.server.api.so.ISharedObject;
 import org.red5.server.api.so.ISharedObjectListener;
 import org.red5.server.api.so.ISharedObjectSecurity;
 import org.red5.server.api.so.ISharedObjectSecurityService;
+import org.red5.server.api.statistics.ISharedObjectStatistics;
 import org.red5.server.net.rtmp.status.StatusCodes;
 import org.red5.server.service.ServiceUtils;
 
@@ -754,4 +755,8 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 		so.release();
 	}
 
+	/** {@inheritDoc} */
+    public ISharedObjectStatistics getStatistics() {
+    	return so;
+    }
 }

@@ -1,5 +1,7 @@
 package org.red5.server.api.stream;
 
+import org.red5.server.api.statistics.IClientBroadcastStreamStatistics;
+
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  * 
@@ -31,5 +33,12 @@ public interface IClientBroadcastStream extends IClientStream, IBroadcastStream 
 	 * Notify client that stream is ready for publishing.
 	 */
 	public void startPublishing();
+	
+	/**
+	 * Return statistics about the stream.
+	 * 
+	 * @return statistics
+	 */
+	public IClientBroadcastStreamStatistics getStatistics();
 	
 }

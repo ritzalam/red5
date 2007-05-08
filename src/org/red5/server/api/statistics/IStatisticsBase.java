@@ -1,4 +1,4 @@
-package org.red5.server.statistics;
+package org.red5.server.api.statistics;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -19,49 +19,19 @@ package org.red5.server.statistics;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.red5.server.api.statistics.ISharedObjectStatistics;
-
 /**
- * Implementation of the SO statistics.
+ * Base class for all statistics informations.
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
  */
-public class SharedObjectStatistics implements ISharedObjectStatistics {
-    /**
-     * Shared object name
-     */
-	private String name;
+public interface IStatisticsBase {
 
-    /**
-     * Shared object persistence flag
-     */
-    private boolean persistent;
-
-    /**
-     * Create new shared object statistics with given name and persistence options
-     * @param name
-     * @param persistent
-     */
-    protected SharedObjectStatistics(String name, boolean persistent) {
-		this.name = name;
-		this.persistent = persistent;
-	}
-
-    /**
-     * Return SO name
-     * @return          SO name
-     */
-    public String getName() {
-		return name;
-	}
-
-    /**
-     * Chech whether SO is persistent
-     * @return          <code>true</code> if inspected SO is persistent, <code>false</code> otherwise
-     */
-    public boolean isPersistent() {
-		return persistent;
-	}
-
+	/**
+	 * Return the timestamp the object was created.
+	 * 
+	 * @return the timestamp in milliseconds since midnight, January 1, 1970 UTC.
+	 */
+	public long getCreationTime();
+	
 }

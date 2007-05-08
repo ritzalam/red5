@@ -1,4 +1,4 @@
-package org.red5.server.api.stream;
+package org.red5.server.api.statistics;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -19,19 +19,26 @@ package org.red5.server.api.stream;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.red5.server.api.statistics.IPlaylistSubscriberStreamStatistics;
-
 /**
- * IPlaylistSubscriberStream has methods of both ISubscriberStream and IPlaylist
- * but adds nothing new
+ * Statistical informations about a stream that is subscribed by a client.
+ * 
+ * @author The Red5 Project (red5@osflash.org)
+ * @author Joachim Bauch (jojo@struktur.de)
  */
-public interface IPlaylistSubscriberStream extends ISubscriberStream, IPlaylist {
+public interface IPlaylistSubscriberStreamStatistics extends IStreamStatistics {
 
 	/**
-	 * Return statistics about this stream.
+	 * Return total number of bytes sent to the client from this stream.
 	 * 
-	 * @return statistics
+	 * @return number of bytes
 	 */
-	public IPlaylistSubscriberStreamStatistics getStatistics();
+	public long getBytesSent();	
+	
+	/**
+	 * Return estimated fill ratio of the client buffer.
+	 * 
+	 * @return fill ratio in percent
+	 */
+	public double getEstimatedBufferFill();
 	
 }

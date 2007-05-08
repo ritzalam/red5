@@ -41,14 +41,14 @@ import org.red5.server.exception.ScopeNotFoundException;
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
  */
-public class ScopeStatistics {
+public class XmlRpcScopeStatistics {
     /**
      * Global scope
      */
 	private IScope globalScope;
 
-	/** Constructs a new ScopeStatistics. */
-    public ScopeStatistics() {
+	/** Constructs a new XmlScopeStatistics. */
+    public XmlRpcScopeStatistics() {
 
 	}
 
@@ -56,7 +56,7 @@ public class ScopeStatistics {
      * Create new scope statistic
      * @param globalScope        Global scope ref
      */
-    public ScopeStatistics(IScope globalScope) {
+    public XmlRpcScopeStatistics(IScope globalScope) {
 		this.globalScope = globalScope;
 	}
 

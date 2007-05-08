@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -41,6 +42,8 @@ import org.red5.server.api.IAttributeStore;
 import org.red5.server.api.event.IEventListener;
 import org.red5.server.api.persistence.IPersistable;
 import org.red5.server.api.persistence.IPersistenceStore;
+import org.red5.server.api.statistics.ISharedObjectStatistics;
+import org.red5.server.api.statistics.support.StatisticsCounter;
 import org.red5.server.net.rtmp.Channel;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.message.Constants;
@@ -62,7 +65,7 @@ import org.red5.server.so.ISharedObjectEvent.Type;
  *
  * SOs store data as simple map, that is, "name-value" pairs. Each value in turn can be complex object or map.
  */
-public class SharedObject implements IPersistable, Constants {
+public class SharedObject implements ISharedObjectStatistics, IPersistable, Constants {
     /**
      * Logger
      */
@@ -150,6 +153,31 @@ public class SharedObject implements IPersistable, Constants {
      */
     protected int acquireCount;
 
+	/**
+	 * Timestamp the scope was created.
+	 */
+	private long creationTime;
+	
+    /**
+     * Manages listener statistics.
+     */
+    protected StatisticsCounter listenerStats = new StatisticsCounter(); 
+    
+    /**
+     * Counts number of "change" events.
+     */
+    protected AtomicInteger changeStats = new AtomicInteger();
+    
+    /**
+     * Counts number of "delete" events.
+     */
+    protected AtomicInteger deleteStats = new AtomicInteger();
+    
+    /**
+     * Counts number of "send message" events.
+     */
+    protected AtomicInteger sendStats = new AtomicInteger();
+    
 	/** Constructs a new SharedObject. */
     public SharedObject() {
 		// This is used by the persistence framework
@@ -158,6 +186,7 @@ public class SharedObject implements IPersistable, Constants {
 
 		ownerMessage = new SharedObjectMessage(null, null, -1, false);
         persistentSO = false;
+        creationTime = System.currentTimeMillis();
     }
 
     /**
@@ -191,6 +220,7 @@ public class SharedObject implements IPersistable, Constants {
         this.persistentSO = persistent;
 
 		ownerMessage = new SharedObjectMessage(null, name, 0, persistent);
+        creationTime = System.currentTimeMillis();
 	}
 
     /**
@@ -213,6 +243,7 @@ public class SharedObject implements IPersistable, Constants {
 		setStore(storage);
 
 		ownerMessage = new SharedObjectMessage(null, name, 0, persistent);
+        creationTime = System.currentTimeMillis();
 	}
 
 	/** {@inheritDoc} */
@@ -431,6 +462,7 @@ public class SharedObject implements IPersistable, Constants {
 			syncEvents.add(new SharedObjectEvent(Type.CLIENT_UPDATE_DATA, name,
 					value));
 			notifyModified();
+			changeStats.incrementAndGet();
 			return true;
 		} else {
 			notifyModified();
@@ -488,6 +520,7 @@ public class SharedObject implements IPersistable, Constants {
 			modified = true;
 			syncEvents.add(new SharedObjectEvent(Type.CLIENT_DELETE_DATA, name,
 					null));
+			deleteStats.incrementAndGet();
 		}
 		notifyModified();
 		return result;
@@ -503,6 +536,7 @@ public class SharedObject implements IPersistable, Constants {
         ownerMessage.addEvent(Type.CLIENT_SEND_MESSAGE, handler, arguments);
 		syncEvents.add(new SharedObjectEvent(Type.CLIENT_SEND_MESSAGE, handler,
 				arguments));
+		sendStats.incrementAndGet();
 	}
 
 	/**
@@ -540,6 +574,7 @@ public class SharedObject implements IPersistable, Constants {
             syncEvents.add(new SharedObjectEvent(Type.CLIENT_DELETE_DATA, key,
                     null));
         }
+		deleteStats.addAndGet(data.size());
         // Clear data
 		data.clear();
         // Mark as modified
@@ -554,6 +589,7 @@ public class SharedObject implements IPersistable, Constants {
      */
     public synchronized void register(IEventListener listener) {
 		listeners.add(listener);
+		listenerStats.increment();
 
 		// prepare response for new client
 		ownerMessage.addEvent(Type.CLIENT_INITIAL_DATA, null, null);
@@ -592,6 +628,7 @@ public class SharedObject implements IPersistable, Constants {
      */
     public synchronized void unregister(IEventListener listener) {
 		listeners.remove(listener);
+		listenerStats.decrement();
 		checkRelease();
 	}
 
@@ -725,4 +762,40 @@ public class SharedObject implements IPersistable, Constants {
 		if (acquireCount == 0)
 			checkRelease();
 	}
+	
+	/** {@inheritDoc} */
+	public long getCreationTime() {
+		return creationTime;
+	}
+	
+	/** {@inheritDoc} */
+	public int getTotalListeners() {
+		return listenerStats.getTotal();
+	}
+	
+	/** {@inheritDoc} */
+	public int getMaxListeners() {
+		return listenerStats.getMax();
+	}
+	
+	/** {@inheritDoc} */
+	public int getActiveListeners() {
+		return listenerStats.getCurrent();
+	}
+	
+	/** {@inheritDoc} */
+	public int getTotalChanges() {
+		return changeStats.intValue();
+	}
+	
+	/** {@inheritDoc} */
+	public int getTotalDeletes() {
+		return deleteStats.intValue();
+	}
+	
+	/** {@inheritDoc} */
+	public int getTotalSends() {
+		return sendStats.intValue();
+	}
+
 }

@@ -24,7 +24,7 @@
 		singleton="true" />
 
 	<bean id="scopes.service" 
-	    class="org.red5.server.statistics.ScopeStatistics" 
+	    class="org.red5.server.statistics.XmlRpcScopeStatistics" 
 		singleton="true">
         <property name="globalScope" ref="global.scope" />
     </bean>

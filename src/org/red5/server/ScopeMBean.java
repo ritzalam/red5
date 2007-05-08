@@ -267,4 +267,67 @@ public interface ScopeMBean {
 	 */
 	public Set<String> getServiceHandlerNames();
 
+	/**
+	 * Return total number of connections to the scope.
+	 * 
+	 * @return number of connections
+	 */
+	public int getTotalConnections();
+	
+	/**
+	 * Return maximum number of concurrent connections to the scope.
+	 * 
+	 * @return number of connections
+	 */
+	public int getMaxConnections();
+	
+	/**
+	 * Return current number of connections to the scope.
+	 * 
+	 * @return number of connections
+	 */
+	public int getActiveConnections();
+	
+	/**
+	 * Return total number of clients connected to the scope.
+	 * 
+	 * @return number of clients
+	 */
+	public int getTotalClients();
+	
+	/**
+	 * Return maximum number of clients concurrently connected to the scope.
+	 * 
+	 * @return number of clients
+	 */
+	public int getMaxClients();
+	
+	/**
+	 * Return current number of clients connected to the scope.
+	 * 
+	 * @return number of clients
+	 */
+	public int getActiveClients();
+	
+	/**
+	 * Return total number of subscopes created.
+	 * 
+	 * @return number of subscopes created
+	 */
+	public int getTotalSubscopes();
+	
+	/**
+	 * Return maximum number of concurrently existing subscopes.
+	 * 
+	 * @return number of subscopes
+	 */
+	public int getMaxSubscopes();
+	
+	/**
+	 * Return number of currently existing subscopes.
+	 * 
+	 * @return number of subscopes
+	 */
+	public int getActiveSubscopes();
+
 }

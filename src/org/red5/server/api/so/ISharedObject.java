@@ -20,6 +20,7 @@ package org.red5.server.api.so;
  */
 
 import org.red5.server.api.IBasicScope;
+import org.red5.server.api.statistics.ISharedObjectStatistics;
 
 /**
  * Serverside access to shared objects.
@@ -56,5 +57,12 @@ public interface ISharedObject extends IBasicScope,
 	 * is released. 
 	 */
 	public void release();
+	
+	/**
+	 * Return statistics about the shared object.
+	 * 
+	 * @return statistics
+	 */
+	public ISharedObjectStatistics getStatistics();
 	
 }

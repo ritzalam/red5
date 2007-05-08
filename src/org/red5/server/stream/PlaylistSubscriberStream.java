@@ -38,6 +38,7 @@ import org.red5.server.api.IContext;
 import org.red5.server.api.IScope;
 import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
+import org.red5.server.api.statistics.IPlaylistSubscriberStreamStatistics;
 import org.red5.server.api.stream.IClientBroadcastStream;
 import org.red5.server.api.stream.IPlayItem;
 import org.red5.server.api.stream.IPlaylistController;
@@ -76,7 +77,7 @@ import org.red5.server.stream.message.StatusMessage;
  * Stream of playlist subsciber
  */
 public class PlaylistSubscriberStream extends AbstractClientStream implements
-		IPlaylistSubscriberStream {
+		IPlaylistSubscriberStream, IPlaylistSubscriberStreamStatistics {
 
     /**
      *
@@ -154,12 +155,23 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 	 */
 	private int underrunTrigger = 10;
 
+	/**
+	 * Timestamp this stream was created.
+	 */
+	private long creationTime;
+	
+	/**
+	 * Number of bytes sent.
+	 */
+	private long bytesSent = 0;
+	
 	/** Constructs a new PlaylistSubscriberStream. */
     public PlaylistSubscriberStream() {
 		defaultController = new SimplePlaylistController();
 		items = new ArrayList<IPlayItem>();
 		engine = new PlayEngine();
 		currentItemIndex = 0;
+		creationTime = System.currentTimeMillis();
 	}
 
     /**
@@ -693,6 +705,52 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 		}
 	}
 
+    /** {@inheritDoc} */
+    public IPlaylistSubscriberStreamStatistics getStatistics() {
+    	return this;
+    }
+    
+    /** {@inheritDoc} */
+    public long getCreationTime() {
+    	return creationTime;
+    }
+    
+    /** {@inheritDoc} */
+    public int getCurrentTimestamp() {
+    	final IRTMPEvent msg = engine.lastMessage;
+    	if (msg == null) {
+    		return 0;
+    	}
+    	
+    	return msg.getTimestamp();
+    }
+    
+    /** {@inheritDoc} */
+    public long getBytesSent() {
+    	return bytesSent;
+    }
+    
+    /** {@inheritDoc} */
+    public double getEstimatedBufferFill() {
+    	final IRTMPEvent msg = engine.lastMessage;
+    	if (msg == null) {
+    		// Nothing has been sent yet
+    		return 0.0;
+    	}
+    	
+		// Buffer size as requested by the client
+		final long buffer = getClientBufferDuration();
+		if (buffer == 0) {
+			return 100.0;
+		}
+		
+		// Duration the stream is playing
+		final long delta = System.currentTimeMillis() - engine.playbackStart;
+		// Expected amount of data present in client buffer
+		final long buffered = msg.getTimestamp() - delta;
+    	return (buffered * 100.0) / buffer;
+    }
+    
 	/**
 	 * A play engine for playing an IPlayItem.
 	 */
@@ -1348,6 +1406,13 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 		private void doPushMessage(AbstractMessage message) {
 			try {
 				msgOut.pushMessage(message);
+				if (message instanceof RTMPMessage) {
+					IRTMPEvent body = ((RTMPMessage) message).getBody();
+					if (body instanceof IStreamData && ((IStreamData) body).getData() != null) {
+						bytesSent += ((IStreamData) body).getData().limit();
+					}
+				}
+				
 			} catch (IOException err) {
 				log.error("Error while pushing message.", err);
 			}
@@ -1774,6 +1839,10 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 						return;
 					}
 				}
+				if (body instanceof IStreamData && ((IStreamData) body).getData() != null) {
+					bytesSent += ((IStreamData) body).getData().limit();
+				}
+				lastMessage = body;
 			}
 			msgOut.pushMessage(message);
 		}
