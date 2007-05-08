@@ -1,4 +1,4 @@
-package org.red5.server.api.test;
+package org.red5.server.api;
 
 import org.red5.server.BaseConnection;
 
@@ -16,6 +16,11 @@ public class TestConnection extends BaseConnection {
 		return Encoding.AMF0;
 	}
 	/** {@inheritDoc} */
+    public int getLastPingTime() {
+		return 0;
+	}
+
+	/** {@inheritDoc} */
 	@Override
 	public long getReadBytes() {
 		return 0;
@@ -30,10 +35,5 @@ public class TestConnection extends BaseConnection {
 	/** {@inheritDoc} */
     public void ping() {
 
-	}
-
-	/** {@inheritDoc} */
-    public int getLastPingTime() {
-		return 0;
 	}
 }

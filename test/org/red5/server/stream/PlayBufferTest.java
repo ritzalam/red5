@@ -1,4 +1,4 @@
-package org.red5.server.stream.test;
+package org.red5.server.stream;
 
 /**
  * @author m.j.milicevic <marijan at info.nl>
@@ -11,16 +11,31 @@ import junit.framework.TestCase;
 
 import org.apache.mina.common.ByteBuffer;
 import org.red5.server.net.rtmp.event.VideoData;
-import org.red5.server.stream.PlayBuffer;
 import org.red5.server.stream.message.RTMPMessage;
 
 /**
  * TODO: extend testcase
  */
 public class PlayBufferTest extends TestCase {
+	public static Test suite() {
+		return new JUnit4TestAdapter(PlayBufferTest.class);
+	}
+
 	PlayBuffer playBuffer;
 
 	private RTMPMessage rtmpMessage;
+
+	private void dequeue() throws Exception {
+		setUp();
+	}
+
+	/**
+	 * enqueue with messages
+	 */
+	private void enqueue() {
+		boolean success = playBuffer.putMessage(rtmpMessage);
+		assertTrue("message successfully put into play buffer", success);
+	}
 
 	/** {@inheritDoc} */
     @Override
@@ -30,6 +45,18 @@ public class PlayBufferTest extends TestCase {
 		playBuffer = new PlayBuffer(1000);
 		rtmpMessage = new RTMPMessage();
 		rtmpMessage.setBody(message);
+	}
+
+	public void testClear() {
+		enqueue();
+		playBuffer.clear();
+		assertTrue(playBuffer.getMessageCount() == 0);
+	}
+
+	public void testPeekMessage() throws Exception {
+		enqueue();
+		assertTrue(playBuffer.peekMessage().equals(rtmpMessage));
+		dequeue();
 	}
 
 	public void testPlayBuffer() {
@@ -49,34 +76,6 @@ public class PlayBufferTest extends TestCase {
 		enqueue();
 		assertTrue(playBuffer.takeMessage().equals(rtmpMessage));
 		dequeue();
-	}
-
-	public void testPeekMessage() throws Exception {
-		enqueue();
-		assertTrue(playBuffer.peekMessage().equals(rtmpMessage));
-		dequeue();
-	}
-
-	public void testClear() {
-		enqueue();
-		playBuffer.clear();
-		assertTrue(playBuffer.getMessageCount() == 0);
-	}
-
-	public static Test suite() {
-		return new JUnit4TestAdapter(PlayBufferTest.class);
-	}
-
-	/**
-	 * enqueue with messages
-	 */
-	private void enqueue() {
-		boolean success = playBuffer.putMessage(rtmpMessage);
-		assertTrue("message successfully put into play buffer", success);
-	}
-
-	private void dequeue() throws Exception {
-		setUp();
 	}
 
 }

@@ -1,44 +1,36 @@
-package org.red5.server.api.test;
+package org.red5.server.api;
 
 import static junit.framework.Assert.assertTrue;
 import junit.framework.JUnit4TestAdapter;
 
 import org.junit.Test;
 import org.red5.server.Scope;
-import org.red5.server.api.IClient;
-import org.red5.server.api.IClientRegistry;
-import org.red5.server.api.IContext;
-import org.red5.server.api.IScope;
-import org.red5.server.api.ScopeUtils;
 
 public class ScopeTest extends BaseTest {
 
+	public static junit.framework.Test suite() {
+		return new JUnit4TestAdapter(ScopeTest.class);
+	}
+
 	@Test
-	public void scopeResolver() {
+	public void client() {
+		IClientRegistry reg = context.getClientRegistry();
+		IClient client = reg.newClient(null);
+		assertTrue("client should not be null", client != null);
+	}
 
-		// Global 
-		IScope global = context.getGlobalScope();
-		assertTrue("global scope not null", global != null);
-		assertTrue("should be global", ScopeUtils.isGlobal(global));
-		log.debug(global);
+	@Test
+	public void connectionHandler() {
 
-		// Test App
-		IScope testApp = context.resolveScope(path_app);
-		assertTrue("testApp scope not null", testApp != null);
-		log.debug(testApp);
-
-		// Test Room
-		IScope testRoom = context.resolveScope(path_room);
-		log.debug(testRoom);
-
-		// Test App Not Found
-		try {
-			IScope notFoundApp = context.resolveScope(path_app + "notfound");
-			log.debug(notFoundApp);
-			assertTrue("should have thrown an exception", false);
-		} catch (RuntimeException e) {
+		TestConnection conn = new TestConnection(host, path_app, null);
+		IScope scope = context.resolveScope(path_app);
+		if (!conn.connect(scope)) {
+			assertTrue("didnt connect", false);
+		} else {
+			assertTrue("should have a scope", conn.getScope() != null);
+			conn.close();
+			assertTrue("should not be connected", !conn.isConnected());
 		}
-
 	}
 
 	@Test
@@ -49,13 +41,6 @@ public class ScopeTest extends BaseTest {
 		log.debug(testRoom.getContext().getResource(""));
 		log.debug(testRoom.getResource(""));
 		log.debug(testRoom.getParent().getResource(""));
-	}
-
-	@Test
-	public void client() {
-		IClientRegistry reg = context.getClientRegistry();
-		IClient client = reg.newClient(null);
-		assertTrue("client should not be null", client != null);
 	}
 
 	@Test
@@ -95,21 +80,31 @@ public class ScopeTest extends BaseTest {
 	}
 
 	@Test
-	public void connectionHandler() {
+	public void scopeResolver() {
 
-		TestConnection conn = new TestConnection(host, path_app, null);
-		IScope scope = context.resolveScope(path_app);
-		if (!conn.connect(scope)) {
-			assertTrue("didnt connect", false);
-		} else {
-			assertTrue("should have a scope", conn.getScope() != null);
-			conn.close();
-			assertTrue("should not be connected", !conn.isConnected());
+		// Global
+		IScope global = context.getGlobalScope();
+		assertTrue("global scope not null", global != null);
+		assertTrue("should be global", ScopeUtils.isGlobal(global));
+		log.debug(global);
+
+		// Test App
+		IScope testApp = context.resolveScope(path_app);
+		assertTrue("testApp scope not null", testApp != null);
+		log.debug(testApp);
+
+		// Test Room
+		IScope testRoom = context.resolveScope(path_room);
+		log.debug(testRoom);
+
+		// Test App Not Found
+		try {
+			IScope notFoundApp = context.resolveScope(path_app + "notfound");
+			log.debug(notFoundApp);
+			assertTrue("should have thrown an exception", false);
+		} catch (RuntimeException e) {
 		}
-	}
 
-	public static junit.framework.Test suite() {
-		return new JUnit4TestAdapter(ScopeTest.class);
 	}
 
 }

@@ -1,4 +1,4 @@
-package org.red5.server.io.test;
+package org.red5.server.io;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,22 +25,22 @@ public class MetaServiceTest extends TestCase {
     @Override
 	protected void setUp() throws Exception {
 		super.setUp();
-				
+
 		// Create a FLV Service
 		service = new FLVService();
-		
+
 		// Create a Meta Service
 		metaService = new MetaService();
 		metaService.setSerializer(new Serializer());
 		metaService.setDeserializer(new Deserializer());
 		metaService.setResolver(new Resolver());
 	}
-	
+
 	/**
 	 * Test writing meta data
 	 * @throws IOException
 	 */
-	public void testWrite() throws IOException {		
+	public void testWrite() throws IOException {
 
 		// Get MetaData to embed
 		MetaData meta = createMeta();
@@ -51,7 +51,7 @@ public class MetaServiceTest extends TestCase {
 		IFLV flv = (IFLV) service.getStreamableFile(tmp);
 		flv.setMetaService(metaService);
 		flv.setMetaData(meta);
-		
+
 	}
 
 	/**
@@ -59,23 +59,23 @@ public class MetaServiceTest extends TestCase {
 	 * @return MetaData meta
 	 */
 	private MetaData createMeta() {
-		
+
 		IMetaCue metaCue[] = new MetaCue[2];
-		
+
 	  	IMetaCue cp = new MetaCue();
 		cp.setName("cue_1");
 		cp.setTime(0.01);
 		cp.setType(ICueType.EVENT);
-		
+
 		IMetaCue cp1 = new MetaCue();
 		cp1.setName("cue_2");
 		cp1.setTime(0.03);
 		cp1.setType(ICueType.EVENT);
-		
+
 		// add cuepoints to array
 		metaCue[0] = cp;
-		metaCue[1] = cp1;		
-		
+		metaCue[1] = cp1;
+
 		MetaData meta = new MetaData();
 		meta.setMetaCue(metaCue);
 		meta.setCanSeekToEnd(true);
@@ -83,10 +83,10 @@ public class MetaServiceTest extends TestCase {
 		meta.setframeRate(15);
 		meta.setHeight(400);
 		meta.setWidth(300);
-		
+
 		return meta;
-		
+
 	}
-	
+
 
 }

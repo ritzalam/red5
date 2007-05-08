@@ -1,4 +1,4 @@
-package org.red5.server.io.test;
+package org.red5.server.io;
 
 import junit.framework.TestCase;
 

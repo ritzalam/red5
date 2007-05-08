@@ -1,10 +1,9 @@
-package org.red5.server.api.test;
+package org.red5.server.api;
 
 import static junit.framework.Assert.assertTrue;
 import junit.framework.JUnit4TestAdapter;
 
 import org.junit.Test;
-import org.red5.server.api.IScope;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.event.IEventListener;
 import org.red5.server.api.so.ISharedObject;
@@ -13,7 +12,16 @@ import org.red5.server.so.SharedObjectService;
 
 public class SharedObjectTest extends BaseTest implements IEventListener {
 
+	public static junit.framework.Test suite() {
+		return new JUnit4TestAdapter(SharedObjectTest.class);
+	}
+
 	protected String name = "testso";
+
+	/** {@inheritDoc} */
+    public void notifyEvent(IEvent event) {
+		log.debug("Event: " + event);
+	}
 
 	@Test
 	public void sharedObjectService() {
@@ -28,15 +36,6 @@ public class SharedObjectTest extends BaseTest implements IEventListener {
 		//assertTrue("persistent",!so.isPersistent());
 		so.addEventListener(this);
 		so.setAttribute("this", "that");
-	}
-
-	/** {@inheritDoc} */
-    public void notifyEvent(IEvent event) {
-		log.debug("Event: " + event);
-	}
-
-	public static junit.framework.Test suite() {
-		return new JUnit4TestAdapter(SharedObjectTest.class);
 	}
 
 }
