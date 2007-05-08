@@ -21,10 +21,10 @@ package org.red5.server.stream;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -55,7 +55,6 @@ import org.red5.server.messaging.PipeConnectionEvent;
 import org.red5.server.net.rtmp.event.AudioData;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.event.VideoData;
-import org.red5.server.net.rtmp.message.Header;
 import org.red5.server.stream.consumer.FileConsumer;
 import org.red5.server.stream.message.RTMPMessage;
 import org.red5.server.stream.message.ResetMessage;
@@ -112,7 +111,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
     /**
      * List of items in this playlist
      */
-	private volatile List<IPlayItem> items;
+	private List<IPlayItem> items;
 
     /**
      * Current item index
@@ -182,22 +181,22 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	/** Constructs a new ServerStream. */
     public ServerStream() {
 		defaultController = new SimplePlaylistController();
-		items = new CopyOnWriteArrayList<IPlayItem>();
+		items = new ArrayList<IPlayItem>();
 		state = State.UNINIT;
 	}
 
 	/** {@inheritDoc} */
-	public void addItem(IPlayItem item) {
+	synchronized public void addItem(IPlayItem item) {
 		items.add(item);
 	}
 
 	/** {@inheritDoc} */
-	public void addItem(IPlayItem item, int index) {
+	synchronized public void addItem(IPlayItem item, int index) {
 		items.add(index, item);
 	}
 
 	/** {@inheritDoc} */
-	public void removeItem(int index) {
+	synchronized public void removeItem(int index) {
 		if (index < 0 || index >= items.size()) {
 			return;
 		}
@@ -205,7 +204,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	}
 
 	/** {@inheritDoc} */
-	public void removeAllItems() {
+	synchronized public void removeAllItems() {
 		items.clear();
 	}
 
@@ -234,7 +233,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	}
 
 	/** {@inheritDoc} */
-	public void previousItem() {
+    synchronized public void previousItem() {
 		stop();
 		moveToPrevious();
 		if (currentItemIndex == -1) {
@@ -245,7 +244,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	}
 
 	/** {@inheritDoc} */
-	public boolean hasMoreItems() {
+    synchronized public boolean hasMoreItems() {
     	int nextItem = currentItemIndex + 1;
     	if (nextItem >= items.size() && !isRepeat) {
     		return false;
@@ -255,7 +254,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
     }
 
 	/** {@inheritDoc} */
-	public void nextItem() {
+    synchronized public void nextItem() {
 		stop();
 		moveToNext();
 		if (currentItemIndex == -1) {
@@ -266,10 +265,11 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	}
 
 	/** {@inheritDoc} */
-	public void setItem(int index) {
+    synchronized public void setItem(int index) {
 		if (index < 0 || index >= items.size()) {
 			return;
 		}
+		stop();
 		currentItemIndex = index;
 		IPlayItem item = items.get(currentItemIndex);
 		play(item);
