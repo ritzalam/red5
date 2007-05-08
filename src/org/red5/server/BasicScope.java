@@ -127,15 +127,6 @@ public abstract class BasicScope extends PersistableAttributeStore implements
 	}
 
     /**
-     * Setter for persistent property
-     * @param persistent       Persistence flag value
-     */
-    @Override
-	public void setPersistent(boolean persistent) {
-		this.persistent = persistent;
-	}
-
-    /**
      * Handles event. To be implemented in subclass realization
      *
      * @param event          Event context
