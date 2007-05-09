@@ -9,7 +9,9 @@ import javax.management.StandardMBean;
 import org.apache.log4j.Logger;
 
 /**
- * Provides access to the platform MBeanServer as well as registration, unregistration, and creation of new MBean instances. Creation and registration is performed using StandardMBean wrappers.
+ * Provides access to the platform MBeanServer as well as registration,
+ * unregistration, and creation of new MBean instances. Creation and
+ * registration is performed using StandardMBean wrappers.
  *
  * References:
  * http://www.onjava.com/pub/a/onjava/2004/09/29/tigerjmx.html?page=1
@@ -19,9 +21,9 @@ import org.apache.log4j.Logger;
  */
 public class JMXFactory {
 
-	private static Logger log = Logger.getLogger(JMXFactory.class);
-
 	private static String domain = "org.red5.server";
+
+	private static Logger log = Logger.getLogger(JMXFactory.class);
 
 	private static MBeanServer mbs;
 
@@ -32,7 +34,7 @@ public class JMXFactory {
 
 	public static ObjectName createMBean(String className, String attributes) {
 		log.info("Create the " + className + " MBean within the MBeanServer");
-		ObjectName objName = null;
+		ObjectName objectName = null;
 		try {
 			StringBuilder objectNameStr = new StringBuilder(domain);
 			objectNameStr.append(":type=");
@@ -41,12 +43,16 @@ public class JMXFactory {
 			objectNameStr.append(",");
 			objectNameStr.append(attributes);
 			log.info("ObjectName = " + objectNameStr);
-			objName = new ObjectName(objectNameStr.toString());
-			mbs.createMBean(className, objName);
+			objectName = new ObjectName(objectNameStr.toString());
+			if (!mbs.isRegistered(objectName)) {
+				mbs.createMBean(className, objectName);
+			} else {
+				log.debug("MBean has already been created: " + objectName);
+			}
 		} catch (Exception e) {
 			log.error("Could not create the " + className + " MBean", e);
 		}
-		return objName;
+		return objectName;
 	}
 
 	public static ObjectName createSimpleMBean(String className,
@@ -55,12 +61,24 @@ public class JMXFactory {
 		log.info("ObjectName = " + objectNameStr);
 		try {
 			ObjectName objectName = ObjectName.getInstance(objectNameStr);
-			mbs.createMBean(className, objectName);
+			if (!mbs.isRegistered(objectName)) {
+				mbs.createMBean(className, objectName);
+			} else {
+				log.debug("MBean has already been created: " + objectName);
+			}
 			return objectName;
 		} catch (Exception e) {
 			log.error("Could not create the " + className + " MBean", e);
 		}
 		return null;
+	}
+
+	public static String getDefaultDomain() {
+		return domain;
+	}
+
+	public static MBeanServer getMBeanServer() {
+		return mbs;
 	}
 
 	public static boolean registerMBean(Object instance, String className,
@@ -175,7 +193,7 @@ public class JMXFactory {
 	 * @return
 	 */
 	public static boolean updateMBeanAttribute(ObjectName oName, String key,
-			String value) {
+			int value) {
 		boolean updated = false;
 		if (null != oName) {
 			try {
@@ -201,7 +219,7 @@ public class JMXFactory {
 	 * @return
 	 */
 	public static boolean updateMBeanAttribute(ObjectName oName, String key,
-			int value) {
+			String value) {
 		boolean updated = false;
 		if (null != oName) {
 			try {
@@ -218,20 +236,12 @@ public class JMXFactory {
 		return updated;
 	}
 
-	public static String getDefaultDomain() {
-		return domain;
-	}
-
 	public String getDomain() {
 		return domain;
 	}
 
 	public void setDomain(String domain) {
 		JMXFactory.domain = domain;
-	}
-
-	public static MBeanServer getMBeanServer() {
-		return mbs;
 	}
 
 }
