@@ -142,7 +142,7 @@ public class BandwidthControlServiceTest extends
 
 	@Override
 	protected String[] getConfigLocations() {
-		return new String[] {"org/red5/server/stream/test/BandwidthControlServiceTest.xml"};
+		return new String[] {"org/red5/server/stream/BandwidthControlServiceTest.xml"};
 	}
 
 	public void testMultiChildrenNoParent() throws Throwable {
