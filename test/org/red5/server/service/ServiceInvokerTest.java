@@ -49,7 +49,7 @@ public class ServiceInvokerTest extends TestCase {
 		// TODO Auto-generated method stub
 		super.setUp();
 		appCtx = new ClassPathXmlApplicationContext(
-				"org/red5/server/service/test/testcontext.xml");
+				"org/red5/server/service/testcontext.xml");
 	}
 
 	/** {@inheritDoc} */
