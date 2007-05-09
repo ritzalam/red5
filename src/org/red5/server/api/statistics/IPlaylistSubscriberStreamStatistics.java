@@ -35,6 +35,13 @@ public interface IPlaylistSubscriberStreamStatistics extends IStreamStatistics {
 	public long getBytesSent();	
 	
 	/**
+	 * Return the buffer duration as requested by the client.
+	 * 
+	 * @return the buffer duration in milliseconds
+	 */
+	public int getClientBufferDuration();
+	
+	/**
 	 * Return estimated fill ratio of the client buffer.
 	 * 
 	 * @return fill ratio in percent
