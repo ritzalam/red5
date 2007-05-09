@@ -25,6 +25,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.mortbay.jetty.Handler;
 import org.mortbay.jetty.Server;
+import org.mortbay.jetty.deployer.WebAppDeployer;
 import org.mortbay.jetty.handler.ContextHandlerCollection;
 import org.mortbay.jetty.handler.DefaultHandler;
 import org.mortbay.jetty.handler.HandlerCollection;
@@ -121,8 +122,18 @@ public class JettyLoader implements ApplicationContextAware, LoaderMBean {
 
 			try {
 				// Add web applications from web app root with web config
-				WebAppContext.addWebApplications(jetty, webAppRoot,
-						defaultWebConfig, handlersArr, true, true);
+				HandlerCollection contexts = (HandlerCollection) jetty.getChildHandlerByClass(ContextHandlerCollection.class);
+				if (contexts == null)
+					contexts = (HandlerCollection) jetty.getChildHandlerByClass(HandlerCollection.class);
+				
+				WebAppDeployer deployer = new WebAppDeployer();
+				deployer.setContexts(contexts);
+				deployer.setWebAppDir(webAppRoot);
+				deployer.setDefaultsDescriptor(defaultWebConfig);
+				deployer.setConfigurationClasses(handlersArr);
+				deployer.setExtract(true);
+				deployer.setParentLoaderPriority(true);
+				deployer.start();
 			} catch (IOException e) {
 				log.error(e);
 			} catch (Exception e) {
