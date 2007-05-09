@@ -37,6 +37,7 @@ import org.red5.server.api.IBandwidthConfigure;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
+import org.red5.server.jmx.JMXAgent;
 import org.red5.server.jmx.JMXFactory;
 
 /**
@@ -50,9 +51,9 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 	protected static Log log = LogFactory.getLog(Client.class.getName());
 
 	/**
-	 *  Clients identificator
+	 *  Scopes this client connected to
 	 */
-	protected String id;
+	protected Map<IConnection, IScope> connToScope = new ConcurrentHashMap<IConnection, IScope>();
 
 	/**
 	 *  Creation time as Timestamp
@@ -60,19 +61,19 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 	protected long creationTime;
 
 	/**
-	 *  Client registry where Client is registred
+	 *  Clients identificator
 	 */
-	protected ClientRegistry registry;
-
-	/**
-	 *  Scopes this client connected to
-	 */
-	protected Map<IConnection, IScope> connToScope = new ConcurrentHashMap<IConnection, IScope>();
+	protected String id;
 
 	/**
 	 * MBean object name used for de/registration purposes.
 	 */
 	private ObjectName oName;
+
+	/**
+	 *  Client registry where Client is registred
+	 */
+	protected ClientRegistry registry;
 
 	public Client() {
 		//here for jmx reference only
@@ -93,19 +94,18 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 	}
 
 	/**
-	 *
-	 * @return
+	 *  Disconnects client from Red5 application
 	 */
-	public String getId() {
-		return id;
-	}
+	public void disconnect() {
+		if (log.isDebugEnabled()) {
+			log.debug("Disconnect, closing " + getConnections().size()
+					+ " connections");
+		}
 
-	/**
-	 *
-	 * @return
-	 */
-	public long getCreationTime() {
-		return creationTime;
+		// Close all associated connections
+		for (IConnection con : getConnections()) {
+			con.close();
+		}
 	}
 
 	/**
@@ -123,21 +123,12 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 	}
 
 	/**
-	 * if overriding equals then also do hashCode
-	 * @return
+	 * Return bandwidth configuration context, that is, broadcasting bandwidth and quality settings for this client
+	 * @return      Bandwidth configuration context
 	 */
-	@Override
-	public int hashCode() {
-		return id.hashCode();
-	}
-
-	/**
-	 *
-	 * @return
-	 */
-	@Override
-	public String toString() {
-		return "Client: " + id;
+	public IBandwidthConfigure getBandwidthConfigure() {
+		// TODO implement it
+		return null;
 	}
 
 	/**
@@ -173,32 +164,16 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 	 *
 	 * @return
 	 */
-	public Collection<IScope> getScopes() {
-		return connToScope.values();
+	public long getCreationTime() {
+		return creationTime;
 	}
 
 	/**
-	 *  Disconnects client from Red5 application
+	 *
+	 * @return
 	 */
-	public void disconnect() {
-		if (log.isDebugEnabled()) {
-			log.debug("Disconnect, closing " + getConnections().size()
-					+ " connections");
-		}
-
-		// Close all associated connections
-		for (IConnection con : getConnections()) {
-			con.close();
-		}
-	}
-
-	/**
-	 * Return bandwidth configuration context, that is, broadcasting bandwidth and quality settings for this client
-	 * @return      Bandwidth configuration context
-	 */
-	public IBandwidthConfigure getBandwidthConfigure() {
-		// TODO implement it
-		return null;
+	public String getId() {
+		return id;
 	}
 
 	/**
@@ -213,36 +188,20 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 	}
 
 	/**
-	 * Set new bandwidth configuration context
-	 * @param config             Bandwidth configuration context
+	 *
+	 * @return
 	 */
-	public void setBandwidthConfigure(IBandwidthConfigure config) {
-		// TODO implement it
+	public Collection<IScope> getScopes() {
+		return connToScope.values();
 	}
 
 	/**
-	 * Associate connection with client
-	 * @param conn         Connection object
+	 * if overriding equals then also do hashCode
+	 * @return
 	 */
-	protected void register(IConnection conn) {
-		log.debug("Registering connection for this client");
-		connToScope.put(conn, conn.getScope());
-	}
-
-	/**
-	 * Removes client-connection association for given connection
-	 * @param conn         Connection object
-	 */
-	protected void unregister(IConnection conn) {
-		// Remove connection from connected scopes list
-		connToScope.remove(conn);
-		// If client is not connected to any scope any longer then remove
-		if (connToScope.isEmpty()) {
-			// This client is not connected to any scopes, remove from registry.
-			registry.removeClient(this);
-			// deregister with jmx
-			JMXFactory.unregisterMBean(oName);
-		}
+	@Override
+	public int hashCode() {
+		return id.hashCode();
 	}
 
 	/**
@@ -263,5 +222,47 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 			}
 		}
 		return scopeNames;
+	}
+
+	/**
+	 * Associate connection with client
+	 * @param conn         Connection object
+	 */
+	protected void register(IConnection conn) {
+		log.debug("Registering connection for this client");
+		connToScope.put(conn, conn.getScope());
+	}
+
+	/**
+	 * Set new bandwidth configuration context
+	 * @param config             Bandwidth configuration context
+	 */
+	public void setBandwidthConfigure(IBandwidthConfigure config) {
+		// TODO implement it
+	}
+
+	/**
+	 *
+	 * @return
+	 */
+	@Override
+	public String toString() {
+		return "Client: " + id;
+	}
+
+	/**
+	 * Removes client-connection association for given connection
+	 * @param conn         Connection object
+	 */
+	protected void unregister(IConnection conn) {
+		// Remove connection from connected scopes list
+		connToScope.remove(conn);
+		// If client is not connected to any scope any longer then remove
+		if (connToScope.isEmpty()) {
+			// This client is not connected to any scopes, remove from registry.
+			registry.removeClient(this);
+			// deregister with jmx
+			JMXAgent.unregisterMBean(oName);
+		}
 	}
 }

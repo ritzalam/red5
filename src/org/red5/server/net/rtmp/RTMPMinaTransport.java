@@ -23,6 +23,7 @@ import org.apache.mina.filter.executor.ExecutorFilter;
 import org.apache.mina.transport.socket.nio.SocketAcceptor;
 import org.apache.mina.transport.socket.nio.SocketAcceptorConfig;
 import org.apache.mina.transport.socket.nio.SocketSessionConfig;
+import org.red5.server.jmx.JMXAgent;
 import org.red5.server.jmx.JMXFactory;
 
 /**
@@ -31,58 +32,48 @@ import org.red5.server.jmx.JMXFactory;
  */
 public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 
-	private static final Log log = LogFactory.getLog(RTMPMinaTransport.class);
-
-	private static final int DEFAULT_PORT = 1935;
-
-	private static final int DEFAULT_IO_THREADS = Runtime.getRuntime()
-			.availableProcessors();
-
 	private static final int DEFAULT_EVENT_THREADS_CORE = 16;
+
+	private static final int DEFAULT_EVENT_THREADS_KEEPALIVE = 60;
 
 	private static final int DEFAULT_EVENT_THREADS_MAX = 32;
 
 	private static final int DEFAULT_EVENT_THREADS_QUEUE = -1;
 
-	private static final int DEFAULT_EVENT_THREADS_KEEPALIVE = 60;
+	private static final int DEFAULT_IO_THREADS = Runtime.getRuntime()
+			.availableProcessors();
 
-	private static final int DEFAULT_SEND_BUFFER_SIZE = 64 * 1024;
+	private static final int DEFAULT_PORT = 1935;
 
 	private static final int DEFAULT_RECEIVE_BUFFER_SIZE = 256 * 1024;
+
+	private static final int DEFAULT_SEND_BUFFER_SIZE = 64 * 1024;
 
 	private static final boolean DEFAULT_TCP_NO_DELAY = false;
 
 	private static final boolean DEFAULT_USE_HEAP_BUFFERS = true;
 
-	private String address = null;
-
-	private int port = DEFAULT_PORT;
-
-	private int ioThreads = DEFAULT_IO_THREADS;
-
-	private int eventThreadsCore = DEFAULT_EVENT_THREADS_CORE;
-
-	private int eventThreadsMax = DEFAULT_EVENT_THREADS_MAX;
-
-	private int eventThreadsKeepalive = DEFAULT_EVENT_THREADS_KEEPALIVE;
-
-	private int eventThreadsQueue = DEFAULT_EVENT_THREADS_QUEUE;
-
-	private int sendBufferSize = DEFAULT_SEND_BUFFER_SIZE;
-
-	private int receiveBufferSize = DEFAULT_RECEIVE_BUFFER_SIZE;
-
-	private boolean tcpNoDelay = DEFAULT_TCP_NO_DELAY;
-
-	private boolean useHeapBuffers = DEFAULT_USE_HEAP_BUFFERS;
+	private static final Log log = LogFactory.getLog(RTMPMinaTransport.class);
 
 	private SocketAcceptor acceptor;
 
-	private ExecutorService ioExecutor;
+	private String address = null;
 
 	private ExecutorService eventExecutor;
 
+	private int eventThreadsCore = DEFAULT_EVENT_THREADS_CORE;
+
+	private int eventThreadsKeepalive = DEFAULT_EVENT_THREADS_KEEPALIVE;
+
+	private int eventThreadsMax = DEFAULT_EVENT_THREADS_MAX;
+
+	private int eventThreadsQueue = DEFAULT_EVENT_THREADS_QUEUE;
+
+	private ExecutorService ioExecutor;
+
 	private RTMPMinaIoHandler ioHandler;
+
+	private int ioThreads = DEFAULT_IO_THREADS;
 
 	private boolean isLoggingTraffic = false;
 
@@ -91,6 +82,23 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 	 */
 	private ObjectName oName;
 
+	private int port = DEFAULT_PORT;
+
+	private int receiveBufferSize = DEFAULT_RECEIVE_BUFFER_SIZE;
+
+	private int sendBufferSize = DEFAULT_SEND_BUFFER_SIZE;
+
+	private boolean tcpNoDelay = DEFAULT_TCP_NO_DELAY;
+
+	private boolean useHeapBuffers = DEFAULT_USE_HEAP_BUFFERS;
+
+	private void initIOHandler() {
+		if (ioHandler == null) {
+			log.info("No rtmp IO Handler associated - using defaults");
+			ioHandler = new RTMPMinaIoHandler();
+		}
+	}
+
 	public void setAddress(String address) {
 		if ("*".equals(address) || "0.0.0.0".equals(address)) {
 			address = null;
@@ -98,41 +106,41 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 		this.address = address;
 		//update the mbean
 		//TODO: get the correct address for fallback when address is null
-		JMXFactory.updateMBeanAttribute(oName, "address",
+		JMXAgent.updateMBeanAttribute(oName, "address",
 				(address == null ? "0.0.0.0" : address));
-	}
-
-	public void setPort(int port) {
-		this.port = port;
-		JMXFactory.updateMBeanAttribute(oName, "port", port);
-	}
-
-	public void setIoThreads(int ioThreads) {
-		this.ioThreads = ioThreads;
 	}
 
 	public void setEventThreadsCore(int eventThreadsCore) {
 		this.eventThreadsCore = eventThreadsCore;
 	}
 
-	public void setEventThreadsMax(int eventThreadsMax) {
-		this.eventThreadsMax = eventThreadsMax;
-	}
-
 	public void setEventThreadsKeepalive(int eventThreadsKeepalive) {
 		this.eventThreadsKeepalive = eventThreadsKeepalive;
+	}
+
+	public void setEventThreadsMax(int eventThreadsMax) {
+		this.eventThreadsMax = eventThreadsMax;
 	}
 
 	public void setEventThreadsQueue(int eventThreadsQueue) {
 		this.eventThreadsQueue = eventThreadsQueue;
 	}
 
+	public void setIoHandler(RTMPMinaIoHandler rtmpIOHandler) {
+		this.ioHandler = rtmpIOHandler;
+	}
+
+	public void setIoThreads(int ioThreads) {
+		this.ioThreads = ioThreads;
+	}
+
 	public void setIsLoggingTraffic(boolean isLoggingTraffic) {
 		this.isLoggingTraffic = isLoggingTraffic;
 	}
 
-	public void setIoHandler(RTMPMinaIoHandler rtmpIOHandler) {
-		this.ioHandler = rtmpIOHandler;
+	public void setPort(int port) {
+		this.port = port;
+		JMXAgent.updateMBeanAttribute(oName, "port", port);
 	}
 
 	public void setReceiveBufferSize(int receiveBufferSize) {
@@ -218,18 +226,7 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 		ioExecutor.shutdown();
 		eventExecutor.shutdown();
 		// deregister with jmx
-		JMXFactory.unregisterMBean(oName);
-	}
-
-	public String toString() {
-		return "RTMP Mina Transport [port=" + port + "]";
-	}
-
-	private void initIOHandler() {
-		if (ioHandler == null) {
-			log.info("No rtmp IO Handler associated - using defaults");
-			ioHandler = new RTMPMinaIoHandler();
-		}
+		JMXAgent.unregisterMBean(oName);
 	}
 
 	private BlockingQueue<Runnable> threadQueue(int size) {
@@ -241,5 +238,9 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 			default:
 				return new ArrayBlockingQueue<Runnable>(size);
 		}
+	}
+
+	public String toString() {
+		return "RTMP Mina Transport [port=" + port + "]";
 	}
 }

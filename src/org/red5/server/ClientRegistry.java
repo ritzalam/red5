@@ -2,21 +2,21 @@ package org.red5.server;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
- * 
+ *
  * Copyright (c) 2006-2007 by respective authors (see below). All rights reserved.
- * 
- * This library is free software; you can redistribute it and/or modify it under the 
- * terms of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either version 2.1 of the License, or (at your option) any later 
- * version. 
- * 
- * This library is distributed in the hope that it will be useful, but WITHOUT ANY 
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+ *
+ * This library is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free Software
+ * Foundation; either version 2.1 of the License, or (at your option) any later
+ * version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
  * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public License along 
- * with this library; if not, write to the Free Software Foundation, Inc., 
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ *
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with this library; if not, write to the Free Software Foundation, Inc.,
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 import java.util.Collection;
@@ -29,7 +29,7 @@ import org.red5.server.api.IClient;
 import org.red5.server.api.IClientRegistry;
 import org.red5.server.exception.ClientNotFoundException;
 import org.red5.server.exception.ClientRejectedException;
-import org.red5.server.jmx.JMXFactory;
+import org.red5.server.jmx.JMXAgent;
 
 /**
  * Registry for clients. Associates client with it's id so it's possible to get client by id
@@ -47,24 +47,42 @@ public class ClientRegistry implements IClientRegistry, ClientRegistryMBean {
 	private AtomicInteger nextId = new AtomicInteger();
 
 	{
-		JMXFactory.registerMBean(this, this.getClass().getName(),
+		JMXAgent.registerMBean(this, this.getClass().getName(),
 				ClientRegistryMBean.class);
 	}
 
 	/**
-	 * Return next client id
-	 * @return         Next client id
+	 * Add client to registry
+	 * @param client           Client to add
 	 */
-	public String nextId() {
-		return "" + nextId.getAndIncrement();
+	protected void addClient(IClient client) {
+		clients.put(client.getId(), client);
+	}
+
+	public Client getClient(String id) throws ClientNotFoundException {
+		if (!hasClient(id)) {
+			throw new ClientNotFoundException(id);
+		}
+		return (Client) clients.get(id);
 	}
 
 	/**
-	 * Return previous client id
-	 * @return        Previous client id
+	 * Returns a list of Clients.
 	 */
-	public String previousId() {
-		return "" + nextId.get();
+	public ClientList<Client> getClientList() {
+		ClientList<Client> list = new ClientList<Client>();
+		for (IClient c : clients.values()) {
+			list.add((Client) c);
+		}
+		return list;
+	}
+
+	/**
+	 * Return collection of clients
+	 * @return             Collection of clients
+	 */
+	protected Collection<IClient> getClients() {
+		return Collections.unmodifiableCollection(clients.values());
 	}
 
 	/**
@@ -112,11 +130,19 @@ public class ClientRegistry implements IClientRegistry, ClientRegistryMBean {
 	}
 
 	/**
-	 * Add client to registry
-	 * @param client           Client to add
+	 * Return next client id
+	 * @return         Next client id
 	 */
-	protected void addClient(IClient client) {
-		clients.put(client.getId(), client);
+	public String nextId() {
+		return "" + nextId.getAndIncrement();
+	}
+
+	/**
+	 * Return previous client id
+	 * @return        Previous client id
+	 */
+	public String previousId() {
+		return "" + nextId.get();
 	}
 
 	/**
@@ -125,32 +151,6 @@ public class ClientRegistry implements IClientRegistry, ClientRegistryMBean {
 	 */
 	protected void removeClient(IClient client) {
 		clients.remove(client.getId());
-	}
-
-	/**
-	 * Return collection of clients
-	 * @return             Collection of clients
-	 */
-	protected Collection<IClient> getClients() {
-		return Collections.unmodifiableCollection(clients.values());
-	}
-
-	/**
-	 * Returns a list of Clients.
-	 */
-	public ClientList<Client> getClientList() {
-		ClientList<Client> list = new ClientList<Client>();
-		for (IClient c : clients.values()) {
-			list.add((Client) c);
-		}
-		return list;
-	}
-
-	public Client getClient(String id) throws ClientNotFoundException {
-		if (!hasClient(id)) {
-			throw new ClientNotFoundException(id);
-		}
-		return (Client) clients.get(id);
 	}
 
 }

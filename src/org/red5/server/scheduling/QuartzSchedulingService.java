@@ -33,7 +33,7 @@ import org.quartz.Trigger;
 import org.quartz.impl.StdSchedulerFactory;
 import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
-import org.red5.server.jmx.JMXFactory;
+import org.red5.server.jmx.JMXAgent;
 
 /**
  * Scheduling service that uses Quartz as backend.
@@ -44,53 +44,104 @@ import org.red5.server.jmx.JMXFactory;
 public class QuartzSchedulingService implements ISchedulingService,
 		QuartzSchedulingServiceMBean {
 
-    /**
-     * Creates schedulers
-     */
-    private static SchedulerFactory schedFact = new StdSchedulerFactory();
+	/**
+	 * Creates schedulers
+	 */
+	private static SchedulerFactory schedFact = new StdSchedulerFactory();
 
-    /**
-     * Service scheduler
-     */
-    private Scheduler scheduler;
+	/**
+	 * Number of job details
+	 */
+	private AtomicLong jobDetailCounter = new AtomicLong(0);
 
-    /**
-     * Number of job details
-     */
-    private AtomicLong jobDetailCounter = new AtomicLong(0);;
+	/**
+	 * Service scheduler
+	 */
+	private Scheduler scheduler;;
 
 	/** Constructs a new QuartzSchedulingService. */
-    public QuartzSchedulingService() {
+	public QuartzSchedulingService() {
 		try {
 			scheduler = schedFact.getScheduler();
 			scheduler.start();
 			//register with jmx server
-			JMXFactory.registerMBean(this, this.getClass().getName(),
+			JMXAgent.registerMBean(this, this.getClass().getName(),
 					QuartzSchedulingServiceMBean.class);
 		} catch (SchedulerException ex) {
 			throw new RuntimeException(ex);
 		}
 	}
 
+	/** {@inheritDoc} */
+	public String addScheduledJob(int interval, IScheduledJob job) {
+		String result = getJobName();
+
+		// Create trigger that fires indefinitely every <interval> milliseconds
+		SimpleTrigger trigger = new SimpleTrigger("Trigger_" + result, null,
+				new Date(), null, SimpleTrigger.REPEAT_INDEFINITELY, interval);
+		scheduleJob(result, trigger, job);
+		return result;
+	}
+
+	/** {@inheritDoc} */
+	public String addScheduledOnceJob(Date date, IScheduledJob job) {
+		String result = getJobName();
+
+		// Create trigger that fires once at <date>
+		SimpleTrigger trigger = new SimpleTrigger("Trigger_" + result, null,
+				date);
+		scheduleJob(result, trigger, job);
+		return result;
+	}
+
+	/** {@inheritDoc} */
+	public String addScheduledOnceJob(long timeDelta, IScheduledJob job) {
+		// Create trigger that fires once in <timeDelta> milliseconds
+		return addScheduledOnceJob(new Date(System.currentTimeMillis()
+				+ timeDelta), job);
+	}
+
 	/**
-     * Getter for job name.
-     *
-     * @return  Job name
-     */
+	 * Getter for job name.
+	 *
+	 * @return  Job name
+	 */
 	public String getJobName() {
 		String result = "ScheduledJob_" + jobDetailCounter.getAndIncrement();
 		return result;
 	}
 
-    /**
-     * Schedules job
-     * @param name               Job name
-     * @param trigger            Job trigger
-     * @param job                Scheduled job object
-     *
-     * @see org.red5.server.api.scheduling.IScheduledJob
-     */
-    private void scheduleJob(String name, Trigger trigger, IScheduledJob job) {
+	/** {@inheritDoc} */
+	public List<String> getScheduledJobNames() {
+		List<String> result = new ArrayList<String>();
+		try {
+			for (String name : scheduler.getJobNames(null)) {
+				result.add(name);
+			}
+		} catch (SchedulerException ex) {
+			throw new RuntimeException(ex);
+		}
+		return result;
+	}
+
+	/** {@inheritDoc} */
+	public void removeScheduledJob(String name) {
+		try {
+			scheduler.deleteJob(name, null);
+		} catch (SchedulerException ex) {
+			throw new RuntimeException(ex);
+		}
+	}
+
+	/**
+	 * Schedules job
+	 * @param name               Job name
+	 * @param trigger            Job trigger
+	 * @param job                Scheduled job object
+	 *
+	 * @see org.red5.server.api.scheduling.IScheduledJob
+	 */
+	private void scheduleJob(String name, Trigger trigger, IScheduledJob job) {
 		// Store reference to applications job and service
 		JobDetail jobDetail = new JobDetail(name, null,
 				QuartzSchedulingServiceJob.class);
@@ -104,57 +155,6 @@ public class QuartzSchedulingService implements ISchedulingService,
 		} catch (SchedulerException ex) {
 			throw new RuntimeException(ex);
 		}
-	}
-
-	/** {@inheritDoc} */
-    public String addScheduledJob(int interval, IScheduledJob job) {
-		String result = getJobName();
-
-		// Create trigger that fires indefinitely every <interval> milliseconds
-		SimpleTrigger trigger = new SimpleTrigger("Trigger_" + result, null,
-				new Date(), null, SimpleTrigger.REPEAT_INDEFINITELY, interval);
-		scheduleJob(result, trigger, job);
-		return result;
-	}
-
-	/** {@inheritDoc} */
-    public String addScheduledOnceJob(long timeDelta, IScheduledJob job) {
-		// Create trigger that fires once in <timeDelta> milliseconds
-		return addScheduledOnceJob(new Date(System.currentTimeMillis()
-				+ timeDelta), job);
-	}
-
-	/** {@inheritDoc} */
-    public String addScheduledOnceJob(Date date, IScheduledJob job) {
-		String result = getJobName();
-
-		// Create trigger that fires once at <date>
-		SimpleTrigger trigger = new SimpleTrigger("Trigger_" + result, null,
-				date);
-		scheduleJob(result, trigger, job);
-		return result;
-	}
-
-	/** {@inheritDoc} */
-    public void removeScheduledJob(String name) {
-		try {
-			scheduler.deleteJob(name, null);
-		} catch (SchedulerException ex) {
-			throw new RuntimeException(ex);
-		}
-	}
-
-	/** {@inheritDoc} */
-    public List<String> getScheduledJobNames() {
-		List<String> result = new ArrayList<String>();
-		try {
-			for (String name : scheduler.getJobNames(null)) {
-				result.add(name);
-			}
-		} catch (SchedulerException ex) {
-			throw new RuntimeException(ex);
-		}
-		return result;
 	}
 
 }

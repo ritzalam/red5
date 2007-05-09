@@ -29,6 +29,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoSession;
 import org.red5.server.api.IScope;
+import org.red5.server.jmx.JMXAgent;
 import org.red5.server.jmx.JMXFactory;
 import org.red5.server.net.rtmp.message.Packet;
 
@@ -48,6 +49,15 @@ public class RTMPMinaConnection extends RTMPConnection implements
 	/** Constructs a new RTMPMinaConnection. */
 	public RTMPMinaConnection() {
 		super(PERSISTENT);
+	}
+
+	/** {@inheritDoc} */
+	@Override
+	public void close() {
+		super.close();
+		ioSession.close();
+		// deregister with jmx
+		JMXAgent.unregisterMBean(oName);
 	}
 
 	@Override
@@ -76,6 +86,55 @@ public class RTMPMinaConnection extends RTMPConnection implements
 	}
 
 	/**
+	 * Return MINA I/O session
+	 *
+	 * @return MINA O/I session, connection between two endpoints
+	 */
+	public IoSession getIoSession() {
+		return ioSession;
+	}
+
+	/** {@inheritDoc} */
+	@Override
+	public long getPendingMessages() {
+		return ioSession.getScheduledWriteRequests();
+	}
+
+	/** {@inheritDoc} */
+	@Override
+	public long getReadBytes() {
+		return ioSession.getReadBytes();
+	}
+
+	/** {@inheritDoc} */
+	@Override
+	public long getWrittenBytes() {
+		return ioSession.getWrittenBytes();
+	}
+
+	public void invokeMethod(String method) {
+		invoke(method);
+	}
+
+	/** {@inheritDoc} */
+	@Override
+	public boolean isConnected() {
+		return super.isConnected() && ioSession.isConnected();
+	}
+
+	/** {@inheritDoc} */
+	@Override
+	protected void onInactive() {
+		this.close();
+	}
+
+	/** {@inheritDoc} */
+	@Override
+	public void rawWrite(ByteBuffer out) {
+		ioSession.write(out);
+	}
+
+	/**
 	 * Setter for MINA I/O session (connection)
 	 *
 	 * @param protocolSession  Protocol session
@@ -96,68 +155,10 @@ public class RTMPMinaConnection extends RTMPConnection implements
 		this.ioSession = protocolSession;
 	}
 
-	/**
-	 * Return MINA I/O session
-	 *
-	 * @return MINA O/I session, connection between two endpoints
-	 */
-	public IoSession getIoSession() {
-		return ioSession;
-	}
-
-	/** {@inheritDoc} */
-	@Override
-	public void rawWrite(ByteBuffer out) {
-		ioSession.write(out);
-	}
-
 	/** {@inheritDoc} */
 	@Override
 	public void write(Packet out) {
 		writingMessage(out);
 		ioSession.write(out);
-	}
-
-	/** {@inheritDoc} */
-	@Override
-	public boolean isConnected() {
-		return super.isConnected() && ioSession.isConnected();
-	}
-
-	/** {@inheritDoc} */
-	@Override
-	public long getReadBytes() {
-		return ioSession.getReadBytes();
-	}
-
-	/** {@inheritDoc} */
-	@Override
-	public long getWrittenBytes() {
-		return ioSession.getWrittenBytes();
-	}
-
-	/** {@inheritDoc} */
-	@Override
-	public long getPendingMessages() {
-		return ioSession.getScheduledWriteRequests();
-	}
-
-	public void invokeMethod(String method) {
-		invoke(method);
-	}
-
-	/** {@inheritDoc} */
-	@Override
-	public void close() {
-		super.close();
-		ioSession.close();
-		// deregister with jmx
-		JMXFactory.unregisterMBean(oName);
-	}
-
-	/** {@inheritDoc} */
-	@Override
-	protected void onInactive() {
-		this.close();
 	}
 }

@@ -46,6 +46,7 @@ import org.red5.server.api.stream.IVideoStreamCodec;
 import org.red5.server.api.stream.ResourceExistException;
 import org.red5.server.api.stream.ResourceNotFoundException;
 import org.red5.server.api.stream.IStreamFilenameGenerator.GenerationType;
+import org.red5.server.jmx.JMXAgent;
 import org.red5.server.jmx.JMXFactory;
 import org.red5.server.messaging.IConsumer;
 import org.red5.server.messaging.IFilter;
@@ -85,8 +86,8 @@ import org.springframework.core.io.Resource;
  */
 public class ClientBroadcastStream extends AbstractClientStream implements
 		IClientBroadcastStream, IFilter, IPushableConsumer,
-		IPipeConnectionListener, IEventDispatcher, IClientBroadcastStreamStatistics,
-		ClientBroadcastStreamMBean {
+		IPipeConnectionListener, IEventDispatcher,
+		IClientBroadcastStreamStatistics, ClientBroadcastStreamMBean {
 
 	/**
 	 * Logger
@@ -94,67 +95,18 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	private static final Log log = LogFactory
 			.getLog(ClientBroadcastStream.class);
 
-	/**
-	 * Stream published name
-	 */
-	private String publishedName;
+	/** Stores absolute time for video stream. */
+	private int audioTime = -1;
 
 	/**
-	 * Output endpoint that providers use
+	 * Total number of bytes received.
 	 */
-	private IMessageOutput connMsgOut;
-
-	/**
-	 * Factory object for video codecs
-	 */
-	private VideoCodecFactory videoCodecFactory = null;
+	private long bytesReceived;
 
 	/**
 	 * Is there need to check video codec?
 	 */
 	private boolean checkVideoCodec = false;
-
-	/**
-	 * Pipe for live streaming
-	 */
-	private IPipe livePipe;
-
-	/**
-	 * Pipe for recording
-	 */
-	private IPipe recordPipe;
-
-	/**
-	 * Whether we are recording or not
-	 */
-	private boolean recording = false;
-
-	/**
-	 * The filename we are recording to.
-	 */
-	private String recordingFilename;
-
-	/**
-	 * FileConsumer used to output recording to disk
-	 */
-	private FileConsumer recordingFile;
-
-	/**
-	 * Is there need to send start notification?
-	 */
-	private boolean sendStartNotification = true;
-
-	/** Stores absolute time for video stream. */
-	private int audioTime = -1;
-
-	/** Stores absolute time for audio stream. */
-	private int videoTime = -1;
-
-	/** Stores absolute time for data stream. */
-	private int dataTime = -1;
-
-	/** Stores timestamp of first packet. */
-	private int firstPacketTime = -1;
 
 	/**
 	 * Data is sent by chunks, each of them has size
@@ -167,78 +119,81 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	private boolean closed = false;
 
 	/**
-	 * MBean object name used for de/registration purposes.
+	 * Output endpoint that providers use
 	 */
-	private ObjectName oName;
+	private IMessageOutput connMsgOut;
 
 	/**
 	 * Timestamp the stream was created.
 	 */
 	private long creationTime;
-	
+
+	/** Stores absolute time for data stream. */
+	private int dataTime = -1;
+
+	/** Stores timestamp of first packet. */
+	private int firstPacketTime = -1;
+
+	/**
+	 * Pipe for live streaming
+	 */
+	private IPipe livePipe;
+
+	/**
+	 * MBean object name used for de/registration purposes.
+	 */
+	private ObjectName oName;
+
+	/**
+	 * Stream published name
+	 */
+	private String publishedName;
+
+	/**
+	 * Whether we are recording or not
+	 */
+	private boolean recording = false;
+
+	/**
+	 * FileConsumer used to output recording to disk
+	 */
+	private FileConsumer recordingFile;
+
+	/**
+	 * The filename we are recording to.
+	 */
+	private String recordingFilename;
+
+	/**
+	 * Pipe for recording
+	 */
+	private IPipe recordPipe;
+
+	/**
+	 * Is there need to send start notification?
+	 */
+	private boolean sendStartNotification = true;
+
 	/**
 	 * Stores statistics about subscribers.
 	 */
 	private StatisticsCounter subscriberStats = new StatisticsCounter();
-	
-	/**
-	 * Total number of bytes received.
-	 */
-	private long bytesReceived;
-	
-	/**
-	 * Starts stream. Creates pipes, video codec from video codec factory bean,
-	 * connects
-	 */
-	public void start() {
-		IConsumerService consumerManager = (IConsumerService) getScope()
-				.getContext().getBean(IConsumerService.KEY);
-		try {
-			videoCodecFactory = (VideoCodecFactory) getScope().getContext()
-					.getBean(VideoCodecFactory.KEY);
-			checkVideoCodec = true;
-		} catch (Exception err) {
-			log.warn("No video codec factory available.", err);
-		}
-		firstPacketTime = audioTime = videoTime = dataTime = -1;
-		connMsgOut = consumerManager.getConsumerOutput(this);
-		connMsgOut.subscribe(this, null);
-		recordPipe = new InMemoryPushPushPipe();
-		Map<Object, Object> recordParamMap = new HashMap<Object, Object>();
-		// Clear record flag
-		recordParamMap.put("record", null);
-		recordPipe.subscribe((IProvider) this, recordParamMap);
-		recording = false;
-		recordingFilename = null;
-		setCodecInfo(new StreamCodecInfo());
-		closed = false;
-		bytesReceived = 0;
-		creationTime = System.currentTimeMillis();
-	}
-
-	/** {@inheritDoc} */
-	public void startPublishing() {
-		// We send the start messages before the first packet is received.
-		// This is required so FME actually starts publishing.
-		sendStartNotifications(Red5.getConnectionLocal());
-	}
 
 	/**
-	 * Stops any currently active recordings.
+	 * Factory object for video codecs
 	 */
-	public void stopRecording() {
-		if (recording) {
-			recording = false;
-			recordingFilename = null;
-			recordPipe.unsubscribe(recordingFile);
-			sendRecordStopNotify();
-		}
-	}
+	private VideoCodecFactory videoCodecFactory = null;
 
-	/** {@inheritDoc} */
-	public void stop() {
-		stopRecording();
-		close();
+	/** Stores absolute time for audio stream. */
+	private int videoTime = -1;
+
+	/**
+	 * Check and send notification if necessary
+	 * @param event          Event
+	 */
+	private void checkSendNotifications(IEvent event) {
+		IEventListener source = event.getSource();
+		sendStartNotifications(source);
 	}
 
 	/**
@@ -262,169 +217,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		connMsgOut.unsubscribe(this);
 		notifyBroadcastClose();
 		// deregister with jmx
-		JMXFactory.unregisterMBean(oName);
-	}
-
-	/**
-	 * Save broadcasted stream.
-	 *
-	 * @param name                           Stream name
-	 * @param isAppend                       Append mode
-	 * @throws IOException					 File could not be created/written to.
-	 * @throws ResourceNotFoundException     Resource doesn't exist when trying to append.
-	 * @throws ResourceExistException        Resource exist when trying to create.
-	 */
-	public void saveAs(String name, boolean isAppend) throws IOException,
-			ResourceNotFoundException, ResourceExistException {
-		log.debug("SaveAs - name: " + name + " append: " + isAppend);
-		// Get stream scope
-		IStreamCapableConnection conn = getConnection();
-		if (conn == null) {
-			// TODO: throw other exception here?
-			throw new IOException("stream is no longer connected");
-		}
-		IScope scope = conn.getScope();
-		// Get stream filename generator
-		IStreamFilenameGenerator generator = (IStreamFilenameGenerator) ScopeUtils
-				.getScopeService(scope, IStreamFilenameGenerator.class,
-						DefaultStreamFilenameGenerator.class);
-
-		// Generate filename
-		String filename = generator.generateFilename(scope, name, ".flv",
-				GenerationType.RECORD);
-		// Get resource for that filename
-		Resource res = scope.getContext().getResource(filename);
-		// If append mode is on...
-		if (!isAppend) {
-			if (res.exists()) {
-				// Per livedoc of FCS/FMS:
-				// When "live" or "record" is used,
-				// any previously recorded stream with the same stream URI is deleted.
-				if (!res.getFile().delete()) {
-					throw new IOException("file could not be deleted");
-				}
-			}
-		} else {
-			if (!res.exists()) {
-				// Per livedoc of FCS/FMS:
-				// If a recorded stream at the same URI does not already exist,
-				// "append" creates the stream as though "record" was passed.
-				isAppend = false;
-			}
-		}
-
-		if (!res.exists()) {
-			// Make sure the destination directory exists
-			String path = res.getFile().getAbsolutePath();
-			int slashPos = path.lastIndexOf(File.separator);
-			if (slashPos != -1) {
-				path = path.substring(0, slashPos);
-			}
-			File tmp = new File(path);
-			if (!tmp.isDirectory()) {
-				tmp.mkdirs();
-			}
-		}
-
-		if (!res.exists()) {
-			res.getFile().createNewFile();
-		}
-		log.debug("Recording file: " + res.getFile().getCanonicalPath());
-		recordingFile = new FileConsumer(scope, res.getFile());
-		Map<Object, Object> paramMap = new HashMap<Object, Object>();
-		if (isAppend) {
-			paramMap.put("mode", "append");
-		} else {
-			paramMap.put("mode", "record");
-		}
-		recordPipe.subscribe(recordingFile, paramMap);
-		recording = true;
-		recordingFilename = filename;
-	}
-
-	/** {@inheritDoc} */
-	public String getSaveFilename() {
-		return recordingFilename;
-	}
-
-	/**
-	 * Getter for provider
-	 * @return            Provider
-	 */
-	public IProvider getProvider() {
-		return this;
-	}
-
-	/**
-	 * Getter for published name
-	 * @return        Stream published name
-	 */
-	public String getPublishedName() {
-		return publishedName;
-	}
-
-	/**
-	 * Setter for stream published name
-	 * @param name       Name that used for publishing. Set at client side when begin to broadcast with NetStream#publish.
-	 */
-	public void setPublishedName(String name) {
-		log.debug("setPublishedName: " + name);
-		//check to see if we are setting the name to the same string
-		if (!name.equals(publishedName)) {
-			// update an attribute
-			JMXFactory.updateMBeanAttribute(oName, "publishedName", name);
-		} else {
-			//create a new mbean for this instance with the new name
-			oName = JMXFactory.createMBean(
-					"org.red5.server.stream.ClientBroadcastStream",
-					"publishedName=" + name);
-		}
-		this.publishedName = name;
-	}
-
-	/**
-	 * Currently not implemented
-	 *
-	 * @param pipe           Pipe
-	 * @param message        Message
-	 */
-	public void pushMessage(IPipe pipe, IMessage message) {
-	}
-
-	/**
-	 * Send OOB control message with chunk size
-	 */
-	private void notifyChunkSize() {
-		if (chunkSize > 0 && livePipe != null) {
-			OOBControlMessage setChunkSize = new OOBControlMessage();
-			setChunkSize.setTarget("ConnectionConsumer");
-			setChunkSize.setServiceName("chunkSize");
-			if (setChunkSize.getServiceParamMap() == null) {
-				setChunkSize.setServiceParamMap(new HashMap());
-			}
-			setChunkSize.getServiceParamMap().put("chunkSize", chunkSize);
-			livePipe.sendOOBControlMessage(getProvider(), setChunkSize);
-		}
-	}
-
-	/**
-	 * Out-of-band control message handler
-	 *
-	 * @param source           OOB message source
-	 * @param pipe             Pipe that used to send OOB message
-	 * @param oobCtrlMsg       Out-of-band control message
-	 */
-	public void onOOBControlMessage(IMessageComponent source, IPipe pipe,
-			OOBControlMessage oobCtrlMsg) {
-		if (!"ClientBroadcastStream".equals(oobCtrlMsg.getTarget())) {
-			return;
-		}
-
-		if ("chunkSize".equals(oobCtrlMsg.getServiceName())) {
-			chunkSize = (Integer) oobCtrlMsg.getServiceParamMap().get(
-					"chunkSize");
-			notifyChunkSize();
-		}
+		JMXAgent.unregisterMBean(oName);
 	}
 
 	/**
@@ -512,7 +305,8 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			eventTime = dataTime;
 		}
 
-		if (rtmpEvent instanceof IStreamData && ((IStreamData) rtmpEvent).getData() != null) {
+		if (rtmpEvent instanceof IStreamData
+				&& ((IStreamData) rtmpEvent).getData() != null) {
 			bytesReceived += ((IStreamData) rtmpEvent).getData().limit();
 		}
 
@@ -534,40 +328,123 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		}
 	}
 
-	/**
-	 * Check and send notification if necessary
-	 * @param event          Event
-	 */
-	private void checkSendNotifications(IEvent event) {
-		IEventListener source = event.getSource();
-		sendStartNotifications(source);
+	/** {@inheritDoc} */
+	public int getActiveSubscribers() {
+		return subscriberStats.getCurrent();
 	}
 
-	private void sendStartNotifications(IEventListener source) {
-		if (sendStartNotification) {
-			// Notify handler that stream starts recording/publishing
-			sendStartNotification = false;
-			if (source instanceof IConnection) {
-				IScope scope = ((IConnection) source).getScope();
-				if (scope.hasHandler()) {
-					Object handler = scope.getHandler();
-					if (handler instanceof IStreamAwareScopeHandler) {
-						if (recording) {
-							((IStreamAwareScopeHandler) handler)
-									.streamRecordStart(this);
-						} else {
-							((IStreamAwareScopeHandler) handler)
-									.streamPublishStart(this);
-						}
-					}
-				}
+	/** {@inheritDoc} */
+	public long getBytesReceived() {
+		return bytesReceived;
+	}
+
+	/** {@inheritDoc} */
+	public long getCreationTime() {
+		return creationTime;
+	}
+
+	/** {@inheritDoc} */
+	public int getCurrentTimestamp() {
+		return Math.max(Math.max(videoTime, audioTime), dataTime);
+	}
+
+	/** {@inheritDoc} */
+	public int getMaxSubscribers() {
+		return subscriberStats.getMax();
+	}
+
+	/**
+	 * Getter for provider
+	 * @return            Provider
+	 */
+	public IProvider getProvider() {
+		return this;
+	}
+
+	/**
+	 * Getter for published name
+	 * @return        Stream published name
+	 */
+	public String getPublishedName() {
+		return publishedName;
+	}
+
+	/** {@inheritDoc} */
+	public String getSaveFilename() {
+		return recordingFilename;
+	}
+
+	/** {@inheritDoc} */
+	public IClientBroadcastStreamStatistics getStatistics() {
+		return this;
+	}
+
+	/** {@inheritDoc} */
+	public int getTotalSubscribers() {
+		return subscriberStats.getTotal();
+	}
+
+	/**
+	 *  Notifies handler on stream broadcast stop
+	 */
+	private void notifyBroadcastClose() {
+		IStreamAwareScopeHandler handler = getStreamAwareHandler();
+		if (handler != null) {
+			try {
+				handler.streamBroadcastClose(this);
+			} catch (Throwable t) {
+				log.error("error notify streamBroadcastStop", t);
 			}
-			// Send start notifications
-			sendPublishStartNotify();
-			if (recording) {
-				sendRecordStartNotify();
+		}
+	}
+
+	/**
+	 *  Notifies handler on stream broadcast start
+	 */
+	private void notifyBroadcastStart() {
+		IStreamAwareScopeHandler handler = getStreamAwareHandler();
+		if (handler != null) {
+			try {
+				handler.streamBroadcastStart(this);
+			} catch (Throwable t) {
+				log.error("error notify streamBroadcastStart", t);
 			}
-			notifyBroadcastStart();
+		}
+	}
+
+	/**
+	 * Send OOB control message with chunk size
+	 */
+	private void notifyChunkSize() {
+		if (chunkSize > 0 && livePipe != null) {
+			OOBControlMessage setChunkSize = new OOBControlMessage();
+			setChunkSize.setTarget("ConnectionConsumer");
+			setChunkSize.setServiceName("chunkSize");
+			if (setChunkSize.getServiceParamMap() == null) {
+				setChunkSize.setServiceParamMap(new HashMap());
+			}
+			setChunkSize.getServiceParamMap().put("chunkSize", chunkSize);
+			livePipe.sendOOBControlMessage(getProvider(), setChunkSize);
+		}
+	}
+
+	/**
+	 * Out-of-band control message handler
+	 *
+	 * @param source           OOB message source
+	 * @param pipe             Pipe that used to send OOB message
+	 * @param oobCtrlMsg       Out-of-band control message
+	 */
+	public void onOOBControlMessage(IMessageComponent source, IPipe pipe,
+			OOBControlMessage oobCtrlMsg) {
+		if (!"ClientBroadcastStream".equals(oobCtrlMsg.getTarget())) {
+			return;
+		}
+
+		if ("chunkSize".equals(oobCtrlMsg.getServiceName())) {
+			chunkSize = (Integer) oobCtrlMsg.getServiceParamMap().get(
+					"chunkSize");
+			notifyChunkSize();
 		}
 	}
 
@@ -583,7 +460,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 						&& (event.getParamMap() == null || !event.getParamMap()
 								.containsKey("record"))) {
 					this.livePipe = (IPipe) event.getSource();
-					for (IConsumer consumer: this.livePipe.getConsumers()) {
+					for (IConsumer consumer : this.livePipe.getConsumers()) {
 						subscriberStats.increment();
 					}
 				}
@@ -605,6 +482,92 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			default:
 				break;
 		}
+	}
+
+	/**
+	 * Currently not implemented
+	 *
+	 * @param pipe           Pipe
+	 * @param message        Message
+	 */
+	public void pushMessage(IPipe pipe, IMessage message) {
+	}
+
+	/**
+	 * Save broadcasted stream.
+	 *
+	 * @param name                           Stream name
+	 * @param isAppend                       Append mode
+	 * @throws IOException					 File could not be created/written to.
+	 * @throws ResourceNotFoundException     Resource doesn't exist when trying to append.
+	 * @throws ResourceExistException        Resource exist when trying to create.
+	 */
+	public void saveAs(String name, boolean isAppend) throws IOException,
+			ResourceNotFoundException, ResourceExistException {
+		log.debug("SaveAs - name: " + name + " append: " + isAppend);
+		// Get stream scope
+		IStreamCapableConnection conn = getConnection();
+		if (conn == null) {
+			// TODO: throw other exception here?
+			throw new IOException("stream is no longer connected");
+		}
+		IScope scope = conn.getScope();
+		// Get stream filename generator
+		IStreamFilenameGenerator generator = (IStreamFilenameGenerator) ScopeUtils
+				.getScopeService(scope, IStreamFilenameGenerator.class,
+						DefaultStreamFilenameGenerator.class);
+
+		// Generate filename
+		String filename = generator.generateFilename(scope, name, ".flv",
+				GenerationType.RECORD);
+		// Get resource for that filename
+		Resource res = scope.getContext().getResource(filename);
+		// If append mode is on...
+		if (!isAppend) {
+			if (res.exists()) {
+				// Per livedoc of FCS/FMS:
+				// When "live" or "record" is used,
+				// any previously recorded stream with the same stream URI is deleted.
+				if (!res.getFile().delete()) {
+					throw new IOException("file could not be deleted");
+				}
+			}
+		} else {
+			if (!res.exists()) {
+				// Per livedoc of FCS/FMS:
+				// If a recorded stream at the same URI does not already exist,
+				// "append" creates the stream as though "record" was passed.
+				isAppend = false;
+			}
+		}
+
+		if (!res.exists()) {
+			// Make sure the destination directory exists
+			String path = res.getFile().getAbsolutePath();
+			int slashPos = path.lastIndexOf(File.separator);
+			if (slashPos != -1) {
+				path = path.substring(0, slashPos);
+			}
+			File tmp = new File(path);
+			if (!tmp.isDirectory()) {
+				tmp.mkdirs();
+			}
+		}
+
+		if (!res.exists()) {
+			res.getFile().createNewFile();
+		}
+		log.debug("Recording file: " + res.getFile().getCanonicalPath());
+		recordingFile = new FileConsumer(scope, res.getFile());
+		Map<Object, Object> paramMap = new HashMap<Object, Object>();
+		if (isAppend) {
+			paramMap.put("mode", "append");
+		} else {
+			paramMap.put("mode", "record");
+		}
+		recordPipe.subscribe(recordingFile, paramMap);
+		recording = true;
+		recordingFilename = filename;
 	}
 
 	/**
@@ -636,6 +599,25 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		stopMsg.setBody(stopStatus);
 		try {
 			connMsgOut.pushMessage(stopMsg);
+		} catch (IOException err) {
+			log.error("Error while pushing message.", err);
+		}
+	}
+
+	/**
+	 *  Sends record failed notifications
+	 */
+	private void sendRecordFailedNotify(String reason) {
+		Status failedStatus = new Status(StatusCodes.NS_RECORD_FAILED);
+		failedStatus.setLevel(Status.ERROR);
+		failedStatus.setClientid(getStreamId());
+		failedStatus.setDetails(getPublishedName());
+		failedStatus.setDesciption(reason);
+
+		StatusMessage failedMsg = new StatusMessage();
+		failedMsg.setBody(failedStatus);
+		try {
+			connMsgOut.pushMessage(failedMsg);
 		} catch (IOException err) {
 			log.error("Error while pushing message.", err);
 		}
@@ -675,86 +657,106 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		}
 	}
 
-	/**
-	 *  Sends record failed notifications
-	 */
-	private void sendRecordFailedNotify(String reason) {
-		Status failedStatus = new Status(StatusCodes.NS_RECORD_FAILED);
-		failedStatus.setLevel(Status.ERROR);
-		failedStatus.setClientid(getStreamId());
-		failedStatus.setDetails(getPublishedName());
-		failedStatus.setDesciption(reason);
+	private void sendStartNotifications(IEventListener source) {
+		if (sendStartNotification) {
+			// Notify handler that stream starts recording/publishing
+			sendStartNotification = false;
+			if (source instanceof IConnection) {
+				IScope scope = ((IConnection) source).getScope();
+				if (scope.hasHandler()) {
+					Object handler = scope.getHandler();
+					if (handler instanceof IStreamAwareScopeHandler) {
+						if (recording) {
+							((IStreamAwareScopeHandler) handler)
+									.streamRecordStart(this);
+						} else {
+							((IStreamAwareScopeHandler) handler)
+									.streamPublishStart(this);
+						}
+					}
+				}
+			}
+			// Send start notifications
+			sendPublishStartNotify();
+			if (recording) {
+				sendRecordStartNotify();
+			}
+			notifyBroadcastStart();
+		}
+	}
 
-		StatusMessage failedMsg = new StatusMessage();
-		failedMsg.setBody(failedStatus);
+	/**
+	 * Setter for stream published name
+	 * @param name       Name that used for publishing. Set at client side when begin to broadcast with NetStream#publish.
+	 */
+	public void setPublishedName(String name) {
+		log.debug("setPublishedName: " + name);
+		//check to see if we are setting the name to the same string
+		if (!name.equals(publishedName)) {
+			// update an attribute
+			JMXAgent.updateMBeanAttribute(oName, "publishedName", name);
+		} else {
+			//create a new mbean for this instance with the new name
+			oName = JMXFactory.createMBean(
+					"org.red5.server.stream.ClientBroadcastStream",
+					"publishedName=" + name);
+		}
+		this.publishedName = name;
+	}
+
+	/**
+	 * Starts stream. Creates pipes, video codec from video codec factory bean,
+	 * connects
+	 */
+	public void start() {
+		IConsumerService consumerManager = (IConsumerService) getScope()
+				.getContext().getBean(IConsumerService.KEY);
 		try {
-			connMsgOut.pushMessage(failedMsg);
-		} catch (IOException err) {
-			log.error("Error while pushing message.", err);
+			videoCodecFactory = (VideoCodecFactory) getScope().getContext()
+					.getBean(VideoCodecFactory.KEY);
+			checkVideoCodec = true;
+		} catch (Exception err) {
+			log.warn("No video codec factory available.", err);
 		}
+		firstPacketTime = audioTime = videoTime = dataTime = -1;
+		connMsgOut = consumerManager.getConsumerOutput(this);
+		connMsgOut.subscribe(this, null);
+		recordPipe = new InMemoryPushPushPipe();
+		Map<Object, Object> recordParamMap = new HashMap<Object, Object>();
+		// Clear record flag
+		recordParamMap.put("record", null);
+		recordPipe.subscribe((IProvider) this, recordParamMap);
+		recording = false;
+		recordingFilename = null;
+		setCodecInfo(new StreamCodecInfo());
+		closed = false;
+		bytesReceived = 0;
+		creationTime = System.currentTimeMillis();
+	}
+
+	/** {@inheritDoc} */
+	public void startPublishing() {
+		// We send the start messages before the first packet is received.
+		// This is required so FME actually starts publishing.
+		sendStartNotifications(Red5.getConnectionLocal());
+	}
+
+	/** {@inheritDoc} */
+	public void stop() {
+		stopRecording();
+		close();
 	}
 
 	/**
-	 *  Notifies handler on stream broadcast start
+	 * Stops any currently active recordings.
 	 */
-	private void notifyBroadcastStart() {
-		IStreamAwareScopeHandler handler = getStreamAwareHandler();
-		if (handler != null) {
-			try {
-				handler.streamBroadcastStart(this);
-			} catch (Throwable t) {
-				log.error("error notify streamBroadcastStart", t);
-			}
+	public void stopRecording() {
+		if (recording) {
+			recording = false;
+			recordingFilename = null;
+			recordPipe.unsubscribe(recordingFile);
+			sendRecordStopNotify();
 		}
-	}
-
-	/**
-	 *  Notifies handler on stream broadcast stop
-	 */
-	private void notifyBroadcastClose() {
-		IStreamAwareScopeHandler handler = getStreamAwareHandler();
-		if (handler != null) {
-			try {
-				handler.streamBroadcastClose(this);
-			} catch (Throwable t) {
-				log.error("error notify streamBroadcastStop", t);
-			}
-		}
-	}
-
-	/** {@inheritDoc} */
-	public IClientBroadcastStreamStatistics getStatistics() {
-		return this;
-	}
-
-	/** {@inheritDoc} */
-	public long getCreationTime() {
-		return creationTime;
-	}
-	
-	/** {@inheritDoc} */
-	public int getCurrentTimestamp() {
-		return Math.max(Math.max(videoTime, audioTime), dataTime);
-	}
-	
-	/** {@inheritDoc} */
-	public int getTotalSubscribers() {
-		return subscriberStats.getTotal();
-	}
-	
-	/** {@inheritDoc} */
-	public int getMaxSubscribers() {
-		return subscriberStats.getMax();
-	}
-	
-	/** {@inheritDoc} */
-	public int getActiveSubscribers() {
-		return subscriberStats.getCurrent();
-	}
-	
-	/** {@inheritDoc} */
-	public long getBytesReceived() {
-		return bytesReceived;
 	}
 
 }
