@@ -626,6 +626,17 @@
 		<antcall target="server_java5" inheritAll="true" inheritRefs="true"/>
 		<antcall target="server_java6" inheritAll="true" inheritRefs="true"/>
 	</target>
+	<target name="shutdown" depends="compile">
+		<java classname="org.red5.server.Shutdown" fork="true">
+			<classpath>
+				<pathelement location="${config.dir}"/>
+				<pathelement location="${classes.dir}"/>
+				<path refid="full.classpath"/>
+			</classpath>
+			<jvmarg value="-Djava.security.manager"/>
+			<jvmarg value="-Djava.security.policy=${config.dir}/red5.policy"/>
+		</java>
+	</target>
 	<!-- Experimental UDP Server -->
 	<target name="udp_java5" depends="compile" unless="java6.installed">
 		<java classname="org.red5.server.net.udp.Standalone" fork="true">
