@@ -838,6 +838,12 @@ public class NoSyncServerStream extends AbstractStream implements
 				nextRTMPMessage.getBody().release();
 				nextRTMPMessage = null;
 			}
+			ResetMessage reset = new ResetMessage();
+			try {
+				pushMessage(reset);
+	    	} catch (IOException err) {
+	    		log.error("Error while sending message.", err);
+	    	}
 			scheduleNextMessage();
 		}
 	}
