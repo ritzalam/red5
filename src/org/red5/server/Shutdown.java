@@ -2,8 +2,8 @@ package org.red5.server;
 
 import java.lang.reflect.UndeclaredThrowableException;
 
-import javax.management.JMX;
 import javax.management.MBeanServerConnection;
+import javax.management.MBeanServerInvocationHandler;
 import javax.management.ObjectName;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
@@ -65,12 +65,12 @@ public class Shutdown {
 					"org.red5.server:type=JettyLoader");
 			LoaderMBean mbeanProxy = null;
 			if (mbs.isRegistered(jettyObjectName)) {
-				mbeanProxy = JMX.newMBeanProxy(mbs, jettyObjectName,
-						LoaderMBean.class, true);
+				mbeanProxy = (LoaderMBean) MBeanServerInvocationHandler.newProxyInstance(mbs,
+						jettyObjectName, LoaderMBean.class, true);
 				System.out.println("Red5 Jetty loader was found");
 			} else if (mbs.isRegistered(tomcatObjectName)) {
-				mbeanProxy = JMX.newMBeanProxy(mbs, tomcatObjectName,
-						LoaderMBean.class, true);
+				mbeanProxy = (LoaderMBean) MBeanServerInvocationHandler.newProxyInstance(mbs,
+						tomcatObjectName, LoaderMBean.class, true);
 				System.out.println("Red5 Tomcat loader was found");
 			} else {
 				System.out
