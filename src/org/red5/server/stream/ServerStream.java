@@ -77,7 +77,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
      * Enumeration for states
      */
     private enum State {
-		UNINIT, CLOSED, STOPPED, PLAYING
+		UNINIT, CLOSED, STOPPED, PLAYING, PAUSED
 	}
 
     /**
@@ -437,7 +437,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
      * Stop this server-side stream
      */
     public synchronized void stop() {
-		if (state != State.PLAYING) {
+		if (state != State.PLAYING && state != State.PAUSED) {
 			return;
 		}
 		if (liveJobName != null) {
@@ -459,8 +459,29 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	}
 
 	/** {@inheritDoc} */
-    public synchronized void close() {
+	public void pause() {
 		if (state == State.PLAYING) {
+			state = State.PAUSED;
+		} else if (state == State.PAUSED) {
+			state = State.PLAYING;
+			vodStartTS = 0;
+			serverStartTS = System.currentTimeMillis();
+			scheduleNextMessage();
+		}
+	}
+	
+	/** {@inheritDoc} */
+	public void seek(int position) {
+		if (state != State.PLAYING && state != State.PAUSED)
+			// Can't seek when stopped/closed
+			return;
+		
+		sendVODSeekCM(msgIn, position);
+	}
+	
+	/** {@inheritDoc} */
+    public synchronized void close() {
+		if (state == State.PLAYING || state == State.PAUSED) {
 			stop();
 		}
 		if (msgOut != null) {
@@ -680,7 +701,12 @@ public class ServerStream extends AbstractStream implements IServerStream,
 						onItemEnd();
 						return;
 					}
-					scheduleNextMessage();
+					if (state == State.PLAYING) {
+						scheduleNextMessage();
+					} else {
+						// Stream is paused, don't load more messages
+						nextRTMPMessage = null;
+					}
 				}
 			}
 		});
@@ -731,6 +757,37 @@ public class ServerStream extends AbstractStream implements IServerStream,
 		msgIn.sendOOBControlMessage(this, oobCtrlMsg);
 	}
 
+    /**
+     * Send VOD seek control message
+     * 
+     * @param msgIn				Message input
+     * @param position			New timestamp to play from
+     */
+	private void sendVODSeekCM(IMessageInput msgIn, int position) {
+		OOBControlMessage oobCtrlMsg = new OOBControlMessage();
+		oobCtrlMsg.setTarget(ISeekableProvider.KEY);
+		oobCtrlMsg.setServiceName("seek");
+		Map<Object, Object> paramMap = new HashMap<Object, Object>();
+		paramMap.put("position", new Integer(position));
+		oobCtrlMsg.setServiceParamMap(paramMap);
+		msgIn.sendOOBControlMessage(this, oobCtrlMsg);
+		synchronized (this) {
+			// Reset properties
+			vodStartTS = 0;
+			serverStartTS = System.currentTimeMillis();
+			if (nextRTMPMessage != null) {
+				try {
+					pushMessage(nextRTMPMessage);
+		    	} catch (IOException err) {
+		    		log.error("Error while sending message.", err);
+		    	}
+				nextRTMPMessage.getBody().release();
+				nextRTMPMessage = null;
+			}
+			scheduleNextMessage();
+		}
+	}
+	
 	/**
 	 * Move to the next item updating the currentItemIndex.
 	 * Should be called in synchronized context.

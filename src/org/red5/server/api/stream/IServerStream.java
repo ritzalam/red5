@@ -25,4 +25,16 @@ package org.red5.server.api.stream;
  */
 public interface IServerStream extends IPlaylist, IBroadcastStream {
 
+	/**
+	 * Toggles the paused state.
+	 */
+	public void pause();
+	
+	/**
+	 * Seek to a given position in the stream.
+	 * 
+	 * @param position new playback position in milliseconds
+	 */
+	public void seek(int position);
+
 }
