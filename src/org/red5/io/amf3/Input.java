@@ -51,12 +51,15 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		
 		/** Name of the deserialized class. */
 		protected String className;
+		/** Type of the class. */
+		protected int type;
 		/** Names of the attributes of the class. */
 		protected List<String> attributeNames;
 		
 		/** Create new informations about a class. */
-		public ClassReference(String className, List<String> attributeNames) {
+		public ClassReference(String className, int type, List<String> attributeNames) {
 			this.className = className;
+			this.type = type;
 			this.attributeNames = attributeNames;
 		}
 	}
@@ -365,7 +368,10 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 			ClassReference info = classReferences.get(type >> 1);
 			className = info.className;
 			attributes = info.attributeNames;
-			type = attributes.size() << 2 | AMF3.TYPE_OBJECT_PROPERTY;
+			type = info.type;
+			if (attributes != null) {
+				type |= attributes.size() << 2;
+			}
 		} else {
 			type >>= 1;
 			className = readString();
@@ -384,7 +390,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 				for (int i=0; i<count; i++) {
 					attributes.add(readString());					
 				}
-				classReferences.add(new ClassReference(className, attributes));
+				classReferences.add(new ClassReference(className, AMF3.TYPE_OBJECT_PROPERTY, attributes));
 			}
 			for (int i=0; i<count; i++) {
 				properties.put(attributes.get(i), deserializer.deserialize(this));
@@ -402,10 +408,13 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 			if (!(result instanceof IExternalizable))
 				throw new RuntimeException("the class must implement the IExternalizable interface");
 			
+			classReferences.add(new ClassReference(className, AMF3.TYPE_OBJECT_EXTERNALIZABLE, null));
+			storeReference(tempRefId, result);
 			((IExternalizable) result).readExternal(new DataInput(this, deserializer));
 			break;
 		case AMF3.TYPE_OBJECT_VALUE:
 			// Load object properties into map
+			classReferences.add(new ClassReference(className, AMF3.TYPE_OBJECT_VALUE, null));
 			properties = new ObjectMap<String, Object>();
 			attributes = new LinkedList<String>();
 			String key = readString();
@@ -415,7 +424,6 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 				properties.put(key, value);
 				key = readString();
 			}
-			classReferences.add(new ClassReference(className, attributes));
 			break;
 		default:
 		case AMF3.TYPE_OBJECT_UNKNOWN:
