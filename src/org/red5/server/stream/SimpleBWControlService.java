@@ -70,6 +70,11 @@ implements IBWControlService {
 	}
 
 	public void run() {
+		if (contextMap.isEmpty()) {
+			// Early bail out, nothing to do.
+			return;
+		}
+		
 		Collection<BWContext> contexts = contextMap.values();
 		for (BWContext context : contexts) {
 			synchronized (context) {
