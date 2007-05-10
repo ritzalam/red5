@@ -96,13 +96,17 @@ implements ApplicationContextAware {
     @Override
 	public void exceptionCaught(IoSession session, Throwable cause)
 			throws Exception {
-		log.debug("Exception caught", cause);
+    	if (log.isDebugEnabled()) {
+    		log.debug("Exception caught", cause);
+    	}
 	}
 
 	/** {@inheritDoc} */
     @Override
 	public void messageReceived(IoSession session, Object in) throws Exception {
-		log.debug("messageRecieved");
+    	if (log.isDebugEnabled()) {
+    		log.debug("messageRecieved");
+    	}
 		final RTMPMinaConnection conn = (RTMPMinaConnection) session
 				.getAttachment();
 		final ProtocolState state = (ProtocolState) session
@@ -162,7 +166,9 @@ implements ApplicationContextAware {
 	/** {@inheritDoc} */
     @Override
 	public void messageSent(IoSession session, Object message) throws Exception {
-		log.debug("messageSent");
+    	if (log.isDebugEnabled()) {
+    		log.debug("messageSent");
+    	}
 		session.getAttribute(ProtocolState.SESSION_KEY);
 		final RTMPMinaConnection conn = (RTMPMinaConnection) session
 				.getAttachment();
