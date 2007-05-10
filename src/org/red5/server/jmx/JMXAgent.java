@@ -20,6 +20,7 @@ package org.red5.server.jmx;
  */
 
 import java.io.IOException;
+import java.rmi.ConnectException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.ArrayList;
@@ -266,6 +267,8 @@ public class JMXAgent implements NotificationListener {
 				log.debug("Start the RMI connector server");
 				cs.start();
 				log.info("JMX RMI connector server successfully started");
+			} catch (ConnectException e) {
+				log.warn("Could not establish RMI connection to port " + rmiAdapterPort + ", please make sure \"rmiregistry\" is running and configured to listen on this port.");
 			} catch (IOException e) {
 				String errMsg = e.getMessage();
 				if (errMsg.indexOf("NameAlreadyBoundException") != -1) {
