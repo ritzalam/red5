@@ -78,10 +78,24 @@ public class ClientRegistry implements IClientRegistry, ClientRegistryMBean {
 	}
 
 	/**
+	 * Check if client registry contains clients.
+	 * 
+	 * @return             <code>True</code> if clients exist, otherwise <code>False</code>
+	 */
+	protected boolean hasClients() {
+		return !clients.isEmpty();
+	}
+	
+	/**
 	 * Return collection of clients
 	 * @return             Collection of clients
 	 */
 	protected Collection<IClient> getClients() {
+		if (!hasClients()) {
+			// Avoid creating new Collection object if no clients exist.
+			return Collections.EMPTY_SET;
+		}
+		
 		return Collections.unmodifiableCollection(clients.values());
 	}
 
