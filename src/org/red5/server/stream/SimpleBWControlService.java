@@ -21,13 +21,13 @@ package org.red5.server.stream;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -540,7 +540,9 @@ implements IBWControlService {
 		public BWContext(IBWControllable controllable) {
 			this.controllable = controllable;
 			Arrays.fill(tokenRc, 0);
-			pendingRequestArray = new List[] {new LinkedList(), new LinkedList(), new LinkedList()};
+			pendingRequestArray = new List[] {new CopyOnWriteArrayList<TokenRequest>(),
+					new CopyOnWriteArrayList<TokenRequest>(),
+					new CopyOnWriteArrayList<TokenRequest>()};
 		}
 		
 		public IBWControllable getBWControllable() {
