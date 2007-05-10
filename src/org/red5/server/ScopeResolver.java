@@ -75,16 +75,24 @@ public class ScopeResolver implements IScopeResolver {
 				continue;
 			}
 
-			// Prevent the same subscope from getting created twice
-			synchronized (scope) {
-				if (scope.hasChildScope(room)) {
-					scope = scope.getScope(room);
-				} else if (!scope.equals(globalScope)
-						&& scope.createChildScope(room)) {
-					scope = scope.getScope(room);
-				} else {
-					throw new ScopeNotFoundException(scope, room);
+			if (scope.hasChildScope(room)) {
+				scope = scope.getScope(room);
+			} else if (!scope.equals(globalScope)) {
+				// Synchronizing to make sure a subscope with the same name
+				// is not created multiple times.
+				synchronized (scope) {
+					// Check again as a different thread might have created the
+					// child while we waited for the synchronized block.
+					if (scope.hasChildScope(room)) {
+						scope = scope.getScope(room);
+					} else if (scope.createChildScope(room)) {
+						scope = scope.getScope(room);
+					} else {
+						throw new ScopeNotFoundException(scope, room);
+					}
 				}
+			} else {
+				throw new ScopeNotFoundException(scope, room);
 			}
 		}
 		return scope;
