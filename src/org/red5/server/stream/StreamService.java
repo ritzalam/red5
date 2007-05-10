@@ -481,14 +481,12 @@ public class StreamService implements IStreamService {
      * @return               Broadcast scope
      */
     public IBroadcastScope getBroadcastScope(IScope scope, String name) {
-		synchronized (scope) {
-			IBasicScope basicScope = scope.getBasicScope(IBroadcastScope.TYPE,
-					name);
-			if (!(basicScope instanceof IBroadcastScope)) {
-				return null;
-			} else {
-				return (IBroadcastScope) basicScope;
-			}
+		IBasicScope basicScope = scope.getBasicScope(IBroadcastScope.TYPE,
+				name);
+		if (!(basicScope instanceof IBroadcastScope)) {
+			return null;
+		} else {
+			return (IBroadcastScope) basicScope;
 		}
 	}
 }
