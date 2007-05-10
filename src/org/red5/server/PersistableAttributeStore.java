@@ -233,12 +233,14 @@ public class PersistableAttributeStore extends AttributeStore implements
      * @return              true if attribute was set, false otherwise
      */
     @Override
-    public synchronized boolean setAttribute(String name, Object value) {
-		boolean result = super.setAttribute(name, value);
-		if (result && !name.startsWith(IPersistable.TRANSIENT_PREFIX)) {
-			modified();
-		}
-		return result;
+    public boolean setAttribute(String name, Object value) {
+    	synchronized (attributes) {
+    		boolean result = super.setAttribute(name, value);
+    		if (result && !name.startsWith(IPersistable.TRANSIENT_PREFIX)) {
+    			modified();
+    		}
+    		return result;
+    	}
 	}
 
     /**
@@ -247,9 +249,11 @@ public class PersistableAttributeStore extends AttributeStore implements
      * @param values          Attributes as Map
      */
     @Override
-    public synchronized void setAttributes(Map<String, Object> values) {
-		super.setAttributes(values);
-		modified();
+    public void setAttributes(Map<String, Object> values) {
+    	synchronized (attributes) {
+    		super.setAttributes(values);
+    		modified();
+    	}
 	}
 
     /**
@@ -258,9 +262,11 @@ public class PersistableAttributeStore extends AttributeStore implements
      * @param values      Attributes store
      */
     @Override
-    public synchronized void setAttributes(IAttributeStore values) {
-		super.setAttributes(values);
-		modified();
+    public void setAttributes(IAttributeStore values) {
+    	synchronized (attributes) {
+    		super.setAttributes(values);
+    		modified();
+    	}
 	}
 
     /**
@@ -269,20 +275,24 @@ public class PersistableAttributeStore extends AttributeStore implements
      * @return              true if attribute was removed, false otherwise
      */
     @Override
-    public synchronized boolean removeAttribute(String name) {
-		boolean result = super.removeAttribute(name);
-		if (result && !name.startsWith(IPersistable.TRANSIENT_PREFIX)) {
-			modified();
-		}
-		return result;
+    public boolean removeAttribute(String name) {
+    	synchronized (attributes) {
+    		boolean result = super.removeAttribute(name);
+    		if (result && !name.startsWith(IPersistable.TRANSIENT_PREFIX)) {
+    			modified();
+    		}
+    		return result;
+    	}
 	}
 
     /**
      * Removes all attributes and sets modified flag
      */
     @Override
-    public synchronized void removeAttributes() {
-		super.removeAttributes();
-		modified();
+    public void removeAttributes() {
+    	synchronized (attributes) {
+    		super.removeAttributes();
+    		modified();
+    	}
 	}
 }
