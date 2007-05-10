@@ -252,11 +252,14 @@ public class RTMP extends ProtocolState {
      * @param packet              Last written packet
      */
 	public void setLastWritePacket(int channelId, Packet packet) {
+		// Disabled to help GC because we currently don't use the write packets
+		/*
 		Packet prevPacket = writePackets.put(channelId, packet);
 		if (prevPacket != null && prevPacket.getData() != null) {
 			prevPacket.getData().release();
 			prevPacket.setData(null);
 		}
+		*/
 	}
 
     /**
