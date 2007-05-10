@@ -53,12 +53,10 @@ public class RTMPUtils implements Constants {
      * @param value        Integer to write
      */
 	public static void writeReverseInt(ByteBuffer out, int value) {
-		byte[] bytes = new byte[4];
-		bytes[3] = (byte) (0xFF & (value >> 24));
-		bytes[2] = (byte) (0xFF & (value >> 16));
-		bytes[1] = (byte) (0xFF & (value >> 8));
-		bytes[0] = (byte) (0xFF & value);
-		out.put(bytes);
+		out.put((byte) (0xFF & value));
+		out.put((byte) (0xFF & (value >> 8)));
+		out.put((byte) (0xFF & (value >> 16)));
+		out.put((byte) (0xFF & (value >> 24)));
 	}
 
     /**
@@ -67,11 +65,9 @@ public class RTMPUtils implements Constants {
      * @param value
      */
 	public static void writeMediumInt(ByteBuffer out, int value) {
-		byte[] bytes = new byte[3];
-		bytes[0] = (byte) (0xFF & (value >> 16));
-		bytes[1] = (byte) (0xFF & (value >> 8));
-		bytes[2] = (byte) (0xFF & (value >> 0));
-		out.put(bytes);
+		out.put((byte) (0xFF & (value >> 16)));
+		out.put((byte) (0xFF & (value >> 8)));
+		out.put((byte) (0xFF & (value >> 0)));
 	}
 
     /**
@@ -80,24 +76,25 @@ public class RTMPUtils implements Constants {
      * @return
      */
 	public static int readUnsignedMediumInt(ByteBuffer in) {
-		byte[] bytes = new byte[3];
-		in.get(bytes);
+		final byte a = in.get();
+		final byte b = in.get();
+		final byte c = in.get();
 		int val = 0;
 		// Fix unsigned values
-		if (bytes[0] < 0) {
-			val += ((bytes[0] + 256) << 16);
+		if (a < 0) {
+			val += ((a + 256) << 16);
 		} else {
-			val += (bytes[0] << 16);
+			val += (a << 16);
 		}
-		if (bytes[1] < 0) {
-			val += ((bytes[1] + 256) << 8);
+		if (b < 0) {
+			val += ((b + 256) << 8);
 		} else {
-			val += (bytes[1] << 8);
+			val += (b << 8);
 		}
-		if (bytes[2] < 0) {
-			val += bytes[2] + 256;
+		if (c < 0) {
+			val += c + 256;
 		} else {
-			val += bytes[2];
+			val += c;
 		}
 		return val;
 	}
@@ -141,24 +138,25 @@ public class RTMPUtils implements Constants {
      * @return
      */
 	public static int readMediumInt(ByteBuffer in) {
-		byte[] bytes = new byte[3];
-		in.get(bytes);
+		final byte a = in.get();
+		final byte b = in.get();
+		final byte c = in.get();
 		// Fix unsigned values
 		int val = 0;
-		if (bytes[0] < 0) {
-			val += ((bytes[0] + 256) << 16);
+		if (a < 0) {
+			val += ((a + 256) << 16);
 		} else {
-			val += (bytes[0] << 16);
+			val += (a << 16);
 		}
-		if (bytes[1] < 0) {
-			val += ((bytes[1] + 256) << 8);
+		if (b < 0) {
+			val += ((b + 256) << 8);
 		} else {
-			val += (bytes[1] << 8);
+			val += (b << 8);
 		}
-		if (bytes[2] < 0) {
-			val += bytes[2] + 256;
+		if (c < 0) {
+			val += c + 256;
 		} else {
-			val += bytes[2];
+			val += c;
 		}
 		return val;
 	}
@@ -169,13 +167,15 @@ public class RTMPUtils implements Constants {
      * @return           Integer
      */
 	public static int readReverseInt(ByteBuffer in) {
-		byte[] bytes = new byte[4];
-		in.get(bytes);
+		final byte a = in.get();
+		final byte b = in.get();
+		final byte c = in.get();
+		final byte d = in.get();
 		int val = 0;
-		val += bytes[3] << 24;
-		val += bytes[2] << 16;
-		val += bytes[1] << 8;
-		val += bytes[0];
+		val += d << 24;
+		val += c << 16;
+		val += b << 8;
+		val += a;
 		return val;
 	}
 

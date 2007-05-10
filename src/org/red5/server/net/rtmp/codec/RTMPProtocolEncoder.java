@@ -125,12 +125,12 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 		}
 		header.setSize(data.limit());
 
-		final ByteBuffer headers = encodeHeader(header, rtmp.getLastWriteHeader(channelId));
+		final Header lastHeader = rtmp.getLastWriteHeader(channelId);
+		final int headerSize = calculateHeaderSize(header, lastHeader);
 
 		rtmp.setLastWriteHeader(channelId, header);
 		rtmp.setLastWritePacket(channelId, packet);
 
-		
 		final int chunkSize = rtmp.getWriteChunkSize();
 		int chunkHeaderSize = 1;
 		if (header.getChannelId() > 320)
@@ -139,13 +139,11 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 			chunkHeaderSize = 2;
 		final int numChunks = (int) Math.ceil(header.getSize()
 				/ (float) chunkSize);
-		final int bufSize = header.getSize() + headers.limit()
+		final int bufSize = header.getSize() + headerSize
 				+ (numChunks > 0 ? (numChunks - 1) * chunkHeaderSize : 0);
 		final ByteBuffer out = ByteBuffer.allocate(bufSize);
 
-		headers.flip();
-		out.put(headers);
-		headers.release();
+		encodeHeader(header, lastHeader, out);
 
 		if (numChunks == 1) {
 			// we can do it with a single copy
@@ -167,14 +165,14 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 	}
 
     /**
-     * Encode RTMP header
+     * Determine type of header to use.
+     * 
      * @param header      RTMP message header
      * @param lastHeader  Previous header
-     * @return            Encoded header data
+     * @return            Header type to use.
      */
-    public ByteBuffer encodeHeader(Header header, Header lastHeader) {
-        // Put new header mark
-		byte headerType = HEADER_NEW;
+    private byte getHeaderType(Header header, Header lastHeader) {
+		byte headerType;
 		if (lastHeader == null
 				|| header.getStreamId() != lastHeader.getStreamId()
 				|| !header.isTimerRelative()) {
@@ -191,14 +189,50 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
             // Continue encoding
             headerType = HEADER_CONTINUE;
 		}
-
-		int channelIdAdd = 0;
+		return headerType;
+    }
+    
+    /**
+     * Calculate number of bytes necessary to encode the header.
+     * 
+     * @param header      RTMP message header
+     * @param lastHeader  Previous header
+     * @return            Calculated size
+     */
+    private int calculateHeaderSize(Header header, Header lastHeader) {
+		final byte headerType = getHeaderType(header, lastHeader);
+		int channelIdAdd;
 		if (header.getChannelId() > 320)
 			channelIdAdd = 2;
 		else if (header.getChannelId() > 63)
 			channelIdAdd = 1;
-		final ByteBuffer buf = ByteBuffer.allocate(RTMPUtils
-				.getHeaderLength(headerType) + channelIdAdd);
+		else
+			channelIdAdd = 0;
+		
+		return RTMPUtils.getHeaderLength(headerType) + channelIdAdd;
+    }
+    
+    /**
+     * Encode RTMP header
+     * @param header      RTMP message header
+     * @param lastHeader  Previous header
+     * @return            Encoded header data
+     */
+    public ByteBuffer encodeHeader(Header header, Header lastHeader) {
+    	ByteBuffer result = ByteBuffer.allocate(calculateHeaderSize(header, lastHeader));
+    	encodeHeader(header, lastHeader, result);
+    	return result;
+    }
+    
+    /**
+     * Encode RTMP header into given ByteBuffer
+     * @param header      RTMP message header
+     * @param lastHeader  Previous header
+     * @param buf         Buffer to write encoded header to
+     * @return            Encoded header data
+     */
+    public void encodeHeader(Header header, Header lastHeader, ByteBuffer buf) {
+		final byte headerType = getHeaderType(header, lastHeader);
 		RTMPUtils.encodeHeaderByte(buf, headerType, header
 				.getChannelId());
 
@@ -221,7 +255,6 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 				break;
 			default:
 		}
-		return buf;
 	}
 
     /**
@@ -547,21 +580,29 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 
 	/** {@inheritDoc} */
 	public ByteBuffer encodeAudioData(AudioData audioData) {
-		return audioData.getData().asReadOnlyBuffer();
+		final ByteBuffer result = audioData.getData();
+		result.acquire();
+		return result;
 	}
 
 	/** {@inheritDoc} */
 	public ByteBuffer encodeVideoData(VideoData videoData) {
-		return videoData.getData().asReadOnlyBuffer();
+		final ByteBuffer result = videoData.getData();
+		result.acquire();
+		return result;
 	}
 
 	/** {@inheritDoc} */
     public ByteBuffer encodeUnknown(Unknown unknown) {
-		return unknown.getData().asReadOnlyBuffer();
+		final ByteBuffer result = unknown.getData();
+		result.acquire();
+		return result;
 	}
 
 	public ByteBuffer encodeStreamMetadata(Notify metaData) {
-		return metaData.getData().asReadOnlyBuffer();
+		final ByteBuffer result = metaData.getData();
+		result.acquire();
+		return result;
 	}
 
 	/**

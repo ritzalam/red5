@@ -471,7 +471,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 			return 0;
 		}
 
-		return (int) Math.floor((channelId - 4) / 5) + 1;
+		return ((channelId - 4) / 5) + 1;
 	}
 
 	/**
