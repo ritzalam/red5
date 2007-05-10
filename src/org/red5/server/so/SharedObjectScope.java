@@ -21,11 +21,11 @@ package org.red5.server.so;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
@@ -62,15 +62,15 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
     /**
      * Server-side listeners
      */
-	private HashSet<ISharedObjectListener> serverListeners = new HashSet<ISharedObjectListener>();
+	private Set<ISharedObjectListener> serverListeners = new CopyOnWriteArraySet<ISharedObjectListener>();
     /**
      * Event handlers
      */
-	private HashMap<String, Object> handlers = new HashMap<String, Object>();
+	private Map<String, Object> handlers = new ConcurrentHashMap<String, Object>();
 	/**
 	 * Security handlers
 	 */
-	private Set<ISharedObjectSecurity> securityHandlers = new HashSet<ISharedObjectSecurity>();
+	private Set<ISharedObjectSecurity> securityHandlers = new CopyOnWriteArraySet<ISharedObjectSecurity>();
     /**
      * Scoped shared object
      */
@@ -108,16 +108,12 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 
 	/** {@inheritDoc} */
 	public void registerSharedObjectSecurity(ISharedObjectSecurity handler) {
-		synchronized (securityHandlers) {
-			securityHandlers.add(handler);
-		}
+		securityHandlers.add(handler);
 	}
 	
 	/** {@inheritDoc} */
 	public void unregisterSharedObjectSecurity(ISharedObjectSecurity handler) {
-		synchronized (securityHandlers) {
-			securityHandlers.remove(handler);
-		}
+		securityHandlers.remove(handler);
 	}
 	
 	/** {@inheritDoc} */
@@ -257,11 +253,9 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 		}
 
 		// Notify server listeners
-        synchronized (serverListeners) {
-        	for (ISharedObjectListener listener : serverListeners) {
-        		listener.onSharedObjectSend(this, handler, arguments);
-        	}
-        }
+    	for (ISharedObjectListener listener : serverListeners) {
+    		listener.onSharedObjectSend(this, handler, arguments);
+    	}
     }
 
 	/** {@inheritDoc} */
@@ -280,11 +274,9 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 
         // Notify listeners on success and return true
         if (success) {
-    		synchronized (serverListeners) {
-    			for (ISharedObjectListener listener : serverListeners) {
-    				listener.onSharedObjectDelete(this, name);
-    			}
-    		}
+			for (ISharedObjectListener listener : serverListeners) {
+				listener.onSharedObjectDelete(this, name);
+			}
         }
 		return success;
 	}
@@ -303,10 +295,8 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
         }
 
         // Notify listeners on atributes clear
-		synchronized (serverListeners) {
-			for (ISharedObjectListener listener : serverListeners) {
-				listener.onSharedObjectClear(this);
-			}
+		for (ISharedObjectListener listener : serverListeners) {
+			listener.onSharedObjectClear(this);
 		}
     }
 
@@ -316,10 +306,8 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 		super.addEventListener(listener);
 		so.register(listener);
 
-		synchronized (serverListeners) {
-			for (ISharedObjectListener soListener : serverListeners) {
-				soListener.onSharedObjectConnect(this);
-			}
+		for (ISharedObjectListener soListener : serverListeners) {
+			soListener.onSharedObjectConnect(this);
 		}
     }
 
@@ -332,10 +320,8 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 			getParent().removeChildScope(this);
 		}
 
-		synchronized (serverListeners) {
-			for (ISharedObjectListener soListener : serverListeners) {
-				soListener.onSharedObjectDisconnect(this);
-			}
+		for (ISharedObjectListener soListener : serverListeners) {
+			soListener.onSharedObjectDisconnect(this);
 		}
     }
 
@@ -388,13 +374,11 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
      */
     protected boolean isConnectionAllowed() {
     	// Check internal handlers first
-    	synchronized (securityHandlers) {
-    		for (ISharedObjectSecurity handler: securityHandlers) {
-    			if (!handler.isConnectionAllowed(this)) {
-    				return false;
-    			}
-    		}
-    	}
+		for (ISharedObjectSecurity handler: securityHandlers) {
+			if (!handler.isConnectionAllowed(this)) {
+				return false;
+			}
+		}
     	
     	// Check global SO handlers next
     	final Set<ISharedObjectSecurity> handlers = getSecurityHandlers();
@@ -420,12 +404,10 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
      */
     protected boolean isWriteAllowed(String key, Object value) {
     	// Check internal handlers first
-    	synchronized (securityHandlers) {
-	    	for (ISharedObjectSecurity handler: securityHandlers) {
-	    		if (!handler.isWriteAllowed(this, key, value)) {
-	    			return false;
-	    		}
-	    	}
+    	for (ISharedObjectSecurity handler: securityHandlers) {
+    		if (!handler.isWriteAllowed(this, key, value)) {
+    			return false;
+    		}
     	}
     	
     	// Check global SO handlers next
@@ -451,12 +433,10 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
      */
     protected boolean isDeleteAllowed(String key) {
     	// Check internal handlers first
-    	synchronized (securityHandlers) {
-	    	for (ISharedObjectSecurity handler: securityHandlers) {
-	    		if (!handler.isDeleteAllowed(this, key)) {
-	    			return false;
-	    		}
-	    	}
+    	for (ISharedObjectSecurity handler: securityHandlers) {
+    		if (!handler.isDeleteAllowed(this, key)) {
+    			return false;
+    		}
     	}
     	
     	// Check global SO handlers next
@@ -484,12 +464,10 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
      */
     protected boolean isSendAllowed(String message, List arguments) {
     	// Check internal handlers first
-    	synchronized (securityHandlers) {
-	    	for (ISharedObjectSecurity handler: securityHandlers) {
-	    		if (!handler.isSendAllowed(this, message, arguments)) {
-	    			return false;
-	    		}
-	    	}
+    	for (ISharedObjectSecurity handler: securityHandlers) {
+    		if (!handler.isSendAllowed(this, message, arguments)) {
+    			return false;
+    		}
     	}
     	
     	// Check global SO handlers next
@@ -597,10 +575,8 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 		}
 
 		if (success) {
-			synchronized (serverListeners) {
-				for (ISharedObjectListener listener : serverListeners) {
-					listener.onSharedObjectUpdate(this, name, value);
-				}
+			for (ISharedObjectListener listener : serverListeners) {
+				listener.onSharedObjectUpdate(this, name, value);
 			}
         }
 		return success;
@@ -616,10 +592,8 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 			endUpdate();
 		}
 
-		synchronized (serverListeners) {
-			for (ISharedObjectListener listener : serverListeners) {
-				listener.onSharedObjectUpdate(this, values);
-			}
+		for (ISharedObjectListener listener : serverListeners) {
+			listener.onSharedObjectUpdate(this, values);
 		}
     }
 
@@ -633,10 +607,8 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 			endUpdate();
 		}
 
-		synchronized (serverListeners) {
-			for (ISharedObjectListener listener : serverListeners) {
-				listener.onSharedObjectUpdate(this, values);
-			}
+		for (ISharedObjectListener listener : serverListeners) {
+			listener.onSharedObjectUpdate(this, values);
 		}
     }
 
@@ -649,17 +621,13 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 	/** {@inheritDoc} */
     public void addSharedObjectListener(
 			ISharedObjectListener listener) {
-    	synchronized (serverListeners) {
-    		serverListeners.add(listener);
-    	}
+		serverListeners.add(listener);
 	}
 
 	/** {@inheritDoc} */
     public void removeSharedObjectListener(
 			ISharedObjectListener listener) {
-    	synchronized (serverListeners) {
-    		serverListeners.remove(listener);
-    	}
+		serverListeners.remove(listener);
 	}
 
 	/** {@inheritDoc} */
@@ -672,9 +640,7 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 		if (name == null) {
 			name = "";
 		}
-		synchronized (handlers) {
-			handlers.put(name, handler);
-		}
+		handlers.put(name, handler);
 	}
 
 	public void unregisterServiceHandler() {
@@ -686,9 +652,7 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 		if (name == null) {
 			name = "";
 		}
-		synchronized (handlers) {
-			handlers.remove(name);
-		}
+		handlers.remove(name);
 	}
 
 	/** {@inheritDoc} */
