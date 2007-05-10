@@ -61,22 +61,28 @@ public class ProviderService implements IProviderService {
 	/** {@inheritDoc} */
     public IMessageInput getLiveProviderInput(IScope scope, String name,
 			boolean needCreate) {
-		synchronized (scope) {
-			IBasicScope basicScope = scope.getBasicScope(IBroadcastScope.TYPE,
-					name);
-			if (basicScope == null) {
-				if (needCreate) {
-					basicScope = new BroadcastScope(scope, name);
-					scope.addChildScope(basicScope);
-				} else {
-					return null;
+    	IBasicScope basicScope;
+		basicScope = scope.getBasicScope(IBroadcastScope.TYPE,
+				name);
+		if (basicScope == null) {
+			if (needCreate) {
+				synchronized (scope) {
+					// Re-check if another thread already created the scope
+					basicScope = scope.getBasicScope(IBroadcastScope.TYPE,
+							name);
+					if (basicScope == null) {
+						basicScope = new BroadcastScope(scope, name);
+						scope.addChildScope(basicScope);
+					}
 				}
-			}
-			if (!(basicScope instanceof IBroadcastScope)) {
+			} else {
 				return null;
 			}
-			return (IBroadcastScope) basicScope;
 		}
+		if (!(basicScope instanceof IBroadcastScope)) {
+			return null;
+		}
+		return (IBroadcastScope) basicScope;
 	}
 
 	/** {@inheritDoc} */
@@ -126,17 +132,15 @@ public class ProviderService implements IProviderService {
 
 	/** {@inheritDoc} */
     public List<String> getBroadcastStreamNames(IScope scope) {
-		synchronized (scope) {
-			// TODO: return result of "getBasicScopeNames" when the api has
-			// changed to not return iterators
-			List<String> result = new ArrayList<String>();
-			Iterator<String> it = scope
-					.getBasicScopeNames(IBroadcastScope.TYPE);
-			while (it.hasNext()) {
-				result.add(it.next());
-			}
-			return result;
+		// TODO: return result of "getBasicScopeNames" when the api has
+		// changed to not return iterators
+		List<String> result = new ArrayList<String>();
+		Iterator<String> it = scope
+				.getBasicScopeNames(IBroadcastScope.TYPE);
+		while (it.hasNext()) {
+			result.add(it.next());
 		}
+		return result;
 	}
 
 	/** {@inheritDoc} */
