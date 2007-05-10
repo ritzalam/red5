@@ -20,11 +20,11 @@ package org.red5.server.so;
  */
 
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
@@ -60,11 +60,11 @@ public class ClientSharedObject extends SharedObject implements
     /**
      * Set of listeners
      */
-    private HashSet<ISharedObjectListener> listeners = new HashSet<ISharedObjectListener>();
+    private Set<ISharedObjectListener> listeners = new CopyOnWriteArraySet<ISharedObjectListener>();
     /**
      * Set of event handlers
      */
-    private HashMap<String, Object> handlers = new HashMap<String, Object>();
+    private Map<String, Object> handlers = new ConcurrentHashMap<String, Object>();
 
     /**
      * Create new client SO with
@@ -135,43 +135,46 @@ public class ClientSharedObject extends SharedObject implements
 		} else {
 			beginUpdate();
 		}
-		for (ISharedObjectEvent event : msg.getEvents()) {
-			switch (event.getType()) {
-				case CLIENT_INITIAL_DATA:
-					initialSyncReceived = true;
-					notifyConnect();
-					break;
+		try {
+			for (ISharedObjectEvent event : msg.getEvents()) {
+				switch (event.getType()) {
+					case CLIENT_INITIAL_DATA:
+						initialSyncReceived = true;
+						notifyConnect();
+						break;
+						
+					case CLIENT_CLEAR_DATA:
+						data.clear();
+						notifyClear();
+						break;
 					
-				case CLIENT_CLEAR_DATA:
-					data.clear();
-					notifyClear();
-					break;
-				
-				case CLIENT_DELETE_DATA:
-				case CLIENT_DELETE_ATTRIBUTE:
-					data.remove(event.getKey());
-					notifyDelete(event.getKey());
-					break;
-					
-				case CLIENT_SEND_MESSAGE:
-					notifySendMessage(event.getKey(), (List) event.getValue());
-					break;
-					
-				case CLIENT_UPDATE_DATA:
-					data.putAll((Map<String, Object>) event.getValue());
-					notifyUpdate(event.getKey(), (Map<String, Object>) event.getValue());
-					break;
-					
-				case CLIENT_UPDATE_ATTRIBUTE:
-					data.put(event.getKey(), event.getValue());
-					notifyUpdate(event.getKey(), event.getValue());
-					break;
-					
-				default:
-					log.warn("Unknown SO event: " + event.getType());
+					case CLIENT_DELETE_DATA:
+					case CLIENT_DELETE_ATTRIBUTE:
+						data.remove(event.getKey());
+						notifyDelete(event.getKey());
+						break;
+						
+					case CLIENT_SEND_MESSAGE:
+						notifySendMessage(event.getKey(), (List) event.getValue());
+						break;
+						
+					case CLIENT_UPDATE_DATA:
+						data.putAll((Map<String, Object>) event.getValue());
+						notifyUpdate(event.getKey(), (Map<String, Object>) event.getValue());
+						break;
+						
+					case CLIENT_UPDATE_ATTRIBUTE:
+						data.put(event.getKey(), event.getValue());
+						notifyUpdate(event.getKey(), event.getValue());
+						break;
+						
+					default:
+						log.warn("Unknown SO event: " + event.getType());
+				}
 			}
+		} finally {
+			endUpdate();
 		}
-		endUpdate();
 	}
 
     /**
@@ -285,29 +288,23 @@ public class ClientSharedObject extends SharedObject implements
 
 	/** {@inheritDoc} */
     @Override
-	public synchronized void beginUpdate() {
-		if (!lock.isHeldByCurrentThread()) {
-			lock.lock();
-		}
+	public void beginUpdate() {
+		lock.lock();
 		super.beginUpdate();
 	}
 
 	/** {@inheritDoc} */
     @Override
-	public synchronized void beginUpdate(IEventListener listener) {
-		if (!lock.isHeldByCurrentThread()) {
-			lock.lock();
-		}
+	public void beginUpdate(IEventListener listener) {
+		lock.lock();
 		super.beginUpdate(listener);
 	}
 
 	/** {@inheritDoc} */
     @Override
-	public synchronized void endUpdate() {
+	public void endUpdate() {
 		super.endUpdate();
-		if (updateCounter == 0) {
-			lock.unlock();
-		}
+		lock.unlock();
 	}
 
 	/** {@inheritDoc} */
