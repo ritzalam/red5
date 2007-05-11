@@ -132,6 +132,7 @@ public class JMXAgent implements NotificationListener {
 		if (null != oName) {
 			try {
 				if (mbs.isRegistered(oName)) {
+					log.debug("Mbean is registered");
 					mbs.unregisterMBean(oName);
 					//set flag based on registration status
 					unregistered = mbs.isRegistered(oName);
@@ -139,9 +140,10 @@ public class JMXAgent implements NotificationListener {
 					log.debug("Mbean is not currently registered");
 				}
 			} catch (Exception e) {
-				log.error("Exception unregistering mbean", e);
+				log.warn("Exception unregistering mbean", e);
 			}
 		}
+		log.debug("leaving unregisterMBean...");
 		return unregistered;
 	}
 
@@ -268,7 +270,10 @@ public class JMXAgent implements NotificationListener {
 				cs.start();
 				log.info("JMX RMI connector server successfully started");
 			} catch (ConnectException e) {
-				log.warn("Could not establish RMI connection to port " + rmiAdapterPort + ", please make sure \"rmiregistry\" is running and configured to listen on this port.");
+				log
+						.warn("Could not establish RMI connection to port "
+								+ rmiAdapterPort
+								+ ", please make sure \"rmiregistry\" is running and configured to listen on this port.");
 			} catch (IOException e) {
 				String errMsg = e.getMessage();
 				if (errMsg.indexOf("NameAlreadyBoundException") != -1) {

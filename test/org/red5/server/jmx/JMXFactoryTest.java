@@ -74,19 +74,4 @@ public class JMXFactoryTest implements JMXFactoryTestMBean {
 		fail("Not yet implemented"); // TODO
 	}
 
-	@Test
-	public void testUnregisterMBean() {
-		fail("Not yet implemented"); // TODO
-	}
-
-	@Test
-	public void testUpdateMBeanAttributeObjectNameStringInt() {
-		fail("Not yet implemented"); // TODO
-	}
-
-	@Test
-	public void testUpdateMBeanAttributeObjectNameStringString() {
-		fail("Not yet implemented"); // TODO
-	}
-
 }
