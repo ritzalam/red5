@@ -28,6 +28,7 @@
 		<fileset dir="${lib.dir}" includesfile="${lib.dir}/java6.properties"/>
 	</path>
 	<path id="script.classpath">
+		<fileset dir="${lib.dir}" includesfile="${lib.dir}/library.properties"/>
 		<fileset dir="${lib.dir}" includesfile="${lib.dir}/script.properties"/>
 		<pathelement location="${classes.dir}"/>
 	</path>
@@ -38,6 +39,7 @@
 	</path>
 	<!-- For use with pre-java6 environment -->
 	<path id="script_compatibility.classpath">
+		<fileset dir="${lib.dir}" includesfile="${lib.dir}/library.properties"/>
 		<fileset dir="${lib.dir}" includesfile="${lib.dir}/script.properties"/>
 		<fileset dir="${lib.dir}/java5" includesfile="${lib.dir}/java5/java5.properties"/>
 		<pathelement location="${classes.dir}"/>
