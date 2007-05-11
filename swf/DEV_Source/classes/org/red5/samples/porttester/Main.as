@@ -18,7 +18,9 @@ package org.red5.samples.porttester
 	 * with this library; if not, write to the Free Software Foundation, Inc.,
 	 * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 	*/
-	 
+	
+	import flash.system.Capabilities;
+	
 	import mx.collections.ArrayCollection;
 	import mx.controls.TextInput;
 	import mx.core.Application;
@@ -34,6 +36,9 @@ package org.red5.samples.porttester
 		private static const rtmpt : String = "rtmpt";
 		
 		[Bindable]
+		public var flashVersion : String;
+		
+		[Bindable]
 		public var testResults : ArrayCollection;
 		
 		public var hostname : String;
@@ -43,6 +48,23 @@ package org.red5.samples.porttester
 		public var host_txt : TextInput;
 		
 		public var app_txt : TextInput;
+		
+		/**
+		 * 
+		 */				
+		public function Main() : void
+		{
+			var platformVersion : String = Capabilities.version.substr( String( Capabilities.version ).lastIndexOf(" ") + 1 );
+			var manufacturer : String = Capabilities.manufacturer;
+			// Get Flash Player version info.
+			flashVersion = "FP " + platformVersion;
+			//
+			if ( Capabilities.isDebugger ) 
+			{
+				// Add debugger info.
+				flashVersion += " (debug)";
+			}
+		}
 		
 		/**
 		 * Start the RTMP port tests.
