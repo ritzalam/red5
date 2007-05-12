@@ -70,5 +70,6 @@
 	<classpathentry kind="lib" path="lib/mina-core-1.1.0.jar"/>
 	<classpathentry kind="lib" path="lib/jmxtools.jar"/>
 	<classpathentry kind="lib" path="lib/jmxremote.jar"/>
+	<classpathentry kind="lib" path="lib/rmissl.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

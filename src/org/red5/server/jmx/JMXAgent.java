@@ -24,6 +24,7 @@ import java.rmi.ConnectException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
@@ -34,6 +35,9 @@ import javax.management.StandardMBean;
 import javax.management.remote.JMXConnectorServer;
 import javax.management.remote.JMXConnectorServerFactory;
 import javax.management.remote.JMXServiceURL;
+import javax.management.remote.rmi.RMIConnectorServer;
+import javax.rmi.ssl.SslRMIClientSocketFactory;
+import javax.rmi.ssl.SslRMIServerSocketFactory;
 
 import org.apache.log4j.Logger;
 
@@ -54,6 +58,8 @@ public class JMXAgent implements NotificationListener {
 
 	private static boolean enableRmiAdapter;
 
+	private static boolean enableSsl;
+
 	private static HtmlAdaptorServer html;
 
 	private static String htmlAdapterPort = "8082";
@@ -63,7 +69,11 @@ public class JMXAgent implements NotificationListener {
 	private static MBeanServer mbs;
 
 	private static String rmiAdapterPort = "9999";
+	
+	private static String remotePasswordProperties;
+	private static String remoteAccessProperties;	
 
+	
 	public static boolean registerMBean(Object instance, String className,
 			Class interfaceClass) {
 		boolean status = false;
@@ -208,6 +218,8 @@ public class JMXAgent implements NotificationListener {
 	}
 
 	public void init() {
+		//environmental var holder
+		HashMap env = null;
 		// get the server
 		if (null == mbs) {
 			log.debug("MBeanServer was null");
@@ -261,8 +273,30 @@ public class JMXAgent implements NotificationListener {
 				JMXServiceURL url = new JMXServiceURL(
 						"service:jmx:rmi:///jndi/rmi://:" + rmiAdapterPort
 								+ "/red5");
-				cs = JMXConnectorServerFactory.newJMXConnectorServer(url, null,
-						mbs);
+				//if SSL is requested to secure rmi connections
+				if (enableSsl) {
+		            // Environment map
+					log.debug("Initialize the environment map");
+		            env = new HashMap();
+		            // Provide SSL-based RMI socket factories
+		            SslRMIClientSocketFactory csf = new SslRMIClientSocketFactory();
+		            SslRMIServerSocketFactory ssf = new SslRMIServerSocketFactory();
+		            env.put(RMIConnectorServer.RMI_CLIENT_SOCKET_FACTORY_ATTRIBUTE, csf);
+		            env.put(RMIConnectorServer.RMI_SERVER_SOCKET_FACTORY_ATTRIBUTE, ssf);					
+				}
+
+				//if authentication is requested
+				if (null != remoteAccessProperties) {
+					//if ssl is not used this will be null
+					if (null == env){
+			            env = new HashMap();
+					}
+	                env.put("jmx.remote.x.access.file", remoteAccessProperties);		            
+		            env.put("jmx.remote.x.password.file", remotePasswordProperties);
+				}
+				
+				// create the connector server
+				cs = JMXConnectorServerFactory.newJMXConnectorServer(url, env, mbs);
 				// add a listener for shutdown
 				cs.addNotificationListener(this, null, null);
 				// Start the RMI connector server
@@ -308,12 +342,28 @@ public class JMXAgent implements NotificationListener {
 				.matches("true|on|yes");
 	}
 
+	public void setEnableSsl(boolean enableSsl) {
+		JMXAgent.enableSsl = enableSsl;
+	}
+
+	public void setEnableSsl(String enableSslString) {
+		JMXAgent.enableSsl = enableSslString.matches("true|on|yes");
+	}	
+	
 	public void setHtmlAdapterPort(String htmlAdapterPort) {
 		JMXAgent.htmlAdapterPort = htmlAdapterPort;
 	}
 
 	public void setRmiAdapterPort(String rmiAdapterPort) {
 		JMXAgent.rmiAdapterPort = rmiAdapterPort;
+	}
+
+	public void setRemoteAccessProperties(String remoteAccessProperties) {
+		JMXAgent.remoteAccessProperties = remoteAccessProperties;
+	}
+
+	public void setRemotePasswordProperties(String remotePasswordProperties) {
+		JMXAgent.remotePasswordProperties = remotePasswordProperties;
 	}
 
 }

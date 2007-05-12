@@ -611,6 +611,11 @@
 			</classpath>
 			<jvmarg value="-Djava.security.manager"/>
 			<jvmarg value="-Djava.security.policy=${config.dir}/red5.policy"/>
+			<!-- enable the following 2 lines if your using jmx with ssl -->
+			<!--		
+			<jvmarg value="-Djavax.net.ssl.keyStore=${config.dir}/keystore.jmx"/>
+			<jvmarg value="-Djavax.net.ssl.keyStorePassword=password"/>		
+			-->
 		</java>
 	</target>
 	<target name="server_java6" depends="compile" if="java6.installed">
@@ -622,6 +627,11 @@
 			</classpath>
 			<jvmarg value="-Djava.security.manager"/>
 			<jvmarg value="-Djava.security.policy=${config.dir}/red5.policy"/>
+			<!-- enable the following 2 lines if your using jmx with ssl -->
+			<!--
+			<jvmarg value="-Djavax.net.ssl.keyStore=${config.dir}/keystore.jmx"/>
+			<jvmarg value="-Djavax.net.ssl.keyStorePassword=password"/>		
+			-->
 		</java>
 	</target>
 	<target name="server">
@@ -638,11 +648,23 @@
 			</classpath>
 			<jvmarg value="-Djava.security.manager"/>
 			<jvmarg value="-Djava.security.policy=${config.dir}/red5.policy"/>
+			<!-- enable the following 5 lines if your using jmx with ssl and auth -->
+			<!--
+			<jvmarg value="-Djavax.net.ssl.trustStore=${config.dir}/truststore.jmx"/>
+			<jvmarg value="-Djavax.net.ssl.trustStorePassword=trustword"/>		
+			<arg value="9999"/>
+			<arg value="red5user"/>
+			<arg value="changeme"/>
+			-->
 		</java>
 	</target>
 	<target name="rmiserver" if="rmi.server">
 		<!-- determine executable to use by os -->
+		<echo message="Starting RMI registry for ${os.name}"/>
 		<exec executable="${java.home}/bin/rmiregistry.exe" spawn="true" os="Windows XP">
+			<arg line="${rmi.port}" />
+		</exec>
+		<exec executable="${java.home}/bin/rmiregistry.exe" spawn="true" os="Windows 2003">
 			<arg line="${rmi.port}" />
 		</exec>
 		<exec executable="${java.home}/bin/rmiregistry" spawn="true" os="unix">

@@ -12,6 +12,16 @@
 		<!-- The RMI adapter allows remote connections to the MBeanServer -->
 		<property name="enableRmiAdapter" value="true" />
 		<property name="rmiAdapterPort" value="9999"/>
+		<!-- SSL 
+			To use jmx with ssl you must also supply the location of the keystore and its password
+			when starting the server with the following JVM options:
+				-Djavax.net.ssl.keyStore=keystore
+     			-Djavax.net.ssl.keyStorePassword=password
+		-->
+		<property name="enableSsl" value="false"/>
+		<!-- Authentication -->
+		<property name="remoteAccessProperties" value="conf/access.properties"/>	
+		<property name="remotePasswordProperties" value="conf/password.properties"/>
 		<!-- The HTML adapter allows connections to the MBeanServer via a web browser -->
 		<property name="enableHtmlAdapter" value="false" />
 		<property name="htmlAdapterPort" value="8082"/>

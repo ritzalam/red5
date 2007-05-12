@@ -1,6 +1,7 @@
 package org.red5.server;
 
 import java.lang.reflect.UndeclaredThrowableException;
+import java.util.HashMap;
 
 import javax.management.MBeanServerConnection;
 import javax.management.MBeanServerInvocationHandler;
@@ -44,7 +45,11 @@ public class Shutdown {
 	 */
 	public static void main(String[] args) {
 		try {
+			
 			JMXServiceURL url = null;
+			JMXConnector jmxc = null;
+            HashMap env = null;
+			
 			if (null == args || args.length < 1) {
 				System.out.println("Attempting to connect to RMI port: 9999");
 				url = new JMXServiceURL(
@@ -54,8 +59,15 @@ public class Shutdown {
 						+ args[0]);
 				url = new JMXServiceURL("service:jmx:rmi:///jndi/rmi://:"
 						+ args[0] + "/red5");
+				
+				if (args.length > 1) {
+		            env = new HashMap(1);
+		            String[] credentials = new String[] {args[1], args[2]};
+		            env.put("jmx.remote.credentials", credentials);
+				}
 			}
-			JMXConnector jmxc = JMXConnectorFactory.connect(url, null);
+
+			jmxc = JMXConnectorFactory.connect(url, env);
 			MBeanServerConnection mbs = jmxc.getMBeanServerConnection();
 
 			//check for loader registration
