@@ -107,6 +107,10 @@
 							                               <property name="name" value="RTMPTServlet" />
 							                               <property name="className" value="org.red5.server.net.rtmpt.RTMPTServlet" />
 							                           </bean>
+							                           <bean class="org.mortbay.jetty.servlet.ServletHolder">
+							                               <property name="name" value="RedirectHTTPServlet" />
+							                               <property name="className" value="org.red5.server.net.servlet.RedirectHTTPServlet" />
+							                           </bean>
 													</list>
 												</property>
 												<property name="servletMappings">
@@ -126,6 +130,10 @@
                     									<bean class="org.mortbay.jetty.servlet.ServletMapping">
                     										<property name="pathSpec" value="/idle/*" />
                     										<property name="servletName" value="RTMPTServlet" />
+                    									</bean>
+                    									<bean class="org.mortbay.jetty.servlet.ServletMapping">
+                    										<property name="pathSpec" value="/*" />
+                    										<property name="servletName" value="RedirectHTTPServlet" />
                     									</bean>
                     								</list>
                     							</property>
