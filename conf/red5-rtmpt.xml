@@ -83,7 +83,7 @@
 					<property name="port">
 						<ref local="rtmptPort" />
 					</property>
-					<property name="maxIdleTime" value="30000" />
+					<property name="maxIdleTime" value="3000" />
 					<property name="acceptors" value="2" />
 					<property name="confidentialPort" value="8443" />
 				</bean>
