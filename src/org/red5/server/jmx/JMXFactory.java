@@ -78,6 +78,27 @@ public class JMXFactory {
 		return objectName;
 	}
 
+	public static ObjectName createObjectName(String... strings) {
+		ObjectName objName = null;
+		StringBuilder sb = new StringBuilder(domain);
+		sb.append(':');
+		for (int i = 0, j = 1; i < strings.length; i += 2, j += 2) {
+			//log.debug("------------" + strings[i] + " " + strings[j]);
+			sb.append(strings[i]);
+			sb.append('=');
+			sb.append(strings[j]);
+			sb.append(',');
+		}
+		sb.deleteCharAt(sb.length() - 1);
+		try {
+			log.debug("Object name: " + sb.toString());
+			objName = new ObjectName(sb.toString());
+		} catch (Exception e) {
+			log.warn("Exception creating object name", e);
+		}
+		return objName;
+	}
+
 	public static ObjectName createSimpleMBean(String className,
 			String objectNameStr) {
 		log.info("Create the " + className + " MBean within the MBeanServer");
@@ -117,6 +138,25 @@ public class JMXFactory {
 			mbs.registerMBean(new StandardMBean(Class.forName(className)
 					.newInstance(), interfaceClass), new ObjectName(domain
 					+ ":type=" + cName));
+			status = true;
+		} catch (Exception e) {
+			log.error("Could not register the " + className + " MBean", e);
+		}
+		return status;
+	}
+
+	public static boolean registerNewMBean(String className,
+			Class interfaceClass, ObjectName name) {
+		boolean status = false;
+		try {
+			String cName = className;
+			if (cName.indexOf('.') != -1) {
+				cName = cName.substring(cName.lastIndexOf('.')).replaceFirst(
+						"[\\.]", "");
+			}
+			log.debug("Register name: " + cName);
+			mbs.registerMBean(new StandardMBean(Class.forName(className)
+					.newInstance(), interfaceClass), name);
 			status = true;
 		} catch (Exception e) {
 			log.error("Could not register the " + className + " MBean", e);

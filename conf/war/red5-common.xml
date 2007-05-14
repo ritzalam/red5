@@ -3,8 +3,29 @@
 	 xmlns:lang="http://www.springframework.org/schema/lang" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd                            http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-2.0.xsd">
 	<!-- This context is shared between all child contexts. -->
 	<!-- Server bean -->
-
 	<bean id="red5.server" class="org.red5.server.Server"/>
+	<!-- JMX server -->
+	<bean id="jmxFactory" class="org.red5.server.jmx.JMXFactory">
+		<property name="domain" value="org.red5.server"/>
+	</bean>
+	<bean id="jmxAgent" class="org.red5.server.jmx.JMXAgent" init-method="init">
+		<!-- The RMI adapter allows remote connections to the MBeanServer -->
+		<property name="enableRmiAdapter" value="true" />
+		<property name="rmiAdapterPort" value="9999"/>
+		<!-- SSL
+			To use jmx with ssl you must also supply the location of the keystore and its password
+			when starting the server with the following JVM options:
+				-Djavax.net.ssl.keyStore=keystore
+     			-Djavax.net.ssl.keyStorePassword=password
+		-->
+		<property name="enableSsl" value="false"/>
+		<!-- Authentication -->
+		<property name="remoteAccessProperties" value="classes/access.properties"/>
+		<property name="remotePasswordProperties" value="classes/password.properties"/>
+		<!-- The HTML adapter allows connections to the MBeanServer via a web browser -->
+		<property name="enableHtmlAdapter" value="false" />
+		<property name="htmlAdapterPort" value="8082"/>
+	</bean>
 	<!-- Serializes objects to AMF binary -->
 	<bean id="serializer" class="org.red5.io.object.Serializer"/>
 	<!-- Deserializes objects from AMF binary -->

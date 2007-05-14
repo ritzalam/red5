@@ -75,10 +75,11 @@ public class RTMPMinaConnection extends RTMPConnection implements
 				port = Integer.parseInt(host.substring(idx + 1));
 			}
 			//create a new mbean for this instance
-			oName = JMXFactory.createMBean(
-					"org.red5.server.net.rtmp.RTMPMinaConnection",
-					"connectionType=" + type + ",host=" + hostStr + ",port="
-							+ port + ",clientId=" + client.getId());
+			oName = JMXFactory.createObjectName("type", "RTMPMinaConnection",
+					"connectionType", type, "host", hostStr, "port", port + "",
+					"clientId", client.getId());
+			JMXAgent.registerMBean(this, this.getClass().getName(),
+					RTMPMinaConnectionMBean.class, oName);
 		} catch (Exception e) {
 			log.warn("Exception registering mbean", e);
 		}

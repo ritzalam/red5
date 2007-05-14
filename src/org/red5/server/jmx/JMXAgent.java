@@ -19,15 +19,14 @@ package org.red5.server.jmx;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+import java.io.File;
 import java.io.IOException;
 import java.rmi.ConnectException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 import javax.management.MBeanServer;
-import javax.management.MBeanServerFactory;
 import javax.management.Notification;
 import javax.management.NotificationListener;
 import javax.management.ObjectName;
@@ -39,6 +38,7 @@ import javax.management.remote.rmi.RMIConnectorServer;
 import javax.rmi.ssl.SslRMIClientSocketFactory;
 import javax.rmi.ssl.SslRMIServerSocketFactory;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
 import com.sun.jdmk.comm.HtmlAdaptorServer;
@@ -69,11 +69,20 @@ public class JMXAgent implements NotificationListener {
 	private static MBeanServer mbs;
 
 	private static String rmiAdapterPort = "9999";
-	
-	private static String remotePasswordProperties;
-	private static String remoteAccessProperties;	
 
-	
+	private static String remotePasswordProperties;
+
+	private static String remoteAccessProperties;
+
+	static {
+		//in the war version the jmxfactory is not created before
+		//registration starts ?? so we check for it here and init
+		//if needed
+		if (null == mbs) {
+			mbs = JMXFactory.getMBeanServer();
+		}
+	}
+
 	public static boolean registerMBean(Object instance, String className,
 			Class interfaceClass) {
 		boolean status = false;
@@ -87,6 +96,26 @@ public class JMXAgent implements NotificationListener {
 			mbs.registerMBean(new StandardMBean(instance, interfaceClass),
 					new ObjectName(JMXFactory.getDefaultDomain() + ":type="
 							+ cName));
+			status = true;
+		} catch (Exception e) {
+			log.error("Could not register the " + className + " MBean", e);
+		}
+		return status;
+	}
+
+	public static boolean registerMBean(Object instance, String className,
+			Class interfaceClass, ObjectName name) {
+		boolean status = false;
+		try {
+			String cName = className;
+			if (cName.indexOf('.') != -1) {
+				cName = cName.substring(cName.lastIndexOf('.')).replaceFirst(
+						"[\\.]", "");
+			}
+			log.debug("Register name: " + cName);
+			mbs
+					.registerMBean(new StandardMBean(instance, interfaceClass),
+							name);
 			status = true;
 		} catch (Exception e) {
 			log.error("Could not register the " + className + " MBean", e);
@@ -220,20 +249,6 @@ public class JMXAgent implements NotificationListener {
 	public void init() {
 		//environmental var holder
 		HashMap env = null;
-		// get the server
-		if (null == mbs) {
-			log.debug("MBeanServer was null");
-			// lookup the MBeanServer for our domain
-			ArrayList<MBeanServer> serverList = MBeanServerFactory
-					.findMBeanServer(null);
-			for (MBeanServer svr : serverList) {
-				log.debug("Default domain: " + svr.getDefaultDomain());
-				//accept the first one
-				if (null == mbs) {
-					mbs = svr;
-				}
-			}
-		}
 		if (enableHtmlAdapter) {
 			// setup the adapter
 			try {
@@ -275,28 +290,50 @@ public class JMXAgent implements NotificationListener {
 								+ "/red5");
 				//if SSL is requested to secure rmi connections
 				if (enableSsl) {
-		            // Environment map
+					// Environment map
 					log.debug("Initialize the environment map");
-		            env = new HashMap();
-		            // Provide SSL-based RMI socket factories
-		            SslRMIClientSocketFactory csf = new SslRMIClientSocketFactory();
-		            SslRMIServerSocketFactory ssf = new SslRMIServerSocketFactory();
-		            env.put(RMIConnectorServer.RMI_CLIENT_SOCKET_FACTORY_ATTRIBUTE, csf);
-		            env.put(RMIConnectorServer.RMI_SERVER_SOCKET_FACTORY_ATTRIBUTE, ssf);					
+					env = new HashMap();
+					// Provide SSL-based RMI socket factories
+					SslRMIClientSocketFactory csf = new SslRMIClientSocketFactory();
+					SslRMIServerSocketFactory ssf = new SslRMIServerSocketFactory();
+					env
+							.put(
+									RMIConnectorServer.RMI_CLIENT_SOCKET_FACTORY_ATTRIBUTE,
+									csf);
+					env
+							.put(
+									RMIConnectorServer.RMI_SERVER_SOCKET_FACTORY_ATTRIBUTE,
+									ssf);
 				}
 
 				//if authentication is requested
-				if (null != remoteAccessProperties) {
+				if (StringUtils.isNotBlank(remoteAccessProperties)) {
 					//if ssl is not used this will be null
-					if (null == env){
-			            env = new HashMap();
+					if (null == env) {
+						env = new HashMap();
 					}
-	                env.put("jmx.remote.x.access.file", remoteAccessProperties);		            
-		            env.put("jmx.remote.x.password.file", remotePasswordProperties);
+					//check the existance of the files
+					//in the war version the full path is needed
+					File file = new File(remoteAccessProperties);
+					if (!file.exists()) {
+						log
+								.debug("Access file was not found on path, will prepend config_root");
+						//pre-pend the system property set in war startup
+						remoteAccessProperties = System
+								.getProperty("red5.config_root")
+								+ '/' + remoteAccessProperties;
+						remotePasswordProperties = System
+								.getProperty("red5.config_root")
+								+ '/' + remotePasswordProperties;
+					}
+					env.put("jmx.remote.x.access.file", remoteAccessProperties);
+					env.put("jmx.remote.x.password.file",
+							remotePasswordProperties);
 				}
-				
+
 				// create the connector server
-				cs = JMXConnectorServerFactory.newJMXConnectorServer(url, env, mbs);
+				cs = JMXConnectorServerFactory.newJMXConnectorServer(url, env,
+						mbs);
 				// add a listener for shutdown
 				cs.addNotificationListener(this, null, null);
 				// Start the RMI connector server
@@ -348,14 +385,10 @@ public class JMXAgent implements NotificationListener {
 
 	public void setEnableSsl(String enableSslString) {
 		JMXAgent.enableSsl = enableSslString.matches("true|on|yes");
-	}	
-	
-	public void setHtmlAdapterPort(String htmlAdapterPort) {
-		JMXAgent.htmlAdapterPort = htmlAdapterPort;
 	}
 
-	public void setRmiAdapterPort(String rmiAdapterPort) {
-		JMXAgent.rmiAdapterPort = rmiAdapterPort;
+	public void setHtmlAdapterPort(String htmlAdapterPort) {
+		JMXAgent.htmlAdapterPort = htmlAdapterPort;
 	}
 
 	public void setRemoteAccessProperties(String remoteAccessProperties) {
@@ -364,6 +397,10 @@ public class JMXAgent implements NotificationListener {
 
 	public void setRemotePasswordProperties(String remotePasswordProperties) {
 		JMXAgent.remotePasswordProperties = remotePasswordProperties;
+	}
+
+	public void setRmiAdapterPort(String rmiAdapterPort) {
+		JMXAgent.rmiAdapterPort = rmiAdapterPort;
 	}
 
 }

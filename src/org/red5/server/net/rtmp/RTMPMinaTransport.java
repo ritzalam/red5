@@ -214,10 +214,11 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 		log.info("RTMP Mina Transport bound to " + socketAddress.toString());
 
 		//create a new mbean for this instance
-		oName = JMXFactory.createMBean(
-				"org.red5.server.net.rtmp.RTMPMinaTransport", "address="
-						+ (address == null ? "0.0.0.0" : address) + ",port="
-						+ port);
+		oName = JMXFactory.createObjectName("type", "RTMPMinaTransport",
+				"address", (address == null ? "0.0.0.0" : address), "port",
+				port + "");
+		JMXAgent.registerMBean(this, this.getClass().getName(),
+				RTMPMinaTransportMBean.class, oName);
 	}
 
 	public void stop() {

@@ -697,9 +697,10 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			JMXAgent.updateMBeanAttribute(oName, "publishedName", name);
 		} else {
 			//create a new mbean for this instance with the new name
-			oName = JMXFactory.createMBean(
-					"org.red5.server.stream.ClientBroadcastStream",
-					"publishedName=" + name);
+			oName = JMXFactory.createObjectName("type",
+					"ClientBroadcastStream", "publishedName", name);
+			JMXAgent.registerMBean(this, this.getClass().getName(),
+					ClientBroadcastStreamMBean.class, oName);
 		}
 		this.publishedName = name;
 	}

@@ -90,7 +90,10 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 		this.registry = registry;
 		this.creationTime = System.currentTimeMillis();
 		//create a new mbean for this instance
-		oName = JMXFactory.createMBean("org.red5.server.Client", "id=" + id);
+		oName = JMXFactory.createObjectName("type", "Client", "id", id);
+		JMXAgent.registerMBean(this, this.getClass().getName(),
+				ClientMBean.class, oName);
+		//JMXFactory.createMBean("org.red5.server.Client", "id=" + id);
 	}
 
 	/**

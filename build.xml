@@ -612,9 +612,9 @@
 			<jvmarg value="-Djava.security.manager"/>
 			<jvmarg value="-Djava.security.policy=${config.dir}/red5.policy"/>
 			<!-- enable the following 2 lines if your using jmx with ssl -->
-			<!--		
+			<!--
 			<jvmarg value="-Djavax.net.ssl.keyStore=${config.dir}/keystore.jmx"/>
-			<jvmarg value="-Djavax.net.ssl.keyStorePassword=password"/>		
+			<jvmarg value="-Djavax.net.ssl.keyStorePassword=password"/>
 			-->
 		</java>
 	</target>
@@ -630,7 +630,7 @@
 			<!-- enable the following 2 lines if your using jmx with ssl -->
 			<!--
 			<jvmarg value="-Djavax.net.ssl.keyStore=${config.dir}/keystore.jmx"/>
-			<jvmarg value="-Djavax.net.ssl.keyStorePassword=password"/>		
+			<jvmarg value="-Djavax.net.ssl.keyStorePassword=password"/>
 			-->
 		</java>
 	</target>
@@ -651,7 +651,7 @@
 			<!-- enable the following 5 lines if your using jmx with ssl and auth -->
 			<!--
 			<jvmarg value="-Djavax.net.ssl.trustStore=${config.dir}/truststore.jmx"/>
-			<jvmarg value="-Djavax.net.ssl.trustStorePassword=trustword"/>		
+			<jvmarg value="-Djavax.net.ssl.trustStorePassword=trustword"/>
 			<arg value="9999"/>
 			<arg value="red5user"/>
 			<arg value="changeme"/>
@@ -758,6 +758,14 @@
 				<exclude name="web.xml"/>
 			</fileset>
 		</copy>
+		<!-- copy the jmx support files into the webapp classpath -->
+		<copy todir="${classes.dir}/WEB-INF/classes">
+			<fileset dir="conf">
+				<include name="*.jmx"/>
+				<include name="access.properties"/>
+				<include name="password.properties"/>
+			</fileset>
+		</copy>
 		<!-- copy the red5 properties into the webapp classpath -->
 		<copy todir="${classes.dir}/WEB-INF/classes" file="${classes.dir}/WEB-INF/red5.properties"/>
 		<war destfile="${dist.dir}/red5.war" webxml="conf/war/web.xml">
@@ -800,6 +808,14 @@
 				<include name="**/*.swf"/>
 				<include name="**/*.flv"/>
 				<exclude name="WEB-INF"/>
+			</fileset>
+		</copy>
+		<!-- copy the jmx support files into the webapp classpath -->
+		<copy todir="${classes.dir}/WEB-INF/classes">
+			<fileset dir="conf">
+				<include name="*.jmx"/>
+				<include name="access.properties"/>
+				<include name="password.properties"/>
 			</fileset>
 		</copy>
 		<!-- rename index for war only -->

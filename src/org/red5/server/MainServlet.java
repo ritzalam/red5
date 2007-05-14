@@ -2,21 +2,21 @@ package org.red5.server;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
- * 
+ *
  * Copyright (c) 2006-2007 by respective authors (see below). All rights reserved.
- * 
- * This library is free software; you can redistribute it and/or modify it under the 
- * terms of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either version 2.1 of the License, or (at your option) any later 
- * version. 
- * 
- * This library is distributed in the hope that it will be useful, but WITHOUT ANY 
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+ *
+ * This library is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free Software
+ * Foundation; either version 2.1 of the License, or (at your option) any later
+ * version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
  * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public License along 
- * with this library; if not, write to the Free Software Foundation, Inc., 
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ *
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with this library; if not, write to the Free Software Foundation, Inc.,
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 import java.io.File;
@@ -43,7 +43,7 @@ import org.springframework.web.context.WebApplicationContext;
  *
  * This listener should be registered after Log4jConfigListener in web.xml,
  * if the latter is used.
- * 
+ *
  * @author The Red5 Project (red5@osflash.org)
  * @author Paul Gregoire (mondain@gmail.com)
  */
@@ -58,6 +58,15 @@ public class MainServlet extends HttpServlet implements ServletContextListener {
 	private static ServletContext servletContext;
 
 	protected ConfigurableWebApplicationContext applicationContext;
+
+	/**
+	 * Clearing the in-memory configuration parameters, we will receive
+	 * notification that the servlet context is about to be shut down
+	 */
+	public void contextDestroyed(ServletContextEvent sce) {
+		logger.info("Webapp shutdown");
+		applicationContext.close();
+	}
 
 	/**
 	 * Main entry point for the Red5 Server as a war
@@ -105,7 +114,8 @@ public class MainServlet extends HttpServlet implements ServletContextListener {
 			root = root.substring(0, idx);
 			//update classpath
 			System.setProperty("java.class.path", classpath
-					+ File.pathSeparatorChar + root);
+					+ File.pathSeparatorChar + root + File.pathSeparatorChar
+					+ root + "/classes");
 			logger.debug("New classpath: "
 					+ System.getProperty("java.class.path"));
 			//set configuration root
@@ -131,23 +141,28 @@ public class MainServlet extends HttpServlet implements ServletContextListener {
 				root = "/" + root;
 			}
 			System.setProperty("red5.root", root);
-			logger.info("Setting Red5 root to " + root);	
+			logger.info("Setting Red5 root to " + root);
 
 			Class contextClass = org.springframework.web.context.support.XmlWebApplicationContext.class;
 			applicationContext = (ConfigurableWebApplicationContext) BeanUtils
 					.instantiateClass(contextClass);
 
-			String[] strArray = servletContext.getInitParameter(ContextLoader.CONFIG_LOCATION_PARAM).split(", ");
+			String[] strArray = servletContext.getInitParameter(
+					ContextLoader.CONFIG_LOCATION_PARAM).split(", ");
 			logger.info("Config location files: " + strArray.length);
 			applicationContext.setConfigLocations(strArray);
 			applicationContext.setServletContext(servletContext);
 			applicationContext.refresh();
-			
+
 			//set web application context as an attribute of the servlet context
 			//so that it may be located via Springs WebApplicationContextUtils
-			servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, applicationContext);
-			
-			ConfigurableBeanFactory factory = applicationContext.getBeanFactory();
+			servletContext
+					.setAttribute(
+							WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE,
+							applicationContext);
+
+			ConfigurableBeanFactory factory = applicationContext
+					.getBeanFactory();
 			//register default
 			// add the context to the parent
 			factory.registerSingleton("default.context", applicationContext);
@@ -159,15 +174,6 @@ public class MainServlet extends HttpServlet implements ServletContextListener {
 		long startupIn = System.currentTimeMillis() - time;
 		logger.info("Startup done in: " + startupIn + " ms");
 
-	}
-
-	/**
-	 * Clearing the in-memory configuration parameters, we will receive
-	 * notification that the servlet context is about to be shut down
-	 */
-	public void contextDestroyed(ServletContextEvent sce) {
-		logger.info("Webapp shutdown");
-		applicationContext.close();
 	}
 
 }
