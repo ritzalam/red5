@@ -1313,6 +1313,11 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				return false;
 			}
 			
+			if (((IStreamData) message).getData() == null) {
+				// TODO: when can this happen?
+				return true;
+			}
+			
 			final int size = ((IStreamData) message).getData().limit();
 			if (message instanceof VideoData) {
 				if (needCheckBandwidth && !videoBucket.acquireTokenNonblocking(size, this)) {
@@ -1928,7 +1933,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 		private synchronized void releasePendingMessage() {
 			if (pendingMessage != null) {
 				IRTMPEvent body = pendingMessage.getBody(); 
-				if (body instanceof IStreamData) { 
+				if (body instanceof IStreamData && ((IStreamData) body).getData() != null) { 
 					((IStreamData) body).getData().release(); 
 				} 
 				pendingMessage.setBody(null);
