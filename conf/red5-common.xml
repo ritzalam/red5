@@ -115,6 +115,10 @@
 		<property name="testOnBorrow" value="true"/>
 		<property name="whenExhaustedAction" value="2"/>
 	</bean>
+	<!-- Use injection to setup thread pool for remoting clients -->
+	<bean id="remotingClient" class="org.red5.server.net.remoting.RemotingClient">
+		<property name="threadPool" ref="remotingPool"/>
+	</bean>
 	<!--
 	Now we can load the cache engine, only one may be enabled at a time. If no-caching is required select the
 	NoCacheImpl. Three other implementations based on EhCache, WhirlyCache, and Red5Cache are also available.

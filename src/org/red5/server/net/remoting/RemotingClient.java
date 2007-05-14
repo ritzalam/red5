@@ -19,8 +19,10 @@ package org.red5.server.net.remoting;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpConnectionManager;
@@ -35,8 +37,6 @@ import org.red5.io.amf.Output;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.RecordSet;
 import org.red5.io.object.Serializer;
-import org.red5.server.api.IScope;
-import org.red5.server.api.Red5;
 import org.red5.server.net.servlet.ServletUtils;
 import org.red5.server.pooling.ThreadPool;
 import org.red5.server.pooling.WorkerThread;
@@ -61,9 +61,6 @@ public class RemotingClient {
 	/** Content MIME type for HTTP requests. */
 	private static final String CONTENT_TYPE = "application/x-amf";
 
-	/** Name of the bean defining the thread pool. */
-	private static final String POOL_BEAN_ID = "remotingPool";
-
 	/** Manages HTTP connections. */
 	private static HttpConnectionManager connectionMgr = new MultiThreadedHttpConnectionManager();
 
@@ -77,8 +74,18 @@ public class RemotingClient {
 	private String appendToUrl = "";
 
 	/** Headers to send to the server. */
-	protected Map<String, RemotingHeader> headers = new HashMap<String, RemotingHeader>();
+	protected Map<String, RemotingHeader> headers = new ConcurrentHashMap<String, RemotingHeader>();
 
+	/** Thread pool to use for asynchronous requests. */
+	protected static ThreadPool threadPool;
+
+	/**
+	 * Dummy constructor used by the spring configuration.
+	 */
+	public RemotingClient() {
+		// Do nothing.
+	}
+	
 	/**
 	 * Create new remoting client for the given url.
 	 *
@@ -89,6 +96,15 @@ public class RemotingClient {
 		this(url, DEFAULT_TIMEOUT);
 	}
 
+	/**
+	 * Set the thread pool to use for asynchronous requests.
+	 * 
+	 * @param threadPool the thread pool
+	 */
+	public void setThreadPool(ThreadPool threadPool) {
+		RemotingClient.threadPool = threadPool;
+	}
+	
 	/**
 	 * Create new remoting client for the given url and given timeout.
 	 *
@@ -111,15 +127,16 @@ public class RemotingClient {
 	 * @param params              Method parameters
 	 * @return                    Byte buffer with data to perform remoting call
 	 */
-	private synchronized ByteBuffer encodeInvoke(String method, Object[] params) {
+	private ByteBuffer encodeInvoke(String method, Object[] params) {
 		ByteBuffer result = ByteBuffer.allocate(1024);
 		result.setAutoExpand(true);
 
 		// XXX: which is the correct version?
 		result.putShort((short) 0);
 		// Headers
-		result.putShort((short) headers.size());
-        for (RemotingHeader header : headers.values()) {
+		Collection<RemotingHeader> hdr = headers.values();
+		result.putShort((short) hdr.size());
+        for (RemotingHeader header : hdr) {
 			Output.putString(result, header.name);
 			result.put(header.required ? (byte) 0x01 : (byte) 0x00);
 
@@ -211,7 +228,7 @@ public class RemotingClient {
 	 * @param data                Result data to decode
 	 * @return                    Object deserialized from byte buffer data
 	 */
-	private synchronized Object decodeResult(ByteBuffer data) {
+	private Object decodeResult(ByteBuffer data) {
 		processHeaders(data);
 		int count = data.getUnsignedShort();
 		if (count != 1) {
@@ -234,7 +251,7 @@ public class RemotingClient {
 	 * @param userid              User identifier
 	 * @param password            Password
 	 */
-	public synchronized void setCredentials(String userid, String password) {
+	public void setCredentials(String userid, String password) {
 		Map<String, String> data = new HashMap<String, String>();
 		data.put("userid", userid);
 		data.put("password", password);
@@ -246,7 +263,7 @@ public class RemotingClient {
 	/**
 	 * Stop sending authentication data.
 	 */
-	public synchronized void resetCredentials() {
+	public void resetCredentials() {
 		removeHeader(RemotingHeader.CREDENTIALS);
 	}
 
@@ -257,7 +274,7 @@ public class RemotingClient {
 	 * @param required             Header required?
 	 * @param value                Header body
 	 */
-	public synchronized void addHeader(String name, boolean required, Object value) {
+	public void addHeader(String name, boolean required, Object value) {
 		RemotingHeader header = new RemotingHeader(name, required, value);
 		headers.put(name, header);
 	}
@@ -267,7 +284,7 @@ public class RemotingClient {
 	 *
 	 * @param name                 Header name
 	 */
-	public synchronized void removeHeader(String name) {
+	public void removeHeader(String name) {
 		headers.remove(name);
 	}
 
@@ -324,11 +341,12 @@ public class RemotingClient {
 	 * @param callback             Callback
 	 */
 	public void invokeMethod(String method, Object[] methodParams, IRemotingCallback callback) {
-		IScope scope = Red5.getConnectionLocal().getScope();
-
-		ThreadPool pool = (ThreadPool) scope.getContext().getBean(POOL_BEAN_ID);
+		if (threadPool == null) {
+			throw new RuntimeException("No thread pool configured.");
+		}
+		
 		try {
-			WorkerThread wt = (WorkerThread) pool.borrowObject();
+			WorkerThread wt = (WorkerThread) threadPool.borrowObject();
 			Object[] params = new Object[] { this, method, methodParams,
 					callback };
 			Class[] paramTypes = new Class[] { RemotingClient.class,
