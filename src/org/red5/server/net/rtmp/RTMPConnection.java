@@ -211,6 +211,21 @@ public abstract class RTMPConnection extends BaseConnection implements
 	protected ObjectName oName;
 
 	/**
+	 * Service that is waiting for handshake.
+	 */
+	private ISchedulingService waitForHandshakeService;
+	
+	/**
+	 * Name of job that is waiting for a valid handshake.
+	 */
+	private String waitForHandshakeJob;
+	
+	/**
+	 * Max. time in milliseconds to wait for a valid handshake.
+	 */
+	private int maxHandshakeTimeout = 5000;
+	
+	/**
 	 * Creates anonymous RTMP connection without scope
 	 * @param type          Connection type
 	 */
@@ -233,6 +248,12 @@ public abstract class RTMPConnection extends BaseConnection implements
 						.getContext().getBean(IBWControlService.KEY);
 				bwContext = bwController.registerBWControllable(this);
 			}
+			
+			if (waitForHandshakeJob != null) {
+				waitForHandshakeService.removeScheduledJob(waitForHandshakeJob);
+				waitForHandshakeJob = null;
+				waitForHandshakeService = null;
+			}
 		}
 		return success;
 	}
@@ -251,8 +272,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 		this.path = path;
 		this.sessionId = sessionId;
 		this.params = params;
-		if (params.get("objectEncoding") == Integer.valueOf(3))
+		if (params.get("objectEncoding") == Integer.valueOf(3)) {
 			encoding = Encoding.AMF3;
+		}
 	}
 
 	/**
@@ -916,6 +938,24 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	/**
+	 * Set max. time to wait for valid handshake in milliseconds.
+	 * @param maxHandshakeTimeout max. time in milliseconds
+	 */
+	public void setMaxHandshakeTimeout(int maxHandshakeTimeout) {
+		this.maxHandshakeTimeout = maxHandshakeTimeout;
+	}
+	
+	/**
+	 * Start waiting for a valid handshake.
+	 * 
+	 * @param service		the scheduling service to use
+	 */
+	protected void startWaitForHandshake(ISchedulingService service) {
+		waitForHandshakeService = service;
+		waitForHandshakeJob = service.addScheduledOnceJob(maxHandshakeTimeout, new WaitForHandshakeJob());
+	}
+	
+	/**
 	 * Quartz job that keeps connection alive and disconnects if client is dead.
 	 */
 	private class KeepAliveJob implements IScheduledJob {
@@ -944,4 +984,21 @@ public abstract class RTMPConnection extends BaseConnection implements
 			ping();
 		}
 	}
+	
+	/**
+	 * Quartz job that waits for a valid handshake and disconnects the client if
+	 * none is received.
+	 */
+	private class WaitForHandshakeJob implements IScheduledJob {
+		
+		/** {@inheritDoc} */
+		public void execute(ISchedulingService service) {
+			waitForHandshakeJob = null;
+			waitForHandshakeService = null;
+			// Client didn't send a valid handshake, disconnect.
+			onInactive();
+		}
+		
+	}
+	
 }

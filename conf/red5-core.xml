@@ -57,6 +57,8 @@
 		<property name="pingInterval" value="${rtmp.ping_interval}" />
 		<!-- Disconnect client after X ms of not responding. -->
 		<property name="maxInactivity" value="${rtmp.max_inactivity}" />
+		<!-- Max. time in milliseconds to wait for a valid handshake. -->
+		<property name="maxHandshakeTimeout" value="5000" />
 	</bean>
 	
 	<!-- RTMPT Handler -->
@@ -72,6 +74,8 @@
 		<property name="pingInterval" value="${rtmp.ping_interval}" />
 		<!-- Disconnect client after X ms of not responding. -->
 		<property name="maxInactivity" value="${rtmp.max_inactivity}" />
+		<!-- Max. time in milliseconds to wait for a valid handshake. -->
+		<property name="maxHandshakeTimeout" value="5000" />
 	</bean>
 	
 	<!-- Jetty RTMPT Container -->

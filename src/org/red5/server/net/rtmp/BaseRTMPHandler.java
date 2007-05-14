@@ -27,6 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.server.api.Red5;
 import org.red5.server.api.event.IEventDispatcher;
+import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IPendingServiceCallback;
 import org.red5.server.api.service.IServiceCall;
@@ -46,17 +47,25 @@ import org.red5.server.net.rtmp.message.Packet;
 import org.red5.server.net.rtmp.status.StatusCodes;
 import org.red5.server.so.SharedObjectMessage;
 import org.red5.server.stream.PlaylistSubscriberStream;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 /**
  * Base class for all RTMP handlers.
  *
  * @author The Red5 Project (red5@osflash.org)
  */
-public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, StatusCodes {
+public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, StatusCodes, ApplicationContextAware {
     /**
      * Logger
      */
 	protected static Log log = LogFactory.getLog(BaseRTMPHandler.class.getName());
+
+    /**
+     * Application context
+     */
+	protected ApplicationContext appCtx;
 
 	// XXX: HACK HACK HACK to support stream ids
 	private static ThreadLocal<Integer> streamLocal = new ThreadLocal<Integer>();
@@ -80,8 +89,16 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 	}
 
 	/** {@inheritDoc} */
+    public void setApplicationContext(ApplicationContext appCtx) throws BeansException {
+		this.appCtx = appCtx;
+	}
+
+	/** {@inheritDoc} */
     public void connectionOpened(RTMPConnection conn, RTMP state) {
-		// Nothing to do here
+		if (state.getMode() == RTMP.MODE_SERVER && appCtx != null) {
+			ISchedulingService service = (ISchedulingService) appCtx.getBean(ISchedulingService.BEAN_NAME);
+			conn.startWaitForHandshake(service);
+		}
 	}
 
 	/** {@inheritDoc} */

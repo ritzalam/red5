@@ -71,6 +71,7 @@ public class RTMPTServlet extends HttpServlet {
 	 */
 	private static final int RESPONSE_TARGET_SIZE = 32768;
 	
+	// TODO: we need to check the map periodically for disconnected clients
 	/**
 	 * Holds a map of client id -> client object.
 	 */

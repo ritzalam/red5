@@ -206,6 +206,9 @@ implements ApplicationContextAware {
 			out.fill((byte)0x00,Constants.HANDSHAKE_SIZE);
 			out.flip();
 			session.write(out);
+		} else {
+			final RTMPMinaConnection conn = (RTMPMinaConnection) session.getAttachment();
+			handler.connectionOpened(conn, rtmp);
 		}
 	}
 

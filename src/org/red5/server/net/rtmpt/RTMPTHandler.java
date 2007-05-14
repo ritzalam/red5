@@ -28,9 +28,6 @@ import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.RTMPHandler;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.message.Constants;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 
 /**
  * Handler for RTMPT messages.
@@ -38,7 +35,7 @@ import org.springframework.context.ApplicationContextAware;
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
  */
-public class RTMPTHandler extends RTMPHandler implements ApplicationContextAware {
+public class RTMPTHandler extends RTMPHandler {
 
     /**
      * Logger
@@ -54,10 +51,6 @@ public class RTMPTHandler extends RTMPHandler implements ApplicationContextAware
      * Protocol codec factory
      */
     protected SimpleProtocolCodecFactory codecFactory;
-    /**
-     * App context
-     */
-	protected ApplicationContext appCtx;
 
 	/**
      * Setter for codec factory
@@ -119,11 +112,6 @@ public class RTMPTHandler extends RTMPHandler implements ApplicationContextAware
 		}
 	}
 
-	/** {@inheritDoc} */
-    public void setApplicationContext(ApplicationContext appCtx) throws BeansException {
-		this.appCtx = appCtx;
-	}
-
     /**
      * Creates RTMP connection
      * @return       RTMP connection
@@ -132,6 +120,7 @@ public class RTMPTHandler extends RTMPHandler implements ApplicationContextAware
 		RTMPTConnection client =
 			(RTMPTConnection) appCtx.getBean("rtmptConnection");
 		client.setRTMPTHandle(this);
+		connectionOpened(client, client.getState());
 		return client;
 	}
 }

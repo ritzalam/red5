@@ -58,6 +58,8 @@
 		<property name="pingInterval" value="${rtmp.ping_interval}" />
 		<!-- Disconnect client after X ms of not responding. -->
 		<property name="maxInactivity" value="${rtmp.max_inactivity}" />
+		<!-- Max. time in milliseconds to wait for a valid handshake. -->
+		<property name="maxHandshakeTimeout" value="5000" />
 	</bean>
 	
 	<!-- RTMPT Handler -->
@@ -69,7 +71,12 @@
 	<!-- RTMPT Connection -->
 	<bean id="rtmptConnection" scope="prototype"
 		class="org.red5.server.net.rtmpt.RTMPTConnection">
-		<property name="keepAliveInterval" value="10000" />
+		<!-- Ping clients every X ms. Set to 0 to disable ghost detection code. -->
+		<property name="pingInterval" value="${rtmp.ping_interval}" />
+		<!-- Disconnect client after X ms of not responding. -->
+		<property name="maxInactivity" value="${rtmp.max_inactivity}" />
+		<!-- Max. time in milliseconds to wait for a valid handshake. -->
+		<property name="maxHandshakeTimeout" value="5000" />
 	</bean>
 
 </beans>
