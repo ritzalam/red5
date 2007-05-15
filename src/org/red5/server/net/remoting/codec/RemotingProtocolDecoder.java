@@ -27,6 +27,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoSession;
+import org.red5.io.amf.AMF;
 import org.red5.io.amf.Input;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.BaseInput.ReferenceMode;
@@ -148,6 +149,21 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 			/*
 			 * if (length != -1) in.limit(in.position()+length);
 			 */
+			byte type = in.get();
+			if (type != AMF.TYPE_ARRAY) {
+				throw new RuntimeException("AMF0 array type expected but found " + type);
+			}
+			int elements = in.getInt();
+			if (elements != 1) {
+				throw new RuntimeException("Array containing one element expected but found " + elements + " elements");
+			}
+			
+			byte amf3Check = in.get();
+			in.position(in.position()-1);
+			if (amf3Check == AMF.TYPE_AMF3_OBJECT) {
+				input = new org.red5.io.amf3.Input(in);
+			}
+			
 			Object value = deserializer.deserialize(input);
 
 			// log.info(value);
