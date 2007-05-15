@@ -29,6 +29,7 @@ import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoSession;
 import org.red5.io.amf.Input;
 import org.red5.io.object.Deserializer;
+import org.red5.io.object.BaseInput.ReferenceMode;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.protocol.SimpleProtocolDecoder;
 import org.red5.server.net.remoting.message.RemotingCall;
@@ -58,8 +59,8 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 	}
 
 	/** {@inheritDoc} */
-    public List decodeBuffer(ProtocolState state, ByteBuffer buffer) {
-		List list = new LinkedList();
+    public List<Object> decodeBuffer(ProtocolState state, ByteBuffer buffer) {
+		List<Object> list = new LinkedList<Object>();
 		Object packet = null;
 		try {
 			packet = decode(state, buffer);
@@ -76,7 +77,7 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 	/** {@inheritDoc} */
     public Object decode(ProtocolState state, ByteBuffer in) throws Exception {
 		skipHeaders(in);
-		List calls = decodeCalls(in);
+		List<RemotingCall> calls = decodeCalls(in);
 		return new RemotingPacket(calls);
 	}
 
@@ -116,8 +117,10 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
      * @param in         Input data as byte buffer
      * @return           List of pending calls
      */
-	protected List decodeCalls(ByteBuffer in) {
-		log.debug("Decode calls");
+	protected List<RemotingCall> decodeCalls(ByteBuffer in) {
+		if (log.isDebugEnabled()) {
+			log.debug("Decode calls");
+		}
 		//in.getInt();
 		List<RemotingCall> calls = new LinkedList<RemotingCall>();
 		Input input = new Input(in);
@@ -131,7 +134,8 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 		for (int i = 0; i < count; i++) {
 
 			in.limit(limit);
-			input.reset();
+			// Prepare remoting mode
+			input.reset(ReferenceMode.MODE_REMOTING);
 
 			String serviceString = Input.getString(in);
 			String clientCallback = Input.getString(in);
@@ -156,11 +160,13 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 				serviceMethod = serviceString.substring(dotPos + 1,
 						serviceString.length());
 			} else {
-				serviceName = serviceString;
-				serviceMethod = "";
+				serviceName = "";
+				serviceMethod = serviceString;
 			}
 
-			log.info("Service: " + serviceName + " Method: " + serviceMethod);
+			if (log.isDebugEnabled()) {
+				log.debug("Service: " + serviceName + " Method: " + serviceMethod);
+			}
 			Object[] args = null;
 			if (value instanceof Object[]) {
 				args = (Object[]) value;
@@ -181,8 +187,10 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 				args = new Object[] { value };
 			}
 
-			for (Object element : args) {
-				log.info("> " + element);
+			if (log.isDebugEnabled()) {
+				for (Object element : args) {
+					log.debug("> " + element);
+				}
 			}
 
 			// Add the call to the list

@@ -21,14 +21,11 @@ package org.red5.io.amf;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TimeZone;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.logging.Log;
@@ -56,7 +53,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	protected ByteBuffer buf;
 
 	protected byte currentDataType;
-
+	
 	/**
 	 * Creates Input object from byte buffer
 	 *
@@ -265,14 +262,9 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		 * timezone in minutes.
 		 */
 		long ms = (long) buf.getDouble();
-		short clientTimeZoneMins = buf.getShort();
-		ms += clientTimeZoneMins * 60 * 1000;
-		Calendar cal = new GregorianCalendar();
-		cal.setTime(new Date(ms - TimeZone.getDefault().getRawOffset()));
-		Date date = cal.getTime();
-		if (cal.getTimeZone().inDaylightTime(date)) {
-			date.setTime(date.getTime() - cal.getTimeZone().getDSTSavings());
-		}
+		// The timezone can be ignored as the date always is encoded in UTC
+		@SuppressWarnings("unused") short timeZoneMins = buf.getShort();
+		Date date = new Date(ms);
 		storeReference(date);
 		return date;
 	}
@@ -565,13 +557,28 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	 * @return Object       Read reference to object
 	 */
 	public Object readReference() {
-		return getReference(buf.getUnsignedShort() - 1);
+		if (referenceMode == ReferenceMode.MODE_RTMP) {
+			return getReference(buf.getUnsignedShort() - 1);
+		} else {
+			return getReference(buf.getUnsignedShort() + 1);
+		}
+	}
+
+	/**
+	 * Resets map and set mode to handle references
+	 * 
+	 * @param mode mode to handle references
+	 */
+	public void reset(ReferenceMode mode) {
+		this.clearReferences();
+		referenceMode = mode;
 	}
 
 	/**
 	 * Resets map
 	 */
 	public void reset() {
-		this.clearReferences();
+		reset(ReferenceMode.MODE_RTMP);
 	}
+
 }

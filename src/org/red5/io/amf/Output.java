@@ -438,5 +438,9 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
     public ByteBuffer buf() {
 		return this.buf;
 	}
+    
+    public void reset() {
+    	clearReferences();
+    }
 
 }

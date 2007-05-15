@@ -30,6 +30,15 @@ import java.util.Map;
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 public class BaseInput {
+	
+	/**
+	 * Mode how references should be handled.
+	 */
+	public enum ReferenceMode {
+		MODE_RTMP,
+		MODE_REMOTING,
+	};
+	
     /**
      * References map
      */
@@ -39,6 +48,11 @@ public class BaseInput {
      * References id
      */
     protected int refId;
+    
+    /**
+     * Mode how to handle references.
+     */
+    protected ReferenceMode referenceMode = ReferenceMode.MODE_RTMP;
 
 	/**
 	 * Store an object into a map

@@ -128,30 +128,48 @@
 			
 			nc = new NetConnection();
 			nc.addEventListener(NetStatusEvent.NET_STATUS, netStatusHandler); 
-			onConnect(ObjectEncoding.AMF3);
         }
 		
-		private function onConnect(proto: uint): void {
+		private function onConnect(protocol: String, encoding: uint): void {
 			if (nc.connected) {
 				nc.close();
 			}
-			nc.objectEncoding = proto;
-			nc.connect("rtmp://localhost/echo");
-			textArea.text = "Connecting using AMF" + proto + "...\n";
+			textArea.text = "";
+			nc.objectEncoding = encoding;
+			var url: String;
+			if (protocol == "http") {
+			    // Remoting...
+				url = "http://localhost:80/echo/gateway";
+			} else {
+				// RTMP...
+				url = "rtmp://localhost/echo";
+			}
+			textArea.text = "Connecting through " + protocol + " using AMF" + encoding + "...\n";
+			nc.connect(url);
+			
+			if (protocol == "http") {
+				// Don't wait for a successfull connection for remoting.
+				onTest();
+			}
 		}
 		
 		private function netStatusHandler(event: NetStatusEvent): void {
-			textArea.text += event.info.code + ": " + event.info.description + "\n";
 			switch(event.info.code) {
 				case "NetConnection.Connect.Success":
-					btnTest.enabled = true;
-					btnDisconnect.enabled = true;
+					textArea.text += event.info.code + ": " + event.info.description + "\n";
 					onTest();
-				break;
+					break;
+				
+				case "NetConnection.Connect.Rejected":
+					textArea.text += event.info.code + ": " + event.info.description + "\n";
+					onDisconnect();
+					break;
+					
 				case "NetConnection.Connect.Failed":
 				case "NetConnection.Connect.Closed":
+					textArea.text += event.info.code + "\n";
 					onDisconnect();
-				break;
+					break;
 			}
 		}
 		
@@ -164,17 +182,13 @@
 		}
 		
 		private function onTest(): void {
-			textArea.text = "";
 			testIndex = 0;
 			testsFailed = 0;
 			doTest();
 		}
 
 		private function onDisconnect(): void {
-			btnConnect0.enabled = true;
-			btnConnect3.enabled = true;
-			btnTest.enabled = false;
-			btnDisconnect.enabled = false;
+			nc.close();
 		}
 
 		private function extendedEqual(a: Object, b: Object): Boolean {
@@ -247,8 +261,10 @@
 				doTest();
 			} else if (testsFailed == 0) {
 				textArea.text += "Successfully ran " + testCount + " tests\n";
+				onDisconnect();
 			} else {
 				textArea.text += "Ran " + testCount + " tests, " + testsFailed + " failed\n";
+				onDisconnect();
 			}
 		}
 
@@ -256,10 +272,10 @@
     </mx:Script>
 	
 	<mx:HBox>
-		<mx:Button id="btnConnect0" label="Connect AMF0" labelPlacement="left" click="onConnect(ObjectEncoding.AMF0)" />
-		<mx:Button id="btnConnect3" label="Connect AMF3" labelPlacement="left" click="onConnect(ObjectEncoding.AMF3)" />
-		<mx:Button id="btnTest" label="Test again" labelPlacement="left" click="onTest()" enabled="false" />
-		<mx:Button id="btnDisconnect" label="Disconnect" labelPlacement="left" click="onDisconnect()" enabled="false" />
+		<mx:Button id="btnConnectRTMP0" label="RTMP AMF0" labelPlacement="left" click="onConnect('rtmp', ObjectEncoding.AMF0)" />
+		<mx:Button id="btnConnectRTMP3" label="RTMP AMF3" labelPlacement="left" click="onConnect('rtmp', ObjectEncoding.AMF3)" />
+		<mx:Button id="btnConnectHTTP0" label="HTTP AMF0" labelPlacement="left" click="onConnect('http', ObjectEncoding.AMF0)" />
+		<mx:Button id="btnConnectHTTP3" label="HTTP AMF3" labelPlacement="left" click="onConnect('http', ObjectEncoding.AMF3)" />
 	</mx:HBox>
 	<mx:TextArea id="textArea" width="100%" height="100%">
     </mx:TextArea>

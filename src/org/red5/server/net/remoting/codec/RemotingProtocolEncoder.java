@@ -19,8 +19,6 @@ package org.red5.server.net.remoting.codec;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.Iterator;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
@@ -53,25 +51,30 @@ public class RemotingProtocolEncoder implements SimpleProtocolEncoder {
 	/** {@inheritDoc} */
     public ByteBuffer encode(ProtocolState state, Object message) throws Exception {
 		RemotingPacket resp = (RemotingPacket) message;
-		Iterator it = resp.getCalls().iterator();
 		ByteBuffer buf = ByteBuffer.allocate(1024);
 		buf.setAutoExpand(true);
 		Output output = new Output(buf);
 		buf.putShort((short) 0); // write the version
 		buf.putShort((short) 0); // write the header count
 		buf.putShort((short) resp.getCalls().size()); // write the number of bodies
-		while (it.hasNext()) {
-			log.debug("Call");
-			RemotingCall call = (RemotingCall) it.next();
+		for (RemotingCall call: resp.getCalls()) {
+			output.reset();
+			if (log.isDebugEnabled()) {
+				log.debug("Call");
+			}
 			Output.putString(buf, call.getClientResponse());
 			Output.putString(buf, "null");
 			buf.putInt(-1);
-			log.info("result:" + call.getResult());
+			if (log.isDebugEnabled()) {
+				log.info("result:" + call.getResult());
+			}
 			serializer.serialize(output, call.getClientResult());
 		}
 		//buf.compact();
 		buf.flip();
-		log.info(">>" + buf.getHexDump());
+		if (log.isDebugEnabled()) {
+			log.debug(">>" + buf.getHexDump());
+		}
 		return buf;
 
 	}

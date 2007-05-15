@@ -39,7 +39,7 @@ public class RemotingPacket {
     /**
      * List of calls
      */
-	protected List calls;
+	protected List<RemotingCall> calls;
     /**
      * Scope path
      */
@@ -49,7 +49,7 @@ public class RemotingPacket {
      * Create remoting packet from list of pending calls
      * @param calls              List of call objects
      */
-    public RemotingPacket(List calls) {
+    public RemotingPacket(List<RemotingCall> calls) {
 		this.calls = calls;
 	}
 
@@ -58,7 +58,7 @@ public class RemotingPacket {
      *
      * @return   List of remote calls
      */
-    public List getCalls() {
+    public List<RemotingCall> getCalls() {
 		return calls;
 	}
 
