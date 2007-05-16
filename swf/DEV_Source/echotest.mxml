@@ -139,7 +139,7 @@
 			var url: String;
 			if (protocol == "http") {
 			    // Remoting...
-				url = "http://localhost:80/echo/gateway";
+				url = "http://localhost:5080/echo/gateway";
 			} else {
 				// RTMP...
 				url = "rtmp://localhost/echo";
