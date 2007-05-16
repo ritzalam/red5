@@ -36,7 +36,17 @@
 		<param-name>webAppRootKey</param-name>
 		<param-value>/echo</param-value>
 	</context-param>
-	
+
+    <servlet>
+        <servlet-name>gateway</servlet-name>
+        <servlet-class>org.red5.server.net.servlet.AMFGatewayServlet</servlet-class>
+    </servlet>
+    
+    <servlet-mapping>
+        <servlet-name>gateway</servlet-name>
+        <url-pattern>/gateway</url-pattern>
+    </servlet-mapping>
+
 	<listener>
 	    <listener-class>org.springframework.web.util.Log4jConfigListener</listener-class>
 	</listener>
