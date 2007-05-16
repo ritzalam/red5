@@ -21,7 +21,6 @@ package org.red5.server.net.remoting.codec;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -124,7 +123,7 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 		}
 		//in.getInt();
 		List<RemotingCall> calls = new LinkedList<RemotingCall>();
-		Input input = new Input(in);
+		Input input;
 		int count = in.getUnsignedShort();
 		if (log.isDebugEnabled()) {
 			log.debug("Calls: " + count);
@@ -135,8 +134,6 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 		for (int i = 0; i < count; i++) {
 
 			in.limit(limit);
-			// Prepare remoting mode
-			input.reset(ReferenceMode.MODE_REMOTING);
 
 			String serviceString = Input.getString(in);
 			String clientCallback = Input.getString(in);
@@ -160,9 +157,14 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 			
 			byte amf3Check = in.get();
 			in.position(in.position()-1);
-			if (amf3Check == AMF.TYPE_AMF3_OBJECT) {
+			boolean isAMF3 = (amf3Check == AMF.TYPE_AMF3_OBJECT);
+			if (isAMF3) {
 				input = new org.red5.io.amf3.Input(in);
+			} else {
+				input = new Input(in);
 			}
+			// Prepare remoting mode
+			input.reset(ReferenceMode.MODE_REMOTING);
 			
 			Object value = deserializer.deserialize(input);
 
@@ -183,26 +185,7 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 			if (log.isDebugEnabled()) {
 				log.debug("Service: " + serviceName + " Method: " + serviceMethod);
 			}
-			Object[] args = null;
-			if (value instanceof Object[]) {
-				args = (Object[]) value;
-			} else if (value instanceof List) {
-				List valueList = (List) value;
-				args = new Object[valueList.size()];
-				for (int j = 0; j < valueList.size(); j++) {
-					args[j] = valueList.get(j);
-				}
-			} else if (value instanceof Set) {
-				Set valueSet = (Set) value;
-				args = new Object[valueSet.size()];
-				int j = 0;
-				for (Object item : valueSet) {
-					args[j++] = item;
-				}
-			} else {
-				args = new Object[] { value };
-			}
-
+			Object[] args = new Object[] { value };
 			if (log.isDebugEnabled()) {
 				for (Object element : args) {
 					log.debug("> " + element);
@@ -210,7 +193,7 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 			}
 
 			// Add the call to the list
-			calls.add(new RemotingCall(serviceName, serviceMethod, args, clientCallback));
+			calls.add(new RemotingCall(serviceName, serviceMethod, args, clientCallback, isAMF3));
 		}
 		return calls;
 	}

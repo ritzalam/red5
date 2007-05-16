@@ -560,7 +560,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		if (referenceMode == ReferenceMode.MODE_RTMP) {
 			return getReference(buf.getUnsignedShort() - 1);
 		} else {
-			return getReference(buf.getUnsignedShort() + 1);
+			return getReference(buf.getUnsignedShort());
 		}
 	}
 

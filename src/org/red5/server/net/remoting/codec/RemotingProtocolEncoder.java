@@ -53,12 +53,11 @@ public class RemotingProtocolEncoder implements SimpleProtocolEncoder {
 		RemotingPacket resp = (RemotingPacket) message;
 		ByteBuffer buf = ByteBuffer.allocate(1024);
 		buf.setAutoExpand(true);
-		Output output = new Output(buf);
+		Output output;
 		buf.putShort((short) 0); // write the version
 		buf.putShort((short) 0); // write the header count
 		buf.putShort((short) resp.getCalls().size()); // write the number of bodies
 		for (RemotingCall call: resp.getCalls()) {
-			output.reset();
 			if (log.isDebugEnabled()) {
 				log.debug("Call");
 			}
@@ -67,6 +66,11 @@ public class RemotingProtocolEncoder implements SimpleProtocolEncoder {
 			buf.putInt(-1);
 			if (log.isDebugEnabled()) {
 				log.info("result:" + call.getResult());
+			}
+			if (call.isAMF3) {
+				output = new org.red5.io.amf3.Output(buf);
+			} else {
+				output = new Output(buf);
 			}
 			serializer.serialize(output, call.getClientResult());
 		}

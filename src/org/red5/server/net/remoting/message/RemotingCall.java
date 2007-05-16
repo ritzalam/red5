@@ -41,16 +41,20 @@ public class RemotingCall extends PendingCall {
      */
 	public String clientCallback;
 
+	public boolean isAMF3;
+	
     /**
      * Create remoting call from service name, method name, list of arguments and callback name
      * @param serviceName                Service name
      * @param serviceMethod              Service method name
      * @param args                       Parameters passed to method
      * @param callback                   Name of client callback
+     * @param isAMF3                     Does the client support AMF3?
      */
-    public RemotingCall(String serviceName, String serviceMethod, Object[] args, String callback) {
+    public RemotingCall(String serviceName, String serviceMethod, Object[] args, String callback, boolean isAMF3) {
 		super(serviceName, serviceMethod, args);
 		setClientCallback(callback);
+		this.isAMF3 = isAMF3;
 	}
 
 	/**
