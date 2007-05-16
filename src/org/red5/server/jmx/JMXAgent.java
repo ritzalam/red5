@@ -22,6 +22,7 @@ package org.red5.server.jmx;
 import java.io.File;
 import java.io.IOException;
 import java.rmi.ConnectException;
+import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.HashMap;
@@ -57,6 +58,8 @@ public class JMXAgent implements NotificationListener {
 	private static boolean enableHtmlAdapter;
 
 	private static boolean enableRmiAdapter;
+
+	private static boolean startRegistry;
 
 	private static boolean enableSsl;
 
@@ -276,13 +279,28 @@ public class JMXAgent implements NotificationListener {
 			// Create an RMI connector server
 			log.debug("Create an RMI connector server");
 			try {
-				//ensure we are not already registered with the registry
-				Registry r = LocateRegistry.getRegistry(Integer
-						.valueOf(rmiAdapterPort));
-				for (String regName : r.list()) {
-					if (regName.equals("red5")) {
-						//unbind connector from rmi registry
-						r.unbind("red5");
+
+				Registry r = null;
+				try {
+					//lookup the registry
+					r = LocateRegistry.getRegistry(Integer
+							.valueOf(rmiAdapterPort));
+					//ensure we are not already registered with the registry
+					for (String regName : r.list()) {
+						if (regName.equals("red5")) {
+							//unbind connector from rmi registry
+							r.unbind("red5");
+						}
+					}
+				} catch (RemoteException re) {
+					log.info("RMI Registry server was not found on port "
+							+ rmiAdapterPort);
+					//if we didnt find the registry and the user wants it created
+					if (startRegistry) {
+						log.info("Starting an internal RMI registry");
+						// create registry for rmi port 9999
+						r = LocateRegistry.createRegistry(Integer
+								.valueOf(rmiAdapterPort));
 					}
 				}
 				JMXServiceURL url = new JMXServiceURL(
@@ -401,6 +419,10 @@ public class JMXAgent implements NotificationListener {
 
 	public void setRmiAdapterPort(String rmiAdapterPort) {
 		JMXAgent.rmiAdapterPort = rmiAdapterPort;
+	}
+
+	public void setStartRegistry(boolean startRegistry) {
+		JMXAgent.startRegistry = startRegistry;
 	}
 
 }
