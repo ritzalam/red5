@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	 xmlns:lang="http://www.springframework.org/schema/lang" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd                            http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-2.0.xsd">
+	<bean id="placeholderConfig"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+	</bean>
 	<!-- This context is shared between all child contexts. -->
 	<!-- Server bean -->
 	<bean id="red5.server" class="org.red5.server.Server"/>
@@ -22,8 +25,8 @@
 		<!-- Starts a registry if it doesnt exist -->
 		<property name="startRegistry" value="true" />
 		<!-- Authentication -->
-		<property name="remoteAccessProperties" value="conf/access.properties"/>
-		<property name="remotePasswordProperties" value="conf/password.properties"/>
+		<property name="remoteAccessProperties" value="${red5.config_root}/access.properties"/>
+		<property name="remotePasswordProperties" value="${red5.config_root}/password.properties"/>
 		<!-- The HTML adapter allows connections to the MBeanServer via a web browser -->
 		<property name="enableHtmlAdapter" value="false" />
 		<property name="htmlAdapterPort" value="8082"/>
