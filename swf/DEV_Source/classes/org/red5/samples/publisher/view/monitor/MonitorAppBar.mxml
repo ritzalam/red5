@@ -2,7 +2,7 @@
 <view:MonitorAppBarClass xmlns:mx="http://www.adobe.com/2006/mxml"
 						 xmlns:view="org.red5.samples.publisher.view.monitor.*">
 						 
-	<mx:Image source="{ monitorTransaction.images.monitor_img }"/>
+	<mx:Image source="{ main.images.monitor_img }"/>
 			
 	<mx:VBox paddingTop="3" paddingLeft="-1">
 		<mx:Label text="Monitor" fontWeight="bold" fontSize="12"/>
@@ -11,7 +11,7 @@
 	<mx:Spacer width="75"/>
 	
 	<mx:TabBar paddingBottom="-7" itemClick="changeMonitorView( event )"
-			   dataProvider="{ monitorTransaction.monitorMenu }"
-			   selectedIndex="{ monitorTransaction.monitorBarIndex }"/>
+			   dataProvider="{ navigation.monitorMenu }"
+			   selectedIndex="{ navigation.monitorBarIndex }"/>
 		
 </view:MonitorAppBarClass>

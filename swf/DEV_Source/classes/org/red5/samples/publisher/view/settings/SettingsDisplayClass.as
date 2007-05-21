@@ -46,7 +46,13 @@ package org.red5.samples.publisher.view.settings
 		/**
 		* 
 		*/		
-		public var monitorTransaction : MonitorTransaction = model.monitorTransaction;
+		public var main : Main = model.main;
+		
+		[Bindable]
+		/**
+		* 
+		*/		
+		public var navigation : Navigation = model.navigation;
 		
 		[Bindable]
 		/**
@@ -58,11 +64,12 @@ package org.red5.samples.publisher.view.settings
 		/**
 		* 
 		*/		
-		public var host_txt : TextInput;		
+		public var host_txt : TextInput;
+				
 		public var audio_btn : Button;		
 		public var audio_txt : LinkButton;	
 		public var video_btn : Button;	
-		public var video_txt : LinkButton;	
+		public var video_txt : LinkButton;
 		public var buffer_ns : NumericStepper;	
 		public var type_cb : ComboBox;	
 		public var presets_cb : ComboBox;
@@ -99,13 +106,14 @@ package org.red5.samples.publisher.view.settings
 		public function setupConnection() : void
 		{
 			// Get AMF type from the encoding_cb Combobox.
-			var encodingType : uint = monitorTransaction.objectEncodeTypes[ encoding_cb.selectedIndex ].data;
+			var encodingType : uint = main.objectEncodeTypes[ encoding_cb.selectedIndex ].data;
 			//
 			var hostName : String = host_txt.text;
 			//
 			var proxyType : String = proxy_cb.selectedItem.data;
 			// Create connection with server.
-			if ( monitorTransaction.connectButtonLabel == monitorTransaction.btnConnect ) {
+			if ( main.connectButtonLabel == main.btnConnect ) 
+			{
 				// Broadcast the event with Cairngorm.
 				// Pass the host name, proxy type and encoding type to the StartConnectionEvent.
 				var startConnectionEvent : StartConnectionEvent = new StartConnectionEvent( 
@@ -114,7 +122,7 @@ package org.red5.samples.publisher.view.settings
 																							encodingType
 																						  );
 																							
-				CairngormEventDispatcher.getInstance().dispatchEvent( startConnectionEvent );
+				startConnectionEvent.dispatch();
 				
 			} 
 			else
@@ -122,7 +130,7 @@ package org.red5.samples.publisher.view.settings
 			{
 				// Broadcast the event with Cairngorm.
 				var closeConnectionEvent : CloseConnectionEvent = new CloseConnectionEvent();
-				CairngormEventDispatcher.getInstance().dispatchEvent( closeConnectionEvent );
+				closeConnectionEvent.dispatch();
 			}	
 		}
 		
@@ -133,8 +141,8 @@ package org.red5.samples.publisher.view.settings
 		public function openLink( path : String ) : void 
 		{	
 			// Open documentation url.
-			var event : OpenDocsEvent = new OpenDocsEvent( path, monitorTransaction.docsURL );
-			CairngormEventDispatcher.getInstance().dispatchEvent( event );
+			var event : OpenDocsEvent = new OpenDocsEvent( path, main.docsURL );
+			event.dispatch();
 		}
 		
 		/**
@@ -150,20 +158,18 @@ package org.red5.samples.publisher.view.settings
 			var fps : Number = fps_ns.value;
 			var bandwidth : Number = bw_ns.value;
 			var frameQuality : Number = quality_ns.value;
-			//
-			if ( selectedCamIndex > 0 ) {
-				//
-				video_btn.label = "Apply";
-			}
-			//
-			if ( selectedCamIndex == 1 ) {
+			// No video.
+			if ( selectedCamIndex == 0 ) 
+			{
 				// stop camera
 				var stopCameraEvent : StopCameraEvent = new StopCameraEvent();
-				CairngormEventDispatcher.getInstance().dispatchEvent( stopCameraEvent );
+				stopCameraEvent.dispatch();
 
 			} 
-			else if ( selectedCamIndex > 1 ) 
+			else if ( selectedCamIndex > -1 )
 			{
+				//
+				video_btn.label = "Apply";
 				// start camera
 				var startCameraEvent : StartCameraEvent = new StartCameraEvent( selectedCamIndex,
 																				keyframeInterval,
@@ -172,7 +178,7 @@ package org.red5.samples.publisher.view.settings
 																				fps,
 																				bandwidth,
 																				frameQuality );
-				CairngormEventDispatcher.getInstance().dispatchEvent( startCameraEvent );
+				startCameraEvent.dispatch();
 			}
 		}
 		
@@ -187,25 +193,24 @@ package org.red5.samples.publisher.view.settings
 			var bitrate : Number = rate_ns.value;
 			var silenceLevel : Number = level_ns.value;
 			var silenceTimeout : Number = timeout_ns.value;
-			//
-			if ( selectedMicIndex > 0 ) {
-				audio_btn.label = "Apply";
-			}
-			//
-			if ( selectedMicIndex == 1 ) {
+			// No audio.
+			if ( selectedMicIndex == 0 ) 
+			{
 				// stop microphone
 				var stopMicrophoneEvent : StopMicrophoneEvent = new StopMicrophoneEvent();
-				CairngormEventDispatcher.getInstance().dispatchEvent( stopMicrophoneEvent );
-			}
-			//
-			if ( selectedMicIndex > 1 ) {
+				stopMicrophoneEvent.dispatch();
+			} 
+			else if ( selectedMicIndex > -1 )
+			{
+				//
+				audio_btn.label = "Apply";
 				// start microphone
 				var startMicrophoneEvent : StartMicrophoneEvent = new StartMicrophoneEvent( selectedMicIndex,
 																							gain,
 																							bitrate,
 																							silenceLevel,
 																							silenceTimeout );
-				CairngormEventDispatcher.getInstance().dispatchEvent( startMicrophoneEvent );
+				startMicrophoneEvent.dispatch();
 			}
 		}
 		
@@ -217,18 +222,18 @@ package org.red5.samples.publisher.view.settings
 			//
 			changePreset( 0 );
 			//
-			monitorTransaction.images.serverLogo = type_cb.selectedItem.img;
+			main.images.serverLogo = type_cb.selectedItem.img;
 		}	
 		
 		/**
 		 * 
 		 * 
 		 */		
-		private function removePresets () : void 
+		private function removePresets() : void 
 		{
 			// remove presets
 			var removePresetsEvent : RemovePresetsEvent = new RemovePresetsEvent();
-			CairngormEventDispatcher.getInstance().dispatchEvent( removePresetsEvent );		
+			removePresetsEvent.dispatch();		
 			// refresh view
 			initializeServerSettings();
 		}
@@ -239,21 +244,21 @@ package org.red5.samples.publisher.view.settings
 		 */		
 		private function changePreset( index : Number ) : void 
 		{	
-			var emptyPresetIndex : int = monitorTransaction.serverPresets.length - 3;
-			var savePresetIndex : int = monitorTransaction.serverPresets.length - 2;
-			var deletePresetsIndex : int = monitorTransaction.serverPresets.length - 1;
+			var emptyPresetIndex : int = main.serverPresets.length - 3;
+			var savePresetIndex : int = main.serverPresets.length - 2;
+			var deletePresetsIndex : int = main.serverPresets.length - 1;
 			//
 			if ( index == emptyPresetIndex ) {
 				// Unable to select this item, return to first one.
 				var invalidPresetEvent : ChangePresetEvent = new ChangePresetEvent( 0 );
-				CairngormEventDispatcher.getInstance().dispatchEvent( invalidPresetEvent );	
+				invalidPresetEvent.dispatch();	
 			}
 			// Change preset.
 			else if ( index < savePresetIndex ) 
 			{
 				// change preset.
 				var changePresetEvent : ChangePresetEvent = new ChangePresetEvent( index );
-				CairngormEventDispatcher.getInstance().dispatchEvent( changePresetEvent );			
+				changePresetEvent.dispatch();			
 			
 			} 
 			// Save preset.
@@ -271,13 +276,13 @@ package org.red5.samples.publisher.view.settings
 				var createPresetEvent : CreatePresetEvent = new CreatePresetEvent( this, hostName, 
 																				   serverType, encodingType,
 																				   proxytype );
-				CairngormEventDispatcher.getInstance().dispatchEvent( createPresetEvent );
+				createPresetEvent.dispatch();
 			} 
 			// Delete presets.
 			else if ( index == deletePresetsIndex ) 
 			{
 				// show popup to delete presets.
-				if ( monitorTransaction.serverPresets.length > monitorTransaction.orgServerPresets.length ) 
+				if ( main.serverPresets.length > main.orgServerPresets.length ) 
 				{
 					// ask for confirmation.
 					confirmClearSO();
@@ -285,7 +290,7 @@ package org.red5.samples.publisher.view.settings
 				else 
 				{
 					// Reset list view to most recent preset.
-					monitorTransaction.selectedPreset = 0;	
+					navigation.selectedPreset = 0;	
 				}
 			}
 		}
@@ -316,7 +321,7 @@ package org.red5.samples.publisher.view.settings
 			else 
 			{
 				// Reset list view to most recent preset.
-				monitorTransaction.selectedPreset = 0;
+				navigation.selectedPreset = 0;
 			}
 		}
 		
@@ -356,37 +361,37 @@ package org.red5.samples.publisher.view.settings
 			bw_ns.minimum = 0;
 			bw_ns.maximum = 1000000;
 			bw_ns.stepSize = 100;
-			bw_ns.value = monitorTransaction.videoSettings.bandwidth;
+			bw_ns.value = main.videoSettings.bandwidth;
 			// 'fps' numeric stepper
 			fps_ns.minimum = 1;
 			fps_ns.maximum = 30;
 			fps_ns.stepSize = 1;
-			fps_ns.value = monitorTransaction.videoSettings.fps;
+			fps_ns.value = main.videoSettings.fps;
 			// 'width' numeric stepper
 			width_ns.minimum = 1;
 			width_ns.maximum = 800;
 			width_ns.stepSize = 1;
-			width_ns.value = monitorTransaction.videoSettings.width;
+			width_ns.value = main.videoSettings.width;
 			// 'height' numeric stepper
 			height_ns.minimum = 1;
 			height_ns.maximum = 600;
 			height_ns.stepSize = 1;
-			height_ns.value = monitorTransaction.videoSettings.height;
+			height_ns.value = main.videoSettings.height;
 			// 'quality' numeric stepper
 			quality_ns.minimum = 0;
 			quality_ns.maximum = 100;
 			quality_ns.stepSize = 1;
-			quality_ns.value = monitorTransaction.videoSettings.quality;
+			quality_ns.value = main.videoSettings.quality;
 			// 'keyframe' numeric stepper
 			keyframe_ns.minimum = 1;
 			keyframe_ns.maximum = 100;
 			keyframe_ns.stepSize = 1;
-			keyframe_ns.value = monitorTransaction.videoSettings.keyframe;
+			keyframe_ns.value = main.videoSettings.keyframe;
 			//
-			buffer_ns.minimum = 0.1;
+			buffer_ns.minimum = 0;
 			buffer_ns.maximum = 100;
 			buffer_ns.stepSize = 0.1;
-			//buffer_ns.value = monitorTransaction.generalSettings.bufferTime;
+			buffer_ns.value = main.generalSettings.bufferTime;
 		}
 		
 		/**
@@ -405,22 +410,22 @@ package org.red5.samples.publisher.view.settings
 			rate_ns.minimum = 8;
 			rate_ns.maximum = 44;
 			rate_ns.stepSize = 1;
-			rate_ns.value = monitorTransaction.audioSettings.rate;
+			rate_ns.value = main.audioSettings.rate;
 			// 'gain_ns' numeric stepper
 			gain_ns.minimum = 0;
 			gain_ns.maximum = 100;
 			gain_ns.stepSize = 1;
-			gain_ns.value = monitorTransaction.audioSettings.gain;
+			gain_ns.value = main.audioSettings.gain;
 			// 'level_ns' numeric stepper
 			level_ns.minimum = 0;
 			level_ns.maximum = 100;
 			level_ns.stepSize = 1;
-			level_ns.value = monitorTransaction.audioSettings.level;
+			level_ns.value = main.audioSettings.level;
 			// 'timeout_ns' numeric stepper
 			timeout_ns.minimum = 0;
 			timeout_ns.maximum = 10000;
 			timeout_ns.stepSize = 1;
-			timeout_ns.value = monitorTransaction.audioSettings.timeout;
+			timeout_ns.value = main.audioSettings.timeout;
 		}
 		
 	}

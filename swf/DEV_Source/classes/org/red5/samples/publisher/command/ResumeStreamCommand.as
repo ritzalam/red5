@@ -1,5 +1,5 @@
-package org.red5.samples.publisher.events
-{
+package org.red5.samples.publisher.command 
+{	
 	/**
 	 * RED5 Open Source Flash Server - http://www.osflash.org/red5
 	 *
@@ -19,37 +19,46 @@ package org.red5.samples.publisher.events
 	 * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 	 */
 	 
+	import com.adobe.cairngorm.commands.ICommand;
 	import com.adobe.cairngorm.control.CairngormEvent;
 	
-	import org.red5.samples.publisher.control.DashboardController;
+	import org.red5.samples.publisher.business.NetStreamDelegate;
+	import org.red5.samples.publisher.events.ResumeStreamEvent;
+	import org.red5.samples.publisher.model.*;
 	
 	/**
-	 * @copy org.red5.samples.publisher.command.ChangeSettingsViewCommand
+	 * Resume playback for the <code>nsPlay</code> NetStream.
+	 * <p>The NetStream is stored in the Model.</p>
+	 * 
+	 * @see org.red5.samples.publisher.model.Media#nsPlay nsPlay
 	 * @author Thijs Triemstra
 	 */	
-	public class ChangeSettingsViewEvent extends CairngormEvent 
+	public class ResumeStreamCommand implements ICommand 
 	{
 		/**
 		* 
-		*/		
-		public var tabIndex : int;
-		
-		/**
-		* 
-		*/		
-		public var img : Class;			
-		
-		/**
-		 * 
-		 * @param tabIndex
-		 * @param img
-		 * @return 
-		 */		
-		public function ChangeSettingsViewEvent( tabIndex : int, img : Class ) 
-		{
-			super( DashboardController.EVENT_SWITCH_SETTINGS_VIEW );
-			this.tabIndex = tabIndex;
-			this.img = img;
+		*/			
+		private var model : ModelLocator = ModelLocator.getInstance();
+	 	
+	 	/**
+	 	* 
+	 	*/	 	
+	 	private var main : Main = model.main;
+	 	
+	 	/**
+	 	* 
+	 	*/	 	
+	 	private var netStreamDelegate : NetStreamDelegate = main.ns_delegate;
+	 
+	 	/**
+	 	 * 
+	 	 * @param cgEvent
+	 	 */	 	 	
+	 	public function execute( cgEvent : CairngormEvent ) : void
+	    { 
+	    	var event : ResumeStreamEvent = ResumeStreamEvent( cgEvent );
+	    	// Use Delegate to resume playback for the NetStream.
+	      	netStreamDelegate.resumePlayback();
 		}
 	}
 }

@@ -45,7 +45,13 @@ package org.red5.samples.publisher.view.settings
 		/**
 		* 
 		*/			
-		public var monitorTransaction : MonitorTransaction = model.monitorTransaction;
+		public var main : Main = model.main;
+		
+		[Bindable]
+		/**
+		* 
+		*/			
+		public var navigation : Navigation = model.navigation;
 		
 		/**
 		 * 
@@ -55,7 +61,7 @@ package org.red5.samples.publisher.view.settings
 		{	
 			var switchSettingsViewEvent : ChangeSettingsViewEvent = new ChangeSettingsViewEvent( event.item.data,
 																								 event.item.img );
-			CairngormEventDispatcher.getInstance().dispatchEvent( switchSettingsViewEvent );
+			switchSettingsViewEvent.dispatch();
 		}
 
 	}

@@ -43,7 +43,13 @@ package org.red5.samples.publisher.view.general
 		/**
 		* 
 		*/		
-		public var monitorTransaction : MonitorTransaction = model.monitorTransaction;
+		public var main : Main = model.main;
+		
+		[Bindable]
+		/**
+	 	* 
+	 	*/		
+	 	public var navigation : Navigation = model.navigation;
 		
 		[Bindable]
 		/**
@@ -59,7 +65,7 @@ package org.red5.samples.publisher.view.general
         	var newName : String = presetName.text;
 			// Save the preset.
 			var presetEvent : SavePresetEvent = new SavePresetEvent( newName );
-			CairngormEventDispatcher.getInstance().dispatchEvent( presetEvent );	
+			presetEvent.dispatch();	
 			// Remove popup.
 			cancelRequest();
         }
@@ -70,7 +76,7 @@ package org.red5.samples.publisher.view.general
         public function cancelRequest() : void 
         {
         	// Reset list to first item.
-        	monitorTransaction.selectedPreset = 0;
+        	navigation.selectedPreset = 0;
 			// Remove popup
             PopUpManager.removePopUp( this );
         }

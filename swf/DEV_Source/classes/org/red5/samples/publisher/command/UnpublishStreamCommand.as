@@ -43,12 +43,12 @@ package org.red5.samples.publisher.command
 	 	/**
 	 	* 
 	 	*/	 	
-	 	private var monitorTransaction : MonitorTransaction = model.monitorTransaction;
+	 	private var main : Main = model.main;
 	 	
 	 	/**
 	 	* 
 	 	*/	 	
-	 	private var netStreamDelegate : NetStreamDelegate = monitorTransaction.ns_delegate;
+	 	private var netStreamDelegate : NetStreamDelegate = main.ns_delegate;
 	 
 	 	/**
 	 	 * 

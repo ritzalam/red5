@@ -42,7 +42,13 @@ package org.red5.samples.publisher.view.monitor
 		/**
 		* 
 		*/		
-		public var monitorTransaction : MonitorTransaction = model.monitorTransaction;
+		public var main : Main = model.main;
+		
+		[Bindable]
+		/**
+		* 
+		*/		
+		public var navigation : Navigation = model.navigation;
 		
 		/**
 		* 
@@ -59,7 +65,7 @@ package org.red5.samples.publisher.view.monitor
 			tabindex = clickEvent.item.data;
 			// Change the monitor tab view.
 			var cgEvent : ChangeMonitorViewEvent = new ChangeMonitorViewEvent( tabindex );
-			CairngormEventDispatcher.getInstance().dispatchEvent( cgEvent );	
+			cgEvent.dispatch();	
 		}
 	}
 }

@@ -46,7 +46,7 @@ package org.red5.samples.publisher.command
 	 	/**
 	 	* 
 	 	*/	 	
-	 	public var monitorTransaction : MonitorTransaction = model.monitorTransaction;
+	 	public var main : Main = model.main;
 	 	
 	 	/**
 	 	* 
@@ -56,17 +56,17 @@ package org.red5.samples.publisher.command
 	 	/**
 	 	* 
 	 	*/	 	
-	 	private var camera : Camera = monitorTransaction.media.camera;
+	 	private var camera : Camera = main.media.camera;
 	 	
 	 	/**
 	 	* 
 	 	*/	 	
-	 	private var nsPublish : NetStream = monitorTransaction.media.nsPublish;
+	 	private var nsPublish : NetStream = main.media.nsPublish;
 	 	
 	 	/**
 	 	* 
 	 	*/	 	
-	 	private var videoLocal : Video = monitorTransaction.media.videoLocal;
+	 	private var videoLocal : Video = main.media.videoLocal;
 	 	
 	 	/**
 	 	 * 
@@ -83,10 +83,10 @@ package org.red5.samples.publisher.command
 			var cameraFPS : int = 			event.cameraFPS;
 			var cameraBandwidth : int = 	event.cameraBW;
 			var cameraQuality : int = 		event.cameraQuality;
-			var cameraIndex : String =		String( selectedCamIndex - 2 );
+			var cameraIndex : String =		String( selectedCamIndex - 1 );
 			//
-			monitorTransaction.media.camera = Camera.getCamera( cameraIndex );
-			camera = monitorTransaction.media.camera;
+			main.media.camera = Camera.getCamera( cameraIndex );
+			camera = main.media.camera;
 			//
 			camera.setKeyFrameInterval( keyFrameInterval );
 			camera.setMode( cameraWidth, cameraHeight, cameraFPS );
@@ -101,15 +101,15 @@ package org.red5.samples.publisher.command
 			}
 			//
 			logger.logMessage( "Started video device <b>" + camera.name + "</b>",
-							   monitorTransaction.videoMessage );
+							   logger.videoMessage );
 			logger.monitorMessage(  "Started video device", 
-									monitorTransaction.images.webcam_img, 
-									monitorTransaction.videoMessage );
+									main.images.webcam_img, 
+									logger.videoMessage );
 			//
-			monitorTransaction.media.videoLocal = new Video( 320, 240 );
-			monitorTransaction.media.videoLocal.attachCamera( camera );
+			main.media.videoLocal = new Video( 320, 240 );
+			main.media.videoLocal.attachCamera( camera );
 			// show video container for preview.
-			monitorTransaction.previewState = true;
+			main.previewState = true;
 		}
 		
 		/**

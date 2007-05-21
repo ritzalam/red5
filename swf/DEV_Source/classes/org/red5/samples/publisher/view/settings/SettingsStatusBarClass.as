@@ -21,7 +21,7 @@ package org.red5.samples.publisher.view.settings
 	 
 	import mx.containers.ApplicationControlBar;
 	
-	import org.red5.samples.publisher.model.MonitorTransaction;
+	import org.red5.samples.publisher.model.*;
 	
 	/**
 	 * 
@@ -33,7 +33,13 @@ package org.red5.samples.publisher.view.settings
 		/**
 		* 
 		*/		
-		public var monitorTransaction : MonitorTransaction;
+		public var main : Main;
 		
+		[Bindable]
+		/**
+		* 
+		*/		
+		public var navigation : Navigation;
 	}
+	
 }

@@ -24,7 +24,7 @@ package org.red5.samples.publisher.events
 	import org.red5.samples.publisher.control.DashboardController;
 	
 	/**
-	 * 
+	 * @copy org.red5.samples.publisher.command.PlayStreamCommand
 	 * @author Thijs Triemstra
 	 */	
 	public class PlayStreamEvent extends CairngormEvent 
@@ -40,14 +40,32 @@ package org.red5.samples.publisher.events
 		public var streamName : String;
 		
 		/**
+		* 
+		*/		
+		public var enableVideo : Boolean;
+		
+		/**
+		* 
+		*/		
+		public var enableAudio : Boolean;
+		
+		/**
 		 * 
-		 * @return 
-		 */		
-		public function PlayStreamEvent( bufferTime : int, streamName : String ) 
+		 * @param bufferTime
+		 * @param streamName
+		 * @param enableVideo
+		 * @param enableAudio
+		 */				
+		public function PlayStreamEvent( bufferTime : int, 
+										 streamName : String,
+										 enableVideo : Boolean,
+										 enableAudio : Boolean ) 
 		{
 			super( DashboardController.EVENT_PLAY_STREAM );
 			this.bufferTime = bufferTime;
 			this.streamName = streamName;
+			this.enableVideo = enableVideo;
+			this.enableAudio = enableAudio;
 		}
 	}
 }

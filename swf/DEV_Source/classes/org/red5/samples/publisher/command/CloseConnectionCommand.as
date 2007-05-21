@@ -40,12 +40,12 @@ package org.red5.samples.publisher.command
 	 	/**
 	 	* 
 	 	*/		
-	 	private var monitorTransaction : MonitorTransaction = model.monitorTransaction;
+	 	private var main : Main = model.main;
 	 	
 	 	/**
 	 	* 
 	 	*/	 	
-	 	private var netConnectionDelegate : NetConnectionDelegate = monitorTransaction.nc_delegate;
+	 	private var netConnectionDelegate : NetConnectionDelegate = main.nc_delegate;
 	 	 
 	 	/**
 	 	 * 

@@ -45,7 +45,7 @@ package org.red5.samples.publisher.command
 	 	/**
 	 	* 
 	 	*/		
-	 	private var monitorTransaction : MonitorTransaction = model.monitorTransaction;
+	 	private var main : Main = model.main;
 	 	
 	 	/**
 	 	 * 
@@ -59,7 +59,7 @@ package org.red5.samples.publisher.command
 			var encodingType : int = presetEvent.encodingType;
 			var proxyType : int = presetEvent.proxyType;
 			//
-			monitorTransaction.tempServerPreset = new ServerPreset( null, hostName, serverType, encodingType, proxyType );
+			main.tempServerPreset = new ServerPreset( null, hostName, serverType, encodingType, proxyType );
 			//
 			var popup : SaveConnection = SaveConnection( PopUpManager.createPopUp( presetEvent.targetLocation, SaveConnection , true ) );
 			//

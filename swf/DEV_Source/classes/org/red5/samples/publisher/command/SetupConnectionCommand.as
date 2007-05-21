@@ -50,22 +50,22 @@ package org.red5.samples.publisher.command
 	 	/**
 	 	* 
 	 	*/	 	
-	 	private var monitorTransaction : MonitorTransaction = model.monitorTransaction;
-	 	
-	 	/**
-	 	* 
-	 	*/	 	
-	 	private var serverMessage : String = monitorTransaction.serverMessage;
-	 	
-	 	/**
-	 	* 
-	 	*/	 	
-	 	private var images : Images = monitorTransaction.images;
+	 	private var main : Main = model.main;
 	 	
 	 	/**
 	 	* 
 	 	*/	 	
 	 	private var logger : Logger = model.logger;
+	 	
+	 	/**
+	 	* 
+	 	*/	 	
+	 	private var serverMessage : String = logger.serverMessage;
+	 	
+	 	/**
+	 	* 
+	 	*/	 	
+	 	private var images : Images = main.images;
 	 
 	 	/**
 	 	 * 
@@ -74,8 +74,8 @@ package org.red5.samples.publisher.command
 	 	public function execute( cgEvent : CairngormEvent ) : void
 	    {
 			var event : SetupConnectionEvent = SetupConnectionEvent( cgEvent );
-			// Setup the permanent Delegate to create a NetConnection.
-			monitorTransaction.nc_delegate = new NetConnectionDelegate( this );
+			// Setup the permanent Delegate to manage the NetConnection.
+			main.nc_delegate = new NetConnectionDelegate( this );
 		}
 		
 		/**
@@ -91,17 +91,17 @@ package org.red5.samples.publisher.command
 			//
 			logger.logMessage( statusCode, serverMessage );
 			// Change the label of the connect Button so a connection can be created.
-			monitorTransaction.connectButtonLabel = monitorTransaction.btnConnect;
+			main.connectButtonLabel = main.btnConnect;
 			//
-			monitorTransaction.netConnected = false;
+			main.netConnected = false;
 			//
 			switch ( statusCode ) 
 			{
 				case "NetConnection.Connect.Success" :
 					//
-					monitorTransaction.netConnected = true;
+					main.netConnected = true;
 					// Change the label of the Button so the connection can be closed.
-					monitorTransaction.connectButtonLabel = monitorTransaction.btnConnected;
+					main.connectButtonLabel = main.btnConnected;
 					// find out if it's a secure (HTTPS/TLS) connection
 					if ( event.target.connectedProxyType == "HTTPS" || event.target.usingTLS ) {
 						logger.monitorMessage( 	"Connected to secure server", 
@@ -178,10 +178,10 @@ package org.red5.samples.publisher.command
 		private function serverDisconnect() : void 
 		{
 			// Reset button states
-			monitorTransaction.playButtonLabel = monitorTransaction.btnPlay;
-			monitorTransaction.playbackState = false;
-			monitorTransaction.publishButtonLabel = monitorTransaction.btnPublish;
-			monitorTransaction.publishState = false;
+			main.playButtonLabel = main.btnPlay;
+			main.playbackState = main.stopState;
+			main.publishButtonLabel = main.btnPublish;
+			main.publishState = false;
 		}
 
 	}

@@ -24,7 +24,7 @@ package org.red5.samples.publisher.events
 	import org.red5.samples.publisher.control.DashboardController;
 	
 	/**
-	 * 
+	 * @copy org.red5.samples.publisher.command.StartCameraCommand
 	 * @author Thijs Triemstra
 	 */	
 	public class StartCameraEvent extends CairngormEvent 
@@ -73,7 +73,6 @@ package org.red5.samples.publisher.events
 		 * @param cameraFPS
 		 * @param cameraBW
 		 * @param cameraQuality
-		 * @return 
 		 */		
 		public function StartCameraEvent( selectedCamIndex : int,
 										  keyFrameInterval : int,

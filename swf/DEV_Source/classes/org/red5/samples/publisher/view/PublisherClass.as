@@ -41,25 +41,28 @@ package org.red5.samples.publisher.view
 		/**
 		* 
 		*/		
-		public var monitorTransaction : MonitorTransaction = model.monitorTransaction;
+		public var main : Main = model.main;
+		
+		[Bindable]
+		/**
+		* 
+		*/		
+		public var navigation : Navigation = model.navigation;
 		
 		/**
 		 * 
-		 * @return 
 		 */		
 		public function PublisherClass()
 		{
-			//
 			var devicesEvent : SetupDevicesEvent = new SetupDevicesEvent();
-			CairngormEventDispatcher.getInstance().dispatchEvent( devicesEvent );
+			devicesEvent.dispatch();
 			
-			//
 			var connectionEvent : SetupConnectionEvent = new SetupConnectionEvent();
-			CairngormEventDispatcher.getInstance().dispatchEvent( connectionEvent );
+			connectionEvent.dispatch();
 			
-			//
 			var streamsEvent : SetupStreamsEvent = new SetupStreamsEvent();
-			CairngormEventDispatcher.getInstance().dispatchEvent( streamsEvent );
+			streamsEvent.dispatch();
 		}	
+		
 	}
 }

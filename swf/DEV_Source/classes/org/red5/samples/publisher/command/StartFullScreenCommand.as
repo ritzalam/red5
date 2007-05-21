@@ -22,53 +22,48 @@ package org.red5.samples.publisher.command
 	import com.adobe.cairngorm.commands.ICommand;
 	import com.adobe.cairngorm.control.CairngormEvent;
 	
-	import org.red5.samples.publisher.business.NetStreamDelegate;
-	import org.red5.samples.publisher.events.PlayStreamEvent;
-	import org.red5.samples.publisher.model.*;
+	import flash.display.StageDisplayState;
 	
+	import org.red5.samples.publisher.events.StartFullScreenEvent;
+	import org.red5.samples.publisher.model.*;
+
 	/**
-	 * Setup the <code>nsPlay</code> NetStream for playback.
-	 * <p>The NetStream is stored in the Model.</p>
+	 * Show fullscreen video.
 	 * 
-	 * @see org.red5.samples.publisher.model.Media#nsPlay nsPlay
 	 * @author Thijs Triemstra
-	 */	
-	public class PlayStreamCommand implements ICommand 
+	 */
+	public class StartFullScreenCommand implements ICommand
 	{
 		/**
 		* 
 		*/			
 		private var model : ModelLocator = ModelLocator.getInstance();
-	 	
+		
+		[Bindable]
 	 	/**
 	 	* 
-	 	*/	 	
-	 	private var main : Main = model.main;
+	 	*/		
+	 	public var main : Main = model.main;
 	 	
+		[Bindable]
 	 	/**
 	 	* 
-	 	*/	 	
-	 	private var netStreamDelegate : NetStreamDelegate = main.ns_delegate;
+	 	*/		
+	 	public var navigation : Navigation = model.navigation;
 	 	
-	 	/**
-	 	* 
-	 	*/	 	
-	 	private var logger : Logger = model.logger;
-	 
 	 	/**
 	 	 * 
 	 	 * @param cgEvent
-	 	 */	 	 	
+	 	 */	 	
 	 	public function execute( cgEvent : CairngormEvent ) : void
 	    { 
-	    	var event : PlayStreamEvent = PlayStreamEvent( cgEvent );
-	    	var bufferTime : int = event.bufferTime;
-	    	var streamName : String = event.streamName;
-	    	var enableVideo : Boolean = event.enableVideo;
-	    	var enableAudio : Boolean = event.enableAudio;
-			// Use Delegate to playback the NetStream.
-	      	netStreamDelegate.startPlayback( bufferTime, streamName, enableVideo, enableAudio );
+	    	var event : StartFullScreenEvent = StartFullScreenEvent( cgEvent );
+			// Retain control panels visibility.
+        	event.stage.displayState = StageDisplayState.FULL_SCREEN;
+        	// Video occupies 75% of the screen (stage).
+        	main.media.videoWidth = ( event.stage.stageWidth/100 ) * 75;
+        	main.media.videoHeight = ( event.stage.stageHeight/100 ) * 75;
 		}
-				
+		
 	}
 }

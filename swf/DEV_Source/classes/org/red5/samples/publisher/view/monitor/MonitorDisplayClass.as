@@ -21,7 +21,7 @@ package org.red5.samples.publisher.view.monitor
 	 
 	import mx.containers.ViewStack;
 	
-	import org.red5.samples.publisher.model.MonitorTransaction;
+	import org.red5.samples.publisher.model.Main;
 
 	/**
 	 * 
@@ -33,6 +33,6 @@ package org.red5.samples.publisher.view.monitor
 		/**
 		* 
 		*/		
-		public var monitorTransaction : MonitorTransaction;
+		public var main : Main;
 	}
 }

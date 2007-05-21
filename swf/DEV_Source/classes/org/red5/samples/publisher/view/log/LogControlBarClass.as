@@ -44,7 +44,7 @@ package org.red5.samples.publisher.view.log
 		/**
 		* 
 		*/		
-		public var monitorTransaction : MonitorTransaction = model.monitorTransaction;
+		public var main : Main = model.main;
 		
 		/**
 		 * 
@@ -52,8 +52,10 @@ package org.red5.samples.publisher.view.log
 		 */		
 		public function clearLog () : void 
 		{
+			// Remove all text from logger panel.
 			logger.statusText = "";
-			logger.logMessage( logger.flashVersion, monitorTransaction.infoMessage );
+			// Display Flash Player version info.
+			logger.logMessage( logger.flashVersion, logger.infoMessage );
 		}
 	}
 }

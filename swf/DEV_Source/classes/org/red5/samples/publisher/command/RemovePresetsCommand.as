@@ -40,7 +40,7 @@ package org.red5.samples.publisher.command
 	 	/**
 	 	* 
 	 	*/	 	
-	 	public var monitorTransaction : MonitorTransaction = model.monitorTransaction;
+	 	public var main : Main = model.main;
 
 	 	/**
 	 	* 
@@ -53,11 +53,11 @@ package org.red5.samples.publisher.command
 	 	 */	 	
 	 	public function execute( cgEvent : CairngormEvent ) : void
 	    {
-			logger.logMessage( "Deleted presets.", monitorTransaction.debugMessage );
+			logger.logMessage( "Deleted presets.", logger.debugMessage );
 			// Reset list.
-			monitorTransaction.serverPresets = monitorTransaction.orgServerPresets.slice();
+			main.serverPresets = main.orgServerPresets.slice();
 			// Save new list.
-			monitorTransaction.mySo.data.serverPresets = monitorTransaction.serverPresets;
+			main.mySo.data.serverPresets = main.serverPresets;
 		}
 	}
 }

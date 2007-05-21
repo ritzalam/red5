@@ -21,35 +21,29 @@ package org.red5.samples.publisher.events
 	 
 	import com.adobe.cairngorm.control.CairngormEvent;
 	
+	import flash.display.Stage;
+	
 	import org.red5.samples.publisher.control.DashboardController;
 	
 	/**
-	 * @copy org.red5.samples.publisher.command.ChangeSettingsViewCommand
+	 * @copy org.red5.samples.publisher.command.StartFullScreenCommand
 	 * @author Thijs Triemstra
 	 */	
-	public class ChangeSettingsViewEvent extends CairngormEvent 
-	{
+	public class StartFullScreenEvent extends CairngormEvent 
+	{	
 		/**
 		* 
-		*/		
-		public var tabIndex : int;
-		
-		/**
-		* 
-		*/		
-		public var img : Class;			
+		*/			
+		public var stage : Stage;
 		
 		/**
 		 * 
-		 * @param tabIndex
-		 * @param img
-		 * @return 
-		 */		
-		public function ChangeSettingsViewEvent( tabIndex : int, img : Class ) 
+		 * @param stage
+		 */			
+		public function StartFullScreenEvent( stage : Stage ) 
 		{
-			super( DashboardController.EVENT_SWITCH_SETTINGS_VIEW );
-			this.tabIndex = tabIndex;
-			this.img = img;
+			super( DashboardController.EVENT_START_FULLSCREEN );
+			this.stage = stage;
 		}
 	}
 }

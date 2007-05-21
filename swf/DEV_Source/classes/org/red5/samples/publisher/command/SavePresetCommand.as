@@ -48,17 +48,17 @@ package org.red5.samples.publisher.command
 	 	/**
 	 	* 
 	 	*/		
-	 	private var monitorTransaction : MonitorTransaction = model.monitorTransaction;
+	 	private var main : Main = model.main;
 	 	
 	 	/**
 		* 
 		*/		
-		public var so : SharedObject = monitorTransaction.mySo;
+		public var so : SharedObject = main.mySo;
 		
 		/**
         * A reference to the serverPresets Array to merge the result.
         */        
-        public var serverPresets : Array = monitorTransaction.serverPresets;
+        public var serverPresets : Array = main.serverPresets;
 		
 	 	/**
 	 	 * 
@@ -69,10 +69,10 @@ package org.red5.samples.publisher.command
 			var event : SavePresetEvent = SavePresetEvent( cgEvent );
 			var dup : Boolean = false;
 			var newName : String = event.newName;
-			var hostName : String = monitorTransaction.tempServerPreset.host;
-			var serverType : int = monitorTransaction.tempServerPreset.server;
-			var encoding : int = monitorTransaction.tempServerPreset.encode;
-			var proxytype : int = monitorTransaction.tempServerPreset.proxy;
+			var hostName : String = main.tempServerPreset.host;
+			var serverType : int = main.tempServerPreset.server;
+			var encoding : int = main.tempServerPreset.encode;
+			var proxytype : int = main.tempServerPreset.proxy;
 			//
 			var newPreset : ServerPreset = new ServerPreset( newName, hostName, serverType, encoding, proxytype );
 			//
@@ -98,7 +98,7 @@ package org.red5.samples.publisher.command
 			}
 			// Change to most recent preset in the ComboBox.
 			var changePresetEvent : ChangePresetEvent = new ChangePresetEvent( presetIndex );
-			CairngormEventDispatcher.getInstance().dispatchEvent( changePresetEvent );			
+			changePresetEvent.dispatch();			
 		}
 		
 		/**

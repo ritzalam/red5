@@ -34,47 +34,13 @@ package org.red5.samples.publisher.model
 	 * 
 	 * @author Thijs Triemstra
 	 */	
-	public class MonitorTransaction
+	public class Main
 	{
-		// available values for the monitor tabnavigator
-		public var MONITOR_SERVER : int =		0;
-		public var MONITOR_VIEW : int =			1;
-		public var MONITOR_PUBLISH : int =		2;
-		
-		// available values for the settings view
-		public var SETTINGS_SERVER : int =	0;
-		public var SETTINGS_VIDEO : int =	1;
-		public var SETTINGS_AUDIO : int =	2;
-		
 		[Bindable]
 		/**
-		* 
+		* Fullscreen mode.
 		*/		
-		public var selectedPreset : int = 0;
-
-		[Bindable]
-		/**
-		* 
-		*/		
-		public var monitorDisplayViewing : Number = MONITOR_VIEW;
-		
-		[Bindable]
-		/**
-		* 
-		*/		
-		public var settingsViewing : Number = SETTINGS_SERVER;
-		
-		[Bindable]
-		/**
-		* 
-		*/		
-		public var monitorBarIndex : Number = SETTINGS_SERVER;
-
-		[Bindable]
-		/**
-		* 
-		*/		
-		public var status : int;
+		public var fullScreen : Boolean;
 		
 		[Bindable]
 		/**
@@ -84,116 +50,96 @@ package org.red5.samples.publisher.model
 		
 		[Bindable]
 		/**
-		* 
+		 * The publish mode can be either 'record', 'live' or 'append'.
+		 * 
+		 * @see #publishTypes
 		*/		
 		public var publishMode : int;
 		
 		[Bindable]	
 		/**
-		* 
+		* Flag to check if there's a connection with the RTMP server.
 		*/		
 		public var netConnected : Boolean;
 		
 		[Bindable]
 		/**
-		* 
+		*
 		*/		
 		public var previewState : Boolean = false;
 		
+		/**
+		* Playback is paused.
+		*/		
+		public const pauseState : int = 0;
+		
+		/**
+		* Playback is ongoing.
+		*/		
+		public const playState : int = 1;
+		
+		/**
+		* Playback has stopped.
+		*/		
+		public const stopState : int = 2;
+		
 		[Bindable]
 		/**
-		* 
+		 * The playback state can either be 0 (<code>pauseState</code>), 1 (<code>playState</code>),
+		 * or 2 (<code>stopState</code>).
+		 * 
+		 * @see #pauseState
+		 * @see #playState
+		 * @see #stopState
 		*/		
-		public var playbackState : Boolean = false;
+		public var playbackState : int = stopState;
 		
 		[Bindable]
 		/**
 		* 
 		*/		
 		public var publishState : Boolean = false;
-
+	
 		[Bindable]
 		/**
-		* 
+		 * Default server status message.
+		 * 
+		 * @default Choose your server and press Connect
 		*/		
 		public var serverStatusMessage : String = "Choose your server and press Connect";
 		
 		[Bindable]
 		/**
-		* 
+		 * Default audio status message.
+		 * 
+		 * @default Choose your audio device
 		*/		
 		public var audioStatusMessage : String = "Choose your audio device";
 		
 		[Bindable]
 		/**
-		* 
+		 * Default video status message.
+		 * 
+		 * @default Choose your video device
 		*/		
 		public var videoStatusMessage : String = "Choose your video device";
 
 		/**
-		* 
+		 * URL for the Adobe LiveDocs page.
+		 * 
+		 * @default http://livedocs.macromedia.com/flex/201/langref/flash/ 
 		*/		
-		public var docsURL : String = "http://livedocs.macromedia.com/flex/201/langref/flash/";
-		
-		[Bindable]
+		public const docsURL : String = "http://livedocs.macromedia.com/flex/201/langref/flash/";
+
 		/**
 		* 
 		*/		
-		public var infoMessage : String = "Info";
+		public const btnConnect : String = "Connect";
 		
-		[Bindable]
 		/**
 		* 
 		*/		
-		public var serverMessage : String = "NetConnection";
-		
-		[Bindable]
-		/**
-		* 
-		*/		
-		public var audioMessage : String = "Audio";
-		
-		[Bindable]
-		/**
-		* 
-		*/		
-		public var videoMessage : String = "Video";
-		
-		[Bindable]
-		/**
-		* 
-		*/		
-		public var debugMessage : String = "Debug";
-		
-		[Bindable]
-		/**
-		* 
-		*/		
-		public var streamMessage : String = "NetStream";
-		
-		[Bindable]
-		/**
-		* 
-		*/		
-		public var metadataMessage : String = "MetaData";
-		
-		[Bindable]
-		/**
-		* 
-		*/		
-		public var cuepointMessage : String = "CuePoints";
-		
-		[Bindable]
-		/**
-		* 
-		*/		
-		public var btnConnect : String = "Connect";
-		
-		[Bindable]
-		/**
-		* 
-		*/		
-		public var btnConnected : String = "Close";
+		public const btnConnected : String = "Close";
 		
 		[Bindable]
 		/**
@@ -201,35 +147,42 @@ package org.red5.samples.publisher.model
 		*/		
 		public var connectButtonLabel : String =  btnConnect;
 		
-		[Bindable]
 		/**
 		* 
 		*/		
-		public var btnPlay : String = "Play";
+		public const btnPlay : String = "Play";
 		
-		[Bindable]
 		/**
 		* 
 		*/		
-		public var btnStop : String = "Stop";
+		public const btnStop : String = "Stop";
+		
+		/**
+		* 
+		*/		
+		public const btnPause : String = "Pause";
 		
 		[Bindable]
 		/**
 		* 
 		*/		
 		public var playButtonLabel : String =  btnPlay;
-
-		[Bindable]
-		/**
-		* 
-		*/		
-		public var btnPublish : String = "Publish";
 		
 		[Bindable]
 		/**
 		* 
 		*/		
-		public var btnUnpublish : String = "Stop";
+		public var stopButtonLabel : String =  btnStop;
+
+		/**
+		* 
+		*/		
+		public const btnPublish : String = "Publish";
+		
+		/**
+		* 
+		*/		
+		public const btnUnpublish : String = "Stop";
 		
 		[Bindable]
 		/**
@@ -238,7 +191,7 @@ package org.red5.samples.publisher.model
 		public var publishButtonLabel : String =  btnPublish;
 		
 		/**
-		* SharedObject to store presets.
+		* SharedObject to store server presets.
 		*/		
 		public var mySo : SharedObject = SharedObject.getLocal( "publisher" );
 				
@@ -250,9 +203,15 @@ package org.red5.samples.publisher.model
 				
 		[Bindable]
 		/**
-		* 
+		* All bitmap and artwork is referenced here.
 		*/		
 		public var images : Images;
+		
+		[Bindable]
+		/**
+		* 
+		*/		
+		public var navigation : Navigation;
 		
 		[Bindable]
 		/**
@@ -292,13 +251,7 @@ package org.red5.samples.publisher.model
 		* 
 		*/		
 		public var orgServerPresets : Array;
-		
-		[Bindable]
-		/**
-		* 
-		*/		
-		public var settingsArray : Array = new Array();
-		
+
 		[Bindable]
 		/**
 		* 
@@ -314,15 +267,7 @@ package org.red5.samples.publisher.model
 										 		{ label: "Record", data: "record" },
 										 		{ label: "Append", data: "append" }
 										 	 ];
-		[Bindable]
-		/**
-		* 
-		*/		
-		public var monitorMenu : Array = 	 [	
-												{ label: "View", toolTip: "View Stream", data: MONITOR_VIEW }, 
-										  		{ label: "Publish", toolTip: "Publish Stream", data: MONITOR_PUBLISH }
-										 	 ];
-										 	 
+							 	 
 		[Bindable]
 		/**
 		* 
@@ -359,22 +304,18 @@ package org.red5.samples.publisher.model
 		/**
 		* 
 		*/		
-		public var cameraNames : Array = 	[
-												"Select video device",
-												"No video"
-											];
+		public var cameraNames : Array = 	[ "No video" ];
+		
 		[Bindable]
 		/**
 		* 
 		*/		
-		public var microphoneNames : Array = [
-												"Select audio device",
-												"No audio"
-											 ];				 
+		public var microphoneNames : Array = [ "No audio" ];		
+				 
 		/**
 		 *
 		 */		
-		public function MonitorTransaction()
+		public function Main( nav: Navigation )
 		{
 			// Create blank general settings VO.
 			generalSettings = new GeneralSettings();
@@ -385,23 +326,21 @@ package org.red5.samples.publisher.model
 			// Create references to the bitmap images used in this application.
 			images = new Images();
 			//
+			navigation = nav;
+			//
 			media = new Media();
+			//
+			media.videoWidth = videoSettings.width;
+        	media.videoHeight = videoSettings.height;
 			//
 			serverTypes = 	[	
 								{ label: "Red5", img: images.red5_img },
 								{ label: "Flash Media", img: images.fms_img }
 							];
-			//							   	 
-			settingsArray = [	
-								{ label: "Server", toolTip: "Server Settings", 
-								  data: SETTINGS_SERVER, img: images.server_img }, 
-									
-								{ label: "Video", toolTip: "Video Settings", 
-								  data: SETTINGS_VIDEO, img: images.webcam_img },
-									 
-								{ label: "Audio", toolTip: "Audio Settings", 
-								  data: SETTINGS_AUDIO, img: images.sound_img }
-							];
+			//
+			navigation.settingsArray[ 0 ].img = images.server_img;
+			navigation.settingsArray[ 1 ].img = images.webcam_img;
+			navigation.settingsArray[ 2 ].img = images.sound_img;
 			//
 			images.serverLogo = images.red5_img;
 			images.settingsIcon = images.server_img;
@@ -411,9 +350,9 @@ package org.red5.samples.publisher.model
 		    images.audioStatusImage = images.goSound_img;
 			//
 			images.videoStatusImage = images.goWebcam_img;
-			// keep a copy of original presets
+			// keep a copy of original presets.
 			orgServerPresets = serverPresets.slice();
-			// load serverpresets from SharedObjects when available
+			// load serverpresets from SharedObjects when available.
 			if ( mySo.data.serverPresets != null ) 
 			{
 				serverPresets = mySo.data.serverPresets;

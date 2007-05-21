@@ -24,14 +24,13 @@ package org.red5.samples.publisher.events
 	import org.red5.samples.publisher.control.DashboardController;
 	
 	/**
-	 * 
+	 * @copy org.red5.samples.publisher.command.SetupConnectionCommand
 	 * @author Thijs Triemstra
 	 */	
 	public class SetupConnectionEvent extends CairngormEvent 
 	{
 		/**
 		 * 
-		 * @return 
 		 */		
 		public function SetupConnectionEvent() 
 		{

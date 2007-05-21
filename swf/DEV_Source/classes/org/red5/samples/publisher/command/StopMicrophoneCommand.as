@@ -42,7 +42,7 @@ package org.red5.samples.publisher.command
 	 	/**
 	 	* 
 	 	*/		
-	 	private var monitorTransaction : MonitorTransaction = model.monitorTransaction;
+	 	private var main : Main = model.main;
 	 	
 	 	/**
 	 	* 
@@ -56,20 +56,20 @@ package org.red5.samples.publisher.command
 	 	public function execute( cgEvent : CairngormEvent ) : void
 	    { 			
 			// disconnect mic
-			if ( monitorTransaction.media.microphone != null ) 
+			if ( main.media.microphone != null ) 
 			{
-				monitorTransaction.media.microphone.setLoopBack( false );
+				main.media.microphone.setLoopBack( false );
 				// update audio stream when publishing
-				if ( monitorTransaction.media.nsPublish != null ) 
+				if ( main.media.nsPublish != null ) 
 				{
-					monitorTransaction.media.nsPublish.attachAudio( null );
+					main.media.nsPublish.attachAudio( null );
 				}
 			}
 			//
-			logger.logMessage( "No audio", monitorTransaction.audioMessage );
+			logger.logMessage( "Disabled audio device", logger.audioMessage );
 			logger.monitorMessage(	"Choose your audio device", 
-									monitorTransaction.images.goSound_img, 
-									monitorTransaction.audioMessage );			
+									main.images.goSound_img, 
+									logger.audioMessage );			
 		}
 	}
 }

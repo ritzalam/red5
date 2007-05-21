@@ -24,7 +24,7 @@ package org.red5.samples.publisher.events
 	import org.red5.samples.publisher.control.DashboardController;
 	
 	/**
-	 * 
+	 * @copy org.red5.samples.publisher.command.StartConnectionCommand
 	 * @author Thijs Triemstra
 	 */	
 	public class StartConnectionEvent extends CairngormEvent 
@@ -49,7 +49,6 @@ package org.red5.samples.publisher.events
 		 * @param uri
 		 * @param proxy
 		 * @param encoding
-		 * @return 
 		 */		
 		public function StartConnectionEvent( uri : String,
 											  proxy : String,

@@ -5,17 +5,15 @@
 					 xmlns:view="org.red5.samples.publisher.view.*">
 	
 	 <mx:Box direction="horizontal" width="100%" height="100%">
-	 
 		 <view:MonitorPod id="monitorPod"
-						  width="320" height="100%"
+						  width="{ main.media.videoWidth }" height="100%"
 						  direction="vertical" verticalGap="-1"
 						  paddingRight="0" paddingBottom="0"
-						  monitorTransaction="{ monitorTransaction }"/>
+						  main="{ main }" navigation="{ navigation }"/>
 			
 		 <view:LogPod id="logPod" 
-					  width="100%" height="{ monitorPod.height }"
+					  width="100%" height="100%"
 				 	  verticalGap="0" direction="vertical"
-					  monitorTransaction="{ monitorTransaction }"/>
+					  main="{ main }"/>
 	 </mx:Box>
-	 
 </view:PublisherClass>

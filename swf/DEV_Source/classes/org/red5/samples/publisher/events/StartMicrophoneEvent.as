@@ -24,7 +24,7 @@ package org.red5.samples.publisher.events
 	import org.red5.samples.publisher.control.DashboardController;
 	
 	/**
-	 * 
+	 * @copy org.red5.samples.publisher.command.StartMicrophoneCommand
 	 * @author Thijs Triemstra
 	 */	
 	public class StartMicrophoneEvent extends CairngormEvent 
@@ -61,7 +61,6 @@ package org.red5.samples.publisher.events
 		 * @param rate
 		 * @param level
 		 * @param timeout
-		 * @return 
 		 */		
 		public function StartMicrophoneEvent( selectedMicIndex : int,
 											  gain : int,

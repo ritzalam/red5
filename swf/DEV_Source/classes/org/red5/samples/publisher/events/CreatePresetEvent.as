@@ -25,7 +25,7 @@ package org.red5.samples.publisher.events
 	import org.red5.samples.publisher.view.settings.SettingsDisplayClass;
 	
 	/**
-	 * 
+	 * @copy org.red5.samples.publisher.command.CreatePresetCommand
 	 * @author Thijs Triemstra
 	 */	
 	public class CreatePresetEvent extends CairngormEvent 

@@ -24,18 +24,18 @@ package org.red5.samples.publisher.events
 	import org.red5.samples.publisher.control.DashboardController;
 	
 	/**
-	 * 
+	 * @copy org.red5.samples.publisher.command.StopMicrophoneCommand
 	 * @author Thijs Triemstra
 	 */	
 	public class StopMicrophoneEvent extends CairngormEvent 
 	{	
 		/**
 		 * 
-		 * @return 
 		 */		
 		public function StopMicrophoneEvent() 
 		{
 			super( DashboardController.EVENT_STOP_MICROPHONE );
 		}
+		
 	}
 }

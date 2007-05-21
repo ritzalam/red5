@@ -22,53 +22,49 @@ package org.red5.samples.publisher.command
 	import com.adobe.cairngorm.commands.ICommand;
 	import com.adobe.cairngorm.control.CairngormEvent;
 	
-	import org.red5.samples.publisher.business.NetStreamDelegate;
-	import org.red5.samples.publisher.events.PlayStreamEvent;
-	import org.red5.samples.publisher.model.*;
+	import flash.display.StageDisplayState;
 	
+	import org.red5.samples.publisher.events.CloseFullScreenEvent;
+	import org.red5.samples.publisher.model.*;
+
 	/**
-	 * Setup the <code>nsPlay</code> NetStream for playback.
-	 * <p>The NetStream is stored in the Model.</p>
+	 * Close fullscreen video.
+	 * <p>Returns to normal mode.</p>
 	 * 
-	 * @see org.red5.samples.publisher.model.Media#nsPlay nsPlay
 	 * @author Thijs Triemstra
-	 */	
-	public class PlayStreamCommand implements ICommand 
+	 */
+	public class CloseFullScreenCommand implements ICommand
 	{
 		/**
 		* 
 		*/			
 		private var model : ModelLocator = ModelLocator.getInstance();
-	 	
+		
+		[Bindable]
 	 	/**
 	 	* 
-	 	*/	 	
-	 	private var main : Main = model.main;
+	 	*/		
+	 	public var main : Main = model.main;
 	 	
+		[Bindable]
 	 	/**
 	 	* 
-	 	*/	 	
-	 	private var netStreamDelegate : NetStreamDelegate = main.ns_delegate;
+	 	*/		
+	 	public var navigation : Navigation = model.navigation;
 	 	
-	 	/**
-	 	* 
-	 	*/	 	
-	 	private var logger : Logger = model.logger;
-	 
 	 	/**
 	 	 * 
 	 	 * @param cgEvent
-	 	 */	 	 	
+	 	 */	 	
 	 	public function execute( cgEvent : CairngormEvent ) : void
 	    { 
-	    	var event : PlayStreamEvent = PlayStreamEvent( cgEvent );
-	    	var bufferTime : int = event.bufferTime;
-	    	var streamName : String = event.streamName;
-	    	var enableVideo : Boolean = event.enableVideo;
-	    	var enableAudio : Boolean = event.enableAudio;
-			// Use Delegate to playback the NetStream.
-	      	netStreamDelegate.startPlayback( bufferTime, streamName, enableVideo, enableAudio );
+			var event : CloseFullScreenEvent = CloseFullScreenEvent( cgEvent );
+			// Reset Stage size.
+			event.stage.displayState = StageDisplayState.NORMAL;
+			// Reset video size.
+			main.media.videoWidth = main.videoSettings.width;
+        	main.media.videoHeight = main.videoSettings.height;
 		}
-				
+		
 	}
 }

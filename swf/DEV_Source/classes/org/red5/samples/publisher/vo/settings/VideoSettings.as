@@ -71,8 +71,9 @@ package  org.red5.samples.publisher.vo.settings
 		 * @param keyframe
 		 * @param fps
 		 * @return 
+		 * 
 		 */		
-		public function VideoSettings(	cameraIndex : int = 0,
+		public function VideoSettings(	cameraIndex : int = -1,
 										bandwidth : int = 0,
 										quality : int = 0,
 										width : int = 320,

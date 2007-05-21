@@ -61,32 +61,32 @@ package org.red5.samples.publisher.business
 		/**
 		* 
 		*/		
-		public var monitorTransaction : MonitorTransaction = model.monitorTransaction;
+		public var main : Main = model.main;
 		
 		/**
 	 	* 
 	 	*/	 	
-	 	private var images : Images = monitorTransaction.images;
+	 	private var images : Images = main.images;
 	 	
 		/**
 		* 
 		*/		
-		private var serverMessage : String = monitorTransaction.serverMessage;
+		private var serverMessage : String = logger.serverMessage;
 		
 		/**
 		* 
 		*/		
-		private var streamMessage : String = monitorTransaction.streamMessage;
+		private var streamMessage : String = logger.streamMessage;
 				
 		/**
 		*  
 		*/		
-		private var nsPublish : NetStream = monitorTransaction.media.nsPublish;
+		private var nsPublish : NetStream = main.media.nsPublish;
 		
 		/**
 		*  
 		*/		
-		private var nsPlay : NetStream = monitorTransaction.media.nsPlay;
+		private var nsPlay : NetStream = main.media.nsPlay;
 		
 		/**
 		*  
@@ -104,8 +104,6 @@ package org.red5.samples.publisher.business
 		 */		
 		public function NetStreamDelegate( res : IResponder )
 		{
-			// Generate unique streamname.
-			monitorTransaction.streamName = "stream" + String( Math.floor( new Date().getTime() ) );
 			// Listen and capture the NetConnection info and error events.
 			responder = res;
 		}
@@ -114,8 +112,13 @@ package org.red5.samples.publisher.business
 		 * 
 		 * @param bufferTime
 		 * @param streamName
-		 */			
-		public function startPlayback( bufferTime : int, streamName : String ) : void
+		 * @param audio
+		 * @param video
+		 */				
+		public function startPlayback( bufferTime : int, 
+									   streamName : String, 
+									   audio : Boolean,
+									   video : Boolean ) : void
 		{
 			try 
 			{
@@ -124,23 +127,28 @@ package org.red5.samples.publisher.business
 				{
 					// Stop and close previous NetStream.
 					var stopStreamEvent : StopStreamEvent = new StopStreamEvent();
-					CairngormEventDispatcher.getInstance().dispatchEvent( stopStreamEvent );
+					stopStreamEvent.dispatch();
 				}
 				// Setup NetStream for playback.
-				nsPlay = new NetStream( monitorTransaction.media.nc );
+				nsPlay = new NetStream( main.media.nc );
 				//
 				nsPlay.addEventListener( NetStatusEvent.NET_STATUS, netStatusEvent );
 				nsPlay.addEventListener( IOErrorEvent.IO_ERROR, netIOError );
 				nsPlay.addEventListener( AsyncErrorEvent.ASYNC_ERROR, netASyncError );
 				//
 				nsPlay.bufferTime = bufferTime;
+				nsPlay.receiveAudio( audio );
+				nsPlay.receiveVideo( video );
 				//
 				nsPlay.client = responder;
 				//
-				monitorTransaction.media.videoRemote = new Video( 320, 240 );
-				monitorTransaction.media.videoRemote.attachNetStream( nsPlay );
+				if ( !main.publishState )
+				{
+					main.playButtonLabel = main.btnPause;
+				}
 				//
-				monitorTransaction.playButtonLabel = monitorTransaction.btnStop;
+				main.media.videoRemote = new Video( main.videoSettings.width, main.videoSettings.height );
+				main.media.videoRemote.attachNetStream( nsPlay );
 				//
 				nsPlay.play( streamName );
 				
@@ -148,7 +156,7 @@ package org.red5.samples.publisher.business
 			catch( e : ArgumentError ) 
 			{
 				//
-				monitorTransaction.playbackState = false;
+				main.playbackState = main.stopState;
 				// Invalid parameters
 				switch ( e.errorID ) 
 				{
@@ -160,9 +168,7 @@ package org.red5.samples.publisher.business
 											   images.warnServer_img, 
 											   serverMessage );
 						break;
-					//
 					default :
-					   //
 					   break;
 				}
 			}
@@ -170,14 +176,44 @@ package org.red5.samples.publisher.business
 		
 		/**
 		 * 
-		 * 
 		 */		
 		public function stopPlayback() : void
 		{
+			if ( nsPlay != null ) 
+			{
+				// Change Button label.
+				main.playButtonLabel = main.btnPlay;
+				//
+				main.playbackState = main.stopState;
+				// Close the NetStream.
+				nsPlay.close();
+			}
+		}
+		
+		/**
+		 * Pause playback.
+		 */		
+		public function pausePlayback() : void
+		{
 			// Change Button label.
-			monitorTransaction.playButtonLabel = monitorTransaction.btnPlay;
-			// Close the NetStream.
-			nsPlay.close();
+			main.playButtonLabel = main.btnPlay;
+			//
+			main.playbackState = main.pauseState;
+			// Pause the NetStream.
+			nsPlay.pause();
+		}
+		
+		/**
+		 * Resume playback.
+		 */		
+		public function resumePlayback() : void
+		{
+			// Change Button label.
+			main.playButtonLabel = main.btnPause;
+			//
+			main.playbackState = main.playState;
+			// Resume playback for the NetStream.
+			nsPlay.resume();
 		}
 		
 		/**
@@ -189,8 +225,8 @@ package org.red5.samples.publisher.business
 		{
 			try 
 			{
-				camera = monitorTransaction.media.camera;
-				microphone = monitorTransaction.media.microphone;
+				camera = main.media.camera;
+				microphone = main.media.microphone;
 				//
 				if ( microphone != null || camera != null ) 
 				{
@@ -199,10 +235,10 @@ package org.red5.samples.publisher.business
 					{
 						// Stop and unpublish current NetStream.
 						var unpublishStreamEvent : UnpublishStreamEvent = new UnpublishStreamEvent();
-						CairngormEventDispatcher.getInstance().dispatchEvent( unpublishStreamEvent );
+						unpublishStreamEvent.dispatch();
 					}
 					// Setup NetStream for publishing.
-					nsPublish = new NetStream( monitorTransaction.media.nc );
+					nsPublish = new NetStream( main.media.nc );
 					//
 					nsPublish.addEventListener( NetStatusEvent.NET_STATUS, netStatusEvent );
 					nsPublish.addEventListener( IOErrorEvent.IO_ERROR, netIOError );
@@ -219,9 +255,9 @@ package org.red5.samples.publisher.business
 						nsPublish.attachAudio( microphone );
 					}
 					//
-					monitorTransaction.publishButtonLabel = monitorTransaction.btnUnpublish;
+					main.publishButtonLabel = main.btnUnpublish;
 					//
-					monitorTransaction.publishState = true;
+					main.publishState = true;
 					// Start publishing.
 					nsPublish.publish( streamName, publishMode );
 				} 
@@ -229,13 +265,13 @@ package org.red5.samples.publisher.business
 				{
 					logger.logMessage( "Can't publish stream, no input device(s) selected", streamMessage );
 					//
-					monitorTransaction.publishState = false;
+					main.publishState = false;
 				}
 			}
 			catch( e : ArgumentError ) 
 			{
 				//
-				monitorTransaction.publishState = false;
+				main.publishState = false;
 				// Invalid parameters
 				switch ( e.errorID ) 
 				{
@@ -250,7 +286,7 @@ package org.red5.samples.publisher.business
 					//
 					default :
 					   //
-					   logger.logMessage( String( e ), streamMessage );
+					   logger.logMessage( e.toString(), streamMessage );
 					   break;
 				}
 			}
@@ -258,16 +294,35 @@ package org.red5.samples.publisher.business
 		
 		/**
 		 * 
-		 * 
 		 */		
 		public function stopPublish() : void
 		{
 			//
-			monitorTransaction.publishButtonLabel = monitorTransaction.btnPublish;
+			main.publishButtonLabel = main.btnPublish;
 			//
 			nsPublish.close();
 			//
-			monitorTransaction.publishState = false;
+			main.publishState = false;
+		}
+		
+		/**
+		 * 
+		 * @param enable
+		 */		
+		public function enableAudio( enable : Boolean ) : void
+		{
+			//
+			nsPlay.receiveAudio( enable );
+		}
+		
+		/**
+		 * 
+		 * @param enable
+		 */		
+		public function enableVideo( enable : Boolean ) : void
+		{
+			//
+			nsPlay.receiveVideo( enable );
 		}
 			
 		/**

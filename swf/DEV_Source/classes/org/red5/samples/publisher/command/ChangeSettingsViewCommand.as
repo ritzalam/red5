@@ -41,7 +41,13 @@ package org.red5.samples.publisher.command
 	 	/**
 	 	* 
 	 	*/		
-	 	public var monitorTransaction : MonitorTransaction = model.monitorTransaction;
+	 	public var main : Main = model.main;
+	 	
+	 	[Bindable]
+	 	/**
+	 	* 
+	 	*/		
+	 	public var navigation : Navigation = model.navigation;
 	 	
 	 	/**
 	 	 * 
@@ -53,21 +59,21 @@ package org.red5.samples.publisher.command
 			var tabIndex : Number = 	settingsViewEvent.tabIndex;
 			var icon : Class = 			settingsViewEvent.img;
 			//
-			monitorTransaction.settingsViewing = tabIndex;
+			navigation.settingsViewing = tabIndex;
 			//
-			monitorTransaction.images.settingsIcon = icon;
+			main.images.settingsIcon = icon;
 			//
-			if ( tabIndex == monitorTransaction.SETTINGS_VIDEO || tabIndex == monitorTransaction.SETTINGS_AUDIO ) 
+			if ( tabIndex == navigation.SETTINGS_VIDEO || tabIndex == navigation.SETTINGS_AUDIO ) 
 			{
 				//
-				monitorTransaction.monitorDisplayViewing = monitorTransaction.MONITOR_PUBLISH;
-				monitorTransaction.monitorBarIndex = 1;
+				navigation.monitorDisplayViewing = navigation.MONITOR_PUBLISH;
+				navigation.monitorBarIndex = 1;
 			} 
 			else 
 			{
 				//
-				monitorTransaction.monitorDisplayViewing = monitorTransaction.MONITOR_VIEW;
-				monitorTransaction.monitorBarIndex = 0;
+				navigation.monitorDisplayViewing = navigation.MONITOR_VIEW;
+				navigation.monitorBarIndex = 0;
 			}
 		}
 	}

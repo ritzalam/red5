@@ -41,7 +41,13 @@ package org.red5.samples.publisher.command
 	 	/**
 	 	* 
 	 	*/		
-	 	public var monitorTransaction : MonitorTransaction = model.monitorTransaction;
+	 	public var main : Main = model.main;
+	 	
+		[Bindable]
+	 	/**
+	 	* 
+	 	*/		
+	 	public var navigation : Navigation = model.navigation;
 	 	
 	 	/**
 	 	 * 
@@ -52,22 +58,22 @@ package org.red5.samples.publisher.command
 			var monitorViewEvent : ChangeMonitorViewEvent = ChangeMonitorViewEvent( cgEvent );
 			var tabIndex : Number = monitorViewEvent.tabIndex;
 			// switch MonitorDisplay and MonitorControlBar
-			monitorTransaction.monitorDisplayViewing = tabIndex;
+			navigation.monitorDisplayViewing = tabIndex;
 			//  switch SettingsDisplay, SettingsStatusBar, SettingsAppBar
-			if ( tabIndex == monitorTransaction.MONITOR_PUBLISH ) 
+			if ( tabIndex == navigation.MONITOR_PUBLISH ) 
 			{
 				// switch Settings components to show video settings
-				monitorTransaction.settingsViewing = monitorTransaction.SETTINGS_VIDEO;
-				monitorTransaction.monitorBarIndex = 1;	
+				navigation.settingsViewing = navigation.SETTINGS_VIDEO;
+				navigation.monitorBarIndex = 1;	
 			} 
 			else
 			{
 				// switch Settings components to show server settings
-				monitorTransaction.settingsViewing = monitorTransaction.SETTINGS_SERVER;
-				monitorTransaction.monitorBarIndex = 0;
+				navigation.settingsViewing = navigation.SETTINGS_SERVER;
+				navigation.monitorBarIndex = 0;
 			}
 			//
-			monitorTransaction.images.settingsIcon = monitorTransaction.settingsArray[ monitorTransaction.settingsViewing ].img;
+			main.images.settingsIcon = navigation.settingsArray[ navigation.settingsViewing ].img;
 		}
 		
 	}

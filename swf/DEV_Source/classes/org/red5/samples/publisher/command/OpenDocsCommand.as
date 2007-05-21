@@ -29,7 +29,7 @@ package org.red5.samples.publisher.command
 	/**
 	 * Open the documentation page on Adobe LiveDocs.
 	 * 
-	 * @see org.red5.samples.publisher.model.MonitorTransaction#docsURL docsURL
+	 * @see org.red5.samples.publisher.model.Main#docsURL docsURL
 	 * @author Thijs Triemstra
 	 */	
 	public class OpenDocsCommand implements ICommand 

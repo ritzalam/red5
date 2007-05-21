@@ -24,32 +24,18 @@ package org.red5.samples.publisher.events
 	import org.red5.samples.publisher.control.DashboardController;
 	
 	/**
-	 * @copy org.red5.samples.publisher.command.ChangeSettingsViewCommand
+	 * @copy org.red5.samples.publisher.command.PauseStreamCommand
 	 * @author Thijs Triemstra
 	 */	
-	public class ChangeSettingsViewEvent extends CairngormEvent 
-	{
-		/**
-		* 
-		*/		
-		public var tabIndex : int;
-		
-		/**
-		* 
-		*/		
-		public var img : Class;			
-		
+	public class PauseStreamEvent extends CairngormEvent 
+	{		
 		/**
 		 * 
-		 * @param tabIndex
-		 * @param img
 		 * @return 
 		 */		
-		public function ChangeSettingsViewEvent( tabIndex : int, img : Class ) 
+		public function PauseStreamEvent() 
 		{
-			super( DashboardController.EVENT_SWITCH_SETTINGS_VIEW );
-			this.tabIndex = tabIndex;
-			this.img = img;
+			super( DashboardController.EVENT_PAUSE_STREAM );
 		}
 	}
 }

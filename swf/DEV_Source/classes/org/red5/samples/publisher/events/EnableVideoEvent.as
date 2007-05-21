@@ -24,32 +24,23 @@ package org.red5.samples.publisher.events
 	import org.red5.samples.publisher.control.DashboardController;
 	
 	/**
-	 * @copy org.red5.samples.publisher.command.ChangeSettingsViewCommand
+	 * @copy org.red5.samples.publisher.command.EnableVideoCommand
 	 * @author Thijs Triemstra
 	 */	
-	public class ChangeSettingsViewEvent extends CairngormEvent 
-	{
+	public class EnableVideoEvent extends CairngormEvent 
+	{	
 		/**
 		* 
 		*/		
-		public var tabIndex : int;
-		
-		/**
-		* 
-		*/		
-		public var img : Class;			
+		public var enable : Boolean;
 		
 		/**
 		 * 
-		 * @param tabIndex
-		 * @param img
-		 * @return 
 		 */		
-		public function ChangeSettingsViewEvent( tabIndex : int, img : Class ) 
+		public function EnableVideoEvent( enable : Boolean ) 
 		{
-			super( DashboardController.EVENT_SWITCH_SETTINGS_VIEW );
-			this.tabIndex = tabIndex;
-			this.img = img;
+			super( DashboardController.EVENT_ENABLE_VIDEO );
+			this.enable = enable;
 		}
 	}
 }

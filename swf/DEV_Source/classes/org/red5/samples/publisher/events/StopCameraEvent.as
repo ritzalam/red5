@@ -24,18 +24,18 @@ package org.red5.samples.publisher.events
 	import org.red5.samples.publisher.control.DashboardController;
 	
 	/**
-	 * 
+	 * @copy org.red5.samples.publisher.command.StopCameraCommand
 	 * @author Thijs Triemstra
 	 */	
 	public class StopCameraEvent extends CairngormEvent 
 	{		
 		/**
 		 * 
-		 * @return 
 		 */		
 		public function StopCameraEvent() 
 		{
 			super( DashboardController.EVENT_STOP_CAMERA );
 		}
+		
 	}
 }

@@ -60,7 +60,7 @@ package  org.red5.samples.publisher.vo.settings
 		 * @param timeout
 		 * @return
 		 */		
-		public function AudioSettings(	micIndex : int = 0,
+		public function AudioSettings(	micIndex : int = -1,
 										rate : int = 22,
 										gain : int = 50,
 										level : int = 10,

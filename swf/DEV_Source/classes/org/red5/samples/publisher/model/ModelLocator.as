@@ -19,24 +19,25 @@ package org.red5.samples.publisher.model
 	 * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 	 */
 	 
-	import com.adobe.cairngorm.model.ModelLocator;
+	import com.adobe.cairngorm.*;
+	import com.adobe.cairngorm.model.IModelLocator;
 	
  	[Bindable]
 	/**
 	 * 
 	 * @author Thijs Triemstra
 	 */ 	
-	public class ModelLocator implements com.adobe.cairngorm.model.ModelLocator
+	public class ModelLocator implements IModelLocator
 	{
 		/**
 		* 
 		*/		
-		private static var modelLocator : org.red5.samples.publisher.model.ModelLocator;
+		private static var instance : ModelLocator;
 		
 		/**
 		* 
 		*/		
-		public var monitorTransaction : MonitorTransaction;
+		public var main : Main;
 		
 		/**
 		* 
@@ -44,37 +45,42 @@ package org.red5.samples.publisher.model
 		public var logger : Logger;
 		
 		/**
-		 * 
-		 * @return 
-		 */		
-		public static function getInstance() : org.red5.samples.publisher.model.ModelLocator
-		{
-			if ( modelLocator == null )
-				modelLocator = new org.red5.samples.publisher.model.ModelLocator();
-				
-			return modelLocator;
-	   	}
-	   	
-	   	/**
-	   	 * 
-	   	 * @return 
+		* 
+		*/		
+		public var navigation : Navigation;
+		
+		/**
+	   	 * @throws CairngormError Only one ModelLocator instance should be instantiated.
 	   	 */	   	
 	   	public function ModelLocator() 
 	   	{
-	   		if ( org.red5.samples.publisher.model.ModelLocator.modelLocator != null )
-					throw new Error( "Only one ModelLocator instance should be instantiated" );
+	   		if ( instance != null )
+					throw new CairngormError(
+					   CairngormMessageCodes.SINGLETON_EXCEPTION, "ModelLocator" );
 					
 				initialize();
 	   	}
 	   	
+		/**
+		 * 
+		 * @return ModelLocator
+		 */		
+		public static function getInstance() : ModelLocator
+		{
+			if ( instance == null )
+				instance = new ModelLocator();
+				
+			return instance;
+	   	}
+	   	
 	   	/**
-	   	 * 
 	   	 * 
 	   	 */	   	
 	   	private function initialize() : void
 	   	{
-				monitorTransaction = new MonitorTransaction();	
-				logger = new Logger( monitorTransaction );	
+   			navigation = new Navigation();	
+			main = new Main( navigation );	
+			logger = new Logger( main );	
 	   	}
 	   	
 	}

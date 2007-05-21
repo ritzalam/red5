@@ -30,9 +30,7 @@ package org.red5.samples.publisher.control
 	public class DashboardController extends FrontController
 	{
 		/**
-		 * 
 		 *
-		 * 
 		 */		
 		public function DashboardController()
 		{
@@ -42,6 +40,12 @@ package org.red5.samples.publisher.control
 			
 			addCommand( DashboardController.EVENT_SWITCH_MONITOR_VIEW, ChangeMonitorViewCommand );
 			addCommand( DashboardController.EVENT_SWITCH_SETTINGS_VIEW, ChangeSettingsViewCommand );
+			
+			addCommand( DashboardController.EVENT_CLOSE_FULLSCREEN, CloseFullScreenCommand );
+			addCommand( DashboardController.EVENT_START_FULLSCREEN, StartFullScreenCommand );
+			
+			addCommand( DashboardController.EVENT_ENABLE_AUDIO, EnableAudioCommand );
+			addCommand( DashboardController.EVENT_ENABLE_VIDEO, EnableVideoCommand );
 			
 			addCommand( DashboardController.EVENT_START_CAMERA, StartCameraCommand );
 			addCommand( DashboardController.EVENT_STOP_CAMERA, StopCameraCommand );
@@ -61,6 +65,8 @@ package org.red5.samples.publisher.control
 			addCommand( DashboardController.EVENT_SETUP_STREAMS, SetupStreamsCommand );
 			addCommand( DashboardController.EVENT_STOP_STREAM, StopStreamCommand );
 			addCommand( DashboardController.EVENT_PLAY_STREAM, PlayStreamCommand );
+			addCommand( DashboardController.EVENT_PAUSE_STREAM, PauseStreamCommand );
+			addCommand( DashboardController.EVENT_RESUME_STREAM, ResumeStreamCommand );
 			addCommand( DashboardController.EVENT_PUBLISH_STREAM, PublishStreamCommand );
 			addCommand( DashboardController.EVENT_UNPUBLISH_STREAM, UnpublishStreamCommand );
 		}
@@ -71,6 +77,12 @@ package org.red5.samples.publisher.control
 		
 		public static const EVENT_SWITCH_MONITOR_VIEW : String = 	"EVENT_SWITCH_MONITOR_VIEW";
 		public static const EVENT_SWITCH_SETTINGS_VIEW : String = 	"EVENT_SWITCH_SETTINGS_VIEW";
+		
+		public static const EVENT_CLOSE_FULLSCREEN : String = 		"EVENT_CLOSE_FULLSCREEN";
+		public static const EVENT_START_FULLSCREEN : String = 		"EVENT_START_FULLSCREEN";
+		
+		public static const EVENT_ENABLE_AUDIO : String = 			"EVENT_ENABLE_AUDIO";
+		public static const EVENT_ENABLE_VIDEO : String = 			"EVENT_ENABLE_VIDEO";
 		
 		public static const EVENT_START_CAMERA : String = 			"EVENT_START_CAMERA";
 		public static const EVENT_STOP_CAMERA : String = 			"EVENT_STOP_CAMERA";
@@ -90,6 +102,8 @@ package org.red5.samples.publisher.control
 		public static const EVENT_SETUP_STREAMS : String = 			"EVENT_SETUP_STREAMS";
 		public static const EVENT_STOP_STREAM : String = 			"EVENT_STOP_STREAM";
 		public static const EVENT_PLAY_STREAM : String = 			"EVENT_PLAY_STREAM";
+		public static const EVENT_PAUSE_STREAM : String = 			"EVENT_PAUSE_STREAM";
+		public static const EVENT_RESUME_STREAM : String = 			"EVENT_RESUME_STREAM";
 		public static const EVENT_PUBLISH_STREAM : String = 		"EVENT_PUBLISH_STREAM";
 		public static const EVENT_UNPUBLISH_STREAM : String = 		"EVENT_UNPUBLISH_STREAM";
 	}

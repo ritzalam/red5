@@ -23,47 +23,59 @@ package org.red5.samples.publisher.model
 	import flash.net.*;
 	
 	/**
+	 * Devices and remote connections.
 	 * 
 	 * @author Thijs Triemstra
 	 */	
 	public class Media
 	{
 		/**
-		* 
+		* <code>NetStream</code> for outgoing audio/video.
 		*/		
 		public var nsPublish : NetStream;                      
 		
 		/**
-		* 
+		* <code>NetStream</code> for incoming audio/video.
 		*/
 		public var nsPlay : NetStream;
 	
 		/**
-		* 
+		* One <code>NetConnection</code> used in the application.
 		*/		
 		public var nc : NetConnection;
 		
 		/**
-		* 
+		* Audio device.
 		*/		
 		public var microphone : Microphone;
 		
 		/**
-		* 
+		* Video device.
 		*/		
 		public var camera : Camera;
 		
 		[Bindable]
 		/**
-		* 
+		* Display output of video device.
 		*/		
 		public var videoLocal : Video;
 		
 		[Bindable]
 		/**
-		* 
+		* Display <code>NetStream</code> video output.
 		*/		
 		public var videoRemote : Video;	
 		
+		[Bindable]
+		/**
+		* Current video width.
+		*/		
+		public var videoWidth : int;
+		
+		[Bindable]
+		/**
+		* Current video height.
+		*/		
+		public var videoHeight : int;
 	}
 }

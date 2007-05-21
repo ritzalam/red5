@@ -24,32 +24,24 @@ package org.red5.samples.publisher.events
 	import org.red5.samples.publisher.control.DashboardController;
 	
 	/**
-	 * @copy org.red5.samples.publisher.command.ChangeSettingsViewCommand
+	 * @copy org.red5.samples.publisher.command.EnableAudioCommand
 	 * @author Thijs Triemstra
 	 */	
-	public class ChangeSettingsViewEvent extends CairngormEvent 
-	{
+	public class EnableAudioEvent extends CairngormEvent 
+	{	
 		/**
 		* 
 		*/		
-		public var tabIndex : int;
-		
-		/**
-		* 
-		*/		
-		public var img : Class;			
+		public var enable : Boolean;
 		
 		/**
 		 * 
-		 * @param tabIndex
-		 * @param img
 		 * @return 
 		 */		
-		public function ChangeSettingsViewEvent( tabIndex : int, img : Class ) 
+		public function EnableAudioEvent( enable : Boolean ) 
 		{
-			super( DashboardController.EVENT_SWITCH_SETTINGS_VIEW );
-			this.tabIndex = tabIndex;
-			this.img = img;
+			super( DashboardController.EVENT_ENABLE_AUDIO );
+			this.enable = enable;
 		}
 	}
 }

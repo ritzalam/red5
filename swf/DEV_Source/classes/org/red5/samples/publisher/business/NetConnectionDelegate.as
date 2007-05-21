@@ -38,7 +38,7 @@ package org.red5.samples.publisher.business
 	{	
 		/**
 		* 
-		*/		
+		*/
 		private var model : ModelLocator = ModelLocator.getInstance();
 		
 		/**
@@ -59,22 +59,22 @@ package org.red5.samples.publisher.business
 		/**
 		* 
 		*/		
-		private var monitorTransaction : MonitorTransaction = model.monitorTransaction;
+		private var main : Main = model.main;
 		
 		/**
 		*  
 		*/		
-		private var netConnection : NetConnection = monitorTransaction.media.nc;
+		private var netConnection : NetConnection = main.media.nc;
 		
 		/**
 		* 
 		*/		
-		private var images : Images = monitorTransaction.images;
+		private var images : Images = main.images;
 		
 		/**
 		* 
 		*/		
-		private var serverMessage : String = monitorTransaction.serverMessage;
+		private var serverMessage : String = logger.serverMessage;
 		
 		/**
 		 * 
@@ -83,7 +83,7 @@ package org.red5.samples.publisher.business
 		public function NetConnectionDelegate( res : IResponder )
 		{
 			//
-			monitorTransaction.media.nc = new NetConnection();
+			main.media.nc = new NetConnection();
 			// Listen and capture the NetConnection info and error events.
 			responder = res;
 		}
@@ -97,13 +97,13 @@ package org.red5.samples.publisher.business
 		public function connect( uri : String, proxy : String, encoding : uint ) : void
 		{
 			// Initialize the NetConnection in the model.
-			netConnection = monitorTransaction.media.nc;
+			netConnection = main.media.nc;
 			//
 			netConnection.client = responder;
 			// 
 			netConnection.objectEncoding = encoding;
 			netConnection.proxyType = proxy;
-			// Setup the NetConnection and listen for NetStatusEvent and SecurityErrorEvent events
+			// Setup the NetConnection and listen for NetStatusEvent and SecurityErrorEvent events.
 			netConnection.addEventListener( NetStatusEvent.NET_STATUS, netStatus );
 			netConnection.addEventListener( AsyncErrorEvent.ASYNC_ERROR, netASyncError );
 			netConnection.addEventListener( SecurityErrorEvent.SECURITY_ERROR, netSecurityError );
@@ -121,7 +121,7 @@ package org.red5.samples.publisher.business
 			}
 			catch( e : ArgumentError ) 
 			{
-				// Invalid parameters
+				// Invalid parameters.
 				switch ( e.errorID ) 
 				{
 					case 2004 :

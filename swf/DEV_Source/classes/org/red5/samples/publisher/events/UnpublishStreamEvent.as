@@ -24,18 +24,18 @@ package org.red5.samples.publisher.events
 	import org.red5.samples.publisher.control.DashboardController;
 	
 	/**
-	 * 
+	 * @copy org.red5.samples.publisher.command.UnpublishStreamCommand
 	 * @author Thijs Triemstra
 	 */	
 	public class UnpublishStreamEvent extends CairngormEvent 
 	{	
 		/**
 		 * 
-		 * @return 
 		 */		
 		public function UnpublishStreamEvent() 
 		{
 			super( DashboardController.EVENT_UNPUBLISH_STREAM );
 		}
+		
 	}
 }

@@ -45,7 +45,7 @@ package org.red5.samples.publisher.command
 	 	/**
 	 	* 
 	 	*/	 	
-	 	private var monitorTransaction : MonitorTransaction = model.monitorTransaction;
+	 	private var main : Main = model.main;
 	 	
 	 	/**
 	 	* 
@@ -55,12 +55,12 @@ package org.red5.samples.publisher.command
 	 	/**
 	 	* 
 	 	*/	 	
-	 	private var microphone : Microphone = monitorTransaction.media.microphone;
+	 	private var microphone : Microphone = main.media.microphone;
 	 	
 	 	/**
 	 	* 
 	 	*/	 	
-	 	private var nsPublish : NetStream = monitorTransaction.media.nsPublish;
+	 	private var nsPublish : NetStream = main.media.nsPublish;
 	 	
 	 	/**
 	 	 * 
@@ -74,10 +74,10 @@ package org.red5.samples.publisher.command
 			var rate : int = 				event.rate;
 			var level : int = 				event.level;
 			var timeout : int = 			event.timeout;
-			var micIndex:int = 				selectedMicIndex - 2;
+			var micIndex : int = 			selectedMicIndex - 1;
 			//
-			monitorTransaction.media.microphone = Microphone.getMicrophone( micIndex );
-			microphone = monitorTransaction.media.microphone;
+			main.media.microphone = Microphone.getMicrophone( micIndex );
+			microphone = main.media.microphone;
 			//
 			microphone.setLoopBack( true );
 			//
@@ -92,7 +92,7 @@ package org.red5.samples.publisher.command
 			//
 			microphone.addEventListener( ActivityEvent.ACTIVITY, activityEventHandler );
 			microphone.addEventListener( StatusEvent.STATUS, statusEventHandler );
-			// update audio stream when publishing
+			// update audio stream when we're already publishing.
 			if ( nsPublish != null ) 
 			{
 				//
@@ -100,10 +100,10 @@ package org.red5.samples.publisher.command
 			}
 			// 
 			logger.logMessage( "Started audio device <b>" + microphone.name + "</b>",
-							   monitorTransaction.audioMessage );
+							   logger.audioMessage );
 			logger.monitorMessage( 	"Started audio device", 
-									monitorTransaction.images.sound_img,
-									monitorTransaction.audioMessage );
+									main.images.sound_img,
+									logger.audioMessage );
 		}
 		
 		/**

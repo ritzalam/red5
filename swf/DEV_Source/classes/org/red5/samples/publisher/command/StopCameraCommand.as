@@ -43,7 +43,7 @@ package org.red5.samples.publisher.command
 	 	/**
 	 	* 
 	 	*/		
-	 	private var monitorTransaction : MonitorTransaction = model.monitorTransaction;
+	 	private var main : Main = model.main;
 	 	
 	 	/**
 	 	* 
@@ -57,19 +57,19 @@ package org.red5.samples.publisher.command
 	 	public function execute( cgEvent : CairngormEvent ) : void
 	    { 			
 			// Hide video container.
-			monitorTransaction.previewState = false;
+			main.previewState = false;
 			//
-			logger.logMessage( "No video", monitorTransaction.videoMessage );
+			logger.logMessage( "Disabled video device", logger.videoMessage );
 			logger.monitorMessage( "Choose your video device", 
-								   monitorTransaction.images.goWebcam_img, 
-								   monitorTransaction.videoMessage );
+								   main.images.goWebcam_img, 
+								   logger.videoMessage );
 			// Disconnect video device.
-			monitorTransaction.media.videoLocal.attachCamera( null );
+			main.media.videoLocal.attachCamera( null );
 			// Update video stream when publishing.
-			if ( monitorTransaction.media.nsPublish != null ) 
+			if ( main.media.nsPublish != null ) 
 			{
 				//
-				monitorTransaction.media.nsPublish.attachCamera( null );
+				main.media.nsPublish.attachCamera( null );
 			}
 		}
 		

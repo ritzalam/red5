@@ -45,13 +45,13 @@ package  org.red5.samples.publisher.vo
 		/**
 		 * The AMF ObjectEncoding type. 
 		 * <p>The value is either <code>AMF0</code> or <code>AMF3</code>.</p>
-		 * @see org.red5.samples.publisher.model.MonitorTransaction#objectEncodeTypes objectEncodeTypes
+		 * @see org.red5.samples.publisher.model.Main#objectEncodeTypes objectEncodeTypes
 		*/		
 		public var encode : int;
 		
 		/**
 		 * Proxy type.
-		 * @see org.red5.samples.publisher.model.MonitorTransaction#proxyTypes proxyTypes
+		 * @see org.red5.samples.publisher.model.Main#proxyTypes proxyTypes
 		*/		
 		public var proxy : int;
 

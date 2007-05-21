@@ -41,7 +41,12 @@ package org.red5.samples.publisher.command
 	 	/**
 	 	* 
 	 	*/		
-	 	private var monitorTransaction : MonitorTransaction = model.monitorTransaction;
+	 	private var main : Main = model.main;
+	 	
+	 	/**
+	 	* 
+	 	*/		
+	 	private var navigation : Navigation = model.navigation;
 	 	
 	 	/**
 	 	 * Method recieves the index of the <code>ServerPreset</code> object in the Array
@@ -53,21 +58,22 @@ package org.red5.samples.publisher.command
 	    { 
 			var presetEvent : ChangePresetEvent = ChangePresetEvent( cgEvent );
 			var index : Number = presetEvent.index;
-			var preset : Object = monitorTransaction.serverPresets[ index ];
+			var preset : Object = main.serverPresets[ index ];
 			var serverType : int = preset.server;
-			var img : Class = monitorTransaction.serverTypes[ serverType ].img;
+			var img : Class = main.serverTypes[ serverType ].img;
 			var hostName : String = preset.host;
 			var encodingType : int = preset.encode;
 			var proxyType : int = preset.proxy;
 			//
-			monitorTransaction.selectedPreset = index;
+			navigation.selectedPreset = index;
 			// Update servertype image.
-			monitorTransaction.images.serverLogo = img;			
+			main.images.serverLogo = img;			
 			// Copy the server preset info and use it for the general settings.
-			monitorTransaction.generalSettings = new GeneralSettings( hostName,
-																	  serverType,
-																	  encodingType,
-																	  proxyType );
+			main.generalSettings = new GeneralSettings( hostName,
+														serverType,
+														encodingType,
+														proxyType );
 		}
+		
 	}
 }

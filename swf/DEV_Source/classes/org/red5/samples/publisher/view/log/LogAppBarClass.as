@@ -44,7 +44,7 @@ package org.red5.samples.publisher.view.log
 		/**
 		* 
 		*/		
-		public var monitorTransaction : MonitorTransaction = model.monitorTransaction;
+		public var main : Main = model.main;
 		
 	}
 }

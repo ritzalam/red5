@@ -24,15 +24,13 @@ package org.red5.samples.publisher.events
 	import org.red5.samples.publisher.control.DashboardController;
 	
 	/**
-	 * 
+	 * @copy org.red5.samples.publisher.command.SetupStreamsCommand
 	 * @author Thijs Triemstra
 	 */	
 	public class SetupStreamsEvent extends CairngormEvent 
 	{
-		
 		/**
 		 * 
-		 * @return
 		 */		
 		public function SetupStreamsEvent() 
 		{

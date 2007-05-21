@@ -22,104 +22,161 @@ package org.red5.samples.publisher.model
 	import flash.system.Capabilities;
 	
 	/**
+	 * Recieve and display log info.
 	 * 
 	 * @author Thijs Triemstra
 	 */	
 	public class Logger
 	{
-
 		[Bindable]
 		/**
 		* 
 		*/		
-		private var monitorTransaction : MonitorTransaction;
+		private var main : Main;
 		
 		[Bindable]
 		/**
-		* 
+		 * Flash Player version number inc. debugger flag.
 		*/		
 		public var flashVersion : String;
 		
 		[Bindable]
 		/**
-		* 
+		 * Log text displayed in the TextArea.
 		*/		
 		public var statusText : String = "";
 		
 		[Bindable]
 		/**
-		* 
+		 * Show/hide stream metadata.
+		 * 
+		 * @default true
 		*/		
 		public var meta_check : Boolean = true;
 		
 		[Bindable]
 		/**
-		* 
+		 * Show/hide stream cuepoint info.
+		 * 
+		 * @default true
 		*/		
 		public var cue_check : Boolean = true;
 		
 		[Bindable]
 		/**
-		* 
+		 * Show/hide stream status and error notifications.
+		 * 
+		 * @default true
 		*/		
 		public var stream_check : Boolean = true;
 		
 		[Bindable]
 		/**
-		* 
+		 * Show/hide NetConnection status and error notifications.
+		 * 
+		 * @default true
 		*/		
 		public var server_check : Boolean = true;
 		
 		[Bindable]
 		/**
-		* 
+		 * Show/hide audio device status and error info.
+		 * 
+		 * @default true
 		*/		
 		public var audio_check : Boolean = true;
 		
 		[Bindable]
 		/**
-		* 
+		 * Show/hide video device status and error info.
+		 * 
+		 * @default true
 		*/		
 		public var video_check : Boolean = true;
 		
 		/**
+		* 
+		*/		
+		public const infoMessage : String = "Info";
+
+		/**
+		* 
+		*/		
+		public const serverMessage : String = "NetConnection";
+		
+		/**
+		* 
+		*/		
+		public const audioMessage : String = "Audio";
+		
+		/**
+		* 
+		*/		
+		public const videoMessage : String = "Video";
+		
+		/**
+		* 
+		*/		
+		public const debugMessage : String = "Debug";
+		
+		/**
+		* 
+		*/		
+		public const streamMessage : String = "NetStream";
+		
+		/**
+		* 
+		*/		
+		public const metadataMessage : String = "MetaData";
+		
+		/**
+		* 
+		*/		
+		public const cuepointMessage : String = "CuePoints";
+		
+		/**
 		 * 
+		 * @param env
 		 * @return 
-		 */		
-		public function Logger( env : MonitorTransaction )
+		 */			
+		public function Logger( env : Main )
 		{
-			// get Flash version number
-			flashVersion = "Using " + Capabilities.manufacturer + " Flash Player " +
-						   Capabilities.version.substr( String( Capabilities.version ).lastIndexOf(" ") + 1 );
+			var platformVersion : String = Capabilities.version.substr( String( Capabilities.version ).lastIndexOf(" ") + 1 );
+			var manufacturer : String = Capabilities.manufacturer;
+			// Get Flash Player version info.
+			flashVersion = "Using " + manufacturer + " Flash Player " + platformVersion;
 			//
-			if ( Capabilities.isDebugger ) {
+			if ( Capabilities.isDebugger ) 
+			{
+				// Add debugger info.
 				flashVersion += " (Debugger)";
 			}
 			//
-			monitorTransaction = env;
-			
-			// display flashplayer version
-			logMessage( flashVersion, monitorTransaction.infoMessage );
-
+			main = env;
+			// Display Flash Player version.
+			logMessage( flashVersion, infoMessage );
 		}
 		
 		/**
 		 * 
-		 * @param msg
-		 * @param msgType
+		 * @param msg Status message to display.
+		 * @param msgType Status message type.
 		 */		
-		public function logMessage( msg : String, msgType : String ) : void 
+		public function logMessage( msg : String, 
+									msgType : String ) : void 
 		{
-			if (( msgType == monitorTransaction.serverMessage && server_check ) || 
-				( msgType == monitorTransaction.streamMessage && stream_check ) ||
-				( msgType == monitorTransaction.audioMessage && audio_check ) ||
-				( msgType == monitorTransaction.videoMessage && video_check ) ||
-				( msgType == monitorTransaction.metadataMessage && meta_check ) ||
-				( msgType == monitorTransaction.cuepointMessage && cue_check ) ||
-				  msgType == monitorTransaction.infoMessage ||
-				  msgType == monitorTransaction.debugMessage ) {
-				 //
-				 statusText += iso( new Date() ) + " - " + msg + "<br>";
+			if (( msgType == serverMessage && server_check ) || 
+				( msgType == streamMessage && stream_check ) ||
+				( msgType == audioMessage && audio_check ) ||
+				( msgType == videoMessage && video_check ) ||
+				( msgType == metadataMessage && meta_check ) ||
+				( msgType == cuepointMessage && cue_check ) ||
+				  msgType == infoMessage ||
+				  msgType == debugMessage ) 
+			{
+				var statusMessage : String = iso( new Date() ) + " - " + msg;
+				//
+				statusText += statusMessage + "<br>";
 			}
 		}
 	
@@ -133,20 +190,20 @@ package org.red5.samples.publisher.model
 										 img : Class, 
 										 msgType : String ) : void 
 		{
-			if ( msgType == monitorTransaction.serverMessage ) 
+			if ( msgType == serverMessage ) 
 			{
-				monitorTransaction.serverStatusMessage = msg;
-				monitorTransaction.images.serverStatusImage = img;
+				main.serverStatusMessage = msg;
+				main.images.serverStatusImage = img;
 			} 
-			else if ( msgType == monitorTransaction.audioMessage ) 
+			else if ( msgType == audioMessage ) 
 			{
-				monitorTransaction.audioStatusMessage = msg;
-				monitorTransaction.images.audioStatusImage = img;
+				main.audioStatusMessage = msg;
+				main.images.audioStatusImage = img;
 			} 
-			else if ( msgType == monitorTransaction.videoMessage ) 
+			else if ( msgType == videoMessage ) 
 			{
-				monitorTransaction.videoStatusMessage = msg;
-				monitorTransaction.images.videoStatusImage = img;
+				main.videoStatusMessage = msg;
+				main.images.videoStatusImage = img;
 			}
 		}
 		
@@ -157,9 +214,12 @@ package org.red5.samples.publisher.model
 		 */		
 		private function doubleDigits( value : Number ) : String 
 		{
-			if ( value > 9 ) {
+			if ( value > 9 ) 
+			{
 				return String( value );
-			} else { 
+			} 
+			else 
+			{ 
 				return "0" + value;
 			}
 		}
@@ -171,10 +231,13 @@ package org.red5.samples.publisher.model
 		 */		
 		private function tripleDigits( value : Number ) : String 
 		{
-			var newStr : String;
-			if ( value > 9 && value < 100 ) {
+			var newStr : String = "";
+			if ( value > 9 && value < 100 ) 
+			{
 				newStr = String( value ) + "0";
-			} else { 
+			} 
+			else 
+			{ 
 				newStr = String( value ) + "00";
 			}
 			return newStr.substr( 0, 3 );
