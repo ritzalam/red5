@@ -2,8 +2,7 @@
 <mx:Application xmlns:mx="http://www.adobe.com/2006/mxml"
 				xmlns:control="org.red5.samples.publisher.control.*"
 				xmlns:business="org.red5.samples.publisher.business.*"
-				xmlns:view="org.red5.samples.publisher.view.*" 
-				viewSourceURL="srcview/index.html"
+				xmlns:view="org.red5.samples.publisher.view.*"
 			    paddingLeft="10" paddingRight="10" paddingBottom="10" paddingTop="10" 
 				horizontalAlign="center" verticalAlign="center" verticalGap="0"
 				backgroundGradientColors="[ 0xEEEEEE, 0xEEEEEE ]" backgroundColor="0xEEEEEE">
