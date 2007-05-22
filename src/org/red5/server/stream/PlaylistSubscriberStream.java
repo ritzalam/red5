@@ -505,14 +505,43 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 		isRepeat = repeat;
 	}
 
+    /**
+	 * Seek to current position to restart playback with audio and/or video.
+     */
+    private void seekToCurrentPlayback() {
+    	if (engine.isPullMode) {
+			try {
+				// TODO: figure out if this is the correct position to seek to
+				final long delta = System.currentTimeMillis() - engine.playbackStart;
+				engine.seek((int) delta);
+			} catch (OperationNotSupportedException err) {
+				// Ignore error, should not happen for pullMode engines
+			}
+		}
+    }
+    
 	/** {@inheritDoc} */
     public void receiveVideo(boolean receive) {
+    	final boolean seek = (!receiveVideo && receive);
 		receiveVideo = receive;
+		if (seek) {
+			// Video has just been re-enabled
+			seekToCurrentPlayback();
+		}
 	}
 
 	/** {@inheritDoc} */
     public void receiveAudio(boolean receive) {
+    	if (receiveAudio && !receive) {
+    		// We need to send a black audio packet to reset the player
+    		engine.sendBlankAudio = true;
+    	}
+    	final boolean seek = (!receiveAudio && receive);
 		receiveAudio = receive;
+		if (seek) {
+			// Audio has just been re-enabled
+			seekToCurrentPlayback();
+		}
 	}
 
 	/** {@inheritDoc} */
@@ -848,6 +877,10 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
          * Timestamp when buffer should be checked for underruns next. 
          */
         private long nextCheckBufferUnderrun;
+        /**
+         * Send blank audio packet next?
+         */
+        private boolean sendBlankAudio;
         
 		/**
          * Constructs a new PlayEngine.
@@ -1163,6 +1196,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			playbackStart = System.currentTimeMillis() - seekPos;
 			notifyItemSeek(currentItem, seekPos);
 			boolean messageSent = false;
+			boolean startPullPushThread = false;
 			if ((state == State.PAUSED || state == State.STOPPED) && sendCheckVideoCM(msgIn)) {
 				// we send a single snapshot on pause.
 				// XXX we need to take BWC into account, for
@@ -1197,7 +1231,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 					}
 				}
 			} else {
-				ensurePullAndPushRunning();
+				startPullPushThread = true;
 			}
 			
 			if (!messageSent) {
@@ -1211,6 +1245,10 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				audioMessage.setBody(audio);
 				lastMessage = audio;
 				doPushMessage(audioMessage);
+			}
+			
+			if (startPullPushThread) {
+				ensurePullAndPushRunning();
 			}
 			
 			if (state != State.STOPPED && currentItem.getLength() >= 0 && (position - streamOffset) >= currentItem.getLength()) {
@@ -1363,7 +1401,6 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				} else {
 					while (true) {
 						IMessage msg = msgIn.pullMessage();
-						ensurePullAndPushRunning();
 						if (msg == null) {
 							// No more packets to send
 							stop();
@@ -1372,6 +1409,29 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 							if (msg instanceof RTMPMessage) {
 								RTMPMessage rtmpMessage = (RTMPMessage) msg;
 								IRTMPEvent body = rtmpMessage.getBody();
+								if (!receiveAudio && body instanceof AudioData) {
+									// The user doesn't want to get audio packets
+									((IStreamData) body).getData().release();
+									if (sendBlankAudio) {
+										// Send reset audio packet
+										sendBlankAudio = false;
+										body = new AudioData();
+										// We need a zero timestamp
+										if (lastMessage != null) {
+											body.setTimestamp(lastMessage.getTimestamp()-timestampOffset);
+										} else {
+											body.setTimestamp(-timestampOffset);
+										}
+										rtmpMessage.setBody(body);
+									} else {
+										continue;
+									}
+								} else if (!receiveVideo && body instanceof VideoData) {
+									// The user doesn't want to get video packets
+									((IStreamData) body).getData().release();
+									continue;
+								}
+								
 								// Adjust timestamp when playing lists
 								body.setTimestamp(body.getTimestamp() + timestampOffset);
 								if (okayToSendMessage(body)) {
@@ -1381,6 +1441,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 								} else {
 									pendingMessage = rtmpMessage;
 								}
+								ensurePullAndPushRunning();
 								break;
 							}
 						}
@@ -1840,7 +1901,17 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 						videoFrameDropper.sendPacket(rtmpMessage);
 					}
 				} else if (body instanceof AudioData) {
-					if (!receiveAudio || !audioBucket.acquireToken(size, 0)) {
+					if (!receiveAudio && sendBlankAudio) {
+						// Send blank audio packet to reset player
+						sendBlankAudio = false;
+						body = new AudioData();
+						if (lastMessage != null) {
+							body.setTimestamp(lastMessage.getTimestamp());
+						} else {
+							body.setTimestamp(0);
+						}
+						rtmpMessage.setBody(body);
+					} else if (!receiveAudio || !audioBucket.acquireToken(size, 0)) {
 						return;
 					}
 				}
