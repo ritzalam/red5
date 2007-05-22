@@ -55,7 +55,9 @@ public class RTMPMinaConnection extends RTMPConnection implements
 	@Override
 	public void close() {
 		super.close();
-		ioSession.close();
+		if (ioSession != null) {
+			ioSession.close();
+		}
 		// deregister with jmx
 		JMXAgent.unregisterMBean(oName);
 	}
@@ -98,18 +100,27 @@ public class RTMPMinaConnection extends RTMPConnection implements
 	/** {@inheritDoc} */
 	@Override
 	public long getPendingMessages() {
+		if (ioSession == null)
+			return 0;
+		
 		return ioSession.getScheduledWriteRequests();
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public long getReadBytes() {
+		if (ioSession == null)
+			return 0;
+		
 		return ioSession.getReadBytes();
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public long getWrittenBytes() {
+		if (ioSession == null)
+			return 0;
+		
 		return ioSession.getWrittenBytes();
 	}
 
@@ -120,7 +131,7 @@ public class RTMPMinaConnection extends RTMPConnection implements
 	/** {@inheritDoc} */
 	@Override
 	public boolean isConnected() {
-		return super.isConnected() && ioSession.isConnected();
+		return super.isConnected() && (ioSession != null) && ioSession.isConnected();
 	}
 
 	/** {@inheritDoc} */
@@ -132,7 +143,9 @@ public class RTMPMinaConnection extends RTMPConnection implements
 	/** {@inheritDoc} */
 	@Override
 	public void rawWrite(ByteBuffer out) {
-		ioSession.write(out);
+		if (ioSession != null) {
+			ioSession.write(out);
+		}
 	}
 
 	/**
@@ -159,7 +172,9 @@ public class RTMPMinaConnection extends RTMPConnection implements
 	/** {@inheritDoc} */
 	@Override
 	public void write(Packet out) {
-		writingMessage(out);
-		ioSession.write(out);
+		if (ioSession != null) {
+			writingMessage(out);
+			ioSession.write(out);
+		}
 	}
 }
