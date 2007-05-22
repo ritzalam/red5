@@ -200,4 +200,13 @@ public class DebugProxyHandler extends IoHandlerAdapter implements
 		}
 	}
 
+	/** {@inheritDoc} */
+    @Override
+	public void exceptionCaught(IoSession session, Throwable cause)
+			throws Exception {
+    	if (log.isDebugEnabled()) {
+    		log.debug("Exception caught", cause);
+    	}
+	}
+
 }
