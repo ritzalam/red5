@@ -16,6 +16,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoFilter;
+import org.apache.mina.common.IoHandlerAdapter;
 import org.apache.mina.common.SimpleByteBufferAllocator;
 import org.apache.mina.common.ThreadModel;
 import org.apache.mina.filter.LoggingFilter;
@@ -71,7 +72,7 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 
 	private ExecutorService ioExecutor;
 
-	private RTMPMinaIoHandler ioHandler;
+	private IoHandlerAdapter ioHandler;
 
 	private int ioThreads = DEFAULT_IO_THREADS;
 
@@ -126,7 +127,7 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 		this.eventThreadsQueue = eventThreadsQueue;
 	}
 
-	public void setIoHandler(RTMPMinaIoHandler rtmpIOHandler) {
+	public void setIoHandler(IoHandlerAdapter rtmpIOHandler) {
 		this.ioHandler = rtmpIOHandler;
 	}
 

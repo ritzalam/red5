@@ -1,5 +1,7 @@
 package org.red5.server.net.rtmp;
 
+import org.apache.mina.common.IoHandlerAdapter;
+
 
 /** 
  * 
@@ -14,7 +16,7 @@ public interface RTMPMinaTransportMBean {
 	public void setEventThreadsKeepalive(int eventThreadsKeepalive);
 	public void setEventThreadsQueue(int eventThreadsQueue);
 	public void setIsLoggingTraffic(boolean isLoggingTraffic);
-	public void setIoHandler(RTMPMinaIoHandler rtmpIOHandler);
+	public void setIoHandler(IoHandlerAdapter rtmpIOHandler);
 	public void setReceiveBufferSize(int receiveBufferSize);
 	public void setSendBufferSize(int sendBufferSize);
 	public void setTcpNoDelay(boolean tcpNoDelay);
