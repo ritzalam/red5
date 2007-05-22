@@ -144,7 +144,7 @@
 			 excludes="**/*.jsp,org/red5/server/script/**" listfiles="false"/>
 	</target>
 	<!-- Demos -->
-	<target name="compile_demos">
+	<target name="compile_demos" depends="prepare">
 		<javac sourcepath="" srcdir="${webapps.dir}/echo/WEB-INF/src" destdir="${webapps.dir}${tmp.war.dir}/echo/WEB-INF/classes"
 			 classpathref="webapps.classpath" optimize="${build.optimize}" verbose="${build.verbose}"
 			 fork="${build.fork}" nowarn="${build.nowarn}" deprecation="${build.deprecation}"
@@ -175,14 +175,14 @@
 			 debug="${debug.state}" compiler="${compiler}" source="${java.target_version}" target="${java.target_version}"/>
 	</target>
 	<!-- Scripting -->
-	<target name="compile_script" if="java6.installed">
+	<target name="compile_script" if="java6.installed" depends="prepare">
 		<javac sourcepath="" srcdir="${src.dir}" destdir="${classes.dir}" classpathref="script.classpath"
 			 optimize="${build.optimize}" verbose="${build.verbose}" fork="${build.fork}" nowarn="${build.nowarn}"
 			 deprecation="${build.deprecation}" debug="${debug.state}" compiler="${compiler}"
 			 source="${java.target_version}" target="${java.target_version}" memoryMaximumSize="1024m"
 			 includes="org/red5/server/script/**" listfiles="false"/>
 	</target>
-	<target name="compile_script_compatibility" unless="java6.installed">
+	<target name="compile_script_compatibility" unless="java6.installed" depends="prepare">
 		<javac sourcepath="" srcdir="${src.dir}" destdir="${classes.dir}" classpathref="script_compatibility.classpath"
 			 optimize="${build.optimize}" verbose="${build.verbose}" fork="${build.fork}" nowarn="${build.nowarn}"
 			 deprecation="${build.deprecation}" debug="${debug.state}" compiler="${compiler}"
