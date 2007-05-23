@@ -50,7 +50,7 @@ import org.springframework.web.context.WebApplicationContext;
 public class MainServlet extends HttpServlet implements ServletContextListener {
 
 	// Initialize Logging
-	public static Logger logger = LogManager.getLogger(MainServlet.class
+	public static Logger logger = Logger.getLogger(MainServlet.class
 			.getName());
 
 	protected static String red5Config = "/WEB-INF/applicationContext.xml";

@@ -768,6 +768,8 @@
 				<exclude name="jasper*.jar"/>
 				<exclude name="ehcache-1.2.3.jar"/>
 				<exclude name="whirlycache-1.0.1_lite.jar"/>
+				<exclude name="GroboUtils-5-core.jar"/>
+				<exclude name="junit*.jar"/>
 			</lib>
 			<manifest>
 				<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>
@@ -830,6 +832,8 @@
 				<exclude name="jasper*.jar"/>
 				<exclude name="ehcache-1.2.3.jar"/>
 				<exclude name="whirlycache-1.0.1_lite.jar"/>
+				<exclude name="GroboUtils-5-core.jar"/>
+				<exclude name="junit*.jar"/>
 			</lib>
 			<lib dir="${lib.dir}/java5">
 				<exclude name="*.properties"/>
