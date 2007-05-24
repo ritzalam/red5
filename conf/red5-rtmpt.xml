@@ -87,6 +87,21 @@
 					<property name="acceptors" value="2" />
 					<property name="confidentialPort" value="8443" />
 				</bean>
+				<!-- Uncomment to enable SSL, you should setup your own keystore and truststore --> 
+				<!-- see: http://docs.codehaus.org/display/JETTY/How+to+configure+SSL --> 
+				<!--
+				<bean id="sslConnector" 
+				    class="org.mortbay.jetty.security.SslSocketConnector">
+				    <property name="host" value="127.0.0.1" />
+					<property name="port" value="1936" />
+					<property name="maxIdleTime" value="30000" />
+					<property name="keystore" value="${red5.config_root}/keystore.jmx" />
+					<property name="password" value="password" />
+					<property name="keyPassword" value="password" />
+					<property name="truststore" value="${red5.config_root}/truststore.jmx" />
+					<property name="trustPassword" value="trustword" />
+				</bean>	
+				-->
 			</list>
 		</property>
 
