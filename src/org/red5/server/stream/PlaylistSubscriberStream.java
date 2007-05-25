@@ -1130,14 +1130,12 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			if (state != State.PLAYING) {
 				throw new IllegalStateException();
 			}
-			if (isPullMode) {
-				state = State.PAUSED;
-				releasePendingMessage();
-				clearWaitJobs();
-				sendClearPing();
-				sendPauseStatus(currentItem);
-				notifyItemPause(currentItem, position);
-			}
+			state = State.PAUSED;
+			releasePendingMessage();
+			clearWaitJobs();
+			sendClearPing();
+			sendPauseStatus(currentItem);
+			notifyItemPause(currentItem, position);
 		}
 
         /**
@@ -1150,10 +1148,10 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			if (state != State.PAUSED) {
 				throw new IllegalStateException();
 			}
+			state = State.PLAYING;
+			sendReset();
+			sendResumeStatus(currentItem);
 			if (isPullMode) {
-				state = State.PLAYING;
-				sendReset();
-				sendResumeStatus(currentItem);
 				sendVODSeekCM(msgIn, position);
 				notifyItemResume(currentItem, position);
 				playbackStart = System.currentTimeMillis() - position;
@@ -1163,6 +1161,9 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				} else {
 					ensurePullAndPushRunning();
 				}
+			} else {
+				notifyItemResume(currentItem, position);
+				videoFrameDropper.reset(VideoFrameDropper.SEND_KEYFRAMES_CHECK);
 			}
 		}
 
@@ -1869,6 +1870,12 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 					}
 
 					if (videoCodec == null || videoCodec.canDropFrames()) {
+						if (state == State.PAUSED) {
+							// The subscriber paused the video
+							videoFrameDropper.dropPacket(rtmpMessage);
+							return;
+						}
+						
 						// Only check for frame dropping if the codec supports it
 						long pendingVideos = pendingVideoMessages();
 						if (!videoFrameDropper.canSendPacket(rtmpMessage,
@@ -1911,7 +1918,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 							body.setTimestamp(0);
 						}
 						rtmpMessage.setBody(body);
-					} else if (!receiveAudio || !audioBucket.acquireToken(size, 0)) {
+					} else if (state == State.PAUSED || !receiveAudio || !audioBucket.acquireToken(size, 0)) {
 						return;
 					}
 				}
