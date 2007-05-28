@@ -52,6 +52,10 @@ public abstract class BasicScope extends PersistableAttributeStore implements
      * Scope persistence storate type
      */
 	protected String persistenceClass;
+	/**
+	 * Set to true to prevent the scope from being freed upon disconnect.
+	 */
+	protected boolean keepOnDisconnect = false;
 
     /**
      * Constructor for basic scope
@@ -111,7 +115,7 @@ public abstract class BasicScope extends PersistableAttributeStore implements
      */
 	public void removeEventListener(IEventListener listener) {
 		listeners.remove(listener);
-		if (ScopeUtils.isRoom(this) && isPersistent() && listeners.isEmpty()) {
+		if (!keepOnDisconnect && ScopeUtils.isRoom(this) && isPersistent() && listeners.isEmpty()) {
 			// Delete empty rooms
 			parent.removeChildScope(this);
 		}

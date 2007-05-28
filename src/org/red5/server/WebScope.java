@@ -146,6 +146,8 @@ public class WebScope extends Scope implements ServletContextAware {
 			}
 		}
 		init();
+		// We don't want to have configured scopes to get freed when a client disconnects.
+		keepOnDisconnect = true;
 	}
 
 }
