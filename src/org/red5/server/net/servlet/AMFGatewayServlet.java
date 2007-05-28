@@ -141,10 +141,13 @@ public class AMFGatewayServlet extends HttpServlet {
 		RemotingPacket packet = (RemotingPacket) codecFactory
 				.getSimpleDecoder().decode(null, reqBuffer);
 		String path = req.getContextPath();
+		if (path == null) {
+			path = "";
+		}
 		if (req.getPathInfo() != null) {
 			path += req.getPathInfo();
 		}
-		if (path.charAt(0) == '/') {
+		if (path.length() > 0 && path.charAt(0) == '/') {
 			path = path.substring(1);
 		}
 		packet.setScopePath(path);
