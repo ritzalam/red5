@@ -151,24 +151,28 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 				throw new RuntimeException("AMF0 array type expected but found " + type);
 			}
 			int elements = in.getInt();
-			if (elements != 1) {
-				throw new RuntimeException("Array containing one element expected but found " + elements + " elements");
+			boolean isAMF3 = false;
+			Object value = null;
+			if (elements > 0) {
+				if (elements != 1) {
+					throw new RuntimeException("Array containing one element expected but found " + elements + " elements");
+				}
+				
+				byte amf3Check = in.get();
+				in.position(in.position()-1);
+				isAMF3 = (amf3Check == AMF.TYPE_AMF3_OBJECT);
+				if (isAMF3) {
+					input = new org.red5.io.amf3.Input(in);
+				} else {
+					input = new Input(in);
+				}
+				// Prepare remoting mode
+				input.reset(ReferenceMode.MODE_REMOTING);
+				
+				value = deserializer.deserialize(input);
+	
+				// log.info(value);
 			}
-			
-			byte amf3Check = in.get();
-			in.position(in.position()-1);
-			boolean isAMF3 = (amf3Check == AMF.TYPE_AMF3_OBJECT);
-			if (isAMF3) {
-				input = new org.red5.io.amf3.Input(in);
-			} else {
-				input = new Input(in);
-			}
-			// Prepare remoting mode
-			input.reset(ReferenceMode.MODE_REMOTING);
-			
-			Object value = deserializer.deserialize(input);
-
-			// log.info(value);
 
 			String serviceName;
 			String serviceMethod;
@@ -185,7 +189,7 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 			if (log.isDebugEnabled()) {
 				log.debug("Service: " + serviceName + " Method: " + serviceMethod);
 			}
-			Object[] args = new Object[] { value };
+			Object[] args = value != null ? new Object[] { value } : new Object[0];
 			if (log.isDebugEnabled()) {
 				for (Object element : args) {
 					log.debug("> " + element);
