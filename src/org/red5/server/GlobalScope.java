@@ -77,6 +77,11 @@ public class GlobalScope extends Scope implements IGlobalScope {
 		this.server = server;
 	}
 
+    /** {@inheritDoc} */
+	public IServer getServer() {
+		return server;
+	}
+
     /**
      *  Register global scope in server instance, then call initialization
      */

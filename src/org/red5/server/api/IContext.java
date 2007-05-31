@@ -91,7 +91,7 @@ public interface IContext extends ResourcePatternResolver {
 	 * 
 	 * @return	global scope reference
 	 */
-    IScope getGlobalScope();
+    IGlobalScope getGlobalScope();
 
 	/**
 	 * Returns service by name. 

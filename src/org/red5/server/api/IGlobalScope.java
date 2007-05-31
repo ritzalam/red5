@@ -34,4 +34,11 @@ public interface IGlobalScope extends IScope {
 	 */
 	public void register();
 
+	/**
+	 * Return the server this global scope runs in.
+	 * 
+	 * @return the server
+	 */
+	public IServer getServer();
+	
 }

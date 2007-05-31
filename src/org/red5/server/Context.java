@@ -23,6 +23,7 @@ import java.io.IOException;
 
 import org.red5.server.api.IClientRegistry;
 import org.red5.server.api.IContext;
+import org.red5.server.api.IGlobalScope;
 import org.red5.server.api.IMappingStrategy;
 import org.red5.server.api.IScope;
 import org.red5.server.api.IScopeHandler;
@@ -99,7 +100,7 @@ public class Context implements IContext, ApplicationContextAware, ContextMBean 
      * Return global scope
      * @return            Global scope
      */
-	public IScope getGlobalScope() {
+	public IGlobalScope getGlobalScope() {
 		return scopeResolver.getGlobalScope();
 	}
 

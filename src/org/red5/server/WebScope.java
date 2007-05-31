@@ -149,5 +149,10 @@ public class WebScope extends Scope implements ServletContextAware {
 		// We don't want to have configured scopes to get freed when a client disconnects.
 		keepOnDisconnect = true;
 	}
+	
+    /** {@inheritDoc} */
+	public IServer getServer() {
+		return server;
+	}
 
 }

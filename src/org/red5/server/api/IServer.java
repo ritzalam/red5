@@ -22,6 +22,9 @@ package org.red5.server.api;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.red5.server.api.listeners.IConnectionListener;
+import org.red5.server.api.listeners.IScopeListener;
+
 /**
  * The interface that represents the Red5 server.
  *  
@@ -110,5 +113,33 @@ public interface IServer {
 	 * @return Iterator for global scopes objects
 	 */
 	public Iterator<IGlobalScope> getGlobalScopes();
+
+	/**
+	 * Add listener to get notified about scope events.
+	 * 
+	 * @param listener the listener to add
+	 */
+	public void addListener(IScopeListener listener);
+
+	/**
+	 * Add listener to get notified about connection events.
+	 * 
+	 * @param listener the listener to add
+	 */
+	public void addListener(IConnectionListener listener);
+
+	/**
+	 * Remove listener that got notified about scope events.
+	 * 
+	 * @param listener the listener to remove
+	 */
+	public void removeListener(IScopeListener listener);
+
+	/**
+	 * Remove listener that got notified about connection events.
+	 * 
+	 * @param listener the listener to remove
+	 */
+	public void removeListener(IConnectionListener listener);
 
 }

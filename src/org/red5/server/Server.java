@@ -21,12 +21,18 @@ package org.red5.server;
 
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.red5.server.api.IConnection;
 import org.red5.server.api.IGlobalScope;
+import org.red5.server.api.IScope;
 import org.red5.server.api.IServer;
+import org.red5.server.api.listeners.IConnectionListener;
+import org.red5.server.api.listeners.IScopeListener;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.style.ToStringCreator;
@@ -58,6 +64,10 @@ public class Server implements IServer, ApplicationContextAware {
      *  Constant for empty string
      */
 	private static final String EMPTY = "";
+
+	public Set<IScopeListener> scopeListeners = new CopyOnWriteArraySet<IScopeListener>();
+
+	public Set<IConnectionListener> connectionListeners = new CopyOnWriteArraySet<IConnectionListener>();
 
     /**
      * Setter for Spring application context
@@ -237,6 +247,70 @@ public class Server implements IServer, ApplicationContextAware {
 	@Override
 	public String toString() {
 		return new ToStringCreator(this).append(mapping).toString();
+	}
+
+	/** {@inheritDoc} */
+	public void addListener(IScopeListener listener) {
+		scopeListeners.add(listener);
+	}
+
+	/** {@inheritDoc} */
+	public void addListener(IConnectionListener listener) {
+		connectionListeners.add(listener);
+	}
+
+	/** {@inheritDoc} */
+	public void removeListener(IScopeListener listener) {
+		scopeListeners.remove(listener);
+	}
+
+	/** {@inheritDoc} */
+	public void removeListener(IConnectionListener listener) {
+		connectionListeners.remove(listener);
+	}
+
+	/**
+	 * Notify listeners about a newly created scope.
+	 * 
+	 * @param scope the scope that was created
+	 */
+	protected void notifyScopeCreated(IScope scope) {
+		for (IScopeListener listener: scopeListeners) {
+			listener.notifyScopeCreated(scope);
+		}
+	}
+
+	/**
+	 * Notify listeners that a scope was removed.
+	 * 
+	 * @param scope the scope that was removed
+	 */
+	protected void notifyScopeRemoved(IScope scope) {
+		for (IScopeListener listener: scopeListeners) {
+			listener.notifyScopeRemoved(scope);
+		}
+	}
+
+	/**
+	 * Notify listeners that a new connection was established.
+	 * 
+	 * @param conn the new connection
+	 */
+	protected void notifyConnected(IConnection conn) {
+		for (IConnectionListener listener: connectionListeners) {
+			listener.notifyConnected(conn);
+		}
+	}
+
+	/**
+	 * Notify listeners that a connection was disconnected.
+	 * 
+	 * @param conn the disconnected connection
+	 */
+	protected void notifyDisconnected(IConnection conn) {
+		for (IConnectionListener listener: connectionListeners) {
+			listener.notifyDisconnected(conn);
+		}
 	}
 
 }

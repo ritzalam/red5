@@ -20,7 +20,7 @@
 	</bean>
 
 	<bean id="web.handler" 
-	    class="org.red5.server.adapter.ApplicationAdapter" 
+	    class="org.red5.webapps.admin.Application" 
 		singleton="true" />
 
 	<bean id="scopes.service" 

@@ -34,9 +34,11 @@ import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IContext;
+import org.red5.server.api.IGlobalScope;
 import org.red5.server.api.IScope;
 import org.red5.server.api.IScopeAware;
 import org.red5.server.api.IScopeHandler;
+import org.red5.server.api.IServer;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.persistence.PersistenceUtils;
 import org.red5.server.api.statistics.IScopeStatistics;
@@ -349,6 +351,12 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 				return false;
 			}
 		}
+		if (scope instanceof IScope) {
+			final IServer server = getServer();
+			if (server instanceof Server) {
+				((Server) server).notifyScopeCreated((IScope) scope);
+			}
+		}
 		if (log.isDebugEnabled()) {
 			log.debug("Add child scope: " + scope + " to " + this);
 		}
@@ -401,6 +409,13 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 		}
 		addEventListener(conn);
 		connectionStats.increment();
+		
+		if (this.equals(conn.getScope())) {
+			final IServer server = getServer();
+			if (server instanceof Server) {
+				((Server) server).notifyConnected(conn);
+			}
+		}
 		return true;
 	}
 
@@ -468,6 +483,13 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 			}
 			removeEventListener(conn);
 			connectionStats.decrement();
+			
+			if (this.equals(conn.getScope())) {
+				final IServer server = getServer();
+				if (server instanceof Server) {
+					((Server) server).notifyDisconnected(conn);
+				}
+			}
 		}
 		if (hasParent()) {
 			parent.disconnect(conn);
@@ -900,6 +922,13 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 			log.debug("Remove child scope");
 			getHandler().removeChildScope(scope);
 		}
+		
+		if (scope instanceof IScope) {
+			final IServer server = getServer();
+			if (server instanceof Server) {
+				((Server) server).notifyScopeRemoved((IScope) scope);
+			}
+		}
 	}
 
 	/**
@@ -1025,4 +1054,23 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 		serviceHandlers.remove(name);
 	}
 
+	/**
+	 * Return the server instance connected to this scope.
+	 * 
+	 * @return the server instance
+	 */
+	public IServer getServer() {
+		if (!hasParent())
+			return null;
+		
+		final IScope parent = getParent();
+		if (parent instanceof Scope) {
+			return ((Scope) parent).getServer();
+		} else if (parent instanceof IGlobalScope) {
+			return ((IGlobalScope) parent).getServer();
+		} else {
+			return null;
+		}
+	}
+	
 }

@@ -84,6 +84,8 @@
 		<mkdir dir="${dist.dir}"/>
 		<mkdir dir="${testclass.dir}"/>
 		<mkdir dir="${testreports.dir}"/>
+		<mkdir dir="${webapps.dir}/admin/WEB-INF/classes"/>
+		<mkdir dir="${webapps.dir}/admin/WEB-INF/lib"/>
 		<mkdir dir="${webapps.dir}/echo/WEB-INF/classes"/>
 		<mkdir dir="${webapps.dir}/echo/WEB-INF/lib"/>
 		<mkdir dir="${webapps.dir}/fitcDemo/WEB-INF/classes"/>
@@ -145,6 +147,10 @@
 	</target>
 	<!-- Demos -->
 	<target name="compile_demos" depends="prepare">
+		<javac sourcepath="" srcdir="${webapps.dir}/admin/WEB-INF/src" destdir="${webapps.dir}${tmp.war.dir}/admin/WEB-INF/classes"
+			 classpathref="webapps.classpath" optimize="${build.optimize}" verbose="${build.verbose}"
+			 fork="${build.fork}" nowarn="${build.nowarn}" deprecation="${build.deprecation}"
+			 debug="${debug.state}" compiler="${compiler}" source="${java.target_version}" target="${java.target_version}"/>
 		<javac sourcepath="" srcdir="${webapps.dir}/echo/WEB-INF/src" destdir="${webapps.dir}${tmp.war.dir}/echo/WEB-INF/classes"
 			 classpathref="webapps.classpath" optimize="${build.optimize}" verbose="${build.verbose}"
 			 fork="${build.fork}" nowarn="${build.nowarn}" deprecation="${build.deprecation}"
@@ -209,6 +215,7 @@
 			 excludes="**/*.jsp,                 org/red5/server/script/**,                 org/red5/server/jetty/**,                 org/red5/server/midi/**,                 org/red5/server/net/rtmpt/*Loader.java,                 org/red5/server/net/servlet/RTMPTServlet.java,                 org/red5/server/net/servlet/StatisticsServlet.java,                 org/red5/server/net/servlet/ZAMFGatewayServlet.java,                 org/red5/server/ContextLoader.java,                 org/red5/server/DebugPooledByteBufferAllocator.java,                 org/red5/server/JettyLoader.java,                 org/red5/server/Standalone.java,                 org/red5/server/TomcatLoader.java"
 			 listfiles="false"/>
 		<!-- only certain classes from selected demos are copied to the war -->
+		<mkdir dir="${classes.dir}/tmp/admin/WEB-INF/classes"/>
 		<mkdir dir="${classes.dir}/tmp/echo/WEB-INF/classes"/>
 		<mkdir dir="${classes.dir}/tmp/fitcDemo/WEB-INF/classes"/>
 		<mkdir dir="${classes.dir}/tmp/oflaDemo/WEB-INF/classes"/>
@@ -221,6 +228,7 @@
 		</antcall>
 		<!-- copy compiled demo classes to the primary war classes directory -->
 		<copy todir="${classes.dir}/WEB-INF/classes">
+			<fileset dir="${classes.dir}/tmp/admin/WEB-INF/classes"/>
 			<fileset dir="${classes.dir}/tmp/echo/WEB-INF/classes"/>
 			<fileset dir="${classes.dir}/tmp/fitcDemo/WEB-INF/classes"/>
 			<fileset dir="${classes.dir}/tmp/oflaDemo/WEB-INF/classes"/>
@@ -261,6 +269,7 @@
 			 excludes="**/*.jsp,                 org/red5/server/script/**,                 org/red5/server/jetty/**,                 org/red5/server/midi/**,                 org/red5/server/net/rtmpt/*Loader.java,                 org/red5/server/net/servlet/RTMPTServlet.java,                 org/red5/server/net/servlet/StatisticsServlet.java,                 org/red5/server/net/servlet/ZAMFGatewayServlet.java,                 org/red5/server/ContextLoader.java,                 org/red5/server/DebugPooledByteBufferAllocator.java,                 org/red5/server/JettyLoader.java,                 org/red5/server/Standalone.java,                 org/red5/server/TomcatLoader.java"
 			 listfiles="false"/>
 		<!-- only certain classes from selected demos are copied to the war -->
+		<mkdir dir="${classes.dir}/tmp/admin/WEB-INF/classes"/>
 		<mkdir dir="${classes.dir}/tmp/echo/WEB-INF/classes"/>
 		<mkdir dir="${classes.dir}/tmp/fitcDemo/WEB-INF/classes"/>
 		<mkdir dir="${classes.dir}/tmp/oflaDemo/WEB-INF/classes"/>
@@ -273,6 +282,7 @@
 		</antcall>
 		<!-- copy compiled demo classes to the primary war classes directory -->
 		<copy todir="${classes.dir}/WEB-INF/classes">
+			<fileset dir="${classes.dir}/tmp/admin/WEB-INF/classes"/>
 			<fileset dir="${classes.dir}/tmp/echo/WEB-INF/classes"/>
 			<fileset dir="${classes.dir}/tmp/fitcDemo/WEB-INF/classes"/>
 			<fileset dir="${classes.dir}/tmp/oflaDemo/WEB-INF/classes"/>
@@ -518,6 +528,11 @@
 		</copy>
 		<antcall target="jar_java5" inheritAll="true" inheritRefs="true"/>
 		<antcall target="jar_java6" inheritAll="true" inheritRefs="true"/>
+		<jar destfile="${webapps.dir}/admin/WEB-INF/lib/admin.jar">
+			<fileset dir="${webapps.dir}/admin/WEB-INF/classes">
+				<include name="**"/>
+			</fileset>
+		</jar>
 		<jar destfile="${webapps.dir}/echo/WEB-INF/lib/echo.jar">
 			<fileset dir="${webapps.dir}/echo/WEB-INF/classes">
 				<include name="**"/>
