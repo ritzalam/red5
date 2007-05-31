@@ -60,7 +60,7 @@ public class AdminHelpers {
 		assert args.length % 2 == 0;
 		Map<Object, Object> result = new HashMap<Object, Object>();
 		for (int i=0; i<args.length; i+=2) {
-			result.put(args[i*2], args[i*2+1]);
+			result.put(args[i], args[i+1]);
 		}
 		return result;
 	}
