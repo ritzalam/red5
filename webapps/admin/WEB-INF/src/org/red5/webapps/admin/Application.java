@@ -23,6 +23,7 @@ import org.red5.server.adapter.ApplicationAdapter;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IGlobalScope;
 import org.red5.server.api.IServer;
+import org.red5.server.api.Red5;
 import org.red5.server.api.listeners.IConnectionListener;
 import org.red5.server.api.listeners.IScopeListener;
 import org.red5.server.api.persistence.IPersistable;
@@ -56,7 +57,7 @@ public class Application extends ApplicationAdapter {
 		if (!super.appConnect(conn, params))
 			return false;
 		
-		final AdminListeners listeners = new AdminListeners(conn);
+		final AdminListeners listeners = new AdminListeners(conn, this);
 		conn.setAttribute(LISTENERS, listeners);
 		
 		final IServer server = getServer(conn);
@@ -75,9 +76,22 @@ public class Application extends ApplicationAdapter {
 			server.removeListener((IScopeListener) listeners);
 			server.removeListener((IConnectionListener) listeners);
 			conn.removeAttribute(LISTENERS);
-			listeners.setConnection(null);
+			listeners.cleanup();
 		}
 		super.appDisconnect(conn);
+	}
+	
+	/**
+	 * Set interval to update connection informations periodically.
+	 * 
+	 * @param interval interval in milliseconds
+	 */
+	public void setConnectionUpdateInterval(int interval) {
+		IConnection conn = Red5.getConnectionLocal();
+		final AdminListeners listeners = (AdminListeners) conn.getAttribute(LISTENERS);
+		if (listeners != null) {
+			listeners.setConnectionUpdateInterval(interval);
+		}
 	}
 	
 }

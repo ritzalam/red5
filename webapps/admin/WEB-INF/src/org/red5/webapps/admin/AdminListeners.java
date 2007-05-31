@@ -19,10 +19,17 @@ package org.red5.webapps.admin;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
 import org.red5.server.api.listeners.IConnectionListener;
 import org.red5.server.api.listeners.IScopeListener;
+import org.red5.server.api.scheduling.IScheduledJob;
+import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.api.service.ServiceUtils;
 
 /**
@@ -39,77 +46,92 @@ public class AdminListeners implements IScopeListener, IConnectionListener {
 	 */
 	private IConnection conn;
 	
+	/** Scheduling service to use. */
+	private ISchedulingService schedulingService;
+	
+	/** Hold currently active connections. */
+	private Map<Integer, IConnection> connections = new ConcurrentHashMap<Integer, IConnection>();
+	
+	/** Scheduled job id for periodic connection updates. */
+	private String updateGlobalConnectionsJob;
+	
 	/**
 	 * Create new listeners and associate with connection.
 	 * 
 	 * @param conn connection to associate with
 	 */
-	public AdminListeners(IConnection conn) {
-		setConnection(conn);
-	}
-	
-	/**
-	 * Set the connection to send notifications to.
-	 * 
-	 * @param conn the connection
-	 */
-	protected void setConnection(IConnection conn) {
+	public AdminListeners(IConnection conn, ISchedulingService schedulingService) {
 		this.conn = conn;
+		this.schedulingService = schedulingService;
 	}
 	
 	/**
-	 * Return dotted path for a given scope.
-	 * 
-	 * @param scope the scope to build the path for
-	 * @return the dotted path
+	 * Release references to any objects.
 	 */
-	private String getScopePath(IScope scope) {
-		StringBuilder builder = new StringBuilder();
-		while (scope != null && scope.hasParent()) {
-			builder.insert(0, scope.getName());
-			if (scope.hasParent())
-				builder.insert(0, "/");
-			scope = scope.getParent();
-		}
-		return builder.toString();
+	protected void cleanup() {
+		conn = null;
+		connections.clear();
+		setConnectionUpdateInterval(0);
 	}
 	
 	/** {@inheritDoc} */
 	public void notifyScopeCreated(IScope scope) {
-		final String path = getScopePath(scope);
+		final String path = AdminHelpers.getScopePath(scope);
 		ServiceUtils.invokeOnConnection(conn, "notifyScopeCreated", new Object[]{path});
 	}
 
 	/** {@inheritDoc} */
 	public void notifyScopeRemoved(IScope scope) {
-		final String path = getScopePath(scope);
+		final String path = AdminHelpers.getScopePath(scope);
 		ServiceUtils.invokeOnConnection(conn, "notifyScopeRemoved", new Object[]{path});
 	}
 
-	/**
-	 * Return informations about a connection.
-	 * 
-	 * @param conn the connection to return informations for
-	 * @return informations
-	 */
-	private Object[] getConnectionParams(IConnection conn) {
-		final String path = getScopePath(conn.getScope());
-		return new Object[] {
-				conn.getHost(),
-				path,
-				conn.getType(),
-				conn.getRemoteAddresses(),
-				conn.getConnectParams()};
-	}
-	
 	/** {@inheritDoc} */
 	public void notifyConnected(IConnection conn) {
-		ServiceUtils.invokeOnConnection(conn, "notifyConnected", getConnectionParams(conn));
+		ServiceUtils.invokeOnConnection(conn, "notifyConnected", new Object[]{AdminHelpers.getConnectionParams(conn)});
+		connections.put(Integer.valueOf(conn.hashCode()), conn);
 	}
 
 	/** {@inheritDoc} */
 	public void notifyDisconnected(IConnection conn) {
-		ServiceUtils.invokeOnConnection(conn, "notifyDisconnected", getConnectionParams(conn));
+		ServiceUtils.invokeOnConnection(conn, "notifyDisconnected", new Object[]{AdminHelpers.getConnectionParams(conn)});
+		connections.remove(Integer.valueOf(conn.hashCode()));
 	}
 
+	/**
+	 * Set interval to update connection informations periodically.
+	 * 
+	 * @param interval interval in milliseconds
+	 */
+	protected synchronized void setConnectionUpdateInterval(int interval) {
+		// Kill existing job
+		if (updateGlobalConnectionsJob != null) {
+			schedulingService.removeScheduledJob(updateGlobalConnectionsJob);
+			updateGlobalConnectionsJob = null;
+		}
+		
+		if (interval > 0) {
+			updateGlobalConnectionsJob = schedulingService.addScheduledJob(interval, new UpdateConnectionsJob());
+		}
+	}
+	
+	/** Periodically update connection informations. */
+	class UpdateConnectionsJob implements IScheduledJob {
+
+		/**
+		 * Send informations about currently active connections to the client.
+		 */
+		public void execute(ISchedulingService service) throws CloneNotSupportedException {
+			List<Map<Object, Object>> informations = new ArrayList<Map<Object, Object>>();
+			for (Map.Entry<Integer, IConnection> entry: connections.entrySet()) {
+				informations.add(AdminHelpers.getConnectionLiveParams(entry.getValue()));
+			}
+			
+			if (!informations.isEmpty() && conn.isConnected()) {
+				ServiceUtils.invokeOnConnection(conn, "updateConnections", new Object[]{informations});
+			}
+		}
+		
+	}
+	
 }
