@@ -124,7 +124,9 @@ public class AdminListeners implements IScopeListener, IConnectionListener {
 		public void execute(ISchedulingService service) throws CloneNotSupportedException {
 			List<Map<Object, Object>> informations = new ArrayList<Map<Object, Object>>();
 			for (Map.Entry<Integer, IConnection> entry: connections.entrySet()) {
-				informations.add(AdminHelpers.getConnectionLiveParams(entry.getValue()));
+				final IConnection existing = entry.getValue();
+				informations.add(AdminHelpers.getConnectionLiveParams(existing));
+				existing.ping();
 			}
 			
 			if (!informations.isEmpty() && conn.isConnected()) {
