@@ -125,6 +125,10 @@ public class AdminListeners implements IScopeListener, IConnectionListener {
 			List<Map<Object, Object>> informations = new ArrayList<Map<Object, Object>>();
 			for (Map.Entry<Integer, IConnection> entry: connections.entrySet()) {
 				final IConnection existing = entry.getValue();
+				if (!existing.isConnected()) {
+					continue;
+				}
+				
 				informations.add(AdminHelpers.getConnectionLiveParams(existing));
 				existing.ping();
 			}
