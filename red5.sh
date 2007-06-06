@@ -14,8 +14,5 @@ then
   exit
 fi
 
-# start registry
-$JAVA_HOME/bin/rmiregistry 9999 &
-
 # start red5
 exec $JAVA -Djava.security.manager -Djava.security.policy=conf/red5.policy -cp red5.jar:conf:$CLASSPATH org.red5.server.Standalone
