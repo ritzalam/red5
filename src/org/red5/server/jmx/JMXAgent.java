@@ -162,6 +162,20 @@ public class JMXAgent implements NotificationListener {
 		if (null != html) {
 			html.stop();
 		}
+		try {
+			//unregister all the currently registered red5 mbeans
+			String domain = JMXFactory.getDefaultDomain();
+			for (ObjectName oname : mbs.queryNames(
+					new ObjectName(domain + ":*"), null)) {
+				log.debug("Bean domain: " + oname.getDomain());
+				if (domain.equals(oname.getDomain())) {
+					unregisterMBean(oname);
+				}
+			}
+		} catch (Exception e) {
+			log.error("Exception unregistering mbeans", e);
+		}
+
 	}
 
 	/**

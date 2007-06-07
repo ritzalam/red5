@@ -18,18 +18,26 @@ public class DemoService {
 
 	protected static Log log = LogFactory.getLog(DemoService.class.getName());
 
+	private String formatDate(Date date) {
+		SimpleDateFormat formatter;
+		String pattern = "dd/MM/yy H:mm:ss";
+		Locale locale = new Locale("en", "US");
+		formatter = new SimpleDateFormat(pattern, locale);
+		return formatter.format(date);
+	}
+
 	/**
-     * Getter for property 'listOfAvailableFLVs'.
-     *
-     * @return Value for property 'listOfAvailableFLVs'.
-     */
-    public Map getListOfAvailableFLVs() {
+	 * Getter for property 'listOfAvailableFLVs'.
+	 *
+	 * @return Value for property 'listOfAvailableFLVs'.
+	 */
+	public Map getListOfAvailableFLVs() {
 		IScope scope = Red5.getConnectionLocal().getScope();
 		Map<String, Map> filesMap = new HashMap<String, Map>();
 		Map<String, Object> fileInfo;
 		try {
 			log.debug("getting the FLV files");
-			// Resource[] flvs = appCtx.getResources("../../../../flvs/*.flv");
+			//Resource[] flvs = scope.getResources("file://C:/dev/media/streams/*.flv");
 			Resource[] flvs = scope.getResources("streams/*.flv");
 			if (flvs != null) {
 				for (Resource flv : flvs) {
@@ -77,14 +85,6 @@ public class DemoService {
 			log.error(e);
 		}
 		return filesMap;
-	}
-
-	private String formatDate(Date date) {
-		SimpleDateFormat formatter;
-		String pattern = "dd/MM/yy H:mm:ss";
-		Locale locale = new Locale("en", "US");
-		formatter = new SimpleDateFormat(pattern, locale);
-		return formatter.format(date);
 	}
 
 }

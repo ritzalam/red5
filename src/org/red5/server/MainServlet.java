@@ -29,8 +29,8 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.http.HttpServlet;
 
-import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.red5.server.jmx.JMXAgent;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.web.context.ConfigurableWebApplicationContext;
@@ -50,8 +50,7 @@ import org.springframework.web.context.WebApplicationContext;
 public class MainServlet extends HttpServlet implements ServletContextListener {
 
 	// Initialize Logging
-	public static Logger logger = Logger.getLogger(MainServlet.class
-			.getName());
+	public static Logger logger = Logger.getLogger(MainServlet.class.getName());
 
 	protected static String red5Config = "/WEB-INF/applicationContext.xml";
 
@@ -65,6 +64,9 @@ public class MainServlet extends HttpServlet implements ServletContextListener {
 	 */
 	public void contextDestroyed(ServletContextEvent sce) {
 		logger.info("Webapp shutdown");
+
+		JMXAgent.shutdown();
+
 		applicationContext.close();
 	}
 
