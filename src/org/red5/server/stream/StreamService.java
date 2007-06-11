@@ -174,20 +174,16 @@ public class StreamService implements IStreamService {
 		IScope scope = conn.getScope();
 		IStreamCapableConnection streamConn = (IStreamCapableConnection) conn;
 		int streamId = getCurrentStreamId();
+		if (name == null || "".equals(name)) {
+			sendNSFailed((RTMPConnection) streamConn, "The stream name may not be empty.", name, streamId);
+			return;
+		}
 		IStreamSecurityService security = (IStreamSecurityService) ScopeUtils.getScopeService(scope, IStreamSecurityService.class);
 		if (security != null) {
 			Set<IStreamPlaybackSecurity> handlers = security.getStreamPlaybackSecurity();
 			for (IStreamPlaybackSecurity handler: handlers) {
 				if (!handler.isPlaybackAllowed(scope, name, start, length, flushPlaylist)) {
-					Status accessDenied = new Status(StatusCodes.NS_FAILED);
-					accessDenied.setClientid(streamId);
-					accessDenied.setDesciption("You are not allowed to play the stream.");
-					accessDenied.setDetails(name);
-					accessDenied.setLevel("error");
-
-					// FIXME: there should be a direct way to send the status
-					Channel channel = ((RTMPConnection) streamConn).getChannel((byte) (4 + ((streamId-1) * 5)));
-					channel.sendStatus(accessDenied);
+					sendNSFailed((RTMPConnection) streamConn, "You are not allowed to play the stream.", name, streamId);
 					return;
 				}
 			}
@@ -228,15 +224,7 @@ public class StreamService implements IStreamService {
 				stream.close();
 				streamConn.deleteStreamById(streamId);
 			}
-			Status accessDenied = new Status(StatusCodes.NS_PLAY_FAILED);
-			accessDenied.setClientid(streamId);
-			accessDenied.setDesciption(err.getMessage());
-			accessDenied.setDetails(name);
-			accessDenied.setLevel("error");
-
-			// FIXME: there should be a direct way to send the status
-			Channel channel = ((RTMPConnection) streamConn).getChannel((byte) (4 + ((streamId-1) * 5)));
-			channel.sendStatus(accessDenied);
+			sendNSFailed((RTMPConnection) streamConn, err.getMessage(), name, streamId);
 		}
 	}
 
@@ -303,7 +291,6 @@ public class StreamService implements IStreamService {
 
 	/** {@inheritDoc} */
     public void publish(String name, String mode) {
-		logger.debug("Publish - name: " + name + " mode: " + mode);
 		IConnection conn = Red5.getConnectionLocal();
 		if (!(conn instanceof IStreamCapableConnection)) {
 			return;
@@ -312,21 +299,17 @@ public class StreamService implements IStreamService {
 		IScope scope = conn.getScope();
 		IStreamCapableConnection streamConn = (IStreamCapableConnection) conn;
 		int streamId = getCurrentStreamId();
+		if (name == null || "".equals(name)) {
+			sendNSFailed((RTMPConnection) streamConn, "The stream name may not be empty.", name, streamId);
+			return;
+		}
 
 		IStreamSecurityService security = (IStreamSecurityService) ScopeUtils.getScopeService(scope, IStreamSecurityService.class);
 		if (security != null) {
 			Set<IStreamPublishSecurity> handlers = security.getStreamPublishSecurity();
 			for (IStreamPublishSecurity handler: handlers) {
 				if (!handler.isPublishAllowed(scope, name, mode)) {
-					Status accessDenied = new Status(StatusCodes.NS_FAILED);
-					accessDenied.setClientid(streamId);
-					accessDenied.setDesciption("You are not allowed to publish the stream.");
-					accessDenied.setDetails(name);
-					accessDenied.setLevel("error");
-
-					// FIXME: there should be a direct way to send the status
-					Channel channel = ((RTMPConnection) streamConn).getChannel((byte) (4 + ((streamId-1) * 5)));
-					channel.sendStatus(accessDenied);
+					sendNSFailed((RTMPConnection) streamConn, "You are not allowed to publish the stream.", name, streamId);
 					return;
 				}
 			}
@@ -489,4 +472,25 @@ public class StreamService implements IStreamService {
 			return (IBroadcastScope) basicScope;
 		}
 	}
+    
+    /**
+     * Send a <code>NetStream.Failed</code> message to the client.
+     * 
+     * @param conn
+     * @param description
+     * @param name
+     * @param streamId
+     */
+    private void sendNSFailed(RTMPConnection conn, String description, String name, int streamId) {
+		Status failed = new Status(StatusCodes.NS_FAILED);
+		failed.setClientid(streamId);
+		failed.setDesciption(description);
+		failed.setDetails(name);
+		failed.setLevel("error");
+
+		// FIXME: there should be a direct way to send the status
+		Channel channel = conn.getChannel((byte) (4 + ((streamId-1) * 5)));
+		channel.sendStatus(failed);
+    }
+    
 }
