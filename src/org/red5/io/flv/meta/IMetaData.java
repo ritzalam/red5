@@ -62,16 +62,16 @@ public interface IMetaData<K, V> extends IMeta {
 	public void setVideoCodecId(int id);
 
 	/**
-	 * Returns the framerate
-	 * @return  FLV framerate
+	 * Returns the framerate.
+	 * @return  FLV framerate in frames per second
 	 */
-	public int getframeRate();
+	public double getFrameRate();
 
 	/**
-	 * Sets the framerate
-	 * @param rate    FLV framerate
+	 * Sets the framerate.
+	 * @param rate    FLV framerate in frames per second
 	 */
-	public void setframeRate(int rate);
+	public void setFrameRate(double rate);
 
 	/**
 	 * Returns the videodatarate
@@ -110,14 +110,14 @@ public interface IMetaData<K, V> extends IMeta {
 	public void setWidth(int w);
 
 	/**
-	 * Returns the duration
-	 * @return duration     Video duration
+	 * Returns the duration.
+	 * @return duration     Video duration in seconds
 	 */
 	public double getDuration();
 
 	/**
-	 * Sets the duration
-	 * @param d             Video duration
+	 * Sets the duration.
+	 * @param d             Video duration in seconds
 	 */
 	public void setDuration(double d);
 

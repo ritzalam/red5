@@ -231,7 +231,7 @@ public class FLV implements IFLV {
 
 	/** {@inheritDoc} */
     public void setMetaData(IMetaData meta) throws IOException {
-		File tmpFile = new File("tests/tmp.flv");
+		File tmpFile = new File("test/tmp.flv");
 		tmpFile.createNewFile();
 		metaService.setInStream(new FileInputStream(file));
 		metaService.setOutStream(new FileOutputStream(tmpFile));

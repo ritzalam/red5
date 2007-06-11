@@ -83,14 +83,14 @@ public class MetaData<K, V> extends HashMap<String, Object> implements
 
 	/** {@inheritDoc}
 	 */
-	public int getframeRate() {
-		return (Integer) this.get("framerate");
+	public double getFrameRate() {
+		return (Double) this.get("framerate");
 	}
 
 	/** {@inheritDoc}
 	 */
-	public void setframeRate(int rate) {
-		this.put("framerate", rate);
+	public void setFrameRate(double rate) {
+		this.put("framerate", Double.valueOf(rate));
 	}
 
 	/** {@inheritDoc}

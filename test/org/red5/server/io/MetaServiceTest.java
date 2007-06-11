@@ -47,7 +47,7 @@ public class MetaServiceTest extends TestCase {
 		// Read in a FLV file for reading tags
 		// set the MetaService
 		// set the MetaData
-		File tmp = new File("tests/test.flv");
+		File tmp = new File("test/test.flv");
 		IFLV flv = (IFLV) service.getStreamableFile(tmp);
 		flv.setMetaService(metaService);
 		flv.setMetaData(meta);
@@ -80,7 +80,7 @@ public class MetaServiceTest extends TestCase {
 		meta.setMetaCue(metaCue);
 		meta.setCanSeekToEnd(true);
 		meta.setDuration(300);
-		meta.setframeRate(15);
+		meta.setFrameRate(15);
 		meta.setHeight(400);
 		meta.setWidth(300);
 

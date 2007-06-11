@@ -50,7 +50,7 @@ public class MetaDataTest extends TestCase {
 
 		data.setCanSeekToEnd(true);
 		data.setDuration(7.347);
-		data.setframeRate(15);
+		data.setFrameRate(15);
 		data.setHeight(333);
 		data.setVideoCodecId(4);
 		data.setVideoDataRate(400);
@@ -72,7 +72,7 @@ public class MetaDataTest extends TestCase {
 	}
 
 	public void testFrameRate() {
-		Assert.assertEquals(15, data.getframeRate());
+		Assert.assertEquals(15.0, data.getFrameRate());
 	}
 
 	public void testHeight() {
