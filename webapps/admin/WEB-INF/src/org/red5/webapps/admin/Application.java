@@ -19,14 +19,21 @@ package org.red5.webapps.admin;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.red5.server.adapter.ApplicationAdapter;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IGlobalScope;
+import org.red5.server.api.IScope;
 import org.red5.server.api.IServer;
 import org.red5.server.api.Red5;
+import org.red5.server.api.ScopeUtils;
 import org.red5.server.api.listeners.IConnectionListener;
 import org.red5.server.api.listeners.IScopeListener;
 import org.red5.server.api.persistence.IPersistable;
+import org.red5.server.api.statistics.IScopeStatistics;
 
 /**
  * Main entry point for the admin application.
@@ -94,4 +101,48 @@ public class Application extends ApplicationAdapter {
 		}
 	}
 	
+	/**
+	 * Get global connection and client stats.
+	 * 
+	 * @return Map containing statistics
+	 */
+	public Map<String, Integer> getConnectionStats() {
+		return getConnectionStats(null);
+	}
+	
+	/**
+	 * Get connection and client stats for a given path.
+	 * 
+	 * @param path
+	 * 			absolute path to return statistics for
+	 * @return Map containing statistics
+	 */
+	@SuppressWarnings("unchecked")
+	public Map<String, Integer> getConnectionStats(String path) {
+		final IConnection conn = Red5.getConnectionLocal();
+		IScope scope = conn.getScope().getContext().getGlobalScope();
+		if (path != null && !"".equals(path)) {
+			scope = ScopeUtils.resolveScope(scope, path);
+		}
+		
+		if (scope == null) {
+			// Requested path doesn't exist
+			return Collections.EMPTY_MAP;
+		}
+		
+		final IScopeStatistics stats = scope.getStatistics();
+		if (stats == null) {
+			// No statistics available
+			return Collections.EMPTY_MAP;
+		}
+		
+		final Map<String, Integer> result = new HashMap<String, Integer>();
+		result.put("activeClients", stats.getActiveClients());
+		result.put("activeConnections", stats.getActiveConnections());
+		result.put("maxClients", stats.getMaxClients());
+		result.put("maxConnections", stats.getMaxConnections());
+		result.put("totalClients", stats.getTotalClients());
+		result.put("totalConnections", stats.getTotalConnections());
+		return result;
+	}
 }
