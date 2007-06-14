@@ -47,7 +47,6 @@ import org.springframework.web.context.support.GenericWebApplicationContext;
 /**
  * Red web properties configuration
  */
-@SuppressWarnings("all")
 public class Red5WebPropertiesConfiguration implements Configuration,
 		EventListener {
 
@@ -79,6 +78,13 @@ public class Red5WebPropertiesConfiguration implements Configuration,
 
 	/** {@inheritDoc} */
     public void configureClassLoader() throws Exception {
+    	// Try to load classes from WEB-INF directory first before looking in the
+    	// system classpath. This fixes problems when using extended spring features
+    	// like mail and only having the additional .jar files in the WEB-INF/lib
+    	// directory. Please note that for example the spring-support.jar file must
+    	// be copied to the WEB-INF/lib directory, too as it's classloader is used
+    	// to load the additional classes.
+    	_context.setParentLoaderPriority(false);
 	}
 
 	/** {@inheritDoc} */
