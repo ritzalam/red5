@@ -15,4 +15,4 @@ then
 fi
 
 # stop red5
-exec $JAVA -Djavax.net.ssl.keyStore=conf/keystore.jmx -Djavax.net.ssl.keyStorePassword=password -Djava.security.manager -Djava.security.policy=conf/red5.policy -cp red5.jar;conf org.red5.server.Shutdown 9999 red5user changeme
+exec $JAVA -Djavax.net.ssl.keyStore=conf/keystore.jmx -Djavax.net.ssl.keyStorePassword=password -Djava.security.manager -Djava.security.policy=conf/red5.policy -cp red5.jar:conf org.red5.server.Shutdown 9999 red5user changeme
