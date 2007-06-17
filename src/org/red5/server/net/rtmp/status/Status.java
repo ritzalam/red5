@@ -211,7 +211,11 @@ public class Status implements StatusCodes, ISerializerOptionAware, ICustomSeria
     	output.putString("description");
     	output.writeString(getDescription());
     	output.putString("details");
-    	output.writeString(getDetails());
+    	if (getDetails() != null) {
+    		output.writeString(getDetails());
+    	} else {
+    		output.writeNull();
+    	}
     	output.putString("clientid");
     	output.writeNumber(getClientid());
     }
