@@ -19,6 +19,7 @@ package org.red5.server.net.remoting.codec;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -152,12 +153,8 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 			}
 			int elements = in.getInt();
 			boolean isAMF3 = false;
-			Object value = null;
-			if (elements > 0) {
-				if (elements != 1) {
-					throw new RuntimeException("Array containing one element expected but found " + elements + " elements");
-				}
-				
+			List<Object> values = new ArrayList<Object>();
+			for (int j=0; j<elements; j++) {
 				byte amf3Check = in.get();
 				in.position(in.position()-1);
 				isAMF3 = (amf3Check == AMF.TYPE_AMF3_OBJECT);
@@ -169,9 +166,7 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 				// Prepare remoting mode
 				input.reset(ReferenceMode.MODE_REMOTING);
 				
-				value = deserializer.deserialize(input);
-	
-				// log.info(value);
+				values.add(deserializer.deserialize(input));
 			}
 
 			String serviceName;
@@ -189,7 +184,7 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 			if (log.isDebugEnabled()) {
 				log.debug("Service: " + serviceName + " Method: " + serviceMethod);
 			}
-			Object[] args = value != null ? new Object[] { value } : new Object[0];
+			Object[] args = (Object[]) values.toArray(new Object[values.size()]);
 			if (log.isDebugEnabled()) {
 				for (Object element : args) {
 					log.debug("> " + element);
