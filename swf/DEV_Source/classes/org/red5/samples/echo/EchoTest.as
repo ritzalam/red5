@@ -19,17 +19,11 @@ package org.red5.samples.echo
 	 * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 	*/
 	
-	import flash.net.NetConnection;
-	import flash.net.ObjectEncoding;
-	import flash.net.Responder;
 	import flash.events.*;
+	import flash.net.*;
+	
+	import mx.controls.*;
 	import mx.core.Application;
-	import mx.controls.Alert;
-	import mx.controls.TextArea;
-	import mx.controls.TextInput;
-	import org.red5.samples.echo.EchoClass;
-	import org.red5.samples.echo.RemoteClass;
-	import org.red5.samples.echo.ExternalizableClass;
 	
 	/**
 	 * 
@@ -61,6 +55,12 @@ package org.red5.samples.echo
 		
 		[Bindable]
 		public var http_txt : TextInput;
+		
+		[Bindable]
+		public var username_txt : TextInput;
+		
+		[Bindable]
+		public var password_txt : TextInput;
 		
         public function EchoTest(): void
         {
@@ -172,6 +172,10 @@ package org.red5.samples.echo
 			}
 			textArea.text = "";
 			nc.objectEncoding = encoding;
+			//
+			if ( username_txt.text.length > 0 ) {
+				nc.addHeader("Credentials", false, {username: username_txt.text, password: password_txt.text});
+			}
 			var url: String;
 			if (protocol == "http") {
 			    // Remoting...
