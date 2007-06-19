@@ -1,19 +1,43 @@
-<?xml version="1.0"?>
-<!-- @mxmlc -library-path+=./classes -source-path+=./classes -->
-<mx:Application
-	pageTitle="AMF3 Echo Client"
-	xmlns:mx="http://www.adobe.com/2006/mxml"
-	xmlns:fx="com.fusiox.ui.*"
-	initialize="initApp()"
-	backgroundColor="#F4F4F4" themeColor="haloBlue" layout="vertical">
-
-    <mx:Script>
-    <![CDATA[
-		import mx.controls.Alert;
-		import org.red5.samples.echo.EchoClass;
-		import org.red5.samples.echo.RemoteClass;
-		import org.red5.samples.echo.ExternalizableClass;
-		
+package org.red5.samples.echo
+{
+	/**
+	 * RED5 Open Source Flash Server - http://www.osflash.org/red5
+	 *
+	 * Copyright (c) 2006-2007 by respective authors (see below). All rights reserved.
+	 *
+	 * This library is free software; you can redistribute it and/or modify it under the
+	 * terms of the GNU Lesser General Public License as published by the Free Software
+	 * Foundation; either version 2.1 of the License, or (at your option) any later
+	 * version.
+	 *
+	 * This library is distributed in the hope that it will be useful, but WITHOUT ANY
+	 * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+	 * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+	 *
+	 * You should have received a copy of the GNU Lesser General Public License along
+	 * with this library; if not, write to the Free Software Foundation, Inc.,
+	 * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+	*/
+	
+	import flash.net.NetConnection;
+	import flash.net.ObjectEncoding;
+	import flash.net.Responder;
+	import flash.events.*;
+	import mx.core.Application;
+	import mx.controls.Alert;
+	import mx.controls.TextArea;
+	import mx.controls.TextInput;
+	import org.red5.samples.echo.EchoClass;
+	import org.red5.samples.echo.RemoteClass;
+	import org.red5.samples.echo.ExternalizableClass;
+	
+	/**
+	 * 
+	 * @author Joachim Bauch
+	 * @author Thijs Triemstra
+	 */	
+	public class EchoTest extends Application
+	{
 		[Bindable]
 		private var nc: NetConnection;
 		
@@ -29,7 +53,16 @@
 		[Bindable]
 		private var testsFailed: Number;
 		
-        private function initApp(): void
+		[Bindable]
+		public var textArea : TextArea;
+		
+		[Bindable]
+		public var rtmp_txt : TextInput;
+		
+		[Bindable]
+		public var http_txt : TextInput;
+		
+        public function EchoTest(): void
         {
 			// Prepare test values
 			testParams = new Array();
@@ -128,9 +161,12 @@
 			
 			nc = new NetConnection();
 			nc.addEventListener(NetStatusEvent.NET_STATUS, netStatusHandler); 
+			nc.addEventListener( AsyncErrorEvent.ASYNC_ERROR, netASyncError );
+            nc.addEventListener( SecurityErrorEvent.SECURITY_ERROR, netSecurityError );
+            nc.addEventListener( IOErrorEvent.IO_ERROR, netIOError );
         }
 		
-		private function onConnect(protocol: String, encoding: uint): void {
+		public function onConnect(protocol: String, encoding: uint): void {
 			if (nc.connected) {
 				nc.close();
 			}
@@ -139,10 +175,10 @@
 			var url: String;
 			if (protocol == "http") {
 			    // Remoting...
-				url = "http://localhost:5080/echo/gateway";
+				url = http_txt.text;
 			} else {
 				// RTMP...
-				url = "rtmp://localhost/echo";
+				url = rtmp_txt.text;
 			}
 			textArea.text = "Connecting through " + protocol + " using AMF" + encoding + "...\n";
 			nc.connect(url);
@@ -171,6 +207,21 @@
 					onDisconnect();
 					break;
 			}
+		}
+		
+		private function netSecurityError( event : SecurityErrorEvent ) : void 
+		{
+			textArea.text += "Security error - " + event.text + "\n";
+		}
+				
+		private function netIOError( event : IOErrorEvent ) : void 
+		{
+			textArea.text += "IO error - " + event.text + "\n";
+		}
+				
+		private function netASyncError( event : AsyncErrorEvent ) : void 
+		{
+			textArea.text += "ASync error - " + event.error + "\n";
 		}
 		
 		private function doTest(): void {
@@ -267,16 +318,6 @@
 				onDisconnect();
 			}
 		}
-
-    ]]>
-    </mx:Script>
-	
-	<mx:HBox>
-		<mx:Button id="btnConnectRTMP0" label="RTMP AMF0" labelPlacement="left" click="onConnect('rtmp', ObjectEncoding.AMF0)" />
-		<mx:Button id="btnConnectRTMP3" label="RTMP AMF3" labelPlacement="left" click="onConnect('rtmp', ObjectEncoding.AMF3)" />
-		<mx:Button id="btnConnectHTTP0" label="HTTP AMF0" labelPlacement="left" click="onConnect('http', ObjectEncoding.AMF0)" />
-		<mx:Button id="btnConnectHTTP3" label="HTTP AMF3" labelPlacement="left" click="onConnect('http', ObjectEncoding.AMF3)" />
-	</mx:HBox>
-	<mx:TextArea id="textArea" width="100%" height="100%">
-    </mx:TextArea>
-</mx:Application>
+		
+	}
+}

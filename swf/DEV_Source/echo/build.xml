@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 <!-- ======================================================================                                               
-     Red5 Publisher application   
-     A Flex 2 application to test the streaming capabilities of Red5.
+     Echo Test application   
                    
-     Thijs Triemstra (info@collab.nl)                                                                
+     Joachim Bauch 
+     Thijs Triemstra                                                             
      ====================================================================== -->
 <project 
-	name="Red5 Publisher" 
+	name="Echo Test application" 
 	default="build"
 	basedir=".">
 	
@@ -188,13 +188,12 @@
     	<mkdir 
     	    dir="${asdoc.output.dir}"/>
     	<exec executable="${asdoc.exe}" 
-    		failonerror="true">
+    		failonerror="false">
 			<arg line='-source-path ${src.dir}'/>
 			<arg line='-doc-sources ${asdoc.domainextensions}'/>
     		<arg value='-load-config=${flex.config.xml}'/>
 			<arg line='-output ${asdoc.output.dir}'/>
 			<arg line='-templates-path ${asdoc.templates.dir}'/>
-			<arg line='"-library-path+=${lib.cairngorm.swc}"'/>
 			<arg line='-left-frameset-width ${asdoc.framewidth}'/>
 			<arg line='-benchmark'/>
 		</exec>

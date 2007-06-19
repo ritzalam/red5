@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<echo:EchoTest xmlns:mx="http://www.adobe.com/2006/mxml"
+ 	       xmlns:echo="org.red5.samples.echo.*"
+	       pageTitle="AMF3 Echo Client" layout="vertical"
+	       backgroundColor="#F4F4F4" themeColor="haloBlue">
+	<mx:Form width="100%">
+		<mx:FormItem label="HTTP:" width="100%">
+			<mx:TextInput id="http_txt" width="100%" text="http://localhost:5080/echo/gateway"/>
+		</mx:FormItem>
+		<mx:FormItem label="RTMP:" width="100%">
+			<mx:TextInput id="rtmp_txt" width="100%" text="rtmp://localhost/echo"/>
+		</mx:FormItem>
+	</mx:Form>
+	<mx:HBox>
+		<mx:Button id="btnConnectRTMP0" label="RTMP AMF0" labelPlacement="left" click="onConnect('rtmp', ObjectEncoding.AMF0)" />
+		<mx:Button id="btnConnectRTMP3" label="RTMP AMF3" labelPlacement="left" click="onConnect('rtmp', ObjectEncoding.AMF3)" />
+		<mx:Button id="btnConnectHTTP0" label="HTTP AMF0" labelPlacement="left" click="onConnect('http', ObjectEncoding.AMF0)" />
+		<mx:Button id="btnConnectHTTP3" label="HTTP AMF3" labelPlacement="left" click="onConnect('http', ObjectEncoding.AMF3)" />
+	</mx:HBox>
+	<mx:TextArea id="textArea" width="100%" height="100%">
+    </mx:TextArea>
+</echo:EchoTest>
