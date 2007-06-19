@@ -160,7 +160,7 @@ package org.red5.samples.echo
 			testParams.push(tmp_1);
 			
 			nc = new NetConnection();
-			nc.addEventListener(NetStatusEvent.NET_STATUS, netStatusHandler); 
+			nc.addEventListener( NetStatusEvent.NET_STATUS, netStatusHandler ); 
 			nc.addEventListener( AsyncErrorEvent.ASYNC_ERROR, netASyncError );
             nc.addEventListener( SecurityErrorEvent.SECURITY_ERROR, netSecurityError );
             nc.addEventListener( IOErrorEvent.IO_ERROR, netIOError );
