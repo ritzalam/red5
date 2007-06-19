@@ -23,4 +23,9 @@
 	    class="org.red5.server.webapp.echo.Application" 
 		singleton="true" />
 
+	<!-- enable support for mx:RemoteObject requests -->
+	<bean id="remoteObject.service" 
+	    class="org.red5.server.net.remoting.FlexMessageService" 
+		singleton="true" />
+
 </beans>

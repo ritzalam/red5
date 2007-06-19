@@ -19,6 +19,7 @@ package org.red5.server.net.remoting.message;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import org.red5.compatibility.flex.messaging.messages.ErrorMessage;
 import org.red5.server.service.PendingCall;
 
 /**
@@ -74,7 +75,7 @@ public class RemotingCall extends PendingCall {
     public String getClientResponse() {
 		if (clientCallback != null) {
 			return clientCallback
-					+ (isSuccess() ? HANDLER_SUCCESS : HANDLER_ERROR);
+					+ (isSuccess() && !(getClientResult() instanceof ErrorMessage) ? HANDLER_SUCCESS : HANDLER_ERROR);
 		} else {
 			return null;
 		}

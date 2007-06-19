@@ -24,6 +24,10 @@ package org.red5.samples.echo
 	
 	import mx.controls.*;
 	import mx.core.Application;
+	import mx.rpc.remoting.mxml.RemoteObject;
+	import org.red5.samples.echo.EchoClass;
+	import org.red5.samples.echo.RemoteClass;
+	import org.red5.samples.echo.ExternalizableClass;
 	
 	/**
 	 * 
@@ -55,6 +59,9 @@ package org.red5.samples.echo
 		
 		[Bindable]
 		public var http_txt : TextInput;
+		
+		[Bindable]
+		public var echoService : RemoteObject;
 		
 		[Bindable]
 		public var username_txt : TextInput;
@@ -185,6 +192,12 @@ package org.red5.samples.echo
 				url = rtmp_txt.text;
 			}
 			textArea.text = "Connecting through " + protocol + " using AMF" + encoding + "...\n";
+			if (protocol == "remoteObject") {
+				echoService.endpoint = http_txt.text;
+				onTest();
+				return;
+			}
+			
 			nc.connect(url);
 			
 			if (protocol == "http") {
@@ -233,7 +246,12 @@ package org.red5.samples.echo
 				textArea.text += "Testing String with " + testParams[testIndex].length + " chars: ";
 			else
 				textArea.text += "Testing " + testParams[testIndex] + ": ";
-			nc.call("echo", new Responder(this.onResult), testParams[testIndex]);
+			if (nc.connected) {
+				nc.call("echo", new Responder(this.onResult), testParams[testIndex]);
+			} else {
+				// RemotingObject requests
+				echoService.echo(testParams[testIndex]);
+			}
 		}
 		
 		private function onTest(): void {
@@ -291,7 +309,7 @@ package org.red5.samples.echo
 			}
 		}
 		
-		private function onResult(result: Object): void {
+		private function checkResult(result: Object): void {
 		    if (extendedEqual(testParams[testIndex], result)) {
 				if (result == null)
 					textArea.text += "OK (null)\n";
@@ -309,6 +327,29 @@ package org.red5.samples.echo
 				testsFailed++;
 			}
 			testIndex += 1;
+		}
+		
+		public function onRemotingResult(result: Object): void {
+			checkResult(result);
+			var testCount: Number = testParams.length;
+			if (testIndex < testCount) {
+				doTest();
+			} else if (testsFailed == 0) {
+				textArea.text += "Successfully ran " + testCount + " tests\n";
+				onDisconnect();
+			} else {
+				textArea.text += "Ran " + testCount + " tests, " + testsFailed + " failed\n";
+				onDisconnect();
+			}
+		}
+		
+		public function onRemotingError(msg: String): void {
+			textArea.text += "Error received: " + msg + "\n";
+			onDisconnect();
+		}
+		
+		private function onResult(result: Object): void {
+			checkResult(result);
 			var testCount: Number = testParams.length;
 			if (nc.objectEncoding == ObjectEncoding.AMF0)
 				testCount = AMF0Count;

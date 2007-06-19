@@ -347,10 +347,16 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
     /** {@inheritDoc} */
 	@Override
 	protected void writeArbitraryObject(Object object, Serializer serializer) {
-        // If we need to serialize class information...
 		Class objectClass = object.getClass();
+    	String className = objectClass.getName();
+    	if (className.startsWith("org.red5.compatibility.")) {
+    		// Strip compatibility prefix from classname
+    		className = className.substring(23);
+    	}
+    	
+        // If we need to serialize class information...
         if (serializer.isOptEnabled(object, SerializerOption.SerializeClassName)) {
-			putString(objectClass.getName());
+			putString(className);
 		} else {
 			putString("");
 		}
@@ -406,11 +412,17 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
     	}
 
     	storeReference(object);
+    	String className = object.getClass().getName();
+    	if (className.startsWith("org.red5.compatibility.")) {
+    		// Strip compatibility prefix from classname
+    		className = className.substring(23);
+    	}
+    	
     	if (object instanceof IExternalizable) {
     		// The object knows how to serialize itself.
         	int type = AMF3.TYPE_OBJECT_EXTERNALIZABLE << 2 | 1 << 1 | 1;
         	putInteger(type);
-        	putString(object.getClass().getName());
+        	putString(className);
         	amf3_mode += 1;
         	((IExternalizable) object).writeExternal(new DataOutput(this, serializer));
         	amf3_mode -= 1;
@@ -436,7 +448,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		Class objectClass = object.getClass();
         if (serializer.isOptEnabled(object, SerializerOption.SerializeClassName)) {
         	// classname
-        	putString(objectClass.getName());
+        	putString(className);
 		} else {
 			putString("");
 		}

@@ -549,4 +549,15 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 
 		return result;
 	}
+
+	/** {@inheritDoc} */
+	protected Object newInstance(String className) {
+		if (className.startsWith("flex.")) {
+			// Use Red5 compatibility class instead
+			className = "org.red5.compatibility." + className;
+		}
+		
+		return super.newInstance(className);
+	}
+	
 }
