@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -137,6 +138,10 @@ public class ConversionUtils {
 			return convertBeanToMap(source);
 		}
 		if ((target.equals(List.class) || target.equals(Collection.class))
+				&& source.getClass().equals(LinkedHashMap.class)) {
+			return convertMapToList((LinkedHashMap) source);
+		}
+		if ((target.equals(List.class) || target.equals(Collection.class))
 				&& source.getClass().isArray()) {
 			return convertArrayToList((Object[]) source);
 		}
@@ -177,6 +182,12 @@ public class ConversionUtils {
 		}
 	}
 
+    public static List convertMapToList(Map map) {
+    	List list = new ArrayList();
+    	list.addAll(map.values());
+    	return list;
+    }
+    
     /**
      * Convert to wrapped primitive
      * @param source            Source object
