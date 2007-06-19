@@ -34,7 +34,7 @@
     </mx:TextArea>
 	<mx:RemoteObject 
 		id="echoService" 
-		destination="Red5"
+		destination="Red5Echo"
 		source="EchoService"
 		result="onRemotingResult(event.result)"
 		fault="onRemotingError(event.fault.faultString)">

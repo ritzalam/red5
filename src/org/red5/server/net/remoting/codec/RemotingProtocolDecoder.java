@@ -184,7 +184,7 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 			if ("".equals(serviceName) && "null".equals(serviceMethod)) {
 				// Use fixed service and method name for Flex messaging requests,
 				// this probably will change in the future.
-				serviceName = "remoteObject";
+				serviceName = "flexMessaging";
 				serviceMethod = "handleRequest";
 			}
 			

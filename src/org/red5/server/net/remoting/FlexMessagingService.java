@@ -19,6 +19,9 @@ package org.red5.server.net.remoting;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+import java.util.Collections;
+import java.util.Map;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -29,9 +32,6 @@ import org.red5.compatibility.flex.messaging.messages.CommandMessage;
 import org.red5.compatibility.flex.messaging.messages.Constants;
 import org.red5.compatibility.flex.messaging.messages.ErrorMessage;
 import org.red5.compatibility.flex.messaging.messages.RemotingMessage;
-import org.red5.server.api.IConnection;
-import org.red5.server.api.IScope;
-import org.red5.server.api.Red5;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IServiceInvoker;
 import org.red5.server.service.ConversionUtils;
@@ -43,13 +43,38 @@ import org.red5.server.service.PendingCall;
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
  */
-public class FlexMessageService {
+public class FlexMessagingService {
 
     /**
      * Logger
      */
-	protected static Log log = LogFactory.getLog(FlexMessageService.class.getName());
+	protected static Log log = LogFactory.getLog(FlexMessagingService.class.getName());
 
+	/** Service invoker to use. */
+	protected IServiceInvoker serviceInvoker;
+	
+	/** Configured endpoints. */
+	protected Map<String, Object> endpoints = Collections.EMPTY_MAP;
+	
+	/**
+	 * Setup available end points.
+	 * 
+	 * @param endPoints
+	 */
+	public void setEndpoints(Map<String, Object> endpoints) {
+		this.endpoints = endpoints;
+		log.info("Configured endpoints: " + endpoints);
+	}
+	
+	/**
+	 * Set the service invoker to use.
+	 * 
+	 * @param serviceInvoker
+	 */
+	public void setServiceInvoker(IServiceInvoker serviceInvoker) {
+		this.serviceInvoker = serviceInvoker;
+	}
+	
 	/**
 	 * Construct error message.
 	 * 
@@ -78,16 +103,21 @@ public class FlexMessageService {
 	 * @return
 	 */
 	public AsyncMessage handleRequest(RemotingMessage msg) {
-		// Currently, all requests are executed in the context of the current connection.
-		// We should evaluate the "destination" field of the message to support custom
-		// mappings for flex remoting requests.
-		IConnection conn = Red5.getConnectionLocal();
-		IScope scope = conn.getScope();
-		IServiceInvoker invoker = scope.getContext().getServiceInvoker();
+		if (serviceInvoker == null) {
+			log.error("No service invoker configured: " + msg);
+			return returnError(msg, "Server.Invoke.Error", "No service invoker configured.", "No service invoker configured.");
+		}
+		
+		Object endpoint = endpoints.get(msg.destination);
+		if (endpoint == null) {
+			log.error("Endpoint " + msg.destination + " doesn't exist (" + msg + ")");
+			return returnError(msg, "Server.Invoke.Error", "Endpoint " + msg.destination + " doesn't exist.", "Endpoint " + msg.destination + " doesn't exist.");
+		}
+		
 		Object[] args = (Object[]) ConversionUtils.convert(msg.body, Object[].class);
 		IPendingServiceCall call = new PendingCall(msg.operation, args);
 		try {
-			if (!invoker.invoke(call, scope)) {
+			if (!serviceInvoker.invoke(call, endpoint)) {
 				return returnError(msg, "Server.Invoke.Error", "Can't invoke method.", "");
 			}
 		} catch (Throwable err) {

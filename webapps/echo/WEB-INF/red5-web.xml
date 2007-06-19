@@ -24,8 +24,20 @@
 		singleton="true" />
 
 	<!-- enable support for mx:RemoteObject requests -->
-	<bean id="remoteObject.service" 
-	    class="org.red5.server.net.remoting.FlexMessageService" 
-		singleton="true" />
+	<bean id="flexMessaging.service" 
+	    class="org.red5.server.net.remoting.FlexMessagingService" 
+		singleton="true">
+		<property name="serviceInvoker" ref="global.serviceInvoker" />
+		<!-- add an entry for all possible "destination" attributes of your
+			 mx:RemoteObject sources -->
+		<property name="endpoints">
+			<map>
+				<entry key="Red5Echo">
+					<!-- object that handles requests sent to this endpoint -->
+					<ref bean="web.handler" />
+				</entry>
+			</map>
+		</property>
+	</bean>
 
 </beans>
