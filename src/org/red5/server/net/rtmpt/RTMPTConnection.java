@@ -27,6 +27,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
+import org.red5.server.api.Red5;
 import org.red5.server.net.protocol.SimpleProtocolDecoder;
 import org.red5.server.net.protocol.SimpleProtocolEncoder;
 import org.red5.server.net.rtmp.RTMPConnection;
@@ -236,6 +237,7 @@ public class RTMPTConnection extends RTMPConnection {
 	 * @return a list of decoded objects
 	 */
 	public List decode(ByteBuffer data) {
+		Red5.setConnectionLocal(this);
 		readBytes += data.limit();
 		this.buffer.put(data);
 		this.buffer.flip();

@@ -19,9 +19,11 @@ package org.red5.server.net.rtmp.codec;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.mina.common.ByteBuffer;
 import org.red5.server.api.IConnection.Encoding;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.message.Header;
@@ -111,6 +113,10 @@ public class RTMP extends ProtocolState {
 	 * Encoding type for objects
 	 */
 	private Encoding encoding = Encoding.AMF0;
+	/**
+	 * Handshake as sent to the client.
+	 */
+	private byte[] handshake;
 	
     /**
      * Creates RTMP object with initial mode
@@ -341,6 +347,41 @@ public class RTMP extends ProtocolState {
      */
     public void setEncoding(Encoding encoding) {
     	this.encoding = encoding;
+    }
+    
+    /**
+     * Store the handshake sent to the client.
+     * 
+     * @param data    Handshake data
+     * @param length  Length of handshake to store
+     */
+    public void setHandshake(ByteBuffer data, int start, int length) {
+    	handshake = new byte[length];
+    	int old = data.position();
+    	data.position(start);
+    	data.get(handshake);
+    	data.position(old);
+    }
+    
+    /**
+     * Check if the handshake reply received from a client contains valid data.
+     * 
+     * @param data
+     * @param length
+     * @return
+     */
+    public boolean validateHandshakeReply(ByteBuffer data, int start, int length) {
+    	if (handshake == null || length != handshake.length) {
+    		return false;
+    	}
+    	
+    	byte[] reply = new byte [length];
+    	int old = data.position();
+    	data.position(start);
+    	data.get(reply);
+    	data.position(old);
+    	
+    	return Arrays.equals(reply, handshake);
     }
     
 }

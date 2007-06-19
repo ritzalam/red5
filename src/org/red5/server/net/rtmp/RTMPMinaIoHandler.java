@@ -147,6 +147,7 @@ implements ApplicationContextAware {
 			out.fill((byte)0x00,Constants.HANDSHAKE_SIZE-4);
 			out.put(in);
 			out.flip();
+			rtmp.setHandshake(out, 1, Constants.HANDSHAKE_SIZE);
 			//in.release();
 			session.write(out); 
 		} else {

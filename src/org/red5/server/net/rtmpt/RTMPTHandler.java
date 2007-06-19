@@ -95,6 +95,7 @@ public class RTMPTHandler extends RTMPHandler {
 		out.put((byte) 0x03);
 		out.fill((byte) 0x00, Constants.HANDSHAKE_SIZE);
 		out.put(in).flip();
+		rtmp.setHandshake(out, 1, Constants.HANDSHAKE_SIZE);
 
 		conn.rawWrite(out);
 	}
