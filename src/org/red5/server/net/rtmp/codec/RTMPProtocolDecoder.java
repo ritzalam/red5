@@ -234,7 +234,9 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 			}
 
 			if (rtmp.getState() == RTMP.STATE_HANDSHAKE) {
-				log.debug("Handshake reply");
+				if (log.isDebugEnabled()) {
+					log.debug("Handshake reply");
+				}
 				if (remaining < HANDSHAKE_SIZE) {
 					if (log.isDebugEnabled()) {
 						log.debug("Handshake reply too small, buffering. remaining: " + remaining);
@@ -724,15 +726,14 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 
 		if (in.hasRemaining()) {
 			setupClassLoader();
-			ArrayList paramList = new ArrayList();
+			List<Object> paramList = new ArrayList<Object>();
 
 			final Object obj = deserializer.deserialize(input);
 
 			if (obj instanceof Map) {
 				// Before the actual parameters we sometimes (connect) get a map
 				// of parameters, this is usually null, but if set should be
-				// passed
-				// to the connection object.
+				// passed to the connection object.
 				final Map connParams = (Map) obj;
 				notify.setConnectionParams(connParams);
 			} else if (obj != null) {
