@@ -19,9 +19,12 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+import java.beans.Introspector;
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.Iterator;
+import java.sql.Driver;
+import java.sql.DriverManager;
+import java.util.Enumeration;
 import java.util.Properties;
 
 import javax.servlet.ServletContext;
@@ -29,6 +32,8 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.http.HttpServlet;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.LogFactory;
 import org.apache.log4j.Logger;
 import org.red5.server.jmx.JMXAgent;
 import org.springframework.beans.BeanUtils;
@@ -49,6 +54,8 @@ import org.springframework.web.context.WebApplicationContext;
  */
 public class MainServlet extends HttpServlet implements ServletContextListener {
 
+	private final static long serialVersionUID = 4191971L;
+
 	// Initialize Logging
 	public static Logger logger = Logger.getLogger(MainServlet.class.getName());
 
@@ -56,18 +63,55 @@ public class MainServlet extends HttpServlet implements ServletContextListener {
 
 	private static ServletContext servletContext;
 
-	protected ConfigurableWebApplicationContext applicationContext;
-
 	/**
 	 * Clearing the in-memory configuration parameters, we will receive
 	 * notification that the servlet context is about to be shut down
 	 */
 	public void contextDestroyed(ServletContextEvent sce) {
 		logger.info("Webapp shutdown");
-
-		JMXAgent.shutdown();
-
-		applicationContext.close();
+		// XXX Paul: grabbed this from
+		//http://opensource.atlassian.com/confluence/spring/display/DISC/Memory+leak+-+classloader+won%27t+let+go
+		// in hopes that we can clear all the issues with J2EE containers during shutdown
+		try {
+			//prepare spring for shutdown
+			Introspector.flushCaches();
+			//dereg any drivers
+			for (Enumeration e = DriverManager.getDrivers(); e
+					.hasMoreElements();) {
+				Driver driver = (Driver) e.nextElement();
+				if (driver.getClass().getClassLoader() == getClass()
+						.getClassLoader()) {
+					DriverManager.deregisterDriver(driver);
+				}
+			}
+			//shutdown jmx
+			JMXAgent.shutdown();
+			//shutdown spring
+			//get web application context from the servlet context
+			ConfigurableWebApplicationContext applicationContext = (ConfigurableWebApplicationContext) servletContext
+					.getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
+			ConfigurableBeanFactory factory = applicationContext
+					.getBeanFactory();
+			if (factory.containsSingleton("default.context")) {
+				for (String scope : factory.getRegisteredScopeNames()) {
+					logger.debug("Registered scope: " + scope);
+				}
+				for (String singleton : factory.getSingletonNames()) {
+					logger.debug("Registered singleton: " + singleton);
+					//factory.destroyScopedBean(singleton);
+				}
+				factory.destroySingletons();
+			}
+			servletContext
+					.removeAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
+			applicationContext.close();
+			//http://jakarta.apache.org/commons/logging/guide.html#Classloader_and_Memory_Management
+			//http://wiki.apache.org/jakarta-commons/Logging/UndeployMemoryLeak?action=print
+			LogFactory.release(Thread.currentThread().getContextClassLoader());
+		} catch (Throwable e) {
+			//may get a java.lang.StackOverflowError when shutting appcontext down in jboss
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -127,10 +171,9 @@ public class MainServlet extends HttpServlet implements ServletContextListener {
 			// Setup system properties so they can be evaluated by Jetty
 			Properties props = new Properties();
 			props.load(new FileInputStream(root + "/red5.properties"));
-			Iterator it = props.keySet().iterator();
-			while (it.hasNext()) {
-				String key = (String) it.next();
-				if (key != null && !key.equals("")) {
+			for (Object o : props.keySet()) {
+				String key = (String) o;
+				if (StringUtils.isNotBlank(key)) {
 					System.setProperty(key, props.getProperty(key));
 				}
 			}
@@ -146,7 +189,7 @@ public class MainServlet extends HttpServlet implements ServletContextListener {
 			logger.info("Setting Red5 root to " + root);
 
 			Class contextClass = org.springframework.web.context.support.XmlWebApplicationContext.class;
-			applicationContext = (ConfigurableWebApplicationContext) BeanUtils
+			ConfigurableWebApplicationContext applicationContext = (ConfigurableWebApplicationContext) BeanUtils
 					.instantiateClass(contextClass);
 
 			String[] strArray = servletContext.getInitParameter(
