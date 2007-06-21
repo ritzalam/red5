@@ -71,7 +71,22 @@
 
 	<servlet-mapping>
 		<servlet-name>rtmpt</servlet-name>
-		<url-pattern>/rtmpt</url-pattern>
+		<url-pattern>/open/*</url-pattern>
+	</servlet-mapping>
+
+	<servlet-mapping>
+		<servlet-name>rtmpt</servlet-name>
+		<url-pattern>/idle/*</url-pattern>
+	</servlet-mapping>
+
+	<servlet-mapping>
+		<servlet-name>rtmpt</servlet-name>
+		<url-pattern>/send/*</url-pattern>
+	</servlet-mapping>
+
+	<servlet-mapping>
+		<servlet-name>rtmpt</servlet-name>
+		<url-pattern>/close/*</url-pattern>
 	</servlet-mapping>
 
 	<welcome-file-list>

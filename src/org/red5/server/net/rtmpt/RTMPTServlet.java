@@ -82,6 +82,20 @@ public class RTMPTServlet extends HttpServlet {
      */
     protected WebApplicationContext appCtx;
 
+    /**
+     * Reference to RTMPT handler;
+     */
+    private static RTMPTHandler handler;
+    
+    /**
+     * Set the RTMPTHandler to use in this servlet.
+     * 
+     * @param handler
+     */
+    public void setHandler(RTMPTHandler handler) {
+    	RTMPTServlet.handler = handler;
+    }
+    
 	/**
 	 * Return an error message to the client.
 	 * 
@@ -255,8 +269,6 @@ public class RTMPTServlet extends HttpServlet {
 		skipData(req);
 
 		// TODO: should we evaluate the pathinfo?
-		RTMPTHandler handler = (RTMPTHandler) getServletContext().getAttribute(
-				RTMPTHandler.HANDLER_ATTRIBUTE);
 		RTMPTConnection client = handler.createRTMPTConnection();
 		if (client.getId() == 0) {
 			// no more clients are available for serving
@@ -290,8 +302,6 @@ public class RTMPTServlet extends HttpServlet {
 		}
 		rtmptClients.remove(client.getId());
 
-		RTMPTHandler handler = (RTMPTHandler) getServletContext().getAttribute(
-				RTMPTHandler.HANDLER_ATTRIBUTE);
 		client.setServletRequest(req);
 		handler.connectionClosed(client, client.getState());
 
@@ -338,7 +348,6 @@ public class RTMPTServlet extends HttpServlet {
 		}
 
 		// Execute the received RTMP messages
-		RTMPTHandler handler = (RTMPTHandler) getServletContext().getAttribute(RTMPTHandler.HANDLER_ATTRIBUTE);
         for (Object message : messages) {
             try {
                 handler.messageReceived(client, client.getState(), message);
@@ -409,7 +418,8 @@ public class RTMPTServlet extends HttpServlet {
 		// that we are interested in is the 'second' character, we can double
 		// the speed of this entry point by using a switch on the second
 		// charater.
-		char p = req.getServletPath().charAt(1);
+		String path = req.getServletPath();
+		char p = path.charAt(1);
 		switch (p) {
 			case 'o': //OPEN_REQUEST
 				handleOpen(req, resp);
@@ -424,7 +434,7 @@ public class RTMPTServlet extends HttpServlet {
 				handleIdle(req, resp);
 				break;
 			default:
-				handleBadRequest("RTMPT command " + p + " is not supported.",
+				handleBadRequest("RTMPT command " + path + " is not supported.",
 						resp);
 		}
 

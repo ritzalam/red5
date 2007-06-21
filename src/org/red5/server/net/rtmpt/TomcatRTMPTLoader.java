@@ -50,10 +50,6 @@ public class TomcatRTMPTLoader extends TomcatLoader {
      */
 	protected IServer server;
     /**
-     * RTMP handler
-     */
-	protected RTMPTHandler handler;
-    /**
      * Host
      */
 	private Host host;
@@ -70,16 +66,6 @@ public class TomcatRTMPTLoader extends TomcatLoader {
     public void setServer(IServer server) {
 		log.debug("RTMPT setServer");
 		this.server = server;
-	}
-
-	/**
-     * Setter for RTMPHandler
-     *
-     * @param handler RTMPHandler
-     */
-    public void setRTMPTHandler(RTMPTHandler handler) {
-		log.debug("RTMPT setRTMPTHandler");
-		this.handler = handler;
 	}
 
 	/** {@inheritDoc} */

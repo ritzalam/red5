@@ -21,10 +21,7 @@ package org.red5.server.net.rtmpt;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.mortbay.jetty.Handler;
-import org.mortbay.jetty.HandlerContainer;
 import org.mortbay.jetty.Server;
-import org.mortbay.jetty.handler.ContextHandler;
 import org.red5.server.api.IServer;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -59,10 +56,6 @@ public class RTMPTLoader implements ApplicationContextAware {
      * Red5 server instance
      */
 	protected IServer server;
-    /**
-     * RTMP handler
-     */
-	protected RTMPTHandler handler;
 
 	/**
      * Setter for server
@@ -79,15 +72,6 @@ public class RTMPTLoader implements ApplicationContextAware {
 		applicationContext = context;
 	}
 
-	/**
-     * Setter for RTMPTHandler
-     *
-     * @param handler RTMPTHandler
-     */
-    public void setRTMPTHandler(RTMPTHandler handler) {
-		this.handler = handler;
-	}
-
     /**
      * Initialization
      * @throws Exception       Exception
@@ -97,25 +81,6 @@ public class RTMPTLoader implements ApplicationContextAware {
 		log.info("Loading RTMPT context from: " + rtmptConfig);
 		ApplicationContext appCtx = new ClassPathXmlApplicationContext(rtmptConfig);
 		Server rtmptServer = (Server) appCtx.getBean("Server");
-
-		// Setup configuration data in rtmptServer
-		ContextHandler contextHandler = null;
-		for (Handler handler : rtmptServer.getHandlers()) {
-			if (handler instanceof HandlerContainer) {
-				HandlerContainer con = (HandlerContainer) handler;
-				handler = con.getChildHandlerByClass(ContextHandler.class);
-			}
-			
-			if (handler instanceof ContextHandler) {
-				contextHandler = (ContextHandler) handler;
-				break;
-			}
-		}
-		if (contextHandler == null) {
-			throw new Exception("No context handler found in the server.");
-		}
-		contextHandler.setAttribute(RTMPTHandler.HANDLER_ATTRIBUTE, this.handler);
-
 		log.info("Starting RTMPT server");
 		rtmptServer.start();
 
