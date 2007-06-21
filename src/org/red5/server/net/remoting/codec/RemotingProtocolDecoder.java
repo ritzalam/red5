@@ -33,6 +33,7 @@ import org.red5.io.object.Deserializer;
 import org.red5.io.object.BaseInput.ReferenceMode;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.protocol.SimpleProtocolDecoder;
+import org.red5.server.net.remoting.FlexMessagingService;
 import org.red5.server.net.remoting.message.RemotingCall;
 import org.red5.server.net.remoting.message.RemotingPacket;
 
@@ -181,11 +182,13 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 				serviceMethod = serviceString;
 			}
 
+			boolean isMessaging = false;
 			if ("".equals(serviceName) && "null".equals(serviceMethod)) {
 				// Use fixed service and method name for Flex messaging requests,
 				// this probably will change in the future.
-				serviceName = "flexMessaging";
+				serviceName = FlexMessagingService.SERVICE_NAME;
 				serviceMethod = "handleRequest";
+				isMessaging = true;
 			}
 			
 			if (log.isDebugEnabled()) {
@@ -199,7 +202,7 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 			}
 
 			// Add the call to the list
-			calls.add(new RemotingCall(serviceName, serviceMethod, args, clientCallback, isAMF3));
+			calls.add(new RemotingCall(serviceName, serviceMethod, args, clientCallback, isAMF3, isMessaging));
 		}
 		return calls;
 	}

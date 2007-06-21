@@ -44,6 +44,8 @@ public class RemotingCall extends PendingCall {
 
 	public boolean isAMF3;
 	
+	public boolean isMessaging;
+	
     /**
      * Create remoting call from service name, method name, list of arguments and callback name
      * @param serviceName                Service name
@@ -51,11 +53,13 @@ public class RemotingCall extends PendingCall {
      * @param args                       Parameters passed to method
      * @param callback                   Name of client callback
      * @param isAMF3                     Does the client support AMF3?
+     * @param isMessaging				 Is this a Flex messaging request?
      */
-    public RemotingCall(String serviceName, String serviceMethod, Object[] args, String callback, boolean isAMF3) {
+    public RemotingCall(String serviceName, String serviceMethod, Object[] args, String callback, boolean isAMF3, boolean isMessaging) {
 		super(serviceName, serviceMethod, args);
 		setClientCallback(callback);
 		this.isAMF3 = isAMF3;
+		this.isMessaging = isMessaging;
 	}
 
 	/**

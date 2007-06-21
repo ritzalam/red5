@@ -45,6 +45,9 @@ import org.red5.server.service.PendingCall;
  */
 public class FlexMessagingService {
 
+	/** Name of the service. */
+	public static final String SERVICE_NAME = "flexMessaging";
+	
     /**
      * Logger
      */
@@ -84,7 +87,7 @@ public class FlexMessagingService {
 	 * @param faultDetail
 	 * @return
 	 */
-	protected ErrorMessage returnError(AbstractMessage request, String faultCode, String faultString, String faultDetail) {
+	public static ErrorMessage returnError(AbstractMessage request, String faultCode, String faultString, String faultDetail) {
 		ErrorMessage result = new ErrorMessage();
 		result.timestamp = System.currentTimeMillis();
 		result.headers = request.headers;

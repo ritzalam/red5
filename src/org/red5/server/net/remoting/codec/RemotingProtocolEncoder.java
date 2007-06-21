@@ -23,12 +23,16 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoSession;
+import org.red5.compatibility.flex.messaging.messages.AbstractMessage;
+import org.red5.compatibility.flex.messaging.messages.ErrorMessage;
 import org.red5.io.amf.Output;
 import org.red5.io.object.Serializer;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.protocol.SimpleProtocolEncoder;
+import org.red5.server.net.remoting.FlexMessagingService;
 import org.red5.server.net.remoting.message.RemotingCall;
 import org.red5.server.net.remoting.message.RemotingPacket;
+import org.red5.server.service.ServiceNotFoundException;
 
 /**
  * Remoting protocol encoder
@@ -72,7 +76,23 @@ public class RemotingProtocolEncoder implements SimpleProtocolEncoder {
 			} else {
 				output = new Output(buf);
 			}
-			serializer.serialize(output, call.getClientResult());
+			Object result = call.getClientResult();
+			if (call.isMessaging && !call.isSuccess() && !(result instanceof ErrorMessage)) {
+				// Generate proper error result for the Flex messaging client
+				AbstractMessage request = (AbstractMessage) call.getArguments()[0];
+				if (result instanceof ServiceNotFoundException) {
+					ServiceNotFoundException ex = (ServiceNotFoundException) result;
+					if (FlexMessagingService.SERVICE_NAME.equals(ex.getServiceName())) {
+						result = FlexMessagingService.returnError(request, "serviceNotAvailable", "Flex messaging not activated", ex.getMessage());
+					} else {
+						// This should never happen as the service name is hardcoded...
+						result = FlexMessagingService.returnError(request, "serviceNotAvailable", "Flex messaging not activated", ex.getMessage());
+					}
+				} else {
+					result = FlexMessagingService.returnError(request, "error", result.toString(), result.toString());
+				}
+			}
+			serializer.serialize(output, result);
 		}
 		//buf.compact();
 		buf.flip();
