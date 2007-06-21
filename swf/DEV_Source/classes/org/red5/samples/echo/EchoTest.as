@@ -199,6 +199,7 @@ package org.red5.samples.echo
 				return;
 			}
 			
+			echoService.endpoint = null;
 			nc.connect(url);
 			
 			if (protocol == "http") {
@@ -247,7 +248,7 @@ package org.red5.samples.echo
 				textArea.text += "Testing String with " + testParams[testIndex].length + " chars: ";
 			else
 				textArea.text += "Testing " + testParams[testIndex] + ": ";
-			if (nc.connected) {
+			if (echoService.endpoint == null) {
 				nc.call("echo", new Responder(this.onResult), testParams[testIndex]);
 			} else {
 				// RemotingObject requests
