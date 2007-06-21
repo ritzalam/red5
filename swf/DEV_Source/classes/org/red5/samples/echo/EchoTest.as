@@ -182,6 +182,7 @@ package org.red5.samples.echo
 			//
 			if ( username_txt.text.length > 0 ) {
 				nc.addHeader("Credentials", false, {username: username_txt.text, password: password_txt.text});
+				echoService.setCredentials( username_txt.text, password_txt.text );
 			}
 			var url: String;
 			if (protocol == "http") {

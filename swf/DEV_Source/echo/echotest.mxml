@@ -12,6 +12,7 @@
 				<mx:TextInput id="username_txt" width="100%" text=""/>
 				<mx:Label text="Password:"/>
 				<mx:TextInput id="password_txt" displayAsPassword="true" width="100%" text=""/>
+				<mx:Button label="disconnect" click="echoService.disconnect()"/>
 			</mx:HBox>
 		</mx:FormItem>
 		<mx:FormItem label="HTTP:" width="100%">
@@ -27,13 +28,13 @@
 				<mx:Button id="btnConnectHTTP0" label="HTTP AMF0" labelPlacement="left" click="onConnect('http', ObjectEncoding.AMF0)" />
 				<mx:Button id="btnConnectHTTP3" label="HTTP AMF3" labelPlacement="left" click="onConnect('http', ObjectEncoding.AMF3)" />
 				<mx:Button id="btnConnectRemoteObject" label="mx:RemoteObject" labelPlacement="left" click="onConnect('remoteObject', ObjectEncoding.AMF3)" />
+				<mx:Text text="FP { Capabilities.version }" paddingTop="2" fontSize="9"/>
 			</mx:HBox>
 		</mx:FormItem>
 	</mx:Form>
-	<mx:TextArea id="textArea" width="100%" height="100%">
-    </mx:TextArea>
+	<mx:TextArea id="textArea" width="100%" height="100%" editable="false"/>
 	<mx:RemoteObject 
-		id="echoService" 
+		id="echoService"
 		destination="Red5Echo"
 		source="EchoService"
 		result="onRemotingResult(event.result)"

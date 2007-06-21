@@ -31,6 +31,7 @@ package org.red5.ui
 	 */	
 	public class VideoContainer extends UIComponent
 	{
+		
         /**
         * Video object instance.
         */		
@@ -43,7 +44,7 @@ package org.red5.ui
 		public function VideoContainer()
 		{
 			super();
-			addEventListener( Event.RESIZE, resizeHandler );	
+			addEventListener( Event.RESIZE, resizeHandler );
 		}
 
         /**
@@ -80,6 +81,6 @@ package org.red5.ui
                _video.height = height;
             }
         }
-	
+        
 	}
 }
