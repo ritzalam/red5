@@ -66,11 +66,16 @@ public class FilePersistence extends RamPersistence {
 	private String extension = ".red5";
 
     /**
-     * Whether there's ned to check for empty directories
+     * Whether there's need to check for empty directories
      */
     // TODO: make this configurable
 	private boolean checkForEmptyDirectories = true;
 
+	/**
+	 * Thread to serialize persistent objects.
+	 */
+	private FilePersistenceThread storeThread = null;
+	
     /**
      * Create file persistence object from given resource pattern resolver
      * @param resolver            Resource pattern resolver and loader
@@ -78,6 +83,7 @@ public class FilePersistence extends RamPersistence {
     public FilePersistence(ResourcePatternResolver resolver) {
 		super(resolver);
 		setPath(path);
+		storeThread = FilePersistenceThread.getInstance();
 	}
 
     /**
@@ -87,6 +93,7 @@ public class FilePersistence extends RamPersistence {
     public FilePersistence(IScope scope) {
 		super(scope);
 		setPath(path);
+		storeThread = FilePersistenceThread.getInstance();
 	}
 
 	/**
@@ -223,7 +230,7 @@ public class FilePersistence extends RamPersistence {
 				if (result == null) {
 					// We need to create the object first
 					try {
-						Class theClass = Class.forName(className);
+						Class<?> theClass = Class.forName(className);
 						Constructor constructor = null;
 						try {
 							// Try to create object by calling constructor with Input stream as
@@ -322,7 +329,7 @@ public class FilePersistence extends RamPersistence {
      * @param object           Persistable object
      * @return                 <code>true</code> on success, <code>false</code> otherwise
      */
-    private boolean saveObject(IPersistable object) {
+    protected boolean saveObject(IPersistable object) {
 		String path = getObjectFilepath(object, true);
 		Resource resPath = resources.getResource(path);
 		File file;
@@ -362,7 +369,7 @@ public class FilePersistence extends RamPersistence {
 			}
 			return true;
 		} catch (IOException e) {
-			log.error("Could not create / write file " + filename);
+			log.error("Could not create / write file " + filename, e);
 			return false;
 		}
 	}
@@ -374,9 +381,9 @@ public class FilePersistence extends RamPersistence {
 			return false;
 		}
 
-		boolean persistent = this.saveObject(object);
-		object.setPersistent(persistent);
-		return persistent;
+		storeThread.modified(object, this);
+		object.setPersistent(true);
+		return true;
 	}
 
     /**
