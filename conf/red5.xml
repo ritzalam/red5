@@ -6,6 +6,11 @@
                            http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-2.0.xsd">
 
 	<!-- This file just wires together the context tree. Its accessed by ContextSingletonBeanFactoryLocator -->
+	
+	<bean id="placeholderConfig"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="location" value="classpath:/red5.properties" />
+	</bean>
 
 	<!-- First we load the common context, its shared between all the other contexts -->
 	<!-- Global context serves are the parent to all child contexts. -->
@@ -32,7 +37,9 @@
 	
 	<!-- Now we can load the servlet engine, this has to happen after the context are loaded -->
 
- 	<bean id="jetty6.server" class="org.red5.server.JettyLoader" init-method="init" autowire="byType" depends-on="context.loader" />
+ 	<bean id="jetty6.server" class="org.red5.server.JettyLoader" init-method="init" autowire="byType" depends-on="context.loader">
+	    <property name="webappFolder" value="${red5.root}/webapps" />
+	</bean>
 <!--
 	<bean id="tomcat.server" class="org.red5.server.TomcatLoader" init-method="init" destroy-method="shutdown" autowire="byType" depends-on="context.loader">
 	    <property name="embedded">

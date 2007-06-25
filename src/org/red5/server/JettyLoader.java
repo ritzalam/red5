@@ -19,6 +19,7 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+import java.io.File;
 import java.io.IOException;
 
 import org.apache.commons.logging.Log;
@@ -71,6 +72,11 @@ public class JettyLoader implements ApplicationContextAware, LoaderMBean {
 	protected Server jetty;
 
 	/**
+	 * Folder containing the webapps.
+	 */
+	protected String webappFolder = null;
+	
+	/**
 	 *  Jetty config path
 	 */
 	protected String jettyConfig = "classpath:/jetty.xml";
@@ -81,12 +87,31 @@ public class JettyLoader implements ApplicationContextAware, LoaderMBean {
 	}
 
 	/**
+	 * Set the folder containing webapps.
+	 * 
+	 * @param webappFolder
+	 */
+	public void setWebappFolder(String webappFolder) {
+		File fp = new File(webappFolder);
+		if (!fp.isDirectory()) {
+			throw new RuntimeException("Webapp folder " + webappFolder + " doesn't exist.");
+		}
+		this.webappFolder = webappFolder;
+	}
+	
+	/**
 	 *
 	 */
 	@SuppressWarnings("all")
 	public void init() {
 		// So this class is left just starting jetty
 		try {
+			if (webappFolder == null) {
+				// Use default webapps directory
+				webappFolder = System.getProperty("red5.root") + "/webapps";
+			}
+			System.setProperty("red5.webapp.root", webappFolder);
+			
 			log.info("Loading jetty6 context from: " + jettyConfig);
 			ApplicationContext appCtx = new ClassPathXmlApplicationContext(
 					jettyConfig);
@@ -104,8 +129,6 @@ public class JettyLoader implements ApplicationContextAware, LoaderMBean {
 
 			log.info("Starting jetty servlet engine");
 
-			// Get Red5 applications directory
-			String webAppRoot = System.getProperty("red5.webapp.root");
 			String[] handlersArr = new String[] {
 					"org.mortbay.jetty.webapp.WebInfConfiguration",
 					"org.mortbay.jetty.webapp.WebXmlConfiguration",
@@ -127,7 +150,7 @@ public class JettyLoader implements ApplicationContextAware, LoaderMBean {
 				
 				WebAppDeployer deployer = new WebAppDeployer();
 				deployer.setContexts(contexts);
-				deployer.setWebAppDir(webAppRoot);
+				deployer.setWebAppDir(webappFolder);
 				deployer.setDefaultsDescriptor(defaultWebConfig);
 				deployer.setConfigurationClasses(handlersArr);
 				deployer.setExtract(true);
