@@ -43,7 +43,7 @@ public class PersistenceUtils {
 	 * @return				Constructor
 	 * @throws Exception
 	 */
-	private static Constructor getPersistenceStoreConstructor(Class theClass,
+	private static Constructor getPersistenceStoreConstructor(Class<?> theClass,
 			Class[] interfaces) throws Exception {
 		Constructor constructor = null;
 		for (Class interfaceClass : interfaces) {
