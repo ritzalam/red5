@@ -115,7 +115,7 @@ public abstract class BasicScope extends PersistableAttributeStore implements
      */
 	public void removeEventListener(IEventListener listener) {
 		listeners.remove(listener);
-		if (!keepOnDisconnect && ScopeUtils.isRoom(this) && isPersistent() && listeners.isEmpty()) {
+		if (!keepOnDisconnect && ScopeUtils.isRoom(this) && listeners.isEmpty()) {
 			// Delete empty rooms
 			parent.removeChildScope(this);
 		}
