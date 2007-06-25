@@ -95,4 +95,10 @@ public interface IPersistenceStore {
 	 */
 	public Collection<IPersistable> getObjects();
 
+	/**
+	 * Notify store that it's being closed. This allows the store to write
+	 * any pending objects to disk.
+	 */
+	public void notifyClose();
+	
 }

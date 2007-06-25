@@ -922,6 +922,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 			log.debug("Remove child scope");
 			getHandler().removeChildScope(scope);
 		}
+		scope.setStore(null);
 		
 		if (scope instanceof IScope) {
 			final IServer server = getServer();

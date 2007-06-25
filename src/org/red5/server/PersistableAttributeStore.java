@@ -211,6 +211,9 @@ public class PersistableAttributeStore extends AttributeStore implements
      * @param store         Persistent store
      */
     public void setStore(IPersistenceStore store) {
+    	if (this.store != null) {
+    		this.store.notifyClose();
+    	}
 		this.store = store;
 		if (store != null) {
 			store.load(this);

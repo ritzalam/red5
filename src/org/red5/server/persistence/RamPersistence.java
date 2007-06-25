@@ -173,4 +173,9 @@ public class RamPersistence implements IPersistenceStore {
     public Collection<IPersistable> getObjects() {
 		return objects.values();
 	}
+
+	/** {@inheritDoc} */
+	public void notifyClose() {
+		objects.clear();
+	}
 }

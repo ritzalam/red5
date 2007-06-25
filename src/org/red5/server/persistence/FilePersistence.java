@@ -454,4 +454,12 @@ public class FilePersistence extends RamPersistence {
 		return remove(getObjectId(object));
 	}
 
+	/** {@inheritDoc} */
+    @Override
+	public void notifyClose() {
+    	// Write any pending objects
+		storeThread.notifyClose(this);
+		super.notifyClose();
+	}
+
 }

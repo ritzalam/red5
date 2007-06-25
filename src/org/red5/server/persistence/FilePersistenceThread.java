@@ -20,7 +20,9 @@ package org.red5.server.persistence;
  */
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -50,6 +52,11 @@ public class FilePersistenceThread extends Thread {
 	 * Modified objects that need to be stored.
 	 */
 	private Map<IPersistable, FilePersistence> modifiedObjects = new HashMap<IPersistable, FilePersistence>();
+	
+	/**
+	 * Modified objects for each store.
+	 */
+	private Map<FilePersistence, Set<IPersistable>> objectStores = new HashMap<FilePersistence, Set<IPersistable>>();
 	
 	/**
 	 * Singleton instance.
@@ -93,11 +100,52 @@ public class FilePersistenceThread extends Thread {
 		FilePersistence previous;
 		synchronized (modifiedObjects) {
 			previous = modifiedObjects.put(object, store);
+			Set<IPersistable> objects = objectStores.get(store);
+			if (objects == null) {
+				objects = new HashSet<IPersistable>();
+				objectStores.put(store, objects);
+			}
+			objects.add(object);
 		}
 		
 		if (previous != null && !previous.equals(store)) {
 			log.warn("Object " + object + " was also modified in " + previous + ", saving instantly");
 			previous.saveObject(object);
+			Set<IPersistable> objects = objectStores.get(previous);
+			if (objects != null) {
+				objects.remove(previous);
+			}
+		}
+	}
+	
+	/**
+	 * Write any pending objects for the given store to disk.
+	 * 
+	 * @param store
+	 */
+	protected void notifyClose(FilePersistence store) {
+		Set<IPersistable> objects;
+		// Get snapshot of currently modified objects.
+		synchronized (modifiedObjects) {
+			objects = objectStores.remove(store);
+			if (objects != null) {
+				for (IPersistable object: objects) {
+					modifiedObjects.remove(object);
+				}
+			}
+		}
+		
+		if (objects == null || objects.isEmpty()) {
+			return;
+		}
+		
+		// Store pending objects
+		for (IPersistable object: objects) {
+			try {
+				store.saveObject(object);
+			} catch (Throwable e) {
+				log.error("Error while saving " + object + " in " + store, e);
+			}
 		}
 	}
 	
@@ -113,6 +161,7 @@ public class FilePersistenceThread extends Thread {
 				synchronized (modifiedObjects) {
 					objects = new HashMap<IPersistable, FilePersistence>(modifiedObjects);
 					modifiedObjects.clear();
+					objectStores.clear();
 				}
 				
 				for (Map.Entry<IPersistable, FilePersistence> entry: objects.entrySet()) {
