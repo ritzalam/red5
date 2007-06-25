@@ -90,6 +90,7 @@ public class ClientRegistry implements IClientRegistry, ClientRegistryMBean {
 	 * Return collection of clients
 	 * @return             Collection of clients
 	 */
+	@SuppressWarnings("unchecked")
 	protected Collection<IClient> getClients() {
 		if (!hasClients()) {
 			// Avoid creating new Collection object if no clients exist.

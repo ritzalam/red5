@@ -733,6 +733,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 * set unregisters the corresponding service handler.
 	 * @return            Set of service handler names
 	 */
+	@SuppressWarnings("unchecked")
 	public Set<String> getServiceHandlerNames() {
 		Map<String, Object> serviceHandlers = getServiceHandlers(false);
 		if (serviceHandlers == null) {

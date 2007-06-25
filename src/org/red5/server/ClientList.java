@@ -25,4 +25,9 @@ import java.util.ArrayList;
  */
 public class ClientList<E> extends ArrayList<E> implements ListMBean {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -3127064371410565214L;
+
 }

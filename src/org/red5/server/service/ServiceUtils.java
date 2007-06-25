@@ -157,7 +157,7 @@ public class ServiceUtils {
 			log.debug("Parameter conversion will be attempted in order.");
 		}
 
-		ArrayList argsList = new ArrayList();
+		ArrayList<Object> argsList = new ArrayList<Object>();
 		if (args != null) {
 			for (Object element : args) {
 				argsList.add(element);

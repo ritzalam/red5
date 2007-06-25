@@ -29,7 +29,6 @@ import org.mortbay.jetty.deployer.WebAppDeployer;
 import org.mortbay.jetty.handler.ContextHandlerCollection;
 import org.mortbay.jetty.handler.DefaultHandler;
 import org.mortbay.jetty.handler.HandlerCollection;
-import org.mortbay.jetty.webapp.WebAppContext;
 import org.red5.server.jmx.JMXAgent;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;

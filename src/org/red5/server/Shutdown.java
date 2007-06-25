@@ -48,7 +48,7 @@ public class Shutdown {
 			
 			JMXServiceURL url = null;
 			JMXConnector jmxc = null;
-            HashMap env = null;
+            HashMap<String, Object> env = null;
 			
 			if (null == args || args.length < 1) {
 				System.out.println("Attempting to connect to RMI port: 9999");
@@ -61,7 +61,7 @@ public class Shutdown {
 						+ args[0] + "/red5");
 				
 				if (args.length > 1) {
-		            env = new HashMap(1);
+		            env = new HashMap<String, Object>(1);
 		            String[] credentials = new String[] {args[1], args[2]};
 		            env.put("jmx.remote.credentials", credentials);
 				}
