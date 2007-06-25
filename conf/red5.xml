@@ -38,10 +38,14 @@
 	<!-- Now we can load the servlet engine, this has to happen after the context are loaded -->
 
  	<bean id="jetty6.server" class="org.red5.server.JettyLoader" init-method="init" autowire="byType" depends-on="context.loader">
-	    <property name="webappFolder" value="${red5.root}/webapps" />
+		<property name="webappFolder" value="${red5.root}/webapps" />
 	</bean>
+
 <!--
 	<bean id="tomcat.server" class="org.red5.server.TomcatLoader" init-method="init" destroy-method="shutdown" autowire="byType" depends-on="context.loader">
+		<!-- Note: the webapp root folder must be specified before the "contexts" property -- >
+		<property name="webappFolder" value="${red5.root}/webapps" />
+	
 	    <property name="embedded">
 	    	<bean class="org.apache.catalina.startup.Embedded" />
 	    </property>

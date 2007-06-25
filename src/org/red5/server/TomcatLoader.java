@@ -73,7 +73,7 @@ public class TomcatLoader implements ApplicationContextAware, LoaderMBean {
 	/**
 	 * Used during context creation
 	 */
-	private static String appRoot;
+	private String webappFolder = null;
 
 	// Initialize Logging
 	protected static Logger log = Logger
@@ -85,9 +85,6 @@ public class TomcatLoader implements ApplicationContextAware, LoaderMBean {
 		log.info("Server root: " + serverRoot);
 		String confRoot = System.getProperty("red5.config_root");
 		log.info("Config root: " + confRoot);
-		// root location for servlet container
-		appRoot = serverRoot + "/webapps";
-		log.info("Application root: " + appRoot);
 		// set in the system for tomcat classes
 		System.setProperty("tomcat.home", serverRoot);
 		System.setProperty("catalina.home", serverRoot);
@@ -197,13 +194,20 @@ public class TomcatLoader implements ApplicationContextAware, LoaderMBean {
 			log.error("Error loading tomcat configuration", e);
 		}
 
+		if (webappFolder == null) {
+			// Use default webapps directory
+			webappFolder = System.getProperty("red5.root") + "/webapps";
+		}
+		System.setProperty("red5.webapp.root", webappFolder);
+		log.info("Application root: " + webappFolder);
+
 		//scan for additional webapp contexts
 		if (log.isDebugEnabled()) {
-			log.debug("Approot: " + appRoot);
+			log.debug("Approot: " + webappFolder);
 
 		}
 		// Root applications directory
-		File appDirBase = new File(appRoot);
+		File appDirBase = new File(webappFolder);
 		// Subdirs of root apps dir
 		File[] dirs = appDirBase.listFiles(new DirectoryFilter());
 		// Search for additional context files
@@ -214,7 +218,7 @@ public class TomcatLoader implements ApplicationContextAware, LoaderMBean {
 				if (log.isDebugEnabled()) {
 					log.debug("Adding context from directory scan: " + dirName);
 				}
-				this.addContext(dirName, appRoot + '/' + dirName);
+				this.addContext(dirName, webappFolder + '/' + dirName);
 			}
 		}
 
@@ -249,6 +253,19 @@ public class TomcatLoader implements ApplicationContextAware, LoaderMBean {
 		}
 	}
 
+	/**
+	 * Set the folder containing webapps.
+	 * 
+	 * @param webappFolder
+	 */
+	public void setWebappFolder(String webappFolder) {
+		File fp = new File(webappFolder);
+		if (!fp.isDirectory()) {
+			throw new RuntimeException("Webapp folder " + webappFolder + " doesn't exist.");
+		}
+		this.webappFolder = webappFolder;
+	}
+	
 	/**
 	 * Setter for application context
 	 * @param context                Application context
@@ -301,7 +318,7 @@ public class TomcatLoader implements ApplicationContextAware, LoaderMBean {
 			log.debug("setContexts: " + contexts.size());
 		}
 		for (String key : contexts.keySet()) {
-			baseHost.addChild(embedded.createContext(key, appRoot
+			baseHost.addChild(embedded.createContext(key, webappFolder
 					+ contexts.get(key)));
 		}
 	}
