@@ -167,7 +167,7 @@ public class BroadcastScope extends BasicScope implements IBroadcastScope,
      * @param paramMap         Parameters passed on connection
      * @return                 <code>true</code> on success, <code>false</code> otherwise
      */
-    public synchronized boolean subscribe(IProvider provider, Map paramMap) {
+    public boolean subscribe(IProvider provider, Map paramMap) {
 		synchronized (pipe) {
             return !hasRemoved && pipe.subscribe(provider, paramMap);
         }
