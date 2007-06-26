@@ -98,7 +98,9 @@ public class RTMPTHandler extends RTMPHandler {
 		out.putInt(0x01);
 		out.fill((byte) 0x00, Constants.HANDSHAKE_SIZE-4);
 		out.put(in).flip();
-		rtmp.setHandshake(out, 1, Constants.HANDSHAKE_SIZE);
+		// Skip first 8 bytes when comparing the handshake, they seem to
+		// be changed when connecting from a Mac client.
+		rtmp.setHandshake(out, 9, Constants.HANDSHAKE_SIZE-8);
 
 		conn.rawWrite(out);
 	}

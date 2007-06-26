@@ -244,7 +244,9 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 					rtmp.bufferDecoding(HANDSHAKE_SIZE);
 					return null;
 				} else {
-					if (!rtmp.validateHandshakeReply(in, 0, HANDSHAKE_SIZE)) {
+					// Skip first 8 bytes when comparing the handshake, they seem to
+					// be changed when connecting from a Mac client.
+					if (!rtmp.validateHandshakeReply(in, 8, HANDSHAKE_SIZE-8)) {
 						if (log.isDebugEnabled()) {
 							log.debug("Handshake reply validation failed, disconnecting client.");
 						}
