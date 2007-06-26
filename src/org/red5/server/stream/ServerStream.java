@@ -320,17 +320,23 @@ public class ServerStream extends AbstractStream implements IServerStream,
 				DefaultStreamFilenameGenerator.class);
 		
 		String filename = generator.generateFilename(scope, name, ".flv", GenerationType.RECORD);
-		Resource res = scope.getContext().getResource(filename);
+		// Get file for that filename
+		File file;
+		if (generator.resolvesToAbsolutePath()) {
+			file = new File(filename);
+		} else {
+			file = scope.getContext().getResource(filename).getFile();
+		}
 		if (!isAppend) {
-			if (res.exists()) {
+			if (file.exists()) {
 				// Per livedoc of FCS/FMS:
 				// When "live" or "record" is used,
 				// any previously recorded stream with the same stream URI is deleted.
-				if (!res.getFile().delete())
+				if (!file.delete())
 					throw new IOException("file could not be deleted");
 			}
 		} else {
-			if (!res.exists()) {
+			if (!file.exists()) {
 				// Per livedoc of FCS/FMS:
 				// If a recorded stream at the same URI does not already exist,
 				// "append" creates the stream as though "record" was passed.
@@ -338,10 +344,9 @@ public class ServerStream extends AbstractStream implements IServerStream,
 			}
 		}
 
-		if (!res.exists()) {
+		if (!file.exists()) {
 			// Make sure the destination directory exists
-				try {
-			String path = res.getFile().getAbsolutePath();
+			String path = file.getAbsolutePath();
 			int slashPos = path.lastIndexOf(File.separator);
 			if (slashPos != -1) {
 				path = path.substring(0, slashPos);
@@ -350,29 +355,25 @@ public class ServerStream extends AbstractStream implements IServerStream,
 			if (!tmp.isDirectory()) {
 				tmp.mkdirs();
 			}
-				} catch (IOException err) {
-					log.error("Could not create destination directory.", err);
-				}
-				res = scope.getResource(filename);
 		}
 
-		if (!res.exists()) {
-				if (!res.getFile().canWrite()) {
-					log.warn("File cannot be written to "
-							+ res.getFile().getCanonicalPath());
-				}
-			res.getFile().createNewFile();
+		if (!file.exists()) {
+			if (!file.canWrite()) {
+				log.warn("File cannot be written to "
+						+ file.getCanonicalPath());
+			}
+			file.createNewFile();
 		}
-		FileConsumer fc = new FileConsumer(scope, res.getFile());
+		FileConsumer fc = new FileConsumer(scope, file);
 		Map<Object, Object> paramMap = new HashMap<Object, Object>();
 		if (isAppend) {
 			paramMap.put("mode", "append");
 		} else {
 			paramMap.put("mode", "record");
 		}
-			if (null == recordPipe) {
-				recordPipe = new InMemoryPushPushPipe();
-			}
+		if (null == recordPipe) {
+			recordPipe = new InMemoryPushPushPipe();
+		}
 		recordPipe.subscribe(fc, paramMap);
 		recordingFilename = filename;
 		} catch (IOException e) {

@@ -228,8 +228,10 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		if (!(event instanceof IRTMPEvent)
 				&& (event.getType() != IEvent.Type.STREAM_CONTROL)
 				&& (event.getType() != IEvent.Type.STREAM_DATA) || closed) {
-			//ignored event
-			log.debug("dispatchEvent: " + event.getType());
+			// ignored event
+			if (log.isDebugEnabled()) {
+				log.debug("dispatchEvent: " + event.getType());
+			}
 			return;
 		}
 
@@ -504,7 +506,9 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	 */
 	public void saveAs(String name, boolean isAppend) throws IOException,
 			ResourceNotFoundException, ResourceExistException {
-		log.debug("SaveAs - name: " + name + " append: " + isAppend);
+		if (log.isDebugEnabled()) {
+			log.debug("SaveAs - name: " + name + " append: " + isAppend);
+		}
 		// Get stream scope
 		IStreamCapableConnection conn = getConnection();
 		if (conn == null) {
@@ -520,20 +524,25 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		// Generate filename
 		String filename = generator.generateFilename(scope, name, ".flv",
 				GenerationType.RECORD);
-		// Get resource for that filename
-		Resource res = scope.getContext().getResource(filename);
+		// Get file for that filename
+		File file;
+		if (generator.resolvesToAbsolutePath()) {
+			file = new File(filename);
+		} else {
+			file = scope.getContext().getResource(filename).getFile();
+		}
 		// If append mode is on...
 		if (!isAppend) {
-			if (res.exists()) {
+			if (file.exists()) {
 				// Per livedoc of FCS/FMS:
 				// When "live" or "record" is used,
 				// any previously recorded stream with the same stream URI is deleted.
-				if (!res.getFile().delete()) {
+				if (!file.delete()) {
 					throw new IOException("file could not be deleted");
 				}
 			}
 		} else {
-			if (!res.exists()) {
+			if (!file.exists()) {
 				// Per livedoc of FCS/FMS:
 				// If a recorded stream at the same URI does not already exist,
 				// "append" creates the stream as though "record" was passed.
@@ -541,9 +550,9 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			}
 		}
 
-		if (!res.exists()) {
+		if (!file.exists()) {
 			// Make sure the destination directory exists
-			String path = res.getFile().getAbsolutePath();
+			String path = file.getAbsolutePath();
 			int slashPos = path.lastIndexOf(File.separator);
 			if (slashPos != -1) {
 				path = path.substring(0, slashPos);
@@ -554,11 +563,13 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			}
 		}
 
-		if (!res.exists()) {
-			res.getFile().createNewFile();
+		if (!file.exists()) {
+			file.createNewFile();
 		}
-		log.debug("Recording file: " + res.getFile().getCanonicalPath());
-		recordingFile = new FileConsumer(scope, res.getFile());
+		if (log.isDebugEnabled()) {
+			log.debug("Recording file: " + file.getCanonicalPath());
+		}
+		recordingFile = new FileConsumer(scope, file);
 		Map<Object, Object> paramMap = new HashMap<Object, Object>();
 		if (isAppend) {
 			paramMap.put("mode", "append");
@@ -690,7 +701,9 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	 * @param name       Name that used for publishing. Set at client side when begin to broadcast with NetStream#publish.
 	 */
 	public void setPublishedName(String name) {
-		log.debug("setPublishedName: " + name);
+		if (log.isDebugEnabled()) {
+			log.debug("setPublishedName: " + name);
+		}
 		//check to see if we are setting the name to the same string
 		if (!name.equals(publishedName)) {
 			// update an attribute

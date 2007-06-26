@@ -66,4 +66,13 @@ public class DefaultStreamFilenameGenerator implements IStreamFilenameGenerator 
 		return result;
 	}
 
+    /**
+     * The default filenames are relative to the scope path, so always return <code>false</code>.
+     * 
+     * @return	always <code>false</code>
+     */
+	public boolean resolvesToAbsolutePath() {
+		return false;
+	}
+
 }

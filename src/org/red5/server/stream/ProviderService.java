@@ -100,8 +100,7 @@ public class ProviderService implements IProviderService {
     public File getVODProviderFile(IScope scope, String name) {
 		File file = null;
 		try {
-			file = scope.getContext().getResources(getStreamFilename(scope, name))[0]
-					.getFile();
+			file = getStreamFile(scope, name);
 		} catch (IOException e) {
 			log.error("Problem getting file: " + name);
 		}
@@ -157,7 +156,7 @@ public class ProviderService implements IProviderService {
 		return status;
 	}
 
-	private String getStreamFilename(IScope scope, String name) {
+	private File getStreamFile(IScope scope, String name) throws IOException {
 		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils
 				.getScopeService(scope, IStreamableFileFactory.class);
 		if (name.indexOf(':') == -1 && name.indexOf('.') == -1) {
@@ -176,7 +175,15 @@ public class ProviderService implements IProviderService {
 		IStreamFilenameGenerator filenameGenerator = (IStreamFilenameGenerator)
 			ScopeUtils.getScopeService(scope, IStreamFilenameGenerator.class, DefaultStreamFilenameGenerator.class);
 		
-		return filenameGenerator.generateFilename(scope, name, GenerationType.PLAYBACK);
+		String filename = filenameGenerator.generateFilename(scope, name, GenerationType.PLAYBACK);
+		File file;
+		if (filenameGenerator.resolvesToAbsolutePath()) {
+			file = new File(filename);
+		} else {
+			file = scope.getContext().getResource(filename).getFile();
+		}
+		return file;
+
 	}
 
 }
