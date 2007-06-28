@@ -25,4 +25,11 @@
             <ibiblio name="ibiblio" />
         </chain>
     </resolvers>
+    <modules>
+        <module organisation="spring" name="*" resolver="googlecode"/>
+        <module organisation="tomcat" name="*" resolver="googlecode"/>
+        <module organisation="jetty" name="*" resolver="googlecode"/>
+        <module organisation="mina" name="*" resolver="googlecode"/>
+        <module organisation="jmx" name="*" resolver="googlecode"/>
+    </modules>    
 </ivysettings>
