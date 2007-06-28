@@ -485,10 +485,10 @@
 			<!--
 			<jvmarg value="-Djavax.net.ssl.trustStore=${config.dir}/truststore.jmx"/>
 			<jvmarg value="-Djavax.net.ssl.trustStorePassword=trustword"/>
+			-->
 			<arg value="9999"/>
 			<arg value="red5user"/>
 			<arg value="changeme"/>
-			-->
 		</java>
 	</target>
 	
