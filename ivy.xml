@@ -21,7 +21,7 @@
         <dependency org="spring" name="spring-context" rev="2.0.+" />
         <dependency org="spring" name="spring-core" rev="2.0.+" />
         <dependency org="spring" name="spring-web" rev="2.0.+" />
-        <dependency org="spring" name="aopalliance" rev="latest.integration" />
+        <dependency org="spring" name="aopalliance" rev="" />
         <!-- Tomcat --> 
         <dependency org="tomcat" name="catalina" rev="6.0.+" />
         <dependency org="tomcat" name="tomcat-coyote" rev="6.0.+" />
