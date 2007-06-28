@@ -27,8 +27,7 @@
     	resource="fr/jayasoft/ivy/ant/antlib.xml"
     	classpath="${lib.dir}/ivy-1.4.1.jar" />
 	<property name="ivy.lib.dir" value="${lib.dir}" />	
-	<!-- Ivy configuration -->
-    <ivy:configure file="ivyconfig.xml" />	
+
 	<!-- JUNIT TESTING -->
 	<property name="test.dir" value="test"/>
 	<property name="testclass.dir" value="bin/testcases"/>
@@ -53,10 +52,13 @@
 			<filename name="red5.jar"/>
 		</fileset>
 	</path>
+	
 	<echo>java.home is ${java.home} and the target version is ${java.target_version}</echo>
+	
 	<target name="-junit.check">
 		<available property="junit.installed" classname="junit.framework.TestCase"/>
 	</target>
+	
 	<target name="-java6.check">
 		<condition property="java6.installed" value="true">
 			<and>
@@ -65,6 +67,7 @@
 			</and>
 		</condition>
 	</target>
+	
 	<!-- setup the directories for building -->
 	<target name="prepare">
 		<mkdir dir="${classes.dir}"/>
@@ -86,6 +89,7 @@
 		<mkdir dir="${webapps.dir}/tutorial/WEB-INF/classes"/>
 		<mkdir dir="${webapps.dir}/tutorial/WEB-INF/lib"/>		
 	</target>
+	
 	<!-- do a clean -->
 	<target name="clean">
 		<delete dir="${classes.dir}"/>
@@ -99,6 +103,7 @@
 			<fileset dir="${webapps.dir}/" includes="**/*.jar"/>
 		</delete>
 	</target>
+	
 	<target name="compile" depends="-java6.check, -junit.check, prepare">
 		<condition property="java.target_version" value="1.5">
 			<not>
@@ -116,9 +121,12 @@
 		<antcall target="compile_demos" inheritAll="true" inheritRefs="true"/>
 		<antcall target="compile_script" inheritAll="true" inheritRefs="true"/>
 	</target>
+	
 	<!-- Core -->
 	<target name="compile_core" if="java6.installed">
-		 <ivy:retrieve />
+		<!-- Ivy configuration -->
+    	<ivy:configure file="ivyconfig.xml" />	
+		<ivy:retrieve />
 	
 		<javac sourcepath="" srcdir="${src.dir}" destdir="${classes.dir}" classpathref="project.classpath"
 			 optimize="${build.optimize}" verbose="${build.verbose}" fork="${build.fork}" nowarn="${build.nowarn}"
@@ -126,8 +134,11 @@
 			 source="${java.target_version}" target="${java.target_version}" memoryMaximumSize="1024m"
 			 excludes="**/*.jsp,org/red5/server/script/**" listfiles="false"/>
 	</target>
+	
 	<target name="compile_core_compatibility" unless="java6.installed">
-		 <ivy:retrieve conf="java5" />
+		<!-- Ivy configuration -->
+    	<ivy:configure file="ivyconfig.xml" />		
+		<ivy:retrieve conf="java5" />
 		 	
 		<javac sourcepath="" srcdir="${src.dir}" destdir="${classes.dir}" classpathref="project.classpath"
 			 optimize="${build.optimize}" verbose="${build.verbose}" fork="${build.fork}" nowarn="${build.nowarn}"
@@ -135,6 +146,7 @@
 			 source="${java.target_version}" target="${java.target_version}" memoryMaximumSize="1024m"
 			 excludes="**/*.jsp,org/red5/server/script/**" listfiles="false"/>
 	</target>
+	
 	<!-- Demos -->
 	<target name="compile_demos" depends="prepare">
 		<javac sourcepath="" srcdir="${webapps.dir}/admin/WEB-INF/src" destdir="${webapps.dir}${tmp.war.dir}/admin/WEB-INF/classes"
@@ -170,6 +182,7 @@
 			 fork="${build.fork}" nowarn="${build.nowarn}" deprecation="${build.deprecation}"
 			 debug="${debug.state}" compiler="${compiler}" source="${java.target_version}" target="${java.target_version}"/>
 	</target>
+	
 	<!-- Scripting -->
 	<target name="compile_script" depends="prepare">
 		<javac sourcepath="" srcdir="${src.dir}" destdir="${classes.dir}" classpathref="script.classpath"
@@ -178,6 +191,7 @@
 			 source="${java.target_version}" target="${java.target_version}" memoryMaximumSize="1024m"
 			 includes="org/red5/server/script/**" listfiles="false"/>
 	</target>
+	
 	<target name="compile_war" depends="clean">
 		<condition property="java.target_version" value="1.6">
 			<not>
@@ -229,6 +243,7 @@
 			<param name="classes.dir" value="${classes.dir}/WEB-INF/classes"/>
 		</antcall>
 	</target>
+	
 	<target name="javadoc" description="Generate JavaDoc" if="java6.installed">
 		<echo message="Path: ${env.Path}"/>
 		<!-- Determine the location of Suns api docs -->
@@ -264,6 +279,7 @@
 			<link href="http://www.opensymphony.com/quartz/api"/>
 		</javadoc>
 	</target>
+	
 	<!--
     yDoc - Javadoc UML Extension
     This will enable you to generate and automatically integrate clear and concise UML diagrams into your Java API documentation.
@@ -320,6 +336,7 @@
 			<link href="http://www.opensymphony.com/quartz/api"/>
 		</javadoc>
 	</target>
+	
 	<target name="jar" description="Make Archive" depends="compile">
 		<tstamp prefix="build">
 			<format property="TODAY" pattern="d-MMMM-yyyy" locale="en"/>
@@ -386,8 +403,8 @@
 				<include name="**"/>
 			</fileset>
 		</jar>
-		<ivy:report todir="${dist.dir}"/>
 	</target>
+	
 	<target name="dist" description="Make Binary Distribution" depends="clean, jar, javadoc">
 		<copy todir="${dist.dir}/doc">
 			<fileset dir="doc"/>
@@ -414,6 +431,7 @@
 			</fileset>
 		</copy>
 	</target>
+	
 	<target name="installerdist" description="Make Installer Distribution" depends="dist">
 		<copy todir="${dist.dir}">
 			<fileset dir="./">
@@ -436,6 +454,7 @@
 			</fileset>
 		</copy>
 	</target>
+	
 	<target name="server" depends="compile">
 		<java classname="org.red5.server.Standalone" fork="true">
 			<classpath>
@@ -452,6 +471,7 @@
 			-->
 		</java>
 	</target>
+	
 	<target name="shutdown">
 		<java classname="org.red5.server.Shutdown" fork="true">
 			<classpath>
@@ -471,6 +491,7 @@
 			-->
 		</java>
 	</target>
+	
 	<!-- Experimental UDP Server -->
 	<target name="udp_java5" depends="compile" unless="java6.installed">
 		<java classname="org.red5.server.net.udp.Standalone" fork="true">
@@ -483,6 +504,7 @@
 			<jvmarg value="-Djava.security.policy=${config.dir}/red5.policy"/>
 		</java>
 	</target>
+	
 	<target name="udp_java6" depends="compile" if="java6.installed">
 		<java classname="org.red5.server.net.udp.Standalone" fork="true">
 			<classpath>
@@ -494,10 +516,12 @@
 			<jvmarg value="-Djava.security.policy=${config.dir}/red5.policy"/>
 		</java>
 	</target>
+	
 	<target name="udp">
 		<antcall target="udp_java5" inheritAll="true" inheritRefs="true"/>
 		<antcall target="udp_java6" inheritAll="true" inheritRefs="true"/>
 	</target>
+	
 	<target name="run-tests" if="junit.installed" depends="compiletests" description="Run JUnit tests and generate HTML reports">
 		<junit fork="true" haltonfailure="no" printsummary="no" showoutput="no" dir="${testreports.dir}">
 			<classpath>
@@ -520,7 +544,10 @@
 			<report format="frames" todir="${testdoc.dir}"/>
 		</junitreport>
 	</target>
+	
 	<target name="compiletests" depends="jar" if="junit.installed" description="Compiles junit test classes">
+		<!-- Ivy configuration -->
+    	<ivy:configure file="ivyconfig.xml" />		
 		<ivy:retrieve conf="test" />
 		<javac srcdir="${test.dir}" destdir="${testclass.dir}">
 			<classpath>
@@ -529,6 +556,7 @@
 			<include name="**/*.java"/>
 		</javac>
 	</target>
+	
 	<target name="webwar" description="Make Web Archive" depends="compile_war">
 		<tstamp prefix="build">
 			<format property="TODAY" pattern="d-MMMM-yyyy" locale="en"/>
@@ -594,7 +622,9 @@
 			</manifest>
 		</war>
 	</target>
+	
 	<target name="all" depends="clean, prepare, compile, jar, javadoc"/>
+	
 	<target name="usage">
 		<echo message="Type ant -p for available targets"/>
 	</target>

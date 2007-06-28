@@ -2,6 +2,7 @@
     <conf defaultResolver="chained" />
     <resolvers>
         <chain name="chained">     
+    		<ivyrep name="public"/>
 			<filesystem name="libraries">
         		<artifact pattern="${ivy.lib.dir}/[artifact].[type]" />
         		<artifact pattern="${ivy.lib.dir}/[artifact]-[revision].[type]" />
