@@ -58,7 +58,6 @@ import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.stream.consumer.FileConsumer;
 import org.red5.server.stream.message.RTMPMessage;
 import org.red5.server.stream.message.ResetMessage;
-import org.springframework.core.io.Resource;
 
 /**
  * An implementation for server side stream.

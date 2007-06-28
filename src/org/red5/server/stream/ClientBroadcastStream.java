@@ -71,7 +71,6 @@ import org.red5.server.stream.codec.StreamCodecInfo;
 import org.red5.server.stream.consumer.FileConsumer;
 import org.red5.server.stream.message.RTMPMessage;
 import org.red5.server.stream.message.StatusMessage;
-import org.springframework.core.io.Resource;
 
 /**
  * Represents live stream broadcasted from client. As Flash Media Server, Red5 supports
@@ -454,6 +453,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	 * Pipe connection event handler
 	 * @param event          Pipe connection event
 	 */
+	@SuppressWarnings("unused")
 	public void onPipeConnectionEvent(PipeConnectionEvent event) {
 		switch (event.getType()) {
 			case PipeConnectionEvent.PROVIDER_CONNECT_PUSH:
