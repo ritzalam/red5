@@ -1,14 +1,9 @@
 <ivy-module version="1.0">
     <info organisation="red5" module="server" />
-	<configurations defaultconfmapping="*->@(*)">
-		<conf name="main"/>
-		<conf name="java6" extends="main" description="Java 6 dependencies"/>
-		<conf name="java5" extends="main" description="Java 5 dependencies"/>
-		<conf name="test" extends="java6" description="Unit testing dependencies"/>
+	<configurations>
+		<conf name="java5" description="Java 5 dependencies"/>
+		<conf name="test" description="Unit testing dependencies"/>
 	</configurations>
-	<publications>
-      <artifact name="red5" conf="java6,java5" />
-    </publications>
     <dependencies>
         <!-- J2EE --> 
         <dependency org="tomcat" name="jasper" rev="6.0.+" />
@@ -52,8 +47,9 @@
         <dependency name="commons-lang" rev="2.3" />
         <dependency name="commons-pool" rev="1.3" />
         <dependency org="javax" name="jpda" rev="" />
-        <dependency name="junit" rev="4.0" conf="test"/>
-        <dependency name="GroboUtils-5-core" rev="" conf="test"/>
+        <dependency name="junit" rev="4.0" conf="test->default"/>
+        <dependency name="groboutils" rev="" conf="test->default"/>
+        <dependency org="spring" name="spring-mock" rev="2.0.+" conf="test->default"/>
         <dependency name="quartz" rev="latest.integration" />
         <dependency org="javax" name="jta" rev="1.0.1B" />
         <dependency name="whirlycache" rev="1.0.1_lite" />
@@ -81,9 +77,9 @@
         <dependency org="spring" name="spring-support" rev="2.0.+" />
         <dependency name="xbean" rev="" />       
         <!-- Java5 support -->
-        <dependency org="rhino" name="js" rev="1.6R5" conf="java5"/>
-        <dependency name="jsr173_1.0_api" rev="" conf="java5"/>
-        <dependency name="jsr-223" rev="1.0-pr" conf="java5"/>
-        <dependency name="java6-compatibility" rev="" conf="java5"/>
+        <dependency org="rhino" name="js" rev="1.6R5" conf="java5->default"/>
+        <dependency name="jsr173_1.0_api" rev="" conf="java5->default"/>
+        <dependency name="jsr-223" rev="1.0-pr" conf="java5->default"/> 
+        <dependency name="java6-compatibility" rev="" conf="java5->default"/>
     </dependencies>
 </ivy-module>

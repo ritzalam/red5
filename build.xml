@@ -118,7 +118,7 @@
 	</target>
 	<!-- Core -->
 	<target name="compile_core" if="java6.installed">
-		 <ivy:retrieve conf="java6" sync="true" />
+		 <ivy:retrieve />
 	
 		<javac sourcepath="" srcdir="${src.dir}" destdir="${classes.dir}" classpathref="project.classpath"
 			 optimize="${build.optimize}" verbose="${build.verbose}" fork="${build.fork}" nowarn="${build.nowarn}"
@@ -521,7 +521,7 @@
 		</junitreport>
 	</target>
 	<target name="compiletests" depends="jar" if="junit.installed" description="Compiles junit test classes">
-		<ivy:retrieve conf="test" sync="true" />
+		<ivy:retrieve conf="test" />
 		<javac srcdir="${test.dir}" destdir="${testclass.dir}">
 			<classpath>
 				<path refid="full.classpath"/>
