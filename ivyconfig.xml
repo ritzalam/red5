@@ -1,0 +1,27 @@
+<ivysettings>
+    <conf defaultResolver="chained" />
+    <resolvers>
+        <chain name="chained">     
+			<filesystem name="libraries">
+        		<artifact pattern="${ivy.lib.dir}/[artifact].[type]" />
+        		<artifact pattern="${ivy.lib.dir}/[artifact]-[revision].[type]" />
+     	 	</filesystem>        
+            <url name="googlecode">
+                <artifact pattern="http://red5.googlecode.com/svn/trunk/repository/[artifact].[ext]" />
+                <artifact pattern="http://red5.googlecode.com/svn/trunk/repository/[artifact]-[revision].[ext]" />
+                <artifact pattern="http://red5.googlecode.com/svn/trunk/repository/[organisation]/[artifact].[ext]" />
+                <artifact pattern="http://red5.googlecode.com/svn/trunk/repository/[organisation]/[artifact]-[revision].[ext]" />
+            </url>
+            <!--            
+            <url name="cvsdude">
+                <artifact pattern="https://svn1.cvsdude.com/osflash/red5/java/server/trunk/lib/[artifact]-[revision].[ext]" />
+            </url>      
+            -->    
+            <url name="ibiblio_maven2" m2compatible="true">
+  				<artifact pattern="http://www.ibiblio.org/maven2/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"/>
+  				<artifact pattern="http://www.ibiblio.org/maven2/[organisation]/[artifact]/[revision]/[artifact]-[revision].[ext]"/>
+			</url>
+            <ibiblio name="ibiblio" />
+        </chain>
+    </resolvers>
+</ivysettings>
