@@ -4,7 +4,7 @@
 		<conf name="main"/>
 		<conf name="java6" extends="main" description="Java 6 dependencies"/>
 		<conf name="java5" extends="main" description="Java 5 dependencies"/>
-		<conf name="test" extends="main" description="Unit testing dependencies"/>
+		<conf name="test" extends="java6" description="Unit testing dependencies"/>
 	</configurations>
 	<publications>
       <artifact name="red5" conf="java6,java5" />
