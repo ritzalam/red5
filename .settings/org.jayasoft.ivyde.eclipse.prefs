@@ -1,7 +1,7 @@
-#Wed Jun 27 22:05:38 PDT 2007
+#Thu Jun 28 08:35:10 PDT 2007
 acceptedTypes=[inherited]
 eclipse.preferences.version=1
-ivy_conf_path=file\:/C\:/dev/red5/java/server/trunk/ivyconfig.xml
+ivy_conf_path=file\:ivyconfig.xml
 javadocTypes=[inherited]
-retreive.pattern=[inherited]
+retreive.pattern=lib/[artifact]-[revision].[ext]
 sourceTypes=[inherited]
