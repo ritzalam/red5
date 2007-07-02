@@ -84,9 +84,9 @@ public class JMXFactory {
 		sb.append(':');
 		for (int i = 0, j = 1; i < strings.length; i += 2, j += 2) {
 			//log.debug("------------" + strings[i] + " " + strings[j]);
-			sb.append(strings[i]);
+			sb.append(ObjectName.quote(strings[i]));
 			sb.append('=');
-			sb.append(strings[j]);
+			sb.append(ObjectName.quote(strings[j]));
 			sb.append(',');
 		}
 		sb.deleteCharAt(sb.length() - 1);
