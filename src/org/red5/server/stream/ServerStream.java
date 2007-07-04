@@ -35,6 +35,7 @@ import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.api.stream.IPlayItem;
 import org.red5.server.api.stream.IPlaylistController;
 import org.red5.server.api.stream.IServerStream;
+import org.red5.server.api.stream.IStreamAwareScopeHandler;
 import org.red5.server.api.stream.IStreamFilenameGenerator;
 import org.red5.server.api.stream.ResourceExistException;
 import org.red5.server.api.stream.ResourceNotFoundException;
@@ -488,6 +489,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 			msgOut.unsubscribe(this);
 		}
 		recordPipe.unsubscribe((IProvider) this);
+		notifyBroadcastClose();
 		state = State.CLOSED;
 	}
 
@@ -623,7 +625,44 @@ public class ServerStream extends AbstractStream implements IServerStream,
 		nextRTMPMessage = null;
 		vodStartTS = 0;
 		serverStartTS = System.currentTimeMillis();
+		IStreamAwareScopeHandler handler = getStreamAwareHandler();
+		if (handler != null) {
+			if (recordingFilename != null) {
+				handler.streamRecordStart(this);
+			} else {
+				handler.streamPublishStart(this);
+			}
+		}
+		notifyBroadcastStart();
 		scheduleNextMessage();
+	}
+
+	/**
+	 *  Notifies handler on stream broadcast stop
+	 */
+	private void notifyBroadcastClose() {
+		IStreamAwareScopeHandler handler = getStreamAwareHandler();
+		if (handler != null) {
+			try {
+				handler.streamBroadcastClose(this);
+			} catch (Throwable t) {
+				log.error("error notify streamBroadcastStop", t);
+			}
+		}
+	}
+
+	/**
+	 *  Notifies handler on stream broadcast start
+	 */
+	private void notifyBroadcastStart() {
+		IStreamAwareScopeHandler handler = getStreamAwareHandler();
+		if (handler != null) {
+			try {
+				handler.streamBroadcastStart(this);
+			} catch (Throwable t) {
+				log.error("error notify streamBroadcastStart", t);
+			}
+		}
 	}
 
 	/**
