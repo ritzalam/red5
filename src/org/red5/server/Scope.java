@@ -369,7 +369,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 * @param conn                  Connection object
 	 * @return                      <code>true</code> on success, <code>false</code> otherwise
 	 */
-	public synchronized boolean connect(IConnection conn) {
+	public boolean connect(IConnection conn) {
 		return connect(conn, null);
 	}
 
