@@ -188,13 +188,13 @@ public class WebScope extends Scope implements ServletContextAware {
 		}
 		
 		keepOnDisconnect = false;
+		uninit();
 		// We need to disconnect all clients before unregistering
 		Iterator<IConnection> iter = getConnections();
 		while (iter.hasNext()) {
 			IConnection conn = iter.next();
 			conn.close();
 		}
-		uninit();
 		if (hostnames != null && hostnames.length > 0) {
 			for (String element : hostnames) {
 				server.removeMapping(element, getName());
