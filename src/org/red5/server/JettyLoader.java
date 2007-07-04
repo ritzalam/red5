@@ -19,7 +19,6 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-import java.io.File;
 import java.io.IOException;
 
 import org.apache.commons.logging.Log;
@@ -30,6 +29,7 @@ import org.mortbay.jetty.deployer.WebAppDeployer;
 import org.mortbay.jetty.handler.ContextHandlerCollection;
 import org.mortbay.jetty.handler.DefaultHandler;
 import org.mortbay.jetty.handler.HandlerCollection;
+import org.red5.server.jetty.JettyApplicationLoader;
 import org.red5.server.jmx.JMXAgent;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -39,27 +39,12 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 /**
  *
  */
-public class JettyLoader implements ApplicationContextAware, LoaderMBean {
-
-	// We store the application context in a ThreadLocal so we can access it
-	// from "org.red5.server.jetty.Red5WebPropertiesConfiguration" later.
-	/**
-	 *
-	 */
-	private static ThreadLocal<ApplicationContext> applicationContext = new ThreadLocal<ApplicationContext>();
+public class JettyLoader extends LoaderBase implements ApplicationContextAware, LoaderMBean {
 
 	/**
 	 *  Logger
 	 */
 	protected static Log log = LogFactory.getLog(JettyLoader.class.getName());
-
-	/**
-	 * Return app context
-	 * @return                  App context
-	 */
-	public static ApplicationContext getApplicationContext() {
-		return applicationContext.get();
-	}
 
 	/**
 	 *  Default web config filename
@@ -70,11 +55,6 @@ public class JettyLoader implements ApplicationContextAware, LoaderMBean {
 	 *  IServer implementation
 	 */
 	protected Server jetty;
-
-	/**
-	 * Folder containing the webapps.
-	 */
-	protected String webappFolder = null;
 	
 	/**
 	 *  Jetty config path
@@ -86,19 +66,6 @@ public class JettyLoader implements ApplicationContextAware, LoaderMBean {
 				LoaderMBean.class);
 	}
 
-	/**
-	 * Set the folder containing webapps.
-	 * 
-	 * @param webappFolder
-	 */
-	public void setWebappFolder(String webappFolder) {
-		File fp = new File(webappFolder);
-		if (!fp.isDirectory()) {
-			throw new RuntimeException("Webapp folder " + webappFolder + " doesn't exist.");
-		}
-		this.webappFolder = webappFolder;
-	}
-	
 	/**
 	 *
 	 */
@@ -118,6 +85,8 @@ public class JettyLoader implements ApplicationContextAware, LoaderMBean {
 			// Get server bean from BeanFactory
 			jetty = (Server) appCtx.getBean("Server");
 
+			loader.set(new JettyApplicationLoader(jetty));
+			
 			// root location for servlet container
 			String serverRoot = System.getProperty("red5.root");
 			if (log.isDebugEnabled()) {

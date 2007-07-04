@@ -25,6 +25,8 @@ import javax.servlet.ServletContext;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.red5.server.api.IApplicationContext;
+import org.red5.server.api.IApplicationLoader;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IGlobalScope;
 import org.red5.server.api.IServer;
@@ -70,11 +72,18 @@ public class WebScope extends Scope implements ServletContextAware {
      * Hostnames
      */
 	protected String[] hostnames;
-
 	/**
 	 * Has the web scope been registered?
 	 */
 	protected boolean registered;
+	/**
+	 * The application context this webscope is running in.
+	 */
+	protected IApplicationContext appContext;
+	/**
+	 * Loader for new applications.
+	 */
+	protected IApplicationLoader appLoader;
 	
     /**
      * Setter for global scope. Sets persistence class.
@@ -156,6 +165,8 @@ public class WebScope extends Scope implements ServletContextAware {
 			return;
 		}
 		
+		appContext = LoaderBase.getRed5ApplicationContext();
+		appLoader = LoaderBase.getApplicationLoader();
 		if (hostnames != null && hostnames.length > 0) {
 			for (String element : hostnames) {
 				server.addMapping(element, getName(), getParent().getName());
@@ -189,17 +200,30 @@ public class WebScope extends Scope implements ServletContextAware {
 				server.removeMapping(element, getName());
 			}
 		}
+		if (appContext != null) {
+			appContext.stop();
+		}
 		// Various cleanup tasks
 		setStore(null);
 		super.setParent(null);
 		setServletContext(null);
 		setServer(null);
+		appContext = null;
 		registered = false;
 	}
 	
     /** {@inheritDoc} */
 	public IServer getServer() {
 		return server;
+	}
+
+	/**
+	 * Return object that can be used to load new applications.
+	 * 
+	 * @return the application loader
+	 */
+	public IApplicationLoader getApplicationLoader() {
+		return appLoader;
 	}
 
 }

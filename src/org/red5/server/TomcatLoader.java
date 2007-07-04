@@ -41,7 +41,7 @@ import org.springframework.context.ApplicationContextAware;
 /**
  * Red5 loader for Tomcat
  */
-public class TomcatLoader implements ApplicationContextAware, LoaderMBean {
+public class TomcatLoader extends LoaderBase implements ApplicationContextAware, LoaderMBean {
 	/**
 	 * Filters directory content
 	 */
@@ -70,11 +70,6 @@ public class TomcatLoader implements ApplicationContextAware, LoaderMBean {
 	 */
 	protected static ThreadLocal<ApplicationContext> applicationContext = new ThreadLocal<ApplicationContext>();
 
-	/**
-	 * Used during context creation
-	 */
-	private String webappFolder = null;
-
 	// Initialize Logging
 	protected static Logger log = Logger
 			.getLogger(TomcatLoader.class.getName());
@@ -89,14 +84,6 @@ public class TomcatLoader implements ApplicationContextAware, LoaderMBean {
 		System.setProperty("tomcat.home", serverRoot);
 		System.setProperty("catalina.home", serverRoot);
 		System.setProperty("catalina.base", serverRoot);
-	}
-
-	/**
-	 * Getter for application context
-	 * @return         Application context
-	 */
-	public static ApplicationContext getApplicationContext() {
-		return applicationContext.get();
 	}
 
 	/**
@@ -253,19 +240,6 @@ public class TomcatLoader implements ApplicationContextAware, LoaderMBean {
 		}
 	}
 
-	/**
-	 * Set the folder containing webapps.
-	 * 
-	 * @param webappFolder
-	 */
-	public void setWebappFolder(String webappFolder) {
-		File fp = new File(webappFolder);
-		if (!fp.isDirectory()) {
-			throw new RuntimeException("Webapp folder " + webappFolder + " doesn't exist.");
-		}
-		this.webappFolder = webappFolder;
-	}
-	
 	/**
 	 * Setter for application context
 	 * @param context                Application context

@@ -31,6 +31,7 @@ import org.mortbay.resource.Resource;
 import org.red5.server.Context;
 import org.red5.server.ContextLoader;
 import org.red5.server.JettyLoader;
+import org.red5.server.LoaderBase;
 import org.red5.server.WebScope;
 import org.red5.server.adapter.ApplicationAdapter;
 import org.red5.server.api.IClientRegistry;
@@ -104,6 +105,8 @@ public class Red5WebPropertiesConfiguration implements Configuration,
 			return;
 		}
 
+        LoaderBase.red5AppCtx.set(new JettyApplicationContext(context));
+        
         // Get WEB_INF directory
         Resource webInf = context.getWebInf();
 		if (webInf != null && webInf.isDirectory()) {
