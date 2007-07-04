@@ -19,22 +19,28 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.Iterator;
+
 import javax.servlet.ServletContext;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.red5.server.api.IConnection;
 import org.red5.server.api.IGlobalScope;
 import org.red5.server.api.IServer;
 import org.springframework.web.context.ServletContextAware;
 
 /**
- *  Web scope is special scope that is aware of servlet context and
- * represents scope of Red5 application in servlet container (or application server) like Tomcat, Jetty or JBoss.
+ * Web scope is special scope that is aware of servlet context and represents
+ * scope of Red5 application in servlet container (or application server)
+ * like Tomcat, Jetty or JBoss.
  *
- * Web scope is aware of virtual hosts configuration for Red5 application and is the first scope that instantiated
- * after Red5 application got started.
- * Then it loads virtual hosts configuration, adds mappings of paths to global scope that is injected thru Spring
- * IoC context file and runs initialization process.
+ * Web scope is aware of virtual hosts configuration for Red5 application and is
+ * the first scope that instantiated after Red5 application got started.
+ * 
+ * Then it loads virtual hosts configuration, adds mappings of paths to global
+ * scope that is injected thru Spring IoC context file and runs initialization
+ * process.
  *
  * Red5 server implementation instance and ServletContext are injected as well.
  */
@@ -65,6 +71,11 @@ public class WebScope extends Scope implements ServletContextAware {
      */
 	protected String[] hostnames;
 
+	/**
+	 * Has the web scope been registered?
+	 */
+	protected boolean registered;
+	
     /**
      * Setter for global scope. Sets persistence class.
      *
@@ -137,9 +148,14 @@ public class WebScope extends Scope implements ServletContextAware {
 	}
 
     /**
-     *  Map all vhosts to global scope then initialize
+     * Map all vhosts to global scope then initialize
      */
-	public void register() {
+	public synchronized void register() {
+		if (registered) {
+			// Already registered
+			return;
+		}
+		
 		if (hostnames != null && hostnames.length > 0) {
 			for (String element : hostnames) {
 				server.addMapping(element, getName(), getParent().getName());
@@ -148,6 +164,37 @@ public class WebScope extends Scope implements ServletContextAware {
 		init();
 		// We don't want to have configured scopes to get freed when a client disconnects.
 		keepOnDisconnect = true;
+		registered = true;
+	}
+	
+	/**
+	 * Uninitialize and remove all vhosts from the global scope.
+	 */
+	public synchronized void unregister() {
+		if (!registered) {
+			// Not registered
+			return;
+		}
+		
+		keepOnDisconnect = false;
+		// We need to disconnect all clients before unregistering
+		Iterator<IConnection> iter = getConnections();
+		while (iter.hasNext()) {
+			IConnection conn = iter.next();
+			conn.close();
+		}
+		uninit();
+		if (hostnames != null && hostnames.length > 0) {
+			for (String element : hostnames) {
+				server.removeMapping(element, getName());
+			}
+		}
+		// Various cleanup tasks
+		setStore(null);
+		super.setParent(null);
+		setServletContext(null);
+		setServer(null);
+		registered = false;
 	}
 	
     /** {@inheritDoc} */

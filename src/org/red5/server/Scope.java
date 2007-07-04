@@ -864,6 +864,18 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	}
 
 	/**
+	 * Uninitialize scope and unregister from parent.
+	 */
+	public void uninit() {
+		stop();
+		if (hasParent()) {
+			if (parent.hasChildScope(name)) {
+				parent.removeChildScope(this);
+			}
+		}
+	}
+	
+	/**
 	 * Check if scope is enabled
 	 * @return                  <code>true</code> if scope is enabled, <code>false</code> otherwise
 	 */
@@ -1024,14 +1036,40 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 * Starts scope
 	 * @return     <code>true</code> if scope has handler and it's start method returned true, <code>false</code> otherwise
 	 */
-	public boolean start() {
-		return enabled && !running && !(hasHandler() && !handler.start(this));
+	public synchronized boolean start() {
+		boolean result = false;
+		if (enabled && !running) {
+			if (hasHandler()) {
+				// Only start if scope handler allows it
+				try {
+					result = handler.start(this);
+				} catch (Throwable e) {
+					log.error("Could not start scope " + this, e);
+				}
+			} else {
+				// Always start scopes without handlers
+				if (log.isDebugEnabled()) {
+					log.debug("Scope " + this + " has no handler, allowing start.");
+				}
+				result = true;
+			}
+			running = result;
+		}
+		return result;
 	}
 
 	/**
 	 * Stops scope
 	 */
-	public void stop() {
+	public synchronized void stop() {
+		if (enabled && running && hasHandler()) {
+			try {
+				handler.stop(this);
+			} catch (Throwable e) {
+				log.error("Could not stop scope " + this, e);
+			}
+		}
+		running = false;
 	}
 
 	/**
