@@ -169,7 +169,6 @@ public class WebScope extends Scope implements ServletContextAware {
 		appLoader = LoaderBase.getApplicationLoader();
 		// Release references
 		LoaderBase.setRed5ApplicationContext(null);
-		LoaderBase.setApplicationLoader(null);
 		if (hostnames != null && hostnames.length > 0) {
 			for (String element : hostnames) {
 				server.addMapping(element, getName(), getParent().getName());
