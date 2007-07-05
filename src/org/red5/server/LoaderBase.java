@@ -63,6 +63,15 @@ public class LoaderBase {
 	}
 	
 	/**
+	 * Setter for the application loader.
+	 * 
+	 * @param loader Application loader
+	 */
+	public static void setApplicationLoader(IApplicationLoader loader) {
+		LoaderBase.loader.set(loader);
+	}
+	
+	/**
 	 * Getter for the Red5 application context.
 	 * 
 	 * @return Red5 application context 
@@ -72,13 +81,22 @@ public class LoaderBase {
 	}
 	
 	/**
+	 * Setter for the Red5 application context.
+	 * 
+	 * @param context Red5 application context
+	 */
+	public static void setRed5ApplicationContext(IApplicationContext context) {
+		red5AppCtx.set(context);
+	}
+	
+	/**
 	 * Getter for application context
 	 * @return         Application context
 	 */
 	public static ApplicationContext getApplicationContext() {
 		return applicationContext.get();
 	}
-
+	
 	/**
 	 * Set the folder containing webapps.
 	 * 

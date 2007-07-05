@@ -105,7 +105,7 @@ public class Red5WebPropertiesConfiguration implements Configuration,
 			return;
 		}
 
-        LoaderBase.red5AppCtx.set(new JettyApplicationContext(context));
+        LoaderBase.setRed5ApplicationContext(new JettyApplicationContext(context));
         
         // Get WEB_INF directory
         Resource webInf = context.getWebInf();
