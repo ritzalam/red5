@@ -65,7 +65,7 @@ public class Red5WebPropertiesConfiguration implements Configuration,
     /**
      * Web application context
      */
-    protected static WebAppContext _context;
+    protected WebAppContext _context;
 
 	/** {@inheritDoc} */
     public void setWebAppContext(WebAppContext context) {

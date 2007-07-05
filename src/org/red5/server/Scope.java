@@ -28,6 +28,9 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.management.MalformedObjectNameException;
+import javax.management.ObjectName;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.IBasicScope;
@@ -44,6 +47,7 @@ import org.red5.server.api.persistence.PersistenceUtils;
 import org.red5.server.api.statistics.IScopeStatistics;
 import org.red5.server.api.statistics.support.StatisticsCounter;
 import org.red5.server.jmx.JMXAgent;
+import org.red5.server.jmx.JMXFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.core.style.ToStringCreator;
 
@@ -300,6 +304,11 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 */
 	private StatisticsCounter subscopeStats = new StatisticsCounter();
 
+	/**
+	 * Mbean object name.
+	 */
+	private ObjectName oName;
+	
 	/**
 	 * Creates unnamed scope
 	 */
@@ -1002,10 +1011,22 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 */
 	@Override
 	public void setName(String name) {
+		if (oName != null) {
+			JMXAgent.unregisterMBean(oName);
+			oName = null;
+		}
 		this.name = name;
-
-		JMXAgent.registerMBean(this, this.getClass().getName(),
-				ScopeMBean.class, name);
+		
+		if (name != null) {
+			try {
+				oName = new ObjectName(JMXFactory.getDefaultDomain() + ":type="
+						+ getClass().getName() + ",name=" + name);
+			} catch (MalformedObjectNameException e) {
+				log.error("Invalid object name.", e);
+			}
+			JMXAgent.registerMBean(this, this.getClass().getName(),
+					ScopeMBean.class, oName);
+		}
 	}
 
 	/**

@@ -208,6 +208,7 @@ public class WebScope extends Scope implements ServletContextAware {
 		super.setParent(null);
 		setServletContext(null);
 		setServer(null);
+		setName(null);
 		appContext = null;
 		registered = false;
 	}
