@@ -876,6 +876,11 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 * Uninitialize scope and unregister from parent.
 	 */
 	public void uninit() {
+		for (IBasicScope child: children.values()) {
+			if (child instanceof Scope) {
+				((Scope) child).uninit();
+			}
+		}
 		stop();
 		if (hasParent()) {
 			if (parent.hasChildScope(name)) {
