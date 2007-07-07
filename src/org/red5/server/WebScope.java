@@ -84,6 +84,10 @@ public class WebScope extends Scope implements ServletContextAware {
 	 * Loader for new applications.
 	 */
 	protected IApplicationLoader appLoader;
+	/**
+	 * Is the scope currently shutting down?
+	 */
+	protected boolean shuttingDown;
 	
     /**
      * Setter for global scope. Sets persistence class.
@@ -189,6 +193,7 @@ public class WebScope extends Scope implements ServletContextAware {
 			return;
 		}
 		
+		shuttingDown = true;
 		keepOnDisconnect = false;
 		uninit();
 		// We need to disconnect all clients before unregistering
@@ -213,6 +218,7 @@ public class WebScope extends Scope implements ServletContextAware {
 		setName(null);
 		appContext = null;
 		registered = false;
+		shuttingDown = false;
 	}
 	
     /** {@inheritDoc} */
@@ -229,4 +235,13 @@ public class WebScope extends Scope implements ServletContextAware {
 		return appLoader;
 	}
 
+	/**
+	 * Is the scope currently shutting down?
+	 * 
+	 * @return
+	 */
+	public boolean isShuttingDown() {
+		return shuttingDown;
+	}
+	
 }

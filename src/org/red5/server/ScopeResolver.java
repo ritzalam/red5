@@ -23,6 +23,7 @@ import org.red5.server.api.IGlobalScope;
 import org.red5.server.api.IScope;
 import org.red5.server.api.IScopeResolver;
 import org.red5.server.exception.ScopeNotFoundException;
+import org.red5.server.exception.ScopeShuttingDownException;
 
 /**
  * Resolves scopes from path
@@ -93,6 +94,10 @@ public class ScopeResolver implements IScopeResolver {
 				}
 			} else {
 				throw new ScopeNotFoundException(scope, room);
+			}
+			
+			if (scope instanceof WebScope && ((WebScope) scope).isShuttingDown()) {
+				throw new ScopeShuttingDownException(scope);
 			}
 		}
 		return scope;

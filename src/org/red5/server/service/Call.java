@@ -68,6 +68,11 @@ public class Call implements IServiceCall {
     public static final byte STATUS_GENERAL_EXCEPTION = 0x14;
 
     /**
+     * The application for this service is currently shutting down
+     */
+    public static final byte STATUS_APP_SHUTTING_DOWN = 0x15;
+    
+    /**
      * Service name
      */
     protected String serviceName;

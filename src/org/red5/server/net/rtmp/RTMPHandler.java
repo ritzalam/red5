@@ -44,6 +44,7 @@ import org.red5.server.api.stream.IClientStream;
 import org.red5.server.api.stream.IStreamService;
 import org.red5.server.exception.ClientRejectedException;
 import org.red5.server.exception.ScopeNotFoundException;
+import org.red5.server.exception.ScopeShuttingDownException;
 import org.red5.server.messaging.IConsumer;
 import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.net.rtmp.codec.RTMP;
@@ -255,6 +256,16 @@ public class RTMPHandler extends BaseRTMPHandler {
 									((IPendingServiceCall) call).setResult(status);
 								}
 								log.info("Scope " + path + " not found on "
+										+ host);
+								disconnectOnReturn = true;
+							} catch (ScopeShuttingDownException err) {
+								call.setStatus(Call.STATUS_APP_SHUTTING_DOWN);
+								if (call instanceof IPendingServiceCall) {
+									StatusObject status = getStatus(NC_CONNECT_APPSHUTDOWN);
+									status.setDescription("Application at \""+path+"\" is currently shutting down.");
+									((IPendingServiceCall) call).setResult(status);
+								}
+								log.info("Application at " + path + " currently shutting down on "
 										+ host);
 								disconnectOnReturn = true;
 							}
