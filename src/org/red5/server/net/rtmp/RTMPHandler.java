@@ -181,7 +181,9 @@ public class RTMPHandler extends BaseRTMPHandler {
 	protected void onInvoke(RTMPConnection conn, Channel channel, Header source,
 			Notify invoke, RTMP rtmp) {
 
-		log.debug("Invoke");
+    	if (log.isDebugEnabled()) {
+    		log.debug("Invoke: " + invoke);
+    	}
 
         // Get call
         final IServiceCall call = invoke.getCall();
@@ -198,9 +200,10 @@ public class RTMPHandler extends BaseRTMPHandler {
 
         // If this is not a service call then handle connection...
         if (call.getServiceName() == null) {
-			log.info("call: " + call);
+        	if (log.isDebugEnabled()) {
+        		log.debug("call: " + call);
+        	}
 			final String action = call.getServiceMethodName();
-			log.info("--" + action);
 			if (!conn.isConnected()) {
                 // Handle connection
 				if (action.equals(ACTION_CONNECT)) {
@@ -255,8 +258,10 @@ public class RTMPHandler extends BaseRTMPHandler {
 									status.setDescription("No scope \""+path+"\" on this server.");
 									((IPendingServiceCall) call).setResult(status);
 								}
-								log.info("Scope " + path + " not found on "
-										+ host);
+								if (log.isInfoEnabled()) {
+									log.info("Scope " + path + " not found on "
+											+ host);
+								}
 								disconnectOnReturn = true;
 							} catch (ScopeShuttingDownException err) {
 								call.setStatus(Call.STATUS_APP_SHUTTING_DOWN);
@@ -265,12 +270,16 @@ public class RTMPHandler extends BaseRTMPHandler {
 									status.setDescription("Application at \""+path+"\" is currently shutting down.");
 									((IPendingServiceCall) call).setResult(status);
 								}
-								log.info("Application at " + path + " currently shutting down on "
-										+ host);
+								if (log.isInfoEnabled()) {
+									log.info("Application at " + path + " currently shutting down on "
+											+ host);
+								}
 								disconnectOnReturn = true;
 							}
 							if (scope != null) {
-								log.info("Connecting to: " + scope);
+								if (log.isDebugEnabled()) {
+									log.info("Connecting to: " + scope);
+								}
 								boolean okayToConnect;
 								try {
 									if (call.getArguments() != null) {
@@ -302,7 +311,9 @@ public class RTMPHandler extends BaseRTMPHandler {
 										disconnectOnReturn = true;
 									}
 								} catch (ClientRejectedException rejected) {
-									log.debug("connect rejected");
+									if (log.isDebugEnabled()) {
+										log.debug("connect rejected");
+									}
 									call.setStatus(Call.STATUS_ACCESS_DENIED);
 									if (call instanceof IPendingServiceCall) {
 										IPendingServiceCall pc = (IPendingServiceCall) call;
@@ -392,7 +403,9 @@ public class RTMPHandler extends BaseRTMPHandler {
 					&& (call.getStatus() == Call.STATUS_SUCCESS_VOID || call
 							.getStatus() == Call.STATUS_SUCCESS_NULL)) {
 				// This fixes a bug in the FP on Intel Macs.
-				log.debug("Method does not have return value, do not reply");
+				if (log.isDebugEnabled()) {
+					log.debug("Method does not have return value, do not reply");
+				}
 				return;
 			}
 
@@ -416,7 +429,6 @@ public class RTMPHandler extends BaseRTMPHandler {
 				Invoke reply = new Invoke();
 				reply.setCall(call);
 				reply.setInvokeId(invoke.getInvokeId());
-				log.debug("sending reply");
 				channel.write(reply);
 				if (disconnectOnReturn) {
 					conn.close();
@@ -441,11 +453,15 @@ public class RTMPHandler extends BaseRTMPHandler {
 					int buffer = ping.getValue3();
 					if (stream != null) {
 						stream.setClientBufferDuration(buffer);
-						log.info("Setting client buffer on stream: " + buffer);
+						if (log.isInfoEnabled()) {
+							log.info("Setting client buffer on stream: " + buffer);
+						}
 					} else {
 						// Remember buffer time to set until stream will be created 
 						conn.rememberStreamBufferDuration(ping.getValue2(), buffer);
-						log.info("Remembering client buffer on stream: " + buffer);
+						if (log.isInfoEnabled()) {
+							log.info("Remembering client buffer on stream: " + buffer);
+						}
 					}
 				} else {
 					// XXX: should we store the buffer time for future streams?
