@@ -22,6 +22,7 @@ package org.red5.samples.echo
 	import flash.events.*;
 	import flash.net.*;
 	
+	import mx.collections.ArrayCollection;
 	import mx.controls.*;
 	import mx.core.Application;
 	import mx.rpc.remoting.mxml.RemoteObject;
@@ -155,7 +156,6 @@ package org.red5.samples.echo
 			remote2.attribute2 = 2;
 			tmp9.push(remote2);
 			testParams.push(tmp9);
-
 			AMF0Count = testParams.length;
 			
 			// Add AMF3 specific tests below
@@ -165,6 +165,11 @@ package org.red5.samples.echo
 			tmp_1.push(ext);
 			tmp_1.push(ext);
 			testParams.push(tmp_1);
+			var tmp10: ArrayCollection = new ArrayCollection();
+			tmp10.addItem("one");
+			tmp10.addItem(1);
+			tmp10.addItem(null);
+			testParams.push(tmp10);
 			
 			nc = new NetConnection();
 			nc.addEventListener( NetStatusEvent.NET_STATUS, netStatusHandler ); 
