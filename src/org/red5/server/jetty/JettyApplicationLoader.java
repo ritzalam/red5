@@ -47,7 +47,7 @@ public class JettyApplicationLoader implements IApplicationLoader {
 	 * 
 	 * @param server
 	 */
-	public JettyApplicationLoader(Server server) {
+	protected JettyApplicationLoader(Server server) {
 		this.server = server;
 	}
 	

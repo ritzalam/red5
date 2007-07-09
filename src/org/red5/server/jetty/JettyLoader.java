@@ -1,4 +1,4 @@
-package org.red5.server;
+package org.red5.server.jetty;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -29,7 +29,8 @@ import org.mortbay.jetty.deployer.WebAppDeployer;
 import org.mortbay.jetty.handler.ContextHandlerCollection;
 import org.mortbay.jetty.handler.DefaultHandler;
 import org.mortbay.jetty.handler.HandlerCollection;
-import org.red5.server.jetty.JettyApplicationLoader;
+import org.red5.server.LoaderBase;
+import org.red5.server.LoaderMBean;
 import org.red5.server.jmx.JMXAgent;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -37,7 +38,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
- *
+ * Class that loads Red5 applications using Jetty.
  */
 public class JettyLoader extends LoaderBase implements ApplicationContextAware, LoaderMBean {
 

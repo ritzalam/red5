@@ -30,7 +30,6 @@ import org.mortbay.jetty.webapp.WebAppContext;
 import org.mortbay.resource.Resource;
 import org.red5.server.Context;
 import org.red5.server.ContextLoader;
-import org.red5.server.JettyLoader;
 import org.red5.server.LoaderBase;
 import org.red5.server.WebScope;
 import org.red5.server.adapter.ApplicationAdapter;
