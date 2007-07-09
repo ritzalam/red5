@@ -179,11 +179,6 @@ package org.red5.samples.echo
 			}
 			textArea.text = "";
 			nc.objectEncoding = encoding;
-			//
-			if ( username_txt.text.length > 0 ) {
-				nc.addHeader("Credentials", false, {username: username_txt.text, password: password_txt.text});
-				echoService.setCredentials( username_txt.text, password_txt.text );
-			}
 			var url: String;
 			if (protocol == "http") {
 			    // Remoting...
@@ -195,11 +190,18 @@ package org.red5.samples.echo
 			textArea.text = "Connecting through " + protocol + " using AMF" + encoding + "...\n";
 			if (protocol == "remoteObject") {
 				echoService.endpoint = http_txt.text;
+				if ( username_txt.text.length > 0 ) {
+					echoService.setCredentials( username_txt.text, password_txt.text );
+				}
 				onTest();
 				return;
 			}
 			
 			echoService.endpoint = null;
+			//
+			if ( username_txt.text.length > 0 ) {
+				nc.addHeader("Credentials", false, {username: username_txt.text, password: password_txt.text});
+			}
 			nc.connect(url);
 			
 			if (protocol == "http") {
