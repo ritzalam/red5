@@ -20,6 +20,7 @@ package org.red5.io.amf;
  */
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -38,6 +39,7 @@ import org.red5.io.object.RecordSet;
 import org.red5.io.object.RecordSetPage;
 import org.red5.io.utils.ObjectMap;
 import org.red5.io.utils.XMLUtils;
+import org.red5.server.service.ConversionUtils;
 import org.w3c.dom.Document;
 
 /**
@@ -388,6 +390,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
      * @param bean               Input as bean
      * @return                   Decoded object
      */
+	@SuppressWarnings("unchecked")
 	protected Object readBean(Deserializer deserializer, Object bean) {
 		if (log.isDebugEnabled()) {
 			log.debug("read bean");
@@ -407,7 +410,12 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 			try {
 				if (property != null) {
 					try {
-						theClass.getField(name).set(bean, property);
+						final Field field = theClass.getField(name);
+						final Class type = field.getType();
+						if (!type.isAssignableFrom(property.getClass())) {
+							property = ConversionUtils.convert(property, type);
+						}
+						field.set(bean, property);
 					} catch (Exception ex2) {
 						BeanUtils.setProperty(bean, name, property);
 					}

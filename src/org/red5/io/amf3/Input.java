@@ -19,6 +19,7 @@ package org.red5.io.amf3;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -34,6 +35,7 @@ import org.red5.io.amf.AMF;
 import org.red5.io.object.DataTypes;
 import org.red5.io.object.Deserializer;
 import org.red5.io.utils.ObjectMap;
+import org.red5.server.service.ConversionUtils;
 
 /**
  * Input for red5 data (AMF3) types
@@ -352,7 +354,8 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
     
 	// Object
 
-    public Object readObject(Deserializer deserializer) {
+    @SuppressWarnings("unchecked")
+	public Object readObject(Deserializer deserializer) {
 		int type = readAMF3Integer();
 		if ((type & 1) == 0) {
 			// Reference
@@ -473,7 +476,12 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 						
 						try {
 							try {
-								resultClass.getField(key).set(result, value);
+								final Field field = resultClass.getField(key);
+								final Class fieldType = field.getType();
+								if (!fieldType.isAssignableFrom(value.getClass())) {
+									value = ConversionUtils.convert(value, fieldType);
+								}
+								field.set(result, value);
 							} catch (Exception e) {
 								BeanUtils.setProperty(result, key, value);
 							}
