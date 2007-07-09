@@ -1,4 +1,4 @@
-package org.red5.server;
+package org.red5.server.tomcat;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -33,7 +33,10 @@ import org.apache.catalina.connector.Connector;
 import org.apache.catalina.core.StandardHost;
 import org.apache.catalina.startup.Embedded;
 import org.apache.log4j.Logger;
+import org.red5.server.LoaderBase;
+import org.red5.server.LoaderMBean;
 import org.red5.server.jmx.JMXAgent;
+import org.red5.server.tomcat.TomcatApplicationContext;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -125,6 +128,7 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 	public org.apache.catalina.Context addContext(String path, String docBase) {
 		org.apache.catalina.Context c = embedded.createContext(path, docBase);
 		baseHost.addChild(c);
+		LoaderBase.setRed5ApplicationContext(path, new TomcatApplicationContext(c));
 		return c;
 	}
 
@@ -231,6 +235,8 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 		// associated with Engine
 		embedded.addConnector(connector);
 
+		setApplicationLoader(new TomcatApplicationLoader(embedded, baseHost));
+		
 		// start server
 		try {
 			log.info("Starting tomcat servlet engine");

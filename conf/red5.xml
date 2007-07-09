@@ -42,7 +42,7 @@
 	</bean>
 
 <!--
-	<bean id="tomcat.server" class="org.red5.server.TomcatLoader" init-method="init" destroy-method="shutdown" autowire="byType" depends-on="context.loader">
+	<bean id="tomcat.server" class="org.red5.server.tomcat.TomcatLoader" init-method="init" destroy-method="shutdown" autowire="byType" depends-on="context.loader">
 		<!- - Note: the webapp root folder must be specified before the "contexts" property - ->
 		<property name="webappFolder" value="${red5.root}/webapps" />
 	
@@ -102,7 +102,6 @@
   		</property>
 	</bean>     	
 -->
-
 	<!-- Default context. This can be shared between web app contexts -->
 	<!--
 	<bean id="default.context"

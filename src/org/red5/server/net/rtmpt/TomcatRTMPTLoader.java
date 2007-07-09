@@ -27,7 +27,7 @@ import org.apache.catalina.Server;
 import org.apache.catalina.Wrapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.red5.server.TomcatLoader;
+import org.red5.server.tomcat.TomcatLoader;
 import org.red5.server.api.IServer;
 
 /**

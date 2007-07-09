@@ -20,6 +20,8 @@ package org.red5.server;
  */
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.red5.server.api.IApplicationContext;
 import org.red5.server.api.IApplicationLoader;
@@ -41,7 +43,7 @@ public class LoaderBase {
 	/**
 	 * Current Red5 application context, set by the different loaders.
 	 */
-	public static ThreadLocal<IApplicationContext> red5AppCtx = new ThreadLocal<IApplicationContext>();
+	public static Map<String, IApplicationContext> red5AppCtx = new HashMap<String, IApplicationContext>();
 	
 	/**
 	 * Loader for new applications.
@@ -76,8 +78,8 @@ public class LoaderBase {
 	 * 
 	 * @return Red5 application context 
 	 */
-	public static IApplicationContext getRed5ApplicationContext() {
-		return red5AppCtx.get();
+	public static IApplicationContext getRed5ApplicationContext(String path) {
+		return red5AppCtx.get(path);
 	}
 	
 	/**
@@ -85,8 +87,12 @@ public class LoaderBase {
 	 * 
 	 * @param context Red5 application context
 	 */
-	public static void setRed5ApplicationContext(IApplicationContext context) {
-		red5AppCtx.set(context);
+	public static void setRed5ApplicationContext(String path, IApplicationContext context) {
+		if (context != null) {
+			red5AppCtx.put(path, context);
+		} else {
+			red5AppCtx.remove(path);
+		}
 	}
 	
 	/**

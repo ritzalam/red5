@@ -104,8 +104,6 @@ public class Red5WebPropertiesConfiguration implements Configuration,
 			return;
 		}
 
-        LoaderBase.setRed5ApplicationContext(new JettyApplicationContext(context));
-        
         // Get WEB_INF directory
         Resource webInf = context.getWebInf();
 		if (webInf != null && webInf.isDirectory()) {
@@ -136,6 +134,7 @@ public class Red5WebPropertiesConfiguration implements Configuration,
                 // Set virtual hosts and context path to context
                 context.setVirtualHosts(hostnames);
 				context.setContextPath(contextPath);
+		        LoaderBase.setRed5ApplicationContext(contextPath, new JettyApplicationContext(context));
 			}
 		} else if (webInf == null) {
 			// No WEB-INF directory found, register as default application
@@ -188,6 +187,8 @@ public class Red5WebPropertiesConfiguration implements Configuration,
 			// hosts
 			scope.setContextPath(context.getContextPath());
 			scope.setVirtualHosts("*");
+
+	        LoaderBase.setRed5ApplicationContext(context.getContextPath(), new JettyApplicationContext(context));
 
 			// Register WebScope in server
 			scope.register();
