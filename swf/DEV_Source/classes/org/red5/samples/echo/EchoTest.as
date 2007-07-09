@@ -156,6 +156,10 @@ package org.red5.samples.echo
 			remote2.attribute2 = 2;
 			tmp9.push(remote2);
 			testParams.push(tmp9);
+			var remote3: RemoteClass = new RemoteClass();
+			remote3.attribute1 = "three";
+			remote3.attribute2 = 1234567890;
+			testParams.push(remote3);
 			AMF0Count = testParams.length;
 			
 			// Add AMF3 specific tests below
