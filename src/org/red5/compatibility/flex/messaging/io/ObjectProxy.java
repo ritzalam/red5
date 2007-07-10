@@ -19,6 +19,8 @@ package org.red5.compatibility.flex.messaging.io;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.red5.io.amf3.IDataInput;
@@ -34,11 +36,11 @@ import org.red5.io.amf3.IExternalizable;
 public class ObjectProxy implements IExternalizable {
 
 	/** The proxied object. */
-	private Map item;
+	private Map<Object, Object> item;
 	
 	/** Create new empty proxy. */
 	public ObjectProxy() {
-		this(null);
+		this(new HashMap<Object, Object>());
 	}
 	
 	/**
@@ -46,13 +48,14 @@ public class ObjectProxy implements IExternalizable {
 	 * 
 	 * @param item object to proxy
 	 */
-	public ObjectProxy(Map item) {
-		this.item = item;
+	public ObjectProxy(Map<Object, Object> item) {
+		this.item = new HashMap<Object, Object>(item);
 	}
 
 	/** {@inheritDoc} */
+	@SuppressWarnings("unchecked")
 	public void readExternal(IDataInput input) {
-		item = (Map) input.readObject();
+		item = (Map<Object, Object>) input.readObject();
 	}
 
 	/** {@inheritDoc} */
@@ -60,6 +63,60 @@ public class ObjectProxy implements IExternalizable {
 		output.writeObject(item);
 	}
 
+	/**
+	 * Provide access to proxied object. All properties of the
+	 * proxied object are read-only.
+	 * 
+	 * @return the proxied object
+	 */
+	@SuppressWarnings("unchecked")
+	public Map getItem() {
+		return Collections.unmodifiableMap(item);
+	}
+	
+	/**
+	 * Change a property of the proxied object.
+	 * 
+	 * @param name
+	 * @param value
+	 */
+	public void setProperty(Object name, Object value) {
+		item.put(name, value);
+	}
+	
+	/**
+	 * Return the value of a property.
+	 * 
+	 * @param name
+	 */
+	public Object getProperty(Object name) {
+		return item.get(name);
+	}
+
+	/**
+	 * Remove a property of the proxied object.
+	 * 
+	 * @param name
+	 */
+	public void deleteProperty(Object name) {
+		item.remove(name);
+	}
+	
+	/**
+	 * Check if proxied object has a given property.
+	 * 
+	 * @param name
+	 * @return
+	 */
+	public boolean hasProperty(Object name) {
+		return item.containsKey(name);
+	}
+	
+	/** {@inheritDoc} */
+	public String toString() {
+		return item.toString();
+	}
+	
 	// TODO: implement other ObjectProxy methods
 	
 }
