@@ -1,8 +1,9 @@
 <ivy-module version="1.0">
     <info organisation="red5" module="server" />
 	<configurations>
-		<conf name="java5" description="Java 5 dependencies"/>
-		<conf name="test" description="Unit testing dependencies"/>
+	    <conf name="default"/>
+		<conf name="java5" extends="default" description="Java 5 dependencies"/>
+		<conf name="test" extends="default" description="Unit testing dependencies"/>
 	</configurations>
     <dependencies>
         <!-- J2EE --> 
