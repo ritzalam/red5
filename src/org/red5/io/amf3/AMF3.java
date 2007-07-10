@@ -129,8 +129,8 @@ public class AMF3 {
     public static final byte TYPE_OBJECT_VALUE = 0x02;
 
 	/**
-	 * Unseen / unknown.
+	 * Proxy object.
 	 */
-    public static final byte TYPE_OBJECT_UNKNOWN = 0x03;
+    public static final byte TYPE_OBJECT_PROXY = 0x03;
 
 }

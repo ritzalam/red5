@@ -429,8 +429,20 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 			}
 			break;
 		default:
-		case AMF3.TYPE_OBJECT_UNKNOWN:
-			throw new RuntimeException("Unknown object type: " + (type & 0x03));
+		case AMF3.TYPE_OBJECT_PROXY:
+			if ("".equals(className))
+				throw new RuntimeException("need a classname to load an externalizable object");
+			
+			result = newInstance(className);
+			if (result == null)
+				throw new RuntimeException("could not instantiate class");
+			
+			if (!(result instanceof IExternalizable))
+				throw new RuntimeException("the class must implement the IExternalizable interface");
+			
+			classReferences.add(new ClassReference(className, AMF3.TYPE_OBJECT_PROXY, null));
+			storeReference(tempRefId, result);
+			((IExternalizable) result).readExternal(new DataInput(this, deserializer));
 		}
 		amf3_mode -= 1;
 		
