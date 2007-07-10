@@ -5,14 +5,13 @@
 	       pageTitle="AMF3 Echo Client" layout="vertical"
 	       backgroundColor="#F4F4F4" themeColor="haloBlue"
 		   width="780" height="580">
-	<mx:Form width="100%" paddingBottom="0" paddingTop="0" paddingRight="0" paddingLeft="0">
+	<mx:Form paddingBottom="0" paddingTop="0" paddingRight="0" paddingLeft="0">
 		<mx:FormItem label="setCredentials:" width="100%">
 			<mx:HBox width="100%">
 				<mx:Label text="Username:"/>
 				<mx:TextInput id="username_txt" width="100%" text=""/>
 				<mx:Label text="Password:"/>
 				<mx:TextInput id="password_txt" displayAsPassword="true" width="100%" text=""/>
-				<mx:Button label="disconnect" click="echoService.disconnect()"/>
 			</mx:HBox>
 		</mx:FormItem>
 		<mx:FormItem label="HTTP:" width="100%">
