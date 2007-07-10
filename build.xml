@@ -569,9 +569,9 @@
 	</target>
 	
 	<target name="compiletests" depends="jar" if="junit.installed" description="Compiles junit test classes">
-		<!-- Ivy configuration -->
-    	<ivy:configure file="ivyconfig.xml" />		
-		<ivy:retrieve conf="test" />
+	    <antcall target="retrieve" inheritAll="true" inheritRefs="true">
+	        <param name="ivy.conf.name" value="test" />
+	    </antcall>
 		<javac srcdir="${test.dir}" destdir="${testclass.dir}">
 			<classpath>
 				<path refid="full.classpath"/>
