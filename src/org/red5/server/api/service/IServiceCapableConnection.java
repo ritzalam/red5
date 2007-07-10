@@ -37,7 +37,7 @@ public interface IServiceCapableConnection extends IConnection {
      * @param call       Service call
      * @param channel    Channel used
      */
-    void invoke(IServiceCall call, byte channel);
+    void invoke(IServiceCall call, int channel);
 
     /**
      * Invoke method by name
@@ -79,7 +79,7 @@ public interface IServiceCapableConnection extends IConnection {
      * @param call
      * @param channel
      */
-    void notify(IServiceCall call, byte channel);
+    void notify(IServiceCall call, int channel);
 
     /**
      *

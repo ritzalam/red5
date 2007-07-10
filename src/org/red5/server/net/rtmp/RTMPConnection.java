@@ -650,7 +650,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	/** {@inheritDoc} */
-	public void invoke(IServiceCall call, byte channel) {
+	public void invoke(IServiceCall call, int channel) {
 		// We need to use Invoke for all calls to the client
 		Invoke invoke = new Invoke();
 		invoke.setCall(call);
@@ -694,7 +694,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	/** {@inheritDoc} */
-	public void notify(IServiceCall call, byte channel) {
+	public void notify(IServiceCall call, int channel) {
 		Notify notify = new Notify();
 		notify.setCall(call);
 		getChannel(channel).write(notify);
