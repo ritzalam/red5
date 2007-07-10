@@ -6,56 +6,56 @@
 	</configurations>
     <dependencies>
         <!-- J2EE --> 
-        <dependency org="tomcat" name="jasper" rev="6.0.+" />
-        <dependency org="tomcat" name="jasper-jdt" rev="6.0.+" />
-        <dependency org="tomcat" name="jasper-el" rev="6.0.+" />
-        <dependency org="tomcat" name="tomcat-juli" rev="6.0.+" />
+        <dependency org="tomcat" name="jasper" rev="6.0.13" />
+        <dependency org="tomcat" name="jasper-jdt" rev="6.0.13" />
+        <dependency org="tomcat" name="jasper-el" rev="6.0.13" />
+        <dependency org="tomcat" name="tomcat-juli" rev="6.0.13" />
         <dependency org="tomcat" name="el-api" rev="" />
         <dependency org="tomcat" name="jsp-api" rev="" />
         <dependency org="tomcat" name="servlet-api" rev="" />
         <dependency name="naming-factory" rev="" />
         <dependency name="naming-resources" rev="" />
         <!-- Spring --> 
-        <dependency org="spring" name="spring-aop" rev="2.0.+" />
-        <dependency org="spring" name="spring-beans" rev="2.0.+" />
-        <dependency org="spring" name="spring-context" rev="2.0.+" />
-        <dependency org="spring" name="spring-core" rev="2.0.+" />
-        <dependency org="spring" name="spring-web" rev="2.0.+" />
+        <dependency org="spring" name="spring-aop" rev="2.0.6" />
+        <dependency org="spring" name="spring-beans" rev="2.0.6" />
+        <dependency org="spring" name="spring-context" rev="2.0.6" />
+        <dependency org="spring" name="spring-core" rev="2.0.6" />
+        <dependency org="spring" name="spring-web" rev="2.0.6" />
         <dependency org="spring" name="aopalliance" rev="" />
         <!-- Tomcat --> 
-        <dependency org="tomcat" name="catalina" rev="6.0.+" />
-        <dependency org="tomcat" name="tomcat-coyote" rev="6.0.+" />
+        <dependency org="tomcat" name="catalina" rev="6.0.13" />
+        <dependency org="tomcat" name="tomcat-coyote" rev="6.0.13" />
         <dependency org="tomcat" name="annotations-api" rev="" />
-        <dependency name="commons-modeler" rev="latest.integration" />
+        <dependency name="commons-modeler" rev="2.0.1" />
         <!-- Jetty --> 
-        <dependency org="jetty" name="jetty" rev="6.1.+" />
-        <dependency org="jetty" name="jetty-util" rev="6.1.+" />
-        <dependency org="jetty" name="jetty-xbean" rev="6.1.+" />
+        <dependency org="jetty" name="jetty" rev="6.1.0" />
+        <dependency org="jetty" name="jetty-util" rev="6.1.0" />
+        <dependency org="jetty" name="jetty-xbean" rev="6.1.0" />
         <!-- Logging --> 
         <dependency name="commons-logging" rev="1.1" />
-        <dependency name="log4j" rev="latest.integration" />
-        <dependency name="slf4j-api" rev="latest.integration" />
-        <dependency name="slf4j-log4j12" rev="latest.integration" />
-        <dependency name="slf4j-simple" rev="latest.integration" />
-        <dependency name="jcl104-over-slf4j" rev="latest.integration" />
+        <dependency name="log4j" rev="1.2.14" />
+        <dependency name="slf4j-api" rev="1.3.1" />
+        <dependency name="slf4j-log4j12" rev="1.3.1" />
+        <dependency name="slf4j-simple" rev="1.3.1" />
+        <dependency name="jcl104-over-slf4j" rev="1.3.1" />
         <!-- General --> 
-        <dependency org="cglib" name="cglib-nodep" rev="latest.integration" />        
+        <dependency org="cglib" name="cglib-nodep" rev="2.1_3" />        
         <dependency name="commons-beanutils" rev="1.7.0" />
         <dependency name="commons-codec" rev="1.3" />
-        <dependency name="commons-collections" rev="latest.integration" /> 
-        <dependency name="commons-httpclient" rev="3.0.+" />
+        <dependency name="commons-collections" rev="3.2" /> 
+        <dependency name="commons-httpclient" rev="3.0.1" />
         <dependency name="commons-lang" rev="2.3" />
         <dependency name="commons-pool" rev="1.3" />
         <dependency org="javax" name="jpda" rev="" />
         <dependency name="junit" rev="4.0" conf="test->default"/>
         <dependency name="groboutils" rev="" conf="test->default"/>
-        <dependency org="spring" name="spring-mock" rev="2.0.+" conf="test->default"/>
-        <dependency name="quartz" rev="latest.integration" />
+        <dependency org="spring" name="spring-mock" rev="2.0.6" conf="test->default"/>
+        <dependency name="quartz" rev="1.5.2" />
         <dependency org="javax" name="jta" rev="1.0.1B" />
         <dependency name="whirlycache" rev="1.0.1_lite" />
         <dependency name="ehcache" rev="1.2.3" />
-        <dependency name="xercesImpl" rev="2.9.+" />
-        <dependency name="xml-apis" rev="2.9.+" />
+        <dependency name="xercesImpl" rev="2.9.0" />
+        <dependency name="xml-apis" rev="2.9.0" />
         <dependency org="apache" name="xmlrpc" rev="2.0.1" />
         <dependency org="javax" name="activation" rev="1.1" />
         <!-- JMX -->
@@ -63,18 +63,18 @@
         <dependency org="jmx" name="jmxtools" rev="" />
         <dependency org="jmx" name="rmissl" rev="" />                
         <!-- Mina --> 
-        <dependency org="mina" name="mina-core" rev="1.1.+" />
-        <dependency org="mina" name="mina-filter-ssl" rev="1.1.+" />
-        <dependency org="mina" name="mina-integration-spring" rev="1.1.+" />
+        <dependency org="mina" name="mina-core" rev="1.1.0" />
+        <dependency org="mina" name="mina-filter-ssl" rev="1.1.0" />
+        <dependency org="mina" name="mina-integration-spring" rev="1.1.0" />
         <!-- Scripting -->
-        <dependency org="asm" name="asm" rev="2.2.+" />
-        <dependency org="asm" name="asm-commons" rev="2.2.+" />
+        <dependency org="asm" name="asm" rev="2.2.3" />
+        <dependency org="asm" name="asm-commons" rev="2.2.3" />
         <dependency org="antlr" name="antlr" rev="2.7.6" />
         <dependency name="bsh" rev="2.0b4" />
-        <dependency name="groovy" rev="latest.integration" />  
+        <dependency name="groovy" rev="1.0" />  
         <dependency name="jruby" rev="" />  
         <dependency name="jython" rev="" />  
-        <dependency org="spring" name="spring-support" rev="2.0.+" />
+        <dependency org="spring" name="spring-support" rev="2.0.6" />
         <dependency name="xbean" rev="" />       
         <!-- Java5 support -->
         <dependency org="rhino" name="js" rev="1.6R5" conf="java5->default"/>
