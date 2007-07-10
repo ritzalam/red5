@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<panels:ControlPanel 
+		xmlns:mx="http://www.adobe.com/2006/mxml" 
+		layout="absolute" 
+		initialize="connect()" 
+		width="750"
+		xmlns:panels="org.red5.admin.panels.*">
+
+	<mx:Style>
+		Application {
+			background-color: #eeeeee;
+		}
+
+		.flowStack {
+			borderColor:#dddddd;
+			borderThickness:1;
+			cornerRadius:5;
+			borderStyle:solid;
+			background-color: #eeeeee;
+		}
+	</mx:Style>
+	
+	<mx:VBox left="10" top="10" bottom="10" right="10" verticalGap="0">
+
+		<mx:HBox width="100%" height="65" verticalAlign="middle">
+			<mx:Image source="@Embed('/assets/FinalLogo.png')" />
+			<mx:Label text="Admin Panel" fontWeight="bold" fontSize="14"/>
+			<mx:HBox id="loggedInInfo" horizontalAlign="right" width="100%">
+				<mx:Label paddingTop="3" text="Connected to: {_selectedHost} | Update interval: "/>
+				<mx:ComboBox id="intervalSpeed" dataProvider="{_intervals}"/>
+				<mx:Label paddingTop="3" text="seconds"/>
+				<mx:Button label="Logout" click="logout(event)" />
+			</mx:HBox>
+		</mx:HBox>
+	
+		<mx:ViewStack id="flowControll" width="100%" height="100%" styleName="flowStack">
+			<mx:Canvas label="login" width="100%" height="100%" creationComplete="initLogin(event)">
+				<mx:VBox horizontalAlign="center" verticalAlign="middle" verticalGap="0" left="5" right="5" top="5" bottom="5">
+					<panels:Login id="loginPanel" />
+				</mx:VBox>
+			</mx:Canvas>
+			<mx:Canvas label="Connecting" width="100%" height="100%">
+				<mx:VBox width="100%" height="100%" horizontalAlign="center" verticalAlign="middle">
+					<mx:ProgressBar left="5" right="5" top="5" bottom="5" labelPlacement="center" label="Connecting to server" indeterminate="true"/>
+					<mx:Button label="Cancel" click="logout(event)"/>
+				</mx:VBox>
+			</mx:Canvas>
+			<mx:Canvas label="Manager" width="100%" height="100%" >
+				<mx:HBox left="5" right="5" top="5" bottom="5">
+					<mx:HDividedBox width="100%" height="100%">
+						<mx:VBox width="200" height="100%" >
+							<mx:HBox >
+								<mx:Image source="@Embed('/assets/application.png')"/>
+								<mx:Label text="Applications" fontWeight="bold" width="100%"/>
+							</mx:HBox>
+							<mx:DataGrid id="appList" width="100%" height="100%" dataProvider="{_applications}" creationComplete="addAppListeners()">
+								<mx:columns>
+									<mx:DataGridColumn width="140" headerText="Name" dataField="name"/>
+									<mx:DataGridColumn headerText="Clients" dataField="clients"/>
+								</mx:columns>
+							</mx:DataGrid>
+						</mx:VBox>
+						<mx:VDividedBox width="100%" height="100%"> 
+							<mx:HDividedBox width="100%" height="100%">
+								<mx:VBox width="100%" height="100%" horizontalGap="0" >
+									<mx:TabNavigator id="statsTab" width="100%" height="100%" horizontalGap="0" verticalGap="0" paddingTop="2" borderStyle="none">
+										<mx:Canvas label="Application" width="100%" height="100%" icon="@Embed('/assets/application.png')">
+											<mx:Canvas label="Application properties" width="100%" height="100%">
+												<mx:VBox width="100%" height="100%">
+													<mx:DataGrid width="100%" height="100%" dataProvider="{_scope_stats}">
+														<mx:columns>
+															<mx:DataGridColumn headerText="Name" dataField="name"/>
+															<mx:DataGridColumn headerText="Value" dataField="value"/>
+														</mx:columns>
+													</mx:DataGrid>
+													<mx:Button label="Restart Application" icon="@Embed('/assets/application_go.png')"/>
+												</mx:VBox>
+
+											</mx:Canvas>
+										</mx:Canvas>
+										
+										<mx:Canvas label="Clients" width="100%" height="100%" icon="@Embed('/assets/user.png')">
+											<mx:VDividedBox width="100%" height="100%">
+												<mx:List id="userList" width="100%" height="100" dataProvider="{_users}"></mx:List>
+												<mx:VBox width="100%" height="100%">
+													<mx:DataGrid width="100%" height="100%" dataProvider="{_user_stats}" creationComplete="addUserListeners()">
+														<mx:columns>
+															<mx:DataGridColumn headerText="Name" dataField="name"/>
+															<mx:DataGridColumn headerText="Value" dataField="value"/>
+														</mx:columns>
+													</mx:DataGrid>
+													<mx:Button id="btn_kill" label="Disconnect client" click="killUser()" icon="@Embed('/assets/user_delete.png')"/>
+												</mx:VBox>
+											</mx:VDividedBox>
+										</mx:Canvas>
+										<!--
+										<mx:Canvas label="Scopes" width="100%" height="100%" icon="@Embed('/assets/arrow_switch.png')">
+											<mx:List id="scopeList" width="100%" height="100%" dataProvider="{_scopes}"></mx:List>
+										</mx:Canvas>
+										<mx:Canvas label="Streams" width="100%" height="100%" icon="@Embed('/assets/resultset_next.png')">
+											<mx:List id="streamList" width="100%" height="100%" dataProvider="{_streams}"></mx:List>
+										</mx:Canvas>
+										-->
+									</mx:TabNavigator>
+								</mx:VBox>
+							</mx:HDividedBox>
+						</mx:VDividedBox>
+					</mx:HDividedBox>
+				</mx:HBox>
+			</mx:Canvas>
+		</mx:ViewStack>
+		<mx:Label text="{_footer}" />
+	</mx:VBox>
+
+</panels:ControlPanel>
