@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 <!-- ======================================================================                                               
-     Echo Test application   
+     Red5 Admin application   
                    
-     Joachim Bauch 
+     Martijn van Beek 
      Thijs Triemstra                                                             
      ====================================================================== -->
 <project 
-	name="Echo Test application" 
+	name="Red5 Admin application" 
 	default="build"
 	basedir=".">
 	
@@ -72,7 +72,7 @@
 		value="#FFFFFF"/>
 
     <description>
-    	Red5 Publisher
+    	Red5 Admin
     </description>
 
     <!-- ================================= 
