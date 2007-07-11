@@ -60,9 +60,8 @@ public class Serializer {
 		}
 		if (any instanceof IExternalizable) {
 			// Make sure all IExternalizable objects are serialized as objects
-			if (writeObjectType(out, any)) {
-				return;
-			}
+			out.writeObject(any, this);
+			return;
 		}
 		
 		if (writeBasic(out, any)) {

@@ -19,9 +19,11 @@ package org.red5.compatibility.flex.messaging.io;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.red5.io.amf3.IDataInput;
 import org.red5.io.amf3.IDataOutput;
@@ -33,7 +35,7 @@ import org.red5.io.amf3.IExternalizable;
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
  */
-public class ObjectProxy implements IExternalizable {
+public class ObjectProxy implements Map, IExternalizable {
 
 	/** The proxied object. */
 	private Map<Object, Object> item;
@@ -64,57 +66,86 @@ public class ObjectProxy implements IExternalizable {
 	}
 
 	/**
-	 * Provide access to proxied object. All properties of the
-	 * proxied object are read-only.
+	 * Return string representation of the proxied object.
 	 * 
-	 * @return the proxied object
+	 * @return
 	 */
-	@SuppressWarnings("unchecked")
-	public Map getItem() {
-		return Collections.unmodifiableMap(item);
-	}
-	
-	/**
-	 * Change a property of the proxied object.
-	 * 
-	 * @param name
-	 * @param value
-	 */
-	public void setProperty(Object name, Object value) {
-		item.put(name, value);
-	}
-	
-	/**
-	 * Return the value of a property.
-	 * 
-	 * @param name
-	 */
-	public Object getProperty(Object name) {
-		return item.get(name);
+	public String toString() {
+		return item.toString();
 	}
 
-	/**
-	 * Remove a property of the proxied object.
-	 * 
-	 * @param name
-	 */
-	public void deleteProperty(Object name) {
-		item.remove(name);
+	public void clear() {
+		item.clear();
 	}
-	
+
 	/**
 	 * Check if proxied object has a given property.
 	 * 
 	 * @param name
 	 * @return
 	 */
-	public boolean hasProperty(Object name) {
+	public boolean containsKey(Object name) {
 		return item.containsKey(name);
 	}
-	
-	/** {@inheritDoc} */
-	public String toString() {
-		return item.toString();
+
+	public boolean containsValue(Object value) {
+		return item.containsValue(value);
+	}
+
+	public Set entrySet() {
+		return Collections.unmodifiableSet(item.entrySet());
+	}
+
+	/**
+	 * Return the value of a property.
+	 * 
+	 * @param name
+	 * @return
+	 */
+	public Object get(Object name) {
+		return item.get(name);
+	}
+
+	public boolean isEmpty() {
+		return item.isEmpty();
+	}
+
+	public Set keySet() {
+		return item.keySet();
+	}
+
+	/**
+	 * Change a property of the proxied object.
+	 * 
+	 * @param name
+	 * @param value
+	 * @return
+	 */
+	public Object put(Object name, Object value) {
+		return item.put(name, value);
+	}
+
+	@SuppressWarnings("unchecked")
+	public void putAll(Map values) {
+		item.putAll(values);
+	}
+
+	/**
+	 * Remove a property from the proxied object.
+	 * 
+	 * @param name
+	 * @return
+	 */
+	public Object remove(Object name) {
+		return item.remove(name);
+	}
+
+	public int size() {
+		return item.size();
+	}
+
+	public Collection values() {
+		return Collections.unmodifiableCollection(item.values());
 	}
 	
 	// TODO: implement other ObjectProxy methods

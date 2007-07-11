@@ -35,6 +35,7 @@ import org.apache.commons.collections.BeanMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
+import org.red5.compatibility.flex.messaging.io.ObjectProxy;
 import org.red5.io.amf.AMF;
 import org.red5.io.object.RecordSet;
 import org.red5.io.object.Serializer;
@@ -420,7 +421,12 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
     	
     	if (object instanceof IExternalizable) {
     		// The object knows how to serialize itself.
-        	int type = AMF3.TYPE_OBJECT_EXTERNALIZABLE << 2 | 1 << 1 | 1;
+        	int type = 1 << 1 | 1;
+        	if (object instanceof ObjectProxy) {
+        		type |= AMF3.TYPE_OBJECT_PROXY << 2;
+        	} else {
+        		type |= AMF3.TYPE_OBJECT_EXTERNALIZABLE << 2;
+        	}
         	putInteger(type);
         	putString(className);
         	amf3_mode += 1;
