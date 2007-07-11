@@ -192,14 +192,18 @@ public class FlexMessagingService {
 		switch (event.operation) {
 		case Constants.DATA_OPERATION_UPDATE_ATTRIBUTES:
 			List<Object> contents = (List<Object>) event.body;
+			@SuppressWarnings("unused")
 			List<String> attributeNames = (List<String>) contents.get(0);
 			@SuppressWarnings("unused")
 			Map<String, Object> oldValues = (Map<String, Object>) contents.get(1);
 			@SuppressWarnings("unused")
 			Map<String, Object> newValues = (Map<String, Object>) contents.get(2);
+			/*
+			// Commented out as it triggeres a crash in the compiler on Java 1.5
 			for (@SuppressWarnings("unused") String name: attributeNames) {
 				// TODO: store attribute change for registered clients
 			}
+			*/
 			break;
 			
 		default:
