@@ -20,11 +20,14 @@ package org.red5.server.net.remoting;
  */
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.red5.compatibility.flex.data.messages.DataMessage;
+import org.red5.compatibility.flex.data.messages.SequencedMessage;
 import org.red5.compatibility.flex.messaging.messages.AbstractMessage;
 import org.red5.compatibility.flex.messaging.messages.AcknowledgeMessage;
 import org.red5.compatibility.flex.messaging.messages.AsyncMessage;
@@ -57,6 +60,7 @@ public class FlexMessagingService {
 	protected IServiceInvoker serviceInvoker;
 	
 	/** Configured endpoints. */
+	@SuppressWarnings("unchecked")
 	protected Map<String, Object> endpoints = Collections.EMPTY_MAP;
 	
 	/**
@@ -152,7 +156,24 @@ public class FlexMessagingService {
 			result.clientId = msg.clientId;
 			result.correlationId = msg.messageId;
 			break;
-				
+		
+		case Constants.OPERATION_REGISTER:
+			// Send back registration ok
+			result = new AcknowledgeMessage();
+			result.clientId = msg.clientId;
+			result.correlationId = msg.messageId;
+			// TODO: store client id and destination to send further updates
+			break;
+			
+		case Constants.OPERATION_POLL:
+			// Send back modifications
+			result = new AcknowledgeMessage();
+			result.clientId = msg.clientId;
+			result.correlationId = msg.messageId;
+			result.destination = msg.destination;
+			// TODO: send back stored updates for this client
+			break;
+			
 		default:
 			log.error("Unknown CommandMessage request: " + msg);
 			result = returnError(msg, "notImplemented", "Don't know how to handle " + msg, "Don't know how to handle " + msg);
@@ -161,13 +182,78 @@ public class FlexMessagingService {
 	}
 
 	/**
+	 * Evaluate update requests sent by a client.
+	 * 
+	 * @param msg
+	 * @param event
+	 */
+	@SuppressWarnings("unchecked")
+	private void evaluateDataUpdate(DataMessage msg, DataMessage event) {
+		switch (event.operation) {
+		case Constants.DATA_OPERATION_UPDATE_ATTRIBUTES:
+			List<Object> contents = (List<Object>) event.body;
+			List<String> attributeNames = (List<String>) contents.get(0);
+			@SuppressWarnings("unused")
+			Map<String, Object> oldValues = (Map<String, Object>) contents.get(1);
+			@SuppressWarnings("unused")
+			Map<String, Object> newValues = (Map<String, Object>) contents.get(2);
+			for (@SuppressWarnings("unused") String name: attributeNames) {
+				// TODO: store attribute change for registered clients
+			}
+			break;
+			
+		default:
+			log.error("Unknown data update request: " + event);
+		}
+	}
+	
+	/**
+	 * Handle messages related to shared objects.
+	 * 
+	 * @param msg
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	public AsyncMessage handleRequest(DataMessage msg) {
+		SequencedMessage result = new SequencedMessage();
+		result.clientId = msg.clientId;
+		result.destination = msg.destination;
+		result.correlationId = msg.messageId;
+		switch (msg.operation) {
+		case Constants.DATA_OPERATION_SET:
+			result.body = new Object[]{msg.body};
+			result.sequenceId = 0;
+			result.sequenceSize = 1;
+			// TODO: store initial version of object
+			break;
+			
+		case Constants.DATA_OPERATION_UPDATE:
+			for (DataMessage event: (List<DataMessage>) msg.body) {
+				evaluateDataUpdate(msg, event);
+			}
+			AcknowledgeMessage res = new AcknowledgeMessage();
+			res.clientId = msg.clientId;
+			res.destination = msg.destination;
+			res.correlationId = msg.messageId;
+			res.body = msg.body;
+			return res;
+
+		default:
+			log.error("Unknown DataMessage request: " + msg);
+			return returnError(msg, "notImplemented", "Don't know how to handle " + msg, "Don't know how to handle " + msg);
+				
+		}
+		return result;
+	}
+	
+	/**
 	 * Fallback method to handle arbitrary messages.
 	 * 
 	 * @param msg
 	 * @return
 	 */
 	public ErrorMessage handleRequest(AbstractMessage msg) {
-		log.error("Unknown CommandMessage request: " + msg);
+		log.error("Unknown flex compatibility request: " + msg);
 		return returnError(msg, "notImplemented", "Don't know how to handle " + msg, "Don't know how to handle " + msg);
 	}
 	

@@ -66,7 +66,11 @@ public class RemotingProtocolEncoder implements SimpleProtocolEncoder {
 				log.debug("Call");
 			}
 			Output.putString(buf, call.getClientResponse());
-			Output.putString(buf, "null");
+			if (!call.isMessaging) {
+				Output.putString(buf, "null");
+			} else {
+				Output.putString(buf, "");
+			}
 			buf.putInt(-1);
 			if (log.isDebugEnabled()) {
 				log.info("result:" + call.getResult());

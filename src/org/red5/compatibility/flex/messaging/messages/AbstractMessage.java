@@ -19,7 +19,10 @@ package org.red5.compatibility.flex.messaging.messages;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.Collections;
 import java.util.Map;
+
+import org.red5.io.utils.RandomGUID;
 
 /**
  * Base class for all flex compatibility messages.
@@ -31,19 +34,25 @@ public class AbstractMessage {
 
 	public long timestamp;
 	
-	public Map headers;
+	public Map headers = Collections.EMPTY_MAP;
 	
 	public Object body;
-	
-	public String messageRefType;
 	
 	public String messageId;
 	
 	public long timeToLive;
 	
-	public Object clientId;
+	public String clientId;
 	
 	public String destination;
+	
+	/**
+	 * Initialize default message fields.
+	 */
+	public AbstractMessage() {
+		timestamp = System.currentTimeMillis();
+		messageId = new RandomGUID().toString();
+	}
 	
 	/**
 	 * Add message properties to string.
@@ -54,14 +63,17 @@ public class AbstractMessage {
 		result.append("ts="+timestamp+",");
 		result.append("headers="+headers+",");
 		result.append("body="+body+",");
-		result.append("messageRefType="+messageRefType+",");
 		result.append("messageId="+messageId+",");
 		result.append("timeToLive="+timeToLive+",");
 		result.append("clientId="+clientId+",");
 		result.append("destination="+destination);
 	}
 	
-	/** {@inheritDoc} */
+	/**
+	 * Return string representation of the message.
+	 * 
+	 * @return
+	 */
 	public String toString() {
 		StringBuilder result = new StringBuilder();
 		result.append(getClass().getName());

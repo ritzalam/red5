@@ -27,10 +27,28 @@ package org.red5.compatibility.flex.messaging.messages;
  */
 public class Constants {
 
+	/** Operation id of register command. */
+	public static final int OPERATION_REGISTER = 0;
+	
+	/** Operation id of poll command. */
+	public static final int OPERATION_POLL = 2;
+	
 	/** Operation id of ping commands. */
 	public static final int OPERATION_PING = 5;
+
+	/** Operation id of authentication commands. */
+	public static final int OPERATION_AUTHENTICATION = 8;
 
 	/** Header field that holds the name of the endpoint. */
 	public static final String HEADER_ENDPOINT = "DSEndpoint";
 	
+	/** Set all attributes from a data message. */
+	public static final int DATA_OPERATION_SET = 10;
+	
+	/** Update given attributes from a data message. */
+	public static final int DATA_OPERATION_UPDATE_ATTRIBUTES = 3;
+
+	/** Update destination based on nested DataMessage packet. */
+	public static final int DATA_OPERATION_UPDATE = 7;
+
 }

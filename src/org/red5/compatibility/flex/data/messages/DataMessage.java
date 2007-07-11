@@ -1,4 +1,4 @@
-package org.red5.compatibility.flex.messaging.messages;
+package org.red5.compatibility.flex.data.messages;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -19,25 +19,24 @@ package org.red5.compatibility.flex.messaging.messages;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+import org.red5.compatibility.flex.messaging.messages.AsyncMessage;
+
 /**
- * Command message as sent by the <code>mx:RemoteObject</code> tag.
- * 
- * @see <a href="http://osflash.org/documentation/amf3">osflash documentation (external)</a>
+ * Message containing data update requests.
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
  */
-public class CommandMessage extends AsyncMessage {
+public class DataMessage extends AsyncMessage {
 
-	public String messageRefType;
+	public Object identity;
 	
-	/** Command id to execute. */
 	public int operation;
 
 	/** {@inheritDoc} */
 	protected void addParameters(StringBuilder result) {
 		super.addParameters(result);
-		result.append(",messageRefType="+messageRefType);
+		result.append(",identity="+identity);
 		result.append(",operation="+operation);
 	}
 
