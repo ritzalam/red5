@@ -305,10 +305,20 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 		int byteCount;
 		if ((headerByte & 0x3f) == 0) {
 			// Two byte header
+			if (remaining < 2) {
+				in.position(position);
+				rtmp.bufferDecoding(2);
+				return null;
+			}
 			headerValue = ((int) headerByte & 0xff) << 8 | ((int) in.get() & 0xff); 
 			byteCount = 2;
 		} else if ((headerByte & 0x3f) == 1) {
 			// Three byte header
+			if (remaining < 3) {
+				in.position(position);
+				rtmp.bufferDecoding(3);
+				return null;
+			}
 			headerValue = ((int) headerByte & 0xff) << 16 | ((int) in.get() & 0xff) << 8 | ((int) in.get() & 0xff); 
 			byteCount = 3;
 		} else {
@@ -324,6 +334,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 
 		// Get the header size and length
 		int headerLength = RTMPUtils.getHeaderLength(RTMPUtils.decodeHeaderSize(headerValue, byteCount));
+		headerLength += byteCount - 1;
 
 		if (headerLength > remaining) {
 			if (log.isDebugEnabled()) {
