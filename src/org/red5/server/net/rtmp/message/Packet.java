@@ -47,6 +47,9 @@ public class Packet {
 		this.header = header;
 		data = ByteBuffer.allocate(header.getSize()
 				+ (header.getTimer() == 0xffffff ? 4 : 0));
+		// Workaround for SN-19: BufferOverflowException
+		// Size is checked in RTMPProtocolDecoder
+		data.setAutoExpand(true);
 	}
 
     /**

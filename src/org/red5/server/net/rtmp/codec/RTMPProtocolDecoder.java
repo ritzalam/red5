@@ -392,6 +392,14 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 			return null;
 		}
 
+		if (log.isWarnEnabled()) {
+			// Check workaround for SN-19 to find cause for BufferOverflowException
+			if (buf.position() > header.getSize() + addSize) {
+				log.warn("Packet size expanded from " + (header.getSize() + addSize) +
+						" to " + buf.position() + " (" + header + ")");
+			}
+		}
+		
 		buf.flip();
 
 		final IRTMPEvent message = decodeMessage(rtmp, packet.getHeader(), buf);
