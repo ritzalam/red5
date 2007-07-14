@@ -39,8 +39,8 @@
 		destination="Red5Echo"
 		source="EchoService"
 		result="onRemotingResult(event.result)"
-		fault="onRemotingError(event.fault.faultString)">
-       <mx:method name="echo" />
+		fault="onRemotingError(event)">
+    	<mx:method name="echo" />
     </mx:RemoteObject>
     
 </echo:EchoTest>
