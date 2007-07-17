@@ -25,19 +25,22 @@ public class ProtocolException extends RuntimeException {
 	 * Base exception for all protocol exeptions
 	 */
 	private static final long serialVersionUID = -5380844081848027068L;
-	protected String message = null;
 
     /**
      * Create protocol exception with given message
      * @param message
      */
     public ProtocolException(String message) {
-		this.message = message;
+		super(message);
 	}
 
-	/** {@inheritDoc} */
-    @Override
-	public String getMessage() {
-		return message;
-	}
+    /**
+     * Create protocol exception with given message and cause
+     * @param message
+     * @param cause
+     */
+    public ProtocolException(String message, Throwable cause) {
+    	super(message, cause);
+    }
+
 }

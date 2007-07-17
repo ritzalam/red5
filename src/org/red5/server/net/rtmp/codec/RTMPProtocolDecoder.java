@@ -198,8 +198,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 			// Raise to caller unmodified
 			throw pe;
 		} catch (RuntimeException e) {
-			log.error("Error in packet at " + start, e);
-			throw new ProtocolException("Error during decoding");
+			throw new ProtocolException("Error during decoding", e);
 		}
 	}
 
