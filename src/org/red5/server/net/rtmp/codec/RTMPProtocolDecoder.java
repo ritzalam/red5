@@ -402,14 +402,17 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 		
 		buf.flip();
 
-		final IRTMPEvent message = decodeMessage(rtmp, packet.getHeader(), buf);
-		packet.setMessage(message);
-
-		if (message instanceof ChunkSize) {
-			ChunkSize chunkSizeMsg = (ChunkSize) message;
-			rtmp.setReadChunkSize(chunkSizeMsg.getSize());
+		try {
+			final IRTMPEvent message = decodeMessage(rtmp, packet.getHeader(), buf);
+			packet.setMessage(message);
+	
+			if (message instanceof ChunkSize) {
+				ChunkSize chunkSizeMsg = (ChunkSize) message;
+				rtmp.setReadChunkSize(chunkSizeMsg.getSize());
+			}
+		} finally {
+			rtmp.setLastReadPacket(channelId, null);
 		}
-		rtmp.setLastReadPacket(channelId, null);
 		return packet;
 
 	}
