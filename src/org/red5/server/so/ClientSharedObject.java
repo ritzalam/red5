@@ -29,6 +29,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.red5.server.api.IAttributeStore;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.event.IEventDispatcher;
@@ -262,6 +263,18 @@ public class ClientSharedObject extends SharedObject implements
 
 	/** {@inheritDoc} */
     @Override
+	public synchronized void setAttributes(IAttributeStore values) {
+		super.setAttributes(values);
+	}
+
+	/** {@inheritDoc} */
+    @Override
+	public synchronized void setAttributes(Map<String, Object> values) {
+		super.setAttributes(values);
+	}
+
+	/** {@inheritDoc} */
+    @Override
 	public synchronized boolean removeAttribute(String name) {
 		ownerMessage.addEvent(Type.SERVER_DELETE_ATTRIBUTE, name, null);
 		notifyModified();
@@ -284,6 +297,18 @@ public class ClientSharedObject extends SharedObject implements
             ownerMessage.addEvent(Type.SERVER_DELETE_ATTRIBUTE, key, null);
         }
         notifyModified();
+	}
+
+	/** {@inheritDoc} */
+    @Override
+	public synchronized boolean clear() {
+		return super.clear();
+	}
+
+	/** {@inheritDoc} */
+    @Override
+	public synchronized void close() {
+		super.close();
 	}
 
 	/** {@inheritDoc} */

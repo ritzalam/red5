@@ -64,6 +64,9 @@ import org.red5.server.so.ISharedObjectEvent.Type;
  * Shared Object in this implementation actually uses IPersistenceStore to delegate all (de)serialization work.
  *
  * SOs store data as simple map, that is, "name-value" pairs. Each value in turn can be complex object or map.
+ * 
+ * All access to protected methods that change properties in the SO must be properly
+ * synchronized for multi-threaded access.
  */
 public class SharedObject implements ISharedObjectStatistics, IPersistable, Constants {
     /**
@@ -450,7 +453,7 @@ public class SharedObject implements ISharedObjectStatistics, IPersistable, Cons
      * @param value        Attribute value
      * @return             <code>true</code> if there's such attribute and value was set, <code>false</code> otherwise
      */
-    public synchronized boolean setAttribute(String name, Object value) {
+    protected boolean setAttribute(String name, Object value) {
 		ownerMessage.addEvent(Type.CLIENT_UPDATE_ATTRIBUTE, name, null);
 		Object old = data.get(name);
 		Integer oldHash = (value != null ? value.hashCode() : 0);
@@ -475,7 +478,7 @@ public class SharedObject implements ISharedObjectStatistics, IPersistable, Cons
      *
      * @param values  Attributes.
      */
-    public synchronized void setAttributes(Map<String, Object> values) {
+    protected void setAttributes(Map<String, Object> values) {
 		if (values == null) {
 			return;
 		}
@@ -492,7 +495,7 @@ public class SharedObject implements ISharedObjectStatistics, IPersistable, Cons
      *
      * @param values  Attributes.
      */
-    public synchronized void setAttributes(IAttributeStore values) {
+    protected void setAttributes(IAttributeStore values) {
 		if (values == null) {
 			return;
 		}
@@ -509,7 +512,7 @@ public class SharedObject implements ISharedObjectStatistics, IPersistable, Cons
      * @param name    Attribute
      * @return        <code>true</code> if there's such an attribute and it was removed, <code>false</code> otherwise
      */
-    public synchronized boolean removeAttribute(String name) {
+    protected boolean removeAttribute(String name) {
 		boolean result = data.containsKey(name);
 		if (result) {
 			data.remove(name);
@@ -531,7 +534,7 @@ public class SharedObject implements ISharedObjectStatistics, IPersistable, Cons
      * @param handler         Event handler
      * @param arguments       Arguments
      */
-    public synchronized void sendMessage(String handler, List arguments) {
+    protected void sendMessage(String handler, List arguments) {
         // Forward
         ownerMessage.addEvent(Type.CLIENT_SEND_MESSAGE, handler, arguments);
 		syncEvents.add(new SharedObjectEvent(Type.CLIENT_SEND_MESSAGE, handler,
@@ -567,7 +570,7 @@ public class SharedObject implements ISharedObjectStatistics, IPersistable, Cons
     /**
      * Remove all attributes (clear Shared Object)
      */
-    public synchronized void removeAttributes() {
+	protected void removeAttributes() {
 		// TODO: there must be a direct way to clear the SO on the client side...
         for (String key : data.keySet()) {
             ownerMessage.addEvent(Type.CLIENT_DELETE_DATA, key, null);
@@ -587,7 +590,7 @@ public class SharedObject implements ISharedObjectStatistics, IPersistable, Cons
      * Register event listener
      * @param listener        Event listener
      */
-    public synchronized void register(IEventListener listener) {
+	protected void register(IEventListener listener) {
 		listeners.add(listener);
 		listenerStats.increment();
 
@@ -626,7 +629,7 @@ public class SharedObject implements ISharedObjectStatistics, IPersistable, Cons
      * Unregister event listener
      * @param listener        Event listener
      */
-    public synchronized void unregister(IEventListener listener) {
+    protected void unregister(IEventListener listener) {
 		listeners.remove(listener);
 		listenerStats.decrement();
 		checkRelease();
@@ -645,7 +648,7 @@ public class SharedObject implements ISharedObjectStatistics, IPersistable, Cons
      * Begin update of this Shared Object.
      * Increases number of pending update operations
      */
-    public void beginUpdate() {
+    protected void beginUpdate() {
 		beginUpdate(source);
 	}
 
@@ -653,7 +656,7 @@ public class SharedObject implements ISharedObjectStatistics, IPersistable, Cons
      * Begin update of this Shared Object and setting listener
      * @param listener      Update with listener
      */
-    public synchronized void beginUpdate(IEventListener listener) {
+    protected void beginUpdate(IEventListener listener) {
 		source = listener;
         // Increase number of pending updates
         updateCounter += 1;
@@ -663,7 +666,7 @@ public class SharedObject implements ISharedObjectStatistics, IPersistable, Cons
      * End update of this Shared Object. Decreases number of pending update operations and
      * broadcasts modified event if it is equal to zero (i.e. no more pending update operations).
      */
-    public synchronized void endUpdate() {
+    protected void endUpdate() {
         // Decrease number of pending updates
         updateCounter -= 1;
 
@@ -709,7 +712,7 @@ public class SharedObject implements ISharedObjectStatistics, IPersistable, Cons
 	 * 
 	 * @return <code>true</code> on success, <code>false</code> otherwise
 	 */
-	public synchronized boolean clear() {
+    protected boolean clear() {
 		data.clear();
 		// Send confirmation to client
 		ownerMessage.addEvent(Type.CLIENT_CLEAR_DATA, name, null);
@@ -722,7 +725,7 @@ public class SharedObject implements ISharedObjectStatistics, IPersistable, Cons
 	 * reference immediately. This is useful when you don't want to proxy a
 	 * shared object any longer.
 	 */
-	public synchronized void close() {
+    protected void close() {
 		// clear collections
 		data.clear();
 		listeners.clear();
@@ -745,7 +748,7 @@ public class SharedObject implements ISharedObjectStatistics, IPersistable, Cons
 	 * 
 	 * @return <code>true</code> if the SO is acquired, otherwise <code>false</code>
 	 */
-	public synchronized boolean isAcquired() {
+	public boolean isAcquired() {
 		return acquireCount > 0;
 	}
 	
