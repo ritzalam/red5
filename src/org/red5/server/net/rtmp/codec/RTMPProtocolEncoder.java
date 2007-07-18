@@ -125,41 +125,36 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 		}
 		header.setSize(data.limit());
 
-		// We need to synchronize on the RTMP state to prevent two packages
-		// to the same channel from sending wrong header types.
-		ByteBuffer out;
-		synchronized (rtmp) {
-			final Header lastHeader = rtmp.getLastWriteHeader(channelId);
-			final int headerSize = calculateHeaderSize(header, lastHeader);
-			
-			rtmp.setLastWriteHeader(channelId, header);
-			rtmp.setLastWritePacket(channelId, packet);
-			
-			final int chunkSize = rtmp.getWriteChunkSize();
-			int chunkHeaderSize = 1;
-			if (header.getChannelId() > 320)
-				chunkHeaderSize = 3;
-			else if (header.getChannelId() > 63)
-				chunkHeaderSize = 2;
-			final int numChunks = (int) Math.ceil(header.getSize()
-					/ (float) chunkSize);
-			final int bufSize = header.getSize() + headerSize
-					+ (numChunks > 0 ? (numChunks - 1) * chunkHeaderSize : 0);
-			out = ByteBuffer.allocate(bufSize);
-			
-			encodeHeader(header, lastHeader, out);
-			
-			if (numChunks == 1) {
-				// we can do it with a single copy
-				BufferUtils.put(out, data, out.remaining());
-			} else {
-				for (int i = 0; i < numChunks - 1; i++) {
-					BufferUtils.put(out, data, chunkSize);
-					RTMPUtils.encodeHeaderByte(out, HEADER_CONTINUE, header
-							.getChannelId());
-				}
-				BufferUtils.put(out, data, out.remaining());
+		final Header lastHeader = rtmp.getLastWriteHeader(channelId);
+		final int headerSize = calculateHeaderSize(header, lastHeader);
+		
+		rtmp.setLastWriteHeader(channelId, header);
+		rtmp.setLastWritePacket(channelId, packet);
+		
+		final int chunkSize = rtmp.getWriteChunkSize();
+		int chunkHeaderSize = 1;
+		if (header.getChannelId() > 320)
+			chunkHeaderSize = 3;
+		else if (header.getChannelId() > 63)
+			chunkHeaderSize = 2;
+		final int numChunks = (int) Math.ceil(header.getSize()
+				/ (float) chunkSize);
+		final int bufSize = header.getSize() + headerSize
+				+ (numChunks > 0 ? (numChunks - 1) * chunkHeaderSize : 0);
+		final ByteBuffer out = ByteBuffer.allocate(bufSize);
+		
+		encodeHeader(header, lastHeader, out);
+		
+		if (numChunks == 1) {
+			// we can do it with a single copy
+			BufferUtils.put(out, data, out.remaining());
+		} else {
+			for (int i = 0; i < numChunks - 1; i++) {
+				BufferUtils.put(out, data, chunkSize);
+				RTMPUtils.encodeHeaderByte(out, HEADER_CONTINUE, header
+						.getChannelId());
 			}
+			BufferUtils.put(out, data, out.remaining());
 		}
 
 		data.release();

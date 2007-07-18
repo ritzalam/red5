@@ -251,7 +251,10 @@ public class RTMPTConnection extends RTMPConnection {
 	 * 			the packet to send
 	 */
 	@Override
-	public void write(Packet packet) {
+	public synchronized void write(Packet packet) {
+		// We need to synchronize to prevent two packages to the
+		// same channel to be sent in different order thus resulting
+		// in wrong headers being generated.
 		ByteBuffer data;
 		try {
 			data = this.encoder.encode(this.state, packet);

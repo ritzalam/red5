@@ -21,6 +21,7 @@ package org.red5.server.net.rtmp.codec;
 
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoSession;
+import org.apache.mina.common.WriteFuture;
 import org.apache.mina.filter.codec.ProtocolCodecException;
 import org.apache.mina.filter.codec.ProtocolEncoder;
 import org.apache.mina.filter.codec.ProtocolEncoderOutput;
@@ -38,9 +39,19 @@ public class RTMPMinaProtocolEncoder extends RTMPProtocolEncoder implements
 		try {
 			final ProtocolState state = (ProtocolState) session
 					.getAttribute(ProtocolState.SESSION_KEY);
-			final ByteBuffer buf = encode(state, message);
-			if (buf != null) {
-				out.write(buf);
+			// We need to synchronize on the RTMP state and flush the
+			// generated data to prevent two packages to the same channel
+			// to be sent in different order thus resulting in wrong
+			// headers being generated.
+			synchronized (state) {
+				final ByteBuffer buf = encode(state, message);
+				if (buf != null) {
+					out.write(buf);
+					final WriteFuture future = out.flush();
+					if (future != null) {
+						future.join();
+					}
+				}
 			}
 		} catch (Exception ex) {
 			log.error(ex);
