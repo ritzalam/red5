@@ -24,6 +24,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -53,7 +54,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 	/**
 	 * Cache encoded strings.
 	 */
-	protected static Map<String, byte[]> stringCache = new LRUMap(10000);
+	protected static Map<String, byte[]> stringCache = new LRUMap(10000, true);
 	
     /**
      * Output buffer
@@ -403,12 +404,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 
 	/** {@inheritDoc} */
     public void writeString(String string) {
-    	byte[] encoded = stringCache.get(string);
-    	if (encoded == null) {
-    		final java.nio.ByteBuffer strBuf = AMF.CHARSET.encode(string);
-    		encoded = strBuf.array();
-    		stringCache.put(string, encoded);
-    	}
+    	final byte[] encoded = encodeString(string);
 		final int len = encoded.length;
 		if (len < AMF.LONG_STRING_LENGTH) {
 			buf.put(AMF.TYPE_STRING);
@@ -421,17 +417,33 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 	}
 
     /**
+     * Return encoded string.
+     * 
+     * @param string
+     * @return
+     */
+    protected static byte[] encodeString(String string) {
+    	byte[] encoded;
+    	synchronized (stringCache) {
+    		encoded = stringCache.get(string);
+    	}
+    	if (encoded == null) {
+    		final java.nio.ByteBuffer strBuf = AMF.CHARSET.encode(string);
+    		encoded = strBuf.array();
+    		synchronized (stringCache) {
+    			stringCache.put(string, encoded);
+    		}
+    	}
+    	return encoded;
+    }
+    
+    /**
      * Write out string
      * @param buf         Byte buffer to write to
      * @param string      String to write
      */
     public static void putString(ByteBuffer buf, String string) {
-    	byte[] encoded = stringCache.get(string);
-    	if (encoded == null) {
-    		final java.nio.ByteBuffer strBuf = AMF.CHARSET.encode(string);
-    		encoded = strBuf.array();
-    		stringCache.put(string, encoded);
-    	}
+    	final byte[] encoded = encodeString(string);
 		buf.putShort((short) encoded.length);
 		buf.put(encoded);
 	}

@@ -136,6 +136,22 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 	}
 
 	/** {@inheritDoc} */
+    protected static byte[] encodeString(String string) {
+    	byte[] encoded;
+    	synchronized (stringCache) {
+    		encoded = stringCache.get(string);
+    	}
+    	if (encoded == null) {
+    		final java.nio.ByteBuffer strBuf = AMF3.CHARSET.encode(string);
+    		encoded = strBuf.array();
+    		synchronized (stringCache) {
+    			stringCache.put(string, encoded);
+    		}
+    	}
+    	return encoded;
+    }
+    
+	/** {@inheritDoc} */
 	protected void putString(String str, byte[] encoded) {
 		final int len = encoded.length;
 		int pos = stringReferences.indexOf(str);
@@ -159,12 +175,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 			return;
 		}
 
-    	byte[] encoded = stringCache.get(string);
-    	if (encoded == null) {
-    		final java.nio.ByteBuffer strBuf = AMF3.CHARSET.encode(string);
-    		encoded = strBuf.array();
-    		stringCache.put(string, encoded);
-    	}
+    	final byte[] encoded = encodeString(string);
 		putString(string, encoded);
 	}
 
@@ -189,12 +200,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		if ("".equals(string)) {
 			putInteger(1);
 		} else {
-	    	byte[] encoded = stringCache.get(string);
-	    	if (encoded == null) {
-	    		final java.nio.ByteBuffer strBuf = AMF3.CHARSET.encode(string);
-	    		encoded = strBuf.array();
-	    		stringCache.put(string, encoded);
-	    	}
+	    	final byte[] encoded = encodeString(string);
 			putString(string, encoded);
 		}
 	}
