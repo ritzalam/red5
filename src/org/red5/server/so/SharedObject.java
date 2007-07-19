@@ -24,12 +24,12 @@ import static org.red5.server.api.so.ISharedObject.TYPE;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.logging.Log;
@@ -144,7 +144,7 @@ public class SharedObject implements ISharedObjectStatistics, IPersistable, Cons
     /**
      * Listeners
      */
-    protected HashSet<IEventListener> listeners = new HashSet<IEventListener>();
+    protected Set<IEventListener> listeners = new CopyOnWriteArraySet<IEventListener>();
 
     /**
      * Event listener, actually RTMP connection
@@ -640,7 +640,7 @@ public class SharedObject implements ISharedObjectStatistics, IPersistable, Cons
      *
      * @return Value for property 'listeners'.
      */
-    public HashSet<IEventListener> getListeners() {
+    public Set<IEventListener> getListeners() {
 		return listeners;
 	}
 
