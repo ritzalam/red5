@@ -24,7 +24,6 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -428,8 +427,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
     		encoded = stringCache.get(string);
     	}
     	if (encoded == null) {
-    		final java.nio.ByteBuffer strBuf = AMF.CHARSET.encode(string);
-    		encoded = strBuf.array();
+    		encoded = string.getBytes(AMF.CHARSET);
     		synchronized (stringCache) {
     			stringCache.put(string, encoded);
     		}

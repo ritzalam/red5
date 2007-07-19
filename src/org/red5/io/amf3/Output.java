@@ -142,8 +142,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
     		encoded = stringCache.get(string);
     	}
     	if (encoded == null) {
-    		final java.nio.ByteBuffer strBuf = AMF3.CHARSET.encode(string);
-    		encoded = strBuf.array();
+    		encoded = string.getBytes(AMF3.CHARSET);
     		synchronized (stringCache) {
     			stringCache.put(string, encoded);
     		}
