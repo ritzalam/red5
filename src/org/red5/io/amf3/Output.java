@@ -136,8 +136,8 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 	}
 
 	/** {@inheritDoc} */
-	protected void putString(String str, java.nio.ByteBuffer string) {
-		final int len = string.limit();
+	protected void putString(String str, byte[] encoded) {
+		final int len = encoded.length;
 		int pos = stringReferences.indexOf(str);
 		if (pos >= 0) {
 			// Reference to existing string
@@ -146,7 +146,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		}
 
 		putInteger(len << 1 | 1);
-		buf.put(string);
+		buf.put(encoded);
 		stringReferences.add(str);
 	}
 
@@ -159,8 +159,13 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 			return;
 		}
 
-		final java.nio.ByteBuffer strBuf = AMF3.CHARSET.encode(string);
-		putString(string, strBuf);
+    	byte[] encoded = stringCache.get(string);
+    	if (encoded == null) {
+    		final java.nio.ByteBuffer strBuf = AMF3.CHARSET.encode(string);
+    		encoded = strBuf.array();
+    		stringCache.put(string, encoded);
+    	}
+		putString(string, encoded);
 	}
 
     /** {@inheritDoc} */
@@ -184,8 +189,13 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		if ("".equals(string)) {
 			putInteger(1);
 		} else {
-			final java.nio.ByteBuffer strBuf = AMF3.CHARSET.encode(string);
-			putString(string, strBuf);
+	    	byte[] encoded = stringCache.get(string);
+	    	if (encoded == null) {
+	    		final java.nio.ByteBuffer strBuf = AMF3.CHARSET.encode(string);
+	    		encoded = strBuf.array();
+	    		stringCache.put(string, encoded);
+	    	}
+			putString(string, encoded);
 		}
 	}
 

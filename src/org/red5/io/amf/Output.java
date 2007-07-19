@@ -32,6 +32,7 @@ import java.util.Set;
 import java.util.TimeZone;
 
 import org.apache.commons.collections.BeanMap;
+import org.apache.commons.collections.map.LRUMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
@@ -49,6 +50,11 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 
 	protected static Log log = LogFactory.getLog(Output.class.getName());
 
+	/**
+	 * Cache encoded strings.
+	 */
+	protected static Map<String, byte[]> stringCache = new LRUMap(10000);
+	
     /**
      * Output buffer
      */
@@ -397,8 +403,13 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 
 	/** {@inheritDoc} */
     public void writeString(String string) {
-		final java.nio.ByteBuffer strBuf = AMF.CHARSET.encode(string);
-		final int len = strBuf.limit();
+    	byte[] encoded = stringCache.get(string);
+    	if (encoded == null) {
+    		final java.nio.ByteBuffer strBuf = AMF.CHARSET.encode(string);
+    		encoded = strBuf.array();
+    		stringCache.put(string, encoded);
+    	}
+		final int len = encoded.length;
 		if (len < AMF.LONG_STRING_LENGTH) {
 			buf.put(AMF.TYPE_STRING);
 			buf.putShort((short) len);
@@ -406,7 +417,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 			buf.put(AMF.TYPE_LONG_STRING);
 			buf.putInt(len);
 		}
-		buf.put(strBuf);
+		buf.put(encoded);
 	}
 
     /**
@@ -415,9 +426,14 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
      * @param string      String to write
      */
     public static void putString(ByteBuffer buf, String string) {
-		final java.nio.ByteBuffer strBuf = AMF.CHARSET.encode(string);
-		buf.putShort((short) strBuf.limit());
-		buf.put(strBuf);
+    	byte[] encoded = stringCache.get(string);
+    	if (encoded == null) {
+    		final java.nio.ByteBuffer strBuf = AMF.CHARSET.encode(string);
+    		encoded = strBuf.array();
+    		stringCache.put(string, encoded);
+    	}
+		buf.putShort((short) encoded.length);
+		buf.put(encoded);
 	}
 
     /** {@inheritDoc} */
