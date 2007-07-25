@@ -38,6 +38,16 @@ public class AMF3 {
      */
 	public static final Charset CHARSET = Charset.forName("UTF-8");
 
+	/**
+	 * Minimum possible value for integer number encoding.
+	 */
+	public static final long MIN_INTEGER_VALUE = -268435456;
+	
+	/**
+	 * Maximum possible value for integer number encoding.
+	 */
+	public static final long MAX_INTEGER_VALUE = 268435455;
+	
     /**
      * Max string length
      */

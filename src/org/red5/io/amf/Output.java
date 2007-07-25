@@ -427,7 +427,9 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
     		encoded = stringCache.get(string);
     	}
     	if (encoded == null) {
-    		encoded = string.getBytes(AMF.CHARSET);
+    		java.nio.ByteBuffer buf = AMF.CHARSET.encode(string);
+    		encoded = new byte[buf.limit()];
+    		buf.get(encoded);
     		synchronized (stringCache) {
     			stringCache.put(string, encoded);
     		}

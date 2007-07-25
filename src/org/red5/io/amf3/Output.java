@@ -142,7 +142,9 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
     		encoded = stringCache.get(string);
     	}
     	if (encoded == null) {
-    		encoded = string.getBytes(AMF3.CHARSET);
+    		java.nio.ByteBuffer buf = AMF3.CHARSET.encode(string);
+    		encoded = new byte[buf.limit()];
+    		buf.get(encoded);
     		synchronized (stringCache) {
     			stringCache.put(string, encoded);
     		}
@@ -182,7 +184,11 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 	@Override
 	public void writeNumber(Number num) {
 		writeAMF3();
-		if (num instanceof Long || num instanceof Integer || num instanceof Short || num instanceof Byte) {
+		if (num.longValue() < AMF3.MIN_INTEGER_VALUE || num.longValue() > AMF3.MAX_INTEGER_VALUE) {
+			// Out of range for integer encoding
+			buf.put(AMF3.TYPE_NUMBER);
+			buf.putDouble(num.doubleValue());
+		} else if (num instanceof Long || num instanceof Integer || num instanceof Short || num instanceof Byte) {
 			buf.put(AMF3.TYPE_INTEGER);
 			putInteger(num.longValue());
 		} else {
