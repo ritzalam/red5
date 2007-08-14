@@ -123,6 +123,11 @@
 	<target name="retrieve" unless="library.installed" description="Retrieves the libraries if needed">
 		<!-- Ivy configuration -->
 	    <ivy:configure file="ivyconfig.xml" />	
+		<condition property="ivy.conf.name" value="default">
+			<not>
+				<isset property="ivy.conf.name"/>
+			</not>
+		</condition>	    
 	    <echo message="Ivy conf name: ${ivy.conf.name}"/>
 	    <ivy:retrieve conf="${ivy.conf.name}" />
 	</target>	
