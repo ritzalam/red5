@@ -81,7 +81,8 @@ public class RTMPMinaConnection extends RTMPConnection implements
 					"connectionType", type, "host", hostStr, "port", port + "",
 					"clientId", client.getId());
 			JMXAgent.registerMBean(this, this.getClass().getName(),
-					RTMPMinaConnectionMBean.class, oName);
+					RTMPMinaConnectionMBean.class, oName);		
+			
 		} catch (Exception e) {
 			log.warn("Exception registering mbean", e);
 		}

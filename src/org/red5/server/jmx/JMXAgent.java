@@ -62,6 +62,8 @@ public class JMXAgent implements NotificationListener {
 	private static boolean startRegistry;
 
 	private static boolean enableSsl;
+	
+	private static boolean enableMinaMonitor;
 
 	private static HtmlAdaptorServer html;
 
@@ -439,4 +441,16 @@ public class JMXAgent implements NotificationListener {
 		JMXAgent.startRegistry = startRegistry;
 	}
 
+	public void setEnableMinaMonitor(boolean enableMinaMonitor) {
+		JMXAgent.enableMinaMonitor = enableMinaMonitor;
+	}
+
+	public void setEnableMinaMonitor(String enableMinaMonitor) {
+		JMXAgent.enableMinaMonitor = enableMinaMonitor.matches("true|on|yes");
+	}
+
+	public static boolean isEnableMinaMonitor() {
+		return enableMinaMonitor;
+	}	
+	
 }

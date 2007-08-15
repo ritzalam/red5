@@ -48,6 +48,9 @@
 		<property name="eventThreadsMax" value="${rtmp.event_threads_max}" />
 		<property name="eventThreadsQueue" value="${rtmp.event_threads_queue}" />
 		<property name="eventThreadsKeepalive" value="${rtmp.event_threads_keepalive}" />
+		<!-- This is the interval at which the sessions are polled for stats. If mina monitoring is not
+				enabled, polling will not occur. -->
+		<property name="jmxPollInterval" value="1000" />
 	</bean>
 	
 	<!-- RTMP Mina Connection -->

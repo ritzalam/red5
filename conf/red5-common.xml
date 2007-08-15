@@ -30,6 +30,8 @@
 		<!-- The HTML adapter allows connections to the MBeanServer via a web browser -->
 		<property name="enableHtmlAdapter" value="false" />
 		<property name="htmlAdapterPort" value="8082"/>
+		<!-- Mina offers its own Mbeans so you may integrate them here -->
+		<property name="enableMinaMonitor" value="true" />
 	</bean>
 	<!-- Serializes objects to AMF binary -->
 	<bean id="serializer" class="org.red5.io.object.Serializer"/>

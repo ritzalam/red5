@@ -21,6 +21,8 @@ import org.apache.mina.common.SimpleByteBufferAllocator;
 import org.apache.mina.common.ThreadModel;
 import org.apache.mina.filter.LoggingFilter;
 import org.apache.mina.filter.executor.ExecutorFilter;
+import org.apache.mina.integration.jmx.IoServiceManager;
+import org.apache.mina.integration.jmx.IoServiceManagerMBean;
 import org.apache.mina.transport.socket.nio.SocketAcceptor;
 import org.apache.mina.transport.socket.nio.SocketAcceptorConfig;
 import org.apache.mina.transport.socket.nio.SocketSessionConfig;
@@ -82,6 +84,9 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 	 * MBean object name used for de/registration purposes.
 	 */
 	private ObjectName oName;
+	private ObjectName serviceManagerObjectName;
+	
+	private int jmxPollInterval = 1000;
 
 	private int port = DEFAULT_PORT;
 
@@ -220,6 +225,18 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 				port + "");
 		JMXAgent.registerMBean(this, this.getClass().getName(),
 				RTMPMinaTransportMBean.class, oName);
+		
+		//enable only if user wants it
+		if (JMXAgent.isEnableMinaMonitor()) {
+    		//add a service manager to allow for more introspection into the workings of mina
+    		IoServiceManager serviceManager = new IoServiceManager(acceptor);
+    		//poll every second
+    		serviceManager.startCollectingStats(jmxPollInterval);
+    		serviceManagerObjectName = JMXFactory.createObjectName("type", "IoServiceManager",
+    				"address", (address == null ? "0.0.0.0" : address), "port",
+    				port + "");
+    		JMXAgent.registerMBean(serviceManager, serviceManager.getClass().getName(), IoServiceManagerMBean.class, serviceManagerObjectName);		
+		}
 	}
 
 	public void stop() {
@@ -229,6 +246,9 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 		eventExecutor.shutdown();
 		// deregister with jmx
 		JMXAgent.unregisterMBean(oName);
+		if (serviceManagerObjectName != null) {
+			JMXAgent.unregisterMBean(serviceManagerObjectName);
+		}
 	}
 
 	private BlockingQueue<Runnable> threadQueue(int size) {
@@ -244,5 +264,13 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 
 	public String toString() {
 		return "RTMP Mina Transport [port=" + port + "]";
+	}
+
+	public int getJmxPollInterval() {
+		return jmxPollInterval;
+	}
+
+	public void setJmxPollInterval(int jmxPollInterval) {
+		this.jmxPollInterval = jmxPollInterval;
 	}
 }
