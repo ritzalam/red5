@@ -54,12 +54,28 @@ public class RTMPMinaCodecFactory implements ProtocolCodecFactory,
      * Initialization, create and setup encoder/decoder and serializer/deserializer
      */
     public void init() {
-		decoder = new RTMPMinaProtocolDecoder();
-		decoder.setDeserializer(deserializer);
-		encoder = new RTMPMinaProtocolEncoder();
 		encoder.setSerializer(serializer);
+		decoder.setDeserializer(deserializer);
 	}
 
+	/**
+     * Setter for deserializer
+     *
+     * @param deserializer  Deserializer
+     */
+    public void setMinaEncoder(RTMPMinaProtocolEncoder encoder) {
+		this.encoder = encoder;
+    }
+
+	/**
+     * Setter for deserializer
+     *
+     * @param deserializer  Deserializer
+     */
+    public void setMinaDecoder(RTMPMinaProtocolDecoder decoder) {
+		this.decoder = decoder;
+    }
+    
 	/**
      * Setter for deserializer
      *
@@ -97,5 +113,15 @@ public class RTMPMinaCodecFactory implements ProtocolCodecFactory,
     public SimpleProtocolEncoder getSimpleEncoder() {
 		return encoder;
 	}
+	
+	/** {@inheritDoc} */
+    public RTMPMinaProtocolDecoder getMinaDecoder() {
+		return decoder;
+	}
+
+	/** {@inheritDoc} */
+    public RTMPMinaProtocolEncoder getMinaEncoder() {
+		return encoder;
+	}	
 
 }
