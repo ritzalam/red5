@@ -33,14 +33,7 @@ import org.red5.server.net.protocol.SimpleProtocolEncoder;
  */
 public class RTMPMinaCodecFactory implements ProtocolCodecFactory,
 		SimpleProtocolCodecFactory {
-    /**
-     * Deserializer
-     */
-	protected Deserializer deserializer = null;
-    /**
-     * Serializer
-     */
-	protected Serializer serializer = null;
+	
     /**
      * RTMP Mina protocol decoder
      */
@@ -51,48 +44,29 @@ public class RTMPMinaCodecFactory implements ProtocolCodecFactory,
 	protected RTMPMinaProtocolEncoder encoder;
 
     /**
-     * Initialization, create and setup encoder/decoder and serializer/deserializer
+     * Initialization. 
+     * Create and setup of encoder/decoder and serializer/deserializer is handled by Spring.
      */
     public void init() {
-		encoder.setSerializer(serializer);
-		decoder.setDeserializer(deserializer);
 	}
 
 	/**
-     * Setter for deserializer
+     * Setter for encoder
      *
-     * @param deserializer  Deserializer
+     * @param encoder  Encoder
      */
     public void setMinaEncoder(RTMPMinaProtocolEncoder encoder) {
 		this.encoder = encoder;
     }
 
 	/**
-     * Setter for deserializer
+     * Setter for decoder
      *
-     * @param deserializer  Deserializer
+     * @param decoder  Decoder
      */
     public void setMinaDecoder(RTMPMinaProtocolDecoder decoder) {
 		this.decoder = decoder;
     }
-    
-	/**
-     * Setter for deserializer
-     *
-     * @param deserializer  Deserializer
-     */
-    public void setDeserializer(Deserializer deserializer) {
-		this.deserializer = deserializer;
-	}
-
-	/**
-     * Setter for serializer
-     *
-     * @param serializer  Serializer
-     */
-    public void setSerializer(Serializer serializer) {
-		this.serializer = serializer;
-	}
 
 	/** {@inheritDoc} */
     public ProtocolDecoder getDecoder() {

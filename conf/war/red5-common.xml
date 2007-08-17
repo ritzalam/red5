@@ -27,6 +27,8 @@
 		<!-- The HTML adapter allows connections to the MBeanServer via a web browser -->
 		<property name="enableHtmlAdapter" value="false" />
 		<property name="htmlAdapterPort" value="8082"/>
+		<!-- Mina offers its own Mbeans so you may integrate them here -->
+		<property name="enableMinaMonitor" value="true" />		
 	</bean>
 	<!-- Serializes objects to AMF binary -->
 	<bean id="serializer" class="org.red5.io.object.Serializer"/>
@@ -37,7 +39,26 @@
 		 autowire="byType" init-method="initialize"/>
 	<!-- RTMP codec factory -->
 	<bean id="rtmpCodecFactory" class="org.red5.server.net.rtmp.codec.RTMPMinaCodecFactory"
-		 autowire="byType" init-method="init"/>
+		 autowire="byType" init-method="init">
+		 <!--
+		<property name="minaEncoder">
+				<bean class="org.red5.server.net.rtmp.codec.RTMPMinaProtocolEncoder">
+					<property name="serializer"><ref bean="serializer"/></property>
+				</bean>
+		</property>	
+		-->	 
+		<!-- Fix / option for defect SN-1 -->
+		<property name="minaEncoder">
+				<bean class="org.red5.server.net.rtmp.codec.FastRTMPMinaProtocolEncoder">
+					<property name="serializer"><ref bean="serializer"/></property>
+				</bean>
+		</property>		 	 
+		<property name="minaDecoder">
+				<bean class="org.red5.server.net.rtmp.codec.RTMPMinaProtocolDecoder">
+					<property name="deserializer"><ref bean="deserializer"/></property>
+				</bean>
+		</property>		 
+	</bean>
 	<!-- Remoting calls codec factory -->
 	<bean id="remotingCodecFactory" class="org.red5.server.net.remoting.codec.RemotingCodecFactory"
 		 autowire="byType" init-method="init"/>
