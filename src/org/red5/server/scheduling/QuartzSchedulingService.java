@@ -100,6 +100,20 @@ public class QuartzSchedulingService implements ISchedulingService,
 		return addScheduledOnceJob(new Date(System.currentTimeMillis()
 				+ timeDelta), job);
 	}
+	
+	/** {@inheritDoc} */
+	public String addScheduledJobAfterDelay(int interval, IScheduledJob job, int delay) {
+		String result = getJobName();
+		// Initialize the start time to now and add the delay.
+		long startTime = System.currentTimeMillis() + delay;
+		// Create trigger that fires indefinitely every <internval> milliseconds.
+		SimpleTrigger trigger = new SimpleTrigger("Trigger_" + result, 
+				null, new Date(startTime), null, SimpleTrigger.REPEAT_INDEFINITELY, interval);
+		// Schedule the job with Quartz.
+		scheduleJob(result, trigger, job);
+		// Return the job name.
+		return result;
+	}
 
 	/**
 	 * Getter for job name.

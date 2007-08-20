@@ -903,6 +903,26 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 				false);
 		return service.addScheduledOnceJob(date, job);
 	}
+	
+	/**
+	 * Adds a scheduled job which starts after the specified
+	 * delay period and fires periodically.
+	 * 
+	 * @param interval 
+	 * 			time in milliseconds between two notifications of the job
+	 * @param job
+	 * 			the job to trigger periodically
+	 * @param delay
+	 * 			time in milliseconds to pass before first execution.
+	 * @return
+	 * 			the name of the scheduled job
+	 */
+	public String addScheduledJobAfterDelay(int interval, IScheduledJob job, int delay) {
+		ISchedulingService service = (ISchedulingService) getScopeService(
+				scope, ISchedulingService.class, QuartzSchedulingService.class,
+				false);
+		return service.addScheduledJobAfterDelay(interval, job, delay);
+	}
 
 	/**
 	 * Removes scheduled job from scheduling service list
@@ -1038,7 +1058,8 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
     /**
      * Cleans up ghost connections
      */
-    protected void killGhostConnections() {
+    @SuppressWarnings("unchecked")
+	protected void killGhostConnections() {
         Iterator iter = getConnectionsIter();
         while(iter.hasNext()) {
             IConnection conn = (IConnection) iter.next();

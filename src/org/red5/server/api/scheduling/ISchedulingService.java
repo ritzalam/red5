@@ -70,6 +70,20 @@ public interface ISchedulingService extends IScopeService {
 	 * @return the name of the scheduled job
 	 */
 	public String addScheduledOnceJob(Date date, IScheduledJob job);
+	
+	/**
+	 * Schedule a job for periodic execution which will start after the specifed delay.
+	 * 
+	 * @param interval 
+	 * 			time in milliseconds between two notifications of the job
+	 * @param job
+	 * 			the job to trigger periodically
+	 * @param delay
+	 * 			time in milliseconds to pass before first execution.
+	 * @return
+	 * 			the name of the scheduled job
+	 */
+	public String addScheduledJobAfterDelay(int interval, IScheduledJob job, int delay);
 
 	/**
 	 * Stop executing a previously scheduled job.
