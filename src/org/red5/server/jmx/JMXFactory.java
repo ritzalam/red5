@@ -22,10 +22,12 @@ package org.red5.server.jmx;
 import java.lang.management.ManagementFactory;
 
 import javax.management.MBeanServer;
+import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
 import javax.management.StandardMBean;
 
 import org.apache.log4j.Logger;
+
 
 /**
  * Provides access to the MBeanServer as well as registration
@@ -51,8 +53,14 @@ public class JMXFactory {
 	private static MBeanServer mbs;
 
 	static {
-		// grab a reference to the "platform" MBeanServer
-		mbs = ManagementFactory.getPlatformMBeanServer();
+		// try the first mbean server before grabbing platform, this should
+		// make things easier when using jboss or tomcats built in jmx.
+		try {
+			mbs = (MBeanServer) MBeanServerFactory.findMBeanServer(null).get(0);
+		} catch (Exception e) {
+			// grab a reference to the "platform" MBeanServer
+			mbs = ManagementFactory.getPlatformMBeanServer();
+		}
 	}
 
 	public static ObjectName createMBean(String className, String attributes) {
