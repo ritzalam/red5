@@ -20,17 +20,16 @@ package org.red5.server.jboss;
  */
 
 import java.beans.Introspector;
-import java.util.Properties;
 
 import org.apache.commons.logging.LogFactory;
 import org.apache.log4j.Logger;
-import org.red5.server.LoaderBase;
 import org.red5.server.jmx.JMXAgent;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.access.ContextSingletonBeanFactoryLocator;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 /**
@@ -39,7 +38,7 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
  * @author The Red5 Project (red5@osflash.org)
  * @author Paul Gregoire (mondain@gmail.com)
  */
-public class JbossLoader extends LoaderBase implements ApplicationContextAware, JbossLoaderMBean {
+public class JbossLoader implements ApplicationContextAware, JbossLoaderMBean {
 
 	/**
 	 * We store the application context in a ThreadLocal so we can access it
@@ -49,8 +48,6 @@ public class JbossLoader extends LoaderBase implements ApplicationContextAware, 
 
 	// Initialize Logging
 	protected static Logger logger = Logger.getLogger(JbossLoader.class.getName());
-
-	protected static String red5Config = "red5.xml";	
 	
 	/**
 	 * Initialization
@@ -59,31 +56,51 @@ public class JbossLoader extends LoaderBase implements ApplicationContextAware, 
 		logger.info("Loading jboss service");
 
 		logger.info("RED5 Server (http://www.osflash.org/red5)");
-		logger.info("Loading red5 global context from: " + red5Config);
+		//logger.info("Loading red5 global context from: " + red5Config);
 
+		long time = System.currentTimeMillis();		
+		
 		try {
-			Properties props = new Properties();
-	        // Load properties
-	        props.load(JbossLoader.class.getResourceAsStream("/red5.properties"));		
+	        // get Red5 root as environment variable, this is set in the META-INF/jboss-service.xml
+			String root = System.getProperty("red5.root");
+			logger.info("Red5 root: " + root);
+			String configRoot = System.getProperty("red5.config_root");
+			logger.info("Red5 config root: " + configRoot);					
 
-	        // Set Red5 root as environment variable
-	        //System.setProperty("red5.root", root);
-			//logger.info("Setting Red5 root to " + root);
+			ApplicationContext commonCtx = new FileSystemXmlApplicationContext(configRoot + "red5-common.xml");			
 
-			ContextSingletonBeanFactoryLocator.getInstance(red5Config).useBeanFactory("red5.common");
+			String[] defNames = commonCtx.getBeanDefinitionNames();
+			for (String nm : defNames) {
+				logger.debug("Common Bean def: " + nm);
+			}			
+			
+			/*
+			ConfigurableApplicationContext coreCtx = new FileSystemXmlApplicationContext(configRoot + "red5-core.xml");
+			coreCtx.setParent(commonCtx);		
+			
+			defNames = coreCtx.getBeanDefinitionNames();
+			for (String nm : defNames) {
+				logger.debug("Core Bean def: " + nm);
+			}				
+			*/
+			
+			ConfigurableApplicationContext appCtx = new FileSystemXmlApplicationContext(configRoot + "applicationContext.xml");
+			appCtx.setParent(commonCtx);
+
+
+			//AutowireCapableBeanFactory factory = appCtx.getAutowireCapableBeanFactory();
+			//register default add the context to the parent
+			//factory.autowire(org.red5.server.Server.class, AutowireCapableBeanFactory.AUTOWIRE_AUTODETECT, true);					
+			
+			applicationContext.set(appCtx);			
+
 		} catch (Exception e) {
 			logger.error("Error during startup", e);
 		}				
 
-	}
-
-	/**
-	 * Setter for application context
-	 * @param context                Application context
-	 * @throws BeansException        Abstract superclass for all exceptions thrown in the beans package and subpackages
-	 */
-	public void setApplicationContext(ApplicationContext context) throws BeansException {
-		applicationContext.set(context);
+		long startupIn = System.currentTimeMillis() - time;
+		logger.info("Startup done in: " + startupIn + " ms");		
+		
 	}
 
     public boolean isStarted() {
@@ -118,6 +135,12 @@ public class JbossLoader extends LoaderBase implements ApplicationContextAware, 
 		} catch (Exception e) {
 			logger.warn("Jboss could not be stopped", e);
 		}
+	}
+
+	public void setApplicationContext(ApplicationContext applicationCtx)
+			throws BeansException {
+		logger.debug("Attempt to set app context");
+		
 	}
 
 }
