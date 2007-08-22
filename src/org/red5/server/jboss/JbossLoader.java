@@ -66,33 +66,19 @@ public class JbossLoader implements ApplicationContextAware, JbossLoaderMBean {
 			logger.info("Red5 root: " + root);
 			String configRoot = System.getProperty("red5.config_root");
 			logger.info("Red5 config root: " + configRoot);					
-
-			ApplicationContext commonCtx = new FileSystemXmlApplicationContext(configRoot + "red5-common.xml");			
-
-			String[] defNames = commonCtx.getBeanDefinitionNames();
-			for (String nm : defNames) {
-				logger.debug("Common Bean def: " + nm);
-			}			
-			
-			/*
-			ConfigurableApplicationContext coreCtx = new FileSystemXmlApplicationContext(configRoot + "red5-core.xml");
-			coreCtx.setParent(commonCtx);		
-			
-			defNames = coreCtx.getBeanDefinitionNames();
-			for (String nm : defNames) {
-				logger.debug("Core Bean def: " + nm);
-			}				
-			*/
 			
 			ConfigurableApplicationContext appCtx = new FileSystemXmlApplicationContext(configRoot + "applicationContext.xml");
-			appCtx.setParent(commonCtx);
-
+			
+			String[] defNames = appCtx.getBeanDefinitionNames();
+			for (String nm : defNames) {
+				logger.debug("Bean def: " + nm);
+			}
 
 			//AutowireCapableBeanFactory factory = appCtx.getAutowireCapableBeanFactory();
 			//register default add the context to the parent
 			//factory.autowire(org.red5.server.Server.class, AutowireCapableBeanFactory.AUTOWIRE_AUTODETECT, true);					
-			
-			applicationContext.set(appCtx);			
+					
+			this.setApplicationContext(appCtx);
 
 		} catch (Exception e) {
 			logger.error("Error during startup", e);
@@ -118,7 +104,7 @@ public class JbossLoader implements ApplicationContextAware, JbossLoaderMBean {
             //shutdown our jmx agent
     		JMXAgent.shutdown();
 			//shutdown spring
-    		FileSystemXmlApplicationContext appContext = (FileSystemXmlApplicationContext) applicationContext.get();
+    		FileSystemXmlApplicationContext appContext = (FileSystemXmlApplicationContext) getApplicationContext();
 			ConfigurableBeanFactory factory = appContext.getBeanFactory();
 			if (factory.containsSingleton("default.context")) {
 				for (String scope : factory.getRegisteredScopeNames()) {
@@ -137,10 +123,14 @@ public class JbossLoader implements ApplicationContextAware, JbossLoaderMBean {
 		}
 	}
 
-	public void setApplicationContext(ApplicationContext applicationCtx)
-			throws BeansException {
+	public void setApplicationContext(ApplicationContext applicationCtx) throws BeansException {
 		logger.debug("Attempt to set app context");
-		
+		applicationContext.set(applicationCtx);	
 	}
 
+	public ApplicationContext getApplicationContext() {
+		logger.debug("Attempt to get app context");
+		return applicationContext.get();
+	}	
+	
 }
