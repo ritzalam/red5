@@ -68,12 +68,14 @@
 			<and>	
 		        <available property="spring.installed" 
 		            classpathref="project.classpath" classname="org.springframework.core.SpringVersion"/>
-		        <available property="mina.installed" 
-		            classpathref="project.classpath" classname="org.apache.mina.filter.codec.ProtocolEncoder"/>
 		        <available property="log4j.installed" 
 		            classpathref="project.classpath" classname="org.apache.log4j.Logger"/>
 		        <available property="catalina.installed" 
 		            classpathref="project.classpath" classname="org.apache.catalina.Server"/>
+		        <available property="mina.installed" 
+		            classpathref="project.classpath" classname="org.apache.mina.filter.codec.ProtocolEncoder"/>
+		        <available property="minajmx.installed" 
+		            classpathref="project.classpath" classname="org.apache.mina.integration.jmx.IoServiceManager"/>
 			</and>
 		</condition>		
 	</target>	
