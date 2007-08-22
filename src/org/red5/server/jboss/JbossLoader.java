@@ -69,14 +69,16 @@ public class JbossLoader implements ApplicationContextAware, JbossLoaderMBean {
 			
 			ConfigurableApplicationContext appCtx = new FileSystemXmlApplicationContext(configRoot + "applicationContext.xml");
 			
+			/*
 			String[] defNames = appCtx.getBeanDefinitionNames();
 			for (String nm : defNames) {
 				logger.debug("Bean def: " + nm);
 			}
+			*/
 
-			//AutowireCapableBeanFactory factory = appCtx.getAutowireCapableBeanFactory();
+			ConfigurableBeanFactory factory = appCtx.getBeanFactory();
 			//register default add the context to the parent
-			//factory.autowire(org.red5.server.Server.class, AutowireCapableBeanFactory.AUTOWIRE_AUTODETECT, true);					
+			factory.registerSingleton("default.context", applicationContext);				
 					
 			this.setApplicationContext(appCtx);
 

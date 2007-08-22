@@ -245,7 +245,7 @@
 		<mkdir dir="${classes.dir}/WEB-INF/classes"/>
 		
 		<property name="dest.dir" value="${classes.dir}/WEB-INF/classes"/>	
-		<property name="std_excludes" value="**/*.jsp,org/red5/server/script/**,org/red5/server/jetty/**,org/red5/server/midi/**,org/red5/server/net/rtmpt/*Loader.java,org/red5/server/net/servlet/RTMPTServlet.java,org/red5/server/net/servlet/StatisticsServlet.java,org/red5/server/net/servlet/ZAMFGatewayServlet.java,org/red5/server/ContextLoader.java,org/red5/server/DebugPooledByteBufferAllocator.java,org/red5/server/JettyLoader.java,org/red5/server/Standalone.java,org/red5/server/TomcatLoader.java"/>	
+		<property name="std_excludes" value="**/*.jsp,org/red5/server/script/**,org/red5/server/jetty/**,org/red5/server/tomcat/**,org/red5/server/midi/**,org/red5/server/net/rtmpt/*Loader.java,org/red5/server/net/servlet/RTMPTServlet.java,org/red5/server/net/servlet/StatisticsServlet.java,org/red5/server/net/servlet/ZAMFGatewayServlet.java,org/red5/server/ContextLoader.java,org/red5/server/DebugPooledByteBufferAllocator.java,org/red5/server/Standalone.java"/>	
 		<antcall target="compile_core" inheritAll="true" inheritRefs="true"/>
 		<antcall target="compile_core_compatibility" inheritAll="true" inheritRefs="true"/>
 		<!-- libraries and classes needed for building the demos -->		
