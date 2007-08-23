@@ -43,12 +43,12 @@ import org.springframework.web.context.ContextLoader;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
- * Entry point from which the server config file is loaded while
- * running within a J2EE application container.
- *
- * This listener should be registered after Log4jConfigListener in web.xml,
- * if the latter is used.
- *
+ * Entry point from which the server config file is loaded while running within
+ * a J2EE application container.
+ * 
+ * This listener should be registered after Log4jConfigListener in web.xml, if
+ * the latter is used.
+ * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Paul Gregoire (mondain@gmail.com)
  */
@@ -70,12 +70,13 @@ public class MainServlet extends HttpServlet implements ServletContextListener {
 	public void contextDestroyed(ServletContextEvent sce) {
 		logger.info("Webapp shutdown");
 		// XXX Paul: grabbed this from
-		//http://opensource.atlassian.com/confluence/spring/display/DISC/Memory+leak+-+classloader+won%27t+let+go
-		// in hopes that we can clear all the issues with J2EE containers during shutdown
+		// http://opensource.atlassian.com/confluence/spring/display/DISC/Memory+leak+-+classloader+won%27t+let+go
+		// in hopes that we can clear all the issues with J2EE containers during
+		// shutdown
 		try {
-			//prepare spring for shutdown
+			// prepare spring for shutdown
 			Introspector.flushCaches();
-			//dereg any drivers
+			// dereg any drivers
 			for (Enumeration e = DriverManager.getDrivers(); e
 					.hasMoreElements();) {
 				Driver driver = (Driver) e.nextElement();
@@ -84,10 +85,10 @@ public class MainServlet extends HttpServlet implements ServletContextListener {
 					DriverManager.deregisterDriver(driver);
 				}
 			}
-			//shutdown jmx
+			// shutdown jmx
 			JMXAgent.shutdown();
-			//shutdown spring
-			//get web application context from the servlet context
+			// shutdown spring
+			// get web application context from the servlet context
 			ConfigurableWebApplicationContext applicationContext = (ConfigurableWebApplicationContext) servletContext
 					.getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
 			ConfigurableBeanFactory factory = applicationContext
@@ -98,18 +99,19 @@ public class MainServlet extends HttpServlet implements ServletContextListener {
 				}
 				for (String singleton : factory.getSingletonNames()) {
 					logger.debug("Registered singleton: " + singleton);
-					//factory.destroyScopedBean(singleton);
+					// factory.destroyScopedBean(singleton);
 				}
 				factory.destroySingletons();
 			}
 			servletContext
 					.removeAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
 			applicationContext.close();
-			//http://jakarta.apache.org/commons/logging/guide.html#Classloader_and_Memory_Management
-			//http://wiki.apache.org/jakarta-commons/Logging/UndeployMemoryLeak?action=print
+			// http://jakarta.apache.org/commons/logging/guide.html#Classloader_and_Memory_Management
+			// http://wiki.apache.org/jakarta-commons/Logging/UndeployMemoryLeak?action=print
 			LogFactory.release(Thread.currentThread().getContextClassLoader());
 		} catch (Throwable e) {
-			//may get a java.lang.StackOverflowError when shutting appcontext down in jboss
+			// may get a java.lang.StackOverflowError when shutting appcontext
+			// down in jboss
 			e.printStackTrace();
 		}
 	}
@@ -117,10 +119,10 @@ public class MainServlet extends HttpServlet implements ServletContextListener {
 	/**
 	 * Main entry point for the Red5 Server as a war
 	 */
-	//Notification that the web application is ready to process requests
+	// Notification that the web application is ready to process requests
 	public void contextInitialized(ServletContextEvent sce) {
-        System.setProperty("red5.deployment.type", "war");	
-	
+		System.setProperty("red5.deployment.type", "war");
+
 		if (null != servletContext) {
 			return;
 		}
@@ -160,17 +162,17 @@ public class MainServlet extends HttpServlet implements ServletContextListener {
 			root = root.replace('\\', '/');
 			int idx = root.lastIndexOf('/');
 			root = root.substring(0, idx);
-			//update classpath
+			// update classpath
 			System.setProperty("java.class.path", classpath
 					+ File.pathSeparatorChar + root + File.pathSeparatorChar
 					+ root + "/classes");
 			logger.debug("New classpath: "
 					+ System.getProperty("java.class.path"));
-			//set configuration root
+			// set configuration root
 			System.setProperty("red5.config_root", root);
 			logger.info("Setting configuation root to " + root);
 
-			// Setup system properties so they can be evaluated by Jetty
+			// Setup system properties so they can be evaluated
 			Properties props = new Properties();
 			props.load(new FileInputStream(root + "/red5.properties"));
 			for (Object o : props.keySet()) {
@@ -195,14 +197,15 @@ public class MainServlet extends HttpServlet implements ServletContextListener {
 					.instantiateClass(contextClass);
 
 			String[] strArray = servletContext.getInitParameter(
-					ContextLoader.CONFIG_LOCATION_PARAM).split(", ");
+					ContextLoader.CONFIG_LOCATION_PARAM).split("[,\\s]");
 			logger.info("Config location files: " + strArray.length);
 			applicationContext.setConfigLocations(strArray);
 			applicationContext.setServletContext(servletContext);
 			applicationContext.refresh();
 
-			//set web application context as an attribute of the servlet context
-			//so that it may be located via Springs WebApplicationContextUtils
+			// set web application context as an attribute of the servlet
+			// context so that it may be located via Springs
+			// WebApplicationContextUtils
 			servletContext
 					.setAttribute(
 							WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE,
@@ -210,7 +213,7 @@ public class MainServlet extends HttpServlet implements ServletContextListener {
 
 			ConfigurableBeanFactory factory = applicationContext
 					.getBeanFactory();
-			//register default
+			// register default
 			// add the context to the parent
 			factory.registerSingleton("default.context", applicationContext);
 

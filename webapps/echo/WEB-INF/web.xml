@@ -7,19 +7,25 @@
 
 	<display-name>Red5 echo application</display-name>
 
-    <context-param>
-        <param-name>contextConfigLocation</param-name>
-        <param-value>@context.config.location@</param-value>
-    </context-param>	
-    
+	<context-param>
+	    <param-name>globalScope</param-name>
+	    <param-value>default</param-value>
+	</context-param>
+
+	<context-param>
+	    <param-name>contextConfigLocation</param-name>
+	    <param-value>/WEB-INF/red5-*.xml</param-value>
+	</context-param>
+
 	<context-param>
 		<param-name>locatorFactorySelector</param-name>
-		<param-value>@locator.factory.selector@</param-value>
-	</context-param>    
-    
-@global.scope@
-		
-@parent.context.key@
+		<param-value>red5.xml</param-value>
+	</context-param>
+
+	<context-param>
+		<param-name>parentContextKey</param-name>
+		<param-value>default.context</param-value>
+	</context-param>
 	
 	<context-param>
 		<param-name>webAppRootKey</param-name>
@@ -29,9 +35,18 @@
 	<listener>
 	    <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
 	</listener>
-
-@gateway.servlet@
+	
+	<servlet>
+		<servlet-name>gateway</servlet-name>
+		<servlet-class>
+			org.red5.server.net.servlet.AMFGatewayServlet
+		</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
     
-@gateway.servlet.mapping@
+	<servlet-mapping>
+		<servlet-name>gateway</servlet-name>
+		<url-pattern>/gateway</url-pattern>
+	</servlet-mapping>
 
 </web-app>

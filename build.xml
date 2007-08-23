@@ -290,7 +290,6 @@
 	</target>
 	<target name="compile_war" depends="-library.check, -java6.check, -junit.check, clean, prepare">
 		<!-- token replacement filers -->
-
 		<property name="filter.file" value="conf/war/build_war.properties"/>
 		<condition property="java.target_version" value="1.6">
 			<not>
@@ -324,17 +323,12 @@
 			<fileset dir="${webapps.build.dir}/oflaDemo/WEB-INF/classes"/>
 			<fileset dir="${webapps.build.dir}/tutorial/WEB-INF/classes"/>
 		</copy>
-		<!-- demo stream files -->
-		<copy todir="${classes.dir}/streams">
-			<fileset dir="${webapps.build.dir}/oflaDemo/streams"/>
-		</copy>
 		<antcall target="compile_script" inheritAll="true" inheritRefs="true">
 			<param name="dest.dir" value="${classes.dir}/WEB-INF/classes"/>
 		</antcall>
 	</target>
 	<target name="compile_sar" depends="-library.check, -java6.check, -junit.check, clean, prepare">
 		<!-- token replacement filers -->
-
 		<property name="filter.file" value="conf/jboss/build_jboss.properties"/>
 		<condition property="java.target_version" value="1.6">
 			<not>
@@ -499,62 +493,6 @@
 			<link href="http://www.opensymphony.com/quartz/api"/>
 		</javadoc>
 	</target>
-	<!--
-    yDoc - Javadoc UML Extension
-    This will enable you to generate and automatically integrate clear and concise UML diagrams into your Java API documentation.
-    http://www.yworks.com/en/products_ydoc.htm
-    -->
-	<target name="javadoc-ydoc">
-		<!-- Determine the location of Suns api docs -->
-
-		<condition property="javadoc.loc" value="javase/6">
-			<equals arg1="${java6.installed}" arg2="true"/>
-		</condition>
-		<condition property="javadoc.loc" value="j2se/1.5.0">
-			<not>
-				<equals arg1="${java6.installed}" arg2="true"/>
-			</not>
-		</condition>
-		<echo message="Javadoc api stub: ${javadoc.loc}"/>
-		<property name="ydoc.home" value="C:/dev/ydoc"/>
-		<property name="ps" value="${path.separator}"/>
-		<javadoc source="${java.target_version}" destdir="${javadoc.dir}" additionalparam="-breakiterator"
-			 useexternalfile="true" failonerror="false" verbose="false" classpathref="full.classpath"
-			 author="true" version="true" use="true" splitindex="true" windowtitle="Red5 Server Documentation">
-			<packageset dir="${src.dir}">
-				<include name="org/red5/**"/>
-				<exclude name="**/*.xml"/>
-				<exclude name="**/*.xsd"/>
-			</packageset>
-			<doclet name="ydoc.doclets.YStandard" path="${ydoc.home}/lib/ydoc.jar${ps}${ydoc.home}/lib/class2svg.jar${ps}${ydoc.home}/resources${ps}${ydoc.home}/doc">
-				<param name="-author"/>
-				<param name="-generic"/>
-				<param name="-umlautogen"/>
-				<param name="-filterpath" value="${ydoc.home}/lib/ydoc.jar"/>
-				<param name="-filter" value="ydoc.filters.ExcludeFilter"/>
-				<param name="-tag" value="y.precondition"/>
-				<param name="-tag" value="y.postcondition"/>
-				<param name="-tag" value="y.complexity"/>
-				<param name="-tag" value="param"/>
-				<param name="-tag" value="return"/>
-				<param name="-tag" value="see"/>
-				<param name="-tag" value="y.uml"/>
-			</doclet>
-			<doctitle><![CDATA[<h1>Red5 Server Documentation</h1>]]></doctitle>
-			<bottom><![CDATA[<i>Copyright &#169; 2006-2007 <a href="http://osflash.org/red5" target="_blank">the Red5 project</a>.</i>]]></bottom>
-			<tag name="todo" scope="all" description="To do:"/>
-			<group title="Public API" packages="org.red5.server.api:org.red5.server.api.*"/>
-			<group title="Network Protocols" packages="org.red5.server.net:org.red5.server.net.*"/>
-			<group title="Streaming" packages="org.red5.server.stream:org.red5.server.stream.*"/>
-			<group title="IO Packages" packages="org.red5.io:org.red5.io.*"/>
-			<group title="Scripting" packages="org.red5.server.script:org.red5.server.script.*"/>
-			<link href="http://java.sun.com/${javadoc.loc}/docs/api"/>
-			<link href="http://jetty.mortbay.org/apidocs"/>
-			<link href="http://directory.apache.org/subprojects/mina/apidocs"/>
-			<link href="http://www.springframework.org/docs/api"/>
-			<link href="http://www.opensymphony.com/quartz/api"/>
-		</javadoc>
-	</target>
 	<target name="jar" description="Make Archive" depends="compile">
 		<tstamp prefix="build">
 			<format property="TODAY" pattern="d-MMMM-yyyy" locale="en"/>
@@ -639,15 +577,6 @@
 			</fileset>
 		</copy>
 		<copy todir="${dist.dir}/webapps" file="webapps\red5-default.xml"/>
-		<!--
-		<copy todir="${webapps.build.dir}">
-			<fileset dir="webapps">
-				<include name="**"/>
-				<exclude name="**/classes/**"/>
-				<exclude name="**/src/**"/>
-			</fileset>
-		</copy>
-		-->
 		<copy todir="${dist.dir}">
 			<fileset dir="./">
 				<include name="red5.jar"/>
@@ -707,12 +636,13 @@
 	<target name="shutdown">
 		<java classname="org.red5.server.Shutdown" fork="true">
 			<classpath>
-				<pathelement location="${config.dir}"/>
+				<pathelement location="${dist.dir}/conf"/>
 				<pathelement location="${classes.dir}"/>
 				<path refid="full.classpath"/>
 			</classpath>
 			<jvmarg value="-Djava.security.manager"/>
-			<jvmarg value="-Djava.security.policy=${config.dir}/red5.policy"/>
+			<jvmarg value="-Djava.security.policy=${dist.dir}/conf/red5.policy"/>
+			<jvmarg value="-Dred5.root=${dist.dir}"/>
 			<!-- enable the following 5 lines if your using jmx with ssl and auth -->
 			<!--
 			<jvmarg value="-Djavax.net.ssl.trustStore=${config.dir}/truststore.jmx"/>
@@ -783,10 +713,9 @@
 			<include name="**/*.java"/>
 		</javac>
 	</target>
-	<target name="webwar" description="Make Web Archive" depends="compile_war, war_demos">
+	<target name="webwar" description="Make Web Archive" depends="compile_war">
 		<!-- token replacement filers -->
-
-		<filter filtersfile="conf/war/build_war.properties"/>
+		<filter filtersfile="${config.dir}/war/build_war.properties"/>
 		<tstamp prefix="build">
 			<format property="TODAY" pattern="d-MMMM-yyyy" locale="en"/>
 		</tstamp>
@@ -795,39 +724,38 @@
 				<include name="license.txt"/>
 			</fileset>
 		</copy>
-		<copy todir="${classes.dir}">
-			<fileset dir="webapps/root">
-				<include name="**/*.html"/>
-				<include name="**/*.jsp"/>
-				<include name="**/*.js"/>
-				<include name="**/*.css"/>
-				<include name="**/*.ico"/>
-				<include name="**/*.swf"/>
-				<include name="**/*.flv"/>
-				<exclude name="WEB-INF"/>
+		
+		<!-- remove directories we dont want -->
+		<delete dir="${classes.dir}/testcases"/>		
+		
+		<!-- add the configs to the root war -->
+		<filter token="context.path" value="/"/>
+		<copy todir="${webapps.build.dir}/root/WEB-INF" overwrite="true" filtering="true">
+			<fileset dir="${config.dir}">
+				<include name="red5.properties"/>
+				<include name="log4j.properties"/>
+			</fileset>				
+			<fileset dir="${config.dir}/war">
+				<include name="applicationContext.xml"/>
+				<include name="red5-common.xml"/>
+				<include name="red5-core.xml"/>
+				<include name="red5-web.properties"/>
 			</fileset>
-		</copy>
-		<!-- rename index for war only -->
-		<move file="${classes.dir}/index_war.html" tofile="${classes.dir}/index.html"/>
-		<copy todir="${classes.dir}/WEB-INF">
-			<fileset dir="conf/war">
-				<include name="*.xml"/>
-				<include name="*.properties"/>
-				<exclude name="web.xml"/>
-			</fileset>
-		</copy>
+		</copy>		
 		<!-- copy the jmx support files into the webapp classpath -->
-		<copy todir="${classes.dir}/WEB-INF/classes">
-			<fileset dir="conf">
+		<copy todir="${webapps.build.dir}/root/WEB-INF/classes">
+			<fileset dir="${config.dir}">
 				<include name="*.jmx"/>
 				<include name="access.properties"/>
 				<include name="password.properties"/>
 			</fileset>
-		</copy>
-		<!-- copy the red5 properties into the webapp classpath -->
-		<copy todir="${classes.dir}/WEB-INF/classes" file="${classes.dir}/WEB-INF/red5.properties"/>
-		<war destfile="${dist.dir}/red5.war" webxml="conf/war/web.xml">
-			<fileset dir="${classes.dir}"/>
+		</copy>		
+		<!-- war up root -->
+		<war destfile="${dist.dir}/ROOT.war" webxml="${webapps.build.dir}/root/WEB-INF/web.xml">
+			<fileset dir="${webapps.build.dir}/root"/>
+			<fileset dir="${classes.dir}">
+				<exclude name="**/sreams/**"/>
+			</fileset>
 			<lib dir="${lib.dir}">
 				<exclude name="*.properties"/>
 				<exclude name="jsp*.jar"/>
@@ -844,14 +772,59 @@
 				<exclude name="grobo*.jar"/>
 				<exclude name="junit*.jar"/>
 				<exclude name="ivy*.jar"/>
-			</lib>
+			</lib>			
 			<manifest>
 				<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>
 				<attribute name="Built-On" value="${build.TODAY}"/>
 			</manifest>
 		</war>
-		<!-- remove directories we dont want -->
-		<delete dir="${classes.dir}/testcases"/>
+		
+		<!-- add the configs to the ofla war -->
+		<filter token="context.path" value="/oflaDemo"/>
+		<copy todir="${webapps.build.dir}/oflaDemo/WEB-INF" overwrite="true" filtering="true">
+			<fileset dir="${config.dir}">
+				<include name="red5.properties"/>
+				<include name="log4j.properties"/>
+			</fileset>				
+			<fileset dir="${config.dir}/war">
+				<include name="applicationContext.xml"/>
+				<include name="red5-common.xml"/>
+				<include name="red5-core.xml"/>
+				<include name="red5-web.properties"/>				
+			</fileset>
+		</copy>		
+		<!-- war up oflaDemo -->
+		<war destfile="${dist.dir}/oflaDemo.war" webxml="${webapps.build.dir}/oflaDemo/WEB-INF/web.xml">
+			<fileset dir="${webapps.build.dir}/oflaDemo">
+				<exclude name="**/src/**"/>
+			</fileset>
+			<fileset dir="${classes.dir}">
+				<exclude name="**/demos/**"/>
+			</fileset>
+			<lib dir="${lib.dir}">
+				<exclude name="*.properties"/>
+				<exclude name="jsp*.jar"/>
+				<exclude name="servlet*.jar"/>
+				<exclude name="catalina*.jar"/>
+				<exclude name="tomcat*.jar"/>
+				<exclude name="annotations-api*.jar"/>
+				<exclude name="el-api*.jar"/>
+				<exclude name="jetty*.jar"/>
+				<exclude name="jasper*.jar"/>
+				<exclude name="ehcache*.jar"/>
+				<exclude name="whirly*.jar"/>
+				<exclude name="Grobo*.jar"/>
+				<exclude name="grobo*.jar"/>
+				<exclude name="junit*.jar"/>
+				<exclude name="ivy*.jar"/>
+			</lib>			
+			<manifest>
+				<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>
+				<attribute name="Built-On" value="${build.TODAY}"/>
+			</manifest>
+		</war>		
+		
+		<!-- cleanup -->
 		<!-- delete dir="${dist.dir}/webapps"/ -->
 	</target>
 	<target name="jbosssar" description="Make JBoss SAR" depends="compile_sar">
