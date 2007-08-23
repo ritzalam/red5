@@ -3,12 +3,33 @@
 	 xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
 
 	<display-name>Default WebApp</display-name>
-	<servlet>
-		<servlet-name>gateway</servlet-name>
-		<servlet-class>org.red5.server.net.servlet.AMFGatewayServlet</servlet-class>
-	</servlet>
-	<servlet-mapping>
-		<servlet-name>gateway</servlet-name>
-		<url-pattern>/gateway</url-pattern>
-	</servlet-mapping>
+	
+    <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>@context.config.location@</param-value>
+    </context-param>	
+    
+	<context-param>
+		<param-name>locatorFactorySelector</param-name>
+		<param-value>@locator.factory.selector@</param-value>
+	</context-param>    
+    
+@global.scope@
+		
+@parent.context.key@
+    
+	<listener>
+	    <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>	
+	
+@request.context.listener@	
+	
+@gateway.servlet@
+	
+@rtmpt.servlet@	
+
+@gateway.servlet.mapping@	
+	
+@rtmpt.servlet.mappings@
+
 </web-app>

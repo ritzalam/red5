@@ -33,6 +33,7 @@ import javax.management.ObjectName;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Logger;
 import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
@@ -66,6 +67,9 @@ import org.springframework.core.style.ToStringCreator;
  */
 public class Scope extends BasicScope implements IScope, IScopeStatistics,
 		ScopeMBean {
+
+	private static final Logger logger = Logger.getLogger(Scope.class);
+
 	/**
 	 * Iterates through connections
 	 */
@@ -308,7 +312,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 * Mbean object name.
 	 */
 	private ObjectName oName;
-	
+
 	/**
 	 * Creates unnamed scope
 	 */
@@ -418,7 +422,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 		}
 		addEventListener(conn);
 		connectionStats.increment();
-		
+
 		if (this.equals(conn.getScope())) {
 			final IServer server = getServer();
 			if (server instanceof Server) {
@@ -492,7 +496,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 			}
 			removeEventListener(conn);
 			connectionStats.decrement();
-			
+
 			if (this.equals(conn.getScope())) {
 				final IServer server = getServer();
 				if (server instanceof Server) {
@@ -876,7 +880,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 * Uninitialize scope and unregister from parent.
 	 */
 	public void uninit() {
-		for (IBasicScope child: children.values()) {
+		for (IBasicScope child : children.values()) {
 			if (child instanceof Scope) {
 				((Scope) child).uninit();
 			}
@@ -888,7 +892,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 			}
 		}
 	}
-	
+
 	/**
 	 * Check if scope is enabled
 	 * @return                  <code>true</code> if scope is enabled, <code>false</code> otherwise
@@ -950,7 +954,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 			getHandler().removeChildScope(scope);
 		}
 		scope.setStore(null);
-		
+
 		if (scope instanceof IScope) {
 			final IServer server = getServer();
 			if (server instanceof Server) {
@@ -1021,7 +1025,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 			oName = null;
 		}
 		this.name = name;
-		
+
 		if (name != null) {
 			try {
 				oName = new ObjectName(JMXFactory.getDefaultDomain() + ":type="
@@ -1075,7 +1079,8 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 			} else {
 				// Always start scopes without handlers
 				if (log.isDebugEnabled()) {
-					log.debug("Scope " + this + " has no handler, allowing start.");
+					log.debug("Scope " + this
+							+ " has no handler, allowing start.");
 				}
 				result = true;
 			}
@@ -1128,7 +1133,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	public IServer getServer() {
 		if (!hasParent())
 			return null;
-		
+
 		final IScope parent = getParent();
 		if (parent instanceof Scope) {
 			return ((Scope) parent).getServer();
@@ -1138,5 +1143,5 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 			return null;
 		}
 	}
-	
+
 }

@@ -1,6 +1,7 @@
 <?xml version="1.0" ?>
-<project name="RED5" basedir="." default="all" xmlns:ivy="antlib:fr.jayasoft.ivy.ant">
+<project name="RED5" basedir="." default="dist" xmlns:ivy="antlib:fr.jayasoft.ivy.ant">
 	<!-- user overides for project properties -->
+
 	<property file="${user.home}/build.properties"/>
 	<!-- base project properties -->
 	<property file="build.properties"/>
@@ -12,6 +13,7 @@
 	<property name="lib.dir" value="lib"/>
 	<property name="classes.dir" value="bin"/>
 	<property name="webapps.dir" value="webapps"/>
+	<property name="webapps.build.dir" value="${dist.dir}/webapps"/>
 	<property name="debug.state" value="true"/>
 	<property name="config.dir" value="conf"/>
 	<property name="javadoc.dir" value="doc/api"/>
@@ -22,12 +24,8 @@
 	        http://incubator.apache.org/ivy
 	        http://testearly.com/2007/06/24/ivy-in-42-steps
 	-->
-    <taskdef
-    	uri="antlib:fr.jayasoft.ivy.ant"
-    	resource="fr/jayasoft/ivy/ant/antlib.xml"
-    	classpath="${lib.dir}/ivy-1.4.1.jar" />
-	<property name="ivy.lib.dir" value="${lib.dir}" />	
-
+	<taskdef uri="antlib:fr.jayasoft.ivy.ant" resource="fr/jayasoft/ivy/ant/antlib.xml" classpath="${lib.dir}/ivy-1.4.1.jar"/>
+	<property name="ivy.lib.dir" value="${lib.dir}"/>
 	<!-- JUNIT TESTING -->
 	<property name="test.dir" value="test"/>
 	<property name="testclass.dir" value="bin/testcases"/>
@@ -41,18 +39,15 @@
 		<pathelement location="${classes.dir}"/>
 	</path>
 	<path id="full.classpath">
-		<fileset dir="${lib.dir}" />
+		<fileset dir="${lib.dir}"/>
 		<fileset dir="./">
 			<filename name="red5.jar"/>
 		</fileset>
 	</path>
-	
-	<echo>java.home is ${java.home} and the target version is ${java.target_version}</echo>	
-	
+	<echo>java.home is ${java.home} and the target version is ${java.target_version}</echo>
 	<target name="-junit.check">
 		<available property="junit.installed" classname="junit.framework.TestCase"/>
 	</target>
-	
 	<target name="-java6.check">
 		<condition property="java6.installed" value="true">
 			<and>
@@ -61,47 +56,26 @@
 			</and>
 		</condition>
 	</target>
-	
 	<target name="-library.check">
-	    <!-- Check for the main libraries -->
+		<!-- Check for the main libraries -->
+
 		<condition property="library.installed" value="true">
-			<and>	
-		        <available property="spring.installed" 
-		            classpathref="project.classpath" classname="org.springframework.core.SpringVersion"/>
-		        <available property="log4j.installed" 
-		            classpathref="project.classpath" classname="org.apache.log4j.Logger"/>
-		        <available property="catalina.installed" 
-		            classpathref="project.classpath" classname="org.apache.catalina.Server"/>
-		        <available property="mina.installed" 
-		            classpathref="project.classpath" classname="org.apache.mina.filter.codec.ProtocolEncoder"/>
-		        <available property="minajmx.installed" 
-		            classpathref="project.classpath" classname="org.apache.mina.integration.jmx.IoServiceManager"/>
+			<and>
+				<available property="spring.installed" classpathref="project.classpath" classname="org.springframework.core.SpringVersion"/>
+				<available property="log4j.installed" classpathref="project.classpath" classname="org.apache.log4j.Logger"/>
+				<available property="catalina.installed" classpathref="project.classpath" classname="org.apache.catalina.Server"/>
+				<available property="mina.installed" classpathref="project.classpath" classname="org.apache.mina.filter.codec.ProtocolEncoder"/>
+				<available property="minajmx.installed" classpathref="project.classpath" classname="org.apache.mina.integration.jmx.IoServiceManager"/>
 			</and>
-		</condition>		
-	</target>	
-	
+		</condition>
+	</target>
 	<!-- setup the directories for building -->
 	<target name="prepare">
 		<mkdir dir="${classes.dir}"/>
 		<mkdir dir="${dist.dir}"/>
 		<mkdir dir="${testclass.dir}"/>
 		<mkdir dir="${testreports.dir}"/>
-		<mkdir dir="${webapps.dir}/admin/WEB-INF/classes"/>
-		<mkdir dir="${webapps.dir}/admin/WEB-INF/lib"/>
-		<mkdir dir="${webapps.dir}/echo/WEB-INF/classes"/>
-		<mkdir dir="${webapps.dir}/echo/WEB-INF/lib"/>
-		<mkdir dir="${webapps.dir}/fitcDemo/WEB-INF/classes"/>
-		<mkdir dir="${webapps.dir}/fitcDemo/WEB-INF/lib"/>
-		<mkdir dir="${webapps.dir}/midiDemo/WEB-INF/classes"/>
-		<mkdir dir="${webapps.dir}/midiDemo/WEB-INF/lib"/>
-		<mkdir dir="${webapps.dir}/oflaDemo/WEB-INF/classes"/>
-		<mkdir dir="${webapps.dir}/oflaDemo/WEB-INF/lib"/>
-		<mkdir dir="${webapps.dir}/test/WEB-INF/classes"/>
-		<mkdir dir="${webapps.dir}/test/WEB-INF/lib"/>
-		<mkdir dir="${webapps.dir}/tutorial/WEB-INF/classes"/>
-		<mkdir dir="${webapps.dir}/tutorial/WEB-INF/lib"/>		
 	</target>
-	
 	<!-- do a clean -->
 	<target name="clean">
 		<delete dir="${classes.dir}"/>
@@ -115,38 +89,51 @@
 			<fileset dir="${webapps.dir}/" includes="**/*.jar"/>
 		</delete>
 	</target>
-	
 	<target name="retrieve" unless="library.installed" description="Retrieves the libraries if needed">
 		<!-- Ivy configuration -->
-	    <ivy:configure file="ivyconfig.xml" />	
+
+		<ivy:configure file="ivyconfig.xml"/>
 		<condition property="ivy.conf.name" value="default">
 			<not>
 				<isset property="ivy.conf.name"/>
 			</not>
-		</condition>	    
-	    <echo message="Ivy conf name: ${ivy.conf.name}"/>
-	    <ivy:retrieve conf="${ivy.conf.name}" />
-	</target>	
-	
+		</condition>
+		<echo message="Ivy conf name: ${ivy.conf.name}"/>
+		<ivy:resolve conf="${ivy.conf.name}"/>
+		<ivy:retrieve conf="${ivy.conf.name}"/>
+	</target>
+	<target name="ivyclear" description="Clears out the ivy cache">
+		<delete dir="${user.home}/.ivy/cache"/>
+		<delete includeemptydirs="true">
+			<fileset dir="${lib.dir}" excludes="**/ivy*.jar"/>
+		</delete>
+	</target>
 	<target name="compile" depends="-library.check, -java6.check, -junit.check, prepare">
+		<!-- token replacement filers -->
+
+		<property name="filter.file" value="conf/build_standalone.properties"/>
 		<condition property="java.target_version" value="1.5">
 			<not>
 				<isset property="java.target_version"/>
 			</not>
 		</condition>
 		<echo message="Javac version: ${java.target_version}"/>
+		<echo message="Eclipse? ${eclipse.running}"/>
+		<condition property="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter">
+			<isset property="eclipse.running"/>
+		</condition>
 		<condition property="compiler" value="${build.compiler}${java.target_version}">
 			<equals arg1="${build.compiler}" arg2="javac"/>
 		</condition>
 		<property name="compiler" value="${build.compiler}"/>
 		<echo message="Compiler adapter name: ${compiler}"/>
 		<!-- destination for compiled classes -->
-		<property name="dest.dir" value="${classes.dir}"/>	
+		<property name="dest.dir" value="${classes.dir}"/>
 		<!-- standard excludes for compile -->
-		<property name="std_excludes" value="**/*.jsp,org/red5/server/script/**"/>		
+		<property name="std_excludes" value="**/*.jsp,org/red5/server/script/**"/>
 		<antcall target="compile_core" inheritAll="true" inheritRefs="true"/>
 		<antcall target="compile_core_compatibility" inheritAll="true" inheritRefs="true"/>
-		<!-- libraries and classes needed for building the demos -->		
+		<!-- libraries and classes needed for building the demos -->
 		<path id="webapps.classpath">
 			<fileset dir="${lib.dir}">
 				<filename name="*.jar"/>
@@ -154,85 +141,157 @@
 			<pathelement location="${classes.dir}"/>
 		</path>
 		<antcall target="compile_demos" inheritAll="true" inheritRefs="true"/>
-		
 		<antcall target="compile_script" inheritAll="true" inheritRefs="true"/>
 	</target>
-		
 	<!-- Core -->
-	<target name="compile_core" if="java6.installed">	
-	    <antcall target="retrieve" inheritAll="true" inheritRefs="true">
-	        <param name="ivy.conf.name" value="default" />
-	    </antcall>
-
+	<target name="compile_core" if="java6.installed">
+		<antcall target="retrieve" inheritAll="true" inheritRefs="true">
+			<param name="ivy.conf.name" value="default"/>
+		</antcall>
 		<javac sourcepath="" srcdir="${src.dir}" destdir="${dest.dir}" classpathref="project.classpath"
 			 optimize="${build.optimize}" verbose="${build.verbose}" fork="${build.fork}" nowarn="${build.nowarn}"
 			 deprecation="${build.deprecation}" debug="${debug.state}" compiler="${compiler}"
 			 source="${java.target_version}" target="${java.target_version}" memoryMaximumSize="1024m"
 			 excludes="${std_excludes}" listfiles="false"/>
 	</target>
-	
 	<target name="compile_core_compatibility" unless="java6.installed">
-	    <antcall target="retrieve" inheritAll="true" inheritRefs="true">
-	        <param name="ivy.conf.name" value="java5" />
-	    </antcall>
-		
+		<antcall target="retrieve" inheritAll="true" inheritRefs="true">
+			<param name="ivy.conf.name" value="java5"/>
+		</antcall>
 		<javac sourcepath="" srcdir="${src.dir}" destdir="${dest.dir}" classpathref="project.classpath"
 			 optimize="${build.optimize}" verbose="${build.verbose}" fork="${build.fork}" nowarn="${build.nowarn}"
 			 deprecation="${build.deprecation}" debug="${debug.state}" compiler="${compiler}"
 			 source="${java.target_version}" target="${java.target_version}" memoryMaximumSize="1024m"
 			 excludes="${std_excludes}" listfiles="false"/>
 	</target>
-	
 	<!-- Demos -->
-	<target name="compile_demos" depends="prepare">
-		<echo message="Webapps dir: ${webapps.dir}"/>
-		<javac sourcepath="" srcdir="${webapps.dir}/admin/WEB-INF/src" destdir="${webapps.dir}/admin/WEB-INF/classes"
+	<target name="compile_demos">
+		<echo message="Webapps dir: ${webapps.dir} Webapps build dir: ${webapps.build.dir}"/>
+		<!-- load token replacement filers -->
+		<filter filtersfile="${filter.file}"/>
+		<copy todir="${webapps.build.dir}/root" filtering="true">
+			<fileset dir="webapps/root">
+				<exclude name="**/src/**"/>
+				<exclude name="**/*.swf"/>
+			</fileset>
+		</copy>
+		<!-- copy swf without filtering as it causes corruption -->
+		<copy todir="${webapps.build.dir}/root">
+			<fileset dir="webapps/root">
+				<include name="**/*.swf"/>
+			</fileset>
+		</copy>
+		<mkdir dir="${webapps.build.dir}/admin/WEB-INF/classes"/>
+		<mkdir dir="${webapps.build.dir}/admin/WEB-INF/lib"/>
+		<javac sourcepath="" srcdir="${webapps.dir}/admin/WEB-INF/src" destdir="${webapps.build.dir}/admin/WEB-INF/classes"
 			 classpathref="webapps.classpath" optimize="${build.optimize}" verbose="${build.verbose}"
 			 fork="${build.fork}" nowarn="${build.nowarn}" deprecation="${build.deprecation}"
 			 debug="${debug.state}" compiler="${compiler}" source="${java.target_version}" target="${java.target_version}"/>
-		<javac sourcepath="" srcdir="${webapps.dir}/echo/WEB-INF/src" destdir="${webapps.dir}/echo/WEB-INF/classes"
+		<copy todir="${webapps.build.dir}/admin" filtering="true">
+			<fileset dir="webapps/admin">
+				<exclude name="**/src/**"/>
+			</fileset>
+		</copy>
+		<mkdir dir="${webapps.build.dir}/echo/WEB-INF/classes"/>
+		<mkdir dir="${webapps.build.dir}/echo/WEB-INF/lib"/>
+		<javac sourcepath="" srcdir="${webapps.dir}/echo/WEB-INF/src" destdir="${webapps.build.dir}/echo/WEB-INF/classes"
 			 classpathref="webapps.classpath" optimize="${build.optimize}" verbose="${build.verbose}"
 			 fork="${build.fork}" nowarn="${build.nowarn}" deprecation="${build.deprecation}"
 			 debug="${debug.state}" compiler="${compiler}" source="${java.target_version}" target="${java.target_version}"/>
-		<javac sourcepath="" srcdir="${webapps.dir}/fitcDemo/WEB-INF/src" destdir="${webapps.dir}/fitcDemo/WEB-INF/classes"
+		<copy todir="${webapps.build.dir}/echo" filtering="true">
+			<fileset dir="webapps/echo">
+				<exclude name="**/src/**"/>
+			</fileset>
+		</copy>
+		<mkdir dir="${webapps.build.dir}/fitcDemo/WEB-INF/classes"/>
+		<mkdir dir="${webapps.build.dir}/fitcDemo/WEB-INF/lib"/>
+		<javac sourcepath="" srcdir="${webapps.dir}/fitcDemo/WEB-INF/src" destdir="${webapps.build.dir}/fitcDemo/WEB-INF/classes"
 			 classpathref="webapps.classpath" optimize="${build.optimize}" verbose="${build.verbose}"
 			 fork="${build.fork}" nowarn="${build.nowarn}" deprecation="${build.deprecation}"
 			 debug="${debug.state}" compiler="${compiler}" source="${java.target_version}" target="${java.target_version}"/>
-		<javac sourcepath="" srcdir="${webapps.dir}/midiDemo/WEB-INF/src" destdir="${webapps.dir}/midiDemo/WEB-INF/classes"
+		<copy todir="${webapps.build.dir}/fitcDemo" filtering="true">
+			<fileset dir="webapps/fitcDemo">
+				<exclude name="**/src/**"/>
+			</fileset>
+		</copy>
+		<!-- no java source for this app -->
+		<copy todir="${webapps.build.dir}/messageRecorder" filtering="true">
+			<fileset dir="webapps/messageRecorder"/>
+		</copy>
+		<mkdir dir="${webapps.build.dir}/midiDemo/WEB-INF/classes"/>
+		<mkdir dir="${webapps.build.dir}/midiDemo/WEB-INF/lib"/>
+		<javac sourcepath="" srcdir="${webapps.dir}/midiDemo/WEB-INF/src" destdir="${webapps.build.dir}/midiDemo/WEB-INF/classes"
 			 classpathref="webapps.classpath" optimize="${build.optimize}" verbose="${build.verbose}"
 			 fork="${build.fork}" nowarn="${build.nowarn}" deprecation="${build.deprecation}"
 			 debug="${debug.state}" compiler="${compiler}" source="${java.target_version}" target="${java.target_version}"/>
-		<javac sourcepath="" srcdir="${webapps.dir}/oflaDemo/WEB-INF/src" destdir="${webapps.dir}/oflaDemo/WEB-INF/classes"
+		<copy todir="${webapps.build.dir}/midiDemo" filtering="true">
+			<fileset dir="webapps/midiDemo">
+				<exclude name="**/src/**"/>
+			</fileset>
+		</copy>
+		<mkdir dir="${webapps.build.dir}/oflaDemo/WEB-INF/classes"/>
+		<mkdir dir="${webapps.build.dir}/oflaDemo/WEB-INF/lib"/>
+		<javac sourcepath="" srcdir="${webapps.dir}/oflaDemo/WEB-INF/src" destdir="${webapps.build.dir}/oflaDemo/WEB-INF/classes"
 			 classpathref="webapps.classpath" optimize="${build.optimize}" verbose="${build.verbose}"
 			 fork="${build.fork}" nowarn="${build.nowarn}" deprecation="${build.deprecation}"
 			 debug="${debug.state}" compiler="${compiler}" source="${java.target_version}" target="${java.target_version}"/>
-		<mkdir dir="${webapps.dir}/oflaDemo/WEB-INF/classes/applications"/>
-		<copy todir="${webapps.dir}/oflaDemo/WEB-INF/classes/applications">
+		<mkdir dir="${webapps.build.dir}/oflaDemo/WEB-INF/classes/applications"/>
+		<copy todir="${webapps.build.dir}/oflaDemo/WEB-INF/classes/applications">
 			<fileset dir="${webapps.dir}/oflaDemo/WEB-INF/src/applications"/>
 		</copy>
-		<javac sourcepath="" srcdir="${webapps.dir}/test/WEB-INF/src" destdir="${webapps.dir}/test/WEB-INF/classes"
+		<copy todir="${webapps.build.dir}/oflaDemo" filtering="true">
+			<fileset dir="webapps/oflaDemo">
+				<exclude name="**/src/**"/>
+				<exclude name="**/*.flv"/>
+			</fileset>
+		</copy>
+		<!-- copy flv without filtering as it causes corruption -->
+		<copy todir="${webapps.build.dir}/oflaDemo">
+			<fileset dir="webapps/oflaDemo">
+				<include name="**/*.flv"/>
+			</fileset>
+		</copy>
+		<mkdir dir="${webapps.build.dir}/test/WEB-INF/classes"/>
+		<mkdir dir="${webapps.build.dir}/test/WEB-INF/lib"/>
+		<javac sourcepath="" srcdir="${webapps.dir}/test/WEB-INF/src" destdir="${webapps.build.dir}/test/WEB-INF/classes"
 			 classpathref="webapps.classpath" optimize="${build.optimize}" verbose="${build.verbose}"
 			 fork="${build.fork}" nowarn="${build.nowarn}" deprecation="${build.deprecation}"
 			 debug="${debug.state}" compiler="${compiler}" source="${java.target_version}" target="${java.target_version}"/>
-		<javac sourcepath="" srcdir="${webapps.dir}/tutorial/WEB-INF/src" destdir="${webapps.dir}/tutorial/WEB-INF/classes"
+		<copy todir="${webapps.build.dir}/test" filtering="true">
+			<fileset dir="webapps/test">
+				<exclude name="**/src/**"/>
+			</fileset>
+		</copy>
+		<!-- no java source for this app -->
+		<copy todir="${webapps.build.dir}/SOSample" filtering="true">
+			<fileset dir="webapps/SOSample"/>
+		</copy>
+		<mkdir dir="${webapps.build.dir}/tutorial/WEB-INF/classes"/>
+		<mkdir dir="${webapps.build.dir}/tutorial/WEB-INF/lib"/>
+		<javac sourcepath="" srcdir="${webapps.dir}/tutorial/WEB-INF/src" destdir="${webapps.build.dir}/tutorial/WEB-INF/classes"
 			 classpathref="webapps.classpath" optimize="${build.optimize}" verbose="${build.verbose}"
 			 fork="${build.fork}" nowarn="${build.nowarn}" deprecation="${build.deprecation}"
 			 debug="${debug.state}" compiler="${compiler}" source="${java.target_version}" target="${java.target_version}"/>
+		<copy todir="${webapps.build.dir}/tutorial" filtering="true">
+			<fileset dir="webapps/tutorial">
+				<exclude name="**/src/**"/>
+			</fileset>
+		</copy>
 	</target>
-	
 	<!-- Scripting -->
 	<target name="compile_script" depends="prepare">
-        <available property="scripting_compatibility" classpathref="project.classpath" classname="javax.script.ScriptEngineManager"/>
-		<echo message="Scripting compatibility is available ${scripting_compatibility}" />			
-		
+		<available property="scripting_compatibility" classpathref="project.classpath" classname="javax.script.ScriptEngineManager"/>
+		<echo message="Scripting compatibility is available ${scripting_compatibility}"/>
 		<javac sourcepath="" srcdir="${src.dir}" destdir="${dest.dir}" classpathref="script.classpath"
 			 optimize="${build.optimize}" verbose="${build.verbose}" fork="${build.fork}" nowarn="${build.nowarn}"
 			 deprecation="${build.deprecation}" debug="${debug.state}" compiler="${compiler}"
 			 source="${java.target_version}" target="${java.target_version}" memoryMaximumSize="1024m"
 			 includes="org/red5/server/script/**" listfiles="false"/>
 	</target>
-	
 	<target name="compile_war" depends="-library.check, -java6.check, -junit.check, clean, prepare">
+		<!-- token replacement filers -->
+
+		<property name="filter.file" value="conf/war/build_war.properties"/>
 		<condition property="java.target_version" value="1.6">
 			<not>
 				<isset property="java.target_version"/>
@@ -245,39 +304,38 @@
 		<property name="compiler" value="${build.compiler}"/>
 		<echo message="Compiler adapter name: ${compiler}"/>
 		<mkdir dir="${classes.dir}/WEB-INF/classes"/>
-		
-		<property name="dest.dir" value="${classes.dir}/WEB-INF/classes"/>	
-		<property name="std_excludes" value="**/*.jsp,org/red5/server/script/**,org/red5/server/jetty/**,org/red5/server/tomcat/**,org/red5/server/midi/**,org/red5/server/net/rtmpt/*Loader.java,org/red5/server/net/servlet/RTMPTServlet.java,org/red5/server/net/servlet/StatisticsServlet.java,org/red5/server/net/servlet/ZAMFGatewayServlet.java,org/red5/server/ContextLoader.java,org/red5/server/DebugPooledByteBufferAllocator.java,org/red5/server/Standalone.java"/>	
+		<property name="dest.dir" value="${classes.dir}/WEB-INF/classes"/>
+		<property name="std_excludes" value="**/*.jsp,org/red5/server/script/**,org/red5/server/jetty/**,org/red5/server/tomcat/**,org/red5/server/midi/**,org/red5/server/net/rtmpt/*Loader.java,org/red5/server/net/servlet/RTMPTServlet.java,org/red5/server/net/servlet/StatisticsServlet.java,org/red5/server/net/servlet/ZAMFGatewayServlet.java,org/red5/server/ContextLoader.java,org/red5/server/DebugPooledByteBufferAllocator.java,org/red5/server/Standalone.java"/>
 		<antcall target="compile_core" inheritAll="true" inheritRefs="true"/>
 		<antcall target="compile_core_compatibility" inheritAll="true" inheritRefs="true"/>
-		<!-- libraries and classes needed for building the demos -->		
+		<!-- libraries and classes needed for building the demos -->
 		<path id="webapps.classpath">
 			<fileset dir="${lib.dir}">
 				<filename name="*.jar"/>
 			</fileset>
 			<pathelement location="${dest.dir}"/>
-		</path>		
+		</path>
 		<antcall target="compile_demos" inheritAll="true" inheritRefs="true"/>
 		<!-- only certain classes from selected demos are copied to the war -->
 		<copy todir="${classes.dir}/WEB-INF/classes">
-			<fileset dir="${webapps.dir}/admin/WEB-INF/classes"/>
-			<fileset dir="${webapps.dir}/echo/WEB-INF/classes"/>
-			<fileset dir="${webapps.dir}/fitcDemo/WEB-INF/classes"/>
-			<fileset dir="${webapps.dir}/oflaDemo/WEB-INF/classes"/>
-			<fileset dir="${webapps.dir}/tutorial/WEB-INF/classes"/>
+			<fileset dir="${webapps.build.dir}/admin/WEB-INF/classes"/>
+			<fileset dir="${webapps.build.dir}/echo/WEB-INF/classes"/>
+			<fileset dir="${webapps.build.dir}/fitcDemo/WEB-INF/classes"/>
+			<fileset dir="${webapps.build.dir}/oflaDemo/WEB-INF/classes"/>
+			<fileset dir="${webapps.build.dir}/tutorial/WEB-INF/classes"/>
 		</copy>
 		<!-- demo stream files -->
 		<copy todir="${classes.dir}/streams">
-			<fileset dir="${webapps.dir}/oflaDemo/streams"/>
+			<fileset dir="${webapps.build.dir}/oflaDemo/streams"/>
 		</copy>
 		<antcall target="compile_script" inheritAll="true" inheritRefs="true">
 			<param name="dest.dir" value="${classes.dir}/WEB-INF/classes"/>
 		</antcall>
-		<!-- remove directories we dont want in the war -->
-		<delete dir="${classes.dir}/testcases"/>
 	</target>
-	
 	<target name="compile_sar" depends="-library.check, -java6.check, -junit.check, clean, prepare">
+		<!-- token replacement filers -->
+
+		<property name="filter.file" value="conf/jboss/build_jboss.properties"/>
 		<condition property="java.target_version" value="1.6">
 			<not>
 				<isset property="java.target_version"/>
@@ -289,41 +347,123 @@
 		</condition>
 		<property name="compiler" value="${build.compiler}"/>
 		<echo message="Compiler adapter name: ${compiler}"/>
-		
 		<property name="sar.dir" value="${dist.dir}/red5.sar"/>
-		<mkdir dir="${sar.dir}" />			
-		
-		<property name="dest.dir" value="${sar.dir}"/>	
-		<property name="std_excludes" value="**/*.jsp,org/red5/server/script/**,org/red5/server/jetty/**,org/red5/server/tomcat/**,org/red5/server/midi/**,org/red5/server/net/rtmpt/*Loader.java,org/red5/server/net/servlet/RTMPTServlet.java,org/red5/server/net/servlet/StatisticsServlet.java,org/red5/server/net/servlet/ZAMFGatewayServlet.java,org/red5/server/ContextLoader.java,org/red5/server/DebugPooledByteBufferAllocator.java,org/red5/server/Standalone.java"/>	
+		<mkdir dir="${sar.dir}"/>
+		<property name="dest.dir" value="${sar.dir}"/>
+		<property name="std_excludes" value="**/*.jsp,org/red5/server/script/**,org/red5/server/jetty/**,org/red5/server/tomcat/**,org/red5/server/midi/**,org/red5/server/net/rtmpt/*Loader.java,org/red5/server/net/servlet/RTMPTServlet.java,org/red5/server/net/servlet/StatisticsServlet.java,org/red5/server/net/servlet/ZAMFGatewayServlet.java,org/red5/server/ContextLoader.java,org/red5/server/DebugPooledByteBufferAllocator.java,org/red5/server/Standalone.java"/>
 		<antcall target="compile_core" inheritAll="true" inheritRefs="true"/>
 		<antcall target="compile_core_compatibility" inheritAll="true" inheritRefs="true"/>
-		<!-- libraries and classes needed for building the demos -->		
+		<!-- libraries and classes needed for building the demos -->
 		<path id="webapps.classpath">
 			<fileset dir="${lib.dir}">
 				<filename name="*.jar"/>
 			</fileset>
 			<pathelement location="${dest.dir}"/>
-		</path>		
+		</path>
 		<antcall target="compile_demos" inheritAll="true" inheritRefs="true"/>
-		<!-- only certain classes from selected demos are copied to the war -->
-		<copy todir="${classes.dir}/WEB-INF/classes">
-			<fileset dir="${webapps.dir}/admin/WEB-INF/classes"/>
-			<fileset dir="${webapps.dir}/echo/WEB-INF/classes"/>
-			<fileset dir="${webapps.dir}/fitcDemo/WEB-INF/classes"/>
-			<fileset dir="${webapps.dir}/oflaDemo/WEB-INF/classes"/>
-			<fileset dir="${webapps.dir}/tutorial/WEB-INF/classes"/>
-		</copy>
-		<!-- demo stream files -->
-		<copy todir="${classes.dir}/streams">
-			<fileset dir="${webapps.dir}/oflaDemo/streams"/>
-		</copy>
-		<antcall target="compile_script" inheritAll="true" inheritRefs="true">
-			<param name="dest.dir" value="${classes.dir}/WEB-INF/classes"/>
-		</antcall>
-		<!-- remove directories we dont want in the war -->
-		<delete dir="${classes.dir}/testcases"/>
-	</target>	
-	
+		<antcall target="compile_script" inheritAll="true" inheritRefs="true"/>
+	</target>
+	<target name="war_demos" description="Build wars for demo apps" depends="compile_demos">
+		<tstamp prefix="build">
+			<format property="TODAY" pattern="d-MMMM-yyyy" locale="en"/>
+		</tstamp>
+		<!-- war up root -->
+		<war destfile="${dist.dir}/ROOT.war" webxml="${webapps.build.dir}/root/WEB-INF/web.xml">
+			<fileset dir="${webapps.build.dir}/root"/>
+			<manifest>
+				<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>
+				<attribute name="Built-On" value="${build.TODAY}"/>
+			</manifest>
+		</war>
+		<!-- war up oflaDemo -->
+		<war destfile="${dist.dir}/oflaDemo.war" webxml="${webapps.build.dir}/oflaDemo/WEB-INF/web.xml">
+			<fileset dir="${webapps.build.dir}/oflaDemo">
+				<exclude name="WEB-INF"/>
+				<exclude name="**/src/**"/>
+			</fileset>
+			<manifest>
+				<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>
+				<attribute name="Built-On" value="${build.TODAY}"/>
+			</manifest>
+		</war>
+		<!-- war up admin -->
+		<war destfile="${dist.dir}/admin.war" webxml="${webapps.build.dir}/admin/WEB-INF/web.xml">
+			<fileset dir="${webapps.build.dir}/admin">
+				<exclude name="WEB-INF"/>
+				<exclude name="**/src/**"/>
+			</fileset>
+			<manifest>
+				<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>
+				<attribute name="Built-On" value="${build.TODAY}"/>
+			</manifest>
+		</war>
+		<!-- war up echo -->
+		<war destfile="${dist.dir}/echo.war" webxml="${webapps.build.dir}/echo/WEB-INF/web.xml">
+			<fileset dir="${webapps.build.dir}/echo">
+				<exclude name="WEB-INF"/>
+				<exclude name="**/src/**"/>
+			</fileset>
+			<manifest>
+				<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>
+				<attribute name="Built-On" value="${build.TODAY}"/>
+			</manifest>
+		</war>
+		<!-- SOSample -->
+		<war destfile="${dist.dir}/SOSample.war" webxml="${webapps.build.dir}/SOSample/WEB-INF/web.xml">
+			<fileset dir="${webapps.build.dir}/SOSample">
+				<exclude name="WEB-INF"/>
+				<exclude name="**/src/**"/>
+			</fileset>
+			<manifest>
+				<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>
+				<attribute name="Built-On" value="${build.TODAY}"/>
+			</manifest>
+		</war>
+		<!-- fitcDemo -->
+		<war destfile="${dist.dir}/fitcDemo.war" webxml="${webapps.build.dir}/fitcDemo/WEB-INF/web.xml">
+			<fileset dir="${webapps.build.dir}/fitcDemo">
+				<exclude name="WEB-INF"/>
+				<exclude name="**/src/**"/>
+			</fileset>
+			<manifest>
+				<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>
+				<attribute name="Built-On" value="${build.TODAY}"/>
+			</manifest>
+		</war>
+		<!-- tutorial -->
+		<war destfile="${dist.dir}/tutorial.war" webxml="${webapps.build.dir}/tutorial/WEB-INF/web.xml">
+			<fileset dir="${webapps.build.dir}/tutorial">
+				<exclude name="WEB-INF"/>
+				<exclude name="**/src/**"/>
+			</fileset>
+			<manifest>
+				<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>
+				<attribute name="Built-On" value="${build.TODAY}"/>
+			</manifest>
+		</war>
+		<!-- test -->
+		<war destfile="${dist.dir}/test.war" webxml="${webapps.build.dir}/test/WEB-INF/web.xml">
+			<fileset dir="${webapps.build.dir}/test">
+				<exclude name="WEB-INF"/>
+				<exclude name="**/src/**"/>
+			</fileset>
+			<manifest>
+				<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>
+				<attribute name="Built-On" value="${build.TODAY}"/>
+			</manifest>
+		</war>
+		<!-- messageRecorder -->
+		<war destfile="${dist.dir}/messageRecorder.war" webxml="${webapps.build.dir}/messageRecorder/WEB-INF/web.xml">
+			<fileset dir="${webapps.build.dir}/messageRecorder">
+				<exclude name="WEB-INF"/>
+				<exclude name="**/src/**"/>
+			</fileset>
+			<manifest>
+				<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>
+				<attribute name="Built-On" value="${build.TODAY}"/>
+			</manifest>
+		</war>
+	</target>
 	<target name="javadoc" description="Generate JavaDoc" if="java6.installed">
 		<echo message="Path: ${env.Path}"/>
 		<!-- Determine the location of Suns api docs -->
@@ -359,7 +499,6 @@
 			<link href="http://www.opensymphony.com/quartz/api"/>
 		</javadoc>
 	</target>
-	
 	<!--
     yDoc - Javadoc UML Extension
     This will enable you to generate and automatically integrate clear and concise UML diagrams into your Java API documentation.
@@ -416,17 +555,19 @@
 			<link href="http://www.opensymphony.com/quartz/api"/>
 		</javadoc>
 	</target>
-	
 	<target name="jar" description="Make Archive" depends="compile">
 		<tstamp prefix="build">
 			<format property="TODAY" pattern="d-MMMM-yyyy" locale="en"/>
 		</tstamp>
 		<mkdir dir="${classes.dir}/conf"/>
 		<copy todir="${classes.dir}/conf">
-			<fileset dir="${config.dir}"/>
+			<fileset dir="${config.dir}">
+				<exclude name="**/war/**"/>
+				<exclude name="**/jboss/**"/>
+			</fileset>
 		</copy>
-	    <manifestclasspath property="jar.classpath" jarfile="red5.jar">
-			<classpath refid="project.classpath" />
+		<manifestclasspath property="jar.classpath" jarfile="red5.jar">
+			<classpath refid="project.classpath"/>
 		</manifestclasspath>
 		<jar destfile="red5.jar">
 			<fileset dir="${classes.dir}">
@@ -443,48 +584,47 @@
 				<include name="**"/>
 			</metainf>
 		</jar>
-		<jar destfile="${webapps.dir}/admin/WEB-INF/lib/admin.jar">
-			<fileset dir="${webapps.dir}/admin/WEB-INF/classes">
+		<jar destfile="${webapps.build.dir}/admin/WEB-INF/lib/admin.jar">
+			<fileset dir="${webapps.build.dir}/admin/WEB-INF/classes">
 				<include name="**"/>
 			</fileset>
 		</jar>
-		<jar destfile="${webapps.dir}/echo/WEB-INF/lib/echo.jar">
-			<fileset dir="${webapps.dir}/echo/WEB-INF/classes">
+		<jar destfile="${webapps.build.dir}/echo/WEB-INF/lib/echo.jar">
+			<fileset dir="${webapps.build.dir}/echo/WEB-INF/classes">
 				<include name="**"/>
 			</fileset>
 		</jar>
-		<jar destfile="${webapps.dir}/fitcDemo/WEB-INF/lib/fitcDemo.jar">
-			<fileset dir="${webapps.dir}/fitcDemo/WEB-INF/classes">
+		<jar destfile="${webapps.build.dir}/fitcDemo/WEB-INF/lib/fitcDemo.jar">
+			<fileset dir="${webapps.build.dir}/fitcDemo/WEB-INF/classes">
 				<include name="**"/>
 			</fileset>
 		</jar>
-		<jar destfile="${webapps.dir}/midiDemo/WEB-INF/lib/midiDemo.jar">
-			<fileset dir="${webapps.dir}/midiDemo/WEB-INF/classes">
+		<jar destfile="${webapps.build.dir}/midiDemo/WEB-INF/lib/midiDemo.jar">
+			<fileset dir="${webapps.build.dir}/midiDemo/WEB-INF/classes">
 				<include name="**"/>
 			</fileset>
 		</jar>
 		<!-- copy scripts -->
-		<mkdir dir="webapps/oflaDemo/WEB-INF/classes/applications"/>
-		<copy todir="webapps/oflaDemo/WEB-INF/classes/applications">
+		<mkdir dir="${webapps.build.dir}/oflaDemo/WEB-INF/classes/applications"/>
+		<copy todir="${webapps.build.dir}/oflaDemo/WEB-INF/classes/applications">
 			<fileset dir="webapps/oflaDemo/WEB-INF/src/applications"/>
 		</copy>
-		<jar destfile="webapps/oflaDemo/WEB-INF/lib/oflaDemo.jar">
-			<fileset dir="webapps/oflaDemo/WEB-INF/classes">
+		<jar destfile="${webapps.build.dir}/oflaDemo/WEB-INF/lib/oflaDemo.jar">
+			<fileset dir="${webapps.build.dir}/oflaDemo/WEB-INF/classes">
 				<include name="**"/>
 			</fileset>
 		</jar>
-		<jar destfile="${webapps.dir}/test/WEB-INF/lib/test.jar">
-			<fileset dir="${webapps.dir}/test/WEB-INF/classes">
+		<jar destfile="${webapps.build.dir}/test/WEB-INF/lib/test.jar">
+			<fileset dir="${webapps.build.dir}/test/WEB-INF/classes">
 				<include name="**"/>
 			</fileset>
 		</jar>
-		<jar destfile="${webapps.dir}/tutorial/WEB-INF/lib/tutorial.jar">
-			<fileset dir="${webapps.dir}/tutorial/WEB-INF/classes">
+		<jar destfile="${webapps.build.dir}/tutorial/WEB-INF/lib/tutorial.jar">
+			<fileset dir="${webapps.build.dir}/tutorial/WEB-INF/classes">
 				<include name="**"/>
 			</fileset>
 		</jar>
 	</target>
-	
 	<target name="dist" description="Make Binary Distribution" depends="clean, jar, javadoc">
 		<copy todir="${dist.dir}/doc">
 			<fileset dir="doc"/>
@@ -493,15 +633,21 @@
 			<fileset dir="lib"/>
 		</copy>
 		<copy todir="${dist.dir}/conf">
-			<fileset dir="conf"/>
+			<fileset dir="${config.dir}">
+				<exclude name="**/war/**"/>
+				<exclude name="**/jboss/**"/>
+			</fileset>
 		</copy>
-		<copy todir="${dist.dir}/webapps">
+		<copy todir="${dist.dir}/webapps" file="webapps\red5-default.xml"/>
+		<!--
+		<copy todir="${webapps.build.dir}">
 			<fileset dir="webapps">
 				<include name="**"/>
 				<exclude name="**/classes/**"/>
 				<exclude name="**/src/**"/>
 			</fileset>
 		</copy>
+		-->
 		<copy todir="${dist.dir}">
 			<fileset dir="./">
 				<include name="red5.jar"/>
@@ -511,7 +657,6 @@
 			</fileset>
 		</copy>
 	</target>
-	
 	<target name="installerdist" description="Make Installer Distribution" depends="dist">
 		<copy todir="${dist.dir}">
 			<fileset dir="./">
@@ -528,22 +673,30 @@
 		<copy todir="${dist.dir}/swf">
 			<fileset dir="swf"/>
 		</copy>
-		<copy todir="${dist.dir}/webapps">
+		<copy todir="${webapps.build.dir}">
 			<fileset dir="webapps">
 				<include name="**/src/**"/>
 			</fileset>
 		</copy>
 	</target>
-	
 	<target name="server" depends="compile">
+		<mkdir dir="${dist.dir}/conf"/>
+		<copy todir="${dist.dir}/conf">
+			<fileset dir="${config.dir}">
+				<exclude name="**/war/**"/>
+				<exclude name="**/jboss/**"/>
+			</fileset>
+		</copy>
+		<copy todir="${dist.dir}/webapps" file="webapps\red5-default.xml"/>
 		<java classname="org.red5.server.Standalone" fork="true">
 			<classpath>
-				<pathelement location="${config.dir}"/>
+				<pathelement location="${dist.dir}/conf"/>
 				<pathelement location="${classes.dir}"/>
 				<path refid="full.classpath"/>
 			</classpath>
 			<jvmarg value="-Djava.security.manager"/>
-			<jvmarg value="-Djava.security.policy=${config.dir}/red5.policy"/>
+			<jvmarg value="-Djava.security.policy=${dist.dir}/conf/red5.policy"/>
+			<jvmarg value="-Dred5.root=${dist.dir}"/>
 			<!-- enable the following 2 lines if your using jmx with ssl -->
 			<!--
 			<jvmarg value="-Djavax.net.ssl.keyStore=${config.dir}/keystore.jmx"/>
@@ -551,7 +704,6 @@
 			-->
 		</java>
 	</target>
-	
 	<target name="shutdown">
 		<java classname="org.red5.server.Shutdown" fork="true">
 			<classpath>
@@ -571,7 +723,6 @@
 			<arg value="changeme"/>
 		</java>
 	</target>
-	
 	<!-- Experimental UDP Server -->
 	<target name="udp_java5" depends="compile" unless="java6.installed">
 		<java classname="org.red5.server.net.udp.Standalone" fork="true">
@@ -584,7 +735,6 @@
 			<jvmarg value="-Djava.security.policy=${config.dir}/red5.policy"/>
 		</java>
 	</target>
-	
 	<target name="udp_java6" depends="compile" if="java6.installed">
 		<java classname="org.red5.server.net.udp.Standalone" fork="true">
 			<classpath>
@@ -596,12 +746,10 @@
 			<jvmarg value="-Djava.security.policy=${config.dir}/red5.policy"/>
 		</java>
 	</target>
-	
 	<target name="udp">
 		<antcall target="udp_java5" inheritAll="true" inheritRefs="true"/>
 		<antcall target="udp_java6" inheritAll="true" inheritRefs="true"/>
 	</target>
-	
 	<target name="run-tests" if="junit.installed" depends="compiletests" description="Run JUnit tests and generate HTML reports">
 		<junit fork="true" haltonfailure="no" printsummary="no" showoutput="no" dir="${testreports.dir}">
 			<classpath>
@@ -624,11 +772,10 @@
 			<report format="frames" todir="${testdoc.dir}"/>
 		</junitreport>
 	</target>
-	
 	<target name="compiletests" depends="jar" if="junit.installed" description="Compiles junit test classes">
-	    <antcall target="retrieve" inheritAll="true" inheritRefs="true">
-	        <param name="ivy.conf.name" value="test" />
-	    </antcall>
+		<antcall target="retrieve" inheritAll="true" inheritRefs="true">
+			<param name="ivy.conf.name" value="test"/>
+		</antcall>
 		<javac srcdir="${test.dir}" destdir="${testclass.dir}">
 			<classpath>
 				<path refid="full.classpath"/>
@@ -636,8 +783,10 @@
 			<include name="**/*.java"/>
 		</javac>
 	</target>
-	
-	<target name="webwar" description="Make Web Archive" depends="compile_war">
+	<target name="webwar" description="Make Web Archive" depends="compile_war, war_demos">
+		<!-- token replacement filers -->
+
+		<filter filtersfile="conf/war/build_war.properties"/>
 		<tstamp prefix="build">
 			<format property="TODAY" pattern="d-MMMM-yyyy" locale="en"/>
 		</tstamp>
@@ -701,19 +850,18 @@
 				<attribute name="Built-On" value="${build.TODAY}"/>
 			</manifest>
 		</war>
+		<!-- remove directories we dont want -->
+		<delete dir="${classes.dir}/testcases"/>
+		<!-- delete dir="${dist.dir}/webapps"/ -->
 	</target>
-	
 	<target name="jbosssar" description="Make JBoss SAR" depends="compile_sar">
-		<tstamp prefix="build">
-			<format property="TODAY" pattern="d-MMMM-yyyy" locale="en"/>
-		</tstamp>	
-		<mkdir dir="${sar.dir}/conf" />		
-		<mkdir dir="${sar.dir}/META-INF" />		
+		<mkdir dir="${sar.dir}/conf"/>
+		<mkdir dir="${sar.dir}/META-INF"/>
 		<copy todir="${sar.dir}/META-INF">
-	    	<fileset dir="${src.dir}/META-INF">
-	    		<include name="jboss-service.xml"/>
-    		</fileset>
-	  	</copy> 
+			<fileset dir="${src.dir}/META-INF">
+				<include name="jboss-service.xml"/>
+			</fileset>
+		</copy>
 		<copy todir="${sar.dir}">
 			<fileset dir=".">
 				<include name="license.txt"/>
@@ -723,20 +871,19 @@
 		<copy todir="${sar.dir}/conf">
 			<fileset dir="conf/jboss">
 				<include name="*.xml"/>
-				<include name="*.properties"/>
+				<include name="red5.properties"/>
 			</fileset>
 		</copy>
 		<!-- copy the jmx support files into the classpath -->
 		<copy todir="${sar.dir}/conf">
 			<fileset dir="conf">
 				<include name="*.jmx"/>
-				<include name="red5.properties"/>
 				<include name="access.properties"/>
-				<include name="password.properties"/>				
+				<include name="password.properties"/>
 			</fileset>
 		</copy>
 		<!-- copy ness. libs -->
-		<copy todir="${sar.dir}">		
+		<copy todir="${sar.dir}">
 			<fileset dir="${lib.dir}">
 				<exclude name="*.properties"/>
 				<exclude name="jsp*.jar"/>
@@ -753,33 +900,58 @@
 				<exclude name="grobo*.jar"/>
 				<exclude name="junit*.jar"/>
 				<exclude name="ivy*.jar"/>
+				<!-- already in jboss -->
+				<exclude name="log4j*.jar"/>
+				<exclude name="quartz*.jar"/>
+				<!-- beanshell causes issues in jboss -->
+				<exclude name="bsh*.jar"/>
 			</fileset>
-		</copy>		
-		<!-- war up root -->
-		<war destfile="${sar.dir}/ROOT.war" webxml="webapps/root/WEB-INF/web.xml">
-			<fileset dir="webapps/root"/>
-			<manifest>
-				<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>
-				<attribute name="Built-On" value="${build.TODAY}"/>
-			</manifest>
-		</war>		
-		<!-- war up oflaDemo -->
-		<war destfile="${sar.dir}/oflaDemo.war" webxml="webapps/oflaDemo/WEB-INF/web.xml">
-			<fileset dir="webapps/oflaDemo">
-				<include name="**/*.*"/>
-				<include name="**/*.flv"/>
-				<exclude name="WEB-INF"/>				
-				<exclude name="src"/>				
+		</copy>
+		<!-- add the spring configs to the wars -->
+		<copy todir="${webapps.build.dir}/root/WEB-INF/">
+			<fileset dir="conf/jboss">
+				<include name="applicationContext.xml"/>
+				<include name="red5-common.xml"/>
+				<include name="red5-core.xml"/>
 			</fileset>
-			<manifest>
-				<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>
-				<attribute name="Built-On" value="${build.TODAY}"/>
-			</manifest>
-		</war>		
-	</target>	
-	
+		</copy>
+		<copy todir="${webapps.build.dir}/admin/WEB-INF/">
+			<fileset dir="conf/jboss">
+				<include name="applicationContext.xml"/>
+				<include name="red5-common.xml"/>
+				<include name="red5-core.xml"/>
+			</fileset>
+		</copy>
+		<copy todir="${webapps.build.dir}/oflaDemo/WEB-INF/">
+			<fileset dir="conf/jboss">
+				<include name="applicationContext.xml"/>
+				<include name="red5-common.xml"/>
+				<include name="red5-core.xml"/>
+			</fileset>
+		</copy>
+		<copy todir="${webapps.build.dir}/SOSample/WEB-INF/">
+			<fileset dir="conf/jboss">
+				<include name="applicationContext.xml"/>
+				<include name="red5-common.xml"/>
+				<include name="red5-core.xml"/>
+			</fileset>
+		</copy>
+		<copy todir="${webapps.build.dir}/echo/WEB-INF/">
+			<fileset dir="conf/jboss">
+				<include name="applicationContext.xml"/>
+				<include name="red5-common.xml"/>
+				<include name="red5-core.xml"/>
+			</fileset>
+		</copy>
+		<!-- war-up the demos -->
+		<antcall target="war_demos" inheritAll="true" inheritRefs="true"/>
+		<!-- move root war to sar -->
+		<move file="${dist.dir}/ROOT.war" todir="${sar.dir}"/>
+		<!-- remove directories we dont want -->
+		<delete dir="${classes.dir}/testcases"/>
+		<delete dir="${dist.dir}/webapps"/>
+	</target>
 	<target name="all" depends="clean, prepare, compile, jar, javadoc"/>
-	
 	<target name="usage">
 		<echo message="Type ant -p for available targets"/>
 	</target>

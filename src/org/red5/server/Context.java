@@ -37,8 +37,10 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.access.ContextSingletonBeanFactoryLocator;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.web.context.ConfigurableWebApplicationContext;
+import org.springframework.web.context.support.XmlWebApplicationContext;
 
 /**
  * {@inheritDoc}
@@ -167,9 +169,22 @@ public class Context implements IContext, ApplicationContextAware, ContextMBean 
      */
 	public void setApplicationContext(ApplicationContext context) {
 		this.applicationContext = context;
-		if (context instanceof ConfigurableWebApplicationContext) {
-			//	used by the WAR version
-			coreContext = ((ConfigurableWebApplicationContext) applicationContext).getBeanFactory();
+		System.out.println("--------------------------------------------------------------------\nApplication context: " + context.getClass().getName());
+		String deploymentType = System.getProperty("red5.deployment.type");
+		System.out.println("Deployment type: " + deploymentType);
+		if (deploymentType != null) {
+		//if (context instanceof ConfigurableWebApplicationContext) {
+		    if ("war".equals(deploymentType)) {
+			    //	used by the WAR version
+			    coreContext = ((ConfigurableWebApplicationContext) applicationContext).getBeanFactory();
+			} else if ("jboss".equals(deploymentType)) {
+                if (context instanceof XmlWebApplicationContext) {
+                    //ROOT.war registers this
+			        coreContext = ((XmlWebApplicationContext) applicationContext).getBeanFactory();
+			    } else {
+			        coreContext = ((ClassPathXmlApplicationContext) applicationContext).getBeanFactory();
+			    }
+			}
 		} else {
 			//	standalone core context
 			coreContext = ContextSingletonBeanFactoryLocator.getInstance("red5.xml").useBeanFactory("red5.core").getFactory();			

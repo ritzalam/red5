@@ -119,6 +119,8 @@ public class MainServlet extends HttpServlet implements ServletContextListener {
 	 */
 	//Notification that the web application is ready to process requests
 	public void contextInitialized(ServletContextEvent sce) {
+        System.setProperty("red5.deployment.type", "war");	
+	
 		if (null != servletContext) {
 			return;
 		}

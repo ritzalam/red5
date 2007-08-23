@@ -25,8 +25,10 @@ import java.rmi.ConnectException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Set;
 
+import javax.management.InstanceAlreadyExistsException;
 import javax.management.MBeanServer;
 import javax.management.Notification;
 import javax.management.NotificationListener;
@@ -62,7 +64,7 @@ public class JMXAgent implements NotificationListener {
 	private static boolean startRegistry;
 
 	private static boolean enableSsl;
-	
+
 	private static boolean enableMinaMonitor;
 
 	private static HtmlAdaptorServer html;
@@ -102,6 +104,8 @@ public class JMXAgent implements NotificationListener {
 					new ObjectName(JMXFactory.getDefaultDomain() + ":type="
 							+ cName));
 			status = true;
+		} catch (InstanceAlreadyExistsException iaee) {
+			log.debug("Already registered: " + className);
 		} catch (Exception e) {
 			log.error("Could not register the " + className + " MBean", e);
 		}
@@ -122,6 +126,8 @@ public class JMXAgent implements NotificationListener {
 					.registerMBean(new StandardMBean(instance, interfaceClass),
 							name);
 			status = true;
+		} catch (InstanceAlreadyExistsException iaee) {
+			log.debug("Already registered: " + className);
 		} catch (Exception e) {
 			log.error("Could not register the " + className + " MBean", e);
 		}
@@ -142,6 +148,8 @@ public class JMXAgent implements NotificationListener {
 					new ObjectName(JMXFactory.getDefaultDomain() + ":type="
 							+ cName + ",name=" + name));
 			status = true;
+		} catch (InstanceAlreadyExistsException iaee) {
+			log.debug("Already registered: " + className);
 		} catch (Exception e) {
 			log.error("Could not register the " + className + " MBean", e);
 		}
@@ -451,6 +459,6 @@ public class JMXAgent implements NotificationListener {
 
 	public static boolean isEnableMinaMonitor() {
 		return enableMinaMonitor;
-	}	
-	
+	}
+
 }
