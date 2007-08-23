@@ -49,7 +49,7 @@
 		<property name="globalScope" ref="global.scope" />
 	</bean>
 
-	<!-- DEFAULT LOCAL CONTEXT -->
+	<!-- DEFAULT LOCAL CONTEXT 
 
 	<bean id="web.context" class="org.red5.server.Context"
 		autowire="byType" />
@@ -64,5 +64,5 @@
 		<property name="virtualHosts"
 			value="*,localhost, localhost:5080, 127.0.0.1:5080" />
 	</bean>
-
+-->
 </beans>

@@ -11,7 +11,7 @@
 	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 -->
-	<display-name>Red5 War</display-name>
+	<display-name>Red5 @display.name@ War</display-name>
 
 	<context-param>
 		<param-name>globalScope</param-name>
@@ -24,8 +24,13 @@
 	</context-param>
 
 	<context-param>
+		<param-name>webAppRootKey</param-name>
+		<param-value>@webapp.root.key@</param-value>
+	</context-param>
+
+	<context-param>
 		<param-name>contextConfigLocation</param-name>
-		<param-value>/WEB-INF/applicationContext.xml, /WEB-INF/red5-*.xml</param-value>
+		<param-value>/WEB-INF/applicationContext.xml /WEB-INF/red5-*.xml</param-value>
 	</context-param>
 
 	<context-param>
@@ -34,9 +39,7 @@
 	</context-param>
 
 	<listener>
-		<listener-class>
-			org.springframework.web.util.Log4jConfigListener
-		</listener-class>
+		<listener-class>org.springframework.web.util.Log4jConfigListener</listener-class>
 	</listener>
 
 	<listener>
@@ -50,17 +53,13 @@
 
 	<servlet>
 		<servlet-name>gateway</servlet-name>
-		<servlet-class>
-			org.red5.server.net.servlet.AMFGatewayServlet
-		</servlet-class>
+		<servlet-class>org.red5.server.net.servlet.AMFGatewayServlet</servlet-class>
 		<load-on-startup>1</load-on-startup>
 	</servlet>
 
 	<servlet>
 		<servlet-name>rtmpt</servlet-name>
-		<servlet-class>
-			org.red5.server.net.rtmpt.RTMPTServlet
-		</servlet-class>
+		<servlet-class>org.red5.server.net.rtmpt.RTMPTServlet</servlet-class>
 		<load-on-startup>2</load-on-startup>
 	</servlet>
 

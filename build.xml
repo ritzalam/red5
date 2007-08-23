@@ -729,17 +729,25 @@
 		<delete dir="${classes.dir}/testcases"/>		
 		
 		<!-- add the configs to the root war -->
+		<filter token="display.name" value=""/>
+		<filter token="webapp.root.key" value="/"/>
 		<filter token="context.path" value="/"/>
+		<copy todir="${webapps.build.dir}/root/META-INF" overwrite="true" filtering="true">
+			<fileset dir="${config.dir}/war">
+				<include name="context.xml"/>
+			</fileset>
+		</copy>		
 		<copy todir="${webapps.build.dir}/root/WEB-INF" overwrite="true" filtering="true">
 			<fileset dir="${config.dir}">
-				<include name="red5.properties"/>
 				<include name="log4j.properties"/>
 			</fileset>				
 			<fileset dir="${config.dir}/war">
+				<include name="web.xml"/>
 				<include name="applicationContext.xml"/>
 				<include name="red5-common.xml"/>
 				<include name="red5-core.xml"/>
 				<include name="red5-web.properties"/>
+				<include name="red5.properties"/>
 			</fileset>
 		</copy>		
 		<!-- copy the jmx support files into the webapp classpath -->
@@ -778,21 +786,149 @@
 				<attribute name="Built-On" value="${build.TODAY}"/>
 			</manifest>
 		</war>
-		
-		<!-- add the configs to the ofla war -->
-		<filter token="context.path" value="/oflaDemo"/>
-		<copy todir="${webapps.build.dir}/oflaDemo/WEB-INF" overwrite="true" filtering="true">
+
+		<!-- add the configs to the admin war -->
+		<filter token="display.name" value="admin"/>
+		<filter token="webapp.root.key" value="/admin"/>
+		<filter token="context.path" value="/admin"/>
+		<copy todir="${webapps.build.dir}/admin/WEB-INF" overwrite="true" filtering="true">
 			<fileset dir="${config.dir}">
-				<include name="red5.properties"/>
 				<include name="log4j.properties"/>
 			</fileset>				
 			<fileset dir="${config.dir}/war">
+				<include name="web.xml"/>
 				<include name="applicationContext.xml"/>
 				<include name="red5-common.xml"/>
 				<include name="red5-core.xml"/>
 				<include name="red5-web.properties"/>				
+				<include name="red5.properties"/>
 			</fileset>
 		</copy>		
+		<!-- copy the jmx support files into the webapp classpath -->
+		<copy todir="${webapps.build.dir}/admin/WEB-INF/classes">
+			<fileset dir="${config.dir}">
+				<include name="*.jmx"/>
+				<include name="access.properties"/>
+				<include name="password.properties"/>
+			</fileset>
+		</copy>			
+		<!-- war up admin -->
+		<war destfile="${dist.dir}/admin.war" webxml="${webapps.build.dir}/admin/WEB-INF/web.xml">
+			<fileset dir="${webapps.build.dir}/admin">
+				<exclude name="**/src/**"/>
+			</fileset>
+			<fileset dir="${classes.dir}">
+				<exclude name="**/demos/**"/>
+			</fileset>
+			<lib dir="${lib.dir}">
+				<exclude name="*.properties"/>
+				<exclude name="jsp*.jar"/>
+				<exclude name="servlet*.jar"/>
+				<exclude name="catalina*.jar"/>
+				<exclude name="tomcat*.jar"/>
+				<exclude name="annotations-api*.jar"/>
+				<exclude name="el-api*.jar"/>
+				<exclude name="jetty*.jar"/>
+				<exclude name="jasper*.jar"/>
+				<exclude name="ehcache*.jar"/>
+				<exclude name="whirly*.jar"/>
+				<exclude name="Grobo*.jar"/>
+				<exclude name="grobo*.jar"/>
+				<exclude name="junit*.jar"/>
+				<exclude name="ivy*.jar"/>
+			</lib>			
+			<manifest>
+				<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>
+				<attribute name="Built-On" value="${build.TODAY}"/>
+			</manifest>
+		</war>			
+		
+		<!-- add the configs to the echo war -->
+		<filter token="display.name" value="echo"/>
+		<filter token="webapp.root.key" value="/echo"/>
+		<filter token="context.path" value="/echo"/>
+		<copy todir="${webapps.build.dir}/echo/WEB-INF" overwrite="true" filtering="true">
+			<fileset dir="${config.dir}">
+				<include name="log4j.properties"/>
+			</fileset>				
+			<fileset dir="${config.dir}/war">
+				<include name="web.xml"/>
+				<include name="applicationContext.xml"/>
+				<include name="red5-common.xml"/>
+				<include name="red5-core.xml"/>
+				<include name="red5-web.properties"/>				
+				<include name="red5.properties"/>
+			</fileset>
+		</copy>		
+		<!-- copy the jmx support files into the webapp classpath -->
+		<copy todir="${webapps.build.dir}/echo/WEB-INF/classes">
+			<fileset dir="${config.dir}">
+				<include name="*.jmx"/>
+				<include name="access.properties"/>
+				<include name="password.properties"/>
+			</fileset>
+		</copy>	
+		<!-- war up echo -->
+		<war destfile="${dist.dir}/echo.war" webxml="${webapps.build.dir}/echo/WEB-INF/web.xml">
+			<fileset dir="${webapps.build.dir}/echo">
+				<exclude name="**/src/**"/>
+			</fileset>
+			<fileset dir="${classes.dir}">
+				<exclude name="**/demos/**"/>
+			</fileset>
+			<lib dir="${lib.dir}">
+				<exclude name="*.properties"/>
+				<exclude name="jsp*.jar"/>
+				<exclude name="servlet*.jar"/>
+				<exclude name="catalina*.jar"/>
+				<exclude name="tomcat*.jar"/>
+				<exclude name="annotations-api*.jar"/>
+				<exclude name="el-api*.jar"/>
+				<exclude name="jetty*.jar"/>
+				<exclude name="jasper*.jar"/>
+				<exclude name="ehcache*.jar"/>
+				<exclude name="whirly*.jar"/>
+				<exclude name="Grobo*.jar"/>
+				<exclude name="grobo*.jar"/>
+				<exclude name="junit*.jar"/>
+				<exclude name="ivy*.jar"/>
+			</lib>			
+			<manifest>
+				<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>
+				<attribute name="Built-On" value="${build.TODAY}"/>
+			</manifest>
+		</war>				
+		
+		<!-- add the configs to the ofla war -->
+		<filter token="display.name" value="oflaDemo"/>
+		<filter token="webapp.root.key" value="/oflaDemo"/>
+		<filter token="context.path" value="/oflaDemo"/>
+		<copy todir="${webapps.build.dir}/oflaDemo/META-INF" overwrite="true" filtering="true">
+			<fileset dir="${config.dir}/war">
+				<include name="context.xml"/>
+			</fileset>
+		</copy>			
+		<copy todir="${webapps.build.dir}/oflaDemo/WEB-INF" overwrite="true" filtering="true">
+			<fileset dir="${config.dir}">
+				<include name="log4j.properties"/>
+			</fileset>				
+			<fileset dir="${config.dir}/war">
+				<include name="web.xml"/>
+				<include name="applicationContext.xml"/>
+				<include name="red5-common.xml"/>
+				<include name="red5-core.xml"/>
+				<include name="red5-web.properties"/>				
+				<include name="red5.properties"/>
+			</fileset>
+		</copy>		
+		<!-- copy the jmx support files into the webapp classpath -->
+		<copy todir="${webapps.build.dir}/oflaDemo/WEB-INF/classes">
+			<fileset dir="${config.dir}">
+				<include name="*.jmx"/>
+				<include name="access.properties"/>
+				<include name="password.properties"/>
+			</fileset>
+		</copy>	
 		<!-- war up oflaDemo -->
 		<war destfile="${dist.dir}/oflaDemo.war" webxml="${webapps.build.dir}/oflaDemo/WEB-INF/web.xml">
 			<fileset dir="${webapps.build.dir}/oflaDemo">
