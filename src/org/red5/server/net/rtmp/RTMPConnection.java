@@ -73,9 +73,10 @@ import org.red5.server.stream.VideoCodecFactory;
 import org.springframework.context.ApplicationContext;
 
 /**
- * RTMP connection. Stores information about client streams, data transfer channels,
- * pending RPC calls, bandwidth configuration, used encoding (AMF0/AMF3), connection state (is alive, last
- * ping time and ping result) and session.
+ * RTMP connection. Stores information about client streams, data transfer
+ * channels, pending RPC calls, bandwidth configuration, used encoding
+ * (AMF0/AMF3), connection state (is alive, last ping time and ping result) and
+ * session.
  */
 public abstract class RTMPConnection extends BaseConnection implements
 		IStreamCapableConnection, IServiceCapableConnection {
@@ -94,14 +95,14 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	/**
 	 * Connection channels
-	 *
+	 * 
 	 * @see org.red5.server.net.rtmp.Channel
 	 */
 	private Map<Integer, Channel> channels = new ConcurrentHashMap<Integer, Channel>();
 
 	/**
 	 * Client streams
-	 *
+	 * 
 	 * @see org.red5.server.api.stream.IClientStream
 	 */
 	private Map<Integer, IClientStream> streams = new ConcurrentHashMap<Integer, IClientStream>();
@@ -120,7 +121,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	/**
 	 * Deferred results set
-	 *
+	 * 
 	 * @see org.red5.server.net.rtmp.DeferredResult
 	 */
 	protected HashSet<DeferredResult> deferredResults = new HashSet<DeferredResult>();
@@ -214,20 +215,22 @@ public abstract class RTMPConnection extends BaseConnection implements
 	 * Service that is waiting for handshake.
 	 */
 	private ISchedulingService waitForHandshakeService;
-	
+
 	/**
 	 * Name of job that is waiting for a valid handshake.
 	 */
 	private String waitForHandshakeJob;
-	
+
 	/**
 	 * Max. time in milliseconds to wait for a valid handshake.
 	 */
 	private int maxHandshakeTimeout = 5000;
-	
+
 	/**
 	 * Creates anonymous RTMP connection without scope
-	 * @param type          Connection type
+	 * 
+	 * @param type
+	 *            Connection type
 	 */
 	public RTMPConnection(String type) {
 		// We start with an anonymous connection without a scope.
@@ -248,7 +251,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 						.getContext().getBean(IBWControlService.KEY);
 				bwContext = bwController.registerBWControllable(this);
 			}
-			
+
 			if (waitForHandshakeJob != null) {
 				waitForHandshakeService.removeScheduledJob(waitForHandshakeJob);
 				waitForHandshakeJob = null;
@@ -260,11 +263,15 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	/**
 	 * Initialize connection
-	 *
-	 * @param host             Connection host
-	 * @param path             Connection path
-	 * @param sessionId        Connection session id
-	 * @param params           Params passed from client
+	 * 
+	 * @param host
+	 *            Connection host
+	 * @param path
+	 *            Connection path
+	 * @param sessionId
+	 *            Connection session id
+	 * @param params
+	 *            Params passed from client
 	 */
 	public void setup(String host, String path, String sessionId,
 			Map<String, Object> params) {
@@ -279,16 +286,17 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	/**
 	 * Return AMF protocol encoding used by this connection
-	 * @return                  AMF encoding used by connection
+	 * 
+	 * @return AMF encoding used by connection
 	 */
 	public Encoding getEncoding() {
 		return encoding;
 	}
 
 	/**
-	 * Getter for  next available channel id
-	 *
-	 * @return  Next available channel id
+	 * Getter for next available channel id
+	 * 
+	 * @return Next available channel id
 	 */
 	public synchronized int getNextAvailableChannelId() {
 		int result = 4;
@@ -299,8 +307,11 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	/**
 	 * Checks whether channel is used
-	 * @param channelId        Channel id
-	 * @return                 <code>true</code> if channel is in use, <code>false</code> otherwise
+	 * 
+	 * @param channelId
+	 *            Channel id
+	 * @return <code>true</code> if channel is in use, <code>false</code>
+	 *         otherwise
 	 */
 	public boolean isChannelUsed(int channelId) {
 		return channels.get(channelId) != null;
@@ -308,8 +319,10 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	/**
 	 * Return channel by id
-	 * @param channelId        Channel id
-	 * @return                 Channel by id
+	 * 
+	 * @param channelId
+	 *            Channel id
+	 * @return Channel by id
 	 */
 	public Channel getChannel(int channelId) {
 		synchronized (channels) {
@@ -324,7 +337,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	/**
 	 * Closes channel
-	 * @param channelId       Channel id
+	 * 
+	 * @param channelId
+	 *            Channel id
 	 */
 	public void closeChannel(int channelId) {
 		channels.remove(channelId);
@@ -332,8 +347,8 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	/**
 	 * Getter for client streams
-	 *
-	 * @return  Client streams as array
+	 * 
+	 * @return Client streams as array
 	 */
 	protected Collection<IClientStream> getStreams() {
 		return streams.values();
@@ -356,11 +371,13 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	/**
-	 * Creates output stream object from stream id. Output stream consists of audio, data and video channels.
-	 *
-	 * @see   org.red5.server.stream.OutputStream
-	 * @param streamId          Stream id
-	 * @return                  Output stream object
+	 * Creates output stream object from stream id. Output stream consists of
+	 * audio, data and video channels.
+	 * 
+	 * @see org.red5.server.stream.OutputStream
+	 * @param streamId
+	 *            Stream id
+	 * @return Output stream object
 	 */
 	public OutputStream createOutputStream(int streamId) {
 		int channelId = (4 + ((streamId - 1) * 5));
@@ -373,9 +390,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	/**
-	 * Getter for  video codec factory
-	 *
-	 * @return  Video codec factory
+	 * Getter for video codec factory
+	 * 
+	 * @return Video codec factory
 	 */
 	public VideoCodecFactory getVideoCodecFactory() {
 		final IContext context = scope.getContext();
@@ -405,8 +422,8 @@ public abstract class RTMPConnection extends BaseConnection implements
 			ClientBroadcastStream cbs = (ClientBroadcastStream) appCtx
 					.getBean("clientBroadcastStream");
 			/**
-			 * Picking up the ClientBroadcastStream defined as a spring prototype
-			 * in red5-common.xml
+			 * Picking up the ClientBroadcastStream defined as a spring
+			 * prototype in red5-common.xml
 			 */
 			Integer buffer = streamBuffers.get(streamId - 1);
 			if (buffer != null)
@@ -422,8 +439,8 @@ public abstract class RTMPConnection extends BaseConnection implements
 		}
 	}
 
-	/** {@inheritDoc}
-	 * To be implemented.
+	/**
+	 * {@inheritDoc} To be implemented.
 	 */
 	public ISingleItemSubscriberStream newSingleItemSubscriberStream(
 			int streamId) {
@@ -447,8 +464,8 @@ public abstract class RTMPConnection extends BaseConnection implements
 			ApplicationContext appCtx = scope.getContext()
 					.getApplicationContext();
 			/**
-			 * Picking up the PlaylistSubscriberStream defined as a spring prototype
-			 * in red5-common.xml
+			 * Picking up the PlaylistSubscriberStream defined as a spring
+			 * prototype in red5-common.xml
 			 */
 			PlaylistSubscriberStream pss = (PlaylistSubscriberStream) appCtx
 					.getBean("playlistSubscriberStream");
@@ -467,7 +484,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	/**
 	 * Getter for used stream count
-	 *
+	 * 
 	 * @return Value for property 'usedStreamCount'.
 	 */
 	protected int getUsedStreamCount() {
@@ -485,8 +502,10 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	/**
 	 * Return stream id for given channel id
-	 * @param channelId        Channel id
-	 * @return                 ID of stream that channel belongs to
+	 * 
+	 * @param channelId
+	 *            Channel id
+	 * @return ID of stream that channel belongs to
 	 */
 	public int getStreamIdForChannel(int channelId) {
 		if (channelId < 4) {
@@ -498,8 +517,10 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	/**
 	 * Return stream for given channel id
-	 * @param channelId        Channel id
-	 * @return                 Stream that channel belongs to
+	 * 
+	 * @param channelId
+	 *            Channel id
+	 * @return Stream that channel belongs to
 	 */
 	public IClientStream getStreamByChannelId(int channelId) {
 		if (channelId < 4) {
@@ -575,7 +596,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	/**
 	 * Handler for ping event
-	 * @param ping        Ping event context
+	 * 
+	 * @param ping
+	 *            Ping event context
 	 */
 	public void ping(Ping ping) {
 		getChannel((byte) 2).write(ping);
@@ -583,13 +606,17 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	/**
 	 * Write raw byte buffer
-	 * @param out           Byte buffer
+	 * 
+	 * @param out
+	 *            Byte buffer
 	 */
 	public abstract void rawWrite(ByteBuffer out);
 
 	/**
 	 * Write packet
-	 * @param out           Packet
+	 * 
+	 * @param out
+	 *            Packet
 	 */
 	public abstract void write(Packet out);
 
@@ -608,7 +635,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	/**
 	 * Read number of recieved bytes
-	 * @param bytes                Number of bytes
+	 * 
+	 * @param bytes
+	 *            Number of bytes
 	 */
 	public void receivedBytesRead(int bytes) {
 		log.info("Client received " + bytes + " bytes, written "
@@ -633,8 +662,8 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	/**
 	 * Generate next invoke id
-	 *
-	 * @return  Next invoke id for RPC
+	 * 
+	 * @return Next invoke id for RPC
 	 */
 	protected int getInvokeId() {
 		return invokeId.incrementAndGet();
@@ -642,8 +671,11 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	/**
 	 * Register pending call (remote function call that is yet to finish)
-	 * @param invokeId             Deferred operation id
-	 * @param call                 Call service
+	 * 
+	 * @param invokeId
+	 *            Deferred operation id
+	 * @param call
+	 *            Call service
 	 */
 	protected void registerPendingCall(int invokeId, IPendingServiceCall call) {
 		pendingCalls.put(invokeId, call);
@@ -767,8 +799,10 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	/**
 	 * Get pending call service by id
-	 * @param invokeId               Pending call service id
-	 * @return                       Pending call service object
+	 * 
+	 * @param invokeId
+	 *            Pending call service id
+	 * @return Pending call service object
 	 */
 	protected IPendingServiceCall getPendingCall(int invokeId) {
 		return pendingCalls.remove(invokeId);
@@ -776,7 +810,8 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	/**
 	 * Generates new stream name
-	 * @return       New stream name
+	 * 
+	 * @return New stream name
 	 */
 	protected String createStreamName() {
 		return UUID.randomUUID().toString();
@@ -784,8 +819,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	/**
 	 * Mark message as being written.
-	 *
-	 * @param message        Message to mark
+	 * 
+	 * @param message
+	 *            Message to mark
 	 */
 	protected void writingMessage(Packet message) {
 		if (message.getMessage() instanceof VideoData) {
@@ -812,8 +848,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	/**
 	 * Mark message as sent.
-	 *
-	 * @param message           Message to mark
+	 * 
+	 * @param message
+	 *            Message to mark
 	 */
 	protected void messageSent(Packet message) {
 		if (message.getMessage() instanceof VideoData) {
@@ -840,16 +877,20 @@ public abstract class RTMPConnection extends BaseConnection implements
 	@Override
 	public long getPendingVideoMessages(int streamId) {
 		Integer count = pendingVideos.get(streamId);
-		long result = (count != null ? count.intValue()
-				- getUsedStreamCount() : 0);
+		long result = (count != null ? count.intValue() - getUsedStreamCount()
+				: 0);
 		return (result > 0 ? result : 0);
 	}
 
 	/** {@inheritDoc} */
 	public void ping() {
+		long newPingTime = System.currentTimeMillis();
+		if (lastPingSent == 0) {
+			lastPongReceived = newPingTime;
+		}
 		Ping pingRequest = new Ping();
 		pingRequest.setValue1((short) Ping.PING_CLIENT);
-		lastPingSent = System.currentTimeMillis();
+		lastPingSent = newPingTime;
 		int now = (int) (lastPingSent & 0xffffffff);
 		pingRequest.setValue2(now);
 		pingRequest.setValue3(Ping.UNDEFINED);
@@ -858,7 +899,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	/**
 	 * Marks that pingback was recieved
-	 * @param pong            Ping object
+	 * 
+	 * @param pong
+	 *            Ping object
 	 */
 	protected void pingReceived(Ping pong) {
 		lastPongReceived = System.currentTimeMillis();
@@ -873,8 +916,10 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	/**
 	 * Setter for ping interval
-	 *
-	 * @param pingInterval Interval in ms to ping clients. Set to <code>0</code> to disable ghost detection code.
+	 * 
+	 * @param pingInterval
+	 *            Interval in ms to ping clients. Set to <code>0</code> to
+	 *            disable ghost detection code.
 	 */
 	public void setPingInterval(int pingInterval) {
 		this.pingInterval = pingInterval;
@@ -883,7 +928,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/**
 	 * Setter for max. inactivity
 	 * 
-	 * @param maxInactivity Max. time in ms after which a client is disconnected in case of inactivity.
+	 * @param maxInactivity
+	 *            Max. time in ms after which a client is disconnected in case
+	 *            of inactivity.
 	 */
 	public void setMaxInactivity(int maxInactivity) {
 		this.maxInactivity = maxInactivity;
@@ -919,7 +966,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	/**
 	 * Registers deffered result
-	 * @param result            Result to register
+	 * 
+	 * @param result
+	 *            Result to register
 	 */
 	protected void registerDeferredResult(DeferredResult result) {
 		deferredResults.add(result);
@@ -927,7 +976,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	/**
 	 * Unregister deffered result
-	 * @param result             Result to unregister
+	 * 
+	 * @param result
+	 *            Result to unregister
 	 */
 	protected void unregisterDeferredResult(DeferredResult result) {
 		deferredResults.remove(result);
@@ -939,22 +990,26 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	/**
 	 * Set max. time to wait for valid handshake in milliseconds.
-	 * @param maxHandshakeTimeout max. time in milliseconds
+	 * 
+	 * @param maxHandshakeTimeout
+	 *            max. time in milliseconds
 	 */
 	public void setMaxHandshakeTimeout(int maxHandshakeTimeout) {
 		this.maxHandshakeTimeout = maxHandshakeTimeout;
 	}
-	
+
 	/**
 	 * Start waiting for a valid handshake.
 	 * 
-	 * @param service		the scheduling service to use
+	 * @param service
+	 *            the scheduling service to use
 	 */
 	protected void startWaitForHandshake(ISchedulingService service) {
 		waitForHandshakeService = service;
-		waitForHandshakeJob = service.addScheduledOnceJob(maxHandshakeTimeout, new WaitForHandshakeJob());
+		waitForHandshakeJob = service.addScheduledOnceJob(maxHandshakeTimeout,
+				new WaitForHandshakeJob());
 	}
-	
+
 	/**
 	 * Quartz job that keeps connection alive and disconnects if client is dead.
 	 */
@@ -964,13 +1019,15 @@ public abstract class RTMPConnection extends BaseConnection implements
 		public void execute(ISchedulingService service) {
 			long thisRead = getReadBytes();
 			if (thisRead > lastBytesRead) {
-				// Client sent data since last check and thus is not dead. No need to ping.
+				// Client sent data since last check and thus is not dead. No
+				// need to ping.
 				lastBytesRead = thisRead;
 				return;
 			}
 
 			if (lastPongReceived > 0 && lastPingSent - lastPongReceived > maxInactivity) {
-				// Client didn't send response to ping command for too long, disconnect
+				// Client didn't send response to ping command for too long,
+				// disconnect
 				service.removeScheduledJob(keepAliveJobName);
 				keepAliveJobName = null;
 				log.warn("Closing " + RTMPConnection.this
@@ -984,13 +1041,13 @@ public abstract class RTMPConnection extends BaseConnection implements
 			ping();
 		}
 	}
-	
+
 	/**
 	 * Quartz job that waits for a valid handshake and disconnects the client if
 	 * none is received.
 	 */
 	private class WaitForHandshakeJob implements IScheduledJob {
-		
+
 		/** {@inheritDoc} */
 		public void execute(ISchedulingService service) {
 			waitForHandshakeJob = null;
@@ -998,7 +1055,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 			// Client didn't send a valid handshake, disconnect.
 			onInactive();
 		}
-		
+
 	}
-	
+
 }
