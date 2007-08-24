@@ -969,7 +969,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 				return;
 			}
 
-			if (lastPingSent - lastPongReceived > maxInactivity) {
+			if (lastPongReceived > 0 && lastPingSent - lastPongReceived > maxInactivity) {
 				// Client didn't send response to ping command for too long, disconnect
 				service.removeScheduledJob(keepAliveJobName);
 				keepAliveJobName = null;
