@@ -13,5 +13,5 @@ Context file for red5
     antiResourceLocking="false" 
     antiJARLocking="false"
 -->
-<Context path="@context.path@" crossContext="true">
+<Context path="" crossContext="true" override="true">
 </Context>

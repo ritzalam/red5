@@ -732,10 +732,9 @@
 		<filter token="display.name" value=""/>
 		<filter token="webapp.root.key" value="/"/>
 		<filter token="context.path" value="/"/>
+		<copy tofile="${webapps.build.dir}/root/META-INF/context.xml" overwrite="true"				
+			file="${config.dir}/war/root-context.xml"/>
 		<copy todir="${webapps.build.dir}/root/WEB-INF" overwrite="true" filtering="true">
-			<fileset dir="${config.dir}">
-				<include name="log4j.properties"/>
-			</fileset>				
 			<fileset dir="${config.dir}/war">
 				<include name="web.xml"/>
 				<include name="applicationContext.xml"/>
@@ -743,6 +742,7 @@
 				<include name="red5-core.xml"/>
 				<include name="red5-web.properties"/>
 				<include name="red5.properties"/>
+				<include name="log4j.properties"/>
 			</fileset>
 		</copy>		
 		<!-- copy the jmx support files into the webapp classpath -->
@@ -785,11 +785,13 @@
 		<!-- add the configs to the echo war -->
 		<filter token="display.name" value="echo"/>
 		<filter token="webapp.root.key" value="/echo"/>
-		<filter token="context.path" value="/echo"/>		
+		<filter token="context.path" value="/echo"/>	
+		<copy todir="${webapps.build.dir}/echo/META-INF" overwrite="true" filtering="true">				
+			<fileset dir="${config.dir}/war">
+				<include name="context.xml"/>
+			</fileset>
+		</copy>				
 		<copy todir="${webapps.build.dir}/echo/WEB-INF" overwrite="true" filtering="true">
-			<fileset dir="${config.dir}">
-				<include name="log4j.properties"/>
-			</fileset>				
 			<fileset dir="${config.dir}/war">
 				<include name="web.xml"/>
 				<include name="applicationContext.xml"/>
@@ -797,6 +799,7 @@
 				<include name="red5-core.xml"/>
 				<include name="red5-web.properties"/>				
 				<include name="red5.properties"/>
+				<include name="log4j.properties"/>				
 			</fileset>
 		</copy>		
 		<!-- copy the jmx support files into the webapp classpath -->
@@ -842,16 +845,12 @@
 		<filter token="display.name" value="oflaDemo"/>
 		<filter token="webapp.root.key" value="/oflaDemo"/>
 		<filter token="context.path" value="/oflaDemo"/>
-		<!-- ofla seems to need this for some reason -->
 		<copy todir="${webapps.build.dir}/oflaDemo/META-INF" overwrite="true" filtering="true">				
 			<fileset dir="${config.dir}/war">
 				<include name="context.xml"/>
 			</fileset>
 		</copy>		
 		<copy todir="${webapps.build.dir}/oflaDemo/WEB-INF" overwrite="true" filtering="true">
-			<fileset dir="${config.dir}">
-				<include name="log4j.properties"/>
-			</fileset>				
 			<fileset dir="${config.dir}/war">
 				<include name="web.xml"/>
 				<include name="applicationContext.xml"/>
@@ -859,6 +858,7 @@
 				<include name="red5-core.xml"/>
 				<include name="red5-web.properties"/>				
 				<include name="red5.properties"/>
+				<include name="log4j.properties"/>				
 			</fileset>
 		</copy>		
 		<!-- copy the jmx support files into the webapp classpath -->
@@ -906,10 +906,12 @@
 		<filter token="context.path" value="/admin"/>
 		<!-- admin uses a special welcome file -->
 		<filter token="welcome.file" value="login.html"/>	
+		<copy todir="${webapps.build.dir}/admin/META-INF" overwrite="true" filtering="true">				
+			<fileset dir="${config.dir}/war">
+				<include name="context.xml"/>
+			</fileset>
+		</copy>				
 		<copy todir="${webapps.build.dir}/admin/WEB-INF" overwrite="true" filtering="true">
-			<fileset dir="${config.dir}">
-				<include name="log4j.properties"/>
-			</fileset>				
 			<fileset dir="${config.dir}/war">
 				<include name="web.xml"/>
 				<include name="applicationContext.xml"/>
@@ -917,6 +919,7 @@
 				<include name="red5-core.xml"/>
 				<include name="red5-web.properties"/>				
 				<include name="red5.properties"/>
+				<include name="log4j.properties"/>
 			</fileset>
 		</copy>		
 		<!-- copy the jmx support files into the webapp classpath -->
@@ -959,7 +962,7 @@
 		</war>					
 		
 		<!-- cleanup -->
-		<!-- delete dir="${dist.dir}/webapps"/ -->
+		<delete dir="${dist.dir}/webapps"/>
 	</target>
 	<target name="jbosssar" description="Make JBoss SAR" depends="compile_sar">
 		<mkdir dir="${sar.dir}/conf"/>

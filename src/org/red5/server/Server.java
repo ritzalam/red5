@@ -59,11 +59,11 @@ public class Server implements IServer, ApplicationContextAware {
     /**
      *  Constant for slash
      */
-	private static final String SLASH = "/";
+	protected static final String SLASH = "/";
     /**
      *  Constant for empty string
      */
-	private static final String EMPTY = "";
+	protected static final String EMPTY = "";
 
 	public Set<IScopeListener> scopeListeners = new CopyOnWriteArraySet<IScopeListener>();
 
@@ -74,6 +74,7 @@ public class Server implements IServer, ApplicationContextAware {
      * @param applicationContext     Application context
      */
 	public void setApplicationContext(ApplicationContext applicationContext) {
+		log.debug("Setting application context");
 		this.applicationContext = applicationContext;
 	}
 
@@ -180,8 +181,8 @@ public class Server implements IServer, ApplicationContextAware {
      * @param globalName        Global scope name
      * @return                  true if mapping was added, false if already exist
      */
-	public boolean addMapping(String hostName, String contextPath,
-			String globalName) {
+	public boolean addMapping(String hostName, String contextPath, String globalName) {
+		log.info("Add mapping global: " + globalName + " host: " + hostName + " context: " + contextPath);
 		final String key = getKey(hostName, contextPath);
 		if (log.isDebugEnabled()) {
 			log.debug("Add mapping: " + key + " => " + globalName);
@@ -201,6 +202,7 @@ public class Server implements IServer, ApplicationContextAware {
      * @return                      true if mapping was removed, false if key doesn't exist
      */
 	public boolean removeMapping(String hostName, String contextPath) {
+		log.info("Remove mapping host: " + hostName + " context: " + contextPath);		
 		final String key = getKey(hostName, contextPath);
 		if (log.isDebugEnabled()) {
 			log.debug("Remove mapping: " + key);

@@ -6,7 +6,6 @@
 	http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-2.0.xsd">
 
 	<!-- DEFAULT GLOBAL CONTEXT -->
-	
 	<bean id="global.clientRegistry"
 		class="org.red5.server.ClientRegistry" />
 
@@ -49,20 +48,4 @@
 		<property name="globalScope" ref="global.scope" />
 	</bean>
 
-	<!-- DEFAULT LOCAL CONTEXT 
-
-	<bean id="web.context" class="org.red5.server.Context"
-		autowire="byType" />
-
-	<bean id="web.scope" class="org.red5.server.WebScope"
-		init-method="register" lazy-init="true">
-		<property name="server" ref="red5.server" />
-		<property name="parent" ref="global.scope" />
-		<property name="context" ref="web.context" />
-		<property name="handler" ref="web.handler" />
-		<property name="contextPath" value="/" />
-		<property name="virtualHosts"
-			value="*,localhost, localhost:5080, 127.0.0.1:5080" />
-	</bean>
--->
 </beans>

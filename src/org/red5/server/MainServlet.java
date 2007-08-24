@@ -27,6 +27,8 @@ import java.sql.DriverManager;
 import java.util.Enumeration;
 import java.util.Properties;
 
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -64,65 +66,27 @@ public class MainServlet extends HttpServlet implements ServletContextListener {
 	private static ServletContext servletContext;
 
 	/**
-	 * Clearing the in-memory configuration parameters, we will receive
-	 * notification that the servlet context is about to be shut down
-	 */
-	public void contextDestroyed(ServletContextEvent sce) {
-		logger.info("Webapp shutdown");
-		// XXX Paul: grabbed this from
-		// http://opensource.atlassian.com/confluence/spring/display/DISC/Memory+leak+-+classloader+won%27t+let+go
-		// in hopes that we can clear all the issues with J2EE containers during
-		// shutdown
-		try {
-			// prepare spring for shutdown
-			Introspector.flushCaches();
-			// dereg any drivers
-			for (Enumeration e = DriverManager.getDrivers(); e
-					.hasMoreElements();) {
-				Driver driver = (Driver) e.nextElement();
-				if (driver.getClass().getClassLoader() == getClass()
-						.getClassLoader()) {
-					DriverManager.deregisterDriver(driver);
-				}
-			}
-			// shutdown jmx
-			JMXAgent.shutdown();
-			// shutdown spring
-			// get web application context from the servlet context
-			ConfigurableWebApplicationContext applicationContext = (ConfigurableWebApplicationContext) servletContext
-					.getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
-			ConfigurableBeanFactory factory = applicationContext
-					.getBeanFactory();
-			if (factory.containsSingleton("default.context")) {
-				for (String scope : factory.getRegisteredScopeNames()) {
-					logger.debug("Registered scope: " + scope);
-				}
-				for (String singleton : factory.getSingletonNames()) {
-					logger.debug("Registered singleton: " + singleton);
-					// factory.destroyScopedBean(singleton);
-				}
-				factory.destroySingletons();
-			}
-			servletContext
-					.removeAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
-			applicationContext.close();
-			// http://jakarta.apache.org/commons/logging/guide.html#Classloader_and_Memory_Management
-			// http://wiki.apache.org/jakarta-commons/Logging/UndeployMemoryLeak?action=print
-			LogFactory.release(Thread.currentThread().getContextClassLoader());
-		} catch (Throwable e) {
-			// may get a java.lang.StackOverflowError when shutting appcontext
-			// down in jboss
-			e.printStackTrace();
-		}
-	}
-
-	/**
 	 * Main entry point for the Red5 Server as a war
 	 */
 	// Notification that the web application is ready to process requests
 	public void contextInitialized(ServletContextEvent sce) {
 		System.setProperty("red5.deployment.type", "war");
 
+//		InitialContext ctx = null;
+//		Server server = null;
+//	    try {
+//			ctx = new InitialContext();
+//			server = (Server) ctx.lookup("red5/server");
+//			logger.info("RED5 JNDI lookup server is null? " + (server == null));
+//	    } catch (NamingException e) {
+//			try {
+//				logger.warn("RED5 JNDI lookup error");
+//				ctx.createSubcontext("red5server");
+//			} catch (NamingException ne) {
+//				logger.warn("RED5 JNDI subcontext creation error", ne);
+//			}
+//		}		
+		
 		if (null != servletContext) {
 			return;
 		}
@@ -216,6 +180,11 @@ public class MainServlet extends HttpServlet implements ServletContextListener {
 			// register default
 			// add the context to the parent
 			factory.registerSingleton("default.context", applicationContext);
+			
+//			if (server == null){	
+//				server = (Server) factory.getBean("red5.server");
+//				ctx.rebind("red5server", server);				
+//			}
 
 		} catch (Throwable e) {
 			logger.error(e);
@@ -226,4 +195,58 @@ public class MainServlet extends HttpServlet implements ServletContextListener {
 
 	}
 
+
+	/**
+	 * Clearing the in-memory configuration parameters, we will receive
+	 * notification that the servlet context is about to be shut down
+	 */
+	public void contextDestroyed(ServletContextEvent sce) {
+		logger.info("Webapp shutdown");
+		// XXX Paul: grabbed this from
+		// http://opensource.atlassian.com/confluence/spring/display/DISC/Memory+leak+-+classloader+won%27t+let+go
+		// in hopes that we can clear all the issues with J2EE containers during
+		// shutdown
+		try {
+			// prepare spring for shutdown
+			Introspector.flushCaches();
+			// dereg any drivers
+			for (Enumeration e = DriverManager.getDrivers(); e
+					.hasMoreElements();) {
+				Driver driver = (Driver) e.nextElement();
+				if (driver.getClass().getClassLoader() == getClass()
+						.getClassLoader()) {
+					DriverManager.deregisterDriver(driver);
+				}
+			}
+			// shutdown jmx
+			JMXAgent.shutdown();
+			// shutdown spring
+			// get web application context from the servlet context
+			ConfigurableWebApplicationContext applicationContext = (ConfigurableWebApplicationContext) servletContext
+					.getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
+			ConfigurableBeanFactory factory = applicationContext
+					.getBeanFactory();
+			if (factory.containsSingleton("default.context")) {
+				for (String scope : factory.getRegisteredScopeNames()) {
+					logger.debug("Registered scope: " + scope);
+				}
+				for (String singleton : factory.getSingletonNames()) {
+					logger.debug("Registered singleton: " + singleton);
+					// factory.destroyScopedBean(singleton);
+				}
+				factory.destroySingletons();
+			}
+			servletContext
+					.removeAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
+			applicationContext.close();
+			// http://jakarta.apache.org/commons/logging/guide.html#Classloader_and_Memory_Management
+			// http://wiki.apache.org/jakarta-commons/Logging/UndeployMemoryLeak?action=print
+			LogFactory.release(Thread.currentThread().getContextClassLoader());
+		} catch (Throwable e) {
+			// may get a java.lang.StackOverflowError when shutting appcontext
+			// down in jboss
+			e.printStackTrace();
+		}
+	}	
+	
 }

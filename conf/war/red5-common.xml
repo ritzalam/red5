@@ -3,7 +3,7 @@
 	 xmlns:lang="http://www.springframework.org/schema/lang" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd                            http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-2.0.xsd">
 	<!-- This context is shared between all child contexts. -->
 	<!-- Server bean -->
-	<bean id="red5.server" class="org.red5.server.Server"/>
+	<bean id="red5.server" class="org.red5.server.EmbeddableServer"/>
 	<!-- JMX server -->
 	<bean id="jmxFactory" class="org.red5.server.jmx.JMXFactory">
 		<property name="domain" value="org.red5.server"/>
