@@ -21,6 +21,7 @@ package org.red5.server.net.rtmp;
 
 import static org.red5.server.api.ScopeUtils.getScopeService;
 
+import java.rmi.RemoteException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -68,39 +69,43 @@ import org.red5.server.stream.StreamService;
  * RTMP events handler
  */
 public class RTMPHandler extends BaseRTMPHandler {
-    /**
-     * Logger
-     */
+	/**
+	 * Logger
+	 */
 	protected static Log log = LogFactory.getLog(RTMPHandler.class.getName());
-    /**
-     * Status object service
-     */
+
+	/**
+	 * Status object service
+	 */
 	protected StatusObjectService statusObjectService;
-    /**
-     * Red5 server instance
-     */
+
+	/**
+	 * Red5 server instance
+	 */
 	protected IServer server;
 
 	/**
-     * Setter for server object.
-     *
-     * @param server  Red5 server instance
-     */
-    public void setServer(IServer server) {
+	 * Setter for server object.
+	 * 
+	 * @param server
+	 *            Red5 server instance
+	 */
+	public void setServer(IServer server) {
 		this.server = server;
 	}
 
 	/**
-     * Setter for status object service.
-     *
-     * @param statusObjectService Status object service.
-     */
-    public void setStatusObjectService(StatusObjectService statusObjectService) {
+	 * Setter for status object service.
+	 * 
+	 * @param statusObjectService
+	 *            Status object service.
+	 */
+	public void setStatusObjectService(StatusObjectService statusObjectService) {
 		this.statusObjectService = statusObjectService;
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	protected void onChunkSize(RTMPConnection conn, Channel channel,
 			Header source, ChunkSize chunkSize) {
 		for (IClientStream stream : conn.getStreams()) {
@@ -123,18 +128,22 @@ public class RTMPHandler extends BaseRTMPHandler {
 						chunkSize.getSize());
 				scope.sendOOBControlMessage((IConsumer) null, setChunkSize);
 				if (log.isDebugEnabled()) {
-					log.debug("Sending chunksize " + chunkSize + " to " + bs.getProvider());
+					log.debug("Sending chunksize " + chunkSize + " to "
+							+ bs.getProvider());
 				}
 			}
 		}
 	}
 
-    /**
-     * Remoting call invocation handler
-     * @param conn             RTMP connection
-     * @param call             Service call
-     */
-    protected void invokeCall(RTMPConnection conn, IServiceCall call) {
+	/**
+	 * Remoting call invocation handler
+	 * 
+	 * @param conn
+	 *            RTMP connection
+	 * @param call
+	 *            Service call
+	 */
+	protected void invokeCall(RTMPConnection conn, IServiceCall call) {
 		final IScope scope = conn.getScope();
 		if (scope.hasHandler()) {
 			final IScopeHandler handler = scope.getHandler();
@@ -155,14 +164,19 @@ public class RTMPHandler extends BaseRTMPHandler {
 		context.getServiceInvoker().invoke(call, scope);
 	}
 
-    /**
-     * Remoting call invocation handler
-     * @param conn             RTMP connection
-     * @param call             Service call
-     * @param service          Server-side service object
-     * @return <code>true</code> if the call was performed, otherwise <code>false</code>
-     */
-    private boolean invokeCall(RTMPConnection conn, IServiceCall call,
+	/**
+	 * Remoting call invocation handler
+	 * 
+	 * @param conn
+	 *            RTMP connection
+	 * @param call
+	 *            Service call
+	 * @param service
+	 *            Server-side service object
+	 * @return <code>true</code> if the call was performed, otherwise
+	 *         <code>false</code>
+	 */
+	private boolean invokeCall(RTMPConnection conn, IServiceCall call,
 			Object service) {
 		final IScope scope = conn.getScope();
 		final IContext context = scope.getContext();
@@ -177,20 +191,21 @@ public class RTMPHandler extends BaseRTMPHandler {
 	// ------------------------------------------------------------------------------
 
 	/** {@inheritDoc} */
-    @Override
-	protected void onInvoke(RTMPConnection conn, Channel channel, Header source,
-			Notify invoke, RTMP rtmp) {
+	@Override
+	protected void onInvoke(RTMPConnection conn, Channel channel,
+			Header source, Notify invoke, RTMP rtmp) {
 
-    	if (log.isDebugEnabled()) {
-    		log.debug("Invoke: " + invoke);
-    	}
+		if (log.isDebugEnabled()) {
+			log.debug("Invoke: " + invoke);
+		}
 
-        // Get call
-        final IServiceCall call = invoke.getCall();
+		// Get call
+		final IServiceCall call = invoke.getCall();
 
-        // If it's a callback for server remote call then pass it over to callbacks handler
-        // and return
-        if (call.getServiceMethodName().equals("_result")
+		// If it's a callback for server remote call then pass it over to
+		// callbacks handler
+		// and return
+		if (call.getServiceMethodName().equals("_result")
 				|| call.getServiceMethodName().equals("_error")) {
 			handlePendingCallResult(conn, invoke);
 			return;
@@ -198,53 +213,65 @@ public class RTMPHandler extends BaseRTMPHandler {
 
 		boolean disconnectOnReturn = false;
 
-        // If this is not a service call then handle connection...
-        if (call.getServiceName() == null) {
-        	if (log.isDebugEnabled()) {
-        		log.debug("call: " + call);
-        	}
+		// If this is not a service call then handle connection...
+		if (call.getServiceName() == null) {
+			if (log.isDebugEnabled()) {
+				log.debug("call: " + call);
+			}
 			final String action = call.getServiceMethodName();
 			if (!conn.isConnected()) {
-                // Handle connection
+				// Handle connection
 				if (action.equals(ACTION_CONNECT)) {
 					log.debug("connect");
 
-                    // Get parameters passed from client to NetConnection#connection
-                    final Map params = invoke.getConnectionParams();
+					// Get parameters passed from client to
+					// NetConnection#connection
+					final Map params = invoke.getConnectionParams();
 
-                    // Get hostname
-                    String host = getHostname((String) params.get("tcUrl"));
+					// Get hostname
+					String host = getHostname((String) params.get("tcUrl"));
 
-                    // Check up port
-                    if (host.endsWith(":1935")) {
+					// Check up port
+					if (host.endsWith(":1935")) {
 						// Remove default port from connection string
 						host = host.substring(0, host.length() - 5);
 					}
 
-                    // App name as path, but without query string if there is one
-                    String path = (String) params.get("app");
-                    if(path.indexOf("?")!=-1){
-                    	int idx = path.indexOf("?");
-                    	params.put("queryString", path.substring(idx));
-                    	path = path.substring(0, idx);
-                    }
-                    params.put("path", path);
-                    
+					// App name as path, but without query string if there is
+					// one
+					String path = (String) params.get("app");
+					if (path.indexOf("?") != -1) {
+						int idx = path.indexOf("?");
+						params.put("queryString", path.substring(idx));
+						path = path.substring(0, idx);
+					}
+					params.put("path", path);
+
 					final String sessionId = null;
 					conn.setup(host, path, sessionId, params);
 					try {
-                        // Lookup server scope when connected
-                        // Use host and application name
-                        final IGlobalScope global = server.lookupGlobal(host, path);
+						// Lookup server scope when connected
+						// Use host and application name
+						IGlobalScope global = null;
+						try {
+							global = server.lookupGlobal(host, path);
+						} catch (RemoteException e) {
+							log.warn("Error looking up global on remote", e);
+						}
 						if (global == null) {
 							call.setStatus(Call.STATUS_SERVICE_NOT_FOUND);
 							if (call instanceof IPendingServiceCall) {
 								StatusObject status = getStatus(NC_CONNECT_INVALID_APPLICATION);
-								status.setDescription("No scope \""+path+"\" on this server.");
+								status.setDescription("No scope \"" + path
+										+ "\" on this server.");
 								((IPendingServiceCall) call).setResult(status);
 							}
-							log.info("No application scope found for " + path
-									+ " on host " + host + ". Mispelled or missing application folder?");
+							log
+									.info("No application scope found for "
+											+ path
+											+ " on host "
+											+ host
+											+ ". Mispelled or missing application folder?");
 							disconnectOnReturn = true;
 						} else {
 							final IContext context = global.getContext();
@@ -255,8 +282,10 @@ public class RTMPHandler extends BaseRTMPHandler {
 								call.setStatus(Call.STATUS_SERVICE_NOT_FOUND);
 								if (call instanceof IPendingServiceCall) {
 									StatusObject status = getStatus(NC_CONNECT_REJECTED);
-									status.setDescription("No scope \""+path+"\" on this server.");
-									((IPendingServiceCall) call).setResult(status);
+									status.setDescription("No scope \"" + path
+											+ "\" on this server.");
+									((IPendingServiceCall) call)
+											.setResult(status);
 								}
 								if (log.isInfoEnabled()) {
 									log.info("Scope " + path + " not found on "
@@ -267,11 +296,15 @@ public class RTMPHandler extends BaseRTMPHandler {
 								call.setStatus(Call.STATUS_APP_SHUTTING_DOWN);
 								if (call instanceof IPendingServiceCall) {
 									StatusObject status = getStatus(NC_CONNECT_APPSHUTDOWN);
-									status.setDescription("Application at \""+path+"\" is currently shutting down.");
-									((IPendingServiceCall) call).setResult(status);
+									status.setDescription("Application at \""
+											+ path
+											+ "\" is currently shutting down.");
+									((IPendingServiceCall) call)
+											.setResult(status);
 								}
 								if (log.isInfoEnabled()) {
-									log.info("Application at " + path + " currently shutting down on "
+									log.info("Application at " + path
+											+ " currently shutting down on "
 											+ host);
 								}
 								disconnectOnReturn = true;
@@ -291,22 +324,33 @@ public class RTMPHandler extends BaseRTMPHandler {
 									if (okayToConnect) {
 										if (log.isDebugEnabled()) {
 											log.debug("connected");
-											log.debug("client: " + conn.getClient());
+											log.debug("client: "
+													+ conn.getClient());
 										}
-										call.setStatus(Call.STATUS_SUCCESS_RESULT);
+										call
+												.setStatus(Call.STATUS_SUCCESS_RESULT);
 										if (call instanceof IPendingServiceCall) {
 											IPendingServiceCall pc = (IPendingServiceCall) call;
-											pc.setResult(getStatus(NC_CONNECT_SUCCESS));
+											pc
+													.setResult(getStatus(NC_CONNECT_SUCCESS));
 										}
-										// Measure initial roundtrip time after connecting
-										conn.getChannel(2).write(new Ping((short) Ping.STREAM_CLEAR, 0, -1));
+										// Measure initial roundtrip time after
+										// connecting
+										conn
+												.getChannel(2)
+												.write(
+														new Ping(
+																(short) Ping.STREAM_CLEAR,
+																0, -1));
 										conn.startRoundTripMeasurement();
 									} else {
 										log.debug("connect failed");
-										call.setStatus(Call.STATUS_ACCESS_DENIED);
+										call
+												.setStatus(Call.STATUS_ACCESS_DENIED);
 										if (call instanceof IPendingServiceCall) {
 											IPendingServiceCall pc = (IPendingServiceCall) call;
-											pc.setResult(getStatus(NC_CONNECT_REJECTED));
+											pc
+													.setResult(getStatus(NC_CONNECT_REJECTED));
 										}
 										disconnectOnReturn = true;
 									}
@@ -319,7 +363,8 @@ public class RTMPHandler extends BaseRTMPHandler {
 										IPendingServiceCall pc = (IPendingServiceCall) call;
 										StatusObject status = getStatus(NC_CONNECT_REJECTED);
 										if (rejected.getReason() != null)
-											status.setApplication(rejected.getReason());
+											status.setApplication(rejected
+													.getReason());
 										pc.setResult(status);
 									}
 									disconnectOnReturn = true;
@@ -335,10 +380,12 @@ public class RTMPHandler extends BaseRTMPHandler {
 						log.error("Error connecting", e);
 						disconnectOnReturn = true;
 					}
-					
+
 					// Evaluate request for AMF3 encoding
-					if (params.get("objectEncoding") == Integer.valueOf(3) && call instanceof IPendingServiceCall) {
-						Object pcResult = ((IPendingServiceCall) call).getResult();
+					if (params.get("objectEncoding") == Integer.valueOf(3)
+							&& call instanceof IPendingServiceCall) {
+						Object pcResult = ((IPendingServiceCall) call)
+								.getResult();
 						Map<String, Object> result;
 						if (pcResult instanceof Map) {
 							result = (Map) pcResult;
@@ -353,7 +400,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 							result.put("objectEncoding", 3);
 							((IPendingServiceCall) call).setResult(result);
 						}
-						
+
 						rtmp.setEncoding(Encoding.AMF3);
 					}
 				}
@@ -375,12 +422,15 @@ public class RTMPHandler extends BaseRTMPHandler {
 				try {
 					if (!invokeCall(conn, call, streamService)) {
 						status = getStatus(NS_INVALID_ARGUMENT).asStatus();
-						status.setDescription("Failed to " + action + " (stream ID: " + source.getStreamId() + ")");
+						status.setDescription("Failed to " + action
+								+ " (stream ID: " + source.getStreamId() + ")");
 					}
 				} catch (Throwable err) {
-					log.error("Error while invoking " + action + " on stream service.", err);
+					log.error("Error while invoking " + action
+							+ " on stream service.", err);
 					status = getStatus(NS_FAILED).asStatus();
-					status.setDescription("Error while invoking " + action + " (stream ID: " + source.getStreamId() + ")");
+					status.setDescription("Error while invoking " + action
+							+ " (stream ID: " + source.getStreamId() + ")");
 					status.setDetails(err.getMessage());
 				}
 				if (status != null) {
@@ -404,7 +454,8 @@ public class RTMPHandler extends BaseRTMPHandler {
 							.getStatus() == Call.STATUS_SUCCESS_NULL)) {
 				// This fixes a bug in the FP on Intel Macs.
 				if (log.isDebugEnabled()) {
-					log.debug("Method does not have return value, do not reply");
+					log
+							.debug("Method does not have return value, do not reply");
 				}
 				return;
 			}
@@ -422,8 +473,9 @@ public class RTMPHandler extends BaseRTMPHandler {
 					conn.registerDeferredResult(dr);
 					sendResult = false;
 				}
-			};
-			
+			}
+			;
+
 			if (sendResult) {
 				// The client expects a result for the method call.
 				Invoke reply = new Invoke();
@@ -442,7 +494,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	protected void onPing(RTMPConnection conn, Channel channel, Header source,
 			Ping ping) {
 		switch (ping.getValue1()) {
@@ -454,13 +506,17 @@ public class RTMPHandler extends BaseRTMPHandler {
 					if (stream != null) {
 						stream.setClientBufferDuration(buffer);
 						if (log.isInfoEnabled()) {
-							log.info("Setting client buffer on stream: " + buffer);
+							log.info("Setting client buffer on stream: "
+									+ buffer);
 						}
 					} else {
-						// Remember buffer time to set until stream will be created 
-						conn.rememberStreamBufferDuration(ping.getValue2(), buffer);
+						// Remember buffer time to set until stream will be
+						// created
+						conn.rememberStreamBufferDuration(ping.getValue2(),
+								buffer);
 						if (log.isInfoEnabled()) {
-							log.info("Remembering client buffer on stream: " + buffer);
+							log.info("Remembering client buffer on stream: "
+									+ buffer);
 						}
 					}
 				} else {
@@ -480,23 +536,24 @@ public class RTMPHandler extends BaseRTMPHandler {
 
 	}
 
-    /**
-     * Create and send SO message stating that a SO could not be created.
-     * 
-     * @param conn
-     * @param name
-     * @param persistent
-     */
-    private void sendSOCreationFailed(RTMPConnection conn, String name, boolean persistent) {
+	/**
+	 * Create and send SO message stating that a SO could not be created.
+	 * 
+	 * @param conn
+	 * @param name
+	 * @param persistent
+	 */
+	private void sendSOCreationFailed(RTMPConnection conn, String name,
+			boolean persistent) {
 		SharedObjectMessage msg = new SharedObjectMessage(name, 0, persistent);
 		msg.addEvent(new SharedObjectEvent(
-				ISharedObjectEvent.Type.CLIENT_STATUS,
-				"error", SO_CREATION_FAILED));
+				ISharedObjectEvent.Type.CLIENT_STATUS, "error",
+				SO_CREATION_FAILED));
 		conn.getChannel((byte) 3).write(msg);
-    }
-    
+	}
+
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	protected void onSharedObject(RTMPConnection conn, Channel channel,
 			Header source, SharedObjectMessage object) {
 		final ISharedObject so;
@@ -510,31 +567,35 @@ public class RTMPHandler extends BaseRTMPHandler {
 		}
 
 		ISharedObjectService sharedObjectService = (ISharedObjectService) getScopeService(
-				scope, ISharedObjectService.class,
-				SharedObjectService.class, false);
+				scope, ISharedObjectService.class, SharedObjectService.class,
+				false);
 		if (!sharedObjectService.hasSharedObject(scope, name)) {
-			ISharedObjectSecurityService security = (ISharedObjectSecurityService) ScopeUtils.getScopeService(scope, ISharedObjectSecurityService.class);
+			ISharedObjectSecurityService security = (ISharedObjectSecurityService) ScopeUtils
+					.getScopeService(scope, ISharedObjectSecurityService.class);
 			if (security != null) {
 				// Check handlers to see if creation is allowed
-				for (ISharedObjectSecurity handler: security.getSharedObjectSecurity()) {
+				for (ISharedObjectSecurity handler : security
+						.getSharedObjectSecurity()) {
 					if (!handler.isCreationAllowed(scope, name, persistent)) {
 						sendSOCreationFailed(conn, name, persistent);
 						return;
 					}
 				}
 			}
-			
-			if (!sharedObjectService.createSharedObject(scope, name, persistent)) {
+
+			if (!sharedObjectService
+					.createSharedObject(scope, name, persistent)) {
 				sendSOCreationFailed(conn, name, persistent);
 				return;
 			}
 		}
 		so = sharedObjectService.getSharedObject(scope, name);
 		if (so.isPersistentObject() != persistent) {
-			SharedObjectMessage msg = new SharedObjectMessage(name, 0, persistent);
+			SharedObjectMessage msg = new SharedObjectMessage(name, 0,
+					persistent);
 			msg.addEvent(new SharedObjectEvent(
-					ISharedObjectEvent.Type.CLIENT_STATUS,
-					"error", SO_PERSISTENCE_MISMATCH));
+					ISharedObjectEvent.Type.CLIENT_STATUS, "error",
+					SO_PERSISTENCE_MISMATCH));
 			conn.getChannel((byte) 3).write(msg);
 		}
 		so.dispatchEvent(object);

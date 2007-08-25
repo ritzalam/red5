@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+	
+	<bean id="red5.server" class="org.red5.server.EmbeddableServer">
+		<property name="server" ref="red5Server"/>
+	</bean>
+
+	<bean id="red5Server" class="org.springframework.remoting.rmi.RmiProxyFactoryBean">
+		<property name="serviceUrl" value="rmi://localhost:1099/red5Server"/>
+		<property name="serviceInterface" value="org.red5.server.api.IServer"/>
+	</bean>	
+	
+	<bean id="web.context" class="org.red5.server.Context" 
+		autowire="byType" />
+	
+	<bean id="web.scope" class="org.red5.server.WebScope"
+		 init-method="register">
+		<property name="server" ref="red5.server" />
+		<property name="parent" ref="global.scope" />
+		<property name="context" ref="web.context" />
+		<property name="handler" ref="global.handler" />
+		<property name="contextPath" value="@context.path@" />
+		<property name="virtualHosts" value="@virtual.hosts@" />
+	</bean>
+
+</beans>

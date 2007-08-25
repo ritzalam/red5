@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+	
+	<bean id="web.context" class="org.red5.server.Context" 
+		autowire="byType" />
+	
+	<bean id="web.scope" class="org.red5.server.WebScope"
+		 init-method="register">
+		<property name="server" ref="red5.server" />
+		<property name="parent" ref="global.scope" />
+		<property name="context" ref="web.context" />
+		<property name="handler" ref="web.handler" />
+		<property name="contextPath" value="@context.path@" />
+		<property name="virtualHosts" value="@virtual.hosts@" />
+	</bean>
+
+	<bean id="web.handler" 
+	    class="org.red5.webapps.admin.Application" 
+		singleton="true" />
+
+	<bean id="scopes.service" 
+	    class="org.red5.server.statistics.XmlRpcScopeStatistics" 
+		singleton="true">
+        <property name="globalScope" ref="global.scope" />
+    </bean>
+
+</beans>

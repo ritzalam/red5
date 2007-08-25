@@ -19,6 +19,7 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.rmi.RemoteException;
 import java.util.Iterator;
 
 import javax.servlet.ServletContext;
@@ -34,66 +35,76 @@ import org.springframework.web.context.ServletContextAware;
 
 /**
  * Web scope is special scope that is aware of servlet context and represents
- * scope of Red5 application in servlet container (or application server)
- * like Tomcat, Jetty or JBoss.
- *
+ * scope of Red5 application in servlet container (or application server) like
+ * Tomcat, Jetty or JBoss.
+ * 
  * Web scope is aware of virtual hosts configuration for Red5 application and is
- * the first scope that instantiated after Red5 application got started.
+ * the first scope that instantiated after Red5 application gets started.
  * 
  * Then it loads virtual hosts configuration, adds mappings of paths to global
  * scope that is injected thru Spring IoC context file and runs initialization
  * process.
- *
+ * 
  * Red5 server implementation instance and ServletContext are injected as well.
  */
 public class WebScope extends Scope implements ServletContextAware {
 
-    /**
-     * Logger
-     */
-    protected static Log log = LogFactory.getLog(WebScope.class.getName());
-    /**
-     * Server instance
-     */
+	/**
+	 * Logger
+	 */
+	protected static Log log = LogFactory.getLog(WebScope.class.getName());
+
+	/**
+	 * Server instance
+	 */
 	protected IServer server;
-    /**
-     * Servlet context
-     */
+
+	/**
+	 * Servlet context
+	 */
 	protected ServletContext servletContext;
-    /**
-     * Context path
-     */
+
+	/**
+	 * Context path
+	 */
 	protected String contextPath;
-    /**
-     * Virtual hosts list as string
-     */
+
+	/**
+	 * Virtual hosts list as string
+	 */
 	protected String virtualHosts;
-    /**
-     * Hostnames
-     */
+
+	/**
+	 * Hostnames
+	 */
 	protected String[] hostnames;
+
 	/**
 	 * Has the web scope been registered?
 	 */
 	protected boolean registered;
+
 	/**
 	 * The application context this webscope is running in.
 	 */
 	protected IApplicationContext appContext;
+
 	/**
 	 * Loader for new applications.
 	 */
 	protected IApplicationLoader appLoader;
+
 	/**
 	 * Is the scope currently shutting down?
 	 */
 	protected boolean shuttingDown;
-	
-    /**
-     * Setter for global scope. Sets persistence class.
-     *
-     * @param globalScope       Red5 global scope
-     */
+
+	/**
+	 * Setter for global scope. Sets persistence class.
+	 * 
+	 * @param globalScope
+	 *            Red5 global scope
+	 */
 	public void setGlobalScope(IGlobalScope globalScope) {
 		// XXX: this is called from nowhere, remove?
 		super.setParent(globalScope);
@@ -104,54 +115,62 @@ public class WebScope extends Scope implements ServletContextAware {
 		}
 	}
 
-    /**
-     * Web scope has no name
-     */
+	/**
+	 * Web scope has no name
+	 */
 	public void setName() {
 		throw new RuntimeException("Cannot set name, you must set context path");
 	}
 
-    /**
-     * Can't set parent to Web scope. Web scope is top level.
-     */
+	/**
+	 * Can't set parent to Web scope. Web scope is top level.
+	 */
 	public void setParent() {
 		throw new RuntimeException(
 				"Cannot set parent, you must set global scope");
 	}
 
-    /**
-     * Setter for server
-     * @param server            Server instance
-     */
+	/**
+	 * Setter for server
+	 * 
+	 * @param server
+	 *            Server instance
+	 */
 	public void setServer(IServer server) {
 		this.server = server;
 	}
 
-    /**
-     * Servlet context
-     * @param servletContext     Servlet context
-     */
+	/**
+	 * Servlet context
+	 * 
+	 * @param servletContext
+	 *            Servlet context
+	 */
 	public void setServletContext(ServletContext servletContext) {
 		this.servletContext = servletContext;
 	}
 
-    /**
-     * Setter for context path
-     * @param contextPath     Context path
-     */
+	/**
+	 * Setter for context path
+	 * 
+	 * @param contextPath
+	 *            Context path
+	 */
 	public void setContextPath(String contextPath) {
 		this.contextPath = contextPath;
 		super.setName(contextPath.substring(1));
 	}
 
-    /**
-     * Setter for virtual hosts. Creates array of hostnames.
-     * @param virtualHosts           Virtual hosts list as string
-     */
+	/**
+	 * Setter for virtual hosts. Creates array of hostnames.
+	 * 
+	 * @param virtualHosts
+	 *            Virtual hosts list as string
+	 */
 	public void setVirtualHosts(String virtualHosts) {
 		this.virtualHosts = virtualHosts;
-        // Split string into array of vhosts
-        hostnames = virtualHosts.split(",");
+		// Split string into array of vhosts
+		hostnames = virtualHosts.split(",");
 		for (int i = 0; i < hostnames.length; i++) {
 			hostnames[i] = hostnames[i].trim();
 			if (hostnames[i].equals("*")) {
@@ -160,30 +179,37 @@ public class WebScope extends Scope implements ServletContextAware {
 		}
 	}
 
-    /**
-     * Map all vhosts to global scope then initialize
-     */
+	/**
+	 * Map all vhosts to global scope then initialize
+	 */
 	public synchronized void register() {
 		if (registered) {
 			// Already registered
 			return;
 		}
-		
+
 		appContext = LoaderBase.getRed5ApplicationContext(contextPath);
 		appLoader = LoaderBase.getApplicationLoader();
 		// Release references
 		LoaderBase.setRed5ApplicationContext(contextPath, null);
 		if (hostnames != null && hostnames.length > 0) {
 			for (String element : hostnames) {
-				server.addMapping(element, getName(), getParent().getName());
+				try {
+					server
+							.addMapping(element, getName(), getParent()
+									.getName());
+				} catch (RemoteException e) {
+					log.warn("Error adding mapping on remote", e);
+				}
 			}
 		}
 		init();
-		// We don't want to have configured scopes to get freed when a client disconnects.
+		// We don't want to have configured scopes to get freed when a client
+		// disconnects.
 		keepOnDisconnect = true;
 		registered = true;
 	}
-	
+
 	/**
 	 * Uninitialize and remove all vhosts from the global scope.
 	 */
@@ -192,7 +218,7 @@ public class WebScope extends Scope implements ServletContextAware {
 			// Not registered
 			return;
 		}
-		
+
 		shuttingDown = true;
 		keepOnDisconnect = false;
 		uninit();
@@ -204,7 +230,11 @@ public class WebScope extends Scope implements ServletContextAware {
 		}
 		if (hostnames != null && hostnames.length > 0) {
 			for (String element : hostnames) {
-				server.removeMapping(element, getName());
+				try {
+					server.removeMapping(element, getName());
+				} catch (RemoteException e) {
+					log.warn("Error removing mapping on remote", e);
+				}
 			}
 		}
 		if (appContext != null) {
@@ -220,8 +250,8 @@ public class WebScope extends Scope implements ServletContextAware {
 		registered = false;
 		shuttingDown = false;
 	}
-	
-    /** {@inheritDoc} */
+
+	/** {@inheritDoc} */
 	public IServer getServer() {
 		return server;
 	}
@@ -243,5 +273,5 @@ public class WebScope extends Scope implements ServletContextAware {
 	public boolean isShuttingDown() {
 		return shuttingDown;
 	}
-	
+
 }

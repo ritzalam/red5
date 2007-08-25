@@ -5,6 +5,56 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
 	http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-2.0.xsd">
 
+    <bean id="sysprops" class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+        <property name="targetClass" value="java.lang.System" />
+        <property name="targetMethod" value="getProperties" />
+    </bean>
+	
+	<bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+		<property name="targetObject">
+			<ref local="sysprops"/>
+		</property>
+		<property name="targetMethod">
+			<value>setProperty</value>
+		</property>
+		<property name="arguments">
+		    <list>
+		        <value>red5.deployment.type</value>
+		        <value>war</value>
+		    </list>
+		</property>		      
+	</bean>	
+	
+	<bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+		<property name="targetObject">
+			<ref local="sysprops"/>
+		</property>
+		<property name="targetMethod">
+			<value>setProperty</value>
+		</property>
+		<property name="arguments">
+		    <list>
+		        <value>red5.config_root</value>
+		        <value></value>
+		    </list>
+		</property>		      
+	</bean>		
+
+	<bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+		<property name="targetObject">
+			<ref local="sysprops"/>
+		</property>
+		<property name="targetMethod">
+			<value>setProperty</value>
+		</property>
+		<property name="arguments">
+		    <list>
+		        <value>java.rmi.server.hostname</value>
+		        <value>localhost</value>
+		    </list>
+		</property>		      
+	</bean>		
+
 	<!-- DEFAULT GLOBAL CONTEXT -->
 	<bean id="global.clientRegistry"
 		class="org.red5.server.ClientRegistry" />

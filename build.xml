@@ -727,6 +727,10 @@
 		
 		<!-- remove directories we dont want -->
 		<delete dir="${classes.dir}/testcases"/>		
+		<!-- cleanup "standalone" red5-web files -->
+        <delete>
+            <fileset dir="${webapps.build.dir}" includes="**/red5-web.*"/>
+        </delete>		
 		
 		<!-- add the configs to the root war -->
 		<filter token="display.name" value=""/>
@@ -737,26 +741,30 @@
 		<copy todir="${webapps.build.dir}/root/WEB-INF" overwrite="true" filtering="true">
 			<fileset dir="${config.dir}/war">
 				<include name="web.xml"/>
-				<include name="applicationContext.xml"/>
-				<include name="red5-common.xml"/>
-				<include name="red5-core.xml"/>
-				<include name="red5-web.properties"/>
-				<include name="red5.properties"/>
 				<include name="log4j.properties"/>
 			</fileset>
 		</copy>		
-		<!-- copy the jmx support files into the webapp classpath -->
-		<copy todir="${webapps.build.dir}/root/WEB-INF/classes">
+		<copy tofile="${webapps.build.dir}/root/WEB-INF/classes/red5-web.xml" overwrite="true" filtering="true"				
+			file="${config.dir}/war/root-web.xml"/>
+		<copy todir="${webapps.build.dir}/root/WEB-INF/classes" overwrite="true" filtering="true">
 			<fileset dir="${config.dir}">
 				<include name="*.jmx"/>
 				<include name="access.properties"/>
 				<include name="password.properties"/>
+			</fileset>
+			<fileset dir="${config.dir}/war">
+				<include name="beanRefContext.xml"/>
+				<include name="applicationContext.xml"/>
+				<include name="red5-common.xml"/>
+				<include name="red5-core.xml"/>
+				<include name="red5.properties"/>
 			</fileset>
 		</copy>		
 		<!-- war up root -->
 		<war destfile="${dist.dir}/ROOT.war" webxml="${webapps.build.dir}/root/WEB-INF/web.xml">
 			<fileset dir="${webapps.build.dir}/root"/>
 			<fileset dir="${classes.dir}">
+				<exclude name="**/applications/**"/>
 				<exclude name="**/sreams/**"/>
 			</fileset>
 			<lib dir="${lib.dir}">
@@ -794,20 +802,23 @@
 		<copy todir="${webapps.build.dir}/echo/WEB-INF" overwrite="true" filtering="true">
 			<fileset dir="${config.dir}/war">
 				<include name="web.xml"/>
-				<include name="applicationContext.xml"/>
-				<include name="red5-common.xml"/>
-				<include name="red5-core.xml"/>
-				<include name="red5-web.properties"/>				
-				<include name="red5.properties"/>
 				<include name="log4j.properties"/>				
 			</fileset>
 		</copy>		
-		<!-- copy the jmx support files into the webapp classpath -->
+		<copy tofile="${webapps.build.dir}/echo/WEB-INF/classes/red5-web.xml" overwrite="true" filtering="true"				
+			file="${config.dir}/war/echo-web.xml"/>
 		<copy todir="${webapps.build.dir}/echo/WEB-INF/classes">
 			<fileset dir="${config.dir}">
 				<include name="*.jmx"/>
 				<include name="access.properties"/>
 				<include name="password.properties"/>
+			</fileset>
+			<fileset dir="${config.dir}/war">
+				<include name="beanRefContext.xml"/>
+				<include name="applicationContext.xml"/>
+				<include name="red5-common.xml"/>
+				<include name="red5-core.xml"/>
+				<include name="red5.properties"/>
 			</fileset>
 		</copy>	
 		<!-- war up echo -->
@@ -853,20 +864,23 @@
 		<copy todir="${webapps.build.dir}/oflaDemo/WEB-INF" overwrite="true" filtering="true">
 			<fileset dir="${config.dir}/war">
 				<include name="web.xml"/>
-				<include name="applicationContext.xml"/>
-				<include name="red5-common.xml"/>
-				<include name="red5-core.xml"/>
-				<include name="red5-web.properties"/>				
-				<include name="red5.properties"/>
 				<include name="log4j.properties"/>				
 			</fileset>
 		</copy>		
-		<!-- copy the jmx support files into the webapp classpath -->
+		<copy tofile="${webapps.build.dir}/oflaDemo/WEB-INF/classes/red5-web.xml" overwrite="true" filtering="true"				
+			file="${config.dir}/war/oflaDemo-web.xml"/>
 		<copy todir="${webapps.build.dir}/oflaDemo/WEB-INF/classes">
 			<fileset dir="${config.dir}">
 				<include name="*.jmx"/>
 				<include name="access.properties"/>
 				<include name="password.properties"/>
+			</fileset>
+			<fileset dir="${config.dir}/war">
+				<include name="beanRefContext.xml"/>
+				<include name="applicationContext.xml"/>
+				<include name="red5-common.xml"/>
+				<include name="red5-core.xml"/>
+				<include name="red5.properties"/>
 			</fileset>
 		</copy>	
 		<!-- war up oflaDemo -->
@@ -914,20 +928,23 @@
 		<copy todir="${webapps.build.dir}/admin/WEB-INF" overwrite="true" filtering="true">
 			<fileset dir="${config.dir}/war">
 				<include name="web.xml"/>
-				<include name="applicationContext.xml"/>
-				<include name="red5-common.xml"/>
-				<include name="red5-core.xml"/>
-				<include name="red5-web.properties"/>				
-				<include name="red5.properties"/>
 				<include name="log4j.properties"/>
 			</fileset>
 		</copy>		
-		<!-- copy the jmx support files into the webapp classpath -->
+		<copy tofile="${webapps.build.dir}/admin/WEB-INF/classes/red5-web.xml" overwrite="true" filtering="true"				
+			file="${config.dir}/war/admin-web.xml"/>
 		<copy todir="${webapps.build.dir}/admin/WEB-INF/classes">
 			<fileset dir="${config.dir}">
 				<include name="*.jmx"/>
 				<include name="access.properties"/>
 				<include name="password.properties"/>
+			</fileset>
+			<fileset dir="${config.dir}/war">
+				<include name="beanRefContext.xml"/>
+				<include name="applicationContext.xml"/>
+				<include name="red5-common.xml"/>
+				<include name="red5-core.xml"/>
+				<include name="red5.properties"/>
 			</fileset>
 		</copy>			
 		<!-- war up admin -->

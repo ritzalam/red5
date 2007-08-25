@@ -3,14 +3,22 @@
 	 xmlns:lang="http://www.springframework.org/schema/lang" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd                            http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-2.0.xsd">
 	<!-- This context is shared between all child contexts. -->
 	<!-- Server bean -->
+	<!--  bean id="red5.server" class="org.red5.server.Server"/ -->
 	<bean id="red5.server" class="org.red5.server.EmbeddableServer"/>
+
+    <bean class="org.springframework.remoting.rmi.RmiServiceExporter">
+        <property name="serviceName" value="red5Server"/>
+        <property name="serviceInterface" value="org.red5.server.api.IServer"/>
+        <property name="service" ref="red5.server"/>
+    </bean>	
+ 
 	<!-- JMX server -->
 	<bean id="jmxFactory" class="org.red5.server.jmx.JMXFactory">
 		<property name="domain" value="org.red5.server"/>
 	</bean>
 	<bean id="jmxAgent" class="org.red5.server.jmx.JMXAgent" init-method="init">
 		<!-- The RMI adapter allows remote connections to the MBeanServer -->
-		<property name="enableRmiAdapter" value="true" />
+		<property name="enableRmiAdapter" value="false" />
 		<property name="rmiAdapterPort" value="9999"/>
 		<!-- SSL
 			To use jmx with ssl you must also supply the location of the keystore and its password
@@ -22,8 +30,8 @@
 		<!-- Starts a registry if it doesnt exist -->
 		<property name="startRegistry" value="true" />
 		<!-- Authentication -->
-		<property name="remoteAccessProperties" value="classes/access.properties"/>
-		<property name="remotePasswordProperties" value="classes/password.properties"/>
+		<property name="remoteAccessProperties" value=""/>
+		<property name="remotePasswordProperties" value=""/>
 		<!-- The HTML adapter allows connections to the MBeanServer via a web browser -->
 		<property name="enableHtmlAdapter" value="false" />
 		<property name="htmlAdapterPort" value="8082"/>

@@ -20,9 +20,8 @@
 
 	<bean id="placeholderConfig"
 		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-		<property name="location" value="/WEB-INF/red5.properties" />
+		<property name="location" value="red5.properties" />
 	</bean>
-
 	   
 	<!-- RTMP Handler -->
 	<bean id="rtmpHandler"

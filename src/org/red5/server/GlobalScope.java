@@ -19,40 +19,44 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.rmi.RemoteException;
+
 import org.red5.server.api.IGlobalScope;
 import org.red5.server.api.IServer;
 import org.red5.server.api.persistence.IPersistenceStore;
 import org.red5.server.api.persistence.PersistenceUtils;
 
 /**
- * Global scope is a top level scope. Server instance is meant to be injected with Spring before
- * initialization (otherwise NullPointerException is thrown).
- *
- * @see  org.red5.server.api.IGlobalScope
- * @see  org.red5.server.api.IScope
+ * Global scope is a top level scope. Server instance is meant to be injected
+ * with Spring before initialization (otherwise NullPointerException is thrown).
+ * 
+ * @see org.red5.server.api.IGlobalScope
+ * @see org.red5.server.api.IScope
  */
 public class GlobalScope extends Scope implements IGlobalScope {
-    // Red5 Server instance
+	// Red5 Server instance
 	protected IServer server;
 
-    /**
-     *
-     * @param persistenceClass          Persistent class name
-     * @throws Exception                Exception
-     */
-    @Override
+	/**
+	 * 
+	 * @param persistenceClass
+	 *            Persistent class name
+	 * @throws Exception
+	 *             Exception
+	 */
+	@Override
 	public void setPersistenceClass(String persistenceClass) throws Exception {
 		this.persistenceClass = persistenceClass;
 		// We'll have to wait for creation of the store object
 		// until all classes have been initialized.
 	}
 
-    /**
-     * Get persistence store for scope
-     *
-     * @return            Persistence store
-     */
-    @Override
+	/**
+	 * Get persistence store for scope
+	 * 
+	 * @return Persistence store
+	 */
+	@Override
 	public IPersistenceStore getStore() {
 		if (store != null) {
 			return store;
@@ -69,24 +73,29 @@ public class GlobalScope extends Scope implements IGlobalScope {
 	}
 
 	/**
-     * Setter for server
-     *
-     * @param server Server
-     */
-    public void setServer(IServer server) {
+	 * Setter for server
+	 * 
+	 * @param server
+	 *            Server
+	 */
+	public void setServer(IServer server) {
 		this.server = server;
 	}
 
-    /** {@inheritDoc} */
+	/** {@inheritDoc} */
 	public IServer getServer() {
 		return server;
 	}
 
-    /**
-     *  Register global scope in server instance, then call initialization
-     */
-    public void register() {
-		server.registerGlobal(this);
+	/**
+	 * Register global scope in server instance, then call initialization
+	 */
+	public void register() {
+		try {
+			server.registerGlobal(this);
+		} catch (RemoteException e) {
+			log.warn("Error registering on remote", e);
+		}
 		init();
 	}
 

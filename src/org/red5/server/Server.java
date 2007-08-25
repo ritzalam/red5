@@ -19,6 +19,7 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -40,51 +41,61 @@ import org.springframework.core.style.ToStringCreator;
 /**
  * Red5 server core class implementation.
  */
-public class Server implements IServer, ApplicationContextAware {
+public class Server implements IServer, ApplicationContextAware, Serializable {
 
 	// Initialize Logging
 	protected static Log log = LogFactory.getLog(Server.class.getName());
-    /**
-     *  List of global scopes
-     */
+
+	/**
+	 * List of global scopes
+	 */
 	protected ConcurrentHashMap<String, IGlobalScope> globals = new ConcurrentHashMap<String, IGlobalScope>();
-    /**
-     * Mappings
-     */
+
+	/**
+	 * Mappings
+	 */
 	protected ConcurrentHashMap<String, String> mapping = new ConcurrentHashMap<String, String>();
-    /**
-     *  Spring application context
-     */
+
+	/**
+	 * Spring application context
+	 */
 	protected ApplicationContext applicationContext;
-    /**
-     *  Constant for slash
-     */
+
+	/**
+	 * Constant for slash
+	 */
 	protected static final String SLASH = "/";
-    /**
-     *  Constant for empty string
-     */
+
+	/**
+	 * Constant for empty string
+	 */
 	protected static final String EMPTY = "";
 
 	public Set<IScopeListener> scopeListeners = new CopyOnWriteArraySet<IScopeListener>();
 
 	public Set<IConnectionListener> connectionListeners = new CopyOnWriteArraySet<IConnectionListener>();
 
-    /**
-     * Setter for Spring application context
-     * @param applicationContext     Application context
-     */
+	/**
+	 * Setter for Spring application context
+	 * 
+	 * @param applicationContext
+	 *            Application context
+	 */
 	public void setApplicationContext(ApplicationContext applicationContext) {
 		log.debug("Setting application context");
 		this.applicationContext = applicationContext;
 	}
 
-    /**
-     * Return scope key. Scope key consists of host name concatenated with context path by slash symbol
-     *
-     * @param hostName           Host name
-     * @param contextPath        Context path
-     * @return                   Scope key as string
-     */
+	/**
+	 * Return scope key. Scope key consists of host name concatenated with
+	 * context path by slash symbol
+	 * 
+	 * @param hostName
+	 *            Host name
+	 * @param contextPath
+	 *            Context path
+	 * @return Scope key as string
+	 */
 	protected String getKey(String hostName, String contextPath) {
 		if (hostName == null) {
 			hostName = EMPTY;
@@ -95,18 +106,21 @@ public class Server implements IServer, ApplicationContextAware {
 		return hostName + SLASH + contextPath;
 	}
 
-    /**
-     * Does global scope lookup for host name and context path
-     *
-     * @param hostName              Host name
-     * @param contextPath           Context path
-     * @return                      Global scope
-     */
+	/**
+	 * Does global scope lookup for host name and context path
+	 * 
+	 * @param hostName
+	 *            Host name
+	 * @param contextPath
+	 *            Context path
+	 * @return Global scope
+	 */
 	public IGlobalScope lookupGlobal(String hostName, String contextPath) {
-        // Init mappings key
-        String key = getKey(hostName, contextPath);
-        // If context path contains slashes get complex key and look up for it in mappings
-        while (contextPath.indexOf(SLASH) != -1) {
+		// Init mappings key
+		String key = getKey(hostName, contextPath);
+		// If context path contains slashes get complex key and look up for it
+		// in mappings
+		while (contextPath.indexOf(SLASH) != -1) {
 			key = getKey(hostName, contextPath);
 			if (log.isDebugEnabled()) {
 				log.debug("Check: " + key);
@@ -114,19 +128,20 @@ public class Server implements IServer, ApplicationContextAware {
 			if (mapping.containsKey(key)) {
 				return getGlobal(mapping.get(key));
 			}
-            final int slashIndex = contextPath.lastIndexOf(SLASH);
-            // Context path is substring from the beginning and till last slash index
-            contextPath = contextPath.substring( 0, slashIndex );
+			final int slashIndex = contextPath.lastIndexOf(SLASH);
+			// Context path is substring from the beginning and till last slash
+			// index
+			contextPath = contextPath.substring(0, slashIndex);
 		}
 
-        // Get global scope key
-        key = getKey(hostName, contextPath);
+		// Get global scope key
+		key = getKey(hostName, contextPath);
 		if (log.isDebugEnabled()) {
 			log.debug("Check host and path: " + key);
 		}
 
-        // Look up for global scope switching keys if still not found
-        if (mapping.containsKey(key)) {
+		// Look up for global scope switching keys if still not found
+		if (mapping.containsKey(key)) {
 			return getGlobal(mapping.get(key));
 		}
 		key = getKey(EMPTY, contextPath);
@@ -150,12 +165,13 @@ public class Server implements IServer, ApplicationContextAware {
 		return getGlobal(mapping.get(key));
 	}
 
-    /**
-     * Return global scope by name
-     *
-     * @param name       Global scope name
-     * @return           Global scope
-     */
+	/**
+	 * Return global scope by name
+	 * 
+	 * @param name
+	 *            Global scope name
+	 * @return Global scope
+	 */
 	public IGlobalScope getGlobal(String name) {
 		if (name == null) {
 			return null;
@@ -163,26 +179,32 @@ public class Server implements IServer, ApplicationContextAware {
 		return globals.get(name);
 	}
 
-    /**
-     * Register global scope
-     *
-     * @param scope       Global scope to register
-     */
+	/**
+	 * Register global scope
+	 * 
+	 * @param scope
+	 *            Global scope to register
+	 */
 	public void registerGlobal(IGlobalScope scope) {
 		log.info("Registering global scope: " + scope.getName());
 		globals.put(scope.getName(), scope);
 	}
 
-    /**
-     * Map key (host + / + context path) and global scope name
-     *
-     * @param hostName          Host name
-     * @param contextPath       Context path
-     * @param globalName        Global scope name
-     * @return                  true if mapping was added, false if already exist
-     */
-	public boolean addMapping(String hostName, String contextPath, String globalName) {
-		log.info("Add mapping global: " + globalName + " host: " + hostName + " context: " + contextPath);
+	/**
+	 * Map key (host + / + context path) and global scope name
+	 * 
+	 * @param hostName
+	 *            Host name
+	 * @param contextPath
+	 *            Context path
+	 * @param globalName
+	 *            Global scope name
+	 * @return true if mapping was added, false if already exist
+	 */
+	public boolean addMapping(String hostName, String contextPath,
+			String globalName) {
+		log.info("Add mapping global: " + globalName + " host: " + hostName
+				+ " context: " + contextPath);
 		final String key = getKey(hostName, contextPath);
 		if (log.isDebugEnabled()) {
 			log.debug("Add mapping: " + key + " => " + globalName);
@@ -194,15 +216,18 @@ public class Server implements IServer, ApplicationContextAware {
 		return true;
 	}
 
-    /**
-     * Remove mapping with given key
-     *
-     * @param hostName              Host name
-     * @param contextPath           Context path
-     * @return                      true if mapping was removed, false if key doesn't exist
-     */
+	/**
+	 * Remove mapping with given key
+	 * 
+	 * @param hostName
+	 *            Host name
+	 * @param contextPath
+	 *            Context path
+	 * @return true if mapping was removed, false if key doesn't exist
+	 */
 	public boolean removeMapping(String hostName, String contextPath) {
-		log.info("Remove mapping host: " + hostName + " context: " + contextPath);		
+		log.info("Remove mapping host: " + hostName + " context: "
+				+ contextPath);
 		final String key = getKey(hostName, contextPath);
 		if (log.isDebugEnabled()) {
 			log.debug("Remove mapping: " + key);
@@ -214,38 +239,38 @@ public class Server implements IServer, ApplicationContextAware {
 		return true;
 	}
 
-    /**
-     * Return mapping
-     *
-     * @return             Map of "scope key / scope name" pairs
-     */
+	/**
+	 * Return mapping
+	 * 
+	 * @return Map of "scope key / scope name" pairs
+	 */
 	public Map<String, String> getMappingTable() {
 		return mapping;
 	}
 
-    /**
-     * Return global scope names set iterator
-     *
-     * @return           Iterator
-     */
+	/**
+	 * Return global scope names set iterator
+	 * 
+	 * @return Iterator
+	 */
 	public Iterator<String> getGlobalNames() {
 		return globals.keySet().iterator();
 	}
 
-    /**
-     * Return global scopes set iterator
-     *
-     * @return           Iterator
-     */
+	/**
+	 * Return global scopes set iterator
+	 * 
+	 * @return Iterator
+	 */
 	public Iterator<IGlobalScope> getGlobalScopes() {
 		return globals.values().iterator();
 	}
 
-    /**
-     * String representation of server
-     *
-     * @return            String representation of server
-     */
+	/**
+	 * String representation of server
+	 * 
+	 * @return String representation of server
+	 */
 	@Override
 	public String toString() {
 		return new ToStringCreator(this).append(mapping).toString();
@@ -274,10 +299,11 @@ public class Server implements IServer, ApplicationContextAware {
 	/**
 	 * Notify listeners about a newly created scope.
 	 * 
-	 * @param scope the scope that was created
+	 * @param scope
+	 *            the scope that was created
 	 */
 	protected void notifyScopeCreated(IScope scope) {
-		for (IScopeListener listener: scopeListeners) {
+		for (IScopeListener listener : scopeListeners) {
 			listener.notifyScopeCreated(scope);
 		}
 	}
@@ -285,10 +311,11 @@ public class Server implements IServer, ApplicationContextAware {
 	/**
 	 * Notify listeners that a scope was removed.
 	 * 
-	 * @param scope the scope that was removed
+	 * @param scope
+	 *            the scope that was removed
 	 */
 	protected void notifyScopeRemoved(IScope scope) {
-		for (IScopeListener listener: scopeListeners) {
+		for (IScopeListener listener : scopeListeners) {
 			listener.notifyScopeRemoved(scope);
 		}
 	}
@@ -296,10 +323,11 @@ public class Server implements IServer, ApplicationContextAware {
 	/**
 	 * Notify listeners that a new connection was established.
 	 * 
-	 * @param conn the new connection
+	 * @param conn
+	 *            the new connection
 	 */
 	protected void notifyConnected(IConnection conn) {
-		for (IConnectionListener listener: connectionListeners) {
+		for (IConnectionListener listener : connectionListeners) {
 			listener.notifyConnected(conn);
 		}
 	}
@@ -307,10 +335,11 @@ public class Server implements IServer, ApplicationContextAware {
 	/**
 	 * Notify listeners that a connection was disconnected.
 	 * 
-	 * @param conn the disconnected connection
+	 * @param conn
+	 *            the disconnected connection
 	 */
 	protected void notifyDisconnected(IConnection conn) {
-		for (IConnectionListener listener: connectionListeners) {
+		for (IConnectionListener listener : connectionListeners) {
 			listener.notifyDisconnected(conn);
 		}
 	}

@@ -176,7 +176,16 @@ public class Context implements IContext, ApplicationContextAware, ContextMBean 
 		//if (context instanceof ConfigurableWebApplicationContext) {
 		    if ("war".equals(deploymentType)) {
 			    //	used by the WAR version
-			    coreContext = ((ConfigurableWebApplicationContext) applicationContext).getBeanFactory();
+			    //org.springframework.web.context.support.XmlWebApplicationContext
+			    //coreContext = ((ConfigurableWebApplicationContext) applicationContext).getBeanFactory();
+			    //coreContext = ((ClassPathXmlApplicationContext) applicationContext).getBeanFactory();
+			    //coreContext = ((GenericApplicationContext) applicationContext).getBeanFactory();
+                if (context instanceof XmlWebApplicationContext) {
+                    //ROOT.war registers this
+			        coreContext = ((XmlWebApplicationContext) applicationContext).getBeanFactory();
+			    } else {
+			        coreContext = ((ClassPathXmlApplicationContext) applicationContext).getBeanFactory();
+			    }
 			} else if ("jboss".equals(deploymentType)) {
                 if (context instanceof XmlWebApplicationContext) {
                     //ROOT.war registers this
