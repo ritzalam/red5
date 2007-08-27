@@ -123,8 +123,8 @@ public class Standalone {
     		conf = root.substring(0, idx);
 
             // Store root directory of Red5
-    		idx = root.lastIndexOf('/');
-    		root = root.substring(0, idx);
+    		idx = conf.lastIndexOf('/');
+    		root = conf.substring(0, idx);
     		if (System.getProperty("file.separator").equals("/")) {
     			// Workaround for linux systems
     			root = '/' + root;
