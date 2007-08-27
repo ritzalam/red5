@@ -21,7 +21,6 @@ package org.red5.server.net.rtmp.codec;
 
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoSession;
-import org.apache.mina.common.WriteFuture;
 import org.apache.mina.filter.codec.ProtocolCodecException;
 import org.apache.mina.filter.codec.ProtocolEncoder;
 import org.apache.mina.filter.codec.ProtocolEncoderOutput;
@@ -47,10 +46,8 @@ public class RTMPMinaProtocolEncoder extends RTMPProtocolEncoder implements
 				final ByteBuffer buf = encode(state, message);
 				if (buf != null) {
 					out.write(buf);
-					final WriteFuture future = out.flush();
-					if (future != null) {
-						future.join();
-					}
+					out.mergeAll();
+					out.flush();
 				}
 			}
 		} catch (Exception ex) {
