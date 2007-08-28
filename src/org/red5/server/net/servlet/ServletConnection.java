@@ -146,9 +146,9 @@ public class ServletConnection implements IConnection {
 		session.invalidate();
 	}
 
-    @SuppressWarnings("unchecked")
+	/** {@inheritDoc} */
 	public Map<String, Object> getConnectParams() {
-		return Collections.EMPTY_MAP;
+		return packet.getHeaders();
 	}
 
 	/** {@inheritDoc} */

@@ -21,6 +21,7 @@ package org.red5.server.net.remoting.message;
 
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -38,6 +39,10 @@ public class RemotingPacket {
      * Byte buffer data
      */
 	protected ByteBuffer data;
+	/**
+	 * Headers sent with request.
+	 */
+	protected Map<String, Object> headers;
     /**
      * List of calls
      */
@@ -51,10 +56,20 @@ public class RemotingPacket {
      * Create remoting packet from list of pending calls
      * @param calls              List of call objects
      */
-    public RemotingPacket(List<RemotingCall> calls) {
+    public RemotingPacket(Map<String, Object> headers, List<RemotingCall> calls) {
+    	this.headers = headers;
 		this.calls = calls;
 	}
 
+    /**
+     * Get the headers sent with the request.
+     * 
+     * @return
+     */
+    public Map<String, Object> getHeaders() {
+    	return headers;
+    }
+    
 	/**
      * Getter for calls.
      *

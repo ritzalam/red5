@@ -20,16 +20,19 @@ package org.red5.server.net.remoting.codec;
  */
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoSession;
 import org.red5.io.amf.AMF;
-import org.red5.io.amf.Input;
 import org.red5.io.object.Deserializer;
+import org.red5.io.object.Input;
 import org.red5.io.object.BaseInput.ReferenceMode;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.protocol.SimpleProtocolDecoder;
@@ -78,9 +81,9 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 
 	/** {@inheritDoc} */
     public Object decode(ProtocolState state, ByteBuffer in) throws Exception {
-		skipHeaders(in);
+		Map<String, Object> headers = readHeaders(in);
 		List<RemotingCall> calls = decodeCalls(in);
-		return new RemotingPacket(calls);
+		return new RemotingPacket(headers, calls);
 	}
 
     /**
@@ -93,10 +96,12 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 	}
 
     /**
-     * Skip headers
+     * Read remoting headers.
+     * 
      * @param in         Input data as byte buffer
      */
-    protected void skipHeaders(ByteBuffer in) {
+    @SuppressWarnings("unchecked")
+    protected Map<String, Object> readHeaders(ByteBuffer in) {
 		int version = in.getUnsignedShort(); // skip the version
 		int count = in.getUnsignedShort();
 		if (log.isDebugEnabled()) {
@@ -104,14 +109,33 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 			log.debug("Version: " + version);
 			log.debug("Count: " + count);
 		}
-		for (int i = 0; i < count; i++) {
-			boolean required = in.get() == 0x01;
-			if (log.isDebugEnabled()) {
-				log.debug("Header: " + Input.getString(in));
-				log.debug("Required: " + required);
-			}
-			in.skip(in.getInt());
+		if (count == 0) {
+			// No headers present
+			return Collections.EMPTY_MAP;
 		}
+		
+		Deserializer deserializer = new Deserializer();
+		Input input;
+		if (version == 3) {
+			input = new org.red5.io.amf3.Input(in);
+		} else {
+			input = new org.red5.io.amf.Input(in);
+		}
+		Map<String, Object> result = new HashMap<String, Object>();
+		for (int i = 0; i < count; i++) {
+			String name = org.red5.io.amf.Input.getString(in);
+			boolean required = in.get() == 0x01;
+			int size = in.getInt();
+			Object value = deserializer.deserialize(input);
+			if (log.isDebugEnabled()) {
+				log.debug("Header: " + name);
+				log.debug("Required: " + required);
+				log.debug("Size: " + size);
+				log.debug("Value: " + value);
+			}
+			result.put(name, value);
+		}
+		return result;
 	}
 
     /**
@@ -125,7 +149,7 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 		}
 		//in.getInt();
 		List<RemotingCall> calls = new LinkedList<RemotingCall>();
-		Input input;
+		org.red5.io.amf.Input input;
 		int count = in.getUnsignedShort();
 		if (log.isDebugEnabled()) {
 			log.debug("Calls: " + count);
@@ -137,8 +161,8 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 
 			in.limit(limit);
 
-			String serviceString = Input.getString(in);
-			String clientCallback = Input.getString(in);
+			String serviceString = org.red5.io.amf.Input.getString(in);
+			String clientCallback = org.red5.io.amf.Input.getString(in);
 			if (log.isDebugEnabled()) {
 				log.debug("callback: " + clientCallback);
 			}
@@ -162,7 +186,7 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 				if (isAMF3) {
 					input = new org.red5.io.amf3.Input(in);
 				} else {
-					input = new Input(in);
+					input = new org.red5.io.amf.Input(in);
 				}
 				// Prepare remoting mode
 				input.reset(ReferenceMode.MODE_REMOTING);
