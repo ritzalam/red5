@@ -256,7 +256,7 @@
 			//
 			nc.connect( url );
 			if ( username_txt.text.length > 0 ) {
-				nc.addHeader("Credentials", false, {username: username_txt.text, password: password_txt.text});
+				nc.addHeader("Credentials", false, {userid: username_txt.text, password: password_txt.text});
 				printText( " (setCredentials)" );
 			}
 			//
