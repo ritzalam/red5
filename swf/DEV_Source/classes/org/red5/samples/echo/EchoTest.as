@@ -215,7 +215,6 @@
 			temp12.push(temp11);
 			temp12.push(temp11);
 			testParams.push(temp12);
-  			
   			// Create responder for result and error handlers
   			responder = new Responder( onRemotingResult, onRemotingError );
   			
@@ -255,13 +254,13 @@
 			//
 			echoService.endpoint = null;
 			//
+			nc.connect( url );
 			if ( username_txt.text.length > 0 ) {
 				nc.addHeader("Credentials", false, {username: username_txt.text, password: password_txt.text});
 				printText( " (setCredentials)" );
 			}
 			//
 			printText( "</b>..." );
-			nc.connect( url );
 			
 			if (protocol == "http") {
 				// Don't wait for a successfull connection for remoting.
