@@ -24,6 +24,8 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.red5.server.api.IConnection.Encoding;
+
 /**
  * Packet of remote calls. Used by RemoteProtocolDecoder.
  */
@@ -80,4 +82,19 @@ public class RemotingPacket {
 		return scopePath;
 	}
 
+    /**
+     * Return the encoding of the included calls.
+     * 
+     * @return
+     */
+    public Encoding getEncoding() {
+    	List<RemotingCall> calls = getCalls();
+    	if (calls == null || calls.isEmpty()) {
+    		return Encoding.AMF0;
+    	}
+    	
+    	RemotingCall call = calls.get(0);
+    	return call.isAMF3 ? Encoding.AMF3 : Encoding.AMF0;
+    }
+    
 }

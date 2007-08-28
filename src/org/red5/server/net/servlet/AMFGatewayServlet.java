@@ -166,7 +166,7 @@ public class AMFGatewayServlet extends HttpServlet {
 			RemotingPacket message) {
 		IScope scope = webContext.resolveScope(message.getScopePath());
 		// Provide a valid IConnection in the Red5 object
-		Red5.setConnectionLocal(new ServletConnection(req, scope));
+		Red5.setConnectionLocal(new ServletConnection(req, scope, message));
 
         for (RemotingCall call: message.getCalls()) {
             webContext.getServiceInvoker().invoke(call, scope);

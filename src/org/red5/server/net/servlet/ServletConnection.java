@@ -20,27 +20,34 @@ package org.red5.server.net.servlet;
  */
 
 import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 
-import org.red5.server.AttributeStore;
+import org.red5.server.api.IAttributeStore;
 import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
 import org.red5.server.api.event.IEvent;
+import org.red5.server.net.remoting.message.RemotingPacket;
 
 /**
- * Simple connection class so the Red5 object works in methods invoked through
- * remoting.
+ * Connection class so the Red5 object works in methods invoked through
+ * remoting. Attributes are stored in the session of the implementing
+ * servlet container.
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
  */
-public class ServletConnection extends AttributeStore implements IConnection {
+public class ServletConnection implements IConnection {
     /**
      * Scope
      */
@@ -50,16 +57,48 @@ public class ServletConnection extends AttributeStore implements IConnection {
      */
 	protected HttpServletRequest request;
 
+	/**
+	 * Remoting packet that triggered the connection.
+	 */
+	protected RemotingPacket packet;
+	
+	/**
+	 * Session used to store properties.
+	 */
+	protected HttpSession session;
+	
     /**
      * Create servlet connection from request and scope
      * @param request           Servlet request
      * @param scope             Scope
      */
-    public ServletConnection(HttpServletRequest request, IScope scope) {
+    public ServletConnection(HttpServletRequest request, IScope scope, RemotingPacket packet) {
 		this.request = request;
 		this.scope = scope;
+		this.packet = packet;
+		this.session = request.getSession();
 	}
 
+    /**
+     * Return string representation of the connection.
+     * 
+     * @return
+     */
+    public String toString() {
+		return getClass().getSimpleName() + " from " + getRemoteAddress() + ':'
+			+ getRemotePort() + " to " + getHost() + " (session: "
+			+ session.getId() + ')';
+    }
+    
+    /**
+     * Update the current packet.
+     * 
+     * @param packet
+     */
+    protected void setPacket(RemotingPacket packet) {
+    	this.packet = packet;
+    }
+    
     /**
      * Throws Not supported runtime exception
      */
@@ -72,7 +111,7 @@ public class ServletConnection extends AttributeStore implements IConnection {
      * @return        Encoding, currently AMF0
      */
     public Encoding getEncoding() {
-		return Encoding.AMF0;
+		return packet.getEncoding();
 	}
 
     /** {@inheritDoc} */
@@ -104,7 +143,7 @@ public class ServletConnection extends AttributeStore implements IConnection {
 
 	/** {@inheritDoc} */
     public void close() {
-		// Nothing to do.
+		session.invalidate();
 	}
 
     @SuppressWarnings("unchecked")
@@ -232,6 +271,178 @@ public class ServletConnection extends AttributeStore implements IConnection {
 	/** {@inheritDoc} */
     public void notifyEvent(IEvent event) {
 		notSupported();
+	}
+
+	/** {@inheritDoc} */
+	public Boolean getBoolAttribute(String name) {
+		return (Boolean) getAttribute(name);
+	}
+
+	/** {@inheritDoc} */
+	public Byte getByteAttribute(String name) {
+		return (Byte) getAttribute(name);
+	}
+
+	/** {@inheritDoc} */
+	public Double getDoubleAttribute(String name) {
+		return (Double) getAttribute(name);
+	}
+
+	/** {@inheritDoc} */
+	public Integer getIntAttribute(String name) {
+		return (Integer) getAttribute(name);
+	}
+
+	/** {@inheritDoc} */
+	public List getListAttribute(String name) {
+		return (List) getAttribute(name);
+	}
+
+	/** {@inheritDoc} */
+	public Long getLongAttribute(String name) {
+		return (Long) getAttribute(name);
+	}
+
+	/** {@inheritDoc} */
+	public Map getMapAttribute(String name) {
+		return (Map) getAttribute(name);
+	}
+
+	/** {@inheritDoc} */
+	public Set getSetAttribute(String name) {
+		return (Set) getAttribute(name);
+	}
+
+	/** {@inheritDoc} */
+	public Short getShortAttribute(String name) {
+		return (Short) getAttribute(name);
+	}
+
+	/** {@inheritDoc} */
+	public String getStringAttribute(String name) {
+		return (String) getAttribute(name);
+	}
+
+	/** {@inheritDoc} */
+	public Object getAttribute(String name) {
+		if (name == null) {
+			return null;
+		}
+		
+		return session.getAttribute(name);
+	}
+
+	/** {@inheritDoc} */
+	public Object getAttribute(String name, Object defaultValue) {
+		if (name == null) {
+			return null;
+		}
+		
+		// Synchronize so default value doesn't override other default value 
+		synchronized (session) {
+			Object result = session.getAttribute(name);
+			if (result == null && defaultValue != null) {
+				session.setAttribute(name, defaultValue);
+				result = defaultValue;
+			}
+			return result;
+		}
+	}
+
+	/** {@inheritDoc} */
+	@SuppressWarnings("unchecked")
+	public Set<String> getAttributeNames() {
+		final Set<String> result = new HashSet<String>();
+		// Synchronize to prevent parallel modifications
+		synchronized (session) {
+			final Enumeration<String> names = session.getAttributeNames();
+			while (names.hasMoreElements()) {
+				result.add(names.nextElement());
+			}
+		}
+		return Collections.unmodifiableSet(result);
+	}
+
+	/** {@inheritDoc} */
+	@SuppressWarnings("unchecked")
+	public Map<String, Object> getAttributes() {
+		final Map<String, Object> result = new HashMap<String, Object>();
+		// Synchronize to prevent parallel modifications
+		synchronized (session) {
+			final Enumeration<String> names = session.getAttributeNames();
+			while (names.hasMoreElements()) {
+				final String name = names.nextElement();
+				result.put(name, session.getAttribute(name));
+			}
+		}
+		return Collections.unmodifiableMap(result);
+	}
+
+	/** {@inheritDoc} */
+	public boolean hasAttribute(String name) {
+		if (name == null) {
+			return false;
+		}
+		
+		return (getAttribute(name) != null);
+	}
+
+	/** {@inheritDoc} */
+	public boolean removeAttribute(String name) {
+		if (name == null) {
+			return false;
+		}
+		
+		// Synchronize to prevent parallel modifications
+		synchronized (session) {
+			if (!hasAttribute(name)) {
+				return false;
+			}
+			session.removeAttribute(name);
+		}
+		return true;
+	}
+
+	/** {@inheritDoc} */
+	@SuppressWarnings("unchecked")
+	public void removeAttributes() {
+		// Synchronize to prevent parallel modifications
+		synchronized (session) {
+			final Enumeration<String> names = session.getAttributeNames();
+			while (names.hasMoreElements()) {
+				session.removeAttribute(names.nextElement());
+			}
+		}
+	}
+
+	/** {@inheritDoc} */
+	public boolean setAttribute(String name, Object value) {
+		if (name == null) {
+			return false;
+		}
+		
+		if (value == null) {
+			session.removeAttribute(name);
+		} else {
+			session.setAttribute(name, value);
+		}
+		return true;
+	}
+
+	/** {@inheritDoc} */
+	public void setAttributes(Map<String, Object> values) {
+		for (Map.Entry<String, Object> entry: values.entrySet()) {
+			final String name = entry.getKey();
+			final Object value = entry.getValue();
+			if (name != null && value != null) {
+				session.setAttribute(name, value);
+			}
+		}
+	}
+
+	/** {@inheritDoc} */
+	public void setAttributes(IAttributeStore values) {
+		setAttributes(values.getAttributes());
 	}
 
 }
