@@ -21,12 +21,9 @@ package org.red5.io.amf3;
 
 import java.io.IOException;
 import java.nio.ByteOrder;
-import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
-import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
-import java.util.zip.InflaterOutputStream;
 
 import org.apache.mina.common.ByteBuffer;
 import org.red5.io.object.Deserializer;
