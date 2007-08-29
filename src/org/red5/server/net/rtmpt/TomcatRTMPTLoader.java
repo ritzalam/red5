@@ -27,8 +27,8 @@ import org.apache.catalina.Server;
 import org.apache.catalina.Wrapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.red5.server.tomcat.TomcatLoader;
 import org.red5.server.api.IServer;
+import org.red5.server.tomcat.TomcatLoader;
 
 /**
  * Loader for the RTMPT server which uses Tomcat.
@@ -39,37 +39,43 @@ import org.red5.server.api.IServer;
 public class TomcatRTMPTLoader extends TomcatLoader {
 
 	// Initialize Logging
-	protected static Log log = LogFactory.getLog(TomcatRTMPTLoader.class.getName());
+	protected static Log log = LogFactory.getLog(TomcatRTMPTLoader.class
+			.getName());
 
-    /**
-     * RTMP server instance
-     */
-    protected Server rtmptServer;
-    /**
-     * Server instance
-     */
+	/**
+	 * RTMP server instance
+	 */
+	protected Server rtmptServer;
+
+	/**
+	 * Server instance
+	 */
 	protected IServer server;
-    /**
-     * Host
-     */
+
+	/**
+	 * Host
+	 */
 	private Host host;
-    /**
-     * Context, in terms of JEE context is web application in a servlet container
-     */
+
+	/**
+	 * Context, in terms of JEE context is web application in a servlet
+	 * container
+	 */
 	private Context context;
 
 	/**
-     * Setter for server
-     *
-     * @param server Value to set for property 'server'.
-     */
-    public void setServer(IServer server) {
+	 * Setter for server
+	 * 
+	 * @param server
+	 *            Value to set for property 'server'.
+	 */
+	public void setServer(IServer server) {
 		log.debug("RTMPT setServer");
 		this.server = server;
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public void init() {
 		log.info("Loading RTMPT context");
 
@@ -83,7 +89,8 @@ public class TomcatRTMPTLoader extends TomcatLoader {
 
 		host.addChild(context);
 		if (log.isDebugEnabled()) {
-			log.debug("Null check - engine: " + (null == engine) + " host: " + (null == host));
+			log.debug("Null check - engine: " + (null == engine) + " host: "
+					+ (null == host));
 		}
 		engine.addChild(host);
 
@@ -117,16 +124,13 @@ public class TomcatRTMPTLoader extends TomcatLoader {
 	/**
 	 * Set primary context
 	 * 
-     * @param contextMap
-     * @param contextMap
+	 * @param contextMap
+	 * @param contextMap
 	 */
-	//public void setContext(Context context) {
-	//	log.debug("RTMPT setContext");
-	//	this.context = context;
-	//}
 	public void setContext(Map<String, String> contextMap) {
 		log.debug("RTMPT setContext (map)");
-		context = embedded.createContext(contextMap.get("path"), contextMap.get("docBase"));
+		context = embedded.createContext(contextMap.get("path"), contextMap
+				.get("docBase"));
 		context.setReloadable(false);
 	}
 

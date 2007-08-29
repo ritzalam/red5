@@ -44,13 +44,13 @@ import org.red5.server.stream.provider.FileProvider;
  */
 public class ProviderService implements IProviderService {
 
-    /**
-     * Logger
-     */
-    private static final Logger log = Logger.getLogger(ProviderService.class);
-	
+	/**
+	 * Logger
+	 */
+	private static final Logger log = Logger.getLogger(ProviderService.class);
+
 	/** {@inheritDoc} */
-    public IMessageInput getProviderInput(IScope scope, String name) {
+	public IMessageInput getProviderInput(IScope scope, String name) {
 		IMessageInput msgIn = getLiveProviderInput(scope, name, false);
 		if (msgIn == null) {
 			return getVODProviderInput(scope, name);
@@ -59,17 +59,16 @@ public class ProviderService implements IProviderService {
 	}
 
 	/** {@inheritDoc} */
-    public IMessageInput getLiveProviderInput(IScope scope, String name,
+	public IMessageInput getLiveProviderInput(IScope scope, String name,
 			boolean needCreate) {
-    	IBasicScope basicScope;
-		basicScope = scope.getBasicScope(IBroadcastScope.TYPE,
-				name);
+		IBasicScope basicScope;
+		basicScope = scope.getBasicScope(IBroadcastScope.TYPE, name);
 		if (basicScope == null) {
 			if (needCreate) {
 				synchronized (scope) {
 					// Re-check if another thread already created the scope
-					basicScope = scope.getBasicScope(IBroadcastScope.TYPE,
-							name);
+					basicScope = scope
+							.getBasicScope(IBroadcastScope.TYPE, name);
 					if (basicScope == null) {
 						basicScope = new BroadcastScope(scope, name);
 						scope.addChildScope(basicScope);
@@ -86,7 +85,7 @@ public class ProviderService implements IProviderService {
 	}
 
 	/** {@inheritDoc} */
-    public IMessageInput getVODProviderInput(IScope scope, String name) {
+	public IMessageInput getVODProviderInput(IScope scope, String name) {
 		File file = getVODProviderFile(scope, name);
 		if (file == null) {
 			return null;
@@ -97,7 +96,7 @@ public class ProviderService implements IProviderService {
 	}
 
 	/** {@inheritDoc} */
-    public File getVODProviderFile(IScope scope, String name) {
+	public File getVODProviderFile(IScope scope, String name) {
 		File file = null;
 		try {
 			file = getStreamFile(scope, name);
@@ -111,7 +110,7 @@ public class ProviderService implements IProviderService {
 	}
 
 	/** {@inheritDoc} */
-    public boolean registerBroadcastStream(IScope scope, String name,
+	public boolean registerBroadcastStream(IScope scope, String name,
 			IBroadcastStream bs) {
 		boolean status = false;
 		synchronized (scope) {
@@ -122,7 +121,8 @@ public class ProviderService implements IProviderService {
 				scope.addChildScope(basicScope);
 			}
 			if (basicScope instanceof IBroadcastScope) {
-				((IBroadcastScope) basicScope).subscribe(bs.getProvider(), null);
+				((IBroadcastScope) basicScope)
+						.subscribe(bs.getProvider(), null);
 				status = true;
 			}
 		}
@@ -130,12 +130,11 @@ public class ProviderService implements IProviderService {
 	}
 
 	/** {@inheritDoc} */
-    public List<String> getBroadcastStreamNames(IScope scope) {
+	public List<String> getBroadcastStreamNames(IScope scope) {
 		// TODO: return result of "getBasicScopeNames" when the api has
 		// changed to not return iterators
 		List<String> result = new ArrayList<String>();
-		Iterator<String> it = scope
-				.getBasicScopeNames(IBroadcastScope.TYPE);
+		Iterator<String> it = scope.getBasicScopeNames(IBroadcastScope.TYPE);
 		while (it.hasNext()) {
 			result.add(it.next());
 		}
@@ -143,7 +142,7 @@ public class ProviderService implements IProviderService {
 	}
 
 	/** {@inheritDoc} */
-    public boolean unregisterBroadcastStream(IScope scope, String name) {
+	public boolean unregisterBroadcastStream(IScope scope, String name) {
 		boolean status = false;
 		synchronized (scope) {
 			IBasicScope basicScope = scope.getBasicScope(IBroadcastScope.TYPE,
@@ -160,7 +159,6 @@ public class ProviderService implements IProviderService {
 		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils
 				.getScopeService(scope, IStreamableFileFactory.class);
 		if (name.indexOf(':') == -1 && name.indexOf('.') == -1) {
-		//if (!name.contains(':') && !name.contains('.')) {
 			// Default to .flv files if no prefix and no extension is given.
 			name = "flv:" + name;
 		}
@@ -172,10 +170,12 @@ public class ProviderService implements IProviderService {
 			}
 		}
 
-		IStreamFilenameGenerator filenameGenerator = (IStreamFilenameGenerator)
-			ScopeUtils.getScopeService(scope, IStreamFilenameGenerator.class, DefaultStreamFilenameGenerator.class);
-		
-		String filename = filenameGenerator.generateFilename(scope, name, GenerationType.PLAYBACK);
+		IStreamFilenameGenerator filenameGenerator = (IStreamFilenameGenerator) ScopeUtils
+				.getScopeService(scope, IStreamFilenameGenerator.class,
+						DefaultStreamFilenameGenerator.class);
+
+		String filename = filenameGenerator.generateFilename(scope, name,
+				GenerationType.PLAYBACK);
 		File file;
 		if (filenameGenerator.resolvesToAbsolutePath()) {
 			file = new File(filename);

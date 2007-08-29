@@ -69,6 +69,8 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 
 	private static ServletContext servletContext;
 
+	private static ContextLoader loader;
+
 	{
 		initRegistry();
 	}
@@ -98,8 +100,8 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 			String[] configArray = servletContext.getInitParameter(
 					ContextLoader.CONFIG_LOCATION_PARAM).split("[,\\s]");
 			logger.info("Config location files: " + configArray.length);
-			logger.info("******************************\nWe are ROOT");
-			ContextLoader loader = createContextLoader();
+			// instance the context loader
+			loader = createContextLoader();
 			ConfigurableWebApplicationContext applicationContext = (ConfigurableWebApplicationContext) loader
 					.initWebApplicationContext(servletContext);
 
@@ -172,6 +174,7 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 			webContext.setClientRegistry(clientRegistry);
 			webContext.setServiceInvoker(globalInvoker);
 			webContext.setScopeResolver(globalResolver);
+			webContext.setMappingStrategy(globalStrategy);
 
 			WebScope scope = (WebScope) factory.getBean("web.scope");
 			scope.setServer(server);
@@ -266,24 +269,27 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 			// shutdown jmx
 			JMXAgent.shutdown();
 			// shutdown spring
-			// get web application context from the servlet context
-			ConfigurableWebApplicationContext applicationContext = (ConfigurableWebApplicationContext) servletContext
+			Object attr = servletContext
 					.getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
-			ConfigurableBeanFactory factory = applicationContext
-					.getBeanFactory();
-			// if (factory.containsSingleton("default.context")) {
-			for (String scope : factory.getRegisteredScopeNames()) {
-				logger.debug("Registered scope: " + scope);
+			if (attr != null) {
+				// get web application context from the servlet context
+				ConfigurableWebApplicationContext applicationContext = (ConfigurableWebApplicationContext) attr;
+				ConfigurableBeanFactory factory = applicationContext
+						.getBeanFactory();
+				// for (String scope : factory.getRegisteredScopeNames()) {
+				// logger.debug("Registered scope: " + scope);
+				// }
+				// for (String singleton : factory.getSingletonNames()) {
+				// logger.debug("Registered singleton: " + singleton);
+				// // factory.destroyScopedBean(singleton);
+				// }
+				factory.destroySingletons();
+
+				servletContext
+						.removeAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
+				applicationContext.close();
 			}
-			for (String singleton : factory.getSingletonNames()) {
-				logger.debug("Registered singleton: " + singleton);
-				// factory.destroyScopedBean(singleton);
-			}
-			factory.destroySingletons();
-			// }
-			servletContext
-					.removeAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
-			applicationContext.close();
+			loader.closeWebApplicationContext(servletContext);
 			// http://jakarta.apache.org/commons/logging/guide.html#Classloader_and_Memory_Management
 			// http://wiki.apache.org/jakarta-commons/Logging/UndeployMemoryLeak?action=print
 			LogFactory.release(Thread.currentThread().getContextClassLoader());

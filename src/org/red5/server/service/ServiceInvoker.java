@@ -35,42 +35,45 @@ import org.red5.server.api.service.IServiceInvoker;
 
 /**
  * Makes remote calls, invoking services, resolves service handlers
- *
+ * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 public class ServiceInvoker implements IServiceInvoker {
 
-    /**
-     * Logger
-     */
-    private static final Log log = LogFactory.getLog(ServiceInvoker.class);
-
-    /**
-     * Service name
-     */
-    public static final String SERVICE_NAME = "serviceInvoker";
-
-    /**
-     * Service resolvers set
-     */
-    private Set<IServiceResolver> serviceResolvers = new HashSet<IServiceResolver>();
+	/**
+	 * Logger
+	 */
+	private static final Log log = LogFactory.getLog(ServiceInvoker.class);
 
 	/**
-     * Setter for service resolvers.
-     *
-     * @param resolvers  Service resolvers
-     */
-    public void setServiceResolvers(Set<IServiceResolver> resolvers) {
+	 * Service name
+	 */
+	public static final String SERVICE_NAME = "serviceInvoker";
+
+	/**
+	 * Service resolvers set
+	 */
+	private Set<IServiceResolver> serviceResolvers = new HashSet<IServiceResolver>();
+
+	/**
+	 * Setter for service resolvers.
+	 * 
+	 * @param resolvers
+	 *            Service resolvers
+	 */
+	public void setServiceResolvers(Set<IServiceResolver> resolvers) {
 		serviceResolvers = resolvers;
 	}
 
 	/**
 	 * Lookup a handler for the passed service name in the given scope.
 	 * 
-	 * @param scope              Scope
-	 * @param serviceName        Service name
-	 * @return                   Service handler
+	 * @param scope
+	 *            Scope
+	 * @param serviceName
+	 *            Service name
+	 * @return Service handler
 	 */
 	private Object getServiceHandler(IScope scope, String serviceName) {
 		// Get application scope handler first
@@ -93,17 +96,17 @@ public class ServiceInvoker implements IServiceInvoker {
 	}
 
 	/** {@inheritDoc} */
-    public boolean invoke(IServiceCall call, IScope scope) {
+	public boolean invoke(IServiceCall call, IScope scope) {
 		String serviceName = call.getServiceName();
 		if (log.isDebugEnabled()) {
 			log.debug("Service name " + serviceName);
 		}
 		Object service = getServiceHandler(scope, serviceName);
 		if (service == null) {
-            // Exception must be thrown if service was not found
-            call.setException(new ServiceNotFoundException(serviceName));
-            // Set call status
-            call.setStatus(Call.STATUS_SERVICE_NOT_FOUND);
+			// Exception must be thrown if service was not found
+			call.setException(new ServiceNotFoundException(serviceName));
+			// Set call status
+			call.setStatus(Call.STATUS_SERVICE_NOT_FOUND);
 			log.warn("Service not found: " + serviceName);
 			return false;
 		} else {
@@ -111,12 +114,12 @@ public class ServiceInvoker implements IServiceInvoker {
 				log.debug("Service found: " + serviceName);
 			}
 		}
-        // Invoke if everything is ok
-        return invoke(call, service);
+		// Invoke if everything is ok
+		return invoke(call, service);
 	}
 
 	/** {@inheritDoc} */
-    public boolean invoke(IServiceCall call, Object service) {
+	public boolean invoke(IServiceCall call, Object service) {
 		IConnection conn = Red5.getConnectionLocal();
 		String methodName = call.getServiceMethodName();
 

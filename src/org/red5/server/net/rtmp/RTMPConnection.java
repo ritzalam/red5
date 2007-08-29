@@ -417,14 +417,12 @@ public abstract class RTMPConnection extends BaseConnection implements
 				// Another stream already exists with this id
 				return null;
 			}
-			ApplicationContext appCtx = scope.getContext()
-					.getApplicationContext();
-			ClientBroadcastStream cbs = (ClientBroadcastStream) appCtx
-					.getBean("clientBroadcastStream");
 			/**
 			 * Picking up the ClientBroadcastStream defined as a spring
 			 * prototype in red5-common.xml
 			 */
+			ClientBroadcastStream cbs = (ClientBroadcastStream) scope
+					.getContext().getBean("clientBroadcastStream");
 			Integer buffer = streamBuffers.get(streamId - 1);
 			if (buffer != null)
 				cbs.setClientBufferDuration(buffer);
@@ -461,14 +459,12 @@ public abstract class RTMPConnection extends BaseConnection implements
 				// Another stream already exists with this id
 				return null;
 			}
-			ApplicationContext appCtx = scope.getContext()
-					.getApplicationContext();
 			/**
 			 * Picking up the PlaylistSubscriberStream defined as a spring
 			 * prototype in red5-common.xml
 			 */
-			PlaylistSubscriberStream pss = (PlaylistSubscriberStream) appCtx
-					.getBean("playlistSubscriberStream");
+			PlaylistSubscriberStream pss = (PlaylistSubscriberStream) scope
+					.getContext().getBean("playlistSubscriberStream");
 			Integer buffer = streamBuffers.get(streamId - 1);
 			if (buffer != null)
 				pss.setClientBufferDuration(buffer);
@@ -496,7 +492,6 @@ public abstract class RTMPConnection extends BaseConnection implements
 		if (id <= 0) {
 			return null;
 		}
-
 		return streams.get(id - 1);
 	}
 
@@ -511,7 +506,6 @@ public abstract class RTMPConnection extends BaseConnection implements
 		if (channelId < 4) {
 			return 0;
 		}
-
 		return ((channelId - 4) / 5) + 1;
 	}
 
@@ -526,7 +520,6 @@ public abstract class RTMPConnection extends BaseConnection implements
 		if (channelId < 4) {
 			return null;
 		}
-
 		return streams.get(getStreamIdForChannel(channelId) - 1);
 	}
 
@@ -841,7 +834,6 @@ public abstract class RTMPConnection extends BaseConnection implements
 	 */
 	protected void messageReceived() {
 		readMessages++;
-
 		// Trigger generation of BytesRead messages
 		updateBytesRead();
 	}
@@ -898,7 +890,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	/**
-	 * Marks that pingback was recieved
+	 * Marks that pingback was received
 	 * 
 	 * @param pong
 	 *            Ping object
@@ -1025,7 +1017,8 @@ public abstract class RTMPConnection extends BaseConnection implements
 				return;
 			}
 
-			if (lastPongReceived > 0 && lastPingSent - lastPongReceived > maxInactivity) {
+			if (lastPongReceived > 0
+					&& lastPingSent - lastPongReceived > maxInactivity) {
 				// Client didn't send response to ping command for too long,
 				// disconnect
 				service.removeScheduledJob(keepAliveJobName);
