@@ -21,6 +21,7 @@ package org.red5.server;
 
 import java.io.IOException;
 
+import org.apache.log4j.Logger;
 import org.red5.server.api.IClientRegistry;
 import org.red5.server.api.IContext;
 import org.red5.server.api.IGlobalScope;
@@ -47,6 +48,10 @@ import org.springframework.core.io.Resource;
  * </p>
  */
 public class Context implements IContext, ApplicationContextAware, ContextMBean {
+
+	// Initialize Logging
+	public static Logger logger = Logger.getLogger(Context.class.getName());
+
 	/**
 	 * Spring application context
 	 */
@@ -92,6 +97,7 @@ public class Context implements IContext, ApplicationContextAware, ContextMBean 
 	 * red5.xml context
 	 */
 	public Context() {
+		logger.debug("Context created with default ctor: " + this);
 	}
 
 	/**
@@ -103,6 +109,8 @@ public class Context implements IContext, ApplicationContextAware, ContextMBean 
 	 *            Context path
 	 */
 	public Context(ApplicationContext context, String contextPath) {
+		logger.debug("Context created with\nPath: " + contextPath
+				+ "\nAppContext: " + context);
 		setApplicationContext(context);
 		this.contextPath = contextPath;
 	}
@@ -124,8 +132,8 @@ public class Context implements IContext, ApplicationContextAware, ContextMBean 
 	 * @return Scope resolution result
 	 */
 	public IScope resolveScope(String path) {
-		//System.out.println("------------------\nCheck nulls - scopeResolver:"
-		//		+ (scopeResolver == null) + " path:" + (path == null));
+		logger.debug("Check nulls - scopeResolver:" + (scopeResolver == null)
+				+ " path:" + (path == null) + "\nthis: " + this);
 		return scopeResolver.resolveScope(path);
 	}
 
@@ -195,9 +203,11 @@ public class Context implements IContext, ApplicationContextAware, ContextMBean 
 	 *            App context
 	 */
 	public void setApplicationContext(ApplicationContext context) {
+		logger.debug("Context setAppContext\nAppContext: " + context
+				+ "\nthis: " + this);
 		this.applicationContext = context;
-		System.out
-				.println("--------------------------------------------------------------------\nApplication context: "
+		logger
+				.debug("--------------------------------------------------------------------\nApplication context: "
 						+ context.getClass().getName());
 		String deploymentType = System.getProperty("red5.deployment.type");
 		System.out.println("Deployment type: " + deploymentType);
@@ -373,7 +383,21 @@ public class Context implements IContext, ApplicationContextAware, ContextMBean 
 	 * @see org.springframework.beans.factory.BeanFactory
 	 */
 	public Object getBean(String beanId) {
-		return applicationContext.getBean(beanId);
+		// for war applications the "application" beans are not stored in the
+		// sub-contexts, so look in the application context first and the core
+		// context second
+		Object bean = null;
+		try {
+			bean = applicationContext.getBean(beanId);
+		} catch (NoSuchBeanDefinitionException e) {
+			logger.warn("Bean lookup failed for " + beanId
+					+ " in the application context");
+			logger.debug(e);
+		}
+		if (bean == null) {
+			bean = getCoreService(beanId);
+		}
+		return bean;
 	}
 
 	/**

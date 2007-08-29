@@ -736,6 +736,7 @@
 		<filter token="display.name" value=""/>
 		<filter token="webapp.root.key" value="/"/>
 		<filter token="context.path" value="/"/>
+		<filter token="context.loader.servlet" value="org.red5.server.war.RootContextLoaderServlet"/>
 		<copy tofile="${webapps.build.dir}/root/META-INF/context.xml" overwrite="true"				
 			file="${config.dir}/war/root-context.xml"/>
 		<copy todir="${webapps.build.dir}/root/WEB-INF" overwrite="true" filtering="true">
@@ -754,10 +755,9 @@
 			</fileset>
 			<fileset dir="${config.dir}/war">
 				<include name="beanRefContext.xml"/>
-				<include name="applicationContext.xml"/>
+				<include name="defaultContext.xml"/>
 				<include name="red5-common.xml"/>
 				<include name="red5-core.xml"/>
-				<include name="red5.properties"/>
 			</fileset>
 		</copy>		
 		<!-- war up root -->
@@ -790,6 +790,9 @@
 			</manifest>
 		</war>				
 		
+		<!-- use this servlet for all the child contexts -->			
+		<filter token="context.loader.servlet" value="org.red5.server.war.SubContextLoaderServlet"/>	
+		
 		<!-- add the configs to the echo war -->
 		<filter token="display.name" value="echo"/>
 		<filter token="webapp.root.key" value="/echo"/>
@@ -807,20 +810,6 @@
 		</copy>		
 		<copy tofile="${webapps.build.dir}/echo/WEB-INF/classes/red5-web.xml" overwrite="true" filtering="true"				
 			file="${config.dir}/war/echo-web.xml"/>
-		<copy todir="${webapps.build.dir}/echo/WEB-INF/classes" overwrite="true" filtering="true">
-			<fileset dir="${config.dir}">
-				<include name="*.jmx"/>
-				<include name="access.properties"/>
-				<include name="password.properties"/>
-			</fileset>
-			<fileset dir="${config.dir}/war">
-				<include name="beanRefContext.xml"/>
-				<include name="applicationContext.xml"/>
-				<include name="red5-common.xml"/>
-				<include name="red5-core.xml"/>
-				<include name="red5.properties"/>
-			</fileset>
-		</copy>	
 		<!-- war up echo -->
 		<war destfile="${dist.dir}/echo.war" webxml="${webapps.build.dir}/echo/WEB-INF/web.xml">
 			<fileset dir="${webapps.build.dir}/echo">
@@ -869,20 +858,6 @@
 		</copy>		
 		<copy tofile="${webapps.build.dir}/oflaDemo/WEB-INF/classes/red5-web.xml" overwrite="true" filtering="true"				
 			file="${config.dir}/war/oflaDemo-web.xml"/>
-		<copy todir="${webapps.build.dir}/oflaDemo/WEB-INF/classes" overwrite="true" filtering="true">
-			<fileset dir="${config.dir}">
-				<include name="*.jmx"/>
-				<include name="access.properties"/>
-				<include name="password.properties"/>
-			</fileset>
-			<fileset dir="${config.dir}/war">
-				<include name="beanRefContext.xml"/>
-				<include name="applicationContext.xml"/>
-				<include name="red5-common.xml"/>
-				<include name="red5-core.xml"/>
-				<include name="red5.properties"/>
-			</fileset>
-		</copy>	
 		<!-- war up oflaDemo -->
 		<war destfile="${dist.dir}/oflaDemo.war" webxml="${webapps.build.dir}/oflaDemo/WEB-INF/web.xml">
 			<fileset dir="${webapps.build.dir}/oflaDemo">
@@ -932,21 +907,7 @@
 			</fileset>
 		</copy>		
 		<copy tofile="${webapps.build.dir}/admin/WEB-INF/classes/red5-web.xml" overwrite="true" filtering="true"				
-			file="${config.dir}/war/admin-web.xml"/>
-		<copy todir="${webapps.build.dir}/admin/WEB-INF/classes" overwrite="true" filtering="true">
-			<fileset dir="${config.dir}">
-				<include name="*.jmx"/>
-				<include name="access.properties"/>
-				<include name="password.properties"/>
-			</fileset>
-			<fileset dir="${config.dir}/war">
-				<include name="beanRefContext.xml"/>
-				<include name="applicationContext.xml"/>
-				<include name="red5-common.xml"/>
-				<include name="red5-core.xml"/>
-				<include name="red5.properties"/>
-			</fileset>
-		</copy>			
+			file="${config.dir}/war/admin-web.xml"/>		
 		<!-- war up admin -->
 		<war destfile="${dist.dir}/admin.war" webxml="${webapps.build.dir}/admin/WEB-INF/web.xml">
 			<fileset dir="${webapps.build.dir}/admin">

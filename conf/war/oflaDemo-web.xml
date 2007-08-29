@@ -6,9 +6,9 @@
                            http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-2.0.xsd">
 
 	<!-- oflaDemo web context -->
-	<bean id="web.context" class="org.red5.server.Context" />
+	<bean id="web.context" class="org.red5.server.Context" lazy-init="true" />
 
-	<bean id="web.scope" class="org.red5.server.WebScope">
+	<bean id="web.scope" class="org.red5.server.WebScope" lazy-init="true">
 		<property name="autoStart" value="false" />
 		<property name="context" ref="web.context" />
 		<property name="handler" ref="web.handler" />
@@ -17,9 +17,9 @@
 	</bean>
 
 	<bean id="web.handler"
-	    class="org.red5.server.webapp.oflaDemo.Application" />
+	    class="org.red5.server.webapp.oflaDemo.Application" lazy-init="true" />
 
     <bean id="demoService.service"
-	    class="org.red5.server.webapp.oflaDemo.DemoService" />
+	    class="org.red5.server.webapp.oflaDemo.DemoService" lazy-init="true" />
 
 </beans>

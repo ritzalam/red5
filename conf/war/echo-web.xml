@@ -2,13 +2,10 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
 	
-	<bean id="web.context" class="org.red5.server.Context" 
-		autowire="byType" />
+	<bean id="web.context" class="org.red5.server.Context" lazy-init="true" />
 	
-	<bean id="web.scope" class="org.red5.server.WebScope"
-		 init-method="register">
-		<property name="server" ref="red5.server" />
-		<property name="parent" ref="global.scope" />
+	<bean id="web.scope" class="org.red5.server.WebScope">
+		<property name="autoStart" value="false" />
 		<property name="context" ref="web.context" />
 		<property name="handler" ref="web.handler" />
 		<property name="contextPath" value="@context.path@" />

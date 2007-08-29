@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" 
+	"http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+ 
+	<!-- DEFAULT GLOBAL CONTEXT -->
+	<bean id="global.clientRegistry" class="org.red5.server.ClientRegistry" lazy-init="true" />
+
+	<bean id="global.serviceInvoker" class="org.red5.server.service.ServiceInvoker" lazy-init="true">
+		<property name="serviceResolvers">
+			<list>
+				<bean id="scopeServiceResolver"
+					class="org.red5.server.service.ScopeServiceResolver" />
+				<bean id="handlerServiceResolver"
+					class="org.red5.server.service.HandlerServiceResolver" />
+				<bean id="contextServiceResolver"
+					class="org.red5.server.service.ContextServiceResolver" />
+			</list>
+		</property>
+	</bean>
+
+	<bean id="global.mappingStrategy"
+		class="org.red5.server.MappingStrategy" lazy-init="true" />
+
+	<bean id="global.context" class="org.red5.server.Context" lazy-init="true" />
+
+	<bean id="global.handler" class="org.red5.server.CoreHandler" lazy-init="true" />
+
+	<bean id="global.scope" class="org.red5.server.GlobalScope" lazy-init="true">
+		<property name="autoStart" value="false" />	
+		<property name="name" value="default" />
+		<property name="context" ref="global.context" />
+		<property name="handler" ref="global.handler" />
+		<property name="persistenceClass">
+			<value>org.red5.server.persistence.FilePersistence</value>
+		</property>
+	</bean> 
+ 
+</beans>

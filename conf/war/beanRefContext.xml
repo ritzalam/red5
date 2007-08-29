@@ -2,22 +2,13 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" 
 	"http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
-<!-- 
-	<bean name="default.context" class="org.red5.server.RemotableApplicationContext">
-		<constructor-arg>
+
+ 	<bean name="default.context" class="org.springframework.context.support.ClassPathXmlApplicationContext">
+ 		<constructor-arg>
 			<list>
-				<value>applicationContext.xml</value>
-				<value>red5-common.xml</value>
-				<value>red5-core.xml</value>
+				<value>defaultContext.xml</value>
 			</list>
 		</constructor-arg>
 	</bean>
-	
-	<bean class="org.springframework.remoting.rmi.RmiServiceExporter">
-        <property name="serviceName" value="red5DefaultContext"/>
-        <property name="serviceInterface" value="org.red5.server.IRemotableApplicationContext"/>
-        <property name="service" ref="default.context"/>
-    </bean>	
-    
- -->
+ 
 </beans>

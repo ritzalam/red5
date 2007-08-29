@@ -43,9 +43,7 @@
 	</listener>
 
 	<listener>
-		<listener-class>org.red5.server.war.SharedContextLoaderServlet</listener-class>
-		<!-- listener-class>org.red5.server.war.MainServlet</listener-class -->
-		<!-- listener-class>org.springframework.web.context.ContextLoaderListener</listener-class -->
+		<listener-class>@context.loader.servlet@</listener-class>
 	</listener>
 
     <listener>

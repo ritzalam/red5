@@ -103,9 +103,6 @@
 		<property name="defaultCapacity" value="104857600"/>
 		<!-- 100MB -->
 	</bean>
-	<!-- Dummy bandwidth control that does nothing -->
-	<!--
-    <bean id="BWControlService" class="org.red5.server.stream.DummyBWControlService"/> -->
 	<!-- Scheduling service -->
 	<bean id="schedulingService" class="org.red5.server.scheduling.QuartzSchedulingService"/>
 	<!-- Thread factory -->
