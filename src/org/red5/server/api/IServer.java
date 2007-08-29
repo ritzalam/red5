@@ -19,7 +19,6 @@ package org.red5.server.api;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.rmi.Remote;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -33,7 +32,7 @@ import org.red5.server.api.listeners.IScopeListener;
  * @author Luke Hubbard (luke@codegent.com)
  * 
  */
-public interface IServer extends Remote {
+public interface IServer {
 	/**
 	 * Server ID
 	 */
@@ -46,7 +45,7 @@ public interface IServer extends Remote {
 	 *            Name of the global scope
 	 * @return the global scope
 	 */
-	public IGlobalScope getGlobal(String name) throws java.rmi.RemoteException;
+	public IGlobalScope getGlobal(String name);
 
 	/**
 	 * Register a global scope.
@@ -54,8 +53,7 @@ public interface IServer extends Remote {
 	 * @param scope
 	 *            The global scope to register
 	 */
-	public void registerGlobal(IGlobalScope scope)
-			throws java.rmi.RemoteException;
+	public void registerGlobal(IGlobalScope scope);
 
 	/**
 	 * Lookup the global scope for a host.
@@ -66,8 +64,7 @@ public interface IServer extends Remote {
 	 *            The path in the host
 	 * @return The found global scope or <code>null</code>
 	 */
-	public IGlobalScope lookupGlobal(String hostName, String contextPath)
-			throws java.rmi.RemoteException;
+	public IGlobalScope lookupGlobal(String hostName, String contextPath);
 
 	/**
 	 * Map a virtual hostname and a path to the name of a global scope.
@@ -82,7 +79,7 @@ public interface IServer extends Remote {
 	 *         <code>false</code>
 	 */
 	public boolean addMapping(String hostName, String contextPath,
-			String globalName) throws java.rmi.RemoteException;
+			String globalName);
 
 	/**
 	 * Unregister a previously mapped global scope.
@@ -94,31 +91,28 @@ public interface IServer extends Remote {
 	 * @return <code>true</code> if the global scope was unmapped, otherwise
 	 *         <code>false</code>
 	 */
-	public boolean removeMapping(String hostName, String contextPath)
-			throws java.rmi.RemoteException;
+	public boolean removeMapping(String hostName, String contextPath);
 
 	/**
 	 * Query informations about the global scope mappings.
 	 * 
 	 * @return Map containing informations about the mappings
 	 */
-	public Map<String, String> getMappingTable()
-			throws java.rmi.RemoteException;
+	public Map<String, String> getMappingTable();
 
 	/**
 	 * Get list of global scope names.
 	 * 
 	 * @return Iterator for names of global scopes
 	 */
-	public Iterator<String> getGlobalNames() throws java.rmi.RemoteException;
+	public Iterator<String> getGlobalNames();
 
 	/**
 	 * Get list of global scopes.
 	 * 
 	 * @return Iterator for global scopes objects
 	 */
-	public Iterator<IGlobalScope> getGlobalScopes()
-			throws java.rmi.RemoteException;
+	public Iterator<IGlobalScope> getGlobalScopes();
 
 	/**
 	 * Add listener to get notified about scope events.
@@ -126,8 +120,7 @@ public interface IServer extends Remote {
 	 * @param listener
 	 *            the listener to add
 	 */
-	public void addListener(IScopeListener listener)
-			throws java.rmi.RemoteException;
+	public void addListener(IScopeListener listener);
 
 	/**
 	 * Add listener to get notified about connection events.
@@ -135,8 +128,7 @@ public interface IServer extends Remote {
 	 * @param listener
 	 *            the listener to add
 	 */
-	public void addListener(IConnectionListener listener)
-			throws java.rmi.RemoteException;
+	public void addListener(IConnectionListener listener);
 
 	/**
 	 * Remove listener that got notified about scope events.
@@ -144,8 +136,7 @@ public interface IServer extends Remote {
 	 * @param listener
 	 *            the listener to remove
 	 */
-	public void removeListener(IScopeListener listener)
-			throws java.rmi.RemoteException;
+	public void removeListener(IScopeListener listener);
 
 	/**
 	 * Remove listener that got notified about connection events.
@@ -153,7 +144,6 @@ public interface IServer extends Remote {
 	 * @param listener
 	 *            the listener to remove
 	 */
-	public void removeListener(IConnectionListener listener)
-			throws java.rmi.RemoteException;
+	public void removeListener(IConnectionListener listener);
 
 }

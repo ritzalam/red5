@@ -30,7 +30,7 @@
 
 	<context-param>
 		<param-name>contextConfigLocation</param-name>
-		<param-value>classpath*:red5-web.xml</param-value>
+		<param-value>WEB-INF/classes/red5-web.xml</param-value>
 	</context-param>
 
 	<context-param>
@@ -43,8 +43,9 @@
 	</listener>
 
 	<listener>
-		<!-- listener-class>org.red5.server.MainServlet</listener-class -->
-		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+		<listener-class>org.red5.server.war.SharedContextLoaderServlet</listener-class>
+		<!-- listener-class>org.red5.server.war.MainServlet</listener-class -->
+		<!-- listener-class>org.springframework.web.context.ContextLoaderListener</listener-class -->
 	</listener>
 
     <listener>
@@ -54,13 +55,13 @@
 	<servlet>
 		<servlet-name>gateway</servlet-name>
 		<servlet-class>org.red5.server.net.servlet.AMFGatewayServlet</servlet-class>
-		<load-on-startup>1</load-on-startup>
+		<!-- load-on-startup>1</load-on-startup -->
 	</servlet>
 
 	<servlet>
 		<servlet-name>rtmpt</servlet-name>
 		<servlet-class>org.red5.server.net.rtmpt.RTMPTServlet</servlet-class>
-		<load-on-startup>2</load-on-startup>
+		<!-- load-on-startup>2</load-on-startup -->
 	</servlet>
 
 	<servlet-mapping>

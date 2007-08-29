@@ -1,4 +1,4 @@
-package org.red5.server;
+package org.red5.server.war;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -27,8 +27,6 @@ import java.sql.DriverManager;
 import java.util.Enumeration;
 import java.util.Properties;
 
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -56,7 +54,7 @@ import org.springframework.web.context.WebApplicationContext;
  */
 public class MainServlet extends HttpServlet implements ServletContextListener {
 
-	private final static long serialVersionUID = 4191971L;
+	private final static long serialVersionUID = 41919712006L;
 
 	// Initialize Logging
 	public static Logger logger = Logger.getLogger(MainServlet.class.getName());
@@ -72,21 +70,6 @@ public class MainServlet extends HttpServlet implements ServletContextListener {
 	public void contextInitialized(ServletContextEvent sce) {
 		System.setProperty("red5.deployment.type", "war");
 
-//		InitialContext ctx = null;
-//		Server server = null;
-//	    try {
-//			ctx = new InitialContext();
-//			server = (Server) ctx.lookup("red5/server");
-//			logger.info("RED5 JNDI lookup server is null? " + (server == null));
-//	    } catch (NamingException e) {
-//			try {
-//				logger.warn("RED5 JNDI lookup error");
-//				ctx.createSubcontext("red5server");
-//			} catch (NamingException ne) {
-//				logger.warn("RED5 JNDI subcontext creation error", ne);
-//			}
-//		}		
-		
 		if (null != servletContext) {
 			return;
 		}
@@ -180,11 +163,6 @@ public class MainServlet extends HttpServlet implements ServletContextListener {
 			// register default
 			// add the context to the parent
 			factory.registerSingleton("default.context", applicationContext);
-			
-//			if (server == null){	
-//				server = (Server) factory.getBean("red5.server");
-//				ctx.rebind("red5server", server);				
-//			}
 
 		} catch (Throwable e) {
 			logger.error(e);
@@ -194,7 +172,6 @@ public class MainServlet extends HttpServlet implements ServletContextListener {
 		logger.info("Startup done in: " + startupIn + " ms");
 
 	}
-
 
 	/**
 	 * Clearing the in-memory configuration parameters, we will receive
@@ -247,6 +224,6 @@ public class MainServlet extends HttpServlet implements ServletContextListener {
 			// down in jboss
 			e.printStackTrace();
 		}
-	}	
-	
+	}
+
 }

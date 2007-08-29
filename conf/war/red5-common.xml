@@ -3,15 +3,8 @@
 	 xmlns:lang="http://www.springframework.org/schema/lang" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd                            http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-2.0.xsd">
 	<!-- This context is shared between all child contexts. -->
 	<!-- Server bean -->
-	<!--  bean id="red5.server" class="org.red5.server.Server"/ -->
-	<bean id="red5.server" class="org.red5.server.EmbeddableServer"/>
+	<bean id="red5.server" class="org.red5.server.Server"/>
 
-    <bean class="org.springframework.remoting.rmi.RmiServiceExporter">
-        <property name="serviceName" value="red5Server"/>
-        <property name="serviceInterface" value="org.red5.server.api.IServer"/>
-        <property name="service" ref="red5.server"/>
-    </bean>	
- 
 	<!-- JMX server -->
 	<bean id="jmxFactory" class="org.red5.server.jmx.JMXFactory">
 		<property name="domain" value="org.red5.server"/>
@@ -100,7 +93,7 @@
 	</bean>
 	<!-- High level access to streams -->
 	<bean id="streamService" class="org.red5.server.stream.StreamService"/>
-	<!-- Hight level access to broadcasted streams -->
+	<!-- High level access to broadcasted streams -->
 	<bean id="providerService" class="org.red5.server.stream.ProviderService"/>
 	<!-- Provides output to consumers -->
 	<bean id="consumerService" class="org.red5.server.stream.ConsumerService"/>
@@ -155,42 +148,7 @@
 	NoCacheImpl. Three other implementations based on EhCache, WhirlyCache, and Red5Cache are also available.
 	-->
 	<bean id="object.cache" class="org.red5.server.cache.NoCacheImpl"/>
-	<!--
-	<bean id="object.cache" class="org.red5.server.cache.CacheImpl" init-method="init" autowire="byType">
-		<property name="maxEntries"><value>5</value></property>
-	</bean>
 
-	<bean id="object.cache" class="org.red5.server.cache.WhirlyCacheImpl" init-method="init" autowire="byType">
-		<property name="maxEntries" value="5" />
-		<property name="cacheConfig">
-			<bean class="com.whirlycott.cache.CacheConfiguration">
-				<property name="name" value="flv.cache" />
-				<property name="maxSize" value="5" />
-				<property name="policy"><value>com.whirlycott.cache.policy.LFUMaintenancePolicy</value></property>
-				<property name="backend"><value>com.whirlycott.cache.impl.FastHashMapImpl</value></property>
-			</bean>
-		</property>
-	</bean>
-
-	<bean id="object.cache" class="org.red5.server.cache.EhCacheImpl" init-method="init">
-		<property name="diskStore" value="java.io.tmpdir" />
-		<property name="memoryStoreEvictionPolicy" value="LFU" />
-		<property name="cacheManagerEventListener"><null/></property>
-		<property name="cacheConfigs">
-			<list>
-				<bean class="net.sf.ehcache.config.CacheConfiguration">
-					<property name="name" value="flv.cache" />
-					<property name="maxElementsInMemory" value="5" />
-					<property name="eternal" value="false" />
-					<property name="timeToIdleSeconds" value="0" />
-					<property name="timeToLiveSeconds" value="0" />
-					<property name="overflowToDisk" value="false" />
-					<property name="diskPersistent" value="false" />
-				</bean>
-			</list>
-		</property>
-	</bean>
--->
 	<!--
 	    Cache to use for keyframe metadata.
 	-->
@@ -261,4 +219,5 @@
 		<property name="underrunTrigger" value="10"/>
 	</bean>
 	<bean id="clientBroadcastStream" scope="prototype" lazy-init="true" class="org.red5.server.stream.ClientBroadcastStream"/>
+	
 </beans>

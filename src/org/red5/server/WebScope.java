@@ -19,7 +19,6 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.rmi.RemoteException;
 import java.util.Iterator;
 
 import javax.servlet.ServletContext;
@@ -137,6 +136,7 @@ public class WebScope extends Scope implements ServletContextAware {
 	 *            Server instance
 	 */
 	public void setServer(IServer server) {
+		log.info(server);
 		this.server = server;
 	}
 
@@ -194,13 +194,7 @@ public class WebScope extends Scope implements ServletContextAware {
 		LoaderBase.setRed5ApplicationContext(contextPath, null);
 		if (hostnames != null && hostnames.length > 0) {
 			for (String element : hostnames) {
-				try {
-					server
-							.addMapping(element, getName(), getParent()
-									.getName());
-				} catch (RemoteException e) {
-					log.warn("Error adding mapping on remote", e);
-				}
+				server.addMapping(element, getName(), getParent().getName());
 			}
 		}
 		init();
@@ -230,11 +224,7 @@ public class WebScope extends Scope implements ServletContextAware {
 		}
 		if (hostnames != null && hostnames.length > 0) {
 			for (String element : hostnames) {
-				try {
-					server.removeMapping(element, getName());
-				} catch (RemoteException e) {
-					log.warn("Error removing mapping on remote", e);
-				}
+				server.removeMapping(element, getName());
 			}
 		}
 		if (appContext != null) {
@@ -252,6 +242,7 @@ public class WebScope extends Scope implements ServletContextAware {
 	}
 
 	/** {@inheritDoc} */
+	@Override
 	public IServer getServer() {
 		return server;
 	}

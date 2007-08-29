@@ -19,7 +19,6 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -41,7 +40,7 @@ import org.springframework.core.style.ToStringCreator;
 /**
  * Red5 server core class implementation.
  */
-public class Server implements IServer, ApplicationContextAware, Serializable {
+public class Server implements IServer, ApplicationContextAware {
 
 	// Initialize Logging
 	protected static Log log = LogFactory.getLog(Server.class.getName());
@@ -116,6 +115,7 @@ public class Server implements IServer, ApplicationContextAware, Serializable {
 	 * @return Global scope
 	 */
 	public IGlobalScope lookupGlobal(String hostName, String contextPath) {
+		log.debug(this);
 		// Init mappings key
 		String key = getKey(hostName, contextPath);
 		// If context path contains slashes get complex key and look up for it
@@ -139,7 +139,6 @@ public class Server implements IServer, ApplicationContextAware, Serializable {
 		if (log.isDebugEnabled()) {
 			log.debug("Check host and path: " + key);
 		}
-
 		// Look up for global scope switching keys if still not found
 		if (mapping.containsKey(key)) {
 			return getGlobal(mapping.get(key));

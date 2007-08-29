@@ -807,7 +807,7 @@
 		</copy>		
 		<copy tofile="${webapps.build.dir}/echo/WEB-INF/classes/red5-web.xml" overwrite="true" filtering="true"				
 			file="${config.dir}/war/echo-web.xml"/>
-		<copy todir="${webapps.build.dir}/echo/WEB-INF/classes">
+		<copy todir="${webapps.build.dir}/echo/WEB-INF/classes" overwrite="true" filtering="true">
 			<fileset dir="${config.dir}">
 				<include name="*.jmx"/>
 				<include name="access.properties"/>
@@ -869,7 +869,7 @@
 		</copy>		
 		<copy tofile="${webapps.build.dir}/oflaDemo/WEB-INF/classes/red5-web.xml" overwrite="true" filtering="true"				
 			file="${config.dir}/war/oflaDemo-web.xml"/>
-		<copy todir="${webapps.build.dir}/oflaDemo/WEB-INF/classes">
+		<copy todir="${webapps.build.dir}/oflaDemo/WEB-INF/classes" overwrite="true" filtering="true">
 			<fileset dir="${config.dir}">
 				<include name="*.jmx"/>
 				<include name="access.properties"/>
@@ -933,7 +933,7 @@
 		</copy>		
 		<copy tofile="${webapps.build.dir}/admin/WEB-INF/classes/red5-web.xml" overwrite="true" filtering="true"				
 			file="${config.dir}/war/admin-web.xml"/>
-		<copy todir="${webapps.build.dir}/admin/WEB-INF/classes">
+		<copy todir="${webapps.build.dir}/admin/WEB-INF/classes" overwrite="true" filtering="true">
 			<fileset dir="${config.dir}">
 				<include name="*.jmx"/>
 				<include name="access.properties"/>
@@ -979,7 +979,7 @@
 		</war>					
 		
 		<!-- cleanup -->
-		<delete dir="${dist.dir}/webapps"/>
+		<!-- delete dir="${dist.dir}/webapps"/ -->
 	</target>
 	<target name="jbosssar" description="Make JBoss SAR" depends="compile_sar">
 		<mkdir dir="${sar.dir}/conf"/>

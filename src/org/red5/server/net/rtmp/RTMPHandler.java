@@ -21,7 +21,6 @@ package org.red5.server.net.rtmp;
 
 import static org.red5.server.api.ScopeUtils.getScopeService;
 
-import java.rmi.RemoteException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -252,12 +251,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 					try {
 						// Lookup server scope when connected
 						// Use host and application name
-						IGlobalScope global = null;
-						try {
-							global = server.lookupGlobal(host, path);
-						} catch (RemoteException e) {
-							log.warn("Error looking up global on remote", e);
-						}
+						IGlobalScope global = server.lookupGlobal(host, path);
 						if (global == null) {
 							call.setStatus(Call.STATUS_SERVICE_NOT_FOUND);
 							if (call instanceof IPendingServiceCall) {
@@ -336,12 +330,9 @@ public class RTMPHandler extends BaseRTMPHandler {
 										}
 										// Measure initial roundtrip time after
 										// connecting
-										conn
-												.getChannel(2)
-												.write(
-														new Ping(
-																(short) Ping.STREAM_CLEAR,
-																0, -1));
+										conn.getChannel(2).write(
+												new Ping(Ping.STREAM_CLEAR, 0,
+														-1));
 										conn.startRoundTripMeasurement();
 									} else {
 										log.debug("connect failed");

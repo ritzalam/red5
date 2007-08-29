@@ -1072,7 +1072,10 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 			if (hasHandler()) {
 				// Only start if scope handler allows it
 				try {
-					result = handler.start(this);
+					// if we dont have a handler of our own dont try to start it
+					if (handler != null) {
+						result = handler.start(this);
+					}
 				} catch (Throwable e) {
 					log.error("Could not start scope " + this, e);
 				}
@@ -1095,7 +1098,10 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	public synchronized void stop() {
 		if (enabled && running && hasHandler()) {
 			try {
-				handler.stop(this);
+				// if we dont have a handler of our own dont try to stop it
+				if (handler != null) {
+					handler.stop(this);
+				}
 			} catch (Throwable e) {
 				log.error("Could not stop scope " + this, e);
 			}

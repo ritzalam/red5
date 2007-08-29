@@ -19,8 +19,6 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.rmi.RemoteException;
-
 import org.red5.server.api.IGlobalScope;
 import org.red5.server.api.IServer;
 import org.red5.server.api.persistence.IPersistenceStore;
@@ -83,6 +81,7 @@ public class GlobalScope extends Scope implements IGlobalScope {
 	}
 
 	/** {@inheritDoc} */
+	@Override
 	public IServer getServer() {
 		return server;
 	}
@@ -91,11 +90,7 @@ public class GlobalScope extends Scope implements IGlobalScope {
 	 * Register global scope in server instance, then call initialization
 	 */
 	public void register() {
-		try {
-			server.registerGlobal(this);
-		} catch (RemoteException e) {
-			log.warn("Error registering on remote", e);
-		}
+		server.registerGlobal(this);
 		init();
 	}
 

@@ -17,11 +17,6 @@
 			</map>
 		</property>
 	</bean>
-
-	<bean id="placeholderConfig"
-		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-		<property name="location" value="red5.properties" />
-	</bean>
 	   
 	<!-- RTMP Handler -->
 	<bean id="rtmpHandler"
@@ -40,23 +35,23 @@
 	<!-- RTMP Mina Transport -->
 	<bean id="rtmpTransport" class="org.red5.server.net.rtmp.RTMPMinaTransport" init-method="start" destroy-method="stop">
 		<property name="ioHandler" ref="rtmpMinaIoHandler" />
-		<property name="address" value="${rtmp.host}" />
-		<property name="port" value="${rtmp.port}" />
-		<property name="receiveBufferSize" value="${rtmp.receive_buffer_size}" />
-		<property name="sendBufferSize" value="${rtmp.send_buffer_size}" />
-		<property name="eventThreadsCore" value="${rtmp.event_threads_core}" />
-		<property name="eventThreadsMax" value="${rtmp.event_threads_max}" />
-		<property name="eventThreadsQueue" value="${rtmp.event_threads_queue}" />
-		<property name="eventThreadsKeepalive" value="${rtmp.event_threads_keepalive}" />
+		<property name="address" value="@rtmp.host@" />
+		<property name="port" value="@rtmp.port@" />
+		<property name="receiveBufferSize" value="@rtmp.receive_buffer_size@" />
+		<property name="sendBufferSize" value="@rtmp.send_buffer_size@" />
+		<property name="eventThreadsCore" value="@rtmp.event_threads_core@" />
+		<property name="eventThreadsMax" value="@rtmp.event_threads_max@" />
+		<property name="eventThreadsQueue" value="@rtmp.event_threads_queue@" />
+		<property name="eventThreadsKeepalive" value="@rtmp.event_threads_keepalive@" />
 	</bean>
 	
 	<!-- RTMP Mina Connection -->
 	<bean id="rtmpMinaConnection" scope="prototype"
 		class="org.red5.server.net.rtmp.RTMPMinaConnection">
 		<!-- Ping clients every X ms. Set to 0 to disable ghost detection code. -->
-		<property name="pingInterval" value="${rtmp.ping_interval}" />
+		<property name="pingInterval" value="@rtmp.ping_interval@" />
 		<!-- Disconnect client after X ms of not responding. -->
-		<property name="maxInactivity" value="${rtmp.max_inactivity}" />
+		<property name="maxInactivity" value="@rtmp.max_inactivity@" />
 		<!-- Max. time in milliseconds to wait for a valid handshake. -->
 		<property name="maxHandshakeTimeout" value="5000" />
 	</bean>
@@ -77,9 +72,9 @@
 	<bean id="rtmptConnection" scope="prototype"
 		class="org.red5.server.net.rtmpt.RTMPTConnection">
 		<!-- Ping clients every X ms. Set to 0 to disable ghost detection code. -->
-		<property name="pingInterval" value="${rtmp.ping_interval}" />
+		<property name="pingInterval" value="@rtmp.ping_interval@" />
 		<!-- Disconnect client after X ms of not responding. -->
-		<property name="maxInactivity" value="${rtmp.max_inactivity}" />
+		<property name="maxInactivity" value="@rtmp.max_inactivity@" />
 		<!-- Max. time in milliseconds to wait for a valid handshake. -->
 		<property name="maxHandshakeTimeout" value="5000" />
 	</bean>

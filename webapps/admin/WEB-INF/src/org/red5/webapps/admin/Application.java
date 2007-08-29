@@ -19,7 +19,6 @@ package org.red5.webapps.admin;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-import java.rmi.RemoteException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -72,12 +71,8 @@ public class Application extends ApplicationAdapter {
 		conn.setAttribute(LISTENERS, listeners);
 
 		final IServer server = getServer(conn);
-		try {
-			server.addListener((IScopeListener) listeners);
-			server.addListener((IConnectionListener) listeners);
-		} catch (RemoteException e) {
-			log.warn("Error adding listeners on remote", e);
-		}
+		server.addListener((IScopeListener) listeners);
+		server.addListener((IConnectionListener) listeners);
 
 		return true;
 	}
@@ -89,12 +84,8 @@ public class Application extends ApplicationAdapter {
 				.getAttribute(LISTENERS);
 		if (listeners != null) {
 			final IServer server = getServer(conn);
-			try {
-				server.removeListener((IScopeListener) listeners);
-				server.removeListener((IConnectionListener) listeners);
-			} catch (RemoteException e) {
-				log.warn("Error removing listeners on remote", e);
-			}
+			server.removeListener((IScopeListener) listeners);
+			server.removeListener((IConnectionListener) listeners);
 			conn.removeAttribute(LISTENERS);
 			listeners.cleanup();
 		}
