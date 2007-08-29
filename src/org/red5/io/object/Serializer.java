@@ -29,6 +29,7 @@ import java.util.Map;
 import org.apache.commons.collections.BeanMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.red5.io.amf3.ByteArray;
 import org.red5.io.amf3.IExternalizable;
 import org.red5.io.utils.ObjectMap;
 import org.red5.io.utils.XMLUtils;
@@ -61,6 +62,10 @@ public class Serializer {
 		if (any instanceof IExternalizable) {
 			// Make sure all IExternalizable objects are serialized as objects
 			out.writeObject(any, this);
+			return;
+		} else if (any instanceof ByteArray) {
+			// Write ByteArray objects directly
+			out.writeByteArray((ByteArray) any);
 			return;
 		}
 		

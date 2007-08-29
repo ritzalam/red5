@@ -32,6 +32,7 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
+import org.red5.io.amf3.ByteArray;
 import org.red5.io.object.BaseInput;
 import org.red5.io.object.DataTypes;
 import org.red5.io.object.Deserializer;
@@ -559,6 +560,15 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		return null;
 	}
 
+	/**
+	 * Read ByteArray object. This is not supported by the AMF0 deserializer.
+	 * 
+	 * @return	ByteArray object
+	 */
+	public ByteArray readByteArray() {
+		throw new RuntimeException("ByteArray objects not supported with AMF0");
+	}
+	
 	/**
 	 * Reads Reference
 	 *

@@ -22,6 +22,7 @@ package org.red5.io.object;
 import java.util.Date;
 import java.util.Map;
 
+import org.red5.io.amf3.ByteArray;
 import org.w3c.dom.Document;
 
 /**
@@ -112,6 +113,13 @@ public interface Input {
      */
     Object readCustom();
 
+    /**
+     * Read ByteArray object.
+     * 
+     * @return		ByteArray object
+     */
+    ByteArray readByteArray();
+    
     /**
      * Read reference to Complex Data Type. Objects that are collaborators (properties) of other
      * objects must be stored as references in map of id-reference pairs.

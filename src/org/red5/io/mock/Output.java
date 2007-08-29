@@ -26,6 +26,7 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.red5.io.amf3.ByteArray;
 import org.red5.io.object.BaseOutput;
 import org.red5.io.object.DataTypes;
 import org.red5.io.object.RecordSet;
@@ -153,4 +154,10 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		list.add(recordset);
 	}
 
+	/** {@inheritDoc} */
+	public void writeByteArray(ByteArray array) {
+		list.add(Byte.valueOf(DataTypes.CORE_BYTEARRAY));
+		list.add(array);
+	}
+	
 }

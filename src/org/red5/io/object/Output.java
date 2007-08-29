@@ -23,6 +23,8 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
 
+import org.red5.io.amf3.ByteArray;
+
 /**
  * Output interface which defines contract methods to be implemented
  *
@@ -129,6 +131,13 @@ public interface Output {
      */
     void writeXML(String xml);
 
+    /**
+     * Write ByteArray object (AMF3 only).
+     * 
+     * @param array		object to write
+     */
+    void writeByteArray(ByteArray array);
+    
     /**
      * Write reference to complex data type
      * @param obj   Referenced object

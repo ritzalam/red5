@@ -25,6 +25,7 @@ import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.red5.io.amf3.ByteArray;
 import org.red5.io.object.BaseInput;
 import org.red5.io.object.Deserializer;
 import org.w3c.dom.Document;
@@ -123,6 +124,11 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		return null;
 	}
 
+	/** {@inheritDoc} */
+    public ByteArray readByteArray() {
+    	return (ByteArray) getNext();
+    }
+    
 	/** {@inheritDoc} */
     public Object readReference() {
 		final Short num = (Short) getNext();

@@ -36,6 +36,7 @@ import org.apache.commons.collections.map.LRUMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
+import org.red5.io.amf3.ByteArray;
 import org.red5.io.object.BaseOutput;
 import org.red5.io.object.ICustomSerializable;
 import org.red5.io.object.RecordSet;
@@ -415,6 +416,11 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		buf.put(encoded);
 	}
 
+    /** {@inheritDoc} */
+    public void writeByteArray(ByteArray array) {
+		throw new RuntimeException("ByteArray objects not supported with AMF0");
+    }
+    
     /**
      * Return encoded string.
      * 

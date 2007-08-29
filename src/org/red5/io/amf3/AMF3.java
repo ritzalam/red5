@@ -107,7 +107,11 @@ public class AMF3 {
      */
     public static final byte TYPE_XML = 0x0B;
 
-	//public final static byte TYPE_YYY = 0x0C;
+    /**
+     * ByteArray marker
+     */
+    public static final byte TYPE_BYTEARRAY = 0x0C;
+    
 	//public final static byte TYPE_ZZZ = 0x0D;
 
 	/**

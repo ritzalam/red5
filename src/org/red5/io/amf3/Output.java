@@ -559,4 +559,28 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		buf.put(AMF3.TYPE_XML);
 		putString(xml);
 	}
+	
+    /** {@inheritDoc} */
+    public void writeByteArray(ByteArray array) {
+    	writeAMF3();
+    	buf.put(AMF3.TYPE_BYTEARRAY);
+    	if (hasReference(array)) {
+    		putInteger(getReferenceId(array) << 1);
+    		return;
+    	}
+
+    	storeReference(array);
+    	ByteBuffer data = array.getData();
+    	putInteger(data.limit() << 1 | 1);
+    	byte[] tmp = new byte[data.limit()];
+    	int old = data.position();
+    	try {
+    		data.position(0);
+    		data.get(tmp);
+    		buf.put(tmp);
+    	} finally {
+    		data.position(old);
+    	}
+    }
+	
 }

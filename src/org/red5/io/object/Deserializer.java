@@ -82,6 +82,9 @@ public class Deserializer {
 			case DataTypes.CORE_OBJECT:
 				result = in.readObject(this);
 				break;
+			case DataTypes.CORE_BYTEARRAY:
+				result = in.readByteArray();
+				break;
 			case DataTypes.OPT_REFERENCE:
 				result = in.readReference();
 				break;

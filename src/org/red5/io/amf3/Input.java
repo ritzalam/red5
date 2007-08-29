@@ -209,6 +209,10 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 				coreType = DataTypes.CORE_DATE;
 				break;
 
+			case AMF3.TYPE_BYTEARRAY:
+				coreType = DataTypes.CORE_BYTEARRAY;
+				break;
+				
 			default:
 				log.info("Unknown datatype: " + currentDataType);
 				// End of object, and anything else lets just skip
@@ -506,7 +510,20 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		}
 		return result;
     }
-    
+
+	public ByteArray readByteArray() {
+		int type = readAMF3Integer();
+		if ((type & 1) == 0) {
+			// Reference
+			return (ByteArray) getReference(type >> 1);
+		}
+		
+		type >>= 1;
+		ByteArray result = new ByteArray(buf, type);
+		storeReference(result);
+		return result;
+	}
+
 	// Others
 
 	/**
