@@ -124,8 +124,8 @@ public class Context implements IContext, ApplicationContextAware, ContextMBean 
 	 * @return Scope resolution result
 	 */
 	public IScope resolveScope(String path) {
-		System.out.println("------------------\nCheck nulls - scopeResolver:"
-				+ (scopeResolver == null) + " path:" + (path == null));
+		//System.out.println("------------------\nCheck nulls - scopeResolver:"
+		//		+ (scopeResolver == null) + " path:" + (path == null));
 		return scopeResolver.resolveScope(path);
 	}
 
