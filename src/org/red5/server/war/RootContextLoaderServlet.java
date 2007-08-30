@@ -44,8 +44,6 @@ import org.red5.server.jmx.JMXAgent;
 import org.red5.server.service.ServiceInvoker;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.beans.factory.xml.XmlBeanFactory;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.web.context.ConfigurableWebApplicationContext;
 import org.springframework.web.context.ContextLoader;
 import org.springframework.web.context.ContextLoaderListener;
@@ -126,24 +124,20 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 			// register default
 			factory.registerSingleton("default.context", applicationContext);
 
-			ClassPathResource res = new ClassPathResource("red5-common.xml");
-			XmlBeanFactory common = new XmlBeanFactory(res);
-			common.preInstantiateSingletons();
-			ClassPathResource cres = new ClassPathResource("red5-core.xml");
-			XmlBeanFactory core = new XmlBeanFactory(cres, common);
-			core.preInstantiateSingletons();
-
-			// register core beans
+			// get the main factory
 			DefaultListableBeanFactory parentFactory = (DefaultListableBeanFactory) factory
 					.getParentBeanFactory();
-			parentFactory.copyConfigurationFrom(common);
-			parentFactory.copyConfigurationFrom(core);
 
-			for (String beanName : applicationContext.getBeanDefinitionNames()) {
-				logger.info("Bean: " + beanName);
-			}
+			// for (String beanName :
+			// applicationContext.getBeanDefinitionNames()) {
+			// logger.info("Bean: " + beanName);
+			// }
+			//
+			// for (String beanName : parentFactory.getBeanDefinitionNames()) {
+			// logger.info("PF Bean: " + beanName);
+			// }
 
-			Server server = (Server) core.getBean("red5.server");
+			Server server = (Server) parentFactory.getBean("red5.server");
 			logger.debug("Server: " + server);
 
 			ClientRegistry clientRegistry = (ClientRegistry) factory
@@ -166,14 +160,15 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 
 			logger.debug("About to grab Webcontext bean for Global");
 			Context globalContext = (Context) factory.getBean("global.context");
-			globalContext.setCoreBeanFactory(core);
+			globalContext.setCoreBeanFactory(parentFactory);
+			globalContext.setClientRegistry(clientRegistry);
 			globalContext.setServiceInvoker(globalInvoker);
 			globalContext.setScopeResolver(globalResolver);
 			globalContext.setMappingStrategy(globalStrategy);
 
 			logger.debug("About to grab Webcontext bean for ROOT");
 			Context webContext = (Context) factory.getBean("web.context");
-			webContext.setCoreBeanFactory(core);
+			webContext.setCoreBeanFactory(parentFactory);
 			webContext.setClientRegistry(clientRegistry);
 			webContext.setServiceInvoker(globalInvoker);
 			webContext.setScopeResolver(globalResolver);
@@ -185,7 +180,7 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 			scope.register();
 			scope.start();
 
-			// remote = (IRemotableList) factory.getBean("scopeList");
+			// grab the scope list (other war/webapps)
 			IRemotableList remote = (IRemotableList) Naming
 					.lookup("rmi://localhost:1099/subContextList");
 			logger.debug("Children: " + remote.numChildren());
@@ -216,16 +211,10 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 					ConfigurableBeanFactory appFactory = appCtx
 							.getBeanFactory();
 
-					// register core beans
-					DefaultListableBeanFactory subParentFactory = (DefaultListableBeanFactory) appFactory
-							.getParentBeanFactory();
-					subParentFactory.copyConfigurationFrom(common);
-					subParentFactory.copyConfigurationFrom(core);
-
 					logger.debug("About to grab Webcontext bean for "
 							+ settings.getWebAppKey());
 					webContext = (Context) appCtx.getBean("web.context");
-					webContext.setCoreBeanFactory(core);
+					webContext.setCoreBeanFactory(parentFactory);
 					webContext.setClientRegistry(clientRegistry);
 					webContext.setServiceInvoker(globalInvoker);
 					webContext.setScopeResolver(globalResolver);
@@ -234,7 +223,6 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 					scope = (WebScope) appFactory.getBean("web.scope");
 					scope.setServer(server);
 					scope.setParent(global);
-
 					scope.register();
 					scope.start();
 
@@ -263,8 +251,7 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 			// XXX Paul: grabbed this from
 			// http://opensource.atlassian.com/confluence/spring/display/DISC/Memory+leak+-+classloader+won%27t+let+go
 			// in hopes that we can clear all the issues with J2EE containers
-			// during
-			// shutdown
+			// during shutdown
 			try {
 				// prepare spring for shutdown
 				Introspector.flushCaches();
