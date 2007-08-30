@@ -40,6 +40,7 @@ import org.red5.server.MappingStrategy;
 import org.red5.server.ScopeResolver;
 import org.red5.server.Server;
 import org.red5.server.WebScope;
+import org.red5.server.api.IScopeResolver;
 import org.red5.server.jmx.JMXAgent;
 import org.red5.server.service.ServiceInvoker;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -48,6 +49,8 @@ import org.springframework.web.context.ConfigurableWebApplicationContext;
 import org.springframework.web.context.ContextLoader;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
+import org.springframework.web.context.support.XmlWebApplicationContext;
 
 /**
  * Entry point from which the server config file is loaded while running within
@@ -67,9 +70,27 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 	public static Logger logger = Logger
 			.getLogger(RootContextLoaderServlet.class.getName());
 
+	private ConfigurableWebApplicationContext applicationContext;
+
+	private DefaultListableBeanFactory parentFactory;
+
 	private static ServletContext servletContext;
 
-	private static ContextLoader loader;
+	private static RootContextLoaderServlet instance;
+
+	private ClientRegistry clientRegistry;
+
+	private ServiceInvoker globalInvoker;
+
+	private MappingStrategy globalStrategy;
+
+	private ScopeResolver globalResolver;
+
+	private GlobalScope global;
+
+	private ContextLoader loader;
+
+	private Server server;
 
 	{
 		initRegistry();
@@ -81,11 +102,11 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 	// Notification that the web application is ready to process requests
 	@Override
 	public void contextInitialized(ServletContextEvent sce) {
-		System.setProperty("red5.deployment.type", "war");
-
 		if (null != servletContext) {
 			return;
 		}
+		instance = this;
+		System.setProperty("red5.deployment.type", "war");
 
 		servletContext = sce.getServletContext();
 		String prefix = servletContext.getRealPath("/");
@@ -102,9 +123,8 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 			logger.debug("Config location files: " + configArray.length);
 			// instance the context loader
 			loader = createContextLoader();
-			ConfigurableWebApplicationContext applicationContext = (ConfigurableWebApplicationContext) loader
+			applicationContext = (ConfigurableWebApplicationContext) loader
 					.initWebApplicationContext(servletContext);
-
 			applicationContext.setConfigLocations(configArray);
 			logger.debug("Root context path: "
 					+ applicationContext.getServletContext().getContextPath());
@@ -125,7 +145,7 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 			factory.registerSingleton("default.context", applicationContext);
 
 			// get the main factory
-			DefaultListableBeanFactory parentFactory = (DefaultListableBeanFactory) factory
+			parentFactory = (DefaultListableBeanFactory) factory
 					.getParentBeanFactory();
 
 			// for (String beanName :
@@ -137,25 +157,24 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 			// logger.info("PF Bean: " + beanName);
 			// }
 
-			Server server = (Server) parentFactory.getBean("red5.server");
-			logger.debug("Server: " + server);
+			server = (Server) parentFactory.getBean("red5.server");
 
-			ClientRegistry clientRegistry = (ClientRegistry) factory
+			clientRegistry = (ClientRegistry) factory
 					.getBean("global.clientRegistry");
 
-			ServiceInvoker globalInvoker = (ServiceInvoker) factory
+			globalInvoker = (ServiceInvoker) factory
 					.getBean("global.serviceInvoker");
 
-			MappingStrategy globalStrategy = (MappingStrategy) factory
+			globalStrategy = (MappingStrategy) factory
 					.getBean("global.mappingStrategy");
 
-			GlobalScope global = (GlobalScope) factory.getBean("global.scope");
+			global = (GlobalScope) factory.getBean("global.scope");
 			logger.debug("GlobalScope: " + global);
 			global.setServer(server);
 			global.register();
 			global.start();
 
-			ScopeResolver globalResolver = new ScopeResolver();
+			globalResolver = new ScopeResolver();
 			globalResolver.setGlobalScope(global);
 
 			logger.debug("About to grab Webcontext bean for Global");
@@ -189,55 +208,120 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 				for (int i = 0; i < remote.numChildren(); i++) {
 					logger.debug("Enumerating children");
 					WebSettings settings = remote.getAt(i);
-					// get the sub contexts - servlet context
-					ServletContext ctx = servletContext.getContext(settings
-							.getWebAppKey());
-					logger.debug("Servlet context: " + ctx.getContextPath());
-
-					ConfigurableWebApplicationContext appCtx = (ConfigurableWebApplicationContext) loader
-							.initWebApplicationContext(ctx);
-					appCtx.setParent(applicationContext);
-					appCtx.refresh();
-
-					ctx
-							.setAttribute(
-									WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE,
-									applicationContext);
-
-					for (String beanName : appCtx.getBeanDefinitionNames()) {
-						logger.info("Sub-Bean: " + beanName);
-					}
-
-					ConfigurableBeanFactory appFactory = appCtx
-							.getBeanFactory();
-
-					logger.debug("About to grab Webcontext bean for "
-							+ settings.getWebAppKey());
-					webContext = (Context) appCtx.getBean("web.context");
-					webContext.setCoreBeanFactory(parentFactory);
-					webContext.setClientRegistry(clientRegistry);
-					webContext.setServiceInvoker(globalInvoker);
-					webContext.setScopeResolver(globalResolver);
-					webContext.setMappingStrategy(globalStrategy);
-
-					scope = (WebScope) appFactory.getBean("web.scope");
-					scope.setServer(server);
-					scope.setParent(global);
-					scope.register();
-					scope.start();
-
+					registerSubContext(settings.getWebAppKey());
 				}
 				logger.debug("End of children...");
 			}
 
-		} catch (Throwable e) {
-			e.printStackTrace();
-			logger.error(e);
+		} catch (Throwable t) {
+			logger.error(t);
 		}
 
 		long startupIn = System.currentTimeMillis() - time;
 		logger.info("Startup done in: " + startupIn + " ms");
 
+	}
+
+	/*
+	 * Registers a subcontext with red5
+	 */
+	public void registerSubContext(String webAppKey) {
+		// get the sub contexts - servlet context
+		ServletContext ctx = servletContext.getContext(webAppKey);
+		logger.info("Registering subcontext for servlet context: "
+				+ ctx.getContextPath());
+
+		ConfigurableWebApplicationContext appCtx = (ConfigurableWebApplicationContext) loader
+				.initWebApplicationContext(ctx);
+		appCtx.setParent(applicationContext);
+		appCtx.refresh();
+
+		ctx.setAttribute(
+				WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE,
+				applicationContext);
+
+		ConfigurableBeanFactory appFactory = appCtx.getBeanFactory();
+
+		logger.debug("About to grab Webcontext bean for " + webAppKey);
+		Context webContext = (Context) appCtx.getBean("web.context");
+		webContext.setCoreBeanFactory(parentFactory);
+		webContext.setClientRegistry(clientRegistry);
+		webContext.setServiceInvoker(globalInvoker);
+		webContext.setScopeResolver(globalResolver);
+		webContext.setMappingStrategy(globalStrategy);
+
+		WebScope scope = (WebScope) appFactory.getBean("web.scope");
+		scope.setServer(server);
+		scope.setParent(global);
+		scope.register();
+		scope.start();
+	}
+
+	/*
+	 * Registers a subcontext with red5
+	 */
+	public static void registerSubContext(WebSettings settings,
+			ServletContext ctx) {
+		logger.info("Registering subcontext for servlet context: "
+				+ ctx.getContextPath());
+
+		ServletContext rootServletContext = ctx.getContext("/ROOT");
+		ConfigurableWebApplicationContext rootApplicationContext = (ConfigurableWebApplicationContext) WebApplicationContextUtils
+				.getWebApplicationContext(rootServletContext);
+
+		ConfigurableWebApplicationContext appCtx = new XmlWebApplicationContext();
+		appCtx.setParent(rootApplicationContext);
+		appCtx.setServletContext(ctx);
+		appCtx.setConfigLocations(settings.getConfigs());
+		appCtx.refresh();
+		ctx.setAttribute(
+				WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE,
+				rootApplicationContext);
+
+		ConfigurableBeanFactory factory = rootApplicationContext
+				.getBeanFactory();
+
+		// get the main factory
+		DefaultListableBeanFactory rootParentFactory = (DefaultListableBeanFactory) factory
+				.getParentBeanFactory();
+
+		ClientRegistry rootClientRegistry = (ClientRegistry) factory
+				.getBean("global.clientRegistry");
+
+		ServiceInvoker rootGlobalInvoker = (ServiceInvoker) factory
+				.getBean("global.serviceInvoker");
+
+		MappingStrategy rootGlobalStrategy = (MappingStrategy) factory
+				.getBean("global.mappingStrategy");
+
+		IScopeResolver rootGlobalResolver = ((Context) factory
+				.getBean("global.context")).getScopeResolver();
+
+		GlobalScope rootGlobal = (GlobalScope) factory.getBean("global.scope");
+
+		logger.debug("Null check - appctx " + (rootApplicationContext == null)
+				+ " parent: " + (rootParentFactory == null) + " registry: "
+				+ (rootClientRegistry == null) + " invoker: "
+				+ (rootGlobalInvoker == null) + " resolver: "
+				+ (rootGlobalResolver == null) + " strat: "
+				+ (rootGlobalStrategy == null));
+
+		ConfigurableBeanFactory appFactory = appCtx.getBeanFactory();
+
+		logger.debug("About to grab Webcontext bean for "
+				+ settings.getWebAppKey());
+		Context webContext = (Context) appCtx.getBean("web.context");
+		webContext.setCoreBeanFactory(rootParentFactory);
+		webContext.setClientRegistry(rootClientRegistry);
+		webContext.setServiceInvoker(rootGlobalInvoker);
+		webContext.setScopeResolver(rootGlobalResolver);
+		webContext.setMappingStrategy(rootGlobalStrategy);
+
+		WebScope scope = (WebScope) appFactory.getBean("web.scope");
+		scope.setServer((Server) rootParentFactory.getBean("red5.server"));
+		scope.setParent(rootGlobal);
+		scope.register();
+		scope.start();
 	}
 
 	/**
@@ -246,7 +330,7 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 	 */
 	@Override
 	public void contextDestroyed(ServletContextEvent sce) {
-		synchronized (loader) {
+		synchronized (instance) {
 			logger.info("Webapp shutdown");
 			// XXX Paul: grabbed this from
 			// http://opensource.atlassian.com/confluence/spring/display/DISC/Memory+leak+-+classloader+won%27t+let+go
@@ -287,7 +371,8 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 							.removeAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
 					applicationContext.close();
 				}
-				loader.closeWebApplicationContext(servletContext);
+				instance.getContextLoader().closeWebApplicationContext(
+						servletContext);
 			} catch (Throwable e) {
 				e.printStackTrace();
 			} finally {

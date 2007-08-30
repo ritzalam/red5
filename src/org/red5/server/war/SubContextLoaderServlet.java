@@ -57,19 +57,17 @@ public class SubContextLoaderServlet extends RootContextLoaderServlet {
 	// Notification that the web application is ready to process requests
 	@Override
 	public void contextInitialized(ServletContextEvent sce) {
-		System.setProperty("red5.deployment.type", "war");
-
 		if (null != servletContext) {
 			return;
 		}
+		System.setProperty("red5.deployment.type", "war");
 
 		servletContext = sce.getServletContext();
 		String prefix = servletContext.getRealPath("/");
 
 		long time = System.currentTimeMillis();
 
-		logger.info("RED5 Server (http://www.osflash.org/red5)");
-		logger.info("Subcontext loader");
+		logger.info("RED5 Server subcontext loader");
 		logger.debug("Path: " + prefix);
 
 		try {
@@ -112,8 +110,23 @@ public class SubContextLoaderServlet extends RootContextLoaderServlet {
 				Naming.rebind("rmi://localhost:1099/subContextList", remote);
 			}
 
-		} catch (Throwable e) {
-			logger.error(e);
+			try {
+				// check to see if root is already initialized and register
+				// directly if it is
+				logger.debug("Root context from sub: "
+						+ servletContext.getContext("/ROOT"));
+				if (servletContext.getContext("/ROOT") != null) {
+					RootContextLoaderServlet.registerSubContext(settings,
+							servletContext);
+				}
+			} catch (Exception e) {
+				// we dont really care if exceptions are thrown here, an NPE is
+				// common if the root app is not yet deployed
+				e.printStackTrace();
+			}
+
+		} catch (Throwable t) {
+			logger.error(t);
 		}
 
 		long startupIn = System.currentTimeMillis() - time;

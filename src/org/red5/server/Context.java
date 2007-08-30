@@ -122,6 +122,15 @@ public class Context implements IContext, ApplicationContextAware, ContextMBean 
 	}
 
 	/**
+	 * Return scope resolver
+	 * 
+	 * @return scope resolver
+	 */
+	public IScopeResolver getScopeResolver() {
+		return scopeResolver;
+	}
+
+	/**
 	 * Resolves scope using scope resolver collaborator
 	 * 
 	 * @param path
