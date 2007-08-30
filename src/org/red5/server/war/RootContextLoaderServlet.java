@@ -43,7 +43,9 @@ import org.red5.server.WebScope;
 import org.red5.server.jmx.JMXAgent;
 import org.red5.server.service.ServiceInvoker;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.support.FileSystemXmlApplicationContext;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.beans.factory.xml.XmlBeanFactory;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.web.context.ConfigurableWebApplicationContext;
 import org.springframework.web.context.ContextLoader;
 import org.springframework.web.context.ContextLoaderListener;
@@ -99,7 +101,7 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 		try {
 			String[] configArray = servletContext.getInitParameter(
 					ContextLoader.CONFIG_LOCATION_PARAM).split("[,\\s]");
-			logger.info("Config location files: " + configArray.length);
+			logger.debug("Config location files: " + configArray.length);
 			// instance the context loader
 			loader = createContextLoader();
 			ConfigurableWebApplicationContext applicationContext = (ConfigurableWebApplicationContext) loader
@@ -120,27 +122,28 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 
 			ConfigurableBeanFactory factory = applicationContext
 					.getBeanFactory();
-			//
-			FileSystemXmlApplicationContext common = new FileSystemXmlApplicationContext(
-					prefix + "/WEB-INF/classes/red5-common.xml");
-			common.setDisplayName("red5.common");
-
-			FileSystemXmlApplicationContext core = new FileSystemXmlApplicationContext(
-					new String[] { prefix + "/WEB-INF/classes/red5-core.xml" },
-					common);
-			core.setDisplayName("red5.core");
-
-			factory.registerSingleton("red5.common", common);
-			factory.registerSingleton("red5.core", core);
 
 			// register default
 			factory.registerSingleton("default.context", applicationContext);
+
+			ClassPathResource res = new ClassPathResource("red5-common.xml");
+			XmlBeanFactory common = new XmlBeanFactory(res);
+			common.preInstantiateSingletons();
+			ClassPathResource cres = new ClassPathResource("red5-core.xml");
+			XmlBeanFactory core = new XmlBeanFactory(cres, common);
+			core.preInstantiateSingletons();
+
+			// register core beans
+			DefaultListableBeanFactory parentFactory = (DefaultListableBeanFactory) factory
+					.getParentBeanFactory();
+			parentFactory.copyConfigurationFrom(common);
+			parentFactory.copyConfigurationFrom(core);
 
 			for (String beanName : applicationContext.getBeanDefinitionNames()) {
 				logger.info("Bean: " + beanName);
 			}
 
-			Server server = (Server) common.getBean("red5.server");
+			Server server = (Server) core.getBean("red5.server");
 			logger.debug("Server: " + server);
 
 			ClientRegistry clientRegistry = (ClientRegistry) factory
@@ -163,14 +166,14 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 
 			logger.debug("About to grab Webcontext bean for Global");
 			Context globalContext = (Context) factory.getBean("global.context");
-			globalContext.setCoreBeanFactory(core.getBeanFactory());
+			globalContext.setCoreBeanFactory(core);
 			globalContext.setServiceInvoker(globalInvoker);
 			globalContext.setScopeResolver(globalResolver);
 			globalContext.setMappingStrategy(globalStrategy);
 
 			logger.debug("About to grab Webcontext bean for ROOT");
 			Context webContext = (Context) factory.getBean("web.context");
-			webContext.setCoreBeanFactory(core.getBeanFactory());
+			webContext.setCoreBeanFactory(core);
 			webContext.setClientRegistry(clientRegistry);
 			webContext.setServiceInvoker(globalInvoker);
 			webContext.setScopeResolver(globalResolver);
@@ -213,10 +216,16 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 					ConfigurableBeanFactory appFactory = appCtx
 							.getBeanFactory();
 
+					// register core beans
+					DefaultListableBeanFactory subParentFactory = (DefaultListableBeanFactory) appFactory
+							.getParentBeanFactory();
+					subParentFactory.copyConfigurationFrom(common);
+					subParentFactory.copyConfigurationFrom(core);
+
 					logger.debug("About to grab Webcontext bean for "
 							+ settings.getWebAppKey());
 					webContext = (Context) appCtx.getBean("web.context");
-					webContext.setCoreBeanFactory(core.getBeanFactory());
+					webContext.setCoreBeanFactory(core);
 					webContext.setClientRegistry(clientRegistry);
 					webContext.setServiceInvoker(globalInvoker);
 					webContext.setScopeResolver(globalResolver);
@@ -249,52 +258,57 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 	 */
 	@Override
 	public void contextDestroyed(ServletContextEvent sce) {
-		logger.info("Webapp shutdown");
-		// XXX Paul: grabbed this from
-		// http://opensource.atlassian.com/confluence/spring/display/DISC/Memory+leak+-+classloader+won%27t+let+go
-		// in hopes that we can clear all the issues with J2EE containers during
-		// shutdown
-		try {
-			// prepare spring for shutdown
-			Introspector.flushCaches();
-			// dereg any drivers
-			for (Enumeration e = DriverManager.getDrivers(); e
-					.hasMoreElements();) {
-				Driver driver = (Driver) e.nextElement();
-				if (driver.getClass().getClassLoader() == getClass()
-						.getClassLoader()) {
-					DriverManager.deregisterDriver(driver);
+		synchronized (loader) {
+			logger.info("Webapp shutdown");
+			// XXX Paul: grabbed this from
+			// http://opensource.atlassian.com/confluence/spring/display/DISC/Memory+leak+-+classloader+won%27t+let+go
+			// in hopes that we can clear all the issues with J2EE containers
+			// during
+			// shutdown
+			try {
+				// prepare spring for shutdown
+				Introspector.flushCaches();
+				// dereg any drivers
+				for (Enumeration e = DriverManager.getDrivers(); e
+						.hasMoreElements();) {
+					Driver driver = (Driver) e.nextElement();
+					if (driver.getClass().getClassLoader() == getClass()
+							.getClassLoader()) {
+						DriverManager.deregisterDriver(driver);
+					}
 				}
-			}
-			// shutdown jmx
-			JMXAgent.shutdown();
-			// shutdown spring
-			Object attr = servletContext
-					.getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
-			if (attr != null) {
-				// get web application context from the servlet context
-				ConfigurableWebApplicationContext applicationContext = (ConfigurableWebApplicationContext) attr;
-				ConfigurableBeanFactory factory = applicationContext
-						.getBeanFactory();
-				// for (String scope : factory.getRegisteredScopeNames()) {
-				// logger.debug("Registered scope: " + scope);
-				// }
-				// for (String singleton : factory.getSingletonNames()) {
-				// logger.debug("Registered singleton: " + singleton);
-				// // factory.destroyScopedBean(singleton);
-				// }
-				factory.destroySingletons();
+				// shutdown jmx
+				JMXAgent.shutdown();
+				// shutdown spring
+				Object attr = servletContext
+						.getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
+				if (attr != null) {
+					// get web application context from the servlet context
+					ConfigurableWebApplicationContext applicationContext = (ConfigurableWebApplicationContext) attr;
+					ConfigurableBeanFactory factory = applicationContext
+							.getBeanFactory();
+					// for (String scope : factory.getRegisteredScopeNames()) {
+					// logger.debug("Registered scope: " + scope);
+					// }
+					for (String singleton : factory.getSingletonNames()) {
+						logger.debug("Registered singleton: " + singleton);
+						factory.destroyScopedBean(singleton);
+					}
+					factory.destroySingletons();
 
-				servletContext
-						.removeAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
-				applicationContext.close();
+					servletContext
+							.removeAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
+					applicationContext.close();
+				}
+				loader.closeWebApplicationContext(servletContext);
+			} catch (Throwable e) {
+				e.printStackTrace();
+			} finally {
+				// http://jakarta.apache.org/commons/logging/guide.html#Classloader_and_Memory_Management
+				// http://wiki.apache.org/jakarta-commons/Logging/UndeployMemoryLeak?action=print
+				LogFactory.release(Thread.currentThread()
+						.getContextClassLoader());
 			}
-			loader.closeWebApplicationContext(servletContext);
-			// http://jakarta.apache.org/commons/logging/guide.html#Classloader_and_Memory_Management
-			// http://wiki.apache.org/jakarta-commons/Logging/UndeployMemoryLeak?action=print
-			LogFactory.release(Thread.currentThread().getContextClassLoader());
-		} catch (Throwable e) {
-			e.printStackTrace();
 		}
 	}
 

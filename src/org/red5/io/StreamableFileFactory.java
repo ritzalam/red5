@@ -23,36 +23,46 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
+
 /**
  * Creates streamable file services
  */
 public class StreamableFileFactory implements IStreamableFileFactory {
 
+	// Initialize Logging
+	public static Logger logger = Logger.getLogger(StreamableFileFactory.class
+			.getName());
+
 	private Set<IStreamableFileService> services = new HashSet<IStreamableFileService>();
 
 	/**
-     * Setter for services
-     *
-     * @param services Set of streamable file services
-     */
-    public void setServices(Set<IStreamableFileService> services) {
+	 * Setter for services
+	 * 
+	 * @param services
+	 *            Set of streamable file services
+	 */
+	public void setServices(Set<IStreamableFileService> services) {
+		logger.info("StreamableFileFactory set services");
 		this.services = services;
 	}
 
 	/** {@inheritDoc} */
-    public IStreamableFileService getService(File fp) {
+	public IStreamableFileService getService(File fp) {
+		logger.info("Get service for file: " + fp.getName());
 		// Return first service that can handle the passed file
 		for (IStreamableFileService service : this.services) {
 			if (service.canHandle(fp)) {
+				logger.info("Found service");
 				return service;
 			}
 		}
-
 		return null;
 	}
 
 	/** {@inheritDoc} */
-    public Set<IStreamableFileService> getServices() {
+	public Set<IStreamableFileService> getServices() {
+		logger.info("StreamableFileFactory get services");
 		return services;
 	}
 }

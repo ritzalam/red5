@@ -97,7 +97,6 @@ public class Context implements IContext, ApplicationContextAware, ContextMBean 
 	 * red5.xml context
 	 */
 	public Context() {
-		logger.debug("Context created with default ctor: " + this);
 	}
 
 	/**
@@ -109,8 +108,6 @@ public class Context implements IContext, ApplicationContextAware, ContextMBean 
 	 *            Context path
 	 */
 	public Context(ApplicationContext context, String contextPath) {
-		logger.debug("Context created with\nPath: " + contextPath
-				+ "\nAppContext: " + context);
 		setApplicationContext(context);
 		this.contextPath = contextPath;
 	}
@@ -132,8 +129,6 @@ public class Context implements IContext, ApplicationContextAware, ContextMBean 
 	 * @return Scope resolution result
 	 */
 	public IScope resolveScope(String path) {
-		logger.debug("Check nulls - scopeResolver:" + (scopeResolver == null)
-				+ " path:" + (path == null) + "\nthis: " + this);
 		return scopeResolver.resolveScope(path);
 	}
 
@@ -203,14 +198,9 @@ public class Context implements IContext, ApplicationContextAware, ContextMBean 
 	 *            App context
 	 */
 	public void setApplicationContext(ApplicationContext context) {
-		logger.debug("Context setAppContext\nAppContext: " + context
-				+ "\nthis: " + this);
 		this.applicationContext = context;
-		logger
-				.debug("--------------------------------------------------------------------\nApplication context: "
-						+ context.getClass().getName());
 		String deploymentType = System.getProperty("red5.deployment.type");
-		System.out.println("Deployment type: " + deploymentType);
+		logger.debug("Deployment type: " + deploymentType);
 		if (deploymentType == null) {
 			// standalone core context
 			coreContext = ContextSingletonBeanFactoryLocator.getInstance(
@@ -291,10 +281,6 @@ public class Context implements IContext, ApplicationContextAware, ContextMBean 
 			throw new ServiceNotFoundException(serviceName);
 		}
 	}
-
-	/*
-	 * public IScopeResolver getScopeResolver() { return scopeResolver; }
-	 */
 
 	/**
 	 * Look up scope handler for context path
@@ -390,7 +376,7 @@ public class Context implements IContext, ApplicationContextAware, ContextMBean 
 		try {
 			bean = applicationContext.getBean(beanId);
 		} catch (NoSuchBeanDefinitionException e) {
-			logger.warn("Bean lookup failed for " + beanId
+			logger.info("Bean lookup failed for " + beanId
 					+ " in the application context");
 			logger.debug(e);
 		}

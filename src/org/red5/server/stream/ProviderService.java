@@ -99,6 +99,8 @@ public class ProviderService implements IProviderService {
 	public File getVODProviderFile(IScope scope, String name) {
 		File file = null;
 		try {
+			log.info("getVODProviderFile scope path: " + scope.getContextPath()
+					+ " name: " + name);
 			file = getStreamFile(scope, name);
 		} catch (IOException e) {
 			log.error("Problem getting file: " + name);
@@ -162,7 +164,8 @@ public class ProviderService implements IProviderService {
 			// Default to .flv files if no prefix and no extension is given.
 			name = "flv:" + name;
 		}
-
+		log.info("getStreamFile null check - factory: " + factory + " name: "
+				+ name);
 		for (IStreamableFileService service : factory.getServices()) {
 			if (name.startsWith(service.getPrefix() + ':')) {
 				name = service.prepareFilename(name);
