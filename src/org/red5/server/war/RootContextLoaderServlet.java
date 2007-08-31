@@ -26,7 +26,10 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.sql.Driver;
 import java.sql.DriverManager;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
@@ -40,22 +43,16 @@ import org.red5.server.MappingStrategy;
 import org.red5.server.ScopeResolver;
 import org.red5.server.Server;
 import org.red5.server.WebScope;
-import org.red5.server.api.IScopeResolver;
 import org.red5.server.jmx.JMXAgent;
 import org.red5.server.service.ServiceInvoker;
-import org.springframework.beans.factory.BeanFactory;
-import org.springframework.beans.factory.access.BeanFactoryLocator;
 import org.springframework.beans.factory.access.BeanFactoryReference;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.access.ContextBeanFactoryReference;
-import org.springframework.context.access.ContextSingletonBeanFactoryLocator;
 import org.springframework.web.context.ConfigurableWebApplicationContext;
 import org.springframework.web.context.ContextLoader;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.context.support.XmlWebApplicationContext;
 
 /**
  * Entry point from which the server config file is loaded while running within
@@ -74,6 +71,13 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 	// Initialize Logging
 	public static Logger logger = Logger
 			.getLogger(RootContextLoaderServlet.class.getName());
+
+	private static Timer timer;
+
+	private CheckScopeListTask checkScopeList;
+
+	private static ArrayList<ServletContext> registeredContexts = new ArrayList<ServletContext>(
+			3);
 
 	private ConfigurableWebApplicationContext applicationContext;
 
@@ -149,15 +153,6 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 			servletContext.setAttribute("remoting.codec.factory", parentFactory
 					.getBean("remotingCodecFactory"));
 
-			// for (String beanName :
-			// applicationContext.getBeanDefinitionNames()) {
-			// logger.info("Bean: " + beanName);
-			// }
-			//
-			// for (String beanName : parentFactory.getBeanDefinitionNames()) {
-			// logger.info("PF Bean: " + beanName);
-			// }
-
 			server = (Server) parentFactory.getBean("red5.server");
 
 			clientRegistry = (ClientRegistry) factory
@@ -216,6 +211,10 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 
 		} catch (Throwable t) {
 			logger.error(t);
+		} finally {
+			timer = new Timer();
+			checkScopeList = new CheckScopeListTask();
+			timer.scheduleAtFixedRate(checkScopeList, 1000, 30000);
 		}
 
 		long startupIn = System.currentTimeMillis() - time;
@@ -231,6 +230,10 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 		ServletContext ctx = servletContext.getContext(webAppKey);
 		logger.info("Registering subcontext for servlet context: "
 				+ ctx.getContextPath());
+		if (registeredContexts.contains(ctx)) {
+			logger.debug("Context is already registered: " + webAppKey);
+			return;
+		}
 
 		ContextLoader loader = new ContextLoader();
 
@@ -258,92 +261,10 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 		scope.setParent(global);
 		scope.register();
 		scope.start();
-	}
 
-	/*
-	 * Registers a subcontext with red5
-	 */
-	public static void registerSubContext(WebSettings settings,
-			ServletContext ctx) {
-		logger
-				.warn("You have hit a bug! Contexts loaded after ROOT are not currently supported, as a work-around name your context with a letter prior to 'R'.");
-		logger.info("Registering subcontext for servlet context: "
-				+ ctx.getContextPath());
+		// register the context so we dont try to reinitialize it
+		registeredContexts.add(ctx);
 
-		ApplicationContext rootApplicationContext = null;
-		BeanFactoryReference parentContextRef = null;
-		String parentContextKey = ctx
-				.getInitParameter(ContextLoader.LOCATOR_FACTORY_KEY_PARAM);
-
-		if (parentContextKey != null) {
-			BeanFactoryLocator locator = ContextSingletonBeanFactoryLocator
-					.getInstance();
-			if (logger.isDebugEnabled()) {
-				logger
-						.debug("Getting parent context definition: using parent context key of '"
-								+ parentContextKey
-								+ "' with BeanFactoryLocator");
-			}
-			parentContextRef = locator.useBeanFactory(parentContextKey);
-			rootApplicationContext = (ApplicationContext) parentContextRef
-					.getFactory();
-		}
-
-		// ServletContext rootServletContext = ctx.getContext("/ROOT");
-
-		ConfigurableWebApplicationContext appCtx = new XmlWebApplicationContext();
-		appCtx.setParent(rootApplicationContext);
-		appCtx.setServletContext(ctx);
-		appCtx.setConfigLocations(settings.getConfigs());
-		appCtx.refresh();
-
-		ctx.setAttribute(
-				WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE,
-				appCtx);
-
-		BeanFactory factory = rootApplicationContext;
-
-		// get the main factory
-		DefaultListableBeanFactory rootParentFactory = (DefaultListableBeanFactory) rootApplicationContext
-				.getParentBeanFactory();
-
-		ClientRegistry rootClientRegistry = (ClientRegistry) factory
-				.getBean("global.clientRegistry");
-
-		ServiceInvoker rootGlobalInvoker = (ServiceInvoker) factory
-				.getBean("global.serviceInvoker");
-
-		MappingStrategy rootGlobalStrategy = (MappingStrategy) factory
-				.getBean("global.mappingStrategy");
-
-		IScopeResolver rootGlobalResolver = ((Context) factory
-				.getBean("global.context")).getScopeResolver();
-
-		GlobalScope rootGlobal = (GlobalScope) factory.getBean("global.scope");
-
-		logger.debug("Null check - appctx " + (rootApplicationContext == null)
-				+ " parent: " + (rootParentFactory == null) + " registry: "
-				+ (rootClientRegistry == null) + " invoker: "
-				+ (rootGlobalInvoker == null) + " resolver: "
-				+ (rootGlobalResolver == null) + " strat: "
-				+ (rootGlobalStrategy == null));
-
-		BeanFactory appFactory = appCtx.getBeanFactory();
-
-		logger.debug("About to grab Webcontext bean for "
-				+ settings.getWebAppKey());
-		Context webContext = (Context) appCtx.getBean("web.context");
-		webContext.setCoreBeanFactory(rootParentFactory);
-		webContext.setClientRegistry(rootClientRegistry);
-		webContext.setServiceInvoker(rootGlobalInvoker);
-		webContext.setScopeResolver(rootGlobalResolver);
-		webContext.setMappingStrategy(rootGlobalStrategy);
-
-		WebScope scope = (WebScope) appFactory.getBean("web.scope");
-		scope.setServer((Server) rootParentFactory.getBean("red5.server"));
-		scope.setParent(rootGlobal);
-		scope.register();
-		scope.start();
 	}
 
 	/**
@@ -429,6 +350,32 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 				logger.info("RMI Registry server was not started on port 1099");
 			}
 
+		}
+	}
+
+	/**
+	 * Task to check the scope list periodically for new contexts
+	 */
+	public final class CheckScopeListTask extends TimerTask {
+		public void run() {
+			logger.debug("Checking scope list");
+			try {
+				// grab the scope list (other war/webapps)
+				IRemotableList remote = (IRemotableList) Naming
+						.lookup("rmi://localhost:1099/subContextList");
+				logger.debug("Children: " + remote.numChildren());
+				if (remote.hasChildren()) {
+					logger.debug("Children were detected");
+					for (int i = 0; i < remote.numChildren(); i++) {
+						logger.debug("Enumerating children");
+						WebSettings settings = remote.getAt(i);
+						registerSubContext(settings.getWebAppKey());
+					}
+					logger.debug("End of children...");
+				}
+			} catch (Throwable t) {
+				logger.error(t);
+			}
 		}
 	}
 
