@@ -187,7 +187,6 @@ public class WebScope extends Scope implements ServletContextAware {
 			// Already registered
 			return;
 		}
-
 		appContext = LoaderBase.getRed5ApplicationContext(contextPath);
 		appLoader = LoaderBase.getApplicationLoader();
 		// Release references
