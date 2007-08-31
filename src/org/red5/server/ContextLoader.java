@@ -139,7 +139,7 @@ public class ContextLoader implements ApplicationContextAware {
 	 *            Filename
 	 */
 	protected void loadContext(String name, String config) {
-		log.info("Load context - name: " + name + " config: " + config);
+		log.debug("Load context - name: " + name + " config: " + config);
 		ApplicationContext context = new FileSystemXmlApplicationContext(
 				new String[] { config }, parentContext);
 		contextMap.put(name, context);

@@ -43,13 +43,18 @@ import org.red5.server.WebScope;
 import org.red5.server.api.IScopeResolver;
 import org.red5.server.jmx.JMXAgent;
 import org.red5.server.service.ServiceInvoker;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.access.BeanFactoryLocator;
+import org.springframework.beans.factory.access.BeanFactoryReference;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.access.ContextBeanFactoryReference;
+import org.springframework.context.access.ContextSingletonBeanFactoryLocator;
 import org.springframework.web.context.ConfigurableWebApplicationContext;
 import org.springframework.web.context.ContextLoader;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.context.support.WebApplicationContextUtils;
 import org.springframework.web.context.support.XmlWebApplicationContext;
 
 /**
@@ -88,8 +93,6 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 
 	private GlobalScope global;
 
-	private ContextLoader loader;
-
 	private Server server;
 
 	{
@@ -118,25 +121,12 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 		logger.debug("Path: " + prefix);
 
 		try {
-			String[] configArray = servletContext.getInitParameter(
-					ContextLoader.CONFIG_LOCATION_PARAM).split("[,\\s]");
-			logger.debug("Config location files: " + configArray.length);
 			// instance the context loader
-			loader = createContextLoader();
+			ContextLoader loader = createContextLoader();
 			applicationContext = (ConfigurableWebApplicationContext) loader
 					.initWebApplicationContext(servletContext);
-			applicationContext.setConfigLocations(configArray);
 			logger.debug("Root context path: "
 					+ applicationContext.getServletContext().getContextPath());
-			// applicationContext.setServletContext(servletContext);
-			applicationContext.refresh();
-			// set web application context as an attribute of the servlet
-			// context so that it may be located via Springs
-			// WebApplicationContextUtils
-			servletContext
-					.setAttribute(
-							WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE,
-							applicationContext);
 
 			ConfigurableBeanFactory factory = applicationContext
 					.getBeanFactory();
@@ -147,6 +137,17 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 			// get the main factory
 			parentFactory = (DefaultListableBeanFactory) factory
 					.getParentBeanFactory();
+
+			// create a wrapper around our primary context
+			BeanFactoryReference beanfactoryRef = new ContextBeanFactoryReference(
+					applicationContext);
+
+			// set it in the root servlet context
+			servletContext.setAttribute("bean.factory.ref", beanfactoryRef);
+
+			// set a remoting codec factory for AMF use
+			servletContext.setAttribute("remoting.codec.factory", parentFactory
+					.getBean("remotingCodecFactory"));
 
 			// for (String beanName :
 			// applicationContext.getBeanDefinitionNames()) {
@@ -231,6 +232,8 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 		logger.info("Registering subcontext for servlet context: "
 				+ ctx.getContextPath());
 
+		ContextLoader loader = new ContextLoader();
+
 		ConfigurableWebApplicationContext appCtx = (ConfigurableWebApplicationContext) loader
 				.initWebApplicationContext(ctx);
 		appCtx.setParent(applicationContext);
@@ -238,7 +241,7 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 
 		ctx.setAttribute(
 				WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE,
-				applicationContext);
+				appCtx);
 
 		ConfigurableBeanFactory appFactory = appCtx.getBeanFactory();
 
@@ -262,27 +265,46 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 	 */
 	public static void registerSubContext(WebSettings settings,
 			ServletContext ctx) {
+		logger
+				.warn("You have hit a bug! Contexts loaded after ROOT are not currently supported, as a work-around name your context with a letter prior to 'R'.");
 		logger.info("Registering subcontext for servlet context: "
 				+ ctx.getContextPath());
 
-		ServletContext rootServletContext = ctx.getContext("/ROOT");
-		ConfigurableWebApplicationContext rootApplicationContext = (ConfigurableWebApplicationContext) WebApplicationContextUtils
-				.getWebApplicationContext(rootServletContext);
+		ApplicationContext rootApplicationContext = null;
+		BeanFactoryReference parentContextRef = null;
+		String parentContextKey = ctx
+				.getInitParameter(ContextLoader.LOCATOR_FACTORY_KEY_PARAM);
+
+		if (parentContextKey != null) {
+			BeanFactoryLocator locator = ContextSingletonBeanFactoryLocator
+					.getInstance();
+			if (logger.isDebugEnabled()) {
+				logger
+						.debug("Getting parent context definition: using parent context key of '"
+								+ parentContextKey
+								+ "' with BeanFactoryLocator");
+			}
+			parentContextRef = locator.useBeanFactory(parentContextKey);
+			rootApplicationContext = (ApplicationContext) parentContextRef
+					.getFactory();
+		}
+
+		// ServletContext rootServletContext = ctx.getContext("/ROOT");
 
 		ConfigurableWebApplicationContext appCtx = new XmlWebApplicationContext();
 		appCtx.setParent(rootApplicationContext);
 		appCtx.setServletContext(ctx);
 		appCtx.setConfigLocations(settings.getConfigs());
 		appCtx.refresh();
+
 		ctx.setAttribute(
 				WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE,
-				rootApplicationContext);
+				appCtx);
 
-		ConfigurableBeanFactory factory = rootApplicationContext
-				.getBeanFactory();
+		BeanFactory factory = rootApplicationContext;
 
 		// get the main factory
-		DefaultListableBeanFactory rootParentFactory = (DefaultListableBeanFactory) factory
+		DefaultListableBeanFactory rootParentFactory = (DefaultListableBeanFactory) rootApplicationContext
 				.getParentBeanFactory();
 
 		ClientRegistry rootClientRegistry = (ClientRegistry) factory
@@ -306,7 +328,7 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 				+ (rootGlobalResolver == null) + " strat: "
 				+ (rootGlobalStrategy == null));
 
-		ConfigurableBeanFactory appFactory = appCtx.getBeanFactory();
+		BeanFactory appFactory = appCtx.getBeanFactory();
 
 		logger.debug("About to grab Webcontext bean for "
 				+ settings.getWebAppKey());
@@ -337,6 +359,7 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 			// in hopes that we can clear all the issues with J2EE containers
 			// during shutdown
 			try {
+				ServletContext ctx = sce.getServletContext();
 				// prepare spring for shutdown
 				Introspector.flushCaches();
 				// dereg any drivers
@@ -351,7 +374,7 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 				// shutdown jmx
 				JMXAgent.shutdown();
 				// shutdown spring
-				Object attr = servletContext
+				Object attr = ctx
 						.getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
 				if (attr != null) {
 					// get web application context from the servlet context
@@ -361,18 +384,20 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 					// for (String scope : factory.getRegisteredScopeNames()) {
 					// logger.debug("Registered scope: " + scope);
 					// }
-					for (String singleton : factory.getSingletonNames()) {
-						logger.debug("Registered singleton: " + singleton);
-						factory.destroyScopedBean(singleton);
+					try {
+						for (String singleton : factory.getSingletonNames()) {
+							logger.debug("Registered singleton: " + singleton);
+							factory.destroyScopedBean(singleton);
+						}
+					} catch (RuntimeException e) {
 					}
 					factory.destroySingletons();
 
-					servletContext
+					ctx
 							.removeAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
 					applicationContext.close();
 				}
-				instance.getContextLoader().closeWebApplicationContext(
-						servletContext);
+				instance.getContextLoader().closeWebApplicationContext(ctx);
 			} catch (Throwable e) {
 				e.printStackTrace();
 			} finally {

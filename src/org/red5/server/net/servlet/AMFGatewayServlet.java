@@ -85,14 +85,6 @@ public class AMFGatewayServlet extends HttpServlet {
 	public void init() throws ServletException {
 		webAppCtx = WebApplicationContextUtils
 				.getWebApplicationContext(getServletContext());
-		try {
-			log.debug("Gateway: ctx path: "
-					+ webAppCtx.getServletContext().getContextPath()
-					+ " srv ctx path: " + getServletContext().getContextPath());
-		} catch (Throwable e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 		if (webAppCtx != null) {
 			webContext = (IContext) webAppCtx.getBean("web.context");
 			codecFactory = (RemotingCodecFactory) webAppCtx
