@@ -21,6 +21,7 @@ package org.red5.server.war;
 
 import java.beans.Introspector;
 import java.rmi.Naming;
+import java.rmi.RMISecurityManager;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -68,6 +69,8 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 
 	private final static long serialVersionUID = 41919712007L;
 
+	private static ClassLoader myClassloader;
+
 	// Initialize Logging
 	public static Logger logger = Logger
 			.getLogger(RootContextLoaderServlet.class.getName());
@@ -100,6 +103,9 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 	private Server server;
 
 	{
+		if (System.getSecurityManager() != null) {
+			System.setSecurityManager(new RMISecurityManager());
+		}
 		initRegistry();
 	}
 
@@ -114,6 +120,8 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 		}
 		instance = this;
 		System.setProperty("red5.deployment.type", "war");
+
+		myClassloader = getClass().getClassLoader();
 
 		servletContext = sce.getServletContext();
 		String prefix = servletContext.getRealPath("/");
@@ -281,6 +289,13 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 			// during shutdown
 			try {
 				ServletContext ctx = sce.getServletContext();
+				// if the ctx being destroyed is root then kill the timer
+				if (ctx.getContextPath().equals("/ROOT")) {
+					timer.cancel();
+				} else {
+					// remove from registered list
+					registeredContexts.remove(ctx);
+				}
 				// prepare spring for shutdown
 				Introspector.flushCaches();
 				// dereg any drivers

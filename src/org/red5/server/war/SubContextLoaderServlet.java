@@ -20,6 +20,7 @@ package org.red5.server.war;
  */
 
 import java.rmi.Naming;
+import java.rmi.RMISecurityManager;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
@@ -48,6 +49,9 @@ public class SubContextLoaderServlet extends RootContextLoaderServlet {
 	private static ServletContext servletContext;
 
 	{
+		if (System.getSecurityManager() != null) {
+			System.setSecurityManager(new RMISecurityManager());
+		}
 		initRegistry();
 	}
 
