@@ -48,13 +48,6 @@ public class SubContextLoaderServlet extends RootContextLoaderServlet {
 
 	private static ServletContext servletContext;
 
-	{
-		if (System.getSecurityManager() != null) {
-			System.setSecurityManager(new RMISecurityManager());
-		}
-		initRegistry();
-	}
-
 	/**
 	 * Main entry point for the Red5 Server as a war
 	 */
@@ -68,6 +61,15 @@ public class SubContextLoaderServlet extends RootContextLoaderServlet {
 
 		servletContext = sce.getServletContext();
 		String prefix = servletContext.getRealPath("/");
+
+		Object o = servletContext.getInitParameter("rmiPort");
+		if (o != null) {
+			rmiPort = Integer.valueOf((String) o);
+		}
+		if (System.getSecurityManager() != null) {
+			System.setSecurityManager(new RMISecurityManager());
+		}
+		initRegistry();
 
 		long time = System.currentTimeMillis();
 
@@ -96,8 +98,8 @@ public class SubContextLoaderServlet extends RootContextLoaderServlet {
 			IRemotableList remote = null;
 			boolean firstReg = false;
 			try {
-				remote = (IRemotableList) Naming
-						.lookup("rmi://localhost:1099/subContextList");
+				remote = (IRemotableList) Naming.lookup("rmi://localhost:"
+						+ rmiPort + "/subContextList");
 			} catch (Exception e) {
 				logger.warn("Lookup failed: " + e.getMessage());
 			}
@@ -109,9 +111,11 @@ public class SubContextLoaderServlet extends RootContextLoaderServlet {
 			remote.addChild(settings);
 			logger.debug("Remote list size: " + remote.numChildren());
 			if (firstReg) {
-				Naming.bind("rmi://localhost:1099/subContextList", remote);
+				Naming.bind("rmi://localhost:" + rmiPort + "/subContextList",
+						remote);
 			} else {
-				Naming.rebind("rmi://localhost:1099/subContextList", remote);
+				Naming.rebind("rmi://localhost:" + rmiPort + "/subContextList",
+						remote);
 			}
 
 		} catch (Throwable t) {

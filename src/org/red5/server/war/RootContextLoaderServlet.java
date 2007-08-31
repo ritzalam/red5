@@ -102,12 +102,7 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 
 	private Server server;
 
-	{
-		if (System.getSecurityManager() != null) {
-			System.setSecurityManager(new RMISecurityManager());
-		}
-		initRegistry();
-	}
+	protected Integer rmiPort = 1099;
 
 	/**
 	 * Main entry point for the Red5 Server as a war
@@ -125,6 +120,15 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 
 		servletContext = sce.getServletContext();
 		String prefix = servletContext.getRealPath("/");
+
+		Object o = servletContext.getInitParameter("rmiPort");
+		if (o != null) {
+			rmiPort = Integer.valueOf((String) o);
+		}
+		if (System.getSecurityManager() != null) {
+			System.setSecurityManager(new RMISecurityManager());
+		}
+		initRegistry();
 
 		long time = System.currentTimeMillis();
 
@@ -205,7 +209,7 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 
 			// grab the scope list (other war/webapps)
 			IRemotableList remote = (IRemotableList) Naming
-					.lookup("rmi://localhost:1099/subContextList");
+					.lookup("rmi://localhost:" + rmiPort + "/subContextList");
 			logger.debug("Children: " + remote.numChildren());
 			if (remote.hasChildren()) {
 				logger.debug("Children were detected");
@@ -349,20 +353,21 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 		Registry r = null;
 		try {
 			// lookup the registry
-			r = LocateRegistry.getRegistry(1099);
+			r = LocateRegistry.getRegistry(rmiPort);
 			// ensure we are not already registered with the registry
 			for (String regName : r.list()) {
 				logger.debug("Registry entry: " + regName);
 			}
 		} catch (RemoteException re) {
-			logger.info("RMI Registry server was not found on port 1099");
+			logger.info("RMI Registry server was not found on port " + rmiPort);
 			// if we didnt find the registry and the user wants it created
 			try {
 				logger.info("Starting an internal RMI registry");
-				// create registry for rmi port 9999
-				r = LocateRegistry.createRegistry(1099);
+				// create registry for rmi
+				r = LocateRegistry.createRegistry(rmiPort);
 			} catch (RemoteException e) {
-				logger.info("RMI Registry server was not started on port 1099");
+				logger.info("RMI Registry server was not started on port "
+						+ rmiPort);
 			}
 
 		}
@@ -377,7 +382,8 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 			try {
 				// grab the scope list (other war/webapps)
 				IRemotableList remote = (IRemotableList) Naming
-						.lookup("rmi://localhost:1099/subContextList");
+						.lookup("rmi://localhost:" + rmiPort
+								+ "/subContextList");
 				logger.debug("Children: " + remote.numChildren());
 				if (remote.hasChildren()) {
 					logger.debug("Children were detected");
