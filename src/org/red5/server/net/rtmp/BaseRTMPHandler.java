@@ -145,9 +145,10 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 							&& ((Invoke)message).getCall().getServiceName()==null
 							&& ACTION_PUBLISH.equals(((Invoke)message).getCall().getServiceMethodName())) {
 						IClientStream s = conn.getStreamById(header.getStreamId());
-						if (s != null)
+						if (s != null) {
 							// Only dispatch if stream really was created
 							((IEventDispatcher) s).dispatchEvent(message);
+						}
 					}
 					break;
 
@@ -159,6 +160,13 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 						onInvoke(conn, channel, header, (Notify) message, (RTMP) state);
 					}
 					break;
+					
+				case TYPE_FLEX_STREAM_SEND:
+					if (stream != null) {
+						((IEventDispatcher) stream).dispatchEvent(message);
+					}
+					break;
+					
 				case TYPE_PING:
 					onPing(conn, channel, header, (Ping) message);
 					break;

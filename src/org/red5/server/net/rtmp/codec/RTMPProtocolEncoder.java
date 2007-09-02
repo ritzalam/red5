@@ -39,6 +39,7 @@ import org.red5.server.net.rtmp.event.BytesRead;
 import org.red5.server.net.rtmp.event.ChunkSize;
 import org.red5.server.net.rtmp.event.ClientBW;
 import org.red5.server.net.rtmp.event.FlexMessage;
+import org.red5.server.net.rtmp.event.FlexStreamSend;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.event.Invoke;
 import org.red5.server.net.rtmp.event.Notify;
@@ -294,6 +295,8 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 				return encodeClientBW((ClientBW) message);
 			case TYPE_FLEX_MESSAGE:
 				return encodeFlexMessage((FlexMessage) message, rtmp);
+			case TYPE_FLEX_STREAM_SEND:
+				return encodeFlexStreamSend((FlexStreamSend) message);
 			default:
 				log.warn("Unknown object type: " + header.getDataType());
 				return null;
@@ -627,5 +630,12 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 		encodeNotifyOrInvoke(out, msg, rtmp);
 		return out;
 	}
+
+	public ByteBuffer encodeFlexStreamSend(FlexStreamSend msg) {
+		final ByteBuffer result = msg.getData();
+		result.acquire();
+		return result;
+	}
+
 
 }

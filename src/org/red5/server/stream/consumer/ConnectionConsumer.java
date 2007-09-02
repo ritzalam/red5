@@ -37,6 +37,7 @@ import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.event.AudioData;
 import org.red5.server.net.rtmp.event.BytesRead;
 import org.red5.server.net.rtmp.event.ChunkSize;
+import org.red5.server.net.rtmp.event.FlexStreamSend;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.event.Ping;
@@ -128,6 +129,14 @@ public class ConnectionConsumer implements IPushableConsumer,
 					notify.setHeader(header);
 					notify.setTimestamp(header.getTimer());
 					data.write(notify);
+					break;
+				case Constants.TYPE_FLEX_STREAM_SEND:
+					// TODO: okay to send this also to AMF0 clients?
+					FlexStreamSend send = new FlexStreamSend(((Notify) msg).getData()
+							.asReadOnlyBuffer());
+					send.setHeader(header);
+					send.setTimestamp(header.getTimer());
+					data.write(send);
 					break;
 				case Constants.TYPE_VIDEO_DATA:
 					VideoData videoData = new VideoData(((VideoData) msg)

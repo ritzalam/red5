@@ -68,8 +68,13 @@ public interface Constants {
      */
     public static final byte TYPE_VIDEO_DATA = 0x09;
 
-	// Unknown: 0x0A ...  0x0F
+	// Unknown: 0x0A ...  0x0E
 
+    /**
+     * AMF3 stream send
+     */
+    public static final byte TYPE_FLEX_STREAM_SEND = 0x0F;
+    
     /**
      * AMF3 shared object
      */
