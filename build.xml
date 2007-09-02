@@ -67,9 +67,7 @@
 					<available property="catalina.installed" classpathref="project.classpath" classname="org.apache.catalina.Server"/>
 					<available property="mina.installed" classpathref="project.classpath" classname="org.apache.mina.filter.codec.ProtocolEncoder"/>
 					<available property="minajmx.installed" classpathref="project.classpath" classname="org.apache.mina.integration.jmx.IoServiceManager"/>
-					<not>
-						<equals arg1="${java.target_version}" arg2="1.5"/>
-					</not>
+					<equals arg1="${java.target_version}" arg2="1.6"/>
 				</and>
 				<and>
 					<available property="spring.installed" classpathref="project.classpath" classname="org.springframework.core.SpringVersion"/>
