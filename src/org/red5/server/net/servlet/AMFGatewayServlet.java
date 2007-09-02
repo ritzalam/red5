@@ -33,6 +33,7 @@ import org.apache.mina.common.ByteBuffer;
 import org.red5.server.api.IContext;
 import org.red5.server.api.IScope;
 import org.red5.server.api.Red5;
+import org.red5.server.api.remoting.IRemotingConnection;
 import org.red5.server.net.remoting.codec.RemotingCodecFactory;
 import org.red5.server.net.remoting.message.RemotingCall;
 import org.red5.server.net.remoting.message.RemotingPacket;
@@ -131,6 +132,10 @@ public class AMFGatewayServlet extends HttpServlet {
 				log.error("Packet should not be null");
 				return;
 			}
+			// Provide a valid IConnection in the Red5 object
+			IScope scope = webContext.resolveScope(packet.getScopePath());
+			IRemotingConnection conn = new RemotingConnection(req, scope, packet);
+			Red5.setConnectionLocal(conn);
 			handleRemotingPacket(req, packet);
 			resp.setStatus(HttpServletResponse.SC_OK);
 			resp.setContentType(APPLICATION_AMF);
@@ -194,8 +199,6 @@ public class AMFGatewayServlet extends HttpServlet {
 			RemotingPacket message) {
 		log.debug("Handling remoting packet");
 		IScope scope = webContext.resolveScope(message.getScopePath());
-		// Provide a valid IConnection in the Red5 object
-		Red5.setConnectionLocal(new ServletConnection(req, scope, message));
 		for (RemotingCall call : message.getCalls()) {
 			webContext.getServiceInvoker().invoke(call, scope);
 		}

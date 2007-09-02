@@ -19,6 +19,10 @@ package org.red5.server.net.remoting.codec;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
@@ -27,6 +31,10 @@ import org.red5.compatibility.flex.messaging.messages.AbstractMessage;
 import org.red5.compatibility.flex.messaging.messages.ErrorMessage;
 import org.red5.io.amf.Output;
 import org.red5.io.object.Serializer;
+import org.red5.server.api.Red5;
+import org.red5.server.api.IConnection.Encoding;
+import org.red5.server.api.remoting.IRemotingConnection;
+import org.red5.server.api.remoting.IRemotingHeader;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.protocol.SimpleProtocolEncoder;
 import org.red5.server.net.remoting.FlexMessagingService;
@@ -58,8 +66,33 @@ public class RemotingProtocolEncoder implements SimpleProtocolEncoder {
 		ByteBuffer buf = ByteBuffer.allocate(1024);
 		buf.setAutoExpand(true);
 		Output output;
-		buf.putShort((short) 0); // write the version
-		buf.putShort((short) 0); // write the header count
+		if (resp.getEncoding() == Encoding.AMF0) {
+			buf.putShort((short) 0);  // encoded using AMF0
+		} else {
+			buf.putShort((short) 3);  // encoded using AMF3
+		}
+		
+		IRemotingConnection conn = (IRemotingConnection) Red5.getConnectionLocal();
+		Collection<IRemotingHeader> headers = conn.getHeaders();
+		synchronized (headers) {
+			buf.putShort((short) headers.size()); // write the header count
+			if (resp.getEncoding() == Encoding.AMF0) {
+				output = new Output(buf);
+			} else {
+				output = new org.red5.io.amf3.Output(buf);
+			}
+			for (IRemotingHeader header: headers) {
+				Output.putString(buf, IRemotingHeader.PERSISTENT_HEADER);
+				output.writeBoolean(false);
+				Map<String, Object> param = new HashMap<String, Object>();
+				param.put("name", header.getName());
+				param.put("mustUnderstand", header.getMustUnderstand() ? Boolean.TRUE : Boolean.FALSE);
+				param.put("data", header.getName());
+				serializer.serialize(output, param);
+			}
+			headers.clear();
+		}
+		
 		buf.putShort((short) resp.getCalls().size()); // write the number of bodies
 		for (RemotingCall call: resp.getCalls()) {
 			if (log.isDebugEnabled()) {

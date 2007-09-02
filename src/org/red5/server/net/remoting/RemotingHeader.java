@@ -19,6 +19,8 @@ package org.red5.server.net.remoting;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import org.red5.server.api.remoting.IRemotingHeader;
+
 /**
  * Remoting header to be sent to a server.
  * 
@@ -29,22 +31,7 @@ package org.red5.server.net.remoting;
  * @author Joachim Bauch (jojo@struktur.de)
  *
  */
-public class RemotingHeader {
-
-	/** Name of header specifying string to add to gateway url. */
-	public static String APPEND_TO_GATEWAY_URL = "AppendToGatewayUrl";
-
-	/** Name of header specifying new gateway url to use. */
-	public static String REPLACE_GATEWAY_URL = "ReplaceGatewayUrl";
-
-	/** Name of header specifying new header to send. */
-	public static String PERSISTENT_HEADER = "RequestPersistentHeader";
-
-	/** Name of header containing authentication data. */
-	public static String CREDENTIALS = "Credentials";
-
-	/** Name of header to request debug informations from the server. */
-	public static String DEBUG_SERVER = "amf_server_debug";
+public class RemotingHeader implements IRemotingHeader {
 
 	/**
 	 * The name of the header.
@@ -72,5 +59,20 @@ public class RemotingHeader {
 		this.name = name;
 		this.required = required;
 		this.data = data;
+	}
+
+	/** {@inheritDoc} */
+	public boolean getMustUnderstand() {
+		return required;
+	}
+
+	/** {@inheritDoc} */
+	public String getName() {
+		return name;
+	}
+
+	/** {@inheritDoc} */
+	public Object getValue() {
+		return data;
 	}
 }

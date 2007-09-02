@@ -19,6 +19,8 @@ package org.red5.server.net.servlet;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -37,6 +39,9 @@ import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
 import org.red5.server.api.event.IEvent;
+import org.red5.server.api.remoting.IRemotingConnection;
+import org.red5.server.api.remoting.IRemotingHeader;
+import org.red5.server.net.remoting.RemotingHeader;
 import org.red5.server.net.remoting.message.RemotingPacket;
 
 /**
@@ -47,7 +52,7 @@ import org.red5.server.net.remoting.message.RemotingPacket;
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
  */
-public class ServletConnection implements IConnection {
+public class RemotingConnection implements IRemotingConnection {
     /**
      * Scope
      */
@@ -67,12 +72,17 @@ public class ServletConnection implements IConnection {
 	 */
 	protected HttpSession session;
 	
+	/**
+	 * Headers to be returned to the client.
+	 */
+	protected List<IRemotingHeader> headers = new ArrayList<IRemotingHeader>();
+	
     /**
      * Create servlet connection from request and scope
      * @param request           Servlet request
      * @param scope             Scope
      */
-    public ServletConnection(HttpServletRequest request, IScope scope, RemotingPacket packet) {
+    public RemotingConnection(HttpServletRequest request, IScope scope, RemotingPacket packet) {
 		this.request = request;
 		this.scope = scope;
 		this.packet = packet;
@@ -445,4 +455,26 @@ public class ServletConnection implements IConnection {
 		setAttributes(values.getAttributes());
 	}
 
+	/** {@inheritDoc} */
+	public void addHeader(String name, Object value) {
+		addHeader(name, value, false);
+	}
+
+	/** {@inheritDoc} */
+	public void addHeader(String name, Object value, boolean mustUnderstand) {
+		synchronized (headers) {
+			headers.add(new RemotingHeader(name, mustUnderstand, value));
+		}
+	}
+
+	/** {@inheritDoc} */
+	public void removeHeader(String name) {
+		addHeader(name, null, false);
+	}
+
+	/** {@inheritDoc} */
+	public Collection<IRemotingHeader> getHeaders() {
+		return headers;
+	}
+	
 }
