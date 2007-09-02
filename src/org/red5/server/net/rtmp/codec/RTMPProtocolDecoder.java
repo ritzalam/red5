@@ -2,21 +2,21 @@ package org.red5.server.net.rtmp.codec;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
- * 
+ *
  * Copyright (c) 2006-2007 by respective authors (see below). All rights reserved.
- * 
- * This library is free software; you can redistribute it and/or modify it under the 
- * terms of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either version 2.1 of the License, or (at your option) any later 
- * version. 
- * 
- * This library is distributed in the hope that it will be useful, but WITHOUT ANY 
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+ *
+ * This library is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free Software
+ * Foundation; either version 2.1 of the License, or (at your option) any later
+ * version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
  * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public License along 
- * with this library; if not, write to the Free Software Foundation, Inc., 
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ *
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with this library; if not, write to the Free Software Foundation, Inc.,
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 import java.util.ArrayList;
@@ -104,7 +104,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 		this.deserializer = deserializer;
 	}
 
-	/** {@inheritDoc} */
+    /** {@inheritDoc} */
     public List decodeBuffer(ProtocolState state, ByteBuffer buffer) {
 
 		final List<Object> result = new LinkedList<Object>();
@@ -134,6 +134,9 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 				}
 			}
 		} catch (HandshakeFailedException hfe) {
+		    // patched by Victor to clear buffer if something is wrong in protocol decoding
+		    buffer.clear();
+
 			IConnection conn = Red5.getConnectionLocal();
 			if (conn != null) {
 				conn.close();
@@ -141,10 +144,20 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 				log.error("Handshake validation failed but no current connection!?");
 			}
 			return null;
-		} catch (ProtocolException pvx) {
-			log.error("Error decoding buffer", pvx);
+		// Exception handling is patched by Victor - we catch any exception in the decoding
+		// Then clear the buffer to eliminate memory leaks when we can't parse protocol
+		// Also close Connection because we can't parse data from it
 		} catch (Exception ex) {
 			log.error("Error decoding buffer", ex);
+            buffer.clear();
+            IConnection conn = Red5.getConnectionLocal();
+            if (conn != null) {
+                    log.warn("Closing connection because decoding failed: "+conn.toString());
+                    conn.close();
+            } else {
+                    log.error("Decoding buffer failed but no current connection!?");
+            }
+            return null;
 		} finally {
 			buffer.compact();
 		}
@@ -159,12 +172,12 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 		if (conn == null) {
 			return;
 		}
-		
+
 		IScope scope = conn.getScope();
 		if (scope == null) {
 			return;
 		}
-		
+
 		IContext context = scope.getContext();
 		if (context != null) {
 			Thread.currentThread().setContextClassLoader(context.getApplicationContext().getClassLoader());
@@ -310,7 +323,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 				rtmp.bufferDecoding(2);
 				return null;
 			}
-			headerValue = ((int) headerByte & 0xff) << 8 | ((int) in.get() & 0xff); 
+			headerValue = ((int) headerByte & 0xff) << 8 | ((int) in.get() & 0xff);
 			byteCount = 2;
 		} else if ((headerByte & 0x3f) == 1) {
 			// Three byte header
@@ -319,7 +332,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 				rtmp.bufferDecoding(3);
 				return null;
 			}
-			headerValue = ((int) headerByte & 0xff) << 16 | ((int) in.get() & 0xff) << 8 | ((int) in.get() & 0xff); 
+			headerValue = ((int) headerByte & 0xff) << 16 | ((int) in.get() & 0xff) << 8 | ((int) in.get() & 0xff);
 			byteCount = 3;
 		} else {
 			// Single byte header
@@ -399,13 +412,13 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 						" to " + buf.position() + " (" + header + ")");
 			}
 		}
-		
+
 		buf.flip();
 
 		try {
 			final IRTMPEvent message = decodeMessage(rtmp, packet.getHeader(), buf);
 			packet.setMessage(message);
-	
+
 			if (message instanceof ChunkSize) {
 				ChunkSize chunkSizeMsg = (ChunkSize) message;
 				rtmp.setReadChunkSize(chunkSizeMsg.getSize());
@@ -430,11 +443,11 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 		int byteCount = 1;
 		if ((headerByte & 0x3f) == 0) {
 			// Two byte header
-			headerValue = ((int) headerByte & 0xff) << 8 | ((int) in.get() & 0xff); 
+			headerValue = ((int) headerByte & 0xff) << 8 | ((int) in.get() & 0xff);
 			byteCount = 2;
 		} else if ((headerByte & 0x3f) == 1) {
 			// Three byte header
-			headerValue = ((int) headerByte & 0xff) << 16 | ((int) in.get() & 0xff) << 8 | ((int) in.get() & 0xff); 
+			headerValue = ((int) headerByte & 0xff) << 16 | ((int) in.get() & 0xff) << 8 | ((int) in.get() & 0xff);
 			byteCount = 3;
 		} else {
 			// Single byte header
@@ -601,7 +614,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 		doDecodeSharedObject(so, in, input);
 		return so;
 	}
-	
+
 	/** {@inheritDoc} */
 	public ISharedObjectMessage decodeSharedObject(ByteBuffer in, RTMP rtmp) {
 		final Input input = new org.red5.io.amf.Input(in);
@@ -621,7 +634,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 
 	/**
 	 * Perform the actual decoding of the shared object contents.
-	 * 
+	 *
 	 * @param so
 	 * @param in
 	 * @param rtmp
@@ -834,7 +847,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	public Notify decodeStreamMetadata(ByteBuffer in) {
 		return new Notify(in.asReadOnlyBuffer());
 	}
-	
+
     /**
      * Decodes FlexMessage event
      * @param in               Byte buffer
@@ -896,6 +909,6 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	public FlexStreamSend decodeFlexStreamSend(ByteBuffer in) {
 		return new FlexStreamSend(in.asReadOnlyBuffer());
 	}
-	
+
 
 }
