@@ -55,18 +55,32 @@
 				<available property="java6.installed" classname="javax.script.Bindings"/>
 			</and>
 		</condition>
+		<echo message="Using java6? ${java6.installed}"/>
 	</target>
 	<target name="-library.check">
 		<!-- Check for the main libraries -->
-
 		<condition property="library.installed" value="true">
-			<and>
-				<available property="spring.installed" classpathref="project.classpath" classname="org.springframework.core.SpringVersion"/>
-				<available property="log4j.installed" classpathref="project.classpath" classname="org.apache.log4j.Logger"/>
-				<available property="catalina.installed" classpathref="project.classpath" classname="org.apache.catalina.Server"/>
-				<available property="mina.installed" classpathref="project.classpath" classname="org.apache.mina.filter.codec.ProtocolEncoder"/>
-				<available property="minajmx.installed" classpathref="project.classpath" classname="org.apache.mina.integration.jmx.IoServiceManager"/>
-			</and>
+			<or>
+				<and>
+					<available property="spring.installed" classpathref="project.classpath" classname="org.springframework.core.SpringVersion"/>
+					<available property="log4j.installed" classpathref="project.classpath" classname="org.apache.log4j.Logger"/>
+					<available property="catalina.installed" classpathref="project.classpath" classname="org.apache.catalina.Server"/>
+					<available property="mina.installed" classpathref="project.classpath" classname="org.apache.mina.filter.codec.ProtocolEncoder"/>
+					<available property="minajmx.installed" classpathref="project.classpath" classname="org.apache.mina.integration.jmx.IoServiceManager"/>
+					<not>
+						<equals arg1="${java.target_version}" arg2="1.5"/>
+					</not>
+				</and>
+				<and>
+					<available property="spring.installed" classpathref="project.classpath" classname="org.springframework.core.SpringVersion"/>
+					<available property="log4j.installed" classpathref="project.classpath" classname="org.apache.log4j.Logger"/>
+					<available property="catalina.installed" classpathref="project.classpath" classname="org.apache.catalina.Server"/>
+					<available property="mina.installed" classpathref="project.classpath" classname="org.apache.mina.filter.codec.ProtocolEncoder"/>
+					<available property="minajmx.installed" classpathref="project.classpath" classname="org.apache.mina.integration.jmx.IoServiceManager"/>
+					<available property="script.compat.installed" classpathref="project.classpath" classname="javax.script.Namespace"/>
+					<equals arg1="${java.target_version}" arg2="1.5"/>
+				</and>		
+			</or>
 		</condition>
 	</target>
 	<!-- setup the directories for building -->
@@ -109,7 +123,6 @@
 	</target>
 	<target name="compile" depends="-library.check, -java6.check, -junit.check, prepare">
 		<!-- token replacement filers -->
-
 		<property name="filter.file" value="conf/build_standalone.properties"/>
 		<condition property="java.target_version" value="1.5">
 			<not>
