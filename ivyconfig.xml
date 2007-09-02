@@ -1,17 +1,17 @@
 <ivysettings>
-    <conf defaultResolver="chained" />
+    <conf defaultResolver="local" checkUpToDate="false"/>
     <resolvers>
-        <chain name="chained">     
-    		<ivyrep name="public"/>
-			<filesystem name="libraries">
-        		<artifact pattern="${ivy.lib.dir}/[artifact].[type]" />
-        		<artifact pattern="${ivy.lib.dir}/[artifact]-[revision].[type]" />
+        <chain name="local">     
+			<filesystem name="lib_dir">
+        		<artifact pattern="${ivy.lib.dir}/[artifact](-[revision]).[type]" />
+        		<artifact pattern="${ivy.lib.dir}/[artifact](-[revision]).[ext]" />
      	 	</filesystem>        
+    		<ivyrep name="local_cache"/> 
+		</chain>    
+        <chain name="remote">     
             <url name="googlecode">
-                <artifact pattern="http://red5.googlecode.com/svn/trunk/repository/[artifact].[ext]" />
-                <artifact pattern="http://red5.googlecode.com/svn/trunk/repository/[artifact]-[revision].[ext]" />
-                <artifact pattern="http://red5.googlecode.com/svn/trunk/repository/[organisation]/[artifact].[ext]" />
-                <artifact pattern="http://red5.googlecode.com/svn/trunk/repository/[organisation]/[artifact]-[revision].[ext]" />
+                <artifact pattern="http://red5.googlecode.com/svn/trunk/repository/[artifact](-[revision]).[ext]" />
+                <artifact pattern="http://red5.googlecode.com/svn/trunk/repository/[organisation]/[artifact](-[revision]).[ext]" />
             </url>
             <!--            
             <url name="cvsdude">
@@ -19,8 +19,8 @@
             </url>      
             -->    
             <url name="ibiblio_maven2" m2compatible="true">
-  				<artifact pattern="http://www.ibiblio.org/maven2/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"/>
-  				<artifact pattern="http://www.ibiblio.org/maven2/[organisation]/[artifact]/[revision]/[artifact]-[revision].[ext]"/>
+  				<artifact pattern="http://www.ibiblio.org/maven2/[organisation]/[module]/[revision]/[artifact](-[revision]).[ext]"/>
+  				<artifact pattern="http://www.ibiblio.org/maven2/[organisation]/[artifact]/[revision]/[artifact](-[revision]).[ext]"/>
 			</url>
             <ibiblio name="ibiblio" />
         </chain>
@@ -31,5 +31,6 @@
         <module organisation="jetty" name="*" resolver="googlecode"/>
         <module organisation="mina" name="*" resolver="googlecode"/>
         <module organisation="jmx" name="*" resolver="googlecode"/>
+        <module organisation=".*" name="*" resolver="remote"/>
     </modules>    
 </ivysettings>

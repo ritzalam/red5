@@ -91,7 +91,6 @@
 	</target>
 	<target name="retrieve" unless="library.installed" description="Retrieves the libraries if needed">
 		<!-- Ivy configuration -->
-
 		<ivy:configure file="ivyconfig.xml"/>
 		<condition property="ivy.conf.name" value="default">
 			<not>
