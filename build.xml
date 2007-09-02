@@ -458,7 +458,7 @@
 			</manifest>
 		</war>
 	</target>
-	<target name="javadoc" description="Generate JavaDoc" if="java6.installed">
+	<target name="javadoc" description="Generate JavaDoc">
 		<echo message="Path: ${env.Path}"/>
 		<!-- Determine the location of Suns api docs -->
 		<condition property="javadoc.loc" value="javase/6">
