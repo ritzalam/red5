@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Map;
 
 import org.apache.mina.common.ByteBuffer;
@@ -127,6 +128,12 @@ public class MetaService implements IMetaService {
 		super();
 	}
 
+	public MetaService( File poFil )
+	{
+		super();
+		this.file = poFil;
+	}
+
 	/** {@inheritDoc}
 	 */
 	public void write(IMetaData meta) throws IOException {
@@ -134,34 +141,41 @@ public class MetaService implements IMetaService {
 		IMetaCue[] metaArr = meta.getMetaCue();
 		FLVReader reader = new FLVReader(file);
 		FLVWriter writer = new FLVWriter(fos);
-
-        // Write header (version, data offset, etc)
-        writer.writeHeader();
-
-		IMetaData metaData = null;
 		ITag tag = null;
+
 		// Read first tag
 		if (reader.hasMoreTags()) {
 			tag = reader.readTag();
-            // If tag is metadata, parse it's body
-            if (tag.getDataType() == IoConstants.TYPE_METADATA) {
-				metaData = this.readMetaData(tag.getBody());
+			if( tag.getDataType() == IoConstants.TYPE_METADATA ) {
+				if( !reader.hasMoreTags() )
+					throw new IOException( "File we're writing is metadata only?" );
 			}
 		}
 
-        // Merged metadata
-        IMetaData mergedMeta = (IMetaData) mergeMeta(metaData, meta);
-        // Inject metadata
-        ITag injectedTag = injectMetaData(mergedMeta, tag);
-		//		System.out.println("tag: \n--------\n" + injectedTag);
-		writer.writeTag(injectedTag);
+		meta.setDuration( ((double)reader.getDuration() / 1000) );
+		meta.setVideoCodecId( reader.getVideoCodecId() );
+		meta.setAudioCodecId( reader.getAudioCodecId() );
 
-		int cuePointTimeStamp = getTimeInMilliseconds(metaArr[0]);
+		ITag injectedTag = injectMetaData( meta, tag );
+		injectedTag.setPreviousTagSize( 0 );
+		tag.setPreviousTagSize( injectedTag.getBodySize() );
+
+		writer.writeHeader();
+		writer.writeTag( injectedTag );
+		writer.writeTag( tag );
+
+		int cuePointTimeStamp = 0;
 		int counter = 0;
+
+		if( metaArr != null ) {
+			Arrays.sort( metaArr );
+			cuePointTimeStamp = getTimeInMilliseconds( metaArr[0] );
+		}
+
 		while (reader.hasMoreTags()) {
 			tag = reader.readTag();
 
-			// if there are cuePoints in the TreeSet
+			// if there are cuePoints in the array 
 			if (counter < metaArr.length) {
 
 				// If the tag has a greater timestamp than the
@@ -169,10 +183,9 @@ public class MetaService implements IMetaService {
 				while (tag.getTimestamp() > cuePointTimeStamp) {
 
 					injectedTag = injectMetaCue(metaArr[counter], tag);
-					//					System.out.println("In tag: \n--------\n" + injectedTag);
 					writer.writeTag(injectedTag);
 
-					tag.setPreviousTagSize((injectedTag.getBodySize() + 11));
+					tag.setPreviousTagSize(injectedTag.getBodySize());
 
 					// Advance to the next CuePoint
 					counter++;
@@ -191,6 +204,7 @@ public class MetaService implements IMetaService {
 			}
 
 		}
+		writer.close();
 
 	}
 
@@ -202,7 +216,7 @@ public class MetaService implements IMetaService {
 	 * @return                Merged metadata
 	 */
 	private IMeta mergeMeta(IMetaData metaData, IMetaData md) {
-		return resolver.resolve(metaData, md);
+		return new Resolver().resolve(metaData, md);
 	}
 
     /**
@@ -213,10 +227,13 @@ public class MetaService implements IMetaService {
      */
     private ITag injectMetaData(IMetaData meta, ITag tag) {
 
-		Output out = new Output(ByteBuffer.allocate(1000));
+		ByteBuffer bb = ByteBuffer.allocate( 1000 );
+		bb.setAutoExpand( true );
+
+		Output out = new Output( bb );
 		Serializer ser = new Serializer();
-		ser.serialize(out, "onMetaData");
-		ser.serialize(out, meta);
+		ser.serialize( out, "onMetaData" );
+		ser.serialize( out, meta );
 
 		ByteBuffer tmpBody = out.buf().flip();
 		int tmpBodySize = out.buf().limit();
@@ -310,6 +327,7 @@ public class MetaService implements IMetaService {
 	public MetaData readMetaData(ByteBuffer buffer) {
 		MetaData retMeta = new MetaData();
 		Input input = new Input(buffer);
+		if( deserializer == null ) deserializer = new Deserializer();
 		@SuppressWarnings("unused") String metaType = (String) deserializer.deserialize(input);
 		Map m = (Map) deserializer.deserialize(input);
 		retMeta.putAll(m);

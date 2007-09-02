@@ -329,6 +329,8 @@ public class FLVReader implements IoConstants, ITagReader,
      * Post-initialization hook, reads keyframe metadata and decodes header (if any)
      */
     private void postInitialize() {
+		ITag tag = null;
+
 		if (log.isDebugEnabled()) {
 			log.debug("FLVReader 1 - Buffer size: " + getTotalBytes()
 					+ " position: " + getCurrentPosition() + " remaining: "
@@ -338,6 +340,10 @@ public class FLVReader implements IoConstants, ITagReader,
 			decodeHeader();
 		}
 		keyframeMeta = analyzeKeyFrames();
+		long old = getCurrentPosition();
+		
+		
+
 	}
 	
     /** {@inheritDoc} */
@@ -466,6 +472,36 @@ public class FLVReader implements IoConstants, ITagReader,
 	/** {@inheritDoc} */
     public long getDuration() {
 		return duration;
+	}
+
+	public int getVideoCodecId()
+	{
+		KeyFrameMeta meta = analyzeKeyFrames();
+	        if (meta == null)
+        	        return -1;
+
+		long old = getCurrentPosition();
+		setCurrentPosition( firstVideoTag );
+		readTagHeader();
+		fillBuffer(1);
+		byte frametype = in.get();
+		setCurrentPosition( old );
+		return frametype & MASK_VIDEO_CODEC;
+	}
+
+	public int getAudioCodecId()
+	{
+		KeyFrameMeta meta = analyzeKeyFrames();
+	        if (meta == null)
+        	        return -1;
+
+		long old = getCurrentPosition();
+		setCurrentPosition( firstAudioTag );
+		readTagHeader();
+		fillBuffer(1);
+		byte frametype = in.get();
+		setCurrentPosition( old );
+		return frametype & MASK_SOUND_FORMAT;
 	}
 
 	/** {@inheritDoc}

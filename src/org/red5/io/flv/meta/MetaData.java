@@ -2,28 +2,25 @@ package org.red5.io.flv.meta;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
- * 
+ *
  * Copyright (c) 2006-2007 by respective authors (see below). All rights reserved.
- * 
- * This library is free software; you can redistribute it and/or modify it under the 
- * terms of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either version 2.1 of the License, or (at your option) any later 
- * version. 
- * 
- * This library is distributed in the hope that it will be useful, but WITHOUT ANY 
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+ *
+ * This library is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free Software
+ * Foundation; either version 2.1 of the License, or (at your option) any later
+ * version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
  * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public License along 
- * with this library; if not, write to the Free Software Foundation, Inc., 
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ *
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with this library; if not, write to the Free Software Foundation, Inc.,
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-import java.util.Arrays;
+import java.util.Map;
 import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.TreeSet;
 
 /**
  * MetaData Implementation
@@ -79,6 +76,14 @@ public class MetaData<K, V> extends HashMap<String, Object> implements
 	 */
 	public void setVideoCodecId(int id) {
 		this.put("videocodecid", id);
+	}
+
+	public int getAudioCodecId() {
+		return (Integer) this.get( "audiocodecid" );
+	}
+
+	public void setAudioCodecId(int id) {
+		this.put("audiocodecid", id);
 	}
 
 	/** {@inheritDoc}
@@ -148,23 +153,12 @@ public class MetaData<K, V> extends HashMap<String, Object> implements
 	 *            The cuePoints to set.
 	 */
 	public void setMetaCue(IMetaCue[] cuePoints) {
+		Map<String,Object> cues = new HashMap<String,Object>();
 		this.cuePoints = cuePoints;
 
-		MetaCue<String, Object> cuePointData = new MetaCue<String, Object>();
-
-		// Place in TreeSet for sorting
-		TreeSet<IMetaCue> ts = new TreeSet<IMetaCue>();
-
-		for (IMetaCue element : cuePoints) {
-			ts.add(element);
-		}
-
 		int j = 0;
-		while (!ts.isEmpty()) {
-			cuePointData.put(String.valueOf(j), ts.first());
-			j++;
-
-			ts.remove(ts.first());
+		for( j=0; j<this.cuePoints.length; j++ ) {
+			cues.put( String.valueOf( j ), this.cuePoints[j] );
 		}
 
 		//		"CuePoints", cuePointData
@@ -177,7 +171,7 @@ public class MetaData<K, V> extends HashMap<String, Object> implements
 		//							type, "event1"
 		//							time, "0.5"
 
-		this.put("cuePoints", cuePointData);
+		this.put("cuePoints", cues);
 
 	}
 
@@ -187,24 +181,13 @@ public class MetaData<K, V> extends HashMap<String, Object> implements
 	 * @return  Array of cue points
 	 */
 	public IMetaCue[] getMetaCue() {
-		IMetaCue ret[];
-		MetaCue cue = (MetaCue) this.get("cuePoints");
-		Set s = cue.keySet();
-
-		Iterator i = s.iterator();
-		ret = new MetaCue[s.size()];
-		int counter = 0;
-		while (i.hasNext()) {
-			ret[counter++] = (IMetaCue) cue.get(i.next());
-		}
-
-		return ret;
+		return this.cuePoints;
 	}
 
 	/** {@inheritDoc} */
     @Override
 	public String toString() {
 		return "MetaData{" + "cuePoints="
-				+ (cuePoints == null ? null : Arrays.asList(cuePoints)) + '}';
+			+ (cuePoints == null ? null : this.get("cuePoints")) + '}';
 	}
 }

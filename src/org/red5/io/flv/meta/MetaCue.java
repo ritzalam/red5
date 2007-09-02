@@ -20,6 +20,7 @@ package org.red5.io.flv.meta;
  */
 
 import java.util.HashMap;
+import java.util.Iterator;
 
 /**
  * Cue point is metadata marker used to control and accompany video playback with client-side application
@@ -109,6 +110,16 @@ public class MetaCue<K, V> extends HashMap<String, Object> implements IMetaCue {
 	/** {@inheritDoc} */
     @Override
 	public String toString() {
-		return "MetaCue{" + this + '}';
+		String lsRet = "";
+		String lsKey = null;
+		Iterator loIT = this.keySet().iterator();
+
+		while( loIT.hasNext() ) {
+			lsKey = (String)loIT.next();
+			lsRet += lsKey.toLowerCase() + "=" + this.get( lsKey );
+			if( loIT.hasNext() ) lsRet += ", ";
+		}
+
+		return "MetaCue{" + lsRet + "}";
 	}
 }

@@ -2,21 +2,21 @@ package org.red5.io.flv.impl;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
- * 
+ *
  * Copyright (c) 2006-2007 by respective authors (see below). All rights reserved.
- * 
- * This library is free software; you can redistribute it and/or modify it under the 
- * terms of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either version 2.1 of the License, or (at your option) any later 
- * version. 
- * 
- * This library is distributed in the hope that it will be useful, but WITHOUT ANY 
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+ *
+ * This library is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free Software
+ * Foundation; either version 2.1 of the License, or (at your option) any later
+ * version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
  * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public License along 
- * with this library; if not, write to the Free Software Foundation, Inc., 
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ *
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with this library; if not, write to the Free Software Foundation, Inc.,
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 import java.io.FileOutputStream;
@@ -67,11 +67,6 @@ public class FLVWriter implements ITagWriter {
     private ByteBuffer out;
 
     /**
-     * Last tag
-     */
-    private ITag lastTag;
-
-    /**
      * FLV object
      */
     private IFLV flv;
@@ -85,36 +80,21 @@ public class FLVWriter implements ITagWriter {
      * Position in file
      */
     private int offset;
-    
-    private boolean appendMode = false;
 
-    /**
-     * Position of onMetaData tag in file.
-     */
-	private long fileMetaPosition = 0;
-	
 	/**
 	 * Size of tag containing onMetaData.
 	 */
 	private int fileMetaSize = 0;
-	
+
 	/**
 	 * Id of the video codec used.
 	 */
 	private int videoCodecId = -1;
-	
+
 	/**
 	 * Id of the audio codec used.
 	 */
 	private int audioCodecId = -1;
-
-    /**
-     * Creates new FLV writer from file output stream
-     * @param fos
-     */
-    public FLVWriter(FileOutputStream fos) {
-		this(fos, null);
-	}
 
 	/**
 	 * Creates writer implementation with given file output stream and last tag
@@ -122,12 +102,8 @@ public class FLVWriter implements ITagWriter {
 	 * @param fos               File output stream
      * @param lastTag           Last tag
 	 */
-	public FLVWriter(FileOutputStream fos, ITag lastTag) {
+	public FLVWriter(FileOutputStream fos) {
 		this.fos = fos;
-		if (lastTag != null) {
-			offset = lastTag.getTimestamp();
-			appendMode = true;
-		}
 		channel = this.fos.getChannel();
 		out = ByteBuffer.allocate(1024);
 		out.setAutoExpand(true);
@@ -157,6 +133,10 @@ public class FLVWriter implements ITagWriter {
 
 		// Data Offset
 		out.putInt(0x09);
+
+		// First lastTagSize
+		// Always zero
+		out.putInt(0);
 
 		out.flip();
 
@@ -206,15 +186,8 @@ public class FLVWriter implements ITagWriter {
 	/** {@inheritDoc}
 	 */
 	public boolean writeTag(ITag tag) throws IOException {
-		// PreviousTagSize
-		//out = out.reset();
-		out.clear();
 
-		// append mode and the first tag to write
-		// the last tag size is already at the end of file
-		if (!appendMode || lastTag != null) {
-			out.putInt((lastTag == null) ? 0 : (lastTag.getBodySize() + 11));
-		}
+		out.clear();
 
 		// Data Type
 		out.put(tag.getDataType());
@@ -243,8 +216,12 @@ public class FLVWriter implements ITagWriter {
 			byte id = bodyBuf.get();
 			videoCodecId = id & ITag.MASK_VIDEO_CODEC;
 		}
-		
-		lastTag = tag;
+
+		// We add the tag size
+		out.clear();
+		out.putInt(tag.getBodySize() + 11);
+		out.flip();
+		bytesWritten += channel.write(out.buf());
 
 		return false;
 	}
@@ -259,29 +236,6 @@ public class FLVWriter implements ITagWriter {
 	/** {@inheritDoc}
 	 */
 	public void close() {
-		if (lastTag != null && !appendMode) {
-			// TODO: update existing metadata when appending audio/video to adjust duration
-			try {
-				writeMetadataTag((lastTag.getTimestamp() + offset) * 0.001,
-						videoCodecId != -1 ? videoCodecId : null,
-						audioCodecId != -1 ? audioCodecId : null);
-			} catch (IOException err) {
-				log.error("Could not update onMetaData tag.", err);
-			}
-		}
-		if (out != null) {
-			// Write size of last tag to file before closing it.
-			out.clear();
-			out.putInt((lastTag == null) ? 0 : (lastTag.getBodySize() + 11));
-			out.flip();
-			try {
-				bytesWritten += channel.write(out.buf());
-			} catch (IOException err) {
-				log.error("Could not write size of last tag to file.", err);
-			}
-			out.release();
-			out = null;
-		}
 		try {
 			channel.close();
 			fos.close();
@@ -299,7 +253,7 @@ public class FLVWriter implements ITagWriter {
 
     /**
      * Write "onMetaData" tag to the file.
-     * 
+     *
      * @param duration			Duration to write in milliseconds.
      * @param videoCodecId		Id of the video codec used while recording.
      * @param audioCodecId		Id of the audio codec used while recording.
@@ -321,30 +275,14 @@ public class FLVWriter implements ITagWriter {
 		params.put("canSeekToEnd", true);
 		out.writeMap(params, new Serializer());
 		buf.flip();
-		
+
 		if (fileMetaSize == 0) {
 			fileMetaSize = buf.limit();
 		}
-		
+
 		ITag onMetaData = new Tag(ITag.TYPE_METADATA, 0, fileMetaSize, buf, 0);
-		if (fileMetaPosition == 0) {
-			// Remember where we wrote the intermediate tag so we can update it later
-			fileMetaPosition = channel.position();
-			writeTag(onMetaData);
-		} else {
-			long old = channel.position();
-			ITag last = lastTag;
-			try {
-				// We don't have a previous tag when writing metadata
-				lastTag = null;
-				channel.position(fileMetaPosition);
-				writeTag(onMetaData);
-			} finally {
-				lastTag = last;
-				channel.position(old);
-			}
-		}
+		writeTag(onMetaData);
 	}
-	
+
 
 }

@@ -2,21 +2,21 @@ package org.red5.io.flv.impl;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
- * 
+ *
  * Copyright (c) 2006-2007 by respective authors (see below). All rights reserved.
- * 
- * This library is free software; you can redistribute it and/or modify it under the 
- * terms of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either version 2.1 of the License, or (at your option) any later 
- * version. 
- * 
- * This library is distributed in the hope that it will be useful, but WITHOUT ANY 
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+ *
+ * This library is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free Software
+ * Foundation; either version 2.1 of the License, or (at your option) any later
+ * version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
  * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public License along 
- * with this library; if not, write to the Free Software Foundation, Inc., 
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ *
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with this library; if not, write to the Free Software Foundation, Inc.,
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 import java.io.File;
@@ -29,18 +29,20 @@ import java.util.Map;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
-import org.red5.io.ITag;
+import org.red5.io.IoConstants;
 import org.red5.io.ITagReader;
 import org.red5.io.ITagWriter;
+import org.red5.io.ITag;
 import org.red5.io.flv.IFLV;
 import org.red5.io.flv.meta.IMetaData;
 import org.red5.io.flv.meta.IMetaService;
+import org.red5.io.flv.meta.MetaService;
 import org.red5.server.api.cache.ICacheStore;
 import org.red5.server.api.cache.ICacheable;
 
 /**
  * A FLVImpl implements the FLV api
- * 
+ *
  * @author The Red5 Project (red5@osflash.org)
  * @author Dominick Accattato (daccattato@gmail.com)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
@@ -50,16 +52,18 @@ public class FLV implements IFLV {
 
 	protected static Log log = LogFactory.getLog(FLV.class.getName());
 
-	private static ICacheStore cache;	
-	
+	private static ICacheStore cache;
+
 	private File file;
 
 	private boolean generateMetadata;
 
 	private IMetaService metaService;
 
+	private IMetaData metaData;
+
 	/**
-	 * Default constructor, used by Spring so that parameters 
+	 * Default constructor, used by Spring so that parameters
 	 * may be injected.
 	 */
 	public FLV() {
@@ -81,22 +85,40 @@ public class FLV implements IFLV {
     public FLV(File file, boolean generateMetadata) {
 		this.file = file;
 		this.generateMetadata = generateMetadata;
+		int count = 0;
+
+		if( !generateMetadata ) {
+			try {
+				FLVReader reader = new FLVReader( this.file );
+				ITag tag = null;
+				while( reader.hasMoreTags() && (++count < 5) ) {
+					tag = reader.readTag();
+					if( tag.getDataType() == IoConstants.TYPE_METADATA ) {
+						if( metaService == null ) metaService = new MetaService( this.file );
+						metaData = metaService.readMetaData( tag.getBody() );
+					}
+				}
+				reader.close();
+			} catch( Exception e ) {
+				log.error( "An error occured looking for metadata:", e );
+			}
+		}
+
 	}
 
 	/**
 	 * Sets the cache implementation to be used.
-	 * 
+	 *
 	 * @param cache          Cache store
 	 */
 	public void setCache(ICacheStore cache) {
 		FLV.cache = cache;
 	}
-	
+
 	/** {@inheritDoc}
 	 */
 	public boolean hasMetaData() {
-		// TODO Auto-generated method stub
-		return false;
+		return metaData!=null;
 	}
 
 	/** {@inheritDoc}
@@ -201,25 +223,11 @@ public class FLV implements IFLV {
     public ITagWriter getAppendWriter() throws IOException {
 		// If the file doesnt exist, we cant append to it, so return a writer
 		if (!file.exists()) {
-			log
-					.info("File does not exist, calling writer. This will create a new file.");
+			log.info("File does not exist, calling writer. This will create a new file.");
 			return getWriter();
 		}
-		ITagReader reader = getReader();
-		// Its an empty flv, so no point appending call writer
-		if (!reader.hasMoreTags()) {
-			reader.close();
-			log
-					.info("Reader is empty, calling writer. This will create a new file.");
-			return getWriter();
-		}
-		ITag lastTag = null;
-		while (reader.hasMoreTags()) {
-			lastTag = reader.readTag();
-		}
-		reader.close();
-		FileOutputStream fos = new FileOutputStream(file, true);
-        return new FLVWriter(fos, lastTag);
+		ITagWriter writer = new FLVWriter(new FileOutputStream(file,true));
+		return writer;
 	}
 
 	/** {@inheritDoc}
@@ -231,11 +239,15 @@ public class FLV implements IFLV {
 
 	/** {@inheritDoc} */
     public void setMetaData(IMetaData meta) throws IOException {
-		File tmpFile = new File("test/tmp.flv");
-		tmpFile.createNewFile();
-		metaService.setInStream(new FileInputStream(file));
-		metaService.setOutStream(new FileOutputStream(tmpFile));
-		metaService.write(meta);
+    	File tmpFile = File.createTempFile( "setMeta_", ".flv" );
+    	if( metaService == null ) metaService = new MetaService( this.file );
+    	metaService.setInStream( new FileInputStream( this.file ) );
+    	metaService.setOutStream( new FileOutputStream( tmpFile ) );
+    	metaService.write( meta );
+    	metaData = meta;
+    	file.delete();
+    	tmpFile.renameTo( file );
+    	file = tmpFile;
 	}
 
 	/** {@inheritDoc} */
