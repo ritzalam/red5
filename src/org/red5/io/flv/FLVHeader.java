@@ -2,27 +2,27 @@ package org.red5.io.flv;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
- * 
+ *
  * Copyright (c) 2006-2007 by respective authors (see below). All rights reserved.
- * 
- * This library is free software; you can redistribute it and/or modify it under the 
- * terms of the GNU Lesser General Public License as published by the Free Software 
- * Foundation; either version 2.1 of the License, or (at your option) any later 
- * version. 
- * 
- * This library is distributed in the hope that it will be useful, but WITHOUT ANY 
- * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+ *
+ * This library is free software; you can redistribute it and/or modify it under the
+ * terms of the GNU Lesser General Public License as published by the Free Software
+ * Foundation; either version 2.1 of the License, or (at your option) any later
+ * version.
+ *
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
  * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
- * 
- * You should have received a copy of the GNU Lesser General Public License along 
- * with this library; if not, write to the Free Software Foundation, Inc., 
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ *
+ * You should have received a copy of the GNU Lesser General Public License along
+ * with this library; if not, write to the Free Software Foundation, Inc.,
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 /**
  * FLVHeader parses out the contents of a FLV video file and returns
- * the Header data 
- * 
+ * the Header data
+ *
  * @author The Red5 Project (red5@osflash.org)
  * @author Dominick Accattato (daccattato@gmail.com)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
@@ -69,7 +69,7 @@ public class FLVHeader {
 
 	/**
 	 * Returns the data offset bytes
-	 * 
+	 *
 	 * @return int           Data offset
 	 */
 	public int getDataOffset() {
@@ -78,7 +78,7 @@ public class FLVHeader {
 
 	/**
 	 * Sets the data offset bytes
-	 * 
+	 *
 	 * @param data_offset    Data offset
 	 */
 	public void setDataOffset(int data_offset) {
@@ -87,7 +87,7 @@ public class FLVHeader {
 
 	/**
 	 * Returns the signature bytes
-	 * 
+	 *
 	 * @return byte[]       Signature
 	 */
 	public byte[] getSignature() {
@@ -103,7 +103,7 @@ public class FLVHeader {
 	public String toString() {
 		String ret = "";
 		//ret += "SIGNATURE: \t" + getSIGNATURE() + "\n";
-		//ret += "SIGNATURE: \t\t" + new String(signature) + "\n";  
+		//ret += "SIGNATURE: \t\t" + new String(signature) + "\n";
 		ret += "VERSION: \t\t" + getVersion() + "\n";
 		ret += "TYPE FLAGS VIDEO: \t" + getFlagVideo() + "\n";
 		ret += "TYPE FLAGS AUDIO: \t" + getFlagAudio() + "\n";
@@ -116,7 +116,7 @@ public class FLVHeader {
 
 	/**
 	 * Sets the signature bytes
-	 * 
+	 *
 	 * @param signature     Signature
 	 */
 	public void setSignature(byte[] signature) {
@@ -125,7 +125,7 @@ public class FLVHeader {
 
 	/**
 	 * Returns a boolean on whether this data contains audio
-	 * 
+	 *
 	 * @return boolean      <code>true</code> if this FLV header contains audio data, <code>false</code> otherwise
 	 */
 	public boolean getFlagAudio() {
@@ -134,7 +134,7 @@ public class FLVHeader {
 
 	/**
 	 * Sets the audioflag on whether this data contains audio
-	 * 
+	 *
 	 * @param flagAudio     <code>true</code> if this FLV header contains audio data, <code>false</code> otherwise
 	 */
 	public void setFlagAudio(boolean flagAudio) {
@@ -143,18 +143,18 @@ public class FLVHeader {
 
 	/**
 	 * Sets the type flags on whether this data is audio or video
-	 * 
+	 *
 	 * @param typeFlags     Type flags determining data types (audio or video)
 	 */
 	public void setTypeFlags(byte typeFlags) {
-		flagVideo = (((typeFlags << 7) >> 7) > 0x00);
-		flagAudio = (((typeFlags << 5) >> 7) > 0x00);
+		flagVideo = (((byte) (((typeFlags << 0x7) >>> 0x7) & 0x01)) > 0x00);
+		flagAudio = (((byte) (((typeFlags << 0x5) >>> 0x7) & 0x01)) > 0x00);
 	}
 
 	/**
 	 * Gets the FlagReserved01 which is a datatype specified in the Flash
 	 * Specification
-	 * 
+	 *
 	 * @return byte             Flag reserved, first
 	 */
 	public byte getFlagReserved01() {
@@ -164,7 +164,7 @@ public class FLVHeader {
 	/**
 	 * Sets the FlagReserved01 which is a datatype specified in the Flash
 	 * Specification
-	 * 
+	 *
 	 * @param flagReserved01    Flag reserved, first
 	 */
 	public void setFlagReserved01(byte flagReserved01) {
@@ -174,7 +174,7 @@ public class FLVHeader {
 	/**
 	 * Gets the FlagReserved02 which is a datatype specified in the Flash
 	 * Specification
-	 * 
+	 *
 	 * @return byte             FlagReserved02
 	 */
 	public byte getFlagReserved02() {
@@ -184,7 +184,7 @@ public class FLVHeader {
 	/**
 	 * Sets the Flag Reserved02 which is a datatype specified in the Flash
 	 * Specification
-	 * 
+	 *
 	 * @param flagReserved02    FlagReserved02
 	 */
 	public void setFlagReserved02(byte flagReserved02) {
@@ -193,7 +193,7 @@ public class FLVHeader {
 
 	/**
 	 * Returns a boolean on whether this data contains video
-	 * 
+	 *
 	 * @return boolean          <code>true</code> if this FLV header contains vide data, <code>false</code> otherwise
 	 */
 	public boolean getFlagVideo() {
@@ -202,7 +202,7 @@ public class FLVHeader {
 
 	/**
 	 * Sets the audioflag on whether this data contains audio
-	 * 
+	 *
 	 * @param type_flags_video  <code>true</code> if this FLV header contains video data, <code>false</code> otherwise
 	 */
 	public void setFlagVideo(boolean type_flags_video) {
@@ -211,7 +211,7 @@ public class FLVHeader {
 
 	/**
 	 * Gets the version byte
-	 * 
+	 *
 	 * @return byte             FLV version byte
 	 */
 	public byte getVersion() {
@@ -220,7 +220,7 @@ public class FLVHeader {
 
 	/**
 	 * Sets the version byte
-	 * 
+	 *
 	 * @param version           FLV version byte
 	 */
 	public void setVersion(byte version) {
