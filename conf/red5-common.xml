@@ -43,16 +43,8 @@
 	<!-- RTMP codec factory -->
 	<bean id="rtmpCodecFactory" class="org.red5.server.net.rtmp.codec.RTMPMinaCodecFactory"
 		 autowire="byType" init-method="init">
-		 <!--
 		<property name="minaEncoder">
 				<bean class="org.red5.server.net.rtmp.codec.RTMPMinaProtocolEncoder">
-					<property name="serializer"><ref bean="serializer"/></property>
-				</bean>
-		</property>	
-		-->	 
-		<!-- Fix / option for defect SN-1 -->
-		<property name="minaEncoder">
-				<bean class="org.red5.server.net.rtmp.codec.FastRTMPMinaProtocolEncoder">
 					<property name="serializer"><ref bean="serializer"/></property>
 				</bean>
 		</property>		 	 
