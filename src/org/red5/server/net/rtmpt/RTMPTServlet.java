@@ -35,6 +35,7 @@ import org.apache.mina.common.ByteBuffer;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.servlet.ServletUtils;
 import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
 
 /**
  * Servlet that handles all RTMPT requests.
@@ -483,10 +484,13 @@ public class RTMPTServlet extends HttpServlet {
 	@Override
 	public void init() throws ServletException {
 		super.init();
-		log.debug("RTMPT: srv ctx path: "
-				+ getServletContext().getContextPath());
-		appCtx = (WebApplicationContext) getServletContext().getAttribute(
-				WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
+		appCtx = WebApplicationContextUtils
+				.getWebApplicationContext(getServletContext());
+		if (appCtx == null) {
+			appCtx = (WebApplicationContext) getServletContext()
+					.getAttribute(
+							WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
+		}
 	}
 
 }

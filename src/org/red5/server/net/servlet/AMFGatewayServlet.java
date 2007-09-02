@@ -36,7 +36,6 @@ import org.red5.server.api.Red5;
 import org.red5.server.net.remoting.codec.RemotingCodecFactory;
 import org.red5.server.net.remoting.message.RemotingCall;
 import org.red5.server.net.remoting.message.RemotingPacket;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
@@ -71,11 +70,6 @@ public class AMFGatewayServlet extends HttpServlet {
 	protected IContext webContext;
 
 	/**
-	 * Bean factory
-	 */
-	protected BeanFactory netContext;
-
-	/**
 	 * Remoting codec factory
 	 */
 	protected RemotingCodecFactory codecFactory;
@@ -85,6 +79,11 @@ public class AMFGatewayServlet extends HttpServlet {
 	public void init() throws ServletException {
 		webAppCtx = WebApplicationContextUtils
 				.getWebApplicationContext(getServletContext());
+		if (webAppCtx == null) {
+			webAppCtx = (WebApplicationContext) getServletContext()
+					.getAttribute(
+							WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
+		}
 		if (webAppCtx != null) {
 			webContext = (IContext) webAppCtx.getBean("web.context");
 			codecFactory = (RemotingCodecFactory) webAppCtx
@@ -98,6 +97,7 @@ public class AMFGatewayServlet extends HttpServlet {
 	@Override
 	public void service(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
+		log.debug("Servicing Request");
 		if (log.isDebugEnabled()) {
 			log.debug("Remoting request" + req.getContextPath() + ' '
 					+ req.getServletPath());
@@ -124,6 +124,7 @@ public class AMFGatewayServlet extends HttpServlet {
 	 */
 	protected void serviceAMF(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
+		log.debug("Servicing AMF");
 		try {
 			RemotingPacket packet = decodeRequest(req);
 			if (packet == null) {
@@ -151,6 +152,7 @@ public class AMFGatewayServlet extends HttpServlet {
 	 */
 	protected RemotingPacket decodeRequest(HttpServletRequest req)
 			throws Exception {
+		log.debug("Decoding request");
 		ByteBuffer reqBuffer = ByteBuffer.allocate(req.getContentLength());
 		ServletUtils.copy(req.getInputStream(), reqBuffer.asOutputStream());
 		reqBuffer.flip();
@@ -163,9 +165,16 @@ public class AMFGatewayServlet extends HttpServlet {
 		if (req.getPathInfo() != null) {
 			path += req.getPathInfo();
 		}
+		// check for header path, this is used by the AMF tunnel servlet
+		String headerPath = req.getHeader("Tunnel-request");
+		// it is only used if the path is set to root
+		if (headerPath != null && path.length() < 1) {
+			path = headerPath;
+		}
 		if (path.length() > 0 && path.charAt(0) == '/') {
 			path = path.substring(1);
 		}
+		log.debug("Path: " + path + " Scope path: " + packet.getScopePath());
 		packet.setScopePath(path);
 		reqBuffer.release();
 		reqBuffer = null;
@@ -183,10 +192,10 @@ public class AMFGatewayServlet extends HttpServlet {
 	 */
 	protected boolean handleRemotingPacket(HttpServletRequest req,
 			RemotingPacket message) {
+		log.debug("Handling remoting packet");
 		IScope scope = webContext.resolveScope(message.getScopePath());
 		// Provide a valid IConnection in the Red5 object
 		Red5.setConnectionLocal(new ServletConnection(req, scope, message));
-
 		for (RemotingCall call : message.getCalls()) {
 			webContext.getServiceInvoker().invoke(call, scope);
 		}
@@ -205,6 +214,7 @@ public class AMFGatewayServlet extends HttpServlet {
 	 */
 	protected void sendResponse(HttpServletResponse resp, RemotingPacket packet)
 			throws Exception {
+		log.debug("Sending response");
 		ByteBuffer respBuffer = codecFactory.getSimpleEncoder().encode(null,
 				packet);
 		final ServletOutputStream out = resp.getOutputStream();

@@ -121,14 +121,9 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 		servletContext = sce.getServletContext();
 		String prefix = servletContext.getRealPath("/");
 
-		Object o = servletContext.getInitParameter("rmiPort");
-		if (o != null) {
-			rmiPort = Integer.valueOf((String) o);
-		}
-		if (System.getSecurityManager() != null) {
-			System.setSecurityManager(new RMISecurityManager());
-		}
-		initRegistry();
+		servletContext.setAttribute("root.classloader", myClassloader);
+
+		initRegistry(servletContext);
 
 		long time = System.currentTimeMillis();
 
@@ -349,9 +344,16 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 		}
 	}
 
-	protected void initRegistry() {
+	protected void initRegistry(ServletContext ctx) {
 		Registry r = null;
 		try {
+			Object o = ctx.getInitParameter("rmiPort");
+			if (o != null) {
+				rmiPort = Integer.valueOf((String) o);
+			}
+			if (System.getSecurityManager() != null) {
+				System.setSecurityManager(new RMISecurityManager());
+			}
 			// lookup the registry
 			r = LocateRegistry.getRegistry(rmiPort);
 			// ensure we are not already registered with the registry
@@ -377,6 +379,7 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 	 * Task to check the scope list periodically for new contexts
 	 */
 	public final class CheckScopeListTask extends TimerTask {
+		@Override
 		public void run() {
 			logger.debug("Checking scope list");
 			try {

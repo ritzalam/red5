@@ -20,7 +20,6 @@ package org.red5.server.war;
  */
 
 import java.rmi.Naming;
-import java.rmi.RMISecurityManager;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
@@ -62,14 +61,7 @@ public class SubContextLoaderServlet extends RootContextLoaderServlet {
 		servletContext = sce.getServletContext();
 		String prefix = servletContext.getRealPath("/");
 
-		Object o = servletContext.getInitParameter("rmiPort");
-		if (o != null) {
-			rmiPort = Integer.valueOf((String) o);
-		}
-		if (System.getSecurityManager() != null) {
-			System.setSecurityManager(new RMISecurityManager());
-		}
-		initRegistry();
+		initRegistry(servletContext);
 
 		long time = System.currentTimeMillis();
 

@@ -30,25 +30,20 @@
 
 	<context-param>
 		<param-name>contextConfigLocation</param-name>
-		<param-value>WEB-INF/classes/red5-web.xml</param-value>
+		<param-value>WEB-INF/classes/*-web.xml</param-value>
 	</context-param>
 
 	<context-param>
 		<param-name>log4jConfigLocation</param-name>
 		<param-value>/WEB-INF/log4j.properties</param-value>
 	</context-param>
-	
-	<context-param>
-		<param-name>rmiPort</param-name>
-		<param-value>1099</param-value>
-	</context-param>	
 
 	<listener>
 		<listener-class>org.springframework.web.util.Log4jConfigListener</listener-class>
 	</listener>
 
 	<listener>
-		<listener-class>@context.loader.servlet@</listener-class>
+		<listener-class>org.red5.server.war.WarLoaderServlet</listener-class>
 	</listener>
 
     <listener>
@@ -58,13 +53,13 @@
 	<servlet>
 		<servlet-name>gateway</servlet-name>
 		<servlet-class>org.red5.server.net.servlet.AMFGatewayServlet</servlet-class>
-		<!-- load-on-startup>1</load-on-startup -->
+		<load-on-startup>1</load-on-startup>
 	</servlet>
 
 	<servlet>
 		<servlet-name>rtmpt</servlet-name>
 		<servlet-class>org.red5.server.net.rtmpt.RTMPTServlet</servlet-class>
-		<!-- load-on-startup>2</load-on-startup -->
+		<load-on-startup>2</load-on-startup>
 	</servlet>
 
 	<servlet-mapping>
@@ -93,7 +88,7 @@
 	</servlet-mapping>
 
 	<welcome-file-list>
-		<welcome-file>@welcome.file@</welcome-file>
+		<welcome-file>login.html</welcome-file>
 		<welcome-file>index.html</welcome-file>
 		<welcome-file>index.htm</welcome-file>
 	</welcome-file-list>

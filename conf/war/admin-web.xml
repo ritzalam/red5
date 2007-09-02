@@ -2,26 +2,23 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
 	
-	<bean id="web.context" class="org.red5.server.Context" 
-		autowire="byType" />
+	<bean id="web.context.admin" class="org.red5.server.Context">
+		<property name="scopeResolver" ref="red5.scopeResolver" />
+		<property name="clientRegistry" ref="global.clientRegistry" />
+	</bean>
 	
-	<bean id="web.scope" class="org.red5.server.WebScope"
-		 init-method="register">
+	<bean id="web.scope.admin" class="org.red5.server.WebScope" init-method="register">
 		<property name="server" ref="red5.server" />
 		<property name="parent" ref="global.scope" />
-		<property name="context" ref="web.context" />
-		<property name="handler" ref="web.handler" />
-		<property name="contextPath" value="@context.path@" />
+		<property name="context" ref="web.context.admin" />
+		<property name="handler" ref="web.handler.admin" />
+		<property name="contextPath" value="/admin" />
 		<property name="virtualHosts" value="@virtual.hosts@" />
 	</bean>
 
-	<bean id="web.handler" 
-	    class="org.red5.webapps.admin.Application" 
-		singleton="true" />
+	<bean id="web.handler.admin" class="org.red5.webapps.admin.Application" />
 
-	<bean id="scopes.service" 
-	    class="org.red5.server.statistics.XmlRpcScopeStatistics" 
-		singleton="true">
+	<bean id="scopes.service" class="org.red5.server.statistics.XmlRpcScopeStatistics">
         <property name="globalScope" ref="global.scope" />
     </bean>
 

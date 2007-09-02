@@ -42,20 +42,22 @@ import org.mortbay.util.ajax.ContinuationSupport;
 public class ZAMFGatewayServlet extends HttpServlet {
 
 	/**
-	 *
+	 * 
 	 */
 	private static final long serialVersionUID = 8763226003362000834L;
 
-	@SuppressWarnings("all") protected static Log log = LogFactory.getLog(ZAMFGatewayServlet.class.getName());
+	@SuppressWarnings("all")
+	protected static Log log = LogFactory.getLog(ZAMFGatewayServlet.class
+			.getName());
 
 	public static final String APPLICATION_AMF = "application/x-amf";
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	protected void service(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 
-		//Continuation cont = ContinuationSupport.getContinuation(req, this);
+		// Continuation cont = ContinuationSupport.getContinuation(req, this);
 		log.info("Service");
 
 		if (req.getContentLength() == 0 || req.getContentType() == null
@@ -69,7 +71,7 @@ public class ZAMFGatewayServlet extends HttpServlet {
 		ByteBuffer reqBuffer = null;
 		try {
 
-			//req.getSession().getAttribute(REMOTING_CONNECTOR);
+			// req.getSession().getAttribute(REMOTING_CONNECTOR);
 
 			reqBuffer = ByteBuffer.allocate(req.getContentLength());
 			ServletUtils.copy(req.getInputStream(), reqBuffer.asOutputStream());
@@ -78,7 +80,8 @@ public class ZAMFGatewayServlet extends HttpServlet {
 			// Connect to the server.
 			VmPipeConnector connector = new VmPipeConnector();
 			IoHandler handler = new Handler(req, resp);
-			ConnectFuture connectFuture = connector.connect(new VmPipeAddress(5080), handler);
+			ConnectFuture connectFuture = connector.connect(new VmPipeAddress(
+					5080), handler);
 			connectFuture.join();
 			IoSession session = connectFuture.getSession();
 			session.setAttachment(resp);
@@ -106,7 +109,7 @@ public class ZAMFGatewayServlet extends HttpServlet {
 		}
 
 		/** {@inheritDoc} */
-        @Override
+		@Override
 		public void messageReceived(IoSession session, Object message)
 				throws Exception {
 			log.info("<< message " + message);
