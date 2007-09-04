@@ -962,6 +962,28 @@
 		<delete dir="${classes.dir}/testcases"/>
 		<delete dir="${dist.dir}/webapps"/>
 	</target>
+	<target name="remotejar" description="Creates a jar that may be deployed with remote applications" depends="clean, prepare, compile">
+		<tstamp prefix="build">
+			<format property="TODAY" pattern="d-MMMM-yyyy" locale="en"/>
+		</tstamp>
+		<mkdir dir="${classes.dir}/conf"/>
+		<copy todir="${classes.dir}/conf">
+			<fileset dir="${config.dir}">
+				<exclude name="**/war/**"/>
+				<exclude name="**/jboss/**"/>
+			</fileset>
+		</copy>
+		<jar destfile="${dist.dir}/red5-remoting.jar">
+			<fileset dir="${classes.dir}">
+				<include name="**/AMFTunnelServlet.class"/>
+				<include name="**/ServletUtils.class"/>
+			</fileset>
+			<manifest>
+				<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>
+				<attribute name="Built-On" value="${build.TODAY}"/>
+			</manifest>
+		</jar>	
+	</target>
 	<target name="all" depends="clean, prepare, compile, jar, javadoc"/>
 	<target name="usage">
 		<echo message="Type ant -p for available targets"/>
