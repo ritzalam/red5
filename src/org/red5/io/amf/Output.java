@@ -36,13 +36,14 @@ import org.apache.commons.collections.map.LRUMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
+import org.red5.annotations.Anonymous;
 import org.red5.annotations.DontSerialize;
 import org.red5.io.amf3.ByteArray;
 import org.red5.io.object.BaseOutput;
 import org.red5.io.object.ICustomSerializable;
 import org.red5.io.object.RecordSet;
 import org.red5.io.object.Serializer;
-import org.red5.io.object.SerializerOption;
+
 /**
  *
  * @author The Red5 Project (red5@osflash.org)
@@ -271,8 +272,8 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		}
 
         // Write out either start of object marker for class name or "empty" start of object marker
-		Class objectClass = object.getClass();
-        if (serializer.isOptEnabled(object, SerializerOption.SerializeClassName)) {
+		Class<?> objectClass = object.getClass();
+		if (!objectClass.isAnnotationPresent(Anonymous.class)) {
 			buf.put(AMF.TYPE_CLASS_OBJECT);
 			putString(buf, objectClass.getName());
 		} else {
@@ -357,8 +358,8 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 			log.debug("writeObject");
 		}
         // If we need to serialize class information...
-		Class objectClass = object.getClass();
-        if (serializer.isOptEnabled(object, SerializerOption.SerializeClassName)) {
+		Class<?> objectClass = object.getClass();
+		if (!objectClass.isAnnotationPresent(Anonymous.class)) { 
             // Write out start object marker for class name
 			buf.put(AMF.TYPE_CLASS_OBJECT);
 			putString(buf, objectClass.getName());

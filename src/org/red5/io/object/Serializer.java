@@ -311,39 +311,4 @@ public class Serializer {
 		}
 	}
 
-    /**
-     * Check serializer options whether given object turned on
-     *
-     * @param obj           Option
-     * @param opt           Serializer option
-     * @return              true if options is enabled, false otherwise
-     */
-    public boolean isOptEnabled(Object obj, SerializerOption opt) {
-		if (obj instanceof ISerializerOptionAware) {
-            // Get flag
-            Flag flag = ((ISerializerOptionAware) obj).getSerializerOption(opt);
-            // Check against Default first
-            if (flag != Flag.Default) {
-				return (flag == Flag.Enabled);
-			}
-		}
-        // Check against Enabled flag
-        return getSerializerOption(opt) == Flag.Enabled;
-	}
-
-    /**
-     *  Return Flag (enum that can be Enabled, Disabled or Default)
-     *
-     * @param opt       Serializer option to check
-     * @return          Property flag enum value (Default, Enabled or Disabled)
-     */
-    public Flag getSerializerOption(SerializerOption opt) {
-		// We can now return defaults
-		if (opt == SerializerOption.SerializeClassName) {
-			return Flag.Enabled;
-		}
-        // Return disabled otherwise
-        return Flag.Disabled;
-	}
-
 }

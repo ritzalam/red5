@@ -21,19 +21,19 @@ package org.red5.server.net.rtmp.status;
 
 import java.io.Serializable;
 
+import org.red5.annotations.Anonymous;
 import org.red5.io.object.Flag;
 import org.red5.io.object.ICustomSerializable;
-import org.red5.io.object.ISerializerOptionAware;
 import org.red5.io.object.Output;
 import org.red5.io.object.Serializer;
-import org.red5.io.object.SerializerOption;
 
 /**
  * Status object that is sent to client with every status event
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
-public class StatusObject implements Serializable, ISerializerOptionAware, ICustomSerializable {
+@Anonymous
+public class StatusObject implements Serializable, ICustomSerializable {
 
 	private static final long serialVersionUID = 8817297676191096283L;
 
@@ -139,14 +139,6 @@ public class StatusObject implements Serializable, ISerializerOptionAware, ICust
 	public String toString() {
 		return "Status code: " + getCode() + " desc: " + getDescription()
 				+ " level: " + getLevel();
-	}
-
-	/** {@inheritDoc} */
-    public Flag getSerializerOption(SerializerOption opt) {
-		if (opt == SerializerOption.SerializeClassName) {
-			return Flag.Disabled;
-		}
-		return Flag.Default;
 	}
 
     /**

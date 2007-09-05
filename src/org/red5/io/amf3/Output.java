@@ -35,12 +35,12 @@ import org.apache.commons.collections.BeanMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
+import org.red5.annotations.Anonymous;
 import org.red5.annotations.DontSerialize;
 import org.red5.compatibility.flex.messaging.io.ObjectProxy;
 import org.red5.io.amf.AMF;
 import org.red5.io.object.RecordSet;
 import org.red5.io.object.Serializer;
-import org.red5.io.object.SerializerOption;
 
 /**
  * AMF3 output writer
@@ -370,7 +370,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
     /** {@inheritDoc} */
 	@Override
 	protected void writeArbitraryObject(Object object, Serializer serializer) {
-		Class objectClass = object.getClass();
+		Class<?> objectClass = object.getClass();
     	String className = objectClass.getName();
     	if (className.startsWith("org.red5.compatibility.")) {
     		// Strip compatibility prefix from classname
@@ -378,7 +378,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
     	}
     	
         // If we need to serialize class information...
-        if (serializer.isOptEnabled(object, SerializerOption.SerializeClassName)) {
+    	if (!objectClass.isAnnotationPresent(Anonymous.class)) {
 			putString(className);
 		} else {
 			putString("");
@@ -479,8 +479,8 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		}
 
         // Write out either start of object marker for class name or "empty" start of object marker
-		Class objectClass = object.getClass();
-        if (serializer.isOptEnabled(object, SerializerOption.SerializeClassName)) {
+		Class<?> objectClass = object.getClass();
+		if (!objectClass.isAnnotationPresent(Anonymous.class)) {
         	// classname
         	putString(className);
 		} else {
