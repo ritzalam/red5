@@ -35,6 +35,7 @@ import org.apache.commons.collections.BeanMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
+import org.red5.annotations.DontSerialize;
 import org.red5.compatibility.flex.messaging.io.ObjectProxy;
 import org.red5.io.amf.AMF;
 import org.red5.io.object.RecordSet;
@@ -389,12 +390,18 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		Map<String, Object> values = new HashMap<String, Object>();
         // Iterate thru fields of an object to build "name-value" map from it
         for (Field field : objectClass.getFields()) {
-			int modifiers = field.getModifiers();
-			if (Modifier.isTransient(modifiers)) {
+			if (field.isAnnotationPresent(DontSerialize.class)) {
 				if (log.isDebugEnabled()) {
-					log.debug("Skipping " + field.getName() + " because its transient");
+					log.debug("Skipping " + field.getName() + " because its marked with @DontSerialize");
 				}
 				continue;
+			} else {
+				int modifiers = field.getModifiers();
+				if (Modifier.isTransient(modifiers)) {
+					log.warn("Using \"transient\" to declare fields not to be serialized is " +
+						"deprecated and will be removed in Red5 0.8, use \"@DontSerialize\" instead.");
+					continue;
+				}
 			}
 
 			Object value;
@@ -493,13 +500,18 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 			// Check if the Field corresponding to the getter/setter pair is transient
 			try {
 				Field field = objectClass.getDeclaredField(keyName);
-				int modifiers = field.getModifiers();
-
-				if (Modifier.isTransient(modifiers)) {
+				if (field.isAnnotationPresent(DontSerialize.class)) {
 					if (log.isDebugEnabled()) {
-						log.debug("Skipping " + field.getName() + " because its transient");
+						log.debug("Skipping " + field.getName() + " because its marked with @DontSerialize");
 					}
 					continue;
+				} else {
+					int modifiers = field.getModifiers();
+					if (Modifier.isTransient(modifiers)) {
+						log.warn("Using \"transient\" to declare fields not to be serialized is " +
+							"deprecated and will be removed in Red5 0.8, use \"@DontSerialize\" instead.");
+						continue;
+					}
 				}
 			} catch (NoSuchFieldException nfe) {
 				// Ignore this exception and use the default behaviour

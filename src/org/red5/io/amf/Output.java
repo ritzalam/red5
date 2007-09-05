@@ -36,6 +36,7 @@ import org.apache.commons.collections.map.LRUMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
+import org.red5.annotations.DontSerialize;
 import org.red5.io.amf3.ByteArray;
 import org.red5.io.object.BaseOutput;
 import org.red5.io.object.ICustomSerializable;
@@ -298,13 +299,18 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 			// Check if the Field corresponding to the getter/setter pair is transient
 			try {
 				Field field = objectClass.getDeclaredField(keyName);
-				int modifiers = field.getModifiers();
-
-				if (Modifier.isTransient(modifiers)) {
+				if (field.isAnnotationPresent(DontSerialize.class)) {
 					if (log.isDebugEnabled()) {
-						log.debug("Skipping " + field.getName() + " because its transient");
+						log.debug("Skipping " + field.getName() + " because its marked with @DontSerialize");
 					}
 					continue;
+				} else {
+					int modifiers = field.getModifiers();
+					if (Modifier.isTransient(modifiers)) {
+						log.warn("Using \"transient\" to declare fields not to be serialized is " +
+							"deprecated and will be removed in Red5 0.8, use \"@DontSerialize\" instead.");
+						continue;
+					}
 				}
 			} catch (NoSuchFieldException nfe) {
 				// Ignore this exception and use the default behaviour
@@ -365,12 +371,18 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		Map<String, Object> values = new HashMap<String, Object>();
         // Iterate thru fields of an object to build "name-value" map from it
         for (Field field : objectClass.getFields()) {
-			int modifiers = field.getModifiers();
-			if (Modifier.isTransient(modifiers)) {
+			if (field.isAnnotationPresent(DontSerialize.class)) {
 				if (log.isDebugEnabled()) {
-					log.debug("Skipping " + field.getName() + " because its transient");
+					log.debug("Skipping " + field.getName() + " because its marked with @DontSerialize");
 				}
 				continue;
+			} else {
+				int modifiers = field.getModifiers();
+				if (Modifier.isTransient(modifiers)) {
+					log.warn("Using \"transient\" to declare fields not to be serialized is " +
+						"deprecated and will be removed in Red5 0.8, use \"@DontSerialize\" instead.");
+					continue;
+				}
 			}
 
 			Object value;
