@@ -75,6 +75,11 @@ public class AMFGatewayServlet extends HttpServlet {
 	 */
 	protected RemotingCodecFactory codecFactory;
 
+	/**
+	 * Request attribute holding the Red5 connection object
+	 */
+	private static final String CONNECTION = "red5.remotingConnection";
+	
 	/** {@inheritDoc} */
 	@Override
 	public void init() throws ServletException {
@@ -135,11 +140,17 @@ public class AMFGatewayServlet extends HttpServlet {
 			// Provide a valid IConnection in the Red5 object
 			IScope scope = webContext.resolveScope(packet.getScopePath());
 			IRemotingConnection conn = new RemotingConnection(req, scope, packet);
-			Red5.setConnectionLocal(conn);
-			handleRemotingPacket(req, packet);
-			resp.setStatus(HttpServletResponse.SC_OK);
-			resp.setContentType(APPLICATION_AMF);
-			sendResponse(resp, packet);
+			// Make sure the connection object isn't garbage collected
+			req.setAttribute(CONNECTION, conn);
+			try {
+				Red5.setConnectionLocal(conn);
+				handleRemotingPacket(req, packet);
+				resp.setStatus(HttpServletResponse.SC_OK);
+				resp.setContentType(APPLICATION_AMF);
+				sendResponse(resp, packet);
+			} finally {
+				req.removeAttribute(CONNECTION);
+			}
 		} catch (Exception e) {
 			log.error("Error handling remoting call", e);
 			resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
