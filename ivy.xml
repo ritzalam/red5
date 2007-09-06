@@ -74,12 +74,15 @@
         <dependency org="antlr" name="antlr" rev="2.7.6" />
         <dependency name="bsh" rev="2.0b4" />
         <dependency name="groovy" rev="1.0" />  
-        <dependency name="jruby" rev="" />  
-        <dependency name="jython" rev="" />  
+        <dependency name="jruby" rev="1.0.1" />  
+        <dependency name="jython" rev="2.2" />  
         <dependency org="spring" name="spring-support" rev="2.0.6" />
         <!-- Java5 support -->
         <dependency org="rhino" name="js" rev="1.6R7" conf="java5->default"/>
         <dependency name="jsr173_1.0_api" rev="" conf="java5->default"/>
         <dependency name="jsr-223" rev="1.0" conf="java5->default"/> 
+        <dependency name="js-engine" rev="" conf="java5->default"/> 
+        <dependency name="jython-engine" rev="" conf="java5->default"/> 
+        <dependency name="groovy-engine" rev="" conf="java5->default"/>         
     </dependencies>
 </ivy-module>

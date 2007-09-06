@@ -39,9 +39,6 @@ public class RhinoScriptUtils {
 
 	private static final Logger log = Logger.getLogger(RhinoScriptUtils.class);
 
-	// keep track of whether we are using pre-java6
-	// private static boolean isJava6 = false;
-
 	// ScriptEngine manager
 	private static ScriptEngineManager mgr = new ScriptEngineManager();
 
@@ -68,35 +65,12 @@ public class RhinoScriptUtils {
 		if (log.isDebugEnabled()) {
 			log.debug("Script Engine Manager: " + mgr.getClass().getName());
 		}
-		ScriptEngine engine = mgr.getEngineByName("javascript");
-		// hack to support java5
-		// ScriptEngine engine = null;
-		// for (ScriptEngineFactory factory : mgr.getEngineFactories()) {
-		// if (factory.getEngineName().toLowerCase().matches(
-		// ".*(rhino|javascript|ecma).*")) {
-		// engine = factory.getScriptEngine();
-		// }
-		// }
+		ScriptEngine engine = mgr.getEngineByExtension("js");
 		if (null == engine) {
 			log.fatal("Javascript is not supported in this build");
 		}
 		// set engine scope namespace
 		Bindings nameSpace = engine.getBindings(ScriptContext.ENGINE_SCOPE);
-		// part2 of java5 hack
-		// Map<String, Object> nameSpace = null;
-		// use reflection to determine which api is supported
-		// Method method = null;
-		// try {
-		// method = engine.getClass().getMethod("getBindings",
-		// new Class[] { int.class });
-		// isJava6 = true;
-		// } catch (NoSuchMethodException e) {
-		// method = engine.getClass().getMethod("getNamespace",
-		// new Class[] { int.class });
-		// }
-		// nameSpace = (Map<String, Object>) method.invoke(engine,
-		// new Object[] { ScriptContext.ENGINE_SCOPE });
-
 		// add the logger to the script
 		nameSpace.put("log", log);
 		// compile the wrapper script
@@ -141,18 +115,6 @@ public class RhinoScriptUtils {
 			wrapper.eval();
 			o = ((Invocable) engine).invokeFunction("Wrapper",
 					new Object[] { engine.get(funcName) });
-			// if (isJava6) {
-			// method = ((Invocable) engine).getClass().getMethod(
-			// "invokeFunction",
-			// new Class[] { String.class, Object[].class });
-			// o = method.invoke(engine, new Object[] { "Wrapper",
-			// new Object[] { engine.get(funcName) } });
-			// } else {
-			// method = ((Invocable) engine).getClass().getMethod("call",
-			// new Class[] { String.class, Object[].class });
-			// o = method.invoke(engine, new Object[] { "Wrapper",
-			// new Object[] { engine.get(funcName) } });
-			// }
 			if (log.isDebugEnabled()) {
 				log.debug("Result of invokeFunction: " + o);
 			}
@@ -192,36 +154,9 @@ public class RhinoScriptUtils {
 				Invocable invocable = (Invocable) engine;
 				if (null == instance) {
 					o = invocable.invokeFunction(name, args);
-					// if (isJava6) {
-					// apiMethod = invocable.getClass().getMethod(
-					// "invokeFunction",
-					// new Class[] { String.class, Object[].class });
-					// o = apiMethod.invoke(invocable, new Object[] { name,
-					// args });
-					// } else {
-					// apiMethod = invocable.getClass().getMethod("call",
-					// new Class[] { String.class, Object[].class });
-					// o = apiMethod.invoke(invocable, new Object[] { name,
-					// args });
-					// }
 				} else {
 					try {
 						o = invocable.invokeMethod(instance, name, args);
-						// if (isJava6) {
-						// apiMethod = invocable.getClass().getMethod(
-						// "invokeMethod",
-						// new Class[] { Object.class, String.class,
-						// Object[].class });
-						// o = apiMethod.invoke(invocable, new Object[] {
-						// instance, name, args });
-						// } else {
-						// apiMethod = invocable.getClass().getMethod(
-						// "call",
-						// new Class[] { Object.class, String.class,
-						// Object[].class });
-						// o = apiMethod.invoke(invocable, new Object[] {
-						// instance, name, args });
-						// }
 					} catch (NoSuchMethodException nex) {
 						log.debug("Method not found: " + name);
 						try {
@@ -229,21 +164,6 @@ public class RhinoScriptUtils {
 							// function is in the engine context
 							// ie. the script has been already evaluated
 							o = invocable.invokeFunction(name, args);
-							// if (isJava6) {
-							// apiMethod = invocable.getClass().getMethod(
-							// "invokeFunction",
-							// new Class[] { String.class,
-							// Object[].class });
-							// o = apiMethod.invoke(invocable, new Object[] {
-							// name, args });
-							// } else {
-							// apiMethod = invocable.getClass().getMethod(
-							// "call",
-							// new Class[] { String.class,
-							// Object[].class });
-							// o = apiMethod.invoke(invocable, new Object[] {
-							// name, args });
-							// }
 						} catch (Exception ex) {
 							log.debug("Function not found: " + name);
 							Class[] interfaces = (Class[]) engine
@@ -253,24 +173,6 @@ public class RhinoScriptUtils {
 								o = invocable.getInterface(engine
 										.get((String) engine.get("className")),
 										clazz);
-								// if (isJava6) {
-								// apiMethod = invocable.getClass().getMethod(
-								// "getInterface",
-								// new Class[] { Object.class,
-								// Class.class });
-								// o = apiMethod.invoke(invocable,
-								// new Object[] {
-								// ((String) engine
-								// .get("className")),
-								// clazz });
-								// } else {
-								// apiMethod = invocable.getClass().getMethod(
-								// "getInterface",
-								// new Class[] { Class.class });
-								// o = apiMethod.invoke(invocable,
-								// new Object[] { clazz });
-								// }
-
 								if (null != o) {
 									log.debug("Interface return type: "
 											+ o.getClass().getName());
