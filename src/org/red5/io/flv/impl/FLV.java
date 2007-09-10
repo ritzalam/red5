@@ -246,8 +246,19 @@ public class FLV implements IFLV {
     	metaService.write( meta );
     	metaData = meta;
     	file.delete();
-    	tmpFile.renameTo( file );
-    	file = tmpFile;
+    	if (!tmpFile.renameTo(file)) {
+    		// Probably renaming across filesystems? Move manually.
+    		FileInputStream fis = new FileInputStream(tmpFile);
+    		FileOutputStream fos = new FileOutputStream(file);
+    		byte[] buf = new byte[16384];
+    		int i = 0;
+    		while ((i = fis.read(buf)) != -1) {
+    			fos.write(buf, 0, i);
+    		}
+    		fis.close();
+    		fos.close();
+    		tmpFile.delete();
+    	}
 	}
 
 	/** {@inheritDoc} */
