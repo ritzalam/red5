@@ -106,4 +106,34 @@ public interface IClient extends ClientMBean, IAttributeStore, IBWControllable {
 	 */
 	public void disconnect();
 
+	/**
+	 * Set the permissions for this client in a given context.
+	 * 
+	 * @param conn
+	 * 			Connection specifying the context to set the permissions for. 
+	 * @param permissions
+	 * 			Permissions the client has in this context or <code>null</code> for no permissions.
+	 */
+	public void setPermissions(IConnection conn, Collection<String> permissions);
+
+	/**
+	 * Return the permissions in a given context. 
+	 * 
+	 * @param conn
+	 * 			Connection specifying the context to get the permissions for.
+	 * @return Permission names.
+	 */
+	public Collection<String> getPermissions(IConnection conn);
+	
+	/**
+	 * Check if the client has a permission in the given context.
+	 * 
+	 * @param conn
+	 * 			Connection specifying the context to check the permissions for.
+	 * @param permissionName
+	 * 			Name of the permission to check.
+	 * @return <code>true</code> if the client has the permission, otherwise <code>false</code>
+	 */
+	public boolean hasPermission(IConnection conn, String permissionName);
+	
 }

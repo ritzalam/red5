@@ -26,6 +26,8 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.red5.annotations.DeclarePrivate;
+import org.red5.annotations.DeclareProtected;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
 import org.red5.server.api.Red5;
@@ -174,6 +176,27 @@ public class ServiceInvoker implements IServiceInvoker {
 		Object[] params = (Object[]) methodResult[1];
 
 		try {
+			if (method.isAnnotationPresent(DeclarePrivate.class)) {
+				// Method may not be called by clients.
+				if (log.isDebugEnabled()) {
+					log.debug("Method " + method + " is declared private.");
+				}
+				throw new NotAllowedException("you are not allowed to execute this method");
+			}
+			
+			final DeclareProtected annotation = method.getAnnotation(DeclareProtected.class);
+			if (annotation != null) {
+				if (!conn.getClient().hasPermission(conn, annotation.permission())) {
+					// Client doesn't have required permission
+					if (log.isDebugEnabled()) {
+						log.debug("Client " + conn.getClient() +
+								" doesn't have required permission " + annotation.permission() +
+								" to call " + method);
+					}
+					throw new NotAllowedException("you are not allowed to execute this method");
+				}
+			}
+			
 			if (log.isDebugEnabled()) {
 				log.debug("Invoking method: " + method.toString());
 			}
@@ -191,6 +214,10 @@ public class ServiceInvoker implements IServiceInvoker {
 			if (call instanceof IPendingServiceCall) {
 				((IPendingServiceCall) call).setResult(result);
 			}
+		} catch (NotAllowedException e) {
+			call.setException(e);
+			call.setStatus(Call.STATUS_ACCESS_DENIED);
+			return false;
 		} catch (IllegalAccessException accessEx) {
 			call.setException(accessEx);
 			call.setStatus(Call.STATUS_ACCESS_DENIED);

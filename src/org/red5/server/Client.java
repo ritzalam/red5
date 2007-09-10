@@ -21,6 +21,7 @@ package org.red5.server;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +38,7 @@ import org.red5.server.api.IBandwidthConfigure;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
+import org.red5.server.api.persistence.IPersistable;
 import org.red5.server.jmx.JMXAgent;
 import org.red5.server.jmx.JMXFactory;
 
@@ -50,6 +52,11 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 	 */
 	protected static Log log = LogFactory.getLog(Client.class.getName());
 
+	/**
+	 * Name of connection attribute holding the permissions.
+	 */
+	protected static final String PERMISSIONS = IPersistable.TRANSIENT_PREFIX + "_red5_permissions";
+	
 	/**
 	 *  Scopes this client connected to
 	 */
@@ -266,6 +273,31 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 			registry.removeClient(this);
 			// deregister with jmx
 			JMXAgent.unregisterMBean(oName);
+		}
+	}
+
+	/** {@inheritDoc} */
+	@SuppressWarnings("unchecked")
+	public Collection<String> getPermissions(IConnection conn) {
+		Collection<String> result = (Collection<String>) conn.getAttribute(PERMISSIONS);
+		if (result == null) {
+			result = Collections.EMPTY_SET;
+		}
+		return result;
+	}
+
+	/** {@inheritDoc} */
+	public boolean hasPermission(IConnection conn, String permissionName) {
+		final Collection<String> permissions = getPermissions(conn);
+		return permissions.contains(permissionName);
+	}
+
+	/** {@inheritDoc} */
+	public void setPermissions(IConnection conn, Collection<String> permissions) {
+		if (permissions == null) {
+			conn.removeAttribute(PERMISSIONS);
+		} else {
+			conn.setAttribute(PERMISSIONS, permissions);
 		}
 	}
 }
