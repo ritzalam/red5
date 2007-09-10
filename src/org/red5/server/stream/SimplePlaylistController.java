@@ -40,12 +40,14 @@ public class SimplePlaylistController implements IPlaylistController {
 		}
 		
 		if (playlist.isRandom()) {
-			Random rand = new Random();
 			int lastIndex = itemIndex;
-			// continuously generate a random number
-			// until you get one that was not the last...
-			while (itemIndex == lastIndex) {
-				itemIndex = rand.nextInt(playlist.getItemSize());
+			if (playlist.getItemSize() > 1) {
+				// continuously generate a random number
+				// until you get one that was not the last...
+				Random rand = new Random();
+				while (itemIndex == lastIndex) {
+					itemIndex = rand.nextInt(playlist.getItemSize());
+				}
 			}
 			return itemIndex;
 		}
