@@ -51,6 +51,8 @@ import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.net.rtmp.message.Header;
 import org.red5.server.net.rtmp.message.Packet;
 import org.red5.server.net.rtmp.message.SharedObjectTypeMapping;
+import org.red5.server.net.rtmp.status.StatusCodes;
+import org.red5.server.net.rtmp.status.StatusObject;
 import org.red5.server.service.Call;
 import org.red5.server.so.ISharedObjectEvent;
 import org.red5.server.so.ISharedObjectMessage;
@@ -508,7 +510,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 			if (log.isDebugEnabled()) {
 				log.debug("Call has been executed, send result");
 			}
-			serializer.serialize(output, "_result"); // seems right
+			serializer.serialize(output, call.isSuccess() ? "_result" : "_error"); // seems right
 		} else {
 			if (log.isDebugEnabled()) {
 				log.debug("This is a pending call, send request");
@@ -536,6 +538,22 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 
 		if (!isPending && (invoke instanceof Invoke)) {
 			IPendingServiceCall pendingCall = (IPendingServiceCall) call;
+			if (!call.isSuccess()) {
+				// Construct error object to return
+				Throwable e = call.getException();
+				String message = "";
+				while (e != null && e.getMessage() == null) {
+					e = e.getCause();
+				}
+				if (e != null && e.getMessage() != null) {
+					message = e.getMessage();
+				}
+				StatusObject status = new StatusObject(StatusCodes.NC_CALL_FAILED, "error", message);
+				if (e != null) {
+					status.setApplication(e.getClass().getCanonicalName());
+				}
+				pendingCall.setResult(status);
+			}
 			if (log.isDebugEnabled()) {
 				log.debug("Writing result: " + pendingCall.getResult());
 			}

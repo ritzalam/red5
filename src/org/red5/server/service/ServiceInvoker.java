@@ -21,6 +21,8 @@ package org.red5.server.service;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -160,11 +162,18 @@ public class ServiceInvoker implements IServiceInvoker {
 					methodResult = ServiceUtils.findMethodWithListParameters(
 							service, methodName, args);
 					if (methodResult.length == 0 || methodResult[0] == null) {
-						log.error("Method " + methodName + " not found in "
-								+ service);
+						if (log.isDebugEnabled()) {
+							log.error("Method " + methodName + " with parameters " +
+									(args == null ? Collections.EMPTY_LIST : Arrays.asList(args)) + " not found in " + service);
+						}
 						call.setStatus(Call.STATUS_METHOD_NOT_FOUND);
-						call.setException(new MethodNotFoundException(
-								methodName));
+						if (args != null && args.length > 0) {
+							call.setException(new MethodNotFoundException(
+									methodName, args));
+						} else {
+							call.setException(new MethodNotFoundException(
+									methodName));
+						}
 						return false;
 					}
 				}
