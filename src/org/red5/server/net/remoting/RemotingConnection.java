@@ -1,4 +1,4 @@
-package org.red5.server.net.servlet;
+package org.red5.server.net.remoting;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -33,6 +33,7 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import org.red5.server.Client;
 import org.red5.server.api.IAttributeStore;
 import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IClient;
@@ -43,6 +44,7 @@ import org.red5.server.api.remoting.IRemotingConnection;
 import org.red5.server.api.remoting.IRemotingHeader;
 import org.red5.server.net.remoting.RemotingHeader;
 import org.red5.server.net.remoting.message.RemotingPacket;
+import org.red5.server.net.servlet.ServletUtils;
 
 /**
  * Connection class so the Red5 object works in methods invoked through
@@ -53,7 +55,13 @@ import org.red5.server.net.remoting.message.RemotingPacket;
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public class RemotingConnection implements IRemotingConnection {
-    /**
+
+	/**
+	 * Session attribute holding an IClient object for this connection.
+	 */
+	private final static String CLIENT = "red5.client";
+	
+	/**
      * Scope
      */
 	protected IScope scope;
@@ -87,6 +95,12 @@ public class RemotingConnection implements IRemotingConnection {
 		this.scope = scope;
 		this.packet = packet;
 		this.session = request.getSession();
+		RemotingClient client = (RemotingClient) session.getAttribute(CLIENT);
+		if (client == null) {
+			client = new RemotingClient(session.getId());
+			session.setAttribute(CLIENT, client);
+		}
+		client.register(this);
 	}
 
     /**
@@ -163,7 +177,7 @@ public class RemotingConnection implements IRemotingConnection {
 
 	/** {@inheritDoc} */
     public IClient getClient() {
-		return null;
+		return (IClient) session.getAttribute(CLIENT);
 	}
 
 	/** {@inheritDoc} */
@@ -475,6 +489,25 @@ public class RemotingConnection implements IRemotingConnection {
 	/** {@inheritDoc} */
 	public Collection<IRemotingHeader> getHeaders() {
 		return headers;
+	}
+	
+	/** Internal class for clients connected through Remoting. */
+	private class RemotingClient extends Client {
+		
+		private RemotingClient(String id) {
+			super(id, null);
+		}
+
+		/** {@inheritDoc} */
+		@Override
+		protected void register(IConnection conn) {
+			// We only have one connection per client
+			for (IConnection c: getConnections()) {
+				unregister(c);
+			}
+			super.register(conn);
+		}
+
 	}
 	
 }

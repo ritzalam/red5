@@ -269,8 +269,10 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 		connToScope.remove(conn);
 		// If client is not connected to any scope any longer then remove
 		if (connToScope.isEmpty()) {
-			// This client is not connected to any scopes, remove from registry.
-			registry.removeClient(this);
+			if (registry != null) {
+				// This client is not connected to any scopes, remove from registry.
+				registry.removeClient(this);
+			}
 			// deregister with jmx
 			JMXAgent.unregisterMBean(oName);
 		}
