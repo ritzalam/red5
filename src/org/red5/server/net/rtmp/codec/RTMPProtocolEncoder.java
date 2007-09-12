@@ -19,6 +19,7 @@ package org.red5.server.net.rtmp.codec;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -31,6 +32,7 @@ import org.red5.io.utils.BufferUtils;
 import org.red5.server.api.IConnection.Encoding;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IServiceCall;
+import org.red5.server.exception.ClientDetailsException;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.protocol.SimpleProtocolEncoder;
 import org.red5.server.net.rtmp.RTMPUtils;
@@ -542,14 +544,24 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
 				// Construct error object to return
 				Throwable e = call.getException();
 				String message = "";
-				while (e != null && e.getMessage() == null) {
+				while (e != null && e.getCause() != null) {
 					e = e.getCause();
 				}
 				if (e != null && e.getMessage() != null) {
 					message = e.getMessage();
 				}
 				StatusObject status = new StatusObject(StatusCodes.NC_CALL_FAILED, "error", message);
-				if (e != null) {
+				if (e instanceof ClientDetailsException) {
+					// Return exception details to client
+					status.setApplication(((ClientDetailsException) e).getParameters());
+					if (((ClientDetailsException) e).includeStacktrace()) {
+						List<String> stack = new ArrayList<String>();
+						for (StackTraceElement element: e.getStackTrace()) {
+							stack.add(element.toString());
+						}
+						status.setAdditional("stacktrace", stack);
+					}
+				} else if (e != null) {
 					status.setApplication(e.getClass().getCanonicalName());
 				}
 				pendingCall.setResult(status);

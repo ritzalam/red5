@@ -20,9 +20,10 @@ package org.red5.server.net.rtmp.status;
  */
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.red5.annotations.Anonymous;
-import org.red5.io.object.Flag;
 import org.red5.io.object.ICustomSerializable;
 import org.red5.io.object.Output;
 import org.red5.io.object.Serializer;
@@ -51,6 +52,8 @@ public class StatusObject implements Serializable, ICustomSerializable {
 
 	protected Object application;
 
+	protected Map<String, Object> additional;
+	
 	/** Constructs a new StatusObject. */
     public StatusObject() {
 
@@ -150,6 +153,17 @@ public class StatusObject implements Serializable, ICustomSerializable {
     	return new Status(getCode(), getLevel(), getDescription());
     }
 
+    public void setAdditional(String name, Object value) {
+    	if ("code".equals(name) || "level".equals(name) ||
+    			"description".equals(name) || "application".equals(name)) {
+    		throw new RuntimeException("the name \"" + name + "\" is reserved");
+    	}
+    	if (additional == null) {
+    		additional = new HashMap<String, Object>();
+    	}
+    	additional.put(name, value);
+    }
+    
     public void serialize(Output output, Serializer serializer) {
     	output.putString("level");
     	output.writeString(getLevel());
@@ -160,6 +174,13 @@ public class StatusObject implements Serializable, ICustomSerializable {
     	if (getApplication() != null) {
     		output.putString("application");
     		serializer.serialize(output, getApplication());
+    	}
+    	if (additional != null) {
+    		// Add additional parameters
+    		for (Map.Entry<String, Object> entry: additional.entrySet()) {
+    	    	output.putString(entry.getKey());
+    	    	serializer.serialize(output, entry.getValue());
+    		}
     	}
     }
 

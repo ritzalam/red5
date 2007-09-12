@@ -36,6 +36,7 @@ import org.red5.server.api.Red5;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IServiceCall;
 import org.red5.server.api.service.IServiceInvoker;
+import org.red5.server.exception.ClientDetailsException;
 
 /**
  * Makes remote calls, invoking services, resolves service handlers
@@ -236,8 +237,11 @@ public class ServiceInvoker implements IServiceInvoker {
 		} catch (InvocationTargetException invocationEx) {
 			call.setException(invocationEx);
 			call.setStatus(Call.STATUS_INVOCATION_EXCEPTION);
-			log.error("Error executing call: " + call);
-			log.error("Service invocation error", invocationEx);
+			if (!(invocationEx.getCause() instanceof ClientDetailsException)) {
+				// Only log if not handled by client
+				log.error("Error executing call: " + call);
+				log.error("Service invocation error", invocationEx);
+			}
 			return false;
 		} catch (Exception ex) {
 			call.setException(ex);
