@@ -598,9 +598,15 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 
 	/** {@inheritDoc} */
 	public ISharedObjectMessage decodeFlexSharedObject(ByteBuffer in, RTMP rtmp) {
-		// Unknown byte, always 0?
-		in.skip(1);
-		final Input input = new org.red5.io.amf.Input(in);
+		byte encoding = in.get();
+		Input input;
+		if (encoding == 0) {
+			input = new org.red5.io.amf.Input(in);
+		} else if (encoding == 3) {
+			input = new org.red5.io.amf3.Input(in);
+		} else {
+			throw new RuntimeException("Unknown SO encoding: " + encoding);
+		}
 		String name = input.getString();
 		// Read version of SO to modify
 		int version = in.getInt();
@@ -855,7 +861,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
      * @return                 FlexMessage event
      */
     public FlexMessage decodeFlexMessage(ByteBuffer in, RTMP rtmp) {
-		// Unknown byte, always 0?
+		// TODO: Unknown byte, probably encoding as with Flex SOs?
 		in.skip(1);
 		Input input = new org.red5.io.amf.Input(in);
 		String action = (String) deserializer.deserialize(input);

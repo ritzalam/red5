@@ -341,6 +341,7 @@ public class RTMPProtocolEncoder implements SimpleProtocolEncoder, Constants,
     public ByteBuffer encodeFlexSharedObject(ISharedObjectMessage so, RTMP rtmp) {
 		final ByteBuffer out = ByteBuffer.allocate(128);
 		out.setAutoExpand(true);
+		// TODO: also support sending of AMF3 encoded data
 		out.put((byte) 0x00);
     	doEncodeSharedObject(so, rtmp, out);
     	return out;
