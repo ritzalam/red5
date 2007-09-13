@@ -367,9 +367,11 @@
 			if (testObj is String && (testObj as String).length >= 100) {
 				printText( "<br>Testing String with " + testObj.length + " chars: " );
 			} else if (testObj is ByteArray) {
-				printText( "<br>Testing ByteArray " + testObj + ": " );
+				printText( "<br>Testing ByteArray containing " + testObj.length + " bytes: " );
 			} else if (testObj is XML) {
 				printText( "<br>Testing XML " + testObj.toXMLString() + ": " );
+			} else if (testObj is Array && testObj.length > 0 && testObj[0] is ByteArray) {
+				printText( "<br>Tesing array of " + testObj.length + " ByteArrays: " );
 			} else {
 				printText( "<br>Testing " + testObj + ": " );
 			}
@@ -450,8 +452,12 @@
 					}
 				}
 				return true;
+			} else if (a is ByteArray && b is ByteArray) {
+				return (a as ByteArray).toString() == (b as ByteArray).toString();
 			} else if (a is ExternalizableClass && b is ExternalizableClass) {
 				return (a.failed == b.failed && a.failed == 0);
+			} else if (a is XML && b is XML) {
+				return ((a as XML).toXMLString() == (b as XML).toXMLString());
 			} else if (a is Object && !(b is Object)) {
 				for (key in a) {
 					if (!extendedEqual(a[key], (b as Array)[key])) {
@@ -484,6 +490,10 @@
 					printText( success + "OK</font> (null)" );
 				else if (result is String && (result as String).length >= 1000)
 					printText( success + "OK</font> (String with " + result.length + " chars)" );
+				else if (result is ByteArray)
+					printText( success + "OK</font> (ByteArray containing " + result.length + " bytes)" );
+				else if (result is Array && result.length > 0 && result[0] is ByteArray)
+					printText( success + "OK</font> (Array of " + result.length + " ByteArrays)" );
 				else
 					printText( success + "OK</font> (" + result.toString() + ")" );
 			} else {
@@ -491,6 +501,10 @@
 					printText( failure + "<b>FAILED</b></font> (null)" );
 				else if (result is String && (result as String).length >= 1000)
 					printText( failure + "<b>FAILED</b></font> (String with " + result.length + " chars)" );
+				else if (result is ByteArray)
+					printText( success + "<b>FAILED</b></font> (ByteArray containing " + result.length + " bytes)" );
+				else if (result is Array && result.length > 0 && result[0] is ByteArray)
+					printText( success + "<b>FAILED</b></font> (Array of " + result.length + " ByteArrays)" );
 				else
 					printText( failure + "<b>FAILED</b></font> (" + result.toString() + ")" );
 				testsFailed++;
