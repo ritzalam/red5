@@ -29,9 +29,14 @@
 	import mx.collections.ArrayCollection;
 	import mx.controls.*;
 	import mx.core.Application;
+	import mx.rpc.Fault;
+	import mx.rpc.events.FaultEvent;
 	import mx.rpc.remoting.mxml.RemoteObject;
 	import mx.utils.ObjectProxy;
 	
+	import org.red5.samples.echo.EchoClass;
+	import org.red5.samples.echo.RemoteClass;
+	import org.red5.samples.echo.ExternalizableClass;
 	import org.red5.utils.PNGEnc;
 	
 	/**
@@ -387,20 +392,32 @@
 		}
 		
 		public function onRemotingError( result : * ): void {
-			var fault : Object; 
-			if ( result.fault != null ) {
-				// RemoteObject FaultEvent
-				fault = result.fault.rootCause;
-			} else {
-				// NetConnection result object
-				fault = result;
-			}
 			printText( "<br><b>" + failure + "AMF error received:</font></b>");
-			printText( "<br>   <b>description</b>: " + fault.description);
-			printText( "<br>   <b>type</b>: " + fault.type);
-			printText( "<br>   <b>level</b>: " + fault.level);
-			printText( "<br>   <b>code</b>: " + fault.code);
-			printText( "<br>   <b>details</b>: " + fault.details);
+			if ( result is FaultEvent ){
+				// RemoteObject error
+				var fault:Fault = result.fault;
+				printText( "<br>   <b>description</b>: " + fault.faultString);
+				printText( "<br>   <b>code</b>: " + fault.faultCode);
+				printText( "<br>   <b>details</b>: " + fault.faultDetail);
+			} else if ( result.message != undefined ) {
+				// NetConnection HTTP error
+				printText( "<br>   <b>message</b>: " + result.message);
+				printText( "<br>   <b>stackTrace</b>: ");
+				for (var s:int=0;s<result.stackTrace.length;s++) {
+					var stackTrace:Object = result.stackTrace[s];
+					printText( "<br>             at " 
+										 + stackTrace.className 
+										 + "(" + stackTrace.fileName 
+										 + ":" + stackTrace.lineNumber + ")");
+				}
+				printText( "<br>");
+			} else {
+				// NetConnection RTMP error
+				printText( "<br>   <b>level</b>: " + result.level);
+				printText( "<br>   <b>code</b>: " + result.code);
+				printText( "<br>   <b>description</b>: " + result.description);
+				printText( "<br>   <b>application</b>: " + result.application);
+			}
 			//
 			onDisconnect();
 		}
