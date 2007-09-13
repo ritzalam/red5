@@ -30,10 +30,12 @@
 	import mx.collections.ArrayCollection;
 	import mx.controls.*;
 	import mx.core.Application;
-	import mx.core.UIComponent;
 	import mx.rpc.remoting.mxml.RemoteObject;
 	import mx.utils.ObjectProxy;
 	
+	import org.red5.samples.echo.EchoClass;
+	import org.red5.samples.echo.RemoteClass;
+	import org.red5.samples.echo.ExternalizableClass;
 	import org.red5.utils.PNGEnc;
 	
 	/**
@@ -457,15 +459,6 @@
 				onDisconnect();
 			}
 		}
-		
-		private function getBitmapData( target : UIComponent ) : BitmapData
-        { 
-        	trace(target);
-            var bd : BitmapData = new BitmapData( target.width, target.height );
-            var m : Matrix = new Matrix();
-            bd.draw( target, m );
-            return bd;  
-        }
 		
 	}
 }
