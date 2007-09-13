@@ -43,6 +43,8 @@ import org.red5.io.object.BaseOutput;
 import org.red5.io.object.ICustomSerializable;
 import org.red5.io.object.RecordSet;
 import org.red5.io.object.Serializer;
+import org.red5.io.utils.XMLUtils;
+import org.w3c.dom.Document;
 
 /**
  *
@@ -473,9 +475,9 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 	}
 
     /** {@inheritDoc} */
-	public void writeXML(String xml) {
-		// TODO Auto-generated method stub
-
+	public void writeXML(Document xml) {
+		buf.put(AMF.TYPE_XML);
+		putString(XMLUtils.docToString(xml));
 	}
 
     /**

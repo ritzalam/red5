@@ -20,6 +20,7 @@ package org.red5.io.utils;
  */
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.io.StringWriter;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -58,7 +59,7 @@ public class XMLUtils {
 		try {
 			DocumentBuilder db = DocumentBuilderFactory.newInstance()
 					.newDocumentBuilder();
-			return db.parse(new InputSource(str));
+			return db.parse(new InputSource(new StringReader(str)));
 		} catch (Exception ex) {
 			throw new IOException("Error converting from string to doc "
 					+ ex.getMessage());

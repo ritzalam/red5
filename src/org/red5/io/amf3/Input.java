@@ -19,6 +19,7 @@ package org.red5.io.amf3;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Date;
@@ -35,7 +36,9 @@ import org.red5.io.amf.AMF;
 import org.red5.io.object.DataTypes;
 import org.red5.io.object.Deserializer;
 import org.red5.io.utils.ObjectMap;
+import org.red5.io.utils.XMLUtils;
 import org.red5.server.service.ConversionUtils;
+import org.w3c.dom.Document;
 
 /**
  * Input for red5 data (AMF3) types
@@ -596,5 +599,32 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		
 		return super.newInstance(className);
 	}
-	
+
+	/** {@inheritDoc} */
+	public Document readXML() {
+		int len = readAMF3Integer();
+		if (len == 1)
+			// Empty string, should not happen
+			return null;
+		
+		if ((len & 1) == 0) {
+			// Reference
+			return (Document) getReference(len >> 1);
+		}
+		len >>= 1;
+		int limit = buf.limit();
+		final java.nio.ByteBuffer strBuf = buf.buf();
+		strBuf.limit(strBuf.position() + len);
+		final String xmlString = AMF3.CHARSET.decode(strBuf).toString();
+		buf.limit(limit); // Reset the limit
+		Document doc = null;
+		try {
+			doc = XMLUtils.stringToDoc(xmlString);
+		} catch (IOException ioex) {
+			log.error("IOException converting xml to dom", ioex);
+		}
+		storeReference(doc);
+		return doc;
+	}
+
 }

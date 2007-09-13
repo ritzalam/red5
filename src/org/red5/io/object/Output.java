@@ -24,6 +24,7 @@ import java.util.Date;
 import java.util.Map;
 
 import org.red5.io.amf3.ByteArray;
+import org.w3c.dom.Document;
 
 /**
  * Output interface which defines contract methods to be implemented
@@ -127,9 +128,9 @@ public interface Output {
 
     /**
      * Write XML object
-     * @param xml      XML as string
+     * @param xml      XML document
      */
-    void writeXML(String xml);
+    void writeXML(Document xml);
 
     /**
      * Write ByteArray object (AMF3 only).

@@ -41,6 +41,8 @@ import org.red5.compatibility.flex.messaging.io.ObjectProxy;
 import org.red5.io.amf.AMF;
 import org.red5.io.object.RecordSet;
 import org.red5.io.object.Serializer;
+import org.red5.io.utils.XMLUtils;
+import org.w3c.dom.Document;
 
 /**
  * AMF3 output writer
@@ -566,10 +568,17 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 
     /** {@inheritDoc} */
 	@Override
-	public void writeXML(String xml) {
+	public void writeXML(Document xml) {
 		writeAMF3();
 		buf.put(AMF3.TYPE_XML);
-		putString(xml);
+		if (hasReference(xml)) {
+    		putInteger(getReferenceId(xml) << 1);
+    		return;
+		}
+		final byte[] encoded = encodeString(XMLUtils.docToString(xml));
+		putInteger(encoded.length << 1 | 1);
+		buf.put(encoded);
+		storeReference(xml);
 	}
 	
     /** {@inheritDoc} */

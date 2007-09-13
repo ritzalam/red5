@@ -31,6 +31,7 @@ import org.red5.io.object.BaseOutput;
 import org.red5.io.object.DataTypes;
 import org.red5.io.object.RecordSet;
 import org.red5.io.object.Serializer;
+import org.w3c.dom.Document;
 
 public class Output extends BaseOutput implements org.red5.io.object.Output {
 
@@ -101,7 +102,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 	}
 
 	/** {@inheritDoc} */
-    public void writeXML(String xml) {
+    public void writeXML(Document xml) {
 		list.add(Byte.valueOf(DataTypes.CORE_XML));
 		list.add(xml);
 	}

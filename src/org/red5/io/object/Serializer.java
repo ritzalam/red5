@@ -32,7 +32,6 @@ import org.apache.commons.logging.LogFactory;
 import org.red5.io.amf3.ByteArray;
 import org.red5.io.amf3.IExternalizable;
 import org.red5.io.utils.ObjectMap;
-import org.red5.io.utils.XMLUtils;
 import org.w3c.dom.Document;
 
 /**
@@ -254,8 +253,7 @@ public class Serializer {
 	 * @param doc           Document to write
 	 */
 	protected void writeDocument(Output out, Document doc) {
-        // Write Document converted to String
-        out.writeXML(XMLUtils.docToString(doc));
+        out.writeXML(doc);
 	}
 
 	/**
