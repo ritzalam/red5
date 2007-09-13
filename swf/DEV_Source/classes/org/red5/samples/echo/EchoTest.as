@@ -21,7 +21,6 @@
 	
 	import flash.display.BitmapData;
 	import flash.events.*;
-	import flash.geom.Matrix;
 	import flash.net.*;
 	import flash.system.Capabilities;
 	import flash.utils.ByteArray;
@@ -33,9 +32,6 @@
 	import mx.rpc.remoting.mxml.RemoteObject;
 	import mx.utils.ObjectProxy;
 	
-	import org.red5.samples.echo.EchoClass;
-	import org.red5.samples.echo.RemoteClass;
-	import org.red5.samples.echo.ExternalizableClass;
 	import org.red5.utils.PNGEnc;
 	
 	/**
@@ -197,6 +193,38 @@
 			remote4.attribute1 = "four";
 			remote4.attribute2 = 1185292800000;
 			testParams.push(remote4);
+			// XML
+			XML.ignoreComments = false;
+			XML.ignoreProcessingInstructions = false;
+			XML.prettyIndent = 0;
+			XML.prettyPrinting = false;
+			var customSettings:Object = XML.settings();
+			var tmpXML:XML =
+                <employees>
+                    <employee ssn="123-123-1234">
+                        <name first="John" last="Doe"/>
+                        <address>
+                            <street>11 Main St.</street>
+                            <city>San Francisco</city>
+                            <state>CA</state>
+                            <zip>98765</zip>
+                        </address>
+                    </employee>
+                    <employee ssn="789-789-7890">
+                        <name first="Mary" last="Roe"/>
+                        <address>
+                            <street>99 Broad St.</street>
+                            <city>Newton</city>
+                            <state>MA</state>
+                            <zip>01234</zip>
+                        </address>
+                    </employee>
+                </employees>;
+            testParams.push(tmpXML);
+            var tmp10: Array = new Array();
+			tmp10.push(tmpXML);
+			tmp10.push(tmpXML);
+			testParams.push(tmp10);
 			AMF0Count = testParams.length;
 			
 			// Add AMF3 specific tests below
@@ -207,18 +235,18 @@
 			tmp_1.push(ext);
 			testParams.push(tmp_1);
 			// ArrayCollection
-			var tmp10: ArrayCollection = new ArrayCollection();
-			tmp10.addItem("one");
-			tmp10.addItem(1);
-			tmp10.addItem(null);
-			testParams.push(tmp10);
+			var tmp11: ArrayCollection = new ArrayCollection();
+			tmp11.addItem("one");
+			tmp11.addItem(1);
+			tmp11.addItem(null);
+			testParams.push(tmp11);
 			// ObjectProxy
-			var temp11: ObjectProxy = new ObjectProxy({ a: "foo", b: 5 });
-			testParams.push(temp11);
-			var temp12: Array = new Array();
-			temp12.push(temp11);
-			temp12.push(temp11);
+			var temp12: ObjectProxy = new ObjectProxy({ a: "foo", b: 5 });
 			testParams.push(temp12);
+			var temp13: Array = new Array();
+			temp13.push(temp12);
+			temp13.push(temp12);
+			testParams.push(temp13);
 			// ByteArray
 			// draw a red line in a BitmapData object
 			var bmp:BitmapData = new BitmapData(80, 80, false, 0xCCCCCC);
@@ -227,9 +255,13 @@
 			    bmp.setPixel(g, 40, red);
 			}
 			// Create ByteArray with PNG data
-			var temp13: ByteArray = PNGEnc.encode( bmp );
-			temp13.compress();
-			testParams.push(temp13);
+			var temp14: ByteArray = PNGEnc.encode( bmp );
+			temp14.compress();
+			testParams.push(temp14);
+			var tmp15: Array = new Array();
+			tmp15.push(temp14);
+			tmp15.push(temp14);
+			testParams.push(tmp15);
 			
   			// Create responder for result and error handlers
   			responder = new Responder( onRemotingResult, onRemotingError );
@@ -325,19 +357,23 @@
 		}
 		
 		private function doTest(): void {
-			if (testParams[testIndex] is String && (testParams[testIndex] as String).length >= 100) {
-				printText( "<br>Testing String with " + testParams[testIndex].length + " chars: " );
-			} else if (testParams[testIndex] is ByteArray) {
-				printText( "<br>Testing ByteArray " + testParams[testIndex] + ": " );
+			var testObj:* = testParams[testIndex];
+			
+			if (testObj is String && (testObj as String).length >= 100) {
+				printText( "<br>Testing String with " + testObj.length + " chars: " );
+			} else if (testObj is ByteArray) {
+				printText( "<br>Testing ByteArray " + testObj + ": " );
+			} else if (testObj is XML) {
+				printText( "<br>Testing XML " + testObj.toXMLString() + ": " );
 			} else {
-				printText( "<br>Testing " + testParams[testIndex] + ": " );
+				printText( "<br>Testing " + testObj + ": " );
 			}
 			if (echoService.endpoint == null) {
 				// NetConnection requests
-				nc.call("echo", responder, testParams[testIndex]);
+				nc.call("echo", responder, testObj);
 			} else {
 				// RemotingObject requests
-				echoService.echo( testParams[testIndex] );
+				echoService.echo( testObj );
 			}
 		}
 		
