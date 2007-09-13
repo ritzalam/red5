@@ -19,20 +19,22 @@
 	 * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 	*/
 	
+	import flash.display.BitmapData;
 	import flash.events.*;
+	import flash.geom.Matrix;
 	import flash.net.*;
 	import flash.system.Capabilities;
+	import flash.utils.ByteArray;
 	import flash.utils.getTimer;
 	
 	import mx.collections.ArrayCollection;
 	import mx.controls.*;
 	import mx.core.Application;
+	import mx.core.UIComponent;
 	import mx.rpc.remoting.mxml.RemoteObject;
 	import mx.utils.ObjectProxy;
 	
-	import org.red5.samples.echo.EchoClass;
-	import org.red5.samples.echo.RemoteClass;
-	import org.red5.samples.echo.ExternalizableClass;
+	import org.red5.utils.PNGEnc;
 	
 	/**
 	 * 
@@ -215,6 +217,18 @@
 			temp12.push(temp11);
 			temp12.push(temp11);
 			testParams.push(temp12);
+			// ByteArray
+			// draw a red line in a BitmapData object
+			var bmp:BitmapData = new BitmapData(80, 80, false, 0xCCCCCC);
+			for (var g:uint = 0; g < 80; g++) {
+			    var red:uint = 0xFF0000;
+			    bmp.setPixel(g, 40, red);
+			}
+			// Create ByteArray with PNG data
+			var temp13: ByteArray = PNGEnc.encode( bmp );
+			temp13.compress();
+			testParams.push(temp13);
+			
   			// Create responder for result and error handlers
   			responder = new Responder( onRemotingResult, onRemotingError );
   			
@@ -311,6 +325,8 @@
 		private function doTest(): void {
 			if (testParams[testIndex] is String && (testParams[testIndex] as String).length >= 100) {
 				printText( "<br>Testing String with " + testParams[testIndex].length + " chars: " );
+			} else if (testParams[testIndex] is ByteArray) {
+				printText( "<br>Testing ByteArray " + testParams[testIndex] + ": " );
 			} else {
 				printText( "<br>Testing " + testParams[testIndex] + ": " );
 			}
@@ -417,11 +433,11 @@
 					printText( success + "OK</font> (" + result.toString() + ")" );
 			} else {
 				if (result == null)
-					printText( failure + "FAILED</font> (null)" );
+					printText( failure + "<b>FAILED</b></font> (null)" );
 				else if (result is String && (result as String).length >= 1000)
-					printText( failure + "FAILED</font> (String with " + result.length + " chars)" );
+					printText( failure + "<b>FAILED</b></font> (String with " + result.length + " chars)" );
 				else
-					printText( failure + "FAILED</font> (" + result.toString() + ")" );
+					printText( failure + "<b>FAILED</b></font> (" + result.toString() + ")" );
 				testsFailed++;
 			}
 			testIndex += 1;
@@ -441,6 +457,15 @@
 				onDisconnect();
 			}
 		}
+		
+		private function getBitmapData( target : UIComponent ) : BitmapData
+        { 
+        	trace(target);
+            var bd : BitmapData = new BitmapData( target.width, target.height );
+            var m : Matrix = new Matrix();
+            bd.draw( target, m );
+            return bd;  
+        }
 		
 	}
 }
