@@ -377,10 +377,10 @@
 			}
 			if (echoService.endpoint == null) {
 				// NetConnection requests
-				nc.call("echo", responder, testObj);
+				nc.call("echod", responder, testObj);
 			} else {
 				// RemotingObject requests
-				echoService.echo( testObj );
+				echoService.echod( testObj );
 			}
 		}
 		
@@ -396,25 +396,23 @@
 		public function onRemotingError( result : * ): void {
 			printText( "<br><b>" + failure + "AMF error received:</font></b>");
 			if ( result is FaultEvent ){
-				// RemoteObject error
+				// HTTP error
 				var fault:Fault = result.fault;
 				printText( "<br>   <b>description</b>: " + fault.faultString);
 				printText( "<br>   <b>code</b>: " + fault.faultCode);
-				printText( "<br>   <b>details</b>: " + fault.faultDetail);
-			} else if ( result.message != undefined ) {
-				// NetConnection HTTP error
-				printText( "<br>   <b>message</b>: " + result.message);
-				printText( "<br>   <b>stackTrace</b>: ");
-				for (var s:int=0;s<result.stackTrace.length;s++) {
-					var stackTrace:Object = result.stackTrace[s];
-					printText( "<br>             at " 
-										 + stackTrace.className 
-										 + "(" + stackTrace.fileName 
-										 + ":" + stackTrace.lineNumber + ")");
+				if ( fault.faultDetail.length > 0 ) {
+					printText( "<br>   <b>details</b>: " + fault.faultDetail);
+					for (var s:int=0;s<fault.faultDetail.length;s++) {
+						var stackTrace:Object = fault.faultDetail[s];
+						printText( "<br>             at " 
+											 + stackTrace.className 
+											 + "(" + stackTrace.fileName 
+											 + ":" + stackTrace.lineNumber + ")");
+					}
+					printText( "<br>");
 				}
-				printText( "<br>");
 			} else {
-				// NetConnection RTMP error
+				// NetConnection error
 				printText( "<br>   <b>level</b>: " + result.level);
 				printText( "<br>   <b>code</b>: " + result.code);
 				printText( "<br>   <b>description</b>: " + result.description);
