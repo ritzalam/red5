@@ -33,8 +33,8 @@ public class ErrorMessage extends AsyncMessage {
 	
 	public String faultString;
 
-	public String rootCause;
+	public Object rootCause;
 	
-	public String extendedData;
+	public Object extendedData;
 	
 }

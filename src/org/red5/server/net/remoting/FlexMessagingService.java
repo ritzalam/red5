@@ -19,6 +19,7 @@ package org.red5.server.net.remoting;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +38,7 @@ import org.red5.compatibility.flex.messaging.messages.ErrorMessage;
 import org.red5.compatibility.flex.messaging.messages.RemotingMessage;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IServiceInvoker;
+import org.red5.server.exception.ClientDetailsException;
 import org.red5.server.service.ConversionUtils;
 import org.red5.server.service.PendingCall;
 
@@ -102,7 +104,31 @@ public class FlexMessagingService {
 		result.faultDetail = faultDetail;
 		return result;
 	}
-	
+
+	/**
+	 * Construct error message from exception.
+	 * 
+	 * @param request
+	 * @param faultCode
+	 * @param faultString
+	 * @param error
+	 * @return
+	 */
+	public static ErrorMessage returnError(AbstractMessage request, String faultCode, String faultString, Throwable error) {
+		ErrorMessage result = returnError(request, faultCode, faultString, "");
+		if (error instanceof ClientDetailsException) {
+			result.extendedData = ((ClientDetailsException) error).getParameters();
+			if (((ClientDetailsException) error).includeStacktrace()) {
+				StringBuilder stack = new StringBuilder();
+				for (StackTraceElement element: error.getStackTrace()) {
+					stack.append(element.toString()).append("\n");
+				}
+				result.faultDetail = stack.toString();
+			}
+		}
+		return result;
+	}
+
 	/**
 	 * Handle request coming from <code>mx:RemoteObject</code> tags.
 	 * 
@@ -125,11 +151,16 @@ public class FlexMessagingService {
 		IPendingServiceCall call = new PendingCall(msg.operation, args);
 		try {
 			if (!serviceInvoker.invoke(call, endpoint)) {
+				if (call.getException() != null) {
+					// Use regular exception handling
+					Throwable err = call.getException();
+					return returnError(msg, "Server.Invoke.Error", err.getMessage(), err);
+				}
 				return returnError(msg, "Server.Invoke.Error", "Can't invoke method.", "");
 			}
 		} catch (Throwable err) {
 			log.error("Error while invoking method.", err);
-			return returnError(msg, "Server.Invoke.Error", "Error while invoking method.", err.getMessage());
+			return returnError(msg, "Server.Invoke.Error", err.getMessage(), err);
 		}
 		
 		// We got a valid result from the method call.

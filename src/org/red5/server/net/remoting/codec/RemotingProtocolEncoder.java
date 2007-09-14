@@ -35,17 +35,19 @@ import org.red5.server.api.Red5;
 import org.red5.server.api.IConnection.Encoding;
 import org.red5.server.api.remoting.IRemotingConnection;
 import org.red5.server.api.remoting.IRemotingHeader;
+import org.red5.server.net.protocol.BaseProtocolEncoder;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.protocol.SimpleProtocolEncoder;
 import org.red5.server.net.remoting.FlexMessagingService;
 import org.red5.server.net.remoting.message.RemotingCall;
 import org.red5.server.net.remoting.message.RemotingPacket;
+import org.red5.server.net.rtmp.status.StatusCodes;
 import org.red5.server.service.ServiceNotFoundException;
 
 /**
  * Remoting protocol encoder
  */
-public class RemotingProtocolEncoder implements SimpleProtocolEncoder {
+public class RemotingProtocolEncoder extends BaseProtocolEncoder implements SimpleProtocolEncoder {
     /**
      * Logger
      */
@@ -114,19 +116,26 @@ public class RemotingProtocolEncoder implements SimpleProtocolEncoder {
 				output = new Output(buf);
 			}
 			Object result = call.getClientResult();
-			if (call.isMessaging && !call.isSuccess() && !(result instanceof ErrorMessage)) {
-				// Generate proper error result for the Flex messaging client
-				AbstractMessage request = (AbstractMessage) call.getArguments()[0];
-				if (result instanceof ServiceNotFoundException) {
-					ServiceNotFoundException ex = (ServiceNotFoundException) result;
-					if (FlexMessagingService.SERVICE_NAME.equals(ex.getServiceName())) {
-						result = FlexMessagingService.returnError(request, "serviceNotAvailable", "Flex messaging not activated", ex.getMessage());
+			if (!call.isSuccess()) {
+				if (call.isMessaging && !(result instanceof ErrorMessage)) {
+					// Generate proper error result for the Flex messaging client
+					AbstractMessage request = (AbstractMessage) call.getArguments()[0];
+					if (result instanceof ServiceNotFoundException) {
+						ServiceNotFoundException ex = (ServiceNotFoundException) result;
+						if (FlexMessagingService.SERVICE_NAME.equals(ex.getServiceName())) {
+							result = FlexMessagingService.returnError(request, "serviceNotAvailable", "Flex messaging not activated", ex.getMessage());
+						} else {
+							// This should never happen as the service name is hardcoded...
+							result = FlexMessagingService.returnError(request, "serviceNotAvailable", "Flex messaging not activated", ex.getMessage());
+						}
+					} else if (result instanceof Throwable) {
+						result = FlexMessagingService.returnError(request, "Server.Invoke.Error", ((Throwable) result).getMessage(), (Throwable) result);
 					} else {
-						// This should never happen as the service name is hardcoded...
-						result = FlexMessagingService.returnError(request, "serviceNotAvailable", "Flex messaging not activated", ex.getMessage());
+						result = FlexMessagingService.returnError(request, "Server.Invoke.Error", result.toString(), "");
 					}
-				} else {
-					result = FlexMessagingService.returnError(request, "error", result.toString(), result.toString());
+				} else if (!call.isMessaging) {
+					// Generate proper error object to return
+					result = generateErrorResult(StatusCodes.NC_CALL_FAILED, call.getException());
 				}
 			}
 			serializer.serialize(output, result);
