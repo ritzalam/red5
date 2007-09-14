@@ -377,10 +377,10 @@
 			}
 			if (echoService.endpoint == null) {
 				// NetConnection requests
-				nc.call("echod", responder, testObj);
+				nc.call("echo", responder, testObj);
 			} else {
 				// RemotingObject requests
-				echoService.echod( testObj );
+				echoService.echo( testObj );
 			}
 		}
 		
