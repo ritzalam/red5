@@ -6,10 +6,11 @@
 	<mx:Script>
 		<![CDATA[
 			import mx.events.ListEvent;
-
-			import org.red5.admin.connector.Red5Connector;
+			
 			import org.red5.admin.connector.event.Red5Event;
-			import org.red5.utils.SharedObjectHandler;
+			import org.red5.admin.connector.Red5Connector;
+			import org.red5.admin.utils.SharedObjectHandler;
+
 			
 			public static const CONNECTED:String = "CONNECTED";
 			public static const FAILED:String = "FAILED";
@@ -38,11 +39,10 @@
 				_connector.addEventListener( Red5Connector.FAILED , failedConnection )
 				_sharedObject = SharedObjectHandler.getInstance();
 				_hosts = _sharedObject.getHosts();
-				if ( _sharedObject.lasthost > 0 ) {
-					address.selectedIndex = _sharedObject.lasthost;
-					if ( address.selectedIndex > 0 ) {
-						remember.selected = true;
-					}
+				if ( _sharedObject.lasthost >= 0 ) {
+					address.selectedIndex = _sharedObject.lasthost
+					remember.selected = true;
+					getExtraData ( new ListEvent("CLICK") );
 				}
 			}
 			
@@ -77,38 +77,74 @@
 				error.visible = true;
 			}
 			
+			private function fillForm():void{
+				if ( edit_server.text != '' ) {
+					edit_username.text = _sharedObject.getUsername(edit_server.text)
+					edit_passwd.text = _sharedObject.getPasswd(edit_server.text)
+					btn_delete.enabled = true;
+					btn_save.enabled = true;
+				}
+			}
+			
+			private function saveServer():void{
+				_sharedObject.saveHost(edit_server.selectedIndex,edit_server.text,edit_username.text,edit_passwd.text);
+				_hosts = _sharedObject.getHosts();
+			}
+			
+			private function deleteServer():void{
+				_sharedObject.removeHost(edit_server.text);
+				edit_username.text = ""
+				edit_passwd.text = ""
+				_hosts = _sharedObject.getHosts();
+				fillForm()
+			}
+			
 		]]>
 	</mx:Script>
-
+	
 	<mx:TabBar dataProvider="viewstack1" />
-	<mx:ViewStack id="viewstack1" >
-		<mx:Canvas label="Login" creationComplete="addActions()">
-			<mx:Form styleName="flowStack">
-				<mx:FormItem label="Server Address">
-					<mx:ComboBox id="address"  width="300" dataProvider="{_hosts}" editable="true"/>
-				</mx:FormItem>
-				<mx:FormItem label="Username">
-					<mx:TextInput id="username" width="300" text="{_username}"/>
-				</mx:FormItem>
-				<mx:FormItem label="Password">
-					<mx:TextInput id="passwd"  width="300" displayAsPassword="true" text="{_passwd}"/>
-				</mx:FormItem>
-				<mx:FormItem>
-					<mx:CheckBox id="remember" label="Remember server"/>
-				</mx:FormItem>
-				<mx:FormItem id="error" visible="false">
-					<mx:Label text="{_error}" color="#ff0000" fontWeight="bold"/>
-				</mx:FormItem>
-				<mx:Button id="btnConnect" label="Connect" click="connect(event)"/>
-			</mx:Form>
+	<mx:Canvas borderStyle="solid" borderThickness="1" cornerRadius="5" themeColor="#000000" alpha="1">
+		<mx:ViewStack id="viewstack1" >
+			<mx:Canvas label="Login" creationComplete="addActions()">
+				<mx:Form>
+					<mx:FormItem label="Server Address">
+						<mx:ComboBox id="address"  width="300" dataProvider="{_hosts}" editable="true"/>
+					</mx:FormItem>
+					<mx:FormItem label="Username">
+						<mx:TextInput id="username" width="300" text="{_username}"/>
+					</mx:FormItem>
+					<mx:FormItem label="Password">
+						<mx:TextInput id="passwd"  width="300" displayAsPassword="true" text="{_passwd}"/>
+					</mx:FormItem>
+					<mx:FormItem>
+						<mx:CheckBox id="remember" label="Save server"/>
+					</mx:FormItem>
+					<mx:FormItem id="error" visible="false">
+						<mx:Label text="{_error}" color="#ff0000" fontWeight="bold"/>
+					</mx:FormItem>
+					<mx:Button id="btnConnect" label="Connect" click="connect(event)"/>
+				</mx:Form>
+	
+			</mx:Canvas>
+			<mx:Canvas label="Manage servers" verticalScrollPolicy="off" horizontalScrollPolicy="off" creationComplete="fillForm()">
 
-		</mx:Canvas>
-		<mx:Canvas label="Manage servers">
-			<mx:List width="100%" height="100%"/>
-		</mx:Canvas>
-		
-	</mx:ViewStack>
-			<mx:filters>
-				<flash:DropShadowFilter distance="2" color="0x666666" alpha=".8" />
-			</mx:filters>
+				<mx:Form>
+					<mx:FormItem label="Server Address">
+						<mx:ComboBox id="edit_server"  width="300" dataProvider="{_hosts}" editable="true" click="fillForm()" />
+					</mx:FormItem>
+					<mx:FormItem label="Username">
+						<mx:TextInput id="edit_username" width="300"  />
+					</mx:FormItem>
+					<mx:FormItem label="Password">
+						<mx:TextInput id="edit_passwd" width="300" displayAsPassword="true" />
+					</mx:FormItem>
+					<mx:HBox width="100%" height="75" verticalAlign="bottom">
+						<mx:Button label="Save" enabled="false" id="btn_save" click="saveServer()"/>
+						<mx:Button label="Delete" enabled="false" id="btn_delete" click="deleteServer()"/>
+					</mx:HBox>
+				</mx:Form>
+
+			</mx:Canvas>
+		</mx:ViewStack>
+	</mx:Canvas>
 </mx:VBox>
