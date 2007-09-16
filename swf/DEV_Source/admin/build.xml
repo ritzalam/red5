@@ -17,13 +17,17 @@
 	<property file="./build.properties" />
   	
 	<!-- dirs -->
+	
 	<property 
 		name="release.build.dir" 
 		location="${build.dir}/release/"/>
 	<property 
+		name="assets.dir" 
+		location="./"/>
+	<property 
 		name="debug.build.dir" 
 		location="${build.dir}/debug/"/>
-	<property 
+		<property 
 		name="lib.swc" 
 		location="${lib.cairngorm.swc}"/>
 	<!-- files -->
@@ -31,8 +35,14 @@
 		name="mxmlc.jar" 
 		location="${FLEX_HOME}/lib/mxmlc.jar"/>
 	<property 
+		name="adt.jar" 
+		location="${FLEX_HOME}/lib/adt.jar"/>
+	<property 
 		name="main.application.release.out" 
 		location="${release.build.dir}/${output.swf.name}.swf"/>
+	<property 
+		name="air.application.release.out" 
+		location="${output.swf.name}.air"/>
 	<property 
 		name="main.application.debug.out" 
 		location="${debug.build.dir}/${output.swf.name}-debug.swf"/>
@@ -138,8 +148,27 @@
     	<mxmlc.compile
     		in="${main.application}"
     		out="${main.application.release.out}"
-    	    additional='-benchmark -optimize=true -title "${swf.release.title}" -description "${swf.release.title}"' />
+    	    additional='+configname=air -benchmark -optimize=true -debug=false -title "${swf.release.title}" -description "${swf.release.title}"' />
     </target>
+	
+    <!-- - - - - - - - - - - - - - - - - - 
+          target: compile.release
+         - - - - - - - - - - - - - - - - - -->
+    <target name="compile.air.release" depends="compile.release">
+        <java jar="${adt.jar}" fork="true" failonerror="true">
+            <arg value="-package"/>
+            <arg value="${air.release}"/>
+            <arg value="${air.descriptor}"/>
+        	<arg value="-C"/>
+            <arg value="${release.build.dir}"/>
+            <arg value="${output.swf.name}.swf"/>
+            <arg value="-C"/>
+            <arg value="${assets.dir}"/>
+            <arg value="icons"/>
+        </java>
+    </target>
+	
+	<!--  additional='-benchmark -optimize=true -title "${swf.release.title}" -description "${swf.release.title}"' -->
 	
     <!-- - - - - - - - - - - - - - - - - - 
           target: compile.debug
@@ -205,9 +234,8 @@
     <macrodef name="mxmlc.compile">
         <attribute name="in" />
         <attribute name="out" />
-    	<attribute 
-    		name="additional"
-    		default="" />
+		
+    	<attribute name="additional" default="" />
     	<attribute 
     	    name="config" 
     	    default="${flex.config.xml}" />
@@ -217,6 +245,7 @@
         		fork="true"
         		maxmemory="512m"
         		failonerror="true">
+        		<!-- 
         		<arg line="-source-path ${src.dir}"/>
         		<arg value="-library-path+=${lib.swc}"/>
         		<arg value="+flexlib=${FLEX_HOME}/frameworks"/>
@@ -224,7 +253,40 @@
         		<arg value="-output=@{out}"/>
         		<arg line="@{additional}"/>
         		<arg value="@{in}" />
+        		-->
+        		<arg line="-source-path ${src.dir}"/>
+                <arg value="-debug=false"/>
+                <arg value="+flexlib=${FLEX_HOME}/frameworks"/>
+        		<arg value="-load-config=@{config}"/>
+                <arg value="+configname=air"/>
+                <arg value="-file-specs=@{in}"/>
+                <arg value="-output=@{out}"/>
+        		
         	</java>
+        </sequential>
+    </macrodef>
+	
+	<!-- = = = = = = = = = = = = = = = = =
+          macrodef: adt.compile          
+         = = = = = = = = = = = = = = = = = -->
+    <macrodef name="adt.compile">
+        <attribute name="in" />
+        <attribute name="out" />
+    	<attribute name="additional" default="" />
+    	<attribute 
+    	    name="config" 
+    	    default="${flex.config.xml}" />
+        <sequential>
+			<echo>@{in}</echo>
+        	<echo>@{additional}</echo>
+        	<echo>@{out}</echo>
+	        <java jar="${adt.jar}" fork="true" failonerror="true">
+	            <arg value="-package"/>
+	            <arg value="@{in} "/>
+	            <arg value="@{additional} "/>
+	        	<arg value="-C "/>
+	            <arg value="@{out}"/>
+	        </java>
         </sequential>
     </macrodef>
 	
