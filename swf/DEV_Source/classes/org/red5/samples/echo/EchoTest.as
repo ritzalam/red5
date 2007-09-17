@@ -198,6 +198,10 @@
 			remote4.attribute1 = "four";
 			remote4.attribute2 = 1185292800000;
 			testParams.push(remote4);
+			AMF0Count = testParams.length;
+			
+			// Add AMF3 specific tests below
+			
 			// XML
 			XML.ignoreComments = false;
 			XML.ignoreProcessingInstructions = false;
@@ -230,9 +234,6 @@
 			tmp10.push(tmpXML);
 			tmp10.push(tmpXML);
 			testParams.push(tmp10);
-			AMF0Count = testParams.length;
-			
-			// Add AMF3 specific tests below
 			var ext: ExternalizableClass = new ExternalizableClass();
 			testParams.push(ext);
 			var tmp_1: Array = new Array();
