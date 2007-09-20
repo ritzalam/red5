@@ -17,5 +17,8 @@ install:
 	cp -r dist/lib $(DESTINATION)
 	cp -r dist/webapps $(DESTINATION)
 
+installerdist:
+	ant installerdist
+
 clean:
 	rm -rf dist
