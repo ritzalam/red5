@@ -584,6 +584,7 @@
 		</copy>
 		<copy todir="${dist.dir}/conf">
 			<fileset dir="${config.dir}">
+				<!-- exclude war config files -->
 				<exclude name="**/war/**"/>
 				<exclude name="**/jboss/**"/>
 			</fileset>
@@ -591,14 +592,13 @@
 		<copy todir="${dist.dir}/webapps" file="webapps\red5-default.xml"/>
 		<copy todir="${dist.dir}">
 			<fileset dir="./">
-				<include name="ivy.xml"/>
-				<include name="ivyconfig.xml"/>
 				<include name="red5.jar"/>
 				<include name="red5.bat"/>
 				<include name="red5-shutdown.bat"/>
 				<include name="red5.sh"/>
 				<include name="red5-shutdown.sh"/>
 				<include name="license.txt"/>
+				
 			</fileset>
 		</copy>
 	</target>
@@ -610,6 +610,15 @@
 				<include name=".springBeans"/>
 				<include name="build.xml"/>
 				<include name="build.properties"/>
+				<include name="ivy.xml"/>
+				<include name="ivyconfig.xml"/>
+			</fileset>
+		</copy>
+		<!-- add war config files -->
+		<copy todir="${dist.dir}/conf">
+			<fileset dir="${config.dir}">
+				<include name="**/war/**"/>
+				<include name="**/jboss/**"/>
 			</fileset>
 		</copy>
 		<copy todir="${dist.dir}/src">
