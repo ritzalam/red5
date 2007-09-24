@@ -92,10 +92,7 @@
     	name="build" 
     	depends="clean,
     			 init,
-    			 compile.release,
-    			 compile.debug,
-    			 make.release.wrapper,
-    			 make.debug.wrapper,
+    			 compile.air.release,
     			 docs" 
     	description="--> ${swf.release.title} application">
     </target>
