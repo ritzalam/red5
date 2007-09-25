@@ -241,6 +241,7 @@
 				<exclude name="**/src/**"/>
 			</fileset>
 		</copy>
+
 		<mkdir dir="${webapps.build.dir}/oflaDemo/WEB-INF/classes"/>
 		<mkdir dir="${webapps.build.dir}/oflaDemo/WEB-INF/lib"/>
 		<javac sourcepath="" srcdir="${webapps.dir}/oflaDemo/WEB-INF/src" destdir="${webapps.build.dir}/oflaDemo/WEB-INF/classes"
@@ -263,6 +264,7 @@
 				<include name="**/*.flv"/>
 			</fileset>
 		</copy>
+
 		<mkdir dir="${webapps.build.dir}/test/WEB-INF/classes"/>
 		<mkdir dir="${webapps.build.dir}/test/WEB-INF/lib"/>
 		<javac sourcepath="" srcdir="${webapps.dir}/test/WEB-INF/src" destdir="${webapps.build.dir}/test/WEB-INF/classes"
@@ -274,6 +276,19 @@
 				<exclude name="**/src/**"/>
 			</fileset>
 		</copy>
+
+		<mkdir dir="${webapps.build.dir}/adminPanel/WEB-INF/classes"/>
+		<mkdir dir="${webapps.build.dir}/adminPanel/WEB-INF/lib"/>
+		<javac sourcepath="" srcdir="${webapps.dir}/adminPanel/WEB-INF/src" destdir="${webapps.build.dir}/adminPanel/WEB-INF/classes"
+			 classpathref="webapps.classpath" optimize="${build.optimize}" verbose="${build.verbose}"
+			 fork="${build.fork}" nowarn="${build.nowarn}" deprecation="${build.deprecation}"
+			 debug="${debug.state}" compiler="${compiler}" source="${java.target_version}" target="${java.target_version}"/>
+		<copy todir="${webapps.build.dir}/adminPanel" filtering="true">
+			<fileset dir="webapps/adminPanel">
+				<exclude name="**/src/**"/>
+			</fileset>
+		</copy>
+
 		<!-- no java source for this app -->
 		<copy todir="${webapps.build.dir}/SOSample" filtering="true">
 			<fileset dir="webapps/SOSample"/>

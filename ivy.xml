@@ -83,6 +83,7 @@
         <dependency name="jsr-223" rev="1.0" conf="java5->default"/> 
         <dependency name="js-engine" rev="" conf="java5->default"/> 
         <dependency name="jython-engine" rev="" conf="java5->default"/> 
-        <dependency name="groovy-engine" rev="" conf="java5->default"/>         
+        <dependency name="groovy-engine" rev="" conf="java5->default"/>
+		<dependency name="acegi-security" rev="1.0.4" />
     </dependencies>
 </ivy-module>
