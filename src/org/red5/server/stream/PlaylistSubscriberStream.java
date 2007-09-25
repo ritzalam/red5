@@ -1127,7 +1127,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
          */
         public synchronized void pause(int position)
 				throws IllegalStateException {
-			if (state != State.PLAYING) {
+			if ((state != State.PLAYING && state != State.STOPPED) || currentItem == null) {
 				throw new IllegalStateException();
 			}
 			state = State.PAUSED;
