@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+<beans>
+	<bean id="authenticationManager" class="org.acegisecurity.providers.ProviderManager">
+		<property name="providers">
+			<list>
+				<ref local="daoAuthenticationProvider"/>
+			</list>
+		</property>
+	</bean>
+	<bean id="daoAuthenticationProvider" class="org.acegisecurity.providers.dao.DaoAuthenticationProvider">
+		<property name="userDetailsService" ref="userDetailsService"/>
+		<property name="userCache">
+			<bean class="org.acegisecurity.providers.dao.cache.EhCacheBasedUserCache">
+				<property name="cache">
+					<bean class="org.springframework.cache.ehcache.EhCacheFactoryBean">
+						<property name="cacheManager">
+							<bean class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean"/>
+						</property>
+						<property name="cacheName" value="userCache"/>
+					</bean>
+				</property>
+			</bean>
+		</property>
+	</bean>
+
+	<bean id="userDetailsService" class="org.acegisecurity.userdetails.memory.InMemoryDaoImpl">
+		<property name="userProperties">
+			<bean class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+				<property name="location" value="/WEB-INF/users.properties"/>
+			</bean>
+		</property>
+	</bean>
+</beans>
