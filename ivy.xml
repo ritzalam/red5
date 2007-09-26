@@ -59,6 +59,7 @@
         <dependency name="xml-apis" rev="2.9.0" />
         <dependency org="apache" name="xmlrpc" rev="2.0.1" />
         <dependency org="javax" name="activation" rev="1.1" />
+		<dependency name="acegi-security" rev="1.0.4" />        
         <!-- JMX -->
         <dependency org="jmx" name="jmxremote" rev="" />
         <dependency org="jmx" name="jmxtools" rev="" />
@@ -84,6 +85,5 @@
         <dependency name="js-engine" rev="" conf="java5->default"/> 
         <dependency name="jython-engine" rev="" conf="java5->default"/> 
         <dependency name="groovy-engine" rev="" conf="java5->default"/>
-		<dependency name="acegi-security" rev="1.0.4" />
     </dependencies>
 </ivy-module>

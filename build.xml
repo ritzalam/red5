@@ -67,6 +67,7 @@
 					<available property="catalina.installed" classpathref="project.classpath" classname="org.apache.catalina.Server"/>
 					<available property="mina.installed" classpathref="project.classpath" classname="org.apache.mina.filter.codec.ProtocolEncoder"/>
 					<available property="minajmx.installed" classpathref="project.classpath" classname="org.apache.mina.integration.jmx.IoServiceManager"/>
+					<available property="acegi.installed" classpathref="project.classpath" classname="org.acegisecurity.SecurityConfig"/>
 					<equals arg1="${java.target_version}" arg2="1.6"/>
 				</and>
 				<and>
@@ -75,6 +76,7 @@
 					<available property="catalina.installed" classpathref="project.classpath" classname="org.apache.catalina.Server"/>
 					<available property="mina.installed" classpathref="project.classpath" classname="org.apache.mina.filter.codec.ProtocolEncoder"/>
 					<available property="minajmx.installed" classpathref="project.classpath" classname="org.apache.mina.integration.jmx.IoServiceManager"/>
+					<available property="acegi.installed" classpathref="project.classpath" classname="org.acegisecurity.SecurityConfig"/>
 					<available property="script.installed" classpathref="project.classpath" classname="com.sun.phobos.script.javascript.RhinoScriptEngine"/>
 					<available property="groovy.script.installed" classpathref="project.classpath" classname="com.sun.script.groovy.GroovyScriptEngine"/>
 					<available property="jython.script.installed" classpathref="project.classpath" classname="com.sun.script.jython.JythonScriptEngine"/>
