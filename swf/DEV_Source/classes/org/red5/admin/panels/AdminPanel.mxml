@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%"
-	xmlns:ns1="org.red5.admin.panels.*"
-	initialize="connect()" 
->
+		   xmlns:ns1="org.red5.admin.panels.*"
+		   initialize="connect()" styleName="adminPanel">
 
 	<mx:Script source="ControlPanel.as" />
 	
@@ -11,7 +10,7 @@
 		<!--  Menu / Logo space  -->
 
 		<mx:HBox width="100%" height="65" verticalAlign="middle">
-			<mx:Image source="@Embed('../../../../../../DEV_Source/admin/assets/FinalLogo.png')" />
+			<mx:Image source="{ logoImg }" />
 			<mx:Label text="Admin Panel 0.4"  fontWeight="bold" fontSize="14"/>
 			<mx:VBox width="100%" horizontalAlign="right">
 				<mx:HBox horizontalAlign="right" width="100%" id="loggedInInfo">
@@ -31,7 +30,8 @@
 			</mx:Canvas>
 			<mx:Canvas label="Connecting" width="100%" height="100%">
 				<mx:VBox width="100%" height="100%" horizontalAlign="center" verticalAlign="middle">
-					<mx:ProgressBar left="5" right="5" top="5" bottom="5" labelPlacement="center" label="Connecting to server" indeterminate="true"/>
+					<mx:ProgressBar left="5" right="5" top="5" bottom="5" labelPlacement="center" 
+									label="Connecting to server" indeterminate="true"/>
 					<mx:Button label="Cancel" click="logout(event)"/>
 				</mx:VBox>
 			</mx:Canvas>
@@ -40,10 +40,11 @@
 					<mx:HDividedBox width="100%" height="100%">
 						<mx:VBox width="200" height="100%" >
 							<mx:HBox >
-								<mx:Image source="@Embed('../../../../../../DEV_Source/admin/assets/application.png')"/>
+								<mx:Image source="{ applicationImg }"/>
 								<mx:Label text="Applications" fontWeight="bold" width="100%"/>
 							</mx:HBox>
-							<mx:DataGrid id="applist" width="100%" height="100%" dataProvider="{_applications}" creationComplete="addAppListeners()">
+							<mx:DataGrid id="applist" width="100%" height="100%" dataProvider="{_applications}" 
+										 creationComplete="addAppListeners()">
 								<mx:columns>
 									<mx:DataGridColumn width="140" headerText="Name" dataField="name"/>
 									<mx:DataGridColumn headerText="Clients" dataField="clients"/>
@@ -53,8 +54,10 @@
 						<mx:VDividedBox width="100%" height="100%">
 							<mx:HDividedBox width="100%" height="100%">
 								<mx:VBox width="100%" height="100%" horizontalGap="0" >
-									<mx:TabNavigator width="100%" height="100%" horizontalGap="0" verticalGap="0" paddingTop="2" borderStyle="none" id="statsTab">
-										<mx:Canvas label="Application" width="100%" height="100%" icon="@Embed('../../../../../../DEV_Source/admin/assets/application.png')">
+									<mx:TabNavigator width="100%" height="100%" horizontalGap="0" verticalGap="0" 
+													 paddingTop="2" borderStyle="none" id="statsTab">
+										<mx:Canvas label="Application" width="100%" height="100%" 
+												   icon="{ applicationImg }">
 											<mx:Canvas label="Application properties" width="100%" height="100%">
 												<mx:VBox width="100%" height="100%">
 													<mx:DataGrid width="100%" height="100%" dataProvider="{_scope_stats}">
@@ -63,12 +66,12 @@
 															<mx:DataGridColumn headerText="Value" dataField="value"/>
 														</mx:columns>
 													</mx:DataGrid>
-													<mx:Button label="Restart Application" icon="@Embed('../../../../../../DEV_Source/admin/assets/application_go.png')"/>
+													<mx:Button label="Restart Application" icon="{ applicationGoImg }"/>
 												</mx:VBox>
 											</mx:Canvas>
 										</mx:Canvas>
 										
-										<mx:Canvas label="Clients" width="100%" height="100%" icon="@Embed('../../../../../../DEV_Source/admin/assets/user.png')">
+										<mx:Canvas label="Clients" width="100%" height="100%" icon="{ userImg }">
 											<mx:HDividedBox width="100%" height="100%">
 												<mx:List id="userList" height="100%" width="100" dataProvider="{_users}"></mx:List>
 												<mx:VBox width="100%" height="100%">
@@ -78,7 +81,7 @@
 															<mx:DataGridColumn headerText="Value" dataField="value"/>
 														</mx:columns>
 													</mx:DataGrid>
-													<mx:Button label="Disconnect client" id="btn_kill" click="killUser()" icon="@Embed('../../../../../../DEV_Source/admin/assets/user_delete.png')"/>
+													<mx:Button label="Disconnect client" id="btn_kill" click="killUser()" icon="{ userDeleteImg }"/>
 												</mx:VBox>
 											</mx:HDividedBox>
 										</mx:Canvas>

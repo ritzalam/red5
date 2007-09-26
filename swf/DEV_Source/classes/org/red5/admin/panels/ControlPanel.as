@@ -1,11 +1,9 @@
-﻿import mx.controls.Alert;
-import mx.events.ListEvent;
-import mx.events.IndexChangedEvent;
+﻿import mx.events.ListEvent;
 
+import org.red5.admin.connector.Red5Connector;
+import org.red5.admin.connector.event.Red5Event;
 import org.red5.admin.panels.Login;
 import org.red5.utils.SharedObjectHandler;
-import org.red5.admin.connector.event.Red5Event;
-import org.red5.admin.connector.Red5Connector
 
 [Bindable]
 private var _footer:String;
@@ -43,6 +41,20 @@ private var _scope_stats:Array;
 [Bindable]
 private var _user_stats:Array;
 
+[Bindable]
+private var logoImg:Class;
+
+[Bindable]
+private var applicationImg:Class;
+
+[Bindable]
+private var applicationGoImg:Class;
+
+[Bindable]
+private var userImg:Class;
+
+[Bindable]
+private var userDeleteImg:Class;
 
 private var _connector:Red5Connector;
 private var sharedObject:SharedObjectHandler;
@@ -51,6 +63,13 @@ private var _interval:Timer = null;
 private var _selectedUser:Number
 
 public function connect (): void {
+	//
+	logoImg = this.getStyle("Logo");
+	applicationImg = this.getStyle("Application");
+	applicationGoImg = this.getStyle("ApplicationGo");
+	userImg = this.getStyle("User");
+	userDeleteImg = this.getStyle("UserDelete");
+	//
 	_footer = "VMVersion: "+flash.system.System.vmVersion+" | Flash Player: "+flash.system.Capabilities.version+"";
 	loggedInInfo.visible = false;
 	_intervals = [1,5,10,20,30,60]
