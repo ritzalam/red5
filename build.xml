@@ -163,7 +163,7 @@
 		<javac sourcepath="" srcdir="${src.dir}" destdir="${dest.dir}" classpathref="project.classpath"
 			 optimize="${build.optimize}" verbose="${build.verbose}" fork="${build.fork}" nowarn="${build.nowarn}"
 			 deprecation="${build.deprecation}" debug="${debug.state}" compiler="${compiler}"
-			 source="${java.target_version}" target="${java.target_version}" memoryMaximumSize="1024m"
+			 source="${java.target_version}" target="${java.target_version}" memoryMaximumSize="${memory.maximum}"
 			 excludes="${std_excludes}" listfiles="false"/>
 	</target>
 	<target name="compile_core_compatibility" unless="java6.installed">
@@ -173,7 +173,7 @@
 		<javac sourcepath="" srcdir="${src.dir}" destdir="${dest.dir}" classpathref="project.classpath"
 			 optimize="${build.optimize}" verbose="${build.verbose}" fork="${build.fork}" nowarn="${build.nowarn}"
 			 deprecation="${build.deprecation}" debug="${debug.state}" compiler="${compiler}"
-			 source="${java.target_version}" target="${java.target_version}" memoryMaximumSize="1024m"
+			 source="${java.target_version}" target="${java.target_version}" memoryMaximumSize="${memory.maximum}"
 			 excludes="${std_excludes}" listfiles="false"/>
 	</target>
 	<!-- Demos -->
@@ -312,7 +312,7 @@
 		<javac sourcepath="" srcdir="${src.dir}" destdir="${dest.dir}" classpathref="script.classpath"
 			 optimize="${build.optimize}" verbose="${build.verbose}" fork="${build.fork}" nowarn="${build.nowarn}"
 			 deprecation="${build.deprecation}" debug="${debug.state}" compiler="${compiler}"
-			 source="${java.target_version}" target="${java.target_version}" memoryMaximumSize="1024m"
+			 source="${java.target_version}" target="${java.target_version}" memoryMaximumSize="${memory.maximum}"
 			 includes="org/red5/server/script/**" listfiles="false"/>
 	</target>
 	<target name="compile_war" depends="-library.check, -java6.check, -junit.check, clean, prepare">
