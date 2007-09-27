@@ -28,31 +28,28 @@ package org.red5.samples.porttester
 	/**
 	 * Runs 8 RTMP port tests.
 	 * 
-	 * @author Thijs Triemstra
+	 * @author Thijs Triemstra ( info@collab.nl )
 	*/	
 	public class Main extends Application
 	{
-		private static const  rtmp : String = "rtmp";
-		private static const rtmpt : String = "rtmpt";
+		private static const  rtmp 	: String = "rtmp";
+		private static const rtmpt 	: String = "rtmpt";
 		
 		[Bindable]
-		public var flashVersion : String;
+		public var flashVersion 	: String;
 		
 		[Bindable]
-		public var testResults : ArrayCollection;
+		public var testResults 		: ArrayCollection;
 		
-		public var hostname : String;
-		
-		public var application : String;
-		
-		public var host_txt : TextInput;
-		
-		public var app_txt : TextInput;
+		public var hostname 		: String;
+		public var application 		: String;
+		public var host_txt 		: TextInput;
+		public var app_txt 			: TextInput;
 		
 		/**
 		 * 
 		 */				
-		public function Main() : void
+		public function Main(): void
 		{
 			var platformVersion : String = Capabilities.version.substr( String( Capabilities.version ).lastIndexOf(" ") + 1 );
 			var manufacturer : String = Capabilities.manufacturer;
@@ -69,7 +66,7 @@ package org.red5.samples.porttester
 		/**
 		 * Start the RTMP port tests.
 		 */		
-		public function runTests() : void
+		public function runTests(): void
 		{
 			hostname = host_txt.text;
 			application = app_txt.text;

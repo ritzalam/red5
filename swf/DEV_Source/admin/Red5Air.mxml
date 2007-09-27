@@ -5,18 +5,9 @@
 	width="100%"
 	height="100%"
  	xmlns:ns1="org.red5.admin.panels.*">
-	<mx:Style>
-		Application {
-			background-color: #eeeeee;
-		}
-		.flowStack {
-			border-style:solid;
-			border-color:#cccccc;
-			border-alpha:1;
-			border-thickness:1;
-			corner-radius:5;
-			background-color: #eeeeee;
-		}
-	</mx:Style>
+	
+	<mx:Style source="assets/css/main.css"/>
+
 	<ns1:AdminPanel width="100%" height="100%"  x="0" y="5"/>
+	
 </mx:Application>

@@ -1,9 +1,5 @@
 package org.red5.samples.porttester
 {
-	import flash.events.NetStatusEvent;
-	import flash.net.NetConnection;
-	import flash.net.ObjectEncoding;
-	
 	/**
 	 * RED5 Open Source Flash Server - http://www.osflash.org/red5
 	 *
@@ -21,60 +17,64 @@ package org.red5.samples.porttester
 	 * You should have received a copy of the GNU Lesser General Public License along
 	 * with this library; if not, write to the Free Software Foundation, Inc.,
 	 * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-	 */
+	*/
 	 
+	import flash.events.NetStatusEvent;
+	import flash.net.NetConnection;
+	import flash.net.ObjectEncoding;
+	
 	[Bindable]
 	/**
 	 * Test RTMP port.
 	 * 
-	 * @author Thijs Triemstra
+	 * @author Thijs Triemstra ( info@collab.nl )
 	 */	
 	public class PortTest 
 	{
 		/**
 		* Protocol name.
 		*/		
-		private var protocol : String;
+		private var protocol 		: String;
 		
 		/**
 		* Protocol name (uppercase).
 		*/		
-		public var protocolName : String;
+		public var protocolName 	: String;
 		
 		/**
 		* RTMP hostname.
 		*/		
-		private var hostname : String;
+		private var hostname 		: String;
 		
 		/**
 		* RTMP port.
 		*/		
-		public var port : String;
+		public var port 			: String;
 		
 		/**
 		* RTMP port.
 		*/		
-		public var portName : String = "Default";
+		public var portName 		: String = "Default";
 		
 		/**
 		* RTMP application.
 		*/		
-		private var application : String;
+		private var application 	: String;
 
 		/**
 		* Base RTMP URI.
 		*/		
-		private var baseURI : String;
+		private var baseURI 		: String;
 		
 		/**
 		* RTMP connection.
 		*/		
-		public var nc : NetConnection;
+		public var nc 				: NetConnection;
 		
 		/**
 		* Connection status.
 		*/		
-		public var status : String;
+		public var status 			: String;
 		
 		/**
 		* Set default encoding to AMF0 so FMS also understands.
