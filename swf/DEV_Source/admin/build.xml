@@ -23,7 +23,7 @@
 		location="${build.dir}/release/"/>
 	<property 
 		name="assets.dir" 
-		location="./"/>
+		location="./src/"/>
 	<property 
 		name="debug.build.dir" 
 		location="${build.dir}/debug/"/>

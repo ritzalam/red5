@@ -1,0 +1,35 @@
+/* CSS file */
+Application {
+	background-color: #eeeeee;
+}
+.flowStack {
+	border-style:solid;
+	border-color:#cccccc;
+	border-alpha:1;
+	border-thickness:1;
+	corner-radius:5;
+	background-color: #eeeeee;
+}
+
+.iconServer{
+	icon:Embed('assets/server.png');
+}
+
+.iconApplication{
+	icon:Embed('assets/application.png');
+}
+
+.iconRestartApplication{
+	icon:Embed('assets/application_go.png');
+}
+
+.iconClient{
+	icon:Embed('assets/user.png');
+}
+
+.iconKillClient{
+	icon:Embed('assets/user_delete.png');
+}
+.logo{
+	source:Embed('assets/FinalLogo.png');
+}
