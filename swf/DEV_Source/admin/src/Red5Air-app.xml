@@ -1,117 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <application 
-	xmlns="http://ns.adobe.com/air/application/1.0.M4" 
+	xmlns="http://ns.adobe.com/air/application/1.0.M5" 
 	appId="org.red5.admin.Red5Air" 
-	version="0.4">
-
-<!-- 
-    AIR Application Descriptor File: 
-    Specifies parameters for identifying, installing, and launching AIR applications.
-
-    The root element of the descriptor is "application" and has the attributes:
-    appID   - A string identifying this application. Every AIR application must
-              have a unique appID. The recommended form of an appID is a 
-              dot-delimited, reverse-DNS-style string, such as 
-              "com.example.ApplicationName". The appID string must be between 
-              17-255 characters long and may include the following characters:
-              0-9 
-              a-z 
-              A-Z 
-              . (dot)
-              - (hyphen)              
-    version - An application-defined version designator.
-              Examples: "1.0", ".4", "0.5", "Alpha 1",
-    xmlns   - The AIR namespace ("http://ns.adobe.com/air/application/1.0.M4").
--->
-    
-    <!--
-        The name displayed by the operating system when the application is 
-        running. (Required.)
-    -->
-    <name>Red5 Admin</name>
-    
-    <!--
-        The title displayed in the AIR application installer.
-    -->
-    <title>Red5 Admin 0.4</title>
-    
-    <!--
-        The description displayed in the AIR application installer.
-    -->
-    <description>This is the alpha version of the Red5 admin</description>
-    
-    <!--
-        The application copyright information.
-    -->
-    <copyright>Martijn van Beek</copyright>
-    
-    <!--
-        The main content file of the application, which must be a SWF or 
-        HTML file. (Required.)
-        
-        Attributes:
-        systemChrome - "standard" or "none". If "standard", the application 
-                       window is opened with operating system-specific window 
-                       elements such as a title bar, minimize, and close 
-                       buttons. If "none", the application must provide its 
-                       own window controls. (Note, the Flex WindowedApplication 
-                       class supplies a set of window controls, which are only 
-                       shown when systemChrome="none".)
-        transparent  - "true" or "false". If "true", the application has support 
-                       for full transparency.
-        visible      - "true" or "false". If "false", the main window will not 
-                       be displayed 
-                       until the application changes the window visible property 
-                       to "true".
-        width        - the initial window height (including chrome).
-        height       - the initial window width (including chrome).
-        
-        In Flex Builder, the SWF reference required within this tag will be set 
-        automatically when you launch or export this application.
-    -->    
-    <rootContent width="1000" height="700" systemChrome="standard" transparent="false" visible="true">admin.swf</rootContent>
-    
-    <!--
-        The subdirectory within the default application installation location in 
-        which to install the application.
-    -->
-    <!-- <installFolder></installFolder> -->
-    
-    <!--
-        One or more PNG, GIF, or JPEG graphics files to be used as application 
-        icons. The path specified is relative to the application root directory. 
-        If an image is specified, it must be the exact size. The image files 
-        must be included in the AIR package.
-    -->
-	
-
-        <icon>
-            <image16x16>assets/icons/r5-16.png</image16x16>     
-            <image32x32>assets/icons/r5-32.png</image32x32>   
-            <image48x48>assets/icons/r5-48.png</image48x48>    
-           	<image128x128>assets/icons/r5-128.png</image128x128>
-        </icon>
-
-	
-    <!-- 
-        If the handleUpdates element is present in the application descriptor, 
-        then the AIR runtime will defer version updates to this application.
-    -->
-    <!-- <handleUpdates/> -->
-    
-    <!--
-        One or more file types to register when this application is installed.
-    -->  
-	
-	<!--  
-        <fileTypes>
-            <fileType>
-                <name>com.example</name>
-                <extension>xmpl</extension>
-                <description>Example file</description>
-                <contentType>example/x-data-type</contentType>
-            </fileType>
-        </fileTypes>
-    -->
-	
+	version="1.0 Beta">
+	<name>Red5 Admin</name>
+	<title>Red5 Admin</title>
+	<description>This is the alpha version of the Red5 admin</description>
+	<copyright>Red5</copyright>
+	<initialWindow>
+		<title>Red5 Admin</title>
+		<content>admin.swf</content>
+		<systemChrome>standard</systemChrome>
+		<transparent>false</transparent>
+		<visible>true</visible>
+		<minimizable>true</minimizable>
+		<maximizable>true</maximizable>
+		<resizable>true</resizable>
+		<width>800</width>
+		<height>600</height>
+		<!--  <x>150</x> -->
+		<!--  <y>150</y> -->
+		<!--  <minSize>300 300</minSize> -->
+		<!--  <maxSize>800 800</maxSize> -->
+	</initialWindow>
+	<installFolder>osflash/Red5</installFolder>
+	<programMenuFolder>osflash/Red5</programMenuFolder>
+	<icon>
+		<image16x16>icons/r5-16.png</image16x16>     
+		<image32x32>icons/r5-32.png</image32x32>   
+		<image48x48>icons/r5-48.png</image48x48>    
+		<image128x128>icons/r5-128.png</image128x128>
+	</icon>
 </application>
