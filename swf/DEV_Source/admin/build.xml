@@ -12,7 +12,7 @@
 	
 	<!-- Flex SDK settings -->
 	<property file="../flex.properties" />
-
+	
 	<!-- Project settings -->
 	<property file="./build.properties" />
   	
@@ -23,7 +23,7 @@
 		location="${build.dir}/release/"/>
 	<property 
 		name="assets.dir" 
-		location="./src/"/>
+		location="./src/assets/"/>
 	<property 
 		name="debug.build.dir" 
 		location="${build.dir}/debug/"/>
@@ -36,7 +36,10 @@
 		location="${FLEX_HOME}/lib/mxmlc.jar"/>
 	<property 
 		name="adt.jar" 
-		location="${FLEX_HOME}/lib/adt.jar"/>
+		location="${AIR_HOME}/lib/adt.jar"/>
+	<property 
+		name="asdoc.exe" 
+		location="${AIR_HOME}/bin/adt.exe"/>
 	<property 
 		name="main.application.release.out" 
 		location="${release.build.dir}/${output.swf.name}.swf"/>
@@ -153,17 +156,32 @@
          - - - - - - - - - - - - - - - - - -->
     <target name="compile.air.release" depends="compile.release">
         <java jar="${adt.jar}" fork="true" failonerror="true">
-            <arg value="-package"/>
-            <arg value="${air.release}"/>
-            <arg value="${air.descriptor}"/>
-        	<arg value="-C"/>
-            <arg value="${release.build.dir}"/>
-            <arg value="${output.swf.name}.swf"/>
-            <arg value="-C"/>
-            <arg value="${assets.dir}"/>
-            <arg value="icons"/>
+            <arg line="-package"/>
+        	<arg line="-certificate ${air.cert.file}"/>
+        	<arg line="-password ${air.cert.password}"/>
+            <arg line="${air.release}"/>
+            <arg line="${air.descriptor}"/>
+        	<arg line="-C"/>
+            <arg line="${release.build.dir}"/>
+            <arg line="${output.swf.name}.swf"/>
+            <arg line="-C"/>
+            <arg line="${assets.dir}"/>
+            <arg line="icons"/>
         </java>
     </target>
+	
+	<target name="build.air.cert">
+	        <java jar="${adt.jar}" fork="true" failonerror="true">
+	            <arg line="-certificate"/>
+	        	<arg line="-cn ${air.cert.cname}"/>
+	        	<arg line="-ou ${air.cert.ounit}"/>
+	        	<arg line="-o ${air.cert.oname}"/>
+	        	<arg line="-c ${air.cert.country}"/>
+	        	<arg line="${air.cert.key_type}"/>	
+	        	<arg line="${air.cert.file}"/>	
+	        	<arg line="${air.cert.password}"/>	
+	        </java>
+	    </target>
 	
 	<!--  additional='-benchmark -optimize=true -title "${swf.release.title}" -description "${swf.release.title}"' -->
 	
@@ -213,8 +231,7 @@
     	name="docs">
     	<mkdir 
     	    dir="${asdoc.output.dir}"/>
-    	<exec executable="${asdoc.exe}" 
-    		failonerror="false">
+    	<exec executable="${asdoc.exe}" failonerror="false">
 			<arg line='-source-path ${src.dir}'/>
 			<arg line='-doc-sources ${asdoc.domainextensions}'/>
     		<arg value='-load-config=${flex.config.xml}'/>
