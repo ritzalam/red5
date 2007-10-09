@@ -352,7 +352,7 @@ public class FilePersistence extends RamPersistence {
 			int initialSize = 8192;
 			if (resFile.exists()) {
 				try {
-					// We like also need the original file size when writing object
+					// We likely also need the original file size when writing object
 					initialSize += (int) resFile.getFile().length();
 				} catch (IOException e) {
 					// Ignore errors while determining file size
