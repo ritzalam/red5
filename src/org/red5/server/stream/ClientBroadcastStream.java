@@ -21,8 +21,11 @@ package org.red5.server.stream;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import javax.management.ObjectName;
 
@@ -42,6 +45,8 @@ import org.red5.server.api.stream.IStreamAwareScopeHandler;
 import org.red5.server.api.stream.IStreamCapableConnection;
 import org.red5.server.api.stream.IStreamCodecInfo;
 import org.red5.server.api.stream.IStreamFilenameGenerator;
+import org.red5.server.api.stream.IStreamListener;
+import org.red5.server.api.stream.IStreamPacket;
 import org.red5.server.api.stream.IVideoStreamCodec;
 import org.red5.server.api.stream.ResourceExistException;
 import org.red5.server.api.stream.ResourceNotFoundException;
@@ -186,6 +191,9 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	/** Stores absolute time for audio stream. */
 	private int videoTime = -1;
 
+	/** Listeners to get notified about received packets. */
+	private Set<IStreamListener> listeners = new CopyOnWriteArraySet<IStreamListener>();
+	
 	/**
 	 * Check and send notification if necessary
 	 * @param event          Event
@@ -326,6 +334,17 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		} catch (IOException err) {
 			sendRecordFailedNotify(err.getMessage());
 			stop();
+		}
+		
+		// Notify listeners about received packet
+		if (rtmpEvent instanceof IStreamPacket) {
+			for (IStreamListener listener: getStreamListeners()) {
+				try {
+					listener.packetReceived(this, (IStreamPacket) rtmpEvent);
+				} catch (Exception e) {
+					log.error("Error while notifying listener " + listener, e);
+				}
+			}
 		}
 	}
 
@@ -771,6 +790,21 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			recordPipe.unsubscribe(recordingFile);
 			sendRecordStopNotify();
 		}
+	}
+
+	/** {@inheritDoc} */
+	public void addStreamListener(IStreamListener listener) {
+		listeners.add(listener);
+	}
+
+	/** {@inheritDoc} */
+	public Collection<IStreamListener> getStreamListeners() {
+		return listeners;
+	}
+
+	/** {@inheritDoc} */
+	public void removeStreamListener(IStreamListener listener) {
+		listeners.remove(listener);
 	}
 
 }

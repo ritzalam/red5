@@ -23,12 +23,13 @@ import java.util.Map;
 
 import org.apache.mina.common.ByteBuffer;
 import org.red5.server.api.service.IServiceCall;
+import org.red5.server.api.stream.IStreamPacket;
 import org.red5.server.stream.IStreamData;
 
 /**
  * Stream notification event
  */
-public class Notify extends BaseEvent implements IStreamData {
+public class Notify extends BaseEvent implements IStreamData, IStreamPacket {
     /**
      * Service call
      */

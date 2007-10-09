@@ -22,9 +22,12 @@ package org.red5.server.stream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -37,6 +40,8 @@ import org.red5.server.api.stream.IPlaylistController;
 import org.red5.server.api.stream.IServerStream;
 import org.red5.server.api.stream.IStreamAwareScopeHandler;
 import org.red5.server.api.stream.IStreamFilenameGenerator;
+import org.red5.server.api.stream.IStreamListener;
+import org.red5.server.api.stream.IStreamPacket;
 import org.red5.server.api.stream.ResourceExistException;
 import org.red5.server.api.stream.ResourceNotFoundException;
 import org.red5.server.api.stream.IStreamFilenameGenerator.GenerationType;
@@ -177,6 +182,9 @@ public class ServerStream extends AbstractStream implements IServerStream,
      * Next RTMP message
      */
 	private RTMPMessage nextRTMPMessage;
+
+	/** Listeners to get notified about received packets. */
+	private Set<IStreamListener> listeners = new CopyOnWriteArraySet<IStreamListener>();
 
 	/** Constructs a new ServerStream. */
     public ServerStream() {
@@ -603,6 +611,20 @@ public class ServerStream extends AbstractStream implements IServerStream,
     private void pushMessage(IMessage message) throws IOException {
 		msgOut.pushMessage(message);
 		recordPipe.pushMessage(message);
+		
+		// Notify listeners about received packet
+		if (message instanceof RTMPMessage) {
+			final IRTMPEvent rtmpEvent = ((RTMPMessage) message).getBody();
+			if (rtmpEvent instanceof IStreamPacket) {
+				for (IStreamListener listener: getStreamListeners()) {
+					try {
+						listener.packetReceived(this, (IStreamPacket) rtmpEvent);
+					} catch (Exception e) {
+						log.error("Error while notifying listener " + listener, e);
+					}
+				}
+			}
+		}
 	}
 
     /**
@@ -863,5 +885,17 @@ public class ServerStream extends AbstractStream implements IServerStream,
 			currentItemIndex = defaultController.previousItem(this,
 					currentItemIndex);
 		}
+	}
+
+	public void addStreamListener(IStreamListener listener) {
+		listeners.add(listener);
+	}
+
+	public Collection<IStreamListener> getStreamListeners() {
+		return listeners;
+	}
+
+	public void removeStreamListener(IStreamListener listener) {
+		listeners.remove(listener);
 	}
 }

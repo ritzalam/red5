@@ -21,10 +21,13 @@ package org.red5.server.stream;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -36,6 +39,8 @@ import org.red5.server.api.stream.IPlayItem;
 import org.red5.server.api.stream.IPlaylistController;
 import org.red5.server.api.stream.IServerStream;
 import org.red5.server.api.stream.IStreamFilenameGenerator;
+import org.red5.server.api.stream.IStreamListener;
+import org.red5.server.api.stream.IStreamPacket;
 import org.red5.server.api.stream.ResourceExistException;
 import org.red5.server.api.stream.ResourceNotFoundException;
 import org.red5.server.api.stream.IStreamFilenameGenerator.GenerationType;
@@ -198,6 +203,9 @@ public class NoSyncServerStream extends AbstractStream implements
 	 * VOD start timestamp
 	 */
 	private long vodStartTS;
+
+	/** Listeners to get notified about received packets. */
+	private Set<IStreamListener> listeners = new CopyOnWriteArraySet<IStreamListener>();
 
 	/** Constructs a new ServerStream. */
 	public NoSyncServerStream() {
@@ -476,6 +484,20 @@ public class NoSyncServerStream extends AbstractStream implements
 	private void pushMessage(IMessage message) throws IOException {
 		msgOut.pushMessage(message);
 		recordPipe.pushMessage(message);
+		
+		// Notify listeners about received packet
+		if (message instanceof RTMPMessage) {
+			final IRTMPEvent rtmpEvent = ((RTMPMessage) message).getBody();
+			if (rtmpEvent instanceof IStreamPacket) {
+				for (IStreamListener listener: getStreamListeners()) {
+					try {
+						listener.packetReceived(this, (IStreamPacket) rtmpEvent);
+					} catch (Exception e) {
+						log.error("Error while notifying listener " + listener, e);
+					}
+				}
+			}
+		}
 	}
 
 	/** {@inheritDoc} */
@@ -846,6 +868,21 @@ public class NoSyncServerStream extends AbstractStream implements
 	    	}
 			scheduleNextMessage();
 		}
+	}
+
+	/** {@inheritDoc} */
+	public void addStreamListener(IStreamListener listener) {
+		listeners.add(listener);
+	}
+
+	/** {@inheritDoc} */
+	public Collection<IStreamListener> getStreamListeners() {
+		return listeners;
+	}
+
+	/** {@inheritDoc} */
+	public void removeStreamListener(IStreamListener listener) {
+		listeners.remove(listener);
 	}
 
 }

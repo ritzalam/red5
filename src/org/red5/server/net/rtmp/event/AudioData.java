@@ -20,9 +20,10 @@ package org.red5.server.net.rtmp.event;
  */
 
 import org.apache.mina.common.ByteBuffer;
+import org.red5.server.api.stream.IStreamPacket;
 import org.red5.server.stream.IStreamData;
 
-public class AudioData extends BaseEvent implements IStreamData {
+public class AudioData extends BaseEvent implements IStreamData, IStreamPacket {
 
 	protected ByteBuffer data;
 

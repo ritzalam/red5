@@ -20,6 +20,7 @@ package org.red5.server.api.stream;
  */
 
 import java.io.IOException;
+import java.util.Collection;
 
 import org.red5.server.messaging.IProvider;
 
@@ -83,4 +84,28 @@ public interface IBroadcastStream extends IStream {
 	 *            Set stream publish name
 	 */
 	void setPublishedName(String name);
+
+	/**
+	 * Add a listener to be notified about received packets.
+	 * 
+	 * @param listener
+	 * 				the listener to add
+	 */
+	public void addStreamListener(IStreamListener listener);
+	
+	/**
+	 * Remove a listener from being notified about received packets.
+	 * 
+	 * @param listener
+	 * 				the listener to remove
+	 */
+	public void removeStreamListener(IStreamListener listener);
+	
+	/**
+	 * Return registered stream listeners.
+	 * 
+	 * @return the registered listeners
+	 */
+	public Collection<IStreamListener> getStreamListeners();
+	
 }

@@ -21,12 +21,13 @@ package org.red5.server.net.rtmp.event;
 
 import org.apache.mina.common.ByteBuffer;
 import org.red5.io.IoConstants;
+import org.red5.server.api.stream.IStreamPacket;
 import org.red5.server.stream.IStreamData;
 
 /**
  * Video data event
  */
-public class VideoData extends BaseEvent implements IoConstants, IStreamData {
+public class VideoData extends BaseEvent implements IoConstants, IStreamData, IStreamPacket {
 
     /**
      * Videoframe type
