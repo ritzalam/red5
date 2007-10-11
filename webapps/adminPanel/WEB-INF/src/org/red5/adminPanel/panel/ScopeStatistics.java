@@ -52,7 +52,7 @@ class ScopeStatistics {
 		id = 0;
 		IScopeStatistics stats = root.getStatistics();
 		extractConnectionData(root);
-		addData ( "Persistance Data" ,"--" );
+		addData ( "Persistence Data" ,"--" );
     	IPersistenceStore data =  root.getStore();
     	Collection<IPersistable> objects = data.getObjects();
     	Iterator<IPersistable> iter = objects.iterator();
@@ -88,12 +88,12 @@ class ScopeStatistics {
     	while ( conn.hasNext() ) {
     		IConnection connection = conn.next();
 			addData ( "Scope statistics" ,"--" );
-    		addData ( "Send Bytes" , Utils.formatBytes(connection.getWrittenBytes()) );
-    		addData ( "Recieved Bytes" , Utils.formatBytes(connection.getReadBytes()) );
+    		addData ( "Send bytes" , Utils.formatBytes(connection.getWrittenBytes()) );
+    		addData ( "Received bytes" , Utils.formatBytes(connection.getReadBytes()) );
     		addData ( "Send messages" , connection.getWrittenMessages() );
     		addData ( "Dropped messages" , connection.getDroppedMessages() );
     		addData ( "Pending messages" , connection.getPendingMessages() );
-    		addData ( "Recieved messages" , connection.getReadMessages());
+    		addData ( "Received messages" , connection.getReadMessages());
     		addData ( "Remote address" , connection.getRemoteAddress()+":"+connection.getRemotePort()+" ("+connection.getHost()+")" );
     		addData ( "Path" , connection.getPath() );
     	}

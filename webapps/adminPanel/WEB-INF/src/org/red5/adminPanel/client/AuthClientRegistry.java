@@ -53,7 +53,7 @@ public class AuthClientRegistry extends ClientRegistry {
 	public IClient newClient(Object[] params) throws ClientNotFoundException, ClientRejectedException {
 
 		if (params == null || params.length == 0) {
-			log.debug("Client didn't pass a username.");
+			log.warn("Client didn't pass a username.");
 			throw new ClientRejectedException();
 		}
 
@@ -88,7 +88,7 @@ public class AuthClientRegistry extends ClientRegistry {
 			
 			addClient(client);
 			client.setAttribute("authInformation", t);
-			log.debug("Authenticated client with id " + client.getId());
+			log.debug("Authenticated client - username: " + username + ", id: " + client.getId());
 		}
 		
 		return client;

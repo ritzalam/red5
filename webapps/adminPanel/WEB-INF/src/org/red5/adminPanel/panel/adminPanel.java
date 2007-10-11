@@ -54,7 +54,7 @@ public class adminPanel extends ApplicationAdapter {
 
 	@Override
 	public boolean appStart(IScope app) {
-		log.info("Application started");
+		log.info("Admin application started");
 		return true;
 	}
 
@@ -62,7 +62,7 @@ public class adminPanel extends ApplicationAdapter {
     @Override
 	public boolean connect(IConnection conn, IScope scope, Object[] params) {
     	this.scope = scope;
-    	
+    	/*
 		String id = conn.getSessionId();
 
 		IScope connectionScope = Red5.getConnectionLocal().getScope();
@@ -73,7 +73,7 @@ public class adminPanel extends ApplicationAdapter {
         IClient client = clientRegistry.hasClient(id) ? clientRegistry
 				.lookupClient(id) : clientRegistry.newClient(params);
 		conn.initialize(client);
-		
+		*/
 		return true;
 	}
 
@@ -248,7 +248,7 @@ public class adminPanel extends ApplicationAdapter {
 		String rid = conn.getClient().getId();
 		// Unregister user.
 	//	String uid = clientMgr.removeClient(scope, rid);
-		log.info("Client (" + rid + ") disconnected.");
+		log.info("Client with id " + rid + " disconnected.");
 		super.disconnect(conn, scope);
 	}
 
