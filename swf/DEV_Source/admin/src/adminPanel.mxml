@@ -4,7 +4,10 @@
 	layout="absolute" 
 	width="100%"
 	height="100%"
- 	xmlns:ns1="org.red5.admin.panels.*">
-	<mx:Style source="assets/css/main.css" />
-	<ns1:AdminPanel width="100%" height="100%"  x="0" y="5"/>
+ 	xmlns:red5="org.red5.admin.panels.*">
+ 	
+	<mx:Style source="../assets/css/main.css" />
+	
+	<red5:AdminPanel width="100%" height="100%"  x="0" y="5"/>
+	
 </mx:Application>

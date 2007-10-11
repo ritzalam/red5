@@ -17,13 +17,12 @@
 	<property file="./build.properties" />
   	
 	<!-- dirs -->
-	
 	<property 
 		name="release.build.dir" 
 		location="${build.dir}/release/"/>
 	<property 
 		name="assets.dir" 
-		location="./src/assets/"/>
+		location="./assets/"/>
 	<property 
 		name="debug.build.dir" 
 		location="${build.dir}/debug/"/>
@@ -36,10 +35,7 @@
 		location="${FLEX_HOME}/lib/mxmlc.jar"/>
 	<property 
 		name="adt.jar" 
-		location="${AIR_HOME}/lib/adt.jar"/>
-	<property 
-		name="asdoc.exe" 
-		location="${AIR_HOME}/bin/adt.exe"/>
+		location="${FLEX_HOME}/lib/adt.jar"/>
 	<property 
 		name="main.application.release.out" 
 		location="${release.build.dir}/${output.swf.name}.swf"/>
@@ -152,12 +148,12 @@
     </target>
 	
     <!-- - - - - - - - - - - - - - - - - - 
-          target: compile.release
+          target: compile.air.release
          - - - - - - - - - - - - - - - - - -->
-    <target name="compile.air.release" depends="compile.release">
+    <target name="compile.air.release" depends="build.air.cert, compile.release">
         <java jar="${adt.jar}" fork="true" failonerror="true">
             <arg line="-package"/>
-        	<arg line="-certificate ${air.cert.file}"/>
+        	<arg line="-certificate ${release.build.dir}/${air.cert.file}"/>
         	<arg line="-password ${air.cert.password}"/>
             <arg line="${air.release}"/>
             <arg line="${air.descriptor}"/>
@@ -170,8 +166,11 @@
         </java>
     </target>
 	
+	<!-- - - - - - - - - - - - - - - - - - 
+	       target: build.air.cert
+	      - - - - - - - - - - - - - - - - - -->
 	<target name="build.air.cert">
-	        <java jar="${adt.jar}" fork="true" failonerror="true">
+	        <java jar="${adt.jar}" fork="true" failonerror="true" dir="${release.build.dir}">
 	            <arg line="-certificate"/>
 	        	<arg line="-cn ${air.cert.cname}"/>
 	        	<arg line="-ou ${air.cert.ounit}"/>
@@ -222,6 +221,8 @@
     		dir="${release.build.dir}"/>
     	<mkdir 
     		dir="${debug.build.dir}"/>
+    	<mkdir 
+    	    dir="${asdoc.output.dir}"/>
     </target>
 	
 	<!-- - - - - - - - - - - - - - - - - - 
