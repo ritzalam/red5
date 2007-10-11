@@ -34,6 +34,11 @@ import org.acegisecurity.providers.UsernamePasswordAuthenticationToken;
 import org.acegisecurity.providers.ProviderManager;
 import org.acegisecurity.BadCredentialsException;
 
+/**
+ *
+ * @author The Red5 Project (red5@osflash.org)
+ * @author Martijn van Beek (martijn.vanbeek@gmail.com)
+ */
 public class AuthClientRegistry extends ClientRegistry {
 
 	protected static Log log = LogFactory.getLog(AuthClientRegistry.class.getName());
@@ -43,6 +48,7 @@ public class AuthClientRegistry extends ClientRegistry {
 	public AuthClientRegistry() {
 		super();
 	}
+	
 	@Override
 	public IClient newClient(Object[] params) throws ClientNotFoundException, ClientRejectedException {
 
@@ -79,9 +85,10 @@ public class AuthClientRegistry extends ClientRegistry {
 		if (t.isAuthenticated())
 		{
 			client = new AuthClient(nextId(), this);
+			
 			addClient(client);
 			client.setAttribute("authInformation", t);
-			log.debug("YESS!!! AUTHENTICATED!!!!!");
+			log.debug("Authenticated client with id " + client.getId());
 		}
 		
 		return client;

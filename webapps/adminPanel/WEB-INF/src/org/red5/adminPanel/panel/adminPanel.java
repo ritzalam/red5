@@ -35,7 +35,6 @@ import org.red5.server.api.ScopeUtils;
 import org.red5.server.api.Red5;
 import org.red5.server.api.IClientRegistry;
 
-
 /**
  * Admin Panel for Red5 Server
  *

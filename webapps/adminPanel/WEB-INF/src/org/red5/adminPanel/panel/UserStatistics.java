@@ -31,6 +31,11 @@ import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
 import org.red5.server.api.ScopeUtils;
 
+/**
+ *
+ * @author The Red5 Project (red5@osflash.org)
+ * @author Martijn van Beek (martijn.vanbeek@gmail.com)
+ */
 class UserStatistics{
 	
 	private HashMap<Integer,Object> apps;

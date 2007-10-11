@@ -22,6 +22,12 @@ package org.red5.adminPanel.utils;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
+/**
+ *
+ * @author The Red5 Project (red5@osflash.org)
+ * @author Martijn van Beek (martijn.vanbeek@gmail.com)
+ * @author Daniel Rossi
+ */
 public class Utils {
 	
     public static String formatDate ( long d ){
@@ -31,20 +37,18 @@ public class Utils {
 		return date.format(calendar.getTime());
     }
     
-    public static String formatBytes ( long d ){
+    public static String formatBytes ( long d ) {
     	String out = d+"";
-    	if ( d > 1024 ) {
-    		double bytes = Math.sqrt(d);
-    		if ( bytes > 1024 ) {
-    			bytes = Math.sqrt(bytes);
-    			if ( bytes > 1024 ) {
-    				bytes = Math.sqrt(bytes);
-        			if ( bytes > 1024 ) {
-    					out = Math.floor(bytes) + " >Gb";
-            		}else out = Math.floor(bytes) + " Gb";
-        		}else out = Math.floor(bytes) + " Mb";
-    		}else out = Math.floor(bytes) + " Kb";
-    	}else out = d + " b";
+    	out = d+"";
+    	
+    	if (d < 1024)
+    	{
+    		out = d + "b";
+    	} else if (d > 1024) {
+    		out = (d / 1024) + "KB";
+    	} else if (d > 104858) {
+    		out = (d / 1000000) + "MB";
+    	}
 		return out;
     }
 }

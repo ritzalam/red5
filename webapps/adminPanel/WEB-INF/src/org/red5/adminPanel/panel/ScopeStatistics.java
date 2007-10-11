@@ -35,6 +35,11 @@ import org.red5.server.api.persistence.IPersistable;
 import org.red5.server.api.persistence.IPersistenceStore;
 import org.red5.server.api.statistics.IScopeStatistics;
 
+/**
+ *
+ * @author The Red5 Project (red5@osflash.org)
+ * @author Martijn van Beek (martijn.vanbeek@gmail.com)
+ */
 class ScopeStatistics {
 	
 	private HashMap<Integer,Object> apps;
@@ -42,7 +47,6 @@ class ScopeStatistics {
 	
 	public void ScopeStatistics(){}
 
-	
 	public HashMap getStats ( IScope root ) {
 		apps = new HashMap();
 		id = 0;
