@@ -778,7 +778,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
      *
      * @return  Next RTMP message
      */
-    private RTMPMessage getNextRTMPMessage() {
+    protected RTMPMessage getNextRTMPMessage() {
 		IMessage message;
 		do {
             // Pull message from message input object...
