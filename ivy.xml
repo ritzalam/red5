@@ -17,6 +17,7 @@
         <dependency name="naming-factory" rev="" />
         <dependency name="naming-resources" rev="" />
         <!-- Spring --> 
+        <dependency org="sf" name="spring-dao" rev="2.0.6" />
         <dependency org="spring" name="spring-aop" rev="2.0.6" />
         <dependency org="spring" name="spring-beans" rev="2.0.6" />
         <dependency org="spring" name="spring-context" rev="2.0.6" />

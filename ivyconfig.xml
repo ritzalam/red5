@@ -9,11 +9,13 @@
     		<ivyrep name="local_cache"/> 
 		</chain>    
         <chain name="remote">     
+           
             <url name="googlecode">
                 <artifact pattern="http://red5.googlecode.com/svn/trunk/repository/[artifact](-[revision]).[ext]" />
                 <artifact pattern="http://red5.googlecode.com/svn/trunk/repository/[organisation]/[artifact](-[revision]).[ext]" />
-            </url>
-            <!--            
+            </url>   
+        
+         	<!-- 
             <url name="cvsdude">
                 <artifact pattern="https://svn1.cvsdude.com/osflash/red5/java/server/trunk/lib/[artifact]-[revision].[ext]" />
             </url>      
@@ -23,14 +25,19 @@
   				<artifact pattern="http://www.ibiblio.org/maven2/[organisation]/[artifact]/[revision]/[artifact](-[revision]).[ext]"/>
 			</url>
             <ibiblio name="ibiblio" />
+            
+            <url name="sourceforge">
+                <artifact pattern="https://springframework.svn.sourceforge.net/svnroot/springframework/repos/repo/org/springframework/[artifact]/[revision]/[artifact](-[revision]).[ext]" />
+            </url>
         </chain>
     </resolvers>
     <modules>
-        <module organisation="spring" name="*" resolver="googlecode"/>
+    	<module organisation="spring" name="*" resolver="googlecode"/>
+    	<module organisation="sf" name="*" resolver="sourceforge"/>
         <module organisation="tomcat" name="*" resolver="googlecode"/>
         <module organisation="jetty" name="*" resolver="googlecode"/>
         <module organisation="mina" name="*" resolver="googlecode"/>
-        <module organisation="jmx" name="*" resolver="googlecode"/>
+        <module organisation="jmx" name="*" resolver="googlecode"/> 
         <module organisation=".*" name="*" resolver="remote"/>
     </modules>    
 </ivysettings>
