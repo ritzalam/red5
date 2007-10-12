@@ -13,11 +13,10 @@
                 <artifact pattern="http://red5.googlecode.com/svn/trunk/repository/[artifact](-[revision]).[ext]" />
                 <artifact pattern="http://red5.googlecode.com/svn/trunk/repository/[organisation]/[artifact](-[revision]).[ext]" />
             </url>   
-         	<!-- 
             <url name="cvsdude">
-                <artifact pattern="https://svn1.cvsdude.com/osflash/red5/java/server/trunk/lib/[artifact]-[revision].[ext]" />
+                <artifact pattern="https://svn1.cvsdude.com/osflash/red5/repository/[artifact](-[revision]).[ext]" />
+                <artifact pattern="https://svn1.cvsdude.com/osflash/red5/repository/[organisation]/[artifact](-[revision]).[ext]" />
             </url>      
-            -->    
             <!-- slowwww
             <url name="ibiblio_maven2" m2compatible="true">
   				<artifact pattern="http://www.ibiblio.org/maven2/[organisation]/[module]/[revision]/[artifact](-[revision]).[ext]"/>
