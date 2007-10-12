@@ -81,30 +81,30 @@ public class ServerStream extends AbstractStream implements IServerStream,
     /**
      * Enumeration for states
      */
-    private enum State {
+    protected enum State {
 		UNINIT, CLOSED, STOPPED, PLAYING, PAUSED
 	}
 
     /**
      * Current state
      */
-    private State state;
+    protected State state;
     /**
      * Stream published name
      */
-	private String publishedName;
+    protected String publishedName;
     /**
      * Actual playlist controller
      */
-	private IPlaylistController controller;
+    protected IPlaylistController controller;
     /**
      * Default playlist controller
      */
-	private IPlaylistController defaultController;
+    protected IPlaylistController defaultController;
     /**
      * Rewind flag state
      */
-	private boolean isRewind;
+    private boolean isRewind;
     /**
      * Random flag state
      */
@@ -116,7 +116,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
     /**
      * List of items in this playlist
      */
-	private List<IPlayItem> items;
+	protected List<IPlayItem> items;
 
     /**
      * Current item index
@@ -125,7 +125,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
     /**
      * Current item
      */
-	private IPlayItem currentItem;
+	protected IPlayItem currentItem;
     /**
      * Message input
      */
@@ -141,7 +141,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	/**
 	 * The filename we are recording to.
 	 */
-	private String recordingFilename;
+	protected String recordingFilename;
     /**
      * Scheduling service
      */
@@ -546,7 +546,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
      *
 	 * @param item        Item to play
 	 */
-	private void play(IPlayItem item) {
+	protected void play(IPlayItem item) {
         // Return if already playing
         if (state != State.STOPPED) {
 			return;
@@ -600,7 +600,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
     /**
      * Play next item on item end
      */
-    private void onItemEnd() {
+	protected void onItemEnd() {
 		nextItem();
 	}
 
@@ -642,7 +642,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
     /**
      * Begin VOD broadcasting
      */
-    private void startBroadcastVOD() {
+    protected void startBroadcastVOD() {
 		nextVideoTS = nextAudioTS = nextDataTS = 0;
 		nextRTMPMessage = null;
 		vodStartTS = 0;
@@ -662,7 +662,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	/**
 	 *  Notifies handler on stream broadcast stop
 	 */
-	private void notifyBroadcastClose() {
+    protected void notifyBroadcastClose() {
 		IStreamAwareScopeHandler handler = getStreamAwareHandler();
 		if (handler != null) {
 			try {
@@ -676,7 +676,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	/**
 	 *  Notifies handler on stream broadcast start
 	 */
-	private void notifyBroadcastStart() {
+    protected void notifyBroadcastStart() {
 		IStreamAwareScopeHandler handler = getStreamAwareHandler();
 		if (handler != null) {
 			try {
@@ -691,7 +691,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	 * Pull the next message from IMessageInput and schedule
 	 * it for push according to the timestamp.
 	 */
-	private void scheduleNextMessage() {
+	protected void scheduleNextMessage() {
 		boolean first = nextRTMPMessage == null;
 
 		nextRTMPMessage = getNextRTMPMessage();
@@ -746,12 +746,14 @@ public class ServerStream extends AbstractStream implements IServerStream,
 						return;
 					}
 					vodJobName = null;
-					try {
-						pushMessage(nextRTMPMessage);
-			    	} catch (IOException err) {
-			    		log.error("Error while sending message.", err);
-			    	}
-					nextRTMPMessage.getBody().release();
+					if (nextRTMPMessage != null) {
+						try {
+							pushMessage(nextRTMPMessage);
+				    	} catch (IOException err) {
+				    		log.error("Error while sending message.", err);
+				    	}
+						nextRTMPMessage.getBody().release();
+					}
 					long start = currentItem.getStart();
 					if (start < 0) {
 						start = 0;
@@ -859,7 +861,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	 * Move to the next item updating the currentItemIndex.
 	 * Should be called in synchronized context.
 	 */
-	private void moveToNext() {
+	protected void moveToNext() {
 		if (currentItemIndex >= items.size()) {
 			currentItemIndex = items.size() - 1;
 		}
@@ -875,7 +877,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	 * Move to the previous item updating the currentItemIndex.
 	 * Should be called in synchronized context.
 	 */
-	private void moveToPrevious() {
+	protected void moveToPrevious() {
 		if (currentItemIndex >= items.size()) {
 			currentItemIndex = items.size() - 1;
 		}
