@@ -1268,6 +1268,10 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				throw new IllegalStateException();
 			}
 			state = State.STOPPED;
+			if (msgIn != null) {
+				msgIn.unsubscribe(this);
+				msgIn = null;
+			}
 			notifyItemStop(currentItem);
 			clearWaitJobs();
 			if (!hasMoreItems()) {
