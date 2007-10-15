@@ -20,8 +20,9 @@ package org.red5.server.net.rtmpt;
  */
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
@@ -72,11 +73,10 @@ public class RTMPTServlet extends HttpServlet {
 	 */
 	private static final int RESPONSE_TARGET_SIZE = 32768;
 
-	// TODO: we need to check the map periodically for disconnected clients
 	/**
 	 * Holds a map of client id -> client object.
 	 */
-	protected HashMap<Integer, RTMPTConnection> rtmptClients = new HashMap<Integer, RTMPTConnection>();
+	protected Map<Integer, RTMPTConnection> rtmptClients = new ConcurrentHashMap<Integer, RTMPTConnection>();
 
 	/**
 	 * Web app context
@@ -223,14 +223,23 @@ public class RTMPTServlet extends HttpServlet {
 	 * @return RTMP client connection
 	 */
 	protected RTMPTConnection getClient(HttpServletRequest req) {
-		Integer id = getClientId(req);
-		if (id == null || !rtmptClients.containsKey(id)) {
+		final Integer id = getClientId(req);
+		if (id == null) {
 			if (log.isDebugEnabled()) {
 				log.debug("Unknown client id: " + id);
 			}
 			return null;
 		}
-		return rtmptClients.get(id);
+		
+		final RTMPTConnection result = rtmptClients.get(id);
+		if (result == null) {
+			if (log.isDebugEnabled()) {
+				log.debug("Unknown client id: " + id);
+			}
+			return null;
+		}
+		
+		return result;
 	}
 
 	/**
@@ -296,6 +305,7 @@ public class RTMPTServlet extends HttpServlet {
 
 		// TODO: should we evaluate the pathinfo?
 		RTMPTConnection client = handler.createRTMPTConnection();
+		client.setServlet(this);
 		if (client.getId() == 0) {
 			// no more clients are available for serving
 			returnMessage((byte) 0, resp);
@@ -493,4 +503,24 @@ public class RTMPTServlet extends HttpServlet {
 		}
 	}
 
+	/** {@inheritDoc} */
+	@Override
+	public void destroy() {
+		// Cleanup connections
+		for (RTMPTConnection conn: rtmptClients.values()) {
+			conn.close();
+		}
+		rtmptClients.clear();
+		super.destroy();
+	}
+
+	/**
+	 * A connection has been closed that was created by this servlet.
+	 * 
+	 * @param conn
+	 */
+	protected void notifyClosed(RTMPTConnection conn) {
+		rtmptClients.remove(conn.getId());
+	}
+	
 }

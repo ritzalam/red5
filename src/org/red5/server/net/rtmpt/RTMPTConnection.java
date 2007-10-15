@@ -119,7 +119,11 @@ public class RTMPTConnection extends RTMPConnection {
      * Connection client id
      */
 	protected int clientId;
-
+	/**
+	 * Servlet that created this connection.
+	 */
+	protected RTMPTServlet servlet;
+	
 	/** Constructs a new RTMPTConnection. */
     RTMPTConnection() {
 		super(POLLING);
@@ -149,6 +153,15 @@ public class RTMPTConnection extends RTMPConnection {
 		closing = true;
 	}
 
+    /**
+     * Set the servlet that created the connection.
+     * 
+     * @param servlet
+     */
+    protected void setServlet(RTMPTServlet servlet) {
+    	this.servlet = servlet;
+    }
+    
 	/**
      * Getter for property 'closing'.
      *
@@ -176,6 +189,10 @@ public class RTMPTConnection extends RTMPConnection {
 			buf.release();
 		}
 		pendingMessages.clear();
+		if (servlet != null) {
+			servlet.notifyClosed(this);
+			servlet = null;
+		}
 	}
 
 	/** {@inheritDoc} */
