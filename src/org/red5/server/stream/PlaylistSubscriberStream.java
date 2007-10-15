@@ -936,6 +936,10 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
             if (state != State.STOPPED) {
 				throw new IllegalStateException();
 			}
+            if (msgIn != null) {
+            	msgIn.unsubscribe(this);
+            	msgIn = null;
+            }
 			int type = (int) (item.getStart() / 1000);
 			// see if it's a published stream
 			IScope thisScope = getScope();
@@ -1268,7 +1272,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				throw new IllegalStateException();
 			}
 			state = State.STOPPED;
-			if (msgIn != null) {
+			if (msgIn != null && !isPullMode) {
 				msgIn.unsubscribe(this);
 				msgIn = null;
 			}
