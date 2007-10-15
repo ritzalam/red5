@@ -85,6 +85,8 @@ public class ServerStream extends AbstractStream implements IServerStream,
 		UNINIT, CLOSED, STOPPED, PLAYING, PAUSED
 	}
 
+    private static final long WAIT_THRESHOLD = 0;
+    
     /**
      * Current state
      */
@@ -162,18 +164,6 @@ public class ServerStream extends AbstractStream implements IServerStream,
      * Server start timestamp
      */
 	private long serverStartTS;
-    /**
-     * Next msg's video timestamp
-     */
-	private long nextVideoTS;
-    /**
-     * Next msg's audio timestamp
-     */
-	private long nextAudioTS;
-    /**
-     * Next msg's data timestamp
-     */
-	private long nextDataTS;
     /**
      * Next msg's timestamp
      */
@@ -643,7 +633,6 @@ public class ServerStream extends AbstractStream implements IServerStream,
      * Begin VOD broadcasting
      */
     protected void startBroadcastVOD() {
-		nextVideoTS = nextAudioTS = nextDataTS = 0;
 		nextRTMPMessage = null;
 		vodStartTS = 0;
 		serverStartTS = System.currentTimeMillis();
@@ -693,51 +682,41 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	 */
 	protected void scheduleNextMessage() {
 		boolean first = nextRTMPMessage == null;
+		long delta;
+		
+		while (true) {
+			nextRTMPMessage = getNextRTMPMessage();
+			if (nextRTMPMessage == null) {
+				onItemEnd();
+				return;
+			}
 
-		nextRTMPMessage = getNextRTMPMessage();
-		if (nextRTMPMessage == null) {
-			onItemEnd();
-			return;
-		}
-
-		IRTMPEvent rtmpEvent = null;
-
-		if (first) {
-			rtmpEvent = nextRTMPMessage.getBody();
-			// FIXME hack the first Metadata Tag from FLVReader
-			// the FLVReader will issue a metadata tag of ts 0
-			// even if it is seeked to somewhere in the middle
-			// which will cause the stream to wait too long.
-			// Is this an FLVReader's bug?
+			IRTMPEvent rtmpEvent = nextRTMPMessage.getBody();
+			// filter all non-AV messages
 			if (!(rtmpEvent instanceof VideoData)
-					&& !(rtmpEvent instanceof AudioData)
-					&& rtmpEvent.getTimestamp() == 0) {
-				rtmpEvent.release();
-				nextRTMPMessage = getNextRTMPMessage();
-				if (nextRTMPMessage == null) {
-					onItemEnd();
+					&& !(rtmpEvent instanceof AudioData)) {
+				continue;
+			}
+			rtmpEvent = nextRTMPMessage.getBody();
+			nextTS = rtmpEvent.getTimestamp();
+			if (first) {
+				vodStartTS = nextTS;
+			}
+
+			delta = nextTS - vodStartTS - (System.currentTimeMillis() - serverStartTS);
+			if (delta < WAIT_THRESHOLD) {
+				if (!doPushMessage()) {
 					return;
 				}
+				if (state != State.PLAYING) {
+					// Stream is paused, don't load more messages
+					nextRTMPMessage = null;
+					return;
+				}
+			} else {
+				break;
 			}
 		}
-
-		rtmpEvent = nextRTMPMessage.getBody();
-		if (rtmpEvent instanceof VideoData) {
-			nextVideoTS = rtmpEvent.getTimestamp();
-			nextTS = nextVideoTS;
-		} else if (rtmpEvent instanceof AudioData) {
-			nextAudioTS = rtmpEvent.getTimestamp();
-			nextTS = nextAudioTS;
-		} else {
-			nextDataTS = rtmpEvent.getTimestamp();
-			nextTS = nextDataTS;
-		}
-		if (first) {
-			vodStartTS = nextTS;
-		}
-		long delta = nextTS - vodStartTS
-				- (System.currentTimeMillis() - serverStartTS);
-
 		vodJobName = scheduler.addScheduledOnceJob(delta, new IScheduledJob() {
 			/** {@inheritDoc} */
             public void execute(ISchedulingService service) {
@@ -746,22 +725,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 						return;
 					}
 					vodJobName = null;
-					if (nextRTMPMessage != null) {
-						try {
-							pushMessage(nextRTMPMessage);
-				    	} catch (IOException err) {
-				    		log.error("Error while sending message.", err);
-				    	}
-						nextRTMPMessage.getBody().release();
-					}
-					long start = currentItem.getStart();
-					if (start < 0) {
-						start = 0;
-					}
-					if (currentItem.getLength() >= 0
-							&& nextTS - currentItem.getStart() > currentItem
-									.getLength()) {
-						onItemEnd();
+					if (!doPushMessage()) {
 						return;
 					}
 					if (state == State.PLAYING) {
@@ -773,6 +737,30 @@ public class ServerStream extends AbstractStream implements IServerStream,
 				}
 			}
 		});
+	}
+	
+	private boolean doPushMessage() {
+		boolean sent = false;
+		long start = currentItem.getStart();
+		if (start < 0) {
+			start = 0;
+		}
+		if (currentItem.getLength() >= 0
+				&& nextTS - start > currentItem
+						.getLength()) {
+			onItemEnd();
+			return sent;
+		}
+		if (nextRTMPMessage != null) {
+			sent = true;
+			try {
+				pushMessage(nextRTMPMessage);
+	    	} catch (IOException err) {
+	    		log.error("Error while sending message.", err);
+	    	}
+			nextRTMPMessage.getBody().release();
+		}
+		return sent;
 	}
 
 	/**
