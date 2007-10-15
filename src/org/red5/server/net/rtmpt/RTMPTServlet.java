@@ -402,9 +402,6 @@ public class RTMPTServlet extends HttpServlet {
 
 		// Send results to client
 		returnPendingMessages(client, resp);
-		if (client.isClosing()) {
-			client.realClose();
-		}
 	}
 
 	/**

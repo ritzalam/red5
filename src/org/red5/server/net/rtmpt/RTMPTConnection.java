@@ -269,6 +269,11 @@ public class RTMPTConnection extends RTMPConnection {
 	 */
 	@Override
 	public synchronized void write(Packet packet) {
+		if (closing || state.getState() == RTMP.STATE_DISCONNECTED) {
+			// Connection is being closed, don't send any new packets
+			return;
+		}
+		
 		// We need to synchronize to prevent two packages to the
 		// same channel to be sent in different order thus resulting
 		// in wrong headers being generated.
