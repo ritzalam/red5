@@ -27,8 +27,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.ConnectFuture;
 import org.apache.mina.common.IoHandler;
@@ -38,6 +36,8 @@ import org.apache.mina.transport.vmpipe.VmPipeAddress;
 import org.apache.mina.transport.vmpipe.VmPipeConnector;
 import org.mortbay.util.ajax.Continuation;
 import org.mortbay.util.ajax.ContinuationSupport;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ZAMFGatewayServlet extends HttpServlet {
 
@@ -47,7 +47,7 @@ public class ZAMFGatewayServlet extends HttpServlet {
 	private static final long serialVersionUID = 8763226003362000834L;
 
 	@SuppressWarnings("all")
-	protected static Log log = LogFactory.getLog(ZAMFGatewayServlet.class
+	protected static Logger log = LoggerFactory.getLogger(ZAMFGatewayServlet.class
 			.getName());
 
 	public static final String APPLICATION_AMF = "application/x-amf";
@@ -91,7 +91,7 @@ public class ZAMFGatewayServlet extends HttpServlet {
 
 		} catch (IOException e) {
 
-			log.error(e);
+			log.error("", e);
 
 		}
 		log.info("End");

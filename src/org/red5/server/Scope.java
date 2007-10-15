@@ -31,9 +31,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.log4j.Logger;
 import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
@@ -49,6 +46,8 @@ import org.red5.server.api.statistics.IScopeStatistics;
 import org.red5.server.api.statistics.support.StatisticsCounter;
 import org.red5.server.jmx.JMXAgent;
 import org.red5.server.jmx.JMXFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.core.style.ToStringCreator;
 
@@ -68,7 +67,7 @@ import org.springframework.core.style.ToStringCreator;
 public class Scope extends BasicScope implements IScope, IScopeStatistics,
 		ScopeMBean {
 
-	private static final Logger logger = Logger.getLogger(Scope.class);
+	private static final Logger logger = LoggerFactory.getLogger(Scope.class);
 
 	/**
 	 * Iterates through connections
@@ -233,7 +232,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	/**
 	 * Logger
 	 */
-	protected static Log log = LogFactory.getLog(Scope.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(Scope.class);
 
 	/**
 	 * Scope type constant
@@ -534,7 +533,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 			try {
 				conns.next().dispatchEvent(event);
 			} catch (RuntimeException e) {
-				log.error(e);
+				log.error("", e);
 			}
 		}
 	}

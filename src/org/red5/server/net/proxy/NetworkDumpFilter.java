@@ -21,11 +21,11 @@ package org.red5.server.net.proxy;
 
 import java.nio.channels.WritableByteChannel;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoFilterAdapter;
 import org.apache.mina.common.IoSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Network dump filter, performs raw data and headers dump on message recieve
@@ -34,7 +34,7 @@ public class NetworkDumpFilter extends IoFilterAdapter {
     /**
      * Logger
      */
-	protected static Log log = LogFactory.getLog(ProxyFilter.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(ProxyFilter.class);
 
     /**
      * Raw data byte channel

@@ -22,10 +22,10 @@ package org.red5.server.cache;
 import java.lang.ref.SoftReference;
 import java.util.Iterator;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.cache.ICacheStore;
 import org.red5.server.api.cache.ICacheable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -45,7 +45,7 @@ import com.whirlycott.cache.RecordKeeper;
  */
 public class WhirlyCacheImpl implements ICacheStore, ApplicationContextAware {
 
-	protected static Log log = LogFactory.getLog(WhirlyCacheImpl.class
+	protected static Logger log = LoggerFactory.getLogger(WhirlyCacheImpl.class
 			.getName());
 
 	private static Cache cache;

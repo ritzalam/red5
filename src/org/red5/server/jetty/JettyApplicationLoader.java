@@ -19,11 +19,11 @@ package org.red5.server.jetty;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.webapp.WebAppContext;
 import org.red5.server.api.IApplicationLoader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Class that can load new applications in Jetty.
@@ -36,8 +36,7 @@ public class JettyApplicationLoader implements IApplicationLoader {
     /**
      * Logger
      */
-	protected static Log log = LogFactory
-			.getLog(JettyApplicationContext.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(JettyApplicationContext.class);
 
 	/** Stores reference to the Jetty server. */
 	private Server server;

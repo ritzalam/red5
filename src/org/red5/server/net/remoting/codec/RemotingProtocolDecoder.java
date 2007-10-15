@@ -26,8 +26,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoSession;
 import org.red5.io.amf.AMF;
@@ -39,16 +37,18 @@ import org.red5.server.net.protocol.SimpleProtocolDecoder;
 import org.red5.server.net.remoting.FlexMessagingService;
 import org.red5.server.net.remoting.message.RemotingCall;
 import org.red5.server.net.remoting.message.RemotingPacket;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
     /**
      * Logger
      */
-	protected static Log log = LogFactory.getLog(RemotingProtocolDecoder.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(RemotingProtocolDecoder.class);
     /**
      * I/O logger
      */
-	protected static Log ioLog = LogFactory.getLog(RemotingProtocolDecoder.class.getName() + ".in");
+	protected static Logger ioLog = LoggerFactory.getLogger(RemotingProtocolDecoder.class.getName() + ".in");
     /**
      * Data deserializer
      */

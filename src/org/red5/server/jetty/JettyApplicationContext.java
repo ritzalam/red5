@@ -19,10 +19,10 @@ package org.red5.server.jetty;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.mortbay.jetty.webapp.WebAppContext;
 import org.red5.server.api.IApplicationContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Class that wraps a Jetty webapp context.
@@ -35,8 +35,7 @@ public class JettyApplicationContext implements IApplicationContext {
     /**
      * Logger
      */
-	protected static Log log = LogFactory
-			.getLog(JettyApplicationContext.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(JettyApplicationContext.class);
 
 	/** Store a reference to the Jetty webapp context. */
 	private WebAppContext context;

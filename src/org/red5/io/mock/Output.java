@@ -24,18 +24,18 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.red5.io.amf3.ByteArray;
 import org.red5.io.object.BaseOutput;
 import org.red5.io.object.DataTypes;
 import org.red5.io.object.RecordSet;
 import org.red5.io.object.Serializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
 public class Output extends BaseOutput implements org.red5.io.object.Output {
 
-	protected static Log log = LogFactory.getLog(Output.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(Output.class);
 
 	protected List<Object> list;
 

@@ -19,8 +19,6 @@ package org.red5.server.net.rtmp;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.stream.IClientStream;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.event.Invoke;
@@ -31,6 +29,8 @@ import org.red5.server.net.rtmp.status.Status;
 import org.red5.server.net.rtmp.status.StatusCodes;
 import org.red5.server.service.Call;
 import org.red5.server.service.PendingCall;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Identified connection that transfers packets
@@ -39,7 +39,7 @@ public class Channel {
     /**
      * Logger
      */
-	protected static Log log = LogFactory.getLog(Channel.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(Channel.class);
     /**
      * RTMP connection used to transfer packets
      */

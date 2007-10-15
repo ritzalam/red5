@@ -22,8 +22,6 @@ package org.red5.server.stream.provider;
 import java.io.File;
 import java.io.IOException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.red5.io.IStreamableFile;
 import org.red5.io.IStreamableFileFactory;
 import org.red5.io.IStreamableFileService;
@@ -52,6 +50,8 @@ import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.stream.ISeekableProvider;
 import org.red5.server.stream.IStreamTypeAwareProvider;
 import org.red5.server.stream.message.RTMPMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Pullable provider for files
@@ -61,7 +61,7 @@ public class FileProvider implements IPassive, ISeekableProvider,
     /**
      * Logger
      */
-    private static final Log log = LogFactory.getLog(FileProvider.class);
+    private static final Logger log = LoggerFactory.getLogger(FileProvider.class);
     /**
      * Class name
      */

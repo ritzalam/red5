@@ -23,7 +23,8 @@ import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Creates streamable file services
@@ -31,8 +32,8 @@ import org.apache.log4j.Logger;
 public class StreamableFileFactory implements IStreamableFileFactory {
 
 	// Initialize Logging
-	public static Logger logger = Logger.getLogger(StreamableFileFactory.class
-			.getName());
+	public static Logger logger = LoggerFactory
+			.getLogger(StreamableFileFactory.class);
 
 	private Set<IStreamableFileService> services = new HashSet<IStreamableFileService>();
 

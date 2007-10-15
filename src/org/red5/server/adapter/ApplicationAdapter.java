@@ -32,8 +32,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.red5.io.IStreamableFile;
 import org.red5.io.IStreamableFileFactory;
 import org.red5.io.IStreamableFileService;
@@ -72,6 +70,8 @@ import org.red5.server.stream.IBroadcastScope;
 import org.red5.server.stream.IProviderService;
 import org.red5.server.stream.ProviderService;
 import org.red5.server.stream.StreamService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * ApplicationAdapter class serves as a base class for your Red5 applications.
@@ -121,7 +121,7 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 	/**
 	 * Logger object
 	 */
-	protected static Log log = LogFactory.getLog(ApplicationAdapter.class
+	protected static Logger log = LoggerFactory.getLogger(ApplicationAdapter.class
 			.getName());
 
 	/**
@@ -290,7 +290,7 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 		/*
 		 * try { Thread.currentThread().sleep(3000); } catch
 		 * (InterruptedException e) { // TODO Auto-generated catch block
-		 * log.error(e); }
+		 * log.error("", e); }
 		 */
 		if (!super.connect(conn, scope, params)) {
 			return false;

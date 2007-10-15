@@ -19,18 +19,13 @@ package org.red5.adminPanel.panel;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
  
-import org.red5.adminPanel.utils.Utils;
-import org.red5.adminPanel.panel.adminPanel;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Set;
 
-import org.red5.server.api.IClient;
+import org.red5.adminPanel.utils.Utils;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
-import org.red5.server.api.ScopeUtils;
 import org.red5.server.api.persistence.IPersistable;
 import org.red5.server.api.persistence.IPersistenceStore;
 import org.red5.server.api.statistics.IScopeStatistics;

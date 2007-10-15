@@ -19,8 +19,6 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IClientRegistry;
@@ -31,13 +29,15 @@ import org.red5.server.api.IScopeHandler;
 import org.red5.server.api.Red5;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.service.IServiceCall;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Base IScopeHandler implementation
  */
 public class CoreHandler implements IScopeHandler, CoreHandlerMBean {
 
-	protected static Log log = LogFactory.getLog(CoreHandler.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(CoreHandler.class);
 
 	/** {@inheritDoc} */
     public boolean addChildScope(IBasicScope scope) {

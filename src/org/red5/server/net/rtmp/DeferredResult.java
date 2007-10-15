@@ -21,10 +21,10 @@ package org.red5.server.net.rtmp;
 
 import java.lang.ref.WeakReference;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.net.rtmp.event.Invoke;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Can be returned to delay returning the result of invoked methods.
@@ -36,7 +36,7 @@ public class DeferredResult {
     /**
      * Logger
      */
-	protected static Log log = LogFactory.getLog(DeferredResult.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(DeferredResult.class);
     /**
      * Weak reference to used channel
      */

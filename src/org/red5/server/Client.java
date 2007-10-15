@@ -31,8 +31,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.management.ObjectName;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.IBWControllable;
 import org.red5.server.api.IBandwidthConfigure;
 import org.red5.server.api.IClient;
@@ -41,6 +39,8 @@ import org.red5.server.api.IScope;
 import org.red5.server.api.persistence.IPersistable;
 import org.red5.server.jmx.JMXAgent;
 import org.red5.server.jmx.JMXFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Client is an abstraction representing user connected to Red5 application.
@@ -50,7 +50,7 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 	/**
 	 *  Logger
 	 */
-	protected static Log log = LogFactory.getLog(Client.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(Client.class);
 
 	/**
 	 * Name of connection attribute holding the permissions.

@@ -21,7 +21,6 @@ package org.red5.server;
 
 import java.io.IOException;
 
-import org.apache.log4j.Logger;
 import org.red5.server.api.IClientRegistry;
 import org.red5.server.api.IContext;
 import org.red5.server.api.IGlobalScope;
@@ -33,6 +32,8 @@ import org.red5.server.api.persistence.IPersistenceStore;
 import org.red5.server.api.service.IServiceInvoker;
 import org.red5.server.exception.ScopeHandlerNotFoundException;
 import org.red5.server.service.ServiceNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
@@ -50,7 +51,7 @@ import org.springframework.core.io.Resource;
 public class Context implements IContext, ApplicationContextAware, ContextMBean {
 
 	// Initialize Logging
-	public static Logger logger = Logger.getLogger(Context.class.getName());
+	public static Logger logger = LoggerFactory.getLogger(Context.class);
 
 	/**
 	 * Spring application context
@@ -390,7 +391,7 @@ public class Context implements IContext, ApplicationContextAware, ContextMBean 
 		} catch (NoSuchBeanDefinitionException e) {
 			logger.info("Bean lookup failed for " + beanId
 					+ " in the application context");
-			logger.debug(e);
+			logger.debug("", e);
 		}
 		if (bean == null) {
 			bean = getCoreService(beanId);

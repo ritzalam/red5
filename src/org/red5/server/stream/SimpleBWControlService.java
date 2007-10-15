@@ -29,10 +29,10 @@ import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.IBWControllable;
 import org.red5.server.api.IBandwidthConfigure;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A simple implementation of bandwidth controller. The initial burst,
@@ -56,7 +56,7 @@ import org.red5.server.api.IBandwidthConfigure;
  */
 public class SimpleBWControlService extends TimerTask
 implements IBWControlService {
-	private static final Log log = LogFactory.getLog(SimpleBWControlService.class);
+	private static final Logger log = LoggerFactory.getLogger(SimpleBWControlService.class);
 	
 	protected Map<IBWControllable, BWContext> contextMap =
 		new ConcurrentHashMap<IBWControllable, BWContext>();

@@ -14,8 +14,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.io.object.Deserializer;
 import org.red5.io.utils.HexDump;
@@ -23,6 +21,8 @@ import org.red5.server.net.protocol.ProtocolException;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.codec.RTMPProtocolDecoder;
 import org.red5.server.net.rtmp.message.Packet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CaptureViewerServlet extends HttpServlet {
 
@@ -31,7 +31,7 @@ public class CaptureViewerServlet extends HttpServlet {
     /**
 	 * Logger
 	 */
-	private static Log log = LogFactory.getLog(CaptureViewerServlet.class.getName());
+	private static Logger log = LoggerFactory.getLogger(CaptureViewerServlet.class);
     /**
 	 *
 	 */
@@ -51,7 +51,7 @@ public class CaptureViewerServlet extends HttpServlet {
 			decoder.setDeserializer(deserializer);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			log.error(e);
+			log.error("", e);
 		}
 	}
 
@@ -171,9 +171,9 @@ public class CaptureViewerServlet extends HttpServlet {
 			}
 			out.flush();
 		} catch (FileNotFoundException e) {
-			log.error(e);
+			log.error("", e);
 		} catch (IOException e) {
-			log.error(e);
+			log.error("", e);
 		}
 
 	}

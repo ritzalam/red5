@@ -25,8 +25,6 @@ import java.nio.channels.FileChannel;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.io.IStreamableFile;
 import org.red5.io.ITag;
@@ -35,6 +33,8 @@ import org.red5.io.amf.Output;
 import org.red5.io.flv.IFLV;
 import org.red5.io.object.Serializer;
 import org.red5.io.utils.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A Writer is used to write the contents of a FLV file
@@ -47,7 +47,7 @@ public class FLVWriter implements ITagWriter {
     /**
      * Logger
      */
-	private static Log log = LogFactory.getLog(FLVWriter.class.getName());
+	private static Logger log = LoggerFactory.getLogger(FLVWriter.class);
 
     /**
      * File output stream

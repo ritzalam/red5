@@ -19,8 +19,6 @@ package org.red5.server.stream.filter;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.red5.server.messaging.IFilter;
 import org.red5.server.messaging.IMessage;
 import org.red5.server.messaging.IMessageComponent;
@@ -28,6 +26,8 @@ import org.red5.server.messaging.IPipe;
 import org.red5.server.messaging.IPipeConnectionListener;
 import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.messaging.PipeConnectionEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Controls stream bandwidth
@@ -38,8 +38,7 @@ public class StreamBandwidthController implements IFilter,
     /**
      * Logger
      */
-    private static final Log log = LogFactory
-			.getLog(StreamBandwidthController.class);
+    private static final Logger log = LoggerFactory.getLogger(StreamBandwidthController.class);
     /**
      * Class name
      */

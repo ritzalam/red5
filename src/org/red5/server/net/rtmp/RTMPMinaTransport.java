@@ -12,8 +12,6 @@ import java.util.concurrent.TimeUnit;
 
 import javax.management.ObjectName;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoFilter;
 import org.apache.mina.common.IoHandlerAdapter;
@@ -28,6 +26,8 @@ import org.apache.mina.transport.socket.nio.SocketAcceptorConfig;
 import org.apache.mina.transport.socket.nio.SocketSessionConfig;
 import org.red5.server.jmx.JMXAgent;
 import org.red5.server.jmx.JMXFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Transport setup class configures socket acceptor and thread pools for RTMP in mina.
@@ -56,7 +56,7 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 
 	private static final boolean DEFAULT_USE_HEAP_BUFFERS = true;
 
-	private static final Log log = LogFactory.getLog(RTMPMinaTransport.class);
+	private static final Logger log = LoggerFactory.getLogger(RTMPMinaTransport.class);
 
 	private SocketAcceptor acceptor;
 

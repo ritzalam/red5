@@ -31,8 +31,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.io.IKeyFrameMetaCache;
 import org.red5.io.IStreamableFile;
@@ -43,6 +41,8 @@ import org.red5.io.amf.Output;
 import org.red5.io.flv.IKeyFrameDataAnalyzer;
 import org.red5.io.flv.impl.Tag;
 import org.red5.io.object.Serializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Read MP3 files
@@ -51,7 +51,7 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
     /**
      * Logger
      */
-	protected static Log log = LogFactory.getLog(MP3Reader.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(MP3Reader.class);
 
     /**
      * File

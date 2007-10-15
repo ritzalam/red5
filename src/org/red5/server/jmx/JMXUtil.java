@@ -8,7 +8,10 @@ import javax.management.MBeanOperationInfo;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 
 /**
  * Helper methods for working with ObjectName or MBean instances.
@@ -17,7 +20,7 @@ import org.apache.log4j.Logger;
  */
 public class JMXUtil {
 
-	private static Logger log = Logger.getLogger(JMXUtil.class);
+	private static Logger log = LoggerFactory.getLogger(JMXUtil.class);
 
 	public static void printMBeanInfo(ObjectName objectName, String className) {
 		log.info("Retrieve the management information for the " + className);

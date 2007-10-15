@@ -18,8 +18,8 @@ package org.red5.server.pooling;
 import java.lang.reflect.InvocationTargetException;
 
 import org.apache.commons.beanutils.MethodUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Murali Kosaraju WorkerThread class - This is the worker thread which
@@ -28,7 +28,7 @@ import org.apache.commons.logging.LogFactory;
  */
 public class WorkerThread extends Thread implements WorkerThreadMBean {
 
-	private static Log log = LogFactory.getLog(WorkerThread.class);
+	private static Logger log = LoggerFactory.getLogger(WorkerThread.class);
 
 	/** Constructs a new WorkerThread. */
     public WorkerThread() {

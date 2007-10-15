@@ -19,9 +19,9 @@ package org.red5.server.stream;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.red5.server.net.rtmp.Channel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Output stream that consists of audio, video and data channels
@@ -32,7 +32,7 @@ public class OutputStream {
     /**
      * Logger
      */
-	protected static Log log = LogFactory.getLog(OutputStream.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(OutputStream.class);
     /**
      * Video channel
      */

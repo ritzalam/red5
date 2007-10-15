@@ -25,7 +25,8 @@ import java.util.regex.PatternSyntaxException;
 
 import javax.script.*;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scripting.ScriptCompilationException;
 import org.springframework.util.ClassUtils;
 
@@ -37,7 +38,7 @@ import org.springframework.util.ClassUtils;
  */
 public class RhinoScriptUtils {
 
-	private static final Logger log = Logger.getLogger(RhinoScriptUtils.class);
+	private static final Logger log = LoggerFactory.getLogger(RhinoScriptUtils.class);
 
 	// ScriptEngine manager
 	private static ScriptEngineManager mgr = new ScriptEngineManager();
@@ -67,7 +68,7 @@ public class RhinoScriptUtils {
 		}
 		ScriptEngine engine = mgr.getEngineByExtension("js");
 		if (null == engine) {
-			log.fatal("Javascript is not supported in this build");
+			log.warn("Javascript is not supported in this build");
 		}
 		// set engine scope namespace
 		Bindings nameSpace = engine.getBindings(ScriptContext.ENGINE_SCOPE);
@@ -188,7 +189,7 @@ public class RhinoScriptUtils {
 			} catch (NoSuchMethodException nex) {
 				log.warn("Method not found");
 			} catch (Throwable t) {
-				log.warn(t);
+				log.warn("", t);
 			}
 			return o;
 		}

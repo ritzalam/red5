@@ -22,10 +22,11 @@ package org.red5.server.api.stream.support;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.log4j.Logger;
 import org.red5.server.api.IScope;
 import org.red5.server.api.stream.IServerStream;
 import org.red5.server.stream.ServerStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Stream helper methods.
@@ -36,7 +37,7 @@ import org.red5.server.stream.ServerStream;
  */
 public abstract class StreamUtils {
 
-	private static final Logger logger = Logger.getLogger(StreamUtils.class);
+	private static final Logger logger = LoggerFactory.getLogger(StreamUtils.class);
 
 	/* Map to hold reference to the instanced server streams */
 	private static volatile Map<String, ServerStream> serverStreamMap = new ConcurrentHashMap<String, ServerStream>();

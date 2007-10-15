@@ -19,13 +19,9 @@ package org.red5.server.net.remoting;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.red5.compatibility.flex.data.messages.DataMessage;
 import org.red5.compatibility.flex.data.messages.SequencedMessage;
@@ -41,6 +37,8 @@ import org.red5.server.api.service.IServiceInvoker;
 import org.red5.server.exception.ClientDetailsException;
 import org.red5.server.service.ConversionUtils;
 import org.red5.server.service.PendingCall;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Service that can execute compatibility flex messages.
@@ -56,7 +54,7 @@ public class FlexMessagingService {
     /**
      * Logger
      */
-	protected static Log log = LogFactory.getLog(FlexMessagingService.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(FlexMessagingService.class);
 
 	/** Service invoker to use. */
 	protected IServiceInvoker serviceInvoker;

@@ -10,13 +10,13 @@ import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.MidiDevice.Info;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.so.ISharedObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SharedMidiObject {
 
-	private static final Log log = LogFactory.getLog(SharedMidiObject.class);
+	private static final Logger log = LoggerFactory.getLogger(SharedMidiObject.class);
 
 	protected String deviceName;
 
@@ -62,7 +62,7 @@ public class SharedMidiObject {
 				try {
 					return MidiSystem.getMidiDevice(element);
 				} catch (MidiUnavailableException e) {
-					log.error(e);
+					log.error("", e);
 				}
 			}
 		}

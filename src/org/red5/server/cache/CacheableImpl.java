@@ -19,10 +19,10 @@ package org.red5.server.cache;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.server.api.cache.ICacheable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 
 /**
@@ -33,7 +33,7 @@ import org.springframework.context.ApplicationContext;
  */
 public class CacheableImpl implements ICacheable {
 
-	protected static Log log = LogFactory.getLog(CacheableImpl.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(CacheableImpl.class);
 
 	protected ApplicationContext applicationContext;
 

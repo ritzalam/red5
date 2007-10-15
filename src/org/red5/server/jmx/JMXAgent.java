@@ -42,7 +42,8 @@ import javax.rmi.ssl.SslRMIClientSocketFactory;
 import javax.rmi.ssl.SslRMIServerSocketFactory;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.sun.jdmk.comm.HtmlAdaptorServer;
 
@@ -71,7 +72,7 @@ public class JMXAgent implements NotificationListener {
 
 	private static String htmlAdapterPort = "8082";
 
-	private static Logger log = Logger.getLogger(JMXAgent.class);
+	private static Logger log = LoggerFactory.getLogger(JMXAgent.class);
 
 	private static MBeanServer mbs;
 
@@ -393,7 +394,7 @@ public class JMXAgent implements NotificationListener {
 					log
 							.error("JMX connector (red5) already registered, you will need to restart your rmiregistry");
 				} else {
-					log.error(e);
+					log.error("", e);
 				}
 			} catch (Exception e) {
 				log.error("Error in setup of JMX subsystem (RMI connector)", e);

@@ -26,19 +26,19 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
-import org.red5.io.IoConstants;
+import org.red5.io.ITag;
 import org.red5.io.ITagReader;
 import org.red5.io.ITagWriter;
-import org.red5.io.ITag;
+import org.red5.io.IoConstants;
 import org.red5.io.flv.IFLV;
 import org.red5.io.flv.meta.IMetaData;
 import org.red5.io.flv.meta.IMetaService;
 import org.red5.io.flv.meta.MetaService;
 import org.red5.server.api.cache.ICacheStore;
 import org.red5.server.api.cache.ICacheable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A FLVImpl implements the FLV api
@@ -50,7 +50,7 @@ import org.red5.server.api.cache.ICacheable;
  */
 public class FLV implements IFLV {
 
-	protected static Log log = LogFactory.getLog(FLV.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(FLV.class);
 
 	private static ICacheStore cache;
 

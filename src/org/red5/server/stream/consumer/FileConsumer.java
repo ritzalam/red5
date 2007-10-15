@@ -23,8 +23,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.io.IStreamableFile;
 import org.red5.io.IStreamableFileFactory;
@@ -49,6 +47,8 @@ import org.red5.server.stream.IStreamData;
 import org.red5.server.stream.message.RTMPMessage;
 import org.red5.server.stream.message.ResetMessage;
 import org.red5.server.stream.message.StatusMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Consumer that pushes messages to file. Used when recording live streams.
@@ -58,7 +58,7 @@ public class FileConsumer implements Constants, IPushableConsumer,
     /**
      * Logger
      */
-    private static final Log log = LogFactory.getLog(FileConsumer.class);
+    private static final Logger log = LoggerFactory.getLogger(FileConsumer.class);
     /**
      * Scope
      */

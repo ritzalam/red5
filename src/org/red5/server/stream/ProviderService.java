@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.red5.io.IStreamableFileFactory;
 import org.red5.io.IStreamableFileService;
 import org.red5.server.api.IBasicScope;
@@ -38,6 +37,8 @@ import org.red5.server.messaging.IMessageInput;
 import org.red5.server.messaging.IPipe;
 import org.red5.server.messaging.InMemoryPullPullPipe;
 import org.red5.server.stream.provider.FileProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * {@inheritDoc}
@@ -47,7 +48,8 @@ public class ProviderService implements IProviderService {
 	/**
 	 * Logger
 	 */
-	private static final Logger log = Logger.getLogger(ProviderService.class);
+	private static final Logger log = LoggerFactory
+			.getLogger(ProviderService.class);
 
 	/** {@inheritDoc} */
 	public IMessageInput getProviderInput(IScope scope, String name) {

@@ -31,8 +31,9 @@ import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.log4j.Logger;
 import org.apache.mina.common.ByteBuffer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Servlet to tunnel to the AMF gateway servlet.
@@ -47,7 +48,7 @@ public class AMFTunnelServlet extends HttpServlet {
 	 */
 	private static final long serialVersionUID = -35436145164322090L;
 
-	protected static Logger logger = Logger.getLogger(AMFTunnelServlet.class);
+	protected static Logger logger = LoggerFactory.getLogger(AMFTunnelServlet.class);
 
 	/**
 	 * Redirect to HTTP port.

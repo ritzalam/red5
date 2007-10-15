@@ -35,8 +35,6 @@ import java.util.TimerTask;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 
-import org.apache.commons.logging.LogFactory;
-import org.apache.log4j.Logger;
 import org.red5.server.ClientRegistry;
 import org.red5.server.Context;
 import org.red5.server.GlobalScope;
@@ -46,6 +44,8 @@ import org.red5.server.Server;
 import org.red5.server.WebScope;
 import org.red5.server.jmx.JMXAgent;
 import org.red5.server.service.ServiceInvoker;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.access.BeanFactoryReference;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
@@ -72,8 +72,8 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 	private static ClassLoader myClassloader;
 
 	// Initialize Logging
-	public static Logger logger = Logger
-			.getLogger(RootContextLoaderServlet.class.getName());
+	public static Logger logger = LoggerFactory
+			.getLogger(RootContextLoaderServlet.class);
 
 	private static Timer timer;
 
@@ -217,7 +217,7 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 			}
 
 		} catch (Throwable t) {
-			logger.error(t);
+			logger.error("", t);
 		} finally {
 			timer = new Timer();
 			checkScopeList = new CheckScopeListTask();
@@ -338,8 +338,7 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 			} finally {
 				// http://jakarta.apache.org/commons/logging/guide.html#Classloader_and_Memory_Management
 				// http://wiki.apache.org/jakarta-commons/Logging/UndeployMemoryLeak?action=print
-				LogFactory.release(Thread.currentThread()
-						.getContextClassLoader());
+				// LogFactory.release(Thread.currentThread().getContextClassLoader());
 			}
 		}
 	}
@@ -398,7 +397,7 @@ public class RootContextLoaderServlet extends ContextLoaderListener {
 					logger.debug("End of children...");
 				}
 			} catch (Throwable t) {
-				logger.error(t);
+				logger.error("", t);
 			}
 		}
 	}

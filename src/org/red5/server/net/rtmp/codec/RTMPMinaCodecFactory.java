@@ -22,8 +22,6 @@ package org.red5.server.net.rtmp.codec;
 import org.apache.mina.filter.codec.ProtocolCodecFactory;
 import org.apache.mina.filter.codec.ProtocolDecoder;
 import org.apache.mina.filter.codec.ProtocolEncoder;
-import org.red5.io.object.Deserializer;
-import org.red5.io.object.Serializer;
 import org.red5.server.net.protocol.SimpleProtocolCodecFactory;
 import org.red5.server.net.protocol.SimpleProtocolDecoder;
 import org.red5.server.net.protocol.SimpleProtocolEncoder;

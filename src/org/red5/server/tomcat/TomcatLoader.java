@@ -32,11 +32,11 @@ import org.apache.catalina.Valve;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.core.StandardHost;
 import org.apache.catalina.startup.Embedded;
-import org.apache.log4j.Logger;
 import org.red5.server.LoaderBase;
 import org.red5.server.LoaderMBean;
 import org.red5.server.jmx.JMXAgent;
-import org.red5.server.tomcat.TomcatApplicationContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -44,17 +44,20 @@ import org.springframework.context.ApplicationContextAware;
 /**
  * Red5 loader for Tomcat
  */
-public class TomcatLoader extends LoaderBase implements ApplicationContextAware, LoaderMBean {
+public class TomcatLoader extends LoaderBase implements
+		ApplicationContextAware, LoaderMBean {
 	/**
 	 * Filters directory content
 	 */
 	class DirectoryFilter implements FilenameFilter {
 		/**
 		 * Check whether file matches filter rules
-		 *
-		 * @param dir         Dir
-		 * @param name        File name
-		 * @return            true if file does match filter rules, false otherwise
+		 * 
+		 * @param dir
+		 *            Dir
+		 * @param name
+		 *            File name
+		 * @return true if file does match filter rules, false otherwise
 		 */
 		public boolean accept(File dir, String name) {
 			File f = new File(dir, name);
@@ -62,7 +65,8 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 				log.debug("Filtering: " + dir.getName() + " name: " + name);
 				log.debug("Constructed dir: " + f.getAbsolutePath());
 			}
-			//filter out all non-directories that are hidden and/or not readable
+			// filter out all non-directories that are hidden and/or not
+			// readable
 			return f.isDirectory() && f.canRead() && !f.isHidden();
 		}
 	}
@@ -74,8 +78,7 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 	protected static ThreadLocal<ApplicationContext> applicationContext = new ThreadLocal<ApplicationContext>();
 
 	// Initialize Logging
-	protected static Logger log = Logger
-			.getLogger(TomcatLoader.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(TomcatLoader.class);
 	static {
 		log.info("Init tomcat");
 		// root location for servlet container
@@ -121,20 +124,25 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 
 	/**
 	 * Add context from path and docbase
-	 * @param path                      Path
-	 * @param docBase                   Docbase
-	 * @return                          Catalina context (that is, web application)
+	 * 
+	 * @param path
+	 *            Path
+	 * @param docBase
+	 *            Docbase
+	 * @return Catalina context (that is, web application)
 	 */
 	public org.apache.catalina.Context addContext(String path, String docBase) {
 		org.apache.catalina.Context c = embedded.createContext(path, docBase);
 		baseHost.addChild(c);
-		LoaderBase.setRed5ApplicationContext(path, new TomcatApplicationContext(c));
+		LoaderBase.setRed5ApplicationContext(path,
+				new TomcatApplicationContext(c));
 		return c;
 	}
 
 	/**
 	 * Get base host
-	 * @return      Base host
+	 * 
+	 * @return Base host
 	 */
 	public Host getBaseHost() {
 		return baseHost;
@@ -142,7 +150,8 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 
 	/**
 	 * Return connector
-	 * @return         Connector
+	 * 
+	 * @return Connector
 	 */
 	public Connector getConnector() {
 		return connector;
@@ -150,8 +159,8 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 
 	/**
 	 * Getter for embedded object
-	 *
-	 * @return  Embedded object
+	 * 
+	 * @return Embedded object
 	 */
 	public Embedded getEmbedded() {
 		return embedded;
@@ -159,7 +168,8 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 
 	/**
 	 * Return Tomcat engine
-	 * @return          Tomcat engine
+	 * 
+	 * @return Tomcat engine
 	 */
 	public Engine getEngine() {
 		return engine;
@@ -167,7 +177,8 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 
 	/**
 	 * Getter for realm
-	 * @return         Realm
+	 * 
+	 * @return Realm
 	 */
 	public Realm getRealm() {
 		return realm;
@@ -192,7 +203,7 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 		System.setProperty("red5.webapp.root", webappFolder);
 		log.info("Application root: " + webappFolder);
 
-		//scan for additional webapp contexts
+		// scan for additional webapp contexts
 		if (log.isDebugEnabled()) {
 			log.debug("Approot: " + webappFolder);
 
@@ -204,7 +215,7 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 		// Search for additional context files
 		for (File dir : dirs) {
 			String dirName = '/' + dir.getName();
-			//check to see if the directory is already mapped
+			// check to see if the directory is already mapped
 			if (null == baseHost.findChild(dirName)) {
 				if (log.isDebugEnabled()) {
 					log.debug("Adding context from directory scan: " + dirName);
@@ -213,16 +224,16 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 			}
 		}
 
-		//dump context list
+		// dump context list
 		if (log.isDebugEnabled()) {
 			for (Container cont : baseHost.findChildren()) {
 				log.debug("Context child name: " + cont.getName());
 			}
 		}
-		//set a realm
+		// set a realm
 		embedded.setRealm(realm);
 
-		//dont start tomcats jndi
+		// dont start tomcats jndi
 		embedded.setUseNaming(false);
 
 		// baseHost = embedded.createHost(hostName, appRoot);
@@ -236,7 +247,7 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 		embedded.addConnector(connector);
 
 		setApplicationLoader(new TomcatApplicationLoader(embedded, baseHost));
-		
+
 		// start server
 		try {
 			log.info("Starting tomcat servlet engine");
@@ -248,8 +259,12 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 
 	/**
 	 * Setter for application context
-	 * @param context                Application context
-	 * @throws BeansException        Abstract superclass for all exceptions thrown in the beans package and subpackages
+	 * 
+	 * @param context
+	 *            Application context
+	 * @throws BeansException
+	 *             Abstract superclass for all exceptions thrown in the beans
+	 *             package and subpackages
 	 */
 	public void setApplicationContext(ApplicationContext context)
 			throws BeansException {
@@ -258,7 +273,9 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 
 	/**
 	 * Set base host
-	 * @param baseHost          Base host
+	 * 
+	 * @param baseHost
+	 *            Base host
 	 */
 	public void setBaseHost(Host baseHost) {
 		log.debug("setBaseHost");
@@ -267,7 +284,9 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 
 	/**
 	 * Set connector
-	 * @param connector    Connector
+	 * 
+	 * @param connector
+	 *            Connector
 	 */
 	public void setConnector(Connector connector) {
 		log.info("Setting connector: " + connector.getClass().getName());
@@ -276,8 +295,9 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 
 	/**
 	 * Set additional connectors
-	 *
-	 * @param connectors         Additional connectors
+	 * 
+	 * @param connectors
+	 *            Additional connectors
 	 */
 	public void setConnectors(List<Connector> connectors) {
 		if (log.isDebugEnabled()) {
@@ -290,8 +310,9 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 
 	/**
 	 * Set additional contexts
-	 *
-	 * @param contexts      Map of contexts
+	 * 
+	 * @param contexts
+	 *            Map of contexts
 	 */
 	public void setContexts(Map<String, String> contexts) {
 		if (log.isDebugEnabled()) {
@@ -305,7 +326,9 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 
 	/**
 	 * Setter for embedded object
-	 * @param embedded   Embedded object
+	 * 
+	 * @param embedded
+	 *            Embedded object
 	 */
 	public void setEmbedded(Embedded embedded) {
 		log.info("Setting embedded: " + embedded.getClass().getName());
@@ -314,7 +337,9 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 
 	/**
 	 * Set Tomcat engine implementation
-	 * @param engine    Tomcat engine
+	 * 
+	 * @param engine
+	 *            Tomcat engine
 	 */
 	public void setEngine(Engine engine) {
 		log.info("Setting engine: " + engine.getClass().getName());
@@ -323,8 +348,9 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 
 	/**
 	 * Set additional hosts
-	 *
-	 * @param hosts        List of hosts added to engine
+	 * 
+	 * @param hosts
+	 *            List of hosts added to engine
 	 */
 	public void setHosts(List<Host> hosts) {
 		if (log.isDebugEnabled()) {
@@ -337,7 +363,9 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 
 	/**
 	 * Setter for realm
-	 * @param realm    Realm
+	 * 
+	 * @param realm
+	 *            Realm
 	 */
 	public void setRealm(Realm realm) {
 		log.info("Setting realm: " + realm.getClass().getName());
@@ -346,8 +374,9 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 
 	/**
 	 * Set additional valves
-	 *
-	 * @param valves        List of valves
+	 * 
+	 * @param valves
+	 *            List of valves
 	 */
 	public void setValves(List<Valve> valves) {
 		if (log.isDebugEnabled()) {

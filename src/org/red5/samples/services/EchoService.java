@@ -24,10 +24,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.Red5;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
 /**
@@ -39,7 +39,7 @@ import org.w3c.dom.Document;
  */
 public class EchoService implements IEchoService {
 
-	private Log log = LogFactory.getLog(EchoService.class.getName());
+	private Logger log = LoggerFactory.getLogger(EchoService.class);
 
 	/** {@inheritDoc} */
     public void startUp() {

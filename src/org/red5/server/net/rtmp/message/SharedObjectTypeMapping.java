@@ -19,9 +19,9 @@ package org.red5.server.net.rtmp.message;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.red5.server.so.ISharedObjectEvent.Type;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * SO event types mapping
@@ -30,7 +30,7 @@ public class SharedObjectTypeMapping {
     /**
      * Logger
      */
-	protected static Log log = LogFactory.getLog(SharedObjectTypeMapping.class
+	protected static Logger log = LoggerFactory.getLogger(SharedObjectTypeMapping.class
 			.getName());
     /**
      * Types map

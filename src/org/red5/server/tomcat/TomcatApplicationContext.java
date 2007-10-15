@@ -21,9 +21,9 @@ package org.red5.server.tomcat;
 
 import org.apache.catalina.Context;
 import org.apache.catalina.core.StandardContext;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.IApplicationContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Class that wraps a Tomcat webapp context.
@@ -36,8 +36,7 @@ public class TomcatApplicationContext implements IApplicationContext {
     /**
      * Logger
      */
-	protected static Log log = LogFactory
-			.getLog(TomcatApplicationContext.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(TomcatApplicationContext.class);
 
 	/** Store a reference to the Tomcat webapp context. */
 	private Context context;

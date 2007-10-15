@@ -29,8 +29,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.IScope;
 import org.red5.server.api.ScopeUtils;
 import org.red5.server.api.scheduling.IScheduledJob;
@@ -64,6 +62,8 @@ import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.stream.consumer.FileConsumer;
 import org.red5.server.stream.message.RTMPMessage;
 import org.red5.server.stream.message.ResetMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * An implementation for server side stream.
@@ -76,7 +76,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
     /**
      * Logger
      */
-    private static final Log log = LogFactory.getLog(ServerStream.class);
+    private static final Logger log = LoggerFactory.getLogger(ServerStream.class);
 
     /**
      * Enumeration for states

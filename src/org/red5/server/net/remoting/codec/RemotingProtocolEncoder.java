@@ -23,8 +23,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoSession;
 import org.red5.compatibility.flex.messaging.messages.AbstractMessage;
@@ -43,6 +41,8 @@ import org.red5.server.net.remoting.message.RemotingCall;
 import org.red5.server.net.remoting.message.RemotingPacket;
 import org.red5.server.net.rtmp.status.StatusCodes;
 import org.red5.server.service.ServiceNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Remoting protocol encoder
@@ -51,11 +51,11 @@ public class RemotingProtocolEncoder extends BaseProtocolEncoder implements Simp
     /**
      * Logger
      */
-	protected static Log log = LogFactory.getLog(RemotingProtocolEncoder.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(RemotingProtocolEncoder.class);
     /**
      * I/O logger
      */
-	protected static Log ioLog = LogFactory.getLog(RemotingProtocolEncoder.class.getName() + ".out");
+	protected static Logger ioLog = LoggerFactory.getLogger(RemotingProtocolEncoder.class.getName() + ".out");
 
     /**
      * Data serializer

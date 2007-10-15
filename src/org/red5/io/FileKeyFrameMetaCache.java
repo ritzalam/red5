@@ -32,11 +32,11 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.xml.serialize.OutputFormat;
 import org.apache.xml.serialize.XMLSerializer;
 import org.red5.io.flv.IKeyFrameDataAnalyzer.KeyFrameMeta;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -55,7 +55,7 @@ public class FileKeyFrameMetaCache implements IKeyFrameMetaCache {
     /**
      * Logger
      */
-    private static Log log = LogFactory.getLog(FileKeyFrameMetaCache.class.getName());
+    private static Logger log = LoggerFactory.getLogger(FileKeyFrameMetaCache.class);
 
     /** {@inheritDoc} */
 	public KeyFrameMeta loadKeyFrameMeta(File file) {

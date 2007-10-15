@@ -51,7 +51,7 @@ public class RTMPMinaProtocolEncoder extends RTMPProtocolEncoder implements
 				}
 			}
 		} catch (Exception ex) {
-			log.error(ex);
+			log.error("", ex);
 		}
 	}
 

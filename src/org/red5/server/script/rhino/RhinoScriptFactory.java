@@ -18,8 +18,8 @@ package org.red5.server.script.rhino;
 
 import java.io.IOException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scripting.ScriptCompilationException;
 import org.springframework.scripting.ScriptFactory;
 import org.springframework.scripting.ScriptSource;
@@ -43,7 +43,7 @@ import org.springframework.util.Assert;
  */
 public class RhinoScriptFactory implements ScriptFactory {
 
-	static Log log = LogFactory.getLog(RhinoScriptFactory.class.getName());
+	static Logger log = LoggerFactory.getLogger(RhinoScriptFactory.class);
 
 	private final String scriptSourceLocator;
 

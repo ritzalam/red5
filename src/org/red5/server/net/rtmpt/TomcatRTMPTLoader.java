@@ -25,10 +25,10 @@ import org.apache.catalina.Context;
 import org.apache.catalina.Host;
 import org.apache.catalina.Server;
 import org.apache.catalina.Wrapper;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.IServer;
 import org.red5.server.tomcat.TomcatLoader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Loader for the RTMPT server which uses Tomcat.
@@ -39,7 +39,7 @@ import org.red5.server.tomcat.TomcatLoader;
 public class TomcatRTMPTLoader extends TomcatLoader {
 
 	// Initialize Logging
-	protected static Log log = LogFactory.getLog(TomcatRTMPTLoader.class
+	protected static Logger log = LoggerFactory.getLogger(TomcatRTMPTLoader.class
 			.getName());
 
 	/**

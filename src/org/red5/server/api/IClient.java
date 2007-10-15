@@ -62,7 +62,7 @@ public interface IClient extends ClientMBean, IAttributeStore, IBWControllable {
 	 * 		try {
 	 * 			connection.getClient().setStreamId( params[0] );
 	 * 		} catch(Exception e){<br/>
-	 * 			log.error(e);
+	 * 			log.error("", e);
 	 * 		}
 	 * }
 	 * </code>

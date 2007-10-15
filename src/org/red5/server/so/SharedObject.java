@@ -32,8 +32,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Input;
 import org.red5.io.object.Output;
@@ -48,6 +46,8 @@ import org.red5.server.net.rtmp.Channel;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.so.ISharedObjectEvent.Type;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Represents shared object on server-side. Shared Objects in Flash are like cookies that are stored
@@ -72,7 +72,7 @@ public class SharedObject implements ISharedObjectStatistics, IPersistable, Cons
     /**
      * Logger
      */
-	protected static Log log = LogFactory.getLog(SharedObject.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(SharedObject.class);
 
     /**
      * Shared Object name (identifier)

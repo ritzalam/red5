@@ -27,8 +27,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.IAttributeStore;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.event.IEvent;
@@ -39,6 +37,8 @@ import org.red5.server.api.so.ISharedObjectListener;
 import org.red5.server.net.rtmp.Channel;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.so.ISharedObjectEvent.Type;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Works with client-side shared object
@@ -49,7 +49,7 @@ public class ClientSharedObject extends SharedObject implements
     /**
      * Logger
      */
-    protected static Log log = LogFactory.getLog(ClientSharedObject.class.getName());
+    protected static Logger log = LoggerFactory.getLogger(ClientSharedObject.class);
     /**
      * Initial synchronization flag
      */

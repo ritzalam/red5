@@ -15,9 +15,9 @@
  */
 package org.red5.server.pooling;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.commons.pool.PoolableObjectFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Murali Kosaraju ThreadObjectFactory - Extends PoolableObjectFactory
@@ -28,7 +28,7 @@ public class ThreadObjectFactory implements PoolableObjectFactory {
 	/**
 	 * Logger for this class
 	 */
-	private static final Log log = LogFactory.getLog(ThreadObjectFactory.class);
+	private static final Logger log = LoggerFactory.getLogger(ThreadObjectFactory.class);
 
 	/** {@inheritDoc} */ /*
 	 * Creates a new worker thread object

@@ -21,8 +21,6 @@ package org.red5.server.jetty;
 
 import java.io.IOException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.mortbay.jetty.Handler;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.deployer.WebAppDeployer;
@@ -32,6 +30,8 @@ import org.mortbay.jetty.handler.HandlerCollection;
 import org.red5.server.LoaderBase;
 import org.red5.server.LoaderMBean;
 import org.red5.server.jmx.JMXAgent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -45,7 +45,7 @@ public class JettyLoader extends LoaderBase implements ApplicationContextAware, 
 	/**
 	 *  Logger
 	 */
-	protected static Log log = LogFactory.getLog(JettyLoader.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(JettyLoader.class);
 
 	/**
 	 *  Default web config filename
@@ -127,9 +127,9 @@ public class JettyLoader extends LoaderBase implements ApplicationContextAware, 
 				deployer.setParentLoaderPriority(true);
 				deployer.start();
 			} catch (IOException e) {
-				log.error(e);
+				log.error("", e);
 			} catch (Exception e) {
-				log.error(e);
+				log.error("", e);
 			}
 
 			// Start Jetty

@@ -7,13 +7,13 @@ import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Receiver;
 import javax.sound.midi.MidiDevice.Info;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Test {
 
 	// Initialize Logging
-	protected static Log log = LogFactory.getLog(Test.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(Test.class);
 
 	public static void main(String[] args) throws Exception {
 		@SuppressWarnings("unused") Test t = new Test();
@@ -28,7 +28,7 @@ public class Test {
 				try {
 					return MidiSystem.getMidiDevice(element);
 				} catch (MidiUnavailableException e) {
-					log.error(e);
+					log.error("", e);
 				}
 			}
 		}

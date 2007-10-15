@@ -23,77 +23,83 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Simple allocation debugger for Event reference counting.
  * 
  * @author The Red5 Project (red5@osflash.org)
- * @author Steven Gong (steven.gong@gmail.com) on behalf of (ce@publishing-etc.de)
+ * @author Steven Gong (steven.gong@gmail.com) on behalf of
+ *         (ce@publishing-etc.de)
  */
 public class AllocationDebugger {
-    /**
-     * Information on references count
-     */
+	/**
+	 * Information on references count
+	 */
 	private class Info {
-        /**
-         * References count
-         */
+		/**
+		 * References count
+		 */
 		public int refcount;
 
 		/** Constructs a new Info. */
-        public Info() {
+		public Info() {
 			refcount = 1;
 		}
 
 	}
 
-    /**
-     * Allocation debugger istance
-     */
-    private static AllocationDebugger instance;
+	/**
+	 * Allocation debugger istance
+	 */
+	private static AllocationDebugger instance;
 
 	/**
-     * Getter for instance
-     *
-     * @return  Allocation debugger instance
-     */
-    public static AllocationDebugger getInstance() {
+	 * Getter for instance
+	 * 
+	 * @return Allocation debugger instance
+	 */
+	public static AllocationDebugger getInstance() {
 		if (instance == null) {
 			instance = new AllocationDebugger();
 		}
 		return instance;
 	}
 
-    /**
-     * Logger
-     */
-    private Log log;
-    /**
-     * Events-to-information objects map
-     */
+	/**
+	 * Logger
+	 */
+	private Logger log;
+
+	/**
+	 * Events-to-information objects map
+	 */
 	private Map<BaseEvent, Info> events;
 
 	/** Do not instantiate AllocationDebugger. */
-    private AllocationDebugger() {
-		log = LogFactory.getLog(getClass().getName());
+	private AllocationDebugger() {
+		log = LoggerFactory.getLogger(getClass());
 		events = new HashMap<BaseEvent, Info>();
 	}
 
-    /**
-     * Add event to map
-     * @param event         Event
-     */
-    protected synchronized void create(BaseEvent event) {
+	/**
+	 * Add event to map
+	 * 
+	 * @param event
+	 *            Event
+	 */
+	protected synchronized void create(BaseEvent event) {
 		events.put(event, new Info());
 	}
 
-    /**
-     * Retain event
-     * @param event         Event
-     */
-    protected synchronized void retain(BaseEvent event) {
+	/**
+	 * Retain event
+	 * 
+	 * @param event
+	 *            Event
+	 */
+	protected synchronized void retain(BaseEvent event) {
 		Info info = events.get(event);
 		if (info != null) {
 			info.refcount++;
@@ -102,11 +108,13 @@ public class AllocationDebugger {
 		}
 	}
 
-    /**
-     * Release event if there's no more references to it
-     * @param event         Event
-     */
-    protected synchronized void release(BaseEvent event) {
+	/**
+	 * Release event if there's no more references to it
+	 * 
+	 * @param event
+	 *            Event
+	 */
+	protected synchronized void release(BaseEvent event) {
 		Info info = events.get(event);
 		if (info != null) {
 			info.refcount--;
@@ -118,10 +126,10 @@ public class AllocationDebugger {
 		}
 	}
 
-    /**
-     * Dumps allocations
-     */
-    public synchronized void dump() {
+	/**
+	 * Dumps allocations
+	 */
+	public synchronized void dump() {
 		if (log.isDebugEnabled()) {
 			log.debug("dumping allocations " + events.size());
 			for (Entry<BaseEvent, Info> entry : events.entrySet()) {

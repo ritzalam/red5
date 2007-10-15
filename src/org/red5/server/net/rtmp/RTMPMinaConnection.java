@@ -24,21 +24,21 @@ import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoSession;
 import org.red5.server.api.IScope;
 import org.red5.server.jmx.JMXAgent;
 import org.red5.server.jmx.JMXFactory;
 import org.red5.server.net.rtmp.message.Packet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RTMPMinaConnection extends RTMPConnection implements
 		RTMPMinaConnectionMBean {
 	/**
 	 * Logger
 	 */
-	protected static Log log = LogFactory.getLog(RTMPMinaConnection.class
+	protected static Logger log = LoggerFactory.getLogger(RTMPMinaConnection.class
 			.getName());
 
 	/**

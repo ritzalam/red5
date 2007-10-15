@@ -24,8 +24,6 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.server.api.Red5;
 import org.red5.server.net.protocol.SimpleProtocolDecoder;
@@ -35,6 +33,8 @@ import org.red5.server.net.rtmp.RTMPHandler;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.message.Packet;
 import org.red5.server.net.servlet.ServletUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A RTMPT client / session.
@@ -45,7 +45,7 @@ import org.red5.server.net.servlet.ServletUtils;
 
 public class RTMPTConnection extends RTMPConnection {
 
-	protected static Log log = LogFactory.getLog(RTMPTConnection.class
+	protected static Logger log = LoggerFactory.getLogger(RTMPTConnection.class
 			.getName());
 
 	/**

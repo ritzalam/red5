@@ -7,12 +7,12 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoHandlerAdapter;
 import org.apache.mina.common.IoSession;
 import org.red5.io.utils.HexDump;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -45,7 +45,7 @@ import org.red5.io.utils.HexDump;
  */
 public class BasicHandler extends IoHandlerAdapter {
 
-	protected static Log log = LogFactory.getLog(BasicHandler.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(BasicHandler.class);
 
 	static final int TICK = 1000;
 	static final int TIMEOUT = 10000;

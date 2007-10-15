@@ -23,12 +23,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.Properties;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-/*
-import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.common.ByteBufferAllocator;
-*/
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.access.ContextSingletonBeanFactoryLocator;
 
 /**
@@ -43,7 +39,7 @@ public class Standalone {
     /**
      * Initialize Logging
      */
-    protected static Log log = LogFactory.getLog(Standalone.class.getName());
+    protected static Logger log = LoggerFactory.getLogger(Standalone.class);
 
 	protected static String red5Config = "red5.xml";
 

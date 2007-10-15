@@ -22,7 +22,6 @@ package org.red5.server.stream;
 import java.io.IOException;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
 import org.red5.server.BaseConnection;
 import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IConnection;
@@ -48,13 +47,15 @@ import org.red5.server.net.rtmp.Channel;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.status.Status;
 import org.red5.server.net.rtmp.status.StatusCodes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Stream service
  */
 public class StreamService implements IStreamService {
 
-	private static Logger logger = Logger.getLogger(StreamService.class);
+	private static Logger logger = LoggerFactory.getLogger(StreamService.class);
 
 	/** {@inheritDoc} */
     public void closeStream() {

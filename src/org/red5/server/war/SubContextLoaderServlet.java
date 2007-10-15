@@ -24,7 +24,8 @@ import java.rmi.Naming;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.context.ContextLoader;
 
 /**
@@ -42,8 +43,8 @@ public class SubContextLoaderServlet extends RootContextLoaderServlet {
 	private final static long serialVersionUID = 41919712007L;
 
 	// Initialize Logging
-	public static Logger logger = Logger
-			.getLogger(SubContextLoaderServlet.class.getName());
+	public static Logger logger = LoggerFactory
+			.getLogger(SubContextLoaderServlet.class);
 
 	private static ServletContext servletContext;
 
@@ -111,7 +112,7 @@ public class SubContextLoaderServlet extends RootContextLoaderServlet {
 			}
 
 		} catch (Throwable t) {
-			logger.error(t);
+			logger.error("", t);
 		}
 
 		long startupIn = System.currentTimeMillis() - time;

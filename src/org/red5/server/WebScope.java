@@ -23,13 +23,13 @@ import java.util.Iterator;
 
 import javax.servlet.ServletContext;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.IApplicationContext;
 import org.red5.server.api.IApplicationLoader;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IGlobalScope;
 import org.red5.server.api.IServer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.context.ServletContextAware;
 
 /**
@@ -51,7 +51,7 @@ public class WebScope extends Scope implements ServletContextAware {
 	/**
 	 * Logger
 	 */
-	protected static Log log = LogFactory.getLog(WebScope.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(WebScope.class);
 
 	/**
 	 * Server instance
@@ -136,7 +136,7 @@ public class WebScope extends Scope implements ServletContextAware {
 	 *            Server instance
 	 */
 	public void setServer(IServer server) {
-		log.info(server);
+		log.info("Set server", server);
 		this.server = server;
 	}
 

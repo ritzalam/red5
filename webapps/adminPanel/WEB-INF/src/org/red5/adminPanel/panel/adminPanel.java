@@ -19,7 +19,6 @@
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
@@ -32,8 +31,6 @@ import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
 import org.red5.server.api.ScopeUtils;
-import org.red5.server.api.Red5;
-import org.red5.server.api.IClientRegistry;
 
 /**
  * Admin Panel for Red5 Server

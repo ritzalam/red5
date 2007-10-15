@@ -28,8 +28,6 @@ import java.util.Enumeration;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 
-import org.apache.commons.logging.LogFactory;
-import org.apache.log4j.Logger;
 import org.red5.server.ClientRegistry;
 import org.red5.server.Context;
 import org.red5.server.GlobalScope;
@@ -39,6 +37,8 @@ import org.red5.server.Server;
 import org.red5.server.WebScope;
 import org.red5.server.jmx.JMXAgent;
 import org.red5.server.service.ServiceInvoker;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.web.context.ConfigurableWebApplicationContext;
@@ -61,8 +61,7 @@ public class WarLoaderServlet extends ContextLoaderListener {
 	private final static long serialVersionUID = 41919712008L;
 
 	// Initialize Logging
-	public static Logger logger = Logger.getLogger(WarLoaderServlet.class
-			.getName());
+	public static Logger logger = LoggerFactory.getLogger(WarLoaderServlet.class);
 
 	private static ArrayList<ServletContext> registeredContexts = new ArrayList<ServletContext>(
 			3);
@@ -124,7 +123,7 @@ public class WarLoaderServlet extends ContextLoaderListener {
 					.getParentBeanFactory();
 
 		} catch (Throwable t) {
-			logger.error(t);
+			logger.error("", t);
 		}
 
 		long startupIn = System.currentTimeMillis() - time;
@@ -229,8 +228,7 @@ public class WarLoaderServlet extends ContextLoaderListener {
 			} finally {
 				// http://jakarta.apache.org/commons/logging/guide.html#Classloader_and_Memory_Management
 				// http://wiki.apache.org/jakarta-commons/Logging/UndeployMemoryLeak?action=print
-				LogFactory.release(Thread.currentThread()
-						.getContextClassLoader());
+				//LogFactory.release(Thread.currentThread().getContextClassLoader());
 			}
 		}
 	}

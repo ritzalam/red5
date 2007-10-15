@@ -22,8 +22,8 @@ package org.red5.server;
 import java.util.HashMap;
 import java.util.Properties;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationContext;
@@ -39,7 +39,7 @@ public class ContextLoader implements ApplicationContextAware {
 	/**
 	 * Logger
 	 */
-	protected static Log log = LogFactory.getLog(ContextLoader.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(ContextLoader.class);
 
 	/**
 	 * Spring Application context

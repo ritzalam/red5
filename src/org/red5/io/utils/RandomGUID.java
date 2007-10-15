@@ -19,9 +19,12 @@ package org.red5.io.utils;
  *
  */
 
-import java.net.*;
-import java.util.*;
-import java.security.*;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.util.Random;
 
 /*
  * In the multitude of java GUID generators, I found none that

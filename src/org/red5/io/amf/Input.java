@@ -29,8 +29,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.io.amf3.ByteArray;
 import org.red5.io.object.BaseInput;
@@ -41,6 +39,8 @@ import org.red5.io.object.RecordSetPage;
 import org.red5.io.utils.ObjectMap;
 import org.red5.io.utils.XMLUtils;
 import org.red5.server.service.ConversionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
 /**
@@ -51,7 +51,7 @@ import org.w3c.dom.Document;
  */
 public class Input extends BaseInput implements org.red5.io.object.Input {
 
-	protected static Log log = LogFactory.getLog(Input.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(Input.class);
 
 	protected ByteBuffer buf;
 

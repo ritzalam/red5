@@ -33,9 +33,9 @@ import javax.servlet.ServletContextListener;
 import javax.servlet.http.HttpServlet;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.logging.LogFactory;
-import org.apache.log4j.Logger;
 import org.red5.server.jmx.JMXAgent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.web.context.ConfigurableWebApplicationContext;
@@ -57,7 +57,7 @@ public class MainServlet extends HttpServlet implements ServletContextListener {
 	private final static long serialVersionUID = 41919712006L;
 
 	// Initialize Logging
-	public static Logger logger = Logger.getLogger(MainServlet.class.getName());
+	public static Logger logger = LoggerFactory.getLogger(MainServlet.class);
 
 	protected static String red5Config = "/WEB-INF/applicationContext.xml";
 
@@ -165,7 +165,7 @@ public class MainServlet extends HttpServlet implements ServletContextListener {
 			factory.registerSingleton("default.context", applicationContext);
 
 		} catch (Throwable e) {
-			logger.error(e);
+			logger.error("", e);
 		}
 
 		long startupIn = System.currentTimeMillis() - time;
@@ -218,7 +218,7 @@ public class MainServlet extends HttpServlet implements ServletContextListener {
 			applicationContext.close();
 			// http://jakarta.apache.org/commons/logging/guide.html#Classloader_and_Memory_Management
 			// http://wiki.apache.org/jakarta-commons/Logging/UndeployMemoryLeak?action=print
-			LogFactory.release(Thread.currentThread().getContextClassLoader());
+			// LogFactory.release(Thread.currentThread().getContextClassLoader());
 		} catch (Throwable e) {
 			// may get a java.lang.StackOverflowError when shutting appcontext
 			// down in jboss

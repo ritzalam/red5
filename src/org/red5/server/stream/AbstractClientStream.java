@@ -21,8 +21,8 @@ package org.red5.server.stream;
 
 import java.lang.ref.WeakReference;
 
-import org.red5.server.api.IBandwidthConfigure;
 import org.red5.server.api.IBWControllable;
+import org.red5.server.api.IBandwidthConfigure;
 import org.red5.server.api.stream.IClientStream;
 import org.red5.server.api.stream.IStreamCapableConnection;
 

@@ -15,10 +15,10 @@
  */
 package org.red5.server.pooling;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.commons.pool.impl.GenericObjectPool;
 import org.red5.server.jmx.JMXAgent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * ThreadPool - Extends GenericObjectPool. Overrides some methods and provides
@@ -30,7 +30,7 @@ public class ThreadPool extends GenericObjectPool implements ThreadPoolMBean {
 	/**
 	 * Logger for this class
 	 */
-	private static final Log log = LogFactory.getLog(ThreadPool.class);
+	private static final Logger log = LoggerFactory.getLogger(ThreadPool.class);
 
 	/**
 	 * Constructor when there is no configuration available. Please refer

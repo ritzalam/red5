@@ -28,8 +28,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.red5.server.BaseConnection;
 import org.red5.server.BasicScope;
 import org.red5.server.api.IAttributeStore;
@@ -46,6 +44,8 @@ import org.red5.server.api.so.ISharedObjectSecurityService;
 import org.red5.server.api.statistics.ISharedObjectStatistics;
 import org.red5.server.net.rtmp.status.StatusCodes;
 import org.red5.server.service.ServiceUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Special scope for shared objects
@@ -54,7 +54,7 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
     /**
      * Logger
      */
-	private Log log = LogFactory.getLog(SharedObjectScope.class.getName());
+	private Logger log = LoggerFactory.getLogger(SharedObjectScope.class);
     /**
      * Lock to synchronize shared object updates from multiple threads
      */

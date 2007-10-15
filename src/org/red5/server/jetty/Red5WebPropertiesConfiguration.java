@@ -22,8 +22,6 @@ package org.red5.server.jetty;
 import java.util.EventListener;
 import java.util.Properties;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.mortbay.jetty.handler.ContextHandler;
 import org.mortbay.jetty.webapp.Configuration;
 import org.mortbay.jetty.webapp.WebAppContext;
@@ -38,6 +36,8 @@ import org.red5.server.api.IMappingStrategy;
 import org.red5.server.api.IScopeResolver;
 import org.red5.server.api.IServer;
 import org.red5.server.api.service.IServiceInvoker;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.access.BeanFactoryLocator;
 import org.springframework.beans.factory.access.BeanFactoryReference;
 import org.springframework.context.ApplicationContext;
@@ -58,8 +58,7 @@ public class Red5WebPropertiesConfiguration implements Configuration,
     /**
      * Logger
      */
-	protected static Log log = LogFactory
-			.getLog(Red5WebPropertiesConfiguration.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(Red5WebPropertiesConfiguration.class);
 
     /**
      * Web application context

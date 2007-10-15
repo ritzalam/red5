@@ -19,8 +19,6 @@ package org.red5.server.net.rtmp;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoHandlerAdapter;
 import org.apache.mina.common.IoSession;
@@ -30,6 +28,8 @@ import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.message.Constants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -42,7 +42,7 @@ implements ApplicationContextAware {
     /**
      * Logger
      */
-	protected static Log log = LogFactory.getLog(RTMPMinaIoHandler.class
+	protected static Logger log = LoggerFactory.getLogger(RTMPMinaIoHandler.class
 			.getName());
 
     /**

@@ -34,10 +34,10 @@ import java.util.Set;
 import org.apache.commons.beanutils.BeanMap;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.ConversionException;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.red5.io.object.Deserializer;
 import org.red5.server.api.IConnection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Misc utils for convertions
@@ -47,7 +47,7 @@ import org.red5.server.api.IConnection;
  */
 public class ConversionUtils {
 
-	protected static Log log = LogFactory.getLog(Deserializer.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(Deserializer.class);
 
 	private static final Class[] PRIMITIVES = { boolean.class, byte.class,
 			char.class, short.class, int.class, long.class, float.class,

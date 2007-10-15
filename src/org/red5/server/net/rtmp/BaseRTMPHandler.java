@@ -22,8 +22,6 @@ package org.red5.server.net.rtmp;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.server.api.Red5;
 import org.red5.server.api.event.IEventDispatcher;
@@ -47,6 +45,8 @@ import org.red5.server.net.rtmp.message.Packet;
 import org.red5.server.net.rtmp.status.StatusCodes;
 import org.red5.server.so.SharedObjectMessage;
 import org.red5.server.stream.PlaylistSubscriberStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -60,7 +60,7 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
     /**
      * Logger
      */
-	protected static Log log = LogFactory.getLog(BaseRTMPHandler.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(BaseRTMPHandler.class);
 
     /**
      * Application context
@@ -198,7 +198,7 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 					}
 			}
 			if (message instanceof Unknown) {
-				log.info(message);
+				log.info("", message);
 			}
 		} catch (RuntimeException e) {
 			// TODO Auto-generated catch block

@@ -29,8 +29,6 @@ import org.apache.commons.httpclient.HttpConnectionManager;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.io.amf.Input;
 import org.red5.io.amf.Output;
@@ -40,6 +38,8 @@ import org.red5.io.object.Serializer;
 import org.red5.server.net.servlet.ServletUtils;
 import org.red5.server.pooling.ThreadPool;
 import org.red5.server.pooling.WorkerThread;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Client interface for remoting calls.
@@ -52,8 +52,7 @@ public class RemotingClient {
     /**
      * Logger
      */
-	protected static Log log = LogFactory
-			.getLog(RemotingClient.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(RemotingClient.class);
 
 	/** Default timeout to use. */
 	public static final int DEFAULT_TIMEOUT = 30000;

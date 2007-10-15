@@ -19,12 +19,12 @@ package org.red5.server.stream;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.net.rtmp.event.VideoData.FrameType;
 import org.red5.server.stream.message.RTMPMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * State machine for video frame dropping in live streams.
@@ -52,7 +52,7 @@ import org.red5.server.stream.message.RTMPMessage;
  */
 public class VideoFrameDropper implements IFrameDropper {
 
-	protected static Log log = LogFactory.getLog(VideoFrameDropper.class
+	protected static Logger log = LoggerFactory.getLogger(VideoFrameDropper.class
 			.getName());
 
 	/** Current state. */

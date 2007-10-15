@@ -21,8 +21,9 @@ package org.red5.server.api;
 
 import java.lang.reflect.Field;
 
-import org.apache.log4j.Logger;
 import org.red5.server.api.persistence.IPersistable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 
 /**
@@ -30,7 +31,7 @@ import org.springframework.context.ApplicationContext;
  */
 public class ScopeUtils {
 
-	private static final Logger log = Logger.getLogger(ScopeUtils.class);
+	private static final Logger log = LoggerFactory.getLogger(ScopeUtils.class);
 
 	private static final int GLOBAL = 0x00;
 
@@ -233,7 +234,7 @@ public class ScopeUtils {
 			try {
 				result = defaultClass.newInstance();
 			} catch (Exception e) {
-				log.error(e);
+				log.error("", e);
 				return null;
 			}
 		} else {
@@ -329,7 +330,7 @@ public class ScopeUtils {
 			try {
 				handler = defaultClass.newInstance();
 			} catch (Exception e) {
-				log.error(e);
+				log.error("", e);
 			}
 		}
 

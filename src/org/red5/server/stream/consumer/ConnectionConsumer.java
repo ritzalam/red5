@@ -19,8 +19,6 @@ package org.red5.server.stream.consumer;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.IBWControllable;
 import org.red5.server.api.IBandwidthConfigure;
 import org.red5.server.api.IConnectionBWConfig;
@@ -48,6 +46,8 @@ import org.red5.server.stream.StreamTracker;
 import org.red5.server.stream.message.RTMPMessage;
 import org.red5.server.stream.message.ResetMessage;
 import org.red5.server.stream.message.StatusMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * RTMP connection consumer.
@@ -57,7 +57,7 @@ public class ConnectionConsumer implements IPushableConsumer,
     /**
      * Logger
      */
-    private static final Log log = LogFactory.getLog(ConnectionConsumer.class);
+    private static final Logger log = LoggerFactory.getLogger(ConnectionConsumer.class);
     /**
      * Connection consumer class name
      */

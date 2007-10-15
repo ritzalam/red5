@@ -24,9 +24,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.persistence.IPersistable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Thread that writes modified persistent objects to the filesystem periodically.
@@ -39,7 +39,7 @@ public class FilePersistenceThread extends Thread {
     /**
      * Logger
      */
-    private Log log = LogFactory.getLog(FilePersistenceThread.class.getName());
+    private Logger log = LoggerFactory.getLogger(FilePersistenceThread.class);
     
 	/**
 	 * Interval to serialize modified objects in milliseconds.

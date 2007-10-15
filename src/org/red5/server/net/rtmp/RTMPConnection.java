@@ -31,8 +31,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.management.ObjectName;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.server.BaseConnection;
 import org.red5.server.api.IBWControllable;
@@ -70,6 +68,8 @@ import org.red5.server.stream.OutputStream;
 import org.red5.server.stream.PlaylistSubscriberStream;
 import org.red5.server.stream.StreamService;
 import org.red5.server.stream.VideoCodecFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 
 /**
@@ -83,8 +83,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/**
 	 * Logger
 	 */
-	protected static Log log = LogFactory
-			.getLog(RTMPConnection.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(RTMPConnection.class);
 
 	/**
 	 * Video codec factory constant
@@ -621,7 +620,8 @@ public abstract class RTMPConnection extends BaseConnection implements
 		if (bytesRead >= nextBytesRead) {
 			BytesRead sbr = new BytesRead((int) bytesRead);
 			getChannel((byte) 2).write(sbr);
-			log.info(sbr);
+			//@todo: what do we want to see printed here?
+			//log.info(sbr);
 			nextBytesRead += bytesReadInterval;
 		}
 	}

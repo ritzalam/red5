@@ -25,11 +25,11 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.server.api.cache.ICacheStore;
 import org.red5.server.api.cache.ICacheable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -42,7 +42,7 @@ import org.springframework.context.ApplicationContextAware;
  */
 public class CacheImpl implements ICacheStore, ApplicationContextAware {
 
-	protected static Log log = LogFactory.getLog(CacheImpl.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(CacheImpl.class);
 
 	private static volatile CacheImpl instance;
 

@@ -21,8 +21,8 @@ package org.red5.io.utils;
 
 import java.nio.charset.Charset;
 
-import org.apache.commons.logging.Log;
 import org.apache.mina.common.ByteBuffer;
+import org.slf4j.Logger;
 
 /**
  * Misc I/O util methods
@@ -136,7 +136,7 @@ public class IOUtils {
      * @param msg          Message
      * @param buf          Byte buffer to debug
      */
-    public static void debug(Log log, String msg, ByteBuffer buf) {
+    public static void debug(Logger log, String msg, ByteBuffer buf) {
 		if (log.isDebugEnabled()) {
 
 			log.debug(msg);

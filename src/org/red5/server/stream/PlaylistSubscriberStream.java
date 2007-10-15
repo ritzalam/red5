@@ -28,8 +28,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.io.amf.Output;
 import org.red5.io.object.Serializer;
@@ -72,6 +70,8 @@ import org.red5.server.stream.ITokenBucket.ITokenBucketCallback;
 import org.red5.server.stream.message.RTMPMessage;
 import org.red5.server.stream.message.ResetMessage;
 import org.red5.server.stream.message.StatusMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Stream of playlist subsciber
@@ -82,8 +82,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
     /**
      *
      */
-    private static final Log log = LogFactory
-			.getLog(PlaylistSubscriberStream.class);
+    private static final Logger log = LoggerFactory.getLogger(PlaylistSubscriberStream.class);
 
     /**
      * Possible states enumeration

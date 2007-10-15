@@ -23,12 +23,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.collections.BeanMap;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.io.amf.Output;
 import org.red5.io.object.Serializer;
 import org.red5.io.utils.HexDump;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Service that works with status objects.
@@ -42,7 +42,7 @@ public class StatusObjectService implements StatusCodes {
     /**
      * Logger
      */
-	protected static Log log = LogFactory.getLog(StatusObjectService.class
+	protected static Logger log = LoggerFactory.getLogger(StatusObjectService.class
 			.getName());
 
     /**

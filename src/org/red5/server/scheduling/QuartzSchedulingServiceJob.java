@@ -19,13 +19,13 @@ package org.red5.server.scheduling;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Scheduled job that is registered in the Quartz scheduler. 
@@ -47,7 +47,7 @@ public class QuartzSchedulingServiceJob implements Job {
     /**
      * Logger
      */
-    private Log log = LogFactory.getLog( QuartzSchedulingService.class );
+    private Logger log = LoggerFactory.getLogger( QuartzSchedulingService.class );
 
     /** {@inheritDoc} */
     public void execute(JobExecutionContext arg0) throws JobExecutionException {

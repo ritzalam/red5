@@ -19,10 +19,10 @@ package org.red5.server.net.rtmpt;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.mortbay.jetty.Server;
 import org.red5.server.api.IServer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -39,7 +39,7 @@ public class RTMPTLoader implements ApplicationContextAware {
     /**
      * Logger
      */
-	protected static Log log = LogFactory.getLog(RTMPTLoader.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(RTMPTLoader.class);
     /**
      * Application context
      */

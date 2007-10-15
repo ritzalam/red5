@@ -24,8 +24,6 @@ import java.io.FileOutputStream;
 import java.net.InetSocketAddress;
 import java.nio.channels.WritableByteChannel;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.ConnectFuture;
 import org.apache.mina.common.IoHandlerAdapter;
@@ -38,13 +36,15 @@ import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.message.Header;
 import org.red5.server.net.rtmp.message.Packet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ResourceLoaderAware;
 import org.springframework.core.io.ResourceLoader;
 
 public class DebugProxyHandler extends IoHandlerAdapter implements
 		ResourceLoaderAware {
 
-	protected static Log log = LogFactory.getLog(DebugProxyHandler.class
+	protected static Logger log = LoggerFactory.getLogger(DebugProxyHandler.class
 			.getName());
 
 	private ResourceLoader loader;
@@ -192,8 +192,8 @@ public class DebugProxyHandler extends IoHandlerAdapter implements
 			final Object message = packet.getMessage();
 			final Header source = packet.getHeader();
 
-			log.debug(source);
-			log.debug(message);
+			log.debug("", source);
+			log.debug("", message);
 
 		} catch (RuntimeException e) {
 			log.error("Exception", e);

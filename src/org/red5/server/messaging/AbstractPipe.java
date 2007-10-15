@@ -23,8 +23,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Abstract pipe that books providers/consumers and listeners.
@@ -40,7 +40,7 @@ public abstract class AbstractPipe implements IPipe {
     /**
      * Logger
      */
-    private static final Log log = LogFactory.getLog(AbstractPipe.class);
+    private static final Logger log = LoggerFactory.getLogger(AbstractPipe.class);
 
     /**
      * Pipe consumers list

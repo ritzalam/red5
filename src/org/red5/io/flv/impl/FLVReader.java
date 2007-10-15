@@ -29,8 +29,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.io.IKeyFrameMetaCache;
 import org.red5.io.IStreamableFile;
@@ -42,6 +40,8 @@ import org.red5.io.flv.FLVHeader;
 import org.red5.io.flv.IKeyFrameDataAnalyzer;
 import org.red5.io.object.Serializer;
 import org.red5.io.utils.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -60,7 +60,7 @@ public class FLVReader implements IoConstants, ITagReader,
     /**
      * Logger
      */
-    private static Log log = LogFactory.getLog(FLVReader.class.getName());
+    private static Logger log = LoggerFactory.getLogger(FLVReader.class);
 
     /**
      * File

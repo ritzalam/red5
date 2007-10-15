@@ -33,10 +33,10 @@ import net.sf.ehcache.config.Configuration;
 import net.sf.ehcache.config.ConfigurationHelper;
 import net.sf.ehcache.event.CacheManagerEventListener;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.cache.ICacheStore;
 import org.red5.server.api.cache.ICacheable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -51,7 +51,7 @@ import org.springframework.context.ApplicationContextAware;
  */
 public class EhCacheImpl implements ICacheStore, ApplicationContextAware {
 
-	protected static Log log = LogFactory.getLog(EhCacheImpl.class
+	protected static Logger log = LoggerFactory.getLogger(EhCacheImpl.class
 			.getName());
 
 	private static Ehcache cache;

@@ -22,8 +22,8 @@ package org.red5.server.messaging;
 import java.io.IOException;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A simple in-memory version of pull-pull pipe.
@@ -34,8 +34,7 @@ import org.apache.commons.logging.LogFactory;
  * @author Steven Gong (steven.gong@gmail.com)
  */
 public class InMemoryPullPullPipe extends AbstractPipe {
-	private static final Log log = LogFactory
-			.getLog(InMemoryPullPullPipe.class);
+	private static final Logger log = LoggerFactory.getLogger(InMemoryPullPullPipe.class);
 
     /** {@inheritDoc} */
     @Override

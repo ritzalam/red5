@@ -29,11 +29,11 @@ import java.nio.ShortBuffer;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.ByteBufferAllocator;
 import org.apache.mina.util.ExpiringStack;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A {@link ByteBufferAllocator} which pools allocated buffers.
@@ -57,8 +57,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
     /**
      *  Logger
      */
-	protected static Log log = LogFactory
-			.getLog(DebugPooledByteBufferAllocator.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(DebugPooledByteBufferAllocator.class);
     /**
      *
      */

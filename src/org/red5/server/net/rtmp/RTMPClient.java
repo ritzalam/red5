@@ -23,8 +23,6 @@ import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.mina.transport.socket.nio.SocketConnector;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Serializer;
@@ -49,6 +47,8 @@ import org.red5.server.service.PendingCall;
 import org.red5.server.service.ServiceInvoker;
 import org.red5.server.so.ClientSharedObject;
 import org.red5.server.so.SharedObjectMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * RTMP client object. Initial client mode code by Christian Eckerle.
@@ -62,7 +62,7 @@ public class RTMPClient extends BaseRTMPHandler {
     /**
      * Logger
      */
-	protected static Log log = LogFactory.getLog(RTMPClient.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(RTMPClient.class);
     /**
      * I/O handler
      */

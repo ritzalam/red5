@@ -19,10 +19,10 @@ package org.red5.server.stream.codec;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.server.api.stream.IVideoStreamCodec;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Red5 video codec for the screen capture format. 
@@ -34,7 +34,7 @@ public class ScreenVideo implements IVideoStreamCodec {
     /**
      *
      */
-	private Log log = LogFactory.getLog(ScreenVideo.class.getName());
+	private Logger log = LoggerFactory.getLogger(ScreenVideo.class);
     /**
      * FLV codec name constant
      */

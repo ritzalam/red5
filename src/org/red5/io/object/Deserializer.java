@@ -19,8 +19,8 @@ package org.red5.io.object;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The Deserializer class reads data input and handles the data 
@@ -32,7 +32,7 @@ import org.apache.commons.logging.LogFactory;
 public class Deserializer {
 
 	// Initialize Logging
-	protected static Log log = LogFactory.getLog(Deserializer.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(Deserializer.class);
 
 	/**
 	 * Deserializes the input parameter and returns an Object

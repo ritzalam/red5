@@ -24,8 +24,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A simple in-memory version of push-push pipe.
@@ -36,8 +36,7 @@ import org.apache.commons.logging.LogFactory;
  * @author Steven Gong (steven.gong@gmail.com)
  */
 public class InMemoryPushPushPipe extends AbstractPipe {
-	private static final Log log = LogFactory
-			.getLog(InMemoryPushPushPipe.class);
+	private static final Logger log = LoggerFactory.getLogger(InMemoryPushPushPipe.class);
 
 	/** {@inheritDoc} */
     @Override

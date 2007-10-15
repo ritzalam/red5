@@ -23,16 +23,16 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.red5.io.amf3.ByteArray;
 import org.red5.io.object.BaseInput;
 import org.red5.io.object.Deserializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
 public class Input extends BaseInput implements org.red5.io.object.Input {
 
-	protected static Log log = LogFactory.getLog(Input.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(Input.class);
 
 	protected List list;
 

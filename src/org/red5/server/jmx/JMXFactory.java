@@ -26,7 +26,10 @@ import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
 import javax.management.StandardMBean;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 
 
 /**
@@ -48,7 +51,7 @@ public class JMXFactory {
 
 	private static String domain = "org.red5.server";
 
-	private static Logger log = Logger.getLogger(JMXFactory.class);
+	private static Logger log = LoggerFactory.getLogger(JMXFactory.class);
 
 	private static MBeanServer mbs;
 

@@ -33,8 +33,6 @@ import java.util.TimeZone;
 
 import org.apache.commons.collections.BeanMap;
 import org.apache.commons.collections.map.LRUMap;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.annotations.Anonymous;
 import org.red5.annotations.DontSerialize;
@@ -44,6 +42,8 @@ import org.red5.io.object.ICustomSerializable;
 import org.red5.io.object.RecordSet;
 import org.red5.io.object.Serializer;
 import org.red5.io.utils.XMLUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
 /**
@@ -53,7 +53,7 @@ import org.w3c.dom.Document;
  */
 public class Output extends BaseOutput implements org.red5.io.object.Output {
 
-	protected static Log log = LogFactory.getLog(Output.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(Output.class);
 
 	/**
 	 * Cache encoded strings.

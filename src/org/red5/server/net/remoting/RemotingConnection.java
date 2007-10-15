@@ -42,7 +42,6 @@ import org.red5.server.api.IScope;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.remoting.IRemotingConnection;
 import org.red5.server.api.remoting.IRemotingHeader;
-import org.red5.server.net.remoting.RemotingHeader;
 import org.red5.server.net.remoting.message.RemotingPacket;
 import org.red5.server.net.servlet.ServletUtils;
 

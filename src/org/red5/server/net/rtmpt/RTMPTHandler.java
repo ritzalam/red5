@@ -19,8 +19,6 @@ package org.red5.server.net.rtmpt;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.protocol.SimpleProtocolCodecFactory;
@@ -28,6 +26,8 @@ import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.RTMPHandler;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.message.Constants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Handler for RTMPT messages.
@@ -40,7 +40,7 @@ public class RTMPTHandler extends RTMPHandler {
     /**
      * Logger
      */
-    protected static Log log = LogFactory.getLog(RTMPTHandler.class.getName());
+    protected static Logger log = LoggerFactory.getLogger(RTMPTHandler.class);
 
     /**
      * Handler constant

@@ -23,10 +23,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.server.api.stream.IVideoStreamCodec;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Factory for video codecs. Creates and returns video codecs
@@ -39,7 +39,7 @@ public class VideoCodecFactory {
     /**
      * Logger for video factory
      */
-	private Log log = LogFactory.getLog(VideoCodecFactory.class.getName());
+	private Logger log = LoggerFactory.getLogger(VideoCodecFactory.class);
     /**
      * List of available codecs
      */

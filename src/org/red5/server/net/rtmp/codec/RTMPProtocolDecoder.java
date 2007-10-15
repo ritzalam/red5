@@ -25,8 +25,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.io.amf.AMF;
 import org.red5.io.object.Deserializer;
@@ -65,6 +63,8 @@ import org.red5.server.so.FlexSharedObjectMessage;
 import org.red5.server.so.ISharedObjectEvent;
 import org.red5.server.so.ISharedObjectMessage;
 import org.red5.server.so.SharedObjectMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * RTMP protocol decoder
@@ -75,13 +75,13 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
     /**
      * Logger
      */
-    protected static Log log = LogFactory.getLog(RTMPProtocolDecoder.class
+    protected static Logger log = LoggerFactory.getLogger(RTMPProtocolDecoder.class
 			.getName());
 
     /**
      * I/O logger
      */
-    protected static Log ioLog = LogFactory.getLog(RTMPProtocolDecoder.class
+    protected static Logger ioLog = LoggerFactory.getLogger(RTMPProtocolDecoder.class
 			.getName()
 			+ ".in");
 

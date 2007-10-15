@@ -22,8 +22,6 @@ package org.red5.server.net.rtmp.codec;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.io.object.Output;
 import org.red5.io.object.Serializer;
@@ -57,6 +55,8 @@ import org.red5.server.net.rtmp.status.StatusObject;
 import org.red5.server.service.Call;
 import org.red5.server.so.ISharedObjectEvent;
 import org.red5.server.so.ISharedObjectMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * RTMP protocol encoder encodes RTMP messages and packets to byte buffers.
@@ -67,13 +67,13 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
     /**
      * Logger
      */
-    protected static Log log = LogFactory.getLog(RTMPProtocolEncoder.class
+    protected static Logger log = LoggerFactory.getLogger(RTMPProtocolEncoder.class
 			.getName());
 
     /**
      * I/O operations logger
      */
-    protected static Log ioLog = LogFactory.getLog(RTMPProtocolEncoder.class
+    protected static Logger ioLog = LoggerFactory.getLogger(RTMPProtocolEncoder.class
 			.getName()
 			+ ".out");
 

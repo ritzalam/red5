@@ -25,14 +25,14 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IGlobalScope;
 import org.red5.server.api.IScope;
 import org.red5.server.api.IServer;
 import org.red5.server.api.listeners.IConnectionListener;
 import org.red5.server.api.listeners.IScopeListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.style.ToStringCreator;
@@ -43,7 +43,7 @@ import org.springframework.core.style.ToStringCreator;
 public class Server implements IServer, ApplicationContextAware {
 
 	// Initialize Logging
-	protected static Log log = LogFactory.getLog(Server.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(Server.class);
 
 	/**
 	 * List of global scopes
@@ -115,7 +115,7 @@ public class Server implements IServer, ApplicationContextAware {
 	 * @return Global scope
 	 */
 	public IGlobalScope lookupGlobal(String hostName, String contextPath) {
-		log.debug(this);
+		log.debug("", this);
 		// Init mappings key
 		String key = getKey(hostName, contextPath);
 		// If context path contains slashes get complex key and look up for it

@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 
-import org.apache.log4j.Logger;
 import org.mortbay.jetty.handler.ContextHandler;
 import org.mortbay.jetty.webapp.WebAppContext;
 import org.python.core.Py;
@@ -13,6 +12,8 @@ import org.python.core.PyJavaInstance;
 import org.python.core.PyObject;
 import org.python.core.PySystemState;
 import org.python.util.PythonInterpreter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scripting.ScriptCompilationException;
 import org.springframework.scripting.ScriptFactory;
 import org.springframework.scripting.ScriptSource;
@@ -27,7 +28,7 @@ import org.springframework.util.Assert;
  */
 public class JythonScriptFactory implements ScriptFactory {
 
-	private static Logger logger = Logger.getLogger(JythonScriptFactory.class);
+	private static Logger logger = LoggerFactory.getLogger(JythonScriptFactory.class);
 	
 	private final String scriptSourceLocator;
 	private final Class[] scriptInterfaces;

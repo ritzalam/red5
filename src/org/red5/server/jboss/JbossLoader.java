@@ -22,9 +22,9 @@ package org.red5.server.jboss;
 import java.beans.Introspector;
 import java.io.File;
 
-import org.apache.commons.logging.LogFactory;
-import org.apache.log4j.Logger;
 import org.red5.server.jmx.JMXAgent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.ApplicationContext;
@@ -47,7 +47,7 @@ public class JbossLoader implements ApplicationContextAware, JbossLoaderMBean {
 	protected static ThreadLocal<ApplicationContext> applicationContext = new ThreadLocal<ApplicationContext>();
 
 	// Initialize Logging
-	protected static Logger logger = Logger.getLogger(JbossLoader.class
+	protected static Logger logger = LoggerFactory.getLogger(JbossLoader.class
 			.getName());
 
 	/**
@@ -139,7 +139,7 @@ public class JbossLoader implements ApplicationContextAware, JbossLoaderMBean {
 				factory.destroySingletons();
 			}
 			appContext.close();
-			LogFactory.release(Thread.currentThread().getContextClassLoader());
+			//LogFactory.release(Thread.currentThread().getContextClassLoader());
 		} catch (Exception e) {
 			logger.warn("Jboss could not be stopped", e);
 		}

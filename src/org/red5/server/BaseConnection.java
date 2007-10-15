@@ -27,13 +27,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
 import org.red5.server.api.event.IEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Base abstract class for connections. Adds connection specific functionality like work with clients
@@ -44,8 +44,7 @@ public abstract class BaseConnection extends AttributeStore implements
 	/**
 	 *  Logger
 	 */
-	protected static Log log = LogFactory
-			.getLog(BaseConnection.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(BaseConnection.class);
 
 	/**
 	 *  Connection type

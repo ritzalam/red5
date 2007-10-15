@@ -27,11 +27,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections.BeanMap;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.red5.io.amf3.ByteArray;
 import org.red5.io.amf3.IExternalizable;
 import org.red5.io.utils.ObjectMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
 /**
@@ -46,7 +46,7 @@ public class Serializer {
     /**
      * Logger
      */
-	protected static Log log = LogFactory.getLog(Serializer.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(Serializer.class);
 
 	/**
 	 * Serializes output to a core data type object

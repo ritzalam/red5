@@ -1,7 +1,6 @@
 package org.red5.server.net.rtmp.status;
 
 import org.red5.annotations.Anonymous;
-import org.red5.io.object.Flag;
 import org.red5.io.object.ICustomSerializable;
 import org.red5.io.object.Output;
 import org.red5.io.object.Serializer;
