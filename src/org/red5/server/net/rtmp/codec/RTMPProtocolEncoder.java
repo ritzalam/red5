@@ -65,20 +65,20 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
 	implements SimpleProtocolEncoder, Constants, IEventEncoder {
 
     /**
-     * Logger
+     * Logger.
      */
     protected static Logger log = LoggerFactory.getLogger(RTMPProtocolEncoder.class
 			.getName());
 
     /**
-     * I/O operations logger
+     * I/O operations logger.
      */
     protected static Logger ioLog = LoggerFactory.getLogger(RTMPProtocolEncoder.class
 			.getName()
 			+ ".out");
 
     /**
-     * Serializer object
+     * Serializer object.
      */
     private Serializer serializer;
 
@@ -99,7 +99,8 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
 	}
 
     /**
-     * Encode packet
+     * Encode packet.
+	 *
      * @param rtmp        RTMP protocol state
      * @param packet      RTMP packet
      * @return            Encoded data
@@ -217,7 +218,8 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
     }
     
     /**
-     * Encode RTMP header
+     * Encode RTMP header.
+	 *
      * @param header      RTMP message header
      * @param lastHeader  Previous header
      * @return            Encoded header data
@@ -229,7 +231,8 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
     }
     
     /**
-     * Encode RTMP header into given ByteBuffer
+     * Encode RTMP header into given ByteBuffer.
+	 *
      * @param header      RTMP message header
      * @param lastHeader  Previous header
      * @param buf         Buffer to write encoded header to
@@ -262,7 +265,8 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
 	}
 
     /**
-     * Encode message
+     * Encode message.
+	 *
      * @param rtmp        RTMP protocol state
      * @param header      RTMP message header
      * @param message     RTMP message (event)
@@ -307,7 +311,8 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
 	}
 
     /**
-     * Encode server-side bandwidth event
+     * Encode server-side bandwidth event.
+	 *
      * @param serverBW    Server-side bandwidth event
      * @return            Encoded event data
      */
@@ -318,7 +323,8 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
 	}
 
     /**
-     * Encode client-side bandwidth event
+     * Encode client-side bandwidth event.
+	 *
      * @param clientBW    Client-side bandwidth event
      * @return            Encoded event data
      */
@@ -485,7 +491,8 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
 	}
 
     /**
-     * Encode notification event
+     * Encode notification event.
+	 *
      * @param invoke            Notification event
      * @return                  Encoded event data
      */
@@ -497,7 +504,8 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
 	}
 
     /**
-     * Encode notification event and fill given byte buffer
+     * Encode notification event and fill given byte buffer.
+	 *
      * @param out               Byte buffer to fill
      * @param invoke            Notification event
      */
@@ -617,7 +625,7 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
 	}
 
 	/**
-     * Setter for serializer
+     * Setter for serializer.
      *
      * @param serializer Serializer
      */
@@ -626,7 +634,8 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
 	}
 
     /**
-     * Encodes Flex message event
+     * Encodes Flex message event.
+	 *
      * @param msg                Flex message event
      * @return                   Encoded data
      */

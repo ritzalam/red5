@@ -44,7 +44,7 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
 /**
- * Input for red5 data types
+ * Input for Red5 data types
  *
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
@@ -370,6 +370,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	/**
 	 * Creats a new instance of the className parameter and
 	 * returns as an Object
+	 *
 	 * @param className        Class name as String
 	 * @return Object          New object instance (for given class)
 	 */
@@ -387,6 +388,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 
     /**
      * Reads the input as a bean and returns an object
+	 *
      * @param deserializer       Deserializer used
      * @param bean               Input as bean
      * @return                   Decoded object
@@ -438,6 +440,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 
     /**
      * Reads the input as a map and returns a Map
+	 *
      * @param deserializer     Deserializer to use
      * @return                 Read map
      */
@@ -453,6 +456,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 
     /**
      * Reads start object
+	 *
      * @param deserializer    Deserializer to use
      * @return                Read object
      */
@@ -534,7 +538,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 
 	// Others
 	/**
-	 * Reads xml
+	 * Reads XML
 	 *
 	 * @return String       XML as string
 	 */

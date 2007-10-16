@@ -23,8 +23,10 @@ import org.apache.mina.common.ByteBuffer;
 import org.red5.io.ITag;
 
 /**
- * A Tag represents the contents or payload of a FLV file
+ * A Tag represents the contents or payload of a FLV file.
  * 
+ * @see <a href="http://osflash.org/flv#flv_tag">OSFlash (external)</a>
+ *
  * @author The Red5 Project (red5@osflash.org)
  * @author Dominick Accattato (daccattato@gmail.com)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
@@ -105,7 +107,6 @@ public class Tag implements ITag {
      * Getter for previous tag size
      *
      * @return Value for previous tag size
-     *
 	 */
 	public int getPreviuosTagSize() {
 		return previuosTagSize;
@@ -115,7 +116,6 @@ public class Tag implements ITag {
      * Setter for previous tag size
      *
      * @param previuosTagSize Value to set for previous tag size
-     *
 	 */
 	public void setPreviuosTagSize(int previuosTagSize) {
 		this.previuosTagSize = previuosTagSize;
@@ -231,13 +231,11 @@ public class Tag implements ITag {
      */
     public void setData() {
 		// TODO Auto-generated method stub
-
 	}
 
 	/** {@inheritDoc} */
     public void setPreviousTagSize(int size) {
 		this.previuosTagSize = size;
-
 	}
 
 }

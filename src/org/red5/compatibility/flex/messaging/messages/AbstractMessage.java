@@ -25,7 +25,7 @@ import java.util.Map;
 import org.red5.io.utils.RandomGUID;
 
 /**
- * Base class for all flex compatibility messages.
+ * Base class for all Flex compatibility messages.
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)

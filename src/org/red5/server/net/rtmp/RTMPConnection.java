@@ -109,7 +109,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	private Map<Integer, Boolean> reservedStreams = new ConcurrentHashMap<Integer, Boolean>();
 
 	/**
-	 * Identifier for remote calls
+	 * Identifier for remote calls.
 	 */
 	protected AtomicInteger invokeId = new AtomicInteger(1);
 
@@ -119,14 +119,14 @@ public abstract class RTMPConnection extends BaseConnection implements
 	protected Map<Integer, IPendingServiceCall> pendingCalls = new ConcurrentHashMap<Integer, IPendingServiceCall>();
 
 	/**
-	 * Deferred results set
+	 * Deferred results set.
 	 * 
 	 * @see org.red5.server.net.rtmp.DeferredResult
 	 */
 	protected HashSet<DeferredResult> deferredResults = new HashSet<DeferredResult>();
 
 	/**
-	 * Last ping timestamp
+	 * Last ping timestamp.
 	 */
 	protected int lastPingTime = -1;
 
@@ -141,17 +141,17 @@ public abstract class RTMPConnection extends BaseConnection implements
 	protected long lastPongReceived;
 
 	/**
-	 * Name of quartz job that keeps connection alive
+	 * Name of quartz job that keeps connection alive.
 	 */
 	protected String keepAliveJobName;
 
 	/**
-	 * Ping interval in ms to detect dead clients
+	 * Ping interval in ms to detect dead clients.
 	 */
 	protected int pingInterval = 5000;
 
 	/**
-	 * Max. time in ms after a client is disconnected because of inactivity
+	 * Maximum time in ms after a client is disconnected because of inactivity.
 	 */
 	protected int maxInactivity = 60000;
 
@@ -166,42 +166,42 @@ public abstract class RTMPConnection extends BaseConnection implements
 	private long lastBytesRead = 0;
 
 	/**
-	 * Number of bytes to read next
+	 * Number of bytes to read next.
 	 */
 	private int nextBytesRead = 120 * 1024;
 
 	/**
-	 * Number of bytes the client reported to have received
+	 * Number of bytes the client reported to have received.
 	 */
 	private int clientBytesRead = 0;
 
 	/**
-	 * Bandwidth configure
+	 * Bandwidth configure.
 	 */
 	private IConnectionBWConfig bwConfig;
 
 	/**
-	 * Bandwidth context used by bandwidth controller
+	 * Bandwidth context used by bandwidth controller.
 	 */
 	private IBWControlContext bwContext;
 
 	/**
-	 * Map for pending video packets and stream IDs
+	 * Map for pending video packets and stream IDs.
 	 */
 	private Map<Integer, Integer> pendingVideos = new ConcurrentHashMap<Integer, Integer>();
 
 	/**
-	 * Number of streams used
+	 * Number of streams used.
 	 */
 	private int usedStreams;
 
 	/**
-	 * AMF version, AMF0 by default
+	 * AMF version, AMF0 by default.
 	 */
 	protected Encoding encoding = Encoding.AMF0;
 
 	/**
-	 * Remembered stream buffer durations
+	 * Remembered stream buffer durations.
 	 */
 	protected Map<Integer, Integer> streamBuffers = new HashMap<Integer, Integer>();
 
@@ -221,20 +221,19 @@ public abstract class RTMPConnection extends BaseConnection implements
 	private String waitForHandshakeJob;
 
 	/**
-	 * Max. time in milliseconds to wait for a valid handshake.
+	 * Maximum time in milliseconds to wait for a valid handshake.
 	 */
 	private int maxHandshakeTimeout = 5000;
 
 	/**
-	 * Creates anonymous RTMP connection without scope
+	 * Creates anonymous RTMP connection without scope.
 	 * 
-	 * @param type
-	 *            Connection type
+	 * @param type	Connection type
 	 */
 	public RTMPConnection(String type) {
 		// We start with an anonymous connection without a scope.
 		// These parameters will be set during the call of "connect" later.
-		// super(null, ""); temp fix to get things to compile
+		// super(null, ""); temp fix to get things to compile.
 		super(type, null, null, 0, null, null, null);
 	}
 
@@ -261,7 +260,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	/**
-	 * Initialize connection
+	 * Initialize connection.
 	 * 
 	 * @param host
 	 *            Connection host
@@ -284,7 +283,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	/**
-	 * Return AMF protocol encoding used by this connection
+	 * Return AMF protocol encoding used by this connection.
 	 * 
 	 * @return AMF encoding used by connection
 	 */
@@ -293,7 +292,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	/**
-	 * Getter for next available channel id
+	 * Getter for next available channel id.
 	 * 
 	 * @return Next available channel id
 	 */
@@ -305,7 +304,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	/**
-	 * Checks whether channel is used
+	 * Checks whether channel is used.
 	 * 
 	 * @param channelId
 	 *            Channel id
@@ -317,10 +316,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	/**
-	 * Return channel by id
+	 * Return channel by id.
 	 * 
-	 * @param channelId
-	 *            Channel id
+	 * @param channelId		Channel id
 	 * @return Channel by id
 	 */
 	public Channel getChannel(int channelId) {
@@ -335,17 +333,16 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	/**
-	 * Closes channel
+	 * Closes channel.
 	 * 
-	 * @param channelId
-	 *            Channel id
+	 * @param channelId		Channel id
 	 */
 	public void closeChannel(int channelId) {
 		channels.remove(channelId);
 	}
 
 	/**
-	 * Getter for client streams
+	 * Getter for client streams.
 	 * 
 	 * @return Client streams as array
 	 */
@@ -374,8 +371,8 @@ public abstract class RTMPConnection extends BaseConnection implements
 	 * audio, data and video channels.
 	 * 
 	 * @see org.red5.server.stream.OutputStream
-	 * @param streamId
-	 *            Stream id
+	 *
+	 * @param streamId	Stream id
 	 * @return Output stream object
 	 */
 	public OutputStream createOutputStream(int streamId) {
@@ -389,7 +386,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	/**
-	 * Getter for video codec factory
+	 * Getter for video codec factory.
 	 * 
 	 * @return Video codec factory
 	 */
@@ -459,7 +456,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 				return null;
 			}
 			/**
-			 * Picking up the PlaylistSubscriberStream defined as a spring
+			 * Picking up the PlaylistSubscriberStream defined as a Spring
 			 * prototype in red5-common.xml
 			 */
 			PlaylistSubscriberStream pss = (PlaylistSubscriberStream) scope
@@ -478,7 +475,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	/**
-	 * Getter for used stream count
+	 * Getter for used stream count.
 	 * 
 	 * @return Value for property 'usedStreamCount'.
 	 */
@@ -495,7 +492,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	/**
-	 * Return stream id for given channel id
+	 * Return stream id for given channel id.
 	 * 
 	 * @param channelId
 	 *            Channel id
@@ -509,7 +506,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	/**
-	 * Return stream for given channel id
+	 * Return stream by given channel id.
 	 * 
 	 * @param channelId
 	 *            Channel id
@@ -587,17 +584,16 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	/**
-	 * Handler for ping event
+	 * Handler for ping event.
 	 * 
-	 * @param ping
-	 *            Ping event context
+	 * @param ping	Ping event context
 	 */
 	public void ping(Ping ping) {
 		getChannel((byte) 2).write(ping);
 	}
 
 	/**
-	 * Write raw byte buffer
+	 * Write raw byte buffer.
 	 * 
 	 * @param out
 	 *            Byte buffer
@@ -605,7 +601,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	public abstract void rawWrite(ByteBuffer out);
 
 	/**
-	 * Write packet
+	 * Write packet.
 	 * 
 	 * @param out
 	 *            Packet
@@ -613,7 +609,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	public abstract void write(Packet out);
 
 	/**
-	 * Update number of bytes to read next value
+	 * Update number of bytes to read next value.
 	 */
 	protected void updateBytesRead() {
 		long bytesRead = getReadBytes();
@@ -627,10 +623,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	/**
-	 * Read number of recieved bytes
+	 * Read number of received bytes.
 	 * 
-	 * @param bytes
-	 *            Number of bytes
+	 * @param bytes		Number of bytes
 	 */
 	public void receivedBytesRead(int bytes) {
 		log.info("Client received " + bytes + " bytes, written "
@@ -642,7 +637,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/**
 	 * Get number of bytes the client reported to have received.
 	 * 
-	 * @return number of bytes
+	 * @return Number of bytes
 	 */
 	public int getClientBytesRead() {
 		return clientBytesRead;
@@ -654,7 +649,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	/**
-	 * Generate next invoke id
+	 * Generate next invoke id.
 	 * 
 	 * @return Next invoke id for RPC
 	 */
@@ -663,7 +658,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	/**
-	 * Register pending call (remote function call that is yet to finish)
+	 * Register pending call (remote function call that is yet to finish).
 	 * 
 	 * @param invokeId
 	 *            Deferred operation id
@@ -709,7 +704,6 @@ public abstract class RTMPConnection extends BaseConnection implements
 		if (callback != null) {
 			call.registerCallback(callback);
 		}
-
 		invoke(call);
 	}
 
@@ -791,7 +785,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	/**
-	 * Get pending call service by id
+	 * Get pending call service by id.
 	 * 
 	 * @param invokeId
 	 *            Pending call service id
@@ -802,7 +796,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	/**
-	 * Generates new stream name
+	 * Generates new stream name.
 	 * 
 	 * @return New stream name
 	 */
@@ -813,8 +807,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/**
 	 * Mark message as being written.
 	 * 
-	 * @param message
-	 *            Message to mark
+	 * @param message	Message to mark
 	 */
 	protected void writingMessage(Packet message) {
 		if (message.getMessage() instanceof VideoData) {
@@ -859,7 +852,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	/**
-	 * Increases number of dropped messages
+	 * Increases number of dropped messages.
 	 */
 	protected void messageDropped() {
 		droppedMessages++;
@@ -890,10 +883,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	/**
-	 * Marks that pingback was received
+	 * Marks that pingback was received.
 	 * 
-	 * @param pong
-	 *            Ping object
+	 * @param pong	Ping object
 	 */
 	protected void pingReceived(Ping pong) {
 		lastPongReceived = System.currentTimeMillis();
@@ -907,7 +899,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	/**
-	 * Setter for ping interval
+	 * Setter for ping interval.
 	 * 
 	 * @param pingInterval
 	 *            Interval in ms to ping clients. Set to <code>0</code> to
@@ -918,10 +910,10 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	/**
-	 * Setter for max. inactivity
+	 * Setter for maximum inactivity.
 	 * 
 	 * @param maxInactivity
-	 *            Max. time in ms after which a client is disconnected in case
+	 *            Maximum time in ms after which a client is disconnected in case
 	 *            of inactivity.
 	 */
 	public void setMaxInactivity(int maxInactivity) {
@@ -929,7 +921,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	/**
-	 * Starts measurement
+	 * Starts measurement.
 	 */
 	public void startRoundTripMeasurement() {
 		if (pingInterval <= 0)
@@ -944,7 +936,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	/**
-	 * Inactive state event handler
+	 * Inactive state event handler.
 	 */
 	protected abstract void onInactive();
 
@@ -957,7 +949,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	/**
-	 * Registers deffered result
+	 * Registers deferred result.
 	 * 
 	 * @param result
 	 *            Result to register
@@ -967,7 +959,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	/**
-	 * Unregister deffered result
+	 * Unregister deferred result
 	 * 
 	 * @param result
 	 *            Result to unregister
@@ -981,10 +973,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	/**
-	 * Set max. time to wait for valid handshake in milliseconds.
+	 * Set maximum time to wait for valid handshake in milliseconds.
 	 * 
-	 * @param maxHandshakeTimeout
-	 *            max. time in milliseconds
+	 * @param maxHandshakeTimeout	Maximum time in milliseconds
 	 */
 	public void setMaxHandshakeTimeout(int maxHandshakeTimeout) {
 		this.maxHandshakeTimeout = maxHandshakeTimeout;
@@ -993,8 +984,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/**
 	 * Start waiting for a valid handshake.
 	 * 
-	 * @param service
-	 *            the scheduling service to use
+	 * @param service	The scheduling service to use
 	 */
 	protected void startWaitForHandshake(ISchedulingService service) {
 		waitForHandshakeService = service;

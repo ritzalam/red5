@@ -23,6 +23,7 @@ package org.red5.server;
  * Simple mbean interface for J2EE container loaders. Allows for
  * init and shutdown.
  *
+ * @author The Red5 Project (red5@osflash.org)
  * @author Paul Gregoire (mondain@gmail.com)
  */
 public interface LoaderMBean {

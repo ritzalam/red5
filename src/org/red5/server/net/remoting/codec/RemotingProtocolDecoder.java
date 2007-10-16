@@ -55,7 +55,7 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 	private Deserializer deserializer;
 
 	/**
-     * Setter for deserializer
+     * Setter for deserializer.
      *
      * @param deserializer  Deserializer
      */
@@ -88,8 +88,9 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 
     /**
      * Disposes session. Not yet implemented.
+	 *
      * @param session          Session to dispose
-     * @throws Exception       Any exception can be raised on desposal
+     * @throws Exception       Any exception can be raised on disposal
      */
     public void dispose(IoSession session) throws Exception {
 		// TODO Auto-generated method stub
@@ -139,7 +140,8 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 	}
 
     /**
-     * Decode calls
+     * Decode calls.
+	 *
      * @param in         Input data as byte buffer
      * @return           List of pending calls
      */
@@ -167,7 +169,7 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 				log.debug("callback: " + clientCallback);
 			}
 			@SuppressWarnings("unused") int length = in.getInt();
-			// set the limit and deserialize
+			// Set the limit and deserialize
 			// NOTE: disabled because the FP sends wrong values here
 			/*
 			 * if (length != -1) in.limit(in.position()+length);

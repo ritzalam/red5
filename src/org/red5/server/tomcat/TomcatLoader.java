@@ -42,7 +42,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
 /**
- * Red5 loader for Tomcat
+ * Red5 loader for Tomcat.
  */
 public class TomcatLoader extends LoaderBase implements
 		ApplicationContextAware, LoaderMBean {
@@ -53,11 +53,9 @@ public class TomcatLoader extends LoaderBase implements
 		/**
 		 * Check whether file matches filter rules
 		 * 
-		 * @param dir
-		 *            Dir
-		 * @param name
-		 *            File name
-		 * @return true if file does match filter rules, false otherwise
+		 * @param dir	Dir
+		 * @param name	File name
+		 * @return true If file does match filter rules, false otherwise
 		 */
 		public boolean accept(File dir, String name) {
 			File f = new File(dir, name);
@@ -73,7 +71,7 @@ public class TomcatLoader extends LoaderBase implements
 
 	/**
 	 * We store the application context in a ThreadLocal so we can access it
-	 * later
+	 * later.
 	 */
 	protected static ThreadLocal<ApplicationContext> applicationContext = new ThreadLocal<ApplicationContext>();
 
@@ -93,27 +91,27 @@ public class TomcatLoader extends LoaderBase implements
 	}
 
 	/**
-	 * Base container host
+	 * Base container host.
 	 */
 	private Host baseHost;
 
 	/**
-	 * Tomcat connector
+	 * Tomcat connector.
 	 */
 	protected Connector connector;
 
 	/**
-	 * Embedded Tomcat service (like Catalina)
+	 * Embedded Tomcat service (like Catalina).
 	 */
 	protected Embedded embedded;
 
 	/**
-	 * Tomcat engine
+	 * Tomcat engine.
 	 */
 	protected Engine engine;
 
 	/**
-	 * Tomcat realm
+	 * Tomcat realm.
 	 */
 	protected Realm realm;
 
@@ -123,13 +121,11 @@ public class TomcatLoader extends LoaderBase implements
 	}
 
 	/**
-	 * Add context from path and docbase
+	 * Add context from path and docbase.
 	 * 
-	 * @param path
-	 *            Path
-	 * @param docBase
-	 *            Docbase
-	 * @return Catalina context (that is, web application)
+	 * @param path		Path
+	 * @param docBase	Docbase
+	 * @return			Catalina context (that is, web application)
 	 */
 	public org.apache.catalina.Context addContext(String path, String docBase) {
 		org.apache.catalina.Context c = embedded.createContext(path, docBase);
@@ -140,7 +136,7 @@ public class TomcatLoader extends LoaderBase implements
 	}
 
 	/**
-	 * Get base host
+	 * Get base host.
 	 * 
 	 * @return Base host
 	 */
@@ -149,7 +145,7 @@ public class TomcatLoader extends LoaderBase implements
 	}
 
 	/**
-	 * Return connector
+	 * Return connector.
 	 * 
 	 * @return Connector
 	 */
@@ -158,7 +154,7 @@ public class TomcatLoader extends LoaderBase implements
 	}
 
 	/**
-	 * Getter for embedded object
+	 * Getter for embedded object.
 	 * 
 	 * @return Embedded object
 	 */
@@ -167,7 +163,7 @@ public class TomcatLoader extends LoaderBase implements
 	}
 
 	/**
-	 * Return Tomcat engine
+	 * Return Tomcat engine.
 	 * 
 	 * @return Tomcat engine
 	 */
@@ -176,7 +172,7 @@ public class TomcatLoader extends LoaderBase implements
 	}
 
 	/**
-	 * Getter for realm
+	 * Getter for realm.
 	 * 
 	 * @return Realm
 	 */
@@ -185,7 +181,7 @@ public class TomcatLoader extends LoaderBase implements
 	}
 
 	/**
-	 * Initialization
+	 * Initialization.
 	 */
 	public void init() {
 		log.info("Loading tomcat context");
@@ -224,41 +220,41 @@ public class TomcatLoader extends LoaderBase implements
 			}
 		}
 
-		// dump context list
+		// Dump context list
 		if (log.isDebugEnabled()) {
 			for (Container cont : baseHost.findChildren()) {
 				log.debug("Context child name: " + cont.getName());
 			}
 		}
-		// set a realm
+		// Set a realm
 		embedded.setRealm(realm);
 
-		// dont start tomcats jndi
+		// Don't start Tomcats jndi
 		embedded.setUseNaming(false);
 
 		// baseHost = embedded.createHost(hostName, appRoot);
 		engine.addChild(baseHost);
 
-		// add new Engine to set of Engine for embedded server
+		// Add new Engine to set of Engine for embedded server
 		embedded.addEngine(engine);
 
-		// add new Connector to set of Connectors for embedded server,
+		// Add new Connector to set of Connectors for embedded server,
 		// associated with Engine
 		embedded.addConnector(connector);
 
 		setApplicationLoader(new TomcatApplicationLoader(embedded, baseHost));
 
-		// start server
+		// Start server
 		try {
-			log.info("Starting tomcat servlet engine");
+			log.info("Starting Tomcat servlet engine");
 			embedded.start();
 		} catch (org.apache.catalina.LifecycleException e) {
-			log.error("Error loading tomcat", e);
+			log.error("Error loading Tomcat", e);
 		}
 	}
 
 	/**
-	 * Setter for application context
+	 * Setter for application context.
 	 * 
 	 * @param context
 	 *            Application context
@@ -272,10 +268,9 @@ public class TomcatLoader extends LoaderBase implements
 	}
 
 	/**
-	 * Set base host
+	 * Set base host.
 	 * 
-	 * @param baseHost
-	 *            Base host
+	 * @param baseHost	Base host
 	 */
 	public void setBaseHost(Host baseHost) {
 		log.debug("setBaseHost");
@@ -283,7 +278,7 @@ public class TomcatLoader extends LoaderBase implements
 	}
 
 	/**
-	 * Set connector
+	 * Set connector.
 	 * 
 	 * @param connector
 	 *            Connector
@@ -294,7 +289,7 @@ public class TomcatLoader extends LoaderBase implements
 	}
 
 	/**
-	 * Set additional connectors
+	 * Set additional connectors.
 	 * 
 	 * @param connectors
 	 *            Additional connectors
@@ -309,7 +304,7 @@ public class TomcatLoader extends LoaderBase implements
 	}
 
 	/**
-	 * Set additional contexts
+	 * Set additional contexts.
 	 * 
 	 * @param contexts
 	 *            Map of contexts
@@ -325,7 +320,7 @@ public class TomcatLoader extends LoaderBase implements
 	}
 
 	/**
-	 * Setter for embedded object
+	 * Setter for embedded object.
 	 * 
 	 * @param embedded
 	 *            Embedded object
@@ -336,10 +331,9 @@ public class TomcatLoader extends LoaderBase implements
 	}
 
 	/**
-	 * Set Tomcat engine implementation
+	 * Set Tomcat engine implementation.
 	 * 
-	 * @param engine
-	 *            Tomcat engine
+	 * @param engine Tomcat engine
 	 */
 	public void setEngine(Engine engine) {
 		log.info("Setting engine: " + engine.getClass().getName());
@@ -347,10 +341,9 @@ public class TomcatLoader extends LoaderBase implements
 	}
 
 	/**
-	 * Set additional hosts
+	 * Set additional hosts.
 	 * 
-	 * @param hosts
-	 *            List of hosts added to engine
+	 * @param hosts	List of hosts added to engine
 	 */
 	public void setHosts(List<Host> hosts) {
 		if (log.isDebugEnabled()) {
@@ -362,7 +355,7 @@ public class TomcatLoader extends LoaderBase implements
 	}
 
 	/**
-	 * Setter for realm
+	 * Setter for realm.
 	 * 
 	 * @param realm
 	 *            Realm
@@ -373,7 +366,7 @@ public class TomcatLoader extends LoaderBase implements
 	}
 
 	/**
-	 * Set additional valves
+	 * Set additional valves.
 	 * 
 	 * @param valves
 	 *            List of valves
@@ -388,10 +381,10 @@ public class TomcatLoader extends LoaderBase implements
 	}
 
 	/**
-	 * Shut server down
+	 * Shut server down.
 	 */
 	public void shutdown() {
-		log.info("Shutting down tomcat context");
+		log.info("Shutting down Tomcat context");
 		JMXAgent.shutdown();
 		try {
 			embedded.stop();

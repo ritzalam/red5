@@ -27,17 +27,17 @@ import org.red5.server.net.protocol.SimpleProtocolDecoder;
 import org.red5.server.net.protocol.SimpleProtocolEncoder;
 
 /**
- * RTMP codec factory
+ * RTMP codec factory.
  */
 public class RTMPMinaCodecFactory implements ProtocolCodecFactory,
 		SimpleProtocolCodecFactory {
 	
     /**
-     * RTMP Mina protocol decoder
+     * RTMP Mina protocol decoder.
      */
 	protected RTMPMinaProtocolDecoder decoder;
     /**
-     * RTMP Mina protocol encoder
+     * RTMP Mina protocol encoder.
      */
 	protected RTMPMinaProtocolEncoder encoder;
 
@@ -49,7 +49,7 @@ public class RTMPMinaCodecFactory implements ProtocolCodecFactory,
 	}
 
 	/**
-     * Setter for encoder
+     * Setter for encoder.
      *
      * @param encoder  Encoder
      */

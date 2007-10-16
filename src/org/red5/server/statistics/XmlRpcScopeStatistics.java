@@ -53,7 +53,8 @@ public class XmlRpcScopeStatistics {
 	}
 
     /**
-     * Create new scope statistic
+     * Create new scope statistic.
+	 *
      * @param globalScope        Global scope ref
      */
     public XmlRpcScopeStatistics(IScope globalScope) {
@@ -61,7 +62,7 @@ public class XmlRpcScopeStatistics {
 	}
 
 	/**
-     * Setter for global scope
+     * Setter for global scope.
      *
      * @param scope Value to set for property 'globalScope'.
      */
@@ -72,10 +73,10 @@ public class XmlRpcScopeStatistics {
 	/**
 	 * Resolve path to scope.
 	 * 
-	 * @param path
-	 * 			path to return scope for
-	 * @return the scope for the given path
-	 * @throws ScopeNotFoundException         Thrown when scope with given path can't be resolved
+	 * @param path	Path to return scope for
+	 * @return		The scope for the given path
+	 *
+	 * @throws ScopeNotFoundException	Thrown when scope with given path can't be resolved
 	 */
 	private IScope getScope(String path) throws ScopeNotFoundException {
 		IScope scope;
@@ -104,9 +105,8 @@ public class XmlRpcScopeStatistics {
 	/**
 	 * Return subscopes of another scope.
 	 * 
-	 * @param path
-	 * 			path of scope to return subscopes of
-	 * @return list of subscope names
+	 * @param path	Path of scope to return subscopes of
+	 * @return		List of subscope names
 	 */
 	public String[] getScopes(String path) {
 		IScope scope = getScope(path);
@@ -123,7 +123,7 @@ public class XmlRpcScopeStatistics {
 	/**
 	 * Return attributes of the global scope.
 	 * 
-	 * @return the scope's attributes
+	 * @return The scope's attributes
 	 */
 	public Map<String, Object> getScopeAttributes() {
 		return getScopeAttributes(null);
@@ -182,9 +182,8 @@ public class XmlRpcScopeStatistics {
 	/**
 	 * Return attributes of a given scope.
 	 * 
-	 * @param path
-	 * 			path of scope to return attributes of
-	 * @return the scope's attributes
+	 * @param path	Path of scope to return attributes of
+	 * @return		The scope's attributes
 	 */
 	public Map<String, Object> getScopeAttributes(String path) {
 		IScope scope = getScope(path);
@@ -203,9 +202,8 @@ public class XmlRpcScopeStatistics {
 	/**
 	 * Return informations about shared objects of a given scope.
 	 * 
-	 * @param path
-	 * 			path of scope to return shared objects for
-	 * @return a mapping containing shared object name -> (persistent, data)
+	 * @param path	Path of scope to return shared objects for
+	 * @return		A mapping containing the shared object name -> (persistent, data)
 	 */
 	public Map<String, Object> getSharedObjects(String path) {
 		IScope scope = getScope(path);

@@ -33,7 +33,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 /**
- * Red5 loader for Jboss
+ * Red5 loader for JBoss.
  *
  * @author The Red5 Project (red5@osflash.org)
  * @author Paul Gregoire (mondain@gmail.com)
@@ -54,7 +54,7 @@ public class JbossLoader implements ApplicationContextAware, JbossLoaderMBean {
 	 * Initialization
 	 */
 	public void start() {
-		logger.info("Loading jboss service");
+		logger.info("Loading JBoss service");
         System.setProperty("red5.deployment.type", "jboss");
 
 		logger.info("RED5 Server (http://www.osflash.org/red5)");
@@ -119,7 +119,7 @@ public class JbossLoader implements ApplicationContextAware, JbossLoaderMBean {
 	 * Shut server down
 	 */
 	public void stop() {
-		logger.info("Shutting down jboss context");
+		logger.info("Shutting down JBoss context");
 		try {
 			//prepare spring for shutdown
 			Introspector.flushCaches();
@@ -141,7 +141,7 @@ public class JbossLoader implements ApplicationContextAware, JbossLoaderMBean {
 			appContext.close();
 			//LogFactory.release(Thread.currentThread().getContextClassLoader());
 		} catch (Exception e) {
-			logger.warn("Jboss could not be stopped", e);
+			logger.warn("JBoss could not be stopped", e);
 		}
 	}
 

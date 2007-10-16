@@ -22,18 +22,19 @@ package org.red5.io.flv;
 import java.io.Serializable;
 
 /**
- * Analyzes key frame data
+ * Analyzes key frame data.
  */
 public interface IKeyFrameDataAnalyzer {
 
     /**
-     * Analyze and return keyframe metadata
+     * Analyze and return keyframe metadata.
+	 *
      * @return           Metadata object
      */
     public KeyFrameMeta analyzeKeyFrames();
 
     /**
-     * Keyframe metadata
+     * Keyframe metadata.
      */
     public static class KeyFrameMeta implements Serializable {
 		private static final long serialVersionUID = 5436632873705625365L;

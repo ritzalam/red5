@@ -31,6 +31,7 @@ import java.util.Map;
  * <tt>'Target'</tt> is used to represent the receiver who may be
  * interested for receiving. It's a string of any form.
  * XXX shall we design a standard form for Target, like "class.instance"?
+ *
  * @author The Red5 Project (red5@osflash.org)
  * @author Steven Gong (steven.gong@gmail.com)
  */

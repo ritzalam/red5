@@ -20,7 +20,7 @@ package org.red5.compatibility.flex.messaging.messages;
  */
 
 /**
- * Base class for for asynchronous flex compatibility messages.
+ * Base class for for asynchronous Flex compatibility messages.
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)

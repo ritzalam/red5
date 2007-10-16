@@ -23,13 +23,15 @@ import org.apache.mina.common.ByteBuffer;
 import org.red5.server.net.rtmp.message.Constants;
 
 /**
- * RTMP utilities class
+ * RTMP utilities class.
+ *
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 public class RTMPUtils implements Constants {
     /**
-     * Writes reversed integer to buffer
+     * Writes reversed integer to buffer.
+	 *
      * @param out          Buffer
      * @param value        Integer to write
      */
@@ -48,7 +50,8 @@ public class RTMPUtils implements Constants {
 	}
 
     /**
-     * Writes reversed integer to buffer
+     * Writes reversed integer to buffer.
+	 *
      * @param out          Buffer
      * @param value        Integer to write
      */
@@ -162,7 +165,8 @@ public class RTMPUtils implements Constants {
 	}
 
     /**
-     * Read integer in reversed order
+     * Read integer in reversed order.
+	 *
      * @param in         Input buffer
      * @return           Integer
      */
@@ -180,7 +184,8 @@ public class RTMPUtils implements Constants {
 	}
 
     /**
-     * Read integer in reversed order
+     * Read integer in reversed order.
+	 *
      * @param in         Input buffer
      * @return           Integer
      */
@@ -196,7 +201,8 @@ public class RTMPUtils implements Constants {
 	}
 
     /**
-     * Encodes header size marker and channel id into header marker
+     * Encodes header size marker and channel id into header marker.
+	 *
      * @param headerSize         Header size marker
      * @param channelId          Channel used
      * @return                   Header id
@@ -216,7 +222,8 @@ public class RTMPUtils implements Constants {
 	}
 
     /**
-     * Decode channel id
+     * Decode channel id.
+	 *
      * @param header        Header
      * @return              Channel id
      */
@@ -231,7 +238,8 @@ public class RTMPUtils implements Constants {
 	}
 
     /**
-     * Decode header size
+     * Decode header size.
+	 *
      * @param header      Header byte
      * @return            Header size byte
      */
@@ -246,7 +254,8 @@ public class RTMPUtils implements Constants {
 	}
 
     /**
-     * Return header length from marker value
+     * Return header length from marker value.
+	 *
      * @param headerSize       Header size marker value
      * @return                 Header length
      */

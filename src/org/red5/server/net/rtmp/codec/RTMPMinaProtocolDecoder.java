@@ -31,7 +31,7 @@ import org.red5.server.api.Red5;
 import org.red5.server.net.protocol.ProtocolState;
 
 /**
- * RTMP protocol decoder
+ * RTMP protocol decoder.
  */
 public class RTMPMinaProtocolDecoder extends RTMPProtocolDecoder implements
 		ProtocolDecoder {

@@ -30,7 +30,7 @@ import org.red5.io.object.Serializer;
 
 /**
  * A FLVServiceImpl sets up the service and hands out FLV objects to 
- * its callers
+ * its callers.
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Dominick Accattato (daccattato@gmail.com)

@@ -30,6 +30,7 @@ import org.red5.io.amf3.IExternalizable;
 /**
  * Flex <code>ArrayCollection</code> compatibility class.
  * 
+ * @see <a href="http://livedocs.adobe.com/flex/2/langref/mx/collections/ArrayCollection.html">Adobe Livedocs (external)</a>
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
  */

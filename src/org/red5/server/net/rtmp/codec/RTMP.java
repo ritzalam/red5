@@ -30,11 +30,11 @@ import org.red5.server.net.rtmp.message.Header;
 import org.red5.server.net.rtmp.message.Packet;
 
 /**
- * RTMP is RTMP protocol state representation
+ * RTMP is the RTMP protocol state representation.
  */
 public class RTMP extends ProtocolState {
     /**
-     * Connect state
+     * Connect state.
      */
 	public static final byte STATE_CONNECT = 0x00;
     /**
@@ -42,75 +42,75 @@ public class RTMP extends ProtocolState {
      */
 	public static final byte STATE_HANDSHAKE = 0x01;
     /**
-     * Connected
+     * Connected.
      */
 	public static final byte STATE_CONNECTED = 0x02;
     /**
-     * Error
+     * Error.
      */
 	public static final byte STATE_ERROR = 0x03;
     /**
-     * Disconnected
+     * Disconnected.
      */
 	public static final byte STATE_DISCONNECTED = 0x04;
     /**
-     * Client mode
+     * Client mode.
      */
 	public static final boolean MODE_CLIENT = true;
     /**
-     * Server mode
+     * Server mode.
      */
 	public static final boolean MODE_SERVER = false;
     /**
-     * Default chunk size. Packets are read and written chunk-by-chunk
+     * Default chunk size. Packets are read and written chunk-by-chunk.
      */
 	public static final int DEFAULT_CHUNK_SIZE = 128;
     /**
-     * RTMP state
+     * RTMP state.
      */
 	private byte state = STATE_CONNECT;
     /**
-     * Server mode by default
+     * Server mode by default.
      */
 	private boolean mode = MODE_SERVER;
     /**
-     * Debug flag
+     * Debug flag.
      */
 	private boolean debug;
     /**
-     * Last read channel
+     * Last read channel.
      */
 	private int lastReadChannel = 0x00;
     /**
-     * Last write channel
+     * Last write channel.
      */
 	private int lastWriteChannel = 0x00;
     /**
-     * Read headers
+     * Read headers.
      */
 	private Map<Integer, Header> readHeaders = new HashMap<Integer, Header>();
     /**
-     * Write headers
+     * Write headers.
      */
 	private Map<Integer, Header> writeHeaders = new HashMap<Integer, Header>();
     /**
-     * Read packets
+     * Read packets.
      */
 	private Map<Integer, Packet> readPackets = new HashMap<Integer, Packet>();
     /**
-     * Written packets
+     * Written packets.
      */
 	private Map<Integer, Packet> writePackets = new HashMap<Integer, Packet>();
     /**
-     * Read chunk size. Packets are read and written chunk-by-chunk
+     * Read chunk size. Packets are read and written chunk-by-chunk.
      */
 	private int readChunkSize = DEFAULT_CHUNK_SIZE;
     /**
-     * Write chunk size. Packets are read and written chunk-by-chunk
+     * Write chunk size. Packets are read and written chunk-by-chunk.
      */
 	private int writeChunkSize = DEFAULT_CHUNK_SIZE;
 	/**
-	 * Encoding type for objects
+	 * Encoding type for objects.
 	 */
 	private Encoding encoding = Encoding.AMF0;
 	/**
@@ -119,7 +119,8 @@ public class RTMP extends ProtocolState {
 	private byte[] handshake;
 	
     /**
-     * Creates RTMP object with initial mode
+     * Creates RTMP object with initial mode.
+	 *
      * @param mode            Initial mode
      */
 	public RTMP(boolean mode) {
@@ -127,7 +128,7 @@ public class RTMP extends ProtocolState {
 	}
 
 	/**
-     * Return current mode
+     * Return current mode.
      *
      * @return  Current mode
      */
@@ -136,7 +137,7 @@ public class RTMP extends ProtocolState {
 	}
 
 	/**
-     * Getter for debug
+     * Getter for debug.
      *
      * @return  Debug state
      */
@@ -145,7 +146,7 @@ public class RTMP extends ProtocolState {
 	}
 
 	/**
-     * Setter for debug
+     * Setter for debug.
      *
      * @param debug  Debug flag new value
      */
@@ -154,7 +155,7 @@ public class RTMP extends ProtocolState {
 	}
 
 	/**
-     * Return current state
+     * Return current state.
      *
      * @return  State
      */
@@ -163,7 +164,8 @@ public class RTMP extends ProtocolState {
 	}
 
     /**
-     * Releases number of packets
+     * Releases number of packets.
+	 *
      * @param packets            Packets to release
      */
     private void freePackets(Map<Integer, Packet> packets) {
@@ -177,7 +179,7 @@ public class RTMP extends ProtocolState {
 	}
 
 	/**
-     * Setter for state
+     * Setter for state.
      *
      * @param state  New state
      */
@@ -193,7 +195,8 @@ public class RTMP extends ProtocolState {
 	}
 
     /**
-     * Setter for last read header
+     * Setter for last read header.
+	 *
      * @param channelId            Channel id
      * @param header               Header
      */
@@ -203,7 +206,8 @@ public class RTMP extends ProtocolState {
 	}
 
     /**
-     * Return last read header for channel
+     * Return last read header for channel.
+	 *
      * @param channelId             Channel id
      * @return                      Last read header
      */
@@ -212,7 +216,8 @@ public class RTMP extends ProtocolState {
 	}
 
     /**
-     * Setter for last written header
+     * Setter for last written header.
+	 *
      * @param channelId             Channel id
      * @param header                Header
      */
@@ -222,7 +227,8 @@ public class RTMP extends ProtocolState {
 	}
 
     /**
-     * Return last written header for channel
+     * Return last written header for channel.
+	 *
      * @param channelId             Channel id
      * @return                      Last written header
      */
@@ -231,7 +237,8 @@ public class RTMP extends ProtocolState {
 	}
 
     /**
-     * Setter for last read packet
+     * Setter for last read packet.
+	 *
      * @param channelId           Channel id
      * @param packet              Packet
      */
@@ -244,7 +251,8 @@ public class RTMP extends ProtocolState {
 	}
 
     /**
-     * Return last read packet for channel
+     * Return last read packet for channel.
+	 *
      * @param channelId           Channel id
      * @return                    Last read packet for that channel
      */
@@ -253,7 +261,8 @@ public class RTMP extends ProtocolState {
 	}
 
     /**
-     * Setter for last written packet
+     * Setter for last written packet.
+	 *
      * @param channelId           Channel id
      * @param packet              Last written packet
      */
@@ -269,7 +278,8 @@ public class RTMP extends ProtocolState {
 	}
 
     /**
-     * Return packet that has been written last
+     * Return packet that has been written last.
+	 *
      * @param channelId           Channel id
      * @return                    Packet that has been written last
      */
@@ -278,7 +288,7 @@ public class RTMP extends ProtocolState {
 	}
 
 	/**
-     * Return channel being read last
+     * Return channel being read last.
      *
      * @return  Last read channel
      */
@@ -287,7 +297,7 @@ public class RTMP extends ProtocolState {
 	}
 
 	/**
-     * Getter for channel being written last
+     * Getter for channel being written last.
      *
      * @return  Last write channel
      */
@@ -323,7 +333,7 @@ public class RTMP extends ProtocolState {
 	}
 
 	/**
-     * Setter for  write chunk size
+     * Setter for  write chunk size.
      *
      * @param writeChunkSize  Write chunk size
      */

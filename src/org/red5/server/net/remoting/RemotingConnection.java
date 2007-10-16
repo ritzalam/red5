@@ -85,7 +85,8 @@ public class RemotingConnection implements IRemotingConnection {
 	protected List<IRemotingHeader> headers = new ArrayList<IRemotingHeader>();
 	
     /**
-     * Create servlet connection from request and scope
+     * Create servlet connection from request and scope.
+	 *
      * @param request           Servlet request
      * @param scope             Scope
      */
@@ -130,7 +131,8 @@ public class RemotingConnection implements IRemotingConnection {
 	}
 
     /**
-     * Return encoding (AMF0 or AMF3)
+     * Return encoding (AMF0 or AMF3).
+	 *
      * @return        Encoding, currently AMF0
      */
     public Encoding getEncoding() {

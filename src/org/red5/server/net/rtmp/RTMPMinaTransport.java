@@ -1,5 +1,24 @@
 package org.red5.server.net.rtmp;
 
+/*
+ * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * 
+ * Copyright (c) 2006-2007 by respective authors (see below). All rights reserved.
+ * 
+ * This library is free software; you can redistribute it and/or modify it under the 
+ * terms of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either version 2.1 of the License, or (at your option) any later 
+ * version. 
+ * 
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY 
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+ * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License along 
+ * with this library; if not, write to the Free Software Foundation, Inc., 
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ */
+ 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -30,7 +49,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Transport setup class configures socket acceptor and thread pools for RTMP in mina.
+ * Transport setup class configures socket acceptor and thread pools for RTMP in Mina.
  * Note: This code originates from AsyncWeb, I've modified it for use with Red5. - Luke
  */
 public class RTMPMinaTransport implements RTMPMinaTransportMBean {
@@ -100,7 +119,7 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 
 	private void initIOHandler() {
 		if (ioHandler == null) {
-			log.info("No rtmp IO Handler associated - using defaults");
+			log.info("No RTMP IO Handler associated - using defaults");
 			ioHandler = new RTMPMinaIoHandler();
 		}
 	}

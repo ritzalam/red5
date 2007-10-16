@@ -64,7 +64,7 @@ public class AMF {
     public static final byte TYPE_OBJECT = 0x03;
 
     /**
-     * Movieclip marker constant
+     * MovieClip marker constant
      */
     public static final byte TYPE_MOVIECLIP = 0x04;
 

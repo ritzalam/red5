@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.access.ContextSingletonBeanFactoryLocator;
 
 /**
- * Entry point from which the server config file is loaded
+ * Entry point from which the server config file is loaded.
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Dominick Accattato (Dominick@gmail.com)
@@ -37,7 +37,7 @@ import org.springframework.context.access.ContextSingletonBeanFactoryLocator;
 public class Standalone {
  
     /**
-     * Initialize Logging
+     * Initialize Logging.
      */
     protected static Logger log = LoggerFactory.getLogger(Standalone.class);
 
@@ -59,11 +59,10 @@ public class Standalone {
 	}
 
 	/**
-	 * Main entry point for the Red5 Server usage java Standalone
+	 * Main entry point for the Red5 Server usage Java Standalone.
 	 * 
-	 * @param args
-	 *            String passed in that points to a red5.xml config file
-     * @throws Throwable            Base type of all exceptions
+	 * @param args			String passed in that points to a red5.xml config file
+     * @throws Throwable    Base type of all exceptions
 	 */
 	public static void main(String[] args) throws Throwable {
 
@@ -83,7 +82,7 @@ public class Standalone {
 		long time = System.currentTimeMillis();
 
 		log.info("RED5 Server (http://www.osflash.org/red5)");
-		log.info("Loading red5 global context from: " + red5Config);
+		log.info("Loading Red5 global context from: " + red5Config);
 
 		String classpath = System.getProperty("java.class.path");
         // look for root system property prior to search

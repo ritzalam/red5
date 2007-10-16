@@ -29,9 +29,6 @@ import javax.management.StandardMBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-
-
 /**
  * Provides access to the MBeanServer as well as registration
  * and creation of new MBean instances. For most classes the creation
@@ -44,6 +41,7 @@ import org.slf4j.LoggerFactory;
  * Examples:
  * http://java.sun.com/javase/6/docs/technotes/guides/jmx/examples.html
  * <br />
+ *
  * @author The Red5 Project (red5@osflash.org)
  * @author Paul Gregoire (mondain@gmail.com)
  */

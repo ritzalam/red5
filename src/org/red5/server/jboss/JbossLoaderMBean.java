@@ -20,7 +20,7 @@ package org.red5.server.jboss;
  */
 
 /**
- * Red5 loader mbean for Jboss
+ * Red5 loader mbean for JBoss.
  *
  * @author The Red5 Project (red5@osflash.org)
  * @author Paul Gregoire (mondain@gmail.com)

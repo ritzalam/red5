@@ -67,26 +67,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * RTMP protocol decoder
+ * RTMP protocol decoder.
  */
 public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 		IEventDecoder {
 
     /**
-     * Logger
+     * Logger.
      */
     protected static Logger log = LoggerFactory.getLogger(RTMPProtocolDecoder.class
 			.getName());
 
     /**
-     * I/O logger
+     * I/O logger.
      */
     protected static Logger ioLog = LoggerFactory.getLogger(RTMPProtocolDecoder.class
 			.getName()
 			+ ".in");
 
     /**
-     * Deserializer
+     * Deserializer.
      */
     private Deserializer deserializer;
 
@@ -96,7 +96,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	}
 
     /**
-     * Setter for deserializer
+     * Setter for deserializer.
      *
      * @param deserializer  Deserializer
      */
@@ -134,7 +134,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 				}
 			}
 		} catch (HandshakeFailedException hfe) {
-		    // patched by Victor to clear buffer if something is wrong in protocol decoding
+		    // patched by Victor to clear buffer if something is wrong in protocol decoding.
 		    buffer.clear();
 
 			IConnection conn = Red5.getConnectionLocal();
@@ -185,7 +185,8 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	}
 
     /**
-     * Decodes byte buffer
+     * Decodes byte buffer.
+	 *
      * @param state                   Protocol state
      * @param in                      Input byte buffer
      * @return                        Decoded object
@@ -217,7 +218,8 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	}
 
     /**
-     * Decodes handshake message
+     * Decodes handshake message.
+	 *
      * @param rtmp                    RTMP protocol state
      * @param in                      Byte buffer
      * @return                        Byte buffer
@@ -297,7 +299,8 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	}
 
     /**
-     * Decodes packet
+     * Decodes packet.
+	 *
      * @param rtmp                    RTMP protocol state
      * @param in                      Byte buffer
      * @return                        Byte buffer
@@ -431,7 +434,8 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	}
 
     /**
-     * Decides packet header
+     * Decodes packet header.
+	 *
      * @param in                      Input byte buffer
      * @param lastHeader              Previous header
      * @return                        Decoded header
@@ -499,7 +503,8 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	}
 
     /**
-     * Decodes RTMP message event
+     * Decodes RTMP message event.
+	 *
      * @param rtmp                    RTMP protocol state
      * @param header                  RTMP header
      * @param in                      Input byte buffer
@@ -569,7 +574,8 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	}
 
     /**
-     * Decodes server bandwidth
+     * Decodes server bandwidth.
+	 *
      * @param in                      Byte buffer
      * @return                        RTMP event
      */
@@ -578,7 +584,8 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	}
 
     /**
-     * Decodes client bandwidth
+     * Decodes client bandwidth.
+	 *
      * @param in                      Byte buffer
      * @return                        RTMP event
      */
@@ -732,7 +739,8 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	}
 
     /**
-     * Decodes notification event
+     * Decodes notification event.
+	 *
      * @param notify             Notify event
      * @param in                 Byte buffer
      * @param header             Header
@@ -817,7 +825,8 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	}
 
     /**
-     * Decodes ping event
+     * Decodes ping event.
+	 *
      * @param in            Byte buffer
      * @return              Ping event
      */
@@ -855,7 +864,8 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	}
 
     /**
-     * Decodes FlexMessage event
+     * Decodes FlexMessage event.
+	 *
      * @param in               Byte buffer
      * @param rtmp			   RTMP protocol state
      * @return                 FlexMessage event
@@ -915,6 +925,5 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	public FlexStreamSend decodeFlexStreamSend(ByteBuffer in) {
 		return new FlexStreamSend(in.asReadOnlyBuffer());
 	}
-
 
 }

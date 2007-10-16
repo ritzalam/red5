@@ -58,7 +58,7 @@ public class RTMPMinaConnection extends RTMPConnection implements
 		if (ioSession != null) {
 			ioSession.close();
 		}
-		// deregister with jmx
+		// Deregister with JMX
 		JMXAgent.unregisterMBean(oName);
 	}
 
@@ -76,7 +76,7 @@ public class RTMPMinaConnection extends RTMPConnection implements
 				hostStr = host.substring(0, idx);
 				port = Integer.parseInt(host.substring(idx + 1));
 			}
-			//create a new mbean for this instance
+			// Create a new mbean for this instance
 			oName = JMXFactory.createObjectName("type", "RTMPMinaConnection",
 					"connectionType", type, "host", hostStr, "port", port + "",
 					"clientId", client.getId());
@@ -90,7 +90,7 @@ public class RTMPMinaConnection extends RTMPConnection implements
 	}
 
 	/**
-	 * Return MINA I/O session
+	 * Return MINA I/O session.
 	 *
 	 * @return MINA O/I session, connection between two endpoints
 	 */
@@ -150,7 +150,7 @@ public class RTMPMinaConnection extends RTMPConnection implements
 	}
 
 	/**
-	 * Setter for MINA I/O session (connection)
+	 * Setter for MINA I/O session (connection).
 	 *
 	 * @param protocolSession  Protocol session
 	 */

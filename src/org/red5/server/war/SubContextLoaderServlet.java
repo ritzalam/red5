@@ -49,7 +49,7 @@ public class SubContextLoaderServlet extends RootContextLoaderServlet {
 	private static ServletContext servletContext;
 
 	/**
-	 * Main entry point for the Red5 Server as a war
+	 * Main entry point for the Red5 Server as a war.
 	 */
 	// Notification that the web application is ready to process requests
 	@Override

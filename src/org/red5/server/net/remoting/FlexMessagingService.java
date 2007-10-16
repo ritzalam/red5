@@ -41,7 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Service that can execute compatibility flex messages.
+ * Service that can execute compatibility Flex messages.
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
@@ -130,6 +130,8 @@ public class FlexMessagingService {
 	/**
 	 * Handle request coming from <code>mx:RemoteObject</code> tags.
 	 * 
+	 * @see <a href="http://livedocs.adobe.com/flex/2/langref/mx/rpc/remoting/mxml/RemoteObject.html">Adobe Livedocs (external)</a>
+	 *
 	 * @param msg
 	 * @return
 	 */
@@ -286,7 +288,7 @@ public class FlexMessagingService {
 	 * @return
 	 */
 	public ErrorMessage handleRequest(AbstractMessage msg) {
-		log.error("Unknown flex compatibility request: " + msg);
+		log.error("Unknown Flex compatibility request: " + msg);
 		return returnError(msg, "notImplemented", "Don't know how to handle " + msg, "Don't know how to handle " + msg);
 	}
 	

@@ -45,7 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Remoting protocol encoder
+ * Remoting protocol encoder.
  */
 public class RemotingProtocolEncoder extends BaseProtocolEncoder implements SimpleProtocolEncoder {
     /**
@@ -150,7 +150,8 @@ public class RemotingProtocolEncoder extends BaseProtocolEncoder implements Simp
 	}
 
     /**
-     * Dispose I/O session, not implemented yet
+     * Dispose I/O session, not implemented yet.
+	 *
      * @param ioSession         I/O session
      * @throws Exception        Exception
      */

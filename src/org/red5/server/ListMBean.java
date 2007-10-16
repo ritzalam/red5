@@ -20,6 +20,8 @@ package org.red5.server;
  */
 
 /**
+ *
+ * @author The Red5 Project (red5@osflash.org)
  */
 public interface ListMBean {
 

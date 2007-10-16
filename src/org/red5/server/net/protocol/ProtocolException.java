@@ -22,12 +22,13 @@ package org.red5.server.net.protocol;
 public class ProtocolException extends RuntimeException {
 
 	/**
-	 * Base exception for all protocol exeptions
+	 * Base exception for all protocol exeptions.
 	 */
 	private static final long serialVersionUID = -5380844081848027068L;
 
     /**
-     * Create protocol exception with given message
+     * Create protocol exception with given message.
+	 *
      * @param message
      */
     public ProtocolException(String message) {
@@ -35,7 +36,8 @@ public class ProtocolException extends RuntimeException {
 	}
 
     /**
-     * Create protocol exception with given message and cause
+     * Create protocol exception with given message and cause.
+	 *
      * @param message
      * @param cause
      */

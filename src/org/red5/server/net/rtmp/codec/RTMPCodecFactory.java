@@ -29,28 +29,28 @@ import org.red5.server.net.protocol.SimpleProtocolDecoder;
 import org.red5.server.net.protocol.SimpleProtocolEncoder;
 
 /**
- * RTMP codec factory creates RTMP encoders/decoders
+ * RTMP codec factory creates RTMP encoders/decoders.
  */
 public class RTMPCodecFactory implements ProtocolCodecFactory,
 		SimpleProtocolCodecFactory {
 
     /**
-     * Deserializer
+     * Deserializer.
      */
     protected Deserializer deserializer;
 
     /**
-     * Serializer
+     * Serializer.
      */
     protected Serializer serializer;
 
     /**
-     * Mina protocol decoder for RTMP
+     * Mina protocol decoder for RTMP.
      */
     protected RTMPMinaProtocolDecoder decoder;
 
     /**
-     * Mina protocol encoder for RTMP
+     * Mina protocol encoder for RTMP.
      */
     protected RTMPMinaProtocolEncoder encoder;
 
@@ -65,7 +65,7 @@ public class RTMPCodecFactory implements ProtocolCodecFactory,
 	}
 
 	/**
-     * Setter for deserializer
+     * Setter for deserializer.
      *
      * @param deserializer  Deserializer
      */
@@ -74,7 +74,7 @@ public class RTMPCodecFactory implements ProtocolCodecFactory,
 	}
 
 	/**
-     * Setter for serializer
+     * Setter for serializer.
      *
      * @param serializer  Serializer
      */

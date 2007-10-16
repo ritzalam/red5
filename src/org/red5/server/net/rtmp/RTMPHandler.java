@@ -65,7 +65,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * RTMP events handler
+ * RTMP events handler.
  */
 public class RTMPHandler extends BaseRTMPHandler {
 	/**
@@ -74,12 +74,12 @@ public class RTMPHandler extends BaseRTMPHandler {
 	protected static Logger log = LoggerFactory.getLogger(RTMPHandler.class);
 
 	/**
-	 * Status object service
+	 * Status object service.
 	 */
 	protected StatusObjectService statusObjectService;
 
 	/**
-	 * Red5 server instance
+	 * Red5 server instance.
 	 */
 	protected IServer server;
 
@@ -135,12 +135,10 @@ public class RTMPHandler extends BaseRTMPHandler {
 	}
 
 	/**
-	 * Remoting call invocation handler
+	 * Remoting call invocation handler.
 	 * 
-	 * @param conn
-	 *            RTMP connection
-	 * @param call
-	 *            Service call
+	 * @param conn	RTMP connection
+	 * @param call	Service call
 	 */
 	protected void invokeCall(RTMPConnection conn, IServiceCall call) {
 		final IScope scope = conn.getScope();
@@ -164,7 +162,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 	}
 
 	/**
-	 * Remoting call invocation handler
+	 * Remoting call invocation handler.
 	 * 
 	 * @param conn
 	 *            RTMP connection
@@ -265,7 +263,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 											+ path
 											+ " on host "
 											+ host
-											+ ". Mispelled or missing application folder?");
+											+ ". Misspelled or missing application folder?");
 							disconnectOnReturn = true;
 						} else {
 							final IContext context = global.getContext();
@@ -317,8 +315,8 @@ public class RTMPHandler extends BaseRTMPHandler {
 									}
 									if (okayToConnect) {
 										if (log.isDebugEnabled()) {
-											log.debug("connected");
-											log.debug("client: "
+											log.debug("Connected");
+											log.debug("Client: "
 													+ conn.getClient());
 										}
 										call
@@ -335,7 +333,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 														-1));
 										conn.startRoundTripMeasurement();
 									} else {
-										log.debug("connect failed");
+										log.debug("Connect failed");
 										call
 												.setStatus(Call.STATUS_ACCESS_DENIED);
 										if (call instanceof IPendingServiceCall) {
@@ -347,7 +345,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 									}
 								} catch (ClientRejectedException rejected) {
 									if (log.isDebugEnabled()) {
-										log.debug("connect rejected");
+										log.debug("Connect rejected");
 									}
 									call.setStatus(Call.STATUS_ACCESS_DENIED);
 									if (call instanceof IPendingServiceCall) {

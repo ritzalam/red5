@@ -28,6 +28,7 @@ public class HandshakeFailedException extends ProtocolException {
 
     /**
      * Create handshake failed exception with given message
+	 *
      * @param message
      */
 	public HandshakeFailedException(String message) {

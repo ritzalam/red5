@@ -33,7 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Identified connection that transfers packets
+ * Identified connection that transfers packets.
  */
 public class Channel {
     /**
@@ -41,7 +41,7 @@ public class Channel {
      */
 	protected static Logger log = LoggerFactory.getLogger(Channel.class);
     /**
-     * RTMP connection used to transfer packets
+     * RTMP connection used to transfer packets.
      */
 	private RTMPConnection connection;
 
@@ -62,7 +62,7 @@ public class Channel {
 	}
 
     /**
-     * Closes channel with this id on RTMP connection
+     * Closes channel with this id on RTMP connection.
      */
     public void close() {
 		connection.closeChannel(id);
@@ -87,7 +87,8 @@ public class Channel {
 	}
 
     /**
-     * Writes packet from event data to RTMP connection
+     * Writes packet from event data to RTMP connection.
+	 *
      * @param event          Event data
      */
     public void write(IRTMPEvent event) {
@@ -103,7 +104,8 @@ public class Channel {
 	}
 
     /**
-     * Writes packet from event data to RTMP connection and stream id
+     * Writes packet from event data to RTMP connection and stream id.
+	 *
      * @param event           Event data
      * @param streamId        Stream id
      */
@@ -126,7 +128,8 @@ public class Channel {
 	}
 
     /**
-     * Sends status notification
+     * Sends status notification.
+	 *
      * @param status           Status
      */
     public void sendStatus(Status status) {

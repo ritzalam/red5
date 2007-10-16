@@ -47,7 +47,8 @@ public class RemotingCall extends PendingCall {
 	public boolean isMessaging;
 	
     /**
-     * Create remoting call from service name, method name, list of arguments and callback name
+     * Create remoting call from service name, method name, list of arguments and callback name.
+	 *
      * @param serviceName                Service name
      * @param serviceMethod              Service method name
      * @param args                       Parameters passed to method

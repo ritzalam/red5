@@ -238,7 +238,8 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 	}
 
     /**
-     * Return hostname for URL
+     * Return hostname for URL.
+	 *
      * @param url          URL
      * @return             Hostname from that URL
      */
@@ -257,6 +258,7 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 
     /**
      * Chunk size change event handler. Abstract, to be implemented in subclasses.
+	 *
      * @param conn         Connection
      * @param channel      Channel
      * @param source       Header
@@ -267,6 +269,7 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 
     /**
      * Handler for pending call result. Dispatches results to all pending call handlers.
+	 *
      * @param conn         Connection
      * @param invoke       Pending call result event context
      */
@@ -299,7 +302,8 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 	}
 
     /**
-     * Invocation event handler
+     * Invocation event handler.
+	 *
      * @param conn         Connection
      * @param channel      Channel
      * @param source       Header
@@ -310,7 +314,8 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 			Header source, Notify invoke, RTMP rtmp);
 
     /**
-     * Ping event handler
+     * Ping event handler.
+	 *
      * @param conn         Connection
      * @param channel      Channel
      * @param source       Header
@@ -320,7 +325,8 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 			Header source, Ping ping);
 
     /**
-     * Stream bytes read event handler
+     * Stream bytes read event handler.
+	 *
      * @param conn              Connection
      * @param channel           Channel
      * @param source            Header
@@ -332,7 +338,8 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 	}
 
     /**
-     * Shared object event handler
+     * Shared object event handler.
+	 *
      * @param conn              Connection
      * @param channel           Channel
      * @param source            Header

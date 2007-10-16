@@ -27,6 +27,7 @@ import org.red5.server.api.IConnection;
 /**
  * MBean for Client.
  *
+ * @author The Red5 Project (red5@osflash.org)
  * @author Paul Gregoire (mondain@gmail.com)
  */
 public interface ClientMBean {

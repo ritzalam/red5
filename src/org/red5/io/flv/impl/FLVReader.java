@@ -126,7 +126,8 @@ public class FLVReader implements IoConstants, ITagReader,
 	}
 
     /**
-     * Creates FLV reader from file input stream
+     * Creates FLV reader from file input stream.
+	 *
      * @param f         File
      */
     public FLVReader(File f) throws FileNotFoundException {
@@ -134,7 +135,8 @@ public class FLVReader implements IoConstants, ITagReader,
 	}
 
     /**
-     * Creates FLV reader from file input stream, sets up metadata generation flag
+     * Creates FLV reader from file input stream, sets up metadata generation flag.
+	 *
      * @param f                    File input stream
      * @param generateMetadata     <code>true</code> if metadata generation required, <code>false</code> otherwise
      */
@@ -168,7 +170,8 @@ public class FLVReader implements IoConstants, ITagReader,
     }
 
     /**
-	 * Get the remaining bytes that could be read from a file or ByteBuffer
+	 * Get the remaining bytes that could be read from a file or ByteBuffer.
+	 *
 	 * @return          Number of remaining bytes
 	 */
 	private long getRemainingBytes() {
@@ -185,7 +188,8 @@ public class FLVReader implements IoConstants, ITagReader,
 	}
 
 	/**
-	 * Get the total readable bytes in a file or ByteBuffer
+	 * Get the total readable bytes in a file or ByteBuffer.
+	 *
 	 * @return          Total readable bytes
 	 */
 	private long getTotalBytes() {
@@ -202,7 +206,8 @@ public class FLVReader implements IoConstants, ITagReader,
 	}
 
 	/**
-	 * Get the current position in a file or ByteBuffer
+	 * Get the current position in a file or ByteBuffer.
+	 *
 	 * @return           Current position in a file
 	 */
 	private long getCurrentPosition() {
@@ -226,7 +231,7 @@ public class FLVReader implements IoConstants, ITagReader,
 	}
 
 	/**
-     * Modifies current position
+     * Modifies current position.
      *
      * @param pos  Current position in file
      */
@@ -254,14 +259,15 @@ public class FLVReader implements IoConstants, ITagReader,
 	}
 
     /**
-     * Loads whole buffer from file channel, with no reloading (that is, appending)
+     * Loads whole buffer from file channel, with no reloading (that is, appending).
      */
     private void fillBuffer() {
 		fillBuffer(bufferSize, false);
 	}
 
 	/**
-	 * Loads data from channel to buffer
+	 * Loads data from channel to buffer.
+	 *
 	 * @param amount         Amount of data to load with no reloading
 	 */
 	private void fillBuffer(long amount) {
@@ -272,9 +278,10 @@ public class FLVReader implements IoConstants, ITagReader,
 	 * Load enough bytes from channel to buffer.
 	 * After the loading process, the caller can make sure the amount
 	 * in buffer is of size 'amount' if we haven't reached the end of channel.
+	 *
 	 * @param amount The amount of bytes in buffer after returning,
 	 * no larger than bufferSize
-	 * @param reload Whether to reload or append.
+	 * @param reload Whether to reload or append
 	 */
 	private void fillBuffer(long amount, boolean reload) {
 		try {
@@ -326,7 +333,7 @@ public class FLVReader implements IoConstants, ITagReader,
 	}
 
     /**
-     * Post-initialization hook, reads keyframe metadata and decodes header (if any)
+     * Post-initialization hook, reads keyframe metadata and decodes header (if any).
      */
     private void postInitialize() {
 		ITag tag = null;
@@ -357,9 +364,9 @@ public class FLVReader implements IoConstants, ITagReader,
 
 
 	/**
-     * Getter for buffer type (auto, direct or heap)
+     * Getter for buffer type (auto, direct or heap).
      *
-     * @return Value for property 'bufferType'.
+     * @return Value for property 'bufferType'
      */
     public static String getBufferType() {
 		switch (bufferType) {
@@ -375,9 +382,9 @@ public class FLVReader implements IoConstants, ITagReader,
 	}
 
 	/**
-     * Setter for buffer type
+     * Setter for buffer type.
      *
-     * @param bufferType Value to set for property 'bufferType'.
+     * @param bufferType Value to set for property 'bufferType'
      */
     public static void setBufferType(String bufferType) {
 		int bufferTypeHash = bufferType.hashCode();
@@ -398,9 +405,9 @@ public class FLVReader implements IoConstants, ITagReader,
 	}
 
 	/**
-     * Getter for buffer size
+     * Getter for buffer size.
      *
-     * @return Value for property 'bufferSize'.
+     * @return Value for property 'bufferSize'
      */
     public static int getBufferSize() {
 		return bufferSize;
@@ -409,7 +416,7 @@ public class FLVReader implements IoConstants, ITagReader,
 	/**
      * Setter for property 'bufferSize'.
      *
-     * @param bufferSize Value to set for property 'bufferSize'.
+     * @param bufferSize Value to set for property 'bufferSize'
      */
     public static void setBufferSize(int bufferSize) {
 		// make sure buffer size is no less than 1024 bytes.
@@ -511,7 +518,8 @@ public class FLVReader implements IoConstants, ITagReader,
 	}
 
     /**
-     * Create tag for metadata event
+     * Create tag for metadata event.
+	 *
      * @return         Metadata event tag
      */
     private ITag createFileMeta() {
@@ -618,6 +626,7 @@ public class FLVReader implements IoConstants, ITagReader,
     /**
      * Key frames analysis may be used as a utility method so
 	 * synchronize it.
+	 *
      * @return             Keyframe metadata
      */
     public synchronized KeyFrameMeta analyzeKeyFrames() {
@@ -740,7 +749,8 @@ public class FLVReader implements IoConstants, ITagReader,
 	/**
 	 * Put the current position to pos.
 	 * The caller must ensure the pos is a valid one
-	 * (eg. not sit in the middle of a frame)
+	 * (eg. not sit in the middle of a frame).
+	 *
 	 * @param pos         New position in file. Pass <code>Long.MAX_VALUE</code> to seek to end of file.
 	 */
 	public void position(long pos) {
@@ -761,7 +771,7 @@ public class FLVReader implements IoConstants, ITagReader,
 	}
 
 	/**
-	 * Read only header part of a tag
+	 * Read only header part of a tag.
 	 *
 	 * @return              Tag header
 	 */
@@ -777,7 +787,7 @@ public class FLVReader implements IoConstants, ITagReader,
 		// three consecutive bytes but stores them in a 4 byte int.
 		// We are able to write those three bytes back out by using
 		// another utility method which strips off the last byte
-		// However, we will have to check into this during optimization
+		// However, we will have to check into this during optimization.
 		int bodySize = IOUtils.readUnsignedMediumInt(in);
 		int timestamp = IOUtils.readUnsignedMediumInt(in);
 		// reserved
@@ -787,7 +797,7 @@ public class FLVReader implements IoConstants, ITagReader,
 	}
 
     /**
-     * Buffer types (auto, direct or heap)
+     * Buffer types (auto, direct or heap).
      */
     public enum BufferType {
 		AUTO,

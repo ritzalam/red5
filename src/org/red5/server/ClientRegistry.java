@@ -33,7 +33,9 @@ import org.red5.server.jmx.JMXAgent;
 
 /**
  * Registry for clients. Associates client with it's id so it's possible to get client by id
- * from whenever we need
+ * from whenever we need.
+ *
+ * @author The Red5 Project (red5@osflash.org)
  */
 public class ClientRegistry implements IClientRegistry, ClientRegistryMBean {
 	/**

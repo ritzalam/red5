@@ -22,12 +22,12 @@ package org.red5.server.net.rtmp.codec;
 import org.apache.mina.common.ByteBuffer;
 
 /**
- * Processes multicast events
+ * Processes multicast events.
  */
 public class MulticastEventProcessor {
 
 	/**
-     * Getter for cache ID
+     * Getter for cache ID.
      *
      * @return  Cache ID
      */
@@ -36,7 +36,8 @@ public class MulticastEventProcessor {
 	}
 
     /**
-     * Disposes cached object
+     * Disposes cached object.
+	 *
      * @param obj                Cached object
      */
     public void disposeCached(Object obj) {
@@ -51,7 +52,8 @@ public class MulticastEventProcessor {
 	}
 
     /**
-     * Breaks buffer into chunks of given size
+     * Breaks buffer into chunks of given size.
+	 *
      * @param buf                Byte buffer
      * @param size               Chunk size
      * @return                   Array of byte buffers, chunks

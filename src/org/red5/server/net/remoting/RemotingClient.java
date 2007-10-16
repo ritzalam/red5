@@ -88,8 +88,7 @@ public class RemotingClient {
 	/**
 	 * Create new remoting client for the given url.
 	 *
-	 * @param url
-	 * 			url to connect to
+	 * @param url	URL to connect to
 	 */
 	public RemotingClient(String url) {
 		this(url, DEFAULT_TIMEOUT);
@@ -98,7 +97,7 @@ public class RemotingClient {
 	/**
 	 * Set the thread pool to use for asynchronous requests.
 	 * 
-	 * @param threadPool the thread pool
+	 * @param threadPool The thread pool
 	 */
 	public void setThreadPool(ThreadPool threadPool) {
 		RemotingClient.threadPool = threadPool;
@@ -107,10 +106,8 @@ public class RemotingClient {
 	/**
 	 * Create new remoting client for the given url and given timeout.
 	 *
-	 * @param url
-	 * 			url to connect to
-	 * @param timeout
-	 * 			timeout for one request in milliseconds
+	 * @param url				URL to connect to
+	 * @param timeout 			Timeout for one request in milliseconds
 	 */
 	public RemotingClient(String url, int timeout) {
 		client = new HttpClient(connectionMgr);
@@ -365,7 +362,8 @@ public class RemotingClient {
 	public static class RemotingWorker {
 
         /**
-         * Execute task
+         * Execute task.
+		 *
          * @param client            Remoting client
          * @param method            Method name
          * @param params            Parameters to pass to method on call

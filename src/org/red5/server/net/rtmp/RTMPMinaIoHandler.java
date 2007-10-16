@@ -35,7 +35,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
 /**
- * Handles all RTMP protocol events fired by MINA framework
+ * Handles all RTMP protocol events fired by the MINA framework.
  */
 public class RTMPMinaIoHandler extends IoHandlerAdapter
 implements ApplicationContextAware {
@@ -121,7 +121,8 @@ implements ApplicationContextAware {
 	}
 
     /**
-     * Handle raw buffer receiving event
+     * Handle raw buffer receiving event.
+	 *
      * @param state        Protocol state
      * @param in           Data buffer
      * @param session      I/O session, that is, connection between two endpoints
@@ -241,7 +242,7 @@ implements ApplicationContextAware {
 			log.debug("Session created");
 		}
 
-		// moved protocol state from connection object to rtmp object
+		// moved protocol state from connection object to RTMP object
 		session.setAttribute(ProtocolState.SESSION_KEY, new RTMP(mode));
 
 		session.getFilterChain().addFirst("protocolFilter",

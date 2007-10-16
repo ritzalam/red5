@@ -23,7 +23,8 @@ package org.red5.compatibility.flex.messaging.messages;
  * Command message as sent by the <code>mx:RemoteObject</code> tag.
  * 
  * @see <a href="http://osflash.org/documentation/amf3">osflash documentation (external)</a>
- * 
+ * @see <a href="http://livedocs.adobe.com/flex/2/langref/mx/rpc/remoting/mxml/RemoteObject.html">Adobe Livedocs (external)</a>
+ *
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
  */
