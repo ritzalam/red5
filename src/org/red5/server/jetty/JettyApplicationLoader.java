@@ -51,7 +51,7 @@ public class JettyApplicationLoader implements IApplicationLoader {
 	}
 	
 	/** {@inheritDoc} */
-	public void loadApplication(String contextPath, String directory) throws Exception {
+	public void loadApplication(String contextPath, String virtualHosts, String directory) throws Exception {
 		String[] handlersArr = new String[] {
 				"org.mortbay.jetty.webapp.WebInfConfiguration",
 				"org.mortbay.jetty.webapp.WebXmlConfiguration",
@@ -60,7 +60,22 @@ public class JettyApplicationLoader implements IApplicationLoader {
 				"org.red5.server.jetty.Red5WebPropertiesConfiguration" };
 
 		WebAppContext context = new WebAppContext();
+        // Get hostnames
+        String[] hostnames = null;
+        if (virtualHosts != null) {
+        	hostnames = virtualHosts.split(",");
+    		for (int i = 0; i < hostnames.length; i++) {
+    			hostnames[i] = hostnames[i].trim();
+    			if (hostnames[i].equals("*")) {
+    				// A virtual host "null" must be used so requests for
+    				// any host will be served.
+    				hostnames = null;
+    				break;
+    			}
+    		}
+        }
 		context.setContextPath(contextPath);
+		context.setVirtualHosts(hostnames);
 		context.setConfigurationClasses(handlersArr);
 		context.setDefaultsDescriptor("web-default.xml");
 		context.setExtractWAR(true);

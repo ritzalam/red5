@@ -30,10 +30,11 @@ public interface IApplicationLoader {
 	/**
 	 * Load a new application for the given context path from a directory.
 	 * 
-	 * @param context
+	 * @param contextPath
+	 * @param virtualHosts
 	 * @param directory
 	 * @throws Exception
 	 */
-	public void loadApplication(String contextPath, String directory) throws Exception;
+	public void loadApplication(String contextPath, String virtualHosts, String directory) throws Exception;
 	
 }

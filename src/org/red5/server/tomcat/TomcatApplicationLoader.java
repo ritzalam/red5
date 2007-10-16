@@ -51,11 +51,12 @@ public class TomcatApplicationLoader implements IApplicationLoader {
 	}
 	
 	/** {@inheritDoc} */
-	public void loadApplication(String contextPath, String directory)
+	public void loadApplication(String contextPath, String virtualHosts, String directory)
 			throws Exception {
 		if (directory.startsWith("file:")) {
 			directory = directory.substring(5);
 		}
+		// TODO: evaluate virtual hosts
 		Context c = embedded.createContext(contextPath, directory);
 		LoaderBase.setRed5ApplicationContext(contextPath, new TomcatApplicationContext(c));
 		host.addChild(c);
