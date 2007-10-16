@@ -101,7 +101,7 @@
 	<!--
     <bean id="BWControlService" class="org.red5.server.stream.DummyBWControlService"/> -->
 	<!-- Scheduling service -->
-	<bean id="schedulingService" class="org.red5.server.scheduling.QuartzSchedulingService"/>
+	<bean id="schedulingService" class="org.red5.server.scheduling.QuartzSchedulingService" destroy-method="shutdown"/>
 	<!-- Thread factory -->
 	<bean id="threadFactory" class="org.red5.server.pooling.ThreadObjectFactory"/>
 	<!-- Threadpool settings for the remoting clients -->

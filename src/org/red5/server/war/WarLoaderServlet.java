@@ -61,7 +61,8 @@ public class WarLoaderServlet extends ContextLoaderListener {
 	private final static long serialVersionUID = 41919712008L;
 
 	// Initialize Logging
-	public static Logger logger = LoggerFactory.getLogger(WarLoaderServlet.class);
+	public static Logger logger = LoggerFactory
+			.getLogger(WarLoaderServlet.class);
 
 	private static ArrayList<ServletContext> registeredContexts = new ArrayList<ServletContext>(
 			3);
@@ -71,6 +72,8 @@ public class WarLoaderServlet extends ContextLoaderListener {
 	private DefaultListableBeanFactory parentFactory;
 
 	private static ServletContext servletContext;
+
+	private ContextLoader contextLoader;
 
 	private ClientRegistry clientRegistry;
 
@@ -106,8 +109,8 @@ public class WarLoaderServlet extends ContextLoaderListener {
 
 		try {
 			// instance the context loader
-			ContextLoader loader = createContextLoader();
-			applicationContext = (ConfigurableWebApplicationContext) loader
+			contextLoader = createContextLoader();
+			applicationContext = (ConfigurableWebApplicationContext) contextLoader
 					.initWebApplicationContext(servletContext);
 			logger.debug("Root context path: "
 					+ applicationContext.getServletContext().getContextPath());
@@ -171,6 +174,11 @@ public class WarLoaderServlet extends ContextLoaderListener {
 
 	}
 
+	@Override
+	public ContextLoader getContextLoader() {
+		return this.contextLoader;
+	}
+
 	/**
 	 * Clearing the in-memory configuration parameters, we will receive
 	 * notification that the servlet context is about to be shut down
@@ -199,13 +207,11 @@ public class WarLoaderServlet extends ContextLoaderListener {
 				// shutdown jmx
 				JMXAgent.shutdown();
 				// shutdown spring
-				Object attr = ctx
-						.getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
+				Object attr = ctx.getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
 				if (attr != null) {
 					// get web application context from the servlet context
 					ConfigurableWebApplicationContext applicationContext = (ConfigurableWebApplicationContext) attr;
-					ConfigurableBeanFactory factory = applicationContext
-							.getBeanFactory();
+					ConfigurableBeanFactory factory = applicationContext.getBeanFactory();
 					// for (String scope : factory.getRegisteredScopeNames()) {
 					// logger.debug("Registered scope: " + scope);
 					// }
@@ -217,18 +223,28 @@ public class WarLoaderServlet extends ContextLoaderListener {
 					} catch (RuntimeException e) {
 					}
 					factory.destroySingletons();
-
-					ctx
-							.removeAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
+					ctx.removeAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
 					applicationContext.close();
 				}
 				getContextLoader().closeWebApplicationContext(ctx);
+
+				// http://jakarta.apache.org/commons/logging/guide.html#Classloader_and_Memory_Management
+				// http://wiki.apache.org/jakarta-commons/Logging/UndeployMemoryLeak
+				//LogFactory.release(Thread.currentThread().getContextClassLoader());
+//				System.err.println("Repository: " + org.apache.log4j.LogManager.getLoggerRepository().getClass().getName());
+//				if (org.apache.log4j.LogManager.getLoggerRepository() == null) {
+//                   System.err.println("Log repository was null");				
+//				} else {
+//				    java.util.Enumeration loggers = org.apache.log4j.LogManager.getCurrentLoggers();
+//				    while (loggers.hasMoreElements()) {
+//				        ((org.apache.log4j.Logger) loggers.nextElement()).shutdown(); 
+//				    }
+//				}
+				org.apache.commons.logging.LogFactory.releaseAll();
+//				org.apache.log4j.LogManager.getLoggerRepository().shutdown();
+//				org.apache.log4j.LogManager.shutdown();
 			} catch (Throwable e) {
 				e.printStackTrace();
-			} finally {
-				// http://jakarta.apache.org/commons/logging/guide.html#Classloader_and_Memory_Management
-				// http://wiki.apache.org/jakarta-commons/Logging/UndeployMemoryLeak?action=print
-				//LogFactory.release(Thread.currentThread().getContextClassLoader());
 			}
 		}
 	}

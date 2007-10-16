@@ -171,4 +171,8 @@ public class QuartzSchedulingService implements ISchedulingService,
 		}
 	}
 
+    public void shutdown() throws SchedulerException {
+        scheduler.shutdown();
+    }
+
 }
