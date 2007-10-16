@@ -4,6 +4,7 @@
  * @author Paul Gregoire
  */
 
+importPackage(Packages.org.red5.server);
 importPackage(Packages.org.red5.server.api);
 importPackage(Packages.org.red5.server.api.stream);
 importPackage(Packages.org.red5.server.api.stream.support);
@@ -11,6 +12,7 @@ importPackage(Packages.org.apache.commons.logging);
 
 importClass(Packages.org.springframework.core.io.Resource);
 importClass(Packages.org.red5.server.api.Red5);
+importClass(Packages.org.red5.server.api.IScope);
 importClass(Packages.org.red5.server.api.IScopeHandler);
 
 var IStreamCapableConnection = Packages.org.red5.server.api.stream.IStreamCapableConnection;
@@ -28,7 +30,7 @@ function Application() {
 
 	appStart = function(app) {
 		if (log.isDebugEnabled) {
-			print('Javascript appStart');
+			print('Javascript appStart\n');
 		}
 		this.appScope = app;
 		return true;
@@ -37,7 +39,7 @@ function Application() {
 	appConnect = function(conn, params) {
 		log.error('Javascript appConnect');
 		if (log.isDebugEnabled) {
-			print('Javascript appConnect');
+			print('Javascript appConnect\n');
 		}
 		measureBandwidth(conn);
 		if (conn == typeof(IStreamCapableConnection)) {
@@ -53,7 +55,7 @@ function Application() {
 
 	appDisconnect = function(conn) {
 		if (log.isDebugEnabled) {
-			print('Javascript appDisconnect');
+			print('Javascript appDisconnect\n');
 		}
 		if (this.appScope == conn.getScope() && this.serverStream)  {
 			this.serverStream.close();
@@ -62,7 +64,37 @@ function Application() {
 	};
 
 	toString = function(string) {
-		return 'Javascript:Application';
+		return 'Javascript:Application\n';
+	};
+
+	start = function(app) {
+		print('Javascript start\n');	
+		return appStart(app);
+	};
+	
+	connect = function(conn, scope, params) {
+		print('Javascript connect\n');	
+		return this.supa.connect(conn, scope, params);
+	};	
+	
+	join = function(client, scope) {
+		print('Javascript join\n');	
+		return this.supa.join(client, scope);
+	};	
+
+	disconnect = function(conn, scope) {
+		print('Javascript disconnect\n');	
+		return this.supa.disconnect(conn, scope);
+	};	
+
+    leave = function(client, scope) {
+		print('Javascript leave\n');	
+		this.supa.leave(client, scope);
+	};	
+	
+	serviceCall = function(conn, call) {
+		print('Javascript serviceCall\n');	
+		return this.supa.serviceCall(conn, call);	    
 	};
 
     doesNotUnderstand = function(name) {
