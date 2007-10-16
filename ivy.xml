@@ -36,9 +36,10 @@
         <!-- Logging --> 
         <dependency name="slf4j-api" rev="1.4.3" />
         <dependency name="slf4j-log4j12" rev="1.4.3" />
-        <dependency name="slf4j-simple" rev="1.4.3" />
+        <!-- dependency name="slf4j-simple" rev="1.4.3" / -->
         <dependency name="jcl104-over-slf4j" rev="1.4.3" />
         <dependency name="log4j-over-slf4j" rev="1.4.3" />
+        <dependency name="log4j" rev="1.2.15" />
         <!-- General --> 
         <dependency org="cglib" name="cglib-nodep" rev="2.1_3" />        
         <dependency org="commons" name="commons-beanutils" rev="1.7.0" />

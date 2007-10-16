@@ -44,6 +44,14 @@
 			<filename name="red5.jar"/>
 		</fileset>
 	</path>
+	<path id="runtime.classpath">
+		<fileset dir="${lib.dir}">
+			<exclude name="Grobo*.jar"/>
+			<exclude name="grobo*.jar"/>
+			<exclude name="junit*.jar"/>
+			<exclude name="ivy*.jar"/>			
+		</fileset>
+	</path>	
 	<echo>java.home is ${java.home} and the target version is ${java.target_version}</echo>
 	<target name="-junit.check">
 		<available property="junit.installed" classname="junit.framework.TestCase"/>
@@ -64,6 +72,7 @@
 				<and>
 					<available property="spring.installed" classpathref="project.classpath" classname="org.springframework.core.SpringVersion"/>
 					<available property="log4j.installed" classpathref="project.classpath" classname="org.apache.log4j.Logger"/>
+					<available property="logging.installed" classpathref="project.classpath" classname="org.slf4j.Logger"/>
 					<available property="catalina.installed" classpathref="project.classpath" classname="org.apache.catalina.Server"/>
 					<available property="mina.installed" classpathref="project.classpath" classname="org.apache.mina.filter.codec.ProtocolEncoder"/>
 					<available property="minajmx.installed" classpathref="project.classpath" classname="org.apache.mina.integration.jmx.IoServiceManager"/>
@@ -73,6 +82,7 @@
 				<and>
 					<available property="spring.installed" classpathref="project.classpath" classname="org.springframework.core.SpringVersion"/>
 					<available property="log4j.installed" classpathref="project.classpath" classname="org.apache.log4j.Logger"/>
+					<available property="logging.installed" classpathref="project.classpath" classname="org.slf4j.Logger"/>
 					<available property="catalina.installed" classpathref="project.classpath" classname="org.apache.catalina.Server"/>
 					<available property="mina.installed" classpathref="project.classpath" classname="org.apache.mina.filter.codec.ProtocolEncoder"/>
 					<available property="minajmx.installed" classpathref="project.classpath" classname="org.apache.mina.integration.jmx.IoServiceManager"/>
@@ -534,7 +544,7 @@
 			</fileset>
 		</copy>
 		<manifestclasspath property="jar.classpath" jarfile="red5.jar">
-			<classpath refid="project.classpath"/>
+			<classpath refid="runtime.classpath"/>
 		</manifestclasspath>
 		<jar destfile="red5.jar">
 			<fileset dir="${classes.dir}">
