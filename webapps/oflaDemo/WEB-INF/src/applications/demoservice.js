@@ -1,5 +1,5 @@
 /*
- * demoservice.js - a translation into JavaScript of the ofla demo DemoService class, a red5 example.
+ * demoservice.js - a translation into JavaScript of the ofla demo DemoService class, a Red5 example.
  *
  * @see http://developer.mozilla.org/en/docs/Core_JavaScript_1.5_Reference
  * @author Paul Gregoire
@@ -70,10 +70,10 @@ function DemoService() {
 					log.debug('Last modified not found');
 				}
 
-				println('FLV Name: ' + flvName);
-				println('Last modified date: ' + lastMod);
-				println('Size: ' + flvBytes);
-				println('-------');
+				print('FLV Name: ' + flvName);
+				print('Last modified date: ' + lastMod);
+				print('Size: ' + flvBytes);
+				print('-------');
 
 				fileInfo = new HashMap(3);
 				fileInfo.put("name", flvName);
