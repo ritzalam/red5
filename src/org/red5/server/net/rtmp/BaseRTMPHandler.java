@@ -144,10 +144,9 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 					if(message.getHeader().getStreamId()!=0
 							&& ((Invoke)message).getCall().getServiceName()==null
 							&& ACTION_PUBLISH.equals(((Invoke)message).getCall().getServiceMethodName())) {
-						IClientStream s = conn.getStreamById(header.getStreamId());
-						if (s != null) {
+						if (stream != null) {
 							// Only dispatch if stream really was created
-							((IEventDispatcher) s).dispatchEvent(message);
+							((IEventDispatcher) stream).dispatchEvent(message);
 						}
 					}
 					break;
