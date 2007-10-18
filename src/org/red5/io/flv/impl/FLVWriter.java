@@ -95,18 +95,34 @@ public class FLVWriter implements ITagWriter {
 	 * Id of the audio codec used.
 	 */
 	private int audioCodecId = -1;
-
+	
+	/**
+	 * Are we appending to an existing file?
+	 */
+	private boolean append;
+	
+	/**
+	 * Duration of the file.
+	 */
+	private int duration;
+	
+	/**
+	 * Position of the meta data tag in our file.
+	 */
+	private long metaPosition;
+	
 	/**
 	 * Creates writer implementation with given file output stream and last tag
 	 *
 	 * @param fos               File output stream
      * @param lastTag           Last tag
 	 */
-	public FLVWriter(FileOutputStream fos) {
+	public FLVWriter(FileOutputStream fos, boolean append) {
 		this.fos = fos;
 		channel = this.fos.getChannel();
 		out = ByteBuffer.allocate(1024);
 		out.setAutoExpand(true);
+		this.append = append;
 	}
 
 	/**
@@ -141,9 +157,6 @@ public class FLVWriter implements ITagWriter {
 		out.flip();
 
 		channel.write(out.buf());
-
-		// Write intermediate onMetaData tag, will be replaced later
-		writeMetadataTag(0, -1, -1);
 	}
 
 	/** {@inheritDoc}
@@ -187,6 +200,11 @@ public class FLVWriter implements ITagWriter {
 	 */
 	public boolean writeTag(ITag tag) throws IOException {
 
+		if (!append && bytesWritten == 0 && tag.getDataType() != ITag.TYPE_METADATA) {
+			// Write intermediate onMetaData tag, will be replaced later
+			writeMetadataTag(0, -1, -1);
+		}
+		
 		out.clear();
 
 		// Data Type
@@ -216,6 +234,7 @@ public class FLVWriter implements ITagWriter {
 			byte id = bodyBuf.get();
 			videoCodecId = id & ITag.MASK_VIDEO_CODEC;
 		}
+		duration = Math.max(duration, tag.getTimestamp() + offset);
 
 		// We add the tag size
 		out.clear();
@@ -237,6 +256,15 @@ public class FLVWriter implements ITagWriter {
 	 */
 	public void close() {
 		try {
+			if (metaPosition > 0) {
+				long oldPos = channel.position();
+				try {
+					channel.position(metaPosition);
+					writeMetadataTag(duration * 0.001, videoCodecId, audioCodecId);
+				} finally {
+					channel.position(oldPos);
+				}
+			}
 			channel.close();
 			fos.close();
 		} catch (IOException e) {
@@ -260,6 +288,7 @@ public class FLVWriter implements ITagWriter {
      * @throws IOException if the tag could not be written
      */
 	private void writeMetadataTag(double duration, Integer videoCodecId, Integer audioCodecId) throws IOException {
+		metaPosition = channel.position();
 		ByteBuffer buf = ByteBuffer.allocate(1024);
 		buf.setAutoExpand(true);
 		Output out = new Output(buf);

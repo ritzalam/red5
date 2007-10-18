@@ -214,7 +214,7 @@ public class FLV implements IFLV {
 			file.delete();
 		}
 		file.createNewFile();
-		ITagWriter writer = new FLVWriter(new FileOutputStream(file));
+		ITagWriter writer = new FLVWriter(new FileOutputStream(file), false);
 		writer.writeHeader();
 		return writer;
 	}
@@ -226,7 +226,7 @@ public class FLV implements IFLV {
 			log.info("File does not exist, calling writer. This will create a new file.");
 			return getWriter();
 		}
-		ITagWriter writer = new FLVWriter(new FileOutputStream(file,true));
+		ITagWriter writer = new FLVWriter(new FileOutputStream(file, true), true);
 		return writer;
 	}
 
