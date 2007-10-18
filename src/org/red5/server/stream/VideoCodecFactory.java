@@ -20,7 +20,6 @@ package org.red5.server.stream;
  */
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.mina.common.ByteBuffer;
@@ -43,14 +42,14 @@ public class VideoCodecFactory {
     /**
      * List of available codecs
      */
-	private List codecs = new ArrayList();
+	private List<IVideoStreamCodec> codecs = new ArrayList<IVideoStreamCodec>();
 
 	/**
      * Setter for codecs
      *
      * @param codecs List of codecs
      */
-    public void setCodecs(List codecs) {
+    public void setCodecs(List<IVideoStreamCodec> codecs) {
 		this.codecs = codecs;
 	}
 
@@ -61,10 +60,8 @@ public class VideoCodecFactory {
      */
 	public IVideoStreamCodec getVideoCodec(ByteBuffer data) {
 		IVideoStreamCodec result = null;
-		Iterator it = this.codecs.iterator();
-		while (it.hasNext()) {
+		for (IVideoStreamCodec storedCodec: codecs) {
 			IVideoStreamCodec codec;
-			IVideoStreamCodec storedCodec = (IVideoStreamCodec) it.next();
 			// XXX: this is a bit of a hack to create new instances of the
 			// configured
 			//      video codec for each stream

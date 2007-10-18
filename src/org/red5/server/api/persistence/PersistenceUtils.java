@@ -43,10 +43,10 @@ public class PersistenceUtils {
 	 * @return				Constructor
 	 * @throws Exception
 	 */
-	private static Constructor getPersistenceStoreConstructor(Class<?> theClass,
-			Class[] interfaces) throws Exception {
-		Constructor constructor = null;
-		for (Class interfaceClass : interfaces) {
+	private static Constructor<?> getPersistenceStoreConstructor(Class<?> theClass,
+			Class<?>[] interfaces) throws Exception {
+		Constructor<?> constructor = null;
+		for (Class<?> interfaceClass : interfaces) {
 			try {
 				constructor = theClass
 						.getConstructor(new Class[] { interfaceClass });
@@ -82,12 +82,12 @@ public class PersistenceUtils {
 	public static IPersistenceStore getPersistenceStore(
 			ResourcePatternResolver resolver, String className)
 			throws Exception {
-		Class persistenceClass = Class.forName(className);
-		Constructor constructor = getPersistenceStoreConstructor(
+		Class<?> persistenceClass = Class.forName(className);
+		Constructor<?> constructor = getPersistenceStoreConstructor(
 				persistenceClass, resolver.getClass().getInterfaces());
 		if (constructor == null) {
 			// Search in superclasses of the object.
-			Class superClass = resolver.getClass().getSuperclass();
+			Class<?> superClass = resolver.getClass().getSuperclass();
 			while (superClass != null) {
 				constructor = getPersistenceStoreConstructor(persistenceClass,
 						superClass.getInterfaces());

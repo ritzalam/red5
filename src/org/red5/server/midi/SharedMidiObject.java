@@ -82,7 +82,7 @@ public class SharedMidiObject {
 				return;
 			}
 
-			List list = new ArrayList(3);
+			List<Object> list = new ArrayList<Object>(3);
 			list.add(time);
 			list.add(len);
 			list.add(msg);

@@ -81,7 +81,7 @@ public class ServiceUtils {
 		for (int i = 0; i < methods.size(); i++) {
 			method = (Method) methods.get(i);
 			boolean valid = true;
-			Class[] paramTypes = method.getParameterTypes();
+			Class<?>[] paramTypes = method.getParameterTypes();
 			for (int j = 0; j < args.length; j++) {
 				if ((args[j] == null && paramTypes[j].isPrimitive())
 						|| (args[j] != null && !args[j].getClass().equals(

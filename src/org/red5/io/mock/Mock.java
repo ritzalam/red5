@@ -55,9 +55,9 @@ public class Mock {
 		}
 	}
 
-	public static String listToString(List list) {
+	public static String listToString(List<Object> list) {
 		StringBuffer sb = new StringBuffer();
-		Iterator it = list.iterator();
+		Iterator<Object> it = list.iterator();
 		while (it.hasNext()) {
 			Object val = it.next();
 			if (val instanceof Byte) {

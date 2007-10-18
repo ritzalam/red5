@@ -218,7 +218,7 @@ public class ScopeUtils {
 	 * @return				Service object
 	 */
 	protected static Object getScopeService(IScope scope, String name,
-			Class defaultClass) {
+			Class<?> defaultClass) {
 		if (scope == null) {
 			return null;
 		}
@@ -253,11 +253,11 @@ public class ScopeUtils {
 	 *            The interface the service must implement
 	 * @return Service object
 	 */
-	public static Object getScopeService(IScope scope, Class intf) {
+	public static Object getScopeService(IScope scope, Class<?> intf) {
 		return getScopeService(scope, intf, null);
 	}
 
-	public static Object getScopeService(IScope scope, Class intf, boolean checkHandler) {
+	public static Object getScopeService(IScope scope, Class<?> intf, boolean checkHandler) {
 		return getScopeService(scope, intf, null, checkHandler);
 	}
 
@@ -272,13 +272,13 @@ public class ScopeUtils {
 	 *            Class that should be used to create a new service if no service was found.
 	 * @return Service object
 	 */
-	public static Object getScopeService(IScope scope, Class intf,
-			Class defaultClass) {
+	public static Object getScopeService(IScope scope, Class<?> intf,
+			Class<?> defaultClass) {
 		return getScopeService(scope, intf, defaultClass, true);
 	}
 
-	public static Object getScopeService(IScope scope, Class intf,
-			Class defaultClass, boolean checkHandler) {
+	public static Object getScopeService(IScope scope, Class<?> intf,
+			Class<?> defaultClass, boolean checkHandler) {
 		if (scope == null || intf == null) {
 			return null;
 		}

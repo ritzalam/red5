@@ -72,7 +72,7 @@ public class WorkerThread extends Thread implements WorkerThreadMBean {
 	/**
 	 * The parameter types for the respective parameters..
 	 */
-	private Class[] parmTypes;
+	private Class<?>[] parmTypes;
 
 	/**
 	 * The object to synchronize upon for notifying the completion of task.
@@ -177,7 +177,7 @@ public class WorkerThread extends Thread implements WorkerThreadMBean {
 	/**
 	 * @return Returns the parmTypes.
 	 */
-	public Class[] getParmTypes() {
+	public Class<?>[] getParmTypes() {
 		return parmTypes;
 	}
 
@@ -185,7 +185,7 @@ public class WorkerThread extends Thread implements WorkerThreadMBean {
 	 * @param parmTypes
 	 *            The parmTypes to set.
 	 */
-	public void setParmTypes(Class[] parmTypes) {
+	public void setParmTypes(Class<?>[] parmTypes) {
 		this.parmTypes = parmTypes;
 	}
 
@@ -245,7 +245,7 @@ public class WorkerThread extends Thread implements WorkerThreadMBean {
      * @param paramTypes
 	 */
 	public synchronized void execute(String clsName, String methName,
-			Object[] params, Class[] paramTypes, Object synObj) {
+			Object[] params, Class<?>[] paramTypes, Object synObj) {
 		this.className = clsName;
 		this.methodName = methName;
 		this.methodParams = params;
@@ -342,7 +342,7 @@ public class WorkerThread extends Thread implements WorkerThreadMBean {
 	 * @return Class
 	 * @throws ClassNotFoundException
 	 */
-	private static Class getClass(String cls) throws ClassNotFoundException {
+	private static Class<?> getClass(String cls) throws ClassNotFoundException {
 		ClassLoader classLoader = Thread.currentThread()
 				.getContextClassLoader();
 		if (classLoader == null) {
@@ -356,7 +356,7 @@ public class WorkerThread extends Thread implements WorkerThreadMBean {
 	 */
 	private void execute() {
 		try {
-			Class cls = getClass(this.getClassName());
+			Class<?> cls = getClass(this.getClassName());
 			Object obj = cls.newInstance();
 			this.result = MethodUtils.invokeExactMethod(obj, this
 					.getMethodName(), this.getMethodParams(), this

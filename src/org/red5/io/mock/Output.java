@@ -108,7 +108,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 	}
 
 	/** {@inheritDoc} */
-	public void writeArray(Collection array, Serializer serializer) {
+	public void writeArray(Collection<?> array, Serializer serializer) {
 		list.add(Byte.valueOf(DataTypes.CORE_ARRAY));
 		list.add(array);
 	}
@@ -132,7 +132,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 	}
 
 	/** {@inheritDoc} */
-	public void writeMap(Collection array, Serializer serializer) {
+	public void writeMap(Collection<?> array, Serializer serializer) {
 		list.add(Byte.valueOf(DataTypes.CORE_MAP));
 		list.add(array);
 	}

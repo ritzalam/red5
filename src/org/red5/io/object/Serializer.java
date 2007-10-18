@@ -144,7 +144,7 @@ public class Serializer {
 			log.debug("writeListType");
 		}
 		if (listType instanceof List) {
-			writeList(out, (List) listType);
+			writeList(out, (List<?>) listType);
 		} else {
 			return false;
 		}
@@ -157,7 +157,7 @@ public class Serializer {
 	 * @param out             Output writer
 	 * @param list            List to write as Object
 	 */
-	protected void writeList(Output out, List list) {
+	protected void writeList(Output out, List<?> list) {
 		// if its a small list, write it as an array
 		if (list.size() < 100) {
 			out.writeArray(list, this);

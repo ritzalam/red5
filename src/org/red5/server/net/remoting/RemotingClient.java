@@ -345,7 +345,7 @@ public class RemotingClient {
 			WorkerThread wt = (WorkerThread) threadPool.borrowObject();
 			Object[] params = new Object[] { this, method, methodParams,
 					callback };
-			Class[] paramTypes = new Class[] { RemotingClient.class,
+			Class<?>[] paramTypes = new Class[] { RemotingClient.class,
 					String.class, Object[].class, IRemotingCallback.class };
 			wt
 					.execute(

@@ -81,7 +81,7 @@ public interface IEchoService {
 	 * @param obj
 	 * @return input value
 	 */
-	public abstract Map echoObject(Map obj);
+	public abstract <K, V> Map<K, V> echoObject(Map<? extends K, ? extends V> obj);
 
 	/**
 	 * Verifies that a Flash simple Array that is passed in returns correctly.
@@ -99,7 +99,7 @@ public interface IEchoService {
 	 * @param list
 	 * @return input value
 	 */
-	public abstract List echoList(List list);
+	public abstract <T> List<T> echoList(List<? extends T> list);
 
 	/**
 	 * Verifies that Flash XML that is passed in returns itself.

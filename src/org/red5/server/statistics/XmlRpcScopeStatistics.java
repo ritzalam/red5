@@ -141,7 +141,7 @@ public class XmlRpcScopeStatistics {
 			return "<null>";
 		}
 
-		Class type = value.getClass();
+		Class<?> type = value.getClass();
 		if (type.equals(Integer.class) || type.equals(Double.class)
 				|| type.equals(Boolean.class) || type.equals(String.class)
 				|| type.equals(Date.class)) {
@@ -161,14 +161,12 @@ public class XmlRpcScopeStatistics {
 			return res;
 		} else if (value instanceof Map) {
 			Hashtable<Object, Object> res = new Hashtable<Object, Object>();
-			Iterator<Map.Entry> it = ((Map) value).entrySet().iterator();
-			while (it.hasNext()) {
-				Map.Entry entry = it.next();
+			for (Map.Entry<?, ?> entry: ((Map<?, ?>) value).entrySet()) {
 				res.put(entry.getKey(), getXMLRPCValue(entry.getValue()));
 			}
 			return res;
 		} else if (value instanceof Collection) {
-			Collection<Object> coll = (Collection<Object>) value;
+			Collection<?> coll = (Collection<?>) value;
 			Vector<Object> result = new Vector<Object>(coll.size());
 			for (Object item : coll) {
 				result.add(getXMLRPCValue(item));

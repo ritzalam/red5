@@ -36,14 +36,14 @@ import org.red5.io.amf3.IExternalizable;
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
  */
-public class ObjectProxy implements Map, IExternalizable {
+public class ObjectProxy<T, V> implements Map<T, V>, IExternalizable {
 
 	/** The proxied object. */
-	private Map<Object, Object> item;
+	private Map<T, V> item;
 	
 	/** Create new empty proxy. */
 	public ObjectProxy() {
-		this(new HashMap<Object, Object>());
+		this(new HashMap<T, V>());
 	}
 	
 	/**
@@ -51,14 +51,14 @@ public class ObjectProxy implements Map, IExternalizable {
 	 * 
 	 * @param item object to proxy
 	 */
-	public ObjectProxy(Map<Object, Object> item) {
-		this.item = new HashMap<Object, Object>(item);
+	public ObjectProxy(Map<T, V> item) {
+		this.item = new HashMap<T, V>(item);
 	}
 
 	/** {@inheritDoc} */
 	@SuppressWarnings("unchecked")
 	public void readExternal(IDataInput input) {
-		item = (Map<Object, Object>) input.readObject();
+		item = (Map<T, V>) input.readObject();
 	}
 
 	/** {@inheritDoc} */
@@ -93,7 +93,7 @@ public class ObjectProxy implements Map, IExternalizable {
 		return item.containsValue(value);
 	}
 
-	public Set entrySet() {
+	public Set<Entry<T, V>> entrySet() {
 		return Collections.unmodifiableSet(item.entrySet());
 	}
 
@@ -103,7 +103,7 @@ public class ObjectProxy implements Map, IExternalizable {
 	 * @param name
 	 * @return
 	 */
-	public Object get(Object name) {
+	public V get(Object name) {
 		return item.get(name);
 	}
 
@@ -111,7 +111,7 @@ public class ObjectProxy implements Map, IExternalizable {
 		return item.isEmpty();
 	}
 
-	public Set keySet() {
+	public Set<T> keySet() {
 		return item.keySet();
 	}
 
@@ -122,7 +122,7 @@ public class ObjectProxy implements Map, IExternalizable {
 	 * @param value
 	 * @return
 	 */
-	public Object put(Object name, Object value) {
+	public V put(T name, V value) {
 		return item.put(name, value);
 	}
 
@@ -137,7 +137,7 @@ public class ObjectProxy implements Map, IExternalizable {
 	 * @param name
 	 * @return
 	 */
-	public Object remove(Object name) {
+	public V remove(Object name) {
 		return item.remove(name);
 	}
 
@@ -145,7 +145,7 @@ public class ObjectProxy implements Map, IExternalizable {
 		return item.size();
 	}
 
-	public Collection values() {
+	public Collection<V> values() {
 		return Collections.unmodifiableCollection(item.values());
 	}
 	

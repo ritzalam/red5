@@ -230,11 +230,11 @@ public class FilePersistence extends RamPersistence {
 					// We need to create the object first
 					try {
 						Class<?> theClass = Class.forName(className);
-						Constructor constructor = null;
+						Constructor<?> constructor = null;
 						try {
 							// Try to create object by calling constructor with Input stream as
 							// parameter.
-							for (Class interfaceClass : in.getClass().getInterfaces()) {
+							for (Class<?> interfaceClass : in.getClass().getInterfaces()) {
 								constructor = theClass.getConstructor(new Class[] { interfaceClass });
 								if (constructor != null) {
 									break;

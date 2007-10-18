@@ -34,11 +34,11 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 
 	protected static Logger log = LoggerFactory.getLogger(Input.class);
 
-	protected List list;
+	protected List<Object> list;
 
 	protected int idx;
 
-	public Input(List list) {
+	public Input(List<Object> list) {
 		super();
 		this.list = list;
 		this.idx = 0;
@@ -102,6 +102,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	}
     
 	/** {@inheritDoc} */
+    @SuppressWarnings("unchecked")
     public Map<String, Object> readKeyValues(Deserializer deserializer) {
 		return (Map<String, Object>) getNext();
 	}

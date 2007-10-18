@@ -177,7 +177,7 @@ public class SharedObjectMessage extends BaseEvent implements
 	public String toString() {
 		final StringBuffer sb = new StringBuffer();
 		sb.append("SharedObjectMessage: ").append(name).append(" { ");
-		final Iterator it = events.iterator();
+		final Iterator<ISharedObjectEvent> it = events.iterator();
 		while (it.hasNext()) {
 			sb.append(it.next());
 			if (it.hasNext()) {

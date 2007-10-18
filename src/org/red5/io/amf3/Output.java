@@ -229,7 +229,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 	}
 
     /** {@inheritDoc} */
-    public void writeArray(Collection array, Serializer serializer) {
+    public void writeArray(Collection<?> array, Serializer serializer) {
 		writeAMF3();
 		buf.put(AMF3.TYPE_ARRAY);
     	if (hasReference(array)) {
@@ -344,7 +344,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
     }
 
     /** {@inheritDoc} */
-    public void writeMap(Collection array, Serializer serializer) {
+    public void writeMap(Collection<?> array, Serializer serializer) {
 		writeAMF3();
 		buf.put(AMF3.TYPE_ARRAY);
     	if (hasReference(array)) {
@@ -473,7 +473,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
         // Create new map out of bean properties
         BeanMap beanMap = new BeanMap(object);
         // Set of bean attributes
-        Set set = beanMap.entrySet();
+        Set<BeanMap.Entry<?, ?>> set = beanMap.entrySet();
 		if ((set.size() == 0) || (set.size() == 1 && beanMap.containsKey("class"))) {
 			// BeanMap is empty or can only access "class" attribute, skip it
 			writeArbitraryObject(object, serializer);
@@ -491,9 +491,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 
     	// Store key/value pairs
     	amf3_mode += 1;
-		Iterator it = set.iterator();
-        while (it.hasNext()) {
-			BeanMap.Entry entry = (BeanMap.Entry) it.next();
+    	for (BeanMap.Entry<?, ?> entry: set) {
 			String keyName = entry.getKey().toString();
 			if ("class".equals(keyName)) {
 				continue;

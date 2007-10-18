@@ -49,35 +49,35 @@ public class ConversionUtils {
 
 	protected static Logger log = LoggerFactory.getLogger(Deserializer.class);
 
-	private static final Class[] PRIMITIVES = { boolean.class, byte.class,
+	private static final Class<?>[] PRIMITIVES = { boolean.class, byte.class,
 			char.class, short.class, int.class, long.class, float.class,
 			double.class };
 
-	private static final Class[] WRAPPERS = { Boolean.class, Byte.class,
+	private static final Class<?>[] WRAPPERS = { Boolean.class, Byte.class,
 			Character.class, Short.class, Integer.class, Long.class,
 			Float.class, Double.class };
 
     /**
      * Parameter chains
      */
-    private static final Class[][] PARAMETER_CHAINS = {
+    private static final Class<?>[][] PARAMETER_CHAINS = {
 			{ boolean.class, null }, { byte.class, Short.class },
 			{ char.class, Integer.class }, { short.class, Integer.class },
 			{ int.class, Long.class }, { long.class, Float.class },
 			{ float.class, Double.class }, { double.class, null } };
 
 	/** Mapping of primitives to wrappers */
-	private static Map<Class, Class> primitiveMap = new HashMap<Class, Class>();
+	private static Map<Class<?>, Class<?>> primitiveMap = new HashMap<Class<?>, Class<?>>();
 
 	/** Mapping of wrappers to primitives */
-	private static Map<Class, Class> wrapperMap = new HashMap<Class, Class>();
+	private static Map<Class<?>, Class<?>> wrapperMap = new HashMap<Class<?>, Class<?>>();
 
 	/** 
 	 * Mapping from wrapper class to appropriate parameter types (in order) 
 	 * Each entry is an array of Classes, the last of which is either null
 	 * (for no chaining) or the next class to try
 	 */
-	private static Map<Class, Class[]> parameterMap = new HashMap<Class, Class[]>();
+	private static Map<Class<?>, Class<?>[]> parameterMap = new HashMap<Class<?>, Class<?>[]>();
 
 	static {
 		for (int i = 0; i < PRIMITIVES.length; i++) {
@@ -95,7 +95,7 @@ public class ConversionUtils {
      * @throws ConversionException           If object can't be converted
      *
      */
-    public static Object convert(Object source, Class target)
+    public static Object convert(Object source, Class<?> target)
 			throws ConversionException {
 		if (target == null) {
 			throw new ConversionException("Unable to perform conversion");
@@ -139,7 +139,7 @@ public class ConversionUtils {
 		}
 		if ((target.equals(List.class) || target.equals(Collection.class))
 				&& source.getClass().equals(LinkedHashMap.class)) {
-			return convertMapToList((LinkedHashMap) source);
+			return convertMapToList((LinkedHashMap<?, ?>) source);
 		}
 		if ((target.equals(List.class) || target.equals(Collection.class))
 				&& source.getClass().isArray()) {
@@ -158,22 +158,22 @@ public class ConversionUtils {
      * @return               Converted object
      * @throws ConversionException           If object can't be converted
      */
-    public static Object convertToArray(Object source, Class target)
+    public static Object convertToArray(Object source, Class<?> target)
 			throws ConversionException {
 		try {
 			Object[] targetInstance = (Object[]) Array.newInstance(target
 					.getComponentType(), 0);
 			if (source.getClass().isArray()) {
 				Object[] sourceArray = (Object[]) source;
-				Class targetType = target.getComponentType();
-				ArrayList list = new ArrayList(sourceArray.length);
+				Class<?> targetType = target.getComponentType();
+				List<Object> list = new ArrayList<Object>(sourceArray.length);
 				for (Object element : sourceArray) {
 					list.add(convert(element, targetType));
 				}
 				source = list;
 			}
 			if (source instanceof Collection) {
-				return ((Collection) source).toArray(targetInstance);
+				return ((Collection<?>) source).toArray(targetInstance);
 			} else {
 				throw new ConversionException("Unable to convert to array");
 			}
@@ -182,8 +182,8 @@ public class ConversionUtils {
 		}
 	}
 
-    public static List convertMapToList(Map map) {
-    	List list = new ArrayList();
+    public static List<Object> convertMapToList(Map<?, ?> map) {
+    	List<Object> list = new ArrayList<Object>();
     	list.addAll(map.values());
     	return list;
     }
@@ -194,7 +194,7 @@ public class ConversionUtils {
      * @param wrapper           Primitive wrapper type
      * @return                  Converted object
      */
-    public static Object convertToWrappedPrimitive(Object source, Class wrapper) {
+    public static Object convertToWrappedPrimitive(Object source, Class<?> wrapper) {
 		if (source == null || wrapper == null) {
 			return null;
 		}
@@ -217,7 +217,7 @@ public class ConversionUtils {
      * @param wrapper           Primitive wrapper type
      * @return                  Converted object
      */
-    public static Object convertStringToWrapper(String str, Class wrapper) {
+    public static Object convertStringToWrapper(String str, Class<?> wrapper) {
 		if (wrapper.equals(String.class)) {
 			return str;
 		} else if (wrapper.equals(Boolean.class)) {
@@ -244,7 +244,7 @@ public class ConversionUtils {
      * @param wrapper           Primitive wrapper type
      * @return                  Converted object
      */
-    public static Object convertNumberToWrapper(Number num, Class wrapper) {
+    public static Object convertNumberToWrapper(Number num, Class<?> wrapper) {
 		//XXX Paul: Using valueOf will reduce object creation
 		if (wrapper.equals(String.class)) {
 			return num.toString();
@@ -301,7 +301,7 @@ public class ConversionUtils {
      * @return                      Array of converted objects
      * @throws ConversionException  If object can't be converted
      */
-    public static Object[] convertParams(Object[] source, Class[] target)
+    public static Object[] convertParams(Object[] source, Class<?>[] target)
 			throws ConversionException {
 		Object[] converted = new Object[target.length];
 		for (int i = 0; i < target.length; i++) {
@@ -316,9 +316,9 @@ public class ConversionUtils {
      * @return
      * @throws ConversionException
      */
-    public static List convertArrayToList(Object[] source)
+    public static List<?> convertArrayToList(Object[] source)
 			throws ConversionException {
-		ArrayList list = new ArrayList(source.length);
+		List<Object> list = new ArrayList<Object>(source.length);
 		for (Object element : source) {
 			list.add(element);
 		}
@@ -332,7 +332,7 @@ public class ConversionUtils {
      * @return                      Bean of that class
      * @throws ConversionException
      */
-    public static Object convertMapToBean(Map source, Class target)
+    public static Object convertMapToBean(Map<?, ?> source, Class<?> target)
 			throws ConversionException {
 		Object bean = newInstance(target.getClass().getName());
 		if (bean == null) {
@@ -352,7 +352,7 @@ public class ConversionUtils {
      * @param source      Source bean
      * @return            Converted map
      */
-    public static Map convertBeanToMap(Object source) {
+    public static Map<?, ?> convertBeanToMap(Object source) {
 		return new BeanMap(source);
 	}
 
@@ -361,8 +361,8 @@ public class ConversionUtils {
      * @param source      Source array
      * @return            Set
      */
-    public static Set convertArrayToSet(Object[] source) {
-		HashSet set = new HashSet();
+    public static Set<?> convertArrayToSet(Object[] source) {
+		Set<Object> set = new HashSet<Object>();
 		for (Object element : source) {
 			set.add(element);
 		}

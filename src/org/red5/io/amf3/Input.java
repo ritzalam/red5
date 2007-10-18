@@ -77,10 +77,10 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		
 		class PendingProperty {
 			Object obj;
-			Class klass;
+			Class<?> klass;
 			String name;
 			
-			PendingProperty(Object obj, Class klass, String name) {
+			PendingProperty(Object obj, Class<?> klass, String name) {
 				this.obj = obj;
 				this.klass = klass;
 				this.name = name;
@@ -89,7 +89,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		
 		private List<PendingProperty> properties;
 		
-		public void addPendingProperty(Object obj, Class klass, String name) {
+		public void addPendingProperty(Object obj, Class<?> klass, String name) {
 			if (properties == null) {
 				properties = new ArrayList<PendingProperty>();
 			}

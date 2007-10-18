@@ -70,7 +70,7 @@ public interface Output {
      * @param array     	Array to write.
      * @param serializer	Serializer to use for subobjects.
      */
-    void writeArray(Collection array, Serializer serializer);
+    void writeArray(Collection<?> array, Serializer serializer);
 
     /**
      * Write array.
@@ -100,7 +100,7 @@ public interface Output {
      * @param array			Array to write
      * @param serializer	Serializer to use for subobjects.
      */
-    void writeMap(Collection array, Serializer serializer);
+    void writeMap(Collection<?> array, Serializer serializer);
 
     /**
      * Write object.

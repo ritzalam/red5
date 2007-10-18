@@ -58,7 +58,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 	/**
 	 * Cache encoded strings.
 	 */
-	protected static Map<String, byte[]> stringCache = new LRUMap(10000, true);
+	protected static Map<String, byte[]> stringCache = (Map<String, byte[]>) new LRUMap(10000, true);
 	
     /**
      * Output buffer
@@ -89,7 +89,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
     }
 
 	/** {@inheritDoc} */
-	public void writeArray(Collection array, Serializer serializer) {
+	public void writeArray(Collection<?> array, Serializer serializer) {
 		if (checkWriteReference(array))
 			return;
 
@@ -165,7 +165,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 	}
 
 	/** {@inheritDoc} */
-	public void writeMap(Collection array, Serializer serializer) {
+	public void writeMap(Collection<?> array, Serializer serializer) {
 		if (checkWriteReference(array))
 			return;
 
@@ -266,7 +266,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
         // Create new map out of bean properties
         BeanMap beanMap = new BeanMap(object);
         // Set of bean attributes
-        Set set = beanMap.entrySet();
+        Set<BeanMap.Entry<?, ?>> set = beanMap.entrySet();
 		if ((set.size() == 0) || (set.size() == 1 && beanMap.containsKey("class"))) {
 			// BeanMap is empty or can only access "class" attribute, skip it
 			writeArbitraryObject(object, serializer);
@@ -290,10 +290,8 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
     		return;
         }
         
-		Iterator it = set.iterator();
         // Iterate thru entries and write out property names with separators
-        while (it.hasNext()) {
-			BeanMap.Entry entry = (BeanMap.Entry) it.next();
+		for (BeanMap.Entry<?, ?> entry: set) {
 			if (entry.getKey().toString().equals("class")) {
 				continue;
 			}

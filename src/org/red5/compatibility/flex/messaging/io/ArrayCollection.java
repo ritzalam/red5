@@ -34,7 +34,7 @@ import org.red5.io.amf3.IExternalizable;
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
  */
-public class ArrayCollection extends ArrayList implements Collection, IExternalizable {
+public class ArrayCollection<T> extends ArrayList<T> implements Collection<T>, IExternalizable {
 
 	/** Serial number */
 	private static final long serialVersionUID = -9086041828446362637L;
