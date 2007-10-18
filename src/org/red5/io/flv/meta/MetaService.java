@@ -140,7 +140,7 @@ public class MetaService implements IMetaService {
         // Get cue points, FLV reader and writer
 		IMetaCue[] metaArr = meta.getMetaCue();
 		FLVReader reader = new FLVReader(file);
-		FLVWriter writer = new FLVWriter(fos);
+		FLVWriter writer = new FLVWriter(fos, false);
 		ITag tag = null;
 
 		// Read first tag
