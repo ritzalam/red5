@@ -99,36 +99,9 @@
     <bean id="BWControlService" class="org.red5.server.stream.DummyBWControlService"/> -->
 	<!-- Scheduling service -->
 	<bean id="schedulingService" class="org.red5.server.scheduling.QuartzSchedulingService"/>
-	<!-- Thread factory -->
-	<bean id="threadFactory" class="org.red5.server.pooling.ThreadObjectFactory"/>
 	<!-- Threadpool settings for the remoting clients -->
 	<bean id="remotingPool" class="org.red5.server.pooling.ThreadPool">
-		<constructor-arg>
-			<ref bean="threadFactory"/>
-		</constructor-arg>
-		<!-- maxIdle: The maximum number of sleeping instances in the pool,
-        	without extra objects being released. -->
-		<property name="maxIdle" value="8"/>
-		<!-- minIdle: The minimum number of sleeping instances in the pool,
-        	without extra objects being created. -->
-		<property name="minIdle" value="2"/>
-		<!-- maxActive: The maximum number of active instances in the pool. -->
-		<property name="maxActive" value="8"/>
-		<!-- timeBetweenEvictionRunsMillis: The number of milliseconds to
-        	sleep between runs of the idle-object evictor thread. When negative,
-        	no idle-object evictor thread will run. Use this parameter only when
-        	you want the evictor thread to run. -->
-		<property name="timeBetweenEvictionRunsMillis" value="120000"/>
-		<!-- minEvictableIdleTimeMillis: The minimum amount of time an object,
-        	if active, may sit idle in the pool before it is eligible for eviction
-        	by the idle-object evictor. If a negative value is supplied, no objects
-        	are evicted due to idle time alone. -->
-		<property name="minEvictableIdleTimeMillis" value="-1"/>
-		<!-- testOnBorrow: When "true," objects are validated. If the object fails
-        	validation, it will be dropped from the pool, and the pool will attempt
-        	to borrow another. -->
-		<property name="testOnBorrow" value="true"/>
-		<property name="whenExhaustedAction" value="2"/>
+		<property name="poolSize" value="8"/>
 	</bean>
 	<!-- Use injection to setup thread pool for remoting clients -->
 	<bean id="remotingClient" class="org.red5.server.net.remoting.RemotingClient">
