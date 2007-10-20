@@ -39,10 +39,6 @@
 	</context-param>
 
 	<listener>
-		<listener-class>org.springframework.web.util.Log4jConfigListener</listener-class>
-	</listener>
-
-	<listener>
 		<listener-class>org.red5.server.war.WarLoaderServlet</listener-class>
 	</listener>
 

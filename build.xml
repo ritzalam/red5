@@ -357,6 +357,7 @@
 		<!-- only certain classes from selected demos are copied to the war -->
 		<copy todir="${classes.dir}/WEB-INF/classes">
 			<fileset dir="${webapps.build.dir}/admin/WEB-INF/classes"/>
+			<fileset dir="${webapps.build.dir}/adminPanel/WEB-INF/classes"/>
 			<fileset dir="${webapps.build.dir}/echo/WEB-INF/classes"/>
 			<fileset dir="${webapps.build.dir}/fitcDemo/WEB-INF/classes"/>
 			<fileset dir="${webapps.build.dir}/oflaDemo/WEB-INF/classes"/>
@@ -430,6 +431,17 @@
 				<attribute name="Built-On" value="${build.TODAY}"/>
 			</manifest>
 		</war>
+		<!-- war up admin panel -->
+		<war destfile="${dist.dir}/adminPanel.war" webxml="${webapps.build.dir}/adminPanel/WEB-INF/web.xml">
+			<fileset dir="${webapps.build.dir}/adminPanel">
+				<exclude name="WEB-INF"/>
+				<exclude name="**/src/**"/>
+			</fileset>
+			<manifest>
+				<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>
+				<attribute name="Built-On" value="${build.TODAY}"/>
+			</manifest>
+		</war>		
 		<!-- war up echo -->
 		<war destfile="${dist.dir}/echo.war" webxml="${webapps.build.dir}/echo/WEB-INF/web.xml">
 			<fileset dir="${webapps.build.dir}/echo">
@@ -793,7 +805,6 @@
 		<copy todir="${webapps.build.dir}/root/WEB-INF" overwrite="true" filtering="true">
 			<fileset dir="${config.dir}/war">
 				<include name="web.xml"/>
-				<include name="log4j.properties"/>
 			</fileset>
 		</copy>		
 		<copy todir="${webapps.build.dir}/root/WEB-INF/classes" overwrite="true" filtering="true">
@@ -803,6 +814,7 @@
 				<include name="password.properties"/>
 			</fileset>
 			<fileset dir="${config.dir}/war">
+				<include name="logback.xml"/>
 				<include name="beanRefContext.xml"/>
 				<include name="defaultContext.xml"/>
 				<include name="red5-common.xml"/>
@@ -851,9 +863,6 @@
 			<fileset dir="${config.dir}/war/admin">
 				<include name="web.xml"/>
 			</fileset>
-			<fileset dir="${config.dir}/war">
-				<include name="log4j.properties"/>
-			</fileset>
 		</copy>		
 		<war destfile="${dist.dir}/admin.war" webxml="${webapps.build.dir}/admin/WEB-INF/web.xml">
 			<fileset dir="${webapps.build.dir}/admin"/>
@@ -864,8 +873,8 @@
 			<lib dir="${lib.dir}">
 				<include name="commons-codec-*.jar"/>
 				<include name="commons-httpclient-*.jar"/>
-				<include name="commons-logging-*.jar"/>
-				<include name="log4j-*.jar"/>
+				<include name="slf4j-*.jar"/>
+				<include name="*-over-slf4j-*.jar"/>
 				<include name="mina-core-*.jar"/>
 			</lib>			
 			<manifest>
@@ -881,9 +890,6 @@
 			<fileset dir="${config.dir}/war/echo">
 				<include name="web.xml"/>
 			</fileset>
-			<fileset dir="${config.dir}/war">
-				<include name="log4j.properties"/>
-			</fileset>
 		</copy>		
 		<war destfile="${dist.dir}/echo.war" webxml="${webapps.build.dir}/echo/WEB-INF/web.xml">
 			<fileset dir="${webapps.build.dir}/echo"/>
@@ -894,8 +900,8 @@
 			<lib dir="${lib.dir}">
 				<include name="commons-codec-*.jar"/>
 				<include name="commons-httpclient-*.jar"/>
-				<include name="commons-logging-*.jar"/>
-				<include name="log4j-*.jar"/>
+				<include name="slf4j-*.jar"/>
+				<include name="*-over-slf4j-*.jar"/>
 				<include name="mina-core-*.jar"/>
 			</lib>			
 			<manifest>
@@ -903,6 +909,34 @@
 				<attribute name="Built-On" value="${build.TODAY}"/>
 			</manifest>
 		</war>		
+		
+		<!-- Admin Panel -->
+		<filter token="context.path" value="/adminPanel"/>
+		<copy tofile="${webapps.build.dir}/adminPanel/META-INF/context.xml" overwrite="true" filtering="true"				
+			file="${config.dir}/war/context.xml"/>
+		<copy todir="${webapps.build.dir}/adminPanel/WEB-INF" overwrite="true" verbose="true">
+			<fileset dir="${config.dir}/war/adminPanel">
+				<include name="web.xml"/>
+			</fileset>
+		</copy>		
+		<war destfile="${dist.dir}/adminPanel.war" webxml="${webapps.build.dir}/adminPanel/WEB-INF/web.xml">
+			<fileset dir="${webapps.build.dir}/adminPanel"/>
+			<fileset dir="${classes.dir}">
+				<include name="**/AMFTunnelServlet.class"/>
+				<include name="**/ServletUtils.class"/>
+			</fileset>
+			<lib dir="${lib.dir}">
+				<include name="commons-codec-*.jar"/>
+				<include name="commons-httpclient-*.jar"/>
+				<include name="slf4j-*.jar"/>
+				<include name="*-over-slf4j-*.jar"/>
+				<include name="mina-core-*.jar"/>
+			</lib>			
+			<manifest>
+				<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>
+				<attribute name="Built-On" value="${build.TODAY}"/>
+			</manifest>
+		</war>			
 		
 		<!-- cleanup -->
 		<delete dir="${dist.dir}/webapps"/>

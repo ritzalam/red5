@@ -11,4 +11,4 @@ echo JAVA_HOME environment variable not set! Take a look at the readme.
 pause
 
 :finaly
-pause
+

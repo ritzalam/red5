@@ -227,20 +227,7 @@ public class WarLoaderServlet extends ContextLoaderListener {
 					applicationContext.close();
 				}
 				getContextLoader().closeWebApplicationContext(ctx);
-
-				// http://jakarta.apache.org/commons/logging/guide.html#Classloader_and_Memory_Management
-				// http://wiki.apache.org/jakarta-commons/Logging/UndeployMemoryLeak
-				//LogFactory.release(Thread.currentThread().getContextClassLoader());
-//				System.err.println("Repository: " + org.apache.log4j.LogManager.getLoggerRepository().getClass().getName());
-//				if (org.apache.log4j.LogManager.getLoggerRepository() == null) {
-//                   System.err.println("Log repository was null");				
-//				} else {
-//				    java.util.Enumeration loggers = org.apache.log4j.LogManager.getCurrentLoggers();
-//				    while (loggers.hasMoreElements()) {
-//				        ((org.apache.log4j.Logger) loggers.nextElement()).shutdown(); 
-//				    }
-//				}
-				org.apache.commons.logging.LogFactory.releaseAll();
+//				org.apache.commons.logging.LogFactory.releaseAll();
 //				org.apache.log4j.LogManager.getLoggerRepository().shutdown();
 //				org.apache.log4j.LogManager.shutdown();
 			} catch (Throwable e) {
