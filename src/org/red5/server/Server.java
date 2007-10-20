@@ -115,7 +115,7 @@ public class Server implements IServer, ApplicationContextAware {
 	 * @return Global scope
 	 */
 	public IGlobalScope lookupGlobal(String hostName, String contextPath) {
-		log.debug("", this);
+		log.debug("{}", this);
 		// Init mappings key
 		String key = getKey(hostName, contextPath);
 		// If context path contains slashes get complex key and look up for it

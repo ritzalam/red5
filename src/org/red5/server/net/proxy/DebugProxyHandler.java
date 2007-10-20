@@ -192,8 +192,8 @@ public class DebugProxyHandler extends IoHandlerAdapter implements
 			final Object message = packet.getMessage();
 			final Header source = packet.getHeader();
 
-			log.debug("", source);
-			log.debug("", message);
+			log.debug("{}", source);
+			log.debug("{}", message);
 
 		} catch (RuntimeException e) {
 			log.error("Exception", e);

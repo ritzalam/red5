@@ -394,7 +394,7 @@ public class JMXAgent implements NotificationListener {
 					log
 							.error("JMX connector (red5) already registered, you will need to restart your rmiregistry");
 				} else {
-					log.error("", e);
+					log.error("{}", e);
 				}
 			} catch (Exception e) {
 				log.error("Error in setup of JMX subsystem (RMI connector)", e);

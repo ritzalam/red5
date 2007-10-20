@@ -189,7 +189,7 @@ public class RhinoScriptUtils {
 			} catch (NoSuchMethodException nex) {
 				log.warn("Method not found");
 			} catch (Throwable t) {
-				log.warn("", t);
+				log.warn("{}", t);
 			}
 			return o;
 		}

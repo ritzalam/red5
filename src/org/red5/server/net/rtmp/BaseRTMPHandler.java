@@ -197,7 +197,7 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 					}
 			}
 			if (message instanceof Unknown) {
-				log.info("", message);
+				log.info("{}", message);
 			}
 		} catch (RuntimeException e) {
 			// TODO Auto-generated catch block

@@ -91,7 +91,7 @@ public class ZAMFGatewayServlet extends HttpServlet {
 
 		} catch (IOException e) {
 
-			log.error("", e);
+			log.error("{}", e);
 
 		}
 		log.info("End");

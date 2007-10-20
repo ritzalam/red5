@@ -290,7 +290,7 @@ public class ApplicationAdapter extends StatefulScopeWrappingAdapter implements
 		/*
 		 * try { Thread.currentThread().sleep(3000); } catch
 		 * (InterruptedException e) { // TODO Auto-generated catch block
-		 * log.error("", e); }
+		 * log.error("{}", e); }
 		 */
 		if (!super.connect(conn, scope, params)) {
 			return false;

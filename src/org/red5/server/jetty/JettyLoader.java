@@ -127,9 +127,9 @@ public class JettyLoader extends LoaderBase implements ApplicationContextAware, 
 				deployer.setParentLoaderPriority(true);
 				deployer.start();
 			} catch (IOException e) {
-				log.error("", e);
+				log.error("{}", e);
 			} catch (Exception e) {
-				log.error("", e);
+				log.error("{}", e);
 			}
 
 			// Start Jetty

@@ -28,7 +28,7 @@ public class Test {
 				try {
 					return MidiSystem.getMidiDevice(element);
 				} catch (MidiUnavailableException e) {
-					log.error("", e);
+					log.error("{}", e);
 				}
 			}
 		}

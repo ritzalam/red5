@@ -51,7 +51,7 @@ public class CaptureViewerServlet extends HttpServlet {
 			decoder.setDeserializer(deserializer);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			log.error("", e);
+			log.error("{}", e);
 		}
 	}
 
@@ -171,9 +171,9 @@ public class CaptureViewerServlet extends HttpServlet {
 			}
 			out.flush();
 		} catch (FileNotFoundException e) {
-			log.error("", e);
+			log.error("{}", e);
 		} catch (IOException e) {
-			log.error("", e);
+			log.error("{}", e);
 		}
 
 	}

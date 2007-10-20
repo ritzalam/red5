@@ -72,7 +72,7 @@ public class RequestDumpServlet extends HttpServlet {
 			log.info(HexDump.formatHexDump(reqBuffer.getHexDump()));
 
 		} catch (IOException e) {
-			log.error("", e);
+			log.error("{}", e);
 		}
 		log.info("End");
 	}

@@ -234,7 +234,7 @@ public class ScopeUtils {
 			try {
 				result = defaultClass.newInstance();
 			} catch (Exception e) {
-				log.error("", e);
+				log.error("{}", e);
 				return null;
 			}
 		} else {
@@ -330,7 +330,7 @@ public class ScopeUtils {
 			try {
 				handler = defaultClass.newInstance();
 			} catch (Exception e) {
-				log.error("", e);
+				log.error("{}", e);
 			}
 		}
 

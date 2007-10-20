@@ -533,7 +533,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 			try {
 				conns.next().dispatchEvent(event);
 			} catch (RuntimeException e) {
-				log.error("", e);
+				log.error("{}", e);
 			}
 		}
 	}
