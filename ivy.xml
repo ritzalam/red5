@@ -35,9 +35,12 @@
         <dependency org="jetty" name="jetty-xbean" rev="6.1.5" />
         <!-- Logging --> 
         <dependency name="slf4j-api" rev="1.4.3" />
+        <!-- This is the adapter jar for log4j -->
         <dependency name="slf4j-log4j12" rev="1.4.3" />
+        <!-- The jcl (apache commons logging) "over" is used ONLY if you dont use the commons-logging jar -->
         <dependency name="jcl104-over-slf4j" rev="1.4.3" />
-        <dependency name="log4j-over-slf4j" rev="1.4.3" />
+        <!-- The log4j "over" is used ONLY if you dont use the log4j jar -->
+        <!-- dependency name="log4j-over-slf4j" rev="1.4.3" / -->
         <dependency name="log4j" rev="1.2.15" />
         <!-- General --> 
         <dependency org="cglib" name="cglib-nodep" rev="2.1_3" />        
