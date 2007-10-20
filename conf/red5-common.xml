@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	 xmlns:lang="http://www.springframework.org/schema/lang" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd                            http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-2.0.xsd">
-	<bean id="placeholderConfig"
-		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-	</bean>
+	<bean id="placeholderConfig" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
 	<!-- This context is shared between all child contexts. -->
 	<!-- Server bean -->
 	<bean id="red5.server" class="org.red5.server.Server"/>
@@ -13,7 +11,8 @@
 	</bean>
 	<bean id="jmxAgent" class="org.red5.server.jmx.JMXAgent" init-method="init">
 		<!-- The RMI adapter allows remote connections to the MBeanServer -->
-		<property name="enableRmiAdapter" value="true" />
+
+		<property name="enableRmiAdapter" value="true"/>
 		<property name="rmiAdapterPort" value="9999"/>
 		<!-- SSL
 			To use jmx with ssl you must also supply the location of the keystore and its password
@@ -23,15 +22,15 @@
 		-->
 		<property name="enableSsl" value="false"/>
 		<!-- Starts a registry if it doesnt exist -->
-		<property name="startRegistry" value="true" />
+		<property name="startRegistry" value="true"/>
 		<!-- Authentication -->
 		<property name="remoteAccessProperties" value="${red5.config_root}/access.properties"/>
 		<property name="remotePasswordProperties" value="${red5.config_root}/password.properties"/>
 		<!-- The HTML adapter allows connections to the MBeanServer via a web browser -->
-		<property name="enableHtmlAdapter" value="false" />
+		<property name="enableHtmlAdapter" value="false"/>
 		<property name="htmlAdapterPort" value="8082"/>
 		<!-- Mina offers its own Mbeans so you may integrate them here -->
-		<property name="enableMinaMonitor" value="true" />
+		<property name="enableMinaMonitor" value="true"/>
 	</bean>
 	<!-- Serializes objects to AMF binary -->
 	<bean id="serializer" class="org.red5.io.object.Serializer"/>
@@ -44,15 +43,19 @@
 	<bean id="rtmpCodecFactory" class="org.red5.server.net.rtmp.codec.RTMPMinaCodecFactory"
 		 autowire="byType" init-method="init">
 		<property name="minaEncoder">
-				<bean class="org.red5.server.net.rtmp.codec.RTMPMinaProtocolEncoder">
-					<property name="serializer"><ref bean="serializer"/></property>
-				</bean>
-		</property>		 	 
+			<bean class="org.red5.server.net.rtmp.codec.RTMPMinaProtocolEncoder">
+				<property name="serializer">
+					<ref bean="serializer"/>
+				</property>
+			</bean>
+		</property>
 		<property name="minaDecoder">
-				<bean class="org.red5.server.net.rtmp.codec.RTMPMinaProtocolDecoder">
-					<property name="deserializer"><ref bean="deserializer"/></property>
-				</bean>
-		</property>		 
+			<bean class="org.red5.server.net.rtmp.codec.RTMPMinaProtocolDecoder">
+				<property name="deserializer">
+					<ref bean="deserializer"/>
+				</property>
+			</bean>
+		</property>
 	</bean>
 	<!-- Remoting calls codec factory -->
 	<bean id="remotingCodecFactory" class="org.red5.server.net.remoting.codec.RemotingCodecFactory"
@@ -101,37 +104,11 @@
 	<!--
     <bean id="BWControlService" class="org.red5.server.stream.DummyBWControlService"/> -->
 	<!-- Scheduling service -->
-	<bean id="schedulingService" class="org.red5.server.scheduling.QuartzSchedulingService" destroy-method="shutdown"/>
-	<!-- Thread factory -->
-	<bean id="threadFactory" class="org.red5.server.pooling.ThreadObjectFactory"/>
+	<bean id="schedulingService" class="org.red5.server.scheduling.QuartzSchedulingService"
+		 destroy-method="shutdown"/>
 	<!-- Threadpool settings for the remoting clients -->
 	<bean id="remotingPool" class="org.red5.server.pooling.ThreadPool">
-		<constructor-arg>
-			<ref bean="threadFactory"/>
-		</constructor-arg>
-		<!-- maxIdle: The maximum number of sleeping instances in the pool,
-        	without extra objects being released. -->
-		<property name="maxIdle" value="8"/>
-		<!-- minIdle: The minimum number of sleeping instances in the pool,
-        	without extra objects being created. -->
-		<property name="minIdle" value="2"/>
-		<!-- maxActive: The maximum number of active instances in the pool. -->
-		<property name="maxActive" value="8"/>
-		<!-- timeBetweenEvictionRunsMillis: The number of milliseconds to
-        	sleep between runs of the idle-object evictor thread. When negative,
-        	no idle-object evictor thread will run. Use this parameter only when
-        	you want the evictor thread to run. -->
-		<property name="timeBetweenEvictionRunsMillis" value="120000"/>
-		<!-- minEvictableIdleTimeMillis: The minimum amount of time an object,
-        	if active, may sit idle in the pool before it is eligible for eviction
-        	by the idle-object evictor. If a negative value is supplied, no objects
-        	are evicted due to idle time alone. -->
-		<property name="minEvictableIdleTimeMillis" value="-1"/>
-		<!-- testOnBorrow: When "true," objects are validated. If the object fails
-        	validation, it will be dropped from the pool, and the pool will attempt
-        	to borrow another. -->
-		<property name="testOnBorrow" value="true"/>
-		<property name="whenExhaustedAction" value="2"/>
+		<property name="poolSize" value="8"/>
 	</bean>
 	<!-- Use injection to setup thread pool for remoting clients -->
 	<bean id="remotingClient" class="org.red5.server.net.remoting.RemotingClient">
@@ -203,21 +180,22 @@
 			<ref bean="keyframe.cache"/>
 		</property>
 	</bean>
-
 	<!-- Use injection to set the buffer type for reading FLV files -->
 	<bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
-		<property name="staticMethod"><value>org.red5.io.flv.impl.FLVReader.setBufferType</value></property>
+		<property name="staticMethod">
+			<value>org.red5.io.flv.impl.FLVReader.setBufferType</value>
+		</property>
 		<!-- Three buffer types are available 'auto', 'heap', and 'direct' -->
 		<property name="arguments" value="auto"/>
 	</bean>
-
 	<!-- Use injection to set the buffer size for reading FLV files -->
 	<bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
-		<property name="staticMethod"><value>org.red5.io.flv.impl.FLVReader.setBufferSize</value></property>
+		<property name="staticMethod">
+			<value>org.red5.io.flv.impl.FLVReader.setBufferSize</value>
+		</property>
 		<!-- Three buffer types are available 'auto', 'heap', and 'direct' -->
 		<property name="arguments" value="4096"/>
 	</bean>
-
 	<!-- Executor that will be used to schedule stream playback to keep
 		the client buffer filled.
 	-->
@@ -225,7 +203,6 @@
 		<constructor-arg value="16"/>
 		<property name="maximumPoolSize" value="64"/>
 	</bean>
-
 	<!-- ClientBroadcastStream and PlaylistSubscriberStream
 		that will be used by RTMPConnection and maybe other classes.
 		These beans are lazy-init because most likely server will need

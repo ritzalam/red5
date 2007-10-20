@@ -37,21 +37,21 @@ import org.red5.io.object.RecordSet;
 import org.red5.io.object.Serializer;
 import org.red5.server.net.servlet.ServletUtils;
 import org.red5.server.pooling.ThreadPool;
-import org.red5.server.pooling.WorkerThread;
+import org.red5.server.pooling.Worker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Client interface for remoting calls.
- *
+ * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
- *
+ * 
  */
 public class RemotingClient {
-    /**
-     * Logger
-     */
+	/**
+	 * Logger
+	 */
 	protected static Logger log = LoggerFactory.getLogger(RemotingClient.class);
 
 	/** Default timeout to use. */
@@ -84,11 +84,12 @@ public class RemotingClient {
 	public RemotingClient() {
 		// Do nothing.
 	}
-	
+
 	/**
 	 * Create new remoting client for the given url.
-	 *
-	 * @param url	URL to connect to
+	 * 
+	 * @param url
+	 *            URL to connect to
 	 */
 	public RemotingClient(String url) {
 		this(url, DEFAULT_TIMEOUT);
@@ -97,17 +98,20 @@ public class RemotingClient {
 	/**
 	 * Set the thread pool to use for asynchronous requests.
 	 * 
-	 * @param threadPool The thread pool
+	 * @param threadPool
+	 *            The thread pool
 	 */
 	public void setThreadPool(ThreadPool threadPool) {
 		RemotingClient.threadPool = threadPool;
 	}
-	
+
 	/**
 	 * Create new remoting client for the given url and given timeout.
-	 *
-	 * @param url				URL to connect to
-	 * @param timeout 			Timeout for one request in milliseconds
+	 * 
+	 * @param url
+	 *            URL to connect to
+	 * @param timeout
+	 *            Timeout for one request in milliseconds
 	 */
 	public RemotingClient(String url, int timeout) {
 		client = new HttpClient(connectionMgr);
@@ -118,10 +122,12 @@ public class RemotingClient {
 
 	/**
 	 * Encode the method call.
-	 *
-	 * @param method              Remote method being called
-	 * @param params              Method parameters
-	 * @return                    Byte buffer with data to perform remoting call
+	 * 
+	 * @param method
+	 *            Remote method being called
+	 * @param params
+	 *            Method parameters
+	 * @return Byte buffer with data to perform remoting call
 	 */
 	private ByteBuffer encodeInvoke(String method, Object[] params) {
 		ByteBuffer result = ByteBuffer.allocate(1024);
@@ -132,7 +138,7 @@ public class RemotingClient {
 		// Headers
 		Collection<RemotingHeader> hdr = headers.values();
 		result.putShort((short) hdr.size());
-        for (RemotingHeader header : hdr) {
+		for (RemotingHeader header : hdr) {
 			Output.putString(result, header.name);
 			result.put(header.required ? (byte) 0x01 : (byte) 0x00);
 
@@ -177,18 +183,31 @@ public class RemotingClient {
 
 	/**
 	 * Process any headers sent in the response.
-	 *
-	 * @param in                  Byte buffer with response data
+	 * 
+	 * @param in
+	 *            Byte buffer with response data
 	 */
 	protected void processHeaders(ByteBuffer in) {
-		@SuppressWarnings("unused") int version = in.getUnsignedShort(); // skip the version by now, AMF3 is not yet implemented
+		@SuppressWarnings("unused")
+		int version = in.getUnsignedShort(); // skip
+		// the
+		// version
+		// by
+		// now,
+		// AMF3
+		// is
+		// not
+		// yet
+		// implemented
 		int count = in.getUnsignedShort();
 		Deserializer deserializer = new Deserializer();
 		Input input = new Input(in);
 		for (int i = 0; i < count; i++) {
 			String name = Input.getString(in);
-			@SuppressWarnings("unused") boolean required = (in.get() == 0x01);
-			@SuppressWarnings("unused") int len = in.getInt();
+			@SuppressWarnings("unused")
+			boolean required = (in.get() == 0x01);
+			@SuppressWarnings("unused")
+			int len = in.getInt();
 			Object value = deserializer.deserialize(input);
 
 			// XXX: this is pretty much untested!!!
@@ -202,7 +221,8 @@ public class RemotingClient {
 			} else if (name.equals(RemotingHeader.PERSISTENT_HEADER)) {
 				// Send a new header with each following request
 				if (value instanceof Map) {
-					@SuppressWarnings("unchecked") Map<String, Object> valueMap = (Map<String, Object>) value;
+					@SuppressWarnings("unchecked")
+					Map<String, Object> valueMap = (Map<String, Object>) value;
 					RemotingHeader header = new RemotingHeader(
 							(String) valueMap.get("name"), (Boolean) valueMap
 									.get("mustUnderstand"), valueMap
@@ -220,9 +240,10 @@ public class RemotingClient {
 
 	/**
 	 * Decode response received from remoting server.
-	 *
-	 * @param data                Result data to decode
-	 * @return                    Object deserialized from byte buffer data
+	 * 
+	 * @param data
+	 *            Result data to decode
+	 * @return Object deserialized from byte buffer data
 	 */
 	private Object decodeResult(ByteBuffer data) {
 		processHeaders(data);
@@ -233,9 +254,13 @@ public class RemotingClient {
 		}
 
 		Input input = new Input(data);
-		@SuppressWarnings("unused") String target = input.getString();  	// expect "/onResult"
-		@SuppressWarnings("unused") String nullString = input.getString();  // expect "null"
-		
+		@SuppressWarnings("unused")
+		String target = input.getString(); // expect
+		// "/onResult"
+		@SuppressWarnings("unused")
+		String nullString = input.getString(); // expect
+		// "null"
+
 		// Read return value
 		Deserializer deserializer = new Deserializer();
 		return deserializer.deserialize(input);
@@ -243,9 +268,11 @@ public class RemotingClient {
 
 	/**
 	 * Send authentication data with each remoting request.
-	 *
-	 * @param userid              User identifier
-	 * @param password            Password
+	 * 
+	 * @param userid
+	 *            User identifier
+	 * @param password
+	 *            Password
 	 */
 	public void setCredentials(String userid, String password) {
 		Map<String, String> data = new HashMap<String, String>();
@@ -265,10 +292,13 @@ public class RemotingClient {
 
 	/**
 	 * Send an additional header to the server.
-	 *
-	 * @param name                 Header name
-	 * @param required             Header required?
-	 * @param value                Header body
+	 * 
+	 * @param name
+	 *            Header name
+	 * @param required
+	 *            Header required?
+	 * @param value
+	 *            Header body
 	 */
 	public void addHeader(String name, boolean required, Object value) {
 		RemotingHeader header = new RemotingHeader(name, required, value);
@@ -277,8 +307,9 @@ public class RemotingClient {
 
 	/**
 	 * Stop sending a given header.
-	 *
-	 * @param name                 Header name
+	 * 
+	 * @param name
+	 *            Header name
 	 */
 	public void removeHeader(String name) {
 		headers.remove(name);
@@ -286,9 +317,11 @@ public class RemotingClient {
 
 	/**
 	 * Invoke a method synchronously on the remoting server.
-	 *
-	 * @param method               Method name
-	 * @param params               Parameters passed to method
+	 * 
+	 * @param method
+	 *            Method name
+	 * @param params
+	 *            Parameters passed to method
 	 * @return the result of the method call
 	 */
 	public Object invokeMethod(String method, Object[] params) {
@@ -331,26 +364,33 @@ public class RemotingClient {
 
 	/**
 	 * Invoke a method asynchronously on the remoting server.
-	 *
-	 * @param method               Method name
-	 * @param methodParams         Parameters passed to method
-	 * @param callback             Callback
+	 * 
+	 * @param method
+	 *            Method name
+	 * @param methodParams
+	 *            Parameters passed to method
+	 * @param callback
+	 *            Callback
 	 */
-	public void invokeMethod(String method, Object[] methodParams, IRemotingCallback callback) {
+	public void invokeMethod(String method, Object[] methodParams,
+			IRemotingCallback callback) {
 		if (threadPool == null) {
 			throw new RuntimeException("No thread pool configured.");
 		}
-		
+
 		try {
-			WorkerThread wt = (WorkerThread) threadPool.borrowObject();
 			Object[] params = new Object[] { this, method, methodParams,
 					callback };
 			Class<?>[] paramTypes = new Class[] { RemotingClient.class,
 					String.class, Object[].class, IRemotingCallback.class };
-			wt
-					.execute(
-							"org.red5.server.net.remoting.RemotingClient$RemotingWorker",
-							"executeTask", params, paramTypes, null);
+
+			Worker worker = new Worker();
+			worker
+					.setClassName("org.red5.server.net.remoting.RemotingClient$RemotingWorker");
+			worker.setMethodName("executeTask");
+			worker.setMethodParams(params);
+			worker.setParamTypes(paramTypes);
+			threadPool.execute(worker);
 		} catch (Exception err) {
 			log.warn("Exception invoking method: " + method);
 		}
@@ -361,15 +401,19 @@ public class RemotingClient {
 	 */
 	public static class RemotingWorker {
 
-        /**
-         * Execute task.
-		 *
-         * @param client            Remoting client
-         * @param method            Method name
-         * @param params            Parameters to pass to method on call
-         * @param callback          Callback
-         */
-        public void executeTask(RemotingClient client, String method,
+		/**
+		 * Execute task.
+		 * 
+		 * @param client
+		 *            Remoting client
+		 * @param method
+		 *            Method name
+		 * @param params
+		 *            Parameters to pass to method on call
+		 * @param callback
+		 *            Callback
+		 */
+		public void executeTask(RemotingClient client, String method,
 				Object[] params, IRemotingCallback callback) {
 			try {
 				Object result = client.invokeMethod(method, params);

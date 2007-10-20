@@ -21,39 +21,6 @@ package org.red5.server.pooling;
  * @author Paul Gregoire (mondain@gmail.com)
  */
 public interface ThreadPoolMBean {
-
-	public int getMaxActive();
-
-	public int getMaxIdle();
-
-	public long getMaxWait();
-
-	public long getMinEvictableIdleTimeMillis();
-
-	public int getMinIdle();
-
-	public int getNumActive();
-
-	public int getNumIdle();
-
-	public int getNumTestsPerEvictionRun();
-
-	public long getSoftMinEvictableIdleTimeMillis();
-
-	public boolean getTestOnBorrow();
-
-	public boolean getTestOnReturn();
-
-	public boolean getTestWhileIdle();
-
-	public long getTimeBetweenEvictionRunsMillis();
-
-	public byte getWhenExhaustedAction();
-
-	//setters for active modification
-	public void setMaxActive(int max);
-
-	public void setMaxIdle(int max);
-
-	public void setMaxWait(long max);
+	public int getPoolSize();
+	public void setPoolSize(int poolSize);
 }

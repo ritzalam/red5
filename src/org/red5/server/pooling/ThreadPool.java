@@ -15,102 +15,54 @@
  */
 package org.red5.server.pooling;
 
-import org.apache.commons.pool.impl.GenericObjectPool;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import org.red5.server.jmx.JMXAgent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * ThreadPool - Extends GenericObjectPool. Overrides some methods and provides
- * some helper methods.
+ * ThreadPool
  *
- * @author Murali Kosaraju
+ * @author Paul Gregoire (mondain@gmail.com)
  */
-public class ThreadPool extends GenericObjectPool implements ThreadPoolMBean {
+public class ThreadPool implements ThreadPoolMBean {
 	/**
 	 * Logger for this class
 	 */
 	private static final Logger log = LoggerFactory.getLogger(ThreadPool.class);
 
-	/**
-	 * Constructor when there is no configuration available. Please refer
-	 * commons-pooling for more details on the configuration parameters.
-	 *
-	 * @param objFactory -
-	 *            The factory to be used for thread creation.
-	 */
-	public ThreadPool(ThreadObjectFactory objFactory) {
-		super(objFactory);
-		this.setWhenExhaustedAction((byte) 2);
-		this.setMaxIdle(2); // maximum idle threads
-		this.setMaxActive(4); // maximum active threads.
-		this.setMinEvictableIdleTimeMillis(30000); // Evictor runs every 30
-		// secs.
-		this.setTestOnBorrow(true); // check if the thread is still valid
+	private ExecutorService pool;
 
+	private Executor executor;	
+	
+	// maximum pool threads
+	private int poolSize;
+
+	public ThreadPool() {
 		JMXAgent.registerMBean(this, this.getClass().getName(),
 				ThreadPoolMBean.class, "threadpool");
 	}
 
-	/**
-	 * Constructor to be used when there is a configuration available.
-	 *
-	 * @param objFactory -
-	 *            The factory to be used for thread creation..
-	 * @param config -
-	 *            This could be created by loading a properties file.
-	 */
-	public ThreadPool(ThreadObjectFactory objFactory,
-			GenericObjectPool.Config config) {
-		super(objFactory, config);
+	public int getPoolSize() {
+		return poolSize;
 	}
 
-	/** {@inheritDoc} */
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see org.apache.commons.pool.ObjectPool#borrowObject()
-	 */
-	@Override
-	public Object borrowObject() throws Exception {
-		log.debug(" borrowing object..");
-		return super.borrowObject();
+	public void setPoolSize(int poolSize) {
+		this.poolSize = poolSize;
+		if (pool == null) {
+			pool = Executors.newFixedThreadPool(poolSize);
+		}	
 	}
 
-	/**
-	 * borrowObjects - Helper method, use this carefully since this could be a
-	 * blocking call when the threads requested may not be avialable based on
-	 * the configuration being used.
-	 *
-	 * @param num
-	 * @return WorkerThread[]
-	 */
-	public synchronized WorkerThread[] borrowObjects(int num) {
-		WorkerThread[] rtArr = new WorkerThread[num];
-		for (int i = 0; i < num; i++) {
-			WorkerThread rt;
-			try {
-				rt = (WorkerThread) borrowObject();
-				rtArr[i] = rt;
-			} catch (Exception e) {
-				log.error(" borrowObjects failed.. ", e);
-			}
-		}
-		return rtArr;
+	public void execute(Runnable command) {
+		pool.execute(command);
 	}
-
-	/** {@inheritDoc} */
-	/*
-	 * (non-Javadoc)
-	 *
-	 * @see org.apache.commons.pool.ObjectPool#returnObject(java.lang.Object)
-	 */
-	@Override
-	public void returnObject(Object obj) throws Exception {
-		if (log.isDebugEnabled()) {
-			log.debug(" returning object.." + obj);
-		}
-		super.returnObject(obj);
+	
+	public void shutdown() {
+		pool.shutdown();
 	}
 
 }
