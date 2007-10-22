@@ -19,6 +19,7 @@ package org.red5.server.net.rtmpt;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -114,7 +115,7 @@ public class RTMPTConnection extends RTMPConnection {
     /**
      * Closing flag
      */
-	protected boolean closing;
+	volatile protected boolean closing;
     /**
      * Connection client id
      */
@@ -254,6 +255,11 @@ public class RTMPTConnection extends RTMPConnection {
 	 * @return a list of decoded objects
 	 */
 	public List decode(ByteBuffer data) {
+		if (closing || state.getState() == RTMP.STATE_DISCONNECTED) {
+			// Connection is being closed, don't decode any new packets
+			return Collections.EMPTY_LIST;
+		}
+		
 		Red5.setConnectionLocal(this);
 		readBytes += data.limit();
 		this.buffer.put(data);
