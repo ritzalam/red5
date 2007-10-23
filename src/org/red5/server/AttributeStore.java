@@ -265,6 +265,7 @@ public class AttributeStore implements ICastingAttributeStore {
      * @param name Attribute name
      * @return Attribute
      */
+    @SuppressWarnings("unchecked")
     public List getListAttribute(String name) {
         return (List) getAttribute(name);
     }
@@ -285,6 +286,7 @@ public class AttributeStore implements ICastingAttributeStore {
      * @param name Attribute name
      * @return Attribute
      */
+    @SuppressWarnings("unchecked")
     public Map getMapAttribute(String name) {
         return (Map) getAttribute(name);
     }
@@ -295,6 +297,7 @@ public class AttributeStore implements ICastingAttributeStore {
      * @param name Attribute name
      * @return Attribute
      */
+    @SuppressWarnings("unchecked")
     public Set getSetAttribute(String name) {
         return (Set) getAttribute(name);
     }

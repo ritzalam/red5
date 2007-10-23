@@ -226,7 +226,7 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 		log.debug("Scopes: " + connToScope.values().size());
 		for (IScope scope : connToScope.values()) {
 			log.debug("Client scope: " + scope);
-			for (Map.Entry entry : scope.getAttributes().entrySet()) {
+			for (Map.Entry<String, Object> entry : scope.getAttributes().entrySet()) {
 				log.debug("Client scope attr: " + entry.getKey() + " = "
 						+ entry.getValue());
 			}
