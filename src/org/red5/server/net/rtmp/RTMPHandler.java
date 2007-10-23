@@ -305,6 +305,14 @@ public class RTMPHandler extends BaseRTMPHandler {
 								if (log.isDebugEnabled()) {
 									log.info("Connecting to: " + scope);
 								}
+								// Setup application's classloader to be used for deserializing
+								ClassLoader loader = scope.getClassLoader();
+								if (loader == null) {
+									// Fallback, should never happen
+									loader = getClass().getClassLoader(); 
+								}
+								Thread.currentThread().setContextClassLoader(loader);
+								
 								boolean okayToConnect;
 								try {
 									if (call.getArguments() != null) {
