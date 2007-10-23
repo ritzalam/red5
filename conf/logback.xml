@@ -13,7 +13,7 @@
     	</filter>		
 		<layout class="ch.qos.logback.classic.PatternLayout">
 			<Pattern>		
-			[%p] %d{ISO8601} %t:( %c.%M ) %m%n
+			%date [%thread] %-5level %logger - %msg%n
 			</Pattern>
 		</layout>
 	</appender>
@@ -25,7 +25,7 @@
 		<ImmediateFlush>true</ImmediateFlush>
 		<layout class="ch.qos.logback.classic.PatternLayout">
 			<Pattern>
-				%-4relative [%thread] %-5level %logger{35} - %msg%n
+				%date [%thread] %-5level %logger{35} - %msg%n
 			</Pattern>
 		</layout>
 	</appender>
@@ -40,7 +40,7 @@
     	</filter>
 		<layout class="ch.qos.logback.classic.PatternLayout">
 			<Pattern>
-				%-4relative [%thread] %-5level %logger{35} - %msg%n
+				%date [%thread] %-5level %logger{35} - %msg%n
 			</Pattern>
 		</layout>
 	</appender>
@@ -55,7 +55,8 @@
 		<appender-ref ref="CONSOLE" />
 		<appender-ref ref="FILE" />
 		<appender-ref ref="ERRORFILE" />
-	</root>	<!-- Red5 -->
+	</root>
+	<!-- Red5 -->
 	<logger name="org.red5.io">
 		<level value="INFO" />
 	</logger>
@@ -154,7 +155,8 @@
 	<!-- Mina -->			
 	<logger name="org.apache.mina">
 		<level value="WARN" />
-	</logger>		<logger name="org.apache.mina.filter">
+	</logger>	
+	<logger name="org.apache.mina.filter">
 		<level value="WARN" />
 	</logger>
 	<logger name="org.apache.mina.filter.thread.ThreadPoolFilter">
