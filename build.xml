@@ -631,6 +631,8 @@
 		<copy todir="${dist.dir}/webapps" file="webapps\red5-default.xml"/>
 		<copy todir="${dist.dir}">
 			<fileset dir="./">
+				<include name="ivy.xml"/>
+				<include name="ivyconfig.xml"/>
 				<include name="red5.jar"/>
 				<include name="red5.bat"/>
 				<include name="red5-shutdown.bat"/>
