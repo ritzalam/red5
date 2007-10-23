@@ -422,7 +422,7 @@ public class Context implements IContext, ApplicationContextAware, ContextMBean 
 	 * @return Classloder context of current thread
 	 */
 	public ClassLoader getClassLoader() {
-		return Thread.currentThread().getContextClassLoader();
+		return applicationContext.getClassLoader();
 	}
 
 }
