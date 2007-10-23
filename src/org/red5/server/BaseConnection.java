@@ -120,6 +120,11 @@ public abstract class BaseConnection extends AttributeStore implements
 	protected Set<IBasicScope> basicScopes;
 
 	/**
+	 * Is the connection closed?
+	 */
+	protected boolean closed;
+	
+	/**
 	 *
 	 * @param type                Connection type
 	 * @param host                Host
@@ -282,40 +287,41 @@ public abstract class BaseConnection extends AttributeStore implements
 	/**
 	 *  Closes connection
 	 */
-	public synchronized void close() {
-
-		if (scope != null) {
-
-			log.debug("Close, disconnect from scope, and children");
-			try {
-				// Unregister all child scopes first
-				Set<IBasicScope> tmpScopes = new HashSet<IBasicScope>(
-						basicScopes);
-				for (IBasicScope basicScope : tmpScopes) {
-					unregisterBasicScope(basicScope);
-				}
-			} catch (Exception err) {
-				log.error("Error while unregistering basic scopes.", err);
+	public void close() {
+		synchronized (this) {
+			if (closed || scope == null) {
+				log.debug("Close, not connected nothing to do.");
+				return;
 			}
-
-			// Disconnect
-			try {
-				scope.disconnect(this);
-			} catch (Exception err) {
-				log.error("Error while disconnecting from scope " + scope, err);
-			}
-
-			// Unregister client
-			if (client != null && client instanceof Client) {
-				((Client) client).unregister(this);
-				client = null;
-			}
-
-			scope = null;
-		} else {
-			log.debug("Close, not connected nothing to do.");
+			
+			closed = true;
 		}
 
+		log.debug("Close, disconnect from scope, and children");
+		try {
+			// Unregister all child scopes first
+			Set<IBasicScope> tmpScopes = new HashSet<IBasicScope>(
+					basicScopes);
+			for (IBasicScope basicScope : tmpScopes) {
+				unregisterBasicScope(basicScope);
+			}
+		} catch (Exception err) {
+			log.error("Error while unregistering basic scopes.", err);
+		}
+
+		// Disconnect
+		try {
+			scope.disconnect(this);
+		} catch (Exception err) {
+			log.error("Error while disconnecting from scope " + scope, err);
+		}
+
+		// Unregister client
+		if (client != null && client instanceof Client) {
+			((Client) client).unregister(this);
+			client = null;
+		}
+		scope = null;
 	}
 
 	/**

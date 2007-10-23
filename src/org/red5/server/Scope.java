@@ -21,12 +21,12 @@ package org.red5.server;
 
 import java.io.IOException;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
@@ -407,9 +407,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 *            Params passed with connection
 	 * @return <code>true</code> on success, <code>false</code> otherwise
 	 */
-	public synchronized boolean connect(IConnection conn, Object[] params) {
-		// log.debug("Connect: "+conn+" to "+this);
-		// log.debug("has handler? "+hasHandler());
+	public boolean connect(IConnection conn, Object[] params) {
 		if (hasParent() && !parent.connect(conn, params)) {
 			return false;
 		}
@@ -417,21 +415,30 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 			return false;
 		}
 		final IClient client = conn.getClient();
-		// log.debug("connected to: "+this);
-		if (!clients.containsKey(client)) {
-			// log.debug("Joining: "+this);
-			if (hasHandler() && !getHandler().join(client, this)) {
-				return false;
+		if (!conn.isConnected()) {
+			// Timeout while connecting client
+			return false;
+		}
+		
+		if (hasHandler() && !getHandler().join(client, this)) {
+			return false;
+		}
+		if (!conn.isConnected()) {
+			// Timeout while connecting client
+			return false;
+		}
+		
+		synchronized (clients) {
+			Set<IConnection> conns = clients.get(client);
+			if (conns == null) {
+				conns = new CopyOnWriteArraySet<IConnection>();
+				clients.put(client, conns);
 			}
-			final Set<IConnection> conns = new HashSet<IConnection>();
-			conns.add(conn);
-			clients.put(conn.getClient(), conns);
-			log.debug("adding client");
-			clientStats.increment();
-		} else {
-			final Set<IConnection> conns = clients.get(client);
+			
 			conns.add(conn);
 		}
+			
+		clientStats.increment();
 		addEventListener(conn);
 		connectionStats.increment();
 
@@ -477,13 +484,23 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 * @param conn
 	 *            Connection object
 	 */
-	public synchronized void disconnect(IConnection conn) {
+	public void disconnect(IConnection conn) {
 		// We call the disconnect handlers in reverse order they were called
 		// during connection, i.e. roomDisconnect is called before
 		// appDisconnect.
 		final IClient client = conn.getClient();
-		if (client != null && clients.containsKey(client)) {
-			final Set<IConnection> conns = clients.get(client);
+		if (client == null) {
+			// Early bail out
+			removeEventListener(conn);
+			connectionStats.decrement();
+			if (hasParent()) {
+				parent.disconnect(conn);
+			}
+			return;
+		}
+		
+		final Set<IConnection> conns = clients.get(client);
+		if (conns != null) {
 			conns.remove(conn);
 			IScopeHandler handler = null;
 			if (hasHandler()) {
@@ -497,8 +514,14 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 				}
 			}
 
-			if (conns.isEmpty()) {
-				clients.remove(client);
+			boolean leave = false;
+			synchronized (clients) {
+				if (conns.isEmpty()) {
+					clients.remove(client);
+					leave = true;
+				}
+			}
+			if (leave) {
 				clientStats.decrement();
 				if (handler != null) {
 					try {
