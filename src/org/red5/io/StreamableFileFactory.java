@@ -44,17 +44,17 @@ public class StreamableFileFactory implements IStreamableFileFactory {
 	 *            Set of streamable file services
 	 */
 	public void setServices(Set<IStreamableFileService> services) {
-		logger.info("StreamableFileFactory set services");
+		logger.debug("StreamableFileFactory set services");
 		this.services = services;
 	}
 
 	/** {@inheritDoc} */
 	public IStreamableFileService getService(File fp) {
-		logger.info("Get service for file: " + fp.getName());
+		logger.debug("Get service for file: " + fp.getName());
 		// Return first service that can handle the passed file
 		for (IStreamableFileService service : this.services) {
 			if (service.canHandle(fp)) {
-				logger.info("Found service");
+				logger.debug("Found service");
 				return service;
 			}
 		}
@@ -63,7 +63,7 @@ public class StreamableFileFactory implements IStreamableFileFactory {
 
 	/** {@inheritDoc} */
 	public Set<IStreamableFileService> getServices() {
-		logger.info("StreamableFileFactory get services");
+		logger.debug("StreamableFileFactory get services");
 		return services;
 	}
 }
