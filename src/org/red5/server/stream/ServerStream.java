@@ -701,6 +701,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 			nextTS = rtmpEvent.getTimestamp();
 			if (first) {
 				vodStartTS = nextTS;
+				first = false;
 			}
 
 			delta = nextTS - vodStartTS - (System.currentTimeMillis() - serverStartTS);
