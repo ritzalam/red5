@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.red5.server.api.IConnection;
@@ -48,12 +49,12 @@ public class Server implements IServer, ApplicationContextAware {
 	/**
 	 * List of global scopes
 	 */
-	protected ConcurrentHashMap<String, IGlobalScope> globals = new ConcurrentHashMap<String, IGlobalScope>();
+	protected ConcurrentMap<String, IGlobalScope> globals = new ConcurrentHashMap<String, IGlobalScope>();
 
 	/**
 	 * Mappings
 	 */
-	protected ConcurrentHashMap<String, String> mapping = new ConcurrentHashMap<String, String>();
+	protected ConcurrentMap<String, String> mapping = new ConcurrentHashMap<String, String>();
 
 	/**
 	 * Spring application context
@@ -125,8 +126,9 @@ public class Server implements IServer, ApplicationContextAware {
 			if (log.isDebugEnabled()) {
 				log.debug("Check: " + key);
 			}
-			if (mapping.containsKey(key)) {
-				return getGlobal(mapping.get(key));
+			String globalName = mapping.get(key);
+			if (globalName != null) {
+				return getGlobal(globalName);
 			}
 			final int slashIndex = contextPath.lastIndexOf(SLASH);
 			// Context path is substring from the beginning and till last slash
@@ -140,22 +142,25 @@ public class Server implements IServer, ApplicationContextAware {
 			log.debug("Check host and path: " + key);
 		}
 		// Look up for global scope switching keys if still not found
-		if (mapping.containsKey(key)) {
-			return getGlobal(mapping.get(key));
+		String globalName = mapping.get(key);
+		if (globalName != null) {
+			return getGlobal(globalName);
 		}
 		key = getKey(EMPTY, contextPath);
 		if (log.isDebugEnabled()) {
 			log.debug("Check wildcard host with path: " + key);
 		}
-		if (mapping.containsKey(key)) {
-			return getGlobal(mapping.get(key));
+		globalName = mapping.get(key);
+		if (globalName != null) {
+			return getGlobal(globalName);
 		}
 		key = getKey(hostName, EMPTY);
 		if (log.isDebugEnabled()) {
 			log.debug("Check host with no path: " + key);
 		}
-		if (mapping.containsKey(key)) {
-			return getGlobal(mapping.get(key));
+		globalName = mapping.get(key);
+		if (globalName != null) {
+			return getGlobal(globalName);
 		}
 		key = getKey(EMPTY, EMPTY);
 		if (log.isDebugEnabled()) {
@@ -208,11 +213,7 @@ public class Server implements IServer, ApplicationContextAware {
 		if (log.isDebugEnabled()) {
 			log.debug("Add mapping: " + key + " => " + globalName);
 		}
-		if (mapping.containsKey(key)) {
-			return false;
-		}
-		mapping.put(key, globalName);
-		return true;
+		return (mapping.putIfAbsent(key, globalName) == null);
 	}
 
 	/**
@@ -231,11 +232,7 @@ public class Server implements IServer, ApplicationContextAware {
 		if (log.isDebugEnabled()) {
 			log.debug("Remove mapping: " + key);
 		}
-		if (!mapping.containsKey(key)) {
-			return false;
-		}
-		mapping.remove(key);
-		return true;
+		return (mapping.remove(key) != null);
 	}
 
 	/**
