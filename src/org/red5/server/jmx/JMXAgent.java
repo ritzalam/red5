@@ -100,15 +100,15 @@ public class JMXAgent implements NotificationListener {
 				cName = cName.substring(cName.lastIndexOf('.')).replaceFirst(
 						"[\\.]", "");
 			}
-			log.debug("Register name: " + cName);
+			log.debug("Register name: {}", cName);
 			mbs.registerMBean(new StandardMBean(instance, interfaceClass),
 					new ObjectName(JMXFactory.getDefaultDomain() + ":type="
 							+ cName));
 			status = true;
 		} catch (InstanceAlreadyExistsException iaee) {
-			log.debug("Already registered: " + className);
+			log.debug("Already registered: {}", className);
 		} catch (Exception e) {
-			log.error("Could not register the " + className + " MBean", e);
+			log.error("Could not register the {} MBean. {}", className, e);
 		}
 		return status;
 	}
@@ -122,15 +122,15 @@ public class JMXAgent implements NotificationListener {
 				cName = cName.substring(cName.lastIndexOf('.')).replaceFirst(
 						"[\\.]", "");
 			}
-			log.debug("Register name: " + cName);
+			log.debug("Register name: {}", cName);
 			mbs
 					.registerMBean(new StandardMBean(instance, interfaceClass),
 							name);
 			status = true;
 		} catch (InstanceAlreadyExistsException iaee) {
-			log.debug("Already registered: " + className);
+			log.debug("Already registered: {}", className);
 		} catch (Exception e) {
-			log.error("Could not register the " + className + " MBean", e);
+			log.error("Could not register the {} MBean. {}", className, e);
 		}
 		return status;
 	}
@@ -144,15 +144,15 @@ public class JMXAgent implements NotificationListener {
 				cName = cName.substring(cName.lastIndexOf('.')).replaceFirst(
 						"[\\.]", "");
 			}
-			log.debug("Register name: " + cName);
+			log.debug("Register name: {}", cName);
 			mbs.registerMBean(new StandardMBean(instance, interfaceClass),
 					new ObjectName(JMXFactory.getDefaultDomain() + ":type="
 							+ cName + ",name=" + name));
 			status = true;
 		} catch (InstanceAlreadyExistsException iaee) {
-			log.debug("Already registered: " + className);
+			log.debug("Already registered: {}", className);
 		} catch (Exception e) {
-			log.error("Could not register the " + className + " MBean", e);
+			log.error("Could not register the {} MBean. {}", className, e);
 		}
 		return status;
 	}
@@ -167,7 +167,7 @@ public class JMXAgent implements NotificationListener {
 				//stop the connector
 				cs.stop();
 			} catch (Exception e) {
-				log.error("Exception stopping JMXConnector server", e);
+				log.error("Exception stopping JMXConnector server {}", e);
 			}
 		}
 		if (null != html) {
@@ -178,13 +178,13 @@ public class JMXAgent implements NotificationListener {
 			String domain = JMXFactory.getDefaultDomain();
 			for (ObjectName oname : (Set<ObjectName>) mbs.queryNames(
 					new ObjectName(domain + ":*"), null)) {
-				log.debug("Bean domain: " + oname.getDomain());
+				log.debug("Bean domain: {}", oname.getDomain());
 				if (domain.equals(oname.getDomain())) {
 					unregisterMBean(oname);
 				}
 			}
 		} catch (Exception e) {
-			log.error("Exception unregistering mbeans", e);
+			log.error("Exception unregistering mbeans {}", e);
 		}
 
 	}
@@ -207,7 +207,7 @@ public class JMXAgent implements NotificationListener {
 					log.debug("Mbean is not currently registered");
 				}
 			} catch (Exception e) {
-				log.warn("Exception unregistering mbean", e);
+				log.warn("Exception unregistering mbean {}", e);
 			}
 		}
 		log.debug("leaving unregisterMBean...");

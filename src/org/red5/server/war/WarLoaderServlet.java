@@ -36,6 +36,7 @@ import org.red5.server.ScopeResolver;
 import org.red5.server.Server;
 import org.red5.server.WebScope;
 import org.red5.server.jmx.JMXAgent;
+import org.red5.server.persistence.FilePersistenceThread;
 import org.red5.server.service.ServiceInvoker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -206,6 +207,11 @@ public class WarLoaderServlet extends ContextLoaderListener {
 				}
 				// shutdown jmx
 				JMXAgent.shutdown();
+				// shutdown the persistence thread
+				FilePersistenceThread persistenceThread = FilePersistenceThread.getInstance();
+				if (persistenceThread != null) {
+					persistenceThread.shutdown();
+				}
 				// shutdown spring
 				Object attr = ctx.getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
 				if (attr != null) {

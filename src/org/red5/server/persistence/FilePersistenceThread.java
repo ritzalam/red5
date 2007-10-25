@@ -23,71 +23,79 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 
 import org.red5.server.api.persistence.IPersistable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Thread that writes modified persistent objects to the filesystem periodically.
+ * Thread that writes modified persistent objects to the file system
+ * periodically.
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
  */
-public class FilePersistenceThread extends Thread {
+public class FilePersistenceThread implements Runnable {
 
-    /**
-     * Logger
-     */
-    private Logger log = LoggerFactory.getLogger(FilePersistenceThread.class);
-    
+	/**
+	 * Logger
+	 */
+	private Logger log = LoggerFactory.getLogger(FilePersistenceThread.class);
+
 	/**
 	 * Interval to serialize modified objects in milliseconds.
-	 *
+	 * 
 	 */
-    // TODO: make this configurable
-	private int storeInterval = 10000;
-	
+	// TODO: make this configurable
+	private long storeInterval = 10000;
+
 	/**
 	 * Modified objects that need to be stored.
 	 */
-	private Map<IPersistable, FilePersistence> modifiedObjects = new HashMap<IPersistable, FilePersistence>();
-	
+	private Map<IPersistable, FilePersistence> modifiedObjects = new ConcurrentHashMap<IPersistable, FilePersistence>();
+
 	/**
 	 * Modified objects for each store.
 	 */
-	private Map<FilePersistence, Set<IPersistable>> objectStores = new HashMap<FilePersistence, Set<IPersistable>>();
-	
+	private Map<FilePersistence, Set<IPersistable>> objectStores = new ConcurrentHashMap<FilePersistence, Set<IPersistable>>();
+
 	/**
 	 * Singleton instance.
 	 */
 	private static volatile FilePersistenceThread instance = null;
-	
+
+	/**
+	 * Each FilePersistenceThread has its own scheduler and the executor is
+	 * guaranteed to only run a single task at a time.
+	 */
+	private final ScheduledExecutorService scheduler = Executors
+			.newSingleThreadScheduledExecutor();
+
 	/**
 	 * Return singleton instance of the thread.
 	 * 
 	 * @return
 	 */
 	public static FilePersistenceThread getInstance() {
-		if (instance == null) {
-			// Only synchronize if thread doesn't exist yet.
-			synchronized (FilePersistenceThread.class) {
-				if (instance == null) {
-					instance = new FilePersistenceThread();
-					instance.start();
-				}
-			}
-		}
-		
 		return instance;
 	}
-	
+
 	/**
 	 * Create instance of the thread.
 	 */
 	private FilePersistenceThread() {
 		super();
-		setName("FilePersistenceThread");
+		if (instance != null) {
+			log.error("Instance was not null, this is not a good sign");
+		}
+		instance = this;
+		final ScheduledFuture<?> instanceHandle = scheduler
+				.scheduleAtFixedRate(this, storeInterval, storeInterval,
+						java.util.concurrent.TimeUnit.MILLISECONDS);
 	}
 
 	/**
@@ -97,91 +105,81 @@ public class FilePersistenceThread extends Thread {
 	 * @param store
 	 */
 	protected void modified(IPersistable object, FilePersistence store) {
-		FilePersistence previous;
-		synchronized (modifiedObjects) {
-			previous = modifiedObjects.put(object, store);
-			Set<IPersistable> objects = objectStores.get(store);
-			if (objects == null) {
-				objects = new HashSet<IPersistable>();
-				objectStores.put(store, objects);
-			}
-			objects.add(object);
+		FilePersistence previous = modifiedObjects.put(object, store);
+		Set<IPersistable> objects = objectStores.get(store);
+		if (objects == null) {
+			objects = new HashSet<IPersistable>();
+			objectStores.put(store, objects);
 		}
-		
+		objects.add(object);
+
 		if (previous != null && !previous.equals(store)) {
-			log.warn("Object " + object + " was also modified in " + previous + ", saving instantly");
+			log.warn("Object {} was also modified in {}, saving instantly",
+					new Object[] { object, previous });
 			previous.saveObject(object);
-			Set<IPersistable> objects = objectStores.get(previous);
+			objects = objectStores.get(previous);
 			if (objects != null) {
 				objects.remove(previous);
 			}
 		}
 	}
-	
+
 	/**
 	 * Write any pending objects for the given store to disk.
 	 * 
 	 * @param store
 	 */
 	protected void notifyClose(FilePersistence store) {
-		Set<IPersistable> objects;
 		// Get snapshot of currently modified objects.
-		synchronized (modifiedObjects) {
-			objects = objectStores.remove(store);
-			if (objects != null) {
-				for (IPersistable object: objects) {
-					modifiedObjects.remove(object);
-				}
+		Set<IPersistable> objects = objectStores.remove(store);
+		if (objects != null) {
+			for (IPersistable object : objects) {
+				modifiedObjects.remove(object);
 			}
 		}
-		
+
 		if (objects == null || objects.isEmpty()) {
 			return;
 		}
-		
+
 		// Store pending objects
-		for (IPersistable object: objects) {
+		for (IPersistable object : objects) {
 			try {
 				store.saveObject(object);
 			} catch (Throwable e) {
-				log.error("Error while saving " + object + " in " + store, e);
-			}
-		}
-	}
-	
-    /**
-     * Write modified objects to the filesystem periodically.
-     */
-	public void run() {
-		while (isAlive()) {
-			long start = System.currentTimeMillis();
-			if (!modifiedObjects.isEmpty()) {
-				Map<IPersistable, FilePersistence> objects;
-				// Get snapshot of currently modified objects.
-				synchronized (modifiedObjects) {
-					objects = new HashMap<IPersistable, FilePersistence>(modifiedObjects);
-					modifiedObjects.clear();
-					objectStores.clear();
-				}
-				
-				for (Map.Entry<IPersistable, FilePersistence> entry: objects.entrySet()) {
-					try {
-						entry.getValue().saveObject(entry.getKey());
-					} catch (Throwable e) {
-						log.error("Error while saving " + entry.getKey() + " in " + entry.getValue(), e);
-					}
-				}
-			}
-			long end = System.currentTimeMillis();
-			try {
-				long delay = storeInterval - (end - start);
-				if (delay > 0) {
-					Thread.sleep(delay);
-				}
-			} catch (InterruptedException e) {
-				// Ignore
+				log.error("Error while saving {} in {}. {}", new Object[] {
+						object, store, e });
 			}
 		}
 	}
 
+	/**
+	 * Write modified objects to the file system periodically.
+	 */
+	public void run() {
+		if (!modifiedObjects.isEmpty()) {
+			// Get snapshot of currently modified objects.
+			Map<IPersistable, FilePersistence> objects = new HashMap<IPersistable, FilePersistence>(
+					modifiedObjects);
+			modifiedObjects.clear();
+			objectStores.clear();
+			for (Map.Entry<IPersistable, FilePersistence> entry : objects
+					.entrySet()) {
+				try {
+					entry.getValue().saveObject(entry.getKey());
+				} catch (Throwable e) {
+					log.error("Error while saving {} in {}. {}", new Object[] {
+							entry.getKey(), entry.getValue(), e });
+				}
+			}
+		}
+	}
+
+	/**
+	 * Cleanly shutdown the tasks
+	 */
+	public void shutdown() {
+		scheduler.shutdown();
+	}
+	
 }

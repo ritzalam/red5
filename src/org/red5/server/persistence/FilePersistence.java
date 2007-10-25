@@ -40,7 +40,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.ResourcePatternResolver;
 
 /**
- * Simple file-based persistence for objects. Lowers memory usage if used instead of RAM memoty storage.
+ * Simple file-based persistence for objects. Lowers memory usage if used instead of RAM memory storage.
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)

@@ -95,6 +95,8 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 
 	private IoHandlerAdapter ioHandler;
 
+	private IoServiceManager serviceManager;
+	
 	private int ioThreads = DEFAULT_IO_THREADS;
 
 	private boolean isLoggingTraffic = false;
@@ -248,7 +250,7 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 		//enable only if user wants it
 		if (JMXAgent.isEnableMinaMonitor()) {
     		//add a service manager to allow for more introspection into the workings of mina
-    		IoServiceManager serviceManager = new IoServiceManager(acceptor);
+    		serviceManager = new IoServiceManager(acceptor);
     		//poll every second
     		serviceManager.startCollectingStats(jmxPollInterval);
     		serviceManagerObjectName = JMXFactory.createObjectName("type", "IoServiceManager",
@@ -266,6 +268,11 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 		// deregister with jmx
 		JMXAgent.unregisterMBean(oName);
 		if (serviceManagerObjectName != null) {
+			//if the service manager (stats collector) is not null then clean up
+			if (serviceManager != null) {
+    			serviceManager.stopCollectingStats();
+    			serviceManager.closeAllSessions();
+			}
 			JMXAgent.unregisterMBean(serviceManagerObjectName);
 		}
 	}
