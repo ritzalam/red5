@@ -77,6 +77,8 @@
 			</list>
 		</property>
 	</bean>
+	<!-- Thread that writes modified objects to disk periodically -->
+	<bean id="filePersistenceThread" class="org.red5.server.persistence.FilePersistenceThread"/>
 	<!-- Handles creation / lookup of shared objects -->
 	<bean id="sharedObjectService" class="org.red5.server.so.SharedObjectService">
 		<property name="persistenceClassName">
