@@ -219,6 +219,25 @@ public class PersistableAttributeStore extends AttributeStore implements
 		return store;
 	}
 
+    /** {@inheritDoc} */
+    @Override
+    public Object getAttribute(String name, Object defaultValue) {
+    	if (name == null)
+    		return null;
+    	
+    	if (defaultValue == null) {
+    		throw new NullPointerException("the default value may not be null");
+    	}
+    	
+    	Object result = attributes.putIfAbsent(name, defaultValue);
+    	if (result == null) {
+    		// The default value has been set
+    		modified();
+    		result = defaultValue;
+    	}
+    	return result;
+    }
+
     /**
      * Set attribute by name and return success as boolean
      *

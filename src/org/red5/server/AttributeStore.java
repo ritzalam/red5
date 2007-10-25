@@ -125,7 +125,16 @@ public class AttributeStore implements ICastingAttributeStore {
     	if (name == null)
     		return null;
     	
-    	return attributes.putIfAbsent(name, defaultValue);
+    	if (defaultValue == null) {
+    		throw new NullPointerException("the default value may not be null");
+    	}
+    	
+    	Object result = attributes.putIfAbsent(name, defaultValue);
+    	if (result == null) {
+    		// No previous value, the default has been set
+    		result = defaultValue;
+    	}
+    	return result;
     }
 
     /**
