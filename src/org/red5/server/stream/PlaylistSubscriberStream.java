@@ -295,6 +295,8 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
     public void stop() {
 		try {
 			engine.stop();
+			//clean up the executor
+			executor.shutdown();
 		} catch (IllegalStateException e) {
 			log.debug("stop caught an IllegalStateException");
 		}

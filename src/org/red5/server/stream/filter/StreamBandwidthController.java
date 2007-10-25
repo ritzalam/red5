@@ -127,7 +127,7 @@ public class StreamBandwidthController implements IFilter,
     /**
      * Start puller thread
      */
-    private synchronized void startThread() {
+    private void startThread() {
 		if (!isStarted && providerPipe != null && consumerPipe != null) {
 			puller = new Thread(this);
 			puller.setDaemon(true);

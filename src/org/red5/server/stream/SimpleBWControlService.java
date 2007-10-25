@@ -69,6 +69,10 @@ implements IBWControlService {
 		tokenDistributor.scheduleAtFixedRate(this, 0, interval);
 	}
 
+	public void shutdown() {
+		tokenDistributor.cancel();
+	}
+	
 	public void run() {
 		if (contextMap.isEmpty()) {
 			// Early bail out, nothing to do.

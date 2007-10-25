@@ -92,7 +92,7 @@
 	<!-- Provides output to consumers -->
 	<bean id="consumerService" class="org.red5.server.stream.ConsumerService"/>
 	<!-- Simple bandwidth control -->
-	<bean id="BWControlService" class="org.red5.server.stream.SimpleBWControlService" init-method="init">
+	<bean id="BWControlService" class="org.red5.server.stream.SimpleBWControlService" init-method="init" destroy-method="shutdown">
 		<property name="interval" value="100"/>
 		<property name="defaultCapacity" value="104857600"/>
 		<!-- 100MB -->
