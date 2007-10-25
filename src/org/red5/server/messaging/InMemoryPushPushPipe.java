@@ -79,8 +79,7 @@ public class InMemoryPushPushPipe extends AbstractPipe {
 	 * 
 	 */
     public void pushMessage(IMessage message) throws IOException {
-		List<IConsumer> consumerList = Collections.unmodifiableList(consumers);
-		for (IConsumer consumer : consumerList) {
+		for (IConsumer consumer : consumers) {
 			try {
 				((IPushableConsumer) consumer).pushMessage(this, message);
 			} catch (Throwable t) {

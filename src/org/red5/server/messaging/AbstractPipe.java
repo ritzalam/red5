@@ -111,11 +111,8 @@ public abstract class AbstractPipe implements IPipe {
      * @return                 <code>true</code> on success, <code>false</code> otherwise
      */
     public boolean unsubscribe(IProvider provider) {
-    	synchronized (providers) {
-			if (!providers.contains(provider)) {
-				return false;
-			}
-			providers.remove(provider);
+    	if (!providers.remove(provider)) {
+    		return false;
     	}
 		fireProviderConnectionEvent(provider,
 				PipeConnectionEvent.PROVIDER_DISCONNECT, null);
@@ -131,11 +128,8 @@ public abstract class AbstractPipe implements IPipe {
      * @return                 <code>true</code> on success, <code>false</code> otherwise
      */
     public boolean unsubscribe(IConsumer consumer) {
-    	synchronized (consumers) {
-			if (!consumers.contains(consumer)) {
-				return false;
-			}
-			consumers.remove(consumer);
+    	if (!consumers.remove(consumer)) {
+    		return false;
     	}
 		fireConsumerConnectionEvent(consumer,
 				PipeConnectionEvent.CONSUMER_DISCONNECT, null);
