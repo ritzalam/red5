@@ -246,10 +246,11 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 * Reject the currently connecting client without a special error message.
 	 * This method throws {@link ClientRejectedException} exception.
 	 *
+	 * @return never returns
      * @throws org.red5.server.exception.ClientRejectedException
      *                  Thrown when client connection must be rejected by application logic
      */
-	protected void rejectClient() throws ClientRejectedException {
+	protected boolean rejectClient() throws ClientRejectedException {
 		throw new ClientRejectedException();
 	}
 
@@ -261,11 +262,12 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 * 
 	 * @param reason
 	 * 			Additional error message to return to client-side Flex/Flash application
+	 * @return never returns
      *
      * @throws org.red5.server.exception.ClientRejectedException
      *                  Thrown when client connection must be rejected by application logic
 	 */
-	protected void rejectClient(Object reason) throws ClientRejectedException{
+	protected boolean rejectClient(Object reason) throws ClientRejectedException{
 		throw new ClientRejectedException(reason);
 	}
 
