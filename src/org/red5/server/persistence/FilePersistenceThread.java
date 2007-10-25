@@ -23,10 +23,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.red5.server.api.persistence.IPersistable;
 import org.slf4j.Logger;
@@ -56,12 +56,12 @@ public class FilePersistenceThread implements Runnable {
 	/**
 	 * Modified objects that need to be stored.
 	 */
-	private Map<IPersistable, FilePersistence> modifiedObjects = new ConcurrentHashMap<IPersistable, FilePersistence>();
+	private Map<IPersistable, FilePersistence> modifiedObjects = new HashMap<IPersistable, FilePersistence>();
 
 	/**
 	 * Modified objects for each store.
 	 */
-	private Map<FilePersistence, Set<IPersistable>> objectStores = new ConcurrentHashMap<FilePersistence, Set<IPersistable>>();
+	private Map<FilePersistence, Set<IPersistable>> objectStores = new HashMap<FilePersistence, Set<IPersistable>>();
 
 	/**
 	 * Singleton instance.
@@ -74,6 +74,12 @@ public class FilePersistenceThread implements Runnable {
 	 */
 	private final ScheduledExecutorService scheduler = Executors
 			.newSingleThreadScheduledExecutor();
+
+	/**
+	 * Extra functionality above and beyond normal sync is available via this type.
+	 * http://java.sun.com/j2se/1.5.0/docs/api/java/util/concurrent/locks/ReentrantLock.html
+	 */
+	private final ReentrantLock lock = new ReentrantLock();
 
 	/**
 	 * Return singleton instance of the thread.
@@ -108,8 +114,17 @@ public class FilePersistenceThread implements Runnable {
 		FilePersistence previous = modifiedObjects.put(object, store);
 		Set<IPersistable> objects = objectStores.get(store);
 		if (objects == null) {
-			objects = new HashSet<IPersistable>();
-			objectStores.put(store, objects);
+			lock.lock(); // block until condition holds
+			try {
+				// Probably created by another thread in the meantime?
+				objects = objectStores.get(store);
+				if (objects == null) {
+					objects = new HashSet<IPersistable>();
+					objectStores.put(store, objects);
+				}
+			} finally {
+				lock.unlock();
+			}
 		}
 		objects.add(object);
 
@@ -181,5 +196,5 @@ public class FilePersistenceThread implements Runnable {
 	public void shutdown() {
 		scheduler.shutdown();
 	}
-	
+
 }
