@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.red5.server.api.IAttributeStore;
 import org.red5.server.api.ICastingAttributeStore;
@@ -34,17 +35,51 @@ public class AttributeStore implements ICastingAttributeStore {
     /**
      * Map for attributes
      */
-    protected Map<String, Object> attributes = new ConcurrentHashMap<String, Object>();
-    /**
-     * Map for hashes
-     */
-	protected Map<String, Integer> hashes = new HashMap<String, Integer>();
+    protected ConcurrentMap<String, Object> attributes = new ConcurrentHashMap<String, Object>();
 
     /**
-     * Creates attribute store. Object is not associated with a persistence storage.
+     * Filter <code>null</code> keys and values from given map.
+     * 
+     * @param values		the map to filter
+     * @return filtered map
+     */ 
+    protected Map<String, Object> filterNull(Map<String, Object> values) {
+    	final Map<String, Object> result = new HashMap<String, Object>();
+    	for (Map.Entry<String, Object> entry : values.entrySet()) {
+    		final String key = entry.getKey();
+    		if (key == null) {
+    			continue;
+    		}
+    		
+    		final Object value = entry.getValue();
+    		if (value == null) {
+    			continue;
+    		}
+    		
+    		result.put(key, value);
+    	}
+    	return result;
+    }
+    
+    /**
+     * Creates empty attribute store. Object is not associated with a persistence storage.
      */
     public AttributeStore() {
+    	// Nothing to do here
+	}
 
+    /**
+     * Creates attribute store with initial values. Object is not associated with a persistence storage.
+     */
+    public AttributeStore(Map<String, Object> values) {
+    	setAttributes(values);
+	}
+
+    /**
+     * Creates attribute store with initial values. Object is not associated with a persistence storage.
+     */
+    public AttributeStore(IAttributeStore values) {
+    	setAttributes(values);
 	}
 
     /**
@@ -80,16 +115,6 @@ public class AttributeStore implements ICastingAttributeStore {
 
     /**
      * Return the value for a given attribute and set it if it doesn't exist.
-     * <p/>
-     * <p/>
-     * This is a utility function that internally performs the following code:
-     * <p/>
-     * <code>
-     * if (!hasAttribute(name)) setAttribute(name, defaultValue);<br>
-     * return getAttribute(name);<br>
-     * </code>
-     * </p>
-     * </p>
      *
      * @param name         the name of the attribute to get
      * @param defaultValue the value of the attribute to set if the attribute doesn't
@@ -100,13 +125,7 @@ public class AttributeStore implements ICastingAttributeStore {
     	if (name == null)
     		return null;
     	
-    	synchronized (attributes) {
-    		if (!hasAttribute(name)) {
-    			setAttribute(name, defaultValue);
-    		}
-    	}
-
-        return getAttribute(name);
+    	return attributes.putIfAbsent(name, defaultValue);
     }
 
     /**
@@ -134,24 +153,13 @@ public class AttributeStore implements ICastingAttributeStore {
             return false;
         }
 
-        synchronized (attributes) {
-	        Object old = attributes.get(name);
-	        Integer newHash = (value != null ? value.hashCode() : 0);
-	        if ((old == null && value != null)
-	                || (old != null && !old.equals(value))
-	                || !newHash.equals(hashes.get(name))) {
-	            // Attribute value changed
-	        	if (value == null) {
-	        		attributes.remove(name);
-	        		hashes.remove(name);
-	        	} else {
-	        		attributes.put(name, value);
-	        		hashes.put(name, newHash);
-	        	}
-	            return true;
-	        } else {
-	            return false;
-	        }
+        if (value == null) {
+        	// Remove value
+        	return (attributes.remove(name) != null);
+        } else {
+        	// Update with new value
+        	Object previous = attributes.put(name, value);
+        	return value.equals(previous);
         }
     }
 
@@ -161,19 +169,7 @@ public class AttributeStore implements ICastingAttributeStore {
      * @param values the attributes to set
      */
     public void setAttributes(Map<String, Object> values) {
-    	// We can't store null keys
-    	values.remove(null);
-    	synchronized (attributes) {
-	        attributes.clear();
-	        hashes.clear();
-	        for (Map.Entry<String, Object> entry : values.entrySet()) {
-	            Object value = entry.getValue();
-	            if (value != null) {
-	    	        attributes.put(entry.getKey(), value);
-	            	hashes.put(entry.getKey(), value.hashCode());
-	            }
-	        }
-    	}
+    	attributes.putAll(filterNull(values));
     }
 
     /**
@@ -182,12 +178,7 @@ public class AttributeStore implements ICastingAttributeStore {
      * @param values the attributes to set
      */
     public void setAttributes(IAttributeStore values) {
-    	synchronized (attributes) {
-    		for (String name: values.getAttributeNames()) {
-	            Object value = values.getAttribute(name);
-	            setAttribute(name, value);
-	        }
-    	}
+    	setAttributes(values.getAttributes());
     }
 
     /**
@@ -201,22 +192,14 @@ public class AttributeStore implements ICastingAttributeStore {
             return false;
         }
 
-        synchronized (attributes) {
-	        boolean result = hasAttribute(name);
-	        attributes.remove(name);
-	        hashes.remove(name);
-	        return result;
-        }
+        return (attributes.remove(name) != null);
     }
 
     /**
      * Remove all attributes.
      */
     public void removeAttributes() {
-    	synchronized (attributes) {
-    		attributes.clear();
-    		hashes.clear();
-    	}
+    	attributes.clear();
     }
 
     /**

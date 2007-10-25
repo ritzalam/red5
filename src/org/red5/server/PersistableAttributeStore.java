@@ -77,6 +77,7 @@ public class PersistableAttributeStore extends AttributeStore implements
      */
     public PersistableAttributeStore(String type, String name, String path,
 			boolean persistent) {
+    	super();
 		this.type = type;
 		this.name = name;
 		this.path = path;
@@ -167,12 +168,13 @@ public class PersistableAttributeStore extends AttributeStore implements
     public void serialize(Output output) throws IOException {
 		Serializer serializer = new Serializer();
 		Map<String, Object> persistentAttributes = new HashMap<String, Object>();
-		for (String name : attributes.keySet()) {
+		for (Map.Entry<String, Object> entry : getAttributes().entrySet()) {
+			final String name = entry.getKey();
 			if (name.startsWith(IPersistable.TRANSIENT_PREFIX)) {
 				continue;
 			}
 
-			persistentAttributes.put(name, attributes.get(name));
+			persistentAttributes.put(name, entry.getValue());
 		}
 		serializer.serialize(output, persistentAttributes);
 	}
@@ -183,6 +185,7 @@ public class PersistableAttributeStore extends AttributeStore implements
      * @param input              Input object
      * @throws IOException       I/O exception
      */
+	@SuppressWarnings("unchecked")
     public void deserialize(Input input) throws IOException {
 		Deserializer deserializer = new Deserializer();
 		Object obj = deserializer.deserialize(input);
@@ -190,19 +193,7 @@ public class PersistableAttributeStore extends AttributeStore implements
 			throw new IOException("required Map object");
 		}
 
-		// We can't store null values
-		@SuppressWarnings("unchecked") Map<String, Object> values = (Map<String, Object>) obj;
-		values.remove(null);
-		
-		synchronized (attributes) {
-			for (Map.Entry<String, Object> entry : values.entrySet()) {
-				Object value = entry.getValue();
-				if (value != null) {
-					attributes.put(entry.getKey(), value);
-					hashes.put(entry.getKey(), value.hashCode());
-				}
-			}
-		}
+		setAttributes((Map<String, Object>) obj);
 	}
 
     /**
@@ -237,13 +228,11 @@ public class PersistableAttributeStore extends AttributeStore implements
      */
     @Override
     public boolean setAttribute(String name, Object value) {
-    	synchronized (attributes) {
-    		boolean result = super.setAttribute(name, value);
-    		if (result && !name.startsWith(IPersistable.TRANSIENT_PREFIX)) {
-    			modified();
-    		}
-    		return result;
-    	}
+		boolean result = super.setAttribute(name, value);
+		if (result && name != null && !name.startsWith(IPersistable.TRANSIENT_PREFIX)) {
+			modified();
+		}
+		return result;
 	}
 
     /**
@@ -253,10 +242,8 @@ public class PersistableAttributeStore extends AttributeStore implements
      */
     @Override
     public void setAttributes(Map<String, Object> values) {
-    	synchronized (attributes) {
-    		super.setAttributes(values);
-    		modified();
-    	}
+		super.setAttributes(values);
+		modified();
 	}
 
     /**
@@ -266,10 +253,8 @@ public class PersistableAttributeStore extends AttributeStore implements
      */
     @Override
     public void setAttributes(IAttributeStore values) {
-    	synchronized (attributes) {
-    		super.setAttributes(values);
-    		modified();
-    	}
+		super.setAttributes(values);
+		modified();
 	}
 
     /**
@@ -279,13 +264,11 @@ public class PersistableAttributeStore extends AttributeStore implements
      */
     @Override
     public boolean removeAttribute(String name) {
-    	synchronized (attributes) {
-    		boolean result = super.removeAttribute(name);
-    		if (result && !name.startsWith(IPersistable.TRANSIENT_PREFIX)) {
-    			modified();
-    		}
-    		return result;
-    	}
+		boolean result = super.removeAttribute(name);
+		if (result && name != null && !name.startsWith(IPersistable.TRANSIENT_PREFIX)) {
+			modified();
+		}
+		return result;
 	}
 
     /**
@@ -293,9 +276,7 @@ public class PersistableAttributeStore extends AttributeStore implements
      */
     @Override
     public void removeAttributes() {
-    	synchronized (attributes) {
-    		super.removeAttributes();
-    		modified();
-    	}
+		super.removeAttributes();
+		modified();
 	}
 }
