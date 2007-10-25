@@ -22,13 +22,10 @@ package org.red5.server.so;
 import static org.red5.server.api.so.ISharedObject.TYPE;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -36,6 +33,7 @@ import org.red5.io.object.Deserializer;
 import org.red5.io.object.Input;
 import org.red5.io.object.Output;
 import org.red5.io.object.Serializer;
+import org.red5.server.AttributeStore;
 import org.red5.server.api.IAttributeStore;
 import org.red5.server.api.event.IEventListener;
 import org.red5.server.api.persistence.IPersistable;
@@ -65,10 +63,10 @@ import org.slf4j.LoggerFactory;
  *
  * SOs store data as simple map, that is, "name-value" pairs. Each value in turn can be complex object or map.
  * 
- * All access to protected methods that change properties in the SO must be properly
+ * All access to methods that change properties in the SO must be properly
  * synchronized for multi-threaded access.
  */
-public class SharedObject implements ISharedObjectStatistics, IPersistable, Constants {
+public class SharedObject extends AttributeStore implements ISharedObjectStatistics, IPersistable, Constants {
     /**
      * Logger
      */
@@ -105,16 +103,6 @@ public class SharedObject implements ISharedObjectStatistics, IPersistable, Cons
      * Version. Used on synchronization purposes.
      */
     protected int version = 1;
-
-    /**
-     * SO data
-     */
-    protected Map<String, Object> data;
-
-    /**
-     * SO hashes
-     */
-    protected Map<String, Integer> hashes = new HashMap<String, Integer>();
 
     /**
      * Number of pending update operations
@@ -184,8 +172,7 @@ public class SharedObject implements ISharedObjectStatistics, IPersistable, Cons
 	/** Constructs a new SharedObject. */
     public SharedObject() {
 		// This is used by the persistence framework
-        data = null;
-        data = new ConcurrentHashMap<String, Object>();
+        super();
 
 		ownerMessage = new SharedObjectMessage(null, null, -1, false);
         persistentSO = false;
@@ -214,9 +201,7 @@ public class SharedObject implements ISharedObjectStatistics, IPersistable, Cons
      */
     public SharedObject(Map<String, Object> data, String name, String path,
 			boolean persistent) {
-        this.data = null;
-        this.data = new ConcurrentHashMap<String, Object>();
-		this.data.putAll(data);
+    	super();
 		this.name = name;
 		this.path = path;
         persistentSO = false;
@@ -224,6 +209,7 @@ public class SharedObject implements ISharedObjectStatistics, IPersistable, Cons
 
 		ownerMessage = new SharedObjectMessage(null, name, 0, persistent);
         creationTime = System.currentTimeMillis();
+        super.setAttributes(data);
 	}
 
     /**
@@ -236,17 +222,8 @@ public class SharedObject implements ISharedObjectStatistics, IPersistable, Cons
      */
     public SharedObject(Map<String, Object> data, String name, String path,
 			boolean persistent, IPersistenceStore storage) {
-        this.data = null;
-        this.data = new ConcurrentHashMap<String, Object>();
-		this.data.putAll(data);
-		this.name = name;
-		this.path = path;
-        persistentSO = false;
-        this.persistentSO = persistent;
+    	this(data, name, path, persistent);
 		setStore(storage);
-
-		ownerMessage = new SharedObjectMessage(null, name, 0, persistent);
-        creationTime = System.currentTimeMillis();
 	}
 
 	/** {@inheritDoc} */
@@ -359,17 +336,6 @@ public class SharedObject implements ISharedObjectStatistics, IPersistable, Cons
 	}
 
     /**
-     * Update hashes
-     */
-    private void updateHashes() {
-		hashes.clear();
-		for (String name : data.keySet()) {
-			Object value = data.get(name);
-			hashes.put(name, value != null ? value.hashCode() : 0);
-		}
-	}
-
-    /**
      * Send notification about modification of SO
      */
     protected void notifyModified() {
@@ -391,7 +357,6 @@ public class SharedObject implements ISharedObjectStatistics, IPersistable, Cons
 		}
 
 		sendUpdates();
-		updateHashes();
 	}
 
     /**
@@ -413,38 +378,29 @@ public class SharedObject implements ISharedObjectStatistics, IPersistable, Cons
     }
     
     /**
-     * Check whether this SO has given attribute
-     * @param name          Attribute name
-     * @return              <code>true</code> if this SO has attribute with given name, <code>false</code> otherwise
-     */
-    public boolean hasAttribute(String name) {
-		return data.containsKey(name);
-	}
-
-	/**
-     * Return attribute names as set.
-     *
-     * @return  Set of attribute names
-     */
-    public Set<String> getAttributeNames() {
-		return Collections.unmodifiableSet(data.keySet());
-	}
-
-    /**
-     * Return map of attributes of this SO
-     * @return   Map of attributes
-     */
-    public Map<String, Object> getAttributes() {
-		return Collections.unmodifiableMap(data);
-	}
-
-    /**
-     * Return attribute by name
+     * Return attribute by name and set if it doesn't exist yet.
      * @param name         Attribute name
+     * @param value        Value to set if attribute doesn't exist
      * @return             Attribute value
      */
-    public Object getAttribute(String name) {
-		return data.get(name);
+    @Override
+    public Object getAttribute(String name, Object value) {
+    	if (name == null) {
+    		return null;
+    	}
+    	
+    	Object result = attributes.putIfAbsent(name, value);
+    	if (result == null) {
+    		// No previous value
+			modified = true;
+    		ownerMessage.addEvent(Type.CLIENT_UPDATE_DATA, name, value);
+    		syncEvents.add(new SharedObjectEvent(Type.CLIENT_UPDATE_DATA, name, value));
+    		notifyModified();
+			changeStats.incrementAndGet();
+    		result = value;
+    	}
+    	
+		return result;
 	}
 
     /**
@@ -453,15 +409,20 @@ public class SharedObject implements ISharedObjectStatistics, IPersistable, Cons
      * @param value        Attribute value
      * @return             <code>true</code> if there's such attribute and value was set, <code>false</code> otherwise
      */
-    protected boolean setAttribute(String name, Object value) {
+    @Override
+    public boolean setAttribute(String name, Object value) {
 		ownerMessage.addEvent(Type.CLIENT_UPDATE_ATTRIBUTE, name, null);
-		Object old = data.get(name);
-		Integer oldHash = (value != null ? value.hashCode() : 0);
-		if (old == null || !old.equals(value)
-				|| !oldHash.equals(hashes.get(name))) {
+		if (value == null && super.removeAttribute(name)) {
+			// Setting a null value removes the attribute
 			modified = true;
-			data.put(name, value);
+			syncEvents.add(new SharedObjectEvent(Type.CLIENT_DELETE_DATA, name,
+					null));
+			deleteStats.incrementAndGet();
+			notifyModified();
+			return true;
+		} else if (value != null && super.setAttribute(name, value)) {
 			// only sync if the attribute changed
+			modified = true;
 			syncEvents.add(new SharedObjectEvent(Type.CLIENT_UPDATE_DATA, name,
 					value));
 			notifyModified();
@@ -478,16 +439,20 @@ public class SharedObject implements ISharedObjectStatistics, IPersistable, Cons
      *
      * @param values  Attributes.
      */
-    protected void setAttributes(Map<String, Object> values) {
+    @Override
+    public void setAttributes(Map<String, Object> values) {
 		if (values == null) {
 			return;
 		}
 
 		beginUpdate();
-        for (String name : values.keySet()) {
-            setAttribute(name, values.get(name));
-        }
-        endUpdate();
+		try {
+			for (Map.Entry<String, Object> entry : values.entrySet()) {
+				setAttribute(entry.getKey(), entry.getValue());
+			}
+		} finally {
+			endUpdate();
+		}
 	}
 
 	/**
@@ -495,16 +460,13 @@ public class SharedObject implements ISharedObjectStatistics, IPersistable, Cons
      *
      * @param values  Attributes.
      */
-    protected void setAttributes(IAttributeStore values) {
+    @Override
+    public void setAttributes(IAttributeStore values) {
 		if (values == null) {
 			return;
 		}
 
-		beginUpdate();
-        for (String name : values.getAttributeNames()) {
-            setAttribute(name, values.getAttribute(name));
-        }
-        endUpdate();
+		setAttributes(values.getAttributes());
 	}
 
     /**
@@ -512,21 +474,21 @@ public class SharedObject implements ISharedObjectStatistics, IPersistable, Cons
      * @param name    Attribute
      * @return        <code>true</code> if there's such an attribute and it was removed, <code>false</code> otherwise
      */
-    protected boolean removeAttribute(String name) {
-		boolean result = data.containsKey(name);
-		if (result) {
-			data.remove(name);
-		}
+    @Override
+    public boolean removeAttribute(String name) {
 		// Send confirmation to client
 		ownerMessage.addEvent(Type.CLIENT_DELETE_DATA, name, null);
-		if (result) {
+    	if (super.removeAttribute(name)) {
 			modified = true;
 			syncEvents.add(new SharedObjectEvent(Type.CLIENT_DELETE_DATA, name,
 					null));
 			deleteStats.incrementAndGet();
+			notifyModified();
+			return true;
+		} else {
+			notifyModified();
+			return false;
 		}
-		notifyModified();
-		return result;
 	}
 
     /**
@@ -534,7 +496,7 @@ public class SharedObject implements ISharedObjectStatistics, IPersistable, Cons
      * @param handler         Event handler
      * @param arguments       Arguments
      */
-    protected void sendMessage(String handler, List arguments) {
+    protected void sendMessage(String handler, List<?> arguments) {
         // Forward
         ownerMessage.addEvent(Type.CLIENT_SEND_MESSAGE, handler, arguments);
 		syncEvents.add(new SharedObjectEvent(Type.CLIENT_SEND_MESSAGE, handler,
@@ -548,7 +510,7 @@ public class SharedObject implements ISharedObjectStatistics, IPersistable, Cons
      * @return  SO data as unmodifiable map
      */
     public Map<String, Object> getData() {
-		return Collections.unmodifiableMap(data);
+		return getAttributes();
 	}
 
 	/**
@@ -570,16 +532,18 @@ public class SharedObject implements ISharedObjectStatistics, IPersistable, Cons
     /**
      * Remove all attributes (clear Shared Object)
      */
-	protected void removeAttributes() {
+	@Override
+	public void removeAttributes() {
 		// TODO: there must be a direct way to clear the SO on the client side...
-        for (String key : data.keySet()) {
+		Set<String> names = getAttributeNames();
+        for (String key : names) {
             ownerMessage.addEvent(Type.CLIENT_DELETE_DATA, key, null);
             syncEvents.add(new SharedObjectEvent(Type.CLIENT_DELETE_DATA, key,
                     null));
         }
-		deleteStats.addAndGet(data.size());
+		deleteStats.addAndGet(names.size());
         // Clear data
-		data.clear();
+		super.removeAttributes();
         // Mark as modified
         modified = true;
         // Broadcast 'modified' event
@@ -599,9 +563,9 @@ public class SharedObject implements ISharedObjectStatistics, IPersistable, Cons
 		if (!isPersistentObject()) {
 			ownerMessage.addEvent(Type.CLIENT_CLEAR_DATA, null, null);
 		}
-		if (!data.isEmpty()) {
+		if (!attributes.isEmpty()) {
 			ownerMessage.addEvent(new SharedObjectEvent(
-					Type.CLIENT_UPDATE_DATA, null, getData()));
+					Type.CLIENT_UPDATE_DATA, null, getAttributes()));
 		}
 
 		// we call notifyModified here to send response if we're not in a
@@ -681,17 +645,16 @@ public class SharedObject implements ISharedObjectStatistics, IPersistable, Cons
     public void serialize(Output output) throws IOException {
 		Serializer ser = new Serializer();
 		ser.serialize(output, getName());
-		ser.serialize(output, data);
+		ser.serialize(output, getAttributes());
 	}
 
 	/** {@inheritDoc} */
+    @SuppressWarnings("unchecked")
     public void deserialize(Input input) throws IOException {
 		Deserializer deserializer = new Deserializer();
 		name = (String) deserializer.deserialize(input);
 		persistentSO = persistent = true;
-		data.clear();
-		data.putAll((Map<String, Object>) deserializer.deserialize(input));
-		updateHashes();
+		super.setAttributes((Map<String, Object>) deserializer.deserialize(input));
 		ownerMessage.setName(name);
 		ownerMessage.setIsPersistent(true);
 	}
@@ -713,11 +676,13 @@ public class SharedObject implements ISharedObjectStatistics, IPersistable, Cons
 	 * @return <code>true</code> on success, <code>false</code> otherwise
 	 */
     protected boolean clear() {
-		data.clear();
+    	super.removeAttributes();
 		// Send confirmation to client
 		ownerMessage.addEvent(Type.CLIENT_CLEAR_DATA, name, null);
+		notifyModified();
+		changeStats.incrementAndGet();
         // Is it clear now?
-        return data.isEmpty();
+        return true;
 	}
 
 	/**
@@ -727,9 +692,8 @@ public class SharedObject implements ISharedObjectStatistics, IPersistable, Cons
 	 */
     protected void close() {
 		// clear collections
-		data.clear();
+		super.removeAttributes();
 		listeners.clear();
-		hashes.clear();
 		syncEvents.clear();
 		ownerMessage.getEvents().clear();
 	}

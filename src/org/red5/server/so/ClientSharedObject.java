@@ -145,27 +145,27 @@ public class ClientSharedObject extends SharedObject implements
 						break;
 						
 					case CLIENT_CLEAR_DATA:
-						data.clear();
+						attributes.clear();
 						notifyClear();
 						break;
 					
 					case CLIENT_DELETE_DATA:
 					case CLIENT_DELETE_ATTRIBUTE:
-						data.remove(event.getKey());
+						attributes.remove(event.getKey());
 						notifyDelete(event.getKey());
 						break;
 						
 					case CLIENT_SEND_MESSAGE:
-						notifySendMessage(event.getKey(), (List) event.getValue());
+						notifySendMessage(event.getKey(), (List<?>) event.getValue());
 						break;
 						
 					case CLIENT_UPDATE_DATA:
-						data.putAll((Map<String, Object>) event.getValue());
+						attributes.putAll((Map<String, Object>) event.getValue());
 						notifyUpdate(event.getKey(), (Map<String, Object>) event.getValue());
 						break;
 						
 					case CLIENT_UPDATE_ATTRIBUTE:
-						data.put(event.getKey(), event.getValue());
+						attributes.put(event.getKey(), event.getValue());
 						notifyUpdate(event.getKey(), event.getValue());
 						break;
 						
@@ -247,7 +247,7 @@ public class ClientSharedObject extends SharedObject implements
      * @param method        Method name
      * @param params        Params
      */
-    protected void notifySendMessage(String method, List params) {
+    protected void notifySendMessage(String method, List<?> params) {
         for (ISharedObjectListener listener : listeners) {
             listener.onSharedObjectSend(this, method, params);
         }
@@ -256,7 +256,11 @@ public class ClientSharedObject extends SharedObject implements
 	/** {@inheritDoc} */
     @Override
 	public synchronized boolean setAttribute(String name, Object value) {
-		ownerMessage.addEvent(Type.SERVER_SET_ATTRIBUTE, name, null);
+    	if (value == null) {
+    		return removeAttribute(name);
+    	}
+    	
+		ownerMessage.addEvent(Type.SERVER_SET_ATTRIBUTE, name, value);
 		notifyModified();
 		return true;
 	}
@@ -264,13 +268,15 @@ public class ClientSharedObject extends SharedObject implements
 	/** {@inheritDoc} */
     @Override
 	public synchronized void setAttributes(IAttributeStore values) {
-		super.setAttributes(values);
+    	setAttributes(values.getAttributes());
 	}
 
 	/** {@inheritDoc} */
     @Override
 	public synchronized void setAttributes(Map<String, Object> values) {
-		super.setAttributes(values);
+		for (Map.Entry<String, Object> entry : values.entrySet()) {
+			setAttribute(entry.getKey(), entry.getValue());
+		}
 	}
 
 	/** {@inheritDoc} */
@@ -293,7 +299,7 @@ public class ClientSharedObject extends SharedObject implements
 	public synchronized void removeAttributes() {
 		// TODO: there must be a direct way to clear the SO on the client
 		// side...
-        for (String key : data.keySet()) {
+        for (String key : getAttributeNames()) {
             ownerMessage.addEvent(Type.SERVER_DELETE_ATTRIBUTE, key, null);
         }
         notifyModified();
@@ -376,56 +382,6 @@ public class ClientSharedObject extends SharedObject implements
 	/** {@inheritDoc} */
     public Set<String> getServiceHandlerNames() {
 		return Collections.unmodifiableSet(handlers.keySet());
-	}
-
-	/** {@inheritDoc} */
-    public Boolean getBoolAttribute(String name) {
-		return (Boolean) getAttribute(name);
-	}
-
-	/** {@inheritDoc} */
-    public Byte getByteAttribute(String name) {
-		return (Byte) getAttribute(name);
-	}
-
-	/** {@inheritDoc} */
-    public Double getDoubleAttribute(String name) {
-		return (Double) getAttribute(name);
-	}
-
-	/** {@inheritDoc} */
-    public Integer getIntAttribute(String name) {
-		return (Integer) getAttribute(name);
-	}
-
-	/** {@inheritDoc} */
-    public List getListAttribute(String name) {
-		return (List) getAttribute(name);
-	}
-
-	/** {@inheritDoc} */
-    public Long getLongAttribute(String name) {
-		return (Long) getAttribute(name);
-	}
-
-	/** {@inheritDoc} */
-    public Map getMapAttribute(String name) {
-		return (Map) getAttribute(name);
-	}
-
-	/** {@inheritDoc} */
-    public Set getSetAttribute(String name) {
-		return (Set) getAttribute(name);
-	}
-
-	/** {@inheritDoc} */
-    public Short getShortAttribute(String name) {
-		return (Short) getAttribute(name);
-	}
-
-	/** {@inheritDoc} */
-    public String getStringAttribute(String name) {
-		return (String) getAttribute(name);
 	}
 
 	/** {@inheritDoc} */

@@ -339,6 +339,12 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 
 	/** {@inheritDoc} */
     @Override
+	public Object getAttribute(String name, Object value) {
+		return so.getAttribute(name, value);
+	}
+
+	/** {@inheritDoc} */
+    @Override
 	public Map<String, Object> getAttributes() {
 		return so.getAttributes();
 	}
@@ -462,7 +468,7 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
      * @param arguments
      * @return
      */
-    protected boolean isSendAllowed(String message, List arguments) {
+    protected boolean isSendAllowed(String message, List<?> arguments) {
     	// Check internal handlers first
     	for (ISharedObjectSecurity handler: securityHandlers) {
     		if (!handler.isSendAllowed(this, message, arguments)) {
@@ -548,7 +554,7 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 						break;
 					case SERVER_SEND_MESSAGE:
 						final String message = event.getKey();
-						final List arguments = (List) event.getValue();
+						final List<?> arguments = (List<?>) event.getValue();
 						// Ignore request silently if not allowed
 						if (isSendAllowed(message, arguments)) {
 							sendMessage(message, arguments);
@@ -695,7 +701,20 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 
 	/** {@inheritDoc} */
     public boolean clear() {
-		return so.clear();
+    	boolean success;
+    	beginUpdate();
+    	try {
+    		success = so.clear();
+    	} finally {
+    		endUpdate();
+    	}
+    	
+		if (success) {
+			for (ISharedObjectListener listener : serverListeners) {
+				listener.onSharedObjectClear(this);
+			}
+        }
+		return success;
 	}
 
 	/** {@inheritDoc} */
