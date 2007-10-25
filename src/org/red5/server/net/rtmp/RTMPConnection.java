@@ -21,12 +21,14 @@ package org.red5.server.net.rtmp;
 
 import static org.red5.server.api.ScopeUtils.getScopeService;
 
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.management.ObjectName;
@@ -97,7 +99,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	 * 
 	 * @see org.red5.server.net.rtmp.Channel
 	 */
-	private Map<Integer, Channel> channels = new ConcurrentHashMap<Integer, Channel>();
+	private ConcurrentMap<Integer, Channel> channels = new ConcurrentHashMap<Integer, Channel>();
 
 	/**
 	 * Client streams
@@ -106,7 +108,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	 */
 	private Map<Integer, IClientStream> streams = new ConcurrentHashMap<Integer, IClientStream>();
 
-	private Map<Integer, Boolean> reservedStreams = new ConcurrentHashMap<Integer, Boolean>();
+	private BitSet reservedStreams = new BitSet();
 
 	/**
 	 * Identifier for remote calls.
@@ -188,7 +190,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/**
 	 * Map for pending video packets and stream IDs.
 	 */
-	private Map<Integer, Integer> pendingVideos = new ConcurrentHashMap<Integer, Integer>();
+	private ConcurrentMap<Integer, AtomicInteger> pendingVideos = new ConcurrentHashMap<Integer, AtomicInteger>();
 
 	/**
 	 * Number of streams used.
@@ -322,14 +324,12 @@ public abstract class RTMPConnection extends BaseConnection implements
 	 * @return Channel by id
 	 */
 	public Channel getChannel(int channelId) {
-		synchronized (channels) {
-			Channel result = channels.get(channelId);
-			if (result == null) {
-				result = new Channel(this, channelId);
-				channels.put(channelId, result);
-			}
-			return result;
+		final Channel value = new Channel(this, channelId);
+		Channel result = channels.putIfAbsent(channelId, value);
+		if (result == null) {
+			result = value;
 		}
+		return result;
 	}
 
 	/**
@@ -355,9 +355,8 @@ public abstract class RTMPConnection extends BaseConnection implements
 		int result = -1;
 		synchronized (reservedStreams) {
 			for (int i = 0; true; i++) {
-				Boolean value = reservedStreams.get(i);
-				if (value == null || !value) {
-					reservedStreams.put(i, true);
+				if (!reservedStreams.get(i)) {
+					reservedStreams.set(i);
 					result = i;
 					break;
 				}
@@ -402,8 +401,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	/** {@inheritDoc} */
 	public IClientBroadcastStream newBroadcastStream(int streamId) {
-		Boolean value = reservedStreams.get(streamId - 1);
-		if (value == null || !value) {
+		if (!reservedStreams.get(streamId - 1)) {
 			// StreamId has not been reserved before
 			return null;
 		}
@@ -427,7 +425,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 			cbs.setName(createStreamName());
 			cbs.setScope(this.getScope());
 
-			streams.put(streamId - 1, cbs);
+			registerStream(cbs);
 			usedStreams++;
 			return cbs;
 		}
@@ -444,8 +442,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	/** {@inheritDoc} */
 	public IPlaylistSubscriberStream newPlaylistSubscriberStream(int streamId) {
-		Boolean value = reservedStreams.get(streamId - 1);
-		if (value == null || !value) {
+		if (!reservedStreams.get(streamId - 1)) {
 			// StreamId has not been reserved before
 			return null;
 		}
@@ -468,7 +465,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 			pss.setConnection(this);
 			pss.setScope(this.getScope());
 			pss.setStreamId(streamId);
-			streams.put(streamId - 1, pss);
+			registerStream(pss);
 			usedStreams++;
 			return pss;
 		}
@@ -519,6 +516,24 @@ public abstract class RTMPConnection extends BaseConnection implements
 		return streams.get(getStreamIdForChannel(channelId) - 1);
 	}
 
+	/**
+	 * Store a stream in the connection.
+	 * 
+	 * @param stream
+	 */
+	protected void registerStream(IClientStream stream) {
+		streams.put(stream.getStreamId()-1, stream);
+	}
+	
+	/**
+	 * Remove a stream from the connection.
+	 * 
+	 * @param stream
+	 */
+	protected void unregisterStream(IClientStream stream) {
+		streams.remove(stream.getStreamId());
+	}
+	
 	/** {@inheritDoc} */
 	@Override
 	public void close() {
@@ -565,7 +580,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	public void unreserveStreamId(int streamId) {
 		deleteStreamById(streamId);
 		if (streamId > 0) {
-			reservedStreams.remove(streamId - 1);
+			reservedStreams.clear(streamId - 1);
 		}
 	}
 
@@ -573,9 +588,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	public void deleteStreamById(int streamId) {
 		if (streamId > 0) {
 			if (streams.get(streamId - 1) != null) {
-				synchronized (pendingVideos) {
-					pendingVideos.remove(streamId);
-				}
+				pendingVideos.remove(streamId);
 				usedStreams--;
 				streams.remove(streamId - 1);
 				streamBuffers.remove(streamId - 1);
@@ -812,13 +825,12 @@ public abstract class RTMPConnection extends BaseConnection implements
 	protected void writingMessage(Packet message) {
 		if (message.getMessage() instanceof VideoData) {
 			int streamId = message.getHeader().getStreamId();
-			synchronized (pendingVideos) {
-				Integer old = pendingVideos.get(streamId);
-				if (old == null) {
-					old = Integer.valueOf(0);
-				}
-				pendingVideos.put(streamId, old + 1);
+			final AtomicInteger value = new AtomicInteger();
+			AtomicInteger old = pendingVideos.putIfAbsent(streamId, value);
+			if (old == null) {
+				old = value;
 			}
+			old.incrementAndGet();
 		}
 	}
 
@@ -840,11 +852,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 	protected void messageSent(Packet message) {
 		if (message.getMessage() instanceof VideoData) {
 			int streamId = message.getHeader().getStreamId();
-			synchronized (pendingVideos) {
-				Integer pending = pendingVideos.get(streamId);
-				if (pending != null) {
-					pendingVideos.put(streamId, pending - 1);
-				}
+			AtomicInteger pending = pendingVideos.get(streamId);
+			if (pending != null) {
+				pending.decrementAndGet();
 			}
 		}
 
@@ -861,7 +871,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/** {@inheritDoc} */
 	@Override
 	public long getPendingVideoMessages(int streamId) {
-		Integer count = pendingVideos.get(streamId);
+		AtomicInteger count = pendingVideos.get(streamId);
 		long result = (count != null ? count.intValue() - getUsedStreamCount()
 				: 0);
 		return (result > 0 ? result : 0);
