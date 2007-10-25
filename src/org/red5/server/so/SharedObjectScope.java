@@ -340,7 +340,12 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 	/** {@inheritDoc} */
     @Override
 	public Object getAttribute(String name, Object value) {
-		return so.getAttribute(name, value);
+    	beginUpdate();
+    	try {
+    		return so.getAttribute(name, value);
+    	} finally {
+    		endUpdate();
+    	}
 	}
 
 	/** {@inheritDoc} */
