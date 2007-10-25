@@ -26,6 +26,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IClient;
@@ -117,7 +118,7 @@ public abstract class BaseConnection extends AttributeStore implements
 	/**
 	 *  Set of basic scopes.
 	 */
-	protected Set<IBasicScope> basicScopes;
+	protected Set<IBasicScope> basicScopes = new CopyOnWriteArraySet<IBasicScope>();
 
 	/**
 	 * Is the connection closed?
@@ -148,7 +149,6 @@ public abstract class BaseConnection extends AttributeStore implements
 		this.path = path;
 		this.sessionId = sessionId;
 		this.params = params;
-		this.basicScopes = new HashSet<IBasicScope>();
 	}
 
 	/**
@@ -300,9 +300,7 @@ public abstract class BaseConnection extends AttributeStore implements
 		log.debug("Close, disconnect from scope, and children");
 		try {
 			// Unregister all child scopes first
-			Set<IBasicScope> tmpScopes = new HashSet<IBasicScope>(
-					basicScopes);
-			for (IBasicScope basicScope : tmpScopes) {
+			for (IBasicScope basicScope : basicScopes) {
 				unregisterBasicScope(basicScope);
 			}
 		} catch (Exception err) {

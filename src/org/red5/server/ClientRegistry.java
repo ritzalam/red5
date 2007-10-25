@@ -62,10 +62,12 @@ public class ClientRegistry implements IClientRegistry, ClientRegistryMBean {
 	}
 
 	public Client getClient(String id) throws ClientNotFoundException {
-		if (!hasClient(id)) {
+		final Client result = (Client) clients.get(id);
+		if (result == null) {
 			throw new ClientNotFoundException(id);
 		}
-		return (Client) clients.get(id);
+		
+		return result;
 	}
 
 	/**
@@ -124,11 +126,7 @@ public class ClientRegistry implements IClientRegistry, ClientRegistryMBean {
 	 * @throws ClientNotFoundException
 	 */
 	public IClient lookupClient(String id) throws ClientNotFoundException {
-		if (!hasClient(id)) {
-			throw new ClientNotFoundException(id);
-		}
-
-		return clients.get(id);
+		return getClient(id);
 	}
 
 	/**
