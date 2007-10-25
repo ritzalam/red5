@@ -19,14 +19,11 @@ package org.red5.server.persistence;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.red5.server.api.persistence.IPersistable;
 import org.slf4j.Logger;
@@ -54,14 +51,9 @@ public class FilePersistenceThread implements Runnable {
 	private long storeInterval = 10000;
 
 	/**
-	 * Modified objects that need to be stored.
+	 * Modified objects.
 	 */
-	private Map<IPersistable, FilePersistence> modifiedObjects = new HashMap<IPersistable, FilePersistence>();
-
-	/**
-	 * Modified objects for each store.
-	 */
-	private Map<FilePersistence, Set<IPersistable>> objectStores = new HashMap<FilePersistence, Set<IPersistable>>();
+	private Map<UpdateEntry, FilePersistence> objects = new ConcurrentHashMap<UpdateEntry, FilePersistence>();
 
 	/**
 	 * Singleton instance.
@@ -74,12 +66,6 @@ public class FilePersistenceThread implements Runnable {
 	 */
 	private final ScheduledExecutorService scheduler = Executors
 			.newSingleThreadScheduledExecutor();
-
-	/**
-	 * Extra functionality above and beyond normal sync is available via this type.
-	 * http://java.sun.com/j2se/1.5.0/docs/api/java/util/concurrent/locks/ReentrantLock.html
-	 */
-	private final ReentrantLock lock = new ReentrantLock();
 
 	/**
 	 * Return singleton instance of the thread.
@@ -111,31 +97,11 @@ public class FilePersistenceThread implements Runnable {
 	 * @param store
 	 */
 	protected void modified(IPersistable object, FilePersistence store) {
-		FilePersistence previous = modifiedObjects.put(object, store);
-		Set<IPersistable> objects = objectStores.get(store);
-		if (objects == null) {
-			lock.lock(); // block until condition holds
-			try {
-				// Probably created by another thread in the meantime?
-				objects = objectStores.get(store);
-				if (objects == null) {
-					objects = new HashSet<IPersistable>();
-					objectStores.put(store, objects);
-				}
-			} finally {
-				lock.unlock();
-			}
-		}
-		objects.add(object);
-
+		FilePersistence previous = objects.put(new UpdateEntry(object, store), store);
 		if (previous != null && !previous.equals(store)) {
 			log.warn("Object {} was also modified in {}, saving instantly",
 					new Object[] { object, previous });
 			previous.saveObject(object);
-			objects = objectStores.get(previous);
-			if (objects != null) {
-				objects.remove(previous);
-			}
 		}
 	}
 
@@ -145,25 +111,19 @@ public class FilePersistenceThread implements Runnable {
 	 * @param store
 	 */
 	protected void notifyClose(FilePersistence store) {
-		// Get snapshot of currently modified objects.
-		Set<IPersistable> objects = objectStores.remove(store);
-		if (objects != null) {
-			for (IPersistable object : objects) {
-				modifiedObjects.remove(object);
+		// Store pending objects for this store
+		for (UpdateEntry entry : objects.keySet()) {
+			if (!store.equals(entry.store)) {
+				// Object is from different store
+				continue;
 			}
-		}
-
-		if (objects == null || objects.isEmpty()) {
-			return;
-		}
-
-		// Store pending objects
-		for (IPersistable object : objects) {
+			
 			try {
-				store.saveObject(object);
+				objects.remove(entry);
+				store.saveObject(entry.object);
 			} catch (Throwable e) {
 				log.error("Error while saving {} in {}. {}", new Object[] {
-						object, store, e });
+						entry.object, store, e });
 			}
 		}
 	}
@@ -172,20 +132,18 @@ public class FilePersistenceThread implements Runnable {
 	 * Write modified objects to the file system periodically.
 	 */
 	public void run() {
-		if (!modifiedObjects.isEmpty()) {
-			// Get snapshot of currently modified objects.
-			Map<IPersistable, FilePersistence> objects = new HashMap<IPersistable, FilePersistence>(
-					modifiedObjects);
-			modifiedObjects.clear();
-			objectStores.clear();
-			for (Map.Entry<IPersistable, FilePersistence> entry : objects
-					.entrySet()) {
-				try {
-					entry.getValue().saveObject(entry.getKey());
-				} catch (Throwable e) {
-					log.error("Error while saving {} in {}. {}", new Object[] {
-							entry.getKey(), entry.getValue(), e });
-				}
+		if (objects.isEmpty()) {
+			// No objects to store
+			return;
+		}
+		
+		for (UpdateEntry entry : objects.keySet()) {
+			try {
+				objects.remove(entry);
+				entry.store.saveObject(entry.object);
+			} catch (Throwable e) {
+				log.error("Error while saving {} in {}. {}", new Object[] {
+						entry.object, entry.store, e });
 			}
 		}
 	}
@@ -197,4 +155,52 @@ public class FilePersistenceThread implements Runnable {
 		scheduler.shutdown();
 	}
 
+	/**
+	 * Informations about one entry to object.
+	 */
+	private class UpdateEntry {
+		
+		/** Object to store. */
+		IPersistable object;
+		/** Store the object should be serialized to. */
+		FilePersistence store;
+		
+		/**
+		 * Create new update entry.
+		 * 
+		 * @param object	object to serialize
+		 * @param store		store the object should be serialized in
+		 */
+		UpdateEntry(IPersistable object, FilePersistence store) {
+			this.object = object;
+			this.store = store;
+		}
+		
+		/**
+		 * Compare with another entry.
+		 * 
+		 * @param other		entry to compare to
+		 * @return <code>true</code> if entries match, otherwise <code>false</code>
+		 */
+		@Override
+		public boolean equals(Object other) {
+			if (!(other instanceof UpdateEntry)) {
+				return false;
+			}
+			
+			return (object.equals(((UpdateEntry) other).object) && store.equals(((UpdateEntry) other).store));
+		}
+		
+		/**
+		 * Return hash value for entry.
+		 * 
+		 * @return the hash value
+		 */
+		@Override
+		public int hashCode() {
+			return object.hashCode() + store.hashCode();
+		}
+		
+	}
+	
 }
