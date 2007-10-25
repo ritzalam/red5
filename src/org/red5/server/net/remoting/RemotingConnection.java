@@ -510,5 +510,11 @@ public class RemotingConnection implements IRemotingConnection {
 		}
 
 	}
+
+	/** {@inheritDoc} */
+	public long getClientBytesRead() {
+		// This is not supported for Remoting connections
+		return 0;
+	}
 	
 }

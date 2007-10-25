@@ -214,6 +214,15 @@ public interface IConnection extends ConnectionMBean, ICoreObject {
 	public long getPendingMessages();
 
 	/**
+	 * Return number of written bytes the client reports to have received.
+	 * This is the last value of the BytesRead message received from a client.
+	 * 
+	 * @see org.red5.server.net.rtmp.event.BytesRead
+	 * @return number of written bytes received by the client
+	 */
+	public long getClientBytesRead();
+
+	/**
 	 * Start measuring the roundtrip time for a packet on the connection.
 	 */
 	public void ping();

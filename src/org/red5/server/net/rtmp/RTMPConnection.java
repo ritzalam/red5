@@ -173,7 +173,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/**
 	 * Number of bytes the client reported to have received.
 	 */
-	private int clientBytesRead = 0;
+	private long clientBytesRead = 0;
 
 	/**
 	 * Bandwidth configure.
@@ -639,7 +639,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	 * 
 	 * @return Number of bytes
 	 */
-	public int getClientBytesRead() {
+	public long getClientBytesRead() {
 		return clientBytesRead;
 	}
 

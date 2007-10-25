@@ -429,4 +429,9 @@ public abstract class BaseConnection extends AttributeStore implements
 		return 0;
 	}
 
+	/** {@inheritDoc} */
+	public long getClientBytesRead() {
+		return 0;
+	}
+	
 }
