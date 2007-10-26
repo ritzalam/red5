@@ -38,11 +38,11 @@ public class RTMPMinaProtocolEncoder extends RTMPProtocolEncoder implements
 		try {
 			final ProtocolState state = (ProtocolState) session
 					.getAttribute(ProtocolState.SESSION_KEY);
-			// We need to synchronize on the RTMP state and flush the
+			// We need to synchronize on the output and flush the
 			// generated data to prevent two packages to the same channel
 			// to be sent in different order thus resulting in wrong
 			// headers being generated.
-			synchronized (state) {
+			synchronized (out) {
 				final ByteBuffer buf = encode(state, message);
 				if (buf != null) {
 					out.write(buf);
