@@ -19,6 +19,7 @@ package org.red5.server.api.stream.support;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+import org.red5.server.api.IBandwidthConfigure;
 import org.red5.server.api.IConnectionBWConfig;
 
 /**
@@ -32,16 +33,17 @@ public class SimpleConnectionBWConfig extends SimpleBandwidthConfigure
 
 	public long getDownstreamBandwidth() {
 		long[] channelBandwidth = getChannelBandwidth();
-		if (channelBandwidth[3] >= 0) return channelBandwidth[3];
-		else {
+		if (channelBandwidth[IBandwidthConfigure.OVERALL_CHANNEL] >= 0) {
+			return channelBandwidth[IBandwidthConfigure.OVERALL_CHANNEL];
+		} else {
 			long bw = 0;
-			if (channelBandwidth[0] < 0 || channelBandwidth[1] < 0) {
+			if (channelBandwidth[IBandwidthConfigure.AUDIO_CHANNEL] < 0 || channelBandwidth[IBandwidthConfigure.VIDEO_CHANNEL] < 0) {
 				bw = -1;
 			} else {
-				bw = channelBandwidth[0] + channelBandwidth[1];
+				bw = channelBandwidth[IBandwidthConfigure.AUDIO_CHANNEL] + channelBandwidth[IBandwidthConfigure.VIDEO_CHANNEL];
 			}
-			if (channelBandwidth[2] >= 0) {
-				bw += channelBandwidth[2];
+			if (channelBandwidth[IBandwidthConfigure.DATA_CHANNEL] >= 0) {
+				bw += channelBandwidth[IBandwidthConfigure.DATA_CHANNEL];
 			}
 			return bw;
 		}
