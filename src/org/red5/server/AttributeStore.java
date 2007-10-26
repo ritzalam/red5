@@ -168,7 +168,7 @@ public class AttributeStore implements ICastingAttributeStore {
         } else {
         	// Update with new value
         	Object previous = attributes.put(name, value);
-        	return (!value.equals(previous));
+        	return (previous == null || value == previous || !value.equals(previous));
         }
     }
 
