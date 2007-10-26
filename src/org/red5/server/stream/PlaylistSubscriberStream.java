@@ -590,6 +590,11 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 	 * @param message          Message that has been written
 	 */
 	public void written(Object message) {
+		if (!engine.isPullMode) {
+			// Not needed for live streams
+			return;
+		}
+		
 		try {
 			engine.pullAndPush();
 		} catch (Throwable err) {
@@ -1386,6 +1391,11 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
          * Make sure the pull and push processing is running.
          */
         private void ensurePullAndPushRunning() {
+        	if (!isPullMode) {
+        		// We don't need this for live streams
+        		return;
+        	}
+        	
 			if (pullAndPushFuture == null) {
 				synchronized (this) {
 					if (pullAndPushFuture == null) {
