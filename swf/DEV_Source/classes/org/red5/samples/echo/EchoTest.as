@@ -40,54 +40,59 @@
 	import org.red5.utils.PNGEnc;
 	
 	/**
+	 * Test application for AMF and RTMP server implementations.
 	 * 
-	 * @author Joachim Bauch
-	 * @author Thijs Triemstra
+	 * Contains tests for:
+	 *  - AMF0 and AMF3
+	 *  - RTMP
+	 * 
+	 * @author Joachim Bauch ( jojo@struktur.de )
+	 * @author Thijs Triemstra ( info@collab.nl )
 	*/	
 	public class EchoTest extends Application
 	{
 		[Bindable]
-		private var nc: NetConnection;
+		private var nc				: NetConnection;
 		
 		[Bindable]
-		private var testParams: Array;
+		public var responder 		: Responder;
 		
 		[Bindable]
-		private var testIndex: Number;
+		public var echoService 		: RemoteObject;
 		
 		[Bindable]
-		private var AMF0Count: Number;
+		private var testParams		: Array;
 		
 		[Bindable]
-		private var testsFailed: Number;
+		private var testIndex		: Number;
 		
 		[Bindable]
-		public var rtmp_txt : TextInput;
+		private var AMF0Count		: Number;
 		
 		[Bindable]
-		public var http_txt : TextInput;
+		private var testsFailed		: Number;
 		
 		[Bindable]
-		public var responder : Responder;
+		public var fpVersion 		: String;
 		
 		[Bindable]
-		public var echoService : RemoteObject;
+		public var testResult 		: String;
 		
 		[Bindable]
-		public var username_txt : TextInput;
+		public var rtmp_txt 		: TextInput;
 		
 		[Bindable]
-		public var password_txt : TextInput;
+		public var http_txt 		: TextInput;
 		
 		[Bindable]
-		public var fpVersion : String;
+		public var username_txt 	: TextInput;
 		
 		[Bindable]
-		public var testResult : String;
+		public var password_txt 	: TextInput;
 		
-		private var success : String = "<font color='#149D25'>";
-		private var failure : String = "<font color='#FF1300'>";
-		private var timer : int;
+		private var success 		: String = "<font color='#149D25'>";
+		private var failure 		: String = "<font color='#FF1300'>";
+		private var timer 			: int;
 		
 		/**
 	 	 * Create and send test data.
@@ -99,6 +104,7 @@
         	
 			// stores the test data
 			testParams = new Array();
+			// test null
 			testParams.push(null);
 			// test Booleans
 			testParams.push(true);
@@ -121,10 +127,10 @@
 			testParams.push(evenLongerString);
 			// Strings
 			var strings: Array = new Array();
-			strings.push("test");
-			strings.push("test");
-			strings.push("test");
-			strings.push("test");
+			strings.push("test1");
+			strings.push("test2");
+			strings.push("test3");
+			strings.push("test4");
 			testParams.push(strings);
 			// Numbers
 			testParams.push(0);
