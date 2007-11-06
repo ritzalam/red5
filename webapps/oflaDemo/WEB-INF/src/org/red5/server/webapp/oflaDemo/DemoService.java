@@ -8,15 +8,16 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.red5.server.api.IScope;
 import org.red5.server.api.Red5;
 import org.springframework.core.io.Resource;
 
 public class DemoService {
 
-	protected static Log log = LogFactory.getLog(DemoService.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(DemoService.class);
 
 	private String formatDate(Date date) {
 		SimpleDateFormat formatter;
