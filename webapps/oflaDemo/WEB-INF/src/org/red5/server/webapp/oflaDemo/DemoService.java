@@ -48,9 +48,9 @@ public class DemoService {
 					String flvName = flv.getFile().getName();
 					String flvBytes = Long.toString(file.length());
 					if (log.isDebugEnabled()) {
-						log.debug("flvName: " + flvName);
-						log.debug("lastModified date: " + lastModified);
-						log.debug("flvBytes: " + flvBytes);
+						log.debug("flvName: {}", flvName);
+						log.debug("lastModified date: {}", lastModified);
+						log.debug("flvBytes: {}", flvBytes);
 						log.debug("-------");
 					}
 					fileInfo = new HashMap<String, Object>();
@@ -70,9 +70,9 @@ public class DemoService {
 					String flvName = mp3.getFile().getName();
 					String flvBytes = Long.toString(file.length());
 					if (log.isDebugEnabled()) {
-						log.debug("flvName: " + flvName);
-						log.debug("lastModified date: " + lastModified);
-						log.debug("flvBytes: " + flvBytes);
+						log.debug("flvName: {}", flvName);
+						log.debug("lastModified date: {}", lastModified);
+						log.debug("flvBytes: {}", flvBytes);
 						log.debug("-------");
 					}
 					fileInfo = new HashMap<String, Object>();
@@ -83,7 +83,7 @@ public class DemoService {
 				}
 			}
 		} catch (IOException e) {
-			log.error(e);
+			log.error("{}", e);
 		}
 		return filesMap;
 	}

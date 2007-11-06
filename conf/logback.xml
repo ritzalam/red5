@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-	<configuration>
-		<consolePlugin port="4321" />
-	</configuration>
+	<consolePlugin/>
 	<!-- Appenders http://logback.qos.ch/manual/appenders.html -->
 	<appender name="CONSOLE"
 		class="ch.qos.logback.core.ConsoleAppender">
