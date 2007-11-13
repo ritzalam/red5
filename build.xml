@@ -316,6 +316,48 @@
 				<exclude name="**/src/**"/>
 			</fileset>
 		</copy>
+		
+		<!-- copy the logback config per webapp and associated jars -->		
+		<copy todir="${webapps.build.dir}/adminPanel/WEB-INF/classes" file="webapps/adminPanel/WEB-INF/src/logback.xml" overwrite="true"/>
+		<copy todir="${webapps.build.dir}/adminPanel/WEB-INF/lib">
+			<fileset dir="${lib.dir}">
+				<include name="slf4j-api-1.4.3.jar"/>
+				<include name="logback-core-0.9.8.jar"/>
+				<include name="logback-classic-0.9.8.jar"/>
+			</fileset>
+		</copy>		
+		<copy todir="${webapps.build.dir}/fitcDemo/WEB-INF/classes" file="webapps/fitcDemo/WEB-INF/src/logback.xml" overwrite="true"/>
+		<copy todir="${webapps.build.dir}/fitcDemo/WEB-INF/lib">
+			<fileset dir="${lib.dir}">
+				<include name="slf4j-api-1.4.3.jar"/>
+				<include name="logback-core-0.9.8.jar"/>
+				<include name="logback-classic-0.9.8.jar"/>
+			</fileset>
+		</copy>	
+		<copy todir="${webapps.build.dir}/midiDemo/WEB-INF/classes" file="webapps/midiDemo/WEB-INF/src/logback.xml" overwrite="true"/>
+		<copy todir="${webapps.build.dir}/midiDemo/WEB-INF/lib">
+			<fileset dir="${lib.dir}">
+				<include name="slf4j-api-1.4.3.jar"/>
+				<include name="logback-core-0.9.8.jar"/>
+				<include name="logback-classic-0.9.8.jar"/>
+			</fileset>
+		</copy>	
+		<copy todir="${webapps.build.dir}/oflaDemo/WEB-INF/classes" file="webapps/oflaDemo/WEB-INF/src/logback.xml" overwrite="true"/>
+		<copy todir="${webapps.build.dir}/oflaDemo/WEB-INF/lib">
+			<fileset dir="${lib.dir}">
+				<include name="slf4j-api-1.4.3.jar"/>
+				<include name="logback-core-0.9.8.jar"/>
+				<include name="logback-classic-0.9.8.jar"/>
+			</fileset>
+		</copy>	
+		<copy todir="${webapps.build.dir}/tutorial/WEB-INF/classes" file="webapps/tutorial/WEB-INF/src/logback.xml" overwrite="true"/>
+		<copy todir="${webapps.build.dir}/tutorial/WEB-INF/lib">
+			<fileset dir="${lib.dir}">
+				<include name="slf4j-api-1.4.3.jar"/>
+				<include name="logback-core-0.9.8.jar"/>
+				<include name="logback-classic-0.9.8.jar"/>
+			</fileset>
+		</copy>			
 	</target>
 	<!-- Scripting -->
 	<target name="compile_script" depends="prepare">

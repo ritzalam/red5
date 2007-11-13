@@ -12,8 +12,9 @@ import javax.sound.midi.Receiver;
 import javax.sound.midi.ShortMessage;
 import javax.sound.midi.MidiDevice.Info;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.red5.server.adapter.ApplicationAdapter;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
@@ -27,7 +28,7 @@ import org.red5.server.api.service.IServiceCapableConnection;
  */
 public class Application extends ApplicationAdapter {
 
-	private static final Log log = LogFactory.getLog(Application.class);
+	protected static Logger log = LoggerFactory.getLogger(Application.class);
 
 	/** {@inheritDoc} */
     @Override
@@ -57,7 +58,7 @@ public class Application extends ApplicationAdapter {
 	public boolean connectToMidi(String inDeviceName, String outDeviceName) {
 		IServiceCapableConnection conn = (IServiceCapableConnection) Red5
 				.getConnectionLocal(); 
-		log.info("Connecting IN midi device: " + inDeviceName);
+		log.info("Connecting IN midi device: {}", inDeviceName);
 		try {
 			MidiDevice dev = null;
 			// Close any existing device
@@ -70,7 +71,7 @@ public class Application extends ApplicationAdapter {
 			// Lookup the current device (we need the transmitter here)
 			dev = getMidiDevice(inDeviceName, false);
 			if (dev == null) {
-				log.error("Midi IN device not found: " + inDeviceName);
+				log.error("Midi IN device not found: {}", inDeviceName);
 				return false;
 			}
 			
@@ -82,7 +83,7 @@ public class Application extends ApplicationAdapter {
 			// Save for later
 			conn.setAttribute("midiIn", dev);
 
-			log.info("Connecting OUT midi device: " + outDeviceName);
+			log.info("Connecting OUT midi device: {}", outDeviceName);
 			// Close any existing device
 			if (conn.hasAttribute("midiOut")) {
 				dev = (MidiDevice) conn.getAttribute("midiOut");
@@ -93,7 +94,7 @@ public class Application extends ApplicationAdapter {
 			// Lookup the current device (we need the transmitter here)
 			dev = getMidiDevice(outDeviceName, false);
 			if (dev == null) {
-				log.error("Midi OUT device not found: " + outDeviceName);
+				log.error("Midi OUT device not found: {}", outDeviceName);
 				return false;
 			}
 			
@@ -106,9 +107,9 @@ public class Application extends ApplicationAdapter {
 			log.info("It worked!");
 			return true;
 		} catch (MidiUnavailableException e) {
-			log.error("Error connecting to midi devices", e);
+			log.error("Error connecting to midi devices {}", e);
 		} catch (RuntimeException e) {
-			log.error("Error connecting to midi devices", e);
+			log.error("Error connecting to midi devices {}", e);
 		}
 		log.error("Doh!");
 		return false;
@@ -224,7 +225,7 @@ public class Application extends ApplicationAdapter {
 				
 				names.add(info[i].getName());
 			} catch (MidiUnavailableException err) {
-				log.error(err);
+				log.error("{}", err);
 			}
 			
 		}
@@ -247,7 +248,7 @@ public class Application extends ApplicationAdapter {
 				
 				names.add(info[i].getName());
 			} catch (MidiUnavailableException err) {
-				log.error(err);
+				log.error("{}", err);
 			}
 			
 		}
@@ -271,7 +272,7 @@ public class Application extends ApplicationAdapter {
 					}*/
 					return device;
 				} catch (MidiUnavailableException e) {
-					log.error(e);
+					log.error("{}", e);
 				}
 			}
 		}

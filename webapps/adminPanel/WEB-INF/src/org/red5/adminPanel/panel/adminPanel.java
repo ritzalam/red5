@@ -23,8 +23,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.red5.samples.components.ClientManager;
 import org.red5.server.adapter.ApplicationAdapter;
 import org.red5.server.api.IClient;
@@ -40,7 +40,7 @@ import org.red5.server.api.ScopeUtils;
  */
 public class adminPanel extends ApplicationAdapter {
 
-	protected static Log log = LogFactory.getLog(adminPanel.class.getName());
+    protected static Logger log = LoggerFactory.getLogger(adminPanel.class);
 
 	/** Manager for the clients. */
 	private ClientManager clientMgr = new ClientManager("clientlist", false);
@@ -245,7 +245,7 @@ public class adminPanel extends ApplicationAdapter {
 		String rid = conn.getClient().getId();
 		// Unregister user.
 	//	String uid = clientMgr.removeClient(scope, rid);
-		log.info("Client with id " + rid + " disconnected.");
+		log.info("Client with id {} disconnected.", rid);
 		super.disconnect(conn, scope);
 	}
 

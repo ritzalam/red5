@@ -19,8 +19,8 @@ package org.red5.tutorials.clientlist;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.red5.samples.components.ClientManager;
 import org.red5.server.adapter.ApplicationAdapter;
 import org.red5.server.api.IConnection;
@@ -36,7 +36,7 @@ import org.red5.server.api.service.ServiceUtils;
  */
 public class Application extends ApplicationAdapter {
 
-	protected static Log log = LogFactory.getLog(Application.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(Application.class);
 
 	/** Manager for the clients. */
 	private ClientManager clientMgr = new ClientManager("clientlist", false);
@@ -59,7 +59,7 @@ public class Application extends ApplicationAdapter {
 		String username = params[0].toString();
 		String uid = conn.getClient().getId();
 		if (log.isDebugEnabled()) {
-			log.debug("Client \"" + username + "\" (" + uid + ") connected.");
+			log.debug("Client \"{}\" ({}) connected.", new Object[]{username, uid});
 		}
 		// Register the user in the shared object.
 		clientMgr.addClient(scope, username, uid);
@@ -78,9 +78,9 @@ public class Application extends ApplicationAdapter {
 		String username = clientMgr.removeClient(scope, uid);
 		if (log.isDebugEnabled()) {
 			if (username != null) {
-				log.debug("Client \"" + username + "\" (" + uid + ") disconnected.");
+			    log.debug("Client \"{}\" ({}) disconnected.", new Object[]{username, uid});
 			} else {
-				log.debug("Client (" + uid + ") disconnected.");
+			    log.debug("Client ({}) disconnected.", uid);
 			}
 		}
 		// Call original method of parent class.

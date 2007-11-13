@@ -25,8 +25,8 @@ import java.util.HashMap;
 import org.acegisecurity.BadCredentialsException;
 import org.acegisecurity.providers.ProviderManager;
 import org.acegisecurity.providers.UsernamePasswordAuthenticationToken;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.red5.server.ClientRegistry;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IScope;
@@ -41,7 +41,7 @@ import org.red5.server.exception.ClientRejectedException;
  */
 public class AuthClientRegistry extends ClientRegistry {
 
-	protected static Log log = LogFactory.getLog(AuthClientRegistry.class.getName());
+    protected static Logger log = LoggerFactory.getLogger(AuthClientRegistry.class);
 	protected IScope masterScope;
 	protected IClient client;
 	
@@ -88,7 +88,7 @@ public class AuthClientRegistry extends ClientRegistry {
 			
 			addClient(client);
 			client.setAttribute("authInformation", t);
-			log.debug("Authenticated client - username: " + username + ", id: " + client.getId());
+			log.debug("Authenticated client - username: {}, id: {}", new Object[]{username, client.getId()});
 		}
 		
 		return client;
