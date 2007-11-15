@@ -12,7 +12,7 @@
 			</Pattern>
 		</layout>
 	</appender>
-	<logger name="org.red5.webapp.oflaDemo">
+	<logger name="org.red5.server.webapp.oflaDemo">
 		<level value="DEBUG" />
-	</logger>
+	</logger>		
 </configuration>

@@ -107,6 +107,9 @@
 	<logger name="org.red5.server.net.rtmp">
 		<level value="WARN" />
 	</logger>	
+	<logger name="org.red5.server.net.rtmp.RTMPHandler">
+		<level value="OFF" />
+	</logger>
 	<logger name="org.red5.server.net.rtmp.BaseRTMPHandler">
 		<level value="OFF" />
 	</logger>
@@ -146,10 +149,6 @@
 	<logger name="org.red5.server.stream.consumer">
 		<level value="WARN" />
 	</logger>
-	<!-- Red5 demos -->
-	<logger name="org.red5.server.webapp.oflaDemo">
-		<level value="WARN" />
-	</logger>	
 	<!-- Mina -->			
 	<logger name="org.apache.mina">
 		<level value="WARN" />
