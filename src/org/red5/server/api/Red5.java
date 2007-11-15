@@ -55,6 +55,11 @@ public final class Red5 implements Red5MBean {
 	 */
 	public IConnection conn;
 
+    /**
+     * Current server version with revision
+     */
+    public static final String VERSION = "Red5 Version 0.6.3 $Rev$";
+
 	/**
 	 * Create a new Red5 object using given connection
 	 * 
@@ -133,6 +138,15 @@ public final class Red5 implements Red5MBean {
 	 */
 	public IContext getContext() {
 		return conn.getScope().getContext();
+	}
+	
+	/**
+	 * Returns the current version with revision number
+	 *
+	 * @return String version
+	 */
+	public String getVersion() {
+	    return VERSION;
 	}
 
 }
