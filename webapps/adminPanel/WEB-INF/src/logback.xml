@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-	<appender name="FILE" class="ch.qos.logback.core.FileAppender">
+	<appender name="ADMIN" class="ch.qos.logback.core.FileAppender">
 		<File>adminPanel.log</File>
 		<Append>false</Append>
 		<Encoding>UTF-8</Encoding>
@@ -12,6 +12,10 @@
 			</Pattern>
 		</layout>
 	</appender>
+	<root>
+		<level value="DEBUG" />
+		<appender-ref ref="ADMIN" />
+	</root>		
 	<logger name="org.red5.adminPanel">
 		<level value="DEBUG" />
 	</logger>
