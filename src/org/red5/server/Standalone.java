@@ -19,6 +19,7 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import org.red5.server.api.Red5;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.Properties;
@@ -81,8 +82,8 @@ public class Standalone {
 
 		long time = System.currentTimeMillis();
 
-		log.info("RED5 Server (http://www.osflash.org/red5)");
-		log.info("Loading Red5 global context from: " + red5Config);
+		log.info("{} (http://www.osflash.org/red5)", Red5.getVersion());
+		log.info("Loading Red5 global context from: {}", red5Config);
 
 		String classpath = System.getProperty("java.class.path");
         // look for root system property prior to search
@@ -127,11 +128,11 @@ public class Standalone {
     
             // Set Red5 root as environment variable
             System.setProperty("red5.root", root);
-    		log.info("Setting Red5 root to " + root);
+    		log.info("Setting Red5 root to {}", root);
 
     	}
 		System.setProperty("red5.config_root", conf);
-		log.info("Setting configuation root to " + conf);                    
+		log.info("Setting configuation root to {}", conf);                    
 
 		// Setup system properties so they can be evaluated by Jetty
 		Properties props = new Properties();
@@ -156,7 +157,7 @@ public class Standalone {
 		}
 
 		long startupIn = System.currentTimeMillis() - time;
-		log.info("Startup done in: " + startupIn + " ms");
+		log.info("Startup done in: {} ms", startupIn);
 
 	}
 
