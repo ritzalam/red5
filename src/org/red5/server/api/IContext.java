@@ -87,6 +87,19 @@ public interface IContext extends ResourcePatternResolver {
     IScope resolveScope(String path);
 
 	/**
+	 * Returns scope by path from given root. You can think of IScope as of tree
+	 * items, used to separate context and resources between users.
+	 * See {@link IScope} for more details.
+	 * 
+	 * @param root
+	 *            Root to start from
+	 * @param path
+	 *            Path of scope
+	 * @return		IScope object
+	 */
+    IScope resolveScope(IScope root, String path);
+
+	/**
 	 * Returns global scope reference
 	 * 
 	 * @return	global scope reference

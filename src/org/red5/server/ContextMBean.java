@@ -41,6 +41,8 @@ public interface ContextMBean {
 
 	public IScope resolveScope(String path);
 
+	public IScope resolveScope(IScope root, String path);
+
 	public IPersistenceStore getPersistanceStore();
 
 	public ApplicationContext getApplicationContext();

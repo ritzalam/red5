@@ -62,8 +62,20 @@ public class ScopeResolver implements IScopeResolver {
      */
 	public IScope resolveScope(String path) {
         // Start from global scope
-        IScope scope = globalScope;
-        // If there's no path return global scope (e.i. root path scope)
+		return resolveScope(globalScope, path);
+	}
+
+    /**
+     * Return scope associated with given path from given root scope.
+     *
+     * @param root        Scope to start from
+     * @param path        Scope path
+     * @return            Scope object
+     */
+	public IScope resolveScope(IScope root, String path) {
+        // Start from root scope
+        IScope scope = root;
+        // If there's no path return root scope (e.i. root path scope)
         if (path == null) {
 			return scope;
 		}
@@ -78,7 +90,7 @@ public class ScopeResolver implements IScopeResolver {
 
 			if (scope.hasChildScope(room)) {
 				scope = scope.getScope(room);
-			} else if (!scope.equals(globalScope)) {
+			} else if (!scope.equals(root)) {
 				// Synchronizing to make sure a subscope with the same name
 				// is not created multiple times.
 				synchronized (scope) {

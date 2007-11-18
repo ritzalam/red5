@@ -269,7 +269,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 							final IContext context = global.getContext();
 							IScope scope = null;
 							try {
-								scope = context.resolveScope(path);
+								scope = context.resolveScope(global, path);
 							} catch (ScopeNotFoundException err) {
 								call.setStatus(Call.STATUS_SERVICE_NOT_FOUND);
 								if (call instanceof IPendingServiceCall) {

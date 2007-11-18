@@ -143,6 +143,19 @@ public class Context implements IContext, ApplicationContextAware, ContextMBean 
 	}
 
 	/**
+	 * Resolves scope from given root using scope resolver.
+	 * 
+	 * @param root
+	 * 			Scope to start from.
+	 * @param path
+	 * 			Path to resolve.
+	 * @return Scope resolution result.
+	 */
+	public IScope resolveScope(IScope root, String path) {
+		return scopeResolver.resolveScope(root, path);
+	}
+
+	/**
 	 * Setter for client registry
 	 * 
 	 * @param clientRegistry
