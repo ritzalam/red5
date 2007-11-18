@@ -290,6 +290,10 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		return string;
 	}
 
+	public String getString() {
+		return readString();
+	}
+	
 	/**
 	 * Returns a date
 	 * 
