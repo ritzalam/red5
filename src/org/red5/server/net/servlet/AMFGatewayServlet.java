@@ -29,9 +29,12 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.mina.common.ByteBuffer;
 import org.red5.server.api.IContext;
+import org.red5.server.api.IGlobalScope;
 import org.red5.server.api.IScope;
+import org.red5.server.api.IServer;
 import org.red5.server.api.Red5;
 import org.red5.server.api.remoting.IRemotingConnection;
+import org.red5.server.api.service.IServiceInvoker;
 import org.red5.server.net.remoting.RemotingConnection;
 import org.red5.server.net.remoting.codec.RemotingCodecFactory;
 import org.red5.server.net.remoting.message.RemotingCall;
@@ -67,9 +70,9 @@ public class AMFGatewayServlet extends HttpServlet {
 	protected WebApplicationContext webAppCtx;
 
 	/**
-	 * Web context
+	 * Red5 server instance
 	 */
-	protected IContext webContext;
+	protected IServer server;
 
 	/**
 	 * Remoting codec factory
@@ -92,7 +95,7 @@ public class AMFGatewayServlet extends HttpServlet {
 							WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
 		}
 		if (webAppCtx != null) {
-			webContext = (IContext) webAppCtx.getBean("web.context");
+			server = (IServer) webAppCtx.getBean("red5.server");
 			codecFactory = (RemotingCodecFactory) webAppCtx
 					.getBean("remotingCodecFactory");
 		} else {
@@ -118,6 +121,28 @@ public class AMFGatewayServlet extends HttpServlet {
 	}
 
 	/**
+	 * Return the global scope to use for the given request.
+	 * 
+	 * @param req
+	 * @return
+	 */
+	protected IGlobalScope getGlobalScope(HttpServletRequest req) {
+		String path = req.getContextPath() + req.getServletPath();
+		if (path.startsWith("/")) {
+			path = path.substring(1);
+		}
+		path = path.substring(0, path.length() - getServletName().length() - 1);
+		IGlobalScope global = server.lookupGlobal(req.getServerName(), path);
+		if (global == null) {
+			global = server.lookupGlobal(req.getLocalName(), path);
+			if (global == null) {
+				global = server.lookupGlobal(req.getLocalAddr(), path);
+			}
+		}
+		return global;
+	}
+	
+	/**
 	 * Works out AMF request
 	 * 
 	 * @param req
@@ -139,13 +164,15 @@ public class AMFGatewayServlet extends HttpServlet {
 				return;
 			}
 			// Provide a valid IConnection in the Red5 object
-			IScope scope = webContext.resolveScope(packet.getScopePath());
+			final IGlobalScope global = getGlobalScope(req);
+			final IContext context = global.getContext();
+			final IScope scope = context.resolveScope(global, packet.getScopePath());
 			IRemotingConnection conn = new RemotingConnection(req, scope, packet);
 			// Make sure the connection object isn't garbage collected
 			req.setAttribute(CONNECTION, conn);
 			try {
 				Red5.setConnectionLocal(conn);
-				handleRemotingPacket(req, packet);
+				handleRemotingPacket(req, context, scope, packet);
 				resp.setStatus(HttpServletResponse.SC_OK);
 				resp.setContentType(APPLICATION_AMF);
 				sendResponse(resp, packet);
@@ -208,11 +235,11 @@ public class AMFGatewayServlet extends HttpServlet {
 	 * @return <code>true</code> on success
 	 */
 	protected boolean handleRemotingPacket(HttpServletRequest req,
-			RemotingPacket message) {
+			IContext context, IScope scope, RemotingPacket message) {
 		log.debug("Handling remoting packet");
-		IScope scope = webContext.resolveScope(message.getScopePath());
+		final IServiceInvoker invoker = context.getServiceInvoker();
 		for (RemotingCall call : message.getCalls()) {
-			webContext.getServiceInvoker().invoke(call, scope);
+			invoker.invoke(call, scope);
 		}
 		return true;
 	}
