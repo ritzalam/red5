@@ -74,7 +74,7 @@ public class ByteArray implements IDataInput, IDataOutput {
 	/**
 	 * Create internal objects used for reading and writing.
 	 */
-	private void prepareIO() {
+	protected void prepareIO() {
 		dataInput = new DataInput(new Input(data), new Deserializer());
 		dataOutput = new DataOutput(new Output(data), new Serializer());
 	}
@@ -153,11 +153,13 @@ public class ByteArray implements IDataInput, IDataOutput {
 			deflater.write(tmpData);
 			deflater.finish();
 		} catch (IOException e) {
+			tmp.release();
 			throw new RuntimeException("could not compress data", e);
 		}
 		data.release();
 		data = tmp;
 		data.flip();
+		prepareIO();
 	}
 	
 	/**
@@ -179,11 +181,13 @@ public class ByteArray implements IDataInput, IDataOutput {
 				tmp.put(buffer, 0, decompressed);
 			}
 		} catch (IOException e) {
+			tmp.release();
 			throw new RuntimeException("could not uncompress data", e);
 		}
 		data.release();
 		data = tmp;
 		data.flip();
+		prepareIO();
 	}
 	
 	/** {@inheritDoc} */
