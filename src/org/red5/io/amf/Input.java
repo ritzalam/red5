@@ -68,7 +68,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	}
 
 	/**
-	 * Reads the data type
+	 * Reads the data type.
 	 *
 	 * @return byte         Data type
 	 */
@@ -84,7 +84,8 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	}
 
     /**
-     * Reads data type
+     * Reads the data type.
+	 *
      * @param dataType       Data type as byte
      * @return               One of AMF class constants with type
      * @see                  {@link org.red5.io.amf.AMF}
@@ -159,7 +160,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	// Basic
 
     /**
-	 * Reads a null
+	 * Reads a null.
 	 *
 	 * @return Object
 	 */
@@ -168,7 +169,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	}
 
 	/**
-	 * Reads a boolean
+	 * Reads a boolean.
 	 *
 	 * @return boolean
 	 */
@@ -179,7 +180,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 
 	/**
 	 * Reads a Number. In ActionScript 1 and 2 Number type represents all numbers,
-     * both floats and integers
+     * both floats and integers.
 	 *
 	 * @return Number
 	 */

@@ -100,7 +100,7 @@ public abstract class BaseConnection extends AttributeStore implements
 	/**
 	 *  Connection params passed from client with NetConnection.connect call
 	 *
-	 * @see  NetConnection in Flash Media Server Server-side ActionScript guide
+	 * @see <a href='http://livedocs.adobe.com/fms/2/docs/00000570.html'>NetConnection in Flash Media Server docs (external)</a>
 	 */
 	@SuppressWarnings("all")
 	protected Map<String, Object> params = null;

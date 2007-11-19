@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<project name="RED5" basedir="." default="dist" xmlns:ivy="antlib:fr.jayasoft.ivy.ant">
+<project name="Red5" basedir="." default="dist" xmlns:ivy="antlib:fr.jayasoft.ivy.ant">
 	<!-- user overides for project properties -->
 
 	<property file="${user.home}/build.properties"/>
@@ -63,7 +63,10 @@
 				<available property="java6.installed" classname="javax.script.Bindings"/>
 			</and>
 		</condition>
-		<echo message="Using java6? ${java6.installed}"/>
+		<condition property="java6.using" value="1.6" else="${java.target_version}">
+			<isset property="java6.installed"/>
+		</condition>
+		<echo message="Using Java ${java6.using}"/>
 	</target>
 	<target name="-library.check">
 		<!-- Check for the main libraries -->
@@ -141,8 +144,12 @@
 				<isset property="java.target_version"/>
 			</not>
 		</condition>
-		<echo message="Javac version: ${java.target_version}"/>
-		<echo message="Eclipse? ${eclipse.running}"/>
+		<echo message="javac version: ${java.target_version}"/>
+		<condition property="eclipse.using" value="Using the Eclipse IDE" 
+			   else="Not using the Eclipse IDE">
+			<isset property="eclipse.running"/>
+		</condition>
+		<echo message="${eclipse.using}"/>
 		<condition property="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter">
 			<isset property="eclipse.running"/>
 		</condition>
@@ -190,7 +197,9 @@
 	</target>
 	<!-- Demos -->
 	<target name="compile_demos">
-		<echo message="Webapps dir: ${webapps.dir} Webapps build dir: ${webapps.build.dir}"/>
+		<echo message="Webapps dir: ${webapps.dir}"/>
+		<echo message="Webapps build dir: ${webapps.build.dir}"/>
+
 		<!-- load token replacement filers -->
 		<filter filtersfile="${filter.file}"/>
 		<copy todir="${webapps.build.dir}/root" filtering="true">
@@ -205,6 +214,8 @@
 				<include name="**/*.swf"/>
 			</fileset>
 		</copy>
+		
+		<!-- old admin -->
 		<mkdir dir="${webapps.build.dir}/admin/WEB-INF/classes"/>
 		<mkdir dir="${webapps.build.dir}/admin/WEB-INF/lib"/>
 		<javac sourcepath="" srcdir="${webapps.dir}/admin/WEB-INF/src" destdir="${webapps.build.dir}/admin/WEB-INF/classes"
@@ -216,6 +227,7 @@
 				<exclude name="**/src/**"/>
 			</fileset>
 		</copy>
+
 		<mkdir dir="${webapps.build.dir}/echo/WEB-INF/classes"/>
 		<mkdir dir="${webapps.build.dir}/echo/WEB-INF/lib"/>
 		<javac sourcepath="" srcdir="${webapps.dir}/echo/WEB-INF/src" destdir="${webapps.build.dir}/echo/WEB-INF/classes"
@@ -227,6 +239,7 @@
 				<exclude name="**/src/**"/>
 			</fileset>
 		</copy>
+
 		<mkdir dir="${webapps.build.dir}/fitcDemo/WEB-INF/classes"/>
 		<mkdir dir="${webapps.build.dir}/fitcDemo/WEB-INF/lib"/>
 		<javac sourcepath="" srcdir="${webapps.dir}/fitcDemo/WEB-INF/src" destdir="${webapps.build.dir}/fitcDemo/WEB-INF/classes"
@@ -238,10 +251,12 @@
 				<exclude name="**/src/**"/>
 			</fileset>
 		</copy>
+
 		<!-- no java source for this app -->
 		<copy todir="${webapps.build.dir}/messageRecorder" filtering="true">
 			<fileset dir="webapps/messageRecorder"/>
 		</copy>
+
 		<mkdir dir="${webapps.build.dir}/midiDemo/WEB-INF/classes"/>
 		<mkdir dir="${webapps.build.dir}/midiDemo/WEB-INF/lib"/>
 		<javac sourcepath="" srcdir="${webapps.dir}/midiDemo/WEB-INF/src" destdir="${webapps.build.dir}/midiDemo/WEB-INF/classes"
@@ -362,7 +377,11 @@
 	<!-- Scripting -->
 	<target name="compile_script" depends="prepare">
 		<available property="scripting_compatibility" classpathref="project.classpath" classname="javax.script.ScriptEngineManager"/>
-		<echo message="Scripting compatibility is available ${scripting_compatibility}"/>
+		<condition property="scripting.using" value="Scripting compatibility is available." 
+			   else="No compatibility for scripting available">
+			<istrue value="${scripting_compatibility}"/>
+		</condition>
+		<echo message="${scripting.using}"/>
 		<javac sourcepath="" srcdir="${src.dir}" destdir="${dest.dir}" classpathref="script.classpath"
 			 optimize="${build.optimize}" verbose="${build.verbose}" fork="${build.fork}" nowarn="${build.nowarn}"
 			 deprecation="${build.deprecation}" debug="${debug.state}" compiler="${compiler}"
@@ -378,11 +397,13 @@
 			</not>
 		</condition>
 		<echo message="Javac version: ${java.target_version}"/>
+
 		<condition property="compiler" value="${build.compiler}${java.target_version}">
 			<equals arg1="${build.compiler}" arg2="javac"/>
 		</condition>
 		<property name="compiler" value="${build.compiler}"/>
 		<echo message="Compiler adapter name: ${compiler}"/>
+
 		<mkdir dir="${classes.dir}/WEB-INF/classes"/>
 		<property name="dest.dir" value="${classes.dir}/WEB-INF/classes"/>
 		<property name="std_excludes" value="**/*.jsp,org/red5/server/script/**,org/red5/server/jetty/**,org/red5/server/tomcat/**,org/red5/server/midi/**,org/red5/server/net/rtmpt/*Loader.java,org/red5/server/net/servlet/RTMPTServlet.java,org/red5/server/net/servlet/StatisticsServlet.java,org/red5/server/net/servlet/ZAMFGatewayServlet.java,org/red5/server/ContextLoader.java,org/red5/server/DebugPooledByteBufferAllocator.java,org/red5/server/Standalone.java"/>
@@ -462,7 +483,7 @@
 				<attribute name="Built-On" value="${build.TODAY}"/>
 			</manifest>
 		</war>
-		<!-- war up admin -->
+		<!-- war up (old) admin -->
 		<war destfile="${dist.dir}/admin.war" webxml="${webapps.build.dir}/admin/WEB-INF/web.xml">
 			<fileset dir="${webapps.build.dir}/admin">
 				<exclude name="WEB-INF"/>
@@ -552,8 +573,12 @@
 		</war>
 	</target>
 	<target name="javadoc" description="Generate JavaDoc">
-		<echo message="Path: ${env.Path}"/>
-		<!-- Determine the location of Suns api docs -->
+		<condition property="available.envpath" value="Path: ${env.Path}"
+			   else="Not using env.Path">
+			<isset property="env.Path"/>
+		</condition>
+		<echo message="${available.envpath}"/>
+		<!-- Determine the location of Sun's API docs -->
 		<condition property="javadoc.loc" value="javase/6">
 			<equals arg1="${java6.installed}" arg2="true"/>
 		</condition>
@@ -562,7 +587,7 @@
 				<equals arg1="${java6.installed}" arg2="true"/>
 			</not>
 		</condition>
-		<echo message="Javadoc api stub: ${javadoc.loc}"/>
+		<echo message="Javadoc API stub: ${javadoc.loc}"/>
 		<javadoc useexternalfile="true" failonerror="false" verbose="false" classpathref="full.classpath"
 			 destdir="${javadoc.dir}" author="true" version="true" use="true" splitindex="true"
 			 windowtitle="Red5 Server Documentation">
@@ -572,7 +597,7 @@
 				<exclude name="**/*.xsd"/>
 			</fileset>
 			<doctitle><![CDATA[<h1>Red5 Server Documentation</h1>]]></doctitle>
-			<bottom><![CDATA[<i>Copyright &#169; 2006-2007 <a href="http://osflash.org/red5" target="_blank">the Red5 project</a>.</i>]]></bottom>
+			<bottom><![CDATA[<i>Copyright &#169; 2006-2007 <a href="http://osflash.org/red5" target="_blank">The Red5 project</a>.</i>]]></bottom>
 			<tag name="todo" scope="all" description="To do:"/>
 			<group title="Public API" packages="org.red5.server.api:org.red5.server.api.*"/>
 			<group title="Network Protocols" packages="org.red5.server.net:org.red5.server.net.*"/>
@@ -581,9 +606,17 @@
 			<group title="Scripting" packages="org.red5.server.script:org.red5.server.script.*"/>
 			<link href="http://java.sun.com/${javadoc.loc}/docs/api"/>
 			<link href="http://jetty.mortbay.org/apidocs"/>
-			<link href="http://directory.apache.org/subprojects/mina/apidocs"/>
-			<link href="http://www.springframework.org/docs/api"/>
+			<link href="http://mina.apache.org/report/1.1/apidocs"/>
+			<link href="http://static.springframework.org/spring/docs/2.0.x/api"/>
 			<link href="http://www.opensymphony.com/quartz/api"/>
+			<link href="http://www.slf4j.org/api"/>
+			<link href="http://logging.apache.org/log4j/1.2/apidocs"/>
+			<link href="http://www.beanshell.org/javadoc"/>
+			<link href="http://groovy.codehaus.org/api"/>
+			<link href="http://tomcat.apache.org/tomcat-5.5-doc/jasper/docs/api"/>
+			<link href="http://tomcat.apache.org/tomcat-5.5-doc/catalina/docs/api"/>
+			<link href="http://ehcache.sourceforge.net/javadoc"/>
+			<link href="https://whirlycache.dev.java.net/nonav/api"/>
 		</javadoc>
 	</target>
 	<target name="jar" description="Make Archive" depends="compile">

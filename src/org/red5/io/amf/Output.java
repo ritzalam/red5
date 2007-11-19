@@ -350,7 +350,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 	/**
 	 * Writes an arbitrary object to the output.
 	 *
-	 * @param out           Output writer
+	 * @param serializer    Output writer
 	 * @param object        Object to write
 	 */
 	protected void writeArbitraryObject(Object object, Serializer serializer) {
@@ -435,10 +435,10 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
     }
     
     /**
-     * Return encoded string.
+     * Encode string.
      * 
      * @param string
-     * @return
+     * @return encoded string
      */
     protected static byte[] encodeString(String string) {
     	byte[] encoded;
