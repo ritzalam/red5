@@ -33,7 +33,7 @@
 	import mx.controls.*;
 	import mx.core.Application;
 	import mx.events.FlexEvent;
-	import mx.rpc.remoting.mxml.RemoteObject;
+	import mx.rpc.remoting.RemoteObject;
 	
 	import org.red5.samples.echo.data.EchoTestData;
 	import org.red5.samples.echo.events.TestResultEvent;
@@ -50,12 +50,6 @@
 	*/	
 	public class EchoTest extends Application
 	{
-		[Bindable]
-		private var nc					: NetConnection;
-		
-		[Bindable]
-		public var echoService 			: RemoteObject;
-		
 		[Bindable]
 		public var testResults			: ArrayCollection;
 		
@@ -106,29 +100,46 @@
 		public var objectproxy_test		: CheckBox;
 		public var bytearray_test		: CheckBox;
 		
+		public var amf0_tests			: Array = new Array();
+		public var amf3_tests			: Array = new Array();
+		public var amf_tests 			: Array = new Array();
 		private var success 			: String = "<font color='#149D25'>";
 		private var failure 			: String = "<font color='#FF1300'>";
 		private var globalTimer			: int;
 		private var testTimer			: int;
 		private var mySo				: SharedObject;
 		private var testData			: EchoTestData;
-		
+		private var nc					: NetConnection;
+		private var echoService 		: RemoteObject;
+    
 		/**
 	 	 * Create and send test data.
 		 */	
-        public function EchoTest(): void
+        public function EchoTest() : void
         {
         	this.addEventListener( FlexEvent.CREATION_COMPLETE, setupTest );
         }
 		
-		private function setupTest( event:FlexEvent ): void
+		/**
+		 * 
+		 * @param event
+		 */		
+		private function setupTest( event:FlexEvent ) : void
 		{
+			amf0_tests = [ null_test, undefined_test, boolean_test, string_test, number_test, array_test,
+					   object_test, date_test, xml0_test, remote_test, custom_test ];
+			
+			amf3_tests = [ xml3_test, externalizable_test, arraycollection_test, objectproxy_test, bytearray_test ];
+			
+			amf_tests = [ amf0_tests, amf3_tests ];
+			
 			// Display FP version nr.
         	fpVersion = "Flash Player " + Capabilities.version + " - " + Capabilities.playerType;
         	
         	// Load http and rtmp uri's from shared object
         	mySo = SharedObject.getLocal("EchoTest");
         	
+        	// load url's from flookie
         	if ( mySo.data.rtmpUri != null ) {
         		rtmp_txt.text = mySo.data.rtmpUri;
         	} else {
@@ -181,7 +192,11 @@
             
 			//
 			if ( protocol == "remoteObject" ) {
-				echoService.endpoint = http_txt.text;
+				// Setup a RemoteObject
+            	echoService = new RemoteObject( "Red5Echo" );
+            	echoService.source = "EchoService";
+            	// echoService.addEventListener( ResultEvent.RESULT, onRem );
+            	
 				if ( username_txt.text.length > 0 ) {
 					// test credentials feature
 					echoService.setCredentials( username_txt.text, password_txt.text );
@@ -200,8 +215,12 @@
 			}
 			//
 			testResult += "..." ;
+			if ( echoService != null )
+			{
+				// http_txt.text
+				echoService.destination = null;
+			}
 			// (re)start connection
-			echoService.endpoint = null;
 			nc.addEventListener( NetStatusEvent.NET_STATUS, netStatusHandler ); 
 			nc.connect( url );
 			//			
@@ -223,7 +242,7 @@
 		
 		private function startTests(): void 
 		{
-			testParams = new EchoTestData();
+			testParams = new EchoTestData( amf_tests ).items;
 			testIndex = 0;
 			testsFailed = 0;
 			globalTimer = getTimer();
@@ -239,7 +258,7 @@
 			testObj.addEventListener( testObj.TEST_FAILED, onTestFailed );
 			
 			// Call method in remote service
-			if ( echoService.endpoint == null ) 
+			if ( echoService == null || echoService.destination == null ) 
 			{
 				// NetConnection requests
 				nc.call( "echo", testObj.responder, testObj.input );
@@ -308,17 +327,17 @@
 		
 		private function netSecurityError( event : SecurityErrorEvent ) : void 
 		{
-			printText( new TestResult( "<b>" + failure + "Security error</font></b>", event.text ) );
+			printText( "<b>" + failure + "Security error</font></b>: " + event.text );
 		}
 				
 		private function netIOError( event : IOErrorEvent ) : void 
 		{
-			printText( new TestResult( "<b>" + failure + "IO error</font></b>", event.text ) );
+			printText( "<b>" + failure + "IO error</font></b>: " + event.text );
 		}
 				
 		private function netASyncError( event : AsyncErrorEvent ) : void 
 		{
-			printText( new TestResult( "<b>" + failure + "ASync error</font></b>", event.error.getStackTrace() ));
+			printText( "<b>" + failure + "ASync error</font></b>: " + event.error.getStackTrace() );
 		}
 		
 		private function onDisconnect() : void 

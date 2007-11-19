@@ -1,12 +1,31 @@
 <?xml version="1.0"?>
+<!--
+RED5 Open Source Flash Server - http://www.osflash.org/red5
+
+Copyright (c) 2006-2007 by respective authors (see below). All rights reserved.
+
+This library is free software; you can redistribute it and/or modify it under the
+terms of the GNU Lesser General Public License as published by the Free Software
+Foundation; either version 2.1 of the License, or (at your option) any later
+version.
+
+This library is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License along
+with this library; if not, write to the Free Software Foundation, Inc.,
+59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+-->
+
 <!-- @mxmlc -library-path+=../classes -source-path+=../classes -incremental -->
 <echo:EchoTest xmlns:mx="http://www.adobe.com/2006/mxml"
  	       xmlns:echo="org.red5.samples.echo.*"
-	       pageTitle="AMF Echo Client" layout="vertical"
-	       backgroundColor="#F4F4F4" themeColor="haloBlue"
-		   width="780" height="580" horizontalScrollPolicy="off">
-	<mx:Form paddingBottom="0" paddingTop="0" paddingRight="0" paddingLeft="0">
-		<mx:FormItem label="setCredentials:" width="100%">
+	       pageTitle="Echo client for the AMF and RTMP protocols" layout="vertical"
+	       backgroundColor="#FFFFFF" themeColor="haloBlue"
+		   width="100%" height="100%" horizontalScrollPolicy="off">
+	<mx:Form label="Echo Test example" paddingBottom="0" paddingTop="0" paddingRight="0" paddingLeft="0">
+		<mx:FormItem label="" width="100%">
 			<mx:HBox width="100%">
 				<mx:Label text="Username"/>
 				<mx:TextInput id="username_txt" width="100%" text=""/>
@@ -15,36 +34,68 @@
 			</mx:HBox>
 		</mx:FormItem>
 		<mx:FormItem label="HTTP:" width="100%">
-			<mx:TextInput id="http_txt" width="100%" text="http://localhost:5080/echo/gateway"/>
+			<mx:TextInput id="http_txt" width="100%"/>
 		</mx:FormItem>
 		<mx:FormItem label="RTMP:" width="100%">
-			<mx:TextInput id="rtmp_txt" width="100%" text="rtmp://localhost/echo"/>
+			<mx:TextInput id="rtmp_txt" width="100%"/>
 		</mx:FormItem>
+		<mx:FormItem label="AMF0:" width="100%">
+			<mx:HBox horizontalGap="2">
+				<mx:CheckBox label="null" selected="true" id="null_test"/>
+				<mx:CheckBox label="undefined" selected="true" id="undefined_test"/>
+				<mx:CheckBox label="Boolean" selected="true" id="boolean_test"/>
+				<mx:CheckBox label="String" selected="true" id="string_test"/>
+				<mx:CheckBox label="Number" selected="true" id="number_test"/>
+				<mx:CheckBox label="Array" selected="true" id="array_test"/>
+				<mx:CheckBox label="Object" selected="true" id="object_test"/>
+				<mx:CheckBox label="Date" selected="true" id="date_test"/>
+				<mx:CheckBox label="XML" selected="true" id="xml0_test"/>
+				<mx:CheckBox label="Custom Class" selected="true" id="custom_test"/>
+				<mx:CheckBox label="Remote Class" selected="true" id="remote_test"/>
+			</mx:HBox>
+		</mx:FormItem>
+		<mx:FormItem label="AMF3:" width="100%">
+			<mx:HBox horizontalGap="2">
+				<mx:CheckBox label="XML" selected="true" id="xml3_test"/>
+				<mx:CheckBox label="Externalizable" selected="true" id="externalizable_test"/>
+				<mx:CheckBox label="ArrayCollection" selected="true" id="arraycollection_test"/>
+				<mx:CheckBox label="ObjectProxy" selected="true" id="objectproxy_test"/>
+				<mx:CheckBox label="ByteArray" selected="true" id="bytearray_test"/>
+			</mx:HBox>
+		</mx:FormItem>
+		<mx:Spacer height="5"/>
 		<mx:FormItem label="Connect:" horizontalAlign="right" width="100%">
 			<mx:HBox width="100%">
-			
-				<mx:Button id="btnConnectRTMP0" label="RTMP AMF0" labelPlacement="left" click="onConnect('rtmp', ObjectEncoding.AMF0)" />
-				<mx:Button id="btnConnectRTMP3" label="RTMP AMF3" labelPlacement="left" click="onConnect('rtmp', ObjectEncoding.AMF3)" />
-				<mx:Button id="btnConnectHTTP0" label="HTTP AMF0" labelPlacement="left" click="onConnect('http', ObjectEncoding.AMF0)" />
-				<mx:Button id="btnConnectHTTP3" label="HTTP AMF3" labelPlacement="left" click="onConnect('http', ObjectEncoding.AMF3)" />
+				<mx:Button id="btnConnectRTMP0" label="RTMP AMF0" 
+						   labelPlacement="left" click="onConnect('rtmp', ObjectEncoding.AMF0)" />
+				<mx:Button id="btnConnectRTMP3" label="RTMP AMF3" 
+						   labelPlacement="left" click="onConnect('rtmp', ObjectEncoding.AMF3)" />
+				<mx:Button id="btnConnectHTTP0" label="HTTP AMF0" 
+						   labelPlacement="left" click="onConnect('http', ObjectEncoding.AMF0)" />
+				<mx:Button id="btnConnectHTTP3" label="HTTP AMF3" 
+						   labelPlacement="left" click="onConnect('http', ObjectEncoding.AMF3)" />
 				<mx:Button id="btnConnectRemoteObject" label="mx:RemoteObject" 
 						   labelPlacement="left" click="onConnect('remoteObject', ObjectEncoding.AMF3)" />
-						   
-				<mx:Text text="{ fpVersion }" paddingTop="2" fontSize="9"/>
-				
 			</mx:HBox>
 		</mx:FormItem>
 	</mx:Form>
-	<mx:TextArea id="resultText" htmlText="{ testResult }" width="100%" height="100%" editable="false" 
-				 updateComplete="{ resultText.verticalScrollPosition = resultText.maxVerticalScrollPosition }"/>
-				 
-	<mx:RemoteObject 
-		id="echoService"
-		destination="Red5Echo"
-		source="EchoService"
-		result="onRemotingResult(event.result)"
-		fault="onRemotingError(event)">
-    	<mx:method name="echo" />
-    </mx:RemoteObject>
-    
+	<mx:Spacer height="15"/>
+	
+	<mx:DataGrid id="resultGrid" dataProvider="{ testResults }" width="100%"
+				 updateComplete="{ resultGrid.verticalScrollPosition = resultGrid.maxVerticalScrollPosition }">
+		
+		<mx:columns>
+			<mx:DataGridColumn id="msg" headerText="msg"/>
+			<mx:DataGridColumn id="content" headerText="content"/>
+		</mx:columns>
+	
+	</mx:DataGrid>
+	
+	<mx:TextArea id="resultText" htmlText="{ testResult }" width="100%" height="100%" editable="false" textIndent="5" 
+				 updateComplete="{ resultText.verticalScrollPosition = resultText.maxVerticalScrollPosition }" 
+				 fontSize="12"/>
+	<mx:Canvas>
+		<mx:Text text="{ fpVersion }" fontSize="9"/>
+	</mx:Canvas>
+		 
 </echo:EchoTest>

@@ -8,8 +8,8 @@
 	import mx.rpc.Fault;
 	import mx.rpc.events.FaultEvent;
 	
-	import org.red5.samples.echo.events.TestResultEvent;
 	import org.red5.samples.echo.data.OutputObject;
+	import org.red5.samples.echo.events.TestResultEvent;
 	
 	/**
 	 * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -50,6 +50,7 @@
 		{
 			this._input = input;
 			this._testTimer = getTimer();
+			this._result = new OutputObject();
 			this._responder = new Responder( onRemotingResult, onRemotingError );
 			//
 			startTest();
