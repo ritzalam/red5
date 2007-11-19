@@ -21,7 +21,7 @@
 	
 	/**
 	 * 
-	 * @author Joachim Bauch
+	 * @author Joachim Bauch ( jojo@struktur.de )
 	 */	
 	public class EchoClass 
 	{
