@@ -46,7 +46,7 @@ public final class Red5 implements Red5MBean {
 	/**
 	 * Current connection thread. Each connection of Red5 application runs in a
 	 * separate thread. This is thread object associated with
-	 * current connection.
+	 * the current connection.
 	 */
 	private static ThreadLocal<WeakReference<IConnection>> connThreadLocal = new ThreadLocal<WeakReference<IConnection>>();
 
@@ -58,13 +58,12 @@ public final class Red5 implements Red5MBean {
     /**
      * Current server version with revision
      */
-    public static final String VERSION = "Red5 Server Version 0.6.3 $Revision$";
+    public static final String VERSION = "Red5 Server 0.6.4-dev $Revision$";
 
 	/**
-	 * Create a new Red5 object using given connection
+	 * Create a new Red5 object using given connection.
 	 * 
-	 * @param conn
-	 *            connection object
+	 * @param conn Connection object.
 	 */
 	public Red5(IConnection conn) {
 		this.conn = conn;
@@ -105,7 +104,7 @@ public final class Red5 implements Red5MBean {
 	}
 
 	/**
-	 * Get the connection object
+	 * Get the connection object.
 	 * 
 	 * @return Connection object
 	 */
