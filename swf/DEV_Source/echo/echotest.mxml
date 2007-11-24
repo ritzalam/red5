@@ -20,17 +20,20 @@ with this library; if not, write to the Free Software Foundation, Inc.,
 
 <!-- @mxmlc -library-path+=../classes -source-path+=../classes -incremental -->
 <echo:EchoTest xmlns:mx="http://www.adobe.com/2006/mxml"
- 	       xmlns:echo="org.red5.samples.echo.*"
-	       pageTitle="Echo client for the AMF and RTMP protocols" layout="vertical"
-	       backgroundColor="#FFFFFF" themeColor="haloBlue"
-		   width="100%" height="100%" horizontalScrollPolicy="off">
-	<mx:Form label="Echo Test example" paddingBottom="0" paddingTop="0" paddingRight="0" paddingLeft="0">
+ 	           xmlns:echo="org.red5.samples.echo.*"
+	           pageTitle="Echo client for the AMF and RTMP protocols" 
+	           backgroundColor="#FFFFFF" themeColor="haloBlue" 
+		       width="100%" height="100%" layout="vertical">
+	
+	<mx:Form label="Echo Test example" paddingBottom="0" paddingTop="0" 
+			 paddingRight="0" paddingLeft="0" height="100%">
 		<mx:FormItem label="" width="100%">
 			<mx:HBox width="100%">
 				<mx:Label text="Username"/>
 				<mx:TextInput id="username_txt" width="100%" text=""/>
 				<mx:Label text="Password"/>
-				<mx:TextInput id="password_txt" displayAsPassword="true" width="100%" text=""/>
+				<mx:TextInput id="password_txt" displayAsPassword="true" 
+							  width="100%" text=""/>
 			</mx:HBox>
 		</mx:FormItem>
 		<mx:FormItem label="HTTP:" width="100%">
@@ -67,35 +70,43 @@ with this library; if not, write to the Free Software Foundation, Inc.,
 		<mx:FormItem label="Connect:" horizontalAlign="right" width="100%">
 			<mx:HBox width="100%">
 				<mx:Button id="btnConnectRTMP0" label="RTMP AMF0" 
-						   labelPlacement="left" click="onConnect('rtmp', ObjectEncoding.AMF0)" />
+						   labelPlacement="left" click="onConnect('rtmp', ObjectEncoding.AMF0)"/>
 				<mx:Button id="btnConnectRTMP3" label="RTMP AMF3" 
-						   labelPlacement="left" click="onConnect('rtmp', ObjectEncoding.AMF3)" />
+						   labelPlacement="left" click="onConnect('rtmp', ObjectEncoding.AMF3)"/>
 				<mx:Button id="btnConnectHTTP0" label="HTTP AMF0" 
-						   labelPlacement="left" click="onConnect('http', ObjectEncoding.AMF0)" />
+						   labelPlacement="left" click="onConnect('http', ObjectEncoding.AMF0)"/>
 				<mx:Button id="btnConnectHTTP3" label="HTTP AMF3" 
-						   labelPlacement="left" click="onConnect('http', ObjectEncoding.AMF3)" />
-				<mx:Button id="btnConnectRemoteObject" label="mx:RemoteObject" 
-						   labelPlacement="left" click="onConnect('remoteObject', ObjectEncoding.AMF3)" />
+						   labelPlacement="left" click="onConnect('http', ObjectEncoding.AMF3)"/>
+				<mx:Button id="btnConnectRemoteObject" label="HTTP RemoteObject" 
+						   labelPlacement="left" click="onConnect('remoteObject', ObjectEncoding.AMF3)"/>
 			</mx:HBox>
 		</mx:FormItem>
-	</mx:Form>
-	<mx:Spacer height="15"/>
+
+	<mx:Spacer height="10"/>
 	
-	<mx:DataGrid id="resultGrid" dataProvider="{ testResults }" width="100%"
+	<mx:TextArea id="resultText" htmlText="{ statusText }" width="100%" height="80" editable="false" 
+				 updateComplete="{ resultText.verticalScrollPosition = resultText.maxVerticalScrollPosition }"
+				 textIndent="5"/>
+				 
+	<mx:DataGrid id="resultGrid" dataProvider="{ testResults }" width="100%" height="100%" 
 				 updateComplete="{ resultGrid.verticalScrollPosition = resultGrid.maxVerticalScrollPosition }">
 		
 		<mx:columns>
-			<mx:DataGridColumn id="msg" headerText="msg"/>
-			<mx:DataGridColumn id="content" headerText="content"/>
+			<mx:DataGridColumn dataField="id" headerText="" width="30"/>
+			<mx:DataGridColumn dataField="status" headerText="Status" width="70"/>
+			<mx:DataGridColumn dataField="speed" headerText="Speed" width="50"/>
+			<mx:DataGridColumn dataField="request" headerText="Request" width="180"/>
+			<mx:DataGridColumn dataField="response" headerText="Response" width="180"/>
 		</mx:columns>
 	
 	</mx:DataGrid>
 	
-	<mx:TextArea id="resultText" htmlText="{ testResult }" width="100%" height="100%" editable="false" textIndent="5" 
-				 updateComplete="{ resultText.verticalScrollPosition = resultText.maxVerticalScrollPosition }" 
-				 fontSize="12"/>
-	<mx:Canvas>
+	<mx:HBox width="{ resultText.width }" verticalAlign="middle">
+		<mx:Text text="Echo { appVersion }" fontSize="12" fontWeight="bold" selectable="false"/>
+		<mx:Spacer width="100%"/>
 		<mx:Text text="{ fpVersion }" fontSize="9"/>
-	</mx:Canvas>
-		 
+	</mx:HBox>
+
+	</mx:Form>
+	
 </echo:EchoTest>
