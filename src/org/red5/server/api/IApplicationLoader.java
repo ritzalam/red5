@@ -1,5 +1,7 @@
 package org.red5.server.api;
 
+import org.springframework.context.ApplicationContext;
+
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  *
@@ -37,4 +39,10 @@ public interface IApplicationLoader {
 	 */
 	public void loadApplication(String contextPath, String virtualHosts, String directory) throws Exception;
 	
+	/**
+	 * Return the root {@link ApplicationContext}.
+	 * 
+	 * @return
+	 */
+	public ApplicationContext getRootContext();
 }

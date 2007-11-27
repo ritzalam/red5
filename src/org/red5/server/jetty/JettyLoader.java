@@ -86,7 +86,7 @@ public class JettyLoader extends LoaderBase implements ApplicationContextAware, 
 			// Get server bean from BeanFactory
 			jetty = (Server) appCtx.getBean("Server");
 
-			setApplicationLoader(new JettyApplicationLoader(jetty));
+			setApplicationLoader(new JettyApplicationLoader(jetty, applicationContext.get()));
 			
 			// root location for servlet container
 			String serverRoot = System.getProperty("red5.root");

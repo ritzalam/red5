@@ -24,6 +24,7 @@ import org.apache.catalina.Host;
 import org.apache.catalina.startup.Embedded;
 import org.red5.server.LoaderBase;
 import org.red5.server.api.IApplicationLoader;
+import org.springframework.context.ApplicationContext;
 
 /**
  * Class that can load new applications in Jetty.
@@ -39,17 +40,26 @@ public class TomcatApplicationLoader implements IApplicationLoader {
 	/** Store reference to host Tomcat is running on. */
 	private Host host;
 	
+	/** Stores reference to the root ApplicationContext. */
+	private ApplicationContext rootCtx;
+	
 	/**
 	 * Wrap Tomcat engine and host.
 	 * 
 	 * @param embedded
 	 * @param host
 	 */
-	protected TomcatApplicationLoader(Embedded embedded, Host host) {
+	protected TomcatApplicationLoader(Embedded embedded, Host host, ApplicationContext rootCtx) {
 		this.embedded = embedded;
 		this.host = host;
+		this.rootCtx = rootCtx;
 	}
-	
+
+	/** {@inheritDoc} */
+	public ApplicationContext getRootContext() {
+		return rootCtx;
+	}
+
 	/** {@inheritDoc} */
 	public void loadApplication(String contextPath, String virtualHosts, String directory)
 			throws Exception {

@@ -242,7 +242,7 @@ public class TomcatLoader extends LoaderBase implements
 		// associated with Engine
 		embedded.addConnector(connector);
 
-		setApplicationLoader(new TomcatApplicationLoader(embedded, baseHost));
+		setApplicationLoader(new TomcatApplicationLoader(embedded, baseHost, applicationContext.get()));
 
 		// Start server
 		try {

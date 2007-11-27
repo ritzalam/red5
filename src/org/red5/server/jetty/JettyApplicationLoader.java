@@ -24,6 +24,7 @@ import org.mortbay.jetty.webapp.WebAppContext;
 import org.red5.server.api.IApplicationLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
 
 /**
  * Class that can load new applications in Jetty.
@@ -41,13 +42,22 @@ public class JettyApplicationLoader implements IApplicationLoader {
 	/** Stores reference to the Jetty server. */
 	private Server server;
 	
+	/** Stores reference to the root ApplicationContext. */
+	private ApplicationContext rootCtx;
+	
 	/**
 	 * Create new application loader for Jetty servers.
 	 * 
 	 * @param server
 	 */
-	protected JettyApplicationLoader(Server server) {
+	protected JettyApplicationLoader(Server server, ApplicationContext rootCtx) {
 		this.server = server;
+		this.rootCtx = rootCtx;
+	}
+	
+	/** {@inheritDoc} */
+	public ApplicationContext getRootContext() {
+		return rootCtx;
 	}
 	
 	/** {@inheritDoc} */
