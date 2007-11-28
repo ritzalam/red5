@@ -498,25 +498,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 			}
 
 			// Check if the Field corresponding to the getter/setter pair is transient
-			try {
-				Field field = objectClass.getDeclaredField(keyName);
-				if (field.isAnnotationPresent(DontSerialize.class)) {
-					if (log.isDebugEnabled()) {
-						log.debug("Skipping " + field.getName() + " because its marked with @DontSerialize");
-					}
-					continue;
-				} else {
-					int modifiers = field.getModifiers();
-					if (Modifier.isTransient(modifiers)) {
-						log.warn("Using \"transient\" to declare fields not to be serialized is " +
-							"deprecated and will be removed in Red5 0.8, use \"@DontSerialize\" instead.");
-						continue;
-					}
-				}
-			} catch (NoSuchFieldException nfe) {
-				// Ignore this exception and use the default behaviour
-				log.debug("writeObject caught NoSuchFieldException");
-			}
+            if (dontSerializeField(objectClass, keyName)) continue;
 
 			putString(keyName);
 			serializer.serialize(this, entry.getValue());

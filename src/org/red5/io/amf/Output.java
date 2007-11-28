@@ -59,7 +59,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 	 * Cache encoded strings.
 	 */
 	protected static Map<String, byte[]> stringCache = (Map<String, byte[]>) new LRUMap(10000, true);
-	
+
     /**
      * Output buffer
      */
@@ -281,7 +281,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		} else {
 			buf.put(AMF.TYPE_OBJECT);
 		}
-        
+
         if (object instanceof ICustomSerializable) {
         	((ICustomSerializable) object).serialize(this, serializer);
     		buf.put((byte) 0x00);
@@ -289,7 +289,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
     		buf.put(AMF.TYPE_END_OF_OBJECT);
     		return;
         }
-        
+
         // Iterate thru entries and write out property names with separators
 		for (BeanMap.Entry<?, ?> entry: set) {
 			if (entry.getKey().toString().equals("class")) {
@@ -298,25 +298,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 
 			String keyName = entry.getKey().toString();
 			// Check if the Field corresponding to the getter/setter pair is transient
-			try {
-				Field field = objectClass.getDeclaredField(keyName);
-				if (field.isAnnotationPresent(DontSerialize.class)) {
-					if (log.isDebugEnabled()) {
-						log.debug("Skipping " + field.getName() + " because its marked with @DontSerialize");
-					}
-					continue;
-				} else {
-					int modifiers = field.getModifiers();
-					if (Modifier.isTransient(modifiers)) {
-						log.warn("Using \"transient\" to declare fields not to be serialized is " +
-							"deprecated and will be removed in Red5 0.8, use \"@DontSerialize\" instead.");
-						continue;
-					}
-				}
-			} catch (NoSuchFieldException nfe) {
-				// Ignore this exception and use the default behaviour
-				log.debug("writeObject caught NoSuchFieldException");
-			}
+            if (dontSerializeField(objectClass, keyName)) continue;
 
 			putString(buf, keyName);
 			serializer.serialize(this, entry.getValue());
@@ -327,7 +309,27 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		buf.put(AMF.TYPE_END_OF_OBJECT);
 	}
 
-	/** {@inheritDoc} */
+    protected boolean dontSerializeField(Class<?> objectClass, String keyName) {
+        for (Class<?> clazz = objectClass; !clazz.equals(Object.class); clazz = clazz.getSuperclass()) {
+            try {
+                Field field = clazz.getDeclaredField(keyName);
+                boolean dontSerialize = field.isAnnotationPresent(DontSerialize.class);
+                boolean isTransient = Modifier.isTransient(field.getModifiers());
+
+                if (dontSerialize && log.isDebugEnabled()) log.debug("Skipping " + field.getName() + " because its marked with @DontSerialize");
+                if (isTransient) log.warn("Using \"transient\" to declare fields not to be serialized is deprecated and will be removed in Red5 0.8, use \"@DontSerialize\" instead.");
+
+                return dontSerialize || isTransient;
+            } catch (NoSuchFieldException nfe) {
+                // Ignore this exception and use the default behaviour
+                log.debug("writeObject caught NoSuchFieldException");
+            }
+        }
+
+        return false;
+    }
+
+    /** {@inheritDoc} */
     public void writeObject(Map<Object, Object> map, Serializer serializer) {
 		if (checkWriteReference(map))
 			return;
@@ -359,7 +361,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		}
         // If we need to serialize class information...
 		Class<?> objectClass = object.getClass();
-		if (!objectClass.isAnnotationPresent(Anonymous.class)) { 
+		if (!objectClass.isAnnotationPresent(Anonymous.class)) {
             // Write out start object marker for class name
 			buf.put(AMF.TYPE_CLASS_OBJECT);
 			putString(buf, objectClass.getName());
@@ -433,10 +435,10 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
     public void writeByteArray(ByteArray array) {
 		throw new RuntimeException("ByteArray objects not supported with AMF0");
     }
-    
+
     /**
      * Encode string.
-     * 
+     *
      * @param string
      * @return encoded string
      */
@@ -455,7 +457,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
     	}
     	return encoded;
     }
-    
+
     /**
      * Write out string
      * @param buf         Byte buffer to write to
@@ -485,7 +487,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
     public ByteBuffer buf() {
 		return this.buf;
 	}
-    
+
     public void reset() {
     	clearReferences();
     }
