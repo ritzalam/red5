@@ -19,6 +19,9 @@ package org.red5.server.so;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -31,6 +34,7 @@ import org.red5.server.net.rtmp.event.BaseEvent;
  */
 public class SharedObjectMessage extends BaseEvent implements
 		ISharedObjectMessage {
+	private static final long serialVersionUID = -8128704039659990048L;
 
     /**
      * SO event name
@@ -49,6 +53,7 @@ public class SharedObjectMessage extends BaseEvent implements
      * Whether SO persistent
      */
 	private boolean persistent;
+	public SharedObjectMessage() {}
 
     /**
      * Creates Shared Object event with given name, version and persistence flag
@@ -188,4 +193,21 @@ public class SharedObjectMessage extends BaseEvent implements
 		return sb.toString();
 	}
 
+	@Override
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		super.readExternal(in);
+		name = (String) in.readObject();
+		version = in.readInt();
+		persistent = in.readBoolean();
+		events = (LinkedList<ISharedObjectEvent>) in.readObject();
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput out) throws IOException {
+		super.writeExternal(out);
+		out.writeObject(name);
+		out.writeInt(version);
+		out.writeBoolean(persistent);
+		out.writeObject(events);
+	}
 }

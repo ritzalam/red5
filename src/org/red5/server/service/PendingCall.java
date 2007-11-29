@@ -19,6 +19,9 @@ package org.red5.server.service;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -31,6 +34,7 @@ import org.red5.server.api.service.IPendingServiceCallback;
  * pending state.
  */
 public class PendingCall extends Call implements IPendingServiceCall {
+	private static final long serialVersionUID = 3219267601240355335L;
     /**
      * Result object
      */
@@ -41,6 +45,7 @@ public class PendingCall extends Call implements IPendingServiceCall {
      */
     private HashSet<IPendingServiceCallback> callbacks = new HashSet<IPendingServiceCallback>();
 
+    public PendingCall() {}
     /**
      * Creates pending call with given method name
      * @param method    Method name
@@ -95,5 +100,16 @@ public class PendingCall extends Call implements IPendingServiceCall {
 	/** {@inheritDoc} */
     public Set<IPendingServiceCallback> getCallbacks() {
 		return callbacks;
+	}
+	@Override
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		super.readExternal(in);
+		result = (Object) in.readObject();
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput out) throws IOException {
+		super.writeExternal(out);
+		out.writeObject(result);
 	}
 }

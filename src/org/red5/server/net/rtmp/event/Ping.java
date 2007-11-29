@@ -1,5 +1,8 @@
 package org.red5.server.net.rtmp.event;
 
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  * 
@@ -23,6 +26,7 @@ package org.red5.server.net.rtmp.event;
  * Ping event, actually combination of different events
  */
 public class Ping extends BaseEvent {
+	private static final long serialVersionUID = -6478248060425544923L;
     /**
      * Stream clear event
      */
@@ -221,4 +225,23 @@ public class Ping extends BaseEvent {
 
 	}
 
+	@Override
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		super.readExternal(in);
+		value1 = in.readShort();
+		value2 = in.readInt();
+		value3 = in.readInt();
+		value4 = in.readInt();
+		// XXX do we need to restore "debug" ?
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput out) throws IOException {
+		super.writeExternal(out);
+		out.writeShort(value1);
+		out.writeInt(value2);
+		out.writeInt(value3);
+		out.writeInt(value4);
+		// XXX do we need to save "debug" ?
+	}
 }

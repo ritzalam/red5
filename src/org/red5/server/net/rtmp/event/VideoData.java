@@ -19,6 +19,9 @@ package org.red5.server.net.rtmp.event;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.io.IoConstants;
 import org.red5.server.api.stream.IStreamPacket;
@@ -29,6 +32,7 @@ import org.red5.server.stream.IStreamData;
  */
 public class VideoData extends BaseEvent implements IoConstants, IStreamData, IStreamPacket {
 
+	private static final long serialVersionUID = 5538859593815804830L;
     /**
      * Videoframe type
      */
@@ -110,4 +114,26 @@ public class VideoData extends BaseEvent implements IoConstants, IStreamData, IS
 		}
 	}
 
+	@Override
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		super.readExternal(in);
+		frameType = (FrameType) in.readObject();
+		byte[] byteBuf = (byte[]) in.readObject();
+		if (byteBuf != null) {
+			data = ByteBuffer.allocate(0);
+			data.setAutoExpand(true);
+			SerializeUtils.ByteArrayToByteBuffer(byteBuf, data);
+		}
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput out) throws IOException {
+		super.writeExternal(out);
+		out.writeObject(frameType);
+		if (data != null) {
+			out.writeObject(SerializeUtils.ByteBufferToByteArray(data));
+		} else {
+			out.writeObject(null);
+		}
+	}
 }

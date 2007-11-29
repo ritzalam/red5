@@ -19,6 +19,10 @@ package org.red5.server.net.rtmp.event;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import org.red5.server.api.event.IEventListener;
 import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.net.rtmp.message.Header;
@@ -26,7 +30,8 @@ import org.red5.server.net.rtmp.message.Header;
 /**
  * Base abstract class for all RTMP events
  */
-public abstract class BaseEvent implements Constants, IRTMPEvent {
+public abstract class BaseEvent
+implements Constants, IRTMPEvent, Externalizable {
 	// XXX we need a better way to inject allocation debugging
 	// (1) make it configurable in xml
 	// (2) make it aspect oriented
@@ -55,6 +60,10 @@ public abstract class BaseEvent implements Constants, IRTMPEvent {
      * Event references count
      */
 	protected int refcount = 1;
+	public BaseEvent() {
+		// set a default type
+		this(Type.SERVER, null);
+	}
 
     /**
      * Create new event of given type
@@ -152,4 +161,13 @@ public abstract class BaseEvent implements Constants, IRTMPEvent {
      */
     protected abstract void releaseInternal();
 
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		type = (Type) in.readObject();
+		timestamp = in.readInt();
+	}
+
+	public void writeExternal(ObjectOutput out) throws IOException {
+		out.writeObject(type);
+		out.writeInt(timestamp);
+	}
 }

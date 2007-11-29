@@ -26,6 +26,7 @@ import org.red5.server.api.service.IPendingServiceCall;
  * Remote invocation event
  */
 public class Invoke extends Notify {
+	private static final long serialVersionUID = -769677790148010729L;
 
 	/** Constructs a new Invoke. */
     public Invoke() {

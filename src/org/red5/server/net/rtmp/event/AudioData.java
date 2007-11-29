@@ -19,12 +19,15 @@ package org.red5.server.net.rtmp.event;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.server.api.stream.IStreamPacket;
 import org.red5.server.stream.IStreamData;
 
 public class AudioData extends BaseEvent implements IStreamData, IStreamPacket {
-
+	private static final long serialVersionUID = -4102940670913999407L;
 	protected ByteBuffer data;
 
 	/** Constructs a new AudioData. */
@@ -63,4 +66,24 @@ public class AudioData extends BaseEvent implements IStreamData, IStreamPacket {
 		}
 	}
 
+	@Override
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		super.readExternal(in);
+		byte[] byteBuf = (byte[]) in.readObject();
+		if (byteBuf != null) {
+			data = ByteBuffer.allocate(0);
+			data.setAutoExpand(true);
+			SerializeUtils.ByteArrayToByteBuffer(byteBuf, data);
+		}
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput out) throws IOException {
+		super.writeExternal(out);
+		if (data != null) {
+			out.writeObject(SerializeUtils.ByteBufferToByteArray(data));
+		} else {
+			out.writeObject(null);
+		}
+	}
 }

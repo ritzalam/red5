@@ -65,11 +65,6 @@ public class RTMPTConnection extends RTMPConnection {
 	protected static final byte MAX_POLLING_DELAY = 32;
 
     /**
-     * RTMP protocol state
-     */
-    protected RTMP state;
-
-    /**
      * Protocol decoder
      */
     protected SimpleProtocolDecoder decoder;
@@ -116,10 +111,6 @@ public class RTMPTConnection extends RTMPConnection {
      * Closing flag
      */
 	volatile protected boolean closing;
-    /**
-     * Connection client id
-     */
-	protected int clientId;
 	/**
 	 * Servlet that created this connection.
 	 */
@@ -213,24 +204,6 @@ public class RTMPTConnection extends RTMPConnection {
 		remoteAddress = request.getRemoteAddr();
 		remoteAddresses = ServletUtils.getRemoteAddresses(request);
 		remotePort = request.getRemotePort();
-	}
-
-	/**
-	 * Return the client id for this connection.
-	 *
-	 * @return the client id
-	 */
-	public int getId() {
-		return clientId;
-	}
-
-	/**
-	 * Return the current decoder state.
-	 *
-	 * @return the current decoder state.
-	 */
-	public RTMP getState() {
-		return this.state;
 	}
 
 	/**

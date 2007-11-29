@@ -1,5 +1,8 @@
 package org.red5.server.net.rtmp.event;
 
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  * 
@@ -23,17 +26,21 @@ package org.red5.server.net.rtmp.event;
  * Bytes read event
  */
 public class BytesRead extends BaseEvent {
+	private static final long serialVersionUID = -127649312402709338L;
     /**
      * Bytes read
      */
 	private int bytesRead;
+	public BytesRead() {
+		super(Type.STREAM_CONTROL);
+	}
 
     /**
      * Creates new event with given bytes number
      * @param bytesRead       Number of bytes read
      */
     public BytesRead(int bytesRead) {
-		super(Type.STREAM_CONTROL);
+		this();
 		this.bytesRead = bytesRead;
 	}
 
@@ -80,4 +87,15 @@ public class BytesRead extends BaseEvent {
 
 	}
 
+	@Override
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		super.readExternal(in);
+		bytesRead = in.readInt();
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput out) throws IOException {
+		super.writeExternal(out);
+		out.writeInt(bytesRead);
+	}
 }

@@ -1,5 +1,9 @@
 package org.red5.server.so;
 
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  * 
@@ -22,7 +26,9 @@ package org.red5.server.so;
 /**
  * {@inheritDoc}
  */
-public class SharedObjectEvent implements ISharedObjectEvent {
+public class SharedObjectEvent
+implements ISharedObjectEvent, Externalizable {
+	private static final long serialVersionUID = -4129018814289863535L;
     /**
      * Event type
      */
@@ -36,6 +42,7 @@ public class SharedObjectEvent implements ISharedObjectEvent {
      */
 	private Object value;
 
+	public SharedObjectEvent() {}
     /**
      * {@inheritDoc}
      */
@@ -65,5 +72,16 @@ public class SharedObjectEvent implements ISharedObjectEvent {
 	public String toString() {
 		return "SOEvent(" + getType() + ", " + getKey() + ", " + getValue()
 				+ ')';
+	}
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		type = (Type) in.readObject();
+		key = (String) in.readObject();
+		value = in.readObject();
+	}
+
+	public void writeExternal(ObjectOutput out) throws IOException {
+		out.writeObject(type);
+		out.writeObject(key);
+		out.writeObject(value);
 	}
 }

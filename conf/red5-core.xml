@@ -22,7 +22,7 @@
 		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 		<property name="location" value="classpath:/red5.properties" />
 	</bean>
-	   
+
 	<!-- RTMP Handler -->
 	<bean id="rtmpHandler"
 		class="org.red5.server.net.rtmp.RTMPHandler">
@@ -30,11 +30,16 @@
 		<property name="statusObjectService" ref="statusObjectService" />
 	</bean>
 	
+	<bean id="rtmpMinaConnManager"
+		class="org.red5.server.net.rtmp.RTMPConnManager">
+	</bean>
+	
 	<!-- RTMP Mina IO Handler -->
 	<bean id="rtmpMinaIoHandler"
 		class="org.red5.server.net.rtmp.RTMPMinaIoHandler">
 		<property name="handler" ref="rtmpHandler" />
 		<property name="codecFactory" ref="rtmpCodecFactory" />
+		<property name="rtmpConnManager" ref="rtmpMinaConnManager" />
 	</bean>
 	
 	<!-- RTMP Mina Transport -->
@@ -65,6 +70,10 @@
 		<property name="maxHandshakeTimeout" value="5000" />
 	</bean>
 	
+	<bean id="rtmptConnManager"
+		class="org.red5.server.net.rtmp.RTMPConnManager">
+	</bean>
+	
 	<!-- RTMPT Handler -->
 	<bean id="rtmptHandler"
 		class="org.red5.server.net.rtmpt.RTMPTHandler" autowire="byType">
@@ -75,6 +84,7 @@
 	<bean id="rtmptServlet"
 		class="org.red5.server.net.rtmpt.RTMPTServlet">
 		<property name="handler" ref="rtmptHandler" />
+		<property name="rtmpConnManager" ref="rtmptConnManager" />
 	</bean>
 	
 	<!-- RTMPT Connection -->

@@ -20,9 +20,8 @@ package org.red5.server.net.rtmpt;
  */
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
@@ -31,6 +30,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.mina.common.ByteBuffer;
+import org.red5.server.net.rtmp.IRTMPConnManager;
+import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.servlet.ServletUtils;
 import org.slf4j.Logger;
@@ -74,11 +75,6 @@ public class RTMPTServlet extends HttpServlet {
 	private static final int RESPONSE_TARGET_SIZE = 32768;
 
 	/**
-	 * Holds a map of client id -> client object.
-	 */
-	protected Map<Integer, RTMPTConnection> rtmptClients = new ConcurrentHashMap<Integer, RTMPTConnection>();
-
-	/**
 	 * Web app context
 	 */
 	protected WebApplicationContext appCtx;
@@ -87,7 +83,12 @@ public class RTMPTServlet extends HttpServlet {
 	 * Reference to RTMPT handler;
 	 */
 	private static RTMPTHandler handler;
+	
+    private static IRTMPConnManager rtmpConnManager;
 
+    public void setRtmpConnManager(IRTMPConnManager rtmpConnManager) {
+		RTMPTServlet.rtmpConnManager = rtmpConnManager;
+	}
 	/**
 	 * Set the RTMPTHandler to use in this servlet.
 	 * 
@@ -224,22 +225,7 @@ public class RTMPTServlet extends HttpServlet {
 	 */
 	protected RTMPTConnection getClient(HttpServletRequest req) {
 		final Integer id = getClientId(req);
-		if (id == null) {
-			if (log.isDebugEnabled()) {
-				log.debug("Unknown client id: " + id);
-			}
-			return null;
-		}
-		
-		final RTMPTConnection result = rtmptClients.get(id);
-		if (result == null) {
-			if (log.isDebugEnabled()) {
-				log.debug("Unknown client id: " + id);
-			}
-			return null;
-		}
-		
-		return result;
+		return getConnection(id);
 	}
 
 	/**
@@ -304,14 +290,13 @@ public class RTMPTServlet extends HttpServlet {
 		skipData(req);
 
 		// TODO: should we evaluate the pathinfo?
-		RTMPTConnection client = handler.createRTMPTConnection();
+		RTMPTConnection client = createConnection();
 		client.setServlet(this);
 		if (client.getId() == 0) {
 			// no more clients are available for serving
 			returnMessage((byte) 0, resp);
 			return;
 		}
-		rtmptClients.put(client.getId(), client);
 
 		// Return connection id to client
 		returnMessage(client.getId() + "\n", resp);
@@ -340,7 +325,7 @@ public class RTMPTServlet extends HttpServlet {
 			handleBadRequest("Unknown client.", resp);
 			return;
 		}
-		rtmptClients.remove(client.getId());
+		removeConnection(client.getId());
 
 		client.setServletRequest(req);
 		handler.connectionClosed(client, client.getState());
@@ -369,7 +354,7 @@ public class RTMPTServlet extends HttpServlet {
 			handleBadRequest("Unknown client.", resp);
 			return;
 		} else if (client.getState().getState() == RTMP.STATE_DISCONNECTED) {
-			rtmptClients.remove(client.getId());
+			removeConnection(client.getId());
 			handleBadRequest("Connection already closed.", resp);
 			return;
 		}
@@ -432,7 +417,7 @@ public class RTMPTServlet extends HttpServlet {
 			client.realClose();
 			return;
 		} else if (client.getState().getState() == RTMP.STATE_DISCONNECTED) {
-			rtmptClients.remove(client.getId());
+			removeConnection(client.getId());
 			handleBadRequest("Connection already closed.", resp);
 			return;
 		}
@@ -504,10 +489,10 @@ public class RTMPTServlet extends HttpServlet {
 	@Override
 	public void destroy() {
 		// Cleanup connections
-		for (RTMPTConnection conn: rtmptClients.values()) {
+		Collection<RTMPConnection> conns = rtmpConnManager.removeConnections();
+		for (RTMPConnection conn: conns) {
 			conn.close();
 		}
-		rtmptClients.clear();
 		super.destroy();
 	}
 
@@ -517,7 +502,21 @@ public class RTMPTServlet extends HttpServlet {
 	 * @param conn
 	 */
 	protected void notifyClosed(RTMPTConnection conn) {
-		rtmptClients.remove(conn.getId());
+		rtmpConnManager.removeConnection(conn.getId());
 	}
 	
+    protected RTMPTConnection getConnection(int clientId) {
+    	return (RTMPTConnection) rtmpConnManager.getConnection(clientId);
+    }
+    
+    protected RTMPTConnection createConnection() {
+    	RTMPTConnection conn = (RTMPTConnection) rtmpConnManager.createConnection(RTMPTConnection.class);
+    	conn.setRTMPTHandle(handler);
+    	handler.connectionOpened(conn, conn.getState());
+    	return conn;
+    }
+    
+    protected void removeConnection(int clientId) {
+    	rtmpConnManager.removeConnection(clientId);
+    }
 }

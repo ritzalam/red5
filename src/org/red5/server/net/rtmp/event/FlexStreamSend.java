@@ -29,6 +29,9 @@ import org.apache.mina.common.ByteBuffer;
  */
 public class FlexStreamSend extends Notify {
 
+	private static final long serialVersionUID = -4226252245996614504L;
+
+	public FlexStreamSend() {}
 	/**
 	 * Create new stream send object.
 	 * 

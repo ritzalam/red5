@@ -113,6 +113,7 @@ public class Standalone {
     					+ red5Config + " on your classpath " + classpath);
     		}
     
+		System.setProperty("red5.conf_file", red5Config);
     		root = fp.getAbsolutePath();
     		root = root.replace('\\', '/');
     		int idx = root.lastIndexOf('/');

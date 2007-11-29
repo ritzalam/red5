@@ -117,16 +117,4 @@ public class RTMPTHandler extends RTMPHandler {
 			super.messageReceived(conn, state, in);
 		}
 	}
-
-    /**
-     * Creates RTMP connection
-     * @return       RTMP connection
-     */
-    RTMPTConnection createRTMPTConnection() {
-		RTMPTConnection client =
-			(RTMPTConnection) appCtx.getBean("rtmptConnection");
-		client.setRTMPTHandle(this);
-		connectionOpened(client, client.getState());
-		return client;
-	}
 }

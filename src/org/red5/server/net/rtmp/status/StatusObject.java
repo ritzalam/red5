@@ -19,6 +19,10 @@ package org.red5.server.net.rtmp.status;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,7 +38,8 @@ import org.red5.io.object.Serializer;
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 @Anonymous
-public class StatusObject implements Serializable, ICustomSerializable {
+public class StatusObject
+implements Serializable, ICustomSerializable, Externalizable {
 
 	private static final long serialVersionUID = 8817297676191096283L;
 
@@ -184,4 +189,19 @@ public class StatusObject implements Serializable, ICustomSerializable {
     	}
     }
 
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		code = (String) in.readObject();
+		description = (String) in.readObject();
+		level = (String) in.readObject();
+		application = in.readObject();
+		additional = (Map<String, Object>) in.readObject();
+	}
+
+	public void writeExternal(ObjectOutput out) throws IOException {
+		out.writeObject(code);
+		out.writeObject(description);
+		out.writeObject(level);
+		out.writeObject(application);
+		out.writeObject(additional);
+	}
 }

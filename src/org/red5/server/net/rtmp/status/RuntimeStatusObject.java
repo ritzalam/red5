@@ -1,5 +1,8 @@
 package org.red5.server.net.rtmp.status;
 
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  * 
@@ -103,4 +106,17 @@ public class RuntimeStatusObject extends StatusObject {
 		this.details = details;
 	}
 
+	@Override
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		super.readExternal(in);
+		clientid = in.readInt();
+		details = (String) in.readObject();
+	}
+
+	@Override
+	public void writeExternal(ObjectOutput out) throws IOException {
+		super.writeExternal(out);
+		out.writeInt(clientid);
+		out.writeObject(details);
+	}
 }

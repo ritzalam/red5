@@ -19,6 +19,10 @@ package org.red5.server.service;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import org.red5.server.api.service.IServiceCall;
 
 /**
@@ -27,7 +31,9 @@ import org.red5.server.api.service.IServiceCall;
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
-public class Call implements IServiceCall {
+public class Call
+implements IServiceCall, Externalizable {
+	private static final long serialVersionUID = -3699712251588013875L;
     /**
      * Pending status constant
      */
@@ -92,6 +98,7 @@ public class Call implements IServiceCall {
      * Call exception if any, null by default
      */
 	protected Exception exception;
+	public Call() {}
 
     /**
      * Creates call from method name
@@ -229,4 +236,19 @@ public class Call implements IServiceCall {
 		return sb.toString();
 	}
 
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		serviceName = (String) in.readObject();
+		serviceMethodName = (String) in.readObject();
+		arguments = (Object[]) in.readObject();
+		status = in.readByte();
+		exception = (Exception) in.readObject();
+	}
+
+	public void writeExternal(ObjectOutput out) throws IOException {
+		out.writeObject(serviceName);
+		out.writeObject(serviceMethodName);
+		out.writeObject(arguments);
+		out.writeByte(status);
+		out.writeObject(exception);
+	}
 }

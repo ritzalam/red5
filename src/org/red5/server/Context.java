@@ -226,8 +226,12 @@ public class Context implements IContext, ApplicationContextAware, ContextMBean 
 		logger.debug("Deployment type: " + deploymentType);
 		if (deploymentType == null) {
 			// standalone core context
+			String config = System.getProperty("red5.conf_file");
+			if (config == null) {
+				config = "red5.xml";
+			}
 			coreContext = ContextSingletonBeanFactoryLocator.getInstance(
-					"red5.xml").useBeanFactory("red5.core").getFactory();
+					config).useBeanFactory("red5.core").getFactory();
 		} else {
 			logger.info("Setting parent bean factory as core");
 			coreContext = applicationContext.getParentBeanFactory();

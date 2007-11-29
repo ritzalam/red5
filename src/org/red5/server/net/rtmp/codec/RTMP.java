@@ -53,6 +53,18 @@ public class RTMP extends ProtocolState {
      * Disconnected.
      */
 	public static final byte STATE_DISCONNECTED = 0x04;
+	/**
+	 * Sent the connect message to origin.
+	 */
+	public static final byte STATE_EDGE_CONNECT_ORIGIN_SENT = 0x11;
+	/**
+	 * Forwarded client's connect call to origin.
+	 */
+	public static final byte STATE_ORIGIN_CONNECT_FORWARDED = 0x12;
+	/**
+	 * Edge is disconnecting, waiting Origin close connection.
+	 */
+	public static final byte STATE_EDGE_DISCONNECTING = 0x13;
     /**
      * Client mode.
      */

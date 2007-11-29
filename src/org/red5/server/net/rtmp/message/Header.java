@@ -1,5 +1,9 @@
 package org.red5.server.net.rtmp.message;
 
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  * 
@@ -22,7 +26,8 @@ package org.red5.server.net.rtmp.message;
 /**
  * RTMP packet header
  */
-public class Header implements Constants {
+public class Header implements Constants, Externalizable {
+	private static final long serialVersionUID = 8982665579411495024L;
     /**
      * Channel
      */
@@ -192,4 +197,21 @@ public class Header implements Constants {
 		return header;
 	}
 
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+		dataType = in.readByte();
+		channelId = in.readInt();
+		size = in.readInt();
+		streamId = in.readInt();
+		timer = in.readInt();
+		timerRelative = in.readBoolean();
+	}
+
+	public void writeExternal(ObjectOutput out) throws IOException {
+		out.writeByte(dataType);
+		out.writeInt(channelId);
+		out.writeInt(size);
+		out.writeInt(streamId);
+		out.writeInt(timer);
+		out.writeBoolean(timerRelative);
+	}
 }

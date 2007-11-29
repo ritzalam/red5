@@ -62,6 +62,8 @@ implements ApplicationContextAware {
      * RTMP protocol codec factory
      */
     private ProtocolCodecFactory codecFactory = null;
+    
+    private IRTMPConnManager rtmpConnManager;
 
     /**
      * Setter for handler.
@@ -88,6 +90,10 @@ implements ApplicationContextAware {
      */
     public void setCodecFactory(ProtocolCodecFactory codecFactory) {
 		this.codecFactory = codecFactory;
+	}
+    
+	public void setRtmpConnManager(IRTMPConnManager rtmpConnManager) {
+		this.rtmpConnManager = rtmpConnManager;
 	}
 
 	//	 ------------------------------------------------------------------------------
@@ -243,20 +249,17 @@ implements ApplicationContextAware {
 		}
 
 		// moved protocol state from connection object to RTMP object
-		session.setAttribute(ProtocolState.SESSION_KEY, new RTMP(mode));
+		RTMP rtmp = new RTMP(mode);
+		session.setAttribute(ProtocolState.SESSION_KEY, rtmp);
 
 		session.getFilterChain().addFirst("protocolFilter",
 				new ProtocolCodecFilter(this.codecFactory));
 		if (log.isDebugEnabled()) {
 			session.getFilterChain().addLast("logger", new LoggingFilter());
 		}
-		RTMPMinaConnection conn;
-		if (appCtx != null) {
-			conn = (RTMPMinaConnection) appCtx.getBean("rtmpMinaConnection");
-		} else {
-			conn = new RTMPMinaConnection();
-		}
+		RTMPMinaConnection conn = createRTMPMinaConnection();
 		conn.setIoSession(session);
+		conn.setState(rtmp);
 		session.setAttachment(conn);
 	}
 
@@ -265,4 +268,7 @@ implements ApplicationContextAware {
 		this.appCtx = appCtx;
 	}
 
+    protected RTMPMinaConnection createRTMPMinaConnection() {
+    	return (RTMPMinaConnection) rtmpConnManager.createConnection(RTMPMinaConnection.class);
+    }
 }

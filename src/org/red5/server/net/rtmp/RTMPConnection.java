@@ -53,6 +53,7 @@ import org.red5.server.api.stream.IPlaylistSubscriberStream;
 import org.red5.server.api.stream.ISingleItemSubscriberStream;
 import org.red5.server.api.stream.IStreamCapableConnection;
 import org.red5.server.api.stream.IStreamService;
+import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.event.BytesRead;
 import org.red5.server.net.rtmp.event.ClientBW;
 import org.red5.server.net.rtmp.event.Invoke;
@@ -227,6 +228,10 @@ public abstract class RTMPConnection extends BaseConnection implements
 	 */
 	private int maxHandshakeTimeout = 5000;
 
+	protected int clientId;
+	
+	protected RTMP state;
+	
 	/**
 	 * Creates anonymous RTMP connection without scope.
 	 * 
@@ -237,6 +242,22 @@ public abstract class RTMPConnection extends BaseConnection implements
 		// These parameters will be set during the call of "connect" later.
 		// super(null, ""); temp fix to get things to compile.
 		super(type, null, null, 0, null, null, null);
+	}
+
+	public int getId() {
+		return clientId;
+	}
+
+	public void setId(int clientId) {
+		this.clientId = clientId;
+	}
+
+	public RTMP getState() {
+		return state;
+	}
+
+	public void setState(RTMP state) {
+		this.state = state;
 	}
 
 	@Override
