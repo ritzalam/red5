@@ -1124,7 +1124,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			if (withReset) {
 				playbackStart = System.currentTimeMillis() - streamOffset;
 				nextCheckBufferUnderrun = System.currentTimeMillis() + bufferCheckInterval;
-				if (currentItem.getLength() > 0) {
+				if (currentItem.getLength() != 0) {
 					ensurePullAndPushRunning();
 				}
 			}

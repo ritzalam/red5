@@ -149,6 +149,12 @@
 	<logger name="org.red5.server.stream.consumer">
 		<level value="WARN" />
 	</logger>
+	<logger name="org.red5.server.net.mrtmp">
+		<level value="WARN" />
+	</logger>
+	<logger name="org.red5.server.net.mrtmp.codec">
+		<level value="WARN" />
+	</logger>
 	<!-- Mina -->			
 	<logger name="org.apache.mina">
 		<level value="WARN" />
