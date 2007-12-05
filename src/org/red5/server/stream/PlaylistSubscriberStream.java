@@ -1354,14 +1354,14 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			
 			long pending = pendingMessages();
 			if (bufferCheckInterval > 0 && now >= nextCheckBufferUnderrun) {
-				if (pending >= underrunTrigger) {
+				if (pending > underrunTrigger) {
 					// Client is playing behind speed, notify him
 					sendInsufficientBandwidthStatus(currentItem);
 				}
 				nextCheckBufferUnderrun = now + bufferCheckInterval;
 			}
 			
-			if (pending > Math.max(underrunTrigger, 10)) {
+			if (pending > underrunTrigger) {
 				// Too many messages already queued on the connection
 				return false;
 			}
