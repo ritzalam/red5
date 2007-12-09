@@ -3,6 +3,7 @@ package org.red5.server.net.rtmp;
 import java.util.Map;
 
 import org.apache.mina.common.ByteBuffer;
+import org.red5.server.api.IConnection.Encoding;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IServiceCall;
 import org.red5.server.net.mrtmp.IMRTMPConnection;
@@ -161,6 +162,11 @@ public class EdgeRTMPHandler extends RTMPHandler {
 				packet.setMessage(invoke);
 				forwardPacket(conn, packet);
 				rtmp.setState(RTMP.STATE_ORIGIN_CONNECT_FORWARDED);
+				// Evaluate request for AMF3 encoding
+				if (Integer.valueOf(3).equals(params.get("objectEncoding"))
+						&& call instanceof IPendingServiceCall) {
+					rtmp.setEncoding(Encoding.AMF3);
+				}
 			}
 		}
 	}
