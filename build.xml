@@ -10,6 +10,8 @@
 	<property name="java.home" value="${env.JDK_HOME}"/>
 	<property name="src.dir" value="src"/>
 	<property name="dist.dir" value="dist"/>
+	<property name="origindist.dir" value="origindist"/>
+	<property name="edgedist.dir" value="edgedist"/>
 	<property name="lib.dir" value="lib"/>
 	<property name="classes.dir" value="bin"/>
 	<property name="webapps.dir" value="webapps"/>
@@ -102,6 +104,8 @@
 	<target name="prepare">
 		<mkdir dir="${classes.dir}"/>
 		<mkdir dir="${dist.dir}"/>
+		<mkdir dir="${origindist.dir}"/>
+		<mkdir dir="${edgedist.dir}"/>
 		<mkdir dir="${testclass.dir}"/>
 		<mkdir dir="${testreports.dir}"/>
 	</target>
@@ -109,6 +113,8 @@
 	<target name="clean">
 		<delete dir="${classes.dir}"/>
 		<delete dir="${dist.dir}"/>
+		<delete dir="${edgedist.dir}"/>
+		<delete dir="${origindist.dir}"/>
 		<delete dir="${javadoc.dir}"/>
 		<delete dir="${testdoc.dir}"/>
 		<delete includeemptydirs="true">
@@ -372,7 +378,7 @@
 				<include name="logback-core-0.9.8.jar"/>
 				<include name="logback-classic-0.9.8.jar"/>
 			</fileset>
-		</copy>			
+		</copy>
 	</target>
 	<!-- Scripting -->
 	<target name="compile_script" depends="prepare">
@@ -688,6 +694,13 @@
 				<include name="**"/>
 			</fileset>
 		</jar>
+		
+		<jar destfile="${webapps.build.dir}/adminPanel/WEB-INF/lib/adminPanel.jar">
+					<fileset dir="${webapps.build.dir}/adminPanel/WEB-INF/classes">
+						<include name="**"/>
+						<exclude name="logback.xml"/>
+					</fileset>
+		</jar>
 	</target>
 	<target name="dist" description="Make Binary Distribution" depends="clean, jar, javadoc">
 		<copy todir="${dist.dir}/doc">
@@ -717,6 +730,32 @@
 				
 			</fileset>
 		</copy>
+		<chmod file="${dist.dir}/red5.sh" perm="755"/>
+		<chmod file="${dist.dir}/red5-shutdown.sh" perm="755"/>
+	</target>
+	<!-- Origin Cluster Distribution. Copies dist build and then puts origin config into place. -->
+	<target name="origindist" description="Make Binary Origin Distribution" depends="dist">
+			<copy todir="${origindist.dir}/">
+				<fileset dir="${dist.dir}">
+					<exclude name="**/doc/**"/>
+				</fileset>
+			</copy>
+		    <copy tofile="${origindist.dir}/conf/red5.xml" file="${dist.dir}/conf/red5-origin.xml" overwrite="true"/>
+			<chmod file="${origindist.dir}/red5.sh" perm="755"/>
+			<chmod file="${origindist.dir}/red5-shutdown.sh" perm="755"/>
+	</target>
+	<!-- Edge Cluster Distribution. Copies dist build ignoring webapps, puts edge config into place, copies default webapp into place. -->
+	<target name="edgedist" description="Make Binary Edge Distribution" depends="origindist">
+				<copy todir="${edgedist.dir}/">
+					<fileset dir="${dist.dir}">
+						<exclude name="**/webapps/**"/>
+					</fileset>
+				</copy>
+			    <copy tofile="${edgedist.dir}/conf/red5.xml" file="${dist.dir}/conf/red5-edge.xml" overwrite="true"/>
+				<chmod file="${edgedist.dir}/red5.sh" perm="755"/>
+				<chmod file="${edgedist.dir}/red5-shutdown.sh" perm="755"/>
+		
+				<copy todir="${edgedist.dir}/webapps" file="webapps\red5-default.xml"/>
 	</target>
 	<target name="installerdist" description="Make Installer Distribution" depends="dist">
 		<copy todir="${dist.dir}">
