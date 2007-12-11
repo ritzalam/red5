@@ -64,13 +64,13 @@
 	<logger name="org.red5.server.Client">
 		<level value="INFO" />
 	</logger>
-	<logger name="org.red5.server.JettyLoader">
+	<logger name="org.red5.server.jetty">
 		<level value="INFO" />
 	</logger>
 	<logger name="org.red5.server.Standalone">
 		<level value="INFO" />
 	</logger>
-	<logger name="org.red5.server.TomcatLoader">
+	<logger name="org.red5.server.tomcat">
 		<level value="INFO" />
 	</logger>
 	<logger name="org.red5.server.api.stream.support">
