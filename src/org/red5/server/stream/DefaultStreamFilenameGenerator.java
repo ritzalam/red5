@@ -36,8 +36,8 @@ public class DefaultStreamFilenameGenerator implements IStreamFilenameGenerator 
 
     /**
      * Generate stream directory based on relative scope path. The base directory is
-     * <code>streams</code>, e.g. a scope <code>/application/one/two</code> will
-     * generate a directory <code>/streams/one/two</code> inside the application.
+     * <code>streams</code>, e.g. a scope <code>/application/one/two/</code> will
+     * generate a directory <code>/streams/one/two/</code> inside the application.
      * 
      * @param scope            Scope
      * @return                 Directory based on relative scope path
@@ -45,12 +45,18 @@ public class DefaultStreamFilenameGenerator implements IStreamFilenameGenerator 
     private String getStreamDirectory(IScope scope) {
 		final StringBuilder result = new StringBuilder();
 		final IScope app = ScopeUtils.findApplication(scope);
+		final String prefix = "streams/";
 		while (scope != null && scope != app) {
 			result.insert(0, scope.getName() + "/");
 			scope = scope.getParent();
 		}
-		return "streams/" + result.toString();
-	}
+		if (result.length() == 0) {
+			return prefix;
+		} else {
+			result.insert(0, prefix).append("/");
+			return result.toString();
+		}
+    }
 
 	/** {@inheritDoc} */
     public String generateFilename(IScope scope, String name, GenerationType type) {
