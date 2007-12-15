@@ -74,7 +74,7 @@ public final class Red5 implements Red5MBean {
 	 * A bit of magic that lets you access the red5 scope from anywhere
 	 */
 	public Red5() {
-		conn = Red5.getConnectionLocal();
+		conn = Red5.getConnectionLocal(); 
 	}
 
 	/**
