@@ -1,14 +1,14 @@
 <ivysettings>
-    <conf defaultResolver="local" checkUpToDate="false"/>
+    <settings defaultResolver="local" checkUpToDate="false"/>
     <resolvers>
-        <chain name="local">     
+        <chain name="local" returnFirst="true">     
 			<filesystem name="lib_dir">
         		<artifact pattern="${ivy.lib.dir}/[artifact](-[revision]).[type]" />
         		<artifact pattern="${ivy.lib.dir}/[artifact](-[revision]).[ext]" />
      	 	</filesystem>        
-    		<ivyrep name="local_cache"/> 
+    		<!-- ivyrep name="local_cache"/ --> 
 		</chain>    
-        <chain name="remote">     
+        <chain name="remote" returnFirst="true">     
             <url name="googlecode">
                 <artifact pattern="http://red5.googlecode.com/svn/trunk/repository/[artifact](-[revision]).[ext]" />
                 <artifact pattern="http://red5.googlecode.com/svn/trunk/repository/[organisation]/[artifact](-[revision]).[ext]" />
@@ -17,23 +17,6 @@
                 <artifact pattern="https://svn1.cvsdude.com/osflash/red5/repository/[artifact](-[revision]).[ext]" />
                 <artifact pattern="https://svn1.cvsdude.com/osflash/red5/repository/[organisation]/[artifact](-[revision]).[ext]" />
             </url>      
-            <!-- slowwww
-            <url name="ibiblio_maven2" m2compatible="true">
-  				<artifact pattern="http://www.ibiblio.org/maven2/[organisation]/[module]/[revision]/[artifact](-[revision]).[ext]"/>
-  				<artifact pattern="http://www.ibiblio.org/maven2/[organisation]/[artifact]/[revision]/[artifact](-[revision]).[ext]"/>
-			</url>
-			-->
-			<!--
-            <url name="maven2_repo1" m2compatible="true">
-  				<artifact pattern="http://repo1.maven.org/maven2/[organisation]/[module]/[revision]/[artifact](-[revision]).[ext]"/>
-  				<artifact pattern="http://repo1.maven.org/maven2/[organisation]/[artifact]/[revision]/[artifact](-[revision]).[ext]"/>
-			</url>
-            <url name="maven2_repo2" m2compatible="true">
-  				<artifact pattern="http://repo2.maven.org/maven2/[organisation]/[module]/[revision]/[artifact](-[revision]).[ext]"/>
-  				<artifact pattern="http://repo2.maven.org/maven2/[organisation]/[artifact]/[revision]/[artifact](-[revision]).[ext]"/>
-			</url>
-            <ibiblio name="ibiblio" />
-            -->
             <url name="sourceforge">
                 <artifact pattern="https://springframework.svn.sourceforge.net/svnroot/springframework/repos/repo/org/springframework/[artifact]/[revision]/[artifact](-[revision]).[ext]" />
             </url>

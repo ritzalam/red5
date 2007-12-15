@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<project name="Red5" basedir="." default="dist" xmlns:ivy="antlib:fr.jayasoft.ivy.ant">
+<project name="Red5" basedir="." default="dist" xmlns:ivy="antlib:org.apache.ivy.ant">
 	<!-- user overides for project properties -->
 
 	<property file="${user.home}/build.properties"/>
@@ -26,7 +26,7 @@
 	        http://incubator.apache.org/ivy
 	        http://testearly.com/2007/06/24/ivy-in-42-steps
 	-->
-	<taskdef uri="antlib:fr.jayasoft.ivy.ant" resource="fr/jayasoft/ivy/ant/antlib.xml" classpath="${lib.dir}/ivy-1.4.1.jar"/>
+	<taskdef uri="antlib:org.apache.ivy.ant" resource="org/apache/ivy/ant/antlib.xml" classpath="${lib.dir}/ivy-2.0.0-beta1.jar"/>
 	<property name="ivy.lib.dir" value="${lib.dir}"/>
 	<!-- JUNIT TESTING -->
 	<property name="test.dir" value="test"/>
@@ -126,7 +126,7 @@
 	</target>
 	<target name="retrieve" unless="library.installed" description="Retrieves the libraries if needed">
 		<!-- Ivy configuration -->
-		<ivy:configure file="ivyconfig.xml"/>
+		<ivy:settings file="ivysettings.xml"/>
 		<condition property="ivy.conf.name" value="default">
 			<not>
 				<isset property="ivy.conf.name"/>
