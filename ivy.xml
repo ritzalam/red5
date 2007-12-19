@@ -72,7 +72,7 @@
         <dependency org="antlr" name="antlr" rev="2.7.6" />
         <dependency name="bsh" rev="2.0b4" />
         <dependency name="groovy" rev="1.0" />  
-        <dependency name="jruby" rev="1.0.1" />  
+        <dependency name="jruby" rev="1.0.3" />  
         <dependency name="jython" rev="2.2" />  
         <dependency org="spring" name="spring-support" rev="2.0.7" />
         <!-- Testing support -->
@@ -86,5 +86,6 @@
         <dependency name="js-engine" rev="" conf="java5->default"/> 
         <dependency name="jython-engine" rev="" conf="java5->default"/> 
         <dependency name="groovy-engine" rev="" conf="java5->default"/>
+        <dependency name="jruby" rev="1.0.1" conf="java5->default"/>
     </dependencies>
 </ivy-module>
