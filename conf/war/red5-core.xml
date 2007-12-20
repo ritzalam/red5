@@ -25,11 +25,16 @@
 		<property name="statusObjectService" ref="statusObjectService" />
 	</bean>
 	
+	<bean id="rtmpMinaConnManager"
+		class="org.red5.server.net.rtmp.RTMPConnManager">
+	</bean>
+	
 	<!-- RTMP Mina IO Handler -->
 	<bean id="rtmpMinaIoHandler"
 		class="org.red5.server.net.rtmp.RTMPMinaIoHandler">
 		<property name="handler" ref="rtmpHandler" />
 		<property name="codecFactory" ref="rtmpCodecFactory" />
+		<property name="rtmpConnManager" ref="rtmpMinaConnManager" />
 	</bean>
 	
 	<!-- RTMP Mina Transport -->
@@ -43,6 +48,10 @@
 		<property name="eventThreadsMax" value="@rtmp.event_threads_max@" />
 		<property name="eventThreadsQueue" value="@rtmp.event_threads_queue@" />
 		<property name="eventThreadsKeepalive" value="@rtmp.event_threads_keepalive@" />
+		<!-- This is the interval at which the sessions are polled for stats. If mina monitoring is not
+				enabled, polling will not occur. -->
+		<property name="jmxPollInterval" value="1000" />
+		<property name="tcpNoDelay" value="true" />
 	</bean>
 	
 	<!-- RTMP Mina Connection -->
@@ -56,6 +65,10 @@
 		<property name="maxHandshakeTimeout" value="5000" />
 	</bean>
 	
+	<bean id="rtmptConnManager"
+		class="org.red5.server.net.rtmp.RTMPConnManager">
+	</bean>
+	
 	<!-- RTMPT Handler -->
 	<bean id="rtmptHandler"
 		class="org.red5.server.net.rtmpt.RTMPTHandler" autowire="byType">
@@ -66,6 +79,7 @@
 	<bean id="rtmptServlet"
 		class="org.red5.server.net.rtmpt.RTMPTServlet">
 		<property name="handler" ref="rtmptHandler" />
+		<property name="rtmpConnManager" ref="rtmptConnManager" />
 	</bean>
 	
 	<!-- RTMPT Connection -->

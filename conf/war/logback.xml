@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+	<consolePlugin/>
 	<!-- Appenders http://logback.qos.ch/manual/appenders.html -->
 	<appender name="CONSOLE"
 		class="ch.qos.logback.core.ConsoleAppender">
@@ -10,7 +11,7 @@
     	</filter>		
 		<layout class="ch.qos.logback.classic.PatternLayout">
 			<Pattern>		
-			[%p] %d{ISO8601} %t:( %c.%M ) %m%n
+			%date [%thread] %-5level %logger - %msg%n
 			</Pattern>
 		</layout>
 	</appender>
@@ -22,7 +23,7 @@
 		<ImmediateFlush>true</ImmediateFlush>
 		<layout class="ch.qos.logback.classic.PatternLayout">
 			<Pattern>
-				%-4relative [%thread] %-5level %logger{35} - %msg%n
+				%date [%thread] %-5level %logger{35} - %msg%n
 			</Pattern>
 		</layout>
 	</appender>
@@ -37,7 +38,7 @@
     	</filter>
 		<layout class="ch.qos.logback.classic.PatternLayout">
 			<Pattern>
-				%-4relative [%thread] %-5level %logger{35} - %msg%n
+				%date [%thread] %-5level %logger{35} - %msg%n
 			</Pattern>
 		</layout>
 	</appender>
@@ -56,13 +57,13 @@
 	<logger name="org.red5.server.Client">
 		<level value="INFO" />
 	</logger>
-	<logger name="org.red5.server.JettyLoader">
+	<logger name="org.red5.server.jetty">
 		<level value="INFO" />
 	</logger>
 	<logger name="org.red5.server.Standalone">
 		<level value="INFO" />
 	</logger>
-	<logger name="org.red5.server.TomcatLoader">
+	<logger name="org.red5.server.tomcat">
 		<level value="INFO" />
 	</logger>
 	<logger name="org.red5.server.api.stream.support">
@@ -99,6 +100,9 @@
 	<logger name="org.red5.server.net.rtmp">
 		<level value="WARN" />
 	</logger>	
+	<logger name="org.red5.server.net.rtmp.RTMPHandler">
+		<level value="OFF" />
+	</logger>
 	<logger name="org.red5.server.net.rtmp.BaseRTMPHandler">
 		<level value="OFF" />
 	</logger>

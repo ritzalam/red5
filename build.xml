@@ -347,6 +347,14 @@
 				<include name="logback-classic-0.9.8.jar"/>
 			</fileset>
 		</copy>		
+		<copy todir="${webapps.build.dir}/echo/WEB-INF/classes" file="webapps/echo/WEB-INF/src/logback.xml" overwrite="true"/>
+		<copy todir="${webapps.build.dir}/echo/WEB-INF/lib">
+			<fileset dir="${lib.dir}">
+				<include name="slf4j-api-1.4.3.jar"/>
+				<include name="logback-core-0.9.8.jar"/>
+				<include name="logback-classic-0.9.8.jar"/>
+			</fileset>
+		</copy>			
 		<copy todir="${webapps.build.dir}/fitcDemo/WEB-INF/classes" file="webapps/fitcDemo/WEB-INF/src/logback.xml" overwrite="true"/>
 		<copy todir="${webapps.build.dir}/fitcDemo/WEB-INF/lib">
 			<fileset dir="${lib.dir}">
@@ -942,12 +950,15 @@
 		<copy todir="${webapps.build.dir}/root">
 			<fileset dir="${webapps.build.dir}/oflaDemo">
 				<include name="streams/*.flv"/>
+				<exclude name="**/logback.xml"/>
 			</fileset>
 		</copy>
 		<!-- war up root -->
 		<war destfile="${dist.dir}/ROOT.war" webxml="${webapps.build.dir}/root/WEB-INF/web.xml">
 			<fileset dir="${webapps.build.dir}/root"/>
-			<fileset dir="${classes.dir}"/>
+			<fileset dir="${classes.dir}">
+				<exclude name="**/logback.xml"/>
+			</fileset>
 			<lib dir="${lib.dir}">
 				<exclude name="*.properties"/>
 				<exclude name="jsp*.jar"/>
@@ -989,9 +1000,10 @@
 			<lib dir="${lib.dir}">
 				<include name="commons-codec-*.jar"/>
 				<include name="commons-httpclient-*.jar"/>
-				<include name="slf4j-*.jar"/>
 				<include name="*-over-slf4j-*.jar"/>
 				<include name="mina-core-*.jar"/>
+				<exclude name="slf4j-*.jar"/>
+				<exclude name="logback-*.jar"/>
 			</lib>			
 			<manifest>
 				<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>
@@ -1016,9 +1028,10 @@
 			<lib dir="${lib.dir}">
 				<include name="commons-codec-*.jar"/>
 				<include name="commons-httpclient-*.jar"/>
-				<include name="slf4j-*.jar"/>
 				<include name="*-over-slf4j-*.jar"/>
 				<include name="mina-core-*.jar"/>
+				<exclude name="slf4j-*.jar"/>
+				<exclude name="logback-*.jar"/>
 			</lib>			
 			<manifest>
 				<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>
@@ -1044,9 +1057,10 @@
 			<lib dir="${lib.dir}">
 				<include name="commons-codec-*.jar"/>
 				<include name="commons-httpclient-*.jar"/>
-				<include name="slf4j-*.jar"/>
 				<include name="*-over-slf4j-*.jar"/>
 				<include name="mina-core-*.jar"/>
+				<exclude name="slf4j-*.jar"/>
+				<exclude name="logback-*.jar"/>
 			</lib>			
 			<manifest>
 				<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>

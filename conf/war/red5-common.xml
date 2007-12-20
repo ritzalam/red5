@@ -126,28 +126,6 @@
 			<ref bean="object.cache"/>
 		</property>
 	</bean>
-	<!-- Use injection to set the buffer type for reading FLV files -->
-	<bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
-		<property name="targetObject">
-			<bean class="org.red5.io.flv.impl.FLVReader"/>
-		</property>
-		<property name="targetMethod">
-			<value>setBufferType</value>
-		</property>
-		<!-- Three buffer types are available 'auto', 'heap', and 'direct' -->
-		<property name="arguments" value="auto"/>
-	</bean>
-	<!-- Use injection to set the buffer size for reading FLV files -->
-	<bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
-		<property name="targetObject">
-			<bean class="org.red5.io.flv.impl.FLVReader"/>
-		</property>
-		<property name="targetMethod">
-			<value>setBufferSize</value>
-		</property>
-		<!-- Three buffer types are available 'auto', 'heap', and 'direct' -->
-		<property name="arguments" value="4096"/>
-	</bean>
 	<!-- Use injection to set the keyframe cache for FLV files -->
 	<bean id="flvreader.impl" class="org.red5.io.flv.impl.FLVReader">
 		<property name="keyFrameCache">
@@ -159,6 +137,22 @@
 		<property name="frameCache">
 			<ref bean="keyframe.cache"/>
 		</property>
+	</bean>
+	<!-- Use injection to set the buffer type for reading FLV files -->
+	<bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+		<property name="staticMethod">
+			<value>org.red5.io.flv.impl.FLVReader.setBufferType</value>
+		</property>
+		<!-- Three buffer types are available 'auto', 'heap', and 'direct' -->
+		<property name="arguments" value="auto"/>
+	</bean>
+	<!-- Use injection to set the buffer size for reading FLV files -->
+	<bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+		<property name="staticMethod">
+			<value>org.red5.io.flv.impl.FLVReader.setBufferSize</value>
+		</property>
+		<!-- Three buffer types are available 'auto', 'heap', and 'direct' -->
+		<property name="arguments" value="4096"/>
 	</bean>
 	<!-- Executor that will be used to schedule stream playback to keep
 		the client buffer filled.
@@ -179,7 +173,10 @@
 		     Set to 0 to disable. Be careful not to set this value too small to avoid network congestion.
 		  -->
 		<property name="bufferCheckInterval" value="5000"/>
-		<!-- A NetStream.Play.InsufficientBW message is generated if more than X messages are queued for sending on the connection. -->
+		<!-- A NetStream.Play.InsufficientBW message is generated if more than X messages are queued for sending on the connection.
+		     This value will also control the maximum pending messages on the server. To use a smaller value on slow connections
+		     to get smaller delay for downstream server commands.
+		  -->
 		<property name="underrunTrigger" value="10"/>
 	</bean>
 	<bean id="clientBroadcastStream" scope="prototype" lazy-init="true" class="org.red5.server.stream.ClientBroadcastStream"/>
