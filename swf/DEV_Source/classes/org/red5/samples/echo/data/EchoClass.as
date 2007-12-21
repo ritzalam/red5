@@ -1,4 +1,4 @@
-﻿package org.red5.samples.echo 
+﻿package org.red5.samples.echo.data
 {
 	/**
 	 * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -20,7 +20,6 @@
 	 */
 	
 	/**
-	 * 
 	 * @author Joachim Bauch ( jojo@struktur.de )
 	 */	
 	public class EchoClass 

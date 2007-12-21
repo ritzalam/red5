@@ -1,4 +1,4 @@
-﻿package org.red5.samples.echo 
+﻿package org.red5.samples.echo.data
 {
 	/**
 	 * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -25,20 +25,21 @@
 	
 	[RemoteClass(alias="org.red5.server.webapp.echo.ExternalizableClass")]
 	/**
-	 * 
-	 * @author Joachim Bauch
+	 * @author Joachim Bauch ( jojo@struktur.de )
 	 */
 	public class ExternalizableClass implements IExternalizable 
 	{
-		public var valid: Number;
-		public var failed: Number;
+		public var valid	: Number;
+		public var failed	: Number;
 		
-		public function ExternalizableClass() {
+		public function ExternalizableClass() 
+		{
 			valid = 0;
 			failed = 0;
 		}
 		
-		public function writeExternal(output: IDataOutput): void {
+		public function writeExternal( output: IDataOutput ) : void 
+		{
 			output.writeBoolean(true);
 			output.writeBoolean(false);
 			output.writeByte(0);
@@ -68,15 +69,17 @@
 			output.writeUTFBytes("Hello world!");
 		}
 		
-		private function checkEqual(a: Object, b: Object): void {
-			if (a == b) {
+		private function checkEqual( a: Object, b: Object ) : void 
+		{
+			if ( a == b ) {
 				valid += 1;
 			} else {
 				failed += 1;
 			}
 		}
 		
-		public function readExternal(input: IDataInput): void {
+		public function readExternal( input: IDataInput ) : void 
+		{
 			checkEqual(input.readBoolean(), true);
 			checkEqual(input.readBoolean(), false);
 			checkEqual(input.readByte(), 0);
