@@ -38,8 +38,7 @@ public class RTMPMinaConnection extends RTMPConnection implements
 	/**
 	 * Logger
 	 */
-	protected static Logger log = LoggerFactory.getLogger(RTMPMinaConnection.class
-			.getName());
+	protected static Logger log = LoggerFactory.getLogger(RTMPMinaConnection.class);
 
 	/**
 	 * MINA I/O session, connection between two endpoints
@@ -59,7 +58,11 @@ public class RTMPMinaConnection extends RTMPConnection implements
 			ioSession.close();
 		}
 		// Deregister with JMX
-		JMXAgent.unregisterMBean(oName);
+		try {
+		    JMXAgent.unregisterMBean(oName);
+		} catch (Exception e) {
+		    //sometimes the client isnt registered in jmx
+		}
 	}
 
 	@Override
@@ -68,21 +71,24 @@ public class RTMPMinaConnection extends RTMPConnection implements
 		if (!success) {
 			return false;
 		}
+		String hostStr = host;
+		int port = 1935;
+		if (host != null && host.indexOf(":") > -1) {
+			String[] arr = host.split(":");
+			hostStr = arr[0];
+			port = Integer.parseInt(arr[1]);
+		}
 		try {
-			String hostStr = host;
-			int port = 1935;
-			if (host != null && host.indexOf(":") > -1) {
-				int idx = host.indexOf(":");
-				hostStr = host.substring(0, idx);
-				port = Integer.parseInt(host.substring(idx + 1));
-			}
-			// Create a new mbean for this instance
-			oName = JMXFactory.createObjectName("type", "RTMPMinaConnection",
+			//if the client is null for some reason, skip the jmx registration
+			if (client != null) {
+			    // Create a new mbean for this instance
+			    oName = JMXFactory.createObjectName("type", "RTMPMinaConnection",
 					"connectionType", type, "host", hostStr, "port", port + "",
 					"clientId", client.getId());
-			JMXAgent.registerMBean(this, this.getClass().getName(),
-					RTMPMinaConnectionMBean.class, oName);		
-			
+			    JMXAgent.registerMBean(this, this.getClass().getName(),	RTMPMinaConnectionMBean.class, oName);		
+			} else {
+                log.warn("Client was null");			
+			}
 		} catch (Exception e) {
 			log.warn("Exception registering mbean", e);
 		}

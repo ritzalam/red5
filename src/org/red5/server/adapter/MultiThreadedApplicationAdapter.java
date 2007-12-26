@@ -122,8 +122,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	/**
 	 * Logger object
 	 */
-	protected static Logger log = LoggerFactory.getLogger(MultiThreadedApplicationAdapter.class
-			.getName());
+	protected static Logger log = LoggerFactory.getLogger(MultiThreadedApplicationAdapter.class);
 
 	/**
 	 * List of application listeners.
@@ -336,7 +335,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	@Override
 	public void disconnect(IConnection conn, IScope scope) {
 		if (log.isDebugEnabled()) {
-			log.debug("disconnect: " + conn + " << " + scope);
+			log.debug("disconnect: {} << {}", conn, scope);
 		}
 		if (isApp(scope)) {
 			appDisconnect(conn);
@@ -404,7 +403,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	@Override
 	public void leave(IClient client, IScope scope) {
 		if (log.isDebugEnabled()) {
-			log.debug("leave: " + client + " << " + scope);
+			log.debug("leave: {} << {}", client, scope);
 		}
 		if (isApp(scope)) {
 			appLeave(client, scope);
@@ -426,7 +425,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 */
 	public boolean appStart(IScope app) {
 		if (log.isDebugEnabled()) {
-			log.debug("appStart: " + app);
+			log.debug("appStart: {}", app);
 		}
 		for (IApplication listener : listeners) {
 			listener.appStart(app);
@@ -442,7 +441,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 */
 	public void appStop(IScope app) {
 		if (log.isDebugEnabled()) {
-			log.debug("appStop: " + app);
+			log.debug("appStop: {}", app);
 		}
 		for (IApplication listener : listeners) {
 			listener.appStop(app);
@@ -458,7 +457,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 */
 	public boolean roomStart(IScope room) {
 		if (log.isDebugEnabled()) {
-			log.debug("roomStart: " + room);
+			log.debug("roomStart: {}", room);
 		}
 		// TODO : Get to know what does roomStart return mean
 		for (IApplication listener : listeners) {
@@ -475,7 +474,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 */
 	public void roomStop(IScope room) {
 		if (log.isDebugEnabled()) {
-			log.debug("roomStop: " + room);
+			log.debug("roomStop: {}", room);
 		}
 		for (IApplication listener : listeners) {
 			listener.roomStop(room);
@@ -509,7 +508,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 */
 	public boolean appConnect(IConnection conn, Object[] params) {
 		if (log.isDebugEnabled()) {
-			log.debug("appConnect: " + conn);
+			log.debug("appConnect: {}", conn);
 		}
 		for (IApplication listener : listeners) {
 			listener.appConnect(conn, params);
@@ -536,7 +535,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 */
 	public boolean roomConnect(IConnection conn, Object[] params) {
 		if (log.isDebugEnabled()) {
-			log.debug("roomConnect: " + conn);
+			log.debug("roomConnect: {}", conn);
 		}
 		for (IApplication listener : listeners) {
 			listener.roomConnect(conn, params);
@@ -553,7 +552,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 */
 	public void appDisconnect(IConnection conn) {
 		if (log.isDebugEnabled()) {
-			log.debug("appDisconnect: " + conn);
+			log.debug("appDisconnect: {}", conn);
 		}
 		for (IApplication listener : listeners) {
 			listener.appDisconnect(conn);
@@ -568,7 +567,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 */
 	public void roomDisconnect(IConnection conn) {
 		if (log.isDebugEnabled()) {
-			log.debug("roomDisconnect: " + conn);
+			log.debug("roomDisconnect: {}", conn);
 		}
 		for (IApplication listener : listeners) {
 			listener.roomDisconnect(conn);
@@ -577,7 +576,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 
 	public boolean appJoin(IClient client, IScope app) {
 		if (log.isDebugEnabled()) {
-			log.debug("appJoin: " + client + " >> " + app);
+			log.debug("appJoin: {} >> {}", client, app);
 		}
 		for (IApplication listener : listeners) {
 			listener.appJoin(client, app);
@@ -595,7 +594,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 */
 	public void appLeave(IClient client, IScope app) {
 		if (log.isDebugEnabled()) {
-			log.debug("appLeave: " + client + " << " + app);
+			log.debug("appLeave: {} << {}", client, app);
 		}
 		for (IApplication listener : listeners) {
 			listener.appLeave(client, app);
@@ -604,7 +603,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 
 	public boolean roomJoin(IClient client, IScope room) {
 		if (log.isDebugEnabled()) {
-			log.debug("roomJoin: " + client + " >> " + room);
+			log.debug("roomJoin: {} >> {}", client, room);
 		}
 		for (IApplication listener : listeners) {
 			listener.roomJoin(client, room);
@@ -620,7 +619,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 */
 	public void roomLeave(IClient client, IScope room) {
 		if (log.isDebugEnabled()) {
-			log.debug("roomLeave: " + client + " << " + room);
+			log.debug("roomLeave: {} << {}", client, room);
 		}
 		for (IApplication listener : listeners) {
 			listener.roomLeave(client, room);
@@ -975,7 +974,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 						StreamableFileFactory.class);
 		IStreamableFileService service = factory.getService(file);
 		if (service == null) {
-			log.error("No service found for " + file.getAbsolutePath());
+			log.error("No service found for {}", file.getAbsolutePath());
 			return 0;
 		}
 		try {
@@ -984,7 +983,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 			duration = (double) reader.getDuration() / 1000;
 			reader.close();
 		} catch (IOException e) {
-			log.error("error read stream file " + file.getAbsolutePath(), e);
+			log.error("error read stream file {}. {}", file.getAbsolutePath(), e);
 		}
 
 		return duration;

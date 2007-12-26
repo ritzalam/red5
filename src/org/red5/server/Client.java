@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.management.ObjectName;
@@ -60,7 +61,7 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 	/**
 	 *  Scopes this client connected to
 	 */
-	protected Map<IConnection, IScope> connToScope = new ConcurrentHashMap<IConnection, IScope>();
+	protected ConcurrentMap<IConnection, IScope> connToScope = new ConcurrentHashMap<IConnection, IScope>();
 
 	/**
 	 *  Creation time as Timestamp
@@ -84,6 +85,7 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 
 	public Client() {
 		//here for jmx reference only
+		log.debug("Default ctor called");
 	}
 
 	/**
@@ -100,18 +102,13 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 		oName = JMXFactory.createObjectName("type", "Client", "id", id);
 		JMXAgent.registerMBean(this, this.getClass().getName(),
 				ClientMBean.class, oName);
-		//JMXFactory.createMBean("org.red5.server.Client", "id=" + id);
 	}
 
 	/**
 	 *  Disconnects client from Red5 application
 	 */
 	public void disconnect() {
-		if (log.isDebugEnabled()) {
-			log.debug("Disconnect, closing " + getConnections().size()
-					+ " connections");
-		}
-
+		log.debug("Disconnect - id: {}, closing {} connections", id, getConnections().size());
 		// Close all associated connections
 		for (IConnection con : getConnections()) {
 			con.close();
@@ -211,7 +208,7 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 	 */
 	@Override
 	public int hashCode() {
-		return id.hashCode();
+		return Integer.valueOf(id);
 	}
 
 	/**
@@ -223,12 +220,11 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 	public List<String> iterateScopeNameList() {
 		log.debug("iterateScopeNameList called");
 		List<String> scopeNames = new ArrayList<String>();
-		log.debug("Scopes: " + connToScope.values().size());
+		log.debug("Scopes: {}", connToScope.values().size());
 		for (IScope scope : connToScope.values()) {
-			log.debug("Client scope: " + scope);
+			log.debug("Client scope: {}", scope);
 			for (Map.Entry<String, Object> entry : scope.getAttributes().entrySet()) {
-				log.debug("Client scope attr: " + entry.getKey() + " = "
-						+ entry.getValue());
+				log.debug("Client scope attr: {} = {}", entry.getKey(), entry.getValue());
 			}
 		}
 		return scopeNames;
@@ -239,8 +235,16 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 	 * @param conn         Connection object
 	 */
 	protected void register(IConnection conn) {
-		log.debug("Registering connection for this client");
-		connToScope.put(conn, conn.getScope());
+		log.debug("Registering connection for this client {}", id);
+		if (conn != null) {
+    		if (conn.getScope() != null) {
+    		    connToScope.put(conn, conn.getScope());
+		    } else {
+		        log.warn("Clients scope is null. Id: {}", id);
+		    }
+		} else {
+		    log.warn("Clients connection is null. Id: {}", id);
+		}
 	}
 
 	/**

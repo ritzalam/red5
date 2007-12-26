@@ -107,7 +107,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	 * 
 	 * @see org.red5.server.api.stream.IClientStream
 	 */
-	private Map<Integer, IClientStream> streams = new ConcurrentHashMap<Integer, IClientStream>();
+	private ConcurrentMap<Integer, IClientStream> streams = new ConcurrentHashMap<Integer, IClientStream>();
 
 	private BitSet reservedStreams = new BitSet();
 
@@ -119,7 +119,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/**
 	 * Hash map that stores pending calls and ids as pairs.
 	 */
-	protected Map<Integer, IPendingServiceCall> pendingCalls = new ConcurrentHashMap<Integer, IPendingServiceCall>();
+	protected ConcurrentMap<Integer, IPendingServiceCall> pendingCalls = new ConcurrentHashMap<Integer, IPendingServiceCall>();
 
 	/**
 	 * Deferred results set.
@@ -574,9 +574,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 					IClientStream stream = entry.getValue();
 					if (stream != null) {
 						if (log.isDebugEnabled()) {
-							log
-									.debug("Closing stream: "
-											+ stream.getStreamId());
+							log.debug("Closing stream: {}", stream.getStreamId());
 						}
 						streamService.deleteStream(this, stream.getStreamId());
 						usedStreams--;
@@ -662,9 +660,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	 * @param bytes		Number of bytes
 	 */
 	public void receivedBytesRead(int bytes) {
-		log.info("Client received " + bytes + " bytes, written "
-				+ getWrittenBytes() + " bytes, " + getPendingMessages()
-				+ " messages pending");
+		log.info("Client received {} bytes, written {} bytes, {} messages pending", new Object[]{bytes, getWrittenBytes(), getPendingMessages()});
 		clientBytesRead = bytes;
 	}
 
@@ -955,15 +951,12 @@ public abstract class RTMPConnection extends BaseConnection implements
 	 * Starts measurement.
 	 */
 	public void startRoundTripMeasurement() {
-		if (pingInterval <= 0)
+		if (pingInterval <= 0) {
 			// Ghost detection code disabled
 			return;
-
-		ISchedulingService schedulingService = (ISchedulingService) getScope()
-				.getContext().getBean(ISchedulingService.BEAN_NAME);
-		IScheduledJob keepAliveJob = new KeepAliveJob();
-		keepAliveJobName = schedulingService.addScheduledJob(pingInterval,
-				keepAliveJob);
+        }
+		ISchedulingService schedulingService = (ISchedulingService) getScope().getContext().getBean(ISchedulingService.BEAN_NAME);
+		keepAliveJobName = schedulingService.addScheduledJob(pingInterval, new KeepAliveJob());
 	}
 
 	/**
@@ -1044,9 +1037,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 				// disconnect
 				service.removeScheduledJob(keepAliveJobName);
 				keepAliveJobName = null;
-				log.warn("Closing " + RTMPConnection.this
-						+ " due to too much inactivity ("
-						+ (lastPingSent - lastPongReceived) + ").");
+				log.warn("Closing {} due to too much inactivity ({}).", RTMPConnection.this, (lastPingSent - lastPongReceived));
 				onInactive();
 				return;
 			}

@@ -65,7 +65,7 @@ public class JMXFactory {
 	}
 
 	public static ObjectName createMBean(String className, String attributes) {
-		log.info("Create the " + className + " MBean within the MBeanServer");
+		log.info("Create the {} MBean within the MBeanServer", className);
 		ObjectName objectName = null;
 		try {
 			StringBuilder objectNameStr = new StringBuilder(domain);
@@ -74,15 +74,15 @@ public class JMXFactory {
 					.substring(className.lastIndexOf(".") + 1));
 			objectNameStr.append(",");
 			objectNameStr.append(attributes);
-			log.info("ObjectName = " + objectNameStr);
+			log.info("ObjectName = {}", objectNameStr);
 			objectName = new ObjectName(objectNameStr.toString());
 			if (!mbs.isRegistered(objectName)) {
 				mbs.createMBean(className, objectName);
 			} else {
-				log.debug("MBean has already been created: " + objectName);
+				log.debug("MBean has already been created: {}", objectName);
 			}
 		} catch (Exception e) {
-			log.error("Could not create the " + className + " MBean", e);
+			log.error("Could not create the {} MBean. {}", className, e);
 		}
 		return objectName;
 	}
@@ -93,14 +93,16 @@ public class JMXFactory {
 		sb.append(':');
 		for (int i = 0, j = 1; i < strings.length; i += 2, j += 2) {
 			//log.debug("------------" + strings[i] + " " + strings[j]);
-			sb.append(ObjectName.quote(strings[i]));
+			//sb.append(ObjectName.quote(strings[i]));
+			sb.append(strings[i]);
 			sb.append('=');
-			sb.append(ObjectName.quote(strings[j]));
+			//sb.append(ObjectName.quote(strings[j]));
+			sb.append(strings[j]);
 			sb.append(',');
 		}
 		sb.deleteCharAt(sb.length() - 1);
 		try {
-			log.debug("Object name: " + sb.toString());
+			log.info("Object name: {}", sb.toString());
 			objName = new ObjectName(sb.toString());
 		} catch (Exception e) {
 			log.warn("Exception creating object name", e);
@@ -110,18 +112,18 @@ public class JMXFactory {
 
 	public static ObjectName createSimpleMBean(String className,
 			String objectNameStr) {
-		log.info("Create the " + className + " MBean within the MBeanServer");
-		log.info("ObjectName = " + objectNameStr);
+		log.info("Create the {} MBean within the MBeanServer", className);
+		log.info("ObjectName = {}", objectNameStr);
 		try {
 			ObjectName objectName = ObjectName.getInstance(objectNameStr);
 			if (!mbs.isRegistered(objectName)) {
 				mbs.createMBean(className, objectName);
 			} else {
-				log.debug("MBean has already been created: " + objectName);
+				log.debug("MBean has already been created: {}", objectName);
 			}
 			return objectName;
 		} catch (Exception e) {
-			log.error("Could not create the " + className + " MBean", e);
+			log.error("Could not create the {} MBean. {}", className, e);
 		}
 		return null;
 	}

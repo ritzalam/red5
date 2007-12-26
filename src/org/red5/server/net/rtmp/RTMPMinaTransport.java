@@ -32,7 +32,6 @@ import java.util.concurrent.TimeUnit;
 import javax.management.ObjectName;
 
 import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.common.IoFilter;
 import org.apache.mina.common.IoHandlerAdapter;
 import org.apache.mina.common.SimpleByteBufferAllocator;
 import org.apache.mina.common.ThreadModel;
@@ -190,35 +189,29 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 		initIOHandler();
 
 		ByteBuffer.setUseDirectBuffers(!useHeapBuffers); // this is global, oh well.
-		if (useHeapBuffers)
+		if (useHeapBuffers) {
 			ByteBuffer.setAllocator(new SimpleByteBufferAllocator()); // dont pool for heap buffers.
-
+        }
 		log.info("RTMP Mina Transport Settings");
-		log.info("IO Threads: " + ioThreads + "+1");
-		log.info("Event Threads:" + " core: " + eventThreadsCore + "+1"
-				+ " max: " + eventThreadsMax + "+1" + " queue: "
-				+ eventThreadsQueue + " keepalive: " + eventThreadsKeepalive);
+		log.info("IO Threads: {} + 1", ioThreads);
+		log.info("Event Threads - core: {}, max: {}, queue: {}, keepalive: {}", new Object[]{eventThreadsCore, eventThreadsMax, eventThreadsQueue, eventThreadsKeepalive});
 
-		ioExecutor = new ThreadPoolExecutor(ioThreads + 1, ioThreads + 1, 60,
-				TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
-
-		eventExecutor = new ThreadPoolExecutor(eventThreadsCore + 1,
-				eventThreadsMax + 1, eventThreadsKeepalive, TimeUnit.SECONDS,
-				threadQueue(eventThreadsQueue));
-
+		ioExecutor = new ThreadPoolExecutor(ioThreads + 1, Integer.MAX_VALUE, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
+		
+		eventExecutor = new ThreadPoolExecutor(eventThreadsCore, eventThreadsMax, eventThreadsKeepalive, TimeUnit.SECONDS, threadQueue(eventThreadsQueue));
+		
 		acceptor = new SocketAcceptor(ioThreads, ioExecutor);
 
-		acceptor.getFilterChain().addLast("threadPool",
-				new ExecutorFilter(eventExecutor));
+		acceptor.getFilterChain().addLast("threadPool", new ExecutorFilter(eventExecutor));
 
 		SocketAcceptorConfig config = acceptor.getDefaultConfig();
 		config.setThreadModel(ThreadModel.MANUAL);
 		config.setReuseAddress(true);
 		config.setBacklog(100);
 
-		log.info("TCP No Delay: " + tcpNoDelay);
-		log.info("Receive Buffer Size: " + receiveBufferSize);
-		log.info("Send Buffer Size: " + sendBufferSize);
+		log.info("TCP No Delay: {}", tcpNoDelay);
+		log.info("Receive Buffer Size: {}", receiveBufferSize);
+		log.info("Send Buffer Size: {}", sendBufferSize);
 
 		SocketSessionConfig sessionConf = (SocketSessionConfig) config
 				.getSessionConfig();
@@ -229,8 +222,7 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 
 		if (isLoggingTraffic) {
 			log.info("Configuring traffic logging filter");
-			IoFilter filter = new LoggingFilter();
-			acceptor.getFilterChain().addFirst("LoggingFilter", filter);
+			acceptor.getFilterChain().addFirst("LoggingFilter", new LoggingFilter());
 		}
 
 		SocketAddress socketAddress = (address == null) ? new InetSocketAddress(
@@ -238,7 +230,7 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 				: new InetSocketAddress(address, port);
 		acceptor.bind(socketAddress, ioHandler);
 
-		log.info("RTMP Mina Transport bound to " + socketAddress.toString());
+		log.info("RTMP Mina Transport bound to {}", socketAddress.toString());
 
 		//create a new mbean for this instance
 		oName = JMXFactory.createObjectName("type", "RTMPMinaTransport",

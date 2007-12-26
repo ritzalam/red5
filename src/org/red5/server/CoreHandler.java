@@ -64,24 +64,24 @@ public class CoreHandler implements IScopeHandler, CoreHandlerMBean {
      * @return                      true if client was registred within scope, false otherwise
      */
     public boolean connect(IConnection conn, IScope scope, Object[] params) {
-
 		log.debug("Connect to core handler ?");
 
         // Get session id
         String id = conn.getSessionId();
+        //log.debug("Session id: {}", id);
 
 		// Use client registry from scope the client connected to.
 		IScope connectionScope = Red5.getConnectionLocal().getScope();
+		log.debug("Connection scope: {}", (connectionScope == null ? "is null" : "not null"));
 
         // Get client registry for connection scope
-        IClientRegistry clientRegistry = connectionScope.getContext()
-				.getClientRegistry();
+        IClientRegistry clientRegistry = connectionScope.getContext().getClientRegistry();
+		log.debug("Client registry: {}", (clientRegistry == null ? "is null" : "not null"));
 
         // Get client from registry by id or create a new one
-        IClient client = clientRegistry.hasClient(id) ? clientRegistry
-				.lookupClient(id) : clientRegistry.newClient(params);
+        IClient client = clientRegistry.hasClient(id) ? clientRegistry.lookupClient(id) : clientRegistry.newClient(params);
 
-		// We have a context, and a client object.. time to init the conneciton.
+		// We have a context, and a client object.. time to init the connection.
 		conn.initialize(client);
 
 		// we could checked for banned clients here 

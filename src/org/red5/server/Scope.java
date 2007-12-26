@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -252,12 +253,12 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	/**
 	 * Child scopes map (child scopes are named)
 	 */
-	private final Map<String, IBasicScope> children = new ConcurrentHashMap<String, IBasicScope>();
+	private final ConcurrentMap<String, IBasicScope> children = new ConcurrentHashMap<String, IBasicScope>();
 
 	/**
 	 * Clients and connection map
 	 */
-	private final Map<IClient, Set<IConnection>> clients = new ConcurrentHashMap<IClient, Set<IConnection>>();
+	private final ConcurrentMap<IClient, Set<IConnection>> clients = new ConcurrentHashMap<IClient, Set<IConnection>>();
 
 	/**
 	 * Statistics about clients connected to the scope.
@@ -320,7 +321,6 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 */
 	public Scope() {
 		this(null);
-		creationTime = System.currentTimeMillis();
 	}
 
 	/**
@@ -350,24 +350,17 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 					((Scope) scope).setPersistenceClass(this.persistenceClass);
 				}
 			} catch (Exception error) {
-				log.error("Could not set persistence class.", error);
+				log.error("Could not set persistence class. {}", error);
 			}
 		}
 		if (hasHandler() && !getHandler().addChildScope(scope)) {
-			if (log.isDebugEnabled()) {
-				log
-						.debug("Failed to add child scope: " + scope + " to "
-								+ this);
-			}
+			log.debug("Failed to add child scope: {} to {}", scope, this);
 			return false;
 		}
 		if (scope instanceof IScope) {
 			// start the scope
 			if (hasHandler() && !getHandler().start((IScope) scope)) {
-				if (log.isDebugEnabled()) {
-					log.debug("Failed to start child scope: " + scope + " in "
-							+ this);
-				}
+				log.debug("Failed to start child scope: {} in {}", scope, this);
 				return false;
 			}
 		}
@@ -377,9 +370,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 				((Server) server).notifyScopeCreated((IScope) scope);
 			}
 		}
-		if (log.isDebugEnabled()) {
-			log.debug("Add child scope: " + scope + " to " + this);
-		}
+		log.debug("Add child scope: {} to {}", scope, this);
 		children.put(scope.getType() + SEPARATOR + scope.getName(), scope);
 		return true;
 	}
@@ -398,45 +389,47 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	/**
 	 * Connect to scope with parameters. To successfully connect to scope it
 	 * must have handler that will accept this connection with given set of
-	 * params. Client associated with connection is added to scope clients set,
-	 * connection is registred as scope event listener.
+	 * parameters. Client associated with connection is added to scope clients set,
+	 * connection is registered as scope event listener.
 	 * 
 	 * @param conn
 	 *            Connection object
 	 * @param params
-	 *            Params passed with connection
+	 *            Parameters passed with connection
 	 * @return <code>true</code> on success, <code>false</code> otherwise
 	 */
 	public boolean connect(IConnection conn, Object[] params) {
+		logger.debug("Has connection: {}", (conn != null));		
+		logger.debug("Has handler: {}", (handler != null));
+		logger.debug("Has parent: {}", (parent != null));		
 		if (hasParent() && !parent.connect(conn, params)) {
 			return false;
 		}
 		if (hasHandler() && !getHandler().connect(conn, this, params)) {
 			return false;
 		}
-		final IClient client = conn.getClient();
+		final IClient client = conn.getClient();	
 		if (!conn.isConnected()) {
 			// Timeout while connecting client
 			return false;
 		}
-		
+		//we would not get this far if there is no handler
 		if (hasHandler() && !getHandler().join(client, this)) {
+		//if (!getHandler().join(client, this)) {
 			return false;
 		}
+		//checking the connection again? why?
 		if (!conn.isConnected()) {
 			// Timeout while connecting client
 			return false;
 		}
 		
-		synchronized (clients) {
-			Set<IConnection> conns = clients.get(client);
-			if (conns == null) {
-				conns = new CopyOnWriteArraySet<IConnection>();
-				clients.put(client, conns);
-			}
-			
-			conns.add(conn);
-		}
+		Set<IConnection> conns = clients.get(client);
+		if (conns == null) {
+			conns = new CopyOnWriteArraySet<IConnection>();
+			clients.put(client, conns);
+		}		
+		conns.add(conn);
 			
 		clientStats.increment();
 		addEventListener(conn);
@@ -508,28 +501,18 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 				try {
 					handler.disconnect(conn, this);
 				} catch (Exception e) {
-					log.error(
-							"Error while executing \"disconnect\" for connection "
-									+ conn + " on handler " + handler, e);
+					log.error("Error while executing \"disconnect\" for connection {} on handler {}. {}", new Object[]{conn, handler, e});
 				}
 			}
-
-			boolean leave = false;
-			synchronized (clients) {
-				if (conns.isEmpty()) {
-					clients.remove(client);
-					leave = true;
-				}
-			}
-			if (leave) {
+			if (conns.isEmpty()) {
+				clients.remove(client);
 				clientStats.decrement();
 				if (handler != null) {
 					try {
 						// there may be a timeout here ?
 						handler.leave(client, this);
 					} catch (Exception e) {
-						log.error("Error while executing \"leave\" for client "
-								+ client + " on handler " + handler, e);
+						log.error("Error while executing \"leave\" for client {} on handler {}. {}", new Object[]{conn, handler, e});
 					}
 				}
 			}
@@ -640,10 +623,10 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 */
 	public IContext getContext() {
 		if (!hasContext() && hasParent()) {
-			log.debug("returning parent context");
+			//log.debug("returning parent context");
 			return parent.getContext();
 		} else {
-			log.debug("returning context");
+			//log.debug("returning context");
 			return context;
 		}
 	}
@@ -896,9 +879,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 *         <code>false</code> otherwise
 	 */
 	public boolean hasChildScope(String name) {
-		if (log.isDebugEnabled()) {
-			log.debug("Has child scope? " + name + " in " + this);
-		}
+		log.debug("Has child scope? {} in {}", name, this);
 		// log.debug("Children: " + children);
 		return children.containsKey(TYPE + SEPARATOR + name);
 	}
@@ -1145,7 +1126,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 				oName = new ObjectName(JMXFactory.getDefaultDomain() + ":type="
 						+ getClass().getName() + ",name=" + name);
 			} catch (MalformedObjectNameException e) {
-				log.error("Invalid object name.", e);
+				log.error("Invalid object name. {}", e);
 			}
 			JMXAgent.registerMBean(this, this.getClass().getName(),
 					ScopeMBean.class, oName);
@@ -1197,14 +1178,11 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 						result = handler.start(this);
 					}
 				} catch (Throwable e) {
-					log.error("Could not start scope " + this, e);
+					log.error("Could not start scope {}. {}", this, e);
 				}
 			} else {
 				// Always start scopes without handlers
-				if (log.isDebugEnabled()) {
-					log.debug("Scope " + this
-							+ " has no handler, allowing start.");
-				}
+				log.debug("Scope {} has no handler, allowing start.", this);
 				result = true;
 			}
 			running = result;
@@ -1259,9 +1237,9 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 * @return the server instance
 	 */
 	public IServer getServer() {
-		if (!hasParent())
+		if (!hasParent()) {
 			return null;
-
+        }
 		final IScope parent = getParent();
 		if (parent instanceof Scope) {
 			return ((Scope) parent).getServer();

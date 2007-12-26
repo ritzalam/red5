@@ -192,9 +192,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 	protected void onInvoke(RTMPConnection conn, Channel channel,
 			Header source, Notify invoke, RTMP rtmp) {
 
-		if (log.isDebugEnabled()) {
-			log.debug("Invoke: " + invoke);
-		}
+		log.debug("Invoke: {}", invoke);
 
 		// Get call
 		final IServiceCall call = invoke.getCall();
@@ -212,9 +210,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 
 		// If this is not a service call then handle connection...
 		if (call.getServiceName() == null) {
-			if (log.isDebugEnabled()) {
-				log.debug("call: " + call);
-			}
+			log.debug("call: {}", call);
 			final String action = call.getServiceMethodName();
 			if (!conn.isConnected()) {
 				// Handle connection
@@ -258,12 +254,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 										+ "\" on this server.");
 								((IPendingServiceCall) call).setResult(status);
 							}
-							log
-									.info("No application scope found for "
-											+ path
-											+ " on host "
-											+ host
-											+ ". Misspelled or missing application folder?");
+							log.info("No application scope found for {} on host {}. Misspelled or missing application folder?", path, host);
 							disconnectOnReturn = true;
 						} else {
 							final IContext context = global.getContext();
@@ -280,8 +271,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 											.setResult(status);
 								}
 								if (log.isInfoEnabled()) {
-									log.info("Scope " + path + " not found on "
-											+ host);
+									log.info("Scope {} not found on {}", path, host);
 								}
 								disconnectOnReturn = true;
 							} catch (ScopeShuttingDownException err) {
@@ -295,16 +285,12 @@ public class RTMPHandler extends BaseRTMPHandler {
 											.setResult(status);
 								}
 								if (log.isInfoEnabled()) {
-									log.info("Application at " + path
-											+ " currently shutting down on "
-											+ host);
+									log.info("Application at {} currently shutting down on {}", path, host);
 								}
 								disconnectOnReturn = true;
 							}
 							if (scope != null) {
-								if (log.isDebugEnabled()) {
-									log.info("Connecting to: " + scope);
-								}
+								log.info("Connecting to: {}", scope);
 								// Setup application's classloader to be used for deserializing
 								ClassLoader loader = scope.getClassLoader();
 								if (loader == null) {
@@ -315,24 +301,19 @@ public class RTMPHandler extends BaseRTMPHandler {
 								
 								boolean okayToConnect;
 								try {
+								    log.info("DEBUG - conn {}, scope {}, call {}", new Object[]{conn, scope, call});
+								    log.info("DEBUG - args {}", call.getArguments());
 									if (call.getArguments() != null) {
-										okayToConnect = conn.connect(scope,
-												call.getArguments());
+										okayToConnect = conn.connect(scope, call.getArguments());
 									} else {
 										okayToConnect = conn.connect(scope);
 									}
 									if (okayToConnect) {
-										if (log.isDebugEnabled()) {
-											log.debug("Connected");
-											log.debug("Client: "
-													+ conn.getClient());
-										}
-										call
-												.setStatus(Call.STATUS_SUCCESS_RESULT);
+										log.debug("Connected - Client: {}", conn.getClient());
+										call.setStatus(Call.STATUS_SUCCESS_RESULT);
 										if (call instanceof IPendingServiceCall) {
 											IPendingServiceCall pc = (IPendingServiceCall) call;
-											pc
-													.setResult(getStatus(NC_CONNECT_SUCCESS));
+											pc.setResult(getStatus(NC_CONNECT_SUCCESS));
 										}
 										// Measure initial roundtrip time after
 										// connecting
@@ -374,7 +355,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 							IPendingServiceCall pc = (IPendingServiceCall) call;
 							pc.setResult(getStatus(NC_CONNECT_FAILED));
 						}
-						log.error("Error connecting", e);
+						log.error("Error connecting {}", e);
 						disconnectOnReturn = true;
 					}
 

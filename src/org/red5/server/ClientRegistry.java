@@ -22,6 +22,7 @@ package org.red5.server;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -41,7 +42,7 @@ public class ClientRegistry implements IClientRegistry, ClientRegistryMBean {
 	/**
 	 * Clients map
 	 */
-	private Map<String, IClient> clients = new ConcurrentHashMap<String, IClient>();
+	private ConcurrentMap<String, IClient> clients = new ConcurrentHashMap<String, IClient>();
 
 	/**
 	 *  Next client id
@@ -60,13 +61,19 @@ public class ClientRegistry implements IClientRegistry, ClientRegistryMBean {
 	protected void addClient(IClient client) {
 		clients.put(client.getId(), client);
 	}
+	
+	/**
+	 * Add the client to the registry
+	 */
+	private void addClient(String id, IClient client) {
+		clients.put(id, client);
+	}	
 
 	public Client getClient(String id) throws ClientNotFoundException {
 		final Client result = (Client) clients.get(id);
 		if (result == null) {
 			throw new ClientNotFoundException(id);
 		}
-		
 		return result;
 	}
 
@@ -99,8 +106,7 @@ public class ClientRegistry implements IClientRegistry, ClientRegistryMBean {
 		if (!hasClients()) {
 			// Avoid creating new Collection object if no clients exist.
 			return Collections.EMPTY_SET;
-		}
-		
+		}		
 		return Collections.unmodifiableCollection(clients.values());
 	}
 
@@ -139,8 +145,9 @@ public class ClientRegistry implements IClientRegistry, ClientRegistryMBean {
 	 */
 	public IClient newClient(Object[] params) throws ClientNotFoundException,
 			ClientRejectedException {
-		IClient client = new Client(nextId(), this);
-		addClient(client);
+	    String id = nextId();
+		IClient client = new Client(id, this);
+		addClient(id, client);
 		return client;
 	}
 

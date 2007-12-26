@@ -42,8 +42,7 @@ implements ApplicationContextAware {
     /**
      * Logger
      */
-	protected static Logger log = LoggerFactory.getLogger(RTMPMinaIoHandler.class
-			.getName());
+	protected static Logger log = LoggerFactory.getLogger(RTMPMinaIoHandler.class);
 
     /**
      * RTMP events handler
@@ -102,9 +101,7 @@ implements ApplicationContextAware {
     @Override
 	public void exceptionCaught(IoSession session, Throwable cause)
 			throws Exception {
-    	if (log.isDebugEnabled()) {
-    		log.debug("Exception caught", cause);
-    	}
+   		log.debug("Exception caught {}", cause);
 	}
 
 	/** {@inheritDoc} */
@@ -113,16 +110,12 @@ implements ApplicationContextAware {
     	if (log.isDebugEnabled()) {
     		log.debug("messageRecieved");
     	}
-		final RTMPMinaConnection conn = (RTMPMinaConnection) session
-				.getAttachment();
-		final ProtocolState state = (ProtocolState) session
-				.getAttribute(ProtocolState.SESSION_KEY);
-
+		final ProtocolState state = (ProtocolState) session.getAttribute(ProtocolState.SESSION_KEY);
 		if (in instanceof ByteBuffer) {
 			rawBufferRecieved(state, (ByteBuffer) in, session);
 			return;
 		}
-
+		final RTMPMinaConnection conn = (RTMPMinaConnection) session.getAttachment();
 		handler.messageReceived(conn, state, in);
 	}
 
@@ -141,11 +134,7 @@ implements ApplicationContextAware {
 			if (rtmp.getState() != RTMP.STATE_HANDSHAKE) {
 				log.warn("Raw buffer after handshake, something odd going on");
 			}
-
-			if (log.isDebugEnabled()){
-				log.debug("Handshake 2nd phase");
-				log.debug("handshake size:"+in.remaining());
-			}
+			log.debug("Handshake 2nd phase - size: {}", in.remaining());
 			ByteBuffer out = ByteBuffer.allocate((Constants.HANDSHAKE_SIZE*2)+1);
 			out.put((byte)0x03);
 			// TODO: the first four bytes of the handshake reply seem to be the
@@ -160,10 +149,7 @@ implements ApplicationContextAware {
 			//in.release();
 			session.write(out); 
 		} else {
-			if (log.isDebugEnabled()) {
-				log.debug("Handshake 3d phase");
-				log.debug("handshake size:"+in.remaining());
-			}
+			log.debug("Handshake 3d phase - size: {}", in.remaining());
 			in.skip(1);
 			ByteBuffer out = ByteBuffer.allocate(Constants.HANDSHAKE_SIZE);
 			int limit=in.limit();
@@ -228,12 +214,12 @@ implements ApplicationContextAware {
 	/** {@inheritDoc} */
     @Override
 	public void sessionClosed(IoSession session) throws Exception {
-		final RTMP rtmp = (RTMP) session
-				.getAttribute(ProtocolState.SESSION_KEY);
 		ByteBuffer buf = (ByteBuffer) session.getAttribute("buffer");
 		if (buf != null) {
 			buf.release();
 		}
+		final RTMP rtmp = (RTMP) session
+				.getAttribute(ProtocolState.SESSION_KEY);
 		final RTMPMinaConnection conn = (RTMPMinaConnection) session
 				.getAttachment();
 		this.handler.connectionClosed(conn, rtmp);
@@ -247,11 +233,9 @@ implements ApplicationContextAware {
 		if (log.isDebugEnabled()) {
 			log.debug("Session created");
 		}
-
 		// moved protocol state from connection object to RTMP object
 		RTMP rtmp = new RTMP(mode);
 		session.setAttribute(ProtocolState.SESSION_KEY, rtmp);
-
 		session.getFilterChain().addFirst("protocolFilter",
 				new ProtocolCodecFilter(this.codecFactory));
 		if (log.isDebugEnabled()) {
