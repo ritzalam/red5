@@ -74,6 +74,12 @@ public class CoreHandler implements IScopeHandler, CoreHandlerMBean {
 		IScope connectionScope = Red5.getConnectionLocal().getScope();
 		log.debug("Connection scope: {}", (connectionScope == null ? "is null" : "not null"));
 
+        // when the scope is null bad things seem to happen, if a null scope is OK then 
+        // this block will need to be removed - Paul
+        if (connectionScope == null) {
+            return false;
+        }
+
         // Get client registry for connection scope
         IClientRegistry clientRegistry = connectionScope.getContext().getClientRegistry();
 		log.debug("Client registry: {}", (clientRegistry == null ? "is null" : "not null"));
