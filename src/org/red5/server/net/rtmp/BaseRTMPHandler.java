@@ -192,9 +192,7 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 							(SharedObjectMessage) message);
 					break;
 				default:
-					if (log.isDebugEnabled()) {
-						log.debug("Unknown type: "+header.getDataType());
-					}
+					log.debug("Unknown type: {}", header.getDataType());
 			}
 			if (message instanceof Unknown) {
 				log.info("{}", message);
@@ -243,9 +241,7 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
      * @return             Hostname from that URL
      */
 	protected String getHostname(String url) {
-		if (log.isDebugEnabled()) {
-			log.debug("url: " + url);
-		}
+		log.debug("url: {}", url);
 		String[] parts = url.split("/");
 		if (parts.length == 2) {
 			// TODO: is this a good default hostname?
@@ -293,7 +289,7 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 	                try {
 	                    callback.resultReceived(pendingCall);
 	                } catch (Exception e) {
-	                    log.error("Error while executing callback " + callback, e);
+	                    log.error("Error while executing callback {} {}", callback, e);
 	                }
 	            }
 			}

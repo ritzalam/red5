@@ -183,16 +183,7 @@ implements ApplicationContextAware {
 
 	/** {@inheritDoc} */
     @Override
-	public void sessionOpened(IoSession session) throws Exception {
-		// TODO Auto-generated method stub
-
-    	// This is now done in red5-core.xml
-		//SocketSessionConfig cfg = (SocketSessionConfig) session.getConfig();
-		//cfg.setReceiveBufferSize(64*1024);
-		//cfg.setSendBufferSize(64*1024);
-		//log.info("Is tcp delay enabled: " + cfg.isTcpNoDelay());
-		//cfg.setTcpNoDelay(true);
-    	
+	public void sessionOpened(IoSession session) throws Exception {   	
 		super.sessionOpened(session);
 
 		RTMP rtmp=(RTMP)session.getAttribute(ProtocolState.SESSION_KEY);

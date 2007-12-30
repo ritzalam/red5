@@ -144,10 +144,8 @@ public class RTMPHandler extends BaseRTMPHandler {
 		final IScope scope = conn.getScope();
 		if (scope.hasHandler()) {
 			final IScopeHandler handler = scope.getHandler();
-			if (log.isDebugEnabled()) {
-				log.debug("Scope: " + scope);
-				log.debug("Handler: " + handler);
-			}
+			log.debug("Scope: {}", scope);
+			log.debug("Handler: {}", handler);
 			if (!handler.serviceCall(conn, call)) {
 				// XXX: What do do here? Return an error?
 				return;
@@ -155,9 +153,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 		}
 
 		final IContext context = scope.getContext();
-		if (log.isDebugEnabled()) {
-			log.debug("Context: " + context);
-		}
+		log.debug("Context: {}", context);
 		context.getServiceInvoker().invoke(call, scope);
 	}
 
@@ -177,11 +173,9 @@ public class RTMPHandler extends BaseRTMPHandler {
 			Object service) {
 		final IScope scope = conn.getScope();
 		final IContext context = scope.getContext();
-		if (log.isDebugEnabled()) {
-			log.debug("Scope: " + scope);
-			log.debug("Service: " + service);
-			log.debug("Context: " + context);
-		}
+		log.debug("Scope: {}", scope);
+		log.debug("Service: {}", service);
+		log.debug("Context: {}", context);
 		return context.getServiceInvoker().invoke(call, service);
 	}
 
@@ -270,9 +264,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 									((IPendingServiceCall) call)
 											.setResult(status);
 								}
-								if (log.isInfoEnabled()) {
-									log.info("Scope {} not found on {}", path, host);
-								}
+								log.info("Scope {} not found on {}", path, host);
 								disconnectOnReturn = true;
 							} catch (ScopeShuttingDownException err) {
 								call.setStatus(Call.STATUS_APP_SHUTTING_DOWN);
@@ -284,9 +276,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 									((IPendingServiceCall) call)
 											.setResult(status);
 								}
-								if (log.isInfoEnabled()) {
-									log.info("Application at {} currently shutting down on {}", path, host);
-								}
+								log.info("Application at {} currently shutting down on {}", path, host);
 								disconnectOnReturn = true;
 							}
 							if (scope != null) {
@@ -333,9 +323,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 										disconnectOnReturn = true;
 									}
 								} catch (ClientRejectedException rejected) {
-									if (log.isDebugEnabled()) {
-										log.debug("Connect rejected");
-									}
+									log.debug("Connect rejected");
 									call.setStatus(Call.STATUS_ACCESS_DENIED);
 									if (call instanceof IPendingServiceCall) {
 										IPendingServiceCall pc = (IPendingServiceCall) call;
@@ -483,23 +471,17 @@ public class RTMPHandler extends BaseRTMPHandler {
 					int buffer = ping.getValue3();
 					if (stream != null) {
 						stream.setClientBufferDuration(buffer);
-						if (log.isInfoEnabled()) {
-							log.info("Setting client buffer on stream: "
-									+ buffer);
-						}
+							log.info("Setting client buffer on stream: {}", buffer);
 					} else {
 						// Remember buffer time to set until stream will be
 						// created
 						conn.rememberStreamBufferDuration(ping.getValue2(),
 								buffer);
-						if (log.isInfoEnabled()) {
-							log.info("Remembering client buffer on stream: "
-									+ buffer);
-						}
+						log.info("Remembering client buffer on stream: {}", buffer);
 					}
 				} else {
 					// XXX: should we store the buffer time for future streams?
-					log.warn("Unhandled ping: " + ping);
+					log.warn("Unhandled ping: {}", ping);
 				}
 				break;
 
@@ -509,7 +491,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 				break;
 
 			default:
-				log.warn("Unhandled ping: " + ping);
+				log.warn("Unhandled ping: {}", ping);
 		}
 
 	}
