@@ -510,7 +510,7 @@
    		<attribute name="name"/>
 		<element name="copy-assets" optional="yes"/>
    		<sequential>
-			<jar destfile="${webapps.build.dir}/@{name}/WEB-INF/lib/admin.jar">
+			<jar destfile="${webapps.build.dir}/@{name}/WEB-INF/lib/@{name}.jar">
 				<fileset dir="${webapps.build.dir}/@{name}/WEB-INF/classes">
 					<include name="**"/>
 				</fileset>
