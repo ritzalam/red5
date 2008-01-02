@@ -36,7 +36,7 @@ import java.lang.ref.WeakReference;
  * r5 = new Red5(conn);<br />
  * IClient client = r5.getClient();<br />
  * </code>
- * </p>
+ * </p> 
  *  
  * @author The Red5 Project (red5@osflash.org) 
  * @author Luke Hubbard (luke@codegent.com)

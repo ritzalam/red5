@@ -956,11 +956,14 @@ public abstract class RTMPConnection extends BaseConnection implements
 			// Ghost detection code disabled
 			return;
         }
-		//log.debug("Scope null = {}", (scope == null));
-		//log.debug("getScope null = {}", (getScope() == null));
-		//log.debug("Context null = {}", (scope.getContext() == null));
-		//ISchedulingService schedulingService = (ISchedulingService) scope.getContext().getBean(ISchedulingService.BEAN_NAME);
-		keepAliveJobName = schedulingService.addScheduledJob(pingInterval, new KeepAliveJob());
+		if (keepAliveJobName == null) {
+    		//log.debug("Scope null = {}", (scope == null));
+    		//log.debug("getScope null = {}", (getScope() == null));
+    		//log.debug("Context null = {}", (scope.getContext() == null));
+    		//ISchedulingService schedulingService = (ISchedulingService) scope.getContext().getBean(ISchedulingService.BEAN_NAME);
+    		keepAliveJobName = schedulingService.addScheduledJob(pingInterval, new KeepAliveJob());
+		}
+		log.debug("Keep alive job name {}", keepAliveJobName);
 	}
 
 	/**
@@ -1048,6 +1051,13 @@ public abstract class RTMPConnection extends BaseConnection implements
 					&& lastPingSent - lastPongReceived > maxInactivity) {
 				// Client didn't send response to ping command for too long,
 				// disconnect
+				log.debug("Keep alive job name {}", keepAliveJobName);
+				if (log.isDebugEnabled()) {
+    				log.debug("Scheduled job list");
+    				for (String jobName : service.getScheduledJobNames()) {
+    					log.debug("Job: {}", jobName);
+    				}
+				}
 				service.removeScheduledJob(keepAliveJobName);
 				keepAliveJobName = null;
 				log.warn("Closing {} due to too much inactivity ({}).", RTMPConnection.this, (lastPingSent - lastPongReceived));

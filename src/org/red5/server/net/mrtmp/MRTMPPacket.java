@@ -130,7 +130,7 @@ public class MRTMPPacket {
 	
 	public String toString() {
 		StringBuffer buf = new StringBuffer();
-		buf.append("MRTMPPakcet: type=");
+		buf.append("MRTMPPacket: type=");
 		switch (header.getType()) {
 			case CONNECT:
 				buf.append("CONNECT");
