@@ -57,6 +57,7 @@
 		<property name="eventThreadsMax" value="${mrtmp.event_threads_max}" />
 		<property name="eventThreadsQueue" value="${mrtmp.event_threads_queue}" />
 		<property name="eventThreadsKeepalive" value="${mrtmp.event_threads_keepalive}" />
+		<property name="tcpNoDelay" value="${mrtmp.tcp_nodelay}" />
 	</bean> 
 	
 	<!--

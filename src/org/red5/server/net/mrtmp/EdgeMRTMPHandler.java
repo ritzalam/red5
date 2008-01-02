@@ -79,6 +79,11 @@ implements Constants {
 				if (toDisconnect) {
 					conn.close();
 				}
+				synchronized (rtmpState) {
+					if (rtmpState.getState() == RTMP.STATE_CONNECTED) {
+						conn.startRoundTripMeasurement();
+					}
+				}
 				break;
 			default:
 				break;

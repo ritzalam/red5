@@ -96,20 +96,22 @@ public class EdgeRTMPHandler extends RTMPHandler {
 		conn.messageSent((Packet) message);
 	}
 	
+    /**
+     * Pass through all Ping events to origin except ping/pong
+     */
 	protected void onPing(RTMPConnection conn, Channel channel, Header source,
 			Ping ping) {
 		switch (ping.getValue1()) {
-			case Ping.CLIENT_BUFFER:
-				if (ping.getValue2() != 0) {
-					// TODO forward the ping
-				} else {
-					super.onPing(conn, channel, source, ping);
-				}
+			case Ping.PONG_SERVER:
+				// This is the response to an IConnection.ping request
+				conn.pingReceived(ping);
 				break;
 			default:
-				super.onPing(conn, channel, source, ping);
+				// forward other to origin
+				Packet p = new Packet(source);
+				p.setMessage(ping);
+				forwardPacket(conn, p);
 		}
-
 	}
 
 	protected void handleConnect(RTMPConnection conn, Channel channel, Header header,

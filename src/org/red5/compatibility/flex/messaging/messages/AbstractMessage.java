@@ -19,6 +19,7 @@ package org.red5.compatibility.flex.messaging.messages;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.Map;
 
@@ -30,7 +31,9 @@ import org.red5.io.utils.RandomGUID;
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
  */
-public class AbstractMessage {
+public class AbstractMessage implements Serializable {
+
+	private static final long serialVersionUID = -2297508940724279014L;
 
 	public long timestamp;
 	
