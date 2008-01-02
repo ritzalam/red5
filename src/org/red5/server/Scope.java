@@ -461,7 +461,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	/**
 	 * Destroys scope
 	 */
-	public void destory() {
+	public void destroy() {
 		if (hasParent()) {
 			parent.removeChildScope(this);
 		}

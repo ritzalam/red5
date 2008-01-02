@@ -82,7 +82,7 @@ public interface ScopeMBean {
 	/**
 	 * Destroys scope
 	 */
-	public void destory();
+	public void destroy();
 
 	/**
 	 * Set scope persistence class
