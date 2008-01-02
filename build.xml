@@ -217,7 +217,6 @@
 
 	<macrodef name="build-demo">
    		<attribute name="name"/>
-		<element name="copy-log" optional="yes"/>
 		<element name="copy-assets" optional="yes"/>
    		<sequential>
 			<mkdir dir="${webapps.build.dir}/@{name}/WEB-INF/classes"/>
@@ -234,9 +233,7 @@
 					<exclude name="**/*.meta"/>
 				</fileset>
 			</copy>
-			<!-- copy the logback config per webapp and associated jars (optional) -->
-			<copy-log/>
-			<!-- copy files without filtering as it causes corruption (optional) -->
+			<!-- copy files (optional) -->
 			<copy-assets/>
       		</sequential>
 	</macrodef>
@@ -260,7 +257,6 @@
 	<target name="compile_demos" description="Build demo apps">
 		<echo message="Webapps dir: ${webapps.dir}"/>
 		<echo message="Webapps build dir: ${webapps.build.dir}"/>
-
 		<!-- load token replacement filters -->
 		<filter filtersfile="${filter.file}"/>
 		<copy todir="${webapps.build.dir}/root" filtering="true">
@@ -269,41 +265,37 @@
 				<exclude name="**/*.swf"/>
 			</fileset>
 		</copy>
-
 		<!-- copy swf without filtering as it causes corruption -->
 		<copy todir="${webapps.build.dir}/root">
 			<fileset dir="webapps/root">
 				<include name="**/*.swf"/>
 			</fileset>
 		</copy>
-		
 		<!-- build demos -->
 		<build-demo name="admin"/>
 		<build-demo name="adminPanel">
-			<copy-log>
+			<copy-assets>
 				<logback webapp="adminPanel"/>
-			</copy-log>
+			</copy-assets>
 		</build-demo>
 		<build-demo name="echo">
-			<copy-log>
+			<copy-assets>
 				<logback webapp="echo"/>
-			</copy-log>
+			</copy-assets>
 		</build-demo>
 		<build-demo name="fitcDemo">
-			<copy-log>
+			<copy-assets>
 				<logback webapp="fitcDemo"/>
-			</copy-log>
+			</copy-assets>
 		</build-demo>
 		<build-demo name="midiDemo">
-			<copy-log>
+			<copy-assets>
 				<logback webapp="midiDemo"/>
-			</copy-log>
+			</copy-assets>
 		</build-demo>
 		<build-demo name="oflaDemo">
-			<copy-log>
-				<logback webapp="oflaDemo"/>
-			</copy-log>
 			<copy-assets>
+				<logback webapp="oflaDemo"/>
 				<!-- copy flv files without filtering as it causes corruption -->
 				<copy todir="${webapps.build.dir}/oflaDemo/">
 					<fileset dir="webapps/oflaDemo/">
@@ -318,12 +310,11 @@
 			</copy-assets>
 		</build-demo>
 		<build-demo name="tutorial">
-			<copy-log>
+			<copy-assets>
 				<logback webapp="tutorial"/>
-			</copy-log>
+			</copy-assets>
 		</build-demo>
 		<build-demo name="test"/>
-
 		<!-- no java source for the messageRecorder and SOSample app -->
 		<copy todir="${webapps.build.dir}/messageRecorder" filtering="true">
 			<fileset dir="webapps/messageRecorder"/>
@@ -515,6 +506,20 @@
 		</javadoc>
 	</target>
 
+	<macrodef name="compile-jardemo">
+   		<attribute name="name"/>
+		<element name="copy-assets" optional="yes"/>
+   		<sequential>
+			<jar destfile="${webapps.build.dir}/@{name}/WEB-INF/lib/admin.jar">
+				<fileset dir="${webapps.build.dir}/@{name}/WEB-INF/classes">
+					<include name="**"/>
+				</fileset>
+			</jar>
+			<!-- copy files (optional) -->
+			<copy-assets/>
+      		</sequential>
+	</macrodef>
+
 	<target name="jar" description="Make Archive" depends="compile">
 		<tstamp prefix="build">
 			<format property="TODAY" pattern="d-MMMM-yyyy" locale="en"/>
@@ -546,47 +551,25 @@
 				<include name="**"/>
 			</metainf>
 		</jar>
-		<jar destfile="${webapps.build.dir}/admin/WEB-INF/lib/admin.jar">
-			<fileset dir="${webapps.build.dir}/admin/WEB-INF/classes">
-				<include name="**"/>
-			</fileset>
-		</jar>
-		<jar destfile="${webapps.build.dir}/echo/WEB-INF/lib/echo.jar">
-			<fileset dir="${webapps.build.dir}/echo/WEB-INF/classes">
-				<include name="**"/>
-			</fileset>
-		</jar>
-		<jar destfile="${webapps.build.dir}/fitcDemo/WEB-INF/lib/fitcDemo.jar">
-			<fileset dir="${webapps.build.dir}/fitcDemo/WEB-INF/classes">
-				<include name="**"/>
-			</fileset>
-		</jar>
-		<jar destfile="${webapps.build.dir}/midiDemo/WEB-INF/lib/midiDemo.jar">
-			<fileset dir="${webapps.build.dir}/midiDemo/WEB-INF/classes">
-				<include name="**"/>
-			</fileset>
-		</jar>
-		<!-- copy scripts -->
-		<mkdir dir="${webapps.build.dir}/oflaDemo/WEB-INF/classes/applications"/>
-		<copy todir="${webapps.build.dir}/oflaDemo/WEB-INF/classes/applications">
-			<fileset dir="webapps/oflaDemo/WEB-INF/src/applications"/>
-		</copy>
-		<jar destfile="${webapps.build.dir}/oflaDemo/WEB-INF/lib/oflaDemo.jar">
-			<fileset dir="${webapps.build.dir}/oflaDemo/WEB-INF/classes">
-				<include name="**"/>
-			</fileset>
-		</jar>
-		<jar destfile="${webapps.build.dir}/test/WEB-INF/lib/test.jar">
-			<fileset dir="${webapps.build.dir}/test/WEB-INF/classes">
-				<include name="**"/>
-			</fileset>
-		</jar>
-		<jar destfile="${webapps.build.dir}/tutorial/WEB-INF/lib/tutorial.jar">
-			<fileset dir="${webapps.build.dir}/tutorial/WEB-INF/classes">
-				<include name="**"/>
-			</fileset>
-		</jar>
+
+		<!-- create jar files for demos -->
+		<compile-jardemo name="admin"/>
+		<compile-jardemo name="echo"/>
+		<compile-jardemo name="fitcDemo"/>
+		<compile-jardemo name="midiDemo"/>
+		<compile-jardemo name="oflaDemo">
+			<copy-assets>
+				<!-- copy scripts -->
+				<mkdir dir="${webapps.build.dir}/oflaDemo/WEB-INF/classes/applications"/>
+				<copy todir="${webapps.build.dir}/oflaDemo/WEB-INF/classes/applications">
+					<fileset dir="webapps/oflaDemo/WEB-INF/src/applications"/>
+				</copy>
+			</copy-assets>
+		</compile-jardemo>
+		<compile-jardemo name="test"/>
+		<compile-jardemo name="tutorial"/>
 		
+		<!-- exclude logback.xml for adminPanel -->
 		<jar destfile="${webapps.build.dir}/adminPanel/WEB-INF/lib/adminPanel.jar">
 			<fileset dir="${webapps.build.dir}/adminPanel/WEB-INF/classes">
 				<include name="**"/>
