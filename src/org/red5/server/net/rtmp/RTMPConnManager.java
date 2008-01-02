@@ -2,20 +2,23 @@ package org.red5.server.net.rtmp;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.net.rtmpt.RTMPTConnection;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-public class RTMPConnManager
-implements IRTMPConnManager, ApplicationContextAware {
-	private Map<Integer, RTMPConnection> connMap = new HashMap<Integer, RTMPConnection>();
+public class RTMPConnManager implements IRTMPConnManager,
+		ApplicationContextAware {
+	private ConcurrentMap<Integer, RTMPConnection> connMap = new ConcurrentHashMap<Integer, RTMPConnection>();
+
 	private ReadWriteLock lock = new ReentrantReadWriteLock();
+
 	private ApplicationContext appCtx;
 
 	public RTMPConnection createConnection(Class connCls) {
@@ -66,9 +69,9 @@ implements IRTMPConnManager, ApplicationContextAware {
 			lock.writeLock().unlock();
 		}
 	}
-	
+
 	public Collection<RTMPConnection> removeConnections() {
-		ArrayList<RTMPConnection> list = new ArrayList<RTMPConnection>();
+		ArrayList<RTMPConnection> list = new ArrayList<RTMPConnection>(connMap.size());
 		lock.writeLock().lock();
 		try {
 			list.addAll(connMap.values());
@@ -78,7 +81,8 @@ implements IRTMPConnManager, ApplicationContextAware {
 		}
 	}
 
-	public void setApplicationContext(ApplicationContext appCtx) throws BeansException {
+	public void setApplicationContext(ApplicationContext appCtx)
+			throws BeansException {
 		this.appCtx = appCtx;
 	}
 
@@ -87,12 +91,15 @@ implements IRTMPConnManager, ApplicationContextAware {
 		if (cls == RTMPMinaConnection.class) {
 			conn = (RTMPMinaConnection) appCtx.getBean("rtmpMinaConnection");
 		} else if (cls == EdgeRTMPMinaConnection.class) {
-			conn = (EdgeRTMPMinaConnection) appCtx.getBean("rtmpEdgeMinaConnection");
+			conn = (EdgeRTMPMinaConnection) appCtx
+					.getBean("rtmpEdgeMinaConnection");
 		} else if (cls == RTMPTConnection.class) {
 			conn = (RTMPTConnection) appCtx.getBean("rtmptConnection");
 		} else {
 			conn = (RTMPConnection) cls.newInstance();
 		}
+		//set the scheduling service for ez access in the connection
+		conn.setSchedulingService((ISchedulingService) appCtx.getBean(ISchedulingService.BEAN_NAME));
 		return conn;
 	}
 }

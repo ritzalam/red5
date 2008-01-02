@@ -232,6 +232,8 @@ public abstract class RTMPConnection extends BaseConnection implements
 	
 	protected RTMP state;
 	
+	private ISchedulingService schedulingService;
+	
 	/**
 	 * Creates anonymous RTMP connection without scope.
 	 * 
@@ -321,8 +323,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 	 */
 	public synchronized int getNextAvailableChannelId() {
 		int result = 4;
-		while (isChannelUsed(result))
+		while (isChannelUsed(result)) {
 			result++;
+		}
 		return result;
 	}
 
@@ -559,8 +562,6 @@ public abstract class RTMPConnection extends BaseConnection implements
 	@Override
 	public void close() {
 		if (keepAliveJobName != null) {
-			ISchedulingService schedulingService = (ISchedulingService) getScope()
-					.getContext().getBean(ISchedulingService.BEAN_NAME);
 			schedulingService.removeScheduledJob(keepAliveJobName);
 			keepAliveJobName = null;
 		}
@@ -955,10 +956,22 @@ public abstract class RTMPConnection extends BaseConnection implements
 			// Ghost detection code disabled
 			return;
         }
-		ISchedulingService schedulingService = (ISchedulingService) getScope().getContext().getBean(ISchedulingService.BEAN_NAME);
+		//log.debug("Scope null = {}", (scope == null));
+		//log.debug("getScope null = {}", (getScope() == null));
+		//log.debug("Context null = {}", (scope.getContext() == null));
+		//ISchedulingService schedulingService = (ISchedulingService) scope.getContext().getBean(ISchedulingService.BEAN_NAME);
 		keepAliveJobName = schedulingService.addScheduledJob(pingInterval, new KeepAliveJob());
 	}
 
+	/**
+	 * Sets the scheduling service.
+	 * 
+	 * @param schedulingService
+	 */
+	public void setSchedulingService(ISchedulingService schedulingService) {
+		this.schedulingService = schedulingService;
+	}
+	
 	/**
 	 * Inactive state event handler.
 	 */
@@ -967,9 +980,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/** {@inheritDoc} */
 	@Override
 	public String toString() {
-		return getClass().getSimpleName() + " from " + getRemoteAddress() + ':'
-				+ getRemotePort() + " to " + getHost() + " (in: "
-				+ getReadBytes() + ", out: " + getWrittenBytes() + ')';
+		//http://java.sun.com/j2se/1.5.0/docs/api/java/lang/String.html#format(java.lang.String,%20java.lang.Object...)
+		Object[] args = new Object[]{getClass().getSimpleName(), getRemoteAddress(), getRemotePort(), getHost(), getReadBytes(), getWrittenBytes()};
+		return String.format("%1$s from %2$s : %3$s to %4$s (in: %5$s out %6$s )", args);
 	}
 
 	/**

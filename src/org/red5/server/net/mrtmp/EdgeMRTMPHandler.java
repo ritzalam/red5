@@ -73,7 +73,7 @@ implements Constants {
 						}
 					}
 				}
-				log.debug("Forward packet to client: " + rtmpBody.getRtmpPacket().getMessage());
+				log.debug("Forward packet to client: {}", rtmpBody.getRtmpPacket().getMessage());
 				// send the packet back to client
 				conn.write(rtmpBody.getRtmpPacket());
 				if (toDisconnect) {

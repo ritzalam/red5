@@ -38,7 +38,7 @@ import java.lang.ref.WeakReference;
  * </code>
  * </p>
  *  
- * @author The Red5 Project (red5@osflash.org)
+ * @author The Red5 Project (red5@osflash.org) 
  * @author Luke Hubbard (luke@codegent.com)
  */
 public final class Red5 implements Red5MBean {
