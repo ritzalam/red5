@@ -143,7 +143,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 	 * Executor that will be used to schedule stream playback to keep
 	 * the client buffer filled.
 	 */
-	private volatile ScheduledThreadPoolExecutor executor;
+	private static ScheduledThreadPoolExecutor executor;
 	/**
 	 * Interval in ms to check for buffer underruns in VOD streams.
 	 */
@@ -179,7 +179,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
      * @param executor the executor
      */
     public void setExecutor(ScheduledThreadPoolExecutor executor) {
-    	this.executor = executor;
+    	PlaylistSubscriberStream.executor = executor;
     }
 
     /**
@@ -189,7 +189,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
      */
     public ScheduledThreadPoolExecutor getExecutor() {
 		if (executor == null) {
-			synchronized (this) {
+			synchronized (PlaylistSubscriberStream.this) {
 				if (executor == null) {
 					// Default executor
 					executor = new ScheduledThreadPoolExecutor(16);
@@ -295,8 +295,6 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
     public void stop() {
 		try {
 			engine.stop();
-			//clean up the executor
-			executor.shutdown();
 		} catch (IllegalStateException e) {
 			log.debug("stop caught an IllegalStateException");
 		}
