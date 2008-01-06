@@ -208,7 +208,6 @@ public class BroadcastScope extends BasicScope implements IBroadcastScope,
      */
 	public void onPipeConnectionEvent(PipeConnectionEvent event) {
         // Switch event type
-		System.err.println("Object " + this.toString() + " Event type " + event.getType() + " compCounter " + compCounter);
         switch (event.getType()) {
 			case PipeConnectionEvent.CONSUMER_CONNECT_PULL:
 			case PipeConnectionEvent.CONSUMER_CONNECT_PUSH:
