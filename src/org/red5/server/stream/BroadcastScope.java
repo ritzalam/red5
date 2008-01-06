@@ -32,6 +32,8 @@ import org.red5.server.messaging.IProvider;
 import org.red5.server.messaging.InMemoryPushPushPipe;
 import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.messaging.PipeConnectionEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Scope type for publishing that deals with pipe connection events,
@@ -39,7 +41,6 @@ import org.red5.server.messaging.PipeConnectionEvent;
  */
 public class BroadcastScope extends BasicScope implements IBroadcastScope,
 		IPipeConnectionListener {
-
     /**
      *  Simple in memory push pipe, triggered by an active provider to push messages to consumer
      */
@@ -64,6 +65,7 @@ public class BroadcastScope extends BasicScope implements IBroadcastScope,
 		pipe.addPipeConnectionListener(this);
 		compCounter = 0;
 		hasRemoved = false;
+		keepOnDisconnect = true;
 	}
 
     /**
@@ -206,6 +208,7 @@ public class BroadcastScope extends BasicScope implements IBroadcastScope,
      */
 	public void onPipeConnectionEvent(PipeConnectionEvent event) {
         // Switch event type
+		System.err.println("Object " + this.toString() + " Event type " + event.getType() + " compCounter " + compCounter);
         switch (event.getType()) {
 			case PipeConnectionEvent.CONSUMER_CONNECT_PULL:
 			case PipeConnectionEvent.CONSUMER_CONNECT_PUSH:
