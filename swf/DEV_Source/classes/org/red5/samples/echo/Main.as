@@ -53,7 +53,7 @@
 	public class Main extends Application
 	{
 		[Bindable]
-		public var appVersion			: String = "0.3.2";
+		public var appVersion			: String = "0.3.3";
 		
 		[Bindable]
 		public var testResults			: ArrayCollection;
@@ -119,7 +119,7 @@
 		private var success 			: String = "<font color='#149D25'>";
 		private var failure 			: String = "<font color='#FF1300'>";
 		private var globalTimer			: int;
-		private var mySo				: SharedObject;
+		private var local_so			: SharedObject;
 		private var nc					: NetConnection;
 		private var echoService 		: RemoteObject;
     
@@ -128,9 +128,6 @@
         	this.addEventListener( FlexEvent.CREATION_COMPLETE, setupApp );
         }
 		
-		/**
-		 * @param event
-		 */		
 		private function setupApp( event:FlexEvent ) : void
 		{
 			amf0_tests = [ null_test, undefined_test, boolean_test, string_test, number_test, 
@@ -146,26 +143,26 @@
         	            + Capabilities.playerType;
         	
         	// Load http and rtmp uri's from shared object
-        	mySo = SharedObject.getLocal( "EchoTest" );
+        	local_so = SharedObject.getLocal( "EchoTest" );
         	
         	// load url's from flookie when present
-        	if ( mySo.data.rtmpUri != null ) {
-        		rtmp_txt.text = mySo.data.rtmpUri;
+        	if ( local_so.data.rtmpUri != null ) {
+        		rtmp_txt.text = local_so.data.rtmpUri;
         	} else {
         		rtmp_txt.text = "rtmp://localhost/echo";
         	}
-        	if ( mySo.data.httpUri != null ) {
-        		http_txt.text = mySo.data.httpUri;
+        	if ( local_so.data.httpUri != null ) {
+        		http_txt.text = local_so.data.httpUri;
         	} else {
         		http_txt.text = "http://localhost:5080/echo/gateway";
         	}
-        	if ( mySo.data.httpMethod != null ) {
-        		httpMethod_txt.text = mySo.data.httpMethod;
+        	if ( local_so.data.httpMethod != null ) {
+        		httpMethod_txt.text = local_so.data.httpMethod;
         	} else {
         		httpMethod_txt.text = "echo";
         	}
-        	if ( mySo.data.rtmpMethod != null ) {
-        		rtmpMethod_txt.text = mySo.data.rtmpMethod;
+        	if ( local_so.data.rtmpMethod != null ) {
+        		rtmpMethod_txt.text = local_so.data.rtmpMethod;
         	} else {
         		rtmpMethod_txt.text = "echo";
         	}
@@ -189,13 +186,13 @@
 			if ( protocol == "http" ) {
 			    // Remoting...
 				url = http_txt.text;
-				mySo.data.httpUri = url;
+				local_so.data.httpUri = url;
 			} 
-			else 
+			else
 			{
 				// RTMP...
 				url = rtmp_txt.text;
-				mySo.data.rtmpUri = url;
+				local_so.data.rtmpUri = url;
 			}
             
             statusText = "Connecting through <b>" + protocol.toUpperCase() + "</b> using <b>AMF" 
@@ -203,11 +200,11 @@
             
             var flushStatus:String = null;
             try {
-                flushStatus = mySo.flush();
+                flushStatus = local_so.flush();
             } 
             catch ( error:Error ) 
             {
-            	printText( "<br/><b>" + failure + "SharedObject error: </font></b>" 
+            	printText( "<br/><b>" + failure + "Local SharedObject error: </font></b>" 
             	           + error.getStackTrace() + "<br/>" );
             }
             
@@ -228,6 +225,10 @@
 				startTests();
 				// ignore rest of setup logic
 				return;
+			}
+			else if ( protocol == "sharedObject" )
+			{
+				
 			}
 			
 			if ( username_txt.text.length > 0 ) {
