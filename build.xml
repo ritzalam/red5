@@ -1,5 +1,10 @@
 <?xml version="1.0" ?>
 <project name="Red5" basedir="." default="dist" xmlns:ivy="antlib:org.apache.ivy.ant">
+	
+	<condition property="ant-at-least-7">
+  		<antversion atleast="1.7.0"/>
+	</condition>
+
 	<!-- user overides for project properties -->
 	<property file="${user.home}/build.properties"/>
 
