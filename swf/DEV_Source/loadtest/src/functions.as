@@ -159,7 +159,7 @@
 	}
 	
     public function onCuePoint(info:Object):void {
-        log("cuepoint: time=" + info.time + " name=" + info.name + " type=" + info.type);
+        log("Cuepoint: time=" + info.time + " name=" + info.name + " type=" + info.type);
     }	
     
     public function onPlayStatus(info:Object):void {
@@ -169,6 +169,10 @@
     public function doLoadTest():void {
     	log('Load delay: '+requestDelay.text+'s');
     	var delay:int = Number(requestDelay.text);
+    	if (delay === 0) {
+    		log('Invalid delay entered, setting to .1');
+    		delay = .1;
+    	}
     	log('Load delay: '+delay+'s');
     	timer = new Timer(delay * 1000);
 	    timer.addEventListener("timer", timerHandler);

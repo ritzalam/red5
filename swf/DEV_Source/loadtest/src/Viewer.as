@@ -52,13 +52,14 @@ package {
 	        ns.client = this;
 	        ns.addEventListener(NetStatusEvent.NET_STATUS, netStatusHandler);
 	        ns.addEventListener(AsyncErrorEvent.ASYNC_ERROR, asyncErrorHandler);
+	        //mute children so we dont hear a strange super-echo
+			ns.soundTransform = new SoundTransform(0);
 	        //playerVideo = new Video();
 	        //playerVideo.attachNetStream(nsPlayer);
 	        ns.play(stream);
 	        //playerDisplay.addChild(playerVideo);
 			//playerVideo.width = 160;
 			//playerVideo.height = 120;
-			ns.soundTransform.volume = 0;
 	    }			
 			
 		public function onBWDone():void {
@@ -74,10 +75,6 @@ package {
 	
 	    public function onMetaData(info:Object):void {
 	    	//log('Got meta data');
-	   		//var key:String;
-	    	//for (key in info) {
-	        //	log('Meta: '+ key + ': ' + info[key]);
-	    	//}
 		}
 		
 	    public function onCuePoint(info:Object):void {
@@ -132,9 +129,6 @@ package {
 		
 		public function log(text:String):void {
 			trace(sid + ' ' + text);
-			//var tmp:String = String(messages.data);
-			//tmp += text + '\n';
-			//messages.data = tmp;
 		}		
 		
 	}

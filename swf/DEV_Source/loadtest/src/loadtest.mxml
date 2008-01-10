@@ -25,13 +25,13 @@
 			<mx:Label text="Number of request" fontWeight="bold"/>
 			<mx:TextInput id="numRequest" text="100" width="38" cornerRadius="6"/>
 			<mx:Label text="Request delay" fontWeight="bold"/>
-			<mx:TextInput id="requestDelay" text="1" width="30" cornerRadius="6"/>
+			<mx:TextInput id="requestDelay" text="1" width="30" cornerRadius="6" toolTip="For a minimal delay input .1"/>
 		</mx:HBox>
 		<mx:HBox width="100%">
 			<mx:Button label="Start Load Test" click="doLoadTest()"/>
 			<mx:Button label="Stop Viewers" click="stopView()"/>
 			<mx:Label text="Viewer count" fontWeight="bold"/>
-			<mx:TextInput width="42" editable="false" text="{viewerList.length}"/>
+			<mx:TextInput width="55" editable="false" text="{viewerList.length}"/>
 		</mx:HBox>
 		<mx:TextArea wordWrap="true" editable="false" width="100%" height="197" id="messages" verticalScrollPolicy="auto"/>		
 	</mx:VBox>
