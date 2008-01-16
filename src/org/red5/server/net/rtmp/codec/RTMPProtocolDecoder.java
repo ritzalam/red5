@@ -654,6 +654,10 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 
 			final ISharedObjectEvent.Type type = SharedObjectTypeMapping
 					.toType(in.get());
+			if (type == null) {
+				in.skip(in.remaining());
+				return;
+			}
 			String key = null;
 			Object value = null;
 
@@ -682,6 +686,16 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 				if (length > 0) {
 					key = input.getString();
 					if (length > key.length() + 2) {
+						// FIXME workaround for player version >= 9.0.115.0
+						byte objType = in.get();
+						in.position(in.position()-1);
+						if (objType == AMF.TYPE_AMF3_OBJECT) {
+							// The next parameter is encoded using AMF3
+							input = new org.red5.io.amf3.Input(in);
+						} else {
+							// The next parameter is encoded using AMF0
+							input = new org.red5.io.amf.Input(in);
+						}
 						value = deserializer.deserialize(input);
 					}
 				}
