@@ -202,7 +202,7 @@ public class JMXAgent implements NotificationListener {
 					log.debug("Mbean is registered");
 					mbs.unregisterMBean(oName);
 					//set flag based on registration status
-					unregistered = mbs.isRegistered(oName);
+					unregistered = !mbs.isRegistered(oName);
 				} else {
 					log.debug("Mbean is not currently registered");
 				}

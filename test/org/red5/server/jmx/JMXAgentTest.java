@@ -1,17 +1,19 @@
 package org.red5.server.jmx;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertTrue;
 
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
-import org.apache.log4j.Logger;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class JMXAgentTest {
 
-	private static Logger logger = Logger.getLogger(JMXAgentTest.class);
+	private static Logger logger = LoggerFactory.getLogger(JMXAgentTest.class);
 
 	@Test
 	public void testGetHtmlAdapterPort() {
@@ -50,8 +52,7 @@ public class JMXAgentTest {
 
 	@Test
 	public void testUnregisterMBean() throws Exception {
-		boolean failed = false;
-		logger.fatal("Default jmx domain: {}", JMXFactory.getDefaultDomain());
+		logger.info("Default jmx domain: {}", JMXFactory.getDefaultDomain());
 		JMXAgent agent = new JMXAgent();
 		agent.init();
 		MBeanServer mbs = JMXFactory.getMBeanServer();
@@ -64,22 +65,12 @@ public class JMXAgentTest {
 		ObjectName oName2 = new ObjectName(
 				"org.red5.server:type=RTMPMinaConnection,connectionType=persistent,host=10.0.0.2,port=1935,clientId=2");
 
-		logger.fatal("Register check 1: {}", mbs.isRegistered(oName));
-		if (JMXAgent.unregisterMBean(oName)) {
-			failed = true;
-		}
-		logger.fatal("Register check 2: {}", mbs.isRegistered(oName));
-		if (!JMXAgent.unregisterMBean(oName)) {
-			failed = true;
-		}
-		logger.fatal("Register check 3: {}", mbs.isRegistered(oName2));
-		if (!JMXAgent.unregisterMBean(oName2)) {
-			failed = true;
-		}
-
-		if (failed) {
-			fail("An unregister call failed");
-		}
+		logger.info("Register check 1: {}", mbs.isRegistered(oName));
+		assertTrue(JMXAgent.unregisterMBean(oName));
+		logger.info("Register check 2: {}", mbs.isRegistered(oName));
+		assertFalse(JMXAgent.unregisterMBean(oName));
+		logger.info("Register check 3: {}", mbs.isRegistered(oName2));
+		assertFalse(JMXAgent.unregisterMBean(oName2));
 	}
 
 	@Test
