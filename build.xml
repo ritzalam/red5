@@ -64,10 +64,6 @@
 		</fileset>
 	</path>
 
-	<target name="-junit.check">
-		<available property="junit.installed" classname="junit.framework.TestCase"/>
-	</target>
-
 	<target name="-java6.check">
 		<condition property="java6.installed" value="true">
 			<and>
@@ -86,32 +82,41 @@
 		<echo>java.home is ${java.home} and the target version is ${java.target_version}</echo>
 		<echo>ant.home is ${ant.home} and the target version is ${ant.version}</echo>
 		<condition property="library.installed" value="true">
-			<or>
+			<and>
+				<or>
+					<and>
+						<available property="spring.installed" classpathref="project.classpath" classname="org.springframework.core.SpringVersion"/>
+						<available property="log4j.installed" classpathref="project.classpath" classname="org.apache.log4j.Logger"/>
+						<available property="logging.installed" classpathref="project.classpath" classname="org.slf4j.Logger"/>
+						<available property="catalina.installed" classpathref="project.classpath" classname="org.apache.catalina.Server"/>
+						<available property="mina.installed" classpathref="project.classpath" classname="org.apache.mina.filter.codec.ProtocolEncoder"/>
+						<available property="minajmx.installed" classpathref="project.classpath" classname="org.apache.mina.integration.jmx.IoServiceManager"/>
+						<available property="acegi.installed" classpathref="project.classpath" classname="org.acegisecurity.SecurityConfig"/>
+						<equals arg1="${java.target_version}" arg2="1.6"/>
+					</and>
+					<and>
+						<available property="spring.installed" classpathref="project.classpath" classname="org.springframework.core.SpringVersion"/>
+						<available property="log4j.installed" classpathref="project.classpath" classname="org.apache.log4j.Logger"/>
+						<available property="logging.installed" classpathref="project.classpath" classname="org.slf4j.Logger"/>
+						<available property="catalina.installed" classpathref="project.classpath" classname="org.apache.catalina.Server"/>
+						<available property="mina.installed" classpathref="project.classpath" classname="org.apache.mina.filter.codec.ProtocolEncoder"/>
+						<available property="minajmx.installed" classpathref="project.classpath" classname="org.apache.mina.integration.jmx.IoServiceManager"/>
+						<available property="acegi.installed" classpathref="project.classpath" classname="org.acegisecurity.SecurityConfig"/>
+						<available property="script.installed" classpathref="project.classpath" classname="com.sun.phobos.script.javascript.RhinoScriptEngine"/>
+						<available property="groovy.script.installed" classpathref="project.classpath" classname="com.sun.script.groovy.GroovyScriptEngine"/>
+						<available property="jython.script.installed" classpathref="project.classpath" classname="com.sun.script.jython.JythonScriptEngine"/>
+						<equals arg1="${java.target_version}" arg2="1.5"/>
+					</and>		
+				</or>
+				<!-- check for the test jars -->
 				<and>
-					<available property="spring.installed" classpathref="project.classpath" classname="org.springframework.core.SpringVersion"/>
-					<available property="log4j.installed" classpathref="project.classpath" classname="org.apache.log4j.Logger"/>
-					<available property="logging.installed" classpathref="project.classpath" classname="org.slf4j.Logger"/>
-					<available property="catalina.installed" classpathref="project.classpath" classname="org.apache.catalina.Server"/>
-					<available property="mina.installed" classpathref="project.classpath" classname="org.apache.mina.filter.codec.ProtocolEncoder"/>
-					<available property="minajmx.installed" classpathref="project.classpath" classname="org.apache.mina.integration.jmx.IoServiceManager"/>
-					<available property="acegi.installed" classpathref="project.classpath" classname="org.acegisecurity.SecurityConfig"/>
-					<equals arg1="${java.target_version}" arg2="1.6"/>
-				</and>
-				<and>
-					<available property="spring.installed" classpathref="project.classpath" classname="org.springframework.core.SpringVersion"/>
-					<available property="log4j.installed" classpathref="project.classpath" classname="org.apache.log4j.Logger"/>
-					<available property="logging.installed" classpathref="project.classpath" classname="org.slf4j.Logger"/>
-					<available property="catalina.installed" classpathref="project.classpath" classname="org.apache.catalina.Server"/>
-					<available property="mina.installed" classpathref="project.classpath" classname="org.apache.mina.filter.codec.ProtocolEncoder"/>
-					<available property="minajmx.installed" classpathref="project.classpath" classname="org.apache.mina.integration.jmx.IoServiceManager"/>
-					<available property="acegi.installed" classpathref="project.classpath" classname="org.acegisecurity.SecurityConfig"/>
-					<available property="script.installed" classpathref="project.classpath" classname="com.sun.phobos.script.javascript.RhinoScriptEngine"/>
-					<available property="groovy.script.installed" classpathref="project.classpath" classname="com.sun.script.groovy.GroovyScriptEngine"/>
-					<available property="jython.script.installed" classpathref="project.classpath" classname="com.sun.script.jython.JythonScriptEngine"/>
-					<equals arg1="${java.target_version}" arg2="1.5"/>
+					<available property="junit.installed" classpathref="project.classpath" classname="org.junit.Test"/>
+					<available property="groboutils.installed" classpathref="project.classpath" classname="net.sourceforge.groboutils.junit.v1.TestRunnable"/>
+					<available property="spring-mock.installed" classpathref="project.classpath" classname="org.springframework.mock.web.MockServletConfig"/>
+					<equals arg1="ivy.conf.name" arg2="test"/>
 				</and>		
-			</or>
-		</condition>
+			</and>		
+		</condition>			
 	</target>
 
 	<target name="prepare" description="Setup the directories for building">
@@ -158,7 +163,7 @@
 		</delete>
 	</target>
 
-	<target name="compile" depends="-library.check, -java6.check, -junit.check, prepare" description="Compiles the server">
+	<target name="compile" depends="-library.check, -java6.check, prepare" description="Compiles the server">
 		<!-- token replacement filers -->
 		<property name="filter.file" value="conf/build_standalone.properties"/>
 		<condition property="java.target_version" value="1.5">
@@ -344,7 +349,7 @@
 			 includes="org/red5/server/script/**" listfiles="false"/>
 	</target>
 
-	<target name="compile_war" depends="-library.check, -java6.check, -junit.check, clean, prepare">
+	<target name="compile_war" depends="-library.check, -java6.check, clean, prepare">
 		<!-- token replacement filers -->
 		<property name="filter.file" value="conf/war/build_war.properties"/>
 		<condition property="java.target_version" value="1.6">
@@ -387,7 +392,7 @@
 		</antcall>
 	</target>
 
-	<target name="compile_sar" depends="-library.check, -java6.check, -junit.check, clean, prepare">
+	<target name="compile_sar" depends="-library.check, -java6.check, clean, prepare">
 		<!-- token replacement filers -->
 		<property name="filter.file" value="conf/jboss/build_jboss.properties"/>
 		<condition property="java.target_version" value="1.6">
@@ -708,7 +713,7 @@
 			<jvmarg value="-Djava.security.manager"/>
 			<jvmarg value="-Djava.security.policy=${dist.dir}/conf/red5.policy"/>
 			<jvmarg value="-Dred5.root=${dist.dir}"/>
-			<!-- enable the following 5 lines if your using JMX with SSL and auth -->
+			<!-- enable the following 2 lines if your using JMX with SSL and auth -->
 			<!--
 			<jvmarg value="-Djavax.net.ssl.trustStore=${config.dir}/truststore.jmx"/>
 			<jvmarg value="-Djavax.net.ssl.trustStorePassword=trustword"/>
@@ -747,7 +752,7 @@
 		<antcall target="udp_java6" inheritAll="true" inheritRefs="true"/>
 	</target>
 
-	<target name="run-tests" if="junit.installed" depends="compiletests" description="Run JUnit tests and generate HTML reports">
+	<target name="run-tests" depends="compiletests" description="Run JUnit tests and generate HTML reports">
 		<junit fork="true" haltonfailure="no" printsummary="no" showoutput="no" dir="${testreports.dir}">
 			<classpath>
 				<path refid="full.classpath"/>
@@ -770,10 +775,12 @@
 		</junitreport>
 	</target>
 
-	<target name="compiletests" depends="jar" if="junit.installed" description="Compiles junit test classes">
+	<target name="compiletests" description="Compiles junit test classes">
+		<echo>Libraries checked: ${library.installed}</echo>
 		<antcall target="retrieve" inheritAll="true" inheritRefs="true">
 			<param name="ivy.conf.name" value="test"/>
 		</antcall>
+		<available property="junit.installed" classname="junit.framework.TestCase"/>
 		<javac srcdir="${test.dir}" destdir="${testclass.dir}">
 			<classpath>
 				<path refid="full.classpath"/>
@@ -950,104 +957,6 @@
 		</war>			
 		
 		<!-- cleanup -->
-		<delete dir="${dist.dir}/webapps"/>
-	</target>
-
-	<target name="jbosssar" description="Make JBoss SAR" depends="compile_sar">
-		<mkdir dir="${sar.dir}/conf"/>
-		<mkdir dir="${sar.dir}/META-INF"/>
-		<copy todir="${sar.dir}/META-INF">
-			<fileset dir="${src.dir}/META-INF">
-				<include name="jboss-service.xml"/>
-			</fileset>
-		</copy>
-		<copy todir="${sar.dir}">
-			<fileset dir=".">
-				<include name="license.txt"/>
-			</fileset>
-		</copy>
-		<!-- jboss specific configs -->
-		<copy todir="${sar.dir}/conf">
-			<fileset dir="conf/jboss">
-				<include name="*.xml"/>
-				<include name="red5.properties"/>
-			</fileset>
-		</copy>
-		<!-- copy the jmx support files into the classpath -->
-		<copy todir="${sar.dir}/conf">
-			<fileset dir="conf">
-				<include name="*.jmx"/>
-				<include name="access.properties"/>
-				<include name="password.properties"/>
-			</fileset>
-		</copy>
-		<!-- copy ness. libs -->
-		<copy todir="${sar.dir}">
-			<fileset dir="${lib.dir}">
-				<exclude name="*.properties"/>
-				<exclude name="jsp*.jar"/>
-				<exclude name="servlet*.jar"/>
-				<exclude name="catalina*.jar"/>
-				<exclude name="tomcat*.jar"/>
-				<exclude name="annotations-api*.jar"/>
-				<exclude name="el-api*.jar"/>
-				<exclude name="jetty*.jar"/>
-				<exclude name="jasper*.jar"/>
-				<exclude name="ehcache*.jar"/>
-				<exclude name="whirly*.jar"/>
-				<exclude name="Grobo*.jar"/>
-				<exclude name="grobo*.jar"/>
-				<exclude name="junit*.jar"/>
-				<exclude name="ivy*.jar"/>
-				<!-- already in jboss -->
-				<exclude name="log4j*.jar"/>
-				<exclude name="quartz*.jar"/>
-				<!-- beanshell causes issues in jboss -->
-				<exclude name="bsh*.jar"/>
-			</fileset>
-		</copy>
-		<!-- add the spring configs to the wars -->
-		<copy todir="${webapps.build.dir}/root/WEB-INF/">
-			<fileset dir="conf/jboss">
-				<include name="applicationContext.xml"/>
-				<include name="red5-common.xml"/>
-				<include name="red5-core.xml"/>
-			</fileset>
-		</copy>
-		<copy todir="${webapps.build.dir}/admin/WEB-INF/">
-			<fileset dir="conf/jboss">
-				<include name="applicationContext.xml"/>
-				<include name="red5-common.xml"/>
-				<include name="red5-core.xml"/>
-			</fileset>
-		</copy>
-		<copy todir="${webapps.build.dir}/oflaDemo/WEB-INF/">
-			<fileset dir="conf/jboss">
-				<include name="applicationContext.xml"/>
-				<include name="red5-common.xml"/>
-				<include name="red5-core.xml"/>
-			</fileset>
-		</copy>
-		<copy todir="${webapps.build.dir}/SOSample/WEB-INF/">
-			<fileset dir="conf/jboss">
-				<include name="applicationContext.xml"/>
-				<include name="red5-common.xml"/>
-				<include name="red5-core.xml"/>
-			</fileset>
-		</copy>
-		<copy todir="${webapps.build.dir}/echo/WEB-INF/">
-			<fileset dir="conf/jboss">
-				<include name="applicationContext.xml"/>
-				<include name="red5-common.xml"/>
-				<include name="red5-core.xml"/>
-			</fileset>
-		</copy>
-		<!-- war-up the demos -->
-		<antcall target="war_demos" inheritAll="true" inheritRefs="true"/>
-		<!-- move root war to sar -->
-		<move file="${dist.dir}/ROOT.war" todir="${sar.dir}"/>
-		<!-- remove directories we dont want -->
-		<delete dir="${classes.dir}/testcases"/>
 		<delete dir="${dist.dir}/webapps"/>
 	</target>
 
