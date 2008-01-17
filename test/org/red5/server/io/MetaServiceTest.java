@@ -15,6 +15,7 @@ import org.red5.io.flv.meta.MetaService;
 import org.red5.io.flv.meta.Resolver;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Serializer;
+import org.red5.server.cache.NoCacheImpl;
 
 public class MetaServiceTest extends TestCase {
 
@@ -49,6 +50,7 @@ public class MetaServiceTest extends TestCase {
 		// set the MetaData
 		File tmp = new File("test/test.flv");
 		IFLV flv = (IFLV) service.getStreamableFile(tmp);
+		flv.setCache(NoCacheImpl.getInstance());
 		flv.setMetaService(metaService);
 		flv.setMetaData(meta);
 

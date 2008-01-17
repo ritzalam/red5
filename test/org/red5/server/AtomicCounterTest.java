@@ -110,8 +110,8 @@ public class AtomicCounterTest {
 				intList.add(num);
 			}
 		}
-		//check for dupes
-		assertTrue(intList.size() == setSize);
+		//compare sizes.. this will not be the same for primative ints
+		assertTrue(intList.size() != setSize);
 
 	}
 

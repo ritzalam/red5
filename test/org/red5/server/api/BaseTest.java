@@ -1,8 +1,8 @@
 package org.red5.server.api;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.junit.BeforeClass;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 
@@ -14,7 +14,7 @@ public class BaseTest {
 
 	static final String host = "localhost";
 
-	protected static Log log = LogFactory.getLog(ScopeTest.class.getName());
+	protected Logger log = LoggerFactory.getLogger(BaseTest.class);
 
 	static final String path_app = "test";
 

@@ -3,86 +3,95 @@
 <beans>
 
 	<bean id="serializer" class="org.red5.io.object.Serializer" />
-	
+
 	<bean id="deserializer" class="org.red5.io.object.Deserializer" />
-	
-	<bean id="statusObjectService" class="org.red5.server.net.rtmp.status.StatusObjectService" 
+
+	<bean id="statusObjectService"
+		class="org.red5.server.net.rtmp.status.StatusObjectService"
 		autowire="byType" init-method="initialize" />
-	
-	<bean id="rtmpCodecFactory" class="org.red5.server.net.rtmp.codec.RTMPMinaCodecFactory" 
+
+	<bean id="rtmpCodecFactory"
+		class="org.red5.server.net.rtmp.codec.RTMPMinaCodecFactory"
 		autowire="byType" init-method="init" />
-	
-	<bean id="red5.clientRegistry" class="org.red5.server.ClientRegistry" />
-	
-	<bean id="red5.serviceInvoker" class="org.red5.server.service.ServiceInvoker" />
-	
-	<bean id="red5.mappingStrategy" class="org.red5.server.MappingStrategy" />
-	
-	<bean id="red5.context" class="org.red5.server.Context" 
+
+	<bean id="red5.clientRegistry"
+		class="org.red5.server.ClientRegistry" />
+
+	<bean id="red5.serviceInvoker"
+		class="org.red5.server.service.ServiceInvoker" />
+
+	<bean id="red5.mappingStrategy"
+		class="org.red5.server.MappingStrategy" />
+
+	<bean id="red5.context" class="org.red5.server.Context"
 		autowire="byType">
 		<property name="contextPath" value="test" />
 	</bean>
-	
+
 	<!--
-	<bean id="red5.baseHandler" class="org.red5.server.net.impl.BaseHandler" 
+		<bean id="red5.baseHandler" class="org.red5.server.net.impl.BaseHandler" 
 		autowire="byType" />
 	-->
 
 	<bean id="host.default" class="org.red5.server.Scope"
-		 init-method="init">
+		init-method="init">
 		<property name="depth" value="1" />
 		<property name="context" ref="red5.context" />
 		<property name="name" value="localhost" />
 	</bean>
 
 	<bean id="app.default" class="org.red5.server.Scope"
-		 init-method="init">
+		init-method="init">
 		<property name="parent" ref="host.default" />
 		<property name="name" value="default" />
 		<property name="handler" ref="handler.default" />
 	</bean>
 
 	<bean id="app.test" class="org.red5.server.Scope"
-		 init-method="init">
+		init-method="init">
 		<property name="parent" ref="host.default" />
 		<property name="name" value="test" />
 		<property name="handler" ref="handler.default" />
 	</bean>
-	
-	<bean id="handler.default" class="org.red5.server.adapter.ApplicationAdapter" 
-		singleton="false" />
 
-	<bean id="red5.scopeResolver" class="org.red5.server.ScopeResolver">
+	<bean id="handler.default"
+		class="org.red5.server.adapter.ApplicationAdapter" singleton="false" />
+
+	<bean id="red5.scopeResolver"
+		class="org.red5.server.ScopeResolver">
 		<property name="root" ref="host.default" />
 	</bean>
-	
-	<bean id="threadPoolFilter" class="org.apache.mina.filter.ThreadPoolFilter">
-     <constructor-arg value="mina"/>
-     <property name="maximumPoolSize" value="10"/>
-   </bean>
-	
-	<bean id="socketAcceptor" class="org.apache.mina.integration.spring.SocketAcceptorFactoryBean">
-     <property name="filters">
-       <list>
-         <ref local="threadPoolFilter"/>
-       </list>
-     </property>
-     <property name="bindings">
-       <list>
-         <!-- RTMP -->
-         <bean class="org.apache.mina.integration.spring.Binding">
-           <property name="address" value="localhost:1935"/>
-           <property name="handler" ref="rtmpMinaIoHandler"/>
-         </bean>
-       </list>
-     </property>
-     <property name="reuseAddress" value="true"/>
-   </bean> 	
-	
+
+	<bean id="threadPoolFilter"
+		class="org.apache.mina.filter.ThreadPoolFilter">
+		<constructor-arg value="mina" />
+		<property name="maximumPoolSize" value="10" />
+	</bean>
+
+	<bean id="socketAcceptor"
+		class="org.apache.mina.integration.spring.SocketAcceptorFactoryBean">
+		<property name="filters">
+			<list>
+				<ref local="threadPoolFilter" />
+			</list>
+		</property>
+		<property name="bindings">
+			<list>
+				<!-- RTMP -->
+				<bean
+					class="org.apache.mina.integration.spring.Binding">
+					<property name="address" value="localhost:1935" />
+					<property name="handler" ref="rtmpMinaIoHandler" />
+				</bean>
+			</list>
+		</property>
+		<property name="reuseAddress" value="true" />
+	</bean>
+
 	<bean id="rtmpHandler" class="org.red5.server.net.rtmp.RTMPHandler"
 		autowire="byType" />
-		
-	<bean id="rtmpMinaIoHandler" class="org.red5.server.net.rtmp.RTMPMinaIoHandler"
-		autowire="byType" />
-	
+
+	<bean id="rtmpMinaIoHandler"
+		class="org.red5.server.net.rtmp.RTMPMinaIoHandler" autowire="byType" />
+
 </beans>

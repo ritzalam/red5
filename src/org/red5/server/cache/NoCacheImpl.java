@@ -42,12 +42,27 @@ public class NoCacheImpl implements ICacheStore, ApplicationContextAware {
 
 	protected static Logger log = LoggerFactory.getLogger(NoCacheImpl.class);
 
-	/** Do not instantiate NoCacheImpl. */ /*
+	private static NoCacheImpl instance;
+	
+	/** Do not instantiate NoCacheImpl. */ 
+	/*
 	 * This constructor helps to ensure that we are singleton.
 	 */
 	private NoCacheImpl() {
 	}
 
+	/**
+	 * Returns the instance of this class.
+	 * 
+	 * @return
+	 */
+	public static NoCacheImpl getInstance() {
+		if (instance == null) {
+			instance = new NoCacheImpl();
+		}
+		return instance;
+	}	
+	
 	// We store the application context in a ThreadLocal so we can access it
 	// later.
 	private static ApplicationContext applicationContext = null;

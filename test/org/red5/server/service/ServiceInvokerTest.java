@@ -25,8 +25,8 @@ package org.red5.server.service;
 import junit.framework.Assert;
 import junit.framework.TestCase;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
@@ -38,8 +38,7 @@ public class ServiceInvokerTest extends TestCase {
 	// Also, we need to add tests which show the way the parameter conversion works.
 	// So have a few methods with the same name, and try with diff params, making sure right one gets called.
 
-	protected static Log log = LogFactory.getLog(ServiceInvokerTest.class
-			.getName());
+	protected static Logger log = LoggerFactory.getLogger(ServiceInvokerTest.class);
 
 	protected ApplicationContext appCtx = null;
 

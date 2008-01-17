@@ -28,6 +28,7 @@ import org.red5.io.ITagReader;
 import org.red5.io.ITagWriter;
 import org.red5.io.flv.meta.IMetaData;
 import org.red5.io.flv.meta.IMetaService;
+import org.red5.server.api.cache.ICacheStore;
 
 /**
  * Represents FLV file
@@ -117,4 +118,10 @@ public interface IFLV extends IStreamableFile {
 	 */
 	public ITagWriter writerFromNearestKeyFrame(int seekPoint);
 
+	/**
+	 * Sets the caching implemenation
+	 * 
+	 * @param cache
+	 */
+	public void setCache(ICacheStore cache);
 }

@@ -5,6 +5,8 @@ import junit.framework.JUnit4TestAdapter;
 
 import org.junit.Test;
 import org.red5.server.Scope;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ScopeTest extends BaseTest {
 
@@ -38,9 +40,9 @@ public class ScopeTest extends BaseTest {
 		IScope testRoom = context.resolveScope(path_room);
 		IContext context = testRoom.getContext();
 		assertTrue("context should not be null", context != null);
-		log.debug(testRoom.getContext().getResource(""));
-		log.debug(testRoom.getResource(""));
-		log.debug(testRoom.getParent().getResource(""));
+		log.debug("{}", testRoom.getContext().getResource(""));
+		log.debug("{}", testRoom.getResource(""));
+		log.debug("{}", testRoom.getParent().getResource(""));
 	}
 
 	@Test
@@ -56,7 +58,7 @@ public class ScopeTest extends BaseTest {
 		conn.initialize(client);
 
 		assertTrue("client should not be null", client != null);
-		log.debug(client);
+		log.debug("{}", client);
 
 		String key = "key";
 		String value = "value";
@@ -86,21 +88,21 @@ public class ScopeTest extends BaseTest {
 		IScope global = context.getGlobalScope();
 		assertTrue("global scope not null", global != null);
 		assertTrue("should be global", ScopeUtils.isGlobal(global));
-		log.debug(global);
+		log.debug("{}", global);
 
 		// Test App
 		IScope testApp = context.resolveScope(path_app);
 		assertTrue("testApp scope not null", testApp != null);
-		log.debug(testApp);
+		log.debug("{}", testApp);
 
 		// Test Room
 		IScope testRoom = context.resolveScope(path_room);
-		log.debug(testRoom);
+		log.debug("{}", testRoom);
 
 		// Test App Not Found
 		try {
 			IScope notFoundApp = context.resolveScope(path_app + "notfound");
-			log.debug(notFoundApp);
+			log.debug("{}", notFoundApp);
 			assertTrue("should have thrown an exception", false);
 		} catch (RuntimeException e) {
 		}

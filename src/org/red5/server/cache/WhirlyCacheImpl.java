@@ -45,8 +45,7 @@ import com.whirlycott.cache.RecordKeeper;
  */
 public class WhirlyCacheImpl implements ICacheStore, ApplicationContextAware {
 
-	protected static Logger log = LoggerFactory.getLogger(WhirlyCacheImpl.class
-			.getName());
+	protected static Logger log = LoggerFactory.getLogger(WhirlyCacheImpl.class);
 
 	private static Cache cache;
 

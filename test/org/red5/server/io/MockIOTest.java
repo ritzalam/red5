@@ -34,7 +34,7 @@ public class MockIOTest extends AbstractIOTest {
 	protected List list;
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	void setupIO() {
 		list = new LinkedList();
 		in = new Input(list);
@@ -42,13 +42,13 @@ public class MockIOTest extends AbstractIOTest {
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	void dumpOutput() {
 		System.out.println(Mock.listToString(list));
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	void resetOutput() {
 		setupIO();
 	}

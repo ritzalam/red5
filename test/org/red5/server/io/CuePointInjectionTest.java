@@ -45,6 +45,8 @@ import org.red5.io.flv.meta.IMetaCue;
 import org.red5.io.flv.meta.MetaCue;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Serializer;
+import org.red5.server.api.cache.ICacheStore;
+import org.red5.server.cache.NoCacheImpl;
 
 /**
  * @author The Red5 Project (red5@osflash.org)
@@ -57,6 +59,7 @@ public class CuePointInjectionTest extends TestCase {
 
 	/**
 	 * SetUp is called before each test
+	 * 
 	 * @return void
 	 */
 	@Override
@@ -68,15 +71,15 @@ public class CuePointInjectionTest extends TestCase {
 
 	/**
 	 * Test MetaData injection
+	 * 
 	 * @throws IOException
 	 */
 	public void testCuePointInjection() throws IOException {
-		File f = new File("tests/test_cue1.flv");
-
-		if(f.exists()) {
+		File f = new File("test/test_cue1.flv");
+		System.out.println("Path: " + f.getAbsolutePath());
+		if (f.exists()) {
 			f.delete();
 		}
-
 		// Create new file
 		f.createNewFile();
 
@@ -87,8 +90,11 @@ public class CuePointInjectionTest extends TestCase {
 		ITagWriter writer = flv.getWriter();
 
 		// Create a reader for testing
-		File readfile = new File("tests/test_cue.flv");
+		File readfile = new File("test/test_cue.flv");
+		assertTrue(readfile.exists());
+		
 		IFLV readflv = (IFLV) service.getStreamableFile(readfile);
+		readflv.setCache(NoCacheImpl.getInstance());
 
 		// Grab a reader for reading a FLV in
 		ITagReader reader = readflv.getReader();
@@ -100,11 +106,13 @@ public class CuePointInjectionTest extends TestCase {
 
 	/**
 	 * Write FLV tags and inject Cue Points
+	 * 
 	 * @param reader
 	 * @param writer
 	 * @throws IOException
 	 */
-	private void writeTagsWithInjection(ITagReader reader, ITagWriter writer) throws IOException {
+	private void writeTagsWithInjection(ITagReader reader, ITagWriter writer)
+			throws IOException {
 
 		IMetaCue cp = new MetaCue();
 		cp.setName("cue_1");
@@ -126,15 +134,15 @@ public class CuePointInjectionTest extends TestCase {
 		ITag tag = null;
 		ITag injectedTag = null;
 
-		while(reader.hasMoreTags()) {
+		while (reader.hasMoreTags()) {
 			tag = reader.readTag();
 
 			// if there are cuePoints in the TreeSet
-			if(!ts.isEmpty()) {
+			if (!ts.isEmpty()) {
 
 				// If the tag has a greater timestamp than the
 				// cuePointTimeStamp, then inject the tag
-				while(tag.getTimestamp() > cuePointTimeStamp) {
+				while (tag.getTimestamp() > cuePointTimeStamp) {
 
 					injectedTag = injectCuePoint(ts.first(), tag);
 					writer.writeTag(injectedTag);
@@ -143,7 +151,7 @@ public class CuePointInjectionTest extends TestCase {
 					// Advance to the next CuePoint
 					ts.remove(ts.first());
 
-					if(ts.isEmpty()) {
+					if (ts.isEmpty()) {
 						break;
 					}
 
@@ -158,6 +166,7 @@ public class CuePointInjectionTest extends TestCase {
 
 	/**
 	 * Injects metadata (Cue Points) into a tag
+	 * 
 	 * @param cue
 	 * @param writer
 	 * @param tag
@@ -168,8 +177,8 @@ public class CuePointInjectionTest extends TestCase {
 		IMetaCue cp = (MetaCue) cue;
 		Output out = new Output(ByteBuffer.allocate(1000));
 		Serializer ser = new Serializer();
-		ser.serialize(out,"onCuePoint");
-		ser.serialize(out,cp);
+		ser.serialize(out, "onCuePoint");
+		ser.serialize(out, cp);
 
 		ByteBuffer tmpBody = out.buf().flip();
 		int tmpBodySize = out.buf().limit();
@@ -177,12 +186,14 @@ public class CuePointInjectionTest extends TestCase {
 		byte tmpDataType = ((IoConstants.TYPE_METADATA));
 		int tmpTimestamp = getTimeInMilliseconds(cp);
 
-		return new Tag(tmpDataType, tmpTimestamp, tmpBodySize, tmpBody, tmpPreviousTagSize);
+		return new Tag(tmpDataType, tmpTimestamp, tmpBodySize, tmpBody,
+				tmpPreviousTagSize);
 
 	}
 
 	/**
 	 * Returns a timestamp in milliseconds
+	 * 
 	 * @param object
 	 * @return int time
 	 */
@@ -194,6 +205,7 @@ public class CuePointInjectionTest extends TestCase {
 
 	/**
 	 * Test to see if TreeSet is sorting properly
+	 * 
 	 * @return void
 	 */
 	public void testCuePointOrder() {

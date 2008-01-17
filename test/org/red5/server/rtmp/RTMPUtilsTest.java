@@ -25,14 +25,14 @@ package org.red5.server.rtmp;
 import junit.framework.Assert;
 import junit.framework.TestCase;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.red5.io.utils.HexDump;
 import org.red5.server.net.rtmp.RTMPUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RTMPUtilsTest extends TestCase {
 
-	protected static Log log = LogFactory.getLog(RTMPUtilsTest.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(RTMPUtilsTest.class);
 
 	public void testDecodingHeader() {
 

@@ -28,10 +28,8 @@ import java.util.Set;
 import junit.framework.Assert;
 import junit.framework.TestCase;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-// TODO: Add more tests here.
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ConversionUtilsTest extends TestCase {
 
@@ -39,7 +37,7 @@ public class ConversionUtilsTest extends TestCase {
 
 	}
 
-	private static final Log log = LogFactory.getLog(ConversionUtilsTest.class);
+	private static final Logger log = LoggerFactory.getLogger(ConversionUtilsTest.class);
 
 	public void testBasic() {
 		Object result = ConversionUtils.convert(new Integer(42), String.class);

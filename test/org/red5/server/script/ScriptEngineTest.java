@@ -9,8 +9,9 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
 import javax.script.ScriptEngineManager;
 
-import org.apache.log4j.Logger;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Simple script engine tests. Some of the hello world scripts found here:
@@ -20,7 +21,7 @@ import org.junit.Test;
  */
 public class ScriptEngineTest {
 
-	private static final Logger log = Logger.getLogger(ScriptEngineTest.class);
+	private static final Logger log = LoggerFactory.getLogger(ScriptEngineTest.class);
 
 	// ScriptEngine manager
 	private static ScriptEngineManager mgr = new ScriptEngineManager();
@@ -36,7 +37,7 @@ public class ScriptEngineTest {
 			}
 		}
 		if (null == jsEngine) {
-			log.fatal("Javascript is not supported in this build");
+			log.error("Javascript is not supported in this build");
 		}
 		/*
 		 try {
@@ -278,7 +279,7 @@ public class ScriptEngineTest {
 					System.out.printf("%s ", name);
 				}
 			} catch (Throwable e) {
-				log.error(e);
+				log.error("{}", e);
 			}
 		}
 	}

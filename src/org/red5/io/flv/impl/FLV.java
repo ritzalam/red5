@@ -37,6 +37,7 @@ import org.red5.io.flv.meta.IMetaService;
 import org.red5.io.flv.meta.MetaService;
 import org.red5.server.api.cache.ICacheStore;
 import org.red5.server.api.cache.ICacheable;
+import org.red5.server.cache.NoCacheImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -168,6 +169,10 @@ public class FLV implements IFLV {
 		ByteBuffer fileData;
 		String fileName = file.getName();
 
+		//if no cache is set an NPE will be thrown
+		if (cache == null) {
+			log.warn("FLV cache is null, an NPE may be thrown. To fix your code, ensure a cache is set via Spring or by the following: setCache(NoCacheImpl.getInstance())");
+		}
 		ICacheable ic = cache.get(fileName);
 
 		// look in the cache before reading the file from the disk

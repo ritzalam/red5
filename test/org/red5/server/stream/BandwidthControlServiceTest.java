@@ -32,13 +32,19 @@ public class BandwidthControlServiceTest extends
 		AbstractDependencyInjectionSpringContextTests {
 	class Client extends TestRunnable {
 		private boolean[][] availArray;
+
 		private int clientNum;
+
 		private IBandwidthConfigure config;
+
 		private Node parent;
+
 		private long timeout;
+
 		private long tokenCount;
 
-		Client(int clientNum, Node parent, IBandwidthConfigure config, long tokenCount, boolean[][] availArray, long timeout) {
+		Client(int clientNum, Node parent, IBandwidthConfigure config,
+				long tokenCount, boolean[][] availArray, long timeout) {
 			this.clientNum = clientNum;
 			this.parent = parent;
 			this.config = config;
@@ -58,8 +64,8 @@ public class BandwidthControlServiceTest extends
 			Node node = new Node();
 			node.setParentBWControllable(parent);
 			node.setBandwidthConfigure(config);
-			IBWControlService service =
-				(IBWControlService) applicationContext.getBean(IBWControlService.KEY);
+			IBWControlService service = (IBWControlService) applicationContext
+					.getBean(IBWControlService.KEY);
 			IBWControlContext context = service.registerBWControllable(node);
 			ITokenBucket[] buckets = new ITokenBucket[3];
 			buckets[0] = service.getAudioBucket(context);
@@ -67,11 +73,15 @@ public class BandwidthControlServiceTest extends
 			buckets[2] = service.getDataBucket(context);
 			Loop: for (int channel = 0; channel < 3; channel++) {
 				for (int i = 0; i < availArray[channel].length; i++) {
-					ITokenBucketCallback callback = new ClientCallback(clientNum, channel, i, availArray);
-					boolean result = buckets[channel].acquireTokenNonblocking(tokenCount, callback);
-					if (result) availArray[channel][i] = true;
+					ITokenBucketCallback callback = new ClientCallback(
+							clientNum, channel, i, availArray);
+					boolean result = buckets[channel].acquireTokenNonblocking(
+							tokenCount, callback);
+					if (result)
+						availArray[channel][i] = true;
 					while (!result && !availArray[channel][i]) {
-						if (timeout >= 0 && System.currentTimeMillis() - before > timeout) {
+						if (timeout >= 0
+								&& System.currentTimeMillis() - before > timeout) {
 							break Loop;
 						}
 						Thread.sleep(10);
@@ -81,13 +91,18 @@ public class BandwidthControlServiceTest extends
 			service.unregisterBWControllable(context);
 		}
 	}
+
 	class ClientCallback implements ITokenBucketCallback {
 		boolean[][] availArray;
+
 		int channel;
+
 		int clientNum;
+
 		int requestNum;
 
-		ClientCallback(int clientNum, int channel, int requestNum, boolean[][] availArray) {
+		ClientCallback(int clientNum, int channel, int requestNum,
+				boolean[][] availArray) {
 			this.clientNum = clientNum;
 			this.channel = channel;
 			this.requestNum = requestNum;
@@ -99,13 +114,15 @@ public class BandwidthControlServiceTest extends
 		}
 
 		public void reset(ITokenBucket bucket, long tokenCount) {
-			System.err.println("Client " + clientNum + " on Channel " + channel + " reset on " + requestNum + "th request");
+			System.err.println("Client " + clientNum + " on Channel " + channel
+					+ " reset on " + requestNum + "th request");
 		}
 
 	}
 
 	class Node implements IBWControllable {
 		IBandwidthConfigure config;
+
 		IBWControllable parent;
 
 		public IBandwidthConfigure getBandwidthConfigure() {
@@ -142,7 +159,7 @@ public class BandwidthControlServiceTest extends
 
 	@Override
 	protected String[] getConfigLocations() {
-		return new String[] {"org/red5/server/stream/BandwidthControlServiceTest.xml"};
+		return new String[] { "org/red5/server/stream/BandwidthControlServiceTest.xml" };
 	}
 
 	public void testMultiChildrenNoParent() throws Throwable {
@@ -166,7 +183,9 @@ public class BandwidthControlServiceTest extends
 		for (int i = 0; i < CLIENT_COUNT; i++) {
 			for (int channel = 0; channel < 3; channel++) {
 				for (int j = 0; j < REQUEST_COUNT; j++) {
-					assertTrue("Client No." + i + " on Channel " + channel + " fails on " + j + "th request", avail[i][channel][j]);
+					assertTrue("Client No." + i + " on Channel " + channel
+							+ " fails on " + j + "th request",
+							avail[i][channel][j]);
 				}
 			}
 		}
@@ -183,8 +202,8 @@ public class BandwidthControlServiceTest extends
 		long[] initialBurst = config.getChannelInitialBurst();
 		initialBurst[3] = 100 * 1024 * 1024;
 		parent.setBandwidthConfigure(config);
-		IBWControlService service =
-			(IBWControlService) applicationContext.getBean(IBWControlService.KEY);
+		IBWControlService service = (IBWControlService) applicationContext
+				.getBean(IBWControlService.KEY);
 		IBWControlContext context = service.registerBWControllable(parent);
 
 		boolean[][][] avail = new boolean[CLIENT_COUNT][3][REQUEST_COUNT];
@@ -204,7 +223,9 @@ public class BandwidthControlServiceTest extends
 		for (int i = 0; i < CLIENT_COUNT; i++) {
 			for (int channel = 0; channel < 3; channel++) {
 				for (int j = 0; j < REQUEST_COUNT; j++) {
-					assertTrue("Client No." + i + " on Channel " + channel + " fails on " + j + "th request", avail[i][channel][j]);
+					assertTrue("Client No." + i + " on Channel " + channel
+							+ " fails on " + j + "th request",
+							avail[i][channel][j]);
 				}
 			}
 		}
@@ -212,8 +233,8 @@ public class BandwidthControlServiceTest extends
 	}
 
 	public void testSingleNodeNoParent() throws Exception {
-		IBWControlService bwController =
-			(IBWControlService) applicationContext.getBean(IBWControlService.KEY);
+		IBWControlService bwController = (IBWControlService) applicationContext
+				.getBean(IBWControlService.KEY);
 		ITokenBucketCallback callback = new TokenBucketCallback();
 		Node node = new Node();
 		node.setParentBWControllable(null);
@@ -256,7 +277,8 @@ public class BandwidthControlServiceTest extends
 		isAvailable = false;
 		isReset = false;
 		// expect false result and wait for callback
-		assertFalse(audioBucket.acquireTokenNonblocking(1024 * 1024 / 8, callback));
+		assertFalse(audioBucket.acquireTokenNonblocking(1024 * 1024 / 8,
+				callback));
 		Thread.sleep(500);
 		assertFalse(isAvailable);
 		assertFalse(isReset);
@@ -269,12 +291,14 @@ public class BandwidthControlServiceTest extends
 		audioBucket.acquireTokenBestEffort(1024 * 1024);
 		Thread.sleep(500);
 		long acquired = audioBucket.acquireTokenBestEffort(1024 * 1024 / 8);
-		assertTrue("Acquired " + acquired, acquired > 0 && acquired < 1024 * 1024 / 8);
+		assertTrue("Acquired " + acquired, acquired > 0
+				&& acquired < 1024 * 1024 / 8);
 
 		isAvailable = false;
 		isReset = false;
 		// expect false result and wait for callback
-		assertFalse(videoBucket.acquireTokenNonblocking(1024 * 1024 / 8, callback));
+		assertFalse(videoBucket.acquireTokenNonblocking(1024 * 1024 / 8,
+				callback));
 		bwController.resetBuckets(context);
 		Thread.sleep(500);
 		assertFalse(isAvailable);
@@ -307,13 +331,15 @@ public class BandwidthControlServiceTest extends
 
 		Thread.sleep(500);
 		acquired = videoBucket.acquireTokenBestEffort(1024 * 1024 / 8);
-		assertTrue("Acquired " + acquired, acquired > 0 && acquired < 1024 * 1024 / 8);
+		assertTrue("Acquired " + acquired, acquired > 0
+				&& acquired < 1024 * 1024 / 8);
 		Thread.sleep(500);
 
 		isAvailable = false;
 		isReset = false;
 		// expect false result and wait for callback
-		assertFalse(dataBucket.acquireTokenNonblocking(1024 * 1024 / 8, callback));
+		assertFalse(dataBucket.acquireTokenNonblocking(1024 * 1024 / 8,
+				callback));
 		Thread.sleep(1000);
 		assertFalse(isAvailable);
 		assertFalse(isReset);
@@ -326,14 +352,15 @@ public class BandwidthControlServiceTest extends
 	}
 
 	public void testSingleNodeWithParent() throws Exception {
-		IBWControlService bwController =
-			(IBWControlService) applicationContext.getBean(IBWControlService.KEY);
+		IBWControlService bwController = (IBWControlService) applicationContext
+				.getBean(IBWControlService.KEY);
 		ITokenBucketCallback callback = new TokenBucketCallback();
 
 		Node parent = new Node();
 		parent.setParentBWControllable(null);
 		parent.setBandwidthConfigure(null);
-		IBWControlContext parentContext = bwController.registerBWControllable(parent);
+		IBWControlContext parentContext = bwController
+				.registerBWControllable(parent);
 
 		Node node = new Node();
 		node.setParentBWControllable(parent);
@@ -376,7 +403,8 @@ public class BandwidthControlServiceTest extends
 		isAvailable = false;
 		isReset = false;
 		// expect false result and wait for callback
-		assertFalse(audioBucket.acquireTokenNonblocking(1024 * 1024 / 8, callback));
+		assertFalse(audioBucket.acquireTokenNonblocking(1024 * 1024 / 8,
+				callback));
 		Thread.sleep(500);
 		assertFalse(isAvailable);
 		assertFalse(isReset);
@@ -389,12 +417,14 @@ public class BandwidthControlServiceTest extends
 		audioBucket.acquireTokenBestEffort(1024 * 1024);
 		Thread.sleep(500);
 		long acquired = audioBucket.acquireTokenBestEffort(1024 * 1024 / 8);
-		assertTrue("Acquired " + acquired, acquired > 0 && acquired < 1024 * 1024 / 8);
+		assertTrue("Acquired " + acquired, acquired > 0
+				&& acquired < 1024 * 1024 / 8);
 
 		isAvailable = false;
 		isReset = false;
 		// expect false result and wait for callback
-		assertFalse(videoBucket.acquireTokenNonblocking(1024 * 1024 / 8, callback));
+		assertFalse(videoBucket.acquireTokenNonblocking(1024 * 1024 / 8,
+				callback));
 		bwController.resetBuckets(context);
 		Thread.sleep(500);
 		assertFalse(isAvailable);
@@ -428,13 +458,15 @@ public class BandwidthControlServiceTest extends
 
 		Thread.sleep(500);
 		acquired = videoBucket.acquireTokenBestEffort(1024 * 1024 / 8);
-		assertTrue("Acquired " + acquired, acquired > 0 && acquired < 1024 * 1024 / 8);
+		assertTrue("Acquired " + acquired, acquired > 0
+				&& acquired < 1024 * 1024 / 8);
 		Thread.sleep(500);
 
 		isAvailable = false;
 		isReset = false;
 		// expect false result and wait for callback
-		assertFalse(dataBucket.acquireTokenNonblocking(1024 * 1024 / 8, callback));
+		assertFalse(dataBucket.acquireTokenNonblocking(1024 * 1024 / 8,
+				callback));
 		Thread.sleep(1000);
 		assertFalse(isAvailable);
 		assertFalse(isReset);

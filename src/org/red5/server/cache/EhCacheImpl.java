@@ -51,8 +51,7 @@ import org.springframework.context.ApplicationContextAware;
  */
 public class EhCacheImpl implements ICacheStore, ApplicationContextAware {
 
-	protected static Logger log = LoggerFactory.getLogger(EhCacheImpl.class
-			.getName());
+	protected static Logger log = LoggerFactory.getLogger(EhCacheImpl.class);
 
 	private static Ehcache cache;
 

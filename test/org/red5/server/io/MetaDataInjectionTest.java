@@ -44,6 +44,7 @@ import org.red5.io.flv.meta.IMetaCue;
 import org.red5.io.flv.meta.MetaCue;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Serializer;
+import org.red5.server.cache.NoCacheImpl;
 
 /**
  * @author The Red5 Project (red5@osflash.org)
@@ -70,7 +71,7 @@ public class MetaDataInjectionTest extends TestCase {
 	 * @throws IOException
 	 */
 	public void testMetaDataInjection() throws IOException {
-		File f = new File("tests/test_cue1.flv");
+		File f = new File("test/test_cue1.flv");
 
 		if(f.exists()) {
 			f.delete();
@@ -86,8 +87,9 @@ public class MetaDataInjectionTest extends TestCase {
 		ITagWriter writer = flv.getWriter();
 
 		// Create a reader for testing
-		File readfile = new File("tests/test_cue.flv");
+		File readfile = new File("test/test_cue.flv");
 		IFLV readflv = (IFLV) service.getStreamableFile(readfile);
+		readflv.setCache(NoCacheImpl.getInstance());
 
 		// Grab a reader for reading a FLV in
 		ITagReader reader = readflv.getReader();

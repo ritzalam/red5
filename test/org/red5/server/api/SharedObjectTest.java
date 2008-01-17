@@ -20,7 +20,7 @@ public class SharedObjectTest extends BaseTest implements IEventListener {
 
 	/** {@inheritDoc} */
     public void notifyEvent(IEvent event) {
-		log.debug("Event: " + event);
+		log.debug("Event: {}", event);
 	}
 
 	@Test

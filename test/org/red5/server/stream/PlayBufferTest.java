@@ -38,7 +38,7 @@ public class PlayBufferTest extends TestCase {
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
 		VideoData message = new VideoData(ByteBuffer.allocate(100));

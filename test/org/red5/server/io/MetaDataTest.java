@@ -27,10 +27,9 @@ import junit.framework.TestCase;
 
 import org.red5.io.flv.meta.MetaData;
 
-
 /**
  * MetaData TestCase
- *
+ * 
  * @author The Red5 Project (red5@osflash.org)
  * @author daccattato (daccattato@gmail.com)
  * @version 0.3
@@ -39,12 +38,12 @@ public class MetaDataTest extends TestCase {
 	MetaData data;
 
 	/** Constructs a new MetaDataTest. */
-    public MetaDataTest() {
+	public MetaDataTest() {
 		data = new MetaData();
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
 
@@ -58,7 +57,7 @@ public class MetaDataTest extends TestCase {
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public void tearDown() {
 		data = null;
 	}
