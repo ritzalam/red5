@@ -43,7 +43,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * A FLVImpl implements the FLV api
- *
+ * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Dominick Accattato (daccattato@gmail.com)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
@@ -64,44 +64,50 @@ public class FLV implements IFLV {
 	private IMetaData metaData;
 
 	/**
-	 * Default constructor, used by Spring so that parameters
-	 * may be injected.
+	 * Default constructor, used by Spring so that parameters may be injected.
 	 */
 	public FLV() {
 	}
 
-    /**
-     * Create FLV from given file source
-     * @param file       File source
-     */
-    public FLV(File file) {
+	/**
+	 * Create FLV from given file source
+	 * 
+	 * @param file
+	 *            File source
+	 */
+	public FLV(File file) {
 		this(file, false);
 	}
 
-    /**
-     * Create FLV from given file source and with specified metadata generation option
-     * @param file                    File source
-     * @param generateMetadata        Metadata generation option
-     */
-    public FLV(File file, boolean generateMetadata) {
+	/**
+	 * Create FLV from given file source and with specified metadata generation
+	 * option
+	 * 
+	 * @param file
+	 *            File source
+	 * @param generateMetadata
+	 *            Metadata generation option
+	 */
+	public FLV(File file, boolean generateMetadata) {
 		this.file = file;
 		this.generateMetadata = generateMetadata;
 		int count = 0;
 
-		if( !generateMetadata ) {
+		if (!generateMetadata) {
 			try {
-				FLVReader reader = new FLVReader( this.file );
+				FLVReader reader = new FLVReader(this.file);
 				ITag tag = null;
-				while( reader.hasMoreTags() && (++count < 5) ) {
+				while (reader.hasMoreTags() && (++count < 5)) {
 					tag = reader.readTag();
-					if( tag.getDataType() == IoConstants.TYPE_METADATA ) {
-						if( metaService == null ) metaService = new MetaService( this.file );
-						metaData = metaService.readMetaData( tag.getBody() );
+					if (tag.getDataType() == IoConstants.TYPE_METADATA) {
+						if (metaService == null)
+							metaService = new MetaService(this.file);
+						metaData = metaService.readMetaData(tag.getBody());
 					}
 				}
 				reader.close();
-			} catch( Exception e ) {
-				log.error( "An error occured looking for metadata:", e );
+			} catch (Exception e) {
+				log.error("An error occured looking for metadata:", e);
 			}
 		}
 
@@ -109,69 +115,80 @@ public class FLV implements IFLV {
 
 	/**
 	 * Sets the cache implementation to be used.
-	 *
-	 * @param cache          Cache store
+	 * 
+	 * @param cache
+	 *            Cache store
 	 */
 	public void setCache(ICacheStore cache) {
 		FLV.cache = cache;
 	}
 
-	/** {@inheritDoc}
+	/**
+	 * {@inheritDoc}
 	 */
 	public boolean hasMetaData() {
-		return metaData!=null;
+		return metaData != null;
 	}
 
-	/** {@inheritDoc}
+	/**
+	 * {@inheritDoc}
 	 */
 	public IMetaData getMetaData() throws FileNotFoundException {
 		metaService.setInStream(new FileInputStream(file));
 		return null;
 	}
 
-	/** {@inheritDoc}
+	/**
+	 * {@inheritDoc}
 	 */
 	public boolean hasKeyFrameData() {
 		// TODO Auto-generated method stub
 		return false;
 	}
 
-	/** {@inheritDoc}
+	/**
+	 * {@inheritDoc}
 	 */
 	public void setKeyFrameData(Map keyframedata) {
 	}
 
-	/** {@inheritDoc}
+	/**
+	 * {@inheritDoc}
 	 */
 	public Map getKeyFrameData() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	/** {@inheritDoc}
+	/**
+	 * {@inheritDoc}
 	 */
 	public void refreshHeaders() throws IOException {
 		// TODO Auto-generated method stub
 
 	}
 
-	/** {@inheritDoc}
+	/**
+	 * {@inheritDoc}
 	 */
 	public void flushHeaders() throws IOException {
 		// TODO Auto-generated method stub
 
 	}
 
-	/** {@inheritDoc}
+	/**
+	 * {@inheritDoc}
 	 */
 	public ITagReader getReader() throws IOException {
 		FLVReader reader = null;
 		ByteBuffer fileData;
 		String fileName = file.getName();
 
-		//if no cache is set an NPE will be thrown
+		// if no cache is set an NPE will be thrown
 		if (cache == null) {
-			log.warn("FLV cache is null, an NPE may be thrown. To fix your code, ensure a cache is set via Spring or by the following: setCache(NoCacheImpl.getInstance())");
+			System.out.println("No cache");
+			log
+					.warn("FLV cache is null, an NPE may be thrown. To fix your code, ensure a cache is set via Spring or by the following: setCache(NoCacheImpl.getInstance())");
 		}
 		ICacheable ic = cache.get(fileName);
 
@@ -205,14 +222,16 @@ public class FLV implements IFLV {
 		return reader;
 	}
 
-	/** {@inheritDoc}
+	/**
+	 * {@inheritDoc}
 	 */
 	public ITagReader readerFromNearestKeyFrame(int seekPoint) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
-	/** {@inheritDoc}
+	/**
+	 * {@inheritDoc}
 	 */
 	public ITagWriter getWriter() throws IOException {
 		if (file.exists()) {
@@ -225,17 +244,20 @@ public class FLV implements IFLV {
 	}
 
 	/** {@inheritDoc} */
-    public ITagWriter getAppendWriter() throws IOException {
+	public ITagWriter getAppendWriter() throws IOException {
 		// If the file doesnt exist, we cant append to it, so return a writer
 		if (!file.exists()) {
-			log.info("File does not exist, calling writer. This will create a new file.");
+			log
+					.info("File does not exist, calling writer. This will create a new file.");
 			return getWriter();
 		}
-		ITagWriter writer = new FLVWriter(new FileOutputStream(file, true), true);
+		ITagWriter writer = new FLVWriter(new FileOutputStream(file, true),
+				true);
 		return writer;
 	}
 
-	/** {@inheritDoc}
+	/**
+	 * {@inheritDoc}
 	 */
 	public ITagWriter writerFromNearestKeyFrame(int seekPoint) {
 		// TODO Auto-generated method stub
@@ -243,31 +265,37 @@ public class FLV implements IFLV {
 	}
 
 	/** {@inheritDoc} */
-    public void setMetaData(IMetaData meta) throws IOException {
-    	File tmpFile = File.createTempFile( "setMeta_", ".flv" );
-    	if( metaService == null ) metaService = new MetaService( this.file );
-    	metaService.setInStream( new FileInputStream( this.file ) );
-    	metaService.setOutStream( new FileOutputStream( tmpFile ) );
-    	metaService.write( meta );
-    	metaData = meta;
-    	file.delete();
-    	if (!tmpFile.renameTo(file)) {
-    		// Probably renaming across filesystems? Move manually.
-    		FileInputStream fis = new FileInputStream(tmpFile);
-    		FileOutputStream fos = new FileOutputStream(file);
-    		byte[] buf = new byte[16384];
-    		int i = 0;
-    		while ((i = fis.read(buf)) != -1) {
-    			fos.write(buf, 0, i);
-    		}
-    		fis.close();
-    		fos.close();
-    		tmpFile.delete();
-    	}
+	public void setMetaData(IMetaData meta) throws IOException {
+		File tmpFile = File.createTempFile("setMeta_", ".flv");
+		if (metaService == null) {
+			metaService = new MetaService(file);
+		}
+		metaService.setInStream(new FileInputStream(file));
+		metaService.setOutStream(new FileOutputStream(tmpFile));
+		//if the file is not checked the write may produce an NPE
+		if (((MetaService) metaService).getFile() == null) {
+			((MetaService) metaService).setFile(file);
+		}
+		metaService.write(meta);
+		metaData = meta;
+		file.delete();
+		if (!tmpFile.renameTo(file)) {
+			// Probably renaming across filesystems? Move manually.
+			FileInputStream fis = new FileInputStream(tmpFile);
+			FileOutputStream fos = new FileOutputStream(file);
+			byte[] buf = new byte[16384];
+			int i = 0;
+			while ((i = fis.read(buf)) != -1) {
+				fos.write(buf, 0, i);
+			}
+			fis.close();
+			fos.close();
+			tmpFile.delete();
+		}
 	}
 
 	/** {@inheritDoc} */
-    public void setMetaService(IMetaService service) {
+	public void setMetaService(IMetaService service) {
 		metaService = service;
 	}
 }

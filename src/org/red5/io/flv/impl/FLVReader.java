@@ -141,6 +141,10 @@ public class FLVReader implements IoConstants, ITagReader,
      * @param generateMetadata     <code>true</code> if metadata generation required, <code>false</code> otherwise
      */
     public FLVReader(File f, boolean generateMetadata) throws FileNotFoundException {
+    	if (null == f) {
+    		log.warn("Reader was passed a null file");
+        	log.debug("{}", org.apache.commons.lang.builder.ToStringBuilder.reflectionToString(this));
+    	}
     	this.file = f;
 		this.fis = new FileInputStream(f);
 		this.generateMetadata = generateMetadata;

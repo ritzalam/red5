@@ -39,42 +39,42 @@ import org.red5.io.object.Serializer;
 
 /**
  * MetaService represents a MetaData service in Spring
- *
+ * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Dominick Accattato (daccattato@gmail.com)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 public class MetaService implements IMetaService {
 
-    /**
-     * Source file
-     */
-    File file;
+	/**
+	 * Source file
+	 */
+	File file;
 
-    /**
-     * File input stream
-     */
-    private FileInputStream fis;
+	/**
+	 * File input stream
+	 */
+	private FileInputStream fis;
 
-    /**
-     * File output stream
-     */
-    private FileOutputStream fos;
+	/**
+	 * File output stream
+	 */
+	private FileOutputStream fos;
 
-    /**
-     * Serializer
-     */
-    private Serializer serializer;
+	/**
+	 * Serializer
+	 */
+	private Serializer serializer;
 
-    /**
-     * Deserializer
-     */
-    private Deserializer deserializer;
+	/**
+	 * Deserializer
+	 */
+	private Deserializer deserializer;
 
-    /**
-     * Merges metadata objects
-     */
-    private Resolver resolver;
+	/**
+	 * Merges metadata objects
+	 */
+	private Resolver resolver;
 
 	/**
 	 * @return Returns the resolver.
@@ -128,54 +128,55 @@ public class MetaService implements IMetaService {
 		super();
 	}
 
-	public MetaService( File poFil )
-	{
-		super();
+	public MetaService(File poFil) {
+		this();
 		this.file = poFil;
 	}
 
-	/** {@inheritDoc}
+	/**
+	 * {@inheritDoc}
 	 */
 	public void write(IMetaData meta) throws IOException {
-        // Get cue points, FLV reader and writer
+		// Get cue points, FLV reader and writer
 		IMetaCue[] metaArr = meta.getMetaCue();
-		FLVReader reader = new FLVReader(file);
+		FLVReader reader = new FLVReader(file, false);
 		FLVWriter writer = new FLVWriter(fos, false);
 		ITag tag = null;
 
 		// Read first tag
 		if (reader.hasMoreTags()) {
 			tag = reader.readTag();
-			if( tag.getDataType() == IoConstants.TYPE_METADATA ) {
-				if( !reader.hasMoreTags() )
-					throw new IOException( "File we're writing is metadata only?" );
+			if (tag.getDataType() == IoConstants.TYPE_METADATA) {
+				if (!reader.hasMoreTags())
+					throw new IOException(
+							"File we're writing is metadata only?");
 			}
 		}
 
-		meta.setDuration( ((double)reader.getDuration() / 1000) );
-		meta.setVideoCodecId( reader.getVideoCodecId() );
-		meta.setAudioCodecId( reader.getAudioCodecId() );
+		meta.setDuration(((double) reader.getDuration() / 1000));
+		meta.setVideoCodecId(reader.getVideoCodecId());
+		meta.setAudioCodecId(reader.getAudioCodecId());
 
-		ITag injectedTag = injectMetaData( meta, tag );
-		injectedTag.setPreviousTagSize( 0 );
-		tag.setPreviousTagSize( injectedTag.getBodySize() );
+		ITag injectedTag = injectMetaData(meta, tag);
+		injectedTag.setPreviousTagSize(0);
+		tag.setPreviousTagSize(injectedTag.getBodySize());
 
 		writer.writeHeader();
-		writer.writeTag( injectedTag );
-		writer.writeTag( tag );
+		writer.writeTag(injectedTag);
+		writer.writeTag(tag);
 
 		int cuePointTimeStamp = 0;
 		int counter = 0;
 
-		if( metaArr != null ) {
-			Arrays.sort( metaArr );
-			cuePointTimeStamp = getTimeInMilliseconds( metaArr[0] );
+		if (metaArr != null) {
+			Arrays.sort(metaArr);
+			cuePointTimeStamp = getTimeInMilliseconds(metaArr[0]);
 		}
 
 		while (reader.hasMoreTags()) {
 			tag = reader.readTag();
 
-			// if there are cuePoints in the array 
+			// if there are cuePoints in the array
 			if (counter < metaArr.length) {
 
 				// If the tag has a greater timestamp than the
@@ -210,30 +211,35 @@ public class MetaService implements IMetaService {
 
 	/**
 	 * Merges the two Meta objects according to user
-	 *
-	 * @param metaData        First metadata object
-	 * @param md              Second metadata object
-	 * @return                Merged metadata
+	 * 
+	 * @param metaData
+	 *            First metadata object
+	 * @param md
+	 *            Second metadata object
+	 * @return Merged metadata
 	 */
 	private IMeta mergeMeta(IMetaData metaData, IMetaData md) {
 		return new Resolver().resolve(metaData, md);
 	}
 
-    /**
-     * Injects metadata (other than Cue points) into a tag
-     * @param meta           Metadata
-     * @param tag            Tag
-     * @return               New tag with injected metadata
-     */
-    private ITag injectMetaData(IMetaData meta, ITag tag) {
+	/**
+	 * Injects metadata (other than Cue points) into a tag
+	 * 
+	 * @param meta
+	 *            Metadata
+	 * @param tag
+	 *            Tag
+	 * @return New tag with injected metadata
+	 */
+	private ITag injectMetaData(IMetaData meta, ITag tag) {
 
-		ByteBuffer bb = ByteBuffer.allocate( 1000 );
-		bb.setAutoExpand( true );
+		ByteBuffer bb = ByteBuffer.allocate(1000);
+		bb.setAutoExpand(true);
 
-		Output out = new Output( bb );
+		Output out = new Output(bb);
 		Serializer ser = new Serializer();
-		ser.serialize( out, "onMetaData" );
-		ser.serialize( out, meta );
+		ser.serialize(out, "onMetaData");
+		ser.serialize(out, meta);
 
 		ByteBuffer tmpBody = out.buf().flip();
 		int tmpBodySize = out.buf().limit();
@@ -247,14 +253,16 @@ public class MetaService implements IMetaService {
 
 	/**
 	 * Injects metadata (Cue Points) into a tag
-	 *
-	 * @param meta           Metadata (cue points)
-	 * @param tag            Tag
-	 * @return ITag tag      New tag with injected metadata
+	 * 
+	 * @param meta
+	 *            Metadata (cue points)
+	 * @param tag
+	 *            Tag
+	 * @return ITag tag New tag with injected metadata
 	 */
 	private ITag injectMetaCue(IMetaCue meta, ITag tag) {
 
-		//		IMeta meta = (MetaCue) cue;
+		// IMeta meta = (MetaCue) cue;
 		Output out = new Output(ByteBuffer.allocate(1000));
 		Serializer ser = new Serializer();
 		ser.serialize(out, "onCuePoint");
@@ -273,16 +281,18 @@ public class MetaService implements IMetaService {
 
 	/**
 	 * Returns a timestamp of cue point in milliseconds
-	 *
-	 * @param metaCue          Cue point
-	 * @return int time        Timestamp of given cue point (in milliseconds)
+	 * 
+	 * @param metaCue
+	 *            Cue point
+	 * @return int time Timestamp of given cue point (in milliseconds)
 	 */
 	private int getTimeInMilliseconds(IMetaCue metaCue) {
 		return (int) (metaCue.getTime() * 1000.00);
 
 	}
 
-	/** {@inheritDoc}
+	/**
+	 * {@inheritDoc}
 	 */
 	public void writeMetaData(IMetaData metaData) {
 		IMetaCue meta = (MetaCue) metaData;
@@ -292,7 +302,8 @@ public class MetaService implements IMetaService {
 
 	}
 
-	/** {@inheritDoc}
+	/**
+	 * {@inheritDoc}
 	 */
 	public void writeMetaCue() {
 
@@ -314,28 +325,31 @@ public class MetaService implements IMetaService {
 	}
 
 	/** {@inheritDoc} */
-    public void setInStream(FileInputStream fis) {
+	public void setInStream(FileInputStream fis) {
 		this.fis = fis;
 	}
 
 	/** {@inheritDoc} */
-    public void setOutStream(FileOutputStream fos) {
+	public void setOutStream(FileOutputStream fos) {
 		this.fos = fos;
 	}
 
-	/** {@inheritDoc} */ // TODO need to fix
+	/** {@inheritDoc} */
+	// TODO need to fix
 	public MetaData readMetaData(ByteBuffer buffer) {
 		MetaData retMeta = new MetaData();
 		Input input = new Input(buffer);
-		if( deserializer == null ) deserializer = new Deserializer();
-		@SuppressWarnings("unused") String metaType = (String) deserializer.deserialize(input);
+		if (deserializer == null)
+			deserializer = new Deserializer();
+		@SuppressWarnings("unused")
+		String metaType = (String) deserializer.deserialize(input);
 		Map m = (Map) deserializer.deserialize(input);
 		retMeta.putAll(m);
 		return retMeta;
 	}
 
 	/** {@inheritDoc} */
-    public IMetaCue[] readMetaCue() {
+	public IMetaCue[] readMetaCue() {
 		// TODO Auto-generated method stub
 		return null;
 	}

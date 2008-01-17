@@ -42,16 +42,16 @@ public class MetaServiceTest extends TestCase {
 	 * @throws IOException
 	 */
 	public void testWrite() throws IOException {
-
 		// Get MetaData to embed
 		MetaData meta = createMeta();
 		// Read in a FLV file for reading tags
-		// set the MetaService
-		// set the MetaData
 		File tmp = new File("test/test.flv");
+		System.out.println("Path: "+ tmp.getAbsolutePath());
 		IFLV flv = (IFLV) service.getStreamableFile(tmp);
 		flv.setCache(NoCacheImpl.getInstance());
+		// set the MetaService
 		flv.setMetaService(metaService);
+		// set the MetaData
 		flv.setMetaData(meta);
 
 	}
@@ -61,7 +61,6 @@ public class MetaServiceTest extends TestCase {
 	 * @return MetaData meta
 	 */
 	private MetaData createMeta() {
-
 		IMetaCue metaCue[] = new MetaCue[2];
 
 	  	IMetaCue cp = new MetaCue();
@@ -87,8 +86,6 @@ public class MetaServiceTest extends TestCase {
 		meta.setWidth(300);
 
 		return meta;
-
 	}
-
 
 }

@@ -79,6 +79,9 @@
         <dependency name="junit" rev="4.0" conf="test->default"/>
         <dependency name="groboutils" rev="" conf="test->default"/>
         <dependency org="spring" name="spring-mock" rev="2.0.7" conf="test->default"/>        
+        <dependency name="jython-engine" rev="" conf="test->default"/> 
+        <dependency name="groovy-engine" rev="" conf="test->default"/>
+        <dependency name="jruby-engine" rev="" conf="test->default"/> 
         <!-- Java5 support -->
         <dependency org="rhino" name="js" rev="1.6R7" conf="java5->default"/>
         <dependency name="jsr173_1.0_api" rev="" conf="java5->default"/>
@@ -87,5 +90,6 @@
         <dependency name="jython-engine" rev="" conf="java5->default"/> 
         <dependency name="groovy-engine" rev="" conf="java5->default"/>
         <dependency name="jruby" rev="1.0.1" conf="java5->default"/>
+        <dependency name="jruby-engine" rev="" conf="java5->default"/> 
     </dependencies>
 </ivy-module>
