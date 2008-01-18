@@ -16,8 +16,6 @@
 	<property name="java.home" value="${env.JDK_HOME}"/>
 	<property name="src.dir" value="src"/>
 	<property name="dist.dir" value="dist"/>
-	<property name="origindist.dir" value="origindist"/>
-	<property name="edgedist.dir" value="edgedist"/>
 	<property name="lib.dir" value="lib"/>
 	<property name="classes.dir" value="bin"/>
 	<property name="webapps.dir" value="webapps"/>
@@ -31,7 +29,7 @@
 
 	<!--
 	    Ivy tasks and lib directory 
-	        http://incubator.apache.org/ivy
+	        http://ant.apache.org/ivy
 	        http://testearly.com/2007/06/24/ivy-in-42-steps
 	-->
 	<taskdef uri="antlib:org.apache.ivy.ant" resource="org/apache/ivy/ant/antlib.xml" classpath="${lib.dir}/ivy-2.0.0-beta1.jar"/>
@@ -42,6 +40,7 @@
 	<property name="testclass.dir" value="bin/testcases"/>
 	<property name="testreports.dir" value="${testclass.dir}/testreports"/>
 	<property name="testdoc.dir" value="doc/test"/>
+	
 	<path id="project.classpath">
 		<fileset dir="${lib.dir}"/>
 	</path>
@@ -122,8 +121,6 @@
 	<target name="prepare" description="Setup the directories for building">
 		<mkdir dir="${classes.dir}"/>
 		<mkdir dir="${dist.dir}"/>
-		<mkdir dir="${origindist.dir}"/>
-		<mkdir dir="${edgedist.dir}"/>
 		<mkdir dir="${testclass.dir}"/>
 		<mkdir dir="${testreports.dir}"/>
 	</target>
@@ -131,8 +128,6 @@
 	<target name="clean" description="Clean the directories for building">
 		<delete dir="${classes.dir}"/>
 		<delete dir="${dist.dir}"/>
-		<delete dir="${edgedist.dir}"/>
-		<delete dir="${origindist.dir}"/>
 		<delete dir="${javadoc.dir}"/>
 		<delete dir="${testdoc.dir}"/>
 		<delete includeemptydirs="true">
@@ -392,37 +387,6 @@
 		</antcall>
 	</target>
 
-	<target name="compile_sar" depends="-library.check, -java6.check, clean, prepare">
-		<!-- token replacement filers -->
-		<property name="filter.file" value="conf/jboss/build_jboss.properties"/>
-		<condition property="java.target_version" value="1.6">
-			<not>
-				<isset property="java.target_version"/>
-			</not>
-		</condition>
-		<echo message="Javac version: ${java.target_version}"/>
-		<condition property="compiler" value="${build.compiler}${java.target_version}">
-			<equals arg1="${build.compiler}" arg2="javac"/>
-		</condition>
-		<property name="compiler" value="${build.compiler}"/>
-		<echo message="Compiler adapter name: ${compiler}"/>
-		<property name="sar.dir" value="${dist.dir}/red5.sar"/>
-		<mkdir dir="${sar.dir}"/>
-		<property name="dest.dir" value="${sar.dir}"/>
-		<property name="std_excludes" value="**/*.jsp,org/red5/server/script/**,org/red5/server/jetty/**,org/red5/server/tomcat/**,org/red5/server/midi/**,org/red5/server/net/rtmpt/*Loader.java,org/red5/server/net/servlet/RTMPTServlet.java,org/red5/server/net/servlet/StatisticsServlet.java,org/red5/server/net/servlet/ZAMFGatewayServlet.java,org/red5/server/ContextLoader.java,org/red5/server/DebugPooledByteBufferAllocator.java,org/red5/server/Standalone.java"/>
-		<antcall target="compile_core" inheritAll="true" inheritRefs="true"/>
-		<antcall target="compile_core_compatibility" inheritAll="true" inheritRefs="true"/>
-		<!-- libraries and classes needed for building the demos -->
-		<path id="webapps.classpath">
-			<fileset dir="${lib.dir}">
-				<filename name="*.jar"/>
-			</fileset>
-			<pathelement location="${dest.dir}"/>
-		</path>
-		<antcall target="compile_demos" inheritAll="true" inheritRefs="true"/>
-		<antcall target="compile_script" inheritAll="true" inheritRefs="true"/>
-	</target>
-
 	<macrodef name="compile-wardemo">
    		<attribute name="name"/>
    		<sequential>
@@ -617,32 +581,32 @@
 		</copy>
 		<chmod file="${dist.dir}/red5.sh" perm="755"/>
 		<chmod file="${dist.dir}/red5-shutdown.sh" perm="755"/>
-	</target>
 
-	<!-- Origin Cluster Distribution. Copies dist build and then puts origin config into place. -->
-	<target name="origindist" description="Make Binary Origin Distribution" depends="dist">
-			<copy todir="${origindist.dir}/">
-				<fileset dir="${dist.dir}">
-					<exclude name="**/doc/**"/>
-				</fileset>
-			</copy>
-		    <copy tofile="${origindist.dir}/conf/red5.xml" file="${dist.dir}/conf/red5-origin.xml" overwrite="true"/>
-			<chmod file="${origindist.dir}/red5.sh" perm="755"/>
-			<chmod file="${origindist.dir}/red5-shutdown.sh" perm="755"/>
-	</target>
-
-	<!-- Edge Cluster Distribution. Copies dist build ignoring webapps, puts edge config into place, copies default webapp into place. -->
-	<target name="edgedist" description="Make Binary Edge Distribution" depends="origindist">
-				<copy todir="${edgedist.dir}/">
-					<fileset dir="${dist.dir}">
-						<exclude name="**/webapps/**"/>
-					</fileset>
-				</copy>
-			    <copy tofile="${edgedist.dir}/conf/red5.xml" file="${dist.dir}/conf/red5-edge.xml" overwrite="true"/>
-				<chmod file="${edgedist.dir}/red5.sh" perm="755"/>
-				<chmod file="${edgedist.dir}/red5-shutdown.sh" perm="755"/>
-		
-				<copy todir="${edgedist.dir}/webapps" file="webapps\red5-default.xml"/>
+		<!-- Origin Cluster Distribution. Copies dist build and then puts origin config into place. -->
+		<property name="origindist.dir" value="${dist.dir}/origin"/>
+        <mkdir dir="${origindist.dir}"/>
+        <copy todir="${origindist.dir}/">
+            <fileset dir="${dist.dir}">
+                <exclude name="**/origin/**"/>
+                <exclude name="**/edge/**"/>
+                <exclude name="**/doc/**"/>
+            </fileset>
+        </copy>
+		<copy tofile="${origindist.dir}/conf/red5.xml" file="${dist.dir}/conf/red5-origin.xml" overwrite="true"/>
+		<copy todir="${origindist.dir}/webapps" file="webapps\red5-default.xml"/>
+	    
+		<!-- Edge Cluster Distribution. Copies dist build ignoring webapps, puts edge config into place, copies default webapp into place. -->	
+        <property name="edgedist.dir" value="${dist.dir}/edge"/>
+		<mkdir dir="${edgedist.dir}"/>
+        <copy todir="${edgedist.dir}/">
+            <fileset dir="${dist.dir}">
+                <exclude name="**/origin/**"/>
+                <exclude name="**/edge/**"/>
+                <exclude name="**/doc/**"/>
+            </fileset>
+        </copy>
+		<copy tofile="${edgedist.dir}/conf/red5.xml" file="${dist.dir}/conf/red5-edge.xml" overwrite="true"/>
+		<copy todir="${edgedist.dir}/webapps" file="webapps\red5-default.xml"/>
 	</target>
 
 	<target name="installerdist" description="Make Installer Distribution" depends="dist">
@@ -725,34 +689,19 @@
 	</target>
 
 	<!-- Experimental UDP Server -->
-	<target name="udp_java5" depends="compile" unless="java6.installed">
-		<java classname="org.red5.server.net.udp.Standalone" fork="true">
-			<classpath>
-				<pathelement location="${config.dir}"/>
-				<pathelement location="${classes.dir}"/>
-				<path refid="full_compatibility.classpath"/>
-			</classpath>
-			<jvmarg value="-Djava.security.manager"/>
-			<jvmarg value="-Djava.security.policy=${config.dir}/red5.policy"/>
-		</java>
-	</target>
-	<target name="udp_java6" depends="compile" if="java6.installed">
-		<java classname="org.red5.server.net.udp.Standalone" fork="true">
-			<classpath>
-				<pathelement location="${config.dir}"/>
-				<pathelement location="${classes.dir}"/>
-				<path refid="full.classpath"/>
-			</classpath>
-			<jvmarg value="-Djava.security.manager"/>
-			<jvmarg value="-Djava.security.policy=${config.dir}/red5.policy"/>
-		</java>
-	</target>
-	<target name="udp" description="Experimental UDP server">
-		<antcall target="udp_java5" inheritAll="true" inheritRefs="true"/>
-		<antcall target="udp_java6" inheritAll="true" inheritRefs="true"/>
+	<target name="udp_server" depends="compile" description="Experimental UDP server">
+        <java classname="org.red5.server.net.udp.Standalone" fork="true">
+            <classpath>
+                <pathelement location="${config.dir}"/>
+                <pathelement location="${classes.dir}"/>
+                <path refid="full.classpath"/>
+            </classpath>
+            <jvmarg value="-Djava.security.manager"/>
+            <jvmarg value="-Djava.security.policy=${config.dir}/red5.policy"/>
+        </java>
 	</target>
 
-	<target name="run-tests" depends="compiletests" description="Run JUnit tests and generate HTML reports">
+	<target name="run-tests" depends="compile_tests" description="Run JUnit tests and generate HTML reports">
 		<junit fork="true" haltonfailure="no" printsummary="no" showoutput="no" dir="${testreports.dir}">
 			<classpath>
 				<path refid="full.classpath"/>
@@ -775,7 +724,7 @@
 		</junitreport>
 	</target>
 
-	<target name="compiletests" description="Compiles junit test classes">
+	<target name="compile_tests" description="Compiles junit test classes">
 		<echo>Libraries checked: ${library.installed}</echo>
 		<antcall target="retrieve" inheritAll="true" inheritRefs="true">
 			<param name="ivy.conf.name" value="test"/>
@@ -960,7 +909,7 @@
 		<delete dir="${dist.dir}/webapps"/>
 	</target>
 
-	<target name="remotejar" description="Creates a jar that may be deployed with remote applications" depends="clean, prepare, compile">
+	<target name="remotejar" description="Creates a jar that may be deployed with remote applications" depends="compile">
 		<tstamp prefix="build">
 			<format property="TODAY" pattern="d-MMMM-yyyy" locale="en"/>
 		</tstamp>
