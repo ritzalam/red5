@@ -31,7 +31,7 @@
 	</bean>
 
 	<bean id="web.handler" 
-	    class="org.red5.adminPanel.panel.adminPanel" 
+	    class="org.red5.adminPanel.panel.AdminPanel" 
 	/>
 
 </beans>
