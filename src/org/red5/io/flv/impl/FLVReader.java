@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.mina.common.ByteBuffer;
+import org.red5.io.BufferType;
 import org.red5.io.IKeyFrameMetaCache;
 import org.red5.io.IStreamableFile;
 import org.red5.io.ITag;
@@ -800,12 +801,4 @@ public class FLVReader implements IoConstants, ITagReader,
 		return new Tag(dataType, timestamp, bodySize, null, previousTagSize);
 	}
 
-    /**
-     * Buffer types (auto, direct or heap).
-     */
-    public enum BufferType {
-		AUTO,
-		DIRECT,
-		HEAP
-	}
 }
