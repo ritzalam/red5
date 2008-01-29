@@ -54,7 +54,7 @@ public class Packet implements Externalizable {
     public Packet(Header header) {
 		this.header = header;
 		data = ByteBuffer.allocate(header.getSize()
-				+ (header.getTimer() == 0xffffff ? 4 : 0));
+				+ (header.getTimer() == 0xffffff ? 4 : 0), false);
 		// Workaround for SN-19: BufferOverflowException
 		// Size is checked in RTMPProtocolDecoder
 		data.setAutoExpand(true);

@@ -146,7 +146,7 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
 				/ (float) chunkSize);
 		final int bufSize = header.getSize() + headerSize
 				+ (numChunks > 0 ? (numChunks - 1) * chunkHeaderSize : 0);
-		final ByteBuffer out = ByteBuffer.allocate(bufSize);
+		final ByteBuffer out = ByteBuffer.allocate(bufSize, false);
 		
 		encodeHeader(header, lastHeader, out);
 		

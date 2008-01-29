@@ -77,6 +77,8 @@ public class FLVReader implements IoConstants, ITagReader,
      * File channel
      */
     private FileChannel channel;
+    
+    private long channelSize;
     /**
      * Keyframe metadata
      */
@@ -131,7 +133,7 @@ public class FLVReader implements IoConstants, ITagReader,
 	 *
      * @param f         File
      */
-    public FLVReader(File f) throws FileNotFoundException {
+    public FLVReader(File f) throws IOException {
 		this(f, false);
 	}
 
@@ -141,7 +143,7 @@ public class FLVReader implements IoConstants, ITagReader,
      * @param f                    File input stream
      * @param generateMetadata     <code>true</code> if metadata generation required, <code>false</code> otherwise
      */
-    public FLVReader(File f, boolean generateMetadata) throws FileNotFoundException {
+    public FLVReader(File f, boolean generateMetadata) throws IOException {
     	if (null == f) {
     		log.warn("Reader was passed a null file");
         	log.debug("{}", org.apache.commons.lang.builder.ToStringBuilder.reflectionToString(this));
@@ -150,6 +152,7 @@ public class FLVReader implements IoConstants, ITagReader,
 		this.fis = new FileInputStream(f);
 		this.generateMetadata = generateMetadata;
 		channel = fis.getChannel();
+		channelSize = channel.size();
 		
 		in = null;
 		fillBuffer();
@@ -185,7 +188,7 @@ public class FLVReader implements IoConstants, ITagReader,
 		}
 
 		try {
-			return channel.size() - channel.position() + in.remaining();
+			return channelSize - channel.position() + in.remaining();
 		} catch (Exception e) {
 			log.error("Error getRemainingBytes", e);
 			return 0;
@@ -203,7 +206,7 @@ public class FLVReader implements IoConstants, ITagReader,
 		}
 
 		try {
-			return channel.size();
+			return channelSize;
 		} catch (Exception e) {
 			log.error("Error getTotalBytes", e);
 			return 0;
@@ -295,8 +298,8 @@ public class FLVReader implements IoConstants, ITagReader,
 			}
 			// Read all remaining bytes if the requested amount reach the end
 			// of channel.
-			if (channel.size() - channel.position() < amount) {
-				amount = channel.size() - channel.position();
+			if (channelSize - channel.position() < amount) {
+				amount = channelSize - channel.position();
 			}
 
 			if (in == null) {
@@ -584,7 +587,7 @@ public class FLVReader implements IoConstants, ITagReader,
 			}
 		}
 
-		ByteBuffer body = ByteBuffer.allocate(tag.getBodySize());
+		ByteBuffer body = ByteBuffer.allocate(tag.getBodySize(), false);
 
 		// XXX Paul: this assists in 'properly' handling damaged FLV files		
 		long newPosition = getCurrentPosition() + tag.getBodySize();
