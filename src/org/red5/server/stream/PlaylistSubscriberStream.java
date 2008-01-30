@@ -1993,15 +1993,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
          * @return          Number of pending messages
          */
 		private long pendingMessages() {
-			OOBControlMessage pendingRequest = new OOBControlMessage();
-			pendingRequest.setTarget("ConnectionConsumer");
-			pendingRequest.setServiceName("pendingCount");
-			msgOut.sendOOBControlMessage(this, pendingRequest);
-			if (pendingRequest.getResult() != null) {
-				return (Long) pendingRequest.getResult();
-			} else {
-				return 0;
-			}
+			return getConnection().getPendingMessages();
 		}
 
         /**
