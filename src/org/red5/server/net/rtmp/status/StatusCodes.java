@@ -218,5 +218,22 @@ public interface StatusCodes {
 	 * when the shared object was created.
 	 */
 	public static final String SO_PERSISTENCE_MISMATCH = "SharedObject.BadPersistence";
+	
+	/**
+	 * This event is sent if the player detects an MP4 with an invalid file structure. 
+	 * Flash Player cannot play files that have invalid file structures.
+	 * 
+	 * New for FMS3
+	 */
+	public static final String NS_PLAY_FILE_STRUCTURE_INVALID = "NetStream.Play.FileStructureInvalid";
+
+	/**
+	 * This event is sent if the player does not detect any supported tracks. If there aren't any supported
+	 * video, audio or data tracks found, Flash Player does not play the file.
+	 * 
+	 * New for FMS3
+	 */
+	public static final String NS_PLAY_NO_SUPPORTED_TRACK_FOUND = "NetStream.Play.NoSupportedTrackFound";
+		
 
 }
