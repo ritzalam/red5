@@ -17,8 +17,9 @@
 	<property name="java.home" value="${env.JDK_HOME}"/>
 	<property name="src.dir" value="src"/>
 	<property name="dist.dir" value="dist"/>
-	<property name="origindist.dir" value="${dist.dir}/origin"/>
-	<property name="edgedist.dir" value="${dist.dir}/edge"/>
+	<property name="cluster.dir" value="cluster"/>
+	<property name="origindist.dir" value="${cluster.dir}/origin"/>
+	<property name="edgedist.dir" value="${cluster.dir}/edge"/>
 	<property name="lib.dir" value="lib"/>
 	<property name="classes.dir" value="bin"/>
 	<property name="webapps.dir" value="webapps"/>
@@ -125,6 +126,7 @@
 	<target name="prepare" description="Setup the directories for building">
 		<mkdir dir="${classes.dir}"/>
 		<mkdir dir="${dist.dir}"/>
+		<mkdir dir="${cluster.dir}"/>
 		<mkdir dir="${origindist.dir}"/>
 		<mkdir dir="${edgedist.dir}"/>
 		<mkdir dir="${testclass.dir}"/>
@@ -134,7 +136,7 @@
 	<target name="clean" description="Clean the directories for building">
 		<delete dir="${classes.dir}"/>
 		<delete dir="${dist.dir}"/>
-		<delete dir="${edgedist.dir}"/>
+		<delete dir="${cluster.dir}"/>
 		<delete dir="${javadoc.dir}"/>
 		<delete dir="${testdoc.dir}"/>
 		<delete includeemptydirs="true">
@@ -559,23 +561,7 @@
 		</jar>
 	</target>
 
-	<macrodef name="setup-cluster">
-		<attribute name="name"/>
-   		<attribute name="dir"/>
-   		<sequential>
-			<copy todir="@{dir}/">
-            			<fileset dir="${dist.dir}">
-                			<exclude name="**/origin/**"/>
-                			<exclude name="**/edge/**"/>
-                			<exclude name="**/doc/**"/>
-            			</fileset>
-        		</copy>
-			<copy tofile="@{dir}/conf/red5.xml" file="${dist.dir}/conf/red5-@{name}.xml" overwrite="true"/>
-			<copy todir="@{dir}/webapps" file="webapps\red5-default.xml"/>
-      		</sequential>
-	</macrodef>
-
-	<target name="dist" description="Make Binary Distribution" depends="clean, jar, javadoc">
+	<target name="dist" description="Make Binary distribution" depends="clean, jar, javadoc">
 		<copy todir="${dist.dir}/doc">
 			<fileset dir="doc"/>
 		</copy>
@@ -604,13 +590,31 @@
 		</copy>
 		<chmod file="${dist.dir}/red5.sh" perm="755"/>
 		<chmod file="${dist.dir}/red5-shutdown.sh" perm="755"/>
+	</target>
 
-		<!-- Edge/Origin Cluster Distribution. Copies dist build and then puts webapp and config config into place. -->
+	<macrodef name="setup-cluster">
+		<attribute name="name"/>
+   		<attribute name="dir"/>
+   		<sequential>
+			<copy todir="@{dir}/">
+            			<fileset dir="${dist.dir}">
+                			<exclude name="**/origin/**"/>
+                			<exclude name="**/edge/**"/>
+                			<exclude name="**/doc/**"/>
+            			</fileset>
+        		</copy>
+			<copy tofile="@{dir}/conf/red5.xml" file="${dist.dir}/conf/red5-@{name}.xml" overwrite="true"/>
+			<copy todir="@{dir}/webapps" file="webapps\red5-default.xml"/>
+      		</sequential>
+	</macrodef>
+
+	<target name="dist-cluster" description="Create Edge/Origin distribution" depends="dist">
+		<!-- Copies dist build and then puts webapp and config into place. -->
         	<setup-cluster name="origin" dir="${origindist.dir}"/>
 	    	<setup-cluster name="edge" dir="${edgedist.dir}"/>
 	</target>
 
-	<target name="installerdist" description="Make Installer Distribution" depends="dist">
+	<target name="dist-installer" description="Make Installer distribution" depends="dist">
 		<copy todir="${dist.dir}">
 			<fileset dir="./">
 				<include name=".classpath"/>
@@ -622,7 +626,7 @@
 				<include name="ivyconfig.xml"/>
 			</fileset>
 		</copy>
-		<!-- add war config files -->
+		<!-- include war config files -->
 		<copy todir="${dist.dir}/conf">
 			<fileset dir="${config.dir}">
 				<include name="**/war/**"/>
@@ -640,6 +644,20 @@
 				<include name="**/src/**"/>
 			</fileset>
 		</copy>
+	</target>
+
+	<target name="dist-archive" depends="dist-installer" description="Create archive file for distribution">
+		<tar destfile="Red5.tar.gz" basedir="${dist.dir}" compression="gzip"
+		     longfile="gnu">
+			<tarfileset dir="${dist.dir}" mode="755">
+				<include name="${dist.dir}/red5.sh"/>
+				<include name="${dist.dir}/red5-shutdown.sh"/>
+			</tarfileset>
+			<tarfileset dir="${dist.dir}">
+				<include name="${dist.dir}/**"/>
+				<exclude name="${dist.dir}/*.sh"/>
+			</tarfileset>
+		</tar>
 	</target>
 
 	<target name="server" depends="compile" description="Compile and start the server">
@@ -689,7 +707,7 @@
 		</java>
 	</target>
 
-	<target name="udp_server" depends="compile" description="Experimental UDP server">
+	<target name="udp_server" depends="compile" description="Compile and start experimental UDP server">
         <java classname="org.red5.server.net.udp.Standalone" fork="true">
             <classpath>
                 <pathelement location="${config.dir}"/>

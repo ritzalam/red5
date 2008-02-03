@@ -18,7 +18,7 @@ install:
 	cp -r dist/webapps $(DESTINATION)
 
 installerdist:
-	ant installerdist
+	ant dist-installer
 
 clean:
 	rm -rf dist
