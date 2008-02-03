@@ -1,6 +1,7 @@
 <?xml version="1.0" ?>
 <project name="Red5" basedir="." default="dist" xmlns:ivy="antlib:org.apache.ivy.ant">
 	
+	<!-- This build file requires Apache Ant >= 1.7 -->
 	<condition property="ant-at-least-7">
   		<antversion atleast="1.7.0"/>
 	</condition>
@@ -63,6 +64,7 @@
 		</fileset>
 	</path>
 
+	<!-- Build Targets -->
 	<target name="-java6.check">
 		<condition property="java6.installed" value="true">
 			<and>
@@ -78,8 +80,8 @@
 
 	<!-- Check for the main libraries -->
 	<target name="-library.check">
-		<echo>java.home is ${java.home} and the target version is ${java.target_version}</echo>
-		<echo>ant.home is ${ant.home} and the target version is ${ant.version}</echo>
+		<echo>Java: java.home is ${java.home} and the target version is ${java.target_version}</echo>
+		<echo>Ant: ant.home is ${ant.home} and the target version is ${ant.version}</echo>
 		<condition property="library.installed" value="true">
 			<and>
 				<or>
@@ -399,7 +401,7 @@
 					<exclude name="**/src/**"/>
 				</fileset>
 				<manifest>
-					<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>
+					<attribute name="Built-By" value="${red5.fullname}"/>
 					<attribute name="Built-On" value="${build.TODAY}"/>
 				</manifest>
 			</war>	
@@ -415,7 +417,7 @@
 		<war destfile="${dist.dir}/ROOT.war" webxml="${webapps.build.dir}/root/WEB-INF/web.xml">
 			<fileset dir="${webapps.build.dir}/root"/>
 			<manifest>
-				<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>
+				<attribute name="Built-By" value="${red5.fullname}"/>
 				<attribute name="Built-On" value="${build.TODAY}"/>
 			</manifest>
 		</war>
@@ -450,14 +452,14 @@
 		<echo message="Javadoc API stub: ${javadoc.loc}"/>
 		<javadoc useexternalfile="true" failonerror="false" verbose="false" classpathref="full.classpath"
 			 destdir="${javadoc.dir}" author="true" version="true" use="true" splitindex="true"
-			 windowtitle="Red5 Server Documentation">
+			 windowtitle="${documentation.title}">
 			<fileset dir="${src.dir}" defaultexcludes="yes">
 				<include name="org/red5/**"/>
 				<exclude name="**/*.xml"/>
 				<exclude name="**/*.xsd"/>
 			</fileset>
-			<doctitle><![CDATA[<h1>Red5 Server Documentation</h1>]]></doctitle>
-			<bottom><![CDATA[<i>Copyright &#169; 2006-2008 <a href="http://osflash.org/red5" target="_blank">The Red5 project</a>.</i>]]></bottom>
+			<doctitle><![CDATA[<h1>${documentation.title}</h1>]]></doctitle>
+			<bottom><![CDATA[<i>Copyright &#169; ${red5.age} <a href="${red5.url}" target="_blank">${red5.name}</a></i>]]></bottom>
 			<tag name="todo" scope="all" description="To do:"/>
 			<group title="Public API" packages="org.red5.server.api:org.red5.server.api.*"/>
 			<group title="Network Protocols" packages="org.red5.server.net:org.red5.server.net.*"/>
@@ -516,7 +518,7 @@
 				<exclude name="testcases/**"/>
 			</fileset>
 			<manifest>
-				<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>
+				<attribute name="Built-By" value="${red5.fullname}"/>
 				<attribute name="Built-On" value="${build.TODAY}"/>
 				<attribute name="Main-Class" value="org.red5.server.Standalone"/>
 				<attribute name="Class-Path" value="conf/ ${jar.classpath}"/>
@@ -584,27 +586,27 @@
 
 		<!-- Origin Cluster Distribution. Copies dist build and then puts origin config into place. -->
 		<property name="origindist.dir" value="${dist.dir}/origin"/>
-        <mkdir dir="${origindist.dir}"/>
-        <copy todir="${origindist.dir}/">
-            <fileset dir="${dist.dir}">
-                <exclude name="**/origin/**"/>
-                <exclude name="**/edge/**"/>
-                <exclude name="**/doc/**"/>
-            </fileset>
-        </copy>
+        	<mkdir dir="${origindist.dir}"/>
+        	<copy todir="${origindist.dir}/">
+            		<fileset dir="${dist.dir}">
+                		<exclude name="**/origin/**"/>
+                		<exclude name="**/edge/**"/>
+                		<exclude name="**/doc/**"/>
+            		</fileset>
+        	</copy>
 		<copy tofile="${origindist.dir}/conf/red5.xml" file="${dist.dir}/conf/red5-origin.xml" overwrite="true"/>
 		<copy todir="${origindist.dir}/webapps" file="webapps\red5-default.xml"/>
 	    
 		<!-- Edge Cluster Distribution. Copies dist build ignoring webapps, puts edge config into place, copies default webapp into place. -->	
-        <property name="edgedist.dir" value="${dist.dir}/edge"/>
+        	<property name="edgedist.dir" value="${dist.dir}/edge"/>
 		<mkdir dir="${edgedist.dir}"/>
-        <copy todir="${edgedist.dir}/">
-            <fileset dir="${dist.dir}">
-                <exclude name="**/origin/**"/>
-                <exclude name="**/edge/**"/>
-                <exclude name="**/doc/**"/>
-            </fileset>
-        </copy>
+        	<copy todir="${edgedist.dir}/">
+            	<fileset dir="${dist.dir}">
+                	<exclude name="**/origin/**"/>
+                	<exclude name="**/edge/**"/>
+                	<exclude name="**/doc/**"/>
+            	</fileset>
+        	</copy>
 		<copy tofile="${edgedist.dir}/conf/red5.xml" file="${dist.dir}/conf/red5-edge.xml" overwrite="true"/>
 		<copy todir="${edgedist.dir}/webapps" file="webapps\red5-default.xml"/>
 	</target>
@@ -814,7 +816,7 @@
 				<exclude name="ivy*.jar"/>
 			</lib>			
 			<manifest>
-				<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>
+				<attribute name="Built-By" value="${red5.fullname}"/>
 				<attribute name="Built-On" value="${build.TODAY}"/>
 			</manifest>
 		</war>				
@@ -843,7 +845,7 @@
 				<exclude name="logback-*.jar"/>
 			</lib>			
 			<manifest>
-				<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>
+				<attribute name="Built-By" value="${red5.fullname}"/>
 				<attribute name="Built-On" value="${build.TODAY}"/>
 			</manifest>
 		</war>	
@@ -871,7 +873,7 @@
 				<exclude name="logback-*.jar"/>
 			</lib>			
 			<manifest>
-				<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>
+				<attribute name="Built-By" value="${red5.fullname}"/>
 				<attribute name="Built-On" value="${build.TODAY}"/>
 			</manifest>
 		</war>		
@@ -900,7 +902,7 @@
 				<exclude name="logback-*.jar"/>
 			</lib>			
 			<manifest>
-				<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>
+				<attribute name="Built-By" value="${red5.fullname}"/>
 				<attribute name="Built-On" value="${build.TODAY}"/>
 			</manifest>
 		</war>			
@@ -926,7 +928,7 @@
 				<include name="**/ServletUtils.class"/>
 			</fileset>
 			<manifest>
-				<attribute name="Built-By" value="RED5 Project - red5@osflash.org"/>
+				<attribute name="Built-By" value="${red5.fullname}"/>
 				<attribute name="Built-On" value="${build.TODAY}"/>
 			</manifest>
 		</jar>	
