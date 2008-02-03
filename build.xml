@@ -17,6 +17,8 @@
 	<property name="java.home" value="${env.JDK_HOME}"/>
 	<property name="src.dir" value="src"/>
 	<property name="dist.dir" value="dist"/>
+	<property name="origindist.dir" value="${dist.dir}/origin"/>
+	<property name="edgedist.dir" value="${dist.dir}/edge"/>
 	<property name="lib.dir" value="lib"/>
 	<property name="classes.dir" value="bin"/>
 	<property name="webapps.dir" value="webapps"/>
@@ -123,6 +125,8 @@
 	<target name="prepare" description="Setup the directories for building">
 		<mkdir dir="${classes.dir}"/>
 		<mkdir dir="${dist.dir}"/>
+		<mkdir dir="${origindist.dir}"/>
+		<mkdir dir="${edgedist.dir}"/>
 		<mkdir dir="${testclass.dir}"/>
 		<mkdir dir="${testreports.dir}"/>
 	</target>
@@ -130,6 +134,7 @@
 	<target name="clean" description="Clean the directories for building">
 		<delete dir="${classes.dir}"/>
 		<delete dir="${dist.dir}"/>
+		<delete dir="${edgedist.dir}"/>
 		<delete dir="${javadoc.dir}"/>
 		<delete dir="${testdoc.dir}"/>
 		<delete includeemptydirs="true">
@@ -554,6 +559,22 @@
 		</jar>
 	</target>
 
+	<macrodef name="setup-cluster">
+		<attribute name="name"/>
+   		<attribute name="dir"/>
+   		<sequential>
+			<copy todir="@{dir}/">
+            			<fileset dir="${dist.dir}">
+                			<exclude name="**/origin/**"/>
+                			<exclude name="**/edge/**"/>
+                			<exclude name="**/doc/**"/>
+            			</fileset>
+        		</copy>
+			<copy tofile="@{dir}/conf/red5.xml" file="${dist.dir}/conf/red5-@{name}.xml" overwrite="true"/>
+			<copy todir="@{dir}/webapps" file="webapps\red5-default.xml"/>
+      		</sequential>
+	</macrodef>
+
 	<target name="dist" description="Make Binary Distribution" depends="clean, jar, javadoc">
 		<copy todir="${dist.dir}/doc">
 			<fileset dir="doc"/>
@@ -584,31 +605,9 @@
 		<chmod file="${dist.dir}/red5.sh" perm="755"/>
 		<chmod file="${dist.dir}/red5-shutdown.sh" perm="755"/>
 
-		<!-- Origin Cluster Distribution. Copies dist build and then puts origin config into place. -->
-		<property name="origindist.dir" value="${dist.dir}/origin"/>
-        	<mkdir dir="${origindist.dir}"/>
-        	<copy todir="${origindist.dir}/">
-            		<fileset dir="${dist.dir}">
-                		<exclude name="**/origin/**"/>
-                		<exclude name="**/edge/**"/>
-                		<exclude name="**/doc/**"/>
-            		</fileset>
-        	</copy>
-		<copy tofile="${origindist.dir}/conf/red5.xml" file="${dist.dir}/conf/red5-origin.xml" overwrite="true"/>
-		<copy todir="${origindist.dir}/webapps" file="webapps\red5-default.xml"/>
-	    
-		<!-- Edge Cluster Distribution. Copies dist build ignoring webapps, puts edge config into place, copies default webapp into place. -->	
-        	<property name="edgedist.dir" value="${dist.dir}/edge"/>
-		<mkdir dir="${edgedist.dir}"/>
-        	<copy todir="${edgedist.dir}/">
-            	<fileset dir="${dist.dir}">
-                	<exclude name="**/origin/**"/>
-                	<exclude name="**/edge/**"/>
-                	<exclude name="**/doc/**"/>
-            	</fileset>
-        	</copy>
-		<copy tofile="${edgedist.dir}/conf/red5.xml" file="${dist.dir}/conf/red5-edge.xml" overwrite="true"/>
-		<copy todir="${edgedist.dir}/webapps" file="webapps\red5-default.xml"/>
+		<!-- Edge/Origin Cluster Distribution. Copies dist build and then puts webapp and config config into place. -->
+        	<setup-cluster name="origin" dir="${origindist.dir}"/>
+	    	<setup-cluster name="edge" dir="${edgedist.dir}"/>
 	</target>
 
 	<target name="installerdist" description="Make Installer Distribution" depends="dist">
@@ -690,7 +689,6 @@
 		</java>
 	</target>
 
-	<!-- Experimental UDP Server -->
 	<target name="udp_server" depends="compile" description="Experimental UDP server">
         <java classname="org.red5.server.net.udp.Standalone" fork="true">
             <classpath>
@@ -755,9 +753,9 @@
 		<!-- remove directories we dont want -->
 		<delete dir="${classes.dir}/testcases"/>		
 		<!-- cleanup "standalone" red5-web files -->
-        <delete>
-            <fileset dir="${webapps.build.dir}" includes="**/red5-web.*"/>
-        </delete>		
+       		<delete>
+            		<fileset dir="${webapps.build.dir}" includes="**/red5-web.*"/>
+        	</delete>		
 		
 		<!-- add the configs to the root war -->
 		<filter token="display.name" value=""/>
