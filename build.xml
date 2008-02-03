@@ -600,10 +600,12 @@
 				<include name=".springBeans"/>
 				<include name="build.xml"/>
 				<include name="build.properties"/>
-				<include name="ivy.xml"/>
-				<include name="ivyconfig.xml"/>
+				<include name="Makefile"/>
+				<include name="red5-debug.bat"/>
+				<include name="red5-debug.sh"/>
 			</fileset>
 		</copy>
+		<chmod file="${dist.dir}/red5-debug.sh" perm="755"/>
 		<!-- include war config files -->
 		<copy todir="${dist.dir}/conf">
 			<fileset dir="${config.dir}">
@@ -625,11 +627,15 @@
 	</target>
 
 	<target name="dist-archive" depends="dist-installer" description="Create archive file for distribution">
+		<touch>
+			<fileset dir="${dist.dir}/>
+		</touch>
 		<tar destfile="${red5.archive}" basedir="${dist.dir}" compression="gzip"
 		     longfile="gnu">
 			<tarfileset dir="${dist.dir}" mode="755">
 				<include name="${dist.dir}/red5.sh"/>
 				<include name="${dist.dir}/red5-shutdown.sh"/>
+				<include name="${dist.dir}/red5-debug.sh"/>
 			</tarfileset>
 			<tarfileset dir="${dist.dir}">
 				<include name="${dist.dir}/**"/>
@@ -642,9 +648,9 @@
 		<!-- Copies edge build and then puts config into place. -->
 	    	<copy todir="${edgedist.dir}/">
             		<fileset dir="${dist.dir}">
-				<exclude name="**/conf/build.properties"/>
-				<exclude name="**/conf/build.xml"/>
-				<exclude name="**/conf/ivy.xml"/>
+				<exclude name="**/build.properties"/>
+				<exclude name="**/build.xml"/>
+				<exclude name="**/Makefile"/>
 				<exclude name="**/doc/**"/>
                 		<exclude name="**/conf/red5-origin.xml"/>
 				<exclude name="**/conf/red5-origin-core.xml"/>
