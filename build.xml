@@ -6,12 +6,6 @@
   		<antversion atleast="1.7.0"/>
 	</condition>
 
-	<!-- user overides for project properties -->
-	<property file="${user.home}/build.properties"/>
-
-	<!-- base project properties -->
-	<property file="build.properties"/>
-
 	<!-- project properties -->
 	<property environment="env"/>
 	<property name="java.home" value="${env.JDK_HOME}"/>
@@ -27,6 +21,12 @@
 	<property name="debug.state" value="true"/>
 	<property name="config.dir" value="conf"/>
 	<property name="javadoc.dir" value="doc/api"/>
+
+	<!-- base project properties -->
+	<property file="build.properties"/>
+
+	<!-- user overides for project properties -->
+	<property file="${user.home}/build.properties"/>
 
 	<!-- Special directory destination for build war - unused in normal server build -->
 	<property name="tmp.war.dir" value=""/>
@@ -664,7 +664,6 @@
             		</fileset>
         	</copy>
 		<move tofile="${origindist.dir}/conf/red5.xml" file="${dist.dir}/conf/red5-origin.xml" overwrite="true"/>
-		<!-- <copy todir="${origindist.dir}/webapps" file="webapps\red5-default.xml"/> -->
 	</target>
 
 	<target name="dist-cluster" description="Create Edge/Origin distribution" depends="dist-edge">
