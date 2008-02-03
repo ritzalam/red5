@@ -642,6 +642,9 @@
 		<!-- Copies edge build and then puts config into place. -->
 	    	<copy todir="${edgedist.dir}/">
             		<fileset dir="${dist.dir}">
+				<exclude name="**/conf/build.properties"/>
+				<exclude name="**/conf/build.xml"/>
+				<exclude name="**/conf/ivy.xml"/>
 				<exclude name="**/doc/**"/>
                 		<exclude name="**/conf/red5-origin.xml"/>
 				<exclude name="**/conf/red5-origin-core.xml"/>
