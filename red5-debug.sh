@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# JMX options
+JMX_OPTS="-Djava.security.manager -Djava.security.policy=conf/red5.policy"
+
+# debug options
 JAVA_OPTS="-Xdebug -Xrunjdwp:transport=dt_socket,address=8787,server=y,suspend=y"
 
 for JAVA in "$JAVA_HOME/bin/java" "/usr/bin/java" "/usr/local/bin/java"
@@ -17,4 +21,4 @@ then
 fi
 
 # start red5
-exec $JAVA -Djava.security.manager -Djava.security.policy=conf/red5.policy $JAVA_OPTS -cp red5.jar:conf:$CLASSPATH org.red5.server.Standalone
+exec $JAVA $JMX_OPTS $JAVA_OPTS -cp red5.jar:conf:$CLASSPATH org.red5.server.Standalone
