@@ -681,8 +681,23 @@
 		<echo>Origin configured in: ${origindist.dir}</echo>
 	</target>
 
-	<target name="dist-macosx" description="Create Mac OSX distribution">
+	<target name="dist-macosx" description="Create Mac OSX installer">
 		<ant antfile="install/macosx/build.xml" inheritAll="false"/>
+	</target>
+
+	<target name="dist-windows" description="Create Windows installer">
+		<ant antfile="install/windows/build.xml" inheritAll="false"/>
+	</target>
+
+	<target name="dist-debian" description="Create Debian package">
+		<!-- 1. update "debian/changelog" and add an entry for the new version you are
+                     building. Note that the syntax must match the previous entries!
+                 2. Update the filename in "debian/files" to match the version you are
+                    building. 
+                 3. Run this task -->
+		<exec executable="dpkg-buildpackage" dir="${dist.dir}" failonerror="true">
+			<arg line="-uc -b -rfakeroot"/>
+		</exec>
 	</target>
 
 	<target name="server" depends="compile" description="Compile and start the server">
