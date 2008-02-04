@@ -192,8 +192,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 		final IServiceCall call = invoke.getCall();
 
 		// If it's a callback for server remote call then pass it over to
-		// callbacks handler
-		// and return
+		// callbacks handler and return
 		if (call.getServiceMethodName().equals("_result")
 				|| call.getServiceMethodName().equals("_error")) {
 			handlePendingCallResult(conn, invoke);

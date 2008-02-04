@@ -53,7 +53,7 @@ public class MP3Header {
 			// Version 2
 			{ 22050, 24000, 16000, -1 },
 			// Version 1
-			{ 44100, 44800, 32000, -1 }, };
+			{ 44100, 48000, 32000, -1 }, };
 
     /**
      * Frame sync data

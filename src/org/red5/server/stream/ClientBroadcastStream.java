@@ -525,7 +525,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	public void saveAs(String name, boolean isAppend) throws IOException,
 			ResourceNotFoundException, ResourceExistException {
 		if (log.isDebugEnabled()) {
-			log.debug("SaveAs - name: " + name + " append: " + isAppend);
+			log.debug("SaveAs - name: {} append: {}", name, isAppend);
 		}
 		// Get stream scope
 		IStreamCapableConnection conn = getConnection();

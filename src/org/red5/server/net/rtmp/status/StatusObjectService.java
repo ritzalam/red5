@@ -42,8 +42,8 @@ public class StatusObjectService implements StatusCodes {
     /**
      * Logger
      */
-	protected static Logger log = LoggerFactory.getLogger(StatusObjectService.class
-			.getName());
+	protected static Logger log = LoggerFactory
+			.getLogger(StatusObjectService.class);
 
     /**
      * Serializer
@@ -158,6 +158,11 @@ public class StatusObjectService implements StatusCodes {
 				StatusObject.STATUS, ""));
 		statusObjects.put(APP_GC, new StatusObject(APP_GC, StatusObject.STATUS,
 				""));
+
+		statusObjects.put(NS_PLAY_FILE_STRUCTURE_INVALID, new StatusObject(
+				NS_PLAY_FILE_STRUCTURE_INVALID, StatusObject.ERROR, ""));
+		statusObjects.put(NS_PLAY_NO_SUPPORTED_TRACK_FOUND, new StatusObject(
+				NS_PLAY_NO_SUPPORTED_TRACK_FOUND, StatusObject.ERROR, ""));
 
 	}
 
