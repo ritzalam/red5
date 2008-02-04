@@ -628,7 +628,7 @@
 
 	<target name="dist-archive" depends="dist-installer" description="Create archive file for distribution">
 		<touch>
-			<fileset dir="${dist.dir}/>
+			<fileset dir="${dist.dir}"/>
 		</touch>
 		<tar destfile="${red5.archive}" basedir="${dist.dir}" compression="gzip"
 		     longfile="gnu">
@@ -679,6 +679,10 @@
 		<copy tofile="${cluster.dir}/Readme.txt" file="${dist.dir}/doc/HOWTO-Clustering.txt" overwrite="true"/>
 		<echo>Edge configured in: ${edgedist.dir}</echo>
 		<echo>Origin configured in: ${origindist.dir}</echo>
+	</target>
+
+	<target name="dist-macosx" description="Create Mac OSX distribution">
+		<ant antfile="install/macosx/build.xml" inheritAll="false"/>
 	</target>
 
 	<target name="server" depends="compile" description="Compile and start the server">
