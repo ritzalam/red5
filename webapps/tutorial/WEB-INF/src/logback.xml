@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 	<appender name="TUTORIAL" class="ch.qos.logback.core.FileAppender">
-		<File>tutorial.log</File>
+		<File>log/tutorial.log</File>
 		<Append>false</Append>
 		<Encoding>UTF-8</Encoding>
 		<BufferedIO>false</BufferedIO>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 	<appender name="FITC" class="ch.qos.logback.core.FileAppender">
-		<File>fitcdemo.log</File>
+		<File>log/fitcdemo.log</File>
 		<Append>false</Append>
 		<Encoding>UTF-8</Encoding>
 		<BufferedIO>false</BufferedIO>

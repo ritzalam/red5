@@ -708,6 +708,7 @@
 				<exclude name="**/jboss/**"/>
 			</fileset>
 		</copy>
+		<mkdir dir="${dist.dir}/log"/>		
 		<copy todir="${dist.dir}/webapps" file="webapps\red5-default.xml"/>
 		<java classname="org.red5.server.Standalone" fork="true">
 			<classpath>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 	<appender name="ADMIN" class="ch.qos.logback.core.FileAppender">
-		<File>adminPanel.log</File>
+		<File>log/adminPanel.log</File>
 		<Append>false</Append>
 		<Encoding>UTF-8</Encoding>
 		<BufferedIO>false</BufferedIO>
