@@ -73,7 +73,7 @@ public abstract class AbstractIOTest extends TestCase {
 				"Strings" };
 		serializer.serialize(out, strArrIn);
 		dumpOutput();
-		Object[] objArrOut = (Object[]) deserializer.deserialize(in);
+		Object[] objArrOut = deserializer.deserialize(in, Object[].class);
 		for (int i = 0; i < strArrIn.length; i++) {
 			Assert.assertEquals(strArrIn[i], (String) objArrOut[i]);
 		}
@@ -84,12 +84,12 @@ public abstract class AbstractIOTest extends TestCase {
 		log.debug("Testing boolean");
 		serializer.serialize(out, Boolean.TRUE);
 		dumpOutput();
-		Boolean val = (Boolean) deserializer.deserialize(in);
+		Boolean val = deserializer.deserialize(in, Boolean.class);
 		Assert.assertEquals(Boolean.TRUE, val);
 		resetOutput();
 		serializer.serialize(out, Boolean.FALSE);
 		dumpOutput();
-		val = (Boolean) deserializer.deserialize(in);
+		val = deserializer.deserialize(in, Boolean.class);
 		Assert.assertEquals(Boolean.FALSE, val);
 		resetOutput();
 	}
@@ -100,8 +100,7 @@ public abstract class AbstractIOTest extends TestCase {
 		serializer.serialize(out, beanIn);
 
 		dumpOutput();
-		CircularRefBean beanOut = (CircularRefBean) deserializer
-				.deserialize(in);
+		CircularRefBean beanOut = deserializer.deserialize(in, CircularRefBean.class);
 		Assert.assertNotNull(beanOut);
 		Assert.assertEquals(beanOut, beanOut.getRefToSelf());
 		Assert.assertEquals(beanIn.getNameOfBean(), beanOut.getNameOfBean());
@@ -114,7 +113,7 @@ public abstract class AbstractIOTest extends TestCase {
 		Date dateIn = new Date();
 		serializer.serialize(out, dateIn);
 		dumpOutput();
-		Date dateOut = (Date) deserializer.deserialize(in);
+		Date dateOut = deserializer.deserialize(in, Date.class);
 		Assert.assertEquals(dateIn, dateOut);
 		resetOutput();
 	}
@@ -132,7 +131,7 @@ public abstract class AbstractIOTest extends TestCase {
 				.currentTimeMillis() / 1000));
 		serializer.serialize(out, beanIn);
 		dumpOutput();
-		Object mapOrBean = deserializer.deserialize(in);
+		Object mapOrBean = deserializer.deserialize(in, Object.class);
 		Assert.assertEquals(beanIn.getClass().getName(), mapOrBean.getClass()
 				.getName());
 		Map map = (mapOrBean instanceof Map) ? (Map) mapOrBean : new BeanMap(
@@ -162,7 +161,7 @@ public abstract class AbstractIOTest extends TestCase {
 		listIn.add(new Date());
 		serializer.serialize(out, listIn);
 		dumpOutput();
-		List listOut = (List) deserializer.deserialize(in);
+		List listOut = deserializer.deserialize(in, List.class);
 		Assert.assertNotNull(listOut);
 		Assert.assertEquals(listIn.size(), listOut.size());
 		for (int i = 0; i < listIn.size(); i++) {
@@ -179,7 +178,7 @@ public abstract class AbstractIOTest extends TestCase {
 		serializer.serialize(out, mapIn);
 
 		dumpOutput();
-		Map mapOut = (Map) deserializer.deserialize(in);
+		Map mapOut = deserializer.deserialize(in, Map.class);
 		Assert.assertNotNull(mapOut);
 		Assert.assertEquals(mapIn.size(), mapOut.size());
 
@@ -202,7 +201,7 @@ public abstract class AbstractIOTest extends TestCase {
 		log.debug("Testing null");
 		serializer.serialize(out, null);
 		dumpOutput();
-		Object val = deserializer.deserialize(in);
+		Object val = deserializer.deserialize(in, Object.class);
 		Assert.assertEquals(val, null);
 		resetOutput();
 	}
@@ -212,7 +211,7 @@ public abstract class AbstractIOTest extends TestCase {
 		int num = 1000;
 		serializer.serialize(out, Integer.valueOf(num));
 		dumpOutput();
-		Number n = (Number) deserializer.deserialize(in);
+		Number n = deserializer.deserialize(in, Number.class);
 		Assert.assertEquals(n.intValue(), num);
 		resetOutput();
 	}
@@ -226,7 +225,7 @@ public abstract class AbstractIOTest extends TestCase {
 		serializer.serialize(out, mapIn);
 
 		dumpOutput();
-		Map mapOut = (Map) deserializer.deserialize(in);
+		Map mapOut = deserializer.deserialize(in, Map.class);
 		Assert.assertNotNull(mapOut);
 		Assert.assertEquals(mapIn.size(), mapOut.size());
 
@@ -251,7 +250,7 @@ public abstract class AbstractIOTest extends TestCase {
 		String inStr = "hello world";
 		serializer.serialize(out, inStr);
 		dumpOutput();
-		String outStr = (String) deserializer.deserialize(in);
+		String outStr = deserializer.deserialize(in, String.class);
 		Assert.assertEquals(inStr, outStr);
 		resetOutput();
 	}

@@ -53,7 +53,7 @@ public final class Red5 implements Red5MBean {
 	/**
 	 * Connection local to the current thread
 	 */
-	public IConnection conn;
+	public IConnection conn; 
 
     /**
      * Current server version with revision

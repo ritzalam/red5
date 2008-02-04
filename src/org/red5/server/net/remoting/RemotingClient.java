@@ -208,7 +208,7 @@ public class RemotingClient {
 			boolean required = (in.get() == 0x01);
 			@SuppressWarnings("unused")
 			int len = in.getInt();
-			Object value = deserializer.deserialize(input);
+			Object value = deserializer.deserialize(input, Object.class);
 
 			// XXX: this is pretty much untested!!!
 			if (name.equals(RemotingHeader.APPEND_TO_GATEWAY_URL)) {
@@ -263,7 +263,7 @@ public class RemotingClient {
 
 		// Read return value
 		Deserializer deserializer = new Deserializer();
-		return deserializer.deserialize(input);
+		return deserializer.deserialize(input, Object.class);
 	}
 
 	/**

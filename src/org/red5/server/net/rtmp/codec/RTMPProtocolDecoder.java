@@ -31,7 +31,6 @@ import org.red5.io.object.Deserializer;
 import org.red5.io.object.Input;
 import org.red5.io.utils.BufferUtils;
 import org.red5.server.api.IConnection;
-import org.red5.server.api.IContext;
 import org.red5.server.api.IScope;
 import org.red5.server.api.Red5;
 import org.red5.server.api.IConnection.Encoding;
@@ -645,7 +644,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	 *
 	 * @param so
 	 * @param in
-	 * @param rtmp
+	 * @param input
 	 */
 	protected void doDecodeSharedObject(SharedObjectMessage so, ByteBuffer in, Input input) {
 		// Parse request body
@@ -678,7 +677,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 				final int start = in.position();
 				while (in.position() - start < length) {
 					String tmp = input.getString();
-					map.put(tmp, deserializer.deserialize(input));
+					map.put(tmp, deserializer.deserialize(input, Object.class));
 				}
 				value = map;
 			} else if (type != ISharedObjectEvent.Type.SERVER_SEND_MESSAGE
@@ -696,19 +695,19 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 							// The next parameter is encoded using AMF0
 							input = new org.red5.io.amf.Input(in);
 						}
-						value = deserializer.deserialize(input);
+						value = deserializer.deserialize(input, Object.class);
 					}
 				}
 			} else {
 				final int start = in.position();
 				// the "send" event seems to encode the handler name
 				// as complete AMF string including the string type byte
-				key = (String) deserializer.deserialize(input);
+				key = deserializer.deserialize(input, String.class);
 
 				// read parameters
 				final List<Object> list = new LinkedList<Object>();
 				while (in.position() - start < length) {
-					Object tmp = deserializer.deserialize(input);
+					Object tmp = deserializer.deserialize(input, Object.class);
 					list.add(tmp);
 				}
 				value = list;
@@ -765,7 +764,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 		else
 			input = new org.red5.io.amf.Input(in);
 
-		String action = (String) deserializer.deserialize(input);
+		String action = deserializer.deserialize(input, String.class);
 
 		if (!(notify instanceof Invoke) && rtmp != null
 				&& rtmp.getMode() == RTMP.MODE_SERVER && header != null
@@ -781,7 +780,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 		}
 
 		if (header == null || header.getStreamId() == 0) {
-			int invokeId = ((Number) deserializer.deserialize(input)).intValue();
+			int invokeId = deserializer.deserialize(input, Number.class).intValue();
 			notify.setInvokeId(invokeId);
 		}
 
@@ -791,7 +790,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 			setupClassLoader();
 			List<Object> paramList = new ArrayList<Object>();
 
-			final Object obj = deserializer.deserialize(input);
+			final Object obj = deserializer.deserialize(input, Object.class);
 
 			if (obj instanceof Map) {
 				// Before the actual parameters we sometimes (connect) get a map
@@ -804,7 +803,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 			}
 
 			while (in.hasRemaining()) {
-				paramList.add(deserializer.deserialize(input));
+				paramList.add(deserializer.deserialize(input, Object.class));
 			}
 			params = paramList.toArray();
 			if (log.isDebugEnabled()) {
@@ -883,8 +882,8 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 		// TODO: Unknown byte, probably encoding as with Flex SOs?
 		in.skip(1);
 		Input input = new org.red5.io.amf.Input(in);
-		String action = (String) deserializer.deserialize(input);
-		int invokeId = ((Number) deserializer.deserialize(input)).intValue();
+		String action = deserializer.deserialize(input, String.class);
+		int invokeId = deserializer.deserialize(input, Number.class).intValue();
 		FlexMessage msg = new FlexMessage();
 		msg.setInvokeId(invokeId);
 		Object[] params = new Object[] {};
@@ -893,7 +892,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 			setupClassLoader();
 			ArrayList<Object> paramList = new ArrayList<Object>();
 
-			final Object obj = deserializer.deserialize(input);
+			final Object obj = deserializer.deserialize(input, Object.class);
 			if (obj != null) {
 				paramList.add(obj);
 			}
@@ -909,7 +908,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 					// The next parameter is encoded using AMF0
 					input = new org.red5.io.amf.Input(in);
 				}
-				paramList.add(deserializer.deserialize(input));
+				paramList.add(deserializer.deserialize(input, Object.class));
 			}
 			params = paramList.toArray();
 			if (log.isDebugEnabled()) {

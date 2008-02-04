@@ -339,11 +339,12 @@ public class MetaService implements IMetaService {
 	public MetaData readMetaData(ByteBuffer buffer) {
 		MetaData retMeta = new MetaData();
 		Input input = new Input(buffer);
-		if (deserializer == null)
-			deserializer = new Deserializer();
-		@SuppressWarnings("unused")
-		String metaType = (String) deserializer.deserialize(input);
-		Map m = (Map) deserializer.deserialize(input);
+		if (deserializer == null) {
+		    deserializer = new Deserializer();
+		}
+		@SuppressWarnings("unused") 
+		String metaType = deserializer.deserialize(input, String.class);
+		Map m = deserializer.deserialize(input, Map.class);
 		retMeta.putAll(m);
 		return retMeta;
 	}

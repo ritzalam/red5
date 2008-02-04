@@ -225,7 +225,7 @@ public class FilePersistence extends RamPersistence {
 				buf.flip();
 				Input in = new Input(buf);
 				Deserializer deserializer = new Deserializer();
-				String className = (String) deserializer.deserialize(in);
+				String className = deserializer.deserialize(in, String.class);
 				if (result == null) {
 					// We need to create the object first
 					try {

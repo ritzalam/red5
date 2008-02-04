@@ -46,12 +46,8 @@ public class RecordSetPage {
      */
     public RecordSetPage(Input input) {
 		Deserializer deserizalizer = new Deserializer();
-		Object result = deserizalizer.deserialize(input);
-		if (!(result instanceof Map)) {
-			throw new RuntimeException("expected Map but got " + result);
-		}
+		Map mapResult = deserizalizer.deserialize(input, Map.class);
 
-		Map<String, Object> mapResult = (Map<String, Object>) result;
 		cursor = (Integer) mapResult.get("Cursor");
 		data = (List<List<Object>>) mapResult.get("Page");
 	}

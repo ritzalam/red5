@@ -119,7 +119,7 @@ public class DataInput implements IDataInput {
 
 	/** {@inheritDoc} */
 	public Object readObject() {
-		return deserializer.deserialize(input);
+		return deserializer.deserialize(input, Object.class);
 	}
 
 	/** {@inheritDoc} */

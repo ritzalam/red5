@@ -652,9 +652,9 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
     @SuppressWarnings("unchecked")
     public void deserialize(Input input) throws IOException {
 		Deserializer deserializer = new Deserializer();
-		name = (String) deserializer.deserialize(input);
+		name = deserializer.deserialize(input, String.class);
 		persistentSO = persistent = true;
-		super.setAttributes((Map<String, Object>) deserializer.deserialize(input));
+		super.setAttributes(deserializer.deserialize(input, Map.class));
 		ownerMessage.setName(name);
 		ownerMessage.setIsPersistent(true);
 	}

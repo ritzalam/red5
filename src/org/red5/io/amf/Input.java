@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.beanutils.BeanUtilsBean;
+import org.apache.commons.beanutils.PropertyUtilsBean;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.io.amf3.ByteArray;
 import org.red5.io.object.BaseInput;
@@ -56,7 +58,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	protected ByteBuffer buf;
 
 	protected byte currentDataType;
-	
+
 	/**
 	 * Creates Input object from byte buffer
 	 *
@@ -280,7 +282,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		List<Object> result = new ArrayList<Object>(count);
 		storeReference(result);
 		for (int i=0; i<count; i++) {
-			result.add(deserializer.deserialize(this));
+			result.add(deserializer.deserialize(this, Object.class));
 		}
 		return result;
 	}
@@ -308,7 +310,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 			if (log.isDebugEnabled()) {
 				log.debug("property: " + name);
 			}
-			Object property = deserializer.deserialize(this);
+			Object property = deserializer.deserialize(this, Object.class);
 			if (log.isDebugEnabled()) {
 				log.debug("val: " + property);
 			}
@@ -334,7 +336,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 			if (log.isDebugEnabled()) {
 				log.debug("key: " + key);
 			}
-			Object item = deserializer.deserialize(this);
+			Object item = deserializer.deserialize(this, Object.class);
 			if (log.isDebugEnabled()) {
 				log.debug("item: " + item);
 			}
@@ -403,10 +405,11 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		Class theClass = bean.getClass();
 		while (hasMoreProperties()) {
 			String name = readPropertyName();
+            Class t = getPropertyType(bean, name);
 			if (log.isDebugEnabled()) {
 				log.debug("property: " + name);
 			}
-			Object property = deserializer.deserialize(this);
+			Object property = deserializer.deserialize(this, t);
 			if (log.isDebugEnabled()) {
 				log.debug("val: " + property);
 			}
@@ -415,9 +418,8 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 				if (property != null) {
 					try {
 						final Field field = theClass.getField(name);
-						final Class type = field.getType();
-						if (!type.isAssignableFrom(property.getClass())) {
-							property = ConversionUtils.convert(property, type);
+						if (!t.isAssignableFrom(property.getClass())) {
+							property = ConversionUtils.convert(property, t);
 						}
 						field.set(bean, property);
 					} catch (Exception ex2) {
@@ -567,13 +569,13 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 
 	/**
 	 * Read ByteArray object. This is not supported by the AMF0 deserializer.
-	 * 
+	 *
 	 * @return	ByteArray object
 	 */
 	public ByteArray readByteArray() {
 		throw new RuntimeException("ByteArray objects not supported with AMF0");
 	}
-	
+
 	/**
 	 * Reads Reference
 	 *
@@ -589,7 +591,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 
 	/**
 	 * Resets map and set mode to handle references
-	 * 
+	 *
 	 * @param mode mode to handle references
 	 */
 	public void reset(ReferenceMode mode) {
@@ -604,4 +606,19 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		reset(ReferenceMode.MODE_RTMP);
 	}
 
+    protected Class getPropertyType(Object instance, String propertyName) {
+        try {
+            Field field = instance.getClass().getField(propertyName);
+            return field.getType();
+        } catch (NoSuchFieldException e1) {
+            try {
+                BeanUtilsBean beanUtilsBean = BeanUtilsBean.getInstance();
+                PropertyUtilsBean propertyUtils = beanUtilsBean.getPropertyUtils();
+                return propertyUtils.getPropertyType(instance, propertyName);                    
+            } catch (Exception e2) {
+                // nothing
+            }
+        }
+        return Object.class;
+    }
 }

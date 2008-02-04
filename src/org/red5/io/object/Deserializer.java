@@ -38,9 +38,10 @@ public class Deserializer {
 	 * Deserializes the input parameter and returns an Object
 	 * which must then be cast to a core data type
 	 * @param in
-	 * @return Object
+	 * @param target
+     * @return Object
 	 */
-	public Object deserialize(Input in) {
+	public <T> T deserialize(Input in, Class<T> target) {
 
 		byte type = in.readDataType();
 
@@ -93,20 +94,17 @@ public class Deserializer {
 				break;
 		}
 
-		if (type >= DataTypes.CORE_OBJECT) {
-			result = postProcessExtension(result);
-		}
-
-		return result;
+        return (T) postProcessExtension(result, target);
 	}
 
 	/**
 	 * Post processes the result
 	 * TODO Extension Point
      * @param result
+     * @param target
      * @return
      */
-	protected Object postProcessExtension(Object result) {
+	protected Object postProcessExtension(Object result, Class target) {
 		// does nothing at the moment, but will later!
 		return result;
 	}
