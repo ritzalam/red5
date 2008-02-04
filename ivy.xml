@@ -12,8 +12,8 @@
         <dependency org="tomcat" name="jasper-el" rev="6.0.14" />
         <dependency org="tomcat" name="tomcat-juli" rev="6.0.14" />
         <dependency org="tomcat" name="el-api" rev="" />
-        <dependency org="tomcat" name="jsp-api" rev="" />
-        <dependency org="tomcat" name="servlet-api" rev="" />
+        <dependency org="javax" name="jsp-api" rev="2.1" />
+        <dependency org="javax" name="servlet-api" rev="2.5" />
         <dependency name="naming-factory" rev="" />
         <dependency name="naming-resources" rev="" />
         <!-- Spring --> 
@@ -30,9 +30,9 @@
         <dependency org="tomcat" name="annotations-api" rev="" />
         <dependency org="commons" name="commons-modeler" rev="2.0.1" />
         <!-- Jetty --> 
-        <dependency org="jetty" name="jetty" rev="6.1.5" />
-        <dependency org="jetty" name="jetty-util" rev="6.1.5" />
-        <dependency org="jetty" name="jetty-xbean" rev="6.1.5" />
+        <dependency org="jetty" name="jetty" rev="6.1.7" />
+        <dependency org="jetty" name="jetty-util" rev="6.1.7" />
+        <dependency org="jetty" name="jetty-xbean" rev="6.1.7" />
         <!-- Logging --> 
         <dependency name="slf4j-api" rev="1.4.3" />
         <dependency name="jcl104-over-slf4j" rev="1.4.3" />

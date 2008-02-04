@@ -35,57 +35,43 @@ public class DemoService {
 	public Map getListOfAvailableFLVs() {
 		IScope scope = Red5.getConnectionLocal().getScope();
 		Map<String, Map> filesMap = new HashMap<String, Map>();
-		Map<String, Object> fileInfo;
 		try {
 			log.debug("getting the FLV files");
-			//Resource[] flvs = scope.getResources("file://C:/dev/media/streams/*.flv");
 			Resource[] flvs = scope.getResources("streams/*.flv");
-			if (flvs != null) {
-				for (Resource flv : flvs) {
-					File file = flv.getFile();
-					Date lastModifiedDate = new Date(file.lastModified());
-					String lastModified = formatDate(lastModifiedDate);
-					String flvName = flv.getFile().getName();
-					String flvBytes = Long.toString(file.length());
-					if (log.isDebugEnabled()) {
-						log.debug("flvName: {}", flvName);
-						log.debug("lastModified date: {}", lastModified);
-						log.debug("flvBytes: {}", flvBytes);
-						log.debug("-------");
-					}
-					fileInfo = new HashMap<String, Object>();
-					fileInfo.put("name", flvName);
-					fileInfo.put("lastModified", lastModified);
-					fileInfo.put("size", flvBytes);
-					filesMap.put(flvName, fileInfo);
-				}
-			}
+			addToMap(filesMap, flvs);
 
 			Resource[] mp3s = scope.getResources("streams/*.mp3");
-			if (mp3s != null) {
-				for (Resource mp3 : mp3s) {
-					File file = mp3.getFile();
-					Date lastModifiedDate = new Date(file.lastModified());
-					String lastModified = formatDate(lastModifiedDate);
-					String flvName = mp3.getFile().getName();
-					String flvBytes = Long.toString(file.length());
-					if (log.isDebugEnabled()) {
-						log.debug("flvName: {}", flvName);
-						log.debug("lastModified date: {}", lastModified);
-						log.debug("flvBytes: {}", flvBytes);
-						log.debug("-------");
-					}
-					fileInfo = new HashMap<String, Object>();
-					fileInfo.put("name", flvName);
-					fileInfo.put("lastModified", lastModified);
-					fileInfo.put("size", flvBytes);
-					filesMap.put(flvName, fileInfo);
-				}
-			}
+			addToMap(filesMap, mp3s);
+
+			
 		} catch (IOException e) {
 			log.error("{}", e);
 		}
 		return filesMap;
+	}
+
+	private void addToMap(Map<String, Map> filesMap, Resource[] files)
+			throws IOException {
+		if (files != null) {
+			for (Resource flv : files) {
+				File file = flv.getFile();
+				Date lastModifiedDate = new Date(file.lastModified());
+				String lastModified = formatDate(lastModifiedDate);
+				String flvName = flv.getFile().getName();
+				String flvBytes = Long.toString(file.length());
+				if (log.isDebugEnabled()) {
+					log.debug("flvName: {}", flvName);
+					log.debug("lastModified date: {}", lastModified);
+					log.debug("flvBytes: {}", flvBytes);
+					log.debug("-------");
+				}
+				Map<String, Object> fileInfo = new HashMap<String, Object>();
+				fileInfo.put("name", flvName);
+				fileInfo.put("lastModified", lastModified);
+				fileInfo.put("size", flvBytes);
+				filesMap.put(flvName, fileInfo);
+			}
+		}
 	}
 
 }
