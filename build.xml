@@ -160,7 +160,7 @@
 		<ivy:retrieve conf="${ivy.conf.name}"/>
 	</target>
 
-	<target name="ivyclear" description="Clears out the ivy cache">
+	<target name="ivyclear" description="Clears out the Ivy cache">
 		<delete dir="${user.home}/.ivy/cache"/>
 		<delete includeemptydirs="true">
 			<fileset dir="${lib.dir}" excludes="**/ivy*.jar"/>
@@ -479,11 +479,12 @@
 			<link href="http://static.springframework.org/spring/docs/2.0.x/api"/>
 			<link href="http://www.opensymphony.com/quartz/api"/>
 			<link href="http://www.slf4j.org/api"/>
+			<link href="http://www.antlr.org/api/Java/"/>
 			<link href="http://logging.apache.org/log4j/1.2/apidocs"/>
 			<link href="http://www.beanshell.org/javadoc"/>
 			<link href="http://groovy.codehaus.org/api"/>
-			<link href="http://tomcat.apache.org/tomcat-5.5-doc/jasper/docs/api"/>
-			<link href="http://tomcat.apache.org/tomcat-5.5-doc/catalina/docs/api"/>
+			<link href="http://www.jython.org/docs/javadoc"/>
+			<link href="http://tomcat.apache.org/tomcat-6.0-doc/api"/>
 			<link href="http://ehcache.sourceforge.net/javadoc"/>
 			<link href="https://whirlycache.dev.java.net/nonav/api"/>
 		</javadoc>
@@ -689,14 +690,25 @@
 		<ant antfile="install/windows/build.xml" inheritAll="false"/>
 	</target>
 
-	<target name="dist-debian" description="Create Debian package">
+	<target name="dist-debian" description="Create Debian package" depends="dist-installer">
 		<!-- 1. update "debian/changelog" and add an entry for the new version you are
                      building. Note that the syntax must match the previous entries!
                  2. Update the filename in "debian/files" to match the version you are
                     building. 
-                 3. Run this task -->
+                 3. Run this task from the Red5 root -->
+		<mkdir name="${dist.dir}/debian"/>
+		<!-- Copies debian files to dist -->
+        	<copy todir="${dist.dir}/debian/">
+            		<fileset dir="${basedir}/install/debian"/>
+        	</copy>
 		<exec executable="dpkg-buildpackage" dir="${dist.dir}" failonerror="true">
 			<arg line="-uc -b -rfakeroot"/>
+		</exec>
+	</target>
+
+	<target name="dist-redhat" description="Create Redhat installer" depends="dist-installer">
+		<exec executable="rpm" failonerror="true">
+			<arg line="-ba install/redhat/red5.spec"/>
 		</exec>
 	</target>
 
