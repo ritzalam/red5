@@ -14,6 +14,7 @@
 	<property name="cluster.dir" value="cluster"/>
 	<property name="origindist.dir" value="${cluster.dir}/origin"/>
 	<property name="edgedist.dir" value="${cluster.dir}/edge"/>
+	<property name="log.dir" value="log"/>
 	<property name="lib.dir" value="lib"/>
 	<property name="classes.dir" value="bin"/>
 	<property name="webapps.dir" value="webapps"/>
@@ -126,6 +127,7 @@
 	<target name="prepare" description="Setup the directories for building">
 		<mkdir dir="${classes.dir}"/>
 		<mkdir dir="${dist.dir}"/>
+		<mkdir dir="${log.dir}"/>
 		<mkdir dir="${cluster.dir}"/>
 		<mkdir dir="${origindist.dir}"/>
 		<mkdir dir="${edgedist.dir}"/>
@@ -720,7 +722,7 @@
 				<exclude name="**/jboss/**"/>
 			</fileset>
 		</copy>
-		<mkdir dir="${dist.dir}/log"/>		
+		<mkdir dir="${dist.dir}/${logs.dir}"/>		
 		<copy todir="${dist.dir}/webapps" file="webapps\red5-default.xml"/>
 		<java classname="org.red5.server.Standalone" fork="true">
 			<classpath>
