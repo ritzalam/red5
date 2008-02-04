@@ -36,7 +36,7 @@
 	        http://ant.apache.org/ivy
 	        http://testearly.com/2007/06/24/ivy-in-42-steps
 	-->
-	<taskdef uri="antlib:org.apache.ivy.ant" resource="org/apache/ivy/ant/antlib.xml" classpath="${lib.dir}/ivy-2.0.0-beta1.jar"/>
+	<taskdef uri="antlib:org.apache.ivy.ant" resource="org/apache/ivy/ant/antlib.xml" classpath="${lib.dir}/${ivy.version}.jar"/>
 	<property name="ivy.lib.dir" value="${lib.dir}"/>
 
 	<!-- JUNIT TESTING -->
@@ -748,15 +748,15 @@
 	</target>
 
 	<target name="udp_server" depends="compile" description="Compile and start experimental UDP server">
-        <java classname="org.red5.server.net.udp.Standalone" fork="true">
-            <classpath>
-                <pathelement location="${config.dir}"/>
-                <pathelement location="${classes.dir}"/>
-                <path refid="full.classpath"/>
-            </classpath>
-            <jvmarg value="-Djava.security.manager"/>
-            <jvmarg value="-Djava.security.policy=${config.dir}/red5.policy"/>
-        </java>
+        	<java classname="org.red5.server.net.udp.Standalone" fork="true">
+            		<classpath>
+                		<pathelement location="${config.dir}"/>
+                		<pathelement location="${classes.dir}"/>
+                		<path refid="full.classpath"/>
+            		</classpath>
+            		<jvmarg value="-Djava.security.manager"/>
+            		<jvmarg value="-Djava.security.policy=${config.dir}/red5.policy"/>
+        	</java>
 	</target>
 
 	<target name="run-tests" depends="compile_tests" description="Run JUnit tests and generate HTML reports">
