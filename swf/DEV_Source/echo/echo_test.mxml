@@ -19,108 +19,24 @@ with this library; if not, write to the Free Software Foundation, Inc.,
 -->
 
 <!-- @mxmlc -library-path+=../classes -source-path+=../classes -incremental -->
-<echoTest:Main xmlns:mx="http://www.adobe.com/2006/mxml"
- 	           xmlns:echoTest="org.red5.samples.echo.*"
-	           pageTitle="Echo client for the AMF and RTMP protocols" 
-	           backgroundColor="#FFFFFF" themeColor="haloBlue" 
-		       width="100%" height="100%" layout="vertical">
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml"
+			    xmlns:control="org.red5.samples.echo.control.*"
+			    xmlns:business="org.red5.samples.echo.business.*"
+			    xmlns:view="org.red5.samples.echo.view.*"
+ 	            xmlns:echoTest="org.red5.samples.echo.*"
+	            pageTitle="Echo client for the AMF and RTMP protocols" 
+		        width="100%" height="100%" layout="vertical">
 
-	<mx:Form height="100%" paddingBottom="0" paddingTop="0" 
-			 paddingRight="0" paddingLeft="0">
-		<mx:FormItem label="" width="100%">
-			<mx:HBox width="100%">
-				<mx:Label text="Username"/>
-				<mx:TextInput id="username_txt" width="268" text=""/>
-				<mx:Label text="Password " width="65"/>
-				<mx:TextInput id="password_txt" displayAsPassword="true" 
-							  width="100%" text=""/>
-			</mx:HBox>
-		</mx:FormItem>
-		<mx:FormItem label="HTTP:" width="100%">
-			<mx:HBox width="100%">
-				<mx:TextInput id="http_txt" width="100%"/>
-				<mx:Label text="Method" width="65"/>
-				<mx:TextInput id="httpMethod_txt" width="100%" text=""/>
-			</mx:HBox>
-		</mx:FormItem>
-		<mx:FormItem label="RTMP:" width="100%">
-			<mx:HBox width="100%">
-				<mx:TextInput id="rtmp_txt" width="100%"/>
-				<mx:Label text="Method" width="65"/>
-				<mx:TextInput id="rtmpMethod_txt" width="100%" text=""/>
-			</mx:HBox>
-		</mx:FormItem>
-		<mx:FormItem label="AMF0:" width="100%">
-			<mx:HBox horizontalGap="2">
-				<mx:CheckBox label="null" selected="true" id="null_test"/>
-				<mx:CheckBox label="undefined" selected="true" id="undefined_test"/>
-				<mx:CheckBox label="Boolean" selected="true" id="boolean_test"/>
-				<mx:CheckBox label="String" selected="true" id="string_test"/>
-				<mx:CheckBox label="Number" selected="true" id="number_test"/>
-				<mx:CheckBox label="Array" selected="true" id="array_test"/>
-				<mx:CheckBox label="Object" selected="true" id="object_test"/>
-				<mx:CheckBox label="Date" selected="true" id="date_test"/>
-				<mx:CheckBox label="XML" selected="true" id="xml0_test"/>
-				<mx:CheckBox label="Custom Class" selected="true" id="custom_test"/>
-				<mx:CheckBox label="Remote Class" selected="true" id="remote_test"/>
-			</mx:HBox>
-		</mx:FormItem>
-		<mx:FormItem label="AMF3:" width="100%">
-			<mx:HBox horizontalGap="2">
-				<mx:CheckBox label="XML" selected="true" id="xml3_test"/>
-				<mx:CheckBox label="Externalizable" selected="true" id="externalizable_test"/>
-				<mx:CheckBox label="ArrayCollection" selected="true" id="arraycollection_test"/>
-				<mx:CheckBox label="ObjectProxy" selected="true" id="objectproxy_test"/>
-				<mx:CheckBox label="ByteArray" selected="true" id="bytearray_test"/>
-				<mx:CheckBox label="Unsupported" selected="true" id="unsupported_test"/>
-			</mx:HBox>
-		</mx:FormItem>
-		<mx:Spacer height="5"/>
-		<mx:FormItem label="Connect:" horizontalAlign="right" width="100%">
-			<mx:HBox width="100%">
-				<mx:Button id="btnConnectRTMP0" label="RTMP AMF0" 
-						   labelPlacement="left" click="onConnect('rtmp', ObjectEncoding.AMF0)"/>
-				<mx:Button id="btnConnectRTMP3" label="RTMP AMF3" 
-						   labelPlacement="left" click="onConnect('rtmp', ObjectEncoding.AMF3)"/>
-				<mx:Button id="btnConnectHTTP0" label="HTTP AMF0" 
-						   labelPlacement="left" click="onConnect('http', ObjectEncoding.AMF0)"/>
-				<mx:Button id="btnConnectHTTP3" label="HTTP AMF3" 
-						   labelPlacement="left" click="onConnect('http', ObjectEncoding.AMF3)"/>
-				<mx:Button id="btnConnectRemoteObject" label="HTTP RemoteObject" 
-						   labelPlacement="left" click="onConnect('remoteObject', ObjectEncoding.AMF3)"/>
-				<mx:Button id="btnConnectSharedObject0" label="RTMP AMF0 SharedObject" 
-						   labelPlacement="left" click="onConnect('sharedObject', ObjectEncoding.AMF0)"/>
-				<mx:Button id="btnConnectSharedObject3" label="RTMP AMF3 SharedObject" 
-						   labelPlacement="left" click="onConnect('sharedObject', ObjectEncoding.AMF3)"/>
-			</mx:HBox>
-		</mx:FormItem>
-
-		<mx:Spacer height="10"/>
-		
-		<mx:VDividedBox width="100%" height="100%">
-			<mx:TextArea id="resultText" htmlText="{ statusText }" width="100%" height="100" editable="false" 
-					 	 updateComplete="{ resultText.verticalScrollPosition = resultText.maxVerticalScrollPosition }"
-					 	 textIndent="5"/>
+	<mx:Style source="css/main.css"/>
 	
-			<mx:DataGrid id="resultGrid" dataProvider="{ testResults }" width="100%" height="100%" 
-						 updateComplete="{ resultGrid.verticalScrollPosition = resultGrid.maxVerticalScrollPosition }">
-				<mx:columns>
-					<mx:DataGridColumn dataField="id" headerText="" width="30"/>
-					<mx:DataGridColumn dataField="status" headerText="Status" width="70"/>
-					<mx:DataGridColumn dataField="speed" headerText="Speed" width="50"/>
-					<mx:DataGridColumn dataField="request" headerText="Request" width="180"/>
-					<mx:DataGridColumn dataField="response" headerText="Response" width="180"/>
-				</mx:columns>
-			</mx:DataGrid>
-		</mx:VDividedBox>
+	<!-- the ServiceLocator where we specify the remote services -->
+	<business:Services/>
 		
-		
-		<mx:HBox width="{ resultText.width }" verticalAlign="middle">
-			<mx:Text text="Echo { appVersion }" fontSize="12" fontWeight="bold" selectable="false"/>
-			<mx:Spacer width="100%"/>
-			<mx:Text text="{ fpVersion }" fontSize="9"/>
-		</mx:HBox>
+	<!-- the FrontController, containing Commands specific to this application -->
+	<control:DashboardController/>
 
-	</mx:Form>
+	<!-- the View, containing visual components specific to this application -->
+	<view:MainView height="100%" paddingBottom="0" paddingTop="0" 
+				   paddingRight="0" paddingLeft="0"/>
 	
-</echoTest:Main>
+</mx:Application>
