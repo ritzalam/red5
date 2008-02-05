@@ -137,13 +137,12 @@ public class ConversionUtils {
 		if (target.equals(Map.class)) {
 			return convertBeanToMap(source);
 		}
-		if ((target.equals(List.class) || target.equals(Collection.class))
-				&& source.getClass().equals(LinkedHashMap.class)) {
-			return convertMapToList((LinkedHashMap<?, ?>) source);
-		}
-		if ((target.equals(List.class) || target.equals(Collection.class))
-				&& source.getClass().isArray()) {
-			return convertArrayToList((Object[]) source);
+		if (target.equals(List.class) || target.equals(Collection.class)) {
+			if (source.getClass().equals(LinkedHashMap.class)) {
+				return convertMapToList((LinkedHashMap<?, ?>) source);
+			} else if (source.getClass().isArray()) {
+				return convertArrayToList((Object[]) source);
+			}
 		}
 		if (target.equals(Set.class) && source.getClass().isArray()) {
 			return convertArrayToSet((Object[]) source);
@@ -183,7 +182,7 @@ public class ConversionUtils {
 	}
 
     public static List<Object> convertMapToList(Map<?, ?> map) {
-    	List<Object> list = new ArrayList<Object>();
+    	List<Object> list = new ArrayList<Object>(map.size());
     	list.addAll(map.values());
     	return list;
     }

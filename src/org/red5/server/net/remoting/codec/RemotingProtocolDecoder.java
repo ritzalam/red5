@@ -129,10 +129,7 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 			int size = in.getInt();
 			Object value = deserializer.deserialize(input, Object.class);
 			if (log.isDebugEnabled()) {
-				log.debug("Header: " + name);
-				log.debug("Required: " + required);
-				log.debug("Size: " + size);
-				log.debug("Value: " + value);
+				log.debug("Header: {} Required: {} Size: {} Value: {}", new Object[]{name, required, size, value});
 			}
 			result.put(name, value);
 		}
