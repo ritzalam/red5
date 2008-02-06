@@ -25,6 +25,7 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.red5.samples.components.ClientManager;
 import org.red5.server.adapter.ApplicationAdapter;
 import org.red5.server.api.IClient;
@@ -40,7 +41,7 @@ import org.red5.server.api.ScopeUtils;
  */
 public class Application extends ApplicationAdapter {
 
-    protected static Logger log = LoggerFactory.getLogger(AdminPanel.class);
+    protected static Logger log = LoggerFactory.getLogger(Application.class);
 
 	/** Manager for the clients. */
 	private ClientManager clientMgr = new ClientManager("clientlist", false);

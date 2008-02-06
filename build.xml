@@ -288,10 +288,9 @@
 			</fileset>
 		</copy>
 		<!-- build demos -->
-		<build-demo name="admin"/>
-		<build-demo name="adminPanel">
+		<build-demo name="admin">
 			<copy-assets>
-				<logback webapp="adminPanel"/>
+				<logback webapp="admin"/>
 			</copy-assets>
 		</build-demo>
 		<build-demo name="echo">
@@ -387,7 +386,6 @@
 		<!-- only certain classes from selected demos are copied to the war -->
 		<copy todir="${classes.dir}/WEB-INF/classes">
 			<fileset dir="${webapps.build.dir}/admin/WEB-INF/classes"/>
-			<fileset dir="${webapps.build.dir}/adminPanel/WEB-INF/classes"/>
 			<fileset dir="${webapps.build.dir}/echo/WEB-INF/classes"/>
 			<fileset dir="${webapps.build.dir}/fitcDemo/WEB-INF/classes"/>
 			<fileset dir="${webapps.build.dir}/oflaDemo/WEB-INF/classes"/>
@@ -434,7 +432,6 @@
 		<!-- war up demos -->
 		<compile-wardemo name="oflaDemo"/>
 		<compile-wardemo name="admin"/>
-		<compile-wardemo name="adminPanel"/>
 		<compile-wardemo name="echo"/>
 		<compile-wardemo name="SOSample"/>
 		<compile-wardemo name="fitcDemo"/>
@@ -481,11 +478,9 @@
 			<link href="http://static.springframework.org/spring/docs/2.0.x/api"/>
 			<link href="http://www.opensymphony.com/quartz/api"/>
 			<link href="http://www.slf4j.org/api"/>
-			<link href="http://www.antlr.org/api/Java/"/>
 			<link href="http://logging.apache.org/log4j/1.2/apidocs"/>
 			<link href="http://www.beanshell.org/javadoc"/>
 			<link href="http://groovy.codehaus.org/api"/>
-			<link href="http://www.jython.org/docs/javadoc"/>
 			<link href="http://tomcat.apache.org/tomcat-6.0-doc/api"/>
 			<link href="http://ehcache.sourceforge.net/javadoc"/>
 			<link href="https://whirlycache.dev.java.net/nonav/api"/>
@@ -539,7 +534,6 @@
 		</jar>
 
 		<!-- create jar files for demos -->
-		<compile-jardemo name="admin"/>
 		<compile-jardemo name="echo"/>
 		<compile-jardemo name="fitcDemo"/>
 		<compile-jardemo name="midiDemo"/>
@@ -555,9 +549,9 @@
 		<compile-jardemo name="test"/>
 		<compile-jardemo name="tutorial"/>
 		
-		<!-- exclude logback.xml for adminPanel -->
-		<jar destfile="${webapps.build.dir}/adminPanel/WEB-INF/lib/adminPanel.jar">
-			<fileset dir="${webapps.build.dir}/adminPanel/WEB-INF/classes">
+		<!-- exclude logback.xml for admin -->
+		<jar destfile="${webapps.build.dir}/admin/WEB-INF/lib/admin.jar">
+			<fileset dir="${webapps.build.dir}/admin/WEB-INF/classes">
 				<include name="**"/>
 				<exclude name="logback.xml"/>
 			</fileset>
@@ -931,35 +925,6 @@
 		</copy>		
 		<war destfile="${dist.dir}/echo.war" webxml="${webapps.build.dir}/echo/WEB-INF/web.xml">
 			<fileset dir="${webapps.build.dir}/echo"/>
-			<fileset dir="${classes.dir}">
-				<include name="**/AMFTunnelServlet.class"/>
-				<include name="**/ServletUtils.class"/>
-			</fileset>
-			<lib dir="${lib.dir}">
-				<include name="commons-codec-*.jar"/>
-				<include name="commons-httpclient-*.jar"/>
-				<include name="*-over-slf4j-*.jar"/>
-				<include name="mina-core-*.jar"/>
-				<exclude name="slf4j-*.jar"/>
-				<exclude name="logback-*.jar"/>
-			</lib>			
-			<manifest>
-				<attribute name="Built-By" value="${red5.fullname}"/>
-				<attribute name="Built-On" value="${build.TODAY}"/>
-			</manifest>
-		</war>		
-		
-		<!-- Admin Panel -->
-		<filter token="context.path" value="/adminPanel"/>
-		<copy tofile="${webapps.build.dir}/adminPanel/META-INF/context.xml" overwrite="true" filtering="true"				
-			file="${config.dir}/war/context.xml"/>
-		<copy todir="${webapps.build.dir}/adminPanel/WEB-INF" overwrite="true" verbose="true">
-			<fileset dir="${config.dir}/war/adminPanel">
-				<include name="web.xml"/>
-			</fileset>
-		</copy>		
-		<war destfile="${dist.dir}/adminPanel.war" webxml="${webapps.build.dir}/adminPanel/WEB-INF/web.xml">
-			<fileset dir="${webapps.build.dir}/adminPanel"/>
 			<fileset dir="${classes.dir}">
 				<include name="**/AMFTunnelServlet.class"/>
 				<include name="**/ServletUtils.class"/>

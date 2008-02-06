@@ -1,9 +1,9 @@
-package org.red5.adminPanel.panel;
+package org.red5.webapps.admin;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  * 
- * Copyright (c) 2006-2007 by respective authors (see below). All rights reserved.
+ * Copyright (c) 2006-2008 by respective authors (see below). All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or modify it under the 
  * terms of the GNU Lesser General Public License as published by the Free Software 
@@ -19,48 +19,54 @@ package org.red5.adminPanel.panel;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
  
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Set;
 
-import org.red5.adminPanel.utils.Utils;
-import org.red5.server.api.IClient;
+import org.red5.webapps.admin.utils.Utils;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
-import org.red5.server.api.ScopeUtils;
+import org.red5.server.api.persistence.IPersistable;
+import org.red5.server.api.persistence.IPersistenceStore;
+import org.red5.server.api.statistics.IScopeStatistics;
 
 /**
  *
  * @author The Red5 Project (red5@osflash.org)
  * @author Martijn van Beek (martijn.vanbeek@gmail.com)
  */
-class UserStatistics{
+class ScopeStatistics {
 	
 	private HashMap<Integer,Object> apps;
 	private int id;
 	
-	public void UserStatistics(){}
-	
-	public HashMap getStats ( String userid , IScope scope ) {
+	public void ScopeStatistics(){}
+
+	public HashMap getStats ( IScope root ) {
 		apps = new HashMap();
 		id = 0;
-    	IScope root = ScopeUtils.findRoot(scope);
-		Set<IClient> clients = root.getClients();
-		Iterator<IClient> client = clients.iterator();
+		IScopeStatistics stats = root.getStatistics();
 		extractConnectionData(root);
-		addData ( "User attributes" ,"--" );
-		while ( client.hasNext() ) {
-			IClient c = client.next();
-			if ( c.getId().equals(userid)) {
-				Set<String> names = c.getAttributeNames();
-				Iterator<String> itnames = names.iterator();
-				while ( itnames.hasNext() ) {
-					String key = itnames.next();
-					addData ( key , c.getAttribute( key ) );
-				}
-				addData ( "Created" , Utils.formatDate( c.getCreationTime() ) );
-			}
-		}
+		addData ( "Persistence Data" ,"--" );
+    	IPersistenceStore data =  root.getStore();
+    	Collection<IPersistable> objects = data.getObjects();
+    	Iterator<IPersistable> iter = objects.iterator();
+    	while ( iter.hasNext() ) {
+    		IPersistable name = iter.next();
+    		addData("Name", name.getName());
+    		addData("Type", name.getType());
+    		addData("Path", name.getPath());
+    		addData("Last modified", Utils.formatDate(name.getLastModified()));
+    	
+    	}
+    	addData( "Scope Data" ,"--" );
+    	addData("Active sub scopes", stats.getActiveSubscopes());
+    	addData("Total sub scopes", stats.getTotalSubscopes());
+    	addData("Active clients", stats.getActiveClients());
+    	addData("Total clients", stats.getTotalClients());
+    	addData("Active connections", stats.getActiveConnections());
+    	addData("Total connections", stats.getTotalConnections());
+    	addData("Created", Utils.formatDate ( stats.getCreationTime() ));
 		return apps;
     }
 	
@@ -75,14 +81,14 @@ class UserStatistics{
 	protected void extractConnectionData (IScope root) {
 		Iterator<IConnection> conn = root.getConnections();
     	while ( conn.hasNext() ) {
-    		IConnection connection = conn.next();		
+    		IConnection connection = conn.next();
 			addData ( "Scope statistics" ,"--" );
     		addData ( "Send bytes" , Utils.formatBytes(connection.getWrittenBytes()) );
     		addData ( "Received bytes" , Utils.formatBytes(connection.getReadBytes()) );
     		addData ( "Send messages" , connection.getWrittenMessages() );
-    		addData ( "Received messages" , connection.getReadMessages());
     		addData ( "Dropped messages" , connection.getDroppedMessages() );
     		addData ( "Pending messages" , connection.getPendingMessages() );
+    		addData ( "Received messages" , connection.getReadMessages());
     		addData ( "Remote address" , connection.getRemoteAddress()+":"+connection.getRemotePort()+" ("+connection.getHost()+")" );
     		addData ( "Path" , connection.getPath() );
     	}

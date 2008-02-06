@@ -1,4 +1,4 @@
-package org.red5.adminPanel.client;
+package org.red5.webapps.admin.client;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -27,6 +27,7 @@ import org.acegisecurity.providers.ProviderManager;
 import org.acegisecurity.providers.UsernamePasswordAuthenticationToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.red5.server.ClientRegistry;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IScope;
