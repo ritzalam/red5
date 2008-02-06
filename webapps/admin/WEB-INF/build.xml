@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="AdminPanel" basedir="." default="pwdgen">
+<project name="Admin" basedir="." default="pwdgen">
     
 	<property name="lib.dir" value="../../../../lib"/>
 	<property name="default_salt" value="seKret"/>
@@ -22,7 +22,7 @@
             defaultvalue="${default_salt}"
         />
         
-        <java classname="org.red5.adminPanel.utils.PasswordGenerator" 
+        <java classname="org.red5.webapps.admin.utils.PasswordGenerator" 
             fork="true"
             outputproperty="encodedpass">
             <classpath>
