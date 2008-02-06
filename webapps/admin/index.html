@@ -1,41 +1,17 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<head>
-<title>Red5 Administration Interface</title>
-<link rel="stylesheet" type="text/css" href="admin.css" />
-<script type="text/javascript" src="jsolait/init.js"></script>
-<script type="text/javascript" src="statistics.js"></script>
-<script type="text/javascript">
-<!--
-// Load xmlrpc module from jsolait
-var xmlrpc = importModule('xmlrpc');
-
-// Create proxy to the Red5 statistics
-var server = new xmlrpc.ServerProxy("statistics", ["scopes.getScopes", "scopes.getScopeAttributes", "scopes.getSharedObjects"]);
--->
-</script>
-</head>
-<body>
-<h1>Red5 Administration Interface</h1>
-<div id="menu">
-<h3>Scopes</h3>
-<ul id="root">
-<li id="menu_root" onclick="javascript:updateScope('', 'menu_root');">root</li>
-</ul>
-</div>
-<div id="content">
-<h3>Scope informations<span id="scope_name"></span></h3>
-<p>You can browse through the scopes in the server by using the menu on the left.</p>
-<div id="scope_contents">
-</div>
-<div id="scope_sharedobjects">
-</div>
-</div>
-<br />
-<div id="footer">
-<div id="last_updated">Last updated: <span id="last_updated_date"></span></div>
-Copyright &copy; 2006-2007 <a href="http://osflash.org/red5">The Red5 Project</a>.
-</div>
-</body>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+	<head>
+		<title>Red5 Admin</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+		<script type="text/javascript" src="assets/swfobject.js"></script>
+		<script type="text/javascript">
+		swfobject.embedSWF("assets/admin.swf", "myContent", "100%", "100%", "9.0.0", "expressInstall.swf");
+		</script>
+	</head>
+	<body>
+		<div id="myContent">
+			<p>You need the Adobe Flash Player for the Red5 Admin, download it by clicking the image below.</p>
+			<p><a href="http://www.adobe.com/go/getflashplayer"><img src="http://www.adobe.com/images/shared/download_buttons/get_flash_player.gif" alt="Get Adobe Flash player" /></a></p>
+		</div>
+	</body>
 </html>
