@@ -304,6 +304,11 @@
 		<build-demo name="admin">
 			<copy-assets>
 				<logback webapp="admin"/>
+				<!-- copy assets -->
+				<copy todir="${webapps.build.dir}/admin/assets">
+					<fileset dir="swf/DEV_Deploy/assets"/>
+					<fileset file="swf/DEV_Deploy/adminPanel.swf"/>
+				</copy>
 			</copy-assets>
 		</build-demo>
 		<build-demo name="echo">
