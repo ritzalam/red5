@@ -439,8 +439,8 @@
 		</war>
 		
 		<!-- war up demos -->
-		<compile-wardemo name="oflaDemo"/>
 		<compile-wardemo name="admin"/>
+		<compile-wardemo name="oflaDemo"/>
 		<compile-wardemo name="echo"/>
 		<compile-wardemo name="SOSample"/>
 		<compile-wardemo name="fitcDemo"/>
@@ -519,11 +519,11 @@
 			</fileset>
 		</copy>
 
-		<manifestclasspath property="jar.classpath" jarfile="red5.jar">
+		<manifestclasspath property="jar.classpath" jarfile="${red5.filename}.jar">
 			<classpath refid="runtime.classpath"/>
 		</manifestclasspath>
 
-		<jar destfile="red5.jar">
+		<jar destfile="${red5.filename}.jar">
 			<fileset dir="${classes.dir}">
 				<include name="**"/>
 				<exclude name="testcases/**"/>
@@ -583,7 +583,7 @@
 			<fileset dir="./">
 				<include name="ivy.xml"/>
 				<include name="ivyconfig.xml"/>
-				<include name="red5.jar"/>
+				<include name="${red5.filename}.jar"/>
 				<include name="red5.bat"/>
 				<include name="red5-shutdown.bat"/>
 				<include name="red5.sh"/>
