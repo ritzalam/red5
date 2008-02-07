@@ -569,10 +569,7 @@
 		</jar>
 	</target>
 
-	<target name="dist" description="Make Binary distribution" depends="clean, jar, javadoc">
-		<copy todir="${dist.dir}/doc">
-			<fileset dir="doc"/>
-		</copy>
+	<target name="dist" description="Make Binary distribution" depends="clean, jar">
 		<copy todir="${dist.dir}/lib">
 			<fileset dir="lib"/>
 		</copy>
@@ -600,7 +597,10 @@
 		<chmod file="${dist.dir}/red5-shutdown.sh" perm="755"/>
 	</target>
 
-	<target name="dist-installer" description="Make Installer distribution" depends="dist">
+	<target name="dist-installer" description="Make Installer distribution" depends="dist, javadoc">
+		<copy todir="${dist.dir}/doc">
+			<fileset dir="doc"/>
+		</copy>
 		<copy todir="${dist.dir}">
 			<fileset dir="./">
 				<include name=".classpath"/>
