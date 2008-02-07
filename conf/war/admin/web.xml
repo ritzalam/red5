@@ -11,7 +11,7 @@
 	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 -->
-	<display-name>Red5 administration interface</display-name>
+	<display-name>Red5 Administration Interface</display-name>
 
     <!-- remove the following servlet tags if you want to disable remoting for this application -->
 	<servlet>
@@ -47,37 +47,6 @@
 		</web-resource-collection>
 		<auth-constraint />
 	</security-constraint>
-
-    <security-constraint>
-        <display-name>Admin Interface</display-name>
-        <web-resource-collection>
-            <web-resource-name>Admin Interface</web-resource-name>
-            <url-pattern>/</url-pattern>
-            <url-pattern>/index.html</url-pattern>
-            <url-pattern>/statistics/*</url-pattern>
-        </web-resource-collection>
-        <auth-constraint>
-            <role-name>admin</role-name>
-        </auth-constraint>
-    </security-constraint>
-
-    <security-constraint>
-        <web-resource-collection>
-            <web-resource-name>Forbidden</web-resource-name>
-            <url-pattern>/streams/*</url-pattern>
-        </web-resource-collection>
-        <auth-constraint/>
-    </security-constraint>
-
-    <login-config>
-        <auth-method>FORM</auth-method>
-        <realm-name>Test Realm</realm-name>
-        <form-login-config>
-            <form-login-page>/login.html</form-login-page>
-            <form-error-page>/invalid_credentials.html</form-error-page>
-        </form-login-config>
-    </login-config>
-  
 
 </web-app>
 
