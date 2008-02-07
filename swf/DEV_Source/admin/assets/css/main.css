@@ -10,6 +10,7 @@
 
 Application {
 	background-color		: 	#eeeeee;
+	background-alpha		: 	1;
 }
 
 .flowStack {
