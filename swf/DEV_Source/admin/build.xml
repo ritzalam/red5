@@ -151,18 +151,17 @@
           target: compile.air.release
          - - - - - - - - - - - - - - - - - -->
     <target name="compile.air.release" depends="build.air.cert, compile.release">
+    	
         <java jar="${adt.jar}" fork="true" failonerror="true">
             <arg line="-package"/>
-        	<arg line="-certificate ${release.build.dir}/${air.cert.file}"/>
-        	<arg line="-password ${air.cert.password}"/>
+        	<arg line="-storetype pkcs12"/>
+        	<arg line="-keystore ${release.build.dir}/${air.cert.file}"/>
+        	<arg line="-keypass ${air.cert.password}"/>
             <arg line="${air.release}"/>
             <arg line="${air.descriptor}"/>
         	<arg line="-C"/>
             <arg line="${release.build.dir}"/>
             <arg line="${output.swf.name}.swf"/>
-            <arg line="-C"/>
-            <arg line="${assets.dir}"/>
-            <arg line="icons"/>
         </java>
     </target>
 	
