@@ -40,6 +40,10 @@
 	<taskdef uri="antlib:org.apache.ivy.ant" resource="org/apache/ivy/ant/antlib.xml" classpath="${lib.dir}/${ivy.version}.jar"/>
 	<property name="ivy.lib.dir" value="${lib.dir}"/>
 
+	<tstamp prefix="build">
+		<format property="TODAY" pattern="d-MMMM-yyyy" locale="en"/>
+	</tstamp>
+
 	<!-- JUNIT TESTING -->
 	<property name="test.dir" value="test"/>
 	<property name="testclass.dir" value="bin/testcases"/>
@@ -84,8 +88,8 @@
 
 	<!-- Check for the main libraries -->
 	<target name="-library.check">
-		<echo>Java: java.home is ${java.home} and the target version is ${java.target_version}</echo>
-		<echo>Ant: ant.home is ${ant.home} and the target version is ${ant.version}</echo>
+		<echo message='Java: java.home is ${java.home} and the target version is ${java.target_version}'/>
+		<echo message='Ant: ant.home is ${ant.home} and the target version is ${ant.version}'/>
 		<condition property="library.installed" value="true">
 			<and>
 				<or>
@@ -178,11 +182,12 @@
 			</not>
 		</condition>
 		<echo message="javac version: ${java.target_version}"/>
-		<condition property="eclipse.using" value="Using the Eclipse IDE" 
-			   else="Not using the Eclipse IDE">
+
+		<condition property="eclipse.using" value="Using" else="Not using">
 			<isset property="eclipse.running"/>
 		</condition>
-		<echo message="${eclipse.using}"/>
+		<echo message="${eclipse.using} the Eclipse IDE"/>
+
 		<condition property="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter">
 			<isset property="eclipse.running"/>
 		</condition>
@@ -191,12 +196,15 @@
 		</condition>
 		<property name="compiler" value="${build.compiler}"/>
 		<echo message="Compiler adapter name: ${compiler}"/>
+
 		<!-- destination for compiled classes -->
 		<property name="dest.dir" value="${classes.dir}"/>
+
 		<!-- standard excludes for compile -->
 		<property name="std_excludes" value="**/*.jsp,org/red5/server/script/**"/>
 		<antcall target="compile_core" inheritAll="true" inheritRefs="true"/>
 		<antcall target="compile_core_compatibility" inheritAll="true" inheritRefs="true"/>
+
 		<!-- libraries and classes needed for building the demos -->
 		<path id="webapps.classpath">
 			<fileset dir="${lib.dir}">
@@ -237,6 +245,7 @@
    		<sequential>
 			<mkdir dir="${webapps.build.dir}/@{name}/WEB-INF/classes"/>
 			<mkdir dir="${webapps.build.dir}/@{name}/WEB-INF/lib"/>
+
 			<javac sourcepath="" srcdir="${webapps.dir}/@{name}/WEB-INF/src" destdir="${webapps.build.dir}/@{name}/WEB-INF/classes"
 			       classpathref="webapps.classpath" optimize="${build.optimize}" verbose="${build.verbose}"
 			       fork="${build.fork}" nowarn="${build.nowarn}" deprecation="${build.deprecation}"
@@ -249,7 +258,8 @@
 					<exclude name="**/*.meta"/>
 				</fileset>
 			</copy>
-			<!-- copy files (optional) -->
+
+			<!-- copy other demo files (optional) -->
 			<copy-assets/>
       		</sequential>
 	</macrodef>
@@ -273,6 +283,7 @@
 	<target name="compile_demos" description="Build demo apps">
 		<echo message="Webapps dir: ${webapps.dir}"/>
 		<echo message="Webapps build dir: ${webapps.build.dir}"/>
+
 		<!-- load token replacement filters -->
 		<filter filtersfile="${filter.file}"/>
 		<copy todir="${webapps.build.dir}/root" filtering="true">
@@ -281,12 +292,14 @@
 				<exclude name="**/*.swf"/>
 			</fileset>
 		</copy>
-		<!-- copy swf without filtering as it causes corruption -->
+
+		<!-- copy SWF without filtering as it causes corruption -->
 		<copy todir="${webapps.build.dir}/root">
 			<fileset dir="webapps/root">
 				<include name="**/*.swf"/>
 			</fileset>
 		</copy>
+
 		<!-- build demos -->
 		<build-demo name="admin">
 			<copy-assets>
@@ -311,7 +324,7 @@
 		<build-demo name="oflaDemo">
 			<copy-assets>
 				<logback webapp="oflaDemo"/>
-				<!-- copy flv files without filtering as it causes corruption -->
+				<!-- copy FLV files without filtering as it causes corruption -->
 				<copy todir="${webapps.build.dir}/oflaDemo/">
 					<fileset dir="webapps/oflaDemo/">
 						<include name="**/*.flv"/>
@@ -330,7 +343,8 @@
 			</copy-assets>
 		</build-demo>
 		<build-demo name="test"/>
-		<!-- no java source for the messageRecorder and SOSample app -->
+
+		<!-- no Java source for the messageRecorder and SOSample app -->
 		<copy todir="${webapps.build.dir}/messageRecorder" filtering="true">
 			<fileset dir="webapps/messageRecorder"/>
 		</copy>
@@ -346,12 +360,12 @@
 			   else="No compatibility for scripting available">
 			<istrue value="${scripting_compatibility}"/>
 		</condition>
-		<echo message="${scripting.using}"/>
 		<javac sourcepath="" srcdir="${src.dir}" destdir="${dest.dir}" classpathref="script.classpath"
 			 optimize="${build.optimize}" verbose="${build.verbose}" fork="${build.fork}" nowarn="${build.nowarn}"
 			 deprecation="${build.deprecation}" debug="${debug.state}" compiler="${compiler}"
 			 source="${java.target_version}" target="${java.target_version}" memoryMaximumSize="${memory.maximum}"
 			 includes="org/red5/server/script/**" listfiles="false"/>
+		<echo message="${scripting.using}"/>
 	</target>
 
 	<target name="compile_war" depends="-library.check, -java6.check, clean, prepare">
@@ -362,7 +376,7 @@
 				<isset property="java.target_version"/>
 			</not>
 		</condition>
-		<echo message="Javac version: ${java.target_version}"/>
+		<echo message="javac version: ${java.target_version}"/>
 
 		<condition property="compiler" value="${build.compiler}${java.target_version}">
 			<equals arg1="${build.compiler}" arg2="javac"/>
@@ -375,6 +389,7 @@
 		<property name="std_excludes" value="**/*.jsp,org/red5/server/script/**,org/red5/server/jetty/**,org/red5/server/tomcat/**,org/red5/server/midi/**,org/red5/server/net/rtmpt/*Loader.java,org/red5/server/net/servlet/RTMPTServlet.java,org/red5/server/net/servlet/StatisticsServlet.java,org/red5/server/net/servlet/ZAMFGatewayServlet.java,org/red5/server/ContextLoader.java,org/red5/server/DebugPooledByteBufferAllocator.java,org/red5/server/Standalone.java"/>
 		<antcall target="compile_core" inheritAll="true" inheritRefs="true"/>
 		<antcall target="compile_core_compatibility" inheritAll="true" inheritRefs="true"/>
+
 		<!-- libraries and classes needed for building the demos -->
 		<path id="webapps.classpath">
 			<fileset dir="${lib.dir}">
@@ -383,6 +398,7 @@
 			<pathelement location="${dest.dir}"/>
 		</path>
 		<antcall target="compile_demos" inheritAll="true" inheritRefs="true"/>
+
 		<!-- only certain classes from selected demos are copied to the war -->
 		<copy todir="${classes.dir}/WEB-INF/classes">
 			<fileset dir="${webapps.build.dir}/admin/WEB-INF/classes"/>
@@ -399,9 +415,6 @@
 	<macrodef name="compile-wardemo">
    		<attribute name="name"/>
    		<sequential>
-			<tstamp prefix="build">
-				<format property="TODAY" pattern="d-MMMM-yyyy" locale="en"/>
-			</tstamp>
 			<war destfile="${dist.dir}/@{name}.war" webxml="${webapps.build.dir}/@{name}/WEB-INF/web.xml">
 				<fileset dir="${webapps.build.dir}/@{name}">
 					<exclude name="WEB-INF"/>
@@ -416,10 +429,6 @@
 	</macrodef>
 
 	<target name="war_demos" description="Build wars for demo apps" depends="compile_demos">
-		<tstamp prefix="build">
-			<format property="TODAY" pattern="d-MMMM-yyyy" locale="en"/>
-		</tstamp>
-
 		<!-- war up root -->
 		<war destfile="${dist.dir}/ROOT.war" webxml="${webapps.build.dir}/root/WEB-INF/web.xml">
 			<fileset dir="${webapps.build.dir}/root"/>
@@ -502,9 +511,6 @@
 	</macrodef>
 
 	<target name="jar" description="Make Archive" depends="compile">
-		<tstamp prefix="build">
-			<format property="TODAY" pattern="d-MMMM-yyyy" locale="en"/>
-		</tstamp>
 		<mkdir dir="${classes.dir}/conf"/>
 		<copy todir="${classes.dir}/conf">
 			<fileset dir="${config.dir}">
@@ -808,9 +814,6 @@
 	<target name="webwar" description="Make Web Archive" depends="compile_war">
 		<!-- token replacement filers -->
 		<filter filtersfile="${config.dir}/war/build_war.properties"/>
-		<tstamp prefix="build">
-			<format property="TODAY" pattern="d-MMMM-yyyy" locale="en"/>
-		</tstamp>
 		<copy todir="${classes.dir}">
 			<fileset dir=".">
 				<include name="license.txt"/>
@@ -948,9 +951,6 @@
 	</target>
 
 	<target name="remotejar" description="Creates a jar that may be deployed with remote applications" depends="compile">
-		<tstamp prefix="build">
-			<format property="TODAY" pattern="d-MMMM-yyyy" locale="en"/>
-		</tstamp>
 		<mkdir dir="${classes.dir}/conf"/>
 		<copy todir="${classes.dir}/conf">
 			<fileset dir="${config.dir}">
