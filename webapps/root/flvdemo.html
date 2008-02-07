@@ -3,59 +3,14 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>FLV demos</title>
-<script type="text/javascript" src="swfobject.js"></script>
-<style type="text/css">
-	
-	body {
-		background-color: #eeeeee;
-		font: .8em/1.3em verdana,arial,helvetica,sans-serif;
-	}
-
-	#info {
-		width: 300px;
-		overflow: auto;
-	}
-
-	#flashcontent {
-		border: solid 1px #000;
-		width: 640px;
-		height: 480px;
-		float: left;
-		margin: 15px 20px;
-	}
-
-</style>
-</head>
+<script type="text/javascript" src="demos/js/swfobject.js"></script>
+<script type="text/javascript">
+swfobject.embedSWF("demos/ofla_demo.swf", "myContent", "640", "480", "8.0.0", "demos/expressInstall.swf");
+</script>
 <body>
-
-	<div id="flashcontent">
-		<strong>You need to upgrade your Flash Player</strong>
-		This is replaced by the Flash content. 
-		Place your alternate content here and users without the Flash plugin or with 
-		Javascript turned off will see this. Content here allows you to leave out <code>noscript</code> 
-		tags. Include a link to <a href="flvdemo.html?detectflash=false">bypass the detection</a> if you wish.
+	<div id="myContent">
+		<h1>You need the Adobe Flash Player for this demo, download it by clicking the image below.</h1>
+		<p><a href="http://www.adobe.com/go/getflashplayer"><img src="http://www.adobe.com/images/shared/download_buttons/get_flash_player.gif" alt="Get Adobe Flash player" /></a></p>
 	</div>
-
-	<div id="info">
-		<p id="flashversion">
-		You do not have the Flash plugin installed, or your browser does not support Javascript (you should enable it, perhaps?)
-		</p>
-	</div>
-	
-	<script type="text/javascript">
-		// <![CDATA[
-		
-		var so = new SWFObject("demos/ofla_demo.swf", "ofla", "640", "480", "8");
-		so.addVariable("flashVarText", "this is passed in via FlashVars for example only"); 
-		so.write("flashcontent");
-		
-		var version = deconcept.SWFObjectUtil.getPlayerVersion();
-		if (document.getElementById && (version['major'] > 0)) {
-			document.getElementById('flashversion').innerHTML = "You have Flash player "+ version['major'] +"."+ version['minor'] +"."+ version['rev'] +" installed.";
-		}
-
-		// ]]>
-		</script>
-
 </body>
 </html>
