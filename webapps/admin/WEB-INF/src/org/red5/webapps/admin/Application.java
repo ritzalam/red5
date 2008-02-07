@@ -99,7 +99,8 @@ public class Application extends ApplicationAdapter {
     }
     
     /**
-     * Get Application statistics
+     * Get Application statistics.
+	 *
      * @param scopeName
      * @return HashMap with the statistics
      */
