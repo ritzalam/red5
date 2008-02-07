@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <mx:VBox creationComplete="init()" xmlns:mx="http://www.adobe.com/2006/mxml" width="100%" height="100%" 
-	verticalAlign="middle" horizontalAlign="center" verticalGap="0"
-	xmlns:flash="flash.filters.*">
+	verticalAlign="middle" horizontalAlign="center" verticalGap="0"	xmlns:flash="flash.filters.*">
 
 	<mx:Script>
 		<![CDATA[
@@ -29,30 +28,28 @@
 			import org.red5.admin.connector.event.Red5Event;
 			import org.red5.admin.connector.Red5Connector;
 			import org.red5.admin.utils.SharedObjectHandler;
-
-			
-			public static const CONNECTED:String = "CONNECTED";
-			public static const FAILED:String = "FAILED";
-			public static const CONNECTING:String = "CONNECTING";
 			
 			[Bindable]
-			private var _hosts:Array;
+			private var _hosts				: Array;
 			
 			[Bindable]
-			private var _username:String;
+			private var _username			: String;
 			
 			[Bindable]
-			private var _passwd:String;
+			private var _passwd				: String;
 			
 			[Bindable]
-			private var _error:String;
+			private var _error				: String;
 			
-			private var _connector:Red5Connector;
-			private var _sharedObject:SharedObjectHandler;
+			private var _connector			: Red5Connector;
+			private var _sharedObject		: SharedObjectHandler;
 			
+			public static const CONNECTED	: String = "CONNECTED";
+			public static const FAILED		: String = "FAILED";
+			public static const CONNECTING	: String = "CONNECTING";
 			
-			public function init():void{
-				
+			public function init():void
+			{
 				_connector = Red5Connector.getInstance();
 				_connector.addEventListener( Red5Connector.CONNECT , startApp )
 				_connector.addEventListener( Red5Connector.FAILED , failedConnection )
@@ -65,11 +62,13 @@
 				}
 			}
 			
-			private function addActions():void{
+			private function addActions():void
+			{
 				address.addEventListener(ListEvent.CHANGE,getExtraData);
 			}
 			
-			private function getExtraData(event:ListEvent):void{
+			private function getExtraData(event:ListEvent):void
+			{
 				var un:String = _sharedObject.getUsername(address.text);
 				if ( un != '' ) {
 					username.text = un
@@ -77,12 +76,18 @@
 				}
 			}
 			
-			public function connect( event:MouseEvent ):void{
-				_connector.connect( "rtmp://"+address.text+"/adminPanel", [username.text,passwd.text] );
+			public function connect( event:MouseEvent ):void
+			{
+				var uri:String = "rtmp://" + address.text + "/admin";
+				var params:Array = [username.text, passwd.text];
+				
+				_connector.connect(uri, params);
+				
 				dispatchEvent(new Red5Event(CONNECTING,{}));
 			}
 			
-			private function startApp(event:Red5Event):void{
+			private function startApp(event:Red5Event):void
+			{
 				if ( remember.selected ) {
 					_sharedObject.addHost(address.text,username.text,passwd.text);
 				}

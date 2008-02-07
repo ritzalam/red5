@@ -82,21 +82,22 @@
 			[Bindable]
 			private var userDeleteImg:Class;
 			
-			private var _connector:Red5Connector;
-			private var sharedObject:SharedObjectHandler;
-			private var _selectedApp:String
-			private var _interval:Timer = null;
-			private var _selectedUser:Number
+			private var _connector		: Red5Connector;
+			private var sharedObject	: SharedObjectHandler;
+			private var _selectedApp	: String;
+			private var _interval		: Timer = null;
+			private var _selectedUser	: Number;
+			private var _version		: String = "0.4.1";
 			
-			public function connect (): void {
-				//
+			public function connect (): void
+			{
 				logoImg = this.getStyle("Logo");
 				applicationImg = this.getStyle("Application");
 				applicationGoImg = this.getStyle("ApplicationGo");
 				userImg = this.getStyle("User");
 				userDeleteImg = this.getStyle("UserDelete");
 				//
-				_footer = "VMVersion: "+flash.system.System.vmVersion+" | Flash Player: "+flash.system.Capabilities.version+"";
+				_footer = "Admin " + _version + "    Flash Player: " + flash.system.Capabilities.version;
 				loggedInInfo.visible = false;
 				_intervals = [1,5,10,20,30,60]
 				_connector = Red5Connector.getInstance();
@@ -128,7 +129,7 @@
 			
 			private function selectApplication ( event:ListEvent ) : void {
 				_selectedApp = _applications[applist.selectedIndex].name;
-				trace ( _selectedApp );
+				//trace( _selectedApp );
 				var responder:Responder = new Responder(fillScopes,null);
 				_connector.call ( "getScopes" , responder , _selectedApp );
 				var responder2:Responder = new Responder(fillUsers,null);
@@ -243,7 +244,6 @@
 
 		<mx:HBox width="100%" height="65" verticalAlign="middle">
 			<mx:Image source="{ logoImg }" />
-			<mx:Label text="Admin Panel 0.4"  fontWeight="bold" fontSize="14"/>
 			<mx:VBox width="100%" horizontalAlign="right">
 				<mx:HBox horizontalAlign="right" width="100%" id="loggedInInfo">
 					<mx:Text width="100%" paddingTop="3" text="Connected to: {_selectedHost} | Update interval: " textAlign="right"/>
