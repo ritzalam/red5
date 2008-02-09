@@ -311,6 +311,11 @@
 				</copy>
 			</copy-assets>
 		</build-demo>
+		<build-demo name="bwcheck">
+			<copy-assets>
+				<logback webapp="bwcheck"/>
+			</copy-assets>
+		</build-demo>
 		<build-demo name="echo">
 			<copy-assets>
 				<logback webapp="echo"/>
@@ -407,6 +412,7 @@
 		<!-- only certain classes from selected demos are copied to the war -->
 		<copy todir="${classes.dir}/WEB-INF/classes">
 			<fileset dir="${webapps.build.dir}/admin/WEB-INF/classes"/>
+			<fileset dir="${webapps.build.dir}/bwcheck/WEB-INF/classes"/>
 			<fileset dir="${webapps.build.dir}/echo/WEB-INF/classes"/>
 			<fileset dir="${webapps.build.dir}/fitcDemo/WEB-INF/classes"/>
 			<fileset dir="${webapps.build.dir}/oflaDemo/WEB-INF/classes"/>
@@ -445,10 +451,11 @@
 		
 		<!-- war up demos -->
 		<compile-wardemo name="admin"/>
-		<compile-wardemo name="oflaDemo"/>
-		<compile-wardemo name="echo"/>
-		<compile-wardemo name="SOSample"/>
+		<compile-wardemo name="bwcheck"/>
 		<compile-wardemo name="fitcDemo"/>
+		<compile-wardemo name="echo"/>		
+		<compile-wardemo name="oflaDemo"/>
+		<compile-wardemo name="SOSample"/>
 		<compile-wardemo name="tutorial"/>
 		<compile-wardemo name="test"/>
 		<compile-wardemo name="messageRecorder"/>
@@ -545,6 +552,7 @@
 		</jar>
 
 		<!-- create jar files for demos -->
+		<compile-jardemo name="bwcheck"/>
 		<compile-jardemo name="echo"/>
 		<compile-jardemo name="fitcDemo"/>
 		<compile-jardemo name="midiDemo"/>
