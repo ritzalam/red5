@@ -1,10 +1,15 @@
-package org.electroteque.security;
+package org.red5.demos.bwcheck.security;
 
 import java.util.List;
 import org.red5.server.api.IScope;
 import org.red5.server.api.so.ISharedObject;
 import org.red5.server.api.so.ISharedObjectSecurity;
 
+/**
+ *
+ * @author The Red5 Project (red5@osflash.org)
+ * @author Dan Rossi
+ */
 public class SharedObjectSecurity implements ISharedObjectSecurity {
   
   public boolean isConnectionAllowed(ISharedObject so) {

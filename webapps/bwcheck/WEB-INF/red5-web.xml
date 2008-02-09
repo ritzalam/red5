@@ -20,7 +20,7 @@
 	</bean>
 
 	<bean id="bwcheck.handler" 
-	    class="org.electroteque.BWApplication"
+	    class="org.red5.demos.bwcheck.BWApplication"
 		singleton="true" />
 
 </beans>

@@ -13,7 +13,7 @@
 		</layout> 
 	</appender> 
 	
-	<logger name="org.electroteque.BandwidthDetection">
+	<logger name="org.red5.demos.bwcheck.BandwidthDetection">
 		<level value="INFO"/>
 		<appender-ref ref="BWFILE" />
 	</logger>

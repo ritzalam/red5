@@ -1,4 +1,4 @@
-package org.electroteque;
+package org.red5.demos.bwcheck;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +15,11 @@ import java.util.*;
 import java.util.Map;
 import java.util.HashMap;
 
+/**
+ *
+ * @author The Red5 Project (red5@osflash.org)
+ * @author Dan Rossi
+ */
 public class BandwidthDetection implements IPendingServiceCallback, IBandwidthDetection {
 	
 	IConnection client = null;
@@ -33,7 +38,6 @@ public class BandwidthDetection implements IPendingServiceCallback, IBandwidthDe
 	private double[] payload = new double[1200];
 	private double[] payload_1 = new double[12000];
 	private double[] payload_2 = new double[12000];
-	
 	
 	protected static Logger log = LoggerFactory.getLogger(BandwidthDetection.class.getName());
 	

@@ -1,15 +1,21 @@
-package org.electroteque;
+package org.red5.demos.bwcheck;
 
-import org.electroteque.BandwidthDetection;
+import org.red5.demos.bwcheck.BandwidthDetection;
 
 import org.red5.server.adapter.MultiThreadedApplicationAdapter;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
 
-import org.electroteque.security.PlaybackSecurity;
-import org.electroteque.security.PublishSecurity;
-import org.electroteque.security.SharedObjectSecurity;
+import org.red5.demos.bwcheck.security.PlaybackSecurity;
+import org.red5.demos.bwcheck.security.PublishSecurity;
+import org.red5.demos.bwcheck.security.SharedObjectSecurity;
 
+/**
+ * Bandwidth Detection demo for the Red5 Server.
+ *
+ * @author The Red5 Project (red5@osflash.org)
+ * @author Dan Rossi
+ */
 public class BWApplication extends MultiThreadedApplicationAdapter
 {
 	@Override
