@@ -159,7 +159,9 @@
 	<!--
 	    Cache to use for keyframe metadata.
 	-->
-	<bean id="keyframe.cache" class="org.red5.io.FileKeyFrameMetaCache"/>
+	<bean id="keyframe.cache" class="org.red5.io.CachingFileKeyFrameMetaCache">
+		<property name="maxCacheEntry" value="500" />
+	</bean>
 	<!--
 	    Represents FLV files
 	    Use injection to set the cache impl to be used with flvs
