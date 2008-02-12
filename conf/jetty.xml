@@ -66,6 +66,21 @@
 			</list>
 		</property>
 	</bean>
+	
+	<bean id="httpsPort"
+		class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+		<property name="targetObject">
+			<ref bean="sysProps" />
+		</property>
+		<property name="targetMethod">
+			<value>getProperty</value>
+		</property>
+		<property name="arguments">
+			<list>
+				<value>https.port</value>
+			</list>
+		</property>
+	</bean>
 
 	<bean id="Server" class="org.mortbay.jetty.Server" destroy-method="stop"> <!-- init-method="start" -->
 
@@ -90,7 +105,21 @@
 					</property>
 					<property name="maxIdleTime" value="30000" />
 					<property name="acceptors" value="2" />
-					<property name="confidentialPort" value="8443" />
+					<property name="confidentialPort">
+						<ref local="httpsPort" />
+					</property>
+				</bean>
+				<bean id="SSLConnector"
+					class="org.mortbay.jetty.security.SslSocketConnector">
+			        <property name="port">
+						<ref local="httpsPort" />
+					</property>
+			        <property name="maxIdleTime" value="30000" />
+			        <property name="keystore"><value>${red5.config_root}/keystore</value></property>
+			        <property name="password" value="changeme" />
+			        <property name="keyPassword" value="changeme" />
+			        <property name="truststore"><value>${red5.config_root}/keystore</value></property>
+			        <property name="trustPassword" value="changeme" />
 				</bean>
 			</list>
 		</property>
