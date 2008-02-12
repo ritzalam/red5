@@ -19,7 +19,6 @@ package org.red5.server.messaging;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -43,7 +42,7 @@ public class AbstractMessage implements IMessage {
     /**
      * {@inheritDoc}
      */
-	protected Map extraHeaders = new HashMap();
+	protected Map extraHeaders = null;
 
 	/** {@inheritDoc} */
     public String getMessageID() {
