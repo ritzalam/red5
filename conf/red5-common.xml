@@ -203,8 +203,8 @@
 		the client buffer filled.
 	-->
 	<bean id="streamExecutor" class="java.util.concurrent.ScheduledThreadPoolExecutor">
-		<constructor-arg value="16"/>
-		<property name="maximumPoolSize" value="64"/>
+		<constructor-arg value="2"/>
+		<property name="maximumPoolSize" value="32"/>
 	</bean>
 	<!-- ClientBroadcastStream and PlaylistSubscriberStream
 		that will be used by RTMPConnection and maybe other classes.

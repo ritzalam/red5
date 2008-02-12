@@ -1397,7 +1397,8 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			if (pullAndPushFuture == null) {
 				synchronized (this) {
 					if (pullAndPushFuture == null) {
-						pullAndPushFuture = getExecutor().scheduleWithFixedDelay(new PullAndPushRunnable(), 0, 10, TimeUnit.MILLISECONDS);
+						// client buffer is at least 100ms
+						pullAndPushFuture = getExecutor().scheduleWithFixedDelay(new PullAndPushRunnable(), 0, 100, TimeUnit.MILLISECONDS);
 					}
 				}
 			}
