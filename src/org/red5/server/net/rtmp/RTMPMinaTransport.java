@@ -24,6 +24,7 @@ import java.net.SocketAddress;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -89,8 +90,6 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 	private int eventThreadsMax = DEFAULT_EVENT_THREADS_MAX;
 
 	private int eventThreadsQueue = DEFAULT_EVENT_THREADS_QUEUE;
-
-	private ExecutorService ioExecutor;
 
 	private IoHandlerAdapter ioHandler;
 
@@ -193,14 +192,19 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 			ByteBuffer.setAllocator(new SimpleByteBufferAllocator()); // dont pool for heap buffers.
         }
 		log.info("RTMP Mina Transport Settings");
-		log.info("IO Threads: {} + 1", ioThreads);
+		log.info("IO Threads: {}", ioThreads);
 		log.info("Event Threads - core: {}, max: {}, queue: {}, keepalive: {}", new Object[]{eventThreadsCore, eventThreadsMax, eventThreadsQueue, eventThreadsKeepalive});
 
-		ioExecutor = new ThreadPoolExecutor(ioThreads + 1, Integer.MAX_VALUE, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
-		
 		eventExecutor = new ThreadPoolExecutor(eventThreadsCore, eventThreadsMax, eventThreadsKeepalive, TimeUnit.SECONDS, threadQueue(eventThreadsQueue));
+		// Avoid the reject by setting CallerRunsPolicy
+		// This prevents memory leak in Mina ExecutorFilter
+		((ThreadPoolExecutor) eventExecutor).setRejectedExecutionHandler(
+				new ThreadPoolExecutor.CallerRunsPolicy()
+				);
 		
-		acceptor = new SocketAcceptor(ioThreads, ioExecutor);
+		// Executors.newCachedThreadPool() is always preferred by IoService
+		// See http://mina.apache.org/configuring-thread-model.html for details
+		acceptor = new SocketAcceptor(ioThreads, Executors.newCachedThreadPool());
 
 		acceptor.getFilterChain().addLast("threadPool", new ExecutorFilter(eventExecutor));
 
@@ -255,7 +259,6 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 	public void stop() {
 		log.info("RTMP Mina Transport unbind");
 		acceptor.unbindAll();
-		ioExecutor.shutdown();
 		eventExecutor.shutdown();
 		// deregister with jmx
 		JMXAgent.unregisterMBean(oName);

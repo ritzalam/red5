@@ -5,6 +5,7 @@ import java.net.SocketAddress;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -63,8 +64,6 @@ public class MRTMPMinaTransport {
 	private int eventThreadsMax = DEFAULT_EVENT_THREADS_MAX;
 
 	private int eventThreadsQueue = DEFAULT_EVENT_THREADS_QUEUE;
-
-	private ExecutorService ioExecutor;
 
 	private IoHandlerAdapter ioHandler;
 
@@ -158,19 +157,23 @@ public class MRTMPMinaTransport {
 			ByteBuffer.setAllocator(new SimpleByteBufferAllocator()); // dont pool for heap buffers.
 
 		log.info("MRTMP Mina Transport Settings");
-		log.info("IO Threads: " + ioThreads + "+1");
+		log.info("IO Threads: " + ioThreads);
 		log.info("Event Threads:" + " core: " + eventThreadsCore + "+1"
 				+ " max: " + eventThreadsMax + "+1" + " queue: "
 				+ eventThreadsQueue + " keepalive: " + eventThreadsKeepalive);
 
-		ioExecutor = new ThreadPoolExecutor(ioThreads + 1, ioThreads + 1, 60,
-				TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>());
-
 		eventExecutor = new ThreadPoolExecutor(eventThreadsCore + 1,
 				eventThreadsMax + 1, eventThreadsKeepalive, TimeUnit.SECONDS,
 				threadQueue(eventThreadsQueue));
+		// Avoid the reject by setting CallerRunsPolicy
+		// This prevents memory leak in Mina ExecutorFilter
+		((ThreadPoolExecutor) eventExecutor).setRejectedExecutionHandler(
+				new ThreadPoolExecutor.CallerRunsPolicy()
+				);
 
-		acceptor = new SocketAcceptor(ioThreads, ioExecutor);
+		// Executors.newCachedThreadPool() is always preferred by IoService
+		// See http://mina.apache.org/configuring-thread-model.html for details
+		acceptor = new SocketAcceptor(ioThreads, Executors.newCachedThreadPool());
 
 		acceptor.getFilterChain().addLast("threadPool",
 				new ExecutorFilter(eventExecutor));
@@ -215,7 +218,6 @@ public class MRTMPMinaTransport {
 	public void stop() {
 		log.info("MRTMP Mina Transport unbind");
 		acceptor.unbindAll();
-		ioExecutor.shutdown();
 		eventExecutor.shutdown();
 	}
 
