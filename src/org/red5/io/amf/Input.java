@@ -608,8 +608,12 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 
     protected Class getPropertyType(Object instance, String propertyName) {
         try {
-            Field field = instance.getClass().getField(propertyName);
-            return field.getType();
+        	if (instance != null) {
+        		Field field = instance.getClass().getField(propertyName);
+        		return field.getType();
+        	} else {
+        		// instance is null for anonymous class, use default type
+        	}
         } catch (NoSuchFieldException e1) {
             try {
                 BeanUtilsBean beanUtilsBean = BeanUtilsBean.getInstance();
@@ -618,7 +622,10 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
             } catch (Exception e2) {
                 // nothing
             }
+        } catch (Exception e) {
+        	// ignore other exceptions
         }
+        // return Object class type by default
         return Object.class;
     }
 }
