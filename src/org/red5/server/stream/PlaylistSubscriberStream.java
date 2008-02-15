@@ -164,6 +164,8 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 	 */
 	private long bytesSent = 0;
 	
+	private int minimalClientBufferDuration = 1000;
+	
 	/** Constructs a new PlaylistSubscriberStream. */
     public PlaylistSubscriberStream() {
 		defaultController = new SimplePlaylistController();
@@ -219,6 +221,27 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
     public void setUnderrunTrigger(int underrunTrigger) {
     	this.underrunTrigger = underrunTrigger;
     }
+    
+    @Override
+	public void setClientBufferDuration(int duration) {
+		super.setClientBufferDuration(duration);
+		engine.reschedulePullAndPushJob();
+	}
+
+	/**
+     * Set the minimal client buffer time for VOD stream.
+     * @param minimumBufferFillDuration The minimal client buffer time, should be not
+     * below zero
+     * @exception IllegalArgumentException The parameter is below zero
+     */
+	public void setMinimalClientBufferDuration(int minimumBufferFillDuration) {
+		if (minimumBufferFillDuration < 0) {
+			throw new IllegalArgumentException(
+					"minimumBufferFillDuration should not below zero, but got " + minimumBufferFillDuration
+					);
+		}
+		this.minimalClientBufferDuration = minimumBufferFillDuration;
+	}
     
 	/** {@inheritDoc} */
     public void start() {
@@ -588,16 +611,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 	 * @param message          Message that has been written
 	 */
 	public void written(Object message) {
-		if (!engine.isPullMode) {
-			// Not needed for live streams
-			return;
-		}
-		
-		try {
-			engine.pullAndPush();
-		} catch (Throwable err) {
-			log.error("Error while pulling message.", err);
-		}
+		// do nothing
 	}
 
 	/**
@@ -1333,12 +1347,15 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			// check client buffer length when we've already sent some messages
 			if (lastMessage != null) {
 				// Duration the stream is playing
-				final long delta = now - playbackStart;
+				long delta = now - playbackStart;
 				// Buffer size as requested by the client
-				final long buffer = getClientBufferDuration();
+				long buffer = getClientBufferDuration();
+				if (buffer < minimalClientBufferDuration) {
+					buffer = minimalClientBufferDuration;
+				}
 
 				// Expected amount of data present in client buffer
-				final long buffered = lastMessage.getTimestamp() - delta;
+				long buffered = lastMessage.getTimestamp() - delta;
 
 				if (log.isDebugEnabled()) {
 					log.debug("okayToSendMessage: " + lastMessage.getTimestamp() + " " + delta + " " + buffered + " " + buffer);
@@ -1397,26 +1414,38 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			if (pullAndPushFuture == null) {
 				synchronized (this) {
 					if (pullAndPushFuture == null) {
-						// client buffer is at least 100ms
-						pullAndPushFuture = getExecutor().scheduleWithFixedDelay(new PullAndPushRunnable(), 0, 100, TimeUnit.MILLISECONDS);
+						int clientBufferTime = getClientBufferDuration();
+						if (clientBufferTime < minimalClientBufferDuration) {
+							clientBufferTime = minimalClientBufferDuration;
+						}
+						pullAndPushFuture = getExecutor().scheduleWithFixedDelay(new PullAndPushRunnable(), 0, clientBufferTime / 10, TimeUnit.MILLISECONDS);
 					}
 				}
 			}
         }
         
+        private void reschedulePullAndPushJob() {
+        	synchronized (this) {
+        		if (pullAndPushFuture != null) {
+        			pullAndPushFuture.cancel(true);
+        			pullAndPushFuture = null;
+        		}
+        	}
+        	ensurePullAndPushRunning();
+        }
+        
         /**
          * Recieve then send if message is data (not audio or video)
          */
-        private synchronized void pullAndPush() throws IOException {
+        private synchronized boolean pullAndPush() throws IOException {
 			if (state == State.PLAYING && isPullMode && !isWaitingForToken) {
 				if (pendingMessage != null) {
 					IRTMPEvent body = pendingMessage.getBody();
-					if (!okayToSendMessage(body)) {
-						return;
+					if (okayToSendMessage(body)) {
+						sendMessage(pendingMessage);
+						releasePendingMessage();
+						return true;
 					}
-					
-					sendMessage(pendingMessage);
-					releasePendingMessage();
 				} else {
 					while (true) {
 						IMessage msg = msgIn.pullMessage();
@@ -1454,9 +1483,9 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 								// Adjust timestamp when playing lists
 								body.setTimestamp(body.getTimestamp() + timestampOffset);
 								if (okayToSendMessage(body)) {
-									//System.err.println("ts: " + rtmpMessage.getBody().getTimestamp());
 									sendMessage(rtmpMessage);
 									((IStreamData) body).getData().release();
+									return true;
 								} else {
 									pendingMessage = rtmpMessage;
 								}
@@ -1467,6 +1496,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 					}
 				}
 			}
+			return false;
 		}
 
         /**
@@ -2039,7 +2069,9 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			 */
 			public void run() {
 				try {
-					pullAndPush();
+					while (pullAndPush()) {
+						;
+					}
 				} catch (IOException err) {
 					// We couldn't get more data, stop stream.
 					log.error("Error while getting message.", err);
