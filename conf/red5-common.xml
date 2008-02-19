@@ -203,7 +203,7 @@
 		the client buffer filled.
 	-->
 	<bean id="streamExecutor" class="java.util.concurrent.ScheduledThreadPoolExecutor">
-		<constructor-arg value="2"/>
+		<constructor-arg value="4"/>
 		<property name="maximumPoolSize" value="32"/>
 	</bean>
 	<!-- ClientBroadcastStream and PlaylistSubscriberStream
