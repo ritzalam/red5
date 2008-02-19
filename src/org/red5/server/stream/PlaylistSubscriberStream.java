@@ -1427,7 +1427,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
         private void reschedulePullAndPushJob() {
         	synchronized (this) {
         		if (pullAndPushFuture != null) {
-        			pullAndPushFuture.cancel(true);
+        			pullAndPushFuture.cancel(false);
         			pullAndPushFuture = null;
         		}
         	}
