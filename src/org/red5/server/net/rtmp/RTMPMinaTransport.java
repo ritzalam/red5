@@ -63,7 +63,7 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 	private static final int DEFAULT_EVENT_THREADS_QUEUE = -1;
 
 	private static final int DEFAULT_IO_THREADS = Runtime.getRuntime()
-			.availableProcessors();
+			.availableProcessors() + 1;
 
 	private static final int DEFAULT_PORT = 1935;
 
