@@ -18,34 +18,37 @@ package org.red5.webapps.admin.utils;
  * with this library; if not, write to the Free Software Foundation, Inc., 
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
- 
+
 import org.acegisecurity.providers.encoding.Md5PasswordEncoder;
 
 /**
- *
+ * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Daniel Rossi
  */
 public class PasswordGenerator {
 	
 	private String password;
+
 	private String salt = "secret";
+
 	private Md5PasswordEncoder md5 = new Md5PasswordEncoder();
-	
-	public static void main(String args[])
-	{
+
+	public static void main(String args[]) {
 		PasswordGenerator generate = new PasswordGenerator(args[0], args[1]);
 		generate.run();
 	}
-	
-	public PasswordGenerator(String password, String salt)
-	{
+
+	public PasswordGenerator(String password, String salt) {
 		this.salt = salt;
 		this.password = password;
 	}
-	
-	public void run()
-	{
+
+	public String getPassword() {
+		return md5.encodePassword(this.password, this.salt).toString();
+	}
+
+	public void run() {
 		System.out.println(md5.encodePassword(this.password, this.salt).toString());
 	}
 

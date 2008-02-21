@@ -18,80 +18,83 @@ package org.red5.webapps.admin.client;
  * with this library; if not, write to the Free Software Foundation, Inc., 
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
- 
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import org.acegisecurity.BadCredentialsException;
 import org.acegisecurity.providers.ProviderManager;
 import org.acegisecurity.providers.UsernamePasswordAuthenticationToken;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.red5.server.ClientRegistry;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IScope;
 import org.red5.server.api.Red5;
 import org.red5.server.exception.ClientNotFoundException;
 import org.red5.server.exception.ClientRejectedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- *
+ * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Martijn van Beek (martijn.vanbeek@gmail.com)
  */
 public class AuthClientRegistry extends ClientRegistry {
 
-    protected static Logger log = LoggerFactory.getLogger(AuthClientRegistry.class);
+	protected static Logger log = LoggerFactory
+			.getLogger(AuthClientRegistry.class);
+
 	protected IScope masterScope;
+
 	protected IClient client;
-	
+
 	public AuthClientRegistry() {
 		super();
 	}
-	
+
 	@Override
-	public IClient newClient(Object[] params) throws ClientNotFoundException, ClientRejectedException {
+	public IClient newClient(Object[] params) throws ClientNotFoundException,
+			ClientRejectedException {
 
 		if (params == null || params.length == 0) {
 			log.warn("Client didn't pass a username.");
 			throw new ClientRejectedException();
 		}
 
-		String username,passwd;
-		if ( params[0] instanceof HashMap ) { // Win FP sends HashMap
+		String username, passwd;
+		if (params[0] instanceof HashMap) { // Win FP sends HashMap
 			HashMap userWin = (HashMap) params[0];
 			username = (String) userWin.get(0);
 			passwd = (String) userWin.get(1);
-		} else if ( params[0] instanceof ArrayList ) { // Mac FP sends ArrayList
+		} else if (params[0] instanceof ArrayList) { // Mac FP sends
+														// ArrayList
 			ArrayList userMac = (ArrayList) params[0];
 			username = (String) userMac.get(0);
 			passwd = (String) userMac.get(1);
 		} else {
 			throw new ClientRejectedException();
 		}
-		
-		UsernamePasswordAuthenticationToken t = new UsernamePasswordAuthenticationToken(username,passwd);
-		
+
+		UsernamePasswordAuthenticationToken t = new UsernamePasswordAuthenticationToken(
+				username, passwd);
+
 		masterScope = Red5.getConnectionLocal().getScope();
-		ProviderManager mgr=(ProviderManager)masterScope.getContext().getBean("authenticationManager");
-		try 
-		{
-			t=(UsernamePasswordAuthenticationToken)mgr.authenticate(t);
-		}
-		catch(BadCredentialsException ex)
-		{
+		ProviderManager mgr = (ProviderManager) masterScope.getContext()
+				.getBean("authenticationManager");
+		try {
+			t = (UsernamePasswordAuthenticationToken) mgr.authenticate(t);
+		} catch (BadCredentialsException ex) {
 			throw new ClientRejectedException();
 		}
-		if (t.isAuthenticated())
-		{
+		if (t.isAuthenticated()) {
 			client = new AuthClient(nextId(), this);
-			
+
 			addClient(client);
 			client.setAttribute("authInformation", t);
-			log.debug("Authenticated client - username: {}, id: {}", new Object[]{username, client.getId()});
+			log.debug("Authenticated client - username: {}, id: {}",
+					new Object[] { username, client.getId() });
 		}
-		
+
 		return client;
 	}
 }

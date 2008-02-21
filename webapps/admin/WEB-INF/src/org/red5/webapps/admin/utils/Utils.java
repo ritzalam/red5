@@ -18,38 +18,37 @@ package org.red5.webapps.admin.utils;
  * with this library; if not, write to the Free Software Foundation, Inc., 
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
- 
+
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
 /**
- *
+ * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Martijn van Beek (martijn.vanbeek@gmail.com)
  * @author Daniel Rossi
  */
-public class Utils 
-{
-	
-    public static String formatDate ( long d ) {
-    	Calendar calendar = Calendar.getInstance();
-		calendar.setTimeInMillis( d );
-		SimpleDateFormat date = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss Z");
+public class Utils {
+
+	public static String formatDate(long d) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTimeInMillis(d);
+		SimpleDateFormat date = new SimpleDateFormat(
+				"EEE, d MMM yyyy HH:mm:ss Z");
 		return date.format(calendar.getTime());
-    }
-    
-    public static String formatBytes ( long d ) {
-    	String out = d+"";
-    	out = d+"";
-    	
-    	if (d < 1024)
-    	{
-    		out = d + " Bytes";
-    	} else if (d > 1024) {
-    		out = (d / 1024) + " KB";
-    	} else if (d > 104858) {
-    		out = (d / 1000000) + " MB";
-    	}
+	}
+
+	public static String formatBytes(long d) {
+		String out = d + "";
+		out = d + "";
+
+		if (d < 1024) {
+			out = d + " Bytes";
+		} else if (d > 1024) {
+			out = (d / 1024) + " KB";
+		} else if (d > 104858) {
+			out = (d / 1000000) + " MB";
+		}
 		return out;
-    }
+	}
 }

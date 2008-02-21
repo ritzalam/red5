@@ -17,12 +17,12 @@
         <dependency name="naming-factory" rev="" />
         <dependency name="naming-resources" rev="" />
         <!-- Spring --> 
-        <dependency org="spring" name="spring-dao" rev="2.0.7" />
-        <dependency org="spring" name="spring-aop" rev="2.0.7" />
-        <dependency org="spring" name="spring-beans" rev="2.0.7" />
-        <dependency org="spring" name="spring-context" rev="2.0.7" />
-        <dependency org="spring" name="spring-core" rev="2.0.7" />
-        <dependency org="spring" name="spring-web" rev="2.0.7" />
+        <dependency org="spring" name="spring-dao" rev="2.0.8" />
+        <dependency org="spring" name="spring-aop" rev="2.0.8" />
+        <dependency org="spring" name="spring-beans" rev="2.0.8" />
+        <dependency org="spring" name="spring-context" rev="2.0.8" />
+        <dependency org="spring" name="spring-core" rev="2.0.8" />
+        <dependency org="spring" name="spring-web" rev="2.0.8" />
         <dependency org="spring" name="aopalliance" rev="" />
         <!-- Tomcat --> 
         <dependency org="tomcat" name="catalina" rev="6.0.14" />
@@ -74,11 +74,14 @@
         <dependency name="groovy" rev="1.0" />  
         <dependency name="jruby" rev="1.0.3" />  
         <dependency name="jython" rev="2.2" />  
-        <dependency org="spring" name="spring-support" rev="2.0.7" />
+        <dependency org="spring" name="spring-support" rev="2.0.8" />
+        <!-- Admin required jars -->
+        <dependency org="spring" name="spring-webmvc" rev="2.0.8" />
+        <dependency org="commons" name="standard" rev="1.1.2" />
         <!-- Testing support -->
         <dependency name="junit" rev="4.0" conf="test->default"/>
         <dependency name="groboutils" rev="" conf="test->default"/>
-        <dependency org="spring" name="spring-mock" rev="2.0.7" conf="test->default"/>        
+        <dependency org="spring" name="spring-mock" rev="2.0.8" conf="test->default"/>        
         <dependency name="jython-engine" rev="" conf="test->default"/> 
         <dependency name="groovy-engine" rev="" conf="test->default"/>
         <dependency name="jruby-engine" rev="" conf="test->default"/> 

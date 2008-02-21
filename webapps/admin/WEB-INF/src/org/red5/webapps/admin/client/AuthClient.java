@@ -18,24 +18,22 @@ package org.red5.webapps.admin.client;
  * with this library; if not, write to the Free Software Foundation, Inc., 
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
- 
+
 import org.red5.server.Client;
 import org.red5.server.ClientRegistry;
 
 /**
- *
+ * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Martijn van Beek (martijn.vanbeek@gmail.com)
  */
 public class AuthClient extends Client {
-	
-	public AuthClient()
-	{
+
+	public AuthClient() {
 		super();
 	}
-	
-	public AuthClient(String id, ClientRegistry registry)
-	{
+
+	public AuthClient(String id, ClientRegistry registry) {
 		super(id, registry);
 	}
 
