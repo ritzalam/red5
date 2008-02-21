@@ -223,10 +223,6 @@
 		     to get smaller delay for downstream server commands.
 		  -->
 		<property name="underrunTrigger" value="10"/>
-		<!-- Minimal VOD client buffer duration the server will maintain for streaming
-		     Enlarge this to get more server capacity for VOD streaming.
-		  -->
-		<property name="minimalClientBufferDuration" value="1000"/>
 	</bean>
 	<bean id="clientBroadcastStream" scope="prototype" lazy-init="true" class="org.red5.server.stream.ClientBroadcastStream"/>
 </beans>
