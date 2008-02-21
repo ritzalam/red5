@@ -9,37 +9,39 @@
     
     <bean class="org.springframework.web.servlet.mvc.support.ControllerClassNameHandlerMapping"/>
     
-    <bean id="baseController" abstract="true" />
-    
-    <bean id="panelController" class="org.red5.webapps.admin.controllers.PanelController" parent="baseController">
+    <bean id="panelController" class="org.red5.webapps.admin.controllers.PanelController">
         <property name="daoAuthenticationProvider" ref="daoAuthenticationProvider"/>
     </bean>
     
-    <bean id="registerController" class="org.red5.webapps.admin.controllers.RegisterUserController" parent="baseController">
+    <bean id="userDetailsValidator" class="org.red5.webapps.admin.controllers.service.UserDetailsValidator"/>
+    <bean id="userRegisterForm" class="org.red5.webapps.admin.controllers.RegisterUserController">
         <property name="daoAuthenticationProvider" ref="daoAuthenticationProvider"/>
         <property name="sessionForm" value="true"/>
-        <property name="commandName" value="commandBean"/>
+        <property name="commandName" value="userDetails"/>
         <property name="commandClass" value="org.red5.webapps.admin.controllers.service.UserDetails"/>
-        <property name="validator">
-            <bean class="org.red5.webapps.admin.controllers.service.UserDetailsValidator"/>
-        </property>
+        <property name="validator"><ref bean="userDetailsValidator"/></property>
         <property name="formView" value="register"/>
-        <property name="successView" value="index.jsp"/>
+        <property name="successView" value="panel.jsp"/>
+		<property name="userPropertiesLocation" value="/WEB-INF/users.properties"/>     
     </bean>
-    
+    <!--
     <bean id="viewNameTranslator" class="org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator"/>
-    
+    -->
     <bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
         <property name="viewClass" value="org.springframework.web.servlet.view.JstlView"></property>
         <property name="prefix" value="/" />
         <property name="suffix" value=".jsp" />        
     </bean>
     
+    <bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
+        <property name="basename" value="message" />
+    </bean>    
+    
     <bean id="urlMapping" class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
         <property name="mappings">
             <props>
-                <prop key="/panel.jsp">panelController</prop>
-                <prop key="/register.jsp">registerController</prop>
+                <prop key="/index.html">panelController</prop>            
+                <prop key="/register.html">userRegisterForm</prop>
             </props>
         </property>
     </bean>    
