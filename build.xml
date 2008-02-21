@@ -605,7 +605,7 @@
 		<chmod file="${dist.dir}/red5-shutdown.sh" perm="755"/>
 	</target>
 
-	<target name="dist-installer" description="Make Installer distribution" depends="dist, javadoc">
+	<target name="dist-installer" description="Make Installer distribution" depends="ivyclear, dist, javadoc">
 		<copy todir="${dist.dir}/doc">
 			<fileset dir="doc"/>
 		</copy>
