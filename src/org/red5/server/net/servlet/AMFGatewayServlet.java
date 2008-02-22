@@ -21,6 +21,7 @@ package org.red5.server.net.servlet;
 
 import java.io.IOException;
 
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
@@ -68,8 +69,7 @@ public class AMFGatewayServlet extends HttpServlet {
 	/**
 	 * Web app context
 	 */
-	//protected WebApplicationContext webAppCtx;
-	protected BeanFactory webAppCtx;
+	protected WebApplicationContext webAppCtx;
 
 	/**
 	 * Red5 server instance
@@ -89,20 +89,6 @@ public class AMFGatewayServlet extends HttpServlet {
 	/** {@inheritDoc} */
 	@Override
 	public void init() throws ServletException {
-		webAppCtx = WebApplicationContextUtils
-				.getWebApplicationContext(getServletContext());
-		if (webAppCtx == null) {
-			webAppCtx = (WebApplicationContext) getServletContext()
-					.getAttribute(
-							WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
-		}
-		if (webAppCtx != null) {
-			server = (IServer) webAppCtx.getBean("red5.server");
-			codecFactory = (RemotingCodecFactory) webAppCtx
-					.getBean("remotingCodecFactory");
-		} else {
-			log.debug("No web context");
-		}
 	}
 
 	/** {@inheritDoc} */
@@ -110,10 +96,26 @@ public class AMFGatewayServlet extends HttpServlet {
 	public void service(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 		log.debug("Servicing Request");
-		if (log.isDebugEnabled()) {
-			log.debug("Remoting request" + req.getContextPath() + ' '
-					+ req.getServletPath());
-		}
+		if (codecFactory == null) {
+    		ServletContext ctx = getServletContext();
+    		log.debug("Context path: {}", ctx.getContextPath());
+    		//attempt to lookup the webapp context		
+    		//webAppCtx = WebApplicationContextUtils.getWebApplicationContext(ctx);
+    		webAppCtx = WebApplicationContextUtils.getRequiredWebApplicationContext(ctx);
+    		//now try to look it up as an attribute
+    		if (webAppCtx == null) {
+    			log.debug("Webapp context was null, trying lookup as attr.");
+    			webAppCtx = (WebApplicationContext) ctx.getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
+    		}
+    		//lookup the server and codec factory
+    		if (webAppCtx != null) {
+    			server = (IServer) webAppCtx.getBean("red5.server");
+    			codecFactory = (RemotingCodecFactory) webAppCtx.getBean("remotingCodecFactory");
+    		} else {
+    			log.debug("No web context");
+    		}		
+		}		
+		log.debug("Remoting request {} {}", req.getContextPath(), req.getServletPath());
 		if (req.getContentType() != null
 				&& req.getContentType().equals(APPLICATION_AMF)) {
 			serviceAMF(req, resp);
@@ -220,7 +222,7 @@ public class AMFGatewayServlet extends HttpServlet {
 		if (path.length() > 0 && path.charAt(0) == '/') {
 			path = path.substring(1);
 		}
-		log.debug("Path: " + path + " Scope path: " + packet.getScopePath());
+		log.debug("Path: {} Scope path: {}", path, packet.getScopePath());
 		packet.setScopePath(path);
 		reqBuffer.release();
 		reqBuffer = null;

@@ -109,7 +109,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 						BeanUtils.setProperty(prop.obj, prop.name, result);
 					}
 				} catch (Exception e) {
-					log.error("Error mapping property: " + prop.name + " (" + result + ")");
+					log.error("Error mapping property: {} ({})", prop.name, result);
 				}
 			}
 			properties.clear();
@@ -217,7 +217,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 				break;
 				
 			default:
-				log.info("Unknown datatype: " + currentDataType);
+				log.info("Unknown datatype: {}", currentDataType);
 				// End of object, and anything else lets just skip
 				coreType = DataTypes.CORE_SKIP;
 				break;
@@ -474,10 +474,10 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 				result = properties;
 			} else if ("RecordSet".equals(className)) {
 				// TODO: how are RecordSet objects encoded?
-				throw new RuntimeException("Objects of type " + className + " not supported yet.");
+				throw new RuntimeException("Objects of type RecordSet not supported yet.");
 			} else if ("RecordSetPage".equals(className)) {
 				// TODO: how are RecordSetPage objects encoded?
-				throw new RuntimeException("Objects of type " + className + " not supported yet.");
+				throw new RuntimeException("Objects of type RecordSetPage not supported yet.");
 			} else {
 				// Apply properties to object
 				result = newInstance(className);
@@ -511,7 +511,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 								BeanUtils.setProperty(result, key, value);
 							}
 						} catch (Exception e) {
-							log.error("Error mapping property: " + key + " (" + value + ")");
+							log.error("Error mapping property: {} ({})", key, value);
 						}
 					}
 				} // else fall through
@@ -598,6 +598,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 
 	/** {@inheritDoc} */
 	protected Object newInstance(String className) {
+		log.debug("newInstance {}", className);
 		if (className.startsWith("flex.")) {
 			// Use Red5 compatibility class instead
 			className = "org.red5.compatibility." + className;

@@ -222,9 +222,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 				len = buf.getUnsignedShort();
 				break;
 			default:
-				if (log.isDebugEnabled()) {
-					log.debug("Unknown AMF type: "+currentDataType);
-				}
+				log.debug("Unknown AMF type: {}", currentDataType);
 		}
 		int limit = buf.limit();
 		final java.nio.ByteBuffer strBuf = buf.buf();
@@ -307,13 +305,9 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	protected void readKeyValues(Map<String, Object> result, Deserializer deserializer) {
 		while (hasMoreProperties()) {
 			String name = readPropertyName();
-			if (log.isDebugEnabled()) {
-				log.debug("property: " + name);
-			}
+			log.debug("property: {}", name);
 			Object property = deserializer.deserialize(this, Object.class);
-			if (log.isDebugEnabled()) {
-				log.debug("val: " + property);
-			}
+			log.debug("val: {}", property);
 			result.put(name, property);
 			if (hasMoreProperties()) {
 				skipPropertySeparator();
@@ -325,30 +319,21 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	public Object readMap(Deserializer deserializer) {
 		// The maximum number used in this mixed array.
 		int maxNumber = buf.getInt();
-		if (log.isDebugEnabled()) {
-			log.debug("Read start mixed array: " + maxNumber);
-		}
-
+		log.debug("Read start mixed array: {}", maxNumber);
 		Object result;
 		final Map<Object, Object> mixedResult = new LinkedHashMap<Object, Object>(maxNumber);
 		while (hasMoreProperties()) {
 			String key = getString(buf);
-			if (log.isDebugEnabled()) {
-				log.debug("key: " + key);
-			}
+			log.debug("key: {}", key);
 			Object item = deserializer.deserialize(this, Object.class);
-			if (log.isDebugEnabled()) {
-				log.debug("item: " + item);
-			}
+			log.debug("item: {}", item);
 			mixedResult.put(key, item);
 		}
 
 		Object length = mixedResult.get("length");
 		if (mixedResult.size() <= maxNumber+1 && length instanceof Integer && maxNumber == (Integer) length) {
 			// MixedArray actually is a regular array
-			if (log.isDebugEnabled()) {
-				log.debug("mixed array is a regular array");
-			}
+			log.debug("mixed array is a regular array");
 			final List<Object> listResult = new ArrayList<Object>(maxNumber);
 			for (int i=0; i<maxNumber; i++) {
 				listResult.add(i, mixedResult.get(String.valueOf(i)));
@@ -378,13 +363,14 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	 * @return Object          New object instance (for given class)
 	 */
 	protected Object newInstance(String className) {
+		log.info("Loading class: {}", className);
 		Object instance = null;
 		try {
 			Class<?> clazz = Thread.currentThread().getContextClassLoader()
 					.loadClass(className);
 			instance = clazz.newInstance();
 		} catch (Exception ex) {
-			log.error("Error loading class: " + className, ex);
+			log.error("Error loading class: {}", className, ex);
 		}
 		return instance;
 	}
@@ -398,21 +384,15 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
      */
 	@SuppressWarnings("unchecked")
 	protected Object readBean(Deserializer deserializer, Object bean) {
-		if (log.isDebugEnabled()) {
-			log.debug("read bean");
-		}
+		log.debug("read bean");
 		storeReference(bean);
 		Class theClass = bean.getClass();
 		while (hasMoreProperties()) {
 			String name = readPropertyName();
             Class t = getPropertyType(bean, name);
-			if (log.isDebugEnabled()) {
-				log.debug("property: " + name);
-			}
+			log.debug("property: {}", name);
 			Object property = deserializer.deserialize(this, t);
-			if (log.isDebugEnabled()) {
-				log.debug("val: " + property);
-			}
+			log.debug("val: {}", property);
 			//log.debug("val: "+property.getClass().getName());
 			try {
 				if (property != null) {
@@ -426,12 +406,10 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 						BeanUtils.setProperty(bean, name, property);
 					}
 				} else {
-					if (log.isDebugEnabled()) {
-						log.debug("Skipping null property: " + name);
-					}
+					log.debug("Skipping null property: {}", name);
 				}
 			} catch (Exception ex) {
-				log.error("Error mapping property: " + name + " (" + property + ')');
+				log.error("Error mapping property: {} ({})", name, property);
 			}
 			if (hasMoreProperties()) {
 				skipPropertySeparator();
@@ -448,9 +426,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
      * @return                 Read map
      */
 	protected Map<String, Object> readSimpleObject(Deserializer deserializer) {
-		if (log.isDebugEnabled()) {
-			log.debug("read map");
-		}
+		log.debug("read map");
 		Map<String, Object> result = new ObjectMap<String, Object>();
 		readKeyValues(result, deserializer);
 		storeReference(result);
@@ -470,11 +446,10 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		} else {
 			className = null;
 		}
+		log.debug("readObject: {}", className);
 		Object result = null;
 		if (className != null) {
-			if (log.isDebugEnabled()) {
-				log.debug("read class object");
-			}
+			log.debug("read class object");
 			Object instance;
 			if (className.equals("RecordSet")) {
 				result = new RecordSet(this);
@@ -506,9 +481,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		byte type = buf.get();
 
 		boolean isEndOfObject = (pad0 == pad && pad1 == pad && type == AMF.TYPE_END_OF_OBJECT);
-		if (log.isDebugEnabled()) {
-			log.debug("End of object: ? " + isEndOfObject);
-		}
+		log.debug("End of object: ? {}", isEndOfObject);
 		buf.position(buf.position() - 3);
 		return !isEndOfObject;
 	}
