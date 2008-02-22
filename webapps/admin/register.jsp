@@ -11,7 +11,7 @@
 </head>
 <body>
 <h1>Register Admin User</h1>
-<form:form method="post" commandName="userDetails">
+<form:form method="post" action="register.html" commandName="userDetails">
   <table width="95%" bgcolor="f8f8ff" border="0" cellspacing="0" cellpadding="5">
     <tr>
       <td align="right" width="20%">Username:</td>
