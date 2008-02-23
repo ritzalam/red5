@@ -61,8 +61,8 @@
 	</bean> 
 	
 	<!-- Uncomment this if you run Origin on a different server from Edge
-	     and still want to use RTMP
-	<bean id="rtmpConnManger"
+	     and still want to use RTMP 
+	<bean id="rtmpConnManager"
 		class="org.red5.server.net.rtmp.RTMPConnManager">
 	</bean>
 	
@@ -70,7 +70,7 @@
 		class="org.red5.server.net.rtmp.RTMPMinaIoHandler">
 		<property name="handler" ref="rtmpHandler" />
 		<property name="codecFactory" ref="rtmpCodecFactory" />
-		<property name="rtmpConnManager" ref="rtmpConnManger" />
+		<property name="rtmpConnManager" ref="rtmpConnManager" />
 	</bean>
 	
 	<bean id="rtmpTransport" class="org.red5.server.net.rtmp.RTMPMinaTransport" init-method="start" destroy-method="stop">
