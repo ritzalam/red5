@@ -40,8 +40,8 @@ public class RegisterUserController extends SimpleFormController {
 		String password = userDetails.getPassword();
 		log.debug("User details: username={} password={}", username, password);
 
-		PasswordGenerator passwordGenerator = new PasswordGenerator(salt,
-				password);
+		PasswordGenerator passwordGenerator = new PasswordGenerator(password,
+				salt);
 
 		String hashedPassword = passwordGenerator.getPassword();
 		log.debug("Password: {}", hashedPassword);
