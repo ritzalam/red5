@@ -20,6 +20,7 @@ package org.red5.server.net.rtmp;
  */
 
 import java.net.InetSocketAddress;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -99,6 +100,7 @@ public class RTMPClient extends BaseRTMPHandler {
 		ioHandler.setCodecFactory(codecFactory);
 		ioHandler.setMode(RTMP.MODE_CLIENT);
 		ioHandler.setHandler(this);
+		ioHandler.setRtmpConnManager(new RTMPClientConnManager());
 	}
 
     /**
@@ -309,4 +311,30 @@ public class RTMPClient extends BaseRTMPHandler {
 		so.dispatchEvent(object);
 	}
 
+    private class RTMPClientConnManager implements IRTMPConnManager {
+
+		public RTMPConnection createConnection(Class connCls) {
+			if (connCls != RTMPMinaConnection.class) {
+				throw new IllegalArgumentException("Only support RTMPMinaConnection!");
+			}
+			RTMPMinaConnection conn = new RTMPMinaConnection();
+			// TODO set conn properties
+			return conn;
+		}
+
+		public RTMPConnection getConnection(int clientId) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		public RTMPConnection removeConnection(int clientId) {
+			// TODO Auto-generated method stub
+			return null;
+		}
+
+		public Collection<RTMPConnection> removeConnections() {
+			// TODO Auto-generated method stub
+			return null;
+		}
+    }
 }
