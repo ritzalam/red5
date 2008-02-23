@@ -60,6 +60,41 @@
 		<property name="tcpNoDelay" value="${mrtmp.tcp_nodelay}" />
 	</bean> 
 	
+	<!-- Uncomment this if you run Origin on a different server from Edge
+	     and still want to use RTMP
+	<bean id="rtmpConnManger"
+		class="org.red5.server.net.rtmp.RTMPConnManager">
+	</bean>
+	
+	<bean id="rtmpMinaIoHandler"
+		class="org.red5.server.net.rtmp.RTMPMinaIoHandler">
+		<property name="handler" ref="rtmpHandler" />
+		<property name="codecFactory" ref="rtmpCodecFactory" />
+		<property name="rtmpConnManager" ref="rtmpConnManger" />
+	</bean>
+	
+	<bean id="rtmpTransport" class="org.red5.server.net.rtmp.RTMPMinaTransport" init-method="start" destroy-method="stop">
+		<property name="ioHandler" ref="rtmpMinaIoHandler" />
+		<property name="address" value="${rtmp.host}" />
+		<property name="port" value="${rtmp.port}" />
+		<property name="receiveBufferSize" value="${rtmp.receive_buffer_size}" />
+		<property name="sendBufferSize" value="${rtmp.send_buffer_size}" />
+		<property name="eventThreadsCore" value="${rtmp.event_threads_core}" />
+		<property name="eventThreadsMax" value="${rtmp.event_threads_max}" />
+		<property name="eventThreadsQueue" value="${rtmp.event_threads_queue}" />
+		<property name="eventThreadsKeepalive" value="${rtmp.event_threads_keepalive}" />
+		<property name="jmxPollInterval" value="1000" />
+		<property name="tcpNoDelay" value="${rtmp.tcp_nodelay}" />
+	</bean>
+	
+	<bean id="rtmpMinaConnection" scope="prototype"
+		class="org.red5.server.net.rtmp.RTMPMinaConnection">
+		<property name="pingInterval" value="${rtmp.ping_interval}" />
+		<property name="maxInactivity" value="${rtmp.max_inactivity}" />
+		<property name="maxHandshakeTimeout" value="5000" />
+	</bean>
+	-->
+	
 	<!--
 	 + The following configuration is for RTMPT.
 	 -->
