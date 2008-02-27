@@ -84,7 +84,7 @@
 	<bean id="mrtmpClient"
 		class="org.red5.server.net.mrtmp.MRTMPClient" init-method="start" >
 		<property name="ioHandler" ref="mrtmpHandler" />
-		<property name="server" value="localhost" />
+		<property name="server" value="${mrtmp.host}" />
 		<property name="port" value="${mrtmp.port}" />
 	</bean>
 	
