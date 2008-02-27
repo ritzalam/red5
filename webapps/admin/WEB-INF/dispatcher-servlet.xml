@@ -21,7 +21,7 @@
         <property name="commandClass" value="org.red5.webapps.admin.controllers.service.UserDetails"/>
         <property name="validator"><ref bean="userDetailsValidator"/></property>
         <property name="formView" value="register"/>
-        <property name="successView" value="panel.jsp"/>
+        <property name="successView" value="index.html"/>
 		<property name="userPropertiesLocation" value="/WEB-INF/users.properties"/>     
     </bean>
     <!--
@@ -29,7 +29,7 @@
     -->
     <bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
         <property name="viewClass" value="org.springframework.web.servlet.view.JstlView"></property>
-        <property name="prefix" value="/" />
+        <property name="prefix" value="/WEB-INF/jsp/" />
         <property name="suffix" value=".jsp" />        
     </bean>
     

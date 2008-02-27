@@ -34,7 +34,8 @@ public class PanelController implements Controller {
 		
 		InMemoryDaoImpl detailsService = (InMemoryDaoImpl) daoAuthenticationProvider
 				.getUserDetailsService();
-
+	
+		System.out.println(detailsService.getUserMap().getUserCount());
 		if (detailsService.getUserMap().getUserCount() > 0) {
 			log.debug("Creating adminPanel");
 			return new ModelAndView("panel");

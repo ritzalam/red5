@@ -12,6 +12,8 @@ import org.acegisecurity.GrantedAuthorityImpl;
 import org.acegisecurity.providers.dao.DaoAuthenticationProvider;
 import org.acegisecurity.providers.dao.salt.SystemWideSaltSource;
 import org.acegisecurity.userdetails.UsernameNotFoundException;
+import org.acegisecurity.userdetails.User;
+import org.acegisecurity.userdetails.memory.InMemoryDaoImpl;
 import org.red5.webapps.admin.controllers.service.UserDetails;
 import org.red5.webapps.admin.utils.PasswordGenerator;
 import org.slf4j.Logger;
@@ -58,11 +60,17 @@ public class RegisterUserController extends SimpleFormController {
         		fos.flush();
         		fos.close();
         	}
-        	//setup ageci user stuff and add them to the current "cache"
+        	//setup ageci user stuff and add them to the current "cache" and current usermap
         	GrantedAuthority[] auths = new GrantedAuthority[1];
         	auths[0] = new GrantedAuthorityImpl("ROLE_SUPERVISOR");
-        	org.acegisecurity.userdetails.User usr = new org.acegisecurity.userdetails.User(username, hashedPassword, true, auths);
+        	User usr = new User(username, hashedPassword, true, true, true, true, auths);
         	daoAuthenticationProvider.getUserCache().putUserInCache(usr);
+        	
+        	InMemoryDaoImpl detailsService = (InMemoryDaoImpl) daoAuthenticationProvider
+			.getUserDetailsService();
+        	
+        	detailsService.getUserMap().addUser(usr);
+        	
         	try {
 				daoAuthenticationProvider.getUserDetailsService().loadUserByUsername(username);
 			} catch (UsernameNotFoundException e) {
