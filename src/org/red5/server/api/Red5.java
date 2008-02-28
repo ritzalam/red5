@@ -5,7 +5,7 @@ import java.lang.ref.WeakReference;
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  * 
- * Copyright (c) 2006-2007 by respective authors (see below). All rights reserved.
+ * Copyright (c) 2006-2008 by respective authors (see below). All rights reserved.
  * 
  * This library is free software; you can redistribute it and/or modify it under the 
  * terms of the GNU Lesser General Public License as published by the Free Software 
@@ -58,7 +58,7 @@ public final class Red5 implements Red5MBean {
     /**
      * Current server version with revision
      */
-    public static final String VERSION = "Red5 Server 0.7.0 $Revision$"; 
+    public static final String VERSION = "Red5 Server 0.7.1 $Revision$"; 
 
 	/**
 	 * Create a new Red5 object using given connection.
