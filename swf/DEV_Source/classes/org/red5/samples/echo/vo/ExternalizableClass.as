@@ -1,4 +1,4 @@
-﻿package org.red5.samples.echo.data
+﻿package org.red5.samples.echo.vo
 {
 	/**
 	 * RED5 Open Source Flash Server - http://www.osflash.org/red5

@@ -5,6 +5,15 @@ Application {
 	theme-color				: haloBlue;
 }
 
+.mainPanel {
+	rounded-bottom-corners	: true;
+	corner-radius			: 5;
+	padding-bottom			: 10;
+	padding-top				: 10;
+	padding-left			: 10;
+	padding-right			: 10;
+}
+
 .mainGrid {
 	TestActive				: Embed(source="../images/test_active.png");
 	TestComplete			: Embed(source="../images/test_complete.png");		

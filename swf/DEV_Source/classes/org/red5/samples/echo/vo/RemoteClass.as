@@ -1,4 +1,4 @@
-﻿package org.red5.samples.echo.data
+﻿package org.red5.samples.echo.vo
 {
 	/**
 	 * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -21,7 +21,7 @@
 	
 	[RemoteClass(alias="org.red5.server.webapp.echo.RemoteClass")]
 	/**
-	 * @author Joachim Bauch ( jojo@struktur.de )
+	 * @author Joachim Bauch (jojo@struktur.de)
 	*/	
 	public class RemoteClass 
 	{

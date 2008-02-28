@@ -17,17 +17,38 @@ You should have received a copy of the GNU Lesser General Public License along
 with this library; if not, write to the Free Software Foundation, Inc.,
 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 -->
-
-<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml"
-			    xmlns:control="org.red5.samples.echo.controller.*"
-			    xmlns:view="org.red5.samples.echo.view.*"
-	            pageTitle="Echo client for the AMF and RTMP protocols" 
-		        width="100%" height="100%" layout="vertical">
-
-	<mx:Style source="css/main.css"/>
+<mx:FormItem xmlns:mx="http://www.adobe.com/2006/mxml"
+		     xmlns:view="org.red5.samples.echo.view.*"
+		     creationComplete="initComp()">
 	
-	<control:EchoController/>
+	<mx:Metadata>
+	[Event(name="hostUpdate", type="flash.events.Event")]
+	[Event(name="onInit", type="flash.events.Event")]
+	</mx:Metadata>
 	
-	<view:MainView height="100%" styleName="mainPanel"/>
+	<mx:Script>
+		<![CDATA[
+		
+			[Bindable]
+			public var defaultHost	: String;
+			
+			[Bindable]
+			public var hostName		: String;
+			
+			[Bindable]
+			public var methodName	: String;
+			
+			public function initComp():void
+			{
+				hostName = defaultHost;
+			}
+		]]>
+	</mx:Script>
+	
+	<mx:HBox width="100%">
+		<mx:TextInput id="host_txt" width="100%" text="{hostName}" change="{this.dispatchEvent(new Event('hostUpdate'))}"/>
+		<mx:Label text="Method" width="65"/>
+		<mx:TextInput id="method_txt" width="100%" text="{methodName}"/>
+	</mx:HBox>
 
-</mx:Application>
+</mx:FormItem>
