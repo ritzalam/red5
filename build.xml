@@ -306,14 +306,15 @@
 				<logback webapp="admin"/>
 				<!-- copy assets -->
 				<copy todir="${webapps.build.dir}/admin/assets">
+					<fileset file="doc/logo.png"/>
 					<fileset dir="swf/DEV_Deploy/assets"/>
 					<fileset file="swf/DEV_Deploy/adminPanel.swf"/>
 				</copy>
 				<!-- copy libs -->
 				<copy todir="${webapps.build.dir}/admin/WEB-INF/lib">
 					<fileset dir="${lib.dir}">
-                        <include name="standard-*.jar"/>
-                        <include name="spring-web-*.jar"/>
+                        			<include name="standard-*.jar"/>
+                        			<include name="spring-web-*.jar"/>
 						<include name="spring-webmvc-*.jar"/>
 					</fileset>
 				</copy>

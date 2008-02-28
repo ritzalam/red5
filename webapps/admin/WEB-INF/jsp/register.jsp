@@ -40,7 +40,7 @@ background-color: rgb(250, 250, 250);
   <tbody>
     <tr>
 
-      <td height="54"><img style="width: 136px; height: 54px;" alt="" src="assets/FinalLogo.png"></td>
+      <td height="54"><img style="width: 136px; height: 54px;" alt="" src="assets/logo.png"></td>
 
     </tr>
     <tr class="formbg">
