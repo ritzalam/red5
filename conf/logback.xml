@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 	<consolePlugin/>
-	<!-- Appenders http://logback.qos.ch/manual/appenders.html -->
 	<appender name="CONSOLE"
 		class="ch.qos.logback.core.ConsoleAppender">
 		<filter class="ch.qos.logback.classic.filter.LevelFilter">
@@ -10,9 +9,7 @@
       		<onMismatch>DENY</onMismatch>
     	</filter>		
 		<layout class="ch.qos.logback.classic.PatternLayout">
-			<Pattern>		
-			%date [%thread] %-5level %logger - %msg%n
-			</Pattern>
+			<Pattern>[%p] [%thread] %logger - %msg%n</Pattern>
 		</layout>
 	</appender>
 	<appender name="FILE" class="ch.qos.logback.core.FileAppender">
@@ -22,9 +19,7 @@
 		<BufferedIO>false</BufferedIO>
 		<ImmediateFlush>true</ImmediateFlush>
 		<layout class="ch.qos.logback.classic.PatternLayout">
-			<Pattern>
-				%date [%thread] %-5level %logger{35} - %msg%n
-			</Pattern>
+			<Pattern>%d{ISO8601} [%thread] %-5level %logger{35} - %msg%n</Pattern>
 		</layout>
 	</appender>
 	<appender name="ERRORFILE" class="ch.qos.logback.core.FileAppender">
@@ -37,9 +32,7 @@
       		<level>WARN</level>
     	</filter>
 		<layout class="ch.qos.logback.classic.PatternLayout">
-			<Pattern>
-				%date [%thread] %-5level %logger{35} - %msg%n
-			</Pattern>
+			<Pattern>%d{ISO8601} [%thread] %-5level %logger{35} - %msg%n</Pattern>
 		</layout>
 	</appender>
 	<root>
