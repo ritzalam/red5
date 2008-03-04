@@ -30,9 +30,9 @@
         <dependency org="tomcat" name="annotations-api" rev="" />
         <dependency org="commons" name="commons-modeler" rev="2.0.1" />
         <!-- Jetty --> 
-        <dependency org="jetty" name="jetty" rev="6.1.7" />
-        <dependency org="jetty" name="jetty-util" rev="6.1.7" />
-        <dependency org="jetty" name="jetty-xbean" rev="6.1.7" />
+        <dependency org="jetty" name="jetty" rev="6.1.8" />
+        <dependency org="jetty" name="jetty-util" rev="6.1.8" />
+        <dependency org="jetty" name="jetty-xbean" rev="6.1.8" />
         <!-- Logging --> 
         <dependency name="slf4j-api" rev="1.4.3" />
         <dependency name="jcl104-over-slf4j" rev="1.4.3" />
