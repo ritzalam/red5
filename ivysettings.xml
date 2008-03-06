@@ -1,5 +1,5 @@
 <ivysettings>
-    <settings defaultResolver="local" checkUpToDate="false"/>
+    <settings defaultResolver="local"/>
     <resolvers>
         <chain name="local" returnFirst="true">     
 			<filesystem name="lib_dir">
