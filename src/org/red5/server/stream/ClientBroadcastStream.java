@@ -155,7 +155,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	/**
 	 * Whether we are recording or not
 	 */
-	private boolean recording = false;
+	private volatile boolean recording = false;
 
 	/**
 	 * FileConsumer used to output recording to disk
@@ -789,6 +789,10 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			recordPipe.unsubscribe(recordingFile);
 			sendRecordStopNotify();
 		}
+	}
+	
+	public boolean isRecording() {
+		return recording;
 	}
 
 	/** {@inheritDoc} */
