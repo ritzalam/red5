@@ -3,11 +3,6 @@
 	<consolePlugin/>
 	<appender name="CONSOLE"
 		class="ch.qos.logback.core.ConsoleAppender">
-		<filter class="ch.qos.logback.classic.filter.LevelFilter">
-      		<level>INFO</level>
-      		<onMatch>ACCEPT</onMatch>
-      		<onMismatch>DENY</onMismatch>
-    	</filter>		
 		<layout class="ch.qos.logback.classic.PatternLayout">
 			<Pattern>[%p] [%thread] %logger - %msg%n</Pattern>
 		</layout>
@@ -43,7 +38,7 @@
 	</root>
 	<!-- Red5 -->
 	<logger name="org.red5.io">
-		<level value="DEBUG" />
+		<level value="INFO" />
 	</logger>
 	<logger name="org.red5.server">
 		<level value="WARN" />
@@ -153,6 +148,9 @@
 		<level value="WARN" />
 	</logger>
 	<!-- Apache commons -->
+	<logger name="org.apache.commons">
+		<level value="WARN" />
+	</logger>
 	<logger name="org.apache.commons.modeler">
 		<level value="WARN" />
 	</logger>
