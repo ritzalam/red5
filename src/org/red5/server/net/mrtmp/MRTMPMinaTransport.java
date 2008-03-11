@@ -203,7 +203,7 @@ public class MRTMPMinaTransport
 
 		SocketAcceptorConfig config = acceptor.getDefaultConfig();
 		config.setThreadModel(ThreadModel.MANUAL);
-		config.setReuseAddress(false);
+		config.setReuseAddress(true);
 		config.setBacklog(100);
 
 		log.info("TCP No Delay: " + tcpNoDelay);
@@ -224,16 +224,8 @@ public class MRTMPMinaTransport
 			acceptor.getFilterChain().addFirst("LoggingFilter", filter);
 		}
 		
-		SocketAddress socketAddress = null;
-		while (true) {
-			try {
-				socketAddress = (address == null) ? new InetSocketAddress(port) : new InetSocketAddress(address, port);
-				acceptor.bind(socketAddress, ioHandler);
-				break;
-			} catch (Exception e) {
-				port++;
-			}
-		}
+		SocketAddress socketAddress = (address == null) ? new InetSocketAddress(port) : new InetSocketAddress(address, port);
+		acceptor.bind(socketAddress, ioHandler);
 		
 		log.info("MRTMP Mina Transport bound to " + socketAddress.toString());
 	}
