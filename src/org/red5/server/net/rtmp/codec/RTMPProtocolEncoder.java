@@ -525,8 +525,9 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
 			if (log.isDebugEnabled()) {
 				log.debug("This is a pending call, send request");
 			}
-			// for request we need to use AMF3 if the connection is AMF3
-			if (rtmp.getEncoding() == Encoding.AMF3) {
+			// for request we need to use AMF3 for client mode
+			// if the connection is AMF3
+			if (rtmp.getEncoding() == Encoding.AMF3 && rtmp.getMode() == RTMP.MODE_CLIENT) {
 				output = new org.red5.io.amf3.Output(out);
 			}
 			final String action = (call.getServiceName() == null) ? call
