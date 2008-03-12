@@ -808,7 +808,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 		// we use the first byte to decide which encoding to use.
 		byte tmp = in.get();
 		in.position(start);
-		if (tmp == AMF.TYPE_AMF3_OBJECT) {
+		if (rtmp.getEncoding() == Encoding.AMF3 && tmp == AMF.TYPE_AMF3_OBJECT) {
 			input = new org.red5.io.amf3.Input(in);
 		} else {
 			input = new org.red5.io.amf.Input(in);
