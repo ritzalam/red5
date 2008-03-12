@@ -44,14 +44,14 @@ public class Deserializer {
 	public <T> T deserialize(Input in, Class<T> target) {
 
 		byte type = in.readDataType();
+		log.debug("Type: {}", type);
 
 		while (type == DataTypes.CORE_SKIP) {
 			type = in.readDataType();
+			log.debug("Type (skip): {}", type);
 		}
 
-		if (log.isDebugEnabled()) {
-			log.debug("Datatype: " + DataTypes.toStringValue(type));
-		}
+		log.debug("Datatype: " + DataTypes.toStringValue(type));
 
 		Object result;
 

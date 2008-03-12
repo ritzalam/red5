@@ -126,10 +126,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 				setChunkSize.getServiceParamMap().put("chunkSize",
 						chunkSize.getSize());
 				scope.sendOOBControlMessage((IConsumer) null, setChunkSize);
-				if (log.isDebugEnabled()) {
-					log.debug("Sending chunksize " + chunkSize + " to "
-							+ bs.getProvider());
-				}
+				log.debug("Sending chunksize {} to {}", chunkSize, bs.getProvider());
 			}
 		}
 	}
@@ -391,8 +388,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 								+ " (stream ID: " + source.getStreamId() + ")");
 					}
 				} catch (Throwable err) {
-					log.error("Error while invoking " + action
-							+ " on stream service.", err);
+					log.error("Error while invoking {} on stream service.", action, err);
 					status = getStatus(NS_FAILED).asStatus();
 					status.setDescription("Error while invoking " + action
 							+ " (stream ID: " + source.getStreamId() + ")");
@@ -418,10 +414,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 					&& (call.getStatus() == Call.STATUS_SUCCESS_VOID || call
 							.getStatus() == Call.STATUS_SUCCESS_NULL)) {
 				// This fixes a bug in the FP on Intel Macs.
-				if (log.isDebugEnabled()) {
-					log
-							.debug("Method does not have return value, do not reply");
-				}
+				log.debug("Method does not have return value, do not reply");
 				return;
 			}
 

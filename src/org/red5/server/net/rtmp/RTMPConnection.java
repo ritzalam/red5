@@ -303,6 +303,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 		this.sessionId = sessionId;
 		this.params = params;
 		if (params.get("objectEncoding") == Integer.valueOf(3)) {
+			log.info("Setting object encoding to AMF3");
 			encoding = Encoding.AMF3;
 		}
 	}
@@ -574,9 +575,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 						.entrySet()) {
 					IClientStream stream = entry.getValue();
 					if (stream != null) {
-						if (log.isDebugEnabled()) {
-							log.debug("Closing stream: {}", stream.getStreamId());
-						}
+						log.debug("Closing stream: {}", stream.getStreamId());
 						streamService.deleteStream(this, stream.getStreamId());
 						usedStreams--;
 					}

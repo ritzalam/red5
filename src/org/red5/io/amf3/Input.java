@@ -167,6 +167,8 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		}
 
 		currentDataType = buf.get();
+		log.debug("Current data type: {}", currentDataType);
+		
 		byte coreType;
 
 		if (currentDataType == AMF.TYPE_AMF3_OBJECT) {
@@ -222,7 +224,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 				coreType = DataTypes.CORE_SKIP;
 				break;
 		}
-
+		log.debug("Core type: {}", coreType);
 		return coreType;
 	}
 
@@ -272,16 +274,23 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	@Override
 	public String readString() {
 		int len = readAMF3Integer();
-		if (len == 1)
+		log.debug("readString - length: {}", len);
+		if (len == 1) {
 			// Empty string
 			return "";
-		
+		}
+		//if the refs are empty an IndexOutOfBoundsEx will be thrown
+		if (stringReferences.isEmpty()) {
+			log.warn("String reference list is empty");
+		}
 		if ((len & 1) == 0) {
 			// Reference
 			return stringReferences.get(len >> 1);
 		}
 		len >>= 1;
+		log.debug("readString - new length: {}", len);
 		int limit = buf.limit();
+		log.debug("readString - limit: {}", limit);
 		final java.nio.ByteBuffer strBuf = buf.buf();
 		strBuf.limit(strBuf.position() + len);
 		final String string = AMF3.CHARSET.decode(strBuf).toString();
