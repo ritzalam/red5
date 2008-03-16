@@ -27,6 +27,7 @@ import java.util.Map;
 import org.apache.mina.transport.socket.nio.SocketConnector;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Serializer;
+import org.red5.io.utils.ObjectMap;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IConnection.Encoding;
 import org.red5.server.api.event.IEvent;
@@ -38,12 +39,15 @@ import org.red5.server.api.service.IServiceCall;
 import org.red5.server.api.service.IServiceCapableConnection;
 import org.red5.server.api.service.IServiceInvoker;
 import org.red5.server.api.so.IClientSharedObject;
+import org.red5.server.messaging.IMessage;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.codec.RTMPCodecFactory;
 import org.red5.server.net.rtmp.event.ChunkSize;
+import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.event.Invoke;
 import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.event.Ping;
+import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.net.rtmp.message.Header;
 import org.red5.server.service.Call;
 import org.red5.server.service.MethodNotFoundException;
@@ -52,6 +56,8 @@ import org.red5.server.service.ServiceInvoker;
 import org.red5.server.so.ClientSharedObject;
 import org.red5.server.so.SharedObjectMessage;
 import org.red5.server.stream.AbstractClientStream;
+import org.red5.server.stream.OutputStream;
+import org.red5.server.stream.consumer.ConnectionConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -96,6 +102,9 @@ public class RTMPClient extends BaseRTMPHandler {
     private Map<String, ClientSharedObject> sharedObjects = new HashMap<String, ClientSharedObject>();
     
     private RTMPClientConnManager connManager;
+    
+    private Map<Integer, NetStreamPrivateData> streamDataMap =
+    	new HashMap<Integer, NetStreamPrivateData>();
 
 	/** Constructs a new RTMPClient. */
     public RTMPClient() {
@@ -189,6 +198,7 @@ public class RTMPClient extends BaseRTMPHandler {
 		if (conn == null) {
 		    log.info("Connection was null");
 		} else {
+			streamDataMap.clear();
 			conn.close();
 		}
     }
@@ -202,6 +212,7 @@ public class RTMPClient extends BaseRTMPHandler {
 		if (conn == null) {
 		    log.info("Connection was null for id: {}", clientId);
 		} else {
+			streamDataMap.clear();
 			conn.close();
 		}
     }	
@@ -279,11 +290,43 @@ public class RTMPClient extends BaseRTMPHandler {
 		invoke("createStream", null, wrapper);
 	}
 	
-	public void play(int streamId, String name, int start, int length) {
-		//get it from the conn manager
+	public void deleteStream(int streamId, IPendingServiceCallback callback) {
+		// TODO
+	}
+	
+	public void publish(int streamId, String name, String mode, INetStreamEventHandler handler) {
+		log.debug("publish stream {}, name: {}, mode {}",
+				new Object[] {streamId, name, mode});
 		RTMPConnection conn = (RTMPConnection) connManager.getConnection();
 		if (conn == null) {
-		    log.info("Connection was null 2");
+		    log.info("Connection was null ?");
+		}
+		Object[] params = new Object[2];
+		params[0] = name;
+		params[1] = mode;
+		PendingCall pendingCall = new PendingCall("publish", params);
+		conn.invoke(pendingCall, (streamId - 1) * 5 + 4);
+		if (handler != null) {
+			NetStreamPrivateData streamData = streamDataMap.get(streamId);
+			if (streamData != null) {
+				streamData.handler = handler;
+			}
+		}
+	}
+	
+	public void publishStreamData(int streamId, IMessage message) {
+		NetStreamPrivateData streamData = streamDataMap.get(streamId);
+		if (streamData != null && streamData.connConsumer != null) {
+			streamData.connConsumer.pushMessage(null, message);
+		}
+	}
+	
+	public void play(int streamId, String name, int start, int length) {
+		log.debug("play stream {}, name: {}, start {}, length {}",
+				new Object[] {streamId, name, start, length});
+		RTMPConnection conn = (RTMPConnection) connManager.getConnection();
+		if (conn == null) {
+		    log.info("Connection was null ?");
 		}
 		Object[] params = new Object[3];
 		params[0] = name;
@@ -313,7 +356,7 @@ public class RTMPClient extends BaseRTMPHandler {
 	/** {@inheritDoc} */
     @Override
 	protected void onInvoke(RTMPConnection conn, Channel channel, Header source, Notify invoke, RTMP rtmp) {
-	    log.debug("onInvoke");	
+	    log.debug("onInvoke:" + invoke);	
 		final IServiceCall call = invoke.getCall();
 		if (call.getServiceMethodName().equals("_result")
 				|| call.getServiceMethodName().equals("_error")) {
@@ -330,6 +373,16 @@ public class RTMPClient extends BaseRTMPHandler {
 			}
 			handlePendingCallResult(conn, invoke);
 			return;
+		}
+		
+		if (call.getServiceMethodName().equals("onStatus")) {
+			// XXX better to serialize ObjectMap to Status object 
+			ObjectMap objMap = (ObjectMap) call.getArguments()[0];
+			Integer clientId = (Integer) objMap.get("clientid");
+			NetStreamPrivateData streamData = streamDataMap.get(clientId);
+			if (streamData != null && streamData.handler != null) {
+				streamData.handler.onStreamEvent(invoke);
+			}
 		}
 		
 		if (serviceProvider == null) {
@@ -501,9 +554,27 @@ public class RTMPClient extends BaseRTMPHandler {
 				stream.setConnection(conn);
 				stream.setStreamId(streamIdInt.intValue());
 				conn.addClientStream(stream);
+				NetStreamPrivateData streamData = new NetStreamPrivateData();
+				streamData.outputStream = conn.createOutputStream(streamIdInt.intValue());
+				streamData.connConsumer = new ConnectionConsumer(
+						conn,
+						streamData.outputStream.getVideo().getId(),
+						streamData.outputStream.getAudio().getId(),
+						streamData.outputStream.getData().getId()
+						);
+				streamDataMap.put(streamIdInt, streamData);
 			}
 			wrapped.resultReceived(call);
 		}
-    	
+    }
+    
+    public interface INetStreamEventHandler {
+    	void onStreamEvent(Notify notify);
+    }
+    
+    private class NetStreamPrivateData {
+    	public INetStreamEventHandler handler;
+    	public OutputStream outputStream;
+    	public ConnectionConsumer connConsumer;
     }
 }
