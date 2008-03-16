@@ -59,7 +59,6 @@ INetStreamEventHandler, IPendingServiceCallback {
 	synchronized public void pushMessage(IPipe pipe, IMessage message) throws IOException {
 		if (state >= PUBLISHED && message instanceof RTMPMessage) {
 			RTMPMessage rtmpMsg = (RTMPMessage) message;
-			System.err.println("Pushing " + rtmpMsg.getBody());
 			rtmpClient.publishStreamData(streamId, rtmpMsg);
 		}
 	}
@@ -84,7 +83,6 @@ INetStreamEventHandler, IPendingServiceCallback {
 
 	synchronized public void onStreamEvent(Notify notify) {
 		ObjectMap map = (ObjectMap) notify.getCall().getArguments()[0];
-		System.err.println("Got " + map);
 		String code = (String) map.get("code");
 		if (StatusCodes.NS_PUBLISH_START.equals(code)) {
 			state = PUBLISHED;
