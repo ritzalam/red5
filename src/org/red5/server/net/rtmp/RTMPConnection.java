@@ -495,6 +495,22 @@ public abstract class RTMPConnection extends BaseConnection implements
 			return pss;
 		}
 	}
+	
+	public void addClientStream(IClientStream stream) {
+		int streamId = stream.getStreamId();
+		if (reservedStreams.get(streamId - 1)) {
+			return;
+		}
+		reservedStreams.set(streamId - 1);
+		synchronized (streams) {
+			streams.put(streamId - 1, stream);
+			usedStreams++;
+		}
+	}
+	
+	public void removeClientStream(int streamId) {
+		unreserveStreamId(streamId);
+	}
 
 	/**
 	 * Getter for used stream count.
@@ -822,6 +838,18 @@ public abstract class RTMPConnection extends BaseConnection implements
 	 * @return Pending call service object
 	 */
 	protected IPendingServiceCall getPendingCall(int invokeId) {
+		return pendingCalls.get(invokeId);
+	}
+	
+	/**
+	 * Retrieve pending call service by id.
+	 * The call will be removed afterwards.
+	 * 
+	 * @param invokeId
+	 *            Pending call service id
+	 * @return Pending call service object
+	 */
+	protected IPendingServiceCall retrievePendingCall(int invokeId) {
 		return pendingCalls.remove(invokeId);
 	}
 

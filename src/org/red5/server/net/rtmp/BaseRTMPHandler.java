@@ -269,7 +269,7 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
      */
     protected void handlePendingCallResult(RTMPConnection conn, Notify invoke) {
 		final IServiceCall call = invoke.getCall();
-		final IPendingServiceCall pendingCall = conn.getPendingCall(invoke
+		final IPendingServiceCall pendingCall = conn.retrievePendingCall(invoke
 				.getInvokeId());
 		if (pendingCall != null) {
 			// The client sent a response to a previously made call.
