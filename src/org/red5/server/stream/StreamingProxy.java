@@ -18,6 +18,11 @@ import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.status.StatusCodes;
 import org.red5.server.stream.message.RTMPMessage;
 
+/**
+ * A proxy to publish stream from server to server.
+ * TODO: Use timer to monitor the connect/stream creation.
+ * @author Steven Gong (steven.gong@gmail.com)
+ */
 public class StreamingProxy
 implements IPushableConsumer, IPipeConnectionListener,
 INetStreamEventHandler, IPendingServiceCallback {
@@ -50,6 +55,7 @@ INetStreamEventHandler, IPendingServiceCallback {
 		if (state >= STREAM_CREATING) {
 			rtmpClient.disconnect();
 		}
+		state = STOPPED;
 	}
 
 	public void onPipeConnectionEvent(PipeConnectionEvent event) {
@@ -95,9 +101,15 @@ INetStreamEventHandler, IPendingServiceCallback {
 			rtmpClient.createStream(this);
 		} else if ("createStream".equals(call.getServiceMethodName())) {
 			state = PUBLISHING;
-			Integer streamIdInt = (Integer) call.getResult();
-			streamId = streamIdInt.intValue();
-			rtmpClient.publish(streamIdInt.intValue(), publishName, "live", this);
+			Object result = call.getResult();
+			if (result instanceof Integer) {
+				Integer streamIdInt = (Integer) result;
+				streamId = streamIdInt.intValue();
+				rtmpClient.publish(streamIdInt.intValue(), publishName, "live", this);
+			} else {
+				rtmpClient.disconnect();
+				state = STOPPED;
+			}
 		}
 	}
 }
