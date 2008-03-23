@@ -141,22 +141,18 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 			if (conn != null) {
 				conn.close();
 			} else {
-				log
-						.error("Handshake validation failed but no current connection!?");
+				log.error("Handshake validation failed but no current connection!?");
 			}
 			return null;
-			// Exception handling is patched by Victor - we catch any exception
-			// in the decoding
-			// Then clear the buffer to eliminate memory leaks when we can't
-			// parse protocol
+		// Exception handling is patched by Victor - we catch any exception in the decoding
+		// Then clear the buffer to eliminate memory leaks when we can't parse protocol
 			// Also close Connection because we can't parse data from it
 		} catch (Exception ex) {
 			log.error("Error decoding buffer", ex);
 			buffer.clear();
 			IConnection conn = Red5.getConnectionLocal();
 			if (conn != null) {
-				log.warn("Closing connection because decoding failed: {}", conn
-						.toString());
+				log.warn("Closing connection because decoding failed: {}", conn);
 				conn.close();
 			} else {
 				log.error("Decoding buffer failed but no current connection!?");
@@ -236,10 +232,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 		if (rtmp.getMode() == RTMP.MODE_SERVER) {
 			if (rtmp.getState() == RTMP.STATE_CONNECT) {
 				if (remaining < HANDSHAKE_SIZE + 1) {
-					log
-							.debug(
-									"Handshake init too small, buffering. remaining: {}",
-									remaining);
+					log.debug("Handshake init too small, buffering. remaining: {}", remaining);
 					rtmp.bufferDecoding(HANDSHAKE_SIZE + 1);
 					return null;
 				} else {
@@ -263,15 +256,13 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 					return null;
 				} else {
 					// Skip first 8 bytes when comparing the handshake, they
-					// seem to
-					// be changed when connecting from a Mac client.
+					// seem to be changed when connecting from a Mac client.
 					if (!rtmp.validateHandshakeReply(in, 8, HANDSHAKE_SIZE - 8)) {
 						log
 								.debug("Handshake reply validation failed, disconnecting client.");
 						in.skip(HANDSHAKE_SIZE);
 						rtmp.setState(RTMP.STATE_ERROR);
-						throw new HandshakeFailedException(
-								"Handshake validation failed");
+						throw new HandshakeFailedException("Handshake validation failed");
 					}
 					in.skip(HANDSHAKE_SIZE);
 					rtmp.setState(RTMP.STATE_CONNECTED);
@@ -333,8 +324,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 				rtmp.bufferDecoding(2);
 				return null;
 			}
-			headerValue = ((int) headerByte & 0xff) << 8
-					| ((int) in.get() & 0xff);
+			headerValue = ((int) headerByte & 0xff) << 8 | ((int) in.get() & 0xff);
 			byteCount = 2;
 		} else if ((headerByte & 0x3f) == 1) {
 			// Three byte header
@@ -343,8 +333,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 				rtmp.bufferDecoding(3);
 				return null;
 			}
-			headerValue = ((int) headerByte & 0xff) << 16
-					| ((int) in.get() & 0xff) << 8 | ((int) in.get() & 0xff);
+			headerValue = ((int) headerByte & 0xff) << 16 | ((int) in.get() & 0xff) << 8 | ((int) in.get() & 0xff);
 			byteCount = 3;
 		} else {
 			// Single byte header
@@ -358,8 +347,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 		}
 
 		// Get the header size and length
-		int headerLength = RTMPUtils.getHeaderLength(RTMPUtils
-				.decodeHeaderSize(headerValue, byteCount));
+		int headerLength = RTMPUtils.getHeaderLength(RTMPUtils.decodeHeaderSize(headerValue, byteCount));
 		headerLength += byteCount - 1;
 
 		if (headerLength > remaining) {

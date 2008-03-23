@@ -637,7 +637,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	 * @param ping	Ping event context
 	 */
 	public void ping(Ping ping) {
-		getChannel((byte) 2).write(ping);
+		getChannel(2).write(ping);
 	}
 
 	/**
@@ -663,7 +663,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 		long bytesRead = getReadBytes();
 		if (bytesRead >= nextBytesRead) {
 			BytesRead sbr = new BytesRead((int) bytesRead);
-			getChannel((byte) 2).write(sbr);
+			getChannel(2).write(sbr);
 			//@todo: what do we want to see printed here?
 			//log.info(sbr);
 			nextBytesRead += bytesReadInterval;
@@ -691,7 +691,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	/** {@inheritDoc} */
 	public void invoke(IServiceCall call) {
-		invoke(call, (byte) 3);
+		invoke(call, 3);
 	}
 
 	/**
@@ -798,12 +798,12 @@ public abstract class RTMPConnection extends BaseConnection implements
 		if (bwConfig.getDownstreamBandwidth() > 0) {
 			ServerBW serverBW = new ServerBW((int) bwConfig
 					.getDownstreamBandwidth() / 8);
-			getChannel((byte) 2).write(serverBW);
+			getChannel(2).write(serverBW);
 		}
 		if (bwConfig.getUpstreamBandwidth() > 0) {
 			ClientBW clientBW = new ClientBW((int) bwConfig
 					.getUpstreamBandwidth() / 8, (byte) 0);
-			getChannel((byte) 2).write(clientBW);
+			getChannel(2).write(clientBW);
 			// Update generation of BytesRead messages
 			// TODO: what are the correct values here?
 			bytesReadInterval = (int) bwConfig.getUpstreamBandwidth() / 8;

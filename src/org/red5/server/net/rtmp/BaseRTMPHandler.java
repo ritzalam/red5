@@ -207,9 +207,7 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 
 	/** {@inheritDoc} */
     public void messageSent(RTMPConnection conn, Object message) {
-		if (log.isDebugEnabled()) {
-			log.debug("Message sent");
-		}
+		log.debug("Message sent");
 
 		if (message instanceof ByteBuffer) {
 			return;

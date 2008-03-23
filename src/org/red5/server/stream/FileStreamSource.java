@@ -40,8 +40,7 @@ public class FileStreamSource implements ISeekableStreamSource, Constants {
     /**
      * Logger
      */
-	protected static Logger log = LoggerFactory.getLogger(FileStreamSource.class
-			.getName());
+	protected static Logger log = LoggerFactory.getLogger(FileStreamSource.class);
     /**
      * Tag reader
      */
@@ -92,7 +91,7 @@ public class FileStreamSource implements ISeekableStreamSource, Constants {
 				msg = new Notify(tag.getBody());
 				break;
 			default:
-				log.warn("Unexpected type? " + tag.getDataType());
+				log.warn("Unexpected type? {}", tag.getDataType());
 				msg = new Unknown(tag.getDataType(), tag.getBody());
 				break;
 		}

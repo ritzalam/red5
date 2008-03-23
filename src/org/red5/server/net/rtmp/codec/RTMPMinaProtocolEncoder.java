@@ -57,6 +57,5 @@ public class RTMPMinaProtocolEncoder extends RTMPProtocolEncoder implements
 
 	/** {@inheritDoc} */
     public void dispose(IoSession ioSession) throws Exception {
-		// TODO Auto-generated method stub		
 	}
 }

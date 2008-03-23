@@ -67,15 +67,12 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
     /**
      * Logger.
      */
-    protected static Logger log = LoggerFactory.getLogger(RTMPProtocolEncoder.class
-			.getName());
+    protected static Logger log = LoggerFactory.getLogger(RTMPProtocolEncoder.class);
 
     /**
      * I/O operations logger.
      */
-    protected static Logger ioLog = LoggerFactory.getLogger(RTMPProtocolEncoder.class
-			.getName()
-			+ ".out");
+    protected static Logger ioLog = LoggerFactory.getLogger(RTMPProtocolEncoder.class + ".out");
 
     /**
      * Serializer object.
@@ -305,7 +302,7 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
 			case TYPE_FLEX_STREAM_SEND:
 				return encodeFlexStreamSend((FlexStreamSend) message);
 			default:
-				log.warn("Unknown object type: " + header.getDataType());
+				log.warn("Unknown object type: {}", header.getDataType());
 				return null;
 		}
 	}
@@ -517,14 +514,10 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
 		final boolean isPending = (call.getStatus() == Call.STATUS_PENDING);
 
 		if (!isPending) {
-			if (log.isDebugEnabled()) {
 				log.debug("Call has been executed, send result");
-			}
 			serializer.serialize(output, call.isSuccess() ? "_result" : "_error"); // seems right
 		} else {
-			if (log.isDebugEnabled()) {
-				log.debug("This is a pending call, send request");
-			}
+			log.debug("This is a pending call, send request");
 			// for request we need to use AMF3 for client mode
 			// if the connection is AMF3
 			if (rtmp.getEncoding() == Encoding.AMF3 && rtmp.getMode() == RTMP.MODE_CLIENT) {
@@ -557,14 +550,10 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
 				StatusObject status = generateErrorResult(StatusCodes.NC_CALL_FAILED, call.getException());
 				pendingCall.setResult(status);
 			}
-			if (log.isDebugEnabled()) {
-				log.debug("Writing result: " + pendingCall.getResult());
-			}
+			log.debug("Writing result: {}", pendingCall.getResult());
 			serializer.serialize(output, pendingCall.getResult());
 		} else {
-			if (log.isDebugEnabled()) {
 				log.debug("Writing params");
-			}
 			final Object[] args = invoke.getCall().getArguments();
 			if (args != null) {
 				for (Object element : args) {

@@ -30,7 +30,7 @@
 		<property name="statusObjectService" ref="statusObjectService" />
 	</bean>
 	
-		<bean id="mrtmpManager"
+	<bean id="mrtmpManager"
 		class="org.red5.server.net.mrtmp.SimpleMRTMPOriginManager" >
 		<property name="originMRTMPHandler" ref="mrtmpMinaIoHandler" />
 	</bean>

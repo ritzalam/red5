@@ -129,7 +129,7 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 			mappedFile = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel
 					.size());
 		} catch (IOException e) {
-			log.error("MP3Reader :: MP3Reader ::>\n", e);
+			log.error("MP3Reader {}", e);
 		}
 
         // Use Big Endian bytes order
@@ -188,6 +188,7 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 	 */
 	private void checkValidHeader(MP3Header header) {
 		switch (header.getSampleRate()) {
+			case 48000:
 			case 44100:
 			case 22050:
 			case 11025:
@@ -499,10 +500,10 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 	}
 
     private void processID3v2Header() {
-    	if (in.remaining() <= 10)
+    	if (in.remaining() <= 10) {
     		// We need at least 10 bytes ID3v2 header + data
     		return;
-    	
+    	}
     	int start = in.position();
     	byte a, b, c;
     	a = in.get();

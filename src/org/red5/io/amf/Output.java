@@ -90,9 +90,9 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 
 	/** {@inheritDoc} */
 	public void writeArray(Collection<?> array, Serializer serializer) {
-		if (checkWriteReference(array))
+		if (checkWriteReference(array)) {
 			return;
-
+		}
 		storeReference(array);
 		buf.put(AMF.TYPE_ARRAY);
 		buf.putInt(array.size());
@@ -103,9 +103,9 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 
 	/** {@inheritDoc} */
 	public void writeArray(Object[] array, Serializer serializer) {
-		if (checkWriteReference(array))
+		if (checkWriteReference(array)) {
 			return;
-
+		}
 		storeReference(array);
 		buf.put(AMF.TYPE_ARRAY);
 		buf.putInt(array.length);
@@ -116,9 +116,9 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 
 	/** {@inheritDoc} */
     public void writeArray(Object array, Serializer serializer) {
-		if (checkWriteReference(array))
+		if (checkWriteReference(array)) {
 			return;
-
+		}
 		storeReference(array);
 		buf.put(AMF.TYPE_ARRAY);
 		buf.putInt(Array.getLength(array));
@@ -129,9 +129,9 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 
 	/** {@inheritDoc} */
 	public void writeMap(Map<Object, Object> map, Serializer serializer) {
-		if (checkWriteReference(map))
+		if (checkWriteReference(map)) {
 			return;
-
+		}
 		storeReference(map);
 		buf.put(AMF.TYPE_MIXED_ARRAY);
 		int maxInt=-1;
@@ -147,11 +147,12 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 			maxInt = i;
 		}
 		buf.putInt(maxInt+1);
+		// TODO: Need to support an incomming key named length
 		for (Map.Entry<Object, Object> entry : map.entrySet()) {
 			final String key = entry.getKey().toString();
-			if ("length".equals(key))
+			if ("length".equals(key)) {
 				continue;
-
+			}
 			putString(key);
 			serializer.serialize(this, entry.getValue());
 		}
@@ -166,9 +167,9 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 
 	/** {@inheritDoc} */
 	public void writeMap(Collection<?> array, Serializer serializer) {
-		if (checkWriteReference(array))
+		if (checkWriteReference(array)) {
 			return;
-
+		}
 		storeReference(array);
 		buf.put(AMF.TYPE_MIXED_ARRAY);
 		buf.putInt(array.size()+1);
@@ -191,9 +192,9 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 
 	/** {@inheritDoc} */
     public void writeRecordSet(RecordSet recordset, Serializer serializer) {
-		if (checkWriteReference(recordset))
+		if (checkWriteReference(recordset)) {
 			return;
-
+		}
 		storeReference(recordset);
         // Write out start of object marker
 		buf.put(AMF.TYPE_CLASS_OBJECT);
@@ -212,7 +213,6 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 
 	/** {@inheritDoc} */
     public boolean supportsDataType(byte type) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
@@ -224,7 +224,6 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 
 	/** {@inheritDoc} */
     public void writeCustom(Object custom) {
-		// TODO Auto-generated method stub
 
 	}
 
@@ -259,9 +258,9 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 
 	/** {@inheritDoc} */
     public void writeObject(Object object, Serializer serializer) {
-		if (checkWriteReference(object))
+		if (checkWriteReference(object)) {
 			return;
-
+		}
 		storeReference(object);
         // Create new map out of bean properties
         BeanMap beanMap = new BeanMap(object);
@@ -298,8 +297,9 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 
 			String keyName = entry.getKey().toString();
 			// Check if the Field corresponding to the getter/setter pair is transient
-            if (dontSerializeField(objectClass, keyName)) continue;
-
+            if (dontSerializeField(objectClass, keyName)) {
+            	continue;
+            }
 			putString(buf, keyName);
 			serializer.serialize(this, entry.getValue());
 		}
@@ -316,9 +316,12 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
                 boolean dontSerialize = field.isAnnotationPresent(DontSerialize.class);
                 boolean isTransient = Modifier.isTransient(field.getModifiers());
 
-                if (dontSerialize && log.isDebugEnabled()) log.debug("Skipping " + field.getName() + " because its marked with @DontSerialize");
-                if (isTransient) log.warn("Using \"transient\" to declare fields not to be serialized is deprecated and will be removed in Red5 0.8, use \"@DontSerialize\" instead.");
-
+                if (dontSerialize && log.isDebugEnabled()) {
+                	log.debug("Skipping {} because its marked with @DontSerialize", field.getName());
+                }
+                if (isTransient) {
+                	log.warn("Using \"transient\" to declare fields not to be serialized is deprecated and will be removed in Red5 0.8, use \"@DontSerialize\" instead.");
+                }
                 return dontSerialize || isTransient;
             } catch (NoSuchFieldException nfe) {
                 // Ignore this exception and use the default behaviour
@@ -331,16 +334,16 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 
     /** {@inheritDoc} */
     public void writeObject(Map<Object, Object> map, Serializer serializer) {
-		if (checkWriteReference(map))
+		if (checkWriteReference(map)) {
 			return;
-
+		}
 		storeReference(map);
 		buf.put(AMF.TYPE_OBJECT);
 		boolean isBeanMap = (map instanceof BeanMap);
 		for (Map.Entry<Object, Object> entry : map.entrySet()) {
-			if (isBeanMap && "class".equals(entry.getKey()))
+			if (isBeanMap && "class".equals(entry.getKey())) {
 				continue;
-
+			}
 			putString(entry.getKey().toString());
 			serializer.serialize(this, entry.getValue());
 		}
@@ -356,9 +359,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 	 * @param object        Object to write
 	 */
 	protected void writeArbitraryObject(Object object, Serializer serializer) {
-		if (log.isDebugEnabled()) {
 			log.debug("writeObject");
-		}
         // If we need to serialize class information...
 		Class<?> objectClass = object.getClass();
 		if (!objectClass.isAnnotationPresent(Anonymous.class)) {

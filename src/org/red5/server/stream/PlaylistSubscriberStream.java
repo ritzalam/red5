@@ -27,6 +27,8 @@ import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.mina.common.ByteBuffer;
 import org.red5.io.amf.Output;
@@ -90,6 +92,10 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
     private enum State {
 		UNINIT, STOPPED, PLAYING, PAUSED, CLOSED
 	}
+
+    private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+    private final Lock read  = readWriteLock.readLock();
+    private final Lock write = readWriteLock.writeLock();    
 
     /**
      * Playlist controller
@@ -239,22 +245,23 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 
 	/** {@inheritDoc} */
     public void play() throws IOException {
-		synchronized (items) {
+        // Check how many is yet to play...
+        int count = items.size();
             // Return if playlist is empty
-            if (items.size() == 0) {
+        if (count == 0) {
 				return;
 			}
             // Move to next if current item is set to -1
             if (currentItemIndex == -1) {
 				moveToNext();
 			}
-            // Get playlist item
-            IPlayItem item = items.get(currentItemIndex);
-            // Check how many is yet to play...
-            int count = items.size();
             // If there's some more items on list then play current item
             while (count-- > 0) {
+        	IPlayItem item = null;
+        	read.lock();
 				try {
+	            // Get playlist item
+	            item = items.get(currentItemIndex);
 					engine.play(item);
 					break;
 				} catch (StreamNotFoundException e) {
@@ -268,7 +275,8 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				} catch (IllegalStateException e) {
 					// an stream is already playing
 					break;
-				}
+			} finally {
+				read.unlock();
 			}
 		}
 	}
@@ -324,26 +332,36 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 
 	/** {@inheritDoc} */
     public void addItem(IPlayItem item) {
-		synchronized (items) {
+    	write.lock();
+    	try {
 			items.add(item);
+		} finally {
+			write.unlock();
 		}
 	}
 
 	/** {@inheritDoc} */
     public void addItem(IPlayItem item, int index) {
-		synchronized (items) {
+    	write.lock();
+		try {
 			items.add(index, item);
+		} finally {
+			write.unlock();
 		}
 	}
 
 	/** {@inheritDoc} */
     public void removeItem(int index) {
-		synchronized (items) {
 			if (index < 0 || index >= items.size()) {
 				return;
 			}
 			int originSize = items.size();
+		write.lock();
+		try {
 			items.remove(index);
+		} finally {
+			write.unlock();
+		}
 			if (currentItemIndex == index) {
 				// set the next item.
 				if (index == originSize - 1) {
@@ -351,29 +369,32 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				}
 			}
 		}
-	}
 
 	/** {@inheritDoc} */
     public void removeAllItems() {
-		synchronized (items) {
 			// we try to stop the engine first
 			stop();
+		write.lock();
+		try {
 			items.clear();
+		} finally {
+			write.unlock();
 		}
 	}
 
 	/** {@inheritDoc} */
     public void previousItem() {
-		synchronized (items) {
 			stop();
 			moveToPrevious();
 			if (currentItemIndex == -1) {
 				return;
 			}
-			IPlayItem item = items.get(currentItemIndex);
+		IPlayItem item = null;
 			int count = items.size();
 			while (count-- > 0) {
+			read.lock();
 				try {
+				item = items.get(currentItemIndex);
 					engine.play(item);
 					break;
 				} catch (IOException err) {
@@ -384,7 +405,6 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 						// we reaches the end.
 						break;
 					}
-					item = items.get(currentItemIndex);
 				} catch (StreamNotFoundException e) {
 					// go for next item
 					moveToPrevious();
@@ -392,18 +412,17 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 						// we reaches the end.
 						break;
 					}
-					item = items.get(currentItemIndex);
 				} catch (IllegalStateException e) {
 					// an stream is already playing
 					break;
-				}
+			} finally {
+				read.unlock();
 			}
 		}
 	}
 
 	/** {@inheritDoc} */
     public boolean hasMoreItems() {
-    	synchronized (items) {
     		int nextItem = currentItemIndex + 1;
     		if (nextItem >= items.size() && !isRepeat) {
     			return false;
@@ -411,30 +430,29 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
     			return true;
     		}
     	}
-    }
     
 	/** {@inheritDoc} */
     public void nextItem() {
-		synchronized (items) {
 			moveToNext();
 			if (currentItemIndex == -1) {
 				return;
 			}
-			IPlayItem item = items.get(currentItemIndex);
+		IPlayItem item = null;
 			int count = items.size();
 			while (count-- > 0) {
+			read.lock();
 				try {
+				item = items.get(currentItemIndex);
 					engine.play(item, false);
 					break;
 				} catch (IOException err) {
-					log.error("Error while starting to play item, moving to next.", err);
+				log.error("Error while starting to play item, moving to next", err);
 					// go for next item
 					moveToNext();
 					if (currentItemIndex == -1) {
 						// we reaches the end.
 						break;
 					}
-					item = items.get(currentItemIndex);
 				} catch (StreamNotFoundException e) {
 					// go for next item
 					moveToNext();
@@ -442,25 +460,25 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 						// we reaches the end.
 						break;
 					}
-					item = items.get(currentItemIndex);
 				} catch (IllegalStateException e) {
 					// an stream is already playing
 					break;
-				}
+			} finally {
+				read.unlock();
 			}
 		}
 	}
 
 	/** {@inheritDoc} */
     public void setItem(int index) {
-		synchronized (items) {
 			if (index < 0 || index >= items.size()) {
 				return;
 			}
 			stop();
 			currentItemIndex = index;
-			IPlayItem item = items.get(currentItemIndex);
+		read.lock();
 			try {
+			IPlayItem item = items.get(currentItemIndex);
 				engine.play(item);
 			} catch (IOException e) {
 				log.error("setItem caught a IOException", e);
@@ -470,7 +488,8 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				log.debug("setItem caught a StreamNotFoundException");
 			} catch (IllegalStateException e) {
                log.error( "Illegal state exception on playlist item setup", e );
-			}
+		} finally {
+			read.unlock();
 		}
 	}
 
@@ -568,10 +587,13 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 
     /** {@inheritDoc} */
     public IPlayItem getItem(int index) {
+    	read.lock();
 		try {
 			return items.get(index);
 		} catch (IndexOutOfBoundsException e) {
 			return null;
+		} finally {
+			read.unlock();
 		}
 	}
 
@@ -1116,8 +1138,9 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 					sendSwitchStatus();
 				}
 			}
-			if (msg != null)
+			if (msg != null) {
 				sendMessage((RTMPMessage) msg);
+			}
 			notifyItemPlay(currentItem, !isPullMode);
 			if (withReset) {
 				playbackStart = System.currentTimeMillis() - streamOffset;
@@ -1214,7 +1237,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				try {
 					msg = msgIn.pullMessage();
 				} catch (Throwable err) {
-					log.error("Error while pulling message.", err);
+					log.error("Error while pulling message", err);
 					msg = null;
 				}
 				while (msg != null) {
@@ -1235,7 +1258,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 					try {
 						msg = msgIn.pullMessage();
 					} catch (Throwable err) {
-						log.error("Error while pulling message.", err);
+						log.error("Error while pulling message", err);
 						msg = null;
 					}
 				}
@@ -1339,11 +1362,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 
 				// Expected amount of data present in client buffer
 				final long buffered = lastMessage.getTimestamp() - delta;
-
-				if (log.isDebugEnabled()) {
-					log.debug("okayToSendMessage: " + lastMessage.getTimestamp() + " " + delta + " " + buffered + " " + buffer);
-				}
-
+				log.debug("okayToSendMessage: timestamp {} delta {} buffered {} buffer {}", new Object[]{lastMessage.getTimestamp(), delta, buffered, buffer});
 				if (buffer > 0 && buffered > buffer) {
 					// Client is likely to have enough data in the buffer
 					return false;
@@ -1574,9 +1593,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			Status reset = new Status(StatusCodes.NS_PLAY_RESET);
 			reset.setClientid(getStreamId());
 			reset.setDetails(item.getName());
-			reset
-					.setDesciption("Playing and resetting " + item.getName()
-							+ '.');
+			reset.setDesciption("Playing and resetting " + item.getName() + '.');
 
 			StatusMessage resetMsg = new StatusMessage();
 			resetMsg.setBody(reset);
@@ -1820,9 +1837,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				OOBControlMessage oobCtrlMsg) {
 			if ("ConnectionConsumer".equals(oobCtrlMsg.getTarget())) {
 				if (source instanceof IProvider) {
-					msgOut
-							.sendOOBControlMessage((IProvider) source,
-									oobCtrlMsg);
+					msgOut.sendOOBControlMessage((IProvider) source, oobCtrlMsg);
 				}
 			}
 		}
@@ -1949,8 +1964,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 		}
 
 		/** {@inheritDoc} */
-        public synchronized void available(ITokenBucket bucket,
-				long tokenCount) {
+        public synchronized void available(ITokenBucket bucket,	long tokenCount) {
 			isWaitingForToken = false;
 			needCheckBandwidth = false;
 			try {
@@ -2042,7 +2056,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 					pullAndPush();
 				} catch (IOException err) {
 					// We couldn't get more data, stop stream.
-					log.error("Error while getting message.", err);
+					log.error("Error while getting message", err);
 					PlayEngine.this.stop();
 				}
 			}
@@ -2058,7 +2072,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 		private static final long serialVersionUID = 812106823615971891L;
 
 		public StreamNotFoundException(String name) {
-			super("Stream " + name + " not found.");
+			super("Stream " + name + " not found");
 		}
 
 	}

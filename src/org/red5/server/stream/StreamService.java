@@ -22,6 +22,7 @@ package org.red5.server.stream;
 import java.io.IOException;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.red5.server.BaseConnection;
 import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IConnection;
@@ -168,6 +169,7 @@ public class StreamService implements IStreamService {
 
 	/** {@inheritDoc} */
     public void play(String name, int start, int length, boolean flushPlaylist) {
+    	logger.debug("Play called - name: {} start: {} length: {} flush playlist: {}", new Object[]{name, start, length, flushPlaylist});
 		IConnection conn = Red5.getConnectionLocal();
 		if (!(conn instanceof IStreamCapableConnection)) {
 			return;
@@ -246,6 +248,7 @@ public class StreamService implements IStreamService {
 
 	/** {@inheritDoc} */
     public void play(Boolean dontStop) {
+    	logger.debug("Play called. Dont stop param: {}", dontStop);
 		if (!dontStop) {
 			IConnection conn = Red5.getConnectionLocal();
 			if (!(conn instanceof IStreamCapableConnection)) {
@@ -300,7 +303,7 @@ public class StreamService implements IStreamService {
 		IScope scope = conn.getScope();
 		IStreamCapableConnection streamConn = (IStreamCapableConnection) conn;
 		int streamId = getCurrentStreamId();
-		if (name == null || "".equals(name)) {
+		if (StringUtils.isEmpty(name)) {
 			sendNSFailed((RTMPConnection) streamConn, "The stream name may not be empty.", name, streamId);
 			return;
 		}
@@ -376,8 +379,9 @@ public class StreamService implements IStreamService {
 			Channel channel = ((RTMPConnection) streamConn).getChannel((byte) (4 + ((streamId-1) * 5)));
 			channel.sendStatus(accessDenied);
 			bs.close();
-			if (created)
+			if (created) {
 				streamConn.deleteStreamById(streamId);
+			}
 			return;
 		} catch (Exception e) {
 			logger.warn("publish caught Exception");

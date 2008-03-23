@@ -188,9 +188,7 @@ implements ApplicationContextAware {
 
 		RTMP rtmp=(RTMP)session.getAttribute(ProtocolState.SESSION_KEY);
 		if (rtmp.getMode()==RTMP.MODE_CLIENT) {
-			if (log.isDebugEnabled()){
 				log.debug("Handshake 1st phase");
-			}
 			ByteBuffer out = ByteBuffer.allocate(Constants.HANDSHAKE_SIZE+1);
 			out.put((byte)0x03);
 			out.fill((byte)0x00,Constants.HANDSHAKE_SIZE);
@@ -221,9 +219,7 @@ implements ApplicationContextAware {
 	/** {@inheritDoc} */
     @Override
 	public void sessionCreated(IoSession session) throws Exception {
-		if (log.isDebugEnabled()) {
 			log.debug("Session created");
-		}
 		// moved protocol state from connection object to RTMP object
 		RTMP rtmp = new RTMP(mode);
 		session.setAttribute(ProtocolState.SESSION_KEY, rtmp);

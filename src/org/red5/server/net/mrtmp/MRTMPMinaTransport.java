@@ -49,8 +49,8 @@ import org.red5.server.jmx.JMXAgent;
 /**
  * @author Steven Gong (steven.gong@gmail.com)
  */
-public class MRTMPMinaTransport 
-{
+public class MRTMPMinaTransport {
+
 	private static final int DEFAULT_EVENT_THREADS_CORE = 16;
 
 	private static final int DEFAULT_EVENT_THREADS_KEEPALIVE = 60;
@@ -60,7 +60,7 @@ public class MRTMPMinaTransport
 	private static final int DEFAULT_EVENT_THREADS_QUEUE = -1;
 
 	private static final int DEFAULT_IO_THREADS = Runtime.getRuntime()
-			.availableProcessors() + 1;
+			.availableProcessors();
 
 	private static final int DEFAULT_PORT = 1935;
 
