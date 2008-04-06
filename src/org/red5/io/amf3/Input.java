@@ -593,7 +593,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		} else {
 			/* Use all 8 bits from the 4th byte */
 			result <<= 8;
-			result |= b;
+			result |= b & 0x0ff;
 
 			/* Check if the integer should be negative */
 			if ((result & 0x10000000) != 0) {
