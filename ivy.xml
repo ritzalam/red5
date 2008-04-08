@@ -7,10 +7,10 @@
 	</configurations>
     <dependencies>
         <!-- J2EE --> 
-        <dependency org="tomcat" name="jasper" rev="6.0.14" />
-        <dependency org="tomcat" name="jasper-jdt" rev="6.0.14" />
-        <dependency org="tomcat" name="jasper-el" rev="6.0.14" />
-        <dependency org="tomcat" name="tomcat-juli" rev="6.0.14" />
+        <dependency org="tomcat" name="jasper" rev="6.0.16" />
+        <dependency org="tomcat" name="jasper-jdt" rev="6.0.16" />
+        <dependency org="tomcat" name="jasper-el" rev="6.0.16" />
+        <dependency org="tomcat" name="tomcat-juli" rev="6.0.16" />
         <dependency org="tomcat" name="el-api" rev="" />
         <dependency org="javax" name="jsp-api" rev="2.1" />
         <dependency org="javax" name="servlet-api" rev="2.5" />
@@ -25,14 +25,14 @@
         <dependency org="spring" name="spring-web" rev="2.0.8" />
         <dependency org="spring" name="aopalliance" rev="" />
         <!-- Tomcat --> 
-        <dependency org="tomcat" name="catalina" rev="6.0.14" />
-        <dependency org="tomcat" name="tomcat-coyote" rev="6.0.14" />
+        <dependency org="tomcat" name="catalina" rev="6.0.16" />
+        <dependency org="tomcat" name="tomcat-coyote" rev="6.0.16" />
         <dependency org="tomcat" name="annotations-api" rev="" />
         <dependency org="commons" name="commons-modeler" rev="2.0.1" />
         <!-- Jetty --> 
-        <dependency org="jetty" name="jetty" rev="6.1.8" />
-        <dependency org="jetty" name="jetty-util" rev="6.1.8" />
-        <dependency org="jetty" name="jetty-xbean" rev="6.1.8" />
+        <dependency org="jetty" name="jetty" rev="6.1.9" />
+        <dependency org="jetty" name="jetty-util" rev="6.1.9" />
+        <dependency org="jetty" name="jetty-xbean" rev="6.1.9" />
         <!-- Logging --> 
         <dependency name="slf4j-api" rev="1.4.3" />
         <dependency name="jcl104-over-slf4j" rev="1.4.3" />
@@ -45,7 +45,7 @@
         <dependency org="commons" name="commons-codec" rev="1.3" />
         <dependency org="commons" name="commons-collections" rev="3.2" /> 
         <dependency org="commons" name="commons-httpclient" rev="3.1" />
-        <dependency org="commons" name="commons-lang" rev="2.3" />
+        <dependency org="commons" name="commons-lang" rev="2.4" />
         <dependency org="commons" name="commons-pool" rev="1.3" />
         <dependency org="javax" name="jpda" rev="" />
         <dependency name="quartz" rev="1.5.2" />
