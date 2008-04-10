@@ -132,10 +132,13 @@ public class AMFGatewayServlet extends HttpServlet {
 	 */
 	protected IGlobalScope getGlobalScope(HttpServletRequest req) {
 		String path = req.getContextPath() + req.getServletPath();
+		log.debug("getGlobalScope path: {}", path);
 		if (path.startsWith("/")) {
 			path = path.substring(1);
+		} else {
+			log.debug("Path length: {} Servlet name length: {}", path.length(), getServletName().length());
+			path = path.substring(0, path.length() - getServletName().length() - 1);
 		}
-		path = path.substring(0, path.length() - getServletName().length() - 1);
 		IGlobalScope global = server.lookupGlobal(req.getServerName(), path);
 		if (global == null) {
 			global = server.lookupGlobal(req.getLocalName(), path);

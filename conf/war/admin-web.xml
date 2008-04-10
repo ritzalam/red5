@@ -2,9 +2,7 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
 
-	<bean id="authClientRegistry" 
-		class="org.red5.adminPanel.client.AuthClientRegistry" 
-	/>
+   <bean id="authClientRegistry" class="org.red5.webapps.admin.client.AuthClientRegistry"/>
 	
 	<bean id="web.context.admin" class="org.red5.server.Context">
 		<property name="scopeResolver" ref="red5.scopeResolver" />

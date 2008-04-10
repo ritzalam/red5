@@ -21,6 +21,7 @@ package org.red5.server.net.servlet;
 
 import java.io.IOException;
 
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -50,6 +51,26 @@ public class AMFTunnelServlet extends HttpServlet {
 
 	protected static Logger logger = LoggerFactory.getLogger(AMFTunnelServlet.class);
 
+	private static final String REQUEST_TYPE = "application/x-amf";
+	
+	private static String postAcceptorURL = "http://localhost:8080/gateway";
+	private static int connectionTimeout = 30000;
+	
+	@Override
+	public void init(ServletConfig config) throws ServletException {
+		super.init(config);
+		//get the url for posting
+		if (config.getInitParameter("tunnel.acceptor.url") != null) {
+			postAcceptorURL = config.getInitParameter("tunnel.acceptor.url");
+		}
+		logger.debug("POST acceptor URL: {}", postAcceptorURL);
+		//get the connection timeout
+		if (config.getInitParameter("tunnel.timeout") != null) {
+			connectionTimeout = Integer.valueOf(config.getInitParameter("tunnel.timeout"));
+		}		
+		logger.debug("POST connection timeout: {}", postAcceptorURL);
+	}
+
 	/**
 	 * Redirect to HTTP port.
 	 */
@@ -59,9 +80,8 @@ public class AMFTunnelServlet extends HttpServlet {
 
 		HttpClient client = new HttpClient(
 				new MultiThreadedHttpConnectionManager());
-		client.getHttpConnectionManager().getParams().setConnectionTimeout(
-				30000);
-		PostMethod get = new PostMethod("http://localhost:8080/gateway");
+		client.getHttpConnectionManager().getParams().setConnectionTimeout(connectionTimeout);
+		PostMethod get = new PostMethod(postAcceptorURL);
 
 		try {
 			// copy all the headers
@@ -91,16 +111,15 @@ public class AMFTunnelServlet extends HttpServlet {
 			if (path == null) {
 				path = "";
 			}
-			// System.out.println("Path: " + path);
+			logger.debug("Path: {}", path);
 			if (req.getPathInfo() != null) {
 				path += req.getPathInfo();
 			}
-			// System.out.println("Path: " + path);
+			logger.debug("Path 2: {}", path);
 
 			int reqContentLength = req.getContentLength();
 			if (reqContentLength > 0) {
-				// System.out.println("Request content length: " +
-				// reqContentLength);
+				logger.debug("Request content length: {}", reqContentLength);
 
 				ByteBuffer reqBuffer = ByteBuffer.allocate(reqContentLength);
 				ServletUtils.copy(req.getInputStream(), reqBuffer
@@ -109,15 +128,15 @@ public class AMFTunnelServlet extends HttpServlet {
 				get
 						.setRequestEntity(new InputStreamRequestEntity(
 								reqBuffer.asInputStream(), reqContentLength,
-								"application/x-amf"));
+								REQUEST_TYPE));
 				// get.setPath(path);
 				get.addRequestHeader("Tunnel-request", path);
 
 				client.executeMethod(get);
-				// System.out.println("Response code: " + get.getStatusCode());
+				logger.debug("Response code: {}", get.getStatusCode());
 
 				if (get.getStatusCode() == HttpStatus.SC_OK) {
-					resp.setContentType("application/x-amf");
+					resp.setContentType(REQUEST_TYPE);
 					int responseLength = ((Long) get.getResponseContentLength())
 							.intValue();
 					ByteBuffer respBuffer = ByteBuffer.allocate(responseLength);

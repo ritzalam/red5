@@ -13,6 +13,16 @@
 -->
 	<display-name>Echo</display-name>
 
+    <context-param>
+        <param-name>tunnel.acceptor.url</param-name>
+        <param-value>http://localhost:8080/gateway</param-value>
+    </context-param>
+
+    <context-param>
+        <param-name>tunnel.timeout</param-name>
+        <param-value>30000</param-value>
+    </context-param>
+
 	<servlet>
 		<servlet-name>gateway</servlet-name>
 		<servlet-class>org.red5.server.net.servlet.AMFTunnelServlet</servlet-class>

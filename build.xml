@@ -313,8 +313,12 @@
 				<!-- copy libs -->
 				<copy todir="${webapps.build.dir}/admin/WEB-INF/lib">
 					<fileset dir="${lib.dir}">
-                        			<include name="standard-*.jar"/>
-                        			<include name="spring-web-*.jar"/>
+                    	<include name="acegi-security-1.0.4.jar"/>
+                    	<include name="standard-*.jar"/>
+                        <include name="spring-beans-*.jar"/>
+                        <include name="spring-core-*.jar"/>
+                        <include name="spring-context-*.jar"/>
+                        <include name="spring-web-*.jar"/>
 						<include name="spring-webmvc-*.jar"/>
 					</fileset>
 				</copy>
@@ -445,7 +449,7 @@
 					<attribute name="Built-On" value="${build.TODAY}"/>
 				</manifest>
 			</war>	
-      		</sequential>
+      	</sequential>
 	</macrodef>
 
 	<target name="war_demos" description="Build wars for demo apps" depends="compile_demos">
@@ -953,6 +957,7 @@
 			<fileset dir="${classes.dir}">
 				<include name="**/AMFTunnelServlet.class"/>
 				<include name="**/ServletUtils.class"/>
+				<include name="**/red5/compatibility/**" />
 			</fileset>
 			<lib dir="${lib.dir}">
 				<include name="commons-codec-*.jar"/>
@@ -984,6 +989,7 @@
 			<fileset dir="${classes.dir}">
 				<include name="**/AMFTunnelServlet.class"/>
 				<include name="**/ServletUtils.class"/>
+				<include name="**/red5/compatibility/**" />
 			</fileset>
 			<manifest>
 				<attribute name="Built-By" value="${red5.fullname}"/>
