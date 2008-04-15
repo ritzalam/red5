@@ -178,12 +178,6 @@ public class CaptureViewerServlet extends HttpServlet {
 
 	}
 
-
-    //public void decodeBuffer(PrintWriter out, ProtocolState state,
-	//		ByteBuffer buffer, long time, int id) {
-    //
-	//}
-
     /**
      * Formats HTML
      *

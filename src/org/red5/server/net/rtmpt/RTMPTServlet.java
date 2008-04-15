@@ -449,7 +449,7 @@ public class RTMPTServlet extends HttpServlet {
 		// XXX Paul: since the only current difference in the type of request
 		// that we are interested in is the 'second' character, we can double
 		// the speed of this entry point by using a switch on the second
-		// charater.
+		// character.
 		String path = req.getServletPath();
 		char p = path.charAt(1);
 		switch (p) {

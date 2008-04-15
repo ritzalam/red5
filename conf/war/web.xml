@@ -33,11 +33,6 @@
 		<param-value>WEB-INF/classes/*-web.xml</param-value>
 	</context-param>
 
-	<context-param>
-		<param-name>log4jConfigLocation</param-name>
-		<param-value>/WEB-INF/log4j.properties</param-value>
-	</context-param>
-
 	<listener>
 		<listener-class>org.red5.server.war.WarLoaderServlet</listener-class>
 	</listener>

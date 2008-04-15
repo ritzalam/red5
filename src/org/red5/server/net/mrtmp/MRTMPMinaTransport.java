@@ -32,8 +32,6 @@ import java.util.concurrent.TimeUnit;
 
 import javax.management.ObjectName;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoFilter;
 import org.apache.mina.common.IoHandlerAdapter;
@@ -45,6 +43,8 @@ import org.apache.mina.transport.socket.nio.SocketAcceptor;
 import org.apache.mina.transport.socket.nio.SocketAcceptorConfig;
 import org.apache.mina.transport.socket.nio.SocketSessionConfig;
 import org.red5.server.jmx.JMXAgent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Steven Gong (steven.gong@gmail.com)
@@ -72,7 +72,7 @@ public class MRTMPMinaTransport {
 
 	private static final boolean DEFAULT_USE_HEAP_BUFFERS = true;
 
-	private static final Log log = LogFactory.getLog(MRTMPMinaTransport.class);
+	private static final Logger log = LoggerFactory.getLogger(MRTMPMinaTransport.class);
 
 	private SocketAcceptor acceptor;
 

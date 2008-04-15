@@ -39,8 +39,7 @@ import org.slf4j.LoggerFactory;
 public class TomcatRTMPTLoader extends TomcatLoader {
 
 	// Initialize Logging
-	protected static Logger log = LoggerFactory.getLogger(TomcatRTMPTLoader.class
-			.getName());
+	protected static Logger log = LoggerFactory.getLogger(TomcatRTMPTLoader.class);
 
 	/**
 	 * RTMP server instance
@@ -89,8 +88,7 @@ public class TomcatRTMPTLoader extends TomcatLoader {
 
 		host.addChild(context);
 		if (log.isDebugEnabled()) {
-			log.debug("Null check - engine: " + (null == engine) + " host: "
-					+ (null == host));
+			log.debug("Null check - engine: {} host: {}", (null == engine), (null == host));
 		}
 		engine.addChild(host);
 
@@ -151,7 +149,7 @@ public class TomcatRTMPTLoader extends TomcatLoader {
 	 */
 	public void setMappings(Map<String, String> mappings) {
 		if (log.isDebugEnabled()) {
-			log.debug("Servlet mappings: " + mappings.size());
+			log.debug("Servlet mappings: {}", mappings.size());
 		}
 		for (String key : mappings.keySet()) {
 			context.addServletMapping(mappings.get(key), key);

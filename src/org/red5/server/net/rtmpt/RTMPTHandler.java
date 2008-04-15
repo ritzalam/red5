@@ -89,7 +89,7 @@ public class RTMPTHandler extends RTMPHandler {
 
 		if (log.isDebugEnabled()) {
 			log.debug("Writing handshake reply");
-			log.debug("handskake size:" + in.remaining());
+			log.debug("handskake size: {}", in.remaining());
 		}
 
 		out.put((byte) 0x03);

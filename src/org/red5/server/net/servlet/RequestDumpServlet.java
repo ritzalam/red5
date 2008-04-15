@@ -56,7 +56,7 @@ public class RequestDumpServlet extends HttpServlet {
 		Enumeration en = req.getHeaderNames();
 		while (en.hasMoreElements()) {
 			String name = (String) en.nextElement();
-			log.info(name + " => " + req.getHeader(name));
+			log.info("{} => {}", name, req.getHeader(name));
 		}
 
 		ByteBuffer reqBuffer = null;
