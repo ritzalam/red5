@@ -87,10 +87,7 @@ public class RTMPTHandler extends RTMPHandler {
 		ByteBuffer out = ByteBuffer
 				.allocate((Constants.HANDSHAKE_SIZE * 2) + 1);
 
-		if (log.isDebugEnabled()) {
-			log.debug("Writing handshake reply");
-			log.debug("handskake size: {}", in.remaining());
-		}
+		log.debug("Writing handshake reply, handskake size: {}", in.remaining());
 
 		out.put((byte) 0x03);
 		// TODO: the first four bytes of the handshake reply seem to be the

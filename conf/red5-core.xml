@@ -23,6 +23,13 @@
 		<property name="location" value="classpath:/red5.properties" />
 	</bean>
 
+    <!-- Socket policy handler -->
+    <bean id="socketPolicyHandler"
+        class="org.red5.server.net.policy.SocketPolicyHandler" init-method="start" destroy-method="stop">
+        <property name="host" value="${policy.host}" />
+        <property name="port" value="${policy.port}" />
+    </bean>
+    
 	<!-- RTMP Handler -->
 	<bean id="rtmpHandler"
 		class="org.red5.server.net.rtmp.RTMPHandler">

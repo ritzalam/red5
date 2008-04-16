@@ -179,7 +179,7 @@ public class BasicHandler extends IoHandlerAdapter {
 
 	@Override
 	public void sessionCreated(IoSession session) throws Exception {
-		if(showInfo) log.info("Created: "+session.getRemoteAddress().toString());
+		if(showInfo) log.info("Created: {}", session.getRemoteAddress().toString());
 	}
 
 	protected class TimeoutTask extends TimerTask {
@@ -189,7 +189,7 @@ public class BasicHandler extends IoHandlerAdapter {
 			LinkedList<IoSession> remove = new LinkedList<IoSession>();
 			for(IoSession session : sessions){
 				if(session.getLastReadTime() < kill){
-					if(showInfo) log.info("Timout: "+session.getRemoteAddress().toString());
+					if(showInfo) log.info("Timout: {}", session.getRemoteAddress().toString());
 					remove.add(session);
 				} else {
 					session.write(NOOP_MSG.asReadOnlyBuffer());

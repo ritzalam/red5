@@ -44,8 +44,7 @@ import org.springframework.core.io.ResourceLoader;
 public class DebugProxyHandler extends IoHandlerAdapter implements
 		ResourceLoaderAware {
 
-	protected static Logger log = LoggerFactory.getLogger(DebugProxyHandler.class
-			.getName());
+	protected static Logger log = LoggerFactory.getLogger(DebugProxyHandler.class);
 
 	private ResourceLoader loader;
 
