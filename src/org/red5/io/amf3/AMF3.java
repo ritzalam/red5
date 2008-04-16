@@ -27,10 +27,12 @@ import java.nio.charset.Charset;
  * For detailed specification please see the link below.
  *
  * @see <a href="http://osflash.org/amf3/index">AMF3 specification (external)</a>
+ * @see <a href="http://download.macromedia.com/pub/labs/amf/amf3_spec_121207.pdf">Official Adobe AMF3 Specification</a>
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  * @author Joachim Bauch (jojo@struktur.de)
+ * @author Paul Gregoire (mondain@gmail.com)
  */
 public class AMF3 {
     /**
@@ -53,6 +55,11 @@ public class AMF3 {
      */
     public static final int LONG_STRING_LENGTH = 65535;
 
+    /**
+     * Undefined marker
+     */
+    public static final byte TYPE_UNDEFINED = 0x00;
+    
     /**
      * Null marker
      */
@@ -83,9 +90,19 @@ public class AMF3 {
      */
     public static final byte TYPE_STRING = 0x06;
 
-	// TODO m.j.m hm..not defined on site, says it's only XML type, so i'll
-	// assume it is for the time being..
-    public static final byte TYPE_XML_SPECIAL = 0x07;
+	/**
+	 * XML document marker
+	 * <br />
+	 * This is for the legacy XMLDocument type is retained in the language 
+	 * as flash.xml.XMLDocument. Similar to AMF 0, the structure of an 
+	 * XMLDocument needs to be flattened into a string representation for 
+	 * serialization. As with other strings in AMF, the content is encoded in 
+	 * UTF-8.
+	 * XMLDocuments can be sent as a reference to a previously occurring 
+	 * XMLDocument instance by using an index to the implicit object reference 
+	 * table. 
+	 */
+    public static final byte TYPE_XML_DOCUMENT = 0x07;
 
     /**
      * Date marker
@@ -111,8 +128,6 @@ public class AMF3 {
      * ByteArray marker
      */
     public static final byte TYPE_BYTEARRAY = 0x0C;
-    
-	//public final static byte TYPE_ZZZ = 0x0D;
 
 	/**
 	 * Property list encoding.

@@ -179,10 +179,10 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		}
 
 		switch (currentDataType) {
+			case AMF3.TYPE_UNDEFINED:
 			case AMF3.TYPE_NULL:
 				coreType = DataTypes.CORE_NULL;
 				break;
-
 			case AMF3.TYPE_INTEGER:
 			case AMF3.TYPE_NUMBER:
 				coreType = DataTypes.CORE_NUMBER;
@@ -198,7 +198,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 				break;
 			// TODO check XML_SPECIAL
 			case AMF3.TYPE_XML:
-			case AMF3.TYPE_XML_SPECIAL:
+			case AMF3.TYPE_XML_DOCUMENT:
                 coreType = DataTypes.CORE_XML;
 				break;
 			case AMF3.TYPE_OBJECT:
