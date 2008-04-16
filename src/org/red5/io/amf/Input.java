@@ -397,10 +397,10 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 			try {
 				if (property != null) {
 					try {
-						final Field field = theClass.getField(name);
 						if (!t.isAssignableFrom(property.getClass())) {
 							property = ConversionUtils.convert(property, t);
 						}
+						final Field field = theClass.getField(name);
 						field.set(bean, property);
 					} catch (Exception ex2) {
 						BeanUtils.setProperty(bean, name, property);

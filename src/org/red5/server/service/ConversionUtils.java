@@ -40,7 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Misc utils for convertions
+ * Misc utils for conversions
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
@@ -277,9 +277,7 @@ public class ConversionUtils {
 		LinkedList<Method> list = new LinkedList<Method>();
 		Method[] methods = object.getClass().getMethods();
 		for (Method m : methods) {
-			if (log.isDebugEnabled()) {
-				log.debug("Method name: " + m.getName());
-			}
+			log.debug("Method name: {}", m.getName());
 			if (!m.getName().equals(method)) {
 				log.debug("Method name not the same");
 				continue;
