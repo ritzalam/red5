@@ -19,9 +19,14 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.HashMap;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
+import javax.management.ObjectName;
+
+import org.red5.server.jmx.JMXAgent;
+import org.red5.server.jmx.JMXFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -35,7 +40,7 @@ import org.springframework.core.io.Resource;
 /**
  * Red5 applications loader
  */
-public class ContextLoader implements ApplicationContextAware {
+public class ContextLoader implements ApplicationContextAware, ContextLoaderMBean {
 	/**
 	 * Logger
 	 */
@@ -55,11 +60,16 @@ public class ContextLoader implements ApplicationContextAware {
 	 * Context location files
 	 */
 	protected String contextsConfig;
+	
+	/**
+	 * MBean object name used for de/registration purposes.
+	 */
+	private ObjectName oName;	
 
 	/**
 	 * Context map
 	 */
-	protected HashMap<String, ApplicationContext> contextMap = new HashMap<String, ApplicationContext>();
+	protected ConcurrentMap<String, ApplicationContext> contextMap = new ConcurrentHashMap<String, ApplicationContext>();
 
 	/**
 	 * @param applicationContext
@@ -100,6 +110,12 @@ public class ContextLoader implements ApplicationContextAware {
 	 *             I/O exception, casting exception and others
 	 */
 	public void init() throws Exception {
+		log.debug("ContextLoader init");
+		// register in jmx
+		//create a new mbean for this instance
+		oName = JMXFactory.createObjectName("type", "ContextLoader");
+		JMXAgent.registerMBean(this, this.getClass().getName(),	ContextLoaderMBean.class, oName);		
+		
 		// Load properties bundle
 		Properties props = new Properties();
 		Resource res = applicationContext.getResource(contextsConfig);
@@ -121,16 +137,21 @@ public class ContextLoader implements ApplicationContextAware {
 					.getProperty("red5.root"));
 			config = config.replace("${red5.config_root}", System
 					.getProperty("red5.config_root"));
-			log.info("Loading: " + name + " = " + config);
+			log.info("Loading: {} = {}", name, config);
 
 			// Load context
 			loadContext(name, config);
 		}
 
 	}
+	
+	public void uninit() {
+		log.debug("ContextLoader un-init");		
+		JMXAgent.unregisterMBean(oName);
+	}
 
 	/**
-	 * Loads context (Red5 application) and stores it in context map, then adds
+	 * Loads a context (Red5 application) and stores it in a context map, then adds
 	 * it's beans to parent (that is, Red5)
 	 * 
 	 * @param name
@@ -138,18 +159,37 @@ public class ContextLoader implements ApplicationContextAware {
 	 * @param config
 	 *            Filename
 	 */
-	protected void loadContext(String name, String config) {
-		log.debug("Load context - name: " + name + " config: " + config);
+	public void loadContext(String name, String config) {
+		log.debug("Load context - name: {} config: {}", name, config);
 		ApplicationContext context = new FileSystemXmlApplicationContext(
 				new String[] { config }, parentContext);
+		log.debug("Adding to context map - name: {} context: {}", name, context);
 		contextMap.put(name, context);
 		// add the context to the parent, this will be red5.xml
-		ConfigurableBeanFactory factory = ((ConfigurableApplicationContext) applicationContext)
-				.getBeanFactory();
+		ConfigurableBeanFactory factory = ((ConfigurableApplicationContext) applicationContext).getBeanFactory();
 		// Register context in parent bean factory
+		log.debug("Registering - name: {}", name);
 		factory.registerSingleton(name, context);
 	}
 
+	/**
+	 * Unloads a context (Red5 application) and removes it from the context map, then removes
+	 * it's beans from the parent (that is, Red5)
+	 * 
+	 * @param name
+	 *            Context name
+	 */	
+	public void unloadContext(String name) {
+		log.debug("Un-load context - name: {}", name);
+		ApplicationContext context = contextMap.remove(name);
+		log.debug("Context from map: {}", context);
+		ConfigurableBeanFactory factory = ((ConfigurableApplicationContext) applicationContext).getBeanFactory();
+		if (factory.containsSingleton(name)) {
+			log.debug("Context found in parent, destroying...");
+			factory.destroyBean(name, context);
+		}
+	}
+	
 	/**
 	 * Return context by name
 	 * 

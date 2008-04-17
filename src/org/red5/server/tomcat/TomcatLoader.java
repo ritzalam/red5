@@ -59,10 +59,8 @@ public class TomcatLoader extends LoaderBase implements
 		 */
 		public boolean accept(File dir, String name) {
 			File f = new File(dir, name);
-			if (log.isDebugEnabled()) {
-				log.debug("Filtering: " + dir.getName() + " name: " + name);
-				log.debug("Constructed dir: " + f.getAbsolutePath());
-			}
+			log.debug("Filtering: {} name: {}", dir.getName(), name);
+			log.debug("Constructed dir: {}", f.getAbsolutePath());
 			// filter out all non-directories that are hidden and/or not
 			// readable
 			return f.isDirectory() && f.canRead() && !f.isHidden();
@@ -200,10 +198,8 @@ public class TomcatLoader extends LoaderBase implements
 		log.info("Application root: " + webappFolder);
 
 		// scan for additional webapp contexts
-		if (log.isDebugEnabled()) {
-			log.debug("Approot: " + webappFolder);
+		log.debug("Approot: " + webappFolder);
 
-		}
 		// Root applications directory
 		File appDirBase = new File(webappFolder);
 		// Subdirs of root apps dir
@@ -213,9 +209,7 @@ public class TomcatLoader extends LoaderBase implements
 			String dirName = '/' + dir.getName();
 			// check to see if the directory is already mapped
 			if (null == baseHost.findChild(dirName)) {
-				if (log.isDebugEnabled()) {
-					log.debug("Adding context from directory scan: " + dirName);
-				}
+				log.debug("Adding context from directory scan: " + dirName);
 				this.addContext(dirName, webappFolder + '/' + dirName);
 			}
 		}
@@ -295,9 +289,7 @@ public class TomcatLoader extends LoaderBase implements
 	 *            Additional connectors
 	 */
 	public void setConnectors(List<Connector> connectors) {
-		if (log.isDebugEnabled()) {
-			log.debug("setConnectors: " + connectors.size());
-		}
+		log.debug("setConnectors: {}", connectors.size());
 		for (Connector ctr : connectors) {
 			embedded.addConnector(ctr);
 		}
@@ -310,9 +302,7 @@ public class TomcatLoader extends LoaderBase implements
 	 *            Map of contexts
 	 */
 	public void setContexts(Map<String, String> contexts) {
-		if (log.isDebugEnabled()) {
-			log.debug("setContexts: " + contexts.size());
-		}
+		log.debug("setContexts: {}", contexts.size());
 		for (String key : contexts.keySet()) {
 			baseHost.addChild(embedded.createContext(key, webappFolder
 					+ contexts.get(key)));
@@ -326,7 +316,7 @@ public class TomcatLoader extends LoaderBase implements
 	 *            Embedded object
 	 */
 	public void setEmbedded(Embedded embedded) {
-		log.info("Setting embedded: " + embedded.getClass().getName());
+		log.info("Setting embedded: {}", embedded.getClass().getName());
 		this.embedded = embedded;
 	}
 
@@ -336,7 +326,7 @@ public class TomcatLoader extends LoaderBase implements
 	 * @param engine Tomcat engine
 	 */
 	public void setEngine(Engine engine) {
-		log.info("Setting engine: " + engine.getClass().getName());
+		log.info("Setting engine: {}", engine.getClass().getName());
 		this.engine = engine;
 	}
 
@@ -346,9 +336,7 @@ public class TomcatLoader extends LoaderBase implements
 	 * @param hosts	List of hosts added to engine
 	 */
 	public void setHosts(List<Host> hosts) {
-		if (log.isDebugEnabled()) {
-			log.debug("setHosts: " + hosts.size());
-		}
+		log.debug("setHosts: {}", hosts.size());
 		for (Host host : hosts) {
 			engine.addChild(host);
 		}
@@ -361,7 +349,7 @@ public class TomcatLoader extends LoaderBase implements
 	 *            Realm
 	 */
 	public void setRealm(Realm realm) {
-		log.info("Setting realm: " + realm.getClass().getName());
+		log.info("Setting realm: {}", realm.getClass().getName());
 		this.realm = realm;
 	}
 
@@ -372,9 +360,7 @@ public class TomcatLoader extends LoaderBase implements
 	 *            List of valves
 	 */
 	public void setValves(List<Valve> valves) {
-		if (log.isDebugEnabled()) {
-			log.debug("setValves: " + valves.size());
-		}
+		log.debug("setValves: {}", valves.size());
 		for (Valve valve : valves) {
 			((StandardHost) baseHost).addValve(valve);
 		}

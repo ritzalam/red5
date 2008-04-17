@@ -80,7 +80,7 @@ public class Standalone {
 			red5Config = args[0];
 		}
 
-		long time = System.currentTimeMillis();
+		long t1 = System.nanoTime();
 
 		log.info("{} (http://www.osflash.org/red5)", Red5.getVersion());
 		log.info("Loading Red5 global context from: {}", red5Config);
@@ -157,8 +157,8 @@ public class Standalone {
 			raiseOriginalException(e);
 		}
 
-		long startupIn = System.currentTimeMillis() - time;
-		log.info("Startup done in: {} ms", startupIn);
+		long t2 = System.nanoTime();
+		log.info("Startup done in: {} ms", ((t2 - t1) / 1000000));
 
 	}
 

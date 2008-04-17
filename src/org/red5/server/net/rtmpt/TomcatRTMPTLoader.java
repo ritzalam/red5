@@ -87,9 +87,8 @@ public class TomcatRTMPTLoader extends TomcatLoader {
 		// embedded.setRealm(realm);
 
 		host.addChild(context);
-		if (log.isDebugEnabled()) {
-			log.debug("Null check - engine: {} host: {}", (null == engine), (null == host));
-		}
+		log.debug("Null check - engine: {} host: {}", (null == engine), (null == host));
+
 		engine.addChild(host);
 
 		// add new Engine to set of Engine for embedded server
@@ -148,9 +147,7 @@ public class TomcatRTMPTLoader extends TomcatLoader {
 	 * @param mappings
 	 */
 	public void setMappings(Map<String, String> mappings) {
-		if (log.isDebugEnabled()) {
-			log.debug("Servlet mappings: {}", mappings.size());
-		}
+		log.debug("Servlet mappings: {}", mappings.size());
 		for (String key : mappings.keySet()) {
 			context.addServletMapping(mappings.get(key), key);
 		}
