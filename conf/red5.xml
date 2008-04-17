@@ -63,8 +63,8 @@
 			      
 	    <property name="connector">
 			<bean class="org.apache.catalina.connector.Connector">
-		        <property name="port"><value>5080</value></property>
-		        <property name="redirectPort"><value>8443</value></property>
+		        <property name="port"><value>${http.port}</value></property>
+		        <property name="redirectPort"><value>${https.port}</value></property>
 		        <property name="enableLookups"><value>false</value></property>
 			</bean>
 	    </property>
@@ -82,7 +82,7 @@
 		<property name="valves">
       		<list>
 	    		<bean id="valve.access" class="org.apache.catalina.valves.AccessLogValve">
-	                <property name="directory" value="." />
+	                <property name="directory" value="log" />
 	                <property name="prefix" value="localhost_access." />
 	                <property name="suffix" value=".log" />
 	                <property name="pattern" value="common" />

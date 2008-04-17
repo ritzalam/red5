@@ -112,80 +112,80 @@
 		
 	<!-- Tomcat Container -->
 	<!--  
-		<bean id="rtmpt.server" class="org.red5.server.net.rtmpt.TomcatRTMPTLoader" init-method="init" autowire="byType">
+	<bean id="rtmpt.server" class="org.red5.server.net.rtmpt.TomcatRTMPTLoader" init-method="init" autowire="byType">
 		<property name="embedded">
-		<bean class="org.apache.catalina.startup.Embedded" />
+			<bean class="org.apache.catalina.startup.Embedded" />
 		</property>
 		
 		<property name="engine">
-		<bean class="org.apache.catalina.core.StandardEngine">
-		<property name="name" value="rtmptServletHandler" />
-		<property name="defaultHost" value="localhost" />
-		</bean>	  
+			<bean class="org.apache.catalina.core.StandardEngine">
+				<property name="name" value="rtmptServletHandler" />
+				<property name="defaultHost" value="localhost" />
+			</bean>	  
 		</property>
 		
 		<property name="connector">
-		<bean class="org.apache.catalina.connector.Connector">
-		<property name="port"><value>8088</value></property>
-		<property name="enableLookups"><value>false</value></property>
-		</bean>
+			<bean class="org.apache.catalina.connector.Connector">
+				<property name="port"><value>${rtmpt.port}</value></property>
+				<property name="enableLookups"><value>false</value></property>
+			</bean>
 		</property>
 		
 		<property name="host">
-		<bean class="org.apache.catalina.core.StandardHost">
-		<property name="name" value="localhost" />
-		<property name="unpackWARs" value="false" />
-		<property name="autoDeploy" value="false" />
-		<property name="xmlValidation" value="false" />
-		<property name="xmlNamespaceAware" value="false" />
-		</bean>	   
+			<bean class="org.apache.catalina.core.StandardHost">
+				<property name="name" value="localhost" />
+				<property name="unpackWARs" value="false" />
+				<property name="autoDeploy" value="false" />
+				<property name="xmlValidation" value="false" />
+				<property name="xmlNamespaceAware" value="false" />
+			</bean>	   
 		</property>		
 		
 		<property name="context">
-		<map>
-		<entry>
-		<key><value>name</value></key>
-		<value>rtmptContext</value>
-		</entry>
-		<entry>
-		<key><value>path</value></key>
-		<value></value>
-		</entry>
-		<entry>
-		<key><value>docBase</value></key>
-		<value>/</value>
-		</entry>		
-		</map>			
+			<map>
+				<entry>
+					<key><value>name</value></key>
+					<value>rtmptContext</value>
+				</entry>
+				<entry>
+					<key><value>path</value></key>
+					<value></value>
+				</entry>
+				<entry>
+					<key><value>docBase</value></key>
+					<value>/</value>
+				</entry>		
+			</map>			
 		</property>	    
 		
 		<property name="wrapper">
-		<bean class="org.apache.catalina.core.StandardWrapper">
-		<property name="servletName" value="RTMPTServlet" />
-		<property name="servletClass" value="org.red5.server.net.servlet.RTMPTServlet" />
-		</bean>	    
+			<bean class="org.apache.catalina.core.StandardWrapper">
+				<property name="servletName" value="RTMPTServlet" />
+				<property name="servletClass" value="org.red5.server.net.servlet.RTMPTServlet" />
+			</bean>	    
 		</property>	    
 		
 		<property name="mappings">
-		<map>
-		<entry>
-		<key><value>RTMPTServlet</value></key>
-		<value>/open/*</value>
-		</entry>
-		<entry>
-		<key><value>RTMPTServlet</value></key>
-		<value>/close/*</value>
-		</entry>
-		<entry>
-		<key><value>RTMPTServlet</value></key>
-		<value>/send/*</value>
-		</entry>
-		<entry>
-		<key><value>RTMPTServlet</value></key>
-		<value>/idle/*</value>
-		</entry>		      
-		</map>
+			<map>
+				<entry>
+					<key><value>RTMPTServlet</value></key>
+					<value>/open/*</value>
+				</entry>
+				<entry>
+					<key><value>RTMPTServlet</value></key>
+					<value>/close/*</value>
+				</entry>
+				<entry>
+					<key><value>RTMPTServlet</value></key>
+					<value>/send/*</value>
+				</entry>
+				<entry>
+					<key><value>RTMPTServlet</value></key>
+					<value>/idle/*</value>
+				</entry>		      
+			</map>
 		</property>
-		</bean>
+	</bean>
 	-->
 	<!-- Enable when you need it.
 	<bean id="rtmpProxyTransport" class="org.red5.server.net.rtmp.RTMPMinaTransport" init-method="start" destroy-method="stop">
