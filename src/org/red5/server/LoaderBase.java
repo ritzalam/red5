@@ -32,6 +32,7 @@ import org.springframework.context.ApplicationContext;
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
+ * @author Paul Gregoire (mondain@gmail.com)
  */
 public class LoaderBase {
 
@@ -110,9 +111,13 @@ public class LoaderBase {
 	 */
 	public void setWebappFolder(String webappFolder) {
 		File fp = new File(webappFolder);
+		if (!fp.canRead()) {
+			throw new RuntimeException("Webapp folder " + webappFolder + " cannot be accessed.");
+		}
 		if (!fp.isDirectory()) {
 			throw new RuntimeException("Webapp folder " + webappFolder + " doesn't exist.");
 		}
+		fp = null;
 		this.webappFolder = webappFolder;
 	}
 

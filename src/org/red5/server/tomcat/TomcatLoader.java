@@ -43,13 +43,15 @@ import org.springframework.context.ApplicationContextAware;
 
 /**
  * Red5 loader for Tomcat.
+ * 
+ * @author Paul Gregoire (mondain@gmail.com)
  */
 public class TomcatLoader extends LoaderBase implements
 		ApplicationContextAware, LoaderMBean {
 	/**
 	 * Filters directory content
 	 */
-	class DirectoryFilter implements FilenameFilter {
+	protected class DirectoryFilter implements FilenameFilter {
 		/**
 		 * Check whether file matches filter rules
 		 * 
@@ -75,6 +77,7 @@ public class TomcatLoader extends LoaderBase implements
 
 	// Initialize Logging
 	protected static Logger log = LoggerFactory.getLogger(TomcatLoader.class);
+	
 	static {
 		log.info("Init tomcat");
 		// root location for servlet container
@@ -91,7 +94,7 @@ public class TomcatLoader extends LoaderBase implements
 	/**
 	 * Base container host.
 	 */
-	private Host baseHost;
+	protected Host host;
 
 	/**
 	 * Tomcat connector.
@@ -101,22 +104,17 @@ public class TomcatLoader extends LoaderBase implements
 	/**
 	 * Embedded Tomcat service (like Catalina).
 	 */
-	protected Embedded embedded;
+	protected static Embedded embedded;
 
 	/**
 	 * Tomcat engine.
 	 */
-	protected Engine engine;
+	protected static Engine engine;
 
 	/**
 	 * Tomcat realm.
 	 */
 	protected Realm realm;
-
-	{
-		JMXAgent.registerMBean(this, this.getClass().getName(),
-				LoaderMBean.class);
-	}
 
 	/**
 	 * Add context from path and docbase.
@@ -127,9 +125,8 @@ public class TomcatLoader extends LoaderBase implements
 	 */
 	public org.apache.catalina.Context addContext(String path, String docBase) {
 		org.apache.catalina.Context c = embedded.createContext(path, docBase);
-		baseHost.addChild(c);
-		LoaderBase.setRed5ApplicationContext(path,
-				new TomcatApplicationContext(c));
+		host.addChild(c);
+		LoaderBase.setRed5ApplicationContext(path, new TomcatApplicationContext(c));
 		return c;
 	}
 
@@ -139,7 +136,7 @@ public class TomcatLoader extends LoaderBase implements
 	 * @return Base host
 	 */
 	public Host getBaseHost() {
-		return baseHost;
+		return host;
 	}
 
 	/**
@@ -198,7 +195,6 @@ public class TomcatLoader extends LoaderBase implements
 		log.info("Application root: " + webappFolder);
 
 		// scan for additional webapp contexts
-		log.debug("Approot: " + webappFolder);
 
 		// Root applications directory
 		File appDirBase = new File(webappFolder);
@@ -208,7 +204,7 @@ public class TomcatLoader extends LoaderBase implements
 		for (File dir : dirs) {
 			String dirName = '/' + dir.getName();
 			// check to see if the directory is already mapped
-			if (null == baseHost.findChild(dirName)) {
+			if (null == host.findChild(dirName)) {
 				log.debug("Adding context from directory scan: " + dirName);
 				this.addContext(dirName, webappFolder + '/' + dirName);
 			}
@@ -216,7 +212,7 @@ public class TomcatLoader extends LoaderBase implements
 
 		// Dump context list
 		if (log.isDebugEnabled()) {
-			for (Container cont : baseHost.findChildren()) {
+			for (Container cont : host.findChildren()) {
 				log.debug("Context child name: " + cont.getName());
 			}
 		}
@@ -227,7 +223,7 @@ public class TomcatLoader extends LoaderBase implements
 		embedded.setUseNaming(false);
 
 		// baseHost = embedded.createHost(hostName, appRoot);
-		engine.addChild(baseHost);
+		engine.addChild(host);
 
 		// Add new Engine to set of Engine for embedded server
 		embedded.addEngine(engine);
@@ -236,7 +232,7 @@ public class TomcatLoader extends LoaderBase implements
 		// associated with Engine
 		embedded.addConnector(connector);
 
-		setApplicationLoader(new TomcatApplicationLoader(embedded, baseHost, applicationContext.get()));
+		setApplicationLoader(new TomcatApplicationLoader(embedded, host, applicationContext.get()));
 
 		// Start server
 		try {
@@ -244,6 +240,8 @@ public class TomcatLoader extends LoaderBase implements
 			embedded.start();
 		} catch (org.apache.catalina.LifecycleException e) {
 			log.error("Error loading Tomcat", e);
+		} finally {
+			registerJMX();		
 		}
 	}
 
@@ -268,7 +266,7 @@ public class TomcatLoader extends LoaderBase implements
 	 */
 	public void setBaseHost(Host baseHost) {
 		log.debug("setBaseHost");
-		this.baseHost = baseHost;
+		this.host = baseHost;
 	}
 
 	/**
@@ -304,7 +302,7 @@ public class TomcatLoader extends LoaderBase implements
 	public void setContexts(Map<String, String> contexts) {
 		log.debug("setContexts: {}", contexts.size());
 		for (String key : contexts.keySet()) {
-			baseHost.addChild(embedded.createContext(key, webappFolder
+			host.addChild(embedded.createContext(key, webappFolder
 					+ contexts.get(key)));
 		}
 	}
@@ -329,6 +327,25 @@ public class TomcatLoader extends LoaderBase implements
 		log.info("Setting engine: {}", engine.getClass().getName());
 		this.engine = engine;
 	}
+	
+	/**
+	 * Get the host.
+	 * 
+	 * @return host
+	 */
+	public Host getHost() {
+		return host;
+	}	
+	
+	/**
+	 * Set the host.
+	 * 
+	 * @param host
+	 */
+	public void setHost(Host host) {
+		log.debug("setHost");
+		this.host = host;
+	}	
 
 	/**
 	 * Set additional hosts.
@@ -337,8 +354,8 @@ public class TomcatLoader extends LoaderBase implements
 	 */
 	public void setHosts(List<Host> hosts) {
 		log.debug("setHosts: {}", hosts.size());
-		for (Host host : hosts) {
-			engine.addChild(host);
+		for (Host h : hosts) {
+			engine.addChild(h);
 		}
 	}
 
@@ -362,10 +379,14 @@ public class TomcatLoader extends LoaderBase implements
 	public void setValves(List<Valve> valves) {
 		log.debug("setValves: {}", valves.size());
 		for (Valve valve : valves) {
-			((StandardHost) baseHost).addValve(valve);
+			((StandardHost) host).addValve(valve);
 		}
 	}
 
+	public void registerJMX() {
+		JMXAgent.registerMBean(this, this.getClass().getName(),	LoaderMBean.class);	
+	}
+	
 	/**
 	 * Shut server down.
 	 */
