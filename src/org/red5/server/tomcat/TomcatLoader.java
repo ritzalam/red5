@@ -205,8 +205,13 @@ public class TomcatLoader extends LoaderBase implements
 			String dirName = '/' + dir.getName();
 			// check to see if the directory is already mapped
 			if (null == host.findChild(dirName)) {
-				log.debug("Adding context from directory scan: " + dirName);
-				this.addContext(dirName, webappFolder + '/' + dirName);
+				if ("/root".equals(dirName) || "/root".equalsIgnoreCase(dirName)) {
+					log.debug("Adding ROOT context");
+					this.addContext("/", webappFolder + '/' + dirName);
+				} else {
+					log.debug("Adding context from directory scan: {}", dirName);
+					this.addContext(dirName, webappFolder + '/' + dirName);
+				}
 			}
 		}
 

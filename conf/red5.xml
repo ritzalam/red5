@@ -92,14 +92,6 @@
         	</list>
         </property>
 	    
-        <property name="contexts">
-		    <map>
-		      <entry>
-		        <key><value>/</value></key>
-		        <value>/root</value>
-		      </entry>
-		    </map>
-  		</property>
 	</bean>     	
 -->
 	<!-- Default context. This can be shared between web app contexts -->

@@ -26,8 +26,9 @@ import javax.management.ObjectName;
 
 import org.apache.catalina.Container;
 import org.apache.catalina.Host;
+import org.apache.catalina.LifecycleException;
+import org.apache.catalina.core.StandardContext;
 import org.apache.catalina.core.StandardHost;
-import org.red5.server.LoaderMBean;
 import org.red5.server.jmx.JMXAgent;
 import org.red5.server.jmx.JMXFactory;
 import org.slf4j.Logger;
@@ -71,6 +72,7 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 			//check for match with base webapp root
 			if (webappFolder.equals(webappRoot)) {
 				log.error("Web application root cannot be the same as base");
+				return;
 			}
 		}
 		
@@ -96,8 +98,13 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 			String dirName = '/' + dir.getName();
 			// check to see if the directory is already mapped
 			if (null == host.findChild(dirName)) {
-				log.debug("Adding context from directory scan: " + dirName);
-				this.addContext(dirName, webappRoot + '/' + dirName);
+				if ("/root".equals(dirName) || "/root".equalsIgnoreCase(dirName)) {
+					log.debug("Adding ROOT context");
+					this.addContext("/", webappRoot + '/' + dirName);
+				} else {
+					log.debug("Adding context from directory scan: {}", dirName);
+					this.addContext(dirName, webappRoot + '/' + dirName);
+				}
 			}
 		}
 
@@ -111,12 +118,41 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 		engine.addChild(host);
 
 		//may not have to do this step for every host
-		setApplicationLoader(new TomcatApplicationLoader(embedded, host, applicationContext.get()));
+		//setApplicationLoader(new TomcatApplicationLoader(embedded, host, applicationContext.get()));
 				
 	}
 
+	/**
+	 * Un-initialization.
+	 */	
 	public void uninit() {
 		log.debug("TomcatVHostLoader un-init");		
+		Container[] children = host.findChildren();
+		for (Container c : children) {
+			if (c instanceof StandardContext) {
+				try {
+					((StandardContext) c).stop();
+					host.removeChild(c);			
+				} catch (Exception e) {
+					log.error("Could not stop context: {}", c.getName(), e);
+				}				
+			}
+		}
+		//remove system prop
+		String propertyPrefix = name;
+		if (domain != null) {
+			propertyPrefix += '_' + domain.replace('.', '_');
+		}		
+		System.clearProperty(propertyPrefix + ".webapp.root");
+		//stop the host
+		try {
+			((StandardHost) host).stop();
+		} catch (LifecycleException e) {
+			log.error("Could not stop host: {}", host.getName(), e);
+		}
+		//remove host
+		engine.removeChild(host);
+		//unregister jmx
 		JMXAgent.unregisterMBean(oName);
 	}	
 	

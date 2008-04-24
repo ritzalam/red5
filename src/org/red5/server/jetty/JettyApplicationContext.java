@@ -32,14 +32,15 @@ import org.slf4j.LoggerFactory;
  */
 public class JettyApplicationContext implements IApplicationContext {
 
-    /**
-     * Logger
-     */
-	protected static Logger log = LoggerFactory.getLogger(JettyApplicationContext.class);
+	/**
+	 * Logger
+	 */
+	protected static Logger log = LoggerFactory
+			.getLogger(JettyApplicationContext.class);
 
 	/** Store a reference to the Jetty webapp context. */
 	private WebAppContext context;
-	
+
 	/**
 	 * Wrap the passed Jetty webapp context.
 	 * 
@@ -48,20 +49,17 @@ public class JettyApplicationContext implements IApplicationContext {
 	protected JettyApplicationContext(WebAppContext context) {
 		this.context = context;
 	}
-	
+
 	/** {@inheritDoc} */
 	public void stop() {
-		if (!context.isRunning()) {
-			if (log.isDebugEnabled()) {
-				log.debug("Application context already stopped.");
+		if (context.isRunning()) {
+			try {
+				context.stop();
+			} catch (Exception e) {
+				log.error("Could not stop application context.", e);
 			}
-			return;
-		}
-		
-		try {
-			context.stop();
-		} catch (Exception e) {
-			log.error("Could not stop application context.", e);
+		} else {
+			log.debug("Application context already stopped.");
 		}
 	}
 
