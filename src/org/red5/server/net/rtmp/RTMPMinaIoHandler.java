@@ -214,6 +214,7 @@ implements ApplicationContextAware {
 		this.handler.connectionClosed(conn, rtmp);
 		session.removeAttribute(ProtocolState.SESSION_KEY);
 		session.setAttachment(null);
+		rtmpConnManager.removeConnection(conn.getId());
 	}
 
 	/** {@inheritDoc} */
