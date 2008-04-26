@@ -165,11 +165,14 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 		StandardHost stdHost = new StandardHost();
 		stdHost.setAppBase(webappRoot);
 		stdHost.setAutoDeploy(autoDeploy);
-		if (domain != null) {
+		if (domain == null) {
+			stdHost.setName(name);
+		} else {
 			stdHost.setDomain(domain);
+			//seems to require that the domain be appended to the name
+			stdHost.setName(name + '.' + domain);
 		}
 		stdHost.setLiveDeploy(liveDeploy);
-		stdHost.setName(name);
 		//stdHost.setParent(container);
 		stdHost.setStartChildren(startChildren);
 		stdHost.setUnpackWARs(unpackWARs);

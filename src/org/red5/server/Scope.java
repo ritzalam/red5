@@ -971,6 +971,13 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	public boolean isEnabled() {
 		return enabled;
 	}
+	
+	/**
+	 * Here for JMX only, uses isEnabled()
+	 */
+	public boolean getEnabled() {
+		return isEnabled();
+	}	
 
 	/**
 	 * Check if scope is in running state
@@ -981,6 +988,13 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	public boolean isRunning() {
 		return running;
 	}
+	
+	/**
+	 * Here for JMX only, uses isEnabled()
+	 */	
+	public boolean getRunning() {
+		return isRunning();
+	}	
 
 	/**
 	 * Child scopes iterator
@@ -1123,8 +1137,13 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 
 		if (name != null) {
 			try {
+				String className = getClass().getName();
+				if (className.indexOf('.') != -1) {
+    				//strip package stuff
+    				className = className.substring(className.lastIndexOf('.') + 1);
+				}
 				oName = new ObjectName(JMXFactory.getDefaultDomain() + ":type="
-						+ getClass().getName() + ",name=" + name);
+						+ className + ",name=" + name);
 			} catch (MalformedObjectNameException e) {
 				log.error("Invalid object name. {}", e);
 			}

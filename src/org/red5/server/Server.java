@@ -123,9 +123,7 @@ public class Server implements IServer, ApplicationContextAware {
 		// in mappings
 		while (contextPath.indexOf(SLASH) != -1) {
 			key = getKey(hostName, contextPath);
-			if (log.isDebugEnabled()) {
-				log.debug("Check: " + key);
-			}
+			log.debug("Check: {}", key);
 			String globalName = mapping.get(key);
 			if (globalName != null) {
 				return getGlobal(globalName);
@@ -138,34 +136,27 @@ public class Server implements IServer, ApplicationContextAware {
 
 		// Get global scope key
 		key = getKey(hostName, contextPath);
-		if (log.isDebugEnabled()) {
-			log.debug("Check host and path: " + key);
-		}
+		log.debug("Check host and path: {}", key);
+
 		// Look up for global scope switching keys if still not found
 		String globalName = mapping.get(key);
 		if (globalName != null) {
 			return getGlobal(globalName);
 		}
 		key = getKey(EMPTY, contextPath);
-		if (log.isDebugEnabled()) {
-			log.debug("Check wildcard host with path: " + key);
-		}
+		log.debug("Check wildcard host with path: {}", key);
 		globalName = mapping.get(key);
 		if (globalName != null) {
 			return getGlobal(globalName);
 		}
 		key = getKey(hostName, EMPTY);
-		if (log.isDebugEnabled()) {
-			log.debug("Check host with no path: " + key);
-		}
+		log.debug("Check host with no path: {}", key);
 		globalName = mapping.get(key);
 		if (globalName != null) {
 			return getGlobal(globalName);
 		}
 		key = getKey(EMPTY, EMPTY);
-		if (log.isDebugEnabled()) {
-			log.debug("Check default host, default path: " + key);
-		}
+		log.debug("Check default host, default path: {}", key);
 		return getGlobal(mapping.get(key));
 	}
 
@@ -190,7 +181,7 @@ public class Server implements IServer, ApplicationContextAware {
 	 *            Global scope to register
 	 */
 	public void registerGlobal(IGlobalScope scope) {
-		log.info("Registering global scope: " + scope.getName());
+		log.info("Registering global scope: {}", scope.getName());
 		globals.put(scope.getName(), scope);
 	}
 
@@ -207,12 +198,9 @@ public class Server implements IServer, ApplicationContextAware {
 	 */
 	public boolean addMapping(String hostName, String contextPath,
 			String globalName) {
-		log.info("Add mapping global: " + globalName + " host: " + hostName
-				+ " context: " + contextPath);
+		log.info("Add mapping global: {} host: {} context: {}", new Object[]{globalName, hostName, contextPath});
 		final String key = getKey(hostName, contextPath);
-		if (log.isDebugEnabled()) {
-			log.debug("Add mapping: " + key + " => " + globalName);
-		}
+		log.debug("Add mapping: {} => {}", key, globalName);
 		return (mapping.putIfAbsent(key, globalName) == null);
 	}
 
@@ -226,12 +214,9 @@ public class Server implements IServer, ApplicationContextAware {
 	 * @return true if mapping was removed, false if key doesn't exist
 	 */
 	public boolean removeMapping(String hostName, String contextPath) {
-		log.info("Remove mapping host: " + hostName + " context: "
-				+ contextPath);
+		log.info("Remove mapping host: {} context: {}", hostName, contextPath);
 		final String key = getKey(hostName, contextPath);
-		if (log.isDebugEnabled()) {
-			log.debug("Remove mapping: " + key);
-		}
+		log.debug("Remove mapping: {}", key);
 		return (mapping.remove(key) != null);
 	}
 

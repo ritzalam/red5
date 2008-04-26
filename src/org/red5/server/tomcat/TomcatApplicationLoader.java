@@ -27,7 +27,7 @@ import org.red5.server.api.IApplicationLoader;
 import org.springframework.context.ApplicationContext;
 
 /**
- * Class that can load new applications in Jetty.
+ * Class that can load new applications in Tomcat.
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)

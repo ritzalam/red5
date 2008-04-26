@@ -43,7 +43,7 @@ public interface ScopeMBean {
 	 * Check if scope is enabled
 	 * @return                  <code>true</code> if scope is enabled, <code>false</code> otherwise
 	 */
-	public boolean isEnabled();
+	public boolean getEnabled();
 
 	/**
 	 * Enable or disable scope by setting enable flag
@@ -55,7 +55,7 @@ public interface ScopeMBean {
 	 * Check if scope is in running state
 	 * @return                   <code>true</code> if scope is in running state, <code>false</code> otherwise
 	 */
-	public boolean isRunning();
+	public boolean getRunning();
 
 	/**
 	 * Setter for autostart flag

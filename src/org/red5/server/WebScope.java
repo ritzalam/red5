@@ -136,7 +136,7 @@ public class WebScope extends Scope implements ServletContextAware {
 	 *            Server instance
 	 */
 	public void setServer(IServer server) {
-		log.info("Set server", server);
+		log.info("Set server {}", server);
 		this.server = server;
 	}
 
