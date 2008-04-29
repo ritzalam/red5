@@ -32,6 +32,7 @@ import org.red5.io.ITagReader;
 import org.red5.io.ITagWriter;
 import org.red5.io.IoConstants;
 import org.red5.io.flv.IFLV;
+import org.red5.io.flv.IKeyFrameDataAnalyzer.KeyFrameMeta;
 import org.red5.io.flv.meta.IMetaData;
 import org.red5.io.flv.meta.IMetaService;
 import org.red5.io.flv.meta.MetaService;
@@ -247,12 +248,14 @@ public class FLV implements IFLV {
 	public ITagWriter getAppendWriter() throws IOException {
 		// If the file doesnt exist, we cant append to it, so return a writer
 		if (!file.exists()) {
-			log
-					.info("File does not exist, calling writer. This will create a new file.");
+			log.info("File does not exist, calling writer. This will create a new file.");
 			return getWriter();
 		}
-		ITagWriter writer = new FLVWriter(new FileOutputStream(file, true),
-				true);
+		
+		//Fix by Mhodgson: FLVWriter constructor allows for passing of file object
+		//ITagWriter writer = new FLVWriter(new FileOutputStream(file, true), true);
+		ITagWriter writer = new FLVWriter(file, true);
+		
 		return writer;
 	}
 

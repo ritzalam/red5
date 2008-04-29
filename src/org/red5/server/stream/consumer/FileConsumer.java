@@ -30,6 +30,8 @@ import org.red5.io.IStreamableFileService;
 import org.red5.io.ITag;
 import org.red5.io.ITagWriter;
 import org.red5.io.StreamableFileFactory;
+import org.red5.io.flv.IKeyFrameDataAnalyzer.KeyFrameMeta;
+import org.red5.io.flv.impl.FLVReader;
 import org.red5.io.flv.impl.Tag;
 import org.red5.server.api.IScope;
 import org.red5.server.api.ScopeUtils;
@@ -99,6 +101,14 @@ public class FileConsumer implements Constants, IPushableConsumer,
 		offset = 0;
 		lastTimestamp = 0;
 		startTimestamp = -1;
+		// MHodgson Added -> Get the duration from the existing file
+		try {
+			FLVReader reader = new FLVReader(file, false);
+			KeyFrameMeta meta = reader.analyzeKeyFrames();
+			offset = (int) meta.duration + 60;
+		} catch (IOException exception) {
+			log.warn("Error reading from existing metadata");
+		}
 	}
 
     /**
@@ -145,7 +155,7 @@ public class FileConsumer implements Constants, IPushableConsumer,
 		}
 
 		try {
-		writer.writeTag(tag);
+		    writer.writeTag(tag);
 		} catch (IOException e) {
 			log.error("error writing tag", e);
 		}

@@ -19,8 +19,10 @@ package org.red5.io.flv.impl;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.util.HashMap;
 import java.util.Map;
@@ -112,6 +114,13 @@ public class FLVWriter implements ITagWriter {
 	private long metaPosition;
 	
 	/**
+	 * Append publish: We need direct access to file.   
+     *
+     * Fix by MHodgson - need direct access to file to append full duration metadata
+	 */
+	private File file;
+	
+	/**
 	 * Creates writer implementation with given file output stream and last tag
 	 *
 	 * @param fos               File output stream
@@ -119,19 +128,44 @@ public class FLVWriter implements ITagWriter {
 	 */
 	public FLVWriter(FileOutputStream fos, boolean append) {
 		this.fos = fos;
-		channel = this.fos.getChannel();
-		out = ByteBuffer.allocate(1024);
-		out.setAutoExpand(true);
 		this.append = append;
+		init();
 	}
 
+	/**
+	 * Creates writer implementation with given file and last tag
+     *
+     * Fix by MHodgson -> FLV.java uses this constructor so we have access to the file object
+	 *
+	 * @param file              File output stream
+     * @param lastTag           Last tag
+	 */
+	public FLVWriter(File file, boolean append) {
+		this.append = append;
+		this.file = file;
+		try {
+			this.fos = new FileOutputStream(file, true);
+			init();
+		} catch(Exception e) {
+			log.error("Failed to create FLV writer", e);
+		}
+	}
+
+	/**
+	 * Initialize the writer
+	 */
+	private void init() {
+		channel = this.fos.getChannel();
+		out = ByteBuffer.allocate(1024);
+		out.setAutoExpand(true);		
+	}
+	
 	/**
 	 * Writes the header bytes
 	 *
 	 * @throws IOException      Any I/O exception
 	 */
 	public void writeHeader() throws IOException {
-
 		out.put((byte) 0x46);
 		out.put((byte) 0x4C);
 		out.put((byte) 0x56);
@@ -235,7 +269,7 @@ public class FLVWriter implements ITagWriter {
 			videoCodecId = id & ITag.MASK_VIDEO_CODEC;
 		}
 		duration = Math.max(duration, tag.getTimestamp() + offset);
-
+		log.debug("Writer duration: {} offset: {}", duration, offset);	
 		// We add the tag size
 		out.clear();
 		out.putInt(tag.getBodySize() + 11);
@@ -255,10 +289,12 @@ public class FLVWriter implements ITagWriter {
 	/** {@inheritDoc}
 	 */
 	public void close() {
+		RandomAccessFile appender = null;
 		try {
 			if (metaPosition > 0) {
 				long oldPos = channel.position();
 				try {
+					log.debug("In the metadata writing (close) method - duration:{}", duration);					
 					channel.position(metaPosition);
 					writeMetadataTag(duration * 0.001, videoCodecId, audioCodecId);
 				} finally {
@@ -267,8 +303,28 @@ public class FLVWriter implements ITagWriter {
 			}
 			channel.close();
 			fos.close();
+
+			// Added by MHodgson -> here we open the file again and overwrite the metadata with the final duration
+			// I tried just writing to the existing fos but for some reason it doesn't overwrite in the right place....
+			if (append) {
+				appender = new RandomAccessFile(file, "rw");
+				FileChannel appenderChannel = appender.getChannel();
+				long oldPos = appenderChannel.position();
+				appenderChannel.position(13); // This is the position of the first tag
+				writeMetadataTag(duration * 0.001, videoCodecId, audioCodecId);
+				appenderChannel.position(oldPos);
+				appenderChannel.close();
+			}	
 		} catch (IOException e) {
-			log.error("FLVWriter :: close ::>\n", e);
+			log.error("IO error on close", e);
+		} finally {
+			if (appender != null) {
+				try {
+					appender.close();
+				} catch (IOException e) {
+					log.error("Error closing appender", e);
+				}
+			}
 		}
 
 	}
@@ -293,7 +349,7 @@ public class FLVWriter implements ITagWriter {
 		buf.setAutoExpand(true);
 		Output out = new Output(buf);
 		out.writeString("onMetaData");
-		Map<Object, Object> params = new HashMap<Object, Object>();
+		Map<Object, Object> params = new HashMap<Object, Object>(4);
 		params.put("duration", duration);
 		if (videoCodecId != null) {
 			params.put("videocodecid", videoCodecId.intValue());
