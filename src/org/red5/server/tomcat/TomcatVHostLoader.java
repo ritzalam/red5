@@ -27,6 +27,7 @@ import javax.management.ObjectName;
 import org.apache.catalina.Container;
 import org.apache.catalina.Host;
 import org.apache.catalina.LifecycleException;
+import org.apache.catalina.Valve;
 import org.apache.catalina.core.StandardContext;
 import org.apache.catalina.core.StandardHost;
 import org.red5.server.jmx.JMXAgent;
@@ -49,12 +50,14 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 	 */
 	protected String webappRoot;
 	
+	//the virtual hosts name
 	protected String name;
+	//the domain
 	protected String domain;	
 	
 	protected boolean autoDeploy = true;
 	protected boolean liveDeploy;
-	protected boolean startChildren;
+	protected boolean startChildren = true;
 	protected boolean unpackWARs = true;	
 	
 	/**
@@ -100,10 +103,10 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 			if (null == host.findChild(dirName)) {
 				if ("/root".equals(dirName) || "/root".equalsIgnoreCase(dirName)) {
 					log.debug("Adding ROOT context");
-					this.addContext("/", webappRoot + '/' + dirName);
+					this.addContext("/", webappRoot + dirName);
 				} else {
 					log.debug("Adding context from directory scan: {}", dirName);
-					this.addContext(dirName, webappRoot + '/' + dirName);
+					this.addContext(dirName, webappRoot + dirName);
 				}
 			}
 		}
@@ -153,7 +156,7 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 		//remove host
 		engine.removeChild(host);
 		//unregister jmx
-		JMXAgent.unregisterMBean(oName);
+		unregisterJMX();
 	}	
 	
 	/**
@@ -162,6 +165,7 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 	 * @return
 	 */
 	public Host createHost() {
+		log.debug("Creating host");
 		StandardHost stdHost = new StandardHost();
 		stdHost.setAppBase(webappRoot);
 		stdHost.setAutoDeploy(autoDeploy);
@@ -181,6 +185,69 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 		stdHost.setXmlValidation(false);
 		
 		return stdHost;
+	}
+	
+	/**
+	 * Adds an alias to the current host.
+	 * 
+	 * @param alias
+	 */
+	public void addAlias(String alias) {
+		log.debug("Adding alias: {}", alias);
+		host.addAlias(alias);
+	}	
+	
+	/**
+	 * Removes an alias from the current host.
+	 * 
+	 * @param alias
+	 */
+	public void removeAlias(String alias) {
+		log.debug("Removing alias: {}", alias);
+		String[] aliases = host.findAliases();
+		for (String s : aliases) {
+			if (alias.equals(s)) {
+				host.removeAlias(alias);
+				break;
+			}
+		}
+	}
+	
+	/**
+	 * Adds a valve to the current host.
+	 * 
+	 * @param valve
+	 */
+	public void addValve(Valve valve) {
+		log.debug("Adding valve: {}", valve);
+		log.debug("Valve info: {}", valve.getInfo());
+		((StandardHost) host).addValve(valve);
+	}
+	
+	/**
+	 * Removes a valve from the current host.
+	 * 
+	 * @param valveInfo
+	 */
+	public void removeValve(String valveInfo) {
+		log.debug("Removing valve: {}", valveInfo);
+		try {
+			String[] valveNames = ((StandardHost) host).getValveNames();
+			for (String s : valveNames) {
+				log.debug("Valve name: {}", s);
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		Valve[] valves = ((StandardHost) host).getValves();
+		for (Valve v : valves) {
+			log.debug("Valve: {}", v);
+			log.debug("Valve info: {}", v.getInfo());
+		}		
+		
+		//((StandardHost) host).removeValve(valve);	
 	}
 	
 	/**

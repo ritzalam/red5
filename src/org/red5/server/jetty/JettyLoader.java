@@ -21,14 +21,17 @@ package org.red5.server.jetty;
 
 import java.io.IOException;
 
+import org.apache.catalina.core.StandardContext;
 import org.mortbay.jetty.Handler;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.deployer.WebAppDeployer;
+import org.mortbay.jetty.handler.ContextHandler;
 import org.mortbay.jetty.handler.ContextHandlerCollection;
 import org.mortbay.jetty.handler.DefaultHandler;
 import org.mortbay.jetty.handler.HandlerCollection;
 import org.red5.server.LoaderBase;
 import org.red5.server.LoaderMBean;
+import org.red5.server.api.IApplicationContext;
 import org.red5.server.jmx.JMXAgent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,6 +71,28 @@ public class JettyLoader extends LoaderBase implements ApplicationContextAware, 
 	}
 
 	/**
+	 * Remove context from the current host.
+	 * 
+	 * @param path		Path
+	 */
+	public void removeContext(String path) {
+		Handler[] handlers = jetty.getHandlers();
+		for (Handler handler : handlers) {
+			if (handler instanceof ContextHandler && ((ContextHandler) handler).getContextPath().equals(path)) {
+				try {
+					((ContextHandler) handler).stop();
+					jetty.removeHandler(handler);
+					break;
+				} catch (Exception e) {
+					log.error("Could not remove context: {}", path, e);
+				}				
+			}
+		}
+		IApplicationContext ctx = LoaderBase.removeRed5ApplicationContext(path);
+		ctx.stop();
+	}		
+	
+	/**
 	 *
 	 */
 	@SuppressWarnings("all")
@@ -80,7 +105,7 @@ public class JettyLoader extends LoaderBase implements ApplicationContextAware, 
 			}
 			System.setProperty("red5.webapp.root", webappFolder);
 			
-			log.info("Loading jetty6 context from: " + jettyConfig);
+			log.info("Loading jetty context from: {}", jettyConfig);
 			ApplicationContext appCtx = new ClassPathXmlApplicationContext(
 					jettyConfig);
 			// Get server bean from BeanFactory
@@ -90,9 +115,8 @@ public class JettyLoader extends LoaderBase implements ApplicationContextAware, 
 			
 			// root location for servlet container
 			String serverRoot = System.getProperty("red5.root");
-			if (log.isDebugEnabled()) {
-				log.debug("Server root: " + serverRoot);
-			}
+			log.debug("Server root: {}", serverRoot);
+
 			// set in the system for tomcat classes
 			System.setProperty("jetty.home", serverRoot);
 			System.setProperty("jetty.class.path", serverRoot + "/lib");
@@ -115,9 +139,9 @@ public class JettyLoader extends LoaderBase implements ApplicationContextAware, 
 			try {
 				// Add web applications from web app root with web config
 				HandlerCollection contexts = (HandlerCollection) jetty.getChildHandlerByClass(ContextHandlerCollection.class);
-				if (contexts == null)
+				if (contexts == null) {
 					contexts = (HandlerCollection) jetty.getChildHandlerByClass(HandlerCollection.class);
-				
+				}
 				WebAppDeployer deployer = new WebAppDeployer();
 				deployer.setContexts(contexts);
 				deployer.setWebAppDir(webappFolder);

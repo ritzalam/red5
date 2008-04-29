@@ -84,7 +84,7 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMBea
 	}
 
 	/**
-	 * Setter for parent app context
+	 * Setter for parent application context
 	 * 
 	 * @param parentContext
 	 *            Parent Spring application context
@@ -186,8 +186,17 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMBea
 		ConfigurableBeanFactory factory = ((ConfigurableApplicationContext) applicationContext).getBeanFactory();
 		if (factory.containsSingleton(name)) {
 			log.debug("Context found in parent, destroying...");
-			factory.destroyBean(name, context);
+			FileSystemXmlApplicationContext ctx = (FileSystemXmlApplicationContext) factory.getSingleton(name);
+			if (ctx.isRunning()) {
+				ctx.stop();
+			}
+			ctx.close();
+			try {
+				factory.destroyBean(name, ctx);
+			} catch (Exception e) {
+			}
 		}
+		context = null;
 	}
 	
 	/**
@@ -199,5 +208,18 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMBea
 	 */
 	public ApplicationContext getContext(String name) {
 		return contextMap.get(name);
+	}
+
+	/**
+	 * Return parent context
+	 * 
+	 * @return parent application context
+	 */	
+	public ApplicationContext getParentContext() {
+		return parentContext;
+	}
+
+	public String getContextsConfig() {
+		return contextsConfig;
 	}
 }

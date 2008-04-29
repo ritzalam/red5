@@ -19,6 +19,7 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import org.springframework.context.ApplicationContext;
 
 /**
  * Red5 applications loader
@@ -29,8 +30,16 @@ public interface ContextLoaderMBean {
 
 	public void init() throws Exception;
 
-	public void loadContext(String name, String config);
+	public void uninit();	
 
+	public ApplicationContext getContext(String name);
+
+	public ApplicationContext getParentContext();
+
+	public String getContextsConfig();
+
+	public void loadContext(String name, String config);
+	
 	public void unloadContext(String name);
 	
 }

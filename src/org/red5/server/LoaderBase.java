@@ -75,7 +75,7 @@ public class LoaderBase {
 	}
 	
 	/**
-	 * Getter for the Red5 application context.
+	 * Getter for a Red5 application context.
 	 * 
 	 * @return Red5 application context 
 	 */
@@ -84,7 +84,7 @@ public class LoaderBase {
 	}
 	
 	/**
-	 * Setter for the Red5 application context.
+	 * Setter for a Red5 application context.
 	 * 
 	 * @param context Red5 application context
 	 */
@@ -94,6 +94,15 @@ public class LoaderBase {
 		} else {
 			red5AppCtx.remove(path);
 		}
+	}
+	
+	/**
+	 * Remover for a Red5 application context.
+	 * 
+	 * @return Red5 application context 
+	 */
+	public static IApplicationContext removeRed5ApplicationContext(String path) {
+		return red5AppCtx.remove(path);
 	}
 	
 	/**

@@ -1,5 +1,7 @@
 package org.red5.server.tomcat;
 
+import org.apache.catalina.Valve;
+
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  *
@@ -39,6 +41,18 @@ public interface TomcatVHostLoaderMBean {
 
 	public void setDomain(String domain);
 
+	public void addAlias(String alias);
+
+	public void removeAlias(String alias);
+	
+	public org.apache.catalina.Context addContext(String path, String docBase);
+
+	public void removeContext(String path);
+	
+	public void addValve(Valve valve);
+
+	public void removeValve(String valveInfo);	
+	
 	public boolean getLiveDeploy();
 
 	public void setLiveDeploy(boolean liveDeploy);

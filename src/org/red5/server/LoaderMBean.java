@@ -32,4 +32,6 @@ public interface LoaderMBean {
 
 	public void shutdown();
 
+	public void removeContext(String path);
+
 }

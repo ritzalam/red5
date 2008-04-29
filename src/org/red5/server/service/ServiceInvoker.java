@@ -103,21 +103,17 @@ public class ServiceInvoker implements IServiceInvoker {
 	/** {@inheritDoc} */
 	public boolean invoke(IServiceCall call, IScope scope) {
 		String serviceName = call.getServiceName();
-		if (log.isDebugEnabled()) {
-			log.debug("Service name " + serviceName);
-		}
+		log.debug("Service name {}", serviceName);
 		Object service = getServiceHandler(scope, serviceName);
 		if (service == null) {
 			// Exception must be thrown if service was not found
 			call.setException(new ServiceNotFoundException(serviceName));
 			// Set call status
 			call.setStatus(Call.STATUS_SERVICE_NOT_FOUND);
-			log.warn("Service not found: " + serviceName);
+			log.warn("Service not found: {}", serviceName);
 			return false;
 		} else {
-			if (log.isDebugEnabled()) {
-				log.debug("Service found: " + serviceName);
-			}
+			log.debug("Service found: {}", serviceName);
 		}
 		// Invoke if everything is ok
 		return invoke(call, service);
@@ -134,9 +130,7 @@ public class ServiceInvoker implements IServiceInvoker {
 			argsWithConnection = new Object[args.length + 1];
 			argsWithConnection[0] = conn;
 			for (int i = 0; i < args.length; i++) {
-				if (log.isDebugEnabled()) {
-					log.debug("   " + i + " => " + args[i]);
-				}
+				log.debug("   {} => {}", i, args[i]);
 				argsWithConnection[i + 1] = args[i];
 			}
 		} else {
@@ -163,10 +157,7 @@ public class ServiceInvoker implements IServiceInvoker {
 					methodResult = ServiceUtils.findMethodWithListParameters(
 							service, methodName, args);
 					if (methodResult.length == 0 || methodResult[0] == null) {
-						if (log.isDebugEnabled()) {
-							log.error("Method " + methodName + " with parameters " +
-									(args == null ? Collections.EMPTY_LIST : Arrays.asList(args)) + " not found in " + service);
-						}
+						log.error("Method {} with parameters {} not found in {}", new Object[]{methodName, (args == null ? Collections.EMPTY_LIST : Arrays.asList(args)), service});
 						call.setStatus(Call.STATUS_METHOD_NOT_FOUND);
 						if (args != null && args.length > 0) {
 							call.setException(new MethodNotFoundException(
@@ -188,9 +179,7 @@ public class ServiceInvoker implements IServiceInvoker {
 		try {
 			if (method.isAnnotationPresent(DeclarePrivate.class)) {
 				// Method may not be called by clients.
-				if (log.isDebugEnabled()) {
-					log.debug("Method " + method + " is declared private.");
-				}
+				log.debug("Method {} is declared private.", method);
 				throw new NotAllowedException("you are not allowed to execute this method");
 			}
 			
@@ -198,26 +187,19 @@ public class ServiceInvoker implements IServiceInvoker {
 			if (annotation != null) {
 				if (!conn.getClient().hasPermission(conn, annotation.permission())) {
 					// Client doesn't have required permission
-					if (log.isDebugEnabled()) {
-						log.debug("Client " + conn.getClient() +
-								" doesn't have required permission " + annotation.permission() +
-								" to call " + method);
-					}
+					log.debug("Client {} doesn't have required permission {} to call {}", new Object[]{conn.getClient(), annotation.permission(), method});
 					throw new NotAllowedException("you are not allowed to execute this method");
 				}
 			}
 			
-			if (log.isDebugEnabled()) {
-				log.debug("Invoking method: " + method.toString());
-			}
+			log.debug("Invoking method: {}", method.toString());
+
 			if (method.getReturnType() == Void.class) {
 				method.invoke(service, params);
 				call.setStatus(Call.STATUS_SUCCESS_VOID);
 			} else {
 				result = method.invoke(service, params);
-				if (log.isDebugEnabled()) {
-					log.debug("result: " + result);
-				}
+				log.debug("result: {}", result);
 				call.setStatus(result == null ? Call.STATUS_SUCCESS_NULL
 						: Call.STATUS_SUCCESS_RESULT);
 			}
@@ -231,7 +213,7 @@ public class ServiceInvoker implements IServiceInvoker {
 		} catch (IllegalAccessException accessEx) {
 			call.setException(accessEx);
 			call.setStatus(Call.STATUS_ACCESS_DENIED);
-			log.error("Error executing call: " + call);
+			log.error("Error executing call: {}", call);
 			log.error("Service invocation error", accessEx);
 			return false;
 		} catch (InvocationTargetException invocationEx) {
@@ -239,14 +221,14 @@ public class ServiceInvoker implements IServiceInvoker {
 			call.setStatus(Call.STATUS_INVOCATION_EXCEPTION);
 			if (!(invocationEx.getCause() instanceof ClientDetailsException)) {
 				// Only log if not handled by client
-				log.error("Error executing call: " + call);
+				log.error("Error executing call: {}", call);
 				log.error("Service invocation error", invocationEx);
 			}
 			return false;
 		} catch (Exception ex) {
 			call.setException(ex);
 			call.setStatus(Call.STATUS_GENERAL_EXCEPTION);
-			log.error("Error executing call: " + call);
+			log.error("Error executing call: {}", call);
 			log.error("Service invocation error", ex);
 			return false;
 		}

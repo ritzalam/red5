@@ -63,9 +63,7 @@ public class ServiceUtils {
 		int numParams = (args == null) ? 0 : args.length;
 		List methods = ConversionUtils.findMethodsByNameAndNumParams(service,
 				methodName, numParams);
-		if (log.isDebugEnabled()) {
-			log.debug("Found " + methods.size() + " methods");
-		}
+		log.debug("Found {} methods", methods.size());
 		if (methods.isEmpty()) {
 			return new Object[] { null, null };
 		} else if (methods.size() > 1) {
@@ -110,7 +108,7 @@ public class ServiceUtils {
 
 				return new Object[] { method, params };
 			} catch (Exception ex) {
-				log.debug("Parameter conversion failed for " + method);
+				log.debug("Parameter conversion failed for {}", method);
 			}
 		}
 
@@ -147,9 +145,7 @@ public class ServiceUtils {
 			String methodName, Object[] args) {
 		List methods = ConversionUtils.findMethodsByNameAndNumParams(service,
 				methodName, 1);
-		if (log.isDebugEnabled()) {
-			log.debug("Found " + methods.size() + " methods");
-		}
+		log.debug("Found {} methods", methods.size());
 		if (methods.isEmpty()) {
 			return new Object[] { null, null };
 		} else if (methods.size() > 1) {

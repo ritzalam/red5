@@ -30,10 +30,12 @@ import org.apache.catalina.Host;
 import org.apache.catalina.Realm;
 import org.apache.catalina.Valve;
 import org.apache.catalina.connector.Connector;
+import org.apache.catalina.core.StandardContext;
 import org.apache.catalina.core.StandardHost;
 import org.apache.catalina.startup.Embedded;
 import org.red5.server.LoaderBase;
 import org.red5.server.LoaderMBean;
+import org.red5.server.api.IApplicationContext;
 import org.red5.server.jmx.JMXAgent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -117,18 +119,42 @@ public class TomcatLoader extends LoaderBase implements
 	protected Realm realm;
 
 	/**
-	 * Add context from path and docbase.
+	 * Add context for path and docbase to current host.
 	 * 
 	 * @param path		Path
-	 * @param docBase	Docbase
+	 * @param docBase	Document base
 	 * @return			Catalina context (that is, web application)
 	 */
 	public org.apache.catalina.Context addContext(String path, String docBase) {
+		log.debug("Add context - path: {} docbase: {}", path, docBase);
 		org.apache.catalina.Context c = embedded.createContext(path, docBase);
+		log.debug("Context name: {}", c.getName());
 		host.addChild(c);
 		LoaderBase.setRed5ApplicationContext(path, new TomcatApplicationContext(c));
 		return c;
 	}
+	
+	/**
+	 * Remove context from the current host.
+	 * 
+	 * @param path		Path
+	 */
+	public void removeContext(String path) {
+		Container[] children = host.findChildren();
+		for (Container c : children) {
+			if (c instanceof StandardContext && c.getName().equals(path)) {
+				try {
+					((StandardContext) c).stop();
+					host.removeChild(c);			
+					break;
+				} catch (Exception e) {
+					log.error("Could not remove context: {}", c.getName(), e);
+				}				
+			}
+		}
+		IApplicationContext ctx = LoaderBase.removeRed5ApplicationContext(path);
+		ctx.stop();
+	}	
 
 	/**
 	 * Get base host.
@@ -207,10 +233,10 @@ public class TomcatLoader extends LoaderBase implements
 			if (null == host.findChild(dirName)) {
 				if ("/root".equals(dirName) || "/root".equalsIgnoreCase(dirName)) {
 					log.debug("Adding ROOT context");
-					this.addContext("/", webappFolder + '/' + dirName);
+					this.addContext("/", webappFolder + dirName);
 				} else {
 					log.debug("Adding context from directory scan: {}", dirName);
-					this.addContext(dirName, webappFolder + '/' + dirName);
+					this.addContext(dirName, webappFolder + dirName);
 				}
 			}
 		}
