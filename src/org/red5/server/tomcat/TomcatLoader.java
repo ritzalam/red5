@@ -82,9 +82,9 @@ public class TomcatLoader extends LoaderBase implements
 		log.info("Init tomcat");
 		// root location for servlet container
 		String serverRoot = System.getProperty("red5.root");
-		log.info("Server root: " + serverRoot);
+		log.info("Server root: {}", serverRoot);
 		String confRoot = System.getProperty("red5.config_root");
-		log.info("Config root: " + confRoot);
+		log.info("Config root: {}", confRoot);
 		// set in the system for tomcat classes
 		System.setProperty("tomcat.home", serverRoot);
 		System.setProperty("catalina.home", serverRoot);

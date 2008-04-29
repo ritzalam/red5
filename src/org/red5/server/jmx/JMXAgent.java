@@ -271,7 +271,7 @@ public class JMXAgent implements NotificationListener {
 	}
 
 	public void handleNotification(Notification notification, Object handback) {
-		log.debug("handleNotification " + notification.getMessage());
+		log.debug("handleNotification {}", notification.getMessage());
 	}
 
 	public void init() {
