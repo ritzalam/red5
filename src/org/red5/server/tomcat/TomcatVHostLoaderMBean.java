@@ -1,6 +1,7 @@
 package org.red5.server.tomcat;
 
 import org.apache.catalina.Valve;
+import org.apache.catalina.Host;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -36,6 +37,8 @@ public interface TomcatVHostLoaderMBean {
 	public boolean getAutoDeploy();
 
 	public void setAutoDeploy(boolean autoDeploy);
+
+    public Host getHost();
 
 	public String getDomain();
 

@@ -55,10 +55,10 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 	//the domain
 	protected String domain;	
 	
-	protected boolean autoDeploy = true;
+	protected boolean autoDeploy;
 	protected boolean liveDeploy;
 	protected boolean startChildren = true;
-	protected boolean unpackWARs = true;	
+	protected boolean unpackWARs;	
 	
 	/**
 	 * MBean object name used for de/registration purposes.
@@ -185,6 +185,15 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 		stdHost.setXmlValidation(false);
 		
 		return stdHost;
+	}
+	
+	/**
+	 * Returns the current host.
+	 *
+	 * @return
+	 */
+	public Host getHost() {
+		return host;
 	}
 	
 	/**

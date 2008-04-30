@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.catalina.Container;
+import org.apache.catalina.Context;
 import org.apache.catalina.Engine;
 import org.apache.catalina.Host;
 import org.apache.catalina.Realm;
@@ -125,7 +126,7 @@ public class TomcatLoader extends LoaderBase implements
 	 * @param docBase	Document base
 	 * @return			Catalina context (that is, web application)
 	 */
-	public org.apache.catalina.Context addContext(String path, String docBase) {
+	public Context addContext(String path, String docBase) {
 		log.debug("Add context - path: {} docbase: {}", path, docBase);
 		org.apache.catalina.Context c = embedded.createContext(path, docBase);
 		log.debug("Context name: {}", c.getName());
@@ -153,7 +154,11 @@ public class TomcatLoader extends LoaderBase implements
 			}
 		}
 		IApplicationContext ctx = LoaderBase.removeRed5ApplicationContext(path);
-		ctx.stop();
+		if (ctx != null) {
+			ctx.stop();			
+		} else {
+			log.warn("Red5 application context could not be stopped, it was null for path: {}", path);
+		}
 	}	
 
 	/**
