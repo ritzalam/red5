@@ -227,21 +227,28 @@ public class WebScope extends Scope implements ServletContextAware {
 				server.removeMapping(element, getName());
 			}
 		}
+		//check for null
+		if (appContext == null) {
+			log.debug("Application context is null, trying retrieve from loader");
+			appContext = LoaderBase.getRed5ApplicationContext(contextPath);			
+		}
+		//try to stop the app context
 		if (appContext != null) {
 			log.debug("Stopping app context");
 			appContext.stop();
 		} else {
-			log.debug("Cannot stop app context, its null");
+			log.debug("Application context is null, could not be stopped");
 		}
 		// Various cleanup tasks
 		setStore(null);
-		super.setParent(null);
 		setServletContext(null);
 		setServer(null);
 		setName(null);
 		appContext = null;
 		registered = false;
 		shuttingDown = false;
+		//is this needed?
+		//super.setParent(null);
 	}
 
 	/** {@inheritDoc} */

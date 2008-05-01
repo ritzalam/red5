@@ -185,7 +185,7 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMBea
 		log.debug("Context from map: {}", context);
 		ConfigurableBeanFactory factory = ((ConfigurableApplicationContext) applicationContext).getBeanFactory();
 		if (factory.containsSingleton(name)) {
-			log.debug("Context found in parent, destroying...");
+			log.debug("Context found in parent, destroying: {}", name);
 			FileSystemXmlApplicationContext ctx = (FileSystemXmlApplicationContext) factory.getSingleton(name);
 			if (ctx.isRunning()) {
 				ctx.stop();

@@ -40,8 +40,6 @@ import org.red5.server.api.IApplicationContext;
 import org.red5.server.jmx.JMXAgent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
 /**
@@ -58,7 +56,7 @@ public class TomcatLoader extends LoaderBase implements
 		/**
 		 * Check whether file matches filter rules
 		 * 
-		 * @param dir	Dir
+		 * @param dir	Directory
 		 * @param name	File name
 		 * @return true If file does match filter rules, false otherwise
 		 */
@@ -68,15 +66,12 @@ public class TomcatLoader extends LoaderBase implements
 			log.debug("Constructed dir: {}", f.getAbsolutePath());
 			// filter out all non-directories that are hidden and/or not
 			// readable
-			return f.isDirectory() && f.canRead() && !f.isHidden();
+			boolean result = f.isDirectory() && f.canRead() && !f.isHidden();
+			//nullify
+			f = null;
+			return result;
 		}
 	}
-
-	/**
-	 * We store the application context in a ThreadLocal so we can access it
-	 * later.
-	 */
-	protected static ThreadLocal<ApplicationContext> applicationContext = new ThreadLocal<ApplicationContext>();
 
 	// Initialize Logging
 	protected static Logger log = LoggerFactory.getLogger(TomcatLoader.class);
@@ -140,6 +135,7 @@ public class TomcatLoader extends LoaderBase implements
 	 * 
 	 * @param path		Path
 	 */
+	@Override
 	public void removeContext(String path) {
 		Container[] children = host.findChildren();
 		for (Container c : children) {
@@ -212,12 +208,6 @@ public class TomcatLoader extends LoaderBase implements
 	public void init() {
 		log.info("Loading tomcat context");
 
-//		try {
-//			getApplicationContext();
-//		} catch (Exception e) {
-//			log.error("Error loading tomcat configuration", e);
-//		}
-
 		if (webappFolder == null) {
 			// Use default webapps directory
 			webappFolder = System.getProperty("red5.root") + "/webapps";
@@ -268,7 +258,7 @@ public class TomcatLoader extends LoaderBase implements
 		// associated with Engine
 		embedded.addConnector(connector);
 
-		setApplicationLoader(new TomcatApplicationLoader(embedded, host, applicationContext.get()));
+		LoaderBase.setApplicationLoader(new TomcatApplicationLoader(embedded, host, applicationContext));
 
 		// Start server
 		try {
@@ -279,20 +269,6 @@ public class TomcatLoader extends LoaderBase implements
 		} finally {
 			registerJMX();		
 		}
-	}
-
-	/**
-	 * Setter for application context.
-	 * 
-	 * @param context
-	 *            Application context
-	 * @throws BeansException
-	 *             Abstract superclass for all exceptions thrown in the beans
-	 *             package and subpackages
-	 */
-	public void setApplicationContext(ApplicationContext context)
-			throws BeansException {
-		applicationContext.set(context);
 	}
 
 	/**
@@ -351,7 +327,7 @@ public class TomcatLoader extends LoaderBase implements
 	 */
 	public void setEmbedded(Embedded embedded) {
 		log.info("Setting embedded: {}", embedded.getClass().getName());
-		this.embedded = embedded;
+		TomcatLoader.embedded = embedded;
 	}
 
 	/**
@@ -361,7 +337,7 @@ public class TomcatLoader extends LoaderBase implements
 	 */
 	public void setEngine(Engine engine) {
 		log.info("Setting engine: {}", engine.getClass().getName());
-		this.engine = engine;
+		TomcatLoader.engine = engine;
 	}
 	
 	/**

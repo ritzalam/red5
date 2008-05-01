@@ -832,9 +832,9 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 */
 	protected Map<String, Object> getServiceHandlers(boolean allowCreate) {
 		if (serviceHandlers == null) {
-			if (!allowCreate)
+			if (!allowCreate) {
 				return null;
-
+			}
 			// Only synchronize if potentially needs to be created
 			synchronized (this) {
 				if (serviceHandlers == null) {
@@ -1046,6 +1046,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 *            Child scope to remove
 	 */
 	public void removeChildScope(IBasicScope scope) {
+		log.debug("Remove child scope: {}" , scope);
 		if (scope instanceof IScope) {
 			if (hasHandler()) {
 				getHandler().stop((IScope) scope);
@@ -1094,6 +1095,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 *            Context object
 	 */
 	public void setContext(IContext context) {
+		log.debug("Set context: {}", context);
 		this.context = context;
 	}
 
@@ -1124,6 +1126,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 *            Event handler
 	 */
 	public void setHandler(IScopeHandler handler) {
+		log.debug("Set handler: {}", handler);
 		this.handler = handler;
 		if (handler instanceof IScopeAware) {
 			((IScopeAware) handler).setScope(this);
@@ -1138,6 +1141,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 */
 	@Override
 	public void setName(String name) {
+		log.debug("Set name: {}", name);
 		if (oName != null) {
 			JMXAgent.unregisterMBean(oName);
 			oName = null;
@@ -1168,6 +1172,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 *            Parent scope
 	 */
 	public void setParent(IScope parent) {
+		log.debug("Set parent scope: {}", parent);
 		this.parent = parent;
 	}
 

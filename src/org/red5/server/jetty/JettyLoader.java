@@ -21,7 +21,6 @@ package org.red5.server.jetty;
 
 import java.io.IOException;
 
-import org.apache.catalina.core.StandardContext;
 import org.mortbay.jetty.Handler;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.deployer.WebAppDeployer;
@@ -35,15 +34,13 @@ import org.red5.server.api.IApplicationContext;
 import org.red5.server.jmx.JMXAgent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
  * Class that loads Red5 applications using Jetty.
  */
-public class JettyLoader extends LoaderBase implements ApplicationContextAware, LoaderMBean {
+public class JettyLoader extends LoaderBase implements LoaderMBean {
 
 	/**
 	 *  Logger
@@ -65,16 +62,12 @@ public class JettyLoader extends LoaderBase implements ApplicationContextAware, 
 	 */
 	protected String jettyConfig = "classpath:/jetty.xml";
 
-	{
-		JMXAgent.registerMBean(this, this.getClass().getName(),
-				LoaderMBean.class);
-	}
-
 	/**
 	 * Remove context from the current host.
 	 * 
 	 * @param path		Path
 	 */
+	@Override
 	public void removeContext(String path) {
 		Handler[] handlers = jetty.getHandlers();
 		for (Handler handler : handlers) {
@@ -89,7 +82,11 @@ public class JettyLoader extends LoaderBase implements ApplicationContextAware, 
 			}
 		}
 		IApplicationContext ctx = LoaderBase.removeRed5ApplicationContext(path);
-		ctx.stop();
+		if (ctx != null) {
+			ctx.stop();			
+		} else {
+			log.warn("Red5 application context could not be stopped, it was null for path: {}", path);
+		}
 	}		
 	
 	/**
@@ -111,7 +108,7 @@ public class JettyLoader extends LoaderBase implements ApplicationContextAware, 
 			// Get server bean from BeanFactory
 			jetty = (Server) appCtx.getBean("Server");
 
-			setApplicationLoader(new JettyApplicationLoader(jetty, applicationContext.get()));
+			LoaderBase.setApplicationLoader(new JettyApplicationLoader(jetty, applicationContext));
 			
 			// root location for servlet container
 			String serverRoot = System.getProperty("red5.root");
@@ -150,10 +147,8 @@ public class JettyLoader extends LoaderBase implements ApplicationContextAware, 
 				deployer.setExtract(true);
 				deployer.setParentLoaderPriority(true);
 				deployer.start();
-			} catch (IOException e) {
-				log.error("{}", e);
 			} catch (Exception e) {
-				log.error("{}", e);
+				log.error("Error deploying web applications", e);
 			}
 
 			// Start Jetty
@@ -161,20 +156,16 @@ public class JettyLoader extends LoaderBase implements ApplicationContextAware, 
 
 		} catch (Exception e) {
 			log.error("Error loading jetty", e);
+		} finally {
+			registerJMX();
 		}
 
 	}
 
-	/**
-	 * App context
-	 * @param context           App context
-	 * @throws BeansException   Bean exception
-	 */
-	public void setApplicationContext(ApplicationContext context)
-			throws BeansException {
-		applicationContext.set(context);
-	}
-
+	public void registerJMX() {
+		JMXAgent.registerMBean(this, this.getClass().getName(),	LoaderMBean.class);	
+	}	
+	
 	/**
 	 * Shut server down
 	 */

@@ -122,7 +122,7 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 		engine.addChild(host);
 
 		//may not have to do this step for every host
-		LoaderBase.setApplicationLoader(new TomcatApplicationLoader(embedded, host, applicationContext.get()));
+		LoaderBase.setApplicationLoader(new TomcatApplicationLoader(embedded, host, applicationContext));
 				
 	}
 
@@ -257,6 +257,7 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 			log.debug("Valve info: {}", v.getInfo());
 		}		
 		
+		//TODO: fix removing valves
 		//((StandardHost) host).removeValve(valve);	
 	}
 	
