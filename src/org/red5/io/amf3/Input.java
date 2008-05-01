@@ -53,7 +53,6 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 * Holds informations about already deserialized classes.
 	 */
 	protected class ClassReference {
-		
 		/** Name of the deserialized class. */
 		protected String className;
 		/** Type of the class. */
@@ -281,7 +280,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		}
 		//if the refs are empty an IndexOutOfBoundsEx will be thrown
 		if (stringReferences.isEmpty()) {
-			log.warn("String reference list is empty");
+			log.debug("String reference list is empty");
 		}
 		if ((len & 1) == 0) {
 			// Reference

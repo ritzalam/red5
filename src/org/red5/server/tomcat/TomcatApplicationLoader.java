@@ -24,6 +24,8 @@ import org.apache.catalina.Host;
 import org.apache.catalina.startup.Embedded;
 import org.red5.server.LoaderBase;
 import org.red5.server.api.IApplicationLoader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 
 /**
@@ -34,6 +36,9 @@ import org.springframework.context.ApplicationContext;
  */
 public class TomcatApplicationLoader implements IApplicationLoader {
 
+	// Initialize Logging
+	protected static Logger log = LoggerFactory.getLogger(TomcatApplicationLoader.class);	
+	
 	/** Store reference to embedded Tomcat engine. */
 	private Embedded embedded;
 	
@@ -57,19 +62,38 @@ public class TomcatApplicationLoader implements IApplicationLoader {
 
 	/** {@inheritDoc} */
 	public ApplicationContext getRootContext() {
+		log.debug("getRootContext");
 		return rootCtx;
 	}
 
 	/** {@inheritDoc} */
 	public void loadApplication(String contextPath, String virtualHosts, String directory)
 			throws Exception {
+		log.debug("Load application - context path: {} directory: {} virtual hosts: {}", new Object[]{contextPath, directory, virtualHosts});
 		if (directory.startsWith("file:")) {
 			directory = directory.substring(5);
 		}
-		// TODO: evaluate virtual hosts
-		Context c = embedded.createContext(contextPath, directory);
-		LoaderBase.setRed5ApplicationContext(contextPath, new TomcatApplicationContext(c));
-		host.addChild(c);
+		if (host.findChild(contextPath) == null) {
+			Context c = embedded.createContext(contextPath, directory);
+			LoaderBase.setRed5ApplicationContext(contextPath, new TomcatApplicationContext(c));
+			host.addChild(c);
+			//add virtual hosts / aliases
+			String[] vhosts = virtualHosts.split(",");
+			for (String s : vhosts) {
+				if (!"*".equals(s)) {
+					//if theres a port, strip it
+					if (s.indexOf(':') == -1) {
+						host.addAlias(s);						
+					} else {
+						host.addAlias(s.split(":")[0]);
+					}
+				} else {
+					log.warn("\"*\" based virtual hosts not supported");
+				}
+			}
+		} else {
+			log.warn("Context path already exists with host");
+		}
 	}
 
 }

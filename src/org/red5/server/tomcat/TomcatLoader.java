@@ -212,11 +212,11 @@ public class TomcatLoader extends LoaderBase implements
 	public void init() {
 		log.info("Loading tomcat context");
 
-		try {
-			getApplicationContext();
-		} catch (Exception e) {
-			log.error("Error loading tomcat configuration", e);
-		}
+//		try {
+//			getApplicationContext();
+//		} catch (Exception e) {
+//			log.error("Error loading tomcat configuration", e);
+//		}
 
 		if (webappFolder == null) {
 			// Use default webapps directory

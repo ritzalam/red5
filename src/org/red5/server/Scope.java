@@ -25,8 +25,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import javax.management.MalformedObjectNameException;
@@ -67,8 +67,6 @@ import org.springframework.core.style.ToStringCreator;
  */
 public class Scope extends BasicScope implements IScope, IScopeStatistics,
 		ScopeMBean {
-
-	private static final Logger logger = LoggerFactory.getLogger(Scope.class);
 
 	/**
 	 * Iterates through connections
@@ -399,9 +397,9 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 * @return <code>true</code> on success, <code>false</code> otherwise
 	 */
 	public boolean connect(IConnection conn, Object[] params) {
-		logger.debug("Has connection: {}", (conn != null));		
-		logger.debug("Has handler: {}", (handler != null));
-		logger.debug("Has parent: {}", (parent != null));		
+//		logger.debug("Has connection: {}", (conn != null));		
+//		logger.debug("Has handler: {}", (handler != null));
+//		logger.debug("Has parent: {}", (parent != null));		
 		if (hasParent() && !parent.connect(conn, params)) {
 			return false;
 		}
@@ -462,12 +460,21 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 * Destroys scope
 	 */
 	public void destroy() {
+		log.debug("Destroy scope");
 		if (hasParent()) {
 			parent.removeChildScope(this);
 		}
 		if (hasHandler()) {
 			handler.stop(this);
-			// TODO: kill all child scopes
+		}
+		// TODO: kill all child scopes
+		Set<Map.Entry<String, IBasicScope>> entries = children.entrySet();
+		for (Map.Entry<String, IBasicScope> entry : entries) {
+			log.debug("Stopping child scope: {}", entry.getKey());
+			IBasicScope basic = entry.getValue();
+			if (basic instanceof Scope) {
+				((Scope) basic).uninit();
+			}
 		}
 	}
 
@@ -933,6 +940,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 * Initialization actions, start if autostart is set to <code>true</code>
 	 */
 	public void init() {
+		log.debug("Init scope");
 		if (hasParent()) {
 			if (!parent.hasChildScope(name)) {
 				if (!parent.addChildScope(this)) {
@@ -949,6 +957,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 * Uninitialize scope and unregister from parent.
 	 */
 	public void uninit() {
+		log.debug("Un-init scope");
 		for (IBasicScope child : children.values()) {
 			if (child instanceof Scope) {
 				((Scope) child).uninit();
@@ -1187,6 +1196,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 *         returned true, <code>false</code> otherwise
 	 */
 	public synchronized boolean start() {
+		log.debug("Start scope");
 		boolean result = false;
 		if (enabled && !running) {
 			if (hasHandler()) {
@@ -1213,6 +1223,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 * Stops scope
 	 */
 	public synchronized void stop() {
+		log.debug("Stop scope");
 		if (enabled && running && hasHandler()) {
 			try {
 				// if we dont have a handler of our own dont try to stop it

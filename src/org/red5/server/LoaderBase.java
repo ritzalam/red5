@@ -25,6 +25,8 @@ import java.util.Map;
 
 import org.red5.server.api.IApplicationContext;
 import org.red5.server.api.IApplicationLoader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 
 /**
@@ -36,6 +38,8 @@ import org.springframework.context.ApplicationContext;
  */
 public class LoaderBase {
 
+	private static Logger log = LoggerFactory.getLogger(LoaderBase.class);
+	
 	/**
 	 * We store the application context in a ThreadLocal so we can access it later.
 	 */
@@ -62,6 +66,7 @@ public class LoaderBase {
 	 * @return Application loader
 	 */ 
 	public static IApplicationLoader getApplicationLoader() {
+		log.debug("getApplicationLoader");
 		return loader.get();
 	}
 	

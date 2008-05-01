@@ -184,9 +184,10 @@ public class WebScope extends Scope implements ServletContextAware {
 	 */
 	public synchronized void register() {
 		if (registered) {
-			// Already registered
+			log.info("Webscope already registered");
 			return;
 		}
+		log.debug("Webscope registering: {}", contextPath);		
 		appContext = LoaderBase.getRed5ApplicationContext(contextPath);
 		appLoader = LoaderBase.getApplicationLoader();
 		// Release references
@@ -208,10 +209,10 @@ public class WebScope extends Scope implements ServletContextAware {
 	 */
 	public synchronized void unregister() {
 		if (!registered) {
-			// Not registered
+			log.info("Webscope not registered");
 			return;
 		}
-
+		log.debug("Webscope un-registering: {}", contextPath);	
 		shuttingDown = true;
 		keepOnDisconnect = false;
 		uninit();
@@ -227,7 +228,10 @@ public class WebScope extends Scope implements ServletContextAware {
 			}
 		}
 		if (appContext != null) {
+			log.debug("Stopping app context");
 			appContext.stop();
+		} else {
+			log.debug("Cannot stop app context, its null");
 		}
 		// Various cleanup tasks
 		setStore(null);

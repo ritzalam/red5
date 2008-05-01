@@ -30,6 +30,7 @@ import org.apache.catalina.LifecycleException;
 import org.apache.catalina.Valve;
 import org.apache.catalina.core.StandardContext;
 import org.apache.catalina.core.StandardHost;
+import org.red5.server.LoaderBase;
 import org.red5.server.jmx.JMXAgent;
 import org.red5.server.jmx.JMXFactory;
 import org.slf4j.Logger;
@@ -121,7 +122,7 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 		engine.addChild(host);
 
 		//may not have to do this step for every host
-		//setApplicationLoader(new TomcatApplicationLoader(embedded, host, applicationContext.get()));
+		LoaderBase.setApplicationLoader(new TomcatApplicationLoader(embedded, host, applicationContext.get()));
 				
 	}
 
