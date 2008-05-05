@@ -25,7 +25,9 @@ import org.apache.catalina.Context;
 import org.apache.catalina.Host;
 import org.apache.catalina.Server;
 import org.apache.catalina.Wrapper;
+import org.red5.server.LoaderMBean;
 import org.red5.server.api.IServer;
+import org.red5.server.jmx.JMXAgent;
 import org.red5.server.tomcat.TomcatLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,14 +80,6 @@ public class TomcatRTMPTLoader extends TomcatLoader {
 	public void init() {
 		log.info("Loading RTMPT context");
 
-		try {
-			getApplicationContext();
-		} catch (Exception e) {
-			log.error("Error loading tomcat configuration", e);
-		}
-
-		// embedded.setRealm(realm);
-
 		host.addChild(context);
 		log.debug("Null check - engine: {} host: {}", (null == engine), (null == host));
 
@@ -104,18 +98,10 @@ public class TomcatRTMPTLoader extends TomcatLoader {
 			embedded.start();
 		} catch (org.apache.catalina.LifecycleException e) {
 			log.error("Error loading tomcat", e);
+		} finally {
+			registerJMX();		
 		}
 
-	}
-
-	/**
-	 * Set a host
-	 * 
-	 * @param host
-	 */
-	public void setHost(Host host) {
-		log.debug("RTMPT setHost");
-		this.host = host;
 	}
 
 	/**
@@ -153,4 +139,8 @@ public class TomcatRTMPTLoader extends TomcatLoader {
 		}
 	}
 
+	public void registerJMX() {
+		JMXAgent.registerMBean(this, this.getClass().getName(),	LoaderMBean.class);	
+	}	
+	
 }

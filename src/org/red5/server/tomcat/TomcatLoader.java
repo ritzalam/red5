@@ -49,6 +49,7 @@ import org.springframework.context.ApplicationContextAware;
  */
 public class TomcatLoader extends LoaderBase implements
 		ApplicationContextAware, LoaderMBean {
+	
 	/**
 	 * Filters directory content
 	 */
