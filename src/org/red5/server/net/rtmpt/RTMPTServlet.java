@@ -177,9 +177,7 @@ public class RTMPTServlet extends HttpServlet {
 		resp.setHeader("Connection", "Keep-Alive");
 		resp.setHeader("Cache-Control", "no-cache");
 		resp.setContentType(CONTENT_TYPE);
-		if (log.isDebugEnabled()) {
-			log.debug("Sending " + buffer.limit() + " bytes.");
-		}
+		log.debug("Sending {} bytes", buffer.limit());
 		resp.setContentLength(buffer.limit() + 1);
 		ServletOutputStream output = resp.getOutputStream();
 		output.write(client.getPollingDelay());

@@ -80,9 +80,6 @@ public class TomcatRTMPTLoader extends TomcatLoader {
 	public void init() {
 		log.info("Loading RTMPT context");
 
-		host.addChild(context);
-		log.debug("Null check - engine: {} host: {}", (null == engine), (null == host));
-
 		engine.addChild(host);
 
 		// add new Engine to set of Engine for embedded server
@@ -103,6 +100,17 @@ public class TomcatRTMPTLoader extends TomcatLoader {
 		}
 
 	}
+	
+	/**
+	 * Set a host
+	 * 
+	 * @param host
+	 */
+	@Override
+	public void setHost(Host host) {
+		log.debug("RTMPT setHost");
+		this.host = host;
+	}	
 
 	/**
 	 * Set primary context
@@ -112,9 +120,11 @@ public class TomcatRTMPTLoader extends TomcatLoader {
 	 */
 	public void setContext(Map<String, String> contextMap) {
 		log.debug("RTMPT setContext (map)");
+		log.debug("Null check - engine: {} host: {}", (null == engine), (null == host));
 		context = embedded.createContext(contextMap.get("path"), contextMap
 				.get("docBase"));
 		context.setReloadable(false);
+		host.addChild(context);
 	}
 
 	/**
