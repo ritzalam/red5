@@ -289,6 +289,8 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 */
 	@Override
 	public boolean connect(IConnection conn, IScope scope, Object[] params) {
+		//log w3c connect event
+		log.info("W3C x-category:session x-event:connect c-ip:{}", conn.getRemoteAddress());
 		if (!super.connect(conn, scope, params)) {
 			return false;
 		}
@@ -334,14 +336,14 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 */
 	@Override
 	public void disconnect(IConnection conn, IScope scope) {
-		if (log.isDebugEnabled()) {
-			log.debug("disconnect: {} << {}", conn, scope);
-		}
+		log.debug("disconnect: {} << {}", conn, scope);
+		//log w3c connect event
+		log.info("W3C x-category:session x-event:disconnect c-ip:{}", conn.getRemoteAddress());
 		if (isApp(scope)) {
 			appDisconnect(conn);
 		} else if (isRoom(scope)) {
 			roomDisconnect(conn);
-		}
+		}		
 		super.disconnect(conn, scope);
 	}
 
@@ -402,9 +404,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 */
 	@Override
 	public void leave(IClient client, IScope scope) {
-		if (log.isDebugEnabled()) {
-			log.debug("leave: {} << {}", client, scope);
-		}
+		log.debug("leave: {} << {}", client, scope);
 		if (isApp(scope)) {
 			appLeave(client, scope);
 		} else if (isRoom(scope)) {
@@ -424,9 +424,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 *         otherwise
 	 */
 	public boolean appStart(IScope app) {
-		if (log.isDebugEnabled()) {
-			log.debug("appStart: {}", app);
-		}
+		log.debug("appStart: {}", app);
 		for (IApplication listener : listeners) {
 			listener.appStart(app);
 		}
@@ -440,9 +438,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 *            Scope object
 	 */
 	public void appStop(IScope app) {
-		if (log.isDebugEnabled()) {
-			log.debug("appStop: {}", app);
-		}
+		log.debug("appStop: {}", app);
 		for (IApplication listener : listeners) {
 			listener.appStop(app);
 		}
@@ -456,9 +452,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 * @return		Boolean value
 	 */
 	public boolean roomStart(IScope room) {
-		if (log.isDebugEnabled()) {
-			log.debug("roomStart: {}", room);
-		}
+		log.debug("roomStart: {}", room);
 		// TODO : Get to know what does roomStart return mean
 		for (IApplication listener : listeners) {
 			listener.roomStart(room);
@@ -473,9 +467,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 *            Room scope.
 	 */
 	public void roomStop(IScope room) {
-		if (log.isDebugEnabled()) {
-			log.debug("roomStop: {}", room);
-		}
+		log.debug("roomStop: {}", room);
 		for (IApplication listener : listeners) {
 			listener.roomStop(room);
 		}
@@ -507,9 +499,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 * @return			Boolean value
 	 */
 	public boolean appConnect(IConnection conn, Object[] params) {
-		if (log.isDebugEnabled()) {
-			log.debug("appConnect: {}", conn);
-		}
+		log.debug("appConnect: {}", conn);
 		for (IApplication listener : listeners) {
 			listener.appConnect(conn, params);
 		}
@@ -534,9 +524,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 * @return			Boolean value
 	 */
 	public boolean roomConnect(IConnection conn, Object[] params) {
-		if (log.isDebugEnabled()) {
-			log.debug("roomConnect: {}", conn);
-		}
+		log.debug("roomConnect: {}", conn);
 		for (IApplication listener : listeners) {
 			listener.roomConnect(conn, params);
 		}
@@ -551,9 +539,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 *            Disconnected connection object
 	 */
 	public void appDisconnect(IConnection conn) {
-		if (log.isDebugEnabled()) {
-			log.debug("appDisconnect: {}", conn);
-		}
+		log.debug("appDisconnect: {}", conn);
 		for (IApplication listener : listeners) {
 			listener.appDisconnect(conn);
 		}
@@ -566,18 +552,14 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 *            Disconnected connection object
 	 */
 	public void roomDisconnect(IConnection conn) {
-		if (log.isDebugEnabled()) {
-			log.debug("roomDisconnect: {}", conn);
-		}
+		log.debug("roomDisconnect: {}", conn);
 		for (IApplication listener : listeners) {
 			listener.roomDisconnect(conn);
 		}
 	}
 
 	public boolean appJoin(IClient client, IScope app) {
-		if (log.isDebugEnabled()) {
-			log.debug("appJoin: {} >> {}", client, app);
-		}
+		log.debug("appJoin: {} >> {}", client, app);
 		for (IApplication listener : listeners) {
 			listener.appJoin(client, app);
 		}
@@ -593,18 +575,14 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 *            Application scope
 	 */
 	public void appLeave(IClient client, IScope app) {
-		if (log.isDebugEnabled()) {
-			log.debug("appLeave: {} << {}", client, app);
-		}
+		log.debug("appLeave: {} << {}", client, app);
 		for (IApplication listener : listeners) {
 			listener.appLeave(client, app);
 		}
 	}
 
 	public boolean roomJoin(IClient client, IScope room) {
-		if (log.isDebugEnabled()) {
-			log.debug("roomJoin: {} >> {}", client, room);
-		}
+		log.debug("roomJoin: {} >> {}", client, room);
 		for (IApplication listener : listeners) {
 			listener.roomJoin(client, room);
 		}
@@ -618,9 +596,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
      * @param room      Room scope
 	 */
 	public void roomLeave(IClient client, IScope room) {
-		if (log.isDebugEnabled()) {
-			log.debug("roomLeave: {} << {}", client, room);
-		}
+		log.debug("roomLeave: {} << {}", client, room);
 		for (IApplication listener : listeners) {
 			listener.roomLeave(client, room);
 		}
@@ -952,8 +928,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 
 	// NOTE: Method added to get flv player to work.
 	/**
-	 * Returns stream length. This is a hook so do not count on this method
-	 * 'cause situation may one day.
+	 * Returns stream length. This is a hook so it may be removed.
 	 * 
 	 * @param name
 	 *            Stream name
@@ -983,7 +958,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 			duration = (double) reader.getDuration() / 1000;
 			reader.close();
 		} catch (IOException e) {
-			log.error("error read stream file {}. {}", file.getAbsolutePath(), e);
+			log.error("Error read stream file {}. {}", file.getAbsolutePath(), e);
 		}
 
 		return duration;
@@ -1099,19 +1074,24 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	}
 
 	public void streamPlaylistItemPlay(IPlaylistSubscriberStream stream, IPlayItem item, boolean isLive) {
-    	// Override if necessary.
+		//log w3c connect event		
+		log.info("W3C x-category:stream x-event:play c-ip:{} x-sname:{} x-file-length:{}", new Object[]{Red5.getConnectionLocal().getRemoteAddress(), stream.getName(), (item.getLength() / 1000)});		
 	}
 
 	public void streamPlaylistItemStop(IPlaylistSubscriberStream stream, IPlayItem item) {
-    	// Override if necessary.
+		//log w3c connect event		
+		IConnection conn = Red5.getConnectionLocal();
+		log.info("W3C x-category:stream x-event:stop c-ip:{} cs-bytes:{} sc-bytes:{} x-sname:{}", new Object[]{conn.getRemoteAddress(), conn.getReadBytes(), conn.getWrittenBytes(), stream.getName()});		
 	}
 
 	public void streamPlaylistVODItemPause(IPlaylistSubscriberStream stream, IPlayItem item, int position) {
-    	// Override if necessary.
+		//log w3c connect event		
+		log.info("W3C x-category:stream x-event:pause c-ip:{} x-sname:{}", Red5.getConnectionLocal().getRemoteAddress(), stream.getName());		
 	}
 
 	public void streamPlaylistVODItemResume(IPlaylistSubscriberStream stream, IPlayItem item, int position) {
-    	// Override if necessary.
+		//log w3c connect event		
+		log.info("W3C x-category:stream x-event:unpause c-ip:{} x-sname:{}", Red5.getConnectionLocal().getRemoteAddress(), stream.getName());		
 	}
 
 	public void streamPlaylistVODItemSeek(IPlaylistSubscriberStream stream, IPlayItem item, int position) {
@@ -1127,11 +1107,14 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	}
 
 	public void streamSubscriberClose(ISubscriberStream stream) {
-    	// Override if necessary.
+		//log w3c connect event		
+		IConnection conn = Red5.getConnectionLocal();
+		log.info("W3C x-category:stream x-event:stop c-ip:{} cs-bytes:{} sc-bytes:{} x-sname:{}", new Object[]{conn.getRemoteAddress(), conn.getReadBytes(), conn.getWrittenBytes(), stream.getName()});			
 	}
 
 	public void streamSubscriberStart(ISubscriberStream stream) {
-    	// Override if necessary.
+		//log w3c connect event		
+		log.info("W3C x-category:stream x-event:play c-ip:{} x-sname:{}", Red5.getConnectionLocal().getRemoteAddress(), stream.getName());		
 	}
     
 }

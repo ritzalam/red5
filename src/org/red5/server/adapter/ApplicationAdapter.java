@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
  * instead.
  * 
  * Using this class may lead to problems if accepting a client in the <code>*Connect</code>
- * or <code>*Join</code> methods takes too long, so using the multithreaded version is
+ * or <code>*Join</code> methods takes too long, so using the multi-threaded version is
  * preferred.
  * 
  * @author The Red5 Project (red5@osflash.org)
@@ -40,8 +40,7 @@ import org.slf4j.LoggerFactory;
 public class ApplicationAdapter extends MultiThreadedApplicationAdapter {
 
 	/** Logger object. */
-	protected static Logger log = LoggerFactory.getLogger(ApplicationAdapter.class
-			.getName());
+	protected static Logger log = LoggerFactory.getLogger(ApplicationAdapter.class);
 
 	/** {@inheritDoc} */
 	@Override

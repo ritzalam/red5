@@ -34,11 +34,11 @@
         <dependency org="jetty" name="jetty-util" rev="6.1.9" />
         <dependency org="jetty" name="jetty-xbean" rev="6.1.9" />
         <!-- Logging --> 
-        <dependency name="slf4j-api" rev="1.4.3" />
-        <dependency name="jcl104-over-slf4j" rev="1.4.3" />
-        <dependency name="log4j-over-slf4j" rev="1.4.3" />
-        <dependency name="logback-core" rev="0.9.8" />
-        <dependency name="logback-classic" rev="0.9.8" />
+        <dependency name="slf4j-api" rev="1.5.0" />
+        <dependency name="jcl104-over-slf4j" rev="1.5.0" />
+        <dependency name="log4j-over-slf4j" rev="1.5.0" />
+        <dependency name="logback-core" rev="0.9.9" />
+        <dependency name="logback-classic" rev="0.9.9" />
         <!-- General --> 
         <dependency org="cglib" name="cglib-nodep" rev="2.1_3" />        
         <dependency org="commons" name="commons-beanutils" rev="1.7.0" />
