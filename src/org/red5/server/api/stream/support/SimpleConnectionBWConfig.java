@@ -25,7 +25,6 @@ import org.red5.server.api.IConnectionBWConfig;
 /**
  * Simple implementation of connection bandwidth configuration.
  * @author Steven Gong (steven.gong@gmail.com)
- * @version $Id$
  */
 public class SimpleConnectionBWConfig extends SimpleBandwidthConfigure
 		implements IConnectionBWConfig {

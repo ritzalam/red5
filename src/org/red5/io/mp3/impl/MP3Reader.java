@@ -266,6 +266,15 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 		return duration;
 	}
 
+	/**
+	 * Get the total readable bytes in a file or ByteBuffer.
+	 *
+	 * @return          Total readable bytes
+	 */
+	public long getTotalBytes() {
+		return in.capacity();
+	}    
+    
 	/** {@inheritDoc} */
     public boolean hasMoreTags() {
 		MP3Header header = null;

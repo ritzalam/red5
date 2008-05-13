@@ -26,21 +26,29 @@ import org.red5.server.messaging.IMessageInput;
  * Simple playlist item implementation
  */
 public class SimplePlayItem implements IPlayItem {
-    /**
-     * Length
-     */
-    private long length = -1;
-    /**
-     * Playlist item name
-     */
+	/**
+	 * Length
+	 */
+	private long length = -1;
+
+	/**
+	 * Size
+	 */
+	private long size = -1;	
+	
+	/**
+	 * Playlist item name
+	 */
 	private String name;
-    /**
-     * Start mark
-     */
+
+	/**
+	 * Start mark
+	 */
 	private long start = -2;
-    /**
-     * Message source
-     */
+
+	/**
+	 * Message source
+	 */
 	private IMessageInput msgInput;
 
 	/**
@@ -88,38 +96,54 @@ public class SimplePlayItem implements IPlayItem {
 	}
 
 	/**
-     * Setter for message input
-     *
-     * @param msgInput Message input
-     */
-    public void setMsgInput(IMessageInput msgInput) {
+	 * Setter for message input
+	 *
+	 * @param msgInput Message input
+	 */
+	public void setMsgInput(IMessageInput msgInput) {
 		this.msgInput = msgInput;
 	}
 
 	/**
-     * Setter for length
-     *
-     * @param length Item length.
-     */
-    public void setLength(long length) {
+	 * Setter for length
+	 *
+	 * @param length Item length.
+	 */
+	public void setLength(long length) {
 		this.length = length;
 	}
 
 	/**
-     * Setter name
-     *
-     * @param name Item name
-     */
-    public void setName(String name) {
+	 * Returns size in bytes
+	 */
+	public long getSize() {
+		return size;
+	}
+
+	/**
+	 * Set the size in bytes
+	 * 
+	 * @param size
+	 */
+	public void setSize(long size) {
+		this.size = size;
+	}
+
+	/**
+	 * Setter name
+	 *
+	 * @param name Item name
+	 */
+	public void setName(String name) {
 		this.name = name;
 	}
 
 	/**
-     * Setter for start.
-     *
-     * @param start Start position.
-     */
-    public void setStart(long start) {
+	 * Setter for start.
+	 *
+	 * @param start Start position.
+	 */
+	public void setStart(long start) {
 		this.start = start;
 	}
 

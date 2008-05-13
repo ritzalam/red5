@@ -34,10 +34,11 @@ public class ServiceUtils {
 	/**
 	 * Returns (method, params) for the given service or (null, null) if no
 	 * method was found.
-     * @param args             Arguments
-     * @return                 Method/params pairs
+	 * 
      * @param service          Service
      * @param methodName       Method name
+     * @param args             Arguments
+     * @return                 Method/params pairs
      */
 	public static Object[] findMethodWithExactParameters(Object service,
 			String methodName, List args) {
@@ -53,10 +54,11 @@ public class ServiceUtils {
 	 * Returns (method, params) for the given service or (null, null) if not
 	 * method was found. XXX use ranking for method matching rather than exact
 	 * type matching plus type conversion.
+	 * 
      * @param service          Service
      * @param methodName       Method name
-     * @return                 Method/params pairs
      * @param args             Arguments
+     * @return                 Method/params pairs
      */
 	public static Object[] findMethodWithExactParameters(Object service,
 			String methodName, Object[] args) {
@@ -118,10 +120,11 @@ public class ServiceUtils {
 	/**
 	 * Returns (method, params) for the given service or (null, null) if not
 	 * method was found.
-     * @param args              Arguments
-     * @param methodName        Method name
-     * @return                  Method/params pairs
+	 * 
      * @param service           Service
+     * @param methodName        Method name
+     * @param args              Arguments
+     * @return                  Method/params pairs
      */
 	public static Object[] findMethodWithListParameters(Object service,
 			String methodName, List args) {
@@ -136,10 +139,11 @@ public class ServiceUtils {
 	/**
 	 * Returns (method, params) for the given service or (null, null) if not
 	 * method was found.
-     * @param methodName       Method name
-     * @return                 Method/params pairs
-     * @param args             Arguments
+	 * 
      * @param service          Service
+     * @param methodName       Method name
+     * @param args             Arguments
+     * @return                 Method/params pairs
      */
 	public static Object[] findMethodWithListParameters(Object service,
 			String methodName, Object[] args) {

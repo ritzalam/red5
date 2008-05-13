@@ -357,8 +357,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 
 		if (!file.exists()) {
 			if (!file.canWrite()) {
-				log.warn("File cannot be written to "
-						+ file.getCanonicalPath());
+				log.warn("File cannot be written to {}", file.getCanonicalPath());
 			}
 			file.createNewFile();
 		}
@@ -471,10 +470,10 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	
 	/** {@inheritDoc} */
 	public void seek(int position) {
-		if (state != State.PLAYING && state != State.PAUSED)
+		if (state != State.PLAYING && state != State.PAUSED) {
 			// Can't seek when stopped/closed
 			return;
-		
+		}
 		sendVODSeekCM(msgIn, position);
 	}
 	
@@ -553,8 +552,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 			isLive = true;
 		}
 		if (msgIn == null) {
-			log
-					.warn("ABNORMAL Can't get both VOD and Live input from providerService");
+			log.warn("ABNORMAL Can't get both VOD and Live input from providerService");
 			return;
 		}
 		state = State.PLAYING;
@@ -565,7 +563,6 @@ public class ServerStream extends AbstractStream implements IServerStream,
 			if (item.getLength() >= 0) {
 				liveJobName = scheduler.addScheduledOnceJob(item.getLength(),
 						new IScheduledJob() {
-							/** {@inheritDoc} */
                             public void execute(ISchedulingService service) {
 								synchronized (ServerStream.this) {
 									if (liveJobName == null) {
@@ -801,7 +798,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
         // Set service name of init
         oobCtrlMsg.setServiceName("init");
         // Create map for parameters
-        Map<Object, Object> paramMap = new HashMap<Object, Object>();
+        Map<Object, Object> paramMap = new HashMap<Object, Object>(1);
         // Put start timestamp into Map of params
         paramMap.put("startTS", start);
         // Attach to OOB control message and send it
@@ -819,7 +816,7 @@ public class ServerStream extends AbstractStream implements IServerStream,
 		OOBControlMessage oobCtrlMsg = new OOBControlMessage();
 		oobCtrlMsg.setTarget(ISeekableProvider.KEY);
 		oobCtrlMsg.setServiceName("seek");
-		Map<Object, Object> paramMap = new HashMap<Object, Object>();
+		Map<Object, Object> paramMap = new HashMap<Object, Object>(1);
 		paramMap.put("position", new Integer(position));
 		oobCtrlMsg.setServiceParamMap(paramMap);
 		msgIn.sendOOBControlMessage(this, oobCtrlMsg);

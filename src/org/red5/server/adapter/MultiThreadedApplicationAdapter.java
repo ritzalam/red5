@@ -103,14 +103,12 @@ import org.slf4j.LoggerFactory;
  * nc.call("getLiveStreams", resultHandlerObj);<br />
  * </code>
  *
- * 
- *
  * <p>If you want to build a server-side framework this is a place to start and wrap it around ApplicationAdapter subclass.</p>
  * </p>
  *
- *
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
+ * @author Paul Gregoire (mondain@gmail.com)
  * @author Michael Klishin
  */
 public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapter implements
@@ -1019,15 +1017,15 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
         cancelGhostConnectionsCleanup();
 
         // Store name so we can cancel it later
-        ghostCleanupJobName = schedulingService.addScheduledJob( ghostConnsCleanupPeriod * 1000, job );
+        ghostCleanupJobName = schedulingService.addScheduledJob(ghostConnsCleanupPeriod * 1000, job);
     }
 
     /**
      * Cancel ghost connections cleanup period
      */
     public void cancelGhostConnectionsCleanup() {
-        if( ghostCleanupJobName != null ){
-            schedulingService.removeScheduledJob( ghostCleanupJobName );
+        if (ghostCleanupJobName != null) {
+            schedulingService.removeScheduledJob(ghostCleanupJobName);
         }
     }
 
@@ -1043,8 +1041,8 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
             conn.ping();
 
             // Time to live exceeded, disconnect
-            if( conn.getLastPingTime() > clientTTL * 1000 ){
-                disconnect( conn, scope );    
+            if (conn.getLastPingTime() > clientTTL * 1000) {
+                disconnect(conn, scope);    
             }
         }
     }
@@ -1075,13 +1073,13 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 
 	public void streamPlaylistItemPlay(IPlaylistSubscriberStream stream, IPlayItem item, boolean isLive) {
 		//log w3c connect event		
-		log.info("W3C x-category:stream x-event:play c-ip:{} x-sname:{} x-file-length:{}", new Object[]{Red5.getConnectionLocal().getRemoteAddress(), stream.getName(), (item.getLength() / 1000)});		
+		log.info("W3C x-category:stream x-event:play c-ip:{} x-sname:{}", new Object[]{Red5.getConnectionLocal().getRemoteAddress(), stream.getName()});		
 	}
 
 	public void streamPlaylistItemStop(IPlaylistSubscriberStream stream, IPlayItem item) {
 		//log w3c connect event		
 		IConnection conn = Red5.getConnectionLocal();
-		log.info("W3C x-category:stream x-event:stop c-ip:{} cs-bytes:{} sc-bytes:{} x-sname:{}", new Object[]{conn.getRemoteAddress(), conn.getReadBytes(), conn.getWrittenBytes(), stream.getName()});		
+		log.info("W3C x-category:stream x-event:stop c-ip:{} cs-bytes:{} sc-bytes:{} x-sname:{} x-file-length:{} x-file-size:{}", new Object[]{conn.getRemoteAddress(), conn.getReadBytes(), conn.getWrittenBytes(), stream.getName(), (item.getLength() / 1000), item.getSize()});		
 	}
 
 	public void streamPlaylistVODItemPause(IPlaylistSubscriberStream stream, IPlayItem item, int position) {

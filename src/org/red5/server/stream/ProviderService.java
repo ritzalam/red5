@@ -48,8 +48,7 @@ public class ProviderService implements IProviderService {
 	/**
 	 * Logger
 	 */
-	private static final Logger log = LoggerFactory
-			.getLogger(ProviderService.class);
+	private static final Logger log = LoggerFactory.getLogger(ProviderService.class);
 
 	/** {@inheritDoc} */
 	public IMessageInput getProviderInput(IScope scope, String name) {
@@ -101,11 +100,10 @@ public class ProviderService implements IProviderService {
 	public File getVODProviderFile(IScope scope, String name) {
 		File file = null;
 		try {
-			log.info("getVODProviderFile scope path: " + scope.getContextPath()
-					+ " name: " + name);
+			log.info("getVODProviderFile scope path: {} name: {}", scope.getContextPath(), name);
 			file = getStreamFile(scope, name);
 		} catch (IOException e) {
-			log.error("Problem getting file: " + name);
+			log.error("Problem getting file: {}", name, e);
 		}
 		if (file == null || !file.exists()) {
 			return null;
@@ -166,8 +164,7 @@ public class ProviderService implements IProviderService {
 			// Default to .flv files if no prefix and no extension is given.
 			name = "flv:" + name;
 		}
-		log.info("getStreamFile null check - factory: " + factory + " name: "
-				+ name);
+		log.info("getStreamFile null check - factory: {} name: {}", factory, name);
 		for (IStreamableFileService service : factory.getServices()) {
 			if (name.startsWith(service.getPrefix() + ':')) {
 				name = service.prepareFilename(name);

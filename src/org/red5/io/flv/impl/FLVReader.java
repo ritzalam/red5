@@ -200,7 +200,7 @@ public class FLVReader implements IoConstants, ITagReader,
 	 *
 	 * @return          Total readable bytes
 	 */
-	private long getTotalBytes() {
+	public long getTotalBytes() {
 		if (!useLoadBuf) {
 			return in.capacity();
 		}

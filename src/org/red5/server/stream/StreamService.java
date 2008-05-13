@@ -19,6 +19,7 @@ package org.red5.server.stream;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Set;
 
@@ -177,7 +178,7 @@ public class StreamService implements IStreamService {
 		IScope scope = conn.getScope();
 		IStreamCapableConnection streamConn = (IStreamCapableConnection) conn;
 		int streamId = getCurrentStreamId();
-		if (name == null || "".equals(name)) {
+		if (StringUtils.isEmpty(name)) {
 			sendNSFailed((RTMPConnection) streamConn, "The stream name may not be empty.", name, streamId);
 			return;
 		}
@@ -191,7 +192,6 @@ public class StreamService implements IStreamService {
 				}
 			}
 		}
-		
 		IClientStream stream = streamConn.getStreamById(streamId);
 		boolean created = false;
 		if (stream == null) {
@@ -207,6 +207,20 @@ public class StreamService implements IStreamService {
 		item.setName(name);
 		item.setStart(start);
 		item.setLength(length);
+		
+		//get file size in bytes if available
+		IProviderService providerService = (IProviderService) scope.getContext().getBean(IProviderService.BEAN_NAME);
+		if (providerService != null) {
+			File file = providerService.getVODProviderFile(scope, name);
+			if (file != null) {
+				item.setSize(file.length());
+			} else {
+				logger.debug("File was null, this is ok for live streams");
+			}
+		} else {
+			logger.debug("ProviderService was null");
+		}
+
 		if (subscriberStream instanceof IPlaylistSubscriberStream) {
 			IPlaylistSubscriberStream playlistStream = (IPlaylistSubscriberStream) subscriberStream;
 			if (flushPlaylist) {

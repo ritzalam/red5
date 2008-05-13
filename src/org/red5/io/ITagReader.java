@@ -49,6 +49,13 @@ public interface ITagReader {
 	public long getDuration();
 
 	/**
+	 * Get the total readable bytes in a file or ByteBuffer
+	 *
+	 * @return          Total readable bytes
+	 */
+	public long getTotalBytes();
+	
+	/**
 	 * Decode the header of the stream;
 	 *
 	 */

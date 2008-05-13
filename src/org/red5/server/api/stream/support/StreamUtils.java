@@ -52,7 +52,7 @@ public abstract class StreamUtils {
 	 * @return		IServerStream object
 	 */
 	public static IServerStream createServerStream(IScope scope, String name) {
-		logger.debug("Creating server stream: " + name + " Scope: " + scope);
+		logger.debug("Creating server stream: {} scope: {}", name, scope);
 		ServerStream stream = new ServerStream();
 		stream.setScope(scope);
 		stream.setName(name);
@@ -73,12 +73,12 @@ public abstract class StreamUtils {
 	 * @return		IServerStream object
 	 */
 	public static IServerStream getServerStream(IScope scope, String name) {
-		logger.debug("Looking up server stream: " + name + " Scope: " + scope);
+		logger.debug("Looking up server stream: {} scope: {}", name, scope);
 		String key = scope.getName() + name;
 		if (serverStreamMap.containsKey(key)) {
 			return serverStreamMap.get(key);
 		} else {
-			logger.warn("Server stream not found with key: " + key);
+			logger.warn("Server stream not found with key: {}", key);
 			return null;
 		}
 	}

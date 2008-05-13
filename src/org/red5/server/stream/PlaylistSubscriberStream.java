@@ -81,11 +81,7 @@ import org.slf4j.LoggerFactory;
 public class PlaylistSubscriberStream extends AbstractClientStream implements
 		IPlaylistSubscriberStream, IPlaylistSubscriberStreamStatistics {
 
-	/**
-	 *
-	 */
-	private static final Logger log = LoggerFactory
-			.getLogger(PlaylistSubscriberStream.class);
+	private static final Logger log = LoggerFactory.getLogger(PlaylistSubscriberStream.class);
 
 	/**
 	 * Possible states enumeration
@@ -980,7 +976,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 		 * @throws IllegalStateException         Stream is in stopped state
 		 * @throws IOException
 		 */
-		public synchronized void play(IPlayItem item)
+		public void play(IPlayItem item)
 				throws StreamNotFoundException, IllegalStateException,
 				IOException {
 			play(item, true);
@@ -1011,19 +1007,20 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			IContext context = thisScope.getContext();
 			IProviderService providerService = (IProviderService) context
 					.getBean(IProviderService.BEAN_NAME);
+			//
+			String itemName = item.getName();
 			// Get live input
 			IMessageInput liveInput = providerService.getLiveProviderInput(
-					thisScope, item.getName(), false);
+					thisScope, itemName, false);
 			// Get VOD input
 			IMessageInput vodInput = providerService.getVODProviderInput(
-					thisScope, item.getName());
+					thisScope, itemName);
 
 			boolean isPublishedStream = liveInput != null;
 			boolean isFileStream = vodInput != null;
 			boolean sendNotifications = true;
 
 			// decision: 0 for Live, 1 for File, 2 for Wait, 3 for N/A
-
 			int decision = 3;
 
 			switch (type) {
@@ -1052,10 +1049,10 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 					break;
 			}
 			if (decision == 2) {
-				liveInput = providerService.getLiveProviderInput(thisScope,
-						item.getName(), true);
+				liveInput = providerService.getLiveProviderInput(thisScope,	itemName, true);
 			}
 			currentItem = item;
+			long itemLength = item.getLength();
 			switch (decision) {
 				case 0:
 					msgIn = liveInput;
@@ -1102,10 +1099,10 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 					msgIn = liveInput;
 					msgIn.subscribe(this, null);
 					isWaiting = true;
-					if (type == -1 && item.getLength() >= 0) {
+					if (type == -1 && itemLength >= 0) {
 						// Wait given timeout for stream to be published
 						waitLiveJob = schedulingService.addScheduledOnceJob(
-								item.getLength(), new IScheduledJob() {
+								itemLength, new IScheduledJob() {
 									/** {@inheritDoc} */
 									public void execute(
 											ISchedulingService service) {
@@ -1122,7 +1119,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 					break;
 				default:
 					sendStreamNotFoundStatus(currentItem);
-					throw new StreamNotFoundException(item.getName());
+					throw new StreamNotFoundException(itemName);
 			}
 			state = State.PLAYING;
 			IMessage msg = null;
@@ -1145,26 +1142,24 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				msg = msgIn.pullMessage();
 				if (msg instanceof RTMPMessage) {
 					IRTMPEvent body = ((RTMPMessage) msg).getBody();
-					if (item.getLength() == 0) {
+					if (itemLength == 0) {
 						// Only send first video frame
 						body = ((RTMPMessage) msg).getBody();
 						while (body != null && !(body instanceof VideoData)) {
 							msg = msgIn.pullMessage();
-							if (msg == null)
+							if (msg == null) {
 								break;
-
-							if (!(msg instanceof RTMPMessage))
+							}
+							if (!(msg instanceof RTMPMessage)) {
 								continue;
-
+							}
 							body = ((RTMPMessage) msg).getBody();
 						}
 					}
 
 					if (body != null) {
 						// Adjust timestamp when playing lists
-						body
-								.setTimestamp(body.getTimestamp()
-										+ timestampOffset);
+						body.setTimestamp(body.getTimestamp() + timestampOffset);
 					}
 				}
 			}
@@ -1173,7 +1168,6 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 					sendReset();
 					sendResetStatus(item);
 				}
-
 				sendStartStatus(item);
 				if (!withReset) {
 					sendSwitchStatus();
