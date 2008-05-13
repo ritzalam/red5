@@ -187,7 +187,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	 */
 	private VideoCodecFactory videoCodecFactory = null;
 
-	/** Stores absolute time for audio stream. */
+	/** Stores absolute time for video stream. */
 	private int videoTime = -1;
 
 	/** Listeners to get notified about received packets. */
@@ -524,9 +524,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	 */
 	public void saveAs(String name, boolean isAppend) throws IOException,
 			ResourceNotFoundException, ResourceExistException {
-		if (log.isDebugEnabled()) {
-			log.debug("SaveAs - name: {} append: {}", name, isAppend);
-		}
+		log.debug("SaveAs - name: {} append: {}", name, isAppend);
 		// Get stream scope
 		IStreamCapableConnection conn = getConnection();
 		if (conn == null) {
@@ -719,9 +717,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	 * @param name       Name that used for publishing. Set at client side when begin to broadcast with NetStream#publish.
 	 */
 	public void setPublishedName(String name) {
-		if (log.isDebugEnabled()) {
-			log.debug("setPublishedName: " + name);
-		}
+		log.debug("setPublishedName: {}", name);
 		//check to see if we are setting the name to the same string
 		if (!name.equals(publishedName)) {
 			// update an attribute

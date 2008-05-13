@@ -398,7 +398,7 @@ public class StreamService implements IStreamService {
 			}
 			return;
 		} catch (Exception e) {
-			logger.warn("publish caught Exception");
+			logger.warn("Exception on publish", e);
 		}
 	}
 

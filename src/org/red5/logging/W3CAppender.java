@@ -20,11 +20,13 @@ package org.red5.logging;
  */
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import org.red5.server.api.Red5;
@@ -54,6 +56,9 @@ public class W3CAppender extends FileAppender<LoggingEvent> {
 	//events that are to be logged
 	private static String events;
 
+	//linked list to preserve order
+	private static List<String> eventsList = new ArrayList<String>();	
+	
 	//fields that are to be logged
 	private static String fields;
 	
@@ -65,6 +70,11 @@ public class W3CAppender extends FileAppender<LoggingEvent> {
 
 	public void setEvents(String events) {
 		W3CAppender.events = events;
+		//make a list out of the event names
+		String[] arr = events.split(";");
+		for (String s : arr) {
+			eventsList.add(s); 
+		}		
 	}
 
 	public String getEvents() {
@@ -131,6 +141,34 @@ public class W3CAppender extends FileAppender<LoggingEvent> {
 				//System.out.println("Key: " + key + " Value: " + value);
 				elements.put(key, value);
 			}
+		}
+		
+		//Events					Categories
+        //connect-pending			session
+        //connect					session                     
+        //disconnect                session                     
+        //publish                   stream                         
+        //unpublish                 stream                  
+        //play                      stream                       
+        //pause                     stream                     
+        //unpause                   stream                      
+        //seek                      stream                              
+        //stop                      stream                       
+        //record                    stream                              
+        //recordstop                stream                              
+        //server-start              server                              
+        //server-stop               server                              
+        //vhost-start               vhost                               
+        //vhost-stop                vhost                               
+        //app-start                 application                         
+        //app-stop                  application    
+		
+		//filter based on event type
+		if (!eventsList.contains(elements.get("x-event"))) {
+			elements.clear();
+			elements = null;
+			sbuf = null;
+			return;
 		}
 		
 		//x-category		event category		

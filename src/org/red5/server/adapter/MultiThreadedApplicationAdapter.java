@@ -66,8 +66,10 @@ import org.red5.server.api.stream.ISubscriberStreamService;
 import org.red5.server.exception.ClientRejectedException;
 import org.red5.server.scheduling.QuartzSchedulingService;
 import org.red5.server.so.SharedObjectService;
+import org.red5.server.stream.ClientBroadcastStream;
 import org.red5.server.stream.IBroadcastScope;
 import org.red5.server.stream.IProviderService;
+import org.red5.server.stream.PlaylistSubscriberStream;
 import org.red5.server.stream.ProviderService;
 import org.red5.server.stream.StreamService;
 import org.slf4j.Logger;
@@ -288,7 +290,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	@Override
 	public boolean connect(IConnection conn, IScope scope, Object[] params) {
 		//log w3c connect event
-		log.info("W3C x-category:session x-event:connect c-ip:{}", conn.getRemoteAddress());
+		log.info("W3C x-category:session x-event:connect c-ip:{} c-client-id:{}", conn.getRemoteAddress(), conn.getClient().getId());
 		if (!super.connect(conn, scope, params)) {
 			return false;
 		}
@@ -336,7 +338,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	public void disconnect(IConnection conn, IScope scope) {
 		log.debug("disconnect: {} << {}", conn, scope);
 		//log w3c connect event
-		log.info("W3C x-category:session x-event:disconnect c-ip:{}", conn.getRemoteAddress());
+		log.info("W3C x-category:session x-event:disconnect c-ip:{} c-client-id:{}", conn.getRemoteAddress(), conn.getClient().getId());
 		if (isApp(scope)) {
 			appDisconnect(conn);
 		} else if (isRoom(scope)) {
@@ -745,9 +747,9 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
     public IBroadcastStream getBroadcastStream(IScope scope, String name) {
 		IStreamService service = (IStreamService) getScopeService(scope,
 				IStreamService.class, StreamService.class);
-		if (!(service instanceof StreamService))
+		if (!(service instanceof StreamService)) {
 			return null;
-		
+		}
 		IBroadcastScope bs = ((StreamService) service).getBroadcastScope(scope,
 				name);
 		return (IClientBroadcastStream) bs
@@ -933,32 +935,33 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 * @return	Stream length in seconds (?)
 	 */
 	public double getStreamLength(String name) {
+		double duration = 0;
 		IProviderService provider = (IProviderService) getScopeService(scope,
 				IProviderService.class, ProviderService.class);
 		File file = provider.getVODProviderFile(scope, name);
-		if (file == null) {
-			return 0;
+		if (file != null) {
+    		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils
+    				.getScopeService(scope, IStreamableFileFactory.class,
+    						StreamableFileFactory.class);
+    		IStreamableFileService service = factory.getService(file);
+    		if (service != null) {
+    			ITagReader reader = null;
+        		try {
+        			IStreamableFile streamFile = service.getStreamableFile(file);
+        			reader = streamFile.getReader();
+        			duration = (double) reader.getDuration() / 1000;
+        		} catch (IOException e) {
+        			log.error("Error read stream file {}. {}", file.getAbsolutePath(), e);
+        		} finally {
+        			if (reader != null) {
+            			reader.close();        				
+        			}
+        		}
+    		} else {
+    			log.error("No service found for {}", file.getAbsolutePath());
+    		}
+    		file = null;
 		}
-
-		double duration = 0;
-
-		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils
-				.getScopeService(scope, IStreamableFileFactory.class,
-						StreamableFileFactory.class);
-		IStreamableFileService service = factory.getService(file);
-		if (service == null) {
-			log.error("No service found for {}", file.getAbsolutePath());
-			return 0;
-		}
-		try {
-			IStreamableFile streamFile = service.getStreamableFile(file);
-			ITagReader reader = streamFile.getReader();
-			duration = (double) reader.getDuration() / 1000;
-			reader.close();
-		} catch (IOException e) {
-			log.error("Error read stream file {}. {}", file.getAbsolutePath(), e);
-		}
-
 		return duration;
 	}
 
@@ -1064,11 +1067,23 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
     }
 
 	public void streamBroadcastClose(IBroadcastStream stream) {
-    	// Override if necessary.
+		//log w3c connect event		
+		IConnection conn = Red5.getConnectionLocal();
+		long publishDuration = -1;
+		if (stream instanceof ClientBroadcastStream) {
+			//converted to seconds
+			publishDuration = (System.currentTimeMillis() - ((ClientBroadcastStream) stream).getCreationTime()) / 1000;
+		}
+		log.info("W3C x-category:stream x-event:unpublish c-ip:{} cs-bytes:{} sc-bytes:{} x-sname:{} x-file-length:{}", new Object[]{conn.getRemoteAddress(), conn.getReadBytes(), conn.getWrittenBytes(), stream.getName(), publishDuration});		
+		String recordingName = stream.getSaveFilename();
+		//if its not null then we did a recording
+		if (recordingName != null) {
+			//use cs-bytes for file size for now
+			log.info("W3C x-category:stream x-event:recordstop c-ip:{} cs-bytes:{} sc-bytes:{} x-sname:{} x-file-name:{} x-file-length:{} x-file-size:{}", new Object[]{conn.getRemoteAddress(), conn.getReadBytes(), conn.getWrittenBytes(), stream.getName(), recordingName, publishDuration, conn.getReadBytes()});					
+		}
 	}
 
 	public void streamBroadcastStart(IBroadcastStream stream) {
-    	// Override if necessary.
 	}
 
 	public void streamPlaylistItemPlay(IPlaylistSubscriberStream stream, IPlayItem item, boolean isLive) {
@@ -1079,7 +1094,12 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	public void streamPlaylistItemStop(IPlaylistSubscriberStream stream, IPlayItem item) {
 		//log w3c connect event		
 		IConnection conn = Red5.getConnectionLocal();
-		log.info("W3C x-category:stream x-event:stop c-ip:{} cs-bytes:{} sc-bytes:{} x-sname:{} x-file-length:{} x-file-size:{}", new Object[]{conn.getRemoteAddress(), conn.getReadBytes(), conn.getWrittenBytes(), stream.getName(), (item.getLength() / 1000), item.getSize()});		
+		long playDuration = -1;
+		if (stream instanceof PlaylistSubscriberStream) {
+			//converted to seconds
+			playDuration = (System.currentTimeMillis() - ((PlaylistSubscriberStream) stream).getCreationTime()) / 1000;
+		}
+		log.info("W3C x-category:stream x-event:stop c-ip:{} cs-bytes:{} sc-bytes:{} x-sname:{} x-file-length:{} x-file-size:{}", new Object[]{conn.getRemoteAddress(), conn.getReadBytes(), conn.getWrittenBytes(), stream.getName(), playDuration, item.getSize()});		
 	}
 
 	public void streamPlaylistVODItemPause(IPlaylistSubscriberStream stream, IPlayItem item, int position) {
@@ -1097,11 +1117,13 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	}
 
 	public void streamPublishStart(IBroadcastStream stream) {
-    	// Override if necessary.
+		//log w3c connect event		
+		log.info("W3C x-category:stream x-event:publish c-ip:{} x-sname:{}", new Object[]{Red5.getConnectionLocal().getRemoteAddress(), stream.getName()});		
 	}
 
 	public void streamRecordStart(IBroadcastStream stream) {
-    	// Override if necessary.
+		//log w3c connect event		
+		log.info("W3C x-category:stream x-event:record c-ip:{} x-sname:{}", new Object[]{Red5.getConnectionLocal().getRemoteAddress(), stream.getName()});		
 	}
 
 	public void streamSubscriberClose(ISubscriberStream stream) {
