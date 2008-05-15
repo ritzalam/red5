@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -161,12 +162,16 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMBea
 	 */
 	public void loadContext(String name, String config) {
 		log.debug("Load context - name: {} config: {}", name, config);
+		// add the context to the parent, this will be red5.xml
+		ConfigurableBeanFactory factory = ((ConfigurableApplicationContext) applicationContext).getBeanFactory();
+		if (factory.containsSingleton(name)) {
+			log.warn("Singleton {} already exists, try unload first", name);		
+			return;
+		}
 		ApplicationContext context = new FileSystemXmlApplicationContext(
 				new String[] { config }, parentContext);
 		log.debug("Adding to context map - name: {} context: {}", name, context);
 		contextMap.put(name, context);
-		// add the context to the parent, this will be red5.xml
-		ConfigurableBeanFactory factory = ((ConfigurableApplicationContext) applicationContext).getBeanFactory();
 		// Register context in parent bean factory
 		log.debug("Registering - name: {}", name);
 		factory.registerSingleton(name, context);
@@ -188,12 +193,19 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMBea
 			log.debug("Context found in parent, destroying: {}", name);
 			FileSystemXmlApplicationContext ctx = (FileSystemXmlApplicationContext) factory.getSingleton(name);
 			if (ctx.isRunning()) {
+				log.debug("Context was running, attempting to stop");
 				ctx.stop();
 			}
 			ctx.close();
 			try {
 				factory.destroyBean(name, ctx);
 			} catch (Exception e) {
+				log.warn("Context destroy failed for: {}", name, e);
+			} finally {
+				if (factory.containsSingleton(name)) {
+					log.debug("Singleton still exists, trying another destroy method");
+					((DefaultListableBeanFactory) factory).destroySingleton(name);
+				}
 			}
 		}
 		context = null;

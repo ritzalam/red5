@@ -42,7 +42,7 @@ import ch.qos.logback.core.status.ErrorStatus;
  * @author Paul Gregoire (mondain@gmail.com)
  */
 public class W3CAppender extends FileAppender<LoggingEvent> {
-
+	
 	/**
 	#Software: Red5 0.7.1
 	#Version: 1.0
@@ -81,7 +81,7 @@ public class W3CAppender extends FileAppender<LoggingEvent> {
 		return events;
 	}
 
-	public void setFields(String fields) {
+	public void setFields(String fields) {	
 		W3CAppender.fields = fields;
 		//make a list out of the field names
 		String[] arr = fields.split(";");
@@ -90,7 +90,7 @@ public class W3CAppender extends FileAppender<LoggingEvent> {
 		}
 	}
 
-	public String getFields() {
+	public String getFields() {	
 		return fields;
 	}
 
@@ -106,7 +106,7 @@ public class W3CAppender extends FileAppender<LoggingEvent> {
 		}
 		
 		// http://logback.qos.ch/apidocs/ch/qos/logback/classic/spi/LoggingEvent.html
-		StringBuilder sbuf = new StringBuilder();
+		StringBuilder sbuf = new StringBuilder(128);
 
 		//see if header has been written
 		if (!headerWritten) {
@@ -163,12 +163,15 @@ public class W3CAppender extends FileAppender<LoggingEvent> {
         //app-start                 application                         
         //app-stop                  application    
 		
-		//filter based on event type
-		if (!eventsList.contains(elements.get("x-event"))) {
-			elements.clear();
-			elements = null;
-			sbuf = null;
-			return;
+		//filter based on event type - asterik allows all events
+		if (!events.equals("*")) {
+    		if (!eventsList.contains(elements.get("x-event"))) {
+    			//System.err.println("Filtered out - event: "+elements.get("x-event")+" event list: "+eventsList);
+    			elements.clear();
+    			elements = null;
+    			sbuf = null;
+    			return;
+    		}
 		}
 		
 		//x-category		event category		
