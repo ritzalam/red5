@@ -1,5 +1,6 @@
 package org.red5.server.api.stream;
 
+import org.red5.server.api.IConnection;
 import org.red5.server.api.IScopeService;
 
 /*
