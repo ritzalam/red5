@@ -711,7 +711,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	 * @param call
 	 *            Call service
 	 */
-	protected void registerPendingCall(int invokeId, IPendingServiceCall call) {
+	public void registerPendingCall(int invokeId, IPendingServiceCall call) {
 		pendingCalls.put(invokeId, call);
 	}
 
