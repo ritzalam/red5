@@ -101,13 +101,10 @@ public class FileConsumer implements Constants, IPushableConsumer,
 		offset = 0;
 		lastTimestamp = 0;
 		startTimestamp = -1;
-		// MHodgson Added -> Get the duration from the existing file
-		try {
-			FLVReader reader = new FLVReader(file, false);
-			KeyFrameMeta meta = reader.analyzeKeyFrames();
-			offset = (int) meta.duration + 60;
-		} catch (IOException exception) {
-			log.warn("Error reading from existing metadata");
+		// Get the duration from the existing file
+		long duration = FLVReader.getDuration(file);
+		if (duration > 0) {
+			offset = (int) duration + 30;
 		}
 	}
 

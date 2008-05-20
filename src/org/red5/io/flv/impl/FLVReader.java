@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -804,4 +805,40 @@ public class FLVReader implements IoConstants, ITagReader,
 		return new Tag(dataType, timestamp, bodySize, null, previousTagSize);
 	}
 
+    public static long getDuration(File flvFile) {
+        RandomAccessFile flv = null;
+        try {
+            flv = new RandomAccessFile(flvFile, "r");
+            long flvLength = flv.length();
+            if (flvLength < 13) {
+                return 0;
+            }
+            flv.seek(flvLength - 4);
+            byte[] buf = new byte[4];
+            flv.read(buf);
+            long lastTagSize = 0;
+            for (int i = 0; i < 4; i++) {
+                lastTagSize += (buf[i] & 0x0ff) << ((3-i)*8);
+            }
+            if (lastTagSize == 0) {
+                return 0;
+            }
+            flv.seek(flvLength - lastTagSize);
+            flv.read(buf);
+            long duration = 0;
+            for (int i = 0; i < 3; i++) {
+                duration += (buf[i] & 0x0ff) << ((2-i)*8);
+            }
+            duration += (buf[3] & 0x0ff) << 24; // extension byte
+            return duration;
+        } catch (IOException e) {
+            return 0;
+        } finally {
+            try {
+                if (flv != null) {
+                    flv.close();
+                }
+            } catch (IOException e) {}
+        }
+    }
 }

@@ -114,9 +114,7 @@ public class FLVWriter implements ITagWriter {
 	private long metaPosition;
 	
 	/**
-	 * Append publish: We need direct access to file.   
-     *
-     * Fix by MHodgson - need direct access to file to append full duration metadata
+	 * need direct access to file to append full duration metadata
 	 */
 	private File file;
 	
@@ -135,7 +133,7 @@ public class FLVWriter implements ITagWriter {
 	/**
 	 * Creates writer implementation with given file and last tag
      *
-     * Fix by MHodgson -> FLV.java uses this constructor so we have access to the file object
+     * FLV.java uses this constructor so we have access to the file object
 	 *
 	 * @param file              File output stream
      * @param lastTag           Last tag
@@ -303,27 +301,28 @@ public class FLVWriter implements ITagWriter {
 			}
 			channel.close();
 			fos.close();
+			channel = null;
 
-			// Added by MHodgson -> here we open the file again and overwrite the metadata with the final duration
+			// here we open the file again and overwrite the metadata with the final duration
 			// I tried just writing to the existing fos but for some reason it doesn't overwrite in the right place....
 			if (append) {
 				appender = new RandomAccessFile(file, "rw");
-				FileChannel appenderChannel = appender.getChannel();
-				long oldPos = appenderChannel.position();
-				appenderChannel.position(13); // This is the position of the first tag
+				channel = appender.getChannel(); // reuse member variable to make sure writeMetadataTag() works
+				channel.position(13); // This is the position of the first tag
 				writeMetadataTag(duration * 0.001, videoCodecId, audioCodecId);
-				appenderChannel.position(oldPos);
-				appenderChannel.close();
 			}	
 		} catch (IOException e) {
 			log.error("IO error on close", e);
 		} finally {
-			if (appender != null) {
-				try {
-					appender.close();
-				} catch (IOException e) {
-					log.error("Error closing appender", e);
-				}
+			try {
+    			if (appender != null) {
+    				appender.close();
+    			}
+    			if (channel != null) {
+    				channel.close();
+    			}
+			} catch (IOException e) {
+				log.error("", e);
 			}
 		}
 
