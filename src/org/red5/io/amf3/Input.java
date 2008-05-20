@@ -143,6 +143,13 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		stringReferences = new ArrayList<String>();
 		classReferences = new ArrayList<ClassReference>();
 	}
+	
+	/**
+	 * Force using AMF3 everywhere
+	 */
+	public void enforceAMF3() {
+		amf3_mode++;
+	}
 
 	/**
 	 * Provide access to raw data.

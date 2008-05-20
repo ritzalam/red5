@@ -75,8 +75,14 @@ public class ByteArray implements IDataInput, IDataOutput {
 	 * Create internal objects used for reading and writing.
 	 */
 	protected void prepareIO() {
-		dataInput = new DataInput(new Input(data), new Deserializer());
-		dataOutput = new DataOutput(new Output(data), new Serializer());
+		// we assume that everything in ByteArray is in AMF3
+		Input input = new Input(data);
+		input.enforceAMF3();
+		dataInput = new DataInput(input, new Deserializer());
+
+		Output output = new Output(data);
+		output.enforceAMF3();
+		dataOutput = new DataOutput(output, new Serializer());
 	}
 	
 	/**
@@ -242,6 +248,9 @@ public class ByteArray implements IDataInput, IDataOutput {
 
 	/** {@inheritDoc} */
 	public Object readObject() {
+		// according to AMF3 spec, each object should have its own "reference" tables,
+		// so we must recreate Input object before reading each object 
+		prepareIO();
 		return dataInput.readObject();
 	}
 	
@@ -328,6 +337,9 @@ public class ByteArray implements IDataInput, IDataOutput {
 
 	/** {@inheritDoc} */
 	public void writeObject(Object value) {
+		// according to AMF3 spec, each object should have its own "reference" tables,
+		// so we must recreate Input object before writing each object 
+		prepareIO();
 		dataOutput.writeObject(value);
 	}
 

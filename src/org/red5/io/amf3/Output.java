@@ -79,6 +79,13 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 	}
 
 	/**
+	 * Force using AMF3 everywhere
+	 */
+	public void enforceAMF3() {
+		amf3_mode++;
+	}
+	
+	/**
 	 * Provide access to raw data.
 	 *
 	 * @return ByteBuffer
