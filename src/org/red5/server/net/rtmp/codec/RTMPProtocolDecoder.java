@@ -927,6 +927,11 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	public FlexMessage decodeFlexMessage(ByteBuffer in, RTMP rtmp) {
 		// TODO: Unknown byte, probably encoding as with Flex SOs?
 		in.skip(1);
+		// Encoding of message params can be mixed - some params may be in AMF0, others in AMF3,
+		// but according to AMF3 spec, we should collect AMF3 references
+		// for the whole message body (through all params)
+		org.red5.io.amf3.Input.RefStorage refStorage = new org.red5.io.amf3.Input.RefStorage(); 
+		
 		Input input = new org.red5.io.amf.Input(in);
 		String action = deserializer.deserialize(input, String.class);
 		int invokeId = deserializer.deserialize(input, Number.class).intValue();
@@ -949,7 +954,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 				in.position(in.position() - 1);
 				if (tmp == AMF.TYPE_AMF3_OBJECT) {
 					// The next parameter is encoded using AMF3
-					input = new org.red5.io.amf3.Input(in);
+					input = new org.red5.io.amf3.Input(in, refStorage);
 				} else {
 					// The next parameter is encoded using AMF0
 					input = new org.red5.io.amf.Input(in);

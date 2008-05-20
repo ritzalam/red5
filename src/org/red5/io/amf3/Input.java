@@ -115,6 +115,16 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		}
 	}
 	
+	/**
+	 * Class used to collect AMF3 references.
+	 * In AMF3 references should be collected through the whole "body" (across several Input objects).
+	 */
+	public static class RefStorage {
+		private List<ClassReference> classReferences = new ArrayList<ClassReference>();
+		private List<String> stringReferences = new ArrayList<String>();
+		private Map<Integer, Object> refMap = new HashMap<Integer, Object>();
+	} 
+	
     /**
      * Logger
      */
@@ -142,6 +152,20 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		amf3_mode = 0;
 		stringReferences = new ArrayList<String>();
 		classReferences = new ArrayList<ClassReference>();
+	}
+	
+	/**
+	 * Creates Input object for AMF3 from byte buffer and initializes references
+	 * from passed RefStorage
+	 * @param buf
+	 * @param refStorage
+	 */
+	public Input(ByteBuffer buf, RefStorage refStorage) {
+    	super(buf);
+    	this.stringReferences = refStorage.stringReferences;
+    	this.classReferences = refStorage.classReferences;
+    	this.refMap = refStorage.refMap;
+    	amf3_mode = 0;
 	}
 	
 	/**
@@ -444,17 +468,30 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 			((IExternalizable) result).readExternal(new DataInput(this, deserializer));
 			break;
 		case AMF3.TYPE_OBJECT_VALUE:
-			// Load object properties into map
-			classReferences.add(new ClassReference(className, AMF3.TYPE_OBJECT_VALUE, null));
-			properties = new ObjectMap<String, Object>();
-			attributes = new LinkedList<String>();
-			String key = readString();
-			while (!"".equals(key)) {
-				attributes.add(key);
-				Object value = deserializer.deserialize(this, getPropertyType(instance, key));
-				properties.put(key, value);
-				key = readString();
-			}
+			// First, we should read typed (non-dynamic) properties ("sealed traits" according to AMF3 specification).
+			// Property names are stored in the beginning, then values are stored.
+			count = type >> 2;
+            properties = new ObjectMap<String, Object>();
+            if (attributes == null) {
+            	attributes = new ArrayList<String>(count);
+            	for (int i = 0; i < count; i++) {
+            		attributes.add(readString());
+            	}
+            	classReferences.add(new ClassReference(className, AMF3.TYPE_OBJECT_VALUE, attributes));
+            }
+            for (int i = 0; i < count; i++) {
+            	String key = attributes.get(i);
+            	properties.put(key, deserializer.deserialize(this, getPropertyType(instance, key)));
+            }
+
+            // Now we should read dynamic properties which are stored as name-value pairs.
+            // Dynamic properties are NOT remembered in 'classReferences'.
+            String key = readString();
+            while (!"".equals(key)) {
+            	Object value = deserializer.deserialize(this, getPropertyType(instance, key));
+            	properties.put(key, value);
+            	key = readString();
+            }
 			break;
 		default:
 		case AMF3.TYPE_OBJECT_PROXY:
