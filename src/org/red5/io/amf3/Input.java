@@ -285,11 +285,11 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 			// Empty string
 			return "";
 		}
-		//if the refs are empty an IndexOutOfBoundsEx will be thrown
-		if (stringReferences.isEmpty()) {
-			log.debug("String reference list is empty");
-		}
 		if ((len & 1) == 0) {
+			//if the refs are empty an IndexOutOfBoundsEx will be thrown
+			if (stringReferences.isEmpty()) {
+				log.debug("String reference list is empty");
+			}
 			// Reference
 			return stringReferences.get(len >> 1);
 		}
@@ -515,15 +515,21 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 						}
 						
 						try {
-							try {
-								final Field field = resultClass.getField(key);
-								final Class fieldType = field.getType();
-								if (!fieldType.isAssignableFrom(value.getClass())) {
-									value = ConversionUtils.convert(value, fieldType);
-								}
-								field.set(result, value);
-							} catch (Exception e) {
-								BeanUtils.setProperty(result, key, value);
+							if (value != null) { 
+    							try {
+    								final Field field = resultClass.getField(key);
+    								final Class fieldType = field.getType();
+    								if (!fieldType.isAssignableFrom(value.getClass())) {
+    									value = ConversionUtils.convert(value, fieldType);
+    								}
+    								field.set(result, value);
+    							} catch (Exception e) {
+    								BeanUtils.setProperty(result, key, value);
+    							}
+							} else {
+								if (log.isDebugEnabled()) {
+									log.debug("Skipping null property: " + key);
+								} 
 							}
 						} catch (Exception e) {
 							log.error("Error mapping property: {} ({})", key, value);
