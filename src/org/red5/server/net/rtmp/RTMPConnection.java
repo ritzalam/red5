@@ -699,7 +699,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	 * 
 	 * @return Next invoke id for RPC
 	 */
-	protected int getInvokeId() {
+	public int getInvokeId() {
 		return invokeId.incrementAndGet();
 	}
 

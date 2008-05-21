@@ -564,9 +564,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
     								BeanUtils.setProperty(result, key, value);
     							}
 							} else {
-								if (log.isDebugEnabled()) {
-									log.debug("Skipping null property: " + key);
-								} 
+								log.debug("Skipping null property: {}", key);
 							}
 						} catch (Exception e) {
 							log.error("Error mapping property: {} ({})", key, value);
