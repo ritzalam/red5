@@ -29,16 +29,18 @@
         <property name="host" value="${policy.host}" />
         <property name="port" value="${policy.port}" />
     </bean>
-    
+
+	<!-- RTMP -->
+	
+	<bean id="rtmpMinaConnManager"
+		class="org.red5.server.net.rtmp.RTMPConnManager">
+	</bean>
+	    
 	<!-- RTMP Handler -->
 	<bean id="rtmpHandler"
 		class="org.red5.server.net.rtmp.RTMPHandler">
 		<property name="server" ref="red5.server" />
 		<property name="statusObjectService" ref="statusObjectService" />
-	</bean>
-	
-	<bean id="rtmpMinaConnManager"
-		class="org.red5.server.net.rtmp.RTMPConnManager">
 	</bean>
 	
 	<!-- RTMP Mina IO Handler -->
@@ -76,6 +78,51 @@
 		<!-- Max. time in milliseconds to wait for a valid handshake. -->
 		<property name="maxHandshakeTimeout" value="5000" />
 	</bean>
+	
+	<!-- RTMPS -->
+	
+	<bean id="rtmpsMinaConnManager"
+		class="org.red5.server.net.rtmp.RTMPConnManager">
+	</bean>
+	    
+	<!-- RTMPS Handler -->
+	<bean id="rtmpsHandler"
+		class="org.red5.server.net.rtmp.RTMPHandler">
+		<property name="server" ref="red5.server" />
+		<property name="statusObjectService" ref="statusObjectService" />
+	</bean>
+	
+	<!-- RTMP Mina IO Handler -->
+	<bean id="rtmpsMinaIoHandler"
+		class="org.red5.server.net.rtmps.RTMPSMinaIoHandler">
+		<property name="handler" ref="rtmpsHandler" />
+		<property name="codecFactory" ref="rtmpCodecFactory" />
+		<property name="rtmpConnManager" ref="rtmpsMinaConnManager" />
+	</bean>
+	
+	<!-- RTMP Mina Transport -->
+	<bean id="rtmpsTransport" class="org.red5.server.net.rtmps.RTMPSMinaTransport" init-method="start" destroy-method="stop">
+		<property name="ioHandler" ref="rtmpsMinaIoHandler" />
+		<property name="address" value="${rtmps.host}" />
+		<property name="port" value="${rtmps.port}" />
+		<property name="receiveBufferSize" value="${rtmps.receive_buffer_size}" />
+		<property name="sendBufferSize" value="${rtmps.send_buffer_size}" />
+		<property name="eventThreadsCore" value="${rtmps.event_threads_core}" />
+		<property name="eventThreadsMax" value="${rtmps.event_threads_max}" />
+		<property name="eventThreadsQueue" value="${rtmps.event_threads_queue}" />
+		<property name="eventThreadsKeepalive" value="${rtmps.event_threads_keepalive}" />
+		<!-- This is the interval at which the sessions are polled for stats. If mina monitoring is not
+				enabled, polling will not occur. -->
+		<property name="jmxPollInterval" value="1000" />
+		<property name="tcpNoDelay" value="${rtmps.tcp_nodelay}" />
+		<!-- The ciphers to use for SSL -->
+		<property name="cipherSuites" value="SSL_DHE_DSS_WITH_3DES_EDE_CBC_SHA" />
+        <!-- 
+		   http://java.sun.com/j2se/1.5.0/docs/guide/security/jsse/JSSERefGuide.html#AppA
+		 -->
+	</bean>
+	
+	<!-- RTMPT -->
 	
 	<bean id="rtmptConnManager"
 		class="org.red5.server.net.rtmp.RTMPConnManager">

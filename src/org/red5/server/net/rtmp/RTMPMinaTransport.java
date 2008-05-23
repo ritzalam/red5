@@ -36,7 +36,6 @@ import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.IoHandlerAdapter;
 import org.apache.mina.common.SimpleByteBufferAllocator;
 import org.apache.mina.common.ThreadModel;
-import org.apache.mina.filter.LoggingFilter;
 import org.apache.mina.filter.executor.ExecutorFilter;
 import org.apache.mina.integration.jmx.IoServiceManager;
 import org.apache.mina.integration.jmx.IoServiceManagerMBean;
@@ -77,45 +76,43 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 
 	private static final Logger log = LoggerFactory.getLogger(RTMPMinaTransport.class);
 
-	private SocketAcceptor acceptor;
+	protected SocketAcceptor acceptor;
 
-	private String address = null;
+	protected String address = null;
 
-	private ExecutorService eventExecutor;
+	protected ExecutorService eventExecutor;
 
-	private int eventThreadsCore = DEFAULT_EVENT_THREADS_CORE;
+	protected int eventThreadsCore = DEFAULT_EVENT_THREADS_CORE;
 
-	private int eventThreadsKeepalive = DEFAULT_EVENT_THREADS_KEEPALIVE;
+	protected int eventThreadsKeepalive = DEFAULT_EVENT_THREADS_KEEPALIVE;
 
-	private int eventThreadsMax = DEFAULT_EVENT_THREADS_MAX;
+	protected int eventThreadsMax = DEFAULT_EVENT_THREADS_MAX;
 
-	private int eventThreadsQueue = DEFAULT_EVENT_THREADS_QUEUE;
+	protected int eventThreadsQueue = DEFAULT_EVENT_THREADS_QUEUE;
 
-	private IoHandlerAdapter ioHandler;
+	protected IoHandlerAdapter ioHandler;
 
-	private IoServiceManager serviceManager;
+	protected IoServiceManager serviceManager;
 	
-	private int ioThreads = DEFAULT_IO_THREADS;
-
-	private boolean isLoggingTraffic = false;
+	protected int ioThreads = DEFAULT_IO_THREADS;
 
 	/**
 	 * MBean object name used for de/registration purposes.
 	 */
-	private ObjectName oName;
-	private ObjectName serviceManagerObjectName;
+	protected ObjectName oName;
+	protected ObjectName serviceManagerObjectName;
 	
-	private int jmxPollInterval = 1000;
+	protected int jmxPollInterval = 1000;
 
-	private int port = DEFAULT_PORT;
+	protected int port = DEFAULT_PORT;
 
-	private int receiveBufferSize = DEFAULT_RECEIVE_BUFFER_SIZE;
+	protected int receiveBufferSize = DEFAULT_RECEIVE_BUFFER_SIZE;
 
-	private int sendBufferSize = DEFAULT_SEND_BUFFER_SIZE;
+	protected int sendBufferSize = DEFAULT_SEND_BUFFER_SIZE;
 
-	private boolean tcpNoDelay = DEFAULT_TCP_NO_DELAY;
+	protected boolean tcpNoDelay = DEFAULT_TCP_NO_DELAY;
 
-	private boolean useHeapBuffers = DEFAULT_USE_HEAP_BUFFERS;
+	protected boolean useHeapBuffers = DEFAULT_USE_HEAP_BUFFERS;
 
 	private void initIOHandler() {
 		if (ioHandler == null) {
@@ -158,11 +155,7 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 	public void setIoThreads(int ioThreads) {
 		this.ioThreads = ioThreads;
 	}
-
-	public void setIsLoggingTraffic(boolean isLoggingTraffic) {
-		this.isLoggingTraffic = isLoggingTraffic;
-	}
-
+	
 	public void setPort(int port) {
 		this.port = port;
 		JMXAgent.updateMBeanAttribute(oName, "port", port);
@@ -191,7 +184,8 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 		if (useHeapBuffers) {
 			ByteBuffer.setAllocator(new SimpleByteBufferAllocator()); // dont pool for heap buffers.
         }
-		log.info("RTMP Mina Transport Settings");
+		
+		log.info("RTMP Mina Transport Settings");			
 		log.info("IO Threads: {}", ioThreads);
 		log.info("Event Threads - core: {}, max: {}, queue: {}, keepalive: {}", new Object[]{eventThreadsCore, eventThreadsMax, eventThreadsQueue, eventThreadsKeepalive});
 
@@ -224,11 +218,6 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 		sessionConf.setReceiveBufferSize(receiveBufferSize);
 		sessionConf.setSendBufferSize(sendBufferSize);
 
-		if (isLoggingTraffic) {
-			log.info("Configuring traffic logging filter");
-			acceptor.getFilterChain().addFirst("LoggingFilter", new LoggingFilter());
-		}
-
 		SocketAddress socketAddress = (address == null) ? new InetSocketAddress(
 				port)
 				: new InetSocketAddress(address, port);
@@ -237,7 +226,13 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 		log.info("RTMP Mina Transport bound to {}", socketAddress.toString());
 
 		//create a new mbean for this instance
-		oName = JMXFactory.createObjectName("type", "RTMPMinaTransport",
+		// RTMPMinaTransport
+		String cName = this.getClass().getName();
+		if (cName.indexOf('.') != -1) {
+			cName = cName.substring(cName.lastIndexOf('.')).replaceFirst(
+					"[\\.]", "");
+		}
+		oName = JMXFactory.createObjectName("type", cName,
 				"address", (address == null ? "0.0.0.0" : address), "port",
 				port + "");
 		JMXAgent.registerMBean(this, this.getClass().getName(),
@@ -272,7 +267,7 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 		}
 	}
 
-	private BlockingQueue<Runnable> threadQueue(int size) {
+	protected BlockingQueue<Runnable> threadQueue(int size) {
 		switch (size) {
 			case -1:
 				return new LinkedBlockingQueue<Runnable>();

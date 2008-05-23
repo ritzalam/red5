@@ -143,7 +143,7 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 					onInvoke(conn, channel, header, (Invoke) message, (RTMP) state);
 					if(message.getHeader().getStreamId()!=0
 							&& ((Invoke)message).getCall().getServiceName()==null
-							&& ACTION_PUBLISH.equals(((Invoke)message).getCall().getServiceMethodName())) {
+							&& ACTION_PUBLISH.equals(((Invoke) message).getCall().getServiceMethodName())) {
 						if (stream != null) {
 							// Only dispatch if stream really was created
 							((IEventDispatcher) stream).dispatchEvent(message);
@@ -195,7 +195,7 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 					log.debug("Unknown type: {}", header.getDataType());
 			}
 			if (message instanceof Unknown) {
-				log.info("{}", message);
+				log.info("Message type unknown: {}", message);
 			}
 		} catch (RuntimeException e) {
 			log.error("Exception", e);
@@ -213,10 +213,11 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 			return;
 		}
 
-		// Increase number of sent messages
-		conn.messageSent((Packet) message);
-
 		Packet sent = (Packet) message;
+
+		// Increase number of sent messages
+		conn.messageSent(sent);
+
 		final int channelId = sent.getHeader().getChannelId();
 		final IClientStream stream = conn.getStreamByChannelId(channelId);
 		// XXX we'd better use new event model for notification

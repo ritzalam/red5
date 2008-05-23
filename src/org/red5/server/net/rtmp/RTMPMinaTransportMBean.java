@@ -33,7 +33,6 @@ public interface RTMPMinaTransportMBean {
 	public void setEventThreadsMax(int eventThreadsMax);
 	public void setEventThreadsKeepalive(int eventThreadsKeepalive);
 	public void setEventThreadsQueue(int eventThreadsQueue);
-	public void setIsLoggingTraffic(boolean isLoggingTraffic);
 	public void setIoHandler(IoHandlerAdapter rtmpIOHandler);
 	public void setReceiveBufferSize(int receiveBufferSize);
 	public void setSendBufferSize(int sendBufferSize);

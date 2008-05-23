@@ -91,8 +91,7 @@ public class RTMPConnManager implements IRTMPConnManager,
 		if (cls == RTMPMinaConnection.class) {
 			conn = (RTMPMinaConnection) appCtx.getBean("rtmpMinaConnection");
 		} else if (cls == EdgeRTMPMinaConnection.class) {
-			conn = (EdgeRTMPMinaConnection) appCtx
-					.getBean("rtmpEdgeMinaConnection");
+			conn = (EdgeRTMPMinaConnection) appCtx.getBean("rtmpEdgeMinaConnection");
 		} else if (cls == RTMPTConnection.class) {
 			conn = (RTMPTConnection) appCtx.getBean("rtmptConnection");
 		} else {

@@ -43,8 +43,12 @@ public class RTMPMinaConnection extends RTMPConnection implements
 	/**
 	 * MINA I/O session, connection between two endpoints
 	 */
-	private IoSession ioSession;
+	protected IoSession ioSession;
 
+	{
+		log.info("RTMPMinaConnection created");
+	}
+	
 	/** Constructs a new RTMPMinaConnection. */
 	public RTMPMinaConnection() {
 		super(PERSISTENT);
@@ -81,8 +85,13 @@ public class RTMPMinaConnection extends RTMPConnection implements
 		try {
 			//if the client is null for some reason, skip the jmx registration
 			if (client != null) {
+				String cName = this.getClass().getName();
+				if (cName.indexOf('.') != -1) {
+					cName = cName.substring(cName.lastIndexOf('.')).replaceFirst(
+							"[\\.]", "");
+				}				
 			    // Create a new mbean for this instance
-			    oName = JMXFactory.createObjectName("type", "RTMPMinaConnection",
+			    oName = JMXFactory.createObjectName("type", cName,
 					"connectionType", type, "host", hostStr, "port", port + "",
 					"clientId", client.getId());
 			    JMXAgent.registerMBean(this, this.getClass().getName(),	RTMPMinaConnectionMBean.class, oName);		
@@ -160,7 +169,7 @@ public class RTMPMinaConnection extends RTMPConnection implements
 	 *
 	 * @param protocolSession  Protocol session
 	 */
-	void setIoSession(IoSession protocolSession) {
+	public void setIoSession(IoSession protocolSession) {
 		SocketAddress remote = protocolSession.getRemoteAddress();
 		if (remote instanceof InetSocketAddress) {
 			remoteAddress = ((InetSocketAddress) remote).getAddress()

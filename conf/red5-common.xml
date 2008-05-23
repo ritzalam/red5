@@ -125,18 +125,6 @@
 		<property name="maxEntries"><value>5</value></property>
 	</bean>
 
-	<bean id="object.cache" class="org.red5.server.cache.WhirlyCacheImpl" init-method="init" autowire="byType">
-		<property name="maxEntries" value="5" />
-		<property name="cacheConfig">
-			<bean class="com.whirlycott.cache.CacheConfiguration">
-				<property name="name" value="flv.cache" />
-				<property name="maxSize" value="5" />
-				<property name="policy"><value>com.whirlycott.cache.policy.LFUMaintenancePolicy</value></property>
-				<property name="backend"><value>com.whirlycott.cache.impl.FastHashMapImpl</value></property>
-			</bean>
-		</property>
-	</bean>
-
 	<bean id="object.cache" class="org.red5.server.cache.EhCacheImpl" init-method="init">
 		<property name="diskStore" value="java.io.tmpdir" />
 		<property name="memoryStoreEvictionPolicy" value="LFU" />
