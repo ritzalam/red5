@@ -21,6 +21,8 @@ package org.red5.server.tomcat;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -115,6 +117,16 @@ public class TomcatLoader extends LoaderBase implements
 	 */
 	protected Realm realm;
 
+	/**
+	 * Valves 
+	 */
+	protected List<Valve> valves = new ArrayList<Valve>();
+	
+	/**
+	 * Additional connection properties to be set at init.
+	 */
+	protected Map<String, String> connectionProperties = new HashMap<String, String>();
+	
 	/**
 	 * Add context for path and docbase to current host.
 	 * 
@@ -249,12 +261,24 @@ public class TomcatLoader extends LoaderBase implements
 		// Don't start Tomcats jndi
 		embedded.setUseNaming(false);
 
+		// add the valves to the host
+		for (Valve valve : valves) {
+			log.debug("Adding host valve: {}", valve);
+			((StandardHost) host).addValve(valve);
+		}		
+		
 		// baseHost = embedded.createHost(hostName, appRoot);
 		engine.addChild(host);
 
 		// Add new Engine to set of Engine for embedded server
 		embedded.addEngine(engine);
 
+		// set connection properties
+		for (String key : connectionProperties.keySet()) {
+			log.debug("Setting connection property: {} = {}", key, connectionProperties.get(key));
+			connector.setProperty(connectionProperties.get(key), key);
+		}
+		
 		// Add new Connector to set of Connectors for embedded server,
 		// associated with Engine
 		embedded.addConnector(connector);
@@ -391,10 +415,18 @@ public class TomcatLoader extends LoaderBase implements
 	 */
 	public void setValves(List<Valve> valves) {
 		log.debug("setValves: {}", valves.size());
-		for (Valve valve : valves) {
-			((StandardHost) host).addValve(valve);
-		}
+		this.valves.addAll(valves);
 	}
+	
+	/**
+	 * Set connection properties for the connector
+	 * 
+	 * @param mappings
+	 */
+	public void setConnectionProperties(Map<String, String> props) {
+		log.debug("Connection props: {}", props.size());
+		this.connectionProperties.putAll(props);
+	}		
 
 	public void registerJMX() {
 		JMXAgent.registerMBean(this, this.getClass().getName(),	LoaderMBean.class);	

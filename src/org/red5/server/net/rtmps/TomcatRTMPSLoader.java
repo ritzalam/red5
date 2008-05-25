@@ -1,4 +1,4 @@
-package org.red5.server.net.rtmpt;
+package org.red5.server.net.rtmps;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -19,52 +19,33 @@ package org.red5.server.net.rtmpt;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.apache.catalina.Context;
 import org.apache.catalina.Server;
 import org.apache.catalina.Valve;
+import org.apache.catalina.core.AprLifecycleListener;
 import org.apache.catalina.core.StandardHost;
 import org.apache.catalina.core.StandardWrapper;
 import org.red5.server.api.IServer;
-import org.red5.server.tomcat.TomcatLoader;
+import org.red5.server.net.rtmpt.TomcatRTMPTLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Loader for the RTMPT server which uses Tomcat.
+ * Loader for the RTMPS server which uses Tomcat.
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Paul Gregoire (mondain@gmail.com)
  */
-public class TomcatRTMPTLoader extends TomcatLoader {
+public class TomcatRTMPSLoader extends TomcatRTMPTLoader {
 
 	// Initialize Logging
-	protected static Logger log = LoggerFactory.getLogger(TomcatRTMPTLoader.class);
+	protected static Logger log = LoggerFactory.getLogger(TomcatRTMPSLoader.class);
 
 	/**
 	 * RTMP server instance
 	 */
-	protected Server rtmptServer;
+	protected Server rtmpsServer;
 
-	/**
-	 * Server instance
-	 */
-	protected IServer server;
-
-	/**
-	 * Context, in terms of JEE context is web application in a servlet
-	 * container
-	 */
-	protected Context context;
-
-	/**
-	 * Extra servlet mappings to add
-	 */
-	protected Map<String, String> servletMappings = new HashMap<String, String>();
-	
-	
 	/**
 	 * Setter for server
 	 * 
@@ -72,14 +53,14 @@ public class TomcatRTMPTLoader extends TomcatLoader {
 	 *            Value to set for property 'server'.
 	 */
 	public void setServer(IServer server) {
-		log.debug("RTMPT setServer");
+		log.debug("RTMPS setServer");
 		this.server = server;
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public void init() {
-		log.info("Loading RTMPT context");
+		log.info("Loading RTMPS context");
 
 		// Don't start Tomcats jndi
 		embedded.setUseNaming(false);
@@ -106,22 +87,29 @@ public class TomcatRTMPTLoader extends TomcatLoader {
 		ctx.addServletMapping("/open/*", "RTMPTServlet");
 		ctx.addServletMapping("/close/*", "RTMPTServlet");
 		ctx.addServletMapping("/send/*", "RTMPTServlet");
-		ctx.addServletMapping("/idle/*", "RTMPTServlet");	
-		
-		// add any additional mappings
-		for (String key : servletMappings.keySet()) {
-			context.addServletMapping(servletMappings.get(key), key);
-		}		
-		
+		ctx.addServletMapping("/idle/*", "RTMPTServlet");
+				
+		// add the host
 		engine.addChild(host);
 
 		// add new Engine to set of Engine for embedded server
 		embedded.addEngine(engine);
 
+		//turn off native apr support
+		AprLifecycleListener listener = new AprLifecycleListener();
+		listener.setSSLEngine("off");
+		connector.addLifecycleListener(listener);
+		
+		log.debug("Protocol handler: {}", connector.getProtocolHandlerClassName());
+
 		// set connection properties
+		connector.setSecure(true);
+        connector.setScheme("https");
+
+		// set other connection / protocol handler properties
 		for (String key : connectionProperties.keySet()) {
 			log.debug("Setting connection property: {} = {}", key, connectionProperties.get(key));
-			connector.setProperty(connectionProperties.get(key), key);
+			connector.setProperty(key, connectionProperties.get(key));
 		}		
 		
 		// add new Connector to set of Connectors for embedded server,
@@ -130,7 +118,7 @@ public class TomcatRTMPTLoader extends TomcatLoader {
 
 		// start server
 		try {
-			log.info("Starting RTMPT engine");
+			log.info("Starting RTMPS engine");
 			embedded.start();
 		} catch (org.apache.catalina.LifecycleException e) {
 			log.error("Error loading tomcat", e);
@@ -138,16 +126,6 @@ public class TomcatRTMPTLoader extends TomcatLoader {
 			registerJMX();		
 		}
 
-	}
-	
-	/**
-	 * Set servlet mappings
-	 * 
-	 * @param mappings
-	 */
-	public void setMappings(Map<String, String> mappings) {
-		log.debug("Servlet mappings: {}", mappings.size());
-		servletMappings.putAll(mappings);
 	}
 	
 }
