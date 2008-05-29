@@ -30,7 +30,11 @@
 	[Bindable]	
 	public var viewerList:ArrayCollection = new ArrayCollection();
 	
-	private var timer:Timer;
+	[Bindable]	
+	public var soUserList:ArrayCollection = new ArrayCollection();	
+	
+	
+	private static var timer:Timer;
 	
 	public function init():void {
 		Security.allowDomain("*");
@@ -130,25 +134,7 @@
         playerDisplay.addChild(playerVideo);
 		playerVideo.width = 160;
 		playerVideo.height = 120;
-    }	
-    
-    public function stopView():void { 
-    	if (timer) {      	
-    		timer.stop();
-    	}
-    	log('Trying to stop view');
-    	if (ncPlayer && ncPlayer.connected) {
-			nsPlayer.close();
-			ncPlayer.close();
-    	}
-		//go thru list
-		var viewer:Viewer;
-		for (var i:int = 0; i < viewerList.length; i += 1) {
-			viewer = viewerList.getItemAt(i) as Viewer;
-			viewer.stop();
-		}
-		viewerList.removeAll();
-    }	    
+    }		    
     
     public function onMetaData(info:Object):void {
     	log('Got meta data');
@@ -167,31 +153,79 @@
     }
     
     public function doLoadTest():void {
-    	log('Load delay: '+requestDelay.text+'s');
+    	log('Load delay: '+requestDelay.text);
     	var delay:int = Number(requestDelay.text);
     	if (delay === 0) {
     		log('Invalid delay entered, setting to .1');
     		delay = .1;
     	}
-    	log('Load delay: '+delay+'s');
-    	timer = new Timer(delay * 1000);
-	    timer.addEventListener("timer", timerHandler);
+    	//convert to seconds
+    	delay = (delay * 1000);
+    	log('Load delay: '+delay+(delay >= 1000?'s':'ms'));
+    	//create the timer only once
+    	if (!timer) {
+	    	timer = new Timer(delay);
+		    timer.addEventListener("timer", timerHandler);
+    	}
 		timer.start();	
     }
     
+    public function stopTest():void { 
+    	if (timer) {      	
+    		timer.stop();
+    	}
+    	log('Trying to stop view');
+    	if (ncPlayer && ncPlayer.connected) {
+			nsPlayer.close();
+			ncPlayer.close();
+    	}
+    	var i:int = 0;
+		//go thru viewer list
+		var viewer:Viewer;
+		for (; i < viewerList.length; i += 1) {
+			viewer = viewerList.getItemAt(i) as Viewer;
+			viewer.stop();
+		}
+		viewerList.removeAll();
+		//go thru so user list
+		var souser:SOUser;
+		for (i = 0; i < soUserList.length; i += 1) {
+			souser = soUserList.getItemAt(i) as SOUser;
+			souser.stop();
+		}
+		soUserList.removeAll();		
+    }    
+    
 	public function timerHandler(event:TimerEvent):void {
-		var max:int = Number(numRequest.text);
-		if (viewerList.length < max) {
+		var maxViewers:int = Number(numRequest.text);
+		if (viewerList.length < maxViewers) {
 			//start a new view
 			log('Creating a new viewer');
 			var viewer:Viewer = new Viewer();
 			viewer.sid = String(viewerList.length);
+			viewer.setEncoding(useAMF3.selected == true ? 3 : 0);
 			viewer.path = givenPath.text;
 			viewer.stream = playerStream.text;
 			viewer.start();
 			viewerList.addItem(viewer);
 		} else {
-			log('Max requests reached');
+			log('Max viewer requests reached');
+		}
+		var maxSOUsers:int = Number(soUserCount.text);
+		if (soUserList.length < maxSOUsers) {
+			//start a new view
+			log('Creating a new SO user');
+			var souser:SOUser = new SOUser();
+			souser.sid = String(soUserList.length);
+			souser.setEncoding(useAMF3.selected == true ? 3 : 0);
+			souser.setUpdateInterval(int(updateInterval.text));
+			souser.setUseDirtyFlag(useDirty.selected);
+			souser.start();
+			soUserList.addItem(souser);
+		} else {
+			log('Max SO users reached');
+		}
+		if (viewerList.length === maxViewers && soUserList.length === maxSOUsers) {
 			timer.stop();
 		}
 	}           
