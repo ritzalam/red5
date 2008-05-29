@@ -204,7 +204,7 @@
 				</entry>
 				<entry>
 					<key><value>keystorePass</value></key>
-					<value>password</value>
+					<value>${rtmps.keystorepass}</value>
 				</entry>
 				<entry>
 					<key><value>keystoreType</value></key>

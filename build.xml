@@ -1012,6 +1012,71 @@
 		</jar>	
 	</target>
 
+	<!-- RTMPS Keystore Generator -->
+	<target name="rtmps_keystore">
+		
+		<input
+		    message="Keystore Pass"
+		    addproperty="keystore.storepass"
+			defaultvalue="password"
+		  />
+		
+		<input
+			message="Certificate Validity"
+			addproperty="keystore.validity"
+			defaultvalue="365"
+		/>
+		
+		<input
+			message="Common Name"
+			addproperty="keystore.dname.cn"
+			defaultvalue="localhost"
+		/>
+		
+		<input
+			message="Organisation Unit"
+			addproperty="keystore.dname.ou"
+			defaultvalue="Red5"
+		/>
+		
+		<input
+			message="Organisation"
+			addproperty="keystore.dname.o"
+			defaultvalue="Red5"
+		/>
+		
+		<input
+			message="Location"
+			addproperty="keystore.dname.l"
+			defaultvalue="Henderson"
+		/>
+		
+		<input
+			message="State"
+			addproperty="keystore.dname.st"
+			defaultvalue="NV"
+		/>
+		
+		<input
+			message="Country"
+			addproperty="keystore.dname.c"
+			defaultvalue="US"
+		/>
+		
+		<delete file="${config.dir}/keystore"/>
+		
+		<genkey alias="red5" keysize="512" keyalg="RSA" storepass="${keystore.storepass}" keypass="${keystore.storepass}" keystore="${config.dir}/keystore" validity="${keystore.validity}">
+		  <dname>
+		    <param name="CN" value="${keystore.dname.cn}"/>
+		    <param name="OU" value="${keystore.dname.ou}"/>
+		    <param name="O"  value="${keystore.dname.o}"/>
+		    <param name="L"  value="${keystore.dname.l}"/>
+		  	<param name="ST"  value="${keystore.dname.st}"/>
+		    <param name="C"  value="${keystore.dname.c}"/>
+		  </dname>
+		</genkey>
+	</target>
+	
 	<target name="all" depends="clean, prepare, compile, jar, javadoc" description="Run all server tasks"/>
 
 	<target name="usage">
