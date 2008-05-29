@@ -52,6 +52,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.core.style.ToStringCreator;
 
+import org.apache.commons.lang.StringUtils;
+
 /**
  * The scope object.
  * 
@@ -1148,7 +1150,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 		}
 		this.name = name;
 
-		if (name != null) {
+		if (StringUtils.isNotBlank(name)) {
 			try {
 				String className = getClass().getName();
 				if (className.indexOf('.') != -1) {
