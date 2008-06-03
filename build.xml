@@ -161,9 +161,11 @@
 		<delete includeemptydirs="true">
 			<fileset dir="${webapps.dir}/" includes="**/*.class"/>
 		</delete>
+	
 		<delete includeemptydirs="true">
 			<fileset dir="${webapps.dir}/" includes="**/*.jar"/>
 		</delete>
+		
 	</target>
 
 	<target name="retrieve" unless="library.installed" description="Retrieves the libraries if needed">
@@ -285,9 +287,9 @@
 			<copy todir="${webapps.build.dir}/@{webapp}/WEB-INF/classes" file="webapps/@{webapp}/WEB-INF/src/logback.xml" overwrite="true"/>
 			<copy todir="${webapps.build.dir}/@{webapp}/WEB-INF/lib">
 				<fileset dir="${lib.dir}">
-					<include name="slf4j-api-1.4.3.jar"/>
-					<include name="logback-core-0.9.8.jar"/>
-					<include name="logback-classic-0.9.8.jar"/>
+					<include name="slf4j-api-*.*.*.jar"/>
+					<include name="logback-core-*.*.*.jar"/>
+					<include name="logback-classic-*.*.*.jar"/>
 				</fileset>
 			</copy>		
       		</sequential>
@@ -380,7 +382,7 @@
 			</copy-assets>
 		</build-demo>
 		<build-demo name="test"/>
-
+		
 		<!-- no Java source for the messageRecorder and SOSample app -->
 		<copy todir="${webapps.build.dir}/messageRecorder" filtering="true">
 			<fileset dir="webapps/messageRecorder"/>
@@ -596,6 +598,7 @@
 		<compile-jardemo name="tutorial"/>
 		
 		<!-- exclude logback.xml for admin -->
+		
 		<jar destfile="${webapps.build.dir}/admin/WEB-INF/lib/admin.jar">
 			<fileset dir="${webapps.build.dir}/admin/WEB-INF/classes">
 				<include name="**"/>
