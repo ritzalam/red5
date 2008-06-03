@@ -179,6 +179,12 @@
 	<logger name="org.apache.jasper">
 		<level value="INFO" />
 	</logger>
+	<logger name="org.apache.tomcat">
+		<level value="INFO" />
+	</logger>
+	<logger name="org.apache.tomcat.util.net">
+		<level value="WARN" />
+	</logger>
 	<!-- Jetty -->
 	<logger name="org.mortbay">
 		<level value="WARN" />
