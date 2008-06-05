@@ -164,6 +164,7 @@ public class TomcatRTMPTLoader extends TomcatLoader {
 		try {
 			log.info("Starting RTMPT engine");
 			//embedded.start();
+			connector.start();
 		} catch (Exception e) {
 			log.error("Error loading tomcat", e);
 		} finally {
