@@ -32,7 +32,7 @@
 		class="org.red5.server.ContextLoader"
 		init-method="init" destroy-method="uninit">
 		<property name="parentContext" ref="red5.common" />
-		<property name="contextsConfig" value="red5.globals" />
+		<property name="contextsConfig" value="classpath:/red5.globals" />
 	</bean>	
 	
 	<!-- Now we can load the servlet engine, this has to happen after the context are loaded -->
@@ -44,24 +44,9 @@
 -->
 
 	<!-- Tomcat servlet engine / http server -->
-	<bean id="tomcat.server" class="org.red5.server.tomcat.TomcatLoader" init-method="init" destroy-method="shutdown" autowire="byType" depends-on="context.loader">
+	<bean id="tomcat.server" class="org.red5.server.tomcat.TomcatLoader" init-method="init" destroy-method="shutdown" depends-on="context.loader">
 
 		<property name="webappFolder" value="${red5.root}/webapps" />
-	
-	    <property name="embedded">
-	    	<bean class="org.apache.catalina.startup.Embedded" />
-	    </property>
-	  
-	    <property name="engine">
-			<bean class="org.apache.catalina.core.StandardEngine">
-		        <property name="name" value="red5Engine" />
-		        <property name="defaultHost" value="${http.host}" />
-			</bean>	  
-	    </property>
-	    
-	    <property name="realm">
-	    	<bean class="org.apache.catalina.realm.MemoryRealm" />
-		</property>
 			      
 	    <property name="connector">
 			<bean class="org.apache.catalina.connector.Connector">

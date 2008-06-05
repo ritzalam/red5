@@ -117,11 +117,8 @@
 	-->
 		
 	<!-- Tomcat Container -->
-	<bean id="rtmpt.server" class="org.red5.server.net.rtmpt.TomcatRTMPTLoader" init-method="init" autowire="byType">
+	<bean id="rtmpt.server" class="org.red5.server.net.rtmpt.TomcatRTMPTLoader" init-method="init">
 		<property name="webappFolder" value="${red5.root}/webapps" />
-        <property name="embedded">
-			<bean class="org.apache.catalina.startup.Embedded" />
-		</property>
 		
 		<property name="engine">
 			<bean class="org.apache.catalina.core.StandardEngine">
@@ -154,10 +151,6 @@
 	<bean id="rtmps.server" class="org.red5.server.net.rtmps.TomcatRTMPSLoader" init-method="init">
 	
 		<property name="webappFolder" value="${red5.root}/webapps" />
-			
-		<property name="embedded">
-			<bean class="org.apache.catalina.startup.Embedded" />
-		</property>
 		
 		<property name="engine">
 			<bean class="org.apache.catalina.core.StandardEngine">
