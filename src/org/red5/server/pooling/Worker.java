@@ -192,6 +192,7 @@ public class Worker implements Runnable {
 	 * @throws ClassNotFoundException
 	 */
 	private static Class<?> getClass(String cls) throws ClassNotFoundException {
+		//System.out.println(">>>>> worker: " + Thread.currentThread().getContextClassLoader());
 		ClassLoader classLoader = Thread.currentThread()
 				.getContextClassLoader();
 		if (classLoader == null) {

@@ -81,8 +81,11 @@ public class TomcatRTMPTLoader extends TomcatLoader {
 	public void init() {
 		log.info("Loading RTMPT context");
 
+		//System.out.println(">>>> Tomcat RTMPT classloader (init): " + this.getClass().getClassLoader());
+		//System.out.println(">>>> Tomcat RTMPT classloader (thread): " + Thread.currentThread().getContextClassLoader());		
+		
 		// Don't start Tomcats jndi
-		embedded.setUseNaming(false);
+		//embedded.setUseNaming(false);
 
 		// add the valves to the host
 		for (Valve valve : valves) {
@@ -131,8 +134,8 @@ public class TomcatRTMPTLoader extends TomcatLoader {
 		// start server
 		try {
 			log.info("Starting RTMPT engine");
-			embedded.start();
-		} catch (org.apache.catalina.LifecycleException e) {
+			//embedded.start();
+		} catch (Exception e) {
 			log.error("Error loading tomcat", e);
 		} finally {
 			registerJMX();		

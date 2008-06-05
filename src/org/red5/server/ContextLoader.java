@@ -168,6 +168,15 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMBea
 			log.warn("Singleton {} already exists, try unload first", name);		
 			return;
 		}
+		// if parent context was not set then lookup red5.common
+		if (parentContext == null) {
+			log.debug("Lookup common - bean:{} local:{} singleton:{}", new Object[]{
+					factory.containsBean("red5.common"),
+					factory.containsLocalBean("red5.common"),
+					factory.containsSingleton("red5.common"),
+			});
+			parentContext = (ApplicationContext) factory.getBean("red5.common");
+		}
 		ApplicationContext context = new FileSystemXmlApplicationContext(
 				new String[] { config }, parentContext);
 		log.debug("Adding to context map - name: {} context: {}", name, context);

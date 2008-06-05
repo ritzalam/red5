@@ -155,10 +155,10 @@ public class Standalone {
 			// Don't raise wrapped exceptions as their stacktraces may confuse
 			// people...
 			raiseOriginalException(e);
+		} finally {
+			long t2 = System.nanoTime();
+			log.info("Startup done in: {} ms", ((t2 - t1) / 1000000));
 		}
-
-		long t2 = System.nanoTime();
-		log.info("Startup done in: {} ms", ((t2 - t1) / 1000000));
 
 	}
 

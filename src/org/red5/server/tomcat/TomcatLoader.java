@@ -26,15 +26,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.ServletContext;
+
 import org.apache.catalina.Container;
 import org.apache.catalina.Context;
 import org.apache.catalina.Engine;
 import org.apache.catalina.Host;
+import org.apache.catalina.Loader;
 import org.apache.catalina.Realm;
 import org.apache.catalina.Valve;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.core.StandardContext;
 import org.apache.catalina.core.StandardHost;
+import org.apache.catalina.loader.WebappLoader;
+import org.apache.catalina.realm.MemoryRealm;
 import org.apache.catalina.startup.Embedded;
 import org.red5.server.LoaderBase;
 import org.red5.server.LoaderMBean;
@@ -42,7 +47,9 @@ import org.red5.server.api.IApplicationContext;
 import org.red5.server.jmx.JMXAgent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.web.context.support.XmlWebApplicationContext;
 
 /**
  * Red5 loader for Tomcat.
@@ -90,6 +97,9 @@ public class TomcatLoader extends LoaderBase implements
 		System.setProperty("tomcat.home", serverRoot);
 		System.setProperty("catalina.home", serverRoot);
 		System.setProperty("catalina.base", serverRoot);
+		
+		embedded = new Embedded();
+		
 	}
 
 	/**
@@ -220,7 +230,19 @@ public class TomcatLoader extends LoaderBase implements
 	 */
 	public void init() {
 		log.info("Loading tomcat context");
+		
+		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
 
+		//set the classloader
+		Loader loader = embedded.createLoader(classloader);
+
+		engine = embedded.createEngine();
+		engine.setDefaultHost(host.getName());
+		engine.setName("red5Engine");
+		engine.setParentClassLoader(classloader);
+		
+		host.setParentClassLoader(classloader);
+		
 		if (webappFolder == null) {
 			// Use default webapps directory
 			webappFolder = System.getProperty("red5.root") + "/webapps";
@@ -239,12 +261,29 @@ public class TomcatLoader extends LoaderBase implements
 			String dirName = '/' + dir.getName();
 			// check to see if the directory is already mapped
 			if (null == host.findChild(dirName)) {
+				Context ctx = null;
 				if ("/root".equals(dirName) || "/root".equalsIgnoreCase(dirName)) {
 					log.debug("Adding ROOT context");
-					this.addContext("/", webappFolder + dirName);
+					ctx = addContext("/", webappFolder + dirName);
 				} else {
 					log.debug("Adding context from directory scan: {}", dirName);
-					this.addContext(dirName, webappFolder + dirName);
+					ctx = addContext(dirName, webappFolder + dirName);
+				}
+				if (ctx != null) {
+    				Object ldr = ctx.getLoader();
+    				if (ldr != null) {
+    					if (ldr instanceof WebappLoader) {
+    						log.debug("Replacing context loader");				
+    						((WebappLoader) ldr).setLoaderClass("org.red5.server.tomcat.WebappClassLoader");
+    					} else {
+    						log.debug("Context loader was instance of {}", ldr.getClass().getName());
+    					}
+    				} else {
+    					log.debug("Context loader was null");
+    					WebappLoader wldr = new WebappLoader(classloader);
+    					wldr.setLoaderClass("org.red5.server.tomcat.WebappClassLoader");
+    					ctx.setLoader(wldr);
+    				}
 				}
 			}
 		}
@@ -255,7 +294,11 @@ public class TomcatLoader extends LoaderBase implements
 				log.debug("Context child name: " + cont.getName());
 			}
 		}
-		// Set a realm
+
+		// Set a realm		
+		if (realm == null) {
+			realm = new MemoryRealm();
+		}	
 		embedded.setRealm(realm);
 
 		// Don't start Tomcats jndi
@@ -282,18 +325,49 @@ public class TomcatLoader extends LoaderBase implements
 		// Add new Connector to set of Connectors for embedded server,
 		// associated with Engine
 		embedded.addConnector(connector);
-
-		LoaderBase.setApplicationLoader(new TomcatApplicationLoader(embedded, host, applicationContext));
-
+				
 		// Start server
 		try {
-			log.info("Starting Tomcat servlet engine");
+			log.info("Starting Tomcat servlet engine");	
 			embedded.start();
+
+			LoaderBase.setApplicationLoader(new TomcatApplicationLoader(embedded, host, applicationContext));
+			
+			for (Container cont : host.findChildren()) {
+				if (cont instanceof StandardContext) {
+					StandardContext ctx = (StandardContext) cont;
+					
+					ServletContext servletContext = ctx.getServletContext();
+					log.debug("Context initialized: {}", servletContext.getContextPath());
+					
+					String prefix = servletContext.getRealPath("/");
+					log.debug("Path: {}", prefix);
+
+					try {
+						Loader cldr = ctx.getLoader();
+						log.debug("Loader type: {}", cldr.getClass().getName());
+						ClassLoader webClassLoader = cldr.getClassLoader();
+						log.debug("Webapp classloader: {}", webClassLoader);
+						
+						XmlWebApplicationContext appctx = new XmlWebApplicationContext();
+						appctx.setClassLoader(webClassLoader);
+						appctx.setConfigLocations(new String[]{"/WEB-INF/red5-*.xml"});
+						appctx.setParent((ApplicationContext) applicationContext.getBean("default.context"));					
+						appctx.setServletContext(servletContext);
+						appctx.refresh();
+					} catch (Throwable t) {
+						log.error("Error setting up context: {}", servletContext.getContextPath(), t);
+						//t.printStackTrace();
+					}					
+				}
+			}
+			
 		} catch (org.apache.catalina.LifecycleException e) {
 			log.error("Error loading Tomcat", e);
 		} finally {
 			registerJMX();		
 		}
+		
 	}
 
 	/**

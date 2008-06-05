@@ -372,6 +372,7 @@ public class ConversionUtils {
      * @return            Instance of given class
      */
     protected static Object newInstance(String className) {
+    	//System.out.println(">>>>> conversion utils: " + Thread.currentThread().getContextClassLoader());
 		Object instance = null;
 		try {
 			Class<?> clazz = Thread.currentThread().getContextClassLoader()

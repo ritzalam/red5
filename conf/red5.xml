@@ -96,15 +96,5 @@
         </property>
 	    
 	</bean>     	
-
-	<!-- Default context. This can be shared between web app contexts -->
-	<!--
-	<bean id="default.context"
-  	    class="org.springframework.context.support.FileSystemXmlApplicationContext">
-    	<constructor-arg><value>/webapps/red5-default.xml</value></constructor-arg>
-    	<constructor-arg><ref bean="red5.common" /></constructor-arg>
-	</bean>
-	-->
-	<!-- You can add further contexts here. This allows for multiple separate global scopes --> 	
 	
 </beans>

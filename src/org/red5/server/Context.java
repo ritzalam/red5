@@ -437,6 +437,8 @@ public class Context implements IContext, ApplicationContextAware, ContextMBean 
 	 * @return Classloder context of current thread
 	 */
 	public ClassLoader getClassLoader() {
+		//System.out.println(">>>>> context: " + Thread.currentThread().getContextClassLoader());
+		//System.out.println(">>>>> context (app ctx): " + applicationContext.getClassLoader());
 		return applicationContext.getClassLoader();
 	}
 

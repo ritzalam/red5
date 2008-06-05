@@ -6,26 +6,6 @@
    version="2.4"> 
 
 	<display-name>Red5 SharedObjects Test App</display-name>
-
-	<context-param>
-	    <param-name>globalScope</param-name>
-	    <param-value>default</param-value>
-	</context-param>
-
-	<context-param>
-	    <param-name>contextConfigLocation</param-name>
-	    <param-value>/WEB-INF/red5-*.xml</param-value>
-	</context-param>
-
-	<context-param>
-		<param-name>locatorFactorySelector</param-name>
-		<param-value>red5.xml</param-value>
-	</context-param>
-
-	<context-param>
-		<param-name>parentContextKey</param-name>
-		<param-value>default.context</param-value>
-	</context-param>	
 	
 	<context-param>
 		<param-name>webAppRootKey</param-name>

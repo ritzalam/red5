@@ -20,6 +20,7 @@ package org.red5.server.net.rtmps;
  */
 
 import org.apache.catalina.Context;
+import org.apache.catalina.Loader;
 import org.apache.catalina.Server;
 import org.apache.catalina.Valve;
 import org.apache.catalina.core.AprLifecycleListener;
@@ -61,9 +62,12 @@ public class TomcatRTMPSLoader extends TomcatRTMPTLoader {
 	@Override
 	public void init() {
 		log.info("Loading RTMPS context");
-
+		
+		//System.out.println(">>>> Tomcat RTMPS classloader (init): " + this.getClass().getClassLoader());
+		//System.out.println(">>>> Tomcat RTMPS classloader (thread): " + Thread.currentThread().getContextClassLoader());
+		
 		// Don't start Tomcats jndi
-		embedded.setUseNaming(false);
+		//embedded.setUseNaming(false);
 
 		// add the valves to the host
 		for (Valve valve : valves) {
@@ -119,8 +123,8 @@ public class TomcatRTMPSLoader extends TomcatRTMPTLoader {
 		// start server
 		try {
 			log.info("Starting RTMPS engine");
-			embedded.start();
-		} catch (org.apache.catalina.LifecycleException e) {
+			//embedded.start();
+		} catch (Exception e) {
 			log.error("Error loading tomcat", e);
 		} finally {
 			registerJMX();		

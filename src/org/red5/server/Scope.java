@@ -603,6 +603,8 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 * @return Current thread context classloader
 	 */
 	public ClassLoader getClassLoader() {
+		//System.out.println(">>>>> scope: " + Thread.currentThread().getContextClassLoader());		
+		//System.out.println(">>>>> scope (context): " + getContext().getClassLoader());		
 		return getContext().getClassLoader();
 	}
 

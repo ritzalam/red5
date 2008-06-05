@@ -168,6 +168,9 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	 * Setup the classloader to use when deserializing custom objects.
 	 */
 	protected void setupClassLoader() {
+		//System.out.println(">>>>> rtmp decoder: " + Thread.currentThread().getContextClassLoader());		
+		//System.out.println(">>>>> rtmp decoder (class): " + getClass().getClassLoader());
+		
 		IConnection conn = Red5.getConnectionLocal();
 		if (conn == null) {
 			return;
@@ -175,6 +178,9 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 
 		IScope scope = conn.getScope();
 		if (scope != null) {
+
+			System.out.println(">>>>> rtmp decoder (scope): " + scope.getClassLoader());
+
 			Thread.currentThread()
 					.setContextClassLoader(scope.getClassLoader());
 		}

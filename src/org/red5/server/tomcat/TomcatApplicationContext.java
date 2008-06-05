@@ -50,22 +50,20 @@ public class TomcatApplicationContext implements IApplicationContext {
 		this.context = context;
 	}
 	
-	/** {@inheritDoc} */
 	public void stop() {
-		// TODO: is this the right way to stop a Tomcat webapp?
-		if (context instanceof StandardContext) {
-			try {
-				((StandardContext) context).stop();
-			} catch (Exception e) {
-				log.error("Could not stop context.", e);
-			}
-		}
 		context.getParent().removeChild(context);
 		if (context instanceof StandardContext) {
+			StandardContext ctx = (StandardContext) context;
 			try {
-				((StandardContext) context).destroy();
+				ctx.stop();
 			} catch (Exception e) {
-				log.error("Could not destroy context.", e);
+				log.error("Could not stop context", e);
+			} finally {
+        		try {
+        			ctx.destroy();
+        		} catch (Exception e) {
+        			log.error("Could not destroy context", e);
+        		}
 			}
 		}
 	}
