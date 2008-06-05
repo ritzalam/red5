@@ -167,9 +167,6 @@
 	<logger name="org.apache.catalina">
 		<level value="INFO" />
 	</logger>
-	<logger name="org.apache.catalina.authenticator">
-		<level value="INFO" />
-	</logger>
 	<logger name="org.apache.catalina.realm">
 		<level value="WARN" />
 	</logger>
@@ -218,10 +215,5 @@
 	<logger name="net.sf.ehcache">
 		<level value="INFO" />
 	</logger>
-	<logger name="com.whirlycott.cache">
-		<level value="WARN" />
-	</logger>
-	<logger name="com.whirlycott.cache.policy">
-		<level value="WARN" />
-	</logger>
+
 </configuration>

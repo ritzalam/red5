@@ -23,10 +23,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.catalina.Context;
+import org.apache.catalina.Engine;
+import org.apache.catalina.Loader;
 import org.apache.catalina.Server;
 import org.apache.catalina.Valve;
 import org.apache.catalina.core.StandardHost;
 import org.apache.catalina.core.StandardWrapper;
+import org.apache.catalina.loader.WebappLoader;
 import org.red5.server.api.IServer;
 import org.red5.server.tomcat.TomcatLoader;
 import org.slf4j.Logger;
@@ -41,13 +44,18 @@ import org.slf4j.LoggerFactory;
 public class TomcatRTMPTLoader extends TomcatLoader {
 
 	// Initialize Logging
-	protected static Logger log = LoggerFactory.getLogger(TomcatRTMPTLoader.class);
+	private static Logger log = LoggerFactory.getLogger(TomcatRTMPTLoader.class);
 
 	/**
 	 * RTMP server instance
 	 */
-	protected Server rtmptServer;
+	//protected Server rtmptServer;
 
+	/**
+	 * RTMPT Tomcat engine.
+	 */
+	protected Engine rtmptEngine;	
+	
 	/**
 	 * Server instance
 	 */
@@ -81,12 +89,18 @@ public class TomcatRTMPTLoader extends TomcatLoader {
 	public void init() {
 		log.info("Loading RTMPT context");
 
-		//System.out.println(">>>> Tomcat RTMPT classloader (init): " + this.getClass().getClassLoader());
-		//System.out.println(">>>> Tomcat RTMPT classloader (thread): " + Thread.currentThread().getContextClassLoader());		
-		
-		// Don't start Tomcats jndi
-		//embedded.setUseNaming(false);
+		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
 
+		System.out.println(">>>> Tomcat RTMPT classloader (init): " + this.getClass().getClassLoader());
+		System.out.println(">>>> Tomcat RTMPT classloader (thread): " + classloader);		
+
+		rtmptEngine = embedded.createEngine();
+		rtmptEngine.setDefaultHost(host.getName());
+		rtmptEngine.setName("red5RTMPTEngine");
+		rtmptEngine.setParentClassLoader(classloader);
+		
+		host.setParentClassLoader(classloader);		
+		
 		// add the valves to the host
 		for (Valve valve : valves) {
 			log.debug("Adding host valve: {}", valve);
@@ -97,6 +111,21 @@ public class TomcatRTMPTLoader extends TomcatLoader {
 		Context ctx = embedded.createContext("/", webappFolder + "/root");
 		ctx.setReloadable(false);
 		log.debug("Context name: {}", ctx.getName());
+		Object ldr = ctx.getLoader();
+		if (ldr != null) {
+			if (ldr instanceof WebappLoader) {
+				log.debug("Replacing context loader");				
+				((WebappLoader) ldr).setLoaderClass("org.red5.server.tomcat.WebappClassLoader");
+			} else {
+				log.debug("Context loader was instance of {}", ldr.getClass().getName());
+			}
+		} else {
+			log.debug("Context loader was null");
+			WebappLoader wldr = new WebappLoader(classloader);
+			wldr.setLoaderClass("org.red5.server.tomcat.WebappClassLoader");
+			ctx.setLoader(wldr);
+		}
+		
 		host.addChild(ctx);
 		
 		// add servlet wrapper
@@ -116,10 +145,10 @@ public class TomcatRTMPTLoader extends TomcatLoader {
 			context.addServletMapping(servletMappings.get(key), key);
 		}		
 		
-		engine.addChild(host);
+		rtmptEngine.addChild(host);
 
 		// add new Engine to set of Engine for embedded server
-		embedded.addEngine(engine);
+		embedded.addEngine(rtmptEngine);
 
 		// set connection properties
 		for (String key : connectionProperties.keySet()) {

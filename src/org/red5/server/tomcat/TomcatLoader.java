@@ -49,6 +49,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.XmlWebApplicationContext;
 
 /**
@@ -84,7 +85,7 @@ public class TomcatLoader extends LoaderBase implements
 	}
 
 	// Initialize Logging
-	protected static Logger log = LoggerFactory.getLogger(TomcatLoader.class);
+	private static Logger log = LoggerFactory.getLogger(TomcatLoader.class);
 	
 	static {
 		log.info("Init tomcat");
@@ -98,8 +99,7 @@ public class TomcatLoader extends LoaderBase implements
 		System.setProperty("catalina.home", serverRoot);
 		System.setProperty("catalina.base", serverRoot);
 		
-		embedded = new Embedded();
-		
+		embedded = new Embedded();	
 	}
 
 	/**
@@ -354,6 +354,8 @@ public class TomcatLoader extends LoaderBase implements
 						appctx.setConfigLocations(new String[]{"/WEB-INF/red5-*.xml"});
 						appctx.setParent((ApplicationContext) applicationContext.getBean("default.context"));					
 						appctx.setServletContext(servletContext);
+						//set the root webapp ctx attr on the each servlet context so spring can find it later					
+						servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, appctx);
 						appctx.refresh();
 					} catch (Throwable t) {
 						log.error("Error setting up context: {}", servletContext.getContextPath(), t);
@@ -362,6 +364,26 @@ public class TomcatLoader extends LoaderBase implements
 				}
 			}
 			
+			//if everything is ok at this point then call the rtmpt and rtmps beans so they will init
+			if (applicationContext.containsBean("red5.core")) {
+				ApplicationContext core = (ApplicationContext) applicationContext.getBean("red5.core");			
+    			if (core.containsBean("rtmpt.server")) {
+    				log.debug("Initializing RTMPT");
+    				core.getBean("rtmpt.server");
+    				log.debug("Finished initializing RTMPT");    				
+    			} else {
+    				log.info("RTMPT server bean was not found");
+    			}
+    			if (core.containsBean("rtmps.server")) {
+    				log.debug("Initializing RTMPS");
+    				core.getBean("rtmps.server");				
+    				log.debug("Finished initializing RTMPS");    				
+    			} else {
+    				log.info("RTMPS server bean was not found");
+    			}
+			} else {
+				log.info("Core context was not found");
+			}
 		} catch (org.apache.catalina.LifecycleException e) {
 			log.error("Error loading Tomcat", e);
 		} finally {
@@ -427,16 +449,6 @@ public class TomcatLoader extends LoaderBase implements
 	public void setEmbedded(Embedded embedded) {
 		log.info("Setting embedded: {}", embedded.getClass().getName());
 		TomcatLoader.embedded = embedded;
-	}
-
-	/**
-	 * Set Tomcat engine implementation.
-	 * 
-	 * @param engine Tomcat engine
-	 */
-	public void setEngine(Engine engine) {
-		log.info("Setting engine: {}", engine.getClass().getName());
-		TomcatLoader.engine = engine;
 	}
 	
 	/**

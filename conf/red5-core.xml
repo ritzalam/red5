@@ -117,15 +117,9 @@
 	-->
 		
 	<!-- Tomcat Container -->
-	<bean id="rtmpt.server" class="org.red5.server.net.rtmpt.TomcatRTMPTLoader" init-method="init">
+	<bean id="rtmpt.server" class="org.red5.server.net.rtmpt.TomcatRTMPTLoader" init-method="init" lazy-init="true">
+	
 		<property name="webappFolder" value="${red5.root}/webapps" />
-		
-		<property name="engine">
-			<bean class="org.apache.catalina.core.StandardEngine">
-				<property name="name" value="rtmptServletHandler" />
-				<property name="defaultHost" value="${rtmpt.host}" />
-			</bean>	  
-		</property>
 		
 		<property name="connector">
 			<bean class="org.apache.catalina.connector.Connector">
@@ -148,16 +142,9 @@
 	</bean>
 	
 	<!-- RTMPS -->
-	<bean id="rtmps.server" class="org.red5.server.net.rtmps.TomcatRTMPSLoader" init-method="init">
+	<bean id="rtmps.server" class="org.red5.server.net.rtmps.TomcatRTMPSLoader" init-method="init" lazy-init="true">
 	
 		<property name="webappFolder" value="${red5.root}/webapps" />
-		
-		<property name="engine">
-			<bean class="org.apache.catalina.core.StandardEngine">
-				<property name="name" value="rtmpsServletHandler" />
-				<property name="defaultHost" value="${rtmps.host}" />
-			</bean>	  
-		</property>
 		
 		<property name="connector">
 			<bean class="org.apache.catalina.connector.Connector">

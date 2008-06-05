@@ -44,7 +44,7 @@ import org.slf4j.LoggerFactory;
 public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoaderMBean {
 
 	// Initialize Logging
-	protected static Logger log = LoggerFactory.getLogger(TomcatVHostLoader.class);
+	private static Logger log = LoggerFactory.getLogger(TomcatVHostLoader.class);
 
 	/**
 	 * Base web applications directory
