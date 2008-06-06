@@ -43,11 +43,6 @@ public class TomcatRTMPSLoader extends TomcatRTMPTLoader {
 
 	// Initialize Logging
 	private static Logger log = LoggerFactory.getLogger(TomcatRTMPSLoader.class);
-
-	/**
-	 * RTMP server instance
-	 */
-	//protected Server rtmpsServer;
 	
 	/**
 	 * RTMPS Tomcat engine.
@@ -71,9 +66,6 @@ public class TomcatRTMPSLoader extends TomcatRTMPTLoader {
 		log.info("Loading RTMPS context");
 		
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-
-		System.out.println(">>>> Tomcat RTMPS classloader (init): " + this.getClass().getClassLoader());
-		System.out.println(">>>> Tomcat RTMPS classloader (thread): " + classloader);		
 
 		rtmpsEngine = embedded.createEngine();
 		rtmpsEngine.setDefaultHost(host.getName());

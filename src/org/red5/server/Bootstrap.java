@@ -26,6 +26,9 @@ import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.red5.server.api.Red5;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 /**
@@ -37,19 +40,19 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
 public class Bootstrap {
 
 	public static void launch(URLClassLoader loader) {
-		System.out.println(">>>>> launch: " + Thread.currentThread().getContextClassLoader());
 		System.setProperty("red5.deployment.type", "bootstrap");
 		try {				
+			//set default for loading classes with url loader
 			loader.setDefaultAssertionStatus(false);
-			
+			//create a logger before anything else happens
+			Logger log = LoggerFactory.getLogger(Bootstrap.class);
+			log.info("{} (http://www.osflash.org/red5)", Red5.getVersion());
+			//create red5 app context
 			FileSystemXmlApplicationContext ctx = new FileSystemXmlApplicationContext(new String[]{
 					"classpath:/red5.xml"}, false);
 			ctx.setClassLoader(loader);
-			System.out.println("After set classloader");
 			ctx.refresh();
-			System.out.println("After refresh");			
 			ctx.getBeanFactory().setBeanClassLoader(loader);
-			System.out.println("After set bean classloader");
 			
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -57,8 +60,6 @@ public class Bootstrap {
 	}
 	
 	public static void main(String[] args) throws Exception {
-
-		System.out.println("Red5 (http://www.osflash.org/red5)");
 
 		// look for red5 root first as a system property
 		String root = System.getProperty("red5.root");
@@ -119,7 +120,7 @@ public class Bootstrap {
 		}
 
 		// add the classes dir and each jar in lib to a List of URLs.
-		List<URL> urls = new ArrayList<URL>(67); //use prime
+		List<URL> urls = new ArrayList<URL>(57); //use prime
 		// add red5.jar
 		urls.add(new File(root, "red5.jar").toURI().toURL());
 		// add all other libs
@@ -133,13 +134,9 @@ public class Bootstrap {
 		System.out.println(urls.size() + " items in the classpath");
 
 		//loop thru all the current urls
-//		for (URL url : urls) {
-//			System.out.println("Classpath entry: " + url.toExternalForm());
-//		}
-
-		//System.out.println(">>>>> System classloader (Parent): " + ClassLoader.getSystemClassLoader().getParent());
-		//System.out.println(">>>>> System classloader: " + ClassLoader.getSystemClassLoader());
-		//System.out.println(">>>>> Current threads classloader: " + Thread.currentThread().getContextClassLoader());
+		//for (URL url : urls) {
+		//	System.out.println("Classpath entry: " + url.toExternalForm());
+		//}
 
 		ClassLoader parent = ClassLoader.getSystemClassLoader().getParent();
 		
@@ -147,14 +144,11 @@ public class Bootstrap {
 		URLClassLoader loader = new URLClassLoader(urls.toArray(new URL[0]), parent);
 				
 		// set the classloader to the current thread
-		Thread.currentThread().setContextClassLoader(loader);        
-		//System.out.println(">>>>> Current threads classloader (after set): " + Thread.currentThread().getContextClassLoader());	
+		Thread.currentThread().setContextClassLoader(loader);
 		
 		// create a new instance of this class using new classloader
 		Object boot = loader.loadClass("org.red5.server.Bootstrap").newInstance();
-		//for (Method mm : boot.getClass().getMethods()) {
-    	//	System.out.println("boot methods: " + mm.getName());
-    	//}		
+	
 		Method m1 = boot.getClass().getMethod("launch", new Class[]{ URLClassLoader.class });
 		m1.invoke(null, loader);
 			

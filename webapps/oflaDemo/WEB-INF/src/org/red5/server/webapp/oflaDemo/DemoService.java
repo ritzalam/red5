@@ -17,8 +17,13 @@ import org.springframework.core.io.Resource;
 
 public class DemoService {
 
-	protected static Logger log = LoggerFactory.getLogger(DemoService.class);
+	protected Logger log = LoggerFactory.getLogger(DemoService.class);
 
+	{
+		log.info("oflaDemo DemoService created");
+		System.out.println("oflaDemo DemoService created");
+	}
+	
 	private String formatDate(Date date) {
 		SimpleDateFormat formatter;
 		String pattern = "dd/MM/yy H:mm:ss";

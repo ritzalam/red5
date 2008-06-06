@@ -7,15 +7,27 @@ import org.red5.server.api.IScope;
 import org.red5.server.api.stream.IServerStream;
 import org.red5.server.api.stream.IStreamCapableConnection;
 import org.red5.server.api.stream.support.SimpleConnectionBWConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Application extends ApplicationAdapter {
+
+	protected Logger log = LoggerFactory.getLogger(Application.class);
+	
 	private IScope appScope;
 
 	private IServerStream serverStream;
 
+	{
+		log.info("oflaDemo created");
+		System.out.println("oflaDemo created");
+	}
+	
 	/** {@inheritDoc} */
     @Override
 	public boolean appStart(IScope app) {
+		log.info("oflaDemo appStart");
+		System.out.println("oflaDemo appStart");    	
 		appScope = app;
 		return true;
 	}
@@ -23,6 +35,8 @@ public class Application extends ApplicationAdapter {
 	/** {@inheritDoc} */
     @Override
 	public boolean appConnect(IConnection conn, Object[] params) {
+		log.info("oflaDemo appConnect");
+		System.out.println("oflaDemo appConnect");
 		// Trigger calling of "onBWDone", required for some FLV players
 		measureBandwidth(conn);
 		if (conn instanceof IStreamCapableConnection) {

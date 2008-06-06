@@ -106,7 +106,6 @@
 				<or>
 					<and>
 						<available property="spring.installed" classpathref="project.classpath" classname="org.springframework.core.SpringVersion"/>
-						<available property="log4j.installed" classpathref="project.classpath" classname="org.apache.log4j.Logger"/>
 						<available property="logging.installed" classpathref="project.classpath" classname="org.slf4j.Logger"/>
 						<available property="catalina.installed" classpathref="project.classpath" classname="org.apache.catalina.Server"/>
 						<available property="mina.installed" classpathref="project.classpath" classname="org.apache.mina.filter.codec.ProtocolEncoder"/>
@@ -116,7 +115,6 @@
 					</and>
 					<and>
 						<available property="spring.installed" classpathref="project.classpath" classname="org.springframework.core.SpringVersion"/>
-						<available property="log4j.installed" classpathref="project.classpath" classname="org.apache.log4j.Logger"/>
 						<available property="logging.installed" classpathref="project.classpath" classname="org.slf4j.Logger"/>
 						<available property="catalina.installed" classpathref="project.classpath" classname="org.apache.catalina.Server"/>
 						<available property="mina.installed" classpathref="project.classpath" classname="org.apache.mina.filter.codec.ProtocolEncoder"/>
@@ -285,14 +283,16 @@
    		<sequential>
 			<!-- copy the logback config per webapp and associated jars -->
 			<copy todir="${webapps.build.dir}/@{webapp}/WEB-INF/classes" file="webapps/@{webapp}/WEB-INF/src/logback.xml" overwrite="true"/>
+			<!--
 			<copy todir="${webapps.build.dir}/@{webapp}/WEB-INF/lib">
 				<fileset dir="${lib.dir}">
 					<include name="slf4j-api-*.*.*.jar"/>
 					<include name="logback-core-*.*.*.jar"/>
 					<include name="logback-classic-*.*.*.jar"/>
 				</fileset>
-			</copy>		
-      		</sequential>
+			</copy>
+			-->		
+      	</sequential>
 	</macrodef>
 	
 	<!-- Demos -->

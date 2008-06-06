@@ -98,7 +98,7 @@ public class TomcatLoader extends LoaderBase implements
 		System.setProperty("tomcat.home", serverRoot);
 		System.setProperty("catalina.home", serverRoot);
 		System.setProperty("catalina.base", serverRoot);
-		
+		// create one embedded (server) and use it everywhere
 		embedded = new Embedded();	
 	}
 
@@ -301,8 +301,10 @@ public class TomcatLoader extends LoaderBase implements
 		}	
 		embedded.setRealm(realm);
 
-		// Don't start Tomcats jndi
-		embedded.setUseNaming(false);
+		// use Tomcat jndi or not
+		if (System.getProperty("catalina.useNaming") != null) {
+			embedded.setUseNaming(Boolean.valueOf(System.getProperty("catalina.useNaming")));
+		}
 
 		// add the valves to the host
 		for (Valve valve : valves) {
@@ -348,7 +350,7 @@ public class TomcatLoader extends LoaderBase implements
 						log.debug("Loader type: {}", cldr.getClass().getName());
 						ClassLoader webClassLoader = cldr.getClassLoader();
 						log.debug("Webapp classloader: {}", webClassLoader);
-						
+						//create a spring web application context
 						XmlWebApplicationContext appctx = new XmlWebApplicationContext();
 						appctx.setClassLoader(webClassLoader);
 						appctx.setConfigLocations(new String[]{"/WEB-INF/red5-*.xml"});
@@ -357,6 +359,41 @@ public class TomcatLoader extends LoaderBase implements
 						//set the root webapp ctx attr on the each servlet context so spring can find it later					
 						servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, appctx);
 						appctx.refresh();
+						//check if we want to use naming
+						if (embedded.isUseNaming()) {
+    						/*
+    						String ctxName = servletContext.getContextPath().replaceAll("/", "");
+    						if (StringUtils.isEmpty(ctxName)) {
+    							ctxName = "root";
+    						}
+    						log.debug("Context name for naming resources: {}", ctxName);
+    						//
+    						NamingResources res = ctx.getNamingResources();
+    						if (res == null) {
+    							res = new NamingResources();
+    						}
+    						//context name env var
+    						ContextEnvironment env = new ContextEnvironment();
+    						env.setDescription("JNDI logging context for this app");
+    						env.setName("logback/context-name");
+    						env.setType("java.lang.String");
+    						env.setValue(ctxName);
+    						// add to naming resources
+    						res.addEnvironment(env);
+    						//configuration resource - logger config file name
+    						ContextEnvironment env2 = new ContextEnvironment();
+    						env2.setDescription("URL for configuring logback context");
+    						env2.setName("logback/configuration-resource");
+    						env2.setType("java.lang.String");
+    						env2.setValue("logback-" + ctxName + ".xml");
+    						//
+    						res.addEnvironment(env2);
+    						//
+    						ctx.setNamingResources(res);
+    						*/
+						} else {
+							log.info("Naming (JNDI) is not enabled");
+						}
 					} catch (Throwable t) {
 						log.error("Error setting up context: {}", servletContext.getContextPath(), t);
 						//t.printStackTrace();

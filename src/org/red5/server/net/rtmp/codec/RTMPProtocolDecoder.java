@@ -178,11 +178,8 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 
 		IScope scope = conn.getScope();
 		if (scope != null) {
-
-			System.out.println(">>>>> rtmp decoder (scope): " + scope.getClassLoader());
-
-			Thread.currentThread()
-					.setContextClassLoader(scope.getClassLoader());
+			//System.out.println(">>>>> rtmp decoder (scope): " + scope.getClassLoader());
+			Thread.currentThread().setContextClassLoader(scope.getClassLoader());
 		}
 	}
 
