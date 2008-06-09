@@ -36,7 +36,7 @@
         <dependency org="jetty" name="jetty-xbean" rev="6.1.9" />
         <!-- Logging --> 
         <dependency name="slf4j-api" rev="1.5.2" />
-        <dependency name="jcl104-over-slf4j" rev="1.5.2" />
+        <dependency name="jcl-over-slf4j" rev="1.5.2" />
         <dependency name="log4j-over-slf4j" rev="1.5.2" />
         <dependency name="jul-to-slf4j" rev="1.5.2" />
         <dependency name="logback-core" rev="0.9.9" />
