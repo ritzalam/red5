@@ -337,7 +337,7 @@ public class TomcatLoader extends LoaderBase implements
 			
 			for (Container cont : host.findChildren()) {
 				if (cont instanceof StandardContext) {
-					StandardContext ctx = (StandardContext) cont;
+					StandardContext ctx = (StandardContext) cont;					
 					
 					ServletContext servletContext = ctx.getServletContext();
 					log.debug("Context initialized: {}", servletContext.getContextPath());
@@ -350,6 +350,9 @@ public class TomcatLoader extends LoaderBase implements
 						log.debug("Loader type: {}", cldr.getClass().getName());
 						ClassLoader webClassLoader = cldr.getClassLoader();
 						log.debug("Webapp classloader: {}", webClassLoader);
+						///
+						log.debug("Webapp classloader (manager logback): {}", webClassLoader.getResource("logback-manager.xml"));
+						log.debug("Webapp classloader (manager role): {}", webClassLoader.getResource("com/red5server/manager/base"));
 						//create a spring web application context
 						XmlWebApplicationContext appctx = new XmlWebApplicationContext();
 						appctx.setClassLoader(webClassLoader);
@@ -396,7 +399,9 @@ public class TomcatLoader extends LoaderBase implements
 						}
 					} catch (Throwable t) {
 						log.error("Error setting up context: {}", servletContext.getContextPath(), t);
-						//t.printStackTrace();
+						if (log.isDebugEnabled()) {
+							t.printStackTrace();
+						}
 					}					
 				}
 			}

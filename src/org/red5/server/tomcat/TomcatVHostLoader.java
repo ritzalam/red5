@@ -23,18 +23,25 @@ import java.io.File;
 import java.util.Map;
 
 import javax.management.ObjectName;
+import javax.servlet.ServletContext;
 
 import org.apache.catalina.Container;
+import org.apache.catalina.Context;
 import org.apache.catalina.Host;
 import org.apache.catalina.LifecycleException;
+import org.apache.catalina.Loader;
 import org.apache.catalina.Valve;
 import org.apache.catalina.core.StandardContext;
 import org.apache.catalina.core.StandardHost;
+import org.apache.catalina.loader.WebappLoader;
 import org.red5.server.LoaderBase;
 import org.red5.server.jmx.JMXAgent;
 import org.red5.server.jmx.JMXFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.XmlWebApplicationContext;
 
 /**
  * Red5 loader for Tomcat virtual hosts.
@@ -66,6 +73,8 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 	 */
 	private ObjectName oName;	
 	
+	private String defaultApplicationContextId = "default.context";
+	
 	/**
 	 * Initialization.
 	 */
@@ -80,10 +89,14 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 			}
 		}
 		
+		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+		
 		//ensure we have a host
 		if (host == null) {
 			host = createHost();
 		}
+		
+		host.setParentClassLoader(classloader);
 		
 		String propertyPrefix = name;
 		if (domain != null) {
@@ -102,13 +115,30 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 			String dirName = '/' + dir.getName();
 			// check to see if the directory is already mapped
 			if (null == host.findChild(dirName)) {
+				Context ctx = null;
 				if ("/root".equals(dirName) || "/root".equalsIgnoreCase(dirName)) {
 					log.debug("Adding ROOT context");
-					this.addContext("/", webappRoot + dirName);
+					ctx = addContext("/", webappRoot + dirName);
 				} else {
 					log.debug("Adding context from directory scan: {}", dirName);
-					this.addContext(dirName, webappRoot + dirName);
+					ctx = addContext(dirName, webappRoot + dirName);
 				}
+				if (ctx != null) {
+    				Object ldr = ctx.getLoader();
+    				if (ldr != null) {
+    					if (ldr instanceof WebappLoader) {
+    						log.debug("Replacing context loader");				
+    						((WebappLoader) ldr).setLoaderClass("org.red5.server.tomcat.WebappClassLoader");
+    					} else {
+    						log.debug("Context loader was instance of {}", ldr.getClass().getName());
+    					}
+    				} else {
+    					log.debug("Context loader was null");
+    					WebappLoader wldr = new WebappLoader(classloader);
+    					wldr.setLoaderClass("org.red5.server.tomcat.WebappClassLoader");
+    					ctx.setLoader(wldr);
+    				}  				    				
+				}				
 			}
 		}
 
@@ -121,9 +151,49 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 
 		engine.addChild(host);
 
-		//may not have to do this step for every host
-		LoaderBase.setApplicationLoader(new TomcatApplicationLoader(embedded, host, applicationContext));
-				
+		// Start server
+		try {
+			log.info("Starting Tomcat virtual host");	
+
+			//may not have to do this step for every host
+			LoaderBase.setApplicationLoader(new TomcatApplicationLoader(embedded, host, applicationContext));
+			
+			for (Container cont : host.findChildren()) {
+				if (cont instanceof StandardContext) {
+					StandardContext ctx = (StandardContext) cont;			
+						
+            		ServletContext servletContext = ctx.getServletContext();
+            		log.debug("Context initialized: {}", servletContext.getContextPath());
+            		
+            		String prefix = servletContext.getRealPath("/");
+            		log.debug("Path: {}", prefix);
+            
+            		try {
+            			Loader cldr = ctx.getLoader();
+            			log.debug("Loader type: {}", cldr.getClass().getName());
+            			ClassLoader webClassLoader = cldr.getClassLoader();
+            			log.debug("Webapp classloader: {}", webClassLoader);
+            			//create a spring web application context
+            			XmlWebApplicationContext appctx = new XmlWebApplicationContext();
+            			appctx.setClassLoader(webClassLoader);
+            			appctx.setConfigLocations(new String[]{"/WEB-INF/red5-*.xml"});
+            			appctx.setParent((ApplicationContext) applicationContext.getBean(defaultApplicationContextId));					
+            			appctx.setServletContext(servletContext);
+            			//set the root webapp ctx attr on the each servlet context so spring can find it later					
+            			servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, appctx);
+            			appctx.refresh();
+            		} catch (Throwable t) {
+            			log.error("Error setting up context: {}", servletContext.getContextPath(), t);
+            			if (log.isDebugEnabled()) {
+            				t.printStackTrace();
+            			}
+            		}					
+				}
+			}	
+		} catch (Exception e) {
+			log.error("Error loading Tomcat virtual host", e);
+		}			
+		
 	}
 
 	/**
@@ -331,6 +401,14 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 		this.unpackWARs = unpackWARs;
 	}
 	
+	public String getDefaultApplicationContextId() {
+		return defaultApplicationContextId;
+	}
+
+	public void setDefaultApplicationContextId(String defaultApplicationContextId) {
+		this.defaultApplicationContextId = defaultApplicationContextId;
+	}
+
 	public void registerJMX() {
 		oName = JMXFactory.createObjectName("type", "TomcatVHostLoader", "name", name, "domain", domain);
 		JMXAgent.registerMBean(this, this.getClass().getName(),	TomcatVHostLoaderMBean.class, oName);

@@ -26,11 +26,16 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.management.MalformedObjectNameException;
+import javax.management.ObjectName;
+
+import org.apache.commons.lang.StringUtils;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IClientRegistry;
 import org.red5.server.exception.ClientNotFoundException;
 import org.red5.server.exception.ClientRejectedException;
 import org.red5.server.jmx.JMXAgent;
+import org.red5.server.jmx.JMXFactory;
 
 /**
  * Registry for clients. Associates client with it's id so it's possible to get client by id
@@ -49,11 +54,30 @@ public class ClientRegistry implements IClientRegistry, ClientRegistryMBean {
 	 */
 	private AtomicInteger nextId = new AtomicInteger();
 
-	{
-		JMXAgent.registerMBean(this, this.getClass().getName(),
-				ClientRegistryMBean.class);
+	/**
+	 * The identifier for this client registry
+	 */
+	private String name;
+	
+	public ClientRegistry() {
+		JMXAgent.registerMBean(this, this.getClass().getName(),	ClientRegistryMBean.class);		
 	}
 
+	//allows for setting a "name" to be used with jmx for lookup
+	public ClientRegistry(String name) {
+		this.name = name;
+		if (StringUtils.isNotBlank(name)) {
+			try {
+				String className = JMXAgent.trimClassName(getClass().getName());
+				ObjectName oName = new ObjectName(JMXFactory.getDefaultDomain() + ":type="
+						+ className + ",name=" + name);
+				JMXAgent.registerMBean(this, getClass().getName(), ClientRegistryMBean.class, oName);			
+			} catch (MalformedObjectNameException e) {
+				//log.error("Invalid object name. {}", e);
+			}
+		}		
+	}
+	
 	/**
 	 * Add client to registry
 	 * @param client           Client to add

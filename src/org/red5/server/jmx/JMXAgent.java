@@ -91,6 +91,22 @@ public class JMXAgent implements NotificationListener {
 		}
 	}
 
+	/**
+	 * Convienence to remove packages etc from a class name.
+	 * 
+	 * @param className
+	 * @return
+	 */
+	public static String trimClassName(String className) {
+		if (StringUtils.isNotBlank(className)) {		
+    		if (className.indexOf('.') != -1) {
+    			//strip package stuff
+    			className = className.substring(className.lastIndexOf('.') + 1);
+    		}		
+		}
+		return className;
+	}
+	
 	public static boolean registerMBean(Object instance, String className,
 			Class interfaceClass) {
 		boolean status = false;
