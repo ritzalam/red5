@@ -218,11 +218,13 @@ public class ServiceUtils {
 			while (iter.hasNext()) {
 				connections.add(iter.next());
 			}
+			iter = null;
 		} else {
 			connections = scope.lookupConnections(client);
-			if (connections == null)
+			if (connections == null) {
 				// Client is not connected to the scope
 				return;
+			}
 		}
 
 		if (callback == null) {
@@ -234,6 +236,11 @@ public class ServiceUtils {
 				invokeOnConnection(conn, method, params, callback);
 			}
 		}
+		
+		if (connections != null) {
+			connections.clear();
+			connections = null;
+		}		
 	}
 
 	/**
