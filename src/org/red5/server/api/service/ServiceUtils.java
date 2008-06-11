@@ -322,6 +322,7 @@ public class ServiceUtils {
 			while (iter.hasNext()) {
 				connections.add(iter.next());
 			}
+			iter = null;
 		} else {
 			connections = scope.lookupConnections(client);
 		}
@@ -329,6 +330,12 @@ public class ServiceUtils {
 		for (IConnection conn : connections) {
 			notifyOnConnection(conn, method, params);
 		}
+		
+		if (connections != null) {
+			connections.clear();
+			connections = null;
+		}
+		
 	}
 
 }
