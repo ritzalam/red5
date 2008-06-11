@@ -53,7 +53,6 @@
         <dependency org="javax" name="jpda" rev="" />
         <dependency name="quartz" rev="1.5.2" />
         <dependency org="javax" name="jta" rev="1.0.1B" />
-        <dependency name="whirlycache" rev="1.0.1_lite" />
         <dependency name="ehcache" rev="1.4.1" />
         <dependency name="xercesImpl" rev="2.9.0" />
         <dependency name="xml-apis" rev="2.9.0" />

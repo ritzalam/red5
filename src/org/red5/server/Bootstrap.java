@@ -128,6 +128,8 @@ public class Bootstrap {
 			URL url = lib.toURI().toURL();
 			urls.add(url);
 		}
+		//look over the libraries and remove the old versions
+		scrubList(urls);
 		// add config dir
 		urls.add(new File(conf).toURI().toURL());
 		//
@@ -155,6 +157,52 @@ public class Bootstrap {
 		System.out.println("Bootstrap complete");
 	}
 	
-
+	/**
+	 * Removes older versions of libraries from a given list based
+	 * on their version numbers.
+	 * 
+	 * @param list
+	 */
+	private final static void scrubList(List<URL> list) {
+		String topName = null;
+		String checkName = null;
+		URL[] urls = list.toArray(new URL[0]);
+		for (URL top : urls) {
+			topName = parseUrl(top);
+			System.out.println("Top library: " + topName);
+    		for (URL check : list) {
+    			checkName = parseUrl(check);
+    			System.out.println("Check library: " + checkName);
+    			//if its the same lib just continue with the next
+    			if (checkName.equals(topName)) {
+    				continue;
+    			}
+    			//check starts with to see if we should do version check
+    			String prefix = topName.substring(0, topName.indexOf('-') != -1 ? topName.indexOf('-') : 3);
+    			System.out.println("Prefix: " + prefix);
+    			if (!checkName.startsWith(prefix)) {
+    				continue;    				
+    			}
+    			//do the version check
+    			
+    			
+    			break;
+    		}
+		}
+	}
+	
+	private static String parseUrl(URL url) {
+		String external = url.toExternalForm();
+		//System.out.println("Classpath entry: " + external);
+		//get everything after the last slash
+		String[] parts = external.split("/");
+		//last part
+		String libName = parts[parts.length - 1];
+		//strip .jar
+		libName = libName.substring(0, libName.length() - 4);
+		//System.out.println("Stripped: " + libName);		
+		
+		return libName;
+	}
 	
 }
