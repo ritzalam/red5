@@ -15,6 +15,7 @@
         <dependency org="tomcat" name="el-api" rev="" />
         <dependency org="javax" name="jsp-api" rev="2.1" />
         <dependency org="javax" name="servlet-api" rev="2.5" />
+        <dependency org="javax" name="ejb3-persistence" rev="" />
         <dependency name="naming-factory" rev="" />
         <dependency name="naming-resources" rev="" />
         <!-- Spring --> 
