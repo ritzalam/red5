@@ -5,7 +5,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
                            http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-2.0.xsd">
                            
-	<bean id="authenticationManager" class="org.acegisecurity.providers.ProviderManager">
+	<bean id="authenticationManager" class="org.springframework.security.providers.ProviderManager">
 		<property name="providers">
 			<list>
 				<ref local="daoAuthenticationProvider"/>
@@ -13,33 +13,37 @@
 		</property>
 	</bean>
 	
-	<bean id="daoAuthenticationProvider" class="org.acegisecurity.providers.dao.DaoAuthenticationProvider">
+	<bean id="cacheManager" class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean">
+    <!-- 
+        <property name="configLocation" value="classpath:/ehcache-failsafe.xml"/>
+     -->
+    </bean>
+    
+    <bean id="userCacheBackend" class="org.springframework.cache.ehcache.EhCacheFactoryBean">
+        <property name="cacheManager" ref="cacheManager"/>
+        <property name="cacheName" value="userCache"/>
+    </bean>
+
+    <bean id="userCache" class="org.springframework.security.providers.dao.cache.EhCacheBasedUserCache">
+        <property name="cache" ref="userCacheBackend"/>
+    </bean>  
+	
+	<bean id="daoAuthenticationProvider" class="org.springframework.security.providers.dao.DaoAuthenticationProvider">
 		<property name="userDetailsService" ref="userDetailsService"/>
 		<property name="saltSource"><ref bean="saltSource"/></property>
 		<property name="passwordEncoder"><ref bean="passwordEncoder"/></property>
-		<property name="userCache">
-			<bean class="org.acegisecurity.providers.dao.cache.EhCacheBasedUserCache">
-				<property name="cache">
-					<bean class="org.springframework.cache.ehcache.EhCacheFactoryBean">
-						<property name="cacheManager">
-							<bean class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean"/>
-						</property>
-						<property name="cacheName" value="userCache"/>
-					</bean>
-				</property>
-			</bean>
-		</property>
+		<property name="userCache" ref="userCache"/>
 	</bean>
 	
-	<bean id="passwordEncoder" class="org.acegisecurity.providers.encoding.Md5PasswordEncoder" />
+	<bean id="passwordEncoder" class="org.springframework.security.providers.encoding.Md5PasswordEncoder" />
 	
-	<bean id="saltSource" class="org.acegisecurity.providers.dao.salt.SystemWideSaltSource">
+	<bean id="saltSource" class="org.springframework.security.providers.dao.salt.SystemWideSaltSource">
 		<property name="systemWideSalt">
 			<value>seKret</value>
 		</property>
 	</bean>
 	
-	<bean id="userDetailsService" class="org.acegisecurity.userdetails.memory.InMemoryDaoImpl">
+	<bean id="userDetailsService" class="org.springframework.security.userdetails.memory.InMemoryDaoImpl">
 		<property name="userProperties">
 			<bean class="org.springframework.beans.factory.config.PropertiesFactoryBean">
 				<property name="location" value="/WEB-INF/users.properties"/>

@@ -223,6 +223,10 @@ public class GroovyScriptFactory implements ScriptFactory, BeanClassLoaderAware 
 					"Could not access Groovy script constructor: " + scriptClass.getName(), ex);
 		}
 	}
+	
+	public boolean requiresScriptedObjectRefresh(ScriptSource src) {
+		return false;
+	}
 
 	public String toString() {
 		return "GroovyScriptFactory: script source locator [" + this.scriptSourceLocator + "]";

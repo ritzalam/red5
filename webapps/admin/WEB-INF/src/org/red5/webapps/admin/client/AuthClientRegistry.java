@@ -22,9 +22,6 @@ package org.red5.webapps.admin.client;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import org.acegisecurity.BadCredentialsException;
-import org.acegisecurity.providers.ProviderManager;
-import org.acegisecurity.providers.UsernamePasswordAuthenticationToken;
 import org.red5.server.ClientRegistry;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IScope;
@@ -33,6 +30,9 @@ import org.red5.server.exception.ClientNotFoundException;
 import org.red5.server.exception.ClientRejectedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.BadCredentialsException;
+import org.springframework.security.providers.ProviderManager;
+import org.springframework.security.providers.UsernamePasswordAuthenticationToken;
 
 /**
  * 

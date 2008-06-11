@@ -7,18 +7,19 @@ import java.util.Properties;
 
 import javax.servlet.ServletException;
 
-import org.acegisecurity.GrantedAuthority;
-import org.acegisecurity.GrantedAuthorityImpl;
-import org.acegisecurity.providers.dao.DaoAuthenticationProvider;
-import org.acegisecurity.providers.dao.salt.SystemWideSaltSource;
-import org.acegisecurity.userdetails.UsernameNotFoundException;
-import org.acegisecurity.userdetails.User;
-import org.acegisecurity.userdetails.memory.InMemoryDaoImpl;
 import org.red5.webapps.admin.controllers.service.UserDetails;
 import org.red5.webapps.admin.utils.PasswordGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.dao.DataAccessException;
+import org.springframework.security.GrantedAuthority;
+import org.springframework.security.GrantedAuthorityImpl;
+import org.springframework.security.context.SecurityContextHolder;
+import org.springframework.security.providers.dao.DaoAuthenticationProvider;
+import org.springframework.security.providers.dao.salt.SystemWideSaltSource;
+import org.springframework.security.userdetails.User;
+import org.springframework.security.userdetails.UserDetailsService;
+import org.springframework.security.userdetails.UsernameNotFoundException;
+import org.springframework.security.userdetails.memory.InMemoryDaoImpl;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.SimpleFormController;
 import org.springframework.web.servlet.view.RedirectView;
@@ -27,14 +28,16 @@ public class RegisterUserController extends SimpleFormController {
 
 	protected static Logger log = LoggerFactory.getLogger(RegisterUserController.class);
 	
-	private DaoAuthenticationProvider daoAuthenticationProvider;
+	private static DaoAuthenticationProvider daoAuthenticationProvider;
+	
+	private static UserDetailsService userDetailsService;
+	
+	private SystemWideSaltSource saltSource;
+	
 	private String userPropertiesLocation;
 		
 	public ModelAndView onSubmit(Object command) throws ServletException {
 		log.debug("onSubmit {}", command);
-		
-		SystemWideSaltSource saltSource = (SystemWideSaltSource) daoAuthenticationProvider
-				.getSaltSource();
 
 		String salt = saltSource.getSystemWideSalt();
 		UserDetails userDetails = (UserDetails) command;
@@ -47,50 +50,74 @@ public class RegisterUserController extends SimpleFormController {
 
 		String hashedPassword = passwordGenerator.getPassword();
 		log.debug("Password: {}", hashedPassword);
+		FileOutputStream fos = null;
 		// register user here
         try {
+        	String ctxPath = getServletContext().getRealPath("/");
         	Properties props = new Properties();
-        	log.debug("Context path: {}", getServletContext().getRealPath("/"));
-        	props.load(new FileInputStream(getServletContext().getRealPath("/") + userPropertiesLocation));
+        	log.debug("Context path: {}", ctxPath);
+        	props.load(new FileInputStream(ctxPath + userPropertiesLocation));
         	log.debug("Number of current entries: {}", props.size());
         	props.put(username, hashedPassword+",ROLE_SUPERVISOR");
         	if (props.size() > 0) {
-        		FileOutputStream fos = new FileOutputStream(getServletContext().getRealPath("/") + userPropertiesLocation);
+        		fos = new FileOutputStream(ctxPath + userPropertiesLocation);
         		props.store(fos, "");
         		fos.flush();
-        		fos.close();
         	}
-        	//setup ageci user stuff and add them to the current "cache" and current usermap
+        	//setup security user stuff and add them to the current "cache" and current user map
         	GrantedAuthority[] auths = new GrantedAuthority[1];
         	auths[0] = new GrantedAuthorityImpl("ROLE_SUPERVISOR");
         	User usr = new User(username, hashedPassword, true, true, true, true, auths);
         	daoAuthenticationProvider.getUserCache().putUserInCache(usr);
         	
-        	InMemoryDaoImpl detailsService = (InMemoryDaoImpl) daoAuthenticationProvider
-			.getUserDetailsService();
+        	((InMemoryDaoImpl) userDetailsService).getUserMap().addUser(usr);
         	
-        	detailsService.getUserMap().addUser(usr);
+        	Object obj = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        	String tmp = "";
+        	if (obj instanceof UserDetails) {
+        	  tmp = ((UserDetails) obj).getUsername();
+        	} else {
+        	  tmp = obj.toString();
+        	}
+        	log.debug("User names match: {}", (username.equals(tmp)));        	
+
+//          try {
+//        		UserDetailsService usrDetailSvc = daoAuthenticationProvider..getUserDetailsService();
+//        		usrDetailSvc.loadUserByUsername(username);
+//			} catch (UsernameNotFoundException e) {
+//				log.debug("User {} not found", username);
+//			} catch (Exception e) {
+//				log.error("{}", e);
+//			}
         	
-        	try {
-				daoAuthenticationProvider.getUserDetailsService().loadUserByUsername(username);
-			} catch (UsernameNotFoundException e) {
-				log.debug("User {} not found", username);
-			} catch (DataAccessException e) {
-				log.error("{}", e);
-			}
         } catch (IOException e) {
         	log.error("{}", e);
+        } finally {
+        	if (fos != null) {
+        		try {
+					fos.close();
+				} catch (IOException e) {
+				}
+        	}
         }
 
 		return new ModelAndView(new RedirectView(getSuccessView()));
 	}
 
 	public void setDaoAuthenticationProvider(DaoAuthenticationProvider value) {
-		daoAuthenticationProvider = value;
+		RegisterUserController.daoAuthenticationProvider = value;
 	}
 
 	public void setUserPropertiesLocation(String userPropertiesLocation) {
 		this.userPropertiesLocation = userPropertiesLocation;
 	}
 
+	public void setSaltSource(SystemWideSaltSource saltSource) {
+		this.saltSource = saltSource;
+	}
+
+	public void setUserDetailsService(UserDetailsService userDetailsService) {
+		RegisterUserController.userDetailsService = userDetailsService;
+	}
+	
 }

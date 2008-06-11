@@ -160,10 +160,12 @@ public class JythonScriptFactory implements ScriptFactory {
 		return null;
 	}
 
-
-	public Class getScriptedObjectType(ScriptSource arg0) throws IOException, ScriptCompilationException {
-		// TODO Auto-generated method stub
+	public Class getScriptedObjectType(ScriptSource src) throws IOException, ScriptCompilationException {
 		return null;
 	}
 
+	public boolean requiresScriptedObjectRefresh(ScriptSource src) {
+		return false;
+	}	
+	
 }

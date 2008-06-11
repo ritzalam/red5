@@ -10,10 +10,11 @@
     <bean class="org.springframework.web.servlet.mvc.support.ControllerClassNameHandlerMapping"/>
     
     <bean id="panelController" class="org.red5.webapps.admin.controllers.PanelController">
-        <property name="daoAuthenticationProvider" ref="daoAuthenticationProvider"/>
+        <property name="userDetailsService" ref="userDetailsService"/>
     </bean>
     
     <bean id="userDetailsValidator" class="org.red5.webapps.admin.controllers.service.UserDetailsValidator"/>
+    
     <bean id="userRegisterForm" class="org.red5.webapps.admin.controllers.RegisterUserController">
         <property name="daoAuthenticationProvider" ref="daoAuthenticationProvider"/>
         <property name="sessionForm" value="true"/>
@@ -23,10 +24,14 @@
         <property name="formView" value="register"/>
         <property name="successView" value="index.html"/>
 		<property name="userPropertiesLocation" value="/WEB-INF/users.properties"/>     
+        <property name="saltSource" ref="saltSource"/>		
+        <property name="userDetailsService" ref="userDetailsService"/>
     </bean>
+    
     <!--
     <bean id="viewNameTranslator" class="org.springframework.web.servlet.view.DefaultRequestToViewNameTranslator"/>
     -->
+    
     <bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
         <property name="viewClass" value="org.springframework.web.servlet.view.JstlView"></property>
         <property name="prefix" value="/WEB-INF/jsp/" />

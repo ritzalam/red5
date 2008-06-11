@@ -350,9 +350,6 @@ public class TomcatLoader extends LoaderBase implements
 						log.debug("Loader type: {}", cldr.getClass().getName());
 						ClassLoader webClassLoader = cldr.getClassLoader();
 						log.debug("Webapp classloader: {}", webClassLoader);
-						///
-						log.debug("Webapp classloader (manager logback): {}", webClassLoader.getResource("logback-manager.xml"));
-						log.debug("Webapp classloader (manager role): {}", webClassLoader.getResource("com/red5server/manager/base"));
 						//create a spring web application context
 						XmlWebApplicationContext appctx = new XmlWebApplicationContext();
 						appctx.setClassLoader(webClassLoader);

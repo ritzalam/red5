@@ -19,7 +19,7 @@ package org.red5.webapps.admin.utils;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.acegisecurity.providers.encoding.Md5PasswordEncoder;
+import org.springframework.security.providers.encoding.Md5PasswordEncoder;
 
 /**
  * 
