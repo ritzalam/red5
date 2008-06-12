@@ -261,13 +261,14 @@ public class TomcatLoader extends LoaderBase implements
 			String dirName = '/' + dir.getName();
 			// check to see if the directory is already mapped
 			if (null == host.findChild(dirName)) {
+			    String webappContextDir = formatPath(appDirBase.getAbsolutePath(), dirName);
 				Context ctx = null;
 				if ("/root".equals(dirName) || "/root".equalsIgnoreCase(dirName)) {
 					log.debug("Adding ROOT context");
-					ctx = addContext("/", webappFolder + dirName);
+					ctx = addContext("/", webappContextDir);
 				} else {
 					log.debug("Adding context from directory scan: {}", dirName);
-					ctx = addContext(dirName, webappFolder + dirName);
+					ctx = addContext(dirName, webappContextDir);
 				}
 				if (ctx != null) {
     				Object ldr = ctx.getLoader();
@@ -285,8 +286,11 @@ public class TomcatLoader extends LoaderBase implements
     					ctx.setLoader(wldr);
     				}
 				}
+				webappContextDir = null;
 			}
 		}
+        appDirBase = null;
+        dirs = null;
 
 		// Dump context list
 		if (log.isDebugEnabled()) {
@@ -571,5 +575,26 @@ public class TomcatLoader extends LoaderBase implements
 			System.exit(1);
 		}
 	}
+
+    /**
+     * Quick-n-dirty directory formatting to support launching in windows, specifically from ant.
+     */
+    protected static String formatPath(String absWebappsPath, String contextDirName) {
+        StringBuilder path = new StringBuilder(absWebappsPath.length() + contextDirName.length());
+        path.append(absWebappsPath);
+        if (File.separatorChar != '/') {
+            int idx = -1;
+            while ((idx = path.indexOf(File.separator)) != -1) {
+                path.deleteCharAt(idx);
+                path.insert(idx, '/');
+            }
+        }
+        if (contextDirName.charAt(0) == '/' && path.charAt(path.length() - 1) == '/') {
+            path.append(contextDirName.substring(1));
+        } else {
+            path.append(contextDirName);
+        }
+        return path.toString();
+    }
 
 }

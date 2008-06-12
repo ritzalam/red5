@@ -19,6 +19,7 @@ package org.red5.server.net.rtmpt;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -100,7 +101,9 @@ public class TomcatRTMPTLoader extends TomcatLoader {
 		}				
 		
 		// create and add root context
-		Context ctx = embedded.createContext("/", webappFolder + "/root");
+		File appDirBase = new File(webappFolder);
+		String webappContextDir = formatPath(appDirBase.getAbsolutePath(), "/root");
+		Context ctx = embedded.createContext("/", webappContextDir);
 		ctx.setReloadable(false);
 		log.debug("Context name: {}", ctx.getName());
 		Object ldr = ctx.getLoader();
@@ -117,6 +120,8 @@ public class TomcatRTMPTLoader extends TomcatLoader {
 			wldr.setLoaderClass("org.red5.server.tomcat.WebappClassLoader");
 			ctx.setLoader(wldr);
 		}
+		appDirBase = null;
+		webappContextDir = null;
 		
 		host.addChild(ctx);
 		

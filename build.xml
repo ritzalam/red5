@@ -609,7 +609,11 @@
 
 	<target name="dist" description="Make Binary distribution" depends="clean, jar">
 		<copy todir="${dist.dir}/lib">
-			<fileset dir="lib"/>
+			<fileset dir="${lib.dir}">
+				<exclude name="ivy*.jar"/>
+				<exclude name="junit*.jar"/>			
+				<exclude name="grobo*.jar"/>			
+			</fileset>
 		</copy>
 		<copy todir="${dist.dir}/conf">
 			<fileset dir="${config.dir}">
@@ -621,8 +625,6 @@
 		<copy todir="${dist.dir}/webapps" file="webapps\red5-default.xml"/>
 		<copy todir="${dist.dir}">
 			<fileset dir="./">
-				<include name="ivy.xml"/>
-				<include name="ivyconfig.xml"/>
 				<include name="${red5.filename}.jar"/>
 				<include name="red5.bat"/>
 				<include name="red5-shutdown.bat"/>
@@ -757,28 +759,43 @@
 		</exec>
 	</target>
 
-	<target name="server" depends="compile" description="Compile and start the server">
-		<mkdir dir="${dist.dir}/conf"/>
-		<copy todir="${dist.dir}/conf">
-			<fileset dir="${config.dir}">
-				<exclude name="**/war/**"/>
-				<exclude name="**/jboss/**"/>
-			</fileset>
-		</copy>
+	<target name="server" depends="dist" description="Compile and start the server">
+		<echo message="Using ${dist.dir} for Red5 root"/>
 		<mkdir dir="${dist.dir}/${log.dir}"/>		
-		<copy todir="${dist.dir}/webapps" file="webapps\red5-default.xml"/>
 		<java classname="org.red5.server.Standalone" fork="true">
 			<classpath>
 				<pathelement location="${dist.dir}/conf"/>
-				<pathelement location="${classes.dir}"/>
-				<path refid="full.classpath"/>
+				<path id="dist.classpath">
+					<fileset dir="${dist.dir}/lib"/>
+					<fileset dir="${dist.dir}">
+						<filename name="red5.jar"/>
+					</fileset>
+				</path>
 			</classpath>
 			<jvmarg value="-Djava.security.manager"/>
 			<jvmarg value="-Djava.security.policy=${dist.dir}/conf/red5.policy"/>
 			<jvmarg value="-Dred5.root=${dist.dir}"/>
 			<!-- enable the following 2 lines if your using JMX with SSL -->
 			<!--
-			<jvmarg value="-Djavax.net.ssl.keyStore=${config.dir}/keystore.jmx"/>
+			<jvmarg value="-Djavax.net.ssl.keyStore=${dist.dir}/conf/keystore.jmx"/>
+			<jvmarg value="-Djavax.net.ssl.keyStorePassword=password"/>
+			-->
+		</java>
+	</target>
+
+	<target name="bootstrap" depends="dist" description="Compile and start the server">
+		<echo message="Using ${dist.dir} for Red5 root"/>
+		<mkdir dir="${dist.dir}/${log.dir}"/>		
+		<java classname="org.red5.server.Bootstrap" fork="true">
+			<classpath>
+				<pathelement location="${dist.dir}/red5.jar"/>
+			</classpath>
+			<jvmarg value="-Djava.security.manager"/>
+			<jvmarg value="-Djava.security.policy=${dist.dir}/conf/red5.policy"/>
+			<jvmarg value="-Dred5.root=${dist.dir}"/>
+			<!-- enable the following 2 lines if your using JMX with SSL -->
+			<!--
+			<jvmarg value="-Djavax.net.ssl.keyStore=${dist.dir}/conf/keystore.jmx"/>
 			<jvmarg value="-Djavax.net.ssl.keyStorePassword=password"/>
 			-->
 		</java>
@@ -788,15 +805,19 @@
 		<java classname="org.red5.server.Shutdown" fork="true">
 			<classpath>
 				<pathelement location="${dist.dir}/conf"/>
-				<pathelement location="${classes.dir}"/>
-				<path refid="full.classpath"/>
+				<path id="dist.classpath">
+					<fileset dir="${dist.dir}/lib"/>
+					<fileset dir="${dist.dir}">
+						<filename name="red5.jar"/>
+					</fileset>
+				</path>
 			</classpath>
 			<jvmarg value="-Djava.security.manager"/>
 			<jvmarg value="-Djava.security.policy=${dist.dir}/conf/red5.policy"/>
 			<jvmarg value="-Dred5.root=${dist.dir}"/>
 			<!-- enable the following 2 lines if your using JMX with SSL and auth -->
 			<!--
-			<jvmarg value="-Djavax.net.ssl.trustStore=${config.dir}/truststore.jmx"/>
+			<jvmarg value="-Djavax.net.ssl.trustStore=${dist.dir}/conf/truststore.jmx"/>
 			<jvmarg value="-Djavax.net.ssl.trustStorePassword=trustword"/>
 			-->
 			<arg value="9999"/>

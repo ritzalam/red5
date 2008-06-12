@@ -18,7 +18,8 @@ package org.red5.server.net.rtmps;
  * with this library; if not, write to the Free Software Foundation, Inc., 
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
-
+ 
+import java.io.File;
 import org.apache.catalina.Context;
 import org.apache.catalina.Engine;
 import org.apache.catalina.Loader;
@@ -81,7 +82,9 @@ public class TomcatRTMPSLoader extends TomcatRTMPTLoader {
 		}				
 		
 		// create and add root context
-		Context ctx = embedded.createContext("/", webappFolder + "/root");
+		File appDirBase = new File(webappFolder);
+		String webappContextDir = formatPath(appDirBase.getAbsolutePath(), "/root");
+		Context ctx = embedded.createContext("/", webappContextDir);
 		ctx.setReloadable(false);
 		log.debug("Context name: {}", ctx.getName());
 		Object ldr = ctx.getLoader();
@@ -98,6 +101,8 @@ public class TomcatRTMPSLoader extends TomcatRTMPTLoader {
 			wldr.setLoaderClass("org.red5.server.tomcat.WebappClassLoader");
 			ctx.setLoader(wldr);
 		}
+		appDirBase = null;
+		webappContextDir = null;
 		
 		host.addChild(ctx);
 		

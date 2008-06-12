@@ -49,7 +49,7 @@ public final class Red5 implements Red5MBean {
 	 * the current connection.
 	 */
 	private static ThreadLocal<WeakReference<IConnection>> connThreadLocal = new ThreadLocal<WeakReference<IConnection>>();
-
+ 
 	/**
 	 * Connection local to the current thread
 	 */

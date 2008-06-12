@@ -115,13 +115,14 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 			String dirName = '/' + dir.getName();
 			// check to see if the directory is already mapped
 			if (null == host.findChild(dirName)) {
+			    String webappContextDir = formatPath(appDirBase.getAbsolutePath(), dirName);
 				Context ctx = null;
 				if ("/root".equals(dirName) || "/root".equalsIgnoreCase(dirName)) {
 					log.debug("Adding ROOT context");
-					ctx = addContext("/", webappRoot + dirName);
+					ctx = addContext("/", webappContextDir);
 				} else {
 					log.debug("Adding context from directory scan: {}", dirName);
-					ctx = addContext(dirName, webappRoot + dirName);
+					ctx = addContext(dirName, webappContextDir);
 				}
 				if (ctx != null) {
     				Object ldr = ctx.getLoader();
@@ -138,9 +139,12 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
     					wldr.setLoaderClass("org.red5.server.tomcat.WebappClassLoader");
     					ctx.setLoader(wldr);
     				}  				    				
-				}				
+				}	
+				webappContextDir = null;			
 			}
 		}
+        appDirBase = null;
+        dirs = null;
 
 		// Dump context list
 		if (log.isDebugEnabled()) {
