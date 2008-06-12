@@ -245,6 +245,10 @@ public class Bootstrap {
     			if (!Character.isDigit(topVers.charAt(0))) {
         			//check if third level lib name matches
     				topThirdDash = topVers.indexOf('-');
+    				//no version most likely exists
+    				if (topThirdDash == -1) {
+    				    continue;
+    				}
     				topThirdName = topVers.substring(0, topThirdDash);
     				topVers = topVers.substring(topThirdDash + 1);
     			}        			
@@ -255,6 +259,10 @@ public class Bootstrap {
     			if (!Character.isDigit(checkVers.charAt(0))) {
         			//check if third level lib name matches
     				checkThirdDash = checkVers.indexOf('-');
+    				//no version most likely exists
+    				if (checkThirdDash == -1) {
+    				    continue;
+    				}
     				checkThirdName = checkVers.substring(0, checkThirdDash);
     				if (topThirdName == null || !topThirdName.equals(checkThirdName)) {
     					continue;
