@@ -24,7 +24,10 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.red5.server.api.Red5;
 import org.slf4j.Logger;
@@ -136,8 +139,9 @@ public class Bootstrap {
 		System.out.println(urls.size() + " items in the classpath");
 
 		//loop thru all the current urls
+		//System.out.println("Classpath: ");
 		//for (URL url : urls) {
-		//	System.out.println("Classpath entry: " + url.toExternalForm());
+		//	System.out.println(url.toExternalForm());
 		//}
 
 		ClassLoader parent = ClassLoader.getSystemClassLoader().getParent();
@@ -164,44 +168,137 @@ public class Bootstrap {
 	 * @param list
 	 */
 	private final static void scrubList(List<URL> list) {
+		Pattern punct = Pattern.compile("\\p{Punct}");
+		Set<URL> removalList = new HashSet<URL>(list.size());
 		String topName = null;
 		String checkName = null;
 		URL[] urls = list.toArray(new URL[0]);
 		for (URL top : urls) {
+			if (removalList.contains(top)) {
+				continue;
+			}
 			topName = parseUrl(top);
-			System.out.println("Top library: " + topName);
+			//by default we will get rid of testing libraries and jetty
+			if (topName.startsWith("jetty") || topName.startsWith("grobo") || topName.startsWith("junit") || topName.startsWith("ivy")) {
+				removalList.add(top);
+				continue;
+			}
+			int topFirstDash = topName.indexOf('-');
+			int topSecondDash = topName.indexOf('-', topFirstDash + 1);
+			//if theres no dash then just grab the first 3 chars
+			String prefix = topName.substring(0, topFirstDash != -1 ? topFirstDash : 3);
     		for (URL check : list) {
+    			if (removalList.contains(check)) {
+    				continue;
+    			}    			
     			checkName = parseUrl(check);
-    			System.out.println("Check library: " + checkName);
     			//if its the same lib just continue with the next
     			if (checkName.equals(topName)) {
     				continue;
     			}
+    			//if the last character is a dash then skip it
+    			if (checkName.endsWith("-")) {
+    				continue;
+    			}
     			//check starts with to see if we should do version check
-    			String prefix = topName.substring(0, topName.indexOf('-') != -1 ? topName.indexOf('-') : 3);
-    			System.out.println("Prefix: " + prefix);
     			if (!checkName.startsWith(prefix)) {
     				continue;    				
+    			}    			
+    			//check for next dash
+    			if (topSecondDash > 0) {
+    				if (checkName.length() <= topSecondDash) {
+    					continue;
+    				}
+        			//check for second dash in check lib at same position
+    				if (checkName.charAt(topSecondDash) != '-') {
+    					continue;
+    				}
+    				//split the names
+    				String[] topSubs = topName.split("-");
+    				String[] checkSubs = checkName.split("-");
+    				//check lib type "spring-aop" vs "spring-orm"
+    				if (!topSubs[1].equals(checkSubs[1])) {
+    					continue;
+    				}
+    				//see if next entry is a number
+    				if (!Character.isDigit(topSubs[2].charAt(0)) && !Character.isDigit(checkSubs[2].charAt(0))) {
+    					//check next lib name section for a match
+        				if (!topSubs[2].equals(checkSubs[2])) {
+        					continue;
+        				}
+    				}
     			}
+    			
     			//do the version check
     			
+    			//read from end to get version info
+    			String checkVers = checkName.substring(topSecondDash != -1 ? (topSecondDash + 1) : (topFirstDash + 1));
+    			    			
+    			if (checkVers.startsWith("-")) {
+    				continue;
+    			}
     			
-    			break;
+    			//get top libs version info
+    			String topVers = topName.substring(topSecondDash != -1 ? (topSecondDash + 1) : (topFirstDash + 1));
+    			int topThirdDash = -1;
+    			String topThirdName = null;
+    			if (!Character.isDigit(topVers.charAt(0))) {
+        			//check if third level lib name matches
+    				topThirdDash = topVers.indexOf('-');
+    				topThirdName = topVers.substring(0, topThirdDash);
+    				topVers = topVers.substring(topThirdDash + 1);
+    			}        			
+    			
+    			//if check version starts with a non-number skip it
+    			int checkThirdDash = -1;
+    			String checkThirdName = null;
+    			if (!Character.isDigit(checkVers.charAt(0))) {
+        			//check if third level lib name matches
+    				checkThirdDash = checkVers.indexOf('-');
+    				checkThirdName = checkVers.substring(0, checkThirdDash);
+    				if (topThirdName == null || !topThirdName.equals(checkThirdName)) {
+    					continue;
+    				}
+    				checkVers = checkVers.substring(checkThirdDash + 1);
+    				//if not
+        			if (!Character.isDigit(checkVers.charAt(0))) {
+        				continue;
+        			}
+    			}	
+    			
+    			if (topThirdName != null && checkThirdName == null) {
+    				continue;
+    			}
+    			
+    			//check major
+    			String[] topVersion = punct.split(topVers);
+    			String[] checkVersion = punct.split(checkVers);
+    			
+    			int topVersionNumber = Integer.valueOf(topVersion[0] + topVersion[1] + (topVersion.length > 2 ? topVersion[2] : '0')).intValue();
+    			int checkVersionNumber = Integer.valueOf(checkVersion[0] + checkVersion[1] + (checkVersion.length > 2 ? checkVersion[2] : '0')).intValue();
+    			
+    			if (topVersionNumber >= checkVersionNumber) {
+    				//remove it
+    				removalList.add(check);
+    			} else {
+    				removalList.add(top);
+    				break;
+    			}
+
     		}
 		}
+		//remove the old libs
+		list.removeAll(removalList);
 	}
 	
 	private static String parseUrl(URL url) {
-		String external = url.toExternalForm();
-		//System.out.println("Classpath entry: " + external);
+		String external = url.toExternalForm().toLowerCase();
 		//get everything after the last slash
 		String[] parts = external.split("/");
 		//last part
 		String libName = parts[parts.length - 1];
 		//strip .jar
 		libName = libName.substring(0, libName.length() - 4);
-		//System.out.println("Stripped: " + libName);		
-		
 		return libName;
 	}
 	
