@@ -29,6 +29,10 @@
 	<!-- user overides for project properties -->
 	<property file="${user.home}/build.properties"/>
 
+	<tstamp prefix="build">
+		<format property="TODAY" pattern="d-MMMM-yyyy" locale="en"/>
+	</tstamp>
+
 	<!-- Special directory destination for build war - unused in normal server build -->
 	<property name="tmp.war.dir" value=""/>
 
@@ -37,12 +41,9 @@
 	        http://ant.apache.org/ivy
 	        http://testearly.com/2007/06/24/ivy-in-42-steps
 	-->
-	<taskdef uri="antlib:org.apache.ivy.ant" resource="org/apache/ivy/ant/antlib.xml" classpath="${lib.dir}/${ivy.version}.jar"/>
+	<taskdef uri="antlib:org.apache.ivy.ant" resource="org/apache/ivy/ant/antlib.xml"
+		 classpath="${lib.dir}/${ivy.version}.jar"/>
 	<property name="ivy.lib.dir" value="${lib.dir}"/>
-
-	<tstamp prefix="build">
-		<format property="TODAY" pattern="d-MMMM-yyyy" locale="en"/>
-	</tstamp>
 
 	<!-- JUNIT TESTING -->
 	<property name="test.dir" value="test"/>
@@ -77,7 +78,8 @@
 		<condition property="java6.installed" value="true">
 			<and>
 				<equals arg1="${java.target_version}" arg2="1.6"/>
-				<available property="java6.installed" classname="javax.script.Bindings"/>
+				<available property="java6.installed" 
+					   classname="javax.script.Bindings"/>
 			</and>
 		</condition>
 		<condition property="java6.using" value="1.6" else="${java.target_version}">
@@ -90,53 +92,69 @@
 	<target name="-library.check">
 		<echo message='Java: java.home is ${java.home} and the target version is ${java.target_version}'/>
 		<echo message='Ant: ant.home is ${ant.home} and the target version is ${ant.version}'/>
-		<echo message='Ivy: conf name ${ivy.conf.name}'/>
 		<!-- May want to add repository availability checking -->
 		<!--
-        <condition property="repository.offline.googlecode" value="true">
-            <isreachable host="red5.googlecode.com" timeout="30" />
-        </condition>
-        <condition property="repository.offline.cvsdude" value="true">
-            <isreachable host="svn1.cvsdude.com" timeout="30" />
-        </condition>
-        <echo message='Repository access: googlecode=${repository.offline.googlecode} cvsdude=${repository.offline.cvsdude}'/>
+        	<condition property="repository.offline.googlecode" value="true">
+            		<isreachable host="red5.googlecode.com" timeout="30" />
+        	</condition>
+        	<condition property="repository.offline.cvsdude" value="true">
+            		<isreachable host="svn1.cvsdude.com" timeout="30" />
+        	</condition>
+        	<echo message='Repository access: googlecode=${repository.offline.googlecode} cvsdude=${repository.offline.cvsdude}'/>
 		-->
 		<condition property="library.installed" value="true">
 			<and>
 				<or>
 					<and>
-						<available property="spring.installed" classpathref="project.classpath" classname="org.springframework.core.SpringVersion"/>
-						<available property="logging.installed" classpathref="project.classpath" classname="org.slf4j.Logger"/>
-						<available property="catalina.installed" classpathref="project.classpath" classname="org.apache.catalina.Server"/>
-						<available property="mina.installed" classpathref="project.classpath" classname="org.apache.mina.filter.codec.ProtocolEncoder"/>
-						<available property="minajmx.installed" classpathref="project.classpath" classname="org.apache.mina.integration.jmx.IoServiceManager"/>
-						<available property="acegi.installed" classpathref="project.classpath" classname="org.acegisecurity.SecurityConfig"/>
+						<available property="spring.installed" classpathref="project.classpath"
+							   classname="org.springframework.core.SpringVersion"/>
+						<available property="logging.installed" classpathref="project.classpath"
+							   classname="org.slf4j.Logger"/>
+						<available property="catalina.installed" classpathref="project.classpath"
+							   classname="org.apache.catalina.Server"/>
+						<available property="mina.installed" classpathref="project.classpath"
+							   classname="org.apache.mina.filter.codec.ProtocolEncoder"/>
+						<available property="minajmx.installed" classpathref="project.classpath"
+							   classname="org.apache.mina.integration.jmx.IoServiceManager"/>
+						<available property="acegi.installed" classpathref="project.classpath"
+							   classname="org.acegisecurity.SecurityConfig"/>
 						<equals arg1="${java.target_version}" arg2="1.6"/>
 					</and>
 					<and>
-						<available property="spring.installed" classpathref="project.classpath" classname="org.springframework.core.SpringVersion"/>
-						<available property="logging.installed" classpathref="project.classpath" classname="org.slf4j.Logger"/>
-						<available property="catalina.installed" classpathref="project.classpath" classname="org.apache.catalina.Server"/>
-						<available property="mina.installed" classpathref="project.classpath" classname="org.apache.mina.filter.codec.ProtocolEncoder"/>
-						<available property="minajmx.installed" classpathref="project.classpath" classname="org.apache.mina.integration.jmx.IoServiceManager"/>
-						<available property="acegi.installed" classpathref="project.classpath" classname="org.acegisecurity.SecurityConfig"/>
-						<available property="script.installed" classpathref="project.classpath" classname="com.sun.phobos.script.javascript.RhinoScriptEngine"/>
-						<available property="groovy.script.installed" classpathref="project.classpath" classname="com.sun.script.groovy.GroovyScriptEngine"/>
-						<available property="jython.script.installed" classpathref="project.classpath" classname="com.sun.script.jython.JythonScriptEngine"/>
+						<available property="spring.installed" classpathref="project.classpath"
+							   classname="org.springframework.core.SpringVersion"/>
+						<available property="logging.installed" classpathref="project.classpath"
+							   classname="org.slf4j.Logger"/>
+						<available property="catalina.installed" classpathref="project.classpath"
+							   classname="org.apache.catalina.Server"/>
+						<available property="mina.installed" classpathref="project.classpath"
+							   classname="org.apache.mina.filter.codec.ProtocolEncoder"/>
+						<available property="minajmx.installed" classpathref="project.classpath"
+							   classname="org.apache.mina.integration.jmx.IoServiceManager"/>
+						<available property="acegi.installed" classpathref="project.classpath"
+							   classname="org.acegisecurity.SecurityConfig"/>
+						<available property="script.installed" classpathref="project.classpath"
+							   classname="com.sun.phobos.script.javascript.RhinoScriptEngine"/>
+						<available property="groovy.script.installed" classpathref="project.classpath"
+							   classname="com.sun.script.groovy.GroovyScriptEngine"/>
+						<available property="jython.script.installed" classpathref="project.classpath"
+							   classname="com.sun.script.jython.JythonScriptEngine"/>
 						<equals arg1="${java.target_version}" arg2="1.5"/>
 					</and>		
 				</or>
 				<and>
-					<isset property="ivy.conf.name" />
-                    <!-- check for the test jars -->
-                    <available property="junit.installed" classpathref="project.classpath" classname="org.junit.Test"/>
-                    <available property="groboutils.installed" classpathref="project.classpath" classname="net.sourceforge.groboutils.junit.v1.TestRunnable"/>
-                    <available property="spring-mock.installed" classpathref="project.classpath" classname="org.springframework.mock.web.MockServletConfig"/>
-                    <equals arg1="ivy.conf.name" arg2="test"/>
-                </and>  
-			</and>		
-		</condition>			
-
+		    			<isset property="ivy.conf.name" />
+                    			<!-- check for the test jars -->
+                    			<available property="junit.installed" classpathref="project.classpath"
+						   classname="org.junit.Test"/>
+                    			<available property="groboutils.installed" classpathref="project.classpath"
+						   classname="net.sourceforge.groboutils.junit.v1.TestRunnable"/>
+                    			<available property="spring-mock.installed" classpathref="project.classpath"
+						   classname="org.springframework.mock.web.MockServletConfig"/>
+                    			<equals arg1="ivy.conf.name" arg2="test"/>
+                		</and>
+			</and>
+		</condition>
 	</target>
 
 	<target name="prepare" description="Setup the directories for building">
@@ -159,11 +177,9 @@
 		<delete includeemptydirs="true">
 			<fileset dir="${webapps.dir}/" includes="**/*.class"/>
 		</delete>
-	
 		<delete includeemptydirs="true">
 			<fileset dir="${webapps.dir}/" includes="**/*.jar"/>
 		</delete>
-		
 	</target>
 
 	<target name="retrieve" unless="library.installed" description="Retrieves the libraries if needed">
@@ -180,8 +196,8 @@
 	</target>
 
 	<target name="ivyclear" description="Clears out the Ivy cache">
-        <delete dir="${user.home}/.ivy/cache"/>
-        <delete dir="${user.home}/.ivy2/cache"/>
+        	<delete dir="${user.home}/.ivy/cache"/>
+        	<delete dir="${user.home}/.ivy2/cache"/>
 		<delete includeemptydirs="true">
 			<fileset dir="${lib.dir}" excludes="**/ivy*.jar"/>
 		</delete>
@@ -260,10 +276,12 @@
 			<mkdir dir="${webapps.build.dir}/@{name}/WEB-INF/classes"/>
 			<mkdir dir="${webapps.build.dir}/@{name}/WEB-INF/lib"/>
 
-			<javac sourcepath="" srcdir="${webapps.dir}/@{name}/WEB-INF/src" destdir="${webapps.build.dir}/@{name}/WEB-INF/classes"
+			<javac sourcepath="" srcdir="${webapps.dir}/@{name}/WEB-INF/src"
+			       destdir="${webapps.build.dir}/@{name}/WEB-INF/classes"
 			       classpathref="webapps.classpath" optimize="${build.optimize}" verbose="${build.verbose}"
 			       fork="${build.fork}" nowarn="${build.nowarn}" deprecation="${build.deprecation}"
-			       debug="${debug.state}" compiler="${compiler}" source="${java.target_version}" target="${java.target_version}"/>
+			       debug="${debug.state}" compiler="${compiler}" source="${java.target_version}"
+			       target="${java.target_version}"/>
 
 			<copy todir="${webapps.build.dir}/@{name}" filtering="true">
 				<fileset dir="webapps/@{name}">
@@ -282,7 +300,8 @@
    		<attribute name="webapp"/>
    		<sequential>
 			<!-- copy the logback config per webapp and associated jars -->
-			<copy todir="${webapps.build.dir}/@{webapp}/WEB-INF/classes" file="webapps/@{webapp}/WEB-INF/src/logback.xml" overwrite="true"/>
+			<copy todir="${webapps.build.dir}/@{webapp}/WEB-INF/classes"
+			      file="webapps/@{webapp}/WEB-INF/src/logback.xml" overwrite="true"/>
 			<!--
 			<copy todir="${webapps.build.dir}/@{webapp}/WEB-INF/lib">
 				<fileset dir="${lib.dir}">
@@ -292,7 +311,7 @@
 				</fileset>
 			</copy>
 			-->		
-      	</sequential>
+      		</sequential>
 	</macrodef>
 	
 	<!-- Demos -->
@@ -394,16 +413,18 @@
 
 	<!-- Scripting -->
 	<target name="compile_script" depends="prepare">
-		<available property="scripting_compatibility" classpathref="project.classpath" classname="javax.script.ScriptEngineManager"/>
+		<available property="scripting_compatibility" classpathref="project.classpath"
+			   classname="javax.script.ScriptEngineManager"/>
 		<condition property="scripting.using" value="Scripting compatibility is available." 
 			   else="No compatibility for scripting available">
 			<istrue value="${scripting_compatibility}"/>
 		</condition>
 		<javac sourcepath="" srcdir="${src.dir}" destdir="${dest.dir}" classpathref="script.classpath"
-			 optimize="${build.optimize}" verbose="${build.verbose}" fork="${build.fork}" nowarn="${build.nowarn}"
-			 deprecation="${build.deprecation}" debug="${debug.state}" compiler="${compiler}"
-			 source="${java.target_version}" target="${java.target_version}" memoryMaximumSize="${memory.maximum}"
-			 includes="org/red5/server/script/**" listfiles="false"/>
+			 optimize="${build.optimize}" verbose="${build.verbose}" fork="${build.fork}"
+			 nowarn="${build.nowarn}" deprecation="${build.deprecation}" debug="${debug.state}"
+			 compiler="${compiler}" source="${java.target_version}" target="${java.target_version}"
+			 memoryMaximumSize="${memory.maximum}" includes="org/red5/server/script/**"
+			 listfiles="false"/>
 		<echo message="${scripting.using}"/>
 	</target>
 
@@ -455,7 +476,8 @@
 	<macrodef name="compile-wardemo">
    		<attribute name="name"/>
    		<sequential>
-			<war destfile="${dist.dir}/@{name}.war" webxml="${webapps.build.dir}/@{name}/WEB-INF/web.xml">
+			<war destfile="${dist.dir}/@{name}.war"
+			     webxml="${webapps.build.dir}/@{name}/WEB-INF/web.xml">
 				<fileset dir="${webapps.build.dir}/@{name}">
 					<exclude name="WEB-INF"/>
 					<exclude name="**/src/**"/>
@@ -598,7 +620,6 @@
 		<compile-jardemo name="tutorial"/>
 		
 		<!-- exclude logback.xml for admin -->
-		
 		<jar destfile="${webapps.build.dir}/admin/WEB-INF/lib/admin.jar">
 			<fileset dir="${webapps.build.dir}/admin/WEB-INF/classes">
 				<include name="**"/>
@@ -710,7 +731,8 @@
 				<exclude name="**/webapps/**"/>
             		</fileset>
         	</copy>
-		<move tofile="${edgedist.dir}/conf/red5.xml" file="${edgedist.dir}/conf/red5-edge.xml" overwrite="true"/>
+		<move tofile="${edgedist.dir}/conf/red5.xml" file="${edgedist.dir}/conf/red5-edge.xml"
+		      overwrite="true"/>
 	</target>
 
 	<target name="dist-origin" depends="dist-installer">
@@ -720,11 +742,13 @@
 				<exclude name="**/conf/red5.xml"/>
             		</fileset>
         	</copy>
-		<move tofile="${origindist.dir}/conf/red5.xml" file="${dist.dir}/conf/red5-origin.xml" overwrite="true"/>
+		<move tofile="${origindist.dir}/conf/red5.xml" file="${dist.dir}/conf/red5-origin.xml"
+		      overwrite="true"/>
 	</target>
 
 	<target name="dist-cluster" description="Create Edge/Origin distribution" depends="dist-edge">
-		<copy tofile="${cluster.dir}/Readme.txt" file="${dist.dir}/doc/HOWTO-Clustering.txt" overwrite="true"/>
+		<copy tofile="${cluster.dir}/Readme.txt" file="${dist.dir}/doc/HOWTO-Clustering.txt"
+		      overwrite="true"/>
 		<echo>Edge configured in: ${edgedist.dir}</echo>
 		<echo>Origin configured in: ${origindist.dir}</echo>
 	</target>
@@ -839,7 +863,8 @@
 	</target>
 
 	<target name="run-tests" depends="compile_tests" description="Run JUnit tests and generate HTML reports">
-		<junit fork="true" haltonfailure="no" printsummary="no" showoutput="no" dir="${testreports.dir}">
+		<junit fork="true" haltonfailure="no" printsummary="no" showoutput="no"
+		       dir="${testreports.dir}">
 			<classpath>
 				<path refid="full.classpath"/>
 				<pathelement location="${testclass.dir}"/>
@@ -895,14 +920,16 @@
 		<filter token="display.name" value=""/>
 		<filter token="webapp.root.key" value="/"/>
 		<filter token="context.path" value="/"/>
-		<copy tofile="${webapps.build.dir}/root/META-INF/context.xml" overwrite="true" filtering="true"				
-			file="${config.dir}/war/root-context.xml"/>
-		<copy todir="${webapps.build.dir}/root/WEB-INF" overwrite="true" filtering="true">
+		<copy tofile="${webapps.build.dir}/root/META-INF/context.xml" overwrite="true"
+		      filtering="true" file="${config.dir}/war/root-context.xml"/>
+		<copy todir="${webapps.build.dir}/root/WEB-INF" overwrite="true"
+		      filtering="true">
 			<fileset dir="${config.dir}/war">
 				<include name="web.xml"/>
 			</fileset>
 		</copy>		
-		<copy todir="${webapps.build.dir}/root/WEB-INF/classes" overwrite="true" filtering="true">
+		<copy todir="${webapps.build.dir}/root/WEB-INF/classes" overwrite="true"
+		      filtering="true">
 			<fileset dir="${config.dir}">
 				<include name="*.jmx"/>
 				<include name="access.properties"/>
@@ -1015,7 +1042,8 @@
 		<delete dir="${dist.dir}/webapps"/>
 	</target>
 
-	<target name="remotejar" description="Creates a jar that may be deployed with remote applications" depends="compile">
+	<target name="remotejar" description="Creates a jar that may be deployed with remote applications"
+		depends="compile">
 		<mkdir dir="${classes.dir}/conf"/>
 		<copy todir="${classes.dir}/conf">
 			<fileset dir="${config.dir}">
@@ -1044,43 +1072,36 @@
 		    addproperty="keystore.storepass"
 			defaultvalue="password"
 		  />
-		
 		<input
 			message="Certificate Validity"
 			addproperty="keystore.validity"
 			defaultvalue="365"
 		/>
-		
 		<input
 			message="Common Name"
 			addproperty="keystore.dname.cn"
 			defaultvalue="localhost"
 		/>
-		
 		<input
 			message="Organisation Unit"
 			addproperty="keystore.dname.ou"
 			defaultvalue="Red5"
 		/>
-		
 		<input
 			message="Organisation"
 			addproperty="keystore.dname.o"
 			defaultvalue="Red5"
 		/>
-		
 		<input
 			message="Location"
 			addproperty="keystore.dname.l"
 			defaultvalue="Henderson"
 		/>
-		
 		<input
 			message="State"
 			addproperty="keystore.dname.st"
 			defaultvalue="NV"
 		/>
-		
 		<input
 			message="Country"
 			addproperty="keystore.dname.c"
@@ -1089,7 +1110,9 @@
 		
 		<delete file="${config.dir}/keystore"/>
 		
-		<genkey alias="red5" keysize="512" keyalg="RSA" storepass="${keystore.storepass}" keypass="${keystore.storepass}" keystore="${config.dir}/keystore" validity="${keystore.validity}">
+		<genkey alias="red5" keysize="512" keyalg="RSA" storepass="${keystore.storepass}"
+			keypass="${keystore.storepass}" keystore="${config.dir}/keystore"
+			validity="${keystore.validity}">
 		  <dname>
 		    <param name="CN" value="${keystore.dname.cn}"/>
 		    <param name="OU" value="${keystore.dname.ou}"/>
@@ -1101,9 +1124,11 @@
 		</genkey>
 	</target>
 	
-	<target name="all" depends="clean, prepare, compile, jar, javadoc" description="Run all server tasks"/>
+	<target name="all" depends="clean, prepare, compile, jar, javadoc"
+		description="Run all server tasks"/>
 
 	<target name="usage">
 		<echo message="Type ant -p for available targets"/>
 	</target>
+
 </project>
