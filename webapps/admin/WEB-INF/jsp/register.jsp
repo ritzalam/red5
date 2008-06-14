@@ -6,8 +6,7 @@
 <%@ taglib prefix="spring-form" uri="/spring-form" %>
 <head>
   <title>Red5 Admin</title>
-
-  <meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+  <meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type" />
   <style type="text/css" media="screen">
 html, body, #containerA, #containerB { height: 100%;
 }
@@ -20,7 +19,6 @@ html, body, #containerA, #containerB { height: 100%;
     font-size: 12px;
     color: rgb(11, 51, 73);
 }
-
 
 body { margin: 0pt;
 padding: 0pt;
@@ -36,17 +34,12 @@ background-color: rgb(250, 250, 250);
 </head>
 <body>
 <table style="text-align: left; width: 100%; height: 100%;" border="0" cellpadding="0" cellspacing="10">
-
   <tbody>
     <tr>
-
-      <td height="54"><img style="width: 136px; height: 54px;" alt="" src="assets/logo.png"></td>
-
+      <td height="54"><img style="width: 136px; height: 54px;" alt="" src="assets/logo.png" /></td>
     </tr>
     <tr class="formbg">
-
       <td align="center" valign="middle">
-      
       <table style="width: 400px;" class="formtable" border="0" cellpadding="0" cellspacing="2">
       <tr>
       	<td class="formtext">&nbsp;<b>Register Admin User</b></td>
@@ -56,12 +49,11 @@ background-color: rgb(250, 250, 250);
       <form method="post" action="register.html">
         <table style="width: 400px;"  border="0" cellpadding="0" cellspacing="5">
           <tbody>
-
             <tr>
               <td align="right" width="20%" class="formtext">Username:</td>
 		      <spring:bind path="userDetails.username">
 		        <td width="20%">
-		            <input name="username" value="<c:out value="${status.value}"/>">
+		            <input name="username" value="<c:out value="${status.value}"/>" />
 		        </td>
 		        <td width="60%" class="error">
 		            <c:out value="${status.errorMessage}"/>
@@ -72,17 +64,15 @@ background-color: rgb(250, 250, 250);
 			  <td align="right" width="20%" class="formtext">Password:</td>
 		      <spring:bind path="userDetails.password">
 		        <td width="20%">
-		          <input name="password" value="<c:out value="${status.value}"/>">
+		          <input name="password" value="<c:out value="${status.value}"/>" />
 		        </td>
 		        <td width="60%" class="error">
 		          <c:out value="${status.errorMessage}"/>
 		        </td>
 		      </spring:bind>
             </tr>
-
             <tr>
-              <td><input type="submit" value="Submit"></td>
-
+              <td><input type="submit" value="Submit" /></td>
               <td></td>
               <td class="error">
                <spring:hasBindErrors name="userDetails">
@@ -97,13 +87,11 @@ background-color: rgb(250, 250, 250);
       </td>
       </tr>
       </table>
-
       </td>
     </tr>
 
   </tbody>
 </table>
-
-<br>
+<br />
 </body>
 </html>

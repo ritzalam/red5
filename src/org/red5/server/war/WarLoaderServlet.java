@@ -35,6 +35,7 @@ import org.red5.server.MappingStrategy;
 import org.red5.server.ScopeResolver;
 import org.red5.server.Server;
 import org.red5.server.WebScope;
+import org.red5.server.api.Red5;
 import org.red5.server.jmx.JMXAgent;
 import org.red5.server.persistence.FilePersistenceThread;
 import org.red5.server.service.ServiceInvoker;
@@ -104,8 +105,7 @@ public class WarLoaderServlet extends ContextLoaderListener {
 
 		long time = System.currentTimeMillis();
 
-		logger.info("RED5 Server (http://www.osflash.org/red5)");
-		logger.info("WAR loader");
+		logger.info("{} WAR loader", Red5.VERSION);
 		logger.debug("Path: " + prefix);
 
 		try {
@@ -233,9 +233,6 @@ public class WarLoaderServlet extends ContextLoaderListener {
 					applicationContext.close();
 				}
 				getContextLoader().closeWebApplicationContext(ctx);
-//				org.apache.commons.logging.LogFactory.releaseAll();
-//				org.apache.log4j.LogManager.getLoggerRepository().shutdown();
-//				org.apache.log4j.LogManager.shutdown();
 			} catch (Throwable e) {
 				e.printStackTrace();
 			}
