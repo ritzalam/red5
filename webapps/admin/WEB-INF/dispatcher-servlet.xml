@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:lang="http://www.springframework.org/schema/lang"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd
-                           http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-2.0.xsd">
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context" xmlns:jee="http://www.springframework.org/schema/jee"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="
+    http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-2.5.xsd
+    http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-2.5.xsd
+    http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd">
+    
+    <import resource="red5-security.xml" />
     
     <!-- the application context definition for the springapp DispatcherServlet -->
     
@@ -23,8 +28,7 @@
         <property name="validator"><ref bean="userDetailsValidator"/></property>
         <property name="formView" value="register"/>
         <property name="successView" value="index.html"/>
-		<property name="userPropertiesLocation" value="/WEB-INF/users.properties"/>     
-        <property name="saltSource" ref="saltSource"/>		
+        <property name="saltSource" ref="saltSource"/>      
         <property name="userDetailsService" ref="userDetailsService"/>
     </bean>
     
@@ -43,12 +47,16 @@
     </bean>    
     
     <bean id="urlMapping" class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
-        <property name="mappings">
-            <props>
-                <prop key="/index.html">panelController</prop>            
-                <prop key="/register.html">userRegisterForm</prop>
-            </props>
-        </property>
+        <property name="urlMap">
+               <map>
+                    <entry key="/index.html">
+                         <ref bean="panelController" />
+                    </entry>
+                    <entry key="/register.html">
+                         <ref bean="userRegisterForm" />
+                    </entry>
+               </map>
+          </property>
     </bean>    
     
 </beans>

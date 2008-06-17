@@ -37,13 +37,11 @@ import org.slf4j.LoggerFactory;
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Martijn van Beek (martijn.vanbeek@gmail.com)
+ * @author Paul Gregoire (mondain@gmail.com)
  */
 public class Application extends ApplicationAdapter {
 
 	protected static Logger log = LoggerFactory.getLogger(Application.class);
-
-	/** Manager for the clients. */
-	private ClientManager clientMgr = new ClientManager("clientlist", false);
 
 	private IScope scope;
 
@@ -61,18 +59,6 @@ public class Application extends ApplicationAdapter {
 	@Override
 	public boolean connect(IConnection conn, IScope scope, Object[] params) {
 		this.scope = scope;
-		/*
-		 * String id = conn.getSessionId();
-		 * 
-		 * IScope connectionScope = Red5.getConnectionLocal().getScope();
-		 * 
-		 * IClientRegistry clientRegistry = connectionScope.getContext()
-		 * .getClientRegistry();
-		 * 
-		 * IClient client = clientRegistry.hasClient(id) ? clientRegistry
-		 * .lookupClient(id) : clientRegistry.newClient(params);
-		 * conn.initialize(client);
-		 */
 		return true;
 	}
 
@@ -133,7 +119,7 @@ public class Application extends ApplicationAdapter {
 		scopes = new HashMap<Integer, String>();
 		try {
 			getRooms(scopeObj, 0);
-		} catch (java.lang.NullPointerException npe) {
+		} catch (NullPointerException npe) {
 			log.debug(npe.toString());
 		}
 		return scopes;
@@ -163,7 +149,7 @@ public class Application extends ApplicationAdapter {
 				scopes.put(scope_id, indent + name2);
 				scope_id++;
 				// log.info("Found scope: "+name2);
-			} catch (java.lang.NullPointerException npe) {
+			} catch (NullPointerException npe) {
 				log.debug(npe.toString());
 			}
 		}
@@ -243,7 +229,7 @@ public class Application extends ApplicationAdapter {
 					if (scope != null) {
 						return scope;
 					}
-				} catch (java.lang.NullPointerException npe) {
+				} catch (NullPointerException npe) {
 					log.debug(npe.toString());
 				}
 			}
@@ -254,10 +240,9 @@ public class Application extends ApplicationAdapter {
 	/** {@inheritDoc} */
 	@Override
 	public void disconnect(IConnection conn, IScope scope) {
-		// Get the previously stored username.
+		// Get the previously stored username
 		String rid = conn.getClient().getId();
-		// Unregister user.
-		// String uid = clientMgr.removeClient(scope, rid);
+		// Unregister user
 		log.info("Client with id {} disconnected.", rid);
 		super.disconnect(conn, scope);
 	}

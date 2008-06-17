@@ -25,13 +25,12 @@ import java.util.HashMap;
 import org.red5.server.ClientRegistry;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IScope;
-import org.red5.server.api.Red5;
 import org.red5.server.exception.ClientNotFoundException;
 import org.red5.server.exception.ClientRejectedException;
+import org.red5.webapps.admin.controllers.service.UserDAO;
+import org.red5.webapps.admin.controllers.service.UserDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.BadCredentialsException;
-import org.springframework.security.providers.ProviderManager;
 import org.springframework.security.providers.UsernamePasswordAuthenticationToken;
 
 /**
@@ -41,8 +40,7 @@ import org.springframework.security.providers.UsernamePasswordAuthenticationToke
  */
 public class AuthClientRegistry extends ClientRegistry {
 
-	protected static Logger log = LoggerFactory
-			.getLogger(AuthClientRegistry.class);
+	private Logger log = LoggerFactory.getLogger(AuthClientRegistry.class);
 
 	protected IScope masterScope;
 
@@ -62,12 +60,13 @@ public class AuthClientRegistry extends ClientRegistry {
 		}
 
 		String username, passwd;
-		if (params[0] instanceof HashMap) { // Win FP sends HashMap
+		if (params[0] instanceof HashMap) { 
+			// Win FP sends HashMap
 			HashMap userWin = (HashMap) params[0];
 			username = (String) userWin.get(0);
 			passwd = (String) userWin.get(1);
-		} else if (params[0] instanceof ArrayList) { // Mac FP sends
-														// ArrayList
+		} else if (params[0] instanceof ArrayList) { 
+			// Mac FP sends ArrayList
 			ArrayList userMac = (ArrayList) params[0];
 			username = (String) userMac.get(0);
 			passwd = (String) userMac.get(1);
@@ -75,20 +74,31 @@ public class AuthClientRegistry extends ClientRegistry {
 			throw new ClientRejectedException();
 		}
 
-		UsernamePasswordAuthenticationToken t = new UsernamePasswordAuthenticationToken(
-				username, passwd);
+		UsernamePasswordAuthenticationToken t = new UsernamePasswordAuthenticationToken(username, passwd);
 
-		masterScope = Red5.getConnectionLocal().getScope();
-		ProviderManager mgr = (ProviderManager) masterScope.getContext()
-				.getBean("authenticationManager");
-		try {
-			t = (UsernamePasswordAuthenticationToken) mgr.authenticate(t);
-		} catch (BadCredentialsException ex) {
+		masterScope = Red5.getConnectionLocal().getScope();	
+		
+//		ProviderManager mgr = (ProviderManager) masterScope.getContext()
+//				.getBean("authenticationManager");
+//		try {
+//			t = (UsernamePasswordAuthenticationToken) mgr.authenticate(t);
+//		} catch (BadCredentialsException ex) {
+//			throw new ClientRejectedException();
+//		}
+
+		//use the dao instead
+		UserDetails userDetails = UserDAO.getUser(username);
+		if (userDetails == null) {
 			throw new ClientRejectedException();
+		} else {
+			log.debug("Checking password: {}", passwd);
+			if (userDetails.getPassword().equals(passwd)) {
+				t.setAuthenticated(true);
+			}
 		}
+		
 		if (t.isAuthenticated()) {
 			client = new AuthClient(nextId(), this);
-
 			addClient(client);
 			client.setAttribute("authInformation", t);
 			log.debug("Authenticated client - username: {}, id: {}",

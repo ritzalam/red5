@@ -40,8 +40,6 @@ public class Utils {
 
 	public static String formatBytes(long d) {
 		String out = d + "";
-		out = d + "";
-
 		if (d < 1024) {
 			out = d + " Bytes";
 		} else if (d > 1024) {
