@@ -8,19 +8,24 @@
     http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-2.5.xsd
 	http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd">
 	
+	<!--  
 	<bean id="placeholderConfig" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 		<property name="locations">
 			<list>
 				<value>/WEB-INF/red5-web.properties</value>
 			</list>
 		</property>
+	</bean>-->
+	
+	<bean id="placeholderConfig" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+	    <property name="location" value="/WEB-INF/red5-web.properties" />
 	</bean>
-	<!--  
+	
 	<bean id="authClientRegistry" class="org.red5.webapps.admin.client.AuthClientRegistry"/>
--->
+
 	<bean id="web.context" class="org.red5.server.Context" autowire="byType">
 	    <property name="scopeResolver" ref="red5.scopeResolver" />
-	  <!--    <property name="clientRegistry" ref="authClientRegistry" /> -->
+	    <property name="clientRegistry" ref="authClientRegistry" />
 	    <property name="serviceInvoker" ref="global.serviceInvoker" />
 	    <property name="mappingStrategy" ref="global.mappingStrategy" />
 	</bean>
@@ -30,8 +35,11 @@
 		<property name="parent" ref="global.scope" />
 		<property name="context" ref="web.context" />
 		<property name="handler" ref="web.handler" />
+		<property name="contextPath" value="/admin" />
+		<property name="virtualHosts" value="*" />
+		<!-- 
 		<property name="contextPath" value="${webapp.contextPath}" />
-		<property name="virtualHosts" value="${webapp.virtualHosts}" />
+		<property name="virtualHosts" value="${webapp.virtualHosts}" />-->
 	</bean>
 
 	<bean id="web.handler" class="org.red5.webapps.admin.Application" />
