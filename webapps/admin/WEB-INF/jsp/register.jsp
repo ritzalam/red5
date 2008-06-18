@@ -64,7 +64,7 @@ background-color: rgb(250, 250, 250);
 			  <td align="right" width="20%" class="formtext">Password:</td>
 		      <spring:bind path="userDetails.password">
 		        <td width="20%">
-		          <input name="password" value="<c:out value="${status.value}"/>" />
+		          <input type="password" name="password" value="<c:out value="${status.value}"/>" />
 		        </td>
 		        <td width="60%" class="error">
 		          <c:out value="${status.errorMessage}"/>

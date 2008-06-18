@@ -22,16 +22,18 @@ package org.red5.webapps.admin.client;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import org.red5.server.api.Red5;
 import org.red5.server.ClientRegistry;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IScope;
 import org.red5.server.exception.ClientNotFoundException;
 import org.red5.server.exception.ClientRejectedException;
-import org.red5.webapps.admin.controllers.service.UserDAO;
-import org.red5.webapps.admin.controllers.service.UserDetails;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.providers.UsernamePasswordAuthenticationToken;
+import org.springframework.security.providers.ProviderManager;
+import org.springframework.security.BadCredentialsException;
 
 /**
  * 
@@ -53,7 +55,7 @@ public class AuthClientRegistry extends ClientRegistry {
 	@Override
 	public IClient newClient(Object[] params) throws ClientNotFoundException,
 			ClientRejectedException {
-
+	
 		if (params == null || params.length == 0) {
 			log.warn("Client didn't pass a username.");
 			throw new ClientRejectedException();
@@ -78,24 +80,17 @@ public class AuthClientRegistry extends ClientRegistry {
 
 		masterScope = Red5.getConnectionLocal().getScope();	
 		
-//		ProviderManager mgr = (ProviderManager) masterScope.getContext()
-//				.getBean("authenticationManager");
-//		try {
-//			t = (UsernamePasswordAuthenticationToken) mgr.authenticate(t);
-//		} catch (BadCredentialsException ex) {
-//			throw new ClientRejectedException();
-//		}
-
-		//use the dao instead
-		UserDetails userDetails = UserDAO.getUser(username);
-		if (userDetails == null) {
-			throw new ClientRejectedException();
-		} else {
+		
+		ProviderManager mgr = (ProviderManager) masterScope.getContext()
+				.getBean("authenticationManager");
+		try {
 			log.debug("Checking password: {}", passwd);
-			if (userDetails.getPassword().equals(passwd)) {
-				t.setAuthenticated(true);
-			}
+			t = (UsernamePasswordAuthenticationToken) mgr.authenticate(t);
+		} catch (BadCredentialsException ex) {
+			log.debug("{}",ex);
+			throw new ClientRejectedException();
 		}
+
 		
 		if (t.isAuthenticated()) {
 			client = new AuthClient(nextId(), this);

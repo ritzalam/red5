@@ -8,6 +8,21 @@
     http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-2.5.xsd
     http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd">                
     
+    <!--  
+    <bean id="cacheManager" class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean">
+	  <property name="configLocation" value="classpath:/ehcache-failsafe.xml"/>
+	</bean>
+	    
+	<bean id="userCacheBackend" class="org.springframework.cache.ehcache.EhCacheFactoryBean">
+	  <property name="cacheManager" ref="cacheManager"/>
+	  <property name="cacheName" value="userCache"/>
+	</bean>
+	
+	<bean id="userCache" class="org.springframework.security.providers.dao.cache.EhCacheBasedUserCache">
+	  <property name="cache" ref="userCacheBackend"/>
+	</bean>        
+    
+    -->
     <bean id="userCache" class="org.springframework.security.providers.dao.cache.NullUserCache"/>
 
     <bean id="passwordEncoder" class="org.springframework.security.providers.encoding.Md5PasswordEncoder" />
@@ -18,11 +33,20 @@
         </property>
     </bean>
     
-    <bean id="userDetailsService" class="org.springframework.security.userdetails.jdbc.JdbcDaoImpl" depends-on="dataSource">
+    <bean id="userDetailsService" class="org.springframework.security.userdetails.jdbc.JdbcUserDetailsManager" depends-on="dataSource">
         <property name="dataSource" ref="dataSource"/>
         <property name="enableGroups" value="false"/>
+        <property name="authenticationManager" ref="authenticationManager"/>
+        
         <property name="usersByUsernameQuery" value="SELECT username,password,enabled FROM APPUSER WHERE username = ?"/>
         <property name="authoritiesByUsernameQuery" value="SELECT username,authority FROM APPROLE WHERE username = ?"/>
+      
+    	<property name="createAuthoritySql" value="INSERT INTO APPROLE (username, authority) VALUES (?, ?)"/>
+    	<property name="createUserSql" value="INSERT INTO APPUSER (username, password, enabled) VALUES (?, ?, ?)"/>
+    	<property name="deleteUserSql" value="DELETE FROM APPUSER,APPROLE WHERE username = ?"/>
+ 		<property name="updateUserSql" value="UPDATE APPUSER SET password = ?, enabled = ? WHERE username = ?"/>
+    	<property name="userExistsSql" value="SELECT username FROM APPUSER WHERE username = ?"/>
+    	<property name="changePasswordSql" value="UPDATE APPUSER SET password = ? WHERE username = ?"/>
     </bean>
         
     <bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource" depends-on="userDatabase">
