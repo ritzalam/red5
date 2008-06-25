@@ -24,6 +24,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.mina.common.IoFuture;
+import org.apache.mina.common.IoFutureListener;
 import org.apache.mina.transport.socket.nio.SocketConnector;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Serializer;
@@ -43,11 +45,9 @@ import org.red5.server.messaging.IMessage;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.codec.RTMPCodecFactory;
 import org.red5.server.net.rtmp.event.ChunkSize;
-import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.event.Invoke;
 import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.event.Ping;
-import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.net.rtmp.message.Header;
 import org.red5.server.service.Call;
 import org.red5.server.service.MethodNotFoundException;
@@ -186,7 +186,14 @@ public class RTMPClient extends BaseRTMPHandler {
 		}
 		this.connectCallback = connectCallback;
 		SocketConnector connector = new SocketConnector();
-		connector.connect(new InetSocketAddress(server, port), ioHandler);
+		connector.connect(new InetSocketAddress(server, port), ioHandler).addListener(
+				new IoFutureListener() {
+					public void operationComplete(IoFuture future) {
+						// will throw RuntimeException after connection error  
+						future.getSession(); 
+					}
+				}
+		);
 	}
 	
     /**
