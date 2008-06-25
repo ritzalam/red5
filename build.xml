@@ -574,13 +574,6 @@
 	</macrodef>
 
 	<target name="jar" description="Make Archive" depends="compile">
-		<mkdir dir="${classes.dir}/conf"/>
-		<copy todir="${classes.dir}/conf">
-			<fileset dir="${config.dir}">
-				<exclude name="**/war/**"/>
-				<exclude name="**/jboss/**"/>
-			</fileset>
-		</copy>
 
 		<manifestclasspath property="jar.classpath" jarfile="${red5.filename}.jar">
 			<classpath refid="runtime.classpath"/>
@@ -595,7 +588,7 @@
 				<attribute name="Built-By" value="${red5.fullname}"/>
 				<attribute name="Built-On" value="${build.TODAY}"/>
 				<attribute name="Main-Class" value="org.red5.server.Standalone"/>
-				<attribute name="Class-Path" value="conf/ ${jar.classpath}"/>
+				<attribute name="Class-Path" value="${jar.classpath}"/>
 			</manifest>
 			<metainf dir="${src.dir}/META-INF">
 				<include name="**"/>
