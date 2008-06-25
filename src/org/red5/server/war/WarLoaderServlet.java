@@ -113,8 +113,7 @@ public class WarLoaderServlet extends ContextLoaderListener {
 			contextLoader = createContextLoader();
 			applicationContext = (ConfigurableWebApplicationContext) contextLoader
 					.initWebApplicationContext(servletContext);
-			logger.debug("Root context path: "
-					+ applicationContext.getServletContext().getContextPath());
+			logger.debug("Root context path: {}", applicationContext.getServletContext().getContextPath());
 
 			ConfigurableBeanFactory factory = applicationContext
 					.getBeanFactory();
@@ -131,7 +130,7 @@ public class WarLoaderServlet extends ContextLoaderListener {
 		}
 
 		long startupIn = System.currentTimeMillis() - time;
-		logger.info("Startup done in: " + startupIn + " ms");
+		logger.info("Startup done in: {} ms", startupIn);
 
 	}
 

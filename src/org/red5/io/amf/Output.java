@@ -30,6 +30,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.commons.collections.BeanMap;
 import org.apache.commons.collections.map.LRUMap;
@@ -58,12 +60,18 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 	/**
 	 * Cache encoded strings.
 	 */
-	protected static Map<String, byte[]> stringCache = (Map<String, byte[]>) new LRUMap(10000, true);
+	protected static final Map<String, byte[]> stringCache = (Map<String, byte[]>) new LRUMap(10000, true);
 
     /**
      * Output buffer
      */
     protected ByteBuffer buf;
+    
+	private static final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+
+	private static final Lock read = readWriteLock.readLock();
+
+	private static final Lock write = readWriteLock.writeLock();    
 
     /**
      * Creates output with given byte buffer
@@ -445,16 +453,26 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
      */
     protected static byte[] encodeString(String string) {
     	byte[] encoded;
-    	synchronized (stringCache) {
+    	
+		read.lock();
+		try {
     		encoded = stringCache.get(string);
-    	}
-    	if (encoded == null) {
+		} finally {
+			read.unlock();
+		}
+
+		if (encoded == null) {
     		java.nio.ByteBuffer buf = AMF.CHARSET.encode(string);
     		encoded = new byte[buf.limit()];
     		buf.get(encoded);
-    		synchronized (stringCache) {
+    		
+			write.lock();
+			try {
     			stringCache.put(string, encoded);
-    		}
+			} finally {
+				write.unlock();
+			}    			
+			
     	}
     	return encoded;
     }
