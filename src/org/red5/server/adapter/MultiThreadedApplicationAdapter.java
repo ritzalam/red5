@@ -1099,7 +1099,11 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 			//converted to seconds
 			playDuration = (System.currentTimeMillis() - ((PlaylistSubscriberStream) stream).getCreationTime()) / 1000;
 		}
-		log.info("W3C x-category:stream x-event:stop c-ip:{} cs-bytes:{} sc-bytes:{} x-sname:{} x-file-length:{} x-file-size:{}", new Object[]{conn.getRemoteAddress(), conn.getReadBytes(), conn.getWrittenBytes(), stream.getName(), playDuration, item.getSize()});		
+		long playItemSize = -1;
+		if (item != null) {
+			playItemSize = item.getSize();
+		}
+		log.info("W3C x-category:stream x-event:stop c-ip:{} cs-bytes:{} sc-bytes:{} x-sname:{} x-file-length:{} x-file-size:{}", new Object[]{conn.getRemoteAddress(), conn.getReadBytes(), conn.getWrittenBytes(), stream.getName(), playDuration, playItemSize});		
 	}
 
 	public void streamPlaylistVODItemPause(IPlaylistSubscriberStream stream, IPlayItem item, int position) {

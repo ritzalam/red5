@@ -5,7 +5,7 @@ set JAVA_OPTS = -Xmx768m -Xms256 -Xmn512m -Xss128k -XX:+AggressiveOpts -XX:+Aggr
 if not "%JAVA_HOME%" == "" goto launchRed5
 
 :launchRed5
-"%JAVA_HOME%/bin/java" %JAVA_OPTS% -Dlogback.ContextSelector=org.red5.logging.LoggingContextSelector -Dcatalina.useNaming=true -Djava.security.manager -Djava.security.debug=failure -Djava.security.policy=conf/red5.policy -cp red5.jar org.red5.server.Bootstrap 1>log\boot.log 2>log\error.log
+"%JAVA_HOME%/bin/java" %JAVA_OPTS% -Dlogback.ContextSelector=org.red5.logging.LoggingContextSelector -Dcatalina.useNaming=true -Djava.security.manager -Djava.security.debug=failure -Djava.security.policy=conf/red5.policy -cp red5.jar org.red5.server.Bootstrap 1>log\stdout.log 2>log\stderr.log
 goto finally
 
 :err
