@@ -39,7 +39,7 @@ import java.lang.ref.WeakReference;
  * </p> 
  *  
  * @author The Red5 Project (red5@osflash.org) 
- * @author Luke Hubbard (luke@codegent.com)
+ * @author Luke Hubbard (luke@codegent.com) 
  */
 public final class Red5 implements Red5MBean {
 
@@ -100,7 +100,7 @@ public final class Red5 implements Red5MBean {
 			return ref.get();
 		} else {
 			return null;
-		}
+		} 
 	}
 
 	/**
