@@ -188,11 +188,12 @@ public class RTMPHandler extends BaseRTMPHandler {
 
 		// Get call
 		final IServiceCall call = invoke.getCall();
+		// method name
+		final String action = call.getServiceMethodName();
 
 		// If it's a callback for server remote call then pass it over to
 		// callbacks handler and return
-		if (call.getServiceMethodName().equals("_result")
-				|| call.getServiceMethodName().equals("_error")) {
+		if ("_result".equals(action) || "_error".equals(action)) {
 			handlePendingCallResult(conn, invoke);
 			return;
 		}
@@ -202,7 +203,6 @@ public class RTMPHandler extends BaseRTMPHandler {
 		// If this is not a service call then handle connection...
 		if (call.getServiceName() == null) {
 			log.debug("call: {}", call);
-			final String action = call.getServiceMethodName();
 			if (!conn.isConnected()) {
 				// Handle connection
 				if (action.equals(ACTION_CONNECT)) {
@@ -292,8 +292,8 @@ public class RTMPHandler extends BaseRTMPHandler {
 								
 								boolean okayToConnect;
 								try {
-								    log.info("DEBUG - conn {}, scope {}, call {}", new Object[]{conn, scope, call});
-								    log.info("DEBUG - args {}", call.getArguments());
+								    log.debug("Conn {}, scope {}, call {}", new Object[]{conn, scope, call});
+								    log.debug("Call args {}", call.getArguments());
 									if (call.getArguments() != null) {
 										okayToConnect = conn.connect(scope, call.getArguments());
 									} else {

@@ -289,10 +289,17 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 */
 	@Override
 	public boolean connect(IConnection conn, IScope scope, Object[] params) {
-		//log w3c connect event
-		log.info("W3C x-category:session x-event:connect c-ip:{} c-client-id:{}", conn.getRemoteAddress(), conn.getClient().getId());
 		if (!super.connect(conn, scope, params)) {
 			return false;
+		}
+		if (log.isInfoEnabled()) {
+			//log w3c connect event
+			IClient client =  conn.getClient();
+			if (client == null) {
+				log.info("W3C x-category:session x-event:connect c-ip:{}", conn.getRemoteAddress());				
+			} else {
+				log.info("W3C x-category:session x-event:connect c-ip:{} c-client-id:{}", conn.getRemoteAddress(), client.getId());				
+			}
 		}
 		boolean success = false;
 		if (isApp(scope)) {
@@ -1092,18 +1099,29 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	}
 
 	public void streamPlaylistItemStop(IPlaylistSubscriberStream stream, IPlayItem item) {
-		//log w3c connect event		
-		IConnection conn = Red5.getConnectionLocal();
-		long playDuration = -1;
-		if (stream instanceof PlaylistSubscriberStream) {
-			//converted to seconds
-			playDuration = (System.currentTimeMillis() - ((PlaylistSubscriberStream) stream).getCreationTime()) / 1000;
-		}
-		long playItemSize = -1;
-		if (item != null) {
-			playItemSize = item.getSize();
-		}
-		log.info("W3C x-category:stream x-event:stop c-ip:{} cs-bytes:{} sc-bytes:{} x-sname:{} x-file-length:{} x-file-size:{}", new Object[]{conn.getRemoteAddress(), conn.getReadBytes(), conn.getWrittenBytes(), stream.getName(), playDuration, playItemSize});		
+		//since there is a fair amount of processing below we will check log level prior to proceeding
+		if (log.isInfoEnabled()) {
+    		//log w3c connect event		
+			String remoteAddress = "";
+			long readBytes = -1;
+			long writtenBytes = -1;			
+			IConnection conn = Red5.getConnectionLocal();
+    		if (conn != null) {
+    			remoteAddress = conn.getRemoteAddress();
+    			readBytes = conn.getReadBytes();
+    			writtenBytes = conn.getWrittenBytes();
+    		}
+    		long playDuration = -1;
+    		if (stream instanceof PlaylistSubscriberStream) {
+    			//converted to seconds
+    			playDuration = (System.currentTimeMillis() - ((PlaylistSubscriberStream) stream).getCreationTime()) / 1000;
+    		}
+    		long playItemSize = -1;
+    		if (item != null) {
+    			playItemSize = item.getSize();
+    		}
+    		log.info("W3C x-category:stream x-event:stop c-ip:{} cs-bytes:{} sc-bytes:{} x-sname:{} x-file-length:{} x-file-size:{}", new Object[]{remoteAddress, readBytes, writtenBytes, stream.getName(), playDuration, playItemSize});		
+    	}
 	}
 
 	public void streamPlaylistVODItemPause(IPlaylistSubscriberStream stream, IPlayItem item, int position) {
