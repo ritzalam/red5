@@ -30,6 +30,7 @@ import org.springframework.test.AbstractDependencyInjectionSpringContextTests;
 
 public class BandwidthControlServiceTest extends
 		AbstractDependencyInjectionSpringContextTests {
+	
 	class Client extends TestRunnable {
 		private boolean[][] availArray;
 

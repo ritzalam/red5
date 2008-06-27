@@ -32,7 +32,20 @@ import org.red5.server.api.stream.IStreamCodecInfo;
  * @see  org.red5.server.api.stream.IStream
  */
 public abstract class AbstractStream implements IStream {
+
     /**
+     * Enumeration for states
+     */
+    protected enum State {
+		UNINIT, CLOSED, STOPPED, PLAYING, PAUSED
+	}
+    
+    /**
+     * Current state
+     */
+    protected State state = State.UNINIT;
+    
+	/**
      *  Stream name
      */
     private String name;

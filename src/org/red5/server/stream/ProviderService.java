@@ -51,6 +51,26 @@ public class ProviderService implements IProviderService {
 	private static final Logger log = LoggerFactory.getLogger(ProviderService.class);
 
 	/** {@inheritDoc} */
+	public INPUT_TYPE lookupProviderInput(IScope scope, String name) {
+		INPUT_TYPE result = INPUT_TYPE.NOT_FOUND;
+		if (scope.getBasicScope(IBroadcastScope.TYPE, name) != null) {
+			//we have live input
+			result = INPUT_TYPE.LIVE;
+		} else {
+    		try {
+    			if (getStreamFile(scope, name) != null) {
+    				//we have vod input
+    				result = INPUT_TYPE.VOD;    				
+    			}
+    		} catch (IOException e) {
+    			log.warn("Exception attempting to lookup file: {}", name, e);
+    			e.printStackTrace();
+    		}
+		}
+		return result;
+	}
+
+	/** {@inheritDoc} */
 	public IMessageInput getProviderInput(IScope scope, String name) {
 		IMessageInput msgIn = getLiveProviderInput(scope, name, false);
 		if (msgIn == null) {
@@ -87,6 +107,7 @@ public class ProviderService implements IProviderService {
 
 	/** {@inheritDoc} */
 	public IMessageInput getVODProviderInput(IScope scope, String name) {
+		log.debug("getVODProviderInput - scope: {} name: {}", scope, name);
 		File file = getVODProviderFile(scope, name);
 		if (file == null) {
 			return null;
@@ -98,6 +119,7 @@ public class ProviderService implements IProviderService {
 
 	/** {@inheritDoc} */
 	public File getVODProviderFile(IScope scope, String name) {
+		log.debug("getVODProviderFile - scope: {} name: {}", scope, name);
 		File file = null;
 		try {
 			log.info("getVODProviderFile scope path: {} name: {}", scope.getContextPath(), name);
@@ -106,6 +128,7 @@ public class ProviderService implements IProviderService {
 			log.error("Problem getting file: {}", name, e);
 		}
 		if (file == null || !file.exists()) {
+			log.warn("File was null or did not exist: {}", name);
 			return null;
 		}
 		return file;
@@ -164,7 +187,7 @@ public class ProviderService implements IProviderService {
 			// Default to .flv files if no prefix and no extension is given.
 			name = "flv:" + name;
 		}
-		log.info("getStreamFile null check - factory: {} name: {}", factory, name);
+		log.debug("getStreamFile null check - factory: {} name: {}", factory, name);
 		for (IStreamableFileService service : factory.getServices()) {
 			if (name.startsWith(service.getPrefix() + ':')) {
 				name = service.prepareFilename(name);

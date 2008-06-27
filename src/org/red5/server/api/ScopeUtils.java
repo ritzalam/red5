@@ -316,14 +316,16 @@ public class ScopeUtils {
 			try {
 				key = intf.getField("BEAN_NAME");
 				serviceName = key.get(null);
-				if (!(serviceName instanceof String))
+				if (!(serviceName instanceof String)) {
 					serviceName = null;
+				}
 			} catch (Exception e) {
 				log.debug("No string field 'BEAN_NAME' in that interface");
 			}
 
-			if (serviceName != null)
+			if (serviceName != null) {
 				handler = getScopeService(scope, (String) serviceName, defaultClass);
+			}
 		}
 
 		if (handler == null && defaultClass != null) {

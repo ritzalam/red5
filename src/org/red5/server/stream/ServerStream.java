@@ -77,20 +77,9 @@ public class ServerStream extends AbstractStream implements IServerStream,
      * Logger
      */
     private static final Logger log = LoggerFactory.getLogger(ServerStream.class);
-
-    /**
-     * Enumeration for states
-     */
-    protected enum State {
-		UNINIT, CLOSED, STOPPED, PLAYING, PAUSED
-	}
-
+    
     private static final long WAIT_THRESHOLD = 0;
     
-    /**
-     * Current state
-     */
-    protected State state;
     /**
      * Stream published name
      */
@@ -180,7 +169,6 @@ public class ServerStream extends AbstractStream implements IServerStream,
     public ServerStream() {
 		defaultController = new SimplePlaylistController();
 		items = new ArrayList<IPlayItem>();
-		state = State.UNINIT;
 	}
 
 	/** {@inheritDoc} */

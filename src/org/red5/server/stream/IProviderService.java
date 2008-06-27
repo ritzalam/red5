@@ -33,6 +33,20 @@ import org.red5.server.messaging.IMessageInput;
 public interface IProviderService extends IScopeService {
 	public static String BEAN_NAME = "providerService";
 
+	enum INPUT_TYPE {
+		NOT_FOUND, LIVE, VOD;
+	};
+	
+	/**
+	 * Returns the input type for a named provider if a source of input exists.
+	 * Live is checked first and VOD second.
+	 * 
+	 * @param scope         Scope of provider
+	 * @param name          Name of provider
+	 * @return LIVE if live, VOD if VOD, and NOT_FOUND otherwise
+	 */
+	INPUT_TYPE lookupProviderInput(IScope scope, String name);	
+	
 	/**
 	 * Get a named provider as the source of input.
 	 * Live stream first, VOD stream second.
@@ -47,9 +61,8 @@ public interface IProviderService extends IScopeService {
 	 * 
 	 * @param scope         Scope of provider
 	 * @param name          Name of provider
-     * @param needCreate    Whether there's need to create basic scope if that doesn't exist
+     * @param needCreate    Whether there's need to create basic scope / live provider if they don't exist
 	 * @return <tt>null</tt> if not found.
-     * @param needCreate    Whether there's need to create new live provider if this doesn't exist
 	 */
 	IMessageInput getLiveProviderInput(IScope scope, String name,
 			boolean needCreate);
