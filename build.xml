@@ -789,6 +789,7 @@
 					</fileset>
 				</path>
 			</classpath>
+			<jvmarg value="-Dpython.home=${dist.dir}/lib"/>
 			<jvmarg value="-Djava.security.manager"/>
 			<jvmarg value="-Djava.security.policy=${dist.dir}/conf/red5.policy"/>
 			<jvmarg value="-Dred5.root=${dist.dir}"/>

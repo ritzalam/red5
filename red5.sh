@@ -1,5 +1,11 @@
 #!/bin/bash
- 
+
+# JMX options
+JMX_OPTS="-Djava.security.manager -Djava.security.policy=conf/red5.policy"
+
+# Jython options
+JYTHON="-Dpython.home=lib"
+
 for JAVA in "$JAVA_HOME/bin/java" "/usr/bin/java" "/usr/local/bin/java"
 do
   if [ -x $JAVA ]
@@ -16,4 +22,4 @@ fi
 
 # start Red5
 echo "Starting Red5..."
-exec $JAVA -Djava.security.manager -Djava.security.policy=conf/red5.policy -cp red5.jar:conf:$CLASSPATH org.red5.server.Standalone
+exec $JAVA $JYTHON $JMX_OPTS -cp red5.jar:conf:$CLASSPATH org.red5.server.Standalone
