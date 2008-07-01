@@ -274,13 +274,13 @@ public class TomcatLoader extends LoaderBase implements
     				Object ldr = ctx.getLoader();
     				if (ldr != null) {
     					if (ldr instanceof WebappLoader) {
-    						log.debug("Replacing context loader");				
+    						log.debug("Replacing context class loader");				
     						((WebappLoader) ldr).setLoaderClass("org.red5.server.tomcat.WebappClassLoader");
     					} else {
-    						log.debug("Context loader was instance of {}", ldr.getClass().getName());
+    						log.debug("Context class loader was instance of {}", ldr.getClass().getName());
     					}
     				} else {
-    					log.debug("Context loader was null");
+    					log.debug("Context class loader was null");
     					WebappLoader wldr = new WebappLoader(classloader);
     					wldr.setLoaderClass("org.red5.server.tomcat.WebappClassLoader");
     					ctx.setLoader(wldr);
@@ -582,17 +582,41 @@ public class TomcatLoader extends LoaderBase implements
     protected static String formatPath(String absWebappsPath, String contextDirName) {
         StringBuilder path = new StringBuilder(absWebappsPath.length() + contextDirName.length());
         path.append(absWebappsPath);
+        if (log.isDebugEnabled()) {
+        	log.debug("Path start: {}", path.toString());
+        }
+        int idx = -1;
         if (File.separatorChar != '/') {
-            int idx = -1;
             while ((idx = path.indexOf(File.separator)) != -1) {
                 path.deleteCharAt(idx);
                 path.insert(idx, '/');
             }
         }
+        if (log.isDebugEnabled()) {
+        	log.debug("Path step 1: {}", path.toString());
+        }
+        //remove any './'
+        if ((idx = path.indexOf("./")) != -1) {
+        	path.delete(idx, idx + 1);
+        }        
+        if (log.isDebugEnabled()) {
+        	log.debug("Path step 2: {}", path.toString());
+        }
+        //add / to base path if one doesnt exist
+        if (path.charAt(path.length() - 1) != '/') {
+        	path.append('/');
+        }
+        if (log.isDebugEnabled()) {
+        	log.debug("Path step 3: {}", path.toString());
+        }        
+        //remove the / from the beginning of the context dir
         if (contextDirName.charAt(0) == '/' && path.charAt(path.length() - 1) == '/') {
             path.append(contextDirName.substring(1));
         } else {
             path.append(contextDirName);
+        }
+        if (log.isDebugEnabled()) {
+        	log.debug("Path step 4: {}", path.toString());
         }
         return path.toString();
     }

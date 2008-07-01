@@ -34,6 +34,8 @@ public interface TomcatVHostLoaderMBean {
 
 	public void uninit();
 
+	public boolean startWebApplication(String applicationName);	
+	
 	public boolean getAutoDeploy();
 
 	public void setAutoDeploy(boolean autoDeploy);

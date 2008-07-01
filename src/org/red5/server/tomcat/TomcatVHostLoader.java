@@ -22,6 +22,8 @@ package org.red5.server.tomcat;
 import java.io.File;
 import java.util.Map;
 
+import javax.management.MBeanServer;
+import javax.management.MBeanServerInvocationHandler;
 import javax.management.ObjectName;
 import javax.servlet.ServletContext;
 
@@ -34,6 +36,8 @@ import org.apache.catalina.Valve;
 import org.apache.catalina.core.StandardContext;
 import org.apache.catalina.core.StandardHost;
 import org.apache.catalina.loader.WebappLoader;
+import org.red5.server.ContextLoader;
+import org.red5.server.ContextLoaderMBean;
 import org.red5.server.LoaderBase;
 import org.red5.server.jmx.JMXAgent;
 import org.red5.server.jmx.JMXFactory;
@@ -104,7 +108,10 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 		}
 		log.debug("Generating name (for props) {}", propertyPrefix);
 		System.setProperty(propertyPrefix + ".webapp.root", webappRoot);
-		log.info("Virtual host root: " + webappRoot);
+		
+		log.info("Virtual host root: {}", webappRoot);
+
+		log.info("Virtual host context id: {}", defaultApplicationContextId);
 
 		// Root applications directory
 		File appDirBase = new File(webappRoot);
@@ -181,7 +188,36 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
             			XmlWebApplicationContext appctx = new XmlWebApplicationContext();
             			appctx.setClassLoader(webClassLoader);
             			appctx.setConfigLocations(new String[]{"/WEB-INF/red5-*.xml"});
-            			appctx.setParent((ApplicationContext) applicationContext.getBean(defaultApplicationContextId));					
+            			//check for red5 context bean
+            			if (applicationContext.containsBean(defaultApplicationContextId)) {
+                			appctx.setParent((ApplicationContext) applicationContext.getBean(defaultApplicationContextId));					            				
+            			} else {
+            				log.warn("{} bean was not found in context: {}", defaultApplicationContextId, applicationContext.getDisplayName());
+            				//lookup context loader and attempt to get what we need from it
+            				if (applicationContext.containsBean("context.loader")) {
+            					ContextLoader contextLoader = (ContextLoader) applicationContext.getBean("context.loader");
+            					appctx.setParent(contextLoader.getContext(defaultApplicationContextId));					
+            				} else {
+            					log.debug("Context loader was not found, trying JMX");
+            					MBeanServer mbs = JMXFactory.getMBeanServer();
+            					//get the ContextLoader from jmx
+            					ObjectName oName = JMXFactory.createObjectName("type", "ContextLoader");
+            					ContextLoaderMBean proxy = null;
+            					if (mbs.isRegistered(oName)) {
+            						proxy = (ContextLoaderMBean) MBeanServerInvocationHandler.newProxyInstance(mbs, oName, ContextLoaderMBean.class, true);
+            						log.debug("Context loader was found");
+            						appctx.setParent(proxy.getContext(defaultApplicationContextId));	
+            					} else {
+            						log.warn("Context loader was not found");
+            					}						
+            				}
+            			}
+            			if (log.isDebugEnabled()) {
+            				if (appctx.getParent() != null) {
+            					log.debug("Parent application context: {}", appctx.getParent().getDisplayName());
+            				}
+            			}
+            			//
             			appctx.setServletContext(servletContext);
             			//set the root webapp ctx attr on the each servlet context so spring can find it later					
             			servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, appctx);
@@ -233,6 +269,115 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 		//unregister jmx
 		unregisterJMX();
 	}	
+	
+	/**
+	 * Starts a web application and its red5 (spring) component. This is basically a stripped down
+	 * version of init().
+	 * 
+	 * @return
+	 */
+	public boolean startWebApplication(String applicationName) {
+		boolean result = false;
+		log.info("Starting Tomcat virtual host - Web application");	
+		
+		log.info("Virtual host root: {}", webappRoot);
+
+		log.info("Virtual host context id: {}", defaultApplicationContextId);
+		
+		// application directory
+		String contextName = '/' + applicationName;
+
+		Container cont = null;
+		
+		//check if the context already exists for the host
+		if ((cont = host.findChild(contextName)) == null) {
+			log.debug("Context did not exist in host");
+			String webappContextDir = formatPath(webappRoot, applicationName);
+			//prepend slash
+			Context ctx = addContext(contextName, webappContextDir);
+    		if (ctx != null) {
+    			Object ldr = ctx.getLoader();
+    			if (ldr != null) {
+    				if (ldr instanceof WebappLoader) {
+    					log.debug("Replacing context loader");				
+    					((WebappLoader) ldr).setLoaderClass("org.red5.server.tomcat.WebappClassLoader");
+    				} else {
+    					log.debug("Context loader was instance of {}", ldr.getClass().getName());
+    				}
+    			} else {
+    				log.debug("Context loader was null");
+    				ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+    				WebappLoader wldr = new WebappLoader(classloader);
+    				wldr.setLoaderClass("org.red5.server.tomcat.WebappClassLoader");
+    				ctx.setLoader(wldr);
+    			}  				    				
+    		}
+    		//set the newly created context as the current container
+    		cont = ctx;
+		} else {
+			log.debug("Context already exists in host");
+		}
+
+		try {
+    		ServletContext servletContext = ((Context) cont).getServletContext();
+    		log.debug("Context initialized: {}", servletContext.getContextPath());
+    		
+    		String prefix = servletContext.getRealPath("/");
+    		log.debug("Path: {}", prefix);
+    
+			Loader cldr = cont.getLoader();
+			log.debug("Loader type: {}", cldr.getClass().getName());
+			ClassLoader webClassLoader = cldr.getClassLoader();
+			log.debug("Webapp classloader: {}", webClassLoader);
+			//create a spring web application context
+			XmlWebApplicationContext appctx = new XmlWebApplicationContext();
+			appctx.setClassLoader(webClassLoader);
+			appctx.setConfigLocations(new String[]{"/WEB-INF/red5-*.xml"});
+			//check for red5 context bean
+			if (applicationContext.containsBean(defaultApplicationContextId)) {
+    			appctx.setParent((ApplicationContext) applicationContext.getBean(defaultApplicationContextId));					            				
+			} else {
+				log.warn("{} bean was not found in context: {}", defaultApplicationContextId, applicationContext.getDisplayName());
+				//lookup context loader and attempt to get what we need from it
+				if (applicationContext.containsBean("context.loader")) {
+					ContextLoader contextLoader = (ContextLoader) applicationContext.getBean("context.loader");
+					appctx.setParent(contextLoader.getContext(defaultApplicationContextId));					
+				} else {
+					log.debug("Context loader was not found, trying JMX");
+					MBeanServer mbs = JMXFactory.getMBeanServer();
+					//get the ContextLoader from jmx
+					ObjectName oName = JMXFactory.createObjectName("type", "ContextLoader");
+					ContextLoaderMBean proxy = null;
+					if (mbs.isRegistered(oName)) {
+						proxy = (ContextLoaderMBean) MBeanServerInvocationHandler.newProxyInstance(mbs, oName, ContextLoaderMBean.class, true);
+						log.debug("Context loader was found");
+						appctx.setParent(proxy.getContext(defaultApplicationContextId));	
+					} else {
+						log.warn("Context loader was not found");
+					}						
+				}
+			}
+			if (log.isDebugEnabled()) {
+				if (appctx.getParent() != null) {
+					log.debug("Parent application context: {}", appctx.getParent().getDisplayName());
+				}
+			}
+			//
+			appctx.setServletContext(servletContext);
+			//set the root webapp ctx attr on the each servlet context so spring can find it later					
+			servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, appctx);
+			appctx.refresh();
+			
+			result = true;
+		} catch (Throwable t) {
+			log.error("Error setting up context: {}", applicationName, t);
+			if (log.isDebugEnabled()) {
+				t.printStackTrace();
+			}
+		}			
+		
+		return result;
+	}
 	
 	/**
 	 * Create a standard host.
