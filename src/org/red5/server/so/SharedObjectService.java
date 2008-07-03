@@ -40,41 +40,48 @@ import org.slf4j.LoggerFactory;
  * Shared object service
  */
 public class SharedObjectService implements ISharedObjectService {
-    /**
-     * Logger
-     */
+	/**
+	 * Logger
+	 */
 	private Logger log = LoggerFactory.getLogger(SharedObjectService.class);
-    /**
-     * Persistence store prefix
-     */
+
+	/**
+	 * Persistence store prefix
+	 */
 	private static final String SO_PERSISTENCE_STORE = IPersistable.TRANSIENT_PREFIX
 			+ "_SO_PERSISTENCE_STORE_";
-    /**
-     * Transient store prefix
-     */
+
+	/**
+	 * Transient store prefix
+	 */
 	private static final String SO_TRANSIENT_STORE = IPersistable.TRANSIENT_PREFIX
 			+ "_SO_TRANSIENT_STORE_";
-    /**
-     * Persistence class name
-     */
+
+	/**
+	 * Persistence class name
+	 */
 	private String persistenceClassName = "org.red5.server.persistence.RamPersistence";
 
 	/**
-     * Setter for persistence class name.
-     *
-     * @param name  Setter for persistence class name
-     */
-    public void setPersistenceClassName(String name) {
+	 * Setter for persistence class name.
+	 * 
+	 * @param name
+	 *            Setter for persistence class name
+	 */
+	public void setPersistenceClassName(String name) {
 		persistenceClassName = name;
 	}
 
-    /**
-     * Return scope store
-     * @param scope                Scope
-     * @param persistent           Persistent store or not?
-     * @return                     Scope's store
-     */
-    private IPersistenceStore getStore(IScope scope, boolean persistent) {
+	/**
+	 * Return scope store
+	 * 
+	 * @param scope
+	 *            Scope
+	 * @param persistent
+	 *            Persistent store or not?
+	 * @return Scope's store
+	 */
+	private IPersistenceStore getStore(IScope scope, boolean persistent) {
 		IPersistenceStore store;
 		if (!persistent) {
 			// Use special store for non-persistent shared objects
@@ -92,13 +99,10 @@ public class SharedObjectService implements ISharedObjectService {
 			try {
 				store = PersistenceUtils.getPersistenceStore(scope,
 						persistenceClassName);
-				log.info("Created persistence store " + store
-						+ " for shared objects.");
+				log.info("Created persistence store {} for shared objects.", store);
 			} catch (Exception err) {
-				log
-						.error(
-								"Could not create persistence store for shared objects, falling back to Ram persistence.",
-								err);
+				log.error("Could not create persistence store for shared objects, falling back to Ram persistence.",
+						err);
 				store = new RamPersistence(scope);
 			}
 			scope.setAttribute(SO_PERSISTENCE_STORE, store);
@@ -109,14 +113,14 @@ public class SharedObjectService implements ISharedObjectService {
 	}
 
 	/** {@inheritDoc} */
-    public boolean createSharedObject(IScope scope, String name,
+	public boolean createSharedObject(IScope scope, String name,
 			boolean persistent) {
 		synchronized (scope) {
 			if (hasSharedObject(scope, name)) {
 				// The shared object already exists.
 				return true;
 			}
-	
+
 			final IBasicScope soScope = new SharedObjectScope(scope, name,
 					persistent, getStore(scope, persistent));
 			return scope.addChildScope(soScope);
@@ -124,12 +128,12 @@ public class SharedObjectService implements ISharedObjectService {
 	}
 
 	/** {@inheritDoc} */
-    public ISharedObject getSharedObject(IScope scope, String name) {
+	public ISharedObject getSharedObject(IScope scope, String name) {
 		return (ISharedObject) scope.getBasicScope(TYPE, name);
 	}
 
 	/** {@inheritDoc} */
-    public ISharedObject getSharedObject(IScope scope, String name,
+	public ISharedObject getSharedObject(IScope scope, String name,
 			boolean persistent) {
 		synchronized (scope) {
 			if (!hasSharedObject(scope, name)) {
@@ -140,7 +144,7 @@ public class SharedObjectService implements ISharedObjectService {
 	}
 
 	/** {@inheritDoc} */
-    public Set<String> getSharedObjectNames(IScope scope) {
+	public Set<String> getSharedObjectNames(IScope scope) {
 		Set<String> result = new HashSet<String>();
 		Iterator<String> iter = scope.getBasicScopeNames(TYPE);
 		while (iter.hasNext()) {
@@ -150,32 +154,37 @@ public class SharedObjectService implements ISharedObjectService {
 	}
 
 	/** {@inheritDoc} */
-    public boolean hasSharedObject(IScope scope, String name) {
+	public boolean hasSharedObject(IScope scope, String name) {
 		return scope.hasChildScope(TYPE, name);
 	}
 
 	/** {@inheritDoc} */
-    public boolean clearSharedObjects(IScope scope, String name) {
+	public boolean clearSharedObjects(IScope scope, String name) {
 		boolean result = false;
 		synchronized (scope) {
 			if (hasSharedObject(scope, name)) {
 				// '/' clears all local and persistent shared objects associated
 				// with the instance
 				// if (name.equals('/')) {
-				// /foo/bar clears the shared object /foo/bar; if bar is a directory
+				// /foo/bar clears the shared object /foo/bar; if bar is a
+				// directory
 				// name, no shared objects are deleted.
 				// if (name.equals('/')) {
-				// /foo/bar/* clears all shared objects stored under the instance
+				// /foo/bar/* clears all shared objects stored under the
+				// instance
 				// directory /foo/bar. The bar directory is also deleted if no
 				// persistent shared objects are in use within this namespace.
 				// if (name.equals('/')) {
 				// /foo/bar/XX?? clears all shared objects that begin with XX,
-				// followed by any two characters. If a directory name matches this
-				// specification, all the shared objects within this directory are
+				// followed by any two characters. If a directory name matches
+				// this
+				// specification, all the shared objects within this directory
+				// are
 				// cleared.
 				// if (name.equals('/')) {
 				// }
-				result = ((ISharedObject) scope.getBasicScope(TYPE, name)).clear();
+				result = ((ISharedObject) scope.getBasicScope(TYPE, name))
+						.clear();
 			}
 		}
 		return result;

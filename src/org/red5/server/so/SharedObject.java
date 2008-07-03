@@ -22,10 +22,12 @@ package org.red5.server.so;
 import static org.red5.server.api.so.ISharedObject.TYPE;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -102,12 +104,12 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
     /**
      * Version. Used on synchronization purposes.
      */
-    protected int version = 1;
+    protected AtomicInteger version = new AtomicInteger(1);
 
     /**
      * Number of pending update operations
      */
-    protected int updateCounter;
+    protected AtomicInteger updateCounter = new AtomicInteger();
 
     /**
      * Has changes? flag
@@ -127,7 +129,7 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
     /**
      * Synchronization events
      */
-    protected LinkedList<ISharedObjectEvent> syncEvents = new LinkedList<ISharedObjectEvent>();
+    protected ConcurrentLinkedQueue<ISharedObjectEvent> syncEvents = new ConcurrentLinkedQueue<ISharedObjectEvent>();
 
     /**
      * Listeners
@@ -142,7 +144,7 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
     /**
      * Number of times the SO has been acquired
      */
-    protected int acquireCount;
+    protected AtomicInteger acquireCount = new AtomicInteger();
 
 	/**
 	 * Timestamp the scope was created.
@@ -173,9 +175,8 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
     public SharedObject() {
 		// This is used by the persistence framework
         super();
-
+        
 		ownerMessage = new SharedObjectMessage(null, null, -1, false);
-        persistentSO = false;
         creationTime = System.currentTimeMillis();
     }
 
@@ -202,9 +203,9 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
     public SharedObject(Map<String, Object> data, String name, String path,
 			boolean persistent) {
     	super();
+    	
 		this.name = name;
 		this.path = path;
-        persistentSO = false;
         this.persistentSO = persistent;
 
 		ownerMessage = new SharedObjectMessage(null, name, 0, persistent);
@@ -279,59 +280,60 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
      * Send update notification over data channel of RTMP connection
      */
     protected void sendUpdates() {
-		if (!ownerMessage.getEvents().isEmpty()) {
+    	//get the current version
+    	int currentVersion = version.get();
+    	//
+    	boolean persist = isPersistentObject();
+    	//get read-only version of events
+    	ConcurrentLinkedQueue<ISharedObjectEvent> events = new ConcurrentLinkedQueue<ISharedObjectEvent>(ownerMessage.getEvents());   	
+    	//clear out previous events
+    	ownerMessage.getEvents().clear();
+    	//
+		if (!events.isEmpty()) {
 			// Send update to "owner" of this update request
-			SharedObjectMessage syncOwner = new SharedObjectMessage(null, name,
-					version, isPersistentObject());
-			syncOwner.addEvents(ownerMessage.getEvents());
-
+			SharedObjectMessage syncOwner = new SharedObjectMessage(null, name,	currentVersion, persist);
+			syncOwner.addEvents(events);
 			if (source != null) {
 				// Only send updates when issued through RTMP request
-				Channel channel = ((RTMPConnection) source)
-						.getChannel((byte) 3);
-
+				Channel channel = ((RTMPConnection) source).getChannel((byte) 3);
 				if (channel != null) {
 					//ownerMessage.acquire();
-
 					channel.write(syncOwner);
-					log.debug("Owner: " + channel);
+					log.debug("Owner: {}", channel);
 				} else {
 					log.warn("No channel found for owner changes!?");
 				}
 			}
-			ownerMessage.getEvents().clear();
 		}
-		
-		if (!syncEvents.isEmpty()) {
+		//clear owner events
+		events.clear();		
+		//get read-only version of sync events
+		events.addAll(syncEvents);   	
+    	//clear out previous events
+		syncEvents.clear();
+		if (!events.isEmpty()) {
 			// Synchronize updates with all registered clients of this shared
-
 			for (IEventListener listener : listeners) {
-
 				if (listener == source) {
 					// Don't re-send update to active client
-					log.debug("Skipped " + source);
+					log.debug("Skipped {}", source);
 					continue;
 				}
-
 				if (!(listener instanceof RTMPConnection)) {
-					log.warn("Can't send sync message to unknown connection "
-							+ listener);
+					log.warn("Can't send sync message to unknown connection {}", listener);
 					continue;
 				}
-
 				// Create a new sync message for every client to avoid
 				// concurrent access through multiple threads
 				// TODO: perhaps we could cache the generated message
-				SharedObjectMessage syncMessage = new SharedObjectMessage(null,
-						name, version, isPersistentObject());
-				syncMessage.addEvents(syncEvents);
+				SharedObjectMessage syncMessage = new SharedObjectMessage(null,	name, currentVersion, persist);
+				syncMessage.addEvents(events);
 
-				Channel c = ((RTMPConnection) listener).getChannel((byte) 3);
-				log.debug("Send to " + c);
-				c.write(syncMessage);
+				Channel channel = ((RTMPConnection) listener).getChannel((byte) 3);
+				log.debug("Send to {}", channel);
+				channel.write(syncMessage);
 			}
-			// Clear list of sync events
-			syncEvents.clear();
+
 		}
 	}
 
@@ -339,7 +341,7 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
      * Send notification about modification of SO
      */
     protected void notifyModified() {
-		if (updateCounter > 0) {
+		if (updateCounter.get() > 0) {
 			// we're inside a beginUpdate...endUpdate block
 			return;
 		}
@@ -411,6 +413,7 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
      */
     @Override
     public boolean setAttribute(String name, Object value) {
+    	boolean result = true;
 		ownerMessage.addEvent(Type.CLIENT_UPDATE_ATTRIBUTE, name, null);
 		if (value == null && super.removeAttribute(name)) {
 			// Setting a null value removes the attribute
@@ -418,21 +421,18 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 			syncEvents.add(new SharedObjectEvent(Type.CLIENT_DELETE_DATA, name,
 					null));
 			deleteStats.incrementAndGet();
-			notifyModified();
-			return true;
 		} else if (value != null && super.setAttribute(name, value)) {
 			// only sync if the attribute changed
 			modified = true;
 			syncEvents.add(new SharedObjectEvent(Type.CLIENT_UPDATE_DATA, name,
 					value));
-			notifyModified();
 			changeStats.incrementAndGet();
-			return true;
 		} else {
-			notifyModified();
-			return false;
+			result = false;
 		}
-	}
+		notifyModified();
+		return result;
+    }
 
 	/**
      * Set attributes as map.
@@ -444,7 +444,6 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 		if (values == null) {
 			return;
 		}
-
 		beginUpdate();
 		try {
 			for (Map.Entry<String, Object> entry : values.entrySet()) {
@@ -465,7 +464,6 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 		if (values == null) {
 			return;
 		}
-
 		setAttributes(values.getAttributes());
 	}
 
@@ -476,6 +474,7 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
      */
     @Override
     public boolean removeAttribute(String name) {
+    	boolean result = true;
 		// Send confirmation to client
 		ownerMessage.addEvent(Type.CLIENT_DELETE_DATA, name, null);
     	if (super.removeAttribute(name)) {
@@ -483,13 +482,12 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 			syncEvents.add(new SharedObjectEvent(Type.CLIENT_DELETE_DATA, name,
 					null));
 			deleteStats.incrementAndGet();
-			notifyModified();
-			return true;
 		} else {
-			notifyModified();
-			return false;
+			result = false;
 		}
-	}
+		notifyModified();
+		return result;
+    }
 
     /**
      * Broadcast event to event handler
@@ -519,14 +517,14 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
      * @return  SO version.
      */
     public int getVersion() {
-		return version;
+		return version.get();
 	}
 
     /**
      * Increases version by one
      */
 	private void updateVersion() {
-		version += 1;
+		version.incrementAndGet();
 	}
 
     /**
@@ -578,8 +576,7 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
      */
     protected void checkRelease() {
 		if (!isPersistentObject() && listeners.isEmpty() && !isAcquired()) {
-			log.info("Deleting shared object " + name
-					+ " because all clients disconnected and it is no longer acquired.");
+			log.info("Deleting shared object {} because all clients disconnected and it is no longer acquired.", name);
 			if (storage != null) {
 				if (!storage.remove(this)) {
 					log.error("Could not remove shared object.");
@@ -623,7 +620,7 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
     protected void beginUpdate(IEventListener listener) {
 		source = listener;
         // Increase number of pending updates
-        updateCounter += 1;
+        updateCounter.incrementAndGet();
 	}
 
     /**
@@ -632,10 +629,7 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
      */
     protected void endUpdate() {
         // Decrease number of pending updates
-        updateCounter -= 1;
-
-        // If
-        if (updateCounter == 0) {
+        if (updateCounter.decrementAndGet() == 0) {
 			notifyModified();
 			source = null;
 		}
@@ -703,8 +697,8 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 	 * must be paired with a call to <code>release</code> so the SO isn't held
 	 * forever. This is only valid for non-persistent SOs.
 	 */
-	public synchronized void acquire() {
-		acquireCount++;
+	public void acquire() {
+		acquireCount.incrementAndGet();
 	}
 	
 	/**
@@ -713,7 +707,7 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 	 * @return <code>true</code> if the SO is acquired, otherwise <code>false</code>
 	 */
 	public boolean isAcquired() {
-		return acquireCount > 0;
+		return acquireCount.get() > 0;
 	}
 	
 	/**
@@ -721,13 +715,13 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 	 * no more clients are connected the SO isn't acquired any more, the data
 	 * is released. 
 	 */
-	public synchronized void release() {
-		if (acquireCount == 0)
+	public void release() {
+		if (acquireCount.get() == 0) {
 			throw new RuntimeException("The shared object was not acquired before.");
-		
-		acquireCount--;
-		if (acquireCount == 0)
+		}
+		if (acquireCount.decrementAndGet() == 0) {
 			checkRelease();
+		}
 	}
 	
 	/** {@inheritDoc} */

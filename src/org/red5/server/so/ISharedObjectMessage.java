@@ -19,7 +19,7 @@ package org.red5.server.so;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.List;
+import java.util.Queue;
 
 import org.red5.server.net.rtmp.event.IRTMPEvent;
 
@@ -56,7 +56,7 @@ public interface ISharedObjectMessage extends IRTMPEvent {
 	 *  
 	 * @return set of ISharedObjectEvents
 	 */
-	public List<ISharedObjectEvent> getEvents();
+	public Queue<ISharedObjectEvent> getEvents();
 
     /**
      * Addition event handler

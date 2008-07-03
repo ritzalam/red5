@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -66,7 +67,7 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
     /**
      * Event handlers
      */
-	private Map<String, Object> handlers = new ConcurrentHashMap<String, Object>();
+	private ConcurrentMap<String, Object> handlers = new ConcurrentHashMap<String, Object>();
 	/**
 	 * Security handlers
 	 */
@@ -246,8 +247,7 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
                 try {
 					method.invoke(soHandler, params);
 				} catch (Exception err) {
-					log.error("Error while invoking method " + serviceMethod
-							+ " on shared object handler " + handler, err);
+					log.error("Error while invoking method {} on shared object handler {}", new Object[]{serviceMethod, handler}, err);
 				}
 			}
 		}
@@ -294,7 +294,7 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
         	endUpdate();
         }
 
-        // Notify listeners on atributes clear
+        // Notify listeners on attributes clear
 		for (ISharedObjectListener listener : serverListeners) {
 			listener.onSharedObjectClear(this);
 		}

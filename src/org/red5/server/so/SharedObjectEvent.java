@@ -4,6 +4,7 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  * 
@@ -26,26 +27,30 @@ import java.io.ObjectOutput;
 /**
  * {@inheritDoc}
  */
-public class SharedObjectEvent
-implements ISharedObjectEvent, Externalizable {
+public class SharedObjectEvent implements ISharedObjectEvent, Externalizable {
 	private static final long serialVersionUID = -4129018814289863535L;
-    /**
-     * Event type
-     */
+
+	/**
+	 * Event type
+	 */
 	private Type type;
-    /**
-     * Changed pair key
-     */
+
+	/**
+	 * Changed pair key
+	 */
 	private String key;
-    /**
-     * Changed pair value
-     */
+
+	/**
+	 * Changed pair value
+	 */
 	private Object value;
 
-	public SharedObjectEvent() {}
-    /**
-     * {@inheritDoc}
-     */
+	public SharedObjectEvent() {
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
 	public SharedObjectEvent(Type type, String key, Object value) {
 		this.type = type;
 		this.key = key;
@@ -53,27 +58,29 @@ implements ISharedObjectEvent, Externalizable {
 	}
 
 	/** {@inheritDoc} */
-    public String getKey() {
+	public String getKey() {
 		return key;
 	}
 
 	/** {@inheritDoc} */
-    public Type getType() {
+	public Type getType() {
 		return type;
 	}
 
 	/** {@inheritDoc} */
-    public Object getValue() {
+	public Object getValue() {
 		return value;
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public String toString() {
 		return "SOEvent(" + getType() + ", " + getKey() + ", " + getValue()
 				+ ')';
 	}
-	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
+
+	public void readExternal(ObjectInput in) throws IOException,
+			ClassNotFoundException {
 		type = (Type) in.readObject();
 		key = (String) in.readObject();
 		value = in.readObject();
