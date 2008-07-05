@@ -127,11 +127,35 @@
 	</bean>
 	
 	<!-- Jetty RTMPT Container -->
+	<!-- 
 	<bean id="rtmpt.server"
 		class="org.red5.server.net.rtmpt.RTMPTLoader" init-method="init"
 		autowire="byType" />
-		
+	-->	
 	<!-- Tomcat Container -->
+	<bean id="rtmpt.server" class="org.red5.server.net.rtmpt.TomcatRTMPTLoader" init-method="init" lazy-init="true">
+	
+		<property name="webappFolder" value="${red5.root}/webapps" />
+		
+		<property name="connector">
+			<bean class="org.apache.catalina.connector.Connector">
+				<constructor-arg type="java.lang.String" value="org.apache.coyote.http11.Http11NioProtocol" />	
+				<property name="port"><value>${rtmpt.port}</value></property>
+				<property name="enableLookups"><value>false</value></property>
+			</bean>
+		</property>
+		
+		<property name="host">
+			<bean class="org.apache.catalina.core.StandardHost">
+				<property name="name" value="${rtmpt.host}" />
+				<property name="unpackWARs" value="false" />
+				<property name="autoDeploy" value="false" />
+				<property name="xmlValidation" value="false" />
+				<property name="xmlNamespaceAware" value="false" />
+			</bean>	   
+		</property>		
+
+	</bean>
 	<!--  
 		<bean id="rtmpt.server" class="org.red5.server.net.rtmpt.TomcatRTMPTLoader" init-method="init" autowire="byType">
 		<property name="embedded">
@@ -208,6 +232,73 @@
 		</property>
 		</bean>
 	-->
+	
+	<!-- RTMPS -->
+	<bean id="rtmps.server" class="org.red5.server.net.rtmps.TomcatRTMPSLoader" init-method="init" lazy-init="true">
+	
+		<property name="webappFolder" value="${red5.root}/webapps" />
+		
+		<property name="connector">
+			<bean class="org.apache.catalina.connector.Connector">
+				<constructor-arg type="java.lang.String" value="org.apache.coyote.http11.Http11NioProtocol" />			
+				<property name="port" value="${rtmps.port}" />
+				<property name="redirectPort" value="${rtmp.port}" />
+			</bean>			
+		</property>	
+		
+		<property name="host">
+			<bean class="org.apache.catalina.core.StandardHost">
+				<property name="name" value="${rtmps.host}" />
+				<property name="unpackWARs" value="false" />
+				<property name="autoDeploy" value="false" />
+				<property name="xmlValidation" value="false" />
+				<property name="xmlNamespaceAware" value="false" />
+			</bean>	   
+		</property>		
+	
+		<property name="connectionProperties">
+			<map>
+				<entry>
+					<key><value>SSLEnabled</value></key>
+					<value>true</value>
+				</entry>
+				<entry>
+					<key><value>sslProtocol</value></key>
+					<value>TLS</value>
+				</entry>
+				<entry>
+					<key><value>clientAuth</value></key>
+					<value>false</value>
+				</entry>
+				<entry>
+					<key><value>keystoreFile</value></key>
+					<value>conf/keystore</value>
+				</entry>
+				<entry>
+					<key><value>keystorePass</value></key>
+					<value>${rtmps.keystorepass}</value>
+				</entry>
+				<entry>
+					<key><value>keystoreType</value></key>
+					<value>JKS</value>
+				</entry>
+			</map>
+		</property>	
+
+		<property name="valves">
+      		<list>
+	    		<bean id="valve.access" class="org.apache.catalina.valves.AccessLogValve">
+	                <property name="directory" value="log" />
+	                <property name="prefix" value="${rtmps.host}_rtmps_access." />
+	                <property name="suffix" value=".log" />
+	                <property name="pattern" value="common" />
+	                <property name="resolveHosts" value="false" />
+	                <property name="rotatable" value="true" />
+	        	</bean>
+        	</list>
+        </property>			
+	
+	</bean>	
 
 </beans>
 

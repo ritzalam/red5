@@ -36,9 +36,48 @@
 	</bean>	
 	
 	<!-- Now we can load the servlet engine, this has to happen after the context are loaded -->
-
+<!-- 
  	<bean id="jetty6.server" class="org.red5.server.jetty.JettyLoader" init-method="init" autowire="byType" depends-on="context.loader">
 		<property name="webappFolder" value="${red5.root}/webapps" />
+	</bean>
+-->
+	<!-- Tomcat servlet engine / http server -->
+	<bean id="tomcat.server" class="org.red5.server.tomcat.TomcatLoader" init-method="init" destroy-method="shutdown" depends-on="context.loader">
+
+		<property name="webappFolder" value="${red5.root}/webapps" />
+			      
+	    <property name="connector">
+			<bean class="org.apache.catalina.connector.Connector">
+				<constructor-arg type="java.lang.String" value="org.apache.coyote.http11.Http11Protocol" />
+		        <property name="port"><value>${http.port}</value></property>
+		        <property name="redirectPort"><value>${https.port}</value></property>
+		        <property name="enableLookups"><value>false</value></property>
+			</bean>
+	    </property>
+	    	
+        <property name="baseHost">
+	       <bean class="org.apache.catalina.core.StandardHost">
+	           <property name="name" value="${http.host}" />
+	           <property name="unpackWARs" value="true" />
+	           <property name="autoDeploy" value="true" />
+	           <property name="xmlValidation" value="false" />
+	           <property name="xmlNamespaceAware" value="false" />
+	       </bean>	   
+	    </property>		
+
+		<property name="valves">
+      		<list>
+	    		<bean id="valve.access" class="org.apache.catalina.valves.AccessLogValve">
+	                <property name="directory" value="log" />
+	                <property name="prefix" value="${http.host}_access." />
+	                <property name="suffix" value=".log" />
+	                <property name="pattern" value="common" />
+	                <property name="resolveHosts" value="false" />
+	                <property name="rotatable" value="true" />
+	        	</bean>
+        	</list>
+        </property>
+	    
 	</bean>
 
 <!--

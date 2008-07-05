@@ -158,14 +158,15 @@
 	</target>
 
 	<target name="prepare" description="Setup the directories for building">
-		<mkdir dir="${classes.dir}"/>
-		<mkdir dir="${dist.dir}"/>
-		<mkdir dir="${log.dir}"/>
-		<mkdir dir="${cluster.dir}"/>
-		<mkdir dir="${origindist.dir}"/>
-		<mkdir dir="${edgedist.dir}"/>
-		<mkdir dir="${testclass.dir}"/>
-		<mkdir dir="${testreports.dir}"/>
+			<mkdir dir="${classes.dir}"/>
+			<mkdir dir="${dist.dir}"/>
+			<mkdir dir="${log.dir}"/>
+			<mkdir dir="${dist.dir}/${log.dir}"/>
+			<mkdir dir="${cluster.dir}"/>
+			<mkdir dir="${origindist.dir}"/>
+			<mkdir dir="${edgedist.dir}"/>
+			<mkdir dir="${testclass.dir}"/>
+			<mkdir dir="${testreports.dir}"/>
 	</target>
 
 	<target name="clean" description="Clean the directories for building">
@@ -707,36 +708,44 @@
 	</target>
 
 	<target name="dist-edge" depends="dist-origin">
-		<!-- Copies edge build and then puts config into place. -->
-	    	<copy todir="${edgedist.dir}/">
-            		<fileset dir="${dist.dir}">
-				<exclude name="**/build.properties"/>
-				<exclude name="**/build.xml"/>
-				<exclude name="**/Makefile"/>
-				<exclude name="**/doc/**"/>
-                		<exclude name="**/conf/red5-origin.xml"/>
-				<exclude name="**/conf/red5-origin-core.xml"/>
-				<exclude name="**/conf/red5.xml"/>
-				<exclude name="**/docs/**"/>
-				<exclude name="**/dumps/**"/>
-				<exclude name="**/src/**"/>
-				<exclude name="**/swf/**"/>
-				<exclude name="**/webapps/**"/>
-            		</fileset>
-        	</copy>
-		<move tofile="${edgedist.dir}/conf/red5.xml" file="${edgedist.dir}/conf/red5-edge.xml"
-		      overwrite="true"/>
+			<!-- Copies edge build and then puts config into place. -->
+		    	<copy todir="${edgedist.dir}/">
+	            		<fileset dir="${dist.dir}">
+					<exclude name="**/build.properties"/>
+					<exclude name="**/build.xml"/>
+					<exclude name="**/Makefile"/>
+					<exclude name="**/doc/**"/>
+	                		<exclude name="**/conf/red5-origin.xml"/>
+					<exclude name="**/conf/red5-origin-core.xml"/>
+					<exclude name="**/conf/red5.xml"/>
+					<exclude name="**/docs/**"/>
+					<exclude name="**/dumps/**"/>
+					<exclude name="**/src/**"/>
+					<exclude name="**/swf/**"/>
+					<exclude name="**/webapps/**"/>
+	            		</fileset>
+	        	</copy>
+			
+			<copy todir="${edgedist.dir}/webapps">
+				<fileset file="${dist.dir}/webapps/red5-default.xml"/>
+			</copy>
+			<move tofile="${edgedist.dir}/conf/red5.xml" file="${edgedist.dir}/conf/red5-edge.xml"
+			      overwrite="true"/>
+			<chmod file="${edgedist.dir}/red5.sh" perm="755"/>
+			<chmod file="${edgedist.dir}/red5-shutdown.sh" perm="755"/>
 	</target>
 
-	<target name="dist-origin" depends="dist-installer">
-		<!-- Copies dist build and then puts config into place. -->
-        	<copy todir="${origindist.dir}/">
-            		<fileset dir="${dist.dir}">
-				<exclude name="**/conf/red5.xml"/>
-            		</fileset>
-        	</copy>
-		<move tofile="${origindist.dir}/conf/red5.xml" file="${dist.dir}/conf/red5-origin.xml"
-		      overwrite="true"/>
+	<target name="dist-origin" depends="dist">
+			<!-- Copies dist build and then puts config into place. -->
+	        	<copy todir="${origindist.dir}/">
+	            		<fileset dir="${dist.dir}">
+					<exclude name="**/conf/red5.xml"/>
+	            		</fileset>
+	        	</copy>
+			<move tofile="${origindist.dir}/conf/red5.xml" file="${dist.dir}/conf/red5-origin.xml"
+			      overwrite="true"/>
+			<chmod file="${origindist.dir}/red5.sh" perm="755"/>
+			<chmod file="${origindist.dir}/red5-shutdown.sh" perm="755"/>
 	</target>
 
 	<target name="dist-cluster" description="Create Edge/Origin distribution" depends="dist-edge">
