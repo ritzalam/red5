@@ -32,6 +32,7 @@ import java.util.regex.Pattern;
 import org.red5.server.api.Red5;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 /**
@@ -45,6 +46,8 @@ public class Bootstrap {
 	public static void launch(URLClassLoader loader) {
 		System.setProperty("red5.deployment.type", "bootstrap");
 		try {				
+			//install the slf4j bridge (mostly for JUL logging)
+			SLF4JBridgeHandler.install();
 			//set default for loading classes with url loader
 			loader.setDefaultAssertionStatus(false);
 			//create a logger before anything else happens

@@ -19,13 +19,14 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.red5.server.api.Red5;
 import java.io.File;
 import java.io.FileInputStream;
 import java.util.Properties;
 
+import org.red5.server.api.Red5;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.context.access.ContextSingletonBeanFactoryLocator;
 
 /**
@@ -67,7 +68,10 @@ public class Standalone {
 	 */
 	public static void main(String[] args) throws Throwable {
 
-        //System.setProperty("DEBUG", "true");
+		//install the slf4j bridge (mostly for JUL logging)
+		SLF4JBridgeHandler.install();
+		
+		//System.setProperty("DEBUG", "true");
 
 		/*
 		if (false) {
