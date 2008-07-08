@@ -676,7 +676,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	 * @param bytes		Number of bytes
 	 */
 	public void receivedBytesRead(int bytes) {
-		log.info("Client received {} bytes, written {} bytes, {} messages pending", new Object[]{bytes, getWrittenBytes(), getPendingMessages()});
+		log.debug("Client received {} bytes, written {} bytes, {} messages pending", new Object[]{bytes, getWrittenBytes(), getPendingMessages()});
 		clientBytesRead = bytes;
 	}
 

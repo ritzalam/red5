@@ -19,22 +19,10 @@ package org.red5.server.net.rtmpt;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.mina.common.ByteBuffer;
-import org.red5.server.api.Red5;
-import org.red5.server.net.protocol.SimpleProtocolDecoder;
-import org.red5.server.net.protocol.SimpleProtocolEncoder;
-import org.red5.server.net.rtmp.RTMPConnection;
-import org.red5.server.net.rtmp.RTMPHandler;
 import org.red5.server.net.rtmp.codec.RTMP;
-import org.red5.server.net.rtmp.message.Packet;
 import org.red5.server.net.servlet.ServletUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,9 +34,9 @@ import org.slf4j.LoggerFactory;
  * @author Joachim Bauch (jojo@struktur.de)
  */
 
-public class RTMPTConnection extends RTMPConnection {
+public class RTMPTConnection extends BaseRTMPTConnection {
 
-	protected static Logger log = LoggerFactory
+	private static final Logger log = LoggerFactory
 			.getLogger(RTMPTConnection.class);
 
 	/**
@@ -67,70 +55,14 @@ public class RTMPTConnection extends RTMPConnection {
 	protected static final byte MAX_POLLING_DELAY = 32;
 
 	/**
-	 * Protocol decoder
-	 */
-	protected SimpleProtocolDecoder decoder;
-
-	/**
-	 * Protocol encoder
-	 */
-	protected SimpleProtocolEncoder encoder;
-
-	/**
-	 * RTMP events handler
-	 */
-	protected RTMPHandler handler;
-
-	/**
-	 * Byte buffer
-	 */
-	protected ByteBuffer buffer;
-
-	/**
-	 * List of pending messages
-	 */
-	protected List<ByteBuffer> pendingMessages = new LinkedList<ByteBuffer>();
-
-	// reentrant lock for pending messages
-    private final ReentrantReadWriteLock pendingRWLock = new ReentrantReadWriteLock();
-    private final Lock pendingRead  = pendingRWLock.readLock();
-    private final Lock pendingWrite = pendingRWLock.writeLock();   	
-	
-	/**
-	 * List of notification messages
-	 */
-	protected List<Object> notifyMessages = new LinkedList<Object>();
-
-	// reentrant lock for notification messages
-    private final ReentrantReadWriteLock notifyRWLock = new ReentrantReadWriteLock();
-    private final Lock notifyRead  = notifyRWLock.readLock();
-    private final Lock notifyWrite = notifyRWLock.writeLock();   	
-	
-	/**
 	 * Polling delay value
 	 */
-	protected byte pollingDelay = INITIAL_POLLING_DELAY;
+	protected volatile byte pollingDelay = INITIAL_POLLING_DELAY;
 
 	/**
-	 * Timeframe without pending messages. If this time is greater then polling delay,
-	 * then polling delay increased
+	 * Empty result counter, after reaching INCREASE_POLLING_DELAY_COUNT polling delay will increase 
 	 */
-	protected long noPendingMessages;
-
-	/**
-	 * Number of read bytes
-	 */
-	protected long readBytes;
-
-	/**
-	 * Number of written bytes
-	 */
-	protected long writtenBytes;
-
-	/**
-	 * Closing flag
-	 */
-	volatile protected boolean closing;
+	protected volatile long noPendingMessages;
 
 	/**
 	 * Servlet that created this connection.
@@ -147,7 +79,7 @@ public class RTMPTConnection extends RTMPConnection {
 	 *
 	 * @param handler  Handler
 	 */
-	void setRTMPTHandle(RTMPTHandler handler) {
+	void setRTMPTHandler(RTMPTHandler handler) {
 		this.state = new RTMP(RTMP.MODE_SERVER);
 		this.buffer = ByteBuffer.allocate(2048);
 		this.buffer.setAutoExpand(true);
@@ -159,13 +91,6 @@ public class RTMPTConnection extends RTMPConnection {
 		clientId = hashCode();
 	}
 
-	/** {@inheritDoc} */
-	@Override
-	public void close() {
-		// Defer actual closing so we can send back pending messages to the client.
-		closing = true;
-	}
-
 	/**
 	 * Set the servlet that created the connection.
 	 * 
@@ -175,33 +100,9 @@ public class RTMPTConnection extends RTMPConnection {
 		this.servlet = servlet;
 	}
 
-	/**
-	 * Getter for property 'closing'.
-	 *
-	 * @return Value for property 'closing'.
-	 */
-	public boolean isClosing() {
-		return closing;
-	}
-
-	/**
-	 * Real close
-	 */
+	/** {@inheritDoc} */
 	public void realClose() {
-		if (!isClosing()) {
-			return;
-		}
-		if (buffer != null) {
-			buffer.release();
-			buffer = null;
-		}
-		notifyMessages.clear();
-		state.setState(RTMP.STATE_DISCONNECTED);
-		super.close();
-		for (ByteBuffer buf : pendingMessages) {
-			buf.release();
-		}
-		pendingMessages.clear();
+		super.realClose();
 		if (servlet != null) {
 			servlet.notifyClosed(this);
 			servlet = null;
@@ -242,94 +143,11 @@ public class RTMPTConnection extends RTMPConnection {
 	}
 
 	/**
-	 * Decode data sent by the client.
-	 *
-	 * @param data
-	 * 			the data to decode
-	 * @return a list of decoded objects
-	 */
-	public List decode(ByteBuffer data) {
-		if (closing || state.getState() == RTMP.STATE_DISCONNECTED) {
-			// Connection is being closed, don't decode any new packets
-			return Collections.EMPTY_LIST;
-		}
-
-		Red5.setConnectionLocal(this);
-		readBytes += data.limit();
-		this.buffer.put(data);
-		this.buffer.flip();
-		return this.decoder.decodeBuffer(this.state, this.buffer);
-	}
-
-	/**
-	 * Send RTMP packet down the connection.
-	 *
-	 * @param packet
-	 * 			the packet to send
-	 */
-	@Override
-	public void write(final Packet packet) {
-		if (closing || state.getState() == RTMP.STATE_DISCONNECTED) {
-			// Connection is being closed, don't send any new packets
-			return;
-		}
-
-		// We need to synchronize to prevent two packages to the
-		// same channel to be sent in different order thus resulting
-		// in wrong headers being generated.
-		ByteBuffer data;
-		try {
-			data = this.encoder.encode(this.state, packet);
-		} catch (Exception e) {
-			log.error("Could not encode message {}", packet, e);
-			return;
-		}
-
-		// Mark packet as being written
-		writingMessage(packet);
-
-		// Enqueue encoded packet data to be sent to client
-		rawWrite(data);
-
-		// Make sure stream subsystem will be notified about sent packet later
-		notifyWrite.lock();
-		try {
-			notifyMessages.add(packet);
-		} catch (Exception e) {
-			log.warn("Exception adding notify packet", e);
-		} finally {
-			notifyWrite.unlock();
-		}		
-	}
-
-	/**
-	 * Send raw data down the connection.
-	 *
-	 * @param packet
-	 * 			the buffer containing the raw data
-	 */
-	@Override
-	public void rawWrite(ByteBuffer packet) {
-		pendingWrite.lock();
-		try {
-			pendingMessages.add(packet);
-		} catch (Exception e) {
-			log.warn("Exception adding pending packet", e);
-		} finally {
-			pendingWrite.unlock();
-		}		
-	}
-
-	/**
-	 * Return any pending messages up to a given size.
-	 *
-	 * @param targetSize
-	 * 			the size the resulting buffer should have
-	 * @return a buffer containing the data to send or null if no messages are
-	 *         pending
+	 * {@inheritDoc}
 	 */
 	public ByteBuffer getPendingMessages(int targetSize) {
-		if (pendingMessages.isEmpty()) {
+		long currentPendingMessages = getPendingMessages(); 
+		if (currentPendingMessages == 0) {
 			this.noPendingMessages += 1;
 			if (this.noPendingMessages > INCREASE_POLLING_DELAY_COUNT) {
 				if (this.pollingDelay == 0) {
@@ -343,90 +161,10 @@ public class RTMPTConnection extends RTMPConnection {
 			return null;
 		}
 
-		ByteBuffer result = ByteBuffer.allocate(2048);
-		result.setAutoExpand(true);
-
-		log.debug("Returning {} messages to client.", pendingMessages.size());
+		log.debug("Returning {} messages to client.", currentPendingMessages);
 		this.noPendingMessages = 0;
 		this.pollingDelay = INITIAL_POLLING_DELAY;
-		while (result.limit() < targetSize) {
-			if (pendingMessages.isEmpty()) {
-				break;
-			}
 
-			pendingRead.lock();
-			try {
-				for (ByteBuffer buffer : pendingMessages) {
-					result.put(buffer);
-					buffer.release();
-				}
-			} catch (Exception e) {
-				log.warn("Exception adding pending messages", e);
-			} finally {
-				pendingRead.unlock();
-			}	
-			
-			pendingWrite.lock();
-			try {
-				pendingMessages.clear();
-			} catch (Exception e) {
-				log.warn("Exception clearing pending messages", e);
-			} finally {
-				pendingWrite.unlock();
-			}				
-
-			// We'll have to create a copy here to avoid endless recursion
-			List<Object> toNotify = new LinkedList<Object>();
-			
-			notifyRead.lock();
-			try {
-				toNotify.addAll(notifyMessages);
-			} catch (Exception e) {
-				log.warn("Exception adding notify messages", e);
-			} finally {
-				notifyRead.unlock();
-			}	
-
-			notifyWrite.lock();
-			try {
-				notifyMessages.clear();
-			} catch (Exception e) {
-				log.warn("Exception clearing notify messages", e);
-			} finally {
-				notifyWrite.unlock();
-			}				
-			
-			for (Object message : toNotify) {
-				try {
-					handler.messageSent(this, message);
-				} catch (Exception e) {
-					log.error("Could not notify stream subsystem about sent message.", e);
-					continue;
-				}
-			}
-		}
-
-		result.flip();
-		writtenBytes += result.limit();
-		return result;
+		return foldPendingMessages(targetSize);
 	}
-
-	/** {@inheritDoc} */
-	@Override
-	public long getReadBytes() {
-		return readBytes;
-	}
-
-	/** {@inheritDoc} */
-	@Override
-	public long getWrittenBytes() {
-		return writtenBytes;
-	}
-
-	/** {@inheritDoc} */
-	@Override
-	public long getPendingMessages() {
-		return pendingMessages.size();
-	}
-
 }

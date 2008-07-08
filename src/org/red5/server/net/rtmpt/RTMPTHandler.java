@@ -40,7 +40,7 @@ public class RTMPTHandler extends RTMPHandler {
     /**
      * Logger
      */
-    protected static Logger log = LoggerFactory.getLogger(RTMPTHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(RTMPTHandler.class);
 
     /**
      * Handler constant

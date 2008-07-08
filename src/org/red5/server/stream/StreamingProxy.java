@@ -2,6 +2,8 @@ package org.red5.server.stream;
 
 import java.io.IOException;
 
+import org.red5.server.net.rtmp.RTMPClient;
+import org.red5.server.net.rtmp.INetStreamEventHandler;
 import org.red5.io.utils.ObjectMap;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IPendingServiceCallback;
@@ -12,8 +14,6 @@ import org.red5.server.messaging.IPipeConnectionListener;
 import org.red5.server.messaging.IPushableConsumer;
 import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.messaging.PipeConnectionEvent;
-import org.red5.server.net.rtmp.RTMPClient;
-import org.red5.server.net.rtmp.RTMPClient.INetStreamEventHandler;
 import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.status.StatusCodes;
 import org.red5.server.stream.message.RTMPMessage;
@@ -25,7 +25,7 @@ import org.red5.server.stream.message.RTMPMessage;
  */
 public class StreamingProxy
 implements IPushableConsumer, IPipeConnectionListener,
-INetStreamEventHandler, IPendingServiceCallback {
+		INetStreamEventHandler, IPendingServiceCallback {
 	private static final int STOPPED = 0;
 	private static final int CONNECTING = 1;
 	private static final int STREAM_CREATING = 2;

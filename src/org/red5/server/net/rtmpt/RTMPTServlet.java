@@ -509,7 +509,7 @@ public class RTMPTServlet extends HttpServlet {
     
     protected RTMPTConnection createConnection() {
     	RTMPTConnection conn = (RTMPTConnection) rtmpConnManager.createConnection(RTMPTConnection.class);
-    	conn.setRTMPTHandle(handler);
+    	conn.setRTMPTHandler(handler);
     	handler.connectionOpened(conn, conn.getState());
     	return conn;
     }
