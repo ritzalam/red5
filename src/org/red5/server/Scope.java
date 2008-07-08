@@ -263,12 +263,12 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	/**
 	 * Statistics about clients connected to the scope.
 	 */
-	private final StatisticsCounter clientStats = new StatisticsCounter();
+	protected final StatisticsCounter clientStats = new StatisticsCounter();
 
 	/**
 	 * Statistics about connections to the scope.
 	 */
-	private final StatisticsCounter connectionStats = new StatisticsCounter();
+	protected final StatisticsCounter connectionStats = new StatisticsCounter();
 
 	/**
 	 * Scope context
@@ -304,17 +304,17 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 * Registered service handlers for this scope. The map is created on-demand
 	 * only if it's accessed for writing.
 	 */
-	private volatile Map<String, Object> serviceHandlers;
+	private volatile ConcurrentMap<String, Object> serviceHandlers;
 
 	/**
 	 * Statistics about subscopes.
 	 */
-	private final StatisticsCounter subscopeStats = new StatisticsCounter();
+	protected final StatisticsCounter subscopeStats = new StatisticsCounter();
 
 	/**
 	 * Mbean object name.
 	 */
-	private ObjectName oName;
+	protected ObjectName oName;
 
 	/**
 	 * Creates unnamed scope
@@ -836,14 +836,8 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 */
 	protected Map<String, Object> getServiceHandlers(boolean allowCreate) {
 		if (serviceHandlers == null) {
-			if (!allowCreate) {
-				return null;
-			}
-			// Only synchronize if potentially needs to be created
-			synchronized (this) {
-				if (serviceHandlers == null) {
-					serviceHandlers = new ConcurrentHashMap<String, Object>();
-				}
+			if (allowCreate) {
+				serviceHandlers = new ConcurrentHashMap<String, Object>();
 			}
 		}
 		return serviceHandlers;
