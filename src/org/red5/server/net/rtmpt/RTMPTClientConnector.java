@@ -39,63 +39,76 @@ import org.slf4j.LoggerFactory;
  * @author Anton Lebedevich
  */
 class RTMPTClientConnector extends Thread {
-	private static final Logger log = LoggerFactory.getLogger(RTMPTClientConnector.class);
-	
-	
+	private static final Logger log = LoggerFactory
+			.getLogger(RTMPTClientConnector.class);
+
 	private static final String CONTENT_TYPE = "application/x-fcs";
-	
-	private static final ByteArrayRequestEntity ZERO_REQUEST_ENTITY = new ByteArrayRequestEntity(new byte[]{0}, CONTENT_TYPE);
-	
-	/** 
-	 * Size to split messages queue by, borrowed from RTMPTServlet.RESPONSE_TARGET_SIZE 
+
+	private static final ByteArrayRequestEntity ZERO_REQUEST_ENTITY = new ByteArrayRequestEntity(
+			new byte[] { 0 }, CONTENT_TYPE);
+
+	/**
+	 * Size to split messages queue by, borrowed from
+	 * RTMPTServlet.RESPONSE_TARGET_SIZE
 	 */
 	private static final int SEND_TARGET_SIZE = 32768;
-	
-	
+
+	// connection timeout
+	private static int connectionTimeout = 7000; // 7 seconds
+
 	private HttpClient httpClient = new HttpClient();
+
 	private RTMPTClient client;
+
 	private RTMPClientConnManager connManager;
-	
+
 	private int clientId;
+
 	private long messageCount = 1;
 
 	public RTMPTClientConnector(String server, int port, RTMPTClient client) {
 		httpClient.getHostConfiguration().setHost(server, port);
 		httpClient.getHttpConnectionManager().closeIdleConnections(0);
-		
+
 		HttpClientParams params = new HttpClientParams();
 		params.setVersion(HttpVersion.HTTP_1_1);
 		httpClient.setParams(params);
-		
+
+		// establish a connection within x seconds - this will prevent hung
+		// sockets
+		httpClient.getHttpConnectionManager().getParams().setConnectionTimeout(
+				connectionTimeout);
+
 		this.client = client;
 		this.connManager = client.getConnManager();
 	}
-	
+
 	public void run() {
 		try {
 			RTMPTClientConnection connection = openConnection();
-			
+
 			while (!connection.isClosing()) {
-				ByteBuffer toSend = connection.getPendingMessages(SEND_TARGET_SIZE);
+				ByteBuffer toSend = connection
+						.getPendingMessages(SEND_TARGET_SIZE);
 				PostMethod post;
 				if (toSend.limit() > 0) {
 					post = makePost("send");
-					post.setRequestEntity(new InputStreamRequestEntity(toSend.asInputStream(), 
-							CONTENT_TYPE));
+					post.setRequestEntity(new InputStreamRequestEntity(toSend
+							.asInputStream(), CONTENT_TYPE));
 				} else {
 					post = makePost("idle");
 					post.setRequestEntity(ZERO_REQUEST_ENTITY);
 				}
 				httpClient.executeMethod(post);
 				byte[] received = post.getResponseBody();
-				
+
 				ByteBuffer data = ByteBuffer.allocate(received.length);
 				data.put(received);
 				data.flip();
 				data.skip(1); // XXX: polling interval lies in this byte
 				List messages = connection.decode(data);
 				data.release();
-				
+
 				if (messages == null || messages.isEmpty()) {
 					try {
 						// XXX handle polling delay
@@ -108,7 +121,8 @@ class RTMPTClientConnector extends Thread {
 
 				for (Object message : messages) {
 					try {
-						client.messageReceived(connection, connection.getState(), message);
+						client.messageReceived(connection, connection
+								.getState(), message);
 					} catch (Exception e) {
 						log.error("Could not process message.", e);
 					}
@@ -116,9 +130,9 @@ class RTMPTClientConnector extends Thread {
 			}
 
 			finalizeConnection();
-			
+
 			client.connectionClosed(connection, connection.getState());
-			
+
 		} catch (Throwable e) {
 			log.debug("RTMPT handling exception", e);
 			client.handleException(e);
@@ -126,7 +140,7 @@ class RTMPTClientConnector extends Thread {
 	}
 
 	private RTMPTClientConnection openConnection() throws IOException {
-		
+
 		PostMethod openPost = new PostMethod("/open/1");
 		setCommonHeaders(openPost);
 		openPost.setRequestEntity(ZERO_REQUEST_ENTITY);
@@ -134,24 +148,26 @@ class RTMPTClientConnector extends Thread {
 		httpClient.executeMethod(openPost);
 
 		String response = openPost.getResponseBodyAsString();
-		clientId = Integer.parseInt(response.substring(0, response.length() - 1));
+		clientId = Integer.parseInt(response
+				.substring(0, response.length() - 1));
 		log.debug("Got client id {}", clientId);
 
-		RTMPTClientConnection connection = (RTMPTClientConnection)connManager
+		RTMPTClientConnection connection = (RTMPTClientConnection) connManager
 				.createConnection(RTMPTClientConnection.class);
-		
+
 		RTMP state = new RTMP(RTMP.MODE_CLIENT);
 		connection.setState(state);
-		
+
 		connection.setClient(client);
 
 		log.debug("Handshake 1st phase");
-		ByteBuffer handshake = ByteBuffer.allocate(Constants.HANDSHAKE_SIZE + 1);
-		handshake.put((byte)0x03);
-		handshake.fill((byte)0x01, Constants.HANDSHAKE_SIZE);
+		ByteBuffer handshake = ByteBuffer
+				.allocate(Constants.HANDSHAKE_SIZE + 1);
+		handshake.put((byte) 0x03);
+		handshake.fill((byte) 0x01, Constants.HANDSHAKE_SIZE);
 		handshake.flip();
 		connection.rawWrite(handshake);
-		
+
 		return connection;
 	}
 
@@ -171,8 +187,8 @@ class RTMPTClientConnector extends Thread {
 
 	private String makeUrl(String command) {
 		// use message count from connection
-		return new StringBuffer().append('/').append(command)
-				.append('/').append(clientId).append('/').append(messageCount++).toString();
+		return new StringBuffer().append('/').append(command).append('/')
+				.append(clientId).append('/').append(messageCount++).toString();
 	}
 
 	private void setCommonHeaders(PostMethod post) {

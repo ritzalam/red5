@@ -22,11 +22,11 @@ package org.red5.server.net.rtmpt;
 import java.util.Map;
 
 import org.apache.mina.common.ByteBuffer;
-import org.red5.server.net.rtmp.message.Constants;
-import org.red5.server.net.rtmp.RTMPConnection;
+import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.BaseRTMPClientHandler;
 import org.red5.server.net.rtmp.RTMPClientConnManager;
-import org.red5.server.net.protocol.ProtocolState;
+import org.red5.server.net.rtmp.RTMPConnection;
+import org.red5.server.net.rtmp.message.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,29 +35,34 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Anton Lebedevich
  */
-public class RTMPTClient  extends BaseRTMPClientHandler {
+public class RTMPTClient extends BaseRTMPClientHandler {
 
-	private static final Logger log = LoggerFactory.getLogger(RTMPTClient.class);
-	
+	private static final Logger log = LoggerFactory
+			.getLogger(RTMPTClient.class);
+
 	public RTMPTClient() {
 	}
 
-	public Map<String, Object> makeDefaultConnectionParams(String server, int port, String application) {
-		Map<String, Object> params = super.makeDefaultConnectionParams(server, port, application);
-		
-		if (!params.containsKey("tcUrl"))
-			params.put("tcUrl", "rtmpt://"+server+':'+port+'/'+application);
-		
+	public Map<String, Object> makeDefaultConnectionParams(String server,
+			int port, String application) {
+		Map<String, Object> params = super.makeDefaultConnectionParams(server,
+				port, application);
+
+		if (!params.containsKey("tcUrl")) {
+			params.put("tcUrl", "rtmpt://" + server + ':' + port + '/'
+					+ application);
+		}
+
 		return params;
 	}
-	
+
 	protected void startConnector(String server, int port) {
 		connManager = new RTMPClientConnManager();
 		new RTMPTClientConnector(server, port, this).start();
 	}
-	
+
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public void messageReceived(RTMPConnection conn, ProtocolState state,
 			Object in) throws Exception {
 		if (in instanceof ByteBuffer) {
@@ -67,21 +72,26 @@ public class RTMPTClient  extends BaseRTMPClientHandler {
 			super.messageReceived(conn, state, in);
 		}
 	}
-	
+
 	/**
 	 * Handle raw buffer reciept
-	 * @param conn        RTMP connection
-	 * @param state       Protocol state
-	 * @param in          Byte buffer with input raw data
+	 * 
+	 * @param conn
+	 *            RTMP connection
+	 * @param state
+	 *            Protocol state
+	 * @param in
+	 *            Byte buffer with input raw data
 	 */
-	private void rawBufferRecieved(RTMPConnection conn, ProtocolState state, ByteBuffer in) {
-		
+	private void rawBufferRecieved(RTMPConnection conn, ProtocolState state,
+			ByteBuffer in) {
+
 		log.debug("Handshake 3d phase - size: {}", in.remaining());
 		in.skip(1);
 		ByteBuffer out = ByteBuffer.allocate(Constants.HANDSHAKE_SIZE);
-		int limit=in.limit();
-		in.limit(in.position()+Constants.HANDSHAKE_SIZE);
-		out.put(in); 
+		int limit = in.limit();
+		in.limit(in.position() + Constants.HANDSHAKE_SIZE);
+		out.put(in);
 		out.flip();
 		in.limit(limit);
 		in.skip(Constants.HANDSHAKE_SIZE);
