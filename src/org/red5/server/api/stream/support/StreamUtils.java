@@ -20,6 +20,7 @@ package org.red5.server.api.stream.support;
  */
 
 import java.util.Map;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.red5.server.api.IScope;
@@ -40,7 +41,7 @@ public abstract class StreamUtils {
 	private static final Logger logger = LoggerFactory.getLogger(StreamUtils.class);
 
 	/* Map to hold reference to the instanced server streams */
-	private static volatile Map<String, ServerStream> serverStreamMap = new ConcurrentHashMap<String, ServerStream>();
+	private static volatile ConcurrentMap<String, IServerStream> serverStreamMap = new ConcurrentHashMap<String, IServerStream>();
 
 	/**
 	 * Creates server stream
@@ -58,13 +59,14 @@ public abstract class StreamUtils {
 		stream.setName(name);
 		stream.setPublishedName(name);
 		//save to the list for later lookups
-		String key = scope.getName() + name;
+		String key = scope.getName() + '/' + name;
 		serverStreamMap.put(key, stream);
 		return stream;
 	}
 
 	/**
-	 * Looks up a server stream
+	 * Looks up a server stream in the stream map. Null will be returned if the 
+	 * stream is not found.
 	 *
 	 * @param scope
 	 *            Scope of stream
@@ -74,7 +76,7 @@ public abstract class StreamUtils {
 	 */
 	public static IServerStream getServerStream(IScope scope, String name) {
 		logger.debug("Looking up server stream: {} scope: {}", name, scope);
-		String key = scope.getName() + name;
+		String key = scope.getName() + '/' + name;
 		if (serverStreamMap.containsKey(key)) {
 			return serverStreamMap.get(key);
 		} else {
@@ -82,4 +84,43 @@ public abstract class StreamUtils {
 			return null;
 		}
 	}
+	
+	/**
+	 * Puts a server stream in the stream map
+	 *
+	 * @param scope
+	 *            Scope of stream
+	 * @param name
+	 *            Name of stream
+	 * @param stream
+	 *            ServerStream object
+	 */
+	public static void putServerStream(IScope scope, String name, IServerStream stream) {
+		logger.debug("Putting server stream in the map - name: {} scope: {} stream: {}", new Object[]{name, scope, stream});
+		String key = scope.getName() + '/' + name;
+		if (!serverStreamMap.containsKey(key)) {
+			serverStreamMap.put(key, stream);
+		} else {
+			logger.warn("Server stream already exists in the map with key: {}", key);
+		}
+	}
+	
+	/**
+	 * Removes a server stream from the stream map
+	 *
+	 * @param scope
+	 *            Scope of stream
+	 * @param name
+	 *            Name of stream
+	 */
+	public static void removeServerStream(IScope scope, String name) {
+		logger.debug("Removing server stream from the map - name: {} scope: {}", name, scope);
+		String key = scope.getName() + '/' + name;
+		if (serverStreamMap.containsKey(key)) {
+			serverStreamMap.remove(key);
+		} else {
+			logger.warn("Server stream did not exist in the map with key: {}", key);
+		}
+	}	
+	
 }
