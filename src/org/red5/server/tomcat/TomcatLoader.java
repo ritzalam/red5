@@ -87,6 +87,9 @@ public class TomcatLoader extends LoaderBase implements
 	// Initialize Logging
 	private static Logger log = LoggerFactory.getLogger(TomcatLoader.class);
 	
+	public static final String defaultSpringConfigLocation = "/WEB-INF/red5-*.xml";
+	public static final String defaultParentContextKey = "default.context";
+	
 	static {
 		log.info("Init tomcat");
 		// root location for servlet container
@@ -357,8 +360,23 @@ public class TomcatLoader extends LoaderBase implements
 						//create a spring web application context
 						XmlWebApplicationContext appctx = new XmlWebApplicationContext();
 						appctx.setClassLoader(webClassLoader);
-						appctx.setConfigLocations(new String[]{"/WEB-INF/red5-*.xml"});
-						appctx.setParent((ApplicationContext) applicationContext.getBean("default.context"));					
+						
+						//get the (spring) config file path
+						String contextConfigLocation = servletContext.getInitParameter("contextConfigLocation");
+						if (contextConfigLocation == null) {
+							contextConfigLocation = defaultSpringConfigLocation;
+						}
+						log.debug("Spring context config location: {}", contextConfigLocation);
+						appctx.setConfigLocations(new String[]{contextConfigLocation});
+						
+						//get the (spring) parent context key
+						String parentContextKey = servletContext.getInitParameter("parentContextKey");
+						if (parentContextKey == null) {
+							parentContextKey = defaultParentContextKey;
+						}
+						log.debug("Spring parent context key: {}", parentContextKey);						
+						appctx.setParent((ApplicationContext) applicationContext.getBean(parentContextKey));					
+
 						appctx.setServletContext(servletContext);
 						//set the root webapp ctx attr on the each servlet context so spring can find it later					
 						servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, appctx);
@@ -399,10 +417,10 @@ public class TomcatLoader extends LoaderBase implements
 							log.info("Naming (JNDI) is not enabled");
 						}
 					} catch (Throwable t) {
-						log.error("Error setting up context: {}", servletContext.getContextPath(), t);
-						if (log.isDebugEnabled()) {
+						log.error("Error setting up context: {} due to: {}", servletContext.getContextPath(), t.getMessage());
+						//if (log.isDebugEnabled()) {
 							t.printStackTrace();
-						}
+						//}
 					}					
 				}
 			}
