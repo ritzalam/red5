@@ -181,16 +181,25 @@ public class Bootstrap {
 				continue;
 			}
 			topName = parseUrl(top);
-			//by default we will get rid of testing libraries and jetty
+			//empty name - this happens inside eclipse
+			if ("".equals(topName)) {
+				removalList.add(top);
+				continue;
+			}
+			//skip red5
+			if (topName.startsWith("red5")) {
+				continue;
+			}
+			//by default we will get rid of testing libraries and jetty ;)
 			if (topName.startsWith("jetty") || topName.startsWith("grobo") || topName.startsWith("junit") || topName.startsWith("ivy")) {
 				removalList.add(top);
 				continue;
 			}
 			int topFirstDash = topName.indexOf('-');
-			int topSecondDash = topName.indexOf('-', topFirstDash + 1);
 			//if theres no dash then just grab the first 3 chars
 			String prefix = topName.substring(0, topFirstDash != -1 ? topFirstDash : 3);
-    		for (URL check : list) {
+			int topSecondDash = topName.indexOf('-', topFirstDash + 1);
+			for (URL check : list) {
     			if (removalList.contains(check)) {
     				continue;
     			}    			

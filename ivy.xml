@@ -98,5 +98,8 @@
         <dependency name="groovy-engine" rev="" conf="java5->default"/>
         <dependency name="jruby" rev="1.0.1" conf="java5->default"/>
         <dependency name="jruby-engine" rev="" conf="java5->default"/> 
+        <!-- Crypto -->
+        <dependency name="bcprov" rev="jdk16-139"/>
+        <dependency name="bcprov" rev="jdk15-139" conf="java5->default"/> 
     </dependencies>
 </ivy-module>

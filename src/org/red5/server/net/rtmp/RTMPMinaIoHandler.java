@@ -37,166 +37,174 @@ import org.springframework.context.ApplicationContextAware;
 /**
  * Handles all RTMP protocol events fired by the MINA framework.
  */
-public class RTMPMinaIoHandler extends IoHandlerAdapter
-implements ApplicationContextAware {
-    /**
-     * Logger
-     */
-	protected static Logger log = LoggerFactory.getLogger(RTMPMinaIoHandler.class);
+public class RTMPMinaIoHandler extends IoHandlerAdapter implements
+		ApplicationContextAware {
+	/**
+	 * Logger
+	 */
+	protected static Logger log = LoggerFactory
+			.getLogger(RTMPMinaIoHandler.class);
 
-    /**
-     * RTMP events handler
-     */
-    protected IRTMPHandler handler;
-    /**
-     * Mode
-     */
-    protected boolean mode = RTMP.MODE_SERVER;
-    /**
-     * Application context
-     */
+	/**
+	 * RTMP events handler
+	 */
+	protected IRTMPHandler handler;
+
+	/**
+	 * Mode
+	 */
+	protected boolean mode = RTMP.MODE_SERVER;
+
+	/**
+	 * Application context
+	 */
 	protected ApplicationContext appCtx;
 
-    /**
-     * RTMP protocol codec factory
-     */
+	/**
+	 * RTMP protocol codec factory
+	 */
 	protected ProtocolCodecFactory codecFactory = null;
-    
-    protected IRTMPConnManager rtmpConnManager;
 
-    /**
-     * Setter for handler.
-     *
-     * @param handler  RTMP events handler
-     */
-    public void setHandler(IRTMPHandler handler) {
+	protected IRTMPConnManager rtmpConnManager;
+
+	/**
+	 * Setter for handler.
+	 * 
+	 * @param handler
+	 *            RTMP events handler
+	 */
+	public void setHandler(IRTMPHandler handler) {
 		this.handler = handler;
 	}
-	
+
 	/**
-     * Setter for mode.
-     *
-     * @param mode     <code>true</code> if handler should work in server mode, <code>false</code> otherwise
-     */
-    public void setMode(boolean mode) {
+	 * Setter for mode.
+	 * 
+	 * @param mode
+	 *            <code>true</code> if handler should work in server mode,
+	 *            <code>false</code> otherwise
+	 */
+	public void setMode(boolean mode) {
 		this.mode = mode;
 	}
 
 	/**
-     * Setter for codec factory.
-     *
-     * @param codecFactory  RTMP protocol codec factory
-     */
-    public void setCodecFactory(ProtocolCodecFactory codecFactory) {
+	 * Setter for codec factory.
+	 * 
+	 * @param codecFactory
+	 *            RTMP protocol codec factory
+	 */
+	public void setCodecFactory(ProtocolCodecFactory codecFactory) {
 		this.codecFactory = codecFactory;
 	}
-    
+
 	public void setRtmpConnManager(IRTMPConnManager rtmpConnManager) {
 		this.rtmpConnManager = rtmpConnManager;
 	}
 
-	//	 ------------------------------------------------------------------------------
-
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public void exceptionCaught(IoSession session, Throwable cause)
 			throws Exception {
-   		log.debug("Exception caught {}", cause);
+		log.debug("Exception caught {}", cause);
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public void messageReceived(IoSession session, Object in) throws Exception {
-   		log.debug("messageRecieved");
-		final ProtocolState state = (ProtocolState) session.getAttribute(ProtocolState.SESSION_KEY);
+		log.debug("messageRecieved");
+		final ProtocolState state = (ProtocolState) session
+				.getAttribute(ProtocolState.SESSION_KEY);
 		if (in instanceof ByteBuffer) {
 			rawBufferRecieved(state, (ByteBuffer) in, session);
 			return;
 		}
-		final RTMPMinaConnection conn = (RTMPMinaConnection) session.getAttachment();
+		final RTMPMinaConnection conn = (RTMPMinaConnection) session
+				.getAttachment();
 		handler.messageReceived(conn, state, in);
 	}
 
-    /**
-     * Handle raw buffer receiving event.
-	 *
-     * @param state        Protocol state
-     * @param in           Data buffer
-     * @param session      I/O session, that is, connection between two endpoints
-     */
-    protected void rawBufferRecieved(ProtocolState state, ByteBuffer in,
+	/**
+	 * Handle raw buffer receiving event.
+	 * 
+	 * @param state
+	 *            Protocol state
+	 * @param in
+	 *            Data buffer
+	 * @param session
+	 *            I/O session, that is, connection between two endpoints
+	 */
+	protected void rawBufferRecieved(ProtocolState state, ByteBuffer in,
 			IoSession session) {
 
 		final RTMP rtmp = (RTMP) state;
+		ByteBuffer out = null;
 		if (rtmp.getMode() == RTMP.MODE_SERVER) {
 			if (rtmp.getState() != RTMP.STATE_HANDSHAKE) {
 				log.warn("Raw buffer after handshake, something odd going on");
 			}
 			log.debug("Handshake 2nd phase - size: {}", in.remaining());
-			ByteBuffer out = ByteBuffer.allocate((Constants.HANDSHAKE_SIZE*2)+1);
-			out.put((byte)0x03);
-			// TODO: the first four bytes of the handshake reply seem to be the
-			//       server uptime - send something better here...
-			out.putInt(0x01);
-			out.fill((byte)0x00,Constants.HANDSHAKE_SIZE-4);
-			out.put(in);
-			out.flip();
+			RTMPHandshake shake = new RTMPHandshake();
+			out = shake.generateResponse(in);
 			// Skip first 8 bytes when comparing the handshake, they seem to
-			// be changed when connecting from a Mac client.
+ 			// be changed when connecting from a Mac client.
 			rtmp.setHandshake(out, 9, Constants.HANDSHAKE_SIZE-8);
-			//in.release();
-			session.write(out); 
 		} else {
 			log.debug("Handshake 3d phase - size: {}", in.remaining());
 			in.skip(1);
-			ByteBuffer out = ByteBuffer.allocate(Constants.HANDSHAKE_SIZE);
-			int limit=in.limit();
-			in.limit(in.position()+Constants.HANDSHAKE_SIZE);
-			out.put(in); 
+			out = ByteBuffer.allocate(Constants.HANDSHAKE_SIZE);
+			int limit = in.limit();
+			in.limit(in.position() + Constants.HANDSHAKE_SIZE);
+			out.put(in);
 			out.flip();
 			in.limit(limit);
 			in.skip(Constants.HANDSHAKE_SIZE);
-			session.write(out);
+		}
+		if (out != null) {
+			session.write(out);			
 		}
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public void messageSent(IoSession session, Object message) throws Exception {
-   		log.debug("messageSent");
+		log.debug("messageSent");
 		session.getAttribute(ProtocolState.SESSION_KEY);
-		final RTMPMinaConnection conn = (RTMPMinaConnection) session.getAttachment();
+		final RTMPMinaConnection conn = (RTMPMinaConnection) session
+				.getAttachment();
 		handler.messageSent(conn, message);
 		if (mode == RTMP.MODE_CLIENT) {
 			if (message instanceof ByteBuffer) {
 				if (((ByteBuffer) message).limit() == Constants.HANDSHAKE_SIZE) {
-					handler.connectionOpened(conn, (RTMP) session.getAttribute(ProtocolState.SESSION_KEY));
+					handler.connectionOpened(conn, (RTMP) session
+							.getAttribute(ProtocolState.SESSION_KEY));
 				}
 			}
 		}
 	}
 
 	/** {@inheritDoc} */
-    @Override
-	public void sessionOpened(IoSession session) throws Exception {   	
+	@Override
+	public void sessionOpened(IoSession session) throws Exception {
 		super.sessionOpened(session);
 
-		RTMP rtmp=(RTMP)session.getAttribute(ProtocolState.SESSION_KEY);
-		if (rtmp.getMode()==RTMP.MODE_CLIENT) {
+		RTMP rtmp = (RTMP) session.getAttribute(ProtocolState.SESSION_KEY);
+		if (rtmp.getMode() == RTMP.MODE_CLIENT) {
 			log.debug("Handshake 1st phase");
-			ByteBuffer out = ByteBuffer.allocate(Constants.HANDSHAKE_SIZE+1);
-			out.put((byte)0x03);
-			out.fill((byte)0x00,Constants.HANDSHAKE_SIZE);
+			ByteBuffer out = ByteBuffer.allocate(Constants.HANDSHAKE_SIZE + 1);
+			out.put((byte) 0x03);
+			out.put(RTMPHandshake.getHandshakeBytes());
 			out.flip();
 			session.write(out);
 		} else {
-			final RTMPMinaConnection conn = (RTMPMinaConnection) session.getAttachment();
+			final RTMPMinaConnection conn = (RTMPMinaConnection) session
+					.getAttachment();
 			handler.connectionOpened(conn, rtmp);
 		}
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public void sessionClosed(IoSession session) throws Exception {
 		ByteBuffer buf = (ByteBuffer) session.getAttribute("buffer");
 		if (buf != null) {
@@ -213,7 +221,7 @@ implements ApplicationContextAware {
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public void sessionCreated(IoSession session) throws Exception {
 		log.debug("Session created");
 		// moved protocol state from connection object to RTMP object
@@ -231,11 +239,13 @@ implements ApplicationContextAware {
 	}
 
 	/** {@inheritDoc} */
-    public void setApplicationContext(ApplicationContext appCtx) throws BeansException {
+	public void setApplicationContext(ApplicationContext appCtx)
+			throws BeansException {
 		this.appCtx = appCtx;
 	}
 
-    protected RTMPMinaConnection createRTMPMinaConnection() {
-    	return (RTMPMinaConnection) rtmpConnManager.createConnection(RTMPMinaConnection.class);
-    }
+	protected RTMPMinaConnection createRTMPMinaConnection() {
+		return (RTMPMinaConnection) rtmpConnManager
+				.createConnection(RTMPMinaConnection.class);
+	}
 }
