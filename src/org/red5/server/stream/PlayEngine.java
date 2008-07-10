@@ -31,7 +31,7 @@ import org.red5.io.object.Serializer;
 import org.red5.server.api.IScope;
 import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
-import org.red5.server.api.stream.IClientBroadcastStream;
+import org.red5.server.api.stream.IBroadcastStream;
 import org.red5.server.api.stream.IPlayItem;
 import org.red5.server.api.stream.IVideoStreamCodec;
 import org.red5.server.api.stream.OperationNotSupportedException;
@@ -346,7 +346,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 				videoFrameDropper.reset(IFrameDropper.SEND_KEYFRAMES_CHECK);
 				if (msgIn instanceof IBroadcastScope) {
 					// Send initial keyframe
-					IClientBroadcastStream stream = (IClientBroadcastStream) ((IBroadcastScope) msgIn)
+					IBroadcastStream stream = (IBroadcastStream) ((IBroadcastScope) msgIn)
 							.getAttribute(IBroadcastScope.STREAM_ATTRIBUTE);
 					if (stream != null && stream.getCodecInfo() != null) {
 						IVideoStreamCodec videoCodec = stream.getCodecInfo()
@@ -1239,7 +1239,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 			if (body instanceof VideoData) {
 				IVideoStreamCodec videoCodec = null;
 				if (msgIn instanceof IBroadcastScope) {
-					IClientBroadcastStream stream = (IClientBroadcastStream) ((IBroadcastScope) msgIn)
+					IBroadcastStream stream = (IBroadcastStream) ((IBroadcastScope) msgIn)
 							.getAttribute(IBroadcastScope.STREAM_ATTRIBUTE);
 					if (stream != null && stream.getCodecInfo() != null) {
 						videoCodec = stream.getCodecInfo().getVideoCodec();
