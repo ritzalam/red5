@@ -97,10 +97,7 @@
         	<condition property="repository.offline.googlecode" value="true">
             		<isreachable host="red5.googlecode.com" timeout="30" />
         	</condition>
-        	<condition property="repository.offline.cvsdude" value="true">
-            		<isreachable host="svn1.cvsdude.com" timeout="30" />
-        	</condition>
-        	<echo message='Repository access: googlecode=${repository.offline.googlecode} cvsdude=${repository.offline.cvsdude}'/>
+        	<echo message='Repository access: googlecode=${repository.offline.googlecode}'/>
 		-->
 		<condition property="library.installed" value="true">
 			<and>
