@@ -21,12 +21,12 @@ import org.slf4j.LoggerFactory;
  * 
  * <br />
  * 
- * This class is based on the code and suggestions from Takuma Mori and Jacinto
- * Shy.
+ * This class is based on the Ruby handshaking code from Takuma Mori.
  * 
  * <br />
  * 
- * @author Steven Zimmer
+ * @author Jacinto Shy II (jacinto.m.shy@ieee.org)
+ * @author Steven Zimmer (stevenlzimmer@gmail.com)
  * @author Paul Gregoire (mondain@gmail.com)
  */
 public class RTMPHandshake {

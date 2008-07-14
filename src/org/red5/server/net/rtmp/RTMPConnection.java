@@ -259,6 +259,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	public void setState(RTMP state) {
+		log.debug("Set state: {}", state);
 		this.state = state;
 	}
 
