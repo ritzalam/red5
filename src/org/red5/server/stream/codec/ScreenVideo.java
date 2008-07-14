@@ -174,8 +174,7 @@ public class ScreenVideo implements IVideoStreamCodec {
 				* this.blockHeight * 3);
 		int totalBlockSize = blockSize * this.blockCount;
 		if (this.totalBlockDataSize != totalBlockSize) {
-			log.info("Allocating memory for " + this.blockCount
-					+ " compressed blocks.");
+			log.info("Allocating memory for {} compressed blocks.", this.blockCount);
 			this.blockDataSize = blockSize;
 			this.totalBlockDataSize = totalBlockSize;
 			this.blockData = new byte[blockSize * this.blockCount];

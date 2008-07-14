@@ -358,8 +358,16 @@ public class RTMPHandshake {
 			(byte) 0xe6, (byte) 0x36, (byte) 0xcf, (byte) 0xeb, (byte) 0x31,
 			(byte) 0xae };
 
+	//for old style handshake
+	public static final byte[] HANDSHAKE_PAD_BYTES = new byte[Constants.HANDSHAKE_SIZE - 4];
+	
 	static {
+		//get security provider
 		Security.addProvider(new BouncyCastleProvider());		
+		//fill pad bytes
+		for (int b = 0; b < HANDSHAKE_PAD_BYTES.length; b++) {
+			HANDSHAKE_PAD_BYTES[b] = (byte) 0x00;
+		}
 	}
 	
 	private Mac hmacSHA256;

@@ -25,6 +25,8 @@ import org.apache.mina.common.IoSession;
 import org.apache.mina.filter.LoggingFilter;
 import org.apache.mina.filter.codec.ProtocolCodecFactory;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
+import org.red5.io.utils.BufferUtils;
+import org.red5.server.api.Red5;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.message.Constants;
@@ -144,8 +146,24 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements
 				log.warn("Raw buffer after handshake, something odd going on");
 			}
 			log.debug("Handshake 2nd phase - size: {}", in.remaining());
-			RTMPHandshake shake = new RTMPHandshake();
-			out = shake.generateResponse(in);
+			//if the 5th byte is 0 then dont generate new-style handshake
+			//byte[] bIn = in.array();
+			//log.debug("First few bytes (in): {},{},{},{},{},{},{},{},{},{}", new Object[]{bIn[0],bIn[1],bIn[2],bIn[3],bIn[4],bIn[5],bIn[6],bIn[7],bIn[8],bIn[9]});
+			if (in.get(4) == 0) {
+				log.debug("Using old style handshake");
+				out = ByteBuffer.allocate((Constants.HANDSHAKE_SIZE * 2) + 1);
+				out.put((byte) 0x03);
+				// set server uptime in seconds
+				out.putInt((int) Red5.getUpTime() / 1000); //0x01
+				out.put(RTMPHandshake.HANDSHAKE_PAD_BYTES).put(in).flip();
+			} else {
+				log.debug("Using new style handshake");
+				RTMPHandshake shake = new RTMPHandshake();
+				out = shake.generateResponse(in);
+			}
+			//byte[] bOut = out.array();
+			//log.debug("First few bytes (out): {},{},{},{},{},{},{},{},{},{}", new Object[]{bOut[0],bOut[1],bOut[2],bOut[3],bOut[4],bOut[5],bOut[6],bOut[7],bOut[8],bOut[9]});
+
 			// Skip first 8 bytes when comparing the handshake, they seem to
  			// be changed when connecting from a Mac client.
 			rtmp.setHandshake(out, 9, Constants.HANDSHAKE_SIZE-8);
