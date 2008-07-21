@@ -3,6 +3,7 @@
 	<configurations>
 	    <conf name="default"/>
 		<conf name="java5" extends="default" description="Java 5 dependencies"/>
+		<conf name="java6" extends="default" description="Java 6 dependencies"/>
 		<conf name="test" extends="default" description="Unit testing dependencies"/>
 	</configurations>
     <dependencies>
@@ -72,7 +73,7 @@
         <dependency org="antlr" name="antlr" rev="2.7.6" />
         <dependency name="bsh" rev="2.0b4" />
         <dependency name="groovy" rev="1.0" />  
-        <dependency name="jruby" rev="1.0.3" />  
+        <dependency name="jruby" rev="1.0.3" conf="java6->default"/>  
         <dependency name="jython" rev="2.2" />  
         <dependency org="spring" name="spring-context-support" rev="2.5.5" />
         <!-- Admin required jars -->
@@ -99,7 +100,7 @@
         <dependency name="jruby" rev="1.0.1" conf="java5->default"/>
         <dependency name="jruby-engine" rev="" conf="java5->default"/> 
         <!-- Crypto -->
-        <dependency name="bcprov" rev="jdk16-139"/>
+        <dependency name="bcprov" rev="jdk16-139" conf="java6->default"/> 
         <dependency name="bcprov" rev="jdk15-139" conf="java5->default"/> 
     </dependencies>
 </ivy-module>

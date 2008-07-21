@@ -183,7 +183,7 @@
 	<target name="retrieve" unless="library.installed" description="Retrieves the libraries if needed">
 		<!-- Ivy configuration -->
 		<ivy:settings file="ivysettings.xml"/>
-		<condition property="ivy.conf.name" value="default">
+		<condition property="ivy.conf.name" value="java6">
 			<not>
 				<isset property="ivy.conf.name"/>
 			</not>
@@ -247,7 +247,7 @@
 	<!-- Core -->
 	<target name="compile_core" if="java6.installed" description="Build server core">
 		<antcall target="retrieve" inheritAll="true" inheritRefs="true">
-			<param name="ivy.conf.name" value="default"/>
+			<param name="ivy.conf.name" value="java6"/>
 		</antcall>
 		<javac sourcepath="" srcdir="${src.dir}" destdir="${dest.dir}" classpathref="project.classpath"
 			 optimize="${build.optimize}" verbose="${build.verbose}" fork="${build.fork}" nowarn="${build.nowarn}"
@@ -346,7 +346,7 @@
 				<!-- copy libs -->
 				<copy todir="${webapps.build.dir}/admin/WEB-INF/lib">
 					<fileset dir="${lib.dir}">
-                    	<include name="acegi-security-1.0.4.jar"/>
+                    	<include name="spring-security-*.jar"/>
                     	<include name="standard-*.jar"/>
                         <include name="spring-beans-*.jar"/>
                         <include name="spring-core-*.jar"/>
