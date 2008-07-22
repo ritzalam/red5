@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="con" path="org.jayasoft.ivyde.eclipse.cpcontainer.IVYDE_CONTAINER/ivy_base.xml/default,test,"/>
+	<classpathentry kind="con" path="org.jayasoft.ivyde.eclipse.cpcontainer.IVYDE_CONTAINER/ivy_base.xml/default,java6,test,"/>
 	<classpathentry excluding=".svn/*" kind="src" path="conf"/>
 	<classpathentry kind="src" path="test"/>
 	<classpathentry excluding=".svn/*|org/red5/server/script/rhino/" kind="src" path="src"/>
