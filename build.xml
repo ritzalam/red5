@@ -22,6 +22,7 @@
 	<property name="debug.state" value="true"/>
 	<property name="config.dir" value="conf"/>
 	<property name="javadoc.dir" value="doc/api"/>
+	<property name="doc.ref.dir" value="doc/reference"/>
 
 	<!-- base project properties -->
 	<property file="build.properties"/>
@@ -44,7 +45,7 @@
 	<taskdef uri="antlib:org.apache.ivy.ant" resource="org/apache/ivy/ant/antlib.xml"
 		 classpath="${lib.dir}/${ivy.version}.jar"/>
 	<property name="ivy.lib.dir" value="${lib.dir}"/>
-
+	
 	<!-- JUNIT TESTING -->
 	<property name="test.dir" value="test"/>
 	<property name="testclass.dir" value="bin/testcases"/>
@@ -732,7 +733,7 @@
 			<chmod file="${edgedist.dir}/red5-shutdown.sh" perm="755"/>
 	</target>
 
-	<target name="dist-origin" depends="dist">
+	<target name="dist-origin" depends="dist-installer">
 			<!-- Copies dist build and then puts config into place. -->
 	        	<copy todir="${origindist.dir}/">
 	            		<fileset dir="${dist.dir}">
@@ -1123,6 +1124,183 @@
 		  </dname>
 		</genkey>
 	</target>
+	
+	<!-- JConsole Client Truststore -->
+	
+	<target name="truststore" depends="rtmps_keystore">
+		
+		<copy file="${config.dir}/keystore" tofile="${config.dir}/keystore.jmx" overwrite="true"/>
+		<copy file="${config.dir}/keystore.jmx" tofile="${config.dir}/truststore.jmx" overwrite="true"/>
+		
+		<echo>Verifying Keystore ${keystore.storepass}</echo>
+			
+		<exec dir="." executable="keytool">
+			<arg line="-list -v -keystore conf/keystore.jmx -storepass ${keystore.storepass}" />
+		</exec>
+		
+		<echo>Export Server Certificate</echo>
+		
+		<exec dir="." executable="keytool">
+		      <arg line="-export -alias red5 -keystore conf/keystore.jmx -file conf/red5server.cer -storepass ${keystore.storepass}" />
+		</exec>
+		
+		<echo>Import Server Certificate into TrustStore</echo>
+		
+		<exec dir="." executable="keytool">
+			<arg line="-import -file conf/red5server.cer -keystore conf/truststore.jmx -storepass ${keystore.storepass} -noprompt" />
+		</exec>
+		
+		<echo>Verifying Truststore</echo>
+					
+		<exec dir="." executable="keytool">
+			<arg line="-list -v -keystore conf/truststore.jmx -storepass ${keystore.storepass}" />
+		</exec>
+			
+	</target>
+	
+	<!-- JConsole -->
+	<target name="console">
+		<exec dir="." executable="jconsole">
+			<arg line="-J-Djava.util.logging.config.file=conf/management.logging.properties -J-Djava.security.manager -J-Djava.security.policy=conf/red5.policy -J-Djavax.net.ssl.trustStore=conf/truststore.jmx -J-Djavax.net.ssl.trustStorePassword=password -J-Dssl.debug=true -J-Djava.security.debug=ssl service:jmx:rmi:///jndi/rmi://localhost:9999/red5" />
+		</exec>
+	</target>
+	
+	<!-- JConsole with SSL -->
+	<target name="console-ssl">
+		<exec dir="." executable="jconsole">
+			<arg line="-J-Djava.util.logging.config.file=conf/management.logging.properties -J-Djava.security.manager -J-Djava.security.policy=conf/red5.policy -J-Djavax.net.ssl.trustStore=conf/truststore.jmx -J-Djavax.net.ssl.trustStorePassword=password -J-Djavax.net.ssl.keyStore=conf/keystore.jmx -J-Djavax.net.ssl.keyStorePassword=password -J-Dssl.debug=true -J-Djava.security.debug=ssl service:jmx:rmi:///jndi/rmi://localhost:9999/red5" />
+		</exec>
+	</target>
+	
+	<!-- Fop Ant Task -->
+	<taskdef name="fop" classname="org.apache.fop.tools.anttasks.Fop">
+        <classpath>
+            <fileset dir="${basedir}/${doc.ref.dir}/lib">
+                <include name="*.jar"/>
+            </fileset>
+        </classpath>
+ 	</taskdef>
+	
+	<!-- Check Docbook libraries are installed -->
+	<target name="doc-prepare" description="Extra preparation for the documentation">
+		<fail message="XSLT supporting lib not installed. Please see '${doc.ref.dir}/readme.txt' for instructions.">
+			<condition>
+				<not>
+					<available file="${basedir}/${doc.ref.dir}/lib"/>
+				</not>
+			</condition>
+		</fail>
+	</target>
+	
+	<!-- Clean doc source -->
+	<target name="doc-clean">
+		<delete dir="${basedir}/${doc.ref.dir}/pdf"/>
+		<delete dir="${basedir}/${doc.ref.dir}/html"/>
+		<delete dir="${basedir}/${doc.ref.dir}/html_single"/>
+	</target>
+	
+	<!-- PDF Documentation -->
+	<target name="doc-pdf" depends="doc-prepare" description="Compile reference documentation to pdf">
+		
+		<!-- Build fo file -->
+		<java classname="com.icl.saxon.StyleSheet" fork="true" dir="${doc.ref.dir}">
+			<classpath>
+				<fileset dir="${basedir}/${doc.ref.dir}/lib">
+					<include name="**/*.jar"/>
+				</fileset>
+			</classpath>
+			<jvmarg value="-Djavax.xml.parsers.DocumentBuilderFactory=org.apache.xerces.jaxp.DocumentBuilderFactoryImpl"/>
+			<jvmarg value="-Djavax.xml.parsers.SAXParserFactory=org.apache.xerces.jaxp.SAXParserFactoryImpl"/>
+			<jvmarg value="-Dorg.apache.xerces.xni.parser.XMLParserConfiguration=org.apache.xerces.parsers.XIncludeParserConfiguration"/>
+			<arg value="-o"/>
+			<arg value="${basedir}/${doc.ref.dir}/pdf/docbook_fop.tmp"/>
+			<arg value="${basedir}/${doc.ref.dir}/src/index.xml"/>
+			<arg value="${basedir}/${doc.ref.dir}/styles/fopdf.xsl"/>
+			<!-- controls the double sided pagination style -->
+			<arg value="double.sided=0"/>
+		</java>
+		
+		<!-- Build pdf -->
+		<fop format="application/pdf"
+					basedir="${basedir}/${doc.ref.dir}/src"
+		            fofile="${basedir}/${doc.ref.dir}/pdf/docbook_fop.tmp"
+		            outfile="${basedir}/${doc.ref.dir}/pdf/red5-reference.pdf"
+		            force="true"/>
+		
+		<delete file="${doc.ref.dir}/pdf/docbook_fop.tmp"/>
+	</target>
+	
+	<!-- HTML Site Documentation -->
+	<target name="doc-html" depends="doc-prepare"
+				description="Compile reference documentation to chunked html">
+
+		<mkdir dir="${basedir}/${doc.ref.dir}/html/images"/>
+
+		<copy todir="${basedir}/${doc.ref.dir}/html/images">
+			<fileset dir="${basedir}/${doc.ref.dir}/src/images">
+				<include name="*.gif"/>
+				<include name="*.svg"/>
+				<include name="*.jpg"/>
+				<include name="*.png"/>
+			</fileset>
+		</copy>
+
+		<copy todir="${basedir}/${doc.ref.dir}/html/" failonerror="false">
+			<fileset dir="${basedir}/${doc.ref.dir}/styles/">
+				<include name="*.css"/>
+				<include name="*.js"/>
+			</fileset>
+		</copy>
+
+		<java classname="com.icl.saxon.StyleSheet" fork="true" dir="${doc.ref.dir}/html/">
+			<classpath>
+				<fileset dir="${basedir}/${doc.ref.dir}/lib">
+					<include name="**/*.jar"/>
+				</fileset>
+			</classpath>
+			<jvmarg value="-Djavax.xml.parsers.DocumentBuilderFactory=org.apache.xerces.jaxp.DocumentBuilderFactoryImpl"/>
+			<jvmarg value="-Djavax.xml.parsers.SAXParserFactory=org.apache.xerces.jaxp.SAXParserFactoryImpl"/>
+			<jvmarg value="-Dorg.apache.xerces.xni.parser.XMLParserConfiguration=org.apache.xerces.parsers.XIncludeParserConfiguration"/>
+			<arg value="${basedir}/${doc.ref.dir}/src/index.xml"/>
+			<arg value="${basedir}/${doc.ref.dir}/styles/html_chunk.xsl"/>
+		</java>
+
+	</target>
+	
+	<!-- HTML Single Documentation -->
+	<target name="doc-htmlsingle" depends="doc-prepare" description="Compile reference documentation to single html">
+
+		<mkdir dir="${doc.ref.dir}/html_single/images"/>
+
+		<copy todir="${basedir}/${doc.ref.dir}/html_single/images">
+			<fileset dir="${basedir}/${doc.ref.dir}/src/images">
+				<include name="*.gif"/>
+				<include name="*.svg"/>
+				<include name="*.jpg"/>
+				<include name="*.png"/>
+			</fileset>
+		</copy>
+		<copy todir="${basedir}/${doc.ref.dir}/html_single/" file="${basedir}/${doc.ref.dir}/styles/html.css" failonerror="false"/>
+
+		<java classname="com.icl.saxon.StyleSheet" fork="true" dir="${doc.ref.dir}">
+			<classpath>
+				<fileset dir="${basedir}/${doc.ref.dir}/lib">
+					<include name="**/*.jar"/>
+				</fileset>
+			</classpath>
+			<jvmarg value="-Djavax.xml.parsers.DocumentBuilderFactory=org.apache.xerces.jaxp.DocumentBuilderFactoryImpl"/>
+			<jvmarg value="-Djavax.xml.parsers.SAXParserFactory=org.apache.xerces.jaxp.SAXParserFactoryImpl"/>
+			<jvmarg value="-Dorg.apache.xerces.xni.parser.XMLParserConfiguration=org.apache.xerces.parsers.XIncludeParserConfiguration"/>
+			<arg value="-o"/>
+			<arg value="${basedir}/${doc.ref.dir}/html_single/index.html"/>
+			<arg value="${basedir}/${doc.ref.dir}/src/index.xml"/>
+			<arg value="${basedir}/${doc.ref.dir}/styles/html.xsl"/>
+		</java>
+
+	</target>
+
+	<!-- Build all documentation formats -->
+	<target name="doc-all" depends="doc-html,doc-htmlsingle,doc-pdf" description="Generate reference documentation"/>
 	
 	<target name="all" depends="clean, prepare, compile, jar, javadoc"
 		description="Run all server tasks"/>
