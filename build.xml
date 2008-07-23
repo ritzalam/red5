@@ -1172,17 +1172,19 @@
 		</exec>
 	</target>
 	
-	<!-- Fop Ant Task -->
-	<taskdef name="fop" classname="org.apache.fop.tools.anttasks.Fop">
-        <classpath>
-            <fileset dir="${basedir}/${doc.ref.dir}/lib">
-                <include name="*.jar"/>
-            </fileset>
-        </classpath>
- 	</taskdef>
+	
 	
 	<!-- Check Docbook libraries are installed -->
 	<target name="doc-prepare" description="Extra preparation for the documentation">
+		<!-- Fop Ant Task -->
+		<taskdef name="fop" classname="org.apache.fop.tools.anttasks.Fop">
+		        <classpath>
+		            <fileset dir="${basedir}/${doc.ref.dir}/lib">
+		                <include name="*.jar"/>
+		            </fileset>
+		        </classpath>
+		 </taskdef>
+		
 		<fail message="XSLT supporting lib not installed. Please see '${doc.ref.dir}/readme.txt' for instructions.">
 			<condition>
 				<not>
