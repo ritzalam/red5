@@ -77,6 +77,8 @@ public class JMXAgent implements NotificationListener {
 	private static MBeanServer mbs;
 
 	private static String rmiAdapterPort = "9999";
+	
+	private static String rmiAdapterHost = "localhost";
 
 	private static String remotePasswordProperties;
 
@@ -319,6 +321,10 @@ public class JMXAgent implements NotificationListener {
 		if (enableRmiAdapter) {
 			// Create an RMI connector server
 			log.debug("Create an RMI connector server");
+			
+			// bind the rmi hostname for systems with nat and multiple binded addresses !
+			System.setProperty("java.rmi.server.hostname", rmiAdapterHost); 
+			
 			try {
 
 				Registry r = null;
@@ -389,7 +395,9 @@ public class JMXAgent implements NotificationListener {
 					env.put("jmx.remote.x.password.file",
 							remotePasswordProperties);
 				}
-
+				
+				
+				
 				// create the connector server
 				cs = JMXConnectorServerFactory.newJMXConnectorServer(url, env,
 						mbs);
@@ -460,6 +468,10 @@ public class JMXAgent implements NotificationListener {
 
 	public void setRmiAdapterPort(String rmiAdapterPort) {
 		JMXAgent.rmiAdapterPort = rmiAdapterPort;
+	}
+	
+	public void setRmiAdapterHost(String rmiAdapterHost) {
+		JMXAgent.rmiAdapterHost = rmiAdapterHost;
 	}
 
 	public void setStartRegistry(boolean startRegistry) {

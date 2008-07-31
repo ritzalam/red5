@@ -12,22 +12,23 @@
 	<bean id="jmxAgent" class="org.red5.server.jmx.JMXAgent" init-method="init">
 		<!-- The RMI adapter allows remote connections to the MBeanServer -->
 		<property name="enableRmiAdapter" value="true"/>
-		<property name="rmiAdapterPort" value="9999"/>
+		<property name="rmiAdapterPort" value="${jmx.rmi.port}"/>
+		<property name="rmiAdapterHost" value="${jmx.rmi.host}"/>
 		<!-- SSL
 			To use jmx with ssl you must also supply the location of the keystore and its password
 			when starting the server with the following JVM options:
 				-Djavax.net.ssl.keyStore=keystore
      			-Djavax.net.ssl.keyStorePassword=password
 		-->
-		<property name="enableSsl" value="false"/>
+		<property name="enableSsl" value="${jmx.rmi.ssl}"/>
 		<!-- Starts a registry if it doesnt exist -->
 		<property name="startRegistry" value="true"/>
 		<!-- Authentication -->
 		<property name="remoteAccessProperties" value="${red5.config_root}/access.properties"/>
 		<property name="remotePasswordProperties" value="${red5.config_root}/password.properties"/>
 		<!-- The HTML adapter allows connections to the MBeanServer via a web browser -->
-		<property name="enableHtmlAdapter" value="false"/>
-		<property name="htmlAdapterPort" value="8082"/>
+		<property name="enableHtmlAdapter" value="${jmx.http}"/>
+		<property name="htmlAdapterPort" value="${jmx.http.port}"/>
 		<!-- Mina offers its own Mbeans so you may integrate them here -->
 		<property name="enableMinaMonitor" value="true"/>
 	</bean>
