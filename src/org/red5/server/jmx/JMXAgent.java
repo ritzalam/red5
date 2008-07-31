@@ -83,6 +83,10 @@ public class JMXAgent implements NotificationListener {
 	private static String remotePasswordProperties;
 
 	private static String remoteAccessProperties;
+	
+	private static String remoteSSLKeystore;
+	
+	private static String remoteSSLKeystorePass;
 
 	static {
 		//in the war version the jmxfactory is not created before
@@ -295,6 +299,18 @@ public class JMXAgent implements NotificationListener {
 	public void init() {
 		//environmental var holder
 		HashMap env = null;
+		
+		//System.setProperty("javax.net.ssl.keyStore", remoteSSLKeystore);
+		//System.setProperty("javax.net.ssl.keyStorePassword", remoteSSLKeystorePass);
+		 //System.setProperty("javax.net.ssl.trustStore", System.getProperty("red5.config_root") + "/truststore.jmx");
+		 
+
+		 //System.setProperty("javax.net.ssl.trustStorePassword", remoteSSLKeystorePass);
+		 
+		// System.setProperty("java.protocol.handler.pkgs","com.sun.net.ssl.internal.www.protocol");
+		 
+		 //System.setProperty("javax.net.debug","ssl,handshake,data,trustmanager");
+		 
 		if (enableHtmlAdapter) {
 			// setup the adapter
 			try {
@@ -355,6 +371,11 @@ public class JMXAgent implements NotificationListener {
 								+ "/red5");
 				//if SSL is requested to secure rmi connections
 				if (enableSsl) {
+					
+					// Setup keystore for SSL transparently
+					System.setProperty("javax.net.ssl.keyStore", remoteSSLKeystore);
+					System.setProperty("javax.net.ssl.keyStorePassword", remoteSSLKeystorePass);
+					
 					// Environment map
 					log.debug("Initialize the environment map");
 					env = new HashMap();
@@ -464,6 +485,14 @@ public class JMXAgent implements NotificationListener {
 
 	public void setRemotePasswordProperties(String remotePasswordProperties) {
 		JMXAgent.remotePasswordProperties = remotePasswordProperties;
+	}
+	
+	public void setRemoteSSLKeystore(String remoteSSLKeystore) {
+		JMXAgent.remoteSSLKeystore = remoteSSLKeystore;
+	}
+	
+	public void setRemoteSSLKeystorePass(String remoteSSLKeystorePass) {
+		JMXAgent.remoteSSLKeystorePass = remoteSSLKeystorePass;
 	}
 
 	public void setRmiAdapterPort(String rmiAdapterPort) {
