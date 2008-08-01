@@ -1214,6 +1214,7 @@
 			<jvmarg value="-Djavax.xml.parsers.DocumentBuilderFactory=org.apache.xerces.jaxp.DocumentBuilderFactoryImpl"/>
 			<jvmarg value="-Djavax.xml.parsers.SAXParserFactory=org.apache.xerces.jaxp.SAXParserFactoryImpl"/>
 			<jvmarg value="-Dorg.apache.xerces.xni.parser.XMLParserConfiguration=org.apache.xerces.parsers.XIncludeParserConfiguration"/>
+			<jvmarg value="-Dxslthl.config=file://${basedir}/${doc.ref.dir}/lib/docbook-xsl-ns/highlighting/xslthl-config.xml"/>
 			<arg value="-o"/>
 			<arg value="${basedir}/${doc.ref.dir}/pdf/docbook_fop.tmp"/>
 			<arg value="${basedir}/${doc.ref.dir}/src/index.xml"/>
@@ -1263,6 +1264,7 @@
 			<jvmarg value="-Djavax.xml.parsers.DocumentBuilderFactory=org.apache.xerces.jaxp.DocumentBuilderFactoryImpl"/>
 			<jvmarg value="-Djavax.xml.parsers.SAXParserFactory=org.apache.xerces.jaxp.SAXParserFactoryImpl"/>
 			<jvmarg value="-Dorg.apache.xerces.xni.parser.XMLParserConfiguration=org.apache.xerces.parsers.XIncludeParserConfiguration"/>
+			<jvmarg value="-Dxslthl.config=file://${basedir}/${doc.ref.dir}/lib/docbook-xsl-ns/highlighting/xslthl-config.xml"/>
 			<arg value="${basedir}/${doc.ref.dir}/src/index.xml"/>
 			<arg value="${basedir}/${doc.ref.dir}/styles/html_chunk.xsl"/>
 		</java>
@@ -1293,6 +1295,7 @@
 			<jvmarg value="-Djavax.xml.parsers.DocumentBuilderFactory=org.apache.xerces.jaxp.DocumentBuilderFactoryImpl"/>
 			<jvmarg value="-Djavax.xml.parsers.SAXParserFactory=org.apache.xerces.jaxp.SAXParserFactoryImpl"/>
 			<jvmarg value="-Dorg.apache.xerces.xni.parser.XMLParserConfiguration=org.apache.xerces.parsers.XIncludeParserConfiguration"/>
+			<jvmarg value="-Dxslthl.config=file://${basedir}/${doc.ref.dir}/lib/docbook-xsl-ns/highlighting/xslthl-config.xml"/>
 			<arg value="-o"/>
 			<arg value="${basedir}/${doc.ref.dir}/html_single/index.html"/>
 			<arg value="${basedir}/${doc.ref.dir}/src/index.xml"/>
