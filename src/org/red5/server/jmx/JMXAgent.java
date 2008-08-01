@@ -78,6 +78,8 @@ public class JMXAgent implements NotificationListener {
 
 	private static String rmiAdapterPort = "9999";
 	
+	private static String rmiAdapterRemotePort = "";
+	
 	private static String rmiAdapterHost = "localhost";
 
 	private static String remotePasswordProperties;
@@ -366,15 +368,27 @@ public class JMXAgent implements NotificationListener {
 								.valueOf(rmiAdapterPort));
 					}
 				}
-				JMXServiceURL url = new JMXServiceURL(
+			
+				JMXServiceURL url = null;
+				
+				// Configure the remote objects exported port for firewalls !!
+				if (StringUtils.isNotEmpty(rmiAdapterRemotePort)) {
+    				url = new JMXServiceURL("service:jmx:rmi://"
+                            + rmiAdapterHost + ":" + rmiAdapterRemotePort + "/jndi/rmi://" + rmiAdapterHost + ":" + rmiAdapterPort + "/red5"); 
+				} else {
+					url = new JMXServiceURL(
 						"service:jmx:rmi:///jndi/rmi://:" + rmiAdapterPort
 								+ "/red5");
+				}
+				
+				System.out.println(url);
 				//if SSL is requested to secure rmi connections
 				if (enableSsl) {
 					
 					// Setup keystore for SSL transparently
 					System.setProperty("javax.net.ssl.keyStore", remoteSSLKeystore);
 					System.setProperty("javax.net.ssl.keyStorePassword", remoteSSLKeystorePass);
+
 					
 					// Environment map
 					log.debug("Initialize the environment map");
@@ -494,7 +508,11 @@ public class JMXAgent implements NotificationListener {
 	public void setRemoteSSLKeystorePass(String remoteSSLKeystorePass) {
 		JMXAgent.remoteSSLKeystorePass = remoteSSLKeystorePass;
 	}
-
+	
+	public void setRmiAdapterRemotePort(String rmiAdapterRemotePort) {
+		JMXAgent.rmiAdapterRemotePort = rmiAdapterRemotePort;
+	}
+	
 	public void setRmiAdapterPort(String rmiAdapterPort) {
 		JMXAgent.rmiAdapterPort = rmiAdapterPort;
 	}
