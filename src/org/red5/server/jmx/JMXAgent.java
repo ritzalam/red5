@@ -301,17 +301,6 @@ public class JMXAgent implements NotificationListener {
 	public void init() {
 		//environmental var holder
 		HashMap env = null;
-		
-		//System.setProperty("javax.net.ssl.keyStore", remoteSSLKeystore);
-		//System.setProperty("javax.net.ssl.keyStorePassword", remoteSSLKeystorePass);
-		 //System.setProperty("javax.net.ssl.trustStore", System.getProperty("red5.config_root") + "/truststore.jmx");
-		 
-
-		 //System.setProperty("javax.net.ssl.trustStorePassword", remoteSSLKeystorePass);
-		 
-		// System.setProperty("java.protocol.handler.pkgs","com.sun.net.ssl.internal.www.protocol");
-		 
-		 //System.setProperty("javax.net.debug","ssl,handshake,data,trustmanager");
 		 
 		if (enableHtmlAdapter) {
 			// setup the adapter
@@ -381,7 +370,6 @@ public class JMXAgent implements NotificationListener {
 								+ "/red5");
 				}
 				
-				System.out.println(url);
 				//if SSL is requested to secure rmi connections
 				if (enableSsl) {
 					
