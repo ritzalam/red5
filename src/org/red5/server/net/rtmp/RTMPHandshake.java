@@ -424,7 +424,7 @@ public class RTMPHandshake {
 		byte[] inputArray = new byte[input.remaining()];
 
 		input.get(inputArray, 0, input.remaining());
-		int index = (inputArray[8] + inputArray[9] + inputArray[10] + inputArray[11]) % 728 + 12;
+		int index = Math.abs((inputArray[8] + inputArray[9] + inputArray[10] + inputArray[11])) % 728 + 12;
 		System.arraycopy(inputArray, index, part, 0, 32);
 		return part;
 	}

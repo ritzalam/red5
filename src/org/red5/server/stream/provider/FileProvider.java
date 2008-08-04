@@ -187,26 +187,30 @@ public class FileProvider implements IPassive, ISeekableProvider,
 	/** {@inheritDoc} */
     public void onOOBControlMessage(IMessageComponent source, IPipe pipe,
 			OOBControlMessage oobCtrlMsg) {
+    	String serviceName = oobCtrlMsg.getServiceName();
     	String target = oobCtrlMsg.getTarget();
-		if (IPassive.KEY.equals(target)) {
-			if (oobCtrlMsg.getServiceName().equals("init")) {
-				Integer startTS = (Integer) oobCtrlMsg.getServiceParamMap()
-						.get("startTS");
-				setStart(startTS);
-			}
-		} else if (ISeekableProvider.KEY.equals(target)) {
-			if (oobCtrlMsg.getServiceName().equals("seek")) {
-				Integer position = (Integer) oobCtrlMsg.getServiceParamMap()
-						.get("position");
-				int seekPos = seek(position.intValue());
-				// Return position we seeked to
-				oobCtrlMsg.setResult(seekPos);
-			}
-		} else if (IStreamTypeAwareProvider.KEY.equals(target)) {
-			if (oobCtrlMsg.getServiceName().equals("hasVideo")) {
-				oobCtrlMsg.setResult(hasVideo());
-			}
-		}
+    	log.debug("onOOBControlMessage - service name: {} target: {}", serviceName, target);
+    	if (serviceName != null) {
+    		if (IPassive.KEY.equals(target)) {
+    			if ("init".equals(serviceName)) {
+    				Integer startTS = (Integer) oobCtrlMsg.getServiceParamMap()
+    						.get("startTS");
+    				setStart(startTS);
+    			}
+    		} else if (ISeekableProvider.KEY.equals(target)) {
+    			if ("seek".equals(serviceName)) {
+    				Integer position = (Integer) oobCtrlMsg.getServiceParamMap()
+    						.get("position");
+    				int seekPos = seek(position.intValue());
+    				// Return position we seeked to
+    				oobCtrlMsg.setResult(seekPos);
+    			}
+    		} else if (IStreamTypeAwareProvider.KEY.equals(target)) {
+    			if ("hasVideo".equals(serviceName)) {
+    				oobCtrlMsg.setResult(hasVideo());
+    			}
+    		}
+    	}
 	}
 
     /**
