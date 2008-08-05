@@ -353,10 +353,10 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 		int headerLength = RTMPUtils.getHeaderLength(RTMPUtils.decodeHeaderSize(headerValue, byteCount));
 		headerLength += byteCount - 1;
 
-		if (headerLength > remaining) {
+		if(headerLength+byteCount-1 > remaining) {
 			log.debug("Header too small, buffering. remaining: {}", remaining);
 			in.position(position);
-			rtmp.bufferDecoding(headerLength);
+			rtmp.bufferDecoding(headerLength+byteCount-1);
 			return null;
 		}
 
@@ -469,14 +469,14 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 
 			case HEADER_NEW:
 				header.setTimer(RTMPUtils.readUnsignedMediumInt(in));
-				header.setSize(RTMPUtils.readMediumInt(in));
+				header.setSize(RTMPUtils.readUnsignedMediumInt(in));
 				header.setDataType(in.get());
 				header.setStreamId(RTMPUtils.readReverseInt(in));
 				break;
 
 			case HEADER_SAME_SOURCE:
 				header.setTimer(RTMPUtils.readUnsignedMediumInt(in));
-				header.setSize(RTMPUtils.readMediumInt(in));
+				header.setSize(RTMPUtils.readUnsignedMediumInt(in));
 				header.setDataType(in.get());
 				header.setStreamId(lastHeader.getStreamId());
 				break;
