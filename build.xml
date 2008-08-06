@@ -22,8 +22,12 @@
 	<property name="debug.state" value="true"/>
 	<property name="config.dir" value="conf"/>
 	<property name="javadoc.dir" value="doc/api"/>
+	
+	<!-- Documentation properties -->
 	<property name="doc.ref.dir" value="doc/reference"/>
-
+	<property name="doc.ref.lib" value="${doc.ref.dir}/lib"/>
+	<property name="javadoc.style" value="${doc.ref.dir}/styles/javadoc.css"/>
+	
 	<!-- base project properties -->
 	<property file="build.properties"/>
 
@@ -529,7 +533,7 @@
 		<echo message="Javadoc API stub: ${javadoc.loc}"/>
 		<javadoc useexternalfile="true" failonerror="false" verbose="false" classpathref="full.classpath"
 			 destdir="${javadoc.dir}" author="true" version="true" use="true" splitindex="true"
-			 windowtitle="${documentation.title}">
+			 windowtitle="${documentation.title}" stylesheetfile="${javadoc.style}">
 			<fileset dir="${src.dir}" defaultexcludes="yes">
 				<include name="org/red5/**"/>
 				<exclude name="**/*.xml"/>
@@ -1172,23 +1176,71 @@
 		</exec>
 	</target>
 	
+	<!-- XSLT task because default is not customizable -->
+	<macrodef name="dbxslt">
+   		<attribute name="xincludes" default="true"/>
+		<attribute name="out" default=""/>
+		<attribute name="in" default=""/>
+		<attribute name="style" default=""/>
+		<attribute name="basedir" default="${doc.ref.dir}"/>
+		<attribute name="params" default=""/>
+		
+   		<sequential>
+			<condition property="xslt.out" value=""
+				   else="-o @{out}">
+				<length string="@{out}" trim="true" length="0" />
+			</condition>
+	   		
+	   		<condition property="xslt.xincludes" value="-Djavax.xml.parsers.DocumentBuilderFactory=org.apache.xerces.jaxp.DocumentBuilderFactoryImpl 
+	   			-Djavax.xml.parsers.SAXParserFactory=org.apache.xerces.jaxp.SAXParserFactoryImpl 
+	   			-Dorg.apache.xerces.xni.parser.XMLParserConfiguration=org.apache.xerces.parsers.XIncludeParserConfiguration"
+	   			else="">
+	   			<equals arg1="@{xincludes}" arg2="true"/>
+	   		</condition>
+			<java classname="com.icl.saxon.StyleSheet" fork="true" dir="@{basedir}" classpathref="doc.lib.classpath">
+				<jvmarg line="${xslt.xincludes}"/>
+				<jvmarg value="-Dxslthl.config=file://${basedir}/${doc.ref.dir}/lib/docbook-xsl-ns/highlighting/xslthl-config.xml"/>
+				<jvmarg value="-Xms128m"/>
+				<jvmarg value="-Xmx512m"/>
+				<arg line="${xslt.out} @{in} @{style} @{params}"/>
+			</java>
+      	</sequential>
+	</macrodef>
 	
+	<!-- FOP Task because default cannot send memory args -->
+	<macrodef name="fop-pdf">
+		<attribute name="basedir" default="."/>
+		<attribute name="fofile" default=""/>
+		<attribute name="outfile" default=""/>
+		
+		<sequential>
+		  <java classname="org.apache.fop.cli.Main" dir="@{basedir}"
+              fork="true" failonerror="true" classpathref="doc.lib.classpath">
+		    <sysproperty key="java.awt.headless" value="true"/>
+		  	<jvmarg value="-Xms128m"/>
+		  	<jvmarg value="-Xmx512m"/>
+		  	<jvmarg value="-Dorg.apache.commons.logging.Log=org.apache.commons.logging.impl.NoOpLog"/>
+		  	<arg value="-fo"/>
+            <arg path="@{fofile}"/>
+            <arg value="-pdf"/>
+            <arg path="@{outfile}"/>
+          </java>
+		</sequential>
+	</macrodef>
 	
 	<!-- Check Docbook libraries are installed -->
 	<target name="doc-prepare" description="Extra preparation for the documentation">
-		<!-- Fop Ant Task -->
-		<taskdef name="fop" classname="org.apache.fop.tools.anttasks.Fop">
-		        <classpath>
-		            <fileset dir="${basedir}/${doc.ref.dir}/lib">
-		                <include name="*.jar"/>
-		            </fileset>
-		        </classpath>
-		 </taskdef>
+		
+		<path id="doc.lib.classpath">
+			<fileset dir="${basedir}/${doc.ref.lib}">
+                <include name="*.jar"/>
+            </fileset>
+		</path>
 		
 		<fail message="XSLT supporting lib not installed. Please see '${doc.ref.dir}/readme.txt' for instructions.">
 			<condition>
 				<not>
-					<available file="${basedir}/${doc.ref.dir}/lib"/>
+					<available file="${basedir}/${doc.ref.lib}"/>
 				</not>
 			</condition>
 		</fail>
@@ -1205,32 +1257,19 @@
 	<target name="doc-pdf" depends="doc-prepare" description="Compile reference documentation to pdf">
 		
 		<!-- Build fo file -->
-		<java classname="com.icl.saxon.StyleSheet" fork="true" dir="${doc.ref.dir}">
-			<classpath>
-				<fileset dir="${basedir}/${doc.ref.dir}/lib">
-					<include name="**/*.jar"/>
-				</fileset>
-			</classpath>
-			<jvmarg value="-Djavax.xml.parsers.DocumentBuilderFactory=org.apache.xerces.jaxp.DocumentBuilderFactoryImpl"/>
-			<jvmarg value="-Djavax.xml.parsers.SAXParserFactory=org.apache.xerces.jaxp.SAXParserFactoryImpl"/>
-			<jvmarg value="-Dorg.apache.xerces.xni.parser.XMLParserConfiguration=org.apache.xerces.parsers.XIncludeParserConfiguration"/>
-			<jvmarg value="-Dxslthl.config=file://${basedir}/${doc.ref.dir}/lib/docbook-xsl-ns/highlighting/xslthl-config.xml"/>
-			<arg value="-o"/>
-			<arg value="${basedir}/${doc.ref.dir}/pdf/docbook_fop.tmp"/>
-			<arg value="${basedir}/${doc.ref.dir}/src/index.xml"/>
-			<arg value="${basedir}/${doc.ref.dir}/styles/fopdf.xsl"/>
-			<!-- controls the double sided pagination style -->
-			<arg value="double.sided=0"/>
-		</java>
+		<dbxslt basedir="${basedir}/${doc.ref.dir}/src"
+				in="${basedir}/${doc.ref.dir}/src/index.xml"
+				out="${basedir}/${doc.ref.dir}/src/docbook_fop.tmp"
+				style="${basedir}/${doc.ref.dir}/styles/fopdf.xsl"/>
 		
 		<!-- Build pdf -->
-		<fop format="application/pdf"
-					basedir="${basedir}/${doc.ref.dir}/src"
-		            fofile="${basedir}/${doc.ref.dir}/pdf/docbook_fop.tmp"
-		            outfile="${basedir}/${doc.ref.dir}/pdf/red5-reference.pdf"
-		            force="true"/>
+	
+		<fop-pdf basedir="${basedir}/${doc.ref.dir}/src"
+				 fofile="${basedir}/${doc.ref.dir}/src/docbook_fop.tmp"
+				 outfile="${basedir}/${doc.ref.dir}/pdf/red5-reference.pdf"/>
 		
-		<delete file="${doc.ref.dir}/pdf/docbook_fop.tmp"/>
+		<delete file="${doc.ref.dir}/src/docbook_fop.tmp"/>
+		
 	</target>
 	
 	<!-- HTML Site Documentation -->
@@ -1255,25 +1294,14 @@
 			</fileset>
 		</copy>
 
-		<java classname="com.icl.saxon.StyleSheet" fork="true" dir="${doc.ref.dir}/html/">
-			<classpath>
-				<fileset dir="${basedir}/${doc.ref.dir}/lib">
-					<include name="**/*.jar"/>
-				</fileset>
-			</classpath>
-			<jvmarg value="-Djavax.xml.parsers.DocumentBuilderFactory=org.apache.xerces.jaxp.DocumentBuilderFactoryImpl"/>
-			<jvmarg value="-Djavax.xml.parsers.SAXParserFactory=org.apache.xerces.jaxp.SAXParserFactoryImpl"/>
-			<jvmarg value="-Dorg.apache.xerces.xni.parser.XMLParserConfiguration=org.apache.xerces.parsers.XIncludeParserConfiguration"/>
-			<jvmarg value="-Dxslthl.config=file://${basedir}/${doc.ref.dir}/lib/docbook-xsl-ns/highlighting/xslthl-config.xml"/>
-			<arg value="${basedir}/${doc.ref.dir}/src/index.xml"/>
-			<arg value="${basedir}/${doc.ref.dir}/styles/html_chunk.xsl"/>
-		</java>
+		<dbxslt basedir="${basedir}/${doc.ref.dir}/html/"
+				in="${basedir}/${doc.ref.dir}/src/index.xml"
+				style="${basedir}/${doc.ref.dir}/styles/html_chunk.xsl"/>
 
 	</target>
 	
 	<!-- HTML Single Documentation -->
 	<target name="doc-htmlsingle" depends="doc-prepare" description="Compile reference documentation to single html">
-
 		<mkdir dir="${doc.ref.dir}/html_single/images"/>
 
 		<copy todir="${basedir}/${doc.ref.dir}/html_single/images">
@@ -1285,23 +1313,11 @@
 			</fileset>
 		</copy>
 		<copy todir="${basedir}/${doc.ref.dir}/html_single/" file="${basedir}/${doc.ref.dir}/styles/html.css" failonerror="false"/>
-
-		<java classname="com.icl.saxon.StyleSheet" fork="true" dir="${doc.ref.dir}">
-			<classpath>
-				<fileset dir="${basedir}/${doc.ref.dir}/lib">
-					<include name="**/*.jar"/>
-				</fileset>
-			</classpath>
-			<jvmarg value="-Djavax.xml.parsers.DocumentBuilderFactory=org.apache.xerces.jaxp.DocumentBuilderFactoryImpl"/>
-			<jvmarg value="-Djavax.xml.parsers.SAXParserFactory=org.apache.xerces.jaxp.SAXParserFactoryImpl"/>
-			<jvmarg value="-Dorg.apache.xerces.xni.parser.XMLParserConfiguration=org.apache.xerces.parsers.XIncludeParserConfiguration"/>
-			<jvmarg value="-Dxslthl.config=file://${basedir}/${doc.ref.dir}/lib/docbook-xsl-ns/highlighting/xslthl-config.xml"/>
-			<arg value="-o"/>
-			<arg value="${basedir}/${doc.ref.dir}/html_single/index.html"/>
-			<arg value="${basedir}/${doc.ref.dir}/src/index.xml"/>
-			<arg value="${basedir}/${doc.ref.dir}/styles/html.xsl"/>
-		</java>
-
+		
+		<dbxslt basedir="${basedir}/${doc.ref.dir}/html_single/"
+				in="${basedir}/${doc.ref.dir}/src/index.xml"
+				out="${basedir}/${doc.ref.dir}/html_single/index.html"
+				style="${basedir}/${doc.ref.dir}/styles/html.xsl"/>
 	</target>
 
 	<!-- Build all documentation formats -->
