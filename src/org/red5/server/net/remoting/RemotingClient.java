@@ -114,7 +114,33 @@ public class RemotingClient {
 	 *            Timeout for one request in milliseconds
 	 */
 	public RemotingClient(String url, int timeout) {
-		client = new HttpClient(connectionMgr);
+		this(url, timeout, connectionMgr);
+	}
+
+	/**
+	 * Create new remoting client in the given connection manager.
+	 * 
+	 * @param url
+	 *            URL to connect to
+	 * @param mgr
+	 *            The connection manager to use
+	 */
+	public RemotingClient(String url, HttpConnectionManager mgr) {
+		this(url, DEFAULT_TIMEOUT, mgr);
+	}
+
+	/**
+	 * Create new remoting client with the given connection manager and timeout.
+	 * 
+	 * @param url
+	 *            URL to connect to
+	 * @param timeout
+	 *            Timeout for one request in milliseconds
+	 * @param mgr
+	 *            The connection manager to use
+	 */
+	public RemotingClient(String url, int timeout, HttpConnectionManager mgr) {
+		client = new HttpClient(mgr);
 		client.getHttpConnectionManager().getParams().setConnectionTimeout(
 				timeout);
 		this.url = url;
