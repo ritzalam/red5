@@ -398,6 +398,10 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 				break;
 			case 1:
 				msgIn = providerService.getVODProviderInput(thisScope, itemName);
+				if (msgIn == null) {
+					sendStreamNotFoundStatus(currentItem);
+					throw new StreamNotFoundException(itemName);
+				}
 				if (!msgIn.subscribe(this, null)) {
 					log.error("Input source subscribe failed");
 				}

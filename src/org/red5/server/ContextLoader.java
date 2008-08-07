@@ -19,6 +19,8 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -162,6 +164,21 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMBea
 	 */
 	public void loadContext(String name, String config) {
 		log.debug("Load context - name: {} config: {}", name, config);
+		//check the existence of the config file
+		try {
+			File configFile = new File(config);
+			if (!configFile.exists()) {
+				log.warn("Config file was not found at: {}", configFile.getCanonicalPath());
+				configFile = new File("file://" + config);
+				if (!configFile.exists()) {
+					log.warn("Config file was not found at either: {}", configFile.getCanonicalPath());
+				} else {
+					config = "file://" + config;
+				}
+			}
+		} catch (IOException e) {
+			log.error("Error looking for config file", e);
+		}
 		// add the context to the parent, this will be red5.xml
 		ConfigurableBeanFactory factory = ((ConfigurableApplicationContext) applicationContext).getBeanFactory();
 		if (factory.containsSingleton(name)) {
