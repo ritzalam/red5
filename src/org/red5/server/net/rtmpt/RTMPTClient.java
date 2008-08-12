@@ -40,6 +40,8 @@ public class RTMPTClient extends BaseRTMPClientHandler {
 	private static final Logger log = LoggerFactory
 			.getLogger(RTMPTClient.class);
 
+	private RTMPTClientConnector connector = null;
+	
 	public RTMPTClient() {
 	}
 
@@ -56,9 +58,11 @@ public class RTMPTClient extends BaseRTMPClientHandler {
 		return params;
 	}
 
-	protected void startConnector(String server, int port) {
+	protected synchronized void startConnector(String server, int port) {
 		connManager = new RTMPClientConnManager();
-		new RTMPTClientConnector(server, port, this).start();
+		connector = new RTMPTClientConnector(server, port, this);
+		log.debug("Created connector {}", connector);
+		connector.start();
 	}
 
 	/** {@inheritDoc} */
@@ -98,5 +102,13 @@ public class RTMPTClient extends BaseRTMPClientHandler {
 
 		conn.rawWrite(out);
 		connectionOpened(conn, conn.getState());
+	}
+
+	public synchronized void disconnect() {
+		if (connector != null) {
+			connector.setStopRequested(true);
+			connector.interrupt();
+		}
+		super.disconnect();
 	}
 }

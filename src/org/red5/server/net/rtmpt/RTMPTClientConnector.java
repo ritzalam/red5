@@ -65,6 +65,8 @@ class RTMPTClientConnector extends Thread {
 	private int clientId;
 
 	private long messageCount = 1;
+	
+	private volatile boolean stopRequested = false;
 
 	public RTMPTClientConnector(String server, int port, RTMPTClient client) {
 		httpClient.getHostConfiguration().setHost(server, port);
@@ -87,7 +89,7 @@ class RTMPTClientConnector extends Thread {
 		try {
 			RTMPTClientConnection connection = openConnection();
 
-			while (!connection.isClosing()) {
+			while (!connection.isClosing() && !stopRequested) {
 				ByteBuffer toSend = connection
 						.getPendingMessages(SEND_TARGET_SIZE);
 				PostMethod post;
@@ -114,7 +116,8 @@ class RTMPTClientConnector extends Thread {
 						// XXX handle polling delay
 						Thread.sleep(250);
 					} catch (InterruptedException e) {
-						// ignore
+						if (stopRequested)
+							break;
 					}
 					continue;
 				}
@@ -194,5 +197,9 @@ class RTMPTClientConnector extends Thread {
 	private void setCommonHeaders(PostMethod post) {
 		post.setRequestHeader("Connection", "Keep-Alive");
 		post.setRequestHeader("Cache-Control", "no-cache");
+	}
+
+	public void setStopRequested(boolean stopRequested) {
+		this.stopRequested = stopRequested;
 	}
 }

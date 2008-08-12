@@ -99,17 +99,14 @@ public class FLVReader implements IoConstants, ITagReader,
 	/** Position of first audio tag. */
 	private long firstAudioTag = -1;
 
-	/** Current tag. */
-	private int tagPosition;
+	/** metadata sent flag */
+	private boolean metadataSent = false;
 
 	/** Duration in milliseconds. */
 	private long duration;
 
 	/** Mapping between file position and timestamp in ms. */
 	private HashMap<Long, Long> posTimeMap;
-
-	/** Mapping between file position and tag number. */
-	private HashMap<Long, Integer> posTagMap;
 
 	/** Buffer type / style to use **/
 	private static BufferType bufferType = BufferType.AUTO;
@@ -568,6 +565,7 @@ public class FLVReader implements IoConstants, ITagReader,
 		ITag result = new Tag(IoConstants.TYPE_METADATA, 0, buf.limit(), null,
 				0);
 		result.setBody(buf);
+		metadataSent = true;
 		return result;
 	}
 
@@ -577,12 +575,11 @@ public class FLVReader implements IoConstants, ITagReader,
 		long oldPos = getCurrentPosition();
 		ITag tag = readTagHeader();
 
-		if (tagPosition == 0 && tag.getDataType() != TYPE_METADATA
+		if (!metadataSent && tag.getDataType() != TYPE_METADATA
 				&& generateMetadata) {
 			// Generate initial metadata automatically
 			setCurrentPosition(oldPos);
 			KeyFrameMeta meta = analyzeKeyFrames();
-			tagPosition++;
 			if (meta != null) {
 				return createFileMeta();
 			}
@@ -608,9 +605,11 @@ public class FLVReader implements IoConstants, ITagReader,
 
 			body.flip();
 			tag.setBody(body);
-			tagPosition++;
 		}
 
+		if (tag.getDataType() == TYPE_METADATA)
+			metadataSent = true;
+		
 		return tag;
 	}
 
@@ -653,9 +652,6 @@ public class FLVReader implements IoConstants, ITagReader,
 				for (int i=0; i<keyframeMeta.positions.length; i++) {
 					posTimeMap.put(keyframeMeta.positions[i], (long) keyframeMeta.timestamps[i]);
 				}
-				// XXX: We currently lose pos -> tag mapping, but that isn't used anywhere, so that's okay for now... 
-				posTagMap = new HashMap<Long, Integer>();
-				posTagMap.put((long) 0, 0);
 				return keyframeMeta;
 			}
 		}
@@ -670,13 +666,10 @@ public class FLVReader implements IoConstants, ITagReader,
 		// point to the first tag
 		setCurrentPosition(9);
 
-        // Maps positions to tags
-        posTagMap = new HashMap<Long, Integer>();
 		int idx = 0;
 		boolean audioOnly = true;
 		while (this.hasMoreTags()) {
 			long pos = getCurrentPosition();
-			posTagMap.put(pos, idx++);
             // Read tag header and duration
             ITag tmpTag = this.readTagHeader();
 			duration = tmpTag.getTimestamp();
@@ -764,19 +757,6 @@ public class FLVReader implements IoConstants, ITagReader,
 	 */
 	public void position(long pos) {
 		setCurrentPosition(pos);
-		if (pos == Long.MAX_VALUE) {
-			tagPosition = posTagMap.size()+1;
-			return;
-		}
-		// Make sure we have informations about the keyframes.
-		analyzeKeyFrames();
-		// Update the current tag number
-		Integer tag = posTagMap.get(pos);
-		if (tag == null) {
-			return;
-		}
-
-		tagPosition = tag;
 	}
 
 	/**
