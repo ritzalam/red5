@@ -405,6 +405,7 @@
 		</build-demo>
 		<build-demo name="test"/>
 		
+		
 		<!-- no Java source for the messageRecorder and SOSample app -->
 		<copy todir="${webapps.build.dir}/messageRecorder" filtering="true">
 			<fileset dir="webapps/messageRecorder"/>
@@ -644,13 +645,16 @@
 			<fileset dir="./">
 				<include name="${red5.filename}.jar"/>
 				<include name="red5.bat"/>
+				<include name="red5-bootstrap.bat"/>
 				<include name="red5-shutdown.bat"/>
 				<include name="red5.sh"/>
+				<include name="red5-bootstrap.sh"/>
 				<include name="red5-shutdown.sh"/>
 				<include name="license.txt"/>
 			</fileset>
 		</copy>
 		<chmod file="${dist.dir}/red5.sh" perm="755"/>
+		<chmod file="${dist.dir}/red5-bootstrap.sh" perm="755"/>
 		<chmod file="${dist.dir}/red5-shutdown.sh" perm="755"/>
 	</target>
 
@@ -734,6 +738,7 @@
 			<move tofile="${edgedist.dir}/conf/red5.xml" file="${edgedist.dir}/conf/red5-edge.xml"
 			      overwrite="true"/>
 			<chmod file="${edgedist.dir}/red5.sh" perm="755"/>
+			<chmod file="${edgedist.dir}/red5-bootstrap.sh" perm="755"/>
 			<chmod file="${edgedist.dir}/red5-shutdown.sh" perm="755"/>
 	</target>
 
@@ -747,6 +752,7 @@
 			<move tofile="${origindist.dir}/conf/red5.xml" file="${dist.dir}/conf/red5-origin.xml"
 			      overwrite="true"/>
 			<chmod file="${origindist.dir}/red5.sh" perm="755"/>
+			<chmod file="${origindist.dir}/red5-bootstrap.sh" perm="755"/>
 			<chmod file="${origindist.dir}/red5-shutdown.sh" perm="755"/>
 	</target>
 
