@@ -12,6 +12,7 @@
 	<classpathentry excluding=".svn/*" kind="src" path="webapps/oflaDemo/WEB-INF/src"/>
 	<classpathentry excluding=".svn/*" kind="src" path="webapps/test/WEB-INF/src"/>
 	<classpathentry excluding=".svn/*" kind="src" path="webapps/midiDemo/WEB-INF/src"/>
+	<classpathentry excluding=".svn/*" kind="src" path="webapps/bwcheck/WEB-INF/src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
