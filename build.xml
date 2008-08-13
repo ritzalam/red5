@@ -809,11 +809,6 @@
 			<jvmarg value="-Djava.security.manager"/>
 			<jvmarg value="-Djava.security.policy=${dist.dir}/conf/red5.policy"/>
 			<jvmarg value="-Dred5.root=${dist.dir}"/>
-			<!-- enable the following 2 lines if your using JMX with SSL -->
-			<!--
-			<jvmarg value="-Djavax.net.ssl.keyStore=${dist.dir}/conf/keystore.jmx"/>
-			<jvmarg value="-Djavax.net.ssl.keyStorePassword=password"/>
-			-->
 		</java>
 	</target>
 
@@ -827,11 +822,6 @@
 			<jvmarg value="-Djava.security.manager"/>
 			<jvmarg value="-Djava.security.policy=${dist.dir}/conf/red5.policy"/>
 			<jvmarg value="-Dred5.root=${dist.dir}"/>
-			<!-- enable the following 2 lines if your using JMX with SSL -->
-			<!--
-			<jvmarg value="-Djavax.net.ssl.keyStore=${dist.dir}/conf/keystore.jmx"/>
-			<jvmarg value="-Djavax.net.ssl.keyStorePassword=password"/>
-			-->
 		</java>
 	</target>
 

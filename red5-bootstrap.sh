@@ -21,7 +21,6 @@ then
   exit
 fi
 
-JAVA=/System/Library/Frameworks/JavaVM.framework/Versions/1.6/Home/bin/java
 # start Red5
 echo "Starting Red5..."
 exec $JAVA $JYTHON $JMX_OPTS $LOGBACK_OPTS $SECURITY_OPTS -cp red5.jar org.red5.server.Bootstrap 1>log\stdout.log 2>log\stderr.log

@@ -18,12 +18,6 @@
 		<property name="rmiAdapterPort" value="${jmx.rmi.port.registry}"/>
 		<property name="rmiAdapterRemotePort" value="${jmx.rmi.port.remoteobjects}"/>
 		<property name="rmiAdapterHost" value="${jmx.rmi.host}"/>
-		<!-- SSL
-			To use jmx with ssl you must also supply the location of the keystore and its password
-			when starting the server with the following JVM options:
-				-Djavax.net.ssl.keyStore=keystore
-     			-Djavax.net.ssl.keyStorePassword=password
-		-->
 		<property name="enableSsl" value="${jmx.rmi.ssl}"/>
 		<!-- Starts a registry if it doesnt exist -->
 		<property name="startRegistry" value="true"/>
