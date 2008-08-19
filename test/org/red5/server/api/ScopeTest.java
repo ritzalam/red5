@@ -5,8 +5,6 @@ import junit.framework.JUnit4TestAdapter;
 
 import org.junit.Test;
 import org.red5.server.Scope;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ScopeTest extends BaseTest {
 

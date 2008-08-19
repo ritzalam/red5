@@ -24,12 +24,14 @@
 	</bean>
 
     <!-- Socket policy handler -->
+    <!-- Off by default to prevent confusion - turn it on if you need it
     <bean id="socketPolicyHandler"
         class="org.red5.server.net.policy.SocketPolicyHandler" init-method="start" destroy-method="stop">
         <property name="host" value="${policy.host}" />
         <property name="port" value="${policy.port}" />
     </bean>
-
+	-->
+	
 	<!-- RTMP -->
 	
 	<bean id="rtmpMinaConnManager"

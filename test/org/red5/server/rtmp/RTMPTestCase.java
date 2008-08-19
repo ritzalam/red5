@@ -3,8 +3,7 @@ package org.red5.server.rtmp;
 import junit.framework.Assert;
 import junit.framework.TestCase;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.*;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Serializer;
@@ -16,7 +15,7 @@ import org.red5.server.net.rtmp.message.Header;
 
 public class RTMPTestCase extends TestCase implements Constants {
 
-	protected static Log log = LogFactory.getLog(RTMPTestCase.class.getName());
+	protected static Logger log = LoggerFactory.getLogger(RTMPTestCase.class);
 
 	protected RTMPProtocolDecoder decoder;
 
