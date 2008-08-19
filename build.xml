@@ -338,80 +338,6 @@
 			</fileset>
 		</copy>
 
-		<!-- build demos -->
-		<build-demo name="admin">
-			<copy-assets>
-				<logback webapp="admin"/>
-				<!-- copy assets -->
-				<copy todir="${webapps.build.dir}/admin/assets">
-					<fileset file="doc/logo.png"/>
-					<fileset dir="swf/DEV_Deploy/assets"/>
-					<fileset file="swf/DEV_Deploy/adminPanel.swf"/>
-				</copy>
-				<!-- copy libs -->
-				<copy todir="${webapps.build.dir}/admin/WEB-INF/lib">
-					<fileset dir="${lib.dir}">
-                    	<include name="standard-*.jar"/>
-                        <include name="spring-beans-*.jar"/>
-                        <include name="spring-core-*.jar"/>
-                        <include name="spring-context-*.jar"/>
-                        <include name="spring-web-*.jar"/>
-						<include name="spring-webmvc-*.jar"/>
-					</fileset>
-				</copy>
-			</copy-assets>
-		</build-demo>
-		<build-demo name="bwcheck">
-			<copy-assets>
-				<logback webapp="bwcheck"/>
-			</copy-assets>
-		</build-demo>
-		<build-demo name="echo">
-			<copy-assets>
-				<logback webapp="echo"/>
-			</copy-assets>
-		</build-demo>
-		<build-demo name="fitcDemo">
-			<copy-assets>
-				<logback webapp="fitcDemo"/>
-			</copy-assets>
-		</build-demo>
-		<build-demo name="midiDemo">
-			<copy-assets>
-				<logback webapp="midiDemo"/>
-			</copy-assets>
-		</build-demo>
-		<build-demo name="oflaDemo">
-			<copy-assets>
-				<logback webapp="oflaDemo"/>
-				<!-- copy FLV files without filtering as it causes corruption -->
-				<copy todir="${webapps.build.dir}/oflaDemo/">
-					<fileset dir="webapps/oflaDemo/">
-						<include name="**/*.flv"/>
-					</fileset>
-				</copy>
-				<!-- copy javascript/python/ruby source for oflaDemo -->
-				<mkdir dir="${webapps.build.dir}/oflaDemo/WEB-INF/classes/applications"/>
-				<copy todir="${webapps.build.dir}/oflaDemo/WEB-INF/classes/applications">
-					<fileset dir="${webapps.dir}/oflaDemo/WEB-INF/src/applications"/>
-				</copy>
-			</copy-assets>
-		</build-demo>
-		<build-demo name="tutorial">
-			<copy-assets>
-				<logback webapp="tutorial"/>
-			</copy-assets>
-		</build-demo>
-		<build-demo name="test"/>
-		
-		
-		<!-- no Java source for the messageRecorder and SOSample app -->
-		<copy todir="${webapps.build.dir}/messageRecorder" filtering="true">
-			<fileset dir="webapps/messageRecorder"/>
-		</copy>
-		<copy todir="${webapps.build.dir}/SOSample" filtering="true">
-			<fileset dir="webapps/SOSample"/>
-		</copy>
 	</target>
 
 	<!-- Scripting -->
@@ -461,16 +387,6 @@
 			<pathelement location="${dest.dir}"/>
 		</path>
 		<antcall target="compile_demos" inheritAll="true" inheritRefs="true"/>
-
-		<!-- only certain classes from selected demos are copied to the war -->
-		<copy todir="${classes.dir}/WEB-INF/classes">
-			<fileset dir="${webapps.build.dir}/admin/WEB-INF/classes"/>
-			<fileset dir="${webapps.build.dir}/bwcheck/WEB-INF/classes"/>
-			<fileset dir="${webapps.build.dir}/echo/WEB-INF/classes"/>
-			<fileset dir="${webapps.build.dir}/fitcDemo/WEB-INF/classes"/>
-			<fileset dir="${webapps.build.dir}/oflaDemo/WEB-INF/classes"/>
-			<fileset dir="${webapps.build.dir}/tutorial/WEB-INF/classes"/>
-		</copy>
 		<antcall target="compile_script" inheritAll="true" inheritRefs="true">
 			<param name="dest.dir" value="${classes.dir}/WEB-INF/classes"/>
 		</antcall>
@@ -502,17 +418,6 @@
 				<attribute name="Built-On" value="${build.TODAY}"/>
 			</manifest>
 		</war>
-		
-		<!-- war up demos -->
-		<compile-wardemo name="admin"/>
-		<compile-wardemo name="bwcheck"/>
-		<compile-wardemo name="fitcDemo"/>
-		<compile-wardemo name="echo"/>		
-		<compile-wardemo name="oflaDemo"/>
-		<compile-wardemo name="SOSample"/>
-		<compile-wardemo name="tutorial"/>
-		<compile-wardemo name="test"/>
-		<compile-wardemo name="messageRecorder"/>
 	</target>
 
 	<target name="javadoc" description="Generate JavaDoc">
@@ -596,31 +501,6 @@
 			<metainf dir="${src.dir}/META-INF">
 				<include name="**"/>
 			</metainf>
-		</jar>
-
-		<!-- create jar files for demos -->
-		<compile-jardemo name="bwcheck"/>
-		<compile-jardemo name="echo"/>
-		<compile-jardemo name="fitcDemo"/>
-		<compile-jardemo name="midiDemo"/>
-		<compile-jardemo name="oflaDemo">
-			<copy-assets>
-				<!-- copy scripts -->
-				<mkdir dir="${webapps.build.dir}/oflaDemo/WEB-INF/classes/applications"/>
-				<copy todir="${webapps.build.dir}/oflaDemo/WEB-INF/classes/applications">
-					<fileset dir="webapps/oflaDemo/WEB-INF/src/applications"/>
-				</copy>
-			</copy-assets>
-		</compile-jardemo>
-		<compile-jardemo name="test"/>
-		<compile-jardemo name="tutorial"/>
-		
-		<!-- exclude logback.xml for admin -->
-		<jar destfile="${webapps.build.dir}/admin/WEB-INF/lib/admin.jar">
-			<fileset dir="${webapps.build.dir}/admin/WEB-INF/classes">
-				<include name="**"/>
-				<exclude name="logback.xml"/>
-			</fileset>
 		</jar>
 	</target>
 
@@ -944,13 +824,6 @@
 				<include name="*-web.xml"/>
 			</fileset>
 		</copy>		
-		<!-- copy the demo streams -->
-		<copy todir="${webapps.build.dir}/root">
-			<fileset dir="${webapps.build.dir}/oflaDemo">
-				<include name="streams/*.flv"/>
-				<exclude name="**/logback.xml"/>
-			</fileset>
-		</copy>
 		<!-- war up root -->
 		<war destfile="${dist.dir}/ROOT.war" webxml="${webapps.build.dir}/root/WEB-INF/web.xml">
 			<fileset dir="${webapps.build.dir}/root"/>
@@ -979,64 +852,6 @@
 				<attribute name="Built-On" value="${build.TODAY}"/>
 			</manifest>
 		</war>				
-				
-		<!-- Demo applications (Admin and Echo use AMF and therefore need wars) -->
-		<filter token="context.path" value="/admin"/>
-		<copy tofile="${webapps.build.dir}/admin/META-INF/context.xml" overwrite="true" filtering="true"				
-			file="${config.dir}/war/context.xml"/>
-		<copy todir="${webapps.build.dir}/admin/WEB-INF" overwrite="true" verbose="true">
-			<fileset dir="${config.dir}/war/admin">
-				<include name="web.xml"/>
-			</fileset>
-		</copy>		
-		<war destfile="${dist.dir}/admin.war" webxml="${webapps.build.dir}/admin/WEB-INF/web.xml">
-			<fileset dir="${webapps.build.dir}/admin"/>
-			<fileset dir="${classes.dir}">
-				<include name="**/AMFTunnelServlet.class"/>
-				<include name="**/ServletUtils.class"/>
-			</fileset>
-			<lib dir="${lib.dir}">
-				<include name="commons-codec-*.jar"/>
-				<include name="commons-httpclient-*.jar"/>
-				<include name="*-over-slf4j-*.jar"/>
-				<include name="mina-core-*.jar"/>
-				<exclude name="slf4j-*.jar"/>
-				<exclude name="logback-*.jar"/>
-			</lib>			
-			<manifest>
-				<attribute name="Built-By" value="${red5.fullname}"/>
-				<attribute name="Built-On" value="${build.TODAY}"/>
-			</manifest>
-		</war>	
-		
-		<filter token="context.path" value="/echo"/>
-		<copy tofile="${webapps.build.dir}/echo/META-INF/context.xml" overwrite="true" filtering="true"				
-			file="${config.dir}/war/context.xml"/>
-		<copy todir="${webapps.build.dir}/echo/WEB-INF" overwrite="true" verbose="true">
-			<fileset dir="${config.dir}/war/echo">
-				<include name="web.xml"/>
-			</fileset>
-		</copy>		
-		<war destfile="${dist.dir}/echo.war" webxml="${webapps.build.dir}/echo/WEB-INF/web.xml">
-			<fileset dir="${webapps.build.dir}/echo"/>
-			<fileset dir="${classes.dir}">
-				<include name="**/AMFTunnelServlet.class"/>
-				<include name="**/ServletUtils.class"/>
-				<include name="**/red5/compatibility/**" />
-			</fileset>
-			<lib dir="${lib.dir}">
-				<include name="commons-codec-*.jar"/>
-				<include name="commons-httpclient-*.jar"/>
-				<include name="*-over-slf4j-*.jar"/>
-				<include name="mina-core-*.jar"/>
-				<exclude name="slf4j-*.jar"/>
-				<exclude name="logback-*.jar"/>
-			</lib>			
-			<manifest>
-				<attribute name="Built-By" value="${red5.fullname}"/>
-				<attribute name="Built-On" value="${build.TODAY}"/>
-			</manifest>
-		</war>			
 		
 		<!-- cleanup -->
 		<delete dir="${dist.dir}/webapps"/>
