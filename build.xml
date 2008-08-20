@@ -1180,7 +1180,7 @@
 		<move file="red5.jar" tofile="${snapshot.path}${snapshot.name}"/>
 	
        	<condition property="file.exists" value="true" else="false">
-	   		<isreachable url="http://svn1.cvsdude.com/osflash/red5/snapshots/${snapshot.path}${snapshot.name}" timeout="10" />
+	   		<http url="http://svn1.cvsdude.com/osflash/red5/snapshots/${snapshot.name}"/>
       	</condition>
        	<echo message='File exists in repository: ${file.exists}'/>
 	
