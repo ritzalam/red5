@@ -1,7 +1,11 @@
 #!/bin/bash
 
-# Java options
-JAVA_OPTS="-Dred5.root=/opt/red5 -Djava.security.manager -Djava.security.policy=conf/red5.policy"
+if [ -z "$RED5_HOME" ]; then
+  RED5_HOME=.
+fi
+
+# JAVA options
+JAVA_OPTS="-Dred5.root=$RED5_HOME -Djava.security.manager -Djava.security.policy=conf/red5.policy"
 
 # Jython options
 JYTHON="-Dpython.home=lib"

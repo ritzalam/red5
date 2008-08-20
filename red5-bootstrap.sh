@@ -1,7 +1,11 @@
 #!/bin/bash
 
+if [ -z "$RED5_HOME" ]; then
+  RED5_HOME=.
+fi
+
 # JAVA options
-JAVA_OPTS="-Dred5.root=/opt/red5"
+JAVA_OPTS="-Dred5.root=$RED5_HOME"
 LOGBACK_OPTS="-Dlogback.ContextSelector=org.red5.logging.LoggingContextSelector -Dcatalina.useNaming=true"
 SECURITY_OPTS="-Djava.security.manager -Djava.security.debug=failure -Djava.security.policy=conf/red5.policy"
 # Jython options
