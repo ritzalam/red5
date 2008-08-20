@@ -1133,6 +1133,77 @@
 	<!-- Build all documentation formats -->
 	<target name="doc-all" depends="doc-html,doc-htmlsingle,doc-pdf" description="Generate reference documentation"/>
 	
+	<!-- 
+		To add svn 
+		1. Go here: http://subclipse.tigris.org/svnant.html
+
+		2. Download SvnAnt
+		ex: http://subclipse.tigris.org/files/documents/906/43359/svnant-1.2.0-RC1.zip
+
+		3. Unzip the archive and place the jar files in your Ant lib directory
+		ex: C:\dev\ant\lib	
+	-->
+	
+	<!-- checks out the source tree -->
+	<target name="checkout">
+		<typedef resource="org/tigris/subversion/svnant/svnantlib.xml" classpath="svnant.jar" /> 
+	
+		<svn>
+  			<checkout url="${svn.url}java/server/trunk/" revision="HEAD" destPath="." />
+		</svn>	
+	</target>
+	
+	<!-- checks out the source tree from the top-most level -->
+	<target name="checkout-all">
+		<typedef resource="org/tigris/subversion/svnant/svnantlib.xml" classpath="svnant.jar" /> 
+	
+		<svn>
+			<!-- we are three levels down -->
+  			<checkout url="${svn.url}" revision="HEAD" destPath="../../../" />
+		</svn>	
+	</target>	
+	
+	<!-- Updates snapshot repository -->
+	<target name="upload-snapshot" depends="jar">
+		<typedef resource="org/tigris/subversion/svnant/svnantlib.xml" classpath="svnant.jar" /> 
+	
+		<condition property="java.version.name" value="java5" else="java6">
+			<not>
+				<isset property="java6.installed"/>
+			</not>
+		</condition>
+	
+		<property name="snapshot.name" value="red5-${red5.version}-${java.version.name}.jar"/>
+		<property name="snapshot.path" value="../../../snapshots/"/>
+	
+		<!-- make a copy of the red5.jar with a versioned name + the java version -->
+		<move file="red5.jar" tofile="${snapshot.path}${snapshot.name}"/>
+	
+       	<condition property="file.exists" value="true" else="false">
+	   		<isreachable url="http://svn1.cvsdude.com/osflash/red5/snapshots/${snapshot.path}${snapshot.name}" timeout="10" />
+      	</condition>
+       	<echo message='File exists in repository: ${file.exists}'/>
+	
+		<antcall target="svn-add" inheritAll="true" inheritRefs="true">
+			<param name="file.path" value="${snapshot.path}${snapshot.name}"/>
+		</antcall>
+		
+		<!--
+			may need to add options depending upon svn client install
+			javahl="true|false" svnkit="true|false" 
+		-->
+		<svn username="${svn.login}" password="${svn.password}" failonerror="false">
+			<update dir="${snapshot.path}"/>
+			<commit message="Added snapshot" file="${snapshot.path}${snapshot.name}"/>
+		</svn>	
+	</target>
+	
+	<target name="svn-add" unless="file.exists">
+		<svn username="${svn.login}" password="${svn.password}" failonerror="false">
+			<add file="${file.path}" force="true"/>
+		</svn>	
+	</target>
+	
 	<target name="all" depends="clean, prepare, compile, jar, javadoc"
 		description="Run all server tasks"/>
 
