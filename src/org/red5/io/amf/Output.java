@@ -239,8 +239,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
     public void writeDate(Date date) {
 		buf.put(AMF.TYPE_DATE);
 		buf.putDouble(date.getTime());
-		buf
-				.putShort((short) (TimeZone.getDefault().getRawOffset() / 60 / 1000));
+		buf.putShort((short) (TimeZone.getDefault().getRawOffset() / 60 / 1000));
 	}
 
 	/** {@inheritDoc} */
@@ -499,6 +498,17 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		putString(XMLUtils.docToString(xml));
 	}
 
+	/**
+	 * Convenience method to allow XML text to be used, instead
+	 * of requiring an XML Document.
+	 * 
+	 * @param xml
+	 */
+	public void writeXML(String xml) {
+		buf.put(AMF.TYPE_XML);
+		putString(xml);
+	}	
+	
     /**
      * Return buffer of this Output object
      * @return        Byte buffer of this Output object

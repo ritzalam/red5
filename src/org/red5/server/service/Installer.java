@@ -23,7 +23,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collections;
+import java.util.UUID;
 
 import javax.management.MBeanServer;
 import javax.management.MBeanServerInvocationHandler;
@@ -33,7 +33,11 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.mina.common.ByteBuffer;
 import org.red5.compatibility.flex.messaging.io.ArrayCollection;
+import org.red5.compatibility.flex.messaging.messages.AcknowledgeMessage;
+import org.red5.compatibility.flex.messaging.messages.AsyncMessage;
+import org.red5.io.amf.Output;
 import org.red5.server.LoaderMBean;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.Red5;
@@ -90,22 +94,28 @@ public class Installer {
 	 * 
 	 * @return
 	 */
-	public ArrayCollection<String> getApplicationList() {
-		ArrayCollection<String> list = new ArrayCollection<String>();
+	public AsyncMessage getApplicationList() {
+		//ArrayCollection<String> list = new ArrayCollection<String>();
+		AcknowledgeMessage result = new AcknowledgeMessage();
 		
 		// create a singular HttpClient object
 		HttpClient client = new HttpClient();
 		// establish a connection within 5 seconds
 		client.getHttpConnectionManager().getParams().setConnectionTimeout(5000);
 		//try the wav version first
-		HttpMethod method = new GetMethod(applicationRepositoryUrl);
+		HttpMethod method = new GetMethod(applicationRepositoryUrl + "registry.xml");
 		method.setFollowRedirects(true);
 		// execute the method
 		try {
 			int code = client.executeMethod(method);
 			log.debug("HTTP response code: {}", code);
-			log.debug("Response: {}", method.getResponseBodyAsString());
-			//
+			String xml = method.getResponseBodyAsString();
+			log.debug("Response: {}", xml);
+            //prepare response for flex			
+			result.body = xml;
+			result.clientId = Red5.getConnectionLocal().getClient().getId();
+			result.messageId = UUID.randomUUID().toString();
+			result.timestamp = System.currentTimeMillis();
 		} catch (HttpException he) {
 			log.error("Http error connecting to {}", applicationRepositoryUrl, he);
 		} catch (IOException ioe) {
@@ -116,7 +126,7 @@ public class Installer {
 			}
 		}			
 		
-		return list;
+		return result;
 	}
 	
 	/**

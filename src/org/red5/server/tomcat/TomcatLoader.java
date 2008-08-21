@@ -728,7 +728,7 @@ public class TomcatLoader extends LoaderBase implements
         }
         //remove any './'
         if ((idx = path.indexOf("./")) != -1) {
-        	path.delete(idx, idx + 1);
+        	path.delete(idx, idx + 2);
         }        
         if (log.isDebugEnabled()) {
         	log.debug("Path step 2: {}", path.toString());

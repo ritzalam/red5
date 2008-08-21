@@ -533,7 +533,6 @@ public class FLVReader implements IoConstants, ITagReader,
 		ByteBuffer buf = ByteBuffer.allocate(1024);
 		buf.setAutoExpand(true);
 		Output out = new Output(buf);
-
         // Duration property
 		out.writeString("onMetaData");
 		Map<Object, Object> props = new HashMap<Object, Object>();
@@ -562,10 +561,11 @@ public class FLVReader implements IoConstants, ITagReader,
 		out.writeMap(props, new Serializer());
 		buf.flip();
 
-		ITag result = new Tag(IoConstants.TYPE_METADATA, 0, buf.limit(), null,
-				0);
+		ITag result = new Tag(IoConstants.TYPE_METADATA, 0, buf.limit(), null, 0);
 		result.setBody(buf);
 		metadataSent = true;
+		//
+		out = null;
 		return result;
 	}
 
