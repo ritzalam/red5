@@ -130,13 +130,6 @@ public class Standalone {
     		root = conf.substring(0, idx);
 
     	}
-        // Store root directory of Red5
-        if (System.getProperty("file.separator").equals("/")) {
-          // For some reason, on Linux based systems Spring appears
-          // to chomp the leading / on a path name, so we give it
-          // an extra one to chew on.
-          root = '/' + root;
-        }
 		// Set Red5 root as environment variable
 		System.setProperty("red5.root", root);
 		log.info("Setting Red5 root to {}", root);

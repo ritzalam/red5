@@ -194,6 +194,18 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMBea
 			});
 			parentContext = (ApplicationContext) factory.getBean("red5.common");
 		}
+		if (config.startsWith("/"))
+		{
+			// Spring always interprets files as relative, so
+			// will strip a leading slash unless we tell
+			// it otherwise.
+			// It also appears to not need this for Windows
+			// absolute paths (e.g. C:\Foo\Bar) so we
+			// don't catch that either
+			String newConfig = "file://"+config;
+			log.debug("Resetting {} to {}", config, newConfig);
+			config = newConfig;
+		}
 		ApplicationContext context = new FileSystemXmlApplicationContext(
 				new String[] { config }, parentContext);
 		log.debug("Adding to context map - name: {} context: {}", name, context);
