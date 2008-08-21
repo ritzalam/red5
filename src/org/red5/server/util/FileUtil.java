@@ -1,0 +1,401 @@
+package org.red5.server.util;
+
+/*
+ * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * 
+ * Copyright (c) 2006-2008 by respective authors (see below). All rights reserved.
+ * 
+ * This library is free software; you can redistribute it and/or modify it under the 
+ * terms of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either version 2.1 of the License, or (at your option) any later 
+ * version. 
+ * 
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY 
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+ * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License along 
+ * with this library; if not, write to the Free Software Foundation, Inc., 
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ */
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.util.Random;
+import java.util.zip.Adler32;
+import java.util.zip.CheckedInputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * Generic file utility containing useful file or directory
+ * manipulation functions.
+ * 
+ * @author Paul Gregoire (mondain@gmail.com)
+ */
+public class FileUtil {
+
+	private static Logger log = LoggerFactory.getLogger(FileUtil.class);
+	
+	// Random number generator used by name generation
+	private static Random random;
+
+	public static void copyFile(File source, File dest) throws IOException {
+		log.debug("Copy from {} to {}", source.getAbsoluteFile(), dest
+				.getAbsoluteFile());
+		FileInputStream fi = new FileInputStream(source);
+		FileChannel fic = fi.getChannel();
+		MappedByteBuffer mbuf = fic.map(FileChannel.MapMode.READ_ONLY, 0,
+				source.length());
+		fic.close();
+		fi.close();
+		fi = null;
+
+		// ensure the destination directory exists
+		if (!dest.exists()) {
+			String destPath = dest.getPath();
+			log.debug("Destination path: {}", destPath);
+			String destDir = destPath.substring(0, destPath
+					.lastIndexOf(File.separatorChar));
+			log.debug("Destination dir: {}", destDir);
+			File dir = new File(destDir);
+			if (!dir.exists()) {
+				if (dir.mkdirs()) {
+					log.debug("Directory created");
+				} else {
+					log.warn("Directory not created");
+				}
+			}
+			dir = null;
+		}
+
+		FileOutputStream fo = new FileOutputStream(dest);
+		FileChannel foc = fo.getChannel();
+		foc.write(mbuf);
+		foc.close();
+		fo.close();
+		fo = null;
+
+		mbuf.clear();
+		mbuf = null;
+	}
+
+	public static void copyFile(String source, String dest) throws IOException {
+		copyFile(new File(source), new File(dest));
+	}
+
+	public static void moveFile(String source, String dest) throws IOException {
+		copyFile(source, dest);
+		File src = new File(source);
+		if (src.exists() && src.canRead()) {
+			if (src.delete()) {
+				log.debug("Source file was deleted");
+			} else {
+				log
+						.debug("Source file was not deleted, the file will be deleted on exit");
+				src.deleteOnExit();
+			}
+		} else {
+			log.warn("Source file could not be accessed for removal");
+		}
+		src = null;
+	}
+
+	/**
+	 * Deletes a directory and its contents. This will fail if there are any
+	 * file locks or if the directory cannot be emptied.
+	 * 
+	 * @param directory
+	 * @throws IOException
+	 */
+	public static boolean deleteDirectory(String directory) throws IOException {
+		return deleteDirectory(directory, false);
+	}
+
+	/**
+	 * Deletes a directory and its contents. This will fail if there are any
+	 * file locks or if the directory cannot be emptied.
+	 * 
+	 * @param directory
+	 * @param useOSNativeDelete
+	 *            flag to signify use of operating system delete function
+	 * @throws IOException
+	 */
+	public static boolean deleteDirectory(String directory,
+			boolean useOSNativeDelete) throws IOException {
+		boolean result = false;
+		if (!useOSNativeDelete) {
+			File dir = new File(directory);
+			// first all files have to be cleared out
+			for (File file : dir.listFiles()) {
+				if (file.delete()) {
+					log.debug("{} was deleted", file.getName());
+				} else {
+					log.debug("{} was not deleted", file.getName());
+					file.deleteOnExit();
+				}
+				file = null;
+			}
+			// not you may remove the dir
+			if (dir.delete()) {
+				log.debug("Directory was deleted");
+				result = true;
+			} else {
+				log.debug("Directory was not deleted, it may be deleted on exit");
+				dir.deleteOnExit();
+			}
+			dir = null;			
+		} else {
+			Process p = null;
+			Thread std = null;
+			try {
+				Runtime runTime = Runtime.getRuntime();
+				log.debug("Execute runtime");
+				//determine file system type
+				if (File.separatorChar == '\\') {
+					//we are windows
+					p = runTime.exec("CMD /D /C \"RMDIR /Q /S "
+						+ directory.replace('/', '\\') + "\"");
+				} else {
+					//we are unix variant 
+					p = runTime.exec("rm -rf " + directory.replace('\\', File.separatorChar));
+				}
+				// observe std out
+				std = stdOut(p);
+				// wait for the observer threads to finish
+				while (std.isAlive()) {
+					try {
+						Thread.sleep(250);
+					} catch (Exception e) {
+					}
+				}
+				log.debug("Process threads wait exited");
+				result = true;
+			} catch (Exception e) {
+				log.error("Error running delete script", e);
+			} finally {
+				if (null != p) {
+					log.debug("Destroying process");
+					p.destroy();
+					p = null;
+				}
+				std = null;
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * Rename a file natively; using REN on Windows and mv on *nix.
+	 * 
+	 * @param from
+	 * @param to
+	 */
+	public static void rename(String from, String to) {
+		Process p = null;
+		Thread std = null;
+		try {
+			Runtime runTime = Runtime.getRuntime();
+			log.debug("Execute runtime");
+			//determine file system type
+			if (File.separatorChar == '\\') {
+				//we are windows
+				p = runTime.exec("CMD /D /C \"REN " + from + ' ' + to + "\"");
+			} else {
+				//we are unix variant 
+				p = runTime.exec("mv -f " + from + ' ' + to);
+			}
+			// observe std out
+			std = stdOut(p);
+			// wait for the observer threads to finish
+			while (std.isAlive()) {
+				try {
+					Thread.sleep(250);
+				} catch (Exception e) {
+				}
+			}
+			log.debug("Process threads wait exited");
+		} catch (Exception e) {
+			log.error("Error running delete script", e);
+		} finally {
+			if (null != p) {
+				log.debug("Destroying process");
+				p.destroy();
+				p = null;
+				std = null;
+			}
+		}		
+	}	
+	
+	/**
+	 * Special method for capture of StdOut.
+	 * 
+	 * @return
+	 */
+	private final static Thread stdOut(final Process p) {
+		final byte[] empty = new byte[128];
+		for (int b = 0; b < empty.length; b++) {
+			empty[b] = (byte) 0;
+		}
+		Thread std = new Thread() {
+			public void run() {
+				StringBuilder sb = new StringBuilder(1024);
+				byte[] buf = new byte[128];
+				BufferedInputStream bis = new BufferedInputStream(p
+						.getInputStream());
+				log.debug("Process output:");
+				try {
+					while (bis.read(buf) != -1) {
+						sb.append(new String(buf).trim());
+						// clear buffer
+						System.arraycopy(empty, 0, buf, 0, buf.length);
+					}
+					log.debug(sb.toString());
+					bis.close();
+				} catch (Exception e) {
+					log.error("{}", e);
+				}
+			}
+		};
+		std.setDaemon(true);
+		std.start();
+		return std;
+	}
+
+	/**
+	 * Create a directory.
+	 * 
+	 * @param directory
+	 * @return
+	 * @throws IOException
+	 */
+	public static boolean makeDirectory(String directory) throws IOException {
+		return makeDirectory(directory, false);
+	}
+
+	/**
+	 * Create a directory. The parent directories will be created if
+	 * <i>createParents</i> is passed as true.
+	 * 
+	 * @param directory
+	 * @param createParents
+	 * @return
+	 * @throws IOException
+	 */
+	public static boolean makeDirectory(String directory, boolean createParents)
+			throws IOException {
+		boolean created = false;
+		File dir = new File(directory);
+		if (createParents) {
+			created = dir.mkdirs();
+			if (created) {
+				log.debug("Directory created: {}", dir.getAbsolutePath());
+			} else {
+				log.debug("Directory was not created: {}", dir
+						.getAbsolutePath());
+			}
+		} else {
+			created = dir.mkdir();
+			if (created) {
+				log.debug("Directory created: {}", dir.getAbsolutePath());
+			} else {
+				log.debug("Directory was not created: {}", dir
+						.getAbsolutePath());
+			}
+		}
+		dir = null;
+		return created;
+	}
+
+	/**
+	 * Unzips a given archive to a specified destination directory.
+	 * 
+	 * @param compressedFileName
+	 * @param destinationDir
+	 */
+	public static void unzip(String compressedFileName, String destinationDir) {
+		log.debug("Unzip - file: {} destination: {}", compressedFileName, destinationDir);
+		try {
+			final int BUFFER = 2048;
+			BufferedOutputStream dest = null;
+			FileInputStream fis = new FileInputStream(compressedFileName);
+			CheckedInputStream checksum = new CheckedInputStream(fis,
+					new Adler32());
+			ZipInputStream zis = new ZipInputStream(new BufferedInputStream(
+					checksum));
+			ZipEntry entry;
+			while ((entry = zis.getNextEntry()) != null) {
+				log.debug("Extracting: {}", entry);
+				String name = entry.getName();
+				int count;
+				byte data[] = new byte[BUFFER];
+				// write the files to the disk
+				File destFile = new File(destinationDir, name);
+				log.debug("Absolute path: {}", destFile.getAbsolutePath());
+				//create dirs as needed, look for file extension to determine type
+				if (entry.isDirectory()) {
+					log.debug("Entry is detected as a directory");
+					if (destFile.mkdirs()) {
+						log.debug("Directory created: {}", destFile.getName());
+					} else {
+						log.warn("Directory was not created: {}", destFile.getName());
+					}
+					destFile = null;
+					continue;
+				}				
+
+				FileOutputStream fos = new FileOutputStream(destFile);
+				dest = new BufferedOutputStream(fos, BUFFER);
+				while ((count = zis.read(data, 0, BUFFER)) != -1) {
+					dest.write(data, 0, count);
+				}
+				dest.flush();
+				dest.close();
+				destFile = null;
+			}
+			zis.close();
+			log.debug("Checksum: {}", checksum.getChecksum().getValue());
+		} catch (Exception e) {
+			log.error("Error unzipping {}", compressedFileName, e);
+			e.printStackTrace();
+		}
+
+	}
+	
+	/**
+	 * Generates a custom name containing numbers and an underscore ex. 282818_00023.
+	 * The name contains current seconds and a random number component.
+	 * 
+	 * @return
+	 */
+	public static String generateCustomName() {
+		if (random == null) {
+			random = new Random();
+		}
+    	StringBuilder sb = new StringBuilder();
+    	sb.append(PropertyConverter.getCurrentTimeSeconds());
+    	sb.append('_');
+    	int i = random.nextInt(99999);
+    	if (i < 10) {
+    		sb.append("0000");
+    	} else if (i < 100) {
+       		sb.append("000");
+    	} else if (i < 1000) {
+       		sb.append("00");
+    	} else if (i < 10000) {
+       		sb.append("0");
+    	}    	
+    	sb.append(i);
+    	return sb.toString();
+    }	
+	
+}

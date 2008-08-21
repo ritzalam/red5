@@ -19,8 +19,6 @@ package org.red5.server.jetty;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-import java.io.IOException;
-
 import org.mortbay.jetty.Handler;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.deployer.WebAppDeployer;
@@ -162,6 +160,11 @@ public class JettyLoader extends LoaderBase implements LoaderMBean {
 
 	}
 
+	//TODO: Implement this for those who want to use Jetty
+	public boolean startWebApplication(String applicationName) {
+		return false;
+	}
+	
 	public void registerJMX() {
 		JMXAgent.registerMBean(this, this.getClass().getName(),	LoaderMBean.class);	
 	}	

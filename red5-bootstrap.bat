@@ -1,16 +1,13 @@
 @echo off
 
-set JAVA_OPTS = -Xmx768m -Xms256 -Xmn512m -Xss128k -XX:+AggressiveOpts -XX:+AggressiveHeap -XX:+DisableExplicitGC -XX:ParallelGCThreads=4 -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:SurvivorRatio=8 -XX:TargetSurvivorRatio=90 -XX:MaxTenuringThreshold=31 -Djava.net.preferIPv4Stack=true -Dsun.rmi.dgc.client.gcInterval=990000 -Dsun.rmi.dgc.server.gcInterval=990000
+if NOT DEFINED RED5_HOME set RED5_HOME=.
 
-if not "%JAVA_HOME%" == "" goto launchRed5
+set LOGGING_OPTS= -Dlogback.ContextSelector=org.red5.logging.LoggingContextSelector -Dcatalina.useNaming=true
 
-:launchRed5
-"%JAVA_HOME%/bin/java" %JAVA_OPTS% -Dlogback.ContextSelector=org.red5.logging.LoggingContextSelector -Dcatalina.useNaming=true -Djava.security.manager -Djava.security.debug=failure -Djava.security.policy=conf/red5.policy -cp red5.jar org.red5.server.Bootstrap 1>log\stdout.log 2>log\stderr.log
-goto finally
+set SECURITY_OPTS= -Djava.security.debug=failure
 
-:err
-echo JAVA_HOME environment variable not set! Take a look at the readme.
-pause
-
-:finally
-REM pause
+rem Note: This used to have all the same options as red5-highperf.bat but
+rem at least on Win32 the JVM will not start (1.6)
+set JAVA_OPTS= %LOGGING_OPTS% %SECURITY_OPTS%
+set RED5_MAINCLASS=org.red5.server.Bootstrap
+%RED5_HOME%\red5.bat 1>%RED5_HOME%\log\stdout.log 2>%RED5_HOME%\log\stderr.log

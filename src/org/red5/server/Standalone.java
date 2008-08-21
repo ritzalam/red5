@@ -94,6 +94,9 @@ public class Standalone {
         String root = System.getProperty("red5.root");
         String conf;
         if (root != null) {
+            if (System.getProperty("file.separator").equals("\\")) {
+                root = root.replace('\\', '/');
+            }
             conf = root + "/conf";
         } else {
     		// Detect root of Red5 configuration and set as system property
@@ -104,7 +107,7 @@ public class Standalone {
     			String[] paths = classpath.split(System
     					.getProperty("path.separator"));
     			for (String element : paths) {
-    				fp = new File(element + '/' + red5Config);
+    				fp = new File(element + System.getProperty("file.separator") + red5Config);
     				fp = fp.getCanonicalFile();
     				if (fp.isFile()) {
     					break;
@@ -123,19 +126,21 @@ public class Standalone {
     		int idx = root.lastIndexOf('/');
     		conf = root.substring(0, idx);
 
-            // Store root directory of Red5
     		idx = conf.lastIndexOf('/');
     		root = conf.substring(0, idx);
-    		if (System.getProperty("file.separator").equals("/")) {
-    			// Workaround for linux systems
-    			root = '/' + root;
-    		}
-    
-            // Set Red5 root as environment variable
-            System.setProperty("red5.root", root);
-    		log.info("Setting Red5 root to {}", root);
 
     	}
+        // Store root directory of Red5
+        if (System.getProperty("file.separator").equals("/")) {
+          // For some reason, on Linux based systems Spring appears
+          // to chomp the leading / on a path name, so we give it
+          // an extra one to chew on.
+          root = '/' + root;
+        }
+		// Set Red5 root as environment variable
+		System.setProperty("red5.root", root);
+		log.info("Setting Red5 root to {}", root);
+
 		System.setProperty("red5.config_root", conf);
 		log.info("Setting configuation root to {}", conf);                    
 

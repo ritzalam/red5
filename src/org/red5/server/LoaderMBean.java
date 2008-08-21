@@ -34,4 +34,6 @@ public interface LoaderMBean {
 
 	public void removeContext(String path);
 
+	public boolean startWebApplication(String application);
+
 }

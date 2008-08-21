@@ -43,6 +43,7 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
  */
 public class Bootstrap {
 
+    protected static Logger log = LoggerFactory.getLogger(Bootstrap.class);
 	public static void launch(URLClassLoader loader) {
 		System.setProperty("red5.deployment.type", "bootstrap");
 		try {				
@@ -51,7 +52,6 @@ public class Bootstrap {
 			//set default for loading classes with url loader
 			loader.setDefaultAssertionStatus(false);
 			//create a logger before anything else happens
-			Logger log = LoggerFactory.getLogger(Bootstrap.class);
 			log.info("{} (http://www.osflash.org/red5)", Red5.getVersion());
 			//create red5 app context
 			FileSystemXmlApplicationContext ctx = new FileSystemXmlApplicationContext(new String[]{
@@ -190,6 +190,12 @@ public class Bootstrap {
 			if (topName.startsWith("red5")) {
 				continue;
 			}
+			//skip version-less libraries
+			if (topName.endsWith("-")){
+			removalList.add(top);
+				continue;
+			}
+
 			//by default we will get rid of testing libraries and jetty ;)
 			if (topName.startsWith("jetty") || topName.startsWith("grobo") || topName.startsWith("junit") || topName.startsWith("ivy")) {
 				removalList.add(top);
@@ -254,7 +260,7 @@ public class Bootstrap {
     			String topVers = topName.substring(topSecondDash != -1 ? (topSecondDash + 1) : (topFirstDash + 1));
     			int topThirdDash = -1;
     			String topThirdName = null;
-    			if (!Character.isDigit(topVers.charAt(0))) {
+    			if (topVers.length() > 0 && !Character.isDigit(topVers.charAt(0))) {
         			//check if third level lib name matches
     				topThirdDash = topVers.indexOf('-');
     				//no version most likely exists
@@ -294,6 +300,7 @@ public class Bootstrap {
     			String[] topVersion = punct.split(topVers);
     			String[] checkVersion = punct.split(checkVers);
     			
+                System.err.println("topVersion (" + topVers + "): " + topVersion[0]);
     			int topVersionNumber = Integer.valueOf(topVersion[0] + topVersion[1] + (topVersion.length > 2 ? topVersion[2] : '0')).intValue();
     			int checkVersionNumber = Integer.valueOf(checkVersion[0] + checkVersion[1] + (checkVersion.length > 2 ? checkVersion[2] : '0')).intValue();
     			

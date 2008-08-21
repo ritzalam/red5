@@ -1,32 +1,14 @@
 #!/bin/bash
 
-if [ -z "$RED5_HOME" ]; then
-  RED5_HOME=.
-fi
+if [ -z "$RED5_HOME" ]; then export RED5_HOME=.;  fi
 
-# JAVA options
-JAVA_OPTS="-Dred5.root=$RED5_HOME"
-LOGBACK_OPTS="-Dlogback.ContextSelector=org.red5.logging.LoggingContextSelector -Dcatalina.useNaming=true"
-SECURITY_OPTS="-Djava.security.manager -Djava.security.debug=failure -Djava.security.policy=conf/red5.policy"
-# Jython options
-JYTHON="-Dpython.home=lib"
+LOGGING_OPTS="-Dlogback.ContextSelector=org.red5.logging.LoggingContextSelector -Dcatalina.useNaming=true"
+SECURITY_OPTS="-Djava.security.debug=failure"
+# Add them to the JAVA_OPTS that red5 will use
+export JAVA_OPTS="$LOGGING_OPTS $SECURITY_OPTS"
 
-for JAVA in "/System/Library/Frameworks/JavaVM.framework/Versions/1.6/Home/bin/java" "$JAVA_HOME/bin/java" "/usr/bin/java" "/usr/local/bin/java"
-do
-  if [ -x $JAVA ]
-  then
-    break
-  fi
-done
-
-if [ ! -x $JAVA ]
-then
-  echo "Unable to locate Java. Please set JAVA_HOME environment variable."
-  exit
-fi
-
-#JAVA=/System/Library/Frameworks/JavaVM.framework/Versions/1.6/Home/bin/java
+export RED5_MAINCLASS=org.red5.server.Bootstrap
 
 # start Red5
-echo "Starting Red5..."
-exec $JAVA $JYTHON $JAVA_OPTS $LOGBACK_OPTS $SECURITY_OPTS -cp red5.jar org.red5.server.Bootstrap 1>log\stdout.log 2>log\stderr.log
+echo "Starting Red5 ($RED5_MAINCLASS)..."
+exec $RED5_HOME/red5.sh 1> $RED5_HOME/log/stdout.log  2>$RED5_HOME/log/stderr.log

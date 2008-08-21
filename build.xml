@@ -493,6 +493,7 @@
 				<exclude name="testcases/**"/>
 			</fileset>
 			<manifest>
+				<attribute name="Red5-Version" value="${red5.version}"/>
 				<attribute name="Built-By" value="${red5.fullname}"/>
 				<attribute name="Built-On" value="${build.TODAY}"/>
 				<attribute name="Main-Class" value="org.red5.server.Standalone"/>

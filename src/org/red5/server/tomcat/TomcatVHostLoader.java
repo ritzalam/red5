@@ -377,7 +377,7 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 		}			
 		
 		return result;
-	}
+	}		
 	
 	/**
 	 * Create a standard host.

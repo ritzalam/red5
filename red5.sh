@@ -1,16 +1,21 @@
 #!/bin/bash
 
-if [ -z "$RED5_HOME" ]; then
-  RED5_HOME=.
+if [ -z "$RED5_HOME" ]; then export RED5_HOME=.; fi
+
+P=":" # The default classpath separator
+OS=`uname -o`
+if [ "$OS" = "Cygwin" ]; then
+  P=";" # We're actually on Windows
 fi
 
 # JAVA options
-JAVA_OPTS="-Dred5.root=$RED5_HOME -Djava.security.manager -Djava.security.policy=conf/red5.policy"
+# You can set JAVA_OPTS to add additional options if you want
+JAVA_OPTS="-Dred5.root=$RED5_HOME -Djava.security.manager -Djava.security.policy=$RED5_HOME/conf/red5.policy $JAVA_OPTS"
 
 # Jython options
 JYTHON="-Dpython.home=lib"
 
-for JAVA in "/System/Library/Frameworks/JavaVM.framework/Versions/1.6/Home/bin/java" "$JAVA_HOME/bin/java" "/usr/bin/java" "/usr/local/bin/java"
+for JAVA in "$JAVA_HOME/bin/java" "/usr/bin/java" "/usr/local/bin/java"
 do
   if [ -x $JAVA ]
   then
@@ -24,6 +29,11 @@ then
   exit
 fi
 
+export RED5_CLASSPATH="$RED5_HOME/red5.jar$P$RED5_HOME/conf$P$CLASSPATH"
+if [ -z "$RED5_MAINCLASS" ]; then
+  export RED5_MAINCLASS=org.red5.server.Standalone
+fi
+
 # start Red5
-echo "Starting Red5..."
-exec $JAVA $JYTHON $JAVA_OPTS -cp red5.jar:conf:$CLASSPATH org.red5.server.Standalone
+echo "Starting Red5 ($RED5_MAINCLASS)..."
+exec $JAVA $JYTHON $JAVA_OPTS -cp $RED5_CLASSPATH $RED5_MAINCLASS $RED5_OPTS

@@ -1,20 +1,6 @@
 @echo off
 
-set JMX_OPTS=-Djava.security.manager -Djava.security.policy=conf/red5.policy
+if NOT DEFINED RED5_HOME set RED5_HOME=.
 
 set JAVA_OPTS=-Xdebug -Xrunjdwp:transport=dt_socket,address=8787,server=y,suspend=y
-
-set JYTHON_OPTS=-Dpython.home=lib
-
-if not "%JAVA_HOME%" == "" goto launchRed5
-
-:launchRed5
-"%JAVA_HOME%/bin/java" %JYTHON_OPTS% %JMX_OPTS% %JAVA_OPTS% -cp red5.jar;conf;bin;%CLASSPATH% org.red5.server.Standalone
-goto finaly
-
-:err
-echo JAVA_HOME environment variable not set! Take a look at the Readme.
-pause
-
-:finaly
-pause
+%RED5_HOME%\red5.bat
