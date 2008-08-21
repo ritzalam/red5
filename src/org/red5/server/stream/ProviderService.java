@@ -45,9 +45,6 @@ import org.slf4j.LoggerFactory;
  */
 public class ProviderService implements IProviderService {
 
-	/**
-	 * Logger
-	 */
 	private static final Logger log = LoggerFactory.getLogger(ProviderService.class);
 
 	/** {@inheritDoc} */
@@ -58,9 +55,12 @@ public class ProviderService implements IProviderService {
 			result = INPUT_TYPE.LIVE;
 		} else {
     		try {
-    			if (getStreamFile(scope, name) != null) {
+    			File file = getStreamFile(scope, name);
+    			if (file != null) {
     				//we have vod input
     				result = INPUT_TYPE.VOD;    				
+        			//null it to prevent leak or file locking
+        			file = null;
     			}
     		} catch (IOException e) {
     			log.warn("Exception attempting to lookup file: {}", name, e);
@@ -163,6 +163,7 @@ public class ProviderService implements IProviderService {
 		while (it.hasNext()) {
 			result.add(it.next());
 		}
+		it = null;
 		return result;
 	}
 
@@ -206,6 +207,11 @@ public class ProviderService implements IProviderService {
 			file = new File(filename);
 		} else {
 			file = scope.getContext().getResource(filename).getFile();
+		}
+		//check files existence
+		if (file != null && !file.exists()) {
+			//if it does not exist then null it out
+			file = null;
 		}
 		return file;
 

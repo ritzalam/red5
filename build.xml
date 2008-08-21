@@ -338,6 +338,24 @@
 			</fileset>
 		</copy>
 
+		<!-- installer -->
+
+        <!-- load token replacement filters -->
+        <filter filtersfile="${filter.file}"/>
+        <copy todir="${webapps.build.dir}/installer" filtering="true">
+            <fileset dir="webapps/installer">
+                <exclude name="**/src/**"/>
+                <exclude name="**/*.swf"/>
+            </fileset>
+        </copy>
+
+        <!-- copy SWF without filtering as it causes corruption -->
+        <copy todir="${webapps.build.dir}/installer">
+            <fileset dir="webapps/installer">
+                <include name="**/*.swf"/>
+            </fileset>
+        </copy>
+	
 	</target>
 
 	<!-- Scripting -->
@@ -418,6 +436,13 @@
 				<attribute name="Built-On" value="${build.TODAY}"/>
 			</manifest>
 		</war>
+        <war destfile="${dist.dir}/installer.war" webxml="${webapps.build.dir}/installer/WEB-INF/web.xml">
+            <fileset dir="${webapps.build.dir}/installer"/>
+            <manifest>
+                <attribute name="Built-By" value="${red5.fullname}"/>
+                <attribute name="Built-On" value="${build.TODAY}"/>
+            </manifest>
+        </war>		
 	</target>
 
 	<target name="javadoc" description="Generate JavaDoc">
@@ -478,7 +503,7 @@
 			</jar>
 			<!-- copy files (optional) -->
 			<copy-assets/>
-      		</sequential>
+      	</sequential>
 	</macrodef>
 
 	<target name="jar" description="Make Archive" depends="compile">
@@ -595,13 +620,13 @@
 
 	<target name="dist-edge" depends="dist-origin">
 			<!-- Copies edge build and then puts config into place. -->
-		    	<copy todir="${edgedist.dir}/">
-	            		<fileset dir="${dist.dir}">
-					<exclude name="**/build.properties"/>
+		    <copy todir="${edgedist.dir}/">
+		    	<fileset dir="${dist.dir}">
+		    	    <exclude name="**/build.properties"/>
 					<exclude name="**/build.xml"/>
 					<exclude name="**/Makefile"/>
 					<exclude name="**/doc/**"/>
-	                		<exclude name="**/conf/red5-origin.xml"/>
+	                <exclude name="**/conf/red5-origin.xml"/>
 					<exclude name="**/conf/red5-origin-core.xml"/>
 					<exclude name="**/conf/red5.xml"/>
 					<exclude name="**/docs/**"/>
@@ -609,8 +634,8 @@
 					<exclude name="**/src/**"/>
 					<exclude name="**/swf/**"/>
 					<exclude name="**/webapps/**"/>
-	            		</fileset>
-	        	</copy>
+	            </fileset>
+		    </copy>
 			
 			<copy todir="${edgedist.dir}/webapps">
 				<fileset file="${dist.dir}/webapps/red5-default.xml"/>
@@ -624,11 +649,11 @@
 
 	<target name="dist-origin" depends="dist-installer">
 			<!-- Copies dist build and then puts config into place. -->
-	        	<copy todir="${origindist.dir}/">
-	            		<fileset dir="${dist.dir}">
+	        <copy todir="${origindist.dir}/">
+	        	<fileset dir="${dist.dir}">
 					<exclude name="**/conf/red5.xml"/>
-	            		</fileset>
-	        	</copy>
+	            </fileset>
+	        </copy>
 			<move tofile="${origindist.dir}/conf/red5.xml" file="${dist.dir}/conf/red5-origin.xml"
 			      overwrite="true"/>
 			<chmod file="${origindist.dir}/red5.sh" perm="755"/>
@@ -732,15 +757,15 @@
 	</target>
 
 	<target name="udp_server" depends="compile" description="Compile and start experimental UDP server">
-        	<java classname="org.red5.server.net.udp.Standalone" fork="true">
-            		<classpath>
-                		<pathelement location="${config.dir}"/>
-                		<pathelement location="${classes.dir}"/>
-                		<path refid="full.classpath"/>
-            		</classpath>
-            		<jvmarg value="-Djava.security.manager"/>
-            		<jvmarg value="-Djava.security.policy=${config.dir}/red5.policy"/>
-        	</java>
+        <java classname="org.red5.server.net.udp.Standalone" fork="true">
+            <classpath>
+            	<pathelement location="${config.dir}"/>
+            	<pathelement location="${classes.dir}"/>
+            	<path refid="full.classpath"/>
+            </classpath>
+            <jvmarg value="-Djava.security.manager"/>
+            <jvmarg value="-Djava.security.policy=${config.dir}/red5.policy"/>
+        </java>
 	</target>
 
 	<target name="run-tests" depends="compile_tests" description="Run JUnit tests and generate HTML reports">
@@ -948,29 +973,24 @@
 		<copy file="${config.dir}/keystore.jmx" tofile="${config.dir}/truststore.jmx" overwrite="true"/>
 		
 		<echo>Verifying Keystore ${keystore.storepass}</echo>
-			
 		<exec dir="." executable="keytool">
 			<arg line="-list -v -keystore conf/keystore.jmx -storepass ${keystore.storepass}" />
 		</exec>
 		
 		<echo>Export Server Certificate</echo>
-		
 		<exec dir="." executable="keytool">
 		      <arg line="-export -alias red5 -keystore conf/keystore.jmx -file conf/red5server.cer -storepass ${keystore.storepass}" />
 		</exec>
 		
 		<echo>Import Server Certificate into TrustStore</echo>
-		
 		<exec dir="." executable="keytool">
 			<arg line="-import -file conf/red5server.cer -keystore conf/truststore.jmx -storepass ${keystore.storepass} -noprompt" />
 		</exec>
 		
-		<echo>Verifying Truststore</echo>
-					
+		<echo>Verifying Truststore</echo>	
 		<exec dir="." executable="keytool">
 			<arg line="-list -v -keystore conf/truststore.jmx -storepass ${keystore.storepass}" />
 		</exec>
-			
 	</target>
 	
 	<!-- JConsole -->
@@ -1041,7 +1061,6 @@
 	
 	<!-- Check Docbook libraries are installed -->
 	<target name="doc-prepare" description="Extra preparation for the documentation">
-		
 		<path id="doc.lib.classpath">
 			<fileset dir="${basedir}/${doc.ref.lib}">
                 <include name="*.jar"/>
@@ -1074,7 +1093,6 @@
 				style="${basedir}/${doc.ref.dir}/styles/fopdf.xsl"/>
 		
 		<!-- Build pdf -->
-	
 		<fop-pdf basedir="${basedir}/${doc.ref.dir}/src"
 				 fofile="${basedir}/${doc.ref.dir}/src/docbook_fop.tmp"
 				 outfile="${basedir}/${doc.ref.dir}/pdf/red5-reference.pdf"/>
