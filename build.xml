@@ -172,6 +172,7 @@
 	</target>
 
 	<target name="clean" description="Clean the directories for building">
+		<delete dir="${red5.filename}.jar"/>
 		<delete dir="${classes.dir}"/>
 		<delete dir="${dist.dir}"/>
 		<delete dir="${cluster.dir}"/>
@@ -530,7 +531,7 @@
 		</jar>
 	</target>
 
-	<target name="dist" description="Make Binary distribution" depends="clean, jar">
+	<target name="dist" description="Make Binary distribution" depends="jar">
 		<copy todir="${dist.dir}/lib">
 			<fileset dir="${lib.dir}">
 				<exclude name="ivy*.jar"/>
@@ -563,7 +564,7 @@
 		<chmod file="${dist.dir}/red5-shutdown.sh" perm="755"/>
 	</target>
 
-	<target name="dist-installer" description="Make Installer distribution" depends="ivyclear, dist, javadoc">
+	<target name="dist-installer" description="Make Installer distribution" depends="clean, ivyclear, dist, javadoc">
 		<copy todir="${dist.dir}/doc">
 			<fileset dir="doc"/>
 		</copy>
