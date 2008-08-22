@@ -1197,8 +1197,7 @@
 		</svn>
 		<echo message="Svn info - status: ${svn.info.status} last rev: ${svn.info.lastrev} rev: ${svn.info.rev}"/>
 	
-		<!-- we may want to add the revision to this? -r${svn.info.rev} -->
-		<property name="snapshot.name" value="red5-${red5.version}-${java.version.name}.jar"/>
+		<property name="snapshot.name" value="red5-${red5.version}-r${svn.info.rev}-${java.version.name}.jar"/>
 		<property name="snapshot.path" value="../../../snapshots/"/>
 		
 		<echo message="Destination: ${snapshot.path}${snapshot.name}"/>
