@@ -33,11 +33,8 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.mina.common.ByteBuffer;
-import org.red5.compatibility.flex.messaging.io.ArrayCollection;
 import org.red5.compatibility.flex.messaging.messages.AcknowledgeMessage;
 import org.red5.compatibility.flex.messaging.messages.AsyncMessage;
-import org.red5.io.amf.Output;
 import org.red5.server.LoaderMBean;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.Red5;
@@ -48,7 +45,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * This service provides the means to list, download, install, and un-install 
- * applications from a given url.
+ * applications from a given url. 
  * 
  * @author Paul Gregoire (mondain@gmail.com)
  */
