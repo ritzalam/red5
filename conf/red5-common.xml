@@ -92,7 +92,7 @@
 	</bean>
 	<!-- High level access to streams -->
 	<bean id="streamService" class="org.red5.server.stream.StreamService"/>
-	<!-- Hight level access to broadcasted streams -->
+	<!-- High level access to broadcasted streams -->
 	<bean id="providerService" class="org.red5.server.stream.ProviderService"/>
 	<!-- Provides output to consumers -->
 	<bean id="consumerService" class="org.red5.server.stream.ConsumerService"/>
@@ -106,8 +106,15 @@
 	<!--
     <bean id="BWControlService" class="org.red5.server.stream.DummyBWControlService"/> -->
 	<!-- Scheduling service -->
-	<bean id="schedulingService" class="org.red5.server.scheduling.QuartzSchedulingService"
-		 destroy-method="shutdown"/>
+	<bean id="schedulingService" class="org.red5.server.scheduling.QuartzSchedulingService" destroy-method="shutdown"/>
+		 
+    <!-- War deployer -->
+    <bean id="warDeployService" class="org.red5.server.service.WarDeployer" init-method="init" destroy-method="shutdown">
+        <property name="scheduler" ref="schedulingService"/>
+        <property name="checkInterval" value="600000"/>
+        <property name="deploymentDirectory" value="${red5.root}/webapps"/>
+    </bean>		 
+		 
 	<!-- Threadpool settings for the remoting clients -->
 	<bean id="remotingPool" class="org.red5.server.pooling.ThreadPool">
 		<property name="poolSize" value="8"/>

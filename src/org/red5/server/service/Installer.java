@@ -159,7 +159,6 @@ public class Installer {
 			}
 
 			org.red5.server.api.service.ServiceUtils.invokeOnConnection(conn, "onAlert", new Object[]{String.format("Application %s already installed, please un-install before attempting another install", application)});			
-			return false;
 		} else {
 			//use the system temp directory for moving files around
 			String srcDir = System.getProperty("java.io.tmpdir");
@@ -230,19 +229,20 @@ public class Installer {
 			if (result) {
     			//un-archive it to app dir
     			FileUtil.unzip(srcDir + '/' + applicationWarName, contextDir);
+    			
+    			//get the webapp loader
+    			LoaderMBean loader = getLoader();
+    			if (loader != null) {
+    				//load and start the context
+    				loader.startWebApplication(application);	
+    			}	
 			}			
+
+			org.red5.server.api.service.ServiceUtils.invokeOnConnection(conn, "onAlert", new Object[]{String.format("Application %s was %s", application, (result ? "installed" : "not installed"))});
+		
 		}
 		appDir = null;
 				
-		//get the webapp loader
-		LoaderMBean loader = getLoader();
-		if (loader != null) {
-			//load and start the context
-			loader.startWebApplication(application);	
-		}	
-
-		org.red5.server.api.service.ServiceUtils.invokeOnConnection(conn, "onAlert", new Object[]{String.format("Application %s was %s", application, (result ? "installed" : "not installed"))});
-		
 		return result;		
 	}
 	
@@ -253,6 +253,8 @@ public class Installer {
 	 * @return
 	 */
 	public boolean uninstall(String applicationName) {
+		org.red5.server.api.service.ServiceUtils.invokeOnConnection(Red5.getConnectionLocal(), "onAlert", new Object[]{"Uninstall function not available"});
+
 		return false;
 	}	
 	
