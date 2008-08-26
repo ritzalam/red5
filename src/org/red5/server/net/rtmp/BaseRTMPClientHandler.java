@@ -436,9 +436,6 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 		log.debug("publish stream {}, name: {}, mode {}", new Object[] {
 				streamId, name, mode });
 		RTMPConnection conn = connManager.getConnection();
-		if (conn == null) {
-			log.info("Connection was null ?");
-		}
 		Object[] params = new Object[2];
 		params[0] = name;
 		params[1] = mode;
@@ -450,6 +447,13 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 				streamData.handler = handler;
 			}
 		}
+	}
+
+	public void unpublish(int streamId) {
+		log.debug("unpublish stream {}", streamId);
+		PendingCall pendingCall = new PendingCall("publish",
+				new Object[] { false });
+		connManager.getConnection().invoke(pendingCall, (streamId - 1) * 5 + 4);
 	}
 
 	public void publishStreamData(int streamId, IMessage message) {
@@ -532,9 +536,9 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 			return;
 		}
 
-		//potentially used twice so get the value once
+		// potentially used twice so get the value once
 		boolean onStatus = call.getServiceMethodName().equals("onStatus");
-		
+
 		if (onStatus) {
 			// XXX better to serialize ObjectMap to Status object
 			ObjectMap objMap = (ObjectMap) call.getArguments()[0];

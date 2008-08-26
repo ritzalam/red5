@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * A RTMPT client / session.
- *
+ * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
  */
@@ -60,15 +60,16 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 	protected volatile byte pollingDelay = INITIAL_POLLING_DELAY;
 
 	/**
-	 * Empty result counter, after reaching INCREASE_POLLING_DELAY_COUNT polling delay will increase 
+	 * Empty result counter, after reaching INCREASE_POLLING_DELAY_COUNT polling
+	 * delay will increase
 	 */
 	protected volatile long noPendingMessages;
 
 	/**
 	 * Servlet that created this connection.
 	 */
-	protected RTMPTServlet servlet;	
-	
+	protected RTMPTServlet servlet;
+
 	/** Constructs a new RTMPTConnection. */
 	RTMPTConnection() {
 		super(POLLING);
@@ -76,8 +77,9 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 
 	/**
 	 * Setter for RTMP events handler
-	 *
-	 * @param handler  Handler
+	 * 
+	 * @param handler
+	 *            Handler
 	 */
 	void setRTMPTHandler(RTMPTHandler handler) {
 		this.state = new RTMP(RTMP.MODE_SERVER);
@@ -112,14 +114,16 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 	/** {@inheritDoc} */
 	@Override
 	protected void onInactive() {
+		log.debug("Inactive connection id: {}, closing", getId());
 		close();
 		realClose();
 	}
 
 	/**
 	 * Setter for servlet request.
-	 *
-	 * @param request  Servlet request
+	 * 
+	 * @param request
+	 *            Servlet request
 	 */
 	public void setServletRequest(HttpServletRequest request) {
 		host = request.getLocalName();
@@ -130,7 +134,7 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 
 	/**
 	 * Return the polling delay to use.
-	 *
+	 * 
 	 * @return the polling delay
 	 */
 	public byte getPollingDelay() {
@@ -146,7 +150,7 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 	 * {@inheritDoc}
 	 */
 	public ByteBuffer getPendingMessages(int targetSize) {
-		long currentPendingMessages = getPendingMessages(); 
+		long currentPendingMessages = getPendingMessages();
 		if (currentPendingMessages == 0) {
 			this.noPendingMessages += 1;
 			if (this.noPendingMessages > INCREASE_POLLING_DELAY_COUNT) {

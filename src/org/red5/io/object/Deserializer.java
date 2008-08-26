@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
 public class Deserializer {
 
 	// Initialize Logging
-	protected static Logger log = LoggerFactory.getLogger(Deserializer.class);
+	private static final Logger log = LoggerFactory.getLogger(Deserializer.class);
 
 	/**
 	 * Deserializes the input parameter and returns an Object

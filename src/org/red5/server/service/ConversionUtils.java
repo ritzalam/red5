@@ -47,7 +47,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ConversionUtils {
 
-	protected static Logger log = LoggerFactory.getLogger(Deserializer.class);
+	private static final Logger log = LoggerFactory.getLogger(Deserializer.class);
 
 	private static final Class<?>[] PRIMITIVES = { boolean.class, byte.class,
 			char.class, short.class, int.class, long.class, float.class,

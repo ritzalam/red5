@@ -121,8 +121,7 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants,
 			final IClientStream stream = conn.getStreamById(header
 					.getStreamId());
 
-			log.debug("Message received, Header: {}, Channel: {}", header,
-					channel);
+			log.debug("Message received, header: {}", header);
 
 			// Thread local performance ? Should we benchmark
 			Red5.setConnectionLocal(conn);

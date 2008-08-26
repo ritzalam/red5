@@ -9,12 +9,17 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.net.rtmpt.RTMPTConnection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
 public class RTMPConnManager implements IRTMPConnManager,
 		ApplicationContextAware {
+	
+	private static final Logger log = LoggerFactory.getLogger(RTMPConnManager.class);
+	
 	private ConcurrentMap<Integer, RTMPConnection> connMap = new ConcurrentHashMap<Integer, RTMPConnection>();
 
 	private ReadWriteLock lock = new ReentrantReadWriteLock();
@@ -43,6 +48,7 @@ public class RTMPConnManager implements IRTMPConnManager,
 					}
 					offset++;
 				}
+				log.debug("Connection created, id: {}", conn.getId());
 			} finally {
 				lock.writeLock().unlock();
 			}
@@ -64,6 +70,7 @@ public class RTMPConnManager implements IRTMPConnManager,
 	public RTMPConnection removeConnection(int clientId) {
 		lock.writeLock().lock();
 		try {
+			log.debug("Removing connection with id: {}", clientId);
 			return connMap.remove(clientId);
 		} finally {
 			lock.writeLock().unlock();
