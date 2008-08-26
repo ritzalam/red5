@@ -467,6 +467,9 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 			// XXX better to serialize ObjectMap to Status object 
 			ObjectMap objMap = (ObjectMap) call.getArguments()[0];
 			Integer clientId = (Integer) objMap.get("clientid");
+			if (clientId == null) {
+				clientId = source.getStreamId();
+			}
 			NetStreamPrivateData streamData = streamDataMap.get(clientId);
 			if (streamData != null && streamData.handler != null) {
 				streamData.handler.onStreamEvent(invoke);
