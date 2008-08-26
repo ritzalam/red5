@@ -37,13 +37,15 @@ import org.slf4j.LoggerFactory;
  * @author Joachim Bauch (jojo@struktur.de)
  * @author Paul Gregoire (mondain@gmail.com)
  * @author Steven Gong (steven.gong@gmail.com)
- *
+ * @author Anton Lebedevich (mabrek@gmail.com)
  */
 public class RTMPClient extends BaseRTMPClientHandler {
     /**
      * Logger
      */
 	private static final Logger log = LoggerFactory.getLogger(RTMPClient.class);
+	
+	private static final int CONNECTOR_WORKER_TIMEOUT = 7; // seconds
 	
 	/**
      * I/O handler
@@ -74,6 +76,7 @@ public class RTMPClient extends BaseRTMPClientHandler {
 	@Override
 	protected void startConnector(String server, int port) {
 		SocketConnector connector = new SocketConnector();
+		connector.setWorkerTimeout(CONNECTOR_WORKER_TIMEOUT);
 		connector.connect(new InetSocketAddress(server, port), ioHandler).addListener(
 				new IoFutureListener() {
 					public void operationComplete(IoFuture future) {

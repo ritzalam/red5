@@ -180,7 +180,7 @@ public class Header implements Constants, Externalizable {
 		sb.append("ChannelId: ").append(channelId).append(", ");
 		sb.append("Timer: ").append(timer).append(" (" + (timerRelative ? "relative" : "absolute") + ')').append(", ");
 		sb.append("Size: ").append(size).append(", ");
-		sb.append("DateType: ").append(dataType).append(", ");
+		sb.append("DataType: ").append(dataType).append(", ");
 		sb.append("StreamId: ").append(streamId);
 		return sb.toString();
 	}

@@ -334,7 +334,7 @@ public class TomcatLoader extends LoaderBase implements
 		// set connection properties
 		for (String key : connectionProperties.keySet()) {
 			log.debug("Setting connection property: {} = {}", key, connectionProperties.get(key));
-			connector.setProperty(connectionProperties.get(key), key);
+			connector.setProperty(key, connectionProperties.get(key));
 		}
 		
 		// Add new Connector to set of Connectors for embedded server,

@@ -53,56 +53,63 @@ import org.springframework.context.ApplicationContextAware;
 
 /**
  * Base class for all RTMP handlers.
- *
+ * 
  * @author The Red5 Project (red5@osflash.org)
  */
-public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, StatusCodes, ApplicationContextAware {
-    /**
-     * Logger
-     */
-	protected static Logger log = LoggerFactory.getLogger(BaseRTMPHandler.class);
+public abstract class BaseRTMPHandler implements IRTMPHandler, Constants,
+		StatusCodes, ApplicationContextAware {
+	/**
+	 * Logger
+	 */
+	protected static Logger log = LoggerFactory
+			.getLogger(BaseRTMPHandler.class);
 
-    /**
-     * Application context
-     */
+	/**
+	 * Application context
+	 */
 	protected ApplicationContext appCtx;
 
 	// XXX: HACK HACK HACK to support stream ids
 	private static ThreadLocal<Integer> streamLocal = new ThreadLocal<Integer>();
 
 	/**
-     * Getter for stream ID.
-     *
-     * @return  Stream ID
-     */ // XXX: HACK HACK HACK to support stream ids
+	 * Getter for stream ID.
+	 * 
+	 * @return Stream ID
+	 */
+	// XXX: HACK HACK HACK to support stream ids
 	public static int getStreamId() {
 		return streamLocal.get().intValue();
 	}
 
 	/**
-     * Setter for stream Id.
-     *
-     * @param id  Stream id
-     */
-    private static void setStreamId(int id) {
+	 * Setter for stream Id.
+	 * 
+	 * @param id
+	 *            Stream id
+	 */
+	private static void setStreamId(int id) {
 		streamLocal.set(id);
 	}
 
 	/** {@inheritDoc} */
-    public void setApplicationContext(ApplicationContext appCtx) throws BeansException {
+	public void setApplicationContext(ApplicationContext appCtx)
+			throws BeansException {
 		this.appCtx = appCtx;
 	}
 
 	/** {@inheritDoc} */
-    public void connectionOpened(RTMPConnection conn, RTMP state) {
+	public void connectionOpened(RTMPConnection conn, RTMP state) {
 		if (state.getMode() == RTMP.MODE_SERVER && appCtx != null) {
-			ISchedulingService service = (ISchedulingService) appCtx.getBean(ISchedulingService.BEAN_NAME);
+			ISchedulingService service = (ISchedulingService) appCtx
+					.getBean(ISchedulingService.BEAN_NAME);
 			conn.startWaitForHandshake(service);
 		}
 	}
 
 	/** {@inheritDoc} */
-    public void messageReceived(RTMPConnection conn, ProtocolState state, Object in) throws Exception {
+	public void messageReceived(RTMPConnection conn, ProtocolState state,
+			Object in) throws Exception {
 
 		IRTMPEvent message = null;
 		try {
@@ -114,11 +121,8 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 			final IClientStream stream = conn.getStreamById(header
 					.getStreamId());
 
-			if (log.isDebugEnabled()) {
-				log.debug("Message recieved");
-				log.debug("Stream Id: " + header);
-				log.debug("Channel: " + channel);
-			}
+			log.debug("Message received, Header: {}, Channel: {}", header,
+					channel);
 
 			// Thread local performance ? Should we benchmark
 			Red5.setConnectionLocal(conn);
@@ -129,9 +133,9 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 			// Increase number of received messages
 			conn.messageReceived();
 
-			//if (message instanceof IRTMPEvent) {
+			// if (message instanceof IRTMPEvent) {
 			message.setSource(conn);
-			//}
+			// }
 
 			switch (header.getDataType()) {
 				case TYPE_CHUNK_SIZE:
@@ -140,10 +144,12 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 
 				case TYPE_INVOKE:
 				case TYPE_FLEX_MESSAGE:
-					onInvoke(conn, channel, header, (Invoke) message, (RTMP) state);
-					if(message.getHeader().getStreamId()!=0
-							&& ((Invoke)message).getCall().getServiceName()==null
-							&& ACTION_PUBLISH.equals(((Invoke) message).getCall().getServiceMethodName())) {
+					onInvoke(conn, channel, header, (Invoke) message,
+							(RTMP) state);
+					if (message.getHeader().getStreamId() != 0
+							&& ((Invoke) message).getCall().getServiceName() == null
+							&& ACTION_PUBLISH.equals(((Invoke) message)
+									.getCall().getServiceMethodName())) {
 						if (stream != null) {
 							// Only dispatch if stream really was created
 							((IEventDispatcher) stream).dispatchEvent(message);
@@ -156,16 +162,17 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 						// Stream metadata
 						((IEventDispatcher) stream).dispatchEvent(message);
 					} else {
-						onInvoke(conn, channel, header, (Notify) message, (RTMP) state);
+						onInvoke(conn, channel, header, (Notify) message,
+								(RTMP) state);
 					}
 					break;
-					
+
 				case TYPE_FLEX_STREAM_SEND:
 					if (stream != null) {
 						((IEventDispatcher) stream).dispatchEvent(message);
 					}
 					break;
-					
+
 				case TYPE_PING:
 					onPing(conn, channel, header, (Ping) message);
 					break;
@@ -180,9 +187,10 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 					// log.info("in packet: "+source.getSize()+"
 					// ts:"+source.getTimer());
 
-					// NOTE: If we respond to "publish" with "NetStream.Publish.BadName",
-					// the client sends a few stream packets before stopping. We need to
-					// ignore them.
+					// NOTE: If we respond to "publish" with
+					// "NetStream.Publish.BadName",
+					// the client sends a few stream packets before stopping. We
+					// need to ignore them.
 					if (stream != null)
 						((IEventDispatcher) stream).dispatchEvent(message);
 					break;
@@ -206,7 +214,7 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 	}
 
 	/** {@inheritDoc} */
-    public void messageSent(RTMPConnection conn, Object message) {
+	public void messageSent(RTMPConnection conn, Object message) {
 		log.debug("Message sent");
 
 		if (message instanceof ByteBuffer) {
@@ -227,17 +235,18 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 	}
 
 	/** {@inheritDoc} */
-    public void connectionClosed(RTMPConnection conn, RTMP state) {
+	public void connectionClosed(RTMPConnection conn, RTMP state) {
 		state.setState(RTMP.STATE_DISCONNECTED);
 		conn.close();
 	}
 
-    /**
-     * Return hostname for URL.
-	 *
-     * @param url          URL
-     * @return             Hostname from that URL
-     */
+	/**
+	 * Return hostname for URL.
+	 * 
+	 * @param url
+	 *            URL
+	 * @return Hostname from that URL
+	 */
 	protected String getHostname(String url) {
 		log.debug("url: {}", url);
 		String[] parts = url.split("/");
@@ -249,24 +258,32 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 		}
 	}
 
-    /**
-     * Chunk size change event handler. Abstract, to be implemented in subclasses.
-	 *
-     * @param conn         Connection
-     * @param channel      Channel
-     * @param source       Header
-     * @param chunkSize    New chunk size
-     */
-    protected abstract void onChunkSize(RTMPConnection conn, Channel channel,
-                                        Header source, ChunkSize chunkSize);
+	/**
+	 * Chunk size change event handler. Abstract, to be implemented in
+	 * subclasses.
+	 * 
+	 * @param conn
+	 *            Connection
+	 * @param channel
+	 *            Channel
+	 * @param source
+	 *            Header
+	 * @param chunkSize
+	 *            New chunk size
+	 */
+	protected abstract void onChunkSize(RTMPConnection conn, Channel channel,
+			Header source, ChunkSize chunkSize);
 
-    /**
-     * Handler for pending call result. Dispatches results to all pending call handlers.
-	 *
-     * @param conn         Connection
-     * @param invoke       Pending call result event context
-     */
-    protected void handlePendingCallResult(RTMPConnection conn, Notify invoke) {
+	/**
+	 * Handler for pending call result. Dispatches results to all pending call
+	 * handlers.
+	 * 
+	 * @param conn
+	 *            Connection
+	 * @param invoke
+	 *            Pending call result event context
+	 */
+	protected void handlePendingCallResult(RTMPConnection conn, Notify invoke) {
 		final IServiceCall call = invoke.getCall();
 		final IPendingServiceCall pendingCall = conn.retrievePendingCall(invoke
 				.getInvokeId());
@@ -278,67 +295,84 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 				pendingCall.setResult(args[0]);
 			}
 
-			Set<IPendingServiceCallback> callbacks = pendingCall
-					.getCallbacks();
+			Set<IPendingServiceCallback> callbacks = pendingCall.getCallbacks();
 			if (!callbacks.isEmpty()) {
 				HashSet<IPendingServiceCallback> tmp = new HashSet<IPendingServiceCallback>();
 				tmp.addAll(callbacks);
-	            for (IPendingServiceCallback callback : tmp) {
-	                try {
-	                    callback.resultReceived(pendingCall);
-	                } catch (Exception e) {
-	                    log.error("Error while executing callback {} {}", callback, e);
-	                }
-	            }
+				for (IPendingServiceCallback callback : tmp) {
+					try {
+						callback.resultReceived(pendingCall);
+					} catch (Exception e) {
+						log.error("Error while executing callback {} {}",
+								callback, e);
+					}
+				}
 			}
-        }
+		}
 	}
 
-    /**
-     * Invocation event handler.
-	 *
-     * @param conn         Connection
-     * @param channel      Channel
-     * @param source       Header
-     * @param invoke       Invocation event context
-     * @param rtmp		   RTMP connection state
-     */
-    protected abstract void onInvoke(RTMPConnection conn, Channel channel,
+	/**
+	 * Invocation event handler.
+	 * 
+	 * @param conn
+	 *            Connection
+	 * @param channel
+	 *            Channel
+	 * @param source
+	 *            Header
+	 * @param invoke
+	 *            Invocation event context
+	 * @param rtmp
+	 *            RTMP connection state
+	 */
+	protected abstract void onInvoke(RTMPConnection conn, Channel channel,
 			Header source, Notify invoke, RTMP rtmp);
 
-    /**
-     * Ping event handler.
-	 *
-     * @param conn         Connection
-     * @param channel      Channel
-     * @param source       Header
-     * @param ping         Ping event context
-     */
+	/**
+	 * Ping event handler.
+	 * 
+	 * @param conn
+	 *            Connection
+	 * @param channel
+	 *            Channel
+	 * @param source
+	 *            Header
+	 * @param ping
+	 *            Ping event context
+	 */
 	protected abstract void onPing(RTMPConnection conn, Channel channel,
 			Header source, Ping ping);
 
-    /**
-     * Stream bytes read event handler.
-	 *
-     * @param conn              Connection
-     * @param channel           Channel
-     * @param source            Header
-     * @param streamBytesRead   Bytes read event context
-     */
-    protected void onStreamBytesRead(RTMPConnection conn, Channel channel,
+	/**
+	 * Stream bytes read event handler.
+	 * 
+	 * @param conn
+	 *            Connection
+	 * @param channel
+	 *            Channel
+	 * @param source
+	 *            Header
+	 * @param streamBytesRead
+	 *            Bytes read event context
+	 */
+	protected void onStreamBytesRead(RTMPConnection conn, Channel channel,
 			Header source, BytesRead streamBytesRead) {
 		conn.receivedBytesRead(streamBytesRead.getBytesRead());
 	}
 
-    /**
-     * Shared object event handler.
-	 *
-     * @param conn              Connection
-     * @param channel           Channel
-     * @param source            Header
-     * @param object            Shared object event context
-     */
-	protected abstract void onSharedObject(RTMPConnection conn, Channel channel,
-			Header source, SharedObjectMessage object);
+	/**
+	 * Shared object event handler.
+	 * 
+	 * @param conn
+	 *            Connection
+	 * @param channel
+	 *            Channel
+	 * @param source
+	 *            Header
+	 * @param object
+	 *            Shared object event context
+	 */
+	protected abstract void onSharedObject(RTMPConnection conn,
+			Channel channel, Header source, SharedObjectMessage object);
 
 }

@@ -19,24 +19,28 @@ package org.red5.server.net.rtmpt;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.List;
 import java.io.IOException;
+import java.util.List;
 
 import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpMethod;
+import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.HttpVersion;
-import org.apache.commons.httpclient.params.HttpClientParams;
 import org.apache.commons.httpclient.methods.ByteArrayRequestEntity;
-import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
+import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.params.HttpClientParams;
 import org.apache.mina.common.ByteBuffer;
+import org.red5.server.net.rtmp.RTMPClientConnManager;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.message.Constants;
-import org.red5.server.net.rtmp.RTMPClientConnManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @author Anton Lebedevich
+ * Client connector for RTMPT
+ * 
+ * @author Anton Lebedevich (mabrek@gmail.com)
  */
 class RTMPTClientConnector extends Thread {
 	private static final Logger log = LoggerFactory
@@ -65,7 +69,7 @@ class RTMPTClientConnector extends Thread {
 	private int clientId;
 
 	private long messageCount = 1;
-	
+
 	private volatile boolean stopRequested = false;
 
 	public RTMPTClientConnector(String server, int port, RTMPTClient client) {
@@ -102,6 +106,9 @@ class RTMPTClientConnector extends Thread {
 					post.setRequestEntity(ZERO_REQUEST_ENTITY);
 				}
 				httpClient.executeMethod(post);
+
+				checkResponseCode(post);
+
 				byte[] received = post.getResponseBody();
 
 				ByteBuffer data = ByteBuffer.allocate(received.length);
@@ -150,6 +157,8 @@ class RTMPTClientConnector extends Thread {
 
 		httpClient.executeMethod(openPost);
 
+		checkResponseCode(openPost);
+
 		String response = openPost.getResponseBodyAsString();
 		clientId = Integer.parseInt(response
 				.substring(0, response.length() - 1));
@@ -197,6 +206,21 @@ class RTMPTClientConnector extends Thread {
 	private void setCommonHeaders(PostMethod post) {
 		post.setRequestHeader("Connection", "Keep-Alive");
 		post.setRequestHeader("Cache-Control", "no-cache");
+	}
+
+	private void checkResponseCode(HttpMethod method) {
+		if (method.getStatusCode() != HttpStatus.SC_OK) {
+			try {
+				String body = method.getResponseBodyAsString();
+				throw new RuntimeException("Bad HTTP status returned, line: "
+						+ method.getStatusLine() + "; body: " + body);
+			} catch (IOException e) {
+				throw new RuntimeException("Bad HTTP status returned, line: "
+						+ method.getStatusLine()
+						+ "; in addition IOException occured on reading body",
+						e);
+			}
+		}
 	}
 
 	public void setStopRequested(boolean stopRequested) {
