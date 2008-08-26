@@ -80,7 +80,6 @@ public class FilePersistenceThread implements Runnable {
 	 * Create instance of the thread.
 	 */
 	private FilePersistenceThread() {
-		super();
 		if (instance != null) {
 			log.error("Instance was not null, this is not a good sign");
 		}

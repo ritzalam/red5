@@ -1,6 +1,9 @@
 package org.red5.server;
 
+import java.lang.ref.WeakReference;
+import java.util.AbstractList;
 import java.util.ArrayList;
+import java.util.Collection;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -22,12 +25,48 @@ import java.util.ArrayList;
  */
 
 /**
+ * Client list, implemented using weak references to prevent memory leaks.
+ * 
+ * @author Paul Gregoire (mondain@gmail.com)
  */
-public class ClientList<E> extends ArrayList<E> implements ListMBean {
+public class ClientList<E> extends AbstractList<E> implements ListMBean {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -3127064371410565214L;
+	private static final long serialVersionUID = -3127064371410565215L;
 
+    private ArrayList<WeakReference<E>> items;
+	
+    public ClientList() {
+        items = new ArrayList<WeakReference<E>>();
+    }
+    
+    public ClientList(Collection<E> c) {
+        items = new ArrayList<WeakReference<E>>();
+        addAll(0, c);
+    }
+    
+	public boolean add(E element) {
+		return items.add(new WeakReference<E>(element));		
+	}
+
+	public void add(int index, E element) {
+		items.add(index, new WeakReference<E>(element));
+    }
+        
+    public int size() {
+        removeReleased();
+        return items.size();
+    }    
+    
+    public E get(int index) {
+        return ((WeakReference<E>) items.get(index)).get();
+    }
+    
+    private void removeReleased() {
+    	for (WeakReference<E> ref : items) {
+            if (ref.get() == null) {
+            	items.remove(ref);
+            }
+    	}
+    }	
+	
 }

@@ -115,12 +115,11 @@ public class SharedObjectService implements ISharedObjectService {
 	/** {@inheritDoc} */
 	public boolean createSharedObject(IScope scope, String name,
 			boolean persistent) {
+		if (hasSharedObject(scope, name)) {
+			// The shared object already exists.
+			return true;
+		}
 		synchronized (scope) {
-			if (hasSharedObject(scope, name)) {
-				// The shared object already exists.
-				return true;
-			}
-
 			final IBasicScope soScope = new SharedObjectScope(scope, name,
 					persistent, getStore(scope, persistent));
 			return scope.addChildScope(soScope);
@@ -167,20 +166,16 @@ public class SharedObjectService implements ISharedObjectService {
 				// with the instance
 				// if (name.equals('/')) {
 				// /foo/bar clears the shared object /foo/bar; if bar is a
-				// directory
-				// name, no shared objects are deleted.
+				// directory name, no shared objects are deleted.
 				// if (name.equals('/')) {
 				// /foo/bar/* clears all shared objects stored under the
-				// instance
-				// directory /foo/bar. The bar directory is also deleted if no
+				// instance directory /foo/bar. The bar directory is also deleted if no
 				// persistent shared objects are in use within this namespace.
 				// if (name.equals('/')) {
 				// /foo/bar/XX?? clears all shared objects that begin with XX,
 				// followed by any two characters. If a directory name matches
-				// this
-				// specification, all the shared objects within this directory
-				// are
-				// cleared.
+				// this specification, all the shared objects within this directory
+				// are cleared.
 				// if (name.equals('/')) {
 				// }
 				result = ((ISharedObject) scope.getBasicScope(TYPE, name))

@@ -175,8 +175,12 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 		return creationTime;
 	}
 
+	public void setId(String id) {
+		this.id = id;
+	}
+
 	/**
-	 *
+	 * Returns the client id
 	 * @return
 	 */
 	public String getId() {

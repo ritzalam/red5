@@ -104,6 +104,7 @@ public class FilePersistence extends RamPersistence {
 		Resource rootFile = resources.getResource(path);
 		try {
 			rootDir = rootFile.getFile().getAbsolutePath();
+			log.debug("Root dir: {} path: {}", rootDir, path);
             this.path = path;
         } catch (IOException err) {
             log.error("I/O exception thrown when setting file path to " + path);
@@ -204,17 +205,17 @@ public class FilePersistence extends RamPersistence {
 			File fp = data.getFile();
 			if (fp.length() == 0) {
 				// File is empty
-				log.error("The file at " + data.getFilename() + " is empty.");
+				log.error("The file at {} is empty.", data.getFilename());
 				return null;
 			}
 
 			filename = fp.getAbsolutePath();
 			input = new FileInputStream(filename);
 		} catch (FileNotFoundException e) {
-			log.error("The file at " + data.getFilename() + " does not exist.");
+			log.error("The file at {} does not exist.", data.getFilename());
 			return null;
 		} catch (IOException e) {
-			log.error("Could not load file from " + data.getFilename() + '.', e);
+			log.error("Could not load file from {}.", data.getFilename(), e);
 			return null;
 		}
 
@@ -257,13 +258,13 @@ public class FilePersistence extends RamPersistence {
 							result.deserialize(in);
 						}
 					} catch (ClassNotFoundException cnfe) {
-						log.error("Unknown class " + className);
+						log.error("Unknown class {}", className);
 						return null;
 					} catch (IllegalAccessException iae) {
 						log.error("Illegal access.", iae);
 						return null;
 					} catch (InstantiationException ie) {
-						log.error("Could not instantiate class " + className);
+						log.error("Could not instantiate class {}", className);
 						return null;
 					}
 
@@ -274,8 +275,7 @@ public class FilePersistence extends RamPersistence {
 					// Initialize existing object
 					String resultClass = result.getClass().getName();
 					if (!resultClass.equals(className)) {
-						log.error("The classes differ: " + resultClass + " != "
-								+ className);
+						log.error("The classes differ: {} != {}", resultClass, className);
 						return null;
 					}
 
@@ -289,11 +289,9 @@ public class FilePersistence extends RamPersistence {
 				result.setStore(this);
 			}
 			super.save(result);
-			if (log.isDebugEnabled()) {
-				log.debug("Loaded persistent object " + result + " from " + filename);
-			}
+			log.debug("Loaded persistent object {} from {}", result, filename);
 		} catch (IOException e) {
-			log.error("Could not load file at " + filename);
+			log.error("Could not load file at {}", filename);
 			return null;
 		}
 
@@ -335,12 +333,12 @@ public class FilePersistence extends RamPersistence {
 		try {
 			file = resPath.getFile();
 		} catch (IOException err) {
-			log.error("Could not create resource file for path " + path, err);
+			log.error("Could not create resource file for path {}", path, err);
 			return false;
 		}
 
 		if (!file.isDirectory() && !file.mkdirs()) {
-			log.error("Could not create directory " + file.getAbsolutePath());
+			log.error("Could not create directory {}", file.getAbsolutePath());
 			return false;
 		}
 
@@ -373,12 +371,10 @@ public class FilePersistence extends RamPersistence {
 				buf.release();
 				buf = null;
 			}
-			if (log.isDebugEnabled()) {
-				log.debug("Stored persistent object " + object + " at " + filename);
-			}
+			log.debug("Stored persistent object {} at {}", object, filename);
 			return true;
 		} catch (IOException e) {
-			log.error("Could not create / write file " + filename, e);
+			log.error("Could not create / write file {}", filename, e);
 			return false;
 		}
 	}

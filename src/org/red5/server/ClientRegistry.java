@@ -19,11 +19,11 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.management.MalformedObjectNameException;
@@ -83,14 +83,24 @@ public class ClientRegistry implements IClientRegistry, ClientRegistryMBean {
 	 * @param client           Client to add
 	 */
 	protected void addClient(IClient client) {
-		clients.put(client.getId(), client);
+		addClient(client.getId(), client);
 	}
 	
 	/**
 	 * Add the client to the registry
 	 */
 	private void addClient(String id, IClient client) {
-		clients.put(id, client);
+	    //check to see if the id already exists first
+	    if (!hasClient(id)) {
+		    clients.put(id, client);
+		} else {
+		    //get the next available client id
+		    String newId = nextId();
+		    //update the client
+		    client.setId(newId);
+		    //add the client to the list
+		    addClient(newId, client);		    
+		}
 	}	
 
 	public Client getClient(String id) throws ClientNotFoundException {
