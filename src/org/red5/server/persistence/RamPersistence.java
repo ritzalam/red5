@@ -20,9 +20,9 @@ package org.red5.server.persistence;
  */
 
 import java.util.Collection;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.red5.server.api.IScope;
 import org.red5.server.api.ScopeUtils;
@@ -46,7 +46,7 @@ public class RamPersistence implements IPersistenceStore {
     /**
      * Map for persistable objects
      */
-    protected Map<String, IPersistable> objects = new ConcurrentHashMap<String, IPersistable>();
+    protected ConcurrentMap<String, IPersistable> objects = new ConcurrentHashMap<String, IPersistable>();
 
     /**
      * Resource pattern resolver. Resolves resources from patterns, loads resources.
@@ -153,14 +153,12 @@ public class RamPersistence implements IPersistenceStore {
 
 	/** {@inheritDoc} */
     public boolean remove(String name) {
-    	synchronized (objects) {
-			if (!objects.containsKey(name)) {
-				return false;
-			}
+		if (!objects.containsKey(name)) {
+			return false;
+		}
 	
-			IPersistable object = objects.remove(name);
-			object.setPersistent(false);
-    	}
+		IPersistable object = objects.remove(name);
+		object.setPersistent(false);
 		return true;
 	}
 

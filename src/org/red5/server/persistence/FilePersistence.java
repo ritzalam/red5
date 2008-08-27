@@ -137,19 +137,54 @@ public class FilePersistence extends RamPersistence {
      * @return                Path on disk
      */
     private String getObjectFilepath(IPersistable object, boolean completePath) {
-		String result = path + '/' + object.getType() + '/' + object.getPath();
-		if (!result.endsWith("/")) {
-			result += '/';
+		StringBuilder result = new StringBuilder(path);
+		result.append('/');
+		result.append(object.getType());
+		result.append('/');
+		
+		String objectPath = object.getPath();
+		log.debug("Object path: {}", objectPath);
+		result.append(objectPath);	
+		if (!objectPath.endsWith("/")) {
+		    result.append('/');
 		}
 
 		if (completePath) {
 			String name = object.getName();
+			log.debug("Object name: {}", name);
 			int pos = name.lastIndexOf('/');
 			if (pos >= 0) {
-				result += name.substring(0, pos);
+				result.append(name.substring(0, pos));
 			}
 		}
-		return result;
+		
+		//fix up path
+        int idx = -1;
+        if (File.separatorChar != '/') {
+            while ((idx = result.indexOf(File.separator)) != -1) {
+                result.deleteCharAt(idx);
+                result.insert(idx, '/');
+            }
+        }
+        if (log.isDebugEnabled()) {
+        	log.debug("Path step 1: {}", result.toString());
+        }
+        //remove any './'
+        if ((idx = result.indexOf("./")) != -1) {
+        	result.delete(idx, idx + 2);
+        }   		
+        if (log.isDebugEnabled()) {
+        	log.debug("Path step 2: {}", result.toString());
+        }	
+        //remove any '//'
+        while ((idx = result.indexOf("//")) != -1) {
+        	result.deleteCharAt(idx);
+        }   		
+        if (log.isDebugEnabled()) {
+        	log.debug("Path step 3: {}", result.toString());
+        }	
+
+		return result.toString();
 	}
 
 	/** {@inheritDoc} */
@@ -327,56 +362,88 @@ public class FilePersistence extends RamPersistence {
      * @return                 <code>true</code> on success, <code>false</code> otherwise
      */
     protected boolean saveObject(IPersistable object) {
+        boolean result = true;
 		String path = getObjectFilepath(object, true);
+		log.debug("Path: {}", path);
 		Resource resPath = resources.getResource(path);
-		File file;
+		boolean exists = resPath.exists();
+		log.debug("Resource (dir) check #1 - file name: {} exists: {}", resPath.getFilename(), exists);
+		File dir = null;
 		try {
-			file = resPath.getFile();
+		    if (!exists) {
+		        resPath = resources.getResource("classpath:" + path);
+		        exists = resPath.exists();
+		        log.debug("Resource (dir) check #2 - file name: {} exists: {}", resPath.getFilename(), exists);
+		        if (!exists) {
+		            StringBuilder root = new StringBuilder(rootDir);
+		            //fix up path
+                    int idx = -1;
+                    if (File.separatorChar != '/') {
+                        while ((idx = root.indexOf(File.separator)) != -1) {
+                            root.deleteCharAt(idx);
+                            root.insert(idx, '/');
+                        }
+                    }		            
+		            resPath = resources.getResource("file://" + root.toString() + path.substring(11));
+		            exists = resPath.exists();
+		            log.debug("Resource (dir) check #3 - file name: {} exists: {}", resPath.getFilename(), exists);
+    		    }
+		    }
+			dir = resPath.getFile();
+		    if (!dir.isDirectory() && !dir.mkdirs()) {
+			    log.error("Could not create directory {}", dir.getAbsolutePath());
+			    result = false;
+		    }
 		} catch (IOException err) {
 			log.error("Could not create resource file for path {}", path, err);
-			return false;
+			err.printStackTrace();
+			result = false;
 		}
-
-		if (!file.isDirectory() && !file.mkdirs()) {
-			log.error("Could not create directory {}", file.getAbsolutePath());
-			return false;
-		}
-
-		String filename = getObjectFilename(object);
-		Resource resFile = resources.getResource(filename);
-		try {
-			ByteBuffer buf;
-			int initialSize = 8192;
-			if (resFile.exists()) {
-				try {
-					// We likely also need the original file size when writing object
-					initialSize += (int) resFile.getFile().length();
-				} catch (IOException e) {
-					// Ignore errors while determining file size
-				}
-			}
-			buf = ByteBuffer.allocate(initialSize);
-			try {
+        
+        //if we made it this far and everything seems ok
+        if (result) {
+    		String filename = getObjectFilename(object);
+    		log.debug("File name: {}", filename);
+    		//strip path
+    		if (filename.indexOf('/') != -1) {
+    		    filename = filename.substring(filename.lastIndexOf('/'));
+    		    log.debug("New file name: {}", filename);
+    		}
+    		File file = new File(dir, filename);
+    		//Resource resFile = resources.getResource(filename);
+    		//log.debug("Resource (file) check #1 - file name: {} exists: {}", resPath.getFilename(), exists);
+   			ByteBuffer buf = null;
+    		try {
+    			int initialSize = 8192;
+    			if (file.exists()) {
+   					// We likely also need the original file size when writing object
+   					initialSize += (int) file.length();
+    			}
+    			buf = ByteBuffer.allocate(initialSize);
 				buf.setAutoExpand(true);
 				Output out = new Output(buf);
 				out.writeString(object.getClass().getName());
 				object.serialize(out);
 				buf.flip();
 
-				FileOutputStream output = new FileOutputStream(resFile
-						.getFile().getAbsolutePath());
+				FileOutputStream output = new FileOutputStream(file.getAbsolutePath());
 				ServletUtils.copy(buf.asInputStream(), output);
 				output.close();
-			} finally {
-				buf.release();
-				buf = null;
-			}
-			log.debug("Stored persistent object {} at {}", object, filename);
-			return true;
-		} catch (IOException e) {
-			log.error("Could not create / write file {}", filename, e);
-			return false;
+    			log.debug("Stored persistent object {} at {}", object, filename);
+    		} catch (IOException e) {
+    			log.error("Could not create / write file {}", filename, e);
+    			e.printStackTrace();
+    			result = false;
+   			} finally {
+   			    if (buf != null) {
+   				    buf.release();
+   				    buf = null;
+   				}
+   				file = null;
+   				dir = null;
+   			}
 		}
+		return result;
 	}
 
 	/** {@inheritDoc} */
