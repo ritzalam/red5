@@ -854,7 +854,7 @@ public class HexDump {
 
 	public static String formatHexDump(String in) {
 		int chunk = 60;
-		StringBuffer out = new StringBuffer();
+		StringBuilder out = new StringBuilder();
 		int from = 0;
 		int to = 0;
 		int size = in.length();

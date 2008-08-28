@@ -95,5 +95,7 @@
         <!-- Crypto -->
         <dependency name="bcprov" rev="jdk16-139" conf="java6->default"/> 
         <dependency name="bcprov" rev="jdk15-139" conf="java5->default"/> 
+        <!-- MP3 -->
+        <dependency name="jaudiotagger" rev="1.0.8" />           
     </dependencies>
 </ivy-module>
