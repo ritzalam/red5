@@ -1,10 +1,14 @@
-<ivy-module version="1.0">
+<?xml version="1.0" encoding="UTF-8"?>
+<ivy-module version="1.3" 
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:noNamespaceSchemaLocation="http://ant.apache.org/ivy/schemas/ivy.xsd">
     <info organisation="red5" module="server" />
 	<configurations>
 	    <conf name="default"/>
 		<conf name="java5" extends="default" description="Java 5 dependencies"/>
 		<conf name="java6" extends="default" description="Java 6 dependencies"/>
-		<conf name="test" extends="default" description="Unit testing dependencies"/>
+		<conf name="utest" extends="eclipse" description="Unit testing dependencies"/>
+		<conf name="eclipse" extends="default" description="Special dependencies in Eclipse"/>
 	</configurations>
     <dependencies>
         <!-- J2EE --> 
@@ -76,13 +80,6 @@
         <dependency name="jruby" rev="1.0.3" conf="java6->default"/>  
         <dependency name="jython" rev="2.2" />  
         <dependency org="spring" name="spring-context-support" rev="2.5.5" />
-        <!-- Testing support -->
-        <dependency name="junit" rev="4.0" conf="test->default"/>
-        <dependency name="groboutils" rev="" conf="test->default"/>
-        <dependency org="spring" name="spring-test" rev="2.5.5" conf="test->default"/>        
-        <dependency name="jython-engine" rev="" conf="test->default"/> 
-        <dependency name="groovy-engine" rev="" conf="test->default"/>
-        <dependency name="jruby-engine" rev="" conf="test->default"/> 
         <!-- Java5 support -->
         <dependency org="rhino" name="js" rev="1.6R7" conf="java5->default"/>
         <dependency name="jsr173_1.0_api" rev="" conf="java5->default"/>
@@ -97,5 +94,12 @@
         <dependency name="bcprov" rev="jdk15-139" conf="java5->default"/> 
         <!-- MP3 -->
         <dependency name="jaudiotagger" rev="1.0.8" />           
+        <!-- Testing support -->
+        <dependency name="junit" rev="4.0" conf="utest->default"/>
+        <dependency name="GroboUtils" rev="4-core" conf="eclipse->default"/>
+        <dependency org="spring" name="spring-test" rev="2.5.5" conf="eclipse,eclipse->utest"/>   
+        <dependency name="jython-engine" rev="" conf="eclipse->utest"/> 
+        <dependency name="groovy-engine" rev="" conf="eclipse->utest"/>
+        <dependency name="jruby-engine" rev="" conf="eclipse->default"/> 
     </dependencies>
 </ivy-module>

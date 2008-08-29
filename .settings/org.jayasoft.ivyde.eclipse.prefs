@@ -1,7 +1,0 @@
-#Wed Aug 20 17:36:32 PDT 2008
-acceptedTypes=[inherited]
-eclipse.preferences.version=1
-ivy_conf_path=file\:ivysettings.xml
-javadocTypes=[inherited]
-retreive.pattern=lib/[artifact]-[revision].[ext]
-sourceTypes=[inherited]

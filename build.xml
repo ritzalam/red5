@@ -200,8 +200,8 @@
 	</target>
 
 	<target name="ivyclear" description="Clears out the Ivy cache">
-        	<delete dir="${user.home}/.ivy/cache"/>
-        	<delete dir="${user.home}/.ivy2/cache"/>
+    	<delete dir="${user.home}/.ivy/cache"/>
+        <delete dir="${user.home}/.ivy2/cache"/>
 		<delete includeemptydirs="true">
 			<fileset dir="${lib.dir}" excludes="**/ivy*.jar"/>
 		</delete>
