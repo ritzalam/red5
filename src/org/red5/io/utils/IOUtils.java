@@ -19,7 +19,11 @@ package org.red5.io.utils;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.nio.CharBuffer;
+import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CharsetEncoder;
 
 import org.apache.mina.common.ByteBuffer;
 import org.slf4j.Logger;
@@ -165,5 +169,5 @@ public class IOUtils {
 		buf.limit(limit);
 		return string;
 	}
-
+    
 }

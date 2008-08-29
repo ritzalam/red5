@@ -1194,6 +1194,7 @@
 		</condition>
 	
 		<svn username="${svn.login}" password="${svn.password}" failonerror="false">
+			<update dir="${basedir}" />
 			<status path="build.xml" textStatusProperty="svn.info.status" lastChangedRevisionProperty="svn.info.lastrev" revisionProperty="svn.info.rev"/> 
 		</svn>
 		<echo message="Svn info - status: ${svn.info.status} last rev: ${svn.info.lastrev} rev: ${svn.info.rev}"/>
