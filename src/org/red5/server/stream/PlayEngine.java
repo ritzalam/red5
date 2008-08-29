@@ -680,9 +680,13 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 	 */
 	private boolean okayToSendMessage(IRTMPEvent message) {
 		if (!(message instanceof IStreamData)) {
-			throw new RuntimeException("expected IStreamData but got "
-					+ message.getClass() + " (type " + message.getDataType()
-					+ ")");
+			String itemName = "Undefined";
+			//if current item exists get the name to help debug this issue
+			if (currentItem != null) {
+				itemName = currentItem.getName();
+			}
+			Object[] errorItems = new Object[]{message.getClass(), message.getDataType(), itemName};
+			throw new RuntimeException(String.format("Expected IStreamData but got %s (type %s) for %s", errorItems));
 		}
 		final long now = System.currentTimeMillis();
 		// check client buffer length when we've already sent some messages
