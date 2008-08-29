@@ -488,7 +488,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 		pendingCall.setArguments(connectArguments);
 		Invoke invoke = new Invoke(pendingCall);
 		invoke.setConnectionParams(connectionParams);
-		invoke.setInvokeId(conn.getInvokeId());
+		invoke.setInvokeId(1);
 		if (connectCallback != null) {
 			pendingCall.registerCallback(connectCallback);
 		}

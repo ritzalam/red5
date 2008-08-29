@@ -114,7 +114,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/**
 	 * Identifier for remote calls.
 	 */
-	protected AtomicInteger invokeId = new AtomicInteger(0);
+	protected AtomicInteger invokeId = new AtomicInteger(1);
 
 	/**
 	 * Hash map that stores pending calls and ids as pairs.
