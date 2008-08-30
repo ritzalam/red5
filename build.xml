@@ -186,6 +186,7 @@
 		</delete>
 	</target>
 
+	<!-- http://ant.apache.org/ivy/history/trunk/ant.html -->
 	<target name="retrieve" unless="library.installed" description="Retrieves the libraries if needed">
 		<!-- Ivy configuration -->
 		<ivy:settings file="ivysettings.xml"/>
@@ -195,7 +196,7 @@
 			</not>
 		</condition>
 		<echo message="Ivy conf name: ${ivy.conf.name}"/>
-		<ivy:resolve conf="${ivy.conf.name}"/>
+		<ivy:resolve file="ivy.xml" conf="${ivy.conf.name}"/>
 		<ivy:retrieve conf="${ivy.conf.name}"/>
 	</target>
 
