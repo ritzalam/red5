@@ -1,14 +1,18 @@
 <ivysettings>
-    <settings defaultResolver="local"/>
+    <settings defaultResolver="local" checkUpToDate="false"/>
     <resolvers>
         <chain name="local">     
-			<filesystem name="lib_dir">
+			<filesystem name="default">
 				<ivy pattern="${user.home}/.ivy2/cache/[organisation]/[module]/ivys/ivy-[revision].xml"/>
         		<artifact pattern="${ivy.lib.dir}/[artifact](-[revision]).[ext]" />
      	 	</filesystem>        
             <url name="googlecode">
                 <artifact pattern="http://red5.googlecode.com/svn/trunk/repository/[artifact](-[revision]).[ext]" />
                 <artifact pattern="http://red5.googlecode.com/svn/trunk/repository/[organisation]/[artifact](-[revision]).[ext]" />
+            </url>    
+            <url name="cvsdude">
+                <artifact pattern="http://svn1.cvsdude.com/osflash/red5/repository/[artifact](-[revision]).[ext]" />
+                <artifact pattern="http://svn1.cvsdude.com/osflash/red5/repository/[organisation]/[artifact](-[revision]).[ext]" />
             </url>    
         </chain>
     </resolvers>
