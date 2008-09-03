@@ -2,7 +2,7 @@ package org.red5.server.context;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.red5.io.flv.FLVServiceImpl;
+import org.red5.io.impl.FLVService;
 import org.red5.server.SharedObjectPersistence;
 import org.red5.server.SharedObjectRamPersistence;
 import org.red5.server.api.Red5;
@@ -45,7 +45,7 @@ public class AppContext
 			//streamManager.initialize();
 			streamManager.setApplicationContext(this);
 			// this will need to be refactored
-			streamManager.setFlvService(new FLVServiceImpl());
+			streamManager.setFlvService(new FLVService());
 		} else {
 			streamManager = (StreamManager) this.getBean(STREAM_MANAGER_NAME);
 		}
