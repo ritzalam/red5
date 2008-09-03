@@ -173,6 +173,7 @@
 
 	<target name="clean" description="Clean the directories for building">
 		<delete dir="${red5.filename}.jar"/>
+		<delete dir="ivy.log"/>
 		<delete dir="${classes.dir}"/>
 		<delete dir="${dist.dir}"/>
 		<delete dir="${cluster.dir}"/>
