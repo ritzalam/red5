@@ -22,13 +22,15 @@ package org.red5.io.amf3;
 import java.nio.charset.Charset;
 
 /**
- * AMF3 data type definitions.<br />
- * For detailed specification please see <strong>specification AMF3</strong>
- * link below.
+ * AMF3 data type definitions.
  *
- * @see org.red5.io.amf.AMF
- * @see <a href="http://osflash.org/amf3/index">specifictation AMF3 (external)</a>
- * @see <a href="http://osflash.org/amf/astypes">specifictation AMF (external)</a>
+ * For detailed specification please see the link below.
+ *
+ * @see <a href="http://osflash.org/amf3/index">AMF3 specification (external)</a>
+ * 
+ * @author The Red5 Project (red5@osflash.org)
+ * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
+ * @author Joachim Bauch (jojo@struktur.de)
  */
 public class AMF3 {
     /**
@@ -99,31 +101,35 @@ public class AMF3 {
 	//public final static byte TYPE_ZZZ = 0x0D;
 
 	/**
-	 * 00 = property list encoding.<br />
-	 * The remaining integer-data represents the number of class members that exist.<br />
-	 * The property names are read as string-data.<br />
-	 * The values are then read as amf3-data.
+	 * Property list encoding.
+	 * 
+	 * The remaining integer-data represents the number of class members
+	 * that exist. The property names are read as string-data. The values
+	 * are then read as AMF3-data.
 	 */
     public static final byte TYPE_OBJECT_PROPERTY = 0x00;
 
 	/**
-	 * 01 = Externalizable object. What follows is the value of the "inner" object,
-	 * including type code. This value appears for objects that implement
-	 * IExternalizable, such as ArrayCollection and ObjectProxy.
+	 * Externalizable object.
+	 * 
+	 * What follows is the value of the "inner" object, including type code.
+	 * This value appears for objects that implement IExternalizable, such
+	 * as ArrayCollection and ObjectProxy.
 	 */
     public static final byte TYPE_OBJECT_EXTERNALIZABLE = 0x01;
 
 	/**
-	 * 10 = name value encoding.<br />
-	 * The property names and values are encoded as string-data followed by amf3-data <br />
-	 * until there is an empty string property name.<br />
-	 * If there is a class-def reference there are no property names and the number of values <br />
-	 * is equal to the number of properties in the class-def.
+	 * Name-value encoding.
+	 * 
+	 * The property names and values are encoded as string-data followed by
+	 * AMF3-data until there is an empty string property name. If there is
+	 * a class-def reference there are no property names and the number of
+	 * values is equal to the number of properties in the class-def.
 	 */
     public static final byte TYPE_OBJECT_VALUE = 0x02;
 
 	/**
-	 * 11 = unseen / unknown
+	 * Unseen / unknown.
 	 */
     public static final byte TYPE_OBJECT_UNKNOWN = 0x03;
 

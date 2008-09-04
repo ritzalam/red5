@@ -23,12 +23,10 @@ import java.nio.charset.Charset;
 
 /**
  * These are the core AMF data types supported by Red5.
- * For detailed specification please see <strong>specification AMF3</strong>
- * link below.
+ * 
+ * For detailed specification please see the link below.
  *
- * @see org.red5.io.amf.AMF
- * @see <a href="http://osflash.org/amf3/index">specifictation AMF3 (external)</a>
- * @see <a href="http://osflash.org/amf/astypes">specifictation AMF (external)</a>
+ * @see <a href="http://osflash.org/amf/astypes">AMF specification (external)</a>
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
