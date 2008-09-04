@@ -30,7 +30,9 @@ import java.util.Set;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
+import org.red5.server.api.Red5;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IServiceCall;
 import org.red5.server.api.service.IServiceInvoker;
@@ -90,25 +92,41 @@ public class ServiceInvoker  implements IServiceInvoker {
 	}
 
 	public void invoke(IServiceCall call, Object service) {
+		IConnection conn = Red5.getConnectionLocal();
 		String methodName = call.getServiceMethodName();
 		
 		Object[] args = call.getArguments();
+		Object[] argsWithConnection = null;
 		if (args != null) {
+			argsWithConnection = new Object[args.length+1];
+			argsWithConnection[0] = conn;
 			for (int i=0; i<args.length; i++) {
 				log.debug("   "+i+" => "+args[i]);
+				argsWithConnection[i+1] = args[i];
 			}
-		}
+		} else
+			argsWithConnection = new Object[]{conn};
 		
 		Object[] methodResult = null;
-		methodResult = ServiceUtils.findMethodWithExactParameters(service, methodName, args);
-		if (methodResult.length == 0 || methodResult[0] == null)
-			methodResult = ServiceUtils.findMethodWithListParameters(service, methodName, args);
-		
+		// First, search for method with the connection as first parameter.
+		methodResult = ServiceUtils.findMethodWithExactParameters(service, methodName, argsWithConnection);
 		if (methodResult.length == 0 || methodResult[0] == null) {
-			log.error("Method " + methodName + " not found in " + service);
-			call.setStatus(Call.STATUS_METHOD_NOT_FOUND);
-			call.setException(new MethodNotFoundException(methodName));
-			return;
+			// Second, search for method without the connection as first parameter.
+			methodResult = ServiceUtils.findMethodWithExactParameters(service, methodName, args);
+			if (methodResult.length == 0 || methodResult[0] == null) {
+				// Third, search for method with the connection as first parameter in a list argument.
+				methodResult = ServiceUtils.findMethodWithListParameters(service, methodName, argsWithConnection);
+				if (methodResult.length == 0 || methodResult[0] == null) {
+					// Fourth, search for method without the connection as first parameter in a list argument.
+					methodResult = ServiceUtils.findMethodWithListParameters(service, methodName, args);
+					if (methodResult.length == 0 || methodResult[0] == null) {
+						log.error("Method " + methodName + " not found in " + service);
+						call.setStatus(Call.STATUS_METHOD_NOT_FOUND);
+						call.setException(new MethodNotFoundException(methodName));
+						return;
+					}
+				}
+			}
 		}
 		
 		Object result = null;
