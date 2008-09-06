@@ -48,7 +48,8 @@
 	-->
 	<taskdef uri="antlib:org.apache.ivy.ant" resource="org/apache/ivy/ant/antlib.xml"
 		 classpath="${lib.dir}/${ivy.version}.jar"/>
-	<property name="ivy.lib.dir" value="${lib.dir}"/>
+	<!-- Latest ivy 9/2008 seems to want absolute path -->
+	<property name="ivy.lib.dir" value="${basedir}/lib"/>
 	
 	<!-- JUNIT TESTING -->
 	<property name="test.dir" value="test"/>
@@ -172,8 +173,8 @@
 	</target>
 
 	<target name="clean" description="Clean the directories for building">
-		<delete dir="${red5.filename}.jar"/>
-		<delete dir="ivy.log"/>
+		<delete file="${red5.filename}.jar"/>
+		<delete file="ivy.log"/>
 		<delete dir="${classes.dir}"/>
 		<delete dir="${dist.dir}"/>
 		<delete dir="${cluster.dir}"/>

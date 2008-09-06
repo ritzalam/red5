@@ -1,5 +1,6 @@
 <ivysettings>
-    <settings defaultResolver="local" checkUpToDate="false"/>
+    <settings defaultResolver="local"/>
+    <!--
     <triggers>
 		<log file="ivy.log" append="true" message='resolving,,,"${module}"' event="pre-resolve" />
 		<log file="ivy.log" append="true" message='dependency,${duration},,"${module}","${revision}","${req-revision}"' event="post-resolve-dependency" filter="resolved=true"/>
@@ -8,6 +9,7 @@
         <log file="ivy.log" append="true" message='artifact,${duration},${size},"${module}","${revision}","${origin}","${file}"' event="post-download-artifact" filter="status=successful"/>
         <log file="ivy.log" append="true" message='retrieved,${duration},${size},"${module}",,${nbCopied}' event="post-retrieve" />
     </triggers>
+    -->
     <resolvers>
         <chain name="local">     
 			<filesystem name="default">
