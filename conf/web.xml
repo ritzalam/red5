@@ -586,6 +586,22 @@
         <mime-type>application/octet-stream</mime-type>
     </mime-mapping>
     <mime-mapping>
+        <extension>f4v</extension>
+        <mime-type>video/mp4</mime-type>
+    </mime-mapping>
+    <mime-mapping>
+        <extension>f4p</extension>
+        <mime-type>video/mp4</mime-type>
+    </mime-mapping>
+    <mime-mapping>
+        <extension>f4a</extension>
+        <mime-type>audio/mp4</mime-type>
+    </mime-mapping>
+    <mime-mapping>
+        <extension>f4b</extension>
+        <mime-type>audio/mp4</mime-type>
+    </mime-mapping>
+    <mime-mapping>
         <extension>gif</extension>
         <mime-type>image/gif</mime-type>
     </mime-mapping>
@@ -725,6 +741,10 @@
         <extension>mp3</extension>
         <mime-type>audio/x-mpeg</mime-type>
     </mime-mapping>
+    <mime-mapping>
+        <extension>mp4</extension>
+        <mime-type>video/mp4</mime-type>
+    </mime-mapping>    
     <mime-mapping>
         <extension>mpa</extension>
         <mime-type>audio/x-mpeg</mime-type>

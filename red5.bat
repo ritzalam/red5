@@ -18,7 +18,7 @@ goto launchRed5
 :launchRed5
 echo Starting Red5 (%RED5_MAINCLASS%)
 "%JAVA_HOME%/bin/java" %JYTHON_OPTS% %JAVA_OPTS% -cp %RED5_CLASSPATH% %RED5_MAINCLASS% %RED5_OPTS%
-goto finaly
+goto finally
 
 :err
 echo JAVA_HOME environment variable not set! Take a look at the readme.
