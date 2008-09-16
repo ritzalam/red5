@@ -33,6 +33,8 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.httpclient.params.HttpClientParams;
+import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.red5.compatibility.flex.messaging.messages.AcknowledgeMessage;
 import org.red5.compatibility.flex.messaging.messages.AsyncMessage;
 import org.red5.server.LoaderMBean;
@@ -99,8 +101,12 @@ public class Installer {
 		HttpClient client = new HttpClient();
 		// establish a connection within 5 seconds
 		client.getHttpConnectionManager().getParams().setConnectionTimeout(5000);
+		//get the params for the client
+		HttpClientParams params = client.getParams();
+		params.setParameter(HttpMethodParams.USER_AGENT, "Mozilla/4.0 (compatible; Red5 Server)");
 		//try the wav version first
 		HttpMethod method = new GetMethod(applicationRepositoryUrl + "registry.xml");
+		//follow any 302's although there shouldnt be any
 		method.setFollowRedirects(true);
 		// execute the method
 		try {
@@ -190,8 +196,16 @@ public class Installer {
 				HttpClient client = new HttpClient();
 				// establish a connection within 5 seconds
 				client.getHttpConnectionManager().getParams().setConnectionTimeout(5000);
+				//get the params for the client
+				HttpClientParams params = client.getParams();
+				params.setParameter(HttpMethodParams.USER_AGENT, "Mozilla/4.0 (compatible; Red5 Server)");
+				params.setParameter(HttpMethodParams.STRICT_TRANSFER_ENCODING, Boolean.TRUE);
+				
 				//try the wav version first
 				HttpMethod method = new GetMethod(applicationRepositoryUrl + applicationWarName);
+				//we dont want any transformation - RFC2616
+				method.addRequestHeader("Accept-Encoding", "identity");
+				//follow any 302's although there shouldnt be any
 				method.setFollowRedirects(true);
 				FileOutputStream fos = null;				
 				// execute the method
