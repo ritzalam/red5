@@ -43,7 +43,7 @@ public class LoggerContextFilter implements Filter {
 	public void doFilter(ServletRequest request, ServletResponse response,
 			FilterChain chain) throws IOException, ServletException {
 		
-		System.out.println("Context name: " + contextName);
+		System.out.printf("Context name: %s\n", contextName);
 		
 		LoggingContextSelector selector = (LoggingContextSelector) StaticLoggerBinder.SINGLETON.getContextSelector();
 		System.out.println("Context select type: " + selector.getClass().getName());
@@ -58,11 +58,11 @@ public class LoggerContextFilter implements Filter {
 		
 		//evaluate context name against logger context name
 		if (!contextName.equals(ctx.getName())) {
-			System.err.println("Logger context name and context name dont match (" + contextName + " != " + ctx.getName() + ")");
+			System.err.printf("Logger context name and context name dont match (%s != %s)\n", contextName, ctx.getName());
 		}
 		
 		if (ctx != null) {
-			System.out.println("Logger context name: " + ctx.getName());
+			System.out.printf("Logger context name: %s\n", ctx.getName());
 			selector.setLocalContext(ctx);
 		}
 
