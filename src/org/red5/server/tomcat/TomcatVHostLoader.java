@@ -41,6 +41,7 @@ import org.red5.server.ContextLoaderMBean;
 import org.red5.server.LoaderBase;
 import org.red5.server.jmx.JMXAgent;
 import org.red5.server.jmx.JMXFactory;
+import org.red5.server.util.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -122,7 +123,7 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 			String dirName = '/' + dir.getName();
 			// check to see if the directory is already mapped
 			if (null == host.findChild(dirName)) {
-			    String webappContextDir = formatPath(appDirBase.getAbsolutePath(), dirName);
+			    String webappContextDir = FileUtil.formatPath(appDirBase.getAbsolutePath(), dirName);
 				Context ctx = null;
 				if ("/root".equals(dirName) || "/root".equalsIgnoreCase(dirName)) {
 					log.debug("Adding ROOT context");
@@ -292,7 +293,7 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 		//check if the context already exists for the host
 		if ((cont = host.findChild(contextName)) == null) {
 			log.debug("Context did not exist in host");
-			String webappContextDir = formatPath(webappRoot, applicationName);
+			String webappContextDir = FileUtil.formatPath(webappRoot, applicationName);
 			//prepend slash
 			Context ctx = addContext(contextName, webappContextDir);
     		if (ctx != null) {

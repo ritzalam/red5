@@ -31,7 +31,7 @@ public class ContextLoggingListener implements ServletContextListener {
 		System.out.println("Context destroying...");
 
 		String contextName = pathToName(event);
-		System.out.println("About to detach context named " + contextName);
+		System.out.printf("About to detach context named %s\n", contextName);
 
 		ContextSelector selector = StaticLoggerBinder.SINGLETON.getContextSelector();
 		LoggerContext context = selector.detachLoggerContext(contextName);
@@ -40,8 +40,7 @@ public class ContextLoggingListener implements ServletContextListener {
 			logger.info("Shutting down context {}", contextName);
 			context.shutdownAndReset();
 		} else {
-			System.err.println("No context named " + contextName
-					+ " was found.");
+			System.err.printf("No context named %s was found", contextName);
 		}
 	}
 
@@ -49,30 +48,29 @@ public class ContextLoggingListener implements ServletContextListener {
 		System.out.println("Context init...");
 
 		String contextName = pathToName(event);
-		System.out.println("Logger name for context: " + contextName);
+		System.out.printf("Logger name for context: %s\n", contextName);
 
 		try {
-			LoggingContextSelector selector = (LoggingContextSelector) StaticLoggerBinder.SINGLETON
-					.getContextSelector();
-
+			LoggingContextSelector selector = (LoggingContextSelector) StaticLoggerBinder.SINGLETON.getContextSelector();
+		
 			selector.setContextName(contextName);
-			LoggerContext context = selector.getLoggerContext();
 
+			LoggerContext context = selector.getLoggerContext();
 			if (context != null) {
 				Logger logger = context.getLogger(LoggerContext.ROOT_NAME);
 				logger.info("Starting up context {}", contextName);
 			} else {
-				System.err.println("No context named " + contextName
-						+ " was found.");
+				System.err.printf("No context named %s was found", contextName);
 			}
 			
-			//List<String> ctxNameList = selector.getContextNames();
-			//for (String s : ctxNameList) {
-			//	System.out.println("Selector context name: " + s);
-			//}			
+			List<String> ctxNameList = selector.getContextNames();
+			for (String s : ctxNameList) {
+				System.out.printf("Selector context name: %s\n", s);
+			}			
 			
 		} catch (Exception e) {
 			System.err.println("LoggingContextSelector is not the correct type");
+			e.printStackTrace();
 		}
 
 	}

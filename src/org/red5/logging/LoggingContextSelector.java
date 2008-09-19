@@ -34,7 +34,7 @@ public class LoggingContextSelector implements ContextSelector {
 	private String contextConfigFile;
 
 	public LoggingContextSelector(LoggerContext context) {
-		System.out.println("Setting default logging context: " + context.getName());
+		System.out.printf("Setting default logging context: %s\n", context.getName());
 		defaultContext = context;
 	}
 
@@ -43,7 +43,7 @@ public class LoggingContextSelector implements ContextSelector {
 		// First check if ThreadLocal has been set already
 		LoggerContext lc = threadLocal.get();
 		if (lc != null) {
-			System.out.println("Thread local found: " + lc.getName());
+			System.out.printf("Thread local found: %s\n", lc.getName());
 			return lc;
 		}
 
@@ -54,7 +54,7 @@ public class LoggingContextSelector implements ContextSelector {
 		} else {
 			// Let's see if we already know such a context
 			LoggerContext loggerContext = contextMap.get(contextName);
-			System.out.println("Logger context for " + contextName + " is " + loggerContext);
+			System.out.printf("Logger context for %s is %s\n", contextName, loggerContext);
 
 			if (loggerContext == null) {
 				// We have to create a new LoggerContext
@@ -62,10 +62,17 @@ public class LoggingContextSelector implements ContextSelector {
 				loggerContext.setName(contextName);
 
 				if (contextConfigFile == null) {
-					contextConfigFile = "logback-" + contextName + ".xml";
+					contextConfigFile = String.format("logback-%s.xml", contextName);
+					System.out.printf("Context logger config file: %s\n", contextConfigFile);
 				}
-
-				URL url = Loader.getResourceByTCL(contextConfigFile);
+				
+				ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+				System.out.printf("Thread context cl: %s\n", classloader);
+				ClassLoader classloader2 = Loader.class.getClassLoader();
+				System.out.printf("Loader tcl: %s\n", classloader2);
+				
+				//URL url = Loader.getResourceBySelfClassLoader(contextConfigFile);
+				URL url = Loader.getResource(contextConfigFile, classloader);
 				if (url != null) {
 					try {
 						JoranConfigurator configurator = new JoranConfigurator();
@@ -77,13 +84,14 @@ public class LoggingContextSelector implements ContextSelector {
 					}
 				} else {
 					try {
-						ContextInitializer.autoConfig(loggerContext);
+						ContextInitializer ctxInit = new ContextInitializer(loggerContext);
+						ctxInit.autoConfig();
 					} catch (JoranException je) {
 						StatusPrinter.print(loggerContext);
 					}
 				}
 
-				System.out.println("Adding logger context: " + loggerContext.getName() + " to map for context: " + contextName);
+				System.out.printf("Adding logger context: %s to map for context: %s\n", loggerContext.getName(), contextName);
 				contextMap.put(contextName, loggerContext);
 			}
 			return loggerContext;
@@ -91,8 +99,8 @@ public class LoggingContextSelector implements ContextSelector {
 	}
 
 	public LoggerContext getLoggerContext(String name) {
-		System.out.println("getLoggerContext request for " + name);
-		System.out.println("Context is in map: " + contextMap.containsKey(name));
+		System.out.printf("getLoggerContext request for %s\n", name);
+		System.out.printf("Context is in map: %s\n", contextMap.containsKey(name));
 		return contextMap.get(name);
 	}	
 	

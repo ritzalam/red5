@@ -371,6 +371,51 @@ public class FileUtil {
 
 	}
 	
+    /**
+     * Quick-n-dirty directory formatting to support launching in windows, specifically from ant.
+     */
+    public static String formatPath(String absWebappsPath, String contextDirName) {
+        StringBuilder path = new StringBuilder(absWebappsPath.length() + contextDirName.length());
+        path.append(absWebappsPath);
+        if (log.isDebugEnabled()) {
+        	log.debug("Path start: {}", path.toString());
+        }
+        int idx = -1;
+        if (File.separatorChar != '/') {
+            while ((idx = path.indexOf(File.separator)) != -1) {
+                path.deleteCharAt(idx);
+                path.insert(idx, '/');
+            }
+        }
+        if (log.isDebugEnabled()) {
+        	log.debug("Path step 1: {}", path.toString());
+        }
+        //remove any './'
+        if ((idx = path.indexOf("./")) != -1) {
+        	path.delete(idx, idx + 2);
+        }        
+        if (log.isDebugEnabled()) {
+        	log.debug("Path step 2: {}", path.toString());
+        }
+        //add / to base path if one doesnt exist
+        if (path.charAt(path.length() - 1) != '/') {
+        	path.append('/');
+        }
+        if (log.isDebugEnabled()) {
+        	log.debug("Path step 3: {}", path.toString());
+        }        
+        //remove the / from the beginning of the context dir
+        if (contextDirName.charAt(0) == '/' && path.charAt(path.length() - 1) == '/') {
+            path.append(contextDirName.substring(1));
+        } else {
+            path.append(contextDirName);
+        }
+        if (log.isDebugEnabled()) {
+        	log.debug("Path step 4: {}", path.toString());
+        }
+        return path.toString();
+    }	
+	
 	/**
 	 * Generates a custom name containing numbers and an underscore ex. 282818_00023.
 	 * The name contains current seconds and a random number component.

@@ -33,6 +33,7 @@ import org.red5.server.api.Red5;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
+import org.slf4j.impl.StaticLoggerBinder;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 /**
@@ -43,12 +44,18 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
  */
 public class Bootstrap {
 
-    protected static Logger log = LoggerFactory.getLogger(Bootstrap.class);
 	public static void launch(URLClassLoader loader) {
 		System.setProperty("red5.deployment.type", "bootstrap");
-		try {				
+		try {	
+			//set to use our logger
+			System.setProperty("logback.ContextSelector", "org.red5.logging.LoggingContextSelector");
 			//install the slf4j bridge (mostly for JUL logging)
 			SLF4JBridgeHandler.install();
+			//we create the logger here so that it is instanced inside the expected 
+			//classloader
+			Logger log = LoggerFactory.getLogger(Bootstrap.class);
+			//see which logger binder has been instanced
+			log.debug("Logger binder: {}", StaticLoggerBinder.SINGLETON.getClass().getName());
 			//set default for loading classes with url loader
 			loader.setDefaultAssertionStatus(false);
 			//create a logger before anything else happens
@@ -71,7 +78,7 @@ public class Bootstrap {
 		String root = System.getProperty("red5.root");
 
 		// if root is null find out current directory and use it as root
-		if (root == null) {
+		if (root == null || ".".equals(root)) {
 			File here = new File("thisisadummyfile");
 			if (!here.createNewFile()) {
 				System.err.println("Could not determine current directory");
@@ -79,7 +86,7 @@ public class Bootstrap {
 			} else {
 				root = here.getCanonicalPath().replaceFirst("thisisadummyfile",
 						"");
-				System.out.println("Current directory: " + root);
+				System.out.printf("Current directory: %s\n", root);
 				if (!here.delete()) {
 					here.deleteOnExit();
 				}
@@ -95,7 +102,7 @@ public class Bootstrap {
 			}
 		}
 		
-		System.out.println("Red5 root: " + root);
+		System.out.printf("Red5 root: %s\n", root);
 		
 		// look for config dir
 		String conf = System.getProperty("red5.config_root");
@@ -119,9 +126,7 @@ public class Bootstrap {
 			System.setProperty("red5.conf_file", "red5.xml");
 		} else {
 			//fail
-			System.err
-					.println("Configuration file was not found, server cannot start. Location: "
-							+ configFile.getCanonicalPath());
+			System.err.printf("Configuration file was not found, server cannot start. Location: %s\n", configFile.getCanonicalPath());
 			System.exit(2);
 		}
 
@@ -139,7 +144,7 @@ public class Bootstrap {
 		// add config dir
 		urls.add(new File(conf).toURI().toURL());
 		//
-		System.out.println(urls.size() + " items in the classpath");
+		System.out.printf("%d items in the classpath\n", urls.size());
 
 		//loop thru all the current urls
 		//System.out.println("Classpath: ");

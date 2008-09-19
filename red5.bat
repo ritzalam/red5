@@ -1,5 +1,7 @@
 @echo off
 
+SETLOCAL
+
 if NOT DEFINED RED5_HOME set RED5_HOME=.
 
 if NOT DEFINED JAVA_HOME goto err
@@ -25,3 +27,4 @@ echo JAVA_HOME environment variable not set! Take a look at the readme.
 pause
 
 :finally
+ENDLOCAL

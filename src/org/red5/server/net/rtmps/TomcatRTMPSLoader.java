@@ -31,6 +31,7 @@ import org.apache.catalina.core.StandardWrapper;
 import org.apache.catalina.loader.WebappLoader;
 import org.red5.server.api.IServer;
 import org.red5.server.net.rtmpt.TomcatRTMPTLoader;
+import org.red5.server.util.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,7 +84,7 @@ public class TomcatRTMPSLoader extends TomcatRTMPTLoader {
 		
 		// create and add root context
 		File appDirBase = new File(webappFolder);
-		String webappContextDir = formatPath(appDirBase.getAbsolutePath(), "/root");
+		String webappContextDir = FileUtil.formatPath(appDirBase.getAbsolutePath(), "/root");
 		Context ctx = embedded.createContext("/", webappContextDir);
 		ctx.setReloadable(false);
 		log.debug("Context name: {}", ctx.getName());

@@ -51,6 +51,7 @@ import org.red5.server.LoaderMBean;
 import org.red5.server.api.IApplicationContext;
 import org.red5.server.jmx.JMXAgent;
 import org.red5.server.jmx.JMXFactory;
+import org.red5.server.util.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -270,7 +271,8 @@ public class TomcatLoader extends LoaderBase implements
 			String dirName = '/' + dir.getName();
 			// check to see if the directory is already mapped
 			if (null == host.findChild(dirName)) {
-			    String webappContextDir = formatPath(appDirBase.getAbsolutePath(), dirName);
+			    String webappContextDir = FileUtil.formatPath(appDirBase.getAbsolutePath(), dirName);
+				log.debug("Webapp context directory (full path): {}", webappContextDir);
 				Context ctx = null;
 				if ("/root".equals(dirName) || "/root".equalsIgnoreCase(dirName)) {
 					log.debug("Adding ROOT context");
@@ -304,7 +306,7 @@ public class TomcatLoader extends LoaderBase implements
 		// Dump context list
 		if (log.isDebugEnabled()) {
 			for (Container cont : host.findChildren()) {
-				log.debug("Context child name: " + cont.getName());
+				log.debug("Context child name: {}", cont.getName());
 			}
 		}
 
@@ -479,7 +481,8 @@ public class TomcatLoader extends LoaderBase implements
 		//check if the context already exists for the host
 		if ((cont = host.findChild(contextName)) == null) {
 			log.debug("Context did not exist in host");
-			String webappContextDir = formatPath(webappFolder, applicationName);
+			String webappContextDir = FileUtil.formatPath(webappFolder, applicationName);
+			log.debug("Webapp context directory (full path): {}", webappContextDir);
 			//prepend slash
 			Context ctx = addContext(contextName, webappContextDir);
     		if (ctx != null) {
@@ -706,50 +709,5 @@ public class TomcatLoader extends LoaderBase implements
 			System.exit(1);
 		}
 	}
-
-    /**
-     * Quick-n-dirty directory formatting to support launching in windows, specifically from ant.
-     */
-    protected static String formatPath(String absWebappsPath, String contextDirName) {
-        StringBuilder path = new StringBuilder(absWebappsPath.length() + contextDirName.length());
-        path.append(absWebappsPath);
-        if (log.isDebugEnabled()) {
-        	log.debug("Path start: {}", path.toString());
-        }
-        int idx = -1;
-        if (File.separatorChar != '/') {
-            while ((idx = path.indexOf(File.separator)) != -1) {
-                path.deleteCharAt(idx);
-                path.insert(idx, '/');
-            }
-        }
-        if (log.isDebugEnabled()) {
-        	log.debug("Path step 1: {}", path.toString());
-        }
-        //remove any './'
-        if ((idx = path.indexOf("./")) != -1) {
-        	path.delete(idx, idx + 2);
-        }        
-        if (log.isDebugEnabled()) {
-        	log.debug("Path step 2: {}", path.toString());
-        }
-        //add / to base path if one doesnt exist
-        if (path.charAt(path.length() - 1) != '/') {
-        	path.append('/');
-        }
-        if (log.isDebugEnabled()) {
-        	log.debug("Path step 3: {}", path.toString());
-        }        
-        //remove the / from the beginning of the context dir
-        if (contextDirName.charAt(0) == '/' && path.charAt(path.length() - 1) == '/') {
-            path.append(contextDirName.substring(1));
-        } else {
-            path.append(contextDirName);
-        }
-        if (log.isDebugEnabled()) {
-        	log.debug("Path step 4: {}", path.toString());
-        }
-        return path.toString();
-    }
 
 }
