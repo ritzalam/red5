@@ -37,16 +37,19 @@ import org.springframework.context.access.ContextSingletonBeanFactoryLocator;
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 public class Standalone {
- 
-    /**
-     * Initialize Logging.
-     */
-    protected static Logger log = LoggerFactory.getLogger(Standalone.class);
 
 	protected static String red5Config = "red5.xml";
 
 	//public static DebugPooledByteBufferAllocator allocator;
 
+	static {
+		//set to use our logger
+		System.setProperty("logback.ContextSelector", "org.red5.logging.LoggingContextSelector");
+		
+		//install the slf4j bridge (mostly for JUL logging)
+		SLF4JBridgeHandler.install();
+	}
+	
 	/**
      * Re-throws exception
      * @param e               Exception
@@ -67,9 +70,6 @@ public class Standalone {
      * @throws Throwable    Base type of all exceptions
 	 */
 	public static void main(String[] args) throws Throwable {
-
-		//install the slf4j bridge (mostly for JUL logging)
-		SLF4JBridgeHandler.install();
 		
 		//System.setProperty("DEBUG", "true");
 
@@ -85,6 +85,10 @@ public class Standalone {
 		}
 
 		long t1 = System.nanoTime();
+		
+		//we create the logger here so that it is instanced inside the expected 
+		//classloader
+		Logger log = LoggerFactory.getLogger(Standalone.class);
 
 		log.info("{} (http://www.osflash.org/red5)", Red5.getVersion());
 		log.info("Loading Red5 global context from: {}", red5Config);
