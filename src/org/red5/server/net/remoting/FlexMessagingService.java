@@ -46,6 +46,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
+ * @author Paul Gregoire (mondain@gmail.com)
  */
 public class FlexMessagingService {
 
@@ -125,6 +126,7 @@ public class FlexMessagingService {
 				result.faultDetail = stack.toString();
 			}
 		}
+		result.rootCause = error;
 		return result;
 	}
 
@@ -139,14 +141,15 @@ public class FlexMessagingService {
 	public AsyncMessage handleRequest(RemotingMessage msg) {
 		setClientId(msg);
 		if (serviceInvoker == null) {
-			log.error("No service invoker configured: " + msg);
+			log.error("No service invoker configured: {}", msg);
 			return returnError(msg, "Server.Invoke.Error", "No service invoker configured.", "No service invoker configured.");
 		}
 		
 		Object endpoint = endpoints.get(msg.destination);
 		if (endpoint == null) {
-			log.error("Endpoint " + msg.destination + " doesn't exist (" + msg + ")");
-			return returnError(msg, "Server.Invoke.Error", "Endpoint " + msg.destination + " doesn't exist.", "Endpoint " + msg.destination + " doesn't exist.");
+			String errMsg = String.format("Endpoint %s doesn't exist.", msg.destination);
+			log.error("{} ({})", errMsg, msg);
+			return returnError(msg, "Server.Invoke.Error", errMsg, errMsg);
 		}
 		
 		Object[] args = (Object[]) ConversionUtils.convert(msg.body, Object[].class);
@@ -209,8 +212,9 @@ public class FlexMessagingService {
 			break;
 			
 		default:
-			log.error("Unknown CommandMessage request: " + msg);
-			result = returnError(msg, "notImplemented", "Don't know how to handle " + msg, "Don't know how to handle " + msg);
+			log.error("Unknown CommandMessage request: {}", msg);
+			String errMsg = String.format("Don't know how to handle %s", msg);
+			result = returnError(msg, "notImplemented", errMsg, errMsg);
 		}
 		return result;
 	}
@@ -241,7 +245,7 @@ public class FlexMessagingService {
 			break;
 			
 		default:
-			log.error("Unknown data update request: " + event);
+			log.error("Unknown data update request: {}", event);
 		}
 	}
 	
@@ -278,8 +282,9 @@ public class FlexMessagingService {
 			return res;
 
 		default:
-			log.error("Unknown DataMessage request: " + msg);
-			return returnError(msg, "notImplemented", "Don't know how to handle " + msg, "Don't know how to handle " + msg);
+			log.error("Unknown DataMessage request: {}", msg);
+			String errMsg = String.format("Don't know how to handle %s", msg);
+			return returnError(msg, "notImplemented", errMsg, errMsg);
 				
 		}
 		return result;
@@ -293,8 +298,9 @@ public class FlexMessagingService {
 	 */
 	public ErrorMessage handleRequest(AbstractMessage msg) {
 		setClientId(msg);
-		log.error("Unknown Flex compatibility request: " + msg);
-		return returnError(msg, "notImplemented", "Don't know how to handle " + msg, "Don't know how to handle " + msg);
+		log.error("Unknown Flex compatibility request: {}", msg);
+		String errMsg = String.format("Don't know how to handle %s", msg);
+		return returnError(msg, "notImplemented", errMsg, errMsg);
 	}
 	
 	/**
