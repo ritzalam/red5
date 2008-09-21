@@ -20,7 +20,10 @@ package org.red5.server;
  */
 
 import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -41,9 +44,177 @@ import org.springframework.context.support.FileSystemXmlApplicationContext;
  *
  * @author The Red5 Project (red5@osflash.org)
  * @author Paul Gregoire (mondain@gmail.com)
+ * @author Dominick Accattato (daccattato@gmail.com)
  */
 public class Bootstrap {
+	
+	/**
+	 * BootStrapping entry point
+	 * 
+	 * @param args
+	 * @throws Exception
+	 */
+	public static void main(String[] args) throws Exception {
 
+		//retrieve path elements from system properties
+		String root = getRed5Root();		
+		String conf = getConfigurationRoot(root);
+
+		//set the red5.xml config file to be loaded by Spring
+		setConfigurationRootFile(conf);
+
+		//load dependencies
+		List<URL> urls = setDependenies(root, conf);
+		
+		// bootstrap dependencies and startup Red5 application server
+		bootStrap(urls);
+			
+		System.out.println("Bootstrap complete");
+	}
+
+	/**
+	 * Loads classloader with dependencies
+	 * 
+	 * @param urls
+	 * @throws InstantiationException
+	 * @throws IllegalAccessException
+	 * @throws ClassNotFoundException
+	 * @throws NoSuchMethodException
+	 * @throws InvocationTargetException
+	 */
+	private static void bootStrap(List<URL> urls)
+			throws InstantiationException, IllegalAccessException,
+			ClassNotFoundException, NoSuchMethodException,
+			InvocationTargetException {
+		ClassLoader parent = ClassLoader.getSystemClassLoader().getParent();
+		
+		// pass urls to a URLClassLoader
+		URLClassLoader loader = new URLClassLoader(urls.toArray(new URL[0]), parent);
+				
+		// set the classloader to the current thread
+		Thread.currentThread().setContextClassLoader(loader);
+		
+		// create a new instance of this class using new classloader
+		Object boot = loader.loadClass("org.red5.server.Bootstrap").newInstance();
+	
+		Method m1 = boot.getClass().getMethod("launch", new Class[]{ URLClassLoader.class });
+		m1.invoke(null, loader);
+	}
+
+	/**
+	 * @param root
+	 * @param conf
+	 * @return
+	 * @throws MalformedURLException
+	 */
+	private static List<URL> setDependenies(String root, String conf)
+			throws MalformedURLException {
+		// add the classes dir and each jar in lib to a List of URLs.
+		List<URL> urls = new ArrayList<URL>(57); //use prime
+		// add red5.jar
+		urls.add(new File(root, "red5.jar").toURI().toURL());
+		// add all other libs
+		for (File lib : new File(root, "lib").listFiles()) {
+			URL url = lib.toURI().toURL();
+			urls.add(url);
+		}
+		//look over the libraries and remove the old versions
+		scrubList(urls);
+		// add config dir
+		urls.add(new File(conf).toURI().toURL());
+		//
+		System.out.printf("%d items in the classpath\n", urls.size());
+		
+		//loop thru all the current urls
+		//System.out.println("Classpath: ");
+		//for (URL url : urls) {
+		//	System.out.println(url.toExternalForm());
+		//}
+		return urls;
+	}
+
+	/**
+	 * @param conf
+	 * @throws IOException
+	 */
+	private static void setConfigurationRootFile(String conf)
+			throws IOException {
+		// expect a conf/red5.xml or we fail!
+		File configFile = new File(conf, "red5.xml");
+		if (configFile.exists() && configFile.canRead()) {
+			System.setProperty("red5.conf_file", "red5.xml");
+		} else {
+			//fail
+			System.err.printf("Configuration file was not found, server cannot start. Location: %s\n", configFile.getCanonicalPath());
+			System.exit(2);
+		}
+	}
+
+	/**
+	 * @param root
+	 * @return
+	 */
+	private static String getConfigurationRoot(String root) {
+		// look for config dir
+		String conf = System.getProperty("red5.config_root");
+
+		// if root is not null and conf is null then default it
+		if (root != null && conf == null) {
+			conf = root + "/conf";
+		}
+
+		//flip slashes
+		conf = conf.replaceAll("\\\\", "/");
+		
+		//set conf sysprop
+		System.setProperty("red5.config_root", conf);
+		System.out.println("Configuation root: " + conf);
+		return conf;
+	}
+
+	/**
+	 * @return
+	 * @throws IOException
+	 */
+	private static String getRed5Root() throws IOException {
+		// look for red5 root first as a system property
+		String root = System.getProperty("red5.root");
+
+		// if root is null find out current directory and use it as root
+		if (root == null || ".".equals(root)) {
+			root = System.getProperty("user.dir");
+//			File here = new File("thisisadummyfile");
+//			if (!here.createNewFile()) {
+//				System.err.println("Could not determine current directory");
+//				System.exit(1);
+//			} else {
+//				root = here.getCanonicalPath().replaceFirst("thisisadummyfile",
+//						"");
+				System.out.printf("Current directory: %s\n", root);
+//				if (!here.delete()) {
+//					here.deleteOnExit();
+//				}
+//				here = null;
+				//flip slashes
+				root = root.replaceAll("\\\\", "/");
+				//drop last slash if exists
+				if (root.charAt(root.length()-1) == '/') {
+					root = root.substring(0, root.length() - 1);
+				}
+				//set property
+				System.setProperty("red5.root", root);
+		//	}
+		}
+		
+		System.out.printf("Red5 root: %s\n", root);
+		return root;
+	}
+	
+	/**
+	 * Launch Red5 under it's own classloader
+	 * 
+	 * @param loader
+	 */
 	public static void launch(URLClassLoader loader) {
 		System.setProperty("red5.deployment.type", "bootstrap");
 		try {	
@@ -70,103 +241,6 @@ public class Bootstrap {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	}
-	
-	public static void main(String[] args) throws Exception {
-
-		// look for red5 root first as a system property
-		String root = System.getProperty("red5.root");
-
-		// if root is null find out current directory and use it as root
-		if (root == null || ".".equals(root)) {
-			File here = new File("thisisadummyfile");
-			if (!here.createNewFile()) {
-				System.err.println("Could not determine current directory");
-				System.exit(1);
-			} else {
-				root = here.getCanonicalPath().replaceFirst("thisisadummyfile",
-						"");
-				System.out.printf("Current directory: %s\n", root);
-				if (!here.delete()) {
-					here.deleteOnExit();
-				}
-				here = null;
-				//flip slashes
-				root = root.replaceAll("\\\\", "/");
-				//drop last slash if exists
-				if (root.charAt(root.length()-1) == '/') {
-					root = root.substring(0, root.length() - 1);
-				}
-				//set property
-				System.setProperty("red5.root", root);
-			}
-		}
-		
-		System.out.printf("Red5 root: %s\n", root);
-		
-		// look for config dir
-		String conf = System.getProperty("red5.config_root");
-
-		// if root is not null and conf is null then default it
-		if (root != null && conf == null) {
-			conf = root + "/conf";
-		}
-
-		//flip slashes
-		conf = conf.replaceAll("\\\\", "/");
-		
-		//set conf sysprop
-		System.setProperty("red5.config_root", conf);
-
-		System.out.println("Configuation root: " + conf);
-		
-		// expect a conf/red5.xml or we fail!
-		File configFile = new File(conf, "red5.xml");
-		if (configFile.exists() && configFile.canRead()) {
-			System.setProperty("red5.conf_file", "red5.xml");
-		} else {
-			//fail
-			System.err.printf("Configuration file was not found, server cannot start. Location: %s\n", configFile.getCanonicalPath());
-			System.exit(2);
-		}
-
-		// add the classes dir and each jar in lib to a List of URLs.
-		List<URL> urls = new ArrayList<URL>(57); //use prime
-		// add red5.jar
-		urls.add(new File(root, "red5.jar").toURI().toURL());
-		// add all other libs
-		for (File lib : new File(root, "lib").listFiles()) {
-			URL url = lib.toURI().toURL();
-			urls.add(url);
-		}
-		//look over the libraries and remove the old versions
-		scrubList(urls);
-		// add config dir
-		urls.add(new File(conf).toURI().toURL());
-		//
-		System.out.printf("%d items in the classpath\n", urls.size());
-
-		//loop thru all the current urls
-		//System.out.println("Classpath: ");
-		//for (URL url : urls) {
-		//	System.out.println(url.toExternalForm());
-		//}
-
-		ClassLoader parent = ClassLoader.getSystemClassLoader().getParent();
-		
-		// pass urls to a URLClassLoader
-		URLClassLoader loader = new URLClassLoader(urls.toArray(new URL[0]), parent);
-				
-		// set the classloader to the current thread
-		Thread.currentThread().setContextClassLoader(loader);
-		
-		// create a new instance of this class using new classloader
-		Object boot = loader.loadClass("org.red5.server.Bootstrap").newInstance();
-	
-		Method m1 = boot.getClass().getMethod("launch", new Class[]{ URLClassLoader.class });
-		m1.invoke(null, loader);
-			
-		System.out.println("Bootstrap complete");
 	}
 	
 	/**
@@ -207,7 +281,7 @@ public class Bootstrap {
 				continue;
 			}
 			int topFirstDash = topName.indexOf('-');
-			//if theres no dash then just grab the first 3 chars
+			//if theres no dash then just grab the first 3 chars // FIXME: why just grab the first 3 characters?
 			String prefix = topName.substring(0, topFirstDash != -1 ? topFirstDash : 3);
 			int topSecondDash = topName.indexOf('-', topFirstDash + 1);
 			for (URL check : list) {
@@ -323,6 +397,11 @@ public class Bootstrap {
 		list.removeAll(removalList);
 	}
 	
+	/**
+	 * Parses url and returns the jar filename stripped of the ending .jar
+	 * @param url
+	 * @return
+	 */
 	private static String parseUrl(URL url) {
 		String external = url.toExternalForm().toLowerCase();
 		//get everything after the last slash
