@@ -58,6 +58,8 @@ public class Installer {
 	
 	private String applicationRepositoryUrl;
 
+	private static final String userAgent = "Mozilla/4.0 (compatible; Red5 Server)";
+	
 	{
 		log.info("Installer service created");
 	}
@@ -104,7 +106,7 @@ public class Installer {
 		client.getHttpConnectionManager().getParams().setConnectionTimeout(5000);
 		//get the params for the client
 		HttpClientParams params = client.getParams();
-		params.setParameter(HttpMethodParams.USER_AGENT, "Mozilla/4.0 (compatible; Red5 Server)");
+		params.setParameter(HttpMethodParams.USER_AGENT, userAgent);
 		//try the wav version first
 		HttpMethod method = new GetMethod(applicationRepositoryUrl + "registry.xml");
 		//follow any 302's although there shouldnt be any
@@ -199,7 +201,7 @@ public class Installer {
 				client.getHttpConnectionManager().getParams().setConnectionTimeout(5000);
 				//get the params for the client
 				HttpClientParams params = client.getParams();
-				params.setParameter(HttpMethodParams.USER_AGENT, "Mozilla/4.0 (compatible; Red5 Server)");
+				params.setParameter(HttpMethodParams.USER_AGENT, userAgent);
 				params.setParameter(HttpMethodParams.STRICT_TRANSFER_ENCODING, Boolean.TRUE);
 				
 				//try the wav version first
