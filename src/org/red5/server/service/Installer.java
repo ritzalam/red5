@@ -50,6 +50,7 @@ import org.slf4j.LoggerFactory;
  * applications from a given url. 
  * 
  * @author Paul Gregoire (mondain@gmail.com)
+ * @author Dominick Accattato (daccattato@gmail.com)
  */
 public class Installer {
 
@@ -215,14 +216,14 @@ public class Installer {
 					//create output file
 					fos = new FileOutputStream(srcDir + '/' + applicationWarName);
 					log.debug("Writing response to {}/{}", srcDir, applicationWarName);								
-					InputStream is = method.getResponseBodyAsStream();
-					byte[] buf = new byte[512];
-					while (is.read(buf) != -1) {
-						fos.write(buf);
-					}
-					is.close();
+					
+					// have to receive the response as a byte array.  This has the advantage of writing to the filesystem
+					// faster and it also works on macs ;)
+					byte[] buf = method.getResponseBody();
+					fos.write(buf);
+					fos.close();
 					fos.flush();
-					//
+					
 					result = true;
 				} catch (HttpException he) {
 					log.error("Http error connecting to {}", applicationRepositoryUrl, he);

@@ -19,18 +19,23 @@ package org.red5.server.util;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.Enumeration;
 import java.util.Random;
 import java.util.zip.Adler32;
 import java.util.zip.CheckedInputStream;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
 import org.slf4j.Logger;
@@ -41,6 +46,7 @@ import org.slf4j.LoggerFactory;
  * manipulation functions.
  * 
  * @author Paul Gregoire (mondain@gmail.com)
+ * @author Dominick Accattato (daccattato@gmail.com)
  */
 public class FileUtil {
 
@@ -315,6 +321,66 @@ public class FileUtil {
 		dir = null;
 		return created;
 	}
+	
+	/**
+	 * Unzips a war file to an application located under the webapps directory
+	 * 
+	 * @param compressedFileName 
+	 * 						The String name of the war file
+	 * @param destinationDir
+	 * 						The destination directory, ie: webapps
+	 */
+	public static void unzip(String compressedFileName, String destinationDir) {
+		
+		//strip everything except the applications name
+		String dirName = compressedFileName.substring(0, compressedFileName.indexOf('-'));
+		//String tmpDir = System.getProperty("java.io.tmpdir");
+		File zipDir = new File(compressedFileName);
+		File parent = zipDir.getParentFile();
+		//File tmpDir = new File(System.getProperty("java.io.tmpdir"), dirName);
+		File tmpDir = new File(destinationDir);
+
+		// make the war directory
+		System.out.println("making directory: " + tmpDir.mkdirs());
+		
+		try {
+			ZipFile zf = new ZipFile(compressedFileName);
+			Enumeration e = zf.entries();
+			while(e.hasMoreElements()) {
+				ZipEntry ze = (ZipEntry) e.nextElement();
+				System.out.println("Unzipping " + ze.getName());
+				if(ze.isDirectory()) {
+					System.out.println("is a directory");
+					File dir = new File(tmpDir + "/" + ze.getName());
+					Boolean tmp = dir.mkdir();
+					System.out.println(tmp);
+					continue;
+				}
+				FileOutputStream fout = new FileOutputStream(tmpDir + "/" + ze.getName());
+				java.io.InputStream in = zf.getInputStream(ze);
+				copy(in, fout);
+				in.close();
+				fout.close();
+			}
+		} catch (IOException e) {
+			System.err.println(e);
+			e.printStackTrace();
+		}
+	}
+	
+	public static void copy(InputStream in, OutputStream out) throws IOException {
+		
+		synchronized(in) {
+			synchronized(out) {
+				byte[] buffer = new byte[256];
+				while (true) {
+					int bytesRead = in.read(buffer);
+					if(bytesRead == -1) break;
+					out.write(buffer, 0, bytesRead);
+				}
+			}
+		}
+	}
 
 	/**
 	 * Unzips a given archive to a specified destination directory.
@@ -322,54 +388,54 @@ public class FileUtil {
 	 * @param compressedFileName
 	 * @param destinationDir
 	 */
-	public static void unzip(String compressedFileName, String destinationDir) {
-		log.debug("Unzip - file: {} destination: {}", compressedFileName, destinationDir);
-		try {
-			final int BUFFER = 2048;
-			BufferedOutputStream dest = null;
-			FileInputStream fis = new FileInputStream(compressedFileName);
-			CheckedInputStream checksum = new CheckedInputStream(fis,
-					new Adler32());
-			ZipInputStream zis = new ZipInputStream(new BufferedInputStream(
-					checksum));
-			ZipEntry entry;
-			while ((entry = zis.getNextEntry()) != null) {
-				log.debug("Extracting: {}", entry);
-				String name = entry.getName();
-				int count;
-				byte data[] = new byte[BUFFER];
-				// write the files to the disk
-				File destFile = new File(destinationDir, name);
-				log.debug("Absolute path: {}", destFile.getAbsolutePath());
-				//create dirs as needed, look for file extension to determine type
-				if (entry.isDirectory()) {
-					log.debug("Entry is detected as a directory");
-					if (destFile.mkdirs()) {
-						log.debug("Directory created: {}", destFile.getName());
-					} else {
-						log.warn("Directory was not created: {}", destFile.getName());
-					}
-					destFile = null;
-					continue;
-				}				
-
-				FileOutputStream fos = new FileOutputStream(destFile);
-				dest = new BufferedOutputStream(fos, BUFFER);
-				while ((count = zis.read(data, 0, BUFFER)) != -1) {
-					dest.write(data, 0, count);
-				}
-				dest.flush();
-				dest.close();
-				destFile = null;
-			}
-			zis.close();
-			log.debug("Checksum: {}", checksum.getChecksum().getValue());
-		} catch (Exception e) {
-			log.error("Error unzipping {}", compressedFileName, e);
-			e.printStackTrace();
-		}
-
-	}
+//	public static void unzip(String compressedFileName, String destinationDir) {
+//		log.debug("Unzip - file: {} destination: {}", compressedFileName, destinationDir);
+//		try {
+//			final int BUFFER = 2048;
+//			BufferedOutputStream dest = null;
+//			FileInputStream fis = new FileInputStream(compressedFileName);
+//			CheckedInputStream checksum = new CheckedInputStream(fis,
+//					new Adler32());
+//			ZipInputStream zis = new ZipInputStream(new BufferedInputStream(
+//					checksum));
+//			ZipEntry entry;
+//			while ((entry = zis.getNextEntry()) != null) {
+//				log.debug("Extracting: {}", entry);
+//				String name = entry.getName();
+//				int count;
+//				byte data[] = new byte[BUFFER];
+//				// write the files to the disk
+//				File destFile = new File(destinationDir, name);
+//				log.debug("Absolute path: {}", destFile.getAbsolutePath());
+//				//create dirs as needed, look for file extension to determine type
+//				if (entry.isDirectory()) {
+//					log.debug("Entry is detected as a directory");
+//					if (destFile.mkdirs()) {
+//						log.debug("Directory created: {}", destFile.getName());
+//					} else {
+//						log.warn("Directory was not created: {}", destFile.getName());
+//					}
+//					destFile = null;
+//					continue;
+//				}				
+//
+//				FileOutputStream fos = new FileOutputStream(destFile);
+//				dest = new BufferedOutputStream(fos, BUFFER);
+//				while ((count = zis.read(data, 0, BUFFER)) != -1) {
+//					dest.write(data, 0, count);
+//				}
+//				dest.flush();
+//				dest.close();
+//				destFile = null;
+//			}
+//			zis.close();
+//			log.debug("Checksum: {}", checksum.getChecksum().getValue());
+//		} catch (Exception e) {
+//			log.error("Error unzipping {}", compressedFileName, e);
+//			e.printStackTrace();
+//		}
+//
+//	}
 	
     /**
      * Quick-n-dirty directory formatting to support launching in windows, specifically from ant.
