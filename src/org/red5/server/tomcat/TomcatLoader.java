@@ -108,6 +108,9 @@ public class TomcatLoader extends LoaderBase implements
 		System.setProperty("tomcat.home", serverRoot);
 		System.setProperty("catalina.home", serverRoot);
 		System.setProperty("catalina.base", serverRoot);
+		//
+		System.setProperty("catalina.shared.loader", serverRoot + "/lib/*.jar");
+		System.setProperty("shared.loader", serverRoot + "/lib/*.jar");
 		// create one embedded (server) and use it everywhere
 		embedded = new Embedded();	
 	}
@@ -157,7 +160,34 @@ public class TomcatLoader extends LoaderBase implements
 	public Context addContext(String path, String docBase) {
 		log.debug("Add context - path: {} docbase: {}", path, docBase);
 		org.apache.catalina.Context c = embedded.createContext(path, docBase);
-		log.debug("Context name: {}", c.getName());
+		log.debug("Context name: {} docbase: {} encoded: {}", new Object[]{c.getName(), c.getDocBase(), c.getEncodedPath()});
+		//see if we can load the webapp cl
+		try {
+			Class.forName("org.red5.server.tomcat.WebappClassLoader").newInstance();
+		} catch (Exception e) {
+			log.error("{}", e);
+			e.printStackTrace();
+		}
+		if (c != null) {
+			Object ldr = c.getLoader();
+			log.debug("Context loader: {}", ldr);
+			if (ldr != null) {
+				if (ldr instanceof WebappLoader) {
+					log.debug("Replacing context loader");				
+					((WebappLoader) ldr).setLoaderClass("org.red5.server.tomcat.WebappClassLoader");
+				} else {
+					log.debug("Context loader was instance of {}", ldr.getClass().getName());
+				}
+			} else {
+				log.debug("Context loader was null");
+				ClassLoader classloader = Thread.currentThread().getContextClassLoader();
+				log.debug("Thread context class loader: {}", classloader);
+				WebappLoader wldr = new WebappLoader(classloader);
+				wldr.setLoaderClass("org.red5.server.tomcat.WebappClassLoader");
+				c.setLoader(wldr);
+			}  				    				
+		}
+		log.debug("Context loader (check): {}", c.getLoader());
 		host.addChild(c);
 		LoaderBase.setRed5ApplicationContext(path, new TomcatApplicationContext(c));
 		return c;
@@ -258,7 +288,7 @@ public class TomcatLoader extends LoaderBase implements
 			webappFolder = System.getProperty("red5.root") + "/webapps";
 		}
 		System.setProperty("red5.webapp.root", webappFolder);
-		log.info("Application root: " + webappFolder);
+		log.info("Application root: {}", webappFolder);
 
 		// scan for additional webapp contexts
 
@@ -280,22 +310,6 @@ public class TomcatLoader extends LoaderBase implements
 				} else {
 					log.debug("Adding context from directory scan: {}", dirName);
 					ctx = addContext(dirName, webappContextDir);
-				}
-				if (ctx != null) {
-    				Object ldr = ctx.getLoader();
-    				if (ldr != null) {
-    					if (ldr instanceof WebappLoader) {
-    						log.debug("Replacing context class loader");				
-    						((WebappLoader) ldr).setLoaderClass("org.red5.server.tomcat.WebappClassLoader");
-    					} else {
-    						log.debug("Context class loader was instance of {}", ldr.getClass().getName());
-    					}
-    				} else {
-    					log.debug("Context class loader was null");
-    					WebappLoader wldr = new WebappLoader(classloader);
-    					wldr.setLoaderClass("org.red5.server.tomcat.WebappClassLoader");
-    					ctx.setLoader(wldr);
-    				}
 				}
 				webappContextDir = null;
 			}
@@ -468,8 +482,8 @@ public class TomcatLoader extends LoaderBase implements
 	 * @return
 	 */
 	public boolean startWebApplication(String applicationName) {
-		boolean result = false;
 		log.info("Starting Tomcat - Web application");	
+		boolean result = false;
 		
 		log.debug("Webapp root: {}", webappFolder);
 		
@@ -483,27 +497,8 @@ public class TomcatLoader extends LoaderBase implements
 			log.debug("Context did not exist in host");
 			String webappContextDir = FileUtil.formatPath(webappFolder, applicationName);
 			log.debug("Webapp context directory (full path): {}", webappContextDir);
-			//prepend slash
-			Context ctx = addContext(contextName, webappContextDir);
-    		if (ctx != null) {
-    			Object ldr = ctx.getLoader();
-    			if (ldr != null) {
-    				if (ldr instanceof WebappLoader) {
-    					log.debug("Replacing context loader");				
-    					((WebappLoader) ldr).setLoaderClass("org.red5.server.tomcat.WebappClassLoader");
-    				} else {
-    					log.debug("Context loader was instance of {}", ldr.getClass().getName());
-    				}
-    			} else {
-    				log.debug("Context loader was null");
-    				ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-    				WebappLoader wldr = new WebappLoader(classloader);
-    				wldr.setLoaderClass("org.red5.server.tomcat.WebappClassLoader");
-    				ctx.setLoader(wldr);
-    			}  				    				
-    		}
     		//set the newly created context as the current container
-    		cont = ctx;
+    		cont = addContext(contextName, webappContextDir);   
 		} else {
 			log.debug("Context already exists in host");
 		}

@@ -132,22 +132,6 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 					log.debug("Adding context from directory scan: {}", dirName);
 					ctx = addContext(dirName, webappContextDir);
 				}
-				if (ctx != null) {
-    				Object ldr = ctx.getLoader();
-    				if (ldr != null) {
-    					if (ldr instanceof WebappLoader) {
-    						log.debug("Replacing context loader");				
-    						((WebappLoader) ldr).setLoaderClass("org.red5.server.tomcat.WebappClassLoader");
-    					} else {
-    						log.debug("Context loader was instance of {}", ldr.getClass().getName());
-    					}
-    				} else {
-    					log.debug("Context loader was null");
-    					WebappLoader wldr = new WebappLoader(classloader);
-    					wldr.setLoaderClass("org.red5.server.tomcat.WebappClassLoader");
-    					ctx.setLoader(wldr);
-    				}  				    				
-				}	
 				webappContextDir = null;			
 			}
 		}
@@ -296,23 +280,6 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 			String webappContextDir = FileUtil.formatPath(webappRoot, applicationName);
 			//prepend slash
 			Context ctx = addContext(contextName, webappContextDir);
-    		if (ctx != null) {
-    			Object ldr = ctx.getLoader();
-    			if (ldr != null) {
-    				if (ldr instanceof WebappLoader) {
-    					log.debug("Replacing context loader");				
-    					((WebappLoader) ldr).setLoaderClass("org.red5.server.tomcat.WebappClassLoader");
-    				} else {
-    					log.debug("Context loader was instance of {}", ldr.getClass().getName());
-    				}
-    			} else {
-    				log.debug("Context loader was null");
-    				ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-    				WebappLoader wldr = new WebappLoader(classloader);
-    				wldr.setLoaderClass("org.red5.server.tomcat.WebappClassLoader");
-    				ctx.setLoader(wldr);
-    			}  				    				
-    		}
     		//set the newly created context as the current container
     		cont = ctx;
 		} else {

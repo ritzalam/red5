@@ -223,7 +223,6 @@ public class Installer {
 					// faster and it also works on macs ;)
 					byte[] buf = method.getResponseBody();
 					fos.write(buf);
-					fos.close();
 					fos.flush();
 					
 					result = true;

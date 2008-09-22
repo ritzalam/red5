@@ -21,7 +21,6 @@ package org.red5.server.util;
 
 
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -32,11 +31,8 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.Enumeration;
 import java.util.Random;
-import java.util.zip.Adler32;
-import java.util.zip.CheckedInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import java.util.zip.ZipInputStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -341,35 +337,35 @@ public class FileUtil {
 		File tmpDir = new File(destinationDir);
 
 		// make the war directory
-		System.out.println("making directory: " + tmpDir.mkdirs());
+		log.debug("Making directory: {}", tmpDir.mkdirs());
 		
 		try {
 			ZipFile zf = new ZipFile(compressedFileName);
 			Enumeration e = zf.entries();
 			while(e.hasMoreElements()) {
 				ZipEntry ze = (ZipEntry) e.nextElement();
-				System.out.println("Unzipping " + ze.getName());
+				log.debug("Unzipping {}", ze.getName());
 				if(ze.isDirectory()) {
-					System.out.println("is a directory");
+					log.debug("is a directory");
 					File dir = new File(tmpDir + "/" + ze.getName());
 					Boolean tmp = dir.mkdir();
-					System.out.println(tmp);
+					log.debug("{}", tmp);
 					continue;
 				}
 				FileOutputStream fout = new FileOutputStream(tmpDir + "/" + ze.getName());
-				java.io.InputStream in = zf.getInputStream(ze);
+				InputStream in = zf.getInputStream(ze);
 				copy(in, fout);
 				in.close();
 				fout.close();
 			}
+			e = null;
 		} catch (IOException e) {
-			System.err.println(e);
+			log.debug("Error unzipping", e);
 			e.printStackTrace();
 		}
 	}
 	
 	public static void copy(InputStream in, OutputStream out) throws IOException {
-		
 		synchronized(in) {
 			synchronized(out) {
 				byte[] buffer = new byte[256];
