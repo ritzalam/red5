@@ -66,7 +66,7 @@ public class Bootstrap {
 		//load dependencies
 		List<URL> urls = setDependenies(root, conf);
 		
-		// bootstrap dependencies and startup Red5 application server
+		//bootstrap dependencies and startup Red5 application server
 		bootStrap(urls);
 			
 		System.out.println("Bootstrap complete");
@@ -102,6 +102,8 @@ public class Bootstrap {
 	}
 
 	/**
+	 * Loads dependencies into classpath
+	 * 
 	 * @param root
 	 * @param conf
 	 * @return
@@ -134,6 +136,8 @@ public class Bootstrap {
 	}
 
 	/**
+	 * Sets the configuration root file
+	 * 
 	 * @param conf
 	 * @throws IOException
 	 */
@@ -151,6 +155,8 @@ public class Bootstrap {
 	}
 
 	/**
+	 * Gets the configuration root
+	 * 
 	 * @param root
 	 * @return
 	 */
@@ -173,6 +179,8 @@ public class Bootstrap {
 	}
 
 	/**
+	 * Gets the Red5 root
+	 * 
 	 * @return
 	 * @throws IOException
 	 */
