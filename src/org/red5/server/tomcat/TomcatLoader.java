@@ -492,10 +492,22 @@ public class TomcatLoader extends LoaderBase implements
 
 		Container cont = null;
 		
+		if (webappFolder == null) {
+			// Use default webapps directory
+			webappFolder = System.getProperty("red5.root") + "/webapps";
+		}
+		System.setProperty("red5.webapp.root", webappFolder);
+		log.info("Application root: {}", webappFolder);
+
+		// scan for additional webapp contexts
+
+		// Root applications directory
+		File appDirBase = new File(webappFolder);
+		
 		//check if the context already exists for the host
 		if ((cont = host.findChild(contextName)) == null) {
 			log.debug("Context did not exist in host");
-			String webappContextDir = FileUtil.formatPath(webappFolder, applicationName);
+			String webappContextDir = FileUtil.formatPath(appDirBase.getAbsolutePath(), applicationName);
 			log.debug("Webapp context directory (full path): {}", webappContextDir);
     		//set the newly created context as the current container
     		cont = addContext(contextName, webappContextDir);   
