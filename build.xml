@@ -19,10 +19,10 @@
 	<property name="classes.dir" value="bin"/>
 	<property name="webapps.dir" value="webapps"/>
 	<property name="webapps.build.dir" value="${dist.dir}/webapps"/>
-	<property name="debug.state" value="true"/>
 	<property name="config.dir" value="conf"/>
 	<property name="javadoc.dir" value="doc/api"/>
-	
+	<property name="debug.state" value="true"/>
+
 	<!-- Documentation properties -->
 	<property name="doc.ref.dir" value="doc/reference"/>
 	<property name="doc.ref.lib" value="${doc.ref.dir}/lib"/>
@@ -161,15 +161,15 @@
 	</target>
 
 	<target name="prepare" description="Setup the directories for building">
-			<mkdir dir="${classes.dir}"/>
-			<mkdir dir="${dist.dir}"/>
-			<mkdir dir="${log.dir}"/>
-			<mkdir dir="${dist.dir}/${log.dir}"/>
-			<mkdir dir="${cluster.dir}"/>
-			<mkdir dir="${origindist.dir}"/>
-			<mkdir dir="${edgedist.dir}"/>
-			<mkdir dir="${testclass.dir}"/>
-			<mkdir dir="${testreports.dir}"/>
+		<mkdir dir="${classes.dir}"/>
+		<mkdir dir="${dist.dir}"/>
+		<mkdir dir="${log.dir}"/>
+		<mkdir dir="${dist.dir}/${log.dir}"/>
+		<mkdir dir="${cluster.dir}"/>
+		<mkdir dir="${origindist.dir}"/>
+		<mkdir dir="${edgedist.dir}"/>
+		<mkdir dir="${testclass.dir}"/>
+		<mkdir dir="${testreports.dir}"/>
 	</target>
 
 	<target name="clean" description="Clean the directories for building">
@@ -188,9 +188,8 @@
 		</delete>
 	</target>
 
-	<!-- http://ant.apache.org/ivy/history/trunk/ant.html -->
 	<target name="retrieve" unless="library.installed" description="Retrieves the libraries if needed">
-		<!-- Ivy configuration -->
+		<!-- Ivy configuration - http://ant.apache.org/ivy/history/trunk/ant.html -->
 		<ivy:settings file="ivysettings.xml"/>
 		<condition property="ivy.conf.name" value="java6">
 			<not>
@@ -346,22 +345,21 @@
 
 		<!-- installer -->
 
-        <!-- load token replacement filters -->
-        <filter filtersfile="${filter.file}"/>
-        <copy todir="${webapps.build.dir}/installer" filtering="true">
-            <fileset dir="webapps/installer">
-                <exclude name="**/src/**"/>
-                <exclude name="**/*.swf"/>
-            </fileset>
-        </copy>
+        	<!-- load token replacement filters -->
+        	<filter filtersfile="${filter.file}"/>
+        	<copy todir="${webapps.build.dir}/installer" filtering="true">
+            		<fileset dir="webapps/installer">
+                		<exclude name="**/src/**"/>
+                		<exclude name="**/*.swf"/>
+            		</fileset>
+        	</copy>
 
-        <!-- copy SWF without filtering as it causes corruption -->
-        <copy todir="${webapps.build.dir}/installer">
-            <fileset dir="webapps/installer">
-                <include name="**/*.swf"/>
-            </fileset>
-        </copy>
-	
+        	<!-- copy SWF without filtering as it causes corruption -->
+        	<copy todir="${webapps.build.dir}/installer">
+            		<fileset dir="webapps/installer">
+                		<include name="**/*.swf"/>
+            		</fileset>
+        	</copy>
 	</target>
 
 	<!-- Scripting -->
@@ -410,6 +408,7 @@
 			</fileset>
 			<pathelement location="${dest.dir}"/>
 		</path>
+
 		<antcall target="compile_demos" inheritAll="true" inheritRefs="true"/>
 		<antcall target="compile_script" inheritAll="true" inheritRefs="true">
 			<param name="dest.dir" value="${classes.dir}/WEB-INF/classes"/>
@@ -430,7 +429,7 @@
 					<attribute name="Built-On" value="${build.TODAY}"/>
 				</manifest>
 			</war>	
-      	</sequential>
+      		</sequential>
 	</macrodef>
 
 	<target name="war_demos" description="Build wars for demo apps" depends="compile_demos">
@@ -442,13 +441,14 @@
 				<attribute name="Built-On" value="${build.TODAY}"/>
 			</manifest>
 		</war>
-        <war destfile="${dist.dir}/installer.war" webxml="${webapps.build.dir}/installer/WEB-INF/web.xml">
-            <fileset dir="${webapps.build.dir}/installer"/>
-            <manifest>
-                <attribute name="Built-By" value="${red5.fullname}"/>
-                <attribute name="Built-On" value="${build.TODAY}"/>
-            </manifest>
-        </war>		
+
+        	<war destfile="${dist.dir}/installer.war" webxml="${webapps.build.dir}/installer/WEB-INF/web.xml">
+            		<fileset dir="${webapps.build.dir}/installer"/>
+            		<manifest>
+                		<attribute name="Built-By" value="${red5.fullname}"/>
+                		<attribute name="Built-On" value="${build.TODAY}"/>
+            		</manifest>
+        	</war>		
 	</target>
 
 	<target name="javadoc" description="Generate JavaDoc">
