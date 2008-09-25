@@ -648,7 +648,7 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 		Deserializer deserializer = new Deserializer();
 		name = deserializer.deserialize(input, String.class);
 		persistentSO = persistent = true;
-		super.setAttributes(deserializer.deserialize(input, Map.class));
+		super.setAttributes(deserializer.<Map>deserialize(input, Map.class));
 		ownerMessage.setName(name);
 		ownerMessage.setIsPersistent(true);
 	}

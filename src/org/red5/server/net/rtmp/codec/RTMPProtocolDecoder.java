@@ -818,8 +818,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 		log.debug("Action {}", action);
 
 		if (header == null || header.getStreamId() == 0) {
-			int invokeId = deserializer.deserialize(input, Number.class)
-					.intValue();
+			int invokeId = deserializer.<Number>deserialize(input, Number.class).intValue();
 			notify.setInvokeId(invokeId);
 		}
 
@@ -937,7 +936,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 		
 		Input input = new org.red5.io.amf.Input(in);
 		String action = deserializer.deserialize(input, String.class);
-		int invokeId = deserializer.deserialize(input, Number.class).intValue();
+		int invokeId = deserializer.<Number>deserialize(input, Number.class).intValue();
 		FlexMessage msg = new FlexMessage();
 		msg.setInvokeId(invokeId);
 		Object[] params = new Object[] {};

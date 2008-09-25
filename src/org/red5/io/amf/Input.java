@@ -21,12 +21,14 @@ package org.red5.io.amf;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.beans.PropertyDescriptor;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.BeanUtilsBean;
@@ -389,17 +391,20 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		Class theClass = bean.getClass();
 		while (hasMoreProperties()) {
 			String name = readPropertyName();
-            Class t = getPropertyType(bean, name);
+            Type type = getPropertyType(bean, name);
 			log.debug("property: {}", name);
-			Object property = deserializer.deserialize(this, t);
+			Object property = deserializer.deserialize(this, type);
 			log.debug("val: {}", property);
 			//log.debug("val: "+property.getClass().getName());
 			try {
 				if (property != null) {
 					try {
-						if (!t.isAssignableFrom(property.getClass())) {
-							property = ConversionUtils.convert(property, t);
-						}
+                        if (type instanceof Class) {
+                            Class t = (Class) type;
+                            if (!t.isAssignableFrom(property.getClass())) {
+                                property = ConversionUtils.convert(property, t);
+                            }
+                        }
 						final Field field = theClass.getField(name);
 						field.set(bean, property);
 					} catch (Exception ex2) {
@@ -579,11 +584,11 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		reset(ReferenceMode.MODE_RTMP);
 	}
 
-    protected Class getPropertyType(Object instance, String propertyName) {
+    protected Type getPropertyType(Object instance, String propertyName) {
         try {
         	if (instance != null) {
         		Field field = instance.getClass().getField(propertyName);
-        		return field.getType();
+        		return field.getGenericType();
         	} else {
         		// instance is null for anonymous class, use default type
         	}
@@ -591,7 +596,8 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
             try {
                 BeanUtilsBean beanUtilsBean = BeanUtilsBean.getInstance();
                 PropertyUtilsBean propertyUtils = beanUtilsBean.getPropertyUtils();
-                return propertyUtils.getPropertyType(instance, propertyName);                    
+                PropertyDescriptor propertyDescriptor = propertyUtils.getPropertyDescriptor(instance, propertyName);
+                return propertyDescriptor.getReadMethod().getGenericReturnType();
             } catch (Exception e2) {
                 // nothing
             }

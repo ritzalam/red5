@@ -22,10 +22,12 @@ package org.red5.io.object;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Type;
+
 /**
- * The Deserializer class reads data input and handles the data 
- * according to the core data types 
- * 
+ * The Deserializer class reads data input and handles the data
+ * according to the core data types
+ *
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
@@ -41,7 +43,7 @@ public class Deserializer {
 	 * @param target
      * @return Object
 	 */
-	public <T> T deserialize(Input in, Class<T> target) {
+	public <T> T deserialize(Input in, Type target) {
 
 		byte type = in.readDataType();
 		log.debug("Type: {}", type);
@@ -104,7 +106,7 @@ public class Deserializer {
      * @param target
      * @return
      */
-	protected Object postProcessExtension(Object result, Class target) {
+	protected Object postProcessExtension(Object result, Type target) {
 		// does nothing at the moment, but will later!
 		return result;
 	}

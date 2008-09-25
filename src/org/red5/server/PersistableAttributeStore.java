@@ -188,7 +188,7 @@ public class PersistableAttributeStore extends AttributeStore implements
 	@SuppressWarnings("unchecked")
     public void deserialize(Input input) throws IOException {
 		Deserializer deserializer = new Deserializer();
-		setAttributes(deserializer.deserialize(input, Map.class));
+		setAttributes(deserializer.<Map>deserialize(input, Map.class));
 	}
 
     /**
