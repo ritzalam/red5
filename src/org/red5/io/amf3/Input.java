@@ -21,14 +21,13 @@ package org.red5.io.amf3;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.lang.reflect.Type;
+import java.lang.reflect.ParameterizedType;
+import java.util.*;
 
 import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.beanutils.ConvertUtilsBean;
+import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.io.amf.AMF;
 import org.red5.io.object.DataTypes;
@@ -42,12 +41,13 @@ import org.w3c.dom.Document;
 
 /**
  * Input for Red5 data (AMF3) types
- * 
+ *
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public class Input extends org.red5.io.amf.Input implements org.red5.io.object.Input {
+    private static ConvertUtilsBean convertUtilsBean = BeanUtilsBean.getInstance().getConvertUtils();
 
 	/**
 	 * Holds informations about already deserialized classes.
@@ -266,7 +266,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 * @return Object    null
 	 */
 	@Override
-	public Object readNull() {
+	public Object readNull(Type target) {
 		return null;
 	}
 
@@ -276,7 +276,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 * @return boolean     Boolean value
 	 */
 	@Override
-	public Boolean readBoolean() {
+	public Boolean readBoolean(Type target) {
 		return (currentDataType == AMF3.TYPE_BOOLEAN_TRUE) ? Boolean.TRUE
 				: Boolean.FALSE;
 	}
@@ -287,14 +287,23 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 * @return Number      Number
 	 */
 	@Override
-	public Number readNumber() {
-		if (currentDataType == AMF3.TYPE_NUMBER) {
-			return buf.getDouble();
+	public Number readNumber(Type target) {
+        Number v;
+
+        if (currentDataType == AMF3.TYPE_NUMBER) {
+			v = buf.getDouble();
 		} else {
 			// we are decoding an int
-			return readAMF3Integer();
+			v = readAMF3Integer();
 		}
-	}
+
+        if (target instanceof Class) {
+            Class cls = (Class) target;
+            if (!cls.isAssignableFrom(v.getClass())) v = (Number) convertUtilsBean.convert(v.toString(), cls);
+        }
+
+        return v;
+    }
 
 	/**
 	 * Reads a string
@@ -339,7 +348,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 * @return Date        Date object
 	 */
 	@Override
-	public Date readDate() {
+	public Date readDate(Type target) {
 		int ref = readAMF3Integer();
 		if ((ref & 1) == 0) {
 			// Reference to previously found date
@@ -359,7 +368,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 * 
 	 * @return int        Length of array
 	 */
-    public Object readArray(Deserializer deserializer) {
+    public Object readArray(Deserializer deserializer, Type target) {
 		int count = readAMF3Integer();
 		if ((count & 1) == 0) {
 			// Reference
@@ -371,25 +380,87 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		amf3_mode += 1;
 		Object result;
 		if (key.equals("")) {
-			// normal array
-			List<Object> resultList = new ArrayList<Object>(count);
+            Class<?> nested = Object.class;
+            Class<?> collection = Collection.class;
+
+            if (target instanceof ParameterizedType) {
+                ParameterizedType t = (ParameterizedType) target;
+                Type[] actualTypeArguments = t.getActualTypeArguments();
+                if (actualTypeArguments.length == 1) {
+                    nested = (Class<?>) actualTypeArguments[0];
+                }
+                target = t.getRawType();
+            }
+
+            if (target instanceof Class) {
+                collection = (Class) target;
+            }
+
+            if (SortedSet.class.isAssignableFrom(collection)) {
+                collection = TreeSet.class;
+            } else if (Set.class.isAssignableFrom(collection)) {
+                collection = HashSet.class;
+            } else {
+                collection = ArrayList.class;
+            }
+
+            Collection resultList;
+
+            try {
+                resultList= (Collection) collection.newInstance();
+            } catch (Exception e) {
+                resultList = new ArrayList(count);
+            }
+
+            // normal array
 			storeReference(resultList);
 			for (int i=0; i<count; i++) {
-				final Object value = deserializer.deserialize(this, Object.class);
+				final Object value = deserializer.deserialize(this, nested);
 				resultList.add(value);
 			}
 			result = resultList;
 		} else {
+            Class<?> k = Object.class;
+            Class<?> v = Object.class;
+            Class<?> collection = Collection.class;
+
+            if (target instanceof ParameterizedType) {
+                ParameterizedType t = (ParameterizedType) target;
+                Type[] actualTypeArguments = t.getActualTypeArguments();
+                if (actualTypeArguments.length == 2) {
+                    k = (Class<?>) actualTypeArguments[0];
+                    v = (Class<?>) actualTypeArguments[1];
+                }
+                target = t.getRawType();
+            }
+
+            if (target instanceof Class) {
+                collection = (Class) target;
+            }
+
+            if (SortedMap.class.isAssignableFrom(collection)) {
+                collection = TreeMap.class;
+            } else {
+                collection = HashMap.class;
+            }
+
+            Map resultMap;
+
+            try {
+                resultMap= (Map) collection.newInstance();
+            } catch (Exception e) {
+                resultMap = new HashMap(count);
+            }
+
 			// associative array
-			Map<Object, Object> resultMap = new HashMap<Object, Object>();
 			storeReference(resultMap);
 			while (!key.equals("")) {
-				final Object value = deserializer.deserialize(this, Object.class);
-				resultMap.put(key, value);
+				final Object value = deserializer.deserialize(this, v);
+                resultMap.put(key, value);
 				key = readString();
 			}
 			for (int i=0; i<count; i++) {
-				final Object value = deserializer.deserialize(this, Object.class);
+				final Object value = deserializer.deserialize(this, v);
 				resultMap.put(i, value);
 			}
 			result = resultMap;
@@ -398,14 +469,14 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		return result;			
 	}
 
-    public Object readMap(Deserializer deserializer) {
+    public Object readMap(Deserializer deserializer, Type target) {
     	throw new RuntimeException("AMF3 doesn't support maps.");
     }
     
 	// Object
 
     @SuppressWarnings("unchecked")
-	public Object readObject(Deserializer deserializer) {
+	public Object readObject(Deserializer deserializer, Type target) {
 		int type = readAMF3Integer();
 		if ((type & 1) == 0) {
 			// Reference
@@ -576,7 +647,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		return result;
     }
 
-    public ByteArray readByteArray() {
+    public ByteArray readByteArray(Type target) {
 		int type = readAMF3Integer();
 		if ((type & 1) == 0) {
 			// Reference
@@ -597,13 +668,13 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 * @return Object     Custom type object
 	 */
 	@Override
-	public Object readCustom() {
+	public Object readCustom(Type target) {
 		// Return null for now
 		return null;
 	}
 
 	/** {@inheritDoc} */
-	public Object readReference() {
+	public Object readReference(Type target) {
 		throw new RuntimeException("AMF3 doesn't support direct references.");
 	}
 
@@ -664,7 +735,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	}
 
 	/** {@inheritDoc} */
-	public Document readXML() {
+	public Document readXML(Type target) {
 		int len = readAMF3Integer();
 		if (len == 1)
 			// Empty string, should not happen

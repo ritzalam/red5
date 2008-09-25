@@ -22,6 +22,7 @@ package org.red5.io.mock;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.lang.reflect.Type;
 
 import org.red5.io.amf3.ByteArray;
 import org.red5.io.object.BaseInput;
@@ -62,17 +63,17 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	// Basic
 
 	/** {@inheritDoc} */
-    public Object readNull() {
+    public Object readNull(Type target) {
 		return null;
 	}
 
 	/** {@inheritDoc} */
-    public Boolean readBoolean() {
+    public Boolean readBoolean(Type target) {
 		return (Boolean) getNext();
 	}
 
 	/** {@inheritDoc} */
-    public Number readNumber() {
+    public Number readNumber(Type target) {
 		return (Number) getNext();
 	}
     /** {@inheritDoc} */
@@ -85,19 +86,19 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	}
 
 	/** {@inheritDoc} */
-    public Date readDate() {
+    public Date readDate(Type target) {
 		return (Date) getNext();
 	}
 
 	// Array
 
 	/** {@inheritDoc} */
-    public Object readArray(Deserializer deserializer) {
+    public Object readArray(Deserializer deserializer, Type target) {
     	return getNext();
     }
     
 	/** {@inheritDoc} */
-    public Object readMap(Deserializer deserializer) {
+    public Object readMap(Deserializer deserializer, Type target) {
 		return getNext();
 	}
     
@@ -110,28 +111,28 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	// Object
 
 	/** {@inheritDoc} */
-    public Object readObject(Deserializer deserializer) {
+    public Object readObject(Deserializer deserializer, Type target) {
 		return getNext();
 	}
 
 	/** {@inheritDoc} */
-	public Document readXML() {
+	public Document readXML(Type target) {
 		return (Document) getNext();
 	}
 
 	/** {@inheritDoc} */
-    public Object readCustom() {
+    public Object readCustom(Type target) {
 		// Not supported
 		return null;
 	}
 
 	/** {@inheritDoc} */
-    public ByteArray readByteArray() {
+    public ByteArray readByteArray(Type target) {
     	return (ByteArray) getNext();
     }
     
 	/** {@inheritDoc} */
-    public Object readReference() {
+    public Object readReference(Type target) {
 		final Short num = (Short) getNext();
 		return getReference(num.shortValue());
 	}

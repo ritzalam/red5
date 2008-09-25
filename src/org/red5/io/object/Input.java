@@ -21,6 +21,7 @@ package org.red5.io.object;
 
 import java.util.Date;
 import java.util.Map;
+import java.lang.reflect.Type;
 
 import org.red5.io.amf3.ByteArray;
 import org.w3c.dom.Document;
@@ -51,19 +52,19 @@ public interface Input {
      * Read Null data type
      * @return         Null datatype (AS)
      */
-	Object readNull();
+	Object readNull(Type target);
 
     /**
      * Read Boolean value
      * @return         Boolean
      */
-    Boolean readBoolean();
+    Boolean readBoolean(Type target);
 
     /**
      * Read Number object
      * @return         Number
      */
-    Number readNumber();
+    Number readNumber(Type target);
 
     /**
      * Read String object
@@ -75,7 +76,7 @@ public interface Input {
      * Read date object
      * @return         Date
      */
-    Date readDate();
+    Date readDate(Type target);
 
     /**
      * Read an array. This can result in a List or Map being
@@ -83,7 +84,7 @@ public interface Input {
      * 
      * @return		   array
      */
-    Object readArray(Deserializer deserializer);
+    Object readArray(Deserializer deserializer, Type target);
     
     /**
      * Read a map containing key - value pairs. This can result
@@ -92,39 +93,39 @@ public interface Input {
      * 
      * @return		   Map
      */
-    Object readMap(Deserializer deserializer);
+    Object readMap(Deserializer deserializer, Type target);
     
     /**
      * Read an object.
      * 
      * @return		   object
      */
-    Object readObject(Deserializer deserializer);
+    Object readObject(Deserializer deserializer, Type target);
 
     /**
      * Read XML document
      * @return       XML DOM document
      */
-	Document readXML();
+	Document readXML(Type target);
 
     /**
      * Read custom object
      * @return          Custom object
      */
-    Object readCustom();
+    Object readCustom(Type target);
 
     /**
      * Read ByteArray object.
      * 
      * @return		ByteArray object
      */
-    ByteArray readByteArray();
+    ByteArray readByteArray(Type target);
     
     /**
      * Read reference to Complex Data Type. Objects that are collaborators (properties) of other
      * objects must be stored as references in map of id-reference pairs.
      */
-	Object readReference();
+	Object readReference(Type target);
 
     /**
      * Clears all references

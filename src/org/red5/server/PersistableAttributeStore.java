@@ -185,10 +185,9 @@ public class PersistableAttributeStore extends AttributeStore implements
      * @param input              Input object
      * @throws IOException       I/O exception
      */
-	@SuppressWarnings("unchecked")
     public void deserialize(Input input) throws IOException {
 		Deserializer deserializer = new Deserializer();
-		setAttributes(deserializer.<Map>deserialize(input, Map.class));
+		setAttributes(deserializer.<Map<String, Object>>deserialize(input, Map.class));
 	}
 
     /**

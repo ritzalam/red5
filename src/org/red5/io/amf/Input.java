@@ -168,7 +168,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	 *
 	 * @return Object
 	 */
-	public Object readNull() {
+	public Object readNull(Type target) {
 		return null;
 	}
 
@@ -177,7 +177,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	 *
 	 * @return boolean
 	 */
-	public Boolean readBoolean() {
+	public Boolean readBoolean(Type target) {
 		// TODO: check values
 		return (buf.get() == AMF.VALUE_TRUE) ? Boolean.TRUE : Boolean.FALSE;
 	}
@@ -188,7 +188,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	 *
 	 * @return Number
 	 */
-	public Number readNumber() {
+	public Number readNumber(Type target) {
 		double num = buf.getDouble();
 		if (num == Math.round(num)) {
 			if (num < Integer.MAX_VALUE) {
@@ -259,7 +259,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	 *
 	 * @return Date      Decoded string object
 	 */
-	public Date readDate() {
+	public Date readDate(Type target) {
 		/*
 		 * Date: 0x0B T7 T6 .. T0 Z1 Z2 T7 to T0 form a 64 bit Big Endian number
 		 * that specifies the number of nanoseconds that have passed since
@@ -277,7 +277,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 
 	// Array
 
-	public Object readArray(Deserializer deserializer) {
+	public Object readArray(Deserializer deserializer, Type target) {
 		int count = buf.getInt();
 		List<Object> result = new ArrayList<Object>(count);
 		storeReference(result);
@@ -318,7 +318,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		skipEndObject();
     }
 
-	public Object readMap(Deserializer deserializer) {
+	public Object readMap(Deserializer deserializer, Type target) {
 		// The maximum number used in this mixed array.
 		int maxNumber = buf.getInt();
 		log.debug("Read start mixed array: {}", maxNumber);
@@ -444,7 +444,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
      * @param deserializer    Deserializer to use
      * @return                Read object
      */
-	public Object readObject(Deserializer deserializer) {
+	public Object readObject(Deserializer deserializer, Type target) {
 		String className;
 		if (currentDataType == AMF.TYPE_CLASS_OBJECT) {
 			className = getString(buf);
@@ -523,7 +523,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	 *
 	 * @return String       XML as string
 	 */
-	public Document readXML() {
+	public Document readXML(Type target) {
 		final String xmlString = readString();
 		Document doc = null;
 		try {
@@ -540,7 +540,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	 *
 	 * @return Object       Custom type object
 	 */
-	public Object readCustom() {
+	public Object readCustom(Type target) {
 		// Return null for now
 		return null;
 	}
@@ -550,7 +550,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	 *
 	 * @return	ByteArray object
 	 */
-	public ByteArray readByteArray() {
+	public ByteArray readByteArray(Type target) {
 		throw new RuntimeException("ByteArray objects not supported with AMF0");
 	}
 
@@ -559,7 +559,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	 *
 	 * @return Object       Read reference to object
 	 */
-	public Object readReference() {
+	public Object readReference(Type target) {
 		if (referenceMode == ReferenceMode.MODE_RTMP) {
 			return getReference(buf.getUnsignedShort() - 1);
 		} else {

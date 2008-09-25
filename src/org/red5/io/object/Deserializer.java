@@ -59,40 +59,40 @@ public class Deserializer {
 
 		switch (type) {
 			case DataTypes.CORE_NULL:
-				result = in.readNull();
+				result = in.readNull(target);
 				break;
 			case DataTypes.CORE_BOOLEAN:
-				result = in.readBoolean();
+				result = in.readBoolean(target);
 				break;
 			case DataTypes.CORE_NUMBER:
-				result = in.readNumber();
+				result = in.readNumber(target);
 				break;
 			case DataTypes.CORE_STRING:
 				result = in.readString();
 				break;
 			case DataTypes.CORE_DATE:
-				result = in.readDate();
+				result = in.readDate(target);
 				break;
 			case DataTypes.CORE_ARRAY:
-				result = in.readArray(this);
+				result = in.readArray(this, target);
 				break;
 			case DataTypes.CORE_MAP:
-				result = in.readMap(this);
+				result = in.readMap(this, target);
 				break;
 			case DataTypes.CORE_XML:
-				result = in.readXML();
+				result = in.readXML(target);
 				break;
 			case DataTypes.CORE_OBJECT:
-				result = in.readObject(this);
+				result = in.readObject(this, target);
 				break;
 			case DataTypes.CORE_BYTEARRAY:
-				result = in.readByteArray();
+				result = in.readByteArray(target);
 				break;
 			case DataTypes.OPT_REFERENCE:
-				result = in.readReference();
+				result = in.readReference(target);
 				break;
 			default:
-				result = in.readCustom();
+				result = in.readCustom(target);
 				break;
 		}
 
