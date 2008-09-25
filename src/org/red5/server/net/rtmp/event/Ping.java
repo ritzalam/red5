@@ -108,6 +108,14 @@ public class Ping extends BaseEvent {
 		this.value3 = value3;
 		this.value4 = value4;
 	}
+	
+	public Ping(Ping in) {
+		super(Type.SYSTEM);
+		this.value1 = in.getValue1();
+		this.value2 = in.getValue2();
+		this.value3 = in.getValue3();
+		this.value4 = in.getValue4();
+	}
 
 	/** {@inheritDoc} */
     @Override

@@ -32,6 +32,7 @@ import org.red5.server.api.IGlobalScope;
 import org.red5.server.api.IScope;
 import org.red5.server.api.IScopeHandler;
 import org.red5.server.api.IServer;
+import org.red5.server.api.Red5;
 import org.red5.server.api.ScopeUtils;
 import org.red5.server.api.IConnection.Encoding;
 import org.red5.server.api.service.IPendingServiceCall;
@@ -306,7 +307,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 											IPendingServiceCall pc = (IPendingServiceCall) call;
 											//send fmsver and capabilities
 									    	StatusObject result = getStatus(NC_CONNECT_SUCCESS);
-									    	result.setAdditional("fmsVer", "RED5/0,7,1,0");
+									    	result.setAdditional("fmsVer", Red5.getFMSVersion());
 											result.setAdditional("capabilities", Integer.valueOf(31));
 									    	pc.setResult(result);
 										}

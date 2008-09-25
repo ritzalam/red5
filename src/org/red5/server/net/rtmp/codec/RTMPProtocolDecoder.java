@@ -530,10 +530,11 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 				message = decodeInvoke(in, rtmp);
 				break;
 			case TYPE_NOTIFY:
-				if (header.getStreamId() == 0)
+				if (header.getStreamId() == 0) {
 					message = decodeNotify(in, header, rtmp);
-				else
+				} else {
 					message = decodeStreamMetadata(in);
+				}
 				break;
 			case TYPE_PING:
 				message = decodePing(in);
@@ -770,11 +771,13 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	private boolean isStreamCommand(String action) {
 		return (ACTION_CREATE_STREAM.equals(action)
 				|| ACTION_DELETE_STREAM.equals(action)
-				|| ACTION_PUBLISH.equals(action) || ACTION_PLAY.equals(action)
-				|| ACTION_SEEK.equals(action) || ACTION_PAUSE.equals(action)
+				|| ACTION_PUBLISH.equals(action) 
+				|| ACTION_PLAY.equals(action)
+				|| ACTION_SEEK.equals(action) 
+				|| ACTION_PAUSE.equals(action)
 				|| ACTION_CLOSE_STREAM.equals(action)
-				|| ACTION_RECEIVE_VIDEO.equals(action) || ACTION_RECEIVE_AUDIO
-				.equals(action));
+				|| ACTION_RECEIVE_VIDEO.equals(action) 
+				|| ACTION_RECEIVE_AUDIO.equals(action));
 	}
 
 	/**
