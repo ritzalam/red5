@@ -77,7 +77,7 @@
         <dependency name="bsh" rev="2.0b4" />
         <dependency name="groovy" rev="1.0" />  
         <dependency name="jruby" rev="1.0.3" conf="java6->*"/>  
-        <dependency name="jython" rev="2.2" />  
+        <dependency name="jython" rev="2.5" />  
         <dependency org="spring" name="spring-context-support" rev="2.5.5" />
         <!-- Java5 support -->
         <dependency org="rhino" name="js" rev="1.6R7" conf="java5->*"/>

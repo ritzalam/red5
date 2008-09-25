@@ -29,10 +29,10 @@ import java.lang.ref.WeakReference;
  * The code below shows various uses.
  * <p>
  * <code> 
- * IConnection conn = Red5.getConnectionLocal();<br />
+ * IConnection conn = Red5.getConnectionLocal();<br /> 
  * Red5 r5 = new Red5();<br />
  * IScope scope = r5.getScope();<br />
- * conn = r5.getConnection();<br />
+ * conn = r5.getConnection();<br /> 
  * r5 = new Red5(conn);<br />
  * IClient client = r5.getClient();<br />
  * </code>
