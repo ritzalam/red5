@@ -144,12 +144,13 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 				log.error("Handshake validation failed but no current connection!?");
 			}
 			return null;
-		// Exception handling is patched by Victor - we catch any exception in the decoding
-		// Then clear the buffer to eliminate memory leaks when we can't parse protocol
-			// Also close Connection because we can't parse data from it
 		} catch (Exception ex) {
+			// Exception handling is patched by Victor - we catch any exception in the decoding
+			// Then clear the buffer to eliminate memory leaks when we can't parse protocol
+			// Also close Connection because we can't parse data from it
 			log.error("Error decoding buffer", ex);
 			buffer.clear();
+
 			IConnection conn = Red5.getConnectionLocal();
 			if (conn != null) {
 				log.warn("Closing connection because decoding failed: {}", conn);
@@ -202,12 +203,11 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 			switch (rtmp.getState()) {
 				case RTMP.STATE_CONNECTED:
 					return decodePacket(rtmp, in);
-				case RTMP.STATE_ERROR:
-					// attempt to correct error
-					return null;
 				case RTMP.STATE_CONNECT:
 				case RTMP.STATE_HANDSHAKE:
 					return decodeHandshake(rtmp, in);
+				case RTMP.STATE_ERROR:
+					// attempt to correct error?
 				default:
 					return null;
 			}

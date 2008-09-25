@@ -50,9 +50,11 @@ public class ContextLoggingListener implements ServletContextListener {
 		String contextName = pathToName(event);
 		System.out.printf("Logger name for context: %s\n", contextName);
 
-		try {
-			LoggingContextSelector selector = (LoggingContextSelector) StaticLoggerBinder.SINGLETON.getContextSelector();
+		LoggingContextSelector selector = null;
 		
+		try {
+			selector = (LoggingContextSelector) StaticLoggerBinder.SINGLETON.getContextSelector();
+			//set this contexts name
 			selector.setContextName(contextName);
 
 			LoggerContext context = selector.getLoggerContext();
@@ -71,6 +73,9 @@ public class ContextLoggingListener implements ServletContextListener {
 		} catch (Exception e) {
 			System.err.println("LoggingContextSelector is not the correct type");
 			e.printStackTrace();
+		} finally {
+			//reset the name
+			selector.setContextName(null);
 		}
 
 	}
@@ -78,7 +83,7 @@ public class ContextLoggingListener implements ServletContextListener {
 	private String pathToName(ServletContextEvent event) {
 		String contextName = event.getServletContext().getContextPath()
 				.replaceAll("/", "");
-		if (contextName.equals("")) {
+		if ("".equals(contextName)) {
 			contextName = "root";
 		}
 		return contextName;

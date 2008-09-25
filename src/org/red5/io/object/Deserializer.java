@@ -43,6 +43,7 @@ public class Deserializer {
 	 * @param target
      * @return Object
 	 */
+	@SuppressWarnings("unchecked")
 	public <T> T deserialize(Input in, Type target) {
 
 		byte type = in.readDataType();
@@ -53,7 +54,7 @@ public class Deserializer {
 			log.debug("Type (skip): {}", type);
 		}
 
-		log.debug("Datatype: " + DataTypes.toStringValue(type));
+		log.debug("Datatype: {}", DataTypes.toStringValue(type));
 
 		Object result;
 

@@ -208,6 +208,8 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 			return readDataType(currentDataType);
 		}
 
+		log.debug("Current data type (after amf checks): {}", currentDataType);
+
 		switch (currentDataType) {
 			case AMF3.TYPE_UNDEFINED:
 			case AMF3.TYPE_NULL:
@@ -333,6 +335,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		final java.nio.ByteBuffer strBuf = buf.buf();
 		strBuf.limit(strBuf.position() + len);
 		final String string = AMF3.CHARSET.decode(strBuf).toString();
+		log.debug("String: {}", string);
 		buf.limit(limit); // Reset the limit
 		stringReferences.add(string);
 		return string;
@@ -524,16 +527,17 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 			break;
 		case AMF3.TYPE_OBJECT_EXTERNALIZABLE:
 			// Use custom class to deserialize the object
-			if ("".equals(className))
-				throw new RuntimeException("need a classname to load an externalizable object");
-			
+			if ("".equals(className)) {
+				throw new RuntimeException("Classname is required to load an Externalizable object");
+			}
+			log.debug("Externalizable class: {}", className);
 			result = newInstance(className);
-			if (result == null)
-				throw new RuntimeException("could not instantiate class");
-			
-			if (!(result instanceof IExternalizable))
-				throw new RuntimeException("the class must implement the IExternalizable interface");
-			
+			if (result == null) {
+				throw new RuntimeException(String.format("Could not instantiate class: %s", className));
+			}
+			if (!(result instanceof IExternalizable)) {
+				throw new RuntimeException(String.format("Class must implement the IExternalizable interface: %s", className));
+			}
 			classReferences.add(new ClassReference(className, AMF3.TYPE_OBJECT_EXTERNALIZABLE, null));
 			storeReference(tempRefId, result);
 			((IExternalizable) result).readExternal(new DataInput(this, deserializer));
@@ -566,16 +570,17 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 			break;
 		default:
 		case AMF3.TYPE_OBJECT_PROXY:
-			if ("".equals(className))
-				throw new RuntimeException("need a classname to load an externalizable object");
-			
+			if ("".equals(className)) {
+				throw new RuntimeException("Classname is required to load an Externalizable object");
+			}
+			log.debug("Externalizable class: {}", className);			
 			result = newInstance(className);
-			if (result == null)
-				throw new RuntimeException("could not instantiate class");
-			
-			if (!(result instanceof IExternalizable))
-				throw new RuntimeException("the class must implement the IExternalizable interface");
-			
+			if (result == null) {
+				throw new RuntimeException(String.format("Could not instantiate class: %s", className));
+			}			
+			if (!(result instanceof IExternalizable)) {
+				throw new RuntimeException(String.format("Class must implement the IExternalizable interface: %s", className));
+			}
 			classReferences.add(new ClassReference(className, AMF3.TYPE_OBJECT_PROXY, null));
 			storeReference(tempRefId, result);
 			((IExternalizable) result).readExternal(new DataInput(this, deserializer));
@@ -617,7 +622,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 						}
 						
 						if (value instanceof PendingObject) {
-							// Deferr setting of value until real object is created
+							// Defer setting of value until real object is created
 							((PendingObject) value).addPendingProperty(result, resultClass, key);
 							continue;
 						}
