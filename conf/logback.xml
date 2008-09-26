@@ -10,7 +10,7 @@
 		</layout>
 	</appender>
 	<appender name="FILE" class="ch.qos.logback.core.FileAppender">
-		<File>../log/red5.log</File>
+		<File>log/red5.log</File>
 		<Append>false</Append>
 		<Encoding>UTF-8</Encoding>
 		<BufferedIO>false</BufferedIO>
@@ -20,7 +20,7 @@
 		</layout>
 	</appender>
 	<appender name="ERRORFILE" class="ch.qos.logback.core.FileAppender">
-		<File>../log/error.log</File>
+		<File>log/error.log</File>
 		<Append>false</Append>
 		<Encoding>UTF-8</Encoding>
 		<BufferedIO>false</BufferedIO>
