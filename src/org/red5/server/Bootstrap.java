@@ -115,8 +115,16 @@ public class Bootstrap {
 		List<URL> urls = new ArrayList<URL>(57); //use prime
 		// add red5.jar
 		urls.add(new File(root, "red5.jar").toURI().toURL());
+		// locate the libraries
+		File libDir = new File(root, "lib");
+		if (!libDir.exists()) {
+			//try a system property
+			String libPath = System.getProperty("red5.lib_root");
+			libDir = new File(libPath);
+		}
+		System.out.printf("Library dir: %s\n", libDir);
 		// add all other libs
-		for (File lib : new File(root, "lib").listFiles()) {
+		for (File lib : libDir.listFiles()) {
 			URL url = lib.toURI().toURL();
 			urls.add(url);
 		}

@@ -27,11 +27,10 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.collections.BeanMap;
-import org.apache.commons.collections.map.LRUMap;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.annotations.Anonymous;
 import org.red5.io.amf3.ByteArray;
@@ -48,6 +47,7 @@ import org.w3c.dom.Document;
  *
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
+ * @author Paul Gregoire (mondain@gmail.com)
  */
 public class Output extends BaseOutput implements org.red5.io.object.Output {
 
@@ -56,18 +56,12 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 	/**
 	 * Cache encoded strings.
 	 */
-	protected static final Map<String, byte[]> stringCache = (Map<String, byte[]>) new LRUMap(10000, true);
+	protected static final ConcurrentMap<String, byte[]> stringCache = new ConcurrentHashMap<String, byte[]>();
 
     /**
      * Output buffer
      */
     protected ByteBuffer buf;
-    
-	private static final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
-
-	private static final Lock read = readWriteLock.readLock();
-
-	private static final Lock write = readWriteLock.writeLock();    
 
     /**
      * Creates output with given byte buffer
@@ -80,7 +74,6 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 
 	/** {@inheritDoc} */
     public boolean isCustom(Object custom) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
@@ -415,28 +408,13 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
      * @return encoded string
      */
     protected static byte[] encodeString(String string) {
-    	byte[] encoded;
-    	
-		read.lock();
-		try {
-    		encoded = stringCache.get(string);
-		} finally {
-			read.unlock();
-		}
-
+    	byte[] encoded = stringCache.get(string);
 		if (encoded == null) {
     		java.nio.ByteBuffer buf = AMF.CHARSET.encode(string);
     		encoded = new byte[buf.limit()];
     		buf.get(encoded);
-    		
-			write.lock();
-			try {
-    			stringCache.put(string, encoded);
-			} finally {
-				write.unlock();
-			}    			
-			
-    	}
+    		stringCache.put(string, encoded);
+    	}		
     	return encoded;
     }
 

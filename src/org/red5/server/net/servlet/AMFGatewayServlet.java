@@ -51,6 +51,7 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard (luke@codegent.com)
+ * @author Paul Gregoire (mondain@gmail.com)
  */
 public class AMFGatewayServlet extends HttpServlet {
 
@@ -100,7 +101,6 @@ public class AMFGatewayServlet extends HttpServlet {
     		ServletContext ctx = getServletContext();
     		log.debug("Context path: {}", ctx.getContextPath());
     		//attempt to lookup the webapp context		
-    		//webAppCtx = WebApplicationContextUtils.getWebApplicationContext(ctx);
     		webAppCtx = WebApplicationContextUtils.getRequiredWebApplicationContext(ctx);
     		//now try to look it up as an attribute
     		if (webAppCtx == null) {
@@ -177,18 +177,18 @@ public class AMFGatewayServlet extends HttpServlet {
 			IRemotingConnection conn = new RemotingConnection(req, scope, packet);
 			// Make sure the connection object isn't garbage collected
 			req.setAttribute(CONNECTION, conn);
-			try {
-				Red5.setConnectionLocal(conn);
-				handleRemotingPacket(req, context, scope, packet);
-				resp.setStatus(HttpServletResponse.SC_OK);
-				resp.setContentType(APPLICATION_AMF);
-				sendResponse(resp, packet);
-			} finally {
-				req.removeAttribute(CONNECTION);
-			}
+			
+			Red5.setConnectionLocal(conn);
+			handleRemotingPacket(req, context, scope, packet);
+			resp.setStatus(HttpServletResponse.SC_OK);
+			resp.setContentType(APPLICATION_AMF);
+			sendResponse(resp, packet);
 		} catch (Exception e) {
 			log.error("Error handling remoting call", e);
 			resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+		} finally {
+			//ensure the conn attr gets removed
+			req.removeAttribute(CONNECTION);
 		}
 	}
 
