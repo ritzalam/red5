@@ -50,7 +50,12 @@
 			      
 	    <property name="connector">
 			<bean class="org.apache.catalina.connector.Connector">
-				<constructor-arg type="java.lang.String" value="org.apache.coyote.http11.Http11NioProtocol" />
+				<!-- Blocking I/O -->
+				<constructor-arg type="java.lang.String" value="org.apache.coyote.http11.Http11Protocol" />
+				<!-- Non-blocking I/O -->
+				<!--
+				<constructor-arg type="java.lang.String" value="org.apache.coyote.http11.Http11NioProtocol" />	
+				-->
 		        <property name="port"><value>${http.port}</value></property>
 		        <property name="redirectPort"><value>${https.port}</value></property>
 		        <property name="enableLookups"><value>false</value></property>
