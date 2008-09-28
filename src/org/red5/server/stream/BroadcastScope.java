@@ -22,6 +22,8 @@ package org.red5.server.stream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.red5.server.BasicScope;
 import org.red5.server.api.IScope;
@@ -32,8 +34,6 @@ import org.red5.server.messaging.IProvider;
 import org.red5.server.messaging.InMemoryPushPushPipe;
 import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.messaging.PipeConnectionEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Scope type for publishing that deals with pipe connection events,
@@ -41,18 +41,28 @@ import org.slf4j.LoggerFactory;
  */
 public class BroadcastScope extends BasicScope implements IBroadcastScope,
 		IPipeConnectionListener {
-    /**
+   
+	/**
      *  Simple in memory push pipe, triggered by an active provider to push messages to consumer
      */
 	private InMemoryPushPushPipe pipe;
-    /**
+   
+	/**
      *  Number of components.
      */
 	private int compCounter;
-    /**
+
+	/**
      *  Remove flag
      */
 	private boolean hasRemoved;
+	
+	/**
+	 * Lock for critical sections, to prevent concurrent modification. 
+	 * A "fairness" policy is used wherein the longest waiting thread
+	 * will be granted access before others.
+	 */
+	protected Lock lock = new ReentrantLock(true);
 
     /**
      * Creates broadcast scope
@@ -120,8 +130,11 @@ public class BroadcastScope extends BasicScope implements IBroadcastScope,
      * @return               <code>true</code> on success, <code>false</code> otherwise
      */
 	public boolean subscribe(IConsumer consumer, Map paramMap) {
-		synchronized (pipe) {
+		lock();
+		try {
             return !hasRemoved && pipe.subscribe(consumer, paramMap);
+        } finally {
+        	unlock();
         }
 	}
 
@@ -170,8 +183,11 @@ public class BroadcastScope extends BasicScope implements IBroadcastScope,
      * @return                 <code>true</code> on success, <code>false</code> otherwise
      */
     public boolean subscribe(IProvider provider, Map paramMap) {
-		synchronized (pipe) {
+		lock();
+		try {
             return !hasRemoved && pipe.subscribe(provider, paramMap);
+        } finally {
+        	unlock();
         }
 	}
 
@@ -180,8 +196,13 @@ public class BroadcastScope extends BasicScope implements IBroadcastScope,
      * @param provider         Provider
      * @return                 <code>true</code> on success, <code>false</code> otherwise
      */
-    public synchronized boolean unsubscribe(IProvider provider) {
-		return pipe.unsubscribe(provider);
+    public boolean unsubscribe(IProvider provider) {
+		lock();
+		try {
+	    	return pipe.unsubscribe(provider);
+		} finally {
+        	unlock();
+        }
 	}
 
     /**
@@ -235,4 +256,12 @@ public class BroadcastScope extends BasicScope implements IBroadcastScope,
 		}
 	}
 
+	public void lock() {
+		lock.lock();
+	}
+
+	public void unlock() {
+		lock.unlock();
+	}	
+	
 }

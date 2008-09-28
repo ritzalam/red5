@@ -77,5 +77,15 @@ public interface IBasicScope extends ICoreObject, IEventObservable,
 	 * @return Type of scope
 	 */
 	public String getType();
+	
+	/**
+	 * Lock handling - attempts to obtain a lock
+	 */
+	public void lock();
+	
+	/**
+	 * Lock handling - attempts to unlock a lock
+	 */
+	public void unlock();
 
 }

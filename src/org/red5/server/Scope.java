@@ -28,10 +28,13 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
+import org.apache.commons.lang.StringUtils;
 import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
@@ -52,8 +55,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.core.style.ToStringCreator;
 
-import org.apache.commons.lang.StringUtils;
-
 /**
  * The scope object.
  * 
@@ -66,6 +67,8 @@ import org.apache.commons.lang.StringUtils;
  * The following are all names for scopes: application, room, place, lobby.
  * 
  * @author The Red5 Project (red5@osflash.org)
+ * @author Paul Gregoire (mondain@gmail.com)
+ * @author Nathan Smith (nathgs@gmail.com)
  */
 public class Scope extends BasicScope implements IScope, IScopeStatistics,
 		ScopeMBean {
@@ -271,6 +274,11 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	protected final StatisticsCounter connectionStats = new StatisticsCounter();
 
 	/**
+	 * Statistics about subscopes.
+	 */
+	protected final StatisticsCounter subscopeStats = new StatisticsCounter();	
+	
+	/**
 	 * Scope context
 	 */
 	private IContext context;
@@ -299,17 +307,19 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 * Whether scope is running
 	 */
 	private boolean running;
+	
+	/**
+	 * Lock for critical sections, to prevent concurrent modification. 
+	 * A "fairness" policy is used wherein the longest waiting thread
+	 * will be granted access before others.
+	 */
+	protected Lock lock = new ReentrantLock(true);
 
 	/**
 	 * Registered service handlers for this scope. The map is created on-demand
 	 * only if it's accessed for writing.
 	 */
 	private volatile ConcurrentMap<String, Object> serviceHandlers;
-
-	/**
-	 * Statistics about subscopes.
-	 */
-	protected final StatisticsCounter subscopeStats = new StatisticsCounter();
 
 	/**
 	 * Mbean object name.
@@ -467,7 +477,15 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 			parent.removeChildScope(this);
 		}
 		if (hasHandler()) {
-			handler.stop(this);
+			//--------------------------------
+			// Nathan Smith
+			// Changed from:
+			// handler.stop(this)
+			// to:
+			// getHandler.stop(this)
+			// Because handler can be null when there is a parent handler
+			getHandler().stop(this);
+			//--------------------------------
 		}
 		// TODO: kill all child scopes
 		Set<Map.Entry<String, IBasicScope>> entries = children.entrySet();
@@ -773,7 +791,19 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 * @return Child scope with given name
 	 */
 	public IScope getScope(String name) {
-		return (IScope) children.get(TYPE + SEPARATOR + name);
+		// Synchronize removal and retrieval of child scopes
+		IScope scope;
+
+		// Obtain lock
+		lock();
+		try {
+			// Get the scope
+			scope = (IScope) children.get(TYPE + SEPARATOR + name);
+		} finally {
+			unlock();
+		}
+
+		return scope;
 	}
 
 	/**
@@ -885,8 +915,18 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 */
 	public boolean hasChildScope(String name) {
 		log.debug("Has child scope? {} in {}", name, this);
-		// log.debug("Children: " + children);
-		return children.containsKey(TYPE + SEPARATOR + name);
+
+		boolean has;
+
+		// Obtain lock
+		lock();
+		try {
+			has = children.containsKey(TYPE + SEPARATOR + name);
+		} finally {
+			unlock();
+		}
+
+		return has;
 	}
 
 	/**
@@ -900,7 +940,17 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 *         type, <code>false</code> otherwise
 	 */
 	public boolean hasChildScope(String type, String name) {
-		return children.containsKey(type + SEPARATOR + name);
+		boolean has;
+
+		// Obtain lock
+		lock();
+		try {
+			has = children.containsKey(type + SEPARATOR + name);
+		} finally {
+			unlock();
+		}
+
+		return has;
 	}
 
 	/**
@@ -1044,14 +1094,32 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 *            Child scope to remove
 	 */
 	public void removeChildScope(IBasicScope scope) {
-		log.debug("Remove child scope: {}" , scope);
-		if (scope instanceof IScope) {
-			if (hasHandler()) {
-				getHandler().stop((IScope) scope);
+
+		// Obtain lock
+		lock();
+
+		// Synchronize retrieval of the child scope (with removal)
+		try {
+			// Don't remove if reference if we have another one
+			if (hasChildScope(scope.getName())
+					&& getScope(scope.getName()) != scope) {
+				log.warn("Being asked to remove wrong scope reference child scope is {} not {}", new Object[] {
+						getScope(scope.getName()), scope });
+				return;
 			}
-			subscopeStats.decrement();
+
+    		log.debug("Remove child scope: {}" , scope);
+    		if (scope instanceof IScope) {
+    			if (hasHandler()) {
+    				getHandler().stop((IScope) scope);
+    			}
+    			subscopeStats.decrement();
+    		}
+    		children.remove(scope.getType() + SEPARATOR + scope.getName());
+		} finally {
+			unlock();
 		}
-		children.remove(scope.getType() + SEPARATOR + scope.getName());
+
 		if (hasHandler()) {
 			log.debug("Remove child scope");
 			getHandler().removeChildScope(scope);
@@ -1198,12 +1266,13 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 * @return <code>true</code> if scope has handler and it's start method
 	 *         returned true, <code>false</code> otherwise
 	 */
-	public synchronized boolean start() {
+	public boolean start() {
 		log.debug("Start scope");
 		boolean result = false;
 		if (enabled && !running) {
 			if (hasHandler()) {
 				// Only start if scope handler allows it
+				lock();
 				try {
 					// if we dont have a handler of our own dont try to start it
 					if (handler != null) {
@@ -1211,6 +1280,8 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 					}
 				} catch (Throwable e) {
 					log.error("Could not start scope {}. {}", this, e);
+				} finally {
+					unlock();
 				}
 			} else {
 				// Always start scopes without handlers
@@ -1225,16 +1296,19 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	/**
 	 * Stops scope
 	 */
-	public synchronized void stop() {
+	public void stop() {
 		log.debug("Stop scope");
 		if (enabled && running && hasHandler()) {
+			lock();
 			try {
 				// if we dont have a handler of our own dont try to stop it
 				if (handler != null) {
 					handler.stop(this);
 				}
 			} catch (Throwable e) {
-				log.error("Could not stop scope " + this, e);
+				log.error("Could not stop scope {}", this, e);
+			} finally {
+				unlock();
 			}
 		}
 		running = false;
@@ -1281,6 +1355,14 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 		} else {
 			return null;
 		}
+	}
+
+	public void lock() {
+		lock.lock();
+	}
+
+	public void unlock() {
+		lock.unlock();
 	}
 
 }

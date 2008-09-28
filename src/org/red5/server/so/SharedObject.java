@@ -22,8 +22,6 @@ package org.red5.server.so;
 import static org.red5.server.api.so.ISharedObject.TYPE;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -359,6 +357,9 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 		}
 
 		sendUpdates();
+		
+		//APPSERVER-291
+		modified = false;
 	}
 
     /**
