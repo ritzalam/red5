@@ -34,6 +34,7 @@ import org.red5.io.object.DataTypes;
 import org.red5.io.object.Deserializer;
 import org.red5.io.utils.ObjectMap;
 import org.red5.io.utils.XMLUtils;
+import org.red5.io.utils.ArrayUtils;
 import org.red5.server.service.ConversionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -313,7 +314,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 * @return String       String
 	 */
 	@Override
-	public String readString() {
+	public String readString(Type target) {
 		int len = readAMF3Integer();
 		log.debug("readString - length: {}", len);
 		if (len == 1) {
@@ -342,7 +343,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	}
 
 	public String getString() {
-		return readString();
+		return readString(String.class);
 	}
 	
 	/**
@@ -379,12 +380,13 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		}
 		
 		count = (count >> 1);
-		String key = readString();
+		String key = readString(String.class);
 		amf3_mode += 1;
 		Object result;
 		if (key.equals("")) {
             Class<?> nested = Object.class;
             Class<?> collection = Collection.class;
+            Collection resultCollection;
 
             if (target instanceof ParameterizedType) {
                 ParameterizedType t = (ParameterizedType) target;
@@ -399,30 +401,30 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
                 collection = (Class) target;
             }
 
-            if (SortedSet.class.isAssignableFrom(collection)) {
-                collection = TreeSet.class;
+            if (collection.isArray()) {
+                nested = ArrayUtils.getGenericType(collection.getComponentType());
+                resultCollection = new ArrayList(count);
+            } else if (SortedSet.class.isAssignableFrom(collection)) {
+                resultCollection = new TreeSet();
             } else if (Set.class.isAssignableFrom(collection)) {
-                collection = HashSet.class;
+                resultCollection = new HashSet(count);
             } else {
-                collection = ArrayList.class;
+                resultCollection = new ArrayList(count);
             }
 
-            Collection resultList;
-
-            try {
-                resultList= (Collection) collection.newInstance();
-            } catch (Exception e) {
-                resultList = new ArrayList(count);
-            }
-
-            // normal array
-			storeReference(resultList);
-			for (int i=0; i<count; i++) {
+            for (int i=0; i<count; i++) {
 				final Object value = deserializer.deserialize(this, nested);
-				resultList.add(value);
+				resultCollection.add(value);
 			}
-			result = resultList;
-		} else {
+
+            if (collection.isArray()) {
+                result = ArrayUtils.toArray(collection.getComponentType(), resultCollection);
+            } else {
+                result = resultCollection;
+            }
+
+            storeReference(result);
+        } else {
             Class<?> k = Object.class;
             Class<?> v = Object.class;
             Class<?> collection = Collection.class;
@@ -460,7 +462,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 			while (!key.equals("")) {
 				final Object value = deserializer.deserialize(this, v);
                 resultMap.put(key, value);
-				key = readString();
+				key = readString(k);
 			}
 			for (int i=0; i<count; i++) {
 				final Object value = deserializer.deserialize(this, v);
@@ -501,7 +503,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 			}
 		} else {
 			type >>= 1;
-			className = readString();
+			className = readString(String.class);
 		}
 		amf3_mode += 1;
         Object instance  = newInstance(className);
@@ -516,7 +518,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 			if (attributes == null) {
 				attributes = new ArrayList<String>(count);
 				for (int i=0; i<count; i++) {
-					attributes.add(readString());					
+					attributes.add(readString(String.class));
 				}
 				classReferences.add(new ClassReference(className, AMF3.TYPE_OBJECT_PROPERTY, attributes));
 			}
@@ -550,7 +552,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
             if (attributes == null) {
             	attributes = new ArrayList<String>(count);
             	for (int i = 0; i < count; i++) {
-            		attributes.add(readString());
+            		attributes.add(readString(String.class));
             	}
             	classReferences.add(new ClassReference(className, AMF3.TYPE_OBJECT_VALUE, attributes));
             }
@@ -561,11 +563,11 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 
             // Now we should read dynamic properties which are stored as name-value pairs.
             // Dynamic properties are NOT remembered in 'classReferences'.
-            String key = readString();
+            String key = readString(String.class);
             while (!"".equals(key)) {
             	Object value = deserializer.deserialize(this, getPropertyType(instance, key));
             	properties.put(key, value);
-            	key = readString();
+            	key = readString(String.class);
             }
 			break;
 		default:
@@ -573,11 +575,11 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 			if ("".equals(className)) {
 				throw new RuntimeException("Classname is required to load an Externalizable object");
 			}
-			log.debug("Externalizable class: {}", className);			
+			log.debug("Externalizable class: {}", className);
 			result = newInstance(className);
 			if (result == null) {
 				throw new RuntimeException(String.format("Could not instantiate class: %s", className));
-			}			
+			}
 			if (!(result instanceof IExternalizable)) {
 				throw new RuntimeException(String.format("Class must implement the IExternalizable interface: %s", className));
 			}

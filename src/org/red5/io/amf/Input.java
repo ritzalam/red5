@@ -214,7 +214,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	 *
 	 * @return String
 	 */
-	public String readString() {
+	public String readString(Type target) {
 		int len = 0;
 		switch (currentDataType) {
 			case AMF.TYPE_LONG_STRING:
@@ -524,7 +524,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	 * @return String       XML as string
 	 */
 	public Document readXML(Type target) {
-		final String xmlString = readString();
+		final String xmlString = readString(target);
 		Document doc = null;
 		try {
 			doc = XMLUtils.stringToDoc(xmlString);

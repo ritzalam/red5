@@ -81,7 +81,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		return (String) getNext();
 	}
     /** {@inheritDoc} */
-	public String readString() {
+	public String readString(Type target) {
 		return (String) getNext();
 	}
 

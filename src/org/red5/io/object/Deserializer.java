@@ -69,7 +69,7 @@ public class Deserializer {
 				result = in.readNumber(target);
 				break;
 			case DataTypes.CORE_STRING:
-				result = in.readString();
+				result = in.readString(target);
 				break;
 			case DataTypes.CORE_DATE:
 				result = in.readDate(target);

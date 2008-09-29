@@ -70,7 +70,7 @@ public interface Input {
      * Read String object
      * @return         String
      */
-    String readString();
+    String readString(Type target);
 
     /**
      * Read date object
