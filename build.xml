@@ -596,13 +596,13 @@
 		<copy todir="${dist.dir}/src">
 			<fileset dir="src"/>
 		</copy>
-		<copy todir="${dist.dir}/swf">
-			<fileset dir="swf"/>
-		</copy>
 		<copy todir="${webapps.build.dir}">
 			<fileset dir="webapps">
 				<include name="**/src/**"/>
 			</fileset>
+		</copy>
+		<copy todir="${webapps.build.dir}/root/demos">
+			<fileset dir="../../../flash/trunk/deploy"/>
 		</copy>
 	</target>
 
