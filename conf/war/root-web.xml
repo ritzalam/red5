@@ -18,5 +18,9 @@
 		<property name="contextPath" value="@context.path@" />
 		<property name="virtualHosts" value="@virtual.hosts@" />
 	</bean>
+	
+	<bean id="installer.service" class="org.red5.server.service.Installer">
+		<property name="applicationRepositoryUrl" value="@application.repository.url@" />
+	</bean>
 
 </beans>

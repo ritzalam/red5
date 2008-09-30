@@ -309,7 +309,7 @@
    		<sequential>
 			<!-- copy the logback config per webapp and associated jars -->
 			<copy todir="${webapps.build.dir}/@{webapp}/WEB-INF/classes"
-			      file="webapps/@{webapp}/WEB-INF/src/logback.xml" overwrite="true"/>
+			      file="webapps/@{webapp}/WEB-INF/src/logback-@{webapp}.xml" overwrite="true"/>
 			<!--
 			<copy todir="${webapps.build.dir}/@{webapp}/WEB-INF/lib">
 				<fileset dir="${lib.dir}">
@@ -345,21 +345,21 @@
 
 		<!-- installer -->
 
-        	<!-- load token replacement filters -->
-        	<filter filtersfile="${filter.file}"/>
-        	<copy todir="${webapps.build.dir}/installer" filtering="true">
-            		<fileset dir="webapps/installer">
-                		<exclude name="**/src/**"/>
-                		<exclude name="**/*.swf"/>
-            		</fileset>
-        	</copy>
+    	<!-- load token replacement filters -->
+    	<filter filtersfile="${filter.file}"/>
+    	<copy todir="${webapps.build.dir}/installer" filtering="true">
+    		<fileset dir="webapps/installer">
+        		<exclude name="**/src/**"/>
+        		<exclude name="**/*.swf"/>
+    		</fileset>
+    	</copy>
 
-        	<!-- copy SWF without filtering as it causes corruption -->
-        	<copy todir="${webapps.build.dir}/installer">
-            		<fileset dir="webapps/installer">
-                		<include name="**/*.swf"/>
-            		</fileset>
-        	</copy>
+    	<!-- copy SWF without filtering as it causes corruption -->
+    	<copy todir="${webapps.build.dir}/installer">
+    		<fileset dir="webapps/installer">
+        		<include name="**/*.swf"/>
+    		</fileset>
+    	</copy>
 	</target>
 
 	<!-- Scripting -->
@@ -433,6 +433,12 @@
 	</macrodef>
 
 	<target name="war_demos" description="Build wars for demo apps" depends="compile_demos">
+		<!-- copy installer swf etc under root/installer -->
+		<mkdir dir="${webapps.build.dir}/root/installer"/>
+		<copy todir="${webapps.build.dir}/root/installer">
+			<fileset dir="${webapps.build.dir}/installer"/>
+		</copy>
+		
 		<!-- war up root -->
 		<war destfile="${dist.dir}/ROOT.war" webxml="${webapps.build.dir}/root/WEB-INF/web.xml">
 			<fileset dir="${webapps.build.dir}/root"/>
@@ -441,14 +447,6 @@
 				<attribute name="Built-On" value="${build.TODAY}"/>
 			</manifest>
 		</war>
-
-        	<war destfile="${dist.dir}/installer.war" webxml="${webapps.build.dir}/installer/WEB-INF/web.xml">
-            		<fileset dir="${webapps.build.dir}/installer"/>
-            		<manifest>
-                		<attribute name="Built-By" value="${red5.fullname}"/>
-                		<attribute name="Built-On" value="${build.TODAY}"/>
-            		</manifest>
-        	</war>		
 	</target>
 
 	<target name="javadoc" description="Generate JavaDoc">
@@ -824,9 +822,9 @@
 		<!-- remove directories we dont want -->
 		<delete dir="${classes.dir}/testcases"/>		
 		<!-- cleanup "standalone" red5-web files -->
-       		<delete>
-            		<fileset dir="${webapps.build.dir}" includes="**/red5-web.*"/>
-        	</delete>		
+   		<delete>
+        		<fileset dir="${webapps.build.dir}" includes="**/red5-web.*"/>
+    	</delete>		
 		
 		<!-- add the configs to the root war -->
 		<filter token="display.name" value=""/>
@@ -856,6 +854,14 @@
 				<include name="*-web.xml"/>
 			</fileset>
 		</copy>		
+		
+		<!-- copy installer swf etc under root/installer -->
+		<mkdir dir="${webapps.build.dir}/root/installer"/>
+		<copy todir="${webapps.build.dir}/root/installer">
+			<fileset dir="${webapps.build.dir}/installer"/>
+		</copy>
+		<delete dir="${webapps.build.dir}/root/installer/WEB-INF"/>
+		
 		<!-- war up root -->
 		<war destfile="${dist.dir}/ROOT.war" webxml="${webapps.build.dir}/root/WEB-INF/web.xml">
 			<fileset dir="${webapps.build.dir}/root"/>
