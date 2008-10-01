@@ -328,8 +328,14 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		try {
 			if (livePipe != null) {
 				livePipe.pushMessage(msg);
+			} else {
+				log.debug("Live pipe was null, message was not pushed");
 			}
-			recordPipe.pushMessage(msg);
+			if (recordPipe != null) {
+				recordPipe.pushMessage(msg);
+			} else {
+				log.debug("Record pipe was null, message was not pushed");
+			}
 		} catch (IOException err) {
 			sendRecordFailedNotify(err.getMessage());
 			stop();
