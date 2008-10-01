@@ -285,7 +285,7 @@ public class TomcatLoader extends LoaderBase implements
 		
 		if (webappFolder == null) {
 			// Use default webapps directory
-			webappFolder = System.getProperty("red5.root") + "/webapps";
+			webappFolder = FileUtil.formatPath(System.getProperty("red5.root"), "/webapps");
 		}
 		System.setProperty("red5.webapp.root", webappFolder);
 		log.info("Application root: {}", webappFolder);
@@ -311,6 +311,17 @@ public class TomcatLoader extends LoaderBase implements
 					log.debug("Adding context from directory scan: {}", dirName);
 					ctx = addContext(dirName, webappContextDir);
 				}
+				
+				//put watches on context and web configs
+				ctx.addWatchedResource("WEB-INF/web.xml");
+				ctx.addWatchedResource("META-INF/context.xml");
+				
+				File contextConfig = new File(webappContextDir, "META-INF/context.xml");
+				if (contextConfig.exists()) {
+					log.debug("Setting default context.xml");
+					((StandardContext) ctx).setDefaultContextXml(contextConfig.getAbsolutePath());
+				}
+				
 				webappContextDir = null;
 			}
 		}
@@ -374,35 +385,7 @@ public class TomcatLoader extends LoaderBase implements
 					String prefix = servletContext.getRealPath("/");
 					log.debug("Path: {}", prefix);
 
-					try {
-						Loader cldr = ctx.getLoader();
-						log.debug("Loader type: {}", cldr.getClass().getName());
-						ClassLoader webClassLoader = cldr.getClassLoader();
-						log.debug("Webapp classloader: {}", webClassLoader);
-						//create a spring web application context
-						XmlWebApplicationContext appctx = new XmlWebApplicationContext();
-						appctx.setClassLoader(webClassLoader);
-						
-						//get the (spring) config file path
-						String contextConfigLocation = servletContext.getInitParameter("contextConfigLocation");
-						if (contextConfigLocation == null) {
-							contextConfigLocation = defaultSpringConfigLocation;
-						}
-						log.debug("Spring context config location: {}", contextConfigLocation);
-						appctx.setConfigLocations(new String[]{contextConfigLocation});
-						
-						//get the (spring) parent context key
-						String parentContextKey = servletContext.getInitParameter("parentContextKey");
-						if (parentContextKey == null) {
-							parentContextKey = defaultParentContextKey;
-						}
-						log.debug("Spring parent context key: {}", parentContextKey);						
-						appctx.setParent((ApplicationContext) applicationContext.getBean(parentContextKey));					
-
-						appctx.setServletContext(servletContext);
-						//set the root webapp ctx attr on the each servlet context so spring can find it later					
-						servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, appctx);
-						appctx.refresh();
+					try {					
 						//check if we want to use naming
 						if (embedded.isUseNaming()) {
     						/*
@@ -437,7 +420,43 @@ public class TomcatLoader extends LoaderBase implements
     						*/
 						} else {
 							log.info("Naming (JNDI) is not enabled");
+						}						
+						
+						if (ctx.resourcesStart()) {
+							log.debug("Resources started");
 						}
+						
+						log.debug("Context - available: {} privileged: {}, start time: {}, reloadable: {}", new Object[]{
+								ctx.getAvailable(), ctx.getPrivileged(), ctx.getStartTime(), ctx.getReloadable()});
+						
+						Loader cldr = ctx.getLoader();
+						log.debug("Loader type: {}", cldr.getClass().getName());
+						ClassLoader webClassLoader = cldr.getClassLoader();
+						log.debug("Webapp classloader: {}", webClassLoader);
+						//create a spring web application context
+						XmlWebApplicationContext appctx = new XmlWebApplicationContext();
+						appctx.setClassLoader(webClassLoader);
+						
+						//get the (spring) config file path
+						String contextConfigLocation = servletContext.getInitParameter("contextConfigLocation");
+						if (contextConfigLocation == null) {
+							contextConfigLocation = defaultSpringConfigLocation;
+						}
+						log.debug("Spring context config location: {}", contextConfigLocation);
+						appctx.setConfigLocations(new String[]{contextConfigLocation});
+						
+						//get the (spring) parent context key
+						String parentContextKey = servletContext.getInitParameter("parentContextKey");
+						if (parentContextKey == null) {
+							parentContextKey = defaultParentContextKey;
+						}
+						log.debug("Spring parent context key: {}", parentContextKey);						
+						appctx.setParent((ApplicationContext) applicationContext.getBean(parentContextKey));					
+
+						appctx.setServletContext(servletContext);
+						//set the root webapp ctx attr on the each servlet context so spring can find it later					
+						servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, appctx);
+						appctx.refresh();
 					} catch (Throwable t) {
 						log.error("Error setting up context: {} due to: {}", servletContext.getContextPath(), t.getMessage());
 						//if (log.isDebugEnabled()) {

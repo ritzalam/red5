@@ -42,6 +42,9 @@
 	<logger name="org.red5.io">
 		<level value="INFO" />
 	</logger>
+    <logger name="org.red5.logging.DerbyLogInterceptor">
+        <level value="WARN" />
+    </logger>
 	<logger name="org.red5.server">
 		<level value="WARN" />
 	</logger>
