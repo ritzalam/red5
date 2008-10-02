@@ -59,10 +59,15 @@
         <dependency name="quartz" rev="1.6.1-RC1" />
         <dependency org="javax" name="jta" rev="1.0.1B" />
         <dependency name="ehcache" rev="1.4.1" />
+        <dependency org="javax" name="activation" rev="1.1" /> 
+        <!-- XML -->
         <dependency name="xercesImpl" rev="2.9.0" />
         <dependency name="xml-apis" rev="2.9.0" />
         <dependency name="xmlrpc" rev="2.0.1" />
-        <dependency org="javax" name="activation" rev="1.1" /> 
+        <!-- 
+        <dependency name="stax2" rev="3.0pr1" />
+        <dependency name="wstx-lgpl" rev="3.9.2" />
+         -->
         <!-- JMX -->
         <dependency org="jmx" name="jmxremote" rev="1.0.1" />
         <dependency org="jmx" name="jmxtools" rev="1.2.1" />

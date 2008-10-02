@@ -245,9 +245,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 
 	/** {@inheritDoc} */
     public void writeReference(Object obj) {
-		if (log.isDebugEnabled()) {
-			log.debug("Write reference");
-		}
+		log.debug("Write reference");
 		buf.put(AMF.TYPE_REFERENCE);
 		buf.putShort(getReferenceId(obj));
 	}
@@ -312,7 +310,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
                 return clazz.getDeclaredField(keyName);
             } catch (NoSuchFieldException nfe) {
                 // Ignore this exception and use the default behavior
-                log.debug("writeObject caught NoSuchFieldException");
+                log.debug("writeObject caught NoSuchFieldException", nfe);
             }
         }
         return null;

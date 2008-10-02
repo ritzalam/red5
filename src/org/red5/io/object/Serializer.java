@@ -315,24 +315,18 @@ public class Serializer {
      */
     public boolean serializeField(Field field) {
     	log.debug("Serialize field: {}", field);
-    	//TODO: what to do when field is null
-    	//default to serialize
-        boolean dontSerialize = false;
-        try {
-        	//this throws an NPE so we need to catch it
-        	dontSerialize = field.isAnnotationPresent(DontSerialize.class);
-        } catch (NullPointerException npe) {
-        	
-        }
-        boolean isTransient = Modifier.isTransient(field.getModifiers());
-        boolean isClass = "class".equals(field.getName());
-
-        if (dontSerialize && log.isDebugEnabled()) {
+    	//null fields must be prevented from reaching this method
+        boolean dontSerialize = field.isAnnotationPresent(DontSerialize.class);
+        if (dontSerialize) {
             log.debug("Skipping {} because its marked with @DontSerialize", field.getName());
         }
+
+        boolean isTransient = Modifier.isTransient(field.getModifiers());
         if (isTransient) {
             log.warn("Using \"transient\" to declare fields not to be serialized is deprecated and will be removed in Red5 0.8, use \"@DontSerialize\" instead.");
         }
+
+        boolean isClass = "class".equals(field.getName());
 
         return !(dontSerialize || isTransient || isClass);
     }

@@ -514,7 +514,6 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		// skip two marker bytes
 		// then end of object byte
 		buf.skip(3);
-		// byte nextType = buf.get();
 	}
 
 	// Others

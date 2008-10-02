@@ -34,7 +34,6 @@ import java.util.Set;
 import org.apache.commons.beanutils.BeanMap;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.ConversionException;
-import org.red5.io.object.Deserializer;
 import org.red5.server.api.IConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +46,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ConversionUtils {
 
-	private static final Logger log = LoggerFactory.getLogger(Deserializer.class);
+	private static final Logger log = LoggerFactory.getLogger(ConversionUtils.class);
 
 	private static final Class<?>[] PRIMITIVES = { boolean.class, byte.class,
 			char.class, short.class, int.class, long.class, float.class,
@@ -98,12 +97,11 @@ public class ConversionUtils {
     public static Object convert(Object source, Class<?> target)
 			throws ConversionException {
 		if (target == null) {
-			throw new ConversionException("Unable to perform conversion");
+			throw new ConversionException("Unable to perform conversion, target was null");
 		}
 		if (source == null) {
 			if (target.isPrimitive()) {
-				throw new ConversionException(
-						"Unable to convert null to primitive value");
+				throw new ConversionException(String.format("Unable to convert null to primitive value of %s", target));
 			}
 			return source;
 		} else if ((source instanceof Float && ((Float) source).isNaN()) || 
@@ -114,7 +112,7 @@ public class ConversionUtils {
 		
 		if (IConnection.class.isAssignableFrom(source.getClass())
 				&& !target.equals(IConnection.class)) {
-			throw new ConversionException("IConnection must match exact.");
+			throw new ConversionException("IConnection must match exactly");
 		}
 		if (target.isInstance(source)) {
 			return source;
@@ -147,7 +145,7 @@ public class ConversionUtils {
 		if (target.equals(Set.class) && source.getClass().isArray()) {
 			return convertArrayToSet((Object[]) source);
 		}
-		throw new ConversionException("Unable to preform conversion");
+		throw new ConversionException(String.format("Unable to preform conversion from %s to %s", source, target));
 	}
 
     /**
@@ -234,7 +232,7 @@ public class ConversionUtils {
 		} else if (wrapper.equals(Byte.class)) {
 			return new Byte(str);
 		}
-		throw new ConversionException("Unable to convert string to: " + wrapper);
+		throw new ConversionException(String.format("Unable to convert string to: %s", wrapper));
 	}
 
     /**
@@ -262,7 +260,7 @@ public class ConversionUtils {
 		} else if (wrapper.equals(Byte.class)) {
 			return Byte.valueOf(num.byteValue());
 		}
-		throw new ConversionException("Unable to convert number to: " + wrapper);
+		throw new ConversionException(String.format("Unable to convert number to: %s", wrapper));
 	}
 
     /**
@@ -307,6 +305,19 @@ public class ConversionUtils {
 		return converted;
 	}
 
+    /**
+     * Convert parameters using methods of this utility class
+     * @param source                Array of source object
+     * @return                      Array of converted objects
+     */
+    public static Class<?>[] convertParams(Object[] source) {
+    	Class<?>[] converted = new Class<?>[source.length];
+		for (int i = 0; i < source.length; i++) {
+			converted[i] = source[i].getClass();
+		}
+		return converted;
+	}    
+    
     /**
      *
      * @param source
