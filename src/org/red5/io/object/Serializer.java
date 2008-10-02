@@ -314,7 +314,16 @@ public class Serializer {
      * @return <code>true</code> if the field should be serialized, otherwise <code>false</code>
      */
     public boolean serializeField(Field field) {
-        boolean dontSerialize = field.isAnnotationPresent(DontSerialize.class);
+    	log.debug("Serialize field: {}", field);
+    	//TODO: what to do when field is null
+    	//default to serialize
+        boolean dontSerialize = false;
+        try {
+        	//this throws an NPE so we need to catch it
+        	dontSerialize = field.isAnnotationPresent(DontSerialize.class);
+        } catch (NullPointerException npe) {
+        	
+        }
         boolean isTransient = Modifier.isTransient(field.getModifiers());
         boolean isClass = "class".equals(field.getName());
 

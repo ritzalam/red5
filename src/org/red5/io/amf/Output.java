@@ -288,10 +288,12 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
         // Iterate thru entries and write out property names with separators
 		for (BeanMap.Entry<?, ?> entry: set) {
             String fieldName = entry.getKey().toString();
+            log.debug("Field name: {} class: {}", fieldName, objectClass);
+            
             Field field = getField(objectClass, fieldName);
 
             // Check if the Field corresponding to the getter/setter pair is transient
-            if (!serializer.serializeField(field)) {
+            if (field == null || !serializer.serializeField(field)) {
             	continue;
             }
 
@@ -309,7 +311,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
             try {
                 return clazz.getDeclaredField(keyName);
             } catch (NoSuchFieldException nfe) {
-                // Ignore this exception and use the default behaviour
+                // Ignore this exception and use the default behavior
                 log.debug("writeObject caught NoSuchFieldException");
             }
         }
@@ -357,8 +359,9 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 
         // Iterate thru fields of an object to build "name-value" map from it
         for (Field field : objectClass.getFields()) {
+        	log.debug("Field: {} class: {}", field, objectClass);
             // Check if the Field corresponding to the getter/setter pair is transient
-            if (!serializer.serializeField(field)) {
+            if (field == null || !serializer.serializeField(field)) {
             	continue;
             }
 

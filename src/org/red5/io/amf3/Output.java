@@ -393,8 +393,9 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
     	amf3_mode += 1;
         // Iterate thru fields of an object to build "name-value" map from it
         for (Field field : objectClass.getFields()) {
+        	log.debug("Field: {} class: {}", field, objectClass);
             // Check if the Field corresponding to the getter/setter pair is transient
-            if (!serializer.serializeField(field)) {
+            if (field == null || !serializer.serializeField(field)) {
             	continue;
             }
 
@@ -476,13 +477,17 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
     	// Store key/value pairs
     	amf3_mode += 1;
     	for (BeanMap.Entry<?, ?> entry: set) {
-			String keyName = entry.getKey().toString();
-            Field field = getField(objectClass, keyName);
+			String fieldName = entry.getKey().toString();
+            log.debug("Field name: {} class: {}", fieldName, objectClass);
+
+			Field field = getField(objectClass, fieldName);
 
 			// Check if the Field corresponding to the getter/setter pair is transient
-            if (!serializer.serializeField(field)) continue;
+            if (field == null || !serializer.serializeField(field)) {
+            	continue;
+            }
 
-			putString(keyName);
+			putString(fieldName);
 			serializer.serialize(this, field, entry.getValue());
 		}
     	amf3_mode -= 1;
