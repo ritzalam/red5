@@ -344,9 +344,18 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	@Override
 	public void disconnect(IConnection conn, IScope scope) {
 		log.debug("disconnect: {} << {}", conn, scope);
-		//log w3c connect event
-		log.info("W3C x-category:session x-event:disconnect c-ip:{} c-client-id:{}", conn.getRemoteAddress(), conn.getClient().getId());
-		if (isApp(scope)) {
+		if (log.isInfoEnabled()) {
+			//log w3c connect event
+			IClient client =  conn.getClient();
+			if (client == null) {		
+        		//log w3c connect event
+        		log.info("W3C x-category:session x-event:disconnect c-ip:{}", conn.getRemoteAddress());
+			} else {
+        		//log w3c connect event
+        		log.info("W3C x-category:session x-event:disconnect c-ip:{} c-client-id:{}", conn.getRemoteAddress(), client.getId());
+			}
+		}	
+        if (isApp(scope)) {
 			appDisconnect(conn);
 		} else if (isRoom(scope)) {
 			roomDisconnect(conn);
@@ -632,20 +641,6 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 		// dummy for now, this makes flv player work
 		// they dont wait for connected status they wait for onBWDone
 		ServiceUtils.invokeOnConnection(conn, "onBWDone", new Object[] {});
-		/*
-		 * ServiceUtils.invokeOnConnection(conn, "onBWCheck", new Object[] {},
-		 * new IPendingServiceCallback() { public void
-		 * resultReceived(IPendingServiceCall call) { log.debug("onBWCheck 1
-		 * result: " + call.getResult()); } }); int[] filler = new int[1024];
-		 * ServiceUtils.invokeOnConnection(conn, "onBWCheck", new Object[] {
-		 * filler }, new IPendingServiceCallback() { public void
-		 * resultReceived(IPendingServiceCall call) { log.debug("onBWCheck 2
-		 * result: " + call.getResult()); ServiceUtils.invokeOnConnection(conn,
-		 * "onBWDone", new Object[] { new Integer(1000), new Integer(300), new
-		 * Integer(6000), new Integer(300) }, new IPendingServiceCallback() {
-		 * public void resultReceived(IPendingServiceCall call) {
-		 * log.debug("onBWDone result: " + call.getResult()); } }); } });
-		 */
 	}
 
 	/* Wrapper around ISharedObjectService */
@@ -764,9 +759,11 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	}
 
 	/**
-	 * Returns list of stream names broadcasted in <pre>scope</pre>. Broadcast stream name is somewhat different
-	 * from server stream name. Server stream name is just an ID assigned by Red5 to every created stream. Broadcast stream name
-	 * is the name that is being used to subscribe to the stream at client side, that is, in <code>NetStream.play</code> call.
+	 * Returns list of stream names broadcasted in <pre>scope</pre>. Broadcast 
+	 * stream name is somewhat different from server stream name. Server 
+	 * stream name is just an ID assigned by Red5 to every created stream. 
+	 * Broadcast stream name is the name that is being used to subscribe to the 
+	 * stream at client side, that is, in <code>NetStream.play</code> call.
 	 * 
 	 * @param	scope	Scope to retrieve broadcasted stream names
 	 * @return	List of broadcasted stream names.
@@ -946,7 +943,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 		IProviderService provider = (IProviderService) getScopeService(scope,
 				IProviderService.class, ProviderService.class);
 		File file = provider.getVODProviderFile(scope, name);
-		if (file != null) {
+		if (file != null && file.canRead()) {
     		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils
     				.getScopeService(scope, IStreamableFileFactory.class,
     						StreamableFileFactory.class);
@@ -1087,6 +1084,27 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 		if (recordingName != null) {
 			//use cs-bytes for file size for now
 			log.info("W3C x-category:stream x-event:recordstop c-ip:{} cs-bytes:{} sc-bytes:{} x-sname:{} x-file-name:{} x-file-length:{} x-file-size:{}", new Object[]{conn.getRemoteAddress(), conn.getReadBytes(), conn.getWrittenBytes(), stream.getName(), recordingName, publishDuration, conn.getReadBytes()});					
+			//if the stream length is 0 bytes then delete it, this
+			//is a fix for SN-20
+			//get the web root
+			String webappsPath = System.getProperty("red5.webapp.root");
+			//add context name
+			File file = new File(webappsPath, getName() + '/' + recordingName);
+			if (file != null) {
+    			log.debug("File path: {}", file.getAbsolutePath());
+    			if (file.exists()) {
+    				//if publish duration or length are zero
+        			if (publishDuration == 0 || file.length() == 0) {
+        				if (file.delete()) {
+        					log.info("File {} was deleted", file.getName());
+        				} else {
+        					log.info("File {} was not deleted, it will be deleted on exit", file.getName());
+        					file.deleteOnExit();
+        				}
+        			}
+    			}
+    			file = null;
+			}
 		}
 	}
 

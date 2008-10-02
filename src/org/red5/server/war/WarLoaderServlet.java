@@ -222,7 +222,7 @@ public class WarLoaderServlet extends ContextLoaderListener {
 					// }
 					try {
 						for (String singleton : factory.getSingletonNames()) {
-							logger.debug("Registered singleton: " + singleton);
+							logger.debug("Registered singleton: {}", singleton);
 							factory.destroyScopedBean(singleton);
 						}
 					} catch (RuntimeException e) {
