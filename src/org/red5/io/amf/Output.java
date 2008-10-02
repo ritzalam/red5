@@ -30,7 +30,7 @@ import java.util.TimeZone;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import org.apache.commons.collections.BeanMap;
+import org.apache.commons.beanutils.BeanMap;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.annotations.Anonymous;
 import org.red5.io.amf3.ByteArray;
@@ -144,7 +144,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 			maxInt = i;
 		}
 		buf.putInt(maxInt+1);
-		// TODO: Need to support an incomming key named length
+		// TODO: Need to support an incoming key named length
 		for (Map.Entry<Object, Object> entry : map.entrySet()) {
 			final String key = entry.getKey().toString();
 			if ("length".equals(key)) {
@@ -259,7 +259,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
         // Create new map out of bean properties
         BeanMap beanMap = new BeanMap(object);
         // Set of bean attributes
-        Set<BeanMap.Entry<?, ?>> set = beanMap.entrySet();
+        Set<Map.Entry<?, ?>> set = beanMap.entrySet();
 		if ((set.size() == 0) || (set.size() == 1 && beanMap.containsKey("class"))) {
 			// BeanMap is empty or can only access "class" attribute, skip it
 			writeArbitraryObject(object, serializer);
@@ -284,7 +284,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
         }
 
         // Iterate thru entries and write out property names with separators
-		for (BeanMap.Entry<?, ?> entry: set) {
+		for (Map.Entry<?, ?> entry: set) {
             String fieldName = entry.getKey().toString();
             log.debug("Field name: {} class: {}", fieldName, objectClass);
             

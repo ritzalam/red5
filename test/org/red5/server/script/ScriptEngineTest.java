@@ -1,6 +1,6 @@
 package org.red5.server.script;
 
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -9,6 +9,7 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineFactory;
 import javax.script.ScriptEngineManager;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,13 +61,14 @@ public class ScriptEngineTest {
 
 	// Python
 	@Test
+	@Ignore // Python support seems to not be in tree anymore; aclarke 2008-10-01
 	public void testPythonHelloWorld() {
 		ScriptEngine pyEngine = mgr.getEngineByName("python");
 		try {
 			pyEngine.eval("print \"Python - Hello, world!\"");
 		} catch (Exception ex) {
 			//ex.printStackTrace();
-			assertFalse(true);
+			fail("could not start Python");
 		}
 	}
 

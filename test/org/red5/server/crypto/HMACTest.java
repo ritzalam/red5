@@ -1,5 +1,7 @@
 package org.red5.server.crypto;
 
+import static org.junit.Assert.*;
+
 import java.io.File;
 import java.security.Provider;
 import java.security.Security;
@@ -11,20 +13,23 @@ public class HMACTest {
 	@Test
 	public void testHMAC() {
 		HMAC h1 = new HMAC();
-
+		assertNotNull(h1);
+		
 		try {
 			Provider sp = new com.sun.crypto.provider.SunJCE();
 			Security.addProvider(sp);
 		} catch (Exception e) {
 			HMAC.message("Problem loading crypto provider", e);
-			System.exit(0);
+			fail("Problem loading crypto provider" + e);
 		}
 
 		String[] args = new String[]{};
 		//h1.processCommandLine(args);
 		byte[] hmac = h1.computeMac();
-
-		HMAC.message("Result: " + HMAC.byteArrayToHex(hmac));
+		assertNull("Currently HMAC is broken since you can't actually " +
+				"set the keyData or data elements.  This test will break once someone fixes that",
+				hmac);
+		//HMAC.message("Result: " + HMAC.byteArrayToHex(hmac));
 	}
 	
 /*

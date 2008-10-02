@@ -3,7 +3,7 @@ package org.red5.server.rtmp;
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  *
- * Copyright © 2006 by respective authors. All rights reserved.
+ * Copyright  2006 by respective authors. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free Software
@@ -52,25 +52,28 @@ public class RTMPUtilsTest extends TestCase {
 			log.debug("" + test);
 			log.debug("" + RTMPUtils.decodeHeaderSize(test, 1));
 		}
+		assertEquals(0, RTMPUtils.decodeHeaderSize(test, 1));
 		test = (byte) (0x43);
 		if (log.isDebugEnabled()) {
 			log.debug(HexDump.byteArrayToHexString(new byte[] { test }));
 			log.debug("" + test);
 			log.debug("" + RTMPUtils.decodeHeaderSize(test, 1));
 		}
+		assertEquals(1, RTMPUtils.decodeHeaderSize(test, 1));
 		test = (byte) (0x83);
 		if (log.isDebugEnabled()) {
 			log.debug(HexDump.byteArrayToHexString(new byte[] { test }));
 			log.debug("" + test);
 			log.debug("" + RTMPUtils.decodeHeaderSize(test, 1));
 		}
+		assertEquals(-2, RTMPUtils.decodeHeaderSize(test, 1));
 		test = (byte) (0xC3 - 256);
 		if (log.isDebugEnabled()) {
 			log.debug(HexDump.byteArrayToHexString(new byte[] { test }));
 			log.debug("" + test);
 			log.debug("" + RTMPUtils.decodeHeaderSize(test, 1));
 		}
-		Assert.assertEquals(true, false);
+		assertEquals(-1, RTMPUtils.decodeHeaderSize(test, 1));
 	}
 
 }

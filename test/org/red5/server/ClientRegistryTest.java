@@ -80,7 +80,7 @@ public class ClientRegistryTest {
 		System.gc();
 		
 		try {
-			Thread.currentThread().sleep(2000);
+			Thread.sleep(2000);
 			
 			System.gc();
 		} catch (InterruptedException e) {

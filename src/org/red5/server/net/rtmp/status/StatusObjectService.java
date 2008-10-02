@@ -22,7 +22,7 @@ package org.red5.server.net.rtmp.status;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.collections.BeanMap;
+import org.apache.commons.beanutils.BeanMap;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.io.amf.Output;
 import org.red5.io.object.Serializer;

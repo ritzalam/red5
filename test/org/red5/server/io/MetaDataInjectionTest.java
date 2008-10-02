@@ -3,7 +3,7 @@ package org.red5.server.io;
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  *
- * Copyright © 2006 by respective authors. All rights reserved.
+ * Copyright  2006 by respective authors. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free Software
@@ -71,7 +71,7 @@ public class MetaDataInjectionTest extends TestCase {
 	 * @throws IOException
 	 */
 	public void testMetaDataInjection() throws IOException {
-		File f = new File("test/test_cue1.flv");
+		File f = new File("fixtures/test_cue1.flv");
 
 		if(f.exists()) {
 			f.delete();
@@ -87,7 +87,7 @@ public class MetaDataInjectionTest extends TestCase {
 		ITagWriter writer = flv.getWriter();
 
 		// Create a reader for testing
-		File readfile = new File("test/test_cue.flv");
+		File readfile = new File("fixtures/test_cue.flv");
 		IFLV readflv = (IFLV) service.getStreamableFile(readfile);
 		readflv.setCache(NoCacheImpl.getInstance());
 

@@ -83,7 +83,7 @@ public class ScopeResolver implements IScopeResolver {
         final String[] parts = path.split("/");
         // Iterate thru them, skip empty parts
 		for (String room : parts) {
-			if (room.equals("")) {
+			if (room == null || room.equals("")) {
 				// Skip empty path elements
 				continue;
 			}

@@ -1,6 +1,6 @@
 package org.red5.server.api;
 
-import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertTrue;
 import junit.framework.JUnit4TestAdapter;
 
 import org.junit.Test;
@@ -17,7 +17,7 @@ public class ServiceTest extends BaseTest {
 	public void simpletest() {
 		IPendingServiceCall call = new PendingCall("echoService", "echoString",
 				new Object[] { "My String" });
-		context.getServiceInvoker().invoke(call, context);
+		context.getServiceInvoker().invoke(call, context.getBean("echoService"));
 		assertTrue("result null", call.getResult() != null);
 	}
 

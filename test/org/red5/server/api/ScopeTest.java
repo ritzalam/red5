@@ -1,6 +1,6 @@
 package org.red5.server.api;
 
-import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.*;
 import junit.framework.JUnit4TestAdapter;
 
 import org.junit.Test;
@@ -22,8 +22,12 @@ public class ScopeTest extends BaseTest {
 	@Test
 	public void connectionHandler() {
 
-		TestConnection conn = new TestConnection(host, path_app, null);
-		IScope scope = context.resolveScope(path_app);
+		TestConnection conn = new TestConnection(host, "/", null);
+		IScope scope = context.resolveScope("/");
+		IClientRegistry reg = context.getClientRegistry();
+		IClient client = reg.newClient(null);
+		assertNotNull(client);
+		conn.initialize(client);
 		if (!conn.connect(scope)) {
 			assertTrue("didnt connect", false);
 		} else {
@@ -84,7 +88,7 @@ public class ScopeTest extends BaseTest {
 
 		// Global
 		IScope global = context.getGlobalScope();
-		assertTrue("global scope not null", global != null);
+		assertNotNull("global scope should be set", global);
 		assertTrue("should be global", ScopeUtils.isGlobal(global));
 		log.debug("{}", global);
 

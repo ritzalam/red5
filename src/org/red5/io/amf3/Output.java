@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.collections.BeanMap;
+import org.apache.commons.beanutils.BeanMap;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.annotations.Anonymous;
 import org.red5.compatibility.flex.messaging.io.ObjectProxy;
@@ -458,7 +458,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
         // Create new map out of bean properties
         BeanMap beanMap = new BeanMap(object);
         // Set of bean attributes
-        Set<BeanMap.Entry<?, ?>> set = beanMap.entrySet();
+        Set<Map.Entry<?, ?>> set = beanMap.entrySet();
 		if ((set.size() == 0) || (set.size() == 1 && beanMap.containsKey("class"))) {
 			// BeanMap is empty or can only access "class" attribute, skip it
 			writeArbitraryObject(object, serializer);
@@ -476,7 +476,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 
     	// Store key/value pairs
     	amf3_mode += 1;
-    	for (BeanMap.Entry<?, ?> entry: set) {
+    	for (Map.Entry<?, ?> entry: set) {
 			String fieldName = entry.getKey().toString();
             log.debug("Field name: {} class: {}", fieldName, objectClass);
 

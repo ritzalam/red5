@@ -3,7 +3,7 @@ package org.red5.server.io;
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  *
- * Copyright © 2006 by respective authors. All rights reserved.
+ * Copyright  2006 by respective authors. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free Software
@@ -22,6 +22,7 @@ package org.red5.server.io;
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -33,7 +34,7 @@ import java.util.Set;
 import junit.framework.Assert;
 import junit.framework.TestCase;
 
-import org.apache.commons.collections.BeanMap;
+import org.apache.commons.beanutils.BeanMap;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Input;
 import org.red5.io.object.Output;
@@ -73,9 +74,9 @@ public abstract class AbstractIOTest extends TestCase {
 				"Strings" };
 		serializer.serialize(out, strArrIn);
 		dumpOutput();
-		Object[] objArrOut = deserializer.deserialize(in, Object[].class);
+		Object[] objArrayOut = deserializer.deserialize(in, Object[].class); 
 		for (int i = 0; i < strArrIn.length; i++) {
-			Assert.assertEquals(strArrIn[i], (String) objArrOut[i]);
+			Assert.assertEquals(strArrIn[i], objArrayOut[i]);
 		}
 		resetOutput();
 	}
@@ -235,9 +236,11 @@ public abstract class AbstractIOTest extends TestCase {
 			Map.Entry entry = (Map.Entry) it.next();
 			String propOut = (String) entry.getKey();
 			SimpleJavaBean valueOut = (SimpleJavaBean) entry.getValue();
+			Assert.assertNotNull("couldn't get output bean", valueOut);
 
 			Assert.assertTrue(mapIn.containsKey(propOut));
 			SimpleJavaBean valueIn = (SimpleJavaBean) mapIn.get(propOut);
+			Assert.assertNotNull("couldn't get input bean", valueIn);
 			Assert.assertEquals(valueOut.getNameOfBean(), valueIn
 					.getNameOfBean());
 		}

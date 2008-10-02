@@ -45,7 +45,7 @@ public class MetaServiceTest extends TestCase {
 		// Get MetaData to embed
 		MetaData meta = createMeta();
 		// Read in a FLV file for reading tags
-		File tmp = new File("test/test.flv");
+		File tmp = new File("fixtures/test.flv");
 		System.out.println("Path: "+ tmp.getAbsolutePath());
 		IFLV flv = (IFLV) service.getStreamableFile(tmp);
 		flv.setCache(NoCacheImpl.getInstance());

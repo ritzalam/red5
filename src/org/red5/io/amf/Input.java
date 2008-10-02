@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -40,6 +41,7 @@ import org.red5.io.object.DataTypes;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.RecordSet;
 import org.red5.io.object.RecordSetPage;
+import org.red5.io.utils.ArrayUtils;
 import org.red5.io.utils.ObjectMap;
 import org.red5.io.utils.XMLUtils;
 import org.red5.server.service.ConversionUtils;
@@ -278,12 +280,23 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	// Array
 
 	public Object readArray(Deserializer deserializer, Type target) {
+		Object result = null;
 		int count = buf.getInt();
-		List<Object> result = new ArrayList<Object>(count);
+		List<Object> resultCollection = new ArrayList<Object>(count);
 		storeReference(result);
 		for (int i=0; i<count; i++) {
-			result.add(deserializer.deserialize(this, Object.class));
+			resultCollection.add(deserializer.deserialize(this, Object.class));
 		}
+		// To maintain conformance to the Input API, we should convert the output
+		// into an Array if the Type asks us to.
+        Class<?> collection = Collection.class;
+        if (target instanceof Class)
+        	collection = (Class)target;
+        if (collection.isArray())
+            result = ArrayUtils.toArray(collection.getComponentType(), resultCollection);
+        else
+        	result = resultCollection;
+
 		return result;
 	}
 

@@ -101,7 +101,7 @@
         <!-- MP3 -->
         <dependency name="jaudiotagger" rev="1.0.8" />           
         <!-- Testing support -->
-        <dependency name="junit" rev="4.0" conf="utest->eclipse"/>
+        <dependency name="junit" rev="4.0" conf="utest->*"/>
         <dependency name="GroboUtils" rev="4-core" conf="eclipse->*"/>
         <dependency org="spring" name="spring-test" rev="2.5.5" conf="eclipse->*"/>   
         <dependency name="jython-engine" rev="" conf="eclipse->*"/> 

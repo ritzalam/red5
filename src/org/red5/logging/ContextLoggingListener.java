@@ -75,7 +75,8 @@ public class ContextLoggingListener implements ServletContextListener {
 			e.printStackTrace();
 		} finally {
 			//reset the name
-			selector.setContextName(null);
+			if (selector != null)
+				selector.setContextName(null);
 		}
 
 	}

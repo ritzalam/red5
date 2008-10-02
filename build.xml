@@ -778,6 +778,7 @@
 			<classpath>
 				<path refid="full.classpath"/>
 				<pathelement location="${testclass.dir}"/>
+                                <pathelement location="${testreports.dir}/dist/conf"/>
 			</classpath>
 			<formatter type="xml"/>
 			<batchtest todir="${testreports.dir}">
@@ -788,7 +789,8 @@
 				</fileset>
 			</batchtest>
 		</junit>
-		<junitreport todir="${test.dir}">
+                <mkdir dir="${testdoc.dir}"/>
+		<junitreport todir="${testdoc.dir}">
 			<fileset dir="${testreports.dir}">
 				<include name="TEST-*.xml"/>
 			</fileset>
@@ -796,13 +798,37 @@
 		</junitreport>
 	</target>
 
-	<target name="compile_tests" description="Compiles junit test classes">
+	<target name="compile_tests" depends="dist" description="Compiles junit test classes">
+		<echo>Making dist for testing</echo>
+		<mkdir dir="${testreports.dir}/dist"/>
+		<mkdir dir="${testreports.dir}/fixtures"/>
+		<mkdir dir="${testreports.dir}/log"/>
+                <!-- Give the tests their own dist installation to work with -->
+		<antcall target="dist" inheritAll="false" inheritRefs="false">
+			<param name="dist.dir" value="${testreports.dir}/dist"/>
+		</antcall>
+                <!-- Copy all test config files into the dist/conf of the
+                  test distribution.  The JUnit task below will add this
+                  directory to the classpath -->
+                <copy todir="${testreports.dir}/dist/conf" overwrite="true">
+                  <fileset dir="${test.dir}" includes="**/*.xml" excludes="www/**/*"/>
+                </copy>
+                <!-- Install the silly self-test application that tests depend on -->
+                <copy todir="${testreports.dir}/dist/webapps/selftest" overwrite="true">
+                  <fileset dir="${test.dir}/www/" includes="**/*"/>
+                </copy>
+                <copy todir="${testreports.dir}/fixtures" overwrite="true">
+                  <fileset dir="${test.dir}/fixtures" includes="**/*"/>
+                </copy>
 		<echo>Libraries checked: ${library.installed}</echo>
 		<antcall target="retrieve" inheritAll="true" inheritRefs="true">
-			<param name="ivy.conf.name" value="test"/>
+			<param name="ivy.conf.name" value="utest"/>
 		</antcall>
 		<available property="junit.installed" classname="junit.framework.TestCase"/>
-		<javac srcdir="${test.dir}" destdir="${testclass.dir}">
+                <mkdir dir="${testclass.dir}"/>
+		<javac srcdir="${test.dir}" destdir="${testclass.dir}"
+			 optimize="${build.optimize}" verbose="${build.verbose}" fork="${build.fork}" nowarn="${build.nowarn}"
+                         deprecation="${build.deprecation}" debug="${debug.state}" compiler="${build.compiler}">
 			<classpath>
 				<path refid="full.classpath"/>
 			</classpath>

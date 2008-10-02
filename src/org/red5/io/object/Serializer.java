@@ -28,7 +28,7 @@ import java.util.Map;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
-import org.apache.commons.collections.BeanMap;
+import org.apache.commons.beanutils.BeanMap;
 import org.red5.io.amf3.ByteArray;
 import org.red5.io.amf3.IExternalizable;
 import org.red5.io.utils.ObjectMap;
@@ -40,36 +40,41 @@ import org.w3c.dom.Document;
 /**
  * The Serializer class writes data output and handles the data according to the
  * core data types
- *
+ * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 public class Serializer {
 
-    /**
-     * Logger
-     */
+	/**
+	 * Logger
+	 */
 	protected static Logger log = LoggerFactory.getLogger(Serializer.class);
 
 	/**
 	 * Serializes output to a core data type object
-	 *
-	 * @param out          Output writer
-	 * @param any          Object to serialize
+	 * 
+	 * @param out
+	 *            Output writer
+	 * @param any
+	 *            Object to serialize
 	 */
-	public void serialize(Output out,  Object any) {
-        serialize(out, null, any);
-    }
+	public void serialize(Output out, Object any) {
+		serialize(out, null, any);
+	}
 
-    /**
-     * Serializes output to a core data type object
-     *
-     * @param out          Output writer
-     * @param field        The field to serialize
-     * @param any          Object to serialize
-     */
-	public void serialize(Output out, Field field, Object any) {   
-			log.debug("serialize");
+	/**
+	 * Serializes output to a core data type object
+	 * 
+	 * @param out
+	 *            Output writer
+	 * @param field
+	 *            The field to serialize
+	 * @param any
+	 *            Object to serialize
+	 */
+	public void serialize(Output out, Field field, Object any) {
+		log.debug("serialize");
 		if (any instanceof IExternalizable) {
 			// Make sure all IExternalizable objects are serialized as objects
 			out.writeObject(any, this);
@@ -79,23 +84,26 @@ public class Serializer {
 			out.writeByteArray((ByteArray) any);
 			return;
 		}
-		
+
 		if (writeBasic(out, any)) {
-				log.debug("write basic");
+			log.debug("write basic");
 			return;
 		}
 
 		if (!writeComplex(out, any)) {
-				log.debug("Unable to serialize: " + any);
-			}
+			log.debug("Unable to serialize: " + any);
 		}
+	}
 
 	/**
 	 * Writes a primitive out as an object
-	 *
-	 * @param out              Output writer
-	 * @param basic            Primitive
-	 * @return boolean         true if object was successfully serialized, false otherwise
+	 * 
+	 * @param out
+	 *            Output writer
+	 * @param basic
+	 *            Primitive
+	 * @return boolean true if object was successfully serialized, false
+	 *         otherwise
 	 */
 	protected boolean writeBasic(Output out, Object basic) {
 		if (basic == null) {
@@ -116,13 +124,16 @@ public class Serializer {
 
 	/**
 	 * Writes a complex type object out
-	 *
-	 * @param out        Output writer
-	 * @param complex    Complex datatype object
-	 * @return boolean   true if object was successfully serialized, false otherwise
+	 * 
+	 * @param out
+	 *            Output writer
+	 * @param complex
+	 *            Complex datatype object
+	 * @return boolean true if object was successfully serialized, false
+	 *         otherwise
 	 */
 	public boolean writeComplex(Output out, Object complex) {
-			log.debug("writeComplex");
+		log.debug("writeComplex");
 		if (writeListType(out, complex)) {
 			return true;
 		} else if (writeArrayType(out, complex)) {
@@ -140,13 +151,16 @@ public class Serializer {
 
 	/**
 	 * Writes Lists out as a data type
-	 *
-	 * @param out             Output write
-	 * @param listType        List type
-	 * @return boolean        true if object was successfully serialized, false otherwise
+	 * 
+	 * @param out
+	 *            Output write
+	 * @param listType
+	 *            List type
+	 * @return boolean true if object was successfully serialized, false
+	 *         otherwise
 	 */
 	protected boolean writeListType(Output out, Object listType) {
-			log.debug("writeListType");
+		log.debug("writeListType");
 		if (listType instanceof List) {
 			writeList(out, (List<?>) listType);
 		} else {
@@ -157,9 +171,11 @@ public class Serializer {
 
 	/**
 	 * Writes a List out as an Object
-	 *
-	 * @param out             Output writer
-	 * @param list            List to write as Object
+	 * 
+	 * @param out
+	 *            Output writer
+	 * @param list
+	 *            List to write as Object
 	 */
 	protected void writeList(Output out, List<?> list) {
 		// if its a small list, write it as an array
@@ -185,15 +201,17 @@ public class Serializer {
 
 	/**
 	 * Writes array (or collection) out as output Arrays, Collections, etc
-	 *
-	 * @param out               Output object
-	 * @param arrType           Array or collection type
+	 * 
+	 * @param out
+	 *            Output object
+	 * @param arrType
+	 *            Array or collection type
 	 * @return <code>true</code> if the object has been written, otherwise
 	 *         <code>false</code>
 	 */
 	@SuppressWarnings("all")
 	protected boolean writeArrayType(Output out, Object arrType) {
-			log.debug("writeArrayType");
+		log.debug("writeArrayType");
 		if (arrType instanceof Collection) {
 			out.writeArray((Collection<Object>) arrType, this);
 		} else if (arrType instanceof Iterator) {
@@ -211,33 +229,39 @@ public class Serializer {
 
 	/**
 	 * Writes an iterator out to the output
-	 *
-	 * @param out          Output writer
-	 * @param it           Iterator to write
+	 * 
+	 * @param out
+	 *            Output writer
+	 * @param it
+	 *            Iterator to write
 	 */
 	protected void writeIterator(Output out, Iterator<Object> it) {
-			log.debug("writeIterator");
-        // Create LinkedList of collection we iterate thru and write it out later
-        LinkedList<Object> list = new LinkedList<Object>();
+		log.debug("writeIterator");
+		// Create LinkedList of collection we iterate thru and write it out
+		// later
+		LinkedList<Object> list = new LinkedList<Object>();
 		while (it.hasNext()) {
 			list.addLast(it.next());
 		}
-        // Write out collection
+		// Write out collection
 		out.writeArray(list, this);
 	}
 
 	/**
 	 * Writes an xml type out to the output
-	 *
-	 * @param out          Output writer
-	 * @param xml          XML
-	 * @return boolean     <code>true</code> if object was successfully written, <code>false</code> otherwise
+	 * 
+	 * @param out
+	 *            Output writer
+	 * @param xml
+	 *            XML
+	 * @return boolean <code>true</code> if object was successfully written,
+	 *         <code>false</code> otherwise
 	 */
 	protected boolean writeXMLType(Output out, Object xml) {
-			log.debug("writeXMLType");
-        // If it's a Document write it as Document
-        if (xml instanceof Document) {
-            writeDocument(out, (Document) xml);
+		log.debug("writeXMLType");
+		// If it's a Document write it as Document
+		if (xml instanceof Document) {
+			writeDocument(out, (Document) xml);
 		} else {
 			return false;
 		}
@@ -246,19 +270,23 @@ public class Serializer {
 
 	/**
 	 * Writes a document to the output
-	 *
-	 * @param out           Output writer
-	 * @param doc           Document to write
+	 * 
+	 * @param out
+	 *            Output writer
+	 * @param doc
+	 *            Document to write
 	 */
 	protected void writeDocument(Output out, Document doc) {
-        out.writeXML(doc);
+		out.writeXML(doc);
 	}
 
 	/**
 	 * Write typed object to the output
-	 *
-	 * @param out           Output writer
-	 * @param obj           Object type to write
+	 * 
+	 * @param out
+	 *            Output writer
+	 * @param obj
+	 *            Object type to write
 	 * @return <code>true</code> if the object has been written, otherwise
 	 *         <code>false</code>
 	 */
@@ -278,12 +306,12 @@ public class Serializer {
 
 	// Extension points
 	/**
-	 * Pre processes an object
-     * TODO // must be implemented
-     *
-     * @return              Prerocessed object
-     * @param any           Object to preprocess
-     */
+	 * Pre processes an object TODO // must be implemented
+	 * 
+	 * @return Prerocessed object
+	 * @param any
+	 *            Object to preprocess
+	 */
 	public Object preProcessExtension(Object any) {
 		// Does nothing right now but will later
 		return any;
@@ -291,43 +319,49 @@ public class Serializer {
 
 	/**
 	 * Writes a custom data to the output
-	 *
-	 * @param out       Output writer
-	 * @param obj       Custom data
+	 * 
+	 * @param out
+	 *            Output writer
+	 * @param obj
+	 *            Custom data
 	 * @return <code>true</code> if the object has been written, otherwise
 	 *         <code>false</code>
 	 */
 	protected boolean writeCustomType(Output out, Object obj) {
 		if (out.isCustom(obj)) {
-            // Write custom data
-            out.writeCustom(obj);
+			// Write custom data
+			out.writeCustom(obj);
 			return true;
 		} else {
 			return false;
 		}
 	}
 
-    /**
-     * Checks whether the field should be serialized or not
-     *
-     * @param field The field to be serialized
-     * @return <code>true</code> if the field should be serialized, otherwise <code>false</code>
-     */
-    public boolean serializeField(Field field) {
-    	log.debug("Serialize field: {}", field);
-    	//null fields must be prevented from reaching this method
-        boolean dontSerialize = field.isAnnotationPresent(DontSerialize.class);
-        if (dontSerialize) {
-            log.debug("Skipping {} because its marked with @DontSerialize", field.getName());
-        }
+	/**
+	 * Checks whether the field should be serialized or not
+	 * 
+	 * @param field
+	 *            The field to be serialized
+	 * @return <code>true</code> if the field should be serialized, otherwise
+	 *         <code>false</code>
+	 */
+	public boolean serializeField(Field field) {
+		log.debug("Serialize field: {}", field);
+		// null fields must be prevented from reaching this method
+		boolean dontSerialize = field.isAnnotationPresent(DontSerialize.class);
+		if (dontSerialize) {
+			log.debug("Skipping {} because its marked with @DontSerialize",
+					field.getName());
+		}
 
-        boolean isTransient = Modifier.isTransient(field.getModifiers());
-        if (isTransient) {
-            log.warn("Using \"transient\" to declare fields not to be serialized is deprecated and will be removed in Red5 0.8, use \"@DontSerialize\" instead.");
-        }
+		boolean isTransient = Modifier.isTransient(field.getModifiers());
+		if (isTransient) {
+			log
+					.warn("Using \"transient\" to declare fields not to be serialized is deprecated and will be removed in Red5 0.8, use \"@DontSerialize\" instead.");
+		}
 
-        boolean isClass = "class".equals(field.getName());
+		boolean isClass = "class".equals(field.getName());
 
-        return !(dontSerialize || isTransient || isClass);
-    }
+		return !(dontSerialize || isTransient || isClass);
+	}
 }

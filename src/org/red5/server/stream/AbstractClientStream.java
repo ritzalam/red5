@@ -86,7 +86,7 @@ public abstract class AbstractClientStream extends AbstractStream implements
      * @return          IFlowControllable object
      */
 	public IBWControllable getParentBWControllable() {
-		return conn.get();
+		return conn == null ? null : conn.get();
 	}
 
     /**

@@ -3,7 +3,7 @@ package org.red5.server.service;
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  *
- * Copyright © 2006 by respective authors. All rights reserved.
+ * Copyright  2006 by respective authors. All rights reserved.
  *
  * This library is free software; you can redistribute it and/or modify it under the
  * terms of the GNU Lesser General Public License as published by the Free Software
@@ -25,13 +25,14 @@ package org.red5.server.service;
 import java.util.ArrayList;
 import java.util.Set;
 
-import junit.framework.Assert;
-import junit.framework.TestCase;
+import static junit.framework.Assert.*;
 
+import org.apache.commons.beanutils.ConversionException;
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ConversionUtilsTest extends TestCase {
+public class ConversionUtilsTest {
 
 	class TestJavaBean {
 
@@ -39,15 +40,17 @@ public class ConversionUtilsTest extends TestCase {
 
 	private static final Logger log = LoggerFactory.getLogger(ConversionUtilsTest.class);
 
+	@Test
 	public void testBasic() {
 		Object result = ConversionUtils.convert(new Integer(42), String.class);
 		if (!(result instanceof String)) {
-			Assert.fail("Should be a string");
+			fail("Should be a string");
 		}
 		String str = (String) result;
-		Assert.assertEquals("42", str);
+		assertEquals("42", str);
 	}
 
+	@Test
 	public void testConvertListToStringArray() {
 		ArrayList source = new ArrayList();
 
@@ -60,15 +63,16 @@ public class ConversionUtilsTest extends TestCase {
 		Object result = ConversionUtils.convert(source, target);
 		if (!(result.getClass().isArray() && result.getClass()
 				.getComponentType().equals(String.class))) {
-			Assert.fail("Should be String[]");
+			fail("Should be String[]");
 		}
 		String[] results = (String[]) result;
 
-		Assert.assertEquals(results.length, source.size());
-		Assert.assertEquals(results[2], source.get(2));
+		assertEquals(results.length, source.size());
+		assertEquals(results[2], source.get(2));
 
 	}
 
+	@Test
 	public void testConvertObjectArrayToStringArray() {
 		Object[] source = new Object[3];
 
@@ -81,15 +85,16 @@ public class ConversionUtilsTest extends TestCase {
 		Object result = ConversionUtils.convert(source, target);
 		if (!(result.getClass().isArray() && result.getClass()
 				.getComponentType().equals(String.class))) {
-			Assert.fail("Should be String[]");
+			fail("Should be String[]");
 		}
 		String[] results = (String[]) result;
 
-		Assert.assertEquals(results.length, source.length);
-		Assert.assertEquals(results[2], source[2]);
+		assertEquals(results.length, source.length);
+		assertEquals(results[2], source[2]);
 
 	}
 
+	@Test
 	public void testConvertToSet() {
 		Object[] source = new Object[3];
 		source[0] = new Integer(21);
@@ -97,24 +102,30 @@ public class ConversionUtilsTest extends TestCase {
 		source[2] = "Woot";
 		Object result = ConversionUtils.convert(source, Set.class);
 		if (!(result instanceof Set)) {
-			Assert.fail("Should be a set");
+			fail("Should be a set");
 		}
 		Set results = (Set) result;
-		Assert.assertEquals(results.size(), source.length);
+		assertEquals(results.size(), source.length);
 
 	}
 
+	@Test
 	public void testNoOppConvert() {
 		TestJavaBean source = new TestJavaBean();
 		Object result = ConversionUtils.convert(source, TestJavaBean.class);
-		Assert.assertEquals(result, source);
+		assertEquals(result, source);
 	}
 
+	@Test
 	public void testNullConvert() {
 		Object result = ConversionUtils.convert(null, TestJavaBean.class);
-		Assert.assertNull(result);
-		result = ConversionUtils.convert(new TestJavaBean(), null);
-		Assert.assertNull(result);
+		assertNull(result);
+	}
+	
+	@Test(expected=ConversionException.class)
+	public void testNullConvertNoClass() {
+		// should throw exception
+		ConversionUtils.convert(new TestJavaBean(), null);
 	}
 
 }
