@@ -44,7 +44,8 @@ public class RecordSetPage {
      * Creates recordset page from Input object
      * @param input       Input object to use as source for data that has to be deserialized
      */
-    public RecordSetPage(Input input) {
+    @SuppressWarnings("unchecked")
+	public RecordSetPage(Input input) {
 		Deserializer deserizalizer = new Deserializer();
 		Map mapResult = deserizalizer.deserialize(input, Map.class);
 

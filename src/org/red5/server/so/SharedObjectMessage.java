@@ -213,6 +213,7 @@ public class SharedObjectMessage extends BaseEvent implements
 		return sb.toString();
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void readExternal(ObjectInput in) throws IOException,
 			ClassNotFoundException {
@@ -220,7 +221,10 @@ public class SharedObjectMessage extends BaseEvent implements
 		name = (String) in.readObject();
 		version = in.readInt();
 		persistent = in.readBoolean();
-		events = (ConcurrentLinkedQueue<ISharedObjectEvent>) in.readObject();
+		Object o = in.readObject();
+		if (o != null && o instanceof ConcurrentLinkedQueue) {
+			events = (ConcurrentLinkedQueue<ISharedObjectEvent>) o;
+		}
 	}
 
 	@Override

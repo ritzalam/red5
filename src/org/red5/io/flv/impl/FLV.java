@@ -32,13 +32,11 @@ import org.red5.io.ITagReader;
 import org.red5.io.ITagWriter;
 import org.red5.io.IoConstants;
 import org.red5.io.flv.IFLV;
-import org.red5.io.flv.IKeyFrameDataAnalyzer.KeyFrameMeta;
 import org.red5.io.flv.meta.IMetaData;
 import org.red5.io.flv.meta.IMetaService;
 import org.red5.io.flv.meta.MetaService;
 import org.red5.server.api.cache.ICacheStore;
 import org.red5.server.api.cache.ICacheable;
-import org.red5.server.cache.NoCacheImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,6 +60,7 @@ public class FLV implements IFLV {
 
 	private IMetaService metaService;
 
+	@SuppressWarnings("unchecked")
 	private IMetaData metaData;
 
 	/**
@@ -134,6 +133,7 @@ public class FLV implements IFLV {
 	/**
 	 * {@inheritDoc}
 	 */
+	@SuppressWarnings("unchecked")
 	public IMetaData getMetaData() throws FileNotFoundException {
 		metaService.setInStream(new FileInputStream(file));
 		return null;
@@ -150,12 +150,14 @@ public class FLV implements IFLV {
 	/**
 	 * {@inheritDoc}
 	 */
+	@SuppressWarnings("unchecked")
 	public void setKeyFrameData(Map keyframedata) {
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
+	@SuppressWarnings("unchecked")
 	public Map getKeyFrameData() {
 		// TODO Auto-generated method stub
 		return null;
@@ -268,6 +270,7 @@ public class FLV implements IFLV {
 	}
 
 	/** {@inheritDoc} */
+	@SuppressWarnings("unchecked")
 	public void setMetaData(IMetaData meta) throws IOException {
 		File tmpFile = File.createTempFile("setMeta_", ".flv");
 		if (metaService == null) {

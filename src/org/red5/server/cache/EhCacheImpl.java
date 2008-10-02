@@ -81,6 +81,7 @@ public class EhCacheImpl implements ICacheStore, ApplicationContextAware {
 		return applicationContext;
 	}
 
+	@SuppressWarnings("unchecked")
 	public void init() {
 		log.info("Loading ehcache");
 		// log.debug("Appcontext: " + applicationContext.toString());
@@ -156,7 +157,8 @@ public class EhCacheImpl implements ICacheStore, ApplicationContextAware {
 	}
 
 	/** {@inheritDoc} */
-    public Iterator<String> getObjectNames() {
+    @SuppressWarnings("unchecked")
+	public Iterator<String> getObjectNames() {
 		return cache.getKeys().iterator();
 	}
 

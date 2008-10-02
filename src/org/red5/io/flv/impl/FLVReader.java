@@ -21,7 +21,6 @@ package org.red5.io.flv.impl;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
@@ -342,8 +341,6 @@ public class FLVReader implements IoConstants, ITagReader,
      * Post-initialization hook, reads keyframe metadata and decodes header (if any).
      */
     private void postInitialize() {
-		ITag tag = null;
-
 		if (log.isDebugEnabled()) {
 			log.debug("FLVReader 1 - Buffer size: " + getTotalBytes()
 					+ " position: " + getCurrentPosition() + " remaining: "
@@ -354,9 +351,7 @@ public class FLVReader implements IoConstants, ITagReader,
 		}
 		keyframeMeta = analyzeKeyFrames();
 		long old = getCurrentPosition();
-		
-		
-
+		log.debug("Old position: {}", old);
 	}
 	
     /** {@inheritDoc} */
@@ -666,7 +661,6 @@ public class FLVReader implements IoConstants, ITagReader,
 		// point to the first tag
 		setCurrentPosition(9);
 
-		int idx = 0;
 		boolean audioOnly = true;
 		while (this.hasMoreTags()) {
 			long pos = getCurrentPosition();

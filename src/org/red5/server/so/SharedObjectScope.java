@@ -51,6 +51,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Special scope for shared objects
  */
+@SuppressWarnings("unchecked")
 public class SharedObjectScope extends BasicScope implements ISharedObject, StatusCodes {
     /**
      * Logger
@@ -190,7 +191,7 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 	}
 
 	/** {@inheritDoc} */
-    public void sendMessage(String handler, List arguments) {
+    public void sendMessage(String handler, List<?> arguments) {
 		beginUpdate();
 		try {
 			so.sendMessage(handler, arguments);

@@ -27,6 +27,8 @@ package org.red5.compatibility.flex.messaging.messages;
  */
 public class AcknowledgeMessage extends AsyncMessage {
 
+	private static final long serialVersionUID = 4616428436031029479L;
+
 	// Nothing here right now...
 	
 }

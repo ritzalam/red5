@@ -251,7 +251,8 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 	}
 
 	/** {@inheritDoc} */
-    public void writeObject(Object object, Serializer serializer) {
+    @SuppressWarnings("unchecked")
+	public void writeObject(Object object, Serializer serializer) {
 		if (checkWriteReference(object)) {
 			return;
 		}

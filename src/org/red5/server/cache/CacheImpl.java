@@ -102,9 +102,7 @@ public class CacheImpl implements ICacheStore, ApplicationContextAware {
 
 	public void init() {
 		log.info("Loading generic object cache");
-		if (log.isDebugEnabled()) {
-			log.debug("Appcontext: " + applicationContext.toString());
-		}
+		log.debug("Appcontext: {}", applicationContext.toString());
 	}
 
 	/** {@inheritDoc} */
@@ -126,7 +124,7 @@ public class CacheImpl implements ICacheStore, ApplicationContextAware {
 		boolean accepted = false;
 		// check map size
 		if (CACHE.size() < capacity) {
-			SoftReference tmp = CACHE.get(name);
+			SoftReference<?> tmp = CACHE.get(name);
 			// because soft references can be garbage collected when a system is
 			// in need of memory, we will check that the cacheable object is
 			// valid
@@ -151,8 +149,7 @@ public class CacheImpl implements ICacheStore, ApplicationContextAware {
 				CACHE.put(name, value);
 				// set acceptance
 				accepted = true;
-				log.info(name + " has been added to the cache. Current size: "
-						+ CACHE.size());
+				log.info("{} has been added to the cache. Current size: {}", name, CACHE.size());
 			}
 		} else {
 			log.warn("Cache has reached max element size: " + capacity);
@@ -188,7 +185,7 @@ public class CacheImpl implements ICacheStore, ApplicationContextAware {
 			log.debug("Looking up " + name + " in the cache. Current size: " + CACHE.size());
 		}
 		ICacheable ic = null;
-		SoftReference sr = null;
+		SoftReference<?> sr = null;
 		if (!CACHE.isEmpty() && null != (sr = CACHE.get(name))) {
 			ic = (ICacheable) sr.get();
 			// add a request count to the registry
@@ -202,17 +199,13 @@ public class CacheImpl implements ICacheStore, ApplicationContextAware {
 			// increment cache misses
 			cacheMiss += 1;
 		}
-		if (log.isDebugEnabled()) {
-			log.debug("Registry on get: " + registry.toString());
-		}
+		log.debug("Registry on get: {}", registry.toString());
 		return ic;
 	}
 
 	/** {@inheritDoc} */
     public boolean remove(ICacheable obj) {
-		if (log.isDebugEnabled()) {
-			log.debug("Looking up " + obj.getName() + " in the cache. Current size: " + CACHE.size());
-		}
+		log.debug("Looking up {} in the cache. Current size: {}", obj.getName(), CACHE.size());
 		return remove(obj.getName());
 	}
 
@@ -241,7 +234,7 @@ public class CacheImpl implements ICacheStore, ApplicationContextAware {
 
 	/** {@inheritDoc} */
     public void setMaxEntries(int max) {
-		log.info("Setting max entries for this cache to " + max);
+		log.info("Setting max entries for this cache to {}", max);
 		CacheImpl.capacity = max;
 	}
 

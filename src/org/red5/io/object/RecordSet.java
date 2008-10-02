@@ -102,7 +102,8 @@ public class RecordSet {
      * Creates recordset from Input object
      * @param input
      */
-    public RecordSet(Input input) {
+    @SuppressWarnings("unchecked")
+	public RecordSet(Input input) {
         // Create deserializer
         Deserializer deserializer = new Deserializer();
 		Map<String, Object> dataMap = input.readKeyValues(deserializer);
@@ -110,6 +111,9 @@ public class RecordSet {
 		Object map = dataMap.get("serverinfo");
 		Map<String, Object> serverInfo = null;
 		if (map != null) {
+			if (!(map instanceof Map)) {
+				throw new RuntimeException("Expected Map but got " + map.getClass().getName());
+			}			
 			serverInfo = (Map<String, Object>) map;
 			totalCount = (Integer) serverInfo.get("totalCount");
 			List<List<Object>> initialData = (List<List<Object>>) serverInfo.get("initialData");
@@ -123,8 +127,8 @@ public class RecordSet {
 			for (int i = 0; i < initialData.size(); i++) {
 				this.data.add(i + cursor - 1, initialData.get(i));
 			}		
-		} else if (!(map instanceof Map)) {
-			throw new RuntimeException("Expected Map but got " + map.getClass().getName());
+		} else {
+			throw new RuntimeException("Map (serverinfo) was null");
 		}
 	}
 

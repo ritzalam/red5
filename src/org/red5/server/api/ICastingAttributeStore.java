@@ -74,7 +74,7 @@ public interface ICastingAttributeStore extends IAttributeStore {
 	 *            Attribute name
 	 * @return		Attribute
 	 */
-	public List getListAttribute(String name);
+	public List<?> getListAttribute(String name);
 
 	/**
 	 * Get boolean attribute by name
@@ -92,7 +92,7 @@ public interface ICastingAttributeStore extends IAttributeStore {
 	 *            Attribute name
 	 * @return		Attribute
 	 */
-	public Map getMapAttribute(String name);
+	public Map<?, ?> getMapAttribute(String name);
 
 	/**
 	 * Get Set attribute by name
@@ -101,7 +101,7 @@ public interface ICastingAttributeStore extends IAttributeStore {
 	 *            Attribute name
 	 * @return		Attribute
 	 */
-	public Set getSetAttribute(String name);
+	public Set<?> getSetAttribute(String name);
 
 	/**
 	 * Get Short attribute by name

@@ -76,9 +76,9 @@ import java.util.Random;
  * of the System time.  Thanks to Ashutosh Narhari for the suggestion
  * of using the static method to prime the basic random generator.
  *
- * Using the secure random option, this class compies with the statistical
+ * Using the secure random option, this class complies with the statistical
  * random number generator tests specified in FIPS 140-2, Security
- * Requirements for Cryptographic Modules, secition 4.9.1.
+ * Requirements for Cryptographic Modules, section 4.9.1.
  *
  * I converted all the pieces of the seed to a String before handing
  * it over to the MD5 hash so that you could print it out to make
@@ -93,7 +93,6 @@ import java.util.Random;
  *
  * - Marc
  */
-
 public class RandomGUID extends Object {
 
     public String valueBeforeMD5 = "";
@@ -147,7 +146,7 @@ public class RandomGUID extends Object {
      */
     private void getRandomGUID(boolean secure) {
         MessageDigest md5 = null;
-        StringBuffer sbValueBeforeMD5 = new StringBuffer();
+        StringBuilder sbValueBeforeMD5 = new StringBuilder();
 
         try {
             md5 = MessageDigest.getInstance("MD5");
@@ -181,7 +180,7 @@ public class RandomGUID extends Object {
             md5.update(valueBeforeMD5.getBytes());
 
             byte[] array = md5.digest();
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             for (int j = 0; j < array.length; ++j) {
                 int b = array[j] & 0xFF;
                 if (b < 0x10) sb.append('0');
@@ -195,7 +194,6 @@ public class RandomGUID extends Object {
         }
     }
 
-
     /*
      * Convert to the standard format for GUID
      * (Useful for SQL Server UniqueIdentifiers, etc.)
@@ -203,18 +201,7 @@ public class RandomGUID extends Object {
      */
     public String toString() {
         String raw = valueAfterMD5.toUpperCase();
-        StringBuffer sb = new StringBuffer();
-        sb.append(raw.substring(0, 8));
-        sb.append("-");
-        sb.append(raw.substring(8, 12));
-        sb.append("-");
-        sb.append(raw.substring(12, 16));
-        sb.append("-");
-        sb.append(raw.substring(16, 20));
-        sb.append("-");
-        sb.append(raw.substring(20));
-
-        return sb.toString();
+        return String.format("%s-%s-%s-%s-%s", new Object[]{raw.substring(0, 8), raw.substring(8, 12), raw.substring(12, 16), raw.substring(16, 20), raw.substring(20)});
     }
 
     /*
@@ -222,10 +209,10 @@ public class RandomGUID extends Object {
      */
     public static void main(String args[]) {
         for (int i=0; i< 100; i++) {
-	    RandomGUID myGUID = new RandomGUID();
-	    System.out.println("Seeding String=" + myGUID.valueBeforeMD5);
-	    System.out.println("rawGUID=" + myGUID.valueAfterMD5);
-	    System.out.println("RandomGUID=" + myGUID.toString());
+            RandomGUID myGUID = new RandomGUID();
+            System.out.println("Seeding String=" + myGUID.valueBeforeMD5);
+            System.out.println("rawGUID=" + myGUID.valueAfterMD5);
+            System.out.println("RandomGUID=" + myGUID.toString());
         }
     }
 }

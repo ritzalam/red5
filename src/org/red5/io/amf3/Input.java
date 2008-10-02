@@ -289,6 +289,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 * 
 	 * @return Number      Number
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public Number readNumber(Type target) {
         Number v;
@@ -372,7 +373,8 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 * 
 	 * @return int        Length of array
 	 */
-    public Object readArray(Deserializer deserializer, Type target) {
+    @SuppressWarnings("unchecked")
+	public Object readArray(Deserializer deserializer, Type target) {
 		int count = readAMF3Integer();
 		if ((count & 1) == 0) {
 			// Reference

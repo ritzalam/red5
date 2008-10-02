@@ -29,6 +29,8 @@ package org.red5.compatibility.flex.messaging.messages;
  */
 public class RemotingMessage extends AsyncMessage {
 
+	private static final long serialVersionUID = -642437295817117603L;
+
 	/** Method to execute. */
 	public String operation;
 	

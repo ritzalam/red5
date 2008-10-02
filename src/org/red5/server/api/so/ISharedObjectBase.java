@@ -84,7 +84,7 @@ public interface ISharedObjectBase extends ISharedObjectHandlerProvider,
 	 *            a list of objects that should be passed as arguments to the
 	 *            handler
 	 */
-	public void sendMessage(String handler, List arguments);
+	public void sendMessage(String handler, List<?> arguments);
 
 	/**
 	 * Start performing multiple updates to the shared object from serverside

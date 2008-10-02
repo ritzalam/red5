@@ -76,6 +76,6 @@ public interface ISharedObjectSecurity {
 	 * @param arguments
 	 * @return
 	 */
-	public boolean isSendAllowed(ISharedObject so, String message, List arguments);
+	public boolean isSendAllowed(ISharedObject so, String message, List<?> arguments);
 
 }

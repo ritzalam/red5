@@ -109,6 +109,6 @@ public interface ISharedObjectListener {
 	 * @param params
 	 *            the arguments
 	 */
-	void onSharedObjectSend(ISharedObjectBase so, String method, List params);
+	void onSharedObjectSend(ISharedObjectBase so, String method, List<?> params);
 
 }

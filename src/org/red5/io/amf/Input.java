@@ -279,6 +279,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 
 	// Array
 
+	@SuppressWarnings("unchecked")
 	public Object readArray(Deserializer deserializer, Type target) {
 		Object result = null;
 		int count = buf.getInt();
@@ -291,7 +292,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		// into an Array if the Type asks us to.
         Class<?> collection = Collection.class;
         if (target instanceof Class)
-        	collection = (Class)target;
+        	collection = (Class) target;
         if (collection.isArray())
             result = ArrayUtils.toArray(collection.getComponentType(), resultCollection);
         else

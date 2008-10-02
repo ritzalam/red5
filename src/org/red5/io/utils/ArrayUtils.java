@@ -4,6 +4,8 @@ import java.lang.reflect.Array;
 import java.util.Collection;
 
 public final class ArrayUtils {
+	
+    @SuppressWarnings({"unchecked"})
     public static Object toArray(Class<?> type, Collection collection) {
         if (byte.class.isAssignableFrom(type)) {
             return toByteArray(collection);
@@ -26,6 +28,7 @@ public final class ArrayUtils {
         }
     }
 
+    @SuppressWarnings({"unchecked"})
     private static Object toByteArray(Collection collection) {
         byte[] ba = new byte[collection.size()];
 
@@ -38,6 +41,7 @@ public final class ArrayUtils {
         return ba;
     }
 
+    @SuppressWarnings({"unchecked"})
     private static Object toShortArray(Collection collection) {
         short[] sa = new short[collection.size()];
 
@@ -50,6 +54,7 @@ public final class ArrayUtils {
         return sa;
     }
 
+    @SuppressWarnings({"unchecked"})
     private static Object toIntegerArray(Collection collection) {
         int[] ia = new int[collection.size()];
 
@@ -62,6 +67,7 @@ public final class ArrayUtils {
         return ia;
     }
 
+    @SuppressWarnings({"unchecked"})
     private static Object toLongArray(Collection collection) {
         long[] la = new long[collection.size()];
 
@@ -74,6 +80,7 @@ public final class ArrayUtils {
         return la;
     }
 
+    @SuppressWarnings({"unchecked"})
     private static Object toFloatArray(Collection collection) {
         float[] fa = new float[collection.size()];
 
@@ -86,6 +93,7 @@ public final class ArrayUtils {
         return fa;
     }
 
+    @SuppressWarnings({"unchecked"})
     private static Object toDoubleArray(Collection collection) {
         double[] da = new double[collection.size()];
 
@@ -98,6 +106,7 @@ public final class ArrayUtils {
         return da;
     }
 
+    @SuppressWarnings({"unchecked"})
     private static Object toBooleanArray(Collection collection) {
         boolean[] ba = new boolean[collection.size()];
 
@@ -110,6 +119,7 @@ public final class ArrayUtils {
         return ba;
     }
 
+    @SuppressWarnings({"unchecked"})
     private static Object toCharacterArray(Collection collection) {
         char[] ca = new char[collection.size()];
 

@@ -19,11 +19,7 @@ package org.red5.io.utils;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.nio.CharBuffer;
-import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
-import java.nio.charset.CharsetDecoder;
-import java.nio.charset.CharsetEncoder;
 
 import org.apache.mina.common.ByteBuffer;
 import org.slf4j.Logger;
@@ -142,16 +138,13 @@ public class IOUtils {
      */
     public static void debug(Logger log, String msg, ByteBuffer buf) {
 		if (log.isDebugEnabled()) {
-
 			log.debug(msg);
-			log.debug("Size: " + buf.remaining());
-			log.debug("Data:\n\n" + HexDump.formatHexDump(buf.getHexDump()));
+			log.debug("Size: {}", buf.remaining());
+			log.debug("Data:\n{}", HexDump.formatHexDump(buf.getHexDump()));
 
 			final String string = toString(buf);
 
-			log.debug("\n" + string + "\n");
-
-			//log.debug("Data:\n\n" + b);
+			log.debug("\n{}\n", string);
 		}
 	}
 

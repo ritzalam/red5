@@ -31,6 +31,8 @@ import org.red5.compatibility.flex.messaging.messages.AsyncMessage;
  */
 public class SequencedMessage extends AsyncMessage {
 
+	private static final long serialVersionUID = 5607350918278510061L;
+
 	public long sequenceId;
 	
 	public Object sequenceProxies;

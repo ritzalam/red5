@@ -30,6 +30,8 @@ package org.red5.compatibility.flex.messaging.messages;
  */
 public class CommandMessage extends AsyncMessage {
 
+	private static final long serialVersionUID = 8805045741686625945L;
+
 	public String messageRefType;
 	
 	/** Command id to execute. */
