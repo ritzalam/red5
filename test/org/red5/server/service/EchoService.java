@@ -175,7 +175,6 @@ public class EchoService implements IEchoService {
 		public int value2 = 2;
 
 		protected int value4 = 4;
-
 	}
 
 }
