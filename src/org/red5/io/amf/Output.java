@@ -100,28 +100,37 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 
 	/** {@inheritDoc} */
 	public void writeArray(Object[] array, Serializer serializer) {
-		if (checkWriteReference(array)) {
-			return;
-		}
-		storeReference(array);
-		buf.put(AMF.TYPE_ARRAY);
-		buf.putInt(array.length);
-		for (Object item : array) {
-			serializer.serialize(this, item);
-		}
+		log.debug("writeArray - array: {} serializer: {}", array, serializer);
+    	if (array != null) {		
+    		if (checkWriteReference(array)) {
+    			return;
+    		}
+    		storeReference(array);
+    		buf.put(AMF.TYPE_ARRAY);
+    		buf.putInt(array.length);
+    		for (Object item : array) {
+    			serializer.serialize(this, item);
+    		}
+    	} else {
+    		writeNull();
+    	}		
 	}
 
 	/** {@inheritDoc} */
     public void writeArray(Object array, Serializer serializer) {
-		if (checkWriteReference(array)) {
-			return;
-		}
-		storeReference(array);
-		buf.put(AMF.TYPE_ARRAY);
-		buf.putInt(Array.getLength(array));
-		for (int i=0; i<Array.getLength(array); i++) {
-			serializer.serialize(this, Array.get(array, i));
-		}
+    	if (array != null) {
+    		if (checkWriteReference(array)) {
+    			return;
+    		}
+    		storeReference(array);
+    		buf.put(AMF.TYPE_ARRAY);
+    		buf.putInt(Array.getLength(array));
+    		for (int i=0; i<Array.getLength(array); i++) {
+    			serializer.serialize(this, Array.get(array, i));
+    		}
+    	} else {
+    		writeNull();
+    	}
     }
 
 	/** {@inheritDoc} */

@@ -67,6 +67,10 @@ import org.slf4j.LoggerFactory;
 
 /**
  * A play engine for playing an IPlayItem.
+ * 
+ * @author The Red5 Project (red5@osflash.org)
+ * @author Steven Gong
+ * @author Paul Gregoire (mondain@gmail.com)
  */
 public final class PlayEngine implements IFilter, IPushableConsumer,
 		IPipeConnectionListener, ITokenBucketCallback {

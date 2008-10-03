@@ -127,7 +127,7 @@ public class RemotingConnection implements IRemotingConnection {
      * Throws Not supported runtime exception
      */
     private void notSupported() {
-		throw new RuntimeException("not supported for this type of connection");
+		throw new RuntimeException("Not supported for this type of connection");
 	}
 
     /**
@@ -319,8 +319,8 @@ public class RemotingConnection implements IRemotingConnection {
 	}
 
 	/** {@inheritDoc} */
-	public List getListAttribute(String name) {
-		return (List) getAttribute(name);
+	public List<?> getListAttribute(String name) {
+		return (List<?>) getAttribute(name);
 	}
 
 	/** {@inheritDoc} */
@@ -329,13 +329,13 @@ public class RemotingConnection implements IRemotingConnection {
 	}
 
 	/** {@inheritDoc} */
-	public Map getMapAttribute(String name) {
-		return (Map) getAttribute(name);
+	public Map<?, ?> getMapAttribute(String name) {
+		return (Map<?, ?>) getAttribute(name);
 	}
 
 	/** {@inheritDoc} */
-	public Set getSetAttribute(String name) {
-		return (Set) getAttribute(name);
+	public Set<?> getSetAttribute(String name) {
+		return (Set<?>) getAttribute(name);
 	}
 
 	/** {@inheritDoc} */

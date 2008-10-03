@@ -69,7 +69,7 @@ public class RemotingClient {
 	/** Url to connect to. */
 	private String url;
 
-	/** Additonal string to use while connecting. */
+	/** Additional string to use while connecting. */
 	private String appendToUrl = "";
 
 	/** Headers to send to the server. */
@@ -83,6 +83,7 @@ public class RemotingClient {
 	 */
 	public RemotingClient() {
 		// Do nothing.
+		log.debug("RemotingClient created");
 	}
 
 	/**
@@ -93,16 +94,7 @@ public class RemotingClient {
 	 */
 	public RemotingClient(String url) {
 		this(url, DEFAULT_TIMEOUT);
-	}
-
-	/**
-	 * Set the thread pool to use for asynchronous requests.
-	 * 
-	 * @param threadPool
-	 *            The thread pool
-	 */
-	public void setThreadPool(ThreadPool threadPool) {
-		RemotingClient.threadPool = threadPool;
+		log.debug("RemotingClient created  - url: {}", url);
 	}
 
 	/**
@@ -115,6 +107,7 @@ public class RemotingClient {
 	 */
 	public RemotingClient(String url, int timeout) {
 		this(url, timeout, connectionMgr);
+		log.debug("RemotingClient created  - url: {} timeout: {}", url, timeout);
 	}
 
 	/**
@@ -127,6 +120,7 @@ public class RemotingClient {
 	 */
 	public RemotingClient(String url, HttpConnectionManager mgr) {
 		this(url, DEFAULT_TIMEOUT, mgr);
+		log.debug("RemotingClient created  - url: {} http manager: {}", url, mgr);
 	}
 
 	/**
@@ -144,8 +138,20 @@ public class RemotingClient {
 		client.getHttpConnectionManager().getParams().setConnectionTimeout(
 				timeout);
 		this.url = url;
+		log.debug("RemotingClient created  - url: {} timeout: {} http manager: {}", new Object[]{url, timeout, mgr});
 	}
 
+	/**
+	 * Set the thread pool to use for asynchronous requests.
+	 * 
+	 * @param threadPool
+	 *            The thread pool
+	 */
+	public void setThreadPool(ThreadPool threadPool) {
+		RemotingClient.threadPool = threadPool;
+		log.debug("RemotingClient thread pool: {}", threadPool);
+	}	
+	
 	/**
 	 * Encode the method call.
 	 * 
@@ -156,6 +162,7 @@ public class RemotingClient {
 	 * @return Byte buffer with data to perform remoting call
 	 */
 	private ByteBuffer encodeInvoke(String method, Object[] params) {
+		log.debug("RemotingClient encodeInvoke - method: {} params: {}", method, params);		
 		ByteBuffer result = ByteBuffer.allocate(1024);
 		result.setAutoExpand(true);
 
@@ -194,7 +201,14 @@ public class RemotingClient {
 		ByteBuffer tmp = ByteBuffer.allocate(1024);
 		tmp.setAutoExpand(true);
 		Output tmpOut = new Output(tmp);
-		tmpOut.writeArray(params, new Serializer());
+
+		//if the params are null send the NULL AMF type
+		//this should fix APPSERVER-296
+		if (params == null) {
+			tmpOut.writeNull();
+		} else {
+			tmpOut.writeArray(params, new Serializer());
+		}
 		tmp.flip();
 
 		// Store size and parameters
@@ -214,37 +228,34 @@ public class RemotingClient {
 	 *            Byte buffer with response data
 	 */
 	protected void processHeaders(ByteBuffer in) {
-		@SuppressWarnings("unused")
+		log.debug("RemotingClient processHeaders - buffer limit: {}", (in != null ? in.limit() : 0));				
 		int version = in.getUnsignedShort(); // skip
-		// the
-		// version
-		// by
-		// now,
-		// AMF3
-		// is
-		// not
-		// yet
-		// implemented
-		int count = in.getUnsignedShort();
+		log.debug("Version: {}", version);
+		// the version by now, AMF3 is not yet implemented
+		int count = in.getUnsignedShort(); 
+		log.debug("Count: {}", count);
 		Deserializer deserializer = new Deserializer();
 		Input input = new Input(in);
 		for (int i = 0; i < count; i++) {
-			String name = Input.getString(in);
-			@SuppressWarnings("unused")
+			//String name = Input.getString(in);
+			String name = deserializer.deserialize(input, String.class);
+			log.debug("Name: {}", name);
 			boolean required = (in.get() == 0x01);
-			@SuppressWarnings("unused")
+			log.debug("Required: {}", required);
 			int len = in.getInt();
+			log.debug("Length: {}", len);
 			Object value = deserializer.deserialize(input, Object.class);
+			log.debug("Value: {}", value);
 
 			// XXX: this is pretty much untested!!!
-			if (name.equals(RemotingHeader.APPEND_TO_GATEWAY_URL)) {
+			if (RemotingHeader.APPEND_TO_GATEWAY_URL.equals(name)) {
 				// Append string to gateway url
 				appendToUrl = (String) value;
-			} else if (name.equals(RemotingHeader.REPLACE_GATEWAY_URL)) {
+			} else if (RemotingHeader.REPLACE_GATEWAY_URL.equals(name)) {
 				// Replace complete gateway url
 				url = (String) value;
 				// XXX: reset the <appendToUrl< here?
-			} else if (name.equals(RemotingHeader.PERSISTENT_HEADER)) {
+			} else if (RemotingHeader.PERSISTENT_HEADER.equals(name)) {
 				// Send a new header with each following request
 				if (value instanceof Map) {
 					@SuppressWarnings("unchecked")
@@ -255,11 +266,10 @@ public class RemotingClient {
 									.get("data"));
 					headers.put(header.name, header);
 				} else {
-					log.error("Expected Map but received " + value);
+					log.error("Expected Map but received {}", value);
 				}
 			} else {
-				log.warn("Unsupported remoting header \"" + name
-						+ "\" received with value " + value);
+				log.warn("Unsupported remoting header \"{}\" received with value \"{}\"", name, value);
 			}
 		}
 	}
@@ -272,6 +282,7 @@ public class RemotingClient {
 	 * @return Object deserialized from byte buffer data
 	 */
 	private Object decodeResult(ByteBuffer data) {
+		log.debug("decodeResult - data limit: {}", (data != null ? data.limit() : 0));
 		processHeaders(data);
 		int count = data.getUnsignedShort();
 		if (count != 1) {
@@ -280,12 +291,10 @@ public class RemotingClient {
 		}
 
 		Input input = new Input(data);
-		@SuppressWarnings("unused")
-		String target = input.getString(); // expect
-		// "/onResult"
-		@SuppressWarnings("unused")
-		String nullString = input.getString(); // expect
-		// "null"
+		String target = input.getString(); // expect "/onResult"
+		log.debug("Target: {}", target);
+		String nullString = input.getString(); // expect "null"
+		log.debug("Null string: {}", nullString);
 
 		// Read return value
 		Deserializer deserializer = new Deserializer();
@@ -411,14 +420,13 @@ public class RemotingClient {
 					String.class, Object[].class, IRemotingCallback.class };
 
 			Worker worker = new Worker();
-			worker
-					.setClassName("org.red5.server.net.remoting.RemotingClient$RemotingWorker");
+			worker.setClassName("org.red5.server.net.remoting.RemotingClient$RemotingWorker");
 			worker.setMethodName("executeTask");
 			worker.setMethodParams(params);
 			worker.setParamTypes(paramTypes);
 			threadPool.execute(worker);
 		} catch (Exception err) {
-			log.warn("Exception invoking method: " + method);
+			log.warn("Exception invoking method: {}", method);
 		}
 	}
 

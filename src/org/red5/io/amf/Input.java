@@ -244,14 +244,15 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	 */
 	public static String getString(ByteBuffer buf) {
 		int len = buf.getUnsignedShort();
+		log.debug("Length: {}", len);
 		int limit = buf.limit();
+		log.debug("Limit: {}", limit);
 		final java.nio.ByteBuffer strBuf = buf.buf();
-		// if(log.isDebugEnabled()) {
-		// log.debug("len: "+len);
-		// }
-		// log.info("limit: "+strBuf.position() + len);
-		strBuf.limit(strBuf.position() + len);
+		int pos = strBuf.position();
+		log.info("Sting buf - position: {} limit: {}", pos, (pos + len));
+		strBuf.limit(pos + len);
 		final String string = AMF.CHARSET.decode(strBuf).toString();
+		log.info("Sting: {}", string);
 		buf.limit(limit); // Reset the limit
 		return string;
 	}
@@ -281,8 +282,10 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 
 	@SuppressWarnings("unchecked")
 	public Object readArray(Deserializer deserializer, Type target) {
+		log.debug("readArray - deserializer: {} target: {}", deserializer, target);
 		Object result = null;
 		int count = buf.getInt();
+		log.debug("Count: {}", count);
 		List<Object> resultCollection = new ArrayList<Object>(count);
 		storeReference(result);
 		for (int i=0; i<count; i++) {
@@ -291,13 +294,14 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		// To maintain conformance to the Input API, we should convert the output
 		// into an Array if the Type asks us to.
         Class<?> collection = Collection.class;
-        if (target instanceof Class)
+        if (target instanceof Class) {
         	collection = (Class) target;
-        if (collection.isArray())
+        }
+        if (collection.isArray()) {
             result = ArrayUtils.toArray(collection.getComponentType(), resultCollection);
-        else
+        } else {
         	result = resultCollection;
-
+        }
 		return result;
 	}
 
