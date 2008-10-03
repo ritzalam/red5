@@ -40,54 +40,24 @@ grant codeBase "file:${java.home}/lib/ext/-" {
 // ========== CATALINA CODE PERMISSIONS =======================================
 
 
-// These permissions apply to the launcher code
-grant codeBase "file:${catalina.home}/bin/commons-launcher.jar" {
-        permission java.security.AllPermission;
-};
-
-// These permissions apply to the daemon code
-grant codeBase "file:${catalina.home}/bin/commons-daemon.jar" {
-        permission java.security.AllPermission;
-};
-
-// These permissions apply to the commons-logging API
-grant codeBase "file:${catalina.home}/bin/commons-logging-api.jar" {
-        permission java.security.AllPermission;
-};
-
-// These permissions apply to the server startup code
-grant codeBase "file:${catalina.home}/bin/bootstrap.jar" {
-        permission java.security.AllPermission;
-};
-
-// These permissions apply to the JMX server
-grant codeBase "file:${catalina.home}/bin/jmx.jar" {
-        permission java.security.AllPermission;
-};
-
-// These permissions apply to JULI
-grant codeBase "file:${catalina.home}/bin/tomcat-juli.jar" {
+// These permissions apply to the main code
+grant codeBase "file:${catalina.home}/red5.jar" {
         permission java.security.AllPermission;
 };
 
 // These permissions apply to the servlet API classes
 // and those that are shared across all class loaders
 // located in the "common" directory
-grant codeBase "file:${catalina.home}/common/-" {
-        permission java.security.AllPermission;
-};
-
-// These permissions apply to the container's core code, plus any additional
-// libraries installed in the "server" directory
-grant codeBase "file:${catalina.home}/server/-" {
+grant codeBase "file:${catalina.home}/lib/-" {
         permission java.security.AllPermission;
 };
 
 // The permissions granted to the balancer WEB-INF/classes directory
-grant codeBase "file:${catalina.home}/webapps/balancer/WEB-INF/classes/-" {
-        permission java.lang.RuntimePermission "accessClassInPackage.org.apache.tomcat.util.digester";
-        permission java.lang.RuntimePermission "accessClassInPackage.org.apache.tomcat.util.digester.*";
-};
+//grant codeBase "file:${catalina.home}/webapps/balancer/WEB-INF/classes/-" {
+//        permission java.lang.RuntimePermission "accessClassInPackage.org.apache.tomcat.util.digester";
+//        permission java.lang.RuntimePermission "accessClassInPackage.org.apache.tomcat.util.digester.*";
+//};
+
 // ========== WEB APPLICATION PERMISSIONS =====================================
 
 
@@ -117,7 +87,7 @@ grant {
 	permission java.util.PropertyPermission "java.specification.version", "read";
 	permission java.util.PropertyPermission "java.specification.vendor", "read";
 	permission java.util.PropertyPermission "java.specification.name", "read";
-
+	
 	permission java.util.PropertyPermission "java.vm.specification.version", "read";
 	permission java.util.PropertyPermission "java.vm.specification.vendor", "read";
 	permission java.util.PropertyPermission "java.vm.specification.name", "read";
@@ -128,8 +98,8 @@ grant {
     // Required for OpenJMX
     permission java.lang.RuntimePermission "getAttribute";
 
-	// Allow read of JAXP compliant XML parser debug
-	permission java.util.PropertyPermission "jaxp.debug", "read";
+    // Allow read of JAXP compliant XML parser debug
+    permission java.util.PropertyPermission "jaxp.debug", "read";
 
     // Precompiled JSPs need access to this package.
     permission java.lang.RuntimePermission "accessClassInPackage.org.apache.jasper.runtime";

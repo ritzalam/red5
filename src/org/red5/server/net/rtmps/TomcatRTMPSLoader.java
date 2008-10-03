@@ -20,6 +20,7 @@ package org.red5.server.net.rtmps;
  */
  
 import java.io.File;
+
 import org.apache.catalina.Context;
 import org.apache.catalina.Engine;
 import org.apache.catalina.Loader;
@@ -142,12 +143,12 @@ public class TomcatRTMPSLoader extends TomcatRTMPTLoader {
 			connector.setProperty(key, connectionProperties.get(key));
 		}		
 		
-		// add new Connector to set of Connectors for embedded server,
-		// associated with Engine
-		embedded.addConnector(connector);
-
 		// start server
 		try {
+    		// add new Connector to set of Connectors for embedded server,
+    		// associated with Engine
+    		embedded.addConnector(connector);
+
 			log.info("Starting RTMPS engine");
 			//embedded.start();
 			connector.start();

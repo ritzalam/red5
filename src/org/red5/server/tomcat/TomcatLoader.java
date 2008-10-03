@@ -21,6 +21,7 @@ package org.red5.server.tomcat;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.net.BindException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -363,13 +364,13 @@ public class TomcatLoader extends LoaderBase implements
 			log.debug("Setting connection property: {} = {}", key, connectionProperties.get(key));
 			connector.setProperty(key, connectionProperties.get(key));
 		}
-		
-		// Add new Connector to set of Connectors for embedded server,
-		// associated with Engine
-		embedded.addConnector(connector);
-				
+						
 		// Start server
 		try {
+    		// Add new Connector to set of Connectors for embedded server,
+    		// associated with Engine
+    		embedded.addConnector(connector);
+
 			log.info("Starting Tomcat servlet engine");	
 			embedded.start();
 
@@ -488,6 +489,12 @@ public class TomcatLoader extends LoaderBase implements
 			}
 		} catch (org.apache.catalina.LifecycleException e) {
 			log.error("Error loading Tomcat", e);
+		} catch (Exception e) {
+            if (e instanceof BindException) {
+			    log.error("Error loading tomcat, unable to bind connector. You may not have permission to use the selected port", e);
+			} else {
+			    log.error("Error loading tomcat", e);
+			}
 		} finally {
 			registerJMX();		
 		}
