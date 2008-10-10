@@ -94,8 +94,7 @@ public class Channel {
     public void write(IRTMPEvent event) {
 		final IClientStream stream = connection.getStreamByChannelId(id);
 		if (id > 3 && stream == null) {
-			log.info("Stream doesn't exist any longer, discarding message "
-					+ event);
+			log.info("Stream doesn't exist any longer, discarding message {}", event);
 			return;
 		}
 

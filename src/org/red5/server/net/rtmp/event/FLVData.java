@@ -116,6 +116,10 @@ public class FLVData {
      */
 	public static final int AUDIO_NELLYMOOSER = 6;
     /**
+     * Speex encoded data
+     */
+	public static final int AUDIO_SPEEX = 11;
+	/**
      * Sound size when 8 khz quality marker
      */
 	public static final int SOUND_SIZE_8_BIT = 0;

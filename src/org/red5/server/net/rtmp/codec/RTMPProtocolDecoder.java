@@ -203,11 +203,12 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 			switch (rtmp.getState()) {
 				case RTMP.STATE_CONNECTED:
 					return decodePacket(rtmp, in);
+				case RTMP.STATE_ERROR:
+					// attempt to correct error
+					return null;
 				case RTMP.STATE_CONNECT:
 				case RTMP.STATE_HANDSHAKE:
 					return decodeHandshake(rtmp, in);
-				case RTMP.STATE_ERROR:
-					// attempt to correct error?
 				default:
 					return null;
 			}

@@ -116,27 +116,27 @@ public class RTMPMinaConnection extends RTMPConnection implements
 	/** {@inheritDoc} */
 	@Override
 	public long getPendingMessages() {
-		if (ioSession == null)
+		if (ioSession == null) {
 			return 0;
-		
+		}
 		return ioSession.getScheduledWriteRequests();
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public long getReadBytes() {
-		if (ioSession == null)
+		if (ioSession == null) {
 			return 0;
-		
+		}
 		return ioSession.getReadBytes();
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public long getWrittenBytes() {
-		if (ioSession == null)
+		if (ioSession == null) {
 			return 0;
-		
+		}
 		return ioSession.getWrittenBytes();
 	}
 

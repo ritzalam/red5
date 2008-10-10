@@ -204,13 +204,13 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
     private int calculateHeaderSize(Header header, Header lastHeader) {
 		final byte headerType = getHeaderType(header, lastHeader);
 		int channelIdAdd;
-		if (header.getChannelId() > 320)
+		if (header.getChannelId() > 320) {
 			channelIdAdd = 2;
-		else if (header.getChannelId() > 63)
+		} else if (header.getChannelId() > 63) {
 			channelIdAdd = 1;
-		else
+		} else {
 			channelIdAdd = 0;
-		
+		}
 		return RTMPUtils.getHeaderLength(headerType) + channelIdAdd;
     }
     
@@ -403,8 +403,7 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
                 case CLIENT_UPDATE_DATA:
                     if (event.getKey() == null) {
                         // Update multiple attributes in one request
-                        Map initialData = (Map) event.getValue();
-
+                        Map<?, ?> initialData = (Map<?, ?>) event.getValue();
                         for (Object o : initialData.keySet()) {
 
                             out.put(type);
@@ -440,7 +439,7 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
                     // Serialize name of the handler to call...
                     serializer.serialize(output, event.getKey());
                     // ...and the arguments
-                    for (Object arg : (List) event.getValue()) {
+                    for (Object arg : (List<?>) event.getValue()) {
                         serializer.serialize(output, arg);
                     }
                     len = out.position() - mark - 4;

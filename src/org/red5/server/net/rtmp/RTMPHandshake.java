@@ -387,16 +387,26 @@ public class RTMPHandshake {
 	public ByteBuffer generateResponse(ByteBuffer input) {
 		ByteBuffer output = ByteBuffer
 				.allocate((Constants.HANDSHAKE_SIZE * 2) + 1);
+		input.mark();
+		input.position(input.position() + 4);
+		byte input4 = input.get();
+		input.reset();
+		input.mark();
 		byte[] newKeyPart = getNewKeyPart(input);
+		input.reset();
 		byte[] newKey = calculateHMAC_SHA256(newKeyPart, SECRET_KEY);
 		byte[] randBytes = new byte[Constants.HANDSHAKE_SIZE - 32];
 		random.nextBytes(randBytes);
 		byte[] hashedBytes = calculateHMAC_SHA256(randBytes, newKey);
 		byte[] byteChunk = new byte[Constants.HANDSHAKE_SIZE];
 
+		if (input4 != 0) {
 		System.arraycopy(randBytes, 0, byteChunk, 0, randBytes.length);
 		System.arraycopy(hashedBytes, 0, byteChunk, randBytes.length,
 				hashedBytes.length);
+		} else {
+			input.get(byteChunk);
+		}
 		output.put((byte) 0x03);
 		output.put(HANDSHAKE_SERVER_BYTES);
 		output.put(byteChunk);
@@ -424,7 +434,7 @@ public class RTMPHandshake {
 		byte[] inputArray = new byte[input.remaining()];
 
 		input.get(inputArray, 0, input.remaining());
-		int index = Math.abs((inputArray[8] + inputArray[9] + inputArray[10] + inputArray[11])) % 728 + 12;
+		int index = ((inputArray[8]&0x0ff) + (inputArray[9]&0x0ff) + (inputArray[10]&0x0ff) + (inputArray[11]&0x0ff)) % 728 + 12;
 		System.arraycopy(inputArray, index, part, 0, 32);
 		return part;
 	}
