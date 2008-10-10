@@ -269,7 +269,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
         // Create new map out of bean properties
         BeanMap beanMap = new BeanMap(object);
         // Set of bean attributes
-        Set<Map.Entry<?, ?>> set = beanMap.entrySet();
+        Set set = beanMap.keySet();
 		if ((set.size() == 0) || (set.size() == 1 && beanMap.containsKey("class"))) {
 			// BeanMap is empty or can only access "class" attribute, skip it
 			writeArbitraryObject(object, serializer);
@@ -294,8 +294,8 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
         }
 
         // Iterate thru entries and write out property names with separators
-		for (Map.Entry<?, ?> entry: set) {
-            String fieldName = entry.getKey().toString();
+		for (Object key : set) {
+            String fieldName = key.toString();
             log.debug("Field name: {} class: {}", fieldName, objectClass);
             
             Field field = getField(objectClass, fieldName);
@@ -306,7 +306,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
             }
 
             putString(buf, fieldName);
-			serializer.serialize(this, field, entry.getValue());
+			serializer.serialize(this, field, beanMap.get(key));
 		}
         // Write out end of object mark
 		buf.put((byte) 0x00);

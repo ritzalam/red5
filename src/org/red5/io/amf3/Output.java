@@ -459,7 +459,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
         // Create new map out of bean properties
         BeanMap beanMap = new BeanMap(object);
         // Set of bean attributes
-        Set<Map.Entry<?, ?>> set = beanMap.entrySet();
+        Set set = beanMap.keySet();
 		if ((set.size() == 0) || (set.size() == 1 && beanMap.containsKey("class"))) {
 			// BeanMap is empty or can only access "class" attribute, skip it
 			writeArbitraryObject(object, serializer);
@@ -477,8 +477,8 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 
     	// Store key/value pairs
     	amf3_mode += 1;
-    	for (Map.Entry<?, ?> entry: set) {
-			String fieldName = entry.getKey().toString();
+    	for (Object key: set) {
+			String fieldName = key.toString();
             log.debug("Field name: {} class: {}", fieldName, objectClass);
 
 			Field field = getField(objectClass, fieldName);
@@ -489,7 +489,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
             }
 
 			putString(fieldName);
-			serializer.serialize(this, field, entry.getValue());
+			serializer.serialize(this, field, beanMap.get(key));
 		}
     	amf3_mode -= 1;
 
