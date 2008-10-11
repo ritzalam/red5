@@ -35,7 +35,8 @@ public class AsyncMessage extends AbstractMessage {
 	/** {@inheritDoc} */
 	protected void addParameters(StringBuilder result) {
 		super.addParameters(result);
-		result.append(",correlationId="+correlationId);
+		result.append(",correlationId=");
+		result.append(correlationId);
 	}
 
 }

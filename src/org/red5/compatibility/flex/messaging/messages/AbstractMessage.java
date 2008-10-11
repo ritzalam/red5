@@ -64,13 +64,20 @@ public class AbstractMessage implements Serializable {
 	 * @param result <code>StringBuilder</code> to add properties to
 	 */
 	protected void addParameters(StringBuilder result) {
-		result.append("ts="+timestamp+",");
-		result.append("headers="+headers+",");
-		result.append("body="+body+",");
-		result.append("messageId="+messageId+",");
-		result.append("timeToLive="+timeToLive+",");
-		result.append("clientId="+clientId+",");
-		result.append("destination="+destination);
+		result.append("ts=");
+		result.append(timestamp);
+		result.append(",headers=");
+		result.append(headers);
+		result.append(",body=");
+		result.append(body);
+		result.append(",messageId=");
+		result.append(messageId);
+		result.append(",timeToLive=");
+		result.append(timeToLive);
+		result.append(",clientId=");
+		result.append(clientId);
+		result.append(",destination=");
+		result.append(destination);
 	}
 	
 	/**
