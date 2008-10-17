@@ -142,6 +142,11 @@ public class TomcatLoader extends LoaderBase implements
 	protected Realm realm;
 
 	/**
+	 * Hosts
+	 */
+	protected List<Host> hosts;
+	
+	/**
 	 * Valves 
 	 */
 	protected List<Valve> valves = new ArrayList<Valve>();
@@ -356,6 +361,15 @@ public class TomcatLoader extends LoaderBase implements
 		
 		// baseHost = embedded.createHost(hostName, appRoot);
 		engine.addChild(host);
+		
+		// add any additional hosts
+		if (hosts != null && !hosts.isEmpty()) {
+			log.info("Adding {} additional hosts", hosts.size());
+			for (Host h : hosts) {
+				log.debug("Host - name: {} appBase: {} info: {}", new Object[]{h.getName(), h.getAppBase(), h.getInfo()});
+				engine.addChild(h);
+			}
+		}
 
 		// Add new Engine to set of Engine for embedded server
 		embedded.addEngine(engine);
@@ -688,9 +702,7 @@ public class TomcatLoader extends LoaderBase implements
 	 */
 	public void setHosts(List<Host> hosts) {
 		log.debug("setHosts: {}", hosts.size());
-		for (Host h : hosts) {
-			engine.addChild(h);
-		}
+		this.hosts = hosts;
 	}
 
 	/**

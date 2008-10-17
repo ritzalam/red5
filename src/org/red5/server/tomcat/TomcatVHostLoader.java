@@ -141,7 +141,7 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 		// Dump context list
 		if (log.isDebugEnabled()) {
 			for (Container cont : host.findChildren()) {
-				log.debug("Context child name: " + cont.getName());
+				log.debug("Context child name: {}", cont.getName());
 			}
 		}
 
