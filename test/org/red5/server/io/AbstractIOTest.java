@@ -96,7 +96,7 @@ public abstract class AbstractIOTest extends TestCase {
 		resetOutput();
 	}
 
-	public void testCirularReference() {
+	public void testCircularReference() {
 		CircularRefBean beanIn = new CircularRefBean();
 		beanIn.setRefToSelf(beanIn);
 		serializer.serialize(out, beanIn);

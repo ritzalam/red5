@@ -401,8 +401,8 @@ public class RTMPHandshake {
 		byte[] byteChunk = new byte[Constants.HANDSHAKE_SIZE];
 
 		if (input4 != 0) {
-		System.arraycopy(randBytes, 0, byteChunk, 0, randBytes.length);
-		System.arraycopy(hashedBytes, 0, byteChunk, randBytes.length,
+			System.arraycopy(randBytes, 0, byteChunk, 0, randBytes.length);
+			System.arraycopy(hashedBytes, 0, byteChunk, randBytes.length,
 				hashedBytes.length);
 		} else {
 			input.get(byteChunk);

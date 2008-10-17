@@ -31,7 +31,6 @@ import org.apache.mina.common.IoSession;
 import org.red5.io.amf.AMF;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Input;
-import org.red5.io.object.BaseInput.ReferenceMode;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.protocol.SimpleProtocolDecoder;
 import org.red5.server.net.remoting.FlexMessagingService;
@@ -107,8 +106,8 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 		int count = in.getUnsignedShort();
 		if (log.isDebugEnabled()) {
 			log.debug("Skip headers");
-			log.debug("Version: " + version);
-			log.debug("Count: " + count);
+			log.debug("Version: {}", version);
+			log.debug("Count: {}", count);
 		}
 		if (count == 0) {
 			// No headers present
@@ -151,7 +150,7 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 		org.red5.io.amf.Input input;
 		int count = in.getUnsignedShort();
 		if (log.isDebugEnabled()) {
-			log.debug("Calls: " + count);
+			log.debug("Calls: {}", count);
 		}
 		int limit = in.limit();
 
@@ -162,37 +161,51 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 
 			String serviceString = org.red5.io.amf.Input.getString(in);
 			String clientCallback = org.red5.io.amf.Input.getString(in);
-			if (log.isDebugEnabled()) {
-				log.debug("callback: " + clientCallback);
-			}
-			@SuppressWarnings("unused") int length = in.getInt();
+			log.debug("callback: {}", clientCallback);
+
+            Object[] args = null;
+			boolean isAMF3 = false;
+			
+			@SuppressWarnings("unused") 
+			int length = in.getInt();
 			// Set the limit and deserialize
 			// NOTE: disabled because the FP sends wrong values here
 			/*
 			 * if (length != -1) in.limit(in.position()+length);
 			 */
 			byte type = in.get();
-			if (type != AMF.TYPE_ARRAY) {
+			if (type == AMF.TYPE_ARRAY) {
+    			int elements = in.getInt();
+    			List<Object> values = new ArrayList<Object>();
+    			for (int j=0; j<elements; j++) {
+    				byte amf3Check = in.get();
+    				in.position(in.position()-1);
+    				isAMF3 = (amf3Check == AMF.TYPE_AMF3_OBJECT);
+    				if (isAMF3) {
+    					input = new org.red5.io.amf3.Input(in);
+    				} else {
+    					input = new org.red5.io.amf.Input(in);
+    				}
+    				// Prepare remoting mode
+    				input.reset();
+    				
+    				values.add(deserializer.deserialize(input, Object.class));
+    			}
+
+    			args = values.toArray(new Object[values.size()]);
+    			if (log.isDebugEnabled()) {
+    				for (Object element : args) {
+    					log.debug("> " + element);
+    				}
+    			}
+
+            } else if (type == AMF.TYPE_NULL) {
+                log.debug("Got null amf type");
+                            
+            } else if (type != AMF.TYPE_ARRAY) {
 				throw new RuntimeException("AMF0 array type expected but found " + type);
 			}
-			int elements = in.getInt();
-			boolean isAMF3 = false;
-			List<Object> values = new ArrayList<Object>();
-			for (int j=0; j<elements; j++) {
-				byte amf3Check = in.get();
-				in.position(in.position()-1);
-				isAMF3 = (amf3Check == AMF.TYPE_AMF3_OBJECT);
-				if (isAMF3) {
-					input = new org.red5.io.amf3.Input(in);
-				} else {
-					input = new org.red5.io.amf.Input(in);
-				}
-				// Prepare remoting mode
-				input.reset(ReferenceMode.MODE_REMOTING);
-				
-				values.add(deserializer.deserialize(input, Object.class));
-			}
-
+		
 			String serviceName;
 			String serviceMethod;
 			int dotPos = serviceString.lastIndexOf('.');
@@ -213,16 +226,7 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 				serviceMethod = "handleRequest";
 				isMessaging = true;
 			}
-			
-			if (log.isDebugEnabled()) {
-				log.debug("Service: " + serviceName + " Method: " + serviceMethod);
-			}
-			Object[] args = values.toArray(new Object[values.size()]);
-			if (log.isDebugEnabled()) {
-				for (Object element : args) {
-					log.debug("> " + element);
-				}
-			}
+			log.debug("Service: {} Method: {}", serviceName, serviceMethod);
 
 			// Add the call to the list
 			calls.add(new RemotingCall(serviceName, serviceMethod, args, clientCallback, isAMF3, isMessaging));

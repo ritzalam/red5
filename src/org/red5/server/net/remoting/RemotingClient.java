@@ -237,8 +237,8 @@ public class RemotingClient {
 		Deserializer deserializer = new Deserializer();
 		Input input = new Input(in);
 		for (int i = 0; i < count; i++) {
-			//String name = Input.getString(in);
-			String name = deserializer.deserialize(input, String.class);
+			String name = input.getString(in);
+			//String name = deserializer.deserialize(input, String.class);
 			log.debug("Name: {}", name);
 			boolean required = (in.get() == 0x01);
 			log.debug("Required: {}", required);
@@ -261,9 +261,9 @@ public class RemotingClient {
 					@SuppressWarnings("unchecked")
 					Map<String, Object> valueMap = (Map<String, Object>) value;
 					RemotingHeader header = new RemotingHeader(
-							(String) valueMap.get("name"), (Boolean) valueMap
-									.get("mustUnderstand"), valueMap
-									.get("data"));
+							(String) valueMap.get("name"), 
+							(Boolean) valueMap.get("mustUnderstand"), 
+							valueMap.get("data"));
 					headers.put(header.name, header);
 				} else {
 					log.error("Expected Map but received {}", value);
@@ -360,13 +360,16 @@ public class RemotingClient {
 	 * @return the result of the method call
 	 */
 	public Object invokeMethod(String method, Object[] params) {
+		log.debug("invokeMethod url: {}", (url + appendToUrl));
 		PostMethod post = new PostMethod(this.url + appendToUrl);
 		ByteBuffer resultBuffer = null;
 		ByteBuffer data = encodeInvoke(method, params);
 		post.setRequestEntity(new InputStreamRequestEntity(
 				data.asInputStream(), data.limit(), CONTENT_TYPE));
 		try {
+			log.debug("Client: {}", client);
 			int resultCode = client.executeMethod(post);
+			log.debug("Result code: {}", resultCode);
 			if (resultCode / 100 != 2) {
 				throw new RuntimeException(
 						"Didn't receive success from remoting server.");
@@ -426,7 +429,7 @@ public class RemotingClient {
 			worker.setParamTypes(paramTypes);
 			threadPool.execute(worker);
 		} catch (Exception err) {
-			log.warn("Exception invoking method: {}", method);
+			log.warn("Exception invoking method: {}", method, err);
 		}
 	}
 

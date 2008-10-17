@@ -44,11 +44,28 @@ public class ScriptEngineTest {
 	private static final Logger log = LoggerFactory.getLogger(ScriptEngineTest.class);
 
 	// ScriptEngine manager
-	private static ScriptEngineManager mgr = new ScriptEngineManager();
+	private static boolean java15;
+	private static ScriptEngineManager mgr;
 
+	public ScriptEngineTest()
+	{
+		String javaVersion = System.getProperty("java.version");
+		String javaMajorRev = javaVersion.substring(0,3);
+		if (javaVersion != null && javaMajorRev.compareTo("1.5") == 0)
+		{
+			//should disable tests
+			java15 = true;
+		} else {
+			java15 = false;
+			mgr = new ScriptEngineManager();
+		}
+	}
 	// Javascript
 	@Test
 	public void testJavascriptHelloWorld() {
+		if (java15)
+			return;
+		
 		ScriptEngine jsEngine = null;
 		for (ScriptEngineFactory factory : mgr.getEngineFactories()) {
 			if (factory.getEngineName().toLowerCase().matches(
@@ -60,7 +77,7 @@ public class ScriptEngineTest {
 			log.error("Javascript is not supported in this build");
 		}
 		try {
-			jsEngine.eval("print('Javascript - Hello, world!')");
+			jsEngine.eval("print('Javascript - Hello, world!\\n')");
 		} catch (Throwable ex) {
 			System.err.println("Get by name failed for: javascript");
 		}
@@ -69,6 +86,8 @@ public class ScriptEngineTest {
 	// Ruby
 	@Test
 	public void testRubyHelloWorld() {
+		if (java15)
+			return;
 		ScriptEngine rbEngine = mgr.getEngineByName("ruby");
 		try {
 			rbEngine.eval("puts 'Ruby - Hello, world!'");
@@ -82,6 +101,8 @@ public class ScriptEngineTest {
 	@Test
 	@Ignore // Python support seems to not be in tree anymore; aclarke 2008-10-01
 	public void testPythonHelloWorld() {
+		if (java15)
+			return;
 		ScriptEngine pyEngine = mgr.getEngineByName("python");
 		try {
 			pyEngine.eval("print \"Python - Hello, world!\"");
@@ -94,6 +115,8 @@ public class ScriptEngineTest {
 	// Groovy
 	@Test
 	public void testGroovyHelloWorld() {
+		if (java15)
+			return;
 		ScriptEngine gvyEngine = mgr.getEngineByName("groovy");
 		try {
 			gvyEngine.eval("println  \"Groovy - Hello, world!\"");
@@ -261,6 +284,8 @@ public class ScriptEngineTest {
 
 	@Test
 	public void testEngines() {
+		if (java15)
+			return;
 		Map<String, ScriptEngineFactory> engineFactories = new HashMap<String, ScriptEngineFactory>(
 				7);
 		//List<ScriptEngineFactory> factories = mgr.getEngineFactories(); //jdk6

@@ -23,7 +23,6 @@ package org.red5.server.io;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.io.amf.Input;
 import org.red5.io.amf.Output;
-import org.red5.io.object.BaseInput.ReferenceMode;
 import org.red5.io.utils.HexDump;
 
 /*

@@ -249,10 +249,10 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		log.debug("Limit: {}", limit);
 		final java.nio.ByteBuffer strBuf = buf.buf();
 		int pos = strBuf.position();
-		log.info("Sting buf - position: {} limit: {}", pos, (pos + len));
+		log.debug("String buf - position: {} limit: {}", pos, (pos + len));
 		strBuf.limit(pos + len);
 		final String string = AMF.CHARSET.decode(strBuf).toString();
-		log.info("Sting: {}", string);
+		log.debug("String: {}", string);
 		buf.limit(limit); // Reset the limit
 		return string;
 	}
@@ -342,6 +342,9 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		log.debug("Read start mixed array: {}", maxNumber);
 		Object result;
 		final Map<Object, Object> mixedResult = new LinkedHashMap<Object, Object>(maxNumber);
+		// we must store the reference before we deserialize any items in it to ensure
+		// that reference IDs are correct
+		int reference = storeReference(mixedResult);
 		while (hasMoreProperties()) {
 			String key = getString(buf);
 			log.debug("key: {}", key);
@@ -368,7 +371,8 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 			}
 			result = mixedResult;
 		}
-		storeReference(result);
+		// Replace the original reference with the final result
+		storeReference(reference, result);
 		skipEndObject();
 		return result;
 	}
@@ -383,7 +387,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	 * @return Object          New object instance (for given class)
 	 */
 	protected Object newInstance(String className) {
-		log.info("Loading class: {}", className);
+		log.debug("Loading class: {}", className);
 		Object instance = null;
 		try {
 			Class<?> clazz = Thread.currentThread().getContextClassLoader()
@@ -577,28 +581,15 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	 * @return Object       Read reference to object
 	 */
 	public Object readReference(Type target) {
-		if (referenceMode == ReferenceMode.MODE_RTMP) {
-			return getReference(buf.getUnsignedShort() - 1);
-		} else {
-			return getReference(buf.getUnsignedShort());
-		}
-	}
-
-	/**
-	 * Resets map and set mode to handle references
-	 *
-	 * @param mode mode to handle references
-	 */
-	public void reset(ReferenceMode mode) {
-		this.clearReferences();
-		referenceMode = mode;
+		return getReference(buf.getUnsignedShort());
 	}
 
 	/**
 	 * Resets map
+	 *
 	 */
 	public void reset() {
-		reset(ReferenceMode.MODE_RTMP);
+		this.clearReferences();
 	}
 
     protected Type getPropertyType(Object instance, String propertyName) {

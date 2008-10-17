@@ -24,6 +24,7 @@ import static org.junit.Assert.*;
 import java.io.IOException;
 
 import org.junit.Test;
+import org.junit.Ignore;
 
 public class XMLUtilsTest {
 	
@@ -38,16 +39,19 @@ public class XMLUtilsTest {
 	}
 
 	@Test
+	@Ignore
 	public void testDocToString() {
 		fail("Not yet implemented");
 	}
 
 	@Test
+	@Ignore
 	public void testDocToString1() {
 		fail("Not yet implemented");
 	}
 
 	@Test
+	@Ignore
 	public void testDocToString2() {
 		fail("Not yet implemented");
 	}

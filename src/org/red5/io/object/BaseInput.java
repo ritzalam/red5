@@ -32,14 +32,6 @@ import java.util.Map;
 public class BaseInput {
 	
 	/**
-	 * Mode how references should be handled.
-	 */
-	public enum ReferenceMode {
-		MODE_RTMP,
-		MODE_REMOTING,
-	};
-	
-    /**
      * References map
      */
 	protected Map<Integer, Object> refMap = new HashMap<Integer, Object>();
@@ -49,11 +41,6 @@ public class BaseInput {
      */
     protected int refId;
     
-    /**
-     * Mode how to handle references.
-     */
-    protected ReferenceMode referenceMode = ReferenceMode.MODE_RTMP;
-
 	/**
 	 * Store an object into a map
 	 * @param obj  Object to store
