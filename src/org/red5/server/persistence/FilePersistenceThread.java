@@ -84,6 +84,7 @@ public class FilePersistenceThread implements Runnable {
 			log.error("Instance was not null, this is not a good sign");
 		}
 		instance = this;
+		@SuppressWarnings("unused")
 		final ScheduledFuture<?> instanceHandle = scheduler
 				.scheduleAtFixedRate(this, storeInterval, storeInterval,
 						java.util.concurrent.TimeUnit.MILLISECONDS);

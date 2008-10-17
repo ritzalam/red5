@@ -202,7 +202,7 @@ public class StatusObjectService implements StatusCodes {
      * @param statusObject        Status object to serialize
      */
     public void serializeStatusObject(ByteBuffer out, StatusObject statusObject) {
-		Map statusMap = new BeanMap(statusObject);
+		Map<?, ?> statusMap = new BeanMap(statusObject);
 		Output output = new Output(out);
 		serializer.serialize(output, statusMap);
 	}

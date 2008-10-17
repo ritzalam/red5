@@ -51,7 +51,6 @@ import org.slf4j.LoggerFactory;
 /**
  * Special scope for shared objects
  */
-@SuppressWarnings("unchecked")
 public class SharedObjectScope extends BasicScope implements ISharedObject, StatusCodes {
     /**
      * Logger

@@ -88,7 +88,7 @@ implements IPushableConsumer, IPipeConnectionListener,
 	}
 
 	synchronized public void onStreamEvent(Notify notify) {
-		ObjectMap map = (ObjectMap) notify.getCall().getArguments()[0];
+		ObjectMap<?, ?> map = (ObjectMap<?, ?>) notify.getCall().getArguments()[0];
 		String code = (String) map.get("code");
 		if (StatusCodes.NS_PUBLISH_START.equals(code)) {
 			state = PUBLISHED;

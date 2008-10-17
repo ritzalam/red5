@@ -39,7 +39,7 @@ import java.util.Map;
  *          //	private double duration = 7.347;
  */
 public class MetaData<K, V> extends HashMap<String, Object> implements
-		IMetaData {
+		IMetaData<Object, Object> {
 
 	/** serialVersionUID = -5681069577717669925L; */
 	private static final long serialVersionUID = -5681069577717669925L;

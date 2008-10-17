@@ -57,7 +57,7 @@ public class RTMPMinaProtocolDecoder extends RTMPProtocolDecoder implements
 		buf.put(in);
 		buf.flip();
 
-		List objects = decodeBuffer(state, buf);
+		List<?> objects = decodeBuffer(state, buf);
 		if (objects == null || objects.isEmpty()) {
 			return;
 		}

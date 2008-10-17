@@ -699,7 +699,7 @@ public class NoSyncServerStream extends AbstractStream implements
 		// Set service name of init
 		oobCtrlMsg.setServiceName("init");
 		// Create map for parameters
-		Map<Object, Object> paramMap = new HashMap<Object, Object>();
+		Map<String, Object> paramMap = new HashMap<String, Object>();
 		// Put start timestamp into Map of params
 		paramMap.put("startTS", start);
 		// Attach to OOB control message and send it
@@ -843,7 +843,7 @@ public class NoSyncServerStream extends AbstractStream implements
 		OOBControlMessage oobCtrlMsg = new OOBControlMessage();
 		oobCtrlMsg.setTarget(ISeekableProvider.KEY);
 		oobCtrlMsg.setServiceName("seek");
-		Map<Object, Object> paramMap = new HashMap<Object, Object>();
+		Map<String, Object> paramMap = new HashMap<String, Object>();
 		paramMap.put("position", new Integer(position));
 		oobCtrlMsg.setServiceParamMap(paramMap);
 		msgIn.sendOOBControlMessage(this, oobCtrlMsg);

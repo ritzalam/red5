@@ -227,6 +227,7 @@ public class RemotingClient {
 	 * @param in
 	 *            Byte buffer with response data
 	 */
+	@SuppressWarnings("static-access")
 	protected void processHeaders(ByteBuffer in) {
 		log.debug("RemotingClient processHeaders - buffer limit: {}", (in != null ? in.limit() : 0));				
 		int version = in.getUnsignedShort(); // skip

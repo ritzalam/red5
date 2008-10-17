@@ -19,7 +19,6 @@ package org.red5.server.rtmp;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
-import junit.framework.Assert;
 import junit.framework.TestCase;
 
 import org.red5.io.utils.HexDump;

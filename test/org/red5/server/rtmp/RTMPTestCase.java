@@ -73,6 +73,7 @@ public class RTMPTestCase extends TestCase implements Constants {
 	}
 
 	public void testInvokePacket() {
+		@SuppressWarnings("unused")
 		Invoke invoke = new Invoke();
 	}
 

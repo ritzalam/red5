@@ -22,7 +22,6 @@ package org.red5.server.service;
 import junit.framework.Assert;
 import junit.framework.TestCase;
 
-import org.red5.server.api.IScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;

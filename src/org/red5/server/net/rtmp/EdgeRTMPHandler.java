@@ -118,7 +118,7 @@ public class EdgeRTMPHandler extends RTMPHandler {
 			Invoke invoke, RTMP rtmp) {
 		final IServiceCall call = invoke.getCall();
         // Get parameters passed from client to NetConnection#connection
-        final Map params = invoke.getConnectionParams();
+        final Map<String, Object> params = invoke.getConnectionParams();
 
         // Get hostname
         String host = getHostname((String) params.get("tcUrl"));

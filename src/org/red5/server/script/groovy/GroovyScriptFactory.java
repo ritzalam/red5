@@ -55,12 +55,13 @@ public class GroovyScriptFactory implements ScriptFactory, BeanClassLoaderAware 
 
 	private GroovyClassLoader groovyClassLoader = new GroovyClassLoader(ClassUtils.getDefaultClassLoader());
 
-	private Class scriptClass;
+	private Class<?> scriptClass;
 
-	private Class scriptResultClass;
+	private Class<?> scriptResultClass;
 
 	private final Object scriptClassMonitor = new Object();
 
+	@SuppressWarnings("unchecked")
 	private Class[] scriptInterfaces;
 
 	/**
@@ -95,6 +96,7 @@ public class GroovyScriptFactory implements ScriptFactory, BeanClassLoaderAware 
 		this.groovyObjectCustomizer = groovyObjectCustomizer;
 	}
 
+	@SuppressWarnings("unchecked")
 	public GroovyScriptFactory(String scriptSourceLocator, Class[] scriptInterfaces) {
 		Assert.hasText(scriptSourceLocator, "'scriptSourceLocator' must not be empty");
 		this.scriptSourceLocator = scriptSourceLocator;
@@ -120,6 +122,7 @@ public class GroovyScriptFactory implements ScriptFactory, BeanClassLoaderAware 
 	 * hence we don't need to explicitly expose interfaces here.
 	 * @return <code>null</code> always
 	 */
+	@SuppressWarnings("unchecked")
 	public Class[] getScriptInterfaces() {
 		return scriptInterfaces;
 	}
@@ -137,11 +140,12 @@ public class GroovyScriptFactory implements ScriptFactory, BeanClassLoaderAware 
 	 * Loads and parses the Groovy script via the GroovyClassLoader.
 	 * @see groovy.lang.GroovyClassLoader
 	 */
+	@SuppressWarnings("unchecked")
 	public Object getScriptedObject(ScriptSource scriptSource, Class[] actualInterfaces)
 			throws IOException, ScriptCompilationException {
 
 		try {
-			Class scriptClassToExecute = null;
+			Class<?> scriptClassToExecute = null;
 
 			synchronized (this.scriptClassMonitor) {
 				if (this.scriptClass == null || scriptSource.isModified()) {
@@ -169,7 +173,7 @@ public class GroovyScriptFactory implements ScriptFactory, BeanClassLoaderAware 
 		}
 	}
 
-	public Class getScriptedObjectType(ScriptSource scriptSource)
+	public Class<?> getScriptedObjectType(ScriptSource scriptSource)
 			throws IOException, ScriptCompilationException {
 
 		synchronized (this.scriptClassMonitor) {
@@ -196,7 +200,7 @@ public class GroovyScriptFactory implements ScriptFactory, BeanClassLoaderAware 
 	 * or the result of running the script instance)
 	 * @throws ScriptCompilationException in case of instantiation failure
 	 */
-	protected Object executeScript(Class scriptClass) throws ScriptCompilationException {
+	protected Object executeScript(Class<?> scriptClass) throws ScriptCompilationException {
 		try {
 			GroovyObject goo = (GroovyObject) scriptClass.newInstance();
 

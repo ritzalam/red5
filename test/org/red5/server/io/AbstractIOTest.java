@@ -19,7 +19,6 @@ package org.red5.server.io;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -120,6 +119,7 @@ public abstract class AbstractIOTest extends TestCase {
 		resetOutput();
 	}
 
+	@SuppressWarnings("unchecked")
 	public void testJavaBean() {
 		log.debug("Testing list");
 		TestJavaBean beanIn = new TestJavaBean();
@@ -136,10 +136,10 @@ public abstract class AbstractIOTest extends TestCase {
 		Object mapOrBean = deserializer.deserialize(in, Object.class);
 		Assert.assertEquals(beanIn.getClass().getName(), mapOrBean.getClass()
 				.getName());
-		Map map = (mapOrBean instanceof Map) ? (Map) mapOrBean : new BeanMap(
+		Map<?, ?> map = (mapOrBean instanceof Map) ? (Map<?, ?>) mapOrBean : new BeanMap(
 				mapOrBean);
-		Set entrySet = map.entrySet();
-		Iterator it = entrySet.iterator();
+		Set<?> entrySet = map.entrySet();
+		Iterator<?> it = entrySet.iterator();
 		Map beanInMap = new BeanMap(beanIn);
 		Assert.assertEquals(beanInMap.size(), map.size());
 		while (it.hasNext()) {
@@ -152,9 +152,10 @@ public abstract class AbstractIOTest extends TestCase {
 		resetOutput();
 	}
 
+	@SuppressWarnings("unchecked")
 	public void testList() {
 		log.debug("Testing list");
-		List listIn = new LinkedList();
+		List<Comparable> listIn = new LinkedList<Comparable>();
 		listIn.add(null);
 		listIn.add(Boolean.FALSE);
 		listIn.add(Boolean.TRUE);
@@ -163,7 +164,7 @@ public abstract class AbstractIOTest extends TestCase {
 		listIn.add(new Date());
 		serializer.serialize(out, listIn);
 		dumpOutput();
-		List listOut = deserializer.deserialize(in, List.class);
+		List<?> listOut = deserializer.deserialize(in, List.class);
 		Assert.assertNotNull(listOut);
 		Assert.assertEquals(listIn.size(), listOut.size());
 		for (int i = 0; i < listIn.size(); i++) {
@@ -172,20 +173,21 @@ public abstract class AbstractIOTest extends TestCase {
 		resetOutput();
 	}
 
+	@SuppressWarnings("unchecked")
 	public void testMap() {
-		Map mapIn = new HashMap();
+		Map<String, Object> mapIn = new HashMap<String, Object>();
 		mapIn.put("testNumber", Integer.valueOf(34));
 		mapIn.put("testString", "wicked");
 		mapIn.put("testBean", new SimpleJavaBean());
 		serializer.serialize(out, mapIn);
 
 		dumpOutput();
-		Map mapOut = deserializer.deserialize(in, Map.class);
+		Map<?, ?> mapOut = deserializer.deserialize(in, Map.class);
 		Assert.assertNotNull(mapOut);
 		Assert.assertEquals(mapIn.size(), mapOut.size());
 
-		Set entrySet = mapOut.entrySet();
-		Iterator it = entrySet.iterator();
+		Set<?> entrySet = mapOut.entrySet();
+		Iterator<?> it = entrySet.iterator();
 		while (it.hasNext()) {
 			Map.Entry entry = (Map.Entry) it.next();
 			String propOut = (String) entry.getKey();
@@ -218,8 +220,9 @@ public abstract class AbstractIOTest extends TestCase {
 		resetOutput();
 	}
 
+	@SuppressWarnings("unchecked")
 	public void testSimpleReference() {
-		Map mapIn = new HashMap();
+		Map<String, Object> mapIn = new HashMap<String, Object>();
 		Object bean = new SimpleJavaBean();
 		mapIn.put("thebean", bean);
 		mapIn.put("thesamebeanagain", bean);
@@ -227,11 +230,11 @@ public abstract class AbstractIOTest extends TestCase {
 		serializer.serialize(out, mapIn);
 
 		dumpOutput();
-		Map mapOut = deserializer.deserialize(in, Map.class);
+		Map<?, ?> mapOut = deserializer.deserialize(in, Map.class);
 		Assert.assertNotNull(mapOut);
 		Assert.assertEquals(mapIn.size(), mapOut.size());
 
-		Set entrySet = mapOut.entrySet();
+		Set<?> entrySet = mapOut.entrySet();
 		Iterator it = entrySet.iterator();
 		while (it.hasNext()) {
 			Map.Entry entry = (Map.Entry) it.next();

@@ -571,7 +571,8 @@ public class StreamService implements IStreamService {
 	 * @param name
 	 * @param streamId
 	 */    
-    private void sendNSStatus(IConnection conn, String statusCode, String description, String name, int streamId) {
+    @SuppressWarnings("unused")
+	private void sendNSStatus(IConnection conn, String statusCode, String description, String name, int streamId) {
     	StreamService.sendNetStreamStatus(conn, statusCode, description, name, Status.STATUS, streamId);
 	}
     

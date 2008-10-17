@@ -65,7 +65,7 @@ public abstract class AbstractPipe implements IPipe {
      * @param paramMap        Parameters passed with connection, used in concrete pipe implementations
      * @return                <code>true</code> if consumer was added, <code>false</code> otherwise
      */
-    public boolean subscribe(IConsumer consumer, Map paramMap) {
+    public boolean subscribe(IConsumer consumer, Map<?, ?> paramMap) {
 		// Pipe is possibly used by dozens of Threads at once (like many subscribers for one server stream)
         // so make it synchronized
     	synchronized (consumers) {
@@ -90,7 +90,7 @@ public abstract class AbstractPipe implements IPipe {
      * @param paramMap        Parameters passed with connection, used in concrete pipe implementations
      * @return                <code>true</code> if provider was added, <code>false</code> otherwise
      */
-    public boolean subscribe(IProvider provider, Map paramMap) {
+    public boolean subscribe(IProvider provider, Map<?, ?> paramMap) {
         // Shared between possibly dozens of Threads so make it synchronized
     	synchronized (providers) {
 			if (providers.contains(provider)) {
@@ -236,7 +236,7 @@ public abstract class AbstractPipe implements IPipe {
      * @param paramMap        Parameters passed with connection
      */
     protected void fireConsumerConnectionEvent(IConsumer consumer, int type,
-			Map paramMap) {
+			Map<?, ?> paramMap) {
         // Create event object
         PipeConnectionEvent event = new PipeConnectionEvent(this);
         // Fill it up
@@ -254,7 +254,7 @@ public abstract class AbstractPipe implements IPipe {
      * @param paramMap        Parameters passed with connection
      */
     protected void fireProviderConnectionEvent(IProvider provider, int type,
-			Map paramMap) {
+			Map<?, ?> paramMap) {
 		PipeConnectionEvent event = new PipeConnectionEvent(this);
 		event.setProvider(provider);
 		event.setType(type);

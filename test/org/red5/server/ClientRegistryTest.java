@@ -24,7 +24,6 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 import org.red5.server.api.IClient;
-import org.red5.server.api.IClientRegistry;
 import org.red5.server.exception.ClientNotFoundException;
 
 public class ClientRegistryTest {

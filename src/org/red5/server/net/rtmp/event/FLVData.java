@@ -74,7 +74,7 @@ public class FLVData {
     /**
      * Sorensen H263 codec marker
      */
-	public static final int VIDEO_SORENSEN_H263 = 2;
+	public static final int VIDEO_SORENSON_H263 = 2;
     /**
      * Screen video
      */
@@ -110,11 +110,11 @@ public class FLVData {
     /**
      * Nellymoser 8khz rate data
      */
-	public static final int AUDIO_NELLYMOOSER_8KHZ = 5;
+	public static final int AUDIO_NELLYMOSER_8KHZ = 5;
     /**
      * Nellymoser encoded data
      */
-	public static final int AUDIO_NELLYMOOSER = 6;
+	public static final int AUDIO_NELLYMOSER = 6;
     /**
      * Speex encoded data
      */

@@ -91,7 +91,7 @@ public class JMXAgent implements NotificationListener {
 	private static String remoteSSLKeystorePass;
 
 	static {
-		//in the war version the jmxfactory is not created before
+		//in the war version the jmx factory is not created before
 		//registration starts ?? so we check for it here and init
 		//if needed
 		if (null == mbs) {
@@ -100,7 +100,7 @@ public class JMXAgent implements NotificationListener {
 	}
 
 	/**
-	 * Convienence to remove packages etc from a class name.
+	 * Convenience to remove packages etc from a class name.
 	 * 
 	 * @param className
 	 * @return
@@ -115,6 +115,7 @@ public class JMXAgent implements NotificationListener {
 		return className;
 	}
 	
+	@SuppressWarnings("unchecked")
 	public static boolean registerMBean(Object instance, String className,
 			Class interfaceClass) {
 		boolean status = false;
@@ -137,6 +138,7 @@ public class JMXAgent implements NotificationListener {
 		return status;
 	}
 
+	@SuppressWarnings("unchecked")
 	public static boolean registerMBean(Object instance, String className,
 			Class interfaceClass, ObjectName name) {
 		boolean status = false;
@@ -147,9 +149,7 @@ public class JMXAgent implements NotificationListener {
 						"[\\.]", "");
 			}
 			log.debug("Register name: {}", cName);
-			mbs
-					.registerMBean(new StandardMBean(instance, interfaceClass),
-							name);
+			mbs.registerMBean(new StandardMBean(instance, interfaceClass), name);
 			status = true;
 		} catch (InstanceAlreadyExistsException iaee) {
 			log.debug("Already registered: {}", className);
@@ -159,6 +159,7 @@ public class JMXAgent implements NotificationListener {
 		return status;
 	}
 
+	@SuppressWarnings("unchecked")
 	public static boolean registerMBean(Object instance, String className,
 			Class interfaceClass, String name) {
 		boolean status = false;
@@ -300,7 +301,7 @@ public class JMXAgent implements NotificationListener {
 
 	public void init() {
 		//environmental var holder
-		HashMap env = null;
+		HashMap<String, Object> env = null;
 		 
 		if (enableHtmlAdapter) {
 			// setup the adapter
@@ -380,7 +381,7 @@ public class JMXAgent implements NotificationListener {
 					
 					// Environment map
 					log.debug("Initialize the environment map");
-					env = new HashMap();
+					env = new HashMap<String, Object>();
 					// Provide SSL-based RMI socket factories
 					SslRMIClientSocketFactory csf = new SslRMIClientSocketFactory();
 					SslRMIServerSocketFactory ssf = new SslRMIServerSocketFactory();
@@ -398,7 +399,7 @@ public class JMXAgent implements NotificationListener {
 				if (StringUtils.isNotBlank(remoteAccessProperties)) {
 					//if ssl is not used this will be null
 					if (null == env) {
-						env = new HashMap();
+						env = new HashMap<String, Object>();
 					}
 					//check the existance of the files
 					//in the war version the full path is needed
@@ -422,8 +423,7 @@ public class JMXAgent implements NotificationListener {
 				
 				
 				// create the connector server
-				cs = JMXConnectorServerFactory.newJMXConnectorServer(url, env,
-						mbs);
+				cs = JMXConnectorServerFactory.newJMXConnectorServer(url, env, mbs);
 				// add a listener for shutdown
 				cs.addNotificationListener(this, null, null);
 				// Start the RMI connector server

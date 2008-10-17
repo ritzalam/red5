@@ -48,7 +48,7 @@ public class OOBControlMessage implements Serializable {
     /**
      * Service params name
      */
-	private Map serviceParamMap;
+	private Map<String, Object> serviceParamMap;
     /**
      * Result
      */
@@ -77,7 +77,7 @@ public class OOBControlMessage implements Serializable {
      *
      * @return Value for property 'serviceParamMap'.
      */
-    public Map getServiceParamMap() {
+    public Map<String, Object> getServiceParamMap() {
 		return serviceParamMap;
 	}
 
@@ -86,7 +86,7 @@ public class OOBControlMessage implements Serializable {
      *
      * @param serviceParamMap Value to set for property 'serviceParamMap'.
      */
-    public void setServiceParamMap(Map serviceParamMap) {
+    public void setServiceParamMap(Map<String, Object> serviceParamMap) {
 		this.serviceParamMap = serviceParamMap;
 	}
 

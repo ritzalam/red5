@@ -30,7 +30,6 @@ import org.red5.io.IStreamableFileService;
 import org.red5.io.ITag;
 import org.red5.io.ITagWriter;
 import org.red5.io.StreamableFileFactory;
-import org.red5.io.flv.IKeyFrameDataAnalyzer.KeyFrameMeta;
 import org.red5.io.flv.impl.FLVReader;
 import org.red5.io.flv.impl.Tag;
 import org.red5.server.api.IScope;
@@ -180,7 +179,7 @@ public class FileConsumer implements Constants, IPushableConsumer,
 				if (event.getConsumer() != this) {
 					break;
 				}
-				Map paramMap = event.getParamMap();
+				Map<?, ?> paramMap = event.getParamMap();
 				if (paramMap != null) {
 					mode = (String) paramMap.get("mode");
 				}

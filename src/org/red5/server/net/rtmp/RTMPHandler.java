@@ -24,9 +24,6 @@ import static org.red5.server.api.ScopeUtils.getScopeService;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.mina.common.ByteBuffer;
-import org.red5.io.amf.Output;
-import org.red5.io.object.Serializer;
 import org.red5.server.api.IContext;
 import org.red5.server.api.IGlobalScope;
 import org.red5.server.api.IScope;
@@ -65,7 +62,6 @@ import org.red5.server.so.SharedObjectMessage;
 import org.red5.server.so.SharedObjectService;
 import org.red5.server.stream.IBroadcastScope;
 import org.red5.server.stream.StreamService;
-import org.red5.server.stream.message.RTMPMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -126,7 +122,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 				setChunkSize.setTarget("ClientBroadcastStream");
 				setChunkSize.setServiceName("chunkSize");
 				if (setChunkSize.getServiceParamMap() == null) {
-					setChunkSize.setServiceParamMap(new HashMap());
+					setChunkSize.setServiceParamMap(new HashMap<String, Object>());
 				}
 				setChunkSize.getServiceParamMap().put("chunkSize", chunkSize.getSize());
 				scope.sendOOBControlMessage((IConsumer) null, setChunkSize);
@@ -181,6 +177,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 	}
 
 	/** {@inheritDoc} */
+	@SuppressWarnings("unchecked")
 	@Override
 	protected void onInvoke(RTMPConnection conn, Channel channel,
 			Header source, Notify invoke, RTMP rtmp) {
@@ -211,7 +208,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 
 					// Get parameters passed from client to
 					// NetConnection#connection
-					final Map params = invoke.getConnectionParams();
+					final Map<String, Object> params = invoke.getConnectionParams();
 
 					// Get hostname
 					String host = getHostname((String) params.get("tcUrl"));
@@ -355,7 +352,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 								.getResult();
 						Map<String, Object> result;
 						if (pcResult instanceof Map) {
-							result = (Map) pcResult;
+							result = (Map<String, Object>) pcResult;
 							result.put("objectEncoding", 3);
 						} else if (pcResult instanceof StatusObject) {
 							result = new HashMap<String, Object>();
@@ -389,14 +386,12 @@ public class RTMPHandler extends BaseRTMPHandler {
 				try {
 					if (!invokeCall(conn, call, streamService)) {
 						status = getStatus(NS_INVALID_ARGUMENT).asStatus();
-						status.setDescription("Failed to " + action
-								+ " (stream ID: " + source.getStreamId() + ")");
+						status.setDescription(String.format("Failed to %s (stream id: %d)", action, source.getStreamId()));
 					}
 				} catch (Throwable err) {
 					log.error("Error while invoking {} on stream service. {}", action, err);
 					status = getStatus(NS_FAILED).asStatus();
-					status.setDescription("Error while invoking " + action
-							+ " (stream ID: " + source.getStreamId() + ")");
+					status.setDescription(String.format("Error while invoking %s (stream id: %d)", action, source.getStreamId()));
 					status.setDetails(err.getMessage());
 				}
 				if (status != null) {
@@ -409,7 +404,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 			// Service calls, must be connected.
 			invokeCall(conn, call);
 		} else {
-			// Warn user attemps to call service without being connected
+			// Warn user attempts to call service without being connected
 			log.warn("Not connected, closing connection");
 			conn.close();
 		}

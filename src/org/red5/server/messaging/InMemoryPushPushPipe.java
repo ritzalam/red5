@@ -20,8 +20,6 @@ package org.red5.server.messaging;
  */
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -40,7 +38,7 @@ public class InMemoryPushPushPipe extends AbstractPipe {
 
 	/** {@inheritDoc} */
     @Override
-	public boolean subscribe(IConsumer consumer, Map paramMap) {
+	public boolean subscribe(IConsumer consumer, Map<?, ?> paramMap) {
 		if (!(consumer instanceof IPushableConsumer)) {
 			throw new IllegalArgumentException(
 					"Non-pushable consumer not supported by PushPushPipe");
@@ -55,7 +53,7 @@ public class InMemoryPushPushPipe extends AbstractPipe {
 
 	/** {@inheritDoc} */
     @Override
-	public boolean subscribe(IProvider provider, Map paramMap) {
+	public boolean subscribe(IProvider provider, Map<?, ?> paramMap) {
 		boolean success = super.subscribe(provider, paramMap);
 		if (success) {
 			fireProviderConnectionEvent(provider,

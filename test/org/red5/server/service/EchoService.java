@@ -81,6 +81,7 @@ public class EchoService implements IEchoService {
 	/**
 	 * @see org.red5.samples.services.IEchoService#echoObject(java.util.Map)
 	 */
+	@SuppressWarnings("unchecked")
 	public Map echoObject(Map obj) {
 		log.info("echoObject: {}", obj);
 		return obj;
@@ -97,6 +98,7 @@ public class EchoService implements IEchoService {
 	/**
 	 * @see org.red5.samples.services.IEchoService#echoList(java.util.List)
 	 */
+	@SuppressWarnings("unchecked")
 	public List echoList(List list) {
 		log.info("echoList: {}", list);
 		return list;
@@ -110,7 +112,7 @@ public class EchoService implements IEchoService {
 		return xml;
 	}
 
-	public Object[] echoMultiParam(Map team, List words, String str) {
+	public Object[] echoMultiParam(Map<?, ?> team, List<?> words, String str) {
 		Object[] result = new Object[3];
 		result[0] = team;
 		result[1] = words;

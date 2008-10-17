@@ -48,7 +48,7 @@ public interface IMessageOutput {
 	 * @return <tt>true</tt> when successfully subscribed,
 	 * <tt>false</tt> otherwise.
 	 */
-	boolean subscribe(IProvider provider, Map paramMap);
+	boolean subscribe(IProvider provider, Map<?, ?> paramMap);
 
 	/**
 	 * Disconnect from a provider.

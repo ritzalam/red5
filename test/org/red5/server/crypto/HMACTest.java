@@ -19,9 +19,10 @@ package org.red5.server.crypto;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
-import java.io.File;
 import java.security.Provider;
 import java.security.Security;
 
@@ -42,7 +43,7 @@ public class HMACTest {
 			fail("Problem loading crypto provider" + e);
 		}
 
-		String[] args = new String[]{};
+		//String[] args = new String[]{};
 		//h1.processCommandLine(args);
 		byte[] hmac = h1.computeMac();
 		assertNull("Currently HMAC is broken since you can't actually " +

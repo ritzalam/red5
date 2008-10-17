@@ -23,8 +23,6 @@ import java.io.File;
 
 import org.apache.catalina.Context;
 import org.apache.catalina.Engine;
-import org.apache.catalina.Loader;
-import org.apache.catalina.Server;
 import org.apache.catalina.Valve;
 import org.apache.catalina.core.AprLifecycleListener;
 import org.apache.catalina.core.StandardHost;

@@ -26,8 +26,6 @@ import org.apache.mina.common.IoFuture;
 import org.apache.mina.common.IoFutureListener;
 import org.apache.mina.transport.socket.nio.SocketConnector;
 import org.red5.server.net.rtmp.codec.RTMP;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * RTMP client object. Initial client mode code by Christian Eckerle.
@@ -43,7 +41,7 @@ public class RTMPClient extends BaseRTMPClientHandler {
     /**
      * Logger
      */
-	private static final Logger log = LoggerFactory.getLogger(RTMPClient.class);
+	//private static final Logger log = LoggerFactory.getLogger(RTMPClient.class);
 	
 	private static final int CONNECTOR_WORKER_TIMEOUT = 7; // seconds
 	

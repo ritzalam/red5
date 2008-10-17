@@ -451,7 +451,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			setChunkSize.setTarget("ConnectionConsumer");
 			setChunkSize.setServiceName("chunkSize");
 			if (setChunkSize.getServiceParamMap() == null) {
-				setChunkSize.setServiceParamMap(new HashMap());
+				setChunkSize.setServiceParamMap(new HashMap<String, Object>());
 			}
 			setChunkSize.getServiceParamMap().put("chunkSize", chunkSize);
 			livePipe.sendOOBControlMessage(getProvider(), setChunkSize);

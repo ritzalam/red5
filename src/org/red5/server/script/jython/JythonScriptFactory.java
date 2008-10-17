@@ -50,6 +50,7 @@ public class JythonScriptFactory implements ScriptFactory {
 	private static Logger logger = LoggerFactory.getLogger(JythonScriptFactory.class);
 	
 	private final String scriptSourceLocator;
+	@SuppressWarnings("unchecked")
 	private final Class[] scriptInterfaces;
 	private final Object[] arguments;
 
@@ -60,6 +61,7 @@ public class JythonScriptFactory implements ScriptFactory {
 		this.arguments = null;
 	}
 	
+	@SuppressWarnings("unchecked")
 	public JythonScriptFactory(String scriptSourceLocator, Class[] scriptInterfaces) {
 		Assert.hasText(scriptSourceLocator);
 		Assert.notEmpty(scriptInterfaces);
@@ -68,6 +70,7 @@ public class JythonScriptFactory implements ScriptFactory {
 		this.arguments = null;
 	}
 	
+	@SuppressWarnings("unchecked")
 	public JythonScriptFactory(String scriptSourceLocator, Class[] scriptInterfaces, Object[] arguments) {
 		Assert.hasText(scriptSourceLocator);
 		Assert.notEmpty(scriptInterfaces);
@@ -86,7 +89,8 @@ public class JythonScriptFactory implements ScriptFactory {
 	}
 
 	/** {@inheritDoc} */
-    public Class[] getScriptInterfaces() {
+    @SuppressWarnings("unchecked")
+	public Class[] getScriptInterfaces() {
 		return scriptInterfaces;
 	}
 
@@ -96,7 +100,8 @@ public class JythonScriptFactory implements ScriptFactory {
 	}
 
 	/** {@inheritDoc} */
-    public Object getScriptedObject(ScriptSource scriptSourceLocator, Class[] scriptInterfaces)
+    @SuppressWarnings("unchecked")
+	public Object getScriptedObject(ScriptSource scriptSourceLocator, Class[] scriptInterfaces)
 			throws IOException, ScriptCompilationException {
     	// TODO: how to do this when running under Tomcat?
     	ContextHandler handler = WebAppContext.getCurrentWebAppContext();
@@ -160,6 +165,7 @@ public class JythonScriptFactory implements ScriptFactory {
 		return null;
 	}
 
+	@SuppressWarnings("unchecked")
 	public Class getScriptedObjectType(ScriptSource src) throws IOException, ScriptCompilationException {
 		return null;
 	}

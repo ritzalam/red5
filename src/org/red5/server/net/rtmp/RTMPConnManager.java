@@ -26,7 +26,7 @@ public class RTMPConnManager implements IRTMPConnManager,
 
 	private ApplicationContext appCtx;
 
-	public RTMPConnection createConnection(Class connCls) {
+	public RTMPConnection createConnection(Class<?> connCls) {
 		if (!RTMPConnection.class.isAssignableFrom(connCls)) {
 			return null;
 		}
@@ -93,7 +93,7 @@ public class RTMPConnManager implements IRTMPConnManager,
 		this.appCtx = appCtx;
 	}
 
-	public RTMPConnection createConnectionInstance(Class cls) throws Exception {
+	public RTMPConnection createConnectionInstance(Class<?> cls) throws Exception {
 		RTMPConnection conn = null;
 		if (cls == RTMPMinaConnection.class) {
 			conn = (RTMPMinaConnection) appCtx.getBean("rtmpMinaConnection");

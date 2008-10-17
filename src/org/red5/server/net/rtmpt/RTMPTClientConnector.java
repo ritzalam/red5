@@ -115,7 +115,7 @@ class RTMPTClientConnector extends Thread {
 				data.put(received);
 				data.flip();
 				data.skip(1); // XXX: polling interval lies in this byte
-				List messages = connection.decode(data);
+				List<?> messages = connection.decode(data);
 				data.release();
 
 				if (messages == null || messages.isEmpty()) {

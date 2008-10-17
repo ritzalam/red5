@@ -30,12 +30,12 @@ public class RTMPClientConnManager implements IRTMPConnManager {
 	
 	protected RTMPConnection rtmpConn;
 
-	synchronized public RTMPConnection getConnection() {
+	public synchronized RTMPConnection getConnection() {
 		log.debug("Returning first map entry");
 		return rtmpConn;
 	}
 
-	synchronized public RTMPConnection getConnection(int clientId) {
+	public synchronized RTMPConnection getConnection(int clientId) {
 		log.debug("Returning map entry for client id: {}", clientId);
 		if (clientId == 0) {
 			return rtmpConn;
@@ -44,7 +44,7 @@ public class RTMPClientConnManager implements IRTMPConnManager {
 		}
 	}
 
-	synchronized public RTMPConnection removeConnection(int clientId) {
+	public synchronized RTMPConnection removeConnection(int clientId) {
 		RTMPConnection connReturn = null;
 		if (clientId == 0) {
 			connReturn = rtmpConn;
@@ -53,12 +53,12 @@ public class RTMPClientConnManager implements IRTMPConnManager {
 		return connReturn;
 	}
 
-	synchronized public Collection<RTMPConnection> removeConnections() {
+	public synchronized Collection<RTMPConnection> removeConnections() {
 		rtmpConn = null;
 		return null;
 	}
 
-	synchronized public RTMPConnection createConnection(Class connCls) {
+	public synchronized RTMPConnection createConnection(Class<?> connCls) {
 		log.debug("Creating connection, class: {}", connCls.getName());
 		if (!RTMPConnection.class.isAssignableFrom(connCls)) {
 			throw new IllegalArgumentException("Class was not assignable");

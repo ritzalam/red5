@@ -50,6 +50,7 @@ import org.xml.sax.SAXException;
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
  */
+@SuppressWarnings("deprecation")
 public class FileKeyFrameMetaCache implements IKeyFrameMetaCache {
 
     /**

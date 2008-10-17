@@ -276,6 +276,7 @@ public class TomcatLoader extends LoaderBase implements
 
 		//set the classloader
 		Loader loader = embedded.createLoader(classloader);
+		log.debug("Loader: {}", loader);
 
 		engine = embedded.createEngine();
 		engine.setDefaultHost(host.getName());

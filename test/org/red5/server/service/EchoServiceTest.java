@@ -84,10 +84,10 @@ public class EchoServiceTest extends TestCase {
 	}
 
 	public void testEchoList() {
-		List startList = new ArrayList();
+		List<String> startList = new ArrayList<String>();
 		startList.add(0, "first");
 		startList.add(1, "second");
-		List resultList = echoService.echoList(startList);
+		List<String> resultList = echoService.echoList(startList);
 		assertEquals(startList.get(0), resultList.get(0));
 		assertEquals(startList.get(1), resultList.get(1));
 	}
@@ -101,10 +101,10 @@ public class EchoServiceTest extends TestCase {
 	public void testEchoObject() {
 		String str = "entry one";
 		Date date = new Date();
-		Map startMap = new HashMap();
+		Map<String, Comparable<?>> startMap = new HashMap<String, Comparable<?>>();
 		startMap.put("string", str);
 		startMap.put("date", date);
-		Map resultMap = echoService.echoObject(startMap);
+		Map<String, Comparable<?>> resultMap = echoService.echoObject(startMap);
 		assertEquals(startMap.get("string"), resultMap.get("string"));
 		assertEquals(startMap.get("date"), resultMap.get("date"));
 	}

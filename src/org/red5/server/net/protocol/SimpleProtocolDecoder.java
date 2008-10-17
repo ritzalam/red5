@@ -53,6 +53,6 @@ public interface SimpleProtocolDecoder {
 	 * @return a list of decoded objects, may be empty if nothing could be
 	 *         decoded
 	 */
-	public List decodeBuffer(ProtocolState state, ByteBuffer buffer);
+	public List<?> decodeBuffer(ProtocolState state, ByteBuffer buffer);
 
 }

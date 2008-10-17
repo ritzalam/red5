@@ -1,16 +1,12 @@
 package org.red5.server.crypto;
 
-import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.Transferable;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringReader;
 import java.security.Key;
 
 import javax.crypto.Mac;
@@ -29,15 +25,7 @@ import javax.crypto.spec.SecretKeySpec;
  */
 public class HMAC {
 
-	private File keyFile;
-
-	private String keyString;
-
 	private byte[] keyBytes;
-
-	private File dataFile;
-
-	private String dataString;
 
 	private byte[] dataBytes;
 
@@ -183,8 +171,6 @@ public class HMAC {
 	 */
 	public byte[] readDataFile(File f, int minValidLength) {
 		InputStream fr = null;
-		byte[] buf = null;
-		int cc;
 		try {
 			if (f.getName().equals("-")) {
 				fr = System.in;
@@ -249,46 +235,6 @@ public class HMAC {
 			result = hexToByteArray(new String(result), reverse);
 		}
 
-		return result;
-	}
-
-	/**
-	 * Read hex data from the clipboard and process it into a byte array.
-	 */
-	public byte[] readDataClipboard() {
-		byte[] result = null;
-
-		try {
-			if (clip == null) {
-				clip = Toolkit.getDefaultToolkit().getSystemClipboard();
-			}
-			Transferable contents;
-			contents = clip.getContents(null);
-			if (contents != null) {
-				StringReader sr;
-				sr = (StringReader) (contents
-						.getTransferData(DataFlavor.plainTextFlavor));
-				StringBuffer sb = new StringBuffer();
-				char[] buf = new char[BUF_LENGTH];
-				int cc;
-				do {
-					cc = sr.read(buf, 0, BUF_LENGTH);
-					if (cc > 0)
-						sb.append(buf, 0, cc);
-				} while (cc > 0);
-				String s = sb.toString();
-				if (verbose)
-					message("Got clipboard data: " + s);
-
-				result = s.getBytes();
-				boolean ishex = (noHex) ? (false) : (isHex(result, 16));
-				if (ishex) {
-					result = hexToByteArray(s, reverse);
-				}
-			}
-		} catch (Exception te) {
-			message("Transfer clipboard problem", te);
-		}
 		return result;
 	}
 

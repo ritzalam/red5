@@ -136,6 +136,7 @@ public class JMXFactory {
 		return mbs;
 	}
 
+	@SuppressWarnings("unchecked")
 	public static boolean registerNewMBean(String className,
 			Class interfaceClass) {
 		boolean status = false;
@@ -156,6 +157,7 @@ public class JMXFactory {
 		return status;
 	}
 
+	@SuppressWarnings("unchecked")
 	public static boolean registerNewMBean(String className,
 			Class interfaceClass, ObjectName name) {
 		boolean status = false;
@@ -175,6 +177,7 @@ public class JMXFactory {
 		return status;
 	}
 
+	@SuppressWarnings("unchecked")
 	public static boolean registerNewMBean(String className,
 			Class interfaceClass, String name) {
 		boolean status = false;

@@ -541,7 +541,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 
 		if (onStatus) {
 			// XXX better to serialize ObjectMap to Status object
-			ObjectMap objMap = (ObjectMap) call.getArguments()[0];
+			ObjectMap<?, ?> objMap = (ObjectMap<?, ?>) call.getArguments()[0];
 			Integer clientId = (Integer) objMap.get("clientid");
 			if (clientId == null) {
 				clientId = source.getStreamId();

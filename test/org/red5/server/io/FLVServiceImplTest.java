@@ -163,6 +163,7 @@ public class FLVServiceImplTest extends TestCase {
 	 * threw an exception Assert.assertEquals(true, true); }
 	 */
 
+	@SuppressWarnings("unused")
 	private void writeTags(ITagReader reader, ITagWriter writer)
 			throws IOException {
 

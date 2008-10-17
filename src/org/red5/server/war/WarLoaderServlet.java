@@ -196,7 +196,7 @@ public class WarLoaderServlet extends ContextLoaderListener {
 				// prepare spring for shutdown
 				Introspector.flushCaches();
 				// dereg any drivers
-				for (Enumeration e = DriverManager.getDrivers(); e
+				for (Enumeration<?> e = DriverManager.getDrivers(); e
 						.hasMoreElements();) {
 					Driver driver = (Driver) e.nextElement();
 					if (driver.getClass().getClassLoader() == getClass()

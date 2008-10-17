@@ -31,11 +31,11 @@ import org.red5.io.flv.meta.MetaData;
  * @author daccattato (daccattato@gmail.com)
  */
 public class MetaDataTest extends TestCase {
-	MetaData data;
+	MetaData<?, ?> data;
 
 	/** Constructs a new MetaDataTest. */
 	public MetaDataTest() {
-		data = new MetaData();
+		data = new MetaData<Object, Object>();
 	}
 
 	/** {@inheritDoc} */

@@ -32,12 +32,12 @@ import org.red5.io.mock.Output;
 */
 public class MockIOTest extends AbstractIOTest {
 
-	protected List list;
+	protected List<Object> list;
 
 	/** {@inheritDoc} */
 	@Override
 	void setupIO() {
-		list = new LinkedList();
+		list = new LinkedList<Object>();
 		in = new Input(list);
 		out = new Output(list);
 	}

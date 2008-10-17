@@ -104,7 +104,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	}
 
 	/** {@inheritDoc} */
-	public List decodeBuffer(ProtocolState state, ByteBuffer buffer) {
+	public List<Object> decodeBuffer(ProtocolState state, ByteBuffer buffer) {
 
 		final List<Object> result = new LinkedList<Object>();
 
@@ -198,6 +198,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	public Object decode(ProtocolState state, ByteBuffer in)
 			throws ProtocolException {
 		int start = in.position();
+		log.debug("Start: {}", start);
 		try {
 			final RTMP rtmp = (RTMP) state;
 			switch (rtmp.getState()) {
@@ -794,6 +795,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	 *            RTMP protocol state
 	 * @return Notification event
 	 */
+	@SuppressWarnings("unchecked")
 	protected Notify decodeNotifyOrInvoke(Notify notify, ByteBuffer in,
 			Header header, RTMP rtmp) {
 		// TODO: we should use different code depending on server or client mode
@@ -845,7 +847,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 				// Before the actual parameters we sometimes (connect) get a map
 				// of parameters, this is usually null, but if set should be
 				// passed to the connection object.
-				final Map connParams = (Map) obj;
+				final Map<String, Object> connParams = (Map<String, Object>) obj;
 				notify.setConnectionParams(connParams);
 			} else if (obj != null) {
 				paramList.add(obj);

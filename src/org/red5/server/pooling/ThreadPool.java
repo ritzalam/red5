@@ -20,8 +20,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.red5.server.jmx.JMXAgent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * ThreadPool
@@ -29,13 +27,12 @@ import org.slf4j.LoggerFactory;
  * @author Paul Gregoire (mondain@gmail.com)
  */
 public class ThreadPool implements ThreadPoolMBean {
-	/**
-	 * Logger for this class
-	 */
-	private static final Logger log = LoggerFactory.getLogger(ThreadPool.class);
+
+	//private static final Logger log = LoggerFactory.getLogger(ThreadPool.class);
 
 	private ExecutorService pool;
 
+	@SuppressWarnings("unused")
 	private Executor executor;	
 	
 	// maximum pool threads

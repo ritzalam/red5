@@ -23,12 +23,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.red5.server.Context;
 import org.red5.server.Scope;
-import org.red5.server.api.IContext;
-import org.red5.server.api.IScope;
 import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.api.stream.OperationNotSupportedException;
 import org.red5.server.api.stream.support.SimplePlayItem;
@@ -186,7 +183,7 @@ public class PlaylistSubscriberStreamTest extends AbstractDependencyInjectionSpr
 			System.out.println("sendOOBControlMessage");			
 		}
 
-		public boolean subscribe(IProvider provider, Map paramMap) {
+		public boolean subscribe(IProvider provider, Map<?, ?> paramMap) {
 			System.out.println("subscribe");
 			return true;
 		}

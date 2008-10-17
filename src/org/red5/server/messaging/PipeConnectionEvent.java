@@ -85,7 +85,7 @@ public class PipeConnectionEvent extends EventObject {
      * Params map.
      * TODO : investigate what this map for
      */
-    private Map paramMap;
+    private Map<?, ?> paramMap;
 
 	/**
 	 * Construct an object with the specific pipe as the
@@ -148,7 +148,7 @@ public class PipeConnectionEvent extends EventObject {
      * Return event parameters as Map
      * @return             Event parameters as Map
      */
-    public Map getParamMap() {
+    public Map<?, ?> getParamMap() {
 		return paramMap;
 	}
 
@@ -156,7 +156,7 @@ public class PipeConnectionEvent extends EventObject {
      * Setter for event parameters map
      * @param paramMap     Event parameters as Map
      */
-    public void setParamMap(Map paramMap) {
+    public void setParamMap(Map<?, ?> paramMap) {
 		this.paramMap = paramMap;
 	}
 

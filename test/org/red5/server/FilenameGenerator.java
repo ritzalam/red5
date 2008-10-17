@@ -20,7 +20,6 @@ package org.red5.server;
 */
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Random;
 
 import org.red5.server.api.IScope;

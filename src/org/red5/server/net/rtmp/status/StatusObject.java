@@ -189,6 +189,7 @@ implements Serializable, ICustomSerializable, Externalizable {
     	}
     }
 
+	@SuppressWarnings("unchecked")
 	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
 		code = (String) in.readObject();
 		description = (String) in.readObject();

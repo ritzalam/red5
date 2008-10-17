@@ -171,7 +171,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	 * 			the data to decode
 	 * @return a list of decoded objects
 	 */
-	public List decode(ByteBuffer data) {
+	public List<?> decode(ByteBuffer data) {
 		if (closing || state.getState() == RTMP.STATE_DISCONNECTED) {
 			// Connection is being closed, don't decode any new packets
 			return Collections.EMPTY_LIST;

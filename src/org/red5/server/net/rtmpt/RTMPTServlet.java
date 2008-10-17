@@ -369,7 +369,7 @@ public class RTMPTServlet extends HttpServlet {
 		data.flip();
 
 		// Decode the objects in the data
-		List messages = connection.decode(data);
+		List<?> messages = connection.decode(data);
 		data.release();
 		data = null;
 		if (messages == null || messages.isEmpty()) {

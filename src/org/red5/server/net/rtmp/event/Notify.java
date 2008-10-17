@@ -50,7 +50,7 @@ public class Notify extends BaseEvent implements IStreamData, IStreamPacket {
     /**
      * Connection parameters
      */
-    private Map connectionParams;
+    private Map<String, Object> connectionParams;
 
 	/** Constructs a new Notify. */
     public Notify() {
@@ -143,7 +143,7 @@ public class Notify extends BaseEvent implements IStreamData, IStreamPacket {
      *
      * @return Connection parameters
      */
-    public Map getConnectionParams() {
+    public Map<String, Object> getConnectionParams() {
 		return connectionParams;
 	}
 
@@ -152,7 +152,7 @@ public class Notify extends BaseEvent implements IStreamData, IStreamPacket {
      *
      * @param connectionParams  Connection parameters
      */
-    public void setConnectionParams(Map connectionParams) {
+    public void setConnectionParams(Map<String, Object> connectionParams) {
 		this.connectionParams = connectionParams;
 	}
 
@@ -209,11 +209,12 @@ public class Notify extends BaseEvent implements IStreamData, IStreamPacket {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
 		super.readExternal(in);
 		call = (IServiceCall) in.readObject();
-		connectionParams = (Map) in.readObject();
+		connectionParams = (Map<String, Object>) in.readObject();
 		invokeId = in.readInt();
 		byte[] byteBuf = (byte[]) in.readObject();
 		if (byteBuf != null) {

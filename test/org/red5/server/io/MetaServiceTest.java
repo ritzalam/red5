@@ -62,7 +62,7 @@ public class MetaServiceTest extends TestCase {
 	 */
 	public void testWrite() throws IOException {
 		// Get MetaData to embed
-		MetaData meta = createMeta();
+		MetaData<?, ?> meta = createMeta();
 		// Read in a FLV file for reading tags
 		File tmp = new File("fixtures/test.flv");
 		System.out.println("Path: "+ tmp.getAbsolutePath());
@@ -79,15 +79,15 @@ public class MetaServiceTest extends TestCase {
 	 *
 	 * @return MetaData meta
 	 */
-	private MetaData createMeta() {
+	private MetaData<?, ?> createMeta() {
 		IMetaCue metaCue[] = new MetaCue[2];
 
-	  	IMetaCue cp = new MetaCue();
+	  	IMetaCue cp = new MetaCue<Object, Object>();
 		cp.setName("cue_1");
 		cp.setTime(0.01);
 		cp.setType(ICueType.EVENT);
 
-		IMetaCue cp1 = new MetaCue();
+		IMetaCue cp1 = new MetaCue<Object, Object>();
 		cp1.setName("cue_2");
 		cp1.setTime(0.03);
 		cp1.setType(ICueType.EVENT);
@@ -96,7 +96,7 @@ public class MetaServiceTest extends TestCase {
 		metaCue[0] = cp;
 		metaCue[1] = cp1;
 
-		MetaData meta = new MetaData();
+		MetaData<?, ?> meta = new MetaData<Object, Object>();
 		meta.setMetaCue(metaCue);
 		meta.setCanSeekToEnd(true);
 		meta.setDuration(300);

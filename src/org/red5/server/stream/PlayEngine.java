@@ -1140,7 +1140,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 		OOBControlMessage oobCtrlMsg = new OOBControlMessage();
 		oobCtrlMsg.setTarget(IPassive.KEY);
 		oobCtrlMsg.setServiceName("init");
-		Map<Object, Object> paramMap = new HashMap<Object, Object>();
+		Map<String, Object> paramMap = new HashMap<String, Object>();
 		paramMap.put("startTS", (int) item.getStart());
 		oobCtrlMsg.setServiceParamMap(paramMap);
 		msgIn.sendOOBControlMessage(this, oobCtrlMsg);
@@ -1156,7 +1156,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 		OOBControlMessage oobCtrlMsg = new OOBControlMessage();
 		oobCtrlMsg.setTarget(ISeekableProvider.KEY);
 		oobCtrlMsg.setServiceName("seek");
-		Map<Object, Object> paramMap = new HashMap<Object, Object>();
+		Map<String, Object> paramMap = new HashMap<String, Object>();
 		paramMap.put("position", position);
 		oobCtrlMsg.setServiceParamMap(paramMap);
 		msgIn.sendOOBControlMessage(this, oobCtrlMsg);

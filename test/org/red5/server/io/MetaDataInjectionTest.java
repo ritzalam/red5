@@ -103,18 +103,18 @@ public class MetaDataInjectionTest extends TestCase {
 	 */
 	private void writeTagsWithInjection(ITagReader reader, ITagWriter writer) throws IOException {
 
-		IMetaCue cp = new MetaCue();
+		IMetaCue cp = new MetaCue<Object, Object>();
 		cp.setName("cue_1");
 		cp.setTime(0.01);
 		cp.setType(ICueType.EVENT);
 
-		IMetaCue cp1 = new MetaCue();
+		IMetaCue cp1 = new MetaCue<Object, Object>();
 		cp1.setName("cue_1");
 		cp1.setTime(2.01);
 		cp1.setType(ICueType.EVENT);
 
 		// Place in TreeSet for sorting
-		TreeSet ts = new TreeSet();
+		TreeSet<IMetaCue> ts = new TreeSet<IMetaCue>();
 		ts.add(cp);
 		ts.add(cp1);
 
@@ -168,7 +168,7 @@ public class MetaDataInjectionTest extends TestCase {
 	 */
 	private ITag injectMetaData(Object cue, ITag tag) {
 
-		IMetaCue cp = (MetaCue) cue;
+		IMetaCue cp = (MetaCue<?, ?>) cue;
 		Output out = new Output(ByteBuffer.allocate(1000));
 		Serializer ser = new Serializer();
 		ser.serialize(out,"onCuePoint");
@@ -190,7 +190,7 @@ public class MetaDataInjectionTest extends TestCase {
 	 * @return int time
 	 */
 	private int getTimeInMilliseconds(Object object) {
-		IMetaCue cp = (MetaCue) object;
+		IMetaCue cp = (MetaCue<?, ?>) object;
 		return (int) (cp.getTime() * 1000.00);
 	}
 

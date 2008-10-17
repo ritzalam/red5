@@ -41,7 +41,6 @@ import org.red5.io.flv.meta.IMetaCue;
 import org.red5.io.flv.meta.MetaCue;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Serializer;
-import org.red5.server.api.cache.ICacheStore;
 import org.red5.server.cache.NoCacheImpl;
 
 /**
@@ -110,18 +109,18 @@ public class CuePointInjectionTest extends TestCase {
 	private void writeTagsWithInjection(ITagReader reader, ITagWriter writer)
 			throws IOException {
 
-		IMetaCue cp = new MetaCue();
+		IMetaCue cp = new MetaCue<Object, Object>();
 		cp.setName("cue_1");
 		cp.setTime(0.01);
 		cp.setType(ICueType.EVENT);
 
-		IMetaCue cp1 = new MetaCue();
+		IMetaCue cp1 = new MetaCue<Object, Object>();
 		cp1.setName("cue_1");
 		cp1.setTime(2.01);
 		cp1.setType(ICueType.EVENT);
 
 		// Place in TreeSet for sorting
-		TreeSet ts = new TreeSet();
+		TreeSet<IMetaCue> ts = new TreeSet<IMetaCue>();
 		ts.add(cp);
 		ts.add(cp1);
 
@@ -170,7 +169,7 @@ public class CuePointInjectionTest extends TestCase {
 	 */
 	private ITag injectCuePoint(Object cue, ITag tag) {
 
-		IMetaCue cp = (MetaCue) cue;
+		IMetaCue cp = (MetaCue<?, ?>) cue;
 		Output out = new Output(ByteBuffer.allocate(1000));
 		Serializer ser = new Serializer();
 		ser.serialize(out, "onCuePoint");
@@ -194,7 +193,7 @@ public class CuePointInjectionTest extends TestCase {
 	 * @return int time
 	 */
 	private int getTimeInMilliseconds(Object object) {
-		IMetaCue cp = (MetaCue) object;
+		IMetaCue cp = (MetaCue<?, ?>) object;
 		return (int) (cp.getTime() * 1000.00);
 
 	}
@@ -205,22 +204,22 @@ public class CuePointInjectionTest extends TestCase {
 	 * @return void
 	 */
 	public void testCuePointOrder() {
-		IMetaCue cue = new MetaCue();
+		IMetaCue cue = new MetaCue<Object, Object>();
 		cue.setName("cue_1");
 		cue.setTime(0.01);
 		cue.setType(ICueType.EVENT);
 
-		IMetaCue cue1 = new MetaCue();
+		IMetaCue cue1 = new MetaCue<Object, Object>();
 		cue1.setName("cue_1");
 		cue1.setTime(2.01);
 		cue1.setType(ICueType.EVENT);
 
-		IMetaCue cue2 = new MetaCue();
+		IMetaCue cue2 = new MetaCue<Object, Object>();
 		cue2.setName("cue_1");
 		cue2.setTime(1.01);
 		cue2.setType(ICueType.EVENT);
 
-		TreeSet ts = new TreeSet();
+		TreeSet<IMetaCue> ts = new TreeSet<IMetaCue>();
 		ts.add(cue);
 		ts.add(cue1);
 		ts.add(cue2);

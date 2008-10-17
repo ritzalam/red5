@@ -47,71 +47,79 @@ import org.slf4j.LoggerFactory;
  * period. You can adjust the period by calling {@link #setTimeout(int)}. The
  * default timeout is 1 minute (60 seconds). To release these buffers
  * periodically, a daemon thread is started when a new instance of the allocator
- * is created.  You can stop the thread by calling {@link #dispose()}.
+ * is created. You can stop the thread by calling {@link #dispose()}.
  * </p>
- *
+ * 
  * @author The Apache Directory Project (mina-dev@directory.apache.org)
- * @version $Rev: 391231 $, $Date: 2006-04-04 15:21:55 +0900 (Tue, 04 Apr 2006) $
+ * @version $Rev: 391231 $, $Date: 2006-04-04 15:21:55 +0900 (Tue, 04 Apr 2006)
+ *          $
  */
 public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
-    /**
-     *  Logger
-     */
-	protected static Logger log = LoggerFactory.getLogger(DebugPooledByteBufferAllocator.class);
-    /**
+	/**
+	 * Logger
+	 */
+	protected static Logger log = LoggerFactory
+			.getLogger(DebugPooledByteBufferAllocator.class);
+
+	/**
      *
      */
-	protected static ThreadLocal local = new ThreadLocal();
+	protected static ThreadLocal<String> local = new ThreadLocal<String>();
 
 	/** Contains stack traces where buffers were allocated. */
 	protected HashMap<UnexpandableByteBuffer, StackTraceElement[]> stacks = new HashMap<UnexpandableByteBuffer, StackTraceElement[]>();
 
 	/**
 	 * Save a stack trace for every buffer allocated?
-	 *
+	 * 
 	 * Warning: This slows down the Red5 a lot!
-	 *
+	 * 
 	 */
 	protected boolean saveStacks;
 
-    /**
-     *
-     * @param section
-     */
+	/**
+	 * 
+	 * @param section
+	 */
 	@SuppressWarnings("all")
 	public static void setCodeSection(String section) {
 		local.set(section);
 	}
 
-    /**
-     *
-     * @return
-     */
+	/**
+	 * 
+	 * @return
+	 */
 	public static String getCodeSection() {
 		return (local.get() == null) ? "unknown" : (String) local.get();
 	}
 
-    /**
+	/**
      *
      */
 	private static final int MINIMUM_CAPACITY = 1;
-    /**
+
+	/**
      *
      */
 	private static int threadId;
-    /**
+
+	/**
      *
      */
 	private int count;
-    /**
+
+	/**
      *
      */
 	private final Expirer expirer;
-    /**
+
+	/**
      *
      */
 	private final ExpiringStack containerStack = new ExpiringStack();
-    /**
+
+	/**
      *
      */
 	private final ExpiringStack[] heapBufferStacks = new ExpiringStack[] {
@@ -126,7 +134,8 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 			new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
 			new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
 			new ExpiringStack(), new ExpiringStack(), };
-    /**
+
+	/**
      *
      */
 	private final ExpiringStack[] directBufferStacks = new ExpiringStack[] {
@@ -141,11 +150,13 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 			new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
 			new ExpiringStack(), new ExpiringStack(), new ExpiringStack(),
 			new ExpiringStack(), new ExpiringStack(), };
-    /**
-     *  Timeout
-     */
+
+	/**
+	 * Timeout
+	 */
 	private int timeout;
-    /**
+
+	/**
      *
      */
 	private boolean disposed;
@@ -157,27 +168,28 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 		this(60, false);
 	}
 
-    /**
-     *
-     * @param saveStacks
-     */
+	/**
+	 * 
+	 * @param saveStacks
+	 */
 	public DebugPooledByteBufferAllocator(boolean saveStacks) {
 		this(60, saveStacks);
 	}
 
 	/**
 	 * Creates a new instance with the specified <tt>timeout</tt>.
-     * @param timeout
-     */
+	 * 
+	 * @param timeout
+	 */
 	public DebugPooledByteBufferAllocator(int timeout) {
 		this(timeout, false);
 	}
 
-    /**
-     *
-     * @param timeout
-     * @param saveStacks
-     */
+	/**
+	 * 
+	 * @param timeout
+	 * @param saveStacks
+	 */
 	public DebugPooledByteBufferAllocator(int timeout, boolean saveStacks) {
 		this.saveStacks = saveStacks;
 		setTimeout(timeout);
@@ -216,23 +228,25 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 	/**
 	 * Returns the timeout value of this allocator in seconds.
-     * @return
-     */
+	 * 
+	 * @return
+	 */
 	public int getTimeout() {
 		return timeout;
 	}
 
 	/**
 	 * Returns the timeout value of this allocator in milliseconds.
-     * @return
-     */
+	 * 
+	 * @return
+	 */
 	public long getTimeoutMillis() {
 		return timeout * 1000L;
 	}
 
 	/**
 	 * Sets the timeout value of this allocator in seconds.
-	 *
+	 * 
 	 * @param timeout
 	 *            <tt>0</tt> or negative value to disable timeout.
 	 */
@@ -243,12 +257,12 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 		this.timeout = timeout;
 	}
 
-    /**
-     *
-     * @param capacity
-     * @param direct
-     * @return
-     */
+	/**
+	 * 
+	 * @param capacity
+	 * @param direct
+	 * @return
+	 */
 	public ByteBuffer allocate(int capacity, boolean direct) {
 		ensureNotDisposed();
 		UnexpandableByteBuffer ubb = allocate0(capacity, direct);
@@ -257,10 +271,10 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 		return buf;
 	}
 
-    /**
-     *
-     * @return
-     */
+	/**
+	 * 
+	 * @return
+	 */
 	private PooledByteBuffer allocateContainer() {
 		PooledByteBuffer buf;
 		synchronized (containerStack) {
@@ -273,7 +287,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 		return buf;
 	}
 
-    /**
+	/**
      *
      */
 	public void resetStacks() {
@@ -282,7 +296,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 		}
 	}
 
-    /**
+	/**
      *
      */
 	public void printStacks() {
@@ -298,12 +312,12 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 		}
 	}
 
-    /**
-     *
-     * @param capacity
-     * @param direct
-     * @return
-     */
+	/**
+	 * 
+	 * @param capacity
+	 * @param direct
+	 * @return
+	 */
 	private UnexpandableByteBuffer allocate0(int capacity, boolean direct) {
 		count++;
 
@@ -336,10 +350,10 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 		return buf;
 	}
 
-    /**
-     *
-     * @param buf
-     */
+	/**
+	 * 
+	 * @param buf
+	 */
 	private void release0(UnexpandableByteBuffer buf) {
 
 		count--;
@@ -361,12 +375,12 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 		}
 	}
 
-    /**
-     *
-     * @param nioBuffer
-     * @return
-     */
-    public ByteBuffer wrap(java.nio.ByteBuffer nioBuffer) {
+	/**
+	 * 
+	 * @param nioBuffer
+	 * @return
+	 */
+	public ByteBuffer wrap(java.nio.ByteBuffer nioBuffer) {
 		ensureNotDisposed();
 		PooledByteBuffer buf = allocateContainer();
 		buf.init(new UnexpandableByteBuffer(nioBuffer), false);
@@ -375,12 +389,12 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 		return buf;
 	}
 
-    /**
-     *
-     * @param bufferStacks
-     * @param size
-     * @return
-     */
+	/**
+	 * 
+	 * @param bufferStacks
+	 * @param size
+	 * @return
+	 */
 	private int getBufferStackIndex(ExpiringStack[] bufferStacks, int size) {
 		int targetSize = MINIMUM_CAPACITY;
 		int stackIdx = 0;
@@ -396,7 +410,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 		return stackIdx;
 	}
 
-    /**
+	/**
      *
      */
 	private void ensureNotDisposed() {
@@ -406,16 +420,16 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 		}
 	}
 
-    /**
+	/**
      *
      */
 	private class Expirer extends Thread {
-        /**
+		/**
          *
          */
-        private boolean timeToStop;
+		private boolean timeToStop;
 
-        /**
+		/**
          *
          */
 		public Expirer() {
@@ -423,7 +437,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 			setDaemon(true);
 		}
 
-        /**
+		/**
          *
          */
 		public void shutdown() {
@@ -438,7 +452,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 			}
 		}
 
-        /**
+		/**
          *
          */
 		@Override
@@ -480,34 +494,36 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 		}
 	}
 
-    /**
+	/**
      *
      */
 	private class PooledByteBuffer extends ByteBuffer {
-        /**
+		/**
          *
          */
-        private UnexpandableByteBuffer buf;
-        /**
+		private UnexpandableByteBuffer buf;
+
+		/**
          *
          */
-        @SuppressWarnings("unused") private int refCount = 1;
-        /**
+		private int refCount = 1;
+
+		/**
          *
          */
 		private boolean autoExpand;
 
-        /**
+		/**
          *
          */
 		protected PooledByteBuffer() {
 		}
 
-        /**
-         *
-         * @param buf
-         * @param clear
-         */
+		/**
+		 * 
+		 * @param buf
+		 * @param clear
+		 */
 		public synchronized void init(UnexpandableByteBuffer buf, boolean clear) {
 			this.buf = buf;
 			if (clear) {
@@ -518,7 +534,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 			refCount = 1;
 		}
 
-        /**
+		/**
          *
          */
 		@Override
@@ -530,7 +546,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 			refCount++;
 		}
 
-        /**
+		/**
          *
          */
 		@Override
@@ -559,95 +575,95 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 				containerStack.push(this);
 			}
 		}
-		
-        /**
-         *
-         * @return
-         */
+
+		/**
+		 * 
+		 * @return
+		 */
 		@Override
 		public java.nio.ByteBuffer buf() {
 			return buf.buf();
 		}
 
-        /**
-         *
-         * @return
-         */
+		/**
+		 * 
+		 * @return
+		 */
 		@Override
 		public boolean isDirect() {
 			return buf.buf().isDirect();
 		}
 
-        /**
-         *
-         * @return
-         */
+		/**
+		 * 
+		 * @return
+		 */
 		@Override
 		public boolean isReadOnly() {
 			return buf.buf().isReadOnly();
 		}
 
-        /**
-         *
-         * @return
-         */
+		/**
+		 * 
+		 * @return
+		 */
 		@Override
 		public boolean isAutoExpand() {
 			return autoExpand;
 		}
 
-        /**
-         *
-         * @param autoExpand
-         * @return
-         */
+		/**
+		 * 
+		 * @param autoExpand
+		 * @return
+		 */
 		@Override
 		public ByteBuffer setAutoExpand(boolean autoExpand) {
 			this.autoExpand = autoExpand;
 			return this;
 		}
 
-        /**
-         *
-         * @return
-         */
+		/**
+		 * 
+		 * @return
+		 */
 		@Override
 		public boolean isPooled() {
 			return buf.isPooled();
 		}
 
-        /**
-         *
-         * @param pooled
-         */
+		/**
+		 * 
+		 * @param pooled
+		 */
 		@Override
 		public void setPooled(boolean pooled) {
 			buf.setPooled(pooled);
 		}
 
-        /**
-         *
-         * @return
-         */
+		/**
+		 * 
+		 * @return
+		 */
 		@Override
 		public int capacity() {
 			return buf.buf().capacity();
 		}
 
-        /**
-         *
-         * @return
-         */
+		/**
+		 * 
+		 * @return
+		 */
 		@Override
 		public int position() {
 			return buf.buf().position();
 		}
 
-        /**
-         *
-         * @param newPosition
-         * @return
-         */
+		/**
+		 * 
+		 * @param newPosition
+		 * @return
+		 */
 		@Override
 		public ByteBuffer position(int newPosition) {
 			autoExpand(newPosition, 0);
@@ -655,20 +671,20 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 			return this;
 		}
 
-        /**
-         *
-         * @return
-         */
+		/**
+		 * 
+		 * @return
+		 */
 		@Override
 		public int limit() {
 			return buf.buf().limit();
 		}
 
-        /**
-         *
-         * @param newLimit
-         * @return
-         */
+		/**
+		 * 
+		 * @param newLimit
+		 * @return
+		 */
 		@Override
 		public ByteBuffer limit(int newLimit) {
 			autoExpand(newLimit, 0);
@@ -676,69 +692,69 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 			return this;
 		}
 
-        /**
-         *
-         * @return
-         */
+		/**
+		 * 
+		 * @return
+		 */
 		@Override
 		public ByteBuffer mark() {
 			buf.buf().mark();
 			return this;
 		}
 
-        /**
-         *
-         * @return
-         */
+		/**
+		 * 
+		 * @return
+		 */
 		@Override
 		public ByteBuffer reset() {
 			buf.buf().reset();
 			return this;
 		}
 
-        /**
-         *
-         * @return
-         */
+		/**
+		 * 
+		 * @return
+		 */
 		@Override
 		public ByteBuffer clear() {
 			buf.buf().clear();
 			return this;
 		}
 
-        /**
-         *
-         * @return
-         */
+		/**
+		 * 
+		 * @return
+		 */
 		@Override
 		public ByteBuffer flip() {
 			buf.buf().flip();
 			return this;
 		}
 
-        /**
-         *
-         * @return
-         */
+		/**
+		 * 
+		 * @return
+		 */
 		@Override
 		public ByteBuffer rewind() {
 			buf.buf().rewind();
 			return this;
 		}
 
-        /**
-         *
-         * @return
-         */
+		/**
+		 * 
+		 * @return
+		 */
 		@Override
 		public int remaining() {
 			return buf.buf().remaining();
 		}
 
-        /**
-         *
-         * @return
-         */
+		/**
+		 * 
+		 * @return
+		 */
 		@Override
 		public ByteBuffer duplicate() {
 			PooledByteBuffer newBuf = allocateContainer();
@@ -747,10 +763,10 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 			return newBuf;
 		}
 
-        /**
-         *
-         * @return
-         */
+		/**
+		 * 
+		 * @return
+		 */
 		@Override
 		public ByteBuffer slice() {
 			PooledByteBuffer newBuf = allocateContainer();
@@ -759,10 +775,10 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 			return newBuf;
 		}
 
-        /**
-         *
-         * @return
-         */
+		/**
+		 * 
+		 * @return
+		 */
 		@Override
 		public ByteBuffer asReadOnlyBuffer() {
 			PooledByteBuffer newBuf = allocateContainer();
@@ -771,20 +787,20 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 			return newBuf;
 		}
 
-        /**
-         *
-         * @return
-         */
+		/**
+		 * 
+		 * @return
+		 */
 		@Override
 		public byte get() {
 			return buf.buf().get();
 		}
 
-        /**
-         *
-         * @param b
-         * @return
-         */
+		/**
+		 * 
+		 * @param b
+		 * @return
+		 */
 		@Override
 		public ByteBuffer put(byte b) {
 			autoExpand(1);
@@ -792,22 +808,22 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 			return this;
 		}
 
-        /**
-         *
-         * @param index
-         * @return
-         */
+		/**
+		 * 
+		 * @param index
+		 * @return
+		 */
 		@Override
 		public byte get(int index) {
 			return buf.buf().get(index);
 		}
 
-        /**
-         *
-         * @param index
-         * @param b
-         * @return
-         */
+		/**
+		 * 
+		 * @param index
+		 * @param b
+		 * @return
+		 */
 		@Override
 		public ByteBuffer put(int index, byte b) {
 			autoExpand(index, 1);
@@ -815,24 +831,24 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 			return this;
 		}
 
-        /**
-         *
-         * @param dst
-         * @param offset
-         * @param length
-         * @return
-         */
+		/**
+		 * 
+		 * @param dst
+		 * @param offset
+		 * @param length
+		 * @return
+		 */
 		@Override
 		public ByteBuffer get(byte[] dst, int offset, int length) {
 			buf.buf().get(dst, offset, length);
 			return this;
 		}
 
-        /**
-         *
-         * @param src
-         * @return
-         */
+		/**
+		 * 
+		 * @param src
+		 * @return
+		 */
 		@Override
 		public ByteBuffer put(java.nio.ByteBuffer src) {
 			autoExpand(src.remaining());
@@ -840,13 +856,13 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 			return this;
 		}
 
-        /**
-         *
-         * @param src
-         * @param offset
-         * @param length
-         * @return
-         */
+		/**
+		 * 
+		 * @param src
+		 * @param offset
+		 * @param length
+		 * @return
+		 */
 		@Override
 		public ByteBuffer put(byte[] src, int offset, int length) {
 			autoExpand(length);
@@ -854,59 +870,59 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 			return this;
 		}
 
-        /**
-         *
-         * @return
-         */
+		/**
+		 * 
+		 * @return
+		 */
 		@Override
 		public ByteBuffer compact() {
 			buf.buf().compact();
 			return this;
 		}
 
-        /**
-         *
-         * @param that
-         * @return
-         */
+		/**
+		 * 
+		 * @param that
+		 * @return
+		 */
 		public int compareTo(ByteBuffer that) {
 			return this.buf.buf().compareTo(that.buf());
 		}
 
-        /**
-         *
-         * @return
-         */
+		/**
+		 * 
+		 * @return
+		 */
 		@Override
 		public ByteOrder order() {
 			return buf.buf().order();
 		}
 
-        /**
-         *
-         * @param bo
-         * @return
-         */
+		/**
+		 * 
+		 * @param bo
+		 * @return
+		 */
 		@Override
 		public ByteBuffer order(ByteOrder bo) {
 			buf.buf().order(bo);
 			return this;
 		}
 
-        /**
-         *
-         * @return
-         */
+		/**
+		 * 
+		 * @return
+		 */
 		@Override
 		public char getChar() {
 			return buf.buf().getChar();
 		}
 
-        /**
-         *
-         * @param value
-         * @return
-         */
+		/**
+		 * 
+		 * @param value
+		 * @return
+		 */
 		@Override
 		public ByteBuffer putChar(char value) {
 			autoExpand(2);
@@ -914,22 +930,22 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 			return this;
 		}
 
-        /**
-         *
-         * @param index
-         * @return
-         */
+		/**
+		 * 
+		 * @param index
+		 * @return
+		 */
 		@Override
 		public char getChar(int index) {
 			return buf.buf().getChar(index);
 		}
 
-        /**
-         *
-         * @param index
-         * @param value
-         * @return
-         */
+		/**
+		 * 
+		 * @param index
+		 * @param value
+		 * @return
+		 */
 		@Override
 		public ByteBuffer putChar(int index, char value) {
 			autoExpand(index, 2);
@@ -937,29 +953,29 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 			return this;
 		}
 
-        /**
-         *
-         * @return
-         */
+		/**
+		 * 
+		 * @return
+		 */
 		@Override
 		public CharBuffer asCharBuffer() {
 			return buf.buf().asCharBuffer();
 		}
 
-        /**
-         *
-         * @return
-         */
+		/**
+		 * 
+		 * @return
+		 */
 		@Override
 		public short getShort() {
 			return buf.buf().getShort();
 		}
 
-        /**
-         *
-         * @param value
-         * @return
-         */
+		/**
+		 * 
+		 * @param value
+		 * @return
+		 */
 		@Override
 		public ByteBuffer putShort(short value) {
 			autoExpand(2);
@@ -967,22 +983,22 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 			return this;
 		}
 
-        /**
-         *
-         * @param index
-         * @return
-         */
+		/**
+		 * 
+		 * @param index
+		 * @return
+		 */
 		@Override
 		public short getShort(int index) {
 			return buf.buf().getShort(index);
 		}
 
-        /**
-         *
-         * @param index
-         * @param value
-         * @return
-         */
+		/**
+		 * 
+		 * @param index
+		 * @param value
+		 * @return
+		 */
 		@Override
 		public ByteBuffer putShort(int index, short value) {
 			autoExpand(index, 2);
@@ -990,29 +1006,29 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 			return this;
 		}
 
-        /**
-         *
-         * @return
-         */
+		/**
+		 * 
+		 * @return
+		 */
 		@Override
 		public ShortBuffer asShortBuffer() {
 			return buf.buf().asShortBuffer();
 		}
 
-        /**
-         *
-         * @return
-         */
+		/**
+		 * 
+		 * @return
+		 */
 		@Override
 		public int getInt() {
 			return buf.buf().getInt();
 		}
 
-        /**
-         *
-         * @param value
-         * @return
-         */
+		/**
+		 * 
+		 * @param value
+		 * @return
+		 */
 		@Override
 		public ByteBuffer putInt(int value) {
 			autoExpand(4);
@@ -1020,22 +1036,22 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 			return this;
 		}
 
-        /**
-         *
-         * @param index
-         * @return
-         */
+		/**
+		 * 
+		 * @param index
+		 * @return
+		 */
 		@Override
 		public int getInt(int index) {
 			return buf.buf().getInt(index);
 		}
 
-        /**
-         *
-         * @param index
-         * @param value
-         * @return
-         */
+		/**
+		 * 
+		 * @param index
+		 * @param value
+		 * @return
+		 */
 		@Override
 		public ByteBuffer putInt(int index, int value) {
 			autoExpand(index, 4);
@@ -1043,29 +1059,29 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 			return this;
 		}
 
-        /**
-         *
-         * @return
-         */
+		/**
+		 * 
+		 * @return
+		 */
 		@Override
 		public IntBuffer asIntBuffer() {
 			return buf.buf().asIntBuffer();
 		}
 
-        /**
-         *
-         * @return
-         */
+		/**
+		 * 
+		 * @return
+		 */
 		@Override
 		public long getLong() {
 			return buf.buf().getLong();
 		}
 
-        /**
-         *
-         * @param value
-         * @return
-         */
+		/**
+		 * 
+		 * @param value
+		 * @return
+		 */
 		@Override
 		public ByteBuffer putLong(long value) {
 			autoExpand(8);
@@ -1073,22 +1089,22 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 			return this;
 		}
 
-        /**
-         *
-         * @param index
-         * @return
-         */
+		/**
+		 * 
+		 * @param index
+		 * @return
+		 */
 		@Override
 		public long getLong(int index) {
 			return buf.buf().getLong(index);
 		}
 
-        /**
-         *
-         * @param index
-         * @param value
-         * @return
-         */
+		/**
+		 * 
+		 * @param index
+		 * @param value
+		 * @return
+		 */
 		@Override
 		public ByteBuffer putLong(int index, long value) {
 			autoExpand(index, 8);
@@ -1096,29 +1112,29 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 			return this;
 		}
 
-        /**
-         *
-         * @return
-         */
+		/**
+		 * 
+		 * @return
+		 */
 		@Override
 		public LongBuffer asLongBuffer() {
 			return buf.buf().asLongBuffer();
 		}
 
-        /**
-         *
-         * @return
-         */
+		/**
+		 * 
+		 * @return
+		 */
 		@Override
 		public float getFloat() {
 			return buf.buf().getFloat();
 		}
 
-        /**
-         *
-         * @param value
-         * @return
-         */
+		/**
+		 * 
+		 * @param value
+		 * @return
+		 */
 		@Override
 		public ByteBuffer putFloat(float value) {
 			autoExpand(4);
@@ -1126,22 +1142,22 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 			return this;
 		}
 
-        /**
-         *
-         * @param index
-         * @return
-         */
+		/**
+		 * 
+		 * @param index
+		 * @return
+		 */
 		@Override
 		public float getFloat(int index) {
 			return buf.buf().getFloat(index);
 		}
 
-        /**
-         *
-         * @param index
-         * @param value
-         * @return
-         */
+		/**
+		 * 
+		 * @param index
+		 * @param value
+		 * @return
+		 */
 		@Override
 		public ByteBuffer putFloat(int index, float value) {
 			autoExpand(index, 4);
@@ -1149,29 +1165,29 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 			return this;
 		}
 
-        /**
-         *
-         * @return
-         */
+		/**
+		 * 
+		 * @return
+		 */
 		@Override
 		public FloatBuffer asFloatBuffer() {
 			return buf.buf().asFloatBuffer();
 		}
 
-        /**
-         *
-         * @return
-         */
+		/**
+		 * 
+		 * @return
+		 */
 		@Override
 		public double getDouble() {
 			return buf.buf().getDouble();
 		}
 
-        /**
-         *
-         * @param value
-         * @return
-         */
+		/**
+		 * 
+		 * @param value
+		 * @return
+		 */
 		@Override
 		public ByteBuffer putDouble(double value) {
 			autoExpand(8);
@@ -1179,22 +1195,22 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 			return this;
 		}
 
-        /**
-         *
-         * @param index
-         * @return
-         */
+		/**
+		 * 
+		 * @param index
+		 * @return
+		 */
 		@Override
 		public double getDouble(int index) {
 			return buf.buf().getDouble(index);
 		}
 
-        /**
-         *
-         * @param index
-         * @param value
-         * @return
-         */
+		/**
+		 * 
+		 * @param index
+		 * @param value
+		 * @return
+		 */
 		@Override
 		public ByteBuffer putDouble(int index, double value) {
 			autoExpand(index, 8);
@@ -1202,20 +1218,20 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 			return this;
 		}
 
-        /**
-         *
-         * @return
-         */
+		/**
+		 * 
+		 * @return
+		 */
 		@Override
 		public DoubleBuffer asDoubleBuffer() {
 			return buf.buf().asDoubleBuffer();
 		}
 
-        /**
-         *
-         * @param expectedRemaining
-         * @return
-         */
+		/**
+		 * 
+		 * @param expectedRemaining
+		 * @return
+		 */
 		@Override
 		public ByteBuffer expand(int expectedRemaining) {
 			if (autoExpand) {
@@ -1230,12 +1246,12 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 			return this;
 		}
 
-        /**
-         *
-         * @param pos
-         * @param expectedRemaining
-         * @return
-         */
+		/**
+		 * 
+		 * @param pos
+		 * @param expectedRemaining
+		 * @return
+		 */
 		@Override
 		public ByteBuffer expand(int pos, int expectedRemaining) {
 			if (autoExpand) {
@@ -1249,10 +1265,10 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 			return this;
 		}
 
-        /**
-         *
-         * @param requestedCapacity
-         */
+		/**
+		 * 
+		 * @param requestedCapacity
+		 */
 		private void ensureCapacity(int requestedCapacity) {
 			if (requestedCapacity <= buf.buf().capacity()) {
 				return;
@@ -1284,41 +1300,41 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 			oldBuf.release();
 		}
 
-        /**
-         *
-         * @return
-         */
+		/**
+		 * 
+		 * @return
+		 */
 		@Override
 		public byte[] array() {
 			// TODO Auto-generated method stub
 			return null;
 		}
 
-        /**
-         *
-         * @return
-         */
+		/**
+		 * 
+		 * @return
+		 */
 		@Override
 		public int arrayOffset() {
 			// TODO Auto-generated method stub
 			return 0;
 		}
 
-        /**
-         *
-         * @param newCapacity
-         * @return
-         */
+		/**
+		 * 
+		 * @param newCapacity
+		 * @return
+		 */
 		@Override
 		public ByteBuffer capacity(int newCapacity) {
 			// TODO Auto-generated method stub
 			return null;
 		}
 
-        /**
-         *
-         * @return
-         */
+		/**
+		 * 
+		 * @return
+		 */
 		@Override
 		public int markValue() {
 			// TODO Auto-generated method stub
@@ -1327,41 +1343,44 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 	}
 
-    /**
+	/**
      *
      */
 	private class UnexpandableByteBuffer {
-        /**
+		/**
          *
          */
-        private final java.nio.ByteBuffer buf;
-        /**
+		private final java.nio.ByteBuffer buf;
+
+		/**
          *
          */
 		private final UnexpandableByteBuffer parentBuf;
-        /**
+
+		/**
          *
          */
 		private int refCount;
-        /**
+
+		/**
          *
          */
 		private boolean pooled;
 
-        /**
-         *
-         * @param buf
-         */
-        protected UnexpandableByteBuffer(java.nio.ByteBuffer buf) {
+		/**
+		 * 
+		 * @param buf
+		 */
+		protected UnexpandableByteBuffer(java.nio.ByteBuffer buf) {
 			this.buf = buf;
 			this.parentBuf = null;
 		}
 
-        /**
-         *
-         * @param buf
-         * @param parentBuf
-         */
+		/**
+		 * 
+		 * @param buf
+		 * @param parentBuf
+		 */
 		protected UnexpandableByteBuffer(java.nio.ByteBuffer buf,
 				UnexpandableByteBuffer parentBuf) {
 			parentBuf.acquire();
@@ -1369,7 +1388,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 			this.parentBuf = parentBuf;
 		}
 
-        /**
+		/**
          *
          */
 		public void init() {
@@ -1377,7 +1396,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 			pooled = true;
 		}
 
-        /**
+		/**
          *
          */
 		public synchronized void acquire() {
@@ -1393,7 +1412,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 			refCount++;
 		}
 
-        /**
+		/**
          *
          */
 		public void release() {
@@ -1429,34 +1448,34 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 			}
 		}
 
-        /**
-         *
-         * @return
-         */
+		/**
+		 * 
+		 * @return
+		 */
 		public java.nio.ByteBuffer buf() {
 			return buf;
 		}
 
-        /**
-         *
-         * @return
-         */
+		/**
+		 * 
+		 * @return
+		 */
 		public boolean isPooled() {
 			return pooled;
 		}
 
-        /**
-         *
-         * @param pooled
-         */
+		/**
+		 * 
+		 * @param pooled
+		 */
 		public void setPooled(boolean pooled) {
 			this.pooled = pooled;
 		}
 
-        /**
-         *
-         * @return
-         */
+		/**
+		 * 
+		 * @return
+		 */
 		public boolean isDerived() {
 			return parentBuf != null;
 		}

@@ -19,15 +19,15 @@ package org.red5.server.service;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.fail;
+
 import java.util.ArrayList;
 import java.util.Set;
 
-import static junit.framework.Assert.*;
-
 import org.apache.commons.beanutils.ConversionException;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author The Red5 Project (red5@osflash.org)
@@ -39,7 +39,7 @@ public class ConversionUtilsTest {
 
 	}
 
-	private static final Logger log = LoggerFactory.getLogger(ConversionUtilsTest.class);
+	//private static final Logger log = LoggerFactory.getLogger(ConversionUtilsTest.class);
 
 	@Test
 	public void testBasic() {
@@ -53,13 +53,13 @@ public class ConversionUtilsTest {
 
 	@Test
 	public void testConvertListToStringArray() {
-		ArrayList source = new ArrayList();
+		ArrayList<String> source = new ArrayList<String>();
 
 		source.add("Testing 1");
 		source.add("Testing 2");
 		source.add("Testing 3");
 
-		Class target = (new String[0]).getClass();
+		Class<? extends String[]> target = (new String[0]).getClass();
 
 		Object result = ConversionUtils.convert(source, target);
 		if (!(result.getClass().isArray() && result.getClass()
@@ -81,7 +81,7 @@ public class ConversionUtilsTest {
 		source[1] = Boolean.FALSE;
 		source[2] = "Woot";
 
-		Class target = (new String[0]).getClass();
+		Class<? extends String[]> target = (new String[0]).getClass();
 
 		Object result = ConversionUtils.convert(source, target);
 		if (!(result.getClass().isArray() && result.getClass()
@@ -105,7 +105,7 @@ public class ConversionUtilsTest {
 		if (!(result instanceof Set)) {
 			fail("Should be a set");
 		}
-		Set results = (Set) result;
+		Set<?> results = (Set<?>) result;
 		assertEquals(results.size(), source.length);
 
 	}

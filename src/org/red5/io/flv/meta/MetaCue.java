@@ -94,7 +94,7 @@ public class MetaCue<K, V> extends HashMap<String, Object> implements IMetaCue {
 
 	/** {@inheritDoc} */
     public int compareTo(Object arg0) {
-		MetaCue cp = (MetaCue) arg0;
+		MetaCue<?, ?> cp = (MetaCue<?, ?>) arg0;
 		double cpTime = cp.getTime();
 		double thisTime = this.getTime();
 

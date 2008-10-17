@@ -541,6 +541,7 @@ implements IBWControlService {
 		
 		private IBWControllable controllable;
 		
+		@SuppressWarnings("unchecked")
 		public BWContext(IBWControllable controllable) {
 			this.controllable = controllable;
 			Arrays.fill(tokenRc, 0);

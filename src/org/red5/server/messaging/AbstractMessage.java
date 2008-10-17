@@ -42,7 +42,7 @@ public class AbstractMessage implements IMessage {
     /**
      * {@inheritDoc}
      */
-	protected Map extraHeaders = null;
+	protected Map<?, ?> extraHeaders = null;
 
 	/** {@inheritDoc} */
     public String getMessageID() {

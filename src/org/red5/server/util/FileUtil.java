@@ -330,9 +330,11 @@ public class FileUtil {
 		
 		//strip everything except the applications name
 		String dirName = compressedFileName.substring(0, compressedFileName.indexOf('-'));
+		log.debug("Directory: {}", dirName);
 		//String tmpDir = System.getProperty("java.io.tmpdir");
 		File zipDir = new File(compressedFileName);
 		File parent = zipDir.getParentFile();
+		log.debug("Parent: {}", (parent != null ? parent.getName() : null));
 		//File tmpDir = new File(System.getProperty("java.io.tmpdir"), dirName);
 		File tmpDir = new File(destinationDir);
 
@@ -341,7 +343,7 @@ public class FileUtil {
 		
 		try {
 			ZipFile zf = new ZipFile(compressedFileName);
-			Enumeration e = zf.entries();
+			Enumeration<?> e = zf.entries();
 			while(e.hasMoreElements()) {
 				ZipEntry ze = (ZipEntry) e.nextElement();
 				log.debug("Unzipping {}", ze.getName());

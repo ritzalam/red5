@@ -26,7 +26,7 @@ package org.red5.io.flv.meta;
  * @author The Red5 Project (red5@osflash.org)
  * @author Dominick Accattato (daccattato@gmail.com)
  */
-public interface IMetaCue extends IMeta, Comparable {
+public interface IMetaCue extends IMeta, Comparable<Object> {
 
 	/**
 	 * Sets the name

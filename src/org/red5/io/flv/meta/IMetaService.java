@@ -54,14 +54,14 @@ public interface IMetaService {
 	 * @param meta              Metadata
 	 * @throws IOException      I/O exception
 	 */
-	public void write(IMetaData meta) throws IOException;
+	public void write(IMetaData<?, ?> meta) throws IOException;
 
 	/**
 	 * Writes the MetaData
 	 * 
 	 * @param metaData          Metadata
 	 */
-	public void writeMetaData(IMetaData metaData);
+	public void writeMetaData(IMetaData<?, ?> metaData);
 
 	/**
 	 * Writes the Meta Cue Points
@@ -74,7 +74,7 @@ public interface IMetaService {
 	 * @return metaData         Metadata
      * @param buffer            Byte buffer source
 	 */
-	public MetaData readMetaData(ByteBuffer buffer);
+	public MetaData<?, ?> readMetaData(ByteBuffer buffer);
 
 	/**
 	 * Read the Meta Cue Points
