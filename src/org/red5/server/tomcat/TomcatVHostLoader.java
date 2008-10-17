@@ -434,8 +434,7 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 				log.debug("Valve name: {}", s);
 			}
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.error("", e);
 		}
 
 		Valve[] valves = ((StandardHost) host).getValves();
