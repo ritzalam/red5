@@ -25,10 +25,10 @@ import static org.red5.server.api.ScopeUtils.isRoom;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -1040,17 +1040,16 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
      * Cleans up ghost connections
      */
     protected void killGhostConnections() {
-        Iterator<IConnection> iter = getConnectionsIter();
-        while (iter.hasNext()) {
-            IConnection conn = iter.next();
-
-            // Ping client
-            conn.ping();
-
-            // Time to live exceeded, disconnect
-            if (conn.getLastPingTime() > clientTTL * 1000) {
-                disconnect(conn, scope);    
-            }
+		Collection<Set<IConnection>> conns = getConnections();
+		for (Set<IConnection> set : conns) {
+			for (IConnection conn : set) {
+                // Ping client
+                conn.ping();
+                // Time to live exceeded, disconnect
+                if (conn.getLastPingTime() > clientTTL * 1000) {
+                    disconnect(conn, scope);    
+                }
+			}
         }
     }
     

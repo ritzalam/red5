@@ -20,6 +20,7 @@ package org.red5.server.adapter;
  */
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -150,11 +151,11 @@ public class StatefulScopeWrappingAdapter extends AbstractScopeAdapter
 	}
 
 	/**
-     * Return for connections iterator
+     * Returns all connections in the scope
      *
      * @return  Connections
      */
-    public Iterator<IConnection> getConnectionsIter() {
+    public Collection<Set<IConnection>> getConnections() {
 		return scope.getConnections();
 	}
 

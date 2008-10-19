@@ -302,9 +302,9 @@ public class ScopeUtils {
 					break;
 				}
 
-				if (!current.hasParent())
+				if (!current.hasParent()) {
 					break;
-
+				}
 				current = current.getParent();
 			}
 		}
@@ -332,7 +332,7 @@ public class ScopeUtils {
 			try {
 				handler = defaultClass.newInstance();
 			} catch (Exception e) {
-				log.error("{}", e);
+				log.error("", e);
 			}
 		}
 

@@ -19,8 +19,8 @@ package org.red5.server.api.service;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 import org.red5.server.api.IClient;
@@ -214,11 +214,10 @@ public class ServiceUtils {
 		Set<IConnection> connections;
 		if (client == null) {
 			connections = new HashSet<IConnection>();
-			Iterator<IConnection> iter = scope.getConnections();
-			while (iter.hasNext()) {
-				connections.add(iter.next());
-			}
-			iter = null;
+			Collection<Set<IConnection>> conns = scope.getConnections();
+			for (Set<IConnection> set : conns) {
+				connections.addAll(set);
+			}			
 		} else {
 			connections = scope.lookupConnections(client);
 			if (connections == null) {
@@ -325,11 +324,10 @@ public class ServiceUtils {
 		Set<IConnection> connections;
 		if (client == null) {
 			connections = new HashSet<IConnection>();
-			Iterator<IConnection> iter = scope.getConnections();
-			while (iter.hasNext()) {
-				connections.add(iter.next());
+			Collection<Set<IConnection>> conns = scope.getConnections();
+			for (Set<IConnection> set : conns) {
+				connections.addAll(set);
 			}
-			iter = null;
 		} else {
 			connections = scope.lookupConnections(client);
 		}

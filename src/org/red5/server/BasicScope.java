@@ -49,7 +49,7 @@ public abstract class BasicScope extends PersistableAttributeStore implements
      */
 	protected Set<IEventListener> listeners;
     /**
-     * Scope persistence storate type
+     * Scope persistence storage type
      */
 	protected String persistenceClass;
 	/**

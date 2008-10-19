@@ -20,6 +20,7 @@ package org.red5.server;
  */
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -210,7 +211,7 @@ public interface ScopeMBean {
 	 * Return connection iterator
 	 * @return                Connections iterator
 	 */
-	public Iterator<IConnection> getConnections();
+	public Collection<Set<IConnection>> getConnections();
 
 	/**
 	 * Create child scope with given name

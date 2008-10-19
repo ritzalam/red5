@@ -20,10 +20,10 @@ package org.red5.server;
  */
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -72,101 +72,6 @@ import org.springframework.core.style.ToStringCreator;
  */
 public class Scope extends BasicScope implements IScope, IScopeStatistics,
 		ScopeMBean {
-
-	/**
-	 * Iterates through connections
-	 */
-	class ConnectionIterator implements Iterator<IConnection> {
-		/**
-		 * Connections iterator
-		 */
-		private Iterator<IConnection> connIterator;
-
-		/**
-		 * Current connection
-		 */
-		private IConnection current;
-
-		/**
-		 * Set iterator
-		 */
-		private final Iterator<Set<IConnection>> setIterator;
-
-		/**
-		 * Creates connection iterator
-		 */
-		public ConnectionIterator() {
-			setIterator = clients.values().iterator();
-		}
-
-		/**
-		 * {@inheritDoc}
-		 */
-		public boolean hasNext() {
-			if (connIterator != null && connIterator.hasNext()) {
-				// More connections for this client
-				return true;
-			}
-
-			if (!setIterator.hasNext()) {
-				// No more clients
-				return false;
-			}
-
-			connIterator = setIterator.next().iterator();
-			while (connIterator != null) {
-				if (connIterator.hasNext()) {
-					// Found client with connections
-					return true;
-				}
-
-				if (!setIterator.hasNext()) {
-					// No more clients
-					return false;
-				}
-
-				// Advance to next client
-				connIterator = setIterator.next().iterator();
-			}
-			return false;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 */
-		public IConnection next() {
-			if (connIterator == null || !connIterator.hasNext()) {
-				if (!setIterator.hasNext()) {
-					// No more clients
-					throw new NoSuchElementException();
-				}
-
-				connIterator = setIterator.next().iterator();
-				while (!connIterator.hasNext()) {
-					// Client has no connections, search next one
-					if (!setIterator.hasNext()) {
-						// No more clients
-						throw new NoSuchElementException();
-					}
-
-					connIterator = setIterator.next().iterator();
-				}
-			}
-			// Always of type IConnection, no need to cast
-			current = connIterator.next();
-			return current;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 */
-		public void remove() {
-			if (current != null) {
-				disconnect(current);
-			}
-		}
-
-	}
 
 	/**
 	 * Iterator that filters strings by given prefix
@@ -249,7 +154,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	private static final int UNSET = -1;
 
 	/**
-	 * Autostart flag
+	 * Auto-start flag
 	 */
 	private boolean autoStart = true;
 
@@ -353,6 +258,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 *         accepts child scope addition), <code>false</code> otherwise
 	 */
 	public boolean addChildScope(IBasicScope scope) {
+		log.debug("Add child: {}", scope);
 		if (scope.getStore() == null) {
 			// Child scope has no persistence store, use same class as parent.
 			try {
@@ -360,7 +266,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 					((Scope) scope).setPersistenceClass(this.persistenceClass);
 				}
 			} catch (Exception error) {
-				log.error("Could not set persistence class. {}", error);
+				log.error("Could not set persistence class.", error);
 			}
 		}
 		if (hasHandler() && !getHandler().addChildScope(scope)) {
@@ -373,8 +279,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 				log.debug("Failed to start child scope: {} in {}", scope, this);
 				return false;
 			}
-		}
-		if (scope instanceof IScope) {
+
 			final IServer server = getServer();
 			if (server instanceof Server) {
 				((Server) server).notifyScopeCreated((IScope) scope);
@@ -409,7 +314,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 * @return <code>true</code> on success, <code>false</code> otherwise
 	 */
 	public boolean connect(IConnection conn, Object[] params) {
-//		logger.debug("Has connection: {}", (conn != null));		
+		log.debug("Connect: {}", conn);
 //		logger.debug("Has handler: {}", (handler != null));
 //		logger.debug("Has parent: {}", (parent != null));		
 		if (hasParent() && !parent.connect(conn, params)) {
@@ -425,7 +330,6 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 		}
 		//we would not get this far if there is no handler
 		if (hasHandler() && !getHandler().join(client, this)) {
-		//if (!getHandler().join(client, this)) {
 			return false;
 		}
 		//checking the connection again? why?
@@ -477,15 +381,8 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 			parent.removeChildScope(this);
 		}
 		if (hasHandler()) {
-			//--------------------------------
-			// Nathan Smith
-			// Changed from:
-			// handler.stop(this)
-			// to:
-			// getHandler.stop(this)
 			// Because handler can be null when there is a parent handler
 			getHandler().stop(this);
-			//--------------------------------
 		}
 		// TODO: kill all child scopes
 		Set<Map.Entry<String, IBasicScope>> entries = children.entrySet();
@@ -505,6 +402,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 *            Connection object
 	 */
 	public void disconnect(IConnection conn) {
+		log.debug("Disconnect: {}", conn);
 		// We call the disconnect handlers in reverse order they were called
 		// during connection, i.e. roomDisconnect is called before
 		// appDisconnect.
@@ -561,12 +459,14 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	/** {@inheritDoc} */
 	@Override
 	public void dispatchEvent(IEvent event) {
-		Iterator<IConnection> conns = getConnections();
-		while (conns.hasNext()) {
-			try {
-				conns.next().dispatchEvent(event);
-			} catch (RuntimeException e) {
-				log.error("{}", e);
+		Collection<Set<IConnection>> conns = getConnections();
+		for (Set<IConnection> set : conns) {
+			for (IConnection conn : set) {
+				try {
+					conn.dispatchEvent(event);
+				} catch (RuntimeException e) {
+					log.error("", e);
+				}
 			}
 		}
 	}
@@ -640,8 +540,8 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 * 
 	 * @return Connections iterator
 	 */
-	public Iterator<IConnection> getConnections() {
-		return new ConnectionIterator();
+	public Collection<Set<IConnection>> getConnections() {
+		return clients.values();
 	}
 
 	/**
