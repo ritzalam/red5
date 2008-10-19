@@ -79,6 +79,14 @@ public interface IBasicScope extends ICoreObject, IEventObservable,
 	public String getType();
 	
 	/**
+	 * Sets the amount of time to keep the scope available after the
+	 * last disconnect.
+	 * 
+	 * @param keepDelay
+	 */
+	public void setKeepDelay(int keepDelay);
+	
+	/**
 	 * Lock handling - attempts to obtain a lock
 	 */
 	public void lock();

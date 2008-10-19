@@ -28,6 +28,8 @@ import org.red5.server.api.IScope;
 import org.red5.server.api.ScopeUtils;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.event.IEventListener;
+import org.red5.server.api.scheduling.IScheduledJob;
+import org.red5.server.api.scheduling.ISchedulingService;
 
 /**
  *  Generalizations of one of main Red5 object types, Scope.
@@ -38,24 +40,34 @@ import org.red5.server.api.event.IEventListener;
  */
 public abstract class BasicScope extends PersistableAttributeStore implements
 		IBasicScope {
+	
     /**
      * Parent scope. Scopes can be nested.
      *
      * @see org.red5.server.api.IScope
      */
 	protected IScope parent;
+	
     /**
      * List of event listeners
      */
 	protected Set<IEventListener> listeners;
+	
     /**
      * Scope persistence storage type
      */
 	protected String persistenceClass;
+	
 	/**
 	 * Set to true to prevent the scope from being freed upon disconnect.
 	 */
 	protected boolean keepOnDisconnect = false;
+	
+	/**
+	 * Set to amount of time (in seconds) the scope will be kept before being freed,
+	 * after the last disconnect.
+	 */
+	protected int keepDelay = 0;
 
     /**
      * Constructor for basic scope
@@ -101,7 +113,17 @@ public abstract class BasicScope extends PersistableAttributeStore implements
 		return parent.getPath() + '/' + parent.getName();
 	}
 
-    /**
+	/**
+	 * Sets the amount of time to keep the scope available after the
+	 * last disconnect.
+	 * 
+	 * @param keepDelay
+	 */
+	public void setKeepDelay(int keepDelay) {
+		this.keepDelay = keepDelay;
+	}
+
+	/**
      * Add event listener to list of notified objects
      * @param listener        Listening object
      */
@@ -115,9 +137,16 @@ public abstract class BasicScope extends PersistableAttributeStore implements
      */
 	public void removeEventListener(IEventListener listener) {
 		listeners.remove(listener);
-		if (!keepOnDisconnect && ScopeUtils.isRoom(this) && listeners.isEmpty()) {
-			// Delete empty rooms
-			parent.removeChildScope(this);
+		if (ScopeUtils.isRoom(this) && listeners.isEmpty()) {
+			if (!keepOnDisconnect && keepDelay > 0) {
+				// create a job to keep alive for n seconds
+				ISchedulingService schedulingService = (ISchedulingService) parent.getContext().getBean(
+						ISchedulingService.BEAN_NAME);
+				schedulingService.addScheduledOnceJob(keepDelay * 1000, new KeepAliveJob(this));
+			} else if (!keepOnDisconnect) {
+				// delete empty rooms
+				parent.removeChildScope(this);
+			}			
 		}
 	}
 
@@ -193,4 +222,25 @@ public abstract class BasicScope extends PersistableAttributeStore implements
 
 	}
 
+    /**
+     * Keeps the scope alive for a set number of seconds. This should
+     * fulfill the APPSERVER-165 improvement.
+     */
+    private class KeepAliveJob implements IScheduledJob {
+    	
+    	private IBasicScope scope = null;
+    	
+    	KeepAliveJob(IBasicScope scope) {
+    		this.scope = scope;
+    	}
+    	
+		public void execute(ISchedulingService service) {
+			if (listeners.isEmpty()) {
+				// delete empty rooms
+				parent.removeChildScope(scope);
+			}
+		}
+		
+    }
+    
 }

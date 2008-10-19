@@ -67,7 +67,6 @@ public class ServiceUtils {
 			IPendingServiceCallback callback) {
 		IConnection conn = Red5.getConnectionLocal();
 		return invokeOnConnection(conn, method, params, callback);
-
 	}
 
 	/**
@@ -283,7 +282,7 @@ public class ServiceUtils {
 	 * Notify a method on all connections to the current scope.
 	 * 
 	 * @param method
-	 * 			name of the method to notifynotify
+	 * 			name of the method to notify
 	 * @param params
 	 * 			parameters to pass to the method
 	 */

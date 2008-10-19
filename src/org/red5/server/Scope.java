@@ -179,7 +179,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	protected final StatisticsCounter connectionStats = new StatisticsCounter();
 
 	/**
-	 * Statistics about subscopes.
+	 * Statistics about sub-scopes.
 	 */
 	protected final StatisticsCounter subscopeStats = new StatisticsCounter();	
 	
