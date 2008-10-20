@@ -53,8 +53,8 @@
 	
 	<!-- JUNIT TESTING -->
 	<property name="test.dir" value="test"/>
-	<property name="testclass.dir" value="bin/testcases"/>
-	<property name="testreports.dir" value="${testclass.dir}/testreports"/>
+        <property name="testclass.dir" value="bin/testcases/classes"/>
+        <property name="testreports.dir" value="bin/testcases/testreports"/>
 	<property name="testdoc.dir" value="doc/test"/>
 	
 	<path id="project.classpath">
@@ -488,7 +488,6 @@
 			<link href="http://www.opensymphony.com/quartz/api"/>
 			<link href="http://www.slf4j.org/api"/>
 			<link href="http://logging.apache.org/log4j/1.2/apidocs"/>
-			<link href="http://www.beanshell.org/javadoc"/>
 			<link href="http://groovy.codehaus.org/api"/>
 			<link href="http://tomcat.apache.org/tomcat-6.0-doc/api"/>
 			<link href="http://ehcache.sourceforge.net/javadoc"/>
@@ -510,12 +509,12 @@
       	</sequential>
 	</macrodef>
 
-	<target name="jar" description="Make Archive" depends="compile">
-
+	<target name="jar-determine-classpath" description="Determine classpath for jar file" depends="compile" unless="jar.classpath">
 		<manifestclasspath property="jar.classpath" jarfile="${red5.filename}.jar">
 			<classpath refid="runtime.classpath"/>
 		</manifestclasspath>
-
+        </target>
+	<target name="jar" description="Make Archive" depends="jar-determine-classpath">
 		<jar destfile="${red5.filename}.jar">
 			<fileset dir="${classes.dir}">
 				<include name="**"/>
@@ -773,12 +772,12 @@
 	</target>
 
 	<target name="run-tests" depends="compile_tests" description="Run JUnit tests and generate HTML reports">
-		<junit fork="true" haltonfailure="no" printsummary="no" showoutput="no"
+		<junit fork="true" haltonfailure="no" printsummary="yes" showoutput="no"
 		       dir="${testreports.dir}">
 			<classpath>
 				<path refid="full.classpath"/>
 				<pathelement location="${testclass.dir}"/>
-                                <pathelement location="${testreports.dir}/dist/conf"/>
+                                <pathelement location="${testdist.dir}/conf"/>
 			</classpath>
 			<formatter type="xml"/>
 			<batchtest todir="${testreports.dir}">
@@ -797,24 +796,70 @@
 			<report format="frames" todir="${testdoc.dir}"/>
 		</junitreport>
 	</target>
+        <target name="run-tests-systemtest" depends="compile_tests" description="Runs some end-to-end system tests against a test server using a flash client">
+          <!-- Copy over all self-run scripts -->
+          <!-- Note we use cp, and not <copy> to preserve permission
+            semantics.  This means this target will NOT run directly
+            on Windows without Cygwin... which is fine because
+            all the shell scripts are .sh scripts.  It is left
+            as an exercise for the reader to develop a .bat version
+            that can actually run processes in the background.  -->
+          <!-- Lastly, don't use fully qualified paths here; that
+            can screw up Cygwin -->
+          <exec executable="cp">
+            <arg line="-rf" />
+            <arg line="${test.dir}/scripts" />
+            <arg line="${testdist.dir}/" />
+          </exec>
+          <exec executable="bash"
+            dir="${testreports.dir}/fixtures"
+            failonerror="true"
+            >
+            <arg line="${testdist.dir}/scripts/red5-flash-player-headless"/>
+            <arg line="red5-selftest.swf"/>
+            <env key="PATH" path="${env.PATH}:${testdist.dir}/scripts"/>
+            <env key="RED5_HOME" path="${testdist.dir}"/>
+          </exec>
+	</target>
+
+	<target name="run-tests-server" depends="compile_tests" description="Run the selftest server">
+		<echo message="Using ${testdist.dir} for Red5 root"/>
+		<mkdir dir="${testdist.dir}/${log.dir}"/>		
+		<java classname="org.red5.server.Standalone" fork="true" dir="${testdist.dir}">
+			<classpath>
+				<pathelement location="${testdist.dir}/conf"/>
+				<path id="dist.classpath">
+					<fileset dir="${testdist.dir}/lib"/>
+					<fileset dir="${testdist.dir}">
+						<filename name="red5.jar"/>
+					</fileset>
+				</path>
+			</classpath>
+			<jvmarg value="-Dpython.home=${testdist.dir}/lib"/>
+			<jvmarg value="-Djava.security.manager"/>
+			<jvmarg value="-Djava.security.policy=${testdist.dir}/conf/red5.policy"/>
+			<jvmarg value="-Dred5.root=${testdist.dir}"/>
+		</java>
+	</target>
 
 	<target name="compile_tests" depends="dist" description="Compiles junit test classes">
+		<property name="testdist.dir" location="${testreports.dir}/dist"/>
 		<echo>Making dist for testing</echo>
-		<mkdir dir="${testreports.dir}/dist"/>
+		<mkdir dir="${testdist.dir}"/>
 		<mkdir dir="${testreports.dir}/fixtures"/>
 		<mkdir dir="${testreports.dir}/log"/>
                 <!-- Give the tests their own dist installation to work with -->
 		<antcall target="dist" inheritAll="false" inheritRefs="false">
-			<param name="dist.dir" value="${testreports.dir}/dist"/>
+			<param name="dist.dir" value="${testdist.dir}"/>
 		</antcall>
                 <!-- Copy all test config files into the dist/conf of the
                   test distribution.  The JUnit task below will add this
                   directory to the classpath -->
-                <copy todir="${testreports.dir}/dist/conf" overwrite="true">
+                <copy todir="${testdist.dir}/conf" overwrite="true">
                   <fileset dir="${test.dir}" includes="**/*.xml" excludes="www/**/*"/>
                 </copy>
                 <!-- Install the silly self-test application that tests depend on -->
-                <copy todir="${testreports.dir}/dist/webapps/selftest" overwrite="true">
+                <copy todir="${testdist.dir}/webapps/selftest" overwrite="true">
                   <fileset dir="${test.dir}/www/" includes="**/*"/>
                 </copy>
                 <copy todir="${testreports.dir}/fixtures" overwrite="true">
@@ -834,6 +879,10 @@
 			</classpath>
 			<include name="**/*.java"/>
 		</javac>
+                <mkdir dir="${testdist.dir}/webapps/selftest/WEB-INF/classes" />
+                <copy todir="${testdist.dir}/webapps/selftest/WEB-INF/classes" overwrite="true">
+                  <fileset dir="${testclass.dir}" includes="**/*.class"/>
+                </copy>
 	</target>
 
 	<target name="webwar" description="Make Web Archive" depends="compile_war">
