@@ -19,7 +19,7 @@
 	<property name="classes.dir" value="bin"/>
 	<property name="webapps.dir" value="webapps"/>
 	<property name="webapps.build.dir" value="${dist.dir}/webapps"/>
-	<property name="config.dir" value="conf"/>
+	<property name="config.dir" value="src/conf"/>
 	<property name="javadoc.dir" value="doc/api"/>
 	<property name="debug.state" value="true"/>
 
@@ -213,7 +213,7 @@
 
 	<target name="compile" depends="-library.check, -java6.check, prepare" description="Compiles the server">
 		<!-- token replacement filers -->
-		<property name="filter.file" value="conf/build_standalone.properties"/>
+		<property name="filter.file" value="${config.dir}/build_standalone.properties"/>
 		<condition property="java.target_version" value="1.5">
 			<not>
 				<isset property="java.target_version"/>
@@ -381,7 +381,7 @@
 
 	<target name="compile_war" depends="-library.check, -java6.check, clean, prepare">
 		<!-- token replacement filers -->
-		<property name="filter.file" value="conf/war/build_war.properties"/>
+		<property name="filter.file" value="${config.dir}/war/build_war.properties"/>
 		<condition property="java.target_version" value="1.6">
 			<not>
 				<isset property="java.target_version"/>

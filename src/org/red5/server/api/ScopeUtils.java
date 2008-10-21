@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 
 /**
- * Collection of utils for working with scopes
+ * Collection of utilities for working with scopes
  */
 public class ScopeUtils {
 
@@ -285,11 +285,10 @@ public class ScopeUtils {
 		// We expect an interface
 		assert intf.isInterface();
 
-		if (scope.hasAttribute(IPersistable.TRANSIENT_PREFIX
-				+ SERVICE_CACHE_PREFIX + intf.getCanonicalName())) {
+		String attr = IPersistable.TRANSIENT_PREFIX + SERVICE_CACHE_PREFIX + intf.getCanonicalName();
+		if (scope.hasAttribute(attr)) {
 			// Return cached service
-			return scope.getAttribute(IPersistable.TRANSIENT_PREFIX
-					+ SERVICE_CACHE_PREFIX + intf.getCanonicalName());
+			return scope.getAttribute(attr);
 		}
 
 		Object handler = null;
@@ -337,8 +336,7 @@ public class ScopeUtils {
 		}
 
 		// Cache service
-		scope.setAttribute(IPersistable.TRANSIENT_PREFIX + SERVICE_CACHE_PREFIX
-				+ intf.getCanonicalName(), handler);
+		scope.setAttribute(attr, handler);
 		return handler;
 	}
 
