@@ -141,6 +141,8 @@ public class TomcatRTMPSLoader extends TomcatRTMPTLoader {
 			connector.setProperty(key, connectionProperties.get(key));
 		}		
 		
+		log.info("Connector info: {}", connector.getInfo());
+		
 		// start server
 		try {
     		// add new Connector to set of Connectors for embedded server,

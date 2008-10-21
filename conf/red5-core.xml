@@ -179,6 +179,14 @@
 		<property name="connectionProperties">
 			<map>
 				<entry>
+					<key><value>port</value></key>
+					<value>${rtmps.port}</value>
+				</entry>
+				<entry>
+					<key><value>redirectPort</value></key>
+					<value>${rtmp.port}</value>
+				</entry>
+				<entry>
 					<key><value>SSLEnabled</value></key>
 					<value>true</value>
 				</entry>

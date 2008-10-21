@@ -126,8 +126,7 @@ public class WebScope extends Scope implements ServletContextAware {
 	 * Can't set parent to Web scope. Web scope is top level.
 	 */
 	public void setParent() {
-		throw new RuntimeException(
-				"Cannot set parent, you must set global scope");
+		throw new RuntimeException("Cannot set parent, you must set global scope");
 	}
 
 	/**
