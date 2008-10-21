@@ -128,7 +128,12 @@ public class ProviderService implements IProviderService {
 			log.error("Problem getting file: {}", name, e);
 		}
 		if (file == null || !file.exists()) {
-			log.warn("File was null or did not exist: {}", name);
+			//if there is no file extension this is most likely a live stream
+			if (name.indexOf('.') > 0) {
+				log.info("File was null or did not exist: {}", name);
+			} else {
+				log.debug("VOD file {} was not found, may be live stream", name);
+			}
 			return null;
 		}
 		return file;

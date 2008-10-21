@@ -26,21 +26,13 @@ public class RTMPTClientConnection extends BaseRTMPTConnection {
 	
 	public RTMPTClientConnection() {
 		super(PERSISTENT);
+		this.state = new RTMP(RTMP.MODE_CLIENT);
 	}
 	
 	protected void onInactive() {
 		this.close();
 	}
 	
-	public void setClient(RTMPTClient handler) {
-		this.state = new RTMP(RTMP.MODE_CLIENT);
-		this.buffer = ByteBuffer.allocate(2048);
-		this.buffer.setAutoExpand(true);
-		this.handler = handler;
-		this.decoder = handler.getCodecFactory().getSimpleDecoder();
-		this.encoder = handler.getCodecFactory().getSimpleEncoder();
-	}
-
 	public ByteBuffer getPendingMessages(int targetSize) {
 		return foldPendingMessages(targetSize);
 	}

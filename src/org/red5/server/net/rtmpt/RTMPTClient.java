@@ -24,7 +24,6 @@ import java.util.Map;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.BaseRTMPClientHandler;
-import org.red5.server.net.rtmp.RTMPClientConnManager;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.message.Constants;
 import org.slf4j.Logger;
@@ -40,6 +39,7 @@ public class RTMPTClient extends BaseRTMPClientHandler {
 	private static final Logger log = LoggerFactory
 			.getLogger(RTMPTClient.class);
 
+	// guarded by this
 	private RTMPTClientConnector connector = null;
 	
 	public RTMPTClient() {
@@ -59,7 +59,6 @@ public class RTMPTClient extends BaseRTMPClientHandler {
 	}
 
 	protected synchronized void startConnector(String server, int port) {
-		connManager = new RTMPClientConnManager();
 		connector = new RTMPTClientConnector(server, port, this);
 		log.debug("Created connector {}", connector);
 		connector.start();
@@ -71,7 +70,6 @@ public class RTMPTClient extends BaseRTMPClientHandler {
 			Object in) throws Exception {
 		if (in instanceof ByteBuffer) {
 			rawBufferRecieved(conn, state, (ByteBuffer) in);
-			((ByteBuffer) in).release();
 		} else {
 			super.messageReceived(conn, state, in);
 		}
@@ -93,13 +91,9 @@ public class RTMPTClient extends BaseRTMPClientHandler {
 		log.debug("Handshake 3d phase - size: {}", in.remaining());
 		in.skip(1);
 		ByteBuffer out = ByteBuffer.allocate(Constants.HANDSHAKE_SIZE);
-		int limit = in.limit();
 		in.limit(in.position() + Constants.HANDSHAKE_SIZE);
 		out.put(in);
 		out.flip();
-		in.limit(limit);
-		in.skip(Constants.HANDSHAKE_SIZE);
-
 		conn.rawWrite(out);
 		connectionOpened(conn, conn.getState());
 	}

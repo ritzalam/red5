@@ -60,11 +60,11 @@ class RTMPTClientConnector extends Thread {
 	// connection timeout
 	private static int connectionTimeout = 7000; // 7 seconds
 
-	private HttpClient httpClient = new HttpClient();
+	private final HttpClient httpClient = new HttpClient();
 
-	private RTMPTClient client;
+	private final RTMPTClient client;
 
-	private RTMPClientConnManager connManager;
+	private final RTMPClientConnManager connManager;
 
 	private int clientId;
 
@@ -97,7 +97,7 @@ class RTMPTClientConnector extends Thread {
 				ByteBuffer toSend = connection
 						.getPendingMessages(SEND_TARGET_SIZE);
 				PostMethod post;
-				if (toSend.limit() > 0) {
+				if (toSend != null && toSend.limit() > 0) {
 					post = makePost("send");
 					post.setRequestEntity(new InputStreamRequestEntity(toSend
 							.asInputStream(), CONTENT_TYPE));
@@ -116,7 +116,6 @@ class RTMPTClientConnector extends Thread {
 				data.flip();
 				data.skip(1); // XXX: polling interval lies in this byte
 				List<?> messages = connection.decode(data);
-				data.release();
 
 				if (messages == null || messages.isEmpty()) {
 					try {
@@ -170,7 +169,9 @@ class RTMPTClientConnector extends Thread {
 		RTMP state = new RTMP(RTMP.MODE_CLIENT);
 		connection.setState(state);
 
-		connection.setClient(client);
+		connection.setHandler(client);
+		connection.setDecoder(client.getCodecFactory().getSimpleDecoder());
+		connection.setEncoder(client.getCodecFactory().getSimpleEncoder());
 
 		log.debug("Handshake 1st phase");
 		ByteBuffer handshake = ByteBuffer

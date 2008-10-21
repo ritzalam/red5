@@ -23,15 +23,13 @@ import static org.red5.server.api.ScopeUtils.getScopeService;
 
 import java.util.BitSet;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import javax.management.ObjectName;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.mina.common.ByteBuffer;
 import org.red5.server.BaseConnection;
@@ -53,6 +51,7 @@ import org.red5.server.api.stream.IPlaylistSubscriberStream;
 import org.red5.server.api.stream.ISingleItemSubscriberStream;
 import org.red5.server.api.stream.IStreamCapableConnection;
 import org.red5.server.api.stream.IStreamService;
+import org.red5.server.exception.ClientRejectedException;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.event.BytesRead;
 import org.red5.server.net.rtmp.event.ClientBW;
@@ -86,7 +85,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/**
 	 * Logger
 	 */
-	protected static Logger log = LoggerFactory.getLogger(RTMPConnection.class);
+	private static Logger log = LoggerFactory.getLogger(RTMPConnection.class);
 
 	/**
 	 * Video codec factory constant
@@ -109,64 +108,59 @@ public abstract class RTMPConnection extends BaseConnection implements
 	 */
 	private ConcurrentMap<Integer, IClientStream> streams = new ConcurrentHashMap<Integer, IClientStream>();
 
-	private BitSet reservedStreams = new BitSet();
+	private final BitSet reservedStreams = new BitSet();
 
 	/**
 	 * Identifier for remote calls.
 	 */
-	protected AtomicInteger invokeId = new AtomicInteger(1);
+	private AtomicInteger invokeId = new AtomicInteger(1);
 
 	/**
 	 * Hash map that stores pending calls and ids as pairs.
 	 */
-	protected ConcurrentMap<Integer, IPendingServiceCall> pendingCalls = new ConcurrentHashMap<Integer, IPendingServiceCall>();
+	private ConcurrentMap<Integer, IPendingServiceCall> pendingCalls = new ConcurrentHashMap<Integer, IPendingServiceCall>();
 
 	/**
 	 * Deferred results set.
 	 * 
 	 * @see org.red5.server.net.rtmp.DeferredResult
 	 */
-	protected HashSet<DeferredResult> deferredResults = new HashSet<DeferredResult>();
+	private final HashSet<DeferredResult> deferredResults = new HashSet<DeferredResult>();
 
 	/**
 	 * Last ping timestamp.
 	 */
-	protected int lastPingTime = -1;
+	private AtomicInteger lastPingTime = new AtomicInteger(-1);
 
 	/**
 	 * Timestamp when last ping command was sent.
 	 */
-	protected long lastPingSent;
+	private AtomicLong lastPingSent = new AtomicLong(0);
 
 	/**
 	 * Timestamp when last ping result was received.
 	 */
-	protected long lastPongReceived;
+	private AtomicLong lastPongReceived = new AtomicLong(0);
 
 	/**
 	 * Name of quartz job that keeps connection alive.
 	 */
-	protected String keepAliveJobName;
+	private String keepAliveJobName;
 
 	/**
 	 * Ping interval in ms to detect dead clients.
 	 */
-	protected int pingInterval = 5000;
+	private volatile int pingInterval = 5000;
 
 	/**
 	 * Maximum time in ms after a client is disconnected because of inactivity.
 	 */
-	protected int maxInactivity = 60000;
+	private volatile int maxInactivity = 60000;
 
 	/**
 	 * Data read interval
 	 */
 	private int bytesReadInterval = 120 * 1024;
-
-	/**
-	 * Previously number of bytes read from connection.
-	 */
-	private long lastBytesRead = 0;
 
 	/**
 	 * Number of bytes to read next.
@@ -196,22 +190,17 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/**
 	 * Number of streams used.
 	 */
-	private int usedStreams;
+	private AtomicInteger usedStreams = new AtomicInteger(0);
 
 	/**
 	 * AMF version, AMF0 by default.
 	 */
-	protected Encoding encoding = Encoding.AMF0;
+	private volatile Encoding encoding = Encoding.AMF0;
 
 	/**
 	 * Remembered stream buffer durations.
 	 */
-	protected Map<Integer, Integer> streamBuffers = new HashMap<Integer, Integer>();
-
-	/**
-	 * MBean object name used for de/registration purposes.
-	 */
-	protected ObjectName oName;
+	private ConcurrentMap<Integer, Integer> streamBuffers = new ConcurrentHashMap<Integer, Integer>();
 
 	/**
 	 * Service that is waiting for handshake.
@@ -226,11 +215,14 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/**
 	 * Maximum time in milliseconds to wait for a valid handshake.
 	 */
-	private int maxHandshakeTimeout = 5000;
+	private volatile int maxHandshakeTimeout = 5000;
 
-	protected int clientId;
+	protected volatile int clientId;
 
-	protected RTMP state;
+	/**
+	 * protocol state
+	 */
+	protected volatile RTMP state;
 
 	private ISchedulingService schedulingService;
 
@@ -256,35 +248,82 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	public RTMP getState() {
-		return state;
+		getReadLock().lock();
+		try {
+			return state;
+		} finally {
+			getReadLock().unlock();
+		}
+	}
+	
+	public byte getStateCode() {
+		getReadLock().lock();
+		try {
+			return state.getState();
+		} finally {
+			getReadLock().unlock();
+		}
+	}
+	
+	public void setStateCode(byte code) {
+		getWriteLock().lock();
+		try {
+			state.setState(code);
+		} finally {
+			getWriteLock().unlock();
+		}
 	}
 
 	public void setState(RTMP state) {
-		log.debug("Set state: {}", state);
-		this.state = state;
+		getWriteLock().lock();
+		try {
+			log.debug("Set state: {}", state);
+			this.state = state;
+		} finally {
+			getWriteLock().unlock();
+		}
 	}
-
+	
 	@Override
 	public boolean connect(IScope newScope, Object[] params) {
-		boolean success = super.connect(newScope, params);
-		if (success) {
-			// XXX Bandwidth control service should not be bound to
-			// a specific scope because it's designed to control
-			// the bandwidth system-wide.
-			if (getScope() != null && getScope().getContext() != null) {
-				IBWControlService bwController = (IBWControlService) getScope()
-						.getContext().getBean(IBWControlService.KEY);
-				bwContext = bwController.registerBWControllable(this);
+		try {
+			boolean success = super.connect(newScope, params);
+			if (success) {
+				getWriteLock().lock();
+				try {
+					// XXX Bandwidth control service should not be bound to
+					// a specific scope because it's designed to control
+					// the bandwidth system-wide.
+					if (getScope() != null && getScope().getContext() != null) {
+						IBWControlService bwController = (IBWControlService) getScope()
+								.getContext().getBean(IBWControlService.KEY);
+						bwContext = bwController.registerBWControllable(this);
+					}
+					unscheduleWaitForHandshakeJob();
+				} finally {
+					getWriteLock().unlock();
+				}
 			}
+			return success;
+		} catch (ClientRejectedException e) {
+			log.warn("client rejected, unscheduling waitForHandshakeJob", e);
+			unscheduleWaitForHandshakeJob();
+			throw e;
+		}
+	}
 
+	private void unscheduleWaitForHandshakeJob() {
+		getWriteLock().lock();
+		try {
 			if (waitForHandshakeJob != null) {
 				waitForHandshakeService.removeScheduledJob(waitForHandshakeJob);
 				waitForHandshakeJob = null;
 				waitForHandshakeService = null;
 				log.debug("Removed waitForHandshakeJob for: {}", getId());
 			}
+		} finally {
+			getWriteLock().unlock();
 		}
-		return success;
 	}
 
 	/**
@@ -325,7 +364,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	 * 
 	 * @return Next available channel id
 	 */
-	public synchronized int getNextAvailableChannelId() {
+	public int getNextAvailableChannelId() {
 		int result = 4;
 		while (isChannelUsed(result)) {
 			result++;
@@ -383,7 +422,8 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/** {@inheritDoc} */
 	public int reserveStreamId() {
 		int result = -1;
-		synchronized (reservedStreams) {
+		getWriteLock().lock();
+		try {
 			for (int i = 0; true; i++) {
 				if (!reservedStreams.get(i)) {
 					reservedStreams.set(i);
@@ -391,6 +431,8 @@ public abstract class RTMPConnection extends BaseConnection implements
 					break;
 				}
 			}
+		} finally {
+			getWriteLock().unlock();
 		}
 		return result + 1;
 	}
@@ -432,34 +474,37 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	/** {@inheritDoc} */
 	public IClientBroadcastStream newBroadcastStream(int streamId) {
-		if (!reservedStreams.get(streamId - 1)) {
-			// StreamId has not been reserved before
-			return null;
-		}
-
-		synchronized (streams) {
-			if (streams.get(streamId - 1) != null) {
-				// Another stream already exists with this id
+		getReadLock().lock();
+		try{
+			if (!reservedStreams.get(streamId - 1)) {
+				// StreamId has not been reserved before
 				return null;
 			}
-			/**
-			 * Picking up the ClientBroadcastStream defined as a spring
-			 * prototype in red5-common.xml
-			 */
-			ClientBroadcastStream cbs = (ClientBroadcastStream) scope
-					.getContext().getBean("clientBroadcastStream");
-			Integer buffer = streamBuffers.get(streamId - 1);
-			if (buffer != null)
-				cbs.setClientBufferDuration(buffer);
-			cbs.setStreamId(streamId);
-			cbs.setConnection(this);
-			cbs.setName(createStreamName());
-			cbs.setScope(this.getScope());
-
-			registerStream(cbs);
-			usedStreams++;
-			return cbs;
+		} finally {
+			getReadLock().unlock();
 		}
+
+		if (streams.get(streamId - 1) != null) {
+			// Another stream already exists with this id
+			return null;
+		}
+		/**
+		 * Picking up the ClientBroadcastStream defined as a spring
+		 * prototype in red5-common.xml
+		 */
+		ClientBroadcastStream cbs = (ClientBroadcastStream) scope
+				.getContext().getBean("clientBroadcastStream");
+		Integer buffer = streamBuffers.get(streamId - 1);
+		if (buffer != null)
+			cbs.setClientBufferDuration(buffer);
+		cbs.setStreamId(streamId);
+		cbs.setConnection(this);
+		cbs.setName(createStreamName());
+		cbs.setScope(this.getScope());
+
+		registerStream(cbs);
+		usedStreams.incrementAndGet();
+		return cbs;
 	}
 
 	/**
@@ -473,45 +518,51 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	/** {@inheritDoc} */
 	public IPlaylistSubscriberStream newPlaylistSubscriberStream(int streamId) {
-		if (!reservedStreams.get(streamId - 1)) {
-			// StreamId has not been reserved before
-			return null;
-		}
-
-		synchronized (streams) {
-			if (streams.get(streamId - 1) != null) {
-				// Another stream already exists with this id
+		getReadLock().lock();
+		try {
+			if (!reservedStreams.get(streamId - 1)) {
+				// StreamId has not been reserved before
 				return null;
 			}
-			/**
-			 * Picking up the PlaylistSubscriberStream defined as a Spring
-			 * prototype in red5-common.xml
-			 */
-			PlaylistSubscriberStream pss = (PlaylistSubscriberStream) scope
-					.getContext().getBean("playlistSubscriberStream");
-			Integer buffer = streamBuffers.get(streamId - 1);
-			if (buffer != null)
-				pss.setClientBufferDuration(buffer);
-			pss.setName(createStreamName());
-			pss.setConnection(this);
-			pss.setScope(this.getScope());
-			pss.setStreamId(streamId);
-			registerStream(pss);
-			usedStreams++;
-			return pss;
+		} finally {
+			getReadLock().unlock();
 		}
+
+		if (streams.get(streamId - 1) != null) {
+			// Another stream already exists with this id
+			return null;
+		}
+		/**
+		 * Picking up the PlaylistSubscriberStream defined as a Spring
+		 * prototype in red5-common.xml
+		 */
+		PlaylistSubscriberStream pss = (PlaylistSubscriberStream) scope
+				.getContext().getBean("playlistSubscriberStream");
+		Integer buffer = streamBuffers.get(streamId - 1);
+		if (buffer != null)
+			pss.setClientBufferDuration(buffer);
+		pss.setName(createStreamName());
+		pss.setConnection(this);
+		pss.setScope(this.getScope());
+		pss.setStreamId(streamId);
+		registerStream(pss);
+		usedStreams.incrementAndGet();
+		return pss;
 	}
 
 	public void addClientStream(IClientStream stream) {
 		int streamId = stream.getStreamId();
-		if (reservedStreams.get(streamId - 1)) {
-			return;
+		getWriteLock().lock();
+		try {
+			if (reservedStreams.get(streamId - 1)) {
+				return;
+			}
+			reservedStreams.set(streamId - 1);
+		} finally {
+			getWriteLock().unlock();
 		}
-		reservedStreams.set(streamId - 1);
-		synchronized (streams) {
-			streams.put(streamId - 1, stream);
-			usedStreams++;
-		}
+		streams.put(streamId - 1, stream);
+		usedStreams.incrementAndGet();
 	}
 
 	public void removeClientStream(int streamId) {
@@ -524,7 +575,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	 * @return Value for property 'usedStreamCount'.
 	 */
 	protected int getUsedStreamCount() {
-		return usedStreams;
+		return usedStreams.get();
 	}
 
 	/** {@inheritDoc} */
@@ -568,7 +619,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	 * 
 	 * @param stream
 	 */
-	protected void registerStream(IClientStream stream) {
+	private void registerStream(IClientStream stream) {
 		streams.put(stream.getStreamId() - 1, stream);
 	}
 
@@ -577,51 +628,65 @@ public abstract class RTMPConnection extends BaseConnection implements
 	 * 
 	 * @param stream
 	 */
-	protected void unregisterStream(IClientStream stream) {
+	@SuppressWarnings("unused")
+	private void unregisterStream(IClientStream stream) {
 		streams.remove(stream.getStreamId());
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public void close() {
-		if (keepAliveJobName != null) {
-			schedulingService.removeScheduledJob(keepAliveJobName);
-			keepAliveJobName = null;
+		getWriteLock().lock();
+		try {
+			if (keepAliveJobName != null) {
+				schedulingService.removeScheduledJob(keepAliveJobName);
+				keepAliveJobName = null;
+			}
+		} finally {
+			getWriteLock().unlock();
 		}
 		Red5.setConnectionLocal(this);
 		IStreamService streamService = (IStreamService) getScopeService(scope,
 				IStreamService.class, StreamService.class);
 		if (streamService != null) {
-			synchronized (streams) {
-				for (Map.Entry<Integer, IClientStream> entry : streams
-						.entrySet()) {
-					IClientStream stream = entry.getValue();
-					if (stream != null) {
-						log.debug("Closing stream: {}", stream.getStreamId());
-						streamService.deleteStream(this, stream.getStreamId());
-						usedStreams--;
-					}
+			for (Map.Entry<Integer, IClientStream> entry : streams
+					.entrySet()) {
+				IClientStream stream = entry.getValue();
+				if (stream != null) {
+					log.debug("Closing stream: {}", stream.getStreamId());
+					streamService.deleteStream(this, stream.getStreamId());
+					usedStreams.decrementAndGet();
 				}
-				streams.clear();
 			}
+			streams.clear();
 		}
 		channels.clear();
 
-		if (bwContext != null && getScope() != null
-				&& getScope().getContext() != null) {
-			IBWControlService bwController = (IBWControlService) getScope()
-					.getContext().getBean(IBWControlService.KEY);
-			bwController.unregisterBWControllable(bwContext);
-			bwContext = null;
+		getWriteLock().lock();
+		try {
+			if (bwContext != null && getScope() != null
+					&& getScope().getContext() != null) {
+				IBWControlService bwController = (IBWControlService) getScope()
+						.getContext().getBean(IBWControlService.KEY);
+				bwController.unregisterBWControllable(bwContext);
+				bwContext = null;
+			}
+		} finally {
+			getWriteLock().unlock();
 		}
 		super.close();
 	}
 
 	/** {@inheritDoc} */
 	public void unreserveStreamId(int streamId) {
-		deleteStreamById(streamId);
-		if (streamId > 0) {
-			reservedStreams.clear(streamId - 1);
+		getWriteLock().lock();
+		try {
+			deleteStreamById(streamId);
+			if (streamId > 0) {
+				reservedStreams.clear(streamId - 1);
+			}
+		} finally {
+			getWriteLock().unlock();
 		}
 	}
 
@@ -630,7 +695,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 		if (streamId > 0) {
 			if (streams.get(streamId - 1) != null) {
 				pendingVideos.remove(streamId);
-				usedStreams--;
+				usedStreams.decrementAndGet();
 				streams.remove(streamId - 1);
 				streamBuffers.remove(streamId - 1);
 			}
@@ -667,13 +732,18 @@ public abstract class RTMPConnection extends BaseConnection implements
 	 * Update number of bytes to read next value.
 	 */
 	protected void updateBytesRead() {
-		long bytesRead = getReadBytes();
-		if (bytesRead >= nextBytesRead) {
-			BytesRead sbr = new BytesRead((int) bytesRead);
-			getChannel(2).write(sbr);
-			// @todo: what do we want to see printed here?
-			// log.info(sbr);
-			nextBytesRead += bytesReadInterval;
+		getWriteLock().lock();
+		try {
+			long bytesRead = getReadBytes();
+			if (bytesRead >= nextBytesRead) {
+				BytesRead sbr = new BytesRead((int) bytesRead);
+				getChannel(2).write(sbr);
+				// @todo: what do we want to see printed here?
+				// log.info(sbr);
+				nextBytesRead += bytesReadInterval;
+			}
+		} finally {
+			getWriteLock().unlock();
 		}
 	}
 
@@ -684,12 +754,17 @@ public abstract class RTMPConnection extends BaseConnection implements
 	 *            Number of bytes
 	 */
 	public void receivedBytesRead(int bytes) {
-		log
+		getWriteLock().lock();
+		try {
+			log
 				.debug(
 						"Client received {} bytes, written {} bytes, {} messages pending",
 						new Object[] { bytes, getWrittenBytes(),
 								getPendingMessages() });
-		clientBytesRead = bytes;
+			clientBytesRead = bytes;
+		} finally {
+			getWriteLock().unlock();
+		}
 	}
 
 	/**
@@ -698,7 +773,12 @@ public abstract class RTMPConnection extends BaseConnection implements
 	 * @return Number of bytes
 	 */
 	public long getClientBytesRead() {
-		return clientBytesRead;
+		getReadLock().lock();
+		try {
+			return clientBytesRead;
+		} finally {
+			getReadLock().unlock();
+		}
 	}
 
 	/** {@inheritDoc} */
@@ -790,7 +870,12 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 	/** {@inheritDoc} */
 	public IBandwidthConfigure getBandwidthConfigure() {
-		return bwConfig;
+		getReadLock().lock();
+		try {
+			return bwConfig;
+		} finally {
+			getReadLock().unlock();
+		}
 	}
 
 	/** {@inheritDoc} */
@@ -805,26 +890,37 @@ public abstract class RTMPConnection extends BaseConnection implements
 			return;
 		}
 
-		this.bwConfig = (IConnectionBWConfig) config;
+		IConnectionBWConfig connectionBWConfig = (IConnectionBWConfig) config; 
+
 		// Notify client about new bandwidth settings (in bytes per second)
-		if (bwConfig.getDownstreamBandwidth() > 0) {
-			ServerBW serverBW = new ServerBW((int) bwConfig
+		if (connectionBWConfig.getDownstreamBandwidth() > 0) {
+			ServerBW serverBW = new ServerBW((int) connectionBWConfig
 					.getDownstreamBandwidth() / 8);
 			getChannel(2).write(serverBW);
 		}
-		if (bwConfig.getUpstreamBandwidth() > 0) {
-			ClientBW clientBW = new ClientBW((int) bwConfig
+		if (connectionBWConfig.getUpstreamBandwidth() > 0) {
+			ClientBW clientBW = new ClientBW((int) connectionBWConfig
 					.getUpstreamBandwidth() / 8, (byte) 0);
 			getChannel(2).write(clientBW);
-			// Update generation of BytesRead messages
-			// TODO: what are the correct values here?
-			bytesReadInterval = (int) bwConfig.getUpstreamBandwidth() / 8;
-			nextBytesRead = (int) getWrittenBytes();
 		}
-		if (bwContext != null) {
-			IBWControlService bwController = (IBWControlService) getScope()
-					.getContext().getBean(IBWControlService.KEY);
-			bwController.updateBWConfigure(bwContext);
+		
+		getWriteLock().lock();
+		try {
+			this.bwConfig = connectionBWConfig;
+			if (connectionBWConfig.getUpstreamBandwidth() > 0) {
+				// Update generation of BytesRead messages
+				// TODO: what are the correct values here?
+				bytesReadInterval = (int) connectionBWConfig.getUpstreamBandwidth() / 8;
+				nextBytesRead = (int) getWrittenBytes();
+			}
+
+			if (bwContext != null) {
+				IBWControlService bwController = (IBWControlService) getScope()
+						.getContext().getBean(IBWControlService.KEY);
+				bwController.updateBWConfigure(bwContext);
+			}
+		} finally {
+			getWriteLock().unlock();
 		}
 	}
 
@@ -895,7 +991,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	 * Increases number of read messages by one. Updates number of bytes read.
 	 */
 	protected void messageReceived() {
-		readMessages++;
+		readMessages.incrementAndGet();
 		// Trigger generation of BytesRead messages
 		updateBytesRead();
 	}
@@ -915,14 +1011,14 @@ public abstract class RTMPConnection extends BaseConnection implements
 			}
 		}
 
-		writtenMessages++;
+		writtenMessages.incrementAndGet();
 	}
 
 	/**
 	 * Increases number of dropped messages.
 	 */
 	protected void messageDropped() {
-		droppedMessages++;
+		droppedMessages.incrementAndGet();
 	}
 
 	/** {@inheritDoc} */
@@ -937,13 +1033,13 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/** {@inheritDoc} */
 	public void ping() {
 		long newPingTime = System.currentTimeMillis();
-		if (lastPingSent == 0) {
-			lastPongReceived = newPingTime;
+		if (lastPingSent.get() == 0) {
+			lastPongReceived.set(newPingTime);
 		}
 		Ping pingRequest = new Ping();
 		pingRequest.setValue1((short) Ping.PING_CLIENT);
-		lastPingSent = newPingTime;
-		int now = (int) (lastPingSent & 0xffffffff);
+		lastPingSent.set(newPingTime);
+		int now = (int) (newPingTime & 0xffffffff);
 		pingRequest.setValue2(now);
 		pingRequest.setValue3(Ping.UNDEFINED);
 		ping(pingRequest);
@@ -956,14 +1052,16 @@ public abstract class RTMPConnection extends BaseConnection implements
 	 *            Ping object
 	 */
 	protected void pingReceived(Ping pong) {
-		lastPongReceived = System.currentTimeMillis();
-		int now = (int) (lastPongReceived & 0xffffffff);
-		lastPingTime = now - pong.getValue2();
+		long now = System.currentTimeMillis();
+		long previousReceived = lastPongReceived.get();
+		if (lastPongReceived.compareAndSet(previousReceived, now)) {
+			lastPingTime.set(((int) (previousReceived & 0xffffffff)) - pong.getValue2());
+		}
 	}
 
 	/** {@inheritDoc} */
 	public int getLastPingTime() {
-		return lastPingTime;
+		return lastPingTime.get();
 	}
 
 	/**
@@ -996,16 +1094,21 @@ public abstract class RTMPConnection extends BaseConnection implements
 			// Ghost detection code disabled
 			return;
 		}
-		if (keepAliveJobName == null) {
-			// log.debug("Scope null = {}", (scope == null));
-			// log.debug("getScope null = {}", (getScope() == null));
-			// log.debug("Context null = {}", (scope.getContext() == null));
-			// ISchedulingService schedulingService = (ISchedulingService)
-			// scope.getContext().getBean(ISchedulingService.BEAN_NAME);
-			keepAliveJobName = schedulingService.addScheduledJob(pingInterval,
-					new KeepAliveJob());
+		getWriteLock().lock();
+		try {
+			if (keepAliveJobName == null) {
+				// log.debug("Scope null = {}", (scope == null));
+				// log.debug("getScope null = {}", (getScope() == null));
+				// log.debug("Context null = {}", (scope.getContext() == null));
+				// ISchedulingService schedulingService = (ISchedulingService)
+				// scope.getContext().getBean(ISchedulingService.BEAN_NAME);
+				keepAliveJobName = schedulingService.addScheduledJob(pingInterval,
+						new KeepAliveJob());
+			}
+			log.debug("Keep alive job name {}", keepAliveJobName);
+		} finally {
+			getWriteLock().unlock();
 		}
-		log.debug("Keep alive job name {}", keepAliveJobName);
 	}
 
 	/**
@@ -1014,7 +1117,12 @@ public abstract class RTMPConnection extends BaseConnection implements
 	 * @param schedulingService
 	 */
 	public void setSchedulingService(ISchedulingService schedulingService) {
-		this.schedulingService = schedulingService;
+		getWriteLock().lock();
+		try {
+			this.schedulingService = schedulingService;
+		} finally {
+			getWriteLock().unlock();
+		}
 	}
 
 	/**
@@ -1041,7 +1149,12 @@ public abstract class RTMPConnection extends BaseConnection implements
 	 *            Result to register
 	 */
 	protected void registerDeferredResult(DeferredResult result) {
-		deferredResults.add(result);
+		getWriteLock().lock();
+		try {
+			deferredResults.add(result);
+		} finally {
+			getWriteLock().unlock();
+		}
 	}
 
 	/**
@@ -1051,7 +1164,12 @@ public abstract class RTMPConnection extends BaseConnection implements
 	 *            Result to unregister
 	 */
 	protected void unregisterDeferredResult(DeferredResult result) {
-		deferredResults.remove(result);
+		getWriteLock().lock();
+		try {
+			deferredResults.remove(result);
+		} finally {
+			getWriteLock().unlock();
+		}
 	}
 
 	protected void rememberStreamBufferDuration(int streamId, int bufferDuration) {
@@ -1075,9 +1193,14 @@ public abstract class RTMPConnection extends BaseConnection implements
 	 *            The scheduling service to use
 	 */
 	protected void startWaitForHandshake(ISchedulingService service) {
-		waitForHandshakeService = service;
-		waitForHandshakeJob = service.addScheduledOnceJob(maxHandshakeTimeout,
-				new WaitForHandshakeJob());
+		getWriteLock().lock();
+		try {
+			waitForHandshakeService = service;
+			waitForHandshakeJob = service.addScheduledOnceJob(maxHandshakeTimeout,
+					new WaitForHandshakeJob());
+		} finally {
+			getWriteLock().unlock();
+		}
 	}
 
 	/**
@@ -1085,6 +1208,8 @@ public abstract class RTMPConnection extends BaseConnection implements
 	 */
 	private class KeepAliveJob implements IScheduledJob {
 
+		private long lastBytesRead = 0;
+		
 		/** {@inheritDoc} */
 		public void execute(ISchedulingService service) {
 			long thisRead = getReadBytes();
@@ -1095,26 +1220,31 @@ public abstract class RTMPConnection extends BaseConnection implements
 				return;
 			}
 
-			if (lastPongReceived > 0
-					&& lastPingSent - lastPongReceived > maxInactivity) {
+			if (lastPongReceived.get() > 0
+					&& lastPingSent.get() - lastPongReceived.get() > maxInactivity) {
 				// Client didn't send response to ping command for too long,
 				// disconnect
-				log.debug("Keep alive job name {}", keepAliveJobName);
-				if (log.isDebugEnabled()) {
-					log.debug("Scheduled job list");
-					for (String jobName : service.getScheduledJobNames()) {
-						log.debug("Job: {}", jobName);
+
+				getWriteLock().lock();
+				try {
+					log.debug("Keep alive job name {}", keepAliveJobName);
+					if (log.isDebugEnabled()) {
+						log.debug("Scheduled job list");
+						for (String jobName : service.getScheduledJobNames()) {
+							log.debug("Job: {}", jobName);
+						}
 					}
+					service.removeScheduledJob(keepAliveJobName);
+					keepAliveJobName = null;
+				} finally {
+					getWriteLock().unlock();
 				}
-				service.removeScheduledJob(keepAliveJobName);
-				keepAliveJobName = null;
-				log.warn("Closing {}, with id {}, due to too much inactivity ({}).",
-					new Object[] { RTMPConnection.this, getId(),
-					(lastPingSent - lastPongReceived) });
+				log.warn("Closing {} due to too much inactivity ({}).", 
+						RTMPConnection.this, 
+						(lastPingSent.get() - lastPongReceived.get()));
 				onInactive();
 				return;
 			}
-
 			// Send ping command to client to trigger sending of data.
 			ping();
 		}
@@ -1128,14 +1258,18 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 		/** {@inheritDoc} */
 		public void execute(ISchedulingService service) {
-			waitForHandshakeJob = null;
-			waitForHandshakeService = null;
-			// Client didn't send a valid handshake, disconnect
-			log.warn("Closing {}, with id {} due to long handshake",
-					RTMPConnection.this, getId());
+			getWriteLock().lock();
+			try {
+				waitForHandshakeJob = null;
+				waitForHandshakeService = null;
+				// Client didn't send a valid handshake, disconnect
+				log.warn("Closing {}, with id {} due to long handshake",
+						RTMPConnection.this, getId());
+			} finally {
+				getWriteLock().unlock();
+			}
 			onInactive();
 		}
-
 	}
 
 }

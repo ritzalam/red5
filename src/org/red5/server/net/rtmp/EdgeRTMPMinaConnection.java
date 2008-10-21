@@ -16,12 +16,15 @@ public class EdgeRTMPMinaConnection extends RTMPMinaConnection {
 	public void close() {
 		boolean needNotifyOrigin = false;
 		RTMP state = getState();
-		synchronized (state) {
+		getWriteLock().lock();
+		try{
 			if (state.getState() == RTMP.STATE_CONNECTED) {
 				needNotifyOrigin = true;
 				// now we are disconnecting ourselves
 				state.setState(RTMP.STATE_EDGE_DISCONNECTING);
 			}
+		} finally {
+			getWriteLock().unlock();
 		}
 		if (needNotifyOrigin) {
 			IMRTMPConnection conn = mrtmpManager.lookupMRTMPConnection(this);
@@ -29,12 +32,15 @@ public class EdgeRTMPMinaConnection extends RTMPMinaConnection {
 				conn.disconnect(getId());
 			}
 		}
-		synchronized (state) {
+		getWriteLock().lock();
+		try {
 			if (state.getState() == RTMP.STATE_DISCONNECTED) {
 				return;
 			} else {
 				state.setState(RTMP.STATE_DISCONNECTED);
 			}
+		} finally {
+			getWriteLock().unlock();
 		}
 		super.close();
 	}

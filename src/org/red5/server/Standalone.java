@@ -28,6 +28,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.springframework.context.access.ContextSingletonBeanFactoryLocator;
+import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.common.SimpleByteBufferAllocator;
 
 /**
  * Entry point from which the server config file is loaded.
@@ -48,6 +50,9 @@ public class Standalone {
 		
 		//install the slf4j bridge (mostly for JUL logging)
 		SLF4JBridgeHandler.install();
+		
+		//use heap buffers by default
+		ByteBuffer.setAllocator(new SimpleByteBufferAllocator());
 	}
 	
 	/**
@@ -70,15 +75,6 @@ public class Standalone {
      * @throws Throwable    Base type of all exceptions
 	 */
 	public static void main(String[] args) throws Throwable {
-		
-		//System.setProperty("DEBUG", "true");
-
-		/*
-		if (false) {
-			allocator = new DebugPooledByteBufferAllocator(true);
-			ByteBuffer.setAllocator(allocator);
-		}
-		*/
 
 		if (args.length == 1) {
 			red5Config = args[0];

@@ -43,30 +43,31 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements
 	/**
 	 * Logger
 	 */
-	protected static Logger log = LoggerFactory
+	private static Logger log = LoggerFactory
 			.getLogger(RTMPMinaIoHandler.class);
 
 	/**
 	 * RTMP events handler
 	 */
-	protected IRTMPHandler handler;
+	private IRTMPHandler handler;
 
 	/**
 	 * Mode
 	 */
-	protected boolean mode = RTMP.MODE_SERVER;
+	private boolean mode = RTMP.MODE_SERVER;
 
 	/**
 	 * Application context
 	 */
-	protected ApplicationContext appCtx;
+	@SuppressWarnings("unused")
+	private ApplicationContext appCtx;
 
 	/**
 	 * RTMP protocol codec factory
 	 */
-	protected ProtocolCodecFactory codecFactory = null;
+	private ProtocolCodecFactory codecFactory = null;
 
-	protected IRTMPConnManager rtmpConnManager;
+	private IRTMPConnManager rtmpConnManager;
 
 	/**
 	 * Setter for handler.
@@ -103,11 +104,15 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements
 		this.rtmpConnManager = rtmpConnManager;
 	}
 
+	protected IRTMPConnManager getRtmpConnManager() {
+		return rtmpConnManager;
+	}
+
 	/** {@inheritDoc} */
 	@Override
 	public void exceptionCaught(IoSession session, Throwable cause)
 			throws Exception {
-		log.debug("Exception caught {}", cause);
+		log.error("Exception caught", cause);
 	}
 
 	/** {@inheritDoc} */
@@ -140,12 +145,16 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements
 
 		final RTMP rtmp = (RTMP) state;
 		ByteBuffer out = null;
-		if (rtmp.getMode() == RTMP.MODE_SERVER) {
-			if (rtmp.getState() != RTMP.STATE_HANDSHAKE) {
-				log.warn("Raw buffer after handshake, something odd going on");
-			}
-			log.debug("Handshake 2nd phase - size: {}", in.remaining());
-			//if the 5th byte is 0 then dont generate new-style handshake
+		final RTMPMinaConnection conn = (RTMPMinaConnection) session
+				.getAttachment();
+		conn.getWriteLock().lock();
+		try {
+			if (rtmp.getMode() == RTMP.MODE_SERVER) {
+				if (rtmp.getState() != RTMP.STATE_HANDSHAKE) {
+					log.warn("Raw buffer after handshake, something odd going on");
+				}
+				log.debug("Handshake 2nd phase - size: {}", in.remaining());
+				//if the 5th byte is 0 then dont generate new-style handshake
 			//byte[] bIn = in.array();
 			//log.debug("First few bytes (in): {},{},{},{},{},{},{},{},{},{}", new Object[]{bIn[0],bIn[1],bIn[2],bIn[3],bIn[4],bIn[5],bIn[6],bIn[7],bIn[8],bIn[9]});
 			if (in.get(4) == 0) {
@@ -163,19 +172,22 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements
 			//byte[] bOut = out.array();
 			//log.debug("First few bytes (out): {},{},{},{},{},{},{},{},{},{}", new Object[]{bOut[0],bOut[1],bOut[2],bOut[3],bOut[4],bOut[5],bOut[6],bOut[7],bOut[8],bOut[9]});
 
-			// Skip first 8 bytes when comparing the handshake, they seem to
- 			// be changed when connecting from a Mac client.
-			rtmp.setHandshake(out, 9, Constants.HANDSHAKE_SIZE-8);
-		} else {
-			log.debug("Handshake 3d phase - size: {}", in.remaining());
-			in.skip(1);
-			out = ByteBuffer.allocate(Constants.HANDSHAKE_SIZE);
-			int limit = in.limit();
-			in.limit(in.position() + Constants.HANDSHAKE_SIZE);
-			out.put(in);
-			out.flip();
-			in.limit(limit);
-			in.skip(Constants.HANDSHAKE_SIZE);
+				// Skip first 8 bytes when comparing the handshake, they seem to
+				// be changed when connecting from a Mac client.
+				rtmp.setHandshake(out, 9, Constants.HANDSHAKE_SIZE-8);
+			} else {
+				log.debug("Handshake 3d phase - size: {}", in.remaining());
+				in.skip(1);
+				out = ByteBuffer.allocate(Constants.HANDSHAKE_SIZE);
+				int limit = in.limit();
+				in.limit(in.position() + Constants.HANDSHAKE_SIZE);
+				out.put(in);
+				out.flip();
+				in.limit(limit);
+				in.skip(Constants.HANDSHAKE_SIZE);
+			}
+		} finally {
+			conn.getWriteLock().unlock();
 		}
 		if (out != null) {
 			session.write(out);			
@@ -223,10 +235,6 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements
 	/** {@inheritDoc} */
 	@Override
 	public void sessionClosed(IoSession session) throws Exception {
-		ByteBuffer buf = (ByteBuffer) session.getAttribute("buffer");
-		if (buf != null) {
-			buf.release();
-		}
 		final RTMP rtmp = (RTMP) session
 				.getAttribute(ProtocolState.SESSION_KEY);
 		final RTMPMinaConnection conn = (RTMPMinaConnection) session

@@ -26,6 +26,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IClient;
@@ -44,57 +48,57 @@ public abstract class BaseConnection extends AttributeStore implements
 	/**
 	 *  Logger
 	 */
-	protected static Logger log = LoggerFactory.getLogger(BaseConnection.class);
+	private static final Logger log = LoggerFactory.getLogger(BaseConnection.class);
 
 	/**
 	 *  Connection type
 	 */
-	protected String type;
+	protected final String type;
 
 	/**
 	 *  Connection host
 	 */
-	protected String host;
+	protected volatile String host;
 
 	/**
 	 *  Connection remote address
 	 */
-	protected String remoteAddress;
+	protected volatile String remoteAddress;
 
 	/**
 	 *  Connection remote addresses
 	 */
-	protected List<String> remoteAddresses;
+	protected volatile List<String> remoteAddresses;
 
 	/**
 	 *  Remote port
 	 */
-	protected int remotePort;
+	protected volatile int remotePort;
 
 	/**
 	 *  Path of scope client connected to
 	 */
-	protected String path;
+	protected volatile String path;
 
 	/**
 	 *  Connection session identifier
 	 */
-	protected String sessionId;
+	protected volatile String sessionId;
 
 	/**
 	 *  Number of read messages
 	 */
-	protected long readMessages;
+	protected AtomicLong readMessages = new AtomicLong(0);
 
 	/**
 	 *  Number of written messages
 	 */
-	protected long writtenMessages;
+	protected AtomicLong writtenMessages = new AtomicLong(0);
 
 	/**
 	 *  Number of dropped messages
 	 */
-	protected long droppedMessages;
+	protected AtomicLong droppedMessages = new AtomicLong(0);
 
 	/**
 	 *  Connection params passed from client with NetConnection.connect call
@@ -102,17 +106,17 @@ public abstract class BaseConnection extends AttributeStore implements
 	 * @see <a href='http://livedocs.adobe.com/fms/2/docs/00000570.html'>NetConnection in Flash Media Server docs (external)</a>
 	 */
 	@SuppressWarnings("all")
-	protected Map<String, Object> params = null;
+	protected volatile Map<String, Object> params = null;
 
 	/**
 	 *  Client bound to connection
 	 */
-	protected IClient client;
+	protected volatile IClient client;
 
 	/**
 	 *  Scope that connection belongs to
 	 */
-	protected Scope scope;
+	protected volatile Scope scope;
 
 	/**
 	 *  Set of basic scopes.
@@ -122,7 +126,9 @@ public abstract class BaseConnection extends AttributeStore implements
 	/**
 	 * Is the connection closed?
 	 */
-	protected boolean closed;
+	protected volatile boolean closed;
+	
+	private final ReadWriteLock lock = new ReentrantReadWriteLock();
 	
 	/**
 	 *
@@ -151,18 +157,37 @@ public abstract class BaseConnection extends AttributeStore implements
 	}
 
 	/**
+	 * @return lock for read only operations
+	 */
+	public Lock getReadLock() {
+		return lock.readLock();
+	}
+
+	/**
+	 * @return lock for changing state operations
+	 */
+	public Lock getWriteLock() {
+		return lock.writeLock();
+	}
+
+	/**
 	 * Initializes client
 	 * @param client        Client bound to connection
 	 */
 	public void initialize(IClient client) {
-		if (this.client != null && this.client instanceof Client) {
-			// Unregister old client
-			((Client) this.client).unregister(this);
-		}
-		this.client = client;
-		if (this.client instanceof Client) {
-			// Register new client
-			((Client) this.client).register(this);
+		getWriteLock().lock();
+		try {
+			if (this.client != null && this.client instanceof Client) {
+				// Unregister old client
+				((Client) this.client).unregister(this);
+			}
+			this.client = client;
+			if (this.client instanceof Client) {
+				// Register new client
+				((Client) this.client).register(this);
+			}
+		} finally {
+			getWriteLock().unlock();
 		}
 	}
 
@@ -191,7 +216,6 @@ public abstract class BaseConnection extends AttributeStore implements
 	}
 
 	/**
-	 *
 	 * @return
 	 */
 	public List<String> getRemoteAddresses() {
@@ -262,16 +286,21 @@ public abstract class BaseConnection extends AttributeStore implements
 	 * @return                true on success, false otherwise
 	 */
 	public boolean connect(IScope newScope, Object[] params) {
-		final Scope oldScope = scope;
-		scope = (Scope) newScope;
-		if (scope.connect(this, params)) {
-			if (oldScope != null) {
-				oldScope.disconnect(this);
+		getWriteLock().lock();
+		try {
+			final Scope oldScope = scope;
+			scope = (Scope) newScope;
+			if (scope.connect(this, params)) {
+				if (oldScope != null) {
+					oldScope.disconnect(this);
+				}
+				return true;
+			} else {
+				scope = oldScope;
+				return false;
 			}
-			return true;
-		} else {
-			scope = oldScope;
-			return false;
+		} finally {
+			getWriteLock().unlock();
 		}
 	}
 
@@ -287,13 +316,16 @@ public abstract class BaseConnection extends AttributeStore implements
 	 *  Closes connection
 	 */
 	public void close() {
-		synchronized (this) {
+		getWriteLock().lock();
+		try {
 			if (closed || scope == null) {
 				log.debug("Close, not connected nothing to do.");
 				return;
 			}
 			
 			closed = true;
+		} finally {
+			getWriteLock().unlock();
 		}
 
 		log.debug("Close, disconnect from scope, and children");
@@ -390,7 +422,7 @@ public abstract class BaseConnection extends AttributeStore implements
 	 * @return
 	 */
 	public long getReadMessages() {
-		return readMessages;
+		return readMessages.get();
 	}
 
 	/**
@@ -398,7 +430,7 @@ public abstract class BaseConnection extends AttributeStore implements
 	 * @return
 	 */
 	public long getWrittenMessages() {
-		return writtenMessages;
+		return writtenMessages.get();
 	}
 
 	/**
@@ -406,7 +438,7 @@ public abstract class BaseConnection extends AttributeStore implements
 	 * @return
 	 */
 	public long getDroppedMessages() {
-		return droppedMessages;
+		return droppedMessages.get();
 	}
 
 	/**

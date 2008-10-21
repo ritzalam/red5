@@ -26,9 +26,9 @@ import org.apache.mina.common.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecException;
 import org.apache.mina.filter.codec.ProtocolDecoder;
 import org.apache.mina.filter.codec.ProtocolDecoderOutput;
-import org.red5.server.api.IConnection;
 import org.red5.server.api.Red5;
 import org.red5.server.net.protocol.ProtocolState;
+import org.red5.server.net.rtmp.RTMPConnection;
 
 /**
  * RTMP protocol decoder.
@@ -43,29 +43,33 @@ public class RTMPMinaProtocolDecoder extends RTMPProtocolDecoder implements
 		final ProtocolState state = (ProtocolState) session
 				.getAttribute(ProtocolState.SESSION_KEY);
 
-		IConnection conn = (IConnection) session.getAttachment();
-		
-		// Set thread local here so we have the connection during decoding of packets
-		Red5.setConnectionLocal(conn);
-
-		ByteBuffer buf = (ByteBuffer) session.getAttribute("buffer");
-		if (buf == null) {
-			buf = ByteBuffer.allocate(2048);
-			buf.setAutoExpand(true);
-			session.setAttribute("buffer", buf);
+		RTMPConnection conn = (RTMPConnection) session.getAttachment();
+		conn.getWriteLock().lock();
+		try {
+			// Set thread local here so we have the connection during decoding of packets
+			Red5.setConnectionLocal(conn);
+	
+			ByteBuffer buf = (ByteBuffer) session.getAttribute("buffer");
+			if (buf == null) {
+				buf = ByteBuffer.allocate(2048);
+				buf.setAutoExpand(true);
+				session.setAttribute("buffer", buf);
+			}
+			buf.put(in);
+			buf.flip();
+	
+			List<?> objects = decodeBuffer(state, buf);
+			if (objects == null || objects.isEmpty()) {
+				return;
+			}
+	
+			for (Object object : objects) {
+				out.write(object);
+			}
+		} finally {
+			conn.getWriteLock().unlock();
 		}
-		buf.put(in);
-		buf.flip();
-
-		List<?> objects = decodeBuffer(state, buf);
-		if (objects == null || objects.isEmpty()) {
-			return;
-		}
-
-        for (Object object : objects) {
-            out.write(object);
-        }
-    }
+	}
 
 	/** {@inheritDoc} */
     public void dispose(IoSession ioSession) throws Exception {

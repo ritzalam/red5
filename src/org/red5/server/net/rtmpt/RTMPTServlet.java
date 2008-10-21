@@ -354,7 +354,7 @@ public class RTMPTServlet extends HttpServlet {
 			handleBadRequest("Send: unknown client with id: "
 					+ getClientId(req), resp);
 			return;
-		} else if (connection.getState().getState() == RTMP.STATE_DISCONNECTED) {
+		} else if (connection.getStateCode() == RTMP.STATE_DISCONNECTED) {
 			removeConnection(connection.getId());
 			handleBadRequest("Connection already closed.", resp);
 			return;
@@ -370,7 +370,6 @@ public class RTMPTServlet extends HttpServlet {
 
 		// Decode the objects in the data
 		List<?> messages = connection.decode(data);
-		data.release();
 		data = null;
 		if (messages == null || messages.isEmpty()) {
 			returnMessage(connection.getPollingDelay(), resp);
@@ -418,7 +417,7 @@ public class RTMPTServlet extends HttpServlet {
 			returnMessage((byte) 0, resp);
 			connection.realClose();
 			return;
-		} else if (connection.getState().getState() == RTMP.STATE_DISCONNECTED) {
+		} else if (connection.getStateCode() == RTMP.STATE_DISCONNECTED) {
 			removeConnection(connection.getId());
 			handleBadRequest("Connection already closed.", resp);
 			return;
@@ -519,7 +518,9 @@ public class RTMPTServlet extends HttpServlet {
 	protected RTMPTConnection createConnection() {
 		RTMPTConnection conn = (RTMPTConnection) rtmpConnManager
 				.createConnection(RTMPTConnection.class);
-		conn.setRTMPTHandler(handler);
+		conn.setHandler(handler);
+		conn.setDecoder(handler.getCodecFactory().getSimpleDecoder());
+		conn.setEncoder(handler.getCodecFactory().getSimpleEncoder());
 		handler.connectionOpened(conn, conn.getState());
 		return conn;
 	}

@@ -84,7 +84,7 @@ public class RTMP extends ProtocolState {
     /**
      * Server mode by default.
      */
-	private boolean mode = MODE_SERVER;
+	private volatile boolean mode = MODE_SERVER;
     /**
      * Debug flag.
      */

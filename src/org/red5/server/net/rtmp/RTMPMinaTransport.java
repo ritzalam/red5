@@ -180,6 +180,7 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 	public void start() throws Exception {
 		initIOHandler();
 
+		// FIXME: already set in Standalone
 		ByteBuffer.setUseDirectBuffers(!useHeapBuffers); // this is global, oh well.
 		if (useHeapBuffers) {
 			ByteBuffer.setAllocator(new SimpleByteBufferAllocator()); // dont pool for heap buffers.

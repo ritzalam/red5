@@ -48,18 +48,15 @@ public class RTMPClient extends BaseRTMPClientHandler {
 	/**
      * I/O handler
      */
-	private RTMPMinaIoHandler ioHandler;
+	private final RTMPMinaIoHandler ioHandler;
 
 	/** Constructs a new RTMPClient. */
     public RTMPClient() {
 		ioHandler = new RTMPMinaIoHandler();
-		ioHandler.setCodecFactory(codecFactory);
+		ioHandler.setCodecFactory(getCodecFactory());
 		ioHandler.setMode(RTMP.MODE_CLIENT);
 		ioHandler.setHandler(this);
-		
-		RTMPClientConnManager rtmpClientConnManager = new RTMPClientConnManager();
-		ioHandler.setRtmpConnManager(rtmpClientConnManager);
-		connManager = rtmpClientConnManager; 
+		ioHandler.setRtmpConnManager(getConnManager());
 	}
 
 	public Map<String, Object> makeDefaultConnectionParams(String server, int port, String application) {

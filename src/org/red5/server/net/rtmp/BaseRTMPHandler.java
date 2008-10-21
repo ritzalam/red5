@@ -61,13 +61,13 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants,
 	/**
 	 * Logger
 	 */
-	protected static Logger log = LoggerFactory
+	private static Logger log = LoggerFactory
 			.getLogger(BaseRTMPHandler.class);
 
 	/**
 	 * Application context
 	 */
-	protected ApplicationContext appCtx;
+	private ApplicationContext appCtx;
 
 	// XXX: HACK HACK HACK to support stream ids
 	private static ThreadLocal<Integer> streamLocal = new ThreadLocal<Integer>();

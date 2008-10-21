@@ -22,6 +22,7 @@ package org.red5.server.net.rtmp;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Serializer;
@@ -66,34 +67,34 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 	/**
 	 * Connection parameters
 	 */
-	protected Map<String, Object> connectionParams;
+	private Map<String, Object> connectionParams;
 
 	/**
 	 * Connect call arguments
 	 */
-	protected Object[] connectArguments = null;
+	private Object[] connectArguments = null;
 
 	/**
 	 * Connection callback
 	 */
-	protected IPendingServiceCallback connectCallback;
+	private IPendingServiceCallback connectCallback;
 
 	/**
 	 * Service provider
 	 */
-	protected Object serviceProvider;
+	private Object serviceProvider;
 
 	/**
 	 * Service invoker
 	 */
-	protected IServiceInvoker serviceInvoker = new ServiceInvoker();
+	private IServiceInvoker serviceInvoker = new ServiceInvoker();
 
 	/**
 	 * Shared objects map
 	 */
-	protected Map<String, ClientSharedObject> sharedObjects = new ConcurrentHashMap<String, ClientSharedObject>();
+	private ConcurrentMap<String, ClientSharedObject> sharedObjects = new ConcurrentHashMap<String, ClientSharedObject>();
 
-	protected RTMPClientConnManager connManager;
+	private final RTMPClientConnManager connManager = new RTMPClientConnManager();
 
 	private Map<Integer, NetStreamPrivateData> streamDataMap = new ConcurrentHashMap<Integer, NetStreamPrivateData>();
 
@@ -107,18 +108,17 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 	 */
 	private ClientExceptionHandler exceptionHandler;
 
-	protected RTMPCodecFactory codecFactory;
+	private RTMPCodecFactory codecFactory;
 
-	protected IEventDispatcher streamEventDispatcher = null;
+	private IEventDispatcher streamEventDispatcher = null;
 
 	protected BaseRTMPClientHandler() {
 		codecFactory = new RTMPCodecFactory();
 		codecFactory.setDeserializer(new Deserializer());
 		codecFactory.setSerializer(new Serializer());
 		codecFactory.init();
-
 	}
-
+	
 	public RTMPClientConnManager getConnManager() {
 		return connManager;
 	}
@@ -466,7 +466,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 	public void play(int streamId, String name, int start, int length) {
 		log.debug("play stream {}, name: {}, start {}, length {}",
 				new Object[] { streamId, name, start, length });
-		RTMPConnection conn = (RTMPConnection) connManager.getConnection();
+		RTMPConnection conn = connManager.getConnection();
 		if (conn == null) {
 			log.info("Connection was null ?");
 		}
@@ -546,9 +546,11 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 			if (clientId == null) {
 				clientId = source.getStreamId();
 			}
-			NetStreamPrivateData streamData = streamDataMap.get(clientId);
-			if (streamData != null && streamData.handler != null) {
-				streamData.handler.onStreamEvent(invoke);
+			if (clientId != null) {
+				NetStreamPrivateData streamData = streamDataMap.get(clientId);
+				if (streamData != null && streamData.handler != null) {
+					streamData.handler.onStreamEvent(invoke);
+				}
 			}
 		}
 
@@ -673,10 +675,10 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 	}
 
 	private class NetStreamPrivateData {
-		public INetStreamEventHandler handler;
+		public volatile INetStreamEventHandler handler;
 
-		public OutputStream outputStream;
+		public volatile OutputStream outputStream;
 
-		public ConnectionConsumer connConsumer;
+		public volatile ConnectionConsumer connConsumer;
 	}
 }

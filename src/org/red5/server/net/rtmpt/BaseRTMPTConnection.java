@@ -3,8 +3,7 @@ package org.red5.server.net.rtmpt;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.mina.common.ByteBuffer;
 import org.red5.server.api.Red5;
@@ -24,55 +23,73 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	/**
 	 * Protocol decoder
 	 */
-	protected SimpleProtocolDecoder decoder;
+	private SimpleProtocolDecoder decoder;
 	
 	/**
 	 * Protocol encoder
 	 */
-	protected SimpleProtocolEncoder encoder;
+	private SimpleProtocolEncoder encoder;
+	
+	private static class PendingData {
+		private ByteBuffer buffer;
+		private Packet packet;
+
+		private PendingData(ByteBuffer buffer, Packet packet) {
+			this.buffer = buffer;
+			this.packet = packet;
+		}
+
+		private PendingData(ByteBuffer buffer) {
+			this.buffer = buffer;
+		}
+
+		public ByteBuffer getBuffer() {
+			return buffer;
+		}
+
+		public Packet getPacket() {
+			return packet;
+		}
+
+		public String toString() {
+			return getClass().getName() + "(buffer=" + buffer + "; packet=" + packet + ")";
+		}
+	}
 	
 	/**
 	 * List of pending messages
 	 */
-	protected List<ByteBuffer> pendingMessages = new LinkedList<ByteBuffer>();// reentrant lock for pending messages
-    private final ReentrantReadWriteLock pendingRWLock = new ReentrantReadWriteLock();
-	protected final Lock pendingRead  = pendingRWLock.readLock();
-	protected final Lock pendingWrite = pendingRWLock.writeLock();
-	
-	/**
-	 * List of notification messages
-	 */
-	protected List<Object> notifyMessages = new LinkedList<Object>();// reentrant lock for notification messages
-    private final ReentrantReadWriteLock notifyRWLock = new ReentrantReadWriteLock();
-	protected final Lock notifyRead  = notifyRWLock.readLock();
-	protected final Lock notifyWrite = notifyRWLock.writeLock();
+	private LinkedList<PendingData> pendingMessages = new LinkedList<PendingData>();
 	
 	/**
 	 * Closing flag
 	 */
-	volatile protected boolean closing;
+	private volatile boolean closing;
+	
 	/**
 	 * Number of read bytes
 	 */
-	protected long readBytes;
+	private AtomicLong readBytes = new AtomicLong(0);
 	
 	/**
 	 * Number of written bytes
 	 */
-	protected long writtenBytes;
+	private AtomicLong writtenBytes = new AtomicLong(0);
 	
 	/**
 	 * Byte buffer
 	 */
-	protected ByteBuffer buffer;
+	private ByteBuffer buffer;
 	
 	/**
 	 * RTMP events handler
 	 */
-	protected IRTMPHandler handler;
+	private volatile IRTMPHandler handler;
 
 	public BaseRTMPTConnection(String type) {
 		super(type);
+		this.buffer = ByteBuffer.allocate(2048);
+		this.buffer.setAutoExpand(true);
 	}
 	
 	/**
@@ -109,17 +126,14 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 		if (!isClosing()) {
 			return;
 		}
-		if (buffer != null) {
-			buffer.release();
+		getWriteLock().lock();
+		try {
 			buffer = null;
+			state.setState(RTMP.STATE_DISCONNECTED);
+			pendingMessages.clear();
+		} finally {
+			getWriteLock().unlock();
 		}
-		notifyMessages.clear();
-		state.setState(RTMP.STATE_DISCONNECTED);
-		super.close();
-		for (ByteBuffer buf : pendingMessages) {
-			buf.release();
-		}
-		pendingMessages.clear();
 		super.close();
 	}
 
@@ -131,36 +145,34 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	 */
 	@Override
 	public void rawWrite(ByteBuffer packet) {
-		pendingWrite.lock();
+		getWriteLock().lock();
 		try {
-			pendingMessages.add(packet);
-		} catch (Exception e) {
-			log.warn("Exception adding pending packet", e);
+			pendingMessages.add(new PendingData(packet));
 		} finally {
-			pendingWrite.unlock();
-		}		
+			getWriteLock().unlock();
+		}
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public long getReadBytes() {
-		return readBytes;
+		return readBytes.get();
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public long getWrittenBytes() {
-		return writtenBytes;
+		return writtenBytes.get();
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public long getPendingMessages() {
-		pendingRead.lock();
+		getReadLock().lock();
 		try {
 			return pendingMessages.size();
 		} finally {
-			pendingRead.unlock();
+			getReadLock().unlock();
 		}
 	}
 
@@ -172,16 +184,21 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	 * @return a list of decoded objects
 	 */
 	public List<?> decode(ByteBuffer data) {
-		if (closing || state.getState() == RTMP.STATE_DISCONNECTED) {
-			// Connection is being closed, don't decode any new packets
-			return Collections.EMPTY_LIST;
-		}
+		getWriteLock().lock();
+		try {
+			if (closing || state.getState() == RTMP.STATE_DISCONNECTED) {
+				// Connection is being closed, don't decode any new packets
+				return Collections.EMPTY_LIST;
+			}
 
-		Red5.setConnectionLocal(this);
-		readBytes += data.limit();
-		this.buffer.put(data);
-		this.buffer.flip();
-		return this.decoder.decodeBuffer(this.state, this.buffer);
+			Red5.setConnectionLocal(this);
+			readBytes.addAndGet(data.limit());
+			this.buffer.put(data);
+			this.buffer.flip();
+			return this.decoder.decodeBuffer(this.state, this.buffer);
+		} finally {
+			getWriteLock().unlock();
+		}
 	}
 
 	/**
@@ -192,101 +209,78 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	 */
 	@Override
 	public void write(final Packet packet) {
-		if (closing || state.getState() == RTMP.STATE_DISCONNECTED) {
-			// Connection is being closed, don't send any new packets
-			return;
-		}
-
-		// We need to synchronize to prevent two packages to the
-		// same channel to be sent in different order thus resulting
-		// in wrong headers being generated.
-		ByteBuffer data;
+		getWriteLock().lock();
 		try {
-			data = this.encoder.encode(this.state, packet);
-		} catch (Exception e) {
-			log.error("Could not encode message {}", packet, e);
-			return;
-		}
+			if (closing || state.getState() == RTMP.STATE_DISCONNECTED) {
+				// Connection is being closed, don't send any new packets
+				return;
+			}
 
-		// Mark packet as being written
-		writingMessage(packet);
+			ByteBuffer data;
+			try {
+				data = this.encoder.encode(this.state, packet);
+			} catch (Exception e) {
+				log.error("Could not encode message {}", packet, e);
+				return;
+			}
 
-		// Enqueue encoded packet data to be sent to client
-		rawWrite(data);
+			// Mark packet as being written
+			writingMessage(packet);
 
-		// Make sure stream subsystem will be notified about sent packet later
-		notifyWrite.lock();
-		try {
-			notifyMessages.add(packet);
-		} catch (Exception e) {
-			log.warn("Exception adding notify packet", e);
+			pendingMessages.add(new PendingData(data, packet));
 		} finally {
-			notifyWrite.unlock();
-		}		
+			getWriteLock().unlock();
+		}
 	}
 
 	protected ByteBuffer foldPendingMessages(int targetSize) {
 		ByteBuffer result = ByteBuffer.allocate(2048);
 		result.setAutoExpand(true);
-		while (result.limit() < targetSize) {
-			pendingRead.lock();
-			try {
-				if (pendingMessages.isEmpty()) {
-					break;
-				}
-				
-				for (ByteBuffer buffer : pendingMessages) {
-					result.put(buffer);
-					buffer.release();
-				}
-			} catch (Exception e) {
-				log.warn("Exception adding pending messages", e);
-			} finally {
-				pendingRead.unlock();
-			}	
-			
-			pendingWrite.lock();
-			try {
-				pendingMessages.clear();
-			} catch (Exception e) {
-				log.warn("Exception clearing pending messages", e);
-			} finally {
-				pendingWrite.unlock();
-			}				
+		
+		// We'll have to create a copy here to avoid endless recursion
+		List<Object> toNotify = new LinkedList<Object>();
 
-			// We'll have to create a copy here to avoid endless recursion
-			List<Object> toNotify = new LinkedList<Object>();
-			
-			notifyRead.lock();
-			try {
-				toNotify.addAll(notifyMessages);
-			} catch (Exception e) {
-				log.warn("Exception adding notify messages", e);
-			} finally {
-				notifyRead.unlock();
-			}	
+		getWriteLock().lock();
+		try {
+			if (pendingMessages.isEmpty()) {
+				return null;
+			}
 
-			notifyWrite.lock();
+			while (!pendingMessages.isEmpty() 
+					&& (result.limit() + pendingMessages.peek().getBuffer().limit() 
+						< targetSize)) 
+			{
+				PendingData pendingMessage = pendingMessages.remove();
+				result.put(pendingMessage.getBuffer());
+				if (pendingMessage.getPacket() != null)
+					toNotify.add(pendingMessage.getPacket());
+			}
+		} finally {
+			getWriteLock().unlock();
+		}
+		
+		for (Object message : toNotify) {
 			try {
-				notifyMessages.clear();
+				handler.messageSent(this, message);
 			} catch (Exception e) {
-				log.warn("Exception clearing notify messages", e);
-			} finally {
-				notifyWrite.unlock();
-			}				
-			
-			for (Object message : toNotify) {
-				try {
-					handler.messageSent(this, message);
-				} catch (Exception e) {
-					log.error("Could not notify stream subsystem about sent message.", e);
-					continue;
-				}
+				log.error("Could not notify stream subsystem about sent message.", e);
 			}
 		}
 
 		result.flip();
-		writtenBytes += result.limit();
+		writtenBytes.addAndGet(result.limit());
 		return result;
+	}
+
+	public void setHandler(IRTMPHandler handler) {
+		this.handler = handler;
+	}
+
+	public void setDecoder(SimpleProtocolDecoder decoder) {
+		this.decoder = decoder;
+	}
+
+	public void setEncoder(SimpleProtocolEncoder encoder) {
+		this.encoder = encoder;
 	}
 }
