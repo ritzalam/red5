@@ -811,6 +811,7 @@
             <arg line="${test.dir}/scripts" />
             <arg line="${testdist.dir}/" />
           </exec>
+
           <exec executable="bash"
             dir="${testreports.dir}/fixtures"
             failonerror="true"
