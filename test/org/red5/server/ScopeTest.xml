@@ -6,7 +6,7 @@
         class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
         <property name="locations">
             <list>
-                <value>conf/red5.properties</value>
+                <value>classpath:/red5.properties</value>
             </list>
         </property>
     </bean>
