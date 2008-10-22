@@ -404,9 +404,8 @@ public class JMXAgent implements NotificationListener {
 					//check the existance of the files
 					//in the war version the full path is needed
 					File file = new File(remoteAccessProperties);
-					if (!file.exists()) {
-						log
-								.debug("Access file was not found on path, will prepend config_root");
+					if (!file.exists() && remoteAccessProperties.indexOf(System.getProperty("red5.config_root")) != 0) {
+						log.debug("Access file was not found on path, will prepend config_root");
 						//pre-pend the system property set in war startup
 						remoteAccessProperties = System
 								.getProperty("red5.config_root")
