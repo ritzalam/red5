@@ -10,7 +10,7 @@
 	<property environment="env"/>
 	<property name="java.home" value="${env.JDK_HOME}"/>
 	<property name="src.dir" value="src"/>
-	<property name="dist.dir" value="dist"/>
+	<property name="dist.dir" value="dist/nbc_trunk3"/>
 	<property name="cluster.dir" value="cluster"/>
 	<property name="origindist.dir" value="${cluster.dir}/origin"/>
 	<property name="edgedist.dir" value="${cluster.dir}/edge"/>
@@ -558,6 +558,10 @@
 				<include name="red5.sh"/>
 				<include name="red5-bootstrap.sh"/>
 				<include name="red5-shutdown.sh"/>
+				<include name="red5-debug.sh"/>
+				<include name="red5-debug.bat"/>
+				<include name="red5-hiperf.sh"/>
+				<include name="red5-highperf.bat"/>
 				<include name="license.txt"/>
 			</fileset>
 		</copy>
