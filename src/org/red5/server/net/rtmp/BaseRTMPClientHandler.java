@@ -96,7 +96,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 
 	private final RTMPClientConnManager connManager = new RTMPClientConnManager();
 
-	private Map<Integer, NetStreamPrivateData> streamDataMap = new ConcurrentHashMap<Integer, NetStreamPrivateData>();
+	private ConcurrentMap<Object, NetStreamPrivateData> streamDataMap = new ConcurrentHashMap<Object, NetStreamPrivateData>();
 
 	/**
 	 * Task to start on connection close
@@ -542,10 +542,12 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 		if (onStatus) {
 			// XXX better to serialize ObjectMap to Status object
 			ObjectMap<?, ?> objMap = (ObjectMap<?, ?>) call.getArguments()[0];
-			Integer clientId = (Integer) objMap.get("clientid");
+			// should keep this as an Object to stay compatible with FMS3 etc
+			Object clientId = (Object) objMap.get("clientid");
 			if (clientId == null) {
 				clientId = source.getStreamId();
 			}
+			log.debug("Client id: {}", clientId);
 			if (clientId != null) {
 				NetStreamPrivateData streamData = streamDataMap.get(clientId);
 				if (streamData != null && streamData.handler != null) {
@@ -656,6 +658,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 
 		public void resultReceived(IPendingServiceCall call) {
 			Integer streamIdInt = (Integer) call.getResult();
+			log.debug("Stream id: {}", streamIdInt);
 			RTMPConnection conn = connManager.getConnection();
 			if (conn != null && streamIdInt != null) {
 				NetStream stream = new NetStream(streamEventDispatcher);
