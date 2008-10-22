@@ -370,6 +370,7 @@ public class RTMPTServlet extends HttpServlet {
 
 		// Decode the objects in the data
 		List<?> messages = connection.decode(data);
+		data.release();
 		data = null;
 		if (messages == null || messages.isEmpty()) {
 			returnMessage(connection.getPollingDelay(), resp);

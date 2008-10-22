@@ -128,6 +128,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 		}
 		getWriteLock().lock();
 		try {
+			buffer.release();
 			buffer = null;
 			state.setState(RTMP.STATE_DISCONNECTED);
 			pendingMessages.clear();

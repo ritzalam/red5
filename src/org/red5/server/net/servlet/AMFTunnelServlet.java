@@ -154,7 +154,7 @@ public class AMFTunnelServlet extends HttpServlet {
 				resp.sendError(HttpStatus.SC_BAD_REQUEST);
 			}
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			logger.error("", ex);
 		} finally {
 			get.releaseConnection();
 		}

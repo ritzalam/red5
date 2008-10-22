@@ -192,7 +192,6 @@ public class StatusObjectService implements StatusCodes {
             cachedStatusObjects.put(statusCode, cachedBytes);
         }
         out.release();
-        
         out = null;
 	}
 

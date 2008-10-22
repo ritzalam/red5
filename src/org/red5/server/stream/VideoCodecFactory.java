@@ -72,7 +72,7 @@ public class VideoCodecFactory {
 				continue;
 			}
 
-			log.info("Trying codec " + codec);
+			log.info("Trying codec {}", codec);
 			if (codec.canHandleData(data)) {
 				result = codec;
 				break;

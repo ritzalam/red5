@@ -205,6 +205,7 @@ public class Notify extends BaseEvent implements IStreamData, IStreamPacket {
     @Override
 	protected void releaseInternal() {
 		if (data != null) {
+			data.release();
 			data = null;
 		}
 	}

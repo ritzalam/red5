@@ -90,9 +90,7 @@ public class ZAMFGatewayServlet extends HttpServlet {
 			ContinuationSupport.getContinuation(req, handler).suspend(1000);
 
 		} catch (IOException e) {
-
 			log.error("{}", e);
-
 		}
 		log.info("End");
 	}
