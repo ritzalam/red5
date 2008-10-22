@@ -517,8 +517,8 @@
 	<target name="jar" description="Make Archive" depends="jar-determine-classpath">
 		<jar destfile="${red5.filename}.jar">
 			<fileset dir="${classes.dir}">
-				<include name="**"/>
-				<exclude name="testcases/**"/>
+				<include name="**/org**"/>
+				<include name="**/META-INF**"/>
 			</fileset>
 			<manifest>
 				<attribute name="Red5-Version" value="${red5.version}"/>
