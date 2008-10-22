@@ -187,6 +187,9 @@
 	<logger name="org.apache.tomcat.util.net">
 		<level value="WARN" />
 	</logger>
+	<logger name="org.apache.coyote.http11">
+		<level value="INFO" />
+	</logger>
 	<!-- Jetty -->
 	<logger name="org.mortbay">
 		<level value="WARN" />
