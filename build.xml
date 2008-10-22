@@ -560,7 +560,7 @@
 				<include name="red5-shutdown.sh"/>
 				<include name="red5-debug.sh"/>
 				<include name="red5-debug.bat"/>
-				<include name="red5-hiperf.sh"/>
+				<include name="red5-highperf.sh"/>
 				<include name="red5-highperf.bat"/>
 				<include name="license.txt"/>
 			</fileset>
@@ -568,6 +568,8 @@
 		<chmod file="${dist.dir}/red5.sh" perm="755"/>
 		<chmod file="${dist.dir}/red5-bootstrap.sh" perm="755"/>
 		<chmod file="${dist.dir}/red5-shutdown.sh" perm="755"/>
+		<chmod file="${dist.dir}/red5-debug.sh" perm="755"/>
+		<chmod file="${dist.dir}/red5-highperf.sh" perm="755"/>
 	</target>
 
 	<target name="dist-installer" description="Make Installer distribution" depends="clean, ivyclear, dist, javadoc">
