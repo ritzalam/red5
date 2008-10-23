@@ -126,14 +126,24 @@
 		<property name="connector">
 			<bean class="org.apache.catalina.connector.Connector">
 				<!-- Blocking I/O -->
-				<constructor-arg type="java.lang.String" value="org.apache.coyote.http11.Http11Protocol" />
-				<!-- Non-blocking I/O -->
 				<!--
-				<constructor-arg type="java.lang.String" value="org.apache.coyote.http11.Http11NioProtocol" />	
+				<constructor-arg type="java.lang.String" value="org.apache.coyote.http11.Http11Protocol" />
 				-->
+				<!-- Non-blocking I/O -->
+				<constructor-arg type="java.lang.String" value="org.apache.coyote.http11.Http11NioProtocol" />	
 				<property name="port"><value>${rtmpt.port}</value></property>
 				<property name="enableLookups"><value>false</value></property>
 			</bean>
+		</property>
+
+		<property name="connectionProperties">
+			<map>
+				<entry key="maxKeepAliveRequests" value="${rtmpt.max_keep_alive_requests}"/>
+				<entry key="useExecutor" value="true"/>
+				<entry key="maxThreads" value="${rtmpt.max_threads}"/>
+				<entry key="acceptorThreadCount" value="${rtmpt.acceptor_thread_count}"/>
+				<entry key="processorCache" value="${rtmpt.processor_cache}"/>
+			</map>
 		</property>
 		
 		<property name="host">
@@ -156,11 +166,11 @@
 		<property name="connector">
 			<bean class="org.apache.catalina.connector.Connector">
 				<!-- Blocking I/O -->
-				<constructor-arg type="java.lang.String" value="org.apache.coyote.http11.Http11Protocol" />
-				<!-- Non-blocking I/O -->
 				<!--
-				<constructor-arg type="java.lang.String" value="org.apache.coyote.http11.Http11NioProtocol" />	
+				<constructor-arg type="java.lang.String" value="org.apache.coyote.http11.Http11Protocol" />
 				-->		
+				<!-- Non-blocking I/O -->
+				<constructor-arg type="java.lang.String" value="org.apache.coyote.http11.Http11NioProtocol" />	
 				<property name="port" value="${rtmps.port}" />
 				<property name="redirectPort" value="${rtmp.port}" />
 			</bean>			
@@ -210,6 +220,11 @@
 					<key><value>keystoreType</value></key>
 					<value>JKS</value>
 				</entry>
+				<entry key="maxKeepAliveRequests" value="${rtmps.max_keep_alive_requests}"/>
+				<entry key="useExecutor" value="true"/>
+				<entry key="maxThreads" value="${rtmps.max_threads}"/>
+				<entry key="acceptorThreadCount" value="${rtmps.acceptor_thread_count}"/>
+				<entry key="processorCache" value="${rtmps.processor_cache}"/>
 			</map>
 		</property>	
 
