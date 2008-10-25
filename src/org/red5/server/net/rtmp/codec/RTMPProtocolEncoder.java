@@ -70,11 +70,6 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
     protected static Logger log = LoggerFactory.getLogger(RTMPProtocolEncoder.class);
 
     /**
-     * I/O operations logger.
-     */
-    protected static Logger ioLog = LoggerFactory.getLogger(RTMPProtocolEncoder.class + ".out");
-
-    /**
      * Serializer object.
      */
     private Serializer serializer;

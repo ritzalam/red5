@@ -212,7 +212,7 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 			serviceMethod = handler;
 		}
 
-        // Get previously registred handler for service
+        // Get previously registered handler for service
         Object soHandler = getServiceHandler(serviceName);
 		if (soHandler == null && hasParent()) {
 			// No custom handler, check for service defined in the scope's
@@ -566,7 +566,7 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 						}
 						break;
 					default:
-						log.warn("Unknown SO event: " + event.getType());
+						log.warn("Unknown SO event: {}", event.getType());
 				}
 			}
 		} finally {

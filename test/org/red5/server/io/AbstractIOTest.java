@@ -220,6 +220,26 @@ public abstract class AbstractIOTest extends TestCase {
 		resetOutput();
 	}
 
+	public void testInteger() {
+		log.debug("Testing integer");
+		int num = 129;
+		serializer.serialize(out, Integer.valueOf(num));
+		dumpOutput();
+		Integer n = deserializer.deserialize(in, Integer.class);
+		Assert.assertEquals(n.intValue(), num);
+		resetOutput();
+	}	
+	
+	public void testNegativeInteger() {
+		log.debug("Testing negative integer");
+		int num = -129;
+		serializer.serialize(out, Integer.valueOf(num));
+		dumpOutput();
+		Integer n = deserializer.deserialize(in, Integer.class);
+		Assert.assertEquals(n.intValue(), num);
+		resetOutput();
+	}
+	
 	@SuppressWarnings("unchecked")
 	public void testSimpleReference() {
 		Map<String, Object> mapIn = new HashMap<String, Object>();

@@ -187,7 +187,7 @@ public class ClientSharedObject extends SharedObject implements
 						break;
 
 					default:
-						log.warn("Unknown SO event: " + event.getType());
+						log.warn("Unknown SO event: {}", event.getType());
 				}
 			}
 		} finally {
