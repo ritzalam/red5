@@ -68,7 +68,6 @@
          -->
         <!-- JMX -->
         <dependency org="jmx" name="jmxremote" rev="1.0.1" />
-        <dependency org="jmx" name="jmxtools" rev="1.2.1" />
         <dependency org="jmx" name="rmissl" rev="1.0.1" />            
         <!-- Mina --> 
         <dependency org="mina" name="mina-core" rev="1.1.7" />
