@@ -569,6 +569,8 @@ public class FLVReader implements IoConstants, ITagReader,
     public synchronized ITag readTag() {
 		long oldPos = getCurrentPosition();
 		ITag tag = readTagHeader();
+		
+		log.debug("readTag, oldPos: {}, tag header: {}", oldPos, tag);
 
 		if (!metadataSent && tag.getDataType() != TYPE_METADATA
 				&& generateMetadata) {
@@ -700,7 +702,7 @@ public class FLVReader implements IoConstants, ITagReader,
 			// log.debug("---->" + in.remaining() + " limit=" + in.limit() + "
 			// new pos=" + newPosition);
 			if (newPosition >= getTotalBytes()) {
-				log.info("New position exceeds limit");
+				log.error("New position exceeds limit");
 				if (log.isDebugEnabled()) {
 					log.debug("-----");
 					log.debug("Keyframe analysis");
@@ -711,7 +713,7 @@ public class FLVReader implements IoConstants, ITagReader,
 					log.debug(" pos=" + pos);
 					log.debug("-----");
 				}
-				break;
+				throw new RuntimeException("New position exceeds limit");
 			} else {
 				setCurrentPosition(newPosition);
 			}
