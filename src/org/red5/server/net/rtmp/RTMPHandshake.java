@@ -1,5 +1,24 @@
 package org.red5.server.net.rtmp;
 
+/*
+ * RED5 Open Source Flash Server - http://www.osflash.org/red5
+ * 
+ * Copyright (c) 2006-2008 by respective authors (see below). All rights reserved.
+ * 
+ * This library is free software; you can redistribute it and/or modify it under the 
+ * terms of the GNU Lesser General Public License as published by the Free Software 
+ * Foundation; either version 2.1 of the License, or (at your option) any later 
+ * version. 
+ * 
+ * This library is distributed in the hope that it will be useful, but WITHOUT ANY 
+ * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
+ * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
+ * 
+ * You should have received a copy of the GNU Lesser General Public License along 
+ * with this library; if not, write to the Free Software Foundation, Inc., 
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ */
+
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Security;
@@ -19,10 +38,8 @@ import org.slf4j.LoggerFactory;
  * compatibility with Flash 9,0,124,0. Clients that require this send a nonzero
  * value as the fifth byte of the handshake request.
  * 
- * <br />
- * 
+ * <br/>
  * This class is based on the Ruby handshaking code from Takuma Mori.
- * 
  * <br />
  * 
  * @author Jacinto Shy II (jacinto.m.shy@ieee.org)
