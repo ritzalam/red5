@@ -603,8 +603,9 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 
 		try {
 			engine.pullAndPush();
-		} catch (Throwable err) {
+		} catch (IOException err) {
 			log.error("Error while pulling message.", err);
+			throw new RuntimeException(err);
 		}
 	}
 
