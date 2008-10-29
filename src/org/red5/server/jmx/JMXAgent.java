@@ -45,8 +45,6 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sun.jdmk.comm.HtmlAdaptorServer;
-
 /**
  * Provides the connection adapters as well as registration and
  * unregistration of MBeans.
