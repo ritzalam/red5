@@ -315,7 +315,6 @@ public class JMXAgent implements NotificationListener {
 					//if we didnt find the registry and the user wants it created
 					if (startRegistry) {
 						log.info("Starting an internal RMI registry");
-						// create registry for rmi port 9999
 						r = LocateRegistry.createRegistry(Integer
 								.valueOf(rmiAdapterPort));
 					}
@@ -332,6 +331,8 @@ public class JMXAgent implements NotificationListener {
 						"service:jmx:rmi:///jndi/rmi://:" + rmiAdapterPort
 								+ "/red5");
 				}
+				
+				log.info("JMXServiceUrl is: {}", url);
 				
 				//if SSL is requested to secure rmi connections
 				if (enableSsl) {
