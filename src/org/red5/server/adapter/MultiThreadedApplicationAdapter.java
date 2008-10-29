@@ -1112,7 +1112,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 
 	public void streamPlaylistItemPlay(IPlaylistSubscriberStream stream, IPlayItem item, boolean isLive) {
 		//log w3c connect event		
-		log.info("W3C x-category:stream x-event:play c-ip:{} x-sname:{}", new Object[]{Red5.getConnectionLocal().getRemoteAddress(), stream.getName()});		
+		log.info("W3C x-category:stream x-event:play c-ip:{} x-sname:{} x-name:{}", new Object[]{Red5.getConnectionLocal().getRemoteAddress(), stream.getName(), item.getName()});		
 	}
 
 	public void streamPlaylistItemStop(IPlaylistSubscriberStream stream, IPlayItem item) {
@@ -1164,7 +1164,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	public void streamRecordStart(IBroadcastStream stream) {
 		//log w3c connect event
 		IConnection connection = Red5.getConnectionLocal();
-		log.info("W3C x-category:stream x-event:record c-ip:{} x-sname:{}", new Object[]{connection != null ? connection.getRemoteAddress() : "0.0.0.0", stream.getName()});		
+		log.info("W3C x-category:stream x-event:record c-ip:{} x-sname:{} x-file-name:{}", new Object[]{connection != null ? connection.getRemoteAddress() : "0.0.0.0", stream.getName(), stream.getSaveFilename()});		
 	}
 
 	public void streamSubscriberClose(ISubscriberStream stream) {
