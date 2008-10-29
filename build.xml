@@ -28,6 +28,12 @@
 	<property name="doc.ref.lib" value="${doc.ref.dir}/lib"/>
 	<property name="javadoc.style" value="${doc.ref.dir}/styles/javadoc.css"/>
 	
+	<!-- unit testing -->
+	<property name="test.dir" value="test"/>
+        <property name="testclass.dir" value="bin/testcases/classes"/>
+        <property name="testreports.dir" value="bin/testcases/testreports"/>
+	<property name="testdoc.dir" value="doc/test"/>
+
 	<!-- base project properties -->
 	<property file="build.properties"/>
 
@@ -38,7 +44,7 @@
 		<format property="TODAY" pattern="d-MMMM-yyyy" locale="en"/>
 	</tstamp>
 
-	<!-- Special directory destination for build war - unused in normal server build -->
+	<!-- Special directory destination for WAR build - unused in normal server build -->
 	<property name="tmp.war.dir" value=""/>
 
 	<!--
@@ -50,12 +56,6 @@
 		 classpath="${lib.dir}/${ivy.version}.jar"/>
 	<!-- Latest ivy 9/2008 seems to want absolute path -->
 	<property name="ivy.lib.dir" value="${basedir}/lib"/>
-	
-	<!-- JUNIT TESTING -->
-	<property name="test.dir" value="test"/>
-        <property name="testclass.dir" value="bin/testcases/classes"/>
-        <property name="testreports.dir" value="bin/testcases/testreports"/>
-	<property name="testdoc.dir" value="doc/test"/>
 	
 	<path id="project.classpath">
 		<fileset dir="${lib.dir}"/>
@@ -98,8 +98,7 @@
 	<target name="-library.check">
 		<echo message='Java: java.home is ${java.home} and the target version is ${java.target_version}'/>
 		<echo message='Ant: ant.home is ${ant.home} and the target version is ${ant.version}'/>
-		<!-- May want to add repository availability checking -->
-		<!--
+		<!-- May want to add repository availability checking
         	<condition property="repository.offline.googlecode" value="true">
             		<isreachable host="red5.googlecode.com" timeout="30" />
         	</condition>
@@ -202,12 +201,9 @@
 	</target>
 
 	<target name="ivyclear" description="Clears out the Ivy cache">
-		<!--
-    	<delete dir="${user.home}/.ivy/cache"/>
-    	-->
-        <delete dir="${user.home}/.ivy2/cache"/>
-		<delete includeemptydirs="true">
-			<fileset dir="${lib.dir}" excludes="**/ivy*.jar"/>
+        	<delete dir="${user.home}/.ivy2/cache"/>
+			<delete includeemptydirs="true">
+				<fileset dir="${lib.dir}" excludes="**/ivy*.jar"/>
 		</delete>
 	</target>
 
@@ -250,12 +246,12 @@
 			</fileset>
 			<pathelement location="${classes.dir}"/>
 		</path>
-		<antcall target="compile_demos" inheritAll="true" inheritRefs="true"/>
-		<antcall target="compile_script" inheritAll="true" inheritRefs="true"/>
+		<antcall target="compile-demos" inheritAll="true" inheritRefs="true"/>
+		<antcall target="compile-script" inheritAll="true" inheritRefs="true"/>
 	</target>
 
 	<!-- Core -->
-	<target name="compile_core" if="java6.installed" description="Build server core">
+	<target name="compile-core" if="java6.installed" description="Build server core">
 		<antcall target="retrieve" inheritAll="true" inheritRefs="true">
 			<param name="ivy.conf.name" value="java6"/>
 		</antcall>
@@ -266,7 +262,7 @@
 			 excludes="${std_excludes}" listfiles="false"/>
 	</target>
 
-	<target name="compile_core_compatibility" unless="java6.installed">
+	<target name="compile-core-compatibility" unless="java6.installed">
 		<antcall target="retrieve" inheritAll="true" inheritRefs="true">
 			<param name="ivy.conf.name" value="java5"/>
 		</antcall>
@@ -323,7 +319,7 @@
 	</macrodef>
 	
 	<!-- Demos -->
-	<target name="compile_demos" description="Build demo apps">
+	<target name="compile-demos" description="Build demo apps">
 		<echo message="Webapps dir: ${webapps.dir}"/>
 		<echo message="Webapps build dir: ${webapps.build.dir}"/>
 
@@ -345,25 +341,25 @@
 
 		<!-- installer -->
 
-    	<!-- load token replacement filters -->
-    	<filter filtersfile="${filter.file}"/>
-    	<copy todir="${webapps.build.dir}/installer" filtering="true">
-    		<fileset dir="webapps/installer">
-        		<exclude name="**/src/**"/>
-        		<exclude name="**/*.swf"/>
-    		</fileset>
-    	</copy>
+    		<!-- load token replacement filters -->
+    		<filter filtersfile="${filter.file}"/>
+    		<copy todir="${webapps.build.dir}/installer" filtering="true">
+    			<fileset dir="webapps/installer">
+        			<exclude name="**/src/**"/>
+        			<exclude name="**/*.swf"/>
+    			</fileset>
+    		</copy>
 
-    	<!-- copy SWF without filtering as it causes corruption -->
-    	<copy todir="${webapps.build.dir}/installer">
-    		<fileset dir="webapps/installer">
-        		<include name="**/*.swf"/>
-    		</fileset>
-    	</copy>
+    		<!-- copy SWF without filtering to prevent file corruption -->
+    		<copy todir="${webapps.build.dir}/installer">
+    			<fileset dir="webapps/installer">
+        			<include name="**/*.swf"/>
+    			</fileset>
+    		</copy>
 	</target>
 
 	<!-- Scripting -->
-	<target name="compile_script" depends="prepare">
+	<target name="compile-script" depends="prepare">
 		<available property="scripting_compatibility" classpathref="project.classpath"
 			   classname="javax.script.ScriptEngineManager"/>
 		<condition property="scripting.using" value="Scripting compatibility is available." 
@@ -379,7 +375,7 @@
 		<echo message="${scripting.using}"/>
 	</target>
 
-	<target name="compile_war" depends="-library.check, -java6.check, clean, prepare">
+	<target name="compile-war" depends="-library.check, -java6.check, clean, prepare">
 		<!-- token replacement filers -->
 		<property name="filter.file" value="${config.dir}/war/build_war.properties"/>
 		<condition property="java.target_version" value="1.6">
@@ -409,8 +405,8 @@
 			<pathelement location="${dest.dir}"/>
 		</path>
 
-		<antcall target="compile_demos" inheritAll="true" inheritRefs="true"/>
-		<antcall target="compile_script" inheritAll="true" inheritRefs="true">
+		<antcall target="compile-demos" inheritAll="true" inheritRefs="true"/>
+		<antcall target="compile-script" inheritAll="true" inheritRefs="true">
 			<param name="dest.dir" value="${classes.dir}/WEB-INF/classes"/>
 		</antcall>
 	</target>
@@ -432,7 +428,7 @@
       		</sequential>
 	</macrodef>
 
-	<target name="war_demos" description="Build wars for demo apps" depends="compile_demos">
+	<target name="war-demos" description="Build wars for demo apps" depends="compile-demos">
 		<!-- copy installer swf etc under root/installer -->
 		<mkdir dir="${webapps.build.dir}/root/installer"/>
 		<copy todir="${webapps.build.dir}/root/installer">
@@ -506,7 +502,7 @@
 			</jar>
 			<!-- copy files (optional) -->
 			<copy-assets/>
-      	</sequential>
+      		</sequential>
 	</macrodef>
 
 	<target name="jar-determine-classpath" description="Determine classpath for jar file" depends="compile" unless="jar.classpath">
@@ -514,6 +510,7 @@
 			<classpath refid="runtime.classpath"/>
 		</manifestclasspath>
         </target>
+
 	<target name="jar" description="Make Archive" depends="jar-determine-classpath">
 		<jar destfile="${red5.filename}.jar">
 			<fileset dir="${classes.dir}">
@@ -533,7 +530,7 @@
 		</jar>
 	</target>
 
-	<target name="dist" description="Make Binary distribution" depends="jar">
+	<target name="dist" description="Create binary distribution" depends="jar">
 		<copy todir="${dist.dir}/lib">
 			<fileset dir="${lib.dir}">
 				<exclude name="ivy*.jar"/>
@@ -565,6 +562,7 @@
 				<include name="license.txt"/>
 			</fileset>
 		</copy>
+
 		<chmod file="${dist.dir}/red5.sh" perm="755"/>
 		<chmod file="${dist.dir}/red5-bootstrap.sh" perm="755"/>
 		<chmod file="${dist.dir}/red5-shutdown.sh" perm="755"/>
@@ -572,7 +570,9 @@
 		<chmod file="${dist.dir}/red5-highperf.sh" perm="755"/>
 	</target>
 
-	<target name="dist-installer" description="Make Installer distribution" depends="clean, ivyclear, dist, javadoc">
+	<target name="dist-installer" description="Create installer distribution"
+                depends="clean, ivyclear, dist, javadoc">
+
 		<copy todir="${dist.dir}/doc">
 			<fileset dir="doc"/>
 		</copy>
@@ -589,6 +589,7 @@
 			</fileset>
 		</copy>
 		<chmod file="${dist.dir}/red5-debug.sh" perm="755"/>
+
 		<!-- include war config files -->
 		<copy todir="${dist.dir}/conf">
 			<fileset dir="${config.dir}">
@@ -609,7 +610,8 @@
 		</copy>
 	</target>
 
-	<target name="dist-archive" depends="dist-installer" description="Create archive file for distribution">
+	<target name="dist-archive" depends="dist-installer"
+                description="Create archive file for distribution">
 		<touch>
 			<fileset dir="${dist.dir}"/>
 		</touch>
@@ -628,46 +630,46 @@
 	</target>
 
 	<target name="dist-edge" depends="dist-origin">
-			<!-- Copies edge build and then puts config into place. -->
-		    <copy todir="${edgedist.dir}/">
-		    	<fileset dir="${dist.dir}">
-		    	    <exclude name="**/build.properties"/>
-					<exclude name="**/build.xml"/>
-					<exclude name="**/Makefile"/>
-					<exclude name="**/doc/**"/>
-	                <exclude name="**/conf/red5-origin.xml"/>
-					<exclude name="**/conf/red5-origin-core.xml"/>
-					<exclude name="**/conf/red5.xml"/>
-					<exclude name="**/docs/**"/>
-					<exclude name="**/dumps/**"/>
-					<exclude name="**/src/**"/>
-					<exclude name="**/swf/**"/>
-					<exclude name="**/webapps/**"/>
-	            </fileset>
-		    </copy>
+		<!-- Copies edge build and then puts config into place. -->
+		<copy todir="${edgedist.dir}/">
+			<fileset dir="${dist.dir}">
+		    		<exclude name="**/build.properties"/>
+				<exclude name="**/build.xml"/>
+				<exclude name="**/Makefile"/>
+				<exclude name="**/doc/**"/>
+	                	<exclude name="**/conf/red5-origin.xml"/>
+				<exclude name="**/conf/red5-origin-core.xml"/>
+				<exclude name="**/conf/red5.xml"/>
+				<exclude name="**/docs/**"/>
+				<exclude name="**/dumps/**"/>
+				<exclude name="**/src/**"/>
+				<exclude name="**/swf/**"/>
+				<exclude name="**/webapps/**"/>
+	            	</fileset>
+		</copy>
 			
-			<copy todir="${edgedist.dir}/webapps">
-				<fileset file="${dist.dir}/webapps/red5-default.xml"/>
-			</copy>
-			<move tofile="${edgedist.dir}/conf/red5.xml" file="${edgedist.dir}/conf/red5-edge.xml"
-			      overwrite="true"/>
-			<chmod file="${edgedist.dir}/red5.sh" perm="755"/>
-			<chmod file="${edgedist.dir}/red5-bootstrap.sh" perm="755"/>
-			<chmod file="${edgedist.dir}/red5-shutdown.sh" perm="755"/>
+		<copy todir="${edgedist.dir}/webapps">
+			<fileset file="${dist.dir}/webapps/red5-default.xml"/>
+		</copy>
+		<move tofile="${edgedist.dir}/conf/red5.xml" file="${edgedist.dir}/conf/red5-edge.xml"
+		      overwrite="true"/>
+		<chmod file="${edgedist.dir}/red5.sh" perm="755"/>
+		<chmod file="${edgedist.dir}/red5-bootstrap.sh" perm="755"/>
+		<chmod file="${edgedist.dir}/red5-shutdown.sh" perm="755"/>
 	</target>
 
 	<target name="dist-origin" depends="dist-installer">
-			<!-- Copies dist build and then puts config into place. -->
+		<!-- Copies dist build and then puts config into place. -->
 	        <copy todir="${origindist.dir}/">
 	        	<fileset dir="${dist.dir}">
-					<exclude name="**/conf/red5.xml"/>
-	            </fileset>
+				<exclude name="**/conf/red5.xml"/>
+	        	</fileset>
 	        </copy>
-			<move tofile="${origindist.dir}/conf/red5.xml" file="${dist.dir}/conf/red5-origin.xml"
-			      overwrite="true"/>
-			<chmod file="${origindist.dir}/red5.sh" perm="755"/>
-			<chmod file="${origindist.dir}/red5-bootstrap.sh" perm="755"/>
-			<chmod file="${origindist.dir}/red5-shutdown.sh" perm="755"/>
+		<move tofile="${origindist.dir}/conf/red5.xml" file="${dist.dir}/conf/red5-origin.xml"
+		      overwrite="true"/>
+		<chmod file="${origindist.dir}/red5.sh" perm="755"/>
+		<chmod file="${origindist.dir}/red5-bootstrap.sh" perm="755"/>
+		<chmod file="${origindist.dir}/red5-shutdown.sh" perm="755"/>
 	</target>
 
 	<target name="dist-cluster" description="Create Edge/Origin distribution" depends="dist-edge">
@@ -765,19 +767,19 @@
 		</java>
 	</target>
 
-	<target name="udp_server" depends="compile" description="Compile and start experimental UDP server">
-        <java classname="org.red5.server.net.udp.Standalone" fork="true">
-            <classpath>
-            	<pathelement location="${config.dir}"/>
-            	<pathelement location="${classes.dir}"/>
-            	<path refid="full.classpath"/>
-            </classpath>
-            <jvmarg value="-Djava.security.manager"/>
-            <jvmarg value="-Djava.security.policy=${config.dir}/red5.policy"/>
-        </java>
+	<target name="udp-server" depends="compile" description="Compile and start experimental UDP server">
+        	<java classname="org.red5.server.net.udp.Standalone" fork="true">
+            		<classpath>
+            			<pathelement location="${config.dir}"/>
+            			<pathelement location="${classes.dir}"/>
+            			<path refid="full.classpath"/>
+            		</classpath>
+            		<jvmarg value="-Djava.security.manager"/>
+            		<jvmarg value="-Djava.security.policy=${config.dir}/red5.policy"/>
+        	</java>
 	</target>
 
-	<target name="run-tests" depends="compile_tests" description="Run JUnit tests and generate HTML reports">
+	<target name="run-tests" depends="compile-tests" description="Run unit tests and generate HTML reports">
 		<junit fork="true" haltonfailure="no" printsummary="yes" showoutput="no"
 		       dir="${testreports.dir}">
 			<classpath>
@@ -802,34 +804,36 @@
 			<report format="frames" todir="${testdoc.dir}"/>
 		</junitreport>
 	</target>
-        <target name="run-tests-systemtest" depends="compile_tests" description="Runs some end-to-end system tests against a test server using a flash client">
-          <!-- Copy over all self-run scripts -->
-          <!-- Note we use cp, and not <copy> to preserve permission
-            semantics.  This means this target will NOT run directly
-            on Windows without Cygwin... which is fine because
-            all the shell scripts are .sh scripts.  It is left
-            as an exercise for the reader to develop a .bat version
-            that can actually run processes in the background.  -->
-          <!-- Lastly, don't use fully qualified paths here; that
-            can screw up Cygwin -->
-          <exec executable="cp">
-            <arg line="-rf" />
-            <arg line="${test.dir}/scripts" />
-            <arg line="${testdist.dir}/" />
-          </exec>
 
-          <exec executable="bash"
-            dir="${testreports.dir}/fixtures"
-            failonerror="true"
-            >
-            <arg line="${testdist.dir}/scripts/red5-flash-player-headless"/>
-            <arg line="red5-selftest.swf"/>
-            <env key="PATH" path="${env.PATH}:${testdist.dir}/scripts"/>
-            <env key="RED5_HOME" path="${testdist.dir}"/>
-          </exec>
+        <target name="run-tests-systemtest" depends="compile-tests"
+		description="Runs some end-to-end system tests against a test server using a Flash client">
+        	
+		<!-- Copy over all self-run scripts -->
+          	<!-- Note we use cp, and not <copy> to preserve permission
+                     semantics.  This means this target will NOT run directly
+                     on Windows without Cygwin, which is fine because
+            	     all the shell scripts are .sh scripts.  It is left
+            	     as an exercise for the reader to develop a .bat version
+            	     that can actually run processes in the background.  -->
+          	<!-- Finally, don't use fully qualified paths here; that
+            	     can screw up Cygwin -->
+        	
+		<exec executable="cp">
+            		<arg line="-rf" />
+            		<arg line="${test.dir}/scripts" />
+            		<arg line="${testdist.dir}/" />
+          	</exec>
+
+          	<exec executable="bash" dir="${testreports.dir}/fixtures"
+            	      failonerror="true">
+            		<arg line="${testdist.dir}/scripts/red5-flash-player-headless"/>
+            		<arg line="red5-selftest.swf"/>
+            		<env key="PATH" path="${env.PATH}:${testdist.dir}/scripts"/>
+            		<env key="RED5_HOME" path="${testdist.dir}"/>
+          	</exec>
 	</target>
 
-	<target name="run-tests-server" depends="compile_tests" description="Run the selftest server">
+	<target name="run-tests-server" depends="compile-tests" description="Run the selftest server">
 		<echo message="Using ${testdist.dir} for Red5 root"/>
 		<mkdir dir="${testdist.dir}/${log.dir}"/>		
 		<java classname="org.red5.server.Standalone" fork="true" dir="${testdist.dir}">
@@ -849,7 +853,7 @@
 		</java>
 	</target>
 
-	<target name="compile_tests" depends="dist" description="Compiles junit test classes">
+	<target name="compile-tests" depends="dist" description="Compiles unit test classes">
 		<property name="testdist.dir" location="${testreports.dir}/dist"/>
 		<echo>Making dist for testing</echo>
 		<mkdir dir="${testdist.dir}"/>
@@ -860,17 +864,17 @@
 			<param name="dist.dir" value="${testdist.dir}"/>
 		</antcall>
                 <!-- Copy all test config files into the dist/conf of the
-                  test distribution.  The JUnit task below will add this
-                  directory to the classpath -->
+                     test distribution.  The JUnit task below will add this
+                     directory to the classpath -->
                 <copy todir="${testdist.dir}/conf" overwrite="true">
-                  <fileset dir="${test.dir}" includes="**/*.xml" excludes="www/**/*"/>
+                	<fileset dir="${test.dir}" includes="**/*.xml" excludes="www/**/*"/>
                 </copy>
-                <!-- Install the silly self-test application that tests depend on -->
+                <!-- Install the self-test application that tests depend on -->
                 <copy todir="${testdist.dir}/webapps/selftest" overwrite="true">
-                  <fileset dir="${test.dir}/www/" includes="**/*"/>
+                	<fileset dir="${test.dir}/www/" includes="**/*"/>
                 </copy>
                 <copy todir="${testreports.dir}/fixtures" overwrite="true">
-                  <fileset dir="${test.dir}/fixtures" includes="**/*"/>
+                	<fileset dir="${test.dir}/fixtures" includes="**/*"/>
                 </copy>
 		<echo>Libraries checked: ${library.installed}</echo>
 		<antcall target="retrieve" inheritAll="true" inheritRefs="true">
@@ -888,11 +892,11 @@
 		</javac>
                 <mkdir dir="${testdist.dir}/webapps/selftest/WEB-INF/classes" />
                 <copy todir="${testdist.dir}/webapps/selftest/WEB-INF/classes" overwrite="true">
-                  <fileset dir="${testclass.dir}" includes="**/*.class"/>
+                	<fileset dir="${testclass.dir}" includes="**/*.class"/>
                 </copy>
 	</target>
 
-	<target name="webwar" description="Make Web Archive" depends="compile_war">
+	<target name="webwar" description="Make Web Archive" depends="compile-war">
 		<!-- token replacement filers -->
 		<filter filtersfile="${config.dir}/war/build_war.properties"/>
 		<copy todir="${classes.dir}">
@@ -906,7 +910,7 @@
 		<!-- cleanup "standalone" red5-web files -->
    		<delete>
         		<fileset dir="${webapps.build.dir}" includes="**/red5-web.*"/>
-    	</delete>		
+    		</delete>		
 		
 		<!-- add the configs to the root war -->
 		<filter token="display.name" value=""/>
@@ -977,7 +981,7 @@
 		<delete dir="${dist.dir}/webapps"/>
 	</target>
 
-	<target name="remotejar" description="Creates a jar that may be deployed with remote applications"
+	<target name="remote-jar" description="Creates a jar that may be deployed with remote applications"
 		depends="compile">
 		<mkdir dir="${classes.dir}/conf"/>
 		<copy todir="${classes.dir}/conf">
@@ -999,9 +1003,7 @@
 		</jar>	
 	</target>
 
-	<!-- RTMPS Keystore Generator -->
-	<target name="rtmps_keystore">
-		
+	<target name="rtmps-keystore" description="RTMPS Keystore Generator">
 		<input
 		    message="Keystore Pass"
 		    addproperty="keystore.storepass"
@@ -1059,9 +1061,7 @@
 		</genkey>
 	</target>
 	
-	<!-- JConsole Client Truststore -->
-	
-	<target name="truststore" depends="rtmps_keystore">
+	<target name="truststore" depends="rtmps-keystore" description="JConsole Client Truststore">
 		
 		<copy file="${config.dir}/keystore" tofile="${config.dir}/keystore.jmx" overwrite="true"/>
 		<copy file="${config.dir}/keystore.jmx" tofile="${config.dir}/truststore.jmx" overwrite="true"/>
@@ -1139,21 +1139,21 @@
 		<attribute name="outfile" default=""/>
 		
 		<sequential>
-		  <java classname="org.apache.fop.cli.Main" dir="@{basedir}"
-              fork="true" failonerror="true" classpathref="doc.lib.classpath">
-		    <sysproperty key="java.awt.headless" value="true"/>
-		  	<jvmarg value="-Xms128m"/>
-		  	<jvmarg value="-Xmx512m"/>
-		  	<jvmarg value="-Dorg.apache.commons.logging.Log=org.apache.commons.logging.impl.NoOpLog"/>
-		  	<arg value="-fo"/>
-            <arg path="@{fofile}"/>
-            <arg value="-pdf"/>
-            <arg path="@{outfile}"/>
-          </java>
+			<java classname="org.apache.fop.cli.Main" dir="@{basedir}" fork="true"
+			      failonerror="true" classpathref="doc.lib.classpath">
+		  		<sysproperty key="java.awt.headless" value="true"/>
+		  		<jvmarg value="-Xms128m"/>
+		  		<jvmarg value="-Xmx512m"/>
+		  		<jvmarg value="-Dorg.apache.commons.logging.Log=org.apache.commons.logging.impl.NoOpLog"/>
+		  		<arg value="-fo"/>
+            			<arg path="@{fofile}"/>
+            			<arg value="-pdf"/>
+            			<arg path="@{outfile}"/>
+          		</java>
 		</sequential>
 	</macrodef>
 	
-	<!-- Check Docbook libraries are installed -->
+	<!-- Check if Docbook libraries are installed -->
 	<target name="doc-prepare" description="Extra preparation for the documentation">
 		<path id="doc.lib.classpath">
 			<fileset dir="${basedir}/${doc.ref.lib}">
@@ -1178,8 +1178,7 @@
 	</target>
 	
 	<!-- PDF Documentation -->
-	<target name="doc-pdf" depends="doc-prepare" description="Compile reference documentation to pdf">
-		
+	<target name="doc-pdf" depends="doc-prepare" description="Compile reference documentation in PDF format">
 		<!-- Build fo file -->
 		<dbxslt basedir="${basedir}/${doc.ref.dir}/src"
 				in="${basedir}/${doc.ref.dir}/src/index.xml"
@@ -1192,12 +1191,11 @@
 				 outfile="${basedir}/${doc.ref.dir}/pdf/red5-reference.pdf"/>
 		
 		<delete file="${doc.ref.dir}/src/docbook_fop.tmp"/>
-		
 	</target>
 	
 	<!-- HTML Site Documentation -->
 	<target name="doc-html" depends="doc-prepare"
-				description="Compile reference documentation to chunked html">
+				description="Compile reference documentation in HTML format">
 
 		<mkdir dir="${basedir}/${doc.ref.dir}/html/images"/>
 
@@ -1220,11 +1218,11 @@
 		<dbxslt basedir="${basedir}/${doc.ref.dir}/html/"
 				in="${basedir}/${doc.ref.dir}/src/index.xml"
 				style="${basedir}/${doc.ref.dir}/styles/html_chunk.xsl"/>
-
 	</target>
 	
 	<!-- HTML Single Documentation -->
-	<target name="doc-htmlsingle" depends="doc-prepare" description="Compile reference documentation to single html">
+	<target name="doc-html-single" depends="doc-prepare"
+                description="Compile reference documentation in single page HTML format">
 		<mkdir dir="${doc.ref.dir}/html_single/images"/>
 
 		<copy todir="${basedir}/${doc.ref.dir}/html_single/images">
@@ -1244,10 +1242,10 @@
 	</target>
 
 	<!-- Build all documentation formats -->
-	<target name="doc-all" depends="doc-html,doc-htmlsingle,doc-pdf" description="Generate reference documentation"/>
-	
+	<target name="doc-all" depends="doc-html, doc-html-single, doc-pdf"
+		description="Generate all reference documentation"/>
 	<!-- 
-		To add svn 
+		Requirements:
 		1. Go here: http://subclipse.tigris.org/svnant.html
 
 		2. Download SvnAnt
@@ -1288,7 +1286,9 @@
 	
 		<svn username="${svn.login}" password="${svn.password}" failonerror="false">
 			<update dir="${basedir}" />
-			<status path="build.xml" textStatusProperty="svn.info.status" lastChangedRevisionProperty="svn.info.lastrev" revisionProperty="svn.info.rev"/> 
+			<status path="build.xml" textStatusProperty="svn.info.status"
+				lastChangedRevisionProperty="svn.info.lastrev"
+				revisionProperty="svn.info.rev"/> 
 		</svn>
 		<echo message="Svn info - status: ${svn.info.status} last rev: ${svn.info.lastrev} rev: ${svn.info.rev}"/>
 	
@@ -1306,10 +1306,10 @@
 		</svn>
 		<echo message="Svn info - status: ${svn.info.status}"/>	
 	
-       	<condition property="add-file" value="true" else="false">
+       		<condition property="add-file" value="true" else="false">
 	   		<equals arg1="${svn.info.status}" arg2="unversioned"/>
-      	</condition>
-       	<echo message='File does not exist in repository: ${add-file}'/>
+      		</condition>
+       		<echo message='File does not exist in repository: ${add-file}'/>
 
 		<antcall target="svn-add" inheritAll="true" inheritRefs="true">
 			<param name="file.path" value="${snapshot.path}${snapshot.name}"/>
