@@ -159,23 +159,6 @@ public class RTMPUtils implements Constants {
 	}
 
     /**
-     * Read integer in reversed order.
-	 *
-     * @param in         Input buffer
-     * @return           Integer
-     */
-	public static int readReverseIntOld(ByteBuffer in) {
-		byte[] bytes = new byte[4];
-		in.get(bytes);
-		int val = 0;
-		val += bytes[3] * 256 * 256 * 256;
-		val += bytes[2] * 256 * 256;
-		val += bytes[1] * 256;
-		val += bytes[0];
-		return val;
-	}
-
-    /**
      * Encodes header size marker and channel id into header marker.
 	 *
      * @param headerSize         Header size marker
