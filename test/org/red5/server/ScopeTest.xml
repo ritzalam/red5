@@ -34,9 +34,6 @@
         <property name="remotePasswordProperties" value="${red5.config_root}/password.properties"/>
         <property name="remoteSSLKeystore" value="${red5.config_root}/keystore.jmx"/>
         <property name="remoteSSLKeystorePass" value="${rtmps.keystorepass}"/>
-        <!-- The HTML adapter allows connections to the MBeanServer via a web browser -->
-        <property name="enableHtmlAdapter" value="${jmx.http}"/>
-        <property name="htmlAdapterPort" value="${jmx.http.port}"/>
         <!-- Mina offers its own Mbeans so you may integrate them here -->
         <property name="enableMinaMonitor" value="true"/>
     </bean>
