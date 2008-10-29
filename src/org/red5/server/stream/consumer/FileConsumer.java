@@ -153,6 +153,7 @@ public class FileConsumer implements Constants, IPushableConsumer,
 		    writer.writeTag(tag);
 		} catch (IOException e) {
 			log.error("error writing tag", e);
+			throw e;
 		}
 	}
 
