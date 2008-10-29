@@ -1239,9 +1239,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 				} finally {
 					getWriteLock().unlock();
 				}
-				log.warn("Closing {} due to too much inactivity ({}).", 
-						RTMPConnection.this, 
-						(lastPingSent.get() - lastPongReceived.get()));
+				log.warn("Closing {}, with id {}, due to too much inactivity ({}).", 
+						new Object[] { RTMPConnection.this, getId(), 
+							(lastPingSent.get() - lastPongReceived.get()) });
 				onInactive();
 				return;
 			}
