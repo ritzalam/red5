@@ -237,6 +237,16 @@ public class FLVWriter implements ITagWriter {
 			writeMetadataTag(0, -1, -1);
 		}
 		
+		// skip tags with no data
+		if (tag.getBodySize() == 0) {
+			log.debug("empty tag skipped: {}", tag);
+			return false;
+		}
+		
+		if (channel.size() < 9) {
+			throw new IOException("refusing to write tag to file with size " + channel.size());
+		}
+		
 		out.clear();
 
 		// Data Type
