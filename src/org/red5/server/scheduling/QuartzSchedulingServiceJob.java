@@ -58,7 +58,7 @@ public class QuartzSchedulingServiceJob implements Job {
         try {
             job.execute(service);
         } catch (Throwable e) {
-            log.error("Job {} execution failed", job.toString(), e);
+            log.error("Job " + job.toString() + " execution failed", e);
         }
     }
 
