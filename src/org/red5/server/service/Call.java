@@ -226,6 +226,7 @@ implements IServiceCall, Externalizable {
 			sb.append(" Num Params: ");
 			sb.append(arguments.length);
 			for (int i = 0; i < arguments.length; i++) {
+				sb.append(' ');
 				sb.append(i);
 				sb.append(": ");
 				sb.append(arguments[i]);
