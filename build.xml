@@ -1068,36 +1068,36 @@
 		
 		<echo>Verifying Keystore ${keystore.storepass}</echo>
 		<exec dir="." executable="keytool">
-			<arg line="-list -v -keystore conf/keystore.jmx -storepass ${keystore.storepass}" />
+			<arg line="-list -v -keystore ${config.dir}/keystore.jmx -storepass ${keystore.storepass}" />
 		</exec>
 		
 		<echo>Export Server Certificate</echo>
 		<exec dir="." executable="keytool">
-		      <arg line="-export -alias red5 -keystore conf/keystore.jmx -file conf/red5server.cer -storepass ${keystore.storepass}" />
+		      <arg line="-export -alias red5 -keystore ${config.dir}/keystore.jmx -file ${config.dir}/red5server.cer -storepass ${keystore.storepass}" />
 		</exec>
 		
 		<echo>Import Server Certificate into TrustStore</echo>
 		<exec dir="." executable="keytool">
-			<arg line="-import -file conf/red5server.cer -keystore conf/truststore.jmx -storepass ${keystore.storepass} -noprompt" />
+			<arg line="-import -file conf/red5server.cer -keystore ${config.dir}/truststore.jmx -storepass ${keystore.storepass} -noprompt" />
 		</exec>
 		
 		<echo>Verifying Truststore</echo>	
 		<exec dir="." executable="keytool">
-			<arg line="-list -v -keystore conf/truststore.jmx -storepass ${keystore.storepass}" />
+			<arg line="-list -v -keystore ${config.dir}/truststore.jmx -storepass ${keystore.storepass}" />
 		</exec>
 	</target>
 	
 	<!-- JConsole -->
 	<target name="console">
 		<exec dir="." executable="jconsole">
-			<arg line="-J-Djava.util.logging.config.file=conf/management.logging.properties -J-Djava.security.manager -J-Djava.security.policy=conf/red5.policy -J-Djavax.net.ssl.trustStore=conf/truststore.jmx -J-Djavax.net.ssl.trustStorePassword=password -J-Dssl.debug=true -J-Djava.security.debug=ssl service:jmx:rmi:///jndi/rmi://localhost:9999/red5" />
+			<arg line="-J-Djava.util.logging.config.file=${config.dir}/management.logging.properties -J-Djava.security.manager -J-Djava.security.policy=${config.dir}/red5.policy -J-Djavax.net.ssl.trustStore=${config.dir}/truststore.jmx -J-Djavax.net.ssl.trustStorePassword=password -J-Dssl.debug=true -J-Djava.security.debug=ssl service:jmx:rmi:///jndi/rmi://localhost:9999/red5" />
 		</exec>
 	</target>
 	
 	<!-- JConsole with SSL -->
 	<target name="console-ssl">
 		<exec dir="." executable="jconsole">
-			<arg line="-J-Djava.util.logging.config.file=conf/management.logging.properties -J-Djava.security.manager -J-Djava.security.policy=conf/red5.policy -J-Djavax.net.ssl.trustStore=conf/truststore.jmx -J-Djavax.net.ssl.trustStorePassword=password -J-Djavax.net.ssl.keyStore=conf/keystore.jmx -J-Djavax.net.ssl.keyStorePassword=password -J-Dssl.debug=true -J-Djava.security.debug=ssl service:jmx:rmi:///jndi/rmi://localhost:9999/red5" />
+			<arg line="-J-Djava.util.logging.config.file=${config.dir}/management.logging.properties -J-Djava.security.manager -J-Djava.security.policy=${config.dir}/red5.policy -J-Djavax.net.ssl.trustStore=${config.dir}/truststore.jmx -J-Djavax.net.ssl.trustStorePassword=password -J-Djavax.net.ssl.keyStore=${config.dir}/keystore.jmx -J-Djavax.net.ssl.keyStorePassword=password -J-Dssl.debug=true -J-Djava.security.debug=ssl service:jmx:rmi:///jndi/rmi://localhost:9999/red5" />
 		</exec>
 	</target>
 	
