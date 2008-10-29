@@ -247,14 +247,14 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 				return null;
 			}
 
-			while (!pendingMessages.isEmpty() 
-					&& (result.limit() + pendingMessages.peek().getBuffer().limit() 
-						< targetSize)) 
-			{
+			while (!pendingMessages.isEmpty()) {
 				PendingData pendingMessage = pendingMessages.remove();
 				result.put(pendingMessage.getBuffer());
 				if (pendingMessage.getPacket() != null)
 					toNotify.add(pendingMessage.getPacket());
+				
+				if ((result.position() > targetSize))
+					break;
 			}
 		} finally {
 			getWriteLock().unlock();
