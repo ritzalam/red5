@@ -431,13 +431,14 @@ public class StreamService implements IStreamService {
 					((BaseConnection) conn).registerBasicScope(bsScope);
 				}
 			}
+			logger.debug("Mode: {}", mode);
 			if (IClientStream.MODE_RECORD.equals(mode)) {
 				bs.start();
 				bs.saveAs(name, false);
 			} else if (IClientStream.MODE_APPEND.equals(mode)) {
 				bs.start();
 				bs.saveAs(name, true);
-			} else if (IClientStream.MODE_LIVE.equals(mode)) {
+			} else if (IClientStream.MODE_PUBLISH.equals(mode) || IClientStream.MODE_LIVE.equals(mode)) {
 				bs.start();
 			}
 			bs.startPublishing();

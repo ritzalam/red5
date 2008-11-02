@@ -748,6 +748,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	 * connects
 	 */
 	public void start() {
+		log.info("Stream start");
 		IConsumerService consumerManager = (IConsumerService) getScope()
 				.getContext().getBean(IConsumerService.KEY);
 		try {

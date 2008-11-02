@@ -35,6 +35,8 @@ public interface IClientStream extends IStream, IBWControllable {
 	public static final String MODE_APPEND = "append";
 
 	public static final String MODE_LIVE = "live";
+	
+	public static final String MODE_PUBLISH = "publish";
 
 	/**
 	 * Get stream id allocated in a connection.
