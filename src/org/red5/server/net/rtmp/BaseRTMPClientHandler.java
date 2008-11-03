@@ -271,7 +271,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 		this.connectArguments = connectCallArguments;
 
 		if (!connectionParams.containsKey("objectEncoding")) {
-			connectionParams.put("objectEncoding", (double) 0);
+			connectionParams.put("objectEncoding", (int) 0);
 		}
 
 		this.connectCallback = connectCallback;
