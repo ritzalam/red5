@@ -57,7 +57,7 @@ public class QuartzSchedulingService implements ISchedulingService,
 	/**
 	 * Service scheduler
 	 */
-	private Scheduler scheduler;;
+	private Scheduler scheduler;
 
 	/** Constructs a new QuartzSchedulingService. */
 	public QuartzSchedulingService() {
