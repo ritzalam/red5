@@ -27,6 +27,8 @@ import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
 import org.red5.server.api.Red5;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Utility functions to invoke methods on connections.
@@ -36,7 +38,9 @@ import org.red5.server.api.Red5;
  *
  */
 public class ServiceUtils {
-
+	
+	private static final Logger log = LoggerFactory.getLogger(ServiceUtils.class);
+	
 	/**
 	 * Invoke a method on the current connection.
 	 * 
@@ -64,9 +68,15 @@ public class ServiceUtils {
 	 *         otherwise <code>false</code>
 	 */
 	public static boolean invokeOnConnection(String method, Object[] params,
-			IPendingServiceCallback callback) {
+			IPendingServiceCallback callback) {		
 		IConnection conn = Red5.getConnectionLocal();
-		return invokeOnConnection(conn, method, params, callback);
+		if (conn != null) {
+			log.debug("Connection for invoke: {}", conn);
+			return invokeOnConnection(conn, method, params, callback);
+		} else {
+			log.warn("Connection was null (thread local), cannot execute invoke request");
+			return false;
+		}
 	}
 
 	/**
@@ -140,8 +150,15 @@ public class ServiceUtils {
 	 */
 	public static void invokeOnAllConnections(String method, Object[] params,
 			IPendingServiceCallback callback) {
-		IScope scope = Red5.getConnectionLocal().getScope();
-		invokeOnAllConnections(scope, method, params, callback);
+		IConnection conn = Red5.getConnectionLocal();
+		if (conn != null) {
+			log.debug("Connection for invoke on all: {}", conn);
+			IScope scope = conn.getScope();
+			log.debug("Scope for invoke on all: {}", scope);
+			invokeOnAllConnections(scope, method, params, callback);
+		} else {
+			log.warn("Connection was null (thread local), scope cannot be located and cannot execute invoke request");
+		}
 	}
 
 	/**
@@ -251,9 +268,15 @@ public class ServiceUtils {
 	 * @return <code>true</code> if the connection supports method calls,
 	 *         otherwise <code>false</code>
 	 */
-	public static boolean notifyOnConnection(String method, Object[] params) {
+	public static boolean notifyOnConnection(String method, Object[] params) {	
 		IConnection conn = Red5.getConnectionLocal();
-		return notifyOnConnection(conn, method, params);
+		if (conn != null) {
+			log.debug("Connection for notify: {}", conn);
+			return notifyOnConnection(conn, method, params);
+		} else {
+			log.warn("Connection was null (thread local), cannot execute notify request");
+			return false;
+		}		
 	}
 
 	/**
@@ -287,12 +310,19 @@ public class ServiceUtils {
 	 * 			parameters to pass to the method
 	 */
 	public static void notifyOnAllConnections(String method, Object[] params) {
-		IScope scope = Red5.getConnectionLocal().getScope();
-		notifyOnAllConnections(scope, method, params);
+		IConnection conn = Red5.getConnectionLocal();
+		if (conn != null) {
+			log.debug("Connection for notify on all: {}", conn);
+			IScope scope = conn.getScope();
+			log.debug("Scope for notify on all: {}", scope);
+			notifyOnAllConnections(scope, method, params);
+		} else {
+			log.warn("Connection was null (thread local), scope cannot be located and cannot execute notify request");
+		}		
 	}
 
 	/**
-	 * Notfy a method on all connections to a given scope.
+	 * Notify a method on all connections to a given scope.
 	 * 
 	 * @param scope
 	 * 			scope to get connections for
