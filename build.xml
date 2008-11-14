@@ -260,6 +260,8 @@
 			 deprecation="${build.deprecation}" debug="${debug.state}" compiler="${compiler}"
 			 source="${java.target_version}" target="${java.target_version}" memoryMaximumSize="${memory.maximum}"
 			 excludes="${std_excludes}" listfiles="false"/>
+		<!-- touch this source file so that the revision number will be updated upon svn commit -->
+		<touch file="${src.dir}/org/red5/server/api/Red5.java"/>
 	</target>
 
 	<target name="compile-core-compatibility" unless="java6.installed">

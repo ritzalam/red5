@@ -835,7 +835,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 * across all rooms of the applications.
 	 * 
 	 * @param interval
-	 *            Time inverval to run the scheduled job
+	 *            Time interval to run the scheduled job
 	 * @param job
 	 *            Scheduled job object
 	 * 
@@ -905,6 +905,32 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 		return service.addScheduledJobAfterDelay(interval, job, delay);
 	}
 
+	/**
+	 * Pauses a scheduled job
+	 * 
+	 * @param name
+	 *            Scheduled job name
+	 */
+	public void pauseScheduledJob(String name) {
+		ISchedulingService service = (ISchedulingService) getScopeService(
+				scope, ISchedulingService.class, QuartzSchedulingService.class,
+				false);
+		service.pauseScheduledJob(name);
+	}
+	
+	/**
+	 * Resumes a scheduled job
+	 * 
+	 * @param name
+	 *            Scheduled job name
+	 */
+	public void resumeScheduledJob(String name) {
+		ISchedulingService service = (ISchedulingService) getScopeService(
+				scope, ISchedulingService.class, QuartzSchedulingService.class,
+				false);
+		service.resumeScheduledJob(name);
+	}	
+	
 	/**
 	 * Removes scheduled job from scheduling service list
 	 * 

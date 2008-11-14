@@ -40,6 +40,7 @@ import org.red5.server.jmx.JMXAgent;
  *
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
+ * @author Paul Gregoire (mondain@gmail.com)
  */
 public class QuartzSchedulingService implements ISchedulingService,
 		QuartzSchedulingServiceMBean {
@@ -139,6 +140,24 @@ public class QuartzSchedulingService implements ISchedulingService,
 	}
 
 	/** {@inheritDoc} */
+	public void pauseScheduledJob(String name) {
+		try {
+			scheduler.pauseTrigger("Trigger_" + name, null);
+		} catch (SchedulerException ex) {
+			throw new RuntimeException(ex);
+		}
+	}	
+	
+	/** {@inheritDoc} */
+	public void resumeScheduledJob(String name) {
+		try {
+			scheduler.resumeTrigger("Trigger_" + name, null);
+		} catch (SchedulerException ex) {
+			throw new RuntimeException(ex);
+		}
+	}
+	
+	/** {@inheritDoc} */
 	public void removeScheduledJob(String name) {
 		try {
 			scheduler.deleteJob(name, null);
@@ -146,7 +165,7 @@ public class QuartzSchedulingService implements ISchedulingService,
 			throw new RuntimeException(ex);
 		}
 	}
-
+	
 	/**
 	 * Schedules job
 	 * @param name               Job name

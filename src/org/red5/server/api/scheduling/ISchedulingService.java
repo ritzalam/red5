@@ -30,7 +30,7 @@ import org.red5.server.api.IScopeService;
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
- *
+ * @author Paul Gregoire (mondain@gmail.com)
  */
 public interface ISchedulingService extends IScopeService {
 
@@ -85,6 +85,22 @@ public interface ISchedulingService extends IScopeService {
 	 */
 	public String addScheduledJobAfterDelay(int interval, IScheduledJob job, int delay);
 
+	/**
+	 * Pauses the trigger which initiates job execution.
+	 * 
+ 	 * @param name
+	 * 			name of the job to stop
+	 */
+	public void pauseScheduledJob(String name);
+	
+	/**
+	 * Resumes the trigger which initiates job execution.
+	 * 
+ 	 * @param name
+	 * 			name of the job to stop
+	 */
+	public void resumeScheduledJob(String name);	
+	
 	/**
 	 * Stop executing a previously scheduled job.
 	 * 
