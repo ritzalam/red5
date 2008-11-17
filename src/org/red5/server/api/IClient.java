@@ -65,7 +65,7 @@ public interface IClient extends ClientMBean, IAttributeStore, IBWControllable {
 	 * then at server side: <code>
 	 * public boolean appConnect( IConnection connection, Object[] params ){<br/>
 	 * 		try {
-	 * 			connection.getClient().setStreamId( params[0] );
+	 * 			connection.getClient().setId( (String) params[0] );
 	 * 		} catch(Exception e){<br/>
 	 * 			log.error("{}", e);
 	 * 		}
