@@ -117,7 +117,10 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 
 	private boolean waiting;
 
-	private int vodStartTS;
+	/**
+	 * timestamp of first sent packet
+	 */
+	private int streamStartTS;
 
 	private IPlayItem currentItem;
 
@@ -298,10 +301,10 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 			msgIn.unsubscribe(this);
 			msgIn = null;
 		}
+		// -2: live than recorded, -1: live, >=0: recorded
 		int type = (int) (item.getStart() / 1000);
 		// see if it's a published stream
 		IScope thisScope = playlistSubscriberStream.getScope();
-		//
 		String itemName = item.getName();
 		//check for input and type
 		IProviderService.INPUT_TYPE sourceType = providerService.lookupProviderInput(thisScope, itemName);
@@ -339,7 +342,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 				}
 				break;
 		}
-		//
+		log.debug("play decision is {}", decision);
 		currentItem = item;
 		long itemLength = item.getLength();
 		switch (decision) {
@@ -417,12 +420,12 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 		playlistSubscriberStream.state = State.PLAYING;
 		IMessage msg = null;
 		streamOffset = 0;
+		streamStartTS = -1;
 		if (decision == 1) {
 			if (withReset) {
 				releasePendingMessage();
 			}
 			sendVODInitCM(msgIn, item);
-			vodStartTS = -1;
 			// Don't use pullAndPush to detect IOExceptions prior to sending
 			// NetStream.Play.Start
 			if (item.getStart() > 0) {
@@ -880,11 +883,15 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 	 * @param message        RTMP message
 	 */
 	private void sendMessage(RTMPMessage message) {
-		if (vodStartTS == -1) {
-			vodStartTS = message.getBody().getTimestamp();
+		log.debug("sendMessage: streamStartTS={}, length={}, streamOffset={}, timestamp={}",
+				new Object[]{streamStartTS, currentItem.getLength(), streamOffset,
+						message.getBody().getTimestamp()});
+		if (streamStartTS == -1) {
+			log.debug("sendMessage: resetting streamStartTS");
+			streamStartTS = message.getBody().getTimestamp();
 		} else {
 			if (currentItem.getLength() >= 0) {
-				int duration = message.getBody().getTimestamp() - vodStartTS;
+				int duration = message.getBody().getTimestamp() - streamStartTS;
 				if (duration - streamOffset >= currentItem.getLength()) {
 					// Sent enough data to client
 					stop();
@@ -893,7 +900,8 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 			}
 		}
 		lastMessage = message.getBody();
-		if (lastMessage instanceof IStreamData) {
+		if (lastMessage instanceof IStreamData 
+				&& ((IStreamData) lastMessage).getData() != null) {
 			bytesSent += ((IStreamData) lastMessage).getData().limit();
 		}
 		doPushMessage(message);
@@ -1311,13 +1319,10 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 					return;
 				}
 			}
-			if (body instanceof IStreamData
-					&& ((IStreamData) body).getData() != null) {
-				bytesSent += ((IStreamData) body).getData().limit();
-			}
-			lastMessage = body;
+			sendMessage(rtmpMessage);
+		} else {
+			msgOut.pushMessage(message);
 		}
-		msgOut.pushMessage(message);
 	}
 
 	/** {@inheritDoc} */
