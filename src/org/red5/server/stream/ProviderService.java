@@ -122,7 +122,7 @@ public class ProviderService implements IProviderService {
 		log.debug("getVODProviderFile - scope: {} name: {}", scope, name);
 		File file = null;
 		try {
-			log.info("getVODProviderFile scope path: {} name: {}", scope.getContextPath(), name);
+			log.debug("getVODProviderFile scope path: {} name: {}", scope.getContextPath(), name);
 			file = getStreamFile(scope, name);
 		} catch (IOException e) {
 			log.error("Problem getting file: {}", name, e);
