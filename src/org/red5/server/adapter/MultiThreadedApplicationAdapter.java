@@ -1103,7 +1103,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 			//converted to seconds
 			publishDuration = (System.currentTimeMillis() - ((ClientBroadcastStream) stream).getCreationTime()) / 1000;
 		}
-		log.info("W3C x-category:stream x-event:unpublish c-ip:{} cs-bytes:{} sc-bytes:{} x-sname:{} x-file-length:{}", new Object[]{conn.getRemoteAddress(), conn.getReadBytes(), conn.getWrittenBytes(), stream.getName(), publishDuration});		
+		log.info("W3C x-category:stream x-event:unpublish c-ip:{} cs-bytes:{} sc-bytes:{} x-sname:{} x-file-length:{} x-name:{}", new Object[]{conn.getRemoteAddress(), conn.getReadBytes(), conn.getWrittenBytes(), stream.getName(), publishDuration, stream.getPublishedName()});		
 		String recordingName = stream.getSaveFilename();
 		//if its not null then we did a recording
 		if (recordingName != null) {
@@ -1160,10 +1160,12 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
     			playDuration = (System.currentTimeMillis() - ((PlaylistSubscriberStream) stream).getCreationTime()) / 1000;
     		}
     		long playItemSize = -1;
+			String playItemName = "";
     		if (item != null) {
     			playItemSize = item.getSize();
+				playItemName = item.getName();
     		}
-    		log.info("W3C x-category:stream x-event:stop c-ip:{} cs-bytes:{} sc-bytes:{} x-sname:{} x-file-length:{} x-file-size:{}", new Object[]{remoteAddress, readBytes, writtenBytes, stream.getName(), playDuration, playItemSize});		
+    		log.info("W3C x-category:stream x-event:stop c-ip:{} cs-bytes:{} sc-bytes:{} x-sname:{} x-file-length:{} x-file-size:{} x-name:{}", new Object[]{remoteAddress, readBytes, writtenBytes, stream.getName(), playDuration, playItemSize, playItemName});		
     	}
 	}
 
@@ -1184,7 +1186,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	public void streamPublishStart(IBroadcastStream stream) {
 		//log w3c connect event
 		IConnection connection = Red5.getConnectionLocal();
-		log.info("W3C x-category:stream x-event:publish c-ip:{} x-sname:{}", new Object[]{connection != null ? connection.getRemoteAddress() : "0.0.0.0", stream.getName()});		
+		log.info("W3C x-category:stream x-event:publish c-ip:{} x-sname:{} x-name:{}", new Object[]{connection != null ? connection.getRemoteAddress() : "0.0.0.0", stream.getName(), stream.getPublishedName()});		
 	}
 
 	public void streamRecordStart(IBroadcastStream stream) {
