@@ -205,6 +205,8 @@ public interface Constants {
 	public static final String ACTION_PUBLISH = "publish";
 
 	public static final String ACTION_PAUSE = "pause";
+	
+	public static final String ACTION_PAUSE_RAW = "pauseRaw";
 
 	public static final String ACTION_SEEK = "seek";
 

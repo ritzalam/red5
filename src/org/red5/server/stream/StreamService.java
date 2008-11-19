@@ -187,6 +187,11 @@ public class StreamService implements IStreamService {
 		pause(Boolean.valueOf(pausePlayback), position);
 	}
 
+	/** {@inheritDoc} */
+	public void pauseRaw(boolean pausePlayback, int position) {
+		pause(pausePlayback, position);
+	}
+	
     /**
      * Pause at given position. Required as "pausePlayback" can be "null" if no flag is passed by the
 	 * client

@@ -376,6 +376,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 					|| action.equals(ACTION_PUBLISH)
 					|| action.equals(ACTION_PLAY) || action.equals(ACTION_SEEK)
 					|| action.equals(ACTION_PAUSE)
+					|| action.equals(ACTION_PAUSE_RAW)
 					|| action.equals(ACTION_CLOSE_STREAM)
 					|| action.equals(ACTION_RECEIVE_VIDEO)
 					|| action.equals(ACTION_RECEIVE_AUDIO)) {
