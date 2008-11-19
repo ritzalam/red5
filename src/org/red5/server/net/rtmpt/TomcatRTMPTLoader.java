@@ -149,7 +149,7 @@ public class TomcatRTMPTLoader extends TomcatLoader {
 		// set connection properties
 		for (String key : connectionProperties.keySet()) {
 			log.debug("Setting connection property: {} = {}", key, connectionProperties.get(key));
-			connector.setProperty(connectionProperties.get(key), key);
+			connector.setProperty(key, connectionProperties.get(key));
 		}		
 		
 		// start server
