@@ -71,7 +71,7 @@
 		<level value="WARN" />
 	</logger>
 	<logger name="org.red5.server.jmx">
-		<level value="INFO" />
+		<level value="WARN" />
 	</logger>
 	<logger name="org.red5.server.messaging.InMemoryPushPushPipe">
 		<level value="INFO" />
@@ -79,7 +79,7 @@
 	<logger name="org.red5.server.net">
 		<level value="INFO" />
 	</logger>
-	<logger name="org.red5.server.net.servlet.RTMPTServlet">
+	<logger name="org.red5.server.net.rtmpt.RTMPTServlet">
 		<level value="WARN" />
 	</logger>	
 	<logger name="org.red5.server.net.servlet">
@@ -151,6 +151,9 @@
 	</logger>
 	<logger name="org.apache.mina.filter.thread.ThreadPoolFilter">
 		<level value="WARN" />
+	</logger>
+	<logger name="org.red5.server.adapter.MultiThreadedApplicationAdapter" >
+		<level value="INFO"/>
 	</logger>
 	<!-- Apache commons -->
 	<logger name="org.apache.commons">
