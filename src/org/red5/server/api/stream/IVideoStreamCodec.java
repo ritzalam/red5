@@ -24,8 +24,7 @@ import org.apache.mina.common.ByteBuffer;
 public interface IVideoStreamCodec {
 
 	/**
-	 * Return the name of the video codec.
-     * @return
+	 * @return the name of the video codec.
      */
 	public String getName();
 
@@ -36,28 +35,27 @@ public interface IVideoStreamCodec {
 
 	/**
 	 * Check if the codec supports frame dropping.
-     * @return
+     * @return if the codec supports frame dropping.
      */
 	public boolean canDropFrames();
 
 	/**
 	 * Returns true if the codec knows how to handle the passed
 	 * stream data.
-     * @return
-     * @param data
+     * @param data some sample data to see if this codec can handle it.
+     * @return can this code handle the data.
      */
 	public boolean canHandleData(ByteBuffer data);
 
 	/**
 	 * Update the state of the codec with the passed data.
-     * @param data
-     * @return
+     * @param data data to tell the codec we're adding
+     * @return true for success. false for error.
      */
 	public boolean addData(ByteBuffer data);
 
 	/**
-	 * Return the data for a keyframe.
-     * @return
+	 * @return the data for a keyframe.
      */
 	public ByteBuffer getKeyframe();
 }
