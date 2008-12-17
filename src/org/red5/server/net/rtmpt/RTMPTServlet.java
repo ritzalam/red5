@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
@@ -259,11 +260,12 @@ public class RTMPTServlet extends HttpServlet {
 		ByteBuffer data = client.getPendingMessages(RESPONSE_TARGET_SIZE);
 		if (data == null) {
 			// no more messages to send...
-			if (client.isClosing())
+			if (client.isClosing()) {
 				// Tell client to close connection
 				returnMessage((byte) 0, resp);
-			else
+			} else {
 				returnMessage(client.getPollingDelay(), resp);
+			}
 			return;
 		}
 
@@ -439,6 +441,8 @@ public class RTMPTServlet extends HttpServlet {
 	@Override
 	protected void service(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
+		
+		//log.debug("Request - method: {} content type: {} path: {}", new Object[]{req.getMethod(), req.getContentType(), req.getServletPath()});
 
 		if (!REQUEST_METHOD.equals(req.getMethod())
 				|| req.getContentLength() == 0
@@ -448,11 +452,13 @@ public class RTMPTServlet extends HttpServlet {
 			return;
 		}
 
+		//get the path
+		String path = req.getServletPath();
+
 		// XXX Paul: since the only current difference in the type of request
 		// that we are interested in is the 'second' character, we can double
 		// the speed of this entry point by using a switch on the second
 		// character.
-		String path = req.getServletPath();
 		char p = path.charAt(1);
 		switch (p) {
 			case 'o': // OPEN_REQUEST
@@ -467,6 +473,20 @@ public class RTMPTServlet extends HttpServlet {
 			case 'i': // IDLE_REQUEST
 				handleIdle(req, resp);
 				break;
+			case 'f': // HTTPIdent request (ident and ident2)
+          		//if HTTPIdent is requested send back some Red5 info
+		        //http://livedocs.adobe.com/flashmediaserver/3.0/docs/help.html?content=08_xmlref_011.html
+
+    			String ident = "<fcs><Company>Red5</Company><Team>Red5 Server</Team></fcs>";    			
+    			resp.setStatus(HttpServletResponse.SC_OK);
+    			resp.setHeader("Connection", "Keep-Alive");
+    			resp.setHeader("Cache-Control", "no-cache");
+    			resp.setContentType(CONTENT_TYPE);
+    			resp.setContentLength(ident.length());
+    			resp.getWriter().write(ident);
+    			resp.flushBuffer();		    
+
+				break;
 			default:
 				handleBadRequest(
 						"RTMPT command " + path + " is not supported.", resp);
@@ -478,12 +498,12 @@ public class RTMPTServlet extends HttpServlet {
 	@Override
 	public void init() throws ServletException {
 		super.init();
+		ServletContext ctx = getServletContext();
 		appCtx = WebApplicationContextUtils
-				.getWebApplicationContext(getServletContext());
+				.getWebApplicationContext(ctx);
 		if (appCtx == null) {
-			appCtx = (WebApplicationContext) getServletContext()
-					.getAttribute(
-							WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
+			appCtx = (WebApplicationContext) ctx.getAttribute(
+					WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
 		}
 	}
 

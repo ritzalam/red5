@@ -34,7 +34,7 @@ import java.lang.ref.WeakReference;
  * IScope scope = r5.getScope();<br />
  * conn = r5.getConnection();<br /> 
  * r5 = new Red5(conn);<br />
- * IClient client = r5.getClient();<br />
+ * IClient client = r5.getClient();<br /> 
  * </code>
  * </p>  
  *   
