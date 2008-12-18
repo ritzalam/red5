@@ -775,8 +775,9 @@ public class FLVReader implements IoConstants, ITagReader,
 		// However, we will have to check into this during optimization.
 		int bodySize = IOUtils.readUnsignedMediumInt(in);
 		int timestamp = IOUtils.readUnsignedMediumInt(in);
-		// reserved
-		in.getInt();
+		
+		timestamp += (in.get() & 0xFF) * 256 * 256 * 256;
+		IOUtils.readUnsignedMediumInt(in);         
 
 		return new Tag(dataType, timestamp, bodySize, null, previousTagSize);
 	}
