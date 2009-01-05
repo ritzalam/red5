@@ -19,7 +19,7 @@ package org.red5.test.selftest;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.red5.server.adapter.ApplicationAdapter;
+import org.red5.server.adapter.MultiThreadedApplicationAdapter;
 
 /**
  * Echo sample application.
@@ -27,7 +27,7 @@ import org.red5.server.adapter.ApplicationAdapter;
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
  */
-public class Application extends ApplicationAdapter {
+public class EchoApplication extends MultiThreadedApplicationAdapter {
 
 	/**
 	 * Return passed parameter back to client.
