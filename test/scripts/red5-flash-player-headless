@@ -42,7 +42,7 @@ process_status $? "red5 failed to start"
 flash-player $* &
 FLASH_PID=$!
 echo -n `date` "Checking if flashplayer started with PID: $FLASH_PID ..."
-ensure_background_process_running $! 5 "Flash player did not start"
+ensure_background_process_running $! 60 "Flash player did not start"
 echo "done"
 
 if [ -z "$HEADLESS_MAX_RUN_SECONDS" ]; then
