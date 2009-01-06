@@ -30,9 +30,9 @@
 	
 	<!-- unit testing -->
 	<property name="test.dir" value="test"/>
-        <property name="testclass.dir" value="bin/testcases/classes"/>
-        <property name="testreports.dir" value="bin/testcases/testreports"/>
-	<property name="testdoc.dir" value="doc/test"/>
+    <property name="testclass.dir" value="bin/testcases/classes"/>
+    <property name="testreports.dir" value="bin/testcases/testreports"/>
+    <property name="testdoc.dir" value="doc/test"/>
 
 	<!-- base project properties -->
 	<property file="build.properties"/>
@@ -145,16 +145,16 @@
 					</and>		
 				</or>
 				<and>
-		    			<isset property="ivy.conf.name" />
-                    			<!-- check for the test jars -->
-                    			<available property="junit.installed" classpathref="project.classpath"
+		    		<isset property="ivy.conf.name" />
+                    <!-- check for the test jars -->
+                    <available property="junit.installed" classpathref="project.classpath"
 						   classname="org.junit.Test"/>
-                    			<available property="groboutils.installed" classpathref="project.classpath"
+                    <available property="groboutils.installed" classpathref="project.classpath"
 						   classname="net.sourceforge.groboutils.junit.v1.TestRunnable"/>
-                    			<available property="spring-mock.installed" classpathref="project.classpath"
-						   classname="org.springframework.mock.web.MockServletConfig"/>
-                    			<equals arg1="ivy.conf.name" arg2="test"/>
-                		</and>
+                    <available property="spring-mock.installed" classpathref="project.classpath"
+                    	   classname="org.springframework.mock.web.MockServletConfig"/>
+                    <equals arg1="ivy.conf.name" arg2="test"/>
+                </and>
 			</and>
 		</condition>
 	</target>
@@ -787,7 +787,7 @@
 			<classpath>
 				<path refid="full.classpath"/>
 				<pathelement location="${testclass.dir}"/>
-                                <pathelement location="${testdist.dir}/conf"/>
+                <pathelement location="${testdist.dir}/conf"/>
 			</classpath>
 			<formatter type="xml"/>
 			<batchtest todir="${testreports.dir}">
@@ -798,7 +798,7 @@
 				</fileset>
 			</batchtest>
 		</junit>
-                <mkdir dir="${testdoc.dir}"/>
+        <mkdir dir="${testdoc.dir}"/>
 		<junitreport todir="${testdoc.dir}">
 			<fileset dir="${testreports.dir}">
 				<include name="TEST-*.xml"/>
@@ -807,7 +807,7 @@
 		</junitreport>
 	</target>
 
-        <target name="run-tests-systemtest" depends="compile-tests"
+    <target name="run-tests-systemtest" depends="compile-tests"
 		description="Runs some end-to-end system tests against a test server using a Flash client">
         	
 		<!-- Copy over all self-run scripts -->

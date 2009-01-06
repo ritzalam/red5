@@ -195,31 +195,23 @@ public class Bootstrap {
 	private static String getRed5Root() throws IOException {
 		// look for red5 root first as a system property
 		String root = System.getProperty("red5.root");
-
+		// if root is null check environmental
+		if (root == null) {
+			//check for env variable
+			root = System.getenv("RED5_HOME");
+		}		
 		// if root is null find out current directory and use it as root
 		if (root == null || ".".equals(root)) {
 			root = System.getProperty("user.dir");
-//			File here = new File("thisisadummyfile");
-//			if (!here.createNewFile()) {
-//				System.err.println("Could not determine current directory");
-//				System.exit(1);
-//			} else {
-//				root = here.getCanonicalPath().replaceFirst("thisisadummyfile",
-//						"");
-				System.out.printf("Current directory: %s\n", root);
-//				if (!here.delete()) {
-//					here.deleteOnExit();
-//				}
-//				here = null;
-				//flip slashes
-				root = root.replaceAll("\\\\", "/");
-				//drop last slash if exists
-				if (root.charAt(root.length()-1) == '/') {
-					root = root.substring(0, root.length() - 1);
-				}
-				//set property
-				System.setProperty("red5.root", root);
-		//	}
+			System.out.printf("Current directory: %s\n", root);
+			//flip slashes
+			root = root.replaceAll("\\\\", "/");
+			//drop last slash if exists
+			if (root.charAt(root.length()-1) == '/') {
+				root = root.substring(0, root.length() - 1);
+			}
+			//set property
+			System.setProperty("red5.root", root);
 		}
 		
 		System.out.printf("Red5 root: %s\n", root);
@@ -234,26 +226,28 @@ public class Bootstrap {
 	public static void launch(URLClassLoader loader) {
 		System.setProperty("red5.deployment.type", "bootstrap");
 		try {	
-			//set to use our logger
-			System.setProperty("logback.ContextSelector", "org.red5.logging.LoggingContextSelector");
+			//check system property before forcing out selector
+			if (System.getProperty("logback.ContextSelector") == null) {
+				//set to use our logger
+				System.setProperty("logback.ContextSelector", "org.red5.logging.LoggingContextSelector");
+			}
 			//install the slf4j bridge (mostly for JUL logging)
 			SLF4JBridgeHandler.install();
 			//we create the logger here so that it is instanced inside the expected 
 			//classloader
 			Logger log = LoggerFactory.getLogger(Bootstrap.class);
+			//version info banner
+			log.info("{} (http://www.osflash.org/red5)", Red5.getVersion());
 			//see which logger binder has been instanced
 			log.debug("Logger binder: {}", StaticLoggerBinder.SINGLETON.getClass().getName());
 			//set default for loading classes with url loader
 			loader.setDefaultAssertionStatus(false);
-			//create a logger before anything else happens
-			log.info("{} (http://www.osflash.org/red5)", Red5.getVersion());
 			//create red5 app context
 			FileSystemXmlApplicationContext ctx = new FileSystemXmlApplicationContext(new String[]{
 					"classpath:/red5.xml"}, false);
 			ctx.setClassLoader(loader);
 			ctx.refresh();
 			ctx.getBeanFactory().setBeanClassLoader(loader);
-			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -395,7 +389,7 @@ public class Bootstrap {
     			String[] topVersion = punct.split(topVers);
     			String[] checkVersion = punct.split(checkVers);
     			
-                System.err.println("topVersion (" + topVers + "): " + topVersion[0]);
+                //System.err.println("topVersion (" + topVers + "): " + topVersion[0]);
     			int topVersionNumber = Integer.valueOf(topVersion[0] + topVersion[1] + (topVersion.length > 2 ? topVersion[2] : '0')).intValue();
     			int checkVersionNumber = Integer.valueOf(checkVersion[0] + checkVersion[1] + (checkVersion.length > 2 ? checkVersion[2] : '0')).intValue();
     			

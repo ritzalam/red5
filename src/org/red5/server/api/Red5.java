@@ -26,7 +26,7 @@ import java.lang.ref.WeakReference;
  * 
  * This class uses a thread local, and will be setup by the service invoker.
  * 
- * The code below shows various uses.
+ * The code below shows various uses. 
  * <p>
  * <code> 
  * IConnection conn = Red5.getConnectionLocal();<br /> 
