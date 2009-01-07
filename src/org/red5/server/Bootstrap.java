@@ -32,9 +32,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.Red5;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.slf4j.impl.StaticLoggerBinder;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
@@ -55,7 +55,6 @@ public class Bootstrap {
 	 * @throws Exception
 	 */
 	public static void main(String[] args) throws Exception {
-
 		//retrieve path elements from system properties
 		String root = getRed5Root();		
 		String conf = getConfigurationRoot(root);
@@ -86,10 +85,11 @@ public class Bootstrap {
 			throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException, NoSuchMethodException,
 			InvocationTargetException {
-		ClassLoader parent = ClassLoader.getSystemClassLoader().getParent();
 		
-		// pass urls to a URLClassLoader
-		URLClassLoader loader = new URLClassLoader(urls.toArray(new URL[0]), parent);
+		ClassLoader parent = ClassLoader.getSystemClassLoader();
+		
+		// pass urls to the ClassLoader
+		ClassLoader loader = new URLClassLoader(urls.toArray(new URL[0]), parent);
 				
 		// set the classloader to the current thread
 		Thread.currentThread().setContextClassLoader(loader);
@@ -97,7 +97,7 @@ public class Bootstrap {
 		// create a new instance of this class using new classloader
 		Object boot = loader.loadClass("org.red5.server.Bootstrap").newInstance();
 	
-		Method m1 = boot.getClass().getMethod("launch", new Class[]{ URLClassLoader.class });
+		Method m1 = boot.getClass().getMethod("launch", new Class[]{ ClassLoader.class });
 		m1.invoke(null, loader);
 	}
 
@@ -223,7 +223,7 @@ public class Bootstrap {
 	 * 
 	 * @param loader
 	 */
-	public static void launch(URLClassLoader loader) {
+	public static void launch(ClassLoader loader) {
 		System.setProperty("red5.deployment.type", "bootstrap");
 		try {	
 			//check system property before forcing out selector
@@ -235,18 +235,20 @@ public class Bootstrap {
 			SLF4JBridgeHandler.install();
 			//we create the logger here so that it is instanced inside the expected 
 			//classloader
-			Logger log = LoggerFactory.getLogger(Bootstrap.class);
-			//version info banner
+			Logger log = Red5LoggerFactory.getLogger(Bootstrap.class);
+		    //version info banner
 			log.info("{} (http://www.osflash.org/red5)", Red5.getVersion());
 			//see which logger binder has been instanced
-			log.debug("Logger binder: {}", StaticLoggerBinder.SINGLETON.getClass().getName());
+			log.debug("Logger binder: {}", StaticLoggerBinder.getSingleton().getClass().getName());
 			//set default for loading classes with url loader
 			loader.setDefaultAssertionStatus(false);
 			//create red5 app context
 			FileSystemXmlApplicationContext ctx = new FileSystemXmlApplicationContext(new String[]{
 					"classpath:/red5.xml"}, false);
 			ctx.setClassLoader(loader);
+			//refresh must be called before accessing the bean factory
 			ctx.refresh();
+			//set our loader
 			ctx.getBeanFactory().setBeanClassLoader(loader);
 		} catch (Exception e) {
 			e.printStackTrace();

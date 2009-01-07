@@ -37,6 +37,7 @@ import org.red5.io.IStreamableFileFactory;
 import org.red5.io.IStreamableFileService;
 import org.red5.io.ITagReader;
 import org.red5.io.StreamableFileFactory;
+import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
@@ -73,7 +74,6 @@ import org.red5.server.stream.PlaylistSubscriberStream;
 import org.red5.server.stream.ProviderService;
 import org.red5.server.stream.StreamService;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * ApplicationAdapter class serves as a base class for your Red5 applications.
@@ -122,7 +122,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	/**
 	 * Logger object
 	 */
-	protected static Logger log = LoggerFactory.getLogger(MultiThreadedApplicationAdapter.class);
+	protected static Logger log = Red5LoggerFactory.getLogger(MultiThreadedApplicationAdapter.class);
 
 	/**
 	 * List of application listeners.
@@ -162,8 +162,8 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
     /**
      * List of handlers that protect shared objects.
      */
-    private Set<ISharedObjectSecurity> sharedObjectSecurity = new HashSet<ISharedObjectSecurity>();
-
+    private Set<ISharedObjectSecurity> sharedObjectSecurity = new HashSet<ISharedObjectSecurity>(); 
+    
     /**
 	 * Register listener that will get notified about application events. Please
 	 * note that return values (e.g. from {@link IApplication#appStart(IScope)})

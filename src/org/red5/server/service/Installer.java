@@ -36,13 +36,13 @@ import org.apache.commons.httpclient.params.HttpClientParams;
 import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.red5.compatibility.flex.messaging.messages.AcknowledgeMessage;
 import org.red5.compatibility.flex.messaging.messages.AsyncMessage;
+import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.LoaderMBean;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.Red5;
 import org.red5.server.jmx.JMXFactory;
 import org.red5.server.util.FileUtil;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * This service provides the means to list, download, install, and un-install 
@@ -53,7 +53,7 @@ import org.slf4j.LoggerFactory;
  */
 public class Installer {
 
-	private Logger log = LoggerFactory.getLogger(Installer.class);
+	private static Logger log = Red5LoggerFactory.getLogger(Installer.class);
 	
 	private String applicationRepositoryUrl;
 

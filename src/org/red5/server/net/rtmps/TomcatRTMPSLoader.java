@@ -28,11 +28,11 @@ import org.apache.catalina.core.AprLifecycleListener;
 import org.apache.catalina.core.StandardHost;
 import org.apache.catalina.core.StandardWrapper;
 import org.apache.catalina.loader.WebappLoader;
+import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.IServer;
 import org.red5.server.net.rtmpt.TomcatRTMPTLoader;
 import org.red5.server.util.FileUtil;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Loader for the RTMPS server which uses Tomcat.
@@ -43,7 +43,7 @@ import org.slf4j.LoggerFactory;
 public class TomcatRTMPSLoader extends TomcatRTMPTLoader {
 
 	// Initialize Logging
-	private static Logger log = LoggerFactory.getLogger(TomcatRTMPSLoader.class);
+	private Logger log = Red5LoggerFactory.getLogger(TomcatRTMPSLoader.class);
 	
 	/**
 	 * RTMPS Tomcat engine.

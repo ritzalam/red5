@@ -19,8 +19,6 @@ package org.red5.logging;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.List;
-
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
@@ -52,12 +50,12 @@ public class ContextLoggingListener implements ServletContextListener {
 		String contextName = pathToName(event);
 		System.out.printf("About to detach context named %s\n", contextName);
 
-		ContextSelector selector = StaticLoggerBinder.SINGLETON.getContextSelector();
+		ContextSelector selector = StaticLoggerBinder.getSingleton().getContextSelector();
 		LoggerContext context = selector.detachLoggerContext(contextName);
 		if (context != null) {
 			Logger logger = context.getLogger(LoggerContext.ROOT_NAME);
 			logger.info("Shutting down context {}", contextName);
-			context.shutdownAndReset();
+			context.reset();
 		} else {
 			System.err.printf("No context named %s was found", contextName);
 		}
@@ -72,7 +70,7 @@ public class ContextLoggingListener implements ServletContextListener {
 		LoggingContextSelector selector = null;
 		
 		try {
-			selector = (LoggingContextSelector) StaticLoggerBinder.SINGLETON.getContextSelector();
+			selector = (LoggingContextSelector) StaticLoggerBinder.getSingleton().getContextSelector();
 			//set this contexts name
 			selector.setContextName(contextName);
 
@@ -84,10 +82,10 @@ public class ContextLoggingListener implements ServletContextListener {
 				System.err.printf("No context named %s was found", contextName);
 			}
 			
-			List<String> ctxNameList = selector.getContextNames();
-			for (String s : ctxNameList) {
-				System.out.printf("Selector context name: %s\n", s);
-			}			
+			//List<String> ctxNameList = selector.getContextNames();
+			//for (String s : ctxNameList) {
+			//	System.out.printf("Selector context name: %s\n", s);
+			//}			
 			
 		} catch (Exception e) {
 			System.err.println("LoggingContextSelector is not the correct type");

@@ -58,22 +58,22 @@ public class LoggingContextSelector implements ContextSelector {
 	}
 
 	public LoggerContext getLoggerContext() {
-		System.out.println("getLoggerContext request");		
+		//System.out.println("getLoggerContext request");		
 		// First check if ThreadLocal has been set already
 		LoggerContext lc = threadLocal.get();
 		if (lc != null) {
-			System.out.printf("Thread local found: %s\n", lc.getName());
+			//System.out.printf("Thread local found: %s\n", lc.getName());
 			return lc;
 		}
 
 		if (contextName == null) {
-			System.out.println("Context name was null, returning default");
+			//System.out.println("Context name was null, returning default");
 			// We return the default context
 			return defaultContext;
 		} else {
 			// Let's see if we already know such a context
 			LoggerContext loggerContext = contextMap.get(contextName);
-			System.out.printf("Logger context for %s is %s\n", contextName, loggerContext);
+			//System.out.printf("Logger context for %s is %s\n", contextName, loggerContext);
 
 			if (loggerContext == null) {
 				// We have to create a new LoggerContext
@@ -86,16 +86,16 @@ public class LoggingContextSelector implements ContextSelector {
 				//}
 				
 				ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-				System.out.printf("Thread context cl: %s\n", classloader);
-				ClassLoader classloader2 = Loader.class.getClassLoader();
-				System.out.printf("Loader tcl: %s\n", classloader2);
+				//System.out.printf("Thread context cl: %s\n", classloader);
+				//ClassLoader classloader2 = Loader.class.getClassLoader();
+				//System.out.printf("Loader tcl: %s\n", classloader2);
 				
 				//URL url = Loader.getResourceBySelfClassLoader(contextConfigFile);
 				URL url = Loader.getResource(contextConfigFile, classloader);
 				if (url != null) {
 					try {
 						JoranConfigurator configurator = new JoranConfigurator();
-						loggerContext.shutdownAndReset();
+						loggerContext.reset();
 						configurator.setContext(loggerContext);
 						configurator.doConfigure(url);
 					} catch (JoranException e) {
@@ -119,7 +119,7 @@ public class LoggingContextSelector implements ContextSelector {
 
 	public LoggerContext getLoggerContext(String name) {
 		System.out.printf("getLoggerContext request for %s\n", name);
-		System.out.printf("Context is in map: %s\n", contextMap.containsKey(name));
+		//System.out.printf("Context is in map: %s\n", contextMap.containsKey(name));
 		return contextMap.get(name);
 	}	
 	

@@ -34,6 +34,8 @@
     <Valve className="org.apache.catalina.valves.CometConnectionManagerValve" />
     -->
     
+    <!--
 	<Loader loaderClass="org.red5.server.tomcat.WebappClassLoader" useSystemClassLoaderAsParent="false" />
+    -->
 
 </Context>

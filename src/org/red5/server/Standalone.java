@@ -23,13 +23,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.Properties;
 
-import org.red5.server.api.Red5;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.bridge.SLF4JBridgeHandler;
-import org.springframework.context.access.ContextSingletonBeanFactoryLocator;
 import org.apache.mina.common.ByteBuffer;
 import org.apache.mina.common.SimpleByteBufferAllocator;
+import org.red5.logging.Red5LoggerFactory;
+import org.red5.server.api.Red5;
+import org.slf4j.Logger;
+import org.slf4j.bridge.SLF4JBridgeHandler;
+import org.springframework.context.access.ContextSingletonBeanFactoryLocator;
 
 /**
  * Entry point from which the server config file is loaded.
@@ -84,7 +84,7 @@ public class Standalone {
 		
 		//we create the logger here so that it is instanced inside the expected 
 		//classloader
-		Logger log = LoggerFactory.getLogger(Standalone.class);
+		Logger log = Red5LoggerFactory.getLogger(Standalone.class);
 
 		log.info("{} (http://www.osflash.org/red5)", Red5.getVersion());
 		log.info("Loading Red5 global context from: {}", red5Config);

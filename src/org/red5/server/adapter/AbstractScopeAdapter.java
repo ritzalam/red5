@@ -28,7 +28,7 @@ import org.red5.server.api.event.IEvent;
 import org.red5.server.api.service.IServiceCall;
 
 /**
- * Base scope handler implementation. Mean to be subclassed.
+ * Base scope handler implementation. Meant to be subclassed.
  */
 public abstract class AbstractScopeAdapter implements IScopeHandler {
     /**

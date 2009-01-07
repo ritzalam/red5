@@ -264,10 +264,7 @@ public class W3CAppender extends FileAppender<LoggingEvent> {
 		//System.out.println(sbuf.toString());
 		
 		try {
-			this.writer.write(sbuf.toString());
-			if (this.immediateFlush) {
-				this.writer.flush();
-			}
+			writerWrite(sbuf.toString(), true);
 		} catch (IOException ioe) {
 			addStatus(new ErrorStatus("IO failure in appender", this, ioe));
 		}

@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.mina.common.ByteBuffer;
+import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.IContext;
 import org.red5.server.api.IGlobalScope;
 import org.red5.server.api.IScope;
@@ -41,7 +42,6 @@ import org.red5.server.net.remoting.codec.RemotingCodecFactory;
 import org.red5.server.net.remoting.message.RemotingCall;
 import org.red5.server.net.remoting.message.RemotingPacket;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
@@ -59,7 +59,7 @@ public class AMFGatewayServlet extends HttpServlet {
 	/**
 	 * Logger
 	 */
-	protected static Logger log = LoggerFactory.getLogger(AMFGatewayServlet.class);
+	protected Logger log = Red5LoggerFactory.getLogger(AMFGatewayServlet.class);
 
 	/**
 	 * AMF MIME type

@@ -19,7 +19,6 @@ package org.red5.server.crypto;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.awt.datatransfer.Clipboard;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -31,8 +30,8 @@ import java.security.Key;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.red5.logging.Red5LoggerFactory;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * HMAC - a little utility to compute HMACs on data; the data and key may be
@@ -47,25 +46,21 @@ import org.slf4j.LoggerFactory;
  */
 public class HMAC {
 
-	protected static Logger log = LoggerFactory.getLogger(HMAC.class);	
-	
-	private byte[] keyBytes;
+	protected static Logger log = Red5LoggerFactory.getLogger(HMAC.class);	
 
-	private byte[] dataBytes;
-
-	protected Clipboard clip;
-
-	protected boolean noHex = false;
-
-	protected boolean reverse = false;
-
-	protected String alg = DEFAULT_ALG;
+	public static final String ALGORITHM_ID = "HMacMD5";	
 
 	public static final int MIN_LENGTH = 8;
 
 	public static final int BUF_LENGTH = 256;
 
-	public static final String DEFAULT_ALG = "HMacMD5";
+	private byte[] keyBytes;
+
+	private byte[] dataBytes;
+
+	protected boolean noHex = false;
+
+	protected boolean reverse = false;
 
 	/**
 	 * Return true if the input argument character is a digit, a space, or A-F.
@@ -253,13 +248,13 @@ public class HMAC {
 		if (log.isDebugEnabled()) {
 			log.debug("Key data: {}", byteArrayToHex(keyBytes));
 			log.debug("Hash data: {}", byteArrayToHex(dataBytes));
-			log.debug("Algorithm: {}", alg);
+			log.debug("Algorithm: {}", ALGORITHM_ID);
 		}
 
 		try {
-			hm = Mac.getInstance(alg);
+			hm = Mac.getInstance(ALGORITHM_ID);
 
-			Key k1 = new SecretKeySpec(keyBytes, 0, keyBytes.length, alg);
+			Key k1 = new SecretKeySpec(keyBytes, 0, keyBytes.length, ALGORITHM_ID);
 			hm.init(k1);
 			result = hm.doFinal(dataBytes);
 		} catch (Exception e) {

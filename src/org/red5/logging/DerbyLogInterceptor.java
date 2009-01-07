@@ -20,6 +20,7 @@ package org.red5.logging;
  */
 
 import java.io.IOException;
+import java.io.OutputStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,8 +29,8 @@ public class DerbyLogInterceptor {
 
 	protected static Logger log = LoggerFactory.getLogger(DerbyLogInterceptor.class);
 	
-	public static java.io.OutputStream handleDerbyLogFile(){
-	    return new java.io.OutputStream() {
+	public static OutputStream handleDerbyLogFile(){
+	    return new OutputStream() {
 	        @Override
 			public void write(byte[] b) throws IOException {
 	        	log.info("Derby log: {}", b);

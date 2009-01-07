@@ -45,14 +45,14 @@ public class LoggerContextFilter implements Filter {
 		
 		System.out.printf("Context name: %s\n", contextName);
 		
-		LoggingContextSelector selector = (LoggingContextSelector) StaticLoggerBinder.SINGLETON.getContextSelector();
-		System.out.printf("Context select type: %s\n", selector.getClass().getName());
+		LoggingContextSelector selector = (LoggingContextSelector) StaticLoggerBinder.getSingleton().getContextSelector();
+		//System.out.printf("Context select type: %s\n", selector.getClass().getName());
 		
 		LoggerContext ctx = selector.getLoggerContext(contextName);
 
 		//load default logger context if its null
 		if (ctx == null) {
-			System.out.println("Logger context was null, getting default");
+			//System.out.println("Logger context was null, getting default");
 			ctx = (LoggerContext) LoggerFactory.getILoggerFactory();
 		}
 		
@@ -62,7 +62,7 @@ public class LoggerContextFilter implements Filter {
 		}
 		
 		if (ctx != null) {
-			System.out.printf("Logger context name: %s\n", ctx.getName());
+			//System.out.printf("Logger context name: %s\n", ctx.getName());
 			selector.setLocalContext(ctx);
 		}
 

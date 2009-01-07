@@ -106,7 +106,7 @@ public class WarLoaderServlet extends ContextLoaderListener {
 		long time = System.currentTimeMillis();
 
 		logger.info("{} WAR loader", Red5.VERSION);
-		logger.debug("Path: " + prefix);
+		logger.debug("Path: {}", prefix);
 
 		try {
 			// instance the context loader
@@ -155,7 +155,7 @@ public class WarLoaderServlet extends ContextLoaderListener {
 
 		ConfigurableBeanFactory appFactory = appCtx.getBeanFactory();
 
-		logger.debug("About to grab Webcontext bean for " + webAppKey);
+		logger.debug("About to grab Webcontext bean for {}", webAppKey);
 		Context webContext = (Context) appCtx.getBean("web.context");
 		webContext.setCoreBeanFactory(parentFactory);
 		webContext.setClientRegistry(clientRegistry);

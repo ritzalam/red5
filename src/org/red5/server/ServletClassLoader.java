@@ -24,25 +24,29 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
+import org.red5.logging.Red5LoggerFactory;
+import org.slf4j.Logger;
+
 /**
  * Class used to get the Servlet Class loader. The class loader returned is a
  * child first class loader. 
  * 
  * <br />
- * <i>This class is based on original code from XINS, by Anthony Goubard
- * (anthony.goubard@japplis.com)</i>
+ * <i>This class is based on original code from the XINS project, by 
+ * Anthony Goubard (anthony.goubard@japplis.com)</i>
  * 
  * @author Paul Gregoire (mondain@gmail.com)
  */
-public class ServletClassLoader {
+public final class ServletClassLoader {
 
+	private static Logger log = Red5LoggerFactory.getLogger(ServletClassLoader.class);
+	
 	/**
 	 * Use the current class loader to load the servlet and the libraries.
 	 */
@@ -91,21 +95,24 @@ public class ServletClassLoader {
 	 */
 	public static ClassLoader getServletClassLoader(File warFile, int mode)
 			throws IOException {
+		
 		if (mode == USE_CURRENT_CLASSPATH) {
 			return ServletClassLoader.class.getClassLoader();
 		}
 
 		List<URL> urlList = new ArrayList<URL>(13);
 
-		// Add the WAR file so that it can locate web pages included in the WAR
-		// file
-		urlList.add(warFile.toURI().toURL());
-
-		if (mode != USE_WAR_EXTERNAL_LIB) {
-			URL classesURL = new URL("jar:file:"
-					+ warFile.getAbsolutePath().replace(File.separatorChar, '/')
-					+ "!/WEB-INF/classes/");
-			urlList.add(classesURL);
+		if (warFile != null) {
+    		// Add the WAR file so that it can locate web pages included in the WAR
+    		// file
+    		urlList.add(warFile.toURI().toURL());
+    
+    		if (mode != USE_WAR_EXTERNAL_LIB) {
+    			URL classesURL = new URL("jar:file:"
+    					+ warFile.getAbsolutePath().replace(File.separatorChar, '/')
+    					+ "!/WEB-INF/classes/");
+    			urlList.add(classesURL);
+    		}
 		}
 
 		List<String> standardLibs = new ArrayList<String>(7);
@@ -158,28 +165,40 @@ public class ServletClassLoader {
 			}
 		}
 		if (mode == USE_WAR_LIB || mode == USE_WAR_EXTERNAL_LIB) {
-			JarInputStream jarStream = new JarInputStream(new FileInputStream(
-					warFile));
-			JarEntry entry = jarStream.getNextJarEntry();
-			while (entry != null) {
-				String entryName = entry.getName();
-				if (entryName.startsWith("WEB-INF/lib/")
-						&& entryName.endsWith(".jar")
-						&& !standardLibs.contains(entryName.substring(12))) {
-					File tempJarFile = unpack(jarStream, entryName);
-					urlList.add(tempJarFile.toURI().toURL());
+			if (warFile.isDirectory()) {
+				File libDir = new File(warFile, "WEB-INF/lib");
+				//this should not be null but it can happen
+				if (libDir != null && libDir.canRead()) {
+    				File[] libs = libDir.listFiles();
+    				log.debug("Webapp lib count: {}", libs.length);
+    				for (File lib : libs) {
+    					urlList.add(lib.toURI().toURL());
+    				}
 				}
-				entry = jarStream.getNextJarEntry();
+			} else {
+    			JarInputStream jarStream = new JarInputStream(new FileInputStream(warFile));
+    			JarEntry entry = jarStream.getNextJarEntry();
+    			while (entry != null) {
+    				String entryName = entry.getName();
+    				if (entryName.startsWith("WEB-INF/lib/")
+    						&& entryName.endsWith(".jar")
+    						&& !standardLibs.contains(entryName.substring(12))) {
+    					File tempJarFile = unpack(jarStream, entryName);
+    					urlList.add(tempJarFile.toURI().toURL());
+    				}
+    				entry = jarStream.getNextJarEntry();
+    			}
+    			jarStream.close();
 			}
-			jarStream.close();
 		}
 		URL[] urls = new URL[urlList.size()];
 		for (int i = 0; i < urlList.size(); i++) {
 			urls[i] = (URL) urlList.get(i);
 		}
-		ClassLoader loader = new ChildFirstClassLoader(urls,
-				ServletClassLoader.class.getClassLoader());
-		Thread.currentThread().setContextClassLoader(loader);
+
+		ClassLoader loader = new ChildFirstClassLoader(urls, ServletClassLoader.class.getClassLoader());
+		//Thread.currentThread().setContextClassLoader(loader);
+		
 		return loader;
 	}
 
@@ -215,104 +234,4 @@ public class ServletClassLoader {
 		return tempJarFile;
 	}
 
-	/**
-	 * An almost trivial no-fuss implementation of a class loader following the
-	 * child-first delegation model.
-	 * 
-	 * @author <a href="http://www.qos.ch/log4j/">Ceki Gulcu</a>
-	 */
-	private static class ChildFirstClassLoader extends URLClassLoader {
-
-		public ChildFirstClassLoader(URL[] urls) {
-			super(urls);
-		}
-
-		public ChildFirstClassLoader(URL[] urls, ClassLoader parent) {
-			super(urls, parent);
-		}
-
-		public void addURL(URL url) {
-			super.addURL(url);
-		}
-
-		@SuppressWarnings("unchecked")
-		public Class loadClass(String name) throws ClassNotFoundException {
-			return loadClass(name, false);
-		}
-
-		/**
-		 * We override the parent-first behavior established by
-		 * java.land.Classloader.
-		 * <p>
-		 * The implementation is surprisingly straightforward.
-		 * 
-		 * @param name
-		 *            the name of the class to load, should not be
-		 *            <code>null</code>.
-		 * 
-		 * @param resolve
-		 *            flag that indicates whether the class should be resolved.
-		 * 
-		 * @return the loaded class, never <code>null</code>.
-		 * 
-		 * @throws ClassNotFoundException
-		 *             if the class could not be loaded.
-		 */
-		@SuppressWarnings("unchecked")
-		protected Class loadClass(String name, boolean resolve)
-				throws ClassNotFoundException {
-
-			// First, check if the class has already been loaded
-			Class c = findLoadedClass(name);
-
-			// if not loaded, search the local (child) resources
-			if (c == null) {
-				try {
-					c = findClass(name);
-				} catch (ClassNotFoundException cnfe) {
-					// ignore
-				}
-			}
-
-			// If we could not find it, delegate to parent
-			// Note that we do not attempt to catch any ClassNotFoundException
-			if (c == null) {
-				if (getParent() != null) {
-					c = getParent().loadClass(name);
-				} else {
-					c = getSystemClassLoader().loadClass(name);
-				}
-			}
-
-			// Resolve the class, if required
-			if (resolve) {
-				resolveClass(c);
-			}
-
-			return c;
-		}
-
-		/**
-		 * Override the parent-first resource loading model established by
-		 * java.land.Classloader with child-first behavior.
-		 * 
-		 * @param name
-		 *            the name of the resource to load, should not be
-		 *            <code>null</code>.
-		 * 
-		 * @return a {@link URL} for the resource, or <code>null</code> if it
-		 *         could not be found.
-		 */
-		public URL getResource(String name) {
-
-			URL url = findResource(name);
-
-			// If local search failed, delegate to parent
-			if (url == null) {
-				url = getParent().getResource(name);
-			}
-
-			return url;
-		}
-	}
 }
