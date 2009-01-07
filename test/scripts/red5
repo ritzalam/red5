@@ -38,7 +38,7 @@ red5_start()
   export JAVA_OPTS="-Xms64M -Xmx256M"
   ./red5.sh 1>>log/stdout.log 2>>log/stderr.log &
   echo -n " ($!)..."
-  ensure_background_process_running $! 10 "Red5 process didn't start"
+  ensure_background_process_running $! 30 "Red5 process didn't start"
   sleep 5
   grep -q "Standalone - Startup done" log/stdout.log
   process_status $? "check_startup not done in 10 seconds"
