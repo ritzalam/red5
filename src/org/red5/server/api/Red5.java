@@ -23,7 +23,7 @@ import java.lang.ref.WeakReference;
 
 /**
  * Utility class for accessing Red5 API objects.
- * 
+ *    
  * This class uses a thread local, and will be setup by the service invoker.
  * 
  * The code below shows various uses. 

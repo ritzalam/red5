@@ -140,8 +140,8 @@ public final class ServletClassLoader {
     			//construct the lib path
     			libPath = home + File.separatorChar + "lib";
 			}
-			System.out.printf("Library path: %s\n", libPath);
-
+			System.out.printf("Library path: %s\n", libPath);	
+			
 			//grab the urls for all the jars in "lib"
 			File libDir = new File(libPath);
 			File[] libFiles = libDir.listFiles();
@@ -150,6 +150,7 @@ public final class ServletClassLoader {
 					urlList.add(libFiles[i].toURI().toURL());
 				}
 			}
+			
 		}
 		if (mode == USE_CLASSPATH_LIB || mode == USE_WAR_EXTERNAL_LIB) {
 			String classPath = System.getProperty("java.class.path");

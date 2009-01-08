@@ -20,6 +20,7 @@ package org.red5.server.net.rtmpt;
  */
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,6 +30,7 @@ import org.apache.catalina.Valve;
 import org.apache.catalina.core.StandardHost;
 import org.apache.catalina.core.StandardWrapper;
 import org.apache.catalina.loader.WebappLoader;
+import org.red5.server.ServletClassLoader;
 import org.red5.server.api.IServer;
 import org.red5.server.tomcat.TomcatLoader;
 import org.red5.server.util.FileUtil;
@@ -84,14 +86,9 @@ public class TomcatRTMPTLoader extends TomcatLoader {
 	public void init() {
 		log.info("Loading RTMPT context");
 
-		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-
 		rtmptEngine = embedded.createEngine();
 		rtmptEngine.setDefaultHost(host.getName());
 		rtmptEngine.setName("red5RTMPTEngine");
-		rtmptEngine.setParentClassLoader(classloader);
-		
-		host.setParentClassLoader(classloader);		
 		
 		// add the valves to the host
 		for (Valve valve : valves) {
@@ -106,19 +103,20 @@ public class TomcatRTMPTLoader extends TomcatLoader {
 		ctx.setReloadable(false);
 		log.debug("Context name: {}", ctx.getName());
 		Object ldr = ctx.getLoader();
-		if (ldr != null) {
-			if (ldr instanceof WebappLoader) {
-				log.debug("Replacing context loader");				
-				((WebappLoader) ldr).setLoaderClass("org.red5.server.tomcat.WebappClassLoader");
-			} else {
-				log.debug("Context loader was instance of {}", ldr.getClass().getName());
-			}
-		} else {
+		log.debug("Context loader: {}", ldr);		
+		if (ldr == null) {
 			log.debug("Context loader was null");
+			ClassLoader classloader;
+			try {
+				classloader = ServletClassLoader.getServletClassLoader(new File(webappContextDir), ServletClassLoader.USE_WAR_LIB);
+			} catch (IOException e) {
+				log.warn("Servlet class loader setup error", e);
+				classloader = Thread.currentThread().getContextClassLoader();
+			}
+			log.debug("Context class loader: {}", classloader);
 			WebappLoader wldr = new WebappLoader(classloader);
-			wldr.setLoaderClass("org.red5.server.tomcat.WebappClassLoader");
 			ctx.setLoader(wldr);
-		}
+		}  
 		appDirBase = null;
 		webappContextDir = null;
 		

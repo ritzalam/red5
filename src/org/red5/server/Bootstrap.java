@@ -38,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 import org.slf4j.impl.StaticLoggerBinder;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
+import org.springframework.util.StringUtils;
 
 /**
  * Boot-straps Red5 using the latest available jars found in <i>red5.home/lib</i> directory.
@@ -85,11 +86,17 @@ public class Bootstrap {
 			throws InstantiationException, IllegalAccessException,
 			ClassNotFoundException, NoSuchMethodException,
 			InvocationTargetException {
-		
+				
 		ClassLoader parent = ClassLoader.getSystemClassLoader();
-		
+
 		// pass urls to the ClassLoader
 		ClassLoader loader = new URLClassLoader(urls.toArray(new URL[0]), parent);
+
+		System.out.printf("Classloaders:\nParent %s\nSystem %s\nURL %s\n", parent.getParent(), parent, loader);
+		
+		// print the classpath
+		String classPath = System.getProperty("java.class.path");
+		System.out.printf("JVM classpath: %s\n", classPath);		
 				
 		// set the classloader to the current thread
 		Thread.currentThread().setContextClassLoader(loader);
@@ -131,15 +138,15 @@ public class Bootstrap {
 		//look over the libraries and remove the old versions
 		scrubList(urls);
 		// add config dir
-		urls.add(new File(conf).toURI().toURL());
+		urls.add(new File(conf).toURI().toURL());		
 		//
 		System.out.printf("%d items in the classpath\n", urls.size());
 		
 		//loop thru all the current urls
-		//System.out.println("Classpath: ");
-		//for (URL url : urls) {
-		//	System.out.println(url.toExternalForm());
-		//}
+		System.out.println("Classpath: ");
+		for (URL url : urls) {
+			System.out.println(url.toExternalForm());
+		}
 		return urls;
 	}
 
@@ -182,7 +189,7 @@ public class Bootstrap {
 		
 		//set conf sysprop
 		System.setProperty("red5.config_root", conf);
-		System.out.println("Configuation root: " + conf);
+		System.out.printf("Configuation root: %s\n", conf);
 		return conf;
 	}
 
@@ -262,6 +269,7 @@ public class Bootstrap {
 	 * @param list
 	 */
 	private final static void scrubList(List<URL> list) {
+		String ALPHABET = "abcdefghijklmnopqrstuvwxyz";
 		Pattern punct = Pattern.compile("\\p{Punct}");
 		Set<URL> removalList = new HashSet<URL>(list.size());
 		String topName = null;
@@ -389,9 +397,37 @@ public class Bootstrap {
     			
     			//check major
     			String[] topVersion = punct.split(topVers);
-    			String[] checkVersion = punct.split(checkVers);
     			
                 //System.err.println("topVersion (" + topVers + "): " + topVersion[0]);
+    			//check 3rd part of version for letters
+    			if (topVersion.length > 2) {
+    				String v = topVersion[2].toLowerCase();
+    				if (v.length() > 1) {
+    					topVersion[2] = StringUtils.deleteAny(v, ALPHABET);
+    				} else {
+    					//if is a only a letter use its index as a version
+    					char ch = v.charAt(0);
+    					if (!Character.isDigit(ch)) {
+    						topVersion[2] = ALPHABET.indexOf(ch) + "";
+    					}
+    				}
+    			}
+    			
+    			String[] checkVersion = punct.split(checkVers);
+    			//check 3rd part of version for letters
+    			if (checkVersion.length > 2) {
+    				String v = checkVersion[2].toLowerCase();
+    				if (v.length() > 1) {
+    					checkVersion[2] = StringUtils.deleteAny(v, ALPHABET);
+    				} else {
+    					//if is a only a letter use its index as a version
+    					char ch = v.charAt(0);
+    					if (!Character.isDigit(ch)) {
+    						checkVersion[2] = ALPHABET.indexOf(ch) + "";
+    					}
+    				}
+    			}
+    			
     			int topVersionNumber = Integer.valueOf(topVersion[0] + topVersion[1] + (topVersion.length > 2 ? topVersion[2] : '0')).intValue();
     			int checkVersionNumber = Integer.valueOf(checkVersion[0] + checkVersion[1] + (checkVersion.length > 2 ? checkVersion[2] : '0')).intValue();
     			
