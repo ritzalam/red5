@@ -197,8 +197,13 @@ public final class ServletClassLoader {
 			urls[i] = (URL) urlList.get(i);
 		}
 
-		ClassLoader loader = new ChildFirstClassLoader(urls, ServletClassLoader.class.getClassLoader());
+		//set the url classloader as the parent
+		ClassLoader loader = new ChildFirstClassLoader(urls, Thread.currentThread().getContextClassLoader());
+		
+		//ClassLoader loader = new ChildFirstClassLoader(urls, ServletClassLoader.class.getClassLoader());
 		//Thread.currentThread().setContextClassLoader(loader);
+
+		//System.out.printf("Classloaders:\nThread %s\nServlet Loader %s\nChildFirst %s\n", Thread.currentThread().getContextClassLoader(), ServletClassLoader.class.getClassLoader(), loader);
 		
 		return loader;
 	}
