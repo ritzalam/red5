@@ -48,13 +48,13 @@ public class ContextLoggingListener implements ServletContextListener {
 		System.out.println("Context destroying...");
 
 		String contextName = pathToName(event);
-		System.out.printf("About to detach context named %s\n", contextName);
+		//System.out.printf("About to detach context named %s\n", contextName);
 
 		ContextSelector selector = StaticLoggerBinder.getSingleton().getContextSelector();
 		LoggerContext context = selector.detachLoggerContext(contextName);
 		if (context != null) {
 			Logger logger = context.getLogger(LoggerContext.ROOT_NAME);
-			logger.info("Shutting down context {}", contextName);
+			logger.debug("Shutting down context {}", contextName);
 			context.reset();
 		} else {
 			System.err.printf("No context named %s was found", contextName);
@@ -77,7 +77,7 @@ public class ContextLoggingListener implements ServletContextListener {
 			LoggerContext context = selector.getLoggerContext();
 			if (context != null) {
 				Logger logger = context.getLogger(LoggerContext.ROOT_NAME);
-				logger.info("Starting up context {}", contextName);
+				logger.debug("Starting up context {}", contextName);
 			} else {
 				System.err.printf("No context named %s was found", contextName);
 			}
@@ -88,12 +88,13 @@ public class ContextLoggingListener implements ServletContextListener {
 			//}			
 			
 		} catch (Exception e) {
-			System.err.println("LoggingContextSelector is not the correct type");
+			//System.err.println("LoggingContextSelector is not the correct type");
 			e.printStackTrace();
 		} finally {
 			//reset the name
-			if (selector != null)
+			if (selector != null) {
 				selector.setContextName(null);
+			}
 		}
 
 	}

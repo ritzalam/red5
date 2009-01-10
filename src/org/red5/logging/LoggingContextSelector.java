@@ -118,7 +118,7 @@ public class LoggingContextSelector implements ContextSelector {
 	}
 
 	public LoggerContext getLoggerContext(String name) {
-		System.out.printf("getLoggerContext request for %s\n", name);
+		//System.out.printf("getLoggerContext request for %s\n", name);
 		//System.out.printf("Context is in map: %s\n", contextMap.containsKey(name));
 		return contextMap.get(name);
 	}	

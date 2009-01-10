@@ -19,18 +19,11 @@ package org.red5.logging;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.lang.reflect.Method;
-
-import javax.servlet.Servlet;
-import javax.servlet.ServletContext;
-
 import org.slf4j.Logger;
 import org.slf4j.impl.StaticLoggerBinder;
 
-import sun.reflect.Reflection;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.selector.ContextSelector;
-import ch.qos.logback.core.util.StatusPrinter;
 
 /**
  * LoggerFactory to simplify requests for Logger instances within
@@ -45,13 +38,16 @@ public class Red5LoggerFactory {
 	public static Logger getLogger(Class clazz) {
 		//determine the red5 app name or servlet context name
 		String contextName = null;
+		
+		/* TODO: For a future day, the context or application will be determined
 		//get a reference to our caller
 		Class caller = Reflection.getCallerClass(2);
-		System.err.printf("Caller class: %s classloader: %s\n", caller, caller.getClassLoader());
-		//check to see if we've been called by a servlet
-        try {
-        	Class sub = caller.asSubclass(Servlet.class);
-        	System.err.println("Caller is a Servlet");
+		//System.err.printf("Caller class: %s classloader: %s\n", caller, caller.getClassLoader());
+
+		try {
+        	//check to see if we've been called by a servlet
+			Class sub = caller.asSubclass(Servlet.class);
+        	//System.err.println("Caller is a Servlet");
         
         	//Method[] methods = caller.getMethods();
         	//for (Method meth : methods) {
@@ -59,13 +55,13 @@ public class Red5LoggerFactory {
         	//}
         	
         	Method getContext = caller.getMethod("getServletContext", new Class[0]);
-        	System.err.printf("got context method - %s\n", getContext);
+        	//System.err.printf("got context method - %s\n", getContext);
         	ServletContext context = (ServletContext) getContext.invoke(caller, null);
         	System.err.printf("invoked context\n");
         
         	contextName = context.getServletContextName();
-        	System.err.printf("Servlet context name: %s\n", contextName);
-        /*	
+        	//System.err.printf("Servlet context name: %s\n", contextName);
+
         	Method getContextName = context.getClass().getMethod("getServletContextName", new Class[0]);
         	System.err.printf("got context name\n");
         	Object ctxName = getContextName.invoke(null, new Object[0]);				
@@ -74,10 +70,10 @@ public class Red5LoggerFactory {
         	if (ctxName != null && ctxName instanceof String) {
         		contextName = ctxName.toString();
         	}	
-        */
         } catch (Exception ex) {
         	//ex.printStackTrace();
         }
+		*/
 		
 		return getLogger(clazz, contextName);
 	}
@@ -90,7 +86,7 @@ public class Red5LoggerFactory {
 		//get the context for the given context name or default if null
 		LoggerContext ctx = contextName == null ? selector.getLoggerContext() : selector.getLoggerContext(contextName);
 		//debug
-		StatusPrinter.print(ctx);
+		//StatusPrinter.print(ctx);
 		
 		return ctx.getLogger(clazz);
 	}

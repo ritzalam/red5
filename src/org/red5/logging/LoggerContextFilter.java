@@ -43,7 +43,7 @@ public class LoggerContextFilter implements Filter {
 	public void doFilter(ServletRequest request, ServletResponse response,
 			FilterChain chain) throws IOException, ServletException {
 		
-		System.out.printf("Context name: %s\n", contextName);
+		//System.out.printf("Context name: %s\n", contextName);
 		
 		LoggingContextSelector selector = (LoggingContextSelector) StaticLoggerBinder.getSingleton().getContextSelector();
 		//System.out.printf("Context select type: %s\n", selector.getClass().getName());
