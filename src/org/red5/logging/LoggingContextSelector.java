@@ -80,10 +80,8 @@ public class LoggingContextSelector implements ContextSelector {
 				loggerContext = new LoggerContext();
 				loggerContext.setName(contextName);
 
-				//if (contextConfigFile == null) {
-					contextConfigFile = String.format("logback-%s.xml", contextName);
-					System.out.printf("Context logger config file: %s\n", contextConfigFile);
-				//}
+				contextConfigFile = String.format("logback-%s.xml", contextName);
+				System.out.printf("Context logger config file: %s\n", contextConfigFile);
 				
 				ClassLoader classloader = Thread.currentThread().getContextClassLoader();
 				//System.out.printf("Thread context cl: %s\n", classloader);

@@ -20,7 +20,6 @@ package org.red5.server.net.rtmpt;
  */
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -30,12 +29,12 @@ import org.apache.catalina.Valve;
 import org.apache.catalina.core.StandardHost;
 import org.apache.catalina.core.StandardWrapper;
 import org.apache.catalina.loader.WebappLoader;
-import org.red5.server.ServletClassLoader;
+import org.red5.classloading.ClassLoaderBuilder;
+import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.IServer;
 import org.red5.server.tomcat.TomcatLoader;
 import org.red5.server.util.FileUtil;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Loader for the RTMPT server which uses Tomcat.
@@ -46,7 +45,7 @@ import org.slf4j.LoggerFactory;
 public class TomcatRTMPTLoader extends TomcatLoader {
 
 	// Initialize Logging
-	private static Logger log = LoggerFactory.getLogger(TomcatRTMPTLoader.class);
+	private static Logger log = Red5LoggerFactory.getLogger(TomcatRTMPTLoader.class);
 
 	/**
 	 * RTMPT Tomcat engine.
@@ -106,13 +105,7 @@ public class TomcatRTMPTLoader extends TomcatLoader {
 		log.debug("Context loader: {}", ldr);		
 		if (ldr == null) {
 			log.debug("Context loader was null");
-			ClassLoader classloader;
-			try {
-				classloader = ServletClassLoader.getServletClassLoader(new File(webappContextDir), ServletClassLoader.USE_WAR_LIB);
-			} catch (IOException e) {
-				log.warn("Servlet class loader setup error", e);
-				classloader = Thread.currentThread().getContextClassLoader();
-			}
+			ClassLoader classloader = ClassLoaderBuilder.build(new File(webappContextDir), ClassLoaderBuilder.USE_WAR_LIB, null);
 			log.debug("Context class loader: {}", classloader);
 			WebappLoader wldr = new WebappLoader(classloader);
 			ctx.setLoader(wldr);

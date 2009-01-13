@@ -22,10 +22,10 @@ package org.red5.server.net.rtmpt;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.mina.common.ByteBuffer;
+import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.servlet.ServletUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A RTMPT client / session.
@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
 
 public class RTMPTConnection extends BaseRTMPTConnection {
 
-	private static final Logger log = LoggerFactory
+	private static final Logger log = Red5LoggerFactory
 			.getLogger(RTMPTConnection.class);
 
 	/**

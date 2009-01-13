@@ -27,6 +27,7 @@ import java.util.List;
 
 import org.red5.io.IStreamableFileFactory;
 import org.red5.io.IStreamableFileService;
+import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IScope;
 import org.red5.server.api.ScopeUtils;
@@ -38,14 +39,13 @@ import org.red5.server.messaging.IPipe;
 import org.red5.server.messaging.InMemoryPullPullPipe;
 import org.red5.server.stream.provider.FileProvider;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * {@inheritDoc}
  */
 public class ProviderService implements IProviderService {
 
-	private static final Logger log = LoggerFactory.getLogger(ProviderService.class);
+	private static final Logger log = Red5LoggerFactory.getLogger(ProviderService.class);
 
 	/** {@inheritDoc} */
 	public INPUT_TYPE lookupProviderInput(IScope scope, String name) {

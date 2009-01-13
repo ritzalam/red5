@@ -26,6 +26,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.IBandwidthConfigure;
 import org.red5.server.api.IContext;
 import org.red5.server.api.IScope;
@@ -38,7 +39,6 @@ import org.red5.server.api.stream.IStreamAwareScopeHandler;
 import org.red5.server.api.stream.OperationNotSupportedException;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Stream of playlist subsciber
@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
 public class PlaylistSubscriberStream extends AbstractClientStream implements
 		IPlaylistSubscriberStream, IPlaylistSubscriberStreamStatistics {
 
-	private static final Logger log = LoggerFactory.getLogger(PlaylistSubscriberStream.class);
+	private static final Logger log = Red5LoggerFactory.getLogger(PlaylistSubscriberStream.class);
 
 	private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
 

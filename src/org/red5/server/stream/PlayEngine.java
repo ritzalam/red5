@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.mina.common.ByteBuffer;
 import org.red5.io.amf.Output;
 import org.red5.io.object.Serializer;
+import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.IScope;
 import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
@@ -63,7 +64,6 @@ import org.red5.server.stream.message.RTMPMessage;
 import org.red5.server.stream.message.ResetMessage;
 import org.red5.server.stream.message.StatusMessage;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A play engine for playing an IPlayItem.
@@ -75,7 +75,7 @@ import org.slf4j.LoggerFactory;
 public final class PlayEngine implements IFilter, IPushableConsumer,
 		IPipeConnectionListener, ITokenBucketCallback {
 
-	private static final Logger log = LoggerFactory.getLogger(PlayEngine.class);
+	private static final Logger log = Red5LoggerFactory.getLogger(PlayEngine.class);
 
 	private IMessageInput msgIn;
 

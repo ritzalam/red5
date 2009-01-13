@@ -1,4 +1,4 @@
-package org.red5.server;
+package org.red5.classloading;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -20,15 +20,15 @@ package org.red5.server;
  */
 
 import java.net.URL;
-import java.net.URLClassLoader;
 
 /**
  * An almost trivial no-fuss implementation of a class loader following the
- * child-first delegation model.
+ * child-first delegation model. 
+ * <i>Based on code from Ceki Gulcu</i>
  * 
- * @author <a href="http://www.qos.ch/log4j/">Ceki Gulcu</a>
+ * @author Paul Gregoire (mondain@gmail.com)
  */
-public final class ChildFirstClassLoader extends URLClassLoader {
+public final class ChildFirstClassLoader extends Red5ClassLoader {
 
 	public ChildFirstClassLoader(URL[] urls) {
 		super(urls);
@@ -42,8 +42,7 @@ public final class ChildFirstClassLoader extends URLClassLoader {
 		super.addURL(url);
 	}
 
-	@SuppressWarnings("unchecked")
-	public Class loadClass(String name) throws ClassNotFoundException {
+	public Class<?> loadClass(String name) throws ClassNotFoundException {
 		return loadClass(name, false);
 	}
 

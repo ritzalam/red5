@@ -46,6 +46,22 @@ public class Shutdown {
 	public static void main(String[] args) {
 		try {
 			
+			String policyFile = System.getProperty("java.security.policy");
+			if (policyFile == null) {
+				System.setProperty("java.security.debug", "failure");			
+				System.setProperty("java.security.policy", "conf/red5.policy");
+			}
+			
+			/*
+		    try {
+		        // Enable the security manager
+		        SecurityManager sm = new SecurityManager();
+		        System.setSecurityManager(sm);
+		    } catch (SecurityException se) {
+		    	System.err.println("Security manager already set");
+		    }
+		    */			
+			
 			JMXServiceURL url = null;
 			JMXConnector jmxc = null;
             HashMap<String, Object> env = null;

@@ -22,10 +22,10 @@ package org.red5.server.tomcat;
 import org.apache.catalina.Context;
 import org.apache.catalina.Host;
 import org.apache.catalina.startup.Embedded;
+import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.LoaderBase;
 import org.red5.server.api.IApplicationLoader;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 
 /**
@@ -37,7 +37,7 @@ import org.springframework.context.ApplicationContext;
 public class TomcatApplicationLoader implements IApplicationLoader {
 
 	// Initialize Logging
-	protected static Logger log = LoggerFactory.getLogger(TomcatApplicationLoader.class);	
+	protected static Logger log = Red5LoggerFactory.getLogger(TomcatApplicationLoader.class);	
 	
 	/** Store reference to embedded Tomcat engine. */
 	private Embedded embedded;

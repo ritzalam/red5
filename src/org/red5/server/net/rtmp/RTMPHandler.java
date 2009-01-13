@@ -24,6 +24,7 @@ import static org.red5.server.api.ScopeUtils.getScopeService;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.IContext;
 import org.red5.server.api.IGlobalScope;
 import org.red5.server.api.IScope;
@@ -63,7 +64,6 @@ import org.red5.server.so.SharedObjectService;
 import org.red5.server.stream.IBroadcastScope;
 import org.red5.server.stream.StreamService;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * RTMP events handler.
@@ -72,7 +72,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 	/**
 	 * Logger
 	 */
-	protected static Logger log = LoggerFactory.getLogger(RTMPHandler.class);
+	protected static Logger log = Red5LoggerFactory.getLogger(RTMPHandler.class);
 
 	/**
 	 * Status object service.
