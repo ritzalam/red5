@@ -128,7 +128,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	private final HashSet<DeferredResult> deferredResults = new HashSet<DeferredResult>();
 
 	/**
-	 * Last ping timestamp.
+	 * Last ping roundtrip time
 	 */
 	private AtomicInteger lastPingTime = new AtomicInteger(-1);
 
@@ -1033,6 +1033,8 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/** {@inheritDoc} */
 	public void ping() {
 		long newPingTime = System.currentTimeMillis();
+		log.debug("Pinging client with id {} at {}, last ping sent at {}", 
+				new Object[]{ getId(), newPingTime, lastPingSent.get() });
 		if (lastPingSent.get() == 0) {
 			lastPongReceived.set(newPingTime);
 		}
@@ -1054,6 +1056,8 @@ public abstract class RTMPConnection extends BaseConnection implements
 	protected void pingReceived(Ping pong) {
 		long now = System.currentTimeMillis();
 		long previousReceived = lastPongReceived.get();
+		log.debug("Pong from client id {} at {} with value {}, previous received at {}",
+				new Object[]{ getId(), now , pong.getValue2(), previousReceived });
 		if (lastPongReceived.compareAndSet(previousReceived, now)) {
 			lastPingTime.set(((int) (previousReceived & 0xffffffff)) - pong.getValue2());
 		}
@@ -1105,7 +1109,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 				keepAliveJobName = schedulingService.addScheduledJob(pingInterval,
 						new KeepAliveJob());
 			}
-			log.debug("Keep alive job name {}", keepAliveJobName);
+			log.debug("Keep alive job name {} for client id {}", keepAliveJobName, getId());
 		} finally {
 			getWriteLock().unlock();
 		}
@@ -1208,22 +1212,27 @@ public abstract class RTMPConnection extends BaseConnection implements
 	 */
 	private class KeepAliveJob implements IScheduledJob {
 
-		private long lastBytesRead = 0;
+		private final AtomicLong lastBytesRead = new AtomicLong(0);
+		private volatile long lastBytesReadTime = 0;
 		
 		/** {@inheritDoc} */
 		public void execute(ISchedulingService service) {
 			long thisRead = getReadBytes();
-			if (thisRead > lastBytesRead) {
+			long previousReadBytes = lastBytesRead.get();
+			if (thisRead > previousReadBytes) {
 				// Client sent data since last check and thus is not dead. No
 				// need to ping.
-				lastBytesRead = thisRead;
+				if (lastBytesRead.compareAndSet(previousReadBytes, thisRead))
+					lastBytesReadTime = System.currentTimeMillis();
 				return;
 			}
 
+			// Client didn't send response to ping command 
+			// and didn't sent data for too long, disconnect
 			if (lastPongReceived.get() > 0
-					&& lastPingSent.get() - lastPongReceived.get() > maxInactivity) {
-				// Client didn't send response to ping command for too long,
-				// disconnect
+					&& (lastPingSent.get() - lastPongReceived.get() > maxInactivity)
+					&& !(System.currentTimeMillis() - lastPingSent.get() < maxInactivity)
+					&& !(System.currentTimeMillis() - lastBytesReadTime < maxInactivity)) {
 
 				getWriteLock().lock();
 				try {
@@ -1239,9 +1248,11 @@ public abstract class RTMPConnection extends BaseConnection implements
 				} finally {
 					getWriteLock().unlock();
 				}
-				log.warn("Closing {}, with id {}, due to too much inactivity ({}).", 
+				log.warn("Closing {}, with id {}, due to too much inactivity ({}ms), " 
+						+ "last ping sent {}ms ago", 
 						new Object[] { RTMPConnection.this, getId(), 
-							(lastPingSent.get() - lastPongReceived.get()) });
+							(lastPingSent.get() - lastPongReceived.get()),
+							(System.currentTimeMillis() - lastPingSent.get())});
 				onInactive();
 				return;
 			}

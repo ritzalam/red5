@@ -72,6 +72,7 @@ public class Ping extends BaseEvent {
 
 	private short value1; // XXX: can someone suggest better names?
 
+	// 4 least significant bytes of timestamp for PING_CLIENT and PONG_SERVER
 	private int value2;
 
 	private int value3 = UNDEFINED;

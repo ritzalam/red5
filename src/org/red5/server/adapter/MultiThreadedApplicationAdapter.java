@@ -1071,6 +1071,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 			for (IConnection conn : set) {
                 // Ping client
                 conn.ping();
+				// FIXME: getLastPingTime doesn't get updated right after conn.ping()
                 // Time to live exceeded, disconnect
                 if (conn.getLastPingTime() > clientTTL * 1000) {
                     disconnect(conn, scope);    

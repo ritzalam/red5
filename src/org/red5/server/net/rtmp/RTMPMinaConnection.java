@@ -135,7 +135,10 @@ public class RTMPMinaConnection extends RTMPConnection implements
 		if (ioSession == null) {
 			return 0;
 		}
-		return ioSession.getReadBytes();
+		// TODO: half-measure, writing to readBytes isn't synchronised in mina 
+		synchronized (ioSession) {
+			return ioSession.getReadBytes();
+		}
 	}
 
 	/** {@inheritDoc} */
@@ -144,7 +147,10 @@ public class RTMPMinaConnection extends RTMPConnection implements
 		if (ioSession == null) {
 			return 0;
 		}
-		return ioSession.getWrittenBytes();
+		// TODO: half-measure, writing to writtenBytes isn't synchronised in mina 
+		synchronized (ioSession) {
+			return ioSession.getWrittenBytes();
+		}
 	}
 
 	public void invokeMethod(String method) {
