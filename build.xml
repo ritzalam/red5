@@ -702,6 +702,7 @@
 		<mkdir dir="${dist.dir}/${log.dir}"/>		
 		<java classname="org.red5.server.Bootstrap" fork="true">
 			<classpath>
+				<pathelement location="${dist.dir}/conf"/>
 				<pathelement location="${dist.dir}/red5.jar"/>
 				<pathelement location="${dist.dir}/lib/ejb3-persistence.jar"/>
 				<!-- The next entry must stay until ivy regex is fixed -->
