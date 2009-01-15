@@ -4,6 +4,8 @@ SETLOCAL
 
 if NOT DEFINED RED5_HOME set RED5_HOME=%~dp0
 
+if NOT DEFINED RED5_MAINCLASS set RED5_MAINCLASS=org.red5.server.Bootstrap
+
 if NOT DEFINED JAVA_HOME goto err
 
 # JAVA options
@@ -24,7 +26,7 @@ goto launchRed5
 
 :launchRed5
 echo Starting Red5
-"%JAVA_HOME%/bin/java" %JYTHON_OPTS% %JAVA_OPTS% -cp %RED5_CLASSPATH% org.red5.server.Bootstrap %RED5_OPTS%
+"%JAVA_HOME%/bin/java" %JYTHON_OPTS% %JAVA_OPTS% -cp %RED5_CLASSPATH% %RED5_MAINCLASS% %RED5_OPTS%
 # 1>%RED5_HOME%\log\stdout.log 2>%RED5_HOME%\log\stderr.log
 goto finally
 
