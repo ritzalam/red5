@@ -79,10 +79,7 @@
         <!-- Scripting -->
         <dependency org="asm" name="asm" rev="2.2.3" />
         <dependency org="asm" name="asm-commons" rev="2.2.3" />
-		<!--
         <dependency org="antlr" name="antlr" rev="2.7.6" />
-        <dependency name="bsh" rev="2.0b4" />
-        -->
         <dependency name="groovy" rev="1.0" />  
         <dependency name="jruby" rev="1.0.3" conf="java6->*"/>  
         <dependency name="jython" rev="2.5" />  
