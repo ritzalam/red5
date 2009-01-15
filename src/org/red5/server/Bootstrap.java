@@ -48,6 +48,10 @@ public class Bootstrap {
 	 * @throws Exception
 	 */
 	public static void main(String[] args) throws Exception {
+		
+		//ClassLoader loader = Thread.currentThread().getContextClassLoader();
+		//System.out.printf("Main - Thread classloader: %s\n", loader);
+		
 		//retrieve path elements from system properties
 		String root = getRed5Root();		
 		String conf = getConfigurationRoot(root);
@@ -80,6 +84,9 @@ public class Bootstrap {
 		//System.out.printf("JVM classpath: %s\n", classPath);		
 		
 		System.setProperty("red5.deployment.type", "bootstrap");
+		
+		System.setProperty("sun.lang.ClassLoader.allowArraySyntax", "true");
+		
 		//check system property before forcing out selector
 		if (System.getProperty("logback.ContextSelector") == null) {
 			//set to use our logger
@@ -102,20 +109,17 @@ public class Bootstrap {
 	    }
 		*/
 		
-		ClassLoader parent = ClassLoader.getSystemClassLoader();
-		//System.out.printf("Classloaders:\nParent %s\nSystem %s\n\n", parent.getParent(), parent);
-
 		// pass urls to the ClassLoader
-		ClassLoader loader = ClassLoaderBuilder.build(null, ClassLoaderBuilder.USE_RED5_LIB, parent);
+		ClassLoader loader = ClassLoaderBuilder.build(null, ClassLoaderBuilder.USE_RED5_LIB, null);
 					
 		// set the classloader to the current thread
 		Thread.currentThread().setContextClassLoader(loader);
 		
 		// create a new instance of this class using new classloader
-		Object boot = loader.loadClass("org.red5.server.Bootstrap").newInstance();
+		Object boot = Class.forName("org.red5.server.Bootstrap", true, loader).newInstance();
 	
-		Method m1 = boot.getClass().getMethod("launch", new Class[]{ ClassLoader.class });
-		m1.invoke(null, loader);
+		Method m1 = boot.getClass().getMethod("launch", (Class[]) null);
+		m1.invoke(boot, (Object[]) null);
 	}
 
 	/**
@@ -198,8 +202,16 @@ public class Bootstrap {
 	 * 
 	 * @param loader
 	 */
-	public static void launch(ClassLoader loader) {
+	public void launch() {
 		try {	
+			ClassLoader loader = Thread.currentThread().getContextClassLoader();
+			//System.out.printf("Launch - Thread classloader: %s\n", loader);
+
+			//create red5 app context
+			FileSystemXmlApplicationContext ctx = new FileSystemXmlApplicationContext(new String[]{
+					"classpath:/red5.xml"}, false);
+			ctx.setClassLoader(loader);			
+			
 			//install the slf4j bridge (mostly for JUL logging)
 			SLF4JBridgeHandler.install();
 			//we create the logger here so that it is instanced inside the expected 
@@ -208,15 +220,11 @@ public class Bootstrap {
 		    //version info banner
 			log.info("{} (http://www.osflash.org/red5)", Red5.getVersion());
 			//see which logger binder has been instanced
-			log.debug("Logger binder: {}", StaticLoggerBinder.getSingleton().getClass().getName());
-			//create red5 app context
-			FileSystemXmlApplicationContext ctx = new FileSystemXmlApplicationContext(new String[]{
-					"classpath:/red5.xml"}, false);
-			ctx.setClassLoader(loader);
+			log.trace("Logger binder: {}", StaticLoggerBinder.getSingleton().getClass().getName());
+
 			//refresh must be called before accessing the bean factory
 			ctx.refresh();
-			//set our loader
-			//ctx.getBeanFactory().setBeanClassLoader(loader);
+			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

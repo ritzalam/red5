@@ -20,6 +20,7 @@ package org.red5.classloading;
  */
 
 import java.net.URL;
+import java.net.URLClassLoader;
 
 /**
  * An almost trivial no-fuss implementation of a class loader following the
@@ -28,20 +29,37 @@ import java.net.URL;
  * 
  * @author Paul Gregoire (mondain@gmail.com)
  */
-public final class ChildFirstClassLoader extends Red5ClassLoader {
+public final class ChildFirstClassLoader extends URLClassLoader {
 
+	private ClassLoader parent = null;
+	private ClassLoader parentParent = null;
+	private ClassLoader system = null;
+	
 	public ChildFirstClassLoader(URL[] urls) {
 		super(urls);
+		this.parent = super.getParent();
+		system = getSystemClassLoader();		
+		//if we have a parent of the parent and its not the system classloader
+		parentParent = this.parent.getParent() != system ? this.parent.getParent() : null;
+		
+		dumpClassLoaderNames();
 	}
 
 	public ChildFirstClassLoader(URL[] urls, ClassLoader parent) {
 		super(urls, parent);
+		this.parent = parent;
+		system = getSystemClassLoader();		
+		//if we have a parent of the parent and its not the system classloader
+		parentParent = this.parent.getParent() != system ? this.parent.getParent() : null;
+
+		dumpClassLoaderNames();
+	}
+	
+	private void dumpClassLoaderNames() {
+		System.out.printf("[ChildFirstClassLoader] Classloaders:\nSystem %s\nParents Parent %s\nParent %s\nTCL %s\n\n", system, parentParent, this.parent, Thread.currentThread().getContextClassLoader());
 	}
 
-	public void addURL(URL url) {
-		super.addURL(url);
-	}
-
+	@Override
 	public Class<?> loadClass(String name) throws ClassNotFoundException {
 		return loadClass(name, false);
 	}
@@ -64,12 +82,12 @@ public final class ChildFirstClassLoader extends Red5ClassLoader {
 	 * @throws ClassNotFoundException
 	 *             if the class could not be loaded.
 	 */
-	@SuppressWarnings("unchecked")
-	protected Class loadClass(String name, boolean resolve)
+	@Override
+	protected Class<?> loadClass(String name, boolean resolve)
 			throws ClassNotFoundException {
 
 		// First, check if the class has already been loaded
-		Class c = findLoadedClass(name);
+		Class<?> c = findLoadedClass(name);
 
 		// if not loaded, search the local (child) resources
 		if (c == null) {
@@ -79,25 +97,46 @@ public final class ChildFirstClassLoader extends Red5ClassLoader {
 				// ignore
 			}
 		}
-
+		
 		// If we could not find it, delegate to parent
 		// Note that we do not attempt to catch any ClassNotFoundException
 		if (c == null) {
-			if (getParent() != null) {
-				c = getParent().loadClass(name);
-			} else {
-				c = getSystemClassLoader().loadClass(name);
+			try {
+				c = this.parent.loadClass(name);
+			} catch (Exception e) {
+				//ignore the Spring "BeanInfo" class lookup errors
+				if (e.getMessage().indexOf("BeanInfo") == -1) {
+					e.printStackTrace();
+				}
+			}
+			if (c == null && parentParent != null) {
+    			try {
+    				c = parentParent.loadClass(name);
+    			} catch (Exception e) {
+    				if (e.getMessage().indexOf("BeanInfo") == -1) {
+    					e.printStackTrace();
+    				}
+    			}
+			}
+			if (c == null) {
+				try {
+					c = system.loadClass(name);
+				} catch (Exception e) {
+					if (e.getMessage().indexOf("BeanInfo") == -1) {
+						e.printStackTrace();
+					}
+				}
 			}
 		}
-
-		// Resolve the class, if required
+		
+		// resolve if requested
 		if (resolve) {
 			resolveClass(c);
 		}
 
 		return c;
 	}
-
+	
 	/**
 	 * Override the parent-first resource loading model established by
 	 * java.lang.Classloader with child-first behavior.
@@ -109,15 +148,13 @@ public final class ChildFirstClassLoader extends Red5ClassLoader {
 	 * @return a {@link URL} for the resource, or <code>null</code> if it could
 	 *         not be found.
 	 */
+	@Override
 	public URL getResource(String name) {
-
 		URL url = findResource(name);
-
 		// If local search failed, delegate to parent
 		if (url == null) {
-			url = getParent().getResource(name);
+			url = this.parent.getResource(name);
 		}
-
 		return url;
 	}
 }

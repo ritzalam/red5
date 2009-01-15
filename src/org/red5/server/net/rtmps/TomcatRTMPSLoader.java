@@ -28,7 +28,6 @@ import org.apache.catalina.core.AprLifecycleListener;
 import org.apache.catalina.core.StandardHost;
 import org.apache.catalina.core.StandardWrapper;
 import org.apache.catalina.loader.WebappLoader;
-import org.red5.classloading.ClassLoaderBuilder;
 import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.IServer;
 import org.red5.server.net.rtmpt.TomcatRTMPTLoader;
@@ -81,22 +80,24 @@ public class TomcatRTMPSLoader extends TomcatRTMPTLoader {
 		File appDirBase = new File(webappFolder);
 		String webappContextDir = FileUtil.formatPath(appDirBase.getAbsolutePath(), "/root");
 		Context ctx = embedded.createContext("/", webappContextDir);
+		//no reload for now
 		ctx.setReloadable(false);
 		log.debug("Context name: {}", ctx.getName());
 		Object ldr = ctx.getLoader();
-		log.debug("Context loader: {}", ldr);
+		log.trace("Context loader (null if the context has not been started): {}", ldr);
 		if (ldr == null) {
-			log.debug("Context loader was null");
-			ClassLoader classloader = ClassLoaderBuilder.build(new File(webappContextDir), ClassLoaderBuilder.USE_WAR_LIB, null);
-			log.debug("Context class loader: {}", classloader);
-			WebappLoader wldr = new WebappLoader(classloader);
+			ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+			//log.debug("Classloaders - Parent {}\nTCL {}\n\n", new Object[] {classLoader.getParent(), classLoader});
+			ctx.setParentClassLoader(classLoader);
+
+			WebappLoader wldr = new WebappLoader(classLoader);
+			//add the Loader to the context
 			ctx.setLoader(wldr);
 		}  		
 		appDirBase = null;
 		webappContextDir = null;
 		
 		host.addChild(ctx);
-		
 		// add servlet wrapper
 		StandardWrapper wrapper = new StandardWrapper();
 		wrapper.setServletName("RTMPTServlet");
@@ -141,7 +142,6 @@ public class TomcatRTMPSLoader extends TomcatRTMPTLoader {
     		embedded.addConnector(connector);
 
 			log.info("Starting RTMPS engine");
-			//embedded.start();
 			connector.start();
 		} catch (Exception e) {
 			log.error("Error loading tomcat", e);

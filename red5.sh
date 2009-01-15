@@ -34,7 +34,7 @@ then
   exit
 fi
 
-export RED5_CLASSPATH="$RED5_HOME/red5.jar$P$RED5_HOME/conf$P$CLASSPATH"
+export RED5_CLASSPATH="$RED5_HOME/red5.jar$P$RED5_HOME/conf$Plib/ejb3-persistence.jar$P$CLASSPATH"
 if [ -z "$RED5_MAINCLASS" ]; then
   export RED5_MAINCLASS=org.red5.server.Standalone
 fi

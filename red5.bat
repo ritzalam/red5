@@ -11,7 +11,7 @@ set JAVA_OPTS=-Dred5.root=%RED5_HOME% -Djava.security.manager -Djava.security.po
 
 set JYTHON_OPTS=-Dpython.home=lib
 
-set RED5_CLASSPATH=%RED5_HOME%\red5.jar;%RED5_HOME%\conf;%CLASSPATH%
+set RED5_CLASSPATH=%RED5_HOME%\red5.jar;%RED5_HOME%\conf;lib/ejb3-persistence.jar;%CLASSPATH%
 if NOT DEFINED RED5_MAINCLASS set RED5_MAINCLASS=org.red5.server.Standalone
 if NOT DEFINED RED5_OPTS set RED5_OPTS= 
 

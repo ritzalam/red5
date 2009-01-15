@@ -22,6 +22,7 @@ package org.red5.classloading;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -49,6 +50,12 @@ import org.springframework.util.StringUtils;
  */
 public final class ClassLoaderBuilder {
 	
+	/*
+	 http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6500212
+	 http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6516909
+	 http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4976356
+	 */
+	
 	/**
 	 * Use the current class loader to load the servlet and the libraries.
 	 */
@@ -71,7 +78,25 @@ public final class ClassLoaderBuilder {
 	 * some time as the libraries need to be extracted from the WAR file.
 	 */
 	public static final int USE_WAR_LIB = 4;
-
+	
+	/**
+	 * Filters jar files
+	 */
+	public final static class JarFileFilter implements FilenameFilter {
+		/**
+		 * Check whether file matches filter rules
+		 * 
+		 * @param dir
+		 *            Directory
+		 * @param name
+		 *            File name
+		 * @return true If file does match filter rules, false otherwise
+		 */
+		public boolean accept(File dir, String name) {
+			return name.endsWith(".jar");
+		}
+	}	
+	
 	/**
 	 * Gets a class loader based on mode.
 	 * 
@@ -99,16 +124,9 @@ public final class ClassLoaderBuilder {
 			return ClassLoaderBuilder.class.getClassLoader();
 		}
 
+		JarFileFilter jarFileFilter = new JarFileFilter();
+		
 		List<URL> urlList = new ArrayList<URL>(31);
-
-		//check for parent class loader
-		ClassLoader parentLoader = null;
-		if (parent != null) {
-			parentLoader = parent;
-		} else {
-			parentLoader = Thread.currentThread().getContextClassLoader();
-		}
-		//System.out.printf("Parent classloader: %s\n", parentLoader);
 		
 		//the class loader to return
 		ClassLoader loader = null;
@@ -152,14 +170,12 @@ public final class ClassLoaderBuilder {
 			
 			//grab the urls for all the jars in "lib"
 			File libDir = new File(libPath);
-			File[] libFiles = libDir.listFiles();
+			File[] libFiles = libDir.listFiles(jarFileFilter);
 			for (int i = 0; i < libFiles.length; i++) {
-				if (libFiles[i].getName().endsWith(".jar")) {
-					try {
-						urlList.add(libFiles[i].toURI().toURL());
-					} catch (MalformedURLException e) {
-						e.printStackTrace();
-					}
+				try {
+					urlList.add(libFiles[i].toURI().toURL());
+				} catch (MalformedURLException e) {
+					e.printStackTrace();
 				}
 			}
 			
@@ -182,8 +198,12 @@ public final class ClassLoaderBuilder {
 			}
 			
 			urls = urlList.toArray(new URL[0]);
-			//loader = new Red5ClassLoader(urls, parentLoader);
-			loader = URLClassLoader.newInstance(urls, parentLoader);
+			
+			if (parent == null) {
+				loader = new URLClassLoader(urls);
+			} else {
+				loader = new URLClassLoader(urls, parent);
+			}
 
 		} else {
 			List<String> standardLibs = new ArrayList<String>(7);
@@ -220,7 +240,7 @@ public final class ClassLoaderBuilder {
         			File libDir = new File(path, "WEB-INF/lib");
         			//this should not be null but it can happen
         			if (libDir != null && libDir.canRead()) {
-        				File[] libs = libDir.listFiles();
+        				File[] libs = libDir.listFiles(jarFileFilter);
         				//System.out.printf("Webapp lib count: %s\n", libs.length);
         				for (File lib : libs) {
         					try {
@@ -252,7 +272,7 @@ public final class ClassLoaderBuilder {
         	}
         	
         	urls = urlList.toArray(new URL[0]);
-        	loader = new ChildFirstClassLoader(urls, parentLoader);	
+        	loader = new ChildFirstClassLoader(urls, parent);	
         	
 		}
 						
@@ -261,9 +281,7 @@ public final class ClassLoaderBuilder {
 		//for (URL url : urls) {
 			//System.out.println(url.toExternalForm());
 		//}
-				
-		//Thread.currentThread().setContextClassLoader(loader);
-
+		
 		//System.out.printf("Classloaders:\nThread %s\nCurrent Loader %s\nNew Loader %s\n", Thread.currentThread().getContextClassLoader(), ClassLoaderBuilder.class.getClassLoader(), loader);
 		
 		return loader;
