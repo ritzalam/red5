@@ -18,8 +18,9 @@ esac
 # Set up logging options
 LOGGING_OPTS="-Dlogback.ContextSelector=org.red5.logging.LoggingContextSelector -Dcatalina.useNaming=true"
 # Set up security options
+#SECURITY_OPTS="-Djava.security.debug=failure -Djava.security.manager -Djava.security.policy=$RED5_HOME/conf/red5.policy"
 SECURITY_OPTS="-Djava.security.debug=failure"
-export JAVA_OPTS="-Dred5.root=$RED5_HOME -Djava.security.manager -Djava.security.policy=$RED5_HOME/conf/red5.policy $LOGGING_OPTS $SECURITY_OPTS $JAVA_OPTS"
+export JAVA_OPTS="-Dred5.root=$RED5_HOME $LOGGING_OPTS $SECURITY_OPTS $JAVA_OPTS"
 
 # Jython options
 JYTHON="-Dpython.home=lib"
@@ -39,11 +40,8 @@ then
 fi
 
 export RED5_CLASSPATH="$RED5_HOME/red5.jar$P$RED5_HOME/conf$Plib/ejb3-persistence.jar$P$CLASSPATH"
-if [ -z "$RED5_MAINCLASS" ]; then
-  export RED5_MAINCLASS=org.red5.server.Bootstrap
-fi
 
 # start Red5
-echo "Starting Red5 ($RED5_MAINCLASS)..."
-exec "$JAVA" $JYTHON $JAVA_OPTS -cp $RED5_CLASSPATH $RED5_MAINCLASS $RED5_OPTS
+echo "Starting Red5"
+exec "$JAVA" $JYTHON $JAVA_OPTS -cp $RED5_CLASSPATH org.red5.server.Bootstrap $RED5_OPTS
 # 1> $RED5_HOME/log/stdout.log  2>$RED5_HOME/log/stderr.log
