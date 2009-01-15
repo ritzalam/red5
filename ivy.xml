@@ -13,7 +13,8 @@
     <dependencies>
         <!-- J2EE --> 
         <dependency org="tomcat" name="jasper" rev="6.0.18" />
-        <dependency org="tomcat" name="jasper-jdt" rev="6.0.18" conf="eclipse->*"/> 
+        <!-- jasper-jdt is required for compiling jsp's -->
+        <dependency org="tomcat" name="jasper-jdt" rev="6.0.18" /> 
         <dependency org="tomcat" name="jasper-el" rev="6.0.18" />
         <dependency org="tomcat" name="el-api" rev="" />
         <dependency org="javax" name="jsp-api" rev="2.1" />
@@ -23,7 +24,6 @@
         <dependency name="naming-resources" rev="" />
         <!-- Spring --> 
         <dependency org="spring" name="spring-aop" rev="2.5.6" />
-        <dependency org="spring" name="spring-orm" rev="2.5.6" />
         <dependency org="spring" name="spring-beans" rev="2.5.6" />
         <dependency org="spring" name="spring-context" rev="2.5.6" />
         <dependency org="spring" name="spring-core" rev="2.5.6" />
@@ -43,11 +43,15 @@
         <dependency name="jcl-over-slf4j" rev="1.5.6" />
         <dependency name="log4j-over-slf4j" rev="1.5.6" />
         <dependency name="jul-to-slf4j" rev="1.5.6" />
-        <dependency name="tomcat-juli-slf4j" rev="1.5.0" />
         <dependency name="logback-core" rev="0.9.14" />
         <dependency name="logback-classic" rev="0.9.14" />
+        <!-- 
+        <dependency name="tomcat-juli-slf4j" rev="1.5.0" />
+         -->
         <!-- General --> 
+        <!-- 
         <dependency org="cglib" name="cglib-nodep" rev="2.1_3" />        
+        -->
         <dependency org="commons" name="commons-beanutils" rev="1.8.0" />
         <dependency org="commons" name="commons-codec" rev="1.3" />
         <dependency org="commons" name="commons-collections" rev="3.2.1" /> 
@@ -55,17 +59,13 @@
         <dependency org="commons" name="commons-lang" rev="2.4" />
         <dependency org="commons" name="commons-pool" rev="1.4" />
         <dependency name="quartz" rev="1.6.1" />
-        <dependency org="javax" name="jta" rev="1.0.1B" />
+        <dependency org="javax" name="jta" rev="1.1" />
         <dependency name="ehcache" rev="1.6.0-beta1" />
         <dependency org="javax" name="activation" rev="1.1" /> 
         <!-- XML -->
         <dependency name="xercesImpl" rev="2.9.1" />
         <dependency name="xml-apis" rev="2.9.1" />
         <dependency name="xmlrpc" rev="2.0.1" />
-        <!-- 
-        <dependency name="stax2" rev="3.0pr1" />
-        <dependency name="wstx-lgpl" rev="3.9.2" />
-         -->
         <!-- JMX -->
         <!-- 
         <dependency org="jmx" name="jmxremote" rev="1.0.1" />

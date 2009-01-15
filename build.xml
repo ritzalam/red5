@@ -308,16 +308,7 @@
 			<!-- copy the logback config per webapp and associated jars -->
 			<copy todir="${webapps.build.dir}/@{webapp}/WEB-INF/classes"
 			      file="webapps/@{webapp}/WEB-INF/src/logback-@{webapp}.xml" overwrite="true"/>
-			<!--
-			<copy todir="${webapps.build.dir}/@{webapp}/WEB-INF/lib">
-				<fileset dir="${lib.dir}">
-					<include name="slf4j-api-*.*.*.jar"/>
-					<include name="logback-core-*.*.*.jar"/>
-					<include name="logback-classic-*.*.*.jar"/>
-				</fileset>
-			</copy>
-			-->		
-      		</sequential>
+   		</sequential>
 	</macrodef>
 	
 	<!-- Demos -->
@@ -395,7 +386,7 @@
 
 		<mkdir dir="${classes.dir}/WEB-INF/classes"/>
 		<property name="dest.dir" value="${classes.dir}/WEB-INF/classes"/>
-		<property name="std_excludes" value="**/*.jsp,org/red5/server/script/**,org/red5/server/jetty/**,org/red5/server/tomcat/**,org/red5/server/midi/**,org/red5/server/net/rtmpt/*Loader.java,org/red5/server/net/rtmps/*Loader.java,org/red5/server/net/servlet/RTMPTServlet.java,org/red5/server/net/servlet/StatisticsServlet.java,org/red5/server/net/servlet/ZAMFGatewayServlet.java,org/red5/server/ContextLoader.java,org/red5/server/DebugPooledByteBufferAllocator.java,org/red5/server/Standalone.java"/>
+		<property name="std_excludes" value="**/*.jsp,org/red5/server/script/**,org/red5/server/jetty/**,org/red5/server/tomcat/**,org/red5/server/midi/**,org/red5/server/net/rtmpt/*Loader.java,org/red5/server/net/rtmps/*Loader.java,org/red5/server/net/servlet/RTMPTServlet.java,org/red5/server/net/servlet/StatisticsServlet.java,org/red5/server/net/servlet/ZAMFGatewayServlet.java,org/red5/server/ContextLoader.java,org/red5/server/DebugPooledByteBufferAllocator.java,org/red5/server/Bootstrap.java"/>
 		<antcall target="compile-core" inheritAll="true" inheritRefs="true"/>
 		<antcall target="compile-core-compatibility" inheritAll="true" inheritRefs="true"/>
 
@@ -523,7 +514,7 @@
 				<attribute name="Red5-Version" value="${red5.version}"/>
 				<attribute name="Built-By" value="${red5.fullname}"/>
 				<attribute name="Built-On" value="${build.TODAY}"/>
-				<attribute name="Main-Class" value="org.red5.server.Standalone"/>
+				<attribute name="Main-Class" value="org.red5.server.Bootstrap"/>
 				<attribute name="Class-Path" value="${jar.classpath}"/>
 			</manifest>
 			<metainf dir="${src.dir}/META-INF">
@@ -552,10 +543,8 @@
 			<fileset dir="./">
 				<include name="${red5.filename}.jar"/>
 				<include name="red5.bat"/>
-				<include name="red5-bootstrap.bat"/>
 				<include name="red5-shutdown.bat"/>
 				<include name="red5.sh"/>
-				<include name="red5-bootstrap.sh"/>
 				<include name="red5-shutdown.sh"/>
 				<include name="red5-debug.sh"/>
 				<include name="red5-debug.bat"/>
@@ -566,7 +555,6 @@
 		</copy>
 
 		<chmod file="${dist.dir}/red5.sh" perm="755"/>
-		<chmod file="${dist.dir}/red5-bootstrap.sh" perm="755"/>
 		<chmod file="${dist.dir}/red5-shutdown.sh" perm="755"/>
 		<chmod file="${dist.dir}/red5-debug.sh" perm="755"/>
 		<chmod file="${dist.dir}/red5-highperf.sh" perm="755"/>
@@ -656,7 +644,6 @@
 		<move tofile="${edgedist.dir}/conf/red5.xml" file="${edgedist.dir}/conf/red5-edge.xml"
 		      overwrite="true"/>
 		<chmod file="${edgedist.dir}/red5.sh" perm="755"/>
-		<chmod file="${edgedist.dir}/red5-bootstrap.sh" perm="755"/>
 		<chmod file="${edgedist.dir}/red5-shutdown.sh" perm="755"/>
 	</target>
 
@@ -670,7 +657,6 @@
 		<move tofile="${origindist.dir}/conf/red5.xml" file="${dist.dir}/conf/red5-origin.xml"
 		      overwrite="true"/>
 		<chmod file="${origindist.dir}/red5.sh" perm="755"/>
-		<chmod file="${origindist.dir}/red5-bootstrap.sh" perm="755"/>
 		<chmod file="${origindist.dir}/red5-shutdown.sh" perm="755"/>
 	</target>
 
@@ -714,32 +700,18 @@
 	<target name="server" depends="dist" description="Compile and start the server">
 		<echo message="Using ${dist.dir} for Red5 root"/>
 		<mkdir dir="${dist.dir}/${log.dir}"/>		
-		<java classname="org.red5.server.Standalone" fork="true">
-			<classpath>
-				<pathelement location="${dist.dir}/conf"/>
-				<path id="dist.classpath">
-					<fileset dir="${dist.dir}/lib"/>
-					<fileset dir="${dist.dir}">
-						<filename name="red5.jar"/>
-					</fileset>
-				</path>
-			</classpath>
-			<jvmarg value="-Dpython.home=${dist.dir}/lib"/>
-			<jvmarg value="-Djava.security.manager"/>
-			<jvmarg value="-Djava.security.policy=${dist.dir}/conf/red5.policy"/>
-			<jvmarg value="-Dred5.root=${dist.dir}"/>
-		</java>
-	</target>
-
-	<target name="bootstrap" depends="dist" description="Compile and start the server">
-		<echo message="Using ${dist.dir} for Red5 root"/>
-		<mkdir dir="${dist.dir}/${log.dir}"/>		
 		<java classname="org.red5.server.Bootstrap" fork="true">
 			<classpath>
 				<pathelement location="${dist.dir}/red5.jar"/>
+				<pathelement location="${dist.dir}/lib/ejb3-persistence.jar"/>
+				<!-- The next entry must stay until ivy regex is fixed -->
+				<pathelement location="${dist.dir}/lib/ejb3-persistence-.jar"/>
 			</classpath>
+			<!-- Unusable until policy is fixed
 			<jvmarg value="-Djava.security.manager"/>
 			<jvmarg value="-Djava.security.policy=${dist.dir}/conf/red5.policy"/>
+			-->
+			<jvmarg value="-Dpython.home=${dist.dir}/lib"/>
 			<jvmarg value="-Dred5.root=${dist.dir}"/>
 		</java>
 	</target>
@@ -770,15 +742,15 @@
 	</target>
 
 	<target name="udp-server" depends="compile" description="Compile and start experimental UDP server">
-        	<java classname="org.red5.server.net.udp.Standalone" fork="true">
-            		<classpath>
-            			<pathelement location="${config.dir}"/>
-            			<pathelement location="${classes.dir}"/>
-            			<path refid="full.classpath"/>
-            		</classpath>
-            		<jvmarg value="-Djava.security.manager"/>
-            		<jvmarg value="-Djava.security.policy=${config.dir}/red5.policy"/>
-        	</java>
+		<java classname="org.red5.server.net.udp.Standalone" fork="true">
+    		<classpath>
+    			<pathelement location="${config.dir}"/>
+    			<pathelement location="${classes.dir}"/>
+    			<path refid="full.classpath"/>
+    		</classpath>
+    		<jvmarg value="-Djava.security.manager"/>
+    		<jvmarg value="-Djava.security.policy=${config.dir}/red5.policy"/>
+    	</java>
 	</target>
 
 	<target name="run-tests" depends="compile-tests" description="Run unit tests and generate HTML reports">
@@ -838,19 +810,19 @@
 	<target name="run-tests-server" depends="compile-tests" description="Run the selftest server">
 		<echo message="Using ${testdist.dir} for Red5 root"/>
 		<mkdir dir="${testdist.dir}/${log.dir}"/>		
-		<java classname="org.red5.server.Standalone" fork="true" dir="${testdist.dir}">
+		<java classname="org.red5.server.Bootstrap" fork="true" dir="${testdist.dir}">
 			<classpath>
 				<pathelement location="${testdist.dir}/conf"/>
-				<path id="dist.classpath">
-					<fileset dir="${testdist.dir}/lib"/>
-					<fileset dir="${testdist.dir}">
-						<filename name="red5.jar"/>
-					</fileset>
-				</path>
+				<pathelement location="${testdist.dir}/red5.jar"/>
+				<pathelement location="${testdist.dir}/lib/ejb3-persistence.jar"/>
+				<!-- The next entry must stay until ivy regex is fixed -->
+				<pathelement location="${testdist.dir}/lib/ejb3-persistence-.jar"/>
 			</classpath>
-			<jvmarg value="-Dpython.home=${testdist.dir}/lib"/>
+			<!-- Unusable until policy is fixed
 			<jvmarg value="-Djava.security.manager"/>
 			<jvmarg value="-Djava.security.policy=${testdist.dir}/conf/red5.policy"/>
+			-->
+			<jvmarg value="-Dpython.home=${testdist.dir}/lib"/>
 			<jvmarg value="-Dred5.root=${testdist.dir}"/>
 		</java>
 	</target>
@@ -861,29 +833,29 @@
 		<mkdir dir="${testdist.dir}"/>
 		<mkdir dir="${testreports.dir}/fixtures"/>
 		<mkdir dir="${testreports.dir}/log"/>
-                <!-- Give the tests their own dist installation to work with -->
+        <!-- Give the tests their own dist installation to work with -->
 		<antcall target="dist" inheritAll="false" inheritRefs="false">
 			<param name="dist.dir" value="${testdist.dir}"/>
 		</antcall>
-                <!-- Copy all test config files into the dist/conf of the
-                     test distribution.  The JUnit task below will add this
-                     directory to the classpath -->
-                <copy todir="${testdist.dir}/conf" overwrite="true">
-                	<fileset dir="${test.dir}" includes="**/*.xml" excludes="www/**/*"/>
-                </copy>
-                <!-- Install the self-test application that tests depend on -->
-                <copy todir="${testdist.dir}/webapps/selftest" overwrite="true">
-                	<fileset dir="${test.dir}/www/" includes="**/*"/>
-                </copy>
-                <copy todir="${testreports.dir}/fixtures" overwrite="true">
-                	<fileset dir="${test.dir}/fixtures" includes="**/*"/>
-                </copy>
+        <!-- Copy all test config files into the dist/conf of the
+             test distribution.  The JUnit task below will add this
+             directory to the classpath -->
+        <copy todir="${testdist.dir}/conf" overwrite="true">
+        	<fileset dir="${test.dir}" includes="**/*.xml" excludes="www/**/*"/>
+        </copy>
+        <!-- Install the self-test application that tests depend on -->
+        <copy todir="${testdist.dir}/webapps/selftest" overwrite="true">
+        	<fileset dir="${test.dir}/www/" includes="**/*"/>
+        </copy>
+        <copy todir="${testreports.dir}/fixtures" overwrite="true">
+        	<fileset dir="${test.dir}/fixtures" includes="**/*"/>
+        </copy>
 		<echo>Libraries checked: ${library.installed}</echo>
 		<antcall target="retrieve" inheritAll="true" inheritRefs="true">
 			<param name="ivy.conf.name" value="utest"/>
 		</antcall>
 		<available property="junit.installed" classname="junit.framework.TestCase"/>
-                <mkdir dir="${testclass.dir}"/>
+		<mkdir dir="${testclass.dir}"/>
 		<javac srcdir="${test.dir}" destdir="${testclass.dir}"
 			 optimize="${build.optimize}" verbose="${build.verbose}" fork="${build.fork}" nowarn="${build.nowarn}"
                          deprecation="${build.deprecation}" debug="${debug.state}" compiler="${build.compiler}">
@@ -892,10 +864,10 @@
 			</classpath>
 			<include name="**/*.java"/>
 		</javac>
-                <mkdir dir="${testdist.dir}/webapps/selftest/WEB-INF/classes" />
-                <copy todir="${testdist.dir}/webapps/selftest/WEB-INF/classes" overwrite="true">
-                	<fileset dir="${testclass.dir}" includes="**/*.class"/>
-                </copy>
+        <mkdir dir="${testdist.dir}/webapps/selftest/WEB-INF/classes" />
+        <copy todir="${testdist.dir}/webapps/selftest/WEB-INF/classes" overwrite="true">
+            <fileset dir="${testclass.dir}" includes="**/*.class"/>
+        </copy>
 	</target>
 
 	<target name="webwar" description="Make Web Archive" depends="compile-war">
@@ -911,8 +883,8 @@
 		<delete dir="${classes.dir}/testcases"/>		
 		<!-- cleanup "standalone" red5-web files -->
    		<delete>
-        		<fileset dir="${webapps.build.dir}" includes="**/red5-web.*"/>
-    		</delete>		
+        	<fileset dir="${webapps.build.dir}" includes="**/red5-web.*"/>
+    	</delete>		
 		
 		<!-- add the configs to the root war -->
 		<filter token="display.name" value=""/>
