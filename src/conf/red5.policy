@@ -36,16 +36,30 @@ grant codeBase "file:${java.home}/lib/ext/-" {
 
 
 // These permissions apply to the main code
-//grant codeBase "file:${red5.home}/red5.jar" {
 grant codeBase "file:red5.jar" {
+  permission java.security.AllPermission;
+};
+
+grant codeBase "file:${red5.home}/red5.jar" {
+  permission java.security.AllPermission;
+};
+
+grant codeBase "file:${red5.root}/red5.jar" {
   permission java.security.AllPermission;
 };
 
 // These permissions apply to the servlet API classes
 // and those that are shared across all class loaders
 // located in the "common" directory
-//grant codeBase "file:${red5.home}/lib/-" {
 grant codeBase "file:lib/-" {
+  permission java.security.AllPermission;
+};
+
+grant codeBase "file:${red5.home}/lib/-" {
+  permission java.security.AllPermission;
+};
+
+grant codeBase "file:${red5.root}/lib/-" {
   permission java.security.AllPermission;
 };
 
@@ -78,6 +92,9 @@ grant {
   permission java.lang.RuntimePermission "loadLibrary";
   permission java.lang.RuntimePermission "getClassLoader";
   permission java.lang.RuntimePermission "setContextClassLoader";
+
+  //specifically so that tomcat can be shutdown
+  permission java.lang.RuntimePermission "modifyThread";
 
   permission javax.security.auth.AuthPermission "doAsPrivileged";
 
