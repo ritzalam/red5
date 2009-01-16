@@ -182,30 +182,36 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 				metaData.setTrack(idTag.getFirstTrack());
 				metaData.setYear(idTag.getFirstYear());
 				//send album image if included
-				TagField imageField = mp3file.getTag().get(TagFieldKey.COVER_ART).get(0);
-				if (imageField instanceof AbstractID3v2Frame) {
-				    FrameBodyAPIC imageFrameBody = (FrameBodyAPIC)((AbstractID3v2Frame)imageField).getBody();
-				    if (!imageFrameBody.isImageUrl()) {
-				        byte[] imageBuffer = (byte[]) imageFrameBody.getObjectValue(DataTypes.OBJ_PICTURE_DATA);
-						//set the cover image on the metadata
-						metaData.setCovr(imageBuffer);
-						// Create tag for onImageData event
-						ByteBuffer buf = ByteBuffer.allocate(imageBuffer.length);
-						buf.setAutoExpand(true);
-						Output out = new Output(buf);
-						out.writeString("onImageData");
-						Map<Object, Object> props = new HashMap<Object, Object>();
-						props.put("trackid", 1);
-						props.put("data", imageBuffer);
-						out.writeMap(props, new Serializer());
-						buf.flip();
-						//Ugh i hate flash sometimes!!
-						//Error #2095: flash.net.NetStream was unable to invoke callback onImageData.
-						ITag result = new Tag(IoConstants.TYPE_METADATA, 0, buf.limit(), null, 0);
-						result.setBody(buf);								
-						//add to first frames
-						firstTags.add(result);
-				    }
+				List<TagField> tagFieldList = mp3file.getTag().get(TagFieldKey.COVER_ART);
+				//fix for APPSERVER-310
+				if (tagFieldList == null || tagFieldList.isEmpty()) {
+					log.debug("No cover art was found");
+				} else {
+    				TagField imageField = tagFieldList.get(0);
+    				if (imageField instanceof AbstractID3v2Frame) {
+    				    FrameBodyAPIC imageFrameBody = (FrameBodyAPIC)((AbstractID3v2Frame)imageField).getBody();
+    				    if (!imageFrameBody.isImageUrl()) {
+    				        byte[] imageBuffer = (byte[]) imageFrameBody.getObjectValue(DataTypes.OBJ_PICTURE_DATA);
+    						//set the cover image on the metadata
+    						metaData.setCovr(imageBuffer);
+    						// Create tag for onImageData event
+    						ByteBuffer buf = ByteBuffer.allocate(imageBuffer.length);
+    						buf.setAutoExpand(true);
+    						Output out = new Output(buf);
+    						out.writeString("onImageData");
+    						Map<Object, Object> props = new HashMap<Object, Object>();
+    						props.put("trackid", 1);
+    						props.put("data", imageBuffer);
+    						out.writeMap(props, new Serializer());
+    						buf.flip();
+    						//Ugh i hate flash sometimes!!
+    						//Error #2095: flash.net.NetStream was unable to invoke callback onImageData.
+    						ITag result = new Tag(IoConstants.TYPE_METADATA, 0, buf.limit(), null, 0);
+    						result.setBody(buf);								
+    						//add to first frames
+    						firstTags.add(result);
+    				    }
+    				}
 				}
 			} else {
 				log.info("File did not contain ID3v2 data: {}", file.getName());
@@ -234,9 +240,6 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 		in = ByteBuffer.wrap(mappedFile);
 		// Analyze keyframes data
 		analyzeKeyFrames();
-
-		// Process ID3v2 header if present
-		// processID3v2Header();
 
 		// Create file metadata object
 		firstTags.addFirst(createFileMeta());
@@ -620,32 +623,6 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 		}
 		return frameMeta;
 	}
-
-	/*
-	private void processID3v2Header() {
-		if (in.remaining() <= 10) {
-			// We need at least 10 bytes ID3v2 header + data
-			return;
-		}
-		int start = in.position();
-		byte a, b, c;
-		a = in.get();
-		b = in.get();
-		c = in.get();
-		if (a != 'I' || b != 'D' || c != '3') {
-			// No ID3v2 header
-			in.position(start);
-			return;
-		}
-
-		// Skip version and flags
-		in.skip(3);
-		int size = (in.get() & 0x7f) << 21 | (in.get() & 0x7f) << 14
-				| (in.get() & 0x7f) << 7 | (in.get() & 0x7f);
-		// Skip ID3v2 header for now
-		in.skip(size);
-	}
-	*/
 
 	/**
 	 * Simple holder for id3 meta data
