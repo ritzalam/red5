@@ -96,11 +96,11 @@ cp -r $RED5_HOME/log output/red5
 # Now, check the actual status
 tail output/flashlog-$$.txt | grep -q "setting exitVal to: 0 and exiting the player"
 if [ $? -eq 0 ]; then
-  cat otuput/flashlog-$$.txt
+  cat output/flashlog-$$.txt
   echo `date` "All flash tests exited successfully"
   FLASH_STATUS=0
 else
-  cat otuput/flashlog-$$.txt
+  cat output/flashlog-$$.txt
   echo `date` "Flash tests failed"
   FLASH_STATUS=255
 fi
