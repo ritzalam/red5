@@ -39,9 +39,9 @@ red5_start()
   ./red5.sh 1>>log/stdout.log 2>>log/stderr.log &
   echo -n " ($!)..."
   ensure_background_process_running $! 30 "Red5 process didn't start"
-  sleep 5
-  grep -q "Standalone - Startup done" log/stdout.log
-  process_status $? "check_startup not done in 10 seconds"
+  sleep 30
+  grep -q "Bootstrap complete" log/stdout.log
+  process_status $? "check_startup not done in 30 seconds"
   grep -q "	at .*\(.*\)$" log/stdout.log
   if [ $? -eq 0 ]; then
     echo ""
