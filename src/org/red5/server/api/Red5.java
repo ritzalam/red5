@@ -28,7 +28,7 @@ import java.lang.ref.WeakReference;
  * 
  * The code below shows various uses. 
  * <p>
- * <code> 
+ * <code>
  * IConnection conn = Red5.getConnectionLocal();<br /> 
  * Red5 r5 = new Red5();<br />
  * IScope scope = r5.getScope();<br />
