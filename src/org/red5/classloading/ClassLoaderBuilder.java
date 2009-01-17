@@ -153,6 +153,14 @@ public final class ClassLoaderBuilder {
 				//snip off anything beyond the last slash
 				home = classLocation.substring(0, classLocation.lastIndexOf('/'));
 			}			
+			
+			try {
+				//add red5.jar to the classpath
+				urlList.add(new File(home, "red5.jar").toURI().toURL());
+			} catch (MalformedURLException e1) {
+				e1.printStackTrace();
+			}			
+			
 			//get red5 lib system property, if not found build it	
 			String libPath = System.getProperty("red5.lib_root");
 			if (libPath == null) {
@@ -160,16 +168,13 @@ public final class ClassLoaderBuilder {
     			libPath = home + "/lib";
 			}
 			//System.out.printf("Library path: %s\n", libPath);	
-			
-			try {
-				//add red5.jar to the classpath
-				urlList.add(new File(home, "red5.jar").toURI().toURL());
-			} catch (MalformedURLException e1) {
-				e1.printStackTrace();
-			}
-			
+						
 			//grab the urls for all the jars in "lib"
 			File libDir = new File(libPath);
+			//if we are on osx with spaces in our path this may occur
+			if (libDir == null) {
+				libDir = new File(home, "lib");
+			}
 			File[] libFiles = libDir.listFiles(jarFileFilter);
 			for (int i = 0; i < libFiles.length; i++) {
 				try {

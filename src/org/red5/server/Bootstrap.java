@@ -48,16 +48,9 @@ public class Bootstrap {
 	 * @throws Exception
 	 */
 	public static void main(String[] args) throws Exception {
-		
-		//ClassLoader loader = Thread.currentThread().getContextClassLoader();
-		//System.out.printf("Main - Thread classloader: %s\n", loader);
-		
 		//retrieve path elements from system properties
 		String root = getRed5Root();		
 		String conf = getConfigurationRoot(root);
-
-		//set the red5.xml config file to be loaded by Spring
-		setConfigurationRootFile(conf);
 		
 		//bootstrap dependencies and start red5
 		bootStrap();
@@ -123,25 +116,6 @@ public class Bootstrap {
 	}
 
 	/**
-	 * Sets the configuration root file
-	 * 
-	 * @param conf
-	 * @throws IOException
-	 */
-	private static void setConfigurationRootFile(String conf)
-			throws IOException {
-		// expect a conf/red5.xml or we fail!
-		File configFile = new File(conf, "red5.xml");
-		if (configFile.exists() && configFile.canRead()) {
-			System.setProperty("red5.conf_file", "red5.xml");
-		} else {
-			//fail
-			System.err.printf("Configuration file was not found, server cannot start. Location: %s\n", configFile.getCanonicalPath());
-			System.exit(2);
-		}
-	}
-
-	/**
 	 * Gets the configuration root
 	 * 
 	 * @param root
@@ -156,8 +130,10 @@ public class Bootstrap {
 			conf = root + "/conf";
 		}
 
-		//flip slashes
-		conf = conf.replaceAll("\\\\", "/");
+		//flip slashes only if windows based os
+		if (File.separatorChar != '/') {
+			conf = conf.replaceAll("\\\\", "/");
+		}
 		
 		//set conf sysprop
 		System.setProperty("red5.config_root", conf);
@@ -183,13 +159,15 @@ public class Bootstrap {
 		if (root == null || ".".equals(root)) {
 			root = System.getProperty("user.dir");
 			//System.out.printf("Current directory: %s\n", root);
-			//flip slashes
-			root = root.replaceAll("\\\\", "/");
-			//drop last slash if exists
-			if (root.charAt(root.length()-1) == '/') {
-				root = root.substring(0, root.length() - 1);
-			}
 		}
+		//if were on a windows based os flip the slashes
+		if (File.separatorChar != '/') {
+			root = root.replaceAll("\\\\", "/");
+		}
+		//drop last slash if exists
+		if (root.charAt(root.length()-1) == '/') {
+			root = root.substring(0, root.length() - 1);
+		}	
 		//set/reset property
 		System.setProperty("red5.root", root);
 		

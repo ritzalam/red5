@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-  <appender name="TEST" class="ch.qos.logback.core.FileAppender">
+
+	<contextName>selftest</contextName>
+	
+	<jmxConfigurator contextName="selftest" />
+
+  <appender name="SELFTEST" class="ch.qos.logback.core.FileAppender">
     <File>log/selftest.log</File>
     <Append>false</Append>
     <Encoding>UTF-8</Encoding>
@@ -13,7 +18,7 @@
     </layout>
   </appender>
   <root>
-    <appender-ref ref="TEST" />
+    <appender-ref ref="SELFTEST" />
   </root>	
   <logger name="org.red5">
     <level value="DEBUG" />
