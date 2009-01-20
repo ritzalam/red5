@@ -20,7 +20,6 @@ esac
 # Set up logging options
 LOGGING_OPTS="-Dlogback.ContextSelector=org.red5.logging.LoggingContextSelector -Dcatalina.useNaming=true"
 # Set up security options
-#SECURITY_OPTS="-Djava.security.debug=failure -Djava.security.manager -Djava.security.policy=${RED5_HOME}/conf/red5.policy"
 SECURITY_OPTS="-Djava.security.debug=failure"
 export JAVA_OPTS="$LOGGING_OPTS $SECURITY_OPTS $JAVA_OPTS"
 
@@ -47,4 +46,4 @@ fi
 
 # start Red5
 echo "Starting Red5"
-exec "$JAVA" $JYTHON -Dred5.root="${RED5_HOME}" $JAVA_OPTS -cp red5.jar:conf:lib/ejb3-persistence.jar $RED5_MAINCLASS $RED5_OPTS 1>log/stdout.log  2>log/stderr.log
+exec "$JAVA" "$JYTHON" -Dred5.root="$RED5_HOME" $JAVA_OPTS -cp "$RED5_HOME/red5.jar:$RED5_HOME/conf:$RED5_HOME/lib/ejb3-persistence.jar" "$RED5_MAINCLASS" $RED5_OPTS 1>log/stdout.log  2>log/stderr.log
