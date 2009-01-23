@@ -40,6 +40,21 @@
 	<!-- user overides for project properties -->
 	<property file="${user.home}/build.properties"/>
 
+        <!-- Hudson auto-builds and release properties -->
+        <!-- Hudson will set BUILD_TAG when running -->
+        <condition property="archive.version" value="${red5.version}-build-${env.BUILD_TAG}">
+          <isset property="env.BUILD_TAG"/>
+        </condition>
+        <!-- And if we're not in Hudson, just use the red5.version property -->
+        <condition property="archive.version" value="${red5.version}">
+          <not>
+            <isset property="archive.version"/>
+          </not>
+        </condition>
+        <property name="red5.zip" value="${red5.filename}-${archive.version}.zip"/>
+        <property name="red5.archive" value="${red5.filename}-${archive.version}.tar.gz"/>
+
+
 	<tstamp prefix="build">
 		<format property="TODAY" pattern="d-MMMM-yyyy" locale="en"/>
 	</tstamp>
@@ -595,28 +610,56 @@
 				<include name="**/src/**"/>
 			</fileset>
 		</copy>
-		<copy todir="${webapps.build.dir}/root/demos">
+                <copy todir="${webapps.build.dir}/root/demos"
+                  failonerror="false">
 			<fileset dir="../../../flash/trunk/deploy"/>
 		</copy>
 	</target>
 
-	<target name="dist-archive" depends="dist-installer"
+        <target name="dist-archive"
+                depends="dist-installer"
                 description="Create archive file for distribution">
 		<touch>
 			<fileset dir="${dist.dir}"/>
 		</touch>
-		<tar destfile="${red5.archive}" basedir="${dist.dir}" compression="gzip"
-		     longfile="gnu">
-			<tarfileset dir="${dist.dir}" mode="755">
-				<include name="${dist.dir}/red5.sh"/>
-				<include name="${dist.dir}/red5-shutdown.sh"/>
-				<include name="${dist.dir}/red5-debug.sh"/>
-			</tarfileset>
-			<tarfileset dir="${dist.dir}">
-				<include name="${dist.dir}/**"/>
-				<exclude name="${dist.dir}/*.sh"/>
-			</tarfileset>
-		</tar>
+                <!--
+                  We use exec instead of tar here because Ant's tar
+                  can't preserve file permissions.
+                -->
+                <!-- Create a directory with the right subname -->
+                <exec dir="." executable="rm" osfamily="unix">
+                  <arg line="-rf ${red5.filename}-${archive.version}"/>
+                </exec>
+                <exec dir="." executable="cp" osfamily="unix">
+                  <arg line="-rf ${dist.dir} ${red5.filename}-${archive.version}"/>
+                </exec>
+                <!-- tar that directory -->
+                <exec dir="." executable="tar" osfamily="unix">
+                  <!-- p: perserve permissions
+                       c: compress
+                       z: gzip
+                       v: list files processed
+                       f: archive -->
+                  <arg value="-pczvf"/>
+                  <arg value="${red5.archive}"/>
+                  <arg value="${red5.filename}-${archive.version}"/>
+                </exec>
+                <!-- and remove the tmp directory -->
+                <exec dir="." executable="rm" osfamily="unix">
+                  <arg line="-rf ${red5.filename}-${archive.version}"/>
+                </exec>
+                <!-- Now we create a zip file for our windows friends;
+                  file permissions won't be preserved and it'll unzip into
+                  the directory it's in, but that's standard windows fare -->
+                <zip destfile="${red5.zip}" basedir="${dist.dir}" level="9">
+                  <zipfileset prefix="${archive.version}/" dir="${dist.dir}">
+                    <include name="${dist.dir}/**"/>
+                    <exclude name="${dist.dir}/*.sh"/>
+                  </zipfileset>
+                  <zipfileset dir="${dist.dir}" prefix="${archive.version}/" filemode="755">
+                    <include name="${dist.dir}/*.sh"/>
+                  </zipfileset>
+                </zip>
 	</target>
 
 	<target name="dist-edge" depends="dist-origin">
