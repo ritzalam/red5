@@ -200,6 +200,10 @@
 		<delete includeemptydirs="true">
 			<fileset dir="${webapps.dir}/" includes="**/*.jar"/>
 		</delete>
+                <delete>
+                  <fileset dir="." includes="*.tar.gz"/>
+                  <fileset dir="." includes="*.zip"/>
+                </delete>
 	</target>
 
 	<target name="retrieve" unless="library.installed" description="Retrieves the libraries if needed">
