@@ -1,6 +1,8 @@
 #!/bin/bash
 
-if [ -z "$RED5_HOME" ]; then export RED5_HOME=.; fi
+if [ -z "$RED5_HOME" ]; then 
+  export RED5_HOME=`pwd`; 
+fi
 
 # JMX options
 export JAVA_OPTS="-Djavax.net.ssl.keyStore=$RED5_HOME/conf/keystore.jmx -Djavax.net.ssl.keyStorePassword=password"

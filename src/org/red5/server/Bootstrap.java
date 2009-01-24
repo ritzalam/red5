@@ -50,7 +50,7 @@ public class Bootstrap {
 	public static void main(String[] args) throws Exception {
 		//retrieve path elements from system properties
 		String root = getRed5Root();		
-		String conf = getConfigurationRoot(root);
+		getConfigurationRoot(root);
 		
 		//bootstrap dependencies and start red5
 		bootStrap();
