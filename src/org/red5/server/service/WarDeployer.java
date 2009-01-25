@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Paul Gregoire (mondain@gmail.com)
  */
-public class WarDeployer {
+public final class WarDeployer {
 	
 	private Logger log = LoggerFactory.getLogger(WarDeployer.class);
 

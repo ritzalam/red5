@@ -40,6 +40,7 @@ import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.LoaderMBean;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.Red5;
+import org.red5.server.api.service.ServiceUtils;
 import org.red5.server.jmx.JMXFactory;
 import org.red5.server.util.FileUtil;
 import org.slf4j.Logger;
@@ -51,7 +52,7 @@ import org.slf4j.Logger;
  * @author Paul Gregoire (mondain@gmail.com)
  * @author Dominick Accattato (daccattato@gmail.com)
  */
-public class Installer {
+public final class Installer {
 
 	private static Logger log = Red5LoggerFactory.getLogger(Installer.class);
 	
@@ -96,7 +97,6 @@ public class Installer {
 	 * @return
 	 */
 	public AsyncMessage getApplicationList() {
-		//ArrayCollection<String> list = new ArrayCollection<String>();
 		AcknowledgeMessage result = new AcknowledgeMessage();
 		
 		// create a singular HttpClient object
@@ -112,15 +112,21 @@ public class Installer {
 		method.setFollowRedirects(true);
 		// execute the method
 		try {
+			IConnection conn = Red5.getConnectionLocal();
 			int code = client.executeMethod(method);
 			log.debug("HTTP response code: {}", code);
 			String xml = method.getResponseBodyAsString();
-			log.debug("Response: {}", xml);
+			log.trace("Response: {}", xml);
             //prepare response for flex			
 			result.body = xml;
-			result.clientId = Red5.getConnectionLocal().getClient().getId();
+			result.clientId = conn.getClient().getId();
 			result.messageId = UUID.randomUUID().toString();
 			result.timestamp = System.currentTimeMillis();
+			//send the servers java version so the correct apps are installed
+			String javaVersion = System.getProperty("java.version");
+			if (!ServiceUtils.invokeOnConnection(conn, "onJavaVersion", new Object[] { javaVersion })) {
+				log.warn("Client call to onJavaVersion failed");
+			}							
 		} catch (HttpException he) {
 			log.error("Http error connecting to {}", applicationRepositoryUrl, he);
 		} catch (IOException ioe) {
