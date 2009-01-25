@@ -98,8 +98,6 @@ public class FileConsumer implements Constants, IPushableConsumer,
 	public FileConsumer(IScope scope, File file) {
 		this.scope = scope;
 		this.file = file;
-		offset = 0;
-		lastTimestamp = 0;
 		startTimestamp = -1;
 		// Get the duration from the existing file
 		long duration = FLVReader.getDuration(file);
@@ -146,14 +144,13 @@ public class FileConsumer implements Constants, IPushableConsumer,
 		}
 
 		ITag tag = new Tag();
-
 		tag.setDataType(msg.getDataType());
-		// if we're dealing with a FlexStreamSend IRTMPEvent, this avoids relative timestamp calculations
-		if (msg instanceof FlexStreamSend) {
-			tag.setTimestamp(timestamp);
-		} else {
-			tag.setTimestamp(timestamp + offset);
-		}
+
+		//Always add offset since it's needed for "append" publish mode
+		//It adds on disk flv file duration
+		//Search for "offset" in this class constructor
+		tag.setTimestamp(timestamp + offset);
+		
 		if (msg instanceof IStreamData) {
 			ByteBuffer data = ((IStreamData) msg).getData().asReadOnlyBuffer();
 			tag.setBodySize(data.limit());
@@ -177,7 +174,6 @@ public class FileConsumer implements Constants, IPushableConsumer,
      */
     public synchronized void onOOBControlMessage(IMessageComponent source, IPipe pipe,
 			OOBControlMessage oobCtrlMsg) {
-		// TODO Auto-generated method stub
 	}
 
     /**
@@ -221,12 +217,12 @@ public class FileConsumer implements Constants, IPushableConsumer,
 		File folder = file.getParentFile();
 		if (!folder.exists())
 			if (!folder.mkdirs())
-				throw new IOException("can't create parent folder");
+				throw new IOException("Could not create parent folder");
 		if (!file.isFile()) {
 			// Maybe the (previously existing) file has been deleted
 			file.createNewFile();
 		} else if (!file.canWrite()) {
-			throw new IOException("the file is read-only");
+			throw new IOException("The file is read-only");
 		}
 		IStreamableFileService service = factory.getService(file);
 		IStreamableFile flv = service.getStreamableFile(file);
@@ -235,7 +231,7 @@ public class FileConsumer implements Constants, IPushableConsumer,
 		} else if (mode.equals(IClientStream.MODE_APPEND)) {
 			writer = flv.getAppendWriter();
 		} else {
-			throw new IllegalStateException("illegal mode type: " + mode);
+			throw new IllegalStateException("Illegal mode type: " + mode);
 		}
 	}
 
