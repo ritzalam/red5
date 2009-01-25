@@ -43,6 +43,7 @@ import org.red5.server.messaging.IPushableConsumer;
 import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.messaging.PipeConnectionEvent;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
+import org.red5.server.net.rtmp.event.FlexStreamSend;
 import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.stream.IStreamData;
 import org.red5.server.stream.message.RTMPMessage;
@@ -132,17 +133,27 @@ public class FileConsumer implements Constants, IPushableConsumer,
 		if (startTimestamp == -1) {
 			startTimestamp = msg.getTimestamp();
 		}
-		int timestamp = msg.getTimestamp() - startTimestamp;
+		
+		// if we're dealing with a FlexStreamSend IRTMPEvent, this avoids relative timestamp calculations
+		int timestamp = msg.getTimestamp();
+		if (!(msg instanceof FlexStreamSend)){
+			timestamp -= startTimestamp;
+			lastTimestamp = timestamp;
+		}
 		if (timestamp < 0) {
 			log.warn("Skipping message with negative timestamp.");
 			return;
 		}
-		lastTimestamp = timestamp;
 
 		ITag tag = new Tag();
 
 		tag.setDataType(msg.getDataType());
-		tag.setTimestamp(timestamp + offset);
+		// if we're dealing with a FlexStreamSend IRTMPEvent, this avoids relative timestamp calculations
+		if (msg instanceof FlexStreamSend) {
+			tag.setTimestamp(timestamp);
+		} else {
+			tag.setTimestamp(timestamp + offset);
+		}
 		if (msg instanceof IStreamData) {
 			ByteBuffer data = ((IStreamData) msg).getData().asReadOnlyBuffer();
 			tag.setBodySize(data.limit());

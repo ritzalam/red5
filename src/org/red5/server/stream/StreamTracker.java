@@ -105,6 +105,12 @@ public class StreamTracker implements Constants {
 				break;
 
 			case TYPE_NOTIFY:
+			case TYPE_FLEX_STREAM_SEND:
+				// Fix for APPSERVER-329
+				// The timer should be set to absolute for
+				// org.red5.server.stream.consumer.ConnectionConsumer line 122:
+				// header.setTimerRelative(streamTracker.isRelative());
+				// TYPE_FLEX_STREAM_SEND is allowed to fall through to TYPE_INVOKE 
 			case TYPE_INVOKE:
 				if (firstNotify) {
 					tsOut = event.getTimestamp();

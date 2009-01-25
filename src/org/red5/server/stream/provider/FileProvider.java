@@ -46,6 +46,7 @@ import org.red5.server.net.rtmp.event.Invoke;
 import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.event.Unknown;
 import org.red5.server.net.rtmp.event.VideoData;
+import org.red5.server.net.rtmp.event.FlexStreamSend;
 import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.stream.ISeekableProvider;
 import org.red5.server.stream.IStreamTypeAwareProvider;
@@ -144,6 +145,9 @@ public class FileProvider implements IPassive, ISeekableProvider,
 				break;
 			case Constants.TYPE_NOTIFY:
 				msg = new Notify(tag.getBody());
+				break;
+			case Constants.TYPE_FLEX_STREAM_SEND:
+				msg = new FlexStreamSend(tag.getBody());
 				break;
 			default:
 				log.warn("Unexpected type? {}", tag.getDataType());
