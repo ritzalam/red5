@@ -163,6 +163,7 @@ public class AMFGatewayServlet extends HttpServlet {
 	protected void serviceAMF(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
 		log.debug("Servicing AMF");
+		IRemotingConnection conn = null;
 		try {
 			RemotingPacket packet = decodeRequest(req);
 			if (packet == null) {
@@ -173,10 +174,10 @@ public class AMFGatewayServlet extends HttpServlet {
 			final IGlobalScope global = getGlobalScope(req);
 			final IContext context = global.getContext();
 			final IScope scope = context.resolveScope(global, packet.getScopePath());
-			IRemotingConnection conn = new RemotingConnection(req, scope, packet);
+			conn = new RemotingConnection(req, scope, packet);
 			// Make sure the connection object isn't garbage collected
 			req.setAttribute(CONNECTION, conn);
-			
+			// set thread local reference
 			Red5.setConnectionLocal(conn);
 			handleRemotingPacket(req, context, scope, packet);
 			resp.setStatus(HttpServletResponse.SC_OK);
@@ -188,6 +189,10 @@ public class AMFGatewayServlet extends HttpServlet {
 		} finally {
 			//ensure the conn attr gets removed
 			req.removeAttribute(CONNECTION);
+			//unregister the remote connection client
+			if (conn != null) {
+				((RemotingConnection) conn).cleanup();
+			}
 		}
 	}
 

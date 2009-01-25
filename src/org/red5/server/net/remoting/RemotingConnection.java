@@ -52,6 +52,7 @@ import org.red5.server.net.servlet.ServletUtils;
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
+ * @author Paul Gregoire (mondain@gmail.com)
  */
 public class RemotingConnection implements IRemotingConnection {
 
@@ -491,6 +492,27 @@ public class RemotingConnection implements IRemotingConnection {
 	public Collection<IRemotingHeader> getHeaders() {
 		return headers;
 	}
+
+	/** {@inheritDoc} */
+	public long getClientBytesRead() {
+		// This is not supported for Remoting connections
+		return 0;
+	}	
+	
+	/**
+	 * Cleans up the remoting connection client from the HttpSession and client
+	 * registry.
+	 * This should also fix APPSERVER-328 
+	 */
+	public void cleanup() {
+		if (session != null) {
+			RemotingClient rc = (RemotingClient) session.getAttribute(CLIENT);
+			session.removeAttribute(CLIENT);
+			if (rc != null) {
+				rc.unregister(this);
+			}
+		}		
+	}
 	
 	/** Internal class for clients connected through Remoting. */
 	private class RemotingClient extends Client {
@@ -509,12 +531,11 @@ public class RemotingConnection implements IRemotingConnection {
 			super.register(conn);
 		}
 
-	}
-
-	/** {@inheritDoc} */
-	public long getClientBytesRead() {
-		// This is not supported for Remoting connections
-		return 0;
+		@Override
+		protected void unregister(IConnection conn) {
+			super.unregister(conn);
+		}	
+		
 	}
 	
 }
