@@ -137,7 +137,7 @@ public final class WarDeployer {
 		 */
 		public boolean accept(File dir, String name) {
 			File f = new File(dir, name);
-			log.debug("Filtering: {} name: {}", dir.getName(), name);
+			log.trace("Filtering: {} name: {}", dir.getName(), name);
 			// filter out all but war files
 			boolean result = f.getName().endsWith("war");
 			//nullify
@@ -149,7 +149,7 @@ public final class WarDeployer {
 	private class DeployJob implements IScheduledJob {
 
 		public void execute(ISchedulingService service) {
-		    log.debug("Executing job");
+		    log.trace("Executing job");
 			if (deploying) {
 				return;
 			}
@@ -197,7 +197,7 @@ public final class WarDeployer {
 					} else {
 						log.warn("Application destination is not a directory");
 					}
-					log.warn("Application {} already installed, please un-install before attempting another install", application);			
+					log.info("Application {} already installed, please un-install before attempting another install", application);			
 				} else {			
 					log.debug("Unwaring and starting...");
 	    			//un-archive it to app dir

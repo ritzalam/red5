@@ -172,7 +172,7 @@ public final class Installer {
 				log.warn("Application destination is not a directory");
 			}
 
-			org.red5.server.api.service.ServiceUtils.invokeOnConnection(conn, "onAlert", new Object[]{String.format("Application %s already installed, please un-install before attempting another install", application)});			
+			ServiceUtils.invokeOnConnection(conn, "onAlert", new Object[]{String.format("Application %s already installed, please un-install before attempting another install", application)});			
 		} else {
 			//use the system temp directory for moving files around
 			String srcDir = System.getProperty("java.io.tmpdir");
@@ -259,7 +259,7 @@ public final class Installer {
     			}	
 			}			
 
-			org.red5.server.api.service.ServiceUtils.invokeOnConnection(conn, "onAlert", new Object[]{String.format("Application %s was %s", application, (result ? "installed" : "not installed"))});
+			ServiceUtils.invokeOnConnection(conn, "onAlert", new Object[]{String.format("Application %s was %s", application, (result ? "installed" : "not installed"))});
 		
 		}
 		appDir = null;
@@ -274,7 +274,7 @@ public final class Installer {
 	 * @return
 	 */
 	public boolean uninstall(String applicationName) {
-		org.red5.server.api.service.ServiceUtils.invokeOnConnection(Red5.getConnectionLocal(), "onAlert", new Object[]{"Uninstall function not available"});
+		ServiceUtils.invokeOnConnection(Red5.getConnectionLocal(), "onAlert", new Object[]{"Uninstall function not available"});
 
 		return false;
 	}	
