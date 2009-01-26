@@ -547,7 +547,7 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
 			log.debug("Writing result: {}", pendingCall.getResult());
 			serializer.serialize(output, pendingCall.getResult());
 		} else {
-				log.debug("Writing params");
+			log.debug("Writing params");
 			final Object[] args = invoke.getCall().getArguments();
 			if (args != null) {
 				for (Object element : args) {
@@ -555,6 +555,12 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
 				}
 			}
 		}
+		
+		if (invoke.getData() != null) {
+			out.setAutoExpand(true);
+			out.put(invoke.getData());
+		}		
+		
 	}
 
 	/** {@inheritDoc} */
