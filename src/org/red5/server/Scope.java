@@ -315,8 +315,6 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 */
 	public boolean connect(IConnection conn, Object[] params) {
 		log.debug("Connect: {}", conn);
-//		logger.debug("Has handler: {}", (handler != null));
-//		logger.debug("Has parent: {}", (parent != null));		
 		if (hasParent() && !parent.connect(conn, params)) {
 			return false;
 		}
@@ -348,8 +346,10 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 		clientStats.increment();
 		addEventListener(conn);
 		connectionStats.increment();
-
-		if (this.equals(conn.getScope())) {
+		
+		IScope connScope = conn.getScope();
+		log.trace("Connection scope: {}", connScope);
+		if (this.equals(connScope)) {
 			final IServer server = getServer();
 			if (server instanceof Server) {
 				((Server) server).notifyConnected(conn);

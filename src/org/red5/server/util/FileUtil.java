@@ -329,7 +329,17 @@ public class FileUtil {
 	public static void unzip(String compressedFileName, String destinationDir) {
 		
 		//strip everything except the applications name
-		String dirName = compressedFileName.substring(0, compressedFileName.indexOf('-'));
+		String dirName = null;
+		
+		int dashIndex = compressedFileName.indexOf('-');
+		if (dashIndex != -1) {
+			//strip everything except the applications name
+			dirName = compressedFileName.substring(0, dashIndex);
+		} else {
+			//grab every char up to the last '.'
+			dirName = compressedFileName.substring(0, compressedFileName.lastIndexOf('.'));
+		}			
+		
 		log.debug("Directory: {}", dirName);
 		//String tmpDir = System.getProperty("java.io.tmpdir");
 		File zipDir = new File(compressedFileName);
@@ -359,11 +369,11 @@ public class FileUtil {
 				copy(in, fout);
 				in.close();
 				fout.close();
-			}
+			} 
 			e = null;
 		} catch (IOException e) {
 			log.debug("Error unzipping", e);
-			e.printStackTrace();
+			//e.printStackTrace();
 		}
 	}
 	

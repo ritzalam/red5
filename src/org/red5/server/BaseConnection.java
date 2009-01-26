@@ -358,7 +358,6 @@ public abstract class BaseConnection extends AttributeStore implements
 	 * @param event       Event
 	 */
 	public void notifyEvent(IEvent event) {
-		// TODO Auto-generated method stub
 	}
 
 	/**
@@ -366,7 +365,6 @@ public abstract class BaseConnection extends AttributeStore implements
 	 * @param event       Event
 	 */
 	public void dispatchEvent(IEvent event) {
-
 	}
 
 	/**
