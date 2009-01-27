@@ -345,16 +345,22 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		// we must store the reference before we deserialize any items in it to ensure
 		// that reference IDs are correct
 		int reference = storeReference(mixedResult);
+		Boolean normal_array = true;
 		while (hasMoreProperties()) {
 			String key = getString(buf);
 			log.debug("key: {}", key);
+			try {
+				Integer.parseInt(key);
+			} catch(NumberFormatException e) {
+				log.debug("key {} is causing non normal array", key);
+				normal_array = false;
+			}
 			Object item = deserializer.deserialize(this, Object.class);
 			log.debug("item: {}", item);
 			mixedResult.put(key, item);
 		}
-
-		Object length = mixedResult.get("length");
-		if (mixedResult.size() <= maxNumber+1 && length instanceof Integer && maxNumber == (Integer) length) {
+		
+		if (mixedResult.size() <= maxNumber+1 && normal_array) {
 			// MixedArray actually is a regular array
 			log.debug("mixed array is a regular array");
 			final List<Object> listResult = new ArrayList<Object>(maxNumber);
