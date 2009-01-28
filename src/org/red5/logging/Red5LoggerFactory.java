@@ -84,11 +84,17 @@ public class Red5LoggerFactory {
 		ContextSelector selector = StaticLoggerBinder.getSingleton()
 				.getContextSelector();
 		//get the context for the given context name or default if null
-		LoggerContext ctx = contextName == null ? selector.getLoggerContext() : selector.getLoggerContext(contextName);
+		LoggerContext ctx = null;
+		if (contextName != null && contextName.length() > 0)
+		{
+			ctx = selector.getLoggerContext(contextName);
+		}
+		// and if we get here, fall back to the default context
+		ctx = selector.getLoggerContext(); 
 		//debug
 		//StatusPrinter.print(ctx);
 		
-		return ctx.getLogger(clazz);
+		return ctx != null ? ctx.getLogger(clazz) : null;
 	}
 
 }
