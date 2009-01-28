@@ -90,7 +90,8 @@ public class Red5LoggerFactory {
 			ctx = selector.getLoggerContext(contextName);
 		}
 		// and if we get here, fall back to the default context
-		ctx = selector.getLoggerContext(); 
+		if (ctx == null)
+			ctx = selector.getLoggerContext(); 
 		//debug
 		//StatusPrinter.print(ctx);
 		
