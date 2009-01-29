@@ -1226,12 +1226,10 @@ public abstract class RTMPConnection extends BaseConnection implements
 					lastBytesReadTime = System.currentTimeMillis();
 				return;
 			}
-
 			// Client didn't send response to ping command 
 			// and didn't sent data for too long, disconnect
 			if (lastPongReceived.get() > 0
 					&& (lastPingSent.get() - lastPongReceived.get() > maxInactivity)
-					&& !(System.currentTimeMillis() - lastPingSent.get() < maxInactivity)
 					&& !(System.currentTimeMillis() - lastBytesReadTime < maxInactivity)) {
 
 				getWriteLock().lock();
