@@ -46,8 +46,7 @@ public interface IPendingServiceCall extends IServiceCall {
 	 * Registers callback object usually represented as an anonymous class
 	 * instance that implements IPendingServiceCallback interface.
 	 *  
-	 * @param callback
-	 *            Callback object
+	 * @param callback Callback object
 	 */
 	public void registerCallback(IPendingServiceCallback callback);
 
@@ -55,8 +54,7 @@ public interface IPendingServiceCall extends IServiceCall {
 	 * Unregisters callback object usually represented as an anonymous class
 	 * instance that implements IPendingServiceCallback interface.
 	 *  
-	 * @param callback
-	 *            Callback object
+	 * @param callback Callback object
 	 */
 	public void unregisterCallback(IPendingServiceCallback callback);
 

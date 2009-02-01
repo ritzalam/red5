@@ -94,7 +94,7 @@ public class CacheImpl implements ICacheStore, ApplicationContextAware {
 	/**
 	 * Returns the instance of this class.
 	 * 
-	 * @return
+	 * @return instance of this class
 	 */
 	public static CacheImpl getInstance() {
 		return instance;

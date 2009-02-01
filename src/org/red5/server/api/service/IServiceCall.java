@@ -69,16 +69,14 @@ public interface IServiceCall {
 	/**
 	 * Sets status
 	 * 
-	 * @param status
-	 *            Status as byte
+	 * @param status Status as byte
 	 */
 	public abstract void setStatus(byte status);
 
 	/**
 	 * Sets exception
 	 * 
-	 * @param exception
-	 *            Call exception
+	 * @param exception Call exception
 	 */
 	public abstract void setException(Exception exception);
 

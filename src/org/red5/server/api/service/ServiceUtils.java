@@ -44,10 +44,8 @@ public class ServiceUtils {
 	/**
 	 * Invoke a method on the current connection.
 	 * 
-	 * @param method
-	 * 			name of the method to invoke
-	 * @param params
-	 * 			parameters to pass to the method
+	 * @param method name of the method to invoke
+	 * @param params parameters to pass to the method
 	 * @return <code>true</code> if the connection supports method calls,
 	 *         otherwise <code>false</code>
 	 */
@@ -58,12 +56,9 @@ public class ServiceUtils {
 	/**
 	 * Invoke a method on the current connection and handle result.
 	 * 
-	 * @param method
-	 * 			name of the method to invoke
-	 * @param params
-	 * 			parameters to pass to the method
-	 * @param callback
-	 * 			object to notify when result is received
+	 * @param method name of the method to invoke
+	 * @param params parameters to pass to the method
+	 * @param callback object to notify when result is received
 	 * @return <code>true</code> if the connection supports method calls,
 	 *         otherwise <code>false</code>
 	 */
@@ -82,12 +77,9 @@ public class ServiceUtils {
 	/**
 	 * Invoke a method on a given connection.
 	 * 
-	 * @param conn
-	 * 			connection to invoke method on
-	 * @param method
-	 * 			name of the method to invoke
-	 * @param params
-	 * 			parameters to pass to the method
+	 * @param conn connection to invoke method on
+	 * @param method name of the method to invoke
+	 * @param params parameters to pass to the method
 	 * @return <code>true</code> if the connection supports method calls,
 	 *         otherwise <code>false</code>
 	 */
@@ -99,14 +91,10 @@ public class ServiceUtils {
 	/**
 	 * Invoke a method on a given connection and handle result.
 	 * 
-	 * @param conn
-	 * 			connection to invoke method on
-	 * @param method
-	 * 			name of the method to invoke
-	 * @param params
-	 * 			parameters to pass to the method
-	 * @param callback
-	 * 			object to notify when result is received
+	 * @param conn connection to invoke method on
+	 * @param method name of the method to invoke
+	 * @param params parameters to pass to the method
+	 * @param callback object to notify when result is received
 	 * @return <code>true</code> if the connection supports method calls,
 	 *         otherwise <code>false</code>
 	 */
@@ -128,10 +116,8 @@ public class ServiceUtils {
 	/**
 	 * Invoke a method on all connections to the current scope.
 	 * 
-	 * @param method
-	 * 			name of the method to invoke
-	 * @param params
-	 * 			parameters to pass to the method
+	 * @param method name of the method to invoke
+	 * @param params parameters to pass to the method
 	 */
 	public static void invokeOnAllConnections(String method, Object[] params) {
 		invokeOnAllConnections(method, params, null);
@@ -141,12 +127,9 @@ public class ServiceUtils {
 	 * Invoke a method on all connections to the current scope and handle
 	 * result.
 	 * 
-	 * @param method
-	 * 			name of the method to invoke
-	 * @param params
-	 * 			parameters to pass to the method
-	 * @param callback
-	 * 			object to notify when result is received
+	 * @param method name of the method to invoke
+	 * @param params parameters to pass to the method
+	 * @param callback object to notify when result is received
 	 */
 	public static void invokeOnAllConnections(String method, Object[] params,
 			IPendingServiceCallback callback) {
@@ -164,12 +147,9 @@ public class ServiceUtils {
 	/**
 	 * Invoke a method on all connections to a given scope.
 	 * 
-	 * @param scope
-	 * 			scope to get connections for
-	 * @param method
-	 * 			name of the method to invoke
-	 * @param params
-	 * 			parameters to pass to the method
+	 * @param scope scope to get connections for
+	 * @param method name of the method to invoke
+	 * @param params parameters to pass to the method
 	 */
 	public static void invokeOnAllConnections(IScope scope, String method,
 			Object[] params) {
@@ -179,14 +159,10 @@ public class ServiceUtils {
 	/**
 	 * Invoke a method on all connections to a given scope and handle result.
 	 * 
-	 * @param scope
-	 * 			scope to get connections for
-	 * @param method
-	 * 			name of the method to invoke
-	 * @param params
-	 * 			parameters to pass to the method
-	 * @param callback
-	 * 			object to notify when result is received
+	 * @param scope scope to get connections for
+	 * @param method name of the method to invoke
+	 * @param params parameters to pass to the method
+	 * @param callback object to notify when result is received
 	 */
 	public static void invokeOnAllConnections(IScope scope, String method,
 			Object[] params, IPendingServiceCallback callback) {
@@ -196,14 +172,10 @@ public class ServiceUtils {
 	/**
 	 * Invoke a method on all connections of a client to a given scope.
 	 *  
-	 * @param client
-	 * 			client to get connections for
-	 * @param scope
-	 * 			scope to get connections of the client from
-	 * @param method
-	 * 			name of the method to invoke
-	 * @param params
-	 * 			parameters to pass to the method
+	 * @param client client to get connections for
+	 * @param scope scope to get connections of the client from
+	 * @param method name of the method to invoke
+	 * @param params parameters to pass to the method
 	 */
 	public static void invokeOnClient(IClient client, IScope scope,
 			String method, Object[] params) {
@@ -214,16 +186,11 @@ public class ServiceUtils {
 	 * Invoke a method on all connections of a client to a given scope and
 	 * handle result.
 	 * 
-	 * @param client
-	 * 			client to get connections for
-	 * @param scope
-	 * 			scope to get connections of the client from
-	 * @param method
-	 * 			name of the method to invoke
-	 * @param params
-	 * 			parameters to pass to the method
-	 * @param callback
-	 * 			object to notify when result is received
+	 * @param client client to get connections for
+	 * @param scope scope to get connections of the client from
+	 * @param method name of the method to invoke
+	 * @param params parameters to pass to the method
+	 * @param callback object to notify when result is received
 	 */
 	public static void invokeOnClient(IClient client, IScope scope,
 			String method, Object[] params, IPendingServiceCallback callback) {
@@ -261,10 +228,8 @@ public class ServiceUtils {
 	/**
 	 * Notify a method on the current connection.
 	 * 
-	 * @param method
-	 * 			name of the method to notify
-	 * @param params
-	 * 			parameters to pass to the method
+	 * @param method name of the method to notify
+	 * @param params parameters to pass to the method
 	 * @return <code>true</code> if the connection supports method calls,
 	 *         otherwise <code>false</code>
 	 */
@@ -282,12 +247,9 @@ public class ServiceUtils {
 	/**
 	 * Notify a method on a given connection.
 	 * 
-	 * @param conn
-	 * 			connection to notify method on
-	 * @param method
-	 * 			name of the method to notify
-	 * @param params
-	 * 			parameters to pass to the method
+	 * @param conn connection to notify method on
+	 * @param method name of the method to notify
+	 * @param params parameters to pass to the method
 	 * @return <code>true</code> if the connection supports method calls,
 	 *         otherwise <code>false</code>
 	 */
@@ -304,10 +266,8 @@ public class ServiceUtils {
 	/**
 	 * Notify a method on all connections to the current scope.
 	 * 
-	 * @param method
-	 * 			name of the method to notify
-	 * @param params
-	 * 			parameters to pass to the method
+	 * @param method name of the method to notify
+	 * @param params parameters to pass to the method
 	 */
 	public static void notifyOnAllConnections(String method, Object[] params) {
 		IConnection conn = Red5.getConnectionLocal();
@@ -324,12 +284,9 @@ public class ServiceUtils {
 	/**
 	 * Notify a method on all connections to a given scope.
 	 * 
-	 * @param scope
-	 * 			scope to get connections for
-	 * @param method
-	 * 			name of the method to notify
-	 * @param params
-	 * 			parameters to pass to the method
+	 * @param scope scope to get connections for
+	 * @param method name of the method to notify
+	 * @param params parameters to pass to the method
 	 */
 	public static void notifyOnAllConnections(IScope scope, String method,
 			Object[] params) {
@@ -339,14 +296,10 @@ public class ServiceUtils {
 	/**
 	 * Notify a method on all connections of a client to a given scope.
 	 *  
-	 * @param client
-	 * 			client to get connections for
-	 * @param scope
-	 * 			scope to get connections of the client from
-	 * @param method
-	 * 			name of the method to notify
-	 * @param params
-	 * 			parameters to pass to the method
+	 * @param client client to get connections for
+	 * @param scope scope to get connections of the client from
+	 * @param method name of the method to notify
+	 * @param params parameters to pass to the method
 	 */
 	public static void notifyOnClient(IClient client, IScope scope,
 			String method, Object[] params) {

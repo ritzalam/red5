@@ -94,8 +94,8 @@ public class JMXAgent implements NotificationListener {
 	/**
 	 * Convenience to remove packages etc from a class name.
 	 * 
-	 * @param className
-	 * @return
+	 * @param className class name to trim
+	 * @return trimmed class name
 	 */
 	public static String trimClassName(String className) {
 		if (StringUtils.isNotBlank(className)) {		
@@ -205,8 +205,8 @@ public class JMXAgent implements NotificationListener {
 
 	/**
 	 * Unregisters an mbean instance. If the instance is not found or if a failure occurs, false will be returned.
-	 * @param oName
-	 * @return
+	 * @param oName bean instance
+	 * @return true if success; false if instance not found or failure
 	 */
 	public static boolean unregisterMBean(ObjectName oName) {
 		boolean unregistered = false;
@@ -231,10 +231,10 @@ public class JMXAgent implements NotificationListener {
 	/**
 	 * Updates a named attribute of a registered mbean.
 	 *
-	 * @param oName
-	 * @param key
-	 * @param value
-	 * @return
+	 * @param oName object name
+	 * @param key key
+	 * @param value new value
+	 * @return true if success; false othwerwise
 	 */
 	public static boolean updateMBeanAttribute(ObjectName oName, String key,
 			int value) {
@@ -257,10 +257,10 @@ public class JMXAgent implements NotificationListener {
 	/**
 	 * Updates a named attribute of a registered mbean.
 	 *
-	 * @param oName
-	 * @param key
-	 * @param value
-	 * @return
+	 * @param oName object name
+	 * @param key key
+	 * @param value new value
+	 * @return true if success; false otherwise
 	 */
 	public static boolean updateMBeanAttribute(ObjectName oName, String key,
 			String value) {

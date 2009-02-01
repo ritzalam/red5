@@ -56,10 +56,8 @@ public class Serializer {
 	/**
 	 * Serializes output to a core data type object
 	 * 
-	 * @param out
-	 *            Output writer
-	 * @param any
-	 *            Object to serialize
+	 * @param out Output writer
+	 * @param any Object to serialize
 	 */
 	public void serialize(Output out, Object any) {
 		serialize(out, null, null, any);
@@ -68,12 +66,10 @@ public class Serializer {
 	/**
 	 * Serializes output to a core data type object
 	 * 
-	 * @param out
-	 *            Output writer
-	 * @param field
-	 *            The field to serialize
-	 * @param any
-	 *            Object to serialize
+	 * @param out Output writer
+	 * @param field The field to serialize
+	 * @param getter The getter method if not a field
+	 * @param any Object to serialize
 	 */
 	public void serialize(Output out, Field field, Method getter, Object any) {
 		log.debug("serialize");
@@ -127,10 +123,8 @@ public class Serializer {
 	/**
 	 * Writes a complex type object out
 	 * 
-	 * @param out
-	 *            Output writer
-	 * @param complex
-	 *            Complex datatype object
+	 * @param out Output writer
+	 * @param complex Complex datatype object
 	 * @return boolean true if object was successfully serialized, false
 	 *         otherwise
 	 */
@@ -311,8 +305,7 @@ public class Serializer {
 	 * Pre processes an object TODO // must be implemented
 	 * 
 	 * @return Prerocessed object
-	 * @param any
-	 *            Object to preprocess
+	 * @param any Object to preprocess
 	 */
 	public Object preProcessExtension(Object any) {
 		// Does nothing right now but will later
@@ -322,10 +315,8 @@ public class Serializer {
 	/**
 	 * Writes a custom data to the output
 	 * 
-	 * @param out
-	 *            Output writer
-	 * @param obj
-	 *            Custom data
+	 * @param out Output writer
+	 * @param obj Custom data
 	 * @return <code>true</code> if the object has been written, otherwise
 	 *         <code>false</code>
 	 */
@@ -342,10 +333,9 @@ public class Serializer {
 	/**
 	 * Checks whether the field should be serialized or not
 	 * 
-	 * @param keyName
-	 * @param field
-	 *            The field to be serialized
-	 * @param getter
+	 * @param keyName key name
+	 * @param field The field to be serialized
+	 * @param getter Getter method for field
 	 * @return <code>true</code> if the field should be serialized, otherwise
 	 *         <code>false</code>
 	 */

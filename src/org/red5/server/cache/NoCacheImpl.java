@@ -54,7 +54,7 @@ public class NoCacheImpl implements ICacheStore, ApplicationContextAware {
 	/**
 	 * Returns the instance of this class.
 	 * 
-	 * @return
+	 * @return class instance
 	 */
 	public static NoCacheImpl getInstance() {
 		if (instance == null) {

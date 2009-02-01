@@ -163,7 +163,7 @@ public class PersistableAttributeStore extends AttributeStore implements
      * Serializes byte buffer output, storing them to attributes
      *
      * @param output               Output object
-     * @throws IOException
+     * @throws IOException if error
      */
     public void serialize(Output output) throws IOException {
 		Serializer serializer = new Serializer();

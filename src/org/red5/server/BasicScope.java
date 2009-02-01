@@ -117,7 +117,7 @@ public abstract class BasicScope extends PersistableAttributeStore implements
 	 * Sets the amount of time to keep the scope available after the
 	 * last disconnect.
 	 * 
-	 * @param keepDelay
+	 * @param keepDelay delay
 	 */
 	public void setKeepDelay(int keepDelay) {
 		this.keepDelay = keepDelay;

@@ -386,8 +386,7 @@ public class NoSyncServerStream extends AbstractStream implements
 	 * 
 	 * Pipe events handling is the most common way of working with pipes.
 	 * 
-	 * @param event
-	 *                Pipe connection event context
+	 * @param event Pipe connection event context
 	 */
 	public void onPipeConnectionEvent(PipeConnectionEvent event) {
 		switch (event.getType()) {

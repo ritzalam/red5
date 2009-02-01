@@ -39,10 +39,10 @@ public class ServletUtils {
 	/**
 	 * Copies information from the input stream to the output stream using a
 	 * default buffer size of 2048 bytes.
+	 * @param input input
+	 * @param output output
 	 * 
-	 * @throws java.io.IOException
-     * @param input
-     * @param output
+	 * @throws java.io.IOException on error
 	 */
 	public static void copy(InputStream input, OutputStream output)
 			throws IOException {
@@ -53,10 +53,10 @@ public class ServletUtils {
 	 * Copies information from the input stream to the output stream using the
 	 * specified buffer size
 	 * 
-	 * @throws java.io.IOException
-     * @param input
-     * @param bufferSize
-     * @param output
+     * @param input input
+     * @param bufferSize buffer size
+     * @param output output 
+	 * @throws java.io.IOException on error
 	 */
 	public static void copy(InputStream input, OutputStream output,
 			int bufferSize) throws IOException {
@@ -73,9 +73,9 @@ public class ServletUtils {
 	 * Copies information between specified streams and then closes both of the
 	 * streams.
 	 * 
-	 * @throws java.io.IOException
-     * @param output
-     * @param input
+     * @param output output
+     * @param input input
+	 * @throws java.io.IOException on error
 	 */
 	public static void copyThenClose(InputStream input, OutputStream output)
 			throws IOException {
@@ -85,11 +85,10 @@ public class ServletUtils {
 	}
 
 	/**
-	 * @returns a byte[] containing the information contained in the specified
+     * @param input input stream
+	 * @return a byte[] containing the information contained in the specified
 	 *          InputStream.
-	 * @throws java.io.IOException
-     * @return
-     * @param input
+	 * @throws java.io.IOException on error
 	 */
 	public static byte[] getBytes(InputStream input) throws IOException {
 		ByteArrayOutputStream result = new ByteArrayOutputStream();
@@ -101,8 +100,8 @@ public class ServletUtils {
 	/**
 	 * Return all remote addresses that were involved in the passed request.
 	 * 
-	 * @param request
-	 * @return
+	 * @param request request
+	 * @return remote addresses
 	 */
 	public static List<String> getRemoteAddresses(HttpServletRequest request) {
 		List<String> addresses = new ArrayList<String>();

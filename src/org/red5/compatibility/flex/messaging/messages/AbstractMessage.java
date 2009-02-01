@@ -83,7 +83,7 @@ public class AbstractMessage implements Serializable {
 	/**
 	 * Return string representation of the message.
 	 * 
-	 * @return
+	 * @return value
 	 */
 	public String toString() {
 		StringBuilder result = new StringBuilder();

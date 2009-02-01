@@ -65,8 +65,7 @@ public class SharedObjectService implements ISharedObjectService {
 	/**
 	 * Setter for persistence class name.
 	 * 
-	 * @param name
-	 *            Setter for persistence class name
+	 * @param name Setter for persistence class name
 	 */
 	public void setPersistenceClassName(String name) {
 		persistenceClassName = name;
@@ -75,10 +74,8 @@ public class SharedObjectService implements ISharedObjectService {
 	/**
 	 * Return scope store
 	 * 
-	 * @param scope
-	 *            Scope
-	 * @param persistent
-	 *            Persistent store or not?
+	 * @param scope Scope
+	 * @param persistent Persistent store or not?
 	 * @return Scope's store
 	 */
 	private IPersistenceStore getStore(IScope scope, boolean persistent) {

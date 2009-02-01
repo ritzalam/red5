@@ -53,8 +53,7 @@ public class Worker implements Runnable {
 	private Object result;
 
 	/**
-	 * @param result
-	 *            The result to set.
+	 * @param result The result to set.
 	 */
 	public void setResult(Object result) {
 		this.result = result;
@@ -75,8 +74,7 @@ public class Worker implements Runnable {
 	}
 
 	/**
-	 * @param className
-	 *            The className to set.
+	 * @param className The className to set.
 	 */
 	public void setClassName(String className) {
 		this.className = className;
@@ -90,8 +88,7 @@ public class Worker implements Runnable {
 	}
 
 	/**
-	 * @param methodName
-	 *            The methodName to set.
+	 * @param methodName The methodName to set.
 	 */
 	public void setMethodName(String methodName) {
 		this.methodName = methodName;
@@ -105,8 +102,7 @@ public class Worker implements Runnable {
 	}
 
 	/**
-	 * @param methodParams
-	 *            The methodParams to set.
+	 * @param methodParams The methodParams to set.
 	 */
 	public void setMethodParams(Object[] methodParams) {
 		this.methodParams = methodParams;
@@ -120,8 +116,7 @@ public class Worker implements Runnable {
 	}
 
 	/**
-	 * @param paramTypes
-	 *            The paramTypes to set.
+	 * @param paramTypes The paramTypes to set.
 	 */
 	public void setParamTypes(Class<?>[] paramTypes) {
 		this.paramTypes = paramTypes;
@@ -130,11 +125,11 @@ public class Worker implements Runnable {
 	/**
 	 * execute
 	 * 
-	 * @param clsName
-	 * @param methName
-	 * @param params
-	 * @param paramTypes
-	 * @param paramTypes
+	 * @param clsName class name
+	 * @param methName method name
+	 * @param params parameter
+	 * @param paramTypes parameter types
+	 * @param synObj ignored
 	 */
 	public synchronized void execute(String clsName, String methName,
 			Object[] params, Class<?>[] paramTypes, Object synObj) {

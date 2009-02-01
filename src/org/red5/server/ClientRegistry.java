@@ -163,7 +163,7 @@ public class ClientRegistry implements IClientRegistry, ClientRegistryMBean {
 	 *
 	 * @param id          Client id
 	 * @return            Client object associated with given id
-	 * @throws ClientNotFoundException
+	 * @throws ClientNotFoundException if we can't find client
 	 */
 	public IClient lookupClient(String id) throws ClientNotFoundException {
 		return getClient(id);
@@ -174,8 +174,8 @@ public class ClientRegistry implements IClientRegistry, ClientRegistryMBean {
 	 *
 	 * @param params                         Client params
 	 * @return                               Client object
-	 * @throws ClientNotFoundException
-	 * @throws ClientRejectedException
+	 * @throws ClientNotFoundException if client not found
+	 * @throws ClientRejectedException if client rejected
 	 */
 	public IClient newClient(Object[] params) throws ClientNotFoundException,
 			ClientRejectedException {

@@ -33,6 +33,7 @@ import org.red5.io.amf3.IExternalizable;
  * @see <a href="http://livedocs.adobe.com/flex/2/langref/mx/collections/ArrayCollection.html">Adobe Livedocs (external)</a>
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
+ * @param <T> type of collection
  */
 public class ArrayCollection<T> extends ArrayList<T> implements Collection<T>, IExternalizable {
 

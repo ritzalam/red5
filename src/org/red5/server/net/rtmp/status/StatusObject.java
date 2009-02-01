@@ -152,7 +152,7 @@ implements Serializable, ICustomSerializable, Externalizable {
     /**
      * Generate Status object that can be returned through a RTMP channel.
      * 
-     * @return
+     * @return status
      */ 
     public Status asStatus() {
     	return new Status(getCode(), getLevel(), getDescription());

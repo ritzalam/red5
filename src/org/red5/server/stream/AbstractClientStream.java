@@ -113,7 +113,7 @@ public abstract class AbstractClientStream extends AbstractStream implements
 	/**
 	 * Get duration in ms as requested by the client.
 	 *
-	 * @return
+	 * @return value
 	 */
 	public int getClientBufferDuration() {
 		return clientBufferDuration;

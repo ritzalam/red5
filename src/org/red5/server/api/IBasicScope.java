@@ -82,7 +82,7 @@ public interface IBasicScope extends ICoreObject, IEventObservable,
 	 * Sets the amount of time to keep the scope available after the
 	 * last disconnect.
 	 * 
-	 * @param keepDelay
+	 * @param keepDelay delay
 	 */
 	public void setKeepDelay(int keepDelay);
 	

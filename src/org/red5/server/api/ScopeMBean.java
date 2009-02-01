@@ -57,8 +57,7 @@ public interface ScopeMBean {
 	/**
 	 * Check to see if this scope has a child scope matching a given name.
 	 * 
-	 * @param name
-	 *            the name of the child scope
+	 * @param name the name of the child scope
 	 * @return <code>true</code> if a child scope exists, otherwise
 	 *         <code>false</code>
 	 */
@@ -67,10 +66,8 @@ public interface ScopeMBean {
 	/**
 	 * Checks whether scope has a child scope with given name and type
 	 * 
-	 * @param type
-	 *            Child scope type
-	 * @param name
-	 *            Child scope name
+	 * @param type Child scope type
+	 * @param name Child scope name
 	 * @return <code>true</code> if a child scope exists, otherwise
 	 *         <code>false</code>
 	 */
@@ -81,8 +78,7 @@ public interface ScopeMBean {
 	 * <code>true</code> on success, <code>false</code> if given scope
 	 * already exists among children.
 	 * 
-	 * @param name
-	 *            New child scope name
+	 * @param name New child scope name
 	 * @return <code>true</code> if child scope was successfully creates,
 	 *         <code>false</code> otherwise
 	 */
@@ -92,8 +88,7 @@ public interface ScopeMBean {
 	 * Adds scope as a child scope. Returns <code>true</code> on success,
 	 * <code>false</code> if given scope is already a child of current.
 	 * 
-	 * @param scope
-	 *            Scope given
+	 * @param scope Scope given
 	 * @return <code>true</code> if child scope was successfully added,
 	 *         <code>false</code> otherwise
 	 */
@@ -103,8 +98,7 @@ public interface ScopeMBean {
 	 * Removes scope from the children scope list. Returns <code>false</code>
 	 * if given scope isn't a child of the current scope.
 	 * 
-	 * @param scope
-	 *            Scope given
+	 * @param scope Scope given
 	 */
 	public void removeChildScope(IBasicScope scope);
 
@@ -120,8 +114,7 @@ public interface ScopeMBean {
 	/**
 	 * Get a child scope by name.
 	 * 
-	 * @param name
-	 *            Name of the child scope
+	 * @param name Name of the child scope
 	 * @return the child scope, or null if no scope is found
 	 * @param type     Child scope type
 	 */
@@ -154,8 +147,7 @@ public interface ScopeMBean {
 	/**
 	 * Lookup connections.
 	 * 
-	 * @param client
-	 *            object
+	 * @param client object
 	 * @return Set of connection objects (readonly)
 	 */
 	public Set<IConnection> lookupConnections(IClient client);
@@ -192,8 +184,7 @@ public interface ScopeMBean {
 	/**
 	 * Adds given connection to the scope
 	 * 
-	 * @param conn
-	 *            Given connection
+	 * @param conn Given connection
 	 * @return <code>true</code> on success, <code>false</code> if given
 	 *         connection already belongs to this scope
 	 */
@@ -212,8 +203,7 @@ public interface ScopeMBean {
 	 * Removes given connection from list of scope connections. This disconnects
 	 * all clients of given connection from the scope.
 	 * 
-	 * @param conn
-	 *            Connection given
+	 * @param conn Connection given
 	 */
 	public void disconnect(IConnection conn);
 

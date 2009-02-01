@@ -80,7 +80,6 @@ public interface ITagWriter {
 	 * 
 	 * @param b                      Array of bytes to write
 	 * @return                       <code>true</code> on success, <code>false</code> otherwise
-	 * @throws IOException           I/O exception
 	 */
 	public boolean writeStream(byte[] b);
 

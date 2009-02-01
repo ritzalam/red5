@@ -90,6 +90,7 @@ public class RemotingConnection implements IRemotingConnection {
 	 *
      * @param request           Servlet request
      * @param scope             Scope
+     * @param packet packet
      */
     public RemotingConnection(HttpServletRequest request, IScope scope, RemotingPacket packet) {
 		this.request = request;
@@ -107,7 +108,7 @@ public class RemotingConnection implements IRemotingConnection {
     /**
      * Return string representation of the connection.
      * 
-     * @return
+     * @return string
      */
     public String toString() {
 		return getClass().getSimpleName() + " from " + getRemoteAddress() + ':'

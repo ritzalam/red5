@@ -70,7 +70,7 @@ public class FilePersistenceThread implements Runnable {
 	/**
 	 * Return singleton instance of the thread.
 	 * 
-	 * @return
+	 * @return singleton instance of thread.
 	 */
 	public static FilePersistenceThread getInstance() {
 		return instance;

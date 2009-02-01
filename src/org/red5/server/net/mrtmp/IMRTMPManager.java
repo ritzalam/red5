@@ -32,7 +32,7 @@ public interface IMRTMPManager {
 	 * if the client connection type is persistent. Or the latest in-coming
 	 * connection will be used.
 	 * @param conn
-	 * @return
+	 * @return the IMRTMPConnection
 	 */
 	IMRTMPConnection lookupMRTMPConnection(RTMPConnection conn);
 	

@@ -75,10 +75,8 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMBea
 	protected ConcurrentMap<String, ApplicationContext> contextMap = new ConcurrentHashMap<String, ApplicationContext>();
 
 	/**
-	 * @param applicationContext
-	 *            Spring application context
-	 * @throws BeansException
-	 *             Top level exception for app context (that is, in fact, beans
+	 * @param applicationContext Spring application context
+	 * @throws BeansException Top level exception for app context (that is, in fact, beans
 	 *             factory)
 	 */
 	public void setApplicationContext(ApplicationContext applicationContext)
@@ -89,8 +87,7 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMBea
 	/**
 	 * Setter for parent application context
 	 * 
-	 * @param parentContext
-	 *            Parent Spring application context
+	 * @param parentContext Parent Spring application context
 	 */
 	public void setParentContext(ApplicationContext parentContext) {
 		this.parentContext = parentContext;
@@ -99,8 +96,7 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMBea
 	/**
 	 * Setter for context config name
 	 * 
-	 * @param contextsConfig
-	 *            Context config name
+	 * @param contextsConfig Context config name
 	 */
 	public void setContextsConfig(String contextsConfig) {
 		this.contextsConfig = contextsConfig;
@@ -109,8 +105,7 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMBea
 	/**
 	 * Loads context settings from ResourceBundle (.properties file)
 	 * 
-	 * @throws Exception
-	 *             I/O exception, casting exception and others
+	 * @throws Exception I/O exception, casting exception and others
 	 */
 	public void init() throws Exception {
 		log.debug("ContextLoader init");
@@ -157,10 +152,8 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMBea
 	 * Loads a context (Red5 application) and stores it in a context map, then adds
 	 * it's beans to parent (that is, Red5)
 	 * 
-	 * @param name
-	 *            Context name
-	 * @param config
-	 *            Filename
+	 * @param name Context name
+	 * @param config Filename
 	 */
 	public void loadContext(String name, String config) {
 		log.debug("Load context - name: {} config: {}", name, config);
@@ -219,8 +212,7 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMBea
 	 * Unloads a context (Red5 application) and removes it from the context map, then removes
 	 * it's beans from the parent (that is, Red5)
 	 * 
-	 * @param name
-	 *            Context name
+	 * @param name Context name
 	 */	
 	public void unloadContext(String name) {
 		log.debug("Un-load context - name: {}", name);
@@ -252,8 +244,7 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMBea
 	/**
 	 * Return context by name
 	 * 
-	 * @param name
-	 *            Context name
+	 * @param name Context name
 	 * @return Application context for given name
 	 */
 	public ApplicationContext getContext(String name) {

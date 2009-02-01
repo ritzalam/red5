@@ -72,20 +72,20 @@ public class Stax2DomBuilder {
 	 * Whether all-whitespace text segment is ignorable white space or not is
 	 * based on DTD read in, as per XML specifications (white space is only
 	 * significant in mixed content or pure text elements).
+	 * @param ignoreWS true to ignore whitespace; false otherwise. 
 	 */
-	public void setIgnoreWhitespace(boolean state) {
-		mCfgIgnoreWs = state;
+	public void setIgnoreWhitespace(boolean ignoreWS) {
+		mCfgIgnoreWs = ignoreWS;
 	}
 
 	/**
 	 * This method will create a {@link org.w3c.dom.Document} instance using the
 	 * default JAXP mechanism and populate using the given StAX stream reader.
 	 * 
-	 * @param r
-	 *            Stream reader from which input is read.
+	 * @param r Stream reader from which input is read.
 	 * @return <code>Document</code> - DOM document object.
-	 * @throws XMLStreamException
-	 *             If the reader threw such exception (to indicate a parsing or
+	 * @throws ParserConfigurationException if parse is not configured
+	 * @throws XMLStreamException If the reader threw such exception (to indicate a parsing or
 	 *             I/O problem)
 	 */
 	public Document build(XMLStreamReader r)
@@ -105,11 +105,9 @@ public class Stax2DomBuilder {
 	 * This method will populate given {@link org.w3c.dom.Document} using the
 	 * given StAX stream reader instance.
 	 * 
-	 * @param r
-	 *            Stream reader from which input is read.
-	 * @return <code>Document</code> - DOM document object.
-	 * @throws XMLStreamException
-	 *             If the reader threw such exception (to indicate a parsing or
+	 * @param r Stream reader from which input is read.
+	 * @param doc <code>Document</code> - DOM document object.
+	 * @throws XMLStreamException If the reader threw such exception (to indicate a parsing or
 	 *             I/O problem)
 	 */
 	public void build(XMLStreamReader r, Document doc)

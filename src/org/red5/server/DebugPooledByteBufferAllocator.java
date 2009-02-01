@@ -88,7 +88,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 	/**
 	 * 
-	 * @return
+	 * @return code section
 	 */
 	public static String getCodeSection() {
 		return (local.get() == null) ? "unknown" : (String) local.get();
@@ -170,7 +170,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 	/**
 	 * 
-	 * @param saveStacks
+	 * @param saveStacks whether to save stacks
 	 */
 	public DebugPooledByteBufferAllocator(boolean saveStacks) {
 		this(60, saveStacks);
@@ -179,7 +179,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 	/**
 	 * Creates a new instance with the specified <tt>timeout</tt>.
 	 * 
-	 * @param timeout
+	 * @param timeout timeout for allocation
 	 */
 	public DebugPooledByteBufferAllocator(int timeout) {
 		this(timeout, false);
@@ -187,8 +187,8 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 	/**
 	 * 
-	 * @param timeout
-	 * @param saveStacks
+	 * @param timeout timeout for allocation
+	 * @param saveStacks whether to save stacks
 	 */
 	public DebugPooledByteBufferAllocator(int timeout, boolean saveStacks) {
 		this.saveStacks = saveStacks;
@@ -229,7 +229,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 	/**
 	 * Returns the timeout value of this allocator in seconds.
 	 * 
-	 * @return
+	 * @return the timeout in seconds
 	 */
 	public int getTimeout() {
 		return timeout;
@@ -238,7 +238,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 	/**
 	 * Returns the timeout value of this allocator in milliseconds.
 	 * 
-	 * @return
+	 * @return timeout in milliseconds
 	 */
 	public long getTimeoutMillis() {
 		return timeout * 1000L;
@@ -247,8 +247,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 	/**
 	 * Sets the timeout value of this allocator in seconds.
 	 * 
-	 * @param timeout
-	 *            <tt>0</tt> or negative value to disable timeout.
+	 * @param timeout <tt>0</tt> or negative value to disable timeout.
 	 */
 	public void setTimeout(int timeout) {
 		if (timeout < 0) {
@@ -259,9 +258,9 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 	/**
 	 * 
-	 * @param capacity
-	 * @param direct
-	 * @return
+	 * @param capacity capacity of byte buffer
+	 * @param direct whether to allocate direct byte buffers or not
+	 * @return a byte buffer
 	 */
 	public ByteBuffer allocate(int capacity, boolean direct) {
 		ensureNotDisposed();
@@ -377,8 +376,8 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 	/**
 	 * 
-	 * @param nioBuffer
-	 * @return
+	 * @param nioBuffer the buffer to wrap
+	 * @return a wrapped buffer
 	 */
 	public ByteBuffer wrap(java.nio.ByteBuffer nioBuffer) {
 		ensureNotDisposed();
@@ -519,11 +518,6 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 		protected PooledByteBuffer() {
 		}
 
-		/**
-		 * 
-		 * @param buf
-		 * @param clear
-		 */
 		public synchronized void init(UnexpandableByteBuffer buf, boolean clear) {
 			this.buf = buf;
 			if (clear) {
@@ -576,37 +570,21 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 			}
 		}
 
-		/**
-		 * 
-		 * @return
-		 */
 		@Override
 		public java.nio.ByteBuffer buf() {
 			return buf.buf();
 		}
 
-		/**
-		 * 
-		 * @return
-		 */
 		@Override
 		public boolean isDirect() {
 			return buf.buf().isDirect();
 		}
 
-		/**
-		 * 
-		 * @return
-		 */
 		@Override
 		public boolean isReadOnly() {
 			return buf.buf().isReadOnly();
 		}
 
-		/**
-		 * 
-		 * @return
-		 */
 		@Override
 		public boolean isAutoExpand() {
 			return autoExpand;
@@ -614,8 +592,8 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @param autoExpand
-		 * @return
+		 * @param autoExpand should buffer auto-expand
+		 * @return the buffer
 		 */
 		@Override
 		public ByteBuffer setAutoExpand(boolean autoExpand) {
@@ -625,7 +603,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @return
+		 * @return is this buffer pooled
 		 */
 		@Override
 		public boolean isPooled() {
@@ -634,7 +612,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @param pooled
+		 * @param pooled set whether this buffer is polled
 		 */
 		@Override
 		public void setPooled(boolean pooled) {
@@ -643,7 +621,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @return
+		 * @return capacity of this buffer
 		 */
 		@Override
 		public int capacity() {
@@ -652,7 +630,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @return
+		 * @return the position
 		 */
 		@Override
 		public int position() {
@@ -661,8 +639,8 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @param newPosition
-		 * @return
+		 * @param newPosition the new position
+		 * @return the byte buffer
 		 */
 		@Override
 		public ByteBuffer position(int newPosition) {
@@ -673,7 +651,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @return
+		 * @return the limit of this buffer
 		 */
 		@Override
 		public int limit() {
@@ -682,8 +660,8 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @param newLimit
-		 * @return
+		 * @param newLimit the new limit for this buffer
+		 * @return the buffer
 		 */
 		@Override
 		public ByteBuffer limit(int newLimit) {
@@ -694,7 +672,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @return
+		 * @return the mark
 		 */
 		@Override
 		public ByteBuffer mark() {
@@ -704,7 +682,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @return
+		 * @return reset the buffer
 		 */
 		@Override
 		public ByteBuffer reset() {
@@ -714,7 +692,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @return
+		 * @return the buffer
 		 */
 		@Override
 		public ByteBuffer clear() {
@@ -724,7 +702,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @return
+		 * @return the buffer
 		 */
 		@Override
 		public ByteBuffer flip() {
@@ -734,7 +712,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @return
+		 * @return the buffer
 		 */
 		@Override
 		public ByteBuffer rewind() {
@@ -744,7 +722,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @return
+		 * @return bytes remaining
 		 */
 		@Override
 		public int remaining() {
@@ -753,7 +731,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @return
+		 * @return a new buffer duplicating the original buffer
 		 */
 		@Override
 		public ByteBuffer duplicate() {
@@ -765,7 +743,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @return
+		 * @return a copy of this buffer
 		 */
 		@Override
 		public ByteBuffer slice() {
@@ -777,7 +755,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @return
+		 * @return buffer as read only buffer
 		 */
 		@Override
 		public ByteBuffer asReadOnlyBuffer() {
@@ -789,7 +767,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @return
+		 * @return byte at current position
 		 */
 		@Override
 		public byte get() {
@@ -798,8 +776,8 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @param b
-		 * @return
+		 * @param b byte to put
+		 * @return original buffer
 		 */
 		@Override
 		public ByteBuffer put(byte b) {
@@ -810,8 +788,8 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @param index
-		 * @return
+		 * @param index index for byte
+		 * @return the byte at position 'index'
 		 */
 		@Override
 		public byte get(int index) {
@@ -820,9 +798,9 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @param index
-		 * @param b
-		 * @return
+		 * @param index index to put byte at
+		 * @param b byt to but
+		 * @return the buffer
 		 */
 		@Override
 		public ByteBuffer put(int index, byte b) {
@@ -833,10 +811,10 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @param dst
-		 * @param offset
-		 * @param length
-		 * @return
+		 * @param dst where to put gotten data
+		 * @param offset offset in this to start getting
+		 * @param length number of bytes to get
+		 * @return the original byte buffer
 		 */
 		@Override
 		public ByteBuffer get(byte[] dst, int offset, int length) {
@@ -846,8 +824,8 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @param src
-		 * @return
+		 * @param src buffer to copy from
+		 * @return the original buffer
 		 */
 		@Override
 		public ByteBuffer put(java.nio.ByteBuffer src) {
@@ -858,10 +836,10 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @param src
-		 * @param offset
-		 * @param length
-		 * @return
+		 * @param src src array to copy from
+		 * @param offset offset in source array to copy from
+		 * @param length number of bytes to copy
+		 * @return original buffer
 		 */
 		@Override
 		public ByteBuffer put(byte[] src, int offset, int length) {
@@ -872,7 +850,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @return
+		 * @return the original buffer
 		 */
 		@Override
 		public ByteBuffer compact() {
@@ -882,8 +860,8 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @param that
-		 * @return
+		 * @param that buffer to compare to
+		 * @return <0 if this<that; >0 if this>that; 0 if this==that
 		 */
 		public int compareTo(ByteBuffer that) {
 			return this.buf.buf().compareTo(that.buf());
@@ -891,7 +869,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @return
+		 * @return order of bytes in buffer
 		 */
 		@Override
 		public ByteOrder order() {
@@ -900,8 +878,8 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @param bo
-		 * @return
+		 * @param bo byte order you want to set
+		 * @return the original buffer
 		 */
 		@Override
 		public ByteBuffer order(ByteOrder bo) {
@@ -911,7 +889,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @return
+		 * @return char at current position
 		 */
 		@Override
 		public char getChar() {
@@ -920,8 +898,8 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @param value
-		 * @return
+		 * @param value char to put
+		 * @return original buffer
 		 */
 		@Override
 		public ByteBuffer putChar(char value) {
@@ -932,8 +910,8 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @param index
-		 * @return
+		 * @param index index of char to get from
+		 * @return char to get back
 		 */
 		@Override
 		public char getChar(int index) {
@@ -942,9 +920,9 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @param index
-		 * @param value
-		 * @return
+		 * @param index index to put char at
+		 * @param value value to put
+		 * @return origianl buffer
 		 */
 		@Override
 		public ByteBuffer putChar(int index, char value) {
@@ -955,7 +933,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @return
+		 * @return buffer as char buffer
 		 */
 		@Override
 		public CharBuffer asCharBuffer() {
@@ -964,7 +942,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @return
+		 * @return short at current position
 		 */
 		@Override
 		public short getShort() {
@@ -973,8 +951,8 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @param value
-		 * @return
+		 * @param value short to put
+		 * @return original buffer
 		 */
 		@Override
 		public ByteBuffer putShort(short value) {
@@ -985,8 +963,8 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @param index
-		 * @return
+		 * @param index index to get short at
+		 * @return short at position 'index'
 		 */
 		@Override
 		public short getShort(int index) {
@@ -995,9 +973,9 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @param index
-		 * @param value
-		 * @return
+		 * @param index index to put short at
+		 * @param value value to put
+		 * @return original buffer
 		 */
 		@Override
 		public ByteBuffer putShort(int index, short value) {
@@ -1008,7 +986,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @return
+		 * @return buffer as short buffer
 		 */
 		@Override
 		public ShortBuffer asShortBuffer() {
@@ -1017,7 +995,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @return
+		 * @return int at current position
 		 */
 		@Override
 		public int getInt() {
@@ -1026,8 +1004,8 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @param value
-		 * @return
+		 * @param value value to put at current position
+		 * @return original buffer
 		 */
 		@Override
 		public ByteBuffer putInt(int value) {
@@ -1038,8 +1016,8 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @param index
-		 * @return
+		 * @param index index to get int at
+		 * @return int at currrent position
 		 */
 		@Override
 		public int getInt(int index) {
@@ -1048,9 +1026,9 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @param index
-		 * @param value
-		 * @return
+		 * @param index position to put at
+		 * @param value value to put
+		 * @return original buffer
 		 */
 		@Override
 		public ByteBuffer putInt(int index, int value) {
@@ -1061,7 +1039,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @return
+		 * @return as int buffer
 		 */
 		@Override
 		public IntBuffer asIntBuffer() {
@@ -1070,7 +1048,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @return
+		 * @return long at current position
 		 */
 		@Override
 		public long getLong() {
@@ -1079,8 +1057,8 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @param value
-		 * @return
+		 * @param value value to put at current position
+		 * @return original buffer
 		 */
 		@Override
 		public ByteBuffer putLong(long value) {
@@ -1091,8 +1069,8 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @param index
-		 * @return
+		 * @param index index to get at
+		 * @return long at position 'index'
 		 */
 		@Override
 		public long getLong(int index) {
@@ -1101,9 +1079,9 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @param index
-		 * @param value
-		 * @return
+		 * @param index index to put value at
+		 * @param value value to put
+		 * @return original buffer
 		 */
 		@Override
 		public ByteBuffer putLong(int index, long value) {
@@ -1114,7 +1092,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @return
+		 * @return as long buffer
 		 */
 		@Override
 		public LongBuffer asLongBuffer() {
@@ -1123,7 +1101,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @return
+		 * @return float at current position
 		 */
 		@Override
 		public float getFloat() {
@@ -1132,8 +1110,8 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @param value
-		 * @return
+		 * @param value value to put
+		 * @return original buffer with value inserted
 		 */
 		@Override
 		public ByteBuffer putFloat(float value) {
@@ -1144,8 +1122,8 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @param index
-		 * @return
+		 * @param index index to get at
+		 * @return float at position 'index'
 		 */
 		@Override
 		public float getFloat(int index) {
@@ -1154,9 +1132,9 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @param index
-		 * @param value
-		 * @return
+		 * @param index index to put at
+		 * @param value value to put at
+		 * @return byte buffer with value inserted
 		 */
 		@Override
 		public ByteBuffer putFloat(int index, float value) {
@@ -1167,7 +1145,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @return
+		 * @return as float buffer
 		 */
 		@Override
 		public FloatBuffer asFloatBuffer() {
@@ -1176,7 +1154,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @return
+		 * @return double at current position
 		 */
 		@Override
 		public double getDouble() {
@@ -1185,8 +1163,8 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @param value
-		 * @return
+		 * @param value value to put
+		 * @return buffer with value inserted
 		 */
 		@Override
 		public ByteBuffer putDouble(double value) {
@@ -1197,8 +1175,8 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @param index
-		 * @return
+		 * @param index position to get double at
+		 * @return double at position 'index'
 		 */
 		@Override
 		public double getDouble(int index) {
@@ -1207,9 +1185,9 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @param index
-		 * @param value
-		 * @return
+		 * @param index position to put value at
+		 * @param value value to put
+		 * @return byte buffer with value inserted
 		 */
 		@Override
 		public ByteBuffer putDouble(int index, double value) {
@@ -1220,7 +1198,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @return
+		 * @return as double buffer
 		 */
 		@Override
 		public DoubleBuffer asDoubleBuffer() {
@@ -1229,8 +1207,9 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @param expectedRemaining
-		 * @return
+		 * @param expectedRemaining number of bytes you expect to be remaining
+		 * @return the original buffer, expanded to fix expectedRemaining if it doesn't
+		 *   fit already
 		 */
 		@Override
 		public ByteBuffer expand(int expectedRemaining) {
@@ -1248,9 +1227,9 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @param pos
-		 * @param expectedRemaining
-		 * @return
+		 * @param pos position you'd like to start from
+		 * @param expectedRemaining number of bytes you expect to remain after pos
+		 * @return this byte buffer expanded to ensure expectedRemaining can be retrieved
 		 */
 		@Override
 		public ByteBuffer expand(int pos, int expectedRemaining) {
@@ -1302,7 +1281,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @return
+		 * @return byte buffer as array if possible, or null if not.
 		 */
 		@Override
 		public byte[] array() {
@@ -1312,7 +1291,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @return
+		 * @return offset
 		 */
 		@Override
 		public int arrayOffset() {
@@ -1322,8 +1301,8 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @param newCapacity
-		 * @return
+		 * @param newCapacity new capacity
+		 * @return this with new capacity set.
 		 */
 		@Override
 		public ByteBuffer capacity(int newCapacity) {
@@ -1333,7 +1312,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @return
+		 * @return mark value
 		 */
 		@Override
 		public int markValue() {
@@ -1450,7 +1429,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @return
+		 * @return as java.nio.ByteBuffer
 		 */
 		public java.nio.ByteBuffer buf() {
 			return buf;
@@ -1458,7 +1437,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @return
+		 * @return is pooled
 		 */
 		public boolean isPooled() {
 			return pooled;
@@ -1466,7 +1445,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @param pooled
+		 * @param pooled set whether pooled
 		 */
 		public void setPooled(boolean pooled) {
 			this.pooled = pooled;
@@ -1474,7 +1453,7 @@ public class DebugPooledByteBufferAllocator implements ByteBufferAllocator {
 
 		/**
 		 * 
-		 * @return
+		 * @return is derived
 		 */
 		public boolean isDerived() {
 			return parentBuf != null;

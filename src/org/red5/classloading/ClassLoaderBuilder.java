@@ -86,10 +86,8 @@ public final class ClassLoaderBuilder {
 		/**
 		 * Check whether file matches filter rules
 		 * 
-		 * @param dir
-		 *            Directory
-		 * @param name
-		 *            File name
+		 * @param dir Directory
+		 * @param name File name
 		 * @return true If file does match filter rules, false otherwise
 		 */
 		public boolean accept(File dir, String name) {
@@ -100,23 +98,18 @@ public final class ClassLoaderBuilder {
 	/**
 	 * Gets a class loader based on mode.
 	 * 
-	 * @param path
-	 *            the directory or file containing classes
+	 * @param path the directory or file containing classes
 	 * 
-	 * @param mode
-	 *            the mode in which the servlet should be loaded. The possible
+	 * @param mode the mode in which the servlet should be loaded. The possible
 	 *            values are <code>USE_CURRENT_CLASSPATH</code>,
 	 *            <code>USE_CLASSPATH_LIB</code>, <code>USE_XINS_LIB</code>,
 	 *            <code>USE_WAR_LIB</code>.
 	 * 
-	 * @param parent
-	 * 			the parent class loader or null if you want the current threads
+	 * @param parent the parent class loader or null if you want the current threads
 	 * 			class loader
 	 * 
 	 * @return the Class loader to use to load the required class(es).
 	 * 
-	 * @throws IOException
-	 *             if the file cannot be read or is incorrect.
 	 */
 	public static ClassLoader build(File path, int mode, ClassLoader parent) {
 				

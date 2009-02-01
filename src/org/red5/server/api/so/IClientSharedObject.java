@@ -33,14 +33,14 @@ public interface IClientSharedObject extends ISharedObjectBase {
 	/**
 	 * Connect the shared object using the passed connection.
 	 * 
-	 * @param conn
+	 * @param conn connect to connect to
 	 */
 	public void connect(IConnection conn);
 	
 	/**
 	 * Check if the shared object is connected to the server.
 	 * 
-	 * @return
+	 * @return is connected
 	 */
 	public boolean isConnected();
 	

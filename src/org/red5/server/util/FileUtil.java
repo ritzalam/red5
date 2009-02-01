@@ -116,8 +116,10 @@ public class FileUtil {
 	 * Deletes a directory and its contents. This will fail if there are any
 	 * file locks or if the directory cannot be emptied.
 	 * 
-	 * @param directory
-	 * @throws IOException
+	 * @param directory directory to delete
+	 * @throws IOException if directory cannot be deleted
+	 * @return true if directory was successfully deleted; false if directory
+	 *  did not exist
 	 */
 	public static boolean deleteDirectory(String directory) throws IOException {
 		return deleteDirectory(directory, false);
@@ -127,10 +129,11 @@ public class FileUtil {
 	 * Deletes a directory and its contents. This will fail if there are any
 	 * file locks or if the directory cannot be emptied.
 	 * 
-	 * @param directory
-	 * @param useOSNativeDelete
-	 *            flag to signify use of operating system delete function
-	 * @throws IOException
+	 * @param directory directory to delete
+	 * @param useOSNativeDelete flag to signify use of operating system delete function
+	 * @throws IOException if directory cannot be deleted
+	 * @return true if directory was successfully deleted; false if directory
+	 *  did not exist
 	 */
 	public static boolean deleteDirectory(String directory,
 			boolean useOSNativeDelete) throws IOException {
@@ -199,8 +202,8 @@ public class FileUtil {
 	/**
 	 * Rename a file natively; using REN on Windows and mv on *nix.
 	 * 
-	 * @param from
-	 * @param to
+	 * @param from old name
+	 * @param to new name
 	 */
 	public static void rename(String from, String to) {
 		Process p = null;
@@ -276,9 +279,9 @@ public class FileUtil {
 	/**
 	 * Create a directory.
 	 * 
-	 * @param directory
-	 * @return
-	 * @throws IOException
+	 * @param directory directory to make
+	 * @return whether a new directory was made
+	 * @throws IOException if directory does not already exist or cannot be made
 	 */
 	public static boolean makeDirectory(String directory) throws IOException {
 		return makeDirectory(directory, false);
@@ -288,10 +291,11 @@ public class FileUtil {
 	 * Create a directory. The parent directories will be created if
 	 * <i>createParents</i> is passed as true.
 	 * 
-	 * @param directory
-	 * @param createParents
-	 * @return
-	 * @throws IOException
+	 * @param directory directory
+	 * @param createParents whether to create all parents
+	 * @return true if directory was created; false if it already existed
+	 * @throws IOException if we cannot create directory
+	 * 
 	 */
 	public static boolean makeDirectory(String directory, boolean createParents)
 			throws IOException {
@@ -321,10 +325,8 @@ public class FileUtil {
 	/**
 	 * Unzips a war file to an application located under the webapps directory
 	 * 
-	 * @param compressedFileName 
-	 * 						The String name of the war file
-	 * @param destinationDir
-	 * 						The destination directory, ie: webapps
+	 * @param compressedFileName The String name of the war file
+	 * @param destinationDir The destination directory, ie: webapps
 	 */
 	public static void unzip(String compressedFileName, String destinationDir) {
 		
@@ -447,6 +449,9 @@ public class FileUtil {
 	
     /**
      * Quick-n-dirty directory formatting to support launching in windows, specifically from ant.
+     * @param absWebappsPath abs webapps path
+     * @param contextDirName conext directory name
+     * @return full path
      */
     public static String formatPath(String absWebappsPath, String contextDirName) {
         StringBuilder path = new StringBuilder(absWebappsPath.length() + contextDirName.length());
@@ -494,7 +499,7 @@ public class FileUtil {
 	 * Generates a custom name containing numbers and an underscore ex. 282818_00023.
 	 * The name contains current seconds and a random number component.
 	 * 
-	 * @return
+	 * @return custom name
 	 */
 	public static String generateCustomName() {
 		if (random == null) {

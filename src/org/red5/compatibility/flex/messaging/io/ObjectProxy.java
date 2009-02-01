@@ -35,6 +35,8 @@ import org.red5.io.amf3.IExternalizable;
  * @see <a href="http://livedocs.adobe.com/flex/2/langref/mx/utils/ObjectProxy.html">Adobe Livedocs (external)</a>
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
+ * @param <T> type
+ * @param <V> value
  */
 public class ObjectProxy<T, V> implements Map<T, V>, IExternalizable {
 
@@ -69,7 +71,7 @@ public class ObjectProxy<T, V> implements Map<T, V>, IExternalizable {
 	/**
 	 * Return string representation of the proxied object.
 	 * 
-	 * @return
+	 * @return string
 	 */
 	public String toString() {
 		return item.toString();
@@ -82,8 +84,8 @@ public class ObjectProxy<T, V> implements Map<T, V>, IExternalizable {
 	/**
 	 * Check if proxied object has a given property.
 	 * 
-	 * @param name
-	 * @return
+	 * @param name name
+	 * @return boolean
 	 */
 	public boolean containsKey(Object name) {
 		return item.containsKey(name);
@@ -100,8 +102,8 @@ public class ObjectProxy<T, V> implements Map<T, V>, IExternalizable {
 	/**
 	 * Return the value of a property.
 	 * 
-	 * @param name
-	 * @return
+	 * @param name name
+	 * @return value
 	 */
 	public V get(Object name) {
 		return item.get(name);
@@ -118,9 +120,9 @@ public class ObjectProxy<T, V> implements Map<T, V>, IExternalizable {
 	/**
 	 * Change a property of the proxied object.
 	 * 
-	 * @param name
-	 * @param value
-	 * @return
+	 * @param name name
+	 * @param value value
+	 * @return old value
 	 */
 	public V put(T name, V value) {
 		return item.put(name, value);
@@ -134,8 +136,8 @@ public class ObjectProxy<T, V> implements Map<T, V>, IExternalizable {
 	/**
 	 * Remove a property from the proxied object.
 	 * 
-	 * @param name
-	 * @return
+	 * @param name name
+	 * @return old value
 	 */
 	public V remove(Object name) {
 		return item.remove(name);

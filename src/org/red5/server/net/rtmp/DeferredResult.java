@@ -57,8 +57,7 @@ public class DeferredResult {
 	/**
 	 * Set the result of a method call and send to the caller.
 	 * 
-	 * @param result
-	 * 			deferred result of the method call
+	 * @param result deferred result of the method call
 	 */
 	public void setResult(Object result) {
 		if (this.resultSent)

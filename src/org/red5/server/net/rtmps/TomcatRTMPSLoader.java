@@ -53,8 +53,7 @@ public class TomcatRTMPSLoader extends TomcatRTMPTLoader {
 	/**
 	 * Setter for server
 	 * 
-	 * @param server
-	 *            Value to set for property 'server'.
+	 * @param server Value to set for property 'server'.
 	 */
 	public void setServer(IServer server) {
 		log.debug("RTMPS setServer");

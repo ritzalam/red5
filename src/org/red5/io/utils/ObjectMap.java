@@ -26,6 +26,8 @@ import java.util.HashMap;
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
+ * @param <K> key type
+ * @param <V> value type
  */
 public class ObjectMap<K, V> extends HashMap<K, V> {
 

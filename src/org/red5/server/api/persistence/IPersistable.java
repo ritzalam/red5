@@ -60,8 +60,7 @@ public interface IPersistable {
 	/**
 	 * Set the persistent flag of the object.
 	 * 
-	 * @param persistent
-	 * 		<code>true</code> if object is persistent, <code>false</code> otherwise
+	 * @param persistent <code>true</code> if object is persistent, <code>false</code> otherwise
 	 */
 	public void setPersistent(boolean persistent);
 
@@ -75,8 +74,7 @@ public interface IPersistable {
 	/**
 	 * Set the name of the persistent object.
 	 * 
-	 * @param name
-	 * 		New object name
+	 * @param name New object name
 	 */
 	public void setName(String name);
 
@@ -97,8 +95,7 @@ public interface IPersistable {
 	/**
 	 * Set the path of the persistent object.
 	 * 
-	 * @param path
-	 * 		New persisted object path
+	 * @param path New persisted object path
 	 */
 	public void setPath(String path);
 

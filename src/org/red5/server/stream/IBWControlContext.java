@@ -29,7 +29,7 @@ import org.red5.server.api.IBWControllable;
 public interface IBWControlContext {
 	/**
 	 * Return the controllable that registered.
-	 * @return
+	 * @return controllabe
 	 */
 	IBWControllable getBWControllable();
 }

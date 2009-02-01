@@ -163,7 +163,7 @@ public class LoggingContextSelector implements ContextSelector {
 	 * They provide a way to tell the selector which context to use, thus saving
 	 * the cost of a JNDI call at each new request.
 	 * 
-	 * @param context
+	 * @param context logging context
 	 */
 	public void setLocalContext(LoggerContext context) {
 		threadLocal.set(context);

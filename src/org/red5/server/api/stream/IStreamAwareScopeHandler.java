@@ -32,7 +32,7 @@ public interface IStreamAwareScopeHandler extends IScopeHandler {
 	 * A broadcast stream starts being published. This will be called
 	 * when the first video packet has been received.
 	 * 
-	 * @param stream
+	 * @param stream stream
 	 */
 	public void streamPublishStart(IBroadcastStream stream);
 
@@ -40,44 +40,44 @@ public interface IStreamAwareScopeHandler extends IScopeHandler {
 	 * A broadcast stream starts being recorded. This will be called
 	 * when the first video packet has been received.
 	 * 
-	 * @param stream
+	 * @param stream stream 
 	 */
 	public void streamRecordStart(IBroadcastStream stream);
 
 	/**
 	 * Notified when a broadcaster starts.
 	 * 
-	 * @param stream
+	 * @param stream stream
 	 */
 	public void streamBroadcastStart(IBroadcastStream stream);
 
 	/**
 	 * Notified when a broadcaster closes.
 	 * 
-	 * @param stream
+	 * @param stream stream
 	 */
 	public void streamBroadcastClose(IBroadcastStream stream);
 
 	/**
 	 * Notified when a subscriber starts.
 	 * 
-	 * @param stream
+	 * @param stream stream
 	 */
 	public void streamSubscriberStart(ISubscriberStream stream);
 
 	/**
 	 * Notified when a subscriber closes.
 	 * 
-	 * @param stream
+	 * @param stream stream
 	 */
 	public void streamSubscriberClose(ISubscriberStream stream);
 
 	/**
 	 * Notified when a playlist item plays.
 	 * 
-	 * @param stream
-	 * @param item
-	 * @param isLive
+	 * @param stream stream
+	 * @param item item
+	 * @param isLive treu if live
 	 *            TODO
 	 */
 	public void streamPlaylistItemPlay(IPlaylistSubscriberStream stream,
@@ -86,8 +86,8 @@ public interface IStreamAwareScopeHandler extends IScopeHandler {
 	/**
 	 * Notified when a playlist item stops.
 	 * 
-	 * @param stream
-	 * @param item
+	 * @param stream stream
+	 * @param item item
 	 */
 	public void streamPlaylistItemStop(IPlaylistSubscriberStream stream,
 			IPlayItem item);
@@ -95,9 +95,9 @@ public interface IStreamAwareScopeHandler extends IScopeHandler {
 	/**
 	 * Notified when a playlist vod item pauses.
 	 * 
-	 * @param stream
-	 * @param item
-     * @param position
+	 * @param stream stream
+	 * @param item item
+     * @param position position
 	 */
 	public void streamPlaylistVODItemPause(IPlaylistSubscriberStream stream,
 			IPlayItem item, int position);
@@ -105,9 +105,9 @@ public interface IStreamAwareScopeHandler extends IScopeHandler {
 	/**
 	 * Notified when a playlist vod item resumes.
 	 * 
-	 * @param stream
-	 * @param item
-     * @param position
+	 * @param stream stream
+	 * @param item item
+     * @param position position
 	 */
 	public void streamPlaylistVODItemResume(IPlaylistSubscriberStream stream,
 			IPlayItem item, int position);
@@ -115,9 +115,9 @@ public interface IStreamAwareScopeHandler extends IScopeHandler {
 	/**
 	 * Notified when a playlist vod item seeks.
 	 * 
-	 * @param stream
-	 * @param item
-     * @param position
+	 * @param stream stream
+	 * @param item item
+     * @param position position
 	 */
 	public void streamPlaylistVODItemSeek(IPlaylistSubscriberStream stream,
 			IPlayItem item, int position);

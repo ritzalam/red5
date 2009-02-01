@@ -33,6 +33,8 @@ package org.red5.io.flv.meta;
  *  private int height = 215;
  *  private int width = 320;
  *  private int duration = 7.347;
+ * @param <K> key type
+ * @param <V> value type
  */
 public interface IMetaData<K, V> extends IMeta {
 

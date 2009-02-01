@@ -125,7 +125,7 @@ public interface IFLV extends IStreamableFile {
 	/**
 	 * Sets the caching implemenation
 	 * 
-	 * @param cache
+	 * @param cache cache
 	 */
 	public void setCache(ICacheStore cache);
 }

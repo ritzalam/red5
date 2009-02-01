@@ -45,14 +45,14 @@ public interface IRemotingHeader {
 	/**
 	 * Return name of header.
 	 * 
-	 * @return
+	 * @return name of header
 	 */
 	public String getName();
 	
 	/**
 	 * Return value of header.
 	 * 
-	 * @return
+	 * @return value of header
 	 */
 	public Object getValue();
 	
@@ -60,7 +60,7 @@ public interface IRemotingHeader {
 	 * Return boolean flag if receiver must process header before handling
 	 * other headers or messages.
 	 * 
-	 * @return
+	 * @return must understand
 	 */
 	public boolean getMustUnderstand();
 

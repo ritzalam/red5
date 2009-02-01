@@ -58,7 +58,7 @@ public class MetaServiceTest extends TestCase {
 
 	/**
 	 * Test writing meta data
-	 * @throws IOException
+	 * @throws IOException if io exception
 	 */
 	public void testWrite() throws IOException {
 		// Get MetaData to embed

@@ -45,10 +45,8 @@ public abstract class StreamUtils {
 	/**
 	 * Creates server stream
 	 * 
-	 * @param scope
-	 *            Scope of stream
-	 * @param name
-	 *            Name of stream
+	 * @param scope Scope of stream
+	 * @param name Name of stream
 	 * @return		IServerStream object
 	 */
 	public static IServerStream createServerStream(IScope scope, String name) {
@@ -67,10 +65,8 @@ public abstract class StreamUtils {
 	 * Looks up a server stream in the stream map. Null will be returned if the 
 	 * stream is not found.
 	 *
-	 * @param scope
-	 *            Scope of stream
-	 * @param name
-	 *            Name of stream
+	 * @param scope Scope of stream
+	 * @param name Name of stream
 	 * @return		IServerStream object
 	 */
 	public static IServerStream getServerStream(IScope scope, String name) {
@@ -87,12 +83,9 @@ public abstract class StreamUtils {
 	/**
 	 * Puts a server stream in the stream map
 	 *
-	 * @param scope
-	 *            Scope of stream
-	 * @param name
-	 *            Name of stream
-	 * @param stream
-	 *            ServerStream object
+	 * @param scope Scope of stream
+	 * @param name Name of stream
+	 * @param stream ServerStream object
 	 */
 	public static void putServerStream(IScope scope, String name, IServerStream stream) {
 		logger.debug("Putting server stream in the map - name: {} scope: {} stream: {}", new Object[]{name, scope, stream});
@@ -107,10 +100,8 @@ public abstract class StreamUtils {
 	/**
 	 * Removes a server stream from the stream map
 	 *
-	 * @param scope
-	 *            Scope of stream
-	 * @param name
-	 *            Name of stream
+	 * @param scope Scope of stream
+	 * @param name Name of stream
 	 */
 	public static void removeServerStream(IScope scope, String name) {
 		logger.debug("Removing server stream from the map - name: {} scope: {}", name, scope);

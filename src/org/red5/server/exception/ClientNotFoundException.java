@@ -31,7 +31,7 @@ public class ClientNotFoundException extends RuntimeException {
 
     /**
      * Create exception from given string message
-     * @param id
+     * @param id id
      */
     public ClientNotFoundException(String id) {
 		super("Client \"" + id + "\" not found.");

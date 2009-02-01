@@ -49,7 +49,6 @@ public class FLVServiceImplTest extends TestCase {
 	/**
 	 * SetUp is called before each test
 	 * 
-	 * @return void
 	 */
 	@Override
 	public void setUp() {
@@ -61,10 +60,9 @@ public class FLVServiceImplTest extends TestCase {
 	/**
 	 * Tests: getFlv(String s)
 	 * 
-	 * @param tag
-	 * @return void
-	 * @throws IOException,
-	 *             FileNotFoundException
+	 * @param tag tag
+	 * @throws IOException if io error
+	 * @throws FileNotFoundException if file not found
 	 */
 	/*
 	 * public void testFLVString() throws FileNotFoundException, IOException {
@@ -84,9 +82,8 @@ public class FLVServiceImplTest extends TestCase {
 	/**
 	 * Tests: getFLVFile(File f)
 	 * 
-	 * @return void
-	 * @throws IOException
-	 * @throws FileNotFoundException
+	 * @throws IOException if io error
+	 * @throws FileNotFoundException if file not found
 	 */
 	public void testFLVFile() throws FileNotFoundException, IOException {
 		File f = new File("fixtures/test.flv");
@@ -131,7 +128,6 @@ public class FLVServiceImplTest extends TestCase {
 	/**
 	 * Tests: getFLVFileInputStream(FileInputStream fis)
 	 * 
-	 * @return void
 	 * @throws IOException
 	 */
 	/*

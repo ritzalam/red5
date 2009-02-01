@@ -123,7 +123,7 @@ public class SimplePlayItem implements IPlayItem {
 	/**
 	 * Set the size in bytes
 	 * 
-	 * @param size
+	 * @param size size in bytes
 	 */
 	public void setSize(long size) {
 		this.size = size;

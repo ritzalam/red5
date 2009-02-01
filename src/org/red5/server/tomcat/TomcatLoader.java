@@ -79,10 +79,8 @@ public class TomcatLoader extends LoaderBase implements
 		/**
 		 * Check whether file matches filter rules
 		 * 
-		 * @param dir
-		 *            Directory
-		 * @param name
-		 *            File name
+		 * @param dir Directory
+		 * @param name File name
 		 * @return true If file does match filter rules, false otherwise
 		 */
 		public boolean accept(File dir, String name) {
@@ -152,10 +150,8 @@ public class TomcatLoader extends LoaderBase implements
 	/**
 	 * Add context for path and docbase to current host.
 	 * 
-	 * @param path
-	 *            Path
-	 * @param docBase
-	 *            Document base
+	 * @param path Path
+	 * @param docBase Document base
 	 * @return Catalina context (that is, web application)
 	 */
 	public Context addContext(String path, String docBase) {
@@ -187,8 +183,7 @@ public class TomcatLoader extends LoaderBase implements
 	/**
 	 * Remove context from the current host.
 	 * 
-	 * @param path
-	 *            Path
+	 * @param path Path
 	 */
 	@Override
 	public void removeContext(String path) {
@@ -551,7 +546,7 @@ public class TomcatLoader extends LoaderBase implements
 	 * Starts a web application and its red5 (spring) component. This is
 	 * basically a stripped down version of init().
 	 * 
-	 * @return
+	 * @return true on success
 	 */
 	public boolean startWebApplication(String applicationName) {
 		log.info("Starting Tomcat - Web application");
@@ -700,8 +695,7 @@ public class TomcatLoader extends LoaderBase implements
 	/**
 	 * Set base host.
 	 * 
-	 * @param baseHost
-	 *            Base host
+	 * @param baseHost Base host
 	 */
 	public void setBaseHost(Host baseHost) {
 		log.debug("setBaseHost");
@@ -711,8 +705,7 @@ public class TomcatLoader extends LoaderBase implements
 	/**
 	 * Set connector.
 	 * 
-	 * @param connector
-	 *            Connector
+	 * @param connector Connector
 	 */
 	public void setConnector(Connector connector) {
 		log.info("Setting connector: " + connector.getClass().getName());
@@ -722,8 +715,7 @@ public class TomcatLoader extends LoaderBase implements
 	/**
 	 * Set additional connectors.
 	 * 
-	 * @param connectors
-	 *            Additional connectors
+	 * @param connectors Additional connectors
 	 */
 	public void setConnectors(List<Connector> connectors) {
 		log.debug("setConnectors: {}", connectors.size());
@@ -735,8 +727,7 @@ public class TomcatLoader extends LoaderBase implements
 	/**
 	 * Set additional contexts.
 	 * 
-	 * @param contexts
-	 *            Map of contexts
+	 * @param contexts Map of contexts
 	 */
 	public void setContexts(Map<String, String> contexts) {
 		log.debug("setContexts: {}", contexts.size());
@@ -749,8 +740,7 @@ public class TomcatLoader extends LoaderBase implements
 	/**
 	 * Setter for embedded object.
 	 * 
-	 * @param embedded
-	 *            Embedded object
+	 * @param embedded Embedded object
 	 */
 	public void setEmbedded(Embedded embedded) {
 		log.info("Setting embedded: {}", embedded.getClass().getName());
@@ -769,7 +759,7 @@ public class TomcatLoader extends LoaderBase implements
 	/**
 	 * Set the host.
 	 * 
-	 * @param host
+	 * @param host host
 	 */
 	public void setHost(Host host) {
 		log.debug("setHost");
@@ -779,8 +769,7 @@ public class TomcatLoader extends LoaderBase implements
 	/**
 	 * Set additional hosts.
 	 * 
-	 * @param hosts
-	 *            List of hosts added to engine
+	 * @param hosts List of hosts added to engine
 	 */
 	public void setHosts(List<Host> hosts) {
 		log.debug("setHosts: {}", hosts.size());
@@ -790,8 +779,7 @@ public class TomcatLoader extends LoaderBase implements
 	/**
 	 * Setter for realm.
 	 * 
-	 * @param realm
-	 *            Realm
+	 * @param realm Realm
 	 */
 	public void setRealm(Realm realm) {
 		log.info("Setting realm: {}", realm.getClass().getName());
@@ -801,8 +789,7 @@ public class TomcatLoader extends LoaderBase implements
 	/**
 	 * Set additional valves.
 	 * 
-	 * @param valves
-	 *            List of valves
+	 * @param valves List of valves
 	 */
 	public void setValves(List<Valve> valves) {
 		log.debug("setValves: {}", valves.size());
@@ -812,7 +799,7 @@ public class TomcatLoader extends LoaderBase implements
 	/**
 	 * Set connection properties for the connector
 	 * 
-	 * @param mappings
+	 * @param props additional properties to set
 	 */
 	public void setConnectionProperties(Map<String, String> props) {
 		log.debug("Connection props: {}", props.size());

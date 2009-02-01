@@ -44,8 +44,8 @@ public class Bootstrap {
 	/**
 	 * BootStrapping entry point
 	 * 
-	 * @param args
-	 * @throws Exception
+	 * @param args command line arguments
+	 * @throws Exception if error occurs
 	 */
 	public static void main(String[] args) throws Exception {
 		//retrieve path elements from system properties
@@ -177,8 +177,7 @@ public class Bootstrap {
 	
 	/**
 	 * Launch Red5 under it's own classloader
-	 * 
-	 * @param loader
+	 *  
 	 */
 	public void launch() {
 		try {	

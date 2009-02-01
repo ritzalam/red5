@@ -169,8 +169,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 * note that return values (e.g. from {@link IApplication#appStart(IScope)})
 	 * will be ignored for listeners.
 	 * 
-	 * @param listener
-	 * 			object to register
+	 * @param listener object to register
 	 */
 	public void addListener(IApplication listener) {
 		listeners.add(listener);
@@ -180,8 +179,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 * Unregister handler that will not get notified about application events
 	 * any longer.
 	 * 
-	 * @param listener
-	 * 			object to unregister
+	 * @param listener object to unregister
 	 */
 	public void removeListener(IApplication listener) {
 		listeners.remove(listener);
@@ -259,8 +257,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 * The passed object will be available as "application" property of the
 	 * information object that is returned to the caller. 
 	 * 
-	 * @param reason
-	 * 			Additional error message to return to client-side Flex/Flash application
+	 * @param reason Additional error message to return to client-side Flex/Flash application
 	 * @return never returns
      *
      * @throws org.red5.server.exception.ClientRejectedException
@@ -278,12 +275,9 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 * {@link ApplicationAdapter#roomConnect(IConnection, Object[])} in your
 	 * application to make it act the way you want.
 	 * 
-	 * @param conn
-	 *            Connection object
-	 * @param scope
-	 *            Scope
-	 * @param params
-	 *            List of params passed to connection handler
+	 * @param conn Connection object
+	 * @param scope Scope
+	 * @param params List of params passed to connection handler
 	 * @return <code>true</code> if connect is successful, <code>false</code>
 	 *         otherwise
 	 */
@@ -313,8 +307,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	/**
 	 * Starts scope. Scope can be both application or room level.
 	 * 
-	 * @param scope
-	 *            Scope object
+	 * @param scope Scope object
 	 * @return <code>true</code> if scope can be started, <code>false</code>
 	 *         otherwise. See {@link AbstractScopeAdapter#start(IScope)} for
 	 *         details.
@@ -336,10 +329,8 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 * scope is room or app level scope, this method distinguishes it and acts
 	 * accordingly.
 	 * 
-	 * @param conn
-	 *            Connection object
-	 * @param scope
-	 *            Scope
+	 * @param conn Connection object
+	 * @param scope Scope
 	 */
 	@Override
 	public void disconnect(IConnection conn, IScope scope) {
@@ -369,8 +360,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 * level). This method calls {@link ApplicationAdapter#appStop(IScope)} or
 	 * {@link ApplicationAdapter#roomStop(IScope)} handlers respectively.
 	 * 
-	 * @param scope
-	 *            Scope to stop
+	 * @param scope Scope to stop
 	 */
 	@Override
 	public void stop(IScope scope) {
@@ -389,10 +379,8 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 * {@link ApplicationAdapter#roomJoin(IClient, IScope)} handlers
 	 * respectively.
 	 * 
-	 * @param client
-	 *            Client object
-	 * @param scope
-	 *            Scope object
+	 * @param client Client object
+	 * @param scope Scope object
 	 */
 	@Override
 	public boolean join(IClient client, IScope scope) {
@@ -413,10 +401,8 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 * {@link ApplicationAdapter#roomLeave(IClient, IScope)} handlers
 	 * respectively.
 	 * 
-	 * @param client
-	 *            Client object
-	 * @param scope
-	 *            Scope object
+	 * @param client Client object
+	 * @param scope Scope object
 	 */
 	@Override
 	public void leave(IClient client, IScope scope) {
@@ -450,8 +436,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	/**
 	 * Handler method. Called when application is stopped.
 	 * 
-	 * @param app
-	 *            Scope object
+	 * @param app Scope object
 	 */
 	public void appStop(IScope app) {
 		log.debug("appStop: {}", app);
@@ -463,8 +448,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	/**
 	 * Handler method. Called when room scope is started.
 	 * 
-	 * @param room
-	 *            Room scope
+	 * @param room Room scope
 	 * @return		Boolean value
 	 */
 	public boolean roomStart(IScope room) {
@@ -479,8 +463,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	/**
 	 * Handler method. Called when room scope is stopped.
 	 * 
-	 * @param room
-	 *            Room scope.
+	 * @param room Room scope.
 	 */
 	public void roomStop(IScope room) {
 		log.debug("roomStop: {}", room);
@@ -507,10 +490,8 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 * <p><strong>Server-side:</strong><br /> 
 	 * <code>if (params.length > 0) System.out.println("Theme selected: " + params[0]);</code></p>
 	 * 
-	 * @param conn
-	 *            Connection object
-	 * @param params
-	 *            List of parameters after connection URL passed to
+	 * @param conn Connection object
+	 * @param params List of parameters after connection URL passed to
 	 *            <code>NetConnection.connect</code> method.
 	 * @return			Boolean value
 	 */
@@ -533,10 +514,8 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 * See {@link ApplicationAdapter#appConnect(IConnection, Object[])} for code
 	 * example.
 	 * 
-	 * @param conn
-	 *            Connection object
-	 * @param params
-	 *            List of params passed to room scope
+	 * @param conn Connection object
+	 * @param params List of params passed to room scope
 	 * @return			Boolean value
 	 */
 	public boolean roomConnect(IConnection conn, Object[] params) {
@@ -551,8 +530,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 * Handler method. Called every time client disconnects from the
 	 * application.
 	 * 
-	 * @param conn
-	 *            Disconnected connection object
+	 * @param conn Disconnected connection object
 	 */
 	public void appDisconnect(IConnection conn) {
 		log.debug("appDisconnect: {}", conn);
@@ -564,8 +542,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	/**
 	 * Handler method. Called every time client disconnects from the room.
 	 * 
-	 * @param conn
-	 *            Disconnected connection object
+	 * @param conn Disconnected connection object
 	 */
 	public void roomDisconnect(IConnection conn) {
 		log.debug("roomDisconnect: {}", conn);
@@ -585,10 +562,8 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	/**
 	 * Handler method. Called every time client leaves application scope.
 	 * 
-	 * @param client
-	 *            Client object that left
-	 * @param app
-	 *            Application scope
+	 * @param client Client object that left
+	 * @param app Application scope
 	 */
 	public void appLeave(IClient client, IScope app) {
 		log.debug("appLeave: {} << {}", client, app);
@@ -634,8 +609,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 * This is required for some FLV player to work because they require the
 	 * "onBWDone" method to be called on the connection.
 	 * 
-	 * @param conn
-	 * 			the connection to measure the bandwidth for 
+	 * @param conn the connection to measure the bandwidth for 
 	 */
 	public void measureBandwidth(IConnection conn) {
 		// dummy for now, this makes flv player work
@@ -657,12 +631,9 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 * (just use <code>true</code> ), otherwise perfer usage of transient for
 	 * extra performance.
 	 * 
-	 * @param scope
-	 *            Scope that shared object belongs to
-	 * @param name
-	 *            Name of SharedObject
-	 * @param persistent
-	 *            Whether SharedObject instance should be persistent or not
+	 * @param scope Scope that shared object belongs to
+	 * @param name Name of SharedObject
+	 * @param persistent Whether SharedObject instance should be persistent or not
 	 * @return					<code>true</code> if SO was created, <code>false</code> otherwise
 	 */
 	public boolean createSharedObject(IScope scope, String name,
@@ -676,10 +647,8 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
     /**
 	 * Returns shared object from given scope by name.
 	 * 
-	 * @param scope
-	 *            Scope that shared object belongs to
-	 * @param name
-	 *            Name of SharedObject
+	 * @param scope Scope that shared object belongs to
+	 * @param name Name of SharedObject
 	 * @return					Shared object instance with name given
 	 */
 	public ISharedObject getSharedObject(IScope scope, String name) {
@@ -692,12 +661,9 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	/**
 	 * Returns shared object from given scope by name.
 	 * 
-	 * @param scope
-	 *            Scope that shared object belongs to
-	 * @param name
-	 *            Name of SharedObject
-	 * @param persistent
-	 *            Whether SharedObject instance should be persistent or not
+	 * @param scope Scope that shared object belongs to
+	 * @param name Name of SharedObject
+	 * @param persistent Whether SharedObject instance should be persistent or not
 	 * @return					Shared object instance with name given
 	 */
 	public ISharedObject getSharedObject(IScope scope, String name,
@@ -711,8 +677,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	/**
 	 * Returns available SharedObject names as List
 	 * 
-	 * @param scope
-	 *            Scope that SO belong to
+	 * @param scope Scope that SO belong to
 	 */
 	public Set<String> getSharedObjectNames(IScope scope) {
 		ISharedObjectService service = (ISharedObjectService) getScopeService(
@@ -724,10 +689,8 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	/**
 	 * Checks whether there's a SO with given scope and name
 	 * 
-	 * @param scope
-	 *            Scope that SO belong to
-	 * @param name
-	 *            Name of SharedObject
+	 * @param scope Scope that SO belong to
+	 * @param name Name of SharedObject
 	 */
 	public boolean hasSharedObject(IScope scope, String name) {
 		ISharedObjectService service = (ISharedObjectService) getScopeService(
@@ -777,10 +740,8 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	/**
 	 * Check whether scope has VOD stream with given name or not
 	 * 
-	 * @param scope
-	 *            Scope
-	 * @param name
-	 *            VOD stream name
+	 * @param scope Scope
+	 * @param name VOD stream name
 	 * 
 	 * @return <code>true</code> if scope has VOD stream with given name,
 	 *         <code>false</code> otherwise.
@@ -794,10 +755,8 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	/**
 	 * Returns VOD stream with given name from specified scope.
 	 * 
-	 * @param scope
-	 *            Scope object
-	 * @param name
-	 *            VOD stream name
+	 * @param scope Scope object
+	 * @param name VOD stream name
 	 * 
 	 * @return IOnDemandStream object that represents stream that can be played
 	 *         on demand, seekable and so forth. See {@link IOnDemandStream} for
@@ -814,10 +773,8 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 * Returns subscriber stream with given name from specified scope.
 	 * Subscriber stream is a stream that clients can subscribe to.
 	 * 
-	 * @param scope
-	 *            Scope
-	 * @param name
-	 *            Stream name
+	 * @param scope Scope
+	 * @param name Stream name
 	 * 
 	 * @return	ISubscriberStream object
 	 */
@@ -834,10 +791,8 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 * periodically. We store this service in the scope as it can be shared
 	 * across all rooms of the applications.
 	 * 
-	 * @param interval
-	 *            Time interval to run the scheduled job
-	 * @param job
-	 *            Scheduled job object
+	 * @param interval Time interval to run the scheduled job
+	 * @param job Scheduled job object
 	 * 
 	 * @return	Name of the scheduled job
 	 */
@@ -852,11 +807,9 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 * Adds a scheduled job that's gonna be executed once. Please note that the
 	 * jobs are not saved if Red5 is restarted in the meantime.
 	 * 
-	 * @param timeDelta
-	 *            Time offset in milliseconds from the current date when given
+	 * @param timeDelta Time offset in milliseconds from the current date when given
 	 *            job should be run
-	 * @param job
-	 *            Scheduled job object
+	 * @param job Scheduled job object
 	 * 
 	 * @return	Name of the scheduled job
 	 */
@@ -871,10 +824,8 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 * Adds a scheduled job that's gonna be executed once on given date. Please
 	 * note that the jobs are not saved if Red5 is restarted in the meantime.
 	 * 
-	 * @param date
-	 *            When to run scheduled job
-	 * @param job
-	 *            Scheduled job object
+	 * @param date When to run scheduled job
+	 * @param job Scheduled job object
 	 * 
 	 * @return	Name of the scheduled job
 	 */
@@ -889,14 +840,10 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 * Adds a scheduled job which starts after the specified
 	 * delay period and fires periodically.
 	 * 
-	 * @param interval 
-	 * 			time in milliseconds between two notifications of the job
-	 * @param job
-	 * 			the job to trigger periodically
-	 * @param delay
-	 * 			time in milliseconds to pass before first execution.
-	 * @return
-	 * 			the name of the scheduled job
+	 * @param interval  time in milliseconds between two notifications of the job
+	 * @param job the job to trigger periodically
+	 * @param delay time in milliseconds to pass before first execution.
+	 * @return the name of the scheduled job
 	 */
 	public String addScheduledJobAfterDelay(int interval, IScheduledJob job, int delay) {
 		ISchedulingService service = (ISchedulingService) getScopeService(
@@ -908,8 +855,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	/**
 	 * Pauses a scheduled job
 	 * 
-	 * @param name
-	 *            Scheduled job name
+	 * @param name Scheduled job name
 	 */
 	public void pauseScheduledJob(String name) {
 		ISchedulingService service = (ISchedulingService) getScopeService(
@@ -921,8 +867,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	/**
 	 * Resumes a scheduled job
 	 * 
-	 * @param name
-	 *            Scheduled job name
+	 * @param name Scheduled job name
 	 */
 	public void resumeScheduledJob(String name) {
 		ISchedulingService service = (ISchedulingService) getScopeService(
@@ -934,8 +879,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	/**
 	 * Removes scheduled job from scheduling service list
 	 * 
-	 * @param name
-	 *            Scheduled job name
+	 * @param name Scheduled job name
 	 */
 	public void removeScheduledJob(String name) {
 		ISchedulingService service = (ISchedulingService) getScopeService(
@@ -945,7 +889,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	}
 
 	/**
-	 * Retuns list of scheduled job names
+	 * Returns list of scheduled job names
 	 * 
 	 * @return	List of scheduled job names as list of Strings.
 	 */
@@ -960,8 +904,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	/**
 	 * Returns stream length. This is a hook so it may be removed.
 	 * 
-	 * @param name
-	 *            Stream name
+	 * @param name Stream name
 	 * @return	Stream length in seconds (?)
 	 */
 	public double getStreamLength(String name) {

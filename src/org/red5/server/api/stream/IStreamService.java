@@ -50,7 +50,7 @@ public interface IStreamService extends IScopeService {
 	/**
 	 * Called by FME.
 	 * 
-	 * @param streamName
+	 * @param streamName stream name
 	 */
 	public void releaseStream(String streamName);
 

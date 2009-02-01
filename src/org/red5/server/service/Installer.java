@@ -74,7 +74,7 @@ public final class Installer {
 	
 	/**
 	 * Returns the LoaderMBean.
-	 * @return
+	 * @return LoaderMBean
 	 */
 	public LoaderMBean getLoader() {
 		MBeanServer mbs = JMXFactory.getMBeanServer();
@@ -94,7 +94,7 @@ public final class Installer {
 	/**
 	 * Returns a Map containing all of the application wars in the snapshot repository.
 	 * 
-	 * @return
+	 * @return async message
 	 */
 	public AsyncMessage getApplicationList() {
 		AcknowledgeMessage result = new AcknowledgeMessage();
@@ -143,8 +143,8 @@ public final class Installer {
 	/**
 	 * Installs a given application.
 	 * 
-	 * @param applicationWarName
-	 * @return
+	 * @param applicationWarName app war name
+	 * @return true if installed; false otherwise
 	 */
 	public boolean install(String applicationWarName) {
 		IConnection conn = Red5.getConnectionLocal();
@@ -270,8 +270,8 @@ public final class Installer {
 	/**
 	 * Un-installs a given application.
 	 * 
-	 * @param applicationName
-	 * @return
+	 * @param applicationName name to uninstall
+	 * @return true if uninstalled; else false
 	 */
 	public boolean uninstall(String applicationName) {
 		ServiceUtils.invokeOnConnection(Red5.getConnectionLocal(), "onAlert", new Object[]{"Uninstall function not available"});

@@ -40,7 +40,7 @@ public interface IStream {
 	/**
 	 * Get Codec info for a stream.
 	 * 
-	 * @return
+	 * @return codec info
 	 */
 	IStreamCodecInfo getCodecInfo();
 

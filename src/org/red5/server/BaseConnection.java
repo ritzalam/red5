@@ -193,7 +193,7 @@ public abstract class BaseConnection extends AttributeStore implements
 
 	/**
 	 *
-	 * @return
+	 * @return type
 	 */
 	public String getType() {
 		return type;
@@ -201,7 +201,7 @@ public abstract class BaseConnection extends AttributeStore implements
 
 	/**
 	 *
-	 * @return
+	 * @return host
 	 */
 	public String getHost() {
 		return host;
@@ -209,14 +209,14 @@ public abstract class BaseConnection extends AttributeStore implements
 
 	/**
 	 *
-	 * @return
+	 * @return remote address
 	 */
 	public String getRemoteAddress() {
 		return remoteAddress;
 	}
 
 	/**
-	 * @return
+	 * @return remote address
 	 */
 	public List<String> getRemoteAddresses() {
 		return remoteAddresses;
@@ -224,7 +224,7 @@ public abstract class BaseConnection extends AttributeStore implements
 
 	/**
 	 *
-	 * @return
+	 * @return remote port
 	 */
 	public int getRemotePort() {
 		return remotePort;
@@ -232,7 +232,7 @@ public abstract class BaseConnection extends AttributeStore implements
 
 	/**
 	 *
-	 * @return
+	 * @return path
 	 */
 	public String getPath() {
 		return path;
@@ -240,7 +240,7 @@ public abstract class BaseConnection extends AttributeStore implements
 
 	/**
 	 *
-	 * @return
+	 * @return session id
 	 */
 	public String getSessionId() {
 		return sessionId;
@@ -248,7 +248,7 @@ public abstract class BaseConnection extends AttributeStore implements
 
 	/**
 	 * Return connection parameters
-	 * @return
+	 * @return connection parameters
 	 */
 	public Map<String, Object> getConnectParams() {
 		return Collections.unmodifiableMap(params);
@@ -256,7 +256,7 @@ public abstract class BaseConnection extends AttributeStore implements
 
 	/**
 	 *
-	 * @return
+	 * @return client
 	 */
 	public IClient getClient() {
 		return client;
@@ -306,7 +306,7 @@ public abstract class BaseConnection extends AttributeStore implements
 
 	/**
 	 *
-	 * @return
+	 * @return scope
 	 */
 	public IScope getScope() {
 		return scope;
@@ -378,7 +378,7 @@ public abstract class BaseConnection extends AttributeStore implements
 
 	/**
 	 *
-	 * @return
+	 * @return basic scopes
 	 */
 	public Iterator<IBasicScope> getBasicScopes() {
 		return basicScopes.iterator();
@@ -405,19 +405,19 @@ public abstract class BaseConnection extends AttributeStore implements
 
 	/**
 	 *
-	 * @return
+	 * @return bytes read
 	 */
 	public abstract long getReadBytes();
 
 	/**
 	 *
-	 * @return
+	 * @return bytes written
 	 */
 	public abstract long getWrittenBytes();
 
 	/**
 	 *
-	 * @return
+	 * @return messages read
 	 */
 	public long getReadMessages() {
 		return readMessages.get();
@@ -425,7 +425,7 @@ public abstract class BaseConnection extends AttributeStore implements
 
 	/**
 	 *
-	 * @return
+	 * @return messages written
 	 */
 	public long getWrittenMessages() {
 		return writtenMessages.get();
@@ -433,7 +433,7 @@ public abstract class BaseConnection extends AttributeStore implements
 
 	/**
 	 *
-	 * @return
+	 * @return dropped messages
 	 */
 	public long getDroppedMessages() {
 		return droppedMessages.get();
@@ -441,7 +441,7 @@ public abstract class BaseConnection extends AttributeStore implements
 
 	/**
 	 *
-	 * @return
+	 * @return pending messages
 	 */
 	public long getPendingMessages() {
 		return 0;
@@ -449,8 +449,8 @@ public abstract class BaseConnection extends AttributeStore implements
 
 	/**
 	 *
-	 * @param streamId
-	 * @return
+	 * @param streamId the id you want to know about
+	 * @return pending messages for this streamId
 	 */
 	public long getPendingVideoMessages(int streamId) {
 		return 0;

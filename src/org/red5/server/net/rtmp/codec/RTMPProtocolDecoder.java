@@ -96,8 +96,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	/**
 	 * Setter for deserializer.
 	 * 
-	 * @param deserializer
-	 *            Deserializer
+	 * @param deserializer Deserializer
 	 */
 	public void setDeserializer(Deserializer deserializer) {
 		this.deserializer = deserializer;
@@ -187,13 +186,10 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	/**
 	 * Decodes byte buffer.
 	 * 
-	 * @param state
-	 *            Protocol state
-	 * @param in
-	 *            Input byte buffer
+	 * @param state Protocol state
+	 * @param in Input byte buffer
 	 * @return Decoded object
-	 * @throws ProtocolException
-	 *             Exception during decoding
+	 * @throws ProtocolException Exception during decoding
 	 */
 	public Object decode(ProtocolState state, ByteBuffer in)
 			throws ProtocolException {
@@ -224,10 +220,8 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	/**
 	 * Decodes handshake message.
 	 * 
-	 * @param rtmp
-	 *            RTMP protocol state
-	 * @param in
-	 *            Byte buffer
+	 * @param rtmp RTMP protocol state
+	 * @param in Byte buffer
 	 * @return Byte buffer
 	 */
 	public ByteBuffer decodeHandshake(RTMP rtmp, ByteBuffer in) {
@@ -302,10 +296,8 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	/**
 	 * Decodes packet.
 	 * 
-	 * @param rtmp
-	 *            RTMP protocol state
-	 * @param in
-	 *            Byte buffer
+	 * @param rtmp RTMP protocol state
+	 * @param in Byte buffer
 	 * @return Byte buffer
 	 */
 	public Packet decodePacket(RTMP rtmp, ByteBuffer in) {
@@ -434,10 +426,8 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	/**
 	 * Decodes packet header.
 	 * 
-	 * @param in
-	 *            Input byte buffer
-	 * @param lastHeader
-	 *            Previous header
+	 * @param in Input byte buffer
+	 * @param lastHeader Previous header
 	 * @return Decoded header
 	 */
 	public Header decodeHeader(ByteBuffer in, Header lastHeader) {
@@ -511,12 +501,9 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	/**
 	 * Decodes RTMP message event.
 	 * 
-	 * @param rtmp
-	 *            RTMP protocol state
-	 * @param header
-	 *            RTMP header
-	 * @param in
-	 *            Input byte buffer
+	 * @param rtmp RTMP protocol state
+	 * @param header RTMP header
+	 * @param in Input byte buffer
 	 * @return RTMP event
 	 */
 	public IRTMPEvent decodeMessage(RTMP rtmp, Header header, ByteBuffer in) {
@@ -889,8 +876,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	/**
 	 * Decodes ping event.
 	 * 
-	 * @param in
-	 *            Byte buffer
+	 * @param in Byte buffer
 	 * @return Ping event
 	 */
 	public Ping decodePing(ByteBuffer in) {
@@ -929,10 +915,8 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	/**
 	 * Decodes FlexMessage event.
 	 * 
-	 * @param in
-	 *            Byte buffer
-	 * @param rtmp
-	 *            RTMP protocol state
+	 * @param in Byte buffer
+	 * @param rtmp RTMP protocol state
 	 * @return FlexMessage event
 	 */
 	public FlexMessage decodeFlexMessage(ByteBuffer in, RTMP rtmp) {

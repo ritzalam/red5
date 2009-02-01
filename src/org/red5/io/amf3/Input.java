@@ -61,7 +61,11 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		/** Names of the attributes of the class. */
 		protected List<String> attributeNames;
 		
-		/** Create new informations about a class. */
+		/** Create new informations about a class. 
+		 * @param className class name
+		 * @param type type
+		 * @param attributeNames attributes
+		 */
 		public ClassReference(String className, int type, List<String> attributeNames) {
 			this.className = className;
 			this.type = type;
@@ -158,8 +162,8 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	/**
 	 * Creates Input object for AMF3 from byte buffer and initializes references
 	 * from passed RefStorage
-	 * @param buf
-	 * @param refStorage
+	 * @param buf buffer
+	 * @param refStorage ref storage
 	 */
 	public Input(ByteBuffer buf, RefStorage refStorage) {
     	super(buf);

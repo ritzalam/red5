@@ -39,16 +39,14 @@ public interface ISharedObjectSecurityService extends IScopeService {
 	/**
 	 * Add handler that protects shared objects.
 	 * 
-	 * @param handler
-	 * 			Handler to add.
+	 * @param handler Handler to add.
 	 */
 	public void registerSharedObjectSecurity(ISharedObjectSecurity handler);
 	
 	/**
 	 * Remove handler that protects shared objects.
 	 * 
-	 * @param handler
-	 * 			Handler to remove.
+	 * @param handler Handler to remove.
 	 */
 	public void unregisterSharedObjectSecurity(ISharedObjectSecurity handler);
 	

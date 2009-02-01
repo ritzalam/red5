@@ -276,7 +276,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 	 * @param item                  Playlist item
 	 * @throws StreamNotFoundException       Stream not found
 	 * @throws IllegalStateException         Stream is in stopped state
-	 * @throws IOException
+	 * @throws IOException Stream had io exception
 	 */
 	public void play(IPlayItem item) throws StreamNotFoundException,
 			IllegalStateException, IOException {
@@ -289,7 +289,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 	 * @param withReset				Send reset status before playing.
 	 * @throws StreamNotFoundException       Stream not found
 	 * @throws IllegalStateException         Stream is in stopped state
-	 * @throws IOException
+	 * @throws IOException Stream had IO exception
 	 */
 	public synchronized void play(IPlayItem item, boolean withReset)
 			throws StreamNotFoundException, IllegalStateException, IOException {
@@ -534,6 +534,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 	 * Seek position in file
 	 * @param position                  Position
 	 * @throws IllegalStateException    If stream is in stopped state
+	 * @throws OperationNotSupportedException If this object doesn't support the operation.
 	 */
 	public synchronized void seek(int position) throws IllegalStateException,
 			OperationNotSupportedException {
@@ -1396,7 +1397,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 	/**
 	 * Returns true if the engine currently receives audio.
 	 * 
-	 * @return
+	 * @return engine receives audio
 	 */
 	public boolean receiveAudio() {
 		return receiveAudio;
@@ -1406,7 +1407,8 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 	 * Returns true if the engine currently receives audio and
 	 * sets the new value.
 	 * 
-	 * @return
+	 * @param receive new value
+	 * @return old value
 	 */
 	public boolean receiveAudio(boolean receive) {
 		boolean oldValue = receiveAudio;
@@ -1420,7 +1422,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 	/**
 	 * Returns true if the engine currently receives video.
 	 * 
-	 * @return
+	 * @return receive video
 	 */
 	public boolean receiveVideo() {
 		return receiveVideo;
@@ -1429,8 +1431,8 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 	/**
 	 * Returns true if the engine currently receives video and
 	 * sets the new value.
-	 * 
-	 * @return
+	 * @param receive new value
+	 * @return old value
 	 */
 	public boolean receiveVideo(boolean receive) {
 		boolean oldValue = receiveVideo;

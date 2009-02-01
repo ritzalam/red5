@@ -32,8 +32,7 @@ public interface IScopeAware {
 	/**
 	 * Set the scope the object is located in.
 	 * 
-	 * @param scope
-	 * 			Scope for this object
+	 * @param scope Scope for this object
 	 */
 	public void setScope(IScope scope);
 

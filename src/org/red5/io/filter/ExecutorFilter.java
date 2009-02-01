@@ -69,8 +69,7 @@ public class ExecutorFilter extends IoFilterAdapter {
 	/**
 	 * Creates a new instance with the specified <tt>executor</tt>.
 	 * 
-	 * @param executor
-	 *            Executor
+	 * @param executor Executor
 	 */
 	public ExecutorFilter(Executor executor) {
 		if (executor == null) {
@@ -84,12 +83,9 @@ public class ExecutorFilter extends IoFilterAdapter {
 	 * Creates new instance with specified core pool size, maximum pool size and
 	 * keep alive time
 	 * 
-	 * @param corePoolSize
-	 *            Core pool size
-	 * @param maximumPoolSize
-	 *            Maximum pool size
-	 * @param keepAliveTime
-	 *            Keep alive time (in seconds)
+	 * @param corePoolSize Core pool size
+	 * @param maximumPoolSize Maximum pool size
+	 * @param keepAliveTime Keep alive time (in seconds)
 	 */
 	public ExecutorFilter(int corePoolSize, int maximumPoolSize,
 			long keepAliveTime) {

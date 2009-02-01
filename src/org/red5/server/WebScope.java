@@ -102,8 +102,7 @@ public class WebScope extends Scope implements ServletContextAware {
 	/**
 	 * Setter for global scope. Sets persistence class.
 	 * 
-	 * @param globalScope
-	 *            Red5 global scope
+	 * @param globalScope Red5 global scope
 	 */
 	public void setGlobalScope(IGlobalScope globalScope) {
 		// XXX: this is called from nowhere, remove?
@@ -132,8 +131,7 @@ public class WebScope extends Scope implements ServletContextAware {
 	/**
 	 * Setter for server
 	 * 
-	 * @param server
-	 *            Server instance
+	 * @param server Server instance
 	 */
 	public void setServer(IServer server) {
 		log.info("Set server {}", server);
@@ -143,8 +141,7 @@ public class WebScope extends Scope implements ServletContextAware {
 	/**
 	 * Servlet context
 	 * 
-	 * @param servletContext
-	 *            Servlet context
+	 * @param servletContext Servlet context
 	 */
 	public void setServletContext(ServletContext servletContext) {
 		this.servletContext = servletContext;
@@ -153,8 +150,7 @@ public class WebScope extends Scope implements ServletContextAware {
 	/**
 	 * Setter for context path
 	 * 
-	 * @param contextPath
-	 *            Context path
+	 * @param contextPath Context path
 	 */
 	public void setContextPath(String contextPath) {
 		this.contextPath = contextPath;
@@ -164,8 +160,7 @@ public class WebScope extends Scope implements ServletContextAware {
 	/**
 	 * Setter for virtual hosts. Creates array of hostnames.
 	 * 
-	 * @param virtualHosts
-	 *            Virtual hosts list as string
+	 * @param virtualHosts Virtual hosts list as string
 	 */
 	public void setVirtualHosts(String virtualHosts) {
 		this.virtualHosts = virtualHosts;
@@ -275,7 +270,7 @@ public class WebScope extends Scope implements ServletContextAware {
 	/**
 	 * Is the scope currently shutting down?
 	 * 
-	 * @return
+	 * @return is shutting down
 	 */
 	public boolean isShuttingDown() {
 		return shuttingDown;

@@ -122,7 +122,7 @@ public class FLVWriter implements ITagWriter {
 	 * Creates writer implementation with given file output stream and last tag
 	 *
 	 * @param fos               File output stream
-     * @param lastTag           Last tag
+     * @param append            true if append to existing file
 	 */
 	public FLVWriter(FileOutputStream fos, boolean append) {
 		this.fos = fos;
@@ -136,7 +136,7 @@ public class FLVWriter implements ITagWriter {
      * FLV.java uses this constructor so we have access to the file object
 	 *
 	 * @param file              File output stream
-     * @param lastTag           Last tag
+     * @param append            true if append to existing file
 	 */
 	public FLVWriter(File file, boolean append) {
 		this.append = append;

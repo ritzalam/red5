@@ -532,7 +532,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 	 * Convenience method to allow XML text to be used, instead
 	 * of requiring an XML Document.
 	 * 
-	 * @param xml
+	 * @param xml xml to write
 	 */
 	public void writeXML(String xml) {
 		buf.put(AMF.TYPE_XML);

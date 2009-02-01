@@ -46,8 +46,8 @@ public class ClientDetailsException extends RuntimeException {
 	 * Create new exception object from message and parameters. By default, no
 	 * stacktrace is returned to the client.
 	 * 
-	 * @param message
-	 * @param params
+	 * @param message message
+	 * @param params parameters for message
 	 */
 	public ClientDetailsException(String message, Object params) {
 		this(message, params, false);
@@ -56,9 +56,9 @@ public class ClientDetailsException extends RuntimeException {
 	/**
 	 * Create new exception object from message and parameters with optional stacktrace.
 	 * 
-	 * @param message
-	 * @param params
-	 * @param includeStacktrace
+	 * @param message message
+	 * @param params parameters
+	 * @param includeStacktrace whether or not to include a stack trace
 	 */
 	public ClientDetailsException(String message, Object params, boolean includeStacktrace) {
 		super(message);
@@ -69,7 +69,7 @@ public class ClientDetailsException extends RuntimeException {
 	/**
 	 * Get parameters to return to the client.
 	 * 
-	 * @return
+	 * @return parameters
 	 */
 	public Object getParameters() {
 		return parameters;
@@ -78,7 +78,7 @@ public class ClientDetailsException extends RuntimeException {
 	/**
 	 * Should the stacktrace returned to the client?
 	 * 
-	 * @return
+	 * @return stacktrace
 	 */
 	public boolean includeStacktrace() {
 		return stacktrace;

@@ -68,7 +68,7 @@ public class FlexMessagingService {
 	/**
 	 * Setup available end points.
 	 * 
-	 * @param endPoints
+	 * @param endpoints end points
 	 */
 	public void setEndpoints(Map<String, Object> endpoints) {
 		this.endpoints = endpoints;
@@ -78,7 +78,7 @@ public class FlexMessagingService {
 	/**
 	 * Set the service invoker to use.
 	 * 
-	 * @param serviceInvoker
+	 * @param serviceInvoker service invoker
 	 */
 	public void setServiceInvoker(IServiceInvoker serviceInvoker) {
 		this.serviceInvoker = serviceInvoker;
@@ -87,11 +87,11 @@ public class FlexMessagingService {
 	/**
 	 * Construct error message.
 	 * 
-	 * @param request
-	 * @param faultCode
-	 * @param faultString
-	 * @param faultDetail
-	 * @return
+	 * @param request request
+	 * @param faultCode fault code
+	 * @param faultString fault string
+	 * @param faultDetail fault detail
+	 * @return error message
 	 */
 	public static ErrorMessage returnError(AbstractMessage request, String faultCode, String faultString, String faultDetail) {
 		ErrorMessage result = new ErrorMessage();
@@ -108,11 +108,11 @@ public class FlexMessagingService {
 	/**
 	 * Construct error message from exception.
 	 * 
-	 * @param request
-	 * @param faultCode
-	 * @param faultString
-	 * @param error
-	 * @return
+	 * @param request request
+	 * @param faultCode fault code
+	 * @param faultString fautl string
+	 * @param error error
+	 * @return message
 	 */
 	public static ErrorMessage returnError(AbstractMessage request, String faultCode, String faultString, Throwable error) {
 		ErrorMessage result = returnError(request, faultCode, faultString, "");
@@ -135,8 +135,8 @@ public class FlexMessagingService {
 	 * 
 	 * @see <a href="http://livedocs.adobe.com/flex/2/langref/mx/rpc/remoting/mxml/RemoteObject.html">Adobe Livedocs (external)</a>
 	 *
-	 * @param msg
-	 * @return
+	 * @param msg message
+	 * @return aynsc message
 	 */
 	public AsyncMessage handleRequest(RemotingMessage msg) {
 		setClientId(msg);
@@ -180,8 +180,8 @@ public class FlexMessagingService {
 	/**
 	 * Handle command message request.
 	 * 
-	 * @param msg
-	 * @return
+	 * @param msg message
+	 * @return async message
 	 */
 	public AsyncMessage handleRequest(CommandMessage msg) {
 		setClientId(msg);
@@ -252,8 +252,8 @@ public class FlexMessagingService {
 	/**
 	 * Handle messages related to shared objects.
 	 * 
-	 * @param msg
-	 * @return
+	 * @param msg message
+	 * @return async message
 	 */
 	@SuppressWarnings("unchecked")
 	public AsyncMessage handleRequest(DataMessage msg) {
@@ -293,8 +293,8 @@ public class FlexMessagingService {
 	/**
 	 * Fallback method to handle arbitrary messages.
 	 * 
-	 * @param msg
-	 * @return
+	 * @param msg message
+	 * @return error message
 	 */
 	public ErrorMessage handleRequest(AbstractMessage msg) {
 		setClientId(msg);

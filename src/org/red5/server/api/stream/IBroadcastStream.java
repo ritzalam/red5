@@ -65,7 +65,7 @@ public interface IBroadcastStream extends IStream {
 	 * Get the provider corresponding to this stream. Provider objects are
 	 * object that
 	 * 
-	 * @return
+	 * @return the provider
 	 */
 	IProvider getProvider();
 
@@ -88,16 +88,14 @@ public interface IBroadcastStream extends IStream {
 	/**
 	 * Add a listener to be notified about received packets.
 	 * 
-	 * @param listener
-	 * 				the listener to add
+	 * @param listener the listener to add
 	 */
 	public void addStreamListener(IStreamListener listener);
 	
 	/**
 	 * Remove a listener from being notified about received packets.
 	 * 
-	 * @param listener
-	 * 				the listener to remove
+	 * @param listener the listener to remove
 	 */
 	public void removeStreamListener(IStreamListener listener);
 	

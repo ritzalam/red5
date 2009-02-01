@@ -87,8 +87,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 	/**
 	 * Setter for server object.
 	 * 
-	 * @param server
-	 *            Red5 server instance
+	 * @param server Red5 server instance
 	 */
 	public void setServer(IServer server) {
 		this.server = server;
@@ -97,8 +96,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 	/**
 	 * Setter for status object service.
 	 * 
-	 * @param statusObjectService
-	 *            Status object service.
+	 * @param statusObjectService Status object service.
 	 */
 	public void setStatusObjectService(StatusObjectService statusObjectService) {
 		this.statusObjectService = statusObjectService;

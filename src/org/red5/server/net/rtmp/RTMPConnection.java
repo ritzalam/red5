@@ -229,8 +229,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/**
 	 * Creates anonymous RTMP connection without scope.
 	 * 
-	 * @param type
-	 *            Connection type
+	 * @param type Connection type
 	 */
 	public RTMPConnection(String type) {
 		// We start with an anonymous connection without a scope.
@@ -329,14 +328,10 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/**
 	 * Initialize connection.
 	 * 
-	 * @param host
-	 *            Connection host
-	 * @param path
-	 *            Connection path
-	 * @param sessionId
-	 *            Connection session id
-	 * @param params
-	 *            Params passed from client
+	 * @param host Connection host
+	 * @param path Connection path
+	 * @param sessionId Connection session id
+	 * @param params Params passed from client
 	 */
 	public void setup(String host, String path, String sessionId,
 			Map<String, Object> params) {
@@ -375,8 +370,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/**
 	 * Checks whether channel is used.
 	 * 
-	 * @param channelId
-	 *            Channel id
+	 * @param channelId Channel id
 	 * @return <code>true</code> if channel is in use, <code>false</code>
 	 *         otherwise
 	 */
@@ -387,8 +381,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/**
 	 * Return channel by id.
 	 * 
-	 * @param channelId
-	 *            Channel id
+	 * @param channelId Channel id
 	 * @return Channel by id
 	 */
 	public Channel getChannel(int channelId) {
@@ -403,8 +396,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/**
 	 * Closes channel.
 	 * 
-	 * @param channelId
-	 *            Channel id
+	 * @param channelId Channel id
 	 */
 	public void closeChannel(int channelId) {
 		channels.remove(channelId);
@@ -443,8 +435,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	 * 
 	 * @see org.red5.server.stream.OutputStream
 	 * 
-	 * @param streamId
-	 *            Stream id
+	 * @param streamId Stream id
 	 * @return Output stream object
 	 */
 	public OutputStream createOutputStream(int streamId) {
@@ -589,8 +580,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/**
 	 * Return stream id for given channel id.
 	 * 
-	 * @param channelId
-	 *            Channel id
+	 * @param channelId Channel id
 	 * @return ID of stream that channel belongs to
 	 */
 	public int getStreamIdForChannel(int channelId) {
@@ -603,8 +593,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/**
 	 * Return stream by given channel id.
 	 * 
-	 * @param channelId
-	 *            Channel id
+	 * @param channelId Channel id
 	 * @return Stream that channel belongs to
 	 */
 	public IClientStream getStreamByChannelId(int channelId) {
@@ -705,8 +694,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/**
 	 * Handler for ping event.
 	 * 
-	 * @param ping
-	 *            Ping event context
+	 * @param ping Ping event context
 	 */
 	public void ping(Ping ping) {
 		getChannel(2).write(ping);
@@ -715,16 +703,14 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/**
 	 * Write raw byte buffer.
 	 * 
-	 * @param out
-	 *            Byte buffer
+	 * @param out Byte buffer
 	 */
 	public abstract void rawWrite(ByteBuffer out);
 
 	/**
 	 * Write packet.
 	 * 
-	 * @param out
-	 *            Packet
+	 * @param out Packet
 	 */
 	public abstract void write(Packet out);
 
@@ -750,8 +736,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/**
 	 * Read number of received bytes.
 	 * 
-	 * @param bytes
-	 *            Number of bytes
+	 * @param bytes Number of bytes
 	 */
 	public void receivedBytesRead(int bytes) {
 		getWriteLock().lock();
@@ -798,10 +783,8 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/**
 	 * Register pending call (remote function call that is yet to finish).
 	 * 
-	 * @param invokeId
-	 *            Deferred operation id
-	 * @param call
-	 *            Call service
+	 * @param invokeId Deferred operation id
+	 * @param call Call service
 	 */
 	public void registerPendingCall(int invokeId, IPendingServiceCall call) {
 		pendingCalls.put(invokeId, call);
@@ -1071,8 +1054,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/**
 	 * Setter for ping interval.
 	 * 
-	 * @param pingInterval
-	 *            Interval in ms to ping clients. Set to <code>0</code> to
+	 * @param pingInterval Interval in ms to ping clients. Set to <code>0</code> to
 	 *            disable ghost detection code.
 	 */
 	public void setPingInterval(int pingInterval) {
@@ -1082,8 +1064,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/**
 	 * Setter for maximum inactivity.
 	 * 
-	 * @param maxInactivity
-	 *            Maximum time in ms after which a client is disconnected in
+	 * @param maxInactivity Maximum time in ms after which a client is disconnected in
 	 *            case of inactivity.
 	 */
 	public void setMaxInactivity(int maxInactivity) {
@@ -1118,7 +1099,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/**
 	 * Sets the scheduling service.
 	 * 
-	 * @param schedulingService
+	 * @param schedulingService scheduling service
 	 */
 	public void setSchedulingService(ISchedulingService schedulingService) {
 		getWriteLock().lock();
@@ -1149,8 +1130,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/**
 	 * Registers deferred result.
 	 * 
-	 * @param result
-	 *            Result to register
+	 * @param result Result to register
 	 */
 	protected void registerDeferredResult(DeferredResult result) {
 		getWriteLock().lock();
@@ -1183,8 +1163,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/**
 	 * Set maximum time to wait for valid handshake in milliseconds.
 	 * 
-	 * @param maxHandshakeTimeout
-	 *            Maximum time in milliseconds
+	 * @param maxHandshakeTimeout Maximum time in milliseconds
 	 */
 	public void setMaxHandshakeTimeout(int maxHandshakeTimeout) {
 		this.maxHandshakeTimeout = maxHandshakeTimeout;

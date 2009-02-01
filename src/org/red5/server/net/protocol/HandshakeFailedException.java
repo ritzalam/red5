@@ -29,7 +29,7 @@ public class HandshakeFailedException extends ProtocolException {
     /**
      * Create handshake failed exception with given message
 	 *
-     * @param message
+     * @param message message
      */
 	public HandshakeFailedException(String message) {
 		super(message);

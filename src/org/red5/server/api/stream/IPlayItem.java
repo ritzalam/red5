@@ -30,28 +30,28 @@ public interface IPlayItem {
 	 * Get name of item.
 	 * The VOD or Live stream provider is found according
 	 * to this name.
-	 * @return
+	 * @return the name
 	 */
 	String getName();
 
 	/**
 	 * Start time in milliseconds.
 	 * 
-	 * @return
+	 * @return start time
 	 */
 	long getStart();
 
 	/**
 	 * Play length in milliseconds.
 	 * 
-	 * @return
+	 * @return length in milliseconds
 	 */
 	long getLength();
 
 	/**
 	 * Size in bytes.
 	 * 
-	 * @return
+	 * @return size in bytes
 	 */
 	long getSize();
 	
@@ -61,7 +61,7 @@ public interface IPlayItem {
 	 * This object overrides the default algorithm for finding
 	 * the appropriate VOD or Live stream provider according to
 	 * the item name.
-	 * @return
+	 * @return message input
 	 */
 	IMessageInput getMessageInput();
 }

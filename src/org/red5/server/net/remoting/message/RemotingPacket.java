@@ -54,6 +54,7 @@ public class RemotingPacket {
 
     /**
      * Create remoting packet from list of pending calls
+     * @param headers headers
      * @param calls              List of call objects
      */
     public RemotingPacket(Map<String, Object> headers, List<RemotingCall> calls) {
@@ -64,7 +65,7 @@ public class RemotingPacket {
     /**
      * Get the headers sent with the request.
      * 
-     * @return
+     * @return headers
      */
     public Map<String, Object> getHeaders() {
     	return headers;
@@ -100,7 +101,7 @@ public class RemotingPacket {
     /**
      * Return the encoding of the included calls.
      * 
-     * @return
+     * @return encoding
      */
     public Encoding getEncoding() {
     	List<RemotingCall> calls = getCalls();

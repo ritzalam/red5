@@ -72,8 +72,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements
 	/**
 	 * Setter for handler.
 	 * 
-	 * @param handler
-	 *            RTMP events handler
+	 * @param handler RTMP events handler
 	 */
 	public void setHandler(IRTMPHandler handler) {
 		this.handler = handler;
@@ -82,8 +81,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements
 	/**
 	 * Setter for mode.
 	 * 
-	 * @param mode
-	 *            <code>true</code> if handler should work in server mode,
+	 * @param mode <code>true</code> if handler should work in server mode,
 	 *            <code>false</code> otherwise
 	 */
 	public void setMode(boolean mode) {
@@ -93,8 +91,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements
 	/**
 	 * Setter for codec factory.
 	 * 
-	 * @param codecFactory
-	 *            RTMP protocol codec factory
+	 * @param codecFactory RTMP protocol codec factory
 	 */
 	public void setCodecFactory(ProtocolCodecFactory codecFactory) {
 		this.codecFactory = codecFactory;

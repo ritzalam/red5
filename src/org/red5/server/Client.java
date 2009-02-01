@@ -169,7 +169,7 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 
 	/**
 	 *
-	 * @return
+	 * @return creation time
 	 */
 	public long getCreationTime() {
 		return creationTime;
@@ -181,7 +181,7 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 
 	/**
 	 * Returns the client id
-	 * @return
+	 * @return client id
 	 */
 	public String getId() {
 		return id;
@@ -200,7 +200,7 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 
 	/**
 	 *
-	 * @return
+	 * @return scopes on this client
 	 */
 	public Collection<IScope> getScopes() {
 		return connToScope.values();
@@ -208,7 +208,7 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 
 	/**
 	 * if overriding equals then also do hashCode
-	 * @return
+	 * @return a has code
 	 */
 	@Override
 	public int hashCode() {
@@ -261,7 +261,7 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 
 	/**
 	 *
-	 * @return
+	 * @return string representation of client
 	 */
 	@Override
 	public String toString() {

@@ -30,8 +30,8 @@ public interface IResolver {
 	/**
 	 * Merges the two Meta objects
 	 * 
-	 * @param m1
-	 * @param m2
+	 * @param m1 meta 1
+	 * @param m2 meta 2
 	 * @return IMeta Meta 
 	 */
 	public IMeta resolve(IMeta m1, IMeta m2);

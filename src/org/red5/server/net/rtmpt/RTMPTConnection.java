@@ -106,8 +106,7 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 	/**
 	 * Setter for servlet request.
 	 * 
-	 * @param request
-	 *            Servlet request
+	 * @param request Servlet request
 	 */
 	public void setServletRequest(HttpServletRequest request) {
 		host = request.getLocalName();

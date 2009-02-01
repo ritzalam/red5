@@ -35,6 +35,7 @@ public interface IMessageInput {
 	 * w/o waiting.
 	 * @return The pulled message or <tt>null</tt> if message is
 	 * not available.
+	 * @throws IOException on error
 	 */
 	IMessage pullMessage() throws IOException;
 

@@ -69,7 +69,7 @@ public interface IStreamFilenameGenerator extends IScopeService {
      * 
      * If absolute (ie returns true) simply use <code>new File(generateFilename(scope, name))</code>
      * 
-     * @return
+     * @return true if an absolute path; else false
      */
     public boolean resolvesToAbsolutePath();
 	

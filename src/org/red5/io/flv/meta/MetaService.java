@@ -86,8 +86,7 @@ public class MetaService implements IMetaService {
 	}
 
 	/**
-	 * @param resolver
-	 *            The resolver to set.
+	 * @param resolver The resolver to set.
 	 */
 	public void setResolver(Resolver resolver) {
 		this.resolver = resolver;
@@ -101,8 +100,7 @@ public class MetaService implements IMetaService {
 	}
 
 	/**
-	 * @param deserializer
-	 *            The deserializer to set.
+	 * @param deserializer The deserializer to set.
 	 */
 	public void setDeserializer(Deserializer deserializer) {
 		this.deserializer = deserializer;
@@ -116,8 +114,7 @@ public class MetaService implements IMetaService {
 	}
 
 	/**
-	 * @param serializer
-	 *            The serializer to set.
+	 * @param serializer The serializer to set.
 	 */
 	public void setSerializer(Serializer serializer) {
 		this.serializer = serializer;
@@ -320,8 +317,7 @@ public class MetaService implements IMetaService {
 	}
 
 	/**
-	 * @param file
-	 *            The file to set.
+	 * @param file The file to set.
 	 */
 	public void setFile(File file) {
 		this.file = file;

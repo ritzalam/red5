@@ -41,7 +41,7 @@ public interface IClientStream extends IStream, IBWControllable {
 	/**
 	 * Get stream id allocated in a connection.
 	 * 
-	 * @return
+	 * @return the stream id
 	 */
 	int getStreamId();
 

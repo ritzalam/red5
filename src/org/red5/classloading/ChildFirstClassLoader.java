@@ -141,8 +141,7 @@ public final class ChildFirstClassLoader extends URLClassLoader {
 	 * Override the parent-first resource loading model established by
 	 * java.lang.Classloader with child-first behavior.
 	 * 
-	 * @param name
-	 *            the name of the resource to load, should not be
+	 * @param name the name of the resource to load, should not be
 	 *            <code>null</code>.
 	 * 
 	 * @return a {@link URL} for the resource, or <code>null</code> if it could

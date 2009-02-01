@@ -32,8 +32,8 @@ public interface IMRTMPOriginManager extends IMRTMPManager {
 	 * connections. For persistent connection, the mapping is static while
 	 * for polling connection, the mapping is dynamic and might not be
 	 * honored.
-	 * @param clientId
-	 * @param conn
+	 * @param rtmpConn rtmp connection
+	 * @param mrtmpConn mrtmp connection
 	 */
 	void associate(RTMPConnection rtmpConn, IMRTMPConnection mrtmpConn);
 	

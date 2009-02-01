@@ -143,9 +143,9 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 
 	/**
 	 * Creates reader from file input stream
+	 * @param file file input
 	 * 
-	 * @param stream
-	 *            File input stream source
+	 * @throws FileNotFoundException if not found 
 	 */
 	public MP3Reader(File file) throws FileNotFoundException {
 		this.file = file;

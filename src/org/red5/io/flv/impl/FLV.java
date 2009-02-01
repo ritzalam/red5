@@ -72,8 +72,7 @@ public class FLV implements IFLV {
 	/**
 	 * Create FLV from given file source
 	 * 
-	 * @param file
-	 *            File source
+	 * @param file File source
 	 */
 	public FLV(File file) {
 		this(file, false);
@@ -83,10 +82,8 @@ public class FLV implements IFLV {
 	 * Create FLV from given file source and with specified metadata generation
 	 * option
 	 * 
-	 * @param file
-	 *            File source
-	 * @param generateMetadata
-	 *            Metadata generation option
+	 * @param file File source
+	 * @param generateMetadata Metadata generation option
 	 */
 	public FLV(File file, boolean generateMetadata) {
 		this.file = file;
@@ -116,8 +113,7 @@ public class FLV implements IFLV {
 	/**
 	 * Sets the cache implementation to be used.
 	 * 
-	 * @param cache
-	 *            Cache store
+	 * @param cache Cache store
 	 */
 	public void setCache(ICacheStore cache) {
 		FLV.cache = cache;

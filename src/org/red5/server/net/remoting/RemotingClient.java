@@ -89,8 +89,7 @@ public class RemotingClient {
 	/**
 	 * Create new remoting client for the given url.
 	 * 
-	 * @param url
-	 *            URL to connect to
+	 * @param url URL to connect to
 	 */
 	public RemotingClient(String url) {
 		this(url, DEFAULT_TIMEOUT);
@@ -100,10 +99,8 @@ public class RemotingClient {
 	/**
 	 * Create new remoting client for the given url and given timeout.
 	 * 
-	 * @param url
-	 *            URL to connect to
-	 * @param timeout
-	 *            Timeout for one request in milliseconds
+	 * @param url URL to connect to
+	 * @param timeout Timeout for one request in milliseconds
 	 */
 	public RemotingClient(String url, int timeout) {
 		this(url, timeout, connectionMgr);
@@ -113,10 +110,8 @@ public class RemotingClient {
 	/**
 	 * Create new remoting client in the given connection manager.
 	 * 
-	 * @param url
-	 *            URL to connect to
-	 * @param mgr
-	 *            The connection manager to use
+	 * @param url URL to connect to
+	 * @param mgr The connection manager to use
 	 */
 	public RemotingClient(String url, HttpConnectionManager mgr) {
 		this(url, DEFAULT_TIMEOUT, mgr);
@@ -126,12 +121,9 @@ public class RemotingClient {
 	/**
 	 * Create new remoting client with the given connection manager and timeout.
 	 * 
-	 * @param url
-	 *            URL to connect to
-	 * @param timeout
-	 *            Timeout for one request in milliseconds
-	 * @param mgr
-	 *            The connection manager to use
+	 * @param url URL to connect to
+	 * @param timeout Timeout for one request in milliseconds
+	 * @param mgr The connection manager to use
 	 */
 	public RemotingClient(String url, int timeout, HttpConnectionManager mgr) {
 		client = new HttpClient(mgr);
@@ -144,8 +136,7 @@ public class RemotingClient {
 	/**
 	 * Set the thread pool to use for asynchronous requests.
 	 * 
-	 * @param threadPool
-	 *            The thread pool
+	 * @param threadPool The thread pool
 	 */
 	public void setThreadPool(ThreadPool threadPool) {
 		RemotingClient.threadPool = threadPool;
@@ -305,10 +296,8 @@ public class RemotingClient {
 	/**
 	 * Send authentication data with each remoting request.
 	 * 
-	 * @param userid
-	 *            User identifier
-	 * @param password
-	 *            Password
+	 * @param userid User identifier
+	 * @param password Password
 	 */
 	public void setCredentials(String userid, String password) {
 		Map<String, String> data = new HashMap<String, String>();
@@ -329,12 +318,9 @@ public class RemotingClient {
 	/**
 	 * Send an additional header to the server.
 	 * 
-	 * @param name
-	 *            Header name
-	 * @param required
-	 *            Header required?
-	 * @param value
-	 *            Header body
+	 * @param name Header name
+	 * @param required Header required?
+	 * @param value Header body
 	 */
 	public void addHeader(String name, boolean required, Object value) {
 		RemotingHeader header = new RemotingHeader(name, required, value);
@@ -344,8 +330,7 @@ public class RemotingClient {
 	/**
 	 * Stop sending a given header.
 	 * 
-	 * @param name
-	 *            Header name
+	 * @param name Header name
 	 */
 	public void removeHeader(String name) {
 		headers.remove(name);
@@ -354,10 +339,8 @@ public class RemotingClient {
 	/**
 	 * Invoke a method synchronously on the remoting server.
 	 * 
-	 * @param method
-	 *            Method name
-	 * @param params
-	 *            Parameters passed to method
+	 * @param method Method name
+	 * @param params Parameters passed to method
 	 * @return the result of the method call
 	 */
 	public Object invokeMethod(String method, Object[] params) {
@@ -404,12 +387,9 @@ public class RemotingClient {
 	/**
 	 * Invoke a method asynchronously on the remoting server.
 	 * 
-	 * @param method
-	 *            Method name
-	 * @param methodParams
-	 *            Parameters passed to method
-	 * @param callback
-	 *            Callback
+	 * @param method Method name
+	 * @param methodParams Parameters passed to method
+	 * @param callback Callback
 	 */
 	public void invokeMethod(String method, Object[] methodParams,
 			IRemotingCallback callback) {
@@ -442,14 +422,10 @@ public class RemotingClient {
 		/**
 		 * Execute task.
 		 * 
-		 * @param client
-		 *            Remoting client
-		 * @param method
-		 *            Method name
-		 * @param params
-		 *            Parameters to pass to method on call
-		 * @param callback
-		 *            Callback
+		 * @param client Remoting client
+		 * @param method Method name
+		 * @param params Parameters to pass to method on call
+		 * @param callback Callback
 		 */
 		public void executeTask(RemotingClient client, String method,
 				Object[] params, IRemotingCallback callback) {

@@ -49,7 +49,10 @@ public class SharedObjectEvent implements ISharedObjectEvent, Externalizable {
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * 
+	 * @param type type
+	 * @param key key
+	 * @param value value
 	 */
 	public SharedObjectEvent(Type type, String key, Object value) {
 		this.type = type;

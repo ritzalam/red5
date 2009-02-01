@@ -70,6 +70,7 @@ public class AttributeStore implements ICastingAttributeStore {
 
     /**
      * Creates attribute store with initial values. Object is not associated with a persistence storage.
+     * @param values map
      */
     public AttributeStore(Map<String, Object> values) {
     	setAttributes(values);
@@ -77,6 +78,7 @@ public class AttributeStore implements ICastingAttributeStore {
 
     /**
      * Creates attribute store with initial values. Object is not associated with a persistence storage.
+     * @param values map
      */
     public AttributeStore(IAttributeStore values) {
     	setAttributes(values);

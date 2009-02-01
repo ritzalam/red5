@@ -53,8 +53,7 @@ public class TestJavaBean {
 	/**
 	 * Setter for property 'testByte'.
 	 * 
-	 * @param testByte
-	 *            Value to set for property 'testByte'.
+	 * @param testByte Value to set for property 'testByte'.
 	 */
 	public void setTestByte(byte testByte) {
 		this.testByte = testByte;
@@ -72,8 +71,7 @@ public class TestJavaBean {
 	/**
 	 * Setter for property 'testBoolean'.
 	 * 
-	 * @param testBoolean
-	 *            Value to set for property 'testBoolean'.
+	 * @param testBoolean Value to set for property 'testBoolean'.
 	 */
 	public void setTestBoolean(boolean testBoolean) {
 		this.testBoolean = testBoolean;
@@ -91,8 +89,7 @@ public class TestJavaBean {
 	/**
 	 * Setter for property 'testBooleanObject'.
 	 * 
-	 * @param testBooleanObject
-	 *            Value to set for property 'testBooleanObject'.
+	 * @param testBooleanObject Value to set for property 'testBooleanObject'.
 	 */
 	public void setTestBooleanObject(Boolean testBooleanObject) {
 		this.testBooleanObject = testBooleanObject;
@@ -110,8 +107,7 @@ public class TestJavaBean {
 	/**
 	 * Setter for property 'testDate'.
 	 * 
-	 * @param testDate
-	 *            Value to set for property 'testDate'.
+	 * @param testDate Value to set for property 'testDate'.
 	 */
 	public void setTestDate(Date testDate) {
 		this.testDate = testDate;
@@ -129,8 +125,7 @@ public class TestJavaBean {
 	/**
 	 * Setter for property 'testNumberObject'.
 	 * 
-	 * @param testNumberObject
-	 *            Value to set for property 'testNumberObject'.
+	 * @param testNumberObject Value to set for property 'testNumberObject'.
 	 */
 	public void setTestNumberObject(Integer testNumberObject) {
 		this.testNumberObject = testNumberObject;
@@ -148,8 +143,7 @@ public class TestJavaBean {
 	/**
 	 * Setter for property 'testPrimitiveNumber'.
 	 * 
-	 * @param testPrimitiveNumber
-	 *            Value to set for property 'testPrimitiveNumber'.
+	 * @param testPrimitiveNumber Value to set for property 'testPrimitiveNumber'.
 	 */
 	public void setTestPrimitiveNumber(int testPrimitiveNumber) {
 		this.testPrimitiveNumber = testPrimitiveNumber;
@@ -167,8 +161,7 @@ public class TestJavaBean {
 	/**
 	 * Setter for property 'testString'.
 	 * 
-	 * @param testString
-	 *            Value to set for property 'testString'.
+	 * @param testString Value to set for property 'testString'.
 	 */
 	public void setTestString(String testString) {
 		this.testString = testString;

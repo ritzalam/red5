@@ -144,12 +144,9 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 	/**
 	 * Connect RTMP client to server's application via given port
 	 * 
-	 * @param server
-	 *            Server
-	 * @param port
-	 *            Connection port
-	 * @param application
-	 *            Application at that server
+	 * @param server Server
+	 * @param port Connection port
+	 * @param application Application at that server
 	 */
 	public void connect(String server, int port, String application) {
 		log.debug("connect server: {} port {} application {}", new Object[] {
@@ -161,14 +158,10 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 	 * Connect RTMP client to server's application via given port with given
 	 * connection callback
 	 * 
-	 * @param server
-	 *            Server
-	 * @param port
-	 *            Connection port
-	 * @param application
-	 *            Application at that server
-	 * @param connectCallback
-	 *            Connection callback
+	 * @param server Server
+	 * @param port Connection port
+	 * @param application Application at that server
+	 * @param connectCallback Connection callback
 	 */
 	public void connect(String server, int port, String application,
 			IPendingServiceCallback connectCallback) {
@@ -181,12 +174,9 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 	}
 
 	/**
-	 * @param server
-	 *            Server
-	 * @param port
-	 *            Connection port
-	 * @param application
-	 *            Application at that server
+	 * @param server Server
+	 * @param port Connection port
+	 * @param application Application at that server
 	 * @return default connection parameters
 	 */
 	public Map<String, Object> makeDefaultConnectionParams(String server,
@@ -210,12 +200,9 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 	 * Connect RTMP client to server via given port and with given connection
 	 * parameters
 	 * 
-	 * @param server
-	 *            Server
-	 * @param port
-	 *            Connection port
-	 * @param connectionParams
-	 *            Connection parameters
+	 * @param server Server
+	 * @param port Connection port
+	 * @param connectionParams Connection parameters
 	 */
 	public void connect(String server, int port,
 			Map<String, Object> connectionParams) {
@@ -227,14 +214,10 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 	/**
 	 * Connect RTMP client to server's application via given port
 	 * 
-	 * @param server
-	 *            Server
-	 * @param port
-	 *            Connection port
-	 * @param connectionParams
-	 *            Connection parameters
-	 * @param connectCallback
-	 *            Connection callback
+	 * @param server Server
+	 * @param port Connection port
+	 * @param connectionParams Connection parameters
+	 * @param connectCallback Connection callback
 	 */
 	public void connect(String server, int port,
 			Map<String, Object> connectionParams,
@@ -245,16 +228,11 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 	/**
 	 * Connect RTMP client to server's application via given port
 	 * 
-	 * @param server
-	 *            Server
-	 * @param port
-	 *            Connection port
-	 * @param connectionParams
-	 *            Connection parameters
-	 * @param connectCallback
-	 *            Connection callback
-	 * @param connectCallArguments
-	 *            Arguments for 'connect' call
+	 * @param server Server
+	 * @param port Connection port
+	 * @param connectionParams Connection parameters
+	 * @param connectCallback Connection callback
+	 * @param connectCallArguments Arguments for 'connect' call
 	 */
 	public void connect(String server, int port,
 			Map<String, Object> connectionParams,
@@ -282,8 +260,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 	/**
 	 * Register object that provides methods that can be called by the server.
 	 * 
-	 * @param serviceProvider
-	 *            Service provider
+	 * @param serviceProvider Service provider
 	 */
 	public void setServiceProvider(Object serviceProvider) {
 		this.serviceProvider = serviceProvider;
@@ -292,10 +269,8 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 	/**
 	 * Connect to client shared object.
 	 * 
-	 * @param name
-	 *            Client shared object name
-	 * @param persistent
-	 *            SO persistence flag
+	 * @param name Client shared object name
+	 * @param persistent SO persistence flag
 	 * @return Client shared object instance
 	 */
 	public synchronized IClientSharedObject getSharedObject(String name,
@@ -370,10 +345,8 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 	/**
 	 * Invoke a method on the server.
 	 * 
-	 * @param method
-	 *            Method name
-	 * @param callback
-	 *            Callback handler
+	 * @param method Method name
+	 * @param callback Callback handler
 	 */
 	public void invoke(String method, IPendingServiceCallback callback) {
 		log.debug("invoke method: {} params {} callback {}", new Object[] {
@@ -391,12 +364,9 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 	/**
 	 * Invoke a method on the server and pass parameters.
 	 * 
-	 * @param method
-	 *            Method
-	 * @param params
-	 *            Method call parameters
-	 * @param callback
-	 *            Callback object
+	 * @param method Method
+	 * @param params Method call parameters
+	 * @param callback Callback object
 	 */
 	public void invoke(String method, Object[] params,
 			IPendingServiceCallback callback) {
@@ -588,8 +558,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 	/**
 	 * Setter for codec factory
 	 * 
-	 * @param factory
-	 *            Codec factory to use
+	 * @param factory Codec factory to use
 	 */
 	public void setCodecFactory(RTMPCodecFactory factory) {
 		this.codecFactory = factory;
@@ -617,7 +586,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 	 * Setter for stream event dispatcher (useful for saving playing stream to
 	 * file)
 	 * 
-	 * @param streamEventDispatcher
+	 * @param streamEventDispatcher event dispatcher
 	 */
 	public void setStreamEventDispatcher(IEventDispatcher streamEventDispatcher) {
 		this.streamEventDispatcher = streamEventDispatcher;

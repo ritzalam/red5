@@ -38,7 +38,7 @@ import ch.qos.logback.core.status.ErrorStatus;
 /**
  * Logback appender for the Extended W3C format.
  * 
- * @see http://www.w3.org/TR/WD-logfile.html
+ * @see "http://www.w3.org/TR/WD-logfile.html"
  * @author Paul Gregoire (mondain@gmail.com)
  */
 public class W3CAppender extends FileAppender<LoggingEvent> {

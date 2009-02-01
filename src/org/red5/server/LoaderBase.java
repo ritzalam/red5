@@ -84,6 +84,7 @@ public class LoaderBase implements ApplicationContextAware {
 	
 	/**
 	 * Getter for a Red5 application context.
+	 * @param path path
 	 * 
 	 * @return Red5 application context 
 	 */
@@ -94,6 +95,7 @@ public class LoaderBase implements ApplicationContextAware {
 	
 	/**
 	 * Setter for a Red5 application context.
+	 * @param path path
 	 * 
 	 * @param context Red5 application context
 	 */
@@ -108,6 +110,7 @@ public class LoaderBase implements ApplicationContextAware {
 	
 	/**
 	 * Remover for a Red5 application context.
+	 * @param path path
 	 * 
 	 * @return Red5 application context 
 	 */
@@ -128,10 +131,8 @@ public class LoaderBase implements ApplicationContextAware {
 	/**
 	 * Setter for application context.
 	 * 
-	 * @param context
-	 *            Application context
-	 * @throws BeansException
-	 *             Abstract superclass for all exceptions thrown in the beans
+	 * @param context Application context
+	 * @throws BeansException Abstract superclass for all exceptions thrown in the beans
 	 *             package and subpackages
 	 */
 	public void setApplicationContext(ApplicationContext context) throws BeansException {
@@ -142,7 +143,7 @@ public class LoaderBase implements ApplicationContextAware {
 	/**
 	 * Set the folder containing webapps.
 	 * 
-	 * @param webappFolder
+	 * @param webappFolder web app folder
 	 */
 	public void setWebappFolder(String webappFolder) {
 		File fp = new File(webappFolder);

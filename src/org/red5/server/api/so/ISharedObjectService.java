@@ -35,8 +35,7 @@ public interface ISharedObjectService extends IScopeService {
 	/**
 	 * Get a set of the shared object names.
 	 * 
-	 * @param scope
-	 * 			the scope to return the shared object names from
+	 * @param scope the scope to return the shared object names from
 	 * @return set containing the shared object names
 	 */
 	public Set<String> getSharedObjectNames(IScope scope);
@@ -44,12 +43,9 @@ public interface ISharedObjectService extends IScopeService {
 	/**
 	 * Create a new shared object.
 	 * 
-	 * @param scope
-	 * 			the scope to create the shared object in
-	 * @param name
-	 *          the name of the shared object
-	 * @param persistent
-	 *          will the shared object be persistent
+	 * @param scope the scope to create the shared object in
+	 * @param name the name of the shared object
+	 * @param persistent will the shared object be persistent
 	 * @return <code>true</code> if the shared object was created, otherwise
 	 *         <code>false</code>
 	 */
@@ -59,10 +55,8 @@ public interface ISharedObjectService extends IScopeService {
 	/**
 	 * Get a shared object by name.
 	 * 
-	 * @param scope
-	 * 			the scope to get the shared object from
-	 * @param name
-	 * 			the name of the shared object
+	 * @param scope the scope to get the shared object from
+	 * @param name the name of the shared object
 	 * @return shared object, or <code>null</code> if not found
 	 */
 	public ISharedObject getSharedObject(IScope scope, String name);
@@ -70,12 +64,9 @@ public interface ISharedObjectService extends IScopeService {
 	/**
 	 * Get a shared object by name and create it if it doesn't exist.
 	 * 
-	 * @param scope
-	 * 			the scope to get the shared object from
-	 * @param name
-	 * 			the name of the shared object
-	 * @param persistent
-	 * 			should the shared object be created persistent 
+	 * @param scope the scope to get the shared object from
+	 * @param name the name of the shared object
+	 * @param persistent should the shared object be created persistent 
 	 * @return the shared object
 	 */
 	public ISharedObject getSharedObject(IScope scope, String name,
@@ -84,10 +75,8 @@ public interface ISharedObjectService extends IScopeService {
 	/**
 	 * Check if a shared object exists.
 	 * 
-	 * @param scope
-	 * 			the scope to check for the shared object
-	 * @param name
-	 * 			the name of the shared object
+	 * @param scope the scope to check for the shared object
+	 * @param name the name of the shared object
 	 * @return <code>true</code> if the shared object exists, otherwise
 	 *         <code>false</code>
 	 */
@@ -128,10 +117,8 @@ public interface ISharedObjectService extends IScopeService {
 	 * </p>
 	 * <br />
 	 * 
-	 * @param scope
-	 *            the scope to check for the shared object
-	 * @param name
-	 *            the name of the shared object
+	 * @param scope the scope to check for the shared object
+	 * @param name the name of the shared object
 	 * @return true if the shared object at the specified path was deleted;
 	 *         otherwise, false. If using wildcard characters to delete multiple
 	 *         files, the method returns true only if all the shared objects

@@ -77,10 +77,8 @@ public class ClientSharedObject extends SharedObject implements
 	/**
 	 * Create new client SO with
 	 * 
-	 * @param name
-	 *            Shared Object name
-	 * @param persistent
-	 *            Persistence flag
+	 * @param name Shared Object name
+	 * @param persistent Persistence flag
 	 */
 	public ClientSharedObject(String name, boolean persistent) {
 		super();
@@ -91,8 +89,7 @@ public class ClientSharedObject extends SharedObject implements
 	/**
 	 * Connect the shared object using the passed connection.
 	 * 
-	 * @param conn
-	 *            Attach SO to given connection
+	 * @param conn Attach SO to given connection
 	 */
 	public void connect(IConnection conn) {
 		if (!(conn instanceof RTMPConnection))

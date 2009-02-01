@@ -35,8 +35,7 @@ public interface IPersistenceStore {
 	/**
 	 * Persist given object.
 	 *  
-	 * @param obj
-	 * 		Object to store
+	 * @param obj Object to store
      * @return     <code>true</code> on success, <code>false</code> otherwise
 	 */
 	public boolean save(IPersistable obj);
@@ -46,8 +45,7 @@ public interface IPersistenceStore {
 	 * either a constructor that takes an input stream as only parameter or an
 	 * empty constructor so it can be loaded from the persistence store.
 	 * 
-	 * @param name
-	 * 		the name of the object to load
+	 * @param name the name of the object to load
 	 * @return The loaded object or <code>null</code> if no such object was
 	 *         found
 	 */
@@ -56,8 +54,7 @@ public interface IPersistenceStore {
 	/**
 	 * Load state of an already instantiated persistent object.
 	 * 
-	 * @param obj
-	 * 		the object to initializ
+	 * @param obj the object to initializ
 	 * @return true if the object was initialized, false otherwise
 	 */
 	public boolean load(IPersistable obj);
@@ -65,8 +62,7 @@ public interface IPersistenceStore {
 	/**
 	 * Delete the passed persistent object.
 	 *  
-	 * @param obj
-	 * 		the object to delete
+	 * @param obj the object to delete
      * @return        <code>true</code> if object was persisted and thus can be removed, <code>false</code> otherwise
 	 */
 	public boolean remove(IPersistable obj);
@@ -74,8 +70,7 @@ public interface IPersistenceStore {
 	/**
 	 * Delete the persistent object with the given name.
 	 *  
-	 * @param name
-	 * 		the name of the object to delete
+	 * @param name the name of the object to delete
      * @return        <code>true</code> if object was persisted and thus can be removed, <code>false</code> otherwise
 	 */
 	public boolean remove(String name);

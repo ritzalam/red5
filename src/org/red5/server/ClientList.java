@@ -28,6 +28,7 @@ import java.util.Collection;
  * Client list, implemented using weak references to prevent memory leaks.
  * 
  * @author Paul Gregoire (mondain@gmail.com)
+ * @param <E> type of class
  */
 public class ClientList<E> extends AbstractList<E> implements ListMBean {
 

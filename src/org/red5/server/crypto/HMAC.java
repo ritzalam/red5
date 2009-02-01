@@ -64,6 +64,8 @@ public class HMAC {
 
 	/**
 	 * Return true if the input argument character is a digit, a space, or A-F.
+	 * @param c input
+	 * @return true if the input argument character is a digit, a space, or A-F.
 	 */
 	public static final boolean isHexStringChar(char c) {
 		return (Character.isDigit(c) || Character.isWhitespace(c) || (("0123456789abcdefABCDEF"
@@ -72,6 +74,9 @@ public class HMAC {
 
 	/**
 	 * Return true if the argument string seems to be a Hex data string, like
+	 * "a0 13 2f ". Whitespace is ignored.
+	 * @param sampleData sample data
+	 * @return true if the argument string seems to be a Hex data string, like
 	 * "a0 13 2f ". Whitespace is ignored.
 	 */
 	public static final boolean isHex(String sampleData) {
@@ -84,6 +89,12 @@ public class HMAC {
 
 	/**
 	 * Return true if the argument byte array seems to be a Hex data string,
+	 * like "a0 13 2f ". Only check as far as a supplied length; if it seems to
+	 * be hex for that many (ascii) bytes, then return true.
+	 * @param sampleData sample data
+	 * @param len  length
+	 * 
+	 * @return true if the argument byte array seems to be a Hex data string,
 	 * like "a0 13 2f ". Only check as far as a supplied length; if it seems to
 	 * be hex for that many (ascii) bytes, then return true.
 	 */
@@ -102,8 +113,9 @@ public class HMAC {
 	 * Convert a hex string into an array of bytes. The hex string can be all
 	 * digits, or 1-octet groups separated by blanks, or any mix thereof.
 	 * 
-	 * @param str
-	 *            String to be converted
+	 * @param str String to be converted
+	 * @param rev reverse
+	 * @return  bytes
 	 */
 	public static final byte[] hexToByteArray(String str, boolean rev) {
 		StringBuffer acc = new StringBuffer(str.length() + 1);
@@ -148,6 +160,8 @@ public class HMAC {
 
 	/**
 	 * Convert a byte array to a hex string of the format "1f 30 b7".
+	 * @param a array to convert
+	 * @return hex string
 	 */
 	public static final String byteArrayToHex(byte[] a) {
 		int hn, ln, cx;
@@ -168,8 +182,11 @@ public class HMAC {
 	 * null. If we can't read at least minValidLength bytes, then we declare
 	 * that the file is invalid and return null. All the real work is done in
 	 * readDataStream.
+	 * @param f file
+	 * @param minValidLength  minimum valid length
+	 * @return bytes
 	 * 
-	 * @see readDataStream
+	 * @see #readDataStream
 	 */
 	public byte[] readDataFile(File f, int minValidLength) {
 		InputStream fr = null;
@@ -240,6 +257,7 @@ public class HMAC {
 	/**
 	 * compute the MAC from the member arrays keyBytes and the dataBytes. Return
 	 * the MAC.
+	 * @return the MAC
 	 */
 	public byte[] computeMac() {
 		Mac hm = null;

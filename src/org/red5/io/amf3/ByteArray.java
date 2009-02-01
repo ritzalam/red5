@@ -97,7 +97,7 @@ public class ByteArray implements IDataInput, IDataOutput {
 	/**
 	 * Get the current position in the data.
 	 * 
-	 * @return
+	 * @return current position
 	 */
 	public int position() {
 		return data.position();
@@ -106,7 +106,7 @@ public class ByteArray implements IDataInput, IDataOutput {
 	/**
 	 * Set the current position in the data.
 	 * 
-	 * @param position
+	 * @param position position to set
 	 */
 	public void position(int position) {
 		data.position(position);
@@ -115,7 +115,7 @@ public class ByteArray implements IDataInput, IDataOutput {
 	/**
 	 * Return number of bytes available for reading.
 	 * 
-	 * @return
+	 * @return bytes available
 	 */
 	public int bytesAvailable() {
 		return length() - position();
@@ -124,7 +124,7 @@ public class ByteArray implements IDataInput, IDataOutput {
 	/**
 	 * Return total number of bytes in array.
 	 * 
-	 * @return
+	 * @return number of bytes in array
 	 */
 	public int length() {
 		return data.limit();
@@ -133,7 +133,7 @@ public class ByteArray implements IDataInput, IDataOutput {
 	/**
 	 * Return string representation of the array's contents.
 	 * 
-	 * @return
+	 * @return string representaiton of array's contents.
 	 */
 	public String toString() {
 		int old = data.position();

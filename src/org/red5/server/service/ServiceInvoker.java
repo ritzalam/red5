@@ -64,8 +64,7 @@ public class ServiceInvoker implements IServiceInvoker {
 	/**
 	 * Setter for service resolvers.
 	 * 
-	 * @param resolvers
-	 *            Service resolvers
+	 * @param resolvers Service resolvers
 	 */
 	public void setServiceResolvers(Set<IServiceResolver> resolvers) {
 		serviceResolvers = resolvers;

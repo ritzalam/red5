@@ -47,10 +47,8 @@ public interface IAttributeStore extends AttributeStoreMBean {
 	/**
 	 * Set an attribute on this object.
 	 * 
-	 * @param name
-	 *            the name of the attribute to change
-	 * @param value
-	 *            the new value of the attribute
+	 * @param name the name of the attribute to change
+	 * @param value the new value of the attribute
 	 * @return true if the attribute value changed otherwise false
 	 */
 	public boolean setAttribute(String name, Object value);
@@ -58,24 +56,21 @@ public interface IAttributeStore extends AttributeStoreMBean {
 	/**
 	 * Set multiple attributes on this object.
 	 * 
-	 * @param values
-	 *            the attributes to set
+	 * @param values the attributes to set
 	 */
 	public void setAttributes(Map<String, Object> values);
 
 	/**
 	 * Set multiple attributes on this object.
 	 * 
-	 * @param values
-	 *            the attributes to set
+	 * @param values the attributes to set
 	 */
 	public void setAttributes(IAttributeStore values);
 
 	/**
 	 * Return the value for a given attribute.
 	 * 
-	 * @param name
-	 *            the name of the attribute to get
+	 * @param name the name of the attribute to get
 	 * @return the attribute value or null if the attribute doesn't exist
 	 */
 	public Object getAttribute(String name);
@@ -93,10 +88,8 @@ public interface IAttributeStore extends AttributeStoreMBean {
 	 * </p>
 	 * </p>
 	 * 
-	 * @param name
-	 *            the name of the attribute to get
-	 * @param defaultValue
-	 *            the value of the attribute to set if the attribute doesn't
+	 * @param name the name of the attribute to get
+	 * @param defaultValue the value of the attribute to set if the attribute doesn't
 	 *            exist
 	 * @return the attribute value
 	 */
@@ -105,8 +98,7 @@ public interface IAttributeStore extends AttributeStoreMBean {
 	/**
 	 * Check the object has an attribute.
 	 * 
-	 * @param name
-	 *            the name of the attribute to check
+	 * @param name the name of the attribute to check
 	 * @return true if the attribute exists otherwise false
 	 */
 	public boolean hasAttribute(String name);
@@ -114,8 +106,7 @@ public interface IAttributeStore extends AttributeStoreMBean {
 	/**
 	 * Remove an attribute.
 	 * 
-	 * @param name
-	 *            the name of the attribute to remove
+	 * @param name the name of the attribute to remove
 	 * @return true if the attribute was found and removed otherwise false
 	 */
 	public boolean removeAttribute(String name);

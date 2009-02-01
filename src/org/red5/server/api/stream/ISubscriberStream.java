@@ -66,7 +66,7 @@ public interface ISubscriberStream extends IClientStream {
 	/**
 	 * Check if the stream is currently paused.
 	 * 
-	 * @return
+	 * @return stream is paused
 	 */
 	boolean isPaused();
 

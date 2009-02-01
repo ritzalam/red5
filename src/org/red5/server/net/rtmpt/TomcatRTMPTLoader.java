@@ -71,8 +71,7 @@ public class TomcatRTMPTLoader extends TomcatLoader {
 	/**
 	 * Setter for server
 	 * 
-	 * @param server
-	 *            Value to set for property 'server'.
+	 * @param server Value to set for property 'server'.
 	 */
 	public void setServer(IServer server) {
 		log.debug("RTMPT setServer");
@@ -164,7 +163,7 @@ public class TomcatRTMPTLoader extends TomcatLoader {
 	/**
 	 * Set servlet mappings
 	 * 
-	 * @param mappings
+	 * @param mappings mappings
 	 */
 	public void setMappings(Map<String, String> mappings) {
 		log.debug("Servlet mappings: {}", mappings.size());

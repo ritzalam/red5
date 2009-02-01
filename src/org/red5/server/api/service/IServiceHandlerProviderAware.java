@@ -31,7 +31,7 @@ public interface IServiceHandlerProviderAware {
 	/**
 	 * Return object that knows about service handlers.
 	 * 
-	 * @return
+	 * @return service handler provider
 	 */
 	public IServiceHandlerProvider getServiceHandlerProvider();
 

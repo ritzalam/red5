@@ -95,10 +95,8 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 		/**
 		 * Creates prefix filtering string iterator from iterator and prefix
 		 * 
-		 * @param iterator
-		 *            Iterator
-		 * @param prefix
-		 *            Prefix
+		 * @param iterator Iterator
+		 * @param prefix refix
 		 */
 		public PrefixFilteringStringIterator(Iterator<String> iterator,
 				String prefix) {
@@ -241,8 +239,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	/**
 	 * Creates scope with given name
 	 * 
-	 * @param name
-	 *            Scope name
+	 * @param name Scope name
 	 */
 	public Scope(String name) {
 		super(null, TYPE, name, false);
@@ -252,8 +249,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	/**
 	 * Add child scope to this scope
 	 * 
-	 * @param scope
-	 *            Child scope
+	 * @param scope Child scope
 	 * @return <code>true</code> on success (if scope has handler and it
 	 *         accepts child scope addition), <code>false</code> otherwise
 	 */
@@ -293,8 +289,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	/**
 	 * Connect to scope
 	 * 
-	 * @param conn
-	 *            Connection object
+	 * @param conn Connection object
 	 * @return <code>true</code> on success, <code>false</code> otherwise
 	 */
 	public boolean connect(IConnection conn) {
@@ -307,10 +302,8 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 * parameters. Client associated with connection is added to scope clients set,
 	 * connection is registered as scope event listener.
 	 * 
-	 * @param conn
-	 *            Connection object
-	 * @param params
-	 *            Parameters passed with connection
+	 * @param conn Connection object
+	 * @param params Parameters passed with connection
 	 * @return <code>true</code> on success, <code>false</code> otherwise
 	 */
 	public boolean connect(IConnection conn, Object[] params) {
@@ -361,8 +354,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	/**
 	 * Create child scope with given name
 	 * 
-	 * @param name
-	 *            Child scope name
+	 * @param name Child scope name
 	 * @return <code>true</code> on success, <code>false</code> otherwise
 	 */
 	public boolean createChildScope(String name) {
@@ -398,8 +390,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	/**
 	 * Disconnect connection from scope
 	 * 
-	 * @param conn
-	 *            Connection object
+	 * @param conn Connection object
 	 */
 	public void disconnect(IConnection conn) {
 		log.debug("Disconnect: {}", conn);
@@ -489,10 +480,8 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	/**
 	 * Return base scope of given type with given name
 	 * 
-	 * @param type
-	 *            Scope type
-	 * @param name
-	 *            Scope name
+	 * @param type Scope type
+	 * @param name Scope name
 	 * @return Basic scope object
 	 */
 	public IBasicScope getBasicScope(String type, String name) {
@@ -502,8 +491,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	/**
 	 * Return basic scope names iterator
 	 * 
-	 * @param type
-	 *            Scope type
+	 * @param type Scope type
 	 * @return Iterator
 	 */
 	public Iterator<String> getBasicScopeNames(String type) {
@@ -655,8 +643,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	/**
 	 * Return resource located at given path
 	 * 
-	 * @param path
-	 *            Resource path
+	 * @param path Resource path
 	 * @return Resource
 	 */
 	public Resource getResource(String path) {
@@ -670,11 +657,9 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 * Return array of resources from path string, usually used with pattern
 	 * path
 	 * 
-	 * @param path
-	 *            Resources path
+	 * @param path Resources path
 	 * @return Resources
-	 * @throws IOException
-	 *             I/O exception
+	 * @throws IOException I/O exception
 	 */
 	public Resource[] getResources(String path) throws IOException {
 		if (hasContext()) {
@@ -686,8 +671,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	/**
 	 * Return child scope by name
 	 * 
-	 * @param name
-	 *            Scope name
+	 * @param name Scope name
 	 * @return Child scope with given name
 	 */
 	public IScope getScope(String name) {
@@ -719,8 +703,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	/**
 	 * Return service handler by name
 	 * 
-	 * @param name
-	 *            Handler name
+	 * @param name Handler name
 	 * @return Service handler with given name
 	 */
 	public Object getServiceHandler(String name) {
@@ -796,8 +779,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	/**
 	 * Handles event. To be implemented in subclasses.
 	 * 
-	 * @param event
-	 *            Event to handle
+	 * @param event Event to handle
 	 * @return <code>true</code> on success, <code>false</code> otherwise
 	 */
 	@Override
@@ -808,8 +790,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	/**
 	 * Check whether scope has child scope with given name
 	 * 
-	 * @param name
-	 *            Child scope name
+	 * @param name Child scope name
 	 * @return <code>true</code> if scope has child node with given name,
 	 *         <code>false</code> otherwise
 	 */
@@ -832,10 +813,8 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	/**
 	 * Check whether scope has child scope with given name and type
 	 * 
-	 * @param type
-	 *            Child scope type
-	 * @param name
-	 *            Child scope name
+	 * @param type Child scope type
+	 * @param name Child scope name
 	 * @return <code>true</code> if scope has child node with given name and
 	 *         type, <code>false</code> otherwise
 	 */
@@ -966,8 +945,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	/**
 	 * Looks up connections for client
 	 * 
-	 * @param client
-	 *            Client
+	 * @param client Client
 	 * @return Connection
 	 */
 	public Set<IConnection> lookupConnections(IClient client) {
@@ -977,10 +955,8 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	/**
 	 * Register service handler by name
 	 * 
-	 * @param name
-	 *            Service handler name
-	 * @param handler
-	 *            Service handler
+	 * @param name Service handler name
+	 * @param handler Service handler
 	 */
 	public void registerServiceHandler(String name, Object handler) {
 		Map<String, Object> serviceHandlers = getServiceHandlers();
@@ -990,8 +966,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	/**
 	 * Removes child scope
 	 * 
-	 * @param scope
-	 *            Child scope to remove
+	 * @param scope Child scope to remove
 	 */
 	public void removeChildScope(IBasicScope scope) {
 
@@ -1037,8 +1012,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	/**
 	 * Setter for autostart flag
 	 * 
-	 * @param autoStart
-	 *            Autostart flag value
+	 * @param autoStart Autostart flag value
 	 */
 	public void setAutoStart(boolean autoStart) {
 		this.autoStart = autoStart;
@@ -1047,8 +1021,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	/**
 	 * Setter for child load path. Should be implemented in subclasses?
 	 * 
-	 * @param pattern
-	 *            Load path pattern
+	 * @param pattern Load path pattern
 	 */
 	public void setChildLoadPath(String pattern) {
 
@@ -1057,8 +1030,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	/**
 	 * Setter for context
 	 * 
-	 * @param context
-	 *            Context object
+	 * @param context Context object
 	 */
 	public void setContext(IContext context) {
 		log.debug("Set context: {}", context);
@@ -1068,8 +1040,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	/**
 	 * Set scope depth
 	 * 
-	 * @param depth
-	 *            Scope depth
+	 * @param depth Scope depth
 	 */
 	public void setDepth(int depth) {
 		this.depth = depth;
@@ -1078,8 +1049,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	/**
 	 * Enable or disable scope by setting enable flag
 	 * 
-	 * @param enabled
-	 *            Enable flag value
+	 * @param enabled Enable flag value
 	 */
 	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
@@ -1088,8 +1058,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	/**
 	 * Setter for scope event handler
 	 * 
-	 * @param handler
-	 *            Event handler
+	 * @param handler Event handler
 	 */
 	public void setHandler(IScopeHandler handler) {
 		log.debug("Set handler: {}", handler);
@@ -1102,8 +1071,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	/**
 	 * Setter for scope name
 	 * 
-	 * @param name
-	 *            Scope name
+	 * @param name Scope name
 	 */
 	@Override
 	public void setName(String name) {
@@ -1134,8 +1102,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	/**
 	 * Setter for parent scope
 	 * 
-	 * @param parent
-	 *            Parent scope
+	 * @param parent Parent scope
 	 */
 	public void setParent(IScope parent) {
 		log.debug("Set parent scope: {}", parent);
@@ -1145,10 +1112,8 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	/**
 	 * Set scope persistence class
 	 * 
-	 * @param persistenceClass
-	 *            Scope's persistence class
-	 * @throws Exception
-	 *             Exception
+	 * @param persistenceClass Scope's persistence class
+	 * @throws Exception Exception
 	 */
 	public void setPersistenceClass(String persistenceClass) throws Exception {
 		this.persistenceClass = persistenceClass;
@@ -1227,8 +1192,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	/**
 	 * Unregisters service handler by name
 	 * 
-	 * @param name
-	 *            Service handler name
+	 * @param name Service handler name
 	 */
 	public void unregisterServiceHandler(String name) {
 		Map<String, Object> serviceHandlers = getServiceHandlers(false);

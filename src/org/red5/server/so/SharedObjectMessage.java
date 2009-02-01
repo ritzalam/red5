@@ -63,12 +63,9 @@ public class SharedObjectMessage extends BaseEvent implements
 	/**
 	 * Creates Shared Object event with given name, version and persistence flag
 	 * 
-	 * @param name
-	 *            Event name
-	 * @param version
-	 *            SO version
-	 * @param persistent
-	 *            SO persistence flag
+	 * @param name Event name
+	 * @param version SO version
+	 * @param persistent SO persistence flag
 	 */
 	public SharedObjectMessage(String name, int version, boolean persistent) {
 		this(null, name, version, persistent);
@@ -78,14 +75,10 @@ public class SharedObjectMessage extends BaseEvent implements
 	 * Creates Shared Object event with given listener, name, SO version and
 	 * persistence flag
 	 * 
-	 * @param source
-	 *            Event listener
-	 * @param name
-	 *            Event name
-	 * @param version
-	 *            SO version
-	 * @param persistent
-	 *            SO persistence flag
+	 * @param source Event listener
+	 * @param name Event name
+	 * @param version SO version
+	 * @param persistent SO persistence flag
 	 */
 	public SharedObjectMessage(IEventListener source, String name, int version,
 			boolean persistent) {

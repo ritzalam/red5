@@ -26,13 +26,10 @@ import java.util.Iterator;
  * Storage for cacheable objects. Selected cache engines must implement this
  * interface.
  * 
- * <p>
- * 
  * @see <a href="http://www-128.ibm.com/developerworks/java/library/j-jtp01246.html">Soft references provide for quick-and-dirty caching</a>
  * @see <a href="http://java.sun.com/developer/technicalArticles/ALT/RefObj/">Reference Objects and Garbage Collection</a>
  * @see <a href="http://www.onjava.com/pub/a/onjava/2002/10/02/javanio.html?page=3">Top Ten New Things You Can Do with NIO</a>
- * @see <a href="http://csci.csusb.edu/turner/archive/courses/aiit2004/proxy_cache_solution.html">http://csci.csusb.edu/turner/archive/courses/aiit2004/proxy_cache_solution.html</a>
- *      </p>
+ * @see <a href="http://csci.csusb.edu/turner/archive/courses/aiit2004/proxy_cache_solution.html">Proxy Cache Solution</a>
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Paul Gregoire (mondain@gmail.com)
@@ -43,10 +40,8 @@ public interface ICacheStore {
 	 * Offer an object to the cache with an associated key.
 	 * If the named object exists in cache, it will not be accepted.
 	 * 
-	 * @param name
-	 *            string name representing the object
-	 * @param obj
-	 *            cacheable object
+	 * @param name string name representing the object
+	 * @param obj cacheable object
 	 * @return true if accepted, false otherwise
 	 */
 	public boolean offer(String name, Object obj);
@@ -54,18 +49,15 @@ public interface ICacheStore {
 	/**
 	 * Puts an object in the cache with the associated key.
 	 * 
-	 * @param name
-	 *            string name representing the object
-	 * @param obj
-	 *            cacheable object
+	 * @param name string name representing the object
+	 * @param obj cacheable object
 	 */
 	public void put(String name, Object obj);
 
 	/**
 	 * Return a cached object with the given name.
 	 * 
-	 * @param name
-	 *            the name of the object to return
+	 * @param name the name of the object to return
 	 * @return the object or <code>null</code> if no such object was found
 	 */
 	public ICacheable get(String name);
@@ -73,18 +65,16 @@ public interface ICacheStore {
 	/**
 	 * Delete the passed cached object.
 	 * 
-	 * @param obj
-	 *            the object to delete
-     * @return
+	 * @param obj the object to delete
+     * @return true if was removed; false it wasn't in cache to begin with
 	 */
 	public boolean remove(ICacheable obj);
 
 	/**
 	 * Delete the cached object with the given name.
 	 * 
-	 * @param name
-	 *            the name of the object to delete
-     * @return
+	 * @param name the name of the object to delete
+     * @return true if was removed; false it wasn't in cache to begin with
 	 */
 	public boolean remove(String name);
 
@@ -106,8 +96,7 @@ public interface ICacheStore {
 	/**
 	 * Sets the maximum number of entries for the cache.
 	 * 
-	 * @param max
-	 *            upper-limit of the cache
+	 * @param max upper-limit of the cache
 	 */
 	public void setMaxEntries(int max);
 

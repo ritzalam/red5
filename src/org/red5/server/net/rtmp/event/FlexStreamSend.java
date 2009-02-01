@@ -35,7 +35,7 @@ public class FlexStreamSend extends Notify {
 	/**
 	 * Create new stream send object.
 	 * 
-	 * @param data
+	 * @param data data
 	 */
 	public FlexStreamSend(ByteBuffer data) {
 		super(data);

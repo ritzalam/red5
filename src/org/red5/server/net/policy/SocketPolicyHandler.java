@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Provides the socket policy file.
  *
- * @see http://www.adobe.com/devnet/flashplayer/articles/socket_policy_files.html
+ * @see "http://www.adobe.com/devnet/flashplayer/articles/socket_policy_files.html"
  * 
  * @author Paul Gregoire (mondain@gmail.com)
  */

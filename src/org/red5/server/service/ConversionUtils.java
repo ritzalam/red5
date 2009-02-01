@@ -320,9 +320,9 @@ public class ConversionUtils {
     
     /**
      *
-     * @param source
-     * @return
-     * @throws ConversionException
+     * @param source source arra
+     * @return list
+     * @throws ConversionException on failure
      */
     public static List<?> convertArrayToList(Object[] source)
 			throws ConversionException {
@@ -338,7 +338,7 @@ public class ConversionUtils {
      * @param source                Source map
      * @param target                Target class
      * @return                      Bean of that class
-     * @throws ConversionException
+     * @throws ConversionException on failure
      */
     public static Object convertMapToBean(Map<?, ?> source, Class<?> target)
 			throws ConversionException {

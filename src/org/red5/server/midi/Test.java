@@ -56,7 +56,9 @@ public class Test {
 
 	}
 
-	/** Constructs a new Test. */
+	/** Constructs a new Test. 
+	 * @throws Exception if it feels like it.
+	 */
     public Test() throws Exception {
 
 		String MIDI_NAME = "USB Uno MIDI  In";

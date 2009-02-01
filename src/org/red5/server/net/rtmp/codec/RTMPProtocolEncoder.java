@@ -228,7 +228,6 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
      * @param header      RTMP message header
      * @param lastHeader  Previous header
      * @param buf         Buffer to write encoded header to
-     * @return            Encoded header data
      */
     public void encodeHeader(Header header, Header lastHeader, ByteBuffer buf) {
 		final byte headerType = getHeaderType(header, lastHeader);
@@ -355,9 +354,9 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
     /**
      * Perform the actual encoding of the shared object contents.
      *
-     * @param so
-     * @param rtmp
-     * @param out
+     * @param so shared object
+     * @param rtmp rtmp
+     * @param out output buffer
      */
     public void doEncodeSharedObject(ISharedObjectMessage so, RTMP rtmp, ByteBuffer out) {
 		final Output output = new org.red5.io.amf.Output(out);
@@ -631,6 +630,7 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
      * Encodes Flex message event.
 	 *
      * @param msg                Flex message event
+     * @param rtmp RTMP
      * @return                   Encoded data
      */
     public ByteBuffer encodeFlexMessage(FlexMessage msg, RTMP rtmp) {

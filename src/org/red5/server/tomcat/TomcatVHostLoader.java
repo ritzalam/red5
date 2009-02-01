@@ -259,7 +259,7 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 	 * Starts a web application and its red5 (spring) component. This is basically a stripped down
 	 * version of init().
 	 * 
-	 * @return
+	 * @return true on success
 	 */
 	public boolean startWebApplication(String applicationName) {
 		boolean result = false;
@@ -350,7 +350,7 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 	/**
 	 * Create a standard host.
 	 * 
-	 * @return
+	 * @return host
 	 */
 	public Host createHost() {
 		log.debug("Creating host");
@@ -378,7 +378,7 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 	/**
 	 * Returns the current host.
 	 *
-	 * @return
+	 * @return host
 	 */
 	public Host getHost() {
 		return host;
@@ -387,7 +387,7 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 	/**
 	 * Adds an alias to the current host.
 	 * 
-	 * @param alias
+	 * @param alias alias
 	 */
 	public void addAlias(String alias) {
 		log.debug("Adding alias: {}", alias);
@@ -397,7 +397,7 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 	/**
 	 * Removes an alias from the current host.
 	 * 
-	 * @param alias
+	 * @param alias Alias
 	 */
 	public void removeAlias(String alias) {
 		log.debug("Removing alias: {}", alias);
@@ -413,7 +413,7 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 	/**
 	 * Adds a valve to the current host.
 	 * 
-	 * @param valve
+	 * @param valve Valve
 	 */
 	public void addValve(Valve valve) {
 		log.debug("Adding valve: {}", valve);
@@ -424,7 +424,7 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 	/**
 	 * Removes a valve from the current host.
 	 * 
-	 * @param valveInfo
+	 * @param valveInfo Valve Information.
 	 */
 	public void removeValve(String valveInfo) {
 		log.debug("Removing valve: {}", valveInfo);
@@ -450,8 +450,7 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 	/**
 	 * Set additional contexts.
 	 * 
-	 * @param contexts
-	 *            Map of contexts
+	 * @param contexts Map of contexts
 	 */
 	@Override
 	public void setContexts(Map<String, String> contexts) {

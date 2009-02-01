@@ -39,10 +39,8 @@ public interface ISchedulingService extends IScopeService {
 	/**
 	 * Schedule a job for periodic execution.
 	 * 
-	 * @param interval
-	 * 			time in milliseconds between two notifications of the job
-	 * @param job
-	 * 			the job to trigger periodically
+	 * @param interval time in milliseconds between two notifications of the job
+	 * @param job the job to trigger periodically
 	 * @return the name of the scheduled job
 	 */
 	public String addScheduledJob(int interval, IScheduledJob job);
@@ -51,10 +49,8 @@ public interface ISchedulingService extends IScopeService {
 	 * Schedule a job for single execution in the future.  Please note
 	 * that the jobs are not saved if Red5 is restarted in the meantime.
 	 * 
-	 * @param timeDelta
-	 * 			time delta in milliseconds from the current date
-	 * @param job
-	 * 			the job to trigger
+	 * @param timeDelta time delta in milliseconds from the current date
+	 * @param job the job to trigger
 	 * @return the name of the scheduled job
 	 */
 	public String addScheduledOnceJob(long timeDelta, IScheduledJob job);
@@ -63,10 +59,8 @@ public interface ISchedulingService extends IScopeService {
 	 * Schedule a job for single execution at a given date.  Please note
 	 * that the jobs are not saved if Red5 is restarted in the meantime.  
 	 * 
-	 * @param date
-	 * 			date when the job should be executed
-	 * @param job
-	 * 			the job to trigger
+	 * @param date date when the job should be executed
+	 * @param job the job to trigger
 	 * @return the name of the scheduled job
 	 */
 	public String addScheduledOnceJob(Date date, IScheduledJob job);
@@ -74,12 +68,9 @@ public interface ISchedulingService extends IScopeService {
 	/**
 	 * Schedule a job for periodic execution which will start after the specifed delay.
 	 * 
-	 * @param interval 
-	 * 			time in milliseconds between two notifications of the job
-	 * @param job
-	 * 			the job to trigger periodically
-	 * @param delay
-	 * 			time in milliseconds to pass before first execution.
+	 * @param interval  time in milliseconds between two notifications of the job
+	 * @param job the job to trigger periodically
+	 * @param delay time in milliseconds to pass before first execution.
 	 * @return
 	 * 			the name of the scheduled job
 	 */
@@ -88,24 +79,21 @@ public interface ISchedulingService extends IScopeService {
 	/**
 	 * Pauses the trigger which initiates job execution.
 	 * 
- 	 * @param name
-	 * 			name of the job to stop
+ 	 * @param name name of the job to stop
 	 */
 	public void pauseScheduledJob(String name);
 	
 	/**
 	 * Resumes the trigger which initiates job execution.
 	 * 
- 	 * @param name
-	 * 			name of the job to stop
+ 	 * @param name name of the job to stop
 	 */
 	public void resumeScheduledJob(String name);	
 	
 	/**
 	 * Stop executing a previously scheduled job.
 	 * 
-	 * @param name
-	 * 			name of the job to stop
+	 * @param name name of the job to stop
 	 */
 	public void removeScheduledJob(String name);
 

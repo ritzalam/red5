@@ -27,21 +27,9 @@ import java.util.Map;
  * @see org.red5.server.messaging.IMessage
  */
 public class AbstractMessage implements IMessage {
-    /**
-     * {@inheritDoc}
-     */
     protected String messageID;
-    /**
-     * {@inheritDoc}
-     */
 	protected String correlationID;
-    /**
-     * {@inheritDoc}
-     */
 	protected String messageType;
-    /**
-     * {@inheritDoc}
-     */
 	protected Map<?, ?> extraHeaders = null;
 
 	/** {@inheritDoc} */

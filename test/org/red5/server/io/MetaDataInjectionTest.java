@@ -53,7 +53,6 @@ public class MetaDataInjectionTest extends TestCase {
 
 	/**
 	 * SetUp is called before each test
-	 * @return void
 	 */
 	@Override
 	public void setUp() {
@@ -64,7 +63,7 @@ public class MetaDataInjectionTest extends TestCase {
 
 	/**
 	 * Test MetaData injection
-	 * @throws IOException
+	 * @throws IOException if io exception
 	 */
 	public void testMetaDataInjection() throws IOException {
 		File f = new File("fixtures/test_cue1.flv");

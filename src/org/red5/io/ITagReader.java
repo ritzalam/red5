@@ -44,7 +44,7 @@ public interface ITagReader {
 
 	/**
 	 * Return length in seconds
-     * @return
+     * @return length in seconds
      */
 	public long getDuration();
 
@@ -64,8 +64,7 @@ public interface ITagReader {
 	/**
 	 * Move the reader pointer to given position in file.
 	 * 
-	 * @param pos
-	 *            File position to move to
+	 * @param pos File position to move to
 	 */
 	public void position(long pos);
 
@@ -91,7 +90,7 @@ public interface ITagReader {
 	/**
 	 * Check if the reader also has video tags.
 	 * 
-	 * @return
+	 * @return has video
 	 */
 	public boolean hasVideo();
 

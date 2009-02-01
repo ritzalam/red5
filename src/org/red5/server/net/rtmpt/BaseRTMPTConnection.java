@@ -114,8 +114,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	/**
 	 * Return any pending messages up to a given size.
 	 *
-	 * @param targetSize
-	 * 			the size the resulting buffer should have
+	 * @param targetSize the size the resulting buffer should have
 	 * @return a buffer containing the data to send or null if no messages are
 	 *         pending
 	 */
@@ -162,8 +161,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	/**
 	 * Send raw data down the connection.
 	 *
-	 * @param packet
-	 * 			the buffer containing the raw data
+	 * @param packet the buffer containing the raw data
 	 */
 	@Override
 	public void rawWrite(ByteBuffer packet) {
@@ -201,8 +199,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	/**
 	 * Decode data sent by the client.
 	 *
-	 * @param data
-	 * 			the data to decode
+	 * @param data the data to decode
 	 * @return a list of decoded objects
 	 */
 	public List<?> decode(ByteBuffer data) {
@@ -226,8 +223,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	/**
 	 * Send RTMP packet down the connection.
 	 *
-	 * @param packet
-	 * 			the packet to send
+	 * @param packet the packet to send
 	 */
 	@Override
 	public void write(final Packet packet) {

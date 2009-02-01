@@ -57,7 +57,7 @@ public class StatisticsCounter {
 	/**
 	 * Get current number.
 	 * 
-	 * @return
+	 * @return current number
 	 */
 	public int getCurrent() {
 		return current.intValue();
@@ -66,7 +66,7 @@ public class StatisticsCounter {
 	/**
 	 * Get total number.
 	 * 
-	 * @return
+	 * @return total
 	 */
 	public int getTotal() {
 		return total.intValue();
@@ -75,7 +75,7 @@ public class StatisticsCounter {
 	/**
 	 * Get maximum number.
 	 * 
-	 * @return
+	 * @return max
 	 */
 	public int getMax() {
 		return max.intValue();

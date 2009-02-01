@@ -64,8 +64,8 @@ public class RTMPUtils implements Constants {
 
     /**
      *
-     * @param out
-     * @param value
+     * @param out output buffer
+     * @param value value to write
      */
 	public static void writeMediumInt(ByteBuffer out, int value) {
 		out.put((byte) (0xFF & (value >> 16)));
@@ -75,8 +75,8 @@ public class RTMPUtils implements Constants {
 
     /**
      *
-     * @param in
-     * @return
+     * @param in input 
+     * @return unsigned int
      */
 	public static int readUnsignedMediumInt(ByteBuffer in) {
 		final byte a = in.get();
@@ -91,8 +91,8 @@ public class RTMPUtils implements Constants {
 
     /**
      *
-     * @param in
-     * @return
+     * @param in input
+     * @return unsigned medium (3 byte) int.
      */
 	public static int readUnsignedMediumIntOld(ByteBuffer in) {
 		byte[] bytes = new byte[3];
@@ -106,8 +106,8 @@ public class RTMPUtils implements Constants {
 
     /**
      *
-     * @param in
-     * @return
+     * @param in input
+     * @return signed 3-byte int
      */
 	public static int readMediumIntOld(ByteBuffer in) {
 		ByteBuffer buf = ByteBuffer.allocate(4);
@@ -124,8 +124,8 @@ public class RTMPUtils implements Constants {
 
     /**
      *
-     * @param in
-     * @return
+     * @param in input
+     * @return signed 3 byte int
      */
 	public static int readMediumInt(ByteBuffer in) {
 		final byte a = in.get();
@@ -160,10 +160,10 @@ public class RTMPUtils implements Constants {
 
     /**
      * Encodes header size marker and channel id into header marker.
+     * @param out output buffer
 	 *
      * @param headerSize         Header size marker
      * @param channelId          Channel used
-     * @return                   Header id
      */
 	public static void encodeHeaderByte(ByteBuffer out, byte headerSize, int channelId) {
 		if (channelId <= 63) {
@@ -183,6 +183,7 @@ public class RTMPUtils implements Constants {
      * Decode channel id.
 	 *
      * @param header        Header
+     * @param byteCount byte count
      * @return              Channel id
      */
 	public static int decodeChannelId(int header, int byteCount) {
@@ -199,6 +200,7 @@ public class RTMPUtils implements Constants {
      * Decode header size.
 	 *
      * @param header      Header byte
+     * @param byteCount byte count
      * @return            Header size byte
      */
     public static byte decodeHeaderSize(int header, int byteCount) {

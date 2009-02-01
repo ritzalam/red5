@@ -41,6 +41,8 @@ import java.util.Iterator;
  * @author The Red5 Project (red5@osflash.org)
  * @author Dominick Accattato (daccattato@gmail.com)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
+ * @param <K> key type
+ * @param <V> value type
  */
 public class MetaCue<K, V> extends HashMap<String, Object> implements IMetaCue {
 

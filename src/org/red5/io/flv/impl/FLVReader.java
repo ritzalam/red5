@@ -129,6 +129,7 @@ public class FLVReader implements IoConstants, ITagReader,
      * Creates FLV reader from file input stream.
 	 *
      * @param f         File
+     * @throws IOException on error
      */
     public FLVReader(File f) throws IOException {
 		this(f, false);
@@ -139,6 +140,7 @@ public class FLVReader implements IoConstants, ITagReader,
 	 *
      * @param f                    File input stream
      * @param generateMetadata     <code>true</code> if metadata generation required, <code>false</code> otherwise
+     * @throws IOException on error
      */
     public FLVReader(File f, boolean generateMetadata) throws IOException {
     	if (null == f) {

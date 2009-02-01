@@ -78,8 +78,7 @@ public class Server implements IServer, ApplicationContextAware {
 	/**
 	 * Setter for Spring application context
 	 * 
-	 * @param applicationContext
-	 *            Application context
+	 * @param applicationContext Application context
 	 */
 	public void setApplicationContext(ApplicationContext applicationContext) {
 		log.debug("Setting application context");
@@ -90,10 +89,8 @@ public class Server implements IServer, ApplicationContextAware {
 	 * Return scope key. Scope key consists of host name concatenated with
 	 * context path by slash symbol
 	 * 
-	 * @param hostName
-	 *            Host name
-	 * @param contextPath
-	 *            Context path
+	 * @param hostName Host name
+	 * @param contextPath Context path
 	 * @return Scope key as string
 	 */
 	protected String getKey(String hostName, String contextPath) {
@@ -109,10 +106,8 @@ public class Server implements IServer, ApplicationContextAware {
 	/**
 	 * Does global scope lookup for host name and context path
 	 * 
-	 * @param hostName
-	 *            Host name
-	 * @param contextPath
-	 *            Context path
+	 * @param hostName Host name
+	 * @param contextPath Context path
 	 * @return Global scope
 	 */
 	public IGlobalScope lookupGlobal(String hostName, String contextPath) {
@@ -163,8 +158,7 @@ public class Server implements IServer, ApplicationContextAware {
 	/**
 	 * Return global scope by name
 	 * 
-	 * @param name
-	 *            Global scope name
+	 * @param name Global scope name
 	 * @return Global scope
 	 */
 	public IGlobalScope getGlobal(String name) {
@@ -177,8 +171,7 @@ public class Server implements IServer, ApplicationContextAware {
 	/**
 	 * Register global scope
 	 * 
-	 * @param scope
-	 *            Global scope to register
+	 * @param scope Global scope to register
 	 */
 	public void registerGlobal(IGlobalScope scope) {
 		log.info("Registering global scope: {}", scope.getName());
@@ -188,12 +181,9 @@ public class Server implements IServer, ApplicationContextAware {
 	/**
 	 * Map key (host + / + context path) and global scope name
 	 * 
-	 * @param hostName
-	 *            Host name
-	 * @param contextPath
-	 *            Context path
-	 * @param globalName
-	 *            Global scope name
+	 * @param hostName Host name
+	 * @param contextPath Context path
+	 * @param globalName Global scope name
 	 * @return true if mapping was added, false if already exist
 	 */
 	public boolean addMapping(String hostName, String contextPath,
@@ -207,10 +197,8 @@ public class Server implements IServer, ApplicationContextAware {
 	/**
 	 * Remove mapping with given key
 	 * 
-	 * @param hostName
-	 *            Host name
-	 * @param contextPath
-	 *            Context path
+	 * @param hostName Host name
+	 * @param contextPath Context path
 	 * @return true if mapping was removed, false if key doesn't exist
 	 */
 	public boolean removeMapping(String hostName, String contextPath) {

@@ -94,7 +94,7 @@ public class RTMPTServlet extends HttpServlet {
 	/**
 	 * Set the RTMPTHandler to use in this servlet.
 	 * 
-	 * @param handler
+	 * @param handler handler
 	 */
 	public void setHandler(RTMPTHandler handler) {
 		RTMPTServlet.handler = handler;

@@ -37,7 +37,7 @@ public class PropertyConverter {
 	 * equals a digit: #M The following are permitted for denoting time: H =
 	 * hours, M = minutes, S = seconds
 	 * 
-	 * @param time
+	 * @param time time
 	 * @return time in milliseconds
 	 */
 	public static long convertStringToFutureTimeMillis(String time) {
@@ -60,7 +60,7 @@ public class PropertyConverter {
 	 * expected to follow this form where # equals a digit: #M The following are
 	 * permitted for denoting time: H = hours, M = minutes, S = seconds
 	 * 
-	 * @param time
+	 * @param time time
 	 * @return time in seconds
 	 */
 	public static int convertStringToTimeSeconds(String time) {
@@ -83,7 +83,7 @@ public class PropertyConverter {
 	 * are expected to follow this form where # equals a digit: #M The following
 	 * are permitted for denoting time: H = hours, M = minutes, S = seconds
 	 * 
-	 * @param time
+	 * @param time time
 	 * @return time in milliseconds
 	 */
 	public static long convertStringToTimeMillis(String time) {
@@ -107,7 +107,7 @@ public class PropertyConverter {
 	 * following are permitted for denoting binary size: K = kilobytes, M =
 	 * megabytes, G = gigabytes
 	 * 
-	 * @param memSize
+	 * @param memSize memory
 	 * @return size as an integer
 	 */
 	public static int convertStringToMemorySizeInt(String memSize) {
@@ -128,7 +128,7 @@ public class PropertyConverter {
 	 * are permitted for denoting binary size: K = kilobytes, M = megabytes, G =
 	 * gigabytes
 	 * 
-	 * @param memSize
+	 * @param memSize memory size
 	 * @return size as an long
 	 */
 	public static long convertStringToMemorySizeLong(String memSize) {
@@ -146,6 +146,7 @@ public class PropertyConverter {
 	/**
 	 * Quick time converter to keep our timestamps compatible with PHP's time()
 	 * (seconds)
+	 * @return time in seconds
 	 */
 	public static Integer getCurrentTimeSeconds() {
 		return convertMillisToSeconds(System.currentTimeMillis());
@@ -154,6 +155,8 @@ public class PropertyConverter {
 	/**
 	 * Quick time converter to keep our timestamps compatible with PHP's time()
 	 * (seconds)
+	 * @param millis milliseconds
+	 * @return seconds
 	 */
 	public static Integer convertMillisToSeconds(Long millis) {
 		return Long.valueOf(millis / 1000).intValue();

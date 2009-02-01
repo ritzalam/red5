@@ -39,16 +39,14 @@ public interface IStreamSecurityService extends IScopeService {
 	/**
 	 * Add handler that protects stream publishing.
 	 * 
-	 * @param handler
-	 * 			Handler to add.
+	 * @param handler Handler to add.
 	 */
 	public void registerStreamPublishSecurity(IStreamPublishSecurity handler);
 	
 	/**
 	 * Remove handler that protects stream publishing.
 	 * 
-	 * @param handler
-	 * 			Handler to remove.
+	 * @param handler Handler to remove.
 	 */
 	public void unregisterStreamPublishSecurity(IStreamPublishSecurity handler);
 	
@@ -62,16 +60,14 @@ public interface IStreamSecurityService extends IScopeService {
 	/**
 	 * Add handler that protects stream playback.
 	 * 
-	 * @param handler
-	 * 			Handler to add.
+	 * @param handler Handler to add.
 	 */
 	public void registerStreamPlaybackSecurity(IStreamPlaybackSecurity handler);
 	
 	/**
 	 * Remove handler that protects stream playback.
 	 * 
-	 * @param handler
-	 * 			Handler to remove.
+	 * @param handler Handler to remove.
 	 */
 	public void unregisterStreamPlaybackSecurity(IStreamPlaybackSecurity handler);
 	

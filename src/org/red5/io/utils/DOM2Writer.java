@@ -41,10 +41,8 @@ public class DOM2Writer {
 	/**
 	 * Serialize this node into the writer as XML.
 	 * 
-	 * @param writer
-	 *            Writer object
-	 * @param node
-	 *            DOM node
+	 * @param writer Writer object
+	 * @param node  DOM node
 	 */
 	public static void serializeAsXML(Node node, Writer writer) {
 		PrintWriter out = new PrintWriter(writer);

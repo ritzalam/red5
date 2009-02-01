@@ -66,8 +66,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 	/**
 	 * Constructor of AMF3 output.
 	 *
-	 * @param buf
-	 *            instance of ByteBuffer
+	 * @param buf instance of ByteBuffer
 	 * @see ByteBuffer
 	 */
 	public Output(ByteBuffer buf) {
@@ -119,7 +118,6 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		buf.put(AMF3.TYPE_NULL);
 	}
 
-    /** {@inheritDoc} */
 	protected void putInteger(long value) {
 		if (value < 0) {
 			buf.put((byte) (0x80 | ((value >> 22) & 0xff)));
@@ -143,7 +141,6 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		}
 	}
 
-	/** {@inheritDoc} */
     protected static byte[] encodeString(String string) {
     	byte[] encoded;
     	synchronized (stringCache) {
@@ -160,7 +157,6 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
     	return encoded;
     }
 
-	/** {@inheritDoc} */
 	protected void putString(String str, byte[] encoded) {
 		final int len = encoded.length;
 		int pos = stringReferences.indexOf(str);

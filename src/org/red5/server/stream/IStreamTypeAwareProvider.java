@@ -35,7 +35,7 @@ public interface IStreamTypeAwareProvider extends IProvider {
 	/**
 	 * Check if the provider contains video tags.
 	 * 
-	 * @return
+	 * @return provider has video
 	 */
 	public boolean hasVideo();
 	

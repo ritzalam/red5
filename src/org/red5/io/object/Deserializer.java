@@ -39,9 +39,10 @@ public class Deserializer {
 	/**
 	 * Deserializes the input parameter and returns an Object
 	 * which must then be cast to a core data type
-	 * @param in
-	 * @param target
-     * @return Object
+	 * @param <T> type
+	 * @param in input
+	 * @param target target
+     * @return Object object
 	 */
 	@SuppressWarnings("unchecked")
 	public <T> T deserialize(Input in, Type target) {

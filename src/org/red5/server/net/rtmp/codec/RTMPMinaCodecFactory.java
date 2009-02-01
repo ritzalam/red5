@@ -86,12 +86,18 @@ public class RTMPMinaCodecFactory implements ProtocolCodecFactory,
 		return encoder;
 	}
 	
-	/** {@inheritDoc} */
+	/**
+	 * 
+	 * @return decoder
+	 */
     public RTMPMinaProtocolDecoder getMinaDecoder() {
 		return decoder;
 	}
 
-	/** {@inheritDoc} */
+	/**
+	 * 
+	 * @return encoder
+	 */
     public RTMPMinaProtocolEncoder getMinaEncoder() {
 		return encoder;
 	}	

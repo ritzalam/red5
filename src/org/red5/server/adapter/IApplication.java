@@ -36,8 +36,7 @@ public interface IApplication {
 	/**
 	 * Called once when application or room starts
 	 * 
-	 * @param app
-	 *            Application or room level scope. See
+	 * @param app Application or room level scope. See
 	 *            {@link org.red5.server.api.IScope} for details
 	 * @return <code>true</code> continues application run, <code>false</code>
 	 *         terminates
@@ -47,11 +46,9 @@ public interface IApplication {
 	/**
 	 * Called per each client connect
 	 * 
-	 * @param conn
-	 *            Connection object used to provide basic connection methods.
+	 * @param conn Connection object used to provide basic connection methods.
 	 *            See {@link org.red5.server.api.IConnection}
-	 * @param params
-	 *            List of params sent from client with NetConnection.connect
+	 * @param params List of params sent from client with NetConnection.connect
 	 *            call
 	 * @return <code>true</code> accepts the connection, <code>false</code>
 	 *         rejects it
@@ -61,10 +58,8 @@ public interface IApplication {
 	/**
 	 * Called every time client joins app level scope
 	 * 
-	 * @param client
-	 *            Client object
-	 * @param app
-	 *            Scope object
+	 * @param client Client object
+	 * @param app Scope object
 	 * @return <code>true</code> accepts the client, <code>false</code>
 	 *         rejects it
 	 */
@@ -73,34 +68,29 @@ public interface IApplication {
 	/**
 	 * Called every time client disconnects from the application
 	 * 
-	 * @param conn
-	 *            Connection object See {@link org.red5.server.api.IConnection}
+	 * @param conn Connection object See {@link org.red5.server.api.IConnection}
 	 */
 	public void appDisconnect(IConnection conn);
 
 	/**
 	 * Called every time client leaves the application scope
 	 * 
-	 * @param client
-	 *            Client object
-	 * @param app
-	 *            Scope object
+	 * @param client Client object
+	 * @param app Scope object
 	 */
 	public void appLeave(IClient client, IScope app);
 
 	/**
 	 * Called on application stop
 	 * 
-	 * @param app
-	 *            Scope object
+	 * @param app Scope object
 	 */
 	public void appStop(IScope app);
 
 	/**
 	 * Called on application room start
 	 * 
-	 * @param room
-	 *            Scope object
+	 * @param room Scope object
 	 * @return <code>true</code> if scope can be started, <code>false</code>
 	 *         otherwise
 	 */
@@ -109,10 +99,8 @@ public interface IApplication {
 	/**
 	 * Called every time client connects to the room
 	 * 
-	 * @param conn
-	 *            Connection object
-	 * @param params
-	 *            List of params sent from client with NetConnection.connect
+	 * @param conn Connection object
+	 * @param params List of params sent from client with NetConnection.connect
 	 *            call
 	 * @return <code>true</code> accepts the connection, <code>false</code>
 	 *         rejects it
@@ -122,10 +110,8 @@ public interface IApplication {
 	/**
 	 * Called when user joins room scope
 	 * 
-	 * @param client
-	 *            Client object
-	 * @param room
-	 *            Scope object
+	 * @param client Client object
+	 * @param room Scope object
 	 * @return <code>true</code> accepts the client, <code>false</code>
 	 *         rejects it
 	 */
@@ -134,8 +120,7 @@ public interface IApplication {
 	/**
 	 * Called when client disconnects from room  scope
 	 * 
-	 * @param conn
-	 *            Connection object used to provide basic connection methods.
+	 * @param conn Connection object used to provide basic connection methods.
 	 *            See {@link org.red5.server.api.IConnection}
 	 */
 	public void roomDisconnect(IConnection conn);
@@ -143,18 +128,15 @@ public interface IApplication {
 	/**
 	 * Called when user leaves room scope
 	 * 
-	 * @param client
-	 *            Client object
-	 * @param room
-	 *            Scope object
+	 * @param client Client object
+	 * @param room Scope object
 	 */
 	public void roomLeave(IClient client, IScope room);
 
 	/**
 	 * Called on room scope stop
 	 * 
-	 * @param room
-	 *            Scope object
+	 * @param room Scope object
 	 */
 	public void roomStop(IScope room);
 

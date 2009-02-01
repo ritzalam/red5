@@ -41,8 +41,7 @@ public interface IServer {
 	/**
 	 * Get the global scope with given name.
 	 * 
-	 * @param name
-	 *            Name of the global scope
+	 * @param name Name of the global scope
 	 * @return the global scope
 	 */
 	public IGlobalScope getGlobal(String name);
@@ -50,18 +49,15 @@ public interface IServer {
 	/**
 	 * Register a global scope.
 	 * 
-	 * @param scope
-	 *            The global scope to register
+	 * @param scope The global scope to register
 	 */
 	public void registerGlobal(IGlobalScope scope);
 
 	/**
 	 * Lookup the global scope for a host.
 	 * 
-	 * @param hostName
-	 *            The name of the host
-	 * @param contextPath
-	 *            The path in the host
+	 * @param hostName The name of the host
+	 * @param contextPath The path in the host
 	 * @return The found global scope or <code>null</code>
 	 */
 	public IGlobalScope lookupGlobal(String hostName, String contextPath);
@@ -69,12 +65,9 @@ public interface IServer {
 	/**
 	 * Map a virtual hostname and a path to the name of a global scope.
 	 * 
-	 * @param hostName
-	 *            The name of the host to map
-	 * @param contextPath
-	 *            The path to map
-	 * @param globalName
-	 *            The name of the global scope to map to
+	 * @param hostName The name of the host to map
+	 * @param contextPath The path to map
+	 * @param globalName The name of the global scope to map to
 	 * @return <code>true</code> if the name was mapped, otherwise
 	 *         <code>false</code>
 	 */
@@ -84,10 +77,8 @@ public interface IServer {
 	/**
 	 * Unregister a previously mapped global scope.
 	 * 
-	 * @param hostName
-	 *            The name of the host to unmap
-	 * @param contextPath
-	 *            The path for this host to unmap
+	 * @param hostName The name of the host to unmap
+	 * @param contextPath The path for this host to unmap
 	 * @return <code>true</code> if the global scope was unmapped, otherwise
 	 *         <code>false</code>
 	 */
@@ -117,32 +108,28 @@ public interface IServer {
 	/**
 	 * Add listener to get notified about scope events.
 	 * 
-	 * @param listener
-	 *            the listener to add
+	 * @param listener the listener to add
 	 */
 	public void addListener(IScopeListener listener);
 
 	/**
 	 * Add listener to get notified about connection events.
 	 * 
-	 * @param listener
-	 *            the listener to add
+	 * @param listener the listener to add
 	 */
 	public void addListener(IConnectionListener listener);
 
 	/**
 	 * Remove listener that got notified about scope events.
 	 * 
-	 * @param listener
-	 *            the listener to remove
+	 * @param listener the listener to remove
 	 */
 	public void removeListener(IScopeListener listener);
 
 	/**
 	 * Remove listener that got notified about connection events.
 	 * 
-	 * @param listener
-	 *            the listener to remove
+	 * @param listener the listener to remove
 	 */
 	public void removeListener(IConnectionListener listener);
 

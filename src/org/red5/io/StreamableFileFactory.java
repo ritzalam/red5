@@ -40,8 +40,7 @@ public class StreamableFileFactory implements IStreamableFileFactory {
 	/**
 	 * Setter for services
 	 * 
-	 * @param services
-	 *            Set of streamable file services
+	 * @param services Set of streamable file services
 	 */
 	public void setServices(Set<IStreamableFileService> services) {
 		logger.debug("StreamableFileFactory set services");

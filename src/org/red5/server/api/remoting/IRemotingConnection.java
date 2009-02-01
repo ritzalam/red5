@@ -35,10 +35,8 @@ public interface IRemotingConnection extends IConnection {
 	 * Tell the client to add a header with all further requests. This is
 	 * returned to the client as response for the next request received.
 	 * 
-	 * @param name
-	 * 				name of the header to add
-	 * @param value
-	 * 				value of the header to add
+	 * @param name name of the header to add
+	 * @param value value of the header to add
 	 */
 	public void addHeader(String name, Object value);
 
@@ -46,12 +44,9 @@ public interface IRemotingConnection extends IConnection {
 	 * Tell the client to add a header with all further requests. This is
 	 * returned to the client as response for the next request received.
 	 *  
-	 * @param name
-	 * 				name of the header to add
-	 * @param value
-	 * 				value of the header to add
-	 * @param mustUnderstand
-	 * 				a boolean flag specifying if the server must pocess this header
+	 * @param name name of the header to add
+	 * @param value value of the header to add
+	 * @param mustUnderstand a boolean flag specifying if the server must pocess this header
 	 * 				before handling following headers or messages
 	 */
 	public void addHeader(String name, Object value, boolean mustUnderstand);
@@ -61,15 +56,14 @@ public interface IRemotingConnection extends IConnection {
 	 * This is returned to the client as response for the next request
 	 * received.
 	 * 
-	 * @param name
-	 * 				name of the header to remove
+	 * @param name name of the header to remove
 	 */
 	public void removeHeader(String name);
 
 	/**
 	 * Return headers to send.
 	 * 
-	 * @return
+	 * @return headers to send
 	 */
 	public Collection<IRemotingHeader> getHeaders();
 	

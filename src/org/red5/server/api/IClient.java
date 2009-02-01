@@ -46,6 +46,7 @@ public interface IClient extends ClientMBean, IAttributeStore, IBWControllable {
 
     /**
      * Sets the clients id
+     * @param id client id
      */
     public void setId(String id);
 
@@ -100,8 +101,7 @@ public interface IClient extends ClientMBean, IAttributeStore, IBWControllable {
 	/**
 	 * Get a set of connections of a given scope.
 	 * 
-	 * @param scope
-	 * 			scope to get connections for
+	 * @param scope scope to get connections for
 	 * @return Set of connections to the passed scope
 	 */
 	public Set<IConnection> getConnections(IScope scope);
@@ -114,18 +114,15 @@ public interface IClient extends ClientMBean, IAttributeStore, IBWControllable {
 	/**
 	 * Set the permissions for this client in a given context.
 	 * 
-	 * @param conn
-	 * 			Connection specifying the context to set the permissions for. 
-	 * @param permissions
-	 * 			Permissions the client has in this context or <code>null</code> for no permissions.
+	 * @param conn Connection specifying the context to set the permissions for. 
+	 * @param permissions Permissions the client has in this context or <code>null</code> for no permissions.
 	 */
 	public void setPermissions(IConnection conn, Collection<String> permissions);
 
 	/**
 	 * Return the permissions in a given context. 
 	 * 
-	 * @param conn
-	 * 			Connection specifying the context to get the permissions for.
+	 * @param conn Connection specifying the context to get the permissions for.
 	 * @return Permission names.
 	 */
 	public Collection<String> getPermissions(IConnection conn);
@@ -133,10 +130,8 @@ public interface IClient extends ClientMBean, IAttributeStore, IBWControllable {
 	/**
 	 * Check if the client has a permission in the given context.
 	 * 
-	 * @param conn
-	 * 			Connection specifying the context to check the permissions for.
-	 * @param permissionName
-	 * 			Name of the permission to check.
+	 * @param conn Connection specifying the context to check the permissions for.
+	 * @param permissionName Name of the permission to check.
 	 * @return <code>true</code> if the client has the permission, otherwise <code>false</code>
 	 */
 	public boolean hasPermission(IConnection conn, String permissionName);

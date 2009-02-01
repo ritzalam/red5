@@ -48,8 +48,7 @@ public interface IStatisticsService {
 	/**
 	 * Return the shared object that will be used to keep scope statistics.
 	 * 
-	 * @param scope
-	 * 		A scope to return the shared object for.
+	 * @param scope A scope to return the shared object for.
 	 * @return the shared object containing scope statistics
 	 */
 	public ISharedObject getScopeStatisticsSO(IScope scope);
@@ -57,8 +56,7 @@ public interface IStatisticsService {
 	/**
 	 * Return the shared object that will be used to keep SO statistics.
 	 * 
-	 * @param scope
-	 * 		A scope to return the shared object for.
+	 * @param scope A scope to return the shared object for.
 	 * @return the shared object containing SO statistics
 	 */
 	public ISharedObject getSharedObjectStatisticsSO(IScope scope);
@@ -74,8 +72,7 @@ public interface IStatisticsService {
 	 * Return a list of all scopes that currently exist on the server
 	 * below a current path.
 	 * 
-	 * @param path
-	 * 			Path to start looking for scopes.
+	 * @param path Path to start looking for scopes.
 	 * @return list of scope names
 	 * @throws ScopeNotFoundException if the path on the server doesn't exist
 	 */
@@ -85,8 +82,7 @@ public interface IStatisticsService {
 	/**
 	 * Update statistics for a given scope.
 	 * 
-	 * @param path
-	 * 			Path to scope to update.
+	 * @param path Path to scope to update.
 	 * @throws ScopeNotFoundException if the given scope doesn't exist
 	 */
 	public void updateScopeStatistics(String path)
@@ -95,8 +91,7 @@ public interface IStatisticsService {
 	/**
 	 * Return informations about shared objects for a given scope.
 	 * 
-	 * @param path
-	 * 			Path to scope to return shared object names for.
+	 * @param path Path to scope to return shared object names for.
 	 * @return list of informations about shared objects
 	 */
 	public Set<ISharedObjectStatistics> getSharedObjects(String path);
@@ -104,10 +99,8 @@ public interface IStatisticsService {
 	/**
 	 * Update informations about a shared object in a given scope.
 	 * 
-	 * @param path
-	 * 			Path to scope that contains the shared object.
-	 * @param name
-	 * 			Name of shared object to update.
+	 * @param path Path to scope that contains the shared object.
+	 * @param name Name of shared object to update.
 	 * @throws ScopeNotFoundException if the given scope doesn't exist
 	 * @throws SharedObjectException if no shared object with the given name exists
 	 */

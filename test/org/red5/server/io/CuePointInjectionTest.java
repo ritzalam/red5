@@ -55,7 +55,6 @@ public class CuePointInjectionTest extends TestCase {
 	/**
 	 * SetUp is called before each test
 	 * 
-	 * @return void
 	 */
 	@Override
 	public void setUp() {
@@ -67,7 +66,7 @@ public class CuePointInjectionTest extends TestCase {
 	/**
 	 * Test MetaData injection
 	 * 
-	 * @throws IOException
+	 * @throws IOException for fun
 	 */
 	public void testCuePointInjection() throws IOException {
 		File f = new File("fixtures/test_cue1.flv");
@@ -200,8 +199,6 @@ public class CuePointInjectionTest extends TestCase {
 
 	/**
 	 * Test to see if TreeSet is sorting properly
-	 * 
-	 * @return void
 	 */
 	public void testCuePointOrder() {
 		IMetaCue cue = new MetaCue<Object, Object>();

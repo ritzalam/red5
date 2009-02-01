@@ -34,8 +34,7 @@ public interface ICastingAttributeStore extends IAttributeStore {
 	/**
 	 * Get Boolean attribute by name
 	 * 
-	 * @param name
-	 *            Attribute name
+	 * @param name Attribute name
 	 * @return		Attribute
 	 */
 	public Boolean getBoolAttribute(String name);
@@ -43,8 +42,7 @@ public interface ICastingAttributeStore extends IAttributeStore {
 	/**
 	 * Get Byte attribute by name
 	 * 
-	 * @param name
-	 *            Attribute name
+	 * @param name Attribute name
 	 * @return		Attribute
 	 */
 	public Byte getByteAttribute(String name);
@@ -52,8 +50,7 @@ public interface ICastingAttributeStore extends IAttributeStore {
 	/**
 	 * Get Double attribute by name
 	 * 
-	 * @param name
-	 *            Attribute name
+	 * @param name Attribute name
 	 * @return		Attribute
 	 */
 	public Double getDoubleAttribute(String name);
@@ -61,8 +58,7 @@ public interface ICastingAttributeStore extends IAttributeStore {
 	/**
 	 * Get Integer attribute by name
 	 * 
-	 * @param name
-	 *            Attribute name
+	 * @param name Attribute name
 	 * @return		Attribute
 	 */
 	public Integer getIntAttribute(String name);
@@ -70,8 +66,7 @@ public interface ICastingAttributeStore extends IAttributeStore {
 	/**
 	 * Get List attribute by name
 	 * 
-	 * @param name
-	 *            Attribute name
+	 * @param name Attribute name
 	 * @return		Attribute
 	 */
 	public List<?> getListAttribute(String name);
@@ -79,8 +74,7 @@ public interface ICastingAttributeStore extends IAttributeStore {
 	/**
 	 * Get boolean attribute by name
 	 * 
-	 * @param name
-	 *            Attribute name
+	 * @param name Attribute name
 	 * @return		Attribute
 	 */
 	public Long getLongAttribute(String name);
@@ -88,8 +82,7 @@ public interface ICastingAttributeStore extends IAttributeStore {
 	/**
 	 * Get Long attribute by name
 	 * 
-	 * @param name
-	 *            Attribute name
+	 * @param name Attribute name
 	 * @return		Attribute
 	 */
 	public Map<?, ?> getMapAttribute(String name);
@@ -97,8 +90,7 @@ public interface ICastingAttributeStore extends IAttributeStore {
 	/**
 	 * Get Set attribute by name
 	 * 
-	 * @param name
-	 *            Attribute name
+	 * @param name Attribute name
 	 * @return		Attribute
 	 */
 	public Set<?> getSetAttribute(String name);
@@ -106,8 +98,7 @@ public interface ICastingAttributeStore extends IAttributeStore {
 	/**
 	 * Get Short attribute by name
 	 * 
-	 * @param name
-	 *            Attribute name
+	 * @param name Attribute name
 	 * @return		Attribute
 	 */
 	public Short getShortAttribute(String name);
@@ -115,8 +106,7 @@ public interface ICastingAttributeStore extends IAttributeStore {
 	/**
 	 * Get String attribute by name
 	 * 
-	 * @param name
-	 *            Attribute name
+	 * @param name Attribute name
 	 * @return		Attribute
 	 */
 	public String getStringAttribute(String name);

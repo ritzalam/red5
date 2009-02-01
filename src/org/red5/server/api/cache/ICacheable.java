@@ -56,8 +56,7 @@ public interface ICacheable {
 	/**
 	 * Set the name of the cached object.
 	 * 
-	 * @param name
-	 *            New object name
+	 * @param name New object name
 	 */
 	public void setName(String name);
 

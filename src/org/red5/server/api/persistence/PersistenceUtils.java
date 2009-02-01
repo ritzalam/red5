@@ -71,13 +71,11 @@ public class PersistenceUtils {
 	 * that stores persistence objects and provides methods to manipulate them
 	 * (save, load, remove, list).
 	 * 
-	 * @param resolver
-	 *            Resolves connection pattern into Resource object
-	 * @param className
-	 *            Name of persistence class
+	 * @param resolver Resolves connection pattern into Resource object
+	 * @param className Name of persistence class
 	 * @return IPersistence store object that provides methods for persistence
 	 *         object handling
-	 * @throws Exception
+	 * @throws Exception if error
 	 */
 	public static IPersistenceStore getPersistenceStore(
 			ResourcePatternResolver resolver, String className)
