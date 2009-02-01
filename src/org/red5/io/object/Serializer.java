@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Method;
 
 import org.apache.commons.beanutils.BeanMap;
 import org.red5.io.amf3.ByteArray;
@@ -43,6 +44,7 @@ import org.w3c.dom.Document;
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
+ * @author Harald Radi (harald.radi@nme.at)
  */
 public class Serializer {
 
@@ -60,7 +62,7 @@ public class Serializer {
 	 *            Object to serialize
 	 */
 	public void serialize(Output out, Object any) {
-		serialize(out, null, any);
+		serialize(out, null, null, any);
 	}
 
 	/**
@@ -73,7 +75,7 @@ public class Serializer {
 	 * @param any
 	 *            Object to serialize
 	 */
-	public void serialize(Output out, Field field, Object any) {
+	public void serialize(Output out, Field field, Method getter, Object any) {
 		log.debug("serialize");
 		if (any instanceof IExternalizable) {
 			// Make sure all IExternalizable objects are serialized as objects
@@ -340,28 +342,28 @@ public class Serializer {
 	/**
 	 * Checks whether the field should be serialized or not
 	 * 
+	 * @param keyName
 	 * @param field
 	 *            The field to be serialized
+	 * @param getter
 	 * @return <code>true</code> if the field should be serialized, otherwise
 	 *         <code>false</code>
 	 */
-	public boolean serializeField(Field field) {
+	public boolean serializeField(String keyName, Field field, Method getter) {
+		if ("class".equals(keyName)) return false;
+
+		if (field != null && Modifier.isTransient(field.getModifiers())) {
+			log.warn("Using \"transient\" to declare fields not to be serialized is deprecated and will be removed in Red5 0.8, use \"@DontSerialize\" instead.");
+			return false;
+		}
+
+		if ((field != null && field.isAnnotationPresent(DontSerialize.class)) || (getter != null && getter.isAnnotationPresent(DontSerialize.class))) {
+			log.debug("Skipping {} because its marked with @DontSerialize", keyName);
+			return false;
+		}
+
 		log.debug("Serialize field: {}", field);
-		// null fields must be prevented from reaching this method
-		boolean dontSerialize = field.isAnnotationPresent(DontSerialize.class);
-		if (dontSerialize) {
-			log.debug("Skipping {} because its marked with @DontSerialize",
-					field.getName());
-		}
 
-		boolean isTransient = Modifier.isTransient(field.getModifiers());
-		if (isTransient) {
-			log
-					.warn("Using \"transient\" to declare fields not to be serialized is deprecated and will be removed in Red5 0.8, use \"@DontSerialize\" instead.");
-		}
-
-		boolean isClass = "class".equals(field.getName());
-
-		return !(dontSerialize || isTransient || isClass);
+		return true;
 	}
 }

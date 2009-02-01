@@ -301,7 +301,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 			v = readAMF3Integer();
 		}
 
-        if (target instanceof Class) {
+        if (target instanceof Class && Number.class.isAssignableFrom((Class<?>) target)) {
             Class cls = (Class) target;
             if (!cls.isAssignableFrom(v.getClass())) v = (Number) convertUtilsBean.convert(v.toString(), cls);
         }

@@ -22,11 +22,13 @@ package org.red5.io.amf;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
+import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -48,6 +50,7 @@ import org.w3c.dom.Document;
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  * @author Paul Gregoire (mondain@gmail.com)
+ * @author Harald Radi (harald.radi@nme.at)
  */
 public class Output extends BaseOutput implements org.red5.io.object.Output {
 
@@ -57,6 +60,9 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 	 * Cache encoded strings.
 	 */
 	protected static final ConcurrentMap<String, byte[]> stringCache = new ConcurrentHashMap<String, byte[]>();
+	protected static final Map<Class<?>, Map<String, Boolean>> serializeCache = new HashMap<Class<?>, Map<String, Boolean>>();
+	protected static final Map<Class<?>, Map<String, Field>> fieldCache = new HashMap<Class<?>, Map<String, Field>>();
+	protected static final Map<Class<?>, Map<String, Method>> getterCache = new HashMap<Class<?>, Map<String, Method>>();
 
     /**
      * Output buffer
@@ -269,7 +275,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
         // Create new map out of bean properties
         BeanMap beanMap = new BeanMap(object);
         // Set of bean attributes
-        Set<Map.Entry<?, ?>> set = beanMap.entrySet();
+        Set set = beanMap.keySet();
 		if ((set.size() == 0) || (set.size() == 1 && beanMap.containsKey("class"))) {
 			// BeanMap is empty or can only access "class" attribute, skip it
 			writeArbitraryObject(object, serializer);
@@ -294,19 +300,20 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
         }
 
         // Iterate thru entries and write out property names with separators
-		for (Map.Entry<?, ?> entry: set) {
-            String fieldName = entry.getKey().toString();
+		for (Object key : set) {
+            String fieldName = key.toString();
             log.debug("Field name: {} class: {}", fieldName, objectClass);
             
             Field field = getField(objectClass, fieldName);
+            Method getter = getGetter(objectClass, fieldName);
 
             // Check if the Field corresponding to the getter/setter pair is transient
-            if (field == null || !serializer.serializeField(field)) {
+            if (!serializeField(serializer, objectClass, fieldName, field, getter)) {
             	continue;
             }
 
             putString(buf, fieldName);
-			serializer.serialize(this, field, entry.getValue());
+			serializer.serialize(this, field, getter, beanMap.get(key));
 		}
         // Write out end of object mark
 		buf.put((byte) 0x00);
@@ -314,17 +321,85 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		buf.put(AMF.TYPE_END_OF_OBJECT);
 	}
 
-    protected Field getField(Class<?> objectClass, String keyName) {
-        for (Class<?> clazz = objectClass; !clazz.equals(Object.class); clazz = clazz.getSuperclass()) {
-            try {
-                return clazz.getDeclaredField(keyName);
-            } catch (NoSuchFieldException nfe) {
-                // Ignore this exception and use the default behavior
-                log.debug("writeObject caught NoSuchFieldException", nfe);
-            }
-        }
-        return null;
+	protected boolean serializeField(Serializer serializer, Class<?> objectClass, String keyName, Field field, Method getter) {
+		Map<String, Boolean> serializeMap = serializeCache.get(objectClass);
+		if (serializeMap == null) {
+			serializeMap = new HashMap<String, Boolean>();
+			serializeCache.put(objectClass, serializeMap);
+		}
+
+		Boolean serialize;
+		if (serializeCache.containsKey(keyName)) {
+			serialize = serializeMap.get(keyName);
+		} else {
+			serialize = serializer.serializeField(keyName, field, getter);
+			serializeMap.put(keyName, serialize);
+		}
+
+		return serialize;
+	}
+
+	protected Field getField(Class<?> objectClass, String keyName) {
+	    Map<String, Field> fieldMap = fieldCache.get(objectClass);
+	    if (fieldMap == null) {
+		    fieldMap = new HashMap<String, Field>();
+		    fieldCache.put(objectClass, fieldMap);
+	    }
+
+	    Field field = null;
+
+	    if (fieldMap.containsKey(keyName)) {
+		    field = fieldMap.get(keyName);
+	    } else {
+		    for (Class<?> clazz = objectClass; !clazz.equals(Object.class); clazz = clazz.getSuperclass()) {
+			    try {
+				    field = clazz.getDeclaredField(keyName);
+			    } catch (NoSuchFieldException nfe) {
+				    // Ignore this exception and use the default behavior
+				    log.debug("writeObject caught NoSuchFieldException", nfe);
+			    }
+		    }
+
+		    fieldMap.put(keyName, field);
+	    }
+
+	    return field;
     }
+
+	protected Method getGetter(Class<?> objectClass, String keyName) {
+
+		Map<String, Method> getterMap = getterCache.get(objectClass);
+		if (getterMap == null) {
+			getterMap = new HashMap<String, Method>();
+			getterCache.put(objectClass, getterMap);
+		}
+
+		Method getter = null;
+
+		if (getterMap.containsKey(keyName)) {
+			getter = getterMap.get(keyName);
+		} else {
+			String upper = keyName.substring(0, 1).toUpperCase() + keyName.substring(1);
+
+			for (Class<?> clazz = objectClass; !clazz.equals(Object.class); clazz = clazz.getSuperclass()) {
+				try {
+					getter = clazz.getMethod("get" + upper);
+				} catch (NoSuchMethodException e1) {
+					try {
+						getter = clazz.getMethod("is" + upper);
+					} catch (NoSuchMethodException e2) {
+						// Ignore this exception and use the default behavior
+						log.debug("writeObject caught NoSuchMethodException", e2);
+					}
+				}
+			}
+
+			getterMap.put(keyName, getter);
+		}
+
+		return getter;
+	}
+
 
     /** {@inheritDoc} */
     public void writeObject(Map<Object, Object> map, Serializer serializer) {
@@ -367,9 +442,11 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 
         // Iterate thru fields of an object to build "name-value" map from it
         for (Field field : objectClass.getFields()) {
+	        String fieldName = field.getName();
+
         	log.debug("Field: {} class: {}", field, objectClass);
             // Check if the Field corresponding to the getter/setter pair is transient
-            if (field == null || !serializer.serializeField(field)) {
+	        if (!serializeField(serializer, objectClass, fieldName, field, null)) {
             	continue;
             }
 
@@ -382,9 +459,9 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
                 continue;
 			}
             // Write out prop name
-			putString(buf, field.getName());
+	        putString(buf, fieldName);
             // Write out
-            serializer.serialize(this, field, value);
+            serializer.serialize(this, field, null, value);
 		}
         // Write out end of object marker
 		buf.put((byte) 0x00);
