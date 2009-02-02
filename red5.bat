@@ -2,7 +2,7 @@
 
 SETLOCAL
 
-if NOT DEFINED RED5_HOME for /F %%o IN ('cd') do set RED5_HOME=%%o
+if NOT DEFINED RED5_HOME set RED5_HOME=%CD%
 
 if NOT DEFINED RED5_MAINCLASS set RED5_MAINCLASS=org.red5.server.Bootstrap
 
