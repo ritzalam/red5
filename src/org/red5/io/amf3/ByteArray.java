@@ -88,7 +88,7 @@ public class ByteArray implements IDataInput, IDataOutput {
 	/**
 	 * Get internal data.
 	 * 
-	 * @return
+	 * @return byte buffer
 	 */
 	protected ByteBuffer getData() {
 		return data;

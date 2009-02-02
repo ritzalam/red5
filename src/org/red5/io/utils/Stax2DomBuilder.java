@@ -121,18 +121,10 @@ public class Stax2DomBuilder {
 	 * relationship; this improves performance somewhat (classic
 	 * recursion-by-iteration-and-explicit stack transformation)
 	 * 
-	 * @param f
-	 *            Node factory to use for creating JDOM nodes
-	 * @param r
-	 *            Stream reader to use for reading the document from which to
+	 * @param r Stream reader to use for reading the document from which to
 	 *            build the tree
-	 * @param doc
-	 *            JDOM <code>Document</code> being built.
-	 * @param tmod
-	 *            Text modifier to use for modifying content of text nodes
-	 *            (CHARACTERS, not CDATA), if any; null if no modifications are
-	 *            needed (modifier is usually used for trimming unnecessary but
-	 *            non-ignorable white space).
+	 * @param doc JDOM <code>Document</code> being built.
+	 * @throws XMLStreamException for fun
 	 */
 	protected void buildTree(XMLStreamReader r, Document doc)
 			throws XMLStreamException {

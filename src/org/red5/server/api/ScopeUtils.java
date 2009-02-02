@@ -187,9 +187,9 @@ public class ScopeUtils {
 	/**
 	 * Returns scope service by bean name. See overloaded method for details.
 	 *
-	 * @param scope
-	 * @param name
-	 * @return
+	 * @param scope scope
+	 * @param name name
+	 * @return object
 	 */
 	protected static Object getScopeService(IScope scope, String name) {
 		return getScopeService(scope, name, null);

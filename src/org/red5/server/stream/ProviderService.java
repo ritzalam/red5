@@ -40,9 +40,6 @@ import org.red5.server.messaging.InMemoryPullPullPipe;
 import org.red5.server.stream.provider.FileProvider;
 import org.slf4j.Logger;
 
-/**
- * {@inheritDoc}
- */
 public class ProviderService implements IProviderService {
 
 	private static final Logger log = Red5LoggerFactory.getLogger(ProviderService.class);

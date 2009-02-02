@@ -127,7 +127,7 @@ public class AMFGatewayServlet extends HttpServlet {
 	 * Return the global scope to use for the given request.
 	 * 
 	 * @param req
-	 * @return
+	 * @return scope
 	 */
 	protected IGlobalScope getGlobalScope(HttpServletRequest req) {
 		String path = req.getContextPath() + req.getServletPath();

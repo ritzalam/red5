@@ -132,7 +132,6 @@ public class RhinoScriptFactory implements ScriptFactory {
 	/**
 	 * Load and parse the Rhino script via RhinoScriptUtils.
 	 *
-	 * @see RhinoScriptUtils#createRhinoObject(String, Class[])
 	 */
 	public Object getScriptedObject(ScriptSource actualScriptSource,
 			Class[] actualInterfaces) throws IOException,

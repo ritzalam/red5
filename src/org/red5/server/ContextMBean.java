@@ -31,8 +31,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.Resource;
 
 /**
- * {@inheritDoc}
- *
  * <p>This is basic context implementation used by Red5.</p>
  */
 public interface ContextMBean {

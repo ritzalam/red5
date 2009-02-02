@@ -37,8 +37,9 @@ public abstract class BaseProtocolEncoder implements SimpleProtocolEncoder {
 	/**
 	 * Generate error object to return for given exception.
 	 * 
-	 * @param call
-	 * @return
+	 * @param code call
+	 * @param error error
+	 * @return status object
 	 */
 	protected StatusObject generateErrorResult(String code, Throwable error) {
 		// Construct error object to return

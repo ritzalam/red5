@@ -42,8 +42,6 @@ import org.springframework.context.access.ContextSingletonBeanFactoryLocator;
 import org.springframework.core.io.Resource;
 
 /**
- * {@inheritDoc}
- * 
  * <p>
  * This is basic context implementation used by Red5.
  * </p>

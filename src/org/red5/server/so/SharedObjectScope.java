@@ -381,7 +381,7 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
     /**
      * Call handlers and check if connection to the existing SO is allowed.
      * 
-     * @return
+     * @return is connection allowed
      */
     protected boolean isConnectionAllowed() {
     	// Check internal handlers first
@@ -409,9 +409,9 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
     /**
      * Call handlers and check if writing to the SO is allowed.
      * 
-     * @param key
-     * @param value
-     * @return
+     * @param key key
+     * @param value value
+     * @return is write allowed
      */
     protected boolean isWriteAllowed(String key, Object value) {
     	// Check internal handlers first
@@ -439,8 +439,8 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
     /**
      * Call handlers and check if deleting a property from the SO is allowed.
      * 
-     * @param key
-     * @return
+     * @param key key
+     * @return is delete allowed
      */
     protected boolean isDeleteAllowed(String key) {
     	// Check internal handlers first
@@ -469,9 +469,9 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
      * Call handlers and check if sending a message to the clients connected to the
      * SO is allowed.
      * 
-     * @param message
-     * @param arguments
-     * @return
+     * @param message message
+     * @param arguments arguments
+     * @return is send allowed
      */
     protected boolean isSendAllowed(String message, List<?> arguments) {
     	// Check internal handlers first
