@@ -21,6 +21,8 @@ package org.red5.server.service;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -37,6 +39,8 @@ import junit.framework.TestCase;
 
 import org.red5.server.service.EchoService;
 import org.red5.server.service.IEchoService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -46,6 +50,8 @@ import org.xml.sax.SAXException;
  * @author Chris Allen (mrchrisallen@gmail.com)
  */
 public class EchoServiceTest extends TestCase {
+
+	final private Logger log = LoggerFactory.getLogger(this.getClass());
 
 	private IEchoService echoService;
 
@@ -98,6 +104,7 @@ public class EchoServiceTest extends TestCase {
 				.echoNumber(num));
 	}
 
+	@SuppressWarnings("unchecked")
 	public void testEchoObject() {
 		String str = "entry one";
 		Date date = new Date();
@@ -125,5 +132,33 @@ public class EchoServiceTest extends TestCase {
 		Document resultXML = echoService.echoXML(xml);
 		assertEquals(xml.getFirstChild().getNodeValue(), resultXML
 				.getFirstChild().getNodeValue());
+	}
+	
+	public void testEchoMultibyteStrings()
+	{
+		java.nio.ByteBuffer buf = ByteBuffer.allocate(7);
+		buf.put((byte)0xE4);
+		buf.put((byte)0xF6);
+		buf.put((byte)0xFC);
+		buf.put((byte)0xC4);
+		buf.put((byte)0xD6);
+		buf.put((byte)0xDC);
+		buf.put((byte)0xDF);
+		buf.flip();
+		
+		final Charset cs = Charset.forName("iso-8859-1");
+		assertNotNull(cs);
+		final String inputStr = cs.decode(buf).toString();
+		log.debug("passing input string: {}", inputStr);
+		final String outputStr = echoService.echoString(inputStr);
+		assertEquals("unequal strings", inputStr, outputStr);
+		log.debug("got output string: {}", outputStr);
+		
+		java.nio.ByteBuffer outputBuf = cs.encode(outputStr);
+		
+		for(int i = 0; i < 7; i++)
+			assertEquals("unexpected byte",
+					buf.get(i),
+					outputBuf.get(i));
 	}
 }
