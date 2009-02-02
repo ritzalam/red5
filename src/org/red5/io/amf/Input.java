@@ -400,7 +400,8 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 					.loadClass(className);
 			instance = clazz.newInstance();
 		} catch (Exception ex) {
-			log.error("Error loading class: {}", className, ex);
+			log.error("Error loading class: {}", className);
+			log.debug("Exception was: {}", ex);
 		}
 		return instance;
 	}
