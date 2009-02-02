@@ -104,7 +104,7 @@ public class EchoServiceTest extends TestCase {
 		Map<String, Comparable<?>> startMap = new HashMap<String, Comparable<?>>();
 		startMap.put("string", str);
 		startMap.put("date", date);
-		Map<String, Comparable<?>> resultMap = echoService.echoObject(startMap);
+		Map<String, Comparable<?>> resultMap = (Map<String, Comparable<?>>) echoService.echoObject(startMap);
 		assertEquals(startMap.get("string"), resultMap.get("string"));
 		assertEquals(startMap.get("date"), resultMap.get("date"));
 	}

@@ -21,7 +21,6 @@ package org.red5.server.service;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import org.w3c.dom.Document;
 
@@ -76,14 +75,13 @@ public interface IEchoService {
 
 	/**
 	 * Verifies that a Flash Object that is passed in returns correctly.
-	 * Flash Object = java.utils.Map
-	 * @param <K> key type
-	 * @param <V> value type 
+	 * Flash Object = java.utils.Map. Let Apache bean utils do the magic
+	 * conversions.
 	 * 
 	 * @param obj object to echo
 	 * @return input value
 	 */
-	public abstract <K, V> Map<K, V> echoObject(Map<? extends K, ? extends V> obj);
+	public abstract Object echoObject(Object obj);
 
 	/**
 	 * Verifies that a Flash simple Array that is passed in returns correctly.

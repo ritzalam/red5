@@ -78,8 +78,7 @@ public class EchoService implements IEchoService {
 	/**
 	 * {@inheritDoc}
 	 */
-	@SuppressWarnings("unchecked")
-	public Map echoObject(Map obj) {
+	public Object echoObject(Object obj) {
 		log.info("echoObject: {}", obj);
 		return obj;
 	}
