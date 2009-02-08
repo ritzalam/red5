@@ -36,8 +36,6 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.regex.Pattern;
 
-import org.springframework.util.StringUtils;
-
 /**
  * Class used to get the Servlet Class loader. The class loader returned is a
  * child first class loader. 
@@ -57,27 +55,22 @@ public final class ClassLoaderBuilder {
 	 */
 	
 	/**
-	 * Use the current class loader to load the servlet and the libraries.
-	 */
-	public static final int USE_CURRENT_CLASSPATH = 1;
-
-	/**
 	 * Load the Servlet code from the WAR file and use the current classpath for
 	 * the libraries.
 	 */
-	public static final int USE_CLASSPATH_LIB = 2;
+	public static final int USE_CLASSPATH_LIB = 1;
 
 	/**
 	 * Load the servlet code from the WAR file and try to find the libraries in
 	 * the common red5 lib directory.
 	 */
-	public static final int USE_RED5_LIB = 3;
+	public static final int USE_RED5_LIB = 2;
 
 	/**
 	 * Load the servlet code and the libraries from the WAR file. This may take
 	 * some time as the libraries need to be extracted from the WAR file.
 	 */
-	public static final int USE_WAR_LIB = 4;
+	public static final int USE_WAR_LIB = 3;
 	
 	/**
 	 * Filters jar files
@@ -94,6 +87,15 @@ public final class ClassLoaderBuilder {
 			return name.endsWith(".jar");
 		}
 	}	
+	
+	/**
+	 * Default build uses Red5 common lib without a parent classloader.
+	 * 
+	 * @return
+	 */
+	public static ClassLoader build() {
+		return ClassLoaderBuilder.build(null, USE_RED5_LIB, null);
+	}
 	
 	/**
 	 * Gets a class loader based on mode.
@@ -113,10 +115,6 @@ public final class ClassLoaderBuilder {
 	 */
 	public static ClassLoader build(File path, int mode, ClassLoader parent) {
 				
-		if (mode == USE_CURRENT_CLASSPATH) {
-			return ClassLoaderBuilder.class.getClassLoader();
-		}
-
 		JarFileFilter jarFileFilter = new JarFileFilter();
 		
 		List<URL> urlList = new ArrayList<URL>(31);
@@ -274,13 +272,13 @@ public final class ClassLoaderBuilder {
         	
 		}
 						
+		Thread.currentThread().setContextClassLoader(loader);
+						
 		//loop thru all the current urls
 		//System.out.printf("Classpath for %s:\n", loader);
 		//for (URL url : urls) {
 			//System.out.println(url.toExternalForm());
 		//}
-		
-		//System.out.printf("Classloaders:\nThread %s\nCurrent Loader %s\nNew Loader %s\n", Thread.currentThread().getContextClassLoader(), ClassLoaderBuilder.class.getClassLoader(), loader);
 		
 		return loader;
 	}
@@ -452,13 +450,16 @@ public final class ClassLoaderBuilder {
     			
     			//check major
     			String[] topVersion = punct.split(topVers);
+                //System.out.println("topVersion (" + topVers + "): " + topVersion[0] + " length: " + topVersion.length);
+                if (!topVersion[0].matches("[\\d].*")) {
+                	continue;
+                }
     			
-                //System.err.println("topVersion (" + topVers + "): " + topVersion[0]);
     			//check 3rd part of version for letters
     			if (topVersion.length > 2) {
     				String v = topVersion[2].toLowerCase();
     				if (v.length() > 1) {
-    					topVersion[2] = StringUtils.deleteAny(v, ALPHABET);
+    					topVersion[2] = deleteAny(v, ALPHABET);
     				} else {
     					//if is a only a letter use its index as a version
     					char ch = v.charAt(0);
@@ -468,12 +469,15 @@ public final class ClassLoaderBuilder {
     				}
     			}
     			
+    			int topVersionNumber = Integer.valueOf(topVersion[0] + topVersion[1] + (topVersion.length > 2 ? topVersion[2] : '0')).intValue();
     			String[] checkVersion = punct.split(checkVers);
+                //System.out.println("checkVersion (" + checkVers + "): " + checkVersion[0] + " length: " + checkVersion.length);
+
     			//check 3rd part of version for letters
     			if (checkVersion.length > 2) {
     				String v = checkVersion[2].toLowerCase();
     				if (v.length() > 1) {
-    					checkVersion[2] = StringUtils.deleteAny(v, ALPHABET);
+    					checkVersion[2] = deleteAny(v, ALPHABET);
     				} else {
     					//if is a only a letter use its index as a version
     					char ch = v.charAt(0);
@@ -483,7 +487,6 @@ public final class ClassLoaderBuilder {
     				}
     			}
     			
-    			int topVersionNumber = Integer.valueOf(topVersion[0] + topVersion[1] + (topVersion.length > 2 ? topVersion[2] : '0')).intValue();
     			int checkVersionNumber = Integer.valueOf(checkVersion[0] + checkVersion[1] + (checkVersion.length > 2 ? checkVersion[2] : '0')).intValue();
     			
     			if (topVersionNumber >= checkVersionNumber) {
@@ -516,4 +519,18 @@ public final class ClassLoaderBuilder {
 		return libName;
 	}	
 	
+	private static String deleteAny(String str, String removalChars) {
+		StringBuilder sb = new StringBuilder(str);
+		//System.out.println("Before alpha delete: " + sb.toString());
+		String[] chars = removalChars.split("");
+		//System.out.println("Chars length: " + chars.length);
+		for (String c : chars) {
+			int index = -1;
+			while ((index = sb.indexOf(c)) > 0) {
+				sb.deleteCharAt(index);
+			}
+		}
+		//System.out.println("After alpha delete: " + sb.toString());
+		return sb.toString();
+	}
 }

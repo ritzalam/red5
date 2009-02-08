@@ -25,12 +25,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import org.red5.classloading.ClassLoaderBuilder;
-import org.red5.logging.Red5LoggerFactory;
-import org.red5.server.api.Red5;
-import org.slf4j.Logger;
-import org.slf4j.bridge.SLF4JBridgeHandler;
-import org.slf4j.impl.StaticLoggerBinder;
-import org.springframework.context.support.FileSystemXmlApplicationContext;
 
 /**
  * Boot-straps Red5 using the latest available jars found in <i>red5.home/lib</i> directory.
@@ -102,14 +96,11 @@ public class Bootstrap {
 	    }
 		*/
 		
-		// pass urls to the ClassLoader
-		ClassLoader loader = ClassLoaderBuilder.build(null, ClassLoaderBuilder.USE_RED5_LIB, null);
-					
-		// set the classloader to the current thread
-		Thread.currentThread().setContextClassLoader(loader);
+		// build a ClassLoader
+		ClassLoader loader = ClassLoaderBuilder.build();
 		
 		// create a new instance of this class using new classloader
-		Object boot = Class.forName("org.red5.server.Bootstrap", true, loader).newInstance();
+		Object boot = Class.forName("org.red5.server.Launcher", false, loader).newInstance();
 	
 		Method m1 = boot.getClass().getMethod("launch", (Class[]) null);
 		m1.invoke(boot, (Object[]) null);
@@ -173,38 +164,6 @@ public class Bootstrap {
 		
 		System.out.printf("Red5 root: %s\n", root);
 		return root;
-	}
-	
-	/**
-	 * Launch Red5 under it's own classloader
-	 *  
-	 */
-	public void launch() {
-		try {	
-			ClassLoader loader = Thread.currentThread().getContextClassLoader();
-			//System.out.printf("Launch - Thread classloader: %s\n", loader);
-
-			//create red5 app context
-			FileSystemXmlApplicationContext ctx = new FileSystemXmlApplicationContext(new String[]{
-					"classpath:/red5.xml"}, false);
-			ctx.setClassLoader(loader);			
-			
-			//install the slf4j bridge (mostly for JUL logging)
-			SLF4JBridgeHandler.install();
-			//we create the logger here so that it is instanced inside the expected 
-			//classloader
-			Logger log = Red5LoggerFactory.getLogger(Bootstrap.class);
-		    //version info banner
-			log.info("{} (http://www.osflash.org/red5)", Red5.getVersion());
-			//see which logger binder has been instanced
-			log.trace("Logger binder: {}", StaticLoggerBinder.getSingleton().getClass().getName());
-
-			//refresh must be called before accessing the bean factory
-			ctx.refresh();
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 	
 }

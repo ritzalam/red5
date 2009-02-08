@@ -162,7 +162,6 @@ public class TomcatLoader extends LoaderBase implements
 		if (c != null) {
 			//ClassLoader classLoader = new ChildFirstClassLoader(new URL[]{}, Thread.currentThread().getContextClassLoader());
 			ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-			//log.debug("Classloaders - Parent {}\nTCL {}\n\n", new Object[] {classLoader.getParent(), classLoader});
 			c.setParentClassLoader(classLoader);
 			//
 			Object ldr = c.getLoader();

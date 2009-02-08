@@ -19,8 +19,8 @@ set JAVA_OPTS=%LOGGING_OPTS% %SECURITY_OPTS% %JAVA_OPTS%
 
 set JYTHON_OPTS=-Dpython.home=lib
 
-set RED5_CLASSPATH=%RED5_HOME%\red5.jar;%RED5_HOME%\conf;%RED5_HOME%\lib\ejb3-persistence.jar
-REM ;%CLASSPATH%
+set RED5_CLASSPATH=%RED5_HOME%\boot.jar;%RED5_HOME%\conf;%CLASSPATH%
+
 if NOT DEFINED RED5_OPTS set RED5_OPTS= 
 
 goto launchRed5

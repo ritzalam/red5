@@ -49,14 +49,16 @@ public final class ChildFirstClassLoader extends URLClassLoader {
 		super(urls, parent);
 		this.parent = parent;
 		system = getSystemClassLoader();		
+		if (parent != null) {
 		//if we have a parent of the parent and its not the system classloader
 		parentParent = this.parent.getParent() != system ? this.parent.getParent() : null;
-
+		}
 		dumpClassLoaderNames();
 	}
 	
 	private void dumpClassLoaderNames() {
-		System.out.printf("[ChildFirstClassLoader] Classloaders:\nSystem %s\nParents Parent %s\nParent %s\nTCL %s\n\n", system, parentParent, this.parent, Thread.currentThread().getContextClassLoader());
+		System.out.printf("[ChildFirstClassLoader] Classloaders:\nSystem %s\nParents Parent %s\nParent %s\nThis class %s\nTCL %s\n\n", 
+				system, parentParent, this.parent, ChildFirstClassLoader.class.getClassLoader(), Thread.currentThread().getContextClassLoader());
 	}
 
 	@Override
@@ -105,26 +107,26 @@ public final class ChildFirstClassLoader extends URLClassLoader {
 				c = this.parent.loadClass(name);
 			} catch (Exception e) {
 				//ignore the Spring "BeanInfo" class lookup errors
-				if (e.getMessage().indexOf("BeanInfo") == -1) {
-					e.printStackTrace();
-				}
+				//if (e.getMessage().indexOf("BeanInfo") == -1) {
+				//	e.printStackTrace();
+				//}
 			}
 			if (c == null && parentParent != null) {
     			try {
     				c = parentParent.loadClass(name);
     			} catch (Exception e) {
-    				if (e.getMessage().indexOf("BeanInfo") == -1) {
-    					e.printStackTrace();
-    				}
+    				//if (e.getMessage().indexOf("BeanInfo") == -1) {
+    				//	e.printStackTrace();
+    				//}
     			}
 			}
 			if (c == null) {
 				try {
 					c = system.loadClass(name);
 				} catch (Exception e) {
-					if (e.getMessage().indexOf("BeanInfo") == -1) {
-						e.printStackTrace();
-					}
+					//if (e.getMessage().indexOf("BeanInfo") == -1) {
+					//	e.printStackTrace();
+					//}
 				}
 			}
 		}

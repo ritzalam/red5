@@ -43,7 +43,8 @@ then
   echo "Unable to locate Java. Please set JAVA_HOME environment variable."
   exit
 fi
-export RED5_CLASSPATH="${RED5_HOME}/red5.jar${P}${RED5_HOME}/conf${P}${RED5_HOME}/lib/ejb3-persistence.jar${P}${CLASSPATH}"
+
+export RED5_CLASSPATH="${RED5_HOME}/boot.jar${P}${RED5_HOME}/conf${P}${CLASSPATH}"
 
 # start Red5
 echo "Starting Red5"
