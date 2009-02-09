@@ -1007,6 +1007,10 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 				((Server) server).notifyScopeRemoved((IScope) scope);
 			}
 		}
+
+		if (scope instanceof Scope) {
+			JMXAgent.unregisterMBean(((Scope) scope).oName);
+		}
 	}
 
 	/**
