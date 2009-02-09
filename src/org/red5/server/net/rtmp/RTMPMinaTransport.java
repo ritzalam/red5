@@ -95,6 +95,8 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 	protected IoServiceManager serviceManager;
 	
 	protected int ioThreads = DEFAULT_IO_THREADS;
+	
+	protected ExecutorService acceptorExecutor;
 
 	/**
 	 * MBean object name used for de/registration purposes.
@@ -199,7 +201,8 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 		
 		// Executors.newCachedThreadPool() is always preferred by IoService
 		// See http://mina.apache.org/configuring-thread-model.html for details
-		acceptor = new SocketAcceptor(ioThreads, Executors.newCachedThreadPool());
+		acceptorExecutor = Executors.newCachedThreadPool();
+		acceptor = new SocketAcceptor(ioThreads, acceptorExecutor);
 
 		acceptor.getFilterChain().addLast("threadPool", new ExecutorFilter(eventExecutor));
 
@@ -255,6 +258,7 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 	public void stop() {
 		log.info("RTMP Mina Transport unbind");
 		acceptor.unbindAll();
+		acceptorExecutor.shutdown();
 		eventExecutor.shutdown();
 		// deregister with jmx
 		JMXAgent.unregisterMBean(oName);
