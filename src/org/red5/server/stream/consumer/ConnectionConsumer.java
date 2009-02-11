@@ -153,9 +153,8 @@ public class ConnectionConsumer implements IPushableConsumer,
 					audio.write(audioData);
 					break;
 				case Constants.TYPE_PING:
-					Ping ping = new Ping(((Ping) msg).getValue1(), ((Ping) msg)
-							.getValue2(), ((Ping) msg).getValue3(),
-							((Ping) msg).getValue4());
+					log.trace("Ping");					
+					Ping ping = new Ping(((Ping) msg));
 					header.setTimerRelative(false);
 					header.setTimer(0);
 					ping.setHeader(header);
