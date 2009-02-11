@@ -182,12 +182,11 @@ public class ConnectionConsumer implements IPushableConsumer,
     	switch (event.getType()) {
     		case PipeConnectionEvent.PROVIDER_DISCONNECT:
     			// XXX should put the channel release code in ConsumerService
-    			conn.closeChannel(this.video.getId());
-    			conn.closeChannel(this.audio.getId());
-    			conn.closeChannel(this.data.getId());
+				conn.closeChannel(video.getId());
+				conn.closeChannel(audio.getId());
+				conn.closeChannel(data.getId());
     			break;
     		default:
-    			break;
     	}
 	}
 
