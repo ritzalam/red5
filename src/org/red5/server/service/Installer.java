@@ -106,7 +106,7 @@ public final class Installer {
 		//get the params for the client
 		HttpClientParams params = client.getParams();
 		params.setParameter(HttpMethodParams.USER_AGENT, userAgent);
-		//try the wav version first
+		//get registry file
 		HttpMethod method = new GetMethod(applicationRepositoryUrl + "registry.xml");
 		//follow any 302's although there shouldnt be any
 		method.setFollowRedirects(true);
