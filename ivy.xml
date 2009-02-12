@@ -75,10 +75,10 @@
         <dependency org="mina" name="mina-integration-spring" rev="1.1.7" />
         <dependency org="mina" name="mina-integration-jmx" rev="1.1.7" />      
         <!-- Scripting -->
-        <dependency org="asm" name="asm" rev="2.2.3" />
-        <dependency org="asm" name="asm-commons" rev="2.2.3" />
-        <dependency org="antlr" name="antlr" rev="2.7.6" />
-        <dependency name="groovy" rev="1.0" />  
+        <dependency org="asm" name="asm" rev="3.1" />
+        <dependency org="asm" name="asm-commons" rev="3.1" />
+        <dependency org="antlr" name="antlr" rev="3.1.1" />
+        <dependency name="groovy" rev="1.5.7" />  
         <dependency name="jruby" rev="1.0.3" conf="java6->*"/>  
         <dependency name="jython" rev="2.5" />  
         <dependency org="spring" name="spring-context-support" rev="2.5.6" />
@@ -99,7 +99,7 @@
         <dependency name="jaudiotagger" rev="1.0.8" />           
         <!-- Testing support -->
         <!-- until Eclipse updates their junit version, we have to use this -->
-        <dependency name="junit" rev="4.4" conf="eclipse->*"/>
+        <dependency name="junit" rev="4.5" conf="eclipse->*"/>
         <dependency name="GroboUtils" rev="4-core" conf="eclipse->*"/>
         <dependency org="spring" name="spring-test" rev="2.5.6" conf="eclipse->*"/>   
         <dependency org="spring" name="spring-tx" rev="2.5.6" conf="eclipse->*"/>  
