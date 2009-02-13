@@ -78,8 +78,9 @@
         <dependency org="asm" name="asm" rev="3.1" />
         <dependency org="asm" name="asm-commons" rev="3.1" />
         <dependency org="antlr" name="antlr" rev="3.1.1" />
-        <dependency name="groovy" rev="1.5.7" />  
-        <dependency name="jruby" rev="1.0.3" conf="java6->*"/>  
+        <dependency name="groovy-all" rev="1.5.7" />  
+        <dependency name="jruby-complete" rev="1.1.6" conf="java6->*"/>  
+        <dependency name="jruby-engine" rev="1.1.6" conf="java6->*"/>  
         <dependency name="jython" rev="2.5" />  
         <dependency org="spring" name="spring-context-support" rev="2.5.6" />
         <!-- Java5 support -->
@@ -88,7 +89,6 @@
         <dependency name="jsr-223" rev="1.0" conf="java5->*"/> 
         <dependency name="js-engine" rev="" conf="java5->*"/> 
         <dependency name="jython-engine" rev="" conf="java5->*"/> 
-        <dependency name="groovy-engine" rev="" conf="java5->*"/>
         <dependency name="jruby" rev="1.0.1" conf="java5->*"/>
         <dependency name="jruby-engine" rev="" conf="java5->*"/> 
         <!-- Crypto -->
