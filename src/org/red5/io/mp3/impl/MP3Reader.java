@@ -470,6 +470,7 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 		prevSize = frameSize + 1;
 		currentTime += header.frameDuration();
 		ByteBuffer body = ByteBuffer.allocate(tag.getBodySize());
+		body.setAutoExpand(true);
 		byte tagType = (IoConstants.FLAG_FORMAT_MP3 << 4)
 				| (IoConstants.FLAG_SIZE_16_BIT << 1);
 		switch (header.getSampleRate()) {
