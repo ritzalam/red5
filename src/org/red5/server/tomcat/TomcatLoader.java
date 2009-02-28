@@ -475,6 +475,8 @@ public class TomcatLoader extends LoaderBase implements
 						Thread thread = new Thread("Launcher:" + servletContext
 								.getContextPath()) {
 							public void run() {
+								//set thread context classloader to web cl
+								Thread.currentThread().setContextClassLoader(webClassLoader);
 								// create a spring web application context
 								XmlWebApplicationContext appctx = new XmlWebApplicationContext();
 								appctx.setClassLoader(webClassLoader);
