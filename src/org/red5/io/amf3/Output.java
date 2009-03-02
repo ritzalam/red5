@@ -24,8 +24,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -61,7 +60,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 	/**
 	 * List of strings already written.
 	 * */
-	private List<String> stringReferences;
+	private Map<String, Integer> stringReferences;
 
 	/**
 	 * Constructor of AMF3 output.
@@ -72,7 +71,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 	public Output(ByteBuffer buf) {
 		super(buf);
 		amf3_mode = 0;
-		stringReferences = new LinkedList<String>();
+		stringReferences = new HashMap<String, Integer>();
 	}
 
 	/**
@@ -159,8 +158,8 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 
 	protected void putString(String str, byte[] encoded) {
 		final int len = encoded.length;
-		int pos = stringReferences.indexOf(str);
-		if (pos >= 0) {
+		Integer pos = stringReferences.get(str);
+		if (pos != null) {
 			// Reference to existing string
 			putInteger(pos << 1);
 			return;
@@ -168,7 +167,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 
 		putInteger(len << 1 | 1);
 		buf.put(encoded);
-		stringReferences.add(str);
+		stringReferences.put(str, stringReferences.size());
 	}
 
     /** {@inheritDoc} */
