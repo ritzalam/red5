@@ -811,6 +811,7 @@
              directory to the classpath -->
 		<copy todir="${testdist.dir}/conf" overwrite="true">
 			<fileset dir="${test.dir}" includes="**/*.xml" excludes="www/**/*"/>
+                        <fileset dir="${test.dir}" includes="**/*.properties" excludes="www/**/*"/>
 		</copy>
 		<!-- Install the self-test application that tests depend on -->
 		<copy todir="${testdist.dir}/webapps/selftest" overwrite="true">
