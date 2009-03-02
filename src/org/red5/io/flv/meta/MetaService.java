@@ -27,7 +27,6 @@ import java.util.Arrays;
 import java.util.Map;
 
 import org.apache.mina.common.ByteBuffer;
-import org.mortbay.log.Log;
 import org.red5.io.ITag;
 import org.red5.io.IoConstants;
 import org.red5.io.amf.Input;
@@ -37,6 +36,8 @@ import org.red5.io.flv.impl.FLVWriter;
 import org.red5.io.flv.impl.Tag;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Serializer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * MetaService represents a MetaData service in Spring
@@ -46,6 +47,8 @@ import org.red5.io.object.Serializer;
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
 public class MetaService implements IMetaService {
+
+	protected static Logger log = LoggerFactory.getLogger(MetaService.class);
 
 	/**
 	 * Source file
@@ -342,7 +345,7 @@ public class MetaService implements IMetaService {
 		    deserializer = new Deserializer();
 		}
 		String metaType = deserializer.deserialize(input, String.class);
-		Log.debug("Metadata type: {}", metaType);
+		log.debug("Metadata type: {}", metaType);
 		Map<String, ?> m = deserializer.deserialize(input, Map.class);
 		retMeta.putAll(m);
 		return retMeta;
