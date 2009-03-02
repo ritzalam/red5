@@ -80,6 +80,19 @@ public abstract class AbstractIOTest extends TestCase {
 		}
 		resetOutput();
 	}
+	
+	public void testArrayReference() {
+		log.debug("Testing array reference");
+		TestVO mytest=new TestVO();
+		TestVO[] strArrIn = new TestVO[] { mytest,mytest };
+		serializer.serialize(out, strArrIn);
+		dumpOutput();
+		TestVO[] objArrayOut = deserializer.deserialize(in, TestVO[].class); 
+		for (int i = 0; i < strArrIn.length; i++) {
+			Assert.assertEquals(strArrIn[i], objArrayOut[i]);
+		}
+		resetOutput();
+	}
 
 	public void testBoolean() {
 		log.debug("Testing boolean");

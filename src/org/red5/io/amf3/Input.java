@@ -22,6 +22,7 @@ package org.red5.io.amf3;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
+import java.lang.reflect.Array;
 import java.lang.reflect.ParameterizedType;
 import java.util.*;
 
@@ -409,27 +410,30 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 
             if (collection.isArray()) {
                 nested = ArrayUtils.getGenericType(collection.getComponentType());
-                resultCollection = new ArrayList(count);
-            } else if (SortedSet.class.isAssignableFrom(collection)) {
+                result = Array.newInstance(nested,count);
+                storeReference(result);
+                for (int i=0; i<count; i++) {
+                  final Object value = deserializer.deserialize(this, nested);
+                  Array.set(result, i, value);
+                }
+            } else {
+              if (SortedSet.class.isAssignableFrom(collection)) {
                 resultCollection = new TreeSet();
-            } else if (Set.class.isAssignableFrom(collection)) {
+              } else if (Set.class.isAssignableFrom(collection)) {
                 resultCollection = new HashSet(count);
-            } else {
+              } else {
                 resultCollection = new ArrayList(count);
+              }
+
+              result = resultCollection;
+              storeReference(result);
+
+              for (int i=0; i<count; i++) {
+                final Object value = deserializer.deserialize(this, nested);
+                resultCollection.add(value);
+              }
+
             }
-
-            for (int i=0; i<count; i++) {
-				final Object value = deserializer.deserialize(this, nested);
-				resultCollection.add(value);
-			}
-
-            if (collection.isArray()) {
-                result = ArrayUtils.toArray(collection.getComponentType(), resultCollection);
-            } else {
-                result = resultCollection;
-            }
-
-            storeReference(result);
         } else {
             Class<?> k = Object.class;
             Class<?> v = Object.class;
