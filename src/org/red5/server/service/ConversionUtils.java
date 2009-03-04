@@ -146,6 +146,9 @@ public class ConversionUtils {
 		if (target.equals(Set.class) && source.getClass().isArray()) {
 			return convertArrayToSet((Object[]) source);
 		}
+		if (target.equals(Set.class) && source instanceof List) {
+			return new HashSet((List)source);
+		}
 		throw new ConversionException(String.format("Unable to preform conversion from %s to %s", source, target));
 	}
 

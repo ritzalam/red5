@@ -132,6 +132,20 @@ public class ConversionUtilsTest {
 	}
 
 	@Test
+	public void testConvertArrayListToSet() {
+		List<String> source = new ArrayList<String>(3);
+		source.add("a");
+		source.add("b");
+		source.add("c");
+		Object result = ConversionUtils.convert(source, Set.class);
+		if (!(result instanceof Set)) {
+			fail("Should be a set");
+		}
+		Set<?> results = (Set<?>) result;
+		assertEquals(source.size(),results.size());
+	}
+
+	@Test
 	public void testNoOppConvert() {
 		TestJavaBean source = new TestJavaBean();
 		Object result = ConversionUtils.convert(source, TestJavaBean.class);
