@@ -24,6 +24,7 @@ import static junit.framework.Assert.assertNull;
 import static junit.framework.Assert.fail;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.beanutils.ConversionException;
@@ -72,7 +73,27 @@ public class ConversionUtilsTest {
 		assertEquals(results[2], source.get(2));
 
 	}
+	
+	@Test
+	public void testConvertListToPrimitiveArray() {
+		List<Integer> source = new ArrayList<Integer>();
+		source.add(1);
+		source.add(2);
+		source.add(3);
 
+		Class<? extends int[]> target = (new int[0]).getClass();
+
+		Object result = ConversionUtils.convert(source, target);
+		if (!(result.getClass().isArray() && result.getClass()
+				.getComponentType().equals(int.class))) {
+			fail("Should be int[]");
+		}
+		int[] results = (int[]) result;
+
+		assertEquals(results.length, source.size());
+		assertEquals(results[2], ((Integer)source.get(2)).intValue());
+	}
+	
 	@Test
 	public void testConvertObjectArrayToStringArray() {
 		Object[] source = new Object[3];
