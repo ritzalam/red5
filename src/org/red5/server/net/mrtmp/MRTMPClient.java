@@ -113,7 +113,6 @@ public class MRTMPClient implements Runnable {
 			this.wrapped = wrapped;
 		}
 
-		@Override
 		public void exceptionCaught(IoSession session, Throwable cause) throws Exception {
 			wrapped.exceptionCaught(session, cause);
 			MRTMPClient.this.reconnect();
