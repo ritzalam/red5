@@ -95,7 +95,8 @@ public class ConversionUtils {
      * @throws ConversionException           If object can't be converted
      *
      */
-    public static Object convert(Object source, Class<?> target)
+    @SuppressWarnings("unchecked")
+	public static Object convert(Object source, Class<?> target)
 			throws ConversionException {
 		if (target == null) {
 			throw new ConversionException("Unable to perform conversion, target was null");
@@ -147,7 +148,7 @@ public class ConversionUtils {
 			return convertArrayToSet((Object[]) source);
 		}
 		if (target.equals(Set.class) && source instanceof List) {
-			return new HashSet((List)source);
+			return new HashSet((List) source);
 		}
 		throw new ConversionException(String.format("Unable to preform conversion from %s to %s", source, target));
 	}
@@ -175,7 +176,7 @@ public class ConversionUtils {
 				Object targetInstance = Array.newInstance(target.getComponentType(), sourceCollection.size());
 				Iterator<?> it=sourceCollection.iterator();
 				int i=0;
-				while(it.hasNext()) {
+				while (it.hasNext()) {
 					Array.set(targetInstance, i++, convert(it.next(), targetType));
 				}
 				return targetInstance;
