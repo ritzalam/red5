@@ -57,6 +57,7 @@ import org.red5.server.util.FileUtil;
 import org.slf4j.Logger;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.web.context.ConfigurableWebApplicationContext;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.XmlWebApplicationContext;
 
@@ -457,14 +458,16 @@ public class TomcatLoader extends LoaderBase implements
 
 						// get the (spring) config file path
 						final String contextConfigLocation = servletContext
-								.getInitParameter("contextConfigLocation") == null ? defaultSpringConfigLocation
-								: servletContext.getInitParameter("contextConfigLocation");
+								.getInitParameter(org.springframework.web.context.ContextLoader.CONFIG_LOCATION_PARAM) == null 
+								? defaultSpringConfigLocation
+								: servletContext.getInitParameter(org.springframework.web.context.ContextLoader.CONFIG_LOCATION_PARAM);
 						log.debug("Spring context config location: {}",	contextConfigLocation);
 
 						// get the (spring) parent context key
 						final String parentContextKey = servletContext
-								.getInitParameter("parentContextKey") == null ? defaultParentContextKey
-								: servletContext.getInitParameter("parentContextKey");
+								.getInitParameter(org.springframework.web.context.ContextLoader.LOCATOR_FACTORY_KEY_PARAM) == null 
+								? defaultParentContextKey
+								: servletContext.getInitParameter(org.springframework.web.context.ContextLoader.LOCATOR_FACTORY_KEY_PARAM);
 						log.debug("Spring parent context key: {}", parentContextKey);
 
 						//set current threads classloader to the webapp parent classloader
@@ -478,8 +481,16 @@ public class TomcatLoader extends LoaderBase implements
 								//set thread context classloader to web classloader
 								Thread.currentThread().setContextClassLoader(webClassLoader);
 								// create a spring web application context
-								XmlWebApplicationContext appctx = new XmlWebApplicationContext();
-								appctx.setClassLoader(webClassLoader);
+								final String contextClass = servletContext.getInitParameter(org.springframework.web.context.ContextLoader.CONTEXT_CLASS_PARAM) == null 
+									? XmlWebApplicationContext.class.getName()
+									: servletContext.getInitParameter(org.springframework.web.context.ContextLoader.CONTEXT_CLASS_PARAM);
+									ConfigurableWebApplicationContext appctx=null;
+								try {
+									Class<?>clazz=Class.forName(contextClass,true,webClassLoader);
+									appctx=(ConfigurableWebApplicationContext)clazz.newInstance();
+								} catch (Throwable e) {
+									throw new RuntimeException("Failed to load webapplication context class.",e);
+								}
 								appctx.setConfigLocations(new String[] { contextConfigLocation });
 								appctx.setParent((ApplicationContext) applicationContext
 										.getBean(parentContextKey));
