@@ -118,7 +118,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements
 	/** {@inheritDoc} */
 	@Override
 	public void messageReceived(IoSession session, Object in) throws Exception {
-		log.trace("messageRecieved");
+		log.trace("messageReceived");
 		final ProtocolState state = (ProtocolState) session
 				.getAttribute(ProtocolState.SESSION_KEY);
 		if (in instanceof ByteBuffer) {

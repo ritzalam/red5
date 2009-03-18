@@ -95,8 +95,8 @@ public final class Red5 implements Red5MBean {
      */
     public static void setConnectionLocal(IConnection connection) {
 		connThreadLocal.set(new WeakReference<IConnection>(connection));
-		IScope scope=connection.getScope();
-		if (scope!=null) {
+		IScope scope = connection.getScope();
+		if (scope != null) {
 			Thread.currentThread().setContextClassLoader(scope.getClassLoader());
 		}
 	}
