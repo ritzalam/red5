@@ -21,6 +21,7 @@ package org.red5.server;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -37,6 +38,7 @@ import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.FileSystemXmlApplicationContext;
 import org.springframework.core.io.Resource;
 
@@ -82,6 +84,8 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMBea
 	public void setApplicationContext(ApplicationContext applicationContext)
 			throws BeansException {
 		this.applicationContext = applicationContext;
+		//register a jvm shutdown hook
+		((AbstractApplicationContext) applicationContext).registerShutdownHook();		
 	}
 
 	/**
@@ -146,6 +150,10 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMBea
 	public void uninit() {
 		log.debug("ContextLoader un-init");		
 		JMXAgent.unregisterMBean(oName);
+		//unload all the contexts in the map
+		for (Map.Entry<String, ApplicationContext> entry : contextMap.entrySet()) {
+			unloadContext(entry.getKey());
+		}
 	}
 
 	/**
@@ -187,8 +195,7 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMBea
 			});
 			parentContext = (ApplicationContext) factory.getBean("red5.common");
 		}
-		if (config.startsWith("/"))
-		{
+		if (config.startsWith("/")) {
 			// Spring always interprets files as relative, so
 			// will strip a leading slash unless we tell
 			// it otherwise.

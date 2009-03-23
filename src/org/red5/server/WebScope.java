@@ -185,8 +185,7 @@ public class WebScope extends Scope implements ServletContextAware {
 		log.debug("Webscope registering: {}", contextPath);		
 		appContext = LoaderBase.getRed5ApplicationContext(contextPath);
 		appLoader = LoaderBase.getApplicationLoader();
-		// Release references
-		LoaderBase.setRed5ApplicationContext(contextPath, null);
+		//add host name mappings
 		if (hostnames != null && hostnames.length > 0) {
 			for (String element : hostnames) {
 				server.addMapping(element, getName(), getParent().getName());
@@ -248,8 +247,6 @@ public class WebScope extends Scope implements ServletContextAware {
 		appContext = null;
 		registered = false;
 		shuttingDown = false;
-		//is this needed?
-		//super.setParent(null);
 	}
 
 	/** {@inheritDoc} */

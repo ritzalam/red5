@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.support.AbstractApplicationContext;
 
 /**
  * Base class for all J2EE application loaders.
@@ -80,6 +81,16 @@ public class LoaderBase implements ApplicationContextAware {
 	public static void setApplicationLoader(IApplicationLoader loader) {
 		log.debug("Set application loader: {}", loader);
 		LoaderBase.loader.set(loader);
+	}
+	
+	/**
+	 * Returns the map containing all of the registered Red5 application contexts.
+	 * 
+	 * @return
+	 */
+	public static Map<String, IApplicationContext> getRed5ApplicationContexts() {
+		log.debug("Get all red5 application contexts");
+		return red5AppCtx;
 	}
 	
 	/**
