@@ -135,7 +135,13 @@ public final class ArrayUtils {
 
         int i = 0;
         for (Object o : collection) {
-            double d = ((Double) o).doubleValue();
+        	double d;
+        	if (o instanceof Integer)
+        	{
+        		d = (Integer)o;
+        	} else {
+        		d = ((Double) o).doubleValue();
+        	}
             da[i++] = d;
         }
 
