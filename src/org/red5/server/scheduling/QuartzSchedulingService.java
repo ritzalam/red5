@@ -72,7 +72,6 @@ public class QuartzSchedulingService implements ISchedulingService,
 	protected String instanceId;
 	
 	/** Constructs a new QuartzSchedulingService. */
-	@Override
 	public void afterPropertiesSet() throws Exception {
 		log.debug("Initializing...");
 		try {
@@ -257,7 +256,6 @@ public class QuartzSchedulingService implements ISchedulingService,
 		}
 	}
 
-	@Override
 	public void destroy() throws Exception {
 		if (scheduler != null) {
         	log.debug("Destroying...");
