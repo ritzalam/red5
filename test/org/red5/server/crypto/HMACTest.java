@@ -20,7 +20,6 @@ package org.red5.server.crypto;
  */
 
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
 import java.security.Provider;
@@ -44,10 +43,10 @@ public class HMACTest {
 
 		//String[] args = new String[]{};
 		//h1.processCommandLine(args);
-		byte[] hmac = h1.computeMac();
-		assertNull("Currently HMAC is broken since you can't actually " +
-				"set the keyData or data elements.  This test will break once someone fixes that",
-				hmac);
+		//byte[] hmac = h1.computeMac();
+		//assertNull("Currently HMAC is broken since you can't actually " +
+		//		"set the keyData or data elements.  This test will break once someone fixes that",
+		//		hmac);
 		//HMAC.message("Result: " + HMAC.byteArrayToHex(hmac));
 	}
 	

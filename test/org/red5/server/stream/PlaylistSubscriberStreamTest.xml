@@ -11,7 +11,7 @@
     
     <bean id="consumerService" class="org.red5.server.stream.ConsumerService"/>
     
-    <bean id="schedulingService" class="org.red5.server.scheduling.QuartzSchedulingService" destroy-method="shutdown"/>
+    <bean id="schedulingService" class="org.red5.server.scheduling.QuartzSchedulingService"/>
 
     <bean id="streamExecutor" class="java.util.concurrent.ScheduledThreadPoolExecutor">
         <constructor-arg value="4"/>

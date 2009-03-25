@@ -471,9 +471,7 @@ public class TomcatLoader extends LoaderBase implements
 								: servletContext.getInitParameter(org.springframework.web.context.ContextLoader.LOCATOR_FACTORY_KEY_PARAM);
 						log.debug("Spring parent context key: {}", parentContextKey);
 
-						//set current threads classloader to the webapp parent classloader
-						//ClassLoader webappParentClassLoader = webClassLoader.getParent();
-						//Thread.currentThread().setContextClassLoader(webappParentClassLoader);
+						//set current threads classloader to the webapp classloader
 						Thread.currentThread().setContextClassLoader(webClassLoader);
 						
 						//create a thread to speed-up application loading
@@ -500,8 +498,6 @@ public class TomcatLoader extends LoaderBase implements
 								//refresh the factory
 								log.debug("Classloader prior to refresh: {}", appctx.getClassLoader());
 								appctx.refresh();
-								//force a set on the classloader at bean factory level
-								//appctx.getBeanFactory().setBeanClassLoader(webClassLoader);
 								// set the root webapp ctx attr on the each
 								// servlet context so spring can find it later
 								servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, appctx);

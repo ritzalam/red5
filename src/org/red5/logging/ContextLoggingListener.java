@@ -80,12 +80,7 @@ public class ContextLoggingListener implements ServletContextListener {
 				logger.debug("Starting up context {}", contextName);
 			} else {
 				System.err.printf("No context named %s was found", contextName);
-			}
-			
-			//List<String> ctxNameList = selector.getContextNames();
-			//for (String s : ctxNameList) {
-			//	System.out.printf("Selector context name: %s\n", s);
-			//}			
+			}	
 			
 		} catch (Exception e) {
 			//System.err.println("LoggingContextSelector is not the correct type");

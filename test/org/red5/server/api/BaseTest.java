@@ -19,44 +19,46 @@ package org.red5.server.api;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.FileSystemXmlApplicationContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.AbstractJUnit4SpringContextTests;
 
-public class BaseTest {
+//http://static.springframework.org/spring/docs/2.5.x/reference/testing.html
+@ContextConfiguration(locations={"context.xml"})
+public class BaseTest extends AbstractJUnit4SpringContextTests {
 
+	protected Logger log = LoggerFactory.getLogger(BaseTest.class);
+	
 	static final String red5root = "dist";
 	static final String red5conf = red5root + "/conf";
-	static final String config = red5conf+"/org/red5/server/api/context.xml";
-
 	static IContext context = null;
 
 	static final String host = "localhost";
-
-	protected Logger log = LoggerFactory.getLogger(BaseTest.class);
 
 	static final String path_app = "default";
 
 	static final String path_room = "default/test";
 
-	static ApplicationContext spring = null;
-
-	@BeforeClass
-	public static void setup() {
+	static {
+		System.setProperty("red5.deployment.type", "junit");
 		// Get the full path name
 		System.setProperty("red5.root", red5root);
 		System.setProperty("red5.config_root", red5conf);
-
-		spring = new FileSystemXmlApplicationContext(config);
-		context = (IContext) spring.getBean("red5.context");
+		
+		System.setProperty("sun.lang.ClassLoader.allowArraySyntax", "true");
+    	System.setProperty("logback.ContextSelector", "org.red5.logging.LoggingContextSelector");
+	}
+	
+	@Before
+	public void setUp() throws Exception {
+		context = (IContext) applicationContext.getBean("red5.context");
 	}
 	
 	@Test
-	public void testCreation()
-	{
+	public void testCreation() {
 		// Doesn't do anything except make sure initialization works
 	}
 

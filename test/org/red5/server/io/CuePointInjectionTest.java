@@ -69,7 +69,7 @@ public class CuePointInjectionTest extends TestCase {
 	 * @throws IOException for fun
 	 */
 	public void testCuePointInjection() throws IOException {
-		File f = new File("fixtures/test_cue1.flv");
+		File f = new File("bin/fixtures/test_cue1.flv");
 		System.out.println("Path: " + f.getAbsolutePath());
 		if (f.exists()) {
 			f.delete();
@@ -84,7 +84,7 @@ public class CuePointInjectionTest extends TestCase {
 		ITagWriter writer = flv.getWriter();
 
 		// Create a reader for testing
-		File readfile = new File("fixtures/test_cue.flv");
+		File readfile = new File("bin/fixtures/test_cue.flv");
 		assertTrue(readfile.exists());
 		
 		IFLV readflv = (IFLV) service.getStreamableFile(readfile);
