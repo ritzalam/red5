@@ -31,9 +31,13 @@ import org.quartz.SchedulerFactory;
 import org.quartz.SimpleTrigger;
 import org.quartz.Trigger;
 import org.quartz.impl.StdSchedulerFactory;
+import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.jmx.JMXAgent;
+import org.slf4j.Logger;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 
 /**
  * Scheduling service that uses Quartz as backend.
@@ -43,36 +47,74 @@ import org.red5.server.jmx.JMXAgent;
  * @author Paul Gregoire (mondain@gmail.com)
  */
 public class QuartzSchedulingService implements ISchedulingService,
-		QuartzSchedulingServiceMBean {
+		QuartzSchedulingServiceMBean, InitializingBean, DisposableBean {
 
-	/**
-	 * Creates schedulers
-	 */
-	private static SchedulerFactory schedFact = new StdSchedulerFactory();
-
+	private static Logger log = Red5LoggerFactory.getLogger(QuartzSchedulingService.class);
+	
 	/**
 	 * Number of job details
 	 */
-	private AtomicLong jobDetailCounter = new AtomicLong(0);
+	protected AtomicLong jobDetailCounter = new AtomicLong(0);
 
+	/**
+	 * Creates schedulers.
+	 */
+	protected SchedulerFactory factory;
+	
 	/**
 	 * Service scheduler
 	 */
-	private Scheduler scheduler;
+	protected Scheduler scheduler;
 
+	/**
+	 * Instance id
+	 */
+	protected String instanceId;
+	
 	/** Constructs a new QuartzSchedulingService. */
-	public QuartzSchedulingService() {
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		log.debug("Initializing...");
 		try {
-			scheduler = schedFact.getScheduler();
-			scheduler.start();
-			//register with jmx server
-			JMXAgent.registerMBean(this, this.getClass().getName(),
-					QuartzSchedulingServiceMBean.class);
+			//create the standard factory if we dont have one
+			if (factory == null) {
+				factory = new StdSchedulerFactory();
+			}		
+			if (instanceId == null) {
+				scheduler = factory.getScheduler();
+			} else {
+				scheduler = factory.getScheduler(instanceId);
+			}
+			//start the scheduler
+			if (scheduler != null) {
+				scheduler.start();
+			} else {
+				log.error("Scheduler was not started");
+			}
 		} catch (SchedulerException ex) {
 			throw new RuntimeException(ex);
 		}
 	}
-
+	
+	public void setFactory(SchedulerFactory factory) {
+		this.factory = factory;
+	}
+	
+	public void setInstanceId(String instanceId) {
+		this.instanceId = instanceId;
+	}
+	
+	public void registerJMX() {
+		//register with jmx server
+		if (instanceId == null) {
+			JMXAgent.registerMBean(this, this.getClass().getName(),
+				QuartzSchedulingServiceMBean.class);
+		} else {
+			JMXAgent.registerMBean(this, this.getClass().getName(),
+					QuartzSchedulingServiceMBean.class, instanceId);
+		}
+	}
+	
 	/** {@inheritDoc} */
 	public String addScheduledJob(int interval, IScheduledJob job) {
 		String result = getJobName();
@@ -129,12 +171,16 @@ public class QuartzSchedulingService implements ISchedulingService,
 	/** {@inheritDoc} */
 	public List<String> getScheduledJobNames() {
 		List<String> result = new ArrayList<String>();
-		try {
-			for (String name : scheduler.getJobNames(null)) {
-				result.add(name);
-			}
-		} catch (SchedulerException ex) {
-			throw new RuntimeException(ex);
+		if (scheduler != null) {
+    		try {
+    			for (String name : scheduler.getJobNames(null)) {
+    				result.add(name);
+    			}
+    		} catch (SchedulerException ex) {
+    			throw new RuntimeException(ex);
+    		}
+		} else {
+			log.warn("No scheduler is available");
 		}
 		return result;
 	}
@@ -142,7 +188,7 @@ public class QuartzSchedulingService implements ISchedulingService,
 	/** {@inheritDoc} */
 	public void pauseScheduledJob(String name) {
 		try {
-			scheduler.pauseTrigger("Trigger_" + name, null);
+			scheduler.pauseJob(name, null);
 		} catch (SchedulerException ex) {
 			throw new RuntimeException(ex);
 		}
@@ -151,11 +197,29 @@ public class QuartzSchedulingService implements ISchedulingService,
 	/** {@inheritDoc} */
 	public void resumeScheduledJob(String name) {
 		try {
-			scheduler.resumeTrigger("Trigger_" + name, null);
+			scheduler.resumeJob(name, null);
 		} catch (SchedulerException ex) {
 			throw new RuntimeException(ex);
 		}
 	}
+	
+	/** {@inheritDoc} */
+	public void pauseScheduledTrigger(String name) {
+		try {
+			scheduler.pauseTrigger("Trigger_" + name, null);
+		} catch (SchedulerException ex) {
+			throw new RuntimeException(ex);
+		}
+	}	
+	
+	/** {@inheritDoc} */
+	public void resumeScheduledTrigger(String name) {
+		try {
+			scheduler.resumeTrigger("Trigger_" + name, null);
+		} catch (SchedulerException ex) {
+			throw new RuntimeException(ex);
+		}
+	}	
 	
 	/** {@inheritDoc} */
 	public void removeScheduledJob(String name) {
@@ -175,23 +239,30 @@ public class QuartzSchedulingService implements ISchedulingService,
 	 * @see org.red5.server.api.scheduling.IScheduledJob
 	 */
 	private void scheduleJob(String name, Trigger trigger, IScheduledJob job) {
-		// Store reference to applications job and service
-		JobDetail jobDetail = new JobDetail(name, null,
-				QuartzSchedulingServiceJob.class);
-		jobDetail.getJobDataMap().put(
-				QuartzSchedulingServiceJob.SCHEDULING_SERVICE, this);
-		jobDetail.getJobDataMap().put(QuartzSchedulingServiceJob.SCHEDULED_JOB,
-				job);
-
-		try {
-			scheduler.scheduleJob(jobDetail, trigger);
-		} catch (SchedulerException ex) {
-			throw new RuntimeException(ex);
+		if (scheduler != null) {
+    		// Store reference to applications job and service
+    		JobDetail jobDetail = new JobDetail(name, null,
+    				QuartzSchedulingServiceJob.class);
+    		jobDetail.getJobDataMap().put(
+    				QuartzSchedulingServiceJob.SCHEDULING_SERVICE, this);
+    		jobDetail.getJobDataMap().put(QuartzSchedulingServiceJob.SCHEDULED_JOB,
+    				job);    
+    		try {
+    			scheduler.scheduleJob(jobDetail, trigger);
+    		} catch (SchedulerException ex) {
+    			throw new RuntimeException(ex);
+    		}
+		} else {
+			log.warn("No scheduler is available");
 		}
 	}
 
-    public void shutdown() throws SchedulerException {
-        scheduler.shutdown();
+	@Override
+	public void destroy() throws Exception {
+		if (scheduler != null) {
+        	log.debug("Destroying...");
+            scheduler.shutdown();
+		}
     }
 
 }

@@ -233,7 +233,10 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMBea
 				log.debug("Context was running, attempting to stop");
 				ctx.stop();
 			}
-			ctx.close();
+			if (ctx.isActive()) {
+				log.debug("Context is active, attempting to close");
+				ctx.close();
+			}
 			try {
 				factory.destroyBean(name, ctx);
 			} catch (Exception e) {

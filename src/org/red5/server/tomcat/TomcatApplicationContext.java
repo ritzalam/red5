@@ -64,7 +64,14 @@ public class TomcatApplicationContext implements IApplicationContext {
 				log.debug("Spring context for {} was found", context.getName());
 				ConfigurableWebApplicationContext appCtx = (ConfigurableWebApplicationContext) o;
 				//close the red5 app
-				appCtx.close();
+				if (appCtx.isRunning()) {
+					log.debug("Context was running, attempting to stop");
+					appCtx.stop();
+				}
+				if (appCtx.isActive()) {
+					log.debug("Context is active, attempting to close");
+					appCtx.close();
+				}
 			} else {
 				log.warn("Spring context for {} was not found", context.getName());
 			}

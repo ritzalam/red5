@@ -103,7 +103,7 @@
 	<!--
     <bean id="BWControlService" class="org.red5.server.stream.DummyBWControlService"/> -->
 	<!-- Scheduling service -->
-	<bean id="schedulingService" class="org.red5.server.scheduling.QuartzSchedulingService" destroy-method="shutdown"/>
+	<bean id="schedulingService" class="org.red5.server.scheduling.QuartzSchedulingService"/>
 		 
     <!-- War deployer -->
     <bean id="warDeployService" class="org.red5.server.service.WarDeployer" init-method="init" destroy-method="shutdown">

@@ -56,7 +56,7 @@
         <dependency org="commons" name="commons-httpclient" rev="3.1" />
         <dependency org="commons" name="commons-lang" rev="2.4" />
         <dependency org="commons" name="commons-pool" rev="1.4" />
-        <dependency name="quartz" rev="1.6.1" />
+        <dependency name="quartz" rev="1.6.5" />
         <dependency org="javax" name="jta" rev="1.1" />
         <dependency name="ehcache" rev="1.6.0-beta1" />
         <dependency org="javax" name="activation" rev="1.1" /> 

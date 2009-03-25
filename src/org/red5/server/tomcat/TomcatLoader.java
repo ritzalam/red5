@@ -472,8 +472,9 @@ public class TomcatLoader extends LoaderBase implements
 						log.debug("Spring parent context key: {}", parentContextKey);
 
 						//set current threads classloader to the webapp parent classloader
-						ClassLoader webappParentClassLoader = webClassLoader.getParent();
-						Thread.currentThread().setContextClassLoader(webappParentClassLoader);
+						//ClassLoader webappParentClassLoader = webClassLoader.getParent();
+						//Thread.currentThread().setContextClassLoader(webappParentClassLoader);
+						Thread.currentThread().setContextClassLoader(webClassLoader);
 						
 						//create a thread to speed-up application loading
 						Thread thread = new Thread("Launcher:" + servletContext
@@ -497,7 +498,10 @@ public class TomcatLoader extends LoaderBase implements
 										.getBean(parentContextKey));
 								appctx.setServletContext(servletContext);
 								//refresh the factory
+								log.debug("Classloader prior to refresh: {}", appctx.getClassLoader());
 								appctx.refresh();
+								//force a set on the classloader at bean factory level
+								//appctx.getBeanFactory().setBeanClassLoader(webClassLoader);
 								// set the root webapp ctx attr on the each
 								// servlet context so spring can find it later
 								servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, appctx);
@@ -630,14 +634,16 @@ public class TomcatLoader extends LoaderBase implements
 					: servletContext.getInitParameter("parentContextKey");
 			log.debug("Spring parent context key: {}", parentContextKey);	
 			
-			//set current threads classloader to the webapp parent classloader
-			ClassLoader webappParentClassLoader = webClassLoader.getParent();
-			Thread.currentThread().setContextClassLoader(webappParentClassLoader);
+			//set current threads classloader to the webapp classloader
+			Thread.currentThread().setContextClassLoader(webClassLoader);
 			
 			//create a thread to speed-up application loading
 			Thread thread = new Thread("Launcher:" + servletContext
 					.getContextPath()) {
 				public void run() {
+					//set current threads classloader to the webapp classloader
+					Thread.currentThread().setContextClassLoader(webClassLoader);
+					
 					// create a spring web application context
 					XmlWebApplicationContext appctx = new XmlWebApplicationContext();
 					appctx.setClassLoader(webClassLoader);
@@ -847,8 +853,10 @@ public class TomcatLoader extends LoaderBase implements
 				log.debug("Calling stop on context: {}", entry.getKey());
 				entry.getValue().stop();
 			}			
-			log.debug("Closing application context");
-			absCtx.close();
+			if (absCtx.isActive()) {
+        		log.debug("Closing application context");
+        		absCtx.close();
+			}
 		} else {
 			log.error("Error getting Spring bean factory for shutdown");
 		}
