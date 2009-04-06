@@ -34,6 +34,7 @@ import org.red5.io.object.Deserializer;
 import org.red5.server.api.IScope;
 import org.red5.server.api.persistence.IPersistable;
 import org.red5.server.net.servlet.ServletUtils;
+import org.red5.server.so.SharedObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
@@ -402,6 +403,16 @@ public class FilePersistence extends RamPersistence {
         
         //if we made it this far and everything seems ok
         if (result) {
+//        	Here we go. If it's a persistent SharedObject and it's empty,
+//        	don't write it to disk. APPSERVER-364
+        	if (object instanceof SharedObject) {
+        		SharedObject soRef = (SharedObject)object;
+        		if (soRef.getAttributes().size() == 0) {
+//        			Just return true to trick the server into thinking everything is just fine :P
+        			return true;
+        		}
+        	}
+        	
     		String filename = getObjectFilename(object);
     		log.debug("File name: {}", filename);
     		//strip path
