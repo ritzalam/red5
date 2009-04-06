@@ -89,7 +89,6 @@
         <!-- Crypto -->
         <dependency name="bcprov-jdk16" rev="139" conf="java6->*"/> 
         <dependency name="bcprov-jdk15" rev="139" conf="java5->*"/> 
-        <dependency name="jacksum" rev="1.7.0" />
         <!-- MP3 -->
         <dependency name="jaudiotagger" rev="1.0.8" />           
         <!-- Testing support -->
