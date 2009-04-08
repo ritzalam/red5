@@ -5,7 +5,6 @@ import java.net.URL;
 
 import org.quartz.spi.ClassLoadHelper;
 import org.red5.logging.Red5LoggerFactory;
-import org.red5.server.tomcat.TomcatLoader;
 import org.slf4j.Logger;
 
 /**
