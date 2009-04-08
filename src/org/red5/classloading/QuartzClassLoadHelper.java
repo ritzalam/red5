@@ -18,7 +18,7 @@ import org.slf4j.Logger;
  */
 public class QuartzClassLoadHelper implements ClassLoadHelper {
 
-	private static Logger log = Red5LoggerFactory.getLogger(TomcatLoader.class);
+	private static Logger log = Red5LoggerFactory.getLogger(QuartzClassLoadHelper.class);
 	
     private ClassLoader initClassLoader;
 
