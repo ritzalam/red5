@@ -66,7 +66,7 @@ public class MetaDataInjectionTest extends TestCase {
 	 * @throws IOException if io exception
 	 */
 	public void testMetaDataInjection() throws IOException {
-		File f = new File("bin/fixtures/test_cue1.flv");
+		File f = new File("fixtures/test_cue1.flv");
 
 		if(f.exists()) {
 			f.delete();
@@ -82,7 +82,7 @@ public class MetaDataInjectionTest extends TestCase {
 		ITagWriter writer = flv.getWriter();
 
 		// Create a reader for testing
-		File readfile = new File("bin/fixtures/test_cue.flv");
+		File readfile = new File("fixtures/test_cue.flv");
 		IFLV readflv = (IFLV) service.getStreamableFile(readfile);
 		readflv.setCache(NoCacheImpl.getInstance());
 
