@@ -19,6 +19,7 @@ package org.red5.server.net.rtmp.codec;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecFactory;
 import org.apache.mina.filter.codec.ProtocolDecoder;
 import org.apache.mina.filter.codec.ProtocolEncoder;
@@ -67,12 +68,12 @@ public class RTMPMinaCodecFactory implements ProtocolCodecFactory,
     }
 
 	/** {@inheritDoc} */
-    public ProtocolDecoder getDecoder() {
+    public ProtocolDecoder getDecoder(IoSession session) {
 		return decoder;
 	}
 
 	/** {@inheritDoc} */
-    public ProtocolEncoder getEncoder() {
+    public ProtocolEncoder getEncoder(IoSession session) {
 		return encoder;
 	}
 

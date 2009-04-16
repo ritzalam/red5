@@ -21,8 +21,8 @@ package org.red5.server.net.rtmp.codec;
 
 import java.util.List;
 
-import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.common.IoSession;
+import org.apache.mina.core.buffer.IoBuffer;
+import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecException;
 import org.apache.mina.filter.codec.ProtocolDecoder;
 import org.apache.mina.filter.codec.ProtocolDecoderOutput;
@@ -37,21 +37,21 @@ public class RTMPMinaProtocolDecoder extends RTMPProtocolDecoder implements
 		ProtocolDecoder {
 
 	/** {@inheritDoc} */
-    public void decode(IoSession session, ByteBuffer in,
+    public void decode(IoSession session, IoBuffer in,
 			ProtocolDecoderOutput out) throws ProtocolCodecException {
 
 		final ProtocolState state = (ProtocolState) session
 				.getAttribute(ProtocolState.SESSION_KEY);
 
-		RTMPConnection conn = (RTMPConnection) session.getAttachment();
+		RTMPConnection conn = (RTMPConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
 		conn.getWriteLock().lock();
 		try {
 			// Set thread local here so we have the connection during decoding of packets
 			Red5.setConnectionLocal(conn);
 	
-			ByteBuffer buf = (ByteBuffer) session.getAttribute("buffer");
+			IoBuffer buf = (IoBuffer) session.getAttribute("buffer");
 			if (buf == null) {
-				buf = ByteBuffer.allocate(2048);
+				buf = IoBuffer.allocate(2048);
 				buf.setAutoExpand(true);
 				session.setAttribute("buffer", buf);
 			}
@@ -73,13 +73,11 @@ public class RTMPMinaProtocolDecoder extends RTMPProtocolDecoder implements
 
 	/** {@inheritDoc} */
     public void dispose(IoSession ioSession) throws Exception {
-		// TODO Auto-generated method stub
 	}
 
 	/** {@inheritDoc} */
     public void finishDecode(IoSession session, ProtocolDecoderOutput out)
 			throws Exception {
-		// TODO Auto-generated method stub	
 	}
 
 }

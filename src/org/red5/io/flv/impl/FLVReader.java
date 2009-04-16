@@ -29,7 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.BufferType;
 import org.red5.io.IKeyFrameMetaCache;
 import org.red5.io.IStreamableFile;
@@ -87,7 +87,7 @@ public class FLVReader implements IoConstants, ITagReader,
     /**
      * Input byte buffer
      */
-    private ByteBuffer in;
+    private IoBuffer in;
 
 	/** Set to true to generate metadata automatically before the first tag. */
 	private boolean generateMetadata;
@@ -163,9 +163,9 @@ public class FLVReader implements IoConstants, ITagReader,
 	 * Accepts mapped file bytes to construct internal members.
 	 *
 	 * @param generateMetadata         <code>true</code> if metadata generation required, <code>false</code> otherwise
-     * @param buffer                   Byte buffer
+     * @param buffer                   IoBuffer
 	 */
-	public FLVReader(ByteBuffer buffer, boolean generateMetadata) {
+	public FLVReader(IoBuffer buffer, boolean generateMetadata) {
 		this.generateMetadata = generateMetadata;
 		in = buffer;
 
@@ -304,16 +304,13 @@ public class FLVReader implements IoConstants, ITagReader,
 			if (in == null) {
 				switch (bufferType) {
 					case HEAP:
-						in = ByteBuffer.allocate(bufferSize, false);
+						in = IoBuffer.allocate(bufferSize, false);
 						break;
 					case DIRECT:
-						in = ByteBuffer.allocate(bufferSize, true);
-						break;
-					case AUTO:
-						in = ByteBuffer.allocate(bufferSize);
+						in = IoBuffer.allocate(bufferSize, true);
 						break;
 					default:
-						in = ByteBuffer.allocate(bufferSize);
+						in = IoBuffer.allocate(bufferSize);
 				}
 				channel.read(in.buf());
 				in.flip();
@@ -434,10 +431,10 @@ public class FLVReader implements IoConstants, ITagReader,
 	 * 
 	 * @return  File contents as byte buffer
 	 */
-	public ByteBuffer getFileData() {
+	public IoBuffer getFileData() {
 		// TODO as of now, return null will disable cache
 		// we need to redesign the cache architecture so that
-		// the cache is layed underneath FLVReader not above it,
+		// the cache is layered underneath FLVReader not above it,
 		// thus both tag cache and file cache are feasible.
 		return null;
 	}
@@ -527,7 +524,7 @@ public class FLVReader implements IoConstants, ITagReader,
      */
     private ITag createFileMeta() {
 		// Create tag for onMetaData event
-		ByteBuffer buf = ByteBuffer.allocate(1024);
+    	IoBuffer buf = IoBuffer.allocate(1024);
 		buf.setAutoExpand(true);
 		Output out = new Output(buf);
         // Duration property
@@ -584,7 +581,7 @@ public class FLVReader implements IoConstants, ITagReader,
 			}
 		}
 
-		ByteBuffer body = ByteBuffer.allocate(tag.getBodySize(), false);
+		IoBuffer body = IoBuffer.allocate(tag.getBodySize(), false);
 
 		// XXX Paul: this assists in 'properly' handling damaged FLV files		
 		long newPosition = getCurrentPosition() + tag.getBodySize();
@@ -617,7 +614,7 @@ public class FLVReader implements IoConstants, ITagReader,
 	public void close() {
 		log.debug("Reader close");
 		if (in != null) {
-			in.release();
+			in.free();
 			in = null;
 		}
 		if (channel != null) {

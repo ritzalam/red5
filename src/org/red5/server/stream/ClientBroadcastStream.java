@@ -29,7 +29,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 import javax.management.ObjectName;
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
 import org.red5.server.api.Red5;
@@ -306,7 +306,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			}
 		}
 		//get the buffer only once per call
-		ByteBuffer buf = null;
+		IoBuffer buf = null;
 		if (rtmpEvent instanceof IStreamData
 				&& (buf = ((IStreamData) rtmpEvent).getData()) != null) {
 			bytesReceived += buf.limit();

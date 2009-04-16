@@ -19,7 +19,7 @@ package org.red5.io.flv.impl;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.ITag;
 
 /**
@@ -51,7 +51,7 @@ public class Tag implements ITag {
     /**
      * Tag body as byte buffer
      */
-	private ByteBuffer body;
+	private IoBuffer body;
     /**
      * Previous tag size
      */
@@ -71,7 +71,7 @@ public class Tag implements ITag {
 	 * @param body                  Tag body
      * @param previousTagSize       Previous tag size information
 	 */
-	public Tag(byte dataType, int timestamp, int bodySize, ByteBuffer body,
+	public Tag(byte dataType, int timestamp, int bodySize, IoBuffer body,
 			int previousTagSize) {
 		this.dataType = dataType;
 		this.timestamp = timestamp;
@@ -123,17 +123,16 @@ public class Tag implements ITag {
 
 	/** {@inheritDoc}
 	 */
-	public ByteBuffer getData() {
-		// TODO Auto-generated method stub
+	public IoBuffer getData() {
 		return null;
 	}
 
 	/**
-	 * Return the body ByteBuffer
+	 * Return the body IoBuffer
 	 * 
 	 * @return         Tag body
 	 */
-	public ByteBuffer getBody() {
+	public IoBuffer getBody() {
 		return body;
 	}
 
@@ -207,7 +206,7 @@ public class Tag implements ITag {
 	}
 
 	/** {@inheritDoc} */
-    public void setBody(ByteBuffer body) {
+    public void setBody(IoBuffer body) {
 		this.body = body;
 	}
 
@@ -230,7 +229,6 @@ public class Tag implements ITag {
      * Setter for tag data. Empty method.
      */
     public void setData() {
-		// TODO Auto-generated method stub
 	}
 
 	/** {@inheritDoc} */

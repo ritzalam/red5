@@ -19,9 +19,9 @@ package org.red5.server.net.proxy;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.common.IoFilterAdapter;
-import org.apache.mina.common.IoSession;
+import org.apache.mina.core.buffer.IoBuffer;
+import org.apache.mina.core.filterchain.IoFilterAdapter;
+import org.apache.mina.core.session.IoSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,15 +58,12 @@ public class ProxyFilter extends IoFilterAdapter {
         IoSession forward = (IoSession) session.getAttribute(FORWARD_KEY);
 		if (forward != null && forward.isConnected()) {
 
-			if (message instanceof ByteBuffer) {
-				final ByteBuffer buf = (ByteBuffer) message;
-				//buf.acquire();
-
+			if (message instanceof IoBuffer) {
+				final IoBuffer buf = (IoBuffer) message;
 				if (log.isDebugEnabled()) {
-					log.debug("[ " + name + " ] RAW >> " + buf.getHexDump());
+					log.debug("[{}] RAW >> {}", name, buf.getHexDump());
 				}
-
-				ByteBuffer copy = ByteBuffer.allocate(buf.limit());
+				IoBuffer copy = IoBuffer.allocate(buf.limit());
 				int limit = buf.limit();
 				copy.put(buf);
 				copy.flip();
@@ -87,9 +84,9 @@ public class ProxyFilter extends IoFilterAdapter {
 		IoSession forward = (IoSession) session.getAttribute(FORWARD_KEY);
 		if (forward != null && forward.isConnected() && !forward.isClosing()) {
 			if (log.isDebugEnabled()) {
-				log.debug("[ " + name + " ] Closing: " + forward);
+				log.debug("[{}] Closing: {}", name, forward);
 			}
-			forward.close();
+			forward.close(true);
 		}
 		next.sessionClosed(session);
 	}

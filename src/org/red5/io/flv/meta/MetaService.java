@@ -26,7 +26,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.ITag;
 import org.red5.io.IoConstants;
 import org.red5.io.amf.Input;
@@ -236,7 +236,7 @@ public class MetaService implements IMetaService {
 	 */
 	private ITag injectMetaData(IMetaData<?, ?> meta, ITag tag) {
 
-		ByteBuffer bb = ByteBuffer.allocate(1000);
+		IoBuffer bb = IoBuffer.allocate(1000);
 		bb.setAutoExpand(true);
 
 		Output out = new Output(bb);
@@ -244,7 +244,7 @@ public class MetaService implements IMetaService {
 		ser.serialize(out, "onMetaData");
 		ser.serialize(out, meta);
 
-		ByteBuffer tmpBody = out.buf().flip();
+		IoBuffer tmpBody = out.buf().flip();
 		int tmpBodySize = out.buf().limit();
 		int tmpPreviousTagSize = tag.getPreviousTagSize();
 		byte tmpDataType = IoConstants.TYPE_METADATA;
@@ -266,12 +266,12 @@ public class MetaService implements IMetaService {
 	private ITag injectMetaCue(IMetaCue meta, ITag tag) {
 
 		// IMeta meta = (MetaCue) cue;
-		Output out = new Output(ByteBuffer.allocate(1000));
+		Output out = new Output(IoBuffer.allocate(1000));
 		Serializer ser = new Serializer();
 		ser.serialize(out, "onCuePoint");
 		ser.serialize(out, meta);
 
-		ByteBuffer tmpBody = out.buf().flip();
+		IoBuffer tmpBody = out.buf().flip();
 		int tmpBodySize = out.buf().limit();
 		int tmpPreviousTagSize = tag.getPreviousTagSize();
 		byte tmpDataType = IoConstants.TYPE_METADATA;
@@ -299,7 +299,7 @@ public class MetaService implements IMetaService {
 	 */
 	public void writeMetaData(IMetaData<?, ?> metaData) {
 		IMetaCue meta = (MetaCue<?, ?>) metaData;
-		Output out = new Output(ByteBuffer.allocate(1000));
+		Output out = new Output(IoBuffer.allocate(1000));
 		serializer.serialize(out, "onCuePoint");
 		serializer.serialize(out, meta);
 
@@ -338,7 +338,7 @@ public class MetaService implements IMetaService {
 
 	/** {@inheritDoc} */
 	// TODO need to fix
-	public MetaData<?, ?> readMetaData(ByteBuffer buffer) {
+	public MetaData<?, ?> readMetaData(IoBuffer buffer) {
 		MetaData<?, ?> retMeta = new MetaData<String, Object>();
 		Input input = new Input(buffer);
 		if (deserializer == null) {
@@ -353,7 +353,6 @@ public class MetaService implements IMetaService {
 
 	/** {@inheritDoc} */
 	public IMetaCue[] readMetaCue() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 

@@ -19,7 +19,7 @@ package org.red5.server.net.rtmp.codec;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.net.rtmp.event.AudioData;
 import org.red5.server.net.rtmp.event.BytesRead;
 import org.red5.server.net.rtmp.event.ChunkSize;
@@ -42,7 +42,7 @@ public interface IEventDecoder {
      * @param in                     Byte buffer to decode
      * @return                       Unknown event
      */
-	public abstract Unknown decodeUnknown(byte dataType, ByteBuffer in);
+	public abstract Unknown decodeUnknown(byte dataType, IoBuffer in);
 
     /**
      * Decodes chunk size event.
@@ -50,7 +50,7 @@ public interface IEventDecoder {
      * @param in                     Byte buffer to decode
      * @return                       ChunkSize event
      */
-	public abstract ChunkSize decodeChunkSize(ByteBuffer in);
+	public abstract ChunkSize decodeChunkSize(IoBuffer in);
 
     /**
      * Decodes shared object message event.
@@ -59,7 +59,7 @@ public interface IEventDecoder {
      * @param rtmp					 RTMP protocol state
      * @return                       ISharedObjectMessage event
      */
-	public abstract ISharedObjectMessage decodeSharedObject(ByteBuffer in, RTMP rtmp);
+	public abstract ISharedObjectMessage decodeSharedObject(IoBuffer in, RTMP rtmp);
 
     /**
      * Decodes shared object message event from AMF3 encoding.
@@ -68,7 +68,7 @@ public interface IEventDecoder {
      * @param rtmp					 RTMP protocol state
      * @return                       ISharedObjectMessage event
      */
-	public abstract ISharedObjectMessage decodeFlexSharedObject(ByteBuffer in, RTMP rtmp);
+	public abstract ISharedObjectMessage decodeFlexSharedObject(IoBuffer in, RTMP rtmp);
 
     /**
      * Decodes notification event.
@@ -77,7 +77,7 @@ public interface IEventDecoder {
      * @param rtmp					 RTMP protocol state
      * @return                       Notify event
      */
-    public abstract Notify decodeNotify(ByteBuffer in, RTMP rtmp);
+    public abstract Notify decodeNotify(IoBuffer in, RTMP rtmp);
 
     /**
      * Decodes invocation event.
@@ -86,7 +86,7 @@ public interface IEventDecoder {
      * @param rtmp					 RTMP protocol state
      * @return                       Invoke event
      */
-    public abstract Invoke decodeInvoke(ByteBuffer in, RTMP rtmp);
+    public abstract Invoke decodeInvoke(IoBuffer in, RTMP rtmp);
 
     /**
      * Decodes ping event.
@@ -94,7 +94,7 @@ public interface IEventDecoder {
      * @param in                     Byte buffer to decode
      * @return                       Ping event
      */
-    public abstract Ping decodePing(ByteBuffer in);
+    public abstract Ping decodePing(IoBuffer in);
 
     /**
      * Decodes BytesRead event.
@@ -102,7 +102,7 @@ public interface IEventDecoder {
      * @param in                     Byte buffer to decode
      * @return                       BytesRead event
      */
-    public abstract BytesRead decodeBytesRead(ByteBuffer in);
+    public abstract BytesRead decodeBytesRead(IoBuffer in);
 
     /**
      * Decodes audio data event.
@@ -110,7 +110,7 @@ public interface IEventDecoder {
      * @param in                     Byte buffer to decode
      * @return                       AudioData event
      */
-    public abstract AudioData decodeAudioData(ByteBuffer in);
+    public abstract AudioData decodeAudioData(IoBuffer in);
 
     /**
      * Decodes video data event.
@@ -118,7 +118,7 @@ public interface IEventDecoder {
      * @param in                     Byte buffer to decode
      * @return                       VideoData event
      */
-    public abstract VideoData decodeVideoData(ByteBuffer in);
+    public abstract VideoData decodeVideoData(IoBuffer in);
 
     /**
      * Decodes Flex message event.
@@ -127,5 +127,5 @@ public interface IEventDecoder {
      * @param rtmp					 RTMP protocol state
      * @return                       FlexMessage event
      */
-    public abstract FlexMessage decodeFlexMessage(ByteBuffer in, RTMP rtmp);
+    public abstract FlexMessage decodeFlexMessage(IoBuffer in, RTMP rtmp);
 }

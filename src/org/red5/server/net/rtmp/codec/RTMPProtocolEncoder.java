@@ -22,7 +22,7 @@ package org.red5.server.net.rtmp.codec;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.object.Output;
 import org.red5.io.object.Serializer;
 import org.red5.io.utils.BufferUtils;
@@ -75,12 +75,12 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
     private Serializer serializer;
 
 	/** {@inheritDoc} */
-    public ByteBuffer encode(ProtocolState state, Object message)
+    public IoBuffer encode(ProtocolState state, Object message)
 			throws Exception {
 		try {
 			final RTMP rtmp = (RTMP) state;
-			if (message instanceof ByteBuffer) {
-				return (ByteBuffer) message;
+			if (message instanceof IoBuffer) {
+				return (IoBuffer) message;
 			} else {
 				return encodePacket(rtmp, (Packet) message);
 			}
@@ -97,12 +97,12 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
      * @param packet      RTMP packet
      * @return            Encoded data
      */
-    public ByteBuffer encodePacket(RTMP rtmp, Packet packet) {
+    public IoBuffer encodePacket(RTMP rtmp, Packet packet) {
 
 		final Header header = packet.getHeader();
 		final int channelId = header.getChannelId();
 		final IRTMPEvent message = packet.getMessage();
-		ByteBuffer data;
+		IoBuffer data;
 
 		if (message instanceof ChunkSize) {
 			ChunkSize chunkSizeMsg = (ChunkSize) message;
@@ -138,7 +138,7 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
 				/ (float) chunkSize);
 		final int bufSize = header.getSize() + headerSize
 				+ (numChunks > 0 ? (numChunks - 1) * chunkHeaderSize : 0);
-		final ByteBuffer out = ByteBuffer.allocate(bufSize, false);
+		final IoBuffer out = IoBuffer.allocate(bufSize, false);
 		
 		encodeHeader(header, lastHeader, out);
 		
@@ -154,7 +154,7 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
 			BufferUtils.put(out, data, out.remaining());
 		}
 
-		data.release();
+		data.free();
 		out.flip();
 		data = null;
 
@@ -216,20 +216,20 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
      * @param lastHeader  Previous header
      * @return            Encoded header data
      */
-    public ByteBuffer encodeHeader(Header header, Header lastHeader) {
-    	ByteBuffer result = ByteBuffer.allocate(calculateHeaderSize(header, lastHeader));
+    public IoBuffer encodeHeader(Header header, Header lastHeader) {
+    	IoBuffer result = IoBuffer.allocate(calculateHeaderSize(header, lastHeader));
     	encodeHeader(header, lastHeader, result);
     	return result;
     }
     
     /**
-     * Encode RTMP header into given ByteBuffer.
+     * Encode RTMP header into given IoBuffer.
 	 *
      * @param header      RTMP message header
      * @param lastHeader  Previous header
      * @param buf         Buffer to write encoded header to
      */
-    public void encodeHeader(Header header, Header lastHeader, ByteBuffer buf) {
+    public void encodeHeader(Header header, Header lastHeader, IoBuffer buf) {
 		final byte headerType = getHeaderType(header, lastHeader);
 		RTMPUtils.encodeHeaderByte(buf, headerType, header
 				.getChannelId());
@@ -263,7 +263,7 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
      * @param message     RTMP message (event)
      * @return            Encoded message data
      */
-    public ByteBuffer encodeMessage(RTMP rtmp, Header header, IRTMPEvent message) {
+    public IoBuffer encodeMessage(RTMP rtmp, Header header, IRTMPEvent message) {
 		switch (header.getDataType()) {
 			case TYPE_CHUNK_SIZE:
 				return encodeChunkSize((ChunkSize) message);
@@ -307,8 +307,8 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
      * @param serverBW    Server-side bandwidth event
      * @return            Encoded event data
      */
-    private ByteBuffer encodeServerBW(ServerBW serverBW) {
-		final ByteBuffer out = ByteBuffer.allocate(4);
+    private IoBuffer encodeServerBW(ServerBW serverBW) {
+		final IoBuffer out = IoBuffer.allocate(4);
 		out.putInt(serverBW.getBandwidth());
 		return out;
 	}
@@ -319,23 +319,23 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
      * @param clientBW    Client-side bandwidth event
      * @return            Encoded event data
      */
-    private ByteBuffer encodeClientBW(ClientBW clientBW) {
-		final ByteBuffer out = ByteBuffer.allocate(5);
+    private IoBuffer encodeClientBW(ClientBW clientBW) {
+		final IoBuffer out = IoBuffer.allocate(5);
 		out.putInt(clientBW.getBandwidth());
 		out.put(clientBW.getValue2());
 		return out;
 	}
 
 	/** {@inheritDoc} */
-    public ByteBuffer encodeChunkSize(ChunkSize chunkSize) {
-		final ByteBuffer out = ByteBuffer.allocate(4);
+    public IoBuffer encodeChunkSize(ChunkSize chunkSize) {
+		final IoBuffer out = IoBuffer.allocate(4);
 		out.putInt(chunkSize.getSize());
 		return out;
 	}
 
 	/** {@inheritDoc} */
-    public ByteBuffer encodeFlexSharedObject(ISharedObjectMessage so, RTMP rtmp) {
-		final ByteBuffer out = ByteBuffer.allocate(128);
+    public IoBuffer encodeFlexSharedObject(ISharedObjectMessage so, RTMP rtmp) {
+		final IoBuffer out = IoBuffer.allocate(128);
 		out.setAutoExpand(true);
 		// TODO: also support sending of AMF3 encoded data
 		out.put((byte) 0x00);
@@ -344,8 +344,8 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
     }
 
 	/** {@inheritDoc} */
-    public ByteBuffer encodeSharedObject(ISharedObjectMessage so, RTMP rtmp) {
-		final ByteBuffer out = ByteBuffer.allocate(128);
+    public IoBuffer encodeSharedObject(ISharedObjectMessage so, RTMP rtmp) {
+		final IoBuffer out = IoBuffer.allocate(128);
 		out.setAutoExpand(true);
     	doEncodeSharedObject(so, rtmp, out);
     	return out;
@@ -358,7 +358,7 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
      * @param rtmp rtmp
      * @param out output buffer
      */
-    public void doEncodeSharedObject(ISharedObjectMessage so, RTMP rtmp, ByteBuffer out) {
+    public void doEncodeSharedObject(ISharedObjectMessage so, RTMP rtmp, IoBuffer out) {
 		final Output output = new org.red5.io.amf.Output(out);
 
 		output.putString(so.getName());
@@ -471,12 +471,12 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
 	}
 
 	/** {@inheritDoc} */
-	public ByteBuffer encodeNotify(Notify notify, RTMP rtmp) {
+	public IoBuffer encodeNotify(Notify notify, RTMP rtmp) {
 		return encodeNotifyOrInvoke(notify, rtmp);
 	}
 
 	/** {@inheritDoc} */
-	public ByteBuffer encodeInvoke(Invoke invoke, RTMP rtmp) {
+	public IoBuffer encodeInvoke(Invoke invoke, RTMP rtmp) {
 		return encodeNotifyOrInvoke(invoke, rtmp);
 	}
 
@@ -486,8 +486,8 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
      * @param invoke            Notification event
      * @return                  Encoded event data
      */
-    protected ByteBuffer encodeNotifyOrInvoke(Notify invoke, RTMP rtmp) {
-		ByteBuffer out = ByteBuffer.allocate(1024);
+    protected IoBuffer encodeNotifyOrInvoke(Notify invoke, RTMP rtmp) {
+		IoBuffer out = IoBuffer.allocate(1024);
 		out.setAutoExpand(true);
 		encodeNotifyOrInvoke(out, invoke, rtmp);
 		return out;
@@ -499,7 +499,7 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
      * @param out               Byte buffer to fill
      * @param invoke            Notification event
      */
-	protected void encodeNotifyOrInvoke(ByteBuffer out, Notify invoke, RTMP rtmp) {
+	protected void encodeNotifyOrInvoke(IoBuffer out, Notify invoke, RTMP rtmp) {
 		// TODO: tidy up here
 		// log.debug("Encode invoke");
 		Output output = new org.red5.io.amf.Output(out);
@@ -563,7 +563,7 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
 	}
 
 	/** {@inheritDoc} */
-	public ByteBuffer encodePing(Ping ping) {
+	public IoBuffer encodePing(Ping ping) {
 		int len = 6;
 		if (ping.getValue3() != Ping.UNDEFINED) {
 			len += 4;
@@ -571,7 +571,7 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
 		if (ping.getValue4() != Ping.UNDEFINED) {
 			len += 4;
 		}
-		final ByteBuffer out = ByteBuffer.allocate(len);
+		final IoBuffer out = IoBuffer.allocate(len);
 		out.putShort(ping.getValue1());
 		out.putInt(ping.getValue2());
 		if (ping.getValue3() != Ping.UNDEFINED) {
@@ -584,36 +584,32 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
 	}
 
 	/** {@inheritDoc} */
-	public ByteBuffer encodeBytesRead(BytesRead bytesRead) {
-		final ByteBuffer out = ByteBuffer.allocate(4);
+	public IoBuffer encodeBytesRead(BytesRead bytesRead) {
+		final IoBuffer out = IoBuffer.allocate(4);
 		out.putInt(bytesRead.getBytesRead());
 		return out;
 	}
 
 	/** {@inheritDoc} */
-	public ByteBuffer encodeAudioData(AudioData audioData) {
-		final ByteBuffer result = audioData.getData();
-		result.acquire();
+	public IoBuffer encodeAudioData(AudioData audioData) {
+		final IoBuffer result = audioData.getData();
 		return result;
 	}
 
 	/** {@inheritDoc} */
-	public ByteBuffer encodeVideoData(VideoData videoData) {
-		final ByteBuffer result = videoData.getData();
-		result.acquire();
+	public IoBuffer encodeVideoData(VideoData videoData) {
+		final IoBuffer result = videoData.getData();
 		return result;
 	}
 
 	/** {@inheritDoc} */
-    public ByteBuffer encodeUnknown(Unknown unknown) {
-		final ByteBuffer result = unknown.getData();
-		result.acquire();
+    public IoBuffer encodeUnknown(Unknown unknown) {
+		final IoBuffer result = unknown.getData();
 		return result;
 	}
 
-	public ByteBuffer encodeStreamMetadata(Notify metaData) {
-		final ByteBuffer result = metaData.getData();
-		result.acquire();
+	public IoBuffer encodeStreamMetadata(Notify metaData) {
+		final IoBuffer result = metaData.getData();
 		return result;
 	}
 
@@ -633,8 +629,8 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
      * @param rtmp RTMP
      * @return                   Encoded data
      */
-    public ByteBuffer encodeFlexMessage(FlexMessage msg, RTMP rtmp) {
-		ByteBuffer out = ByteBuffer.allocate(1024);
+    public IoBuffer encodeFlexMessage(FlexMessage msg, RTMP rtmp) {
+		IoBuffer out = IoBuffer.allocate(1024);
 		out.setAutoExpand(true);
 		// Unknown byte, always 0?
 		out.put((byte) 0);
@@ -642,9 +638,8 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
 		return out;
 	}
 
-	public ByteBuffer encodeFlexStreamSend(FlexStreamSend msg) {
-		final ByteBuffer result = msg.getData();
-		result.acquire();
+	public IoBuffer encodeFlexStreamSend(FlexStreamSend msg) {
+		final IoBuffer result = msg.getData();
 		return result;
 	}
 

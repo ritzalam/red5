@@ -19,7 +19,7 @@ package org.red5.server.net.rtmp.event;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.api.service.IPendingServiceCall;
 
 /**
@@ -43,7 +43,7 @@ public class Invoke extends Notify {
      * Create new invocation event with given data
      * @param data        Event data
      */
-    public Invoke(ByteBuffer data) {
+    public Invoke(IoBuffer data) {
 		super(data);
 	}
 
@@ -64,7 +64,7 @@ public class Invoke extends Notify {
 	/** {@inheritDoc} */
     @Override
 	public String toString() {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append("Invoke: ").append(call);
 		return sb.toString();
 	}

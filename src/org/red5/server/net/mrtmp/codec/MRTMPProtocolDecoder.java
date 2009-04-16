@@ -23,14 +23,14 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.common.IoSession;
+import org.apache.mina.core.buffer.IoBuffer;
+import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolDecoder;
 import org.apache.mina.filter.codec.ProtocolDecoderOutput;
 import org.red5.server.net.mrtmp.MRTMPPacket;
 import org.red5.server.net.rtmp.message.Packet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Steven Gong (steven.gong@gmail.com)
@@ -38,11 +38,11 @@ import org.red5.server.net.rtmp.message.Packet;
 public class MRTMPProtocolDecoder implements ProtocolDecoder {
 	private static final Logger log = LoggerFactory.getLogger(MRTMPProtocolDecoder.class);
 
-	public void decode(IoSession session, ByteBuffer in,
+	public void decode(IoSession session, IoBuffer in,
 			ProtocolDecoderOutput out) throws Exception {
-		ByteBuffer buffer = (ByteBuffer) session.getAttribute("buffer");
+		IoBuffer buffer = (IoBuffer) session.getAttribute("buffer");
 		if (buffer == null) {
-			buffer = ByteBuffer.allocate(16 * 1024);
+			buffer = IoBuffer.allocate(16 * 1024);
 			buffer.setAutoExpand(true);
 			session.setAttribute("buffer", buffer);
 		}
@@ -80,13 +80,13 @@ public class MRTMPProtocolDecoder implements ProtocolDecoder {
 
 	public void finishDecode(IoSession session, ProtocolDecoderOutput out)
 			throws Exception {
-		ByteBuffer buffer = (ByteBuffer) session.getAttribute("buffer");
+		IoBuffer buffer = (IoBuffer) session.getAttribute("buffer");
 		if (buffer != null) {
-			buffer.release();
+			buffer.free();
 		}
 	}
 	
-	public MRTMPPacket.Header decodeHeader(ByteBuffer buffer) {
+	public MRTMPPacket.Header decodeHeader(IoBuffer buffer) {
 		short type = buffer.getShort();
 		short bodyEncoding = buffer.getShort();
 		int preserved = buffer.getInt();
@@ -119,7 +119,7 @@ public class MRTMPProtocolDecoder implements ProtocolDecoder {
 		return header;
 	}
 
-	public MRTMPPacket.Body decodeBody(ByteBuffer buffer, MRTMPPacket.Header header) {
+	public MRTMPPacket.Body decodeBody(IoBuffer buffer, MRTMPPacket.Header header) {
 		MRTMPPacket.Body body = null;
 		switch (header.getType()) {
 			case MRTMPPacket.CONNECT:
@@ -151,7 +151,7 @@ public class MRTMPProtocolDecoder implements ProtocolDecoder {
 				byteArray = new byte[header.getBodyLength()];
 				buffer.get(byteArray);
 				body = new MRTMPPacket.Body();
-				body.setRawBuf(ByteBuffer.wrap(byteArray));
+				body.setRawBuf(IoBuffer.wrap(byteArray));
 				break;
 		}
 		return body;

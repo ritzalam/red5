@@ -21,9 +21,9 @@ package org.red5.server.net.proxy;
 
 import java.nio.channels.WritableByteChannel;
 
-import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.common.IoFilterAdapter;
-import org.apache.mina.common.IoSession;
+import org.apache.mina.core.buffer.IoBuffer;
+import org.apache.mina.core.filterchain.IoFilterAdapter;
+import org.apache.mina.core.session.IoSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,10 +61,10 @@ public class NetworkDumpFilter extends IoFilterAdapter {
     @Override
 	public void messageReceived(NextFilter next, IoSession session,
 			Object message) throws Exception {
-		if (message instanceof ByteBuffer) {
-			ByteBuffer out = (ByteBuffer) message;
+		if (message instanceof IoBuffer) {
+			IoBuffer out = (IoBuffer) message;
 			if (headers != null) {
-				ByteBuffer header = ByteBuffer.allocate(12);
+				IoBuffer header = IoBuffer.allocate(12);
 				header.putLong(System.currentTimeMillis());
 				header.putInt(out.limit() - out.position());
 				header.flip();

@@ -22,7 +22,8 @@ package org.red5.server.net.rtmp.event;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-import org.apache.mina.common.ByteBuffer;
+
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.IoConstants;
 import org.red5.server.api.stream.IStreamPacket;
 import org.red5.server.stream.IStreamData;
@@ -43,7 +44,7 @@ public class VideoData extends BaseEvent implements IoConstants, IStreamData, IS
     /**
      * Video data
      */
-    protected ByteBuffer data;
+    protected IoBuffer data;
 
     /**
      * Frame type, unknown by default
@@ -52,14 +53,14 @@ public class VideoData extends BaseEvent implements IoConstants, IStreamData, IS
 
 	/** Constructs a new VideoData. */
     public VideoData() {
-		this(ByteBuffer.allocate(0).flip());
+		this(IoBuffer.allocate(0).flip());
 	}
 
     /**
      * Create video data event with given data buffer
      * @param data            Video data
      */
-    public VideoData(ByteBuffer data) {
+    public VideoData(IoBuffer data) {
 		super(Type.STREAM_DATA);
 		this.data = data;
 		if (data != null && data.limit() > 0) {
@@ -86,7 +87,7 @@ public class VideoData extends BaseEvent implements IoConstants, IStreamData, IS
 	}
 
 	/** {@inheritDoc} */
-    public ByteBuffer getData() {
+    public IoBuffer getData() {
 		return data;
 	}
 
@@ -109,7 +110,7 @@ public class VideoData extends BaseEvent implements IoConstants, IStreamData, IS
     @Override
 	protected void releaseInternal() {
 		if (data != null) {
-			data.release();
+			data.free();
 			data = null;
 		}
 	}
@@ -120,7 +121,7 @@ public class VideoData extends BaseEvent implements IoConstants, IStreamData, IS
 		frameType = (FrameType) in.readObject();
 		byte[] byteBuf = (byte[]) in.readObject();
 		if (byteBuf != null) {
-			data = ByteBuffer.allocate(0);
+			data = IoBuffer.allocate(0);
 			data.setAutoExpand(true);
 			SerializeUtils.ByteArrayToByteBuffer(byteBuf, data);
 		}

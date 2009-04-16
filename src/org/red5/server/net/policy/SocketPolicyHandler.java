@@ -24,11 +24,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
-import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.common.IoAcceptor;
-import org.apache.mina.common.IoHandlerAdapter;
-import org.apache.mina.common.IoSession;
-import org.apache.mina.transport.socket.nio.SocketAcceptor;
+import org.apache.mina.core.buffer.IoBuffer;
+import org.apache.mina.core.service.IoAcceptor;
+import org.apache.mina.core.service.IoHandlerAdapter;
+import org.apache.mina.core.session.IoSession;
+import org.apache.mina.transport.socket.nio.NioSocketAcceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,19 +52,20 @@ public class SocketPolicyHandler extends IoHandlerAdapter {
 
 	private static IoAcceptor acceptor;
 	
-	private static ByteBuffer policyData;
+	private static IoBuffer policyData;
 
 	public void start() {
 		log.debug("Starting socket policy file server");
         try {
-			acceptor = new SocketAcceptor();
-			acceptor.bind(new InetSocketAddress(host, port), this);
+			acceptor = new NioSocketAcceptor();
+			acceptor.setHandler(this);
+			acceptor.bind(new InetSocketAddress(host, port));
 			log.info("Socket policy file server listening on port {}", port);
 			//get the file
 			File file = new File(System.getProperty("red5.config_root"), policyFileName);
 			if (file.exists()) {
 				//read the policy file
-				policyData = ByteBuffer.allocate(Long.valueOf(file.length()).intValue());
+				policyData = IoBuffer.allocate(Long.valueOf(file.length()).intValue());
 				//temp space for reading file
 				byte[] buf = new byte[128];
 				//read it
@@ -87,7 +88,7 @@ public class SocketPolicyHandler extends IoHandlerAdapter {
 
 	public void stop() {
 		log.debug("Stopping socket policy file server");
-		acceptor.unbindAll();
+		acceptor.unbind();
 	}
 	
 	@Override
@@ -95,7 +96,7 @@ public class SocketPolicyHandler extends IoHandlerAdapter {
 			throws Exception {
 		log.info("Incomming: {}", session.getRemoteAddress().toString());
 		session.write(policyData);
-		session.close();
+		session.close(true);
 	}
 
 	@Override

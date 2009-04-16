@@ -22,8 +22,8 @@ package org.red5.server.net.mrtmp.codec;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
 
-import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.common.IoSession;
+import org.apache.mina.core.buffer.IoBuffer;
+import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolEncoder;
 import org.apache.mina.filter.codec.ProtocolEncoderOutput;
 import org.red5.server.net.mrtmp.MRTMPPacket;
@@ -34,23 +34,21 @@ import org.red5.server.net.mrtmp.MRTMPPacket;
 public class MRTMPProtocolEncoder implements ProtocolEncoder {
 
 	public void dispose(IoSession session) throws Exception {
-		// TODO Auto-generated method stub
-
 	}
 
 	public void encode(IoSession session, Object message,
 			ProtocolEncoderOutput out) throws Exception {
 		MRTMPPacket packet = (MRTMPPacket) message;
 		MRTMPPacket.Header header = packet.getHeader();
-		ByteBuffer buf = null;
+		IoBuffer buf = null;
 		switch (header.getType()) {
 			case MRTMPPacket.CONNECT:
 			case MRTMPPacket.CLOSE:
-				buf = ByteBuffer.allocate(MRTMPPacket.COMMON_HEADER_LENGTH);
+				buf = IoBuffer.allocate(MRTMPPacket.COMMON_HEADER_LENGTH);
 				buf.setAutoExpand(true);
 				break;
 			case MRTMPPacket.RTMP:
-				buf = ByteBuffer.allocate(MRTMPPacket.RTMP_HEADER_LENGTH);
+				buf = IoBuffer.allocate(MRTMPPacket.RTMP_HEADER_LENGTH);
 				buf.setAutoExpand(true);
 				break;
 			default:

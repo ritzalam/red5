@@ -29,7 +29,7 @@ import org.apache.commons.httpclient.HttpConnectionManager;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.amf.Input;
 import org.red5.io.amf.Output;
 import org.red5.io.object.Deserializer;
@@ -152,9 +152,9 @@ public class RemotingClient {
 	 *            Method parameters
 	 * @return Byte buffer with data to perform remoting call
 	 */
-	private ByteBuffer encodeInvoke(String method, Object[] params) {
+	private IoBuffer encodeInvoke(String method, Object[] params) {
 		log.debug("RemotingClient encodeInvoke - method: {} params: {}", method, params);		
-		ByteBuffer result = ByteBuffer.allocate(1024);
+		IoBuffer result = IoBuffer.allocate(1024);
 		result.setAutoExpand(true);
 
 		// XXX: which is the correct version?
@@ -166,7 +166,7 @@ public class RemotingClient {
 			Output.putString(result, header.name);
 			result.put(header.required ? (byte) 0x01 : (byte) 0x00);
 
-			ByteBuffer tmp = ByteBuffer.allocate(1024);
+			IoBuffer tmp = IoBuffer.allocate(1024);
 			tmp.setAutoExpand(true);
 			Output tmpOut = new Output(tmp);
 			Serializer tmpSer = new Serializer();
@@ -176,7 +176,7 @@ public class RemotingClient {
 			result.putInt(tmp.limit());
 			// Header data
 			result.put(tmp);
-			tmp.release();
+			tmp.free();
 			tmp = null;
 		}
 		// One body
@@ -189,7 +189,7 @@ public class RemotingClient {
 		Output.putString(result, "");
 
 		// Serialize parameters
-		ByteBuffer tmp = ByteBuffer.allocate(1024);
+		IoBuffer tmp = IoBuffer.allocate(1024);
 		tmp.setAutoExpand(true);
 		Output tmpOut = new Output(tmp);
 
@@ -205,7 +205,7 @@ public class RemotingClient {
 		// Store size and parameters
 		result.putInt(tmp.limit());
 		result.put(tmp);
-		tmp.release();
+		tmp.free();
 		tmp = null;
 
 		result.flip();
@@ -219,7 +219,7 @@ public class RemotingClient {
 	 *            Byte buffer with response data
 	 */
 	@SuppressWarnings("static-access")
-	protected void processHeaders(ByteBuffer in) {
+	protected void processHeaders(IoBuffer in) {
 		log.debug("RemotingClient processHeaders - buffer limit: {}", (in != null ? in.limit() : 0));				
 		int version = in.getUnsignedShort(); // skip
 		log.debug("Version: {}", version);
@@ -273,7 +273,7 @@ public class RemotingClient {
 	 *            Result data to decode
 	 * @return Object deserialized from byte buffer data
 	 */
-	private Object decodeResult(ByteBuffer data) {
+	private Object decodeResult(IoBuffer data) {
 		log.debug("decodeResult - data limit: {}", (data != null ? data.limit() : 0));
 		processHeaders(data);
 		int count = data.getUnsignedShort();
@@ -346,8 +346,8 @@ public class RemotingClient {
 	public Object invokeMethod(String method, Object[] params) {
 		log.debug("invokeMethod url: {}", (url + appendToUrl));
 		PostMethod post = new PostMethod(this.url + appendToUrl);
-		ByteBuffer resultBuffer = null;
-		ByteBuffer data = encodeInvoke(method, params);
+		IoBuffer resultBuffer = null;
+		IoBuffer data = encodeInvoke(method, params);
 		post.setRequestEntity(new InputStreamRequestEntity(
 				data.asInputStream(), data.limit(), CONTENT_TYPE));
 		try {
@@ -359,7 +359,7 @@ public class RemotingClient {
 						"Didn't receive success from remoting server.");
 			}
 
-			resultBuffer = ByteBuffer.allocate((int) post
+			resultBuffer = IoBuffer.allocate((int) post
 					.getResponseContentLength());
 			ServletUtils.copy(post.getResponseBodyAsStream(), resultBuffer
 					.asOutputStream());
@@ -375,10 +375,10 @@ public class RemotingClient {
 		} finally {
 			post.releaseConnection();
 			if (resultBuffer != null) {
-				resultBuffer.release();
+				resultBuffer.free();
 				resultBuffer = null;
 			}
-			data.release();
+			data.free();
 			data = null;
 		}
 		return null;

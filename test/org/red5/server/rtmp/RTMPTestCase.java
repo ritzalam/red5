@@ -22,8 +22,7 @@ package org.red5.server.rtmp;
 import junit.framework.Assert;
 import junit.framework.TestCase;
 
-import org.slf4j.*;
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Serializer;
 import org.red5.server.net.rtmp.codec.RTMPProtocolDecoder;
@@ -31,6 +30,8 @@ import org.red5.server.net.rtmp.codec.RTMPProtocolEncoder;
 import org.red5.server.net.rtmp.event.Invoke;
 import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.net.rtmp.message.Header;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RTMPTestCase extends TestCase implements Constants {
 
@@ -64,7 +65,7 @@ public class RTMPTestCase extends TestCase implements Constants {
 		header.setStreamId(100);
 		header.setTimer(2);
 		header.setSize(320);
-		ByteBuffer buf = encoder.encodeHeader(header, null);
+		IoBuffer buf = encoder.encodeHeader(header, null);
 		buf.flip();
 		log.debug(buf.getHexDump());
 		Assert.assertNotNull(buf);

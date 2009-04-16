@@ -12,7 +12,7 @@
 			<map>
 				<entry key="java.net.SocketAddress">
 					<bean
-						class="org.apache.mina.integration.spring.InetSocketAddressEditor" />
+						class="org.apache.mina.integration.beans.InetSocketAddressEditor" />
 				</entry>
 			</map>
 		</property>

@@ -19,10 +19,11 @@ package org.red5.io.amf3;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.object.Deserializer;
 
 /**
@@ -42,7 +43,7 @@ public class DataInput implements IDataInput {
 	private Deserializer deserializer;
 	
 	/** Raw data of input source. */
-	private ByteBuffer buffer;
+	private IoBuffer buffer;
 	
 	/**
 	 * Create a new DataInput.
@@ -110,7 +111,7 @@ public class DataInput implements IDataInput {
 	public String readMultiByte(int length, String charSet) {
 		final Charset cs = Charset.forName(charSet);
 		int limit = buffer.limit();
-		final java.nio.ByteBuffer strBuf = buffer.buf();
+		final ByteBuffer strBuf = buffer.buf();
 		strBuf.limit(strBuf.position() + length);
 		final String string = cs.decode(strBuf).toString();
 		buffer.limit(limit); // Reset the limit
@@ -151,7 +152,7 @@ public class DataInput implements IDataInput {
 	/** {@inheritDoc} */
 	public String readUTFBytes(int length) {
 		int limit = buffer.limit();
-		final java.nio.ByteBuffer strBuf = buffer.buf();
+		final ByteBuffer strBuf = buffer.buf();
 		strBuf.limit(strBuf.position() + length);
 		final String string = AMF3.CHARSET.decode(strBuf).toString();
 		buffer.limit(limit); // Reset the limit

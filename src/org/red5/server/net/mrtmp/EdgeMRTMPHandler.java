@@ -19,13 +19,11 @@ package org.red5.server.net.mrtmp;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.apache.mina.common.IoHandlerAdapter;
-import org.apache.mina.common.IoSession;
-import org.apache.mina.filter.LoggingFilter;
+import org.apache.mina.core.service.IoHandlerAdapter;
+import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecFactory;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
+import org.apache.mina.filter.logging.LoggingFilter;
 import org.red5.server.net.mrtmp.MRTMPPacket.RTMPBody;
 import org.red5.server.net.mrtmp.MRTMPPacket.RTMPHeader;
 import org.red5.server.net.rtmp.IRTMPConnManager;
@@ -34,12 +32,14 @@ import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.event.Invoke;
 import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.service.Call;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Steven Gong (steven.gong@gmail.com)
  */
-public class EdgeMRTMPHandler extends IoHandlerAdapter
-implements Constants {
+public class EdgeMRTMPHandler extends IoHandlerAdapter implements Constants {
+
 	private static final Logger log = LoggerFactory.getLogger(EdgeMRTMPHandler.class);
 
 	private IRTMPConnManager rtmpConnManager;
@@ -123,7 +123,7 @@ implements Constants {
 
 	@Override
 	public void sessionClosed(IoSession session) throws Exception {
-		MRTMPEdgeConnection conn = (MRTMPEdgeConnection) session.getAttachment();
+		MRTMPEdgeConnection conn = (MRTMPEdgeConnection) session.getAttribute(MRTMPEdgeConnection.EDGE_CONNECTION_KEY);
 		mrtmpManager.unregisterConnection(conn);
 		conn.close();
 		log.debug("Closed MRTMP Edge Connection " + conn);
@@ -134,12 +134,12 @@ implements Constants {
 		MRTMPEdgeConnection conn = new MRTMPEdgeConnection();
 		conn.setIoSession(session);
 		mrtmpManager.registerConnection(conn);
-		session.setAttachment(conn);
+		session.setAttribute(MRTMPEdgeConnection.EDGE_CONNECTION_KEY, conn);
 		session.getFilterChain().addFirst("protocolFilter",
 				new ProtocolCodecFilter(this.codecFactory));
 		if (log.isDebugEnabled()) {
 			session.getFilterChain().addLast("logger", new LoggingFilter());
 		}
-		log.debug("Created MRTMP Edge Connection " + conn);
+		log.debug("Created MRTMP Edge Connection {}", conn);
 	}
 }

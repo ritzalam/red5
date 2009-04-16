@@ -19,7 +19,7 @@ package org.red5.io.utils;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 
 /**
  * Buffer Utility class which reads/writes intergers to the input/output buffer  
@@ -35,7 +35,7 @@ public class BufferUtils {
 	 * @param out          Container to write to
 	 * @param value        Integer to write
 	 */
-	public static void writeMediumInt(ByteBuffer out, int value) {
+	public static void writeMediumInt(IoBuffer out, int value) {
 		byte[] bytes = new byte[3];
 		bytes[0] = (byte) ((value >>> 16) & 0x000000FF);
 		bytes[1] = (byte) ((value >>> 8) & 0x000000FF);
@@ -49,7 +49,7 @@ public class BufferUtils {
 	 * @param in           Source
 	 * @return int         Integer value
 	 */
-	public static int readUnsignedMediumInt(ByteBuffer in) {
+	public static int readUnsignedMediumInt(IoBuffer in) {
 		byte[] bytes = new byte[3];
 		in.get(bytes);
 		int val = 0;
@@ -65,7 +65,7 @@ public class BufferUtils {
 	 * @param in           Source
 	 * @return int         Medium int
 	 */
-	public static int readMediumInt(ByteBuffer in) {
+	public static int readMediumInt(IoBuffer in) {
 		byte[] bytes = new byte[3];
 		in.get(bytes);
 		int val = 0;
@@ -86,7 +86,7 @@ public class BufferUtils {
 	 * @param numBytesMax        Number of bytes max
 	 * @return int               Number of bytes written
 	 */
-	public static int put(ByteBuffer out, ByteBuffer in, int numBytesMax) {
+	public static int put(IoBuffer out, IoBuffer in, int numBytesMax) {
 		final int limit = in.limit();
 		final int numBytesRead = (numBytesMax > in.remaining()) ? in
 				.remaining() : numBytesMax;

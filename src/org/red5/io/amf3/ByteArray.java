@@ -25,7 +25,7 @@ import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Serializer;
 
@@ -38,7 +38,7 @@ import org.red5.io.object.Serializer;
 public class ByteArray implements IDataInput, IDataOutput {
 
 	/** Internal storage for array contents. */
-	protected ByteBuffer data;
+	protected IoBuffer data;
 	
 	/** Object used to read from array. */
 	protected IDataInput dataInput;
@@ -52,8 +52,8 @@ public class ByteArray implements IDataInput, IDataOutput {
 	 * @param buffer
 	 * @param length
 	 */
-	protected ByteArray(ByteBuffer buffer, int length) {
-		data = ByteBuffer.allocate(length);
+	protected ByteArray(IoBuffer buffer, int length) {
+		data = IoBuffer.allocate(length);
 		data.setAutoExpand(true);
 		byte[] tmp = new byte[length];
 		buffer.get(tmp);
@@ -66,7 +66,7 @@ public class ByteArray implements IDataInput, IDataOutput {
 	 * Public constructor. Creates new empty ByteArray.
 	 */
 	public ByteArray() {
-		data = ByteBuffer.allocate(0);
+		data = IoBuffer.allocate(0);
 		data.setAutoExpand(true);
 		prepareIO();
 	}
@@ -90,7 +90,7 @@ public class ByteArray implements IDataInput, IDataOutput {
 	 * 
 	 * @return byte buffer
 	 */
-	protected ByteBuffer getData() {
+	protected IoBuffer getData() {
 		return data;
 	}
 	
@@ -149,7 +149,7 @@ public class ByteArray implements IDataInput, IDataOutput {
 	 * Compress contents using zlib.
 	 */
 	public void compress() {
-		ByteBuffer tmp = ByteBuffer.allocate(0);
+		IoBuffer tmp = IoBuffer.allocate(0);
 		tmp.setAutoExpand(true);
 		DeflaterOutputStream deflater = new DeflaterOutputStream(tmp.asOutputStream(), new Deflater(Deflater.BEST_COMPRESSION));
 		byte[] tmpData = new byte[data.limit()];
@@ -159,10 +159,11 @@ public class ByteArray implements IDataInput, IDataOutput {
 			deflater.write(tmpData);
 			deflater.finish();
 		} catch (IOException e) {
-			tmp.release();
+			//docs state that free is optional
+			tmp.free();
 			throw new RuntimeException("could not compress data", e);
 		}
-		data.release();
+		data.free();
 		data = tmp;
 		data.flip();
 		prepareIO();
@@ -175,7 +176,7 @@ public class ByteArray implements IDataInput, IDataOutput {
 		data.position(0);
 		InflaterInputStream inflater = new InflaterInputStream(data.asInputStream());
 		byte[] buffer = new byte[8192];
-		ByteBuffer tmp = ByteBuffer.allocate(0);
+		IoBuffer tmp = IoBuffer.allocate(0);
 		tmp.setAutoExpand(true);
 		try {
 			while (inflater.available() > 0) {
@@ -187,10 +188,10 @@ public class ByteArray implements IDataInput, IDataOutput {
 				tmp.put(buffer, 0, decompressed);
 			}
 		} catch (IOException e) {
-			tmp.release();
+			tmp.free();
 			throw new RuntimeException("could not uncompress data", e);
 		}
-		data.release();
+		data.free();
 		data = tmp;
 		data.flip();
 		prepareIO();

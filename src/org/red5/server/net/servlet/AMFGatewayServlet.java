@@ -28,7 +28,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.IContext;
 import org.red5.server.api.IGlobalScope;
@@ -208,7 +208,7 @@ public class AMFGatewayServlet extends HttpServlet {
 	protected RemotingPacket decodeRequest(HttpServletRequest req)
 			throws Exception {
 		log.debug("Decoding request");
-		ByteBuffer reqBuffer = ByteBuffer.allocate(req.getContentLength());
+		IoBuffer reqBuffer = IoBuffer.allocate(req.getContentLength());
 		ServletUtils.copy(req.getInputStream(), reqBuffer.asOutputStream());
 		reqBuffer.flip();
 		RemotingPacket packet = (RemotingPacket) codecFactory
@@ -231,7 +231,7 @@ public class AMFGatewayServlet extends HttpServlet {
 		}
 		log.debug("Path: {} Scope path: {}", path, packet.getScopePath());
 		packet.setScopePath(path);
-		reqBuffer.release();
+		reqBuffer.free();
 		reqBuffer = null;
 		return packet;
 	}
@@ -268,14 +268,14 @@ public class AMFGatewayServlet extends HttpServlet {
 	protected void sendResponse(HttpServletResponse resp, RemotingPacket packet)
 			throws Exception {
 		log.debug("Sending response");
-		ByteBuffer respBuffer = codecFactory.getSimpleEncoder().encode(null,
+		IoBuffer respBuffer = codecFactory.getSimpleEncoder().encode(null,
 				packet);
 		final ServletOutputStream out = resp.getOutputStream();
 		resp.setContentLength(respBuffer.limit());
 		ServletUtils.copy(respBuffer.asInputStream(), out);
 		out.flush();
 		out.close();
-		respBuffer.release();
+		respBuffer.free();
 		respBuffer = null;
 	}
 

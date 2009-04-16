@@ -19,7 +19,7 @@ package org.red5.server.net.mrtmp;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.net.rtmp.message.Packet;
 
 /**
@@ -97,13 +97,13 @@ public class MRTMPPacket {
 	}
 	
 	static public class Body {
-		private ByteBuffer rawBuf;
+		private IoBuffer rawBuf;
 
-		public ByteBuffer getRawBuf() {
+		public IoBuffer getRawBuf() {
 			return rawBuf;
 		}
 
-		public void setRawBuf(ByteBuffer rawBuf) {
+		public void setRawBuf(IoBuffer rawBuf) {
 			this.rawBuf = rawBuf;
 		}
 		

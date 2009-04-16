@@ -26,8 +26,8 @@ import java.util.Collections;
 
 import javax.management.ObjectName;
 
-import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.common.IoSession;
+import org.apache.mina.core.buffer.IoBuffer;
+import org.apache.mina.core.session.IoSession;
 import org.red5.server.api.IScope;
 import org.red5.server.jmx.JMXAgent;
 import org.red5.server.jmx.JMXFactory;
@@ -66,7 +66,7 @@ public class RTMPMinaConnection extends RTMPConnection implements
 	public void close() {
 		super.close();
 		if (ioSession != null) {
-			ioSession.close();
+			ioSession.close(true);
 		}
 		// Deregister with JMX
 		try {
@@ -126,7 +126,7 @@ public class RTMPMinaConnection extends RTMPConnection implements
 		if (ioSession == null) {
 			return 0;
 		}
-		return ioSession.getScheduledWriteRequests();
+		return ioSession.getScheduledWriteMessages();
 	}
 
 	/** {@inheritDoc} */
@@ -171,7 +171,7 @@ public class RTMPMinaConnection extends RTMPConnection implements
 
 	/** {@inheritDoc} */
 	@Override
-	public void rawWrite(ByteBuffer out) {
+	public void rawWrite(IoBuffer out) {
 		if (ioSession != null) {
 			ioSession.write(out);
 		}

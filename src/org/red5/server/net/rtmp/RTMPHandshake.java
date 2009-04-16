@@ -27,7 +27,7 @@ import java.util.Random;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.red5.server.net.rtmp.message.Constants;
 import org.slf4j.Logger;
@@ -401,9 +401,8 @@ public class RTMPHandshake {
 		}
 	}
 
-	public ByteBuffer generateResponse(ByteBuffer input) {
-		ByteBuffer output = ByteBuffer
-				.allocate((Constants.HANDSHAKE_SIZE * 2) + 1);
+	public IoBuffer generateResponse(IoBuffer input) {
+		IoBuffer output = IoBuffer.allocate((Constants.HANDSHAKE_SIZE * 2) + 1);
 		input.mark();
 		input.position(input.position() + 4);
 		byte input4 = input.get();
@@ -446,7 +445,7 @@ public class RTMPHandshake {
 		return HANDSHAKE_SERVER_BYTES;
 	}
 
-	protected byte[] getNewKeyPart(ByteBuffer input) {
+	protected byte[] getNewKeyPart(IoBuffer input) {
 		byte[] part = new byte[32];
 		byte[] inputArray = new byte[input.remaining()];
 

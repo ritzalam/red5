@@ -22,9 +22,11 @@ package org.red5.server.net.rtmp;
 import java.net.InetSocketAddress;
 import java.util.Map;
 
-import org.apache.mina.common.IoFuture;
-import org.apache.mina.common.IoFutureListener;
-import org.apache.mina.transport.socket.nio.SocketConnector;
+import org.apache.mina.core.future.ConnectFuture;
+import org.apache.mina.core.future.IoFuture;
+import org.apache.mina.core.future.IoFutureListener;
+import org.apache.mina.transport.socket.SocketConnector;
+import org.apache.mina.transport.socket.nio.NioSocketConnector;
 import org.red5.server.net.rtmp.codec.RTMP;
 
 /**
@@ -38,12 +40,10 @@ import org.red5.server.net.rtmp.codec.RTMP;
  * @author Anton Lebedevich (mabrek@gmail.com)
  */
 public class RTMPClient extends BaseRTMPClientHandler {
-    /**
-     * Logger
-     */
+
 	//private static final Logger log = LoggerFactory.getLogger(RTMPClient.class);
 	
-	private static final int CONNECTOR_WORKER_TIMEOUT = 7; // seconds
+	private static final int CONNECTOR_WORKER_TIMEOUT = 7000; // seconds
 	
 	/**
      * I/O handler
@@ -68,11 +68,13 @@ public class RTMPClient extends BaseRTMPClientHandler {
 		return params;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	protected void startConnector(String server, int port) {
-		SocketConnector connector = new SocketConnector();
-		connector.setWorkerTimeout(CONNECTOR_WORKER_TIMEOUT);
-		connector.connect(new InetSocketAddress(server, port), ioHandler).addListener(
+		SocketConnector connector = new NioSocketConnector();
+		connector.setHandler(ioHandler);
+		ConnectFuture future = connector.connect(new InetSocketAddress(server, port));
+		future.addListener(
 				new IoFutureListener() {
 					public void operationComplete(IoFuture future) {
 						try {
@@ -84,5 +86,6 @@ public class RTMPClient extends BaseRTMPClientHandler {
 					}
 				}
 		);
+		future.awaitUninterruptibly(CONNECTOR_WORKER_TIMEOUT);
 	}
 }

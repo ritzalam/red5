@@ -19,12 +19,12 @@ package org.red5.server.net.rtmp;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.common.IoHandlerAdapter;
-import org.apache.mina.common.IoSession;
-import org.apache.mina.filter.LoggingFilter;
+import org.apache.mina.core.buffer.IoBuffer;
+import org.apache.mina.core.service.IoHandlerAdapter;
+import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecFactory;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
+import org.apache.mina.filter.logging.LoggingFilter;
 import org.red5.server.api.Red5;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.codec.RTMP;
@@ -111,7 +111,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements
 			throws Exception {
 		log.warn("Exception caught {}", cause.getMessage());
 		if (log.isDebugEnabled()) {
-			log.error("Exception detail: ", cause);
+			log.error("Exception detail", cause);
 		}
 	}
 
@@ -121,12 +121,11 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements
 		log.trace("messageReceived");
 		final ProtocolState state = (ProtocolState) session
 				.getAttribute(ProtocolState.SESSION_KEY);
-		if (in instanceof ByteBuffer) {
-			rawBufferRecieved(state, (ByteBuffer) in, session);
+		if (in instanceof IoBuffer) {
+			rawBufferRecieved(state, (IoBuffer) in, session);
 			return;
 		}
-		final RTMPMinaConnection conn = (RTMPMinaConnection) session
-				.getAttachment();
+		final RTMPMinaConnection conn = (RTMPMinaConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
 		handler.messageReceived(conn, state, in);
 	}
 
@@ -140,13 +139,12 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements
 	 * @param session
 	 *            I/O session, that is, connection between two endpoints
 	 */
-	protected void rawBufferRecieved(ProtocolState state, ByteBuffer in,
+	protected void rawBufferRecieved(ProtocolState state, IoBuffer in,
 			IoSession session) {
 
 		final RTMP rtmp = (RTMP) state;
-		ByteBuffer out = null;
-		final RTMPMinaConnection conn = (RTMPMinaConnection) session
-				.getAttachment();
+		IoBuffer out = null;
+		final RTMPMinaConnection conn = (RTMPMinaConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
 		conn.getWriteLock().lock();
 		try {
 			if (rtmp.getMode() == RTMP.MODE_SERVER) {
@@ -162,7 +160,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements
 				}	
     			if (in.get(4) == 0) {
     				log.debug("Using old style handshake");
-    				out = ByteBuffer.allocate((Constants.HANDSHAKE_SIZE * 2) + 1);
+    				out = IoBuffer.allocate((Constants.HANDSHAKE_SIZE * 2) + 1);
     				out.put((byte) 0x03);
     				// set server uptime in seconds
     				out.putInt((int) Red5.getUpTime() / 1000); //0x01
@@ -183,7 +181,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements
 			} else {
 				log.debug("Handshake 3d phase - size: {}", in.remaining());
 				in.skip(1);
-				out = ByteBuffer.allocate(Constants.HANDSHAKE_SIZE);
+				out = IoBuffer.allocate(Constants.HANDSHAKE_SIZE);
 				int limit = in.limit();
 				in.limit(in.position() + Constants.HANDSHAKE_SIZE);
 				out.put(in);
@@ -204,12 +202,11 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements
 	public void messageSent(IoSession session, Object message) throws Exception {
 		log.debug("messageSent");
 		session.getAttribute(ProtocolState.SESSION_KEY);
-		final RTMPMinaConnection conn = (RTMPMinaConnection) session
-				.getAttachment();
+		final RTMPMinaConnection conn = (RTMPMinaConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
 		handler.messageSent(conn, message);
 		if (mode == RTMP.MODE_CLIENT) {
-			if (message instanceof ByteBuffer) {
-				if (((ByteBuffer) message).limit() == Constants.HANDSHAKE_SIZE) {
+			if (message instanceof IoBuffer) {
+				if (((IoBuffer) message).limit() == Constants.HANDSHAKE_SIZE) {
 					handler.connectionOpened(conn, (RTMP) session
 							.getAttribute(ProtocolState.SESSION_KEY));
 				}
@@ -225,14 +222,13 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements
 		RTMP rtmp = (RTMP) session.getAttribute(ProtocolState.SESSION_KEY);
 		if (rtmp.getMode() == RTMP.MODE_CLIENT) {
 			log.debug("Handshake 1st phase");
-			ByteBuffer out = ByteBuffer.allocate(Constants.HANDSHAKE_SIZE + 1);
+			IoBuffer out = IoBuffer.allocate(Constants.HANDSHAKE_SIZE + 1);
 			out.put((byte) 0x03);
 			out.put(RTMPHandshake.getHandshakeBytes());
 			out.flip();
 			session.write(out);
 		} else {
-			final RTMPMinaConnection conn = (RTMPMinaConnection) session
-					.getAttachment();
+			final RTMPMinaConnection conn = (RTMPMinaConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
 			handler.connectionOpened(conn, rtmp);
 		}
 	}
@@ -242,11 +238,10 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements
 	public void sessionClosed(IoSession session) throws Exception {
 		final RTMP rtmp = (RTMP) session
 				.getAttribute(ProtocolState.SESSION_KEY);
-		final RTMPMinaConnection conn = (RTMPMinaConnection) session
-				.getAttachment();
+		final RTMPMinaConnection conn = (RTMPMinaConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
 		this.handler.connectionClosed(conn, rtmp);
 		session.removeAttribute(ProtocolState.SESSION_KEY);
-		session.setAttachment(null);
+		session.removeAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
 		rtmpConnManager.removeConnection(conn.getId());
 	}
 
@@ -265,7 +260,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements
 		RTMPMinaConnection conn = createRTMPMinaConnection();
 		conn.setIoSession(session);
 		conn.setState(rtmp);
-		session.setAttachment(conn);
+		session.setAttribute(RTMPConnection.RTMP_CONNECTION_KEY, conn);
 	}
 
 	/** {@inheritDoc} */

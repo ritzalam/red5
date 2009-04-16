@@ -19,10 +19,11 @@ package org.red5.io.amf3;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.object.Serializer;
 
 /**
@@ -42,7 +43,7 @@ public class DataOutput implements IDataOutput {
 	private Serializer serializer;
 	
 	/** Raw data of output destination. */
-	private ByteBuffer buffer;
+	private IoBuffer buffer;
 	
 	/**
 	 * Create a new DataOutput.
@@ -109,7 +110,7 @@ public class DataOutput implements IDataOutput {
     /** {@inheritDoc} */
 	public void writeMultiByte(String value, String encoding) {
 		final Charset cs = Charset.forName(encoding);
-		final java.nio.ByteBuffer strBuf = cs.encode(value);
+		final ByteBuffer strBuf = cs.encode(value);
 		buffer.put(strBuf);
 	}
 
@@ -131,7 +132,7 @@ public class DataOutput implements IDataOutput {
     /** {@inheritDoc} */
 	public void writeUTF(String value) {
 		buffer.putShort((short) value.length());
-		final java.nio.ByteBuffer strBuf = AMF3.CHARSET.encode(value);
+		final ByteBuffer strBuf = AMF3.CHARSET.encode(value);
 		buffer.put(strBuf);
 	}
 

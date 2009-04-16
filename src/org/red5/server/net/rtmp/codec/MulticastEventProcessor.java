@@ -19,7 +19,7 @@ package org.red5.server.net.rtmp.codec;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 
 /**
  * Processes multicast events.
@@ -44,9 +44,9 @@ public class MulticastEventProcessor {
 		if (obj == null) {
 			return;
 		}
-		final ByteBuffer[] chunks = (ByteBuffer[]) obj;
+		final IoBuffer[] chunks = (IoBuffer[]) obj;
 		for (int c=0;c < chunks.length;c++) {
-			chunks[c].release();
+			chunks[c].free();
 			chunks[c] = null;
 		}
 	}
@@ -54,16 +54,16 @@ public class MulticastEventProcessor {
     /**
      * Breaks buffer into chunks of given size.
 	 *
-     * @param buf                Byte buffer
+     * @param buf                IoBuffer
      * @param size               Chunk size
      * @return                   Array of byte buffers, chunks
      */
-    public static ByteBuffer[] chunkBuffer(ByteBuffer buf, int size) {
+    public static IoBuffer[] chunkBuffer(IoBuffer buf, int size) {
 		final int num = (int) Math.ceil(buf.limit() / (float) size);
-		final ByteBuffer[] chunks = new ByteBuffer[num];
+		final IoBuffer[] chunks = new IoBuffer[num];
 		for (int i = 0; i < num; i++) {
 			chunks[i] = buf.asReadOnlyBuffer();
-			final ByteBuffer chunk = chunks[i];
+			final IoBuffer chunk = chunks[i];
 			int position = size * num;
 			chunk.position(position);
 			if (position + size < chunk.limit()) {

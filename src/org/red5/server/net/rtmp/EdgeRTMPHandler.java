@@ -21,7 +21,7 @@ package org.red5.server.net.rtmp;
 
 import java.util.Map;
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.api.IConnection.Encoding;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IServiceCall;
@@ -108,7 +108,7 @@ public class EdgeRTMPHandler extends RTMPHandler {
 			log.debug("Message sent");
 		}
 
-		if (message instanceof ByteBuffer) {
+		if (message instanceof IoBuffer) {
 			return;
 		}
 

@@ -22,7 +22,7 @@ package org.red5.server.net.rtmp;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.api.Red5;
 import org.red5.server.api.event.IEventDispatcher;
 import org.red5.server.api.scheduling.ISchedulingService;
@@ -216,7 +216,7 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants,
 	public void messageSent(RTMPConnection conn, Object message) {
 		log.debug("Message sent");
 
-		if (message instanceof ByteBuffer) {
+		if (message instanceof IoBuffer) {
 			return;
 		}
 

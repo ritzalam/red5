@@ -19,7 +19,7 @@ package org.red5.server.net.mrtmp;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.apache.mina.common.IoSession;
+import org.apache.mina.core.session.IoSession;
 import org.red5.server.net.rtmp.message.Packet;
 
 /**
@@ -67,7 +67,7 @@ public class BaseMRTMPConnection implements IMRTMPConnection {
 	}
 
 	public void close() {
-		ioSession.close();
+		ioSession.close(true);
 	}
 
 	public IoSession getIoSession() {

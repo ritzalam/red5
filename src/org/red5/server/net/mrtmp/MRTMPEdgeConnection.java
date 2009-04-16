@@ -24,4 +24,6 @@ package org.red5.server.net.mrtmp;
  */
 public class MRTMPEdgeConnection extends BaseMRTMPConnection {
 
+	public static final String EDGE_CONNECTION_KEY = "edge.conn";
+	
 }

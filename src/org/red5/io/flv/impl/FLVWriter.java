@@ -27,7 +27,7 @@ import java.nio.channels.FileChannel;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.IStreamableFile;
 import org.red5.io.ITag;
 import org.red5.io.ITagWriter;
@@ -61,12 +61,10 @@ public class FLVWriter implements ITagWriter {
      */
     private FileChannel channel;
 
-	//private MappedByteBuffer mappedFile;
-
     /**
      * Output byte buffer
      */
-    private ByteBuffer out;
+    private IoBuffer out;
 
     /**
      * FLV object
@@ -154,7 +152,7 @@ public class FLVWriter implements ITagWriter {
 	 */
 	private void init() {
 		channel = this.fos.getChannel();
-		out = ByteBuffer.allocate(1024);
+		out = IoBuffer.allocate(1024);
 		out.setAutoExpand(true);		
 	}
 	
@@ -264,7 +262,7 @@ public class FLVWriter implements ITagWriter {
 		out.flip();
 		bytesWritten += channel.write(out.buf());
 
-		ByteBuffer bodyBuf = tag.getBody();
+		IoBuffer bodyBuf = tag.getBody();
 		bytesWritten += channel.write(bodyBuf.buf());
 
 		if (audioCodecId == -1 && tag.getDataType() == ITag.TYPE_AUDIO) {
@@ -289,8 +287,7 @@ public class FLVWriter implements ITagWriter {
 
 	/** {@inheritDoc}
 	 */
-	public boolean writeTag(byte type, ByteBuffer data) throws IOException {
-		// TODO
+	public boolean writeTag(byte type, IoBuffer data) throws IOException {
 		return false;
 	}
 
@@ -354,7 +351,7 @@ public class FLVWriter implements ITagWriter {
      */
 	private void writeMetadataTag(double duration, Integer videoCodecId, Integer audioCodecId) throws IOException {
 		metaPosition = channel.position();
-		ByteBuffer buf = ByteBuffer.allocate(1024);
+		IoBuffer buf = IoBuffer.allocate(1024);
 		buf.setAutoExpand(true);
 		Output out = new Output(buf);
 		out.writeString("onMetaData");

@@ -22,6 +22,7 @@ package org.red5.io.amf3;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -29,7 +30,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.beanutils.BeanMap;
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.annotations.Anonymous;
 import org.red5.compatibility.flex.messaging.io.ObjectProxy;
 import org.red5.io.amf.AMF;
@@ -65,10 +66,10 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 	/**
 	 * Constructor of AMF3 output.
 	 *
-	 * @param buf instance of ByteBuffer
-	 * @see ByteBuffer
+	 * @param buf instance of IoBuffer
+	 * @see IoBuffer
 	 */
-	public Output(ByteBuffer buf) {
+	public Output(IoBuffer buf) {
 		super(buf);
 		amf3_mode = 0;
 		stringReferences = new HashMap<String, Integer>();
@@ -84,9 +85,9 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 	/**
 	 * Provide access to raw data.
 	 *
-	 * @return ByteBuffer
+	 * @return IoBuffer
 	 */
-	protected ByteBuffer getBuffer() {
+	protected IoBuffer getBuffer() {
 		return buf;
 	}
 
@@ -141,17 +142,12 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 	}
 
     protected static byte[] encodeString(String string) {
-    	byte[] encoded;
-    	synchronized (stringCache) {
-    		encoded = stringCache.get(string);
-    	}
+    	byte[] encoded = stringCache.get(string);
     	if (encoded == null) {
-    		java.nio.ByteBuffer buf = AMF3.CHARSET.encode(string);
+    		ByteBuffer buf = AMF3.CHARSET.encode(string);
     		encoded = new byte[buf.limit()];
     		buf.get(encoded);
-    		synchronized (stringCache) {
-    			stringCache.put(string, encoded);
-    		}
+   			stringCache.put(string, encoded);
     	}
     	return encoded;
     }
@@ -559,7 +555,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
     	}
 
     	storeReference(array);
-    	ByteBuffer data = array.getData();
+    	IoBuffer data = array.getData();
     	putInteger(data.limit() << 1 | 1);
     	byte[] tmp = new byte[data.limit()];
     	int old = data.position();

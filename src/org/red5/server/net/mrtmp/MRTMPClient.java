@@ -21,13 +21,13 @@ package org.red5.server.net.mrtmp;
 
 import java.net.InetSocketAddress;
 
-import org.apache.mina.common.ConnectFuture;
-import org.apache.mina.common.IdleStatus;
-import org.apache.mina.common.IoHandler;
-import org.apache.mina.common.IoSession;
-import org.apache.mina.transport.socket.nio.SocketConnector;
-import org.apache.mina.transport.socket.nio.SocketConnectorConfig;
-import org.apache.mina.transport.socket.nio.SocketSessionConfig;
+import org.apache.mina.core.future.ConnectFuture;
+import org.apache.mina.core.service.IoConnector;
+import org.apache.mina.core.service.IoHandler;
+import org.apache.mina.core.session.IdleStatus;
+import org.apache.mina.core.session.IoSession;
+import org.apache.mina.transport.socket.SocketSessionConfig;
+import org.apache.mina.transport.socket.nio.NioSocketConnector;
 
 /**
  * @author Steven Gong (steven.gong@gmail.com)
@@ -82,14 +82,13 @@ public class MRTMPClient implements Runnable {
 	}
 	
 	private void doConnect() {
-		SocketConnector connector = new SocketConnector();
-		SocketConnectorConfig config = new SocketConnectorConfig();
-		SocketSessionConfig sessionConf =
-			(SocketSessionConfig) config.getSessionConfig();
+		IoConnector connector = new NioSocketConnector();
+		connector.setHandler(ioHandlerWrapper);
+		SocketSessionConfig sessionConf = (SocketSessionConfig) connector.getSessionConfig();
 		sessionConf.setTcpNoDelay(true);
 		while (true) {
-			ConnectFuture future = connector.connect(new InetSocketAddress(server, port), ioHandlerWrapper, config);
-			future.join();
+			ConnectFuture future = connector.connect(new InetSocketAddress(server, port));
+			future.awaitUninterruptibly(500);
 			if (future.isConnected()) {
 				break;
 			}

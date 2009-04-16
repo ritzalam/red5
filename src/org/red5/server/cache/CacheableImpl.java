@@ -19,7 +19,7 @@ package org.red5.server.cache;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.api.cache.ICacheable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,21 +44,20 @@ public class CacheableImpl implements ICacheable {
 	private boolean cached;
 
 	public CacheableImpl(Object obj) {
-		ByteBuffer tmp = ByteBuffer.allocate(1024, true);
+		IoBuffer tmp = IoBuffer.allocate(1024, true);
 		tmp.setAutoExpand(true);
 		tmp.putObject(obj);
 		bytes = new byte[tmp.capacity()];
 		tmp.get(bytes);
 		cached = true;
-		tmp.release();
+		tmp.free();
 		tmp = null;
 	}
 
-	public CacheableImpl(ByteBuffer buffer) {
+	public CacheableImpl(IoBuffer buffer) {
 		if (log.isDebugEnabled()) {
-			log.debug("Buffer is direct: " + buffer.isDirect() + " capacity: " + buffer.capacity());
-			log.debug("Buffer limit: " + buffer.limit() + " remaining: "
-				+ buffer.remaining() + " position: " + buffer.position());
+			log.debug("Buffer is direct: {} capacity: {}", buffer.isDirect(), buffer.capacity());
+			log.debug("Buffer limit: {} remaining: {} position: {}", new Object[]{buffer.limit(),  buffer.remaining(), buffer.position()});
 		}
 		bytes = new byte[buffer.capacity()];
 		buffer.rewind();
@@ -86,8 +85,8 @@ public class CacheableImpl implements ICacheable {
 	}
 
 	/** {@inheritDoc} */
-    public ByteBuffer getByteBuffer() {
-		return ByteBuffer.wrap(bytes).asReadOnlyBuffer();
+    public IoBuffer getByteBuffer() {
+		return IoBuffer.wrap(bytes).asReadOnlyBuffer();
 	}
 
 	/** {@inheritDoc} */

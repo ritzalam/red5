@@ -26,9 +26,9 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.common.IoHandlerAdapter;
-import org.apache.mina.common.IoSession;
+import org.apache.mina.core.buffer.IoBuffer;
+import org.apache.mina.core.service.IoHandlerAdapter;
+import org.apache.mina.core.session.IoSession;
 import org.red5.io.utils.HexDump;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,7 +75,7 @@ public class BasicHandler extends IoHandlerAdapter {
 	static final byte SEND = 0x03;
 	static final byte EXIT = 0x04;
 
-	final ByteBuffer NOOP_MSG = ByteBuffer.wrap(new byte[]{NOOP}).asReadOnlyBuffer();
+	final IoBuffer NOOP_MSG = IoBuffer.wrap(new byte[]{NOOP}).asReadOnlyBuffer();
 
 	protected Timer timer = new Timer("Timer", true);
 	protected Set<IoSession> sessions = Collections.synchronizedSet(new HashSet<IoSession>());
@@ -94,9 +94,11 @@ public class BasicHandler extends IoHandlerAdapter {
 
 	@Override
 	public void messageReceived(IoSession session, Object message) throws Exception {
-		if(showInfo) log.info("Incomming: "+session.getRemoteAddress().toString());
+		if (showInfo) {
+			log.info("Incomming: {}", session.getRemoteAddress().toString());
+		}
 
-		ByteBuffer data = (ByteBuffer) message;
+		IoBuffer data = (IoBuffer) message;
 
 		// IN HEX DUMP
 		log.info(HexDump.prettyPrintHex(data.asReadOnlyBuffer().array()));
@@ -121,9 +123,9 @@ public class BasicHandler extends IoHandlerAdapter {
 			broadcast(session, data);
 			break;
 		case EXIT:
-			if(sessions.contains(session)){
+			if (sessions.contains(session)) {
 				sessions.remove(session);
-				session.close();
+				session.close(true);
 				leave(session);
 			}
 			break;
@@ -134,25 +136,28 @@ public class BasicHandler extends IoHandlerAdapter {
 		}
 	}
 
-	protected void echo(IoSession session, ByteBuffer data){
+	protected void echo(IoSession session, IoBuffer data){
 		session.write(data);
 	}
 
-	protected void broadcast(IoSession exclude, ByteBuffer data){
-		for(IoSession session : sessions){
-			if(exclude != null && exclude.equals(session)) continue;
-			if(showInfo) log.info("Sending: "+session.getRemoteAddress().toString());
-			data.acquire();
+	protected void broadcast(IoSession exclude, IoBuffer data){
+		for (IoSession session : sessions) {
+			if (exclude != null && exclude.equals(session)) {
+				continue;
+			}
+			if (showInfo) { 
+				log.info("Sending: {}", session.getRemoteAddress().toString());
+			}
 			session.write(data);
 		}
 	}
 
 	protected void list(IoSession to){
 		final int size = 1 + 4 +  (sessions.size()*4);
-		ByteBuffer msg = ByteBuffer.allocate(size);
+		IoBuffer msg = IoBuffer.allocate(size);
 		msg.put(LIST);
 		msg.putInt(sessions.size());
-		for(IoSession session : sessions){
+		for (IoSession session : sessions) {
 			msg.putInt(session.getRemoteAddress().hashCode());
 		}
 		msg.flip();
@@ -161,7 +166,7 @@ public class BasicHandler extends IoHandlerAdapter {
 
 	protected void leave(IoSession session){
 		final int size = 5;
-		ByteBuffer msg = ByteBuffer.allocate(size);
+		IoBuffer msg = IoBuffer.allocate(size);
 		msg.put(EXIT);
 		msg.putInt(session.getRemoteAddress().hashCode());
 		msg.flip();
@@ -170,7 +175,7 @@ public class BasicHandler extends IoHandlerAdapter {
 
 	protected void join(IoSession session){
 		final int size = 5;
-		ByteBuffer msg = ByteBuffer.allocate(size);
+		IoBuffer msg = IoBuffer.allocate(size);
 		msg.put(JOIN);
 		msg.putInt(session.getRemoteAddress().hashCode());
 		msg.flip();
@@ -179,7 +184,9 @@ public class BasicHandler extends IoHandlerAdapter {
 
 	@Override
 	public void sessionCreated(IoSession session) throws Exception {
-		if(showInfo) log.info("Created: {}", session.getRemoteAddress().toString());
+		if (showInfo) {
+			log.info("Created: {}", session.getRemoteAddress().toString());
+		}
 	}
 
 	protected class TimeoutTask extends TimerTask {
@@ -187,20 +194,24 @@ public class BasicHandler extends IoHandlerAdapter {
 		public void run(){
 			long kill = System.currentTimeMillis() - TIMEOUT;
 			LinkedList<IoSession> remove = new LinkedList<IoSession>();
-			for(IoSession session : sessions){
-				if(session.getLastReadTime() < kill){
-					if(showInfo) log.info("Timout: {}", session.getRemoteAddress().toString());
+			for (IoSession session : sessions){
+				if (session.getLastReadTime() < kill){
+					if (showInfo) {
+						log.info("Timout: {}", session.getRemoteAddress().toString());
+					}
 					remove.add(session);
 				} else {
 					session.write(NOOP_MSG.asReadOnlyBuffer());
 				}
 			}
-			if(remove.size() == 0) return;
-			for(IoSession session : remove){
-				sessions.remove(session);
-				session.close();
+			if (remove.size() == 0) {
+				return;
 			}
-			for(IoSession session : remove){
+			for (IoSession session : remove) {
+				sessions.remove(session);
+				session.close(true);
+			}
+			for (IoSession session : remove) {
 				leave(session);
 			}
 		}

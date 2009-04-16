@@ -32,7 +32,7 @@ import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.MultiThreadedHttpConnectionManager;
 import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.PostMethod;
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.logging.Red5LoggerFactory;
 import org.slf4j.Logger;
 
@@ -121,7 +121,7 @@ public class AMFTunnelServlet extends HttpServlet {
 			if (reqContentLength > 0) {
 				logger.debug("Request content length: {}", reqContentLength);
 
-				ByteBuffer reqBuffer = ByteBuffer.allocate(reqContentLength);
+				IoBuffer reqBuffer = IoBuffer.allocate(reqContentLength);
 				ServletUtils.copy(req.getInputStream(), reqBuffer
 						.asOutputStream());
 				reqBuffer.flip();
@@ -139,7 +139,7 @@ public class AMFTunnelServlet extends HttpServlet {
 					resp.setContentType(REQUEST_TYPE);
 					int responseLength = ((Long) get.getResponseContentLength())
 							.intValue();
-					ByteBuffer respBuffer = ByteBuffer.allocate(responseLength);
+					IoBuffer respBuffer = IoBuffer.allocate(responseLength);
 					ServletUtils.copy(get.getResponseBodyAsStream(), respBuffer
 							.asOutputStream());
 					respBuffer.flip();

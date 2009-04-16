@@ -20,22 +20,34 @@ package org.red5.io.amf3;
  */
 
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.lang.reflect.Type;
 import java.lang.reflect.Array;
+import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
-import java.util.*;
+import java.lang.reflect.Type;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.beanutils.ConvertUtilsBean;
 import org.apache.commons.beanutils.BeanUtilsBean;
-import org.apache.mina.common.ByteBuffer;
+import org.apache.commons.beanutils.ConvertUtilsBean;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.amf.AMF;
 import org.red5.io.object.DataTypes;
 import org.red5.io.object.Deserializer;
+import org.red5.io.utils.ArrayUtils;
 import org.red5.io.utils.ObjectMap;
 import org.red5.io.utils.XMLUtils;
-import org.red5.io.utils.ArrayUtils;
 import org.red5.server.service.ConversionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +61,7 @@ import org.w3c.dom.Document;
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public class Input extends org.red5.io.amf.Input implements org.red5.io.object.Input {
+	
     private static ConvertUtilsBean convertUtilsBean = BeanUtilsBean.getInstance().getConvertUtils();
 
 	/**
@@ -153,7 +166,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 * 
 	 * @param buf        Byte buffer
 	 */
-	public Input(ByteBuffer buf) {
+	public Input(IoBuffer buf) {
 		super(buf);
 		amf3_mode = 0;
 		stringReferences = new ArrayList<String>();
@@ -166,7 +179,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 * @param buf buffer
 	 * @param refStorage ref storage
 	 */
-	public Input(ByteBuffer buf, RefStorage refStorage) {
+	public Input(IoBuffer buf, RefStorage refStorage) {
     	super(buf);
     	this.stringReferences = refStorage.stringReferences;
     	this.classReferences = refStorage.classReferences;
@@ -184,9 +197,9 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	/**
 	 * Provide access to raw data.
 	 * 
-	 * @return ByteBuffer
+	 * @return IoBuffer
 	 */
-	protected ByteBuffer getBuffer() {
+	protected IoBuffer getBuffer() {
 		return buf;
 	}
 	
@@ -339,7 +352,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		log.debug("readString - new length: {}", len);
 		int limit = buf.limit();
 		log.debug("readString - limit: {}", limit);
-		final java.nio.ByteBuffer strBuf = buf.buf();
+		final ByteBuffer strBuf = buf.buf();
 		strBuf.limit(strBuf.position() + len);
 		final String string = AMF3.CHARSET.decode(strBuf).toString();
 		log.debug("String: {}", string);
@@ -764,7 +777,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		}
 		len >>= 1;
 		int limit = buf.limit();
-		final java.nio.ByteBuffer strBuf = buf.buf();
+		final ByteBuffer strBuf = buf.buf();
 		strBuf.limit(strBuf.position() + len);
 		final String xmlString = AMF3.CHARSET.decode(strBuf).toString();
 		buf.limit(limit); // Reset the limit

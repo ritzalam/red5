@@ -19,15 +19,15 @@ package org.red5.server.net.rtmp;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.net.mrtmp.IMRTMPConnection;
 import org.red5.server.net.mrtmp.IMRTMPOriginManager;
 import org.red5.server.net.mrtmp.OriginMRTMPHandler;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.message.Packet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A pseudo-connection on Origin that represents a client
@@ -84,7 +84,7 @@ public class RTMPOriginConnection extends RTMPConnection {
 	}
 
 	@Override
-	public void rawWrite(ByteBuffer out) {
+	public void rawWrite(IoBuffer out) {
 		// won't write any raw data on the wire
 		// XXX should we throw exception here
 		// to indicate an abnormal state ?
@@ -96,13 +96,13 @@ public class RTMPOriginConnection extends RTMPConnection {
 		IMRTMPConnection conn = mrtmpManager.lookupMRTMPConnection(this);
 		if (conn == null) {
 			// the connect is gone
-			log.debug("Client " + getId() + " is gone!");
+			log.debug("Client {} is gone!", getId());
 			return;
 		}
 		if (!type.equals(PERSISTENT)) {
 			mrtmpManager.associate(this, conn);
 		}
-		log.debug("Origin writing packet to client " + getId() + ":" + packet.getMessage());
+		log.debug("Origin writing packet to client {}:{}", getId(), packet.getMessage());
 		conn.write(getId(), packet);
 	}
 

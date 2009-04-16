@@ -1,6 +1,6 @@
 package org.red5.server.net.rtmp.event;
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -37,7 +37,7 @@ public class FlexStreamSend extends Notify {
 	 * 
 	 * @param data data
 	 */
-	public FlexStreamSend(ByteBuffer data) {
+	public FlexStreamSend(IoBuffer data) {
 		super(data);
 	}
 	

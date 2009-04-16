@@ -21,27 +21,17 @@ package org.red5.server.net.mrtmp;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import javax.management.ObjectName;
 
-import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.common.IoFilter;
-import org.apache.mina.common.IoHandlerAdapter;
-import org.apache.mina.common.SimpleByteBufferAllocator;
-import org.apache.mina.common.ThreadModel;
-import org.apache.mina.filter.LoggingFilter;
-import org.apache.mina.filter.executor.ExecutorFilter;
-import org.apache.mina.transport.socket.nio.SocketAcceptor;
-import org.apache.mina.transport.socket.nio.SocketAcceptorConfig;
-import org.apache.mina.transport.socket.nio.SocketSessionConfig;
+import org.apache.mina.core.buffer.IoBuffer;
+import org.apache.mina.core.buffer.SimpleBufferAllocator;
+import org.apache.mina.core.filterchain.IoFilter;
+import org.apache.mina.core.service.IoHandlerAdapter;
+import org.apache.mina.filter.logging.LoggingFilter;
+import org.apache.mina.transport.socket.SocketAcceptor;
+import org.apache.mina.transport.socket.SocketSessionConfig;
+import org.apache.mina.transport.socket.nio.NioSocketAcceptor;
 import org.red5.server.jmx.JMXAgent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,8 +67,6 @@ public class MRTMPMinaTransport {
 	private SocketAcceptor acceptor;
 
 	private String address = null;
-
-	private ExecutorService eventExecutor;
 
 	private int eventThreadsCore = DEFAULT_EVENT_THREADS_CORE;
 
@@ -175,43 +163,27 @@ public class MRTMPMinaTransport {
 	public void start() throws Exception {
 		initIOHandler();
 
-		ByteBuffer.setUseDirectBuffers(!useHeapBuffers); // this is global, oh well.
-		if (useHeapBuffers)
-			ByteBuffer.setAllocator(new SimpleByteBufferAllocator()); // dont pool for heap buffers.
-
+		IoBuffer.setUseDirectBuffer(!useHeapBuffers); // this is global, oh well.
+		if (useHeapBuffers) {
+			IoBuffer.setAllocator(new SimpleBufferAllocator()); // dont pool for heap buffers.
+		}
 		log.info("MRTMP Mina Transport Settings");
-		log.info("IO Threads: " + ioThreads);
+		log.info("IO Threads: {}", ioThreads);
 		log.info("Event Threads:" + " core: " + eventThreadsCore + "+1"
 				+ " max: " + eventThreadsMax + "+1" + " queue: "
 				+ eventThreadsQueue + " keepalive: " + eventThreadsKeepalive);
 
-		eventExecutor = new ThreadPoolExecutor(eventThreadsCore + 1,
-				eventThreadsMax + 1, eventThreadsKeepalive, TimeUnit.SECONDS,
-				threadQueue(eventThreadsQueue));
-		// Avoid the reject by setting CallerRunsPolicy
-		// This prevents memory leak in Mina ExecutorFilter
-		((ThreadPoolExecutor) eventExecutor).setRejectedExecutionHandler(
-				new ThreadPoolExecutor.CallerRunsPolicy()
-				);
-
 		// Executors.newCachedThreadPool() is always preferred by IoService
 		// See http://mina.apache.org/configuring-thread-model.html for details
-		acceptor = new SocketAcceptor(ioThreads, Executors.newCachedThreadPool());
+		acceptor = new NioSocketAcceptor(ioThreads);
+		acceptor.setHandler(ioHandler);
+		acceptor.setBacklog(100);
 
-		acceptor.getFilterChain().addLast("threadPool",
-				new ExecutorFilter(eventExecutor));
+		log.info("TCP No Delay: {}", tcpNoDelay);
+		log.info("Receive Buffer Size: {}", receiveBufferSize);
+		log.info("Send Buffer Size: {}", sendBufferSize);
 
-		SocketAcceptorConfig config = acceptor.getDefaultConfig();
-		config.setThreadModel(ThreadModel.MANUAL);
-		config.setReuseAddress(true);
-		config.setBacklog(100);
-
-		log.info("TCP No Delay: " + tcpNoDelay);
-		log.info("Receive Buffer Size: " + receiveBufferSize);
-		log.info("Send Buffer Size: " + sendBufferSize);
-
-		SocketSessionConfig sessionConf = (SocketSessionConfig) config
-				.getSessionConfig();
+		SocketSessionConfig sessionConf = (SocketSessionConfig) acceptor.getSessionConfig();
 		sessionConf.setReuseAddress(true);
 		sessionConf.setTcpNoDelay(tcpNoDelay);
 		// XXX ignore the config of buffer settings
@@ -225,26 +197,14 @@ public class MRTMPMinaTransport {
 		}
 		
 		SocketAddress socketAddress = (address == null) ? new InetSocketAddress(port) : new InetSocketAddress(address, port);
-		acceptor.bind(socketAddress, ioHandler);
+		acceptor.bind(socketAddress);
 		
-		log.info("MRTMP Mina Transport bound to " + socketAddress.toString());
+		log.info("MRTMP Mina Transport bound to {}", socketAddress.toString());
 	}
 
 	public void stop() {
 		log.info("MRTMP Mina Transport unbind");
-		acceptor.unbindAll();
-		eventExecutor.shutdown();
-	}
-
-	private BlockingQueue<Runnable> threadQueue(int size) {
-		switch (size) {
-			case -1:
-				return new LinkedBlockingQueue<Runnable>();
-			case 0:
-				return new SynchronousQueue<Runnable>();
-			default:
-				return new ArrayBlockingQueue<Runnable>(size);
-		}
+		acceptor.unbind();
 	}
 
 	public String toString() {

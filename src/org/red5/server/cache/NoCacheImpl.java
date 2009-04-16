@@ -22,7 +22,7 @@ package org.red5.server.cache;
 import java.lang.ref.SoftReference;
 import java.util.Iterator;
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.api.cache.ICacheStore;
 import org.red5.server.api.cache.ICacheable;
 import org.slf4j.Logger;
@@ -92,7 +92,7 @@ public class NoCacheImpl implements ICacheStore, ApplicationContextAware {
 		return null;
 	}
 
-	public boolean offer(String key, ByteBuffer obj) {
+	public boolean offer(String key, IoBuffer obj) {
 		return false;
 	}
 

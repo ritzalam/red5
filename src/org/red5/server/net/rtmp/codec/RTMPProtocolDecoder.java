@@ -25,7 +25,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.amf.AMF;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Input;
@@ -102,7 +102,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	}
 
 	/** {@inheritDoc} */
-	public List<Object> decodeBuffer(ProtocolState state, ByteBuffer buffer) {
+	public List<Object> decodeBuffer(ProtocolState state, IoBuffer buffer) {
 
 		final List<Object> result = new LinkedList<Object>();
 
@@ -171,7 +171,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	 * @return Decoded object
 	 * @throws ProtocolException Exception during decoding
 	 */
-	public Object decode(ProtocolState state, ByteBuffer in)
+	public Object decode(ProtocolState state, IoBuffer in)
 			throws ProtocolException {
 		int start = in.position();
 		log.debug("Start: {}", start);
@@ -201,10 +201,10 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	 * Decodes handshake message.
 	 * 
 	 * @param rtmp RTMP protocol state
-	 * @param in Byte buffer
-	 * @return Byte buffer
+	 * @param in IoBuffer
+	 * @return IoBuffer
 	 */
-	public ByteBuffer decodeHandshake(RTMP rtmp, ByteBuffer in) {
+	public IoBuffer decodeHandshake(RTMP rtmp, IoBuffer in) {
 
 		final int remaining = in.remaining();
 
@@ -215,7 +215,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 					rtmp.bufferDecoding(HANDSHAKE_SIZE + 1);
 					return null;
 				} else {
-					final ByteBuffer hs = ByteBuffer.allocate(HANDSHAKE_SIZE);
+					final IoBuffer hs = IoBuffer.allocate(HANDSHAKE_SIZE);
 					in.get(); // skip the header byte
 					BufferUtils.put(hs, in, HANDSHAKE_SIZE);
 					hs.flip();
@@ -262,7 +262,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 					rtmp.bufferDecoding(size);
 					return null;
 				} else {
-					final ByteBuffer hs = ByteBuffer.allocate(size);
+					final IoBuffer hs = IoBuffer.allocate(size);
 					BufferUtils.put(hs, in, size);
 					hs.flip();
 					rtmp.setState(RTMP.STATE_CONNECTED);
@@ -277,10 +277,10 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	 * Decodes packet.
 	 * 
 	 * @param rtmp RTMP protocol state
-	 * @param in Byte buffer
-	 * @return Byte buffer
+	 * @param in IoBuffer
+	 * @return IoBuffer
 	 */
-	public Packet decodePacket(RTMP rtmp, ByteBuffer in) {
+	public Packet decodePacket(RTMP rtmp, IoBuffer in) {
 
 		final int remaining = in.remaining();
 
@@ -356,7 +356,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 			rtmp.setLastReadPacket(channelId, packet);
 		}
 
-		final ByteBuffer buf = packet.getData();
+		final IoBuffer buf = packet.getData();
 		final int addSize = (header.getTimer() == 0xffffff ? 4 : 0);
 		final int readRemaining = header.getSize() + addSize - buf.position();
 		final int chunkSize = rtmp.getReadChunkSize();
@@ -406,11 +406,11 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	/**
 	 * Decodes packet header.
 	 * 
-	 * @param in Input byte buffer
+	 * @param in Input IoBuffer
 	 * @param lastHeader Previous header
 	 * @return Decoded header
 	 */
-	public Header decodeHeader(ByteBuffer in, Header lastHeader) {
+	public Header decodeHeader(IoBuffer in, Header lastHeader) {
 
 		byte headerByte = in.get();
 		int headerValue;
@@ -483,10 +483,10 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	 * 
 	 * @param rtmp RTMP protocol state
 	 * @param header RTMP header
-	 * @param in Input byte buffer
+	 * @param in Input IoBuffer
 	 * @return RTMP event
 	 */
-	public IRTMPEvent decodeMessage(RTMP rtmp, Header header, ByteBuffer in) {
+	public IRTMPEvent decodeMessage(RTMP rtmp, Header header, IoBuffer in) {
 		IRTMPEvent message;
 		if (header.getTimer() == 0xffffff) {
 			// Skip first four bytes
@@ -551,11 +551,10 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	/**
 	 * Decodes server bandwidth.
 	 * 
-	 * @param in
-	 *            Byte buffer
+	 * @param in IoBuffer
 	 * @return RTMP event
 	 */
-	private IRTMPEvent decodeServerBW(ByteBuffer in) {
+	private IRTMPEvent decodeServerBW(IoBuffer in) {
 		return new ServerBW(in.getInt());
 	}
 
@@ -566,22 +565,22 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	 *            Byte buffer
 	 * @return RTMP event
 	 */
-	private IRTMPEvent decodeClientBW(ByteBuffer in) {
+	private IRTMPEvent decodeClientBW(IoBuffer in) {
 		return new ClientBW(in.getInt(), in.get());
 	}
 
 	/** {@inheritDoc} */
-	public Unknown decodeUnknown(byte dataType, ByteBuffer in) {
+	public Unknown decodeUnknown(byte dataType, IoBuffer in) {
 		return new Unknown(dataType, in.asReadOnlyBuffer());
 	}
 
 	/** {@inheritDoc} */
-	public ChunkSize decodeChunkSize(ByteBuffer in) {
+	public ChunkSize decodeChunkSize(IoBuffer in) {
 		return new ChunkSize(in.getInt());
 	}
 
 	/** {@inheritDoc} */
-	public ISharedObjectMessage decodeFlexSharedObject(ByteBuffer in, RTMP rtmp) {
+	public ISharedObjectMessage decodeFlexSharedObject(IoBuffer in, RTMP rtmp) {
 		byte encoding = in.get();
 		Input input;
 		if (encoding == 0) {
@@ -606,7 +605,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	}
 
 	/** {@inheritDoc} */
-	public ISharedObjectMessage decodeSharedObject(ByteBuffer in, RTMP rtmp) {
+	public ISharedObjectMessage decodeSharedObject(IoBuffer in, RTMP rtmp) {
 		final Input input = new org.red5.io.amf.Input(in);
 		String name = input.getString();
 		// Read version of SO to modify
@@ -629,7 +628,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	 * @param in
 	 * @param input
 	 */
-	protected void doDecodeSharedObject(SharedObjectMessage so, ByteBuffer in,
+	protected void doDecodeSharedObject(SharedObjectMessage so, IoBuffer in,
 			Input input) {
 		// Parse request body
 		Input amf3Input = new org.red5.io.amf3.Input(in);
@@ -718,16 +717,16 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	}
 
 	/** {@inheritDoc} */
-	public Notify decodeNotify(ByteBuffer in, RTMP rtmp) {
+	public Notify decodeNotify(IoBuffer in, RTMP rtmp) {
 		return decodeNotify(in, null, rtmp);
 	}
 
-	public Notify decodeNotify(ByteBuffer in, Header header, RTMP rtmp) {
+	public Notify decodeNotify(IoBuffer in, Header header, RTMP rtmp) {
 		return decodeNotifyOrInvoke(new Notify(), in, header, rtmp);
 	}
 
 	/** {@inheritDoc} */
-	public Invoke decodeInvoke(ByteBuffer in, RTMP rtmp) {
+	public Invoke decodeInvoke(IoBuffer in, RTMP rtmp) {
 		return (Invoke) decodeNotifyOrInvoke(new Invoke(), in, null, rtmp);
 	}
 
@@ -765,7 +764,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	 * @return Notification event
 	 */
 	@SuppressWarnings("unchecked")
-	protected Notify decodeNotifyOrInvoke(Notify notify, ByteBuffer in,
+	protected Notify decodeNotifyOrInvoke(Notify notify, IoBuffer in,
 			Header header, RTMP rtmp) {
 		// TODO: we should use different code depending on server or client mode
 		int start = in.position();
@@ -854,10 +853,10 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	/**
 	 * Decodes ping event.
 	 * 
-	 * @param in Byte buffer
+	 * @param in IoBuffer
 	 * @return Ping event
 	 */
-	public Ping decodePing(ByteBuffer in) {
+	public Ping decodePing(IoBuffer in) {
 		final Ping ping = new Ping();
 		ping.setDebug(in.getHexDump());
 		ping.setValue1(in.getShort());
@@ -872,32 +871,32 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	}
 
 	/** {@inheritDoc} */
-	public BytesRead decodeBytesRead(ByteBuffer in) {
+	public BytesRead decodeBytesRead(IoBuffer in) {
 		return new BytesRead(in.getInt());
 	}
 
 	/** {@inheritDoc} */
-	public AudioData decodeAudioData(ByteBuffer in) {
+	public AudioData decodeAudioData(IoBuffer in) {
 		return new AudioData(in.asReadOnlyBuffer());
 	}
 
 	/** {@inheritDoc} */
-	public VideoData decodeVideoData(ByteBuffer in) {
+	public VideoData decodeVideoData(IoBuffer in) {
 		return new VideoData(in.asReadOnlyBuffer());
 	}
 
-	public Notify decodeStreamMetadata(ByteBuffer in) {
+	public Notify decodeStreamMetadata(IoBuffer in) {
 		return new Notify(in.asReadOnlyBuffer());
 	}
 
 	/**
 	 * Decodes FlexMessage event.
 	 * 
-	 * @param in Byte buffer
+	 * @param in IoBuffer
 	 * @param rtmp RTMP protocol state
 	 * @return FlexMessage event
 	 */
-	public FlexMessage decodeFlexMessage(ByteBuffer in, RTMP rtmp) {
+	public FlexMessage decodeFlexMessage(IoBuffer in, RTMP rtmp) {
 		// TODO: Unknown byte, probably encoding as with Flex SOs?
 		in.skip(1);
 		// Encoding of message params can be mixed - some params may be in AMF0, others in AMF3,
@@ -953,7 +952,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 		return msg;
 	}
 
-	public FlexStreamSend decodeFlexStreamSend(ByteBuffer in) {
+	public FlexStreamSend decodeFlexStreamSend(IoBuffer in) {
 		return new FlexStreamSend(in.asReadOnlyBuffer());
 	}
 

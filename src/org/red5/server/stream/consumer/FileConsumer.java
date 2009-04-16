@@ -23,7 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.IStreamableFile;
 import org.red5.io.IStreamableFileFactory;
 import org.red5.io.IStreamableFileService;
@@ -42,8 +42,8 @@ import org.red5.server.messaging.IPipeConnectionListener;
 import org.red5.server.messaging.IPushableConsumer;
 import org.red5.server.messaging.OOBControlMessage;
 import org.red5.server.messaging.PipeConnectionEvent;
-import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.event.FlexStreamSend;
+import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.stream.IStreamData;
 import org.red5.server.stream.message.RTMPMessage;
@@ -152,7 +152,7 @@ public class FileConsumer implements Constants, IPushableConsumer,
 		tag.setTimestamp(timestamp + offset);
 		
 		if (msg instanceof IStreamData) {
-			ByteBuffer data = ((IStreamData) msg).getData().asReadOnlyBuffer();
+			IoBuffer data = ((IStreamData) msg).getData().asReadOnlyBuffer();
 			tag.setBodySize(data.limit());
 			tag.setBody(data);
 		}

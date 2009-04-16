@@ -21,7 +21,7 @@ package org.red5.server.net.rtmpt;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.servlet.ServletUtils;
@@ -137,7 +137,7 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 	/**
 	 * {@inheritDoc}
 	 */
-	public ByteBuffer getPendingMessages(int targetSize) {
+	public IoBuffer getPendingMessages(int targetSize) {
 		getWriteLock().lock();
 		try {
 			long currentPendingMessages = getPendingMessages();

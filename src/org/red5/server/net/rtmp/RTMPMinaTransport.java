@@ -23,25 +23,20 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import javax.management.ObjectName;
 
-import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.common.IoHandlerAdapter;
-import org.apache.mina.common.SimpleByteBufferAllocator;
-import org.apache.mina.common.ThreadModel;
-import org.apache.mina.filter.executor.ExecutorFilter;
-import org.apache.mina.integration.jmx.IoServiceManager;
-import org.apache.mina.integration.jmx.IoServiceManagerMBean;
-import org.apache.mina.transport.socket.nio.SocketAcceptor;
-import org.apache.mina.transport.socket.nio.SocketAcceptorConfig;
-import org.apache.mina.transport.socket.nio.SocketSessionConfig;
+import org.apache.mina.core.buffer.IoBuffer;
+import org.apache.mina.core.buffer.SimpleBufferAllocator;
+import org.apache.mina.core.service.AbstractIoService;
+import org.apache.mina.core.service.IoHandlerAdapter;
+import org.apache.mina.core.service.IoServiceStatistics;
+import org.apache.mina.integration.jmx.IoServiceMBean;
+import org.apache.mina.transport.socket.SocketAcceptor;
+import org.apache.mina.transport.socket.SocketSessionConfig;
+import org.apache.mina.transport.socket.nio.NioSocketAcceptor;
 import org.red5.server.jmx.JMXAgent;
 import org.red5.server.jmx.JMXFactory;
 import org.slf4j.Logger;
@@ -80,8 +75,6 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 
 	protected String address = null;
 
-	protected ExecutorService eventExecutor;
-
 	protected int eventThreadsCore = DEFAULT_EVENT_THREADS_CORE;
 
 	protected int eventThreadsKeepalive = DEFAULT_EVENT_THREADS_KEEPALIVE;
@@ -92,11 +85,9 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 
 	protected IoHandlerAdapter ioHandler;
 
-	protected IoServiceManager serviceManager;
+	protected IoServiceStatistics stats;
 	
 	protected int ioThreads = DEFAULT_IO_THREADS;
-	
-	protected ExecutorService acceptorExecutor;
 
 	/**
 	 * MBean object name used for de/registration purposes.
@@ -182,41 +173,25 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 	public void start() throws Exception {
 		initIOHandler();
 
-		// FIXME: already set in Standalone
-		ByteBuffer.setUseDirectBuffers(!useHeapBuffers); // this is global, oh well.
+		IoBuffer.setUseDirectBuffer(!useHeapBuffers); // this is global, oh well.
 		if (useHeapBuffers) {
-			ByteBuffer.setAllocator(new SimpleByteBufferAllocator()); // dont pool for heap buffers.
+			IoBuffer.setAllocator(new SimpleBufferAllocator()); // dont pool for heap buffers.
         }
 		
 		log.info("RTMP Mina Transport Settings");			
 		log.info("IO Threads: {}", ioThreads);
 		log.info("Event Threads - core: {}, max: {}, queue: {}, keepalive: {}", new Object[]{eventThreadsCore, eventThreadsMax, eventThreadsQueue, eventThreadsKeepalive});
 
-		eventExecutor = new ThreadPoolExecutor(eventThreadsCore, eventThreadsMax, eventThreadsKeepalive, TimeUnit.SECONDS, threadQueue(eventThreadsQueue));
-		// Avoid the reject by setting CallerRunsPolicy
-		// This prevents memory leak in Mina ExecutorFilter
-		((ThreadPoolExecutor) eventExecutor).setRejectedExecutionHandler(
-				new ThreadPoolExecutor.CallerRunsPolicy()
-				);
-		
-		// Executors.newCachedThreadPool() is always preferred by IoService
-		// See http://mina.apache.org/configuring-thread-model.html for details
-		acceptorExecutor = Executors.newCachedThreadPool();
-		acceptor = new SocketAcceptor(ioThreads, acceptorExecutor);
-
-		acceptor.getFilterChain().addLast("threadPool", new ExecutorFilter(eventExecutor));
-
-		SocketAcceptorConfig config = acceptor.getDefaultConfig();
-		config.setThreadModel(ThreadModel.MANUAL);
-		config.setReuseAddress(true);
-		config.setBacklog(100);
+		//use default parameters, and given number of NioProcessor for multithreading I/O operations
+		acceptor = new NioSocketAcceptor(ioThreads);
+		acceptor.setHandler(ioHandler);
+		acceptor.setBacklog(100);
 
 		log.info("TCP No Delay: {}", tcpNoDelay);
 		log.info("Receive Buffer Size: {}", receiveBufferSize);
 		log.info("Send Buffer Size: {}", sendBufferSize);
 
-		SocketSessionConfig sessionConf = (SocketSessionConfig) config
-				.getSessionConfig();
+		SocketSessionConfig sessionConf = (SocketSessionConfig) acceptor.getSessionConfig();
 		sessionConf.setReuseAddress(true);
 		sessionConf.setTcpNoDelay(tcpNoDelay);
 		sessionConf.setReceiveBufferSize(receiveBufferSize);
@@ -225,7 +200,7 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 		SocketAddress socketAddress = (address == null) ? new InetSocketAddress(
 				port)
 				: new InetSocketAddress(address, port);
-		acceptor.bind(socketAddress, ioHandler);
+		acceptor.bind(socketAddress);
 
 		log.info("RTMP Mina Transport bound to {}", socketAddress.toString());
 
@@ -245,29 +220,22 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 		//enable only if user wants it
 		if (JMXAgent.isEnableMinaMonitor()) {
     		//add a service manager to allow for more introspection into the workings of mina
-    		serviceManager = new IoServiceManager(acceptor);
+			stats = new IoServiceStatistics((AbstractIoService) acceptor);
     		//poll every second
-    		serviceManager.startCollectingStats(jmxPollInterval);
+			stats.setThroughputCalculationInterval(jmxPollInterval);
     		serviceManagerObjectName = JMXFactory.createObjectName("type", "IoServiceManager",
     				"address", (address == null ? "0.0.0.0" : address), "port",
     				port + "");
-    		JMXAgent.registerMBean(serviceManager, serviceManager.getClass().getName(), IoServiceManagerMBean.class, serviceManagerObjectName);		
+    		JMXAgent.registerMBean(stats, stats.getClass().getName(), IoServiceMBean.class, serviceManagerObjectName);		
 		}
 	}
 
 	public void stop() {
 		log.info("RTMP Mina Transport unbind");
-		acceptor.unbindAll();
-		acceptorExecutor.shutdown();
-		eventExecutor.shutdown();
+		acceptor.unbind();
 		// deregister with jmx
 		JMXAgent.unregisterMBean(oName);
 		if (serviceManagerObjectName != null) {
-			//if the service manager (stats collector) is not null then clean up
-			if (serviceManager != null) {
-    			serviceManager.stopCollectingStats();
-    			serviceManager.closeAllSessions();
-			}
 			JMXAgent.unregisterMBean(serviceManagerObjectName);
 		}
 	}

@@ -19,7 +19,7 @@ package org.red5.server.net.rtmp;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.api.stream.IClientStream;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.event.Invoke;
@@ -147,7 +147,7 @@ public class Channel {
 				Notify notify = new Notify();
 				notify.setInvokeId(1);
 				notify.setCall(call2);
-				notify.setData(ByteBuffer.wrap(new byte[]{0x01, 0x01, 0x01, 0x01}));
+				notify.setData(IoBuffer.wrap(new byte[]{0x01, 0x01, 0x01, 0x01}));
 				write(notify, connection.getStreamIdForChannel(id));
 			}
 			invoke.setInvokeId(1);

@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.amf.Output;
 import org.red5.io.object.Serializer;
 import org.red5.logging.Red5LoggerFactory;
@@ -359,7 +359,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 						IVideoStreamCodec videoCodec = stream.getCodecInfo()
 								.getVideoCodec();
 						if (videoCodec != null) {
-							ByteBuffer keyFrame = videoCodec.getKeyframe();
+							IoBuffer keyFrame = videoCodec.getKeyframe();
 							if (keyFrame != null) {
 								VideoData video = new VideoData(keyFrame);
 								try {
@@ -801,7 +801,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 							IRTMPEvent body = rtmpMessage.getBody();
 							if (!receiveAudio && body instanceof AudioData) {
 								// The user doesn't want to get audio packets
-								((IStreamData) body).getData().release();
+								((IStreamData) body).getData().free();
 								if (sendBlankAudio) {
 									// Send reset audio packet
 									sendBlankAudio = false;
@@ -821,7 +821,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 							} else if (!receiveVideo
 									&& body instanceof VideoData) {
 								// The user doesn't want to get video packets
-								((IStreamData) body).getData().release();
+								((IStreamData) body).getData().free();
 								continue;
 							}
 
@@ -831,7 +831,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 							if (okayToSendMessage(body)) {
 								//System.err.println("ts: " + rtmpMessage.getBody().getTimestamp());
 								sendMessage(rtmpMessage);
-								((IStreamData) body).getData().release();
+								((IStreamData) body).getData().free();
 							} else {
 								pendingMessage = rtmpMessage;
 							}
@@ -994,7 +994,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 	}
 
 	private void sendOnPlayStatus(String code, int duration, long bytes) {
-		ByteBuffer buf = ByteBuffer.allocate(1024);
+		IoBuffer buf = IoBuffer.allocate(1024);
 		buf.setAutoExpand(true);
 		Output out = new Output(buf);
 		out.writeString("onPlayStatus");
@@ -1452,7 +1452,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 			IRTMPEvent body = pendingMessage.getBody();
 			if (body instanceof IStreamData
 					&& ((IStreamData) body).getData() != null) {
-				((IStreamData) body).getData().release();
+				((IStreamData) body).getData().free();
 			}
 			pendingMessage.setBody(null);
 			pendingMessage = null;

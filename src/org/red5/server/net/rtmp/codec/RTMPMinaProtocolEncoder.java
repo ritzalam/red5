@@ -19,8 +19,8 @@ package org.red5.server.net.rtmp.codec;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.common.IoSession;
+import org.apache.mina.core.buffer.IoBuffer;
+import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecException;
 import org.apache.mina.filter.codec.ProtocolEncoder;
 import org.apache.mina.filter.codec.ProtocolEncoderOutput;
@@ -43,7 +43,7 @@ public class RTMPMinaProtocolEncoder extends RTMPProtocolEncoder implements
 			// to be sent in different order thus resulting in wrong
 			// headers being generated.
 			synchronized (out) {
-				final ByteBuffer buf = encode(state, message);
+				final IoBuffer buf = encode(state, message);
 				if (buf != null) {
 					out.write(buf);
 					out.mergeAll();

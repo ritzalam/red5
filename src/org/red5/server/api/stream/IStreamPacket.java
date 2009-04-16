@@ -19,7 +19,7 @@ package org.red5.server.api.stream;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 
 /**
  * Packet containing stream data.
@@ -48,6 +48,6 @@ public interface IStreamPacket {
 	 * 
 	 * @return the contents
 	 */
-	public ByteBuffer getData();
+	public IoBuffer getData();
 	
 }

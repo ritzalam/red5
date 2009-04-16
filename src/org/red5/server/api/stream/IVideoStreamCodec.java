@@ -19,7 +19,7 @@ package org.red5.server.api.stream;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 
 public interface IVideoStreamCodec {
 
@@ -45,17 +45,17 @@ public interface IVideoStreamCodec {
      * @param data some sample data to see if this codec can handle it.
      * @return can this code handle the data.
      */
-	public boolean canHandleData(ByteBuffer data);
+	public boolean canHandleData(IoBuffer data);
 
 	/**
 	 * Update the state of the codec with the passed data.
      * @param data data to tell the codec we're adding
      * @return true for success. false for error.
      */
-	public boolean addData(ByteBuffer data);
+	public boolean addData(IoBuffer data);
 
 	/**
 	 * @return the data for a keyframe.
      */
-	public ByteBuffer getKeyframe();
+	public IoBuffer getKeyframe();
 }

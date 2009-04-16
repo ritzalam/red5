@@ -26,8 +26,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.common.IoSession;
+import org.apache.mina.core.buffer.IoBuffer;
+import org.apache.mina.core.session.IoSession;
 import org.red5.io.amf.AMF;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Input;
@@ -63,7 +63,7 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 	}
 
 	/** {@inheritDoc} */
-    public List<Object> decodeBuffer(ProtocolState state, ByteBuffer buffer) {
+    public List<Object> decodeBuffer(ProtocolState state, IoBuffer buffer) {
 		List<Object> list = new LinkedList<Object>();
 		Object packet = null;
 		try {
@@ -79,7 +79,7 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 	}
 
 	/** {@inheritDoc} */
-    public Object decode(ProtocolState state, ByteBuffer in) throws Exception {
+    public Object decode(ProtocolState state, IoBuffer in) throws Exception {
 		Map<String, Object> headers = readHeaders(in);
 		List<RemotingCall> calls = decodeCalls(in);
 		return new RemotingPacket(headers, calls);
@@ -101,7 +101,7 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
      * @param in         Input data as byte buffer
      */
     @SuppressWarnings("unchecked")
-    protected Map<String, Object> readHeaders(ByteBuffer in) {
+    protected Map<String, Object> readHeaders(IoBuffer in) {
 		int version = in.getUnsignedShort(); // skip the version
 		int count = in.getUnsignedShort();
 		if (log.isDebugEnabled()) {
@@ -141,7 +141,7 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
      * @param in         Input data as byte buffer
      * @return           List of pending calls
      */
-	protected List<RemotingCall> decodeCalls(ByteBuffer in) {
+	protected List<RemotingCall> decodeCalls(IoBuffer in) {
 		if (log.isDebugEnabled()) {
 			log.debug("Decode calls");
 		}

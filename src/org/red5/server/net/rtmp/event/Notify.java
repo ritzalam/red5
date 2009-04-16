@@ -24,7 +24,7 @@ import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.util.Map;
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.api.service.IServiceCall;
 import org.red5.server.api.stream.IStreamPacket;
 import org.red5.server.stream.IStreamData;
@@ -33,15 +33,17 @@ import org.red5.server.stream.IStreamData;
  * Stream notification event
  */
 public class Notify extends BaseEvent implements IStreamData, IStreamPacket {
+
 	private static final long serialVersionUID = -6085848257275156569L;
-    /**
+    
+	/**
      * Service call
      */
 	protected IServiceCall call;
     /**
      * Event data
      */
-	protected ByteBuffer data;
+	protected IoBuffer data;
     /**
      * Invoke id
      */
@@ -61,7 +63,7 @@ public class Notify extends BaseEvent implements IStreamData, IStreamPacket {
      * Create new notification event with given byte buffer
      * @param data       Byte buffer
      */
-    public Notify(ByteBuffer data) {
+    public Notify(IoBuffer data) {
 		super(Type.STREAM_DATA);
 		this.data = data;
 	}
@@ -86,7 +88,7 @@ public class Notify extends BaseEvent implements IStreamData, IStreamPacket {
      *
      * @param data  Data
      */
-    public void setData(ByteBuffer data) {
+    public void setData(IoBuffer data) {
 		this.data = data;
 	}
 
@@ -109,7 +111,7 @@ public class Notify extends BaseEvent implements IStreamData, IStreamPacket {
 	}
 
 	/** {@inheritDoc} */
-    public ByteBuffer getData() {
+    public IoBuffer getData() {
 		return data;
 	}
 
@@ -205,7 +207,7 @@ public class Notify extends BaseEvent implements IStreamData, IStreamPacket {
     @Override
 	protected void releaseInternal() {
 		if (data != null) {
-			data.release();
+			data.free();
 			data = null;
 		}
 	}
@@ -219,7 +221,7 @@ public class Notify extends BaseEvent implements IStreamData, IStreamPacket {
 		invokeId = in.readInt();
 		byte[] byteBuf = (byte[]) in.readObject();
 		if (byteBuf != null) {
-			data = ByteBuffer.allocate(0);
+			data = IoBuffer.allocate(0);
 			data.setAutoExpand(true);
 			SerializeUtils.ByteArrayToByteBuffer(byteBuf, data);
 		}

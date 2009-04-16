@@ -23,7 +23,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.api.IConnection.Encoding;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.message.Header;
@@ -183,7 +183,7 @@ public class RTMP extends ProtocolState {
     private void freePackets(Map<Integer, Packet> packets) {
 		for (Packet packet : packets.values()) {
 			if (packet != null && packet.getData() != null) {
-				packet.getData().release();
+				packet.getData().free();
 				packet.setData(null);
 			}
 		}
@@ -257,7 +257,7 @@ public class RTMP extends ProtocolState {
 	public void setLastReadPacket(int channelId, Packet packet) {
 		Packet prevPacket = readPackets.put(channelId, packet);
 		if (prevPacket != null && prevPacket.getData() != null) {
-			prevPacket.getData().release();
+			prevPacket.getData().free();
 			prevPacket.setData(null);
 		}
 	}
@@ -378,7 +378,7 @@ public class RTMP extends ProtocolState {
      * @param start where handshake data starts in data
      * @param length  Length of handshake to store
      */
-    public void setHandshake(ByteBuffer data, int start, int length) {
+    public void setHandshake(IoBuffer data, int start, int length) {
     	handshake = new byte[length];
     	int old = data.position();
     	data.position(start);
@@ -392,9 +392,9 @@ public class RTMP extends ProtocolState {
      * @param data data
      * @param start where handshake data starts in data
      * @param length length
-     * @return treu on success; false otherwise
+     * @return true on success; false otherwise
      */
-    public boolean validateHandshakeReply(ByteBuffer data, int start, int length) {
+    public boolean validateHandshakeReply(IoBuffer data, int start, int length) {
     	if (handshake == null || length != handshake.length) {
     		return false;
     	}

@@ -19,7 +19,7 @@ package org.red5.server.net.rtmp.event;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 
 public class FLVData {
 
@@ -46,7 +46,7 @@ public class FLVData {
 	 * inter frame
 	 */
 
-	protected ByteBuffer data;
+	protected IoBuffer data;
 
 	protected int timestamp = -1;
 

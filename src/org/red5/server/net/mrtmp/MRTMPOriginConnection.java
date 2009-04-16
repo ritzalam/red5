@@ -23,6 +23,9 @@ package org.red5.server.net.mrtmp;
  * @author Steven Gong (steven.gong@gmail.com)
  */
 public class MRTMPOriginConnection extends BaseMRTMPConnection {
+
+	public static final String ORIGIN_CONNECTION_KEY = "origin.conn";
+	
 	@Override
 	public void connect(int clientId) {
 		// server connection, do nothing here

@@ -19,7 +19,7 @@ package org.red5.server.net.rtmpt;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.net.rtmp.codec.RTMP;
 
 public class RTMPTClientConnection extends BaseRTMPTConnection {
@@ -33,7 +33,7 @@ public class RTMPTClientConnection extends BaseRTMPTConnection {
 		this.close();
 	}
 	
-	public ByteBuffer getPendingMessages(int targetSize) {
+	public IoBuffer getPendingMessages(int targetSize) {
 		return foldPendingMessages(targetSize);
 	}
 }

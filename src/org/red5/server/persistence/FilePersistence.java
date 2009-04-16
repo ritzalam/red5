@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.amf.Input;
 import org.red5.io.amf.Output;
 import org.red5.io.object.Deserializer;
@@ -256,7 +256,7 @@ public class FilePersistence extends RamPersistence {
 		}
 
 		try {
-			ByteBuffer buf = ByteBuffer.allocate(input.available());
+			IoBuffer buf = IoBuffer.allocate(input.available());
 			try {
 				ServletUtils.copy(input, buf.asOutputStream());
 				buf.flip();
@@ -318,7 +318,7 @@ public class FilePersistence extends RamPersistence {
 					result.deserialize(in);
 				}
 			} finally {
-				buf.release();
+				buf.free();
 				buf = null;
 			}
 			if (result.getStore() != this) {
@@ -423,14 +423,14 @@ public class FilePersistence extends RamPersistence {
     		File file = new File(dir, filename);
     		//Resource resFile = resources.getResource(filename);
     		//log.debug("Resource (file) check #1 - file name: {} exists: {}", resPath.getFilename(), exists);
-   			ByteBuffer buf = null;
+    		IoBuffer buf = null;
     		try {
     			int initialSize = 8192;
     			if (file.exists()) {
    					// We likely also need the original file size when writing object
    					initialSize += (int) file.length();
     			}
-    			buf = ByteBuffer.allocate(initialSize);
+    			buf = IoBuffer.allocate(initialSize);
 				buf.setAutoExpand(true);
 				Output out = new Output(buf);
 				out.writeString(object.getClass().getName());
@@ -447,7 +447,7 @@ public class FilePersistence extends RamPersistence {
     			result = false;
    			} finally {
    			    if (buf != null) {
-   				    buf.release();
+   				    buf.free();
    				    buf = null;
    				}
    				file = null;

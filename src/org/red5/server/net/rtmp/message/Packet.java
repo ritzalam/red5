@@ -23,26 +23,31 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-import org.apache.mina.common.ByteBuffer;
+
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
 
 /**
  * RTMP packet. Consists of packet header, data and event context.
  */
 public class Packet implements Externalizable {
+	
 	private static final long serialVersionUID = -6415050845346626950L;
-    /**
+    
+	/**
      * Header
      */
 	protected Header header;
-    /**
+    
+	/**
      * RTMP event
      */
 	protected IRTMPEvent message;
-    /**
+    
+	/**
      * Packet data
      */
-	protected ByteBuffer data;
+	protected IoBuffer data;
 
 	public Packet() {
 		data = null;
@@ -53,7 +58,7 @@ public class Packet implements Externalizable {
      */
     public Packet(Header header) {
 		this.header = header;
-		data = ByteBuffer.allocate(header.getSize()
+		data = IoBuffer.allocate(header.getSize()
 				+ (header.getTimer() == 0xffffff ? 4 : 0), false);
 		// Workaround for SN-19: BufferOverflowException
 		// Size is checked in RTMPProtocolDecoder
@@ -102,7 +107,7 @@ public class Packet implements Externalizable {
      *
      * @param data Packet data
      */
-    public void setData(ByteBuffer data) {
+    public void setData(IoBuffer data) {
 		this.data = data;
 	}
 
@@ -111,7 +116,7 @@ public class Packet implements Externalizable {
      *
      * @return Packet data
      */
-    public ByteBuffer getData() {
+    public IoBuffer getData() {
 		return data;
 	}
 

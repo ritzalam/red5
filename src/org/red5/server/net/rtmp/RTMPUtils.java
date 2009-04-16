@@ -19,7 +19,7 @@ package org.red5.server.net.rtmp;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.net.rtmp.message.Constants;
 
 /**
@@ -35,9 +35,9 @@ public class RTMPUtils implements Constants {
      * @param out          Buffer
      * @param value        Integer to write
      */
-	public static void writeReverseIntOld(ByteBuffer out, int value) {
+	public static void writeReverseIntOld(IoBuffer out, int value) {
 		byte[] bytes = new byte[4];
-		ByteBuffer rev = ByteBuffer.allocate(4);
+		IoBuffer rev = IoBuffer.allocate(4);
 		rev.putInt(value);
 		rev.flip();
 		bytes[3] = rev.get();
@@ -45,7 +45,7 @@ public class RTMPUtils implements Constants {
 		bytes[1] = rev.get();
 		bytes[0] = rev.get();
 		out.put(bytes);
-		rev.release();
+		rev.free();
 		rev = null;
 	}
 
@@ -55,7 +55,7 @@ public class RTMPUtils implements Constants {
      * @param out          Buffer
      * @param value        Integer to write
      */
-	public static void writeReverseInt(ByteBuffer out, int value) {
+	public static void writeReverseInt(IoBuffer out, int value) {
 		out.put((byte) (0xFF & value));
 		out.put((byte) (0xFF & (value >> 8)));
 		out.put((byte) (0xFF & (value >> 16)));
@@ -67,7 +67,7 @@ public class RTMPUtils implements Constants {
      * @param out output buffer
      * @param value value to write
      */
-	public static void writeMediumInt(ByteBuffer out, int value) {
+	public static void writeMediumInt(IoBuffer out, int value) {
 		out.put((byte) (0xFF & (value >> 16)));
 		out.put((byte) (0xFF & (value >> 8)));
 		out.put((byte) (0xFF & (value >> 0)));
@@ -78,7 +78,7 @@ public class RTMPUtils implements Constants {
      * @param in input 
      * @return unsigned int
      */
-	public static int readUnsignedMediumInt(ByteBuffer in) {
+	public static int readUnsignedMediumInt(IoBuffer in) {
 		final byte a = in.get();
 		final byte b = in.get();
 		final byte c = in.get();
@@ -94,7 +94,7 @@ public class RTMPUtils implements Constants {
      * @param in input
      * @return unsigned medium (3 byte) int.
      */
-	public static int readUnsignedMediumIntOld(ByteBuffer in) {
+	public static int readUnsignedMediumIntOld(IoBuffer in) {
 		byte[] bytes = new byte[3];
 		in.get(bytes);
 		int val = 0;
@@ -109,15 +109,15 @@ public class RTMPUtils implements Constants {
      * @param in input
      * @return signed 3-byte int
      */
-	public static int readMediumIntOld(ByteBuffer in) {
-		ByteBuffer buf = ByteBuffer.allocate(4);
+	public static int readMediumIntOld(IoBuffer in) {
+		IoBuffer buf = IoBuffer.allocate(4);
 		buf.put((byte) 0x00);
 		buf.put(in.get());
 		buf.put(in.get());
 		buf.put(in.get());
 		buf.flip();
 		int value = buf.getInt();
-		buf.release();
+		buf.free();
 		buf = null;
 		return value;
 	}
@@ -127,7 +127,7 @@ public class RTMPUtils implements Constants {
      * @param in input
      * @return signed 3 byte int
      */
-	public static int readMediumInt(ByteBuffer in) {
+	public static int readMediumInt(IoBuffer in) {
 		final byte a = in.get();
 		final byte b = in.get();
 		final byte c = in.get();
@@ -145,7 +145,7 @@ public class RTMPUtils implements Constants {
      * @param in         Input buffer
      * @return           Integer
      */
-	public static int readReverseInt(ByteBuffer in) {
+	public static int readReverseInt(IoBuffer in) {
 		final byte a = in.get();
 		final byte b = in.get();
 		final byte c = in.get();
@@ -165,7 +165,7 @@ public class RTMPUtils implements Constants {
      * @param headerSize         Header size marker
      * @param channelId          Channel used
      */
-	public static void encodeHeaderByte(ByteBuffer out, byte headerSize, int channelId) {
+	public static void encodeHeaderByte(IoBuffer out, byte headerSize, int channelId) {
 		if (channelId <= 63) {
 			out.put((byte) ((headerSize << 6) + channelId));
 		} else if (channelId <= 320) {

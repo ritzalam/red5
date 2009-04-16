@@ -21,7 +21,7 @@ package org.red5.server.net.rtmpt;
 
 import java.util.Map;
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.BaseRTMPClientHandler;
 import org.red5.server.net.rtmp.RTMPConnection;
@@ -68,29 +68,29 @@ public class RTMPTClient extends BaseRTMPClientHandler {
 	@Override
 	public void messageReceived(RTMPConnection conn, ProtocolState state,
 			Object in) throws Exception {
-		if (in instanceof ByteBuffer) {
-			rawBufferRecieved(conn, state, (ByteBuffer) in);
+		if (in instanceof IoBuffer) {
+			rawBufferRecieved(conn, state, (IoBuffer) in);
 		} else {
 			super.messageReceived(conn, state, in);
 		}
 	}
 
 	/**
-	 * Handle raw buffer reciept
+	 * Handle raw buffer receipt
 	 * 
 	 * @param conn
 	 *            RTMP connection
 	 * @param state
 	 *            Protocol state
 	 * @param in
-	 *            Byte buffer with input raw data
+	 *            IoBuffer with input raw data
 	 */
 	private void rawBufferRecieved(RTMPConnection conn, ProtocolState state,
-			ByteBuffer in) {
+			IoBuffer in) {
 
 		log.debug("Handshake 3d phase - size: {}", in.remaining());
 		in.skip(1);
-		ByteBuffer out = ByteBuffer.allocate(Constants.HANDSHAKE_SIZE);
+		IoBuffer out = IoBuffer.allocate(Constants.HANDSHAKE_SIZE);
 		in.limit(in.position() + Constants.HANDSHAKE_SIZE);
 		out.put(in);
 		out.flip();

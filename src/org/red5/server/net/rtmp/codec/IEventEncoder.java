@@ -19,7 +19,7 @@ package org.red5.server.net.rtmp.codec;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.net.rtmp.event.AudioData;
 import org.red5.server.net.rtmp.event.BytesRead;
 import org.red5.server.net.rtmp.event.ChunkSize;
@@ -41,7 +41,7 @@ public interface IEventEncoder {
      * @param rtmp			 RTMP protocol state
      * @return               Byte buffer
      */
-	public abstract ByteBuffer encodeNotify(Notify notify, RTMP rtmp);
+	public abstract IoBuffer encodeNotify(Notify notify, RTMP rtmp);
 
     /**
      * Encodes Invoke event to byte buffer.
@@ -50,7 +50,7 @@ public interface IEventEncoder {
      * @param rtmp			 RTMP protocol state
      * @return               Byte buffer
      */
-	public abstract ByteBuffer encodeInvoke(Invoke invoke, RTMP rtmp);
+	public abstract IoBuffer encodeInvoke(Invoke invoke, RTMP rtmp);
 
     /**
      * Encodes Ping event to byte buffer.
@@ -58,7 +58,7 @@ public interface IEventEncoder {
      * @param ping           Ping event
      * @return               Byte buffer
      */
-    public abstract ByteBuffer encodePing(Ping ping);
+    public abstract IoBuffer encodePing(Ping ping);
 
     /**
      * Encodes BytesRead event to byte buffer.
@@ -66,7 +66,7 @@ public interface IEventEncoder {
      * @param streamBytesRead    BytesRead event
      * @return                   Byte buffer
      */
-    public abstract ByteBuffer encodeBytesRead(BytesRead streamBytesRead);
+    public abstract IoBuffer encodeBytesRead(BytesRead streamBytesRead);
 
     /**
      * Encodes AudioData event to byte buffer.
@@ -74,7 +74,7 @@ public interface IEventEncoder {
      * @param audioData          AudioData event
      * @return                   Byte buffer
      */
-    public abstract ByteBuffer encodeAudioData(AudioData audioData);
+    public abstract IoBuffer encodeAudioData(AudioData audioData);
 
     /**
      * Encodes VideoData event to byte buffer.
@@ -82,7 +82,7 @@ public interface IEventEncoder {
      * @param videoData          VideoData event
      * @return                   Byte buffer
      */
-    public abstract ByteBuffer encodeVideoData(VideoData videoData);
+    public abstract IoBuffer encodeVideoData(VideoData videoData);
 
     /**
      * Encodes Unknown event to byte buffer.
@@ -90,7 +90,7 @@ public interface IEventEncoder {
      * @param unknown            Unknown event
      * @return                   Byte buffer
      */
-    public abstract ByteBuffer encodeUnknown(Unknown unknown);
+    public abstract IoBuffer encodeUnknown(Unknown unknown);
 
     /**
      * Encodes ChunkSize event to byte buffer.
@@ -98,7 +98,7 @@ public interface IEventEncoder {
      * @param chunkSize          ChunkSize event
      * @return                   Byte buffer
      */
-    public abstract ByteBuffer encodeChunkSize(ChunkSize chunkSize);
+    public abstract IoBuffer encodeChunkSize(ChunkSize chunkSize);
 
     /**
      * Encodes SharedObjectMessage event to byte buffer.
@@ -107,7 +107,7 @@ public interface IEventEncoder {
      * @param rtmp				 RTMP protocol state
      * @return                   Byte buffer
      */
-    public abstract ByteBuffer encodeSharedObject(ISharedObjectMessage so, RTMP rtmp);
+    public abstract IoBuffer encodeSharedObject(ISharedObjectMessage so, RTMP rtmp);
 
     /**
      * Encodes SharedObjectMessage event to byte buffer using AMF3 encoding.
@@ -116,5 +116,5 @@ public interface IEventEncoder {
      * @param rtmp				 RTMP protocol state
      * @return                   Byte buffer
      */
-    public ByteBuffer encodeFlexSharedObject(ISharedObjectMessage so, RTMP rtmp);
+    public IoBuffer encodeFlexSharedObject(ISharedObjectMessage so, RTMP rtmp);
 }

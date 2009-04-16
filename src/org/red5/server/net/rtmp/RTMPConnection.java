@@ -31,7 +31,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.BaseConnection;
 import org.red5.server.api.IBWControllable;
 import org.red5.server.api.IBandwidthConfigure;
@@ -82,11 +82,14 @@ import org.springframework.context.ApplicationContext;
  */
 public abstract class RTMPConnection extends BaseConnection implements
 		IStreamCapableConnection, IServiceCapableConnection {
+	
 	/**
 	 * Logger
 	 */
 	private static Logger log = LoggerFactory.getLogger(RTMPConnection.class);
 
+	public static final String RTMP_CONNECTION_KEY = "rtmp.conn";
+	
 	/**
 	 * Video codec factory constant
 	 */
@@ -703,9 +706,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/**
 	 * Write raw byte buffer.
 	 * 
-	 * @param out Byte buffer
+	 * @param out IoBuffer
 	 */
-	public abstract void rawWrite(ByteBuffer out);
+	public abstract void rawWrite(IoBuffer out);
 
 	/**
 	 * Write packet.

@@ -19,7 +19,7 @@ package org.red5.server.stream.codec;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.api.stream.IVideoStreamCodec;
 
 /**
@@ -80,7 +80,7 @@ public class SorensonVideo implements IVideoStreamCodec {
 	}
 
 	/** {@inheritDoc} */
-    public boolean canHandleData(ByteBuffer data) {
+    public boolean canHandleData(IoBuffer data) {
 		if (data.limit() == 0) {
 			// Empty buffer
 			return false;
@@ -93,7 +93,7 @@ public class SorensonVideo implements IVideoStreamCodec {
 	}
 
 	/** {@inheritDoc} */
-    public boolean addData(ByteBuffer data) {
+    public boolean addData(IoBuffer data) {
 		if (data.limit() == 0) {
 			// Empty buffer
 			return true;
@@ -123,12 +123,12 @@ public class SorensonVideo implements IVideoStreamCodec {
 	}
 
 	/** {@inheritDoc} */
-    public ByteBuffer getKeyframe() {
+    public IoBuffer getKeyframe() {
 		if (this.dataCount == 0) {
 			return null;
 		}
 
-		ByteBuffer result = ByteBuffer.allocate(this.dataCount);
+		IoBuffer result = IoBuffer.allocate(this.dataCount);
 		result.put(this.blockData, 0, this.dataCount);
 		result.rewind();
 		return result;

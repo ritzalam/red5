@@ -24,7 +24,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.api.Red5;
 import org.red5.server.net.protocol.SimpleProtocolDecoder;
 import org.red5.server.net.protocol.SimpleProtocolEncoder;
@@ -50,19 +50,19 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	private SimpleProtocolEncoder encoder;
 	
 	private static class PendingData {
-		private ByteBuffer buffer;
+		private IoBuffer buffer;
 		private Packet packet;
 
-		private PendingData(ByteBuffer buffer, Packet packet) {
+		private PendingData(IoBuffer buffer, Packet packet) {
 			this.buffer = buffer;
 			this.packet = packet;
 		}
 
-		private PendingData(ByteBuffer buffer) {
+		private PendingData(IoBuffer buffer) {
 			this.buffer = buffer;
 		}
 
-		public ByteBuffer getBuffer() {
+		public IoBuffer getBuffer() {
 			return buffer;
 		}
 
@@ -98,7 +98,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	/**
 	 * Byte buffer
 	 */
-	private ByteBuffer buffer;
+	private IoBuffer buffer;
 	
 	/**
 	 * RTMP events handler
@@ -107,7 +107,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 
 	public BaseRTMPTConnection(String type) {
 		super(type);
-		this.buffer = ByteBuffer.allocate(2048);
+		this.buffer = IoBuffer.allocate(2048);
 		this.buffer.setAutoExpand(true);
 	}
 	
@@ -118,7 +118,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	 * @return a buffer containing the data to send or null if no messages are
 	 *         pending
 	 */
-	abstract public ByteBuffer getPendingMessages(int targetSize);
+	abstract public IoBuffer getPendingMessages(int targetSize);
 
 
 	/** {@inheritDoc} */
@@ -147,7 +147,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 		getWriteLock().lock();
 		try {
 			if (buffer != null) {
-				buffer.release();
+				buffer.free();
 				buffer = null;
 			}
 			state.setState(RTMP.STATE_DISCONNECTED);
@@ -164,7 +164,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	 * @param packet the buffer containing the raw data
 	 */
 	@Override
-	public void rawWrite(ByteBuffer packet) {
+	public void rawWrite(IoBuffer packet) {
 		getWriteLock().lock();
 		try {
 			pendingMessages.add(new PendingData(packet));
@@ -202,14 +202,14 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	 * @param data the data to decode
 	 * @return a list of decoded objects
 	 */
-	public List<?> decode(ByteBuffer data) {
+	public List<?> decode(IoBuffer data) {
 		getWriteLock().lock();
 		try {
 			if (closing || state.getState() == RTMP.STATE_DISCONNECTED) {
 				// Connection is being closed, don't decode any new packets
 				return Collections.EMPTY_LIST;
 			}
-
+			//set the local connection
 			Red5.setConnectionLocal(this);
 			readBytes.addAndGet(data.limit());
 			this.buffer.put(data);
@@ -234,7 +234,7 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 				return;
 			}
 
-			ByteBuffer data;
+			IoBuffer data;
 			try {
 				data = this.encoder.encode(this.state, packet);
 			} catch (Exception e) {
@@ -251,8 +251,8 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 		}
 	}
 
-	protected ByteBuffer foldPendingMessages(int targetSize) {
-		ByteBuffer result = ByteBuffer.allocate(2048);
+	protected IoBuffer foldPendingMessages(int targetSize) {
+		IoBuffer result = IoBuffer.allocate(2048);
 		result.setAutoExpand(true);
 		
 		// We'll have to create a copy here to avoid endless recursion

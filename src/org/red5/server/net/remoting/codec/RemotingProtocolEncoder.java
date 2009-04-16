@@ -23,8 +23,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.common.IoSession;
+import org.apache.mina.core.buffer.IoBuffer;
+import org.apache.mina.core.session.IoSession;
 import org.red5.compatibility.flex.messaging.messages.AbstractMessage;
 import org.red5.compatibility.flex.messaging.messages.ErrorMessage;
 import org.red5.io.amf.Output;
@@ -63,9 +63,9 @@ public class RemotingProtocolEncoder extends BaseProtocolEncoder implements Simp
     private Serializer serializer;
 
 	/** {@inheritDoc} */
-    public ByteBuffer encode(ProtocolState state, Object message) throws Exception {
+    public IoBuffer encode(ProtocolState state, Object message) throws Exception {
 		RemotingPacket resp = (RemotingPacket) message;
-		ByteBuffer buf = ByteBuffer.allocate(1024);
+		IoBuffer buf = IoBuffer.allocate(1024);
 		buf.setAutoExpand(true);
 		Output output;
 		if (resp.getEncoding() == Encoding.AMF0) {
@@ -156,7 +156,6 @@ public class RemotingProtocolEncoder extends BaseProtocolEncoder implements Simp
      * @throws Exception        Exception
      */
 	public void dispose(IoSession ioSession) throws Exception {
-		// TODO Auto-generated method stub
 	}
 
 	/**

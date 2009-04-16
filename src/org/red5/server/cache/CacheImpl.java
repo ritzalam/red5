@@ -25,7 +25,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.api.cache.ICacheStore;
 import org.red5.server.api.cache.ICacheable;
 import org.slf4j.Logger;
@@ -115,7 +115,7 @@ public class CacheImpl implements ICacheStore, ApplicationContextAware {
 		return Collections.unmodifiableCollection(CACHE.values()).iterator();
 	}
 
-	public boolean offer(String key, ByteBuffer obj) {
+	public boolean offer(String key, IoBuffer obj) {
 		return offer(key, new CacheableImpl(obj));
 	}
 

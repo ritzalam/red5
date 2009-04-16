@@ -30,7 +30,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.net.rtmp.IRTMPConnManager;
 import org.red5.server.net.rtmp.RTMPConnection;
@@ -173,7 +173,7 @@ public class RTMPTServlet extends HttpServlet {
 	 * @throws IOException
 	 *             I/O exception
 	 */
-	protected void returnMessage(RTMPTConnection client, ByteBuffer buffer,
+	protected void returnMessage(RTMPTConnection client, IoBuffer buffer,
 			HttpServletResponse resp) throws IOException {
 		resp.setStatus(HttpServletResponse.SC_OK);
 		resp.setHeader("Connection", "Keep-Alive");
@@ -184,7 +184,7 @@ public class RTMPTServlet extends HttpServlet {
 		ServletOutputStream output = resp.getOutputStream();
 		output.write(client.getPollingDelay());
 		ServletUtils.copy(buffer.asInputStream(), output);
-		buffer.release();
+		buffer.free();
 		buffer = null;
 	}
 
@@ -237,10 +237,10 @@ public class RTMPTServlet extends HttpServlet {
 	 *             I/O exception
 	 */
 	protected void skipData(HttpServletRequest req) throws IOException {
-		ByteBuffer data = ByteBuffer.allocate(req.getContentLength());
+		IoBuffer data = IoBuffer.allocate(req.getContentLength());
 		ServletUtils.copy(req.getInputStream(), data.asOutputStream());
 		data.flip();
-		data.release();
+		data.free();
 		data = null;
 	}
 
@@ -257,7 +257,7 @@ public class RTMPTServlet extends HttpServlet {
 	protected void returnPendingMessages(RTMPTConnection client,
 			HttpServletResponse resp) throws IOException {
 
-		ByteBuffer data = client.getPendingMessages(RESPONSE_TARGET_SIZE);
+		IoBuffer data = client.getPendingMessages(RESPONSE_TARGET_SIZE);
 		if (data == null) {
 			// no more messages to send...
 			if (client.isClosing()) {
@@ -366,13 +366,13 @@ public class RTMPTServlet extends HttpServlet {
 
 		// Put the received data in a ByteBuffer
 		int length = req.getContentLength();
-		ByteBuffer data = ByteBuffer.allocate(length);
+		IoBuffer data = IoBuffer.allocate(length);
 		ServletUtils.copy(req.getInputStream(), data.asOutputStream());
 		data.flip();
 
 		// Decode the objects in the data
 		List<?> messages = connection.decode(data);
-		data.release();
+		data.free();
 		data = null;
 		if (messages == null || messages.isEmpty()) {
 			returnMessage(connection.getPollingDelay(), resp);

@@ -24,23 +24,24 @@ import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.apache.mina.common.IoHandlerAdapter;
-import org.apache.mina.common.IoSession;
-import org.apache.mina.filter.LoggingFilter;
+import org.apache.mina.core.service.IoHandlerAdapter;
+import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecFactory;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
+import org.apache.mina.filter.logging.LoggingFilter;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.stream.IClientStream;
 import org.red5.server.net.rtmp.IRTMPHandler;
 import org.red5.server.net.rtmp.RTMPOriginConnection;
 import org.red5.server.stream.PlaylistSubscriberStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Steven Gong (steven.gong@gmail.com)
  */
 public class OriginMRTMPHandler extends IoHandlerAdapter {
+	
 	private Logger log = LoggerFactory.getLogger(OriginMRTMPHandler.class);
 	
 	private IMRTMPOriginManager mrtmpManager;
@@ -75,7 +76,7 @@ public class OriginMRTMPHandler extends IoHandlerAdapter {
 		}
 		int clientId = header.getClientId();
 		int sessionId = getSessionId(session);
-		MRTMPOriginConnection mrtmpConn = (MRTMPOriginConnection) session.getAttachment();
+		MRTMPOriginConnection mrtmpConn = (MRTMPOriginConnection) session.getAttribute(MRTMPOriginConnection.ORIGIN_CONNECTION_KEY);
 		RTMPOriginConnection conn = null;
 		switch (packet.getHeader().getType()) {
 			case MRTMPPacket.CONNECT:
@@ -189,7 +190,7 @@ public class OriginMRTMPHandler extends IoHandlerAdapter {
 
 	@Override
 	public void sessionClosed(IoSession session) throws Exception {
-		MRTMPOriginConnection conn = (MRTMPOriginConnection) session.getAttachment();
+		MRTMPOriginConnection conn = (MRTMPOriginConnection) session.getAttribute(MRTMPOriginConnection.ORIGIN_CONNECTION_KEY);
 		// TODO we need to handle the case when all MRTMP connection
 		// is broken.
 		mrtmpManager.unregisterConnection(conn);
@@ -202,13 +203,13 @@ public class OriginMRTMPHandler extends IoHandlerAdapter {
 		MRTMPOriginConnection conn = new MRTMPOriginConnection();
 		conn.setIoSession(session);
 		mrtmpManager.registerConnection(conn);
-		session.setAttachment(conn);
+		session.setAttribute(MRTMPOriginConnection.ORIGIN_CONNECTION_KEY, conn);
 		session.getFilterChain().addFirst("protocolFilter",
 				new ProtocolCodecFilter(this.codecFactory));
 		if (log.isDebugEnabled()) {
 			session.getFilterChain().addLast("logger", new LoggingFilter());
 		}
-		log.debug("Created MRTMP Origin Connection " + conn);
+		log.debug("Created MRTMP Origin Connection {}", conn);
 	}
 
 	public void closeConnection(RTMPOriginConnection conn) {
@@ -240,7 +241,7 @@ public class OriginMRTMPHandler extends IoHandlerAdapter {
 	}
 	
 	protected int getSessionId(IoSession session) {
-		MRTMPOriginConnection mrtmpConn = (MRTMPOriginConnection) session.getAttachment();
+		MRTMPOriginConnection mrtmpConn = (MRTMPOriginConnection) session.getAttribute(MRTMPOriginConnection.ORIGIN_CONNECTION_KEY);
 		if (mrtmpConn != null) {
 			return mrtmpConn.hashCode();
 		}

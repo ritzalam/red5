@@ -19,7 +19,7 @@ package org.red5.server.io;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.amf3.Input;
 import org.red5.io.amf3.Output;
 import org.red5.io.utils.HexDump;
@@ -31,7 +31,7 @@ import org.red5.io.utils.HexDump;
 */
 public class AMF3IOTest extends AbstractIOTest {
 
-	ByteBuffer buf;
+	IoBuffer buf;
 
 	/** {@inheritDoc} */
 	@Override
@@ -49,7 +49,7 @@ public class AMF3IOTest extends AbstractIOTest {
 	/** {@inheritDoc} */
 	@Override
 	void setupIO() {
-		buf = ByteBuffer.allocate(0); // 1kb
+		buf = IoBuffer.allocate(0); // 1kb
 		buf.setAutoExpand(true);
 		in = new Input(buf);
 		out = new Output(buf);

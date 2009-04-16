@@ -22,20 +22,23 @@ package org.red5.server.net.rtmp.event;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
-import org.apache.mina.common.ByteBuffer;
+
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.api.stream.IStreamPacket;
 import org.red5.server.stream.IStreamData;
 
 public class AudioData extends BaseEvent implements IStreamData, IStreamPacket {
+	
 	private static final long serialVersionUID = -4102940670913999407L;
-	protected ByteBuffer data;
+	
+	protected IoBuffer data;
 
 	/** Constructs a new AudioData. */
     public AudioData() {
-		this(ByteBuffer.allocate(0).flip());
+		this(IoBuffer.allocate(0).flip());
 	}
 
-	public AudioData(ByteBuffer data) {
+	public AudioData(IoBuffer data) {
 		super(Type.STREAM_DATA);
 		this.data = data;
 	}
@@ -47,7 +50,7 @@ public class AudioData extends BaseEvent implements IStreamData, IStreamPacket {
 	}
 
 	/** {@inheritDoc} */
-    public ByteBuffer getData() {
+    public IoBuffer getData() {
 		return data;
 	}
 
@@ -61,7 +64,7 @@ public class AudioData extends BaseEvent implements IStreamData, IStreamPacket {
     @Override
 	protected void releaseInternal() {
 		if (data != null) {
-			data.release();
+			data.free();
 			data = null;
 		}
 	}
@@ -71,7 +74,7 @@ public class AudioData extends BaseEvent implements IStreamData, IStreamPacket {
 		super.readExternal(in);
 		byte[] byteBuf = (byte[]) in.readObject();
 		if (byteBuf != null) {
-			data = ByteBuffer.allocate(0);
+			data = IoBuffer.allocate(0);
 			data.setAutoExpand(true);
 			SerializeUtils.ByteArrayToByteBuffer(byteBuf, data);
 		}

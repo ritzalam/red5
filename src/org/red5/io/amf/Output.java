@@ -23,17 +23,18 @@ package org.red5.io.amf;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
-import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.beanutils.BeanMap;
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.annotations.Anonymous;
 import org.red5.io.amf3.ByteArray;
 import org.red5.io.object.BaseOutput;
@@ -67,13 +68,13 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
     /**
      * Output buffer
      */
-    protected ByteBuffer buf;
+    protected IoBuffer buf;
 
     /**
      * Creates output with given byte buffer
      * @param buf         Bute buffer
      */
-    public Output(ByteBuffer buf) {
+    public Output(IoBuffer buf) {
 		super();
 		this.buf = buf;
 	}
@@ -498,7 +499,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
     protected static byte[] encodeString(String string) {
     	byte[] encoded = stringCache.get(string);
 		if (encoded == null) {
-    		java.nio.ByteBuffer buf = AMF.CHARSET.encode(string);
+    		ByteBuffer buf = AMF.CHARSET.encode(string);
     		encoded = new byte[buf.limit()];
     		buf.get(encoded);
     		stringCache.put(string, encoded);
@@ -511,7 +512,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
      * @param buf         Byte buffer to write to
      * @param string      String to write
      */
-    public static void putString(ByteBuffer buf, String string) {
+    public static void putString(IoBuffer buf, String string) {
     	final byte[] encoded = encodeString(string);
 		buf.putShort((short) encoded.length);
 		buf.put(encoded);
@@ -543,7 +544,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
      * Return buffer of this Output object
      * @return        Byte buffer of this Output object
      */
-    public ByteBuffer buf() {
+    public IoBuffer buf() {
 		return this.buf;
 	}
 

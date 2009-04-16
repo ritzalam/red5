@@ -30,7 +30,7 @@ import org.apache.commons.httpclient.methods.ByteArrayRequestEntity;
 import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.params.HttpClientParams;
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.net.rtmp.RTMPClientConnManager;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.message.Constants;
@@ -94,8 +94,7 @@ class RTMPTClientConnector extends Thread {
 			RTMPTClientConnection connection = openConnection();
 
 			while (!connection.isClosing() && !stopRequested) {
-				ByteBuffer toSend = connection
-						.getPendingMessages(SEND_TARGET_SIZE);
+				IoBuffer toSend = connection.getPendingMessages(SEND_TARGET_SIZE);
 				PostMethod post;
 				if (toSend != null && toSend.limit() > 0) {
 					post = makePost("send");
@@ -111,7 +110,7 @@ class RTMPTClientConnector extends Thread {
 
 				byte[] received = post.getResponseBody();
 
-				ByteBuffer data = ByteBuffer.allocate(received.length);
+				IoBuffer data = IoBuffer.allocate(received.length);
 				data.put(received);
 				data.flip();
 				data.skip(1); // XXX: polling interval lies in this byte
@@ -174,8 +173,7 @@ class RTMPTClientConnector extends Thread {
 		connection.setEncoder(client.getCodecFactory().getSimpleEncoder());
 
 		log.debug("Handshake 1st phase");
-		ByteBuffer handshake = ByteBuffer
-				.allocate(Constants.HANDSHAKE_SIZE + 1);
+		IoBuffer handshake = IoBuffer.allocate(Constants.HANDSHAKE_SIZE + 1);
 		handshake.put((byte) 0x03);
 		handshake.fill((byte) 0x01, Constants.HANDSHAKE_SIZE);
 		handshake.flip();

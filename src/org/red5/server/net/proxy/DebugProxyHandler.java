@@ -24,14 +24,15 @@ import java.io.FileOutputStream;
 import java.net.InetSocketAddress;
 import java.nio.channels.WritableByteChannel;
 
-import org.apache.mina.common.ByteBuffer;
-import org.apache.mina.common.ConnectFuture;
-import org.apache.mina.common.IoHandlerAdapter;
-import org.apache.mina.common.IoSession;
+import org.apache.mina.core.buffer.IoBuffer;
+import org.apache.mina.core.future.ConnectFuture;
+import org.apache.mina.core.service.IoConnector;
+import org.apache.mina.core.service.IoHandlerAdapter;
+import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecFactory;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
-import org.apache.mina.transport.socket.nio.SocketConnector;
-import org.apache.mina.transport.socket.nio.SocketSessionConfig;
+import org.apache.mina.transport.socket.SocketSessionConfig;
+import org.apache.mina.transport.socket.nio.NioSocketConnector;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.message.Header;
@@ -143,7 +144,7 @@ public class DebugProxyHandler extends IoHandlerAdapter implements
 			FileOutputStream rawFos = new FileOutputStream(rawFile);
 			WritableByteChannel raw = rawFos.getChannel();
 
-			ByteBuffer header = ByteBuffer.allocate(1);
+			IoBuffer header = IoBuffer.allocate(1);
 			header.put((byte) (isClient ? 0x00 : 0x01));
 			header.flip();
 			headers.write(header.buf());
@@ -157,12 +158,13 @@ public class DebugProxyHandler extends IoHandlerAdapter implements
 
 		if (!isClient) {
 			log.debug("Connecting..");
-			SocketConnector connector = new SocketConnector();
-			ConnectFuture future = connector.connect(forward, this);
-			future.join(); // wait for connect, or timeout
+			IoConnector connector = new NioSocketConnector();
+			connector.setHandler(this);
+			ConnectFuture future = connector.connect(forward);
+			future.awaitUninterruptibly(); // wait for connect, or timeout
 			if (future.isConnected()) {
 				if (log.isDebugEnabled()) {
-					log.debug("Connected: " + forward);
+					log.debug("Connected: {}", forward);
 				}
 				IoSession client = future.getSession();
 				client.setAttribute(ProxyFilter.FORWARD_KEY, session);
@@ -180,7 +182,7 @@ public class DebugProxyHandler extends IoHandlerAdapter implements
 			return;
 		}
 
-		if (in instanceof ByteBuffer) {
+		if (in instanceof IoBuffer) {
 			log.debug("Handskake");
 			return;
 		}

@@ -32,7 +32,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.mp3.MP3AudioHeader;
 import org.jaudiotagger.audio.mp3.MP3File;
@@ -87,7 +87,7 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 	/**
 	 * Source byte buffer
 	 */
-	private ByteBuffer in;
+	private IoBuffer in;
 
 	/**
 	 * Last read tag object
@@ -195,7 +195,7 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
     						//set the cover image on the metadata
     						metaData.setCovr(imageBuffer);
     						// Create tag for onImageData event
-    						ByteBuffer buf = ByteBuffer.allocate(imageBuffer.length);
+    						IoBuffer buf = IoBuffer.allocate(imageBuffer.length);
     						buf.setAutoExpand(true);
     						Output out = new Output(buf);
     						out.writeString("onImageData");
@@ -237,7 +237,7 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 		// Use Big Endian bytes order
 		mappedFile.order(ByteOrder.BIG_ENDIAN);
 		// Wrap mapped byte buffer to MINA buffer
-		in = ByteBuffer.wrap(mappedFile);
+		in = IoBuffer.wrap(mappedFile);
 		// Analyze keyframes data
 		analyzeKeyFrames();
 
@@ -308,7 +308,7 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 	 */
 	private ITag createFileMeta() {
 		// Create tag for onMetaData event
-		ByteBuffer buf = ByteBuffer.allocate(1024);
+		IoBuffer buf = IoBuffer.allocate(1024);
 		buf.setAutoExpand(true);
 		Output out = new Output(buf);
 		out.writeString("onMetaData");
@@ -469,7 +469,7 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 				null, prevSize);
 		prevSize = frameSize + 1;
 		currentTime += header.frameDuration();
-		ByteBuffer body = ByteBuffer.allocate(tag.getBodySize());
+		IoBuffer body = IoBuffer.allocate(tag.getBodySize());
 		body.setAutoExpand(true);
 		byte tagType = (IoConstants.FLAG_FORMAT_MP3 << 4)
 				| (IoConstants.FLAG_SIZE_16_BIT << 1);
@@ -508,7 +508,7 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 		}
 		mappedFile.clear();
 		if (in != null) {
-			in.release();
+			in.free();
 			in = null;
 		}
 		try {

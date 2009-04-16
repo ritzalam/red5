@@ -23,7 +23,7 @@ import junit.framework.JUnit4TestAdapter;
 import junit.framework.Test;
 import junit.framework.TestCase;
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.stream.message.RTMPMessage;
 
@@ -57,7 +57,7 @@ public class PlayBufferTest extends TestCase {
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
-		VideoData message = new VideoData(ByteBuffer.allocate(100));
+		VideoData message = new VideoData(IoBuffer.allocate(100));
 		playBuffer = new PlayBuffer(1000);
 		rtmpMessage = new RTMPMessage();
 		rtmpMessage.setBody(message);

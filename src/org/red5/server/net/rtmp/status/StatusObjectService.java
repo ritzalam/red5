@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.beanutils.BeanMap;
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.amf.Output;
 import org.red5.io.object.Serializer;
 import org.red5.io.utils.HexDump;
@@ -174,7 +174,7 @@ public class StatusObjectService implements StatusCodes {
 		cachedStatusObjects = new HashMap<String, byte[]>();
 
 		String statusCode;
-		ByteBuffer out = ByteBuffer.allocate(256);
+		IoBuffer out = IoBuffer.allocate(256);
 		out.setAutoExpand(true);
 
         for (String s : statusObjects.keySet()) {
@@ -191,7 +191,7 @@ public class StatusObjectService implements StatusCodes {
             out.clear();
             cachedStatusObjects.put(statusCode, cachedBytes);
         }
-        out.release();
+        out.free();
         out = null;
 	}
 
@@ -200,7 +200,7 @@ public class StatusObjectService implements StatusCodes {
      * @param out                 Byte buffer for output object
      * @param statusObject        Status object to serialize
      */
-    public void serializeStatusObject(ByteBuffer out, StatusObject statusObject) {
+    public void serializeStatusObject(IoBuffer out, StatusObject statusObject) {
 		Map<?, ?> statusMap = new BeanMap(statusObject);
 		Output output = new Output(out);
 		serializer.serialize(output, statusMap);

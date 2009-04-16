@@ -22,7 +22,7 @@ package org.red5.server.stream;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.api.stream.IVideoStreamCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +58,7 @@ public class VideoCodecFactory {
      * @param data                 Byte buffer data
      * @return                     Video codec
      */
-	public IVideoStreamCodec getVideoCodec(ByteBuffer data) {
+	public IVideoStreamCodec getVideoCodec(IoBuffer data) {
 		IVideoStreamCodec result = null;
 		for (IVideoStreamCodec storedCodec: codecs) {
 			IVideoStreamCodec codec;

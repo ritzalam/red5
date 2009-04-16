@@ -19,6 +19,7 @@ package org.red5.io.amf;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+import java.beans.PropertyDescriptor;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
@@ -29,12 +30,11 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.beans.PropertyDescriptor;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.PropertyUtilsBean;
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.amf3.ByteArray;
 import org.red5.io.object.BaseInput;
 import org.red5.io.object.DataTypes;
@@ -59,7 +59,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 
 	protected static Logger log = LoggerFactory.getLogger(Input.class);
 
-	protected ByteBuffer buf;
+	protected IoBuffer buf;
 
 	protected byte currentDataType;
 
@@ -68,7 +68,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	 *
 	 * @param buf           Byte buffer
 	 */
-	public Input(ByteBuffer buf) {
+	public Input(IoBuffer buf) {
 		super();
 		this.buf = buf;
 	}
@@ -242,7 +242,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	 * @param buf       Byte buffer with data
 	 * @return String   Decoded string
 	 */
-	public static String getString(ByteBuffer buf) {
+	public static String getString(IoBuffer buf) {
 		int len = buf.getUnsignedShort();
 		log.debug("Length: {}", len);
 		int limit = buf.limit();

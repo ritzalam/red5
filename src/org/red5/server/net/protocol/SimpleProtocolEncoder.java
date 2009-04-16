@@ -19,7 +19,7 @@ package org.red5.server.net.protocol;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 
 /**
  *  Every protocol encoder should implement this
@@ -31,9 +31,9 @@ public interface SimpleProtocolEncoder {
 	 * 
 	 * @param state			Protocol state
 	 * @param out			Object to encode
-	 * @return				Byte buffer with encoded data
+	 * @return				IoBuffer with encoded data
 	 * @throws Exception    Any decoding exception
 	 */
-	public ByteBuffer encode(ProtocolState state, Object out) throws Exception;
+	public IoBuffer encode(ProtocolState state, Object out) throws Exception;
 
 }

@@ -19,7 +19,7 @@ package org.red5.server.stream.codec;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.api.stream.IVideoStreamCodec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -118,7 +118,7 @@ public class ScreenVideo implements IVideoStreamCodec {
 	}
 
 	/** {@inheritDoc} */
-    public boolean canHandleData(ByteBuffer data) {
+    public boolean canHandleData(IoBuffer data) {
 		byte first = data.get();
 		boolean result = ((first & 0x0f) == FLV_CODEC_SCREEN);
 		data.rewind();
@@ -141,7 +141,7 @@ public class ScreenVideo implements IVideoStreamCodec {
      * Update total block size
      * @param data      Byte buffer
      */
-	private void updateSize(ByteBuffer data) {
+	private void updateSize(IoBuffer data) {
 		this.widthInfo = data.getShort();
 		this.heightInfo = data.getShort();
 		// extract width and height of the frame
@@ -187,7 +187,7 @@ public class ScreenVideo implements IVideoStreamCodec {
 	}
 
 	/** {@inheritDoc} */
-    public boolean addData(ByteBuffer data) {
+    public boolean addData(IoBuffer data) {
 		if (!this.canHandleData(data)) {
 			return false;
 		}
@@ -222,8 +222,8 @@ public class ScreenVideo implements IVideoStreamCodec {
 	}
 
 	/** {@inheritDoc} */
-    public ByteBuffer getKeyframe() {
-		ByteBuffer result = ByteBuffer.allocate(1024);
+    public IoBuffer getKeyframe() {
+		IoBuffer result = IoBuffer.allocate(1024);
 		result.setAutoExpand(true);
 
 		// Header

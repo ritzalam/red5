@@ -26,7 +26,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Map;
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.ITag;
 import org.red5.io.ITagReader;
 import org.red5.io.ITagWriter;
@@ -97,8 +97,9 @@ public class FLV implements IFLV {
 				while (reader.hasMoreTags() && (++count < 5)) {
 					tag = reader.readTag();
 					if (tag.getDataType() == IoConstants.TYPE_METADATA) {
-						if (metaService == null)
+						if (metaService == null) {
 							metaService = new MetaService(this.file);
+						}
 						metaData = metaService.readMetaData(tag.getBody());
 					}
 				}
@@ -180,7 +181,7 @@ public class FLV implements IFLV {
 	 */
 	public ITagReader getReader() throws IOException {
 		FLVReader reader = null;
-		ByteBuffer fileData;
+		IoBuffer fileData;
 		String fileName = file.getName();
 
 		// if no cache is set an NPE will be thrown
@@ -215,7 +216,7 @@ public class FLV implements IFLV {
 				file.createNewFile();
 			}
 		} else {
-			fileData = ByteBuffer.wrap(ic.getBytes());
+			fileData = IoBuffer.wrap(ic.getBytes());
 			reader = new FLVReader(fileData, generateMetadata);
 		}
 		return reader;
@@ -225,7 +226,6 @@ public class FLV implements IFLV {
 	 * {@inheritDoc}
 	 */
 	public ITagReader readerFromNearestKeyFrame(int seekPoint) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 

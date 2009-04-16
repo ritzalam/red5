@@ -19,7 +19,7 @@ package org.red5.server.net.rtmpt;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.apache.mina.common.ByteBuffer;
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.api.Red5;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.protocol.SimpleProtocolCodecFactory;
@@ -79,21 +79,20 @@ public class RTMPTHandler extends RTMPHandler {
      * @param in          Byte buffer with input raw data
      */
     private void rawBufferRecieved(RTMPConnection conn, ProtocolState state,
-			ByteBuffer in) {
+    		IoBuffer in) {
 		final RTMP rtmp = (RTMP) state;
 
 		if (rtmp.getState() != RTMP.STATE_HANDSHAKE) {
 			log.warn("Raw buffer after handshake, something odd going on");
 		}
 
-		ByteBuffer out = ByteBuffer
-				.allocate((Constants.HANDSHAKE_SIZE * 2) + 1);
+		IoBuffer out = IoBuffer.allocate((Constants.HANDSHAKE_SIZE * 2) + 1);
 
 		log.debug("Writing handshake reply, handskake size: {}", in.remaining());
 
 		if (in.get(4) == 0) {
 			log.debug("Using old style handshake");
-			out = ByteBuffer.allocate((Constants.HANDSHAKE_SIZE * 2) + 1);
+			out = IoBuffer.allocate((Constants.HANDSHAKE_SIZE * 2) + 1);
 			out.put((byte) 0x03);
 			// set server uptime in seconds
 			out.putInt((int) Red5.getUpTime() / 1000);
@@ -115,9 +114,9 @@ public class RTMPTHandler extends RTMPHandler {
     @Override
 	public void messageReceived(RTMPConnection conn, ProtocolState state,
 			Object in) throws Exception {
-		if (in instanceof ByteBuffer) {
-			rawBufferRecieved(conn, state, (ByteBuffer) in);
-			((ByteBuffer) in).release();
+		if (in instanceof IoBuffer) {
+			rawBufferRecieved(conn, state, (IoBuffer) in);
+			((IoBuffer) in).free();
 			in = null;
 		} else {
 			super.messageReceived(conn, state, in);
