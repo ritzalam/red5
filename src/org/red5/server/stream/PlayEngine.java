@@ -71,6 +71,7 @@ import org.slf4j.Logger;
  * @author The Red5 Project (red5@osflash.org)
  * @author Steven Gong
  * @author Paul Gregoire (mondain@gmail.com)
+ * @author Dan Rossi 
  */
 public final class PlayEngine implements IFilter, IPushableConsumer,
 		IPipeConnectionListener, ITokenBucketCallback {
@@ -301,7 +302,15 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 			msgIn.unsubscribe(this);
 			msgIn = null;
 		}
-		// -2: live than recorded, -1: live, >=0: recorded
+		// Play type determination
+		// http://livedocs.adobe.com/flex/3/langref/flash/net/NetStream.html#play%28%29
+		// The start time, in seconds. Allowed values are -2, -1, 0, or a positive number. 
+		// The default value is -2, which looks for a live stream, then a recorded stream, 
+		// and if it finds neither, opens a live stream. 
+		// If -1, plays only a live stream. 
+		// If 0 or a positive number, plays a recorded stream, beginning start seconds in.
+		//
+		// -2: live then recorded, -1: live, >=0: recorded
 		int type = (int) (item.getStart() / 1000);
 		// see if it's a published stream
 		IScope thisScope = playlistSubscriberStream.getScope();
@@ -699,19 +708,16 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 		final long now = System.currentTimeMillis();
 		// check client buffer length when we've already sent some messages
 		if (lastMessage != null) {
-			// Duration the stream is playing
+			// Duration the stream is playing / playback duration
 			final long delta = now - playbackStart;
 			// Buffer size as requested by the client
 			final long buffer = playlistSubscriberStream.getClientBufferDuration();
-
 			// Expected amount of data present in client buffer
 			final long buffered = lastMessage.getTimestamp() - delta;
-			log
-					.debug(
-							"okayToSendMessage: timestamp {} delta {} buffered {} buffer {}",
-							new Object[] { lastMessage.getTimestamp(), delta,
-									buffered, buffer });
-			if (buffer > 0 && buffered > buffer) {
+			log.debug("okayToSendMessage: timestamp {} delta {} buffered {} buffer {}",
+						new Object[]{lastMessage.getTimestamp(), delta, buffered, buffer});
+			//Fix for SN-122, this sends double the size of the client buffer
+			if (buffer > 0 && buffered > (buffer * 2)) {
 				// Client is likely to have enough data in the buffer
 				return false;
 			}
@@ -758,25 +764,18 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 	 * Make sure the pull and push processing is running.
 	 */
 	private void ensurePullAndPushRunning() {
-		if (!pullMode) {
-			// We don't need this for live streams
-			return;
-		}
-
-		if (pullAndPushFuture == null) {
+		if (pullMode && pullAndPushFuture == null) {
 			synchronized (this) {
-				if (pullAndPushFuture == null) {
-					// client buffer is at least 100ms
-					pullAndPushFuture = playlistSubscriberStream.getExecutor().scheduleWithFixedDelay(
-							new PullAndPushRunnable(), 0, 10,
-							TimeUnit.MILLISECONDS);
-				}
+				// client buffer is at least 100ms
+				pullAndPushFuture = playlistSubscriberStream.getExecutor().scheduleWithFixedDelay(
+						new PullAndPushRunnable(), 0, 10,
+						TimeUnit.MILLISECONDS);
 			}
 		}
 	}
 
 	/**
-	 * Recieve then send if message is data (not audio or video)
+	 * Receive then send if message is data (not audio or video)
 	 */
 	protected synchronized void pullAndPush() throws IOException {
 		if (playlistSubscriberStream.state == State.PLAYING && pullMode && !waitingForToken) {
@@ -785,7 +784,6 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 				if (!okayToSendMessage(body)) {
 					return;
 				}
-
 				sendMessage(pendingMessage);
 				releasePendingMessage();
 			} else {
@@ -829,7 +827,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 							body.setTimestamp(body.getTimestamp()
 									+ timestampOffset);
 							if (okayToSendMessage(body)) {
-								//System.err.println("ts: " + rtmpMessage.getBody().getTimestamp());
+								log.trace("ts: {}", rtmpMessage.getBody().getTimestamp());
 								sendMessage(rtmpMessage);
 								((IStreamData) body).getData().free();
 							} else {
@@ -868,14 +866,14 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 			msgOut.pushMessage(message);
 			if (message instanceof RTMPMessage) {
 				IRTMPEvent body = ((RTMPMessage) message).getBody();
+				IoBuffer streamData = null;
 				if (body instanceof IStreamData
-						&& ((IStreamData) body).getData() != null) {
-					bytesSent += ((IStreamData) body).getData().limit();
+						&& (streamData = ((IStreamData) body).getData()) != null) {
+					bytesSent += streamData.limit();
 				}
 			}
-
 		} catch (IOException err) {
-			log.error("Error while pushing message.", err);
+			log.error("Error while pushing message", err);
 		}
 	}
 
@@ -884,15 +882,15 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 	 * @param message        RTMP message
 	 */
 	private void sendMessage(RTMPMessage message) {
+		int ts = message.getBody().getTimestamp();
 		log.debug("sendMessage: streamStartTS={}, length={}, streamOffset={}, timestamp={}",
-				new Object[]{streamStartTS, currentItem.getLength(), streamOffset,
-						message.getBody().getTimestamp()});
+				new Object[]{streamStartTS, currentItem.getLength(), streamOffset, ts});
 		if (streamStartTS == -1) {
 			log.debug("sendMessage: resetting streamStartTS");
-			streamStartTS = message.getBody().getTimestamp();
+			streamStartTS = ts;
 		} else {
 			if (currentItem.getLength() >= 0) {
-				int duration = message.getBody().getTimestamp() - streamStartTS;
+				int duration = ts - streamStartTS;
 				if (duration - streamOffset >= currentItem.getLength()) {
 					// Sent enough data to client
 					stop();
@@ -901,11 +899,6 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 			}
 		}
 		lastMessage = message.getBody();
-		//XXX Paul: bytesSent is updated in the doPushMessage() so I assume we dont
-		//also want to do it here?		
-		//if (lastMessage instanceof IStreamData && ((IStreamData) lastMessage).getData() != null) {
-		//	bytesSent += ((IStreamData) lastMessage).getData().limit();
-		//}
 		doPushMessage(message);
 	}
 
@@ -1022,7 +1015,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 	 * Send playlist switch status notification
 	 */
 	private void sendSwitchStatus() {
-		// TODO: find correct duration to sent
+		// TODO: find correct duration to send
 		int duration = 1;
 		sendOnPlayStatus(StatusCodes.NS_PLAY_SWITCH, duration, bytesSent);
 	}
@@ -1032,7 +1025,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 	 *
 	 */
 	private void sendCompleteStatus() {
-		// TODO: find correct duration to sent
+		// TODO: find correct duration to send
 		int duration = 1;
 		sendOnPlayStatus(StatusCodes.NS_PLAY_COMPLETE, duration, bytesSent);
 	}

@@ -61,10 +61,9 @@ public class RTMPClient extends BaseRTMPClientHandler {
 
 	public Map<String, Object> makeDefaultConnectionParams(String server, int port, String application) {
 		Map<String, Object> params = super.makeDefaultConnectionParams(server, port, application);
-		
-		if (!params.containsKey("tcUrl"))
-			params.put("tcUrl", "rtmp://"+server+':'+port+'/'+application);
-		
+		if (!params.containsKey("tcUrl")) {
+			params.put("tcUrl", String.format("rtmp://%s:%s/%s", server, port, application));
+		}
 		return params;
 	}
 
