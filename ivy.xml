@@ -103,6 +103,6 @@
         on your server in order for coding using this jar to run.
         See http://www.xuggle.com/xuggler for more information.
         -->
-        <dependency org="xuggle" name="xuggle-xuggler" rev="[1.18,)" conf="*"/>
+        <dependency org="xuggle" name="xuggle-xuggler" rev="[2.0,)" conf="*"/>
     </dependencies>
 </ivy-module>

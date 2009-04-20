@@ -21,6 +21,7 @@
                 <artifact pattern="http://red5.googlecode.com/svn/repository/[organisation]/[artifact](-[revision]).[ext]" />
             </url>
             <url m2compatible="true" name="xugglecode">
+                <artifact pattern="http://xuggle.googlecode.com/svn/trunk/repo/share/java/[organisation]/[artifact]/[revision]/[artifact](-[revision]).[ext]" />
                 <artifact pattern="http://xuggle.googlecode.com/svn/trunk/repo/share/java/[organisation]/[artifact]/[artifact](-[revision]).[ext]" />
                 <artifact pattern="http://xuggle.googlecode.com/svn/trunk/repo/share/java/[organisation]/[artifact](-[revision]).[ext]" />
                 <artifact pattern="http://xuggle.googlecode.com/svn/trunk/repo/share/java/[artifact](-[revision]).[ext]" />
