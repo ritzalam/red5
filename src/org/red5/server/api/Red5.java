@@ -27,16 +27,15 @@ import java.lang.ref.WeakReference;
  * This class uses a thread local, and will be setup by the service invoker.
  * 
  * The code below shows various uses. 
- * <p>
- * <code>
- * IConnection conn = Red5.getConnectionLocal();<br />
- * Red5 r5 = new Red5();<br />
- * IScope scope = r5.getScope();<br />
- * conn = r5.getConnection();<br /> 
- * r5 = new Red5(conn);<br />
- * IClient client = r5.getClient();<br /> 
- * </code>
- * </p>
+ * <br />
+ * <pre>
+ * IConnection conn = Red5.getConnectionLocal();
+ * Red5 r5 = new Red5();
+ * IScope scope = r5.getScope();
+ * conn = r5.getConnection();
+ * r5 = new Red5(conn);
+ * IClient client = r5.getClient();
+ * </pre>
  * 
  * @author The Red5 Project (red5@osflash.org) 
  * @author Luke Hubbard (luke@codegent.com)  

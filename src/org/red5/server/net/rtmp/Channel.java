@@ -20,7 +20,9 @@ package org.red5.server.net.rtmp;
  */
 
 import org.apache.mina.core.buffer.IoBuffer;
+import org.red5.server.api.IScope;
 import org.red5.server.api.stream.IClientStream;
+import org.red5.server.api.stream.IRtmpSampleAccess;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.event.Invoke;
 import org.red5.server.net.rtmp.event.Notify;
@@ -138,17 +140,25 @@ public class Channel {
 		if (andReturn) {
 			final PendingCall call = new PendingCall(null, "onStatus", new Object[] { status });
  			invoke = new Invoke();
-			if (status.getCode().equals(StatusCodes.NS_PLAY_START)) {
-				/* RtmpSampleAccess : video true, audio true
-				0x7c, 0x52, 0x74, 0x6d, 0x70, 0x53, 0x61, 0x6d,
-				0x70, 0x6c, 0x65, 0x41, 0x63, 0x63, 0x65, 0x73,
-				0x73, 0x01, 0x01, 0x01, 0x01 */
-				final Call call2 = new Call(null, "|RtmpSampleAccess", null);
-				Notify notify = new Notify();
-				notify.setInvokeId(1);
-				notify.setCall(call2);
-				notify.setData(IoBuffer.wrap(new byte[]{0x01, 0x01, 0x01, 0x01}));
-				write(notify, connection.getStreamIdForChannel(id));
+			if (status.getCode().equals(StatusCodes.NS_PLAY_START)) {	
+				IScope scope = connection.getScope();
+				IRtmpSampleAccess sampleAccess = (IRtmpSampleAccess) scope
+						.getContext().getApplicationContext().getBean(IRtmpSampleAccess.BEAN_NAME);
+				if (sampleAccess != null) {			
+    				boolean videoAccess = sampleAccess.isVideoAllowed(scope);
+    				boolean audioAccess = sampleAccess.isAudioAllowed(scope);
+    				if (videoAccess || audioAccess) {
+        				final Call call2 = new Call(null, "|RtmpSampleAccess", null);
+        				Notify notify = new Notify();
+        				notify.setInvokeId(1);
+        				notify.setCall(call2);
+        				notify.setData(IoBuffer.wrap(new byte[]{
+    									0x01, (byte) (audioAccess ? 0x01 : 0x00),
+            							0x01, (byte) (videoAccess ? 0x01 : 0x00)
+        							}));
+        				write(notify, connection.getStreamIdForChannel(id));
+    				}
+				}
 			}
 			invoke.setInvokeId(1);
 			invoke.setCall(call);
