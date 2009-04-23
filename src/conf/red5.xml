@@ -33,6 +33,7 @@
 		init-method="init" destroy-method="uninit">
 		<property name="parentContext" ref="red5.common" />
 		<property name="contextsConfig" value="classpath:/red5.globals" />
+		<property name="useShutdownHook" value="false" />
 	</bean>	
 	
 	<!-- Now we can load the servlet engine, this has to happen after the context are loaded -->

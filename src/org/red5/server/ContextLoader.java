@@ -46,6 +46,7 @@ import org.springframework.core.io.Resource;
  * Red5 applications loader
  */
 public class ContextLoader implements ApplicationContextAware, ContextLoaderMBean {
+
 	/**
 	 * Logger
 	 */
@@ -77,15 +78,19 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMBea
 	protected ConcurrentMap<String, ApplicationContext> contextMap = new ConcurrentHashMap<String, ApplicationContext>();
 
 	/**
+	 * Whether or not a JVM shutdown hook should be added to 
+	 * the Spring application context.
+	 */
+	private boolean useShutdownHook;
+	
+	/**
 	 * @param applicationContext Spring application context
 	 * @throws BeansException Top level exception for app context (that is, in fact, beans
 	 *             factory)
 	 */
 	public void setApplicationContext(ApplicationContext applicationContext)
 			throws BeansException {
-		this.applicationContext = applicationContext;
-		//register a jvm shutdown hook
-		((AbstractApplicationContext) applicationContext).registerShutdownHook();		
+		this.applicationContext = applicationContext;	
 	}
 
 	/**
@@ -106,6 +111,14 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMBea
 		this.contextsConfig = contextsConfig;
 	}
 
+	public boolean isUseShutdownHook() {
+		return useShutdownHook;
+	}
+
+	public void setUseShutdownHook(boolean useShutdownHook) {
+		this.useShutdownHook = useShutdownHook;
+	}
+	
 	/**
 	 * Loads context settings from ResourceBundle (.properties file)
 	 * 
@@ -117,6 +130,12 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMBea
 		//create a new mbean for this instance
 		oName = JMXFactory.createObjectName("type", "ContextLoader");
 		JMXAgent.registerMBean(this, this.getClass().getName(),	ContextLoaderMBean.class, oName);		
+		
+		//check to see if we should add a shutdown hook
+		if (useShutdownHook) {
+    		//register a jvm shutdown hook
+    		((AbstractApplicationContext) applicationContext).registerShutdownHook();	
+		}
 		
 		// Load properties bundle
 		Properties props = new Properties();
