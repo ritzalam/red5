@@ -47,9 +47,14 @@ public class VideoData extends BaseEvent implements IoConstants, IStreamData, IS
     protected IoBuffer data;
 
     /**
+     * Data type
+     */
+    private byte dataType = TYPE_VIDEO_DATA;
+
+    /**
      * Frame type, unknown by default
      */
-    private FrameType frameType = FrameType.UNKNOWN;
+    protected FrameType frameType = FrameType.UNKNOWN;
 
 	/** Constructs a new VideoData. */
     public VideoData() {
@@ -83,7 +88,11 @@ public class VideoData extends BaseEvent implements IoConstants, IStreamData, IS
 	/** {@inheritDoc} */
     @Override
 	public byte getDataType() {
-		return TYPE_VIDEO_DATA;
+		return dataType;
+	}
+
+	public void setDataType(byte dataType) {
+		this.dataType = dataType;
 	}
 
 	/** {@inheritDoc} */
@@ -121,7 +130,7 @@ public class VideoData extends BaseEvent implements IoConstants, IStreamData, IS
 		frameType = (FrameType) in.readObject();
 		byte[] byteBuf = (byte[]) in.readObject();
 		if (byteBuf != null) {
-			data = IoBuffer.allocate(0);
+			data = IoBuffer.allocate(byteBuf.length);
 			data.setAutoExpand(true);
 			SerializeUtils.ByteArrayToByteBuffer(byteBuf, data);
 		}

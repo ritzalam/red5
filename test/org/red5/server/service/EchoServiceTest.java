@@ -37,8 +37,6 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import junit.framework.TestCase;
 
-import org.red5.server.service.EchoService;
-import org.red5.server.service.IEchoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -53,7 +51,7 @@ public class EchoServiceTest extends TestCase {
 
 	final private Logger log = LoggerFactory.getLogger(this.getClass());
 
-	private IEchoService echoService;
+	private EchoService echoService;
 
 	/** {@inheritDoc} */
     @Override
@@ -89,6 +87,7 @@ public class EchoServiceTest extends TestCase {
 		assertEquals(startDate.getTime(), returnDate.getTime());
 	}
 
+	@SuppressWarnings("unchecked")
 	public void testEchoList() {
 		List<String> startList = new ArrayList<String>();
 		startList.add(0, "first");

@@ -53,7 +53,6 @@ public class Channel {
      */
     private int id;
 
-	//private Stream stream;
     /**
      * Creates channel from connection and channel id
      * @param conn                Connection
@@ -142,9 +141,8 @@ public class Channel {
  			invoke = new Invoke();
 			if (status.getCode().equals(StatusCodes.NS_PLAY_START)) {	
 				IScope scope = connection.getScope();
-				IRtmpSampleAccess sampleAccess = (IRtmpSampleAccess) scope
-						.getContext().getApplicationContext().getBean(IRtmpSampleAccess.BEAN_NAME);
-				if (sampleAccess != null) {			
+				if (scope.getContext().getApplicationContext().containsBean(IRtmpSampleAccess.BEAN_NAME)) {
+    				IRtmpSampleAccess sampleAccess = (IRtmpSampleAccess) scope.getContext().getApplicationContext().getBean(IRtmpSampleAccess.BEAN_NAME);
     				boolean videoAccess = sampleAccess.isVideoAllowed(scope);
     				boolean audioAccess = sampleAccess.isAudioAllowed(scope);
     				if (videoAccess || audioAccess) {
@@ -153,9 +151,8 @@ public class Channel {
         				notify.setInvokeId(1);
         				notify.setCall(call2);
         				notify.setData(IoBuffer.wrap(new byte[]{
-    									0x01, (byte) (audioAccess ? 0x01 : 0x00),
-            							0x01, (byte) (videoAccess ? 0x01 : 0x00)
-        							}));
+    							0x01, (byte) (audioAccess ? 0x01 : 0x00),
+            					0x01, (byte) (videoAccess ? 0x01 : 0x00)}));
         				write(notify, connection.getStreamIdForChannel(id));
     				}
 				}

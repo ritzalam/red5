@@ -32,6 +32,10 @@ public class AudioData extends BaseEvent implements IStreamData, IStreamPacket {
 	private static final long serialVersionUID = -4102940670913999407L;
 	
 	protected IoBuffer data;
+    /**
+     * Data type
+     */
+    private byte dataType = TYPE_AUDIO_DATA;
 
 	/** Constructs a new AudioData. */
     public AudioData() {
@@ -46,7 +50,11 @@ public class AudioData extends BaseEvent implements IStreamData, IStreamPacket {
 	/** {@inheritDoc} */
     @Override
 	public byte getDataType() {
-		return TYPE_AUDIO_DATA;
+		return dataType;
+	}
+    
+	public void setDataType(byte dataType) {
+		this.dataType = dataType;
 	}
 
 	/** {@inheritDoc} */

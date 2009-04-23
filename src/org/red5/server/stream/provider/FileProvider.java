@@ -152,7 +152,6 @@ public class FileProvider implements IPassive, ISeekableProvider,
 			default:
 				log.warn("Unexpected type? {}", tag.getDataType());
 				msg = new Unknown(tag.getDataType(), tag.getBody());
-				break;
 		}
 		msg.setTimestamp(timestamp);
 		RTMPMessage rtmpMsg = new RTMPMessage();
@@ -184,7 +183,6 @@ public class FileProvider implements IPassive, ISeekableProvider,
 					uninit();
 				}
 			default:
-				break;
 		}
 	}
 

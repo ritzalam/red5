@@ -116,7 +116,8 @@ public class ConnectionConsumer implements IPushableConsumer,
 			Header header = new Header();
 			int timestamp = streamTracker.add(msg);
 			if (timestamp < 0) {
-				log.warn("Skipping message with negative timestamp.");
+				log.info("Skipping message with negative timestamp: {}",
+						timestamp);
 				return;
 			}
 			header.setTimerRelative(streamTracker.isRelative());
@@ -172,7 +173,6 @@ public class ConnectionConsumer implements IPushableConsumer,
 					break;
 				default:
 					data.write(msg);
-					break;
 			}
 		}
 	}
@@ -222,7 +222,8 @@ public class ConnectionConsumer implements IPushableConsumer,
 			}
 			if (maxStream <= 0) {
 				// Use default value
-				// TODO: this should be configured somewhere and sent to the client when connecting
+				// TODO: this should be configured somewhere and sent to the
+				// client when connecting
 				maxStream = 120*1024;
 			}
 			

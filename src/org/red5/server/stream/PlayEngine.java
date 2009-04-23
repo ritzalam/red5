@@ -633,7 +633,6 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 				&& (position - streamOffset) >= currentItem.getLength()) {
 			// Seeked after end of stream
 			stop();
-			return;
 		}
 	}
 
@@ -857,6 +856,17 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 	}
 
 	/**
+	 * Sends a status message.
+	 * 
+	 * @param status
+	 */
+	private void doPushMessage(Status status) {
+		StatusMessage message = new StatusMessage();
+		message.setBody(status);
+		doPushMessage(message);
+	}
+	
+	/**
 	 * Send message to output stream and handle exceptions.
 	 * 
 	 * @param message The message to send.
@@ -951,9 +961,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 		reset.setDetails(item.getName());
 		reset.setDesciption(String.format("Playing and resetting %s.", item.getName()));
 
-		StatusMessage resetMsg = new StatusMessage();
-		resetMsg.setBody(reset);
-		doPushMessage(resetMsg);
+		doPushMessage(reset);
 	}
 
 	/**
@@ -966,9 +974,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 		start.setDetails(item.getName());
 		start.setDesciption(String.format("Started playing %s.", item.getName()));
 
-		StatusMessage startMsg = new StatusMessage();
-		startMsg.setBody(start);
-		doPushMessage(startMsg);
+		doPushMessage(start);
 	}
 
 	/**
@@ -981,9 +987,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 		stop.setDesciption(String.format("Stopped playing %s.", item.getName()));
 		stop.setDetails(item.getName());
 
-		StatusMessage stopMsg = new StatusMessage();
-		stopMsg.setBody(stop);
-		doPushMessage(stopMsg);
+		doPushMessage(stop);
 	}
 
 	private void sendOnPlayStatus(String code, int duration, long bytes) {
@@ -1041,9 +1045,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 		seek.setDetails(item.getName());
 		seek.setDesciption(String.format("Seeking %d (stream ID: %d).", position, streamId));
 
-		StatusMessage seekMsg = new StatusMessage();
-		seekMsg.setBody(seek);
-		doPushMessage(seekMsg);
+		doPushMessage(seek);
 	}
 
 	/**
@@ -1055,9 +1057,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 		pause.setClientid(streamId);
 		pause.setDetails(item.getName());
 
-		StatusMessage pauseMsg = new StatusMessage();
-		pauseMsg.setBody(pause);
-		doPushMessage(pauseMsg);
+		doPushMessage(pause);
 	}
 
 	/**
@@ -1069,9 +1069,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 		resume.setClientid(streamId);
 		resume.setDetails(item.getName());
 
-		StatusMessage resumeMsg = new StatusMessage();
-		resumeMsg.setBody(resume);
-		doPushMessage(resumeMsg);
+		doPushMessage(resume);
 	}
 
 	/**
@@ -1083,9 +1081,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 		published.setClientid(streamId);
 		published.setDetails(item.getName());
 
-		StatusMessage unpublishedMsg = new StatusMessage();
-		unpublishedMsg.setBody(published);
-		doPushMessage(unpublishedMsg);
+		doPushMessage(published);
 	}
 
 	/**
@@ -1097,9 +1093,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 		unpublished.setClientid(streamId);
 		unpublished.setDetails(item.getName());
 
-		StatusMessage unpublishedMsg = new StatusMessage();
-		unpublishedMsg.setBody(unpublished);
-		doPushMessage(unpublishedMsg);
+		doPushMessage(unpublished);
 	}
 
 	/**
@@ -1112,9 +1106,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 		notFound.setLevel(Status.ERROR);
 		notFound.setDetails(item.getName());
 
-		StatusMessage notFoundMsg = new StatusMessage();
-		notFoundMsg.setBody(notFound);
-		doPushMessage(notFoundMsg);
+		doPushMessage(notFound);
 	}
 
 	/**
@@ -1129,9 +1121,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 		insufficientBW
 				.setDesciption("Data is playing behind the normal speed.");
 
-		StatusMessage insufficientBWMsg = new StatusMessage();
-		insufficientBWMsg.setBody(insufficientBW);
-		doPushMessage(insufficientBWMsg);
+		doPushMessage(insufficientBW);
 	}
 
 	/**
@@ -1229,7 +1219,6 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 				}
 				break;
 			default:
-				break;
 		}
 	}
 

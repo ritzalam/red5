@@ -37,7 +37,7 @@ import org.w3c.dom.Document;
  * @author The Red5 Project (red5@osflash.org)
  * @author Chris Allen (mrchrisallen@gmail.com)
  */
-public class EchoService implements IEchoService {
+public class EchoService {
 
 	private Logger log = LoggerFactory.getLogger(EchoService.class);
 
