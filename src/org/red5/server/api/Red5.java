@@ -177,7 +177,7 @@ public final class Red5 implements Red5MBean {
 	 * @return String version
 	 */
 	public static long getUpTime() {
-	    return START_TIME - System.currentTimeMillis();
+	    return System.currentTimeMillis() - START_TIME;
 	}	
 
 }
