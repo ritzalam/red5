@@ -20,6 +20,7 @@ package org.red5.logging;
  */
 
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.impl.StaticLoggerBinder;
 
 import ch.qos.logback.classic.LoggerContext;
@@ -80,22 +81,37 @@ public class Red5LoggerFactory {
 
 	@SuppressWarnings("unchecked")
 	public static Logger getLogger(Class clazz, String contextName) {
-		//get the context selector
-		ContextSelector selector = StaticLoggerBinder.getSingleton()
-				.getContextSelector();
-		//get the context for the given context name or default if null
-		LoggerContext ctx = null;
-		if (contextName != null && contextName.length() > 0) {
-			ctx = selector.getLoggerContext(contextName);
+		Logger logger = null;
+		try {
+			//check for logback
+			Class.forName("ch.qos.logback.classic.selector.ContextSelector").newInstance();
+			
+			//get the context selector
+			ContextSelector selector = StaticLoggerBinder.getSingleton().getContextSelector();
+
+			//get the context for the given context name or default if null
+			LoggerContext ctx = null;
+			if (contextName != null && contextName.length() > 0) {
+				ctx = selector.getLoggerContext(contextName);
+			}
+			// and if we get here, fall back to the default context
+			if (ctx == null) {
+				ctx = selector.getLoggerContext(); 
+			}
+			
+			//debug
+			//StatusPrinter.print(ctx);
+			
+			//get the logger from the context or default context
+			logger = ((ctx != null) ? ctx.getLogger(clazz) : selector.getDefaultLoggerContext().getLogger(clazz));
+			
+		} catch (Exception e) {
+			//no logback, use whatever logger is in-place
+			logger = LoggerFactory.getLogger(clazz);
+			//e.printStackTrace();
 		}
-		// and if we get here, fall back to the default context
-		if (ctx == null) {
-			ctx = selector.getLoggerContext(); 
-		}
-		//debug
-		//StatusPrinter.print(ctx);
 		
-		return ctx != null ? ctx.getLogger(clazz) : selector.getDefaultLoggerContext().getLogger(clazz);
+		return logger;
 	}
 
 }
