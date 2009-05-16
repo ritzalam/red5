@@ -84,7 +84,9 @@ public class Red5LoggerFactory {
 		Logger logger = null;
 		try {
 			//check for logback
-			Class.forName("ch.qos.logback.classic.selector.ContextSelector").newInstance();
+			Class cs = Class.forName("ch.qos.logback.classic.selector.ContextSelector");
+			//trigger an exception if the class doesnt actually exist
+			cs.getDeclaredMethods();
 			
 			//get the context selector
 			ContextSelector selector = StaticLoggerBinder.getSingleton().getContextSelector();
@@ -108,7 +110,7 @@ public class Red5LoggerFactory {
 		} catch (Exception e) {
 			//no logback, use whatever logger is in-place
 			logger = LoggerFactory.getLogger(clazz);
-			//e.printStackTrace();
+			e.printStackTrace();
 		}
 		
 		return logger;
