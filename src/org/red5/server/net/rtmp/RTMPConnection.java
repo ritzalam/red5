@@ -1041,12 +1041,13 @@ public abstract class RTMPConnection extends BaseConnection implements
 	 */
 	protected void pingReceived(Ping pong) {
 		long now = System.currentTimeMillis();
-		long previousReceived = lastPongReceived.get();
+		long previousReceived = (int) (lastPingSent.get() & 0xffffffff);
 		log.debug("Pong from client id {} at {} with value {}, previous received at {}",
 				new Object[]{ getId(), now , pong.getValue2(), previousReceived });
-		if (lastPongReceived.compareAndSet(previousReceived, now)) {
-			lastPingTime.set(((int) (previousReceived & 0xffffffff)) - pong.getValue2());
+		if (pong.getValue2() == previousReceived) {
+			lastPingTime.set((int) (now & 0xffffffff) - pong.getValue2());
 		}
+		lastPongReceived.set(now);
 	}
 
 	/** {@inheritDoc} */
