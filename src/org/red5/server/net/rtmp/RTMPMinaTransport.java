@@ -21,6 +21,8 @@ package org.red5.server.net.rtmp;
  
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -197,10 +199,15 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 		sessionConf.setReceiveBufferSize(receiveBufferSize);
 		sessionConf.setSendBufferSize(sendBufferSize);
 
-		SocketAddress socketAddress = (address == null) ? new InetSocketAddress(
-				port)
+		Set<SocketAddress> addresses = new HashSet<SocketAddress>();
+		
+		SocketAddress socketAddress = (address == null) 
+				? new InetSocketAddress(port)
 				: new InetSocketAddress(address, port);
-		acceptor.bind(socketAddress);
+
+		addresses.add(socketAddress);	
+				
+		acceptor.bind(addresses);
 
 		log.info("RTMP Mina Transport bound to {}", socketAddress.toString());
 

@@ -20,6 +20,9 @@ package org.red5.server.net.udp;
  */
 
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.mina.core.service.IoAcceptor;
 import org.apache.mina.transport.socket.nio.NioDatagramAcceptor;
@@ -33,8 +36,10 @@ public class Standalone {
         //set our handler
         acceptor.setHandler(new BasicHandler());
         //bind
-        acceptor.bind(new InetSocketAddress(PORT));
-
+		Set<SocketAddress> addresses = new HashSet<SocketAddress>();			
+		addresses.add(new InetSocketAddress(PORT));	
+		acceptor.bind(addresses);
+		
         System.out.println("Listening on port " + PORT);
 	}
 

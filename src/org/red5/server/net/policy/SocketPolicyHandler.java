@@ -23,6 +23,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.service.IoAcceptor;
@@ -59,7 +62,11 @@ public class SocketPolicyHandler extends IoHandlerAdapter {
         try {
 			acceptor = new NioSocketAcceptor();
 			acceptor.setHandler(this);
-			acceptor.bind(new InetSocketAddress(host, port));
+			
+			Set<SocketAddress> addresses = new HashSet<SocketAddress>();			
+			addresses.add(new InetSocketAddress(host, port));	
+			acceptor.bind(addresses);
+			
 			log.info("Socket policy file server listening on port {}", port);
 			//get the file
 			File file = new File(System.getProperty("red5.config_root"), policyFileName);

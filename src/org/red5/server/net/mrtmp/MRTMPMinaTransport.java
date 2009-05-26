@@ -21,6 +21,8 @@ package org.red5.server.net.mrtmp;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.management.ObjectName;
 
@@ -195,9 +197,16 @@ public class MRTMPMinaTransport {
 			IoFilter filter = new LoggingFilter();
 			acceptor.getFilterChain().addFirst("LoggingFilter", filter);
 		}
+				
+		Set<SocketAddress> addresses = new HashSet<SocketAddress>();
 		
-		SocketAddress socketAddress = (address == null) ? new InetSocketAddress(port) : new InetSocketAddress(address, port);
-		acceptor.bind(socketAddress);
+		SocketAddress socketAddress = (address == null) 
+				? new InetSocketAddress(port)
+				: new InetSocketAddress(address, port);
+
+		addresses.add(socketAddress);	
+				
+		acceptor.bind(addresses);
 		
 		log.info("MRTMP Mina Transport bound to {}", socketAddress.toString());
 	}
