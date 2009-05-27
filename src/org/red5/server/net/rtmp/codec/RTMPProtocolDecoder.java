@@ -437,9 +437,13 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 		header.setChannelId(channelId);
 		header.setTimerRelative(headerSize != HEADER_NEW);
 
-		if (headerSize != HEADER_NEW && lastHeader == null)
+		if (headerSize != HEADER_NEW && lastHeader == null) {
 			log.error("Last header null not new, headerSize: {}, channelId {}", headerSize, channelId);
-
+			lastHeader = new Header();
+			lastHeader.setChannelId(channelId);
+			lastHeader.setTimerRelative(headerSize != HEADER_NEW);
+		}
+		
 		switch (headerSize) {
 
 			case HEADER_NEW:

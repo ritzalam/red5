@@ -1165,6 +1165,13 @@ public class MultiThreadedApplicationAdapter extends
 		// Override if necessary.
 	}
 
+	/**
+	 * Notification method that is sent by FME when publishing of a stream ends.
+	 */
+	public void FCUnpublish(String streamName) {
+		// Override if necessary.
+	}	
+	
 	public void streamBroadcastClose(IBroadcastStream stream) {
 		// log w3c connect event
 		IConnection conn = Red5.getConnectionLocal();

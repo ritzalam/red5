@@ -26,6 +26,7 @@ import org.apache.mina.core.buffer.IoBuffer;
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
+ * @author Andy Shaules (bowljoman@hotmail.com)
  */
 public class BufferUtils {
 
@@ -87,10 +88,18 @@ public class BufferUtils {
 	 * @return int               Number of bytes written
 	 */
 	public static int put(IoBuffer out, IoBuffer in, int numBytesMax) {
-		final int limit = in.limit();
-		final int numBytesRead = (numBytesMax > in.remaining()) ? in
-				.remaining() : numBytesMax;
-		in.limit(in.position() + numBytesRead);
+		final int limit = in.limit(); 
+		final int capacity = in.capacity(); 
+		final int numBytesRead = (numBytesMax > in.remaining()) ? in.remaining() : numBytesMax;
+		// buffer.limit 
+		// The new limit value, must be non-negative and no larger than this buffer's capacity 
+		// http://java.sun.com/j2se/1.4.2/docs/api/java/nio/Buffer.html#limit(int); 
+		// This is causing decoding error by raising RuntimeException IllegalArgumentError in 
+		// RTMPProtocolDecoder.decode to ProtocolException. 
+		int thisLimit = (in.position() + numBytesRead <= in.capacity()) ? in.position() + numBytesRead : capacity;
+		in.limit(thisLimit);
+		// any implication to giving output buffer in with limit set to capacity? 
+		// Reduces numBytesRead, triggers continueDecode?
 		out.put(in);
 		in.limit(limit);
 		return numBytesRead;
