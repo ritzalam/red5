@@ -86,7 +86,6 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
      * true if the SharedObject was stored by the persistence framework (NOT in database,
      * just plain serialization to the disk) and can be used later on reconnection
      */
-
 	protected boolean persistent;
 
     /**

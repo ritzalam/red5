@@ -35,6 +35,7 @@ import org.red5.server.net.rtmp.event.BaseEvent;
  */
 public class SharedObjectMessage extends BaseEvent implements
 		ISharedObjectMessage {
+	
 	private static final long serialVersionUID = -8128704039659990049L;
 
 	/**

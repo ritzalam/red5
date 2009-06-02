@@ -26,6 +26,7 @@ public class FlexSharedObjectMessage extends SharedObjectMessage {
 	private static final long serialVersionUID = -6458750398936033347L;
 
 	public FlexSharedObjectMessage() {}
+	
     /**
      * Creates Flex2 Shared Object event with given name, version and persistence flag
      *

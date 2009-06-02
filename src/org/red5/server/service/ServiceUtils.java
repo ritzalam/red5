@@ -31,6 +31,9 @@ public class ServiceUtils {
 
 	private static final Logger log = LoggerFactory.getLogger(ServiceUtils.class);
 
+	//used to prevent extra object creation when a method with a set of params is not found
+	private static final Object[] nullReturn = new Object[] { null, null };
+	
 	/**
 	 * Returns (method, params) for the given service or (null, null) if no
 	 * method was found.
@@ -208,7 +211,7 @@ public class ServiceUtils {
 			}
 		}
 
-		return new Object[] { null, null };
+		return nullReturn;
 	}
 
 }

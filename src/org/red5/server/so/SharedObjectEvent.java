@@ -23,8 +23,8 @@ import java.io.ObjectOutput;
  * with this library; if not, write to the Free Software Foundation, Inc., 
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
-
 public class SharedObjectEvent implements ISharedObjectEvent, Externalizable {
+	
 	private static final long serialVersionUID = -4129018814289863535L;
 
 	/**
