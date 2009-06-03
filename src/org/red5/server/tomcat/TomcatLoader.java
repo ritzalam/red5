@@ -140,6 +140,11 @@ public class TomcatLoader extends LoaderBase implements
 	protected List<Host> hosts;
 
 	/**
+	 * Connectors
+	 */
+	protected List<Connector> connectors;
+	
+	/**
 	 * Valves
 	 */
 	protected List<Valve> valves = new ArrayList<Valve>();
@@ -157,6 +162,18 @@ public class TomcatLoader extends LoaderBase implements
 	 * @return Catalina context (that is, web application)
 	 */
 	public Context addContext(String path, String docBase) {
+		return addContext(path, docBase, host);
+	}
+
+	/**
+	 * Add context for path and docbase to a host.
+	 * 
+	 * @param path Path
+	 * @param docBase Document base
+	 * @param host Host to add context to
+	 * @return Catalina context (that is, web application)
+	 */
+	public Context addContext(String path, String docBase, Host host) {
 		log.debug("Add context - path: {} docbase: {}", path, docBase);
 		org.apache.catalina.Context c = embedded.createContext(path, docBase);
 		log.trace("Context name: {} docbase: {} encoded: {}", new Object[] {
@@ -179,8 +196,8 @@ public class TomcatLoader extends LoaderBase implements
 		host.addChild(c);
 		LoaderBase.setRed5ApplicationContext(path, new TomcatApplicationContext(c));
 		return c;
-	}
-
+	}	
+	
 	/**
 	 * Remove context from the current host.
 	 * 
@@ -363,10 +380,18 @@ public class TomcatLoader extends LoaderBase implements
 
 		// add any additional hosts
 		if (hosts != null && !hosts.isEmpty()) {
+			// grab current contexts from base host
+			Container[] currentContexts = host.findChildren();
 			log.info("Adding {} additional hosts", hosts.size());
 			for (Host h : hosts) {
 				log.debug("Host - name: {} appBase: {} info: {}", new Object[] {
 						h.getName(), h.getAppBase(), h.getInfo() });
+				//add the contexts to each host
+				for (Container cont : currentContexts) {
+					Context c = (Context) cont;
+					addContext(c.getPath(), c.getDocBase(), h);
+				}				
+				//add the host to the engine
 				engine.addChild(h);
 			}
 		}
@@ -378,15 +403,28 @@ public class TomcatLoader extends LoaderBase implements
 		for (String key : connectionProperties.keySet()) {
 			log.debug("Setting connection property: {} = {}", key,
 					connectionProperties.get(key));
-			connector.setProperty(key, connectionProperties.get(key));
+			if (connectors == null) {
+				connector.setProperty(key, connectionProperties.get(key));
+			} else {
+				for (Connector ctr : connectors) {
+					ctr.setProperty(key, connectionProperties.get(key));
+					embedded.addConnector(ctr);
+				}				
+			}
 		}
 
 		// Start server
 		try {
 			// Add new Connector to set of Connectors for embedded server,
 			// associated with Engine
-			embedded.addConnector(connector);
-
+			if (connectors == null) {
+				embedded.addConnector(connector);
+			} else {
+				for (Connector ctr : connectors) {
+					embedded.addConnector(ctr);
+				}				
+			}		
+			
 			log.info("Starting Tomcat servlet engine");
 			embedded.start();
 
@@ -737,9 +775,7 @@ public class TomcatLoader extends LoaderBase implements
 	 */
 	public void setConnectors(List<Connector> connectors) {
 		log.debug("setConnectors: {}", connectors.size());
-		for (Connector ctr : connectors) {
-			embedded.addConnector(ctr);
-		}
+		this.connectors = connectors;
 	}
 
 	/**

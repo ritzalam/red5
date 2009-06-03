@@ -18,7 +18,7 @@ import java.lang.ref.WeakReference;
  *  
  * You should have received a copy of the GNU Lesser General Public License along 
  * with this library; if not, write to the Free Software Foundation, Inc., 
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
 /**
@@ -58,7 +58,7 @@ public final class Red5 implements Red5MBean {
     /**
      * Current server version with revision
      */
-    public static final String VERSION = "Red5 Server 0.8.0-RC3 $Revision$"; 
+    public static final String VERSION = "Red5 Server 0.8.0 $Revision$"; 
 
     /**
      * Current server version for fmsVer requests 
