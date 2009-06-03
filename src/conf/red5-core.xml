@@ -122,26 +122,15 @@
 		<!-- Max. time in milliseconds to wait for a valid handshake. -->
 		<property name="maxHandshakeTimeout" value="5000" />
 	</bean>
-	
-	<!-- Jetty RTMPT Container -->
-	<!--
-	<bean id="rtmpt.server"
-		class="org.red5.server.net.rtmpt.RTMPTLoader" init-method="init"
-		autowire="byType" />
-	-->
 		
-	<!-- Tomcat Container -->
+	<!-- RTMPT -->
+<!--
 	<bean id="rtmpt.server" class="org.red5.server.net.rtmpt.TomcatRTMPTLoader" init-method="init" lazy-init="true">
 	
 		<property name="webappFolder" value="${red5.root}/webapps" />
 		
 		<property name="connector">
 			<bean class="org.apache.catalina.connector.Connector">
-				<!-- Blocking I/O -->
-				<!--
-				<constructor-arg type="java.lang.String" value="org.apache.coyote.http11.Http11Protocol" />
-				-->
-				<!-- Non-blocking I/O -->
 				<constructor-arg type="java.lang.String" value="org.apache.coyote.http11.Http11NioProtocol" />	
 				<property name="port"><value>${rtmpt.port}</value></property>
 				<property name="enableLookups"><value>false</value></property>
@@ -169,19 +158,16 @@
 		</property>		
 
 	</bean>
+-->
 	
 	<!-- RTMPS -->
+<!--
 	<bean id="rtmps.server" class="org.red5.server.net.rtmps.TomcatRTMPSLoader" init-method="init" lazy-init="true">
 	
 		<property name="webappFolder" value="${red5.root}/webapps" />
 		
 		<property name="connector">
 			<bean class="org.apache.catalina.connector.Connector">
-				<!-- Blocking I/O -->
-				<!--
-				<constructor-arg type="java.lang.String" value="org.apache.coyote.http11.Http11Protocol" />
-				-->		
-				<!-- Non-blocking I/O -->
 				<constructor-arg type="java.lang.String" value="org.apache.coyote.http11.Http11NioProtocol" />	
 				<property name="port" value="${rtmps.port}" />
 				<property name="redirectPort" value="${rtmp.port}" />
@@ -254,7 +240,7 @@
         </property>			
 	
 	</bean>	
-
+-->
 	
 	<!-- Enable when you need it. - - >
 	<bean id="rtmpProxyTransport" class="org.red5.server.net.rtmp.RTMPMinaTransport" init-method="start" destroy-method="stop">
