@@ -20,6 +20,7 @@ package org.red5.server.war;
  */
 
 import java.beans.Introspector;
+import java.io.File;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ import java.util.Enumeration;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 
+import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.ClientRegistry;
 import org.red5.server.Context;
 import org.red5.server.GlobalScope;
@@ -40,7 +42,6 @@ import org.red5.server.jmx.JMXAgent;
 import org.red5.server.persistence.FilePersistenceThread;
 import org.red5.server.service.ServiceInvoker;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.web.context.ConfigurableWebApplicationContext;
@@ -63,8 +64,7 @@ public class WarLoaderServlet extends ContextLoaderListener {
 	private final static long serialVersionUID = 41919712008L;
 
 	// Initialize Logging
-	public static Logger logger = LoggerFactory
-			.getLogger(WarLoaderServlet.class);
+	public static Logger logger = Red5LoggerFactory.getLogger(WarLoaderServlet.class);
 
 	private static ArrayList<ServletContext> registeredContexts = new ArrayList<ServletContext>(
 			3);
@@ -102,7 +102,13 @@ public class WarLoaderServlet extends ContextLoaderListener {
 
 		servletContext = sce.getServletContext();
 		String prefix = servletContext.getRealPath("/");
-
+		
+		if (System.getProperty("red5.webapp.root") == null) {
+			File webapps = new File(prefix);
+			System.setProperty("red5.webapp.root", webapps.getParent());
+			webapps = null;
+		}
+		
 		long time = System.currentTimeMillis();
 
 		logger.info("{} WAR loader", Red5.VERSION);

@@ -57,13 +57,7 @@
 	<logger name="org.red5.server.Client">
 		<level value="INFO" />
 	</logger>
-	<logger name="org.red5.server.jetty">
-		<level value="INFO" />
-	</logger>
 	<logger name="org.red5.server.Standalone">
-		<level value="INFO" />
-	</logger>
-	<logger name="org.red5.server.tomcat">
 		<level value="INFO" />
 	</logger>
 	<logger name="org.red5.server.api.stream.support">
@@ -139,9 +133,12 @@
 	<logger name="org.red5.server.stream">
 		<level value="INFO" />
 	</logger>
-	<logger name="org.red5.server.stream.consumer">
-		<level value="WARN" />
-	</logger>
+    <logger name="org.red5.server.stream.consumer">
+        <level value="WARN" />
+    </logger>
+    <logger name="org.red5.server.war">
+        <level value="DEBUG" />
+    </logger>
 	<!-- Red5 demos -->
 	<logger name="org.red5.server.webapp.oflaDemo">
 		<level value="WARN" />

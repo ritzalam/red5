@@ -22,11 +22,8 @@ package org.red5.server.net.rtmp;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.SynchronousQueue;
 
 import javax.management.ObjectName;
 
@@ -48,7 +45,7 @@ import org.slf4j.LoggerFactory;
  * Transport setup class configures socket acceptor and thread pools for RTMP in Mina.
  * Note: This code originates from AsyncWeb, I've modified it for use with Red5. - Luke
  */
-public class RTMPMinaTransport implements RTMPMinaTransportMBean {
+public class RTMPMinaTransport {
 
 	private static final int DEFAULT_EVENT_THREADS_CORE = 16;
 
@@ -60,8 +57,6 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 
 	private static final int DEFAULT_IO_THREADS = Runtime.getRuntime()
 			.availableProcessors();
-
-	private static final int DEFAULT_PORT = 1935;
 
 	private static final int DEFAULT_RECEIVE_BUFFER_SIZE = 256 * 1024;
 
@@ -75,7 +70,7 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 
 	protected SocketAcceptor acceptor;
 
-	protected String address = null;
+	protected Set<SocketAddress> addresses = new HashSet<SocketAddress>();
 
 	protected int eventThreadsCore = DEFAULT_EVENT_THREADS_CORE;
 
@@ -94,12 +89,9 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 	/**
 	 * MBean object name used for de/registration purposes.
 	 */
-	protected ObjectName oName;
 	protected ObjectName serviceManagerObjectName;
 	
 	protected int jmxPollInterval = 1000;
-
-	protected int port = DEFAULT_PORT;
 
 	protected int receiveBufferSize = DEFAULT_RECEIVE_BUFFER_SIZE;
 
@@ -116,17 +108,18 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 		}
 	}
 
-	public void setAddress(String address) {
-		if ("*".equals(address) || "0.0.0.0".equals(address)) {
-			address = null;
-		}
-		this.address = address;
-		//update the mbean
-		//TODO: get the correct address for fallback when address is null
-		JMXAgent.updateMBeanAttribute(oName, "address",
-				(address == null ? "0.0.0.0" : address));
+	public void setConnector(InetSocketAddress connector) {
+		addresses.add(connector);
+		log.info("RTMP Mina Transport bound to {}", connector.toString());
 	}
-
+	
+	public void setConnectors(List<InetSocketAddress> connectors) {
+		for (InetSocketAddress addr : connectors) {
+			addresses.add(addr);
+			log.info("RTMP Mina Transport bound to {}", addr.toString());
+		}
+	}
+		
 	public void setEventThreadsCore(int eventThreadsCore) {
 		this.eventThreadsCore = eventThreadsCore;
 	}
@@ -150,11 +143,6 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 	public void setIoThreads(int ioThreads) {
 		this.ioThreads = ioThreads;
 	}
-	
-	public void setPort(int port) {
-		this.port = port;
-		JMXAgent.updateMBeanAttribute(oName, "port", port);
-	}
 
 	public void setReceiveBufferSize(int receiveBufferSize) {
 		this.receiveBufferSize = receiveBufferSize;
@@ -175,9 +163,10 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 	public void start() throws Exception {
 		initIOHandler();
 
-		IoBuffer.setUseDirectBuffer(!useHeapBuffers); // this is global, oh well.
+		IoBuffer.setUseDirectBuffer(!useHeapBuffers); // this is global, oh well
 		if (useHeapBuffers) {
-			IoBuffer.setAllocator(new SimpleBufferAllocator()); // dont pool for heap buffers.
+			// dont pool for heap buffers
+			IoBuffer.setAllocator(new SimpleBufferAllocator());
         }
 		
 		log.info("RTMP Mina Transport Settings");			
@@ -198,18 +187,10 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 		sessionConf.setTcpNoDelay(tcpNoDelay);
 		sessionConf.setReceiveBufferSize(receiveBufferSize);
 		sessionConf.setSendBufferSize(sendBufferSize);
-
-		Set<SocketAddress> addresses = new HashSet<SocketAddress>();
-		
-		SocketAddress socketAddress = (address == null) 
-				? new InetSocketAddress(port)
-				: new InetSocketAddress(address, port);
-
-		addresses.add(socketAddress);	
 				
+		String addrStr = addresses.toString();
+		log.debug("Binding to {}", addrStr);
 		acceptor.bind(addresses);
-
-		log.info("RTMP Mina Transport bound to {}", socketAddress.toString());
 
 		//create a new mbean for this instance
 		// RTMPMinaTransport
@@ -218,12 +199,6 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 			cName = cName.substring(cName.lastIndexOf('.')).replaceFirst(
 					"[\\.]", "");
 		}
-		oName = JMXFactory.createObjectName("type", cName,
-				"address", (address == null ? "0.0.0.0" : address), "port",
-				port + "");
-		JMXAgent.registerMBean(this, this.getClass().getName(),
-				RTMPMinaTransportMBean.class, oName);
-		
 		//enable only if user wants it
 		if (JMXAgent.isEnableMinaMonitor()) {
     		//add a service manager to allow for more introspection into the workings of mina
@@ -231,8 +206,7 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
     		//poll every second
 			stats.setThroughputCalculationInterval(jmxPollInterval);
     		serviceManagerObjectName = JMXFactory.createObjectName("type", "IoServiceManager",
-    				"address", (address == null ? "0.0.0.0" : address), "port",
-    				port + "");
+    				"addresses", addrStr);
     		JMXAgent.registerMBean(stats, stats.getClass().getName(), IoServiceMBean.class, serviceManagerObjectName);		
 		}
 	}
@@ -241,25 +215,24 @@ public class RTMPMinaTransport implements RTMPMinaTransportMBean {
 		log.info("RTMP Mina Transport unbind");
 		acceptor.unbind();
 		// deregister with jmx
-		JMXAgent.unregisterMBean(oName);
 		if (serviceManagerObjectName != null) {
 			JMXAgent.unregisterMBean(serviceManagerObjectName);
 		}
 	}
 
-	protected BlockingQueue<Runnable> threadQueue(int size) {
-		switch (size) {
-			case -1:
-				return new LinkedBlockingQueue<Runnable>();
-			case 0:
-				return new SynchronousQueue<Runnable>();
-			default:
-				return new ArrayBlockingQueue<Runnable>(size);
-		}
-	}
+//	protected BlockingQueue<Runnable> threadQueue(int size) {
+//		switch (size) {
+//			case -1:
+//				return new LinkedBlockingQueue<Runnable>();
+//			case 0:
+//				return new SynchronousQueue<Runnable>();
+//			default:
+//				return new ArrayBlockingQueue<Runnable>(size);
+//		}
+//	}
 
 	public String toString() {
-		return "RTMP Mina Transport [port=" + port + "]";
+		return String.format("RTMP Mina Transport %s", addresses.toString());
 	}
 
 	public int getJmxPollInterval() {

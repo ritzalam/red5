@@ -27,7 +27,7 @@
 		<property name="remoteSSLKeystore" value="${red5.config_root}/keystore.jmx"/>
 		<property name="remoteSSLKeystorePass" value="${rtmps.keystorepass}"/>
 		<!-- Mina offers its own Mbeans so you may integrate them here -->
-		<property name="enableMinaMonitor" value="true"/>
+		<property name="enableMinaMonitor" value="false"/>
 	</bean>
 	<!-- Serializes objects to AMF binary -->
 	<bean id="serializer" class="org.red5.io.object.Serializer"/>

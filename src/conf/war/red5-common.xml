@@ -1,36 +1,32 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	 xmlns:lang="http://www.springframework.org/schema/lang" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.0.xsd                            http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-2.0.xsd">
+	 xmlns:lang="http://www.springframework.org/schema/lang" 
+	 xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd                            
+	 http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-2.5.xsd">
 	<!-- This context is shared between all child contexts. -->
 	<!-- Server bean -->
 	<bean id="red5.server" class="org.red5.server.Server"/>
-
-	<!-- JMX server -->
-	<bean id="jmxFactory" class="org.red5.server.jmx.JMXFactory">
-		<property name="domain" value="org.red5.server"/>
-	</bean>
-	<bean id="jmxAgent" class="org.red5.server.jmx.JMXAgent" init-method="init">
-		<!-- The RMI adapter allows remote connections to the MBeanServer -->
-		<property name="enableRmiAdapter" value="false" />
-		<property name="rmiAdapterPort" value="9999"/>
-		<!-- SSL
-			To use jmx with ssl you must also supply the location of the keystore and its password
-			when starting the server with the following JVM options:
-				-Djavax.net.ssl.keyStore=keystore
-     			-Djavax.net.ssl.keyStorePassword=password
-		-->
-		<property name="enableSsl" value="false"/>
-		<!-- Starts a registry if it doesnt exist -->
-		<property name="startRegistry" value="true" />
-		<!-- Authentication -->
-		<property name="remoteAccessProperties" value=""/>
-		<property name="remotePasswordProperties" value=""/>
-		<!-- The HTML adapter allows connections to the MBeanServer via a web browser -->
-		<property name="enableHtmlAdapter" value="false" />
-		<property name="htmlAdapterPort" value="8082"/>
-		<!-- Mina offers its own Mbeans so you may integrate them here -->
-		<property name="enableMinaMonitor" value="true" />		
-	</bean>
+    <!-- JMX server -->
+    <bean id="jmxFactory" class="org.red5.server.jmx.JMXFactory">
+        <property name="domain" value="org.red5.server"/>
+    </bean>
+    <bean id="jmxAgent" class="org.red5.server.jmx.JMXAgent" init-method="init">
+        <!-- The RMI adapter allows remote connections to the MBeanServer -->
+        <property name="enableRmiAdapter" value="false"/>
+        <property name="rmiAdapterPort" value="9999"/>
+        <property name="rmiAdapterRemotePort" value=""/>
+        <property name="rmiAdapterHost" value="127.0.0.1"/>
+        <property name="enableSsl" value="false"/>
+        <!-- Starts a registry if it doesnt exist -->
+        <property name="startRegistry" value="false"/>
+        <!-- Authentication -->
+        <property name="remoteAccessProperties" value="access.properties"/>
+        <property name="remotePasswordProperties" value="password.properties"/>
+        <property name="remoteSSLKeystore" value=""/>
+        <property name="remoteSSLKeystorePass" value=""/>
+        <!-- Mina offers its own Mbeans so you may integrate them here -->
+        <property name="enableMinaMonitor" value="false"/>
+    </bean>	
 	<!-- Serializes objects to AMF binary -->
 	<bean id="serializer" class="org.red5.io.object.Serializer"/>
 	<!-- Deserializes objects from AMF binary -->
@@ -60,9 +56,7 @@
 		<property name="codecs">
 			<list>
 				<bean id="screenVideoCodec" class="org.red5.server.stream.codec.ScreenVideo"/>
-				<!--
 				<bean id="sorensonVideoCodec" class="org.red5.server.stream.codec.SorensonVideo"/>
-				-->
 			</list>
 		</property>
 	</bean>
@@ -98,7 +92,7 @@
 		<!-- 100MB -->
 	</bean>
 	<!-- Scheduling service -->
-	<bean id="schedulingService" class="org.red5.server.scheduling.QuartzSchedulingService" destroy-method="shutdown"/>
+	<bean id="schedulingService" class="org.red5.server.scheduling.QuartzSchedulingService"/>
 	<!-- Threadpool settings for the remoting clients -->
 	<bean id="remotingPool" class="org.red5.server.pooling.ThreadPool">
 		<property name="poolSize" value="8"/>

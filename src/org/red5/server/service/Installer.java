@@ -247,16 +247,22 @@ public final class Installer {
 			}
 			
 			//if we've found or downloaded the war
-			if (result) {
-    			//un-archive it to app dir
-    			FileUtil.unzip(srcDir + '/' + applicationWarName, contextDir);
-    			
+			if (result) {    			
     			//get the webapp loader
     			LoaderMBean loader = getLoader();
     			if (loader != null) {
+        			//un-archive it to app dir
+        			FileUtil.unzip(srcDir + '/' + applicationWarName, contextDir);
     				//load and start the context
     				loader.startWebApplication(application);	
-    			}	
+    			} else {
+    				//just copy the war to the webapps dir
+    				try {
+						FileUtil.moveFile(srcDir + '/' + applicationWarName, webappsDir + '/' + application + ".war");
+						ServiceUtils.invokeOnConnection(conn, "onAlert", new Object[]{String.format("Application %s will not be available until container is restarted", application)});			
+					} catch (IOException e) {
+					}
+    			}
 			}			
 
 			ServiceUtils.invokeOnConnection(conn, "onAlert", new Object[]{String.format("Application %s was %s", application, (result ? "installed" : "not installed"))});

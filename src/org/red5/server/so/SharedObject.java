@@ -282,9 +282,10 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
     	//
     	boolean persist = isPersistentObject();
     	//get read-only version of events
-    	ConcurrentLinkedQueue<ISharedObjectEvent> events = new ConcurrentLinkedQueue<ISharedObjectEvent>(ownerMessage.getEvents());   	
+    	ConcurrentLinkedQueue<ISharedObjectEvent> ownerEvents = ownerMessage.getEvents();
+    	ConcurrentLinkedQueue<ISharedObjectEvent> events = new ConcurrentLinkedQueue<ISharedObjectEvent>(ownerEvents);   	
     	//clear out previous events
-    	ownerMessage.getEvents().clear();
+    	ownerEvents.clear();
     	//
 		if (!events.isEmpty()) {
 			// Send update to "owner" of this update request

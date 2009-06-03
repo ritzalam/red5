@@ -366,7 +366,7 @@
 		<echo message="Compiler adapter name: ${compiler}"/>
 		<mkdir dir="${classes.dir}/WEB-INF/classes"/>
 		<property name="dest.dir" value="${classes.dir}/WEB-INF/classes"/>
-		<property name="std_excludes" value="**/*.jsp,org/red5/server/script/**,org/red5/server/jetty/**,org/red5/server/tomcat/**,org/red5/server/midi/**,org/red5/server/net/rtmpt/*Loader.java,org/red5/server/net/rtmps/*Loader.java,org/red5/server/net/servlet/RTMPTServlet.java,org/red5/server/net/servlet/StatisticsServlet.java,org/red5/server/net/servlet/ZAMFGatewayServlet.java,org/red5/server/ContextLoader.java,org/red5/server/DebugPooledByteBufferAllocator.java,org/red5/server/Bootstrap.java"/>
+		<property name="std_excludes" value="${server.war.excludes}"/>
 		<antcall target="compile-core" inheritAll="true" inheritRefs="true"/>
 		<antcall target="compile-core-compatibility" inheritAll="true" inheritRefs="true"/>
 		<!-- libraries and classes needed for building the demos -->

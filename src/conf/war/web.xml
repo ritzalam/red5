@@ -58,6 +58,11 @@
 		<url-pattern>/gateway</url-pattern>
 	</servlet-mapping>
 
+    <servlet-mapping>
+        <servlet-name>rtmpt</servlet-name>
+        <url-pattern>/fcs/*</url-pattern>
+    </servlet-mapping>
+
 	<servlet-mapping>
 		<servlet-name>rtmpt</servlet-name>
 		<url-pattern>/open/*</url-pattern>
