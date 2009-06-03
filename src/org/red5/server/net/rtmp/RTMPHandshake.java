@@ -29,6 +29,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.red5.server.net.IHandshake;
 import org.red5.server.net.rtmp.message.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +47,7 @@ import org.slf4j.LoggerFactory;
  * @author Steven Zimmer (stevenlzimmer@gmail.com)
  * @author Paul Gregoire (mondain@gmail.com)
  */
-public class RTMPHandshake {
+public class RTMPHandshake implements IHandshake {
 
 	protected static Logger log = LoggerFactory.getLogger(RTMPHandshake.class);	
 	
