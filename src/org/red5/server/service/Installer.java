@@ -107,7 +107,7 @@ public final class Installer {
 		HttpClientParams params = client.getParams();
 		params.setParameter(HttpMethodParams.USER_AGENT, userAgent);
 		//get registry file
-		HttpMethod method = new GetMethod(applicationRepositoryUrl + "registry-0.8.RC3.xml");
+		HttpMethod method = new GetMethod(applicationRepositoryUrl + "registry-0.8.xml");
 		//follow any 302's although there shouldnt be any
 		method.setFollowRedirects(true);
 		// execute the method

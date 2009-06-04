@@ -1164,12 +1164,13 @@
     
 	<!-- Build all documentation formats -->
 	<target name="doc-all" depends="doc-html, doc-html-single, doc-pdf" description="Generate all reference documentation"/>
+	
 	<!-- 
 		Requirements:
 		1. Go here: http://subclipse.tigris.org/svnant.html
 
 		2. Download SvnAnt
-		ex: http://subclipse.tigris.org/files/documents/906/43359/svnant-1.2.0-RC1.zip
+		ex: http://subclipse.tigris.org/files/documents/906/43359/svnant-1.2.1.zip
 
 		3. Unzip the archive and place the jar files in your Ant lib directory
 		ex: C:\dev\ant\lib	
@@ -1188,7 +1189,6 @@
 		<typedef resource="org/tigris/subversion/svnant/svnantlib.xml" classpath="svnant.jar"/>
 		<svn>
 			<!-- we are three levels down -->
-
 			<checkout url="${svn.url}" revision="HEAD" destPath="../../../"/>
 		</svn>
 	</target>
@@ -1201,7 +1201,7 @@
 				<isset property="java6.installed"/>
 			</not>
 		</condition>
-		<svn username="${svn.login}" password="${svn.password}" failonerror="false">
+		<svn username="${svn.login}" password="${svn.password}" failonerror="true">
 			<update dir="${basedir}"/>
 			<status path="build.xml" textStatusProperty="svn.info.status" lastChangedRevisionProperty="svn.info.lastrev"
 				 revisionProperty="svn.info.rev"/>
