@@ -57,7 +57,7 @@
 				<!--
 				<constructor-arg type="java.lang.String" value="org.apache.coyote.http11.Http11NioProtocol" />	
 				-->
-		        <property name="port"><value>${http.port}</value></property>
+                <property name="port"><value>${http.port}</value></property>
 		        <property name="redirectPort"><value>${https.port}</value></property>
 		        <property name="enableLookups"><value>false</value></property>
 			</bean>

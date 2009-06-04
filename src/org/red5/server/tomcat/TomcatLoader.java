@@ -403,31 +403,32 @@ public class TomcatLoader extends LoaderBase implements
 		for (String key : connectionProperties.keySet()) {
 			log.debug("Setting connection property: {} = {}", key,
 					connectionProperties.get(key));
-			if (connectors == null) {
+			if (connectors == null || connectors.isEmpty()) {
 				connector.setProperty(key, connectionProperties.get(key));
 			} else {
 				for (Connector ctr : connectors) {
 					ctr.setProperty(key, connectionProperties.get(key));
-					embedded.addConnector(ctr);
 				}				
 			}
 		}
 
 		// Start server
-		try {
+		try {			
 			// Add new Connector to set of Connectors for embedded server,
 			// associated with Engine
-			if (connectors == null) {
+			if (connectors == null || connectors.isEmpty()) {
 				embedded.addConnector(connector);
+				log.trace("Connector oName: {}", connector.getObjectName());
 			} else {
 				for (Connector ctr : connectors) {
 					embedded.addConnector(ctr);
+					log.trace("Connector oName: {}", ctr.getObjectName());
 				}				
-			}		
-			
+			}			
+
 			log.info("Starting Tomcat servlet engine");
 			embedded.start();
-
+			
 			LoaderBase.setApplicationLoader(new TomcatApplicationLoader(
 					embedded, host, applicationContext));
 		
