@@ -172,9 +172,12 @@
 		<level value="WARN" />
 	</logger>
 	<!-- Apache catalina / tomcat -->
-	<logger name="org.apache.catalina">
-		<level value="INFO" />
-	</logger>
+    <logger name="org.apache.catalina">
+        <level value="INFO" />
+    </logger>
+    <logger name="org.apache.catalina.loader">
+        <level value="INFO" />
+    </logger>
 	<logger name="org.apache.catalina.realm">
 		<level value="WARN" />
 	</logger>
