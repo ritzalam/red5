@@ -31,6 +31,8 @@ import javax.management.MBeanServer;
 import javax.management.MBeanServerInvocationHandler;
 import javax.management.ObjectName;
 import javax.servlet.ServletContext;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.catalina.Container;
 import org.apache.catalina.Context;
@@ -42,6 +44,7 @@ import org.apache.catalina.Valve;
 import org.apache.catalina.connector.Connector;
 import org.apache.catalina.core.StandardContext;
 import org.apache.catalina.core.StandardHost;
+import org.apache.catalina.core.StandardWrapper;
 import org.apache.catalina.loader.WebappLoader;
 import org.apache.catalina.realm.MemoryRealm;
 import org.apache.catalina.startup.Embedded;
@@ -61,6 +64,10 @@ import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.web.context.ConfigurableWebApplicationContext;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.XmlWebApplicationContext;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /**
  * Red5 loader for Tomcat.
@@ -199,7 +206,7 @@ public class TomcatLoader extends LoaderBase implements
 		log.debug("Context loader (check): {} Context classloader: {}", c
 				.getLoader(), c.getLoader().getClassLoader());
 		host.addChild(c);
-		LoaderBase.setRed5ApplicationContext(path, new TomcatApplicationContext(c));
+		LoaderBase.setRed5ApplicationContext(path, new TomcatApplicationContext(c));		
 		return c;
 	}	
 	
@@ -336,20 +343,62 @@ public class TomcatLoader extends LoaderBase implements
 				}
 				log.trace("Context: {}", ctx);
 
-				/*
-				// put watches on context and web configs
-				ctx.addWatchedResource("WEB-INF/web.xml");
-				ctx.addWatchedResource("META-INF/context.xml");
-
-				File contextConfig = new File(webappContextDir,
-						"META-INF/context.xml");
-				if (contextConfig.exists()) {
-					log.trace("Setting default context.xml");
-					((StandardContext) ctx).setDefaultContextXml(contextConfig
-							.getAbsolutePath());
+				//see if the application requests php support
+				String enablePhp = ctx.findParameter("enable-php");
+				//if its null try to read directly
+				if (enablePhp == null) {
+    				File webxml = new File(webappContextDir + "/WEB-INF/", "web.xml");
+    				if (webxml.exists() && webxml.canRead()) {					
+    					try {
+							DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
+							DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
+							Document doc = docBuilder.parse(webxml);
+							// normalize text representation
+							doc.getDocumentElement().normalize();
+							log.trace("Root element of the doc is {}", doc.getDocumentElement().getNodeName());
+							NodeList listOfElements = doc.getElementsByTagName("context-param");
+							int totalElements = listOfElements.getLength();
+							log.trace("Total no of elements: {}", totalElements);
+							for (int s = 0; s < totalElements; s++) {
+							    Node fstNode = listOfElements.item(s);
+							    if (fstNode.getNodeType() == Node.ELEMENT_NODE) {
+							        Element fstElmnt = (Element) fstNode;
+							        NodeList fstNmElmntLst = fstElmnt.getElementsByTagName("param-name");
+							        Element fstNmElmnt = (Element) fstNmElmntLst.item(0);
+							        NodeList fstNm = fstNmElmnt.getChildNodes();
+							        String pName = ((Node) fstNm.item(0)).getNodeValue();
+							        log.trace("Param name: {}", pName);
+							        if ("enable-php".equals(pName)) {
+    							        NodeList lstNmElmntLst = fstElmnt.getElementsByTagName("param-value");
+    							        Element lstNmElmnt = (Element) lstNmElmntLst.item(0);
+    							        NodeList lstNm = lstNmElmnt.getChildNodes();
+    							        String pValue =  ((Node) lstNm.item(0)).getNodeValue();
+    							        log.trace("Param value: {}", pValue);
+    							        enablePhp = pValue;
+    							        //
+    							        break;
+							        }
+							    }
+							}
+						} catch (Exception e) {
+							log.warn("Error reading web.xml", e);
+						}
+    				}
+    				webxml = null;
 				}
-				*/
-
+				log.debug("Enable php: {}", enablePhp);
+				if ("true".equals(enablePhp)) {
+					log.info("Adding PHP (Quercus) servlet for context: {}", ctx.getName());
+					// add servlet wrapper
+					StandardWrapper wrapper = (StandardWrapper) ctx.createWrapper();
+					wrapper.setServletName("QuercusServlet");
+					wrapper.setServletClass("com.caucho.quercus.servlet.QuercusServlet");
+					log.debug("Wrapper: {}", wrapper);
+					ctx.addChild(wrapper);					
+					// add servlet mappings
+					ctx.addServletMapping("*.php", "QuercusServlet");		
+				}	
+				
 				webappContextDir = null;
 			}
 		}
@@ -448,7 +497,7 @@ public class TomcatLoader extends LoaderBase implements
 							.getContextPath());
 
 					String prefix = servletContext.getRealPath("/");
-					log.debug("Path: {}", prefix);
+					log.debug("Path: {}", prefix);						
 
 					try {
 						if (ctx.resourcesStart()) {
@@ -466,42 +515,6 @@ public class TomcatLoader extends LoaderBase implements
 						final ClassLoader webClassLoader = cldr.getClassLoader();
 						log.debug("Webapp classloader: {}", webClassLoader);
 
-						if (log.isTraceEnabled()) {
-							ClassLoader currentThreadCL = Thread.currentThread().getContextClassLoader();
-							if (currentThreadCL == null) {
-								log
-										.trace(
-												"Classloaders:\nWebappParentParent {}\nWebappParent {}\nWebapp {}\n\n",
-												new Object[] {
-														webClassLoader
-																.getParent()
-																.getParent(),
-														webClassLoader
-																.getParent(),
-														webClassLoader });
-							} else if (webClassLoader == null) {
-								log
-										.trace(
-												"Classloaders:\nParent {}\nThread {}\n\n",
-												currentThreadCL.getParent(),
-												currentThreadCL);
-							} else {
-								log
-										.trace(
-												"Classloaders:\nParent {}\nThread {}\nWebappParentParent {}\nWebappParent {}\nWebapp {}\n\n",
-												new Object[] {
-														currentThreadCL
-																.getParent(),
-														currentThreadCL,
-														webClassLoader
-																.getParent()
-																.getParent(),
-														webClassLoader
-																.getParent(),
-														webClassLoader });
-							}
-						}
-
 						// get the (spring) config file path
 						final String contextConfigLocation = servletContext
 								.getInitParameter(org.springframework.web.context.ContextLoader.CONFIG_LOCATION_PARAM) == null 
@@ -517,7 +530,7 @@ public class TomcatLoader extends LoaderBase implements
 						log.debug("Spring parent context key: {}", parentContextKey);
 
 						//set current threads classloader to the webapp classloader
-						Thread.currentThread().setContextClassLoader(webClassLoader);
+						Thread.currentThread().setContextClassLoader(webClassLoader);						
 						
 						//create a thread to speed-up application loading
 						Thread thread = new Thread("Launcher:" + servletContext
@@ -548,7 +561,7 @@ public class TomcatLoader extends LoaderBase implements
 								servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, appctx);
 								if (log.isDebugEnabled()) {
 									log.debug("Red5 app is active: {} running: {}", appctx.isActive(), appctx.isRunning());
-								}
+								}																
 							}
 						};
 						thread.setDaemon(true);
@@ -558,7 +571,7 @@ public class TomcatLoader extends LoaderBase implements
 						log.error("Error setting up context: {} due to: {}",
 								servletContext.getContextPath(), t.getMessage());
 						t.printStackTrace();
-					} finally {
+					} finally {									
 						//reset the classloader
 						Thread.currentThread().setContextClassLoader(originalClassLoader);
 					}

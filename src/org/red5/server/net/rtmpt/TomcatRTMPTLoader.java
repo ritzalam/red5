@@ -104,9 +104,7 @@ public class TomcatRTMPTLoader extends TomcatLoader {
 		log.trace("Context loader (null if the context has not been started): {}", ldr);
 		if (ldr == null) {
 			ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-			//log.debug("Classloaders - Parent {}\nTCL {}\n\n", new Object[] {classLoader.getParent(), classLoader});
 			ctx.setParentClassLoader(classLoader);
-
 			WebappLoader wldr = new WebappLoader(classLoader);
 			//add the Loader to the context
 			ctx.setLoader(wldr);
@@ -117,7 +115,7 @@ public class TomcatRTMPTLoader extends TomcatLoader {
 		host.addChild(ctx);
 		
 		// add servlet wrapper
-		StandardWrapper wrapper = new StandardWrapper();
+		StandardWrapper wrapper = (StandardWrapper) ctx.createWrapper();
 		wrapper.setServletName("RTMPTServlet");
 		wrapper.setServletClass("org.red5.server.net.servlet.RTMPTServlet");
 		ctx.addChild(wrapper);

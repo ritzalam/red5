@@ -50,9 +50,9 @@ public class Launcher {
 			//classloader
 			Logger log = Red5LoggerFactory.getLogger(Launcher.class);
 		    //version info banner
-			log.info("{} (http://www.osflash.org/red5)", Red5.getVersion());
+			log.info("{} (http://code.google.com/p/red5/)", Red5.getVersion());
 			//pimp red5
-			System.out.printf("%s (http://www.osflash.org/red5)\n", Red5.getVersion());
+			System.out.printf("%s (http://code.google.com/p/red5/)\n", Red5.getVersion());
 			
 			//create red5 app context
 			FileSystemXmlApplicationContext ctx = new FileSystemXmlApplicationContext(new String[]{"classpath:/red5.xml"}, false);	
