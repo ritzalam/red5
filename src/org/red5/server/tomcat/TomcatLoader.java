@@ -110,6 +110,11 @@ public class TomcatLoader extends LoaderBase implements
 	}
 
 	/**
+	 * Common name for the Service and Engine components.
+	 */
+	public String serviceEngineName = "red5Engine";
+	
+	/**
 	 * Base container host.
 	 */
 	protected Host host;
@@ -290,11 +295,12 @@ public class TomcatLoader extends LoaderBase implements
 		embedded.createLoader(originalClassLoader);
 		embedded.setCatalinaBase(serverRoot);
 		embedded.setCatalinaHome(serverRoot);
+		embedded.setName(serviceEngineName);
 		log.trace("Classloader for embedded: {} TCL: {}", Embedded.class.getClassLoader(), originalClassLoader);		
 		
 		engine = embedded.createEngine();
 		engine.setDefaultHost(host.getName());
-		engine.setName("red5Engine");
+		engine.setName(serviceEngineName);
 
 		if (webappFolder == null) {
 			// Use default webapps directory
