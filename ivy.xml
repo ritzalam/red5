@@ -99,10 +99,5 @@
         <dependency name="jython-engine" rev="" conf="eclipse->*"/> 
         <dependency name="groovy-engine" rev="" conf="eclipse->*"/>
         <dependency name="jruby-engine" rev="" conf="eclipse->*"/> 
-        <!-- Xuggle; Note that you MUST install Xuggle's native component
-        on your server in order for coding using this jar to run.
-        See http://www.xuggle.com/xuggler for more information.
-        -->
-        <dependency org="xuggle" name="xuggle-xuggler" rev="[2.0,)" conf="*"/>
     </dependencies>
 </ivy-module>
