@@ -20,6 +20,7 @@ package org.red5.io.amf;
  */
 
 
+import java.io.File;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -30,8 +31,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+
+import net.sf.ehcache.Cache;
+import net.sf.ehcache.CacheException;
+import net.sf.ehcache.CacheManager;
+import net.sf.ehcache.Element;
 
 import org.apache.commons.beanutils.BeanMap;
 import org.apache.mina.core.buffer.IoBuffer;
@@ -58,12 +62,49 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 	protected static Logger log = LoggerFactory.getLogger(Output.class);
 
 	/**
-	 * Cache encoded strings.
+	 * Cache encoded strings... the TK way...
 	 */
-	protected static final ConcurrentMap<String, byte[]> stringCache = new ConcurrentHashMap<String, byte[]>();
-	protected static final Map<Class<?>, Map<String, Boolean>> serializeCache = new HashMap<Class<?>, Map<String, Boolean>>();
-	protected static final Map<Class<?>, Map<String, Field>> fieldCache = new HashMap<Class<?>, Map<String, Field>>();
-	protected static final Map<Class<?>, Map<String, Method>> getterCache = new HashMap<Class<?>, Map<String, Method>>();
+	private static Cache stringCache;
+	
+	private static Cache serializeCache;
+	
+	private static Cache fieldCache;
+	
+	private static Cache getterCache;
+	
+	private static CacheManager cacheManager;
+	
+	private static CacheManager getCacheManager() {
+		if (cacheManager == null) {
+			if (System.getProperty("red5.root") != null) {
+//    			we're running Red5 as a server.
+				try {
+					cacheManager = new CacheManager(System.getProperty("red5.root") + File.separator + "conf"
+							+ File.separator + "ehcache.xml"); 
+				} catch (CacheException e) {
+					cacheManager = constructDefault();
+				}
+			} else {
+//    			not a server, maybe running tests? 
+				cacheManager = constructDefault();
+			}
+		}
+		
+		return cacheManager;
+	}
+	
+	private static CacheManager constructDefault() {
+		CacheManager manager = new CacheManager();
+		if(!manager.cacheExists("org.red5.io.amf.Output.stringCache")) 
+			manager.addCache("org.red5.io.amf.Output.stringCache");
+		if(!manager.cacheExists("org.red5.io.amf.Output.getterCache"))
+			manager.addCache("org.red5.io.amf.Output.getterCache");
+		if (!manager.cacheExists("org.red5.io.amf.Output.fieldCache"))
+			manager.addCache("org.red5.io.amf.Output.fieldCache");
+		if (!manager.cacheExists("org.red5.io.amf.Output.serializeCache"))
+			manager.addCache("org.red5.io.amf.Output.serializeCache");
+		return manager;
+	}
 
     /**
      * Output buffer
@@ -322,15 +363,19 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		buf.put(AMF.TYPE_END_OF_OBJECT);
 	}
 
+    @SuppressWarnings("unchecked")
 	protected boolean serializeField(Serializer serializer, Class<?> objectClass, String keyName, Field field, Method getter) {
-		Map<String, Boolean> serializeMap = serializeCache.get(objectClass);
+//		to prevent, NullPointerExceptions, get the element first and check if it's null. 
+    	Element element = getSerializeCache().get(objectClass);
+    	Map<String, Boolean> serializeMap = (element == null ? null : (Map<String,Boolean>)element.getObjectValue());
+		
 		if (serializeMap == null) {
 			serializeMap = new HashMap<String, Boolean>();
-			serializeCache.put(objectClass, serializeMap);
+			getSerializeCache().put(new Element(objectClass, serializeMap));
 		}
 
 		Boolean serialize;
-		if (serializeCache.containsKey(keyName)) {
+		if (getSerializeCache().isKeyInCache(keyName)) {
 			serialize = serializeMap.get(keyName);
 		} else {
 			serialize = serializer.serializeField(keyName, field, getter);
@@ -339,12 +384,15 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 
 		return serialize;
 	}
-
+    
+    @SuppressWarnings("unchecked")
 	protected Field getField(Class<?> objectClass, String keyName) {
-	    Map<String, Field> fieldMap = fieldCache.get(objectClass);
+//		again, to prevent null pointers, check if the element exists first.
+		Element element = getFieldCache().get(objectClass);
+		Map<String, Field> fieldMap = (element == null ? null : (Map<String,Field>)element.getObjectValue());
 	    if (fieldMap == null) {
 		    fieldMap = new HashMap<String, Field>();
-		    fieldCache.put(objectClass, fieldMap);
+		    getFieldCache().put(new Element(objectClass, fieldMap));
 	    }
 
 	    Field field = null;
@@ -366,13 +414,15 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 
 	    return field;
     }
-
+    
+    @SuppressWarnings("unchecked")
 	protected Method getGetter(Class<?> objectClass, String keyName) {
-
-		Map<String, Method> getterMap = getterCache.get(objectClass);
+//		check element to prevent null pointer
+		Element element = getGetterCache().get(objectClass);
+		Map<String, Method> getterMap = (element == null ? null : (Map<String, Method>)element.getObjectValue());
 		if (getterMap == null) {
 			getterMap = new HashMap<String, Method>();
-			getterCache.put(objectClass, getterMap);
+			getGetterCache().put(new Element(objectClass, getterMap));
 		}
 
 		Method getter = null;
@@ -497,12 +547,13 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
      * @return encoded string
      */
     protected static byte[] encodeString(String string) {
-    	byte[] encoded = stringCache.get(string);
+    	Element element = getStringCache().get(string);
+    	byte[] encoded = (element == null ? null : (byte[])element.getObjectValue());
 		if (encoded == null) {
     		ByteBuffer buf = AMF.CHARSET.encode(string);
     		encoded = new byte[buf.limit()];
     		buf.get(encoded);
-    		stringCache.put(string, encoded);
+    		getStringCache().put(new Element(string, encoded));
     	}		
     	return encoded;
     }
@@ -552,4 +603,36 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
     	clearReferences();
     }
 
+	protected static Cache getStringCache() {
+		if (stringCache == null) {
+			stringCache = getCacheManager().getCache("org.red5.io.amf.Output.stringCache");
+		}
+			
+		
+		return stringCache;
+	}
+	
+	protected static Cache getSerializeCache() {
+		if (serializeCache == null) {
+			serializeCache = getCacheManager().getCache("org.red5.io.amf.Output.serializeCache");
+		}
+		
+		return serializeCache;
+	}
+	
+	protected static Cache getFieldCache() {
+		if (fieldCache == null) {
+			fieldCache = getCacheManager().getCache("org.red5.io.amf.Output.fieldCache");				
+		}
+		
+		return fieldCache;
+	}
+	
+	protected static Cache getGetterCache() {
+		if (getterCache == null) {
+			getterCache = getCacheManager().getCache("org.red5.io.amf.Output.getterCache");
+		}
+			
+		return getterCache;
+	}
 }

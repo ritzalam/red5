@@ -12,7 +12,7 @@
 
     Subdirectories can be specified below the property e.g. java.io.tmpdir/one
     -->
-    <diskStore path="java.io.tmpdir"/>
+    <diskStore path="java.io.tmpdir/red5"/>
 
     <!--
     Specifies a CacheManagerEventListenerFactory, be used to create a CacheManagerPeerProvider,
@@ -285,4 +285,35 @@
             diskExpiryThreadIntervalSeconds="120"
             memoryStoreEvictionPolicy="LFU"
             />
+	
+	<!-- org.red5.io.amf.Output.stringCache
+			Caches strings for output via AMF serialization. Keeps up to 1000 elements in memory,
+			does not overflow to disk, is not eternal, and expires elements after 20 minutes of 
+			inactivity.  -->
+	<cache name="org.red5.io.amf.Output.stringCache"
+		maxElementsInMemory="1000"
+		eternal="false"
+		timeToIdleSeconds="1200"
+		overflowToDisk="false"/>
+	
+	<!-- org.red5.io.amf.Output.serializeCache
+			 -->
+	<cache name="org.red5.io.amf.Output.serializeCache"
+		maxElementsInMemory="200"
+		eternal="false"
+		timeToIdleSeconds="1200"
+		overflowToDisk="false"/>
+		
+	<cache name="org.red5.io.amf.Output.fieldCache"
+		maxElementsInMemory="200"
+		eternal="false"
+		timeToIdleSeconds="1200"
+		overflowToDisk="false"/>
+		
+	<cache name="org.red5.io.amf.Output.getterCache"
+		maxElementsInMemory="200"
+		eternal="false"
+		timeToIdleSeconds="1200"
+		overflowToDisk="false"/>
+	
 </ehcache>

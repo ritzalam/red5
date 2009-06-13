@@ -29,6 +29,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import net.sf.ehcache.Element;
+
 import org.apache.commons.beanutils.BeanMap;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.annotations.Anonymous;
@@ -142,12 +144,13 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 	}
 
     protected static byte[] encodeString(String string) {
-    	byte[] encoded = stringCache.get(string);
+    	Element element = getStringCache().get(string);
+    	byte[] encoded = (element == null ? null : (byte[])element.getObjectValue());
     	if (encoded == null) {
     		ByteBuffer buf = AMF3.CHARSET.encode(string);
     		encoded = new byte[buf.limit()];
     		buf.get(encoded);
-   			stringCache.put(string, encoded);
+   			getStringCache().put(new Element(string, encoded));
     	}
     	return encoded;
     }
