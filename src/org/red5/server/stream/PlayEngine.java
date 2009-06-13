@@ -547,7 +547,8 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 	 */
 	public synchronized void seek(int position) throws IllegalStateException,
 			OperationNotSupportedException {
-		if (playlistSubscriberStream.state != State.PLAYING 
+		log.trace("Seek: {}", position);
+		if (playlistSubscriberStream.state != State.PLAYING
 				&& playlistSubscriberStream.state != State.PAUSED
 				&& playlistSubscriberStream.state != State.STOPPED) {
 			throw new IllegalStateException();
@@ -570,6 +571,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 			seekPos = position;
 		}
 		playbackStart = System.currentTimeMillis() - seekPos;
+		log.trace("Playback start: {} seek pos: {}", playbackStart, seekPos);
 		playlistSubscriberStream.notifyItemSeek(currentItem, seekPos);
 		boolean messageSent = false;
 		boolean startPullPushThread = false;

@@ -220,16 +220,6 @@ public class RTMPMinaTransport {
 		}
 	}
 
-//	protected BlockingQueue<Runnable> threadQueue(int size) {
-//		switch (size) {
-//			case -1:
-//				return new LinkedBlockingQueue<Runnable>();
-//			case 0:
-//				return new SynchronousQueue<Runnable>();
-//			default:
-//				return new ArrayBlockingQueue<Runnable>(size);
-//		}
-//	}
 
 	public String toString() {
 		return String.format("RTMP Mina Transport %s", addresses.toString());

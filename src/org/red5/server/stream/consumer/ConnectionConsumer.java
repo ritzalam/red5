@@ -81,11 +81,17 @@ public class ConnectionConsumer implements IPushableConsumer,
     /**
      * Chunk size. Packets are sent chunk-by-chunk.
      */
-	private int chunkSize = -1;
+	private int chunkSize = 4096;
     /**
      * Stream tracker
      */
 	private StreamTracker streamTracker;
+
+	/**
+	 * Whether or not the chunk size has been sent. This seems to be 
+	 * required for h264.
+	 */
+	private boolean chunkSizeSent;
 
     /**
      * Create rtmp connection consumer for given connection and channels
@@ -96,6 +102,7 @@ public class ConnectionConsumer implements IPushableConsumer,
      */
     public ConnectionConsumer(RTMPConnection conn, int videoChannel,
     		int audioChannel, int dataChannel) {
+		log.trace("Channel ids - video: {} audio: {} data: {}", new Object[]{videoChannel, audioChannel, dataChannel});
 		this.conn = conn;
 		this.video = conn.getChannel(videoChannel);
 		this.audio = conn.getChannel(audioChannel);
@@ -104,13 +111,22 @@ public class ConnectionConsumer implements IPushableConsumer,
 	}
 
 	/** {@inheritDoc} */
-    public void pushMessage(IPipe pipe, IMessage message) {
+	public void pushMessage(IPipe pipe, IMessage message) {
+		log.trace("pushMessage - type: {}", message.getMessageType());
 		if (message instanceof ResetMessage) {
 			streamTracker.reset();
 		} else if (message instanceof StatusMessage) {
 			StatusMessage statusMsg = (StatusMessage) message;
 			data.sendStatus(statusMsg.getBody());
 		} else if (message instanceof RTMPMessage) {
+			//make sure chunk size has been sent
+			if (!chunkSizeSent) {
+				log.debug("Sending chunk size");
+				ChunkSize chunkSizeMsg = new ChunkSize(chunkSize);
+				conn.getChannel((byte) 2).write(chunkSizeMsg);		
+				chunkSizeSent = true;
+			}
+			
 			RTMPMessage rtmpMsg = (RTMPMessage) message;
 			IRTMPEvent msg = rtmpMsg.getBody();
 			Header header = new Header();
@@ -124,34 +140,21 @@ public class ConnectionConsumer implements IPushableConsumer,
 			header.setTimer(timestamp);
 
 			switch (msg.getDataType()) {
-				case Constants.TYPE_STREAM_METADATA:
-					Notify notify = new Notify(((Notify) msg).getData()
-							.asReadOnlyBuffer());
-					notify.setHeader(header);
-					notify.setTimestamp(header.getTimer());
-					data.write(notify);
-					break;
-				case Constants.TYPE_FLEX_STREAM_SEND:
-					// TODO: okay to send this also to AMF0 clients?
-					FlexStreamSend send = new FlexStreamSend(((Notify) msg).getData()
-							.asReadOnlyBuffer());
-					send.setHeader(header);
-					send.setTimestamp(header.getTimer());
-					data.write(send);
-					break;
-				case Constants.TYPE_VIDEO_DATA:
-					VideoData videoData = new VideoData(((VideoData) msg)
-							.getData().asReadOnlyBuffer());
-					videoData.setHeader(header);
-					videoData.setTimestamp(header.getTimer());
-					video.write(videoData);
-					break;
 				case Constants.TYPE_AUDIO_DATA:
+					log.trace("Audio data");
 					AudioData audioData = new AudioData(((AudioData) msg)
 							.getData().asReadOnlyBuffer());
 					audioData.setHeader(header);
 					audioData.setTimestamp(header.getTimer());
 					audio.write(audioData);
+					break;
+				case Constants.TYPE_VIDEO_DATA:
+					log.trace("Video data");
+					VideoData videoData = new VideoData(((VideoData) msg)
+							.getData().asReadOnlyBuffer());
+					videoData.setHeader(header);
+					videoData.setTimestamp(header.getTimer());
+					video.write(videoData);
 					break;
 				case Constants.TYPE_PING:
 					log.trace("Ping");					
@@ -162,7 +165,25 @@ public class ConnectionConsumer implements IPushableConsumer,
 					ping.setTimestamp(header.getTimer());
 					conn.ping(ping);
 					break;
+				case Constants.TYPE_STREAM_METADATA:
+					log.trace("Meta data");
+					Notify notify = new Notify(((Notify) msg).getData()
+							.asReadOnlyBuffer());
+					notify.setHeader(header);
+					notify.setTimestamp(header.getTimer());
+					data.write(notify);
+					break;
+				case Constants.TYPE_FLEX_STREAM_SEND:
+					log.trace("Flex stream send");
+					// TODO: okay to send this also to AMF0 clients?
+					FlexStreamSend send = new FlexStreamSend(((Notify) msg)
+							.getData().asReadOnlyBuffer());
+					send.setHeader(header);
+					send.setTimestamp(header.getTimer());
+					data.write(send);
+					break;
 				case Constants.TYPE_BYTES_READ:
+					log.trace("Bytes read");
 					BytesRead bytesRead = new BytesRead(((BytesRead) msg)
 							.getBytesRead());
 					header.setTimerRelative(false);
@@ -172,6 +193,7 @@ public class ConnectionConsumer implements IPushableConsumer,
 					conn.getChannel((byte) 2).write(bytesRead);
 					break;
 				default:
+					log.trace("Default");
 					data.write(msg);
 			}
 		}
@@ -224,7 +246,7 @@ public class ConnectionConsumer implements IPushableConsumer,
 				// Use default value
 				// TODO: this should be configured somewhere and sent to the
 				// client when connecting
-				maxStream = 120*1024;
+				maxStream = 120 * 1024;
 			}
 			
 			// Return the current delta between sent bytes and bytes the client

@@ -74,6 +74,8 @@
 					<property name="generateMetadata" value="true"/>
 				</bean>
 				<bean id="mp3FileService" class="org.red5.io.mp3.impl.MP3Service"/>
+				<bean id="mp4FileService" class="org.red5.io.mp4.impl.MP4Service"/>
+				<bean id="m4aFileService" class="org.red5.io.m4a.impl.M4AService"/>
 			</list>
 		</property>
 	</bean>
@@ -168,6 +170,8 @@
 			<ref bean="keyframe.cache"/>
 		</property>
 	</bean>
+	<!-- Use injection to set the keyframe cache for MP4 files -->
+	<bean id="mp4reader.impl" class="org.red5.io.mp4.impl.MP4Reader"/>
 	<!-- Use injection to set the keyframe cache for MP3 files -->
 	<bean id="mp3reader.impl" class="org.red5.io.mp3.impl.MP3Reader">
 		<property name="frameCache">

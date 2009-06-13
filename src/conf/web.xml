@@ -554,6 +554,10 @@
         <mime-type>text/css</mime-type>
     </mime-mapping>
     <mime-mapping>
+        <extension>dcr</extension>
+        <mime-type>application/x-director</mime-type>
+    </mime-mapping>
+    <mime-mapping>
         <extension>dib</extension>
         <mime-type>image/bmp</mime-type>
     </mime-mapping>
@@ -1032,6 +1036,10 @@
     <mime-mapping>
         <extension>vsd</extension>
         <mime-type>application/x-visio</mime-type>
+    </mime-mapping>
+    <mime-mapping>
+        <extension>w3d</extension>
+        <mime-type>application/octet-stream</mime-type>
     </mime-mapping>
     <mime-mapping>
         <!-- Wireless Bitmap -->

@@ -28,12 +28,27 @@ import java.io.IOException;
 public interface IStreamableFileService {
 
 	/**
+	 * Sets the prefix.
+	 * 
+	 * @param prefix
+	 */
+	public void setPrefix(String prefix);
+	
+	/**
      * Getter for prefix. Prefix is used in filename composition to fetch real file name.
      *
      * @return  Prefix
      */
     public String getPrefix();
 
+    /**
+     * Sets the file extensions serviced. If there are more than one, they are separated
+     * by commas.
+     * 
+     * @param extension
+     */
+    public void setExtension(String extension);
+    
 	/**
      * Getter for extension of file
      *
