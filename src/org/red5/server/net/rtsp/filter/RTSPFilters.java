@@ -46,7 +46,7 @@ import org.red5.server.net.rtsp.filter.rewrite.RequestUrlRewritingImpl;
 /**
  * Base class for filter chains based on configuration settings.
  * 
- * @author Matteo Merli
+ * @author Matteo Merli (matteo.merli@gmail.com)
  */
 public abstract class RTSPFilters implements IoFilterChainBuilder {
 

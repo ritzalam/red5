@@ -36,8 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @author mat
- * 
+ * @author Matteo Merli (matteo.merli@gmail.com)
  */
 public class SDESInfo implements RTCPInfo {
 	static Logger log = LoggerFactory.getLogger(SDESInfo.class);
@@ -97,7 +96,6 @@ public class SDESInfo implements RTCPInfo {
 	 * @see rtspproxy.rtp.rtcp.RTCPInfo#toBuffer()
 	 */
 	public ByteBuffer toBuffer() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 

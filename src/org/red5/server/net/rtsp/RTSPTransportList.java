@@ -35,6 +35,8 @@ import java.util.List;
 
 /**
  * Represent a list of transport headers.
+ * 
+ * @author Matteo Merli (matteo.merli@gmail.com)
  */
 public class RTSPTransportList {
 

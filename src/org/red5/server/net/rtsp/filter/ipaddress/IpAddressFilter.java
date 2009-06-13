@@ -38,8 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @author Matteo Merli
- *
+ * @author Matteo Merli (matteo.merli@gmail.com)
  */
 public class IpAddressFilter extends IoFilterAdapter {
 

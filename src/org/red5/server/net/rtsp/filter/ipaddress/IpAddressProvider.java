@@ -33,7 +33,7 @@ package org.red5.server.net.rtsp.filter.ipaddress;
 import java.net.InetAddress;
 
 /**
- * @author Matteo Merli
+ * @author Matteo Merli (matteo.merli@gmail.com)
  */
 public interface IpAddressProvider {
 

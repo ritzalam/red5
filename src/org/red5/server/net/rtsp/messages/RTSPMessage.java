@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Base abstract class for RTSP messages.
  * 
- * @author mat
+ * @author Matteo Merli (matteo.merli@gmail.com)
  */
 public abstract class RTSPMessage {
 

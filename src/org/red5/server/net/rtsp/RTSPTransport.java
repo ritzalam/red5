@@ -67,6 +67,8 @@ import org.slf4j.LoggerFactory;
  *           Transport: RTP/AVP;multicast;ttl=127;mode=&quot;PLAY&quot;,
  *                      RTP/AVP;unicast;client_port=3456-3457;mode=&quot;PLAY&quot;
  * </pre>
+ * 
+ * @author Matteo Merli (matteo.merli@gmail.com)
  */
 public class RTSPTransport {
 

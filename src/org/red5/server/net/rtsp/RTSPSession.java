@@ -39,9 +39,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * RTSP is primarly a connection-less protocol, that means that RTSP request can
+ * RTSP is primarily a connection-less protocol, that means that RTSP request can
  * be made over multiples TCP connections. To identify such a "session", a
  * 64-bit identifier is used.
+ * 
+ * @author Matteo Merli (matteo.merli@gmail.com)
  */
 public class RTSPSession {
 

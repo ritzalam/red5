@@ -36,7 +36,7 @@ import org.red5.io.object.UnsignedInt;
 import org.red5.server.net.rtp.Packet;
 
 /**
- * @author mat
+ * @author Matteo Merli (matteo.merli@gmail.com)
  */
 public class RTCPPacket implements Packet {
 

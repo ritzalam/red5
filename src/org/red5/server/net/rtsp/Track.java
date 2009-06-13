@@ -19,18 +19,9 @@ package org.red5.server.net.rtsp;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-/***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- *   Copyright (C) 2005 - Matteo Merli - matteo.merli@gmail.com            *
- *                                                                         *
- ***************************************************************************/
-
 /**
+ * 
+ * @author Matteo Merli (matteo.merli@gmail.com)
  */
 public class Track {
 

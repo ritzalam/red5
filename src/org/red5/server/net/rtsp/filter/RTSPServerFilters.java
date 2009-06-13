@@ -35,7 +35,7 @@ import org.apache.mina.core.filterchain.IoFilterChain;
 /**
  * Builds the filter chain used when connecting to a RTSP server.
  * 
- * @author Matteo Merli
+ * @author Matteo Merli (matteo.merli@gmail.com)
  */
 public class RTSPServerFilters extends RTSPFilters {
 

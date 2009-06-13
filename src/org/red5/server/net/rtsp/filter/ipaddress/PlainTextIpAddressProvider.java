@@ -40,19 +40,20 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 /**
  * Implementation of the IpAddressFilter that is based on plain 
  * text file containing instruction on "allowed" and "denied" 
  * addresses and hosts.
  * 
- * @author Matteo Merli
+ * @author Matteo Merli (matteo.merli@gmail.com)
  */
 public class PlainTextIpAddressProvider implements IpAddressProvider {
 
-	private static Logger log = Logger
-			.getLogger(PlainTextIpAddressProvider.class);
+	private static Logger log = LoggerFactory.getLogger(PlainTextIpAddressProvider.class);
 
 	private enum RuleType {
 		Allow, Deny
@@ -144,7 +145,7 @@ public class PlainTextIpAddressProvider implements IpAddressProvider {
 					throw new IOException("Invalid filter pattern (line "
 							+ lineNumber + ")");
 				String pattern = patternSplit[1];
-				log.debug("Rule: " + ruleType + " " + pattern);
+				log.debug("Rule: {} {}", ruleType, pattern);
 
 				// Transform the patterns escaping "." and "*" characters
 				pattern = pattern.replaceAll("\\.", "\\\\.");
@@ -156,7 +157,7 @@ public class PlainTextIpAddressProvider implements IpAddressProvider {
 				rules.add(rule);
 			}
 		} catch (IOException e) {
-			log.error("Error reading IpAddressFilter rules: " + e);
+			log.error("Error reading IpAddressFilter rules: ", e);
 			throw e;
 		}
 	}

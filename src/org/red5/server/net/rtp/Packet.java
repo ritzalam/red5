@@ -35,7 +35,7 @@ import org.apache.mina.core.buffer.IoBuffer;
 /**
  * Base interface for RTP and RTCP packets
  * 
- * @author mat
+ * @author Matteo Merli (matteo.merli@gmail.com)
  */
 public interface Packet {
 

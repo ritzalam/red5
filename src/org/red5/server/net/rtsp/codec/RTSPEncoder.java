@@ -39,6 +39,8 @@ import org.red5.server.net.rtsp.messages.RTSPMessage;
 
 /**
  * Encode a RTSP message into a buffer for sending.
+ * 
+ * @author Matteo Merli (matteo.merli@gmail.com)
  */
 public class RTSPEncoder implements ProtocolEncoder {
 

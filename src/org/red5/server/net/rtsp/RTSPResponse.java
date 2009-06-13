@@ -37,6 +37,8 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Wraps up a RTSP response message.
+ * 
+ * @author Matteo Merli (matteo.merli@gmail.com)
  */
 public class RTSPResponse extends RTSPMessage {
 

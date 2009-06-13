@@ -33,23 +33,22 @@ package org.red5.server.net.rtsp.filter.rewrite;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import org.apache.log4j.Logger;
 import org.apache.mina.core.filterchain.IoFilterAdapter;
 import org.apache.mina.core.session.IoSession;
 import org.red5.server.net.rtsp.RTSPRequest;
 import org.red5.server.net.rtsp.RTSPResponse;
 import org.red5.server.net.rtsp.messages.RTSPMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * @author bieniekr 
- * 
+ * @author bieniekr
  */
 public class RequestUrlRewritingImpl extends IoFilterAdapter {
 	/**
 	 * Logger for this class
 	 */
-	private static final Logger logger = Logger
-			.getLogger(RequestUrlRewritingImpl.class);
+	private static final Logger logger = LoggerFactory.getLogger(RequestUrlRewritingImpl.class);
 
 	// the filter instance
 	private RequestUrlRewritingFilter filter;
@@ -70,8 +69,7 @@ public class RequestUrlRewritingImpl extends IoFilterAdapter {
 			this.filter = (RequestUrlRewritingFilter) filterClazz.newInstance();
 			logger.info("using request URL rewriter " + clazzName);
 		} catch (Exception e) {
-			logger.error(e);
-
+			logger.error("", e);
 			throw e;
 		}
 	}

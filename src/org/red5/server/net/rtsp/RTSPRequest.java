@@ -35,8 +35,7 @@ import java.net.URL;
 import org.red5.server.net.rtsp.messages.RTSPMessage;
 
 /**
- * @author mat
- * 
+ * @author Matteo Merli (matteo.merli@gmail.com)
  */
 public class RTSPRequest extends RTSPMessage {
 
