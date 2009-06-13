@@ -63,7 +63,7 @@ public class MP4FrameTest extends TestCase {
 		frame8.setOffset(900);
 		frames.add(frame8);			
 		
-		System.out.printf("Frame 1 - time: %d (should be 660)\n", frames.get(2).getTime());
+		System.out.printf("Frame 1 - time: %s (should be 660)\n", frames.get(2).getTime());
 
 		Collections.sort(frames);
 
@@ -71,7 +71,7 @@ public class MP4FrameTest extends TestCase {
 		
 		int f = 1;
 		for (MP4Frame frame : frames) {
-			System.out.printf("Frame %d - time: %d offset: %d\n", f++, frame.getTime(), frame.getOffset());
+			System.out.printf("Frame %s - time: %s offset: %s\n", f++, frame.getTime(), frame.getOffset());
 		}
 		
 	}
