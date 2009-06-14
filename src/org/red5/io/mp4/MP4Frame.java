@@ -39,7 +39,7 @@ public class MP4Frame implements Comparable<MP4Frame> {
 	/**
 	 * Returns the data type, being audio or video.
 	 * 
-	 * @return
+	 * @return the data type
 	 */
 	public byte getType() {
 		return type;
@@ -52,7 +52,7 @@ public class MP4Frame implements Comparable<MP4Frame> {
 	/**
 	 * Returns the offset of the data chunk in the media source.
 	 * 
-	 * @return
+	 * @return the offset in bytes
 	 */
 	public long getOffset() {
 		return offset;
@@ -65,7 +65,7 @@ public class MP4Frame implements Comparable<MP4Frame> {
 	/**
 	 * Returns the size of the data chunk.
 	 * 
-	 * @return
+	 * @return the size in bytes
 	 */
 	public int getSize() {
 		return size;
@@ -78,7 +78,7 @@ public class MP4Frame implements Comparable<MP4Frame> {
 	/**
 	 * Returns the timestamp.
 	 * 
-	 * @return
+	 * @return the timestamp
 	 */
 	public double getTime() {
 		return time;
@@ -91,7 +91,7 @@ public class MP4Frame implements Comparable<MP4Frame> {
 	/**
 	 * Returns whether or not this chunk represents a key frame.
 	 * 
-	 * @return
+	 * @return true if a key frame
 	 */
 	public boolean isKeyFrame() {
 		return keyFrame;

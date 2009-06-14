@@ -85,7 +85,7 @@ public class LoaderBase implements ApplicationContextAware {
 	/**
 	 * Returns the map containing all of the registered Red5 application contexts.
 	 * 
-	 * @return
+	 * @return a map
 	 */
 	public static Map<String, IApplicationContext> getRed5ApplicationContexts() {
 		log.debug("Get all red5 application contexts");

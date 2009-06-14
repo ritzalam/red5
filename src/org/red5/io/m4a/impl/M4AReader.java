@@ -171,7 +171,6 @@ public class M4AReader implements IoConstants, ITagReader {
     /**
 	 * Accepts mapped file bytes to construct internal members.
 	 *
-	 * @param generateMetadata         <code>true</code> if metadata generation required, <code>false</code> otherwise
      * @param buffer                   Byte buffer
 	 */
 	public M4AReader(IoBuffer buffer) throws IOException {

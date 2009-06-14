@@ -61,7 +61,7 @@ public class RTSPSession {
 	/**
 	 * Creates a new empty RTSPSession and stores it.
 	 * 
-	 * @param id
+	 * @param sessionId
 	 *        Session identifier
 	 * @return The newly created session
 	 */

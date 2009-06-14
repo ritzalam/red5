@@ -202,7 +202,6 @@ public class QuartzSchedulingService implements ISchedulingService,
 		}
 	}
 	
-	/** {@inheritDoc} */
 	public void pauseScheduledTrigger(String name) {
 		try {
 			scheduler.pauseTrigger("Trigger_" + name, null);
@@ -211,7 +210,6 @@ public class QuartzSchedulingService implements ISchedulingService,
 		}
 	}	
 	
-	/** {@inheritDoc} */
 	public void resumeScheduledTrigger(String name) {
 		try {
 			scheduler.resumeTrigger("Trigger_" + name, null);

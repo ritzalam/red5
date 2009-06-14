@@ -91,7 +91,7 @@ public final class ClassLoaderBuilder {
 	/**
 	 * Default build uses Red5 common lib without a parent classloader.
 	 * 
-	 * @return
+	 * @return the class loader
 	 */
 	public static ClassLoader build() {
 		return ClassLoaderBuilder.build(null, USE_RED5_LIB, null);

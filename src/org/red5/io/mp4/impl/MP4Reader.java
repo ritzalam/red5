@@ -1234,7 +1234,7 @@ public class MP4Reader implements IoConstants, ITagReader {
      * Returns the position of a frame given the timestamp.
      * 
      * @param timestamp
-     * @return
+     * @return the position
      */
     public long getFramePosition(int timestamp) {
 		log.debug("Get frame position for timestamp: {}", timestamp);
