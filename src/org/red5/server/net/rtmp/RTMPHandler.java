@@ -69,6 +69,7 @@ import org.slf4j.Logger;
  * RTMP events handler.
  */
 public class RTMPHandler extends BaseRTMPHandler {
+	
 	/**
 	 * Logger
 	 */
@@ -85,6 +86,11 @@ public class RTMPHandler extends BaseRTMPHandler {
 	protected IServer server;
 
 	/**
+	 * Whether or not global scope connections are allowed.
+	 */
+	private boolean globalScopeConnectionAllowed = false;	
+	
+	/**
 	 * Setter for server object.
 	 * 
 	 * @param server Red5 server instance
@@ -100,6 +106,14 @@ public class RTMPHandler extends BaseRTMPHandler {
 	 */
 	public void setStatusObjectService(StatusObjectService statusObjectService) {
 		this.statusObjectService = statusObjectService;
+	}
+
+	public boolean isGlobalScopeConnectionAllowed() {
+		return globalScopeConnectionAllowed;
+	}
+
+	public void setGlobalScopeConnectionAllowed(boolean globalScopeConnectionAllowed) {
+		this.globalScopeConnectionAllowed = globalScopeConnectionAllowed;
 	}
 
 	/** {@inheritDoc} */
@@ -248,6 +262,17 @@ public class RTMPHandler extends BaseRTMPHandler {
 							IScope scope = null;
 							try {
 								scope = context.resolveScope(global, path);
+								//if global scope connection is not allowed, reject
+								if (scope.getDepth() < 1 && !globalScopeConnectionAllowed) {
+									call.setStatus(Call.STATUS_ACCESS_DENIED);
+									if (call instanceof IPendingServiceCall) {
+										IPendingServiceCall pc = (IPendingServiceCall) call;
+										StatusObject status = getStatus(NC_CONNECT_REJECTED);
+										status.setDescription("Global scope connection disallowed on this server.");
+										pc.setResult(status);
+									}
+									disconnectOnReturn = true;									
+								}								
 							} catch (ScopeNotFoundException err) {
 								call.setStatus(Call.STATUS_SERVICE_NOT_FOUND);
 								if (call instanceof IPendingServiceCall) {

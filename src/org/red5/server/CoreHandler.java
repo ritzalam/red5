@@ -58,10 +58,10 @@ public class CoreHandler implements IScopeHandler, CoreHandlerMBean {
     /**
      * Connects client to the scope
      *
-     * @param conn                  Client conneciton
+     * @param conn                  Client connection
      * @param scope                 Scope
      * @param params                Params passed from client side with connect call
-     * @return                      true if client was registred within scope, false otherwise
+     * @return                      true if client was registered within scope, false otherwise
      */
     public boolean connect(IConnection conn, IScope scope, Object[] params) {
 		log.debug("Connect to core handler ?");
@@ -115,7 +115,7 @@ public class CoreHandler implements IScopeHandler, CoreHandlerMBean {
 	}
 
     /**
-     * Remote method invokation
+     * Remote method invocation
      *
      * @param conn         Connection to invoke method on
      * @param call         Service call context

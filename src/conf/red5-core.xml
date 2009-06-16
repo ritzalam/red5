@@ -43,6 +43,9 @@
 		class="org.red5.server.net.rtmp.RTMPHandler">
 		<property name="server" ref="red5.server" />
 		<property name="statusObjectService" ref="statusObjectService" />
+		<!-- Enable this if you want to allow global scope connections
+		<property name="globalScopeConnectionAllowed" value="true" />
+		-->
 	</bean>
 	
 	<!-- RTMP Mina IO Handler -->
