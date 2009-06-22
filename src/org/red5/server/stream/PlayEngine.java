@@ -614,6 +614,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 			startPullPushThread = true;
 		}
 
+		/*
 		if (!messageSent) {
 			// Send blank audio packet to notify client about new position
 			AudioData audio = new AudioData();
@@ -626,6 +627,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 			lastMessage = audio;
 			doPushMessage(audioMessage);
 		}
+		*/
 
 		if (startPullPushThread) {
 			ensurePullAndPushRunning();
