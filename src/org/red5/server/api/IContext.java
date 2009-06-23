@@ -123,6 +123,13 @@ public interface IContext extends ResourcePatternResolver {
 	 * @return			Given bean instance
 	 */
     Object getBean(String beanId);
+    /**
+     * Returns true if the context contains a certain bean,
+     * false otherwise.
+     * @param beanId	The name of the bean to find. 
+     * @return	True if the bean exists, false otherwise. 
+     */
+    boolean hasBean(String beanId);
 
 	/**
 	 * Returns core service by bean id

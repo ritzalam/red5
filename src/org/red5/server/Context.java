@@ -364,6 +364,13 @@ public class Context implements IContext, ApplicationContextAware, ContextMBean 
 	public IScope resolveScope(String host, String path) {
 		return scopeResolver.resolveScope(path);
 	}
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean hasBean(String beanId) {
+		return applicationContext.containsBean(beanId);
+	}
 
 	/**
 	 * Return bean instantiated by bean factory

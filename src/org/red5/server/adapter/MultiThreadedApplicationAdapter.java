@@ -102,7 +102,7 @@ import org.slf4j.Logger;
  * </code>
  * 
  * <p>
- * This method added to ApplicationAdapter sublass can be called from client
+ * This method added to ApplicationAdapter subclass can be called from client
  * side with the following code:
  * </p>
  * 

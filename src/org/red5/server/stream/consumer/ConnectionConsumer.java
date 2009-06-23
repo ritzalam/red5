@@ -22,6 +22,7 @@ package org.red5.server.stream.consumer;
 import org.red5.server.api.IBWControllable;
 import org.red5.server.api.IBandwidthConfigure;
 import org.red5.server.api.IConnectionBWConfig;
+import org.red5.server.api.event.IEvent.Type;
 import org.red5.server.api.stream.IClientStream;
 import org.red5.server.messaging.IMessage;
 import org.red5.server.messaging.IMessageComponent;
@@ -42,7 +43,6 @@ import org.red5.server.net.rtmp.event.Ping;
 import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.net.rtmp.message.Header;
-import org.red5.server.stream.StreamTracker;
 import org.red5.server.stream.message.RTMPMessage;
 import org.red5.server.stream.message.ResetMessage;
 import org.red5.server.stream.message.StatusMessage;
@@ -54,45 +54,70 @@ import org.slf4j.LoggerFactory;
  */
 public class ConnectionConsumer implements IPushableConsumer,
 		IPipeConnectionListener {
-    /**
+
+	/**
      * Logger
      */
     private static final Logger log = LoggerFactory.getLogger(ConnectionConsumer.class);
+    
     /**
      * Connection consumer class name
      */
 	public static final String KEY = ConnectionConsumer.class.getName();
-    /**
+    
+	/**
      * Connection object
      */
 	private RTMPConnection conn;
-    /**
+    
+	/**
      * Video channel
      */
 	private Channel video;
-    /**
+    
+	/**
      * Audio channel
      */
 	private Channel audio;
-    /**
+    
+	/**
      * Data channel
      */
 	private Channel data;
+	
     /**
      * Chunk size. Packets are sent chunk-by-chunk.
      */
 	private int chunkSize = 4096;
-    /**
-     * Stream tracker
-     */
-	private StreamTracker streamTracker;
-
+	
 	/**
 	 * Whether or not the chunk size has been sent. This seems to be 
 	 * required for h264.
 	 */
 	private boolean chunkSizeSent;
 
+	/** Stores timestamp for last event */
+	private int lastEventTime = 0;
+	
+	private int lastAudioTime = 0;
+	private int lastDataTime = 0;
+	private int lastVideoTime = 0;
+
+	private BytesRead bytesRead = new BytesRead();
+	private Ping ping = new Ping();
+	private Notify notify = new Notify();
+	private FlexStreamSend send = new FlexStreamSend();
+	private VideoData videoData = new VideoData();
+	private AudioData audioData = new AudioData();
+	
+	{	
+		//set the type for our notifications
+		notify.setType(Type.STREAM_DATA);
+		send.setType(Type.STREAM_DATA);
+		videoData.setType(Type.STREAM_DATA);
+		audioData.setType(Type.STREAM_DATA);
+	}
+	
     /**
      * Create rtmp connection consumer for given connection and channels
      * @param conn                 RTMP connection
@@ -102,100 +127,120 @@ public class ConnectionConsumer implements IPushableConsumer,
      */
     public ConnectionConsumer(RTMPConnection conn, int videoChannel,
     		int audioChannel, int dataChannel) {
-		log.trace("Channel ids - video: {} audio: {} data: {}", new Object[]{videoChannel, audioChannel, dataChannel});
+		log.debug("Channel ids - video: {} audio: {} data: {}", new Object[]{videoChannel, audioChannel, dataChannel});
 		this.conn = conn;
 		this.video = conn.getChannel(videoChannel);
 		this.audio = conn.getChannel(audioChannel);
 		this.data = conn.getChannel(dataChannel);
-		streamTracker = new StreamTracker();
 	}
 
 	/** {@inheritDoc} */
 	public void pushMessage(IPipe pipe, IMessage message) {
-		log.trace("pushMessage - type: {}", message.getMessageType());
+		//log.trace("pushMessage - type: {}", message.getMessageType());
 		if (message instanceof ResetMessage) {
-			streamTracker.reset();
+			//reset timestamps
+			reset();
 		} else if (message instanceof StatusMessage) {
 			StatusMessage statusMsg = (StatusMessage) message;
 			data.sendStatus(statusMsg.getBody());
 		} else if (message instanceof RTMPMessage) {
 			//make sure chunk size has been sent
 			if (!chunkSizeSent) {
-				log.debug("Sending chunk size");
-				ChunkSize chunkSizeMsg = new ChunkSize(chunkSize);
-				conn.getChannel((byte) 2).write(chunkSizeMsg);		
-				chunkSizeSent = true;
+				sendChunkSize();
 			}
 			
 			RTMPMessage rtmpMsg = (RTMPMessage) message;
 			IRTMPEvent msg = rtmpMsg.getBody();
-			Header header = new Header();
-			int timestamp = streamTracker.add(msg);
-			if (timestamp < 0) {
-				log.info("Skipping message with negative timestamp: {}",
-						timestamp);
-				return;
+			int eventTime = msg.getTimestamp();
+			log.debug("Message timestamp: {}", eventTime);		
+			if (eventTime < 0) {
+				log.debug("Message has negative timestamp: {}", eventTime);
+				//return;
 			}
-			header.setTimerRelative(streamTracker.isRelative());
-			header.setTimer(timestamp);
+			
+			//create a new header for the consumer
+			Header header = new Header();
 
-			switch (msg.getDataType()) {
+			byte dataType = msg.getDataType();
+			log.trace("Data type: {}", dataType);
+			switch (dataType) {
 				case Constants.TYPE_AUDIO_DATA:
 					log.trace("Audio data");
-					AudioData audioData = new AudioData(((AudioData) msg)
-							.getData().asReadOnlyBuffer());
+					//set a relative value
+					eventTime = eventTime - lastAudioTime;
+					lastAudioTime = msg.getTimestamp();
+					header.setTimer(eventTime);
+					//
+					audioData.setData(((AudioData) msg).getData().asReadOnlyBuffer());
 					audioData.setHeader(header);
-					audioData.setTimestamp(header.getTimer());
+					audioData.setTimestamp(eventTime);
 					audio.write(audioData);
 					break;
 				case Constants.TYPE_VIDEO_DATA:
 					log.trace("Video data");
-					VideoData videoData = new VideoData(((VideoData) msg)
-							.getData().asReadOnlyBuffer());
+					//set a relative value
+					eventTime = eventTime - lastVideoTime;
+					lastVideoTime = msg.getTimestamp();
+					header.setTimer(eventTime);
+					//
+					videoData.setData(((VideoData) msg).getData().asReadOnlyBuffer());
 					videoData.setHeader(header);
-					videoData.setTimestamp(header.getTimer());
+					videoData.setTimestamp(eventTime);
 					video.write(videoData);
 					break;
 				case Constants.TYPE_PING:
-					log.trace("Ping");					
-					Ping ping = new Ping(((Ping) msg));
+					log.trace("Ping");		
+					Ping p = (Ping) msg;
+					ping.setValue1(p.getValue1());
+					ping.setValue2(p.getValue2());
+					ping.setValue3(p.getValue3());
+					ping.setValue4(p.getValue4());
 					header.setTimerRelative(false);
-					header.setTimer(0);
 					ping.setHeader(header);
-					ping.setTimestamp(header.getTimer());
 					conn.ping(ping);
 					break;
 				case Constants.TYPE_STREAM_METADATA:
 					log.trace("Meta data");
-					Notify notify = new Notify(((Notify) msg).getData()
-							.asReadOnlyBuffer());
+					//set a relative value
+					eventTime = eventTime - lastDataTime;
+					lastDataTime = msg.getTimestamp();
+					header.setTimer(eventTime);
+					//
+					notify.setData(((Notify) msg).getData().asReadOnlyBuffer());
 					notify.setHeader(header);
-					notify.setTimestamp(header.getTimer());
+					notify.setTimestamp(eventTime);
 					data.write(notify);
 					break;
 				case Constants.TYPE_FLEX_STREAM_SEND:
 					log.trace("Flex stream send");
+					//set a relative value
+					eventTime = eventTime - lastDataTime;
+					lastDataTime = msg.getTimestamp();
+					header.setTimer(eventTime);
 					// TODO: okay to send this also to AMF0 clients?
-					FlexStreamSend send = new FlexStreamSend(((Notify) msg)
-							.getData().asReadOnlyBuffer());
+					send.setData(((Notify) msg).getData().asReadOnlyBuffer());
 					send.setHeader(header);
-					send.setTimestamp(header.getTimer());
+					send.setTimestamp(eventTime);
 					data.write(send);
 					break;
 				case Constants.TYPE_BYTES_READ:
 					log.trace("Bytes read");
-					BytesRead bytesRead = new BytesRead(((BytesRead) msg)
-							.getBytesRead());
+					bytesRead.setBytesRead(((BytesRead) msg).getBytesRead());
 					header.setTimerRelative(false);
-					header.setTimer(0);
 					bytesRead.setHeader(header);
-					bytesRead.setTimestamp(header.getTimer());
 					conn.getChannel((byte) 2).write(bytesRead);
 					break;
 				default:
 					log.trace("Default");
 					data.write(msg);
+					lastDataTime = msg.getTimestamp();
 			}
+			
+			if (header.isTimerRelative()) {
+    			lastEventTime = eventTime;
+    			log.debug("Last event timestamp: {}", lastEventTime);	
+			}
+			
 		}
 	}
 
@@ -258,10 +303,31 @@ public class ConnectionConsumer implements IPushableConsumer,
 					"chunkSize");
 			if (newSize != chunkSize) {
 				chunkSize = newSize;
-				ChunkSize chunkSizeMsg = new ChunkSize(chunkSize);
-				conn.getChannel((byte) 2).write(chunkSizeMsg);
+				sendChunkSize();
 			}
 		}
 	}
 
+    /**
+     * Send the chunk size
+     */
+	private void sendChunkSize() {
+		log.debug("Sending chunk size");
+		ChunkSize chunkSizeMsg = new ChunkSize(chunkSize);
+		conn.getChannel((byte) 2).write(chunkSizeMsg);		
+		chunkSizeSent = true;
+	}    
+    
+	/**
+	 * Reset timestamp
+	 */
+	private void reset() {
+		log.debug("Reset");
+        lastEventTime = 0;	
+	    lastAudioTime = 0;
+	    lastDataTime = 0;
+	    lastVideoTime = 0;	
+	}
+	
+	
 }

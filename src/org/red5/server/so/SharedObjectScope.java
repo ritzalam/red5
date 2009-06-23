@@ -218,13 +218,16 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 			// No custom handler, check for service defined in the scope's
 			// context
 			IContext context = getParent().getContext();
+			String serviceId = null;
 			try {
 				// The bean must have a name of
 				// "<SharedObjectName>.<DottedServiceName>.soservice"
-				soHandler = context.getBean(so.getName() + '.' + serviceName
-						+ ".soservice");
+				serviceId = so.getName() + '.' + serviceName + ".soservice";
+				if (context.hasBean(serviceId)) {
+    				soHandler = context.getBean(serviceId);
+				}
 			} catch (Exception err) {
-				log.debug("No such bean");
+				log.debug("No such bean: {}", serviceId);
 			}
 		}
 

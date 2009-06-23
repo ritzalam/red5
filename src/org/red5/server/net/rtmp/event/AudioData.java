@@ -44,7 +44,7 @@ public class AudioData extends BaseEvent implements IStreamData, IStreamPacket {
 
 	public AudioData(IoBuffer data) {
 		super(Type.STREAM_DATA);
-		this.data = data;
+		setData(data);
 	}
 
 	/** {@inheritDoc} */
@@ -60,6 +60,11 @@ public class AudioData extends BaseEvent implements IStreamData, IStreamPacket {
 	/** {@inheritDoc} */
     public IoBuffer getData() {
 		return data;
+	}
+    
+	/** {@inheritDoc} */
+    public void setData(IoBuffer data) {
+		this.data = data;
 	}
 
 	/** {@inheritDoc} */

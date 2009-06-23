@@ -30,8 +30,7 @@ import org.red5.server.net.rtmp.message.Header;
 /**
  * Base abstract class for all RTMP events
  */
-public abstract class BaseEvent
-implements Constants, IRTMPEvent, Externalizable {
+public abstract class BaseEvent implements Constants, IRTMPEvent, Externalizable {
 	// XXX we need a better way to inject allocation debugging
 	// (1) make it configurable in xml
 	// (2) make it aspect oriented
@@ -90,6 +89,11 @@ implements Constants, IRTMPEvent, Externalizable {
 		return type;
 	}
 
+	/** {@inheritDoc} */
+    public void setType(Type type) {
+		this.type = type;
+	}
+    
 	/** {@inheritDoc} */
     public Object getObject() {
 		return object;

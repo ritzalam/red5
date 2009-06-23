@@ -67,22 +67,7 @@ public class VideoData extends BaseEvent implements IoConstants, IStreamData, IS
      */
     public VideoData(IoBuffer data) {
 		super(Type.STREAM_DATA);
-		this.data = data;
-		if (data != null && data.limit() > 0) {
-			int oldPos = data.position();
-			int firstByte = (data.get()) & 0xff;
-			data.position(oldPos);
-			int frameType = (firstByte & MASK_VIDEO_FRAMETYPE) >> 4;
-			if (frameType == FLAG_FRAMETYPE_KEYFRAME) {
-				this.frameType = FrameType.KEYFRAME;
-			} else if (frameType == FLAG_FRAMETYPE_INTERFRAME) {
-				this.frameType = FrameType.INTERFRAME;
-			} else if (frameType == FLAG_FRAMETYPE_DISPOSABLE) {
-				this.frameType = FrameType.DISPOSABLE_INTERFRAME;
-			} else {
-				this.frameType = FrameType.UNKNOWN;
-			}
-		}
+		setData(data);
 	}
 
 	/** {@inheritDoc} */
@@ -98,6 +83,26 @@ public class VideoData extends BaseEvent implements IoConstants, IStreamData, IS
 	/** {@inheritDoc} */
     public IoBuffer getData() {
 		return data;
+	}
+    
+	/** {@inheritDoc} */
+    public void setData(IoBuffer data) {
+		this.data = data;
+		if (data != null && data.limit() > 0) {
+			int oldPos = data.position();
+			int firstByte = (data.get()) & 0xff;
+			data.position(oldPos);
+			int frameType = (firstByte & MASK_VIDEO_FRAMETYPE) >> 4;
+			if (frameType == FLAG_FRAMETYPE_KEYFRAME) {
+				this.frameType = FrameType.KEYFRAME;
+			} else if (frameType == FLAG_FRAMETYPE_INTERFRAME) {
+				this.frameType = FrameType.INTERFRAME;
+			} else if (frameType == FLAG_FRAMETYPE_DISPOSABLE) {
+				this.frameType = FrameType.DISPOSABLE_INTERFRAME;
+			} else {
+				this.frameType = FrameType.UNKNOWN;
+			}
+		}		
 	}
 
 	/** {@inheritDoc} */

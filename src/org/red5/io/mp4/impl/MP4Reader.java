@@ -72,7 +72,7 @@ import org.slf4j.LoggerFactory;
  * </p>
  * 
  * @author The Red5 Project (red5@osflash.org)
- * @author Paul Gregoire, (mondain@gmail.com)
+ * @author Paul Gregoire (mondain@gmail.com)
  */
 public class MP4Reader implements IoConstants, ITagReader {
 
