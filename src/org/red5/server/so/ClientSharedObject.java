@@ -51,8 +51,7 @@ public class ClientSharedObject extends SharedObject implements
 	/**
 	 * Logger
 	 */
-	protected static Logger log = LoggerFactory
-			.getLogger(ClientSharedObject.class);
+	protected static Logger log = LoggerFactory.getLogger(ClientSharedObject.class);
 
 	/**
 	 * Initial synchronization flag

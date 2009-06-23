@@ -1,8 +1,5 @@
 package org.red5.server.net.rtmp.event;
 
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  * 
@@ -22,42 +19,56 @@ import java.io.ObjectOutput;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+
 /**
- * Ping event, actually combination of different events
+ * Ping event, actually combination of different events. This is
+ * also known as a user control message.
  */
 public class Ping extends BaseEvent {
+	
 	private static final long serialVersionUID = -6478248060425544923L;
-    /**
-     * Stream clear event
-     */
-	public static final short STREAM_CLEAR = 0;
-    /**
-     * Stream play
-     */
+
+	/**
+	 * Stream begin / clear event
+	 */
+	public static final short STREAM_BEGIN = 0;
+
+	/**
+	 * Stream EOF, playback of requested stream is completed.
+	 */
 	public static final short STREAM_PLAYBUFFER_CLEAR = 1;
-    /**
-     * Unknown event
-     */
-	public static final short UNKNOWN_2 = 2;
-    /**
-     * Client buffer
-     */
+
+	/**
+	 * Stream is empty
+	 */
+	public static final short STREAM_DRY = 2;
+
+	/**
+	 * Client buffer. Sent by client to indicate its buffer time in milliseconds.
+	 */
 	public static final short CLIENT_BUFFER = 3;
-    /**
-     * Stream reset
-     */
-	public static final short STREAM_RESET = 4;
-    /**
-     * One more unknown event
-     */
+
+	/**
+	 * Recorded stream. Sent by server to indicate a recorded stream.
+	 */
+	public static final short RECORDED_STREAM = 4;
+
+	/**
+	 * One more unknown event
+	 */
 	public static final short UNKNOWN_5 = 5;
-    /**
-     * Client ping event
-     */
+
+	/**
+	 * Client ping event. Sent by server to test if client is reachable.
+	 */
 	public static final short PING_CLIENT = 6;
-    /**
-     * Server response event
-     */
+
+	/**
+	 * Server response event. A clients ping response.
+	 */
 	public static final short PONG_SERVER = 7;
 
     /**
@@ -70,9 +81,15 @@ public class Ping extends BaseEvent {
      */
     public static final int UNDEFINED = -1;
 
-	private short value1; // XXX: can someone suggest better names?
+    /**
+     * The sub-type
+     */
+	private short eventType;
 
-	// 4 least significant bytes of timestamp for PING_CLIENT and PONG_SERVER
+	/**
+	 * Represents the stream id in all cases except PING_CLIENT and PONG_SERVER
+	 * where it represents the local server timestamp.
+	 */
 	private int value2;
 
 	private int value3 = UNDEFINED;
@@ -89,22 +106,22 @@ public class Ping extends BaseEvent {
 		super(Type.SYSTEM);
 	}
 
-    public Ping(short value1, int value2) {
+    public Ping(short eventType, int value2) {
 		super(Type.SYSTEM);
-		this.value1 = value1;
+		this.eventType = eventType;
 		this.value2 = value2;
 	}
 
-	public Ping(short value1, int value2, int value3) {
+	public Ping(short eventType, int value2, int value3) {
 		super(Type.SYSTEM);
-		this.value1 = value1;
+		this.eventType = eventType;
 		this.value2 = value2;
 		this.value3 = value3;
 	}
 
-	public Ping(short value1, int value2, int value3, int value4) {
+	public Ping(short eventType, int value2, int value3, int value4) {
 		super(Type.SYSTEM);
-		this.value1 = value1;
+		this.eventType = eventType;
 		this.value2 = value2;
 		this.value3 = value3;
 		this.value4 = value4;
@@ -112,7 +129,7 @@ public class Ping extends BaseEvent {
 	
 	public Ping(Ping in) {
 		super(Type.SYSTEM);
-		this.value1 = in.getValue1();
+		this.eventType = in.getEventType();
 		this.value2 = in.getValue2();
 		this.value3 = in.getValue3();
 		this.value4 = in.getValue4();
@@ -124,22 +141,22 @@ public class Ping extends BaseEvent {
 		return TYPE_PING;
 	}
 
-	/**
-     * Getter for property 'value1'.
-     *
-     * @return Value for property 'value1'.
+    /**
+     * Returns the events sub-type
+     * 
+     * @return
      */
-    public short getValue1() {
-		return value1;
+	public short getEventType() {
+		return eventType;
 	}
 
 	/**
-     * Setter for property 'value1'.
-     *
-     * @param value1 Value to set for property 'value1'.
-     */
-    public void setValue1(short value1) {
-		this.value1 = value1;
+	 * Sets the events sub-type
+	 * 
+	 * @param eventType
+	 */
+	public void setEventType(short eventType) {
+		this.eventType = eventType;
 	}
 
 	/**
@@ -215,7 +232,7 @@ public class Ping extends BaseEvent {
 	}
 
 	protected void doRelease() {
-		value1 = 0;
+		eventType = 0;
 		value2 = 0;
 		value3 = UNDEFINED;
 		value4 = UNDEFINED;
@@ -224,7 +241,7 @@ public class Ping extends BaseEvent {
 	/** {@inheritDoc} */
     @Override
 	public String toString() {
-		return "Ping: " + value1 + ", " + value2 + ", " + value3 + ", "
+		return "Ping: " + eventType + ", " + value2 + ", " + value3 + ", "
 				+ value4 + "\n" + debug;
 	}
 
@@ -237,7 +254,7 @@ public class Ping extends BaseEvent {
 	@Override
 	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
 		super.readExternal(in);
-		value1 = in.readShort();
+		eventType = in.readShort();
 		value2 = in.readInt();
 		value3 = in.readInt();
 		value4 = in.readInt();
@@ -247,7 +264,7 @@ public class Ping extends BaseEvent {
 	@Override
 	public void writeExternal(ObjectOutput out) throws IOException {
 		super.writeExternal(out);
-		out.writeShort(value1);
+		out.writeShort(eventType);
 		out.writeInt(value2);
 		out.writeInt(value3);
 		out.writeInt(value4);

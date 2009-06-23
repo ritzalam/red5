@@ -916,16 +916,17 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 	}
 
 	/**
-	 * Send clear ping, that is, just to check if connection is alive
+	 * Send clear ping. Lets client know that stream has no more data to
+	 * send.
 	 */
 	private void sendClearPing() {
-		Ping ping1 = new Ping();
-		ping1.setValue1((short) Ping.STREAM_PLAYBUFFER_CLEAR);
-		ping1.setValue2(streamId);
+		Ping eof = new Ping();
+		eof.setEventType(Ping.STREAM_PLAYBUFFER_CLEAR);
+		eof.setValue2(streamId);
 
-		RTMPMessage ping1Msg = new RTMPMessage();
-		ping1Msg.setBody(ping1);
-		doPushMessage(ping1Msg);
+		RTMPMessage eofMsg = new RTMPMessage();
+		eofMsg.setBody(eof);
+		doPushMessage(eofMsg);
 	}
 
 	/**
@@ -933,22 +934,22 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 	 */
 	private void sendReset() {
 		if (pullMode) {
-			Ping ping1 = new Ping();
-			ping1.setValue1((short) Ping.STREAM_RESET);
-			ping1.setValue2(streamId);
+			Ping recorded = new Ping();
+			recorded.setEventType(Ping.RECORDED_STREAM);
+			recorded.setValue2(streamId);
 
-			RTMPMessage ping1Msg = new RTMPMessage();
-			ping1Msg.setBody(ping1);
-			doPushMessage(ping1Msg);
+			RTMPMessage recordedMsg = new RTMPMessage();
+			recordedMsg.setBody(recorded);
+			doPushMessage(recordedMsg);
 		}
 
-		Ping ping2 = new Ping();
-		ping2.setValue1((short) Ping.STREAM_CLEAR);
-		ping2.setValue2(streamId);
+		Ping begin = new Ping();
+		begin.setEventType(Ping.STREAM_BEGIN);
+		begin.setValue2(streamId);
 
-		RTMPMessage ping2Msg = new RTMPMessage();
-		ping2Msg.setBody(ping2);
-		doPushMessage(ping2Msg);
+		RTMPMessage beginMsg = new RTMPMessage();
+		beginMsg.setBody(begin);
+		doPushMessage(beginMsg);
 
 		ResetMessage reset = new ResetMessage();
 		doPushMessage(reset);

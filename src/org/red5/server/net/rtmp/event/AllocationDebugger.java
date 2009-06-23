@@ -19,9 +19,10 @@ package org.red5.server.net.rtmp.event;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,8 +33,10 @@ import org.slf4j.LoggerFactory;
  * @author The Red5 Project (red5@osflash.org)
  * @author Steven Gong (steven.gong@gmail.com) on behalf of
  *         (ce@publishing-etc.de)
+ * @author Paul Gregoire (mondain@gmail.com)
  */
 public class AllocationDebugger {
+	
 	/**
 	 * Information on references count
 	 */
@@ -41,11 +44,10 @@ public class AllocationDebugger {
 		/**
 		 * References count
 		 */
-		public int refcount;
+		public AtomicInteger refcount = new AtomicInteger(1);
 
 		/** Constructs a new Info. */
 		public Info() {
-			refcount = 1;
 		}
 
 	}
@@ -55,6 +57,16 @@ public class AllocationDebugger {
 	 */
 	private static AllocationDebugger instance;
 
+	/**
+	 * Logger
+	 */
+	private Logger log;
+
+	/**
+	 * Events-to-information objects map
+	 */
+	private ConcurrentMap<BaseEvent, Info> events;
+	
 	/**
 	 * Getter for instance
 	 * 
@@ -67,20 +79,10 @@ public class AllocationDebugger {
 		return instance;
 	}
 
-	/**
-	 * Logger
-	 */
-	private Logger log;
-
-	/**
-	 * Events-to-information objects map
-	 */
-	private Map<BaseEvent, Info> events;
-
 	/** Do not instantiate AllocationDebugger. */
 	private AllocationDebugger() {
 		log = LoggerFactory.getLogger(getClass());
-		events = new HashMap<BaseEvent, Info>();
+		events = new ConcurrentHashMap<BaseEvent, Info>();
 	}
 
 	/**
@@ -89,7 +91,7 @@ public class AllocationDebugger {
 	 * @param event
 	 *            Event
 	 */
-	protected synchronized void create(BaseEvent event) {
+	protected void create(BaseEvent event) {
 		events.put(event, new Info());
 	}
 
@@ -99,10 +101,10 @@ public class AllocationDebugger {
 	 * @param event
 	 *            Event
 	 */
-	protected synchronized void retain(BaseEvent event) {
+	protected void retain(BaseEvent event) {
 		Info info = events.get(event);
 		if (info != null) {
-			info.refcount++;
+			info.refcount.incrementAndGet();
 		} else {
 			log.warn("Retain called on already released event.");
 		}
@@ -114,11 +116,10 @@ public class AllocationDebugger {
 	 * @param event
 	 *            Event
 	 */
-	protected synchronized void release(BaseEvent event) {
+	protected void release(BaseEvent event) {
 		Info info = events.get(event);
 		if (info != null) {
-			info.refcount--;
-			if (info.refcount == 0) {
+			if (info.refcount.decrementAndGet() == 0) {
 				events.remove(event);
 			}
 		} else {
@@ -131,9 +132,9 @@ public class AllocationDebugger {
 	 */
 	public synchronized void dump() {
 		if (log.isDebugEnabled()) {
-			log.debug("dumping allocations " + events.size());
+			log.debug("dumping allocations {}", events.size());
 			for (Entry<BaseEvent, Info> entry : events.entrySet()) {
-				log.debug(entry.getKey() + " " + entry.getValue().refcount);
+				log.debug("{} {}", entry.getKey(), entry.getValue().refcount);
 			}
 		}
 	}

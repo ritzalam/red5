@@ -88,7 +88,7 @@ public class ConnectionConsumer implements IPushableConsumer,
     /**
      * Chunk size. Packets are sent chunk-by-chunk.
      */
-	private int chunkSize = 4096;
+	private int chunkSize = 1024; //TODO: Not sure of the best value here
 	
 	/**
 	 * Whether or not the chunk size has been sent. This seems to be 
@@ -191,7 +191,7 @@ public class ConnectionConsumer implements IPushableConsumer,
 				case Constants.TYPE_PING:
 					log.trace("Ping");		
 					Ping p = (Ping) msg;
-					ping.setValue1(p.getValue1());
+					ping.setEventType(p.getEventType());
 					ping.setValue2(p.getValue2());
 					ping.setValue3(p.getValue3());
 					ping.setValue4(p.getValue4());

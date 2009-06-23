@@ -121,7 +121,7 @@ public class EdgeRTMPHandler extends RTMPHandler {
      */
 	protected void onPing(RTMPConnection conn, Channel channel, Header source,
 			Ping ping) {
-		switch (ping.getValue1()) {
+		switch (ping.getEventType()) {
 			case Ping.PONG_SERVER:
 				// This is the response to an IConnection.ping request
 				conn.pingReceived(ping);

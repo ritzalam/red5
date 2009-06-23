@@ -320,7 +320,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 									    	pc.setResult(result);
 										}
 										// Measure initial roundtrip time after connecting
-										conn.ping(new Ping(Ping.STREAM_CLEAR, 0, -1));
+										conn.ping(new Ping(Ping.STREAM_BEGIN, 0, -1));
 										conn.startRoundTripMeasurement();
 									} else {
 										log.debug("Connect failed");
@@ -465,27 +465,27 @@ public class RTMPHandler extends BaseRTMPHandler {
 
 	/** {@inheritDoc} */
 	@Override
-	protected void onPing(RTMPConnection conn, Channel channel, Header source,
-			Ping ping) {
-		switch (ping.getValue1()) {
+	protected void onPing(RTMPConnection conn, Channel channel, Header source, Ping ping) {
+		switch (ping.getEventType()) {
 			case Ping.CLIENT_BUFFER:
-				if (ping.getValue2() != 0) {
+				IClientStream stream = null;
+				//get the stream id
+				int streamId = ping.getValue2();
+				//get requested buffer size in milliseconds
+				int buffer = ping.getValue3();
+				if (streamId != 0) {
 					// The client wants to set the buffer time
-					IClientStream stream = conn.getStreamById(ping.getValue2());
-					int buffer = ping.getValue3();
+					stream = conn.getStreamById(streamId);
 					if (stream != null) {
 						stream.setClientBufferDuration(buffer);
 						log.info("Setting client buffer on stream: {}", buffer);
-					} else {
-						// Remember buffer time to set until stream will be
-						// created
-						conn.rememberStreamBufferDuration(ping.getValue2(),
-								buffer);
-						log.info("Remembering client buffer on stream: {}", buffer);
 					}
-				} else {
-					// XXX: should we store the buffer time for future streams?
-					log.warn("Unhandled ping: {}", ping);
+				} 
+				//catch-all to make sure buffer size is set
+				if (stream == null) {
+					// Remember buffer time until stream is created
+					conn.rememberStreamBufferDuration(streamId, buffer);
+					log.info("Remembering client buffer on stream: {}", buffer);
 				}
 				break;
 

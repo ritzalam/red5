@@ -190,7 +190,11 @@ public class ClientRegistry implements IClientRegistry, ClientRegistryMBean {
 	 * @return         Next client id
 	 */
 	public String nextId() {
-		return "" + nextId.getAndIncrement();
+		//when we reach max int, reset to zero
+		if (nextId.get() == Integer.MAX_VALUE) {
+			nextId.set(0);
+		}
+		return String.format("%s", nextId.getAndIncrement()) ;
 	}
 
 	/**
@@ -198,7 +202,7 @@ public class ClientRegistry implements IClientRegistry, ClientRegistryMBean {
 	 * @return        Previous client id
 	 */
 	public String previousId() {
-		return "" + nextId.get();
+		return String.format("%s", nextId.get());
 	}
 
 	/**

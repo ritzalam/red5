@@ -34,15 +34,18 @@ public interface Constants {
      */
     public static final byte TYPE_CHUNK_SIZE = 0x01;
 
-	// Unknown: 0x02
+    /**
+     * Abort message
+     */
+    public static final byte TYPE_ABORT = 0x02;    
 
     /**
-     * Send every x bytes read by both sides
+     * Acknowledgment. Send every x bytes read by both sides.
      */
     public static final byte TYPE_BYTES_READ = 0x03;
 
     /**
-     * Ping is a stream control message, has subtypes
+     * Ping is a stream control message, it has sub-types
      */
     public static final byte TYPE_PING = 0x04;
 
@@ -105,6 +108,11 @@ public interface Constants {
      */
     public static final byte TYPE_INVOKE = 0x14;
 
+    /**
+     * Aggregate data marker
+     */
+    public static final byte TYPE_AGGREGATE = 0x16;
+    
     /**
      * New header marker
      */
@@ -211,6 +219,8 @@ public interface Constants {
 	public static final String ACTION_SEEK = "seek";
 
 	public static final String ACTION_PLAY = "play";
+
+	public static final String ACTION_PLAY2 = "play2";
 
 	public static final String ACTION_STOP = "disconnect";
 

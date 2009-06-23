@@ -23,6 +23,8 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+import java.util.concurrent.atomic.AtomicInteger;
+
 import org.red5.server.api.event.IEventListener;
 import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.net.rtmp.message.Header;
@@ -31,34 +33,47 @@ import org.red5.server.net.rtmp.message.Header;
  * Base abstract class for all RTMP events
  */
 public abstract class BaseEvent implements Constants, IRTMPEvent, Externalizable {
+	
 	// XXX we need a better way to inject allocation debugging
 	// (1) make it configurable in xml
 	// (2) make it aspect oriented
 	private static final boolean allocationDebugging = false;
+	
     /**
-     * Event type
-     */
+	 * Event type
+	 */
 	private Type type;
-    /**
-     * Event target object
-     */
+
+	/**
+	 * Event target object
+	 */
 	protected Object object;
-    /**
-     * Event listener
-     */
+
+	/**
+	 * Event listener
+	 */
 	protected IEventListener source;
-    /**
-     * Event listener
-     */
+
+	/**
+	 * Event timestamp
+	 */
 	protected int timestamp;
-    /**
-     * Event RTMP packet header
-     */
+
+	/**
+	 * Event extended timestamp
+	 */
+	protected int extendedTimestamp = -1;
+	
+	/**
+	 * Event RTMP packet header
+	 */
 	protected Header header = null;
-    /**
-     * Event references count
-     */
-	protected int refcount = 1;
+
+	/**
+	 * Event references count
+	 */
+	protected AtomicInteger refcount = new AtomicInteger(1);
+
 	public BaseEvent() {
 		// set a default type
 		this(Type.SERVER, null);
@@ -138,40 +153,55 @@ public abstract class BaseEvent implements Constants, IRTMPEvent, Externalizable
 	}
 
 	/** {@inheritDoc} */
-    public synchronized void retain() {
+    public int getExtendedTimestamp() {
+    	return extendedTimestamp;
+    }
+
+	/** {@inheritDoc} */
+    public void setExtendedTimestamp(int timestamp) {
+    	this.extendedTimestamp = timestamp;
+    }
+    
+	/** {@inheritDoc} */
+    public void retain() {
 		if (allocationDebugging) {
 			AllocationDebugger.getInstance().retain(this);
 		}
-		if (refcount > 0) {
-			refcount++;
+		if (refcount.get() > 0) {
+			refcount.incrementAndGet();
 		}
 	}
 
 	/** {@inheritDoc} */
-    public synchronized void release() {
+    public void release() {
 		if (allocationDebugging) {
 			AllocationDebugger.getInstance().release(this);
 		}
-		if (refcount > 0) {
-			refcount--;
-			if (refcount == 0) {
+		if (refcount.get() > 0) {
+			if (refcount.decrementAndGet() == 0) {
 				releaseInternal();
 			}
 		}
 	}
 
     /**
-     * Rekease event
+     * Release event
      */
     protected abstract void releaseInternal();
 
 	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
 		type = (Type) in.readObject();
 		timestamp = in.readInt();
+		if (timestamp == 0xffffff) {
+			extendedTimestamp = in.readInt();
+		}
 	}
 
 	public void writeExternal(ObjectOutput out) throws IOException {
 		out.writeObject(type);
 		out.writeInt(timestamp);
+		if (extendedTimestamp > -1) {
+			out.writeInt(extendedTimestamp);
+		}
 	}
 }

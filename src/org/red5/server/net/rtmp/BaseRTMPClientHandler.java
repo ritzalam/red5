@@ -305,20 +305,26 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 	protected void onPing(RTMPConnection conn, Channel channel, Header source,
 			Ping ping) {
 		log.debug("onPing");
-		switch (ping.getValue1()) {
+		switch (ping.getEventType()) {
 			case Ping.PING_CLIENT:
-			case Ping.STREAM_CLEAR:
-			case Ping.STREAM_RESET:
+			case Ping.STREAM_BEGIN:
+			case Ping.RECORDED_STREAM:
 			case Ping.STREAM_PLAYBUFFER_CLEAR:
 				// The server wants to measure the RTT
 				Ping pong = new Ping();
-				pong.setValue1((short) Ping.PONG_SERVER);
+				pong.setEventType(Ping.PONG_SERVER);
 				int now = (int) (System.currentTimeMillis() & 0xffffffff);
 				pong.setValue2(now);
 				pong.setValue3(Ping.UNDEFINED);
 				conn.ping(pong);
 				break;
-
+			case Ping.STREAM_DRY: 
+				log.debug("Stream indicates there is no data available");
+				break;
+			case Ping.CLIENT_BUFFER:
+				//TODO set the client buffer
+				log.debug("Client sent a buffer size: {} ms", ping.getValue3());
+				break;
 			default:
 				log.warn("Unhandled ping: {}", ping);
 		}

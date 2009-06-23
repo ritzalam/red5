@@ -26,8 +26,10 @@ import java.io.ObjectOutput;
  * Chunk size event
  */
 public class ChunkSize extends BaseEvent {
+	
 	private static final long serialVersionUID = -7680099175881755879L;
-    /**
+    
+	/**
      * Chunk size
      */
 	private int size;

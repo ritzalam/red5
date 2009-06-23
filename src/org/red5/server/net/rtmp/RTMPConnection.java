@@ -1025,7 +1025,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 			lastPongReceived.set(newPingTime);
 		}
 		Ping pingRequest = new Ping();
-		pingRequest.setValue1((short) Ping.PING_CLIENT);
+		pingRequest.setEventType(Ping.PING_CLIENT);
 		lastPingSent.set(newPingTime);
 		int now = (int) (newPingTime & 0xffffffff);
 		pingRequest.setValue2(now);
@@ -1034,7 +1034,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	/**
-	 * Marks that pingback was received.
+	 * Marks that ping back was received.
 	 * 
 	 * @param pong
 	 *            Ping object

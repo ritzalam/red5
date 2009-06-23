@@ -27,30 +27,37 @@ import java.io.ObjectOutput;
  * RTMP packet header
  */
 public class Header implements Constants, Externalizable {
+	
 	private static final long serialVersionUID = 8982665579411495024L;
-    /**
-     * Channel
-     */
+
+	/**
+	 * Channel
+	 */
 	private int channelId;
-    /**
-     * Timer
-     */
+
+	/**
+	 * Timer
+	 */
 	private int timer;
-    /**
-     * Header size
-     */
+
+	/**
+	 * Header size
+	 */
 	private int size;
-    /**
-     * Type of data
-     */
+
+	/**
+	 * Type of data
+	 */
 	private byte dataType;
-    /**
-     * Stream id
-     */
+
+	/**
+	 * Stream id
+	 */
 	private int streamId;
-    /**
-     * Whether timer value is relative
-     */
+
+	/**
+	 * Whether timer value is relative
+	 */
 	private boolean timerRelative = true;
 
 	/**

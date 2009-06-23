@@ -171,8 +171,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	 * @return Decoded object
 	 * @throws ProtocolException Exception during decoding
 	 */
-	public Object decode(ProtocolState state, IoBuffer in)
-			throws ProtocolException {
+	public Object decode(ProtocolState state, IoBuffer in) throws ProtocolException {
 		int start = in.position();
 		log.debug("Start: {}", start);
 		try {
@@ -180,12 +179,11 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 			switch (rtmp.getState()) {
 				case RTMP.STATE_CONNECTED:
 					return decodePacket(rtmp, in);
-				case RTMP.STATE_ERROR:
-					// attempt to correct error
-					return null;
 				case RTMP.STATE_CONNECT:
 				case RTMP.STATE_HANDSHAKE:
 					return decodeHandshake(rtmp, in);
+				case RTMP.STATE_ERROR:
+					// attempt to correct error
 				default:
 					return null;
 			}
@@ -327,18 +325,17 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 		int headerLength = RTMPUtils.getHeaderLength(RTMPUtils.decodeHeaderSize(headerValue, byteCount));
 		headerLength += byteCount - 1;
 
-		if(headerLength+byteCount-1 > remaining) {
+		if (headerLength + byteCount - 1 > remaining) {
 			log.debug("Header too small, buffering. remaining: {}", remaining);
 			in.position(position);
-			rtmp.bufferDecoding(headerLength+byteCount-1);
+			rtmp.bufferDecoding(headerLength + byteCount - 1);
 			return null;
 		}
 
 		// Move the position back to the start
 		in.position(position);
 
-		final Header header = decodeHeader(in, rtmp
-				.getLastReadHeader(channelId));
+		final Header header = decodeHeader(in, rtmp.getLastReadHeader(channelId));
 
 		if (header == null) {
 			throw new ProtocolException("Header is null, check for error");
@@ -388,8 +385,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 		buf.flip();
 
 		try {
-			final IRTMPEvent message = decodeMessage(rtmp, packet.getHeader(),
-					buf);
+			final IRTMPEvent message = decodeMessage(rtmp, packet.getHeader(), buf);
 			packet.setMessage(message);
 
 			if (message instanceof ChunkSize) {
@@ -863,7 +859,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 	public Ping decodePing(IoBuffer in) {
 		final Ping ping = new Ping();
 		ping.setDebug(in.getHexDump());
-		ping.setValue1(in.getShort());
+		ping.setEventType(in.getShort());
 		ping.setValue2(in.getInt());
 		if (in.hasRemaining()) {
 			ping.setValue3(in.getInt());

@@ -43,8 +43,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements
 	/**
 	 * Logger
 	 */
-	private static Logger log = LoggerFactory
-			.getLogger(RTMPMinaIoHandler.class);
+	private static Logger log = LoggerFactory.getLogger(RTMPMinaIoHandler.class);
 
 	/**
 	 * RTMP events handler

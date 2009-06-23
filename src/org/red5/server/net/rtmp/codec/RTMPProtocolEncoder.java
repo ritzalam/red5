@@ -572,7 +572,7 @@ public class RTMPProtocolEncoder extends BaseProtocolEncoder
 			len += 4;
 		}
 		final IoBuffer out = IoBuffer.allocate(len);
-		out.putShort(ping.getValue1());
+		out.putShort(ping.getEventType());
 		out.putInt(ping.getValue2());
 		if (ping.getValue3() != Ping.UNDEFINED) {
 			out.putInt(ping.getValue3());

@@ -92,6 +92,7 @@ public class DataTypes {
      * Custom datatype mock mask marker
      */
     public static final byte CUSTOM_MOCK_MASK = 0x20;
+    
     /**
      * Custom datatype AMF mask
      */
@@ -101,10 +102,12 @@ public class DataTypes {
      * Custom datatype RTMP mask
      */
     public static final byte CUSTOM_RTMP_MASK = 0x40;
+    
     /**
      * Custom datatype JSON mask
      */
     public static final byte CUSTOM_JSON_MASK = 0x50;
+    
     /**
      * Custom datatype XML mask
      */

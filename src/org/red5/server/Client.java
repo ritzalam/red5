@@ -69,7 +69,7 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 	protected long creationTime;
 
 	/**
-	 *  Clients identificator
+	 *  Clients identifier
 	 */
 	protected String id;
 
@@ -79,13 +79,13 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 	private ObjectName oName;
 
 	/**
-	 *  Client registry where Client is registred
+	 *  Client registry where Client is registered
 	 */
 	protected ClientRegistry registry;
 
 	public Client() {
 		//here for jmx reference only
-		log.debug("Default ctor called");
+		log.trace("Default ctor called");
 	}
 
 	/**
@@ -130,7 +130,9 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 	}
 
 	/**
-	 * Return bandwidth configuration context, that is, broadcasting bandwidth and quality settings for this client
+	 * Return bandwidth configuration context. The broadcasting bandwidth and 
+	 * quality settings for this client.
+	 * 
 	 * @return      Bandwidth configuration context
 	 */
 	public IBandwidthConfigure getBandwidthConfigure() {
@@ -188,8 +190,9 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 	}
 
 	/**
-	 * Parent flow controllable object, that is, parent object that is used to determine client broadcast bandwidth
-	 * settings. In case of base Client class parent is host.
+	 * Parent flow controllable object. The parent object is used to determine 
+	 * client broadcast bandwidth settings. In case of base Client class parent
+	 * is host.
 	 *
 	 * @return     IFlowControllable instance
 	 */

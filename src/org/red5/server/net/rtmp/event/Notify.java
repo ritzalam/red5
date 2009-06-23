@@ -37,16 +37,18 @@ public class Notify extends BaseEvent implements IStreamData, IStreamPacket {
 	private static final long serialVersionUID = -6085848257275156569L;
     
 	/**
-     * Service call
-     */
+	 * Service call
+	 */
 	protected IServiceCall call;
-    /**
-     * Event data
-     */
+
+	/**
+	 * Event data
+	 */
 	protected IoBuffer data;
-    /**
-     * Invoke id
-     */
+
+	/**
+	 * Invoke id
+	 */
 	private int invokeId = 0;
 
     /**
