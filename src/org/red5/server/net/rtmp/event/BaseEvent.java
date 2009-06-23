@@ -104,7 +104,6 @@ public abstract class BaseEvent implements Constants, IRTMPEvent, Externalizable
 		return type;
 	}
 
-	/** {@inheritDoc} */
     public void setType(Type type) {
 		this.type = type;
 	}

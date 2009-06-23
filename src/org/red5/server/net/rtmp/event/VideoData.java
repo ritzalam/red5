@@ -85,7 +85,6 @@ public class VideoData extends BaseEvent implements IoConstants, IStreamData, IS
 		return data;
 	}
     
-	/** {@inheritDoc} */
     public void setData(IoBuffer data) {
 		this.data = data;
 		if (data != null && data.limit() > 0) {
