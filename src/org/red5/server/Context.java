@@ -367,7 +367,6 @@ public class Context implements IContext, ApplicationContextAware, ContextMBean 
 	/**
 	 * {@inheritDoc}
 	 */
-	@Override
 	public boolean hasBean(String beanId) {
 		return applicationContext.containsBean(beanId);
 	}
