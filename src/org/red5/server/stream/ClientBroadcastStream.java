@@ -127,11 +127,6 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	 */
 	private IMessageOutput connMsgOut;
 
-	/**
-	 * Timestamp the stream was created.
-	 */
-	private long creationTime;
-
 	/** Stores absolute time for data stream. */
 	private int dataTime=-1;
 
@@ -444,11 +439,6 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	/** {@inheritDoc} */
 	public long getBytesReceived() {
 		return bytesReceived;
-	}
-
-	/** {@inheritDoc} */
-	public long getCreationTime() {
-		return creationTime;
 	}
 
 	/** {@inheritDoc} */

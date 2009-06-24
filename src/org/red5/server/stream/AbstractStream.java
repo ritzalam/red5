@@ -49,14 +49,22 @@ public abstract class AbstractStream implements IStream {
      *  Stream name
      */
     private String name;
+    
     /**
-     *  Stream audio and video codecs information
+     *  Stream audio and video codec information
      */
 	private IStreamCodecInfo codecInfo;
-    /**
+    
+	/**
      *  Stream scope
      */
 	private IScope scope;
+	
+	/**
+	 * Timestamp the stream was created.
+	 */
+	protected long creationTime;
+	
     /**
      *  Return stream name
      *  @return     Stream name
@@ -79,6 +87,15 @@ public abstract class AbstractStream implements IStream {
      */
     public IScope getScope() {
 		return scope;
+	}
+    
+	/**
+	 * Returns timestamp at which the stream was created.
+	 * 
+	 * @return creation timestamp
+	 */
+	public long getCreationTime() {
+		return creationTime;
 	}
 
     /**

@@ -67,7 +67,6 @@ import org.red5.server.api.stream.ISubscriberStreamService;
 import org.red5.server.exception.ClientRejectedException;
 import org.red5.server.scheduling.QuartzSchedulingService;
 import org.red5.server.so.SharedObjectService;
-import org.red5.server.stream.ClientBroadcastStream;
 import org.red5.server.stream.IBroadcastScope;
 import org.red5.server.stream.IProviderService;
 import org.red5.server.stream.PlaylistSubscriberStream;
@@ -1172,22 +1171,19 @@ public class MultiThreadedApplicationAdapter extends
 		// Override if necessary.
 	}	
 	
+	/**
+	 * Notification that a broadcasting stream is closing.
+	 * 
+	 * @param stream
+	 */
 	public void streamBroadcastClose(IBroadcastStream stream) {
 		// log w3c connect event
 		IConnection conn = Red5.getConnectionLocal();
-		long publishDuration = -1;
-		if (stream instanceof ClientBroadcastStream) {
-			// converted to seconds
-			publishDuration = (System.currentTimeMillis() - ((ClientBroadcastStream) stream)
-					.getCreationTime()) / 1000;
-		}
-		log
-				.info(
-						"W3C x-category:stream x-event:unpublish c-ip:{} cs-bytes:{} sc-bytes:{} x-sname:{} x-file-length:{} x-name:{}",
-						new Object[] { conn.getRemoteAddress(),
-								conn.getReadBytes(), conn.getWrittenBytes(),
-								stream.getName(), publishDuration,
-								stream.getPublishedName() });
+		// converted to seconds
+		long publishDuration = (System.currentTimeMillis() - stream.getCreationTime()) / 1000;
+		log.info("W3C x-category:stream x-event:unpublish c-ip:{} cs-bytes:{} sc-bytes:{} x-sname:{} x-file-length:{} x-name:{}",
+				new Object[] { conn.getRemoteAddress(),	conn.getReadBytes(), conn.getWrittenBytes(),
+						stream.getName(), publishDuration, stream.getPublishedName() });
 		String recordingName = stream.getSaveFilename();
 		// if its not null then we did a recording
 		if (recordingName != null) {
@@ -1214,10 +1210,8 @@ public class MultiThreadedApplicationAdapter extends
 						if (file.delete()) {
 							log.info("File {} was deleted", file.getName());
 						} else {
-							log
-									.info(
-											"File {} was not deleted, it will be deleted on exit",
-											file.getName());
+							log.info("File {} was not deleted, it will be deleted on exit",
+										file.getName());
 							file.deleteOnExit();
 						}
 					}

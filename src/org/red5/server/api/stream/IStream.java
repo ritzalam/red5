@@ -65,5 +65,12 @@ public interface IStream {
 	 * Close this stream.
 	 */
 	public void close();
+	
+	/**
+	 * Returns the timestamp at which the stream was created.
+	 * 
+	 * @return creation timestamp
+	 */
+	public long getCreationTime();
 
 }
