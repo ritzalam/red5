@@ -1,7 +1,5 @@
 package org.red5.server.api;
 
-import java.lang.ref.WeakReference;
-
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  * 
@@ -18,8 +16,10 @@ import java.lang.ref.WeakReference;
  *  
  * You should have received a copy of the GNU Lesser General Public License along 
  * with this library; if not, write to the Free Software Foundation, Inc., 
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
+
+import java.lang.ref.WeakReference;
 
 /**
  * Utility class for accessing Red5 API objects.

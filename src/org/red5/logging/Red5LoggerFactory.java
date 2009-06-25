@@ -19,6 +19,10 @@ package org.red5.logging;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.lang.reflect.Method;
+
+import org.red5.server.adapter.StatefulScopeWrappingAdapter;
+import org.red5.server.api.IScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.impl.StaticLoggerBinder;
@@ -36,9 +40,31 @@ import ch.qos.logback.classic.selector.ContextSelector;
 public class Red5LoggerFactory {
 
 	@SuppressWarnings("unchecked")
-	public static Logger getLogger(Class clazz) {
+	public static Logger getLogger(Class<?> clazz) {
 		//determine the red5 app name or servlet context name
 		String contextName = null;
+				
+		//if the incoming class extends StatefulScopeWrappingAdapter we lookup the context
+		//by scope name
+		boolean scopeAware = StatefulScopeWrappingAdapter.class.isAssignableFrom(clazz);
+		//System.out.printf("Wrapper - %s\n", StatefulScopeWrappingAdapter.class.isAssignableFrom(clazz));
+		if (scopeAware) {
+    		try {
+        		Class wrapper = null;
+        		if ((wrapper = clazz.asSubclass(StatefulScopeWrappingAdapter.class)) != null) {
+        			try {
+                		Method getScope = wrapper.getMethod("getScope", new Class[0]);
+        				//NPE will occur here if the scope is not yet set on the application adapter
+                		IScope scope = (IScope) getScope.invoke(null, new Object[0]);
+                    	contextName = scope.getName();
+        			} catch (Exception e) {
+        				//e.printStackTrace();
+        			}	
+        		}
+    		} catch (ClassCastException cce) {
+    			//cce.printStackTrace();
+    		}
+		}
 		
 		/* TODO: For a future day, the context or application will be determined
 		//get a reference to our caller

@@ -19,11 +19,9 @@ package org.red5.server.adapter;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
-import org.slf4j.Logger;
 
 /**
  * Base class for applications, takes care that callbacks are executed single-threaded.
@@ -38,9 +36,6 @@ import org.slf4j.Logger;
  * @author Joachim Bauch (jojo@struktur.de)
  */
 public class ApplicationAdapter extends MultiThreadedApplicationAdapter {
-
-	/** Logger object. */
-	protected static Logger log = Red5LoggerFactory.getLogger(ApplicationAdapter.class);
 
 	/** {@inheritDoc} */
 	@Override

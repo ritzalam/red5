@@ -132,8 +132,7 @@ public class MultiThreadedApplicationAdapter extends
 	/**
 	 * Logger object
 	 */
-	protected static Logger log = Red5LoggerFactory
-			.getLogger(MultiThreadedApplicationAdapter.class);
+	protected Logger log = null;
 
 	/**
 	 * List of application listeners.
@@ -305,6 +304,11 @@ public class MultiThreadedApplicationAdapter extends
 	 */
 	@Override
 	public boolean connect(IConnection conn, IScope scope, Object[] params) {
+		//ensure the log is not null at this point
+		if (log == null) {
+			log = Red5LoggerFactory.getLogger(this.getClass());
+		}
+		//hit the super class first
 		if (!super.connect(conn, scope, params)) {
 			return false;
 		}
@@ -465,6 +469,8 @@ public class MultiThreadedApplicationAdapter extends
 	 *         otherwise
 	 */
 	public boolean appStart(IScope app) {
+		//set the log here so that stuff is logged in the correct place
+		log = Red5LoggerFactory.getLogger(this.getClass());
 		log.debug("appStart: {}", app);
 		for (IApplication listener : listeners) {
 			if (!listener.appStart(app)) {
