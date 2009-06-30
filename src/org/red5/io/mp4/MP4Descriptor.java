@@ -213,7 +213,7 @@ public class MP4Descriptor {
 	public MP4Descriptor lookup(int type, int number) {
 		int position = 0;
 		for (int i = 0; i < children.size(); i++) {
-			MP4Descriptor descriptor = (MP4Descriptor) children.elementAt(i);
+			MP4Descriptor descriptor = children.elementAt(i);
 			if (descriptor.getType() == type) {
 				if (position >= number) {
 					return descriptor;

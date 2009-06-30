@@ -246,7 +246,7 @@ public class MP4Atom {
 	public MP4Atom lookup(long type, int number) {
 		int position = 0; 
 		for(int i = 0; i < children.size(); i++) {
-			MP4Atom atom = (MP4Atom) children.get(i);
+			MP4Atom atom = children.get(i);
 			if(atom.getType() == type) {
 				if(position >= number) {
 					return atom;
@@ -947,7 +947,7 @@ public class MP4Atom {
 	}
 	
 	public static int typeToInt(String type) {
-		int result = ((int)type.charAt(0) << 24) + ((int)type.charAt(1) << 16) + ((int)type.charAt(2) << 8) + ((int)type.charAt(3));
+		int result = (type.charAt(0) << 24) + (type.charAt(1) << 16) + (type.charAt(2) << 8) + type.charAt(3);
 		return result;
 	}
 	

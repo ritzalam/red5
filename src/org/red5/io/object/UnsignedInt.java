@@ -75,12 +75,12 @@ public final class UnsignedInt extends UnsignedNumber {
 
 	@Override
 	public double doubleValue() {
-		return (double) value;
+		return value;
 	}
 
 	@Override
 	public float floatValue() {
-		return (float) value;
+		return value;
 	}
 
 	@Override
@@ -122,7 +122,7 @@ public final class UnsignedInt extends UnsignedNumber {
 
 	@Override
 	public String toString() {
-		return Long.toString((long) value & 0xFFFFFFFFL);
+		return Long.toString(value & 0xFFFFFFFFL);
 	}
 	
 	@Override

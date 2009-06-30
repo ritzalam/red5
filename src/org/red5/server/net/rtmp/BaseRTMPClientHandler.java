@@ -378,8 +378,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 		RTMPConnection conn = connManager.getConnection();
 		if (conn == null) {
 			log.info("Connection was null 2");
-		}
-		if (conn instanceof IServiceCapableConnection) {
+		} else {
 			conn.invoke(method, callback);
 		}
 	}
@@ -399,8 +398,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 		RTMPConnection conn = connManager.getConnection();
 		if (conn == null) {
 			log.info("Connection was null 2");
-		}
-		if (conn instanceof IServiceCapableConnection) {
+		} else {
 			((IServiceCapableConnection) conn).invoke(method, params, callback);
 		}
 	}
@@ -536,7 +534,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 			// XXX better to serialize ObjectMap to Status object
 			ObjectMap<?, ?> objMap = (ObjectMap<?, ?>) call.getArguments()[0];
 			// should keep this as an Object to stay compatible with FMS3 etc
-			Object clientId = (Object) objMap.get("clientid");
+			Object clientId = objMap.get("clientid");
 			if (clientId == null) {
 				clientId = source.getStreamId();
 			}

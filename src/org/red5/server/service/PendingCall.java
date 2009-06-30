@@ -104,7 +104,7 @@ public class PendingCall extends Call implements IPendingServiceCall {
 	@Override
 	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
 		super.readExternal(in);
-		result = (Object) in.readObject();
+		result = in.readObject();
 	}
 
 	@Override

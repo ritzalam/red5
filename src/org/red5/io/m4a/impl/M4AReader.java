@@ -337,12 +337,12 @@ public class M4AReader implements IoConstants, ITagReader {
 													if (descriptor != null) {
 		    											Vector<MP4Descriptor> children = descriptor.getChildren();
 		    											for (int e = 0; e < children.size(); e++) { 
-		    												MP4Descriptor descr = (MP4Descriptor) children.get(e);
+		    												MP4Descriptor descr = children.get(e);
 		    												log.debug("{}", ToStringBuilder.reflectionToString(descr));
 		    												if (descr.getChildren().size() > 0) {
 		    													Vector<MP4Descriptor> children2 = descr.getChildren();
 		    													for (int e2 = 0; e2 < children2.size(); e2++) { 
-		    														MP4Descriptor descr2 = (MP4Descriptor) children2.get(e2);
+		    														MP4Descriptor descr2 = children2.get(e2);
 		    														log.debug("{}", ToStringBuilder.reflectionToString(descr2));
 		    														if (descr2.getType() == MP4Descriptor.MP4DecSpecificInfoDescriptorTag) {
 		    															//we only want the MP4DecSpecificInfoDescriptorTag
@@ -381,7 +381,7 @@ public class M4AReader implements IoConstants, ITagReader {
 												log.debug("Sample to chunk atom found");
 												audioSamplesToChunks = stsc.getRecords();
 												log.debug("Record count: {}", audioSamplesToChunks.size());
-												MP4Atom.Record rec = (MP4Atom.Record) audioSamplesToChunks.firstElement();
+												MP4Atom.Record rec = audioSamplesToChunks.firstElement();
 												log.debug("Record data: Description index={} Samples per chunk={}", rec.getSampleDescriptionIndex(), rec.getSamplesPerChunk());
 											}									
 											//stsz - has Samples
@@ -407,7 +407,7 @@ public class M4AReader implements IoConstants, ITagReader {
 												log.debug("Time to sample atom found");
 												Vector<MP4Atom.TimeSampleRecord> records = stts.getTimeToSamplesRecords();
 												log.debug("Record count: {}", records.size());
-												MP4Atom.TimeSampleRecord rec = (MP4Atom.TimeSampleRecord) records.firstElement();
+												MP4Atom.TimeSampleRecord rec = records.firstElement();
 												log.debug("Record data: Consecutive samples={} Duration={}", rec.getConsecutiveSamples(), rec.getSampleDuration());
 												//if we have 1 record then all samples have the same duration
 												if (records.size() > 1) {
@@ -672,21 +672,21 @@ public class M4AReader implements IoConstants, ITagReader {
 				
 		//add the audio frames / samples / chunks		
 		for (int i = 0; i < audioSamplesToChunks.size(); i++) {
-			MP4Atom.Record record = (MP4Atom.Record) audioSamplesToChunks.get(i);
+			MP4Atom.Record record = audioSamplesToChunks.get(i);
 			int firstChunk = record.getFirstChunk();
 			int lastChunk = audioChunkOffsets.size();
 			if (i < audioSamplesToChunks.size() - 1) {
-				MP4Atom.Record nextRecord = (MP4Atom.Record) audioSamplesToChunks.get(i + 1);
+				MP4Atom.Record nextRecord = audioSamplesToChunks.get(i + 1);
 				lastChunk = nextRecord.getFirstChunk() - 1;
 			}
 			for (int chunk = firstChunk; chunk <= lastChunk; chunk++) {
 				int sampleCount = record.getSamplesPerChunk();
-				pos = (Long) audioChunkOffsets.elementAt(chunk - 1);
+				pos = audioChunkOffsets.elementAt(chunk - 1);
     			while (sampleCount > 0) {
         			//calculate ts
     				double ts = (audioSampleDuration * (sample - 1)) / audioTimeScale;
         			//sample size
-        			int size = ((Integer) audioSamples.get(sample - 1)).intValue();
+        			int size = (audioSamples.get(sample - 1)).intValue();
         			//create a frame
             		MP4Frame frame = new MP4Frame();
             		frame.setOffset(pos);

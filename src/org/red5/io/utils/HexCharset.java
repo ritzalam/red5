@@ -61,7 +61,7 @@ public class HexCharset extends Charset {
 
 		private Decoder() {
 			super(HexCharset.this, 2.0F,
-					measure != null ? 2.0F + 2.0F / (float) measure.intValue()
+					measure != null ? 2.0F + 2.0F / measure.intValue()
 							: 2.0F);
 		}
 

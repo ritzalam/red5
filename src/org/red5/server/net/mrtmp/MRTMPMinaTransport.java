@@ -185,7 +185,7 @@ public class MRTMPMinaTransport {
 		log.info("Receive Buffer Size: {}", receiveBufferSize);
 		log.info("Send Buffer Size: {}", sendBufferSize);
 
-		SocketSessionConfig sessionConf = (SocketSessionConfig) acceptor.getSessionConfig();
+		SocketSessionConfig sessionConf = acceptor.getSessionConfig();
 		sessionConf.setReuseAddress(true);
 		sessionConf.setTcpNoDelay(tcpNoDelay);
 		// XXX ignore the config of buffer settings

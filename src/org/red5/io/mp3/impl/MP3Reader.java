@@ -170,7 +170,7 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 				log.debug("Encoding type: {}", audioHeader.getEncodingType());
 				log.debug("Encoder: {}", audioHeader.getEncoder());
 			}
-			ID3v24Tag idTag = (ID3v24Tag) mp3file.getID3v2TagAsv24();
+			ID3v24Tag idTag = mp3file.getID3v2TagAsv24();
 			if (idTag != null) {
 				// create meta data holder
 				metaData = new MetaData();

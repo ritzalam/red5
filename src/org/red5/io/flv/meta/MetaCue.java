@@ -117,7 +117,7 @@ public class MetaCue<K, V> extends HashMap<String, Object> implements IMetaCue {
 		Iterator<String> loIT = this.keySet().iterator();
 
 		while( loIT.hasNext() ) {
-			lsKey = (String)loIT.next();
+			lsKey = loIT.next();
 			lsRet += lsKey.toLowerCase() + "=" + this.get( lsKey );
 			if( loIT.hasNext() ) lsRet += ", ";
 		}

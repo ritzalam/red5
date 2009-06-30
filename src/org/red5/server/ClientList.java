@@ -97,7 +97,7 @@ public class ClientList<E> extends AbstractList<E> implements ListMBean {
 	}
 
 	public E get(int index) {
-		return ((WeakReference<E>) items.get(index)).get();
+		return (items.get(index)).get();
 	}
 
 	private void removeReleased() {

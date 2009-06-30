@@ -50,7 +50,7 @@ public class RTMPConnManager implements IRTMPConnManager,
 			return null;
 		}
 		try {
-			RTMPConnection conn = (RTMPConnection) createConnectionInstance(connCls);
+			RTMPConnection conn = createConnectionInstance(connCls);
 			lock.writeLock().lock();
 			try {
 				int offset = 0;

@@ -94,7 +94,7 @@ public class ServiceUtils {
 
 		// First search for method with exact parameters
 		for (int i = 0; i < methods.size(); i++) {
-			method = (Method) methods.get(i);
+			method = methods.get(i);
 			boolean valid = true;
 			Class<?>[] paramTypes = method.getParameterTypes();
 			for (int j = 0; j < args.length; j++) {
@@ -114,7 +114,7 @@ public class ServiceUtils {
 		// Then try to convert parameters
 		for (int i = 0; i < methods.size(); i++) {
 			try {
-				method = (Method) methods.get(i);
+				method = methods.get(i);
 				params = ConversionUtils.convertParams(args, method
 						.getParameterTypes());
 				if (args.length > 0 && (args[0] instanceof IConnection)
@@ -195,7 +195,7 @@ public class ServiceUtils {
 		Object[] params = null;
 		for (int i = 0; i < methods.size(); i++) {
 			try {
-				method = (Method) methods.get(i);
+				method = methods.get(i);
 				params = ConversionUtils.convertParams(args, method
 						.getParameterTypes());
 				if (argsList.size() > 0

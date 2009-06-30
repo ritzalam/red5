@@ -128,7 +128,7 @@ public class ExtendedPropertyPlaceholderConfigurer extends
 						ioException);
 			}
 		}
-		this.setLocations((Resource[]) resources.toArray(new Resource[resources
+		this.setLocations(resources.toArray(new Resource[resources
 				.size()]));
 	}
 

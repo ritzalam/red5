@@ -129,8 +129,8 @@ public final class UnsignedLong extends UnsignedNumber {
 
 	@Override
 	public int intValue() {
-		return (((int) value[4] << 24) & 0xFF000000 | ((int) value[5] << 16)
-				& 0xFF0000 | ((int) value[6] << 8) & 0xFF00 | ((int) value[7] & 0xFF));
+		return ((value[4] << 24) & 0xFF000000 | (value[5] << 16)
+				& 0xFF0000 | (value[6] << 8) & 0xFF00 | (value[7] & 0xFF));
 	}
 
 	@Override
@@ -141,17 +141,17 @@ public final class UnsignedLong extends UnsignedNumber {
 				| ((long) value[3] << 32) & 0xFF00000000L
 				| ((long) value[4] << 24) & 0xFF000000L
 				| ((long) value[5] << 16) & 0xFF0000L | ((long) value[6] << 8)
-				& 0xFF00L | ((long) (value[7]) & 0xFFL));
+				& 0xFF00L | ((value[7]) & 0xFFL));
 	}
 
 	@Override
 	public float floatValue() {
-		return (float) longValue();
+		return longValue();
 	}
 
 	@Override
 	public double doubleValue() {
-		return (double) longValue();
+		return longValue();
 	}
 
 	@Override

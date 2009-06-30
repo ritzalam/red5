@@ -299,7 +299,7 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 				rtmp.bufferDecoding(2);
 				return null;
 			}
-			headerValue = ((int) headerByte & 0xff) << 8 | ((int) in.get() & 0xff);
+			headerValue = (headerByte & 0xff) << 8 | (in.get() & 0xff);
 			byteCount = 2;
 		} else if ((headerByte & 0x3f) == 1) {
 			// Three byte header
@@ -308,11 +308,11 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 				rtmp.bufferDecoding(3);
 				return null;
 			}
-			headerValue = ((int) headerByte & 0xff) << 16 | ((int) in.get() & 0xff) << 8 | ((int) in.get() & 0xff);
+			headerValue = (headerByte & 0xff) << 16 | (in.get() & 0xff) << 8 | (in.get() & 0xff);
 			byteCount = 3;
 		} else {
 			// Single byte header
-			headerValue = (int) headerByte & 0xff;
+			headerValue = headerByte & 0xff;
 			byteCount = 1;
 		}
 		final int channelId = RTMPUtils.decodeChannelId(headerValue, byteCount);
@@ -413,17 +413,17 @@ public class RTMPProtocolDecoder implements Constants, SimpleProtocolDecoder,
 		int byteCount = 1;
 		if ((headerByte & 0x3f) == 0) {
 			// Two byte header
-			headerValue = ((int) headerByte & 0xff) << 8
-					| ((int) in.get() & 0xff);
+			headerValue = (headerByte & 0xff) << 8
+					| (in.get() & 0xff);
 			byteCount = 2;
 		} else if ((headerByte & 0x3f) == 1) {
 			// Three byte header
-			headerValue = ((int) headerByte & 0xff) << 16
-					| ((int) in.get() & 0xff) << 8 | ((int) in.get() & 0xff);
+			headerValue = (headerByte & 0xff) << 16
+					| (in.get() & 0xff) << 8 | (in.get() & 0xff);
 			byteCount = 3;
 		} else {
 			// Single byte header
-			headerValue = (int) headerByte & 0xff;
+			headerValue = headerByte & 0xff;
 			byteCount = 1;
 		}
 		final int channelId = RTMPUtils.decodeChannelId(headerValue, byteCount);

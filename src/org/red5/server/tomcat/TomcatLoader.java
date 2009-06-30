@@ -366,13 +366,13 @@ public class TomcatLoader extends LoaderBase implements
 							        NodeList fstNmElmntLst = fstElmnt.getElementsByTagName("param-name");
 							        Element fstNmElmnt = (Element) fstNmElmntLst.item(0);
 							        NodeList fstNm = fstNmElmnt.getChildNodes();
-							        String pName = ((Node) fstNm.item(0)).getNodeValue();
+							        String pName = (fstNm.item(0)).getNodeValue();
 							        log.trace("Param name: {}", pName);
 							        if ("enable-php".equals(pName)) {
     							        NodeList lstNmElmntLst = fstElmnt.getElementsByTagName("param-value");
     							        Element lstNmElmnt = (Element) lstNmElmntLst.item(0);
     							        NodeList lstNm = lstNmElmnt.getChildNodes();
-    							        String pValue =  ((Node) lstNm.item(0)).getNodeValue();
+    							        String pValue =  (lstNm.item(0)).getNodeValue();
     							        log.trace("Param value: {}", pValue);
     							        enablePhp = pValue;
     							        //
