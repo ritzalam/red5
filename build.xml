@@ -772,7 +772,7 @@
 	</target>
     
 	<target name="run-tests" depends="compile-tests" description="Run unit tests and generate HTML reports">
-		<junit fork="true" haltonfailure="no" printsummary="yes" showoutput="no" dir="${testreports.dir}">
+		<junit fork="true" haltonfailure="no" printsummary="yes" showoutput="no" failureproperty="test.failure.property" dir="${testreports.dir}">
 			<classpath>
 				<pathelement location="${testclass.dir}"/>
 				<pathelement location="${testdist.dir}/conf"/>
@@ -789,6 +789,9 @@
 				</fileset>
 			</batchtest>
 		</junit>
+                <condition property="test.allPassed" else="yes" value =" !!!!!! NO !!!!!">
+                  <isset property="test.failure.property"/>
+                </condition>
 		<mkdir dir="${testdoc.dir}"/>
 		<junitreport todir="${testdoc.dir}">
 			<fileset dir="${testreports.dir}">
@@ -796,6 +799,7 @@
 			</fileset>
 			<report format="frames" todir="${testdoc.dir}"/>
 		</junitreport>
+                <echo message="Did all tests pass: ${test.allPassed}"/>
 	</target>
     
 	<target name="run-tests-systemtest" depends="compile-tests" description="Runs some end-to-end system tests against a test server using a Flash client">
