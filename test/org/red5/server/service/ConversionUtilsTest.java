@@ -91,7 +91,7 @@ public class ConversionUtilsTest {
 		int[] results = (int[]) result;
 
 		assertEquals(results.length, source.size());
-		assertEquals(results[2], ((Integer)source.get(2)).intValue());
+		assertEquals(results[2], source.get(2).intValue());
 	}
 	
 	@Test
