@@ -345,7 +345,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 					log.warn("First Video timestamp is relative! {}", rtmpEvent.getTimestamp());
 				}
 				
-				videoTime = rtmpEvent.getTimestamp()+lastEventTime;
+				videoTime = rtmpEvent.getTimestamp() + lastEventTime;
 				
 			} else {
 				videoTime = rtmpEvent.getTimestamp();
@@ -373,7 +373,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 				if (dataTime < 0) {
 					log.warn("First data [Invoke] timestamp is relative! {}", rtmpEvent.getTimestamp());
 				}
-				dataTime  = rtmpEvent.getTimestamp()+lastEventTime;;
+				dataTime = rtmpEvent.getTimestamp() + lastEventTime;
 			} else {
 				dataTime = rtmpEvent.getTimestamp();
 			}
@@ -385,14 +385,14 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 				if (dataTime < 0) {
 					log.warn("First data [Notify] timestamp is relative! {}", rtmpEvent.getTimestamp());
 				}
-				dataTime  = rtmpEvent.getTimestamp()+lastEventTime;;
+				dataTime = rtmpEvent.getTimestamp() + lastEventTime;
 			} else {
 				dataTime = rtmpEvent.getTimestamp();
 			}
 			eventTime = dataTime;
 		}
 		
-		lastEventTime=eventTime;
+		lastEventTime = eventTime;
 		
 		// Notify event listeners
 		checkSendNotifications(event);
@@ -535,14 +535,12 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	 */
 	public void onOOBControlMessage(IMessageComponent source, IPipe pipe,
 			OOBControlMessage oobCtrlMsg) {
-		if (!"ClientBroadcastStream".equals(oobCtrlMsg.getTarget())) {
-			return;
-		}
-
-		if ("chunkSize".equals(oobCtrlMsg.getServiceName())) {
-			chunkSize = (Integer) oobCtrlMsg.getServiceParamMap().get(
-					"chunkSize");
-			notifyChunkSize();
+		if ("ClientBroadcastStream".equals(oobCtrlMsg.getTarget())) {
+    		if ("chunkSize".equals(oobCtrlMsg.getServiceName())) {
+    			chunkSize = (Integer) oobCtrlMsg.getServiceParamMap().get(
+    					"chunkSize");
+    			notifyChunkSize();
+    		}
 		}
 	}
 

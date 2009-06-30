@@ -34,6 +34,7 @@ import org.red5.io.amf3.ByteArray;
 import org.red5.io.amf3.IExternalizable;
 import org.red5.io.utils.ObjectMap;
 import org.red5.annotations.DontSerialize;
+import org.red5.annotations.RemoteClass;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -60,7 +61,7 @@ public class Serializer {
 	 * @param any Object to serialize
 	 */
 	public void serialize(Output out, Object any) {
-		serialize(out, null, null, any);
+		serialize(out, null, null, null, any);
 	}
 
 	/**
@@ -69,27 +70,28 @@ public class Serializer {
 	 * @param out Output writer
 	 * @param field The field to serialize
 	 * @param getter The getter method if not a field
-	 * @param any Object to serialize
+	 * @param object Parent object
+	 * @param value Object to serialize
 	 */
-	public void serialize(Output out, Field field, Method getter, Object any) {
+	public void serialize(Output out, Field field, Method getter, Object object, Object value) {
 		log.debug("serialize");
-		if (any instanceof IExternalizable) {
+		if (value instanceof IExternalizable) {
 			// Make sure all IExternalizable objects are serialized as objects
-			out.writeObject(any, this);
+			out.writeObject(value, this);
 			return;
-		} else if (any instanceof ByteArray) {
+		} else if (value instanceof ByteArray) {
 			// Write ByteArray objects directly
-			out.writeByteArray((ByteArray) any);
+			out.writeByteArray((ByteArray) value);
 			return;
 		}
 
-		if (writeBasic(out, any)) {
+		if (writeBasic(out, value)) {
 			log.debug("write basic");
 			return;
 		}
 
-		if (!writeComplex(out, any)) {
-			log.debug("Unable to serialize: " + any);
+		if (!writeComplex(out, value)) {
+			log.debug("Unable to serialize: " + value);
 		}
 	}
 
@@ -355,5 +357,18 @@ public class Serializer {
 		log.debug("Serialize field: {}", field);
 
 		return true;
+	}
+
+	public String getClassName(Class<?> objectClass) {
+		RemoteClass annotation = objectClass.getAnnotation(RemoteClass.class);
+		if (annotation != null) return annotation.alias();
+
+		String className = objectClass.getName();
+		if (className.startsWith("org.red5.compatibility.")) {
+			// Strip compatibility prefix from classname
+			className = className.substring(23);
+		}
+
+		return className;
 	}
 }

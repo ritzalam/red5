@@ -328,7 +328,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		Class<?> objectClass = object.getClass();
 		if (!objectClass.isAnnotationPresent(Anonymous.class)) {
 			buf.put(AMF.TYPE_CLASS_OBJECT);
-			putString(buf, objectClass.getName());
+			putString(buf, serializer.getClassName(objectClass));
 		} else {
 			buf.put(AMF.TYPE_OBJECT);
 		}
@@ -347,7 +347,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
             log.debug("Field name: {} class: {}", fieldName, objectClass);
             
             Field field = getField(objectClass, fieldName);
-            Method getter = getGetter(objectClass, fieldName);
+            Method getter = getGetter(objectClass, beanMap, fieldName);
 
             // Check if the Field corresponding to the getter/setter pair is transient
             if (!serializeField(serializer, objectClass, fieldName, field, getter)) {
@@ -355,7 +355,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
             }
 
             putString(buf, fieldName);
-			serializer.serialize(this, field, getter, beanMap.get(key));
+			serializer.serialize(this, field, getter, object, beanMap.get(key));
 		}
         // Write out end of object mark
 		buf.put((byte) 0x00);
@@ -403,6 +403,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		    for (Class<?> clazz = objectClass; !clazz.equals(Object.class); clazz = clazz.getSuperclass()) {
 			    try {
 				    field = clazz.getDeclaredField(keyName);
+				    break;
 			    } catch (NoSuchFieldException nfe) {
 				    // Ignore this exception and use the default behavior
 				    log.debug("writeObject caught NoSuchFieldException", nfe);
@@ -416,7 +417,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
     }
     
     @SuppressWarnings("unchecked")
-	protected Method getGetter(Class<?> objectClass, String keyName) {
+	protected Method getGetter(Class<?> objectClass, BeanMap beanMap, String keyName) {
 //		check element to prevent null pointer
 		Element element = getGetterCache().get(objectClass);
 		Map<String, Method> getterMap = (element == null ? null : (Map<String, Method>)element.getObjectValue());
@@ -425,26 +426,11 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 			getGetterCache().put(new Element(objectClass, getterMap));
 		}
 
-		Method getter = null;
-
+		Method getter;
 		if (getterMap.containsKey(keyName)) {
 			getter = getterMap.get(keyName);
 		} else {
-			String upper = keyName.substring(0, 1).toUpperCase() + keyName.substring(1);
-
-			for (Class<?> clazz = objectClass; !clazz.equals(Object.class); clazz = clazz.getSuperclass()) {
-				try {
-					getter = clazz.getMethod("get" + upper);
-				} catch (NoSuchMethodException e1) {
-					try {
-						getter = clazz.getMethod("is" + upper);
-					} catch (NoSuchMethodException e2) {
-						// Ignore this exception and use the default behavior
-						log.debug("writeObject caught NoSuchMethodException", e2);
-					}
-				}
-			}
-
+			getter = beanMap.getReadMethod(keyName);
 			getterMap.put(keyName, getter);
 		}
 
@@ -485,7 +471,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
 		if (!objectClass.isAnnotationPresent(Anonymous.class)) {
             // Write out start object marker for class name
 			buf.put(AMF.TYPE_CLASS_OBJECT);
-			putString(buf, objectClass.getName());
+			putString(buf, serializer.getClassName(objectClass));
 		} else {
             // Write out start object marker without class name
 			buf.put(AMF.TYPE_OBJECT);
@@ -512,7 +498,7 @@ public class Output extends BaseOutput implements org.red5.io.object.Output {
             // Write out prop name
 	        putString(buf, fieldName);
             // Write out
-            serializer.serialize(this, field, null, value);
+            serializer.serialize(this, field, null, object, value);
 		}
         // Write out end of object marker
 		buf.put((byte) 0x00);

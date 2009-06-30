@@ -739,24 +739,22 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 			return false;
 		}
 
-		if (((IStreamData) message).getData() == null) {
-			// TODO: when can this happen?
-			return true;
-		}
-
-		final int size = ((IStreamData) message).getData().limit();
-		if (message instanceof VideoData) {
-			if (checkBandwidth
-					&& !videoBucket.acquireTokenNonblocking(size, this)) {
-				waitingForToken = true;
-				return false;
-			}
-		} else if (message instanceof AudioData) {
-			if (checkBandwidth
-					&& !audioBucket.acquireTokenNonblocking(size, this)) {
-				waitingForToken = true;
-				return false;
-			}
+		IoBuffer ioBuffer = ((IStreamData) message).getData();
+		if (ioBuffer != null) {
+			final int size = ioBuffer.limit();
+			if (message instanceof VideoData) {
+				if (checkBandwidth
+						&& !videoBucket.acquireTokenNonblocking(size, this)) {
+					waitingForToken = true;
+					return false;
+				}
+			} else if (message instanceof AudioData) {
+				if (checkBandwidth
+						&& !audioBucket.acquireTokenNonblocking(size, this)) {
+					waitingForToken = true;
+					return false;
+				}
+			}		
 		}
 
 		return true;

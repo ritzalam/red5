@@ -36,6 +36,7 @@ import org.red5.server.api.service.IServiceCall;
 import org.red5.server.api.service.IServiceCapableConnection;
 import org.red5.server.api.service.IServiceInvoker;
 import org.red5.server.api.so.IClientSharedObject;
+import org.red5.server.api.stream.IClientStream;
 import org.red5.server.messaging.IMessage;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.codec.RTMPCodecFactory;
@@ -61,8 +62,7 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 
-	private static final Logger log = LoggerFactory
-			.getLogger(BaseRTMPClientHandler.class);
+	private static final Logger log = LoggerFactory.getLogger(BaseRTMPClientHandler.class);
 
 	/**
 	 * Connection parameters
@@ -249,7 +249,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 		this.connectArguments = connectCallArguments;
 
 		if (!connectionParams.containsKey("objectEncoding")) {
-			connectionParams.put("objectEncoding", (int) 0);
+			connectionParams.put("objectEncoding", 0);
 		}
 
 		this.connectCallback = connectCallback;
@@ -302,8 +302,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 
 	/** {@inheritDoc} */
 	@Override
-	protected void onPing(RTMPConnection conn, Channel channel, Header source,
-			Ping ping) {
+	protected void onPing(RTMPConnection conn, Channel channel, Header source, Ping ping) {
 		log.debug("onPing");
 		switch (ping.getEventType()) {
 			case Ping.PING_CLIENT:
@@ -315,15 +314,33 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 				pong.setEventType(Ping.PONG_SERVER);
 				int now = (int) (System.currentTimeMillis() & 0xffffffff);
 				pong.setValue2(now);
-				pong.setValue3(Ping.UNDEFINED);
 				conn.ping(pong);
 				break;
 			case Ping.STREAM_DRY: 
 				log.debug("Stream indicates there is no data available");
 				break;
 			case Ping.CLIENT_BUFFER:
-				//TODO set the client buffer
-				log.debug("Client sent a buffer size: {} ms", ping.getValue3());
+				//set the client buffer
+				IClientStream stream = null;
+				//get the stream id
+				int streamId = ping.getValue2();
+				//get requested buffer size in milliseconds
+				int buffer = ping.getValue3();
+				log.debug("Client sent a buffer size: {} ms for stream id: {}", buffer, streamId);
+				if (streamId != 0) {
+					// The client wants to set the buffer time
+					stream = conn.getStreamById(streamId);
+					if (stream != null) {
+						stream.setClientBufferDuration(buffer);
+						log.info("Setting client buffer on stream: {}", buffer);
+					}
+				} 
+				//catch-all to make sure buffer size is set
+				if (stream == null) {
+					// Remember buffer time until stream is created
+					conn.rememberStreamBufferDuration(streamId, buffer);
+					log.info("Remembering client buffer on stream: {}", buffer);
+				}				
 				break;
 			default:
 				log.warn("Unhandled ping: {}", ping);
@@ -416,7 +433,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 		params[0] = name;
 		params[1] = mode;
 		PendingCall pendingCall = new PendingCall("publish", params);
-		conn.invoke(pendingCall, (streamId - 1) * 5 + 4);
+		conn.invoke(pendingCall, getChannelForStreamId(streamId));
 		if (handler != null) {
 			NetStreamPrivateData streamData = streamDataMap.get(streamId);
 			if (streamData != null) {
@@ -429,7 +446,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 		log.debug("unpublish stream {}", streamId);
 		PendingCall pendingCall = new PendingCall("publish",
 				new Object[] { false });
-		connManager.getConnection().invoke(pendingCall, (streamId - 1) * 5 + 4);
+		connManager.getConnection().invoke(pendingCall, getChannelForStreamId(streamId));
 	}
 
 	public void publishStreamData(int streamId, IMessage message) {
@@ -451,7 +468,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 		params[1] = start;
 		params[2] = length;
 		PendingCall pendingCall = new PendingCall("play", params);
-		conn.invoke(pendingCall, (streamId - 1) * 5 + 4);
+		conn.invoke(pendingCall, getChannelForStreamId(streamId));
 	}
 
 	/** {@inheritDoc} */
@@ -588,6 +605,16 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 		}
 	}
 
+	/**
+	 * Returns a channel based on the given stream id.
+	 * 
+	 * @param streamId
+	 * @return
+	 */
+	protected int getChannelForStreamId(int streamId) {
+		return (streamId - 1) * 5 + 4;
+	}
+	
 	/**
 	 * Setter for stream event dispatcher (useful for saving playing stream to
 	 * file)

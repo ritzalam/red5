@@ -372,15 +372,10 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 	@Override
 	protected void writeArbitraryObject(Object object, Serializer serializer) {
 		Class<?> objectClass = object.getClass();
-    	String className = objectClass.getName();
-    	if (className.startsWith("org.red5.compatibility.")) {
-    		// Strip compatibility prefix from classname
-    		className = className.substring(23);
-    	}
 
-        // If we need to serialize class information...
+	    // If we need to serialize class information...
     	if (!objectClass.isAnnotationPresent(Anonymous.class)) {
-			putString(className);
+			putString(serializer.getClassName(objectClass));
 		} else {
 			putString("");
 		}
@@ -409,7 +404,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
             // Write out prop name
 			putString(fieldName);
             // Write out
-            serializer.serialize(this, field, null, value);
+            serializer.serialize(this, field, null, object, value);
 		}
     	amf3_mode -= 1;
         // Write out end of object marker
@@ -427,13 +422,8 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
     	}
 
     	storeReference(object);
-    	String className = object.getClass().getName();
-    	if (className.startsWith("org.red5.compatibility.")) {
-    		// Strip compatibility prefix from classname
-    		className = className.substring(23);
-    	}
 
-    	if (object instanceof IExternalizable) {
+	    if (object instanceof IExternalizable) {
     		// The object knows how to serialize itself.
         	int type = 1 << 1 | 1;
         	if (object instanceof ObjectProxy) {
@@ -442,7 +432,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
         		type |= AMF3.TYPE_OBJECT_EXTERNALIZABLE << 2;
         	}
         	putInteger(type);
-        	putString(className);
+        	putString(serializer.getClassName(object.getClass()));
         	amf3_mode += 1;
         	((IExternalizable) object).writeExternal(new DataOutput(this, serializer));
         	amf3_mode -= 1;
@@ -468,7 +458,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		Class<?> objectClass = object.getClass();
 		if (!objectClass.isAnnotationPresent(Anonymous.class)) {
         	// classname
-        	putString(className);
+        	putString(serializer.getClassName(object.getClass()));
 		} else {
 			putString("");
 		}
@@ -480,7 +470,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
             log.debug("Field name: {} class: {}", fieldName, objectClass);
 
 			Field field = getField(objectClass, fieldName);
-			Method getter = getGetter(objectClass, fieldName);
+			Method getter = getGetter(objectClass, beanMap, fieldName);
 
 			// Check if the Field corresponding to the getter/setter pair is transient
 		    if (!serializeField(serializer, objectClass, fieldName, field, getter)) {
@@ -488,7 +478,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 		    }
 
 			putString(fieldName);
-			serializer.serialize(this, field, getter, beanMap.get(key));
+			serializer.serialize(this, field, getter, object, beanMap.get(key));
 		}
     	amf3_mode -= 1;
 

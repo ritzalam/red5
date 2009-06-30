@@ -489,8 +489,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 		ClientBroadcastStream cbs = (ClientBroadcastStream) scope
 				.getContext().getBean("clientBroadcastStream");
 		Integer buffer = streamBuffers.get(streamId - 1);
-		if (buffer != null)
+		if (buffer != null) {
 			cbs.setClientBufferDuration(buffer);
+		}
 		cbs.setStreamId(streamId);
 		cbs.setConnection(this);
 		cbs.setName(createStreamName());
@@ -533,8 +534,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 		PlaylistSubscriberStream pss = (PlaylistSubscriberStream) scope
 				.getContext().getBean("playlistSubscriberStream");
 		Integer buffer = streamBuffers.get(streamId - 1);
-		if (buffer != null)
+		if (buffer != null) {
 			pss.setClientBufferDuration(buffer);
+		}
 		pss.setName(createStreamName());
 		pss.setConnection(this);
 		pss.setScope(this.getScope());
@@ -913,14 +915,12 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/** {@inheritDoc} */
 	@Override
 	public long getReadBytes() {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public long getWrittenBytes() {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 
@@ -1029,7 +1029,6 @@ public abstract class RTMPConnection extends BaseConnection implements
 		lastPingSent.set(newPingTime);
 		int now = (int) (newPingTime & 0xffffffff);
 		pingRequest.setValue2(now);
-		pingRequest.setValue3(Ping.UNDEFINED);
 		ping(pingRequest);
 	}
 
