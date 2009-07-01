@@ -98,6 +98,5 @@
         <dependency org="spring" name="spring-tx" rev="2.5.6" conf="eclipse->*"/>  
         <dependency name="jython-engine" rev="" conf="eclipse->*"/> 
         <dependency name="groovy-engine" rev="" conf="eclipse->*"/>
-        <dependency name="jruby-engine" rev="" conf="eclipse->*"/> 
     </dependencies>
 </ivy-module>

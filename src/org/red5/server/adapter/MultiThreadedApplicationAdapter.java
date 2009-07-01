@@ -95,9 +95,9 @@ import org.slf4j.Logger;
  * </p>
  * <p>
  * <code>
- * public List<String> getLiveStreams() {<br />
+ * public List&lt;String&gt; getLiveStreams() {<br />
  *   // Implementation goes here, say, use Red5 object to obtain scope and all it's streams<br />
- * }<br />
+ * }
  * </code>
  * 
  * <p>
@@ -122,12 +122,11 @@ import org.slf4j.Logger;
  * @author Paul Gregoire (mondain@gmail.com)
  * @author Michael Klishin
  */
-public class MultiThreadedApplicationAdapter extends
-		StatefulScopeWrappingAdapter implements ISharedObjectService,
-		IBroadcastStreamService, IOnDemandStreamService,
-		ISubscriberStreamService, ISchedulingService, IStreamSecurityService,
-		ISharedObjectSecurityService, IStreamAwareScopeHandler,
-		ApplicationMBean {
+public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapter 
+		implements ISharedObjectService, IBroadcastStreamService, 
+		IOnDemandStreamService, ISubscriberStreamService, ISchedulingService, 
+		IStreamSecurityService, ISharedObjectSecurityService, 
+		IStreamAwareScopeHandler, ApplicationMBean {
 
 	/**
 	 * Logger object
@@ -280,8 +279,7 @@ public class MultiThreadedApplicationAdapter extends
 	 *             Thrown when client connection must be rejected by application
 	 *             logic
 	 */
-	protected boolean rejectClient(Object reason)
-			throws ClientRejectedException {
+	protected boolean rejectClient(Object reason) throws ClientRejectedException {
 		throw new ClientRejectedException(reason);
 	}
 
@@ -345,6 +343,10 @@ public class MultiThreadedApplicationAdapter extends
 	 */
 	@Override
 	public boolean start(IScope scope) {
+		//set the log here so that stuff is logged in the correct place
+		if (log == null) {
+			log = Red5LoggerFactory.getLogger(this.getClass());
+		}
 		if (!super.start(scope)) {
 			return false;
 		}
@@ -469,8 +471,6 @@ public class MultiThreadedApplicationAdapter extends
 	 *         otherwise
 	 */
 	public boolean appStart(IScope app) {
-		//set the log here so that stuff is logged in the correct place
-		log = Red5LoggerFactory.getLogger(this.getClass());
 		log.debug("appStart: {}", app);
 		for (IApplication listener : listeners) {
 			if (!listener.appStart(app)) {
