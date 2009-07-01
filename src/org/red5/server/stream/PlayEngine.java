@@ -208,7 +208,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 	/**
 	 * Builder pattern
 	 */
-	public static class Builder {
+	public final static class Builder {
 		//Required for play engine
 		private PlaylistSubscriberStream playlistSubscriberStream;
 
@@ -312,9 +312,10 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 		//
 		// -2: live then recorded, -1: live, >=0: recorded
 		int type = (int) (item.getStart() / 1000);
+		log.debug("Type {}", type);
 		// see if it's a published stream
 		IScope thisScope = playlistSubscriberStream.getScope();
-		String itemName = item.getName();
+		final String itemName = item.getName();
 		//check for input and type
 		IProviderService.INPUT_TYPE sourceType = providerService.lookupProviderInput(thisScope, itemName);
 		
@@ -351,9 +352,10 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 				}
 				break;
 		}
-		log.debug("play decision is {}", decision);
+		log.debug("Play decision is {} (0=Live, 1=File, 2=Wait, 3=N/A)", decision);
 		currentItem = item;
 		long itemLength = item.getLength();
+		log.debug("Item length: {}", itemLength);
 		switch (decision) {
 			case 0:
 				//get source input without create
@@ -397,19 +399,36 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 				break;
 			case 2:
 				//get source input with create
-				msgIn = providerService.getLiveProviderInput(thisScope,	itemName, true);
-				msgIn.subscribe(this, null);
 				waiting = true;
 				if (type == -1 && itemLength >= 0) {
+					log.debug("Creating wait job");
 					// Wait given timeout for stream to be published
-					waitLiveJob = schedulingService.addScheduledOnceJob(
-							itemLength, new IScheduledJob() {
-								public void execute(ISchedulingService service) {
-									waitLiveJob = null;
-									waiting = false;
-									playlistSubscriberStream.onItemEnd();
-								}
-							});
+					waitLiveJob = schedulingService.addScheduledOnceJob(itemLength, new IScheduledJob() {
+							public void execute(ISchedulingService service) {
+								//set the msgIn if its null
+								if (msgIn == null) {
+									connectToProvider(itemName);
+								}	
+								waitLiveJob = null;
+								waiting = false;
+								playlistSubscriberStream.onItemEnd();
+							}
+						});
+				} else if (type == -2) {
+					log.debug("Creating wait job");
+					// Wait x seconds for the stream to be published
+					waitLiveJob = schedulingService.addScheduledOnceJob(15000, new IScheduledJob() {
+							public void execute(ISchedulingService service) {
+								//set the msgIn if its null
+								if (msgIn == null) {
+									connectToProvider(itemName);
+								}	
+								waitLiveJob = null;
+								waiting = false;
+							}
+						});
+				} else {
+					connectToProvider(itemName);
 				}
 				break;
 			case 1:
@@ -455,10 +474,9 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 						if (msg == null) {
 							break;
 						}
-						if (!(msg instanceof RTMPMessage)) {
-							continue;
+						if (msg instanceof RTMPMessage) {
+							body = ((RTMPMessage) msg).getBody();
 						}
-						body = ((RTMPMessage) msg).getBody();
 					}
 				}
 
@@ -492,6 +510,27 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 		}
 	}
 
+	/**
+	 * Connects to the data provider.
+	 * 
+	 * @param itemName
+	 */
+	private final void connectToProvider(String itemName) {
+		log.debug("Attempting connection to {}", itemName);
+		IScope thisScope = playlistSubscriberStream.getScope();
+		msgIn = providerService.getLiveProviderInput(thisScope,	itemName, true);
+		if (msgIn != null) {
+			log.debug("Provider: {}", msgIn);
+			if (msgIn.subscribe(this, null)) {
+				log.debug("Subscribed to {} provider", itemName);
+			} else {
+				log.warn("Subscribe to {} provider failed", itemName);
+			}
+		} else {
+			log.warn("Provider was not found for {}", itemName);
+		}		
+	}
+	
 	/**
 	 * Pause at position
 	 * @param position                  Position in file
@@ -716,7 +755,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 			final long buffer = playlistSubscriberStream.getClientBufferDuration();
 			// Expected amount of data present in client buffer
 			final long buffered = lastMessage.getTimestamp() - delta;
-			log.debug("okayToSendMessage: timestamp {} delta {} buffered {} buffer {}",
+			log.trace("okayToSendMessage: timestamp {} delta {} buffered {} buffer {}",
 						new Object[]{lastMessage.getTimestamp(), delta, buffered, buffer});
 			//Fix for SN-122, this sends double the size of the client buffer
 			if (buffer > 0 && buffered > (buffer * 2)) {
@@ -846,6 +885,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 	 * Clear all scheduled waiting jobs
 	 */
 	private void clearWaitJobs() {
+		log.debug("Clear wait jobs");
 		if (pullAndPushFuture != null) {
 			pullAndPushFuture.cancel(false);
 			pullAndPushFuture = null;
@@ -894,7 +934,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 	 */
 	private void sendMessage(RTMPMessage message) {
 		int ts = message.getBody().getTimestamp();
-		log.debug("sendMessage: streamStartTS={}, length={}, streamOffset={}, timestamp={}",
+		log.trace("sendMessage: streamStartTS={}, length={}, streamOffset={}, timestamp={}",
 				new Object[]{streamStartTS, currentItem.getLength(), streamOffset, ts});
 		if (streamStartTS == -1) {
 			log.debug("sendMessage: resetting streamStartTS");
@@ -1120,8 +1160,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 		insufficientBW.setClientid(streamId);
 		insufficientBW.setLevel(Status.WARNING);
 		insufficientBW.setDetails(item.getName());
-		insufficientBW
-				.setDesciption("Data is playing behind the normal speed.");
+		insufficientBW.setDesciption("Data is playing behind the normal speed.");
 
 		doPushMessage(insufficientBW);
 	}

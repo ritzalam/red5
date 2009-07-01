@@ -28,6 +28,8 @@ import java.util.List;
 import org.red5.io.IStreamableFileFactory;
 import org.red5.io.IStreamableFileService;
 import org.red5.logging.Red5LoggerFactory;
+import org.red5.server.BasicScope;
+import org.red5.server.Scope;
 import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IScope;
 import org.red5.server.api.ScopeUtils;
@@ -77,20 +79,20 @@ public class ProviderService implements IProviderService {
 	}
 
 	/** {@inheritDoc} */
-	public IMessageInput getLiveProviderInput(IScope scope, String name,
-			boolean needCreate) {
-		IBasicScope basicScope;
-		basicScope = scope.getBasicScope(IBroadcastScope.TYPE, name);
+	public IMessageInput getLiveProviderInput(IScope scope, String name, boolean needCreate) {
+		log.debug("Get live provider input for {} scope: {}", name, scope);
+		if (log.isDebugEnabled()) {
+			((Scope) scope).dump();
+		}
+		//make sure the create is actually needed
+		IBasicScope basicScope = scope.getBasicScope(IBroadcastScope.TYPE, name);
 		if (basicScope == null) {
-			if (needCreate) {
-				synchronized (scope) {
-					// Re-check if another thread already created the scope
-					basicScope = scope
-							.getBasicScope(IBroadcastScope.TYPE, name);
-					if (basicScope == null) {
-						basicScope = new BroadcastScope(scope, name);
-						scope.addChildScope(basicScope);
-					}
+			if (needCreate) {			
+				// Re-check if another thread already created the scope
+				basicScope = scope.getBasicScope(IBroadcastScope.TYPE, name);
+				if (basicScope == null) {
+					basicScope = new BroadcastScope(scope, name);
+					scope.addChildScope(basicScope);
 				}
 			} else {
 				return null;
@@ -119,7 +121,7 @@ public class ProviderService implements IProviderService {
 		log.debug("getVODProviderFile - scope: {} name: {}", scope, name);
 		File file = null;
 		try {
-			log.debug("getVODProviderFile scope path: {} name: {}", scope.getContextPath(), name);
+			log.trace("getVODProviderFile scope path: {} name: {}", scope.getContextPath(), name);
 			file = getStreamFile(scope, name);
 		} catch (IOException e) {
 			log.error("Problem getting file: {}", name, e);
@@ -129,7 +131,7 @@ public class ProviderService implements IProviderService {
 			if (name.indexOf('.') > 0) {
 				log.info("File was null or did not exist: {}", name);
 			} else {
-				log.debug("VOD file {} was not found, may be live stream", name);
+				log.trace("VOD file {} was not found, may be live stream", name);
 			}
 			return null;
 		}
@@ -137,21 +139,21 @@ public class ProviderService implements IProviderService {
 	}
 
 	/** {@inheritDoc} */
-	public boolean registerBroadcastStream(IScope scope, String name,
-			IBroadcastStream bs) {
+	public boolean registerBroadcastStream(IScope scope, String name, IBroadcastStream bs) {
+		log.debug("Registering - name: {} stream: {} scope: {}", new Object[]{name, bs, scope});
+		if (log.isDebugEnabled()) {
+			((Scope) scope).dump();
+		}
 		boolean status = false;
-		synchronized (scope) {
-			IBasicScope basicScope = scope.getBasicScope(IBroadcastScope.TYPE,
-					name);
-			if (basicScope == null) {
-				basicScope = new BroadcastScope(scope, name);
-				scope.addChildScope(basicScope);
-			}
-			if (basicScope instanceof IBroadcastScope) {
-				((IBroadcastScope) basicScope)
-						.subscribe(bs.getProvider(), null);
-				status = true;
-			}
+		IBasicScope basicScope = scope.getBasicScope(IBroadcastScope.TYPE, name);
+		if (basicScope == null) {
+			log.debug("Creating a new scope");
+			basicScope = new BroadcastScope(scope, name);
+			scope.addChildScope(basicScope);
+		}
+		if (basicScope instanceof IBroadcastScope) {
+			log.debug("Subscribing scope {} to provider {}", basicScope, bs.getProvider());
+			status = ((IBroadcastScope) basicScope).subscribe(bs.getProvider(), null);
 		}
 		return status;
 	}
@@ -168,17 +170,39 @@ public class ProviderService implements IProviderService {
 		it = null;
 		return result;
 	}
-
+	
 	/** {@inheritDoc} */
 	public boolean unregisterBroadcastStream(IScope scope, String name) {
+		return unregisterBroadcastStream(scope, name, null);
+	}
+	
+	/** {@inheritDoc} */
+	public boolean unregisterBroadcastStream(IScope scope, String name, IBroadcastStream bs) {
+		log.debug("Unregistering - name: {} stream: {} scope: {}", new Object[]{name, bs, scope});
+		if (log.isDebugEnabled()) {
+			((Scope) scope).dump();
+		}
 		boolean status = false;
-		synchronized (scope) {
-			IBasicScope basicScope = scope.getBasicScope(IBroadcastScope.TYPE,
-					name);
-			if (basicScope instanceof IBroadcastScope) {
-				scope.removeChildScope(basicScope);
-				status = true;
+		IBasicScope basicScope = scope.getBasicScope(IBroadcastScope.TYPE, name);
+		if (basicScope instanceof IBroadcastScope) {
+			if (bs != null) {
+				log.debug("Unsubscribing scope {} from provider {}", basicScope, bs.getProvider());
+				((IBroadcastScope) basicScope).unsubscribe(bs.getProvider());
 			}
+			//if the scope has no listeners try to remove it
+			if (!((BasicScope) basicScope).hasEventListeners()) {
+				log.debug("Scope has no event listeners attempting removal");
+				scope.removeChildScope(basicScope);
+			}
+			if (log.isDebugEnabled()) {
+				//verify that scope was removed
+				if (scope.getBasicScope(IBroadcastScope.TYPE, name) == null) {
+					log.debug("Scope was removed");
+				} else {
+					log.debug("Scope was not removed");		
+				}
+			}
+			status = true;
 		}
 		return status;
 	}

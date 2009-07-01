@@ -31,7 +31,8 @@ import org.red5.server.messaging.IMessageInput;
  *  Central unit to get access to different types of provider inputs
  */
 public interface IProviderService extends IScopeService {
-	public static String BEAN_NAME = "providerService";
+	
+	public final static String BEAN_NAME = "providerService";
 
 	enum INPUT_TYPE {
 		NOT_FOUND, LIVE, VOD;
@@ -64,8 +65,7 @@ public interface IProviderService extends IScopeService {
      * @param needCreate    Whether there's need to create basic scope / live provider if they don't exist
 	 * @return <tt>null</tt> if not found.
 	 */
-	IMessageInput getLiveProviderInput(IScope scope, String name,
-			boolean needCreate);
+	IMessageInput getLiveProviderInput(IScope scope, String name, boolean needCreate);
 
 	/**
 	 * Get a named VOD provider as the source of input.
@@ -90,11 +90,10 @@ public interface IProviderService extends IScopeService {
 	 * 
 	 * @param scope         Scope
 	 * @param name          Name of stream
-	 * @param bs            Broadcast stream to register
+	 * @param stream        Broadcast stream to register
 	 * @return <tt>true</tt> if register successfully.
 	 */
-	boolean registerBroadcastStream(IScope scope, String name,
-			IBroadcastStream bs);
+	boolean registerBroadcastStream(IScope scope, String name, IBroadcastStream stream);
 
 	/**
 	 * Get names of existing broadcast streams in a scope. 
@@ -112,4 +111,15 @@ public interface IProviderService extends IScopeService {
 	 * @return <tt>true</tt> if unregister successfully.
 	 */
 	boolean unregisterBroadcastStream(IScope scope, String name);
+	
+	/**
+	 * Unregister a broadcast stream of a specific name from a scope.
+	 * 
+	 * @param scope         Scope
+	 * @param name          Stream name
+	 * @param stream		Broadcast stream
+	 * @return <tt>true</tt> if unregister successfully.
+	 */
+	boolean unregisterBroadcastStream(IScope scope, String name, IBroadcastStream stream);
+	
 }

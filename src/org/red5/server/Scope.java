@@ -229,13 +229,17 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 */
 	protected ObjectName oName;
 
+	{
+		creationTime = System.currentTimeMillis();
+	}
+	
 	/**
 	 * Creates unnamed scope
-	 */
+	 */	
 	public Scope() {
-		this(null);
+		super();
 	}
-
+	
 	/**
 	 * Creates scope with given name
 	 * 
@@ -243,9 +247,17 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 */
 	public Scope(String name) {
 		super(null, TYPE, name, false);
-		creationTime = System.currentTimeMillis();
 	}
 
+	/**
+	 * Creates scope using a Builder
+	 * 
+	 * @param builder
+	 */
+	public Scope(Builder builder) {
+		super(builder.parent, builder.type, builder.name, builder.persistent);
+	}	
+	
 	/**
 	 * Add child scope to this scope
 	 * 
@@ -255,6 +267,10 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	 */
 	public boolean addChildScope(IBasicScope scope) {
 		log.debug("Add child: {}", scope);
+		if (hasChildScope(scope.getType(), scope.getName())) {
+			log.warn("Child scope already exists");
+			return false;
+		}
 		if (scope.getStore() == null) {
 			// Child scope has no persistence store, use same class as parent.
 			try {
@@ -283,6 +299,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 		}
 		log.debug("Add child scope: {} to {}", scope, this);
 		children.put(scope.getType() + SEPARATOR + scope.getName(), scope);
+		subscopeStats.increment();
 		return true;
 	}
 
@@ -360,7 +377,6 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 	public boolean createChildScope(String name) {
 		final Scope scope = new Scope(name);
 		scope.setParent(this);
-		subscopeStats.increment();
 		return addChildScope(scope);
 	}
 
@@ -976,14 +992,13 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 		// Synchronize retrieval of the child scope (with removal)
 		try {
 			// Don't remove if reference if we have another one
-			if (hasChildScope(scope.getName())
-					&& getScope(scope.getName()) != scope) {
+			if (hasChildScope(scope.getName()) && getScope(scope.getName()) != scope) {
 				log.warn("Being asked to remove wrong scope reference child scope is {} not {}", new Object[] {
 						getScope(scope.getName()), scope });
 				return;
 			}
 
-    		log.debug("Remove child scope: {}" , scope);
+    		log.debug("Remove child scope: {} path: {}" , scope, scope.getPath());
     		if (scope instanceof IScope) {
     			if (hasHandler()) {
     				getHandler().stop((IScope) scope);
@@ -1231,6 +1246,56 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics,
 
 	public void unlock() {
 		lock.unlock();
+	}
+
+	//for debugging
+	public void dump() {
+		if (log.isDebugEnabled()) {
+			log.debug("Scope: {} {}", this.getClass().getName(), this);
+			log.debug("Running: {}", running);
+			if (hasParent()) {
+				log.debug("Parent: {}", parent);
+				Iterator<String> names = parent.getBasicScopeNames(null);
+				while (names.hasNext()) {
+					String sib = names.next();
+					log.debug("Siblings - {}", sib);
+				}
+				names = null;
+			}
+			log.debug("Handler: {}", handler);
+        	for (Map.Entry<String, IBasicScope> entry : children.entrySet()) {
+        		log.debug("Children - {} = {}", entry.getKey(), entry.getValue());
+        	}
+		}
+	}
+	
+	/**
+	 * Builder pattern
+	 */
+	public final static class Builder {
+		private IScope parent;
+		private String type;
+		private String name;
+		private boolean persistent;
+
+		public Builder() {
+		}
+
+		public Builder(String name) {
+			this.name = name;
+		}
+		
+		public Builder(IScope parent, String type, String name, boolean persistent) {
+			this.parent = parent;
+			this.type = type;
+			this.name = name;
+			this.persistent = persistent;
+		}
+		
+		public Scope build() {
+			return new Scope(this);
+		}
+
 	}
 
 }

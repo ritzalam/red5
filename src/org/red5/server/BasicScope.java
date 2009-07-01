@@ -68,6 +68,13 @@ public abstract class BasicScope extends PersistableAttributeStore implements
 	 * after the last disconnect.
 	 */
 	protected int keepDelay = 0;
+	
+	/**
+	 * Creates unnamed scope
+	 */
+	public BasicScope() {
+		this(null, "scope", null, false);
+	}
 
     /**
      * Constructor for basic scope
@@ -77,8 +84,7 @@ public abstract class BasicScope extends PersistableAttributeStore implements
      * @param name             Scope name. Used to identify scopes in application, must be unique among scopes of one level
      * @param persistent       Whether scope is persistent
      */
-	public BasicScope(IScope parent, String type, String name,
-			boolean persistent) {
+	public BasicScope(IScope parent, String type, String name, boolean persistent) {
 		super(type, name, null, persistent);
 		this.parent = parent;
 		this.listeners = new HashSet<IEventListener>();
@@ -158,6 +164,16 @@ public abstract class BasicScope extends PersistableAttributeStore implements
 	public Iterator<IEventListener> getEventListeners() {
 		return listeners.iterator();
 	}
+	
+	/**
+	 * Returns true if there are event listeners attached to
+	 * this scope.
+	 * 
+	 * @return
+	 */
+	public boolean hasEventListeners() {
+		return !listeners.isEmpty();
+	}	
 
     /**
      * Handles event. To be implemented in subclass realization
