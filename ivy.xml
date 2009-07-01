@@ -93,7 +93,7 @@
         <!-- Testing support -->
         <!-- until Eclipse updates their junit version, we have to use this -->
         <dependency name="junit" rev="4.5" conf="eclipse->*"/>
-        <dependency name="GroboUtils" rev="4-core" conf="eclipse->*"/>
+        <dependency name="GroboUtils" rev="5-core" conf="eclipse->*"/>
         <dependency org="spring" name="spring-test" rev="2.5.6" conf="eclipse->*"/>   
         <dependency org="spring" name="spring-tx" rev="2.5.6" conf="eclipse->*"/>  
         <dependency name="jython-engine" rev="" conf="eclipse->*"/> 
