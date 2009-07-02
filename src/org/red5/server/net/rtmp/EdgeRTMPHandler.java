@@ -82,6 +82,7 @@ public class EdgeRTMPHandler extends RTMPHandler {
 			case TYPE_AUDIO_DATA:
 			case TYPE_VIDEO_DATA:
 			case TYPE_FLEX_SHARED_OBJECT:
+            case TYPE_FLEX_STREAM_SEND:
 			case TYPE_SHARED_OBJECT:
 			case TYPE_BYTES_READ:
 				forwardPacket(conn, packet);
