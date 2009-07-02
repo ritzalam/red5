@@ -607,7 +607,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 	 * Returns a channel based on the given stream id.
 	 * 
 	 * @param streamId
-	 * @return
+	 * @return the channel for this stream id
 	 */
 	protected int getChannelForStreamId(int streamId) {
 		return (streamId - 1) * 5 + 4;

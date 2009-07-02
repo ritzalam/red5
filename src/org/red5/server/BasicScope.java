@@ -169,7 +169,7 @@ public abstract class BasicScope extends PersistableAttributeStore implements
 	 * Returns true if there are event listeners attached to
 	 * this scope.
 	 * 
-	 * @return
+	 * @return true if it has listeners; else false.
 	 */
 	public boolean hasEventListeners() {
 		return !listeners.isEmpty();
