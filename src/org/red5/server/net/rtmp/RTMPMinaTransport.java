@@ -182,11 +182,16 @@ public class RTMPMinaTransport {
 		log.info("Receive Buffer Size: {}", receiveBufferSize);
 		log.info("Send Buffer Size: {}", sendBufferSize);
 
+		//get the current session config that would be used during create
 		SocketSessionConfig sessionConf = acceptor.getSessionConfig();
+		//reuse the addresses
 		sessionConf.setReuseAddress(true);
 		sessionConf.setTcpNoDelay(tcpNoDelay);
 		sessionConf.setReceiveBufferSize(receiveBufferSize);
 		sessionConf.setSendBufferSize(sendBufferSize);
+		
+		//set reuse address on the socket acceptor as well
+		acceptor.setReuseAddress(true);
 				
 		String addrStr = addresses.toString();
 		log.debug("Binding to {}", addrStr);

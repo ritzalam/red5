@@ -43,7 +43,7 @@ public class RTMPMinaConnection extends RTMPConnection implements
 	protected static Logger log = LoggerFactory.getLogger(RTMPMinaConnection.class);
 
 	/**
-	 * MINA I/O session, connection between two endpoints
+	 * MINA I/O session, connection between two end points
 	 */
 	private volatile IoSession ioSession;
 	
@@ -135,7 +135,7 @@ public class RTMPMinaConnection extends RTMPConnection implements
 		if (ioSession == null) {
 			return 0;
 		}
-		// TODO: half-measure, writing to readBytes isn't synchronised in mina 
+		// TODO: half-measure, writing to readBytes isn't synchronized in mina 
 		synchronized (ioSession) {
 			return ioSession.getReadBytes();
 		}
@@ -147,7 +147,7 @@ public class RTMPMinaConnection extends RTMPConnection implements
 		if (ioSession == null) {
 			return 0;
 		}
-		// TODO: half-measure, writing to writtenBytes isn't synchronised in mina 
+		// TODO: half-measure, writing to writtenBytes isn't synchronized in mina 
 		synchronized (ioSession) {
 			return ioSession.getWrittenBytes();
 		}

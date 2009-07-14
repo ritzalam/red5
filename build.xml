@@ -448,15 +448,14 @@
 			<group title="Scripting" packages="org.red5.server.script:org.red5.server.script.*"/>
 			<link href="http://java.sun.com/${javadoc.loc}/docs/api"/>
 			<link href="http://jetty.mortbay.org/apidocs"/>
-			<link href="http://mina.apache.org/report/1.1/apidocs"/>
-			<link href="http://static.springframework.org/spring/docs/2.0.x/api"/>
+			<link href="http://mina.apache.org/report/trunk/apidocs"/>
+			<link href="http://static.springframework.org/spring/docs/2.5.x/api"/>
 			<link href="http://www.opensymphony.com/quartz/api"/>
 			<link href="http://www.slf4j.org/api"/>
 			<link href="http://logging.apache.org/log4j/1.2/apidocs"/>
 			<link href="http://groovy.codehaus.org/api"/>
 			<link href="http://tomcat.apache.org/tomcat-6.0-doc/api"/>
 			<link href="http://ehcache.sourceforge.net/javadoc"/>
-			<link href="https://whirlycache.dev.java.net/nonav/api"/>
 		</javadoc>
 	</target>
     
