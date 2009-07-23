@@ -83,7 +83,7 @@ public final class Installer {
 		
 		LoaderMBean proxy = null;
 		if (mbs.isRegistered(oName)) {
-			proxy = (LoaderMBean) MBeanServerInvocationHandler.newProxyInstance(mbs, oName, LoaderMBean.class, true);
+			proxy = MBeanServerInvocationHandler.newProxyInstance(mbs, oName, LoaderMBean.class, true);
 			log.debug("Loader was found");
 		} else {
 			log.warn("Loader not found");

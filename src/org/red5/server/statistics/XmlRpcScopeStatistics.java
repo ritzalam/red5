@@ -136,6 +136,7 @@ public class XmlRpcScopeStatistics {
 	 * @param value
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	private Object getXMLRPCValue(Object value) {
 		if (value == null) {
 			return "<null>";

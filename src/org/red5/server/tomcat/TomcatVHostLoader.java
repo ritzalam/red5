@@ -189,7 +189,7 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
             					ObjectName oName = JMXFactory.createObjectName("type", "ContextLoader");
             					ContextLoaderMBean proxy = null;
             					if (mbs.isRegistered(oName)) {
-            						proxy = (ContextLoaderMBean) MBeanServerInvocationHandler.newProxyInstance(mbs, oName, ContextLoaderMBean.class, true);
+            						proxy = MBeanServerInvocationHandler.newProxyInstance(mbs, oName, ContextLoaderMBean.class, true);
             						log.debug("Context loader was found");
             						appctx.setParent(proxy.getContext(defaultApplicationContextId));	
             					} else {
@@ -317,7 +317,7 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 					ObjectName oName = JMXFactory.createObjectName("type", "ContextLoader");
 					ContextLoaderMBean proxy = null;
 					if (mbs.isRegistered(oName)) {
-						proxy = (ContextLoaderMBean) MBeanServerInvocationHandler.newProxyInstance(mbs, oName, ContextLoaderMBean.class, true);
+						proxy = MBeanServerInvocationHandler.newProxyInstance(mbs, oName, ContextLoaderMBean.class, true);
 						log.debug("Context loader was found");
 						appctx.setParent(proxy.getContext(defaultApplicationContextId));	
 					} else {

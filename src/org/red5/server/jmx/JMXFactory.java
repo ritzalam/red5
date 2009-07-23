@@ -57,7 +57,7 @@ public class JMXFactory {
 		// try the first mbean server before grabbing platform, this should
 		// make things easier when using jboss or tomcats built in jmx.
 		try {
-			mbs = (MBeanServer) MBeanServerFactory.findMBeanServer(null).get(0);
+			mbs = MBeanServerFactory.findMBeanServer(null).get(0);
 		} catch (Exception e) {
 			// grab a reference to the "platform" MBeanServer
 			mbs = ManagementFactory.getPlatformMBeanServer();
