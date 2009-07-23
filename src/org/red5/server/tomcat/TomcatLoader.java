@@ -725,7 +725,7 @@ public class TomcatLoader extends LoaderBase implements
 									"ContextLoader");
 							ContextLoaderMBean proxy = null;
 							if (mbs.isRegistered(oName)) {
-								proxy = MBeanServerInvocationHandler
+								proxy = (ContextLoaderMBean) MBeanServerInvocationHandler
 										.newProxyInstance(mbs, oName,
 												ContextLoaderMBean.class, true);
 								log.debug("Context loader was found");

@@ -93,11 +93,11 @@ public class Shutdown {
 					"org.red5.server:type=JettyLoader");
 			LoaderMBean mbeanProxy = null;
 			if (mbs.isRegistered(jettyObjectName)) {
-				mbeanProxy = MBeanServerInvocationHandler.newProxyInstance(mbs,
+				mbeanProxy = (LoaderMBean) MBeanServerInvocationHandler.newProxyInstance(mbs,
 						jettyObjectName, LoaderMBean.class, true);
 				System.out.println("Red5 Jetty loader was found");
 			} else if (mbs.isRegistered(tomcatObjectName)) {
-				mbeanProxy = MBeanServerInvocationHandler.newProxyInstance(mbs,
+				mbeanProxy = (LoaderMBean) MBeanServerInvocationHandler.newProxyInstance(mbs,
 						tomcatObjectName, LoaderMBean.class, true);
 				System.out.println("Red5 Tomcat loader was found");
 			} else {

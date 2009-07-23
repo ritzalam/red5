@@ -116,7 +116,7 @@ public final class WarDeployer {
 		
 		LoaderMBean proxy = null;
 		if (mbs.isRegistered(oName)) {
-			proxy = MBeanServerInvocationHandler.newProxyInstance(mbs, oName, LoaderMBean.class, true);
+			proxy = (LoaderMBean) MBeanServerInvocationHandler.newProxyInstance(mbs, oName, LoaderMBean.class, true);
 			log.debug("Loader was found");
 		} else {
 			log.warn("Loader not found");

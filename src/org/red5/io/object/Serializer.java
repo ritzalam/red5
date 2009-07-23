@@ -157,7 +157,6 @@ public class Serializer {
 	 * @return boolean true if object was successfully serialized, false
 	 *         otherwise
 	 */
-	@SuppressWarnings("unchecked")
 	protected boolean writeListType(Output out, Object listType) {
 		log.debug("writeListType");
 		if (listType instanceof List) {

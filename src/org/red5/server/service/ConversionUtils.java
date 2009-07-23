@@ -160,8 +160,7 @@ public class ConversionUtils {
      * @return               Converted object
      * @throws ConversionException           If object can't be converted
      */
-    @SuppressWarnings("unchecked")
-	public static Object convertToArray(Object source, Class<?> target)
+    public static Object convertToArray(Object source, Class<?> target)
 			throws ConversionException {
 		try {
 			Class<?> targetType = target.getComponentType();

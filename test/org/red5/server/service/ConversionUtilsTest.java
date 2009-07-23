@@ -116,7 +116,6 @@ public class ConversionUtilsTest {
 
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testConvertToSet() {
 		Object[] source = new Object[3];
@@ -132,7 +131,6 @@ public class ConversionUtilsTest {
 
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
 	public void testConvertArrayListToSet() {
 		List<String> source = new ArrayList<String>(3);

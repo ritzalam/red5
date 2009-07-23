@@ -61,12 +61,10 @@ public class SDESInfo implements RTCPInfo {
 
 	private class Chunk {
 
-		@SuppressWarnings("unused")
 		public int ssrc;
 
 		public Type type;
 
-		@SuppressWarnings("unused")
 		public byte[] value;
 	}
 
