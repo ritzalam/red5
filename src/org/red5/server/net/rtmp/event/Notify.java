@@ -19,9 +19,13 @@ package org.red5.server.net.rtmp.event;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInput;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
 import java.util.Map;
 
 import org.apache.mina.core.buffer.IoBuffer;
@@ -31,6 +35,8 @@ import org.red5.server.stream.IStreamData;
 
 /**
  * Stream notification event
+ * @author Red5 team
+ * @author Tiago Daniel Jacobs (tiago@imdt.com.br)
  */
 public class Notify extends BaseEvent implements IStreamData, IStreamPacket {
 
@@ -241,4 +247,32 @@ public class Notify extends BaseEvent implements IStreamData, IStreamPacket {
 			out.writeObject(null);
 		}
 	}
+	
+	/**
+     * Duplicate this Notify message to future injection
+     * Serialize to memory and deserialize, safe way.
+     * 
+     * @return  duplicated Notify event
+     * @author Tiago Daniel Jacobs (tiago@imdt.com.br)
+     */
+	public Notify duplicate() throws IOException, ClassNotFoundException {
+		Notify result = new Notify();
+		ByteArrayOutputStream baos;
+		
+		baos = new ByteArrayOutputStream();
+		ObjectOutputStream oos = new ObjectOutputStream(baos);
+		
+		this.writeExternal(oos);
+		oos.close();
+		
+		byte[] buf = baos.toByteArray();
+		
+		ByteArrayInputStream bais = new ByteArrayInputStream(buf);
+		ObjectInputStream ois = new ObjectInputStream(bais);
+		
+		result.readExternal(ois);
+
+		return result;
+	}
+	
 }
