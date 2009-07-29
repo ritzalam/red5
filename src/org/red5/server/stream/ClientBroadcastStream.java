@@ -100,7 +100,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	private static final Logger log = LoggerFactory.getLogger(ClientBroadcastStream.class);
 
 	/** Stores absolute time for audio stream. */
-	private int audioTime=-1;
+	private int audioTime = -1;
 
 	/**
 	 * Total number of bytes received.
@@ -128,7 +128,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	private IMessageOutput connMsgOut;
 
 	/** Stores absolute time for data stream. */
-	private int dataTime=-1;
+	private int dataTime = -1;
 
 	/** Stores timestamp of first packet. */
 	private int firstPacketTime = -1;
@@ -178,15 +178,10 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	 */
 	private StatisticsCounter subscriberStats = new StatisticsCounter();
 
-	/**
-	 * Factory object for video codecs
-	 */
-	private VideoCodecFactory videoCodecFactory = null;
-
 	/** Stores absolute time for video stream. */
-	private int videoTime=-1;
+	private int videoTime = -1;
 
-	private int lastEventTime=-1;
+	private int lastEventTime = -1;
 	
 	private int minStreamTime;
 	
@@ -322,8 +317,8 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			log.trace("Audio: {}", eventTime);
 		} else if (rtmpEvent instanceof VideoData) {
 			IVideoStreamCodec videoStreamCodec = null;
-			if (videoCodecFactory != null && checkVideoCodec) {
-				videoStreamCodec = videoCodecFactory.getVideoCodec(buf);
+			if (checkVideoCodec) {
+				videoStreamCodec = VideoCodecFactory.getVideoCodec(buf);
 				if (codecInfo instanceof StreamCodecInfo) {
 					((StreamCodecInfo) codecInfo)
 							.setVideoCodec(videoStreamCodec);
@@ -606,7 +601,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		IStreamCapableConnection conn = getConnection();
 		if (conn == null) {
 			// TODO: throw other exception here?
-			throw new IOException("stream is no longer connected");
+			throw new IOException("Stream is no longer connected");
 		}
 		IScope scope = conn.getScope();
 		// Get stream filename generator
@@ -615,15 +610,17 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 						DefaultStreamFilenameGenerator.class);
 
 		// Generate filename
-		String filename = generator.generateFilename(scope, name, ".flv",
+		recordingFilename = generator.generateFilename(scope, name, ".flv",
 				GenerationType.RECORD);
 		// Get file for that filename
 		File file;
 		if (generator.resolvesToAbsolutePath()) {
-			file = new File(filename);
+			file = new File(recordingFilename);
 		} else {
-			file = scope.getContext().getResource(filename).getFile();
+			file = scope.getContext().getResource(recordingFilename).getFile();
 		}
+		//
+		log.debug("File exists: {} writable: {}", file.exists(), file.canWrite());
 		// If append mode is on...
 		if (!isAppend) {
 			if (file.exists()) {
@@ -631,7 +628,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 				// When "live" or "record" is used,
 				// any previously recorded stream with the same stream URI is deleted.
 				if (!file.delete()) {
-					throw new IOException("file could not be deleted");
+					throw new IOException(String.format("File: %s could not be deleted", file.getName()));
 				}
 			}
 		} else {
@@ -654,24 +651,34 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			if (!tmp.isDirectory()) {
 				tmp.mkdirs();
 			}
-		}
 
-		if (!file.exists()) {
 			file.createNewFile();
+		} 
+		
+		//remove existing meta file
+		File meta = new File(file.getCanonicalPath() + ".meta");
+		if (meta.exists()) {
+   			log.trace("Meta file exists");
+    		if (meta.delete()) {
+    			log.debug("Meta file deleted - {}", meta.getName());
+    		} else {
+    			log.warn("Meta file was not deleted - {}", meta.getName());
+    			meta.deleteOnExit();
+    		}
+		} else {
+   			log.debug("Meta file does not exist: {}", meta.getCanonicalPath());
 		}
-		if (log.isDebugEnabled()) {
-			log.debug("Recording file: " + file.getCanonicalPath());
-		}
+		
+		log.debug("Recording file: {}", file.getCanonicalPath());
 		recordingFile = new FileConsumer(scope, file);
-		Map<Object, Object> paramMap = new HashMap<Object, Object>();
+		Map<Object, Object> paramMap = new HashMap<Object, Object>(1);
 		if (isAppend) {
 			paramMap.put("mode", "append");
 		} else {
 			paramMap.put("mode", "record");
 		}
-		recordPipe.subscribe(recordingFile, paramMap);
-		recording = true;
-		recordingFilename = filename;
+		//mark as "recording" only if we get subscribed
+		recording = recordPipe.subscribe(recordingFile, paramMap);
 	}
 
 	/**
@@ -817,13 +824,6 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		log.info("Stream start");
 		IConsumerService consumerManager = (IConsumerService) getScope()
 				.getContext().getBean(IConsumerService.KEY);
-		try {
-			videoCodecFactory = (VideoCodecFactory) getScope().getContext()
-					.getBean(VideoCodecFactory.KEY);
-			checkVideoCodec = true;
-		} catch (Exception err) {
-			log.warn("No video codec factory available.", err);
-		}
 		firstPacketTime = -1;
 		audioTime = videoTime = dataTime = 0;
 		connMsgOut = consumerManager.getConsumerOutput(this);

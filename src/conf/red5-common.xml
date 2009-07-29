@@ -58,6 +58,7 @@
 	<bean id="remotingCodecFactory" class="org.red5.server.net.remoting.codec.RemotingCodecFactory"
 		 autowire="byType" init-method="init"/>
 	<!-- Video codec factory -->
+	<!-- 
 	<bean id="videoCodecFactory" class="org.red5.server.stream.VideoCodecFactory">
 		<property name="codecs">
 			<list>
@@ -66,6 +67,7 @@
 			</list>
 		</property>
 	</bean>
+	-->
 	<!-- Streamable file factory -->
 	<bean id="streamableFileFactory" class="org.red5.io.StreamableFileFactory">
 		<property name="services">

@@ -253,4 +253,8 @@ public class ScreenVideo implements IVideoStreamCodec {
 		return result;
 	}
 
+	public IoBuffer getSetupData() {
+		return null;
+	}
+    
 }

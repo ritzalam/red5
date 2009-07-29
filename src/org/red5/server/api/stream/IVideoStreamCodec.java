@@ -58,4 +58,12 @@ public interface IVideoStreamCodec {
 	 * @return the data for a keyframe.
      */
 	public IoBuffer getKeyframe();
+	
+	/**
+	 * Returns information used to configure the decoder.
+	 * 
+	 * @return the data for decoder setup.
+     */
+	public IoBuffer getSetupData();
+	
 }

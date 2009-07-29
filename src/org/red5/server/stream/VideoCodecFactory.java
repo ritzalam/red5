@@ -29,20 +29,25 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Factory for video codecs. Creates and returns video codecs
+ * 
+ * @author The Red5 Project (red5@osflash.org)
+ * @author Paul Gregoire (mondain@gmail.com)
  */
 public class VideoCodecFactory {
     /**
      * Object key
      */
 	public static final String KEY = "videoCodecFactory";
+	
     /**
      * Logger for video factory
      */
-	private Logger log = LoggerFactory.getLogger(VideoCodecFactory.class);
-    /**
+	private static Logger log = LoggerFactory.getLogger(VideoCodecFactory.class);
+    
+	/**
      * List of available codecs
      */
-	private List<IVideoStreamCodec> codecs = new ArrayList<IVideoStreamCodec>();
+	private static List<IVideoStreamCodec> codecs = new ArrayList<IVideoStreamCodec>(3);
 
 	/**
      * Setter for codecs
@@ -50,7 +55,7 @@ public class VideoCodecFactory {
      * @param codecs List of codecs
      */
     public void setCodecs(List<IVideoStreamCodec> codecs) {
-		this.codecs = codecs;
+    	VideoCodecFactory.codecs = codecs;
 	}
 
     /**
@@ -58,28 +63,54 @@ public class VideoCodecFactory {
      * @param data                 Byte buffer data
      * @return                     Video codec
      */
-	public IVideoStreamCodec getVideoCodec(IoBuffer data) {
+	public static IVideoStreamCodec getVideoCodec(IoBuffer data) {
 		IVideoStreamCodec result = null;
-		for (IVideoStreamCodec storedCodec: codecs) {
-			IVideoStreamCodec codec;
-			// XXX: this is a bit of a hack to create new instances of the
-			// configured
-			//      video codec for each stream
-			try {
-				codec = storedCodec.getClass().newInstance();
-			} catch (Exception e) {
-				log.error("Could not create video codec instance.", e);
-				continue;
-			}
-
-			log.info("Trying codec {}", codec);
-			if (codec.canHandleData(data)) {
-				result = codec;
-				break;
-			}
+		//get the codec identifying byte
+		int codecId = data.get() & 0x0f;		
+		try {
+    		switch (codecId) {
+    			case 2: //sorenson 
+    				result = (IVideoStreamCodec) Class.forName("org.red5.server.stream.codec.SorensonVideo").newInstance();
+    				break;
+    			case 3: //screen video
+    				result = (IVideoStreamCodec) Class.forName("org.red5.server.stream.codec.ScreenVideo").newInstance();
+    				break;
+    		}
+		} catch (Exception ex) {
+			log.error("Error creating codec instance", ex);			
 		}
-
-		// No codec for this video data
+		data.rewind();
+		//if codec is not found do the old-style loop
+		if (result == null) {
+    		for (IVideoStreamCodec storedCodec: codecs) {
+    			IVideoStreamCodec codec;
+    			// XXX: this is a bit of a hack to create new instances of the
+    			// configured video codec for each stream
+    			try {
+    				codec = storedCodec.getClass().newInstance();
+    			} catch (Exception e) {
+    				log.error("Could not create video codec instance", e);
+    				continue;
+    			}
+    			if (codec.canHandleData(data)) {
+    				result = codec;
+    				break;
+    			}
+    		}
+		}
 		return result;
 	}
+	
+//	private boolean isScreenVideo(byte first) {
+//    	log.debug("Trying ScreenVideo");
+//		boolean result = ((first & 0x0f) == 3);
+//		return result;
+//	}
+//	
+//	private boolean isSorenson(byte first) {
+//    	log.debug("Trying Sorenson");
+//		boolean result = ((first & 0x0f) == 2);
+//		return result;
+//	}
+	
 }

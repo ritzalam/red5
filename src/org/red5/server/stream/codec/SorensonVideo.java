@@ -133,4 +133,9 @@ public class SorensonVideo implements IVideoStreamCodec {
 		result.rewind();
 		return result;
 	}
+    
+	public IoBuffer getSetupData() {
+		return null;
+	}    
+    
 }

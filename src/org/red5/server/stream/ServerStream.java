@@ -300,67 +300,74 @@ public class ServerStream extends AbstractStream implements IServerStream,
 	public void saveAs(String name, boolean isAppend) throws IOException,
 			ResourceNotFoundException, ResourceExistException {
 		try {
-		IScope scope = getScope();
-		IStreamFilenameGenerator generator = (IStreamFilenameGenerator) ScopeUtils
-		.getScopeService(scope, IStreamFilenameGenerator.class,
-				DefaultStreamFilenameGenerator.class);
-		
-		String filename = generator.generateFilename(scope, name, ".flv", GenerationType.RECORD);
-		// Get file for that filename
-		File file;
-		if (generator.resolvesToAbsolutePath()) {
-			file = new File(filename);
-		} else {
-			file = scope.getContext().getResource(filename).getFile();
-		}
-		if (!isAppend) {
-			if (file.exists()) {
-				// Per livedoc of FCS/FMS:
-				// When "live" or "record" is used,
-				// any previously recorded stream with the same stream URI is deleted.
-				if (!file.delete())
-					throw new IOException("file could not be deleted");
-			}
-		} else {
-			if (!file.exists()) {
-				// Per livedoc of FCS/FMS:
-				// If a recorded stream at the same URI does not already exist,
-				// "append" creates the stream as though "record" was passed.
-				isAppend = false;
-			}
-		}
-
-		if (!file.exists()) {
-			// Make sure the destination directory exists
-			String path = file.getAbsolutePath();
-			int slashPos = path.lastIndexOf(File.separator);
-			if (slashPos != -1) {
-				path = path.substring(0, slashPos);
-			}
-			File tmp = new File(path);
-			if (!tmp.isDirectory()) {
-				tmp.mkdirs();
-			}
-		}
-
-		if (!file.exists()) {
-			if (!file.canWrite()) {
-				log.warn("File cannot be written to {}", file.getCanonicalPath());
-			}
-			file.createNewFile();
-		}
-		FileConsumer fc = new FileConsumer(scope, file);
-		Map<Object, Object> paramMap = new HashMap<Object, Object>();
-		if (isAppend) {
-			paramMap.put("mode", "append");
-		} else {
-			paramMap.put("mode", "record");
-		}
-		if (null == recordPipe) {
-			recordPipe = new InMemoryPushPushPipe();
-		}
-		recordPipe.subscribe(fc, paramMap);
-		recordingFilename = filename;
+    		IScope scope = getScope();
+    		IStreamFilenameGenerator generator = (IStreamFilenameGenerator) ScopeUtils
+    		.getScopeService(scope, IStreamFilenameGenerator.class,
+    				DefaultStreamFilenameGenerator.class);
+    		
+    		String filename = generator.generateFilename(scope, name, ".flv", GenerationType.RECORD);
+    		// Get file for that filename
+    		File file;
+    		if (generator.resolvesToAbsolutePath()) {
+    			file = new File(filename);
+    		} else {
+    			file = scope.getContext().getResource(filename).getFile();
+    		}
+    		if (!isAppend) {
+    			if (file.exists()) {
+    				// Per livedoc of FCS/FMS:
+    				// When "live" or "record" is used,
+    				// any previously recorded stream with the same stream URI is deleted.
+    				if (!file.delete())
+    					throw new IOException("file could not be deleted");
+    			}
+    		} else {
+    			if (!file.exists()) {
+    				// Per livedoc of FCS/FMS:
+    				// If a recorded stream at the same URI does not already exist,
+    				// "append" creates the stream as though "record" was passed.
+    				isAppend = false;
+    			}
+    		}
+    
+    		if (!file.exists()) {
+    			// Make sure the destination directory exists
+    			String path = file.getAbsolutePath();
+    			int slashPos = path.lastIndexOf(File.separator);
+    			if (slashPos != -1) {
+    				path = path.substring(0, slashPos);
+    			}
+    			File tmp = new File(path);
+    			if (!tmp.isDirectory()) {
+    				tmp.mkdirs();
+    			}
+    
+    			if (!file.canWrite()) {
+    				log.warn("File cannot be written to {}", file.getCanonicalPath());
+    			}
+    			file.createNewFile();
+    		} else {
+    			//remove existing meta file
+    			File meta = new File(file.getAbsolutePath() + ".meta");
+    			if (meta.delete()) {
+    				log.debug("Meta file deleted - {}", meta.getName());
+    			} else {
+    				log.warn("Meta file was not deleted - {}", meta.getName());
+    				meta.deleteOnExit();
+    			}
+    		}
+    		FileConsumer fc = new FileConsumer(scope, file);
+    		Map<Object, Object> paramMap = new HashMap<Object, Object>();
+    		if (isAppend) {
+    			paramMap.put("mode", "append");
+    		} else {
+    			paramMap.put("mode", "record");
+    		}
+    		if (null == recordPipe) {
+    			recordPipe = new InMemoryPushPushPipe();
+    		}
+    		recordPipe.subscribe(fc, paramMap);
+    		recordingFilename = filename;
 		} catch (IOException e) {
 			log.warn("Save as exception", e);
 		}
