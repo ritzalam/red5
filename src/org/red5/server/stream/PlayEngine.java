@@ -71,7 +71,8 @@ import org.slf4j.Logger;
  * @author The Red5 Project (red5@osflash.org)
  * @author Steven Gong
  * @author Paul Gregoire (mondain@gmail.com)
- * @author Dan Rossi 
+ * @author Dan Rossi
+ * @author Tiago Daniel Jacobs (tiago@imdt.com.br)
  */
 public final class PlayEngine implements IFilter, IPushableConsumer,
 		IPipeConnectionListener, ITokenBucketCallback {
@@ -193,6 +194,11 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 	 */
 	private boolean sendBlankAudio;
 
+	/**
+	 * decision: 0 for Live, 1 for File, 2 for Wait, 3 for N/A
+	 */
+	private int playDecision = 3;
+	
 	/**
 	 * Constructs a new PlayEngine.
 	 */
@@ -325,38 +331,36 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 		boolean sendNotifications = true;
 
 		// decision: 0 for Live, 1 for File, 2 for Wait, 3 for N/A
-		int decision = 3;
-
 		switch (type) {
 			case -2:
 				if (isPublishedStream) {
-					decision = 0;
+					playDecision = 0;
 				} else if (isFileStream) {
-					decision = 1;
+					playDecision = 1;
 				} else {
-					decision = 2;
+					playDecision = 2;
 				}
 				break;
 
 			case -1:
 				if (isPublishedStream) {
-					decision = 0;
+					playDecision = 0;
 				} else {
-					decision = 2;
+					playDecision = 2;
 				}
 				break;
 
 			default:
 				if (isFileStream) {
-					decision = 1;
+					playDecision = 1;
 				}
 				break;
 		}
-		log.debug("Play decision is {} (0=Live, 1=File, 2=Wait, 3=N/A)", decision);
+		log.debug("Play decision is {} (0=Live, 1=File, 2=Wait, 3=N/A)", playDecision);
 		currentItem = item;
 		long itemLength = item.getLength();
 		log.debug("Item length: {}", itemLength);
-		switch (decision) {
+		switch (playDecision) {
 			case 0:
 				//get source input without create
 				msgIn = providerService.getLiveProviderInput(thisScope, itemName, false);
@@ -366,24 +370,41 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 					// Send initial keyframe
 					IBroadcastStream stream = (IBroadcastStream) ((IBroadcastScope) msgIn)
 							.getAttribute(IBroadcastScope.STREAM_ATTRIBUTE);
+					
 					if (stream != null && stream.getCodecInfo() != null) {
 						IVideoStreamCodec videoCodec = stream.getCodecInfo()
 								.getVideoCodec();
 						if (videoCodec != null) {
+							if (withReset) {
+								sendReset();
+								sendResetStatus(item);
+								sendStartStatus(item);
+							}
+							//send decoder configuration if it exists
+							IoBuffer config = videoCodec.getDecoderConfiguration();
+							if (config != null) {
+								VideoData conf = new VideoData(config);
+								try {
+									conf.setTimestamp(0);
+
+									RTMPMessage confMsg = new RTMPMessage();
+									confMsg.setBody(conf);
+									
+									msgOut.pushMessage(confMsg);
+								} finally {
+									conf.release();
+								}
+							}
+							//check for a keyframe to send
 							IoBuffer keyFrame = videoCodec.getKeyframe();
 							if (keyFrame != null) {
 								VideoData video = new VideoData(keyFrame);
 								try {
-									if (withReset) {
-										sendReset();
-										sendResetStatus(item);
-										sendStartStatus(item);
-									}
-
 									video.setTimestamp(0);
 
 									RTMPMessage videoMsg = new RTMPMessage();
 									videoMsg.setBody(video);
+									
 									msgOut.pushMessage(videoMsg);
 									sendNotifications = false;
 									// Don't wait for keyframe
@@ -399,6 +420,8 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 				break;
 			case 2:
 				//get source input with create
+				msgIn = providerService.getLiveProviderInput(thisScope,	itemName, true);
+				msgIn.subscribe(this, null);
 				waiting = true;
 				if (type == -1 && itemLength >= 0) {
 					log.debug("Creating wait job");
@@ -449,7 +472,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 		IMessage msg = null;
 		streamOffset = 0;
 		streamStartTS = -1;
-		if (decision == 1) {
+		if (playDecision == 1) {
 			if (withReset) {
 				releasePendingMessage();
 			}
@@ -904,7 +927,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 	private void doPushMessage(Status status) {
 		StatusMessage message = new StatusMessage();
 		message.setBody(status);
-		doPushMessage(message);
+		doPushMessage(message);	
 	}
 	
 	/**
@@ -933,12 +956,17 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 	 * @param message        RTMP message
 	 */
 	private void sendMessage(RTMPMessage message) {
+		//TDJ / live relative timestamp
+		if (playDecision == 0 && streamStartTS > 0) {
+			message.getBody().setTimestamp(message.getBody().getTimestamp() - streamStartTS);
+		}
 		int ts = message.getBody().getTimestamp();
 		log.trace("sendMessage: streamStartTS={}, length={}, streamOffset={}, timestamp={}",
-				new Object[]{streamStartTS, currentItem.getLength(), streamOffset, ts});
+				new Object[]{streamStartTS, currentItem.getLength(), streamOffset, ts});		
 		if (streamStartTS == -1) {
 			log.debug("sendMessage: resetting streamStartTS");
 			streamStartTS = ts;
+			message.getBody().setTimestamp(0);
 		} else {
 			if (currentItem.getLength() >= 0) {
 				int duration = ts - streamStartTS;
@@ -1264,8 +1292,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 	}
 
 	/** {@inheritDoc} */
-	public synchronized void pushMessage(IPipe pipe, IMessage message)
-			throws IOException {
+	public synchronized void pushMessage(IPipe pipe, IMessage message) throws IOException {
 		if (message instanceof ResetMessage) {
 			sendReset();
 			return;
@@ -1276,8 +1303,9 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 			if (!(body instanceof IStreamData)) {
 				throw new RuntimeException(String.format("Expected IStreamData but got %s (type %s)", body.getClass(), body.getDataType()));
 			}
-
+			
 			int size = ((IStreamData) body).getData().limit();
+			
 			if (body instanceof VideoData) {
 				IVideoStreamCodec videoCodec = null;
 				if (msgIn instanceof IBroadcastScope) {
@@ -1287,7 +1315,6 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 						videoCodec = stream.getCodecInfo().getVideoCodec();
 					}
 				}
-
 				//dont try to drop frames if video codec is null - related to SN-77
 				if (videoCodec != null && videoCodec.canDropFrames()) {
 					if (playlistSubscriberStream.state == State.PAUSED) {

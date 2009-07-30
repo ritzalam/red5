@@ -257,21 +257,21 @@ public class Notify extends BaseEvent implements IStreamData, IStreamPacket {
      */
 	public Notify duplicate() throws IOException, ClassNotFoundException {
 		Notify result = new Notify();
-		ByteArrayOutputStream baos;
-		
-		baos = new ByteArrayOutputStream();
-		ObjectOutputStream oos = new ObjectOutputStream(baos);
-		
-		this.writeExternal(oos);
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		ObjectOutputStream oos = new ObjectOutputStream(baos);		
+		writeExternal(oos);
 		oos.close();
 		
 		byte[] buf = baos.toByteArray();
+		baos.close();
 		
 		ByteArrayInputStream bais = new ByteArrayInputStream(buf);
 		ObjectInputStream ois = new ObjectInputStream(bais);
 		
 		result.readExternal(ois);
-
+		ois.close();
+		bais.close();
+		
 		return result;
 	}
 	

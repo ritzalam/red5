@@ -185,6 +185,11 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	
 	private int minStreamTime;
 	
+	/**
+	 * Stores the streams metadata
+	 */
+	protected Notify metaData;
+	
 	/** Listeners to get notified about received packets. */
 	private Set<IStreamListener> listeners = new CopyOnWriteArraySet<IStreamListener>();
 	
@@ -235,7 +240,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	/**
 	 * Dispatches event
 	 * @param event          Event to dispatch
-	 */
+	 */	
 	public void dispatchEvent(IEvent event) {
 		if (!(event instanceof IRTMPEvent)
 				&& (event.getType() != IEvent.Type.STREAM_CONTROL)
@@ -316,6 +321,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			eventTime = audioTime;
 			log.trace("Audio: {}", eventTime);
 		} else if (rtmpEvent instanceof VideoData) {
+			
 			IVideoStreamCodec videoStreamCodec = null;
 			if (checkVideoCodec) {
 				videoStreamCodec = VideoCodecFactory.getVideoCodec(buf);
@@ -376,6 +382,16 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			//event / stream listeners will not be notified of invokes
 			return;
 		} else if (rtmpEvent instanceof Notify) {
+			//TDJ: store METADATA
+			Notify notifyEvent = (Notify) rtmpEvent;
+			if (metaData == null && notifyEvent.getHeader().getDataType() == Notify.TYPE_STREAM_METADATA){
+				try {
+					metaData = notifyEvent.duplicate();
+				} catch (Exception e) {
+					log.warn("Metadata could not be duplicated for this stream", e);
+				}
+			}
+			
 			if (rtmpEvent.getHeader().isTimerRelative()) {
 				if (dataTime < 0) {
 					log.warn("First data [Notify] timestamp is relative! {}", rtmpEvent.getTimestamp());
@@ -566,13 +582,25 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 				if (this.livePipe == event.getSource()) {
 					notifyChunkSize();
 				}
+				
+				if (metaData != null) {
+					RTMPMessage msg = new RTMPMessage();
+					msg.setBody(metaData);
+					msg.getBody().setTimestamp(0);
+					try {
+						livePipe.pushMessage(msg);
+					} catch (IOException e) {
+						log.warn("Error sending metadata", e);
+					}
+				}
+				
 				subscriberStats.increment();
+				
 				break;
 			case PipeConnectionEvent.CONSUMER_DISCONNECT:
 				subscriberStats.decrement();
 				break;
 			default:
-				break;
 		}
 	}
 

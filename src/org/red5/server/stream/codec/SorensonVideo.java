@@ -29,6 +29,7 @@ import org.red5.server.api.stream.IVideoStreamCodec;
  *
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
+ * @author Paul Gregoire (mondain@gmail.com) 
  */
 public class SorensonVideo implements IVideoStreamCodec {
 
@@ -36,14 +37,7 @@ public class SorensonVideo implements IVideoStreamCodec {
      * Sorenson video codec constant
      */
 	static final String CODEC_NAME = "SorensonVideo";
-    /**
-     * FLV frame marker constant
-     */
-	static final byte FLV_FRAME_KEY = 0x10;
-    /**
-     * Sorenson codec marker constant
-     */
-	static final byte FLV_CODEC_SORENSON = 0x02;
+
     /**
      * Block of data
      */
@@ -87,7 +81,7 @@ public class SorensonVideo implements IVideoStreamCodec {
 		}
 
 		byte first = data.get();
-		boolean result = ((first & 0x0f) == FLV_CODEC_SORENSON);
+		boolean result = ((first & 0x0f) == VideoCodec.H263.getId());
 		data.rewind();
 		return result;
 	}
@@ -134,7 +128,7 @@ public class SorensonVideo implements IVideoStreamCodec {
 		return result;
 	}
     
-	public IoBuffer getSetupData() {
+	public IoBuffer getDecoderConfiguration() {
 		return null;
 	}    
     

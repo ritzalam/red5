@@ -23,6 +23,11 @@ import org.apache.mina.core.buffer.IoBuffer;
 
 public interface IVideoStreamCodec {
 
+    /**
+     * FLV frame marker constant
+     */
+	static final byte FLV_FRAME_KEY = 0x10;
+	
 	/**
 	 * @return the name of the video codec.
      */
@@ -64,6 +69,6 @@ public interface IVideoStreamCodec {
 	 * 
 	 * @return the data for decoder setup.
      */
-	public IoBuffer getSetupData();
+	public IoBuffer getDecoderConfiguration();
 	
 }

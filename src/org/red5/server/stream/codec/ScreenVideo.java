@@ -29,24 +29,17 @@ import org.slf4j.LoggerFactory;
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
+ * @author Paul Gregoire (mondain@gmail.com)
  */
 public class ScreenVideo implements IVideoStreamCodec {
-    /**
-     *
-     */
+
 	private Logger log = LoggerFactory.getLogger(ScreenVideo.class);
+	
     /**
      * FLV codec name constant
      */
 	static final String CODEC_NAME = "ScreenVideo";
-    /**
-     * FLV frame key marker constant
-     */
-	static final byte FLV_FRAME_KEY = 0x10;
-    /**
-     * FLV codec screen marker constant
-     */
-	static final byte FLV_CODEC_SCREEN = 0x03;
+	
     /**
      * Block data
      */
@@ -120,7 +113,7 @@ public class ScreenVideo implements IVideoStreamCodec {
 	/** {@inheritDoc} */
     public boolean canHandleData(IoBuffer data) {
 		byte first = data.get();
-		boolean result = ((first & 0x0f) == FLV_CODEC_SCREEN);
+		boolean result = ((first & 0x0f) == VideoCodec.SCREEN_VIDEO.getId());
 		data.rewind();
 		return result;
 	}
@@ -227,7 +220,7 @@ public class ScreenVideo implements IVideoStreamCodec {
 		result.setAutoExpand(true);
 
 		// Header
-		result.put((byte) (FLV_FRAME_KEY | FLV_CODEC_SCREEN));
+		result.put((byte) (FLV_FRAME_KEY | VideoCodec.SCREEN_VIDEO.getId()));
 
 		// Frame size
 		result.putShort((short) this.widthInfo);
@@ -253,7 +246,7 @@ public class ScreenVideo implements IVideoStreamCodec {
 		return result;
 	}
 
-	public IoBuffer getSetupData() {
+	public IoBuffer getDecoderConfiguration() {
 		return null;
 	}
     

@@ -75,6 +75,9 @@ public class VideoCodecFactory {
     			case 3: //screen video
     				result = (IVideoStreamCodec) Class.forName("org.red5.server.stream.codec.ScreenVideo").newInstance();
     				break;
+    			case 7: //avc/h.264 video
+    				result = (IVideoStreamCodec) Class.forName("org.red5.server.stream.codec.AVCVideo").newInstance();
+    				break;
     		}
 		} catch (Exception ex) {
 			log.error("Error creating codec instance", ex);			

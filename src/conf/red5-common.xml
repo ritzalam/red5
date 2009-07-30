@@ -64,6 +64,8 @@
 			<list>
 				<bean id="screenVideoCodec" class="org.red5.server.stream.codec.ScreenVideo"/>
 				<bean id="sorensonVideoCodec" class="org.red5.server.stream.codec.SorensonVideo"/>
+				<!-- Tiago Jacobs - avc codec -->
+				<bean id="avcVideoCodec" class="org.red5.server.stream.codec.AVCVideo"/>
 			</list>
 		</property>
 	</bean>
