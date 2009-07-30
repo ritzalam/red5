@@ -380,6 +380,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 								sendResetStatus(item);
 								sendStartStatus(item);
 							}
+							sendNotifications = false;
 							//send decoder configuration if it exists
 							IoBuffer config = videoCodec.getDecoderConfiguration();
 							if (config != null) {
@@ -406,7 +407,6 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 									videoMsg.setBody(video);
 									
 									msgOut.pushMessage(videoMsg);
-									sendNotifications = false;
 									// Don't wait for keyframe
 									videoFrameDropper.reset();
 								} finally {

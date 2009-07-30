@@ -20,7 +20,9 @@ package org.red5.server.stream.codec;
  */
 
 import org.apache.mina.core.buffer.IoBuffer;
+import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.stream.IVideoStreamCodec;
+import org.slf4j.Logger;
 
 /**
  * Red5 video codec for the AVC (h264) video format.
@@ -32,6 +34,8 @@ import org.red5.server.api.stream.IVideoStreamCodec;
  */
 public class AVCVideo implements IVideoStreamCodec {
 
+	private static Logger log = Red5LoggerFactory.getLogger(AVCVideo.class);
+	
     /**
      * AVC video codec constant
      */
@@ -133,7 +137,7 @@ public class AVCVideo implements IVideoStreamCodec {
 			byte AVCPacketType = data.get();
 			
 			//Sequence Header / here comes a AVCDecoderConfigurationRecord
-			System.out.println("AVCPacketType: " + AVCPacketType);
+			log.debug("AVCPacketType: {}", AVCPacketType);
 			if(AVCPacketType == 0) {
 				data.rewind();
 				

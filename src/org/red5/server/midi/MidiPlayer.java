@@ -27,9 +27,14 @@ import javax.sound.midi.MidiSystem;
 import javax.sound.midi.MidiUnavailableException;
 import javax.sound.midi.Sequencer;
 
+import org.red5.logging.Red5LoggerFactory;
+import org.slf4j.Logger;
+
 /** Plays a midi file provided on command line */
 public class MidiPlayer {
 
+	protected static Logger log = Red5LoggerFactory.getLogger(MidiPlayer.class);
+	
 	public static void main(String args[]) {
 		// Argument check
 		if (args.length == 0) {
@@ -70,18 +75,18 @@ public class MidiPlayer {
 			 sequencer.close();
 			 */
 		} catch (MidiUnavailableException mue) {
-			System.out.println("Midi device unavailable!");
+			log.error("Midi device unavailable!", mue);
 		} catch (InvalidMidiDataException imde) {
-			System.out.println("Invalid Midi data!");
+			log.error("Invalid Midi data!", imde);
 		} catch (IOException ioe) {
-			System.out.println("I/O Error!");
+			log.error("I/O Error!", ioe);
 		}
 
 	}
 
 	/** Provides help message and exits the program */
 	private static void helpAndExit() {
-		System.out.println("Usage: java MidiPlayer midifile.mid");
+		log.error("Usage: java MidiPlayer midifile.mid");
 		//System.exit(1);
 	}
 }

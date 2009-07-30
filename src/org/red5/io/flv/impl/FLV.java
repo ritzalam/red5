@@ -186,7 +186,7 @@ public class FLV implements IFLV {
 
 		// if no cache is set an NPE will be thrown
 		if (cache == null) {
-			System.out.println("No cache");
+			//System.out.println("No cache");
 			log
 					.warn("FLV cache is null, an NPE may be thrown. To fix your code, ensure a cache is set via Spring or by the following: setCache(NoCacheImpl.getInstance())");
 		}

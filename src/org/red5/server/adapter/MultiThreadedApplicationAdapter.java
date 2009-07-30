@@ -547,7 +547,7 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	 * 
 	 * <p>
 	 * <strong>Server-side:</strong><br />
-	 * <code>if (params.length > 0) System.out.println("Theme selected: " + params[0]);</code>
+	 * <code>if (params.length > 0) log.debug("Theme selected: {}", params[0]);</code>
 	 * </p>
 	 * 
 	 * @param conn

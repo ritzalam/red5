@@ -52,19 +52,19 @@ import java.util.Random;
  * numbers.  GUIDs are not expected to be random and most often are
  * easy/possible to guess given a sample from a given generator.
  * SQL Server, for example generates GUID that are unique but
- * sequencial within a given instance.
+ * sequential within a given instance.
  *
  * GUIDs can be used as security devices to hide things such as
  * files within a filesystem where listings are unavailable (e.g. files
  * that are served up from a Web server with indexing turned off).
- * This may be desireable in cases where standard authentication is not
+ * This may be desirable in cases where standard authentication is not
  * appropriate. In this scenario, the RandomGUIDs are used as directories.
  * Another example is the use of GUIDs for primary keys in a database
  * where you want to ensure that the keys are secret.  Random GUIDs can
  * then be used in a URL to prevent hackers (or users) from accessing
  * records by guessing or simply by incrementing sequential numbers.
  *
- * There are many other possiblities of using GUIDs in the realm of
+ * There are many other possibilities of using GUIDs in the realm of
  * security and encryption where the element of randomness is important.
  * This class was written for these purposes but can also be used as a
  * general purpose GUID generator as well.
@@ -74,7 +74,7 @@ import java.util.Random;
  * and a very large random number joined together in a single String
  * that is passed through an MD5 hash.  The IP address and system time
  * make the MD5 seed globally unique and the random number guarantees
- * that the generated GUIDs will have no discernable pattern and
+ * that the generated GUIDs will have no discernible pattern and
  * cannot be guessed given any number of previously generated GUIDs.
  * It is generally not possible to access the seed information (IP, time,
  * random number) from the resulting GUIDs as the MD5 hash algorithm
