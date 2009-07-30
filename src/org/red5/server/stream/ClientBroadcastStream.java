@@ -852,6 +852,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		log.info("Stream start");
 		IConsumerService consumerManager = (IConsumerService) getScope()
 				.getContext().getBean(IConsumerService.KEY);
+		checkVideoCodec = true;
 		firstPacketTime = -1;
 		audioTime = videoTime = dataTime = 0;
 		connMsgOut = consumerManager.getConsumerOutput(this);
