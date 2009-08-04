@@ -305,9 +305,9 @@ public class ConnectionConsumer implements IPushableConsumer, IPipeConnectionLis
 		/**
 		 * Returns a header with the appropriate timestamp.
 		 * 
-		 * @param dataType
-		 * @param eventTime
-		 * @return
+		 * @param dataType the type
+		 * @param eventTime the event time
+		 * @return a header
 		 */
 		public Header getTimeStamp(byte dataType, int eventTime) {
 			Header header = new Header();
