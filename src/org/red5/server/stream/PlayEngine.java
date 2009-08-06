@@ -146,7 +146,22 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 	 * message is generated for VOD streams.
 	 */
 	private int underrunTrigger = 10;	
-	
+
+	/**
+	 * threshold for number of pending video frames
+	 */
+	private int maxPendingVideoFramesThreshold = 10;
+	/**
+	 * if we have more than 1 pending video frames, but less than maxPendingVideoFrames,
+	 * continue sending until there are this many sequential frames with more than 1
+	 * pending
+	 */
+	private int maxSequentialPendingVideoFrames = 10;
+	/**
+	 * the number of sequential video frames with > 0 pending frames
+	 */
+	private int numSequentialPendingVideoFrames = 0;
+
 	/**
 	 * State machine for video frame dropping in live streams
 	 */
@@ -331,6 +346,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 		boolean sendNotifications = true;
 
 		// decision: 0 for Live, 1 for File, 2 for Wait, 3 for N/A
+
 		switch (type) {
 			case -2:
 				if (isPublishedStream) {
@@ -390,7 +406,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 
 									RTMPMessage confMsg = new RTMPMessage();
 									confMsg.setBody(conf);
-									
+
 									msgOut.pushMessage(confMsg);
 								} finally {
 									conf.release();
@@ -1303,9 +1319,9 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 			if (!(body instanceof IStreamData)) {
 				throw new RuntimeException(String.format("Expected IStreamData but got %s (type %s)", body.getClass(), body.getDataType()));
 			}
-			
+
 			int size = ((IStreamData) body).getData().limit();
-			
+
 			if (body instanceof VideoData) {
 				IVideoStreamCodec videoCodec = null;
 				if (msgIn instanceof IBroadcastScope) {
@@ -1319,6 +1335,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 				if (videoCodec != null && videoCodec.canDropFrames()) {
 					if (playlistSubscriberStream.state == State.PAUSED) {
 						// The subscriber paused the video
+						log.debug("Dropping packet because we are paused");
 						videoFrameDropper.dropPacket(rtmpMessage);
 						return;
 					}
@@ -1328,6 +1345,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 					if (!videoFrameDropper.canSendPacket(rtmpMessage,
 							pendingVideos)) {
 						// Drop frame as it depends on other frames that were dropped before.
+						log.debug("Dropping packet because frame dropper says we cant send it");
 						return;
 					}
 
@@ -1335,11 +1353,20 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 					if (!receiveVideo || drop) {
 						// The client disabled video or the app doesn't have enough bandwidth
 						// allowed for this stream.
+						log.debug("Dropping packet because we cant receive video or token acquire failed");
 						videoFrameDropper.dropPacket(rtmpMessage);
 						return;
 					}
 
-					if (pendingVideos > 1) {
+					// increment the number of times we had pending video frames sequentially
+					if(pendingVideos > 1)
+						numSequentialPendingVideoFrames++;
+					else // reset number of sequential pending frames if 1 or 0 are pending.
+						numSequentialPendingVideoFrames = 0;
+
+					if (pendingVideos > maxPendingVideoFramesThreshold
+							|| numSequentialPendingVideoFrames > maxSequentialPendingVideoFrames) {
+						log.debug("Pending: {} Threshold: {} Sequential: {}", new Object[]{pendingVideos, maxPendingVideoFramesThreshold, numSequentialPendingVideoFrames});
 						// We drop because the client has insufficient bandwidth.
 						long now = System.currentTimeMillis();
 						if (bufferCheckInterval > 0
@@ -1529,4 +1556,18 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 
 	}
 
+	/**
+	 * @param maxPendingVideoFrames the maxPendingVideoFrames to set
+	 */
+	public void setMaxPendingVideoFrames(int maxPendingVideoFrames) {
+		this.maxPendingVideoFramesThreshold = maxPendingVideoFrames;
+	}
+
+	/**
+	 * @param maxSequentialPendingVideoFrames the maxSequentialPendingVideoFrames to set
+	 */
+	public void setMaxSequentialPendingVideoFrames(
+			int maxSequentialPendingVideoFrames) {
+		this.maxSequentialPendingVideoFrames = maxSequentialPendingVideoFrames;
+	}
 }
