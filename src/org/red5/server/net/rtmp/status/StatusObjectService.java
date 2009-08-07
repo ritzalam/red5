@@ -42,8 +42,7 @@ public class StatusObjectService implements StatusCodes {
     /**
      * Logger
      */
-	protected static Logger log = LoggerFactory
-			.getLogger(StatusObjectService.class);
+	protected static Logger log = LoggerFactory.getLogger(StatusObjectService.class);
 
     /**
      * Serializer
@@ -71,9 +70,9 @@ public class StatusObjectService implements StatusCodes {
      * Initialization
      */
     public void initialize() {
-		log.debug("Loading status objects");
+		log.trace("Loading status objects");
 		loadStatusObjects();
-		log.debug("Caching status objects");
+		log.trace("Caching status objects");
 		cacheStatusObjects();
 		log.debug("Status service ready");
 	}
@@ -185,7 +184,9 @@ public class StatusObjectService implements StatusCodes {
             }
             serializeStatusObject(out, statusObject);
             out.flip();
-            log.debug(HexDump.formatHexDump(out.getHexDump()));
+            if (log.isTraceEnabled()) {
+            	log.trace(HexDump.formatHexDump(out.getHexDump()));
+            }
             byte[] cachedBytes = new byte[out.limit()];
             out.get(cachedBytes);
             out.clear();

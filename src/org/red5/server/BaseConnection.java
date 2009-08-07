@@ -43,8 +43,8 @@ import org.slf4j.LoggerFactory;
  * Base abstract class for connections. Adds connection specific functionality like work with clients
  * to AttributeStore.
  */
-public abstract class BaseConnection extends AttributeStore implements
-		IConnection {
+public abstract class BaseConnection extends AttributeStore implements IConnection {
+
 	/**
 	 *  Logger
 	 */
@@ -143,13 +143,15 @@ public abstract class BaseConnection extends AttributeStore implements
 	public BaseConnection(String type, String host, String remoteAddress,
 			int remotePort, String path, String sessionId,
 			Map<String, Object> params) {
+		log.debug("New BaseConnection - type: {} host: {} remoteAddress: {} remotePort: {} path: {} sessionId: {}", 
+				new Object[]{type, host, remoteAddress, remotePort, path, sessionId});
+		log.debug("Params: {}", params);
 		this.type = type;
 		this.host = host;
 		this.remoteAddress = remoteAddress;
-		this.remoteAddresses = new ArrayList<String>();
+		this.remoteAddresses = new ArrayList<String>(1);
 		this.remoteAddresses.add(remoteAddress);
-		this.remoteAddresses = Collections
-				.unmodifiableList(this.remoteAddresses);
+		this.remoteAddresses = Collections.unmodifiableList(this.remoteAddresses);
 		this.remotePort = remotePort;
 		this.path = path;
 		this.sessionId = sessionId;
@@ -286,6 +288,10 @@ public abstract class BaseConnection extends AttributeStore implements
 	 * @return                true on success, false otherwise
 	 */
 	public boolean connect(IScope newScope, Object[] params) {
+		log.debug("Connect Params: {}", params);
+        for (Object e : params) {
+            log.debug("Param: {}", e);
+        }
 		getWriteLock().lock();
 		try {
 			final Scope oldScope = scope;

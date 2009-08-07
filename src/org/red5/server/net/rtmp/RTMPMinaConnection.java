@@ -23,11 +23,15 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import javax.management.ObjectName;
 
 import org.apache.mina.core.buffer.IoBuffer;
+import org.apache.mina.core.filterchain.IoFilter;
 import org.apache.mina.core.session.IoSession;
+import org.red5.server.adapter.Config;
+import org.red5.server.api.IContext;
 import org.red5.server.api.IScope;
 import org.red5.server.jmx.JMXAgent;
 import org.red5.server.jmx.JMXFactory;
@@ -35,8 +39,15 @@ import org.red5.server.net.rtmp.message.Packet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RTMPMinaConnection extends RTMPConnection implements
-		RTMPMinaConnectionMBean {
+/**
+ * Represents an RTMP connection using Mina.
+ * 
+ * @see http://mina.apache.org/report/trunk/apidocs/org/apache/mina/core/session/IoSession.html
+ * 
+ * @author Paul Gregoire
+ */
+public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnectionMBean {
+	
 	/**
 	 * Logger
 	 */
@@ -53,7 +64,7 @@ public class RTMPMinaConnection extends RTMPConnection implements
 	private volatile ObjectName oName;
 
 	{
-		log.info("RTMPMinaConnection created");
+		log.debug("RTMPMinaConnection created");
 	}
 	
 	/** Constructs a new RTMPMinaConnection. */
@@ -78,6 +89,7 @@ public class RTMPMinaConnection extends RTMPConnection implements
 
 	@Override
 	public boolean connect(IScope newScope, Object[] params) {
+		log.debug("Connect scope: {}", newScope);
 		boolean success = super.connect(newScope, params);
 		if (!success) {
 			return false;
@@ -94,19 +106,49 @@ public class RTMPMinaConnection extends RTMPConnection implements
 			if (client != null) {
 				String cName = this.getClass().getName();
 				if (cName.indexOf('.') != -1) {
-					cName = cName.substring(cName.lastIndexOf('.')).replaceFirst(
-							"[\\.]", "");
+					cName = cName.substring(cName.lastIndexOf('.')).replaceFirst("[\\.]", "");
 				}				
 			    // Create a new mbean for this instance
-			    oName = JMXFactory.createObjectName("type", cName,
-					"connectionType", type, "host", hostStr, "port", port + "",
-					"clientId", client.getId());
+			    oName = JMXFactory.createObjectName("type", cName, "connectionType", type, "host", hostStr, "port", port + "", "clientId", client.getId());
 			    JMXAgent.registerMBean(this, this.getClass().getName(),	RTMPMinaConnectionMBean.class, oName);		
 			} else {
                 log.warn("Client was null");			
 			}
 		} catch (Exception e) {
 			log.warn("Exception registering mbean", e);
+		}
+		if (ioSession != null) {
+			if (scope.getDepth() == 1) {
+				log.debug("Top level scope detected, configuration will be applied if it exists");
+				IContext ctx = scope.getContext();
+				if (ctx != null) {
+					log.debug("Context was found");
+					//check the app scope for any filters
+					if (ctx.hasBean("config")) {
+						log.debug("Configuration exists");
+						Config config = (Config) ctx.getBean("config");						
+    	    			List<String> filterNames = config.getFilterNames();
+    	    			if (!filterNames.isEmpty()) {
+    						log.debug("Filters exist");
+        					IoFilter filter = null;
+        					//add them after the protocol filter
+        					String lastFilterName = "protocolFilter";
+        	    			for (String filterName : filterNames) {
+        	    				try {
+        	        				filter = (IoFilter) ctx.getBean(filterName);
+        	        				//load the each after the last
+        	        				ioSession.getFilterChain().addAfter(lastFilterName, filterName, filter);
+        	    				} catch (Exception ex) {
+        	    					log.warn("Could not load filter from scope", ex);
+        	    				}
+        	    				lastFilterName = filterName;
+        	    			}
+    	    			}
+					}
+				}
+			}
+		} else {
+			log.debug("Session was null");
 		}
 		return success;
 	}
@@ -123,34 +165,28 @@ public class RTMPMinaConnection extends RTMPConnection implements
 	/** {@inheritDoc} */
 	@Override
 	public long getPendingMessages() {
-		if (ioSession == null) {
-			return 0;
+		if (ioSession != null) {
+			return ioSession.getScheduledWriteMessages();
 		}
-		return ioSession.getScheduledWriteMessages();
+		return 0;
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public long getReadBytes() {
-		if (ioSession == null) {
-			return 0;
-		}
-		// TODO: half-measure, writing to readBytes isn't synchronized in mina 
-		synchronized (ioSession) {
+		if (ioSession != null) {
 			return ioSession.getReadBytes();
 		}
+		return 0;
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public long getWrittenBytes() {
-		if (ioSession == null) {
-			return 0;
-		}
-		// TODO: half-measure, writing to writtenBytes isn't synchronized in mina 
-		synchronized (ioSession) {
+		if (ioSession != null) {
 			return ioSession.getWrittenBytes();
 		}
+		return 0;
 	}
 
 	public void invokeMethod(String method) {
@@ -185,14 +221,13 @@ public class RTMPMinaConnection extends RTMPConnection implements
 	public void setIoSession(IoSession protocolSession) {
 		SocketAddress remote = protocolSession.getRemoteAddress();
 		if (remote instanceof InetSocketAddress) {
-			remoteAddress = ((InetSocketAddress) remote).getAddress()
-					.getHostAddress();
+			remoteAddress = ((InetSocketAddress) remote).getAddress().getHostAddress();
 			remotePort = ((InetSocketAddress) remote).getPort();
 		} else {
 			remoteAddress = remote.toString();
 			remotePort = -1;
 		}
-		remoteAddresses = new ArrayList<String>();
+		remoteAddresses = new ArrayList<String>(1);
 		remoteAddresses.add(remoteAddress);
 		remoteAddresses = Collections.unmodifiableList(remoteAddresses);
 		this.ioSession = protocolSession;

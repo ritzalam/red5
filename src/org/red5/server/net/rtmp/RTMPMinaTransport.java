@@ -43,7 +43,13 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Transport setup class configures socket acceptor and thread pools for RTMP in Mina.
- * Note: This code originates from AsyncWeb, I've modified it for use with Red5. - Luke
+ * 
+ * <br />
+ * <i>Note: This code originates from AsyncWeb. Originally modified by Luke Hubbard.</i>
+ * <br />
+ * 
+ * @author Luke Hubbard
+ * @author Paul Gregoire
  */
 public class RTMPMinaTransport {
 
@@ -55,8 +61,7 @@ public class RTMPMinaTransport {
 
 	private static final int DEFAULT_EVENT_THREADS_QUEUE = -1;
 
-	private static final int DEFAULT_IO_THREADS = Runtime.getRuntime()
-			.availableProcessors();
+	private static final int DEFAULT_IO_THREADS = Runtime.getRuntime().availableProcessors();
 
 	private static final int DEFAULT_RECEIVE_BUFFER_SIZE = 256 * 1024;
 
@@ -107,59 +112,7 @@ public class RTMPMinaTransport {
 			ioHandler = new RTMPMinaIoHandler();
 		}
 	}
-
-	public void setConnector(InetSocketAddress connector) {
-		addresses.add(connector);
-		log.info("RTMP Mina Transport bound to {}", connector.toString());
-	}
 	
-	public void setConnectors(List<InetSocketAddress> connectors) {
-		for (InetSocketAddress addr : connectors) {
-			addresses.add(addr);
-			log.info("RTMP Mina Transport bound to {}", addr.toString());
-		}
-	}
-		
-	public void setEventThreadsCore(int eventThreadsCore) {
-		this.eventThreadsCore = eventThreadsCore;
-	}
-
-	public void setEventThreadsKeepalive(int eventThreadsKeepalive) {
-		this.eventThreadsKeepalive = eventThreadsKeepalive;
-	}
-
-	public void setEventThreadsMax(int eventThreadsMax) {
-		this.eventThreadsMax = eventThreadsMax;
-	}
-
-	public void setEventThreadsQueue(int eventThreadsQueue) {
-		this.eventThreadsQueue = eventThreadsQueue;
-	}
-
-	public void setIoHandler(IoHandlerAdapter rtmpIOHandler) {
-		this.ioHandler = rtmpIOHandler;
-	}
-
-	public void setIoThreads(int ioThreads) {
-		this.ioThreads = ioThreads;
-	}
-
-	public void setReceiveBufferSize(int receiveBufferSize) {
-		this.receiveBufferSize = receiveBufferSize;
-	}
-
-	public void setSendBufferSize(int sendBufferSize) {
-		this.sendBufferSize = sendBufferSize;
-	}
-
-	public void setTcpNoDelay(boolean tcpNoDelay) {
-		this.tcpNoDelay = tcpNoDelay;
-	}
-
-	public void setUseHeapBuffers(boolean useHeapBuffers) {
-		this.useHeapBuffers = useHeapBuffers;
-	}
-
 	public void start() throws Exception {
 		initIOHandler();
 
@@ -223,11 +176,58 @@ public class RTMPMinaTransport {
 		if (serviceManagerObjectName != null) {
 			JMXAgent.unregisterMBean(serviceManagerObjectName);
 		}
+	}	
+
+	public void setConnector(InetSocketAddress connector) {
+		addresses.add(connector);
+		log.info("RTMP Mina Transport bound to {}", connector.toString());
+	}
+	
+	public void setConnectors(List<InetSocketAddress> connectors) {
+		for (InetSocketAddress addr : connectors) {
+			addresses.add(addr);
+			log.info("RTMP Mina Transport bound to {}", addr.toString());
+		}
+	}
+		
+	public void setEventThreadsCore(int eventThreadsCore) {
+		this.eventThreadsCore = eventThreadsCore;
 	}
 
+	public void setEventThreadsKeepalive(int eventThreadsKeepalive) {
+		this.eventThreadsKeepalive = eventThreadsKeepalive;
+	}
 
-	public String toString() {
-		return String.format("RTMP Mina Transport %s", addresses.toString());
+	public void setEventThreadsMax(int eventThreadsMax) {
+		this.eventThreadsMax = eventThreadsMax;
+	}
+
+	public void setEventThreadsQueue(int eventThreadsQueue) {
+		this.eventThreadsQueue = eventThreadsQueue;
+	}
+
+	public void setIoHandler(IoHandlerAdapter rtmpIOHandler) {
+		this.ioHandler = rtmpIOHandler;
+	}
+
+	public void setIoThreads(int ioThreads) {
+		this.ioThreads = ioThreads;
+	}
+
+	public void setReceiveBufferSize(int receiveBufferSize) {
+		this.receiveBufferSize = receiveBufferSize;
+	}
+
+	public void setSendBufferSize(int sendBufferSize) {
+		this.sendBufferSize = sendBufferSize;
+	}
+
+	public void setTcpNoDelay(boolean tcpNoDelay) {
+		this.tcpNoDelay = tcpNoDelay;
+	}
+
+	public void setUseHeapBuffers(boolean useHeapBuffers) {
+		this.useHeapBuffers = useHeapBuffers;
 	}
 
 	public int getJmxPollInterval() {
@@ -237,4 +237,9 @@ public class RTMPMinaTransport {
 	public void setJmxPollInterval(int jmxPollInterval) {
 		this.jmxPollInterval = jmxPollInterval;
 	}
+	
+	public String toString() {
+		return String.format("RTMP Mina Transport %s", addresses.toString());
+	}	
+	
 }

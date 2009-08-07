@@ -36,7 +36,6 @@ import org.red5.server.BaseConnection;
 import org.red5.server.api.IBWControllable;
 import org.red5.server.api.IBandwidthConfigure;
 import org.red5.server.api.IConnectionBWConfig;
-import org.red5.server.api.IContext;
 import org.red5.server.api.IScope;
 import org.red5.server.api.Red5;
 import org.red5.server.api.scheduling.IScheduledJob;
@@ -69,10 +68,8 @@ import org.red5.server.stream.IBWControlService;
 import org.red5.server.stream.OutputStream;
 import org.red5.server.stream.PlaylistSubscriberStream;
 import org.red5.server.stream.StreamService;
-import org.red5.server.stream.VideoCodecFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationContext;
 
 /**
  * RTMP connection. Stores information about client streams, data transfer
@@ -89,13 +86,6 @@ public abstract class RTMPConnection extends BaseConnection implements
 	private static Logger log = LoggerFactory.getLogger(RTMPConnection.class);
 
 	public static final String RTMP_CONNECTION_KEY = "rtmp.conn";
-	
-	/**
-	 * Video codec factory constant
-	 */
-	private static final String VIDEO_CODEC_FACTORY = "videoCodecFactory";
-
-	// private Context context;
 
 	/**
 	 * Connection channels
@@ -206,11 +196,6 @@ public abstract class RTMPConnection extends BaseConnection implements
 	private ConcurrentMap<Integer, Integer> streamBuffers = new ConcurrentHashMap<Integer, Integer>();
 
 	/**
-	 * Service that is waiting for handshake.
-	 */
-	private ISchedulingService waitForHandshakeService;
-
-	/**
 	 * Name of job that is waiting for a valid handshake.
 	 */
 	private String waitForHandshakeJob;
@@ -288,6 +273,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	
 	@Override
 	public boolean connect(IScope newScope, Object[] params) {
+		log.debug("Connect scope: {}", newScope);
 		try {
 			boolean success = super.connect(newScope, params);
 			if (success) {
@@ -296,9 +282,9 @@ public abstract class RTMPConnection extends BaseConnection implements
 					// XXX Bandwidth control service should not be bound to
 					// a specific scope because it's designed to control
 					// the bandwidth system-wide.
-					if (getScope() != null && getScope().getContext() != null) {
-						IBWControlService bwController = (IBWControlService) getScope()
-								.getContext().getBean(IBWControlService.KEY);
+					IScope s = getScope();
+					if (s != null && s.getContext() != null) {
+						IBWControlService bwController = (IBWControlService) s.getContext().getBean(IBWControlService.KEY);
 						bwContext = bwController.registerBWControllable(this);
 					}
 					unscheduleWaitForHandshakeJob();
@@ -318,9 +304,8 @@ public abstract class RTMPConnection extends BaseConnection implements
 		getWriteLock().lock();
 		try {
 			if (waitForHandshakeJob != null) {
-				waitForHandshakeService.removeScheduledJob(waitForHandshakeJob);
+				schedulingService.removeScheduledJob(waitForHandshakeJob);
 				waitForHandshakeJob = null;
-				waitForHandshakeService = null;
 				log.debug("Removed waitForHandshakeJob for: {}", getId());
 			}
 		} finally {
@@ -451,21 +436,6 @@ public abstract class RTMPConnection extends BaseConnection implements
 		return new OutputStream(video, audio, data);
 	}
 
-	/**
-	 * Getter for video codec factory.
-	 * 
-	 * @return Video codec factory
-	 */
-	public VideoCodecFactory getVideoCodecFactory() {
-		final IContext context = scope.getContext();
-		ApplicationContext appCtx = context.getApplicationContext();
-		if (!appCtx.containsBean(VIDEO_CODEC_FACTORY)) {
-			return null;
-		}
-
-		return (VideoCodecFactory) appCtx.getBean(VIDEO_CODEC_FACTORY);
-	}
-
 	/** {@inheritDoc} */
 	public IClientBroadcastStream newBroadcastStream(int streamId) {
 		getReadLock().lock();
@@ -486,8 +456,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 		 * Picking up the ClientBroadcastStream defined as a spring
 		 * prototype in red5-common.xml
 		 */
-		ClientBroadcastStream cbs = (ClientBroadcastStream) scope
-				.getContext().getBean("clientBroadcastStream");
+		ClientBroadcastStream cbs = (ClientBroadcastStream) scope.getContext().getBean("clientBroadcastStream");
 		Integer buffer = streamBuffers.get(streamId - 1);
 		if (buffer != null) {
 			cbs.setClientBufferDuration(buffer);
@@ -802,8 +771,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 		invoke.setCall(call);
 		invoke.setInvokeId(getInvokeId());
 		if (call instanceof IPendingServiceCall) {
-			registerPendingCall(invoke.getInvokeId(),
-					(IPendingServiceCall) call);
+			registerPendingCall(invoke.getInvokeId(), (IPendingServiceCall) call);
 		}
 		getChannel(channel).write(invoke);
 	}
@@ -824,8 +792,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	}
 
 	/** {@inheritDoc} */
-	public void invoke(String method, Object[] params,
-			IPendingServiceCallback callback) {
+	public void invoke(String method, Object[] params, IPendingServiceCallback callback) {
 		IPendingServiceCall call = new PendingCall(method, params);
 		if (callback != null) {
 			call.registerCallback(callback);
@@ -1090,8 +1057,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 				// log.debug("Context null = {}", (scope.getContext() == null));
 				// ISchedulingService schedulingService = (ISchedulingService)
 				// scope.getContext().getBean(ISchedulingService.BEAN_NAME);
-				keepAliveJobName = schedulingService.addScheduledJob(pingInterval,
-						new KeepAliveJob());
+				keepAliveJobName = schedulingService.addScheduledJob(pingInterval, new KeepAliveJob());
 			}
 			log.debug("Keep alive job name {} for client id {}", keepAliveJobName, getId());
 		} finally {
@@ -1181,9 +1147,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	protected void startWaitForHandshake(ISchedulingService service) {
 		getWriteLock().lock();
 		try {
-			waitForHandshakeService = service;
-			waitForHandshakeJob = service.addScheduledOnceJob(maxHandshakeTimeout,
-					new WaitForHandshakeJob());
+			waitForHandshakeJob = service.addScheduledOnceJob(maxHandshakeTimeout, new WaitForHandshakeJob());
 		} finally {
 			getWriteLock().unlock();
 		}
@@ -1228,8 +1192,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 				} finally {
 					getWriteLock().unlock();
 				}
-				log.warn("Closing {}, with id {}, due to too much inactivity ({}ms), " 
-						+ "last ping sent {}ms ago", 
+				log.warn("Closing {}, with id {}, due to too much inactivity ({}ms), last ping sent {}ms ago", 
 						new Object[] { RTMPConnection.this, getId(), 
 							(lastPingSent.get() - lastPongReceived.get()),
 							(System.currentTimeMillis() - lastPingSent.get())});
@@ -1252,10 +1215,8 @@ public abstract class RTMPConnection extends BaseConnection implements
 			getWriteLock().lock();
 			try {
 				waitForHandshakeJob = null;
-				waitForHandshakeService = null;
 				// Client didn't send a valid handshake, disconnect
-				log.warn("Closing {}, with id {} due to long handshake",
-						RTMPConnection.this, getId());
+				log.warn("Closing {}, with id {} due to long handshake", RTMPConnection.this, getId());
 			} finally {
 				getWriteLock().unlock();
 			}

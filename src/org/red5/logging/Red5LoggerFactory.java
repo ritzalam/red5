@@ -64,6 +64,13 @@ public class Red5LoggerFactory {
     		} catch (ClassCastException cce) {
     			//cce.printStackTrace();
     		}
+		} else {
+		    //route the Launcher entries to the correct context
+		    String[] parts = Thread.currentThread().getName().split("Launcher:/");
+		    if (parts.length > 1) {
+		        contextName = parts[1];
+		    }
+		    
 		}
 		
 		/* TODO: For a future day, the context or application will be determined

@@ -28,6 +28,7 @@ import org.red5.server.api.IConnection.Encoding;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.message.Header;
 import org.red5.server.net.rtmp.message.Packet;
+import org.springframework.core.style.ToStringCreator;
 
 /**
  * RTMP is the RTMP protocol state representation.
@@ -407,5 +408,11 @@ public class RTMP extends ProtocolState {
     	
     	return Arrays.equals(reply, handshake);
     }
+
+	@Override
+	public String toString() {
+		ToStringCreator tsc = new ToStringCreator(this);
+		return tsc.toString();
+	}
     
 }

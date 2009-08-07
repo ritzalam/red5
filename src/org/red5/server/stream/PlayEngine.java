@@ -151,12 +151,14 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 	 * threshold for number of pending video frames
 	 */
 	private int maxPendingVideoFramesThreshold = 10;
+	
 	/**
 	 * if we have more than 1 pending video frames, but less than maxPendingVideoFrames,
 	 * continue sending until there are this many sequential frames with more than 1
 	 * pending
 	 */
 	private int maxSequentialPendingVideoFrames = 10;
+	
 	/**
 	 * the number of sequential video frames with > 0 pending frames
 	 */
@@ -1359,11 +1361,12 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 					}
 
 					// increment the number of times we had pending video frames sequentially
-					if(pendingVideos > 1)
+					if (pendingVideos > 1) {
 						numSequentialPendingVideoFrames++;
-					else // reset number of sequential pending frames if 1 or 0 are pending.
+					} else { 
+						// reset number of sequential pending frames if 1 or 0 are pending.
 						numSequentialPendingVideoFrames = 0;
-
+					}
 					if (pendingVideos > maxPendingVideoFramesThreshold
 							|| numSequentialPendingVideoFrames > maxSequentialPendingVideoFrames) {
 						log.debug("Pending: {} Threshold: {} Sequential: {}", new Object[]{pendingVideos, maxPendingVideoFramesThreshold, numSequentialPendingVideoFrames});

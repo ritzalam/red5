@@ -70,8 +70,7 @@ import org.springframework.core.style.ToStringCreator;
  * @author Paul Gregoire (mondain@gmail.com)
  * @author Nathan Smith (nathgs@gmail.com)
  */
-public class Scope extends BasicScope implements IScope, IScopeStatistics,
-		ScopeMBean {
+public class Scope extends BasicScope implements IScope, IScopeStatistics, ScopeMBean {
 
 	/**
 	 * Iterator that filters strings by given prefix

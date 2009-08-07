@@ -277,10 +277,8 @@ public class RTMPHandler extends BaseRTMPHandler {
 								call.setStatus(Call.STATUS_SERVICE_NOT_FOUND);
 								if (call instanceof IPendingServiceCall) {
 									StatusObject status = getStatus(NC_CONNECT_REJECTED);
-									status.setDescription("No scope \"" + path
-											+ "\" on this server.");
-									((IPendingServiceCall) call)
-											.setResult(status);
+									status.setDescription("No scope \"" + path + "\" on this server.");
+									((IPendingServiceCall) call).setResult(status);
 								}
 								log.info("Scope {} not found on {}", path, host);
 								disconnectOnReturn = true;
@@ -288,11 +286,8 @@ public class RTMPHandler extends BaseRTMPHandler {
 								call.setStatus(Call.STATUS_APP_SHUTTING_DOWN);
 								if (call instanceof IPendingServiceCall) {
 									StatusObject status = getStatus(NC_CONNECT_APPSHUTDOWN);
-									status.setDescription("Application at \""
-											+ path
-											+ "\" is currently shutting down.");
-									((IPendingServiceCall) call)
-											.setResult(status);
+									status.setDescription("Application at \"" + path + "\" is currently shutting down.");
+									((IPendingServiceCall) call).setResult(status);
 								}
 								log.info("Application at {} currently shutting down on {}", path, host);
 								disconnectOnReturn = true;
@@ -423,8 +418,8 @@ public class RTMPHandler extends BaseRTMPHandler {
 
 		if (invoke instanceof Invoke) {
 			if ((source.getStreamId() != 0)
-					&& (call.getStatus() == Call.STATUS_SUCCESS_VOID || call
-							.getStatus() == Call.STATUS_SUCCESS_NULL)) {
+					&& (call.getStatus() == Call.STATUS_SUCCESS_VOID 
+					|| call.getStatus() == Call.STATUS_SUCCESS_NULL)) {
 				// This fixes a bug in the FP on Intel Macs.
 				log.debug("Method does not have return value, do not reply");
 				return;
@@ -444,7 +439,6 @@ public class RTMPHandler extends BaseRTMPHandler {
 					sendResult = false;
 				}
 			}
-			;
 
 			if (sendResult) {
 				// The client expects a result for the method call.
@@ -507,8 +501,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 	 * @param name
 	 * @param persistent
 	 */
-	private void sendSOCreationFailed(RTMPConnection conn, String name,
-			boolean persistent) {
+	private void sendSOCreationFailed(RTMPConnection conn, String name, boolean persistent) {
 		SharedObjectMessage msg = new SharedObjectMessage(name, 0, persistent);
 		msg.addEvent(new SharedObjectEvent(
 				ISharedObjectEvent.Type.CLIENT_STATUS, "error",
@@ -531,15 +524,13 @@ public class RTMPHandler extends BaseRTMPHandler {
 		}
 
 		ISharedObjectService sharedObjectService = (ISharedObjectService) getScopeService(
-				scope, ISharedObjectService.class, SharedObjectService.class,
-				false);
+				scope, ISharedObjectService.class, SharedObjectService.class, false);
 		if (!sharedObjectService.hasSharedObject(scope, name)) {
 			ISharedObjectSecurityService security = (ISharedObjectSecurityService) ScopeUtils
 					.getScopeService(scope, ISharedObjectSecurityService.class);
 			if (security != null) {
 				// Check handlers to see if creation is allowed
-				for (ISharedObjectSecurity handler : security
-						.getSharedObjectSecurity()) {
+				for (ISharedObjectSecurity handler : security.getSharedObjectSecurity()) {
 					if (!handler.isCreationAllowed(scope, name, persistent)) {
 						sendSOCreationFailed(conn, name, persistent);
 						return;
@@ -547,16 +538,14 @@ public class RTMPHandler extends BaseRTMPHandler {
 				}
 			}
 
-			if (!sharedObjectService
-					.createSharedObject(scope, name, persistent)) {
+			if (!sharedObjectService.createSharedObject(scope, name, persistent)) {
 				sendSOCreationFailed(conn, name, persistent);
 				return;
 			}
 		}
 		so = sharedObjectService.getSharedObject(scope, name);
 		if (so.isPersistentObject() != persistent) {
-			SharedObjectMessage msg = new SharedObjectMessage(name, 0,
-					persistent);
+			SharedObjectMessage msg = new SharedObjectMessage(name, 0, persistent);
 			msg.addEvent(new SharedObjectEvent(
 					ISharedObjectEvent.Type.CLIENT_STATUS, "error",
 					SO_PERSISTENCE_MISMATCH));
