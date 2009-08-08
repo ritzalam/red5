@@ -21,6 +21,9 @@ package org.red5.server.api.stream;
 
 import org.apache.mina.core.buffer.IoBuffer;
 
+/**
+ * Represents a Video codec and its associated decoder configuration.
+ */
 public interface IVideoStreamCodec {
 
     /**

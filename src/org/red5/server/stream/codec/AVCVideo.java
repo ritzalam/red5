@@ -35,59 +35,59 @@ import org.slf4j.Logger;
 public class AVCVideo implements IVideoStreamCodec {
 
 	private static Logger log = Red5LoggerFactory.getLogger(AVCVideo.class);
-	
-    /**
-     * AVC video codec constant
-     */
+
+	/**
+	 * AVC video codec constant
+	 */
 	static final String CODEC_NAME = "AVC";
-	
+
 	/**
-     * Block of data (AVC DecoderConfigurationRecord)
-     */
+	 * Block of data (AVC DecoderConfigurationRecord)
+	 */
 	private byte[] blockDataAVCDCR;
-	
+
 	/**
-     * Data block size (AVC DecoderConfigurationRecord)
-     */
+	 * Data block size (AVC DecoderConfigurationRecord)
+	 */
 	private int blockSizeAVCDCR;
-	
-    /**
-     * Block of data (Last KeyFrame)
-     */
+
+	/**
+	 * Block of data (Last KeyFrame)
+	 */
 	private byte[] blockDataLKF;
-	
+
 	/**
-     * Data block size (Last KeyFrame)
-     */
+	 * Data block size (Last KeyFrame)
+	 */
 	private int blockSizeLKF;
-	
-    /**
-     * Number of data blocks (last key frame)
-     */
-	private int dataCountLKF;
-	
+
 	/**
-     * Number of data blocks (Decoder Configuration Record)
-     */
+	 * Number of data blocks (last key frame)
+	 */
+	private int dataCountLKF;
+
+	/**
+	 * Number of data blocks (Decoder Configuration Record)
+	 */
 	private int dataCountAVCDCR;
-	
+
 	/** Constructs a new AVCVideo. */
-    public AVCVideo() {
+	public AVCVideo() {
 		this.reset();
 	}
 
 	/** {@inheritDoc} */
-    public String getName() {
+	public String getName() {
 		return CODEC_NAME;
 	}
 
 	/** {@inheritDoc} */
-    public boolean canDropFrames() {
+	public boolean canDropFrames() {
 		return true;
 	}
 
 	/** {@inheritDoc} */
-    public void reset() {
+	public void reset() {
 		this.blockDataLKF = null;
 		this.blockSizeLKF = 0;
 		this.blockSizeAVCDCR = 0;
@@ -97,7 +97,7 @@ public class AVCVideo implements IVideoStreamCodec {
 	}
 
 	/** {@inheritDoc} */
-    public boolean canHandleData(IoBuffer data) {
+	public boolean canHandleData(IoBuffer data) {
 		if (data.limit() == 0) {
 			// Empty buffer
 			return false;
@@ -110,78 +110,78 @@ public class AVCVideo implements IVideoStreamCodec {
 	}
 
 	/** {@inheritDoc} */
-    public boolean addData(IoBuffer data) {
-		if (data.limit() == 0) {
-			return true;
-		}
-
-		if (!this.canHandleData(data)) {
-			return false;
-		}
-		
-		data.rewind();
-		
-		byte frameType = data.get();
-		data.rewind();
-		
-		if ((frameType & 0xf0) != FLV_FRAME_KEY) {
-			// Not a keyframe
-			return true;
-		}
-		
-		//If we don't have the AVCDecoderConfigurationRecord stored...
-		if(this.blockDataAVCDCR == null){
-			data.get();//FT
-			data.get();//CODECID
+	public boolean addData(IoBuffer data) {
+		if (data.limit() > 0) {
 			
-			byte AVCPacketType = data.get();
-			
-			//Sequence Header / here comes a AVCDecoderConfigurationRecord
-			log.debug("AVCPacketType: {}", AVCPacketType);
-			if(AVCPacketType == 0) {
-				data.rewind();
-				
-				// Store AVCDecoderConfigurationRecord data
-				this.dataCountAVCDCR = data.limit();
-				
-				if (this.blockSizeAVCDCR < this.dataCountAVCDCR) {
-					this.blockSizeAVCDCR = this.dataCountAVCDCR;
-					this.blockDataAVCDCR = new byte[this.blockSizeAVCDCR];
-				}
-
-				data.get(this.blockDataAVCDCR, 0, this.dataCountAVCDCR);
-			}
+			//ensure that we can "handle" the data
+    		if (!canHandleData(data)) {
+    			return false;
+    		}
+    
+    		byte frameType = data.get();
+    
+    		//check for keyframe
+    		if ((frameType & 0xf0) == FLV_FRAME_KEY) {
+    			log.trace("Key frame found");
+    			//If we don't have the AVCDecoderConfigurationRecord stored...
+    			if (blockDataAVCDCR == null) {
+    				//data.get();//Frame Type - already read above
+    				data.get();//CODECID
+    
+    				byte AVCPacketType = data.get();
+    
+    				//Sequence Header / here comes a AVCDecoderConfigurationRecord
+    				log.debug("AVCPacketType: {}", AVCPacketType);
+    				if (AVCPacketType == 0) {
+    					log.trace("Decoder configuration found");
+    					data.rewind();
+    
+    					// Store AVCDecoderConfigurationRecord data
+    					this.dataCountAVCDCR = data.limit();
+    
+    					if (this.blockSizeAVCDCR < this.dataCountAVCDCR) {
+    						this.blockSizeAVCDCR = this.dataCountAVCDCR;
+    						this.blockDataAVCDCR = new byte[this.blockSizeAVCDCR];
+    					}
+    
+    					data.get(this.blockDataAVCDCR, 0, this.dataCountAVCDCR);
+    				}
+    			}
+    
+    			//rewind data prior to reading the keyframe
+    			data.rewind();
+    
+    			// Store last keyframe
+    			this.dataCountLKF = data.limit();
+    			if (this.blockSizeLKF < this.dataCountLKF) {
+    				this.blockSizeLKF = this.dataCountLKF;
+    				this.blockDataLKF = new byte[this.blockSizeLKF];
+    			}
+    
+    			data.get(this.blockDataLKF, 0, this.dataCountLKF);
+    		}
+    
+    		//finished with the data, rewind one last time
+    		data.rewind();
 		}
 		
-		data.rewind();
-		
-		// Store last keyframe
-		this.dataCountLKF = data.limit();
-		if (this.blockSizeLKF < this.dataCountLKF) {
-			this.blockSizeLKF = this.dataCountLKF;
-			this.blockDataLKF = new byte[this.blockSizeLKF];
-		}
-
-		data.get(this.blockDataLKF, 0, this.dataCountLKF);
-		
-		data.rewind();
 		return true;
 	}
 
 	/** {@inheritDoc} */
-    public IoBuffer getKeyframe() {
+	public IoBuffer getKeyframe() {
 		if (this.dataCountLKF == 0) {
 			return null;
 		}
 
-		IoBuffer result = IoBuffer.allocate(this.dataCountLKF);
-		result.put(this.blockDataLKF, 0, this.dataCountLKF);
+		IoBuffer result = IoBuffer.allocate(dataCountLKF);
+		result.put(blockDataLKF, 0, dataCountLKF);
 		result.rewind();
 		return result;
 	}
-    
-    /** {@inheritDoc} */
-    public IoBuffer getDecoderConfiguration() {
+
+	/** {@inheritDoc} */
+	public IoBuffer getDecoderConfiguration() {
 		if (dataCountAVCDCR == 0) {
 			return null;
 		}

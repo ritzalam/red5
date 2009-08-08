@@ -288,10 +288,12 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	 * @return                true on success, false otherwise
 	 */
 	public boolean connect(IScope newScope, Object[] params) {
-		log.debug("Connect Params: {}", params);
-        for (Object e : params) {
-            log.debug("Param: {}", e);
-        }
+		if (log.isDebugEnabled()) {
+			log.debug("Connect Params: {}", params);
+            for (Object e : params) {
+                log.debug("Param: {}", e);
+            }
+		}
 		getWriteLock().lock();
 		try {
 			final Scope oldScope = scope;
@@ -348,7 +350,7 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 		try {
 			scope.disconnect(this);
 		} catch (Exception err) {
-			log.error("Error while disconnecting from scope " + scope, err);
+			log.error("Error while disconnecting from scope: {}. {}", scope, err);
 		}
 
 		// Unregister client
@@ -364,6 +366,7 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	 * @param event       Event
 	 */
 	public void notifyEvent(IEvent event) {
+		log.debug("Event notify was not handled: {}", event);
 	}
 
 	/**
@@ -371,6 +374,7 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	 * @param event       Event
 	 */
 	public void dispatchEvent(IEvent event) {
+		log.debug("Event notify was not dispatched: {}", event);
 	}
 
 	/**
