@@ -154,8 +154,7 @@ public class RTMPMinaTransport {
 		// RTMPMinaTransport
 		String cName = this.getClass().getName();
 		if (cName.indexOf('.') != -1) {
-			cName = cName.substring(cName.lastIndexOf('.')).replaceFirst(
-					"[\\.]", "");
+			cName = cName.substring(cName.lastIndexOf('.')).replaceFirst("[\\.]", "");
 		}
 		//enable only if user wants it
 		if (JMXAgent.isEnableMinaMonitor()) {

@@ -124,8 +124,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 			if (stream instanceof IClientBroadcastStream) {
 				IClientBroadcastStream bs = (IClientBroadcastStream) stream;
 				IBroadcastScope scope = (IBroadcastScope) bs.getScope()
-						.getBasicScope(IBroadcastScope.TYPE,
-								bs.getPublishedName());
+						.getBasicScope(IBroadcastScope.TYPE, bs.getPublishedName());
 				if (scope == null) {
 					continue;
 				}
@@ -156,7 +155,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 			log.debug("Scope: {}", scope);
 			log.debug("Handler: {}", handler);
 			if (!handler.serviceCall(conn, call)) {
-				// XXX: What do do here? Return an error?
+				// XXX: What to do here? Return an error?
 				return;
 			}
 		}
@@ -178,8 +177,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 	 * @return <code>true</code> if the call was performed, otherwise
 	 *         <code>false</code>
 	 */
-	private boolean invokeCall(RTMPConnection conn, IServiceCall call,
-			Object service) {
+	private boolean invokeCall(RTMPConnection conn, IServiceCall call, Object service) {
 		final IScope scope = conn.getScope();
 		final IContext context = scope.getContext();
 		log.debug("Scope: {}", scope);
@@ -191,8 +189,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 	/** {@inheritDoc} */
 	@SuppressWarnings("unchecked")
 	@Override
-	protected void onInvoke(RTMPConnection conn, Channel channel,
-			Header source, Notify invoke, RTMP rtmp) {
+	protected void onInvoke(RTMPConnection conn, Channel channel, Header source, Notify invoke, RTMP rtmp) {
 
 		log.debug("Invoke: {}", invoke);
 
@@ -251,8 +248,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 							call.setStatus(Call.STATUS_SERVICE_NOT_FOUND);
 							if (call instanceof IPendingServiceCall) {
 								StatusObject status = getStatus(NC_CONNECT_INVALID_APPLICATION);
-								status.setDescription("No scope \"" + path
-										+ "\" on this server.");
+								status.setDescription("No scope \"" + path + "\" on this server.");
 								((IPendingServiceCall) call).setResult(status);
 							}
 							log.info("No application scope found for {} on host {}. Misspelled or missing application folder?", path, host);
@@ -354,8 +350,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 					// Evaluate request for AMF3 encoding
 					if (Integer.valueOf(3).equals(params.get("objectEncoding"))
 							&& call instanceof IPendingServiceCall) {
-						Object pcResult = ((IPendingServiceCall) call)
-								.getResult();
+						Object pcResult = ((IPendingServiceCall) call).getResult();
 						Map<String, Object> result;
 						if (pcResult instanceof Map) {
 							result = (Map<String, Object>) pcResult;
@@ -376,16 +371,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 				}
 			} else if (action.equals(ACTION_DISCONNECT)) {
 				conn.close();
-			} else if (action.equals(ACTION_CREATE_STREAM)
-					|| action.equals(ACTION_DELETE_STREAM)
-					|| action.equals(ACTION_RELEASE_STREAM)
-					|| action.equals(ACTION_PUBLISH)
-					|| action.equals(ACTION_PLAY) || action.equals(ACTION_SEEK)
-					|| action.equals(ACTION_PAUSE)
-					|| action.equals(ACTION_PAUSE_RAW)
-					|| action.equals(ACTION_CLOSE_STREAM)
-					|| action.equals(ACTION_RECEIVE_VIDEO)
-					|| action.equals(ACTION_RECEIVE_AUDIO)) {
+			} else if (STREAM_ACTION_LIST.contains(action)) {
 				IStreamService streamService = (IStreamService) getScopeService(
 						conn.getScope(), IStreamService.class,
 						StreamService.class);
@@ -511,8 +497,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 
 	/** {@inheritDoc} */
 	@Override
-	protected void onSharedObject(RTMPConnection conn, Channel channel,
-			Header source, SharedObjectMessage object) {
+	protected void onSharedObject(RTMPConnection conn, Channel channel, Header source, SharedObjectMessage object) {
 		final ISharedObject so;
 		final String name = object.getName();
 		final boolean persistent = object.isPersistent();

@@ -262,7 +262,6 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 	}
 
 	protected RTMPMinaConnection createRTMPMinaConnection() {
-		return (RTMPMinaConnection) rtmpConnManager
-				.createConnection(RTMPMinaConnection.class);
+		return (RTMPMinaConnection) rtmpConnManager.createConnection(RTMPMinaConnection.class);
 	}
 }

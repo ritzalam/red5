@@ -34,8 +34,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
-public class RTMPConnManager implements IRTMPConnManager,
-		ApplicationContextAware {
+public class RTMPConnManager implements IRTMPConnManager, ApplicationContextAware {
 	
 	private static final Logger log = LoggerFactory.getLogger(RTMPConnManager.class);
 	
@@ -107,8 +106,7 @@ public class RTMPConnManager implements IRTMPConnManager,
 		}
 	}
 
-	public void setApplicationContext(ApplicationContext appCtx)
-			throws BeansException {
+	public void setApplicationContext(ApplicationContext appCtx) throws BeansException {
 		this.appCtx = appCtx;
 	}
 

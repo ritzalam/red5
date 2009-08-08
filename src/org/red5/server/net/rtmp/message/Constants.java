@@ -1,5 +1,8 @@
 package org.red5.server.net.rtmp.message;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  * 
@@ -22,6 +25,7 @@ package org.red5.server.net.rtmp.message;
 /**
  * Class for AMF and RTMP marker values constants
  */
+@SuppressWarnings("serial")
 public interface Constants {
 
     /**
@@ -227,5 +231,25 @@ public interface Constants {
 	public static final String ACTION_RECEIVE_VIDEO = "receiveVideo";
 
 	public static final String ACTION_RECEIVE_AUDIO = "receiveAudio";
+	
+	/**
+	 * List for stream "action" lookups.
+	 */
+	public static final List<String> STREAM_ACTION_LIST = new ArrayList<String>(11){
+		{
+			//Add all the stream actions to make lookup simpler 
+			add(ACTION_CREATE_STREAM);
+			add(ACTION_DELETE_STREAM);
+			add(ACTION_RELEASE_STREAM);
+			add(ACTION_PUBLISH);
+			add(ACTION_PLAY);
+			add(ACTION_SEEK);
+			add(ACTION_PAUSE);
+			add(ACTION_PAUSE_RAW);
+			add(ACTION_CLOSE_STREAM);
+			add(ACTION_RECEIVE_VIDEO);
+			add(ACTION_RECEIVE_AUDIO);
+		}
+	};
 
 }

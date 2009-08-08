@@ -101,9 +101,9 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 			hostStr = arr[0];
 			port = Integer.parseInt(arr[1]);
 		}
-		try {
-			//if the client is null for some reason, skip the jmx registration
-			if (client != null) {
+		//if the client is null for some reason, skip the jmx registration
+		if (client != null) {
+    		try {
 				String cName = this.getClass().getName();
 				if (cName.indexOf('.') != -1) {
 					cName = cName.substring(cName.lastIndexOf('.')).replaceFirst("[\\.]", "");
@@ -111,11 +111,11 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 			    // Create a new mbean for this instance
 			    oName = JMXFactory.createObjectName("type", cName, "connectionType", type, "host", hostStr, "port", port + "", "clientId", client.getId());
 			    JMXAgent.registerMBean(this, this.getClass().getName(),	RTMPMinaConnectionMBean.class, oName);		
-			} else {
-                log.warn("Client was null");			
-			}
-		} catch (Exception e) {
-			log.warn("Exception registering mbean", e);
+    		} catch (Exception e) {
+    			log.warn("Exception registering mbean", e);
+    		}
+		} else {
+            log.warn("Client was null");			
 		}
 		if (ioSession != null) {
 			if (scope.getDepth() == 1) {
