@@ -1029,6 +1029,33 @@
 			</java>
 		</sequential>
 	</macrodef>
+	<macrodef name="wiki2docbook">
+		<attribute name="host" default=""/>
+		<attribute name="username" default=""/>
+		<attribute name="password" default=""/>
+		<attribute name="dir" default="${basedir}/${doc.ref.dir}"/>
+		<attribute name="parent-page" default=""/>
+		<attribute name="page" default=""/>
+		<sequential>
+			<condition property="wiki.parent-page" value="" else="-P @{parent-page}">
+				<isset property="@{parent-page}" />
+			</condition>
+			
+			<condition property="wiki.page" value="" else="-s @{page}">
+				<isset property="@{page}" />
+			</condition>
+			
+			<java classname="org.red5.trac.TracWiki2DocbookClient" fork="true" dir="@{dir}" classpathref="doc.lib.classpath">
+				<arg value="-h @{host}"/>
+				<arg value="-u @{username}"/>
+				<arg value="-p @{password}"/>
+				<arg value="-d @{dir}"/>
+				<arg value="${wiki.parent-page}"/>
+				<arg value="${wiki.page}"/>
+				<jvmarg value="-Xmx512m"/>
+			</java>
+		</sequential>
+	</macrodef>
 	<!-- FOP Task because default cannot send memory args -->
 	<macrodef name="fop-pdf">
 		<attribute name="basedir" default="."/>
@@ -1051,15 +1078,27 @@
 	<!-- Check if Docbook libraries are installed -->
 	<target name="doc-prepare" description="Extra preparation for the documentation">
 		<path id="doc.lib.classpath">
-			<fileset dir="${basedir}/${doc.ref.lib}">
+			<fileset dir="${basedir}/${doc.ref.lib}/docbook">
+				<include name="*.jar"/>
+			</fileset>
+			<fileset dir="${basedir}/${doc.ref.lib}/tracwiki2docbook">
 				<include name="*.jar"/>
 			</fileset>
 		</path>
 		<fail message="XSLT supporting lib not installed. Please see '${doc.ref.dir}/readme.txt' for instructions.">
 			<condition>
-				<not>
-					<available file="${basedir}/${doc.ref.lib}"/>
-				</not>
+				<and>
+					<not>
+						<available file="${basedir}/${doc.ref.lib}"/>
+					</not>
+					<not>
+						<available file="${basedir}/${doc.ref.lib}/docbook"/>
+					</not>
+					<not>
+						<available file="${basedir}/${doc.ref.lib}/tracwiki2docbook"/>
+					</not>
+				</and>			
+				
 			</condition>
 		</fail>
 	</target>
@@ -1069,6 +1108,19 @@
 		<delete dir="${basedir}/${doc.ref.dir}/html"/>
 		<delete dir="${basedir}/${doc.ref.dir}/html_single"/>
 	</target>
+	<target name="doc-wiki2docbook" depends="doc-prepare" description="Compile reference documentation in PDF format">
+			<!-- Build fo file -->
+
+			<wiki2docbook 
+				host="${trac.url}"
+				username="${trac.username}"
+				password="${trac.password}"
+				parent-page="${trac.page}"
+				dir="${basedir}/${doc.ref.dir}"
+			/>
+		
+	</target>
+	
 	<!-- PDF Documentation -->
 	<target name="doc-pdf" depends="doc-prepare" description="Compile reference documentation in PDF format">
 		<!-- Build fo file -->
