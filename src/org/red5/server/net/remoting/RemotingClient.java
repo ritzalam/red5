@@ -249,7 +249,7 @@ public class RemotingClient {
 				// XXX: reset the <appendToUrl< here?
 			} else if (RemotingHeader.PERSISTENT_HEADER.equals(name)) {
 				// Send a new header with each following request
-				if (value instanceof Map) {
+				if (value instanceof Map<?,?>) {
 					@SuppressWarnings("unchecked")
 					Map<String, Object> valueMap = (Map<String, Object>) value;
 					RemotingHeader header = new RemotingHeader(

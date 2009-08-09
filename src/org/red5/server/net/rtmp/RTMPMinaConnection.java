@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Represents an RTMP connection using Mina.
  * 
- * @see http://mina.apache.org/report/trunk/apidocs/org/apache/mina/core/session/IoSession.html
+ * @see "http://mina.apache.org/report/trunk/apidocs/org/apache/mina/core/session/IoSession.html"
  * 
  * @author Paul Gregoire
  */

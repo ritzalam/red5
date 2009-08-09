@@ -171,7 +171,7 @@ public class ConversionUtils {
 				}
 				return targetInstance;
 			}
-			if (source instanceof Collection) {
+			if (source instanceof Collection<?>) {
 				Collection<?> sourceCollection=(Collection<?>)source;
 				Object targetInstance = Array.newInstance(target.getComponentType(), sourceCollection.size());
 				Iterator<?> it=sourceCollection.iterator();

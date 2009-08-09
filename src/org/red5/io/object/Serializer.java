@@ -159,7 +159,7 @@ public class Serializer {
 	 */
 	protected boolean writeListType(Output out, Object listType) {
 		log.debug("writeListType");
-		if (listType instanceof List) {
+		if (listType instanceof List<?>) {
 			writeList(out, (List<?>) listType);
 		} else {
 			return false;

@@ -96,9 +96,6 @@ public class RTSPDecoder implements ProtocolDecoder {
 	 * entire RTSP message wait for other data to arrive, before dispatching the
 	 * message.
 	 * 
-	 * @see org.apache.mina.protocol.ProtocolDecoder#decode(org.apache.mina.protocol.IoSession,
-	 *      org.apache.mina.common.IoBuffer,
-	 *      org.apache.mina.protocol.ProtocolDecoderOutput)
 	 */
 	public void decode(IoSession session, IoBuffer buffer,
 			ProtocolDecoderOutput out) throws ProtocolDecoderException {

@@ -159,13 +159,13 @@ public class XmlRpcScopeStatistics {
 				res.add(getXMLRPCValue(Array.get(value, i)));
 			}
 			return res;
-		} else if (value instanceof Map) {
+		} else if (value instanceof Map<?,?>) {
 			Hashtable<Object, Object> res = new Hashtable<Object, Object>();
 			for (Map.Entry<?, ?> entry: ((Map<?, ?>) value).entrySet()) {
 				res.put(entry.getKey(), getXMLRPCValue(entry.getValue()));
 			}
 			return res;
-		} else if (value instanceof Collection) {
+		} else if (value instanceof Collection<?>) {
 			Collection<?> coll = (Collection<?>) value;
 			Vector<Object> result = new Vector<Object>(coll.size());
 			for (Object item : coll) {
