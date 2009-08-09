@@ -114,7 +114,8 @@ public class AACAudio implements IAudioStreamCodec {
     						log.trace("Channels: {}", channels);
     						
     						// frame length, ADTS excluded
-    						currentFrameLeft = (((data.get(offset + 1) & 0x03) << 8) | ((data.get(offset + 2) & 0xff) << 3) | ((data.get(offset + 3) & 0xff) >>> 5)) - 7;
+    						currentFrameLeft = (((data.get(offset + 1) & 0x03) << 8) 
+    								| ((data.get(offset + 2) & 0xff) << 3) | ((data.get(offset + 3) & 0xff) >>> 5)) - 7;
     						log.trace("Current frame left: {}", currentFrameLeft);
     						rawDataBlock = data.get(offset + 4) & 0x3;						
     						log.trace("Raw data: {}", rawDataBlock);

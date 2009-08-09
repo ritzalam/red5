@@ -419,8 +419,7 @@ public class RTMPHandshake implements IHandshake {
 
 		if (input4 != 0) {
 			System.arraycopy(randBytes, 0, byteChunk, 0, randBytes.length);
-			System.arraycopy(hashedBytes, 0, byteChunk, randBytes.length,
-				hashedBytes.length);
+			System.arraycopy(hashedBytes, 0, byteChunk, randBytes.length, hashedBytes.length);
 		} else {
 			input.get(byteChunk);
 		}
@@ -451,7 +450,18 @@ public class RTMPHandshake implements IHandshake {
 		byte[] inputArray = new byte[input.remaining()];
 
 		input.get(inputArray, 0, input.remaining());
-		int index = ((inputArray[8]&0x0ff) + (inputArray[9]&0x0ff) + (inputArray[10]&0x0ff) + (inputArray[11]&0x0ff)) % 728 + 12;
+		
+		//This method is broken by FP 10.0.32.18
+		//int index = ((inputArray[8]&0x0ff) + (inputArray[9]&0x0ff) + (inputArray[10]&0x0ff) + (inputArray[11]&0x0ff)) % 728 + 12;
+		
+		//Thanks to Gavriloaie Eugen-Andrei and Ari-Pekka Viitanen for the fix
+		int index = 0;
+		if (inputArray[5] == 0 && inputArray[6] == 3 && inputArray[7] == 2) {
+			index = ((inputArray[772]&0x0ff) + (inputArray[773]&0x0ff) + (inputArray[774]&0x0ff) + (inputArray[775]&0x0ff)) % 728 + 776;
+		} else {
+			index = ((inputArray[8]&0x0ff) + (inputArray[9]&0x0ff) + (inputArray[10]&0x0ff) + (inputArray[11]&0x0ff)) % 728 + 12;
+		}
+		
 		System.arraycopy(inputArray, index, part, 0, 32);
 		return part;
 	}

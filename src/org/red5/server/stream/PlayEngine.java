@@ -390,8 +390,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 							.getAttribute(IBroadcastScope.STREAM_ATTRIBUTE);
 					
 					if (stream != null && stream.getCodecInfo() != null) {
-						IVideoStreamCodec videoCodec = stream.getCodecInfo()
-								.getVideoCodec();
+						IVideoStreamCodec videoCodec = stream.getCodecInfo().getVideoCodec();
 						if (videoCodec != null) {
 							if (withReset) {
 								sendReset();
@@ -625,8 +624,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 	 * @throws IllegalStateException    If stream is in stopped state
 	 * @throws OperationNotSupportedException If this object doesn't support the operation.
 	 */
-	public synchronized void seek(int position) throws IllegalStateException,
-			OperationNotSupportedException {
+	public synchronized void seek(int position) throws IllegalStateException, OperationNotSupportedException {
 		log.trace("Seek: {}", position);
 		if (playlistSubscriberStream.state != State.PLAYING
 				&& playlistSubscriberStream.state != State.PAUSED
@@ -659,8 +657,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 				|| playlistSubscriberStream.state == State.STOPPED)
 				&& sendCheckVideoCM(msgIn)) {
 			// we send a single snapshot on pause.
-			// XXX we need to take BWC into account, for
-			// now send forcefully.
+			// XXX we need to take BWC into account, for now send forcefully.
 			IMessage msg;
 			try {
 				msg = msgIn.pullMessage();
@@ -672,8 +669,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 				if (msg instanceof RTMPMessage) {
 					RTMPMessage rtmpMessage = (RTMPMessage) msg;
 					IRTMPEvent body = rtmpMessage.getBody();
-					if (body instanceof VideoData
-							&& ((VideoData) body).getFrameType() == FrameType.KEYFRAME) {
+					if (body instanceof VideoData && ((VideoData) body).getFrameType() == FrameType.KEYFRAME) {
 						body.setTimestamp(seekPos);
 						doPushMessage(rtmpMessage);
 						rtmpMessage.getBody().release();
@@ -724,8 +720,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 	 * @throws IllegalStateException    If stream is in stopped state
 	 */
 	public synchronized void stop() throws IllegalStateException {
-		if (playlistSubscriberStream.state != State.PLAYING 
-				&& playlistSubscriberStream.state != State.PAUSED) {
+		if (playlistSubscriberStream.state != State.PLAYING && playlistSubscriberStream.state != State.PAUSED) {
 			throw new IllegalStateException();
 		}
 		playlistSubscriberStream.state = State.STOPPED;
@@ -823,14 +818,12 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 		if (ioBuffer != null) {
 			final int size = ioBuffer.limit();
 			if (message instanceof VideoData) {
-				if (checkBandwidth
-						&& !videoBucket.acquireTokenNonblocking(size, this)) {
+				if (checkBandwidth && !videoBucket.acquireTokenNonblocking(size, this)) {
 					waitingForToken = true;
 					return false;
 				}
 			} else if (message instanceof AudioData) {
-				if (checkBandwidth
-						&& !audioBucket.acquireTokenNonblocking(size, this)) {
+				if (checkBandwidth && !audioBucket.acquireTokenNonblocking(size, this)) {
 					waitingForToken = true;
 					return false;
 				}
@@ -848,8 +841,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 			synchronized (this) {
 				// client buffer is at least 100ms
 				pullAndPushFuture = playlistSubscriberStream.getExecutor().scheduleWithFixedDelay(
-						new PullAndPushRunnable(), 0, 10,
-						TimeUnit.MILLISECONDS);
+						new PullAndPushRunnable(), 0, 10, TimeUnit.MILLISECONDS);
 			}
 		}
 	}
@@ -886,9 +878,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 									body = new AudioData();
 									// We need a zero timestamp
 									if (lastMessage != null) {
-										body.setTimestamp(lastMessage
-												.getTimestamp()
-												- timestampOffset);
+										body.setTimestamp(lastMessage.getTimestamp() - timestampOffset);
 									} else {
 										body.setTimestamp(-timestampOffset);
 									}
@@ -896,16 +886,14 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 								} else {
 									continue;
 								}
-							} else if (!receiveVideo
-									&& body instanceof VideoData) {
+							} else if (!receiveVideo && body instanceof VideoData) {
 								// The user doesn't want to get video packets
 								((IStreamData) body).getData().free();
 								continue;
 							}
 
 							// Adjust timestamp when playing lists
-							body.setTimestamp(body.getTimestamp()
-									+ timestampOffset);
+							body.setTimestamp(body.getTimestamp() + timestampOffset);
 							if (okayToSendMessage(body)) {
 								log.trace("ts: {}", rtmpMessage.getBody().getTimestamp());
 								sendMessage(rtmpMessage);
@@ -959,8 +947,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 			if (message instanceof RTMPMessage) {
 				IRTMPEvent body = ((RTMPMessage) message).getBody();
 				IoBuffer streamData = null;
-				if (body instanceof IStreamData
-						&& (streamData = ((IStreamData) body).getData()) != null) {
+				if (body instanceof IStreamData	&& (streamData = ((IStreamData) body).getData()) != null) {
 					bytesSent += streamData.limit();
 				}
 			}
@@ -1528,8 +1515,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 	private synchronized void releasePendingMessage() {
 		if (pendingMessage != null) {
 			IRTMPEvent body = pendingMessage.getBody();
-			if (body instanceof IStreamData
-					&& ((IStreamData) body).getData() != null) {
+			if (body instanceof IStreamData	&& ((IStreamData) body).getData() != null) {
 				((IStreamData) body).getData().free();
 			}
 			pendingMessage.setBody(null);
@@ -1567,8 +1553,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 	/**
 	 * @param maxSequentialPendingVideoFrames the maxSequentialPendingVideoFrames to set
 	 */
-	public void setMaxSequentialPendingVideoFrames(
-			int maxSequentialPendingVideoFrames) {
+	public void setMaxSequentialPendingVideoFrames(int maxSequentialPendingVideoFrames) {
 		this.maxSequentialPendingVideoFrames = maxSequentialPendingVideoFrames;
 	}
 }
