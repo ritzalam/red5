@@ -1344,8 +1344,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 
 					// Only check for frame dropping if the codec supports it
 					long pendingVideos = pendingVideoMessages();
-					if (!videoFrameDropper.canSendPacket(rtmpMessage,
-							pendingVideos)) {
+					if (!videoFrameDropper.canSendPacket(rtmpMessage, pendingVideos)) {
 						// Drop frame as it depends on other frames that were dropped before.
 						log.debug("Dropping packet because frame dropper says we cant send it");
 						return;
@@ -1372,8 +1371,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 						log.debug("Pending: {} Threshold: {} Sequential: {}", new Object[]{pendingVideos, maxPendingVideoFramesThreshold, numSequentialPendingVideoFrames});
 						// We drop because the client has insufficient bandwidth.
 						long now = System.currentTimeMillis();
-						if (bufferCheckInterval > 0
-								&& now >= nextCheckBufferUnderrun) {
+						if (bufferCheckInterval > 0	&& now >= nextCheckBufferUnderrun) {
 							// Notify client about frame dropping (keyframe)
 							sendInsufficientBandwidthStatus(currentItem);
 							nextCheckBufferUnderrun = now + bufferCheckInterval;

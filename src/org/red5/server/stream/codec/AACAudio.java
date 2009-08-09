@@ -31,7 +31,7 @@ import org.slf4j.Logger;
  * Stores the decoder configuration
  * 
  * @author Paul Gregoire (mondain@gmail.com) 
- * @author Vittee Nakka (vittee@hotmail.com)
+ * @author Wittawas Nakkasem (vittee@hotmail.com)
  */
 public class AACAudio implements IAudioStreamCodec {
 

@@ -302,8 +302,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		}
 		//get the buffer only once per call
 		IoBuffer buf = null;
-		if (rtmpEvent instanceof IStreamData
-				&& (buf = ((IStreamData) rtmpEvent).getData()) != null) {
+		if (rtmpEvent instanceof IStreamData && (buf = ((IStreamData) rtmpEvent).getData()) != null) {
 			bytesReceived += buf.limit();
 		}
 		if (rtmpEvent instanceof AudioData) {
@@ -325,9 +324,8 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			IVideoStreamCodec videoStreamCodec = null;
 			if (checkVideoCodec) {
 				videoStreamCodec = VideoCodecFactory.getVideoCodec(buf);
-				if (codecInfo instanceof StreamCodecInfo) {
-					((StreamCodecInfo) codecInfo)
-							.setVideoCodec(videoStreamCodec);
+				if (info != null) {
+					info.setVideoCodec(videoStreamCodec);
 				}
 				checkVideoCodec = false;
 			} else if (codecInfo != null) {
@@ -384,7 +382,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		} else if (rtmpEvent instanceof Notify) {
 			//TDJ: store METADATA
 			Notify notifyEvent = (Notify) rtmpEvent;
-			if (metaData == null && notifyEvent.getHeader().getDataType() == Notify.TYPE_STREAM_METADATA){
+			if (metaData == null && notifyEvent.getHeader().getDataType() == Notify.TYPE_STREAM_METADATA) {
 				try {
 					metaData = notifyEvent.duplicate();
 				} catch (Exception e) {
@@ -565,8 +563,8 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			case PipeConnectionEvent.PROVIDER_CONNECT_PUSH:
 				if (event.getProvider() == this
 						&& event.getSource() != connMsgOut
-						&& (event.getParamMap() == null || !event.getParamMap()
-								.containsKey("record"))) {
+						&& (event.getParamMap() == null || !event.getParamMap().containsKey("record"))) {
+					
 					this.livePipe = (IPipe) event.getSource();
 					for (IConsumer consumer : this.livePipe.getConsumers()) {
 						subscriberStats.increment();
@@ -622,8 +620,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	 * @throws ResourceNotFoundException     Resource doesn't exist when trying to append.
 	 * @throws ResourceExistException        Resource exist when trying to create.
 	 */
-	public void saveAs(String name, boolean isAppend) throws IOException,
-			ResourceNotFoundException, ResourceExistException {
+	public void saveAs(String name, boolean isAppend) throws IOException, ResourceNotFoundException, ResourceExistException {
 		log.debug("SaveAs - name: {} append: {}", name, isAppend);
 		// Get stream scope
 		IStreamCapableConnection conn = getConnection();
@@ -638,8 +635,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 						DefaultStreamFilenameGenerator.class);
 
 		// Generate filename
-		recordingFilename = generator.generateFilename(scope, name, ".flv",
-				GenerationType.RECORD);
+		recordingFilename = generator.generateFilename(scope, name, ".flv",	GenerationType.RECORD);
 		// Get file for that filename
 		File file;
 		if (generator.resolvesToAbsolutePath()) {
@@ -806,11 +802,9 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 					Object handler = scope.getHandler();
 					if (handler instanceof IStreamAwareScopeHandler) {
 						if (recording) {
-							((IStreamAwareScopeHandler) handler)
-									.streamRecordStart(this);
+							((IStreamAwareScopeHandler) handler).streamRecordStart(this);
 						} else {
-							((IStreamAwareScopeHandler) handler)
-									.streamPublishStart(this);
+							((IStreamAwareScopeHandler) handler).streamPublishStart(this);
 						}
 					}
 				}
@@ -836,10 +830,8 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 			JMXAgent.updateMBeanAttribute(oName, "publishedName", name);
 		} else {
 			//create a new mbean for this instance with the new name
-			oName = JMXFactory.createObjectName("type",
-					"ClientBroadcastStream", "publishedName", name);
-			JMXAgent.registerMBean(this, this.getClass().getName(),
-					ClientBroadcastStreamMBean.class, oName);
+			oName = JMXFactory.createObjectName("type",	"ClientBroadcastStream", "publishedName", name);
+			JMXAgent.registerMBean(this, this.getClass().getName(),	ClientBroadcastStreamMBean.class, oName);
 		}
 		this.publishedName = name;
 	}
@@ -850,8 +842,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	 */
 	public void start() {
 		log.info("Stream start");
-		IConsumerService consumerManager = (IConsumerService) getScope()
-				.getContext().getBean(IConsumerService.KEY);
+		IConsumerService consumerManager = (IConsumerService) getScope().getContext().getBean(IConsumerService.KEY);
 		checkVideoCodec = true;
 		firstPacketTime = -1;
 		audioTime = videoTime = dataTime = 0;

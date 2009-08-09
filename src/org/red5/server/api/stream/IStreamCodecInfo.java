@@ -55,4 +55,12 @@ public interface IStreamCodecInfo {
      * @return Video codec used by stream codec
      */
     IVideoStreamCodec getVideoCodec();
+    
+	/**
+     * Return audio codec
+     *
+     * @return Audio codec used by stream codec
+     */
+    IAudioStreamCodec getAudioCodec();    
+    
 }
