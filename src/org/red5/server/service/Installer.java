@@ -29,6 +29,7 @@ import javax.management.MBeanServerInvocationHandler;
 import javax.management.ObjectName;
 
 import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.methods.GetMethod;
@@ -101,6 +102,14 @@ public final class Installer {
 		
 		// create a singular HttpClient object
 		HttpClient client = new HttpClient();
+
+		// set the proxy (WT)
+		// test if we received variables on the commandline
+		if ( (System.getProperty("http.proxyHost") != null) && (System.getProperty("http.proxyPort") != null) ) {
+			HostConfiguration config = client.getHostConfiguration();
+			config.setProxy(System.getProperty("http.proxyHost").toString(), Integer.parseInt( System.getProperty("http.proxyPort"))  );
+		}
+
 		// establish a connection within 5 seconds
 		client.getHttpConnectionManager().getParams().setConnectionTimeout(5000);
 		//get the params for the client
@@ -202,6 +211,13 @@ public final class Installer {
 			if (!result) {
 				// create a singular HttpClient object
 				HttpClient client = new HttpClient();
+
+				// set the proxy (WT)
+				if ( (System.getProperty("http.proxyHost") != null) && (System.getProperty("http.proxyPort") != null) ) {
+					HostConfiguration config = client.getHostConfiguration();
+					config.setProxy(System.getProperty("http.proxyHost").toString(), Integer.parseInt( System.getProperty("http.proxyPort"))  );
+				}	
+
 				// establish a connection within 5 seconds
 				client.getHttpConnectionManager().getParams().setConnectionTimeout(5000);
 				//get the params for the client
