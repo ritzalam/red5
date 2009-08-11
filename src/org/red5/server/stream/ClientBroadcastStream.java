@@ -181,8 +181,6 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 	/** Stores absolute time for video stream. */
 	private int videoTime = -1;
 
-	private int lastEventTime = -1;
-	
 	private int minStreamTime;
 	
 	/**
@@ -313,7 +311,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 				if (audioTime == 0) {
 					log.warn("First Audio timestamp is relative! {}", rtmpEvent.getTimestamp());
 				}
-				audioTime  = rtmpEvent.getTimestamp()+lastEventTime;
+				audioTime  = rtmpEvent.getTimestamp()+audioTime;
 			} else {
 				audioTime = rtmpEvent.getTimestamp();
 			}
@@ -344,7 +342,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 					log.warn("First Video timestamp is relative! {}", rtmpEvent.getTimestamp());
 				}
 				
-				videoTime = rtmpEvent.getTimestamp() + lastEventTime;
+				videoTime = rtmpEvent.getTimestamp() + videoTime;
 				
 			} else {
 				videoTime = rtmpEvent.getTimestamp();
@@ -372,7 +370,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 				if (dataTime < 0) {
 					log.warn("First data [Invoke] timestamp is relative! {}", rtmpEvent.getTimestamp());
 				}
-				dataTime = rtmpEvent.getTimestamp() + lastEventTime;
+				dataTime = rtmpEvent.getTimestamp() + dataTime;
 			} else {
 				dataTime = rtmpEvent.getTimestamp();
 			}
@@ -394,14 +392,12 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 				if (dataTime < 0) {
 					log.warn("First data [Notify] timestamp is relative! {}", rtmpEvent.getTimestamp());
 				}
-				dataTime = rtmpEvent.getTimestamp() + lastEventTime;
+				dataTime = rtmpEvent.getTimestamp() + dataTime;
 			} else {
 				dataTime = rtmpEvent.getTimestamp();
 			}
 			eventTime = dataTime;
 		}
-		
-		lastEventTime = eventTime;
 		
 		// Notify event listeners
 		checkSendNotifications(event);
