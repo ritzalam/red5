@@ -123,7 +123,7 @@ public class ConversionUtilsTest {
 		source[1] = Boolean.FALSE;
 		source[2] = "Woot";
 		Object result = ConversionUtils.convert(source, Set.class);
-		if (!(result instanceof Set)) {
+		if (!(result instanceof Set<?>)) {
 			fail("Should be a set");
 		}
 		Set<?> results = (Set<?>) result;
@@ -138,7 +138,7 @@ public class ConversionUtilsTest {
 		source.add("b");
 		source.add("c");
 		Object result = ConversionUtils.convert(source, Set.class);
-		if (!(result instanceof Set)) {
+		if (!(result instanceof Set<?>)) {
 			fail("Should be a set");
 		}
 		Set<?> results = (Set<?>) result;

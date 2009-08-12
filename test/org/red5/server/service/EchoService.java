@@ -41,68 +41,46 @@ public class EchoService {
 
 	private Logger log = LoggerFactory.getLogger(EchoService.class);
 
-	/** {@inheritDoc} */
     public void startUp() {
 		log.info("The Echo Service has started...");
 	}
 
-	/**
-	 * {@inheritDoc} 
-	 */
 	public boolean echoBoolean(boolean bool) {
 		log.info("echoBoolean: {}", bool);
 		return bool;
 	}
 
-	/**
-	 * {@inheritDoc}	 */
 	public double echoNumber(double number) {
 		log.info("echoNumber: {}", number);
 		return number;
 	}
 
-	/**
-	 * {@inheritDoc}	 */
 	public String echoString(String string) {
 		log.info("echoString: {}", string);
 		return string;
 	}
 
-	/**
-	 * {@inheritDoc}	 */
 	public Date echoDate(Date date) {
 		log.info("echoDate: {}", date);
 		return date;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public Object echoObject(Object obj) {
 		log.info("echoObject: {}", obj);
 		return obj;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public Object[] echoArray(Object[] array) {
 		log.info("echoArray: {}", array);
 		return array;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@SuppressWarnings("unchecked")
 	public List echoList(List list) {
 		log.info("echoList: {}", list);
 		return list;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	public Document echoXML(Document xml) {
 		log.info("echoXML: {}", xml);
 		return xml;
