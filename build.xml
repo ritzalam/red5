@@ -1038,13 +1038,14 @@
 		<attribute name="page" default=""/>
 		<sequential>
 			<condition property="wiki.parent-page" value="" else="-P @{parent-page}">
-				<isset property="@{parent-page}" />
+				<equals arg1="@{parent-page}" arg2=""/>
 			</condition>
 			
 			<condition property="wiki.page" value="" else="-s @{page}">
-				<isset property="@{page}" />
+				<equals arg1="@{page}" arg2=""/>
 			</condition>
 			
+
 			<java classname="org.red5.trac.TracWiki2DocbookClient" fork="true" dir="@{dir}" classpathref="doc.lib.classpath">
 				<arg value="-h @{host}"/>
 				<arg value="-u @{username}"/>
@@ -1116,13 +1117,13 @@
 				username="${trac.username}"
 				password="${trac.password}"
 				parent-page="${trac.page}"
-				dir="${basedir}/${doc.ref.dir}"
+				dir="${basedir}/${doc.ref.dir}/src/"
 			/>
 		
 	</target>
 	
 	<!-- PDF Documentation -->
-	<target name="doc-pdf" depends="doc-prepare" description="Compile reference documentation in PDF format">
+	<target name="doc-pdf" depends="doc-wiki2docbook" description="Compile reference documentation in PDF format">
 		<!-- Build fo file -->
 
 		<dbxslt basedir="${basedir}/${doc.ref.dir}/src" in="${basedir}/${doc.ref.dir}/src/index.xml"
@@ -1133,7 +1134,7 @@
 		<delete file="${doc.ref.dir}/src/docbook_fop.tmp"/>
 	</target>
 	<!-- HTML Site Documentation -->
-	<target name="doc-html" depends="doc-prepare" description="Compile reference documentation in HTML format">
+	<target name="doc-html" depends="doc-wiki2docbook" description="Compile reference documentation in HTML format">
 		<mkdir dir="${basedir}/${doc.ref.dir}/html/images"/>
 		<copy todir="${basedir}/${doc.ref.dir}/html/images">
 			<fileset dir="${basedir}/${doc.ref.dir}/src/images">
