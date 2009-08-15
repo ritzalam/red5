@@ -1102,6 +1102,8 @@
 				
 			</condition>
 		</fail>
+		
+
 	</target>
 	<!-- Clean doc source -->
 	<target name="doc-clean">
@@ -1125,7 +1127,7 @@
 	<!-- PDF Documentation -->
 	<target name="doc-pdf" depends="doc-wiki2docbook" description="Compile reference documentation in PDF format">
 		<!-- Build fo file -->
-
+		<mkdir dir="${basedir}/${doc.ref.dir}/pdf"/>
 		<dbxslt basedir="${basedir}/${doc.ref.dir}/src" in="${basedir}/${doc.ref.dir}/src/index.xml"
 			 out="${basedir}/${doc.ref.dir}/src/docbook_fop.tmp" style="${basedir}/${doc.ref.dir}/styles/fopdf.xsl"/>
 		<!-- Build pdf -->
@@ -1135,6 +1137,7 @@
 	</target>
 	<!-- HTML Site Documentation -->
 	<target name="doc-html" depends="doc-wiki2docbook" description="Compile reference documentation in HTML format">
+		<mkdir dir="${basedir}/${doc.ref.dir}/html"/>
 		<mkdir dir="${basedir}/${doc.ref.dir}/html/images"/>
 		<copy todir="${basedir}/${doc.ref.dir}/html/images">
 			<fileset dir="${basedir}/${doc.ref.dir}/src/images">
@@ -1155,6 +1158,7 @@
 	</target>
 	<!-- HTML Single Documentation -->
 	<target name="doc-html-single" depends="doc-prepare" description="Compile reference documentation in single page HTML format">
+		<mkdir dir="${basedir}/${doc.ref.dir}/html"/>
 		<mkdir dir="${doc.ref.dir}/html_single/images"/>
 		<copy todir="${basedir}/${doc.ref.dir}/html_single/images">
 			<fileset dir="${basedir}/${doc.ref.dir}/src/images">
