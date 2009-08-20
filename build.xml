@@ -1036,25 +1036,36 @@
 		<attribute name="dir" default="${basedir}/${doc.ref.dir}"/>
 		<attribute name="parent-page" default=""/>
 		<attribute name="page" default=""/>
-		<sequential>
-			<condition property="wiki.parent-page" value="" else="-P @{parent-page}">
-				<equals arg1="@{parent-page}" arg2=""/>
-			</condition>
+		<attribute name="type" default="chapter"/>
+		<attribute name="basePath" default="Documentation/UsersReferenceManual"/>
 			
+		<sequential>
+
+			<!--
 			<condition property="wiki.page" value="" else="-s @{page}">
 				<equals arg1="@{page}" arg2=""/>
 			</condition>
 			
-
+			<condition property="wiki.parent-page" value="" else="-P @{parent-page}">
+				<equals arg1="@{parent-page}" arg2=""/>
+			</condition>
+			
+			<echo>${wiki.parent-page}</echo>
+			<echo>@{page}</echo>
+			-->
+		
 			<java classname="org.red5.trac.TracWiki2DocbookClient" fork="true" dir="@{dir}" classpathref="doc.lib.classpath">
 				<arg value="-h @{host}"/>
 				<arg value="-u @{username}"/>
 				<arg value="-p @{password}"/>
 				<arg value="-d @{dir}"/>
-				<arg value="${wiki.parent-page}"/>
-				<arg value="${wiki.page}"/>
+				<arg value="-t @{type}"/>
+				<arg value="-b @{basePath}"/>
+				<arg value="@{page}"/>
 				<jvmarg value="-Xmx512m"/>
 			</java>
+			
+			
 		</sequential>
 	</macrodef>
 	<!-- FOP Task because default cannot send memory args -->
@@ -1086,6 +1097,16 @@
 				<include name="*.jar"/>
 			</fileset>
 		</path>
+		<sequential>
+		 <get src="http://red5.electroteque.org/doc/reference/docbook-reference-libs.tar.bz2" 
+		    dest="${basedir}/${doc.ref.dir}/docbook-reference-libs.tar.bz2" 
+		    verbose="true"
+		    usetimestamp="true"/>
+			
+			<untar compression="bzip2" src="${basedir}/${doc.ref.dir}/docbook-reference-libs.tar.bz2" dest="${basedir}/${doc.ref.dir}/" overwrite="false"/>
+		</sequential>
+		
+		<!--
 		<fail message="XSLT supporting lib not installed. Please see '${doc.ref.dir}/readme.txt' for instructions.">
 			<condition>
 				<and>
@@ -1102,6 +1123,7 @@
 				
 			</condition>
 		</fail>
+		-->
 		
 
 	</target>
@@ -1113,30 +1135,50 @@
 	</target>
 	<target name="doc-wiki2docbook" depends="doc-prepare" description="Compile reference documentation in PDF format">
 			<!-- Build fo file -->
-
-			<wiki2docbook 
-				host="${trac.url}"
-				username="${trac.username}"
-				password="${trac.password}"
-				parent-page="${trac.page}"
-				dir="${basedir}/${doc.ref.dir}/src/"
-			/>
+			
+				<wiki2docbook 
+					host="${trac.url}"
+					username="${trac.username}"
+					password="${trac.password}"
+					page="-P ${trac.page}"
+					basePath="Documentation/UsersReferenceManual"
+					dir="${basedir}/${doc.ref.dir}/src/"
+				/>
+				
+				<wiki2docbook 
+							host="${trac.url}"
+							username="${trac.username}"
+							password="${trac.password}"
+							page="-s Changelog"
+							dir="${basedir}/${doc.ref.dir}/src/"
+							type="appendix"
+						/>
+				
+				<wiki2docbook 
+							host="${trac.url}"
+							username="${trac.username}"
+							password="${trac.password}"
+							page="-P Codecs"
+							basePath="Codecs"
+							dir="${basedir}/${doc.ref.dir}/src/"
+							type="appendix"
+						/>
 		
 	</target>
 	
 	<!-- PDF Documentation -->
-	<target name="doc-pdf" depends="doc-wiki2docbook" description="Compile reference documentation in PDF format">
+	<target name="doc-pdf" depends="doc-prepare" description="Compile reference documentation in PDF format">
 		<!-- Build fo file -->
 		<mkdir dir="${basedir}/${doc.ref.dir}/pdf"/>
 		<dbxslt basedir="${basedir}/${doc.ref.dir}/src" in="${basedir}/${doc.ref.dir}/src/index.xml"
 			 out="${basedir}/${doc.ref.dir}/src/docbook_fop.tmp" style="${basedir}/${doc.ref.dir}/styles/fopdf.xsl"/>
 		<!-- Build pdf -->
 		<fop-pdf basedir="${basedir}/${doc.ref.dir}/src" fofile="${basedir}/${doc.ref.dir}/src/docbook_fop.tmp"
-			 outfile="${basedir}/${doc.ref.dir}/pdf/red5-reference.pdf"/>
+			 outfile="${basedir}/${doc.ref.dir}/pdf/red5-reference-0.9.pdf"/>
 		<delete file="${doc.ref.dir}/src/docbook_fop.tmp"/>
 	</target>
 	<!-- HTML Site Documentation -->
-	<target name="doc-html" depends="doc-wiki2docbook" description="Compile reference documentation in HTML format">
+	<target name="doc-html" depends="doc-prepare" description="Compile reference documentation in HTML format">
 		<mkdir dir="${basedir}/${doc.ref.dir}/html"/>
 		<mkdir dir="${basedir}/${doc.ref.dir}/html/images"/>
 		<copy todir="${basedir}/${doc.ref.dir}/html/images">
@@ -1174,7 +1216,7 @@
 			 out="${basedir}/${doc.ref.dir}/html_single/index.html" style="${basedir}/${doc.ref.dir}/styles/html.xsl"/>
 	</target>
 	<!-- Build all documentation formats -->
-	<target name="doc-all" depends="doc-html, doc-html-single, doc-pdf" description="Generate all reference documentation"/>
+	<target name="doc-all" depends="doc-prepare,doc-wiki2docbook, doc-pdf,  doc-html" description="Generate all reference documentation"/>
 	<!-- 
 		Requirements:
 		1. Go here: http://subclipse.tigris.org/svnant.html
