@@ -89,7 +89,7 @@ public class VideoData extends BaseEvent implements IoConstants, IStreamData, IS
 		this.data = data;
 		if (data != null && data.limit() > 0) {
 			int oldPos = data.position();
-			int firstByte = (data.get()) & 0xff;
+			int firstByte = (data.get(0)) & 0xff;
 			data.position(oldPos);
 			int frameType = (firstByte & MASK_VIDEO_FRAMETYPE) >> 4;
 			if (frameType == FLAG_FRAMETYPE_KEYFRAME) {
@@ -123,8 +123,11 @@ public class VideoData extends BaseEvent implements IoConstants, IStreamData, IS
     @Override
 	protected void releaseInternal() {
 		if (data != null) {
-			data.free();
+			final IoBuffer localData = data;
+			// null out the data first so we don't accidentally
+			// return a valid reference first
 			data = null;
+			localData.free();
 		}
 	}
 
