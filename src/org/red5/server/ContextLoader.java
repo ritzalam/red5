@@ -25,6 +25,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.management.ObjectName;
 
@@ -44,6 +46,9 @@ import org.springframework.core.io.Resource;
 
 /**
  * Red5 applications loader
+ * 
+ * @author The Red5 Project (red5@osflash.org)
+ * @author Tiago Jacobs (tiago@imdt.com.br)
  */
 public class ContextLoader implements ApplicationContextAware, ContextLoaderMBean {
 
@@ -148,21 +153,42 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMBea
 		// Load properties file
 		props.load(res.getInputStream());
 
+		
+		// Pattern for arbitrary property substitution
+		Pattern patt = Pattern.compile("\\$\\{([^\\}]+)\\}");
+
+		
 		// Iterate thru properties keys and replace config attributes with
 		// system attributes
 		for (Object key : props.keySet()) {
 			String name = (String) key;
 			String config = props.getProperty(name);
-			// TODO: we should support arbitrary property substitution
-			config = config.replace("${red5.root}", System
-					.getProperty("red5.root"));
-			config = config.replace("${red5.config_root}", System
-					.getProperty("red5.config_root"));
-			log.info("Loading: {} = {}", name, config);
+			String configReplaced = config + "";
+			
+			Matcher m = patt.matcher(config);
+			
+			while(m.find()) {
+				String sysProp = m.group(1);
+				String replaceString = "${" + sysProp + "}";
+				
+				String systemPropValue = System.getProperty(sysProp);
+				
+				if(systemPropValue == null)
+					systemPropValue = "null";
+				
+				configReplaced = configReplaced.replace(replaceString, systemPropValue);
+			}
+			
+			
+			log.info("Loading: {} = {}", name, config + " => " + configReplaced);
 
+			m = null;
+			
 			// Load context
-			loadContext(name, config);
+			loadContext(name, configReplaced);
 		}
+		
+		patt = null;
 
 	}
 	
