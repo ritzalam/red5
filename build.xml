@@ -22,7 +22,7 @@
 	<property name="javadoc.dir" value="doc/api"/>
 	<property name="debug.state" value="true"/>
 	<!-- Documentation properties -->
-	<property name="doc.ref.dir" value="../red5_server_doc/reference"/>
+	<property name="doc.ref.dir" value="doc/reference"/>
 	<property name="doc.ref.lib" value="${doc.ref.dir}/lib"/>
 	<property name="javadoc.style" value="${doc.ref.dir}/styles/javadoc.css"/>
 	<!-- unit testing -->
