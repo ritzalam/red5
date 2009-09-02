@@ -22,7 +22,7 @@
 	<property name="javadoc.dir" value="doc/api"/>
 	<property name="debug.state" value="true"/>
 	<!-- Documentation properties -->
-	<property name="doc.ref.dir" value="doc/reference"/>
+	<property name="doc.ref.dir" value="../red5_server_doc/reference"/>
 	<property name="doc.ref.lib" value="${doc.ref.dir}/lib"/>
 	<property name="javadoc.style" value="${doc.ref.dir}/styles/javadoc.css"/>
 	<!-- unit testing -->
@@ -1088,7 +1088,7 @@
 		</sequential>
 	</macrodef>
 	<!-- Check if Docbook libraries are installed -->
-	<target name="doc-prepare" description="Extra preparation for the documentation">
+	<target name="doc-prepare" description="Extra preparation for the documentation" unless="doc.prepare">
 		<path id="doc.lib.classpath">
 			<fileset dir="${basedir}/${doc.ref.lib}/docbook">
 				<include name="*.jar"/>
@@ -1106,34 +1106,16 @@
 			<untar compression="bzip2" src="${basedir}/${doc.ref.dir}/docbook-reference-libs.tar.bz2" dest="${basedir}/${doc.ref.dir}/" overwrite="false"/>
 		</sequential>
 		
-		<!--
-		<fail message="XSLT supporting lib not installed. Please see '${doc.ref.dir}/readme.txt' for instructions.">
-			<condition>
-				<and>
-					<not>
-						<available file="${basedir}/${doc.ref.lib}"/>
-					</not>
-					<not>
-						<available file="${basedir}/${doc.ref.lib}/docbook"/>
-					</not>
-					<not>
-						<available file="${basedir}/${doc.ref.lib}/tracwiki2docbook"/>
-					</not>
-				</and>			
-				
-			</condition>
-		</fail>
-		-->
 		
-
+		<property name="doc.prepare" value="true"/>
 	</target>
 	<!-- Clean doc source -->
-	<target name="doc-clean">
+	<target name="doc-clean" unless="doc.prepare">
 		<delete dir="${basedir}/${doc.ref.dir}/pdf"/>
 		<delete dir="${basedir}/${doc.ref.dir}/html"/>
 		<delete dir="${basedir}/${doc.ref.dir}/html_single"/>
 	</target>
-	<target name="doc-wiki2docbook" depends="doc-prepare" description="Compile reference documentation in PDF format">
+	<target name="doc-wiki2docbook" description="Compile reference documentation in PDF format" unless="doc.wiki2docbook">
 			<!-- Build fo file -->
 			
 				<wiki2docbook 
@@ -1164,10 +1146,15 @@
 							type="appendix"
 						/>
 		
+		<property name="doc.wiki2docbook" value="true"/>
+		
 	</target>
 	
 	<!-- PDF Documentation -->
-	<target name="doc-pdf" depends="doc-prepare" description="Compile reference documentation in PDF format">
+	<target name="doc-pdf" description="Compile reference documentation in PDF format">
+		<delete dir="${basedir}/${doc.ref.dir}/pdf"/>
+		<antcall target="doc-prepare" inheritAll="true" inheritRefs="true"/>
+		<antcall target="doc-wiki2docbook" inheritAll="true" inheritRefs="true"/>
 		<!-- Build fo file -->
 		<mkdir dir="${basedir}/${doc.ref.dir}/pdf"/>
 		<dbxslt basedir="${basedir}/${doc.ref.dir}/src" in="${basedir}/${doc.ref.dir}/src/index.xml"
@@ -1178,7 +1165,12 @@
 		<delete file="${doc.ref.dir}/src/docbook_fop.tmp"/>
 	</target>
 	<!-- HTML Site Documentation -->
-	<target name="doc-html" depends="doc-prepare" description="Compile reference documentation in HTML format">
+	<target name="doc-html" description="Compile reference documentation in HTML format">
+		<delete dir="${basedir}/${doc.ref.dir}/html"/>
+		<delete dir="${basedir}/${doc.ref.dir}/html_single"/>
+		<antcall target="doc-prepare" inheritAll="true" inheritRefs="true"/>
+		<antcall target="doc-wiki2docbook" inheritAll="true" inheritRefs="true"/>
+		
 		<mkdir dir="${basedir}/${doc.ref.dir}/html"/>
 		<mkdir dir="${basedir}/${doc.ref.dir}/html/images"/>
 		<copy todir="${basedir}/${doc.ref.dir}/html/images">
@@ -1216,7 +1208,13 @@
 			 out="${basedir}/${doc.ref.dir}/html_single/index.html" style="${basedir}/${doc.ref.dir}/styles/html.xsl"/>
 	</target>
 	<!-- Build all documentation formats -->
-	<target name="doc-all" depends="doc-prepare,doc-wiki2docbook, doc-pdf,  doc-html" description="Generate all reference documentation"/>
+	<target name="doc-all" depends="doc-prepare,doc-wiki2docbook, doc-pdf,  doc-html" description="Generate all reference documentation">
+		<sequential>
+			<antcall target="doc-clean" inheritAll="true" inheritRefs="true"/>
+			<antcall target="doc-pdf" inheritAll="true" inheritRefs="true"/>
+			<antcall target="doc-html" inheritAll="true" inheritRefs="true"/>
+		</sequential>	
+	</target>
 	<!-- 
 		Requirements:
 		1. Go here: http://subclipse.tigris.org/svnant.html
