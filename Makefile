@@ -11,6 +11,7 @@ red5:
 
 install:
 	mkdir -p $(DESTINATION)
+	install dist/boot.jar $(DESTINATION)
 	install dist/red5.jar $(DESTINATION)
 	install -m 755 dist/red5.sh $(DESTINATION)
 	cp -r dist/conf $(DESTINATION)
