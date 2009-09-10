@@ -95,15 +95,24 @@ public class Bootstrap {
 	    	System.err.println("Security manager already set");
 	    }
 		*/
+
+		//get current loader
+		ClassLoader baseLoader = Thread.currentThread().getContextClassLoader();
 		
 		// build a ClassLoader
 		ClassLoader loader = ClassLoaderBuilder.build();
+
+		//set new loader as the loader for this thread
+		Thread.currentThread().setContextClassLoader(loader);
 		
 		// create a new instance of this class using new classloader
-		Object boot = Class.forName("org.red5.server.Launcher", false, loader).newInstance();
+		Object boot = Class.forName("org.red5.server.Launcher", true, loader).newInstance();
 	
 		Method m1 = boot.getClass().getMethod("launch", (Class[]) null);
 		m1.invoke(boot, (Object[]) null);
+
+		//not that it matters, but set it back to the original loader
+		Thread.currentThread().setContextClassLoader(baseLoader);
 	}
 
 	/**

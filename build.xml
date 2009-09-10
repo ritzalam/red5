@@ -488,7 +488,10 @@
 				<attribute name="Built-By" value="${red5.fullname}"/>
 				<attribute name="Built-On" value="${build.TODAY}"/>
 				<attribute name="Main-Class" value="org.red5.server.Bootstrap"/>
-				<attribute name="Class-Path" value="${jar.classpath}"/>
+				<!--
+                <attribute name="Class-Path" value="${jar.classpath}"/>
+                <attribute name="Class-Path" value="${red5.filename}.jar conf"/>
+                -->
 			</manifest>
 			<metainf dir="${src.dir}/META-INF">
 				<include name="**"/>

@@ -37,13 +37,13 @@ public class Launcher {
 	 * Launch Red5 under it's own classloader
 	 */
 	public void launch() {
-		try {	
-			//dumpClassLoaderNames();
-			
-			System.out.println("Root: " + System.getProperty("red5.root"));
-			System.out.println("Deploy type: " + System.getProperty("red5.deployment.type"));
-			System.out.println("Logback selector: " + System.getProperty("logback.ContextSelector"));
-			
+		//dumpClassLoaderNames();
+		
+		System.out.println("Root: " + System.getProperty("red5.root"));
+		System.out.println("Deploy type: " + System.getProperty("red5.deployment.type"));
+		System.out.println("Logback selector: " + System.getProperty("logback.ContextSelector"));
+		
+		try {				
 			//install the slf4j bridge (mostly for JUL logging)
 			SLF4JBridgeHandler.install();
 			//we create the logger here so that it is instanced inside the expected 
@@ -56,18 +56,29 @@ public class Launcher {
 			
 			//create red5 app context
 			FileSystemXmlApplicationContext ctx = new FileSystemXmlApplicationContext(new String[]{"classpath:/red5.xml"}, false);	
+			//set the current threads classloader as the loader for the factory/appctx
+			ctx.setClassLoader(Thread.currentThread().getContextClassLoader());
 			//refresh must be called before accessing the bean factory
 			ctx.refresh();
+			
+			/*
+			if (log.isTraceEnabled()) {
+				String[] names = ctx.getBeanDefinitionNames();
+				for (String name : names) {
+					log.trace("Bean name: {}", name);
+				}
+			}
+			*/
 			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	
-	/*
+	    
+	/* * ///
 	private void dumpClassLoaderNames() {
 		ClassLoader tcl = Thread.currentThread().getContextClassLoader();		
 		System.out.printf("[Launcher] Classloaders:\nSystem %s\nParent %s\nThis class %s\nTCL %s\n\n", ClassLoader.getSystemClassLoader(), tcl.getParent(), Launcher.class.getClassLoader(), tcl);
 	}	
-	*/
+	//* */
 }

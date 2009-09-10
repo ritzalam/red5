@@ -612,8 +612,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 		IStreamService streamService = (IStreamService) getScopeService(scope,
 				IStreamService.class, StreamService.class);
 		if (streamService != null) {
-			for (Map.Entry<Integer, IClientStream> entry : streams
-					.entrySet()) {
+			for (Map.Entry<Integer, IClientStream> entry : streams.entrySet()) {
 				IClientStream stream = entry.getValue();
 				if (stream != null) {
 					log.debug("Closing stream: {}", stream.getStreamId());
@@ -627,8 +626,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 
 		getWriteLock().lock();
 		try {
-			if (bwContext != null && getScope() != null
-					&& getScope().getContext() != null) {
+			if (bwContext != null && getScope() != null	&& getScope().getContext() != null) {
 				IBWControlService bwController = (IBWControlService) getScope()
 						.getContext().getBean(IBWControlService.KEY);
 				bwController.unregisterBWControllable(bwContext);
@@ -715,11 +713,8 @@ public abstract class RTMPConnection extends BaseConnection implements
 	public void receivedBytesRead(int bytes) {
 		getWriteLock().lock();
 		try {
-			log
-				.debug(
-						"Client received {} bytes, written {} bytes, {} messages pending",
-						new Object[] { bytes, getWrittenBytes(),
-								getPendingMessages() });
+			log.debug("Client received {} bytes, written {} bytes, {} messages pending",
+					new Object[] { bytes, getWrittenBytes(), getPendingMessages() });
 			clientBytesRead = bytes;
 		} finally {
 			getWriteLock().unlock();
@@ -978,8 +973,7 @@ public abstract class RTMPConnection extends BaseConnection implements
 	@Override
 	public long getPendingVideoMessages(int streamId) {
 		AtomicInteger count = pendingVideos.get(streamId);
-		long result = (count != null ? count.intValue() - getUsedStreamCount()
-				: 0);
+		long result = (count != null ? count.intValue() - getUsedStreamCount() : 0);
 		return (result > 0 ? result : 0);
 	}
 
@@ -1087,13 +1081,10 @@ public abstract class RTMPConnection extends BaseConnection implements
 	/** {@inheritDoc} */
 	@Override
 	public String toString() {
-		// http://java.sun.com/j2se/1.5.0/docs/api/java/lang/String.html#format(
-		// java.lang.String,%20java.lang.Object...)
-		Object[] args = new Object[] { getClass().getSimpleName(),
-				getRemoteAddress(), getRemotePort(), getHost(), getReadBytes(),
-				getWrittenBytes() };
-		return String.format(
-				"%1$s from %2$s : %3$s to %4$s (in: %5$s out %6$s )", args);
+		// http://java.sun.com/j2se/1.5.0/docs/api/java/lang/String.html#format
+		Object[] args = new Object[] { getClass().getSimpleName(), getRemoteAddress(), getRemotePort(), getHost(), 
+				getReadBytes(),	getWrittenBytes() };
+		return String.format("%1$s from %2$s : %3$s to %4$s (in: %5$s out %6$s )", args);
 	}
 
 	/**
