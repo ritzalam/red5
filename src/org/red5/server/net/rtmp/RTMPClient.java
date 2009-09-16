@@ -38,6 +38,7 @@ import org.red5.server.net.rtmp.codec.RTMP;
  * @author Paul Gregoire (mondain@gmail.com)
  * @author Steven Gong (steven.gong@gmail.com)
  * @author Anton Lebedevich (mabrek@gmail.com)
+ * @author Tiago Daniel Jacobs (tiago@imdt.com.br)
  */
 public class RTMPClient extends BaseRTMPClientHandler {
 
@@ -49,6 +50,12 @@ public class RTMPClient extends BaseRTMPClientHandler {
      * I/O handler
      */
 	private final RTMPMinaIoHandler ioHandler;
+	
+	
+	/**
+	 * Socket connector, disposed on disconnect
+	 * */
+	SocketConnector socketConnector;
 
 	/** Constructs a new RTMPClient. */
     public RTMPClient() {
@@ -66,13 +73,13 @@ public class RTMPClient extends BaseRTMPClientHandler {
 		}
 		return params;
 	}
-
+	
 	@SuppressWarnings("unchecked")
 	@Override
 	protected void startConnector(String server, int port) {
-		SocketConnector connector = new NioSocketConnector();
-		connector.setHandler(ioHandler);
-		ConnectFuture future = connector.connect(new InetSocketAddress(server, port));
+		socketConnector = new NioSocketConnector();
+		socketConnector.setHandler(ioHandler);
+		ConnectFuture future = socketConnector.connect(new InetSocketAddress(server, port));
 		future.addListener(
 				new IoFutureListener() {
 					public void operationComplete(IoFuture future) {
@@ -80,11 +87,18 @@ public class RTMPClient extends BaseRTMPClientHandler {
 							// will throw RuntimeException after connection error
 							future.getSession(); 
 						} catch (Throwable e) {
+							socketConnector.dispose();
 							handleException(e);
 						}
 					}
 				}
 		);
 		future.awaitUninterruptibly(CONNECTOR_WORKER_TIMEOUT);
+	}
+	
+	@Override
+	public void disconnect() {
+		socketConnector.dispose();
+		super.disconnect();
 	}
 }
