@@ -32,6 +32,7 @@ import org.red5.io.IStreamableFile;
 import org.red5.io.ITag;
 import org.red5.io.ITagWriter;
 import org.red5.io.amf.Output;
+import org.red5.io.flv.FLVHeader;
 import org.red5.io.flv.IFLV;
 import org.red5.io.object.Serializer;
 import org.red5.io.utils.IOUtils;
@@ -44,6 +45,7 @@ import org.slf4j.LoggerFactory;
  * @author The Red5 Project (red5@osflash.org)
  * @author Dominick Accattato (daccattato@gmail.com)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
+ * @author Tiago Jacobs (tiago@imdt.com.br)
  */
 public class FLVWriter implements ITagWriter {
     /**
@@ -159,33 +161,21 @@ public class FLVWriter implements ITagWriter {
 	/**
 	 * Writes the header bytes
 	 *
+	 * @author Tiago Jacobs (tiago@imdt.com.br)
 	 * @throws IOException      Any I/O exception
 	 */
 	public void writeHeader() throws IOException {
-		out.put((byte) 0x46);
-		out.put((byte) 0x4C);
-		out.put((byte) 0x56);
-
-		// Write version
-		out.put((byte) 0x01);
-
-		// For testing purposes write video only
-		// TODO CHANGE
-		// out.put((byte)0x08);
-		// NOTE (luke): I looked at the docs on the wiki and it says it should
-		// be 0x05 for audio and video
-		// I think its safe to assume it will be both
-		out.put((byte) 0x05);
-
-		// Data Offset
-		out.putInt(0x09);
-
-		// First lastTagSize
-		// Always zero
-		out.putInt(0);
-
-		out.flip();
-
+		//Header fields (in same order than spec, for comparison purposes)
+		FLVHeader flvHeader = new FLVHeader();
+		flvHeader.setSignature("FLV".getBytes());
+		flvHeader.setVersion ((byte)0x01);
+		flvHeader.setFlagReserved01 ((byte) 0x0);
+		flvHeader.setFlagAudio (true);
+		flvHeader.setFlagReserved02 ((byte) 0x0);
+		flvHeader.setFlagVideo (true);
+		flvHeader.write(out);
+		
+		//Dump header to output channel
 		channel.write(out.buf());
 	}
 

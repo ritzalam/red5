@@ -1,5 +1,7 @@
 package org.red5.io.flv;
 
+import org.apache.mina.core.buffer.IoBuffer;
+
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  *
@@ -28,9 +30,14 @@ package org.red5.io.flv;
  * @author The Red5 Project (red5@osflash.org)
  * @author Dominick Accattato (daccattato@gmail.com)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
+ * @author Tiago Jacobs (tiago@imdt.com.br)
  */
 public class FLVHeader {
 
+	static final int FLV_HEADER_FLAG_HAS_AUDIO = 4;
+	static final int FLV_HEADER_FLAG_HAS_VIDEO = 1;
+	
+	
     /**
      * Signature
      */
@@ -228,6 +235,21 @@ public class FLVHeader {
 	 */
 	public void setVersion(byte version) {
 		this.version = version;
+	}
+	
+	/**
+	 * Writes the FLVHeader to IoBuffer.
+	 *
+	 * @param buffer           IoBuffer to write
+	 */
+	public void write(IoBuffer buffer) {
+		buffer.put(signature);
+		buffer.put(version);
+		buffer.put((byte) (FLV_HEADER_FLAG_HAS_AUDIO*(flagAudio?1:0) + FLV_HEADER_FLAG_HAS_VIDEO*(flagVideo?1:0)));
+		buffer.putInt(0x09);
+		buffer.putInt(0);
+		buffer.flip();
+	
 	}
 
 }
