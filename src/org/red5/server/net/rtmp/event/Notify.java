@@ -253,7 +253,6 @@ public class Notify extends BaseEvent implements IStreamData, IStreamPacket {
      * Serialize to memory and deserialize, safe way.
      * 
      * @return  duplicated Notify event
-     * @author Tiago Daniel Jacobs (tiago@imdt.com.br)
      */
 	public Notify duplicate() throws IOException, ClassNotFoundException {
 		Notify result = new Notify();

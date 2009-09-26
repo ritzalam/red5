@@ -161,7 +161,6 @@ public class FLVWriter implements ITagWriter {
 	/**
 	 * Writes the header bytes
 	 *
-	 * @author Tiago Jacobs (tiago@imdt.com.br)
 	 * @throws IOException      Any I/O exception
 	 */
 	public void writeHeader() throws IOException {
