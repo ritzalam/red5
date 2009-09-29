@@ -382,10 +382,10 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 			case 0:
 				//get source input without create
 				msgIn = providerService.getLiveProviderInput(thisScope, itemName, false);
+				
 				// Drop all frames up to the next keyframe
 				videoFrameDropper.reset(IFrameDropper.SEND_KEYFRAMES_CHECK);
 				if (msgIn instanceof IBroadcastScope) {
-					// Send initial keyframe
 					IBroadcastStream stream = (IBroadcastStream) ((IBroadcastScope) msgIn)
 							.getAttribute(IBroadcastScope.STREAM_ATTRIBUTE);
 					
@@ -398,41 +398,11 @@ public final class PlayEngine implements IFilter, IPushableConsumer,
 								sendStartStatus(item);
 							}
 							sendNotifications = false;
-							//send decoder configuration if it exists
-							IoBuffer config = videoCodec.getDecoderConfiguration();
-							if (config != null) {
-								VideoData conf = new VideoData(config);
-								try {
-									conf.setTimestamp(0);
-
-									RTMPMessage confMsg = new RTMPMessage();
-									confMsg.setBody(conf);
-
-									msgOut.pushMessage(confMsg);
-								} finally {
-									conf.release();
-								}
-							}
-							//check for a keyframe to send
-							IoBuffer keyFrame = videoCodec.getKeyframe();
-							if (keyFrame != null) {
-								VideoData video = new VideoData(keyFrame);
-								try {
-									video.setTimestamp(0);
-
-									RTMPMessage videoMsg = new RTMPMessage();
-									videoMsg.setBody(video);
-									
-									msgOut.pushMessage(videoMsg);
-									// Don't wait for keyframe
-									videoFrameDropper.reset();
-								} finally {
-									video.release();
-								}
-							}
 						}
 					}
 				}
+				
+				//Subscribe to stream (ClientBroadcastStream.onPipeConnectionEvent)
 				msgIn.subscribe(this, null);
 				break;
 			case 2:

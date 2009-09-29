@@ -580,15 +580,11 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 				if (this.livePipe == event.getSource()) {
 					notifyChunkSize();
 				}
-				
-				if (metaData != null) {
-					RTMPMessage msg = new RTMPMessage();
-					msg.setBody(metaData);
-					msg.getBody().setTimestamp(0);
+				if(event.getSource() instanceof IPipe) {
 					try {
-						livePipe.pushMessage(msg);
+						initializePipeData((IPipe) event.getSource());
 					} catch (IOException e) {
-						log.warn("Error sending metadata", e);
+						log.error("Failed to initialize pipeData for stream.");
 					}
 				}
 				
@@ -905,4 +901,72 @@ public class ClientBroadcastStream extends AbstractClientStream implements
 		listeners.remove(listener);
 	}
 
+	/**
+	 * Initialize a pipe sending initial data to it.
+	 * Initial data is:
+	 * 		metadata
+	 *		AVCDecoderConfigurationRecord (in case of AVC codec)
+	 * 		lastKeyFrame
+	 * @param pipe		Pipe that initial data are written to
+	 * @throws IOException 
+	 * */
+	private void initializePipeData(IPipe pipe) throws IOException {
+		log.debug("initializePipeData called");
+		//check for metadata to send
+		if (metaData != null) {
+			log.debug("we have metadata to send");
+			RTMPMessage msg = new RTMPMessage();
+			msg.setBody(metaData);
+			msg.getBody().setTimestamp(0);
+			try {
+				livePipe.pushMessage(msg);
+			} catch (IOException e) {
+				log.warn("Error sending metadata", e);
+			}
+		}
+		
+		IStreamCodecInfo codecInfo = getCodecInfo();
+		if (codecInfo instanceof StreamCodecInfo) {
+			StreamCodecInfo info = (StreamCodecInfo) codecInfo;
+			IVideoStreamCodec videoCodec = info.getVideoCodec();
+			
+			if(videoCodec != null) {
+    			//check for decoder configuration to send
+    			IoBuffer config = videoCodec.getDecoderConfiguration();
+    			if (config != null) {
+    				log.debug("we have decoder record to send");
+    				VideoData conf = new VideoData(config);
+    				try {
+    					conf.setTimestamp(0);
+    
+    					RTMPMessage confMsg = new RTMPMessage();
+    					confMsg.setBody(conf);
+    
+    					pipe.pushMessage(confMsg);
+    				} finally {
+    					conf.release();
+    				}
+    			}
+    			
+    			//check for a keyframe to send
+    			IoBuffer keyFrame = videoCodec.getKeyframe();
+    			if (keyFrame != null) {
+    				log.debug("we have last key frame to send");
+    				VideoData video = new VideoData(keyFrame);
+    				try {
+    					video.setTimestamp(0);
+    
+    					RTMPMessage videoMsg = new RTMPMessage();
+    					videoMsg.setBody(video);
+    					
+    					pipe.pushMessage(videoMsg);
+    				} finally {
+    					video.release();
+    				}
+    			}
+			} else {
+				log.debug("Could not initialize pipe data, videoCodec is null.");
+			}
+		}
+	}
 }
