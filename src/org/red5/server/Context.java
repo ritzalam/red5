@@ -327,7 +327,7 @@ public class Context implements IContext, ApplicationContextAware, ContextMBean 
 	}
 
 	/**
-	 * Return array or resournce that match given pattern
+	 * Return array or resource that match given pattern
 	 * 
 	 * @param pattern Pattern to check against
 	 * @return Array of Resource objects
@@ -340,7 +340,7 @@ public class Context implements IContext, ApplicationContextAware, ContextMBean 
 	}
 
 	/**
-	 * Return resouce by path
+	 * Return resource by path
 	 * 
 	 * @param path Resource path
 	 * @return Resource
