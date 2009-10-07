@@ -82,7 +82,7 @@ public class Context implements IContext, ApplicationContextAware, ContextMBean 
 	private IServiceInvoker serviceInvoker;
 
 	/**
-	 * Mapping stategy collaborator
+	 * Mapping strategy collaborator
 	 */
 	private IMappingStrategy mappingStrategy;
 
