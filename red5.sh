@@ -10,10 +10,15 @@ case "$OS" in
   CYGWIN*|MINGW*) # Windows Cygwin or Windows MinGW
   P=";" # Since these are actually Windows, let Java know
   ;;
+  Darwin*)
+
+  ;;
   *)
   # Do nothing
   ;;
 esac
+
+echo "Running on " $OS
 
 # JAVA options
 # You can set JAVA_OPTS to add additional options if you want
@@ -30,7 +35,7 @@ fi
 # Jython options
 JYTHON="-Dpython.home=lib"
 
-for JAVA in "${JAVA_HOME}/bin/java" "/usr/bin/java" "/usr/local/bin/java"
+for JAVA in "${JAVA_HOME}/bin/java" "${JAVA_HOME}/Home/bin/java" "/usr/bin/java" "/usr/local/bin/java"
 do
   if [ -x "$JAVA" ]
   then
