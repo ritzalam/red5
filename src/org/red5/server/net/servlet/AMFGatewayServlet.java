@@ -85,7 +85,7 @@ public class AMFGatewayServlet extends HttpServlet {
 	 * Request attribute holding the Red5 connection object
 	 */
 	private static final String CONNECTION = "red5.remotingConnection";
-	
+
 	/** {@inheritDoc} */
 	@Override
 	public void init() throws ServletException {
@@ -93,30 +93,29 @@ public class AMFGatewayServlet extends HttpServlet {
 
 	/** {@inheritDoc} */
 	@Override
-	public void service(HttpServletRequest req, HttpServletResponse resp)
-			throws ServletException, IOException {
+	public void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		log.debug("Servicing Request");
 		if (codecFactory == null) {
-    		ServletContext ctx = getServletContext();
-    		log.debug("Context path: {}", ctx.getContextPath());
-    		//attempt to lookup the webapp context		
-    		webAppCtx = WebApplicationContextUtils.getRequiredWebApplicationContext(ctx);
-    		//now try to look it up as an attribute
-    		if (webAppCtx == null) {
-    			log.debug("Webapp context was null, trying lookup as attr.");
-    			webAppCtx = (WebApplicationContext) ctx.getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
-    		}
-    		//lookup the server and codec factory
-    		if (webAppCtx != null) {
-    			server = (IServer) webAppCtx.getBean("red5.server");
-    			codecFactory = (RemotingCodecFactory) webAppCtx.getBean("remotingCodecFactory");
-    		} else {
-    			log.debug("No web context");
-    		}		
-		}		
+			ServletContext ctx = getServletContext();
+			log.debug("Context path: {}", ctx.getContextPath());
+			//attempt to lookup the webapp context		
+			webAppCtx = WebApplicationContextUtils.getRequiredWebApplicationContext(ctx);
+			//now try to look it up as an attribute
+			if (webAppCtx == null) {
+				log.debug("Webapp context was null, trying lookup as attr.");
+				webAppCtx = (WebApplicationContext) ctx
+						.getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
+			}
+			//lookup the server and codec factory
+			if (webAppCtx != null) {
+				server = (IServer) webAppCtx.getBean("red5.server");
+				codecFactory = (RemotingCodecFactory) webAppCtx.getBean("remotingCodecFactory");
+			} else {
+				log.debug("No web context");
+			}
+		}
 		log.debug("Remoting request {} {}", req.getContextPath(), req.getServletPath());
-		if (req.getContentType() != null
-				&& req.getContentType().equals(APPLICATION_AMF)) {
+		if (req.getContentType() != null && req.getContentType().equals(APPLICATION_AMF)) {
 			serviceAMF(req, resp);
 		} else {
 			resp.getWriter().write("Red5 : Remoting Gateway");
@@ -147,7 +146,7 @@ public class AMFGatewayServlet extends HttpServlet {
 		}
 		return global;
 	}
-	
+
 	/**
 	 * Works out AMF request
 	 * 
@@ -160,8 +159,7 @@ public class AMFGatewayServlet extends HttpServlet {
 	 * @throws IOException
 	 *             I/O exception
 	 */
-	protected void serviceAMF(HttpServletRequest req, HttpServletResponse resp)
-			throws ServletException, IOException {
+	protected void serviceAMF(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 		log.debug("Servicing AMF");
 		IRemotingConnection conn = null;
 		try {
@@ -205,14 +203,12 @@ public class AMFGatewayServlet extends HttpServlet {
 	 * @throws Exception
 	 *             General exception
 	 */
-	protected RemotingPacket decodeRequest(HttpServletRequest req)
-			throws Exception {
+	protected RemotingPacket decodeRequest(HttpServletRequest req) throws Exception {
 		log.debug("Decoding request");
 		IoBuffer reqBuffer = IoBuffer.allocate(req.getContentLength());
 		ServletUtils.copy(req.getInputStream(), reqBuffer.asOutputStream());
 		reqBuffer.flip();
-		RemotingPacket packet = (RemotingPacket) codecFactory
-				.getSimpleDecoder().decode(null, reqBuffer);
+		RemotingPacket packet = (RemotingPacket) codecFactory.getRemotingDecoder().decode(null, reqBuffer);
 		String path = req.getContextPath();
 		if (path == null) {
 			path = "";
@@ -245,8 +241,8 @@ public class AMFGatewayServlet extends HttpServlet {
 	 *            Remoting packet
 	 * @return <code>true</code> on success
 	 */
-	protected boolean handleRemotingPacket(HttpServletRequest req,
-			IContext context, IScope scope, RemotingPacket message) {
+	protected boolean handleRemotingPacket(HttpServletRequest req, IContext context, IScope scope,
+			RemotingPacket message) {
 		log.debug("Handling remoting packet");
 		final IServiceInvoker invoker = context.getServiceInvoker();
 		for (RemotingCall call : message.getCalls()) {
@@ -265,18 +261,20 @@ public class AMFGatewayServlet extends HttpServlet {
 	 * @throws Exception
 	 *             General exception
 	 */
-	protected void sendResponse(HttpServletResponse resp, RemotingPacket packet)
-			throws Exception {
+	protected void sendResponse(HttpServletResponse resp, RemotingPacket packet) throws Exception {
 		log.debug("Sending response");
-		IoBuffer respBuffer = codecFactory.getSimpleEncoder().encode(null,
-				packet);
-		final ServletOutputStream out = resp.getOutputStream();
-		resp.setContentLength(respBuffer.limit());
-		ServletUtils.copy(respBuffer.asInputStream(), out);
-		out.flush();
-		out.close();
-		respBuffer.free();
-		respBuffer = null;
+		IoBuffer respBuffer = codecFactory.getRemotingEncoder().encode(null, packet);
+		if (respBuffer != null) {
+    		final ServletOutputStream out = resp.getOutputStream();
+    		resp.setContentLength(respBuffer.limit());
+    		ServletUtils.copy(respBuffer.asInputStream(), out);
+    		out.flush();
+    		out.close();
+    		respBuffer.free();
+    		respBuffer = null;
+		} else {
+			log.info("Response buffer was null after encoding");
+		}
 	}
 
 }

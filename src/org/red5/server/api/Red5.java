@@ -13,18 +13,17 @@ package org.red5.server.api;
  * This library is distributed in the hope that it will be useful, but WITHOUT ANY 
  * WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A 
  * PARTICULAR PURPOSE. See the GNU Lesser General Public License for more details.
- *  
+ * 
  * You should have received a copy of the GNU Lesser General Public License along 
  * with this library; if not, write to the Free Software Foundation, Inc., 
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- * 
  */
 
 import java.lang.ref.WeakReference;
 
 /**
  * Utility class for accessing Red5 API objects.
- * 
+ *
  * This class uses a thread local, and will be setup by the service invoker.
  * 
  * The code below shows various uses. 
@@ -38,9 +37,9 @@ import java.lang.ref.WeakReference;
  * IClient client = r5.getClient();
  * </pre> 
  *  
- * @author The Red5 Project (red5@osflash.org) 
- * @author Luke Hubbard (luke@codegent.com)  
- * @author Paul Gregoire (mondain@gmail.com)
+ * @author The Red5 Project (red5@osflash.org)
+ * @author Luke Hubbard (luke@codegent.com)
+ * @author Paul Gregoire (mondain@gmail.com) 
  */
 public final class Red5 implements Red5MBean {
 
@@ -59,7 +58,7 @@ public final class Red5 implements Red5MBean {
     /**
      * Current server version with revision
      */
-    public static final String VERSION = "Red5 Server 0.9.0-dev $Rev$";
+    public static final String VERSION = "Red5 Server 0.9.0-RC2 $Rev$";
 
     /**
      * Current server version for fmsVer requests 

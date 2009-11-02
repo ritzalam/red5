@@ -169,7 +169,7 @@ public class Notify extends BaseEvent implements IStreamData, IStreamPacket {
 	/** {@inheritDoc} */
     @Override
 	public String toString() {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append("Notify: ").append(call);
 		return sb.toString();
 	}
@@ -253,6 +253,7 @@ public class Notify extends BaseEvent implements IStreamData, IStreamPacket {
      * Serialize to memory and deserialize, safe way.
      * 
      * @return  duplicated Notify event
+     * @author Tiago Daniel Jacobs (tiago@imdt.com.br)
      */
 	public Notify duplicate() throws IOException, ClassNotFoundException {
 		Notify result = new Notify();

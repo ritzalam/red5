@@ -126,8 +126,7 @@ public class CoreHandler implements IScopeHandler, CoreHandlerMBean {
 		if (call.getServiceName() != null) {
 			context.getServiceInvoker().invoke(call, context);
 		} else {
-			context.getServiceInvoker().invoke(call,
-					conn.getScope().getHandler());
+			context.getServiceInvoker().invoke(call, conn.getScope().getHandler());
 		}
 		return true;
 	}

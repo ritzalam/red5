@@ -25,6 +25,9 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IGlobalScope;
@@ -34,6 +37,8 @@ import org.red5.server.api.listeners.IConnectionListener;
 import org.red5.server.api.listeners.IScopeListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.style.ToStringCreator;
@@ -41,11 +46,16 @@ import org.springframework.core.style.ToStringCreator;
 /**
  * Red5 server core class implementation.
  */
-public class Server implements IServer, ApplicationContextAware {
+public class Server implements IServer, ApplicationContextAware, InitializingBean, DisposableBean {
 
 	// Initialize Logging
 	protected static Logger log = LoggerFactory.getLogger(Server.class);
 
+	/**
+	 * Executor service used to provide asynchronous notifications.
+	 */
+	private static ExecutorService notifier;
+	
 	/**
 	 * List of global scopes
 	 */
@@ -75,6 +85,9 @@ public class Server implements IServer, ApplicationContextAware {
 
 	public Set<IConnectionListener> connectionListeners = new CopyOnWriteArraySet<IConnectionListener>();
 
+	//number of threads in the notifier pool
+	private int notifierThreadPoolSize = 4;
+
 	/**
 	 * Setter for Spring application context
 	 * 
@@ -85,6 +98,38 @@ public class Server implements IServer, ApplicationContextAware {
 		this.applicationContext = applicationContext;
 	}
 
+	/**
+	 * Initialization section.
+	 */
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		Server.notifier = Executors.newFixedThreadPool(notifierThreadPoolSize);
+	}
+
+	/**
+	 * Destruction section.
+	 */
+	@Override
+	public void destroy() throws Exception {
+		//disable new tasks from being submitted
+		notifier.shutdown(); 
+		try {
+			//wait a while for existing tasks to terminate
+			if (!notifier.awaitTermination(3, TimeUnit.SECONDS)) {
+				notifier.shutdownNow(); // cancel currently executing tasks
+				//wait a while for tasks to respond to being canceled
+				if (!notifier.awaitTermination(3, TimeUnit.SECONDS)) {
+					System.err.println("Notifier pool did not terminate");
+				}
+			}
+		} catch (InterruptedException ie) {
+			// re-cancel if current thread also interrupted
+			notifier.shutdownNow();
+			// preserve interrupt status
+			Thread.currentThread().interrupt();
+		}
+	}	
+	
 	/**
 	 * Return scope key. Scope key consists of host name concatenated with
 	 * context path by slash symbol
@@ -186,9 +231,8 @@ public class Server implements IServer, ApplicationContextAware {
 	 * @param globalName Global scope name
 	 * @return true if mapping was added, false if already exist
 	 */
-	public boolean addMapping(String hostName, String contextPath,
-			String globalName) {
-		log.info("Add mapping global: {} host: {} context: {}", new Object[]{globalName, hostName, contextPath});
+	public boolean addMapping(String hostName, String contextPath, String globalName) {
+		log.info("Add mapping global: {} host: {} context: {}", new Object[] { globalName, hostName, contextPath });
 		final String key = getKey(hostName, contextPath);
 		log.debug("Add mapping: {} => {}", key, globalName);
 		return (mapping.putIfAbsent(key, globalName) == null);
@@ -271,10 +315,15 @@ public class Server implements IServer, ApplicationContextAware {
 	 * @param scope
 	 *            the scope that was created
 	 */
-	protected void notifyScopeCreated(IScope scope) {
-		for (IScopeListener listener : scopeListeners) {
-			listener.notifyScopeCreated(scope);
-		}
+	protected void notifyScopeCreated(final IScope scope) {
+		Runnable notification = new Runnable(){
+			public void run() {				
+        		for (IScopeListener listener : scopeListeners) {
+        			listener.notifyScopeCreated(scope);
+        		}
+			}
+		};
+		notifier.execute(notification);				
 	}
 
 	/**
@@ -283,10 +332,15 @@ public class Server implements IServer, ApplicationContextAware {
 	 * @param scope
 	 *            the scope that was removed
 	 */
-	protected void notifyScopeRemoved(IScope scope) {
-		for (IScopeListener listener : scopeListeners) {
-			listener.notifyScopeRemoved(scope);
-		}
+	protected void notifyScopeRemoved(final IScope scope) {
+		Runnable notification = new Runnable(){
+			public void run() {		
+        		for (IScopeListener listener : scopeListeners) {
+        			listener.notifyScopeRemoved(scope);
+        		}
+			}
+		};
+		notifier.execute(notification);		
 	}
 
 	/**
@@ -295,10 +349,15 @@ public class Server implements IServer, ApplicationContextAware {
 	 * @param conn
 	 *            the new connection
 	 */
-	protected void notifyConnected(IConnection conn) {
-		for (IConnectionListener listener : connectionListeners) {
-			listener.notifyConnected(conn);
-		}
+	protected void notifyConnected(final IConnection conn) {
+		Runnable notification = new Runnable(){
+			public void run() {
+				for (IConnectionListener listener : connectionListeners) {
+					listener.notifyConnected(conn);
+				}				
+			}
+		};
+		notifier.execute(notification);
 	}
 
 	/**
@@ -307,10 +366,23 @@ public class Server implements IServer, ApplicationContextAware {
 	 * @param conn
 	 *            the disconnected connection
 	 */
-	protected void notifyDisconnected(IConnection conn) {
-		for (IConnectionListener listener : connectionListeners) {
-			listener.notifyDisconnected(conn);
-		}
+	protected void notifyDisconnected(final IConnection conn) {
+		Runnable notification = new Runnable(){
+			public void run() {
+        		for (IConnectionListener listener : connectionListeners) {
+        			listener.notifyDisconnected(conn);
+        		}
+        	}
+        };
+        notifier.execute(notification);		
+	}
+
+	public int getNotifierThreadPoolSize() {
+		return notifierThreadPoolSize;
+	}
+
+	public void setNotifierThreadPoolSize(int notifierThreadPoolSize) {
+		this.notifierThreadPoolSize = notifierThreadPoolSize;
 	}
 
 }

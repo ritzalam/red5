@@ -19,7 +19,6 @@ package org.red5.server.api.stream;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.red5.server.api.IBWControllable;
 
 /**
  * A stream that is bound to a client.
@@ -27,7 +26,8 @@ import org.red5.server.api.IBWControllable;
  * @author The Red5 Project (red5@osflash.org)
  * @author Steven Gong (steven.gong@gmail.com)
  */
-public interface IClientStream extends IStream, IBWControllable {
+public interface IClientStream extends IStream {
+
 	public static final String MODE_READ = "read";
 
 	public static final String MODE_RECORD = "record";
@@ -58,5 +58,12 @@ public interface IClientStream extends IStream, IBWControllable {
 	 * @param bufferTime duration in ms the client wants to buffer
 	 */
 	void setClientBufferDuration(int bufferTime);
+	
+	/**
+	 * Get the buffer duration for this stream as requested by the client.
+	 * 
+	 * @return bufferTime duration in ms the client wants to buffer
+	 */
+	int getClientBufferDuration();	
 	
 }

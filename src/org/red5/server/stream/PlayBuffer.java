@@ -33,24 +33,27 @@ import org.red5.server.stream.message.RTMPMessage;
  * @author Steven Gong (steven.gong@gmail.com)
  */
 public class PlayBuffer {
-    /**
-     * Buffer capacity
-     */
+	
+	/**
+	 * Buffer capacity
+	 */
 	private long capacity;
-    /**
-     * Message size
-     */
+
+	/**
+	 * Message size
+	 */
 	private long messageSize;
-    /**
-     * Queue of RTMP messages
-     */
+
+	/**
+	 * Queue of RTMP messages
+	 */
 	private Queue<RTMPMessage> messageQueue = new LinkedList<RTMPMessage>();
 
-    /**
-     * Create play buffer with given capacity
-     * @param capacity          Capacity of buffer
-     */
-    public PlayBuffer(long capacity) {
+	/**
+	 * Create play buffer with given capacity
+	 * @param capacity          Capacity of buffer
+	 */
+	public PlayBuffer(long capacity) {
 		this.capacity = capacity;
 	}
 
@@ -64,11 +67,11 @@ public class PlayBuffer {
 	}
 
 	/**
-     * Setter for capacity
-     *
-     * @param capacity  New capacity
-     */
-    public void setCapacity(long capacity) {
+	 * Setter for capacity
+	 *
+	 * @param capacity  New capacity
+	 */
+	public void setCapacity(long capacity) {
 		this.capacity = capacity;
 	}
 
@@ -122,8 +125,7 @@ public class PlayBuffer {
 		if (message != null) {
 			IRTMPEvent body = message.getBody();
 			if (!(body instanceof IStreamData)) {
-				throw new RuntimeException("expected IStreamData but got "
-						+ body);
+				throw new RuntimeException("expected IStreamData but got " + body);
 			}
 
 			messageSize -= ((IStreamData) body).getData().limit();

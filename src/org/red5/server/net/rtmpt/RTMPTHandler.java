@@ -22,12 +22,12 @@ package org.red5.server.net.rtmpt;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.api.Red5;
 import org.red5.server.net.protocol.ProtocolState;
-import org.red5.server.net.protocol.SimpleProtocolCodecFactory;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.RTMPHandler;
 import org.red5.server.net.rtmp.RTMPHandshake;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.message.Constants;
+import org.red5.server.net.rtmpt.codec.RTMPTCodecFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,14 +52,14 @@ public class RTMPTHandler extends RTMPHandler {
     /**
      * Protocol codec factory
      */
-    protected SimpleProtocolCodecFactory codecFactory;
+    protected RTMPTCodecFactory codecFactory;
 
 	/**
      * Setter for codec factory
      *
      * @param factory  Codec factory to use
      */
-    public void setCodecFactory(SimpleProtocolCodecFactory factory) {
+    public void setCodecFactory(RTMPTCodecFactory factory) {
 		this.codecFactory = factory;
 	}
 
@@ -68,7 +68,7 @@ public class RTMPTHandler extends RTMPHandler {
      *
      * @return Codec factory
      */
-    public SimpleProtocolCodecFactory getCodecFactory() {
+    public RTMPTCodecFactory getCodecFactory() {
 		return this.codecFactory;
 	}
 

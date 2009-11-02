@@ -131,15 +131,13 @@ public class Worker implements Runnable {
 	 * @param paramTypes parameter types
 	 * @param synObj ignored
 	 */
-	public synchronized void execute(String clsName, String methName,
-			Object[] params, Class<?>[] paramTypes, Object synObj) {
+	public synchronized void execute(String clsName, String methName, Object[] params, Class<?>[] paramTypes, Object synObj) {
 		this.className = clsName;
 		this.methodName = methName;
 		this.methodParams = params;
 		this.paramTypes = paramTypes;
 	}
 
-	/** {@inheritDoc} */
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -152,20 +150,17 @@ public class Worker implements Runnable {
 			this.result = MethodUtils.invokeExactMethod(obj, this
 					.getMethodName(), this.getMethodParams(), this
 					.getParamTypes());
-			if (log.isDebugEnabled()) {
-				log.debug(" #### Execution Result = " + result + " for : "
-						+ this);
-			}
+			log.debug("#### Execution Result = {} for: {}", result, this);
 		} catch (ClassNotFoundException e) {
-			log.error("ClassNotFoundException - " + e);
+			log.error("ClassNotFoundException - ", e);
 		} catch (NoSuchMethodException e) {
-			log.error("NoSuchMethodException - " + e);
+			log.error("NoSuchMethodException - ", e);
 		} catch (IllegalAccessException e) {
-			log.error("IllegalAccessException - " + e);
+			log.error("IllegalAccessException - ", e);
 		} catch (InvocationTargetException e) {
-			log.error("InvocationTargetException - " + e);
+			log.error("InvocationTargetException - ", e);
 		} catch (InstantiationException e) {
-			log.error("InstantiationException - " + e);
+			log.error("InstantiationException - ", e);
 		}
 	}
 
@@ -188,8 +183,7 @@ public class Worker implements Runnable {
 	 */
 	private static Class<?> getClass(String cls) throws ClassNotFoundException {
 		//System.out.println(">>>>> worker: " + Thread.currentThread().getContextClassLoader());
-		ClassLoader classLoader = Thread.currentThread()
-				.getContextClassLoader();
+		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 		if (classLoader == null) {
 			classLoader = Worker.class.getClassLoader();
 		}

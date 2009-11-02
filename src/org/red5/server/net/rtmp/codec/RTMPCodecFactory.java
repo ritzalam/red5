@@ -25,15 +25,11 @@ import org.apache.mina.filter.codec.ProtocolDecoder;
 import org.apache.mina.filter.codec.ProtocolEncoder;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Serializer;
-import org.red5.server.net.protocol.SimpleProtocolCodecFactory;
-import org.red5.server.net.protocol.SimpleProtocolDecoder;
-import org.red5.server.net.protocol.SimpleProtocolEncoder;
 
 /**
  * RTMP codec factory creates RTMP encoders/decoders.
  */
-public class RTMPCodecFactory implements ProtocolCodecFactory,
-		SimpleProtocolCodecFactory {
+public class RTMPCodecFactory implements ProtocolCodecFactory {
 
     /**
      * Deserializer.
@@ -48,12 +44,12 @@ public class RTMPCodecFactory implements ProtocolCodecFactory,
     /**
      * Mina protocol decoder for RTMP.
      */
-    protected RTMPMinaProtocolDecoder decoder;
+    private RTMPMinaProtocolDecoder decoder;
 
     /**
      * Mina protocol encoder for RTMP.
      */
-    protected RTMPMinaProtocolEncoder encoder;
+    private RTMPMinaProtocolEncoder encoder;
 
     /**
      * Initialization
@@ -94,13 +90,13 @@ public class RTMPCodecFactory implements ProtocolCodecFactory,
 	}
 
 	/** {@inheritDoc} */
-    public SimpleProtocolDecoder getSimpleDecoder() {
-		return decoder;
+    public RTMPProtocolDecoder getRTMPDecoder() {
+		return decoder.getDecoder();
 	}
 
 	/** {@inheritDoc} */
-    public SimpleProtocolEncoder getSimpleEncoder() {
-		return encoder;
-	}
-
+    public RTMPProtocolEncoder getRTMPEncoder() {
+		return encoder.getEncoder();
+	}    
+    
 }

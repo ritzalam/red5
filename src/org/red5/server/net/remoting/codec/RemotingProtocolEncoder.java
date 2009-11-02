@@ -19,12 +19,13 @@ package org.red5.server.net.remoting.codec;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.mina.core.buffer.IoBuffer;
-import org.apache.mina.core.session.IoSession;
 import org.red5.compatibility.flex.messaging.messages.AbstractMessage;
 import org.red5.compatibility.flex.messaging.messages.ErrorMessage;
 import org.red5.io.amf.Output;
@@ -33,13 +34,13 @@ import org.red5.server.api.Red5;
 import org.red5.server.api.IConnection.Encoding;
 import org.red5.server.api.remoting.IRemotingConnection;
 import org.red5.server.api.remoting.IRemotingHeader;
-import org.red5.server.net.protocol.BaseProtocolEncoder;
+import org.red5.server.exception.ClientDetailsException;
 import org.red5.server.net.protocol.ProtocolState;
-import org.red5.server.net.protocol.SimpleProtocolEncoder;
 import org.red5.server.net.remoting.FlexMessagingService;
 import org.red5.server.net.remoting.message.RemotingCall;
 import org.red5.server.net.remoting.message.RemotingPacket;
 import org.red5.server.net.rtmp.status.StatusCodes;
+import org.red5.server.net.rtmp.status.StatusObject;
 import org.red5.server.service.ServiceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +48,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Remoting protocol encoder.
  */
-public class RemotingProtocolEncoder extends BaseProtocolEncoder implements SimpleProtocolEncoder {
+public class RemotingProtocolEncoder {
     /**
      * Logger
      */
@@ -149,14 +150,38 @@ public class RemotingProtocolEncoder extends BaseProtocolEncoder implements Simp
 
 	}
 
-    /**
-     * Dispose I/O session, not implemented yet.
-	 *
-     * @param ioSession         I/O session
-     * @throws Exception        Exception
-     */
-	public void dispose(IoSession ioSession) throws Exception {
-	}
+	/**
+	 * Generate error object to return for given exception.
+	 * 
+	 * @param code call
+	 * @param error error
+	 * @return status object
+	 */
+	protected StatusObject generateErrorResult(String code, Throwable error) {
+		// Construct error object to return
+		String message = "";
+		while (error != null && error.getCause() != null) {
+			error = error.getCause();
+		}
+		if (error != null && error.getMessage() != null) {
+			message = error.getMessage();
+		}
+		StatusObject status = new StatusObject(code, "error", message);
+		if (error instanceof ClientDetailsException) {
+			// Return exception details to client
+			status.setApplication(((ClientDetailsException) error).getParameters());
+			if (((ClientDetailsException) error).includeStacktrace()) {
+				List<String> stack = new ArrayList<String>();
+				for (StackTraceElement element: error.getStackTrace()) {
+					stack.add(element.toString());
+				}
+				status.setAdditional("stacktrace", stack);
+			}
+		} else if (error != null) {
+			status.setApplication(error.getClass().getCanonicalName());
+		}
+		return status;
+	}	    
 
 	/**
      * Setter for serializer.

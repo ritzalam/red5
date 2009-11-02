@@ -22,6 +22,7 @@ package org.red5.server.adapter;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -31,6 +32,7 @@ import org.red5.server.api.IConnection;
 import org.red5.server.api.IContext;
 import org.red5.server.api.IScope;
 import org.red5.server.api.IScopeAware;
+import org.red5.server.plugin.PluginDescriptor;
 import org.springframework.core.io.Resource;
 
 /**
@@ -39,13 +41,17 @@ import org.springframework.core.io.Resource;
  * and connections.
  *
  */
-public class StatefulScopeWrappingAdapter extends AbstractScopeAdapter
-		implements IScopeAware, IAttributeStore {
-
+public class StatefulScopeWrappingAdapter extends AbstractScopeAdapter implements IScopeAware, IAttributeStore {
+	
     /**
      * Wrapped scope
      */
     protected IScope scope;
+
+    /**
+	 * List of plug-in descriptors
+	 */
+	protected List<PluginDescriptor> plugins;
 
 	/** {@inheritDoc} */
     public void setScope(IScope scope) {
@@ -59,6 +65,24 @@ public class StatefulScopeWrappingAdapter extends AbstractScopeAdapter
      */
     public IScope getScope() {
 		return scope;
+	}
+
+    /**
+     * Returns any plug-ins descriptors added
+     *     
+     * @return plug-in descriptor list
+     */
+	public List<PluginDescriptor> getPlugins() {
+		return plugins;
+	}
+
+	/**
+	 * Adds a list of plug-in descriptors
+	 * 
+	 * @param plugins
+	 */
+	public void setPlugins(List<PluginDescriptor> plugins) {
+		this.plugins = plugins;
 	}
 
 	/** {@inheritDoc} */

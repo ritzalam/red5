@@ -82,7 +82,7 @@ public class Context implements IContext, ApplicationContextAware, ContextMBean 
 	private IServiceInvoker serviceInvoker;
 
 	/**
-	 * Mapping strategy collaborator
+	 * Mapping stategy collaborator
 	 */
 	private IMappingStrategy mappingStrategy;
 
@@ -304,8 +304,7 @@ public class Context implements IContext, ApplicationContextAware, ContextMBean 
 	 */
 	public IScopeHandler lookupScopeHandler(String contextPath) {
 		// Get target scope handler name
-		String scopeHandlerName = getMappingStrategy().mapScopeHandlerName(
-				contextPath);
+		String scopeHandlerName = getMappingStrategy().mapScopeHandlerName(contextPath);
 		// Get bean from bean factory
 		Object bean = applicationContext.getBean(scopeHandlerName);
 		if (bean != null && bean instanceof IScopeHandler) {
@@ -327,7 +326,7 @@ public class Context implements IContext, ApplicationContextAware, ContextMBean 
 	}
 
 	/**
-	 * Return array or resource that match given pattern
+	 * Return array or resournce that match given pattern
 	 * 
 	 * @param pattern Pattern to check against
 	 * @return Array of Resource objects
@@ -340,7 +339,7 @@ public class Context implements IContext, ApplicationContextAware, ContextMBean 
 	}
 
 	/**
-	 * Return resource by path
+	 * Return resouce by path
 	 * 
 	 * @param path Resource path
 	 * @return Resource

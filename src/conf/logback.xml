@@ -118,9 +118,6 @@
 	<logger name="org.red5.server.persistence">
 		<level value="WARN" />
 	</logger>
-	<logger name="org.red5.server.pooling.ThreadObjectFactory">
-		<level value="WARN" />
-	</logger>
 	<logger name="org.red5.server.script">
 		<level value="WARN" />
 	</logger>	
@@ -147,9 +144,6 @@
 		<level value="WARN" />
 	</logger>	
 	<logger name="org.apache.mina.filter">
-		<level value="WARN" />
-	</logger>
-	<logger name="org.apache.mina.filter.thread.ThreadPoolFilter">
 		<level value="WARN" />
 	</logger>
 	<logger name="org.red5.server.adapter.MultiThreadedApplicationAdapter" >

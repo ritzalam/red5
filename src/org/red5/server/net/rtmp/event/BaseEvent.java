@@ -44,6 +44,11 @@ public abstract class BaseEvent implements Constants, IRTMPEvent, Externalizable
 	 */
 	private Type type;
 
+    /**
+	 * Source type
+	 */
+	private byte sourceType;
+	
 	/**
 	 * Event target object
 	 */
@@ -59,11 +64,6 @@ public abstract class BaseEvent implements Constants, IRTMPEvent, Externalizable
 	 */
 	protected int timestamp;
 
-	/**
-	 * Event extended timestamp
-	 */
-	protected int extendedTimestamp = -1;
-	
 	/**
 	 * Event RTMP packet header
 	 */
@@ -108,6 +108,14 @@ public abstract class BaseEvent implements Constants, IRTMPEvent, Externalizable
 		this.type = type;
 	}
     
+	public byte getSourceType() {
+		return sourceType;
+	}
+
+	public void setSourceType(byte sourceType) {
+		this.sourceType = sourceType;
+	}
+
 	/** {@inheritDoc} */
     public Object getObject() {
 		return object;
@@ -152,34 +160,30 @@ public abstract class BaseEvent implements Constants, IRTMPEvent, Externalizable
 	}
 
 	/** {@inheritDoc} */
-    public int getExtendedTimestamp() {
-    	return extendedTimestamp;
-    }
-
-	/** {@inheritDoc} */
-    public void setExtendedTimestamp(int timestamp) {
-    	this.extendedTimestamp = timestamp;
-    }
-    
-	/** {@inheritDoc} */
+    @SuppressWarnings("all")
     public void retain() {
 		if (allocationDebugging) {
 			AllocationDebugger.getInstance().retain(this);
 		}
-		if (refcount.get() > 0) {
-			refcount.incrementAndGet();
+		final int baseCount = refcount.getAndIncrement();
+		if (allocationDebugging && baseCount < 1)
+		{
+			throw new RuntimeException("attempt to retain object with invalid ref count" );
 		}
 	}
 
 	/** {@inheritDoc} */
+    @SuppressWarnings("all")
     public void release() {
 		if (allocationDebugging) {
 			AllocationDebugger.getInstance().release(this);
 		}
-		if (refcount.get() > 0) {
-			if (refcount.decrementAndGet() == 0) {
-				releaseInternal();
-			}
+		final int baseCount = refcount.decrementAndGet();
+		if (baseCount == 0) {
+			releaseInternal();
+		} else if (allocationDebugging && baseCount < 0)
+		{
+			throw new RuntimeException("attempt to retain object with invalid ref count" );
 		}
 	}
 
@@ -190,17 +194,14 @@ public abstract class BaseEvent implements Constants, IRTMPEvent, Externalizable
 
 	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
 		type = (Type) in.readObject();
+		sourceType = in.readByte();
 		timestamp = in.readInt();
-		if (timestamp == 0xffffff) {
-			extendedTimestamp = in.readInt();
-		}
 	}
 
 	public void writeExternal(ObjectOutput out) throws IOException {
 		out.writeObject(type);
+		out.writeByte(sourceType);
 		out.writeInt(timestamp);
-		if (extendedTimestamp > -1) {
-			out.writeInt(extendedTimestamp);
-		}
+		
 	}
 }

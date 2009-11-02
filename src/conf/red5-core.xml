@@ -24,13 +24,13 @@
 	</bean>
 
     <!-- Socket policy handler -->
-    <!-- Off by default to prevent confusion - turn it on if you need it
+    <!-- Off by default to prevent confusion - turn it on if you need it 
     <bean id="socketPolicyHandler"
         class="org.red5.server.net.policy.SocketPolicyHandler" init-method="start" destroy-method="stop">
         <property name="host" value="${policy.host}" />
         <property name="port" value="${policy.port}" />
     </bean>
-	-->
+    -->
 	
 	<!-- RTMP -->
 	
@@ -86,8 +86,7 @@
 	</bean>
 	
 	<!-- RTMP Mina Connection -->
-	<bean id="rtmpMinaConnection" scope="prototype"
-		class="org.red5.server.net.rtmp.RTMPMinaConnection">
+	<bean id="rtmpMinaConnection" scope="prototype"	class="org.red5.server.net.rtmp.RTMPMinaConnection">
 		<!-- Ping clients every X ms. Set to 0 to disable ghost detection code. -->
 		<property name="pingInterval" value="${rtmp.ping_interval}" />
 		<!-- Disconnect client after X ms of not responding. -->
@@ -105,7 +104,7 @@
 	<!-- RTMPT Handler -->
 	<bean id="rtmptHandler"
 		class="org.red5.server.net.rtmpt.RTMPTHandler" autowire="byType">
-		<property name="codecFactory" ref="rtmpCodecFactory" />
+		<property name="codecFactory" ref="rtmptCodecFactory" />
 	</bean>
 	
 	<!-- Use injection to store RTMPT handler in servlet -->
@@ -119,9 +118,9 @@
 	<bean id="rtmptConnection" scope="prototype"
 		class="org.red5.server.net.rtmpt.RTMPTConnection">
 		<!-- Ping clients every X ms. Set to 0 to disable ghost detection code. -->
-		<property name="pingInterval" value="${rtmp.ping_interval}" />
+		<property name="pingInterval" value="${rtmpt.ping_interval}" />
 		<!-- Disconnect client after X ms of not responding. -->
-		<property name="maxInactivity" value="${rtmp.max_inactivity}" />
+		<property name="maxInactivity" value="${rtmpt.max_inactivity}" />
 		<!-- Max. time in milliseconds to wait for a valid handshake. -->
 		<property name="maxHandshakeTimeout" value="5000" />
 	</bean>

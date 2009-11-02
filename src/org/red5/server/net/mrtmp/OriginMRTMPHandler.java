@@ -30,10 +30,8 @@ import org.apache.mina.filter.codec.ProtocolCodecFactory;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.filter.logging.LoggingFilter;
 import org.red5.server.api.IConnection;
-import org.red5.server.api.stream.IClientStream;
 import org.red5.server.net.rtmp.IRTMPHandler;
 import org.red5.server.net.rtmp.RTMPOriginConnection;
-import org.red5.server.stream.PlaylistSubscriberStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -158,10 +156,13 @@ public class OriginMRTMPHandler extends IoHandlerAdapter {
 			return;
 		}
 		MRTMPPacket.Header header = packet.getHeader();
-		MRTMPPacket.Body body = packet.getBody();
+		//MRTMPPacket.Body body = packet.getBody();
 		int clientId = header.getClientId();
 		int sessionId = getSessionId(session);
+		
+		@SuppressWarnings("unused")
 		RTMPOriginConnection conn = null;
+		
 		lock.readLock().lock();
 		try {
 			if (header.isDynamic()) {
@@ -175,24 +176,23 @@ public class OriginMRTMPHandler extends IoHandlerAdapter {
 		} finally {
 			lock.readLock().unlock();
 		}
-		if (conn != null) {
-			MRTMPPacket.RTMPBody rtmpBody = (MRTMPPacket.RTMPBody) body;
-			final int channelId = rtmpBody.getRtmpPacket().getHeader().getChannelId();
-			final IClientStream stream = conn.getStreamByChannelId(channelId);
+		//if (conn != null) {
+			//MRTMPPacket.RTMPBody rtmpBody = (MRTMPPacket.RTMPBody) body;			
+			//final int channelId = rtmpBody.getRtmpPacket().getHeader().getChannelId();
+			//final IClientStream stream = conn.getStreamByChannelId(channelId);
 			// XXX we'd better use new event model for notification
-			if (stream != null && (stream instanceof PlaylistSubscriberStream)) {
-				((PlaylistSubscriberStream) stream).written(rtmpBody.getRtmpPacket().getMessage());
-			}
-		} else {
-			log.warn("Handle on a non-existent origin connection!");
-		}
+			//if (stream != null && (stream instanceof PlaylistSubscriberStream)) {
+			//	((PlaylistSubscriberStream) stream).written(rtmpBody.getRtmpPacket().getMessage());
+			//}
+		//} else {
+			//log.warn("Handle on a non-existent origin connection!");
+		//}
 	}
 
 	@Override
 	public void sessionClosed(IoSession session) throws Exception {
 		MRTMPOriginConnection conn = (MRTMPOriginConnection) session.getAttribute(MRTMPOriginConnection.ORIGIN_CONNECTION_KEY);
-		// TODO we need to handle the case when all MRTMP connection
-		// is broken.
+		// TODO we need to handle the case when all MRTMP connection is broken.
 		mrtmpManager.unregisterConnection(conn);
 		conn.close();
 		log.debug("Closed MRTMP Origin Connection " + conn);

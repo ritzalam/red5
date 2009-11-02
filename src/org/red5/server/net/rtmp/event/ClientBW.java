@@ -27,22 +27,23 @@ import java.io.ObjectOutput;
  * Client bandwidth event
  */
 public class ClientBW extends BaseEvent {
-	
+
 	private static final long serialVersionUID = 5848656135751336839L;
-	
-    /**
-     * Bandwidth
-     */
+
+	/**
+	 * Bandwidth
+	 */
 	private int bandwidth;
 
-    /**
-     * XXX : what is this?
-     */
-    private byte value2;
+	/**
+	 * XXX : what is this?
+	 */
+	private byte value2;
 
-    public ClientBW() {
-    	super(Type.STREAM_CONTROL);
-    }
+	public ClientBW() {
+		super(Type.STREAM_CONTROL);
+	}
+
 	public ClientBW(int bandwidth, byte value2) {
 		this();
 		this.bandwidth = bandwidth;
@@ -50,55 +51,55 @@ public class ClientBW extends BaseEvent {
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public byte getDataType() {
 		return TYPE_CLIENT_BANDWIDTH;
 	}
 
 	/**
-     * Getter for property 'bandwidth'.
-     *
-     * @return Value for property 'bandwidth'.
-     */
-    public int getBandwidth() {
+	 * Getter for property 'bandwidth'.
+	 *
+	 * @return Value for property 'bandwidth'.
+	 */
+	public int getBandwidth() {
 		return bandwidth;
 	}
 
 	/**
-     * Setter for bandwidth
-     *
-     * @param bandwidth  New bandwidth
-     */
-    public void setBandwidth(int bandwidth) {
+	 * Setter for bandwidth
+	 *
+	 * @param bandwidth  New bandwidth
+	 */
+	public void setBandwidth(int bandwidth) {
 		this.bandwidth = bandwidth;
 	}
 
 	/**
-     * Getter for value2
-     *
-     * @return Value for property 'value2'.
-     */
-    public byte getValue2() {
+	 * Getter for value2
+	 *
+	 * @return Value for property 'value2'.
+	 */
+	public byte getValue2() {
 		return value2;
 	}
 
 	/**
-     * Setter for property 'value2'.
-     *
-     * @param value2 Value to set for property 'value2'.
-     */
-    public void setValue2(byte value2) {
+	 * Setter for property 'value2'.
+	 *
+	 * @param value2 Value to set for property 'value2'.
+	 */
+	public void setValue2(byte value2) {
 		this.value2 = value2;
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public String toString() {
 		return "ClientBW: " + bandwidth + " value2: " + value2;
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	protected void releaseInternal() {
 
 	}

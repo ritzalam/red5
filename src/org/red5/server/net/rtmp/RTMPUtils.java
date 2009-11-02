@@ -27,6 +27,7 @@ import org.red5.server.net.rtmp.message.Constants;
  *
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
+ * @author Art Clarke (aclarke@xuggle.com)
  */
 public class RTMPUtils implements Constants {
     /**
@@ -234,4 +235,33 @@ public class RTMPUtils implements Constants {
 		}
 	}
 
+    /**
+     * Compares two RTMP time stamps, accounting for time stamp wrapping.
+     * 
+     * @param a First time stamp
+     * @param b Second time stamp
+     * @return -1 if a < b, 1 if a > b, or 0 if a == b
+     */
+    public static int compareTimestamps(final int a, final int b) {
+    	long diff = diffTimestamps(a, b);
+    	return diff < 0 ? -1 : (diff > 0 ? 1 : 0);
+    }
+    
+    /**
+     * Calculates the delta between two time stamps, adjusting
+     * for time stamp wrapping.
+     * 
+     * @param a First time stamp
+     * @param b Second time stamp
+     * @return the distance between a and b, which will be negative if a is less than b.
+     */
+    public static long diffTimestamps(final int a, final int b) {
+    	// first convert each to unsigned integers
+    	final long unsignedA = a & 0xFFFFFFFFL;
+    	final long unsignedB = b & 0xFFFFFFFFL;
+    	// then find the delta
+    	final long delta = unsignedA-unsignedB;
+    	return delta;
+    }
+    
 }

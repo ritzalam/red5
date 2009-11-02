@@ -23,18 +23,19 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
 import javax.management.ObjectName;
 
 import org.apache.mina.core.buffer.IoBuffer;
-import org.apache.mina.core.filterchain.IoFilter;
+import org.apache.mina.core.filterchain.IoFilterChain;
 import org.apache.mina.core.session.IoSession;
-import org.red5.server.adapter.Config;
 import org.red5.server.api.IContext;
 import org.red5.server.api.IScope;
 import org.red5.server.jmx.JMXAgent;
 import org.red5.server.jmx.JMXFactory;
+import org.red5.server.net.filter.TrafficShapingFilter;
+import org.red5.server.net.rtmp.event.ClientBW;
+import org.red5.server.net.rtmp.event.ServerBW;
 import org.red5.server.net.rtmp.message.Packet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,9 +49,6 @@ import org.slf4j.LoggerFactory;
  */
 public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnectionMBean {
 	
-	/**
-	 * Logger
-	 */
 	protected static Logger log = LoggerFactory.getLogger(RTMPMinaConnection.class);
 
 	/**
@@ -77,13 +75,18 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 	public void close() {
 		super.close();
 		if (ioSession != null) {
+			IoFilterChain filters =	ioSession.getFilterChain();
+			//check if it exists and remove
+			if (filters.contains("bandwidthFilter")) {
+        		ioSession.getFilterChain().remove("bandwidthFilter");
+			}			
 			ioSession.close(true);
 		}
-		// Deregister with JMX
+		//de-register with JMX
 		try {
 		    JMXAgent.unregisterMBean(oName);
 		} catch (Exception e) {
-		    //sometimes the client isnt registered in jmx
+		    //sometimes the client is not registered in jmx
 		}
 	}
 
@@ -117,33 +120,36 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 		} else {
             log.warn("Client was null");			
 		}
+		//add bandwidth filter
 		if (ioSession != null) {
-			if (scope.getDepth() == 1) {
-				log.debug("Top level scope detected, configuration will be applied if it exists");
-				IContext ctx = scope.getContext();
-				if (ctx != null) {
-					log.debug("Context was found");
-					//check the app scope for any filters
-					if (ctx.hasBean("config")) {
-						log.debug("Configuration exists");
-						Config config = (Config) ctx.getBean("config");						
-    	    			List<String> filterNames = config.getFilterNames();
-    	    			if (!filterNames.isEmpty()) {
-    						log.debug("Filters exist");
-        					IoFilter filter = null;
-        					//add them after the protocol filter
-        					String lastFilterName = "protocolFilter";
-        	    			for (String filterName : filterNames) {
-        	    				try {
-        	        				filter = (IoFilter) ctx.getBean(filterName);
-        	        				//load the each after the last
-        	        				ioSession.getFilterChain().addAfter(lastFilterName, filterName, filter);
-        	    				} catch (Exception ex) {
-        	    					log.warn("Could not load filter from scope", ex);
-        	    				}
-        	    				lastFilterName = filterName;
-        	    			}
-    	    			}
+			log.debug("Top level scope detected, configuration will be applied if it exists");
+			IContext ctx = scope.getContext();
+			if (ctx != null) {
+				log.debug("Context was found");	
+				IoFilterChain filters =	ioSession.getFilterChain();
+				//add it if it does not exist
+				if (!filters.contains("bandwidthFilter")) {
+					//look for the bean first
+					if (ctx.hasBean("bandwidthFilter")) {
+						TrafficShapingFilter filter = (TrafficShapingFilter) ctx.getBean("bandwidthFilter");
+                		//load the each after the last
+                		ioSession.getFilterChain().addAfter("protocolFilter", "bandwidthFilter", filter);                		
+                		//notify client about new bandwidth settings (in bytes per second)
+                		int downStream = filter.getMaxReadThroughput();
+                		int upStream = filter.getMaxWriteThroughput();
+                		if (downStream > 0) {
+                			ServerBW serverBW = new ServerBW((int) downStream / 8);
+                			getChannel(2).write(serverBW);
+                		}
+                		if (upStream > 0) {
+                			ClientBW clientBW = new ClientBW((int) upStream / 8, (byte) 0);
+                			getChannel(2).write(clientBW);
+            				// Update generation of BytesRead messages
+            				// TODO: what are the correct values here?
+            				bytesReadInterval = (int) upStream / 8;
+            				nextBytesRead = (int) getWrittenBytes();
+                		}
+               		
 					}
 				}
 			}
@@ -156,7 +162,7 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 	/**
 	 * Return MINA I/O session.
 	 *
-	 * @return MINA O/I session, connection between two endpoints
+	 * @return MINA O/I session, connection between two end-points
 	 */
 	public IoSession getIoSession() {
 		return ioSession;

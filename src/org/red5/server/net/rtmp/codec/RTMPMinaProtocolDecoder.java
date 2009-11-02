@@ -24,8 +24,9 @@ import java.util.List;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecException;
-import org.apache.mina.filter.codec.ProtocolDecoder;
+import org.apache.mina.filter.codec.ProtocolDecoderAdapter;
 import org.apache.mina.filter.codec.ProtocolDecoderOutput;
+import org.red5.io.object.Deserializer;
 import org.red5.server.api.Red5;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.RTMPConnection;
@@ -33,15 +34,14 @@ import org.red5.server.net.rtmp.RTMPConnection;
 /**
  * RTMP protocol decoder.
  */
-public class RTMPMinaProtocolDecoder extends RTMPProtocolDecoder implements
-		ProtocolDecoder {
+public class RTMPMinaProtocolDecoder extends ProtocolDecoderAdapter {
 
+	private RTMPProtocolDecoder decoder = new RTMPProtocolDecoder();
+	
 	/** {@inheritDoc} */
-    public void decode(IoSession session, IoBuffer in,
-			ProtocolDecoderOutput out) throws ProtocolCodecException {
+    public void decode(IoSession session, IoBuffer in, ProtocolDecoderOutput out) throws ProtocolCodecException {
 
-		final ProtocolState state = (ProtocolState) session
-				.getAttribute(ProtocolState.SESSION_KEY);
+		final ProtocolState state = (ProtocolState) session.getAttribute(ProtocolState.SESSION_KEY);
 
 		RTMPConnection conn = (RTMPConnection) session.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
 		conn.getWriteLock().lock();
@@ -58,7 +58,7 @@ public class RTMPMinaProtocolDecoder extends RTMPProtocolDecoder implements
 			buf.put(in);
 			buf.flip();
 	
-			List<?> objects = decodeBuffer(state, buf);
+			List<?> objects = decoder.decodeBuffer(state, buf);
 			if (objects == null || objects.isEmpty()) {
 				return;
 			}
@@ -71,13 +71,17 @@ public class RTMPMinaProtocolDecoder extends RTMPProtocolDecoder implements
 		}
 	}
 
-	/** {@inheritDoc} */
-    public void dispose(IoSession ioSession) throws Exception {
-	}
-
-	/** {@inheritDoc} */
-    public void finishDecode(IoSession session, ProtocolDecoderOutput out)
-			throws Exception {
+	/**
+	 * Setter for deserializer.
+	 * 
+	 * @param deserializer Deserializer
+	 */
+	public void setDeserializer(Deserializer deserializer) {
+		decoder.setDeserializer(deserializer);
+	}    
+    
+	public RTMPProtocolDecoder getDecoder() {
+		return decoder;
 	}
 
 }

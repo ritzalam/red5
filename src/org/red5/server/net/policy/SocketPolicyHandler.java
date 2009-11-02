@@ -44,8 +44,7 @@ import org.slf4j.LoggerFactory;
  */
 public class SocketPolicyHandler extends IoHandlerAdapter {
 
-	protected static Logger log = LoggerFactory
-			.getLogger(SocketPolicyHandler.class);
+	protected static Logger log = LoggerFactory.getLogger(SocketPolicyHandler.class);
 
 	private String host = "0.0.0.0";
 
@@ -54,25 +53,26 @@ public class SocketPolicyHandler extends IoHandlerAdapter {
 	private String policyFileName = "flashpolicy.xml";
 
 	private static IoAcceptor acceptor;
-	
+
 	private static IoBuffer policyData;
 
 	public void start() {
 		log.debug("Starting socket policy file server");
-        try {
+		try {
 			acceptor = new NioSocketAcceptor();
 			acceptor.setHandler(this);
-			
-			Set<SocketAddress> addresses = new HashSet<SocketAddress>();			
-			addresses.add(new InetSocketAddress(host, port));	
+
+			Set<SocketAddress> addresses = new HashSet<SocketAddress>();
+			addresses.add(new InetSocketAddress(host, port));
 			acceptor.bind(addresses);
-			
+
 			log.info("Socket policy file server listening on port {}", port);
 			//get the file
 			File file = new File(System.getProperty("red5.config_root"), policyFileName);
 			if (file.exists()) {
 				//read the policy file
 				policyData = IoBuffer.allocate(Long.valueOf(file.length()).intValue());
+				policyData.setAutoExpand(true);
 				//temp space for reading file
 				byte[] buf = new byte[128];
 				//read it
@@ -84,34 +84,32 @@ public class SocketPolicyHandler extends IoHandlerAdapter {
 				fis.close();
 				file = null;
 				buf = null;
-				log.info("Policy file read successfully");				
+				log.info("Policy file read successfully");
 			} else {
 				log.error("Policy file was not found");
-			}			
+			}
 		} catch (IOException e) {
 			log.error("Exception initializing socket policy server", e);
-		}			
+		}
 	}
 
 	public void stop() {
 		log.debug("Stopping socket policy file server");
 		acceptor.unbind();
 	}
-	
+
 	@Override
-	public void messageReceived(IoSession session, Object message)
-			throws Exception {
+	public void messageReceived(IoSession session, Object message) throws Exception {
 		log.info("Incomming: {}", session.getRemoteAddress().toString());
 		session.write(policyData);
 		session.close(true);
 	}
 
 	@Override
-	public void exceptionCaught(IoSession session, Throwable ex)
-			throws Exception {
+	public void exceptionCaught(IoSession session, Throwable ex) throws Exception {
 		log.info("Exception: {}", session.getRemoteAddress().toString(), ex);
-	}	
-	
+	}
+
 	public String getHost() {
 		return host;
 	}

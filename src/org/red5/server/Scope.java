@@ -711,8 +711,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 * @return Child scope names iterator
 	 */
 	public Iterator<String> getScopeNames() {
-		return new PrefixFilteringStringIterator(children.keySet().iterator(),
-				"scope");
+		return new PrefixFilteringStringIterator(children.keySet().iterator(), "scope");
 	}
 
 	/**
@@ -1136,8 +1135,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	public void setPersistenceClass(String persistenceClass) throws Exception {
 		this.persistenceClass = persistenceClass;
 		if (persistenceClass != null) {
-			setStore(PersistenceUtils.getPersistenceStore(this,
-					persistenceClass));
+			setStore(PersistenceUtils.getPersistenceStore(this,	persistenceClass));
 		} else {
 			setStore(null);
 		}

@@ -32,6 +32,7 @@ import javax.management.ObjectName;
 
 import org.red5.server.jmx.JMXAgent;
 import org.red5.server.jmx.JMXFactory;
+import org.red5.server.plugin.PluginRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -49,12 +50,10 @@ import org.springframework.core.io.Resource;
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Tiago Jacobs (tiago@imdt.com.br)
+ * @author Paul Gregoire (mondain@gmail.com)
  */
 public class ContextLoader implements ApplicationContextAware, ContextLoaderMBean {
 
-	/**
-	 * Logger
-	 */
 	protected static Logger log = LoggerFactory.getLogger(ContextLoader.class);
 
 	/**
@@ -93,8 +92,7 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMBea
 	 * @throws BeansException Top level exception for app context (that is, in fact, beans
 	 *             factory)
 	 */
-	public void setApplicationContext(ApplicationContext applicationContext)
-			throws BeansException {
+	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;	
 	}
 
@@ -116,10 +114,20 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMBea
 		this.contextsConfig = contextsConfig;
 	}
 
+	/**
+	 * Whether or not the shutdown hook is enabled.
+	 * 
+	 * @return true if enabled, false otherwise
+	 */
 	public boolean isUseShutdownHook() {
 		return useShutdownHook;
 	}
 
+	/**
+	 * Enables or disables the shutdown hook.
+	 * 
+	 * @param useShutdownHook true to enable, false to disable
+	 */
 	public void setUseShutdownHook(boolean useShutdownHook) {
 		this.useShutdownHook = useShutdownHook;
 	}
@@ -152,11 +160,10 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMBea
 
 		// Load properties file
 		props.load(res.getInputStream());
-
 		
 		// Pattern for arbitrary property substitution
-		Pattern patt = Pattern.compile("\\$\\{([^\\}]+)\\}");
-
+		Pattern patt = Pattern.compile("\\$\\{([^\\}]+)\\}");		
+		Matcher matcher = null;
 		
 		// Iterate thru properties keys and replace config attributes with
 		// system attributes
@@ -164,37 +171,41 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMBea
 			String name = (String) key;
 			String config = props.getProperty(name);
 			String configReplaced = config + "";
-			
-			Matcher m = patt.matcher(config);
-			
-			while(m.find()) {
-				String sysProp = m.group(1);
-				String replaceString = "${" + sysProp + "}";
-				
-				String systemPropValue = System.getProperty(sysProp);
-				
-				if(systemPropValue == null)
+			//
+			matcher = patt.matcher(config);
+			//execute the regex
+			while (matcher.find()) {
+				String sysProp = matcher.group(1);				
+				String systemPropValue = System.getProperty(sysProp);				
+				if (systemPropValue == null) {
 					systemPropValue = "null";
-				
-				configReplaced = configReplaced.replace(replaceString, systemPropValue);
+				}
+				configReplaced = configReplaced.replace(String.format("${%s}", sysProp), systemPropValue);
 			}
-			
-			
 			log.info("Loading: {} = {}", name, config + " => " + configReplaced);
 
-			m = null;
+			matcher.reset();
 			
 			// Load context
 			loadContext(name, configReplaced);
 		}
 		
 		patt = null;
-
+		matcher = null;
 	}
 	
+	/**
+	 * Un-loads or un-initializes the contexts; this is a shutdown method for this loader.
+	 */
 	public void uninit() {
 		log.debug("ContextLoader un-init");		
 		JMXAgent.unregisterMBean(oName);
+		//shutdown the plug-in launcher here
+		try {
+			PluginRegistry.shutdown();
+		} catch (Exception e) {
+			log.warn("Exception shutting down plugin registry", e);
+		}
 		//unload all the contexts in the map
 		for (Map.Entry<String, ApplicationContext> entry : contextMap.entrySet()) {
 			unloadContext(entry.getKey());

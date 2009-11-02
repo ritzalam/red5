@@ -29,10 +29,12 @@ import org.red5.server.exception.ScopeShuttingDownException;
  * Resolves scopes from path
  */
 public class ScopeResolver implements IScopeResolver {
+	
     /**
      *  Default host constant
      */
 	public static final String DEFAULT_HOST = "";
+	
     /**
      *  Global scope
      */
@@ -91,20 +93,14 @@ public class ScopeResolver implements IScopeResolver {
 			if (scope.hasChildScope(room)) {
 				scope = scope.getScope(room);
 			} else if (!scope.equals(root)) {
-				// Synchronizing to make sure a subscope with the same name
-				// is not created multiple times.
-				synchronized (scope) {
-					// Check again as a different thread might have created the
-					// child while we waited for the synchronized block.
-					if (scope.hasChildScope(room)) {
-						scope = scope.getScope(room);
-					} else if (scope.createChildScope(room)) {
-						scope = scope.getScope(room);
-					} else {
-						throw new ScopeNotFoundException(scope, room);
-					}
+				//no need for sync here, scope.children is concurrent
+				if (scope.createChildScope(room)) {
+					scope = scope.getScope(room);
 				}
-			} else {
+			} 
+			
+			//if the scope is still equal to root then the room was not found
+			if (scope == root) {
 				throw new ScopeNotFoundException(scope, room);
 			}
 			

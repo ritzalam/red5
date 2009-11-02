@@ -39,9 +39,7 @@ import org.springframework.context.ApplicationContextAware;
  * Handles all RTMP protocol events fired by the MINA framework.
  */
 public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationContextAware {
-	/**
-	 * Logger
-	 */
+
 	private static Logger log = LoggerFactory.getLogger(RTMPMinaIoHandler.class);
 
 	/**
@@ -74,7 +72,8 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 		// moved protocol state from connection object to RTMP object
 		RTMP rtmp = new RTMP(mode);
 		session.setAttribute(ProtocolState.SESSION_KEY, rtmp);
-		session.getFilterChain().addFirst("protocolFilter",	new ProtocolCodecFilter(codecFactory));
+		//add protocol filter next
+		session.getFilterChain().addFirst("protocolFilter", new ProtocolCodecFilter(codecFactory));
 		if (log.isTraceEnabled()) {
 			session.getFilterChain().addLast("logger", new LoggingFilter());
 		}
@@ -82,8 +81,8 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 		conn.setIoSession(session);
 		conn.setState(rtmp);
 		session.setAttribute(RTMPConnection.RTMP_CONNECTION_KEY, conn);
-	}	
-	
+	}
+
 	/** {@inheritDoc} */
 	@Override
 	public void sessionOpened(IoSession session) throws Exception {
@@ -112,8 +111,8 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 		session.removeAttribute(ProtocolState.SESSION_KEY);
 		session.removeAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
 		rtmpConnManager.removeConnection(conn.getId());
-	}	
-	
+	}
+
 	/**
 	 * Handle raw buffer receiving event.
 	 * 
@@ -138,29 +137,29 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 				//if the 5th byte is 0 then dont generate new-style handshake
 				if (log.isTraceEnabled()) {
 					byte[] bIn = in.array();
-					log.debug("First few bytes (in): {},{},{},{},{},{},{},{},{},{}", 
-							new Object[]{bIn[0],bIn[1],bIn[2],bIn[3],bIn[4],bIn[5],bIn[6],bIn[7],bIn[8],bIn[9]});
-				}	
-    			if (in.get(4) == 0) {
-    				log.debug("Using old style handshake");
-    				out = IoBuffer.allocate((Constants.HANDSHAKE_SIZE * 2) + 1);
-    				out.put((byte) 0x03);
-    				// set server uptime in seconds
-    				out.putInt((int) Red5.getUpTime() / 1000); //0x01
-    				out.put(RTMPHandshake.HANDSHAKE_PAD_BYTES).put(in).flip();
-    			} else {
-    				log.debug("Using new style handshake");
-    				RTMPHandshake shake = new RTMPHandshake();
-    				out = shake.generateResponse(in);
-    			}
+					log.debug("First few bytes (in): {},{},{},{},{},{},{},{},{},{}", new Object[] { bIn[0], bIn[1],
+							bIn[2], bIn[3], bIn[4], bIn[5], bIn[6], bIn[7], bIn[8], bIn[9] });
+				}
+				if (in.get(4) == 0) {
+					log.debug("Using old style handshake");
+					out = IoBuffer.allocate((Constants.HANDSHAKE_SIZE * 2) + 1);
+					out.put((byte) 0x03);
+					// set server uptime in seconds
+					out.putInt((int) Red5.getUpTime() / 1000); //0x01
+					out.put(RTMPHandshake.HANDSHAKE_PAD_BYTES).put(in).flip();
+				} else {
+					log.debug("Using new style handshake");
+					RTMPHandshake shake = new RTMPHandshake();
+					out = shake.generateResponse(in);
+				}
 				if (log.isTraceEnabled()) {
 					byte[] bOut = out.array();
-					log.debug("First few bytes (out): {},{},{},{},{},{},{},{},{},{}", 
-							new Object[]{bOut[0],bOut[1],bOut[2],bOut[3],bOut[4],bOut[5],bOut[6],bOut[7],bOut[8],bOut[9]});
+					log.debug("First few bytes (out): {},{},{},{},{},{},{},{},{},{}", new Object[] { bOut[0], bOut[1],
+							bOut[2], bOut[3], bOut[4], bOut[5], bOut[6], bOut[7], bOut[8], bOut[9] });
 				}
 				// Skip first 8 bytes when comparing the handshake, they seem to
 				// be changed when connecting from a Mac client.
-				rtmp.setHandshake(out, 9, Constants.HANDSHAKE_SIZE-8);
+				rtmp.setHandshake(out, 9, Constants.HANDSHAKE_SIZE - 8);
 			} else {
 				log.debug("Handshake 3d phase - size: {}", in.remaining());
 				in.skip(1);
@@ -175,11 +174,11 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 		} finally {
 			conn.getWriteLock().unlock();
 			if (out != null) {
-				session.write(out);			
+				session.write(out);
 			}
 		}
 	}
-	
+
 	/** {@inheritDoc} */
 	@Override
 	public void messageReceived(IoSession session, Object in) throws Exception {
@@ -217,7 +216,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 			log.error("Exception detail", cause);
 		}
 	}
-	
+
 	/**
 	 * Setter for handler.
 	 * 
@@ -252,8 +251,8 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 
 	protected IRTMPConnManager getRtmpConnManager() {
 		return rtmpConnManager;
-	}	
-	
+	}
+
 	/** {@inheritDoc} */
 	public void setApplicationContext(ApplicationContext appCtx) throws BeansException {
 		log.debug("Setting application context: {} {}", appCtx.getDisplayName(), appCtx);

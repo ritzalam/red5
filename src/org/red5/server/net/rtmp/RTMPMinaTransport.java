@@ -18,7 +18,7 @@ package org.red5.server.net.rtmp;
  * with this library; if not, write to the Free Software Foundation, Inc., 
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
- 
+
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.HashSet;
@@ -88,14 +88,14 @@ public class RTMPMinaTransport {
 	protected IoHandlerAdapter ioHandler;
 
 	protected IoServiceStatistics stats;
-	
+
 	protected int ioThreads = DEFAULT_IO_THREADS;
 
 	/**
 	 * MBean object name used for de/registration purposes.
 	 */
 	protected ObjectName serviceManagerObjectName;
-	
+
 	protected int jmxPollInterval = 1000;
 
 	protected int receiveBufferSize = DEFAULT_RECEIVE_BUFFER_SIZE;
@@ -112,7 +112,7 @@ public class RTMPMinaTransport {
 			ioHandler = new RTMPMinaIoHandler();
 		}
 	}
-	
+
 	public void start() throws Exception {
 		initIOHandler();
 
@@ -120,11 +120,12 @@ public class RTMPMinaTransport {
 		if (useHeapBuffers) {
 			// dont pool for heap buffers
 			IoBuffer.setAllocator(new SimpleBufferAllocator());
-        }
-		
-		log.info("RTMP Mina Transport Settings");			
+		}
+
+		log.info("RTMP Mina Transport Settings");
 		log.info("IO Threads: {}", ioThreads);
-		log.info("Event Threads - core: {}, max: {}, queue: {}, keepalive: {}", new Object[]{eventThreadsCore, eventThreadsMax, eventThreadsQueue, eventThreadsKeepalive});
+		log.info("Event Threads - core: {}, max: {}, queue: {}, keepalive: {}", new Object[] { eventThreadsCore,
+				eventThreadsMax, eventThreadsQueue, eventThreadsKeepalive });
 
 		//use default parameters, and given number of NioProcessor for multithreading I/O operations
 		acceptor = new NioSocketAcceptor(ioThreads);
@@ -142,10 +143,10 @@ public class RTMPMinaTransport {
 		sessionConf.setTcpNoDelay(tcpNoDelay);
 		sessionConf.setReceiveBufferSize(receiveBufferSize);
 		sessionConf.setSendBufferSize(sendBufferSize);
-		
+
 		//set reuse address on the socket acceptor as well
 		acceptor.setReuseAddress(true);
-				
+
 		String addrStr = addresses.toString();
 		log.debug("Binding to {}", addrStr);
 		acceptor.bind(addresses);
@@ -158,13 +159,24 @@ public class RTMPMinaTransport {
 		}
 		//enable only if user wants it
 		if (JMXAgent.isEnableMinaMonitor()) {
-    		//add a service manager to allow for more introspection into the workings of mina
+			//add a service manager to allow for more introspection into the workings of mina
 			stats = new IoServiceStatistics((AbstractIoService) acceptor);
-    		//poll every second
+			//poll every second
 			stats.setThroughputCalculationInterval(jmxPollInterval);
-    		serviceManagerObjectName = JMXFactory.createObjectName("type", "IoServiceManager",
-    				"addresses", addrStr);
-    		JMXAgent.registerMBean(stats, stats.getClass().getName(), IoServiceMBean.class, serviceManagerObjectName);		
+			//construct a object containing all the host and port combos
+			StringBuilder addressAndPorts = new StringBuilder();
+			for (SocketAddress sa : addresses) {
+				InetSocketAddress isa = ((InetSocketAddress) sa);
+				if (!isa.isUnresolved()) {
+					addressAndPorts.append(isa.getHostName());
+					addressAndPorts.append('|');
+					addressAndPorts.append(isa.getPort());
+					addressAndPorts.append(';');
+				}
+			}
+			addressAndPorts.deleteCharAt(addressAndPorts.length() - 1);
+			serviceManagerObjectName = JMXFactory.createObjectName("type", "IoServiceManager", "addresses", addressAndPorts.toString());
+			JMXAgent.registerMBean(stats, stats.getClass().getName(), IoServiceMBean.class, serviceManagerObjectName);
 		}
 	}
 
@@ -175,20 +187,20 @@ public class RTMPMinaTransport {
 		if (serviceManagerObjectName != null) {
 			JMXAgent.unregisterMBean(serviceManagerObjectName);
 		}
-	}	
+	}
 
 	public void setConnector(InetSocketAddress connector) {
 		addresses.add(connector);
 		log.info("RTMP Mina Transport bound to {}", connector.toString());
 	}
-	
+
 	public void setConnectors(List<InetSocketAddress> connectors) {
 		for (InetSocketAddress addr : connectors) {
 			addresses.add(addr);
 			log.info("RTMP Mina Transport bound to {}", addr.toString());
 		}
 	}
-		
+
 	public void setEventThreadsCore(int eventThreadsCore) {
 		this.eventThreadsCore = eventThreadsCore;
 	}
@@ -236,9 +248,9 @@ public class RTMPMinaTransport {
 	public void setJmxPollInterval(int jmxPollInterval) {
 		this.jmxPollInterval = jmxPollInterval;
 	}
-	
+
 	public String toString() {
 		return String.format("RTMP Mina Transport %s", addresses.toString());
-	}	
-	
+	}
+
 }

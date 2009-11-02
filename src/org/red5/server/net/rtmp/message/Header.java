@@ -38,7 +38,12 @@ public class Header implements Constants, Externalizable {
 	/**
 	 * Timer
 	 */
-	private int timer;
+	private int timerBase;
+	
+	/**
+	 * Delta
+	 */
+	private int timerDelta;
 
 	/**
 	 * Header size
@@ -56,9 +61,12 @@ public class Header implements Constants, Externalizable {
 	private int streamId;
 
 	/**
-	 * Whether timer value is relative
+	 * Flash player occasionally sends garbage audio that
+	 * as far as I can tell exists only to make folks who
+	 * don't know about it slowly get out-of-sync audio
+	 * and video.  We now detect that.
 	 */
-	private boolean timerRelative = true;
+	private boolean isGarbage=false;
 
 	/**
      * Getter for channel id
@@ -138,7 +146,7 @@ public class Header implements Constants, Externalizable {
      * @return  Timer
      */
     public int getTimer() {
-		return timer;
+		return timerBase+timerDelta;
 	}
 
 	/**
@@ -147,25 +155,8 @@ public class Header implements Constants, Externalizable {
      * @param timer  Timer
      */
     public void setTimer(int timer) {
-		this.timer = timer;
-	}
-
-	/**
-     * Getter for timer relative flag
-     *
-     * @return  <code>true</code> if timer value is relative, <code>false</code> otherwise
-     */
-    public boolean isTimerRelative() {
-		return timerRelative;
-	}
-
-	/**
-     * Setter for timer relative flag
-     *
-     * @param timerRelative <code>true</code> if timer values are relative, <code>false</code> otherwise
-     */
-    public void setTimerRelative(boolean timerRelative) {
-		this.timerRelative = timerRelative;
+		this.timerBase = timer;
+		this.timerDelta = 0;
 	}
 
 	/** {@inheritDoc} */
@@ -177,7 +168,7 @@ public class Header implements Constants, Externalizable {
 		final Header header = (Header) other;
 		return (header.getChannelId() == channelId
 				&& header.getDataType() == dataType && header.getSize() == size
-				&& header.getTimer() == timer && header.getStreamId() == streamId);
+				&& header.getTimer() == this.getTimer() && header.getStreamId() == streamId);
 	}
 
 	/** {@inheritDoc} */
@@ -185,23 +176,27 @@ public class Header implements Constants, Externalizable {
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
 		sb.append("ChannelId: ").append(channelId).append(", ");
-		sb.append("Timer: ").append(timer).append(", ");
-		sb.append("Relative: ").append(timerRelative).append(", ");
+		sb.append("Timer: ").append(getTimer()).append(", ");
+		sb.append("TimerBase: ").append(timerBase).append(", ");
+		sb.append("TimerDelta: ").append(timerDelta).append(", ");
 		sb.append("Size: ").append(size).append(", ");
 		sb.append("DataType: ").append(dataType).append(", ");
+		sb.append("Garbage: ").append(isGarbage).append(", ");
 		sb.append("StreamId: ").append(streamId);
 		return sb.toString();
 	}
 
 	/** {@inheritDoc} */
     @Override
-	public Object clone() {
+	public Header clone() {
 		final Header header = new Header();
 		header.setChannelId(channelId);
-		header.setTimer(timer);
+		header.setTimerBase(timerBase);
+		header.setTimerDelta(timerDelta);
 		header.setSize(size);
 		header.setDataType(dataType);
 		header.setStreamId(streamId);
+		header.setIsGarbage(isGarbage);
 		return header;
 	}
 
@@ -210,8 +205,9 @@ public class Header implements Constants, Externalizable {
 		channelId = in.readInt();
 		size = in.readInt();
 		streamId = in.readInt();
-		timer = in.readInt();
-		timerRelative = in.readBoolean();
+		timerBase = in.readInt();
+		timerDelta = in.readInt();
+		isGarbage = in.readBoolean();
 	}
 
 	public void writeExternal(ObjectOutput out) throws IOException {
@@ -219,7 +215,31 @@ public class Header implements Constants, Externalizable {
 		out.writeInt(channelId);
 		out.writeInt(size);
 		out.writeInt(streamId);
-		out.writeInt(timer);
-		out.writeBoolean(timerRelative);
+		out.writeInt(timerBase);
+		out.writeInt(timerDelta);
+		out.writeBoolean(isGarbage);
+	}
+
+	public void setTimerDelta(int timerDelta) {
+		this.timerDelta = timerDelta;
+	}
+
+	public int getTimerDelta() {
+		return timerDelta;
+	}
+
+	public void setTimerBase(int timerBase) {
+		this.timerBase = timerBase;
+	}
+
+	public int getTimerBase() {
+		return timerBase;
+	}
+
+	public void setIsGarbage(boolean isGarbage) {
+		this.isGarbage = isGarbage;
+	}
+	public boolean isGarbage() {
+		return isGarbage;
 	}
 }

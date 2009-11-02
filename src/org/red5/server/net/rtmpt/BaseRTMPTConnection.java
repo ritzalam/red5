@@ -26,12 +26,14 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.api.Red5;
-import org.red5.server.net.protocol.SimpleProtocolDecoder;
-import org.red5.server.net.protocol.SimpleProtocolEncoder;
 import org.red5.server.net.rtmp.IRTMPHandler;
 import org.red5.server.net.rtmp.RTMPConnection;
 import org.red5.server.net.rtmp.codec.RTMP;
+import org.red5.server.net.rtmp.codec.RTMPProtocolDecoder;
+import org.red5.server.net.rtmp.codec.RTMPProtocolEncoder;
 import org.red5.server.net.rtmp.message.Packet;
+import org.red5.server.net.rtmpt.codec.RTMPTProtocolDecoder;
+import org.red5.server.net.rtmpt.codec.RTMPTProtocolEncoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,12 +44,12 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	/**
 	 * Protocol decoder
 	 */
-	private SimpleProtocolDecoder decoder;
+	private RTMPTProtocolDecoder decoder;
 	
 	/**
 	 * Protocol encoder
 	 */
-	private SimpleProtocolEncoder encoder;
+	private RTMPTProtocolEncoder encoder;
 	
 	private static class PendingData {
 		private IoBuffer buffer;
@@ -242,10 +244,14 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 				return;
 			}
 
-			// Mark packet as being written
-			writingMessage(packet);
-
-			pendingMessages.add(new PendingData(data, packet));
+			if (data != null) {
+    			// Mark packet as being written
+    			writingMessage(packet);
+    			//add to pending
+    			pendingMessages.add(new PendingData(data, packet));			
+			} else {
+				log.info("Response buffer was null after encoding");
+			}
 		} finally {
 			getWriteLock().unlock();
 		}
@@ -294,11 +300,11 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 		this.handler = handler;
 	}
 
-	public void setDecoder(SimpleProtocolDecoder decoder) {
-		this.decoder = decoder;
+	public void setDecoder(RTMPProtocolDecoder decoder) {
+		this.decoder = (RTMPTProtocolDecoder) decoder;
 	}
 
-	public void setEncoder(SimpleProtocolEncoder encoder) {
-		this.encoder = encoder;
+	public void setEncoder(RTMPProtocolEncoder encoder) {
+		this.encoder = (RTMPTProtocolEncoder) encoder;
 	}
 }

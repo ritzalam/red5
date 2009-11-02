@@ -44,35 +44,44 @@ import org.red5.server.stream.message.RTMPMessage;
  *
  * @author Steven Gong (steven.gong@gmail.com)
  */
-public class StreamingProxy
-implements IPushableConsumer, IPipeConnectionListener,
-		INetStreamEventHandler, IPendingServiceCallback {
-			
+public class StreamingProxy implements IPushableConsumer, IPipeConnectionListener, INetStreamEventHandler,
+		IPendingServiceCallback {
+
 	private static final int STOPPED = 0;
+
 	private static final int CONNECTING = 1;
+
 	private static final int STREAM_CREATING = 2;
+
 	private static final int PUBLISHING = 3;
+
 	private static final int PUBLISHED = 4;
-	
+
 	private String host;
+
 	private int port;
+
 	private String app;
+
 	private RTMPClient rtmpClient;
+
 	private int state;
+
 	private String publishName;
+
 	private int streamId;
-	
+
 	public void init() {
 		rtmpClient = new RTMPClient();
 		state = STOPPED;
 	}
-	
+
 	synchronized public void start(String publishName) {
 		state = CONNECTING;
 		this.publishName = publishName;
 		rtmpClient.connect(host, port, app, this);
 	}
-	
+
 	synchronized public void stop() {
 		if (state >= STREAM_CREATING) {
 			rtmpClient.disconnect();
@@ -91,10 +100,7 @@ implements IPushableConsumer, IPipeConnectionListener,
 		}
 	}
 
-	public void onOOBControlMessage(IMessageComponent source, IPipe pipe,
-			OOBControlMessage oobCtrlMsg) {
-		// TODO Auto-generated method stub
-		
+	public void onOOBControlMessage(IMessageComponent source, IPipe pipe, OOBControlMessage oobCtrlMsg) {
 	}
 
 	public void setHost(String host) {

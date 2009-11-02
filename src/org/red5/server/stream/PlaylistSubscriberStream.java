@@ -27,7 +27,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.red5.logging.Red5LoggerFactory;
-import org.red5.server.api.IBandwidthConfigure;
 import org.red5.server.api.IContext;
 import org.red5.server.api.IScope;
 import org.red5.server.api.scheduling.ISchedulingService;
@@ -78,16 +77,6 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 	 * Plays items back
 	 */
 	private PlayEngine engine;
-
-	/**
-	 * Service that controls bandwidth
-	 */
-	private IBWControlService bwController;
-
-	/**
-	 * Operating context for bandwidth controller
-	 */
-	private IBWControlContext bwContext;
 
 	/**
 	 * Rewind mode state
@@ -204,17 +193,6 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
     			log.info("Scope was null on start");
     		}		
 		}
-		// Create bw control service from Spring bean factory
-		// and register myself
-		// XXX Bandwidth control service should not be bound to
-		// a specific scope because it's designed to control
-		// the bandwidth system-wide.
-		if (bwController == null) {
-			bwController = (IBWControlService) getScope().getContext().getBean(IBWControlService.KEY);
-		}
-		bwContext = bwController.registerBWControllable(this);
-		//set bandwidth members on the engine
-		engine.setBandwidthController(bwController, bwContext);
 		//set buffer check interval
 		engine.setBufferCheckInterval(bufferCheckInterval);
 		//set underrun trigger
@@ -302,8 +280,6 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 	/** {@inheritDoc} */
 	public void close() {
 		engine.close();
-		// unregister myself from bandwidth controller
-		bwController.unregisterBWControllable(bwContext);
 		notifySubscriberClose();
 	}
 
@@ -576,36 +552,6 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 			return null;
 		} finally {
 			read.unlock();
-		}
-	}
-	
-	public void setBandwidthController(IBWControlService bwController) {
-		this.bwController = bwController;
-	}
-
-	/** {@inheritDoc} */
-	@Override
-	public void setBandwidthConfigure(IBandwidthConfigure config) {
-		super.setBandwidthConfigure(config);
-		engine.updateBandwithConfigure();
-	}
-
-	/**
-	 * Notified by RTMPHandler when a message has been sent.
-	 * Glue for old code base.
-	 * @param message          Message that has been written
-	 */
-	public void written(Object message) {
-		if (!engine.isPullMode()) {
-			// Not needed for live streams
-			return;
-		}
-
-		try {
-			engine.pullAndPush();
-		} catch (IOException err) {
-			log.error("Error while pulling message.", err);
-			throw new RuntimeException(err);
 		}
 	}
 

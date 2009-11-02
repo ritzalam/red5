@@ -167,9 +167,9 @@ public final class ClassLoaderBuilder {
 				libDir = new File(home, "lib");
 			}
 			File[] libFiles = libDir.listFiles(jarFileFilter);
-			for (int i = 0; i < libFiles.length; i++) {
+			for (File lib : libFiles) {
 				try {
-					urlList.add(libFiles[i].toURI().toURL());
+					urlList.add(lib.toURI().toURL());
 				} catch (MalformedURLException e) {
 					e.printStackTrace();
 				}
@@ -193,6 +193,33 @@ public final class ClassLoaderBuilder {
 				e.printStackTrace();
 			}
 			
+			//add the plugins 
+			
+			//get red5 lib system property, if not found build it	
+			String pluginsPath = System.getProperty("red5.plugins_root");
+			if (pluginsPath == null) {
+    			//construct the plugins path
+				pluginsPath = home + "/plugins";
+			}
+			
+			File pluginsDir = new File(pluginsPath);
+			//if we are on osx with spaces in our path this may occur
+			if (pluginsDir == null) {
+				pluginsDir = new File(home, "plugins");
+			}
+			File[] pluginsFiles = pluginsDir.listFiles(jarFileFilter);
+			//this can be null if the dir doesnt exist
+			if (pluginsFiles != null) {
+    			for (File plugin : pluginsFiles) {
+    				try {
+    					urlList.add(plugin.toURI().toURL());
+    				} catch (MalformedURLException e) {
+    					e.printStackTrace();
+    				}
+    			}
+			}
+			
+			//create the url array that the classloader wants
 			urls = urlList.toArray(new URL[0]);
 			
 			if (parent == null) {
@@ -469,7 +496,9 @@ public final class ClassLoaderBuilder {
     				}
     			}
     			
-    			int topVersionNumber = Integer.valueOf(topVersion[0] + topVersion[1] + (topVersion.length > 2 ? topVersion[2] : '0')).intValue();
+                //System.out.println("AOB " + checkVers + " | " + topVersion[0] + " length: " + topVersion.length);
+    			int topVersionNumber = topVersion.length == 1 ? Integer.valueOf(topVersion[0]) : Integer.valueOf(topVersion[0] + topVersion[1] + (topVersion.length > 2 ? topVersion[2] : '0')).intValue();
+    			
     			String[] checkVersion = punct.split(checkVers);
                 //System.out.println("checkVersion (" + checkVers + "): " + checkVersion[0] + " length: " + checkVersion.length);
 
@@ -487,7 +516,7 @@ public final class ClassLoaderBuilder {
     				}
     			}
     			
-    			int checkVersionNumber = Integer.valueOf(checkVersion[0] + checkVersion[1] + (checkVersion.length > 2 ? checkVersion[2] : '0')).intValue();
+    			int checkVersionNumber = checkVersion.length == 1 ? Integer.valueOf(checkVersion[0]) : Integer.valueOf(checkVersion[0] + checkVersion[1] + (checkVersion.length > 2 ? checkVersion[2] : '0')).intValue();
     			
     			if (topVersionNumber >= checkVersionNumber) {
     				//remove it

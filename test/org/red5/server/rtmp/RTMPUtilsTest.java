@@ -21,6 +21,7 @@ package org.red5.server.rtmp;
 
 import junit.framework.TestCase;
 
+import org.junit.Test;
 import org.red5.io.utils.HexDump;
 import org.red5.server.net.rtmp.RTMPUtils;
 import org.slf4j.Logger;
@@ -76,4 +77,36 @@ public class RTMPUtilsTest extends TestCase {
 		assertEquals(-1, RTMPUtils.decodeHeaderSize(test, 1));
 	}
 
+	@Test
+	public void testDiffTimestamps()
+	{
+		int a;
+		int b;
+		
+		a = 0;
+		b = 1;
+		assertEquals(-1, RTMPUtils.diffTimestamps(a, b));
+		assertEquals(1, RTMPUtils.diffTimestamps(b, a));
+		
+		a = Integer.MAX_VALUE;
+		b = Integer.MIN_VALUE;
+		assertEquals(-1, RTMPUtils.diffTimestamps(a, b));
+		assertEquals(1, RTMPUtils.diffTimestamps(b, a));
+	
+		a = Integer.MAX_VALUE;
+		b = 0;
+		assertEquals(Integer.MAX_VALUE, RTMPUtils.diffTimestamps(a, b));
+		assertEquals(-Integer.MAX_VALUE, RTMPUtils.diffTimestamps(b, a));
+		
+		a = -1;
+		b = 0;
+		assertEquals(0xFFFFFFFFL, RTMPUtils.diffTimestamps(a, b));
+		assertEquals(-0xFFFFFFFFL, RTMPUtils.diffTimestamps(b, a));
+	
+		a = Integer.MIN_VALUE;
+		b = 0;
+		assertEquals(0x80000000L, RTMPUtils.diffTimestamps(a, b));
+		assertEquals(-0x80000000L, RTMPUtils.diffTimestamps(b, a));
+		
+	}
 }

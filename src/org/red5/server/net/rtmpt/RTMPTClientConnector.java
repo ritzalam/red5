@@ -169,8 +169,8 @@ class RTMPTClientConnector extends Thread {
 		connection.setState(state);
 
 		connection.setHandler(client);
-		connection.setDecoder(client.getCodecFactory().getSimpleDecoder());
-		connection.setEncoder(client.getCodecFactory().getSimpleEncoder());
+		connection.setDecoder(client.getCodecFactory().getRTMPDecoder());
+		connection.setEncoder(client.getCodecFactory().getRTMPEncoder());
 
 		log.debug("Handshake 1st phase");
 		IoBuffer handshake = IoBuffer.allocate(Constants.HANDSHAKE_SIZE + 1);
@@ -198,7 +198,7 @@ class RTMPTClientConnector extends Thread {
 
 	private String makeUrl(String command) {
 		// use message count from connection
-		return new StringBuffer().append('/').append(command).append('/')
+		return new StringBuilder().append('/').append(command).append('/')
 				.append(clientId).append('/').append(messageCount++).toString();
 	}
 

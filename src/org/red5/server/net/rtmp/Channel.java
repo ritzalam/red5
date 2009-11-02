@@ -119,9 +119,6 @@ public class Channel {
 		header.setTimer(event.getTimestamp());
 		header.setStreamId(streamId);
 		header.setDataType(event.getDataType());
-		if (event.getHeader() != null) {
-			header.setTimerRelative(event.getHeader().isTimerRelative());
-		}
 
 		// should use RTMPConnection specific method.. 
 		connection.write(packet);

@@ -26,15 +26,14 @@ package org.red5.server.exception;
  */
 public class ClientRejectedException extends RuntimeException {
 
-	/**
-	 *
-	 */
 	private static final long serialVersionUID = 9204597649465357898L;
-	@SuppressWarnings("all") private Object reason;
+
+	@SuppressWarnings("all") 
+	private Object reason;
 
 	/** Constructs a new ClientRejectedException. */
     public ClientRejectedException() {
-		this(null);
+		this("Client rejected");
 	}
 
     /**
@@ -42,7 +41,7 @@ public class ClientRejectedException extends RuntimeException {
      * @param reason          Rejection reason
      */
     public ClientRejectedException(Object reason) {
-		super();
+		super("Client rejected");
 		this.reason = reason;
 	}
 

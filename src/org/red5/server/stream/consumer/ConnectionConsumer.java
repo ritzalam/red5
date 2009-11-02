@@ -19,9 +19,6 @@ package org.red5.server.stream.consumer;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import org.red5.server.api.IBWControllable;
-import org.red5.server.api.IBandwidthConfigure;
-import org.red5.server.api.IConnectionBWConfig;
 import org.red5.server.api.stream.IClientStream;
 import org.red5.server.messaging.IMessage;
 import org.red5.server.messaging.IMessageComponent;
@@ -93,11 +90,7 @@ public class ConnectionConsumer implements IPushableConsumer, IPipeConnectionLis
 	 * required for h264.
 	 */
 	private boolean chunkSizeSent;
-	
-	/**
-	 * Modifies time stamps on messages as needed
-	 */
-	private TimeStamper timeStamper;
+
 
     /**
      * Create rtmp connection consumer for given connection and channels
@@ -113,15 +106,13 @@ public class ConnectionConsumer implements IPushableConsumer, IPipeConnectionLis
 		this.video = conn.getChannel(videoChannel);
 		this.audio = conn.getChannel(audioChannel);
 		this.data = conn.getChannel(dataChannel);
-		this.timeStamper = new TimeStamper();
 	}
 
 	/** {@inheritDoc} */
 	public void pushMessage(IPipe pipe, IMessage message) {
 		//log.trace("pushMessage - type: {}", message.getMessageType());
 		if (message instanceof ResetMessage) {
-			//reset timestamps
-			timeStamper.reset();
+			//ignore
 		} else if (message instanceof StatusMessage) {
 			StatusMessage statusMsg = (StatusMessage) message;
 			data.sendStatus(statusMsg.getBody());
@@ -145,14 +136,15 @@ public class ConnectionConsumer implements IPushableConsumer, IPipeConnectionLis
 			log.trace("Data type: {}", dataType);
 
 			//create a new header for the consumer
-			Header header = timeStamper.getTimeStamp(dataType, eventTime);
-
+			final Header header = new Header();
+			header.setTimerBase(eventTime);
 			switch (dataType) {
 				case Constants.TYPE_AUDIO_DATA:
 					log.trace("Audio data");
 					AudioData audioData = new AudioData(((AudioData) msg).getData().asReadOnlyBuffer());
 					audioData.setHeader(header);
 					audioData.setTimestamp(header.getTimer());
+					audioData.setSourceType(((AudioData)msg).getSourceType());
 					audio.write(audioData);
 					break;
 				case Constants.TYPE_VIDEO_DATA:
@@ -160,6 +152,7 @@ public class ConnectionConsumer implements IPushableConsumer, IPipeConnectionLis
 					VideoData videoData = new VideoData(((VideoData) msg).getData().asReadOnlyBuffer());
 					videoData.setHeader(header);
 					videoData.setTimestamp(header.getTimer());
+					videoData.setSourceType(((VideoData)msg).getSourceType());
 					video.write(videoData);
 					break;
 				case Constants.TYPE_PING:
@@ -228,31 +221,13 @@ public class ConnectionConsumer implements IPushableConsumer, IPipeConnectionLis
     		} else if ("pendingVideoCount".equals(serviceName)) {
     			IClientStream stream = conn.getStreamByChannelId(video.getId());
     			if (stream != null) {
-    				oobCtrlMsg.setResult(conn.getPendingVideoMessages(stream
-    						.getStreamId()));
+    				oobCtrlMsg.setResult(conn.getPendingVideoMessages(stream.getStreamId()));
     			} else {
     				oobCtrlMsg.setResult(0L);
     			}
     		} else if ("writeDelta".equals(serviceName)) {
-    			long maxStream = 0;
-    			IBWControllable bwControllable = conn;
-    			// Search FC containing valid BWC
-    			while (bwControllable != null && bwControllable.getBandwidthConfigure() == null) {
-    				bwControllable = bwControllable.getParentBWControllable();
-    			}
-    			if (bwControllable != null && bwControllable.getBandwidthConfigure() != null) {
-    				IBandwidthConfigure bwc = bwControllable.getBandwidthConfigure();
-    				if (bwc instanceof IConnectionBWConfig) {
-    					maxStream = ((IConnectionBWConfig) bwc).getDownstreamBandwidth() / 8;
-    				}
-    			}
-    			if (maxStream <= 0) {
-    				// Use default value
-    				// TODO: this should be configured somewhere and sent to the
-    				// client when connecting
-    				maxStream = 120 * 1024;
-    			}
-    			
+    			//TODO: Revisit the max stream value later
+    			long maxStream = 120 * 1024;
     			// Return the current delta between sent bytes and bytes the client
     			// reported to have received, and the interval the client should use
     			// for generating BytesRead messages (half of the allowed bandwidth).
@@ -276,102 +251,4 @@ public class ConnectionConsumer implements IPushableConsumer, IPipeConnectionLis
 		conn.getChannel((byte) 2).write(chunkSizeMsg);		
 		chunkSizeSent = true;
 	}    
-    	
-	private final class TimeStamper {
-		
-		//stores timestamp for last event
-		private int lastEventTime = 0;
-		
-		//timestamp of last audio packet
-		private int lastAudioTime = 0;
-		
-		//timestamp of last video packet
-		private int lastVideoTime = 0;
-		
-		//timestamp of last notify or invoke
-		private int lastNotifyTime = 0;
-	
-		/**
-		 * Reset timestamps
-		 */
-		public void reset() {
-			log.debug("Reset");
-	        lastEventTime = 0;	
-		    lastAudioTime = 0;
-		    lastNotifyTime = 0;
-		    lastVideoTime = 0;	
-		}
-
-		/**
-		 * Returns a header with the appropriate timestamp.
-		 * 
-		 * @param dataType the type
-		 * @param eventTime the event time
-		 * @return a header
-		 */
-		public Header getTimeStamp(byte dataType, int eventTime) {
-			Header header = new Header();
-			log.trace("getTimeStamp - event time: {} last event: {} audio: {} video: {} data: {}", new Object[]{eventTime, lastEventTime, lastAudioTime, lastVideoTime, lastNotifyTime});
-			
-			switch (dataType) {
-				case Constants.TYPE_AUDIO_DATA:
-					if (lastAudioTime > 0) {
-            			//set a relative value
-						header.setTimer(eventTime - lastAudioTime);
-						log.trace("Relative audio");
-					} else {
-						//use absolute value
-						header.setTimer(eventTime);
-						header.setTimerRelative(false);
-						log.trace("Absolute audio");
-					}
-        			lastAudioTime = eventTime;
-					break;
-				case Constants.TYPE_VIDEO_DATA:
-					if (lastVideoTime > 0) {
-            			//set a relative value
-						header.setTimer(eventTime - lastVideoTime);
-						log.trace("Relative video");
-					} else {
-						//use absolute value
-						header.setTimer(eventTime);						
-						header.setTimerRelative(false);
-						log.trace("Absolute video");
-					}
-        			lastVideoTime = eventTime;
-        			break;
-				case Constants.TYPE_NOTIFY:
-				case Constants.TYPE_INVOKE:
-				case Constants.TYPE_FLEX_STREAM_SEND:
-					if (lastNotifyTime > 0) {
-            			//set a relative value
-						header.setTimer(eventTime - lastNotifyTime);
-						log.trace("Relative notify");
-					} else {
-						//use absolute value
-						header.setTimer(eventTime);
-						header.setTimerRelative(false);
-						log.trace("Absolute notify");
-					}
-        			lastNotifyTime = eventTime;
-					break;
-				case Constants.TYPE_BYTES_READ:
-				case Constants.TYPE_PING:
-					header.setTimer(eventTime);
-					header.setTimerRelative(false);
-					break;
-				default:
-					// ignore other types
-					log.trace("Unmodified type: {} timestamp: {}", dataType, eventTime);
-					break;					
-			}
-					
-			log.trace("Event time: {} current ts: {}", new Object[]{eventTime, header.getTimer()});
-			lastEventTime = eventTime;
-			
-			return header;
-		}
-		
-	}
-	
 }

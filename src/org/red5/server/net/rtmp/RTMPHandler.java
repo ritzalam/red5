@@ -328,8 +328,11 @@ public class RTMPHandler extends BaseRTMPHandler {
 									if (call instanceof IPendingServiceCall) {
 										IPendingServiceCall pc = (IPendingServiceCall) call;
 										StatusObject status = getStatus(NC_CONNECT_REJECTED);
-										if (rejected.getReason() != null) {
-											status.setApplication(rejected.getReason());
+										Object reason = rejected.getReason();
+										if (reason != null) {
+											status.setApplication(reason);
+											//should we set description?
+											status.setDescription(reason.toString());
 										}
 										pc.setResult(status);
 									}
@@ -459,6 +462,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 					if (stream != null) {
 						stream.setClientBufferDuration(buffer);
 						log.debug("Client sent a buffer size: {} ms for stream id: {}", buffer, streamId);
+						log.trace("Stream type: {}", stream.getClass().getName());
 					}
 				} 
 				//catch-all to make sure buffer size is set
@@ -492,7 +496,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 		msg.addEvent(new SharedObjectEvent(
 				ISharedObjectEvent.Type.CLIENT_STATUS, "error",
 				SO_CREATION_FAILED));
-		conn.getChannel((byte) 3).write(msg);
+		conn.getChannel(3).write(msg);
 	}
 
 	/** {@inheritDoc} */
@@ -534,7 +538,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 			msg.addEvent(new SharedObjectEvent(
 					ISharedObjectEvent.Type.CLIENT_STATUS, "error",
 					SO_PERSISTENCE_MISMATCH));
-			conn.getChannel((byte) 3).write(msg);
+			conn.getChannel(3).write(msg);
 		}
 		so.dispatchEvent(object);
 	}

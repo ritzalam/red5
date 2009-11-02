@@ -21,14 +21,11 @@ package org.red5.server.net.remoting.codec;
 
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Serializer;
-import org.red5.server.net.protocol.SimpleProtocolCodecFactory;
-import org.red5.server.net.protocol.SimpleProtocolDecoder;
-import org.red5.server.net.protocol.SimpleProtocolEncoder;
 
 /**
  * Factory for remoting codec
  */
-public class RemotingCodecFactory implements SimpleProtocolCodecFactory {
+public class RemotingCodecFactory {
     /**
      * Deserializer
      */
@@ -75,12 +72,12 @@ public class RemotingCodecFactory implements SimpleProtocolCodecFactory {
 	}
 
 	/** {@inheritDoc} */
-    public SimpleProtocolDecoder getSimpleDecoder() {
+    public RemotingProtocolDecoder getRemotingDecoder() {
 		return decoder;
 	}
 
 	/** {@inheritDoc} */
-    public SimpleProtocolEncoder getSimpleEncoder() {
+    public RemotingProtocolEncoder getRemotingEncoder() {
 		return encoder;
 	}
 

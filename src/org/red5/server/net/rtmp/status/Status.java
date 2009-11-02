@@ -70,7 +70,6 @@ implements StatusCodes, ICustomSerializable, Externalizable {
 
 	/** Constructs a new Status. */
     public Status() {
-
 	}
 
     /**

@@ -56,9 +56,6 @@ public class PlaylistSubscriberStreamTest extends AbstractDependencyInjectionSpr
 		System.setProperty("red5.deployment.type", "junit");
 		if (pss == null) {
 			pss = (PlaylistSubscriberStream) applicationContext.getBean("playlistSubscriberStream");
-			//
-			pss.setBandwidthController((IBWControlService) applicationContext.getBean(IBWControlService.KEY));
-			//
 			Context ctx = new Context();
 			ctx.setApplicationContext(applicationContext);
 			Scope scope = new DummyScope();

@@ -1,4 +1,4 @@
-package org.red5.server.stream;
+package org.red5.server.net.filter;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -19,17 +19,11 @@ package org.red5.server.stream;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-import org.red5.server.api.IBWControllable;
-
 /**
- * The registry context for a controllable.
- * @author Steven Gong (steven.gong@gmail.com)
- * @version $Id$
+ * Estimates the amount of memory that the specified object occupies in the VM.
+ * <br />
+ * This originated from the Mina sandbox.
  */
-public interface IBWControlContext {
-	/**
-	 * Return the controllable that registered.
-	 * @return controllabe
-	 */
-	IBWControllable getBWControllable();
+public interface MessageSizeEstimator {
+	int estimateSize(Object message);
 }

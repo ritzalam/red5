@@ -68,19 +68,19 @@ public interface IRTMPEvent extends IEvent {
     public void setTimestamp(int timestamp);
     
 	/**
-     * Getter for extended timestamp
+     * Getter for source type
      *
-     * @return  Event extended timestamp
+     * @return  Source type
      */
-    public int getExtendedTimestamp();
+    public byte getSourceType();    
 
 	/**
-     * Setter for extended timestamp
+     * Setter for source type
      *
-     * @param timestamp  New event extended timestamp
+     * @param sourceType 
      */
-    public void setExtendedTimestamp(int timestamp);
-
+    public void setSourceType(byte sourceType);
+        
     /**
      * Retain event
      */

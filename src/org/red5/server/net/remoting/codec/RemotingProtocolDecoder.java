@@ -27,19 +27,17 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.mina.core.buffer.IoBuffer;
-import org.apache.mina.core.session.IoSession;
 import org.red5.io.amf.AMF;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Input;
 import org.red5.server.net.protocol.ProtocolState;
-import org.red5.server.net.protocol.SimpleProtocolDecoder;
 import org.red5.server.net.remoting.FlexMessagingService;
 import org.red5.server.net.remoting.message.RemotingCall;
 import org.red5.server.net.remoting.message.RemotingPacket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
+public class RemotingProtocolDecoder {
     /**
      * Logger
      */
@@ -83,16 +81,6 @@ public class RemotingProtocolDecoder implements SimpleProtocolDecoder {
 		Map<String, Object> headers = readHeaders(in);
 		List<RemotingCall> calls = decodeCalls(in);
 		return new RemotingPacket(headers, calls);
-	}
-
-    /**
-     * Disposes session. Not yet implemented.
-	 *
-     * @param session          Session to dispose
-     * @throws Exception       Any exception can be raised on disposal
-     */
-    public void dispose(IoSession session) throws Exception {
-		// TODO Auto-generated method stub
 	}
 
     /**

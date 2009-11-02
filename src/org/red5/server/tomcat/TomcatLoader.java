@@ -491,10 +491,8 @@ public class TomcatLoader extends LoaderBase implements
 				if (cont instanceof StandardContext) {
 					StandardContext ctx = (StandardContext) cont;
 
-					final ServletContext servletContext = ctx
-							.getServletContext();
-					log.debug("Context initialized: {}", servletContext
-							.getContextPath());
+					final ServletContext servletContext = ctx.getServletContext();
+					log.debug("Context initialized: {}", servletContext.getContextPath());
 
 					String prefix = servletContext.getRealPath("/");
 					log.debug("Path: {}", prefix);						
@@ -528,37 +526,47 @@ public class TomcatLoader extends LoaderBase implements
 								? defaultParentContextKey
 								: servletContext.getInitParameter(org.springframework.web.context.ContextLoader.LOCATOR_FACTORY_KEY_PARAM);
 						log.debug("Spring parent context key: {}", parentContextKey);
-
+						
 						//set current threads classloader to the webapp classloader
 						Thread.currentThread().setContextClassLoader(webClassLoader);						
 						
 						//create a thread to speed-up application loading
-						Thread thread = new Thread("Launcher:" + servletContext
-								.getContextPath()) {
+						Thread thread = new Thread("Launcher:" + servletContext.getContextPath()) {
 							public void run() {
 								//set thread context classloader to web classloader
 								Thread.currentThread().setContextClassLoader(webClassLoader);
+								//get the web app's parent context
+								ApplicationContext parentContext = null;
+								if (applicationContext.containsBean(parentContextKey)) {
+									parentContext = (ApplicationContext) applicationContext.getBean(parentContextKey);
+								} else {
+									log.warn("Parent context was not found: {}", parentContextKey);
+								}								
 								// create a spring web application context
 								final String contextClass = servletContext.getInitParameter(org.springframework.web.context.ContextLoader.CONTEXT_CLASS_PARAM) == null 
 									? XmlWebApplicationContext.class.getName()
 									: servletContext.getInitParameter(org.springframework.web.context.ContextLoader.CONTEXT_CLASS_PARAM);
-									ConfigurableWebApplicationContext appctx = null;
+								//web app context (spring)
+								ConfigurableWebApplicationContext appctx = null;
 								try {
 									Class<?> clazz = Class.forName(contextClass, true, webClassLoader);
 									appctx = (ConfigurableWebApplicationContext) clazz.newInstance();
 								} catch (Throwable e) {
 									throw new RuntimeException("Failed to load webapplication context class.",e);
 								}
-								appctx.setConfigLocations(new String[] { contextConfigLocation });
-								appctx.setParent((ApplicationContext) applicationContext
-										.getBean(parentContextKey));
+								appctx.setConfigLocations(new String[]{contextConfigLocation});
 								appctx.setServletContext(servletContext);
-								//refresh the factory
-								log.debug("Classloader prior to refresh: {}", appctx.getClassLoader());
-								appctx.refresh();
-								// set the root webapp ctx attr on the each
-								// servlet context so spring can find it later
+								//set parent context or use current app context
+								if (parentContext != null) {
+									appctx.setParent(parentContext);
+								} else {
+									appctx.setParent(applicationContext);
+								}
+								// set the root webapp ctx attr on the each servlet context so spring can find it later
 								servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, appctx);
+								//refresh the factory
+								log.trace("Classloader prior to refresh: {}", appctx.getClassLoader());
+								appctx.refresh();
 								if (log.isDebugEnabled()) {
 									log.debug("Red5 app is active: {} running: {}", appctx.isActive(), appctx.isRunning());
 								}																
@@ -747,8 +755,7 @@ public class TomcatLoader extends LoaderBase implements
 					appctx.setServletContext(servletContext);
 					// set the root webapp ctx attr on the each
 					// servlet context so spring can find it later
-					servletContext.setAttribute(
-							WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, appctx);
+					servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, appctx);
 					appctx.refresh();
 				}
 			};

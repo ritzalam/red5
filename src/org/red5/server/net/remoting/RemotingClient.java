@@ -23,6 +23,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpConnectionManager;
@@ -36,19 +38,19 @@ import org.red5.io.object.Deserializer;
 import org.red5.io.object.RecordSet;
 import org.red5.io.object.Serializer;
 import org.red5.server.net.servlet.ServletUtils;
-import org.red5.server.pooling.ThreadPool;
 import org.red5.server.pooling.Worker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 
 /**
  * Client interface for remoting calls.
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
- * 
+ * @author Paul Gregoire (mondain@gmail.com)
  */
-public class RemotingClient {
+public class RemotingClient implements InitializingBean {
 	/**
 	 * Logger
 	 */
@@ -76,13 +78,15 @@ public class RemotingClient {
 	protected Map<String, RemotingHeader> headers = new ConcurrentHashMap<String, RemotingHeader>();
 
 	/** Thread pool to use for asynchronous requests. */
-	protected static ThreadPool threadPool;
+	protected static ExecutorService executor;
+	
+	/** Maximum pool threads */
+	private int poolSize = 1;
 
 	/**
 	 * Dummy constructor used by the spring configuration.
 	 */
 	public RemotingClient() {
-		// Do nothing.
 		log.debug("RemotingClient created");
 	}
 
@@ -127,20 +131,22 @@ public class RemotingClient {
 	 */
 	public RemotingClient(String url, int timeout, HttpConnectionManager mgr) {
 		client = new HttpClient(mgr);
-		client.getHttpConnectionManager().getParams().setConnectionTimeout(
-				timeout);
+		client.getHttpConnectionManager().getParams().setConnectionTimeout(timeout);
 		this.url = url;
 		log.debug("RemotingClient created  - url: {} timeout: {} http manager: {}", new Object[]{url, timeout, mgr});
 	}
+	
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		executor = Executors.newFixedThreadPool(poolSize);
+	}
+	
+	public int getPoolSize() {
+		return poolSize;
+	}
 
-	/**
-	 * Set the thread pool to use for asynchronous requests.
-	 * 
-	 * @param threadPool The thread pool
-	 */
-	public void setThreadPool(ThreadPool threadPool) {
-		RemotingClient.threadPool = threadPool;
-		log.debug("RemotingClient thread pool: {}", threadPool);
+	public void setPoolSize(int poolSize) {
+		this.poolSize = poolSize;
 	}	
 	
 	/**
@@ -278,8 +284,7 @@ public class RemotingClient {
 		processHeaders(data);
 		int count = data.getUnsignedShort();
 		if (count != 1) {
-			throw new RuntimeException("Expected exactly one result but got "
-					+ count);
+			throw new RuntimeException("Expected exactly one result but got " + count);
 		}
 
 		Input input = new Input(data);
@@ -303,8 +308,7 @@ public class RemotingClient {
 		Map<String, String> data = new HashMap<String, String>();
 		data.put("userid", userid);
 		data.put("password", password);
-		RemotingHeader header = new RemotingHeader(RemotingHeader.CREDENTIALS,
-				true, data);
+		RemotingHeader header = new RemotingHeader(RemotingHeader.CREDENTIALS, true, data);
 		headers.put(RemotingHeader.CREDENTIALS, header);
 	}
 
@@ -348,21 +352,16 @@ public class RemotingClient {
 		PostMethod post = new PostMethod(this.url + appendToUrl);
 		IoBuffer resultBuffer = null;
 		IoBuffer data = encodeInvoke(method, params);
-		post.setRequestEntity(new InputStreamRequestEntity(
-				data.asInputStream(), data.limit(), CONTENT_TYPE));
+		post.setRequestEntity(new InputStreamRequestEntity(data.asInputStream(), data.limit(), CONTENT_TYPE));
 		try {
 			log.debug("Client: {}", client);
 			int resultCode = client.executeMethod(post);
 			log.debug("Result code: {}", resultCode);
 			if (resultCode / 100 != 2) {
-				throw new RuntimeException(
-						"Didn't receive success from remoting server.");
+				throw new RuntimeException("Didn't receive success from remoting server.");
 			}
-
-			resultBuffer = IoBuffer.allocate((int) post
-					.getResponseContentLength());
-			ServletUtils.copy(post.getResponseBodyAsStream(), resultBuffer
-					.asOutputStream());
+			resultBuffer = IoBuffer.allocate((int) post.getResponseContentLength());
+			ServletUtils.copy(post.getResponseBodyAsStream(), resultBuffer.asOutputStream());
 			resultBuffer.flip();
 			Object result = decodeResult(resultBuffer);
 			if (result instanceof RecordSet) {
@@ -391,24 +390,17 @@ public class RemotingClient {
 	 * @param methodParams Parameters passed to method
 	 * @param callback Callback
 	 */
-	public void invokeMethod(String method, Object[] methodParams,
-			IRemotingCallback callback) {
-		if (threadPool == null) {
-			throw new RuntimeException("No thread pool configured.");
-		}
-
+	public void invokeMethod(String method, Object[] methodParams, IRemotingCallback callback) {
 		try {
-			Object[] params = new Object[] { this, method, methodParams,
-					callback };
-			Class<?>[] paramTypes = new Class[] { RemotingClient.class,
-					String.class, Object[].class, IRemotingCallback.class };
+			Object[] params = new Object[]{this, method, methodParams, callback};
+			Class<?>[] paramTypes = new Class[]{RemotingClient.class, String.class, Object[].class, IRemotingCallback.class};
 
 			Worker worker = new Worker();
 			worker.setClassName("org.red5.server.net.remoting.RemotingClient$RemotingWorker");
 			worker.setMethodName("executeTask");
 			worker.setMethodParams(params);
 			worker.setParamTypes(paramTypes);
-			threadPool.execute(worker);
+			executor.execute(worker);
 		} catch (Exception err) {
 			log.warn("Exception invoking method: {}", method, err);
 		}
@@ -427,8 +419,7 @@ public class RemotingClient {
 		 * @param params Parameters to pass to method on call
 		 * @param callback Callback
 		 */
-		public void executeTask(RemotingClient client, String method,
-				Object[] params, IRemotingCallback callback) {
+		public void executeTask(RemotingClient client, String method, Object[] params, IRemotingCallback callback) {
 			try {
 				Object result = client.invokeMethod(method, params);
 				callback.resultReceived(client, method, params, result);

@@ -94,24 +94,20 @@ public class SharedObjectService implements ISharedObjectService {
 		// Evaluate configuration for persistent shared objects
 		if (!scope.hasAttribute(SO_PERSISTENCE_STORE)) {
 			try {
-				store = PersistenceUtils.getPersistenceStore(scope,
-						persistenceClassName);
+				store = PersistenceUtils.getPersistenceStore(scope,	persistenceClassName);
 				log.info("Created persistence store {} for shared objects.", store);
 			} catch (Exception err) {
-				log.error("Could not create persistence store for shared objects, falling back to Ram persistence.",
-						err);
+				log.warn("Could not create persistence store ({}) for shared objects, falling back to Ram persistence.", persistenceClassName, err);
 				store = new RamPersistence(scope);
 			}
 			scope.setAttribute(SO_PERSISTENCE_STORE, store);
 			return store;
 		}
-
 		return (IPersistenceStore) scope.getAttribute(SO_PERSISTENCE_STORE);
 	}
 
 	/** {@inheritDoc} */
-	public boolean createSharedObject(IScope scope, String name,
-			boolean persistent) {
+	public boolean createSharedObject(IScope scope, String name, boolean persistent) {
 		if (hasSharedObject(scope, name)) {
 			// The shared object already exists.
 			return true;
@@ -129,8 +125,7 @@ public class SharedObjectService implements ISharedObjectService {
 	}
 
 	/** {@inheritDoc} */
-	public ISharedObject getSharedObject(IScope scope, String name,
-			boolean persistent) {
+	public ISharedObject getSharedObject(IScope scope, String name,	boolean persistent) {
 		synchronized (scope) {
 			if (!hasSharedObject(scope, name)) {
 				createSharedObject(scope, name, persistent);
@@ -151,6 +146,8 @@ public class SharedObjectService implements ISharedObjectService {
 
 	/** {@inheritDoc} */
 	public boolean hasSharedObject(IScope scope, String name) {
+		//Scope.hasChildScope uses a Reentrant lock and thus does not require
+		//any additional synchronization
 		return scope.hasChildScope(TYPE, name);
 	}
 
@@ -175,8 +172,7 @@ public class SharedObjectService implements ISharedObjectService {
 				// are cleared.
 				// if (name.equals('/')) {
 				// }
-				result = ((ISharedObject) scope.getBasicScope(TYPE, name))
-						.clear();
+				result = ((ISharedObject) scope.getBasicScope(TYPE, name)).clear();
 			}
 		}
 		return result;

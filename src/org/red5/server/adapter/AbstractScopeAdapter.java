@@ -140,7 +140,6 @@ public abstract class AbstractScopeAdapter implements IScopeHandler {
 
 	/** {@inheritDoc} */
     public void removeChildScope(IBasicScope scope) {
-		// TODO Auto-generated method stub	
 	}
 
 	/** {@inheritDoc} */

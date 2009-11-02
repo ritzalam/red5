@@ -36,6 +36,8 @@
 		<property name="useShutdownHook" value="false" />
 	</bean>	
 	
+    	<bean id="pluginLauncher" class="org.red5.server.plugin.PluginLauncher" />
+	
 	<!-- Now we can load the servlet engine, this has to happen after the context are loaded -->
 	<!-- Jetty servlet engine / http server -->
 <!--

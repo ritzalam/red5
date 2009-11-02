@@ -540,8 +540,8 @@ public class RTMPTServlet extends HttpServlet {
 		RTMPTConnection conn = (RTMPTConnection) rtmpConnManager
 				.createConnection(RTMPTConnection.class);
 		conn.setHandler(handler);
-		conn.setDecoder(handler.getCodecFactory().getSimpleDecoder());
-		conn.setEncoder(handler.getCodecFactory().getSimpleEncoder());
+		conn.setDecoder(handler.getCodecFactory().getRTMPDecoder());
+		conn.setEncoder(handler.getCodecFactory().getRTMPEncoder());
 		handler.connectionOpened(conn, conn.getState());
 		return conn;
 	}

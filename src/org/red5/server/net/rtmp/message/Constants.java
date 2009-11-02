@@ -28,6 +28,16 @@ import java.util.List;
 @SuppressWarnings("serial")
 public interface Constants {
 
+	/**
+	 * Data originated from a file.
+	 */
+	public static final byte SOURCE_TYPE_VOD = 0x0;
+
+	/**
+	 * Data originated from a live encoder or stream.
+	 */	
+	public static final byte SOURCE_TYPE_LIVE = 0x01;	
+	
     /**
      * Medium integer max value
      */

@@ -21,16 +21,13 @@ package org.red5.server.stream;
 
 import java.lang.ref.WeakReference;
 
-import org.red5.server.api.IBWControllable;
-import org.red5.server.api.IBandwidthConfigure;
 import org.red5.server.api.stream.IClientStream;
 import org.red5.server.api.stream.IStreamCapableConnection;
 
 /**
  * Abstract base for client streams
  */
-public abstract class AbstractClientStream extends AbstractStream implements
-		IClientStream {
+public abstract class AbstractClientStream extends AbstractStream implements IClientStream {
 
     /**
      *  Stream identifier. Unique across server.
@@ -40,10 +37,7 @@ public abstract class AbstractClientStream extends AbstractStream implements
      *  Connection that works with streams
      */
 	private WeakReference<IStreamCapableConnection> conn;
-    /**
-     *  Bandwidth configuration
-     */
-	private IBandwidthConfigure bwConfig;
+
 	/**
 	 * Buffer duration in ms as requested by the client
 	 */
@@ -63,30 +57,6 @@ public abstract class AbstractClientStream extends AbstractStream implements
      */
 	public IStreamCapableConnection getConnection() {
 		return conn.get();
-	}
-
-    /**
-     * Return stream bandwidth configuration
-     * @return            Bandwidth config
-     */
-	public IBandwidthConfigure getBandwidthConfigure() {
-		return bwConfig;
-	}
-
-    /**
-     * Setter for bandwidth config
-     * @param config              Bandwidth config
-     */
-	public void setBandwidthConfigure(IBandwidthConfigure config) {
-		this.bwConfig = config;
-	}
-
-    /**
-     * Return parent flow controllable object (bandwidth preferences holder)
-     * @return          IFlowControllable object
-     */
-	public IBWControllable getParentBWControllable() {
-		return conn == null ? null : conn.get();
 	}
 
     /**
@@ -117,8 +87,6 @@ public abstract class AbstractClientStream extends AbstractStream implements
 	 */
 	public int getClientBufferDuration() {
 		return clientBufferDuration;
-	}
-	
-	
+	}	
 	
 }

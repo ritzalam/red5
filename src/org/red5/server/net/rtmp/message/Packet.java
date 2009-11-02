@@ -37,20 +37,21 @@ public class Packet implements Externalizable {
 	/**
      * Header
      */
-	protected Header header;
+	private Header header;
     
 	/**
      * RTMP event
      */
-	protected IRTMPEvent message;
+	private IRTMPEvent message;
     
 	/**
      * Packet data
      */
-	protected IoBuffer data;
+	private IoBuffer data;
 
 	public Packet() {
 		data = null;
+		header = null;
 	}
     /**
      * Create packet with given header
@@ -58,8 +59,7 @@ public class Packet implements Externalizable {
      */
     public Packet(Header header) {
 		this.header = header;
-		data = IoBuffer.allocate(header.getSize()
-				+ (header.getTimer() == 0xffffff ? 4 : 0), false);
+		data = IoBuffer.allocate(header.getSize(), false);
 		// Workaround for SN-19: BufferOverflowException
 		// Size is checked in RTMPProtocolDecoder
 		data.setAutoExpand(true);

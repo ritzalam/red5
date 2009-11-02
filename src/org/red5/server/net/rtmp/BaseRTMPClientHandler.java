@@ -118,7 +118,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 		codecFactory.setSerializer(new Serializer());
 		codecFactory.init();
 	}
-	
+
 	public RTMPClientConnManager getConnManager() {
 		return connManager;
 	}
@@ -149,8 +149,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 	 * @param application Application at that server
 	 */
 	public void connect(String server, int port, String application) {
-		log.debug("connect server: {} port {} application {}", new Object[] {
-				server, port, application });
+		log.debug("connect server: {} port {} application {}", new Object[] { server, port, application });
 		connect(server, port, application, null);
 	}
 
@@ -163,14 +162,11 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 	 * @param application Application at that server
 	 * @param connectCallback Connection callback
 	 */
-	public void connect(String server, int port, String application,
-			IPendingServiceCallback connectCallback) {
-		log.debug(
-				"connect server: {} port {} application {} connectCallback {}",
-				new Object[] { server, port, application, connectCallback });
+	public void connect(String server, int port, String application, IPendingServiceCallback connectCallback) {
+		log.debug("connect server: {} port {} application {} connectCallback {}", new Object[] { server, port,
+				application, connectCallback });
 
-		connect(server, port, makeDefaultConnectionParams(server, port,
-				application), connectCallback);
+		connect(server, port, makeDefaultConnectionParams(server, port, application), connectCallback);
 	}
 
 	/**
@@ -179,8 +175,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 	 * @param application Application at that server
 	 * @return default connection parameters
 	 */
-	public Map<String, Object> makeDefaultConnectionParams(String server,
-			int port, String application) {
+	public Map<String, Object> makeDefaultConnectionParams(String server, int port, String application) {
 		Map<String, Object> params = new ObjectMap<String, Object>();
 		params.put("app", application);
 		params.put("objectEncoding", Integer.valueOf(0));
@@ -204,10 +199,8 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 	 * @param port Connection port
 	 * @param connectionParams Connection parameters
 	 */
-	public void connect(String server, int port,
-			Map<String, Object> connectionParams) {
-		log.debug("connect server: {} port {} connectionParams {}",
-				new Object[] { server, port, connectionParams });
+	public void connect(String server, int port, Map<String, Object> connectionParams) {
+		log.debug("connect server: {} port {} connectionParams {}", new Object[] { server, port, connectionParams });
 		connect(server, port, connectionParams, null);
 	}
 
@@ -219,8 +212,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 	 * @param connectionParams Connection parameters
 	 * @param connectCallback Connection callback
 	 */
-	public void connect(String server, int port,
-			Map<String, Object> connectionParams,
+	public void connect(String server, int port, Map<String, Object> connectionParams,
 			IPendingServiceCallback connectCallback) {
 		connect(server, port, connectionParams, connectCallback, null);
 	}
@@ -234,15 +226,11 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 	 * @param connectCallback Connection callback
 	 * @param connectCallArguments Arguments for 'connect' call
 	 */
-	public void connect(String server, int port,
-			Map<String, Object> connectionParams,
-			IPendingServiceCallback connectCallback,
-			Object[] connectCallArguments) {
+	public void connect(String server, int port, Map<String, Object> connectionParams,
+			IPendingServiceCallback connectCallback, Object[] connectCallArguments) {
 		log
-				.debug(
-						"connect server: {} port {} connectionParams {} connectCallback {} conectCallArguments {}",
-						new Object[] { server, port, connectionParams,
-								connectCallback,
+				.debug("connect server: {} port {} connectionParams {} connectCallback {} conectCallArguments {}",
+						new Object[] { server, port, connectionParams, connectCallback,
 								Arrays.toString(connectCallArguments) });
 
 		this.connectionParams = connectionParams;
@@ -273,10 +261,8 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 	 * @param persistent SO persistence flag
 	 * @return Client shared object instance
 	 */
-	public synchronized IClientSharedObject getSharedObject(String name,
-			boolean persistent) {
-		log.debug("getSharedObject name: {} persistent {}", new Object[] {
-				name, persistent });
+	public synchronized IClientSharedObject getSharedObject(String name, boolean persistent) {
+		log.debug("getSharedObject name: {} persistent {}", new Object[] { name, persistent });
 		ClientSharedObject result = sharedObjects.get(name);
 		if (result != null) {
 			if (result.isPersistentObject() != persistent) {
@@ -293,8 +279,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 
 	/** {@inheritDoc} */
 	@Override
-	protected void onChunkSize(RTMPConnection conn, Channel channel,
-			Header source, ChunkSize chunkSize) {
+	protected void onChunkSize(RTMPConnection conn, Channel channel, Header source, ChunkSize chunkSize) {
 		log.debug("onChunkSize");
 		// TODO: implement this
 		log.info("ChunkSize is not implemented yet: {}", chunkSize);
@@ -316,7 +301,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 				pong.setValue2(now);
 				conn.ping(pong);
 				break;
-			case Ping.STREAM_DRY: 
+			case Ping.STREAM_DRY:
 				log.debug("Stream indicates there is no data available");
 				break;
 			case Ping.CLIENT_BUFFER:
@@ -334,13 +319,13 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 						stream.setClientBufferDuration(buffer);
 						log.info("Setting client buffer on stream: {}", buffer);
 					}
-				} 
+				}
 				//catch-all to make sure buffer size is set
 				if (stream == null) {
 					// Remember buffer time until stream is created
 					conn.rememberStreamBufferDuration(streamId, buffer);
 					log.info("Remembering client buffer on stream: {}", buffer);
-				}				
+				}
 				break;
 			default:
 				log.warn("Unhandled ping: {}", ping);
@@ -349,8 +334,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 
 	/** {@inheritDoc} */
 	@Override
-	protected void onSharedObject(RTMPConnection conn, Channel channel,
-			Header source, SharedObjectMessage object) {
+	protected void onSharedObject(RTMPConnection conn, Channel channel, Header source, SharedObjectMessage object) {
 		log.debug("onSharedObject");
 		ClientSharedObject so = sharedObjects.get(object.getName());
 		if (so == null) {
@@ -372,8 +356,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 	 * @param callback Callback handler
 	 */
 	public void invoke(String method, IPendingServiceCallback callback) {
-		log.debug("invoke method: {} params {} callback {}", new Object[] {
-				method, callback });
+		log.debug("invoke method: {} params {} callback {}", new Object[] { method, callback });
 		// get it from the conn manager
 		RTMPConnection conn = connManager.getConnection();
 		if (conn == null) {
@@ -390,10 +373,8 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 	 * @param params Method call parameters
 	 * @param callback Callback object
 	 */
-	public void invoke(String method, Object[] params,
-			IPendingServiceCallback callback) {
-		log.debug("invoke method: {} params {} callback {}", new Object[] {
-				method, params, callback });
+	public void invoke(String method, Object[] params, IPendingServiceCallback callback) {
+		log.debug("invoke method: {} params {} callback {}", new Object[] { method, params, callback });
 		// get it from the conn manager
 		RTMPConnection conn = connManager.getConnection();
 		if (conn == null) {
@@ -422,10 +403,8 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 		invoke("createStream", null, wrapper);
 	}
 
-	public void publish(int streamId, String name, String mode,
-			INetStreamEventHandler handler) {
-		log.debug("publish stream {}, name: {}, mode {}", new Object[] {
-				streamId, name, mode });
+	public void publish(int streamId, String name, String mode, INetStreamEventHandler handler) {
+		log.debug("publish stream {}, name: {}, mode {}", new Object[] { streamId, name, mode });
 		RTMPConnection conn = connManager.getConnection();
 		Object[] params = new Object[2];
 		params[0] = name;
@@ -442,8 +421,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 
 	public void unpublish(int streamId) {
 		log.debug("unpublish stream {}", streamId);
-		PendingCall pendingCall = new PendingCall("publish",
-				new Object[] { false });
+		PendingCall pendingCall = new PendingCall("publish", new Object[] { false });
 		connManager.getConnection().invoke(pendingCall, getChannelForStreamId(streamId));
 	}
 
@@ -455,8 +433,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 	}
 
 	public void play(int streamId, String name, int start, int length) {
-		log.debug("play stream {}, name: {}, start {}, length {}",
-				new Object[] { streamId, name, start, length });
+		log.debug("play stream {}, name: {}, start {}, length {}", new Object[] { streamId, name, start, length });
 		RTMPConnection conn = connManager.getConnection();
 		if (conn == null) {
 			log.info("Connection was null ?");
@@ -484,8 +461,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 			pendingCall.registerCallback(connectCallback);
 		}
 		conn.registerPendingCall(invoke.getInvokeId(), pendingCall);
-		log.debug("Writing 'connect' invoke: {}, invokeId: {}", invoke, invoke
-				.getInvokeId());
+		log.debug("Writing 'connect' invoke: {}, invokeId: {}", invoke, invoke.getInvokeId());
 		channel.write(invoke);
 	}
 
@@ -500,23 +476,20 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 
 	/** {@inheritDoc} */
 	@Override
-	protected void onInvoke(RTMPConnection conn, Channel channel,
-			Header source, Notify invoke, RTMP rtmp) {
+	protected void onInvoke(RTMPConnection conn, Channel channel, Header source, Notify invoke, RTMP rtmp) {
 		if (invoke.getType() == IEvent.Type.STREAM_DATA) {
 			log.debug("Ignoring stream data notify with header: {}", source);
 			return;
 		}
 		log.debug("onInvoke: {}, invokeId: {}", invoke, invoke.getInvokeId());
 		final IServiceCall call = invoke.getCall();
-		if (call.getServiceMethodName().equals("_result")
-				|| call.getServiceMethodName().equals("_error")) {
-			final IPendingServiceCall pendingCall = conn.getPendingCall(invoke
-					.getInvokeId());
+		String methodName = call.getServiceMethodName();
+		if ("_result".equals(methodName) || "_error".equals(methodName)) {
+			final IPendingServiceCall pendingCall = conn.getPendingCall(invoke.getInvokeId());
 			log.debug("Received result for pending call {}", pendingCall);
 			if (pendingCall != null) {
 				if ("connect".equals(pendingCall.getServiceMethodName())) {
-					Integer encoding = (Integer) connectionParams
-							.get("objectEncoding");
+					Integer encoding = (Integer) connectionParams.get("objectEncoding");
 					if (encoding != null && encoding.intValue() == 3) {
 						log.debug("set encoding to AMF3");
 						rtmp.setEncoding(IConnection.Encoding.AMF3);
@@ -550,8 +523,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 		if (serviceProvider == null) {
 			// Client doesn't support calling methods on him
 			call.setStatus(Call.STATUS_METHOD_NOT_FOUND);
-			call.setException(new MethodNotFoundException(call
-					.getServiceMethodName()));
+			call.setException(new MethodNotFoundException(call.getServiceMethodName()));
 		} else {
 			serviceInvoker.invoke(call, serviceProvider);
 		}
@@ -612,7 +584,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 	protected int getChannelForStreamId(int streamId) {
 		return (streamId - 1) * 5 + 4;
 	}
-	
+
 	/**
 	 * Setter for stream event dispatcher (useful for saving playing stream to
 	 * file)
@@ -623,8 +595,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 		this.streamEventDispatcher = streamEventDispatcher;
 	}
 
-	private class NetStream extends AbstractClientStream implements
-			IEventDispatcher {
+	private class NetStream extends AbstractClientStream implements IEventDispatcher {
 		private IEventDispatcher dispatcher;
 
 		public NetStream(IEventDispatcher dispatcher) {
@@ -667,10 +638,8 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 				conn.addClientStream(stream);
 				NetStreamPrivateData streamData = new NetStreamPrivateData();
 				streamData.outputStream = conn.createOutputStream(streamIdInt);
-				streamData.connConsumer = new ConnectionConsumer(conn,
-						streamData.outputStream.getVideo().getId(),
-						streamData.outputStream.getAudio().getId(),
-						streamData.outputStream.getData().getId());
+				streamData.connConsumer = new ConnectionConsumer(conn, streamData.outputStream.getVideo().getId(),
+						streamData.outputStream.getAudio().getId(), streamData.outputStream.getData().getId());
 				streamDataMap.put(streamIdInt, streamData);
 			}
 			wrapped.resultReceived(call);

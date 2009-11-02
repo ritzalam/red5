@@ -27,13 +27,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import javax.management.ObjectName;
 
-import org.red5.server.api.IBWControllable;
-import org.red5.server.api.IBandwidthConfigure;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
@@ -130,17 +128,6 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 	}
 
 	/**
-	 * Return bandwidth configuration context. The broadcasting bandwidth and 
-	 * quality settings for this client.
-	 * 
-	 * @return      Bandwidth configuration context
-	 */
-	public IBandwidthConfigure getBandwidthConfigure() {
-		// TODO implement it
-		return null;
-	}
-
-	/**
 	 * Return set of connections for this client
 	 *
 	 * @return           Set of connections
@@ -187,18 +174,6 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 	 */
 	public String getId() {
 		return id;
-	}
-
-	/**
-	 * Parent flow controllable object. The parent object is used to determine 
-	 * client broadcast bandwidth settings. In case of base Client class parent
-	 * is host.
-	 *
-	 * @return     IFlowControllable instance
-	 */
-	public IBWControllable getParentBWControllable() {
-		// parent is host
-		return null;
 	}
 
 	/**
@@ -252,14 +227,6 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 		} else {
 		    log.warn("Clients connection is null. Id: {}", id);
 		}
-	}
-
-	/**
-	 * Set new bandwidth configuration context
-	 * @param config             Bandwidth configuration context
-	 */
-	public void setBandwidthConfigure(IBandwidthConfigure config) {
-		// TODO implement it
 	}
 
 	/**

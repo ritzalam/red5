@@ -23,15 +23,11 @@ import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecFactory;
 import org.apache.mina.filter.codec.ProtocolDecoder;
 import org.apache.mina.filter.codec.ProtocolEncoder;
-import org.red5.server.net.protocol.SimpleProtocolCodecFactory;
-import org.red5.server.net.protocol.SimpleProtocolDecoder;
-import org.red5.server.net.protocol.SimpleProtocolEncoder;
 
 /**
  * RTMP codec factory.
  */
-public class RTMPMinaCodecFactory implements ProtocolCodecFactory,
-		SimpleProtocolCodecFactory {
+public class RTMPMinaCodecFactory implements ProtocolCodecFactory {
 	
     /**
      * RTMP Mina protocol decoder.
@@ -74,16 +70,6 @@ public class RTMPMinaCodecFactory implements ProtocolCodecFactory,
 
 	/** {@inheritDoc} */
     public ProtocolEncoder getEncoder(IoSession session) {
-		return encoder;
-	}
-
-	/** {@inheritDoc} */
-    public SimpleProtocolDecoder getSimpleDecoder() {
-		return decoder;
-	}
-
-	/** {@inheritDoc} */
-    public SimpleProtocolEncoder getSimpleEncoder() {
 		return encoder;
 	}
 	

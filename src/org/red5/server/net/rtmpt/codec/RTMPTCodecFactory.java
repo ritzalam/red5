@@ -21,30 +21,24 @@ package org.red5.server.net.rtmpt.codec;
 
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Serializer;
-import org.red5.server.net.protocol.SimpleProtocolCodecFactory;
-import org.red5.server.net.protocol.SimpleProtocolDecoder;
-import org.red5.server.net.protocol.SimpleProtocolEncoder;
+import org.red5.server.net.rtmp.codec.RTMPCodecFactory;
+import org.red5.server.net.rtmp.codec.RTMPProtocolDecoder;
+import org.red5.server.net.rtmp.codec.RTMPProtocolEncoder;
 
 /**
- * RTMP codec factory creates RTMP codec objects
+ * RTMPT codec factory creates RTMP codec objects
  */
-public class RTMPTCodecFactory implements SimpleProtocolCodecFactory {
-    /**
-     * Deserializer
-     */
-	protected Deserializer deserializer;
-    /**
-     * Serializer
-     */
-	protected Serializer serializer;
+public class RTMPTCodecFactory extends RTMPCodecFactory {
+
     /**
      * RTMP decoder
      */
-	protected RTMPTProtocolDecoder decoder;
+	private RTMPTProtocolDecoder decoder;
+	
     /**
      * RTMP encoder
      */
-	protected RTMPTProtocolEncoder encoder;
+	private RTMPTProtocolEncoder encoder;
 
     /**
      * Initialization
@@ -75,12 +69,14 @@ public class RTMPTCodecFactory implements SimpleProtocolCodecFactory {
 	}
 
 	/** {@inheritDoc} */
-    public SimpleProtocolDecoder getSimpleDecoder() {
+    @Override
+    public RTMPProtocolDecoder getRTMPDecoder() {
 		return decoder;
 	}
 
 	/** {@inheritDoc} */
-    public SimpleProtocolEncoder getSimpleEncoder() {
+    @Override
+    public RTMPProtocolEncoder getRTMPEncoder() {
 		return encoder;
 	}
 }
