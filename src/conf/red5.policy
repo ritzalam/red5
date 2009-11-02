@@ -67,6 +67,15 @@ grant codeBase "file:${red5.root}/lib/-" {
   permission java.security.AllPermission;
 };
 
+grant principal javax.management.remote.JMXPrincipal "red5user" {
+   permission java.security.AllPermission;
+};
+
+grant principal javax.management.remote.JMXPrincipal "guest" {
+   permission javax.management.MBeanPermission "*", "queryNames";
+   permission javax.management.remote.SubjectDelegationPermission "javax.management.remote.JMXPrincipal.*";
+};
+
 // The permissions granted to the balancer WEB-INF/classes directory
 //grant codeBase "file:${catalina.home}/webapps/balancer/WEB-INF/classes/-" {
 //        permission java.lang.RuntimePermission "accessClassInPackage.org.apache.tomcat.util.digester";
@@ -145,7 +154,9 @@ grant {
     permission java.util.PropertyPermission "java.security.policy", "read";
 
   // Required for OpenJMX
-  permission java.lang.RuntimePermission "getAttribute";
+  permission java.lang.RuntimePermission "getAttribute";   
+  // Required by MX4J implementation
+  permission javax.security.auth.AuthPermission "doAsPrivileged";
 
   // Allow read of JAXP compliant XML parser debug
   permission java.util.PropertyPermission "jaxp.debug", "read";
