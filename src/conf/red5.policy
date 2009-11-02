@@ -36,15 +36,19 @@ grant codeBase "file:${java.home}/lib/ext/-" {
 
 
 // These permissions apply to the main code
+grant codeBase "file:boot.jar" {
+  permission java.security.AllPermission;
+};
+
+grant codeBase "file:${red5.home}/boot.jar" {
+  permission java.security.AllPermission;
+};
+
 grant codeBase "file:red5.jar" {
   permission java.security.AllPermission;
 };
 
 grant codeBase "file:${red5.home}/red5.jar" {
-  permission java.security.AllPermission;
-};
-
-grant codeBase "file:${red5.root}/red5.jar" {
   permission java.security.AllPermission;
 };
 
@@ -78,16 +82,19 @@ grant codeBase "file:${red5.root}/lib/-" {
 grant { 
 
   //Red5 specific properties
-  permission java.util.PropertyPermission "red5.root", "read";
-  permission java.util.PropertyPermission "red5.lib_root", "read";
-  permission java.util.PropertyPermission "red5.deployment.type", "read";
+  permission java.util.PropertyPermission "red5.root", "read,write";
+  permission java.util.PropertyPermission "red5.lib_root", "read,write";
+  permission java.util.PropertyPermission "red5.config_root", "read,write";
+  permission java.util.PropertyPermission "red5.deployment.type", "read,write";
   permission java.util.PropertyPermission "logback.ContextSelector", "read";
+  permission java.util.PropertyPermission "sun.lang.ClassLoader.allowArraySyntax", "write";
 
   permission javax.management.MBeanPermission "*", "invoke";
   permission javax.management.MBeanPermission "*", "removeNotificationListener";
   permission javax.management.MBeanPermission "*", "unregisterMBean";
   permission javax.management.MBeanPermission "*", "queryNames";
 
+  permission java.lang.RuntimePermission "getenv.RED5_HOME";  
   permission java.lang.RuntimePermission "exitVM";
   permission java.lang.RuntimePermission "loadLibrary";
   permission java.lang.RuntimePermission "getClassLoader";
@@ -100,6 +107,8 @@ grant {
 
   permission java.net.SocketPermission "127.0.0.1:9999", "connect,resolve";
 
+  permission java.io.FilePermission "file:${red5.home}/red5.jar", "read";
+  
   //permission java.io.FilePermission "file:C:/red5/work/red5Engine/0.0.0.0/oflaDemo/loader", "read,write";
 
     // Required for JNDI lookup of named JDBC DataSource's and
