@@ -15,7 +15,7 @@
         <!-- Modified JEE jar from: 
         http://mirrors.ibiblio.org/pub/mirrors/maven2/org/ow2/jonas/osgi/javaee-api/5.1.0-RC3/ 
         -->
-        <dependency org="javax" name="javaee-api" rev="5.1.0-RC3" />
+        <dependency org="javax" name="javaee-api" rev="5.1.0" />
         <dependency org="tomcat" name="jasper" rev="6.0.20" />
         <!-- jasper-jdt is required for compiling jsp's -->
         <dependency org="tomcat" name="jasper-jdt" rev="6.0.20" /> 
@@ -31,10 +31,6 @@
         <dependency org="tomcat" name="catalina" rev="6.0.20-patched" />
         <dependency org="tomcat" name="tomcat-coyote" rev="6.0.20-patched" />
         <dependency org="commons" name="commons-modeler" rev="2.0.1" />
-        <!-- Jetty --> 
-        <dependency org="jetty" name="jetty" rev="6.1.9" />
-        <dependency org="jetty" name="jetty-util" rev="6.1.9" />
-        <dependency org="jetty" name="jetty-xbean" rev="6.1.9" />
         <!-- Logging --> 
         <dependency name="slf4j-api" rev="1.5.8" />
         <dependency name="jcl-over-slf4j" rev="1.5.8" />
@@ -77,7 +73,7 @@
         <dependency name="jruby" rev="1.0.1" conf="java5->*"/>
         <dependency name="jruby-engine" rev="" conf="java5->*"/> 
         <!-- Crypto -->
-        <dependency name="bcprov-jdk16" rev="143" conf="java6->*"/> 
+        <dependency name="bcprov-jdk16" rev="144" conf="java6->*"/> 
         <dependency name="bcprov-jdk15" rev="143" conf="java5->*"/> 
         <!-- MP3 -->
         <dependency name="jaudiotagger" rev="1.0.8" />           

@@ -23,8 +23,6 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 
-import org.mortbay.jetty.handler.ContextHandler;
-import org.mortbay.jetty.webapp.WebAppContext;
 import org.python.core.Py;
 import org.python.core.PyFunction;
 import org.python.core.PyJavaInstance;
@@ -103,15 +101,17 @@ public class JythonScriptFactory implements ScriptFactory {
     @SuppressWarnings("unchecked")
 	public Object getScriptedObject(ScriptSource scriptSourceLocator, Class[] scriptInterfaces)
 			throws IOException, ScriptCompilationException {
-    	// TODO: how to do this when running under Tomcat?
-    	ContextHandler handler = WebAppContext.getCurrentWebAppContext();
     	String basePath = "";
+    	
+    	/* TODO: how to do this when running under Tomcat?
+    	ContextHandler handler = WebAppContext.getCurrentWebAppContext();
     	if (handler != null) {
     		File root = handler.getBaseResource().getFile();
     		if (root != null && root.exists()) {
     			basePath = root.getAbsolutePath() + File.separator + "WEB-INF" + File.separator;
     		}
     	}
+    	*/
     	
 		String strScript = scriptSourceLocator.getScriptAsString();
 		if (scriptInterfaces.length > 0) {   

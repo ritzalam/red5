@@ -1,4 +1,4 @@
-package org.red5.server.net.rtmpt;
+package org.red5.server.tomcat.rtmpt;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -41,10 +41,10 @@ import org.slf4j.Logger;
  * @author The Red5 Project (red5@osflash.org)
  * @author Paul Gregoire (mondain@gmail.com)
  */
-public class TomcatRTMPTLoader extends TomcatLoader {
+public class RTMPTLoader extends TomcatLoader {
 
 	// Initialize Logging
-	private static Logger log = Red5LoggerFactory.getLogger(TomcatRTMPTLoader.class);
+	private static Logger log = Red5LoggerFactory.getLogger(RTMPTLoader.class);
 
 	/**
 	 * RTMPT Tomcat engine.

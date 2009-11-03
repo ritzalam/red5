@@ -63,7 +63,7 @@ grant codeBase "file:${red5.home}/lib/-" {
   permission java.security.AllPermission;
 };
 
-grant codeBase "file:${red5.root}/lib/-" {
+grant codeBase "file:${red5.home}/plugins/-" {
   permission java.security.AllPermission;
 };
 
@@ -76,17 +76,10 @@ grant principal javax.management.remote.JMXPrincipal "guest" {
    permission javax.management.remote.SubjectDelegationPermission "javax.management.remote.JMXPrincipal.*";
 };
 
-// The permissions granted to the balancer WEB-INF/classes directory
-//grant codeBase "file:${catalina.home}/webapps/balancer/WEB-INF/classes/-" {
-//        permission java.lang.RuntimePermission "accessClassInPackage.org.apache.tomcat.util.digester";
-//        permission java.lang.RuntimePermission "accessClassInPackage.org.apache.tomcat.util.digester.*";
-//};
+// ========== APPLICATION PERMISSIONS =====================================
 
-// ========== WEB APPLICATION PERMISSIONS =====================================
-
-
-// These permissions are granted by default to all web applications
-// In addition, a web application will be given a read FilePermission
+// These permissions are granted by default to all applications
+// In addition, an application will be given a read FilePermission
 // and JndiPermission for all files and directories in its document root.
 grant { 
 
@@ -94,6 +87,7 @@ grant {
   permission java.util.PropertyPermission "red5.root", "read,write";
   permission java.util.PropertyPermission "red5.lib_root", "read,write";
   permission java.util.PropertyPermission "red5.config_root", "read,write";
+  permission java.util.PropertyPermission "red5.plugins_root", "read,write";
   permission java.util.PropertyPermission "red5.deployment.type", "read,write";
   permission java.util.PropertyPermission "logback.ContextSelector", "read";
   permission java.util.PropertyPermission "sun.lang.ClassLoader.allowArraySyntax", "write";
@@ -206,6 +200,11 @@ grant {
 
 };
 
+// The permissions granted to the balancer WEB-INF/classes directory
+//grant codeBase "file:${catalina.home}/webapps/balancer/WEB-INF/classes/-" {
+//        permission java.lang.RuntimePermission "accessClassInPackage.org.apache.tomcat.util.digester";
+//        permission java.lang.RuntimePermission "accessClassInPackage.org.apache.tomcat.util.digester.*";
+//};
 
 // You can assign additional permissions to particular web applications by
 // adding additional "grant" entries here, based on the code base for that

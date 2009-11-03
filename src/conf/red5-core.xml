@@ -22,15 +22,6 @@
 		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
 		<property name="location" value="classpath:/red5.properties" />
 	</bean>
-
-    <!-- Socket policy handler -->
-    <!-- Off by default to prevent confusion - turn it on if you need it 
-    <bean id="socketPolicyHandler"
-        class="org.red5.server.net.policy.SocketPolicyHandler" init-method="start" destroy-method="stop">
-        <property name="host" value="${policy.host}" />
-        <property name="port" value="${policy.port}" />
-    </bean>
-    -->
 	
 	<!-- RTMP -->
 	
@@ -127,7 +118,7 @@
 		
 	<!-- RTMPT -->
 <!--
-	<bean id="rtmpt.server" class="org.red5.server.net.rtmpt.TomcatRTMPTLoader" init-method="init" lazy-init="true">
+	<bean id="rtmpt.server" class="org.red5.server.tomcat.rtmpt.RTMPTLoader" init-method="init" lazy-init="true">
 	
 		<property name="webappFolder" value="${red5.root}/webapps" />
 		
@@ -164,7 +155,7 @@
 	
 	<!-- RTMPS -->
 <!--
-	<bean id="rtmps.server" class="org.red5.server.net.rtmps.TomcatRTMPSLoader" init-method="init" lazy-init="true">
+	<bean id="rtmps.server" class="org.red5.server.tomcat.rtmps.RTMPSLoader" init-method="init" lazy-init="true">
 	
 		<property name="webappFolder" value="${red5.root}/webapps" />
 		
