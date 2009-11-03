@@ -55,6 +55,7 @@ public class PluginLauncher implements ApplicationContextAware, InitializingBean
 
 			IRed5Plugin red5Plugin = null;
 
+			log.debug("{} plugins to launch", plugins.length);
 			for (File plugin : plugins) {
     			JarFile jar = new JarFile(plugin, false);
     			if (jar == null) {
@@ -72,7 +73,7 @@ public class PluginLauncher implements ApplicationContextAware, InitializingBean
     			if (pluginMainClass == null || pluginMainClass.length() <= 0) {
     				continue;
     			}
-    			// attempt to load the class; since it's in the lib directory this should work
+    			// attempt to load the class; since it's in the plugins directory this should work
     			ClassLoader loader = common.getClassLoader();
     			Class<?> pluginClass;
     			String pluginMainMethod = null;
@@ -106,9 +107,9 @@ public class PluginLauncher implements ApplicationContextAware, InitializingBean
 						red5Plugin.doStart();
 					}
 					log.info("Loaded plugin: {}", pluginMainClass);
-				} catch (Exception e) {
+				} catch (Throwable t) {
 					log.error("Error loading plugin: {}; Method: {}; Exception: {}",
-							new Object[]{pluginMainClass, pluginMainMethod, e});
+							new Object[]{pluginMainClass, pluginMainMethod, t});
 				}
     		}
 		} else {

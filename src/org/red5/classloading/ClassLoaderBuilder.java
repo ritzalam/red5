@@ -200,13 +200,18 @@ public final class ClassLoaderBuilder {
 			if (pluginsPath == null) {
     			//construct the plugins path
 				pluginsPath = home + "/plugins";
+				//update the property
+				System.setProperty("red5.plugins_root", pluginsPath);
 			}
 			
 			File pluginsDir = new File(pluginsPath);
 			//if we are on osx with spaces in our path this may occur
 			if (pluginsDir == null) {
 				pluginsDir = new File(home, "plugins");
+				//create the dir
+				pluginsDir.mkdirs();
 			}
+			//get all the plugin jars
 			File[] pluginsFiles = pluginsDir.listFiles(jarFileFilter);
 			//this can be null if the dir doesnt exist
 			if (pluginsFiles != null) {
