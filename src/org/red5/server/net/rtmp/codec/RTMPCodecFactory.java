@@ -89,12 +89,20 @@ public class RTMPCodecFactory implements ProtocolCodecFactory {
 		return encoder;
 	}
 
-	/** {@inheritDoc} */
+    /**
+     * Returns the RTMP decoder.
+     * 
+     * @return decoder
+     */
     public RTMPProtocolDecoder getRTMPDecoder() {
 		return decoder.getDecoder();
 	}
 
-	/** {@inheritDoc} */
+	/**
+	 * Returns the RTMP encoder.
+	 * 
+	 * @return encoder
+	 */
     public RTMPProtocolEncoder getRTMPEncoder() {
 		return encoder.getEncoder();
 	}    

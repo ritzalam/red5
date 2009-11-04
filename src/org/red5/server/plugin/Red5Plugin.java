@@ -62,7 +62,7 @@ public abstract class Red5Plugin implements IRed5Plugin {
 	/**
 	 * Return the server reference.
 	 * 
-	 * @return
+	 * @return server
 	 */
 	public Server getServer() {
 		return server;

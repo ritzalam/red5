@@ -60,7 +60,13 @@ public class RemotingProtocolDecoder {
 		this.deserializer = deserializer;
 	}
 
-	/** {@inheritDoc} */
+	/**
+	 * Decodes the given buffer.
+	 * 
+	 * @param state
+	 * @param buffer
+	 * @return
+	 */
     public List<Object> decodeBuffer(ProtocolState state, IoBuffer buffer) {
 		List<Object> list = new LinkedList<Object>();
 		Object packet = null;
@@ -76,7 +82,14 @@ public class RemotingProtocolDecoder {
 		return list;
 	}
 
-	/** {@inheritDoc} */
+	/**
+	 * Decodes the buffer and returns a remoting packet.
+	 * 
+	 * @param state
+	 * @param in
+	 * @return
+	 * @throws Exception
+	 */
     public Object decode(ProtocolState state, IoBuffer in) throws Exception {
 		Map<String, Object> headers = readHeaders(in);
 		List<RemotingCall> calls = decodeCalls(in);

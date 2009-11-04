@@ -108,7 +108,7 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 	 * Encodes object with given protocol state to byte buffer
 	 * 
 	 * @param state			Protocol state
-	 * @param out			Object to encode
+	 * @param message		Object to encode
 	 * @return				IoBuffer with encoded data
 	 * @throws Exception    Any decoding exception
 	 */

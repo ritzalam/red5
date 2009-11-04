@@ -56,7 +56,6 @@ public class ClientRegistry implements IClientRegistry, ClientRegistryMBean {
 	/**
 	 * The identifier for this client registry
 	 */
-	@SuppressWarnings("unused")
 	private String name;
 	
 	public ClientRegistry() {

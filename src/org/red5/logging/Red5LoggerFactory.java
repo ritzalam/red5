@@ -19,7 +19,6 @@ package org.red5.logging;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import org.red5.server.adapter.StatefulScopeWrappingAdapter;

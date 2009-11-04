@@ -63,7 +63,14 @@ public class RemotingProtocolEncoder {
      */
     private Serializer serializer;
 
-	/** {@inheritDoc} */
+    /**
+     * Encodes the given buffer.
+     * 
+     * @param state
+     * @param message
+     * @return buffer
+     * @throws Exception
+     */
     public IoBuffer encode(ProtocolState state, Object message) throws Exception {
 		RemotingPacket resp = (RemotingPacket) message;
 		IoBuffer buf = IoBuffer.allocate(1024);

@@ -71,12 +71,21 @@ public class RemotingCodecFactory {
 		this.serializer = serializer;
 	}
 
-	/** {@inheritDoc} */
+
+    /**
+     * Returns the remoting decoder.
+     * 
+     * @return decoder
+     */
     public RemotingProtocolDecoder getRemotingDecoder() {
 		return decoder;
 	}
 
-	/** {@inheritDoc} */
+    /**
+     * Returns the remoting encoder.
+     * 
+     * @return encoder
+     */
     public RemotingProtocolEncoder getRemotingEncoder() {
 		return encoder;
 	}

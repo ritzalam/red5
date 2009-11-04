@@ -20,7 +20,6 @@ package org.red5.io.flv.meta;
  */
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 /**

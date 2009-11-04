@@ -23,7 +23,6 @@ import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.api.IScope;
 import org.red5.server.api.stream.IClientStream;
 import org.red5.server.api.stream.IRtmpSampleAccess;
-import org.red5.server.net.rtmp.event.BaseEvent;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.event.Invoke;
 import org.red5.server.net.rtmp.event.Notify;
