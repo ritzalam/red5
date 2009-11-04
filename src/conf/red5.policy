@@ -119,13 +119,19 @@ grant {
   //specifically so that tomcat can be shutdown
   permission java.lang.RuntimePermission "modifyThread";
 
+  permission java.util.PropertyPermission "java.io.tmpdir", "read,write";
+  permission java.io.FilePermission "${java.io.tmpdir}", "read,write,delete";
+  
   permission javax.security.auth.AuthPermission "doAsPrivileged";
 
   permission java.net.SocketPermission "127.0.0.1:9999", "connect,resolve";
+  permission java.net.SocketPermission "red5.googlecode.com:80", "connect,resolve";
   permission java.net.SocketPermission "www.springframework.org:80", "connect,resolve";
 
   permission java.io.FilePermission "file:red5.jar", "read";
   permission java.io.FilePermission "file:conf/red5.properties", "read";
+  
+  permission java.io.FilePermission "file:webapps/installer/WEB-INF/cache", "read,write";
   
   //permission java.io.FilePermission "file:C:/red5/work/red5Engine/0.0.0.0/oflaDemo/loader", "read,write";
 

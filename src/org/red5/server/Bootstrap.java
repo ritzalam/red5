@@ -85,7 +85,30 @@ public class Bootstrap {
 			System.setProperty("java.security.debug", "all");			
 			System.setProperty("java.security.policy", "conf/red5.policy");
 		}
-				
+			
+		//set the temp directory if we're vista or later
+		String os = System.getProperty("os.name").toLowerCase();
+		//String arch = System.getProperty("os.arch").toLowerCase();
+		//System.out.printf("OS: %s Arch: %s\n", os, arch);
+		if (os.contains("vista") || os.contains("windows 7")) {
+			String dir = System.getProperty("user.home");
+			//detect base drive (c:\ etc)
+			if (dir.length() == 3) {
+				//use default
+				dir += "Users\\Default\\AppData\\Red5";
+				//make sure the directory exists
+				File f = new File(dir);
+				if (!f.exists()) {
+					f.mkdir();
+				}
+				f = null;
+			} else {
+				dir += "AppData\\localLow";				
+			}
+			System.setProperty("java.io.tmpdir", dir);
+			System.out.printf("Setting temp directory to %s\n", System.getProperty("java.io.tmpdir"));
+		}
+		
 		/*
 	    try {
 	        // Enable the security manager

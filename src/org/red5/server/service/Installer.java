@@ -190,6 +190,13 @@ public final class Installer {
 			File dir = new File(srcDir);
 			if (!dir.exists()) {
 				log.warn("Source directory not found");
+				//use another directory
+				dir = new File(System.getProperty("red5.root"), "/webapps/installer/WEB-INF/cache"); 
+				if (!dir.exists()) {
+					if (dir.mkdirs()) {
+						log.info("Installer cache directory created");
+					}
+				}				
 			} else {
 				if (!dir.isDirectory()) {
 					log.warn("Source directory is not a directory");
@@ -252,9 +259,11 @@ public final class Installer {
 				} catch (IOException ioe) {
 					log.error("Unable to connect to {}", applicationRepositoryUrl, ioe);
 				} finally {
-					try {
-						fos.close();
-					} catch (IOException e) {
+					if (fos != null) {
+    					try {
+    						fos.close();
+    					} catch (IOException e) {
+    					}
 					}
 					if (method != null) {
 						method.releaseConnection();

@@ -190,7 +190,6 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 		if (c != null) {
 			log.trace("Context name: {} docbase: {} encoded: {}", new Object[] { c.getName(), c.getDocBase(),
 					c.getEncodedPath() });
-			//ClassLoader classLoader = new ChildFirstClassLoader(new URL[]{}, Thread.currentThread().getContextClassLoader());
 			ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 			c.setParentClassLoader(classLoader);
 			//
