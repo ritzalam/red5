@@ -101,7 +101,6 @@ public class Server implements IServer, ApplicationContextAware, InitializingBea
 	/**
 	 * Initialization section.
 	 */
-	@Override
 	public void afterPropertiesSet() throws Exception {
 		Server.notifier = Executors.newFixedThreadPool(notifierThreadPoolSize);
 	}
@@ -109,7 +108,6 @@ public class Server implements IServer, ApplicationContextAware, InitializingBea
 	/**
 	 * Destruction section.
 	 */
-	@Override
 	public void destroy() throws Exception {
 		//disable new tasks from being submitted
 		notifier.shutdown(); 

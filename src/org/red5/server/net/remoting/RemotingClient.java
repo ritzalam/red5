@@ -136,7 +136,6 @@ public class RemotingClient implements InitializingBean {
 		log.debug("RemotingClient created  - url: {} timeout: {} http manager: {}", new Object[]{url, timeout, mgr});
 	}
 	
-	@Override
 	public void afterPropertiesSet() throws Exception {
 		executor = Executors.newFixedThreadPool(poolSize);
 	}
