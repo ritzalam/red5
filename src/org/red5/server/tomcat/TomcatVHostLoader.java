@@ -455,8 +455,8 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 	@Override
 	public void setContexts(Map<String, String> contexts) {
 		log.debug("setContexts: {}", contexts.size());
-		for (String key : contexts.keySet()) {
-			host.addChild(embedded.createContext(key, webappRoot + contexts.get(key)));
+		for (Map.Entry<String, String> entry : contexts.entrySet()) {
+			host.addChild(embedded.createContext(entry.getKey(), webappRoot	+ entry.getValue()));
 		}
 	}
 

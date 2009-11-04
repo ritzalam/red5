@@ -69,17 +69,17 @@ public class AMFGatewayServlet extends HttpServlet {
 	/**
 	 * Web app context
 	 */
-	protected WebApplicationContext webAppCtx;
+	protected transient WebApplicationContext webAppCtx;
 
 	/**
 	 * Red5 server instance
 	 */
-	protected IServer server;
+	protected transient IServer server;
 
 	/**
 	 * Remoting codec factory
 	 */
-	protected RemotingCodecFactory codecFactory;
+	protected transient RemotingCodecFactory codecFactory;
 
 	/**
 	 * Request attribute holding the Red5 connection object

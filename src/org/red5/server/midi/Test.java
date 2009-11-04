@@ -35,7 +35,8 @@ public class Test {
 	protected static Logger log = LoggerFactory.getLogger(Test.class);
 
 	public static void main(String[] args) throws Exception {
-		@SuppressWarnings("unused") Test t = new Test();
+		@SuppressWarnings("unused") 
+		Test t = new Test();
 	}
 
 	public static MidiDevice getMidiDevice(String name) {
@@ -71,7 +72,7 @@ public class Test {
 
 	}
 
-	public class MyReceiver extends Object implements Receiver {
+	public static class MyReceiver extends Object implements Receiver {
 
 		/** {@inheritDoc} */
         public void send(MidiMessage midi, long time) {

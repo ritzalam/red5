@@ -33,18 +33,17 @@ public class ServiceUtils {
 
 	//used to prevent extra object creation when a method with a set of params is not found
 	private static final Object[] nullReturn = new Object[] { null, null };
-	
+
 	/**
 	 * Returns (method, params) for the given service or (null, null) if no
 	 * method was found.
 	 * 
-     * @param service          Service
-     * @param methodName       Method name
-     * @param args             Arguments
-     * @return                 Method/params pairs
-     */
-	public static Object[] findMethodWithExactParameters(Object service,
-			String methodName, List<?> args) {
+	 * @param service          Service
+	 * @param methodName       Method name
+	 * @param args             Arguments
+	 * @return                 Method/params pairs
+	 */
+	public static Object[] findMethodWithExactParameters(Object service, String methodName, List<?> args) {
 		Object[] arguments = new Object[args.size()];
 		for (int i = 0; i < args.size(); i++) {
 			arguments[i] = args.get(i);
@@ -58,33 +57,32 @@ public class ServiceUtils {
 	 * method was found. XXX use ranking for method matching rather than exact
 	 * type matching plus type conversion.
 	 * 
-     * @param service          Service
-     * @param methodName       Method name
-     * @param args             Arguments
-     * @return                 Method/params pairs
-     */
-	public static Object[] findMethodWithExactParameters(Object service,
-			String methodName, Object[] args) {
+	 * @param service          Service
+	 * @param methodName       Method name
+	 * @param args             Arguments
+	 * @return                 Method/params pairs
+	 */
+	public static Object[] findMethodWithExactParameters(Object service, String methodName, Object[] args) {
 		int numParams = (args == null) ? 0 : args.length;
-		
+
 		Method method = null;
 
 		try {
-    		//try to skip the listing of all the methods by checking for exactly what
-    		//we want first
-    		method = service.getClass().getMethod(methodName, ConversionUtils.convertParams(args));
-    		log.debug("Exact method found (skipping list): {}", methodName);
-    		return new Object[]{ method, args };
-		} catch (Exception e) {
+			//try to skip the listing of all the methods by checking for exactly what
+			//we want first
+			method = service.getClass().getMethod(methodName, ConversionUtils.convertParams(args));
+			log.debug("Exact method found (skipping list): {}", methodName);
+			return new Object[] { method, args };
+		} catch (NoSuchMethodException nsme) {
 			log.debug("Method not found using exact parameter types");
 		}
-		
+
 		List<Method> methods = ConversionUtils.findMethodsByNameAndNumParams(service, methodName, numParams);
 		log.debug("Found {} methods", methods.size());
 		if (methods.isEmpty()) {
 			return new Object[] { null, null };
 		} else if (methods.size() == 1 && args == null) {
-			return new Object[] {methods.get(0), args};			
+			return new Object[] { methods.get(0), args };
 		} else if (methods.size() > 1) {
 			log.debug("Multiple methods found with same name and parameter count.");
 			log.debug("Parameter conversion will be attempted in order.");
@@ -99,8 +97,7 @@ public class ServiceUtils {
 			Class<?>[] paramTypes = method.getParameterTypes();
 			for (int j = 0; j < args.length; j++) {
 				if ((args[j] == null && paramTypes[j].isPrimitive())
-						|| (args[j] != null && !args[j].getClass().equals(
-								paramTypes[j]))) {
+						|| (args[j] != null && !args[j].getClass().equals(paramTypes[j]))) {
 					valid = false;
 					break;
 				}
@@ -115,10 +112,8 @@ public class ServiceUtils {
 		for (int i = 0; i < methods.size(); i++) {
 			try {
 				method = methods.get(i);
-				params = ConversionUtils.convertParams(args, method
-						.getParameterTypes());
-				if (args.length > 0 && (args[0] instanceof IConnection)
-						&& (!(params[0] instanceof IConnection))) {
+				params = ConversionUtils.convertParams(args, method.getParameterTypes());
+				if (args.length > 0 && (args[0] instanceof IConnection) && (!(params[0] instanceof IConnection))) {
 					// Don't convert first IConnection parameter
 					continue;
 				}
@@ -136,13 +131,12 @@ public class ServiceUtils {
 	 * Returns (method, params) for the given service or (null, null) if no
 	 * method was found.
 	 * 
-     * @param service           Service
-     * @param methodName        Method name
-     * @param args              Arguments
-     * @return                  Method/params pairs
-     */
-	public static Object[] findMethodWithListParameters(Object service,
-			String methodName, List<?> args) {
+	 * @param service           Service
+	 * @param methodName        Method name
+	 * @param args              Arguments
+	 * @return                  Method/params pairs
+	 */
+	public static Object[] findMethodWithListParameters(Object service, String methodName, List<?> args) {
 		Object[] arguments = new Object[args.size()];
 		for (int i = 0; i < args.size(); i++) {
 			arguments[i] = args.get(i);
@@ -155,26 +149,25 @@ public class ServiceUtils {
 	 * Returns (method, params) for the given service or (null, null) if not
 	 * method was found.
 	 * 
-     * @param service          Service
-     * @param methodName       Method name
-     * @param args             Arguments
-     * @return                 Method/params pairs
-     */
-	public static Object[] findMethodWithListParameters(Object service,
-			String methodName, Object[] args) {
-		
+	 * @param service          Service
+	 * @param methodName       Method name
+	 * @param args             Arguments
+	 * @return                 Method/params pairs
+	 */
+	public static Object[] findMethodWithListParameters(Object service, String methodName, Object[] args) {
+
 		Method method = null;
 
 		try {
-    		//try to skip the listing of all the methods by checking for exactly what
-    		//we want first
-    		method = service.getClass().getMethod(methodName, ConversionUtils.convertParams(args));
-    		log.debug("Exact method found (skipping list): {}", methodName);
-    		return new Object[]{ method, args };
-		} catch (Exception e) {
+			//try to skip the listing of all the methods by checking for exactly what
+			//we want first
+			method = service.getClass().getMethod(methodName, ConversionUtils.convertParams(args));
+			log.debug("Exact method found (skipping list): {}", methodName);
+			return new Object[] { method, args };
+		} catch (NoSuchMethodException nsme) {
 			log.debug("Method not found using exact parameter types");
 		}
-		
+
 		List<Method> methods = ConversionUtils.findMethodsByNameAndNumParams(service, methodName, 1);
 		log.debug("Found {} methods", methods.size());
 		if (methods.isEmpty()) {
@@ -196,10 +189,8 @@ public class ServiceUtils {
 		for (int i = 0; i < methods.size(); i++) {
 			try {
 				method = methods.get(i);
-				params = ConversionUtils.convertParams(args, method
-						.getParameterTypes());
-				if (argsList.size() > 0
-						&& (argsList.get(0) instanceof IConnection)
+				params = ConversionUtils.convertParams(args, method.getParameterTypes());
+				if (argsList.size() > 0 && (argsList.get(0) instanceof IConnection)
 						&& (!(params[0] instanceof IConnection))) {
 					// Don't convert first IConnection parameter
 					continue;

@@ -69,12 +69,12 @@ public class PipeConnectionEvent extends EventObject {
     /**
      * Provider
      */
-    private IProvider provider;
+    private transient IProvider provider;
 
     /**
      * Consumer
      */
-    private IConsumer consumer;
+    private transient IConsumer consumer;
 
     /**
      * Event type

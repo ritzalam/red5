@@ -628,7 +628,7 @@ public class MP3Reader implements ITagReader, IKeyFrameDataAnalyzer {
 	/**
 	 * Simple holder for id3 meta data
 	 */
-	class MetaData {
+	static class MetaData {
 		String album = "";
 
 		String artist = "";

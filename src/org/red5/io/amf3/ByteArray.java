@@ -162,6 +162,13 @@ public class ByteArray implements IDataInput, IDataOutput {
 			//docs state that free is optional
 			tmp.free();
 			throw new RuntimeException("could not compress data", e);
+		} finally {
+			if (deflater != null) {
+				try {
+					deflater.close();
+				} catch (IOException e1) {
+				}
+			}
 		}
 		data.free();
 		data = tmp;
@@ -190,6 +197,13 @@ public class ByteArray implements IDataInput, IDataOutput {
 		} catch (IOException e) {
 			tmp.free();
 			throw new RuntimeException("could not uncompress data", e);
+		} finally {
+			if (inflater != null) {
+				try {
+					inflater.close();
+				} catch (IOException e1) {
+				}
+			}
 		}
 		data.free();
 		data = tmp;

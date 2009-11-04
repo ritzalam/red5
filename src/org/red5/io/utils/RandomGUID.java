@@ -169,11 +169,6 @@ public class RandomGUID extends Object {
 
         try {
             md5 = MessageDigest.getInstance("MD5");
-        } catch (NoSuchAlgorithmException e) {
-            System.out.println("Error: " + e);
-        }
-
-        try {
             long time = System.currentTimeMillis();
             long rand = 0;
 
@@ -207,7 +202,8 @@ public class RandomGUID extends Object {
             }
 
             valueAfterMD5 = sb.toString();
-
+        } catch (NoSuchAlgorithmException e) {
+            System.out.println("Error: " + e);
         } catch (Exception e) {
             System.out.println("Error:" + e);
         }

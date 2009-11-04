@@ -19,6 +19,7 @@ package org.red5.logging;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import org.red5.server.adapter.StatefulScopeWrappingAdapter;
@@ -52,16 +53,12 @@ public class Red5LoggerFactory {
     		try {
         		Class wrapper = null;
         		if ((wrapper = clazz.asSubclass(StatefulScopeWrappingAdapter.class)) != null) {
-        			try {
-                		Method getScope = wrapper.getMethod("getScope", new Class[0]);
-        				//NPE will occur here if the scope is not yet set on the application adapter
-                		IScope scope = (IScope) getScope.invoke(null, new Object[0]);
-                    	contextName = scope.getName();
-        			} catch (Exception e) {
-        				//e.printStackTrace();
-        			}	
+            		Method getScope = wrapper.getMethod("getScope", new Class[0]);
+    				//NPE will occur here if the scope is not yet set on the application adapter
+            		IScope scope = (IScope) getScope.invoke(null, new Object[0]);
+                	contextName = scope.getName();
         		}
-    		} catch (ClassCastException cce) {
+    		} catch (Exception cce) {
     			//cce.printStackTrace();
     		}
 		} else {

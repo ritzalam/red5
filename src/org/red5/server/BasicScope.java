@@ -219,7 +219,7 @@ public abstract class BasicScope extends PersistableAttributeStore implements
     /**
      * Iterator for basic scope
      */
-    public class EmptyBasicScopeIterator implements Iterator<IBasicScope> {
+    public static class EmptyBasicScopeIterator implements Iterator<IBasicScope> {
 
 		/** {@inheritDoc} */
         public boolean hasNext() {

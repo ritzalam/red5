@@ -66,11 +66,11 @@ public class ClientRegistry implements IClientRegistry, ClientRegistryMBean {
 	//allows for setting a "name" to be used with jmx for lookup
 	public ClientRegistry(String name) {
 		this.name = name;
-		if (StringUtils.isNotBlank(name)) {
+		if (StringUtils.isNotBlank(this.name)) {
 			try {
 				String className = JMXAgent.trimClassName(getClass().getName());
 				ObjectName oName = new ObjectName(JMXFactory.getDefaultDomain() + ":type="
-						+ className + ",name=" + name);
+						+ className + ",name=" + this.name);
 				JMXAgent.registerMBean(this, getClass().getName(), ClientRegistryMBean.class, oName);			
 			} catch (MalformedObjectNameException e) {
 				//log.error("Invalid object name. {}", e);

@@ -75,7 +75,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	/**
 	 * Iterator that filters strings by given prefix
 	 */
-	class PrefixFilteringStringIterator implements Iterator<String> {
+	static class PrefixFilteringStringIterator implements Iterator<String> {
 		/**
 		 * Iterator
 		 */

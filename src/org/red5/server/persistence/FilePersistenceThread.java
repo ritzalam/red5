@@ -158,7 +158,7 @@ public class FilePersistenceThread implements Runnable {
 	/**
 	 * Informations about one entry to object.
 	 */
-	private class UpdateEntry {
+	private static class UpdateEntry {
 		
 		/** Object to store. */
 		IPersistable object;

@@ -118,22 +118,22 @@ public class EhCacheImpl implements ICacheStore, ApplicationContextAware {
 			if (log.isDebugEnabled()) {
 				log.debug("Number of caches: " + caches.size() + " Default cache: " + (cache != null ? 1 : 0));
 			}
-			for (Cache cache : caches) {
-				cache.initialise();
-				cache.bootstrap();
+			for (Cache nonDefaultCache : caches) {
+				nonDefaultCache.initialise();
+				nonDefaultCache.bootstrap();
 				//set first cache to be main local member
-				if (null == cache) {
+				if (null == nonDefaultCache) {
 					if (log.isDebugEnabled()) {
-						log.debug("Default cache name: " + defaultCacheName);
+						log.debug("Default cache name: {}", defaultCacheName);
 					}
-					cache = cm.getCache(defaultCacheName);
+					nonDefaultCache = cm.getCache(defaultCacheName);
 				}
 			}
 		} catch (Exception e) {
 			log.warn("Error on cache init", e);
 		}
 		if (log.isDebugEnabled()) {
-			log.debug("Cache is null? " + (null == cache));
+			log.debug("Cache is null? {}", (null == cache));
 		}
 	}
 

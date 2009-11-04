@@ -31,7 +31,7 @@ import java.util.Map;
  */
 public class BaseOutput {
 
-	class IdentityWrapper {
+	static class IdentityWrapper {
         /**
          * Wrapped object
          */

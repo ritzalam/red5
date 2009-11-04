@@ -248,7 +248,7 @@ public class OriginMRTMPHandler extends IoHandlerAdapter {
 		return 0;
 	}
 	
-	private class StaticConnId {
+	private static class StaticConnId {
 		public int sessionId;
 		public int clientId;
 		

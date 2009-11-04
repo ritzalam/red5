@@ -295,10 +295,10 @@ public class Stax2DomBuilder {
 		 * This mostly/only helps with empty/text-only elements... might make
 		 * sense to do 'real' caching...
 		 */
-		if (localName == mLastLocalName && prefix == mLastPrefix) {
+		if (localName.equals(mLastLocalName) && prefix.endsWith(mLastPrefix)) {
 			return mLastQName;
 		}
-		String qn = prefix + ":" + localName;
+		String qn = prefix + ':' + localName;
 		mLastQName = qn;
 		return qn;
 	}

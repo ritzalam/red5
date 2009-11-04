@@ -132,7 +132,7 @@ public class SessionManager {
 	/**
 	 * Quartz job to kill off old sessions
 	 */
-	private final class ReaperJob implements IScheduledJob {
+	private final static class ReaperJob implements IScheduledJob {
 
 		public ReaperJob() {
 			log.debug("Creating job to remove stale sessions");

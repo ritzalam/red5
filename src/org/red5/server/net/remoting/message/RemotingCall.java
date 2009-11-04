@@ -46,6 +46,12 @@ public class RemotingCall extends PendingCall {
 	
 	public boolean isMessaging;
 	
+	/**
+	 * Default / void constructor to prevent runtime exception. 
+	 */
+	public RemotingCall() {	
+	}
+	
     /**
      * Create remoting call from service name, method name, list of arguments and callback name.
 	 *

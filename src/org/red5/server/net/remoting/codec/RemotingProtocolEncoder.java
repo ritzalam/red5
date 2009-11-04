@@ -123,12 +123,7 @@ public class RemotingProtocolEncoder {
 					AbstractMessage request = (AbstractMessage) call.getArguments()[0];
 					if (result instanceof ServiceNotFoundException) {
 						ServiceNotFoundException ex = (ServiceNotFoundException) result;
-						if (FlexMessagingService.SERVICE_NAME.equals(ex.getServiceName())) {
-							result = FlexMessagingService.returnError(request, "serviceNotAvailable", "Flex messaging not activated", ex.getMessage());
-						} else {
-							// This should never happen as the service name is hardcoded...
-							result = FlexMessagingService.returnError(request, "serviceNotAvailable", "Flex messaging not activated", ex.getMessage());
-						}
+						result = FlexMessagingService.returnError(request, "serviceNotAvailable", "Flex messaging not activated", ex.getMessage());
 					} else if (result instanceof Throwable) {
 						result = FlexMessagingService.returnError(request, "Server.Invoke.Error", ((Throwable) result).getMessage(), (Throwable) result);
 					} else {

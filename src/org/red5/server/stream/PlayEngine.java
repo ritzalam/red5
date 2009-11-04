@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.amf.Output;
@@ -159,7 +160,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	/**
 	 * Number of bytes sent.
 	 */
-	private long bytesSent = 0;
+	private AtomicLong bytesSent = new AtomicLong(0);
 
 	/**
 	 * Start time of stream playback.
@@ -674,7 +675,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 			if (playlistSubscriberStream.getItemSize() > 0) {
 				sendCompleteStatus();
 			}
-			bytesSent = 0;
+			bytesSent.set(0);
 			sendClearPing();
 			sendStopStatus(currentItem);
 		} else {
@@ -805,7 +806,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 				IRTMPEvent body = ((RTMPMessage) message).getBody();
 				IoBuffer streamData = null;
 				if (body instanceof IStreamData	&& (streamData = ((IStreamData) body).getData()) != null) {
-					bytesSent += streamData.limit();
+					bytesSent.addAndGet(streamData.limit());
 				}
 			}
 		} catch (IOException err) {
@@ -953,7 +954,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	private void sendSwitchStatus() {
 		// TODO: find correct duration to send
 		int duration = 1;
-		sendOnPlayStatus(StatusCodes.NS_PLAY_SWITCH, duration, bytesSent);
+		sendOnPlayStatus(StatusCodes.NS_PLAY_SWITCH, duration, bytesSent.get());
 	}
 
 	/**
@@ -963,7 +964,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	private void sendCompleteStatus() {
 		// TODO: find correct duration to send
 		int duration = 1;
-		sendOnPlayStatus(StatusCodes.NS_PLAY_COMPLETE, duration, bytesSent);
+		sendOnPlayStatus(StatusCodes.NS_PLAY_COMPLETE, duration, bytesSent.get());
 	}
 
 	/**

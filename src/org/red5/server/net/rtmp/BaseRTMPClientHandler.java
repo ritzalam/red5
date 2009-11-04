@@ -435,15 +435,16 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 	public void play(int streamId, String name, int start, int length) {
 		log.debug("play stream {}, name: {}, start {}, length {}", new Object[] { streamId, name, start, length });
 		RTMPConnection conn = connManager.getConnection();
-		if (conn == null) {
+		if (conn != null) {
+			Object[] params = new Object[3];
+			params[0] = name;
+			params[1] = start;
+			params[2] = length;
+			PendingCall pendingCall = new PendingCall("play", params);
+			conn.invoke(pendingCall, getChannelForStreamId(streamId));			
+		} else {
 			log.info("Connection was null ?");
 		}
-		Object[] params = new Object[3];
-		params[0] = name;
-		params[1] = start;
-		params[2] = length;
-		PendingCall pendingCall = new PendingCall("play", params);
-		conn.invoke(pendingCall, getChannelForStreamId(streamId));
 	}
 
 	/** {@inheritDoc} */
@@ -595,7 +596,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 		this.streamEventDispatcher = streamEventDispatcher;
 	}
 
-	private class NetStream extends AbstractClientStream implements IEventDispatcher {
+	private static class NetStream extends AbstractClientStream implements IEventDispatcher {
 		private IEventDispatcher dispatcher;
 
 		public NetStream(IEventDispatcher dispatcher) {
@@ -646,7 +647,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 		}
 	}
 
-	private class NetStreamPrivateData {
+	private static class NetStreamPrivateData {
 		public volatile INetStreamEventHandler handler;
 
 		public volatile OutputStream outputStream;

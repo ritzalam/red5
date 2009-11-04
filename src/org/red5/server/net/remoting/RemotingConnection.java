@@ -516,7 +516,7 @@ public class RemotingConnection implements IRemotingConnection {
 	}
 	
 	/** Internal class for clients connected through Remoting. */
-	private class RemotingClient extends Client {
+	private static class RemotingClient extends Client {
 		
 		private RemotingClient(String id) {
 			super(id, null);

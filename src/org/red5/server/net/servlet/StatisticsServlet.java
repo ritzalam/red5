@@ -46,11 +46,11 @@ public class StatisticsServlet extends HttpServlet {
 	 */
 	private static final long serialVersionUID = 5810139109603229027L;
 
-	private final XmlRpcServer server = new XmlRpcServer();
+	private final transient XmlRpcServer server = new XmlRpcServer();
 
-	protected WebApplicationContext webAppCtx;
+	protected transient WebApplicationContext webAppCtx;
 
-	protected IContext webContext;
+	protected transient IContext webContext;
 
 	/** {@inheritDoc} */
 	@Override

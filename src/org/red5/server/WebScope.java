@@ -21,6 +21,7 @@ package org.red5.server;
 
 import java.util.Collection;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.servlet.ServletContext;
 
@@ -82,7 +83,7 @@ public class WebScope extends Scope implements ServletContextAware {
 	/**
 	 * Has the web scope been registered?
 	 */
-	protected boolean registered;
+	protected AtomicBoolean registered = new AtomicBoolean(false);
 
 	/**
 	 * The application context this webscope is running in.
@@ -97,7 +98,7 @@ public class WebScope extends Scope implements ServletContextAware {
 	/**
 	 * Is the scope currently shutting down?
 	 */
-	protected boolean shuttingDown;
+	protected AtomicBoolean shuttingDown = new AtomicBoolean(false);
 
 	/**
 	 * Setter for global scope. Sets persistence class.
@@ -177,8 +178,8 @@ public class WebScope extends Scope implements ServletContextAware {
 	/**
 	 * Map all vhosts to global scope then initialize
 	 */
-	public synchronized void register() {
-		if (registered) {
+	public void register() {
+		if (registered.get()) {
 			log.info("Webscope already registered");
 			return;
 		}
@@ -195,19 +196,19 @@ public class WebScope extends Scope implements ServletContextAware {
 		// We don't want to have configured scopes to get freed when a client
 		// disconnects.
 		keepOnDisconnect = true;
-		registered = true;
+		registered.set(true);
 	}
 
 	/**
 	 * Uninitialize and remove all vhosts from the global scope.
 	 */
-	public synchronized void unregister() {
-		if (!registered) {
+	public void unregister() {
+		if (!registered.get()) {
 			log.info("Webscope not registered");
 			return;
 		}
 		log.debug("Webscope un-registering: {}", contextPath);	
-		shuttingDown = true;
+		shuttingDown.set(true);
 		keepOnDisconnect = false;
 		uninit();
 		// We need to disconnect all clients before unregistering
@@ -245,8 +246,8 @@ public class WebScope extends Scope implements ServletContextAware {
 		setServer(null);
 		setName(null);
 		appContext = null;
-		registered = false;
-		shuttingDown = false;
+		registered.set(false);
+		shuttingDown.set(false);
 	}
 
 	/** {@inheritDoc} */
@@ -270,7 +271,7 @@ public class WebScope extends Scope implements ServletContextAware {
 	 * @return is shutting down
 	 */
 	public boolean isShuttingDown() {
-		return shuttingDown;
+		return shuttingDown.get();
 	}
 
 }

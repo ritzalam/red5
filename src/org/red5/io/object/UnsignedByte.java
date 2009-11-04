@@ -118,7 +118,11 @@ public final class UnsignedByte extends UnsignedNumber {
 
 	@Override
 	public boolean equals(Object other) {
-		return value == ((Number)other).shortValue();
+		if (other != null) {
+			return value == ((Number)other).shortValue();
+		} else {
+			return false;
+		}
 	}
 	
 	@Override

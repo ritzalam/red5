@@ -306,7 +306,7 @@ public class MP4Atom {
 		readed += 8;
 		for(int i = 0; i < entryCount; i++) {
 			long chunkOffset = bitstream.readBytes(8);
-			chunks.addElement(new Long(chunkOffset));
+			chunks.addElement(Long.valueOf(chunkOffset));
 			readed += 8;
 		}
 		return readed;		
@@ -327,7 +327,7 @@ public class MP4Atom {
 		readed += 4;
 		for(int i = 0; i < entryCount; i++) {
 			long chunkOffset = bitstream.readBytes(4);
-			chunks.addElement(new Long(chunkOffset));
+			chunks.addElement(Long.valueOf(chunkOffset));
 			readed += 4;
 		}
 		return readed;		
@@ -485,7 +485,7 @@ public class MP4Atom {
 		if(sampleSize == 0) {
 			for(int i = 0; i < sampleCount; i++) {
 				int size = (int)bitstream.readBytes(4);
-				samples.addElement(new Integer(size));
+				samples.addElement(Integer.valueOf(size));
 				readed += 4;
 			}
 		}
@@ -535,13 +535,13 @@ public class MP4Atom {
 					break;
 			}
 			if(i < sampleCount) {
-				samples.addElement(new Integer(size));
+				samples.addElement(Integer.valueOf(size));
 			}
 		}
 		return readed;		
 	}
 
-	public class Record {
+	public static class Record {
 		private int firstChunk;
 		private int samplesPerChunk;
 		private int sampleDescriptionIndex;
@@ -609,13 +609,13 @@ public class MP4Atom {
 		for (int i = 0; i < entryCount; i++) {
 			int sample = (int) bitstream.readBytes(4);
 			//log.trace("Sync entry: {}", sample);
-			syncSamples.addElement(new Integer(sample));
+			syncSamples.addElement(Integer.valueOf(sample));
 			readed += 4;
 		}
 		return readed;		
 	}
 	
-	public class TimeSampleRecord {
+	public static class TimeSampleRecord {
 		private int consecutiveSamples;
 		private int sampleDuration;
 		

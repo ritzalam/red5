@@ -74,17 +74,16 @@ import org.w3c.dom.NodeList;
  * 
  * @author Paul Gregoire (mondain@gmail.com)
  */
-public class TomcatLoader extends LoaderBase implements
-		ApplicationContextAware, LoaderMBean {
+public class TomcatLoader extends LoaderBase implements ApplicationContextAware, LoaderMBean {
 
 	/*
 	 * http://blog.springsource.com/2007/06/11/using-a-shared-parent-application-context-in-a-multi-war-spring-application/
 	 */
-	
+
 	/**
 	 * Filters directory content
 	 */
-	protected class DirectoryFilter implements FilenameFilter {
+	protected static class DirectoryFilter implements FilenameFilter {
 		/**
 		 * Check whether file matches filter rules
 		 * 
@@ -120,7 +119,7 @@ public class TomcatLoader extends LoaderBase implements
 	 * Common name for the Service and Engine components.
 	 */
 	public String serviceEngineName = "red5Engine";
-	
+
 	/**
 	 * Base container host.
 	 */
@@ -155,7 +154,7 @@ public class TomcatLoader extends LoaderBase implements
 	 * Connectors
 	 */
 	protected List<Connector> connectors;
-	
+
 	/**
 	 * Valves
 	 */
@@ -188,28 +187,30 @@ public class TomcatLoader extends LoaderBase implements
 	public Context addContext(String path, String docBase, Host host) {
 		log.debug("Add context - path: {} docbase: {}", path, docBase);
 		org.apache.catalina.Context c = embedded.createContext(path, docBase);
-		log.trace("Context name: {} docbase: {} encoded: {}", new Object[] {
-				c.getName(), c.getDocBase(), c.getEncodedPath() });
 		if (c != null) {
+			log.trace("Context name: {} docbase: {} encoded: {}", new Object[] { c.getName(), c.getDocBase(),
+					c.getEncodedPath() });
 			//ClassLoader classLoader = new ChildFirstClassLoader(new URL[]{}, Thread.currentThread().getContextClassLoader());
 			ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 			c.setParentClassLoader(classLoader);
 			//
 			Object ldr = c.getLoader();
 			log.trace("Context loader (null if the context has not been started): {}", ldr);
-			if (ldr == null) {			
+			if (ldr == null) {
 				WebappLoader wldr = new WebappLoader(classLoader);
 				//add the Loader to the context
 				c.setLoader(wldr);
 			}
+			log.debug("Context loader (check): {} Context classloader: {}", c.getLoader(), c.getLoader()
+					.getClassLoader());
+			host.addChild(c);
+			LoaderBase.setRed5ApplicationContext(path, new TomcatApplicationContext(c));
+		} else {
+			log.trace("Context is null");
 		}
-		log.debug("Context loader (check): {} Context classloader: {}", c
-				.getLoader(), c.getLoader().getClassLoader());
-		host.addChild(c);
-		LoaderBase.setRed5ApplicationContext(path, new TomcatApplicationContext(c));		
 		return c;
-	}	
-	
+	}
+
 	/**
 	 * Remove context from the current host.
 	 * 
@@ -287,9 +288,9 @@ public class TomcatLoader extends LoaderBase implements
 	 */
 	public void init() {
 		log.info("Loading tomcat context");
-			
+
 		//get a reference to the current threads classloader
-		final ClassLoader originalClassLoader = Thread.currentThread().getContextClassLoader();		
+		final ClassLoader originalClassLoader = Thread.currentThread().getContextClassLoader();
 
 		// root location for servlet container
 		String serverRoot = System.getProperty("red5.root");
@@ -303,16 +304,15 @@ public class TomcatLoader extends LoaderBase implements
 		embedded.setCatalinaBase(serverRoot);
 		embedded.setCatalinaHome(serverRoot);
 		embedded.setName(serviceEngineName);
-		log.trace("Classloader for embedded: {} TCL: {}", Embedded.class.getClassLoader(), originalClassLoader);		
-		
+		log.trace("Classloader for embedded: {} TCL: {}", Embedded.class.getClassLoader(), originalClassLoader);
+
 		engine = embedded.createEngine();
 		engine.setDefaultHost(host.getName());
 		engine.setName(serviceEngineName);
 
 		if (webappFolder == null) {
 			// Use default webapps directory
-			webappFolder = FileUtil.formatPath(System.getProperty("red5.root"),
-					"/webapps");
+			webappFolder = FileUtil.formatPath(System.getProperty("red5.root"), "/webapps");
 		}
 		System.setProperty("red5.webapp.root", webappFolder);
 		log.info("Application root: {}", webappFolder);
@@ -328,13 +328,10 @@ public class TomcatLoader extends LoaderBase implements
 			String dirName = '/' + dir.getName();
 			// check to see if the directory is already mapped
 			if (null == host.findChild(dirName)) {
-				String webappContextDir = FileUtil.formatPath(appDirBase
-						.getAbsolutePath(), dirName);
-				log.debug("Webapp context directory (full path): {}",
-						webappContextDir);
+				String webappContextDir = FileUtil.formatPath(appDirBase.getAbsolutePath(), dirName);
+				log.debug("Webapp context directory (full path): {}", webappContextDir);
 				Context ctx = null;
-				if ("/root".equals(dirName)
-						|| "/root".equalsIgnoreCase(dirName)) {
+				if ("/root".equals(dirName) || "/root".equalsIgnoreCase(dirName)) {
 					log.trace("Adding ROOT context");
 					ctx = addContext("/", webappContextDir);
 				} else {
@@ -347,9 +344,9 @@ public class TomcatLoader extends LoaderBase implements
 				String enablePhp = ctx.findParameter("enable-php");
 				//if its null try to read directly
 				if (enablePhp == null) {
-    				File webxml = new File(webappContextDir + "/WEB-INF/", "web.xml");
-    				if (webxml.exists() && webxml.canRead()) {					
-    					try {
+					File webxml = new File(webappContextDir + "/WEB-INF/", "web.xml");
+					if (webxml.exists() && webxml.canRead()) {
+						try {
 							DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
 							DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
 							Document doc = docBuilder.parse(webxml);
@@ -360,31 +357,31 @@ public class TomcatLoader extends LoaderBase implements
 							int totalElements = listOfElements.getLength();
 							log.trace("Total no of elements: {}", totalElements);
 							for (int s = 0; s < totalElements; s++) {
-							    Node fstNode = listOfElements.item(s);
-							    if (fstNode.getNodeType() == Node.ELEMENT_NODE) {
-							        Element fstElmnt = (Element) fstNode;
-							        NodeList fstNmElmntLst = fstElmnt.getElementsByTagName("param-name");
-							        Element fstNmElmnt = (Element) fstNmElmntLst.item(0);
-							        NodeList fstNm = fstNmElmnt.getChildNodes();
-							        String pName = (fstNm.item(0)).getNodeValue();
-							        log.trace("Param name: {}", pName);
-							        if ("enable-php".equals(pName)) {
-    							        NodeList lstNmElmntLst = fstElmnt.getElementsByTagName("param-value");
-    							        Element lstNmElmnt = (Element) lstNmElmntLst.item(0);
-    							        NodeList lstNm = lstNmElmnt.getChildNodes();
-    							        String pValue =  (lstNm.item(0)).getNodeValue();
-    							        log.trace("Param value: {}", pValue);
-    							        enablePhp = pValue;
-    							        //
-    							        break;
-							        }
-							    }
+								Node fstNode = listOfElements.item(s);
+								if (fstNode.getNodeType() == Node.ELEMENT_NODE) {
+									Element fstElmnt = (Element) fstNode;
+									NodeList fstNmElmntLst = fstElmnt.getElementsByTagName("param-name");
+									Element fstNmElmnt = (Element) fstNmElmntLst.item(0);
+									NodeList fstNm = fstNmElmnt.getChildNodes();
+									String pName = (fstNm.item(0)).getNodeValue();
+									log.trace("Param name: {}", pName);
+									if ("enable-php".equals(pName)) {
+										NodeList lstNmElmntLst = fstElmnt.getElementsByTagName("param-value");
+										Element lstNmElmnt = (Element) lstNmElmntLst.item(0);
+										NodeList lstNm = lstNmElmnt.getChildNodes();
+										String pValue = (lstNm.item(0)).getNodeValue();
+										log.trace("Param value: {}", pValue);
+										enablePhp = pValue;
+										//
+										break;
+									}
+								}
 							}
 						} catch (Exception e) {
 							log.warn("Error reading web.xml", e);
 						}
-    				}
-    				webxml = null;
+					}
+					webxml = null;
 				}
 				log.debug("Enable php: {}", enablePhp);
 				if ("true".equals(enablePhp)) {
@@ -394,11 +391,11 @@ public class TomcatLoader extends LoaderBase implements
 					wrapper.setServletName("QuercusServlet");
 					wrapper.setServletClass("com.caucho.quercus.servlet.QuercusServlet");
 					log.debug("Wrapper: {}", wrapper);
-					ctx.addChild(wrapper);					
+					ctx.addChild(wrapper);
 					// add servlet mappings
-					ctx.addServletMapping("*.php", "QuercusServlet");		
-				}	
-				
+					ctx.addServletMapping("*.php", "QuercusServlet");
+				}
+
 				webappContextDir = null;
 			}
 		}
@@ -420,8 +417,7 @@ public class TomcatLoader extends LoaderBase implements
 
 		// use Tomcat jndi or not
 		if (System.getProperty("catalina.useNaming") != null) {
-			embedded.setUseNaming(Boolean.valueOf(System
-					.getProperty("catalina.useNaming")));
+			embedded.setUseNaming(Boolean.valueOf(System.getProperty("catalina.useNaming")));
 		}
 
 		// add the valves to the host
@@ -439,13 +435,13 @@ public class TomcatLoader extends LoaderBase implements
 			Container[] currentContexts = host.findChildren();
 			log.info("Adding {} additional hosts", hosts.size());
 			for (Host h : hosts) {
-				log.debug("Host - name: {} appBase: {} info: {}", new Object[] {
-						h.getName(), h.getAppBase(), h.getInfo() });
+				log.debug("Host - name: {} appBase: {} info: {}", new Object[] { h.getName(), h.getAppBase(),
+						h.getInfo() });
 				//add the contexts to each host
 				for (Container cont : currentContexts) {
 					Context c = (Context) cont;
 					addContext(c.getPath(), c.getDocBase(), h);
-				}				
+				}
 				//add the host to the engine
 				engine.addChild(h);
 			}
@@ -456,19 +452,18 @@ public class TomcatLoader extends LoaderBase implements
 
 		// set connection properties
 		for (String key : connectionProperties.keySet()) {
-			log.debug("Setting connection property: {} = {}", key,
-					connectionProperties.get(key));
+			log.debug("Setting connection property: {} = {}", key, connectionProperties.get(key));
 			if (connectors == null || connectors.isEmpty()) {
 				connector.setProperty(key, connectionProperties.get(key));
 			} else {
 				for (Connector ctr : connectors) {
 					ctr.setProperty(key, connectionProperties.get(key));
-				}				
+				}
 			}
 		}
 
 		// Start server
-		try {			
+		try {
 			// Add new Connector to set of Connectors for embedded server,
 			// associated with Engine
 			if (connectors == null || connectors.isEmpty()) {
@@ -478,15 +473,14 @@ public class TomcatLoader extends LoaderBase implements
 				for (Connector ctr : connectors) {
 					embedded.addConnector(ctr);
 					log.trace("Connector oName: {}", ctr.getObjectName());
-				}				
-			}			
+				}
+			}
 
 			log.info("Starting Tomcat servlet engine");
 			embedded.start();
-			
-			LoaderBase.setApplicationLoader(new TomcatApplicationLoader(
-					embedded, host, applicationContext));
-		
+
+			LoaderBase.setApplicationLoader(new TomcatApplicationLoader(embedded, host, applicationContext));
+
 			for (Container cont : host.findChildren()) {
 				if (cont instanceof StandardContext) {
 					StandardContext ctx = (StandardContext) cont;
@@ -495,7 +489,7 @@ public class TomcatLoader extends LoaderBase implements
 					log.debug("Context initialized: {}", servletContext.getContextPath());
 
 					String prefix = servletContext.getRealPath("/");
-					log.debug("Path: {}", prefix);						
+					log.debug("Path: {}", prefix);
 
 					try {
 						if (ctx.resourcesStart()) {
@@ -503,7 +497,8 @@ public class TomcatLoader extends LoaderBase implements
 						}
 
 						log.debug("Context - available: {} privileged: {}, start time: {}, reloadable: {}",
-									new Object[] { ctx.getAvailable(), ctx.getPrivileged(), ctx.getStartTime(), ctx.getReloadable()});
+								new Object[] { ctx.getAvailable(), ctx.getPrivileged(), ctx.getStartTime(),
+										ctx.getReloadable() });
 
 						Loader cldr = ctx.getLoader();
 						log.debug("Loader delegate: {} type: {}", cldr.getDelegate(), cldr.getClass().getName());
@@ -515,21 +510,21 @@ public class TomcatLoader extends LoaderBase implements
 
 						// get the (spring) config file path
 						final String contextConfigLocation = servletContext
-								.getInitParameter(org.springframework.web.context.ContextLoader.CONFIG_LOCATION_PARAM) == null 
-								? defaultSpringConfigLocation
-								: servletContext.getInitParameter(org.springframework.web.context.ContextLoader.CONFIG_LOCATION_PARAM);
-						log.debug("Spring context config location: {}",	contextConfigLocation);
+								.getInitParameter(org.springframework.web.context.ContextLoader.CONFIG_LOCATION_PARAM) == null ? defaultSpringConfigLocation
+								: servletContext
+										.getInitParameter(org.springframework.web.context.ContextLoader.CONFIG_LOCATION_PARAM);
+						log.debug("Spring context config location: {}", contextConfigLocation);
 
 						// get the (spring) parent context key
 						final String parentContextKey = servletContext
-								.getInitParameter(org.springframework.web.context.ContextLoader.LOCATOR_FACTORY_KEY_PARAM) == null 
-								? defaultParentContextKey
-								: servletContext.getInitParameter(org.springframework.web.context.ContextLoader.LOCATOR_FACTORY_KEY_PARAM);
+								.getInitParameter(org.springframework.web.context.ContextLoader.LOCATOR_FACTORY_KEY_PARAM) == null ? defaultParentContextKey
+								: servletContext
+										.getInitParameter(org.springframework.web.context.ContextLoader.LOCATOR_FACTORY_KEY_PARAM);
 						log.debug("Spring parent context key: {}", parentContextKey);
-						
+
 						//set current threads classloader to the webapp classloader
-						Thread.currentThread().setContextClassLoader(webClassLoader);						
-						
+						Thread.currentThread().setContextClassLoader(webClassLoader);
+
 						//create a thread to speed-up application loading
 						Thread thread = new Thread("Launcher:" + servletContext.getContextPath()) {
 							public void run() {
@@ -541,20 +536,22 @@ public class TomcatLoader extends LoaderBase implements
 									parentContext = (ApplicationContext) applicationContext.getBean(parentContextKey);
 								} else {
 									log.warn("Parent context was not found: {}", parentContextKey);
-								}								
+								}
 								// create a spring web application context
-								final String contextClass = servletContext.getInitParameter(org.springframework.web.context.ContextLoader.CONTEXT_CLASS_PARAM) == null 
-									? XmlWebApplicationContext.class.getName()
-									: servletContext.getInitParameter(org.springframework.web.context.ContextLoader.CONTEXT_CLASS_PARAM);
+								final String contextClass = servletContext
+										.getInitParameter(org.springframework.web.context.ContextLoader.CONTEXT_CLASS_PARAM) == null ? XmlWebApplicationContext.class
+										.getName()
+										: servletContext
+												.getInitParameter(org.springframework.web.context.ContextLoader.CONTEXT_CLASS_PARAM);
 								//web app context (spring)
 								ConfigurableWebApplicationContext appctx = null;
 								try {
 									Class<?> clazz = Class.forName(contextClass, true, webClassLoader);
 									appctx = (ConfigurableWebApplicationContext) clazz.newInstance();
 								} catch (Throwable e) {
-									throw new RuntimeException("Failed to load webapplication context class.",e);
+									throw new RuntimeException("Failed to load webapplication context class.", e);
 								}
-								appctx.setConfigLocations(new String[]{contextConfigLocation});
+								appctx.setConfigLocations(new String[] { contextConfigLocation });
 								appctx.setServletContext(servletContext);
 								//set parent context or use current app context
 								if (parentContext != null) {
@@ -563,23 +560,25 @@ public class TomcatLoader extends LoaderBase implements
 									appctx.setParent(applicationContext);
 								}
 								// set the root webapp ctx attr on the each servlet context so spring can find it later
-								servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, appctx);
+								servletContext.setAttribute(
+										WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, appctx);
 								//refresh the factory
 								log.trace("Classloader prior to refresh: {}", appctx.getClassLoader());
 								appctx.refresh();
 								if (log.isDebugEnabled()) {
-									log.debug("Red5 app is active: {} running: {}", appctx.isActive(), appctx.isRunning());
-								}																
+									log.debug("Red5 app is active: {} running: {}", appctx.isActive(), appctx
+											.isRunning());
+								}
 							}
 						};
 						thread.setDaemon(true);
 						thread.start();
-					
+
 					} catch (Throwable t) {
-						log.error("Error setting up context: {} due to: {}",
-								servletContext.getContextPath(), t.getMessage());
+						log.error("Error setting up context: {} due to: {}", servletContext.getContextPath(), t
+								.getMessage());
 						t.printStackTrace();
-					} finally {									
+					} finally {
 						//reset the classloader
 						Thread.currentThread().setContextClassLoader(originalClassLoader);
 					}
@@ -589,8 +588,7 @@ public class TomcatLoader extends LoaderBase implements
 			// if everything is ok at this point then call the rtmpt and rtmps
 			// beans so they will init
 			if (applicationContext.containsBean("red5.core")) {
-				ApplicationContext core = (ApplicationContext) applicationContext
-						.getBean("red5.core");
+				ApplicationContext core = (ApplicationContext) applicationContext.getBean("red5.core");
 				if (core.containsBean("rtmpt.server")) {
 					log.debug("Initializing RTMPT");
 					core.getBean("rtmpt.server");
@@ -609,8 +607,7 @@ public class TomcatLoader extends LoaderBase implements
 				log.info("Core context was not found");
 			}
 		} catch (Exception e) {
-			if (e instanceof BindException
-					|| e.getMessage().indexOf("BindException") != -1) {
+			if (e instanceof BindException || e.getMessage().indexOf("BindException") != -1) {
 				log
 						.error(
 								"Error loading tomcat, unable to bind connector. You may not have permission to use the selected port",
@@ -633,9 +630,9 @@ public class TomcatLoader extends LoaderBase implements
 	public boolean startWebApplication(String applicationName) {
 		log.info("Starting Tomcat - Web application");
 		boolean result = false;
-		
+
 		//get a reference to the current threads classloader
-		final ClassLoader originalClassLoader = Thread.currentThread().getContextClassLoader();		
+		final ClassLoader originalClassLoader = Thread.currentThread().getContextClassLoader();
 
 		log.debug("Webapp root: {}", webappFolder);
 
@@ -659,10 +656,8 @@ public class TomcatLoader extends LoaderBase implements
 		// check if the context already exists for the host
 		if ((ctx = host.findChild(contextName)) == null) {
 			log.debug("Context did not exist in host");
-			String webappContextDir = FileUtil.formatPath(appDirBase
-					.getAbsolutePath(), applicationName);
-			log.debug("Webapp context directory (full path): {}",
-					webappContextDir);
+			String webappContextDir = FileUtil.formatPath(appDirBase.getAbsolutePath(), applicationName);
+			log.debug("Webapp context directory (full path): {}", webappContextDir);
 			// set the newly created context as the current container
 			ctx = addContext(contextName, webappContextDir);
 		} else {
@@ -671,10 +666,10 @@ public class TomcatLoader extends LoaderBase implements
 
 		final ServletContext servletContext = ((Context) ctx).getServletContext();
 		log.debug("Context initialized: {}", servletContext.getContextPath());
-		
+
 		String prefix = servletContext.getRealPath("/");
 		log.debug("Path: {}", prefix);
-		
+
 		try {
 			Loader cldr = ctx.getLoader();
 			log.debug("Loader delegate: {} type: {}", cldr.getDelegate(), cldr.getClass().getName());
@@ -682,60 +677,53 @@ public class TomcatLoader extends LoaderBase implements
 				log.debug("WebappLoader class path: {}", ((WebappLoader) cldr).getClasspath());
 			}
 			final ClassLoader webClassLoader = cldr.getClassLoader();
-			log.debug("Webapp classloader: {}", webClassLoader);			
-			
+			log.debug("Webapp classloader: {}", webClassLoader);
+
 			// get the (spring) config file path
-			final String contextConfigLocation = servletContext
-					.getInitParameter("contextConfigLocation") == null ? defaultSpringConfigLocation
+			final String contextConfigLocation = servletContext.getInitParameter("contextConfigLocation") == null ? defaultSpringConfigLocation
 					: servletContext.getInitParameter("contextConfigLocation");
-			log.debug("Spring context config location: {}",	contextConfigLocation);
+			log.debug("Spring context config location: {}", contextConfigLocation);
 
 			// get the (spring) parent context key
-			final String parentContextKey = servletContext
-					.getInitParameter("parentContextKey") == null ? defaultParentContextKey
+			final String parentContextKey = servletContext.getInitParameter("parentContextKey") == null ? defaultParentContextKey
 					: servletContext.getInitParameter("parentContextKey");
-			log.debug("Spring parent context key: {}", parentContextKey);	
-			
+			log.debug("Spring parent context key: {}", parentContextKey);
+
 			//set current threads classloader to the webapp classloader
 			Thread.currentThread().setContextClassLoader(webClassLoader);
-			
+
 			//create a thread to speed-up application loading
-			Thread thread = new Thread("Launcher:" + servletContext
-					.getContextPath()) {
+			Thread thread = new Thread("Launcher:" + servletContext.getContextPath()) {
 				public void run() {
 					//set current threads classloader to the webapp classloader
 					Thread.currentThread().setContextClassLoader(webClassLoader);
-					
+
 					// create a spring web application context
 					XmlWebApplicationContext appctx = new XmlWebApplicationContext();
 					appctx.setClassLoader(webClassLoader);
 					appctx.setConfigLocations(new String[] { contextConfigLocation });
-					
+
 					// check for red5 context bean
 					ApplicationContext parentAppCtx = null;
 
 					if (applicationContext.containsBean(defaultParentContextKey)) {
 						parentAppCtx = (ApplicationContext) applicationContext.getBean(defaultParentContextKey);
 					} else {
-						log.warn("{} bean was not found in context: {}",
-								defaultParentContextKey, applicationContext
-										.getDisplayName());
+						log.warn("{} bean was not found in context: {}", defaultParentContextKey, applicationContext
+								.getDisplayName());
 						// lookup context loader and attempt to get what we need from it
 						if (applicationContext.containsBean("context.loader")) {
-							ContextLoader contextLoader = (ContextLoader) applicationContext
-									.getBean("context.loader");
+							ContextLoader contextLoader = (ContextLoader) applicationContext.getBean("context.loader");
 							parentAppCtx = contextLoader.getContext(defaultParentContextKey);
 						} else {
 							log.debug("Context loader was not found, trying JMX");
 							MBeanServer mbs = JMXFactory.getMBeanServer();
 							// get the ContextLoader from jmx
-							ObjectName oName = JMXFactory.createObjectName("type",
-									"ContextLoader");
+							ObjectName oName = JMXFactory.createObjectName("type", "ContextLoader");
 							ContextLoaderMBean proxy = null;
 							if (mbs.isRegistered(oName)) {
-								proxy = (ContextLoaderMBean) MBeanServerInvocationHandler
-										.newProxyInstance(mbs, oName,
-												ContextLoaderMBean.class, true);
+								proxy = (ContextLoaderMBean) MBeanServerInvocationHandler.newProxyInstance(mbs, oName,
+										ContextLoaderMBean.class, true);
 								log.debug("Context loader was found");
 								parentAppCtx = proxy.getContext(defaultParentContextKey);
 							} else {
@@ -745,13 +733,12 @@ public class TomcatLoader extends LoaderBase implements
 					}
 					if (log.isDebugEnabled()) {
 						if (appctx.getParent() != null) {
-							log.debug("Parent application context: {}", appctx
-									.getParent().getDisplayName());
+							log.debug("Parent application context: {}", appctx.getParent().getDisplayName());
 						}
-					}										
-					
+					}
+
 					appctx.setParent(parentAppCtx);
-					
+
 					appctx.setServletContext(servletContext);
 					// set the root webapp ctx attr on the each
 					// servlet context so spring can find it later
@@ -760,12 +747,11 @@ public class TomcatLoader extends LoaderBase implements
 				}
 			};
 			thread.setDaemon(true);
-			thread.start();			
+			thread.start();
 
 			result = true;
 		} catch (Throwable t) {
-			log.error("Error setting up context: {} due to: {}",
-					servletContext.getContextPath(), t.getMessage());
+			log.error("Error setting up context: {} due to: {}", servletContext.getContextPath(), t.getMessage());
 			t.printStackTrace();
 		} finally {
 			//reset the classloader
@@ -812,9 +798,8 @@ public class TomcatLoader extends LoaderBase implements
 	 */
 	public void setContexts(Map<String, String> contexts) {
 		log.debug("setContexts: {}", contexts.size());
-		for (String key : contexts.keySet()) {
-			host.addChild(embedded.createContext(key, webappFolder
-					+ contexts.get(key)));
+		for (Map.Entry<String, String> entry : contexts.entrySet()) {
+			host.addChild(embedded.createContext(entry.getKey(), webappFolder + entry.getValue()));
 		}
 	}
 
@@ -888,8 +873,7 @@ public class TomcatLoader extends LoaderBase implements
 	}
 
 	public void registerJMX() {
-		JMXAgent.registerMBean(this, this.getClass().getName(),
-				LoaderMBean.class);
+		JMXAgent.registerMBean(this, this.getClass().getName(), LoaderMBean.class);
 	}
 
 	/**
@@ -911,10 +895,10 @@ public class TomcatLoader extends LoaderBase implements
 				//stop the context
 				log.debug("Calling stop on context: {}", entry.getKey());
 				entry.getValue().stop();
-			}			
+			}
 			if (absCtx.isActive()) {
-        		log.debug("Closing application context");
-        		absCtx.close();
+				log.debug("Closing application context");
+				absCtx.close();
 			}
 		} else {
 			log.error("Error getting Spring bean factory for shutdown");

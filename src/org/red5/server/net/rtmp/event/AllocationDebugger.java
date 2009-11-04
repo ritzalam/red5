@@ -40,7 +40,7 @@ public class AllocationDebugger {
 	/**
 	 * Information on references count
 	 */
-	private class Info {
+	private static class Info {
 		/**
 		 * References count
 		 */

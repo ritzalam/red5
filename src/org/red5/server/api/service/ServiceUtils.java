@@ -303,7 +303,7 @@ public class ServiceUtils {
 	 */
 	public static void notifyOnClient(IClient client, IScope scope,
 			String method, Object[] params) {
-		Set<IConnection> connections;
+		Set<IConnection> connections = null;
 		if (client == null) {
 			connections = new HashSet<IConnection>();
 			Collection<Set<IConnection>> conns = scope.getConnections();

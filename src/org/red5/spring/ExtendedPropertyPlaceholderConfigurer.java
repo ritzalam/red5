@@ -158,7 +158,7 @@ public class ExtendedPropertyPlaceholderConfigurer extends
 		return prop;
 	}
 
-	public class ResourceFilenameComparator implements Comparator<Resource> {
+	public static class ResourceFilenameComparator implements Comparator<Resource> {
 
 		public int compare(Resource resource1, Resource resource2) {
 			if (resource1 != null) {

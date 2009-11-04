@@ -44,7 +44,6 @@ import org.red5.io.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
  * A Reader is used to read the contents of a FLV file.
  * NOTE: This class is not implemented as threading-safe. The caller
@@ -55,39 +54,39 @@ import org.slf4j.LoggerFactory;
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  * @author Paul Gregoire, (mondain@gmail.com)
  */
-public class FLVReader implements IoConstants, ITagReader,
-		IKeyFrameDataAnalyzer {
+public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer {
 
-    /**
-     * Logger
-     */
-    private static Logger log = LoggerFactory.getLogger(FLVReader.class);
+	/**
+	 * Logger
+	 */
+	private static Logger log = LoggerFactory.getLogger(FLVReader.class);
 
-    /**
-     * File
-     */
-    private File file;
-    
-    /**
-     * File input stream
-     */
-    private FileInputStream fis;
+	/**
+	 * File
+	 */
+	private File file;
 
-    /**
-     * File channel
-     */
-    private FileChannel channel;
-    
-    private long channelSize;
-    /**
-     * Keyframe metadata
-     */
+	/**
+	 * File input stream
+	 */
+	private FileInputStream fis;
+
+	/**
+	 * File channel
+	 */
+	private FileChannel channel;
+
+	private long channelSize;
+
+	/**
+	 * Keyframe metadata
+	 */
 	private KeyFrameMeta keyframeMeta;
 
-    /**
-     * Input byte buffer
-     */
-    private IoBuffer in;
+	/**
+	 * Input byte buffer
+	 */
+	private IoBuffer in;
 
 	/** Set to true to generate metadata automatically before the first tag. */
 	private boolean generateMetadata;
@@ -111,59 +110,59 @@ public class FLVReader implements IoConstants, ITagReader,
 	private static BufferType bufferType = BufferType.AUTO;
 
 	private static int bufferSize = 1024;
-	
+
 	/** Use load buffer */
 	private boolean useLoadBuf;
 
 	/** Cache for keyframe informations. */
 	private static IKeyFrameMetaCache keyframeCache;
-	
+
 	/** The header of this FLV file. */
 	private FLVHeader header;
-	
+
 	/** Constructs a new FLVReader. */
-    FLVReader() {
+	FLVReader() {
 	}
 
-    /**
-     * Creates FLV reader from file input stream.
+	/**
+	 * Creates FLV reader from file input stream.
 	 *
-     * @param f         File
-     * @throws IOException on error
-     */
-    public FLVReader(File f) throws IOException {
+	 * @param f         File
+	 * @throws IOException on error
+	 */
+	public FLVReader(File f) throws IOException {
 		this(f, false);
 	}
 
-    /**
-     * Creates FLV reader from file input stream, sets up metadata generation flag.
+	/**
+	 * Creates FLV reader from file input stream, sets up metadata generation flag.
 	 *
-     * @param f                    File input stream
-     * @param generateMetadata     <code>true</code> if metadata generation required, <code>false</code> otherwise
-     * @throws IOException on error
-     */
-    public FLVReader(File f, boolean generateMetadata) throws IOException {
-    	if (null == f) {
-    		log.warn("Reader was passed a null file");
-        	log.debug("{}", org.apache.commons.lang.builder.ToStringBuilder.reflectionToString(this));
-    	}
-    	this.file = f;
+	 * @param f                    File input stream
+	 * @param generateMetadata     <code>true</code> if metadata generation required, <code>false</code> otherwise
+	 * @throws IOException on error
+	 */
+	public FLVReader(File f, boolean generateMetadata) throws IOException {
+		if (null == f) {
+			log.warn("Reader was passed a null file");
+			log.debug("{}", org.apache.commons.lang.builder.ToStringBuilder.reflectionToString(this));
+		}
+		this.file = f;
 		this.fis = new FileInputStream(f);
 		this.generateMetadata = generateMetadata;
 		channel = fis.getChannel();
 		channelSize = channel.size();
-		
+
 		in = null;
 		fillBuffer();
 
 		postInitialize();
 	}
 
-    /**
+	/**
 	 * Accepts mapped file bytes to construct internal members.
 	 *
 	 * @param generateMetadata         <code>true</code> if metadata generation required, <code>false</code> otherwise
-     * @param buffer                   IoBuffer
+	 * @param buffer                   IoBuffer
 	 */
 	public FLVReader(IoBuffer buffer, boolean generateMetadata) {
 		this.generateMetadata = generateMetadata;
@@ -171,12 +170,12 @@ public class FLVReader implements IoConstants, ITagReader,
 
 		postInitialize();
 	}
-    
-    public void setKeyFrameCache(IKeyFrameMetaCache keyframeCache) {
-    	FLVReader.keyframeCache = keyframeCache;
-    }
 
-    /**
+	public void setKeyFrameCache(IKeyFrameMetaCache keyframeCache) {
+		FLVReader.keyframeCache = keyframeCache;
+	}
+
+	/**
 	 * Get the remaining bytes that could be read from a file or ByteBuffer.
 	 *
 	 * @return          Number of remaining bytes
@@ -238,11 +237,11 @@ public class FLVReader implements IoConstants, ITagReader,
 	}
 
 	/**
-     * Modifies current position.
-     *
-     * @param pos  Current position in file
-     */
-    private void setCurrentPosition(long pos) {
+	 * Modifies current position.
+	 *
+	 * @param pos  Current position in file
+	 */
+	private void setCurrentPosition(long pos) {
 		if (pos == Long.MAX_VALUE) {
 			pos = file.length();
 		}
@@ -252,8 +251,7 @@ public class FLVReader implements IoConstants, ITagReader,
 		}
 
 		try {
-			if (pos >= (channel.position() - in.limit())
-					&& pos < channel.position()) {
+			if (pos >= (channel.position() - in.limit()) && pos < channel.position()) {
 				in.position((int) (pos - (channel.position() - in.limit())));
 			} else {
 				channel.position(pos);
@@ -265,10 +263,10 @@ public class FLVReader implements IoConstants, ITagReader,
 
 	}
 
-    /**
-     * Loads whole buffer from file channel, with no reloading (that is, appending).
-     */
-    private void fillBuffer() {
+	/**
+	 * Loads whole buffer from file channel, with no reloading (that is, appending).
+	 */
+	private void fillBuffer() {
 		fillBuffer(bufferSize, false);
 	}
 
@@ -336,14 +334,13 @@ public class FLVReader implements IoConstants, ITagReader,
 		}
 	}
 
-    /**
-     * Post-initialization hook, reads keyframe metadata and decodes header (if any).
-     */
-    private void postInitialize() {
+	/**
+	 * Post-initialization hook, reads keyframe metadata and decodes header (if any).
+	 */
+	private void postInitialize() {
 		if (log.isDebugEnabled()) {
-			log.debug("FLVReader 1 - Buffer size: " + getTotalBytes()
-					+ " position: " + getCurrentPosition() + " remaining: "
-					+ getRemainingBytes());
+			log.debug("FLVReader 1 - Buffer size: " + getTotalBytes() + " position: " + getCurrentPosition()
+					+ " remaining: " + getRemainingBytes());
 		}
 		if (getRemainingBytes() >= 9) {
 			decodeHeader();
@@ -352,23 +349,22 @@ public class FLVReader implements IoConstants, ITagReader,
 		long old = getCurrentPosition();
 		log.debug("Old position: {}", old);
 	}
-	
-    /** {@inheritDoc} */
-    public boolean hasVideo() {
-    	KeyFrameMeta meta = analyzeKeyFrames();
-    	if (meta == null)
-    		return false;
-    	
-    	return (!meta.audioOnly && meta.positions.length > 0);
-    }
 
+	/** {@inheritDoc} */
+	public boolean hasVideo() {
+		KeyFrameMeta meta = analyzeKeyFrames();
+		if (meta == null)
+			return false;
+
+		return (!meta.audioOnly && meta.positions.length > 0);
+	}
 
 	/**
-     * Getter for buffer type (auto, direct or heap).
-     *
-     * @return Value for property 'bufferType'
-     */
-    public static String getBufferType() {
+	 * Getter for buffer type (auto, direct or heap).
+	 *
+	 * @return Value for property 'bufferType'
+	 */
+	public static String getBufferType() {
 		switch (bufferType) {
 			case AUTO:
 				return "auto";
@@ -382,43 +378,43 @@ public class FLVReader implements IoConstants, ITagReader,
 	}
 
 	/**
-     * Setter for buffer type.
-     *
-     * @param bufferType Value to set for property 'bufferType'
-     */
-    public static void setBufferType(String bufferType) {
+	 * Setter for buffer type.
+	 *
+	 * @param bufferType Value to set for property 'bufferType'
+	 */
+	public static void setBufferType(String bufferType) {
 		int bufferTypeHash = bufferType.hashCode();
-		 switch (bufferTypeHash) {
-			 case 3198444: //heap
-				 //Get a heap buffer from buffer pool
-				 FLVReader.bufferType = BufferType.HEAP;
-				 break;
-			 case -1331586071: //direct
-				 //Get a direct buffer from buffer pool
-				 FLVReader.bufferType = BufferType.DIRECT;
-				 break;
-			 case 3005871: //auto
-				 //Let MINA choose
-			 default:
-				 FLVReader.bufferType = BufferType.AUTO;
-			 }
+		switch (bufferTypeHash) {
+			case 3198444: //heap
+				//Get a heap buffer from buffer pool
+				FLVReader.bufferType = BufferType.HEAP;
+				break;
+			case -1331586071: //direct
+				//Get a direct buffer from buffer pool
+				FLVReader.bufferType = BufferType.DIRECT;
+				break;
+			case 3005871: //auto
+				//Let MINA choose
+			default:
+				FLVReader.bufferType = BufferType.AUTO;
+		}
 	}
 
 	/**
-     * Getter for buffer size.
-     *
-     * @return Value for property 'bufferSize'
-     */
-    public static int getBufferSize() {
+	 * Getter for buffer size.
+	 *
+	 * @return Value for property 'bufferSize'
+	 */
+	public static int getBufferSize() {
 		return bufferSize;
 	}
 
 	/**
-     * Setter for property 'bufferSize'.
-     *
-     * @param bufferSize Value to set for property 'bufferSize'
-     */
-    public static void setBufferSize(int bufferSize) {
+	 * Setter for property 'bufferSize'.
+	 *
+	 * @param bufferSize Value to set for property 'bufferSize'
+	 */
+	public static void setBufferSize(int bufferSize) {
 		// make sure buffer size is no less than 1024 bytes.
 		if (bufferSize < 1024) {
 			bufferSize = 1024;
@@ -440,7 +436,7 @@ public class FLVReader implements IoConstants, ITagReader,
 	}
 
 	/** {@inheritDoc} */
-    public void decodeHeader() {
+	public void decodeHeader() {
 		// XXX check signature?
 		// SIGNATURE, lets just skip
 		fillBuffer(9);
@@ -477,37 +473,35 @@ public class FLVReader implements IoConstants, ITagReader,
 	}
 
 	/** {@inheritDoc} */
-    public long getDuration() {
+	public long getDuration() {
 		return duration;
 	}
 
-	public int getVideoCodecId()
-	{
+	public int getVideoCodecId() {
 		KeyFrameMeta meta = analyzeKeyFrames();
-	        if (meta == null)
-        	        return -1;
+		if (meta == null)
+			return -1;
 
 		long old = getCurrentPosition();
-		setCurrentPosition( firstVideoTag );
+		setCurrentPosition(firstVideoTag);
 		readTagHeader();
 		fillBuffer(1);
 		byte frametype = in.get();
-		setCurrentPosition( old );
+		setCurrentPosition(old);
 		return frametype & MASK_VIDEO_CODEC;
 	}
 
-	public int getAudioCodecId()
-	{
+	public int getAudioCodecId() {
 		KeyFrameMeta meta = analyzeKeyFrames();
-	        if (meta == null)
-        	        return -1;
-
+		if (meta == null) {
+			return -1;
+		}
 		long old = getCurrentPosition();
-		setCurrentPosition( firstAudioTag );
+		setCurrentPosition(firstAudioTag);
 		readTagHeader();
 		fillBuffer(1);
 		byte frametype = in.get();
-		setCurrentPosition( old );
+		setCurrentPosition(old);
 		return frametype & MASK_SOUND_FORMAT;
 	}
 
@@ -517,17 +511,17 @@ public class FLVReader implements IoConstants, ITagReader,
 		return getRemainingBytes() > 4;
 	}
 
-    /**
-     * Create tag for metadata event.
+	/**
+	 * Create tag for metadata event.
 	 *
-     * @return         Metadata event tag
-     */
-    private ITag createFileMeta() {
+	 * @return         Metadata event tag
+	 */
+	private ITag createFileMeta() {
 		// Create tag for onMetaData event
-    	IoBuffer buf = IoBuffer.allocate(1024);
+		IoBuffer buf = IoBuffer.allocate(1024);
 		buf.setAutoExpand(true);
 		Output out = new Output(buf);
-        // Duration property
+		// Duration property
 		out.writeString("onMetaData");
 		Map<Object, Object> props = new HashMap<Object, Object>();
 		props.put("duration", duration / 1000.0);
@@ -537,7 +531,7 @@ public class FLVReader implements IoConstants, ITagReader,
 			readTagHeader();
 			fillBuffer(1);
 			byte frametype = in.get();
-            // Video codec id
+			// Video codec id
 			props.put("videocodecid", frametype & MASK_VIDEO_CODEC);
 			setCurrentPosition(old);
 		}
@@ -547,8 +541,8 @@ public class FLVReader implements IoConstants, ITagReader,
 			readTagHeader();
 			fillBuffer(1);
 			byte frametype = in.get();
-            // Audio codec id
-            props.put("audiocodecid", (frametype & MASK_SOUND_FORMAT) >> 4);
+			// Audio codec id
+			props.put("audiocodecid", (frametype & MASK_SOUND_FORMAT) >> 4);
 			setCurrentPosition(old);
 		}
 		props.put("canSeekToEnd", true);
@@ -565,14 +559,13 @@ public class FLVReader implements IoConstants, ITagReader,
 
 	/** {@inheritDoc}
 	 */
-    public synchronized ITag readTag() {
+	public synchronized ITag readTag() {
 		long oldPos = getCurrentPosition();
 		ITag tag = readTagHeader();
-		
+
 		log.debug("readTag, oldPos: {}, tag header: {}", oldPos, tag);
 
-		if (!metadataSent && tag.getDataType() != TYPE_METADATA
-				&& generateMetadata) {
+		if (!metadataSent && tag.getDataType() != TYPE_METADATA && generateMetadata) {
 			// Generate initial metadata automatically
 			setCurrentPosition(oldPos);
 			KeyFrameMeta meta = analyzeKeyFrames();
@@ -605,7 +598,7 @@ public class FLVReader implements IoConstants, ITagReader,
 
 		if (tag.getDataType() == TYPE_METADATA)
 			metadataSent = true;
-		
+
 		return tag;
 	}
 
@@ -627,13 +620,13 @@ public class FLVReader implements IoConstants, ITagReader,
 		}
 	}
 
-    /**
-     * Key frames analysis may be used as a utility method so
+	/**
+	 * Key frames analysis may be used as a utility method so
 	 * synchronize it.
 	 *
-     * @return             Keyframe metadata
-     */
-    public synchronized KeyFrameMeta analyzeKeyFrames() {
+	 * @return             Keyframe metadata
+	 */
+	public synchronized KeyFrameMeta analyzeKeyFrames() {
 		if (keyframeMeta != null) {
 			return keyframeMeta;
 		}
@@ -645,19 +638,19 @@ public class FLVReader implements IoConstants, ITagReader,
 				// Keyframe data loaded, create other mappings
 				duration = keyframeMeta.duration;
 				posTimeMap = new HashMap<Long, Long>();
-				for (int i=0; i<keyframeMeta.positions.length; i++) {
+				for (int i = 0; i < keyframeMeta.positions.length; i++) {
 					posTimeMap.put(keyframeMeta.positions[i], (long) keyframeMeta.timestamps[i]);
 				}
 				return keyframeMeta;
 			}
 		}
-		
-        // Lists of video positions and timestamps
-        List<Long> positionList = new ArrayList<Long>();
-        List<Integer> timestampList = new ArrayList<Integer>();
-        // Lists of audio positions and timestamps
-        List<Long> audioPositionList = new ArrayList<Long>();
-        List<Integer> audioTimestampList = new ArrayList<Integer>();
+
+		// Lists of video positions and timestamps
+		List<Long> positionList = new ArrayList<Long>();
+		List<Integer> timestampList = new ArrayList<Integer>();
+		// Lists of audio positions and timestamps
+		List<Long> audioPositionList = new ArrayList<Long>();
+		List<Integer> audioTimestampList = new ArrayList<Integer>();
 		long origPos = getCurrentPosition();
 		// point to the first tag
 		setCurrentPosition(9);
@@ -665,8 +658,8 @@ public class FLVReader implements IoConstants, ITagReader,
 		boolean audioOnly = true;
 		while (this.hasMoreTags()) {
 			long pos = getCurrentPosition();
-            // Read tag header and duration
-            ITag tmpTag = this.readTagHeader();
+			// Read tag header and duration
+			ITag tmpTag = this.readTagHeader();
 			duration = tmpTag.getTimestamp();
 			if (tmpTag.getDataType() == IoConstants.TYPE_VIDEO) {
 				if (audioOnly) {
@@ -705,10 +698,9 @@ public class FLVReader implements IoConstants, ITagReader,
 				if (log.isDebugEnabled()) {
 					log.debug("-----");
 					log.debug("Keyframe analysis");
-					log.debug(" data type=" + tmpTag.getDataType()
-							+ " bodysize=" + tmpTag.getBodySize());
-					log.debug(" remaining=" + getRemainingBytes() + " limit="
-							+ getTotalBytes() + " new pos=" + newPosition);
+					log.debug(" data type=" + tmpTag.getDataType() + " bodysize=" + tmpTag.getBodySize());
+					log.debug(" remaining=" + getRemainingBytes() + " limit=" + getTotalBytes() + " new pos="
+							+ newPosition);
 					log.debug(" pos=" + pos);
 					log.debug("-----");
 				}
@@ -735,8 +727,7 @@ public class FLVReader implements IoConstants, ITagReader,
 		for (int i = 0; i < keyframeMeta.positions.length; i++) {
 			keyframeMeta.positions[i] = positionList.get(i);
 			keyframeMeta.timestamps[i] = timestampList.get(i);
-			posTimeMap.put((long) positionList.get(i), (long) timestampList
-					.get(i));
+			posTimeMap.put((long) positionList.get(i), (long) timestampList.get(i));
 		}
 		if (keyframeCache != null)
 			keyframeCache.saveKeyFrameMeta(file, keyframeMeta);
@@ -774,47 +765,48 @@ public class FLVReader implements IoConstants, ITagReader,
 		// However, we will have to check into this during optimization.
 		int bodySize = IOUtils.readUnsignedMediumInt(in);
 		int timestamp = IOUtils.readUnsignedMediumInt(in);
-		
+
 		timestamp += (in.get() & 0xFF) * 256 * 256 * 256;
-		IOUtils.readUnsignedMediumInt(in);         
+		IOUtils.readUnsignedMediumInt(in);
 
 		return new Tag(dataType, timestamp, bodySize, null, previousTagSize);
 	}
 
-    public static long getDuration(File flvFile) {
-        RandomAccessFile flv = null;
-        try {
-            flv = new RandomAccessFile(flvFile, "r");
-            long flvLength = flv.length();
-            if (flvLength < 13) {
-                return 0;
-            }
-            flv.seek(flvLength - 4);
-            byte[] buf = new byte[4];
-            flv.read(buf);
-            long lastTagSize = 0;
-            for (int i = 0; i < 4; i++) {
-                lastTagSize += (buf[i] & 0x0ff) << ((3-i)*8);
-            }
-            if (lastTagSize == 0) {
-                return 0;
-            }
-            flv.seek(flvLength - lastTagSize);
-            flv.read(buf);
-            long duration = 0;
-            for (int i = 0; i < 3; i++) {
-                duration += (buf[i] & 0x0ff) << ((2-i)*8);
-            }
-            duration += (buf[3] & 0x0ff) << 24; // extension byte
-            return duration;
-        } catch (IOException e) {
-            return 0;
-        } finally {
-            try {
-                if (flv != null) {
-                    flv.close();
-                }
-            } catch (IOException e) {}
-        }
-    }
+	public static long getDuration(File flvFile) {
+		RandomAccessFile flv = null;
+		try {
+			flv = new RandomAccessFile(flvFile, "r");
+			long flvLength = flv.length();
+			if (flvLength < 13) {
+				return 0;
+			}
+			flv.seek(flvLength - 4);
+			byte[] buf = new byte[4];
+			flv.read(buf);
+			long lastTagSize = 0;
+			for (int i = 0; i < 4; i++) {
+				lastTagSize += (buf[i] & 0x0ff) << ((3 - i) * 8);
+			}
+			if (lastTagSize == 0) {
+				return 0;
+			}
+			flv.seek(flvLength - lastTagSize);
+			flv.read(buf);
+			long duration = 0;
+			for (int i = 0; i < 3; i++) {
+				duration += (buf[i] & 0x0ff) << ((2 - i) * 8);
+			}
+			duration += (buf[3] & 0x0ff) << 24; // extension byte
+			return duration;
+		} catch (IOException e) {
+			return 0;
+		} finally {
+			try {
+				if (flv != null) {
+					flv.close();
+				}
+			} catch (IOException e) {
+			}
+		}
+	}
 }

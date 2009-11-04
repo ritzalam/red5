@@ -78,7 +78,7 @@ public class RTMPTServlet extends HttpServlet {
 	/**
 	 * Web app context
 	 */
-	protected WebApplicationContext appCtx;
+	protected transient WebApplicationContext appCtx;
 
 	/**
 	 * Reference to RTMPT handler;

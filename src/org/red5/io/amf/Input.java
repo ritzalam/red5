@@ -89,14 +89,14 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		return readDataType(currentDataType);
 	}
 
-    /**
-     * Reads the data type.
+	/**
+	 * Reads the data type.
 	 *
-     * @param dataType       Data type as byte
-     * @return               One of AMF class constants with type
-     * @see                  org.red5.io.amf.AMF
-     */
-    protected byte readDataType(byte dataType) {
+	 * @param dataType       Data type as byte
+	 * @return               One of AMF class constants with type
+	 * @see                  org.red5.io.amf.AMF
+	 */
+	protected byte readDataType(byte dataType) {
 		byte coreType;
 
 		switch (currentDataType) {
@@ -165,7 +165,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 
 	// Basic
 
-    /**
+	/**
 	 * Reads a null.
 	 *
 	 * @return Object
@@ -186,7 +186,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 
 	/**
 	 * Reads a Number. In ActionScript 1 and 2 Number type represents all numbers,
-     * both floats and integers.
+	 * both floats and integers.
 	 *
 	 * @return Number
 	 */
@@ -203,11 +203,11 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		}
 	}
 
-    /**
-     * Reads string from buffer
-     * @return             String
-     */
-    public String getString() {
+	/**
+	 * Reads string from buffer
+	 * @return             String
+	 */
+	public String getString() {
 		return getString(buf);
 	}
 
@@ -272,7 +272,8 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		 */
 		long ms = (long) buf.getDouble();
 		// The timezone can be ignored as the date always is encoded in UTC
-		@SuppressWarnings("unused") short timeZoneMins = buf.getShort();
+		@SuppressWarnings("unused")
+		short timeZoneMins = buf.getShort();
 		Date date = new Date(ms);
 		storeReference(date);
 		return date;
@@ -288,40 +289,40 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		log.debug("Count: {}", count);
 		List<Object> resultCollection = new ArrayList<Object>(count);
 		storeReference(result);
-		for (int i=0; i<count; i++) {
+		for (int i = 0; i < count; i++) {
 			resultCollection.add(deserializer.deserialize(this, Object.class));
 		}
 		// To maintain conformance to the Input API, we should convert the output
 		// into an Array if the Type asks us to.
-        Class<?> collection = Collection.class;
-        if (target instanceof Class) {
-        	collection = (Class) target;
-        }
-        if (collection.isArray()) {
-            result = ArrayUtils.toArray(collection.getComponentType(), resultCollection);
-        } else {
-        	result = resultCollection;
-        }
+		Class<?> collection = Collection.class;
+		if (target instanceof Class) {
+			collection = (Class) target;
+		}
+		if (collection.isArray()) {
+			result = ArrayUtils.toArray(collection.getComponentType(), resultCollection);
+		} else {
+			result = resultCollection;
+		}
 		return result;
 	}
 
 	// Map
 
-    /**
-     * Read key - value pairs. This is required for the RecordSet
-     * deserializer.
-     */
-    public Map<String, Object> readKeyValues(Deserializer deserializer) {
+	/**
+	 * Read key - value pairs. This is required for the RecordSet
+	 * deserializer.
+	 */
+	public Map<String, Object> readKeyValues(Deserializer deserializer) {
 		Map<String, Object> result = new HashMap<String, Object>();
 		readKeyValues(result, deserializer);
 		return result;
-    }
+	}
 
-    /**
-     * Read key - value pairs into Map object
-     * @param result            Map to put resulting pair to
-     * @param deserializer      Deserializer used
-     */
+	/**
+	 * Read key - value pairs into Map object
+	 * @param result            Map to put resulting pair to
+	 * @param deserializer      Deserializer used
+	 */
 	protected void readKeyValues(Map<String, Object> result, Deserializer deserializer) {
 		while (hasMoreProperties()) {
 			String name = readPropertyName();
@@ -334,7 +335,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 			}
 		}
 		skipEndObject();
-    }
+	}
 
 	public Object readMap(Deserializer deserializer, Type target) {
 		// The maximum number used in this mixed array.
@@ -351,7 +352,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 			log.debug("key: {}", key);
 			try {
 				Integer.parseInt(key);
-			} catch(NumberFormatException e) {
+			} catch (NumberFormatException e) {
 				log.debug("key {} is causing non normal array", key);
 				normal_array = false;
 			}
@@ -359,19 +360,19 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 			log.debug("item: {}", item);
 			mixedResult.put(key, item);
 		}
-		
-		if (mixedResult.size() <= maxNumber+1 && normal_array) {
+
+		if (mixedResult.size() <= maxNumber + 1 && normal_array) {
 			// MixedArray actually is a regular array
 			log.debug("mixed array is a regular array");
 			final List<Object> listResult = new ArrayList<Object>(maxNumber);
-			for (int i=0; i<maxNumber; i++) {
+			for (int i = 0; i < maxNumber; i++) {
 				listResult.add(i, mixedResult.get(String.valueOf(i)));
 			}
 			result = listResult;
 		} else {
 			// Convert initial indexes
 			mixedResult.remove("length");
-			for (int i=0; i<maxNumber; i++) {
+			for (int i = 0; i < maxNumber; i++) {
 				final Object value = mixedResult.remove(String.valueOf(i));
 				mixedResult.put(i, value);
 			}
@@ -395,10 +396,10 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	protected Object newInstance(String className) {
 		log.debug("Loading class: {}", className);
 		Object instance = null;
-		if ("".equals(className)) return instance;
+		if ("".equals(className))
+			return instance;
 		try {
-			Class<?> clazz = Thread.currentThread().getContextClassLoader()
-					.loadClass(className);
+			Class<?> clazz = Thread.currentThread().getContextClassLoader().loadClass(className);
 			instance = clazz.newInstance();
 		} catch (Exception ex) {
 			log.error("Error loading class: {}", className);
@@ -407,13 +408,13 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		return instance;
 	}
 
-    /**
-     * Reads the input as a bean and returns an object
+	/**
+	 * Reads the input as a bean and returns an object
 	 *
-     * @param deserializer       Deserializer used
-     * @param bean               Input as bean
-     * @return                   Decoded object
-     */
+	 * @param deserializer       Deserializer used
+	 * @param bean               Input as bean
+	 * @return                   Decoded object
+	 */
 	@SuppressWarnings("unchecked")
 	protected Object readBean(Deserializer deserializer, Object bean) {
 		log.debug("read bean");
@@ -421,31 +422,32 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		Class theClass = bean.getClass();
 		while (hasMoreProperties()) {
 			String name = readPropertyName();
-            Type type = getPropertyType(bean, name);
+			Type type = getPropertyType(bean, name);
 			log.debug("property: {}", name);
 			Object property = deserializer.deserialize(this, type);
 			log.debug("val: {}", property);
 			//log.debug("val: "+property.getClass().getName());
-			try {
-				if (property != null) {
-					try {
-                        if (type instanceof Class) {
-                            Class t = (Class) type;
-                            if (!t.isAssignableFrom(property.getClass())) {
-                                property = ConversionUtils.convert(property, t);
-                            }
-                        }
-						final Field field = theClass.getField(name);
-						field.set(bean, property);
-					} catch (Exception ex2) {
-						BeanUtils.setProperty(bean, name, property);
+			if (property != null) {
+				try {
+					if (type instanceof Class) {
+						Class t = (Class) type;
+						if (!t.isAssignableFrom(property.getClass())) {
+							property = ConversionUtils.convert(property, t);
+						}
 					}
-				} else {
-					log.debug("Skipping null property: {}", name);
+					final Field field = theClass.getField(name);
+					field.set(bean, property);
+				} catch (Exception ex2) {
+					try {
+						BeanUtils.setProperty(bean, name, property);
+					} catch (Exception ex) {
+						log.error("Error mapping property: {} ({})", name, property);
+					}
 				}
-			} catch (Exception ex) {
-				log.error("Error mapping property: {} ({})", name, property);
+			} else {
+				log.debug("Skipping null property: {}", name);
 			}
+
 			if (hasMoreProperties()) {
 				skipPropertySeparator();
 			}
@@ -454,12 +456,12 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		return bean;
 	}
 
-    /**
-     * Reads the input as a map and returns a Map
+	/**
+	 * Reads the input as a map and returns a Map
 	 *
-     * @param deserializer     Deserializer to use
-     * @return                 Read map
-     */
+	 * @param deserializer     Deserializer to use
+	 * @return                 Read map
+	 */
 	protected Map<String, Object> readSimpleObject(Deserializer deserializer) {
 		log.debug("read map");
 		Map<String, Object> result = new ObjectMap<String, Object>();
@@ -468,12 +470,12 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		return result;
 	}
 
-    /**
-     * Reads start object
+	/**
+	 * Reads start object
 	 *
-     * @param deserializer    Deserializer to use
-     * @return                Read object
-     */
+	 * @param deserializer    Deserializer to use
+	 * @return                Read object
+	 */
 	public Object readObject(Deserializer deserializer, Type target) {
 		String className;
 		if (currentDataType == AMF.TYPE_CLASS_OBJECT) {
@@ -600,27 +602,27 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		this.clearReferences();
 	}
 
-    protected Type getPropertyType(Object instance, String propertyName) {
-        try {
-        	if (instance != null) {
-        		Field field = instance.getClass().getField(propertyName);
-        		return field.getGenericType();
-        	} else {
-        		// instance is null for anonymous class, use default type
-        	}
-        } catch (NoSuchFieldException e1) {
-            try {
-                BeanUtilsBean beanUtilsBean = BeanUtilsBean.getInstance();
-                PropertyUtilsBean propertyUtils = beanUtilsBean.getPropertyUtils();
-                PropertyDescriptor propertyDescriptor = propertyUtils.getPropertyDescriptor(instance, propertyName);
-                return propertyDescriptor.getReadMethod().getGenericReturnType();
-            } catch (Exception e2) {
-                // nothing
-            }
-        } catch (Exception e) {
-        	// ignore other exceptions
-        }
-        // return Object class type by default
-        return Object.class;
-    }
+	protected Type getPropertyType(Object instance, String propertyName) {
+		try {
+			if (instance != null) {
+				Field field = instance.getClass().getField(propertyName);
+				return field.getGenericType();
+			} else {
+				// instance is null for anonymous class, use default type
+			}
+		} catch (NoSuchFieldException e1) {
+			try {
+				BeanUtilsBean beanUtilsBean = BeanUtilsBean.getInstance();
+				PropertyUtilsBean propertyUtils = beanUtilsBean.getPropertyUtils();
+				PropertyDescriptor propertyDescriptor = propertyUtils.getPropertyDescriptor(instance, propertyName);
+				return propertyDescriptor.getReadMethod().getGenericReturnType();
+			} catch (Exception e2) {
+				// nothing
+			}
+		} catch (Exception e) {
+			// ignore other exceptions
+		}
+		// return Object class type by default
+		return Object.class;
+	}
 }

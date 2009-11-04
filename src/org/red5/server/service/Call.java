@@ -31,8 +31,7 @@ import org.red5.server.api.service.IServiceCall;
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
-public class Call
-implements IServiceCall, Externalizable {
+public class Call implements IServiceCall, Externalizable {
 	private static final long serialVersionUID = -3699712251588013875L;
     /**
      * Pending status constant

@@ -26,7 +26,7 @@ import java.io.ObjectOutput;
 /**
  * RTMP packet header
  */
-public class Header implements Constants, Externalizable {
+public class Header implements Constants, Cloneable, Externalizable {
 	
 	private static final long serialVersionUID = 8982665579411495024L;
 

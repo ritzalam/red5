@@ -149,12 +149,16 @@ public class MetaService implements IMetaService {
 		if (reader.hasMoreTags()) {
 			tag = reader.readTag();
 			if (tag.getDataType() == IoConstants.TYPE_METADATA) {
-				if (!reader.hasMoreTags())
-					throw new IOException(
-							"File we're writing is metadata only?");
+				if (!reader.hasMoreTags()) {
+					throw new IOException("File we're writing is metadata only?");
+				}
 			}
 		}
 
+		if (tag == null) {
+			throw new IOException("Tag was null");
+		}
+		
 		meta.setDuration(((double) reader.getDuration() / 1000));
 		meta.setVideoCodecId(reader.getVideoCodecId());
 		meta.setAudioCodecId(reader.getAudioCodecId());

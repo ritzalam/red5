@@ -23,6 +23,7 @@ import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.api.IScope;
 import org.red5.server.api.stream.IClientStream;
 import org.red5.server.api.stream.IRtmpSampleAccess;
+import org.red5.server.net.rtmp.event.BaseEvent;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.red5.server.net.rtmp.event.Invoke;
 import org.red5.server.net.rtmp.event.Notify;
@@ -132,10 +133,10 @@ public class Channel {
      */
     public void sendStatus(Status status) {
 		final boolean andReturn = !status.getCode().equals(StatusCodes.NS_DATA_START);
-		final Invoke invoke;
+		final Notify event;
 		if (andReturn) {
 			final PendingCall call = new PendingCall(null, "onStatus", new Object[] { status });
- 			invoke = new Invoke();
+			event = new Invoke();
 			if (status.getCode().equals(StatusCodes.NS_PLAY_START)) {	
 				IScope scope = connection.getScope();
 				if (scope.getContext().getApplicationContext().containsBean(IRtmpSampleAccess.BEAN_NAME)) {
@@ -154,18 +155,18 @@ public class Channel {
     				}
 				}
 			}
-			invoke.setInvokeId(1);
-			invoke.setCall(call);
+			event.setInvokeId(1);
+			event.setCall(call);
 		} else {
 			final Call call = new Call(null, "onStatus", new Object[] { status });
-			invoke = (Invoke) new Notify();
-			invoke.setInvokeId(1);
-			invoke.setCall(call);
+			event = new Notify();
+			event.setInvokeId(1);
+			event.setCall(call);
 		}
 		// We send directly to the corresponding stream as for
 		// some status codes, no stream has been created and thus
 		// "getStreamByChannelId" will fail.
-		write(invoke, connection.getStreamIdForChannel(id));
+		write(event, connection.getStreamIdForChannel(id));
 	}
 
 }

@@ -226,7 +226,7 @@ public class ConversionUtils {
 		if (wrapper.equals(String.class)) {
 			return str;
 		} else if (wrapper.equals(Boolean.class)) {
-			return new Boolean(str);
+			return Boolean.valueOf(str);
 		} else if (wrapper.equals(Double.class)) {
 			return new Double(str);
 		} else if (wrapper.equals(Long.class)) {
