@@ -319,10 +319,19 @@ public class ConversionUtils {
      * @return                      Array of converted objects
      */
     public static Class<?>[] convertParams(Object[] source) {
-    	Class<?>[] converted = new Class<?>[source.length];
-		for (int i = 0; i < source.length; i++) {
-			converted[i] = source[i].getClass();
-		}
+    	Class<?>[] converted = null;
+    	if (source != null) {
+        	converted = new Class<?>[source.length];
+    		for (int i = 0; i < source.length; i++) {
+    			if (source[i] != null) {
+    				converted[i] = source[i].getClass();
+    			} else {
+    				converted[i] = null;
+    			}
+    		}
+    	} else {
+    		converted = new Class<?>[0];
+    	}
 		return converted;
 	}    
     

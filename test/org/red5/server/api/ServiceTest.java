@@ -24,6 +24,7 @@ import junit.framework.JUnit4TestAdapter;
 
 import org.junit.Test;
 import org.red5.server.api.service.IPendingServiceCall;
+import org.red5.server.service.EchoService;
 import org.red5.server.service.PendingCall;
 
 public class ServiceTest extends BaseTest {
@@ -34,10 +35,16 @@ public class ServiceTest extends BaseTest {
 
 	@Test
 	public void simpletest() {
-		IPendingServiceCall call = new PendingCall("echoService", "echoString",
-				new Object[] { "My String" });
-		context.getServiceInvoker().invoke(call, context.getBean("echoService"));
-		assertTrue("result null", call.getResult() != null);
+		if (context.hasBean("echoService")) {
+    		EchoService service = (EchoService) context.getBean("echoService");
+    		IPendingServiceCall call = new PendingCall("echoService", "echoString",
+    				new Object[] { "My String" });
+    		context.getServiceInvoker().invoke(call, service);
+    		assertTrue("result null", call.getResult() != null);
+		} else {
+			System.out.println("No echo service found");
+			assertTrue(false);
+		}
 	}
 
 }
