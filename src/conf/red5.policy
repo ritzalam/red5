@@ -40,30 +40,18 @@ grant codeBase "file:boot.jar" {
   permission java.security.AllPermission;
 };
 
-grant codeBase "file:${red5.home}/boot.jar" {
-  permission java.security.AllPermission;
-};
-
 grant codeBase "file:red5.jar" {
   permission java.security.AllPermission;
 };
 
-grant codeBase "file:${red5.home}/red5.jar" {
-  permission java.security.AllPermission;
-};
-
-// These permissions apply to the servlet API classes
+// These permissions apply to the classes
 // and those that are shared across all class loaders
 // located in the "common" directory
 grant codeBase "file:lib/-" {
   permission java.security.AllPermission;
 };
 
-grant codeBase "file:${red5.home}/lib/-" {
-  permission java.security.AllPermission;
-};
-
-grant codeBase "file:${red5.home}/plugins/-" {
+grant codeBase "file:plugins/-" {
   permission java.security.AllPermission;
 };
 
@@ -74,6 +62,27 @@ grant principal javax.management.remote.JMXPrincipal "red5user" {
 grant principal javax.management.remote.JMXPrincipal "guest" {
    permission javax.management.MBeanPermission "*", "queryNames";
    permission javax.management.remote.SubjectDelegationPermission "javax.management.remote.JMXPrincipal.*";
+};
+
+//required for the Admin plugin
+grant codeBase "file:plugins/adminplugin.jar" {
+  permission java.lang.RuntimePermission "getenv.DERBY_HOME";
+  permission java.util.PropertyPermission "derby.*", "read";
+  permission java.io.FilePermission "${derby.system.home}","read";
+  permission java.io.FilePermission "${derby.system.home}${/}*", "read,write,delete";
+  permission java.io.FilePermission "${user.dir}${/}-", "read,write,delete";
+  permission java.io.FilePermission "${derby.system.home}${/}Admin${/}-", "read,write,delete";
+};
+
+//required for the Admin plugin when using derby db
+grant codeBase "file:plugins/derby-10.5.3.0.jar" {
+  permission java.lang.RuntimePermission "createClassLoader";
+  permission java.util.PropertyPermission "derby.*", "read";
+  permission java.io.FilePermission "${derby.system.home}","read";
+  permission java.io.FilePermission "${derby.system.home}${/}*", "read,write,delete";
+  permission java.io.FilePermission "${user.dir}${/}-", "read,write,delete";
+  permission java.io.FilePermission "${derby.system.home}${/}Admin${/}-", "read,write,delete";
+  permission java.util.PropertyPermission "derby.storage.jvmInstanceId", "write"; 
 };
 
 // ========== APPLICATION PERMISSIONS =====================================
@@ -91,9 +100,13 @@ grant {
   permission java.util.PropertyPermission "red5.deployment.type", "read,write";
   permission java.util.PropertyPermission "logback.ContextSelector", "read";
   permission java.util.PropertyPermission "sun.lang.ClassLoader.allowArraySyntax", "write";
-
+  permission java.util.PropertyPermission "user.dir", "read";
+  permission java.util.PropertyPermission "user.home", "read";
+  permission java.io.FilePermission "${user.home}", "read";
+  
   permission javax.management.MBeanPermission "*", "invoke";
   permission javax.management.MBeanPermission "*", "removeNotificationListener";
+  permission javax.management.MBeanPermission "*", "registerMBean";
   permission javax.management.MBeanPermission "*", "unregisterMBean";
   permission javax.management.MBeanPermission "*", "queryNames";
 
@@ -111,7 +124,8 @@ grant {
   permission java.net.SocketPermission "127.0.0.1:9999", "connect,resolve";
   permission java.net.SocketPermission "www.springframework.org:80", "connect,resolve";
 
-  permission java.io.FilePermission "file:${red5.home}/red5.jar", "read";
+  permission java.io.FilePermission "file:red5.jar", "read";
+  permission java.io.FilePermission "file:conf/red5.properties", "read";
   
   //permission java.io.FilePermission "file:C:/red5/work/red5Engine/0.0.0.0/oflaDemo/loader", "read,write";
 
