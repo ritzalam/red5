@@ -45,6 +45,7 @@ import org.slf4j.LoggerFactory;
  * @author The Red5 Project (red5@osflash.org)
  * @author Paul Gregoire (mondain@gmail.com)
  */
+@SuppressWarnings("cast")
 public class JMXFactory {
 
 	private static String domain = "org.red5.server";

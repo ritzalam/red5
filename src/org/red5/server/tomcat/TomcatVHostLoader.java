@@ -82,6 +82,7 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 	/**
 	 * Initialization.
 	 */
+	@SuppressWarnings("cast")
 	public void init() {
 		log.info("Loading tomcat virtual host");
 
@@ -261,6 +262,7 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 	 * 
 	 * @return true on success
 	 */
+	@SuppressWarnings("cast")
 	public boolean startWebApplication(String applicationName) {
 		boolean result = false;
 		log.info("Starting Tomcat virtual host - Web application");	

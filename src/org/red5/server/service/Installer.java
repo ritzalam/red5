@@ -77,6 +77,7 @@ public final class Installer {
 	 * Returns the LoaderMBean.
 	 * @return LoaderMBean
 	 */
+	@SuppressWarnings("cast")
 	public LoaderMBean getLoader() {
 		MBeanServer mbs = JMXFactory.getMBeanServer();
 		

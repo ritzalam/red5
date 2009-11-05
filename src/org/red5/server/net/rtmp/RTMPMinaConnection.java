@@ -90,6 +90,7 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 		}
 	}
 
+	@SuppressWarnings("cast")
 	@Override
 	public boolean connect(IScope newScope, Object[] params) {
 		log.debug("Connect scope: {}", newScope);

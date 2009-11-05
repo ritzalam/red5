@@ -43,6 +43,7 @@ public class Shutdown {
 	 *
 	 * @param args The first parameter should be a port number
 	 */
+	@SuppressWarnings("cast")
 	public static void main(String[] args) {
 		try {
 			

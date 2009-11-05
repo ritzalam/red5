@@ -109,6 +109,7 @@ public final class WarDeployer {
 	 * Returns the LoaderMBean.
 	 * @return LoadeerMBean
 	 */
+	@SuppressWarnings("cast")
 	public LoaderMBean getLoader() {
 		MBeanServer mbs = JMXFactory.getMBeanServer();
 		

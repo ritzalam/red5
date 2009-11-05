@@ -693,6 +693,7 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 
 			//create a thread to speed-up application loading
 			Thread thread = new Thread("Launcher:" + servletContext.getContextPath()) {
+				@SuppressWarnings("cast")
 				public void run() {
 					//set current threads classloader to the webapp classloader
 					Thread.currentThread().setContextClassLoader(webClassLoader);

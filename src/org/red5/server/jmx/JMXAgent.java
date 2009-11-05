@@ -177,6 +177,7 @@ public class JMXAgent implements NotificationListener {
 	/**
 	 * Shuts down any instanced connectors.
 	 */
+	@SuppressWarnings("cast")
 	public static void shutdown() {
 		log.info("Shutting down JMX agent");
 		if (null != cs) {
