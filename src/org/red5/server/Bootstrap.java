@@ -103,7 +103,7 @@ public class Bootstrap {
 				}
 				f = null;
 			} else {
-				dir += "AppData\\localLow";				
+				dir += "\\AppData\\localLow";				
 			}
 			System.setProperty("java.io.tmpdir", dir);
 			System.out.printf("Setting temp directory to %s\n", System.getProperty("java.io.tmpdir"));
