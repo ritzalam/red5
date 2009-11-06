@@ -49,7 +49,7 @@ public final class DummyClientRegistry extends ClientRegistry {
 	public IClient lookupClient(String id) throws ClientNotFoundException {
 		return clients.get(id);
 	}
-
+	
 	@Override
 	public IClient newClient(Object[] params) throws ClientNotFoundException, ClientRejectedException {
 		String id = null;

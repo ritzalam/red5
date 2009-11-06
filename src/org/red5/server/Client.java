@@ -30,14 +30,10 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import javax.management.ObjectName;
-
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
 import org.red5.server.api.persistence.IPersistable;
-import org.red5.server.jmx.JMXAgent;
-import org.red5.server.jmx.JMXFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +41,7 @@ import org.slf4j.LoggerFactory;
  * Client is an abstraction representing user connected to Red5 application.
  * Clients are tied to connections and registred in ClientRegistry
  */
-public class Client extends AttributeStore implements IClient, ClientMBean {
+public class Client extends AttributeStore implements IClient {
 	/**
 	 *  Logger
 	 */
@@ -55,7 +51,7 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 	 * Name of connection attribute holding the permissions.
 	 */
 	protected static final String PERMISSIONS = IPersistable.TRANSIENT_PREFIX + "_red5_permissions";
-	
+
 	/**
 	 *  Scopes this client connected to
 	 */
@@ -74,7 +70,7 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 	/**
 	 * MBean object name used for de/registration purposes.
 	 */
-	private ObjectName oName;
+	//private ObjectName oName;
 
 	/**
 	 *  Client registry where Client is registered
@@ -97,9 +93,8 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 		this.registry = registry;
 		this.creationTime = System.currentTimeMillis();
 		//create a new mbean for this instance
-		oName = JMXFactory.createObjectName("type", "Client", "id", id);
-		JMXAgent.registerMBean(this, this.getClass().getName(),
-				ClientMBean.class, oName);
+		//oName = JMXFactory.createObjectName("type", "Client", "id", id);
+		//JMXAgent.registerMBean(this, this.getClass().getName(), ClientMBean.class, oName);
 	}
 
 	/**
@@ -111,6 +106,7 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 		for (IConnection con : getConnections()) {
 			con.close();
 		}
+		connToScope.clear();
 	}
 
 	/**
@@ -146,8 +142,7 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 		if (scope == null) {
 			return getConnections();
 		}
-
-		Set<IConnection> result = new HashSet<IConnection>();
+		Set<IConnection> result = new HashSet<IConnection>(connToScope.size());
 		for (Entry<IConnection, IScope> entry : connToScope.entrySet()) {
 			if (scope.equals(entry.getValue())) {
 				result.add(entry.getKey());
@@ -201,8 +196,9 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 	 */
 	public List<String> iterateScopeNameList() {
 		log.debug("iterateScopeNameList called");
-		List<String> scopeNames = new ArrayList<String>();
-		log.debug("Scopes: {}", connToScope.values().size());
+		int scopeCount = connToScope.values().size();
+		List<String> scopeNames = new ArrayList<String>(scopeCount);
+		log.debug("Scopes: {}", scopeCount);
 		for (IScope scope : connToScope.values()) {
 			log.debug("Client scope: {}", scope);
 			for (Map.Entry<String, Object> entry : scope.getAttributes().entrySet()) {
@@ -219,13 +215,14 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 	protected void register(IConnection conn) {
 		log.debug("Registering connection for this client {}", id);
 		if (conn != null) {
-    		if (conn.getScope() != null) {
-    		    connToScope.put(conn, conn.getScope());
-		    } else {
-		        log.warn("Clients scope is null. Id: {}", id);
-		    }
+			IScope scp =  conn.getScope();
+			if (scp != null) {
+				connToScope.put(conn, scp);
+			} else {
+				log.warn("Clients scope is null. Id: {}", id);
+			}
 		} else {
-		    log.warn("Clients connection is null. Id: {}", id);
+			log.warn("Clients connection is null. Id: {}", id);
 		}
 	}
 
@@ -250,9 +247,10 @@ public class Client extends AttributeStore implements IClient, ClientMBean {
 			if (registry != null) {
 				// This client is not connected to any scopes, remove from registry.
 				registry.removeClient(this);
+				registry = null;
 			}
 			// deregister with jmx
-			JMXAgent.unregisterMBean(oName);
+			//JMXAgent.unregisterMBean(oName);
 		}
 	}
 

@@ -740,6 +740,13 @@
 		</java>
 	</target>
 	<target name="run-tests" depends="compile-tests" description="Run unit tests and generate HTML reports">
+		<!-- copy config contents to test conf dir -->
+		<mkdir dir="${testdist.dir}/../bin/conf"/>
+		<copy todir="${testdist.dir}/../bin/conf">
+			<fileset dir="${src.dir}/conf">
+				<include name="**/*.properties"/>
+			</fileset>
+		</copy>
 		<junit fork="true" haltonfailure="no" printsummary="yes" showoutput="no" failureproperty="test.failure.property"
 			 dir="${testreports.dir}">
 			<classpath>

@@ -35,7 +35,7 @@ public class AttributeStore implements ICastingAttributeStore {
     /**
      * Map for attributes
      */
-    protected ConcurrentMap<String, Object> attributes = new ConcurrentHashMap<String, Object>();
+    protected ConcurrentMap<String, Object> attributes = new ConcurrentHashMap<String, Object>(1);
 
     /**
      * Filter <code>null</code> keys and values from given map.
@@ -44,14 +44,13 @@ public class AttributeStore implements ICastingAttributeStore {
      * @return filtered map
      */ 
     protected Map<String, Object> filterNull(Map<String, Object> values) {
-    	final Map<String, Object> result = new HashMap<String, Object>();
+    	Map<String, Object> result = new HashMap<String, Object>();
     	for (Map.Entry<String, Object> entry : values.entrySet()) {
-    		final String key = entry.getKey();
+    		String key = entry.getKey();
     		if (key == null) {
     			continue;
     		}
-    		
-    		final Object value = entry.getValue();
+    		Object value = entry.getValue();
     		if (value == null) {
     			continue;
     		}

@@ -68,10 +68,14 @@ public class ServiceInvokerTest extends AbstractJUnit4SpringContextTests {
 	private final static List<String> workerList = new ArrayList<String>(11);
 	private static AtomicInteger finishedCount = new AtomicInteger(0);
 	
+	private final static Random rnd = new Random();
+	
 	static {
+		String userDir = System.getProperty("user.dir");
+		System.out.println("User dir: " + userDir);
 		System.setProperty("red5.deployment.type", "junit");
-		System.setProperty("red5.root", "bin");
-		System.setProperty("red5.config_root", "bin/conf");
+		System.setProperty("red5.root", "file:" + userDir + "/bin");
+		System.setProperty("red5.config_root", System.getProperty("red5.root") + "/conf");
 	}
 
 	@Test
@@ -189,7 +193,7 @@ public class ServiceInvokerTest extends AbstractJUnit4SpringContextTests {
 	public void testMultiThreadBug631() throws Throwable {
 				
 		//leak doesnt appear unless this is around 1000 and running outside eclipse
-		int threadCount = 500;
+		int threadCount = 2000;
 		
 		//init and run
 		
@@ -210,6 +214,9 @@ public class ServiceInvokerTest extends AbstractJUnit4SpringContextTests {
 			ConnectionWorker wkr = (ConnectionWorker) r;
 			String name = (wkr.getName());
 			Assert.assertNotNull(name);
+			//close them all down
+			wkr.close();			
+			//
 			Assert.assertTrue(wkr.getServiceCapableConnection().getPrivateMessageCount() > threadCount);
 		}		
 		
@@ -235,8 +242,6 @@ public class ServiceInvokerTest extends AbstractJUnit4SpringContextTests {
 	}
 	
 	final static class ConnectionWorker extends TestRunnable {
-		
-		Random rnd = new Random();
 		
 		IConnection conn;
 		String name;
@@ -291,7 +296,7 @@ public class ServiceInvokerTest extends AbstractJUnit4SpringContextTests {
 			int connectionCount = workerList.size();
 			
 			//now send N messages to random recipients
-			for (int i = 0; i < 1000; i++) {
+			for (int i = 0; i < 4000; i++) {
 				String worker = workerList.get(rnd.nextInt(connectionCount));
 				//dont send to ourself
 				if (name.equals(worker)) {
@@ -321,6 +326,12 @@ public class ServiceInvokerTest extends AbstractJUnit4SpringContextTests {
 			
 		}
 
+		public void close() {
+			DummyClient client = (DummyClient) conn.getClient();
+			client.unregisterConnection(conn);
+			conn.close();
+		}
+		
 		public String getName() {
 			return name;
 		}
@@ -343,9 +354,9 @@ public class ServiceInvokerTest extends AbstractJUnit4SpringContextTests {
 		}
 		
 		public void invoke(String method, Object[] params) {
-			log.debug("Invoke on connection: {}", this.client.getId());
+			//log.debug("Invoke on connection: {}", this.client.getId());
 			if ("privMessage".equals(method)) {
-				log.info("Got a private message from: {} message: {}", params);
+				//log.info("Got a private message from: {} message: {}", params);
 				privateMessageCount++;
 			} else {
 				log.warn("Method: {} not implemented", method);

@@ -39,4 +39,9 @@ public class DummyClient extends Client {
 		register(this.conn);
 	}
 	
+	public void unregisterConnection(IConnection conn) {
+		unregister(conn);
+		disconnect();
+	}
+	
 }
