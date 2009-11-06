@@ -20,6 +20,7 @@ package org.red5.server.api;
  */
 
 import org.red5.server.BaseConnection;
+import org.red5.server.Scope;
 
 public class TestConnection extends BaseConnection {
 
@@ -27,15 +28,16 @@ public class TestConnection extends BaseConnection {
 		super(PERSISTENT, host, null, 0, path, sessionId, null);
 	}
 
-    /**
-     * Return encoding (currently AMF0)
-     * @return          AMF0 encoding constant
-     */
+	/**
+	 * Return encoding (currently AMF0)
+	 * @return          AMF0 encoding constant
+	 */
 	public Encoding getEncoding() {
 		return Encoding.AMF0;
 	}
+
 	/** {@inheritDoc} */
-    public int getLastPingTime() {
+	public int getLastPingTime() {
 		return 0;
 	}
 
@@ -46,14 +48,26 @@ public class TestConnection extends BaseConnection {
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public long getWrittenBytes() {
 		return 0;
 	}
 
 	/** {@inheritDoc} */
-    public void ping() {
+	public void ping() {
 
 	}
-	
+
+	public void setClient(IClient client) {
+		this.client = client;
+	}
+
+	public void setScope(Scope scope) {
+		this.scope = scope;
+	}
+
+	public void setContext(IContext context) {
+		this.scope.setContext(context);
+	}
+
 }

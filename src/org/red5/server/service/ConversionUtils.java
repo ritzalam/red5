@@ -49,22 +49,20 @@ public class ConversionUtils {
 
 	private static final Logger log = LoggerFactory.getLogger(ConversionUtils.class);
 
-	private static final Class<?>[] PRIMITIVES = { boolean.class, byte.class,
-			char.class, short.class, int.class, long.class, float.class,
-			double.class };
+	private static final Class<?>[] PRIMITIVES = { boolean.class, byte.class, char.class, short.class, int.class,
+			long.class, float.class, double.class };
 
-	private static final Class<?>[] WRAPPERS = { Boolean.class, Byte.class,
-			Character.class, Short.class, Integer.class, Long.class,
-			Float.class, Double.class };
+	private static final Class<?>[] WRAPPERS = { Boolean.class, Byte.class, Character.class, Short.class,
+			Integer.class, Long.class, Float.class, Double.class };
 
-    /**
-     * Parameter chains
-     */
-    private static final Class<?>[][] PARAMETER_CHAINS = {
-			{ boolean.class, null }, { byte.class, Short.class },
-			{ char.class, Integer.class }, { short.class, Integer.class },
-			{ int.class, Long.class }, { long.class, Float.class },
-			{ float.class, Double.class }, { double.class, null } };
+	private static final String NUMERIC_TYPE = "[-]?\\b\\d+\\b|[-]?\\b[0-9]*\\.?[0-9]+(?:[eE][-+]?[0-9]+)?\\b";
+	
+	/**
+	 * Parameter chains
+	 */
+	private static final Class<?>[][] PARAMETER_CHAINS = { { boolean.class, null }, { byte.class, Short.class },
+			{ char.class, Integer.class }, { short.class, Integer.class }, { int.class, Long.class },
+			{ long.class, Float.class }, { float.class, Double.class }, { double.class, null } };
 
 	/** Mapping of primitives to wrappers */
 	private static Map<Class<?>, Class<?>> primitiveMap = new HashMap<Class<?>, Class<?>>();
@@ -87,17 +85,16 @@ public class ConversionUtils {
 		}
 	}
 
-    /**
-     * Convert source to given class
-     * @param source         Source object
-     * @param target         Target class
-     * @return               Converted object
-     * @throws ConversionException           If object can't be converted
-     *
-     */
-    @SuppressWarnings("unchecked")
-	public static Object convert(Object source, Class<?> target)
-			throws ConversionException {
+	/**
+	 * Convert source to given class
+	 * @param source         Source object
+	 * @param target         Target class
+	 * @return               Converted object
+	 * @throws ConversionException           If object can't be converted
+	 *
+	 */
+	@SuppressWarnings("unchecked")
+	public static Object convert(Object source, Class<?> target) throws ConversionException {
 		if (target == null) {
 			throw new ConversionException("Unable to perform conversion, target was null");
 		}
@@ -106,14 +103,13 @@ public class ConversionUtils {
 				throw new ConversionException(String.format("Unable to convert null to primitive value of %s", target));
 			}
 			return source;
-		} else if ((source instanceof Float && ((Float) source).isNaN()) || 
-				   (source instanceof Double && ((Double) source).isNaN())) {
+		} else if ((source instanceof Float && ((Float) source).isNaN())
+				|| (source instanceof Double && ((Double) source).isNaN())) {
 			// Don't convert NaN values
 			return source;
 		}
-		
-		if (IConnection.class.isAssignableFrom(source.getClass())
-				&& !target.equals(IConnection.class)) {
+
+		if (IConnection.class.isAssignableFrom(source.getClass()) && !target.equals(IConnection.class)) {
 			throw new ConversionException("IConnection must match exactly");
 		}
 		if (target.isInstance(source)) {
@@ -153,29 +149,28 @@ public class ConversionUtils {
 		throw new ConversionException(String.format("Unable to preform conversion from %s to %s", source, target));
 	}
 
-    /**
-     * Convert to array
-     * @param source         Source object
-     * @param target         Target class
-     * @return               Converted object
-     * @throws ConversionException           If object can't be converted
-     */
-    public static Object convertToArray(Object source, Class<?> target)
-			throws ConversionException {
+	/**
+	 * Convert to array
+	 * @param source         Source object
+	 * @param target         Target class
+	 * @return               Converted object
+	 * @throws ConversionException           If object can't be converted
+	 */
+	public static Object convertToArray(Object source, Class<?> target) throws ConversionException {
 		try {
 			Class<?> targetType = target.getComponentType();
 			if (source.getClass().isArray()) {
 				Object targetInstance = Array.newInstance(targetType, Array.getLength(source));
-				for (int i=0;i<Array.getLength(source);i++) {
+				for (int i = 0; i < Array.getLength(source); i++) {
 					Array.set(targetInstance, i, convert(Array.get(source, i), targetType));
 				}
 				return targetInstance;
 			}
 			if (source instanceof Collection<?>) {
-				Collection<?> sourceCollection=(Collection<?>)source;
+				Collection<?> sourceCollection = (Collection<?>) source;
 				Object targetInstance = Array.newInstance(target.getComponentType(), sourceCollection.size());
-				Iterator<?> it=sourceCollection.iterator();
-				int i=0;
+				Iterator<?> it = sourceCollection.iterator();
+				int i = 0;
 				while (it.hasNext()) {
 					Array.set(targetInstance, i++, convert(it.next(), targetType));
 				}
@@ -187,19 +182,19 @@ public class ConversionUtils {
 		}
 	}
 
-    public static List<Object> convertMapToList(Map<?, ?> map) {
-    	List<Object> list = new ArrayList<Object>(map.size());
-    	list.addAll(map.values());
-    	return list;
-    }
-    
-    /**
-     * Convert to wrapped primitive
-     * @param source            Source object
-     * @param wrapper           Primitive wrapper type
-     * @return                  Converted object
-     */
-    public static Object convertToWrappedPrimitive(Object source, Class<?> wrapper) {
+	public static List<Object> convertMapToList(Map<?, ?> map) {
+		List<Object> list = new ArrayList<Object>(map.size());
+		list.addAll(map.values());
+		return list;
+	}
+
+	/**
+	 * Convert to wrapped primitive
+	 * @param source            Source object
+	 * @param wrapper           Primitive wrapper type
+	 * @return                  Converted object
+	 */
+	public static Object convertToWrappedPrimitive(Object source, Class<?> wrapper) {
 		if (source == null || wrapper == null) {
 			return null;
 		}
@@ -212,44 +207,53 @@ public class ConversionUtils {
 		if (source instanceof Number) {
 			return convertNumberToWrapper((Number) source, wrapper);
 		} else {
+			//ensure we dont try to convert text to a number, prevent 
+			//NumberFormatException
+			if (Number.class.isAssignableFrom(wrapper)) {
+				//test for int or fp number
+				if (!source.toString().matches(NUMERIC_TYPE)) {					
+					throw new ConversionException(String.format("Unable to convert string %s its not a number type: %s", source, wrapper));
+				}
+			}
 			return convertStringToWrapper(source.toString(), wrapper);
 		}
 	}
 
-    /**
-     * Convert string to primitive wrapper like Boolean or Float
-     * @param str               String to convert
-     * @param wrapper           Primitive wrapper type
-     * @return                  Converted object
-     */
-    public static Object convertStringToWrapper(String str, Class<?> wrapper) {
+	/**
+	 * Convert string to primitive wrapper like Boolean or Float
+	 * @param str               String to convert
+	 * @param wrapper           Primitive wrapper type
+	 * @return                  Converted object
+	 */
+	public static Object convertStringToWrapper(String str, Class<?> wrapper) {
+		log.trace("String: {} to wrapper: {}", str, wrapper);
 		if (wrapper.equals(String.class)) {
 			return str;
 		} else if (wrapper.equals(Boolean.class)) {
 			return Boolean.valueOf(str);
 		} else if (wrapper.equals(Double.class)) {
-			return new Double(str);
+			return Double.valueOf(str);
 		} else if (wrapper.equals(Long.class)) {
-			return new Long(str);
+			return Long.valueOf(str);
 		} else if (wrapper.equals(Float.class)) {
-			return new Float(str);
+			return Float.valueOf(str);
 		} else if (wrapper.equals(Integer.class)) {
-			return new Integer(str);
+			return Integer.valueOf(str);
 		} else if (wrapper.equals(Short.class)) {
-			return new Short(str);
+			return Short.valueOf(str);
 		} else if (wrapper.equals(Byte.class)) {
-			return new Byte(str);
+			return Byte.valueOf(str);
 		}
 		throw new ConversionException(String.format("Unable to convert string to: %s", wrapper));
 	}
 
-    /**
-     * Convert number to primitive wrapper like Boolean or Float
-     * @param num               Number to conver
-     * @param wrapper           Primitive wrapper type
-     * @return                  Converted object
-     */
-    public static Object convertNumberToWrapper(Number num, Class<?> wrapper) {
+	/**
+	 * Convert number to primitive wrapper like Boolean or Float
+	 * @param num               Number to conver
+	 * @param wrapper           Primitive wrapper type
+	 * @return                  Converted object
+	 */
+	public static Object convertNumberToWrapper(Number num, Class<?> wrapper) {
 		//XXX Paul: Using valueOf will reduce object creation
 		if (wrapper.equals(String.class)) {
 			return num.toString();
@@ -271,25 +275,26 @@ public class ConversionUtils {
 		throw new ConversionException(String.format("Unable to convert number to: %s", wrapper));
 	}
 
-    /**
-     * Find method by name and number of parameters
-     * @param object            Object to find method on
-     * @param method            Method name
-     * @param numParam          Number of parameters
-     * @return                  List of methods that match by name and number of parameters
-     */
-    public static List<Method> findMethodsByNameAndNumParams(Object object,
-			String method, int numParam) {
+	/**
+	 * Find method by name and number of parameters
+	 * @param object            Object to find method on
+	 * @param method            Method name
+	 * @param numParam          Number of parameters
+	 * @return                  List of methods that match by name and number of parameters
+	 */
+	public static List<Method> findMethodsByNameAndNumParams(Object object, String method, int numParam) {
 		LinkedList<Method> list = new LinkedList<Method>();
 		Method[] methods = object.getClass().getMethods();
 		for (Method m : methods) {
 			log.debug("Method name: {}", m.getName());
-			if (!m.getName().equals(method)) {
-				log.debug("Method name not the same");
-				continue;
-			}
+			//check parameter length first since this should speed things up
 			if (m.getParameterTypes().length != numParam) {
 				log.debug("Param length not the same");
+				continue;
+			}
+			//now try to match the name
+			if (!m.getName().equals(method)) {
+				log.debug("Method name not the same");
 				continue;
 			}
 			list.add(m);
@@ -297,15 +302,14 @@ public class ConversionUtils {
 		return list;
 	}
 
-    /**
-     * Convert parameters using methods of this utility class
-     * @param source                Array of source object
-     * @param target                Array of target classes
-     * @return                      Array of converted objects
-     * @throws ConversionException  If object can't be converted
-     */
-    public static Object[] convertParams(Object[] source, Class<?>[] target)
-			throws ConversionException {
+	/**
+	 * Convert parameters using methods of this utility class
+	 * @param source                Array of source object
+	 * @param target                Array of target classes
+	 * @return                      Array of converted objects
+	 * @throws ConversionException  If object can't be converted
+	 */
+	public static Object[] convertParams(Object[] source, Class<?>[] target) throws ConversionException {
 		Object[] converted = new Object[target.length];
 		for (int i = 0; i < target.length; i++) {
 			converted[i] = convert(source[i], target[i]);
@@ -313,36 +317,35 @@ public class ConversionUtils {
 		return converted;
 	}
 
-    /**
-     * Convert parameters using methods of this utility class
-     * @param source                Array of source object
-     * @return                      Array of converted objects
-     */
-    public static Class<?>[] convertParams(Object[] source) {
-    	Class<?>[] converted = null;
-    	if (source != null) {
-        	converted = new Class<?>[source.length];
-    		for (int i = 0; i < source.length; i++) {
-    			if (source[i] != null) {
-    				converted[i] = source[i].getClass();
-    			} else {
-    				converted[i] = null;
-    			}
-    		}
-    	} else {
-    		converted = new Class<?>[0];
-    	}
+	/**
+	 * Convert parameters using methods of this utility class
+	 * @param source                Array of source object
+	 * @return                      Array of converted objects
+	 */
+	public static Class<?>[] convertParams(Object[] source) {
+		Class<?>[] converted = null;
+		if (source != null) {
+			converted = new Class<?>[source.length];
+			for (int i = 0; i < source.length; i++) {
+				if (source[i] != null) {
+					converted[i] = source[i].getClass();
+				} else {
+					converted[i] = null;
+				}
+			}
+		} else {
+			converted = new Class<?>[0];
+		}
 		return converted;
-	}    
-    
-    /**
-     *
-     * @param source source arra
-     * @return list
-     * @throws ConversionException on failure
-     */
-    public static List<?> convertArrayToList(Object[] source)
-			throws ConversionException {
+	}
+
+	/**
+	 *
+	 * @param source source arra
+	 * @return list
+	 * @throws ConversionException on failure
+	 */
+	public static List<?> convertArrayToList(Object[] source) throws ConversionException {
 		List<Object> list = new ArrayList<Object>(source.length);
 		for (Object element : source) {
 			list.add(element);
@@ -350,19 +353,17 @@ public class ConversionUtils {
 		return list;
 	}
 
-    /**
-     * Convert map to bean
-     * @param source                Source map
-     * @param target                Target class
-     * @return                      Bean of that class
-     * @throws ConversionException on failure
-     */
-    public static Object convertMapToBean(Map<?, ?> source, Class<?> target)
-			throws ConversionException {
+	/**
+	 * Convert map to bean
+	 * @param source                Source map
+	 * @param target                Target class
+	 * @return                      Bean of that class
+	 * @throws ConversionException on failure
+	 */
+	public static Object convertMapToBean(Map<?, ?> source, Class<?> target) throws ConversionException {
 		Object bean = newInstance(target.getClass().getName());
 		if (bean == null) {
-			throw new ConversionException(
-					"Unable to create bean using empty constructor");
+			throw new ConversionException("Unable to create bean using empty constructor");
 		}
 		try {
 			BeanUtils.populate(bean, source);
@@ -372,21 +373,21 @@ public class ConversionUtils {
 		return bean;
 	}
 
-    /**
-     * Convert bean to map
-     * @param source      Source bean
-     * @return            Converted map
-     */
-    public static Map<?, ?> convertBeanToMap(Object source) {
+	/**
+	 * Convert bean to map
+	 * @param source      Source bean
+	 * @return            Converted map
+	 */
+	public static Map<?, ?> convertBeanToMap(Object source) {
 		return new BeanMap(source);
 	}
 
-    /**
-     * Convert array to set, removing duplicates
-     * @param source      Source array
-     * @return            Set
-     */
-    public static Set<?> convertArrayToSet(Object[] source) {
+	/**
+	 * Convert array to set, removing duplicates
+	 * @param source      Source array
+	 * @return            Set
+	 */
+	public static Set<?> convertArrayToSet(Object[] source) {
 		Set<Object> set = new HashSet<Object>();
 		for (Object element : source) {
 			set.add(element);
@@ -394,17 +395,16 @@ public class ConversionUtils {
 		return set;
 	}
 
-    /**
-     * Create new class instance
-     * @param className   Class name; may not be loaded by JVM yet
-     * @return            Instance of given class
-     */
-    protected static Object newInstance(String className) {
-    	//System.out.println(">>>>> conversion utils: " + Thread.currentThread().getContextClassLoader());
+	/**
+	 * Create new class instance
+	 * @param className   Class name; may not be loaded by JVM yet
+	 * @return            Instance of given class
+	 */
+	protected static Object newInstance(String className) {
+		//System.out.println(">>>>> conversion utils: " + Thread.currentThread().getContextClassLoader());
 		Object instance = null;
 		try {
-			Class<?> clazz = Thread.currentThread().getContextClassLoader()
-					.loadClass(className);
+			Class<?> clazz = Thread.currentThread().getContextClassLoader().loadClass(className);
 			instance = clazz.newInstance();
 		} catch (Exception ex) {
 			log.error("Error loading class: {}", className, ex);
