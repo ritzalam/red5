@@ -53,7 +53,7 @@ public class ContextLoggingListener implements ServletContextListener {
 		ContextSelector selector = StaticLoggerBinder.getSingleton().getContextSelector();
 		LoggerContext context = selector.detachLoggerContext(contextName);
 		if (context != null) {
-			Logger logger = context.getLogger(LoggerContext.ROOT_NAME);
+			Logger logger = context.getLogger(Logger.ROOT_LOGGER_NAME);
 			logger.debug("Shutting down context {}", contextName);
 			context.reset();
 		} else {
@@ -76,7 +76,7 @@ public class ContextLoggingListener implements ServletContextListener {
 
 			LoggerContext context = selector.getLoggerContext();
 			if (context != null) {
-				Logger logger = context.getLogger(LoggerContext.ROOT_NAME);
+				Logger logger = context.getLogger(Logger.ROOT_LOGGER_NAME);
 				logger.debug("Starting up context {}", contextName);
 			} else {
 				System.err.printf("No context named %s was found", contextName);

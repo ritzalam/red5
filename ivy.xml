@@ -36,8 +36,8 @@
         <dependency name="jcl-over-slf4j" rev="1.5.8" />
         <dependency name="log4j-over-slf4j" rev="1.5.8" />
         <dependency name="jul-to-slf4j" rev="1.5.8" />
-        <dependency name="logback-core" rev="0.9.16" />
-        <dependency name="logback-classic" rev="0.9.16" />
+        <dependency name="logback-core" rev="0.9.17" />
+        <dependency name="logback-classic" rev="0.9.17" />
         <dependency name="tomcat-juli-slf4j" rev="1.5.0" />
         <!-- General --> 
         <dependency org="commons" name="commons-beanutils" rev="1.8.0" />
