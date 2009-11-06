@@ -244,16 +244,8 @@ public class RTMPHandler extends BaseRTMPHandler {
 						// Lookup server scope when connected
 						// Use host and application name
 						IGlobalScope global = server.lookupGlobal(host, path);
-						if (global == null) {
-							call.setStatus(Call.STATUS_SERVICE_NOT_FOUND);
-							if (call instanceof IPendingServiceCall) {
-								StatusObject status = getStatus(NC_CONNECT_INVALID_APPLICATION);
-								status.setDescription("No scope \"" + path + "\" on this server.");
-								((IPendingServiceCall) call).setResult(status);
-							}
-							log.info("No application scope found for {} on host {}. Misspelled or missing application folder?", path, host);
-							disconnectOnReturn = true;
-						} else {
+						log.trace("Global lookup result: {}", global);
+						if (global != null) {
 							final IContext context = global.getContext();
 							IScope scope = null;
 							try {
@@ -339,6 +331,15 @@ public class RTMPHandler extends BaseRTMPHandler {
 									disconnectOnReturn = true;
 								}
 							}
+						} else {
+							call.setStatus(Call.STATUS_SERVICE_NOT_FOUND);
+							if (call instanceof IPendingServiceCall) {
+								StatusObject status = getStatus(NC_CONNECT_INVALID_APPLICATION);
+								status.setDescription("No scope \"" + path + "\" on this server.");
+								((IPendingServiceCall) call).setResult(status);
+							}
+							log.info("No application scope found for {} on host {}. Misspelled or missing application folder?", path, host);
+							disconnectOnReturn = true;
 						}
 					} catch (RuntimeException e) {
 						call.setStatus(Call.STATUS_GENERAL_EXCEPTION);

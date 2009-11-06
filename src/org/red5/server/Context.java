@@ -115,7 +115,9 @@ public class Context implements IContext, ApplicationContextAware, ContextMBean 
 	 * @return Global scope
 	 */
 	public IGlobalScope getGlobalScope() {
-		return scopeResolver.getGlobalScope();
+		IGlobalScope gs = scopeResolver.getGlobalScope();
+		logger.trace("Global scope: {}", gs);
+		return gs;
 	}
 
 	/**
@@ -217,8 +219,8 @@ public class Context implements IContext, ApplicationContextAware, ContextMBean 
 			if (config == null) {
 				config = "red5.xml";
 			}
-			coreContext = ContextSingletonBeanFactoryLocator.getInstance(
-					config).useBeanFactory("red5.core").getFactory();
+			coreContext = ContextSingletonBeanFactoryLocator.getInstance(config).useBeanFactory("red5.core")
+					.getFactory();
 		} else {
 			logger.info("Setting parent bean factory as core");
 			coreContext = applicationContext.getParentBeanFactory();
@@ -363,6 +365,7 @@ public class Context implements IContext, ApplicationContextAware, ContextMBean 
 	public IScope resolveScope(String host, String path) {
 		return scopeResolver.resolveScope(path);
 	}
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -416,8 +419,6 @@ public class Context implements IContext, ApplicationContextAware, ContextMBean 
 	 * @return Classloder context of current thread
 	 */
 	public ClassLoader getClassLoader() {
-		//System.out.println(">>>>> context: " + Thread.currentThread().getContextClassLoader());
-		//System.out.println(">>>>> context (app ctx): " + applicationContext.getClassLoader());
 		return applicationContext.getClassLoader();
 	}
 

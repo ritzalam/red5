@@ -39,6 +39,9 @@
 		<appender-ref ref="ERRORFILE" />
 	</root>
 	<!-- Red5 -->
+	<logger name="org.red5.server.Launcher">
+		<level value="INFO" />
+	</logger>
 	<logger name="org.red5.io">
 		<level value="INFO" />
 	</logger>

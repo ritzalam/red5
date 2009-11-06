@@ -100,6 +100,7 @@ public class LoaderBase implements ApplicationContextAware {
 	 */
 	public static IApplicationContext getRed5ApplicationContext(String path) {
 		log.debug("Get red5 application context - path: {}", path);
+		//log.trace("Map at get: {}", red5AppCtx);
 		return red5AppCtx.get(path);
 	}
 	
@@ -111,11 +112,13 @@ public class LoaderBase implements ApplicationContextAware {
 	 */
 	public static void setRed5ApplicationContext(String path, IApplicationContext context) {
 		log.debug("Set red5 application context - path: {} context: {}", path, context);
+		//log.trace("Map at set: {}", red5AppCtx);
 		if (context != null) {
 			red5AppCtx.put(path, context);
 		} else {
 			red5AppCtx.remove(path);
 		}
+		//log.trace("Map after set: {}", red5AppCtx);
 	}
 	
 	/**

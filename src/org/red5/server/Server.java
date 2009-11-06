@@ -154,14 +154,15 @@ public class Server implements IServer, ApplicationContextAware, InitializingBea
 	 * @return Global scope
 	 */
 	public IGlobalScope lookupGlobal(String hostName, String contextPath) {
-		log.debug("{}", this);
+		log.trace("{}", this);
+		log.debug("Lookup global scope - host name: {} context path: {}", hostName, contextPath);
 		// Init mappings key
 		String key = getKey(hostName, contextPath);
-		// If context path contains slashes get complex key and look up for it
+		// If context path contains slashes get complex key and look for it
 		// in mappings
 		while (contextPath.indexOf(SLASH) != -1) {
 			key = getKey(hostName, contextPath);
-			log.debug("Check: {}", key);
+			log.trace("Check: {}", key);
 			String globalName = mapping.get(key);
 			if (globalName != null) {
 				return getGlobal(globalName);
@@ -174,7 +175,7 @@ public class Server implements IServer, ApplicationContextAware, InitializingBea
 
 		// Get global scope key
 		key = getKey(hostName, contextPath);
-		log.debug("Check host and path: {}", key);
+		log.trace("Check host and path: {}", key);
 
 		// Look up for global scope switching keys if still not found
 		String globalName = mapping.get(key);
@@ -182,19 +183,19 @@ public class Server implements IServer, ApplicationContextAware, InitializingBea
 			return getGlobal(globalName);
 		}
 		key = getKey(EMPTY, contextPath);
-		log.debug("Check wildcard host with path: {}", key);
+		log.trace("Check wildcard host with path: {}", key);
 		globalName = mapping.get(key);
 		if (globalName != null) {
 			return getGlobal(globalName);
 		}
 		key = getKey(hostName, EMPTY);
-		log.debug("Check host with no path: {}", key);
+		log.trace("Check host with no path: {}", key);
 		globalName = mapping.get(key);
 		if (globalName != null) {
 			return getGlobal(globalName);
 		}
 		key = getKey(EMPTY, EMPTY);
-		log.debug("Check default host, default path: {}", key);
+		log.trace("Check default host, default path: {}", key);
 		return getGlobal(mapping.get(key));
 	}
 
@@ -217,7 +218,7 @@ public class Server implements IServer, ApplicationContextAware, InitializingBea
 	 * @param scope Global scope to register
 	 */
 	public void registerGlobal(IGlobalScope scope) {
-		log.info("Registering global scope: {}", scope.getName());
+		log.trace("Registering global scope: {}", scope.getName(), scope);
 		globals.put(scope.getName(), scope);
 	}
 

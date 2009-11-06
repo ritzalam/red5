@@ -203,7 +203,7 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 			log.debug("Context loader (check): {} Context classloader: {}", c.getLoader(), c.getLoader()
 					.getClassLoader());
 			host.addChild(c);
-			LoaderBase.setRed5ApplicationContext(path, new TomcatApplicationContext(c));
+			LoaderBase.setRed5ApplicationContext(getHostId() + path, new TomcatApplicationContext(c));
 		} else {
 			log.trace("Context is null");
 		}
@@ -486,6 +486,9 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 
 					final ServletContext servletContext = ctx.getServletContext();
 					log.debug("Context initialized: {}", servletContext.getContextPath());
+					
+					//set the hosts id
+					servletContext.setAttribute("red5.host.id", getHostId());
 
 					String prefix = servletContext.getRealPath("/");
 					log.debug("Path: {}", prefix);
@@ -872,6 +875,17 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 		this.connectionProperties.putAll(props);
 	}
 
+	/**
+	 * Returns a semi-unique id for this host based on its host values
+	 * 
+	 * @return host id
+	 */
+	protected String getHostId() {
+		String hostId =  host.getName();
+		log.debug("Host id: {}", hostId);
+		return hostId;
+	}
+	
 	public void registerJMX() {
 		JMXAgent.registerMBean(this, this.getClass().getName(), LoaderMBean.class);
 	}

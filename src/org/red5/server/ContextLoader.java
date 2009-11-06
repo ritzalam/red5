@@ -258,7 +258,7 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMBea
 			// It also appears to not need this for Windows
 			// absolute paths (e.g. C:\Foo\Bar) so we
 			// don't catch that either
-			String newConfig = "file://"+config;
+			String newConfig = "file://" + config;
 			log.debug("Resetting {} to {}", config, newConfig);
 			config = newConfig;
 		}

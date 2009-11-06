@@ -106,6 +106,7 @@ public class WebScope extends Scope implements ServletContextAware {
 	 * @param globalScope Red5 global scope
 	 */
 	public void setGlobalScope(IGlobalScope globalScope) {
+		log.trace("Set global scope: {}", globalScope);
 		// XXX: this is called from nowhere, remove?
 		super.setParent(globalScope);
 		try {
@@ -184,12 +185,14 @@ public class WebScope extends Scope implements ServletContextAware {
 			return;
 		}
 		log.debug("Webscope registering: {}", contextPath);		
-		appContext = LoaderBase.getRed5ApplicationContext(contextPath);
+		getAppContext();
 		appLoader = LoaderBase.getApplicationLoader();
+		//get the parent name
+		String parentName = getParent().getName();
 		//add host name mappings
 		if (hostnames != null && hostnames.length > 0) {
-			for (String element : hostnames) {
-				server.addMapping(element, getName(), getParent().getName());
+			for (String hostName : hostnames) {
+				server.addMapping(hostName, getName(), parentName);
 			}
 		}
 		init();
@@ -231,7 +234,7 @@ public class WebScope extends Scope implements ServletContextAware {
 		//check for null
 		if (appContext == null) {
 			log.debug("Application context is null, trying retrieve from loader");
-			appContext = LoaderBase.getRed5ApplicationContext(contextPath);			
+			getAppContext();		
 		}
 		//try to stop the app context
 		if (appContext != null) {
@@ -265,6 +268,28 @@ public class WebScope extends Scope implements ServletContextAware {
 		return appLoader;
 	}
 
+	/**
+	 * Sets the local app context variable based on host id if available in the 
+	 * servlet context.
+	 */
+	private final void getAppContext() {
+		//get the host id
+		String hostId = null;
+		//get host from servlet context
+		if (servletContext != null) {
+			ServletContext sctx = servletContext.getContext(contextPath);
+			if (sctx != null) {
+				hostId = (String) sctx.getAttribute("red5.host.id");
+				log.trace("Host id from init param: {}", hostId);
+			}
+		}		
+		if (hostId != null) {
+			appContext = LoaderBase.getRed5ApplicationContext(hostId + contextPath);
+		} else {
+			appContext = LoaderBase.getRed5ApplicationContext(contextPath);
+		}
+	}	
+	
 	/**
 	 * Is the scope currently shutting down?
 	 * 

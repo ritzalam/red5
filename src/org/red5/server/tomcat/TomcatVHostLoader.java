@@ -162,6 +162,9 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
             		ServletContext servletContext = ctx.getServletContext();
             		log.debug("Context initialized: {}", servletContext.getContextPath());
             		
+					//set the hosts id
+					servletContext.setAttribute("red5.host.id", getHostId());
+            		
             		String prefix = servletContext.getRealPath("/");
             		log.debug("Path: {}", prefix);
             
