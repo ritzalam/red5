@@ -18,7 +18,7 @@ package org.red5.server.script.jython;
  * with this library; if not, write to the Free Software Foundation, Inc., 
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
- 
+
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -46,20 +46,22 @@ import org.springframework.util.Assert;
 public class JythonScriptFactory implements ScriptFactory {
 
 	private static Logger logger = LoggerFactory.getLogger(JythonScriptFactory.class);
-	
+
 	private final String scriptSourceLocator;
-	@SuppressWarnings("unchecked")
+
+	@SuppressWarnings("rawtypes")
 	private final Class[] scriptInterfaces;
+
 	private final Object[] arguments;
 
 	public JythonScriptFactory(String scriptSourceLocator) {
 		Assert.hasText(scriptSourceLocator);
 		this.scriptSourceLocator = scriptSourceLocator;
-		this.scriptInterfaces = new Class[]{};
+		this.scriptInterfaces = new Class[] {};
 		this.arguments = null;
 	}
-	
-	@SuppressWarnings("unchecked")
+
+	@SuppressWarnings("rawtypes")
 	public JythonScriptFactory(String scriptSourceLocator, Class[] scriptInterfaces) {
 		Assert.hasText(scriptSourceLocator);
 		Assert.notEmpty(scriptInterfaces);
@@ -67,8 +69,8 @@ public class JythonScriptFactory implements ScriptFactory {
 		this.scriptInterfaces = scriptInterfaces;
 		this.arguments = null;
 	}
-	
-	@SuppressWarnings("unchecked")
+
+	@SuppressWarnings("rawtypes")
 	public JythonScriptFactory(String scriptSourceLocator, Class[] scriptInterfaces, Object[] arguments) {
 		Assert.hasText(scriptSourceLocator);
 		Assert.notEmpty(scriptInterfaces);
@@ -80,41 +82,41 @@ public class JythonScriptFactory implements ScriptFactory {
 			this.arguments = arguments;
 		}
 	}
-	
+
 	/** {@inheritDoc} */
-    public String getScriptSourceLocator() {
+	public String getScriptSourceLocator() {
 		return scriptSourceLocator;
 	}
 
 	/** {@inheritDoc} */
-    @SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	public Class[] getScriptInterfaces() {
 		return scriptInterfaces;
 	}
 
 	/** {@inheritDoc} */
-    public boolean requiresConfigInterface() {
+	public boolean requiresConfigInterface() {
 		return true;
 	}
 
 	/** {@inheritDoc} */
-    @SuppressWarnings("unchecked")
-	public Object getScriptedObject(ScriptSource scriptSourceLocator, Class[] scriptInterfaces)
-			throws IOException, ScriptCompilationException {
-    	String basePath = "";
-    	
-    	/* TODO: how to do this when running under Tomcat?
-    	ContextHandler handler = WebAppContext.getCurrentWebAppContext();
-    	if (handler != null) {
-    		File root = handler.getBaseResource().getFile();
-    		if (root != null && root.exists()) {
-    			basePath = root.getAbsolutePath() + File.separator + "WEB-INF" + File.separator;
-    		}
-    	}
-    	*/
-    	
+	@SuppressWarnings("rawtypes")
+	public Object getScriptedObject(ScriptSource scriptSourceLocator, Class[] scriptInterfaces) throws IOException,
+			ScriptCompilationException {
+		String basePath = "";
+
+		/* TODO: how to do this when running under Tomcat?
+		ContextHandler handler = WebAppContext.getCurrentWebAppContext();
+		if (handler != null) {
+			File root = handler.getBaseResource().getFile();
+			if (root != null && root.exists()) {
+				basePath = root.getAbsolutePath() + File.separator + "WEB-INF" + File.separator;
+			}
+		}
+		*/
+
 		String strScript = scriptSourceLocator.getScriptAsString();
-		if (scriptInterfaces.length > 0) {   
+		if (scriptInterfaces.length > 0) {
 			try {
 				PySystemState state = new PySystemState();
 				if (!"".equals(basePath)) {
@@ -122,7 +124,7 @@ public class JythonScriptFactory implements ScriptFactory {
 					state.path.insert(0, Py.newString(basePath + "classes"));
 					File jarRoot = new File(basePath + "lib");
 					if (jarRoot.exists()) {
-						for (String filename: jarRoot.list(new FilenameFilter() {
+						for (String filename : jarRoot.list(new FilenameFilter() {
 							public boolean accept(File dir, String name) {
 								return (name.endsWith(".jar"));
 							}
@@ -142,7 +144,7 @@ public class JythonScriptFactory implements ScriptFactory {
 					_this = ((PyFunction) getInstance).__call__();
 				} else {
 					PyObject[] args = new PyObject[arguments.length];
-					for (int i=0; i<arguments.length; i++) {
+					for (int i = 0; i < arguments.length; i++) {
 						args[i] = new PyJavaInstance(arguments[i]);
 					}
 					_this = ((PyFunction) getInstance).__call__(args);
@@ -157,7 +159,7 @@ public class JythonScriptFactory implements ScriptFactory {
 					// Raise to caller
 					throw (ScriptCompilationException) ex;
 				}
-				
+
 				throw new ScriptCompilationException(ex.getMessage());
 			}
 		}
@@ -165,13 +167,13 @@ public class JythonScriptFactory implements ScriptFactory {
 		return null;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	public Class getScriptedObjectType(ScriptSource src) throws IOException, ScriptCompilationException {
 		return null;
 	}
 
 	public boolean requiresScriptedObjectRefresh(ScriptSource src) {
 		return false;
-	}	
-	
+	}
+
 }

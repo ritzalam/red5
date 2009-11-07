@@ -187,7 +187,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 	}
 
 	/** {@inheritDoc} */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	protected void onInvoke(RTMPConnection conn, Channel channel, Header source, Notify invoke, RTMP rtmp) {
 

@@ -102,7 +102,7 @@ public class RecordSet {
      * Creates recordset from Input object
      * @param input input
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
 	public RecordSet(Input input) {
         // Create deserializer
         Deserializer deserializer = new Deserializer();

@@ -60,7 +60,7 @@ public class FLV implements IFLV {
 
 	private IMetaService metaService;
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	private IMetaData metaData;
 
 	/**
@@ -130,7 +130,7 @@ public class FLV implements IFLV {
 	/**
 	 * {@inheritDoc}
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	public IMetaData getMetaData() throws FileNotFoundException {
 		metaService.setInStream(new FileInputStream(file));
 		return null;
@@ -147,14 +147,14 @@ public class FLV implements IFLV {
 	/**
 	 * {@inheritDoc}
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	public void setKeyFrameData(Map keyframedata) {
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	public Map getKeyFrameData() {
 		// TODO Auto-generated method stub
 		return null;
@@ -244,16 +244,13 @@ public class FLV implements IFLV {
 
 	/** {@inheritDoc} */
 	public ITagWriter getAppendWriter() throws IOException {
-		// If the file doesnt exist, we cant append to it, so return a writer
+		// If the file doesn't exist, we can't append to it, so return a writer
 		if (!file.exists()) {
 			log.info("File does not exist, calling writer. This will create a new file.");
 			return getWriter();
 		}
-		
 		//Fix by Mhodgson: FLVWriter constructor allows for passing of file object
-		//ITagWriter writer = new FLVWriter(new FileOutputStream(file, true), true);
 		ITagWriter writer = new FLVWriter(file, true);
-		
 		return writer;
 	}
 
@@ -261,12 +258,11 @@ public class FLV implements IFLV {
 	 * {@inheritDoc}
 	 */
 	public ITagWriter writerFromNearestKeyFrame(int seekPoint) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	/** {@inheritDoc} */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "rawtypes" })
 	public void setMetaData(IMetaData meta) throws IOException {
 		File tmpFile = File.createTempFile("setMeta_", ".flv");
 		if (metaService == null) {

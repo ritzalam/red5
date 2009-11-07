@@ -74,7 +74,7 @@ public class RTMPClient extends BaseRTMPClientHandler {
 		return params;
 	}
 	
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "rawtypes" })
 	@Override
 	protected void startConnector(String server, int port) {
 		socketConnector = new NioSocketConnector();
@@ -87,8 +87,11 @@ public class RTMPClient extends BaseRTMPClientHandler {
 							// will throw RuntimeException after connection error
 							future.getSession(); 
 						} catch (Throwable e) {
-							socketConnector.dispose();
+							//if there isn't an ClientExceptionHandler set, a 
+							//RuntimeException may be thrown in handleException
 							handleException(e);
+							//to get here you must have an exception handler set
+							socketConnector.dispose();
 						}
 					}
 				}

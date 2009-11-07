@@ -71,8 +71,7 @@ public class JMXFactory {
 		try {
 			StringBuilder objectNameStr = new StringBuilder(domain);
 			objectNameStr.append(":type=");
-			objectNameStr.append(className
-					.substring(className.lastIndexOf(".") + 1));
+			objectNameStr.append(className.substring(className.lastIndexOf(".") + 1));
 			objectNameStr.append(",");
 			objectNameStr.append(attributes);
 			log.info("ObjectName = {}", objectNameStr);
@@ -111,8 +110,7 @@ public class JMXFactory {
 		return objName;
 	}
 
-	public static ObjectName createSimpleMBean(String className,
-			String objectNameStr) {
+	public static ObjectName createSimpleMBean(String className, String objectNameStr) {
 		log.info("Create the {} MBean within the MBeanServer", className);
 		log.info("ObjectName = {}", objectNameStr);
 		try {
@@ -137,20 +135,17 @@ public class JMXFactory {
 		return mbs;
 	}
 
-	@SuppressWarnings("unchecked")
-	public static boolean registerNewMBean(String className,
-			Class interfaceClass) {
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public static boolean registerNewMBean(String className, Class interfaceClass) {
 		boolean status = false;
 		try {
 			String cName = className;
 			if (cName.indexOf('.') != -1) {
-				cName = cName.substring(cName.lastIndexOf('.')).replaceFirst(
-						"[\\.]", "");
+				cName = cName.substring(cName.lastIndexOf('.')).replaceFirst("[\\.]", "");
 			}
 			log.debug("Register name: " + cName);
-			mbs.registerMBean(new StandardMBean(Class.forName(className)
-					.newInstance(), interfaceClass), new ObjectName(domain
-					+ ":type=" + cName));
+			mbs.registerMBean(new StandardMBean(Class.forName(className).newInstance(), interfaceClass),
+					new ObjectName(domain + ":type=" + cName));
 			status = true;
 		} catch (Exception e) {
 			log.error("Could not register the " + className + " MBean", e);
@@ -158,19 +153,16 @@ public class JMXFactory {
 		return status;
 	}
 
-	@SuppressWarnings("unchecked")
-	public static boolean registerNewMBean(String className,
-			Class interfaceClass, ObjectName name) {
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public static boolean registerNewMBean(String className, Class interfaceClass, ObjectName name) {
 		boolean status = false;
 		try {
 			String cName = className;
 			if (cName.indexOf('.') != -1) {
-				cName = cName.substring(cName.lastIndexOf('.')).replaceFirst(
-						"[\\.]", "");
+				cName = cName.substring(cName.lastIndexOf('.')).replaceFirst("[\\.]", "");
 			}
 			log.debug("Register name: " + cName);
-			mbs.registerMBean(new StandardMBean(Class.forName(className)
-					.newInstance(), interfaceClass), name);
+			mbs.registerMBean(new StandardMBean(Class.forName(className).newInstance(), interfaceClass), name);
 			status = true;
 		} catch (Exception e) {
 			log.error("Could not register the " + className + " MBean", e);
@@ -178,20 +170,17 @@ public class JMXFactory {
 		return status;
 	}
 
-	@SuppressWarnings("unchecked")
-	public static boolean registerNewMBean(String className,
-			Class interfaceClass, String name) {
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public static boolean registerNewMBean(String className, Class interfaceClass, String name) {
 		boolean status = false;
 		try {
 			String cName = className;
 			if (cName.indexOf('.') != -1) {
-				cName = cName.substring(cName.lastIndexOf('.')).replaceFirst(
-						"[\\.]", "");
+				cName = cName.substring(cName.lastIndexOf('.')).replaceFirst("[\\.]", "");
 			}
 			log.debug("Register name: " + cName);
-			mbs.registerMBean(new StandardMBean(Class.forName(className)
-					.newInstance(), interfaceClass), new ObjectName(domain
-					+ ":type=" + cName + ",name=" + name));
+			mbs.registerMBean(new StandardMBean(Class.forName(className).newInstance(), interfaceClass),
+					new ObjectName(domain + ":type=" + cName + ",name=" + name));
 			status = true;
 		} catch (Exception e) {
 			log.error("Could not register the " + className + " MBean", e);

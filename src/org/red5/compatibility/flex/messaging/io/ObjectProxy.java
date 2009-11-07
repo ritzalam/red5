@@ -128,7 +128,7 @@ public class ObjectProxy<T, V> implements Map<T, V>, IExternalizable {
 		return item.put(name, value);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void putAll(Map values) {
 		item.putAll(values);
 	}

@@ -70,24 +70,23 @@ public abstract class AbstractIOTest extends TestCase {
 
 	public void testArray() {
 		log.debug("Testing array");
-		String[] strArrIn = new String[] { "This", "Is", "An", "Array", "Of",
-				"Strings" };
+		String[] strArrIn = new String[] { "This", "Is", "An", "Array", "Of", "Strings" };
 		serializer.serialize(out, strArrIn);
 		dumpOutput();
-		Object[] objArrayOut = deserializer.deserialize(in, Object[].class); 
+		Object[] objArrayOut = deserializer.deserialize(in, Object[].class);
 		for (int i = 0; i < strArrIn.length; i++) {
 			Assert.assertEquals(strArrIn[i], objArrayOut[i]);
 		}
 		resetOutput();
 	}
-	
+
 	public void testArrayReference() {
 		log.debug("Testing array reference");
-		TestVO mytest=new TestVO();
-		TestVO[] strArrIn = new TestVO[] { mytest,mytest };
+		TestVO mytest = new TestVO();
+		TestVO[] strArrIn = new TestVO[] { mytest, mytest };
 		serializer.serialize(out, strArrIn);
 		dumpOutput();
-		TestVO[] objArrayOut = deserializer.deserialize(in, TestVO[].class); 
+		TestVO[] objArrayOut = deserializer.deserialize(in, TestVO[].class);
 		for (int i = 0; i < strArrIn.length; i++) {
 			Assert.assertEquals(strArrIn[i], objArrayOut[i]);
 		}
@@ -132,25 +131,19 @@ public abstract class AbstractIOTest extends TestCase {
 		resetOutput();
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "rawtypes" })
 	public void testJavaBean() {
 		log.debug("Testing list");
 		TestJavaBean beanIn = new TestJavaBean();
 		beanIn.setTestString("test string here");
-		beanIn.setTestBoolean((System.currentTimeMillis() % 2 == 0) ? true
-				: false);
-		beanIn
-				.setTestBooleanObject((System.currentTimeMillis() % 2 == 0) ? Boolean.TRUE
-						: Boolean.FALSE);
-		beanIn.setTestNumberObject(Integer.valueOf((int) System
-				.currentTimeMillis() / 1000));
+		beanIn.setTestBoolean((System.currentTimeMillis() % 2 == 0) ? true : false);
+		beanIn.setTestBooleanObject((System.currentTimeMillis() % 2 == 0) ? Boolean.TRUE : Boolean.FALSE);
+		beanIn.setTestNumberObject(Integer.valueOf((int) System.currentTimeMillis() / 1000));
 		serializer.serialize(out, beanIn);
 		dumpOutput();
 		Object mapOrBean = deserializer.deserialize(in, Object.class);
-		Assert.assertEquals(beanIn.getClass().getName(), mapOrBean.getClass()
-				.getName());
-		Map<?, ?> map = (mapOrBean instanceof Map) ? (Map<?, ?>) mapOrBean : new BeanMap(
-				mapOrBean);
+		Assert.assertEquals(beanIn.getClass().getName(), mapOrBean.getClass().getName());
+		Map<?, ?> map = (mapOrBean instanceof Map) ? (Map<?, ?>) mapOrBean : new BeanMap(mapOrBean);
 		Set<?> entrySet = map.entrySet();
 		Iterator<?> it = entrySet.iterator();
 		Map beanInMap = new BeanMap(beanIn);
@@ -165,7 +158,7 @@ public abstract class AbstractIOTest extends TestCase {
 		resetOutput();
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	public void testList() {
 		log.debug("Testing list");
 		List<Comparable> listIn = new LinkedList<Comparable>();
@@ -186,7 +179,7 @@ public abstract class AbstractIOTest extends TestCase {
 		resetOutput();
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "rawtypes" })
 	public void testMap() {
 		Map<String, Object> mapIn = new HashMap<String, Object>();
 		mapIn.put("testNumber", Integer.valueOf(34));
@@ -241,8 +234,8 @@ public abstract class AbstractIOTest extends TestCase {
 		Integer n = deserializer.deserialize(in, Integer.class);
 		Assert.assertEquals(n.intValue(), num);
 		resetOutput();
-	}	
-	
+	}
+
 	public void testNegativeInteger() {
 		log.debug("Testing negative integer");
 		int num = -129;
@@ -252,8 +245,8 @@ public abstract class AbstractIOTest extends TestCase {
 		Assert.assertEquals(n.intValue(), num);
 		resetOutput();
 	}
-	
-	@SuppressWarnings("unchecked")
+
+	@SuppressWarnings({ "rawtypes" })
 	public void testSimpleReference() {
 		Map<String, Object> mapIn = new HashMap<String, Object>();
 		Object bean = new SimpleJavaBean();
@@ -278,8 +271,7 @@ public abstract class AbstractIOTest extends TestCase {
 			Assert.assertTrue(mapIn.containsKey(propOut));
 			SimpleJavaBean valueIn = (SimpleJavaBean) mapIn.get(propOut);
 			Assert.assertNotNull("couldn't get input bean", valueIn);
-			Assert.assertEquals(valueOut.getNameOfBean(), valueIn
-					.getNameOfBean());
+			Assert.assertEquals(valueOut.getNameOfBean(), valueIn.getNameOfBean());
 		}
 		resetOutput();
 

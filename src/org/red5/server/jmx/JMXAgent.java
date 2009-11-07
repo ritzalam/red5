@@ -69,17 +69,17 @@ public class JMXAgent implements NotificationListener {
 	private static MBeanServer mbs;
 
 	private static String rmiAdapterPort = "9999";
-	
+
 	private static String rmiAdapterRemotePort = "";
-	
+
 	private static String rmiAdapterHost = "localhost";
 
 	private static String remotePasswordProperties;
 
 	private static String remoteAccessProperties;
-	
+
 	private static String remoteSSLKeystore;
-	
+
 	private static String remoteSSLKeystorePass;
 
 	static {
@@ -98,29 +98,26 @@ public class JMXAgent implements NotificationListener {
 	 * @return trimmed class name
 	 */
 	public static String trimClassName(String className) {
-		if (StringUtils.isNotBlank(className)) {		
-    		if (className.indexOf('.') != -1) {
-    			//strip package stuff
-    			className = className.substring(className.lastIndexOf('.') + 1);
-    		}		
+		if (StringUtils.isNotBlank(className)) {
+			if (className.indexOf('.') != -1) {
+				//strip package stuff
+				className = className.substring(className.lastIndexOf('.') + 1);
+			}
 		}
 		return className;
 	}
-	
-	@SuppressWarnings("unchecked")
-	public static boolean registerMBean(Object instance, String className,
-			Class interfaceClass) {
+
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public static boolean registerMBean(Object instance, String className, Class interfaceClass) {
 		boolean status = false;
 		try {
 			String cName = className;
 			if (cName.indexOf('.') != -1) {
-				cName = cName.substring(cName.lastIndexOf('.')).replaceFirst(
-						"[\\.]", "");
+				cName = cName.substring(cName.lastIndexOf('.')).replaceFirst("[\\.]", "");
 			}
 			log.debug("Register name: {}", cName);
-			mbs.registerMBean(new StandardMBean(instance, interfaceClass),
-					new ObjectName(JMXFactory.getDefaultDomain() + ":type="
-							+ cName));
+			mbs.registerMBean(new StandardMBean(instance, interfaceClass), new ObjectName(JMXFactory.getDefaultDomain()
+					+ ":type=" + cName));
 			status = true;
 		} catch (InstanceAlreadyExistsException iaee) {
 			log.debug("Already registered: {}", className);
@@ -130,15 +127,13 @@ public class JMXAgent implements NotificationListener {
 		return status;
 	}
 
-	@SuppressWarnings("unchecked")
-	public static boolean registerMBean(Object instance, String className,
-			Class interfaceClass, ObjectName name) {
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public static boolean registerMBean(Object instance, String className, Class interfaceClass, ObjectName name) {
 		boolean status = false;
 		try {
 			String cName = className;
 			if (cName.indexOf('.') != -1) {
-				cName = cName.substring(cName.lastIndexOf('.')).replaceFirst(
-						"[\\.]", "");
+				cName = cName.substring(cName.lastIndexOf('.')).replaceFirst("[\\.]", "");
 			}
 			log.debug("Register name: {}", cName);
 			mbs.registerMBean(new StandardMBean(instance, interfaceClass), name);
@@ -151,20 +146,17 @@ public class JMXAgent implements NotificationListener {
 		return status;
 	}
 
-	@SuppressWarnings("unchecked")
-	public static boolean registerMBean(Object instance, String className,
-			Class interfaceClass, String name) {
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public static boolean registerMBean(Object instance, String className, Class interfaceClass, String name) {
 		boolean status = false;
 		try {
 			String cName = className;
 			if (cName.indexOf('.') != -1) {
-				cName = cName.substring(cName.lastIndexOf('.')).replaceFirst(
-						"[\\.]", "");
+				cName = cName.substring(cName.lastIndexOf('.')).replaceFirst("[\\.]", "");
 			}
 			log.debug("Register name: {}", cName);
-			mbs.registerMBean(new StandardMBean(instance, interfaceClass),
-					new ObjectName(JMXFactory.getDefaultDomain() + ":type="
-							+ cName + ",name=" + name));
+			mbs.registerMBean(new StandardMBean(instance, interfaceClass), new ObjectName(JMXFactory.getDefaultDomain()
+					+ ":type=" + cName + ",name=" + name));
 			status = true;
 		} catch (InstanceAlreadyExistsException iaee) {
 			log.debug("Already registered: {}", className);
@@ -191,8 +183,7 @@ public class JMXAgent implements NotificationListener {
 		try {
 			//unregister all the currently registered red5 mbeans
 			String domain = JMXFactory.getDefaultDomain();
-			for (ObjectName oname : (Set<ObjectName>) mbs.queryNames(
-					new ObjectName(domain + ":*"), null)) {
+			for (ObjectName oname : (Set<ObjectName>) mbs.queryNames(new ObjectName(domain + ":*"), null)) {
 				log.debug("Bean domain: {}", oname.getDomain());
 				if (domain.equals(oname.getDomain())) {
 					unregisterMBean(oname);
@@ -237,15 +228,13 @@ public class JMXAgent implements NotificationListener {
 	 * @param value new value
 	 * @return true if success; false othwerwise
 	 */
-	public static boolean updateMBeanAttribute(ObjectName oName, String key,
-			int value) {
+	public static boolean updateMBeanAttribute(ObjectName oName, String key, int value) {
 		boolean updated = false;
 		if (null != oName) {
 			try {
 				// update the attribute
 				if (mbs.isRegistered(oName)) {
-					mbs.setAttribute(oName, new javax.management.Attribute(
-							"key", value));
+					mbs.setAttribute(oName, new javax.management.Attribute("key", value));
 					updated = true;
 				}
 			} catch (Exception e) {
@@ -263,15 +252,13 @@ public class JMXAgent implements NotificationListener {
 	 * @param value new value
 	 * @return true if success; false otherwise
 	 */
-	public static boolean updateMBeanAttribute(ObjectName oName, String key,
-			String value) {
+	public static boolean updateMBeanAttribute(ObjectName oName, String key, String value) {
 		boolean updated = false;
 		if (null != oName) {
 			try {
 				// update the attribute
 				if (mbs.isRegistered(oName)) {
-					mbs.setAttribute(oName, new javax.management.Attribute(
-							"key", value));
+					mbs.setAttribute(oName, new javax.management.Attribute("key", value));
 					updated = true;
 				}
 			} catch (Exception e) {
@@ -288,21 +275,20 @@ public class JMXAgent implements NotificationListener {
 	public void init() {
 		//environmental var holder
 		HashMap<String, Object> env = null;
-		 
+
 		if (enableRmiAdapter) {
 			// Create an RMI connector server
 			log.debug("Create an RMI connector server");
-			
+
 			// bind the rmi hostname for systems with nat and multiple binded addresses !
-			System.setProperty("java.rmi.server.hostname", rmiAdapterHost); 
-			
+			System.setProperty("java.rmi.server.hostname", rmiAdapterHost);
+
 			try {
 
 				Registry r = null;
 				try {
 					//lookup the registry
-					r = LocateRegistry.getRegistry(Integer
-							.valueOf(rmiAdapterPort));
+					r = LocateRegistry.getRegistry(Integer.valueOf(rmiAdapterPort));
 					//ensure we are not already registered with the registry
 					for (String regName : r.list()) {
 						if (regName.equals("red5")) {
@@ -311,52 +297,41 @@ public class JMXAgent implements NotificationListener {
 						}
 					}
 				} catch (RemoteException re) {
-					log.info("RMI Registry server was not found on port "
-							+ rmiAdapterPort);
+					log.info("RMI Registry server was not found on port " + rmiAdapterPort);
 					//if we didnt find the registry and the user wants it created
 					if (startRegistry) {
 						log.info("Starting an internal RMI registry");
-						r = LocateRegistry.createRegistry(Integer
-								.valueOf(rmiAdapterPort));
+						r = LocateRegistry.createRegistry(Integer.valueOf(rmiAdapterPort));
 					}
 				}
-			
+
 				JMXServiceURL url = null;
-				
+
 				// Configure the remote objects exported port for firewalls !!
 				if (StringUtils.isNotEmpty(rmiAdapterRemotePort)) {
-    				url = new JMXServiceURL("service:jmx:rmi://"
-                            + rmiAdapterHost + ":" + rmiAdapterRemotePort + "/jndi/rmi://" + rmiAdapterHost + ":" + rmiAdapterPort + "/red5"); 
+					url = new JMXServiceURL("service:jmx:rmi://" + rmiAdapterHost + ":" + rmiAdapterRemotePort
+							+ "/jndi/rmi://" + rmiAdapterHost + ":" + rmiAdapterPort + "/red5");
 				} else {
-					url = new JMXServiceURL(
-						"service:jmx:rmi:///jndi/rmi://:" + rmiAdapterPort
-								+ "/red5");
+					url = new JMXServiceURL("service:jmx:rmi:///jndi/rmi://:" + rmiAdapterPort + "/red5");
 				}
-				
+
 				log.info("JMXServiceUrl is: {}", url);
-				
+
 				//if SSL is requested to secure rmi connections
 				if (enableSsl) {
-					
+
 					// Setup keystore for SSL transparently
 					System.setProperty("javax.net.ssl.keyStore", remoteSSLKeystore);
 					System.setProperty("javax.net.ssl.keyStorePassword", remoteSSLKeystorePass);
 
-					
 					// Environment map
 					log.debug("Initialize the environment map");
 					env = new HashMap<String, Object>();
 					// Provide SSL-based RMI socket factories
 					SslRMIClientSocketFactory csf = new SslRMIClientSocketFactory();
 					SslRMIServerSocketFactory ssf = new SslRMIServerSocketFactory();
-					env
-							.put(
-									RMIConnectorServer.RMI_CLIENT_SOCKET_FACTORY_ATTRIBUTE,
-									csf);
-					env
-							.put(
-									RMIConnectorServer.RMI_SERVER_SOCKET_FACTORY_ATTRIBUTE,
-									ssf);
+					env.put(RMIConnectorServer.RMI_CLIENT_SOCKET_FACTORY_ATTRIBUTE, csf);
+					env.put(RMIConnectorServer.RMI_SERVER_SOCKET_FACTORY_ATTRIBUTE, ssf);
 				}
 
 				//if authentication is requested
@@ -371,20 +346,14 @@ public class JMXAgent implements NotificationListener {
 					if (!file.exists() && remoteAccessProperties.indexOf(System.getProperty("red5.config_root")) != 0) {
 						log.debug("Access file was not found on path, will prepend config_root");
 						//pre-pend the system property set in war startup
-						remoteAccessProperties = System
-								.getProperty("red5.config_root")
-								+ '/' + remoteAccessProperties;
-						remotePasswordProperties = System
-								.getProperty("red5.config_root")
-								+ '/' + remotePasswordProperties;
+						remoteAccessProperties = System.getProperty("red5.config_root") + '/' + remoteAccessProperties;
+						remotePasswordProperties = System.getProperty("red5.config_root") + '/'
+								+ remotePasswordProperties;
 					}
 					env.put("jmx.remote.x.access.file", remoteAccessProperties);
-					env.put("jmx.remote.x.password.file",
-							remotePasswordProperties);
+					env.put("jmx.remote.x.password.file", remotePasswordProperties);
 				}
-				
-				
-				
+
 				// create the connector server
 				cs = JMXConnectorServerFactory.newJMXConnectorServer(url, env, mbs);
 				// add a listener for shutdown
@@ -394,15 +363,12 @@ public class JMXAgent implements NotificationListener {
 				cs.start();
 				log.info("JMX RMI connector server successfully started");
 			} catch (ConnectException e) {
-				log
-						.warn("Could not establish RMI connection to port "
-								+ rmiAdapterPort
-								+ ", please make sure \"rmiregistry\" is running and configured to listen on this port.");
+				log.warn("Could not establish RMI connection to port " + rmiAdapterPort
+						+ ", please make sure \"rmiregistry\" is running and configured to listen on this port.");
 			} catch (IOException e) {
 				String errMsg = e.getMessage();
 				if (errMsg.indexOf("NameAlreadyBoundException") != -1) {
-					log
-							.error("JMX connector (red5) already registered, you will need to restart your rmiregistry");
+					log.error("JMX connector (red5) already registered, you will need to restart your rmiregistry");
 				} else {
 					log.error("{}", e);
 				}
@@ -419,8 +385,7 @@ public class JMXAgent implements NotificationListener {
 	}
 
 	public void setEnableRmiAdapter(String enableRmiAdapterString) {
-		JMXAgent.enableRmiAdapter = enableRmiAdapterString
-				.matches("true|on|yes");
+		JMXAgent.enableRmiAdapter = enableRmiAdapterString.matches("true|on|yes");
 	}
 
 	public void setEnableSsl(boolean enableSsl) {
@@ -438,23 +403,23 @@ public class JMXAgent implements NotificationListener {
 	public void setRemotePasswordProperties(String remotePasswordProperties) {
 		JMXAgent.remotePasswordProperties = remotePasswordProperties;
 	}
-	
+
 	public void setRemoteSSLKeystore(String remoteSSLKeystore) {
 		JMXAgent.remoteSSLKeystore = remoteSSLKeystore;
 	}
-	
+
 	public void setRemoteSSLKeystorePass(String remoteSSLKeystorePass) {
 		JMXAgent.remoteSSLKeystorePass = remoteSSLKeystorePass;
 	}
-	
+
 	public void setRmiAdapterRemotePort(String rmiAdapterRemotePort) {
 		JMXAgent.rmiAdapterRemotePort = rmiAdapterRemotePort;
 	}
-	
+
 	public void setRmiAdapterPort(String rmiAdapterPort) {
 		JMXAgent.rmiAdapterPort = rmiAdapterPort;
 	}
-	
+
 	public void setRmiAdapterHost(String rmiAdapterHost) {
 		JMXAgent.rmiAdapterHost = rmiAdapterHost;
 	}

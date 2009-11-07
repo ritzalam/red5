@@ -281,7 +281,6 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 
 	// Array
 
-	@SuppressWarnings("unchecked")
 	public Object readArray(Deserializer deserializer, Type target) {
 		log.debug("readArray - deserializer: {} target: {}", deserializer, target);
 		Object result = null;
@@ -295,8 +294,8 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		// To maintain conformance to the Input API, we should convert the output
 		// into an Array if the Type asks us to.
 		Class<?> collection = Collection.class;
-		if (target instanceof Class) {
-			collection = (Class) target;
+		if (target instanceof Class<?>) {
+			collection = (Class<?>) target;
 		}
 		if (collection.isArray()) {
 			result = ArrayUtils.toArray(collection.getComponentType(), resultCollection);
@@ -415,7 +414,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	 * @param bean               Input as bean
 	 * @return                   Decoded object
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected Object readBean(Deserializer deserializer, Object bean) {
 		log.debug("read bean");
 		storeReference(bean);

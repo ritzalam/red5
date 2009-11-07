@@ -803,7 +803,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	 *            RTMP protocol state
 	 * @return Notification event
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	protected Notify decodeNotifyOrInvoke(Notify notify, IoBuffer in, Header header, RTMP rtmp) {
 		// TODO: we should use different code depending on server or client mode
 		int start = in.position();

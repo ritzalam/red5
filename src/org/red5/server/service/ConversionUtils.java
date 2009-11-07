@@ -93,7 +93,7 @@ public class ConversionUtils {
 	 * @throws ConversionException           If object can't be converted
 	 *
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static Object convert(Object source, Class<?> target) throws ConversionException {
 		if (target == null) {
 			throw new ConversionException("Unable to perform conversion, target was null");

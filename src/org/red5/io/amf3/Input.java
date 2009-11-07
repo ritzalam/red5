@@ -316,7 +316,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 * 
 	 * @return Number      Number
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public Number readNumber(Type target) {
 		Number v;
@@ -330,8 +330,9 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 
 		if (target instanceof Class && Number.class.isAssignableFrom((Class<?>) target)) {
 			Class cls = (Class) target;
-			if (!cls.isAssignableFrom(v.getClass()))
+			if (!cls.isAssignableFrom(v.getClass())) {
 				v = (Number) convertUtilsBean.convert(v.toString(), cls);
+			}
 		}
 
 		return v;
@@ -401,7 +402,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 * 
 	 * @return int        Length of array
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Object readArray(Deserializer deserializer, Type target) {
 		int count = readAMF3Integer();
 		if ((count & 1) == 0) {
@@ -513,7 +514,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 
 	// Object
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Object readObject(Deserializer deserializer, Type target) {
 		int type = readAMF3Integer();
 		if ((type & 1) == 0) {

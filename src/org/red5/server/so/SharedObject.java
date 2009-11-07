@@ -644,7 +644,7 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 	}
 
 	/** {@inheritDoc} */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public void deserialize(Input input) throws IOException {
 		Deserializer deserializer = new Deserializer();
 		name = deserializer.deserialize(input, String.class);

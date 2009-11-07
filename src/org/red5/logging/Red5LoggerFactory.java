@@ -39,7 +39,7 @@ import ch.qos.logback.classic.selector.ContextSelector;
  */
 public class Red5LoggerFactory {
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static Logger getLogger(Class<?> clazz) {
 		//determine the red5 app name or servlet context name
 		String contextName = null;
@@ -108,13 +108,13 @@ public class Red5LoggerFactory {
 		return getLogger(clazz, contextName);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	public static Logger getLogger(Class clazz, String contextName) {
 		Logger logger = null;
 		try {
 			//check for logback
 			Class cs = Class.forName("ch.qos.logback.classic.selector.ContextSelector");
-			//trigger an exception if the class doesnt actually exist
+			//trigger an exception if the class doesn't actually exist
 			cs.getDeclaredMethods();
 			
 			//get the context selector

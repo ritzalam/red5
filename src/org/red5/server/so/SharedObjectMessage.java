@@ -33,9 +33,8 @@ import org.red5.server.net.rtmp.event.BaseEvent;
 /**
  * Shared object event
  */
-public class SharedObjectMessage extends BaseEvent implements
-		ISharedObjectMessage {
-	
+public class SharedObjectMessage extends BaseEvent implements ISharedObjectMessage {
+
 	private static final long serialVersionUID = -8128704039659990049L;
 
 	/**
@@ -81,8 +80,7 @@ public class SharedObjectMessage extends BaseEvent implements
 	 * @param version SO version
 	 * @param persistent SO persistence flag
 	 */
-	public SharedObjectMessage(IEventListener source, String name, int version,
-			boolean persistent) {
+	public SharedObjectMessage(IEventListener source, String name, int version, boolean persistent) {
 		super(Type.SHARED_OBJECT, source);
 		this.name = name;
 		this.version = version;
@@ -152,7 +150,7 @@ public class SharedObjectMessage extends BaseEvent implements
 	public void addEvents(Queue<ISharedObjectEvent> events) {
 		this.events.addAll(events);
 	}
-	
+
 	/** {@inheritDoc} */
 	public ConcurrentLinkedQueue<ISharedObjectEvent> getEvents() {
 		return events;
@@ -207,10 +205,9 @@ public class SharedObjectMessage extends BaseEvent implements
 		return sb.toString();
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
-	public void readExternal(ObjectInput in) throws IOException,
-			ClassNotFoundException {
+	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
 		super.readExternal(in);
 		name = (String) in.readObject();
 		version = in.readInt();

@@ -41,7 +41,7 @@ public class ArrayCollection<T> extends ArrayList<T> implements Collection<T>, I
 	private static final long serialVersionUID = -9086041828446362637L;
 	
 	/** {@inheritDoc} */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void readExternal(IDataInput input) {
 		clear();
 		addAll((List) input.readObject());

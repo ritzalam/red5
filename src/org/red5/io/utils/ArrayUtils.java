@@ -24,7 +24,7 @@ import java.util.Collection;
 
 public final class ArrayUtils {
 	
-    @SuppressWarnings({"unchecked"})
+    @SuppressWarnings({"rawtypes"})
     public static Object toArray(Class<?> type, Collection collection) {
         if (byte.class.isAssignableFrom(type))
 		{
@@ -64,7 +64,7 @@ public final class ArrayUtils {
         }
     }
 
-    @SuppressWarnings({"unchecked"})
+    @SuppressWarnings({"rawtypes"})
     private static Object toByteArray(Collection collection) {
         byte[] ba = new byte[collection.size()];
 
@@ -77,7 +77,7 @@ public final class ArrayUtils {
         return ba;
     }
 
-    @SuppressWarnings({"unchecked"})
+    @SuppressWarnings({"rawtypes"})
     private static Object toShortArray(Collection collection) {
         short[] sa = new short[collection.size()];
 
@@ -90,7 +90,7 @@ public final class ArrayUtils {
         return sa;
     }
 
-    @SuppressWarnings({"unchecked"})
+    @SuppressWarnings({"rawtypes"})
     private static Object toIntegerArray(Collection collection) {
         int[] ia = new int[collection.size()];
 
@@ -103,7 +103,7 @@ public final class ArrayUtils {
         return ia;
     }
 
-    @SuppressWarnings({"unchecked"})
+    @SuppressWarnings({"rawtypes"})
     private static Object toLongArray(Collection collection) {
         long[] la = new long[collection.size()];
 
@@ -116,7 +116,7 @@ public final class ArrayUtils {
         return la;
     }
 
-    @SuppressWarnings({"unchecked"})
+    @SuppressWarnings({"rawtypes"})
     private static Object toFloatArray(Collection collection) {
         float[] fa = new float[collection.size()];
 
@@ -129,7 +129,7 @@ public final class ArrayUtils {
         return fa;
     }
 
-    @SuppressWarnings({"unchecked"})
+    @SuppressWarnings({"rawtypes"})
     private static Object toDoubleArray(Collection collection) {
         double[] da = new double[collection.size()];
 
@@ -148,7 +148,7 @@ public final class ArrayUtils {
         return da;
     }
 
-    @SuppressWarnings({"unchecked"})
+    @SuppressWarnings({"rawtypes"})
     private static Object toBooleanArray(Collection collection) {
         boolean[] ba = new boolean[collection.size()];
 
@@ -161,7 +161,7 @@ public final class ArrayUtils {
         return ba;
     }
 
-    @SuppressWarnings({"unchecked"})
+    @SuppressWarnings({"rawtypes"})
     private static Object toCharacterArray(Collection collection) {
         char[] ca = new char[collection.size()];
 
@@ -174,7 +174,7 @@ public final class ArrayUtils {
         return ca;
     }
 
-    @SuppressWarnings({"unchecked"})
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private static Object toObjectArray(Class<?> type, Collection collection) {
         return collection.toArray((Object[]) Array.newInstance(type, collection.size()));
     }
