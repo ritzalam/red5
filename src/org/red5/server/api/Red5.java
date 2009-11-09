@@ -58,7 +58,7 @@ public final class Red5 implements Red5MBean {
     /**
      * Current server version with revision
      */
-    public static final String VERSION = "Red5 Server 0.9.0-RC2 $Rev$";
+    public static final String VERSION = "Red5 Server 0.9.0-RC3 $Rev$";
 
     /**
      * Current server version for fmsVer requests 
