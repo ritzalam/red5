@@ -95,10 +95,9 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 		 * Creates prefix filtering string iterator from iterator and prefix
 		 * 
 		 * @param iterator Iterator
-		 * @param prefix refix
+		 * @param prefix prefix
 		 */
-		public PrefixFilteringStringIterator(Iterator<String> iterator,
-				String prefix) {
+		public PrefixFilteringStringIterator(Iterator<String> iterator, String prefix) {
 			this.iterator = iterator;
 			this.prefix = prefix;
 		}
@@ -178,8 +177,8 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	/**
 	 * Statistics about sub-scopes.
 	 */
-	protected final StatisticsCounter subscopeStats = new StatisticsCounter();	
-	
+	protected final StatisticsCounter subscopeStats = new StatisticsCounter();
+
 	/**
 	 * Scope context
 	 */
@@ -209,7 +208,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 * Whether scope is running
 	 */
 	private boolean running;
-	
+
 	/**
 	 * Lock for critical sections, to prevent concurrent modification. 
 	 * A "fairness" policy is used wherein the longest waiting thread
@@ -231,14 +230,14 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	{
 		creationTime = System.currentTimeMillis();
 	}
-	
+
 	/**
 	 * Creates unnamed scope
-	 */	
+	 */
 	public Scope() {
 		super();
 	}
-	
+
 	/**
 	 * Creates scope with given name
 	 * 
@@ -255,8 +254,8 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 */
 	public Scope(Builder builder) {
 		super(builder.parent, builder.type, builder.name, builder.persistent);
-	}	
-	
+	}
+
 	/**
 	 * Add child scope to this scope
 	 * 
@@ -330,7 +329,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 		if (hasHandler() && !getHandler().connect(conn, this, params)) {
 			return false;
 		}
-		final IClient client = conn.getClient();	
+		final IClient client = conn.getClient();
 		if (!conn.isConnected()) {
 			// Timeout while connecting client
 			return false;
@@ -344,18 +343,18 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 			// Timeout while connecting client
 			return false;
 		}
-		
+
 		Set<IConnection> conns = clients.get(client);
 		if (conns == null) {
 			conns = new CopyOnWriteArraySet<IConnection>();
 			clients.put(client, conns);
-		}		
+		}
 		conns.add(conn);
-			
+
 		clientStats.increment();
 		addEventListener(conn);
 		connectionStats.increment();
-		
+
 		IScope connScope = conn.getScope();
 		log.trace("Connection scope: {}", connScope);
 		if (this.equals(connScope)) {
@@ -422,7 +421,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 			}
 			return;
 		}
-		
+
 		final Set<IConnection> conns = clients.get(client);
 		if (conns != null) {
 			conns.remove(conn);
@@ -432,7 +431,8 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 				try {
 					handler.disconnect(conn, this);
 				} catch (Exception e) {
-					log.error("Error while executing \"disconnect\" for connection {} on handler {}. {}", new Object[]{conn, handler, e});
+					log.error("Error while executing \"disconnect\" for connection {} on handler {}. {}", new Object[] {
+							conn, handler, e });
 				}
 			}
 			if (conns.isEmpty()) {
@@ -443,7 +443,8 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 						// there may be a timeout here ?
 						handler.leave(client, this);
 					} catch (Exception e) {
-						log.error("Error while executing \"leave\" for client {} on handler {}. {}", new Object[]{conn, handler, e});
+						log.error("Error while executing \"leave\" for client {} on handler {}. {}", new Object[] {
+								conn, handler, e });
 					}
 				}
 			}
@@ -513,8 +514,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 		if (type == null) {
 			return children.keySet().iterator();
 		} else {
-			return new PrefixFilteringStringIterator(children.keySet()
-					.iterator(), type + SEPARATOR);
+			return new PrefixFilteringStringIterator(children.keySet().iterator(), type + SEPARATOR);
 		}
 	}
 
@@ -921,13 +921,13 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	public boolean isEnabled() {
 		return enabled;
 	}
-	
+
 	/**
 	 * Here for JMX only, uses isEnabled()
 	 */
 	public boolean getEnabled() {
 		return isEnabled();
-	}	
+	}
 
 	/**
 	 * Check if scope is in running state
@@ -938,13 +938,13 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	public boolean isRunning() {
 		return running;
 	}
-	
+
 	/**
 	 * Here for JMX only, uses isEnabled()
-	 */	
+	 */
 	public boolean getRunning() {
 		return isRunning();
-	}	
+	}
 
 	/**
 	 * Child scopes iterator
@@ -996,14 +996,14 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 				return;
 			}
 
-    		log.debug("Remove child scope: {} path: {}" , scope, scope.getPath());
-    		if (scope instanceof IScope) {
-    			if (hasHandler()) {
-    				getHandler().stop((IScope) scope);
-    			}
-    			subscopeStats.decrement();
-    		}
-    		children.remove(scope.getType() + SEPARATOR + scope.getName());
+			log.debug("Remove child scope: {} path: {}", scope, scope.getPath());
+			if (scope instanceof IScope) {
+				if (hasHandler()) {
+					getHandler().stop((IScope) scope);
+				}
+				subscopeStats.decrement();
+			}
+			children.remove(scope.getType() + SEPARATOR + scope.getName());
 		} finally {
 			unlock();
 		}
@@ -1103,16 +1103,14 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 			try {
 				String className = getClass().getName();
 				if (className.indexOf('.') != -1) {
-    				//strip package stuff
-    				className = className.substring(className.lastIndexOf('.') + 1);
+					//strip package stuff
+					className = className.substring(className.lastIndexOf('.') + 1);
 				}
-				oName = new ObjectName(JMXFactory.getDefaultDomain() + ":type="
-						+ className + ",name=" + name);
+				oName = new ObjectName(JMXFactory.getDefaultDomain() + ":type=" + className + ",name=" + name);
 			} catch (MalformedObjectNameException e) {
 				log.error("Invalid object name. {}", e);
 			}
-			JMXAgent.registerMBean(this, this.getClass().getName(),
-					ScopeMBean.class, oName);
+			JMXAgent.registerMBean(this, this.getClass().getName(), ScopeMBean.class, oName);
 		}
 	}
 
@@ -1135,7 +1133,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	public void setPersistenceClass(String persistenceClass) throws Exception {
 		this.persistenceClass = persistenceClass;
 		if (persistenceClass != null) {
-			setStore(PersistenceUtils.getPersistenceStore(this,	persistenceClass));
+			setStore(PersistenceUtils.getPersistenceStore(this, persistenceClass));
 		} else {
 			setStore(null);
 		}
@@ -1201,8 +1199,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	@Override
 	public String toString() {
 		final ToStringCreator tsc = new ToStringCreator(this);
-		return tsc.append("Depth", getDepth()).append("Path", getPath())
-				.append("Name", getName()).toString();
+		return tsc.append("Depth", getDepth()).append("Path", getPath()).append("Name", getName()).toString();
 	}
 
 	/**
@@ -1226,7 +1223,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	public IServer getServer() {
 		if (!hasParent()) {
 			return null;
-        }
+		}
 		final IScope parent = getParent();
 		if (parent instanceof Scope) {
 			return ((Scope) parent).getServer();
@@ -1260,19 +1257,22 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 				names = null;
 			}
 			log.debug("Handler: {}", handler);
-        	for (Map.Entry<String, IBasicScope> entry : children.entrySet()) {
-        		log.debug("Children - {} = {}", entry.getKey(), entry.getValue());
-        	}
+			for (Map.Entry<String, IBasicScope> entry : children.entrySet()) {
+				log.debug("Children - {} = {}", entry.getKey(), entry.getValue());
+			}
 		}
 	}
-	
+
 	/**
 	 * Builder pattern
 	 */
 	public final static class Builder {
 		private IScope parent;
+
 		private String type;
+
 		private String name;
+
 		private boolean persistent;
 
 		public Builder() {
@@ -1281,14 +1281,14 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 		public Builder(String name) {
 			this.name = name;
 		}
-		
+
 		public Builder(IScope parent, String type, String name, boolean persistent) {
 			this.parent = parent;
 			this.type = type;
 			this.name = name;
 			this.persistent = persistent;
 		}
-		
+
 		public Scope build() {
 			return new Scope(this);
 		}

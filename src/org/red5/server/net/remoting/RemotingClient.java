@@ -38,7 +38,6 @@ import org.red5.io.object.Deserializer;
 import org.red5.io.object.RecordSet;
 import org.red5.io.object.Serializer;
 import org.red5.server.net.servlet.ServletUtils;
-import org.red5.server.pooling.Worker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -79,7 +78,7 @@ public class RemotingClient implements InitializingBean {
 
 	/** Thread pool to use for asynchronous requests. */
 	protected static ExecutorService executor;
-	
+
 	/** Maximum pool threads */
 	private int poolSize = 1;
 
@@ -133,21 +132,21 @@ public class RemotingClient implements InitializingBean {
 		client = new HttpClient(mgr);
 		client.getHttpConnectionManager().getParams().setConnectionTimeout(timeout);
 		this.url = url;
-		log.debug("RemotingClient created  - url: {} timeout: {} http manager: {}", new Object[]{url, timeout, mgr});
+		log.debug("RemotingClient created  - url: {} timeout: {} http manager: {}", new Object[] { url, timeout, mgr });
 	}
-	
+
 	public void afterPropertiesSet() throws Exception {
 		executor = Executors.newFixedThreadPool(poolSize);
 	}
-	
+
 	public int getPoolSize() {
 		return poolSize;
 	}
 
 	public void setPoolSize(int poolSize) {
 		this.poolSize = poolSize;
-	}	
-	
+	}
+
 	/**
 	 * Encode the method call.
 	 * 
@@ -158,7 +157,7 @@ public class RemotingClient implements InitializingBean {
 	 * @return Byte buffer with data to perform remoting call
 	 */
 	private IoBuffer encodeInvoke(String method, Object[] params) {
-		log.debug("RemotingClient encodeInvoke - method: {} params: {}", method, params);		
+		log.debug("RemotingClient encodeInvoke - method: {} params: {}", method, params);
 		IoBuffer result = IoBuffer.allocate(1024);
 		result.setAutoExpand(true);
 
@@ -225,11 +224,11 @@ public class RemotingClient implements InitializingBean {
 	 */
 	@SuppressWarnings("static-access")
 	protected void processHeaders(IoBuffer in) {
-		log.debug("RemotingClient processHeaders - buffer limit: {}", (in != null ? in.limit() : 0));				
+		log.debug("RemotingClient processHeaders - buffer limit: {}", (in != null ? in.limit() : 0));
 		int version = in.getUnsignedShort(); // skip
 		log.debug("Version: {}", version);
 		// the version by now, AMF3 is not yet implemented
-		int count = in.getUnsignedShort(); 
+		int count = in.getUnsignedShort();
 		log.debug("Count: {}", count);
 		Deserializer deserializer = new Deserializer();
 		Input input = new Input(in);
@@ -254,13 +253,11 @@ public class RemotingClient implements InitializingBean {
 				// XXX: reset the <appendToUrl< here?
 			} else if (RemotingHeader.PERSISTENT_HEADER.equals(name)) {
 				// Send a new header with each following request
-				if (value instanceof Map<?,?>) {
+				if (value instanceof Map<?, ?>) {
 					@SuppressWarnings("unchecked")
 					Map<String, Object> valueMap = (Map<String, Object>) value;
-					RemotingHeader header = new RemotingHeader(
-							(String) valueMap.get("name"), 
-							(Boolean) valueMap.get("mustUnderstand"), 
-							valueMap.get("data"));
+					RemotingHeader header = new RemotingHeader((String) valueMap.get("name"), (Boolean) valueMap
+							.get("mustUnderstand"), valueMap.get("data"));
 					headers.put(header.name, header);
 				} else {
 					log.error("Expected Map but received {}", value);
@@ -391,14 +388,7 @@ public class RemotingClient implements InitializingBean {
 	 */
 	public void invokeMethod(String method, Object[] methodParams, IRemotingCallback callback) {
 		try {
-			Object[] params = new Object[]{this, method, methodParams, callback};
-			Class<?>[] paramTypes = new Class[]{RemotingClient.class, String.class, Object[].class, IRemotingCallback.class};
-
-			Worker worker = new Worker();
-			worker.setClassName("org.red5.server.net.remoting.RemotingClient$RemotingWorker");
-			worker.setMethodName("executeTask");
-			worker.setMethodParams(params);
-			worker.setParamTypes(paramTypes);
+			RemotingWorker worker = new RemotingWorker(this, method, methodParams, callback);
 			executor.execute(worker);
 		} catch (Exception err) {
 			log.warn("Exception invoking method: {}", method, err);
@@ -408,7 +398,15 @@ public class RemotingClient implements InitializingBean {
 	/**
 	 * Worker class that is used for asynchronous remoting calls.
 	 */
-	public static class RemotingWorker {
+	public final static class RemotingWorker implements Runnable {
+
+		private final RemotingClient client;
+
+		private final String method;
+
+		private final Object[] params;
+
+		private final IRemotingCallback callback;
 
 		/**
 		 * Execute task.
@@ -418,7 +416,14 @@ public class RemotingClient implements InitializingBean {
 		 * @param params Parameters to pass to method on call
 		 * @param callback Callback
 		 */
-		public void executeTask(RemotingClient client, String method, Object[] params, IRemotingCallback callback) {
+		public RemotingWorker(RemotingClient client, String method, Object[] params, IRemotingCallback callback) {
+			this.client = client;
+			this.method = method;
+			this.params = params;
+			this.callback = callback;
+		}
+
+		public void run() {
 			try {
 				Object result = client.invokeMethod(method, params);
 				callback.resultReceived(client, method, params, result);
