@@ -45,25 +45,24 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 	/**
 	 * RTMP events handler
 	 */
-	private IRTMPHandler handler;
+	protected IRTMPHandler handler;
 
 	/**
 	 * Mode
 	 */
-	private boolean mode = RTMP.MODE_SERVER;
+	protected boolean mode = RTMP.MODE_SERVER;
 
 	/**
 	 * Application context
 	 */
-	@SuppressWarnings("unused")
-	private ApplicationContext appCtx;
+	protected ApplicationContext appCtx;
 
 	/**
 	 * RTMP protocol codec factory
 	 */
-	private ProtocolCodecFactory codecFactory;
+	protected ProtocolCodecFactory codecFactory;
 
-	private IRTMPConnManager rtmpConnManager;
+	protected IRTMPConnManager rtmpConnManager;
 
 	/** {@inheritDoc} */
 	@Override

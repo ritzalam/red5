@@ -154,6 +154,38 @@
 -->
 	
 	<!-- RTMPS -->
+    
+    <bean id="rtmpsMinaIoHandler"
+        class="org.red5.server.net.rtmps.RTMPSMinaIoHandler">
+        <property name="handler" ref="rtmpHandler" />
+        <property name="codecFactory" ref="rtmpCodecFactory" />
+        <property name="rtmpConnManager" ref="rtmpMinaConnManager" />
+        <property name="keyStorePassword" value="${rtmps.keystorepass}" />
+        <property name="keystoreFile" value="conf/keystore" />
+    </bean>
+    
+    <bean id="rtmpsTransport" class="org.red5.server.net.rtmp.RTMPMinaTransport" init-method="start" destroy-method="stop">
+        <property name="ioHandler" ref="rtmpsMinaIoHandler" />
+        <property name="connectors">
+            <list>
+                <bean class="java.net.InetSocketAddress">
+                    <constructor-arg index="0" type="java.lang.String" value="${rtmps.host}" />  
+                    <constructor-arg index="1" type="int" value="${rtmps.port}" />  
+                </bean>
+            </list>
+        </property>
+        <property name="receiveBufferSize" value="${rtmp.receive_buffer_size}" />
+        <property name="sendBufferSize" value="${rtmp.send_buffer_size}" />
+        <property name="eventThreadsCore" value="${rtmp.event_threads_core}" />
+        <property name="eventThreadsMax" value="${rtmp.event_threads_max}" />
+        <property name="eventThreadsQueue" value="${rtmp.event_threads_queue}" />
+        <property name="eventThreadsKeepalive" value="${rtmp.event_threads_keepalive}" />
+        <!-- This is the interval at which the sessions are polled for stats. If mina monitoring is not
+                enabled, polling will not occur. -->
+        <property name="jmxPollInterval" value="1000" />
+        <property name="tcpNoDelay" value="${rtmp.tcp_nodelay}" />
+    </bean>
+	
 <!--
 	<bean id="rtmps.server" class="org.red5.server.tomcat.rtmps.RTMPSLoader" init-method="init" lazy-init="true">
 	
