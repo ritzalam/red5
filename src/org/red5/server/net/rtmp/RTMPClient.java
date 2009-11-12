@@ -44,7 +44,7 @@ public class RTMPClient extends BaseRTMPClientHandler {
 
 	//private static final Logger log = LoggerFactory.getLogger(RTMPClient.class);
 	
-	private static final int CONNECTOR_WORKER_TIMEOUT = 7000; // seconds
+	protected static final int CONNECTOR_WORKER_TIMEOUT = 7000; // seconds
 	
 	/**
      * I/O handler
@@ -55,7 +55,7 @@ public class RTMPClient extends BaseRTMPClientHandler {
 	/**
 	 * Socket connector, disposed on disconnect
 	 * */
-	SocketConnector socketConnector;
+	protected SocketConnector socketConnector;
 
 	/** Constructs a new RTMPClient. */
     public RTMPClient() {
