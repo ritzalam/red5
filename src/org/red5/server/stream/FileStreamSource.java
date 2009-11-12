@@ -116,9 +116,7 @@ public class FileStreamSource implements ISeekableStreamSource, Constants {
 				//its not really a position or timestamp
 				reader.position(((MP4Reader) reader).getFramePosition(ts));
 				return ts;
-			}
-			
-			if (!(reader instanceof IKeyFrameDataAnalyzer)) {
+			} else if (!(reader instanceof IKeyFrameDataAnalyzer)) {
 				// Seeking not supported
 				return ts;
 			}
@@ -132,6 +130,7 @@ public class FileStreamSource implements ISeekableStreamSource, Constants {
 			// TODO add audio-seek capability
 			return ts;
 		}
+		
 		int frame = 0;
 		for (int i = 0; i < keyFrameMeta.positions.length; i++) {
 			if (keyFrameMeta.timestamps[i] > ts) {

@@ -56,6 +56,7 @@ import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.net.rtmp.message.Header;
 import org.red5.server.net.rtmp.message.Packet;
 import org.red5.server.net.rtmp.message.SharedObjectTypeMapping;
+import org.red5.server.net.rtmp.status.Status;
 import org.red5.server.net.rtmp.status.StatusCodes;
 import org.red5.server.net.rtmp.status.StatusObject;
 import org.red5.server.service.Call;
@@ -140,6 +141,7 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 
 		final Header header = packet.getHeader();
 		final int channelId = header.getChannelId();
+		log.debug("Channel id: {}", channelId);
 		final IRTMPEvent message = packet.getMessage();
 
 		if (message instanceof ChunkSize) {
@@ -227,7 +229,7 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
     		//determine working type
     		boolean isLive = message.getSourceType() == Constants.SOURCE_TYPE_LIVE;
     		log.trace("Connection type: {}", (isLive ? "Live" : "VOD"));
-    
+    		
     		long timestamp = (message.getTimestamp() & 0xFFFFFFFFL);
     		LiveTimestampMapping mapping = rtmp.getLastTimestampMapping(channelId);
     
@@ -466,15 +468,49 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
 	 * @return            Encoded message data
 	 */
 	public IoBuffer encodeMessage(RTMP rtmp, Header header, IRTMPEvent message) {
+		IServiceCall call = null;
 		switch (header.getDataType()) {
 			case TYPE_CHUNK_SIZE:
 				return encodeChunkSize((ChunkSize) message);
 			case TYPE_INVOKE:
+				log.trace("Invoke {}", message);
+				call = ((Invoke) message).getCall();
+				if (call != null) {
+					log.debug("{}", call.toString());
+					Object[] args = call.getArguments();
+					if (args != null && args.length > 0) {
+						Object a0 = args[0];
+						if (a0 instanceof Status) {
+							Status status = (Status) a0;
+							//code: NetStream.Seek.Notify
+							if (StatusCodes.NS_SEEK_NOTIFY.equals(status.getCode())) {
+								//desc: Seeking 25000 (stream ID: 1).
+								int seekTime = Integer.valueOf(status.getDescription().split(" ")[1]);
+								log.trace("Seek to time: {}", seekTime);
+								//audio and video channels
+								int[] channels = new int[]{5, 6}; 
+	            				//if its a seek notification, reset the "mapping" for audio (5) and video (6)
+								for (int channelId : channels) {
+    	            	    		LiveTimestampMapping mapping = rtmp.getLastTimestampMapping(channelId);	    
+    	            	    		if (mapping != null) {
+    	            		    		long timestamp = mapping.getClockStartTime() + (seekTime & 0xFFFFFFFFL);
+    	            		    		log.trace("Setting last stream time to: {}", timestamp);
+    	            		    		mapping.setLastStreamTime(timestamp);
+    	            	    		} else {
+    	            	    			log.debug("No ts mapping for channel id: {}", channelId);
+    	            	    		}								
+								}
+							}
+						}
+					}
+				}
 				return encodeInvoke((Invoke) message, rtmp);
 			case TYPE_NOTIFY:
-				if (((Notify) message).getCall() == null) {
+				log.trace("Notify {}", message);
+				call = ((Notify) message).getCall();
+				if (call == null) {
 					return encodeStreamMetadata((Notify) message);
-				} else {
+				} else {				
 					return encodeNotify((Notify) message, rtmp);
 				}
 			case TYPE_PING:

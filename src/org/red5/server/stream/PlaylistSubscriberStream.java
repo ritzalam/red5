@@ -42,8 +42,8 @@ import org.slf4j.Logger;
 /**
  * Stream of playlist subsciber
  */
-public class PlaylistSubscriberStream extends AbstractClientStream implements
-		IPlaylistSubscriberStream, IPlaylistSubscriberStreamStatistics {
+public class PlaylistSubscriberStream extends AbstractClientStream implements IPlaylistSubscriberStream,
+		IPlaylistSubscriberStreamStatistics {
 
 	private static final Logger log = Red5LoggerFactory.getLogger(PlaylistSubscriberStream.class);
 
@@ -130,11 +130,12 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 	 * Creates a play engine based on current services (scheduling service, consumer service, and provider service).
 	 * This method is useful during unit testing.
 	 */
-	PlayEngine createEngine(ISchedulingService schedulingService, IConsumerService consumerService, IProviderService providerService) {
+	PlayEngine createEngine(ISchedulingService schedulingService, IConsumerService consumerService,
+			IProviderService providerService) {
 		engine = new PlayEngine.Builder(this, schedulingService, consumerService, providerService).build();
 		return engine;
 	}
-	
+
 	/**
 	 * Set the executor to use.
 	 * 
@@ -181,17 +182,17 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 	public void start() {
 		//ensure the play engine exists
 		if (engine == null) {
-    		IScope scope = getScope();
-    		if (scope != null) {
-    			IContext ctx = scope.getContext();
-    			ISchedulingService schedulingService = (ISchedulingService) ctx.getBean(ISchedulingService.BEAN_NAME);
-    			IConsumerService consumerService = (IConsumerService) ctx.getBean(IConsumerService.KEY);
-    			IProviderService providerService = (IProviderService) ctx.getBean(IProviderService.BEAN_NAME);
-    		
-    			engine = new PlayEngine.Builder(this, schedulingService, consumerService, providerService).build();
-    		} else {
-    			log.info("Scope was null on start");
-    		}		
+			IScope scope = getScope();
+			if (scope != null) {
+				IContext ctx = scope.getContext();
+				ISchedulingService schedulingService = (ISchedulingService) ctx.getBean(ISchedulingService.BEAN_NAME);
+				IConsumerService consumerService = (IConsumerService) ctx.getBean(IConsumerService.KEY);
+				IProviderService providerService = (IProviderService) ctx.getBean(IProviderService.BEAN_NAME);
+
+				engine = new PlayEngine.Builder(this, schedulingService, consumerService, providerService).build();
+			} else {
+				log.info("Scope was null on start");
+			}
 		}
 		//set buffer check interval
 		engine.setBufferCheckInterval(bufferCheckInterval);
@@ -356,8 +357,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				engine.play(item);
 				break;
 			} catch (IOException err) {
-				log.error("Error while starting to play item, moving to previous.",
-						err);
+				log.error("Error while starting to play item, moving to previous.", err);
 				// go for next item
 				moveToPrevious();
 				if (currentItemIndex == -1) {
@@ -405,8 +405,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 				engine.play(item, false);
 				break;
 			} catch (IOException err) {
-				log.error("Error while starting to play item, moving to next",
-						err);
+				log.error("Error while starting to play item, moving to next", err);
 				// go for next item
 				moveToNext();
 				if (currentItemIndex == -1) {
@@ -490,8 +489,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 		if (engine.isPullMode()) {
 			try {
 				// TODO: figure out if this is the correct position to seek to
-				final long delta = System.currentTimeMillis()
-						- engine.getPlaybackStart();
+				final long delta = System.currentTimeMillis() - engine.getPlaybackStart();
 				engine.seek((int) delta);
 			} catch (OperationNotSupportedException err) {
 				// Ignore error, should not happen for pullMode engines
@@ -518,7 +516,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 		} else if (!receiveAudio && receive) {
 			//do a seek	
 			seekToCurrentPlayback();
-		}		
+		}
 	}
 
 	/** {@inheritDoc} */
@@ -562,8 +560,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 		if (controller != null) {
 			currentItemIndex = controller.nextItem(this, currentItemIndex);
 		} else {
-			currentItemIndex = defaultController.nextItem(this,
-					currentItemIndex);
+			currentItemIndex = defaultController.nextItem(this, currentItemIndex);
 		}
 	}
 
@@ -574,8 +571,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements
 		if (controller != null) {
 			currentItemIndex = controller.previousItem(this, currentItemIndex);
 		} else {
-			currentItemIndex = defaultController.previousItem(this,
-					currentItemIndex);
+			currentItemIndex = defaultController.previousItem(this, currentItemIndex);
 		}
 	}
 

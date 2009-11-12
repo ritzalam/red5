@@ -588,6 +588,8 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 		if (seekPos == -1) {
 			seekPos = position;
 		}
+		//what should our start be?
+		log.trace("Current playback start: {}", playbackStart);
 		playbackStart = System.currentTimeMillis() - seekPos;
 		log.trace("Playback start: {} seek pos: {}", playbackStart, seekPos);
 		playlistSubscriberStream.notifyItemSeek(currentItem, seekPos);
@@ -598,19 +600,19 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 				&& sendCheckVideoCM(msgIn)) {
 			// we send a single snapshot on pause.
 			// XXX we need to take BWC into account, for now send forcefully.
-			IMessage msg;
-			try {
-				msg = msgIn.pullMessage();
-			} catch (Throwable err) {
-				log.error("Error while pulling message", err);
-				msg = null;
-			}
-			while (msg != null) {
+			IMessage msg = null;
+			do {
+				try {
+					msg = msgIn.pullMessage();
+				} catch (Throwable err) {
+					log.error("Error while pulling message", err);
+					msg = null;
+				}
 				if (msg instanceof RTMPMessage) {
 					RTMPMessage rtmpMessage = (RTMPMessage) msg;
 					IRTMPEvent body = rtmpMessage.getBody();
 					if (body instanceof VideoData && ((VideoData) body).getFrameType() == FrameType.KEYFRAME) {
-						body.setTimestamp(seekPos);
+						//body.setTimestamp(seekPos);
 						doPushMessage(rtmpMessage);
 						rtmpMessage.getBody().release();
 						messageSent = true;
@@ -618,14 +620,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 						break;
 					}
 				}
-
-				try {
-					msg = msgIn.pullMessage();
-				} catch (Throwable err) {
-					log.error("Error while pulling message", err);
-					msg = null;
-				}
-			}
+			} while (msg != null);
 		} else {
 			startPullPushThread = true;
 		}
@@ -641,6 +636,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 			audioMessage.setBody(audio);
 			lastMessage = audio;
 			doPushMessage(audioMessage);
+			audioMessage.getBody().release();
 		}
 
 		if (startPullPushThread) {
@@ -1065,7 +1061,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 		OOBControlMessage oobCtrlMsg = new OOBControlMessage();
 		oobCtrlMsg.setTarget(IPassive.KEY);
 		oobCtrlMsg.setServiceName("init");
-		Map<String, Object> paramMap = new HashMap<String, Object>();
+		Map<String, Object> paramMap = new HashMap<String, Object>(1);
 		paramMap.put("startTS", (int) item.getStart());
 		oobCtrlMsg.setServiceParamMap(paramMap);
 		msgIn.sendOOBControlMessage(this, oobCtrlMsg);
@@ -1081,7 +1077,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 		OOBControlMessage oobCtrlMsg = new OOBControlMessage();
 		oobCtrlMsg.setTarget(ISeekableProvider.KEY);
 		oobCtrlMsg.setServiceName("seek");
-		Map<String, Object> paramMap = new HashMap<String, Object>();
+		Map<String, Object> paramMap = new HashMap<String, Object>(1);
 		paramMap.put("position", position);
 		oobCtrlMsg.setServiceParamMap(paramMap);
 		msgIn.sendOOBControlMessage(this, oobCtrlMsg);
@@ -1341,7 +1337,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	/**
 	 * Releases pending message body, nullifies pending message object
 	 */
-	private synchronized void releasePendingMessage() {
+	private void releasePendingMessage() {
 		if (pendingMessage != null) {
 			IRTMPEvent body = pendingMessage.getBody();
 			if (body instanceof IStreamData	&& ((IStreamData) body).getData() != null) {
