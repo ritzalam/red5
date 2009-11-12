@@ -37,13 +37,7 @@ import javax.net.ssl.SSLContext;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.ssl.SslFilter;
-import org.red5.server.net.protocol.ProtocolState;
-import org.red5.server.net.rtmp.RTMPConnection;
-import org.red5.server.net.rtmp.RTMPHandshake;
-import org.red5.server.net.rtmp.RTMPMinaConnection;
 import org.red5.server.net.rtmp.RTMPMinaIoHandler;
-import org.red5.server.net.rtmp.codec.RTMP;
-import org.red5.server.net.rtmp.message.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,19 +98,7 @@ public class RTMPSMinaIoHandler extends RTMPMinaIoHandler {
 		session.getFilterChain().addFirst("sslFilter", sslFilter);
 		// END OF NATIVE SSL STUFF
 
-		RTMP rtmp = (RTMP) session.getAttribute(ProtocolState.SESSION_KEY);
-		if (rtmp.getMode() == RTMP.MODE_CLIENT) {
-			log.debug("Handshake 1st phase");
-			IoBuffer out = IoBuffer.allocate(Constants.HANDSHAKE_SIZE + 1);
-			out.put((byte) 0x03);
-			out.put(RTMPHandshake.getHandshakeBytes());
-			out.flip();
-			session.write(out);
-		} else {
-			final RTMPMinaConnection conn = (RTMPMinaConnection) session
-					.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
-			handler.connectionOpened(conn, rtmp);
-		}
+		super.sessionOpened(session);
 
 	}
 	
