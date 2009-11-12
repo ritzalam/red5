@@ -27,6 +27,9 @@ import java.io.NotActiveException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -53,6 +56,11 @@ import org.slf4j.LoggerFactory;
  * </pre>
  * Originally created by: Kevin Green
  *  
+ *  http://tomcat.apache.org/tomcat-6.0-doc/ssl-howto.html
+ *  http://java.sun.com/j2se/1.5.0/docs/guide/security/CryptoSpec.html#AppA
+ *  http://java.sun.com/j2se/1.5.0/docs/api/java/security/KeyStore.html
+ *  http://tomcat.apache.org/tomcat-3.3-doc/tomcat-ssl-howto.html
+ *  
  * @author Kevin Green (kevygreen@gmail.com)
  * @author Paul Gregoire (mondain@gmail.com)
  */
@@ -70,29 +78,25 @@ public class RTMPSMinaIoHandler extends RTMPMinaIoHandler {
 	 */
 	private byte[] keystore;
 	
+	/**
+	 * The keystore type, valid options are JKS and PKCS12
+	 */
+	private String keyStoreType = "JKS"; 
+	
 	/** {@inheritDoc} */
 	@Override
 	public void sessionOpened(IoSession session) throws Exception {
-		super.sessionOpened(session);
 
 		if (password == null || keystore == null) {
 			throw new NotActiveException("Keystore or password are null");
 		}
 		
 		// START OF NATIVE SSL STUFF
-		SSLContext context = SSLContext.getInstance("TLSv1");
+		SSLContext context = SSLContext.getInstance("TLS"); //TLS, TLSv1, TLSv1.1
 		// The reference implementation only supports X.509 keys
 		KeyManagerFactory kmf = KeyManagerFactory.getInstance("SunX509");
-		// Sun's default kind of key store
-		KeyStore ks = KeyStore.getInstance("JKS");
-		// For security, every key store is encrypted with a
-		// pass phrase that must be provided before we can load
-		// it from disk. The pass phrase is stored as a char[] array
-		// so it can be wiped from memory quickly rather than
-		// waiting for a garbage collector. Of course using a string
-		// literal here completely defeats that purpose.
-		ks.load(new ByteArrayInputStream(keystore), password);
-		kmf.init(ks, password);
+		//initialize the key manager
+		kmf.init(getKeyStore(), password);
 		// initialize the ssl context
 		context.init(kmf.getKeyManagers(), null, null);
 		// 
@@ -113,8 +117,42 @@ public class RTMPSMinaIoHandler extends RTMPMinaIoHandler {
 					.getAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
 			handler.connectionOpened(conn, rtmp);
 		}
+
+	}
+	
+	/** {@inheritDoc} */
+	@Override
+	public void exceptionCaught(IoSession session, Throwable cause) throws Exception {
+		log.warn("Exception caught {}", cause.getMessage());
+		if (log.isDebugEnabled()) {
+			log.error("Exception detail", cause);
+		}
+		//if there are any errors using ssl, kill the session
+		session.close(true);
 	}
 
+	/**
+	 * Returns a KeyStore.
+	 * @return KeyStore
+	 * @throws IOException 
+	 * @throws CertificateException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws KeyStoreException 
+	 */
+	private KeyStore getKeyStore() throws NoSuchAlgorithmException, CertificateException, IOException, KeyStoreException {
+		// Sun's default kind of key store
+		KeyStore ks = KeyStore.getInstance(keyStoreType);
+		// For security, every key store is encrypted with a
+		// pass phrase that must be provided before we can load
+		// it from disk. The pass phrase is stored as a char[] array
+		// so it can be wiped from memory quickly rather than
+		// waiting for a garbage collector. Of course using a string
+		// literal here completely defeats that purpose.
+		ks.load(new ByteArrayInputStream(keystore), password);
+		
+		return ks;
+	}
+	
 	/**
 	 * Password used to access the keystore file.
 	 * 
@@ -164,6 +202,15 @@ public class RTMPSMinaIoHandler extends RTMPMinaIoHandler {
 	public void setKeystoreBytes(byte[] arr) {
 		keystore = new byte[arr.length];
 		System.arraycopy(arr, 0, keystore, 0, arr.length);
+	}
+
+	/**
+	 * Set the key store type, JKS or PKCS12.
+	 * 
+	 * @param keyStoreType
+	 */
+	public void setKeyStoreType(String keyStoreType) {
+		this.keyStoreType = keyStoreType;
 	}
 	
 }
