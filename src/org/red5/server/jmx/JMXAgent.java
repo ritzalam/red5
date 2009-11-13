@@ -350,8 +350,9 @@ public class JMXAgent implements NotificationListener {
 						remotePasswordProperties = System.getProperty("red5.config_root") + '/'
 								+ remotePasswordProperties;
 					}
-					env.put("jmx.remote.x.access.file", remoteAccessProperties);
-					env.put("jmx.remote.x.password.file", remotePasswordProperties);
+					//strip "file:" prefixing
+					env.put("jmx.remote.x.access.file", remoteAccessProperties.replace("file:", ""));
+					env.put("jmx.remote.x.password.file", remotePasswordProperties.replace("file:", ""));
 				}
 
 				// create the connector server
