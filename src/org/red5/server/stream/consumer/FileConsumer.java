@@ -126,18 +126,23 @@ public class FileConsumer implements Constants, IPushableConsumer,
 		if (writer == null) {
 			init();
 		}
-		RTMPMessage rtmpMsg = (RTMPMessage) message;
+		
+		RTMPMessage rtmpMsg = (RTMPMessage) message;	
 		final IRTMPEvent msg = rtmpMsg.getBody();
+		
+		int timestamp = msg.getHeader().getTimer();
+		
+		//if the last message was a reset or we just started, use the header timer
 		if (startTimestamp == -1) {
-			startTimestamp = msg.getTimestamp();
+			startTimestamp = timestamp;
 		}
 		
 		// if we're dealing with a FlexStreamSend IRTMPEvent, this avoids relative timestamp calculations
-		int timestamp = msg.getTimestamp();
 		if (!(msg instanceof FlexStreamSend)){
 			timestamp -= startTimestamp;
 			lastTimestamp = timestamp;
 		}
+		
 		if (timestamp < 0) {
 			log.warn("Skipping message with negative timestamp.");
 			return;
@@ -215,9 +220,11 @@ public class FileConsumer implements Constants, IPushableConsumer,
 				.getScopeService(scope, IStreamableFileFactory.class,
 						StreamableFileFactory.class);
 		File folder = file.getParentFile();
-		if (!folder.exists())
-			if (!folder.mkdirs())
+		if (!folder.exists()) {
+			if (!folder.mkdirs()) {
 				throw new IOException("Could not create parent folder");
+			}
+		}
 		if (!file.isFile()) {
 			// Maybe the (previously existing) file has been deleted
 			file.createNewFile();
