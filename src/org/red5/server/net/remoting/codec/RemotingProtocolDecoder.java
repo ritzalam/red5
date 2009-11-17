@@ -65,7 +65,7 @@ public class RemotingProtocolDecoder {
 	 * 
 	 * @param state
 	 * @param buffer
-	 * @return
+	 * @return a List of {@link RemotingPacket} objects.
 	 */
     public List<Object> decodeBuffer(ProtocolState state, IoBuffer buffer) {
 		List<Object> list = new LinkedList<Object>();
@@ -87,7 +87,7 @@ public class RemotingProtocolDecoder {
 	 * 
 	 * @param state
 	 * @param in
-	 * @return
+	 * @return A {@link RemotingPacket}
 	 * @throws Exception
 	 */
     public Object decode(ProtocolState state, IoBuffer in) throws Exception {
