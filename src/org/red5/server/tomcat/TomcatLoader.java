@@ -22,6 +22,8 @@ package org.red5.server.tomcat;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.net.BindException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -48,6 +50,9 @@ import org.apache.catalina.core.StandardWrapper;
 import org.apache.catalina.loader.WebappLoader;
 import org.apache.catalina.realm.MemoryRealm;
 import org.apache.catalina.startup.Embedded;
+import org.apache.coyote.ProtocolHandler;
+import org.apache.coyote.http11.Http11NioProtocol;
+import org.apache.coyote.http11.Http11Protocol;
 import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.ContextLoader;
 import org.red5.server.ContextLoaderMBean;
@@ -83,7 +88,7 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 	/**
 	 * Filters directory content
 	 */
-	protected static class DirectoryFilter implements FilenameFilter {
+	protected final static class DirectoryFilter implements FilenameFilter {
 		/**
 		 * Check whether file matches filter rules
 		 * 
@@ -164,6 +169,11 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 	 * Additional connection properties to be set at init.
 	 */
 	protected Map<String, String> connectionProperties = new HashMap<String, String>();
+	
+	/**
+	 * IP Address to bind to.
+	 */
+	protected InetAddress address;
 
 	/**
 	 * Add context for path and docbase to current host.
@@ -460,6 +470,21 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 				}
 			}
 		}
+		
+		// set the bind address
+		if (address == null) {
+			//bind locally
+			address = InetSocketAddress.createUnresolved("127.0.0.1", connector.getPort()).getAddress();
+		}
+		// apply the bind address
+		ProtocolHandler handler = connector.getProtocolHandler();
+		if (handler instanceof Http11Protocol) {
+			((Http11Protocol) handler).setAddress(address);
+		} else if (handler instanceof Http11NioProtocol) {
+			((Http11NioProtocol) handler).setAddress(address);				
+		} else {
+			log.warn("Unknown handler type: {}", handler.getClass().getName());
+		}
 
 		// Start server
 		try {
@@ -596,14 +621,14 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 					core.getBean("rtmpt.server");
 					log.debug("Finished initializing RTMPT");
 				} else {
-					log.info("RTMPT server bean was not found");
+					log.info("Dedicated RTMPT server configuration was not specified");
 				}
 				if (core.containsBean("rtmps.server")) {
 					log.debug("Initializing RTMPS");
 					core.getBean("rtmps.server");
 					log.debug("Finished initializing RTMPS");
 				} else {
-					log.info("RTMPS server bean was not found");
+					log.info("Dedicated RTMPS server configuration was not specified");
 				}
 			} else {
 				log.info("Core context was not found");
@@ -764,6 +789,16 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 		return result;
 	}
 
+	/**
+	 * The address to which we will bind.
+	 * 
+	 * @param address
+	 */
+	public void setAddress(InetSocketAddress address) {
+		log.info("Address to bind: {}", address);
+		this.address = address.getAddress();
+	}
+	
 	/**
 	 * Set base host.
 	 * 
