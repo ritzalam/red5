@@ -60,8 +60,7 @@ public class FLV implements IFLV {
 
 	private IMetaService metaService;
 
-	@SuppressWarnings("rawtypes")
-	private IMetaData metaData;
+	private IMetaData<?, ?> metaData;
 
 	/**
 	 * Default constructor, used by Spring so that parameters may be injected.
@@ -130,7 +129,7 @@ public class FLV implements IFLV {
 	/**
 	 * {@inheritDoc}
 	 */
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public IMetaData getMetaData() throws FileNotFoundException {
 		metaService.setInStream(new FileInputStream(file));
 		return null;
@@ -147,14 +146,14 @@ public class FLV implements IFLV {
 	/**
 	 * {@inheritDoc}
 	 */
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void setKeyFrameData(Map keyframedata) {
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public Map getKeyFrameData() {
 		// TODO Auto-generated method stub
 		return null;
@@ -262,7 +261,7 @@ public class FLV implements IFLV {
 	}
 
 	/** {@inheritDoc} */
-	@SuppressWarnings({ "rawtypes" })
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void setMetaData(IMetaData meta) throws IOException {
 		File tmpFile = File.createTempFile("setMeta_", ".flv");
 		if (metaService == null) {

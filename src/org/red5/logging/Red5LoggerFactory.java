@@ -108,7 +108,7 @@ public class Red5LoggerFactory {
 		return getLogger(clazz, contextName);
 	}
 
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({"rawtypes", "unchecked"})
 	public static Logger getLogger(Class clazz, String contextName) {
 		Logger logger = null;
 		try {

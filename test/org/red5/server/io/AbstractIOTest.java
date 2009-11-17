@@ -131,7 +131,7 @@ public abstract class AbstractIOTest extends TestCase {
 		resetOutput();
 	}
 
-	@SuppressWarnings({ "rawtypes" })
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void testJavaBean() {
 		log.debug("Testing list");
 		TestJavaBean beanIn = new TestJavaBean();
@@ -158,10 +158,9 @@ public abstract class AbstractIOTest extends TestCase {
 		resetOutput();
 	}
 
-	@SuppressWarnings("rawtypes")
 	public void testList() {
 		log.debug("Testing list");
-		List<Comparable> listIn = new LinkedList<Comparable>();
+		List<Comparable<?>> listIn = new LinkedList<Comparable<?>>();
 		listIn.add(null);
 		listIn.add(Boolean.FALSE);
 		listIn.add(Boolean.TRUE);
@@ -179,7 +178,6 @@ public abstract class AbstractIOTest extends TestCase {
 		resetOutput();
 	}
 
-	@SuppressWarnings({ "rawtypes" })
 	public void testMap() {
 		Map<String, Object> mapIn = new HashMap<String, Object>();
 		mapIn.put("testNumber", Integer.valueOf(34));
@@ -195,7 +193,7 @@ public abstract class AbstractIOTest extends TestCase {
 		Set<?> entrySet = mapOut.entrySet();
 		Iterator<?> it = entrySet.iterator();
 		while (it.hasNext()) {
-			Map.Entry entry = (Map.Entry) it.next();
+			Map.Entry<?, ?> entry = (Map.Entry<?,?>) it.next();
 			String propOut = (String) entry.getKey();
 			Object valueOut = entry.getValue();
 
@@ -261,9 +259,9 @@ public abstract class AbstractIOTest extends TestCase {
 		Assert.assertEquals(mapIn.size(), mapOut.size());
 
 		Set<?> entrySet = mapOut.entrySet();
-		Iterator it = entrySet.iterator();
+		Iterator<?> it = entrySet.iterator();
 		while (it.hasNext()) {
-			Map.Entry entry = (Map.Entry) it.next();
+			Map.Entry<?,?> entry = (Map.Entry<?,?>) it.next();
 			String propOut = (String) entry.getKey();
 			SimpleJavaBean valueOut = (SimpleJavaBean) entry.getValue();
 			Assert.assertNotNull("couldn't get output bean", valueOut);

@@ -412,7 +412,7 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 	}
 
     /** {@inheritDoc} */
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({ "rawtypes", "unchecked" })
 	public void writeObject(Object object, Serializer serializer) {
 		writeAMF3();
 		buf.put(AMF3.TYPE_OBJECT);

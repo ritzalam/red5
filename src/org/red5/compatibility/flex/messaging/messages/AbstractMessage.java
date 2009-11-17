@@ -37,7 +37,7 @@ public class AbstractMessage implements Serializable {
 
 	public long timestamp;
 	
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public Map headers = Collections.EMPTY_MAP;
 	
 	public Object body;

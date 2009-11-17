@@ -49,7 +49,7 @@ public class JythonScriptFactory implements ScriptFactory {
 
 	private final String scriptSourceLocator;
 
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private final Class[] scriptInterfaces;
 
 	private final Object[] arguments;
@@ -61,7 +61,7 @@ public class JythonScriptFactory implements ScriptFactory {
 		this.arguments = null;
 	}
 
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public JythonScriptFactory(String scriptSourceLocator, Class[] scriptInterfaces) {
 		Assert.hasText(scriptSourceLocator);
 		Assert.notEmpty(scriptInterfaces);
@@ -70,7 +70,7 @@ public class JythonScriptFactory implements ScriptFactory {
 		this.arguments = null;
 	}
 
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({"rawtypes", "unchecked" })
 	public JythonScriptFactory(String scriptSourceLocator, Class[] scriptInterfaces, Object[] arguments) {
 		Assert.hasText(scriptSourceLocator);
 		Assert.notEmpty(scriptInterfaces);
@@ -89,7 +89,7 @@ public class JythonScriptFactory implements ScriptFactory {
 	}
 
 	/** {@inheritDoc} */
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public Class[] getScriptInterfaces() {
 		return scriptInterfaces;
 	}
@@ -100,7 +100,7 @@ public class JythonScriptFactory implements ScriptFactory {
 	}
 
 	/** {@inheritDoc} */
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public Object getScriptedObject(ScriptSource scriptSourceLocator, Class[] scriptInterfaces) throws IOException,
 			ScriptCompilationException {
 		String basePath = "";
@@ -167,7 +167,7 @@ public class JythonScriptFactory implements ScriptFactory {
 		return null;
 	}
 
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "rawtypes" , "unchecked" })
 	public Class getScriptedObjectType(ScriptSource src) throws IOException, ScriptCompilationException {
 		return null;
 	}

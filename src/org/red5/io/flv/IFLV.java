@@ -49,7 +49,7 @@ public interface IFLV extends IStreamableFile {
 	 * @throws FileNotFoundException     File not found
 	 * @throws IOException               Any other I/O exception
 	 */
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void setMetaData(IMetaData metadata) throws FileNotFoundException,
 			IOException;
 
@@ -66,7 +66,7 @@ public interface IFLV extends IStreamableFile {
 	 * @return metadata                  File metadata
 	 * @throws FileNotFoundException     File not found
 	 */
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public IMetaData getMetaData() throws FileNotFoundException;
 
 	/**
@@ -81,7 +81,7 @@ public interface IFLV extends IStreamableFile {
 	 * 
 	 * @param keyframedata              Keyframe metadata
 	 */
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void setKeyFrameData(Map keyframedata);
 
 	/**
@@ -89,7 +89,7 @@ public interface IFLV extends IStreamableFile {
 	 * 
 	 * @return keyframedata             Keyframe metadata
 	 */
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public Map getKeyFrameData();
 
 	/**
