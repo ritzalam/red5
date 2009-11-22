@@ -1,7 +1,6 @@
 <?xml version="1.0" ?>
 <project name="Red5" basedir="." default="dist" xmlns:ivy="antlib:org.apache.ivy.ant">
 	<!-- This build file requires Apache Ant >= 1.7 -->
-
 	<condition property="ant-at-least-7">
 		<antversion atleast="1.7.0"/>
 	</condition>
@@ -174,7 +173,6 @@
 	</target>
 	<target name="retrieve" unless="library.installed" description="Retrieves the libraries if needed">
 		<!-- Ivy configuration - http://ant.apache.org/ivy/history/trunk/ant.html -->
-
 		<ivy:settings file="ivysettings.xml"/>
 		<condition property="ivy.conf.name" value="java6">
 			<not>
@@ -193,7 +191,6 @@
 	</target>
 	<target name="compile" depends="-library.check, -java6.check, prepare" description="Compiles the server">
 		<!-- token replacement filers -->
-
 		<property name="filter.file" value="${config.dir}/build_standalone.properties"/>
 		<condition property="java.target_version" value="1.5">
 			<not>
@@ -277,7 +274,6 @@
 		<attribute name="webapp"/>
 		<sequential>
 			<!-- copy the logback config per webapp and associated jars -->
-
 			<copy todir="${webapps.build.dir}/@{webapp}/WEB-INF/classes" file="webapps/@{webapp}/WEB-INF/src/logback-@{webapp}.xml"
 				 overwrite="true"/>
 		</sequential>
@@ -292,12 +288,18 @@
 			<fileset dir="webapps/root">
 				<exclude name="**/src/**"/>
 				<exclude name="**/*.swf"/>
+				<exclude name="**/*.png"/>
+				<exclude name="**/*.jpg"/>
+				<exclude name="demos"/>
 			</fileset>
 		</copy>
 		<!-- copy SWF without filtering as it causes corruption -->
 		<copy todir="${webapps.build.dir}/root">
 			<fileset dir="webapps/root">
 				<include name="**/*.swf"/>
+				<include name="**/*.png"/>
+				<include name="**/*.jpg"/>
+				<exclude name="demos"/>
 			</fileset>
 		</copy>
 		<!-- installer -->
@@ -315,7 +317,14 @@
 				<include name="**/*.swf"/>
 			</fileset>
 		</copy>
-	</target>
+		<!-- copy the demos if they dont exist in the tree -->
+		<copy todir="${webapps.build.dir}/root/demos">
+			<fileset dir="../../../flash/trunk/deploy">
+				<include name="**/*.*"/>
+				<exclude name=".svn"/>
+			</fileset>
+		</copy>
+	</target>	
 	<!-- Scripting -->
 	<target name="compile-script" depends="prepare">
 		<available property="scripting_compatibility" classpathref="project.classpath" classname="javax.script.ScriptEngineManager"/>
@@ -378,7 +387,6 @@
 	</macrodef>
 	<target name="war-demos" description="Build wars for demo apps" depends="compile-demos">
 		<!-- copy installer swf etc under root/installer -->
-
 		<mkdir dir="${webapps.build.dir}/root/installer"/>
 		<copy todir="${webapps.build.dir}/root/installer">
 			<fileset dir="${webapps.build.dir}/installer"/>
@@ -488,10 +496,6 @@
 				<attribute name="Built-By" value="${red5.fullname}"/>
 				<attribute name="Built-On" value="${build.TODAY}"/>
 				<attribute name="Main-Class" value="org.red5.server.Bootstrap"/>
-				<!--
-                <attribute name="Class-Path" value="${jar.classpath}"/>
-                <attribute name="Class-Path" value="${red5.filename}.jar conf"/>
-                -->
 			</manifest>
 			<metainf dir="${src.dir}/META-INF">
 				<include name="**"/>
@@ -509,7 +513,6 @@
 		<copy todir="${dist.dir}/conf">
 			<fileset dir="${config.dir}">
 				<!-- exclude war config files -->
-
 				<exclude name="**/war/**"/>
 				<exclude name="**/jboss/**"/>
 			</fileset>

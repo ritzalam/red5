@@ -156,15 +156,6 @@
 	<logger name="org.apache.commons">
 		<level value="WARN" />
 	</logger>
-	<logger name="org.apache.commons.modeler">
-		<level value="WARN" />
-	</logger>
-	<logger name="org.apache.commons.beanutils">
-		<level value="WARN" />
-	</logger>
-	<logger name="org.apache.commons.digester">
-		<level value="WARN" />
-	</logger>
 	<logger name="httpclient">
 		<level value="WARN" />
 	</logger>
@@ -193,13 +184,6 @@
 	<logger name="org.apache.coyote.http11">
 		<level value="INFO" />
 	</logger>
-	<!-- Jetty -->
-	<logger name="org.mortbay">
-		<level value="WARN" />
-	</logger>
-	<logger name="org.mortbay.log">
-		<level value="INFO" />
-	</logger>
 	<!-- Spring -->
 	<logger name="org.springframework">
 		<level value="INFO" />
@@ -226,5 +210,7 @@
 	<logger name="net.sf.ehcache">
 		<level value="INFO" />
 	</logger>
-
+	<logger name="ch.qos">
+		<level value="WARN" />
+	</logger>
 </configuration>
