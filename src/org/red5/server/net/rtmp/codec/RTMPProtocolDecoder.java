@@ -55,6 +55,7 @@ import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.net.rtmp.message.Header;
 import org.red5.server.net.rtmp.message.Packet;
 import org.red5.server.net.rtmp.message.SharedObjectTypeMapping;
+import org.red5.server.net.rtmp.message.StreamAction;
 import org.red5.server.service.Call;
 import org.red5.server.service.PendingCall;
 import org.red5.server.so.FlexSharedObjectMessage;
@@ -784,10 +785,23 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	 *         <code>false</code> otherwise
 	 */
 	private boolean isStreamCommand(String action) {
-		return (ACTION_CREATE_STREAM.equals(action) || ACTION_DELETE_STREAM.equals(action)
-				|| ACTION_PUBLISH.equals(action) || ACTION_PLAY.equals(action) || ACTION_SEEK.equals(action)
-				|| ACTION_PAUSE.equals(action) || ACTION_CLOSE_STREAM.equals(action)
-				|| ACTION_RECEIVE_VIDEO.equals(action) || ACTION_RECEIVE_AUDIO.equals(action));
+		switch(StreamAction.getEnum(action)) {
+			case CREATE_STREAM:
+			case DELETE_STREAM:
+			case RELEASE_STREAM:
+			case PUBLISH:
+			case PLAY:
+			case PLAY2:
+			case SEEK:
+			case PAUSE:
+			case PAUSE_RAW:
+			case CLOSE_STREAM:
+			case RECEIVE_VIDEO:
+			case RECEIVE_AUDIO:
+				return true;
+			default:
+				return false;
+		}
 	}
 
 	/**

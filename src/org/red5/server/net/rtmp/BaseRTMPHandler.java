@@ -42,6 +42,7 @@ import org.red5.server.net.rtmp.event.Unknown;
 import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.net.rtmp.message.Header;
 import org.red5.server.net.rtmp.message.Packet;
+import org.red5.server.net.rtmp.message.StreamAction;
 import org.red5.server.net.rtmp.status.StatusCodes;
 import org.red5.server.so.SharedObjectMessage;
 import org.slf4j.Logger;
@@ -135,8 +136,10 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 				case TYPE_INVOKE:
 				case TYPE_FLEX_MESSAGE:
 					onInvoke(conn, channel, header, (Invoke) message, (RTMP) state);
-					if (message.getHeader().getStreamId() != 0 && ((Invoke) message).getCall().getServiceName() == null
-							&& ACTION_PUBLISH.equals(((Invoke) message).getCall().getServiceMethodName())) {
+					IPendingServiceCall call = ((Invoke) message).getCall();
+					if (message.getHeader().getStreamId() != 0 
+							&& call.getServiceName() == null
+							&& StreamAction.PUBLISH.equals(call.getServiceMethodName())) {
 						if (stream != null) {
 							// Only dispatch if stream really was created
 							((IEventDispatcher) stream).dispatchEvent(message);
@@ -169,9 +172,6 @@ public abstract class BaseRTMPHandler implements IRTMPHandler, Constants, Status
 
 				case TYPE_AUDIO_DATA:
 				case TYPE_VIDEO_DATA:
-					// log.info("in packet: "+source.getSize()+"
-					// ts:"+source.getTimer());
-
 					//mark the event as from a live source
 					//log.trace("Marking message as originating from a Live source");
 					message.setSourceType(Constants.SOURCE_TYPE_LIVE);

@@ -53,6 +53,7 @@ import org.red5.server.net.rtmp.event.Invoke;
 import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.event.Ping;
 import org.red5.server.net.rtmp.message.Header;
+import org.red5.server.net.rtmp.message.StreamAction;
 import org.red5.server.net.rtmp.status.Status;
 import org.red5.server.net.rtmp.status.StatusObject;
 import org.red5.server.net.rtmp.status.StatusObjectService;
@@ -69,7 +70,7 @@ import org.slf4j.Logger;
  * RTMP events handler.
  */
 public class RTMPHandler extends BaseRTMPHandler {
-	
+
 	/**
 	 * Logger
 	 */
@@ -88,8 +89,8 @@ public class RTMPHandler extends BaseRTMPHandler {
 	/**
 	 * Whether or not global scope connections are allowed.
 	 */
-	private boolean globalScopeConnectionAllowed = false;	
-	
+	private boolean globalScopeConnectionAllowed = false;
+
 	/**
 	 * Setter for server object.
 	 * 
@@ -118,13 +119,12 @@ public class RTMPHandler extends BaseRTMPHandler {
 
 	/** {@inheritDoc} */
 	@Override
-	protected void onChunkSize(RTMPConnection conn, Channel channel,
-			Header source, ChunkSize chunkSize) {
+	protected void onChunkSize(RTMPConnection conn, Channel channel, Header source, ChunkSize chunkSize) {
 		for (IClientStream stream : conn.getStreams()) {
 			if (stream instanceof IClientBroadcastStream) {
 				IClientBroadcastStream bs = (IClientBroadcastStream) stream;
-				IBroadcastScope scope = (IBroadcastScope) bs.getScope()
-						.getBasicScope(IBroadcastScope.TYPE, bs.getPublishedName());
+				IBroadcastScope scope = (IBroadcastScope) bs.getScope().getBasicScope(IBroadcastScope.TYPE,
+						bs.getPublishedName());
 				if (scope == null) {
 					continue;
 				}
@@ -210,192 +210,205 @@ public class RTMPHandler extends BaseRTMPHandler {
 		// If this is not a service call then handle connection...
 		if (call.getServiceName() == null) {
 			log.debug("call: {}", call);
-			if (!conn.isConnected()) {
+			if (!conn.isConnected() && StreamAction.CONNECT.equals(action)) {
 				// Handle connection
-				if (action.equals(ACTION_CONNECT)) {
-					log.debug("connect");
+				log.debug("connect");
+				// Get parameters passed from client to
+				// NetConnection#connection
+				final Map<String, Object> params = invoke.getConnectionParams();
+				// Get hostname
+				String host = getHostname((String) params.get("tcUrl"));
+				// Check up port
+				if (host.endsWith(":1935")) {
+					// Remove default port from connection string
+					host = host.substring(0, host.length() - 5);
+				}
+				// App name as path, but without query string if there is
+				// one
+				String path = (String) params.get("app");
+				if (path.indexOf("?") != -1) {
+					int idx = path.indexOf("?");
+					params.put("queryString", path.substring(idx));
+					path = path.substring(0, idx);
+				}
+				params.put("path", path);
 
-					// Get parameters passed from client to
-					// NetConnection#connection
-					final Map<String, Object> params = invoke.getConnectionParams();
-
-					// Get hostname
-					String host = getHostname((String) params.get("tcUrl"));
-
-					// Check up port
-					if (host.endsWith(":1935")) {
-						// Remove default port from connection string
-						host = host.substring(0, host.length() - 5);
-					}
-
-					// App name as path, but without query string if there is
-					// one
-					String path = (String) params.get("app");
-					if (path.indexOf("?") != -1) {
-						int idx = path.indexOf("?");
-						params.put("queryString", path.substring(idx));
-						path = path.substring(0, idx);
-					}
-					params.put("path", path);
-
-					final String sessionId = null;
-					conn.setup(host, path, sessionId, params);
-					try {
-						// Lookup server scope when connected
-						// Use host and application name
-						IGlobalScope global = server.lookupGlobal(host, path);
-						log.trace("Global lookup result: {}", global);
-						if (global != null) {
-							final IContext context = global.getContext();
-							IScope scope = null;
-							try {
-								scope = context.resolveScope(global, path);
-								//if global scope connection is not allowed, reject
-								if (scope.getDepth() < 1 && !globalScopeConnectionAllowed) {
-									call.setStatus(Call.STATUS_ACCESS_DENIED);
-									if (call instanceof IPendingServiceCall) {
-										IPendingServiceCall pc = (IPendingServiceCall) call;
-										StatusObject status = getStatus(NC_CONNECT_REJECTED);
-										status.setDescription("Global scope connection disallowed on this server.");
-										pc.setResult(status);
-									}
-									disconnectOnReturn = true;									
-								}								
-							} catch (ScopeNotFoundException err) {
-								call.setStatus(Call.STATUS_SERVICE_NOT_FOUND);
+				final String sessionId = null;
+				conn.setup(host, path, sessionId, params);
+				try {
+					// Lookup server scope when connected
+					// Use host and application name
+					IGlobalScope global = server.lookupGlobal(host, path);
+					log.trace("Global lookup result: {}", global);
+					if (global != null) {
+						final IContext context = global.getContext();
+						IScope scope = null;
+						try {
+							scope = context.resolveScope(global, path);
+							//if global scope connection is not allowed, reject
+							if (scope.getDepth() < 1 && !globalScopeConnectionAllowed) {
+								call.setStatus(Call.STATUS_ACCESS_DENIED);
 								if (call instanceof IPendingServiceCall) {
+									IPendingServiceCall pc = (IPendingServiceCall) call;
 									StatusObject status = getStatus(NC_CONNECT_REJECTED);
-									status.setDescription("No scope \"" + path + "\" on this server.");
-									((IPendingServiceCall) call).setResult(status);
+									status.setDescription("Global scope connection disallowed on this server.");
+									pc.setResult(status);
 								}
-								log.info("Scope {} not found on {}", path, host);
-								disconnectOnReturn = true;
-							} catch (ScopeShuttingDownException err) {
-								call.setStatus(Call.STATUS_APP_SHUTTING_DOWN);
-								if (call instanceof IPendingServiceCall) {
-									StatusObject status = getStatus(NC_CONNECT_APPSHUTDOWN);
-									status.setDescription("Application at \"" + path + "\" is currently shutting down.");
-									((IPendingServiceCall) call).setResult(status);
-								}
-								log.info("Application at {} currently shutting down on {}", path, host);
 								disconnectOnReturn = true;
 							}
-							if (scope != null) {
-								log.info("Connecting to: {}", scope);
-								boolean okayToConnect;
-								try {
-								    log.debug("Conn {}, scope {}, call {}", new Object[]{conn, scope, call});
-								    log.debug("Call args {}", call.getArguments());
-									if (call.getArguments() != null) {
-										okayToConnect = conn.connect(scope, call.getArguments());
-									} else {
-										okayToConnect = conn.connect(scope);
-									}
-									if (okayToConnect) {
-										log.debug("Connected - Client: {}", conn.getClient());
-										call.setStatus(Call.STATUS_SUCCESS_RESULT);
-										if (call instanceof IPendingServiceCall) {
-											IPendingServiceCall pc = (IPendingServiceCall) call;
-											//send fmsver and capabilities
-									    	StatusObject result = getStatus(NC_CONNECT_SUCCESS);
-									    	result.setAdditional("fmsVer", Red5.getFMSVersion());
-											result.setAdditional("capabilities", Integer.valueOf(31));
-									    	pc.setResult(result);
-										}
-										// Measure initial roundtrip time after connecting
-										conn.ping(new Ping(Ping.STREAM_BEGIN, 0, -1));
-										conn.startRoundTripMeasurement();
-									} else {
-										log.debug("Connect failed");
-										call.setStatus(Call.STATUS_ACCESS_DENIED);
-										if (call instanceof IPendingServiceCall) {
-											IPendingServiceCall pc = (IPendingServiceCall) call;
-											pc.setResult(getStatus(NC_CONNECT_REJECTED));
-										}
-										disconnectOnReturn = true;
-									}
-								} catch (ClientRejectedException rejected) {
-									log.debug("Connect rejected");
-									call.setStatus(Call.STATUS_ACCESS_DENIED);
-									if (call instanceof IPendingServiceCall) {
-										IPendingServiceCall pc = (IPendingServiceCall) call;
-										StatusObject status = getStatus(NC_CONNECT_REJECTED);
-										Object reason = rejected.getReason();
-										if (reason != null) {
-											status.setApplication(reason);
-											//should we set description?
-											status.setDescription(reason.toString());
-										}
-										pc.setResult(status);
-									}
-									disconnectOnReturn = true;
-								}
-							}
-						} else {
+						} catch (ScopeNotFoundException err) {
 							call.setStatus(Call.STATUS_SERVICE_NOT_FOUND);
 							if (call instanceof IPendingServiceCall) {
-								StatusObject status = getStatus(NC_CONNECT_INVALID_APPLICATION);
+								StatusObject status = getStatus(NC_CONNECT_REJECTED);
 								status.setDescription("No scope \"" + path + "\" on this server.");
 								((IPendingServiceCall) call).setResult(status);
 							}
-							log.info("No application scope found for {} on host {}. Misspelled or missing application folder?", path, host);
+							log.info("Scope {} not found on {}", path, host);
+							disconnectOnReturn = true;
+						} catch (ScopeShuttingDownException err) {
+							call.setStatus(Call.STATUS_APP_SHUTTING_DOWN);
+							if (call instanceof IPendingServiceCall) {
+								StatusObject status = getStatus(NC_CONNECT_APPSHUTDOWN);
+								status.setDescription("Application at \"" + path + "\" is currently shutting down.");
+								((IPendingServiceCall) call).setResult(status);
+							}
+							log.info("Application at {} currently shutting down on {}", path, host);
 							disconnectOnReturn = true;
 						}
-					} catch (RuntimeException e) {
-						call.setStatus(Call.STATUS_GENERAL_EXCEPTION);
-						if (call instanceof IPendingServiceCall) {
-							IPendingServiceCall pc = (IPendingServiceCall) call;
-							pc.setResult(getStatus(NC_CONNECT_FAILED));
+						if (scope != null) {
+							log.info("Connecting to: {}", scope);
+							boolean okayToConnect;
+							try {
+								log.debug("Conn {}, scope {}, call {}", new Object[] { conn, scope, call });
+								log.debug("Call args {}", call.getArguments());
+								if (call.getArguments() != null) {
+									okayToConnect = conn.connect(scope, call.getArguments());
+								} else {
+									okayToConnect = conn.connect(scope);
+								}
+								if (okayToConnect) {
+									log.debug("Connected - Client: {}", conn.getClient());
+									call.setStatus(Call.STATUS_SUCCESS_RESULT);
+									if (call instanceof IPendingServiceCall) {
+										IPendingServiceCall pc = (IPendingServiceCall) call;
+										//send fmsver and capabilities
+										StatusObject result = getStatus(NC_CONNECT_SUCCESS);
+										result.setAdditional("fmsVer", Red5.getFMSVersion());
+										result.setAdditional("capabilities", Integer.valueOf(31));
+										pc.setResult(result);
+									}
+									// Measure initial roundtrip time after connecting
+									conn.ping(new Ping(Ping.STREAM_BEGIN, 0, -1));
+									conn.startRoundTripMeasurement();
+								} else {
+									log.debug("Connect failed");
+									call.setStatus(Call.STATUS_ACCESS_DENIED);
+									if (call instanceof IPendingServiceCall) {
+										IPendingServiceCall pc = (IPendingServiceCall) call;
+										pc.setResult(getStatus(NC_CONNECT_REJECTED));
+									}
+									disconnectOnReturn = true;
+								}
+							} catch (ClientRejectedException rejected) {
+								log.debug("Connect rejected");
+								call.setStatus(Call.STATUS_ACCESS_DENIED);
+								if (call instanceof IPendingServiceCall) {
+									IPendingServiceCall pc = (IPendingServiceCall) call;
+									StatusObject status = getStatus(NC_CONNECT_REJECTED);
+									Object reason = rejected.getReason();
+									if (reason != null) {
+										status.setApplication(reason);
+										//should we set description?
+										status.setDescription(reason.toString());
+									}
+									pc.setResult(status);
+								}
+								disconnectOnReturn = true;
+							}
 						}
-						log.error("Error connecting {}", e);
+					} else {
+						call.setStatus(Call.STATUS_SERVICE_NOT_FOUND);
+						if (call instanceof IPendingServiceCall) {
+							StatusObject status = getStatus(NC_CONNECT_INVALID_APPLICATION);
+							status.setDescription("No scope \"" + path + "\" on this server.");
+							((IPendingServiceCall) call).setResult(status);
+						}
+						log
+								.info(
+										"No application scope found for {} on host {}. Misspelled or missing application folder?",
+										path, host);
 						disconnectOnReturn = true;
 					}
-
-					// Evaluate request for AMF3 encoding
-					if (Integer.valueOf(3).equals(params.get("objectEncoding"))
-							&& call instanceof IPendingServiceCall) {
-						Object pcResult = ((IPendingServiceCall) call).getResult();
-						Map<String, Object> result;
-						if (pcResult instanceof Map) {
-							result = (Map<String, Object>) pcResult;
-							result.put("objectEncoding", 3);
-						} else if (pcResult instanceof StatusObject) {
-							result = new HashMap<String, Object>();
-							StatusObject status = (StatusObject) pcResult;
-							result.put("code", status.getCode());
-							result.put("description", status.getDescription());
-							result.put("application", status.getApplication());
-							result.put("level", status.getLevel());
-							result.put("objectEncoding", 3);
-							((IPendingServiceCall) call).setResult(result);
-						}
-
-						rtmp.setEncoding(Encoding.AMF3);
+				} catch (RuntimeException e) {
+					call.setStatus(Call.STATUS_GENERAL_EXCEPTION);
+					if (call instanceof IPendingServiceCall) {
+						IPendingServiceCall pc = (IPendingServiceCall) call;
+						pc.setResult(getStatus(NC_CONNECT_FAILED));
 					}
+					log.error("Error connecting {}", e);
+					disconnectOnReturn = true;
 				}
-			} else if (action.equals(ACTION_DISCONNECT)) {
-				conn.close();
-			} else if (STREAM_ACTION_LIST.contains(action)) {
-				IStreamService streamService = (IStreamService) getScopeService(
-						conn.getScope(), IStreamService.class,
-						StreamService.class);
-				Status status = null;
-				try {
-					if (!invokeCall(conn, call, streamService)) {
-						status = getStatus(NS_INVALID_ARGUMENT).asStatus();
-						status.setDescription(String.format("Failed to %s (stream id: %d)", action, source.getStreamId()));
+
+				// Evaluate request for AMF3 encoding
+				if (Integer.valueOf(3).equals(params.get("objectEncoding")) && call instanceof IPendingServiceCall) {
+					Object pcResult = ((IPendingServiceCall) call).getResult();
+					Map<String, Object> result;
+					if (pcResult instanceof Map) {
+						result = (Map<String, Object>) pcResult;
+						result.put("objectEncoding", 3);
+					} else if (pcResult instanceof StatusObject) {
+						result = new HashMap<String, Object>();
+						StatusObject status = (StatusObject) pcResult;
+						result.put("code", status.getCode());
+						result.put("description", status.getDescription());
+						result.put("application", status.getApplication());
+						result.put("level", status.getLevel());
+						result.put("objectEncoding", 3);
+						((IPendingServiceCall) call).setResult(result);
 					}
-				} catch (Throwable err) {
-					log.error("Error while invoking {} on stream service. {}", action, err);
-					status = getStatus(NS_FAILED).asStatus();
-					status.setDescription(String.format("Error while invoking %s (stream id: %d)", action, source.getStreamId()));
-					status.setDetails(err.getMessage());
-				}
-				if (status != null) {
-					channel.sendStatus(status);
+
+					rtmp.setEncoding(Encoding.AMF3);
 				}
 			} else {
-				invokeCall(conn, call);
+				//log.debug("Enum value of: {}", StreamAction.getEnum(action));
+				switch (StreamAction.getEnum(action)) {
+					case DISCONNECT:
+						conn.close();
+						break;
+					case CREATE_STREAM:
+					case DELETE_STREAM:
+					case RELEASE_STREAM:
+					case PUBLISH:
+					case PLAY:
+					case SEEK:
+					case PAUSE:
+					case PAUSE_RAW:
+					case CLOSE_STREAM:
+					case RECEIVE_VIDEO:
+					case RECEIVE_AUDIO:
+						IStreamService streamService = (IStreamService) getScopeService(conn.getScope(),
+								IStreamService.class, StreamService.class);
+						Status status = null;
+						try {
+							if (!invokeCall(conn, call, streamService)) {
+								status = getStatus(NS_INVALID_ARGUMENT).asStatus();
+								status.setDescription(String.format("Failed to %s (stream id: %d)", action, source
+										.getStreamId()));
+							}
+						} catch (Throwable err) {
+							log.error("Error while invoking {} on stream service. {}", action, err);
+							status = getStatus(NS_FAILED).asStatus();
+							status.setDescription(String.format("Error while invoking %s (stream id: %d)", action,
+									source.getStreamId()));
+							status.setDetails(err.getMessage());
+						}
+						if (status != null) {
+							channel.sendStatus(status);
+						}
+						break;
+					default:
+						invokeCall(conn, call);
+				}
 			}
 		} else if (conn.isConnected()) {
 			// Service calls, must be connected.
@@ -408,8 +421,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 
 		if (invoke instanceof Invoke) {
 			if ((source.getStreamId() != 0)
-					&& (call.getStatus() == Call.STATUS_SUCCESS_VOID 
-					|| call.getStatus() == Call.STATUS_SUCCESS_NULL)) {
+					&& (call.getStatus() == Call.STATUS_SUCCESS_VOID || call.getStatus() == Call.STATUS_SUCCESS_NULL)) {
 				// This fixes a bug in the FP on Intel Macs.
 				log.debug("Method does not have return value, do not reply");
 				return;
@@ -465,7 +477,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 						log.debug("Client sent a buffer size: {} ms for stream id: {}", buffer, streamId);
 						log.trace("Stream type: {}", stream.getClass().getName());
 					}
-				} 
+				}
 				//catch-all to make sure buffer size is set
 				if (stream == null) {
 					// Remember buffer time until stream is created
@@ -494,9 +506,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 	 */
 	private void sendSOCreationFailed(RTMPConnection conn, String name, boolean persistent) {
 		SharedObjectMessage msg = new SharedObjectMessage(name, 0, persistent);
-		msg.addEvent(new SharedObjectEvent(
-				ISharedObjectEvent.Type.CLIENT_STATUS, "error",
-				SO_CREATION_FAILED));
+		msg.addEvent(new SharedObjectEvent(ISharedObjectEvent.Type.CLIENT_STATUS, "error", SO_CREATION_FAILED));
 		conn.getChannel(3).write(msg);
 	}
 
@@ -513,11 +523,11 @@ public class RTMPHandler extends BaseRTMPHandler {
 			return;
 		}
 
-		ISharedObjectService sharedObjectService = (ISharedObjectService) getScopeService(
-				scope, ISharedObjectService.class, SharedObjectService.class, false);
+		ISharedObjectService sharedObjectService = (ISharedObjectService) getScopeService(scope,
+				ISharedObjectService.class, SharedObjectService.class, false);
 		if (!sharedObjectService.hasSharedObject(scope, name)) {
-			ISharedObjectSecurityService security = (ISharedObjectSecurityService) ScopeUtils
-					.getScopeService(scope, ISharedObjectSecurityService.class);
+			ISharedObjectSecurityService security = (ISharedObjectSecurityService) ScopeUtils.getScopeService(scope,
+					ISharedObjectSecurityService.class);
 			if (security != null) {
 				// Check handlers to see if creation is allowed
 				for (ISharedObjectSecurity handler : security.getSharedObjectSecurity()) {
@@ -536,9 +546,9 @@ public class RTMPHandler extends BaseRTMPHandler {
 		so = sharedObjectService.getSharedObject(scope, name);
 		if (so.isPersistentObject() != persistent) {
 			SharedObjectMessage msg = new SharedObjectMessage(name, 0, persistent);
-			msg.addEvent(new SharedObjectEvent(
-					ISharedObjectEvent.Type.CLIENT_STATUS, "error",
-					SO_PERSISTENCE_MISMATCH));
+			msg
+					.addEvent(new SharedObjectEvent(ISharedObjectEvent.Type.CLIENT_STATUS, "error",
+							SO_PERSISTENCE_MISMATCH));
 			conn.getChannel(3).write(msg);
 		}
 		so.dispatchEvent(object);
