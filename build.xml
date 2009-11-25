@@ -318,7 +318,7 @@
 			</fileset>
 		</copy>
 		<!-- copy the demos if they dont exist in the tree -->
-		<copy todir="${webapps.build.dir}/root/demos">
+		<copy todir="${webapps.build.dir}/root/demos" failonerror="false">
 			<fileset dir="../../../flash/trunk/deploy">
 				<include name="**/*.*"/>
 				<exclude name=".svn"/>
