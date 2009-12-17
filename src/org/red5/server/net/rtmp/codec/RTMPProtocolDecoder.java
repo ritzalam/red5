@@ -123,7 +123,9 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				final Object decodedObject = decode(state, buffer);
 
 				if (state.hasDecodedObject()) {
-					result.add(decodedObject);
+					if (decodedObject != null) {
+						result.add(decodedObject);
+					}
 				} else if (state.canContinueDecoding()) {
 					continue;
 				} else {

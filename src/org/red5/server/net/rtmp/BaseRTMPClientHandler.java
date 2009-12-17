@@ -509,10 +509,11 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 			ObjectMap<?, ?> objMap = (ObjectMap<?, ?>) call.getArguments()[0];
 			// should keep this as an Object to stay compatible with FMS3 etc
 			Object clientId = objMap.get("clientid");
+			log.debug("Client id at onStatus: {}", clientId);
 			if (clientId == null) {
 				clientId = source.getStreamId();
 			}
-			log.debug("Client id: {}", clientId);
+			log.debug("Client/stream id: {}", clientId);
 			if (clientId != null) {
 				NetStreamPrivateData streamData = streamDataMap.get(clientId);
 				if (streamData != null && streamData.handler != null) {

@@ -260,7 +260,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 							call.setStatus(Call.STATUS_SERVICE_NOT_FOUND);
 							if (call instanceof IPendingServiceCall) {
 								StatusObject status = getStatus(NC_CONNECT_REJECTED);
-								status.setDescription("No scope \"" + path + "\" on this server.");
+								status.setDescription(String.format("No scope '%s' on this server.", path));
 								((IPendingServiceCall) call).setResult(status);
 							}
 							log.info("Scope {} not found on {}", path, host);
@@ -269,7 +269,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 							call.setStatus(Call.STATUS_APP_SHUTTING_DOWN);
 							if (call instanceof IPendingServiceCall) {
 								StatusObject status = getStatus(NC_CONNECT_APPSHUTDOWN);
-								status.setDescription("Application at \"" + path + "\" is currently shutting down.");
+								status.setDescription(String.format("Application at '%s' is currently shutting down.", path));
 								((IPendingServiceCall) call).setResult(status);
 							}
 							log.info("Application at {} currently shutting down on {}", path, host);
@@ -330,13 +330,10 @@ public class RTMPHandler extends BaseRTMPHandler {
 						call.setStatus(Call.STATUS_SERVICE_NOT_FOUND);
 						if (call instanceof IPendingServiceCall) {
 							StatusObject status = getStatus(NC_CONNECT_INVALID_APPLICATION);
-							status.setDescription("No scope \"" + path + "\" on this server.");
+							status.setDescription(String.format("No scope '%s' on this server.", path));
 							((IPendingServiceCall) call).setResult(status);
 						}
-						log
-								.info(
-										"No application scope found for {} on host {}. Misspelled or missing application folder?",
-										path, host);
+						log.info("No application scope found for {} on host {}", path, host);
 						disconnectOnReturn = true;
 					}
 				} catch (RuntimeException e) {
@@ -371,43 +368,49 @@ public class RTMPHandler extends BaseRTMPHandler {
 				}
 			} else {
 				//log.debug("Enum value of: {}", StreamAction.getEnum(action));
-				switch (StreamAction.getEnum(action)) {
-					case DISCONNECT:
-						conn.close();
-						break;
-					case CREATE_STREAM:
-					case DELETE_STREAM:
-					case RELEASE_STREAM:
-					case PUBLISH:
-					case PLAY:
-					case SEEK:
-					case PAUSE:
-					case PAUSE_RAW:
-					case CLOSE_STREAM:
-					case RECEIVE_VIDEO:
-					case RECEIVE_AUDIO:
-						IStreamService streamService = (IStreamService) getScopeService(conn.getScope(),
-								IStreamService.class, StreamService.class);
-						Status status = null;
-						try {
-							if (!invokeCall(conn, call, streamService)) {
-								status = getStatus(NS_INVALID_ARGUMENT).asStatus();
-								status.setDescription(String.format("Failed to %s (stream id: %d)", action, source
-										.getStreamId()));
-							}
-						} catch (Throwable err) {
-							log.error("Error while invoking {} on stream service. {}", action, err);
-							status = getStatus(NS_FAILED).asStatus();
-							status.setDescription(String.format("Error while invoking %s (stream id: %d)", action,
-									source.getStreamId()));
-							status.setDetails(err.getMessage());
-						}
-						if (status != null) {
-							channel.sendStatus(status);
-						}
-						break;
-					default:
-						invokeCall(conn, call);
+				StreamAction streamAction = StreamAction.getEnum(action);
+				//if the "stream" action is null, we assume that it is an "invoke"
+				if (null == streamAction) {
+					invokeCall(conn, call);
+				} else {
+    				switch (streamAction) {
+    					case DISCONNECT:
+    						conn.close();
+    						break;
+    					case CREATE_STREAM:
+    					case DELETE_STREAM:
+    					case RELEASE_STREAM:
+    					case PUBLISH:
+    					case PLAY:
+    					case SEEK:
+    					case PAUSE:
+    					case PAUSE_RAW:
+    					case CLOSE_STREAM:
+    					case RECEIVE_VIDEO:
+    					case RECEIVE_AUDIO:
+    						IStreamService streamService = (IStreamService) getScopeService(conn.getScope(),
+    								IStreamService.class, StreamService.class);
+    						Status status = null;
+    						try {
+    							if (!invokeCall(conn, call, streamService)) {
+    								status = getStatus(NS_INVALID_ARGUMENT).asStatus();
+    								status.setDescription(String.format("Failed to %s (stream id: %d)", action, source
+    										.getStreamId()));
+    							}
+    						} catch (Throwable err) {
+    							log.error("Error while invoking {} on stream service. {}", action, err);
+    							status = getStatus(NS_FAILED).asStatus();
+    							status.setDescription(String.format("Error while invoking %s (stream id: %d)", action,
+    									source.getStreamId()));
+    							status.setDetails(err.getMessage());
+    						}
+    						if (status != null) {
+    							channel.sendStatus(status);
+    						}
+    						break;
+    					default:
+    						invokeCall(conn, call);
+    				}
 				}
 			}
 		} else if (conn.isConnected()) {
