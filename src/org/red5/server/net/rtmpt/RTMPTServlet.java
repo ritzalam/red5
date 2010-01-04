@@ -110,8 +110,7 @@ public class RTMPTServlet extends HttpServlet {
 	 * @throws IOException
 	 *             I/O exception
 	 */
-	protected void handleBadRequest(String message, HttpServletResponse resp)
-			throws IOException {
+	protected void handleBadRequest(String message, HttpServletResponse resp) throws IOException {
 		resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 		resp.setContentType("text/plain");
 		resp.setContentLength(message.length());
@@ -129,8 +128,7 @@ public class RTMPTServlet extends HttpServlet {
 	 * @throws IOException
 	 *             I/O exception
 	 */
-	protected void returnMessage(byte message, HttpServletResponse resp)
-			throws IOException {
+	protected void returnMessage(byte message, HttpServletResponse resp) throws IOException {
 		resp.setStatus(HttpServletResponse.SC_OK);
 		resp.setHeader("Connection", "Keep-Alive");
 		resp.setHeader("Cache-Control", "no-cache");
@@ -150,8 +148,7 @@ public class RTMPTServlet extends HttpServlet {
 	 * @throws IOException
 	 *             I/O exception
 	 */
-	protected void returnMessage(String message, HttpServletResponse resp)
-			throws IOException {
+	protected void returnMessage(String message, HttpServletResponse resp) throws IOException {
 		resp.setStatus(HttpServletResponse.SC_OK);
 		resp.setHeader("Connection", "Keep-Alive");
 		resp.setHeader("Cache-Control", "no-cache");
@@ -173,8 +170,7 @@ public class RTMPTServlet extends HttpServlet {
 	 * @throws IOException
 	 *             I/O exception
 	 */
-	protected void returnMessage(RTMPTConnection client, IoBuffer buffer,
-			HttpServletResponse resp) throws IOException {
+	protected void returnMessage(RTMPTConnection client, IoBuffer buffer, HttpServletResponse resp) throws IOException {
 		resp.setStatus(HttpServletResponse.SC_OK);
 		resp.setHeader("Connection", "Keep-Alive");
 		resp.setHeader("Cache-Control", "no-cache");
@@ -254,8 +250,7 @@ public class RTMPTServlet extends HttpServlet {
 	 * @throws IOException
 	 *             I/O exception
 	 */
-	protected void returnPendingMessages(RTMPTConnection client,
-			HttpServletResponse resp) throws IOException {
+	protected void returnPendingMessages(RTMPTConnection client, HttpServletResponse resp) throws IOException {
 
 		IoBuffer data = client.getPendingMessages(RESPONSE_TARGET_SIZE);
 		if (data == null) {
@@ -284,8 +279,7 @@ public class RTMPTServlet extends HttpServlet {
 	 * @throws IOException
 	 *             I/O exception
 	 */
-	protected void handleOpen(HttpServletRequest req, HttpServletResponse resp)
-			throws ServletException, IOException {
+	protected void handleOpen(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
 		// Skip sent data
 		skipData(req);
@@ -315,16 +309,14 @@ public class RTMPTServlet extends HttpServlet {
 	 * @throws IOException
 	 *             I/O exception
 	 */
-	protected void handleClose(HttpServletRequest req, HttpServletResponse resp)
-			throws ServletException, IOException {
+	protected void handleClose(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
 		// Skip sent data
 		skipData(req);
 
 		RTMPTConnection connection = getClientConnection(req);
 		if (connection == null) {
-			handleBadRequest("Close: unknown client with id: "
-					+ getClientId(req), resp);
+			handleBadRequest(String.format("Close: unknown client with id: %s", getClientId(req)), resp);
 			return;
 		}
 		removeConnection(connection.getId());
@@ -348,13 +340,11 @@ public class RTMPTServlet extends HttpServlet {
 	 * @throws IOException
 	 *             I/O exception
 	 */
-	protected void handleSend(HttpServletRequest req, HttpServletResponse resp)
-			throws ServletException, IOException {
+	protected void handleSend(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
 		RTMPTConnection connection = getClientConnection(req);
 		if (connection == null) {
-			handleBadRequest("Send: unknown client with id: "
-					+ getClientId(req), resp);
+			handleBadRequest(String.format("Send: unknown client with id: %s", getClientId(req)), resp);
 			return;
 		} else if (connection.getStateCode() == RTMP.STATE_DISCONNECTED) {
 			removeConnection(connection.getId());
@@ -404,16 +394,14 @@ public class RTMPTServlet extends HttpServlet {
 	 * @throws IOException
 	 *             I/O exception
 	 */
-	protected void handleIdle(HttpServletRequest req, HttpServletResponse resp)
-			throws ServletException, IOException {
+	protected void handleIdle(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
 		// Skip sent data
 		skipData(req);
 
 		RTMPTConnection connection = getClientConnection(req);
 		if (connection == null) {
-			handleBadRequest("Idle: unknown client with id: "
-					+ getClientId(req), resp);
+			handleBadRequest("Idle: unknown client with id: " + getClientId(req), resp);
 			return;
 		} else if (connection.isClosing()) {
 			// Tell client to close the connection
@@ -439,13 +427,11 @@ public class RTMPTServlet extends HttpServlet {
 	 *            Response object
 	 */
 	@Override
-	protected void service(HttpServletRequest req, HttpServletResponse resp)
-			throws ServletException, IOException {
-		
+	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
 		//log.debug("Request - method: {} content type: {} path: {}", new Object[]{req.getMethod(), req.getContentType(), req.getServletPath()});
 
-		if (!REQUEST_METHOD.equals(req.getMethod())
-				|| req.getContentLength() == 0
+		if (!REQUEST_METHOD.equals(req.getMethod()) || req.getContentLength() == 0
 				|| !CONTENT_TYPE.equals(req.getContentType())) {
 			// Bad request - return simple error page
 			handleBadRequest("Bad request, only RTMPT supported.", resp);
@@ -474,22 +460,21 @@ public class RTMPTServlet extends HttpServlet {
 				handleIdle(req, resp);
 				break;
 			case 'f': // HTTPIdent request (ident and ident2)
-          		//if HTTPIdent is requested send back some Red5 info
-		        //http://livedocs.adobe.com/flashmediaserver/3.0/docs/help.html?content=08_xmlref_011.html
+				//if HTTPIdent is requested send back some Red5 info
+				//http://livedocs.adobe.com/flashmediaserver/3.0/docs/help.html?content=08_xmlref_011.html
 
-    			String ident = "<fcs><Company>Red5</Company><Team>Red5 Server</Team></fcs>";    			
-    			resp.setStatus(HttpServletResponse.SC_OK);
-    			resp.setHeader("Connection", "Keep-Alive");
-    			resp.setHeader("Cache-Control", "no-cache");
-    			resp.setContentType(CONTENT_TYPE);
-    			resp.setContentLength(ident.length());
-    			resp.getWriter().write(ident);
-    			resp.flushBuffer();		    
+				String ident = "<fcs><Company>Red5</Company><Team>Red5 Server</Team></fcs>";
+				resp.setStatus(HttpServletResponse.SC_OK);
+				resp.setHeader("Connection", "Keep-Alive");
+				resp.setHeader("Cache-Control", "no-cache");
+				resp.setContentType(CONTENT_TYPE);
+				resp.setContentLength(ident.length());
+				resp.getWriter().write(ident);
+				resp.flushBuffer();
 
 				break;
 			default:
-				handleBadRequest(
-						"RTMPT command " + path + " is not supported.", resp);
+				handleBadRequest(String.format("RTMPT command %s is not supported.", path), resp);
 		}
 
 	}
@@ -499,11 +484,10 @@ public class RTMPTServlet extends HttpServlet {
 	public void init() throws ServletException {
 		super.init();
 		ServletContext ctx = getServletContext();
-		appCtx = WebApplicationContextUtils
-				.getWebApplicationContext(ctx);
+		appCtx = WebApplicationContextUtils.getWebApplicationContext(ctx);
 		if (appCtx == null) {
-			appCtx = (WebApplicationContext) ctx.getAttribute(
-					WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
+			appCtx = (WebApplicationContext) ctx
+					.getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
 		}
 	}
 
@@ -528,8 +512,7 @@ public class RTMPTServlet extends HttpServlet {
 	}
 
 	protected RTMPTConnection getConnection(int clientId) {
-		RTMPTConnection connection = (RTMPTConnection) rtmpConnManager
-				.getConnection(clientId);
+		RTMPTConnection connection = (RTMPTConnection) rtmpConnManager.getConnection(clientId);
 		if (connection == null) {
 			log.warn("Null connection for clientId: {}", clientId);
 		}
@@ -537,8 +520,7 @@ public class RTMPTServlet extends HttpServlet {
 	}
 
 	protected RTMPTConnection createConnection() {
-		RTMPTConnection conn = (RTMPTConnection) rtmpConnManager
-				.createConnection(RTMPTConnection.class);
+		RTMPTConnection conn = (RTMPTConnection) rtmpConnManager.createConnection(RTMPTConnection.class);
 		conn.setHandler(handler);
 		conn.setDecoder(handler.getCodecFactory().getRTMPDecoder());
 		conn.setEncoder(handler.getCodecFactory().getRTMPEncoder());
