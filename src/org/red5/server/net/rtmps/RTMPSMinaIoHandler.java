@@ -181,7 +181,7 @@ public class RTMPSMinaIoHandler extends RTMPMinaIoHandler {
 	/**
 	 * Set keystore data from a file.
 	 * 
-	 * @param file contains keystore
+	 * @param path contains keystore
 	 */
 	public void setKeystoreFile(String path) {
 		FileInputStream fis = null;
