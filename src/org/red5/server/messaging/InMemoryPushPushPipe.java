@@ -34,41 +34,40 @@ import org.slf4j.LoggerFactory;
  * @author Steven Gong (steven.gong@gmail.com)
  */
 public class InMemoryPushPushPipe extends AbstractPipe {
+	
 	private static final Logger log = LoggerFactory.getLogger(InMemoryPushPushPipe.class);
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public boolean subscribe(IConsumer consumer, Map<?, ?> paramMap) {
-		if (!(consumer instanceof IPushableConsumer)) {
-			throw new IllegalArgumentException(
-					"Non-pushable consumer not supported by PushPushPipe");
+		if (consumer instanceof IPushableConsumer) {
+			boolean success = super.subscribe(consumer, paramMap);
+			if (success) {
+				fireConsumerConnectionEvent(consumer, PipeConnectionEvent.CONSUMER_CONNECT_PUSH, paramMap);
+			}
+			return success;
+		} else {
+			throw new IllegalArgumentException("Non-pushable consumer not supported by PushPushPipe");
 		}
-		boolean success = super.subscribe(consumer, paramMap);
-		if (success) {
-			fireConsumerConnectionEvent(consumer,
-					PipeConnectionEvent.CONSUMER_CONNECT_PUSH, paramMap);
-		}
-		return success;
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public boolean subscribe(IProvider provider, Map<?, ?> paramMap) {
 		boolean success = super.subscribe(provider, paramMap);
 		if (success) {
-			fireProviderConnectionEvent(provider,
-					PipeConnectionEvent.PROVIDER_CONNECT_PUSH, paramMap);
+			fireProviderConnectionEvent(provider, PipeConnectionEvent.PROVIDER_CONNECT_PUSH, paramMap);
 		}
 		return success;
 	}
 
 	/** {@inheritDoc} */
-    public IMessage pullMessage() {
+	public IMessage pullMessage() {
 		return null;
 	}
 
 	/** {@inheritDoc} */
-    public IMessage pullMessage(long wait) {
+	public IMessage pullMessage(long wait) {
 		return null;
 	}
 
@@ -76,7 +75,7 @@ public class InMemoryPushPushPipe extends AbstractPipe {
 	 * Pushes a message out to all the PushableConsumers.
 	 * 
 	 */
-    public void pushMessage(IMessage message) throws IOException {
+	public void pushMessage(IMessage message) throws IOException {
 		for (IConsumer consumer : consumers) {
 			try {
 				((IPushableConsumer) consumer).pushMessage(this, message);

@@ -16,7 +16,7 @@ package org.red5.server.api;
  * 
  * You should have received a copy of the GNU Lesser General Public License along 
  * with this library; if not, write to the Free Software Foundation, Inc., 
- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA  
+ * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
 import java.lang.ref.WeakReference;
@@ -58,7 +58,7 @@ public final class Red5 implements Red5MBean {
     /**
      * Current server version with revision
      */
-    public static final String VERSION = "Red5 Server 0.9.0-RC3 $Rev$";
+    public static final String VERSION = "Red5 Server 0.9.0 $Rev$";
 
     /**
      * Current server version for fmsVer requests 

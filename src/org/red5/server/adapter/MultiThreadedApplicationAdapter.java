@@ -69,6 +69,8 @@ import org.red5.server.api.stream.IStreamService;
 import org.red5.server.api.stream.ISubscriberStream;
 import org.red5.server.api.stream.ISubscriberStreamService;
 import org.red5.server.exception.ClientRejectedException;
+import org.red5.server.messaging.AbstractPipe;
+import org.red5.server.messaging.IMessageInput;
 import org.red5.server.plugin.PluginDescriptor;
 import org.red5.server.plugin.PluginRegistry;
 import org.red5.server.plugin.Red5Plugin;
@@ -908,7 +910,11 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	public boolean hasOnDemandStream(IScope scope, String name) {
 		IProviderService service = (IProviderService) getScopeService(scope,
 				IProviderService.class, ProviderService.class);
-		return (service.getVODProviderInput(scope, name) != null);
+		IMessageInput msgIn = service.getVODProviderInput(scope, name);
+		if (msgIn instanceof AbstractPipe) {
+			((AbstractPipe) msgIn).close();
+		}
+		return (msgIn != null);
 	}
 
 	/**

@@ -61,21 +61,18 @@ import org.springframework.web.context.WebApplicationContext;
  */
 public class WarLoaderServlet extends ContextLoaderListener {
 
-	private final static long serialVersionUID = 41919712008L;
+	private final static long serialVersionUID = 41919712010L;
 
 	// Initialize Logging
 	public static Logger logger = Red5LoggerFactory.getLogger(WarLoaderServlet.class);
 
-	private static ArrayList<ServletContext> registeredContexts = new ArrayList<ServletContext>(
-			3);
+	private static ArrayList<ServletContext> registeredContexts = new ArrayList<ServletContext>(3);
 
 	private ConfigurableWebApplicationContext applicationContext;
 
 	private DefaultListableBeanFactory parentFactory;
 
 	private static ServletContext servletContext;
-
-	private ContextLoader contextLoader;
 
 	private ClientRegistry clientRegistry;
 
@@ -102,34 +99,33 @@ public class WarLoaderServlet extends ContextLoaderListener {
 
 		servletContext = sce.getServletContext();
 		String prefix = servletContext.getRealPath("/");
-		
+
 		if (System.getProperty("red5.webapp.root") == null) {
 			File webapps = new File(prefix);
 			System.setProperty("red5.webapp.root", webapps.getParent());
 			webapps = null;
 		}
-		
+
 		long time = System.currentTimeMillis();
 
 		logger.info("{} WAR loader", Red5.VERSION);
 		logger.debug("Path: {}", prefix);
 
 		try {
-			// instance the context loader
-			contextLoader = createContextLoader();
-			applicationContext = (ConfigurableWebApplicationContext) contextLoader
-					.initWebApplicationContext(servletContext);
+			//use super to initialize
+			super.contextInitialized(sce);
+			//get the web context
+			applicationContext = (ConfigurableWebApplicationContext) servletContext
+					.getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
 			logger.debug("Root context path: {}", applicationContext.getServletContext().getContextPath());
 
-			ConfigurableBeanFactory factory = applicationContext
-					.getBeanFactory();
+			ConfigurableBeanFactory factory = applicationContext.getBeanFactory();
 
 			// register default
 			factory.registerSingleton("default.context", applicationContext);
 
 			// get the main factory
-			parentFactory = (DefaultListableBeanFactory) factory
-					.getParentBeanFactory();
+			parentFactory = (DefaultListableBeanFactory) factory.getParentBeanFactory();
 
 		} catch (Throwable t) {
 			logger.error("", t);
@@ -155,9 +151,7 @@ public class WarLoaderServlet extends ContextLoaderListener {
 		appCtx.setParent(applicationContext);
 		appCtx.refresh();
 
-		ctx.setAttribute(
-				WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE,
-				appCtx);
+		ctx.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, appCtx);
 
 		ConfigurableBeanFactory appFactory = appCtx.getBeanFactory();
 
@@ -180,9 +174,9 @@ public class WarLoaderServlet extends ContextLoaderListener {
 
 	}
 
-	@Override
+	@Deprecated
 	public ContextLoader getContextLoader() {
-		return this.contextLoader;
+		return super.getContextLoader();
 	}
 
 	/**
@@ -197,16 +191,15 @@ public class WarLoaderServlet extends ContextLoaderListener {
 			// http://opensource.atlassian.com/confluence/spring/display/DISC/Memory+leak+-+classloader+won%27t+let+go
 			// in hopes that we can clear all the issues with J2EE containers
 			// during shutdown
+			ServletContext ctx = null;
 			try {
-				ServletContext ctx = sce.getServletContext();
+				ctx = sce.getServletContext();
 				// prepare spring for shutdown
 				Introspector.flushCaches();
 				// dereg any drivers
-				for (Enumeration<?> e = DriverManager.getDrivers(); e
-						.hasMoreElements();) {
+				for (Enumeration<?> e = DriverManager.getDrivers(); e.hasMoreElements();) {
 					Driver driver = (Driver) e.nextElement();
-					if (driver.getClass().getClassLoader() == getClass()
-							.getClassLoader()) {
+					if (driver.getClass().getClassLoader() == getClass().getClassLoader()) {
 						DriverManager.deregisterDriver(driver);
 					}
 				}
@@ -234,12 +227,15 @@ public class WarLoaderServlet extends ContextLoaderListener {
 					} catch (RuntimeException e) {
 					}
 					factory.destroySingletons();
-					ctx.removeAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
 					applicationContext.close();
 				}
-				getContextLoader().closeWebApplicationContext(ctx);
 			} catch (Throwable e) {
 				e.printStackTrace();
+			} finally {
+				super.contextDestroyed(sce);
+				if (ctx != null) {
+					ctx.removeAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
+				}
 			}
 		}
 	}

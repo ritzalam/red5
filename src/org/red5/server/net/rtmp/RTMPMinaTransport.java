@@ -24,6 +24,8 @@ import java.net.SocketAddress;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import javax.management.ObjectName;
 
@@ -35,6 +37,7 @@ import org.apache.mina.core.service.IoServiceStatistics;
 import org.apache.mina.integration.jmx.IoServiceMBean;
 import org.apache.mina.transport.socket.SocketAcceptor;
 import org.apache.mina.transport.socket.SocketSessionConfig;
+import org.apache.mina.transport.socket.nio.NioProcessor;
 import org.apache.mina.transport.socket.nio.NioSocketAcceptor;
 import org.red5.server.jmx.JMXAgent;
 import org.red5.server.jmx.JMXFactory;
@@ -53,15 +56,9 @@ import org.slf4j.LoggerFactory;
  */
 public class RTMPMinaTransport {
 
-	private static final int DEFAULT_EVENT_THREADS_CORE = 16;
+	private static final int DEFAULT_CONN_THREADS = Runtime.getRuntime().availableProcessors();
 
-	private static final int DEFAULT_EVENT_THREADS_KEEPALIVE = 60;
-
-	private static final int DEFAULT_EVENT_THREADS_MAX = 32;
-
-	private static final int DEFAULT_EVENT_THREADS_QUEUE = -1;
-
-	private static final int DEFAULT_IO_THREADS = Runtime.getRuntime().availableProcessors();
+	private static final int DEFAULT_IO_THREADS = DEFAULT_CONN_THREADS * 2;
 
 	private static final int DEFAULT_RECEIVE_BUFFER_SIZE = 256 * 1024;
 
@@ -77,17 +74,11 @@ public class RTMPMinaTransport {
 
 	protected Set<SocketAddress> addresses = new HashSet<SocketAddress>();
 
-	protected int eventThreadsCore = DEFAULT_EVENT_THREADS_CORE;
-
-	protected int eventThreadsKeepalive = DEFAULT_EVENT_THREADS_KEEPALIVE;
-
-	protected int eventThreadsMax = DEFAULT_EVENT_THREADS_MAX;
-
-	protected int eventThreadsQueue = DEFAULT_EVENT_THREADS_QUEUE;
-
 	protected IoHandlerAdapter ioHandler;
 
 	protected IoServiceStatistics stats;
+
+	protected int connectionThreads = DEFAULT_CONN_THREADS;
 
 	protected int ioThreads = DEFAULT_IO_THREADS;
 
@@ -123,14 +114,19 @@ public class RTMPMinaTransport {
 		}
 
 		log.info("RTMP Mina Transport Settings");
-		log.info("IO Threads: {}", ioThreads);
-		log.info("Event Threads - core: {}, max: {}, queue: {}, keepalive: {}", new Object[] { eventThreadsCore,
-				eventThreadsMax, eventThreadsQueue, eventThreadsKeepalive });
+		log.info("Connection Threads: {}", connectionThreads);
+		log.info("I/O Threads: {}", ioThreads);
 
 		//use default parameters, and given number of NioProcessor for multithreading I/O operations
-		acceptor = new NioSocketAcceptor(ioThreads);
+		//acceptor = new NioSocketAcceptor(ioThreads);
+		
+		//create separate executors to handle connections and i/o
+		Executor connectionExecutor = Executors.newFixedThreadPool(connectionThreads);
+		Executor ioExecutor = Executors.newFixedThreadPool(ioThreads);
+		acceptor = new NioSocketAcceptor(connectionExecutor, new NioProcessor(ioExecutor));
+		
 		acceptor.setHandler(ioHandler);
-		acceptor.setBacklog(100);
+		acceptor.setBacklog(50);
 
 		log.info("TCP No Delay: {}", tcpNoDelay);
 		log.info("Receive Buffer Size: {}", receiveBufferSize);
@@ -201,20 +197,8 @@ public class RTMPMinaTransport {
 		}
 	}
 
-	public void setEventThreadsCore(int eventThreadsCore) {
-		this.eventThreadsCore = eventThreadsCore;
-	}
-
-	public void setEventThreadsKeepalive(int eventThreadsKeepalive) {
-		this.eventThreadsKeepalive = eventThreadsKeepalive;
-	}
-
-	public void setEventThreadsMax(int eventThreadsMax) {
-		this.eventThreadsMax = eventThreadsMax;
-	}
-
-	public void setEventThreadsQueue(int eventThreadsQueue) {
-		this.eventThreadsQueue = eventThreadsQueue;
+	public void setConnectionThreads(int connectionThreads) {
+		this.connectionThreads = connectionThreads;
 	}
 
 	public void setIoHandler(IoHandlerAdapter rtmpIOHandler) {

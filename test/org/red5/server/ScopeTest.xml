@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
-<beans>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:lang="http://www.springframework.org/schema/lang"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+                           http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-3.0.xsd">
 
-    <bean id="placeholderConfig"
+    <bean id="placeholderConfig" 
         class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="ignoreResourceNotFound" value="true"/>
+        <property name="ignoreUnresolvablePlaceholders" value="true"/>        
         <property name="locations">
             <list>
-                <value>classpath:/red5.properties</value>
+                <value>file:///${user.dir}/bin/conf/red5.properties</value>
+                <value>file:///${user.dir}/conf/red5.properties</value>
             </list>
         </property>
     </bean>
@@ -52,7 +58,7 @@
     
     <bean id="consumerService" class="org.red5.server.stream.ConsumerService"/>
     
-    <bean id="schedulingService" class="org.red5.server.scheduling.QuartzSchedulingService" destroy-method="shutdown"/>
+    <bean id="schedulingService" class="org.red5.server.scheduling.QuartzSchedulingService"/>
 
     <!-- Global stuff from red5-default.xml -->
     

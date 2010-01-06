@@ -146,6 +146,10 @@ public class ConversionUtils {
 		if (target.equals(Set.class) && source instanceof List) {
 			return new HashSet((List) source);
 		}
+		//Trac #352
+		if (source instanceof Map) {
+			return convertMapToBean((Map) source, target);
+		}
 		throw new ConversionException(String.format("Unable to preform conversion from %s to %s", source, target));
 	}
 
@@ -363,7 +367,11 @@ public class ConversionUtils {
 	public static Object convertMapToBean(Map<?, ?> source, Class<?> target) throws ConversionException {
 		Object bean = newInstance(target.getClass().getName());
 		if (bean == null) {
-			throw new ConversionException("Unable to create bean using empty constructor");
+			//try with just the target name as specified in Trac #352
+			bean = newInstance(target.getName());
+			if (bean == null) {
+				throw new ConversionException("Unable to create bean using empty constructor");
+			}
 		}
 		try {
 			BeanUtils.populate(bean, source);
@@ -401,10 +409,11 @@ public class ConversionUtils {
 	 * @return            Instance of given class
 	 */
 	protected static Object newInstance(String className) {
-		//System.out.println(">>>>> conversion utils: " + Thread.currentThread().getContextClassLoader());
+		ClassLoader cl =  Thread.currentThread().getContextClassLoader();
+		log.debug("Conversion utils classloader: {}", cl);
 		Object instance = null;
 		try {
-			Class<?> clazz = Thread.currentThread().getContextClassLoader().loadClass(className);
+			Class<?> clazz = cl.loadClass(className);
 			instance = clazz.newInstance();
 		} catch (Exception ex) {
 			log.error("Error loading class: {}", className, ex);

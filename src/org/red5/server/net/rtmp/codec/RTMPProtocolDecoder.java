@@ -398,8 +398,9 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 						new Object[] { header.getDataType(), lastReadHeader.getTimer() + 1, header.getTimer(),
 								lastReadHeader.getTimer() });
 				message.setTimestamp(lastReadHeader.getTimer() + 1);
-			} else
+			} else {
 				message.setTimestamp(header.getTimer());
+			}
 			rtmp.setLastReadPacketHeader(channelId, packet.getHeader());
 
 			packet.setMessage(message);
@@ -408,13 +409,14 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				ChunkSize chunkSizeMsg = (ChunkSize) message;
 				rtmp.setReadChunkSize(chunkSizeMsg.getSize());
 			} else if (message instanceof Abort) {
+				log.debug("Abort packet detected");
 				// The client is aborting a message; reset the packet
 				// because the next chunk on that stream will start a new packet.
 				Abort abort = (Abort) message;
 				rtmp.setLastReadPacket(abort.getChannelId(), null);
 				packet = null;
 			}
-			if (packet.getHeader().isGarbage()) {
+			if (packet != null && packet.getHeader().isGarbage()) {
 				// discard this packet; this gets rid of the garbage
 				// audio data FP inserts
 				log.trace("Dropping garbage packet: {}, {}", packet, packet.getHeader());
@@ -478,8 +480,9 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				header.setSize(RTMPUtils.readUnsignedMediumInt(in));
 				header.setDataType(in.get());
 				header.setStreamId(RTMPUtils.readReverseInt(in));
-				if (timeValue == 0xffffff)
+				if (timeValue == 0xffffff) {
 					timeValue = in.getInt();
+				}
 				header.setTimerBase(timeValue);
 				header.setTimerDelta(0);
 				break;
@@ -490,9 +493,9 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				header.setSize(RTMPUtils.readUnsignedMediumInt(in));
 				header.setDataType(in.get());
 				header.setStreamId(lastHeader.getStreamId());
-				if (timeValue == 0xffffff)
+				if (timeValue == 0xffffff) {
 					timeValue = in.getInt();
-				else if (timeValue == 0 && header.getDataType() == TYPE_AUDIO_DATA) {
+				} else if (timeValue == 0 && header.getDataType() == TYPE_AUDIO_DATA) {
 					header.setIsGarbage(true);
 					log.trace("audio with zero delta; setting to garbage; ChannelId: {}; DataType: {}; HeaderSize: {}",
 							new Object[] { header.getChannelId(), header.getDataType(), headerSize });
@@ -507,9 +510,9 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				header.setSize(lastHeader.getSize());
 				header.setDataType(lastHeader.getDataType());
 				header.setStreamId(lastHeader.getStreamId());
-				if (timeValue == 0xffffff)
+				if (timeValue == 0xffffff) {
 					timeValue = in.getInt();
-				else if (timeValue == 0 && header.getDataType() == TYPE_AUDIO_DATA) {
+				} else if (timeValue == 0 && header.getDataType() == TYPE_AUDIO_DATA) {
 					header.setIsGarbage(true);
 					log.trace("audio with zero delta; setting to garbage; ChannelId: {}; DataType: {}; HeaderSize: {}",
 							new Object[] { header.getChannelId(), header.getDataType(), headerSize });
@@ -627,7 +630,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 
 	/** {@inheritDoc} */
 	public Unknown decodeUnknown(byte dataType, IoBuffer in) {
-		return new Unknown(dataType, in.asReadOnlyBuffer());
+		return new Unknown(dataType, in);
 	}
 
 	/** {@inheritDoc} */
@@ -834,7 +837,14 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 			input = new org.red5.io.amf.Input(in);
 		}
 		String action = deserializer.deserialize(input, String.class);
+		log.debug("Action {}", action);
 
+		//throw a runtime exception if there is no action
+		if (action == null) {
+			//TODO replace this with something better as time permits
+			throw new RuntimeException("Action was null");
+		}
+		
 		if (!(notify instanceof Invoke) && rtmp != null && rtmp.getMode() == RTMP.MODE_SERVER && header != null
 				&& header.getStreamId() != 0 && !isStreamCommand(action)) {
 			// Don't decode "NetStream.send" requests
@@ -842,8 +852,6 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 			notify.setData(in.asReadOnlyBuffer());
 			return notify;
 		}
-
-		log.debug("Action {}", action);
 
 		if (header == null || header.getStreamId() == 0) {
 			int invokeId = deserializer.<Number> deserialize(input, Number.class).intValue();

@@ -4,6 +4,7 @@ import java.io.Externalizable;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
+
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  * 
@@ -27,7 +28,7 @@ import java.io.ObjectOutput;
  * RTMP packet header
  */
 public class Header implements Constants, Cloneable, Externalizable {
-	
+
 	private static final long serialVersionUID = 8982665579411495024L;
 
 	/**
@@ -39,7 +40,7 @@ public class Header implements Constants, Cloneable, Externalizable {
 	 * Timer
 	 */
 	private int timerBase;
-	
+
 	/**
 	 * Delta
 	 */
@@ -66,113 +67,112 @@ public class Header implements Constants, Cloneable, Externalizable {
 	 * don't know about it slowly get out-of-sync audio
 	 * and video.  We now detect that.
 	 */
-	private boolean isGarbage=false;
+	private boolean isGarbage = false;
 
 	/**
-     * Getter for channel id
-     *
-     * @return  Channel id
-     */
-    public int getChannelId() {
+	 * Getter for channel id
+	 *
+	 * @return  Channel id
+	 */
+	public int getChannelId() {
 		return channelId;
 	}
 
 	/**
-     * Setter for channel id
-     *
-     * @param channelId  Header channel id
-     */
-    public void setChannelId(int channelId) {
+	 * Setter for channel id
+	 *
+	 * @param channelId  Header channel id
+	 */
+	public void setChannelId(int channelId) {
 		this.channelId = channelId;
 	}
 
 	/**
-     * Getter for data type
-     *
-     * @return  Data type
-     */
-    public byte getDataType() {
+	 * Getter for data type
+	 *
+	 * @return  Data type
+	 */
+	public byte getDataType() {
 		return dataType;
 	}
 
 	/**
-     * Setter for data type
-     *
-     * @param dataType  Data type
-     */
-    public void setDataType(byte dataType) {
+	 * Setter for data type
+	 *
+	 * @param dataType  Data type
+	 */
+	public void setDataType(byte dataType) {
 		this.dataType = dataType;
 	}
 
 	/**
-     * Getter for size.
-     *
-     * @return  Header size
-     */
-    public int getSize() {
+	 * Getter for size.
+	 *
+	 * @return  Header size
+	 */
+	public int getSize() {
 		return size;
 	}
 
 	/**
-     * Setter for size
-     *
-     * @param size  Header size
-     */
-    public void setSize(int size) {
+	 * Setter for size
+	 *
+	 * @param size  Header size
+	 */
+	public void setSize(int size) {
 		this.size = size;
 	}
 
 	/**
-     * Getter for stream id
-     *
-     * @return  Stream id
-     */
-    public int getStreamId() {
+	 * Getter for stream id
+	 *
+	 * @return  Stream id
+	 */
+	public int getStreamId() {
 		return streamId;
 	}
 
 	/**
-     * Setter for stream id
-     *
-     * @param streamId  Stream id
-     */
-    public void setStreamId(int streamId) {
+	 * Setter for stream id
+	 *
+	 * @param streamId  Stream id
+	 */
+	public void setStreamId(int streamId) {
 		this.streamId = streamId;
 	}
 
 	/**
-     * Getter for timer
-     *
-     * @return  Timer
-     */
-    public int getTimer() {
-		return timerBase+timerDelta;
+	 * Getter for timer
+	 *
+	 * @return  Timer
+	 */
+	public int getTimer() {
+		return timerBase + timerDelta;
 	}
 
 	/**
-     * Setter for timer
-     *
-     * @param timer  Timer
-     */
-    public void setTimer(int timer) {
+	 * Setter for timer
+	 *
+	 * @param timer  Timer
+	 */
+	public void setTimer(int timer) {
 		this.timerBase = timer;
 		this.timerDelta = 0;
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public boolean equals(Object other) {
 		if (!(other instanceof Header)) {
 			return false;
 		}
 		final Header header = (Header) other;
-		return (header.getChannelId() == channelId
-				&& header.getDataType() == dataType && header.getSize() == size
+		return (header.getChannelId() == channelId && header.getDataType() == dataType && header.getSize() == size
 				&& header.getTimer() == this.getTimer() && header.getStreamId() == streamId);
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
 		sb.append("ChannelId: ").append(channelId).append(", ");
@@ -187,7 +187,7 @@ public class Header implements Constants, Cloneable, Externalizable {
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public Header clone() {
 		final Header header = new Header();
 		header.setChannelId(channelId);
@@ -239,6 +239,7 @@ public class Header implements Constants, Cloneable, Externalizable {
 	public void setIsGarbage(boolean isGarbage) {
 		this.isGarbage = isGarbage;
 	}
+
 	public boolean isGarbage() {
 		return isGarbage;
 	}

@@ -257,14 +257,20 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	/**
 	 * Start stream
 	 */
-	public synchronized void start() {
-		if (playlistSubscriberStream.state != State.UNINIT) {
-			throw new IllegalStateException();
-		}
-		playlistSubscriberStream.state = State.STOPPED;
-		if (msgOut == null) {
-			msgOut = consumerService.getConsumerOutput(playlistSubscriberStream);
-			msgOut.subscribe(this, null);
+	public void start() {
+		switch (playlistSubscriberStream.state) {
+			case UNINIT:
+				//allow start if uninitialized
+				synchronized (this) {
+					playlistSubscriberStream.state = State.STOPPED;
+				}
+				if (msgOut == null) {
+					msgOut = consumerService.getConsumerOutput(playlistSubscriberStream);
+					msgOut.subscribe(this, null);
+				}				
+				break;
+			default:
+				throw new IllegalStateException("Cannot start in current state");				
 		}
 	}
 
@@ -290,12 +296,16 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	public synchronized void play(IPlayItem item, boolean withReset)
 			throws StreamNotFoundException, IllegalStateException, IOException {
 		// Can't play if state is not stopped
-		if (playlistSubscriberStream.state != State.STOPPED) {
-			throw new IllegalStateException();
-		}
-		if (msgIn != null) {
-			msgIn.unsubscribe(this);
-			msgIn = null;
+		switch (playlistSubscriberStream.state) {
+			case STOPPED:
+				//allow play if stopped
+				if (msgIn != null) {
+					msgIn.unsubscribe(this);
+					msgIn = null;
+				}				
+				break;
+			default:
+				throw new IllegalStateException("Cannot play from non-stopped state");				
 		}
 		// Play type determination
 		// http://livedocs.adobe.com/flex/3/langref/flash/net/NetStream.html#play%28%29
@@ -518,17 +528,23 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	 * @param position                  Position in file
 	 * @throws IllegalStateException    If stream is stopped
 	 */
-	public synchronized void pause(int position) throws IllegalStateException {
-		if ((playlistSubscriberStream.state != State.PLAYING && playlistSubscriberStream.state != State.STOPPED)
-				|| currentItem == null) {
-			throw new IllegalStateException();
+	public void pause(int position) throws IllegalStateException {
+		switch (playlistSubscriberStream.state) {
+			case PLAYING:
+			case STOPPED:
+				//allow pause if playing or stopped
+				synchronized (this) {
+					playlistSubscriberStream.state = State.PAUSED;
+				}
+				releasePendingMessage();
+				clearWaitJobs();
+				sendClearPing();
+				sendPauseStatus(currentItem);
+				playlistSubscriberStream.notifyItemPause(currentItem, position);			
+				break;
+			default:
+				throw new IllegalStateException("Cannot pause in current state");				
 		}
-		playlistSubscriberStream.state = State.PAUSED;
-		releasePendingMessage();
-		clearWaitJobs();
-		sendClearPing();
-		sendPauseStatus(currentItem);
-		playlistSubscriberStream.notifyItemPause(currentItem, position);
 	}
 
 	/**
@@ -536,26 +552,32 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	 * @param position                   Resumes playback
 	 * @throws IllegalStateException     If stream is stopped
 	 */
-	public synchronized void resume(int position) throws IllegalStateException {
-		if (playlistSubscriberStream.state != State.PAUSED) {
-			throw new IllegalStateException();
-		}
-		playlistSubscriberStream.state = State.PLAYING;
-		sendReset();
-		sendResumeStatus(currentItem);
-		if (pullMode) {
-			sendVODSeekCM(msgIn, position);
-			playlistSubscriberStream.notifyItemResume(currentItem, position);
-			playbackStart = System.currentTimeMillis() - position;
-			if (currentItem.getLength() >= 0 && (position - streamOffset) >= currentItem.getLength()) {
-				// Resume after end of stream
-				stop();
-			} else {
-				ensurePullAndPushRunning();
-			}
-		} else {
-			playlistSubscriberStream.notifyItemResume(currentItem, position);
-			videoFrameDropper.reset(VideoFrameDropper.SEND_KEYFRAMES_CHECK);
+	public void resume(int position) throws IllegalStateException {
+		switch (playlistSubscriberStream.state) {
+			case PAUSED:
+				//allow resume from pause
+        		synchronized (this) {
+        			playlistSubscriberStream.state = State.PLAYING;
+        		}
+        		sendReset();
+        		sendResumeStatus(currentItem);
+        		if (pullMode) {
+        			sendVODSeekCM(msgIn, position);
+        			playlistSubscriberStream.notifyItemResume(currentItem, position);
+        			playbackStart = System.currentTimeMillis() - position;
+        			if (currentItem.getLength() >= 0 && (position - streamOffset) >= currentItem.getLength()) {
+        				// Resume after end of stream
+        				stop();
+        			} else {
+        				ensurePullAndPushRunning();
+        			}
+        		} else {
+        			playlistSubscriberStream.notifyItemResume(currentItem, position);
+        			videoFrameDropper.reset(VideoFrameDropper.SEND_KEYFRAMES_CHECK);
+        		}
+        		break;
+			default:
+				throw new IllegalStateException("Cannot resume from non-paused state");				
 		}
 	}
 
@@ -567,20 +589,28 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	 */
 	public synchronized void seek(int position) throws IllegalStateException, OperationNotSupportedException {
 		log.trace("Seek: {}", position);
-		if (playlistSubscriberStream.state != State.PLAYING
-				&& playlistSubscriberStream.state != State.PAUSED
-				&& playlistSubscriberStream.state != State.STOPPED) {
-			throw new IllegalStateException();
-		}
-		if (!pullMode) {
-			throw new OperationNotSupportedException();
+		boolean startPullPushThread = false;
+		switch (playlistSubscriberStream.state) {
+			case PLAYING:
+				startPullPushThread = true;
+			case PAUSED:
+			case STOPPED:
+				//allow seek if playing, paused, or stopped
+				if (!pullMode) {
+					throw new OperationNotSupportedException();
+				}			
+				
+				releasePendingMessage();
+				clearWaitJobs();
+
+				sendClearPing();
+				sendReset();
+				
+				break;
+			default:
+				throw new IllegalStateException("Cannot seek in current state");				
 		}
 
-		releasePendingMessage();
-		clearWaitJobs();
-
-		sendClearPing();
-		sendReset();
 		sendSeekStatus(currentItem, position);
 		sendStartStatus(currentItem);
 		int seekPos = sendVODSeekCM(msgIn, position);
@@ -588,42 +618,48 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 		if (seekPos == -1) {
 			seekPos = position;
 		}
+		
 		//what should our start be?
 		log.trace("Current playback start: {}", playbackStart);
 		playbackStart = System.currentTimeMillis() - seekPos;
 		log.trace("Playback start: {} seek pos: {}", playbackStart, seekPos);
-		playlistSubscriberStream.notifyItemSeek(currentItem, seekPos);
+		playlistSubscriberStream.notifyItemSeek(currentItem, seekPos);		
+		
 		boolean messageSent = false;
-		boolean startPullPushThread = false;
-		if ((playlistSubscriberStream.state == State.PAUSED 
-				|| playlistSubscriberStream.state == State.STOPPED)
-				&& sendCheckVideoCM(msgIn)) {
-			// we send a single snapshot on pause.
-			// XXX we need to take BWC into account, for now send forcefully.
-			IMessage msg = null;
-			do {
-				try {
-					msg = msgIn.pullMessage();
-				} catch (Throwable err) {
-					log.error("Error while pulling message", err);
-					msg = null;
+		
+		switch (playlistSubscriberStream.state) {
+			case PAUSED:
+			case STOPPED:
+    			// we send a single snapshot on pause
+				if (sendCheckVideoCM(msgIn)) {
+        			IMessage msg = null;
+        			do {
+        				try {
+        					msg = msgIn.pullMessage();
+        				} catch (Throwable err) {
+        					log.error("Error while pulling message", err);
+        					msg = null;
+        				}
+        				if (msg instanceof RTMPMessage) {
+        					RTMPMessage rtmpMessage = (RTMPMessage) msg;
+        					IRTMPEvent body = rtmpMessage.getBody();
+        					if (body instanceof VideoData && ((VideoData) body).getFrameType() == FrameType.KEYFRAME) {
+        						//body.setTimestamp(seekPos);
+        						doPushMessage(rtmpMessage);
+        						rtmpMessage.getBody().release();
+        						messageSent = true;
+        						lastMessage = body;
+        						break;
+        					}
+        				}
+        			} while (msg != null);
 				}
-				if (msg instanceof RTMPMessage) {
-					RTMPMessage rtmpMessage = (RTMPMessage) msg;
-					IRTMPEvent body = rtmpMessage.getBody();
-					if (body instanceof VideoData && ((VideoData) body).getFrameType() == FrameType.KEYFRAME) {
-						//body.setTimestamp(seekPos);
-						doPushMessage(rtmpMessage);
-						rtmpMessage.getBody().release();
-						messageSent = true;
-						lastMessage = body;
-						break;
-					}
-				}
-			} while (msg != null);
-		} else {
-			startPullPushThread = true;
 		}
+
+		//seeked past end of stream
+		if (currentItem.getLength() >= 0 && (position - streamOffset) >= currentItem.getLength()) {
+			stop();
+		}				
 
 		if (!messageSent) {
 			// Send blank audio packet to notify client about new position
@@ -643,56 +679,60 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 			ensurePullAndPushRunning();
 		}
 
-		if (playlistSubscriberStream.state != State.STOPPED && currentItem.getLength() >= 0
-				&& (position - streamOffset) >= currentItem.getLength()) {
-			// Seeked after end of stream
-			stop();
-		}
 	}
 
 	/**
 	 * Stop playback
 	 * @throws IllegalStateException    If stream is in stopped state
 	 */
-	public synchronized void stop() throws IllegalStateException {
-		if (playlistSubscriberStream.state != State.PLAYING && playlistSubscriberStream.state != State.PAUSED) {
-			throw new IllegalStateException();
-		}
-		playlistSubscriberStream.state = State.STOPPED;
-		if (msgIn != null && !pullMode) {
-			msgIn.unsubscribe(this);
-			msgIn = null;
-		}
-		playlistSubscriberStream.notifyItemStop(currentItem);
-		clearWaitJobs();
-		if (!playlistSubscriberStream.hasMoreItems()) {
-			releasePendingMessage();
+	public void stop() throws IllegalStateException {
+		switch (playlistSubscriberStream.state) {
+			case PLAYING:
+			case PAUSED:
+				//allow stop if playing or paused
+				synchronized (this) {
+					playlistSubscriberStream.state = State.STOPPED;
+				}
+				if (msgIn != null && !pullMode) {
+					msgIn.unsubscribe(this);
+					msgIn = null;
+				}
+				playlistSubscriberStream.notifyItemStop(currentItem);
+				clearWaitJobs();
+				if (!playlistSubscriberStream.hasMoreItems()) {
+					releasePendingMessage();
 
-			if (playlistSubscriberStream.getItemSize() > 0) {
-				sendCompleteStatus();
-			}
-			bytesSent.set(0);
-			sendClearPing();
-			sendStopStatus(currentItem);
-		} else {
-			if (lastMessage != null) {
-				// Remember last timestamp so we can generate correct
-				// headers in playlists.
-				timestampOffset = lastMessage.getTimestamp();
-			}
-			playlistSubscriberStream.nextItem();
+					if (playlistSubscriberStream.getItemSize() > 0) {
+						sendCompleteStatus();
+					}
+					bytesSent.set(0);
+					sendClearPing();
+					sendStopStatus(currentItem);
+				} else {
+					if (lastMessage != null) {
+						// Remember last timestamp so we can generate correct
+						// headers in playlists.
+						timestampOffset = lastMessage.getTimestamp();
+					}
+					playlistSubscriberStream.nextItem();
+				}				
+				break;
+			default:
+				throw new IllegalStateException("Cannot stop in current state");				
 		}
 	}
 
 	/**
 	 * Close stream
 	 */
-	public synchronized void close() {
+	public void close() {
 		if (msgIn != null) {
 			msgIn.unsubscribe(this);
 			msgIn = null;
 		}
-		playlistSubscriberStream.state = State.CLOSED;
+		synchronized (this) {
+			playlistSubscriberStream.state = State.CLOSED;
+		}
 		clearWaitJobs();
 		releasePendingMessage();
 		lastMessage = null;

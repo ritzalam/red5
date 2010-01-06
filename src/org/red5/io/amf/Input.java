@@ -229,9 +229,8 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 				log.debug("Unknown AMF type: {}", currentDataType);
 		}
 		int limit = buf.limit();
-		final java.nio.ByteBuffer strBuf = buf.buf();
-		strBuf.limit(strBuf.position() + len);
-		final String string = AMF.CHARSET.decode(strBuf).toString();
+		log.debug("Limit: {}", limit);
+		String string = bufferToString(buf.buf(), len);
 		buf.limit(limit); // Reset the limit
 		return string;
 	}
@@ -247,16 +246,32 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		log.debug("Length: {}", len);
 		int limit = buf.limit();
 		log.debug("Limit: {}", limit);
-		final java.nio.ByteBuffer strBuf = buf.buf();
-		int pos = strBuf.position();
-		log.debug("String buf - position: {} limit: {}", pos, (pos + len));
-		strBuf.limit(pos + len);
-		final String string = AMF.CHARSET.decode(strBuf).toString();
-		log.debug("String: {}", string);
+		String string = bufferToString(buf.buf(), len);
 		buf.limit(limit); // Reset the limit
 		return string;
 	}
 
+	/**
+	 * Converts the bytes into a string.
+	 * 
+	 * @param strBuf
+	 * @return contents of the ByteBuffer as a String
+	 */
+	private final static String bufferToString(final java.nio.ByteBuffer strBuf, int len) {
+		//Trac #601 - part of the problem seems to be a null byte buffer 
+		String string = null;
+		if (strBuf != null) {		
+    		int pos = strBuf.position();
+    		log.debug("String buf - position: {} limit: {}", pos, (pos + len));
+    		strBuf.limit(pos + len);
+    		string = AMF.CHARSET.decode(strBuf).toString();
+    		log.debug("String: {}", string);
+    	} else {
+    		log.warn("ByteBuffer was null attempting to read String");
+    	}
+		return string;
+	}
+	
 	/**
 	 * Returns a date
 	 *
@@ -345,7 +360,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		// we must store the reference before we deserialize any items in it to ensure
 		// that reference IDs are correct
 		int reference = storeReference(mixedResult);
-		Boolean normal_array = true;
+		Boolean normalArray = true;
 		while (hasMoreProperties()) {
 			String key = getString(buf);
 			log.debug("key: {}", key);
@@ -353,14 +368,14 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 				Integer.parseInt(key);
 			} catch (NumberFormatException e) {
 				log.debug("key {} is causing non normal array", key);
-				normal_array = false;
+				normalArray = false;
 			}
 			Object item = deserializer.deserialize(this, Object.class);
 			log.debug("item: {}", item);
 			mixedResult.put(key, item);
 		}
 
-		if (mixedResult.size() <= maxNumber + 1 && normal_array) {
+		if (mixedResult.size() <= maxNumber + 1 && normalArray) {
 			// MixedArray actually is a regular array
 			log.debug("mixed array is a regular array");
 			final List<Object> listResult = new ArrayList<Object>(maxNumber);
@@ -395,7 +410,8 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	protected Object newInstance(String className) {
 		log.debug("Loading class: {}", className);
 		Object instance = null;
-		if ("".equals(className))
+		//fix for Trac #604
+		if ("".equals(className) || className == null)
 			return instance;
 		try {
 			Class<?> clazz = Thread.currentThread().getContextClassLoader().loadClass(className);

@@ -307,8 +307,9 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 
 			eventTime = rtmpEvent.getTimestamp();
 		}
-		if (eventTime > latestTimeStamp)
+		if (eventTime > latestTimeStamp) {
 			latestTimeStamp = eventTime;
+		}
 
 		// Notify event listeners
 		checkSendNotifications(event);
@@ -737,8 +738,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	}
 
 	/**
-	 * Starts stream. Creates pipes, video codec from video codec factory bean,
-	 * connects
+	 * Starts stream. Creates pipes, connects
 	 */
 	public void start() {
 		log.info("Stream start");
