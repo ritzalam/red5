@@ -20,8 +20,6 @@ package org.red5.io.utils;
  */
 
 import org.apache.mina.core.buffer.IoBuffer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Buffer Utility class which reads/writes intergers to the input/output buffer  

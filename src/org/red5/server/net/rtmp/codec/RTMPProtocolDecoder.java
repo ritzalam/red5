@@ -76,11 +76,6 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	protected static Logger log = LoggerFactory.getLogger(RTMPProtocolDecoder.class);
 
 	/**
-	 * I/O logger.
-	 */
-	protected static Logger ioLog = LoggerFactory.getLogger(RTMPProtocolDecoder.class + ".in");
-
-	/**
 	 * Deserializer.
 	 */
 	private Deserializer deserializer;

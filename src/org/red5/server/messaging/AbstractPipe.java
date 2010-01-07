@@ -191,7 +191,7 @@ public abstract class AbstractPipe implements IPipe {
 	/**
 	 * Setter for pipe connection events listeners
 	 *
-	 * @param listeners  Listeners
+	 * @param newListeners  Listeners
 	 */
 	public void setListeners(List<IPipeConnectionListener> newListeners) {
 		listeners.clear();

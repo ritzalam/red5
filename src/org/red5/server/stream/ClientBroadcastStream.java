@@ -27,8 +27,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-import javax.management.ObjectName;
-
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
@@ -50,8 +48,6 @@ import org.red5.server.api.stream.IVideoStreamCodec;
 import org.red5.server.api.stream.ResourceExistException;
 import org.red5.server.api.stream.ResourceNotFoundException;
 import org.red5.server.api.stream.IStreamFilenameGenerator.GenerationType;
-import org.red5.server.jmx.JMXAgent;
-import org.red5.server.jmx.JMXFactory;
 import org.red5.server.messaging.AbstractPipe;
 import org.red5.server.messaging.IConsumer;
 import org.red5.server.messaging.IFilter;
