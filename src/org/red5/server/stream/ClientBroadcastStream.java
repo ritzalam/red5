@@ -52,6 +52,7 @@ import org.red5.server.api.stream.ResourceNotFoundException;
 import org.red5.server.api.stream.IStreamFilenameGenerator.GenerationType;
 import org.red5.server.jmx.JMXAgent;
 import org.red5.server.jmx.JMXFactory;
+import org.red5.server.messaging.AbstractPipe;
 import org.red5.server.messaging.IConsumer;
 import org.red5.server.messaging.IFilter;
 import org.red5.server.messaging.IMessage;
@@ -134,7 +135,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	/**
 	 * MBean object name used for de/registration purposes.
 	 */
-	private ObjectName oName;
+	//private ObjectName oName;
 
 	/**
 	 * Stream published name
@@ -194,6 +195,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	 * Closes stream, unsubscribes provides, sends stoppage notifications and broadcast close notification.
 	 */
 	public void close() {
+		log.info("Close");
 		if (closed) {
 			// Already closed
 			return;
@@ -204,6 +206,9 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		}
 		if (recordPipe != null) {
 			recordPipe.unsubscribe((IProvider) this);
+			if (recordPipe instanceof AbstractPipe) {
+				((AbstractPipe) recordPipe).close();
+			}
 		}
 		if (recording) {
 			sendRecordStopNotify();
@@ -213,7 +218,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		connMsgOut.unsubscribe(this);
 		notifyBroadcastClose();
 		// deregister with jmx
-		JMXAgent.unregisterMBean(oName);
+		//JMXAgent.unregisterMBean(oName);
 	}
 
 	/**
@@ -248,9 +253,8 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 			// absolute? no matter: it's never used!
 			if (firstPacketTime == -1) {
 				firstPacketTime = rtmpEvent.getTimestamp();
-				log.debug(String
-						.format("CBS=@%08x: rtmpEvent=%s firstPacketTime=%d", System.identityHashCode(this), rtmpEvent
-								.getClass().getSimpleName(), firstPacketTime));
+				log.debug(String.format("CBS=@%08x: rtmpEvent=%s firstPacketTime=%d", System.identityHashCode(this),
+						rtmpEvent.getClass().getSimpleName(), firstPacketTime));
 			}
 			log.debug(String.format("CBS=@%08x: rtmpEvent=%s  timestamp=%d", System.identityHashCode(this), rtmpEvent
 					.getClass().getSimpleName(), rtmpEvent.getTimestamp()));
@@ -485,16 +489,16 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 				if (this.livePipe == event.getSource()) {
 					notifyChunkSize();
 				}
-				if(event.getSource() instanceof IPipe) {
+				if (event.getSource() instanceof IPipe) {
 					try {
 						initializePipeData((IPipe) event.getSource());
 					} catch (IOException e) {
 						log.error("Failed to initialize pipeData for stream.");
 					}
 				}
-				
+
 				subscriberStats.increment();
-				
+
 				break;
 			case PipeConnectionEvent.CONSUMER_DISCONNECT:
 				subscriberStats.decrement();
@@ -726,6 +730,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	public void setPublishedName(String name) {
 		log.debug("setPublishedName: {}", name);
 		//check to see if we are setting the name to the same string
+		/*
 		if (!name.equals(publishedName)) {
 			// update an attribute
 			JMXAgent.updateMBeanAttribute(oName, "publishedName", name);
@@ -734,6 +739,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 			oName = JMXFactory.createObjectName("type", "ClientBroadcastStream", "publishedName", name);
 			JMXAgent.registerMBean(this, this.getClass().getName(), ClientBroadcastStreamMBean.class, oName);
 		}
+		*/
 		this.publishedName = name;
 	}
 
@@ -804,7 +810,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	public void removeStreamListener(IStreamListener listener) {
 		listeners.remove(listener);
 	}
-	
+
 	/**
 	 * Initialize a pipe sending initial data to it.
 	 * Initial data is:
@@ -828,46 +834,46 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 				log.warn("Error sending metadata", e);
 			}
 		}
-		
+
 		IStreamCodecInfo codecInfo = getCodecInfo();
 		if (codecInfo instanceof StreamCodecInfo) {
 			StreamCodecInfo info = (StreamCodecInfo) codecInfo;
 			IVideoStreamCodec videoCodec = info.getVideoCodec();
-			
-			if(videoCodec != null) {
-    			//check for decoder configuration to send
-    			IoBuffer config = videoCodec.getDecoderConfiguration();
-    			if (config != null) {
-    				log.debug("we have decoder record to send");
-    				VideoData conf = new VideoData(config);
-    				try {
-    					conf.setTimestamp(0);
-    
-    					RTMPMessage confMsg = new RTMPMessage();
-    					confMsg.setBody(conf);
-    
-    					pipe.pushMessage(confMsg);
-    				} finally {
-    					conf.release();
-    				}
-    			}
-    			
-    			//check for a keyframe to send
-    			IoBuffer keyFrame = videoCodec.getKeyframe();
-    			if (keyFrame != null) {
-    				log.debug("we have last key frame to send");
-    				VideoData video = new VideoData(keyFrame);
-    				try {
-    					video.setTimestamp(0);
-    
-    					RTMPMessage videoMsg = new RTMPMessage();
-    					videoMsg.setBody(video);
-    					
-    					pipe.pushMessage(videoMsg);
-    				} finally {
-    					video.release();
-    				}
-    			}
+
+			if (videoCodec != null) {
+				//check for decoder configuration to send
+				IoBuffer config = videoCodec.getDecoderConfiguration();
+				if (config != null) {
+					log.debug("we have decoder record to send");
+					VideoData conf = new VideoData(config);
+					try {
+						conf.setTimestamp(0);
+
+						RTMPMessage confMsg = new RTMPMessage();
+						confMsg.setBody(conf);
+
+						pipe.pushMessage(confMsg);
+					} finally {
+						conf.release();
+					}
+				}
+
+				//check for a keyframe to send
+				IoBuffer keyFrame = videoCodec.getKeyframe();
+				if (keyFrame != null) {
+					log.debug("we have last key frame to send");
+					VideoData video = new VideoData(keyFrame);
+					try {
+						video.setTimestamp(0);
+
+						RTMPMessage videoMsg = new RTMPMessage();
+						videoMsg.setBody(video);
+
+						pipe.pushMessage(videoMsg);
+					} finally {
+						video.release();
+					}
+				}
 			} else {
 				log.debug("Could not initialize pipe data, videoCodec is null.");
 			}

@@ -48,7 +48,7 @@ public class Deserializer {
 	public <T> T deserialize(Input in, Type target) {
 
 		byte type = in.readDataType();
-		log.debug("Type: {}", type);
+		log.debug("Type: {} target: {}", type, (target != null ? target.toString() : ""));
 
 		while (type == DataTypes.CORE_SKIP) {
 			type = in.readDataType();

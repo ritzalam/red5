@@ -37,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.AbstractDependencyInjectionSpringContextTests;
 
+@SuppressWarnings("deprecation")
 public class PlaylistSubscriberStreamTest extends AbstractDependencyInjectionSpringContextTests {
 
 	protected static Logger log = LoggerFactory.getLogger(PlaylistSubscriberStreamTest.class);

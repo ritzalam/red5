@@ -20,6 +20,8 @@ package org.red5.io.utils;
  */
 
 import org.apache.mina.core.buffer.IoBuffer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Buffer Utility class which reads/writes intergers to the input/output buffer  
@@ -30,6 +32,8 @@ import org.apache.mina.core.buffer.IoBuffer;
  */
 public class BufferUtils {
 
+	//private static Logger log = LoggerFactory.getLogger(BufferUtils.class);
+	
 	/**
 	 * Writes a Medium Int to the output buffer
 	 * 
@@ -87,20 +91,27 @@ public class BufferUtils {
 	 * @param numBytesMax        Number of bytes max
 	 * @return int               Number of bytes written
 	 */
-	public static int put(IoBuffer out, IoBuffer in, int numBytesMax) {
-		final int limit = in.limit(); 
-		final int capacity = in.capacity(); 
-		final int numBytesRead = (numBytesMax > in.remaining()) ? in.remaining() : numBytesMax;
+	public final static int put(IoBuffer out, IoBuffer in, int numBytesMax) {
+		//log.trace("Put - out buffer: {} in buffer: {} max bytes: {}", new Object[]{out, in, numBytesMax});
+		int limit = in.limit(); 
+		int capacity = in.capacity(); 
+		int numBytesRead = (numBytesMax > in.remaining()) ? in.remaining() : numBytesMax;
+		//log.trace("limit: {} capacity: {} bytes read: {}", new Object[]{limit, capacity, numBytesRead});
 		// buffer.limit 
 		// The new limit value, must be non-negative and no larger than this buffer's capacity 
 		// http://java.sun.com/j2se/1.4.2/docs/api/java/nio/Buffer.html#limit(int); 
 		// This is causing decoding error by raising RuntimeException IllegalArgumentError in 
 		// RTMPProtocolDecoder.decode to ProtocolException. 
 		int thisLimit = (in.position() + numBytesRead <= in.capacity()) ? in.position() + numBytesRead : capacity;
-		in.limit(thisLimit);
-		// any implication to giving output buffer in with limit set to capacity? 
-		// Reduces numBytesRead, triggers continueDecode?
-		out.put(in);
+		//somehow the "in" buffer becomes null here occasionally
+		if (in != null) {
+    		in.limit(thisLimit);
+    		// any implication to giving output buffer in with limit set to capacity? 
+    		// Reduces numBytesRead, triggers continueDecode?
+    		out.put(in);
+		} else {
+			numBytesRead = 0;
+		}
 		in.limit(limit);
 		return numBytesRead;
 	}
