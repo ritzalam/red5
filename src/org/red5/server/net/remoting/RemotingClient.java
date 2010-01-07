@@ -356,7 +356,15 @@ public class RemotingClient implements InitializingBean {
 			if (resultCode / 100 != 2) {
 				throw new RuntimeException("Didn't receive success from remoting server.");
 			}
-			resultBuffer = IoBuffer.allocate((int) post.getResponseContentLength());
+			//fix for Trac #676
+			int contentLength = (int) post.getResponseContentLength();
+			//default the content length to 16 if post doesn't contain a good value
+			if (contentLength < 1) {
+				contentLength = 16;
+			}
+			resultBuffer = IoBuffer.allocate(contentLength);
+			//allow for expansion
+			resultBuffer.setAutoExpand(true);
 			ServletUtils.copy(post.getResponseBodyAsStream(), resultBuffer.asOutputStream());
 			resultBuffer.flip();
 			Object result = decodeResult(resultBuffer);

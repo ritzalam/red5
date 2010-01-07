@@ -115,7 +115,7 @@ public class AMFGatewayServlet extends HttpServlet {
 			}
 		}
 		log.debug("Remoting request {} {}", req.getContextPath(), req.getServletPath());
-		if (req.getContentType() != null && req.getContentType().equals(APPLICATION_AMF)) {
+		if (APPLICATION_AMF.equals(req.getContentType())) {
 			serviceAMF(req, resp);
 		} else {
 			resp.getWriter().write("Red5 : Remoting Gateway");
@@ -177,8 +177,15 @@ public class AMFGatewayServlet extends HttpServlet {
 			req.setAttribute(CONNECTION, conn);
 			// set thread local reference
 			Red5.setConnectionLocal(conn);
-			handleRemotingPacket(req, context, scope, packet);
-			resp.setStatus(HttpServletResponse.SC_OK);
+			//fixed so that true is not returned for calls that have failed
+			boolean passed = handleRemotingPacket(req, context, scope, packet);
+			if (passed) {
+    			resp.setStatus(HttpServletResponse.SC_OK);
+			} else {
+				log.warn("At least one invocation failed to execute");
+    			resp.setStatus(HttpServletResponse.SC_EXPECTATION_FAILED);				
+			}
+			//send our response
 			resp.setContentType(APPLICATION_AMF);
 			sendResponse(resp, packet);
 		} catch (Exception e) {
@@ -244,11 +251,16 @@ public class AMFGatewayServlet extends HttpServlet {
 	protected boolean handleRemotingPacket(HttpServletRequest req, IContext context, IScope scope,
 			RemotingPacket message) {
 		log.debug("Handling remoting packet");
+		boolean result = true;
 		final IServiceInvoker invoker = context.getServiceInvoker();
 		for (RemotingCall call : message.getCalls()) {
-			invoker.invoke(call, scope);
+			result = invoker.invoke(call, scope);
+			//if we encounter a failure break out
+			if (!result) {
+				break;
+			}
 		}
-		return true;
+		return result;
 	}
 
 	/**

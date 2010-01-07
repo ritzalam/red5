@@ -47,7 +47,7 @@ public final class Red5 implements Red5MBean {
 	 * Current connection thread. Each connection of Red5 application runs in a
 	 * separate thread. This is thread object associated with
 	 * the current connection.
-	 */
+	 */ 
 	private static ThreadLocal<WeakReference<IConnection>> connThreadLocal = new ThreadLocal<WeakReference<IConnection>>();
  
 	/**
