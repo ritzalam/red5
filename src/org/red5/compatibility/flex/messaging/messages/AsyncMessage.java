@@ -39,4 +39,12 @@ public class AsyncMessage extends AbstractMessage {
 		result.append(correlationId);
 	}
 
+	public void setCorrelationId(String id) {
+		correlationId = id;
+	}
+
+	public String getCorrelationId() {
+		return correlationId;
+	}
+
 }

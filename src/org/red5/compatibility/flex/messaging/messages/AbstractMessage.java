@@ -31,14 +31,14 @@ import org.red5.io.utils.RandomGUID;
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
  */
-public class AbstractMessage implements Serializable {
+@SuppressWarnings("unchecked")
+public class AbstractMessage implements Message, Serializable {
 
 	private static final long serialVersionUID = -2297508940724279014L;
 
 	public long timestamp;
 	
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public Map headers = Collections.EMPTY_MAP;
+	public Map<String, Object> headers = Collections.EMPTY_MAP;
 	
 	public Object body;
 	
@@ -79,7 +79,95 @@ public class AbstractMessage implements Serializable {
 		result.append(",destination=");
 		result.append(destination);
 	}
-	
+
+	@Override
+	public Object getBody() {
+		return body;
+	}
+
+	@Override
+	public String getClientId() {
+		return clientId;
+	}
+
+	@Override
+	public String getDestination() {
+		return destination;
+	}
+
+	@Override
+	public Object getHeader(String name) {
+		return headers.get(name);
+	}
+
+	@Override
+	public Map<String, Object> getHeaders() {
+		return headers;
+	}
+
+	@Override
+	public String getMessageId() {
+		return messageId;
+	}
+
+	@Override
+	public long getTimestamp() {
+		return timestamp;
+	}
+
+	@Override
+	public long getTimeToLive() {
+		return timeToLive;
+	}
+
+	@Override
+	public boolean headerExists(String name) {
+		return headers.containsKey(name);
+	}
+
+	@Override
+	public void setBody(Object value) {
+		body = value;
+	}
+
+	@Override
+	public void setClientId(String value) {
+		clientId = value;
+	}
+
+	@Override
+	public void setDestination(String value) {
+		destination = value;
+	}
+
+	@Override
+	public void setHeader(String name, Object value) {
+		headers.put(name, value);
+	}
+
+	@Override
+	public void setHeaders(Map<String, Object> value) {
+		if (!headers.isEmpty()) {
+			headers.clear();
+		}
+		headers.putAll(value);
+	}
+
+	@Override
+	public void setMessageId(String value) {
+		messageId = value;
+	}
+
+	@Override
+	public void setTimestamp(long value) {
+		timestamp = value;
+	}
+
+	@Override
+	public void setTimeToLive(long value) {
+		timeToLive  = value;
+	}
+
 	/**
 	 * Return string representation of the message.
 	 * 

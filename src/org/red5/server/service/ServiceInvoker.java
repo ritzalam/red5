@@ -120,8 +120,9 @@ public class ServiceInvoker implements IServiceInvoker {
 
 	/** {@inheritDoc} */
 	public boolean invoke(IServiceCall call, Object service) {
-		IConnection conn = Red5.getConnectionLocal();
+		IConnection conn = Red5.getConnectionLocal();		
 		String methodName = call.getServiceMethodName();
+		log.debug("Service: {} method name: {}", call.getServiceName(), methodName);
 		//remove any 'at' sign prefixes
 		if (methodName.charAt(0) == '@') {
 			log.debug("Method name contained an illegal prefix, it will be removed: {}", methodName);
@@ -134,7 +135,7 @@ public class ServiceInvoker implements IServiceInvoker {
 			argsWithConnection = new Object[args.length + 1];
 			argsWithConnection[0] = conn;
 			for (int i = 0; i < args.length; i++) {
-				log.debug("   {} => {}", i, args[i]);
+				log.debug("\t{} => {}", i, args[i]);
 				argsWithConnection[i + 1] = args[i];
 			}
 		} else {

@@ -40,8 +40,10 @@ public class RemotingMessage extends AsyncMessage {
 	/** {@inheritDoc} */
 	protected void addParameters(StringBuilder result) {
 		super.addParameters(result);
-		result.append(",operation="+operation);
-		result.append(",source="+source);
+		result.append(",operation=");
+		result.append(operation);
+		result.append(",source=");
+		result.append(source);
 	}
 
 }

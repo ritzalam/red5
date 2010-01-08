@@ -23,6 +23,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.beanutils.ConversionException;
+import org.apache.commons.lang.StringUtils;
 import org.red5.compatibility.flex.data.messages.DataMessage;
 import org.red5.compatibility.flex.data.messages.SequencedMessage;
 import org.red5.compatibility.flex.messaging.messages.AbstractMessage;
@@ -36,6 +38,7 @@ import org.red5.io.utils.RandomGUID;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IServiceInvoker;
 import org.red5.server.exception.ClientDetailsException;
+import org.red5.server.messaging.ServiceAdapter;
 import org.red5.server.service.ConversionUtils;
 import org.red5.server.service.PendingCall;
 import org.slf4j.Logger;
@@ -52,19 +55,19 @@ public class FlexMessagingService {
 
 	/** Name of the service. */
 	public static final String SERVICE_NAME = "flexMessaging";
-	
-    /**
-     * Logger
-     */
+
+	/**
+	 * Logger
+	 */
 	protected static Logger log = LoggerFactory.getLogger(FlexMessagingService.class);
 
 	/** Service invoker to use. */
 	protected IServiceInvoker serviceInvoker;
-	
+
 	/** Configured endpoints. */
 	@SuppressWarnings("unchecked")
 	protected Map<String, Object> endpoints = Collections.EMPTY_MAP;
-	
+
 	/**
 	 * Setup available end points.
 	 * 
@@ -74,7 +77,7 @@ public class FlexMessagingService {
 		this.endpoints = endpoints;
 		log.info("Configured endpoints: " + endpoints);
 	}
-	
+
 	/**
 	 * Set the service invoker to use.
 	 * 
@@ -83,7 +86,7 @@ public class FlexMessagingService {
 	public void setServiceInvoker(IServiceInvoker serviceInvoker) {
 		this.serviceInvoker = serviceInvoker;
 	}
-	
+
 	/**
 	 * Construct error message.
 	 * 
@@ -93,7 +96,8 @@ public class FlexMessagingService {
 	 * @param faultDetail fault detail
 	 * @return error message
 	 */
-	public static ErrorMessage returnError(AbstractMessage request, String faultCode, String faultString, String faultDetail) {
+	public static ErrorMessage returnError(AbstractMessage request, String faultCode, String faultString,
+			String faultDetail) {
 		ErrorMessage result = new ErrorMessage();
 		result.timestamp = System.currentTimeMillis();
 		result.headers = request.headers;
@@ -114,13 +118,14 @@ public class FlexMessagingService {
 	 * @param error error
 	 * @return message
 	 */
-	public static ErrorMessage returnError(AbstractMessage request, String faultCode, String faultString, Throwable error) {
+	public static ErrorMessage returnError(AbstractMessage request, String faultCode, String faultString,
+			Throwable error) {
 		ErrorMessage result = returnError(request, faultCode, faultString, "");
 		if (error instanceof ClientDetailsException) {
 			result.extendedData = ((ClientDetailsException) error).getParameters();
 			if (((ClientDetailsException) error).includeStacktrace()) {
 				StringBuilder stack = new StringBuilder();
-				for (StackTraceElement element: error.getStackTrace()) {
+				for (StackTraceElement element : error.getStackTrace()) {
 					stack.append(element.toString()).append("\n");
 				}
 				result.faultDetail = stack.toString();
@@ -138,42 +143,74 @@ public class FlexMessagingService {
 	 * @param msg message
 	 * @return aynsc message
 	 */
+	@SuppressWarnings("rawtypes")
 	public AsyncMessage handleRequest(RemotingMessage msg) {
+		log.debug("Handle RemotingMessage request: {}", msg);
 		setClientId(msg);
 		if (serviceInvoker == null) {
 			log.error("No service invoker configured: {}", msg);
-			return returnError(msg, "Server.Invoke.Error", "No service invoker configured.", "No service invoker configured.");
+			return returnError(msg, "Server.Invoke.Error", "No service invoker configured.",
+					"No service invoker configured.");
 		}
-		
+
 		Object endpoint = endpoints.get(msg.destination);
+		log.debug("End point / destination: {}", endpoint);
 		if (endpoint == null) {
 			String errMsg = String.format("Endpoint %s doesn't exist.", msg.destination);
-			log.error("{} ({})", errMsg, msg);
+			log.debug("{} ({})", errMsg, msg);
 			return returnError(msg, "Server.Invoke.Error", errMsg, errMsg);
 		}
-		
-		Object[] args = (Object[]) ConversionUtils.convert(msg.body, Object[].class);
-		IPendingServiceCall call = new PendingCall(msg.operation, args);
-		try {
-			if (!serviceInvoker.invoke(call, endpoint)) {
-				if (call.getException() != null) {
-					// Use regular exception handling
-					Throwable err = call.getException();
-					return returnError(msg, "Server.Invoke.Error", err.getMessage(), err);
-				}
-				return returnError(msg, "Server.Invoke.Error", "Can't invoke method.", "");
-			}
-		} catch (Throwable err) {
-			log.error("Error while invoking method.", err);
-			return returnError(msg, "Server.Invoke.Error", err.getMessage(), err);
-		}
-		
-		// We got a valid result from the method call.
+
+		//prepare an ack message
 		AcknowledgeMessage result = new AcknowledgeMessage();
-		result.body = call.getResult();
 		result.headers = msg.headers;
 		result.clientId = msg.clientId;
 		result.correlationId = msg.messageId;
+		
+		//grab any headers
+		Map headers = msg.headers;
+		log.debug("Headers: {}", headers);
+		
+		//get the operation
+		String operation = msg.operation;
+		log.debug("Operation: {}", operation);
+
+		if (endpoint instanceof ServiceAdapter) {
+			log.debug("Endpoint is a ServiceAdapter so message will be invoked");
+			ServiceAdapter adapter = (ServiceAdapter) endpoint;
+			//the result of the invocation will make up the message body
+			result.body = adapter.invoke(msg);
+		} else {
+			//get arguments
+    		Object[] args = null;
+    		try {
+    			log.debug("Body: {} type: {}", msg.body, msg.body.getClass().getName());
+    			args = (Object[]) ConversionUtils.convert(msg.body, Object[].class);
+    		} catch (ConversionException cex) {
+    			//if the conversion fails and the endpoint is not a ServiceAdapter
+    			//just drop the object directly into an array
+    			args = new Object[]{msg.body};
+    		}
+    		
+    		IPendingServiceCall call = new PendingCall(operation, args);
+    		try {
+    			if (!serviceInvoker.invoke(call, endpoint)) {
+    				if (call.getException() != null) {
+    					// Use regular exception handling
+    					Throwable err = call.getException();
+    					return returnError(msg, "Server.Invoke.Error", err.getMessage(), err);
+    				}
+    				return returnError(msg, "Server.Invoke.Error", "Can't invoke method.", "");
+    			}
+    		} catch (Throwable err) {
+    			log.error("Error while invoking method.", err);
+    			return returnError(msg, "Server.Invoke.Error", err.getMessage(), err);
+    		}
+    
+    		//we got a valid result from the method call.
+    		result.body = call.getResult();
+		}
+		
 		return result;
 	}
 
@@ -184,38 +221,47 @@ public class FlexMessagingService {
 	 * @return async message
 	 */
 	public AsyncMessage handleRequest(CommandMessage msg) {
+		log.debug("Handle CommandMessage request: {}", msg);
 		setClientId(msg);
-		AsyncMessage result = null;
+		AsyncMessage result = new AcknowledgeMessage();
+		result.setClientId(msg.getClientId());
+		result.setCorrelationId(msg.getMessageId());
+		// put destination in ack if it exists
+		String destination = msg.destination;
+		if (StringUtils.isNotEmpty(destination)) {
+			result.destination = destination;
+			//look-up end-point and register
+			if (endpoints.containsKey(destination)) {
+				Object endpoint = endpoints.get(destination);
+				if (endpoint instanceof ServiceAdapter) {
+					ServiceAdapter adapter = (ServiceAdapter) endpoint;
+					result.body = adapter.manage(msg);
+					return result;
+				}
+			}
+		}		
+		//process messages to non-service adapter end-points
 		switch (msg.operation) {
-		case Constants.OPERATION_PING:
-			// Send back pong message
-			result = new AcknowledgeMessage();
-			result.clientId = msg.clientId;
-			result.correlationId = msg.messageId;
-			break;
-		
-		case Constants.OPERATION_REGISTER:
-			// Send back registration ok
-			result = new AcknowledgeMessage();
-			result.clientId = msg.clientId;
-			result.correlationId = msg.messageId;
-			// TODO: store client id and destination to send further updates
-			break;
-			
-		case Constants.OPERATION_POLL:
-			// Send back modifications
-			result = new AcknowledgeMessage();
-			result.clientId = msg.clientId;
-			result.correlationId = msg.messageId;
-			result.destination = msg.destination;
-			// TODO: send back stored updates for this client
-			break;
-			
-		default:
-			log.error("Unknown CommandMessage request: {}", msg);
-			String errMsg = String.format("Don't know how to handle %s", msg);
-			result = returnError(msg, "notImplemented", errMsg, errMsg);
+			case Constants.CLIENT_PING_OPERATION:
+				// Send back pong message
+				break;
+
+			case Constants.POLL_OPERATION:
+				// Send back modifications
+				// TODO: send back stored updates for this client
+				break;
+				
+			case Constants.SUBSCRIBE_OPERATION:
+				// Send back registration ok
+				// TODO: store client id and destination to send further updates
+				break;
+
+			default:
+				log.error("Unknown CommandMessage request: {}", msg);
+				String errMsg = String.format("Don't know how to handle %s", msg);
+				result = returnError(msg, "notImplemented", errMsg, errMsg);
 		}
+		
 		return result;
 	}
 
@@ -228,27 +274,27 @@ public class FlexMessagingService {
 	@SuppressWarnings("unchecked")
 	private void evaluateDataUpdate(DataMessage msg, DataMessage event) {
 		switch (event.operation) {
-		case Constants.DATA_OPERATION_UPDATE_ATTRIBUTES:
-			List<Object> contents = (List<Object>) event.body;
-			@SuppressWarnings("unused")
-			List<String> attributeNames = (List<String>) contents.get(0);
-			@SuppressWarnings("unused")
-			Map<String, Object> oldValues = (Map<String, Object>) contents.get(1);
-			@SuppressWarnings("unused")
-			Map<String, Object> newValues = (Map<String, Object>) contents.get(2);
-			/*
-			// Commented out as it triggeres a crash in the compiler on Java 1.5
-			for (@SuppressWarnings("unused") String name: attributeNames) {
-				// TODO: store attribute change for registered clients
-			}
-			*/
-			break;
-			
-		default:
-			log.error("Unknown data update request: {}", event);
+			case Constants.DATA_OPERATION_UPDATE_ATTRIBUTES:
+				List<Object> contents = (List<Object>) event.body;
+				@SuppressWarnings("unused")
+				List<String> attributeNames = (List<String>) contents.get(0);
+				@SuppressWarnings("unused")
+				Map<String, Object> oldValues = (Map<String, Object>) contents.get(1);
+				@SuppressWarnings("unused")
+				Map<String, Object> newValues = (Map<String, Object>) contents.get(2);
+				/*
+				// Commented out as it triggeres a crash in the compiler on Java 1.5
+				for (@SuppressWarnings("unused") String name: attributeNames) {
+					// TODO: store attribute change for registered clients
+				}
+				*/
+				break;
+
+			default:
+				log.error("Unknown data update request: {}", event);
 		}
 	}
-	
+
 	/**
 	 * Handle messages related to shared objects.
 	 * 
@@ -257,39 +303,40 @@ public class FlexMessagingService {
 	 */
 	@SuppressWarnings("unchecked")
 	public AsyncMessage handleRequest(DataMessage msg) {
+		log.debug("Handle DataMessage request: {}", msg);
 		setClientId(msg);
 		SequencedMessage result = new SequencedMessage();
 		result.clientId = msg.clientId;
 		result.destination = msg.destination;
 		result.correlationId = msg.messageId;
 		switch (msg.operation) {
-		case Constants.DATA_OPERATION_SET:
-			result.body = new Object[]{msg.body};
-			result.sequenceId = 0;
-			result.sequenceSize = 1;
-			// TODO: store initial version of object
-			break;
-			
-		case Constants.DATA_OPERATION_UPDATE:
-			for (DataMessage event: (List<DataMessage>) msg.body) {
-				evaluateDataUpdate(msg, event);
-			}
-			AcknowledgeMessage res = new AcknowledgeMessage();
-			res.clientId = msg.clientId;
-			res.destination = msg.destination;
-			res.correlationId = msg.messageId;
-			res.body = msg.body;
-			return res;
+			case Constants.DATA_OPERATION_SET:
+				result.body = new Object[] { msg.body };
+				result.sequenceId = 0;
+				result.sequenceSize = 1;
+				// TODO: store initial version of object
+				break;
 
-		default:
-			log.error("Unknown DataMessage request: {}", msg);
-			String errMsg = String.format("Don't know how to handle %s", msg);
-			return returnError(msg, "notImplemented", errMsg, errMsg);
-				
+			case Constants.DATA_OPERATION_UPDATE:
+				for (DataMessage event : (List<DataMessage>) msg.body) {
+					evaluateDataUpdate(msg, event);
+				}
+				AcknowledgeMessage res = new AcknowledgeMessage();
+				res.clientId = msg.clientId;
+				res.destination = msg.destination;
+				res.correlationId = msg.messageId;
+				res.body = msg.body;
+				return res;
+
+			default:
+				log.error("Unknown DataMessage request: {}", msg);
+				String errMsg = String.format("Don't know how to handle %s", msg);
+				return returnError(msg, "notImplemented", errMsg, errMsg);
+
 		}
 		return result;
 	}
-	
+
 	/**
 	 * Fallback method to handle arbitrary messages.
 	 * 
@@ -297,12 +344,13 @@ public class FlexMessagingService {
 	 * @return error message
 	 */
 	public ErrorMessage handleRequest(AbstractMessage msg) {
+		log.debug("Handle AbstractMessage request: {}", msg);
 		setClientId(msg);
 		log.error("Unknown Flex compatibility request: {}", msg);
 		String errMsg = String.format("Don't know how to handle %s", msg);
 		return returnError(msg, "notImplemented", errMsg, errMsg);
 	}
-	
+
 	/**
 	 * This is mandatory for client built from Flex 3 or later, or
 	 * client will hang with concurrent accesses.
@@ -313,5 +361,5 @@ public class FlexMessagingService {
 			msg.clientId = new RandomGUID().toString();
 		}
 	}
-	
+
 }
