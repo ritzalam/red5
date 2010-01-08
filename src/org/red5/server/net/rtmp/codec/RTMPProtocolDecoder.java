@@ -27,9 +27,13 @@ import java.util.Map;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.amf.AMF;
+import org.red5.io.amf.Output;
+import org.red5.io.object.DataTypes;
 import org.red5.io.object.Deserializer;
 import org.red5.io.object.Input;
+import org.red5.io.object.Serializer;
 import org.red5.io.utils.BufferUtils;
+import org.red5.io.utils.ObjectMap;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.Red5;
 import org.red5.server.api.IConnection.Encoding;
@@ -557,7 +561,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				if (header.getStreamId() == 0) {
 					message = decodeNotify(in, header, rtmp);
 				} else {
-					message = decodeStreamMetadata(in);
+					message = decodeStreamMetadata(in, rtmp);
 				}
 				break;
 			case TYPE_PING:
@@ -785,7 +789,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 	 *         <code>false</code> otherwise
 	 */
 	private boolean isStreamCommand(String action) {
-		switch(StreamAction.getEnum(action)) {
+		switch (StreamAction.getEnum(action)) {
 			case CREATE_STREAM:
 			case DELETE_STREAM:
 			case RELEASE_STREAM:
@@ -839,7 +843,7 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 			//TODO replace this with something better as time permits
 			throw new RuntimeException("Action was null");
 		}
-		
+
 		if (!(notify instanceof Invoke) && rtmp != null && rtmp.getMode() == RTMP.MODE_SERVER && header != null
 				&& header.getStreamId() != 0 && !isStreamCommand(action)) {
 			// Don't decode "NetStream.send" requests
@@ -891,7 +895,15 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 
 		final int dotIndex = action.lastIndexOf('.');
 		String serviceName = (dotIndex == -1) ? null : action.substring(0, dotIndex);
+		//pull off the prefixes since java doesnt allow this on a method name
+		if (serviceName != null && serviceName.startsWith("@")) {
+			serviceName = serviceName.substring(1);
+		}
 		String serviceMethod = (dotIndex == -1) ? action : action.substring(dotIndex + 1, action.length());
+		//pull off the prefixes since java doesnt allow this on a method name
+		if (serviceMethod.startsWith("@")) {
+			serviceMethod = serviceMethod.substring(1);
+		}
 
 		if (notify instanceof Invoke) {
 			PendingCall call = new PendingCall(serviceName, serviceMethod, params);
@@ -939,7 +951,45 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 		return new VideoData(in.asReadOnlyBuffer());
 	}
 
-	public Notify decodeStreamMetadata(IoBuffer in) {
+	@SuppressWarnings("unchecked")
+	public Notify decodeStreamMetadata(IoBuffer in, RTMP rtmp) {
+		Input input;
+		//TODO handle AMF3
+		if (rtmp.getEncoding() == Encoding.AMF0) {
+			input = new org.red5.io.amf.Input(in);
+		} else {
+			org.red5.io.amf3.Input.RefStorage refStorage = new org.red5.io.amf3.Input.RefStorage();
+			input = new org.red5.io.amf3.Input(in, refStorage);
+		}
+		//get the first datatype
+		byte dataType = input.readDataType();
+		if (dataType == DataTypes.CORE_STRING) {
+			String setData = input.readString(String.class);
+			if (setData.equals("@setDataFrame")) {
+				//get the second datatype
+				byte dataType2 = input.readDataType();
+				log.debug("Dataframe method type: {}", dataType2);
+				String onCueOrOnMeta = input.readString(String.class);
+				//get the params datatype
+				byte object = input.readDataType();
+				log.debug("Dataframe params type: {}", object);
+				ObjectMap<Object, Object> params = (ObjectMap<Object, Object>) input.readObject(deserializer,
+						Object.class);
+				log.debug("Dataframe: {} params: {}", onCueOrOnMeta, params.toString());
+
+				IoBuffer buf = IoBuffer.allocate(1024);
+				buf.setAutoExpand(true);
+				Output out = new Output(buf);
+				out.writeString(onCueOrOnMeta);
+				out.writeMap(params, new Serializer());
+
+				buf.flip();
+				return new Notify(buf);
+			} else {
+				log.info("Unhandled request: {}", setData);
+			}
+		}
+
 		return new Notify(in.asReadOnlyBuffer());
 	}
 

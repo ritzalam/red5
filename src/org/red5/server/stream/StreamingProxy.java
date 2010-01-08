@@ -20,6 +20,9 @@ package org.red5.server.stream;
  */
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import org.red5.server.net.rtmp.RTMPClient;
 import org.red5.server.net.rtmp.INetStreamEventHandler;
@@ -43,9 +46,18 @@ import org.red5.server.stream.message.RTMPMessage;
  * TODO: Use timer to monitor the connect/stream creation.
  *
  * @author Steven Gong (steven.gong@gmail.com)
+ * @author Andy Shaules (bowljoman@hotmail.com)
  */
 public class StreamingProxy implements IPushableConsumer, IPipeConnectionListener, INetStreamEventHandler,
 		IPendingServiceCallback {
+
+	private List<IMessage> frameBuffer = new ArrayList<IMessage>();
+
+	public static final String LIVE = "live";
+
+	public static final String RECORD = "record";
+
+	public static final String APPEND = "append";
 
 	private static final int STOPPED = 0;
 
@@ -71,18 +83,23 @@ public class StreamingProxy implements IPushableConsumer, IPipeConnectionListene
 
 	private int streamId;
 
+	private String publishMode;
+
 	public void init() {
 		rtmpClient = new RTMPClient();
 		state = STOPPED;
 	}
 
-	synchronized public void start(String publishName) {
+	public synchronized void start(String publishName, String publishMode, Object[] params) {
 		state = CONNECTING;
 		this.publishName = publishName;
-		rtmpClient.connect(host, port, app, this);
+		this.publishMode = publishMode;
+
+		Map<String, Object> defParams = rtmpClient.makeDefaultConnectionParams(host, port, app);
+		rtmpClient.connect(host, port, defParams, this, params);
 	}
 
-	synchronized public void stop() {
+	public synchronized void stop() {
 		if (state >= STREAM_CREATING) {
 			rtmpClient.disconnect();
 		}
@@ -97,6 +114,8 @@ public class StreamingProxy implements IPushableConsumer, IPipeConnectionListene
 		if (state >= PUBLISHED && message instanceof RTMPMessage) {
 			RTMPMessage rtmpMsg = (RTMPMessage) message;
 			rtmpClient.publishStreamData(streamId, rtmpMsg);
+		} else {
+			frameBuffer.add(message);
 		}
 	}
 
@@ -115,15 +134,20 @@ public class StreamingProxy implements IPushableConsumer, IPipeConnectionListene
 		this.app = app;
 	}
 
-	synchronized public void onStreamEvent(Notify notify) {
+	public synchronized void onStreamEvent(Notify notify) {
 		ObjectMap<?, ?> map = (ObjectMap<?, ?>) notify.getCall().getArguments()[0];
 		String code = (String) map.get("code");
+		System.out.println(code);
 		if (StatusCodes.NS_PUBLISH_START.equals(code)) {
 			state = PUBLISHED;
+			while (frameBuffer.size() > 0) {
+				rtmpClient.publishStreamData(streamId, frameBuffer.remove(0));
+			}
 		}
 	}
 
-	synchronized public void resultReceived(IPendingServiceCall call) {
+	public synchronized void resultReceived(IPendingServiceCall call) {
+		System.out.println(call.getServiceMethodName());
 		if ("connect".equals(call.getServiceMethodName())) {
 			state = STREAM_CREATING;
 			rtmpClient.createStream(this);
@@ -133,7 +157,8 @@ public class StreamingProxy implements IPushableConsumer, IPipeConnectionListene
 			if (result instanceof Integer) {
 				Integer streamIdInt = (Integer) result;
 				streamId = streamIdInt.intValue();
-				rtmpClient.publish(streamIdInt.intValue(), publishName, "live", this);
+				System.out.println("PUBLISHING : " + state);
+				rtmpClient.publish(streamIdInt.intValue(), publishName, publishMode, this);
 			} else {
 				rtmpClient.disconnect();
 				state = STOPPED;
