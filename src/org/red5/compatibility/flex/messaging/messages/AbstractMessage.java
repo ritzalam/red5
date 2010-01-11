@@ -20,10 +20,15 @@ package org.red5.compatibility.flex.messaging.messages;
  */
 
 import java.io.Serializable;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
+import org.red5.io.amf3.ByteArray;
+import org.red5.io.amf3.IDataInput;
+import org.red5.io.amf3.IDataOutput;
 import org.red5.io.utils.RandomGUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Base class for all Flex compatibility messages.
@@ -34,22 +39,26 @@ import org.red5.io.utils.RandomGUID;
 @SuppressWarnings("unchecked")
 public class AbstractMessage implements Message, Serializable {
 
-	private static final long serialVersionUID = -2297508940724279014L;
+	private static final long serialVersionUID = -834697863344344313L;
 
 	public long timestamp;
-	
-	public Map<String, Object> headers = Collections.EMPTY_MAP;
-	
+
+	public Map<String, Object> headers = new HashMap<String, Object>();
+
 	public Object body;
-	
+
 	public String messageId;
-	
+
+	protected byte[] messageIdBytes;
+
 	public long timeToLive;
-	
+
 	public String clientId;
-	
+
+	protected byte[] clientIdBytes;
+
 	public String destination;
-	
+
 	/**
 	 * Initialize default message fields.
 	 */
@@ -57,7 +66,7 @@ public class AbstractMessage implements Message, Serializable {
 		timestamp = System.currentTimeMillis();
 		messageId = new RandomGUID().toString();
 	}
-	
+
 	/**
 	 * Add message properties to string.
 	 * 
@@ -165,7 +174,7 @@ public class AbstractMessage implements Message, Serializable {
 
 	@Override
 	public void setTimeToLive(long value) {
-		timeToLive  = value;
+		timeToLive = value;
 	}
 
 	/**
@@ -181,5 +190,190 @@ public class AbstractMessage implements Message, Serializable {
 		result.append(")");
 		return result.toString();
 	}
+
+	static Logger log = LoggerFactory.getLogger(AbstractMessage.class);
+	protected short[] readFlags(IDataInput input) {
+		boolean hasNextFlag = true;
+		short[] flagsArray = new short[2];
+		int i = 0;
+		while (hasNextFlag) {
+			short flags = (short) input.readUnsignedByte();
+			log.warn("Unsigned byte: {}", flags);
+			if (i == flagsArray.length) {
+				short[] tempArray = new short[i * 2];
+				System.arraycopy(flagsArray, 0, tempArray, 0, flagsArray.length);
+				flagsArray = tempArray;
+			}
+			flagsArray[i] = flags;
+			if ((flags & 0x80) != 0) {
+				hasNextFlag = true;
+			} else {
+				hasNextFlag = false;
+			}
+			++i;
+		}
+		log.warn("Flag count: {}", flagsArray.length);
+		return flagsArray;
+	}	
 	
+	@SuppressWarnings("rawtypes")
+	public void readExternal(IDataInput input) {
+		short[] flagsArray = readFlags(input);
+		for (int i = 0; i < flagsArray.length; ++i) {
+			short flags = flagsArray[i];
+			short reservedPosition = 0;
+			if (i == 0) {				
+				if ((flags & 0x1) != 0) {
+					Object obj = input.readObject();
+					log.warn("Body object: {} name: {}", obj, obj.getClass().getName());
+
+					this.body = obj;
+				}
+				if ((flags & 0x2) != 0) {
+					Object obj = input.readObject();
+					log.warn("Client id object: {} name: {}", obj, obj.getClass().getName());
+
+					this.clientId = ((String) obj);
+				}
+				if ((flags & 0x4) != 0) {
+					Object obj = input.readObject();
+					log.warn("Destination object: {} name: {}", obj, obj.getClass().getName());
+
+					this.destination = ((String) obj);
+				}
+				if ((flags & 0x8) != 0) {
+					Object obj = input.readObject();
+					log.warn("Headers object: {} name: {}", obj, obj.getClass().getName());
+
+					this.headers = ((Map) obj);
+				}
+				if ((flags & 0x10) != 0) {
+					Object obj = input.readObject();
+					log.warn("Message id object: {} name: {}", obj, obj.getClass().getName());
+
+					this.messageId = ((String) obj);
+				}
+				if ((flags & 0x20) != 0) {
+					Object obj = input.readObject();
+					log.warn("Timestamp object: {} name: {}", obj, obj.getClass().getName());
+
+					this.timestamp = ((Number) obj).longValue();
+				}
+				if ((flags & 0x40) != 0) {
+					Object obj = input.readObject();
+					log.warn("TTL object: {} name: {}", obj, obj.getClass().getName());
+
+					this.timeToLive = ((Number) obj).longValue();
+				}
+				reservedPosition = 7;
+			} else if (i == 1) {
+				if ((flags & 0x1) != 0) {
+					Object obj = input.readObject();
+					log.warn("Client id (bytes) object: {} name: {}", obj, obj.getClass().getName());
+					if (obj instanceof ByteArray) {
+						ByteArray ba = (ByteArray) obj;
+						this.clientIdBytes = new byte[ba.length()];
+						ba.readBytes(clientIdBytes);
+						this.clientId = RandomGUID.fromByteArray(this.clientIdBytes);
+					}
+				}
+				if ((flags & 0x2) != 0) {
+					Object obj = input.readObject();
+					log.warn("Message id (bytes) object: {} name: {}", obj, obj.getClass().getName());										
+					if (obj instanceof ByteArray) {
+						ByteArray ba = (ByteArray) obj;
+						this.messageIdBytes = new byte[ba.length()];
+						ba.readBytes(messageIdBytes);
+						this.messageId = RandomGUID.fromByteArray(this.messageIdBytes);
+					}
+				}
+				reservedPosition = 2;
+			}
+			if (flags >> reservedPosition == 0) {
+				continue;
+			}
+			for (short j = reservedPosition; j < 6; j = (short) (j + 1)) {
+				if ((flags >> j & 0x1) == 0) {
+					continue;
+				}
+				input.readObject();
+			}
+		}
+	}
+
+	public void writeExternal(IDataOutput output) {
+		short flags = 0;
+
+		if ((this.clientIdBytes == null) && (this.clientId instanceof String)) {
+			this.clientIdBytes = RandomGUID.toByteArray(this.clientId);
+		}
+		if (this.messageIdBytes == null) {
+			this.messageIdBytes = RandomGUID.toByteArray(this.messageId);
+		}
+		if (this.body != null) {
+			flags = (short) (flags | 0x1);
+		}
+		if ((this.clientId != null) && (this.clientIdBytes == null)) {
+			flags = (short) (flags | 0x2);
+		}
+		if (this.destination != null) {
+			flags = (short) (flags | 0x4);
+		}
+		if (this.headers != null) {
+			flags = (short) (flags | 0x8);
+		}
+		if ((this.messageId != null) && (this.messageIdBytes == null)) {
+			flags = (short) (flags | 0x10);
+		}
+		if (this.timestamp != 0L) {
+			flags = (short) (flags | 0x20);
+		}
+		if (this.timeToLive != 0L) {
+			flags = (short) (flags | 0x40);
+		}
+		if ((this.clientIdBytes != null) || (this.messageIdBytes != null)) {
+			flags = (short) (flags | 0x80);
+		}
+		output.writeByte((byte) flags);
+
+		flags = 0;
+
+		if (this.clientIdBytes != null) {
+			flags = (short) (flags | 0x1);
+		}
+		if (this.messageIdBytes != null) {
+			flags = (short) (flags | 0x2);
+		}
+		if (flags != 0) {
+			output.writeByte((byte) flags);
+		}
+		if (this.body != null) {
+			output.writeObject(this.body);
+		}
+		if ((this.clientId != null) && (this.clientIdBytes == null)) {
+			output.writeObject(this.clientId);
+		}
+		if (this.destination != null) {
+			output.writeObject(this.destination);
+		}
+		if (this.headers != null) {
+			output.writeObject(this.headers);
+		}
+		if ((this.messageId != null) && (this.messageIdBytes == null)) {
+			output.writeObject(this.messageId);
+		}
+		if (this.timestamp != 0L) {
+			output.writeObject(new Long(this.timestamp));
+		}
+		if (this.timeToLive != 0L) {
+			output.writeObject(new Long(this.timeToLive));
+		}
+		if (this.clientIdBytes != null) {
+			output.writeObject(this.clientIdBytes);
+		}
+		if (this.messageIdBytes != null) {
+			output.writeObject(this.messageIdBytes);
+		}
+	}
+
 }

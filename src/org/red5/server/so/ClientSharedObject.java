@@ -45,8 +45,7 @@ import org.slf4j.LoggerFactory;
  * Works with client-side shared object
  */
 @SuppressWarnings("unchecked")
-public class ClientSharedObject extends SharedObject implements
-		IClientSharedObject, IEventDispatcher {
+public class ClientSharedObject extends SharedObject implements IClientSharedObject, IEventDispatcher {
 
 	/**
 	 * Logger
@@ -92,15 +91,13 @@ public class ClientSharedObject extends SharedObject implements
 	 */
 	public void connect(IConnection conn) {
 		if (!(conn instanceof RTMPConnection))
-			throw new RuntimeException(
-					"can only connect through RTMP connections");
+			throw new RuntimeException("can only connect through RTMP connections");
 
 		if (isConnected())
 			throw new RuntimeException("already connected");
 
 		source = conn;
-		SharedObjectMessage msg = new SharedObjectMessage(name, 0,
-				isPersistentObject());
+		SharedObjectMessage msg = new SharedObjectMessage(name, 0, isPersistentObject());
 		msg.addEvent(new SharedObjectEvent(Type.SERVER_CONNECT, null, null));
 		Channel c = ((RTMPConnection) conn).getChannel((byte) 3);
 		c.write(msg);
@@ -108,8 +105,7 @@ public class ClientSharedObject extends SharedObject implements
 
 	/** {@inheritDoc} */
 	public void disconnect() {
-		SharedObjectMessage msg = new SharedObjectMessage(name, 0,
-				isPersistentObject());
+		SharedObjectMessage msg = new SharedObjectMessage(name, 0, isPersistentObject());
 		msg.addEvent(new SharedObjectEvent(Type.SERVER_DISCONNECT, null, null));
 		Channel c = ((RTMPConnection) source).getChannel((byte) 3);
 		c.write(msg);
@@ -134,8 +130,7 @@ public class ClientSharedObject extends SharedObject implements
 
 	/** {@inheritDoc} */
 	public void dispatchEvent(IEvent e) {
-		if (e.getType() != IEvent.Type.SHARED_OBJECT
-				|| !(e instanceof ISharedObjectMessage)) {
+		if (e.getType() != IEvent.Type.SHARED_OBJECT || !(e instanceof ISharedObjectMessage)) {
 			// Don't know how to handle this event.
 			return;
 		}
@@ -166,15 +161,12 @@ public class ClientSharedObject extends SharedObject implements
 						break;
 
 					case CLIENT_SEND_MESSAGE:
-						notifySendMessage(event.getKey(), (List<?>) event
-								.getValue());
+						notifySendMessage(event.getKey(), (List<?>) event.getValue());
 						break;
 
 					case CLIENT_UPDATE_DATA:
-						attributes.putAll((Map<String, Object>) event
-								.getValue());
-						notifyUpdate(event.getKey(),
-								(Map<String, Object>) event.getValue());
+						attributes.putAll((Map<String, Object>) event.getValue());
+						notifyUpdate(event.getKey(), (Map<String, Object>) event.getValue());
 						break;
 
 					case CLIENT_UPDATE_ATTRIBUTE:
@@ -233,8 +225,7 @@ public class ClientSharedObject extends SharedObject implements
 	 */
 	protected void notifyUpdate(String key, Map<String, Object> value) {
 		if (value.size() == 1) {
-			Map.Entry<String, Object> entry = value.entrySet().iterator()
-					.next();
+			Map.Entry<String, Object> entry = value.entrySet().iterator().next();
 			notifyUpdate(entry.getKey(), entry.getValue());
 			return;
 		}

@@ -53,10 +53,6 @@ public class RemotingProtocolEncoder {
      * Logger
      */
 	protected static Logger log = LoggerFactory.getLogger(RemotingProtocolEncoder.class);
-    /**
-     * I/O logger
-     */
-	protected static Logger ioLog = LoggerFactory.getLogger(RemotingProtocolEncoder.class.getName() + ".out");
 
     /**
      * Data serializer

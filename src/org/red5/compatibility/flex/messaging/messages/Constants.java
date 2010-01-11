@@ -38,10 +38,10 @@ public class Constants {
 	/** Update given attributes from a data message. */
 	public static final int DATA_OPERATION_UPDATE_ATTRIBUTES = 3;
 
+	public static final int CLIENT_SYNC_OPERATION = 4;
+
 	/** Operation id of ping commands. */
 	public static final int CLIENT_PING_OPERATION = 5;
-
-	public static final int CLIENT_SYNC_OPERATION = 4;
 
 	/** Update destination based on nested DataMessage packet. */
 	public static final int DATA_OPERATION_UPDATE = 7;

@@ -1,5 +1,10 @@
 package org.red5.compatibility.flex.messaging.messages;
 
+import org.red5.io.amf3.IDataInput;
+import org.red5.io.utils.RandomGUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  *
@@ -27,10 +32,16 @@ package org.red5.compatibility.flex.messaging.messages;
  */
 public class AsyncMessage extends AbstractMessage {
 
-	private static final long serialVersionUID = 977072715599150153L;
+	private static final long serialVersionUID = -3549535089417916783L;
+	
+	protected static byte CORRELATION_ID_FLAG = 1;
+
+	protected static byte CORRELATION_ID_BYTES_FLAG = 2;
 
 	/** Id of message this message belongs to. */
 	public String correlationId;
+
+	protected byte[] correlationIdBytes;
 
 	/** {@inheritDoc} */
 	protected void addParameters(StringBuilder result) {
@@ -47,4 +58,35 @@ public class AsyncMessage extends AbstractMessage {
 		return correlationId;
 	}
 
+	static Logger log = LoggerFactory.getLogger(AsyncMessage.class);	
+	
+	@Override
+	public void readExternal(IDataInput in) {
+		super.readExternal(in);
+		short[] flagsArray = readFlags(in);
+		for (int i = 0; i < flagsArray.length; ++i) {
+			short flags = flagsArray[i];
+			short reservedPosition = 0;
+			if (i == 0) {
+				if ((flags & CORRELATION_ID_FLAG) != 0) {
+					this.correlationId = ((String) in.readObject());
+				}
+				if ((flags & CORRELATION_ID_BYTES_FLAG) != 0) {
+					this.correlationIdBytes = ((byte[]) (byte[]) in.readObject());
+					this.correlationId = RandomGUID.fromByteArray(this.correlationIdBytes);
+				}
+				reservedPosition = 2;
+			}
+			if (flags >> reservedPosition == 0) {
+				continue;
+			}
+			for (short j = reservedPosition; j < 6; j = (short) (j + 1)) {
+				if ((flags >> j & 0x1) == 0) {
+					continue;
+				}
+				in.readObject();
+			}
+		}
+	}	
+	
 }

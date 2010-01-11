@@ -1,5 +1,9 @@
 package org.red5.compatibility.flex.messaging.messages;
 
+import org.red5.io.amf3.IDataInput;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  *
@@ -27,8 +31,26 @@ package org.red5.compatibility.flex.messaging.messages;
  */
 public class AcknowledgeMessage extends AsyncMessage {
 
-	private static final long serialVersionUID = 4616428436031029479L;
+	private static final long serialVersionUID = 228072709981643313L;
 
-	// Nothing here right now...
+	static Logger log = LoggerFactory.getLogger(AcknowledgeMessage.class);	
 	
+	@Override
+	public void readExternal(IDataInput in) {
+		super.readExternal(in);			
+		short[] flagsArray = readFlags(in);
+		for (int i = 0; i < flagsArray.length; ++i) {
+			short flags = flagsArray[i];
+			short reservedPosition = 0;
+			if (flags >> reservedPosition == 0) {
+				continue;
+			}
+			for (short j = reservedPosition; j < 6; j = (short) (j + 1)) {
+				if ((flags >> j & 0x1) == 0) {
+					continue;
+				}
+				in.readObject();
+			}
+		}
+	}	
 }

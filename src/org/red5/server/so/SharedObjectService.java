@@ -48,14 +48,12 @@ public class SharedObjectService implements ISharedObjectService {
 	/**
 	 * Persistence store prefix
 	 */
-	private static final String SO_PERSISTENCE_STORE = IPersistable.TRANSIENT_PREFIX
-			+ "_SO_PERSISTENCE_STORE_";
+	private static final String SO_PERSISTENCE_STORE = IPersistable.TRANSIENT_PREFIX + "_SO_PERSISTENCE_STORE_";
 
 	/**
 	 * Transient store prefix
 	 */
-	private static final String SO_TRANSIENT_STORE = IPersistable.TRANSIENT_PREFIX
-			+ "_SO_TRANSIENT_STORE_";
+	private static final String SO_TRANSIENT_STORE = IPersistable.TRANSIENT_PREFIX + "_SO_TRANSIENT_STORE_";
 
 	/**
 	 * Persistence class name
@@ -94,10 +92,12 @@ public class SharedObjectService implements ISharedObjectService {
 		// Evaluate configuration for persistent shared objects
 		if (!scope.hasAttribute(SO_PERSISTENCE_STORE)) {
 			try {
-				store = PersistenceUtils.getPersistenceStore(scope,	persistenceClassName);
+				store = PersistenceUtils.getPersistenceStore(scope, persistenceClassName);
 				log.info("Created persistence store {} for shared objects.", store);
 			} catch (Exception err) {
-				log.warn("Could not create persistence store ({}) for shared objects, falling back to Ram persistence.", persistenceClassName, err);
+				log.warn(
+						"Could not create persistence store ({}) for shared objects, falling back to Ram persistence.",
+						persistenceClassName, err);
 				store = new RamPersistence(scope);
 			}
 			scope.setAttribute(SO_PERSISTENCE_STORE, store);
@@ -113,8 +113,7 @@ public class SharedObjectService implements ISharedObjectService {
 			return true;
 		}
 		synchronized (scope) {
-			final IBasicScope soScope = new SharedObjectScope(scope, name,
-					persistent, getStore(scope, persistent));
+			final IBasicScope soScope = new SharedObjectScope(scope, name, persistent, getStore(scope, persistent));
 			return scope.addChildScope(soScope);
 		}
 	}
@@ -125,7 +124,7 @@ public class SharedObjectService implements ISharedObjectService {
 	}
 
 	/** {@inheritDoc} */
-	public ISharedObject getSharedObject(IScope scope, String name,	boolean persistent) {
+	public ISharedObject getSharedObject(IScope scope, String name, boolean persistent) {
 		synchronized (scope) {
 			if (!hasSharedObject(scope, name)) {
 				createSharedObject(scope, name, persistent);

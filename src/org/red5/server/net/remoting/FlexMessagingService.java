@@ -22,6 +22,8 @@ package org.red5.server.net.remoting;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.beanutils.ConversionException;
 import org.apache.commons.lang.StringUtils;
@@ -33,8 +35,11 @@ import org.red5.compatibility.flex.messaging.messages.AsyncMessage;
 import org.red5.compatibility.flex.messaging.messages.CommandMessage;
 import org.red5.compatibility.flex.messaging.messages.Constants;
 import org.red5.compatibility.flex.messaging.messages.ErrorMessage;
+import org.red5.compatibility.flex.messaging.messages.Message;
 import org.red5.compatibility.flex.messaging.messages.RemotingMessage;
 import org.red5.io.utils.RandomGUID;
+import org.red5.server.api.IClient;
+import org.red5.server.api.Red5;
 import org.red5.server.api.service.IPendingServiceCall;
 import org.red5.server.api.service.IServiceInvoker;
 import org.red5.server.exception.ClientDetailsException;
@@ -68,6 +73,9 @@ public class FlexMessagingService {
 	@SuppressWarnings("unchecked")
 	protected Map<String, Object> endpoints = Collections.EMPTY_MAP;
 
+	/** Registered clients. */
+	protected ConcurrentMap<String, ServiceAdapter> registrations = null;	
+	
 	/**
 	 * Setup available end points.
 	 * 
@@ -145,7 +153,8 @@ public class FlexMessagingService {
 	 */
 	@SuppressWarnings("rawtypes")
 	public AsyncMessage handleRequest(RemotingMessage msg) {
-		log.debug("Handle RemotingMessage request: {}", msg);
+		log.debug("Handle RemotingMessage request");
+		log.trace("{}", msg);
 		setClientId(msg);
 		if (serviceInvoker == null) {
 			log.error("No service invoker configured: {}", msg);
@@ -163,13 +172,16 @@ public class FlexMessagingService {
 
 		//prepare an ack message
 		AcknowledgeMessage result = new AcknowledgeMessage();
-		result.headers = msg.headers;
-		result.clientId = msg.clientId;
-		result.correlationId = msg.messageId;
+		result.setClientId(msg.getClientId());
+		result.setCorrelationId(msg.getMessageId());
 		
 		//grab any headers
-		Map headers = msg.headers;
+		Map<String, Object> headers = msg.getHeaders();
 		log.debug("Headers: {}", headers);
+		if (headers.containsKey(Message.FLEX_CLIENT_ID_HEADER)) {
+			headers.put(Message.FLEX_CLIENT_ID_HEADER, msg.getClientId());
+		}
+		result.setHeaders(headers);
 		
 		//get the operation
 		String operation = msg.operation;
@@ -221,41 +233,89 @@ public class FlexMessagingService {
 	 * @return async message
 	 */
 	public AsyncMessage handleRequest(CommandMessage msg) {
-		log.debug("Handle CommandMessage request: {}", msg);
+		log.debug("Handle CommandMessage request");
+		log.trace("{}", msg);
 		setClientId(msg);
+		String clientId = msg.getClientId();
+		
 		AsyncMessage result = new AcknowledgeMessage();
-		result.setClientId(msg.getClientId());
+		result.setBody(msg.getBody());
+		result.setClientId(clientId);
 		result.setCorrelationId(msg.getMessageId());
+
+		//grab any headers
+		Map<String, Object> headers = msg.getHeaders();
+		log.debug("Headers: {}", headers);
+		if (headers.containsKey(Message.FLEX_CLIENT_ID_HEADER)) {
+			headers.put(Message.FLEX_CLIENT_ID_HEADER, msg.getClientId());
+		}
+		result.setHeaders(headers);
+		
 		// put destination in ack if it exists
 		String destination = msg.destination;
-		if (StringUtils.isNotEmpty(destination)) {
+		if (StringUtils.isNotBlank(destination)) {
 			result.destination = destination;
-			//look-up end-point and register
-			if (endpoints.containsKey(destination)) {
-				Object endpoint = endpoints.get(destination);
-				if (endpoint instanceof ServiceAdapter) {
-					ServiceAdapter adapter = (ServiceAdapter) endpoint;
-					result.body = adapter.manage(msg);
-					return result;
-				}
-			}
-		}		
+		}
 		//process messages to non-service adapter end-points
 		switch (msg.operation) {
-			case Constants.CLIENT_PING_OPERATION:
-				// Send back pong message
+			case Constants.CLIENT_PING_OPERATION: //5
+				//send back pong message
 				break;
 
-			case Constants.POLL_OPERATION:
-				// Send back modifications
-				// TODO: send back stored updates for this client
+			case Constants.POLL_OPERATION: //2
+				//send back modifications
+				log.debug("Poll: {}", clientId);
+				//send back stored updates for this client
+				if (registrations.containsKey(clientId)) {
+					ServiceAdapter adapter = registrations.get(clientId);
+					if (adapter != null) {
+						result.setBody(adapter.manage(msg));
+					} else {
+						log.debug("Adapter was not available");
+					}
+				}
 				break;
 				
-			case Constants.SUBSCRIBE_OPERATION:
+			case Constants.SUBSCRIBE_OPERATION: //0
+				log.debug("Subscribe: {}", clientId);
+				//if there is a destination check for an adapter
+				if (StringUtils.isNotBlank(destination)) {
+    				//look-up end-point and register
+    				if (endpoints.containsKey(destination)) {
+    					Object endpoint = endpoints.get(destination);
+						//if the endpoint is an adapter, try to subscribe
+    					if (endpoint instanceof ServiceAdapter) {
+    						ServiceAdapter adapter = (ServiceAdapter) endpoint;
+    						boolean subscribed = ((Boolean) adapter.manage(msg));
+    						if (subscribed) {
+    							log.debug("Client was subscribed");
+    							registerClientToAdapter(clientId, adapter);
+    						} else {
+    							log.debug("Client was not subscribed");
+    						}
+    					}
+    				}
+				}
 				// Send back registration ok
-				// TODO: store client id and destination to send further updates
 				break;
 
+			case Constants.UNSUBSCRIBE_OPERATION:
+				log.trace("Unsubscribe: {}", clientId);
+				if (registrations.containsKey(clientId)) {
+					unregisterClientFromAdapter(clientId);
+					ServiceAdapter adapter = registrations.get(clientId);
+					boolean unsubscribed = ((Boolean) adapter.manage(msg));
+					if (unsubscribed) {
+						log.debug("Client was unsubscribed");
+					} else {
+						log.debug("Client was not unsubscribed");
+					}
+				} else {
+					log.debug("Client was not subscribed");
+				}
+				// Send back unregistration ok
+				break;
+				
 			default:
 				log.error("Unknown CommandMessage request: {}", msg);
 				String errMsg = String.format("Don't know how to handle %s", msg);
@@ -264,7 +324,7 @@ public class FlexMessagingService {
 		
 		return result;
 	}
-
+	
 	/**
 	 * Evaluate update requests sent by a client.
 	 * 
@@ -303,7 +363,8 @@ public class FlexMessagingService {
 	 */
 	@SuppressWarnings("unchecked")
 	public AsyncMessage handleRequest(DataMessage msg) {
-		log.debug("Handle DataMessage request: {}", msg);
+		log.debug("Handle DataMessage request");
+		log.trace("{}", msg);
 		setClientId(msg);
 		SequencedMessage result = new SequencedMessage();
 		result.clientId = msg.clientId;
@@ -343,12 +404,44 @@ public class FlexMessagingService {
 	 * @param msg message
 	 * @return error message
 	 */
-	public ErrorMessage handleRequest(AbstractMessage msg) {
-		log.debug("Handle AbstractMessage request: {}", msg);
+	@SuppressWarnings("rawtypes")
+	public Message handleRequest(AbstractMessage msg) {
+		log.debug("Handle AbstractMessage request");
+		log.trace("{}", msg);
 		setClientId(msg);
-		log.error("Unknown Flex compatibility request: {}", msg);
-		String errMsg = String.format("Don't know how to handle %s", msg);
-		return returnError(msg, "notImplemented", errMsg, errMsg);
+
+		Object endpoint = endpoints.get(msg.destination);
+		log.debug("End point / destination: {}", endpoint);
+		if (endpoint == null) {
+			String errMsg = String.format("Endpoint %s doesn't exist.", msg.destination);
+			log.debug("{} ({})", errMsg, msg);
+			return returnError(msg, "Server.Invoke.Error", errMsg, errMsg);
+		}
+		
+		//grab any headers
+		Map<String, Object> headers = msg.getHeaders();
+		log.debug("Headers: {}", headers);
+		if (headers.containsKey(Message.FLEX_CLIENT_ID_HEADER)) {
+			headers.put(Message.FLEX_CLIENT_ID_HEADER, msg.getClientId());
+		}
+
+		if (endpoint instanceof ServiceAdapter) {
+			log.debug("Endpoint is a ServiceAdapter so message will be invoked");
+			//prepare an ack message
+			AcknowledgeMessage result = new AcknowledgeMessage();
+			result.setClientId(msg.getClientId());
+			result.setCorrelationId(msg.getMessageId());
+			result.setHeaders(headers);
+			//get the adapter
+			ServiceAdapter adapter = (ServiceAdapter) endpoint;
+			//the result of the invocation will make up the message body
+			result.body = adapter.invoke(msg);		
+			return result;
+    	} else {
+    		log.error("Unknown Flex compatibility request: {}", msg);
+    		String errMsg = String.format("Don't know how to handle %s", msg);
+    		return returnError(msg, "notImplemented", errMsg, errMsg);
+    	}
 	}
 
 	/**
@@ -358,8 +451,39 @@ public class FlexMessagingService {
 	 */
 	private void setClientId(AbstractMessage msg) {
 		if (msg.clientId == null) {
-			msg.clientId = new RandomGUID().toString();
+			log.trace("Dump: {}", msg);
+			//use the connection client id before creating a new one
+			IClient client = Red5.getConnectionLocal().getClient();
+			if (client != null) {
+				//should we format it?
+				String clientId = client.getId();
+				msg.clientId = RandomGUID.getPrettyFormatted(clientId);
+			} else {
+				msg.clientId = new RandomGUID().toString();
+			}
 		}
 	}
 
+	/**
+	 * Maps a client to an adapter for lookups on messages that do not contain a destination.
+	 * 
+	 * @param clientId a subscribed client id
+	 * @param adapter service adapter to register for
+	 */
+	private final void registerClientToAdapter(String clientId, ServiceAdapter adapter) {
+		if (registrations == null) {
+			registrations = new ConcurrentHashMap<String, ServiceAdapter>();
+		}
+		registrations.put(clientId, adapter);
+	}
+
+	/**
+	 * Removes a mapping for a client with an adapter.
+	 * 
+	 * @param clientId a subscribed client id
+	 */
+	private final void unregisterClientFromAdapter(String clientId) {
+		registrations.remove(clientId);
+	}		
+	
 }

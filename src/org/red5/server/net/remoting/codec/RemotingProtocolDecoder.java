@@ -42,11 +42,8 @@ public class RemotingProtocolDecoder {
      * Logger
      */
 	protected static Logger log = LoggerFactory.getLogger(RemotingProtocolDecoder.class);
-    /**
-     * I/O logger
-     */
-	protected static Logger ioLog = LoggerFactory.getLogger(RemotingProtocolDecoder.class.getName() + ".in");
-    /**
+
+	/**
      * Data deserializer
      */
 	private Deserializer deserializer;
@@ -105,11 +102,7 @@ public class RemotingProtocolDecoder {
     protected Map<String, Object> readHeaders(IoBuffer in) {
 		int version = in.getUnsignedShort(); // skip the version
 		int count = in.getUnsignedShort();
-		if (log.isDebugEnabled()) {
-			log.debug("Skip headers");
-			log.debug("Version: {}", version);
-			log.debug("Count: {}", count);
-		}
+		log.debug("Read headers - version: {} count: {}", version, count);
 		if (count == 0) {
 			// No headers present
 			return Collections.EMPTY_MAP;
@@ -143,16 +136,12 @@ public class RemotingProtocolDecoder {
      * @return           List of pending calls
      */
 	protected List<RemotingCall> decodeCalls(IoBuffer in) {
-		if (log.isDebugEnabled()) {
-			log.debug("Decode calls");
-		}
+		log.debug("Decode calls");
 		//in.getInt();
 		List<RemotingCall> calls = new LinkedList<RemotingCall>();
 		org.red5.io.amf.Input input;
 		int count = in.getUnsignedShort();
-		if (log.isDebugEnabled()) {
-			log.debug("Calls: {}", count);
-		}
+		log.debug("Calls: {}", count);
 		int limit = in.limit();
 
 		// Loop over all the body elements

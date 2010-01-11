@@ -102,7 +102,7 @@ public class ServiceInvoker implements IServiceInvoker {
 	/** {@inheritDoc} */
 	public boolean invoke(IServiceCall call, IScope scope) {
 		String serviceName = call.getServiceName();
-		log.debug("Service name {}", serviceName);
+		log.trace("Service name {}", serviceName);
 		Object service = getServiceHandler(scope, serviceName);
 		if (service == null) {
 			// Exception must be thrown if service was not found
@@ -112,7 +112,7 @@ public class ServiceInvoker implements IServiceInvoker {
 			log.warn("Service not found: {}", serviceName);
 			return false;
 		} else {
-			log.debug("Service found: {}", serviceName);
+			log.trace("Service found: {}", serviceName);
 		}
 		// Invoke if everything is ok
 		return invoke(call, service);
@@ -123,7 +123,7 @@ public class ServiceInvoker implements IServiceInvoker {
 		IConnection conn = Red5.getConnectionLocal();		
 		String methodName = call.getServiceMethodName();
 		log.debug("Service: {} method name: {}", call.getServiceName(), methodName);
-		//remove any 'at' sign prefixes
+		//pull off the prefixes since java doesnt allow this on a method name
 		if (methodName.charAt(0) == '@') {
 			log.debug("Method name contained an illegal prefix, it will be removed: {}", methodName);
 			methodName = methodName.substring(1);

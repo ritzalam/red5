@@ -401,7 +401,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	// Object
 
 	/**
-	 * Creats a new instance of the className parameter and
+	 * Creates a new instance of the className parameter and
 	 * returns as an Object
 	 *
 	 * @param className        Class name as String

@@ -567,6 +567,16 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 					throw new RuntimeException("Classname is required to load an Externalizable object");
 				}
 				log.debug("Externalizable class: {}", className);
+				if (className.length() == 3) {
+				//check for special DS class aliases
+    				if ("DSA".equals(className)) {
+    					className = "org.red5.compatibility.flex.messaging.messages.AsyncMessageExt";
+    				} else if ("DSC".equals(className)) {
+    					className = "org.red5.compatibility.flex.messaging.messages.CommandMessageExt";
+    				} else if ("DSK".equals(className)) {
+    					className = "org.red5.compatibility.flex.messaging.messages.AcknowledgeMessageExt";					
+    				}
+				}
 				result = newInstance(className);
 				if (result == null) {
 					throw new RuntimeException(String.format("Could not instantiate class: %s", className));
@@ -774,6 +784,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		if (className.startsWith("flex.")) {
 			// Use Red5 compatibility class instead
 			className = "org.red5.compatibility." + className;
+			log.debug("Modified classname: {}", className);
 		}
 
 		return super.newInstance(className);
@@ -782,10 +793,10 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	/** {@inheritDoc} */
 	public Document readXML(Type target) {
 		int len = readAMF3Integer();
-		if (len == 1)
+		if (len == 1) {
 			// Empty string, should not happen
 			return null;
-
+		}
 		if ((len & 1) == 0) {
 			// Reference
 			return (Document) getReference(len >> 1);

@@ -1,5 +1,11 @@
 package org.red5.compatibility.flex.messaging.messages;
 
+import org.red5.io.amf3.ByteArray;
+import org.red5.io.amf3.IDataInput;
+import org.red5.io.utils.RandomGUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  *
@@ -32,16 +38,66 @@ public class CommandMessage extends AsyncMessage {
 
 	private static final long serialVersionUID = 8805045741686625945L;
 
-	public String messageRefType;
+	protected static byte OPERATION_FLAG = 1;
 	
+	public String messageRefType;
+
 	/** Command id to execute. */
-	public int operation;
+	public int operation = Constants.UNKNOWN_OPERATION;
 
 	/** {@inheritDoc} */
 	protected void addParameters(StringBuilder result) {
 		super.addParameters(result);
-		result.append(",messageRefType="+messageRefType);
-		result.append(",operation="+operation);
+		result.append(",messageRefType=");
+		result.append(messageRefType);
+		result.append(",operation=");
+		result.append(operation);
+	}
+
+	public int getOperation() {
+		return operation;
+	}
+
+	public void setOperation(int operation) {
+		this.operation = operation;
+	}
+
+	static Logger log = LoggerFactory.getLogger(CommandMessage.class);	
+	
+	@Override
+	public void readExternal(IDataInput in) {
+		super.readExternal(in);
+		short[] flagsArray = readFlags(in);
+		for (int i = 0; i < flagsArray.length; ++i) {
+			short flags = flagsArray[i];
+			log.warn("Unsigned byte: {}", flags);
+			short reservedPosition = 0;
+			if (i == 0) {
+				if ((flags & OPERATION_FLAG) != 0) {
+					Object obj = in.readObject();
+					log.warn("Operation object: {} name: {}", obj, obj.getClass().getName());
+					this.operation = ((Number) obj).intValue();
+				}
+				reservedPosition = 1;
+			}
+			if (flags >> reservedPosition == 0) {
+				continue;
+			}
+			for (short j = reservedPosition; j < 6; j = (short) (j + 1)) {
+				if ((flags >> j & 0x1) == 0) {
+					continue;
+				}
+				Object obj = in.readObject();
+				log.warn("Object2: {} name: {}", obj, obj.getClass().getName());
+				if (obj instanceof ByteArray) {
+					ByteArray ba = (ByteArray) obj;
+					byte[] arr = new byte[ba.length()];
+					ba.readBytes(arr);
+					log.warn("Array length: {} Data: {}", arr.length, RandomGUID.fromByteArray(arr));
+				}
+			}
+		}
+		log.warn("Operation: {}", operation);
 	}
 
 }
