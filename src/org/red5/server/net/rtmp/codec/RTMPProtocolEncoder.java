@@ -236,7 +236,7 @@ public class RTMPProtocolEncoder implements Constants, IEventEncoder {
     		// just get the current time ONCE per packet
     		long now = System.currentTimeMillis();
     		if (mapping == null || timestamp < mapping.getLastStreamTime()) {
-    			log.info("Resetting clock time ({}) to stream time ({})", now, timestamp);
+    			log.debug("Resetting clock time ({}) to stream time ({})", now, timestamp);
     			// either first time through, or time stamps were reset
     			mapping = new LiveTimestampMapping(now, timestamp);
     			rtmp.setLastTimestampMapping(channelId, mapping);
