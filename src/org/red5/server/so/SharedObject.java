@@ -284,13 +284,89 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 	 * Send update notification over data channel of RTMP connection
 	 */
 	protected void sendUpdates() {
-		//make the executor friendly
-		SOWorker worker = new SOWorker(this, ownerMessage, source, syncEvents);
-		//dont create the executor until we need it
-		if (executor == null) {
-			executor = Executors.newCachedThreadPool();
+		//get the current version
+		int currentVersion = getVersion();
+		//get the name
+		String name = getName();
+		//is it persistent
+		boolean persist = isPersistentObject();
+		//used for notifying owner / consumers
+		ConcurrentLinkedQueue<ISharedObjectEvent> events = new ConcurrentLinkedQueue<ISharedObjectEvent>();
+		//get owner events
+		ConcurrentLinkedQueue<ISharedObjectEvent> ownerEvents = ownerMessage.getEvents();
+		//get all current owner events 
+		do {
+    		ISharedObjectEvent soe = ownerEvents.poll();
+    		if (soe != null) {
+    			events.add(soe);
+    		}
+		} while (!ownerEvents.isEmpty());
+		//null out our ref
+		ownerEvents = null;
+		//
+		if (!events.isEmpty()) {
+			// Send update to "owner" of this update request
+			SharedObjectMessage syncOwner = new SharedObjectMessage(null, name, currentVersion, persist);
+			syncOwner.addEvents(events);
+			if (source != null) {
+				// Only send updates when issued through RTMP request
+				Channel channel = ((RTMPConnection) source).getChannel((byte) 3);
+				if (channel != null) {
+					//ownerMessage.acquire();
+					channel.write(syncOwner);
+					log.debug("Owner: {}", channel);
+				} else {
+					log.warn("No channel found for owner changes!?");
+				}
+			}
 		}
-		executor.execute(worker);
+		//clear owner events
+		events.clear();
+		//get all current sync events 
+		do {
+    		ISharedObjectEvent soe = syncEvents.poll();
+    		if (soe != null) {
+    			events.add(soe);
+    		}
+		} while (!syncEvents.isEmpty());
+		//tell all the listeners
+		if (!events.isEmpty()) {
+			//dont create the executor until we need it
+			if (executor == null) {
+				executor = Executors.newCachedThreadPool();
+			}
+			//get the listeners
+			Set<IEventListener> listeners = getListeners();
+			//updates all registered clients of this shared object
+			for (IEventListener listener : listeners) {
+				if (listener != source) {
+					if (listener instanceof RTMPConnection) {
+						//get the channel for so updates
+						final Channel channel = ((RTMPConnection) listener).getChannel((byte) 3);
+						//create a new sync message for every client to avoid
+						//concurrent access through multiple threads
+						final SharedObjectMessage syncMessage = new SharedObjectMessage(null, name, currentVersion, persist);
+						syncMessage.addEvents(events);
+						//create a worker
+						Runnable worker = new Runnable() {
+							public void run() {
+        						log.debug("Send to {}", channel);
+        						channel.write(syncMessage);
+							}
+						};
+						executor.execute(worker);
+					} else {
+						log.warn("Can't send sync message to unknown connection {}", listener);
+					}					
+				} else {
+					// Don't re-send update to active client
+					log.debug("Skipped {}", source);
+				}
+			}
+
+		}
+		//clear events
+		events.clear();							
 	}
 
 	/**
@@ -719,98 +795,6 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 	/** {@inheritDoc} */
 	public int getTotalSends() {
 		return sendStats.intValue();
-	}
-
-	private final static class SOWorker implements Runnable {
-
-		private SharedObject sharedObject;
-		private SharedObjectMessage ownerMessage;
-		private IEventListener source;
-		private ConcurrentLinkedQueue<ISharedObjectEvent> syncEvents;
-
-		public SOWorker(SharedObject sharedObject, SharedObjectMessage ownerMessage, IEventListener source,
-				ConcurrentLinkedQueue<ISharedObjectEvent> syncEvents) {
-			this.sharedObject = sharedObject;
-			this.ownerMessage = ownerMessage;
-			this.source = source;
-			this.syncEvents = syncEvents;
-		}
-
-		@Override
-		public void run() {
-    		//get the current version
-    		int currentVersion = sharedObject.getVersion();
-    		//
-    		boolean persist = sharedObject.isPersistentObject();
-    		//used for notifying owner / consumers
-    		ConcurrentLinkedQueue<ISharedObjectEvent> events = new ConcurrentLinkedQueue<ISharedObjectEvent>();
-    		//get owner events
-    		ConcurrentLinkedQueue<ISharedObjectEvent> ownerEvents = ownerMessage.getEvents();
-    		//get all current owner events 
-    		do {
-        		ISharedObjectEvent soe = ownerEvents.poll();
-        		if (soe != null) {
-        			events.add(soe);
-        		}
-    		} while (!ownerEvents.isEmpty());
-    		//null out our ref
-    		ownerEvents = null;
-    		//
-    		if (!events.isEmpty()) {
-    			// Send update to "owner" of this update request
-    			SharedObjectMessage syncOwner = new SharedObjectMessage(null, sharedObject.getName(), currentVersion, persist);
-    			syncOwner.addEvents(events);
-    			if (source != null) {
-    				// Only send updates when issued through RTMP request
-    				Channel channel = ((RTMPConnection) source).getChannel((byte) 3);
-    				if (channel != null) {
-    					//ownerMessage.acquire();
-    					channel.write(syncOwner);
-    					log.debug("Owner: {}", channel);
-    				} else {
-    					log.warn("No channel found for owner changes!?");
-    				}
-    			}
-    		}
-    		//clear owner events
-    		events.clear();
-    		//get all current sync events 
-    		do {
-        		ISharedObjectEvent soe = syncEvents.poll();
-        		if (soe != null) {
-        			events.add(soe);
-        		}
-    		} while (!syncEvents.isEmpty());
-    		//tell all the listeners
-    		if (!events.isEmpty()) {
-    			Set<IEventListener> listeners = sharedObject.getListeners();
-    			//updates all registered clients of this shared object
-    			for (IEventListener listener : listeners) {
-    				if (listener != source) {
-    					if (listener instanceof RTMPConnection) {
-    						// Create a new sync message for every client to avoid
-    						// concurrent access through multiple threads
-    						// TODO: perhaps we could cache the generated message
-    						SharedObjectMessage syncMessage = new SharedObjectMessage(null, sharedObject.getName(), currentVersion, persist);
-    						syncMessage.addEvents(events);
-    						//
-    						Channel channel = ((RTMPConnection) listener).getChannel((byte) 3);
-    						log.debug("Send to {}", channel);
-    						channel.write(syncMessage);
-    					} else {
-    						log.warn("Can't send sync message to unknown connection {}", listener);
-    					}					
-    				} else {
-    					// Don't re-send update to active client
-    					log.debug("Skipped {}", source);
-    				}
-    			}
-    
-    		}
-    		//clear events
-    		events.clear();			
-		}
-		
 	}
 	
 }
