@@ -715,19 +715,21 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 		listeners.clear();
 		syncEvents.clear();
 		ownerMessage.getEvents().clear();
-		//disable new tasks from being submitted
-		executor.shutdown(); 
-		try {
-			//wait a while for existing tasks to terminate
-			if (!executor.awaitTermination(250, TimeUnit.MILLISECONDS)) {
-				executor.shutdownNow(); // cancel currently executing tasks
-			}
-		} catch (InterruptedException ie) {
-			// re-cancel if current thread also interrupted
-			executor.shutdownNow();
-			// preserve interrupt status
-			Thread.currentThread().interrupt();
-		}		
+		if (executor != null) {
+    		//disable new tasks from being submitted
+    		executor.shutdown(); 
+    		try {
+    			//wait a while for existing tasks to terminate
+    			if (!executor.awaitTermination(250, TimeUnit.MILLISECONDS)) {
+    				executor.shutdownNow(); // cancel currently executing tasks
+    			}
+    		} catch (InterruptedException ie) {
+    			// re-cancel if current thread also interrupted
+    			executor.shutdownNow();
+    			// preserve interrupt status
+    			Thread.currentThread().interrupt();
+    		}		
+		}
 	}
 
 	/**
