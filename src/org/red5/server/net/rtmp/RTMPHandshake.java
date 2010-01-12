@@ -45,7 +45,10 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Jacinto Shy II (jacinto.m.shy@ieee.org)
  * @author Steven Zimmer (stevenlzimmer@gmail.com)
- * @author Paul Gregoire (mondain@gmail.com)
+ * @author Gavriloaie Eugen-Andrei
+ * @author Ari-Pekka Viitanen
+ * @author Paul Gregoire
+ * @author Tiago Jacobs 
  */
 public class RTMPHandshake implements IHandshake {
 
@@ -379,6 +382,8 @@ public class RTMPHandshake implements IHandshake {
 	//for old style handshake
 	public static final byte[] HANDSHAKE_PAD_BYTES = new byte[Constants.HANDSHAKE_SIZE - 4];
 	
+	protected static final Random random = new Random();
+
 	static {
 		//get security provider
 		Security.addProvider(new BouncyCastleProvider());		
@@ -390,8 +395,8 @@ public class RTMPHandshake implements IHandshake {
 	
 	private Mac hmacSHA256;
 
-	protected Random random = new Random();
-
+	private int digestOffset = 0;
+	
 	public RTMPHandshake() {
 		try {
 			hmacSHA256 = Mac.getInstance("HmacSHA256");
@@ -405,28 +410,31 @@ public class RTMPHandshake implements IHandshake {
 	public IoBuffer generateResponse(IoBuffer input) {
 		IoBuffer output = IoBuffer.allocate((Constants.HANDSHAKE_SIZE * 2) + 1);
 		input.mark();
-		input.position(input.position() + 4);
-		byte input4 = input.get();
-		input.reset();
-		input.mark();
-		byte[] newKeyPart = getNewKeyPart(input);
-		input.reset();
-		byte[] newKey = calculateHMAC_SHA256(newKeyPart, SECRET_KEY);
-		byte[] randBytes = new byte[Constants.HANDSHAKE_SIZE - 32];
-		random.nextBytes(randBytes);
-		byte[] hashedBytes = calculateHMAC_SHA256(randBytes, newKey);
-		byte[] byteChunk = new byte[Constants.HANDSHAKE_SIZE];
+		if (validateClient(input)) {
+			input.reset();
+			input.mark();
+			//byte[] newKeyPart = getNewKeyPart(input);			
+			byte[] newKeyPart = new byte[32];
+			input.position(digestOffset);
+			input.get(newKeyPart, 0, 32);			
+			input.reset();
+			byte[] newKey = calculateHMAC_SHA256(newKeyPart, SECRET_KEY);
+			byte[] randBytes = new byte[Constants.HANDSHAKE_SIZE - 32];
+			random.nextBytes(randBytes);
+			byte[] hashedBytes = calculateHMAC_SHA256(randBytes, newKey);
+			
+			byte[] byteChunk = new byte[Constants.HANDSHAKE_SIZE];
 
-		if (input4 != 0) {
 			System.arraycopy(randBytes, 0, byteChunk, 0, randBytes.length);
 			System.arraycopy(hashedBytes, 0, byteChunk, randBytes.length, hashedBytes.length);
+
+			output.put((byte) 0x03);
+			output.put(HANDSHAKE_SERVER_BYTES);
+			output.put(byteChunk);
+			output.flip();			
 		} else {
-			input.get(byteChunk);
+			//what shall we do if the client is not valid?
 		}
-		output.put((byte) 0x03);
-		output.put(HANDSHAKE_SERVER_BYTES);
-		output.put(byteChunk);
-		output.flip();
 		return output;
 	}
 
@@ -445,24 +453,71 @@ public class RTMPHandshake implements IHandshake {
 		return HANDSHAKE_SERVER_BYTES;
 	}
 
+	/*
 	protected byte[] getNewKeyPart(IoBuffer input) {
 		byte[] part = new byte[32];
+	
 		byte[] inputArray = new byte[input.remaining()];
 
 		input.get(inputArray, 0, input.remaining());
-		
-		//This method is broken by FP 10.0.32.18
-		//int index = ((inputArray[8]&0x0ff) + (inputArray[9]&0x0ff) + (inputArray[10]&0x0ff) + (inputArray[11]&0x0ff)) % 728 + 12;
-		
-		//Thanks to Gavriloaie Eugen-Andrei and Ari-Pekka Viitanen for the fix
+	
 		int index = 0;
 		if (inputArray[5] == 0 && inputArray[6] == 3 && inputArray[7] == 2) {
 			index = ((inputArray[772]&0x0ff) + (inputArray[773]&0x0ff) + (inputArray[774]&0x0ff) + (inputArray[775]&0x0ff)) % 728 + 776;
 		} else {
 			index = ((inputArray[8]&0x0ff) + (inputArray[9]&0x0ff) + (inputArray[10]&0x0ff) + (inputArray[11]&0x0ff)) % 728 + 12;
 		}
-		
+
 		System.arraycopy(inputArray, index, part, 0, 32);
+		
 		return part;
 	}
+	*/
+	
+	private boolean validateClient(IoBuffer input) {
+	    if (validateClientScheme(input, 0)) {
+	        //validationScheme = 0;
+	        return true;
+	    }
+	    if (validateClientScheme(input, 1)) {
+	        //validationScheme = 1;
+	        return true;
+	    }
+	    log.error("Unable to validate client");
+	    return false;
+	}
+	
+	private boolean validateClientScheme(IoBuffer input, int scheme) {
+		byte[] pBuffer = new byte[input.remaining()];
+
+		//put all the input bytes into our buffer
+		input.get(pBuffer, 0, input.remaining());
+
+		if (scheme == 0) {
+			digestOffset = ((pBuffer[772]&0x0ff) + (pBuffer[773]&0x0ff) + (pBuffer[774]&0x0ff) + (pBuffer[775]&0x0ff)) % 728 + 776;
+		} else if (scheme == 1) {
+			//digestOffset = ((pBuffer[8]&0x0ff) + (pBuffer[9]&0x0ff) + (pBuffer[10]&0x0ff) + (pBuffer[11]&0x0ff)) % 728 + 12;
+			digestOffset = ((pBuffer[8]&0x0ff) + (pBuffer[9]&0x0ff) + (pBuffer[10]&0x0ff) + (pBuffer[11]&0x0ff)) % 632 + 772;
+		}   
+		log.warn("Digest offset: {}", digestOffset);
+
+	    byte[] tempBuffer = new byte[Constants.HANDSHAKE_SIZE - 32];
+	    //memcpy(tempBuffer, pBuffer, clientDigestOffset);
+	    System.arraycopy(pBuffer, 0, tempBuffer, 0, digestOffset);
+	    //memcpy(tempBuffer + clientDigestOffset, pBuffer + clientDigestOffset + 32, Constants.HANDSHAKE_SIZE - clientDigestOffset - 32);
+	    System.arraycopy(pBuffer, digestOffset + 32, tempBuffer, digestOffset, Constants.HANDSHAKE_SIZE - digestOffset - 32);	    
+
+	    byte[] tempHash = calculateHMAC_SHA256(tempBuffer, SECRET_KEY);
+
+	    boolean result = true;
+	    for (int i = 0; i < 32; i++) {
+	        if (pBuffer[digestOffset + i] != tempHash[i]) {
+	            result = false;
+	            break;
+	        }
+	    }
+
+	    return result;
+	}	
+	
 }
