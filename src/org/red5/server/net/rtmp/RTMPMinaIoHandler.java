@@ -79,7 +79,10 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 		RTMPMinaConnection conn = createRTMPMinaConnection();
 		conn.setIoSession(session);
 		conn.setState(rtmp);
+		//add the connection
 		session.setAttribute(RTMPConnection.RTMP_CONNECTION_KEY, conn);
+		//add the handshake
+		session.setAttribute(RTMPConnection.RTMP_HANDSHAKE, new RTMPHandshake());
 	}
 
 	/** {@inheritDoc} */
@@ -92,7 +95,9 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 			log.debug("Handshake 1st phase");
 			IoBuffer out = IoBuffer.allocate(Constants.HANDSHAKE_SIZE + 1);
 			out.put((byte) 0x03);
-			out.put(RTMPHandshake.getHandshakeBytes());
+			//get the handshake from the session
+			RTMPHandshake shake = (RTMPHandshake) session.getAttribute(RTMPConnection.RTMP_HANDSHAKE);
+			out.put(shake.getHandshakeBytes());
 			out.flip();
 			session.write(out);
 		} else {
@@ -109,6 +114,8 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 		this.handler.connectionClosed(conn, rtmp);
 		session.removeAttribute(ProtocolState.SESSION_KEY);
 		session.removeAttribute(RTMPConnection.RTMP_CONNECTION_KEY);
+		//remove the handshake if not already done
+		session.removeAttribute(RTMPConnection.RTMP_HANDSHAKE);
 		rtmpConnManager.removeConnection(conn.getId());
 	}
 
@@ -148,8 +155,9 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 					out.put(RTMPHandshake.HANDSHAKE_PAD_BYTES).put(in).flip();
 				} else {
 					log.debug("Using new style handshake");
-					RTMPHandshake shake = new RTMPHandshake();
-					out = shake.generateResponse(in);
+					//get handshake from the session
+					RTMPHandshake shake = (RTMPHandshake) session.getAttribute(RTMPConnection.RTMP_HANDSHAKE);
+					out = shake.generateResponse(in);					
 				}
 				if (log.isTraceEnabled()) {
 					byte[] bOut = out.array();
@@ -159,6 +167,9 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 				// Skip first 8 bytes when comparing the handshake, they seem to
 				// be changed when connecting from a Mac client.
 				rtmp.setHandshake(out, 9, Constants.HANDSHAKE_SIZE - 8);
+				
+				//remove the handshake from the session - clean up
+				session.removeAttribute(RTMPConnection.RTMP_HANDSHAKE);
 			} else {
 				log.debug("Handshake 3d phase - size: {}", in.remaining());
 				in.skip(1);

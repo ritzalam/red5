@@ -77,6 +77,8 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 
 	public static final String RTMP_CONNECTION_KEY = "rtmp.conn";
 
+	public static final String RTMP_HANDSHAKE = "rtmp.handshake";
+
 	/**
 	 * Connection channels
 	 * 
