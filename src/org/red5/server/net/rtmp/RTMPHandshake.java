@@ -363,22 +363,27 @@ public class RTMPHandshake implements IHandshake {
 			(byte) 0xce, (byte) 0xd0, (byte) 0x46, (byte) 0xcf, (byte) 0xc4,
 			(byte) 0x9d, (byte) 0x09, (byte) 0x49, (byte) 0x24, (byte) 0xec, };
 
-	private static final byte[] SECRET_KEY = { (byte) 0x47, (byte) 0x65,
-			(byte) 0x6e, (byte) 0x75, (byte) 0x69, (byte) 0x6e, (byte) 0x65,
-			(byte) 0x20, (byte) 0x41, (byte) 0x64, (byte) 0x6f, (byte) 0x62,
-			(byte) 0x65, (byte) 0x20, (byte) 0x46, (byte) 0x6c, (byte) 0x61,
-			(byte) 0x73, (byte) 0x68, (byte) 0x20, (byte) 0x4d, (byte) 0x65,
-			(byte) 0x64, (byte) 0x69, (byte) 0x61, (byte) 0x20, (byte) 0x53,
-			(byte) 0x65, (byte) 0x72, (byte) 0x76, (byte) 0x65, (byte) 0x72,
-			(byte) 0x20, (byte) 0x30, (byte) 0x30, (byte) 0x31, (byte) 0xf0,
-			(byte) 0xee, (byte) 0xc2, (byte) 0x4a, (byte) 0x80, (byte) 0x68,
-			(byte) 0xbe, (byte) 0xe8, (byte) 0x2e, (byte) 0x00, (byte) 0xd0,
-			(byte) 0xd1, (byte) 0x02, (byte) 0x9e, (byte) 0x7e, (byte) 0x57,
-			(byte) 0x6e, (byte) 0xec, (byte) 0x5d, (byte) 0x2d, (byte) 0x29,
-			(byte) 0x80, (byte) 0x6f, (byte) 0xab, (byte) 0x93, (byte) 0xb8,
-			(byte) 0xe6, (byte) 0x36, (byte) 0xcf, (byte) 0xeb, (byte) 0x31,
-			(byte) 0xae };
+	private static final byte[] GENUINE_FMS_KEY = {
+		(byte) 0x47, (byte) 0x65, (byte) 0x6e, (byte) 0x75, (byte) 0x69, (byte) 0x6e, (byte) 0x65, (byte) 0x20,
+		(byte) 0x41, (byte) 0x64, (byte) 0x6f, (byte) 0x62, (byte) 0x65, (byte) 0x20, (byte) 0x46, (byte) 0x6c,
+		(byte) 0x61, (byte) 0x73, (byte) 0x68, (byte) 0x20, (byte) 0x4d, (byte) 0x65, (byte) 0x64, (byte) 0x69,
+		(byte) 0x61, (byte) 0x20, (byte) 0x53, (byte) 0x65, (byte) 0x72, (byte) 0x76, (byte) 0x65, (byte) 0x72,
+		(byte) 0x20, (byte) 0x30, (byte) 0x30, (byte) 0x31, // Genuine Adobe Flash Media Server 001
+		(byte) 0xf0, (byte) 0xee, (byte) 0xc2, (byte) 0x4a, (byte) 0x80, (byte) 0x68, (byte) 0xbe, (byte) 0xe8,
+		(byte) 0x2e, (byte) 0x00, (byte) 0xd0, (byte) 0xd1, (byte) 0x02, (byte) 0x9e, (byte) 0x7e, (byte) 0x57,
+		(byte) 0x6e, (byte) 0xec, (byte) 0x5d, (byte) 0x2d, (byte) 0x29, (byte) 0x80, (byte) 0x6f, (byte) 0xab,
+		(byte) 0x93, (byte) 0xb8, (byte) 0xe6, (byte) 0x36, (byte) 0xcf, (byte) 0xeb, (byte) 0x31, (byte) 0xae};
 
+	private static final byte[] GENUINE_FP_KEY = {
+		(byte) 0x47, (byte) 0x65, (byte) 0x6E, (byte) 0x75, (byte) 0x69, (byte) 0x6E, (byte) 0x65, (byte) 0x20,
+		(byte) 0x41, (byte) 0x64, (byte) 0x6F, (byte) 0x62, (byte) 0x65, (byte) 0x20, (byte) 0x46, (byte) 0x6C,
+		(byte) 0x61, (byte) 0x73, (byte) 0x68, (byte) 0x20, (byte) 0x50, (byte) 0x6C, (byte) 0x61, (byte) 0x79,
+		(byte) 0x65, (byte) 0x72, (byte) 0x20, (byte) 0x30, (byte) 0x30, (byte) 0x31, // Genuine Adobe Flash Player 001
+		(byte) 0xF0, (byte) 0xEE, (byte) 0xC2, (byte) 0x4A, (byte) 0x80, (byte) 0x68, (byte) 0xBE, (byte) 0xE8,
+		(byte) 0x2E, (byte) 0x00, (byte) 0xD0, (byte) 0xD1, (byte) 0x02, (byte) 0x9E, (byte) 0x7E, (byte) 0x57,
+		(byte) 0x6E, (byte) 0xEC, (byte) 0x5D, (byte) 0x2D, (byte) 0x29, (byte) 0x80, (byte) 0x6F, (byte) 0xAB,
+		(byte) 0x93, (byte) 0xB8, (byte) 0xE6, (byte) 0x36, (byte) 0xCF, (byte) 0xEB, (byte) 0x31, (byte) 0xAE};
+	
 	//for old style handshake
 	public static final byte[] HANDSHAKE_PAD_BYTES = new byte[Constants.HANDSHAKE_SIZE - 4];
 	
@@ -418,7 +423,7 @@ public class RTMPHandshake implements IHandshake {
 			input.position(digestOffset);
 			input.get(newKeyPart, 0, 32);			
 			input.reset();
-			byte[] newKey = calculateHMAC_SHA256(newKeyPart, SECRET_KEY);
+			byte[] newKey = calculateHMAC_SHA256(newKeyPart, GENUINE_FP_KEY);
 			byte[] randBytes = new byte[Constants.HANDSHAKE_SIZE - 32];
 			random.nextBytes(randBytes);
 			byte[] hashedBytes = calculateHMAC_SHA256(randBytes, newKey);
@@ -434,6 +439,7 @@ public class RTMPHandshake implements IHandshake {
 			output.flip();			
 		} else {
 			//what shall we do if the client is not valid?
+			log.warn("Invalid client connection detected");
 		}
 		return output;
 	}
@@ -477,10 +483,12 @@ public class RTMPHandshake implements IHandshake {
 	private boolean validateClient(IoBuffer input) {
 	    if (validateClientScheme(input, 0)) {
 	        //validationScheme = 0;
+			log.debug("Selected scheme: 0");
 	        return true;
 	    }
 	    if (validateClientScheme(input, 1)) {
 	        //validationScheme = 1;
+			log.debug("Selected scheme: 1");
 	        return true;
 	    }
 	    log.error("Unable to validate client");
@@ -493,13 +501,17 @@ public class RTMPHandshake implements IHandshake {
 		//put all the input bytes into our buffer
 		input.get(pBuffer, 0, input.remaining());
 
-		if (scheme == 0) {
-			digestOffset = ((pBuffer[772]&0x0ff) + (pBuffer[773]&0x0ff) + (pBuffer[774]&0x0ff) + (pBuffer[775]&0x0ff)) % 728 + 776;
-		} else if (scheme == 1) {
-			//digestOffset = ((pBuffer[8]&0x0ff) + (pBuffer[9]&0x0ff) + (pBuffer[10]&0x0ff) + (pBuffer[11]&0x0ff)) % 728 + 12;
-			digestOffset = ((pBuffer[8]&0x0ff) + (pBuffer[9]&0x0ff) + (pBuffer[10]&0x0ff) + (pBuffer[11]&0x0ff)) % 632 + 772;
+		switch (scheme) {
+			case 0:
+				digestOffset = getDigestOffset0(pBuffer);
+				break;
+			case 1:
+				digestOffset = getDigestOffset1(pBuffer);
+				break;
+			default:
+				log.error("Unknown scheme: {}", scheme);
 		}   
-		log.warn("Digest offset: {}", digestOffset);
+		log.debug("Scheme: {} digest offset: {}", scheme, digestOffset);
 
 	    byte[] tempBuffer = new byte[Constants.HANDSHAKE_SIZE - 32];
 	    //memcpy(tempBuffer, pBuffer, clientDigestOffset);
@@ -507,7 +519,7 @@ public class RTMPHandshake implements IHandshake {
 	    //memcpy(tempBuffer + clientDigestOffset, pBuffer + clientDigestOffset + 32, Constants.HANDSHAKE_SIZE - clientDigestOffset - 32);
 	    System.arraycopy(pBuffer, digestOffset + 32, tempBuffer, digestOffset, Constants.HANDSHAKE_SIZE - digestOffset - 32);	    
 
-	    byte[] tempHash = calculateHMAC_SHA256(tempBuffer, SECRET_KEY);
+	    byte[] tempHash = calculateHMAC_SHA256(tempBuffer, GENUINE_FP_KEY);
 
 	    boolean result = true;
 	    for (int i = 0; i < 32; i++) {
@@ -519,5 +531,25 @@ public class RTMPHandshake implements IHandshake {
 
 	    return result;
 	}	
+	
+	private int getDigestOffset0(byte[] pBuffer) {
+		int offset = (pBuffer[8] & 0x0ff) + (pBuffer[9] & 0x0ff) + (pBuffer[10] & 0x0ff) + (pBuffer[11] & 0x0ff);
+	    offset = offset % 728;
+	    offset = offset + 12;
+	    if (offset + 32 >= 1536) {
+	        log.error("Invalid digest offset");
+	    }
+	    return offset;
+	}
+
+	private int getDigestOffset1(byte[] pBuffer) {
+		int offset = (pBuffer[772] & 0x0ff) + (pBuffer[773] & 0x0ff) + (pBuffer[774] & 0x0ff) + (pBuffer[775] & 0x0ff);
+	    offset = offset % 728;
+	    offset = offset + 776;
+	    if (offset + 32 >= 1536) {
+	        log.error("Invalid digest offset");
+	    }
+	    return offset;
+	}
 	
 }
