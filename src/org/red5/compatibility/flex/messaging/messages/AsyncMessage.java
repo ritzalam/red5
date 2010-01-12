@@ -1,6 +1,7 @@
 package org.red5.compatibility.flex.messaging.messages;
 
 import org.red5.io.amf3.IDataInput;
+import org.red5.io.amf3.IDataOutput;
 import org.red5.io.utils.RandomGUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +30,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
+ * @author Paul Gregoire (mondain@gmail.com) 
  */
 public class AsyncMessage extends AbstractMessage {
 
@@ -86,6 +88,28 @@ public class AsyncMessage extends AbstractMessage {
 				}
 				in.readObject();
 			}
+		}
+	}	
+	
+	@Override
+	public void writeExternal(IDataOutput output) {
+   		super.writeExternal(output);
+		if (this.correlationIdBytes == null) {
+			this.correlationIdBytes = RandomGUID.toByteArray(this.correlationId);
+		}
+		short flags = 0;
+		if ((this.correlationId != null) && (this.correlationIdBytes == null)) {
+			flags = (short) (flags | CORRELATION_ID_FLAG);
+		}
+		if (this.correlationIdBytes != null) {
+			flags = (short) (flags | CORRELATION_ID_BYTES_FLAG);
+		}
+		output.writeByte((byte) flags);
+		if ((this.correlationId != null) && (this.correlationIdBytes == null)) {
+			output.writeObject(this.correlationId);
+		}
+		if (this.correlationIdBytes != null) {
+			output.writeObject(this.correlationIdBytes);
 		}
 	}	
 	

@@ -91,7 +91,7 @@ public class Serializer {
 		}
 
 		if (!writeComplex(out, value)) {
-			log.debug("Unable to serialize: " + value);
+			log.debug("Unable to serialize: {}", value);
 		}
 	}
 
@@ -361,12 +361,20 @@ public class Serializer {
 
 	public String getClassName(Class<?> objectClass) {
 		RemoteClass annotation = objectClass.getAnnotation(RemoteClass.class);
-		if (annotation != null) return annotation.alias();
-
+		if (annotation != null) {
+			return annotation.alias();
+		}
 		String className = objectClass.getName();
 		if (className.startsWith("org.red5.compatibility.")) {
 			// Strip compatibility prefix from classname
 			className = className.substring(23);
+			if ("flex.messaging.messages.AsyncMessageExt".equals(className)) {
+				className = "DSA";
+			} else if ("flex.messaging.messages.CommandMessageExt".equals(className)) {
+				className = "DSC";
+			} else if ("flex.messaging.messages.AcknowledgeMessageExt".equals(className)) {
+				className = "DSK";
+			}
 		}
 
 		return className;

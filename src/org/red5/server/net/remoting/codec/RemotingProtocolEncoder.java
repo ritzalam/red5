@@ -101,9 +101,7 @@ public class RemotingProtocolEncoder {
 		
 		buf.putShort((short) resp.getCalls().size()); // write the number of bodies
 		for (RemotingCall call: resp.getCalls()) {
-			if (log.isDebugEnabled()) {
-				log.debug("Call");
-			}
+			log.debug("Call");
 			Output.putString(buf, call.getClientResponse());
 			if (!call.isMessaging) {
 				Output.putString(buf, "null");
@@ -111,9 +109,7 @@ public class RemotingProtocolEncoder {
 				Output.putString(buf, "");
 			}
 			buf.putInt(-1);
-			if (log.isDebugEnabled()) {
-				log.info("result:" + call.getResult());
-			}
+			log.info("result: {}", call.getResult());
 			if (call.isAMF3) {
 				output = new org.red5.io.amf3.Output(buf);
 			} else {
@@ -142,7 +138,7 @@ public class RemotingProtocolEncoder {
 		//buf.compact();
 		buf.flip();
 		if (log.isDebugEnabled()) {
-			log.debug(">>" + buf.getHexDump());
+			log.debug(">>{}", buf.getHexDump());
 		}
 		return buf;
 

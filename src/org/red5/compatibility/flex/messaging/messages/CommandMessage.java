@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author The Red5 Project (red5@osflash.org)
  * @author Joachim Bauch (jojo@struktur.de)
+ * @author Paul Gregoire (mondain@gmail.com) 
  */
 public class CommandMessage extends AsyncMessage {
 
@@ -70,12 +71,12 @@ public class CommandMessage extends AsyncMessage {
 		short[] flagsArray = readFlags(in);
 		for (int i = 0; i < flagsArray.length; ++i) {
 			short flags = flagsArray[i];
-			log.warn("Unsigned byte: {}", flags);
+			log.debug("Unsigned byte: {}", flags);
 			short reservedPosition = 0;
 			if (i == 0) {
 				if ((flags & OPERATION_FLAG) != 0) {
 					Object obj = in.readObject();
-					log.warn("Operation object: {} name: {}", obj, obj.getClass().getName());
+					log.debug("Operation object: {} name: {}", obj, obj.getClass().getName());
 					this.operation = ((Number) obj).intValue();
 				}
 				reservedPosition = 1;
@@ -88,16 +89,16 @@ public class CommandMessage extends AsyncMessage {
 					continue;
 				}
 				Object obj = in.readObject();
-				log.warn("Object2: {} name: {}", obj, obj.getClass().getName());
+				log.debug("Object2: {} name: {}", obj, obj.getClass().getName());
 				if (obj instanceof ByteArray) {
 					ByteArray ba = (ByteArray) obj;
 					byte[] arr = new byte[ba.length()];
 					ba.readBytes(arr);
-					log.warn("Array length: {} Data: {}", arr.length, RandomGUID.fromByteArray(arr));
+					log.debug("Array length: {} Data: {}", arr.length, RandomGUID.fromByteArray(arr));
 				}
 			}
 		}
-		log.warn("Operation: {}", operation);
+		log.debug("Operation: {}", operation);
 	}
 
 }

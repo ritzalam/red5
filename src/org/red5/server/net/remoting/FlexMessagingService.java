@@ -31,8 +31,11 @@ import org.red5.compatibility.flex.data.messages.DataMessage;
 import org.red5.compatibility.flex.data.messages.SequencedMessage;
 import org.red5.compatibility.flex.messaging.messages.AbstractMessage;
 import org.red5.compatibility.flex.messaging.messages.AcknowledgeMessage;
+import org.red5.compatibility.flex.messaging.messages.AcknowledgeMessageExt;
 import org.red5.compatibility.flex.messaging.messages.AsyncMessage;
+import org.red5.compatibility.flex.messaging.messages.AsyncMessageExt;
 import org.red5.compatibility.flex.messaging.messages.CommandMessage;
+import org.red5.compatibility.flex.messaging.messages.CommandMessageExt;
 import org.red5.compatibility.flex.messaging.messages.Constants;
 import org.red5.compatibility.flex.messaging.messages.ErrorMessage;
 import org.red5.compatibility.flex.messaging.messages.Message;
@@ -83,7 +86,7 @@ public class FlexMessagingService {
 	 */
 	public void setEndpoints(Map<String, Object> endpoints) {
 		this.endpoints = endpoints;
-		log.info("Configured endpoints: " + endpoints);
+		log.info("Configured endpoints: {}", endpoints);
 	}
 
 	/**
@@ -227,6 +230,64 @@ public class FlexMessagingService {
 	}
 
 	/**
+	 * Handle command message (external) request.
+	 * 
+	 * @param msg message
+	 * @return message
+	 */
+	public Message handleRequest(CommandMessageExt msg) {
+		log.debug("Handle CommandMessageExt request");
+		log.trace("{}", msg);
+		setClientId(msg);
+		String clientId = msg.getClientId();
+		
+		//process messages to non-service adapter end-points
+		switch (msg.operation) {
+			case Constants.POLL_OPERATION: //2
+				//send back modifications
+				log.debug("Poll: {}", clientId);
+				//send back stored updates for this client
+				if (registrations.containsKey(clientId)) {
+					ServiceAdapter adapter = registrations.get(clientId);
+					if (adapter != null) {
+						CommandMessage result = new CommandMessage();	
+						result.setOperation(msg.getOperation());						
+						//this will be the body of the responding command message
+						AsyncMessageExt ext = new AsyncMessageExt();
+						ext.setClientId(clientId);
+						ext.setCorrelationId(msg.getMessageId());
+						ext.setDestination("Red5Chat");
+						ext.setBody(adapter.manage(msg));
+						//grab any headers
+						Map<String, Object> headers = msg.getHeaders();
+						log.debug("Headers: {}", headers);
+						if (headers.containsKey(Message.FLEX_CLIENT_ID_HEADER)) {
+							headers.put(Message.FLEX_CLIENT_ID_HEADER, msg.getClientId());
+						}
+						ext.setHeaders(headers);
+						//add as a child (body) of the command message
+						result.setBody(ext);
+					
+						return result;
+					} else {
+						log.warn("Adapter was not available");
+					}
+				}
+				break;		
+			default:
+				log.error("Unhandled CommandMessageExt request: {}", msg);
+				String errMsg = String.format("Don't know how to handle %s", msg);
+				return returnError(msg, "notImplemented", errMsg, errMsg);
+		}
+		
+		AcknowledgeMessageExt result = new AcknowledgeMessageExt();
+		result.setClientId(clientId);
+		result.setCorrelationId(msg.getMessageId());		
+
+		return result;		
+	}
+	
+	/**
 	 * Handle command message request.
 	 * 
 	 * @param msg message
@@ -252,9 +313,9 @@ public class FlexMessagingService {
 		result.setHeaders(headers);
 		
 		// put destination in ack if it exists
-		String destination = msg.destination;
+		String destination = msg.getDestination();
 		if (StringUtils.isNotBlank(destination)) {
-			result.destination = destination;
+			result.setDestination(destination);
 		}
 		//process messages to non-service adapter end-points
 		switch (msg.operation) {
@@ -299,14 +360,14 @@ public class FlexMessagingService {
 				// Send back registration ok
 				break;
 
-			case Constants.UNSUBSCRIBE_OPERATION:
+			case Constants.UNSUBSCRIBE_OPERATION: //1
 				log.trace("Unsubscribe: {}", clientId);
 				if (registrations.containsKey(clientId)) {
-					unregisterClientFromAdapter(clientId);
 					ServiceAdapter adapter = registrations.get(clientId);
 					boolean unsubscribed = ((Boolean) adapter.manage(msg));
 					if (unsubscribed) {
 						log.debug("Client was unsubscribed");
+						unregisterClientFromAdapter(clientId);
 					} else {
 						log.debug("Client was not unsubscribed");
 					}
@@ -435,7 +496,11 @@ public class FlexMessagingService {
 			//get the adapter
 			ServiceAdapter adapter = (ServiceAdapter) endpoint;
 			//the result of the invocation will make up the message body
-			result.body = adapter.invoke(msg);		
+			AsyncMessageExt ext = new AsyncMessageExt();
+			ext.setCorrelationId(msg.getMessageId());
+			ext.setBody(adapter.invoke(msg));
+			//
+			result.setBody(ext);
 			return result;
     	} else {
     		log.error("Unknown Flex compatibility request: {}", msg);
@@ -450,16 +515,17 @@ public class FlexMessagingService {
 	 * @param msg
 	 */
 	private void setClientId(AbstractMessage msg) {
-		if (msg.clientId == null) {
+		String clientId = msg.getClientId();
+		if (clientId == null || "null".equals(clientId)) {
 			log.trace("Dump: {}", msg);
 			//use the connection client id before creating a new one
 			IClient client = Red5.getConnectionLocal().getClient();
 			if (client != null) {
 				//should we format it?
-				String clientId = client.getId();
-				msg.clientId = RandomGUID.getPrettyFormatted(clientId);
+				clientId = client.getId();
+				msg.setClientId(RandomGUID.getPrettyFormatted(clientId));
 			} else {
-				msg.clientId = new RandomGUID().toString();
+				msg.setClientId(new RandomGUID().toString());
 			}
 		}
 	}

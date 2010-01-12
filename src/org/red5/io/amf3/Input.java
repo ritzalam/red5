@@ -568,14 +568,8 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 				}
 				log.debug("Externalizable class: {}", className);
 				if (className.length() == 3) {
-				//check for special DS class aliases
-    				if ("DSA".equals(className)) {
-    					className = "org.red5.compatibility.flex.messaging.messages.AsyncMessageExt";
-    				} else if ("DSC".equals(className)) {
-    					className = "org.red5.compatibility.flex.messaging.messages.CommandMessageExt";
-    				} else if ("DSK".equals(className)) {
-    					className = "org.red5.compatibility.flex.messaging.messages.AcknowledgeMessageExt";					
-    				}
+					//check for special DS class aliases
+					className = classAliases.get(className);
 				}
 				result = newInstance(className);
 				if (result == null) {
@@ -786,7 +780,6 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 			className = "org.red5.compatibility." + className;
 			log.debug("Modified classname: {}", className);
 		}
-
 		return super.newInstance(className);
 	}
 

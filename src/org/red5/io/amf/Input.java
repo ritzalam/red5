@@ -55,10 +55,19 @@ import org.w3c.dom.Document;
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
  */
+@SuppressWarnings("serial")
 public class Input extends BaseInput implements org.red5.io.object.Input {
 
 	protected static Logger log = LoggerFactory.getLogger(Input.class);
 
+	protected static Map<String, String> classAliases = new HashMap<String, String>(3) {
+		{
+			put("DSA", "org.red5.compatibility.flex.messaging.messages.AsyncMessageExt");
+			put("DSC", "org.red5.compatibility.flex.messaging.messages.CommandMessageExt");
+			put("DSK", "org.red5.compatibility.flex.messaging.messages.AcknowledgeMessageExt");
+		}	
+	};
+	
 	protected IoBuffer buf;
 
 	protected byte currentDataType;
@@ -414,6 +423,10 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 		if ("".equals(className) || className == null)
 			return instance;
 		try {
+			//check for special DS class aliases
+			if (className.length() == 3) {
+				className = classAliases.get(className);
+			}
 			Class<?> clazz = Thread.currentThread().getContextClassLoader().loadClass(className);
 			instance = clazz.newInstance();
 		} catch (Exception ex) {

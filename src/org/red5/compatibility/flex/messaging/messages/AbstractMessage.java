@@ -198,7 +198,7 @@ public class AbstractMessage implements Message, Serializable {
 		int i = 0;
 		while (hasNextFlag) {
 			short flags = (short) input.readUnsignedByte();
-			log.warn("Unsigned byte: {}", flags);
+			log.debug("Unsigned byte: {}", flags);
 			if (i == flagsArray.length) {
 				short[] tempArray = new short[i * 2];
 				System.arraycopy(flagsArray, 0, tempArray, 0, flagsArray.length);
@@ -212,7 +212,7 @@ public class AbstractMessage implements Message, Serializable {
 			}
 			++i;
 		}
-		log.warn("Flag count: {}", flagsArray.length);
+		log.debug("Flag count: {}", flagsArray.length);
 		return flagsArray;
 	}	
 	
@@ -225,43 +225,43 @@ public class AbstractMessage implements Message, Serializable {
 			if (i == 0) {				
 				if ((flags & 0x1) != 0) {
 					Object obj = input.readObject();
-					log.warn("Body object: {} name: {}", obj, obj.getClass().getName());
+					log.debug("Body object: {} name: {}", obj, obj.getClass().getName());
 
 					this.body = obj;
 				}
 				if ((flags & 0x2) != 0) {
 					Object obj = input.readObject();
-					log.warn("Client id object: {} name: {}", obj, obj.getClass().getName());
+					log.debug("Client id object: {} name: {}", obj, obj.getClass().getName());
 
 					this.clientId = ((String) obj);
 				}
 				if ((flags & 0x4) != 0) {
 					Object obj = input.readObject();
-					log.warn("Destination object: {} name: {}", obj, obj.getClass().getName());
+					log.debug("Destination object: {} name: {}", obj, obj.getClass().getName());
 
 					this.destination = ((String) obj);
 				}
 				if ((flags & 0x8) != 0) {
 					Object obj = input.readObject();
-					log.warn("Headers object: {} name: {}", obj, obj.getClass().getName());
+					log.debug("Headers object: {} name: {}", obj, obj.getClass().getName());
 
 					this.headers = ((Map) obj);
 				}
 				if ((flags & 0x10) != 0) {
 					Object obj = input.readObject();
-					log.warn("Message id object: {} name: {}", obj, obj.getClass().getName());
+					log.debug("Message id object: {} name: {}", obj, obj.getClass().getName());
 
 					this.messageId = ((String) obj);
 				}
 				if ((flags & 0x20) != 0) {
 					Object obj = input.readObject();
-					log.warn("Timestamp object: {} name: {}", obj, obj.getClass().getName());
+					log.debug("Timestamp object: {} name: {}", obj, obj.getClass().getName());
 
 					this.timestamp = ((Number) obj).longValue();
 				}
 				if ((flags & 0x40) != 0) {
 					Object obj = input.readObject();
-					log.warn("TTL object: {} name: {}", obj, obj.getClass().getName());
+					log.debug("TTL object: {} name: {}", obj, obj.getClass().getName());
 
 					this.timeToLive = ((Number) obj).longValue();
 				}
@@ -269,7 +269,7 @@ public class AbstractMessage implements Message, Serializable {
 			} else if (i == 1) {
 				if ((flags & 0x1) != 0) {
 					Object obj = input.readObject();
-					log.warn("Client id (bytes) object: {} name: {}", obj, obj.getClass().getName());
+					log.debug("Client id (bytes) object: {} name: {}", obj, obj.getClass().getName());
 					if (obj instanceof ByteArray) {
 						ByteArray ba = (ByteArray) obj;
 						this.clientIdBytes = new byte[ba.length()];
@@ -279,7 +279,7 @@ public class AbstractMessage implements Message, Serializable {
 				}
 				if ((flags & 0x2) != 0) {
 					Object obj = input.readObject();
-					log.warn("Message id (bytes) object: {} name: {}", obj, obj.getClass().getName());										
+					log.debug("Message id (bytes) object: {} name: {}", obj, obj.getClass().getName());										
 					if (obj instanceof ByteArray) {
 						ByteArray ba = (ByteArray) obj;
 						this.messageIdBytes = new byte[ba.length()];
