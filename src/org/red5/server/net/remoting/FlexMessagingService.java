@@ -154,7 +154,6 @@ public class FlexMessagingService {
 	 * @param msg message
 	 * @return aynsc message
 	 */
-	@SuppressWarnings("rawtypes")
 	public AsyncMessage handleRequest(RemotingMessage msg) {
 		log.debug("Handle RemotingMessage request");
 		log.trace("{}", msg);
@@ -465,7 +464,6 @@ public class FlexMessagingService {
 	 * @param msg message
 	 * @return error message
 	 */
-	@SuppressWarnings("rawtypes")
 	public Message handleRequest(AbstractMessage msg) {
 		log.debug("Handle AbstractMessage request");
 		log.trace("{}", msg);

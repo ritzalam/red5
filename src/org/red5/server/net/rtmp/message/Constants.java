@@ -23,7 +23,6 @@ package org.red5.server.net.rtmp.message;
 /**
  * Class for AMF and RTMP marker values constants
  */
-@SuppressWarnings("serial")
 public interface Constants {
 
 	/**

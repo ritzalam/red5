@@ -40,6 +40,7 @@ import javax.crypto.spec.SecretKeySpec;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.red5.server.api.Red5;
 import org.red5.server.net.IHandshake;
 import org.red5.server.net.rtmp.message.Constants;
 import org.slf4j.Logger;
@@ -66,7 +67,7 @@ public class RTMPHandshake implements IHandshake {
 	protected static Logger log = LoggerFactory.getLogger(RTMPHandshake.class);	
 
 	//for old style handshake
-	public static final byte[] HANDSHAKE_PAD_BYTES = new byte[Constants.HANDSHAKE_SIZE - 4];
+	public static byte[] HANDSHAKE_PAD_BYTES;
 	
 	private static final byte[] GENUINE_FMS_KEY = {
 		(byte) 0x47, (byte) 0x65, (byte) 0x6e, (byte) 0x75, (byte) 0x69, (byte) 0x6e, (byte) 0x65, (byte) 0x20,
@@ -117,10 +118,6 @@ public class RTMPHandshake implements IHandshake {
 	static {
 		//get security provider
 		Security.addProvider(new BouncyCastleProvider());		
-		//fill pad bytes
-		for (int b = 0; b < HANDSHAKE_PAD_BYTES.length; b++) {
-			HANDSHAKE_PAD_BYTES[b] = (byte) 0x00;
-		}
 	}
 	
 	private Mac hmacSHA256;
@@ -144,7 +141,38 @@ public class RTMPHandshake implements IHandshake {
 		//create our server handshake bytes
 		createServerHandshakeBytes();
 	}
+	
+	/**
+	 * Generates response for non-versioned connections, such as those before FP9.
+	 * 
+	 * @param input incoming RTMP bytes
+	 * @return outgoing handshake
+	 */
+	public IoBuffer generateUnversionedResponse(IoBuffer input) {
+		//save resource by only doing this after the first request
+		if (HANDSHAKE_PAD_BYTES == null) {
+    		HANDSHAKE_PAD_BYTES = new byte[Constants.HANDSHAKE_SIZE - 4];
+    		//fill pad bytes
+    		for (int b = 0; b < HANDSHAKE_PAD_BYTES.length; b++) {
+    			HANDSHAKE_PAD_BYTES[b] = (byte) 0x00;
+    		}
+		}
+		IoBuffer output = IoBuffer.allocate((Constants.HANDSHAKE_SIZE * 2) + 1);
+		output.put((byte) 0x03);
+		// set server uptime in seconds
+		output.putInt((int) Red5.getUpTime() / 1000); //0x01
+		output.put(RTMPHandshake.HANDSHAKE_PAD_BYTES);
+		output.put(input);
+		output.flip();
+		return output;
+	}
 
+	/**
+	 * Generates response for versioned connections.
+	 * 
+	 * @param input incoming RTMP bytes
+	 * @return outgoing handshake
+	 */
 	public IoBuffer generateResponse(IoBuffer input) {
 		IoBuffer output = IoBuffer.allocate((Constants.HANDSHAKE_SIZE * 2) + 1);
 		input.mark();
@@ -222,6 +250,7 @@ public class RTMPHandshake implements IHandshake {
 	     return result;
 	}
 
+	@SuppressWarnings("unused")
 	private static byte[] getSharedSecret(byte[] otherPublicKeyBytes, KeyAgreement keyAgreement) {
 		BigInteger otherPublicKeyInt = new BigInteger(1, otherPublicKeyBytes);
 		try {

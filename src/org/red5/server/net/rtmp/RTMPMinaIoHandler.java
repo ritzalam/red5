@@ -25,7 +25,6 @@ import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecFactory;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.filter.logging.LoggingFilter;
-import org.red5.server.api.Red5;
 import org.red5.server.net.protocol.ProtocolState;
 import org.red5.server.net.rtmp.codec.RTMP;
 import org.red5.server.net.rtmp.message.Constants;
@@ -146,17 +145,13 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 					log.debug("First few bytes (in): {},{},{},{},{},{},{},{},{},{}", new Object[] { bIn[0], bIn[1],
 							bIn[2], bIn[3], bIn[4], bIn[5], bIn[6], bIn[7], bIn[8], bIn[9] });
 				}
+				//get handshake from the session
+				RTMPHandshake shake = (RTMPHandshake) session.getAttribute(RTMPConnection.RTMP_HANDSHAKE);
 				if (in.get(4) == 0) {
 					log.debug("Using old style handshake");
-					out = IoBuffer.allocate((Constants.HANDSHAKE_SIZE * 2) + 1);
-					out.put((byte) 0x03);
-					// set server uptime in seconds
-					out.putInt((int) Red5.getUpTime() / 1000); //0x01
-					out.put(RTMPHandshake.HANDSHAKE_PAD_BYTES).put(in).flip();
+					shake.generateUnversionedResponse(in);
 				} else {
 					log.debug("Using new style handshake");
-					//get handshake from the session
-					RTMPHandshake shake = (RTMPHandshake) session.getAttribute(RTMPConnection.RTMP_HANDSHAKE);
 					out = shake.generateResponse(in);					
 				}
 				if (log.isTraceEnabled()) {

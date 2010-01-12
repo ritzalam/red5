@@ -78,20 +78,15 @@ public class Serializer {
 		if (value instanceof IExternalizable) {
 			// Make sure all IExternalizable objects are serialized as objects
 			out.writeObject(value, this);
-			return;
 		} else if (value instanceof ByteArray) {
 			// Write ByteArray objects directly
 			out.writeByteArray((ByteArray) value);
-			return;
-		}
-
-		if (writeBasic(out, value)) {
-			log.debug("write basic");
-			return;
-		}
-
-		if (!writeComplex(out, value)) {
-			log.debug("Unable to serialize: {}", value);
+		} else {
+    		if (writeBasic(out, value)) {
+    			log.debug("Wrote as basic");
+    		} else if (!writeComplex(out, value)) {
+    			log.debug("Unable to serialize: {}", value);
+    		}
 		}
 	}
 
