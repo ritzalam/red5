@@ -114,7 +114,7 @@ public class RTMPHandshake implements IHandshake {
 	
 	protected byte[] handshakeBytes;
 	
-	protected int validationScheme = -1;
+	protected int validationScheme = 0;
 
 	static {
 		//get security provider
@@ -165,6 +165,15 @@ public class RTMPHandshake implements IHandshake {
 	 * @return outgoing handshake
 	 */
 	public IoBuffer generateResponse(IoBuffer input) {
+		//if the 5th byte is 0 then dont generate new-style handshake
+		if (log.isTraceEnabled()) {
+			byte[] bIn = input.array();
+			log.trace("First few bytes (in): {},{},{},{},{},{},{},{},{},{}", new Object[] { bIn[0], bIn[1],
+					bIn[2], bIn[3], bIn[4], bIn[5], bIn[6], bIn[7], bIn[8], bIn[9] });
+			byte[] buf = new byte[128];
+			System.arraycopy(bIn, 0, buf, 0, 128);
+			log.trace("Hex: {}", Hex.encodeHexString(buf));
+		}		
 		input.mark();
 		byte versionByte = input.get(4);
 		log.debug("Player version byte: {}", (versionByte & 0x0ff));
@@ -177,56 +186,65 @@ public class RTMPHandshake implements IHandshake {
 		input.mark();
 		//make sure this is a client we can communicate with
 		if (validateClient(input)) {
-			input.reset();
-
-			log.debug("Using new style handshake");
-			
-			input.mark();
-			
-			//create all the dh stuff and add to handshake bytes
-			prepareResponse();
-
-			//create the server digest
-			int serverDigestOffset = getDigestOffset(handshakeBytes);
-			byte[] tempBuffer = new byte[Constants.HANDSHAKE_SIZE - 32];
-		    System.arraycopy(handshakeBytes, 0, tempBuffer, 0, serverDigestOffset);
-		    System.arraycopy(handshakeBytes, serverDigestOffset + 32, tempBuffer, serverDigestOffset, Constants.HANDSHAKE_SIZE - serverDigestOffset - 32);			
-		    //calculate the hash
-			byte[] tempHash = calculateHMAC_SHA256(tempBuffer, GENUINE_FMS_KEY, 36);
-			//add the digest 
-			System.arraycopy(tempHash, 0, handshakeBytes, serverDigestOffset, 32);
-			
-			//compute the challenge digest
-			byte[] inputBuffer = new byte[Constants.HANDSHAKE_SIZE - 32];
-			log.debug("Before get: {}", input.position());
-			input.get(inputBuffer);
-			log.debug("After get: {}", input.position());
-			
-			int keyChallengeIndex = getDigestOffset(inputBuffer);
-						
-			byte[] challengeKey = new byte[32];
-			input.position(keyChallengeIndex);
-			input.get(challengeKey, 0, 32);			
-			input.reset();
-			
-			//compute key
-			tempHash = calculateHMAC_SHA256(challengeKey, GENUINE_FMS_KEY, 68);
-
-			//generate hash
-			byte[] randBytes = new byte[Constants.HANDSHAKE_SIZE - 32];
-			random.nextBytes(randBytes);
-			byte[] lastHash = calculateHMAC_SHA256(randBytes, tempHash, 32);
-
-			//set handshake as non-encrypted (3)
-			output.put((byte) 0x03);
-			output.put(handshakeBytes);
-			output.put(randBytes);
-			output.put(lastHash);
-			output.flip();			
+			log.debug("Valid RTMP client detected");
 		} else {
-			//what shall we do if the client is not valid?
-			log.warn("Invalid client connection detected");
+			log.info("Invalid RTMP connection data detected, you may experience errors");
 		}
+		input.reset();
+
+		log.debug("Using new style handshake");
+		
+		input.mark();
+		
+		//create all the dh stuff and add to handshake bytes
+		prepareResponse();
+
+		//create the server digest
+		int serverDigestOffset = getDigestOffset(handshakeBytes);
+		byte[] tempBuffer = new byte[Constants.HANDSHAKE_SIZE - 32];
+	    System.arraycopy(handshakeBytes, 0, tempBuffer, 0, serverDigestOffset);
+	    System.arraycopy(handshakeBytes, serverDigestOffset + 32, tempBuffer, serverDigestOffset, Constants.HANDSHAKE_SIZE - serverDigestOffset - 32);			
+	    //calculate the hash
+		byte[] tempHash = calculateHMAC_SHA256(tempBuffer, GENUINE_FMS_KEY, 36);
+		//add the digest 
+		System.arraycopy(tempHash, 0, handshakeBytes, serverDigestOffset, 32);
+		
+		//compute the challenge digest
+		byte[] inputBuffer = new byte[Constants.HANDSHAKE_SIZE - 32];
+		log.debug("Before get: {}", input.position());
+		input.get(inputBuffer);
+		log.debug("After get: {}", input.position());
+		
+		int keyChallengeIndex = getDigestOffset(inputBuffer);
+					
+		byte[] challengeKey = new byte[32];
+		input.position(keyChallengeIndex);
+		input.get(challengeKey, 0, 32);			
+		input.reset();
+		
+		//compute key
+		tempHash = calculateHMAC_SHA256(challengeKey, GENUINE_FMS_KEY, 68);
+
+		//generate hash
+		byte[] randBytes = new byte[Constants.HANDSHAKE_SIZE - 32];
+		random.nextBytes(randBytes);
+		byte[] lastHash = calculateHMAC_SHA256(randBytes, tempHash, 32);
+
+		//set handshake as non-encrypted (3)
+		output.put((byte) 0x03);
+		output.put(handshakeBytes);
+		output.put(randBytes);
+		output.put(lastHash);
+		output.flip();			
+
+		if (log.isTraceEnabled()) {
+			byte[] bOut = output.array();
+			log.trace("First few bytes (out): {},{},{},{},{},{},{},{},{},{}", new Object[] { bOut[0], bOut[1],
+					bOut[2], bOut[3], bOut[4], bOut[5], bOut[6], bOut[7], bOut[8], bOut[9] });
+			byte[] buf = new byte[128];
+			System.arraycopy(bOut, 0, buf, 0, 128);
+			log.trace("Hex: {}", Hex.encodeHexString(buf));
+		}		
 		return output;
 	}
 

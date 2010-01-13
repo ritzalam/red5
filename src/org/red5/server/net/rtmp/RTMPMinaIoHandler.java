@@ -139,20 +139,9 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 					log.warn("Raw buffer after handshake, something odd going on");
 				}
 				log.debug("Handshake 2nd phase - size: {}", in.remaining());
-				//if the 5th byte is 0 then dont generate new-style handshake
-				if (log.isTraceEnabled()) {
-					byte[] bIn = in.array();
-					log.debug("First few bytes (in): {},{},{},{},{},{},{},{},{},{}", new Object[] { bIn[0], bIn[1],
-							bIn[2], bIn[3], bIn[4], bIn[5], bIn[6], bIn[7], bIn[8], bIn[9] });
-				}
 				//get handshake from the session
 				RTMPHandshake shake = (RTMPHandshake) session.getAttribute(RTMPConnection.RTMP_HANDSHAKE);
-				out = shake.generateResponse(in);					
-				if (log.isTraceEnabled()) {
-					byte[] bOut = out.array();
-					log.debug("First few bytes (out): {},{},{},{},{},{},{},{},{},{}", new Object[] { bOut[0], bOut[1],
-							bOut[2], bOut[3], bOut[4], bOut[5], bOut[6], bOut[7], bOut[8], bOut[9] });
-				}
+				out = shake.generateResponse(in);
 				// Skip first 8 bytes when comparing the handshake, they seem to
 				// be changed when connecting from a Mac client.
 				rtmp.setHandshake(out, 9, Constants.HANDSHAKE_SIZE - 8);
