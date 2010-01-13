@@ -25,6 +25,7 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.Security;
+import java.util.Arrays;
 import java.util.Random;
 
 import javax.crypto.KeyAgreement;
@@ -43,13 +44,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Generates the second 1536 byte chunk in the RTMP handshake response for
- * compatibility with Flash 9,0,124,0. Clients that require this send a nonzero
+ * Generates and validates the RTMP handshake response for Flash Players.
+ * Client versions equal to or greater than Flash 9,0,124,0 require a nonzero
  * value as the fifth byte of the handshake request.
- * 
- * <br/>
- * This class is based on the Ruby handshaking code from Takuma Mori.
- * <br />
  * 
  * @author Jacinto Shy II (jacinto.m.shy@ieee.org)
  * @author Steven Zimmer (stevenlzimmer@gmail.com)
@@ -110,19 +107,19 @@ public class RTMPHandshake implements IHandshake {
     protected static final BigInteger DH_BASE = BigInteger.valueOf(2);    	
 	
 	protected static final Random random = new Random();
+	
+	private Mac hmacSHA256;
+
+	protected KeyAgreement keyAgreement;
+	
+	protected byte[] handshakeBytes;
+	
+	protected int validationScheme = -1;
 
 	static {
 		//get security provider
 		Security.addProvider(new BouncyCastleProvider());		
 	}
-	
-	private Mac hmacSHA256;
-
-	private KeyAgreement keyAgreement;
-	
-	private byte[] handshakeBytes;
-	
-	private int validationScheme = -1;
 	
 	public RTMPHandshake() {
 		try {
@@ -142,18 +139,18 @@ public class RTMPHandshake implements IHandshake {
 	 * @param input incoming RTMP bytes
 	 * @return outgoing handshake
 	 */
-	public IoBuffer generateUnversionedResponse(IoBuffer input) {
+	private IoBuffer generateUnversionedResponse(IoBuffer input) {
+		log.debug("Using old style (un-versioned) handshake");
 		//save resource by only doing this after the first request
 		if (HANDSHAKE_PAD_BYTES == null) {
     		HANDSHAKE_PAD_BYTES = new byte[Constants.HANDSHAKE_SIZE - 4];
     		//fill pad bytes
-    		for (int b = 0; b < HANDSHAKE_PAD_BYTES.length; b++) {
-    			HANDSHAKE_PAD_BYTES[b] = (byte) 0x00;
-    		}
+    		Arrays.fill(HANDSHAKE_PAD_BYTES, (byte) 0x00);
 		}
 		IoBuffer output = IoBuffer.allocate((Constants.HANDSHAKE_SIZE * 2) + 1);
+		//non-encrypted
 		output.put((byte) 0x03);
-		// set server uptime in seconds
+		//set server uptime in seconds
 		output.putInt((int) Red5.getUpTime() / 1000); //0x01
 		output.put(RTMPHandshake.HANDSHAKE_PAD_BYTES);
 		output.put(input);
@@ -168,11 +165,22 @@ public class RTMPHandshake implements IHandshake {
 	 * @return outgoing handshake
 	 */
 	public IoBuffer generateResponse(IoBuffer input) {
+		input.mark();
+		byte versionByte = input.get(4);
+		log.debug("Player version byte: {}", (versionByte & 0x0ff));
+		input.reset();
+		if (versionByte == 0) {
+			return generateUnversionedResponse(input);
+		}
+		//create output buffer
 		IoBuffer output = IoBuffer.allocate((Constants.HANDSHAKE_SIZE * 2) + 1);
 		input.mark();
 		//make sure this is a client we can communicate with
 		if (validateClient(input)) {
 			input.reset();
+
+			log.debug("Using new style handshake");
+			
 			input.mark();
 			
 			//create all the dh stuff and add to handshake bytes
@@ -244,7 +252,7 @@ public class RTMPHandshake implements IHandshake {
 		return output;
 	}
 	
-	private KeyPair generateKeyPair() {
+	protected KeyPair generateKeyPair() {
 		KeyPair keyPair = null;
 		DHParameterSpec keySpec = new DHParameterSpec(DH_MODULUS, DH_BASE);
 		try {
@@ -296,7 +304,7 @@ public class RTMPHandshake implements IHandshake {
 	}
 	*/	
 	
-	private boolean validateClient(IoBuffer input) {
+	protected boolean validateClient(IoBuffer input) {
 		byte[] pBuffer = new byte[input.remaining()];
 		//put all the input bytes into our buffer
 		input.get(pBuffer, 0, input.remaining());
@@ -315,7 +323,7 @@ public class RTMPHandshake implements IHandshake {
 	    return false;
 	}
 	
-	private boolean validateClientScheme(byte[] pBuffer, int scheme) {
+	protected boolean validateClientScheme(byte[] pBuffer, int scheme) {
 		int clientDigestOffset = -1;
 		switch (scheme) {
 			case 0:
@@ -348,7 +356,7 @@ public class RTMPHandshake implements IHandshake {
 	    return result;
 	}	
 	
-	private int getDHOffset0() {
+	protected int getDHOffset0() {
 		int offset = (handshakeBytes[1532] & 0x0ff) + (handshakeBytes[1533] & 0x0ff) + (handshakeBytes[1534] & 0x0ff) + (handshakeBytes[1535] & 0x0ff);
 	    offset = offset % 632;
 	    offset = offset + 772;
@@ -358,7 +366,7 @@ public class RTMPHandshake implements IHandshake {
 	    return offset;
 	}
 	
-	private int getDHOffset1() {
+	protected int getDHOffset1() {
 		int offset = (handshakeBytes[768] & 0x0ff) + (handshakeBytes[769] & 0x0ff) + (handshakeBytes[770] & 0x0ff) + (handshakeBytes[771] & 0x0ff);
 	    offset = offset % 632;
 	    offset = offset + 8;
@@ -374,7 +382,7 @@ public class RTMPHandshake implements IHandshake {
 	 * @param pBuffer
 	 * @return digest offset
 	 */
-	private int getDigestOffset(byte[] pBuffer) {
+	protected int getDigestOffset(byte[] pBuffer) {
 		int serverDigestOffset = -1;
 		switch (validationScheme) {
 			case 1:
@@ -388,7 +396,7 @@ public class RTMPHandshake implements IHandshake {
 		return serverDigestOffset;
 	}
 	
-	private int getDigestOffset0(byte[] pBuffer) {
+	protected int getDigestOffset0(byte[] pBuffer) {
 		int offset = (pBuffer[8] & 0x0ff) + (pBuffer[9] & 0x0ff) + (pBuffer[10] & 0x0ff) + (pBuffer[11] & 0x0ff);
 	    offset = offset % 728;
 	    offset = offset + 12;
@@ -398,7 +406,7 @@ public class RTMPHandshake implements IHandshake {
 	    return offset;
 	}
 
-	private int getDigestOffset1(byte[] pBuffer) {
+	protected int getDigestOffset1(byte[] pBuffer) {
 		int offset = (pBuffer[772] & 0x0ff) + (pBuffer[773] & 0x0ff) + (pBuffer[774] & 0x0ff) + (pBuffer[775] & 0x0ff);
 	    offset = offset % 728;
 	    offset = offset + 776;
@@ -446,7 +454,7 @@ public class RTMPHandshake implements IHandshake {
 	 * Generates DH keypair
 	 * Adds public key to handshake bytes
 	 */
-	private void prepareResponse() {
+	protected void prepareResponse() {
 		//get dh offset
 		int dhOffset = -1;
 		switch (validationScheme) {

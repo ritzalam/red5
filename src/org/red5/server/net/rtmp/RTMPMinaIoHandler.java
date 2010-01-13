@@ -147,13 +147,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 				}
 				//get handshake from the session
 				RTMPHandshake shake = (RTMPHandshake) session.getAttribute(RTMPConnection.RTMP_HANDSHAKE);
-				if (in.get(4) == 0) {
-					log.debug("Using old style handshake");
-					shake.generateUnversionedResponse(in);
-				} else {
-					log.debug("Using new style handshake");
-					out = shake.generateResponse(in);					
-				}
+				out = shake.generateResponse(in);					
 				if (log.isTraceEnabled()) {
 					byte[] bOut = out.array();
 					log.debug("First few bytes (out): {},{},{},{},{},{},{},{},{},{}", new Object[] { bOut[0], bOut[1],
