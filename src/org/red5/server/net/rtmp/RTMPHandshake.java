@@ -62,7 +62,7 @@ public class RTMPHandshake implements IHandshake {
 	//for old style handshake
 	public static byte[] HANDSHAKE_PAD_BYTES;
 	
-	private static final byte[] GENUINE_FMS_KEY = {
+	protected static final byte[] GENUINE_FMS_KEY = {
 		(byte) 0x47, (byte) 0x65, (byte) 0x6e, (byte) 0x75, (byte) 0x69, (byte) 0x6e, (byte) 0x65, (byte) 0x20,
 		(byte) 0x41, (byte) 0x64, (byte) 0x6f, (byte) 0x62, (byte) 0x65, (byte) 0x20, (byte) 0x46, (byte) 0x6c,
 		(byte) 0x61, (byte) 0x73, (byte) 0x68, (byte) 0x20, (byte) 0x4d, (byte) 0x65, (byte) 0x64, (byte) 0x69,
@@ -73,7 +73,7 @@ public class RTMPHandshake implements IHandshake {
 		(byte) 0x6e, (byte) 0xec, (byte) 0x5d, (byte) 0x2d, (byte) 0x29, (byte) 0x80, (byte) 0x6f, (byte) 0xab,
 		(byte) 0x93, (byte) 0xb8, (byte) 0xe6, (byte) 0x36, (byte) 0xcf, (byte) 0xeb, (byte) 0x31, (byte) 0xae};
 
-	private static final byte[] GENUINE_FP_KEY = {
+	protected static final byte[] GENUINE_FP_KEY = {
 		(byte) 0x47, (byte) 0x65, (byte) 0x6E, (byte) 0x75, (byte) 0x69, (byte) 0x6E, (byte) 0x65, (byte) 0x20,
 		(byte) 0x41, (byte) 0x64, (byte) 0x6F, (byte) 0x62, (byte) 0x65, (byte) 0x20, (byte) 0x46, (byte) 0x6C,
 		(byte) 0x61, (byte) 0x73, (byte) 0x68, (byte) 0x20, (byte) 0x50, (byte) 0x6C, (byte) 0x61, (byte) 0x79,
@@ -84,7 +84,7 @@ public class RTMPHandshake implements IHandshake {
 		(byte) 0x93, (byte) 0xB8, (byte) 0xE6, (byte) 0x36, (byte) 0xCF, (byte) 0xEB, (byte) 0x31, (byte) 0xAE};	
 	
 	/** Modulus bytes from flazr */
-	private static final byte[] DH_MODULUS_BYTES = { (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
+	protected static final byte[] DH_MODULUS_BYTES = { (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xff,
 			(byte) 0xff, (byte) 0xff, (byte) 0xff, (byte) 0xc9, (byte) 0x0f, (byte) 0xda, (byte) 0xa2, (byte) 0x21,
 			(byte) 0x68, (byte) 0xc2, (byte) 0x34, (byte) 0xc4, (byte) 0xc6, (byte) 0x62, (byte) 0x8b, (byte) 0x80,
 			(byte) 0xdc, (byte) 0x1c, (byte) 0xd1, (byte) 0x29, (byte) 0x02, (byte) 0x4e, (byte) 0x08, (byte) 0x8a,
@@ -165,15 +165,21 @@ public class RTMPHandshake implements IHandshake {
 	 * @return outgoing handshake
 	 */
 	public IoBuffer generateResponse(IoBuffer input) {
-		//if the 5th byte is 0 then dont generate new-style handshake
-		if (log.isTraceEnabled()) {
+		if (log.isDebugEnabled()) {
 			byte[] bIn = input.array();
-			log.trace("First few bytes (in): {},{},{},{},{},{},{},{},{},{}", new Object[] { bIn[0], bIn[1],
-					bIn[2], bIn[3], bIn[4], bIn[5], bIn[6], bIn[7], bIn[8], bIn[9] });
-			byte[] buf = new byte[128];
-			System.arraycopy(bIn, 0, buf, 0, 128);
-			log.trace("Hex: {}", Hex.encodeHexString(buf));
-		}		
+			log.debug("Detecting flash player version {},{},{},{}", new Object[]{(bIn[4] & 0x0ff), (bIn[5] & 0x0ff), (bIn[6] & 0x0ff), (bIn[7] & 0x0ff)});
+    		//if the 5th byte is 0 then dont generate new-style handshake
+    		if (log.isTraceEnabled()) {
+    			log.trace("First few bytes (in): {},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}", new Object[] { 
+    					bIn[0], bIn[1],	bIn[2], bIn[3], bIn[4], 
+    					bIn[5], bIn[6], bIn[7], bIn[8], bIn[9], 
+    					bIn[10], bIn[11], bIn[12], bIn[13], bIn[14],
+    					bIn[15] });
+    			byte[] buf = new byte[128];
+    			System.arraycopy(bIn, 0, buf, 0, 128);
+    			log.trace("Hex: {}", Hex.encodeHexString(buf));
+    		}		
+		}
 		input.mark();
 		byte versionByte = input.get(4);
 		log.debug("Player version byte: {}", (versionByte & 0x0ff));
@@ -211,9 +217,9 @@ public class RTMPHandshake implements IHandshake {
 		
 		//compute the challenge digest
 		byte[] inputBuffer = new byte[Constants.HANDSHAKE_SIZE - 32];
-		log.debug("Before get: {}", input.position());
+		//log.debug("Before get: {}", input.position());
 		input.get(inputBuffer);
-		log.debug("After get: {}", input.position());
+		//log.debug("After get: {}", input.position());
 		
 		int keyChallengeIndex = getDigestOffset(inputBuffer);
 					
@@ -230,8 +236,8 @@ public class RTMPHandshake implements IHandshake {
 		random.nextBytes(randBytes);
 		byte[] lastHash = calculateHMAC_SHA256(randBytes, tempHash, 32);
 
-		//set handshake as non-encrypted (3)
-		output.put((byte) 0x03);
+		//set handshake as non-encrypted
+		output.put(RTMPConnection.RTMP_NON_ENCRYPTED);
 		output.put(handshakeBytes);
 		output.put(randBytes);
 		output.put(lastHash);
@@ -239,8 +245,11 @@ public class RTMPHandshake implements IHandshake {
 
 		if (log.isTraceEnabled()) {
 			byte[] bOut = output.array();
-			log.trace("First few bytes (out): {},{},{},{},{},{},{},{},{},{}", new Object[] { bOut[0], bOut[1],
-					bOut[2], bOut[3], bOut[4], bOut[5], bOut[6], bOut[7], bOut[8], bOut[9] });
+			log.trace("First few bytes (out): {},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{}", new Object[] { 
+					bOut[0], bOut[1], bOut[2], bOut[3], bOut[4], 
+					bOut[5], bOut[6], bOut[7], bOut[8], bOut[9], 
+					bOut[10], bOut[11], bOut[12], bOut[13], bOut[14],
+					bOut[15]});
 			byte[] buf = new byte[128];
 			System.arraycopy(bOut, 0, buf, 0, 128);
 			log.trace("Hex: {}", Hex.encodeHexString(buf));
@@ -248,6 +257,13 @@ public class RTMPHandshake implements IHandshake {
 		return output;
 	}
 
+	/**
+	 * Calculates an HMAC SHA256 hash using a default key length.
+	 * 
+	 * @param input
+	 * @param key
+	 * @return hmac hashed bytes
+	 */
 	public byte[] calculateHMAC_SHA256(byte[] input, byte[] key) {
 		byte[] output = null;
 		try {
@@ -259,6 +275,14 @@ public class RTMPHandshake implements IHandshake {
 		return output;
 	}
 
+	/**
+	 * Calculates an HMAC SHA256 hash using a set key length.
+	 * 
+	 * @param input
+	 * @param key
+	 * @param length
+	 * @return hmac hashed bytes
+	 */
 	public byte[] calculateHMAC_SHA256(byte[] input, byte[] key, int length) {
 		byte[] output = null;
 		try {
@@ -270,6 +294,11 @@ public class RTMPHandshake implements IHandshake {
 		return output;
 	}
 	
+	/**
+	 * Creates a Diffie-Hellman key pair.
+	 * 
+	 * @return dh keypair
+	 */
 	protected KeyPair generateKeyPair() {
 		KeyPair keyPair = null;
 		DHParameterSpec keySpec = new DHParameterSpec(DH_MODULUS, DH_BASE);
@@ -285,43 +314,37 @@ public class RTMPHandshake implements IHandshake {
 		return keyPair;
 	}
 
+	/**
+	 * Returns the public key for a given key pair.
+	 * 
+	 * @param keyPair
+	 * @return public key
+	 */
 	protected static byte[] getPublicKey(KeyPair keyPair) {
 		 DHPublicKey publicKey = (DHPublicKey) keyPair.getPublic();
-	     BigInteger	dh_Y = publicKey.getY();
-	     log.debug("public key value: " + dh_Y);
-	     byte[] result = dh_Y.toByteArray();
-	     log.debug("public key as bytes, len = [" + result.length + "]: " + Hex.encodeHexString(result));
+	     BigInteger	dhY = publicKey.getY();
+	     log.debug("Public key: {}", dhY);
+	     byte[] result = dhY.toByteArray();
+	     log.debug("Public key as bytes - length [{}]: {}", result.length, Hex.encodeHexString(result));
 	     byte[] temp = new byte[128];
 	     if (result.length < 128) {
 	    	 System.arraycopy(result, 0, temp, 128 - result.length, result.length);
 	    	 result = temp;
-	    	 log.debug("padded public key length to 128");
+	    	 log.debug("Padded public key length to 128");
 	     } else if(result.length > 128){
 	    	 System.arraycopy(result, result.length - 128, temp, 0, 128);
 	    	 result = temp;
-	    	 log.debug("truncated public key length to 128");
+	    	 log.debug("Truncated public key length to 128");
 	     }
 	     return result;
 	}
-
-	/*
-	@SuppressWarnings("unused")
-	private static byte[] getSharedSecret(byte[] otherPublicKeyBytes, KeyAgreement keyAgreement) {
-		BigInteger otherPublicKeyInt = new BigInteger(1, otherPublicKeyBytes);
-		try {
-			KeyFactory keyFactory = KeyFactory.getInstance("DH");
-			KeySpec otherPublicKeySpec = new DHPublicKeySpec(otherPublicKeyInt, DH_MODULUS, DH_BASE);
-			PublicKey otherPublicKey = keyFactory.generatePublic(otherPublicKeySpec);
-		    keyAgreement.doPhase(otherPublicKey, true);
-		} catch(Exception e) {
-			log.error("Error getting shared secret", e);
-		}
-	    byte[] sharedSecret = keyAgreement.generateSecret();
-	    log.debug("shared secret (" + sharedSecret.length + " bytes): " + Hex.encodeHexString(sharedSecret));
-	    return sharedSecret;
-	}
-	*/	
 	
+	/**
+	 * Determines the validation scheme for given input.
+	 * 
+	 * @param input
+	 * @return true if client used a supported validation scheme, false if unsupported
+	 */
 	protected boolean validateClient(IoBuffer input) {
 		byte[] pBuffer = new byte[input.remaining()];
 		//put all the input bytes into our buffer
@@ -374,6 +397,11 @@ public class RTMPHandshake implements IHandshake {
 	    return result;
 	}	
 	
+	/**
+	 * Returns the DH byte offset.
+	 * 
+	 * @return dh offset
+	 */
 	protected int getDHOffset0() {
 		int offset = (handshakeBytes[1532] & 0x0ff) + (handshakeBytes[1533] & 0x0ff) + (handshakeBytes[1534] & 0x0ff) + (handshakeBytes[1535] & 0x0ff);
 	    offset = offset % 632;
@@ -384,6 +412,11 @@ public class RTMPHandshake implements IHandshake {
 	    return offset;
 	}
 	
+	/**
+	 * Returns the DH byte offset.
+	 * 
+	 * @return dh offset
+	 */
 	protected int getDHOffset1() {
 		int offset = (handshakeBytes[768] & 0x0ff) + (handshakeBytes[769] & 0x0ff) + (handshakeBytes[770] & 0x0ff) + (handshakeBytes[771] & 0x0ff);
 	    offset = offset % 632;
@@ -414,7 +447,16 @@ public class RTMPHandshake implements IHandshake {
 		return serverDigestOffset;
 	}
 	
+	/**
+	 * Returns a digest byte offset.
+	 * 
+	 * @param source for digest data
+	 * @return digest offset
+	 */
 	protected int getDigestOffset0(byte[] pBuffer) {
+		if (log.isTraceEnabled()) {
+			log.trace("Scheme 0 offset bytes {},{},{},{}", new Object[]{(pBuffer[8] & 0x0ff), (pBuffer[9] & 0x0ff), (pBuffer[10] & 0x0ff), (pBuffer[11] & 0x0ff)});
+		}
 		int offset = (pBuffer[8] & 0x0ff) + (pBuffer[9] & 0x0ff) + (pBuffer[10] & 0x0ff) + (pBuffer[11] & 0x0ff);
 	    offset = offset % 728;
 	    offset = offset + 12;
@@ -424,7 +466,16 @@ public class RTMPHandshake implements IHandshake {
 	    return offset;
 	}
 
+	/**
+	 * Returns a digest byte offset.
+	 * 
+	 * @param source for digest data
+	 * @return digest offset
+	 */
 	protected int getDigestOffset1(byte[] pBuffer) {
+		if (log.isTraceEnabled()) {
+			log.trace("Scheme 1 offset bytes {},{},{},{}", new Object[]{(pBuffer[8] & 0x0ff), (pBuffer[9] & 0x0ff), (pBuffer[10] & 0x0ff), (pBuffer[11] & 0x0ff)});
+		}
 		int offset = (pBuffer[772] & 0x0ff) + (pBuffer[773] & 0x0ff) + (pBuffer[774] & 0x0ff) + (pBuffer[775] & 0x0ff);
 	    offset = offset % 728;
 	    offset = offset + 776;
@@ -449,22 +500,22 @@ public class RTMPHandshake implements IHandshake {
 		handshakeBytes[5] = 1;
 		handshakeBytes[6] = 0;
 		handshakeBytes[7] = 0;
-		//random bytes
+		//fill the rest with random bytes
 		
 		//slow way
 		//StringBuilder sb = new StringBuilder();
-		for (int i = 8; i < Constants.HANDSHAKE_SIZE; i++) {
-			handshakeBytes[i] = (byte) (random.nextInt(255) & 0xff);
+		//for (int i = 8; i < Constants.HANDSHAKE_SIZE; i++) {
+			//handshakeBytes[i] = (byte) (random.nextInt(255) & 0xff);
 			//sb.append(handshakeBytes[i] & 0x0ff);
 			//sb.append(", ");
-		}
+		//}
 		//log.debug("Handshake bytes:\n{}\n", sb.toString());
 		
 		//faster
-		//byte[] rndBytes = new byte[3064];
-		//random.nextBytes(rndBytes);		
+		byte[] rndBytes = new byte[Constants.HANDSHAKE_SIZE - 8];
+		random.nextBytes(rndBytes);		
 		//copy random bytes into our handshake array
-		//System.arraycopy(rndBytes, 0, handshakeBytes, 8, 3064);	
+		System.arraycopy(rndBytes, 0, handshakeBytes, 8, (Constants.HANDSHAKE_SIZE - 8));	
 	}
 	
 	/**
@@ -492,6 +543,12 @@ public class RTMPHandshake implements IHandshake {
 		System.arraycopy(publicKey, 0, handshakeBytes, dhOffset, 128);
 	}
 
+	/**
+	 * Returns the contained handshake bytes. These are just random bytes
+	 * if the player is using an non-versioned player.
+	 * 
+	 * @return handshake bytes
+	 */
 	public byte[] getHandshakeBytes() {
 		return handshakeBytes;
 	}

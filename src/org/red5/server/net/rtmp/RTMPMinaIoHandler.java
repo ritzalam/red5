@@ -93,7 +93,7 @@ public class RTMPMinaIoHandler extends IoHandlerAdapter implements ApplicationCo
 		if (rtmp.getMode() == RTMP.MODE_CLIENT) {
 			log.debug("Handshake 1st phase");
 			IoBuffer out = IoBuffer.allocate(Constants.HANDSHAKE_SIZE + 1);
-			out.put((byte) 0x03);
+			out.put(RTMPConnection.RTMP_NON_ENCRYPTED);
 			//get the handshake from the session
 			RTMPHandshake shake = (RTMPHandshake) session.getAttribute(RTMPConnection.RTMP_HANDSHAKE);
 			out.put(shake.getHandshakeBytes());

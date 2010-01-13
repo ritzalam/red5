@@ -80,6 +80,16 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	public static final String RTMP_HANDSHAKE = "rtmp.handshake";
 
 	/**
+	 * Marker byte for standard or non-encrypted RTMP data.
+	 */
+	public static final byte RTMP_NON_ENCRYPTED = (byte) 0x03;
+
+	/**
+	 * Marker byte for encrypted RTMP data.
+	 */
+	public static final byte RTMP_ENCRYPTED = (byte) 0x06;
+	
+	/**
 	 * Connection channels
 	 * 
 	 * @see org.red5.server.net.rtmp.Channel
