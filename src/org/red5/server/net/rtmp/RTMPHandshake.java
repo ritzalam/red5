@@ -305,10 +305,11 @@ public class RTMPHandshake implements IHandshake {
 	    System.arraycopy(pBuffer, digestOffset + 32, tempBuffer, digestOffset, Constants.HANDSHAKE_SIZE - digestOffset - 32);	    
 
 	    byte[] tempHash = calculateHMAC_SHA256(tempBuffer, GENUINE_FP_KEY);
+	    log.debug("Temp: {}", Hex.encodeHexString(tempHash));
 
 	    boolean result = true;
 	    for (int i = 0; i < 32; i++) {
-	    	log.debug("Digest: {} Temp: {}", pBuffer[digestOffset + i], tempHash[i]);
+	    	log.debug("Digest: {} Temp: {}", (pBuffer[digestOffset + i] & 0x0ff), (tempHash[i] & 0x0ff));
 	        if (pBuffer[digestOffset + i] != tempHash[i]) {
 	            result = false;
 	            break;
@@ -370,14 +371,25 @@ public class RTMPHandshake implements IHandshake {
 		handshakeBytes[3] = 0;
 		//version
 		handshakeBytes[4] = 3;
-		handshakeBytes[5] = 0;
+		handshakeBytes[5] = 1;
 		handshakeBytes[6] = 0;
 		handshakeBytes[7] = 0;
 		//random bytes
-		byte[] rndBytes = new byte[3064];
-		random.nextBytes(rndBytes);
+		
+		//slow way
+		//StringBuilder sb = new StringBuilder();
+		for (int i = 8; i < 3072; i++) {
+			handshakeBytes[i] = (byte) (random.nextInt(255) & 0xff);
+			//sb.append(handshakeBytes[i] & 0x0ff);
+			//sb.append(", ");
+		}
+		//log.debug("Handshake bytes:\n{}\n", sb.toString());
+		
+		//faster
+		//byte[] rndBytes = new byte[3064];
+		//random.nextBytes(rndBytes);		
 		//copy random bytes into our handshake array
-		System.arraycopy(rndBytes, 0, handshakeBytes, 8, 3064);	
+		//System.arraycopy(rndBytes, 0, handshakeBytes, 8, 3064);	
 	}
 	
 	/**
