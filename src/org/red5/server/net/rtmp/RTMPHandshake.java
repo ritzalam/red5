@@ -188,15 +188,12 @@ public class RTMPHandshake implements IHandshake {
 			byte[] randBytes = new byte[Constants.HANDSHAKE_SIZE - 32];
 			random.nextBytes(randBytes);
 			byte[] hashedBytes = calculateHMAC_SHA256(randBytes, newKey);
-			
-			byte[] byteChunk = new byte[Constants.HANDSHAKE_SIZE];
 
-			System.arraycopy(randBytes, 0, byteChunk, 0, randBytes.length);
-			System.arraycopy(hashedBytes, 0, byteChunk, randBytes.length, hashedBytes.length);
-
+			//set handshake as non-encrypted (3)
 			output.put((byte) 0x03);
 			output.put(handshakeBytes);
-			output.put(byteChunk);
+			output.put(randBytes);
+			output.put(hashedBytes);
 			output.flip();			
 		} else {
 			//what shall we do if the client is not valid?
@@ -209,6 +206,17 @@ public class RTMPHandshake implements IHandshake {
 		byte[] output = null;
 		try {
 			hmacSHA256.init(new SecretKeySpec(key, "HmacSHA256"));
+			output = hmacSHA256.doFinal(input);
+		} catch (InvalidKeyException e) {
+			log.error("Invalid key", e);
+		}
+		return output;
+	}
+
+	public byte[] calculateHMAC_SHA256(byte[] input, byte[] key, int length) {
+		byte[] output = null;
+		try {
+			hmacSHA256.init(new SecretKeySpec(key, 0, length, "HmacSHA256"));
 			output = hmacSHA256.doFinal(input);
 		} catch (InvalidKeyException e) {
 			log.error("Invalid key", e);
@@ -304,12 +312,12 @@ public class RTMPHandshake implements IHandshake {
 	    //memcpy(tempBuffer + clientDigestOffset, pBuffer + clientDigestOffset + 32, Constants.HANDSHAKE_SIZE - clientDigestOffset - 32);
 	    System.arraycopy(pBuffer, digestOffset + 32, tempBuffer, digestOffset, Constants.HANDSHAKE_SIZE - digestOffset - 32);	    
 
-	    byte[] tempHash = calculateHMAC_SHA256(tempBuffer, GENUINE_FP_KEY);
+	    byte[] tempHash = calculateHMAC_SHA256(tempBuffer, GENUINE_FP_KEY, 30);
 	    log.debug("Temp: {}", Hex.encodeHexString(tempHash));
 
 	    boolean result = true;
 	    for (int i = 0; i < 32; i++) {
-	    	log.debug("Digest: {} Temp: {}", (pBuffer[digestOffset + i] & 0x0ff), (tempHash[i] & 0x0ff));
+	    	//log.trace("Digest: {} Temp: {}", (pBuffer[digestOffset + i] & 0x0ff), (tempHash[i] & 0x0ff));
 	        if (pBuffer[digestOffset + i] != tempHash[i]) {
 	            result = false;
 	            break;
@@ -363,7 +371,7 @@ public class RTMPHandshake implements IHandshake {
 	 * Creates the servers handshake bytes
 	 */
 	private void createServerHandshakeBytes() {
-		handshakeBytes = new byte[3072];
+		handshakeBytes = new byte[Constants.HANDSHAKE_SIZE];
 		//timestamp
 		handshakeBytes[0] = 0;
 		handshakeBytes[1] = 0;
@@ -378,7 +386,7 @@ public class RTMPHandshake implements IHandshake {
 		
 		//slow way
 		//StringBuilder sb = new StringBuilder();
-		for (int i = 8; i < 3072; i++) {
+		for (int i = 8; i < Constants.HANDSHAKE_SIZE; i++) {
 			handshakeBytes[i] = (byte) (random.nextInt(255) & 0xff);
 			//sb.append(handshakeBytes[i] & 0x0ff);
 			//sb.append(", ");
