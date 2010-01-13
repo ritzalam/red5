@@ -36,21 +36,21 @@ public interface Message {
 	/**
 	 * Returns the body of the message.
 	 * 
-	 * @return
+	 * @return message body
 	 */
 	Object getBody();
 
 	/**
 	 * Returns the client id indicating the client that sent the message.
 	 * 
-	 * @return
+	 * @return client id
 	 */
 	String getClientId();
 
 	/**
 	 * Returns the destination that the message targets.
 	 * 
-	 * @return
+	 * @return destination
 	 */
 	String getDestination();
 
@@ -58,35 +58,35 @@ public interface Message {
 	 * Returns a header value corresponding to the passed header name.
 	 * 
 	 * @param name
-	 * @return
+	 * @return header value
 	 */
 	Object getHeader(String name);
 
 	/**
 	 * Returns the headers for the message.
 	 * 
-	 * @return
+	 * @return headers
 	 */
 	Map<String, Object> getHeaders();
 
 	/**
 	 * Returns the unique message id.
 	 * 
-	 * @return
+	 * @return message id
 	 */
 	String getMessageId();
 
 	/**
 	 * Returns the timestamp for the message.
 	 * 
-	 * @return
+	 * @return timestamp
 	 */
 	long getTimestamp();
 
 	/**
 	 * Returns the time to live for the message.
 	 * 
-	 * @return
+	 * @return time to live
 	 */
 	long getTimeToLive();
 
@@ -94,7 +94,7 @@ public interface Message {
 	 * Tests whether a header with the passed name exists.
 	 * 
 	 * @param name
-	 * @return
+	 * @return true if header exists, false otherwise
 	 */
 	boolean headerExists(String name);
 
