@@ -98,6 +98,8 @@ public class CachingFileKeyFrameMetaCache extends FileKeyFrameMetaCache {
 			}
 			randomIndex--;
 		}
-		inMemoryMetaCache.remove(entryToRemove.getKey());
+		if (entryToRemove != null) {
+			inMemoryMetaCache.remove(entryToRemove.getKey());
+		}
 	}
 }

@@ -55,7 +55,7 @@ public class AllocationDebugger {
 	/**
 	 * Allocation debugger istance
 	 */
-	private static AllocationDebugger instance;
+	private static AllocationDebugger instance = new AllocationDebugger();
 
 	/**
 	 * Logger
@@ -73,9 +73,6 @@ public class AllocationDebugger {
 	 * @return Allocation debugger instance
 	 */
 	public static AllocationDebugger getInstance() {
-		if (instance == null) {
-			instance = new AllocationDebugger();
-		}
 		return instance;
 	}
 

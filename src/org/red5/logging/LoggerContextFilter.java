@@ -80,10 +80,8 @@ public class LoggerContextFilter implements Filter {
 			System.err.printf("Logger context name and context name dont match (%s != %s)\n", contextName, ctx.getName());
 		}
 		
-		if (ctx != null) {
-			//System.out.printf("Logger context name: %s\n", ctx.getName());
-			selector.setLocalContext(ctx);
-		}
+		//System.out.printf("Logger context name: %s\n", ctx.getName());
+		selector.setLocalContext(ctx);
 
 		try {
 			chain.doFilter(request, response);

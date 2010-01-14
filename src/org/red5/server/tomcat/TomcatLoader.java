@@ -961,7 +961,7 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 			System.exit(0);
 		} catch (Exception e) {
 			log.warn("Tomcat could not be stopped", e);
-			System.exit(1);
+			throw new RuntimeException("Tomcat could not be stopped");
 		}
 	}
 

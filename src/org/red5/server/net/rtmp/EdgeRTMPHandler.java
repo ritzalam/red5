@@ -134,7 +134,7 @@ public class EdgeRTMPHandler extends RTMPHandler {
 	}
 
 	protected void handleConnect(RTMPConnection conn, Channel channel, Header header, Invoke invoke, RTMP rtmp) {
-		final IServiceCall call = invoke.getCall();
+		final IPendingServiceCall call = invoke.getCall();
 		// Get parameters passed from client to NetConnection#connection
 		final Map<String, Object> params = invoke.getConnectionParams();
 
@@ -164,10 +164,7 @@ public class EdgeRTMPHandler extends RTMPHandler {
 		// send back "ConnectionRejected" if fails.
 		if (!checkPermission(conn)) {
 			call.setStatus(Call.STATUS_ACCESS_DENIED);
-			if (call instanceof IPendingServiceCall) {
-				IPendingServiceCall pc = (IPendingServiceCall) call;
-				pc.setResult(getStatus(NC_CONNECT_REJECTED));
-			}
+			call.setResult(getStatus(NC_CONNECT_REJECTED));
 			Invoke reply = new Invoke();
 			reply.setCall(call);
 			reply.setInvokeId(invoke.getInvokeId());
@@ -183,7 +180,7 @@ public class EdgeRTMPHandler extends RTMPHandler {
 				forwardPacket(conn, packet);
 				rtmp.setState(RTMP.STATE_ORIGIN_CONNECT_FORWARDED);
 				// Evaluate request for AMF3 encoding
-				if (Integer.valueOf(3).equals(params.get("objectEncoding")) && call instanceof IPendingServiceCall) {
+				if (Integer.valueOf(3).equals(params.get("objectEncoding"))) {
 					rtmp.setEncoding(Encoding.AMF3);
 				}
 			}

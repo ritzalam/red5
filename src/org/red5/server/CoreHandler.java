@@ -65,10 +65,11 @@ public class CoreHandler implements IScopeHandler, CoreHandlerMBean {
      */
     public boolean connect(IConnection conn, IScope scope, Object[] params) {
 		log.debug("Connect to core handler ?");
-
+		boolean connect = false;
+		
         // Get session id
         String id = conn.getSessionId();
-        //log.debug("Session id: {}", id);
+        log.trace("Session id: {}", id);
 
 		// Use client registry from scope the client connected to.
 		IScope connectionScope = Red5.getConnectionLocal().getScope();
@@ -76,22 +77,25 @@ public class CoreHandler implements IScopeHandler, CoreHandlerMBean {
 
         // when the scope is null bad things seem to happen, if a null scope is OK then 
         // this block will need to be removed - Paul
-        if (connectionScope == null) {
-            return false;
+        if (connectionScope != null) {
+            // Get client registry for connection scope
+            IClientRegistry clientRegistry = connectionScope.getContext().getClientRegistry();
+    		log.debug("Client registry: {}", (clientRegistry == null ? "is null" : "not null"));
+    		if (clientRegistry != null) {
+                // Get client from registry by id or create a new one
+                IClient client = clientRegistry.hasClient(id) ? clientRegistry.lookupClient(id) : clientRegistry.newClient(params);    
+        		// We have a context, and a client object.. time to init the connection.
+        		conn.initialize(client);
+        		// we could checked for banned clients here 
+        		connect = true;
+    		} else {
+        		log.error("No client registry was found, clients cannot be looked-up or created");    			
+    		}
+        } else {
+    		log.error("No connection scope was found");        	
         }
 
-        // Get client registry for connection scope
-        IClientRegistry clientRegistry = connectionScope.getContext().getClientRegistry();
-		log.debug("Client registry: {}", (clientRegistry == null ? "is null" : "not null"));
-
-        // Get client from registry by id or create a new one
-        IClient client = clientRegistry.hasClient(id) ? clientRegistry.lookupClient(id) : clientRegistry.newClient(params);
-
-		// We have a context, and a client object.. time to init the connection.
-		conn.initialize(client);
-
-		// we could checked for banned clients here 
-		return true;
+        return connect;
 	}
 
 	/** {@inheritDoc} */

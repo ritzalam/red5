@@ -20,6 +20,7 @@ package org.red5.spring;
  */
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -158,7 +159,9 @@ public class ExtendedPropertyPlaceholderConfigurer extends
 		return prop;
 	}
 
-	public static class ResourceFilenameComparator implements Comparator<Resource> {
+	public static class ResourceFilenameComparator implements Comparator<Resource>, Serializable {
+
+		private static final long serialVersionUID = -6365943736917478749L;
 
 		public int compare(Resource resource1, Resource resource2) {
 			if (resource1 != null) {

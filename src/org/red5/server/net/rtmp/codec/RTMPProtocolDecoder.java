@@ -844,6 +844,8 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 			throw new RuntimeException("Action was null");
 		}
 
+		//TODO Handle NetStream.send? Where and how?
+		
 		if (!(notify instanceof Invoke) && rtmp != null && rtmp.getMode() == RTMP.MODE_SERVER && header != null
 				&& header.getStreamId() != 0 && !isStreamCommand(action)) {
 			// Don't decode "NetStream.send" requests

@@ -55,7 +55,7 @@ public abstract class UnsignedNumber extends Number {
 	public abstract int compareTo(UnsignedNumber other);
 
 	public abstract boolean equals(Object other);
-	
+
 	public abstract int hashCode();
 
 	public String toHexString() {
@@ -65,20 +65,22 @@ public abstract class UnsignedNumber extends Number {
 	public String toHexString(boolean pad) {
 		StringBuilder sb = new StringBuilder();
 		boolean started = false;
-		for (byte b : getBytes())
+		for (byte b : getBytes()) {
 			if (!started && b == 0) {
-				if (pad)
+				if (pad) {
 					sb.append("00");
+				}
 			} else {
-				sb.append(hexLetters[(byte) ((b >> 4) & 0x0F)]).append(
-						hexLetters[b & 0x0F]);
+				sb.append(hexLetters[(byte) ((b >> 4) & 0x0F)]).append(hexLetters[b & 0x0F]);
 				started = true;
 			}
-		if (sb.length() == 0)
+		}
+		if (sb.length() == 0) {
 			return "0";
+		}
 		return sb.toString();
 	}
 
-	protected static final char[] hexLetters = { '0', '1', '2', '3', '4', '5',
-			'6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+	protected static final char[] hexLetters = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D',
+			'E', 'F' };
 }

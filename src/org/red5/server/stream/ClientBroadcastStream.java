@@ -202,9 +202,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		}
 		if (recordPipe != null) {
 			recordPipe.unsubscribe((IProvider) this);
-			if (recordPipe instanceof AbstractPipe) {
-				((AbstractPipe) recordPipe).close();
-			}
+			((AbstractPipe) recordPipe).close();
 		}
 		if (recording) {
 			sendRecordStopNotify();

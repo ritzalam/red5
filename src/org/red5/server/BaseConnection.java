@@ -177,7 +177,8 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	 * @param client        Client bound to connection
 	 */
 	public void initialize(IClient client) {
-		getWriteLock().lock();
+		Lock lock = getWriteLock();
+		lock.lock();
 		try {
 			if (this.client != null && this.client instanceof Client) {
 				// Unregister old client
@@ -189,7 +190,7 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 				((Client) this.client).register(this);
 			}
 		} finally {
-			getWriteLock().unlock();
+			lock.unlock();
 		}
 	}
 
@@ -294,7 +295,8 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
                 log.debug("Param: {}", e);
             }
 		}
-		getWriteLock().lock();
+		Lock lock = getWriteLock();
+		lock.lock();
 		try {
 			final Scope oldScope = scope;
 			scope = (Scope) newScope;
@@ -308,7 +310,7 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 				return false;
 			}
 		} finally {
-			getWriteLock().unlock();
+			lock.unlock();
 		}
 	}
 

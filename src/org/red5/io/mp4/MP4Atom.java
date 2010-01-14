@@ -520,7 +520,7 @@ public class MP4Atom {
 				case 4:
 					size = (int)stream.readBytes(1);
 					// TODO check the following code
-					samples.addElement(new Integer(size & 0x0f));
+					samples.addElement(Integer.valueOf(size & 0x0f));
 					size = (size >> 4) & 0x0f;
 					i++;
 					readed += 1;

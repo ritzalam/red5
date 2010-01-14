@@ -353,9 +353,9 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 	/** {@inheritDoc} */
 	public boolean hasVideo() {
 		KeyFrameMeta meta = analyzeKeyFrames();
-		if (meta == null)
+		if (meta == null) {
 			return false;
-
+		}
 		return (!meta.audioOnly && meta.positions.length > 0);
 	}
 

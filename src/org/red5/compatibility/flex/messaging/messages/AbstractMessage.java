@@ -304,7 +304,7 @@ public class AbstractMessage implements Message, Serializable {
 	public void writeExternal(IDataOutput output) {
 		short flags = 0;
 
-		if ((this.clientIdBytes == null) && (this.clientId instanceof String)) {
+		if (this.clientIdBytes == null) {
 			this.clientIdBytes = RandomGUID.toByteArray(this.clientId);
 		}
 		if (this.messageIdBytes == null) {
@@ -363,10 +363,10 @@ public class AbstractMessage implements Message, Serializable {
 			output.writeObject(this.messageId);
 		}
 		if (this.timestamp != 0L) {
-			output.writeObject(new Long(this.timestamp));
+			output.writeObject(Long.valueOf(this.timestamp));
 		}
 		if (this.timeToLive != 0L) {
-			output.writeObject(new Long(this.timeToLive));
+			output.writeObject(Long.valueOf(this.timeToLive));
 		}
 		if (this.clientIdBytes != null) {
 			output.writeObject(this.clientIdBytes);

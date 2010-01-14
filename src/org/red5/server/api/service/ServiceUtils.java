@@ -20,6 +20,7 @@ package org.red5.server.api.service;
  */
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -38,9 +39,9 @@ import org.slf4j.LoggerFactory;
  *
  */
 public class ServiceUtils {
-	
+
 	private static final Logger log = LoggerFactory.getLogger(ServiceUtils.class);
-	
+
 	/**
 	 * Invoke a method on the current connection.
 	 * 
@@ -62,8 +63,7 @@ public class ServiceUtils {
 	 * @return <code>true</code> if the connection supports method calls,
 	 *         otherwise <code>false</code>
 	 */
-	public static boolean invokeOnConnection(String method, Object[] params,
-			IPendingServiceCallback callback) {		
+	public static boolean invokeOnConnection(String method, Object[] params, IPendingServiceCallback callback) {
 		IConnection conn = Red5.getConnectionLocal();
 		if (conn != null) {
 			log.debug("Connection for invoke: {}", conn);
@@ -83,8 +83,7 @@ public class ServiceUtils {
 	 * @return <code>true</code> if the connection supports method calls,
 	 *         otherwise <code>false</code>
 	 */
-	public static boolean invokeOnConnection(IConnection conn, String method,
-			Object[] params) {
+	public static boolean invokeOnConnection(IConnection conn, String method, Object[] params) {
 		return invokeOnConnection(conn, method, params, null);
 	}
 
@@ -98,14 +97,13 @@ public class ServiceUtils {
 	 * @return <code>true</code> if the connection supports method calls,
 	 *         otherwise <code>false</code>
 	 */
-	public static boolean invokeOnConnection(IConnection conn, String method,
-			Object[] params, IPendingServiceCallback callback) {
+	public static boolean invokeOnConnection(IConnection conn, String method, Object[] params,
+			IPendingServiceCallback callback) {
 		if (conn instanceof IServiceCapableConnection) {
 			if (callback == null) {
 				((IServiceCapableConnection) conn).invoke(method, params);
 			} else {
-				((IServiceCapableConnection) conn).invoke(method, params,
-						callback);
+				((IServiceCapableConnection) conn).invoke(method, params, callback);
 			}
 			return true;
 		} else {
@@ -131,8 +129,7 @@ public class ServiceUtils {
 	 * @param params parameters to pass to the method
 	 * @param callback object to notify when result is received
 	 */
-	public static void invokeOnAllConnections(String method, Object[] params,
-			IPendingServiceCallback callback) {
+	public static void invokeOnAllConnections(String method, Object[] params, IPendingServiceCallback callback) {
 		IConnection conn = Red5.getConnectionLocal();
 		if (conn != null) {
 			log.debug("Connection for invoke on all: {}", conn);
@@ -151,8 +148,7 @@ public class ServiceUtils {
 	 * @param method name of the method to invoke
 	 * @param params parameters to pass to the method
 	 */
-	public static void invokeOnAllConnections(IScope scope, String method,
-			Object[] params) {
+	public static void invokeOnAllConnections(IScope scope, String method, Object[] params) {
 		invokeOnAllConnections(scope, method, params, null);
 	}
 
@@ -164,8 +160,8 @@ public class ServiceUtils {
 	 * @param params parameters to pass to the method
 	 * @param callback object to notify when result is received
 	 */
-	public static void invokeOnAllConnections(IScope scope, String method,
-			Object[] params, IPendingServiceCallback callback) {
+	public static void invokeOnAllConnections(IScope scope, String method, Object[] params,
+			IPendingServiceCallback callback) {
 		invokeOnClient(null, scope, method, params, callback);
 	}
 
@@ -177,8 +173,7 @@ public class ServiceUtils {
 	 * @param method name of the method to invoke
 	 * @param params parameters to pass to the method
 	 */
-	public static void invokeOnClient(IClient client, IScope scope,
-			String method, Object[] params) {
+	public static void invokeOnClient(IClient client, IScope scope, String method, Object[] params) {
 		invokeOnClient(client, scope, method, params, null);
 	}
 
@@ -192,15 +187,15 @@ public class ServiceUtils {
 	 * @param params parameters to pass to the method
 	 * @param callback object to notify when result is received
 	 */
-	public static void invokeOnClient(IClient client, IScope scope,
-			String method, Object[] params, IPendingServiceCallback callback) {
+	public static void invokeOnClient(IClient client, IScope scope, String method, Object[] params,
+			IPendingServiceCallback callback) {
 		Set<IConnection> connections;
 		if (client == null) {
 			connections = new HashSet<IConnection>();
 			Collection<Set<IConnection>> conns = scope.getConnections();
 			for (Set<IConnection> set : conns) {
 				connections.addAll(set);
-			}			
+			}
 		} else {
 			connections = scope.lookupConnections(client);
 			if (connections == null) {
@@ -218,11 +213,11 @@ public class ServiceUtils {
 				invokeOnConnection(conn, method, params, callback);
 			}
 		}
-		
+
 		if (connections != null) {
 			connections.clear();
 			connections = null;
-		}		
+		}
 	}
 
 	/**
@@ -233,7 +228,7 @@ public class ServiceUtils {
 	 * @return <code>true</code> if the connection supports method calls,
 	 *         otherwise <code>false</code>
 	 */
-	public static boolean notifyOnConnection(String method, Object[] params) {	
+	public static boolean notifyOnConnection(String method, Object[] params) {
 		IConnection conn = Red5.getConnectionLocal();
 		if (conn != null) {
 			log.debug("Connection for notify: {}", conn);
@@ -241,7 +236,7 @@ public class ServiceUtils {
 		} else {
 			log.warn("Connection was null (thread local), cannot execute notify request");
 			return false;
-		}		
+		}
 	}
 
 	/**
@@ -253,8 +248,7 @@ public class ServiceUtils {
 	 * @return <code>true</code> if the connection supports method calls,
 	 *         otherwise <code>false</code>
 	 */
-	public static boolean notifyOnConnection(IConnection conn, String method,
-			Object[] params) {
+	public static boolean notifyOnConnection(IConnection conn, String method, Object[] params) {
 		if (conn instanceof IServiceCapableConnection) {
 			((IServiceCapableConnection) conn).notify(method, params);
 			return true;
@@ -278,7 +272,7 @@ public class ServiceUtils {
 			notifyOnAllConnections(scope, method, params);
 		} else {
 			log.warn("Connection was null (thread local), scope cannot be located and cannot execute notify request");
-		}		
+		}
 	}
 
 	/**
@@ -288,8 +282,7 @@ public class ServiceUtils {
 	 * @param method name of the method to notify
 	 * @param params parameters to pass to the method
 	 */
-	public static void notifyOnAllConnections(IScope scope, String method,
-			Object[] params) {
+	public static void notifyOnAllConnections(IScope scope, String method, Object[] params) {
 		notifyOnClient(null, scope, method, params);
 	}
 
@@ -301,9 +294,9 @@ public class ServiceUtils {
 	 * @param method name of the method to notify
 	 * @param params parameters to pass to the method
 	 */
-	public static void notifyOnClient(IClient client, IScope scope,
-			String method, Object[] params) {
-		Set<IConnection> connections = null;
+	@SuppressWarnings("unchecked")
+	public static void notifyOnClient(IClient client, IScope scope, String method, Object[] params) {
+		Set<IConnection> connections = Collections.EMPTY_SET;
 		if (client == null) {
 			connections = new HashSet<IConnection>();
 			Collection<Set<IConnection>> conns = scope.getConnections();
@@ -317,12 +310,12 @@ public class ServiceUtils {
 		for (IConnection conn : connections) {
 			notifyOnConnection(conn, method, params);
 		}
-		
+
 		if (connections != null) {
 			connections.clear();
 			connections = null;
 		}
-		
+
 	}
 
 }

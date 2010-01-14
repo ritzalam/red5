@@ -47,9 +47,6 @@ import org.slf4j.LoggerFactory;
 public class FileUtil {
 
 	private static Logger log = LoggerFactory.getLogger(FileUtil.class);
-	
-	// Random number generator used by name generation
-	private static Random random;
 
 	public static void copyFile(File source, File dest) throws IOException {
 		log.debug("Copy from {} to {}", source.getAbsoluteFile(), dest
@@ -502,9 +499,7 @@ public class FileUtil {
 	 * @return custom name
 	 */
 	public static String generateCustomName() {
-		if (random == null) {
-			random = new Random();
-		}
+		Random random = new Random();
     	StringBuilder sb = new StringBuilder();
     	sb.append(PropertyConverter.getCurrentTimeSeconds());
     	sb.append('_');

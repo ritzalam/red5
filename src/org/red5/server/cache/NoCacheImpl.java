@@ -42,7 +42,7 @@ public class NoCacheImpl implements ICacheStore, ApplicationContextAware {
 
 	protected static Logger log = LoggerFactory.getLogger(NoCacheImpl.class);
 
-	private static NoCacheImpl instance;
+	private static NoCacheImpl instance = new NoCacheImpl();
 	
 	/** Do not instantiate NoCacheImpl. */ 
 	/*
@@ -57,9 +57,6 @@ public class NoCacheImpl implements ICacheStore, ApplicationContextAware {
 	 * @return class instance
 	 */
 	public static NoCacheImpl getInstance() {
-		if (instance == null) {
-			instance = new NoCacheImpl();
-		}
 		return instance;
 	}	
 	

@@ -82,7 +82,7 @@ public class ServiceUtils {
 		if (methods.isEmpty()) {
 			return new Object[] { null, null };
 		} else if (methods.size() == 1 && args == null) {
-			return new Object[] { methods.get(0), args };
+			return new Object[] { methods.get(0), null };
 		} else if (methods.size() > 1) {
 			log.debug("Multiple methods found with same name and parameter count.");
 			log.debug("Parameter conversion will be attempted in order.");

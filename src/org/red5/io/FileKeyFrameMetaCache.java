@@ -62,9 +62,10 @@ public class FileKeyFrameMetaCache implements IKeyFrameMetaCache {
 	public KeyFrameMeta loadKeyFrameMeta(File file) {
 		String filename = file.getAbsolutePath() + ".meta";
 		File metadataFile = new File(filename);
-		if (!metadataFile.exists())
+		if (!metadataFile.exists()) {
 			// No such metadata
 			return null;
+		}
 		
 		Document dom;
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -87,23 +88,23 @@ public class FileKeyFrameMetaCache implements IKeyFrameMetaCache {
 		
 		Element root = dom.getDocumentElement();
 		// Check if .xml file is valid and for this .flv file
-		if (!"FrameMetadata".equals(root.getNodeName()))
+		if (!"FrameMetadata".equals(root.getNodeName())) {
 			// Invalid XML
 			return null;
-		
+		}
 		String modified = root.getAttribute("modified");
-		if (modified == null || !modified.equals(String.valueOf(file.lastModified())))
+		if (modified == null || !modified.equals(String.valueOf(file.lastModified()))) {
 			// File has changed in the meantime
 			return null;
-		
-		if (!root.hasAttribute("duration"))
+		}
+		if (!root.hasAttribute("duration")) {
 			// Old file without duration informations
 			return null;
-		
-		if (!root.hasAttribute("audioOnly"))
+		}
+		if (!root.hasAttribute("audioOnly")) {
 			// Old file without audio/video informations
 			return null;
-		
+		}
 		XPathFactory factory = XPathFactory.newInstance();
         XPath xpath = factory.newXPath();
         NodeList keyFrames;
@@ -116,10 +117,11 @@ public class FileKeyFrameMetaCache implements IKeyFrameMetaCache {
         }
 
         int length = keyFrames.getLength();
-        if (keyFrames == null || length == 0)
+        if (keyFrames == null || length == 0) {
         	// File doesn't contain informations about keyframes
         	return null;
-		
+        }
+        
         KeyFrameMeta result = new KeyFrameMeta();
         result.duration = Long.parseLong(root.getAttribute("duration"));
         result.positions = new long[length];
@@ -137,16 +139,16 @@ public class FileKeyFrameMetaCache implements IKeyFrameMetaCache {
 
     /** {@inheritDoc} */
 	public void saveKeyFrameMeta(File file, KeyFrameMeta meta) {
-		if (meta.positions.length == 0)
+		if (meta.positions.length == 0) {
 			// Don't store empty meta informations
 			return;
-		
+		}
+	
 		Document dom;
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		try {
 			//get an instance of builder
-			DocumentBuilder db = dbf.newDocumentBuilder();
-	
+			DocumentBuilder db = dbf.newDocumentBuilder();	
 			//create an instance of DOM
 			dom = db.newDocument();
 		} catch (ParserConfigurationException pce) {

@@ -96,7 +96,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 */
 	protected static class PendingObject {
 
-		class PendingProperty {
+		static final class PendingProperty {
 			Object obj;
 
 			Class<?> klass;
@@ -220,72 +220,70 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	 */
 	@Override
 	public byte readDataType() {
+		byte coreType = AMF3.TYPE_UNDEFINED;
+		if (buf != null) {
+			currentDataType = buf.get();
+			log.debug("Current data type: {}", currentDataType);
 
-		if (buf == null) {
+			if (currentDataType == AMF.TYPE_AMF3_OBJECT) {
+				currentDataType = buf.get();
+			} else if (amf3_mode == 0) {
+				// AMF0 object
+				return readDataType(currentDataType);
+			}
+
+			log.debug("Current data type (after amf checks): {}", currentDataType);
+
+			switch (currentDataType) {
+				case AMF3.TYPE_UNDEFINED:
+				case AMF3.TYPE_NULL:
+					coreType = DataTypes.CORE_NULL;
+					break;
+				case AMF3.TYPE_INTEGER:
+				case AMF3.TYPE_NUMBER:
+					coreType = DataTypes.CORE_NUMBER;
+					break;
+
+				case AMF3.TYPE_BOOLEAN_TRUE:
+				case AMF3.TYPE_BOOLEAN_FALSE:
+					coreType = DataTypes.CORE_BOOLEAN;
+					break;
+
+				case AMF3.TYPE_STRING:
+					coreType = DataTypes.CORE_STRING;
+					break;
+				// TODO check XML_SPECIAL
+				case AMF3.TYPE_XML:
+				case AMF3.TYPE_XML_DOCUMENT:
+					coreType = DataTypes.CORE_XML;
+					break;
+				case AMF3.TYPE_OBJECT:
+					coreType = DataTypes.CORE_OBJECT;
+					break;
+
+				case AMF3.TYPE_ARRAY:
+					// should we map this to list or array?
+					coreType = DataTypes.CORE_ARRAY;
+					break;
+
+				case AMF3.TYPE_DATE:
+					coreType = DataTypes.CORE_DATE;
+					break;
+
+				case AMF3.TYPE_BYTEARRAY:
+					coreType = DataTypes.CORE_BYTEARRAY;
+					break;
+
+				default:
+					log.info("Unknown datatype: {}", currentDataType);
+					// End of object, and anything else lets just skip
+					coreType = DataTypes.CORE_SKIP;
+					break;
+			}
+			log.debug("Core type: {}", coreType);	
+		} else {
 			log.error("Why is buf null?");
 		}
-
-		currentDataType = buf.get();
-		log.debug("Current data type: {}", currentDataType);
-
-		byte coreType;
-
-		if (currentDataType == AMF.TYPE_AMF3_OBJECT) {
-			currentDataType = buf.get();
-		} else if (amf3_mode == 0) {
-			// AMF0 object
-			return readDataType(currentDataType);
-		}
-
-		log.debug("Current data type (after amf checks): {}", currentDataType);
-
-		switch (currentDataType) {
-			case AMF3.TYPE_UNDEFINED:
-			case AMF3.TYPE_NULL:
-				coreType = DataTypes.CORE_NULL;
-				break;
-			case AMF3.TYPE_INTEGER:
-			case AMF3.TYPE_NUMBER:
-				coreType = DataTypes.CORE_NUMBER;
-				break;
-
-			case AMF3.TYPE_BOOLEAN_TRUE:
-			case AMF3.TYPE_BOOLEAN_FALSE:
-				coreType = DataTypes.CORE_BOOLEAN;
-				break;
-
-			case AMF3.TYPE_STRING:
-				coreType = DataTypes.CORE_STRING;
-				break;
-			// TODO check XML_SPECIAL
-			case AMF3.TYPE_XML:
-			case AMF3.TYPE_XML_DOCUMENT:
-				coreType = DataTypes.CORE_XML;
-				break;
-			case AMF3.TYPE_OBJECT:
-				coreType = DataTypes.CORE_OBJECT;
-				break;
-
-			case AMF3.TYPE_ARRAY:
-				// should we map this to list or array?
-				coreType = DataTypes.CORE_ARRAY;
-				break;
-
-			case AMF3.TYPE_DATE:
-				coreType = DataTypes.CORE_DATE;
-				break;
-
-			case AMF3.TYPE_BYTEARRAY:
-				coreType = DataTypes.CORE_BYTEARRAY;
-				break;
-
-			default:
-				log.info("Unknown datatype: {}", currentDataType);
-				// End of object, and anything else lets just skip
-				coreType = DataTypes.CORE_SKIP;
-				break;
-		}
-		log.debug("Core type: {}", coreType);
 		return coreType;
 	}
 

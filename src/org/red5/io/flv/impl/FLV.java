@@ -37,6 +37,7 @@ import org.red5.io.flv.meta.IMetaService;
 import org.red5.io.flv.meta.MetaService;
 import org.red5.server.api.cache.ICacheStore;
 import org.red5.server.api.cache.ICacheable;
+import org.red5.server.cache.NoCacheImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -139,7 +140,6 @@ public class FLV implements IFLV {
 	 * {@inheritDoc}
 	 */
 	public boolean hasKeyFrameData() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
@@ -155,7 +155,6 @@ public class FLV implements IFLV {
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public Map getKeyFrameData() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -163,16 +162,12 @@ public class FLV implements IFLV {
 	 * {@inheritDoc}
 	 */
 	public void refreshHeaders() throws IOException {
-		// TODO Auto-generated method stub
-
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	public void flushHeaders() throws IOException {
-		// TODO Auto-generated method stub
-
 	}
 
 	/**
@@ -185,12 +180,10 @@ public class FLV implements IFLV {
 
 		// if no cache is set an NPE will be thrown
 		if (cache == null) {
-			//System.out.println("No cache");
-			log
-					.warn("FLV cache is null, an NPE may be thrown. To fix your code, ensure a cache is set via Spring or by the following: setCache(NoCacheImpl.getInstance())");
+			log.info("FLV cache is null, forcing NoCacheImpl instance");
+			cache = NoCacheImpl.getInstance();
 		}
 		ICacheable ic = cache.get(fileName);
-
 		// look in the cache before reading the file from the disk
 		if (null == ic || (null == ic.getByteBuffer())) {
 			if (file.exists()) {

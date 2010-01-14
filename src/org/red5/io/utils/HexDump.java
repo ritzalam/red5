@@ -460,8 +460,6 @@ public class HexDump {
 	public static byte[] hexStringToByteArray(String strA) {
 		ByteArrayOutputStream result = new ByteArrayOutputStream();
 
-		// alle Hex-Zeichen konvertieren, den Rest Ignorieren
-		// jedes Zeichen stellt einen 4-Bit Wert dar
 		byte sum = (byte) 0x00;
 		boolean nextCharIsUpper = true;
 

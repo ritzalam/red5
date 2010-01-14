@@ -1,4 +1,7 @@
 package org.red5.io.object;
+
+import java.util.Arrays;
+
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
  *
@@ -54,11 +57,11 @@ public final class UnsignedShort extends UnsignedNumber {
 
 	public static UnsignedShort fromBytes(byte[] c, int idx) {
 		UnsignedShort number = new UnsignedShort();
-		if ((c.length - idx) < 2)
+		if ((c.length - idx) < 2) {
 			throw new IllegalArgumentException(
 					"An UnsignedShort number is composed of 2 bytes.");
-
-		number.value = (c[0] << 8 | c[1]) & 0xFFFF;
+		}
+		number.value = ((c[0] << 8) | (c[1] & 0xFFFF));
 		return number;
 	}
 
@@ -100,27 +103,27 @@ public final class UnsignedShort extends UnsignedNumber {
 
 	@Override
 	public byte[] getBytes() {
-		byte[] c = new byte[2];
-		c[0] = (byte) ((value >> 8) & 0xFF);
-		c[1] = (byte) ((value >> 0) & 0xFF);
-		return c;
+		return new byte[]{(byte) ((value >> 8) & 0xFF), (byte) (value & 0xFF)};
 	}
 
 	@Override
 	public int compareTo(UnsignedNumber other) {
 		int otherValue = other.intValue();
-		if (value > otherValue)
-			return +1;
-		else if (value < otherValue)
+		if (value > otherValue) {
+			return 1;
+		} else if (value < otherValue) {
 			return -1;
+		}
 		return 0;
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		if (!(other instanceof Number))
+		if (other instanceof Number) {
+			return Arrays.equals(getBytes(), ((UnsignedNumber) other).getBytes());
+		} else {
 			return false;
-		return value == ((Number) other).intValue();
+		}
 	}
 	
 	@Override
@@ -135,19 +138,19 @@ public final class UnsignedShort extends UnsignedNumber {
 
 	@Override
 	public void shiftRight(int nBits) {
-		if (Math.abs(nBits) > 16)
+		if (Math.abs(nBits) > 16) {
 			throw new IllegalArgumentException("Cannot right shift " + nBits
 					+ " an UnsignedShort.");
-
+		}
 		value >>>= nBits;
 	}
 
 	@Override
 	public void shiftLeft(int nBits) {
-		if (Math.abs(nBits) > 16)
+		if (Math.abs(nBits) > 16) {
 			throw new IllegalArgumentException("Cannot left shift " + nBits
 					+ " an UnsignedShort.");
-
+		}
 		value <<= nBits;
 	}
 

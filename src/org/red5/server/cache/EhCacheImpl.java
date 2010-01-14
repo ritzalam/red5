@@ -56,10 +56,13 @@ public class EhCacheImpl implements ICacheStore, ApplicationContextAware {
 	private static Ehcache cache;
 
 	private List<CacheConfiguration> configs;
-	
+
 	private String memoryStoreEvictionPolicy = "LRU";
+
 	private int diskExpiryThreadIntervalSeconds = 120;
+
 	private String diskStore = System.getProperty("java.io.tmpdir");
+
 	private CacheManagerEventListener cacheManagerEventListener;
 
 	// We store the application context in a ThreadLocal so we can access it
@@ -67,17 +70,16 @@ public class EhCacheImpl implements ICacheStore, ApplicationContextAware {
 	private static ApplicationContext applicationContext;
 
 	/** {@inheritDoc} */
-    public void setApplicationContext(ApplicationContext context)
-			throws BeansException {
+	public void setApplicationContext(ApplicationContext context) throws BeansException {
 		EhCacheImpl.applicationContext = context;
 	}
 
 	/**
-     * Getter for property 'applicationContext'.
-     *
-     * @return Value for property 'applicationContext'.
-     */
-    public static ApplicationContext getApplicationContext() {
+	 * Getter for property 'applicationContext'.
+	 *
+	 * @return Value for property 'applicationContext'.
+	 */
+	public static ApplicationContext getApplicationContext() {
 		return applicationContext;
 	}
 
@@ -112,7 +114,7 @@ public class EhCacheImpl implements ICacheStore, ApplicationContextAware {
 			cache = helper.createDefaultCache();
 			//init the default
 			cache.initialise();
-			cache.bootstrap();			
+			cache.bootstrap();
 			//create the un-init'd caches
 			Set<Cache> caches = helper.createCaches();
 			if (log.isDebugEnabled()) {
@@ -123,9 +125,7 @@ public class EhCacheImpl implements ICacheStore, ApplicationContextAware {
 				nonDefaultCache.bootstrap();
 				//set first cache to be main local member
 				if (null == nonDefaultCache) {
-					if (log.isDebugEnabled()) {
-						log.debug("Default cache name: {}", defaultCacheName);
-					}
+					log.debug("Default cache name: {}", defaultCacheName);
 					nonDefaultCache = cm.getCache(defaultCacheName);
 				}
 			}
@@ -138,7 +138,7 @@ public class EhCacheImpl implements ICacheStore, ApplicationContextAware {
 	}
 
 	/** {@inheritDoc} */
-    public ICacheable get(String name) {
+	public ICacheable get(String name) {
 		ICacheable ic = null;
 		try {
 			ic = (ICacheable) cache.get(name).getObjectValue();
@@ -148,7 +148,7 @@ public class EhCacheImpl implements ICacheStore, ApplicationContextAware {
 	}
 
 	/** {@inheritDoc} */
-    public void put(String name, Object obj) {
+	public void put(String name, Object obj) {
 		if (obj instanceof ICacheable) {
 			cache.put(new Element(name, obj));
 		} else {
@@ -157,18 +157,18 @@ public class EhCacheImpl implements ICacheStore, ApplicationContextAware {
 	}
 
 	/** {@inheritDoc} */
-    @SuppressWarnings("unchecked")
+	@SuppressWarnings("unchecked")
 	public Iterator<String> getObjectNames() {
 		return cache.getKeys().iterator();
 	}
 
 	/** {@inheritDoc} */
-    public Iterator<SoftReference<? extends ICacheable>> getObjects() {
+	public Iterator<SoftReference<? extends ICacheable>> getObjects() {
 		return null;
 	}
 
 	/** {@inheritDoc} */
-    public boolean offer(String name, Object obj) {
+	public boolean offer(String name, Object obj) {
 		boolean result = false;
 		try {
 			result = cache.isKeyInCache(name);
@@ -178,132 +178,130 @@ public class EhCacheImpl implements ICacheStore, ApplicationContextAware {
 			}
 			//check again
 			result = cache.isKeyInCache(name);
-		} catch(NullPointerException npe) {
+		} catch (NullPointerException npe) {
 			log.debug("Name: " + name + " Object: " + obj.getClass().getName(), npe);
 		}
 		return result;
 	}
 
 	/** {@inheritDoc} */
-    public boolean remove(ICacheable obj) {
+	public boolean remove(ICacheable obj) {
 		return cache.remove(obj.getName());
 	}
 
 	/** {@inheritDoc} */
-    public boolean remove(String name) {
+	public boolean remove(String name) {
 		return cache.remove(name);
 	}
 
 	/**
-     * Setter for property 'cacheConfigs'.
-     *
-     * @param configs Value to set for property 'cacheConfigs'.
-     */
-    public void setCacheConfigs(List<CacheConfiguration> configs) {
+	 * Setter for property 'cacheConfigs'.
+	 *
+	 * @param configs Value to set for property 'cacheConfigs'.
+	 */
+	public void setCacheConfigs(List<CacheConfiguration> configs) {
 		this.configs = configs;
 	}
 
 	/** {@inheritDoc} */
-    public void setMaxEntries(int capacity) {
+	public void setMaxEntries(int capacity) {
 		if (log.isDebugEnabled()) {
 			log.debug("Setting max entries for this cache to " + capacity);
 		}
 	}
 
 	/**
-     * Getter for property 'memoryStoreEvictionPolicy'.
-     *
-     * @return Value for property 'memoryStoreEvictionPolicy'.
-     */
-    public String getMemoryStoreEvictionPolicy() {
+	 * Getter for property 'memoryStoreEvictionPolicy'.
+	 *
+	 * @return Value for property 'memoryStoreEvictionPolicy'.
+	 */
+	public String getMemoryStoreEvictionPolicy() {
 		return memoryStoreEvictionPolicy;
 	}
 
 	/**
-     * Setter for property 'memoryStoreEvictionPolicy'.
-     *
-     * @param memoryStoreEvictionPolicy Value to set for property 'memoryStoreEvictionPolicy'.
-     */
-    public void setMemoryStoreEvictionPolicy(String memoryStoreEvictionPolicy) {
+	 * Setter for property 'memoryStoreEvictionPolicy'.
+	 *
+	 * @param memoryStoreEvictionPolicy Value to set for property 'memoryStoreEvictionPolicy'.
+	 */
+	public void setMemoryStoreEvictionPolicy(String memoryStoreEvictionPolicy) {
 		this.memoryStoreEvictionPolicy = memoryStoreEvictionPolicy;
 	}
 
 	/**
-     * Getter for property 'diskExpiryThreadIntervalSeconds'.
-     *
-     * @return Value for property 'diskExpiryThreadIntervalSeconds'.
-     */
-    public int getDiskExpiryThreadIntervalSeconds() {
+	 * Getter for property 'diskExpiryThreadIntervalSeconds'.
+	 *
+	 * @return Value for property 'diskExpiryThreadIntervalSeconds'.
+	 */
+	public int getDiskExpiryThreadIntervalSeconds() {
 		return diskExpiryThreadIntervalSeconds;
 	}
 
 	/**
-     * Setter for property 'diskExpiryThreadIntervalSeconds'.
-     *
-     * @param diskExpiryThreadIntervalSeconds Value to set for property 'diskExpiryThreadIntervalSeconds'.
-     */
-    public void setDiskExpiryThreadIntervalSeconds(
-			int diskExpiryThreadIntervalSeconds) {
+	 * Setter for property 'diskExpiryThreadIntervalSeconds'.
+	 *
+	 * @param diskExpiryThreadIntervalSeconds Value to set for property 'diskExpiryThreadIntervalSeconds'.
+	 */
+	public void setDiskExpiryThreadIntervalSeconds(int diskExpiryThreadIntervalSeconds) {
 		this.diskExpiryThreadIntervalSeconds = diskExpiryThreadIntervalSeconds;
 	}
 
 	/**
-     * Getter for property 'diskStore'.
-     *
-     * @return Value for property 'diskStore'.
-     */
-    public String getDiskStore() {
+	 * Getter for property 'diskStore'.
+	 *
+	 * @return Value for property 'diskStore'.
+	 */
+	public String getDiskStore() {
 		return diskStore;
 	}
 
 	/**
-     * Setter for property 'diskStore'.
-     *
-     * @param diskStore Value to set for property 'diskStore'.
-     */
-    public void setDiskStore(String diskStore) {
+	 * Setter for property 'diskStore'.
+	 *
+	 * @param diskStore Value to set for property 'diskStore'.
+	 */
+	public void setDiskStore(String diskStore) {
 		this.diskStore = System.getProperty("diskStore");
 	}
 
 	/**
-     * Getter for property 'cacheManagerEventListener'.
-     *
-     * @return Value for property 'cacheManagerEventListener'.
-     */
-    public CacheManagerEventListener getCacheManagerEventListener() {
+	 * Getter for property 'cacheManagerEventListener'.
+	 *
+	 * @return Value for property 'cacheManagerEventListener'.
+	 */
+	public CacheManagerEventListener getCacheManagerEventListener() {
 		return cacheManagerEventListener;
 	}
 
 	/**
-     * Setter for property 'cacheManagerEventListener'.
-     *
-     * @param cacheManagerEventListener Value to set for property 'cacheManagerEventListener'.
-     */
-    public void setCacheManagerEventListener(
-			CacheManagerEventListener cacheManagerEventListener) {
+	 * Setter for property 'cacheManagerEventListener'.
+	 *
+	 * @param cacheManagerEventListener Value to set for property 'cacheManagerEventListener'.
+	 */
+	public void setCacheManagerEventListener(CacheManagerEventListener cacheManagerEventListener) {
 		this.cacheManagerEventListener = cacheManagerEventListener;
 	}
 
 	/**
-     * Getter for property 'cacheHit'.
-     *
-     * @return Value for property 'cacheHit'.
-     */
-    public static long getCacheHit() {
+	 * Getter for property 'cacheHit'.
+	 *
+	 * @return Value for property 'cacheHit'.
+	 */
+	public static long getCacheHit() {
 		return cache.getStatistics().getCacheHits();
 	}
 
 	/**
-     * Getter for property 'cacheMiss'.
-     *
-     * @return Value for property 'cacheMiss'.
-     */
-    public static long getCacheMiss() {
+	 * Getter for property 'cacheMiss'.
+	 *
+	 * @return Value for property 'cacheMiss'.
+	 */
+	public static long getCacheMiss() {
 		return cache.getStatistics().getCacheMisses();
-	}	
-	
+	}
+
 	/** {@inheritDoc} */
-    public void destroy() {
+	public void destroy() {
 		// Shut down the cache manager
 		try {
 			CacheManager.getInstance().shutdown();

@@ -81,12 +81,20 @@ public class Test {
 			if (len <= 1) {
 				return;
 			}
-			String out = "Status: " + msg[0] + " Data: [";
+			StringBuilder out = new StringBuilder("Status: ");
+			out.append(msg[0]);
+			out.append(" Data: [");
 			for (int i = 1; i < len; i++) {
-				out += msg[i] + ((i == len - 1) ? "" : ",");
+				out.append(msg[i]);
+				if (i == len - 1) {
+					out.append("");
+				} else {
+					out.append(',');
+				}
 			}
-			out += ']';
-			log.debug(out);
+			out.append(']');
+			
+			log.debug(out.toString());
 		}
 
 		/** {@inheritDoc} */

@@ -109,17 +109,18 @@ public final class UnsignedByte extends UnsignedNumber {
 	@Override
 	public int compareTo(UnsignedNumber other) {
 		short otherValue = other.shortValue();
-		if (value > otherValue)
+		if (value > otherValue) {
 			return +1;
-		else if (value < otherValue)
+		} else if (value < otherValue) {
 			return -1;
+		}
 		return 0;
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		if (other != null) {
-			return value == ((Number)other).shortValue();
+		if (other != null && other instanceof Number) {
+			return value == ((Number) other).shortValue();
 		} else {
 			return false;
 		}
@@ -137,19 +138,19 @@ public final class UnsignedByte extends UnsignedNumber {
 
 	@Override
 	public void shiftRight(int nBits) {
-		if (Math.abs(nBits) > 8)
+		if (Math.abs(nBits) > 8) {
 			throw new IllegalArgumentException("Cannot right shift " + nBits
 					+ " an UnsignedByte.");
-
+		}
 		value >>>= nBits;
 	}
 
 	@Override
 	public void shiftLeft(int nBits) {
-		if (Math.abs(nBits) > 8)
+		if (Math.abs(nBits) > 8) {
 			throw new IllegalArgumentException("Cannot left shift " + nBits
 					+ " an UnsignedByte.");
-
+		}
 		value <<= nBits;
 	}
 }
