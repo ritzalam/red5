@@ -175,6 +175,11 @@ public class RTMPHandshake implements IHandshake {
     					bIn[5], bIn[6], bIn[7], bIn[8], bIn[9], 
     					bIn[10], bIn[11], bIn[12], bIn[13], bIn[14],
     					bIn[15] });
+    			//client version hex
+    			byte[] ver = new byte[4];
+    			System.arraycopy(bIn, 4, ver, 0, 4);    			
+    			log.trace("Version string: {}", Hex.encodeHexString(ver));
+    			//dump
     			byte[] buf = new byte[128];
     			System.arraycopy(bIn, 0, buf, 0, 128);
     			log.trace("Hex: {}", Hex.encodeHexString(buf));
@@ -450,7 +455,7 @@ public class RTMPHandshake implements IHandshake {
 	/**
 	 * Returns a digest byte offset.
 	 * 
-	 * @param source for digest data
+	 * @param pBuffer source for digest data
 	 * @return digest offset
 	 */
 	protected int getDigestOffset0(byte[] pBuffer) {
@@ -469,7 +474,7 @@ public class RTMPHandshake implements IHandshake {
 	/**
 	 * Returns a digest byte offset.
 	 * 
-	 * @param source for digest data
+	 * @param pBuffer source for digest data
 	 * @return digest offset
 	 */
 	protected int getDigestOffset1(byte[] pBuffer) {
