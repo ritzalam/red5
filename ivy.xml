@@ -79,7 +79,7 @@
         <dependency name="jruby" rev="1.0.1" conf="java5->*"/>
         <dependency name="jruby-engine" rev="" conf="java5->*"/> 
         <!-- Crypto -->
-        <dependency name="bcprov-jdk16" rev="144" conf="java6->*"/> 
+        <dependency name="bcprov-jdk16" rev="145" conf="java6->*"/> 
         <dependency name="bcprov-jdk15" rev="143" conf="java5->*"/> 
         <!-- MP3 -->
         <dependency name="jaudiotagger" rev="1.0.8" />           
