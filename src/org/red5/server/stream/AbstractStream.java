@@ -24,6 +24,7 @@ import org.red5.server.api.IScopeHandler;
 import org.red5.server.api.stream.IStream;
 import org.red5.server.api.stream.IStreamAwareScopeHandler;
 import org.red5.server.api.stream.IStreamCodecInfo;
+import org.red5.server.net.rtmp.event.Notify;
 
 /**
  * Abstract base implementation of IStream. Contains codec information, stream name, scope, event handling
@@ -56,6 +57,11 @@ public abstract class AbstractStream implements IStream {
 	private IStreamCodecInfo codecInfo;
     
 	/**
+	 * Stores the streams metadata
+	 */
+	protected Notify metaData;
+	
+	/**
      *  Stream scope
      */
 	private IScope scope;
@@ -81,6 +87,15 @@ public abstract class AbstractStream implements IStream {
 		return codecInfo;
 	}
 
+	/**
+	 * Returns the metadata for the associated stream, if it exists.
+	 * 
+	 * @return stream meta data
+	 */
+	public Notify getMetaData() {
+		return metaData;
+	}    
+    
     /**
      * Return scope
      * @return         Scope

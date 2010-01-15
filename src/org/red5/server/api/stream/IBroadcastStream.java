@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.Collection;
 
 import org.red5.server.messaging.IProvider;
+import org.red5.server.net.rtmp.event.Notify;
 
 /**
  * A broadcast stream is a stream source to be subscribed by clients. To
@@ -105,5 +106,12 @@ public interface IBroadcastStream extends IStream {
 	 * @return the registered listeners
 	 */
 	public Collection<IStreamListener> getStreamListeners();
+	
+	/**
+	 * Returns the metadata for the associated stream, if it exists.
+	 * 
+	 * @return stream meta data
+	 */
+	public Notify getMetaData();
 	
 }

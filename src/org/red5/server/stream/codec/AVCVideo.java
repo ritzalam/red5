@@ -176,7 +176,7 @@ public class AVCVideo implements IVideoStreamCodec {
 
 		IoBuffer result = IoBuffer.allocate(dataCountLKF);
 		result.put(blockDataLKF, 0, dataCountLKF);
-		result.rewind();
+		result.flip();
 		return result;
 	}
 
@@ -188,7 +188,7 @@ public class AVCVideo implements IVideoStreamCodec {
 
 		IoBuffer result = IoBuffer.allocate(dataCountAVCDCR);
 		result.put(blockDataAVCDCR, 0, dataCountAVCDCR);
-		result.rewind();
+		result.flip();
 		return result;
 	}
 }

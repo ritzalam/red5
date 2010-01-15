@@ -64,110 +64,83 @@ public class AbstractMessage implements IMessage {
 
 	/** {@inheritDoc} */
     public boolean getBooleanProperty(String name) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	/** {@inheritDoc} */
     public void setBooleanProperty(String name, boolean value) {
-		// TODO Auto-generated method stub
-
 	}
 
 	/** {@inheritDoc} */
     public byte getByteProperty(String name) {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	/** {@inheritDoc} */
     public void setByteProperty(String name, byte value) {
-		// TODO Auto-generated method stub
-
 	}
 
 	/** {@inheritDoc} */
     public double getDoubleProperty(String name) {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	/** {@inheritDoc} */
     public void setDoubleProperty(String name, double value) {
-		// TODO Auto-generated method stub
-
 	}
 
 	/** {@inheritDoc} */
     public float getFloatProperty(String name) {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	/** {@inheritDoc} */
     public void setFloatProperty(String name, float value) {
-		// TODO Auto-generated method stub
-
 	}
 
 	/** {@inheritDoc} */
     public int getIntProperty(String name) {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	/** {@inheritDoc} */
     public void setIntProperty(String name, int value) {
-		// TODO Auto-generated method stub
-
 	}
 
 	/** {@inheritDoc} */
     public long getLongProperty(String name) {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	/** {@inheritDoc} */
     public void setLongProperty(String name, long value) {
-		// TODO Auto-generated method stub
-
 	}
 
 	/** {@inheritDoc} */
     public short getShortProperty(String name) {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	/** {@inheritDoc} */
     public void setShortProperty(String name, short value) {
-		// TODO Auto-generated method stub
-
 	}
 
 	/** {@inheritDoc} */
     public String getStringProperty(String name) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	/** {@inheritDoc} */
     public void setStringProperty(String name, String value) {
-		// TODO Auto-generated method stub
-
 	}
 
 	/** {@inheritDoc} */
     public Object getObjectProperty(String name) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	/** {@inheritDoc} */
     public void setObjectProperty(String name, Object value) {
-		// TODO Auto-generated method stub
-
 	}
 
 }

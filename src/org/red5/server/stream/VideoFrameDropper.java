@@ -52,29 +52,28 @@ import org.slf4j.LoggerFactory;
  */
 public class VideoFrameDropper implements IFrameDropper {
 
-	protected static Logger log = LoggerFactory.getLogger(VideoFrameDropper.class
-			.getName());
+	protected static Logger log = LoggerFactory.getLogger(VideoFrameDropper.class.getName());
 
 	/** Current state. */
 	private int state;
 
 	/** Constructs a new VideoFrameDropper. */
-    public VideoFrameDropper() {
+	public VideoFrameDropper() {
 		reset();
 	}
 
 	/** {@inheritDoc} */
-    public void reset() {
+	public void reset() {
 		reset(SEND_ALL);
 	}
 
 	/** {@inheritDoc} */
-    public void reset(int state) {
+	public void reset(int state) {
 		this.state = state;
 	}
 
 	/** {@inheritDoc} */
-    public boolean canSendPacket(RTMPMessage message, long pending) {
+	public boolean canSendPacket(RTMPMessage message, long pending) {
 		IRTMPEvent packet = message.getBody();
 		if (!(packet instanceof VideoData)) {
 			// We currently only drop video packets.
@@ -124,7 +123,7 @@ public class VideoFrameDropper implements IFrameDropper {
 	}
 
 	/** {@inheritDoc} */
-    public void dropPacket(RTMPMessage message) {
+	public void dropPacket(RTMPMessage message) {
 		IRTMPEvent packet = message.getBody();
 		if (!(packet instanceof VideoData)) {
 			// Only check video packets.
@@ -176,7 +175,7 @@ public class VideoFrameDropper implements IFrameDropper {
 	}
 
 	/** {@inheritDoc} */
-    public void sendPacket(RTMPMessage message) {
+	public void sendPacket(RTMPMessage message) {
 
 	}
 

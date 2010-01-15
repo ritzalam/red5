@@ -78,13 +78,14 @@ public class InMemoryPushPushPipe extends AbstractPipe {
 	public void pushMessage(IMessage message) throws IOException {
 		for (IConsumer consumer : consumers) {
 			try {
-				((IPushableConsumer) consumer).pushMessage(this, message);
+				IPushableConsumer pcon = (IPushableConsumer) consumer;
+				pcon.pushMessage(this, message);
 			} catch (Throwable t) {
 				if (t instanceof IOException) {
 					// Pass this along
 					throw (IOException) t;
 				}
-				log.error("exception when pushing message to consumer", t);
+				log.error("Exception when pushing message to consumer", t);
 			}
 		}
 	}

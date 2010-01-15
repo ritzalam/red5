@@ -168,11 +168,6 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	 */
 	private StatisticsCounter subscriberStats = new StatisticsCounter();
 
-	/**
-	 * Stores the streams metadata
-	 */
-	protected Notify metaData;
-
 	/** Listeners to get notified about received packets. */
 	private Set<IStreamListener> listeners = new CopyOnWriteArraySet<IStreamListener>();
 
@@ -242,15 +237,15 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 			return;
 		}
 		int eventTime = -1;
-		if (log.isDebugEnabled()) {
+		if (log.isTraceEnabled()) {
 			// If this is first packet save its timestamp; expect it is
 			// absolute? no matter: it's never used!
 			if (firstPacketTime == -1) {
 				firstPacketTime = rtmpEvent.getTimestamp();
-				log.debug(String.format("CBS=@%08x: rtmpEvent=%s firstPacketTime=%d", System.identityHashCode(this),
+				log.trace(String.format("CBS=@%08x: rtmpEvent=%s firstPacketTime=%d", System.identityHashCode(this),
 						rtmpEvent.getClass().getSimpleName(), firstPacketTime));
 			}
-			log.debug(String.format("CBS=@%08x: rtmpEvent=%s  timestamp=%d", System.identityHashCode(this), rtmpEvent
+			log.trace(String.format("CBS=@%08x: rtmpEvent=%s  timestamp=%d", System.identityHashCode(this), rtmpEvent
 					.getClass().getSimpleName(), rtmpEvent.getTimestamp()));
 
 		}
@@ -266,7 +261,6 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 			eventTime = rtmpEvent.getTimestamp();
 			log.trace("Audio: {}", eventTime);
 		} else if (rtmpEvent instanceof VideoData) {
-
 			IVideoStreamCodec videoStreamCodec = null;
 			if (checkVideoCodec) {
 				videoStreamCodec = VideoCodecFactory.getVideoCodec(buf);
@@ -279,7 +273,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 			}
 
 			if (videoStreamCodec != null) {
-				videoStreamCodec.addData(buf);
+				videoStreamCodec.addData(buf.asReadOnlyBuffer());
 			}
 
 			if (info != null) {
@@ -465,6 +459,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	public void onPipeConnectionEvent(PipeConnectionEvent event) {
 		switch (event.getType()) {
 			case PipeConnectionEvent.PROVIDER_CONNECT_PUSH:
+				log.info("Provider connect");
 				if (event.getProvider() == this && event.getSource() != connMsgOut
 						&& (event.getParamMap() == null || !event.getParamMap().containsKey("record"))) {
 
@@ -475,26 +470,21 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 				}
 				break;
 			case PipeConnectionEvent.PROVIDER_DISCONNECT:
+				log.info("Provider disconnect");
 				if (this.livePipe == event.getSource()) {
 					this.livePipe = null;
 				}
 				break;
 			case PipeConnectionEvent.CONSUMER_CONNECT_PUSH:
-				if (this.livePipe == event.getSource()) {
+				log.info("Consumer connect");
+				IPipe pipe = (IPipe) event.getSource();
+				if (this.livePipe == pipe) {
 					notifyChunkSize();
 				}
-				if (event.getSource() instanceof IPipe) {
-					try {
-						initializePipeData((IPipe) event.getSource());
-					} catch (IOException e) {
-						log.error("Failed to initialize pipeData for stream.");
-					}
-				}
-
 				subscriberStats.increment();
-
 				break;
 			case PipeConnectionEvent.CONSUMER_DISCONNECT:
+				log.info("Consumer disconnect");
 				subscriberStats.decrement();
 				break;
 			default:
@@ -803,75 +793,6 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	/** {@inheritDoc} */
 	public void removeStreamListener(IStreamListener listener) {
 		listeners.remove(listener);
-	}
-
-	/**
-	 * Initialize a pipe sending initial data to it.
-	 * Initial data is:
-	 * 		metadata
-	 *		AVCDecoderConfigurationRecord (in case of AVC codec)
-	 * 		lastKeyFrame
-	 * @param pipe		Pipe that initial data are written to
-	 * @throws IOException 
-	 * */
-	private void initializePipeData(IPipe pipe) throws IOException {
-		log.debug("initializePipeData called");
-		//check for metadata to send
-		if (metaData != null) {
-			log.debug("we have metadata to send");
-			RTMPMessage msg = new RTMPMessage();
-			msg.setBody(metaData);
-			msg.getBody().setTimestamp(0);
-			try {
-				livePipe.pushMessage(msg);
-			} catch (IOException e) {
-				log.warn("Error sending metadata", e);
-			}
-		}
-
-		IStreamCodecInfo codecInfo = getCodecInfo();
-		if (codecInfo instanceof StreamCodecInfo) {
-			StreamCodecInfo info = (StreamCodecInfo) codecInfo;
-			IVideoStreamCodec videoCodec = info.getVideoCodec();
-
-			if (videoCodec != null) {
-				//check for decoder configuration to send
-				IoBuffer config = videoCodec.getDecoderConfiguration();
-				if (config != null) {
-					log.debug("we have decoder record to send");
-					VideoData conf = new VideoData(config);
-					try {
-						conf.setTimestamp(0);
-
-						RTMPMessage confMsg = new RTMPMessage();
-						confMsg.setBody(conf);
-
-						pipe.pushMessage(confMsg);
-					} finally {
-						conf.release();
-					}
-				}
-
-				//check for a keyframe to send
-				IoBuffer keyFrame = videoCodec.getKeyframe();
-				if (keyFrame != null) {
-					log.debug("we have last key frame to send");
-					VideoData video = new VideoData(keyFrame);
-					try {
-						video.setTimestamp(0);
-
-						RTMPMessage videoMsg = new RTMPMessage();
-						videoMsg.setBody(video);
-
-						pipe.pushMessage(videoMsg);
-					} finally {
-						video.release();
-					}
-				}
-			} else {
-				log.debug("Could not initialize pipe data, videoCodec is null.");
-			}
-		}
 	}
 
 }

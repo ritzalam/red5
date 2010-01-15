@@ -729,8 +729,9 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 			keyframeMeta.timestamps[i] = timestampList.get(i);
 			posTimeMap.put((long) positionList.get(i), (long) timestampList.get(i));
 		}
-		if (keyframeCache != null)
+		if (keyframeCache != null) {
 			keyframeCache.saveKeyFrameMeta(file, keyframeMeta);
+		}
 		return keyframeMeta;
 	}
 

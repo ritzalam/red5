@@ -75,6 +75,8 @@ public class FileKeyFrameMetaCache implements IKeyFrameMetaCache {
 			
 			// parse using builder to get DOM representation of the XML file
 			dom = db.parse(filename);
+			
+			db.reset();
 		} catch (ParserConfigurationException pce) {
 			log.error("Could not parse XML file.", pce);
 			return null;

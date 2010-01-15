@@ -70,6 +70,24 @@ public class VideoData extends BaseEvent implements IoConstants, IStreamData, IS
 		setData(data);
 	}
 
+    /**
+     * Create video data event with given data buffer
+     * @param data Video data
+     * @param copy true to use a copy of the data or false to use reference
+     */
+    public VideoData(IoBuffer data, boolean copy) {
+		super(Type.STREAM_DATA);
+		if (copy) {
+			byte[] array = new byte[data.limit()];
+			data.mark();
+			data.get(array);
+			data.reset();
+        	setData(array);
+    	} else {
+    		setData(data);
+    	}
+	}    
+    
 	/** {@inheritDoc} */
     @Override
 	public byte getDataType() {
@@ -88,9 +106,9 @@ public class VideoData extends BaseEvent implements IoConstants, IStreamData, IS
     public void setData(IoBuffer data) {
 		this.data = data;
 		if (data != null && data.limit() > 0) {
-			int oldPos = data.position();
+			data.mark();
 			int firstByte = (data.get(0)) & 0xff;
-			data.position(oldPos);
+			data.reset();
 			int frameType = (firstByte & MASK_VIDEO_FRAMETYPE) >> 4;
 			if (frameType == FLAG_FRAMETYPE_KEYFRAME) {
 				this.frameType = FrameType.KEYFRAME;
@@ -104,10 +122,15 @@ public class VideoData extends BaseEvent implements IoConstants, IStreamData, IS
 		}		
 	}
 
-	/** {@inheritDoc} */
+    public void setData(byte[] data) {
+    	this.data = IoBuffer.allocate(data.length);
+		this.data.put(data).flip();
+    }
+
+    /** {@inheritDoc} */
     @Override
 	public String toString() {
-		return "Video  ts: " + getTimestamp();
+		return String.format("Video - ts: %s length: %s", getTimestamp(), (data != null ? data.limit() : '0'));
 	}
 
 	/**
@@ -127,6 +150,7 @@ public class VideoData extends BaseEvent implements IoConstants, IStreamData, IS
 			// null out the data first so we don't accidentally
 			// return a valid reference first
 			data = null;
+			localData.clear();
 			localData.free();
 		}
 	}
