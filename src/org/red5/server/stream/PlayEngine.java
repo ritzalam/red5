@@ -579,10 +579,9 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 		}
 		msg = msgIn.pullMessage();
 		if (msg instanceof RTMPMessage) {
+			// Only send first video frame
 			IRTMPEvent body = ((RTMPMessage) msg).getBody();
 			if (itemLength == 0) {
-				// Only send first video frame
-				body = ((RTMPMessage) msg).getBody();
 				while (body != null && !(body instanceof VideoData)) {
 					msg = msgIn.pullMessage();
 					if (msg == null) {

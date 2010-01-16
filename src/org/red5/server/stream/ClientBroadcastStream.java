@@ -512,6 +512,18 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	public void saveAs(String name, boolean isAppend) throws IOException, ResourceNotFoundException,
 			ResourceExistException {
 		log.debug("SaveAs - name: {} append: {}", name, isAppend);
+
+		Map<String, Object> recordParamMap = new HashMap<String, Object>(1);
+
+		//setup record objects
+		if (recordPipe == null) {
+    		recordPipe = new InMemoryPushPushPipe();
+    		// Clear record flag
+    		recordParamMap.put("record", null);
+    		recordPipe.subscribe((IProvider) this, recordParamMap);	
+    		recordParamMap.clear();
+		}
+		
 		// Get stream scope
 		IStreamCapableConnection conn = getConnection();
 		if (conn == null) {
@@ -584,14 +596,39 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 
 		log.debug("Recording file: {}", file.getCanonicalPath());
 		recordingFile = new FileConsumer(scope, file);
-		Map<Object, Object> paramMap = new HashMap<Object, Object>(1);
+		
+		//get decoder info if it exists for the stream
+		IStreamCodecInfo codecInfo = getCodecInfo();
+		log.debug("Codec info: {}", codecInfo);
+		if (codecInfo instanceof StreamCodecInfo) {
+			StreamCodecInfo info = (StreamCodecInfo) codecInfo;
+			IVideoStreamCodec videoCodec = info.getVideoCodec();
+			log.debug("Video codec: {}", videoCodec);
+			if (videoCodec != null) {
+				//check for decoder configuration to send
+				IoBuffer config = videoCodec.getDecoderConfiguration();
+				if (config != null) {
+					log.debug("Decoder configuration is available for {}", videoCodec.getName());
+					VideoData conf = new VideoData(config.asReadOnlyBuffer());
+					try {
+						log.debug("Setting decoder configuration for recording");
+						recordingFile.setVideoDecoderConfiguration(conf);
+					} finally {
+						conf.release();
+					}
+				}
+			} else {
+				log.debug("Could not initialize stream output, videoCodec is null.");
+			}
+		}
+		
 		if (isAppend) {
-			paramMap.put("mode", "append");
+			recordParamMap.put("mode", "append");
 		} else {
-			paramMap.put("mode", "record");
+			recordParamMap.put("mode", "record");
 		}
 		//mark as "recording" only if we get subscribed
-		recording = recordPipe.subscribe(recordingFile, paramMap);
+		recording = recordPipe.subscribe(recordingFile, recordParamMap);
 	}
 
 	/**
@@ -738,13 +775,6 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		latestTimeStamp = -1;
 		connMsgOut = consumerManager.getConsumerOutput(this);
 		connMsgOut.subscribe(this, null);
-		recordPipe = new InMemoryPushPushPipe();
-		Map<Object, Object> recordParamMap = new HashMap<Object, Object>();
-		// Clear record flag
-		recordParamMap.put("record", null);
-		recordPipe.subscribe((IProvider) this, recordParamMap);
-		recording = false;
-		recordingFilename = null;
 		setCodecInfo(new StreamCodecInfo());
 		closed = false;
 		bytesReceived = 0;

@@ -370,8 +370,10 @@ public class StreamService implements IStreamService {
 
 	/** {@inheritDoc} */
     public void publish(String name, String mode) {
-    	if (name != null && name.contains("?"))
+    	if (name != null && name.contains("?")) {
     		name = name.substring(0, name.indexOf("?"));
+    		//TODO: read and utilize the query string values
+    	}
     	
 		IConnection conn = Red5.getConnectionLocal();
 		if (!(conn instanceof IStreamCapableConnection)) {

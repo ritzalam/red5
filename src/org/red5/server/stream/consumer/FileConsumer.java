@@ -55,46 +55,57 @@ import org.slf4j.LoggerFactory;
 /**
  * Consumer that pushes messages to file. Used when recording live streams.
  */
-public class FileConsumer implements Constants, IPushableConsumer,
-		IPipeConnectionListener {
-    /**
-     * Logger
-     */
-    private static final Logger log = LoggerFactory.getLogger(FileConsumer.class);
-    /**
-     * Scope
-     */
-	private IScope scope;
-    /**
-     * File
-     */
-	private File file;
-    /**
-     * Tag writer
-     */
-	private ITagWriter writer;
-    /**
-     * Operation mode
-     */
-	private String mode;
-    /**
-     * Offset
-     */
-	private int offset;
-    /**
-     * Last write timestamp
-     */
-	private int lastTimestamp;
-    /**
-     * Start timestamp
-     */
-	private int startTimestamp;
+public class FileConsumer implements Constants, IPushableConsumer, IPipeConnectionListener {
+	/**
+	 * Logger
+	 */
+	private static final Logger log = LoggerFactory.getLogger(FileConsumer.class);
 
-    /**
-     * Creates file consumer
-     * @param scope        Scope of consumer
-     * @param file         File
-     */
+	/**
+	 * Scope
+	 */
+	private IScope scope;
+
+	/**
+	 * File
+	 */
+	private File file;
+
+	/**
+	 * Tag writer
+	 */
+	private ITagWriter writer;
+
+	/**
+	 * Operation mode
+	 */
+	private String mode;
+
+	/**
+	 * Offset
+	 */
+	private int offset;
+
+	/**
+	 * Last write timestamp
+	 */
+	private int lastTimestamp;
+
+	/**
+	 * Start timestamp
+	 */
+	private int startTimestamp;
+	
+	/**
+	 * Video decoder configuration
+	 */
+	private ITag videoConfigurationTag;
+
+	/**
+	 * Creates file consumer
+	 * @param scope        Scope of consumer
+	 * @param file         File
+	 */
 	public FileConsumer(IScope scope, File file) {
 		this.scope = scope;
 		this.file = file;
@@ -106,13 +117,13 @@ public class FileConsumer implements Constants, IPushableConsumer,
 		}
 	}
 
-    /**
-     * Push message through pipe
-     * @param pipe         Pipe
-     * @param message      Message to push
-     * @throws IOException if message could not be written
-     */
-    public synchronized void pushMessage(IPipe pipe, IMessage message) throws IOException {
+	/**
+	 * Push message through pipe
+	 * @param pipe         Pipe
+	 * @param message      Message to push
+	 * @throws IOException if message could not be written
+	 */
+	public synchronized void pushMessage(IPipe pipe, IMessage message) throws IOException {
 		if (message instanceof ResetMessage) {
 			startTimestamp = -1;
 			offset += lastTimestamp;
@@ -126,23 +137,23 @@ public class FileConsumer implements Constants, IPushableConsumer,
 		if (writer == null) {
 			init();
 		}
-		
-		RTMPMessage rtmpMsg = (RTMPMessage) message;	
+
+		RTMPMessage rtmpMsg = (RTMPMessage) message;
 		final IRTMPEvent msg = rtmpMsg.getBody();
-		
+
 		int timestamp = msg.getHeader().getTimer();
-		
+
 		//if the last message was a reset or we just started, use the header timer
 		if (startTimestamp == -1) {
 			startTimestamp = timestamp;
 		}
-		
+
 		// if we're dealing with a FlexStreamSend IRTMPEvent, this avoids relative timestamp calculations
-		if (!(msg instanceof FlexStreamSend)){
+		if (!(msg instanceof FlexStreamSend)) {
 			timestamp -= startTimestamp;
 			lastTimestamp = timestamp;
 		}
-		
+
 		if (timestamp < 0) {
 			log.warn("Skipping message with negative timestamp.");
 			return;
@@ -155,7 +166,7 @@ public class FileConsumer implements Constants, IPushableConsumer,
 		//It adds on disk flv file duration
 		//Search for "offset" in this class constructor
 		tag.setTimestamp(timestamp + offset);
-		
+
 		if (msg instanceof IStreamData) {
 			IoBuffer data = ((IStreamData) msg).getData().asReadOnlyBuffer();
 			tag.setBodySize(data.limit());
@@ -163,29 +174,28 @@ public class FileConsumer implements Constants, IPushableConsumer,
 		}
 
 		try {
-		    writer.writeTag(tag);
+			writer.writeTag(tag);
 		} catch (IOException e) {
 			log.error("error writing tag", e);
 			throw e;
 		}
 	}
 
-    /**
-     * Out-of-band control message handler
-     *
-     * @param source            Source of message
-     * @param pipe              Pipe that is used to transmit OOB message
-     * @param oobCtrlMsg        OOB control message
-     */
-    public synchronized void onOOBControlMessage(IMessageComponent source, IPipe pipe,
-			OOBControlMessage oobCtrlMsg) {
+	/**
+	 * Out-of-band control message handler
+	 *
+	 * @param source            Source of message
+	 * @param pipe              Pipe that is used to transmit OOB message
+	 * @param oobCtrlMsg        OOB control message
+	 */
+	public synchronized void onOOBControlMessage(IMessageComponent source, IPipe pipe, OOBControlMessage oobCtrlMsg) {
 	}
 
-    /**
-     * Pipe connection event handler
-     * @param event       Pipe connection event
-     */
-    public synchronized void onPipeConnectionEvent(PipeConnectionEvent event) {
+	/**
+	 * Pipe connection event handler
+	 * @param event       Pipe connection event
+	 */
+	public synchronized void onPipeConnectionEvent(PipeConnectionEvent event) {
 		switch (event.getType()) {
 			case PipeConnectionEvent.CONSUMER_CONNECT_PUSH:
 				if (event.getConsumer() != this) {
@@ -210,15 +220,14 @@ public class FileConsumer implements Constants, IPushableConsumer,
 		}
 	}
 
-    /**
-     * Initialization
-     *
-     * @throws IOException          I/O exception
-     */
-    private void init() throws IOException {
-		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils
-				.getScopeService(scope, IStreamableFileFactory.class,
-						StreamableFileFactory.class);
+	/**
+	 * Initialization
+	 *
+	 * @throws IOException          I/O exception
+	 */
+	private void init() throws IOException {
+		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils.getScopeService(scope,
+				IStreamableFileFactory.class, StreamableFileFactory.class);
 		File folder = file.getParentFile();
 		if (!folder.exists()) {
 			if (!folder.mkdirs()) {
@@ -235,6 +244,10 @@ public class FileConsumer implements Constants, IPushableConsumer,
 		IStreamableFile flv = service.getStreamableFile(file);
 		if (mode == null || mode.equals(IClientStream.MODE_RECORD)) {
 			writer = flv.getWriter();
+			//write the decoder config tag if it exists
+			if (videoConfigurationTag != null) {
+				writer.writeTag(videoConfigurationTag);
+			}
 		} else if (mode.equals(IClientStream.MODE_APPEND)) {
 			writer = flv.getAppendWriter();
 		} else {
@@ -242,13 +255,24 @@ public class FileConsumer implements Constants, IPushableConsumer,
 		}
 	}
 
-    /**
-     * Reset
-     */
-    synchronized private void uninit() {
+	/**
+	 * Reset
+	 */
+	private void uninit() {
 		if (writer != null) {
 			writer.close();
 			writer = null;
+		}
+	}
+
+	public void setVideoDecoderConfiguration(IRTMPEvent decoderConfig) {
+		videoConfigurationTag = new Tag();
+		videoConfigurationTag.setDataType(decoderConfig.getDataType());
+		videoConfigurationTag.setTimestamp(0);
+		if (decoderConfig instanceof IStreamData) {
+			IoBuffer data = ((IStreamData) decoderConfig).getData().asReadOnlyBuffer();
+			videoConfigurationTag.setBodySize(data.limit());
+			videoConfigurationTag.setBody(data);
 		}
 	}
 
