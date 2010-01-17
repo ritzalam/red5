@@ -474,7 +474,6 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	 * - Decoder configuration (ie. AVC codec)
 	 * - Most recent keyframe
 	 * 
-	 * @param withReset whether or not to perform reset on the stream
 	 * @throws IOException
 	 */
 	private final void playLive() throws IOException {
