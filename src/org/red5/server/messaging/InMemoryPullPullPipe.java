@@ -38,7 +38,7 @@ public class InMemoryPullPullPipe extends AbstractPipe {
 
 	/** {@inheritDoc} */
 	@Override
-	public boolean subscribe(IConsumer consumer, Map<?, ?> paramMap) {
+	public boolean subscribe(IConsumer consumer, Map<String, Object> paramMap) {
 		boolean success = super.subscribe(consumer, paramMap);
 		if (success) {
 			fireConsumerConnectionEvent(consumer, PipeConnectionEvent.CONSUMER_CONNECT_PULL, paramMap);
@@ -48,7 +48,7 @@ public class InMemoryPullPullPipe extends AbstractPipe {
 
 	/** {@inheritDoc} */
 	@Override
-	public boolean subscribe(IProvider provider, Map<?, ?> paramMap) {
+	public boolean subscribe(IProvider provider, Map<String, Object> paramMap) {
 		if (provider instanceof IPullableProvider) {
 			boolean success = super.subscribe(provider, paramMap);
 			if (success) {

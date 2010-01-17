@@ -39,7 +39,7 @@ public class InMemoryPushPushPipe extends AbstractPipe {
 
 	/** {@inheritDoc} */
 	@Override
-	public boolean subscribe(IConsumer consumer, Map<?, ?> paramMap) {
+	public boolean subscribe(IConsumer consumer, Map<String, Object> paramMap) {
 		if (consumer instanceof IPushableConsumer) {
 			boolean success = super.subscribe(consumer, paramMap);
 			if (success) {
@@ -53,7 +53,7 @@ public class InMemoryPushPushPipe extends AbstractPipe {
 
 	/** {@inheritDoc} */
 	@Override
-	public boolean subscribe(IProvider provider, Map<?, ?> paramMap) {
+	public boolean subscribe(IProvider provider, Map<String, Object> paramMap) {
 		boolean success = super.subscribe(provider, paramMap);
 		if (success) {
 			fireProviderConnectionEvent(provider, PipeConnectionEvent.PROVIDER_CONNECT_PUSH, paramMap);

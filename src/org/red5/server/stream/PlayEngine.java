@@ -388,7 +388,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 				//Subscribe to stream (ClientBroadcastStream.onPipeConnectionEvent)
 				msgIn.subscribe(this, null);
 				//execute the processes to get Live playback setup
-				msg = playLive(item, withReset);
+				playLive();
 				break;
 			case 2:
 				//get source input with create
@@ -436,7 +436,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 					log.error("Input source subscribe failed");
 				}
 				//execute the processes to get VOD playback setup
-				msg = playVOD(item, withReset, itemLength);
+				msg = playVOD(withReset, itemLength);
 				break;
 			default:
 				sendStreamNotFoundStatus(currentItem);
@@ -474,13 +474,10 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	 * - Decoder configuration (ie. AVC codec)
 	 * - Most recent keyframe
 	 * 
-	 * @param item stream to be played
 	 * @param withReset whether or not to perform reset on the stream
-	 * @return message for the consumer
 	 * @throws IOException
 	 */
-	private final IMessage playLive(IPlayItem item, boolean withReset) throws IOException {
-		IMessage msg = null;
+	private final void playLive() throws IOException {
 		//change state
 		playlistSubscriberStream.state = State.PLAYING;
 		streamOffset = 0;
@@ -546,19 +543,17 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 				log.debug("Could not initialize stream output, videoCodec is null.");
 			}
 		}				
-		return msg;
 	}
 	
 	/**
 	 * Performs the processes needed for VOD / pre-recorded streams.
 	 * 
-	 * @param item stream to be played
 	 * @param withReset whether or not to perform reset on the stream
 	 * @param itemLength length of the item to be played
 	 * @return message for the consumer
 	 * @throws IOException
 	 */
-	private final IMessage playVOD(IPlayItem item, boolean withReset, long itemLength) throws IOException {
+	private final IMessage playVOD(boolean withReset, long itemLength) throws IOException {
 		IMessage msg = null;
 		//change state
 		playlistSubscriberStream.state = State.PLAYING;
@@ -567,14 +562,14 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 		if (withReset) {
 			releasePendingMessage();
 		}
-		sendVODInitCM(msgIn, item);
+		sendVODInitCM(msgIn, currentItem);
 		// Don't use pullAndPush to detect IOExceptions prior to sending
 		// NetStream.Play.Start
-		if (item.getStart() > 0) {
-			streamOffset = sendVODSeekCM(msgIn, (int) item.getStart());
+		if (currentItem.getStart() > 0) {
+			streamOffset = sendVODSeekCM(msgIn, (int) currentItem.getStart());
 			// We seeked to the nearest keyframe so use real timestamp now
 			if (streamOffset == -1) {
-				streamOffset = (int) item.getStart();
+				streamOffset = (int) currentItem.getStart();
 			}
 		}
 		msg = msgIn.pullMessage();
@@ -603,7 +598,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	/**
 	 * Connects to the data provider.
 	 * 
-	 * @param itemName
+	 * @param itemName name of the item to play
 	 */
 	private final void connectToProvider(String itemName) {
 		log.debug("Attempting connection to {}", itemName);
@@ -613,6 +608,12 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 			log.debug("Provider: {}", msgIn);
 			if (msgIn.subscribe(this, null)) {
 				log.debug("Subscribed to {} provider", itemName);
+				//execute the processes to get Live playback setup
+				try {
+					playLive();
+				} catch (IOException e) {
+					log.warn("Could not play live stream: {}", itemName, e);
+				}
 			} else {
 				log.warn("Subscribe to {} provider failed", itemName);
 			}

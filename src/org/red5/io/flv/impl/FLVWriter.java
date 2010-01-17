@@ -139,8 +139,8 @@ public class FLVWriter implements ITagWriter {
      * @param append            true if append to existing file
 	 */
 	public FLVWriter(File file, boolean append) {
-		this.append = append;
 		this.file = file;
+		this.append = append;
 		try {
 			this.fos = new FileOutputStream(file, true);
 			init();
@@ -209,13 +209,15 @@ public class FLVWriter implements ITagWriter {
 		this.offset = offset;
 	}
 
-	/** {@inheritDoc}
+	/** 
+	 * {@inheritDoc}
 	 */
 	public long getBytesWritten() {
 		return bytesWritten;
 	}
 
-	/** {@inheritDoc}
+	/** 
+	 * {@inheritDoc}
 	 */
 	public boolean writeTag(ITag tag) throws IOException {
 
@@ -226,12 +228,12 @@ public class FLVWriter implements ITagWriter {
 		
 		// skip tags with no data
 		if (tag.getBodySize() == 0) {
-			log.debug("empty tag skipped: {}", tag);
+			log.debug("Empty tag skipped: {}", tag);
 			return false;
 		}
 		
 		if (channel.size() < 9) {
-			throw new IOException("refusing to write tag to file with size " + channel.size());
+			throw new IOException("Refusing to write tag to file with size " + channel.size());
 		}
 		
 		out.clear();
@@ -250,18 +252,22 @@ public class FLVWriter implements ITagWriter {
 
 		out.flip();
 		bytesWritten += channel.write(out.buf());
+		log.debug("Bytes written 1: {}", bytesWritten);
 
 		IoBuffer bodyBuf = tag.getBody();
 		bytesWritten += channel.write(bodyBuf.buf());
+		log.debug("Bytes written 2: {}", bytesWritten);
 
 		if (audioCodecId == -1 && tag.getDataType() == ITag.TYPE_AUDIO) {
 			bodyBuf.flip();
 			byte id = bodyBuf.get();
 			audioCodecId = (id & ITag.MASK_SOUND_FORMAT) >> 4;
+			log.debug("Audio codec id: {}", audioCodecId);
 		} else if (videoCodecId == -1 && tag.getDataType() == ITag.TYPE_VIDEO) {
 			bodyBuf.flip();
 			byte id = bodyBuf.get();
 			videoCodecId = id & ITag.MASK_VIDEO_CODEC;
+			log.debug("Video codec id: {}", videoCodecId);
 		}
 		duration = Math.max(duration, tag.getTimestamp() + offset);
 		log.debug("Writer duration: {} offset: {}", duration, offset);	
@@ -270,8 +276,9 @@ public class FLVWriter implements ITagWriter {
 		out.putInt(tag.getBodySize() + 11);
 		out.flip();
 		bytesWritten += channel.write(out.buf());
+		log.debug("Bytes written 3: {}", bytesWritten);
 
-		return false;
+		return true;
 	}
 
 	/** {@inheritDoc}

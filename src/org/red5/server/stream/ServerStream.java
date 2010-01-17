@@ -372,7 +372,7 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 				}
 			}
 			FileConsumer fc = new FileConsumer(scope, file);
-			Map<Object, Object> paramMap = new HashMap<Object, Object>();
+			Map<String, Object> paramMap = new HashMap<String, Object>();
 			if (isAppend) {
 				paramMap.put("mode", "append");
 			} else {
@@ -425,7 +425,7 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 		IProviderService providerService = (IProviderService) getScope().getContext().getBean(
 				IProviderService.BEAN_NAME);
 		providerService.registerBroadcastStream(getScope(), publishedName, this);
-		Map<Object, Object> recordParamMap = new HashMap<Object, Object>();
+		Map<String, Object> recordParamMap = new HashMap<String, Object>();
 		recordPipe = new InMemoryPushPushPipe();
 		recordParamMap.put("record", null);
 		recordPipe.subscribe((IProvider) this, recordParamMap);

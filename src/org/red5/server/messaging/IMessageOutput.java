@@ -44,11 +44,11 @@ public interface IMessageOutput {
      *  NetConnection.connect in client-side Flex/Flash RIA.
 	 * 
 	 * @param provider       Provider
-	 * @param paramMap       Params passed with connection
+	 * @param paramMap       Parameters passed with connection
 	 * @return <tt>true</tt> when successfully subscribed,
 	 * <tt>false</tt> otherwise.
 	 */
-	boolean subscribe(IProvider provider, Map<?, ?> paramMap);
+	boolean subscribe(IProvider provider, Map<String, Object> paramMap);
 
 	/**
 	 * Disconnect from a provider.

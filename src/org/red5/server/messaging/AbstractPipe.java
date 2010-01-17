@@ -74,7 +74,7 @@ public abstract class AbstractPipe implements IPipe {
 	 * @param paramMap        Parameters passed with connection, used in concrete pipe implementations
 	 * @return                <code>true</code> if consumer was added, <code>false</code> otherwise
 	 */
-	public boolean subscribe(IConsumer consumer, Map<?, ?> paramMap) {
+	public boolean subscribe(IConsumer consumer, Map<String, Object> paramMap) {
 		// If consumer is listener object register it as listener
 		if (consumer instanceof IPipeConnectionListener) {
 			listeners.addIfAbsent((IPipeConnectionListener) consumer);
@@ -91,7 +91,7 @@ public abstract class AbstractPipe implements IPipe {
 	 * @param paramMap        Parameters passed with connection, used in concrete pipe implementations
 	 * @return                <code>true</code> if provider was added, <code>false</code> otherwise
 	 */
-	public boolean subscribe(IProvider provider, Map<?, ?> paramMap) {
+	public boolean subscribe(IProvider provider, Map<String, Object> paramMap) {
 		// Register event listener if given
 		if (provider instanceof IPipeConnectionListener) {
 			listeners.add((IPipeConnectionListener) provider);
@@ -223,7 +223,7 @@ public abstract class AbstractPipe implements IPipe {
 	 * @param type            Event type
 	 * @param paramMap        Parameters passed with connection
 	 */
-	protected void fireConsumerConnectionEvent(IConsumer consumer, int type, Map<?, ?> paramMap) {
+	protected void fireConsumerConnectionEvent(IConsumer consumer, int type, Map<String, Object> paramMap) {
 		// Create event object
 		PipeConnectionEvent event = new PipeConnectionEvent(this);
 		// Fill it up
@@ -240,7 +240,7 @@ public abstract class AbstractPipe implements IPipe {
 	 * @param type            Event type
 	 * @param paramMap        Parameters passed with connection
 	 */
-	protected void fireProviderConnectionEvent(IProvider provider, int type, Map<?, ?> paramMap) {
+	protected void fireProviderConnectionEvent(IProvider provider, int type, Map<String, Object> paramMap) {
 		PipeConnectionEvent event = new PipeConnectionEvent(this);
 		event.setProvider(provider);
 		event.setType(type);

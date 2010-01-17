@@ -57,7 +57,7 @@ public interface IMessageInput {
 	 * @return <tt>true</tt> when successfully subscribed,
 	 * <tt>false</tt> otherwise.
 	 */
-	boolean subscribe(IConsumer consumer, Map<?, ?> paramMap);
+	boolean subscribe(IConsumer consumer, Map<String, Object> paramMap);
 
 	/**
 	 * Disconnect from a consumer.

@@ -310,7 +310,6 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		RTMPMessage msg = new RTMPMessage();
 		msg.setBody(rtmpEvent);
 		msg.getBody().setTimestamp(eventTime);
-		// rtmpEvent.setTimestamp(eventTime); ~ABSOLUTE!
 		// note this timestamp is set in event/body but not in the associated header.
 		try {
 			if (livePipe != null) {

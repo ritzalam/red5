@@ -181,7 +181,7 @@ public class PlaylistSubscriberStreamTest extends AbstractDependencyInjectionSpr
 			System.out.println("sendOOBControlMessage");			
 		}
 
-		public boolean subscribe(IProvider provider, Map<?, ?> paramMap) {
+		public boolean subscribe(IProvider provider, Map<String, Object> paramMap) {
 			System.out.println("subscribe");
 			return true;
 		}

@@ -575,7 +575,7 @@ public class NoSyncServerStream extends AbstractStream implements
 				res.getFile().createNewFile();
 			}
 			FileConsumer fc = new FileConsumer(scope, res.getFile());
-			Map<Object, Object> paramMap = new HashMap<Object, Object>();
+			Map<String, Object> paramMap = new HashMap<String, Object>();
 			if (isAppend) {
 				paramMap.put("mode", "append");
 			} else {
@@ -763,7 +763,7 @@ public class NoSyncServerStream extends AbstractStream implements
 				.getContext().getBean(IProviderService.BEAN_NAME);
 		providerService
 				.registerBroadcastStream(getScope(), publishedName, this);
-		Map<Object, Object> recordParamMap = new HashMap<Object, Object>();
+		Map<String, Object> recordParamMap = new HashMap<String, Object>();
 		recordPipe = new InMemoryPushPushPipe();
 		recordParamMap.put("record", null);
 		recordPipe.subscribe((IProvider) this, recordParamMap);

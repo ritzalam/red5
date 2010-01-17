@@ -21,7 +21,9 @@ package org.red5.server.stream.consumer;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.IStreamableFile;
@@ -62,6 +64,11 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	private static final Logger log = LoggerFactory.getLogger(FileConsumer.class);
 
 	/**
+	 * Queue to hold data for delayed writing
+	 */
+	private CopyOnWriteArrayList<QueuedData> queue = new CopyOnWriteArrayList<QueuedData>();
+	
+	/**
 	 * Scope
 	 */
 	private IScope scope;
@@ -94,12 +101,17 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	/**
 	 * Start timestamp
 	 */
-	private int startTimestamp;
+	private int startTimestamp = -1;
 	
 	/**
 	 * Video decoder configuration
 	 */
 	private ITag videoConfigurationTag;
+	
+	/**
+	 * Number of queued items needed before writes are initiated
+	 */
+	private int queueThreshold = 33;
 
 	/**
 	 * Creates file consumer
@@ -109,7 +121,6 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	public FileConsumer(IScope scope, File file) {
 		this.scope = scope;
 		this.file = file;
-		startTimestamp = -1;
 		// Get the duration from the existing file
 		long duration = FLVReader.getDuration(file);
 		if (duration > 0) {
@@ -123,7 +134,7 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	 * @param message      Message to push
 	 * @throws IOException if message could not be written
 	 */
-	public synchronized void pushMessage(IPipe pipe, IMessage message) throws IOException {
+	public void pushMessage(IPipe pipe, IMessage message) throws IOException {
 		if (message instanceof ResetMessage) {
 			startTimestamp = -1;
 			offset += lastTimestamp;
@@ -131,53 +142,46 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 		} else if (message instanceof StatusMessage) {
 			return;
 		}
-		if (!(message instanceof RTMPMessage)) {
-			return;
-		}
-		if (writer == null) {
-			init();
-		}
-
-		RTMPMessage rtmpMsg = (RTMPMessage) message;
-		final IRTMPEvent msg = rtmpMsg.getBody();
-
-		int timestamp = msg.getHeader().getTimer();
-
-		//if the last message was a reset or we just started, use the header timer
-		if (startTimestamp == -1) {
-			startTimestamp = timestamp;
-		}
-
-		// if we're dealing with a FlexStreamSend IRTMPEvent, this avoids relative timestamp calculations
-		if (!(msg instanceof FlexStreamSend)) {
-			timestamp -= startTimestamp;
-			lastTimestamp = timestamp;
-		}
-
-		if (timestamp < 0) {
-			log.warn("Skipping message with negative timestamp.");
-			return;
-		}
-
-		ITag tag = new Tag();
-		tag.setDataType(msg.getDataType());
-
-		//Always add offset since it's needed for "append" publish mode
-		//It adds on disk flv file duration
-		//Search for "offset" in this class constructor
-		tag.setTimestamp(timestamp + offset);
-
-		if (msg instanceof IStreamData) {
-			IoBuffer data = ((IStreamData) msg).getData().asReadOnlyBuffer();
-			tag.setBodySize(data.limit());
-			tag.setBody(data);
-		}
-
-		try {
-			writer.writeTag(tag);
-		} catch (IOException e) {
-			log.error("error writing tag", e);
-			throw e;
+		if (message instanceof RTMPMessage) {
+			//initialize a writer
+			if (writer == null) {
+    			init();
+    		}
+    
+    		final IRTMPEvent msg = ((RTMPMessage) message).getBody();
+    
+    		int timestamp = msg.getTimestamp();
+    		log.debug("Timestamps: {}", timestamp);
+    
+    		// if we're dealing with a FlexStreamSend IRTMPEvent, this avoids relative timestamp calculations
+    		if (!(msg instanceof FlexStreamSend)) {
+    			log.trace("Not FlexStreamSend type");
+    			timestamp -= startTimestamp;
+    			lastTimestamp = timestamp;
+    		}
+    
+    		QueuedData queued = null;
+    		if (msg instanceof IStreamData) {
+    			queued = new QueuedData(timestamp, msg.getDataType(), ((IStreamData) msg).getData().asReadOnlyBuffer());
+    		} else {
+    			//XXX what type of message are we saving that has no body data??
+    			log.debug("Non-stream data, body not saved. Type: {}", msg.getClass().getName());
+    			queued = new QueuedData(timestamp, msg.getDataType());			
+    		}
+    		
+    		//add to the queue
+    		queue.add(queued);
+    		
+    		//when we reach the threshold, spawn a write thread
+    		if (queue.size() >= queueThreshold) {
+    			Thread worker = new Thread() {
+    				public void run() {
+    					log.debug("Spawning queue writer thread");
+    					doWrites();
+    				}
+    			};
+    			worker.start();
+    		}
 		}
 	}
 
@@ -188,20 +192,20 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	 * @param pipe              Pipe that is used to transmit OOB message
 	 * @param oobCtrlMsg        OOB control message
 	 */
-	public synchronized void onOOBControlMessage(IMessageComponent source, IPipe pipe, OOBControlMessage oobCtrlMsg) {
+	public void onOOBControlMessage(IMessageComponent source, IPipe pipe, OOBControlMessage oobCtrlMsg) {
 	}
 
 	/**
 	 * Pipe connection event handler
 	 * @param event       Pipe connection event
 	 */
-	public synchronized void onPipeConnectionEvent(PipeConnectionEvent event) {
+	public void onPipeConnectionEvent(PipeConnectionEvent event) {
 		switch (event.getType()) {
 			case PipeConnectionEvent.CONSUMER_CONNECT_PUSH:
 				if (event.getConsumer() != this) {
 					break;
 				}
-				Map<?, ?> paramMap = event.getParamMap();
+				Map<String, Object> paramMap = event.getParamMap();
 				if (paramMap != null) {
 					mode = (String) paramMap.get("mode");
 				}
@@ -226,6 +230,7 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	 * @throws IOException          I/O exception
 	 */
 	private void init() throws IOException {
+		log.debug("Init");
 		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils.getScopeService(scope,
 				IStreamableFileFactory.class, StreamableFileFactory.class);
 		File folder = file.getParentFile();
@@ -247,6 +252,7 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 			//write the decoder config tag if it exists
 			if (videoConfigurationTag != null) {
 				writer.writeTag(videoConfigurationTag);
+				videoConfigurationTag = null;
 			}
 		} else if (mode.equals(IClientStream.MODE_APPEND)) {
 			writer = flv.getAppendWriter();
@@ -258,13 +264,90 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	/**
 	 * Reset
 	 */
-	private void uninit() {
+	private void uninit() {		
+		log.debug("Uninit");
 		if (writer != null) {
+			//write all the queued items
+			doWrites();
+			//close the writer
 			writer.close();
 			writer = null;
 		}
+		//clear the queue
+		queue.clear();
+		queue = null;
+	}
+	
+	/**
+	 * Write all the queued items to the writer.
+	 */
+	public final void doWrites() {
+		//get the current items in the queue
+		QueuedData[] tmp = queue.toArray(new QueuedData[0]);
+		queue.removeAll(Arrays.asList(tmp));
+		//sort
+		Arrays.sort(tmp);
+		//empty the queue
+		for (QueuedData queued : tmp) {
+			write(queued);
+		}		
+		//clear and null-out
+		tmp = null;
+	}
+	
+	/**
+	 * Adjust timestamp and write to the file.
+	 * 
+	 * @param queued queued data for write
+	 */
+	private final void write(QueuedData queued) {
+		//get timestamp
+		int timestamp = queued.getTimestamp();
+		log.debug("Write - timestamp: {} type: {}", timestamp, queued.getDataType());
+		
+		//if the last message was a reset or we just started, use the header timer
+		if (startTimestamp == -1) {
+			startTimestamp = timestamp;
+		}
+		
+		if (timestamp < 0) {
+			log.warn("Skipping message with negative timestamp.");
+			return;
+		}
+		
+		ITag tag = new Tag();
+		tag.setDataType(queued.getDataType());
+
+		//Always add offset since it's needed for "append" publish mode
+		//It adds on disk flv file duration
+		//Search for "offset" in this class constructor
+		tag.setTimestamp(timestamp + offset);
+		
+		IoBuffer data = queued.getData();
+		if (data != null) {
+			tag.setBodySize(data.limit());
+			tag.setBody(data);					
+		}
+		
+		try {
+			if (!writer.writeTag(tag)) {
+				log.warn("Tag was not written");
+			}
+		} catch (IOException e) {
+			log.error("Error writing tag", e);
+		} finally {
+			if (data != null) {
+				data.free();
+			}
+		}
+		
 	}
 
+	/**
+	 * Sets a video decoder configuration; some codecs require this, such as AVC.
+	 * 
+	 * @param decoderConfig video codec configuration
+	 */
 	public void setVideoDecoderConfiguration(IRTMPEvent decoderConfig) {
 		videoConfigurationTag = new Tag();
 		videoConfigurationTag.setDataType(decoderConfig.getDataType());
@@ -276,4 +359,86 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 		}
 	}
 
+	/**
+	 * Sets the threshold for the queue. When the threshold is met a worker is spawned
+	 * to empty the sorted queue to the writer.
+	 * 
+	 * @param queueThreshold number of items to queue before spawning worker
+	 */
+	public void setQueueThreshold(int queueThreshold) {
+		this.queueThreshold = queueThreshold;
+	}
+
+	private final static class QueuedData implements Comparable<QueuedData> {
+		final int timestamp;
+		final byte dataType;
+		final IoBuffer data;
+
+		QueuedData(int timestamp, byte dataType) {
+			this.timestamp = timestamp;
+			this.dataType = dataType;
+			this.data = null;
+		}		
+		
+		QueuedData(int timestamp, byte dataType, IoBuffer data) {
+			this.timestamp = timestamp;
+			this.dataType = dataType;
+			this.data = IoBuffer.allocate(data.limit());
+			byte[] copy = new byte[data.limit()];
+			data.get(copy);
+			this.data.put(copy);
+			this.data.flip();
+		}
+
+		public int getTimestamp() {
+			return timestamp;
+		}
+
+		public byte getDataType() {
+			return dataType;
+		}
+
+		public IoBuffer getData() {
+			return data;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + dataType;
+			result = prime * result + timestamp;
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) {
+				return true;
+			}
+			if (obj == null || getClass() != obj.getClass()) {
+				return false;
+			}
+			QueuedData other = (QueuedData) obj;
+			if (dataType != other.dataType) {
+				return false;
+			}
+			if (timestamp != other.timestamp) {
+				return false;
+			}
+			return true;
+		}
+
+		@Override
+		public int compareTo(QueuedData other) {
+			if (timestamp > other.timestamp) {
+				return 1;
+			} else if (timestamp < other.timestamp) {
+				return -1;
+			}
+			return 0;
+		}
+		
+	}	
+	
 }
