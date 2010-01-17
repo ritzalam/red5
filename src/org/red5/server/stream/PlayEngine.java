@@ -57,6 +57,7 @@ import org.red5.server.net.rtmp.event.Notify;
 import org.red5.server.net.rtmp.event.Ping;
 import org.red5.server.net.rtmp.event.VideoData;
 import org.red5.server.net.rtmp.event.VideoData.FrameType;
+import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.net.rtmp.message.Header;
 import org.red5.server.net.rtmp.status.Status;
 import org.red5.server.net.rtmp.status.StatusCodes;
@@ -368,7 +369,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 
 				//drop all frames up to the next keyframe
 				videoFrameDropper.reset(IFrameDropper.SEND_KEYFRAMES_CHECK);
-				
+
 				if (msgIn instanceof IBroadcastScope) {
 					IBroadcastStream stream = (IBroadcastStream) ((IBroadcastScope) msgIn)
 							.getAttribute(IBroadcastScope.STREAM_ATTRIBUTE);
@@ -482,7 +483,8 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 		streamOffset = 0;
 		streamStartTS = -1;
 		//get the stream so that we can grab any metadata and decoder configs
-		IBroadcastStream stream = (IBroadcastStream) ((IBroadcastScope) msgIn).getAttribute(IBroadcastScope.STREAM_ATTRIBUTE);
+		IBroadcastStream stream = (IBroadcastStream) ((IBroadcastScope) msgIn)
+				.getAttribute(IBroadcastScope.STREAM_ATTRIBUTE);
 		Notify metaData = stream.getMetaData();
 		//check for metadata to send
 		if (metaData != null) {
@@ -498,7 +500,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 		} else {
 			log.debug("No metadata available");
 		}
-		
+
 		IStreamCodecInfo codecInfo = stream.getCodecInfo();
 		log.debug("Codec info: {}", codecInfo);
 		if (codecInfo instanceof StreamCodecInfo) {
@@ -541,9 +543,9 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 			} else {
 				log.debug("Could not initialize stream output, videoCodec is null.");
 			}
-		}				
+		}
 	}
-	
+
 	/**
 	 * Performs the processes needed for VOD / pre-recorded streams.
 	 * 
@@ -593,7 +595,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 		}
 		return msg;
 	}
-	
+
 	/**
 	 * Connects to the data provider.
 	 * 
@@ -620,7 +622,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 			log.warn("Provider was not found for {}", itemName);
 		}
 	}
-	
+
 	/**
 	 * Pause at position
 	 * @param position                  Position in file
@@ -952,18 +954,43 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	 * Send RTMP message
 	 * @param message        RTMP message
 	 */
-	private void sendMessage(RTMPMessage message) {
+	private void sendMessage(RTMPMessage messageIn) {
+		//copy patch from Andy Shaules
+		IRTMPEvent event;
+		IoBuffer dataReference;
+		switch (messageIn.getBody().getDataType()) {
+			case Constants.TYPE_AUDIO_DATA:
+				dataReference = ((AudioData) messageIn.getBody()).getData();
+				event = new AudioData(dataReference);
+				event.setTimestamp(messageIn.getBody().getTimestamp());
+				break;
+			case Constants.TYPE_VIDEO_DATA:
+				dataReference = ((VideoData) messageIn.getBody()).getData();
+				event = new VideoData(dataReference);
+				event.setTimestamp(messageIn.getBody().getTimestamp());
+				break;
+			default:
+				dataReference = ((Notify) messageIn.getBody()).getData();
+				event = new Notify(dataReference);
+				event.setTimestamp(messageIn.getBody().getTimestamp());
+				break;
+		}
+		RTMPMessage messageOut = new RTMPMessage();
+		messageOut.setBody(event);
+
 		//TDJ / live relative timestamp
 		if (playDecision == 0 && streamStartTS > 0) {
-			message.getBody().setTimestamp(message.getBody().getTimestamp() - streamStartTS);
+			messageOut.getBody().setTimestamp(messageOut.getBody().getTimestamp() - streamStartTS);
 		}
-		int ts = message.getBody().getTimestamp();
-		log.trace("sendMessage: streamStartTS={}, length={}, streamOffset={}, timestamp={}", new Object[] {
-				streamStartTS, currentItem.getLength(), streamOffset, ts });
+		int ts = messageOut.getBody().getTimestamp();
+		if (log.isTraceEnabled()) {
+			log.trace("sendMessage: streamStartTS={}, length={}, streamOffset={}, timestamp={}", new Object[] {
+					streamStartTS, currentItem.getLength(), streamOffset, ts });
+		}
 		if (streamStartTS == -1) {
 			log.debug("sendMessage: resetting streamStartTS");
 			streamStartTS = ts;
-			message.getBody().setTimestamp(0);
+			messageOut.getBody().setTimestamp(0);
 		} else {
 			if (currentItem.getLength() >= 0) {
 				int duration = ts - streamStartTS;
@@ -974,8 +1001,8 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 				}
 			}
 		}
-		lastMessage = message.getBody();
-		doPushMessage(message);
+		lastMessage = messageOut.getBody();
+		doPushMessage(messageOut);
 	}
 
 	/**

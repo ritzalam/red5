@@ -317,10 +317,14 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 			} else {
 				log.debug("Live pipe was null, message was not pushed");
 			}
-			if (recordPipe != null) {
-				recordPipe.pushMessage(msg);
+			if (recording) {
+				if (recordPipe != null) {
+					recordPipe.pushMessage(msg);
+				} else {
+					log.debug("Record pipe was null, message was not pushed");
+				}
 			} else {
-				log.debug("Record pipe was null, message was not pushed");
+				log.trace("Recording not active");
 			}
 		} catch (IOException err) {
 			sendRecordFailedNotify(err.getMessage());
