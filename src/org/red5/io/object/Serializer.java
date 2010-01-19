@@ -19,22 +19,22 @@ package org.red5.io.object;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Method;
 
 import org.apache.commons.beanutils.BeanMap;
+import org.red5.annotations.DontSerialize;
+import org.red5.annotations.RemoteClass;
 import org.red5.io.amf3.ByteArray;
 import org.red5.io.amf3.IExternalizable;
 import org.red5.io.utils.ObjectMap;
-import org.red5.annotations.DontSerialize;
-import org.red5.annotations.RemoteClass;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -100,6 +100,7 @@ public class Serializer {
 	 * @return boolean true if object was successfully serialized, false
 	 *         otherwise
 	 */
+	@SuppressWarnings("rawtypes")
 	protected boolean writeBasic(Output out, Object basic) {
 		if (basic == null) {
 			out.writeNull();
@@ -109,6 +110,8 @@ public class Serializer {
 			out.writeNumber((Number) basic);
 		} else if (basic instanceof String) {
 			out.writeString((String) basic);
+		} else if (basic instanceof Enum) {
+			out.writeString(((Enum) basic).name());
 		} else if (basic instanceof Date) {
 			out.writeDate((Date) basic);
 		} else {

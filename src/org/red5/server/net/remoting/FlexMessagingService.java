@@ -180,10 +180,10 @@ public class FlexMessagingService {
 		//grab any headers
 		Map<String, Object> headers = msg.getHeaders();
 		log.debug("Headers: {}", headers);
-		if (headers.containsKey(Message.FLEX_CLIENT_ID_HEADER)) {
-			headers.put(Message.FLEX_CLIENT_ID_HEADER, msg.getClientId());
-		}
-		result.setHeaders(headers);
+		//if (headers.containsKey(Message.FLEX_CLIENT_ID_HEADER)) {
+		//	headers.put(Message.FLEX_CLIENT_ID_HEADER, msg.getClientId());
+		//}
+		//result.setHeaders(headers);
 		
 		//get the operation
 		String operation = msg.operation;
@@ -250,13 +250,15 @@ public class FlexMessagingService {
 					ServiceAdapter adapter = registrations.get(clientId);
 					if (adapter != null) {
 						CommandMessage result = new CommandMessage();	
-						result.setOperation(msg.getOperation());						
+						result.setOperation(Constants.CLIENT_SYNC_OPERATION);		
+						//result.setCorrelationId(msg.getMessageId());
 						//this will be the body of the responding command message
 						AsyncMessageExt ext = new AsyncMessageExt();
 						ext.setClientId(clientId);
 						ext.setCorrelationId(msg.getMessageId());
 						ext.setDestination("Red5Chat");
 						ext.setBody(adapter.manage(msg));
+						/*
 						//grab any headers
 						Map<String, Object> headers = msg.getHeaders();
 						log.debug("Headers: {}", headers);
@@ -264,8 +266,9 @@ public class FlexMessagingService {
 							headers.put(Message.FLEX_CLIENT_ID_HEADER, msg.getClientId());
 						}
 						ext.setHeaders(headers);
+						*/
 						//add as a child (body) of the command message
-						result.setBody(ext);
+						result.setBody(new Object[]{ext});
 					
 						return result;
 					} else {
@@ -290,18 +293,13 @@ public class FlexMessagingService {
 	 * Handle command message request.
 	 * 
 	 * @param msg message
-	 * @return async message
+	 * @return message
 	 */
-	public AsyncMessage handleRequest(CommandMessage msg) {
+	public Message handleRequest(CommandMessage msg) {
 		log.debug("Handle CommandMessage request");
 		log.trace("{}", msg);
 		setClientId(msg);
 		String clientId = msg.getClientId();
-		
-		AsyncMessage result = new AcknowledgeMessage();
-		result.setBody(msg.getBody());
-		result.setClientId(clientId);
-		result.setCorrelationId(msg.getMessageId());
 
 		//grab any headers
 		Map<String, Object> headers = msg.getHeaders();
@@ -309,13 +307,10 @@ public class FlexMessagingService {
 		if (headers.containsKey(Message.FLEX_CLIENT_ID_HEADER)) {
 			headers.put(Message.FLEX_CLIENT_ID_HEADER, msg.getClientId());
 		}
-		result.setHeaders(headers);
 		
-		// put destination in ack if it exists
 		String destination = msg.getDestination();
-		if (StringUtils.isNotBlank(destination)) {
-			result.setDestination(destination);
-		}
+		log.debug("Destination: {}", destination);
+		
 		//process messages to non-service adapter end-points
 		switch (msg.operation) {
 			case Constants.CLIENT_PING_OPERATION: //5
@@ -329,7 +324,19 @@ public class FlexMessagingService {
 				if (registrations.containsKey(clientId)) {
 					ServiceAdapter adapter = registrations.get(clientId);
 					if (adapter != null) {
-						result.setBody(adapter.manage(msg));
+						CommandMessage result = new CommandMessage();	
+						result.setOperation(Constants.CLIENT_SYNC_OPERATION);		
+						//result.setCorrelationId(msg.getMessageId());
+						//this will be the body of the responding command message
+						AsyncMessageExt ext = new AsyncMessageExt();
+						ext.setClientId(clientId);
+						ext.setCorrelationId(msg.getMessageId());
+						ext.setDestination("Red5Chat");
+						ext.setBody(adapter.manage(msg));
+						//add as a child (body) of the command message
+						result.setBody(new Object[]{ext});		
+						
+						return result;
 					} else {
 						log.debug("Adapter was not available");
 					}
@@ -379,8 +386,19 @@ public class FlexMessagingService {
 			default:
 				log.error("Unknown CommandMessage request: {}", msg);
 				String errMsg = String.format("Don't know how to handle %s", msg);
-				result = returnError(msg, "notImplemented", errMsg, errMsg);
+				return returnError(msg, "notImplemented", errMsg, errMsg);
 		}
+		
+		AcknowledgeMessage result = new AcknowledgeMessage();
+		result.setBody(msg.getBody());
+		result.setClientId(clientId);
+		result.setCorrelationId(msg.getMessageId());
+		result.setHeaders(headers);
+		
+		// put destination in ack if it exists
+		if (StringUtils.isNotBlank(destination)) {
+			result.setDestination(destination);
+		}	
 		
 		return result;
 	}
@@ -469,10 +487,10 @@ public class FlexMessagingService {
 		log.trace("{}", msg);
 		setClientId(msg);
 
-		Object endpoint = endpoints.get(msg.destination);
+		Object endpoint = endpoints.get(msg.getDestination());
 		log.debug("End point / destination: {}", endpoint);
 		if (endpoint == null) {
-			String errMsg = String.format("Endpoint %s doesn't exist.", msg.destination);
+			String errMsg = String.format("Endpoint %s doesn't exist.", msg.getDestination());
 			log.debug("{} ({})", errMsg, msg);
 			return returnError(msg, "Server.Invoke.Error", errMsg, errMsg);
 		}
@@ -481,7 +499,10 @@ public class FlexMessagingService {
 		Map<String, Object> headers = msg.getHeaders();
 		log.debug("Headers: {}", headers);
 		if (headers.containsKey(Message.FLEX_CLIENT_ID_HEADER)) {
-			headers.put(Message.FLEX_CLIENT_ID_HEADER, msg.getClientId());
+			headers.remove(Message.FLEX_CLIENT_ID_HEADER);
+		}
+		if (headers.containsKey(Message.ENDPOINT_HEADER)) {
+			headers.remove(Message.ENDPOINT_HEADER);
 		}
 
 		if (endpoint instanceof ServiceAdapter) {
@@ -490,15 +511,19 @@ public class FlexMessagingService {
 			AcknowledgeMessage result = new AcknowledgeMessage();
 			result.setClientId(msg.getClientId());
 			result.setCorrelationId(msg.getMessageId());
+			result.setDestination(msg.getDestination());
 			result.setHeaders(headers);
 			//get the adapter
 			ServiceAdapter adapter = (ServiceAdapter) endpoint;
-			//the result of the invocation will make up the message body
-			AsyncMessageExt ext = new AsyncMessageExt();
-			ext.setCorrelationId(msg.getMessageId());
-			ext.setBody(adapter.invoke(msg));
-			//
-			result.setBody(ext);
+			//log.debug("Invoke: {}", adapter.invoke(msg));
+			Object o = adapter.invoke(msg);
+			//the result of the invocation will make up the message body		
+			//AsyncMessage ext = new AsyncMessage();
+			//ext.setClientId(msg.getClientId());
+			//ext.setCorrelationId(result.getMessageId());
+			//ext.setBody(o);
+			
+			result.setBody(new Object[]{o});
 			return result;
     	} else {
     		log.error("Unknown Flex compatibility request: {}", msg);

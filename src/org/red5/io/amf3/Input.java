@@ -673,6 +673,8 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 								final Class fieldType = field.getType();
 								if (!fieldType.isAssignableFrom(value.getClass())) {
 									value = ConversionUtils.convert(value, fieldType);
+								} else if (value instanceof Enum) {
+									value = Enum.valueOf(fieldType, value.toString());
 								}
 								field.set(result, value);
 							} catch (Exception e) {

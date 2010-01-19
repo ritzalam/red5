@@ -30,7 +30,7 @@ import java.lang.ref.WeakReference;
  * <br />
  * <pre>
  * IConnection conn = Red5.getConnectionLocal();
- * Red5 r5 = new Red5();
+ * Red5 r5 = new Red5(); 
  * IScope scope = r5.getScope();
  * conn = r5.getConnection();
  * r5 = new Red5(conn);

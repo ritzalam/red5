@@ -46,6 +46,11 @@ public class CommandMessage extends AsyncMessage {
 	/** Command id to execute. */
 	public int operation = Constants.UNKNOWN_OPERATION;
 
+	public CommandMessage() {
+		this.messageId = new RandomGUID().toString();
+		this.timestamp = System.currentTimeMillis();
+	}
+	
 	/** {@inheritDoc} */
 	protected void addParameters(StringBuilder result) {
 		super.addParameters(result);

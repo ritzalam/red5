@@ -198,6 +198,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		if (recordPipe != null) {
 			recordPipe.unsubscribe((IProvider) this);
 			((AbstractPipe) recordPipe).close();
+			recordPipe = null;
 		}
 		if (recording) {
 			sendRecordStopNotify();
@@ -712,10 +713,10 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		stopStatus.setClientid(getStreamId());
 		stopStatus.setDetails(getPublishedName());
 
-		StatusMessage startMsg = new StatusMessage();
-		startMsg.setBody(stopStatus);
+		StatusMessage stopMsg = new StatusMessage();
+		stopMsg.setBody(stopStatus);
 		try {
-			connMsgOut.pushMessage(startMsg);
+			connMsgOut.pushMessage(stopMsg);
 		} catch (IOException err) {
 			log.error("Error while pushing message.", err);
 		}
@@ -806,6 +807,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 			recordingFilename = null;
 			recordPipe.unsubscribe(recordingFile);
 			sendRecordStopNotify();
+			recordPipe = null;
 		}
 	}
 

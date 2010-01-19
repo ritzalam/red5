@@ -2,6 +2,7 @@ package org.red5.compatibility.flex.messaging.messages;
 
 import org.red5.io.amf3.IDataInput;
 import org.red5.io.amf3.IDataOutput;
+import org.red5.io.utils.RandomGUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +38,11 @@ public class AcknowledgeMessage extends AsyncMessage {
 
 	static Logger log = LoggerFactory.getLogger(AcknowledgeMessage.class);
 
+	public AcknowledgeMessage() {
+		this.messageId = new RandomGUID().toString();
+		this.timestamp = System.currentTimeMillis();
+	}
+
 	@Override
 	public void readExternal(IDataInput in) {
 		super.readExternal(in);
@@ -61,5 +67,5 @@ public class AcknowledgeMessage extends AsyncMessage {
 		super.writeExternal(output);
 		output.writeByte((byte) 0);
 	}
-	
+
 }
