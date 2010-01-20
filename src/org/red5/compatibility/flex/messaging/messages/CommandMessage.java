@@ -80,9 +80,9 @@ public class CommandMessage extends AsyncMessage {
 			short reservedPosition = 0;
 			if (i == 0) {
 				if ((flags & OPERATION_FLAG) != 0) {
-					Object obj = in.readObject();
+					Integer obj = in.readInt();
 					log.debug("Operation object: {} name: {}", obj, obj.getClass().getName());
-					this.operation = ((Number) obj).intValue();
+					this.operation = obj.intValue();
 				}
 				reservedPosition = 1;
 			}

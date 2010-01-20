@@ -348,6 +348,8 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		if (len == 1) {
 			// Empty string
 			return "";
+		} else if (len == 0) {
+			return "null";
 		}
 		if ((len & 1) == 0) {
 			//if the refs are empty an IndexOutOfBoundsEx will be thrown
@@ -370,6 +372,25 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		return string;
 	}
 
+	/**
+	 * Reads a string of a set length. This does not use
+	 * the string reference table.
+	 * 
+	 * @param length the length of the string
+	 * @return String
+	 */
+	public String readString(int length) {
+		log.debug("readString - length: {}", length);
+		int limit = buf.limit();
+		final ByteBuffer strBuf = buf.buf();
+		strBuf.limit(strBuf.position() + length);
+		final String string = AMF3.CHARSET.decode(strBuf).toString();
+		log.debug("String: {}", string);
+		buf.limit(limit);
+		buf.position(buf.position() + 1); //null terminated string
+		return string;
+	}	
+	
 	public String getString() {
 		return readString(String.class);
 	}
@@ -515,9 +536,14 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Object readObject(Deserializer deserializer, Type target) {
 		int type = readAMF3Integer();
+		log.debug("Type: {} and {} ref {}", new Object[]{type, (type & 1), (type >> 1)});
 		if ((type & 1) == 0) {
-			// Reference
-			return getReference(type >> 1);
+			//Reference
+			Object ref = getReference(type >> 1);
+			if (ref != null) {
+				return ref;				
+			}
+			log.trace("BEL: {}", buf.get()); //7
 		}
 
 		type >>= 1;
@@ -536,12 +562,17 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		} else {
 			type >>= 1;
 			className = readString(String.class);
+			//check for flex class alias since these wont be detected as externalizable
+			if (classAliases.containsKey(className)) {
+				type -= 1;
+			}
 		}
 		amf3_mode += 1;
 		Object instance = newInstance(className);
 		Map<String, Object> properties = null;
 		PendingObject pending = new PendingObject();
 		int tempRefId = storeReference(pending);
+		log.debug("Object type: {}", (type & 0x03));
 		switch (type & 0x03) {
 			case AMF3.TYPE_OBJECT_PROPERTY:
 				// Load object properties into map
@@ -585,6 +616,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 				// First, we should read typed (non-dynamic) properties ("sealed traits" according to AMF3 specification).
 				// Property names are stored in the beginning, then values are stored.
 				count = type >> 2;
+				log.trace("Count: {}", count);
 				properties = new ObjectMap<String, Object>();
 				if (attributes == null) {
 					attributes = new ArrayList<String>(count);
@@ -770,17 +802,6 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		}
 
 		return result;
-	}
-
-	/** {@inheritDoc} */
-	protected Object newInstance(String className) {
-		log.debug("newInstance {}", className);
-		if (className.startsWith("flex.")) {
-			// Use Red5 compatibility class instead
-			className = "org.red5.compatibility." + className;
-			log.debug("Modified classname: {}", className);
-		}
-		return super.newInstance(className);
 	}
 
 	/** {@inheritDoc} */

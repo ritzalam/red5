@@ -59,19 +59,19 @@ public class RemotingClient implements InitializingBean {
 	public static final int DEFAULT_TIMEOUT = 30000;
 
 	/** Content MIME type for HTTP requests. */
-	private static final String CONTENT_TYPE = "application/x-amf";
+	protected static final String CONTENT_TYPE = "application/x-amf";
 
 	/** Manages HTTP connections. */
-	private static HttpConnectionManager connectionMgr = new MultiThreadedHttpConnectionManager();
+	protected static HttpConnectionManager connectionMgr = new MultiThreadedHttpConnectionManager();
 
 	/** HTTP client for remoting calls. */
-	private HttpClient client;
+	protected HttpClient client;
 
 	/** Url to connect to. */
-	private String url;
+	protected String url;
 
 	/** Additional string to use while connecting. */
-	private String appendToUrl = "";
+	protected String appendToUrl = "";
 
 	/** Headers to send to the server. */
 	protected Map<String, RemotingHeader> headers = new ConcurrentHashMap<String, RemotingHeader>();
@@ -80,7 +80,7 @@ public class RemotingClient implements InitializingBean {
 	protected static ExecutorService executor;
 
 	/** Maximum pool threads */
-	private int poolSize = 1;
+	protected int poolSize = 1;
 
 	/**
 	 * Dummy constructor used by the spring configuration.

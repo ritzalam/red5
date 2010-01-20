@@ -23,6 +23,22 @@ import java.util.Map;
 
 public interface Message {
 
+	public static final String NEEDS_CONFIG_HEADER = "DSNeedsConfig";
+
+	public static final String POLL_WAIT_HEADER = "DSPollWait";
+
+	public static final String PRESERVE_DURABLE_HEADER = "DSPreserveDurable";
+
+	public static final String REMOVE_SUBSCRIPTIONS = "DSRemSub";
+
+	public static final String SELECTOR_HEADER = "DSSelector";
+
+	public static final String SUBSCRIPTION_INVALIDATED_HEADER = "DSSubscriptionInvalidated";
+
+	public static final String SUBTOPIC_SEPARATOR = "_;_";
+	
+	public static final String MESSAGING_VERSION = "DSMessagingVersion";
+	
 	public static final String DESTINATION_CLIENT_ID_HEADER = "DSDstClientId";
 
 	public static final String ENDPOINT_HEADER = "DSEndpoint";

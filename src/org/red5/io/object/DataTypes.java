@@ -143,6 +143,8 @@ public class DataTypes {
 				return "XML";
 			case CORE_OBJECT:
 				return "Object";
+			case CORE_BYTEARRAY:
+				return "ByteArray";
 			case OPT_REFERENCE:
 				return "Reference";
 			default:

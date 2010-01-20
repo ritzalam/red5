@@ -427,6 +427,11 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 			if (className.length() == 3) {
 				className = classAliases.get(className);
 			}
+			if (className.startsWith("flex.")) {
+				// Use Red5 compatibility class instead
+				className = "org.red5.compatibility." + className;
+				log.debug("Modified classname: {}", className);
+			}			
 			Class<?> clazz = Thread.currentThread().getContextClassLoader().loadClass(className);
 			instance = clazz.newInstance();
 		} catch (Exception ex) {

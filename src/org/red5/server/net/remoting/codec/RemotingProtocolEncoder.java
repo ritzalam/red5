@@ -93,7 +93,7 @@ public class RemotingProtocolEncoder {
 				Map<String, Object> param = new HashMap<String, Object>();
 				param.put("name", header.getName());
 				param.put("mustUnderstand", header.getMustUnderstand() ? Boolean.TRUE : Boolean.FALSE);
-				param.put("data", header.getName());
+				param.put("data", header.getValue());
 				serializer.serialize(output, param);
 			}
 			headers.clear();

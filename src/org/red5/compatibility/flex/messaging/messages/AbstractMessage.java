@@ -20,12 +20,12 @@ package org.red5.compatibility.flex.messaging.messages;
  */
 
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.red5.io.amf3.ByteArray;
 import org.red5.io.amf3.IDataInput;
 import org.red5.io.amf3.IDataOutput;
+import org.red5.io.utils.ObjectMap;
 import org.red5.io.utils.RandomGUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +43,7 @@ public class AbstractMessage implements Message, Serializable {
 
 	public long timestamp;
 
-	public Map<String, Object> headers = new HashMap<String, Object>();
+	public Map<String, Object> headers = new ObjectMap<String, Object>();
 
 	public Object body;
 
@@ -192,6 +192,7 @@ public class AbstractMessage implements Message, Serializable {
 	}
 
 	static Logger log = LoggerFactory.getLogger(AbstractMessage.class);
+
 	protected short[] readFlags(IDataInput input) {
 		boolean hasNextFlag = true;
 		short[] flagsArray = new short[2];
@@ -214,56 +215,55 @@ public class AbstractMessage implements Message, Serializable {
 		}
 		log.debug("Flag count: {}", flagsArray.length);
 		return flagsArray;
-	}	
-	
+	}
+
 	@SuppressWarnings("rawtypes")
 	public void readExternal(IDataInput input) {
 		short[] flagsArray = readFlags(input);
 		for (int i = 0; i < flagsArray.length; ++i) {
 			short flags = flagsArray[i];
 			short reservedPosition = 0;
-			if (i == 0) {				
+			if (i == 0) {
 				if ((flags & 0x1) != 0) {
 					Object obj = input.readObject();
 					log.debug("Body object: {} name: {}", obj, obj.getClass().getName());
 
-					this.body = obj;
+					body = obj;
 				}
 				if ((flags & 0x2) != 0) {
-					Object obj = input.readObject();
+					Object obj = input.readUTF();
 					log.debug("Client id object: {} name: {}", obj, obj.getClass().getName());
 
-					this.clientId = ((String) obj);
+					clientId = ((String) obj);
 				}
 				if ((flags & 0x4) != 0) {
-					Object obj = input.readObject();
+					Object obj = input.readUTF();
 					log.debug("Destination object: {} name: {}", obj, obj.getClass().getName());
 
-					this.destination = ((String) obj);
+					destination = ((String) obj);
 				}
 				if ((flags & 0x8) != 0) {
 					Object obj = input.readObject();
 					log.debug("Headers object: {} name: {}", obj, obj.getClass().getName());
 
-					this.headers = ((Map) obj);
+					headers = ((ObjectMap) obj);
 				}
 				if ((flags & 0x10) != 0) {
-					Object obj = input.readObject();
+					Object obj = input.readUTF();
 					log.debug("Message id object: {} name: {}", obj, obj.getClass().getName());
 
-					this.messageId = ((String) obj);
+					messageId = ((String) obj);
 				}
 				if ((flags & 0x20) != 0) {
 					Object obj = input.readObject();
 					log.debug("Timestamp object: {} name: {}", obj, obj.getClass().getName());
 
-					this.timestamp = ((Number) obj).longValue();
+					timestamp = ((Number) obj).longValue();
 				}
 				if ((flags & 0x40) != 0) {
 					Object obj = input.readObject();
 					log.debug("TTL object: {} name: {}", obj, obj.getClass().getName());
-
-					this.timeToLive = ((Number) obj).longValue();
+					timeToLive = ((Number) obj).longValue();
 				}
 				reservedPosition = 7;
 			} else if (i == 1) {
@@ -272,19 +272,19 @@ public class AbstractMessage implements Message, Serializable {
 					log.debug("Client id (bytes) object: {} name: {}", obj, obj.getClass().getName());
 					if (obj instanceof ByteArray) {
 						ByteArray ba = (ByteArray) obj;
-						this.clientIdBytes = new byte[ba.length()];
+						clientIdBytes = new byte[ba.length()];
 						ba.readBytes(clientIdBytes);
-						this.clientId = RandomGUID.fromByteArray(this.clientIdBytes);
+						clientId = RandomGUID.fromByteArray(clientIdBytes);
 					}
 				}
 				if ((flags & 0x2) != 0) {
 					Object obj = input.readObject();
-					log.debug("Message id (bytes) object: {} name: {}", obj, obj.getClass().getName());										
+					log.debug("Message id (bytes) object: {} name: {}", obj, obj.getClass().getName());
 					if (obj instanceof ByteArray) {
 						ByteArray ba = (ByteArray) obj;
-						this.messageIdBytes = new byte[ba.length()];
+						messageIdBytes = new byte[ba.length()];
 						ba.readBytes(messageIdBytes);
-						this.messageId = RandomGUID.fromByteArray(this.messageIdBytes);
+						messageId = RandomGUID.fromByteArray(messageIdBytes);
 					}
 				}
 				reservedPosition = 2;
@@ -304,75 +304,75 @@ public class AbstractMessage implements Message, Serializable {
 	public void writeExternal(IDataOutput output) {
 		short flags = 0;
 
-		if (this.clientIdBytes == null) {
-			this.clientIdBytes = RandomGUID.toByteArray(this.clientId);
+		if (clientIdBytes == null) {
+			clientIdBytes = RandomGUID.toByteArray(clientId);
 		}
-		if (this.messageIdBytes == null) {
-			this.messageIdBytes = RandomGUID.toByteArray(this.messageId);
+		if (messageIdBytes == null) {
+			messageIdBytes = RandomGUID.toByteArray(messageId);
 		}
-		if (this.body != null) {
+		if (body != null) {
 			flags = (short) (flags | 0x1);
 		}
-		if ((this.clientId != null) && (this.clientIdBytes == null)) {
+		if ((clientId != null) && (clientIdBytes == null)) {
 			flags = (short) (flags | 0x2);
 		}
-		if (this.destination != null) {
+		if (destination != null) {
 			flags = (short) (flags | 0x4);
 		}
-		if (this.headers != null) {
+		if (headers != null) {
 			flags = (short) (flags | 0x8);
 		}
-		if ((this.messageId != null) && (this.messageIdBytes == null)) {
+		if ((messageId != null) && (messageIdBytes == null)) {
 			flags = (short) (flags | 0x10);
 		}
-		if (this.timestamp != 0L) {
+		if (timestamp != 0L) {
 			flags = (short) (flags | 0x20);
 		}
-		if (this.timeToLive != 0L) {
+		if (timeToLive != 0L) {
 			flags = (short) (flags | 0x40);
 		}
-		if ((this.clientIdBytes != null) || (this.messageIdBytes != null)) {
+		if ((clientIdBytes != null) || (messageIdBytes != null)) {
 			flags = (short) (flags | 0x80);
 		}
 		output.writeByte((byte) flags);
 
 		flags = 0;
 
-		if (this.clientIdBytes != null) {
+		if (clientIdBytes != null) {
 			flags = (short) (flags | 0x1);
 		}
-		if (this.messageIdBytes != null) {
+		if (messageIdBytes != null) {
 			flags = (short) (flags | 0x2);
 		}
 		if (flags != 0) {
 			output.writeByte((byte) flags);
 		}
-		if (this.body != null) {
-			output.writeObject(this.body);
+		if (body != null) {
+			output.writeObject(body);
 		}
-		if ((this.clientId != null) && (this.clientIdBytes == null)) {
-			output.writeObject(this.clientId);
+		if ((clientId != null) && (clientIdBytes == null)) {
+			output.writeUTF(clientId);
 		}
-		if (this.destination != null) {
-			output.writeObject(this.destination);
+		if (destination != null) {
+			output.writeUTF(destination);
 		}
-		if (this.headers != null) {
-			output.writeObject(this.headers);
+		if (headers != null) {
+			output.writeObject(headers);
 		}
-		if ((this.messageId != null) && (this.messageIdBytes == null)) {
-			output.writeObject(this.messageId);
+		if ((messageId != null) && (messageIdBytes == null)) {
+			output.writeUTF(this.messageId);
 		}
-		if (this.timestamp != 0L) {
-			output.writeObject(Long.valueOf(this.timestamp));
+		if (timestamp != 0L) {
+			output.writeObject(Long.valueOf(timestamp));
 		}
 		if (this.timeToLive != 0L) {
-			output.writeObject(Long.valueOf(this.timeToLive));
+			output.writeObject(Long.valueOf(timeToLive));
 		}
 		if (this.clientIdBytes != null) {
-			output.writeObject(this.clientIdBytes);
+			output.writeObject(clientIdBytes);
 		}
 		if (this.messageIdBytes != null) {
-			output.writeObject(this.messageIdBytes);
+			output.writeObject(messageIdBytes);
 		}
 	}
 

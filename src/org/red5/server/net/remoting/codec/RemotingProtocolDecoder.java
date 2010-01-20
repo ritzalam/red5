@@ -38,22 +38,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RemotingProtocolDecoder {
-    /**
-     * Logger
-     */
+	/**
+	 * Logger
+	 */
 	protected static Logger log = LoggerFactory.getLogger(RemotingProtocolDecoder.class);
 
 	/**
-     * Data deserializer
-     */
+	 * Data deserializer
+	 */
 	private Deserializer deserializer;
 
 	/**
-     * Setter for deserializer.
-     *
-     * @param deserializer  Deserializer
-     */
-    public void setDeserializer(Deserializer deserializer) {
+	 * Setter for deserializer.
+	 *
+	 * @param deserializer  Deserializer
+	 */
+	public void setDeserializer(Deserializer deserializer) {
 		this.deserializer = deserializer;
 	}
 
@@ -64,7 +64,7 @@ public class RemotingProtocolDecoder {
 	 * @param buffer
 	 * @return a List of {@link RemotingPacket} objects.
 	 */
-    public List<Object> decodeBuffer(ProtocolState state, IoBuffer buffer) {
+	public List<Object> decodeBuffer(ProtocolState state, IoBuffer buffer) {
 		List<Object> list = new LinkedList<Object>();
 		Object packet = null;
 		try {
@@ -87,19 +87,19 @@ public class RemotingProtocolDecoder {
 	 * @return A {@link RemotingPacket}
 	 * @throws Exception
 	 */
-    public Object decode(ProtocolState state, IoBuffer in) throws Exception {
+	public Object decode(ProtocolState state, IoBuffer in) throws Exception {
 		Map<String, Object> headers = readHeaders(in);
 		List<RemotingCall> calls = decodeCalls(in);
 		return new RemotingPacket(headers, calls);
 	}
 
-    /**
-     * Read remoting headers.
-     * 
-     * @param in         Input data as byte buffer
-     */
-    @SuppressWarnings("unchecked")
-    protected Map<String, Object> readHeaders(IoBuffer in) {
+	/**
+	 * Read remoting headers.
+	 * 
+	 * @param in         Input data as byte buffer
+	 */
+	@SuppressWarnings("unchecked")
+	protected Map<String, Object> readHeaders(IoBuffer in) {
 		int version = in.getUnsignedShort(); // skip the version
 		int count = in.getUnsignedShort();
 		log.debug("Read headers - version: {} count: {}", version, count);
@@ -107,7 +107,7 @@ public class RemotingProtocolDecoder {
 			// No headers present
 			return Collections.EMPTY_MAP;
 		}
-		
+
 		Deserializer deserializer = new Deserializer();
 		Input input;
 		if (version == 3) {
@@ -117,24 +117,22 @@ public class RemotingProtocolDecoder {
 		}
 		Map<String, Object> result = new HashMap<String, Object>();
 		for (int i = 0; i < count; i++) {
-			String name = org.red5.io.amf.Input.getString(in);
+			String name = input.getString();
 			boolean required = in.get() == 0x01;
 			int size = in.getInt();
 			Object value = deserializer.deserialize(input, Object.class);
-			if (log.isDebugEnabled()) {
-				log.debug("Header: {} Required: {} Size: {} Value: {}", new Object[]{name, required, size, value});
-			}
+			log.debug("Header: {} Required: {} Size: {} Value: {}", new Object[] { name, required, size, value });
 			result.put(name, value);
 		}
 		return result;
 	}
 
-    /**
-     * Decode calls.
+	/**
+	 * Decode calls.
 	 *
-     * @param in         Input data as byte buffer
-     * @return           List of pending calls
-     */
+	 * @param in         Input data as byte buffer
+	 * @return           List of pending calls
+	 */
 	protected List<RemotingCall> decodeCalls(IoBuffer in) {
 		log.debug("Decode calls");
 		//in.getInt();
@@ -153,10 +151,10 @@ public class RemotingProtocolDecoder {
 			String clientCallback = org.red5.io.amf.Input.getString(in);
 			log.debug("callback: {}", clientCallback);
 
-            Object[] args = null;
+			Object[] args = null;
 			boolean isAMF3 = false;
-			
-			@SuppressWarnings("unused") 
+
+			@SuppressWarnings("unused")
 			int length = in.getInt();
 			// Set the limit and deserialize
 			// NOTE: disabled because the FP sends wrong values here
@@ -165,44 +163,43 @@ public class RemotingProtocolDecoder {
 			 */
 			byte type = in.get();
 			if (type == AMF.TYPE_ARRAY) {
-    			int elements = in.getInt();
-    			List<Object> values = new ArrayList<Object>();
-    			for (int j=0; j<elements; j++) {
-    				byte amf3Check = in.get();
-    				in.position(in.position()-1);
-    				isAMF3 = (amf3Check == AMF.TYPE_AMF3_OBJECT);
-    				if (isAMF3) {
-    					input = new org.red5.io.amf3.Input(in);
-    				} else {
-    					input = new org.red5.io.amf.Input(in);
-    				}
-    				// Prepare remoting mode
-    				input.reset();
-    				
-    				values.add(deserializer.deserialize(input, Object.class));
-    			}
+				int elements = in.getInt();
+				List<Object> values = new ArrayList<Object>();
+				for (int j = 0; j < elements; j++) {
+					byte amf3Check = in.get();
+					in.position(in.position() - 1);
+					isAMF3 = (amf3Check == AMF.TYPE_AMF3_OBJECT);
+					if (isAMF3) {
+						input = new org.red5.io.amf3.Input(in);
+					} else {
+						input = new org.red5.io.amf.Input(in);
+					}
+					// Prepare remoting mode
+					input.reset();
 
-    			args = values.toArray(new Object[values.size()]);
-    			if (log.isDebugEnabled()) {
-    				for (Object element : args) {
-    					log.debug("> " + element);
-    				}
-    			}
+					values.add(deserializer.deserialize(input, Object.class));
+				}
 
-            } else if (type == AMF.TYPE_NULL) {
-                log.debug("Got null amf type");
-                            
-            } else if (type != AMF.TYPE_ARRAY) {
+				args = values.toArray(new Object[values.size()]);
+				if (log.isDebugEnabled()) {
+					for (Object element : args) {
+						log.debug("> " + element);
+					}
+				}
+
+			} else if (type == AMF.TYPE_NULL) {
+				log.debug("Got null amf type");
+
+			} else if (type != AMF.TYPE_ARRAY) {
 				throw new RuntimeException("AMF0 array type expected but found " + type);
 			}
-		
+
 			String serviceName;
 			String serviceMethod;
 			int dotPos = serviceString.lastIndexOf('.');
 			if (dotPos != -1) {
 				serviceName = serviceString.substring(0, dotPos);
-				serviceMethod = serviceString.substring(dotPos + 1,
-						serviceString.length());
+				serviceMethod = serviceString.substring(dotPos + 1, serviceString.length());
 			} else {
 				serviceName = "";
 				serviceMethod = serviceString;

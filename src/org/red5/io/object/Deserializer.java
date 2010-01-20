@@ -19,10 +19,10 @@ package org.red5.io.object;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.lang.reflect.Type;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.lang.reflect.Type;
 
 /**
  * The Deserializer class reads data input and handles the data
@@ -46,7 +46,7 @@ public class Deserializer {
 	 */
 	@SuppressWarnings("unchecked")
 	public <T> T deserialize(Input in, Type target) {
-
+		
 		byte type = in.readDataType();
 		log.debug("Type: {} target: {}", type, (target != null ? target.toString() : ""));
 

@@ -1,5 +1,6 @@
 package org.red5.compatibility.flex.messaging.messages;
 
+import org.red5.io.amf3.ByteArray;
 import org.red5.io.amf3.IDataInput;
 import org.red5.io.amf3.IDataOutput;
 import org.red5.io.utils.RandomGUID;
@@ -74,8 +75,10 @@ public class AsyncMessage extends AbstractMessage {
 					this.correlationId = ((String) in.readObject());
 				}
 				if ((flags & CORRELATION_ID_BYTES_FLAG) != 0) {
-					this.correlationIdBytes = ((byte[]) (byte[]) in.readObject());
-					this.correlationId = RandomGUID.fromByteArray(this.correlationIdBytes);
+					ByteArray ba = (ByteArray) in.readObject();
+					correlationIdBytes = new byte[ba.length()];
+					ba.readBytes(correlationIdBytes);
+					correlationId = RandomGUID.fromByteArray(correlationIdBytes);
 				}
 				reservedPosition = 2;
 			}
