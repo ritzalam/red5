@@ -330,7 +330,10 @@ public class FileUtil {
 		//strip everything except the applications name
 		String dirName = null;
 		
-		int dashIndex = compressedFileName.indexOf('-');
+		// checks to see if there is a dash "-" in the filename of the war. 
+		String applicationName = compressedFileName.substring(compressedFileName.lastIndexOf("/"));
+		
+		int dashIndex = applicationName.indexOf('-');
 		if (dashIndex != -1) {
 			//strip everything except the applications name
 			dirName = compressedFileName.substring(0, dashIndex);
@@ -363,6 +366,22 @@ public class FileUtil {
 					log.debug("{}", tmp);
 					continue;
 				}
+				
+				// checks to see if a zipEntry contains a path
+				// i.e. ze.getName() == "META-INF/MANIFEST.MF"
+				// if this case is true, then we create the path first
+				if(ze.getName().lastIndexOf("/") != -1) {
+					String zipName = ze.getName();
+					String zipDirStructure = zipName.substring(0, zipName.lastIndexOf("/"));
+					File completeDirectory = new File(tmpDir + "/" + zipDirStructure);
+					if(!completeDirectory.exists()) {
+						if(!completeDirectory.mkdirs()) {
+							log.error("could not create complete directory structure");
+						}
+					}
+				}
+				
+				// creates the file
 				FileOutputStream fout = new FileOutputStream(tmpDir + "/" + ze.getName());
 				InputStream in = zf.getInputStream(ze);
 				copy(in, fout);
@@ -371,7 +390,7 @@ public class FileUtil {
 			} 
 			e = null;
 		} catch (IOException e) {
-			log.debug("Error unzipping", e);
+			log.error("Errord unzipping", e);
 			//e.printStackTrace();
 		}
 	}

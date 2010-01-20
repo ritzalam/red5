@@ -86,7 +86,7 @@ public final class WarDeployer {
 
 	public void init() {
 		//create the job and schedule it
-		jobName = scheduler.addScheduledJobAfterDelay(checkInterval, new DeployJob(), 120000);
+		jobName = scheduler.addScheduledJobAfterDelay(checkInterval, new DeployJob(), 20000);
 		//
 		log.debug("Source directory: {}", deploymentDirectory);
 		//check the deploy from directory
