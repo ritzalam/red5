@@ -18,10 +18,10 @@
         https://glassfish.dev.java.net/downloads/ri/
         -->
         <dependency org="javax" name="javaee-api" rev="5.1.1" />
-        <dependency org="tomcat" name="jasper" rev="6.0.20" />
+        <dependency org="tomcat" name="jasper" rev="6.0.24" />
         <!-- jasper-jdt is required for compiling jsp's -->
-        <dependency org="tomcat" name="jasper-jdt" rev="6.0.20" /> 
-        <dependency org="tomcat" name="jasper-el" rev="6.0.20" />
+        <dependency org="tomcat" name="jasper-jdt" rev="6.0.24" /> 
+        <dependency org="tomcat" name="jasper-el" rev="6.0.24" />
         <!-- Spring --> 
         <!-- 
         <dependency org="spring" name="spring-aop" rev="3.0.0" />
@@ -34,8 +34,8 @@
         <dependency org="spring" name="spring-web" rev="3.0.0" />
         <dependency org="spring" name="spring-expression" rev="3.0.0" />
         <!-- Tomcat --> 
-        <dependency org="tomcat" name="catalina" rev="6.0.20-patched" />
-        <dependency org="tomcat" name="tomcat-coyote" rev="6.0.20-patched" />
+        <dependency org="tomcat" name="catalina" rev="6.0.24" />
+        <dependency org="tomcat" name="tomcat-coyote" rev="6.0.24" />
         <dependency org="commons" name="commons-modeler" rev="2.0.1" />
         <!-- Logging --> 
         <dependency name="slf4j-api" rev="1.5.10" />
