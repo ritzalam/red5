@@ -72,6 +72,7 @@ public class CommandMessage extends AsyncMessage {
 	
 	@Override
 	public void readExternal(IDataInput in) {
+		log.debug("CommandMessage - Read external");
 		super.readExternal(in);
 		short[] flagsArray = readFlags(in);
 		for (int i = 0; i < flagsArray.length; ++i) {

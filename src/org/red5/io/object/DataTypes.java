@@ -77,12 +77,12 @@ public class DataTypes {
     /**
      * ByteArray type marker (AMF3 only)
      */
-    public static final byte CORE_BYTEARRAY = 0x10;
+    public static final byte CORE_BYTEARRAY = 0x10; //16
 
     /**
      * Reference type, this is optional for codecs to support
      */
-    public static final byte OPT_REFERENCE = 0x11;
+    public static final byte OPT_REFERENCE = 0x11; //17
 
 	// More datatypes can be added but they should be prefixed by the type
 	// If a codec return one of these datatypes its handled by a custom

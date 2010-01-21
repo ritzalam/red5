@@ -31,6 +31,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -387,7 +388,11 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		final String string = AMF3.CHARSET.decode(strBuf).toString();
 		log.debug("String: {}", string);
 		buf.limit(limit);
-		buf.position(buf.position() + 1); //null terminated string
+		//check for null termination
+		byte b = buf.get();
+		if (b != 0) {
+			buf.position(buf.position() - 1); 
+		}
 		return string;
 	}	
 	
@@ -424,9 +429,13 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Object readArray(Deserializer deserializer, Type target) {
 		int count = readAMF3Integer();
+		log.debug("Count: {} and {} ref {}", new Object[]{count, (count & 1), (count >> 1)});
 		if ((count & 1) == 0) {
-			// Reference
-			return getReference(count >> 1);
+			//Reference
+			Object ref = getReference(count >> 1);
+			if (ref != null) {
+				return ref;				
+			}
 		}
 
 		count = (count >> 1);
@@ -533,7 +542,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 
 	// Object
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({ "unchecked", "rawtypes", "serial" })
 	public Object readObject(Deserializer deserializer, Type target) {
 		int type = readAMF3Integer();
 		log.debug("Type: {} and {} ref {}", new Object[]{type, (type & 1), (type >> 1)});
@@ -543,7 +552,13 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 			if (ref != null) {
 				return ref;				
 			}
-			log.trace("BEL: {}", buf.get()); //7
+			byte b = buf.get();
+			if (b == 7) {
+				log.debug("BEL: {}", b); //7			
+			} else {
+				log.debug("Non-BEL byte: {}", b);
+				log.debug("Extra byte: {}", buf.get());
+			}
 		}
 
 		type >>= 1;
@@ -551,6 +566,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		String className;
 		Object result = null;
 		boolean inlineClass = (type & 1) == 1;
+		log.debug("Class is in-line? {}", inlineClass);
 		if (!inlineClass) {
 			ClassReference info = classReferences.get(type >> 1);
 			className = info.className;
@@ -562,9 +578,29 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		} else {
 			type >>= 1;
 			className = readString(String.class);
+			log.debug("Type: {} classname: {}", type, className);
 			//check for flex class alias since these wont be detected as externalizable
 			if (classAliases.containsKey(className)) {
 				type -= 1;
+			} else if (className.startsWith("flex")) {
+				//set the attributes for messaging classes
+				if (className.endsWith("CommandMessage")) {
+					attributes = new LinkedList<String>(){
+						{
+							add("timestamp");
+							add("headers");
+							add("operation");
+							add("body");
+							add("correlationId");
+							add("messageId");
+							add("timeToLive");
+							add("clientId");
+							add("destination"); 
+						}
+					};
+				} else {
+					log.debug("Attributes for {} were not set", className);
+				}
 			}
 		}
 		amf3_mode += 1;
@@ -575,6 +611,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		log.debug("Object type: {}", (type & 0x03));
 		switch (type & 0x03) {
 			case AMF3.TYPE_OBJECT_PROPERTY:
+				log.debug("Detected: Object property type");
 				// Load object properties into map
 				int count = type >> 2;
 				properties = new ObjectMap<String, Object>();
@@ -591,6 +628,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 				}
 				break;
 			case AMF3.TYPE_OBJECT_EXTERNALIZABLE:
+				log.debug("Detected: Externalizable type");
 				// Use custom class to deserialize the object
 				if ("".equals(className)) {
 					throw new RuntimeException("Classname is required to load an Externalizable object");
@@ -613,11 +651,11 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 				((IExternalizable) result).readExternal(new DataInput(this, deserializer));
 				break;
 			case AMF3.TYPE_OBJECT_VALUE:
+				log.debug("Detected: Object value type");
 				// First, we should read typed (non-dynamic) properties ("sealed traits" according to AMF3 specification).
 				// Property names are stored in the beginning, then values are stored.
 				count = type >> 2;
-				log.trace("Count: {}", count);
-				properties = new ObjectMap<String, Object>();
+				log.debug("Count: {}", count);
 				if (attributes == null) {
 					attributes = new ArrayList<String>(count);
 					for (int i = 0; i < count; i++) {
@@ -625,9 +663,26 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 					}
 					classReferences.add(new ClassReference(className, AMF3.TYPE_OBJECT_VALUE, attributes));
 				}
-				for (int i = 0; i < count; i++) {
-					String key = attributes.get(i);
-					properties.put(key, deserializer.deserialize(this, getPropertyType(instance, key)));
+				//use the size of the attributes if we have no count
+				if (count == 0 && attributes != null) {
+					count = attributes.size();
+					log.debug("Using class attribute size for property count: {}", count);
+					//read the attributes from the stream and remove any that dont exist
+					List<String> tmpAttributes = new ArrayList<String>(count);
+					for (int i = 0; i < count; i++) {
+						tmpAttributes.add(readString(String.class));
+					}
+					if (count != tmpAttributes.size()) {
+						log.debug("Count and attributes length does not match!");
+					}					
+					classReferences.add(new ClassReference(className, AMF3.TYPE_OBJECT_VALUE, attributes));
+				}
+				
+				properties = new ObjectMap<String, Object>();
+				for (String key : attributes) {
+					Object value = deserializer.deserialize(this, getPropertyType(instance, key));
+					log.debug("Key: {} Value: {}", key, value);
+					properties.put(key, value);
 				}
 
 				// Now we should read dynamic properties which are stored as name-value pairs.
@@ -641,6 +696,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 				break;
 			default:
 			case AMF3.TYPE_OBJECT_PROXY:
+				log.debug("Detected: Object proxy type");
 				if ("".equals(className)) {
 					throw new RuntimeException("Classname is required to load an Externalizable object");
 				}

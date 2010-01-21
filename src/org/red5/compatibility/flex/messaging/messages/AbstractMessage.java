@@ -219,6 +219,7 @@ public class AbstractMessage implements Message, Serializable {
 
 	@SuppressWarnings("rawtypes")
 	public void readExternal(IDataInput input) {
+		log.debug("AbstractMessage - Read external");
 		short[] flagsArray = readFlags(input);
 		for (int i = 0; i < flagsArray.length; ++i) {
 			short flags = flagsArray[i];
@@ -305,10 +306,18 @@ public class AbstractMessage implements Message, Serializable {
 		short flags = 0;
 
 		if (clientIdBytes == null) {
-			clientIdBytes = RandomGUID.toByteArray(clientId);
+			if (clientId == null) {
+				clientIdBytes = null;
+			} else {
+				clientIdBytes = RandomGUID.toByteArray(clientId);
+			}
 		}
 		if (messageIdBytes == null) {
-			messageIdBytes = RandomGUID.toByteArray(messageId);
+			if (messageId == null) {
+				messageIdBytes = null;
+			} else {
+				messageIdBytes = RandomGUID.toByteArray(messageId);
+			}
 		}
 		if (body != null) {
 			flags = (short) (flags | 0x1);

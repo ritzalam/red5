@@ -402,21 +402,29 @@ public class DSRemotingClient extends RemotingClient {
 				log.info("Got second ACK {}", ((AcknowledgeMessage) response));
 			}			
 			
-			//send poll 
-			//0 messages - returns DSK
-			//n messages - CommandMessage with internal DSA
-			msg = new CommandMessage();
-			msg.setCorrelationId("");
-			msg.setDestination("Red5Chat");
-			headerMap = new ObjectMap<String, Object>();
-			headerMap.put(Message.FLEX_CLIENT_ID_HEADER, client.getDataSourceId());
-			msg.setHeaders(headerMap);
-			msg.setOperation(Constants.POLL_OPERATION);
-			msg.setBody((Object) new Object[]{});
-			
-			response = client.invokeMethod("null", new Object[]{msg});
-			log.info("Got response {}", response.getClass().getName());
-			
+			//poll every 5 seconds for 60
+			int loop = 12;
+			do {
+				Thread.sleep(5000);
+				log.info("Done with sleeping");
+
+				//send poll 
+				//0 messages - returns DSK
+				//n messages - CommandMessage with internal DSA
+				msg = new CommandMessage();
+				msg.setCorrelationId("");
+				msg.setDestination("Red5Chat");
+				headerMap = new ObjectMap<String, Object>();
+				headerMap.put(Message.FLEX_CLIENT_ID_HEADER, client.getDataSourceId());
+				msg.setHeaders(headerMap);
+				msg.setOperation(Constants.POLL_OPERATION);
+				msg.setBody((Object) new Object[]{});
+				
+				response = client.invokeMethod("null", new Object[]{msg});
+				log.info("Got response {}", response.getClass().getName());
+				
+			} while (--loop > 0);
+						
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
