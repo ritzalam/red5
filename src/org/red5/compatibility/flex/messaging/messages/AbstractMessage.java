@@ -232,13 +232,13 @@ public class AbstractMessage implements Message, Serializable {
 					body = obj;
 				}
 				if ((flags & 0x2) != 0) {
-					Object obj = input.readUTF();
+					Object obj = input.readObject();
 					log.debug("Client id object: {} name: {}", obj, obj.getClass().getName());
 
 					clientId = ((String) obj);
 				}
 				if ((flags & 0x4) != 0) {
-					Object obj = input.readUTF();
+					Object obj = input.readObject();
 					log.debug("Destination object: {} name: {}", obj, obj.getClass().getName());
 
 					destination = ((String) obj);

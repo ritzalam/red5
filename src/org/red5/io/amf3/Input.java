@@ -581,7 +581,8 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 			log.debug("Type: {} classname: {}", type, className);
 			//check for flex class alias since these wont be detected as externalizable
 			if (classAliases.containsKey(className)) {
-				type -= 1;
+				//make sure type is externalizable
+				type = 1;
 			} else if (className.startsWith("flex")) {
 				//set the attributes for messaging classes
 				if (className.endsWith("CommandMessage")) {
@@ -614,7 +615,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 				log.debug("Detected: Object property type");
 				// Load object properties into map
 				int count = type >> 2;
-				properties = new ObjectMap<String, Object>();
+				log.debug("Count: {}", count);
 				if (attributes == null) {
 					attributes = new ArrayList<String>(count);
 					for (int i = 0; i < count; i++) {
@@ -622,6 +623,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 					}
 					classReferences.add(new ClassReference(className, AMF3.TYPE_OBJECT_PROPERTY, attributes));
 				}
+				properties = new ObjectMap<String, Object>();
 				for (int i = 0; i < count; i++) {
 					String name = attributes.get(i);
 					properties.put(name, deserializer.deserialize(this, getPropertyType(instance, name)));
@@ -667,7 +669,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 				if (count == 0 && attributes != null) {
 					count = attributes.size();
 					log.debug("Using class attribute size for property count: {}", count);
-					//read the attributes from the stream and remove any that dont exist
+					//read the attributes from the stream and log if count doesnt match
 					List<String> tmpAttributes = new ArrayList<String>(count);
 					for (int i = 0; i < count; i++) {
 						tmpAttributes.add(readString(String.class));
@@ -680,19 +682,24 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 				
 				properties = new ObjectMap<String, Object>();
 				for (String key : attributes) {
+					log.debug("Looking for property: {}", key);
 					Object value = deserializer.deserialize(this, getPropertyType(instance, key));
 					log.debug("Key: {} Value: {}", key, value);
 					properties.put(key, value);
 				}
 
-				// Now we should read dynamic properties which are stored as name-value pairs.
-				// Dynamic properties are NOT remembered in 'classReferences'.
-				String key = readString(String.class);
-				while (!"".equals(key)) {
-					Object value = deserializer.deserialize(this, getPropertyType(instance, key));
-					properties.put(key, value);
-					key = readString(String.class);
-				}
+				log.trace("Buffer - position: {} limit: {}", buf.position(), buf.limit());
+				//no more items to read if we are at the end of the buffer
+				if (buf.position() < buf.limit()) {
+					// Now we should read dynamic properties which are stored as name-value pairs.
+					// Dynamic properties are NOT remembered in 'classReferences'.
+					String key = readString(String.class);
+					while (!"".equals(key)) {
+						Object value = deserializer.deserialize(this, getPropertyType(instance, key));
+						properties.put(key, value);
+						key = readString(String.class);
+					}
+				}				
 				break;
 			default:
 			case AMF3.TYPE_OBJECT_PROXY:

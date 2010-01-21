@@ -72,7 +72,7 @@ public class AsyncMessage extends AbstractMessage {
 			short reservedPosition = 0;
 			if (i == 0) {
 				if ((flags & CORRELATION_ID_FLAG) != 0) {
-					this.correlationId = ((String) in.readObject());
+					correlationId = ((String) in.readObject());
 				}
 				if ((flags & CORRELATION_ID_BYTES_FLAG) != 0) {
 					ByteArray ba = (ByteArray) in.readObject();

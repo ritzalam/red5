@@ -19,6 +19,7 @@ package org.red5.server.net.remoting;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
@@ -27,6 +28,7 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.compatibility.flex.messaging.messages.AcknowledgeMessage;
 import org.red5.compatibility.flex.messaging.messages.AcknowledgeMessageExt;
+import org.red5.compatibility.flex.messaging.messages.AsyncMessageExt;
 import org.red5.compatibility.flex.messaging.messages.CommandMessage;
 import org.red5.compatibility.flex.messaging.messages.Constants;
 import org.red5.compatibility.flex.messaging.messages.ErrorMessage;
@@ -270,7 +272,7 @@ public class DSRemotingClient extends RemotingClient {
 		log.debug("Target: {}", target);
 		if ("onResult".equals(target)) {
 			//read return value
-			return input.readObject(deserializer, AcknowledgeMessageExt.class);
+			return input.readObject(deserializer, Message.class);
 		} else if ("onStatus".equals(target)) {
 			//read return value
 			return input.readObject(deserializer, ErrorMessage.class);
@@ -348,8 +350,9 @@ public class DSRemotingClient extends RemotingClient {
 		data.position(pos);
 	}
 
+	@SuppressWarnings("rawtypes")
 	public static void main(String[] args) {
-		//blazeds my-polling-amf http://24.253.48.186:8400/meta/messagebroker/amfpolling
+		//blazeds my-polling-amf http://localhost:8400/meta/messagebroker/amfpolling
 		DSRemotingClient client = new DSRemotingClient("http://localhost:8400/meta/messagebroker/amfpolling");
 
 		try {
@@ -421,8 +424,15 @@ public class DSRemotingClient extends RemotingClient {
 				msg.setBody((Object) new Object[]{});
 				
 				response = client.invokeMethod("null", new Object[]{msg});
-				log.info("Got response {}", response.getClass().getName());
-				
+				if (response instanceof AcknowledgeMessage) {
+					AcknowledgeMessage ack = (AcknowledgeMessage) response;
+					log.info("Got ACK response {}", ack);
+				} else if (response instanceof CommandMessage) {
+					CommandMessage com = (CommandMessage) response;
+					log.info("Got COM response {}", com);
+					ArrayList list = (ArrayList) com.getBody();
+					log.info("Child message body: {}", ((AsyncMessageExt) list.get(0)).getBody());
+				}				
 			} while (--loop > 0);
 						
 		} catch (Exception e) {
