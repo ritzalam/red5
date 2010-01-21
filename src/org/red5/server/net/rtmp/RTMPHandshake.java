@@ -500,11 +500,11 @@ public class RTMPHandshake implements IHandshake {
 		handshakeBytes[1] = 0;
 		handshakeBytes[2] = 0;
 		handshakeBytes[3] = 0;
-		//version
-		handshakeBytes[4] = 3;
-		handshakeBytes[5] = 1;
-		handshakeBytes[6] = 0;
-		handshakeBytes[7] = 0;
+		//version (0x01020304)
+		handshakeBytes[4] = 1;
+		handshakeBytes[5] = 2;
+		handshakeBytes[6] = 3;
+		handshakeBytes[7] = 4;
 		//fill the rest with random bytes
 		
 		//slow way
