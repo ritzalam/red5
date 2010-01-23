@@ -135,7 +135,6 @@ public class RemotingProtocolEncoder {
 			}
 			serializer.serialize(output, result);
 		}
-		//buf.compact();
 		buf.flip();
 		if (log.isDebugEnabled()) {
 			log.debug(">>{}", buf.getHexDump());

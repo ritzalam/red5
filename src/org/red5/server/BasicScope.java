@@ -142,15 +142,17 @@ public abstract class BasicScope extends PersistableAttributeStore implements IB
 	 */
 	public void removeEventListener(IEventListener listener) {
 		listeners.remove(listener);
-		if (ScopeUtils.isRoom(this) && listeners.isEmpty()) {
-			if (!keepOnDisconnect && keepDelay > 0) {
-				// create a job to keep alive for n seconds
-				ISchedulingService schedulingService = (ISchedulingService) parent.getContext().getBean(
-						ISchedulingService.BEAN_NAME);
-				schedulingService.addScheduledOnceJob(keepDelay * 1000, new KeepAliveJob(this));
-			} else if (!keepOnDisconnect) {
-				// delete empty rooms
-				parent.removeChildScope(this);
+		if (!keepOnDisconnect) {
+        	if (ScopeUtils.isRoom(this) && listeners.isEmpty()) {
+        		if (keepDelay > 0) {
+        			// create a job to keep alive for n seconds
+        			ISchedulingService schedulingService = (ISchedulingService) parent.getContext().getBean(
+        					ISchedulingService.BEAN_NAME);
+        			schedulingService.addScheduledOnceJob(keepDelay * 1000, new KeepAliveJob(this));
+        		} else {
+        			// delete empty rooms
+        			parent.removeChildScope(this);
+        		}
 			}
 		}
 	}

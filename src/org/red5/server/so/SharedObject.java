@@ -600,6 +600,7 @@ public class SharedObject extends AttributeStore implements ISharedObjectStatist
 	 * Check if shared object must be released.
 	 */
 	protected void checkRelease() {
+		//part 3 of fix for TRAC #360
 		if (!isPersistentObject() && listeners.isEmpty() && !isAcquired()) {
 			log.info("Deleting shared object {} because all clients disconnected and it is no longer acquired.", name);
 			if (storage != null) {

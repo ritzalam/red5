@@ -321,8 +321,15 @@ public class SharedObjectScope extends BasicScope implements ISharedObject, Stat
 	@Override
 	public void removeEventListener(IEventListener listener) {
 		so.unregister(listener);
+		//part 1 of the fix for TRAC #360 - if we have not been released by all that acquired then 
+		//keep on disconnection of the last listener
+		if (so.isAcquired()) {
+			keepOnDisconnect = true;
+		}
+		//remove the listener
 		super.removeEventListener(listener);
-		if (!so.isPersistentObject() && (so.getListeners() == null || so.getListeners().isEmpty())) {
+		//part 2 of the fix for TRAC #360 - check acquire
+		if (!so.isPersistentObject() && (so.getListeners() == null || so.getListeners().isEmpty()) && !so.isAcquired()) {
 			getParent().removeChildScope(this);
 		}
 

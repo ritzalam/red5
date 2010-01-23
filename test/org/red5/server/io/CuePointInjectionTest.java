@@ -86,7 +86,7 @@ public class CuePointInjectionTest extends TestCase {
 		// Create a reader for testing
 		File readfile = new File("fixtures/test_cue.flv");
 		assertTrue(readfile.exists());
-		
+
 		IFLV readflv = (IFLV) service.getStreamableFile(readfile);
 		readflv.setCache(NoCacheImpl.getInstance());
 
@@ -105,8 +105,7 @@ public class CuePointInjectionTest extends TestCase {
 	 * @param writer
 	 * @throws IOException
 	 */
-	private void writeTagsWithInjection(ITagReader reader, ITagWriter writer)
-			throws IOException {
+	private void writeTagsWithInjection(ITagReader reader, ITagWriter writer) throws IOException {
 
 		IMetaCue cp = new MetaCue<Object, Object>();
 		cp.setName("cue_1");
@@ -180,8 +179,7 @@ public class CuePointInjectionTest extends TestCase {
 		byte tmpDataType = ((IoConstants.TYPE_METADATA));
 		int tmpTimestamp = getTimeInMilliseconds(cp);
 
-		return new Tag(tmpDataType, tmpTimestamp, tmpBodySize, tmpBody,
-				tmpPreviousTagSize);
+		return new Tag(tmpDataType, tmpTimestamp, tmpBodySize, tmpBody, tmpPreviousTagSize);
 
 	}
 

@@ -95,7 +95,7 @@ public class MetaCue<K, V> extends HashMap<String, Object> implements IMetaCue {
 	}
 
 	/** {@inheritDoc} */
-    public int compareTo(Object arg0) {
+	public int compareTo(Object arg0) {
 		MetaCue<?, ?> cp = (MetaCue<?, ?>) arg0;
 		double cpTime = cp.getTime();
 		double thisTime = this.getTime();
@@ -110,7 +110,7 @@ public class MetaCue<K, V> extends HashMap<String, Object> implements IMetaCue {
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder("MetaCue{");
 		for (Map.Entry<String, Object> entry : entrySet()) {
@@ -119,6 +119,6 @@ public class MetaCue<K, V> extends HashMap<String, Object> implements IMetaCue {
 			sb.append(entry.getValue());
 		}
 		sb.append('}');
-		return sb.toString();		
+		return sb.toString();
 	}
 }
