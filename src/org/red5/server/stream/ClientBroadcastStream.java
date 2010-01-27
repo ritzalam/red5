@@ -98,35 +98,35 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	/**
 	 * Total number of bytes received.
 	 */
-	private long bytesReceived;
+	protected long bytesReceived;
 
 	/**
 	 * Is there need to check video codec?
 	 */
-	private boolean checkVideoCodec = false;
+	protected boolean checkVideoCodec = false;
 
 	/**
 	 * Data is sent by chunks, each of them has size
 	 */
-	private int chunkSize;
+	protected int chunkSize;
 
 	/**
 	 * Is this stream still active?
 	 */
-	private boolean closed;
+	protected boolean closed;
 
 	/**
 	 * Output endpoint that providers use
 	 */
-	private IMessageOutput connMsgOut;
+	protected IMessageOutput connMsgOut;
 
 	/** Stores timestamp of first packet. */
-	private long firstPacketTime = -1;
+	protected long firstPacketTime = -1;
 
 	/**
 	 * Pipe for live streaming
 	 */
-	private IPipe livePipe;
+	protected IPipe livePipe;
 
 	/**
 	 * MBean object name used for de/registration purposes.
@@ -136,7 +136,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	/**
 	 * Stream published name
 	 */
-	private String publishedName;
+	protected String publishedName;
 
 	/**
 	 * Whether we are recording or not
@@ -161,7 +161,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	/**
 	 * Is there need to send start notification?
 	 */
-	private boolean sendStartNotification = true;
+	protected boolean sendStartNotification = true;
 
 	/**
 	 * Stores statistics about subscribers.
@@ -169,9 +169,9 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	private StatisticsCounter subscriberStats = new StatisticsCounter();
 
 	/** Listeners to get notified about received packets. */
-	private Set<IStreamListener> listeners = new CopyOnWriteArraySet<IStreamListener>();
+	protected Set<IStreamListener> listeners = new CopyOnWriteArraySet<IStreamListener>();
 
-	private long latestTimeStamp = -1;
+	protected long latestTimeStamp = -1;
 
 	/**
 	 * Check and send notification if necessary
