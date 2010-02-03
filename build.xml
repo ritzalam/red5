@@ -302,6 +302,27 @@
 				<exclude name="demos"/>
 			</fileset>
 		</copy>
+		<!-- vod -->
+		<copy todir="${webapps.build.dir}/vod">
+			<fileset dir="webapps/vod">
+				<include name="**/*.xml"/>
+				<include name="**/*.properties"/>
+				<include name="**/*.sw*"/>
+				<include name="**/*.flv"/>
+				<include name="**/*.html"/>
+				<include name="**/*.js"/>
+			</fileset>
+		</copy>
+		<!-- live -->
+		<copy todir="${webapps.build.dir}/live">
+			<fileset dir="webapps/live">
+				<include name="**/*.xml"/>
+				<include name="**/*.properties"/>
+				<include name="**/*.sw*"/>
+				<include name="**/*.html"/>
+				<include name="**/*.js"/>
+			</fileset>
+		</copy>		
 		<!-- installer -->
 		<!-- load token replacement filters -->
 		<filter filtersfile="${filter.file}"/>
