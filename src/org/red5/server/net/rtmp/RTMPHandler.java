@@ -152,8 +152,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 		final IScope scope = conn.getScope();
 		if (scope.hasHandler()) {
 			final IScopeHandler handler = scope.getHandler();
-			log.debug("Scope: {}", scope);
-			log.debug("Handler: {}", handler);
+			log.debug("Scope: {} handler: {}", scope, handler);
 			if (!handler.serviceCall(conn, call)) {
 				// XXX: What to do here? Return an error?
 				return;
@@ -190,9 +189,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	protected void onInvoke(RTMPConnection conn, Channel channel, Header source, Notify invoke, RTMP rtmp) {
-
 		log.debug("Invoke: {}", invoke);
-
 		// Get call
 		final IServiceCall call = invoke.getCall();
 		// method name
@@ -269,7 +266,8 @@ public class RTMPHandler extends BaseRTMPHandler {
 							call.setStatus(Call.STATUS_APP_SHUTTING_DOWN);
 							if (call instanceof IPendingServiceCall) {
 								StatusObject status = getStatus(NC_CONNECT_APPSHUTDOWN);
-								status.setDescription(String.format("Application at '%s' is currently shutting down.", path));
+								status.setDescription(String.format("Application at '%s' is currently shutting down.",
+										path));
 								((IPendingServiceCall) call).setResult(status);
 							}
 							log.info("Application at {} currently shutting down on {}", path, host);
@@ -294,7 +292,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 										//send fmsver and capabilities
 										StatusObject result = getStatus(NC_CONNECT_SUCCESS);
 										result.setAdditional("fmsVer", Red5.getFMSVersion());
-										result.setAdditional("capabilities", Integer.valueOf(31));
+										result.setAdditional("capabilities", Integer.valueOf(33));
 										pc.setResult(result);
 									}
 									// Measure initial roundtrip time after connecting
@@ -373,44 +371,44 @@ public class RTMPHandler extends BaseRTMPHandler {
 				if (null == streamAction) {
 					invokeCall(conn, call);
 				} else {
-    				switch (streamAction) {
-    					case DISCONNECT:
-    						conn.close();
-    						break;
-    					case CREATE_STREAM:
-    					case DELETE_STREAM:
-    					case RELEASE_STREAM:
-    					case PUBLISH:
-    					case PLAY:
-    					case SEEK:
-    					case PAUSE:
-    					case PAUSE_RAW:
-    					case CLOSE_STREAM:
-    					case RECEIVE_VIDEO:
-    					case RECEIVE_AUDIO:
-    						IStreamService streamService = (IStreamService) getScopeService(conn.getScope(),
-    								IStreamService.class, StreamService.class);
-    						Status status = null;
-    						try {
-    							if (!invokeCall(conn, call, streamService)) {
-    								status = getStatus(NS_INVALID_ARGUMENT).asStatus();
-    								status.setDescription(String.format("Failed to %s (stream id: %d)", action, source
-    										.getStreamId()));
-    							}
-    						} catch (Throwable err) {
-    							log.error("Error while invoking {} on stream service. {}", action, err);
-    							status = getStatus(NS_FAILED).asStatus();
-    							status.setDescription(String.format("Error while invoking %s (stream id: %d)", action,
-    									source.getStreamId()));
-    							status.setDetails(err.getMessage());
-    						}
-    						if (status != null) {
-    							channel.sendStatus(status);
-    						}
-    						break;
-    					default:
-    						invokeCall(conn, call);
-    				}
+					switch (streamAction) {
+						case DISCONNECT:
+							conn.close();
+							break;
+						case CREATE_STREAM:
+						case DELETE_STREAM:
+						case RELEASE_STREAM:
+						case PUBLISH:
+						case PLAY:
+						case SEEK:
+						case PAUSE:
+						case PAUSE_RAW:
+						case CLOSE_STREAM:
+						case RECEIVE_VIDEO:
+						case RECEIVE_AUDIO:
+							IStreamService streamService = (IStreamService) getScopeService(conn.getScope(),
+									IStreamService.class, StreamService.class);
+							Status status = null;
+							try {
+								if (!invokeCall(conn, call, streamService)) {
+									status = getStatus(NS_INVALID_ARGUMENT).asStatus();
+									status.setDescription(String.format("Failed to %s (stream id: %d)", action, source
+											.getStreamId()));
+								}
+							} catch (Throwable err) {
+								log.error("Error while invoking {} on stream service. {}", action, err);
+								status = getStatus(NS_FAILED).asStatus();
+								status.setDescription(String.format("Error while invoking %s (stream id: %d)", action,
+										source.getStreamId()));
+								status.setDetails(err.getMessage());
+							}
+							if (status != null) {
+								channel.sendStatus(status);
+							}
+							break;
+						default:
+							invokeCall(conn, call);
+					}
 				}
 			}
 		} else if (conn.isConnected()) {
