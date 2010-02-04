@@ -40,16 +40,15 @@ import java.util.Map;
  * @param <K> key type
  * @param <V> value type
  */
-public class MetaData<K, V> extends HashMap<String, Object> implements
-		IMetaData<Object, Object> {
+public class MetaData<K, V> extends HashMap<String, Object> implements IMetaData<Object, Object> {
 
 	/** serialVersionUID = -5681069577717669925L; */
 	private static final long serialVersionUID = -5681069577717669925L;
 
-    /**
-     * Cue points array. Cue points can be injected on fly like any other data even on client-side.
-     */
-    IMetaCue cuePoints[]; //CuePoint array
+	/**
+	 * Cue points array. Cue points can be injected on fly like any other data even on client-side.
+	 */
+	IMetaCue cuePoints[]; //CuePoint array
 
 	/** MetaData constructor */
 	public MetaData() {
@@ -81,7 +80,7 @@ public class MetaData<K, V> extends HashMap<String, Object> implements
 	}
 
 	public int getAudioCodecId() {
-		return (Integer) this.get( "audiocodecid" );
+		return (Integer) this.get("audiocodecid");
 	}
 
 	public void setAudioCodecId(int id) {
@@ -154,12 +153,12 @@ public class MetaData<K, V> extends HashMap<String, Object> implements
 	 * @param cuePoints The cuePoints to set.
 	 */
 	public void setMetaCue(IMetaCue[] cuePoints) {
-		Map<String,Object> cues = new HashMap<String,Object>();
+		Map<String, Object> cues = new HashMap<String, Object>();
 		this.cuePoints = cuePoints;
 
 		int j = 0;
-		for( j=0; j<this.cuePoints.length; j++ ) {
-			cues.put( String.valueOf( j ), this.cuePoints[j] );
+		for (j = 0; j < this.cuePoints.length; j++) {
+			cues.put(String.valueOf(j), this.cuePoints[j]);
 		}
 
 		//		"CuePoints", cuePointData
@@ -186,9 +185,8 @@ public class MetaData<K, V> extends HashMap<String, Object> implements
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public String toString() {
-		return "MetaData{" + "cuePoints="
-			+ (cuePoints == null ? null : this.get("cuePoints")) + '}';
+		return "MetaData{" + "cuePoints=" + (cuePoints == null ? null : this.get("cuePoints")) + '}';
 	}
 }

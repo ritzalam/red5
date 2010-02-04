@@ -38,6 +38,7 @@ import org.red5.io.flv.meta.MetaService;
 import org.red5.server.api.cache.ICacheStore;
 import org.red5.server.api.cache.ICacheable;
 import org.red5.server.cache.NoCacheImpl;
+import org.red5.server.util.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -105,7 +106,7 @@ public class FLV implements IFLV {
 				}
 				reader.close();
 			} catch (Exception e) {
-				log.error("An error occured looking for metadata:", e);
+				log.error("An error occured looking for metadata", e);
 			}
 		}
 
@@ -187,24 +188,18 @@ public class FLV implements IFLV {
 		// look in the cache before reading the file from the disk
 		if (null == ic || (null == ic.getByteBuffer())) {
 			if (file.exists()) {
-				if (log.isDebugEnabled()) {
-					log.debug("File size: " + file.length());
-				}
+				log.debug("File size: {}", file.length());
 				reader = new FLVReader(file, generateMetadata);
 				// get a ref to the mapped byte buffer
 				fileData = reader.getFileData();
 				// offer the uncached file to the cache
 				if (fileData != null && cache.offer(fileName, fileData)) {
-					if (log.isDebugEnabled()) {
-						log.debug("Item accepted by the cache: " + fileName);
-					}
+					log.debug("Item accepted by the cache: {}", fileName);
 				} else {
-					if (log.isDebugEnabled()) {
-						log.debug("Item will not be cached: " + fileName);
-					}
+					log.debug("Item will not be cached: {}", fileName);
 				}
 			} else {
-				log.info("Creating new file: " + file);
+				log.info("Creating new file: {}", file);
 				file.createNewFile();
 			}
 		} else {
@@ -271,16 +266,10 @@ public class FLV implements IFLV {
 		file.delete();
 		if (!tmpFile.renameTo(file)) {
 			// Probably renaming across filesystems? Move manually.
-			FileInputStream fis = new FileInputStream(tmpFile);
-			FileOutputStream fos = new FileOutputStream(file);
-			byte[] buf = new byte[16384];
-			int i = 0;
-			while ((i = fis.read(buf)) != -1) {
-				fos.write(buf, 0, i);
+			FileUtil.copyFile(tmpFile, file);
+			if (!tmpFile.delete()) {
+				tmpFile.deleteOnExit();
 			}
-			fis.close();
-			fos.close();
-			tmpFile.delete();
 		}
 	}
 

@@ -64,7 +64,8 @@ public interface IMetaData<K, V> extends IMeta {
 	public void setVideoCodecId(int id);
 
 	public int getAudioCodecId();
-        public void setAudioCodecId(int id);
+
+	public void setAudioCodecId(int id);
 
 	/**
 	 * Returns the framerate.

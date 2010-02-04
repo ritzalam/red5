@@ -158,7 +158,7 @@ public class MetaService implements IMetaService {
 		if (tag == null) {
 			throw new IOException("Tag was null");
 		}
-		
+
 		meta.setDuration(((double) reader.getDuration() / 1000));
 		meta.setVideoCodecId(reader.getVideoCodecId());
 		meta.setAudioCodecId(reader.getAudioCodecId());
@@ -251,11 +251,8 @@ public class MetaService implements IMetaService {
 		IoBuffer tmpBody = out.buf().flip();
 		int tmpBodySize = out.buf().limit();
 		int tmpPreviousTagSize = tag.getPreviousTagSize();
-		byte tmpDataType = IoConstants.TYPE_METADATA;
-		int tmpTimestamp = 0;
 
-		return new Tag(tmpDataType, tmpTimestamp, tmpBodySize, tmpBody,
-				tmpPreviousTagSize);
+		return new Tag(IoConstants.TYPE_METADATA, 0, tmpBodySize, tmpBody, tmpPreviousTagSize);
 	}
 
 	/**
@@ -278,11 +275,9 @@ public class MetaService implements IMetaService {
 		IoBuffer tmpBody = out.buf().flip();
 		int tmpBodySize = out.buf().limit();
 		int tmpPreviousTagSize = tag.getPreviousTagSize();
-		byte tmpDataType = IoConstants.TYPE_METADATA;
 		int tmpTimestamp = getTimeInMilliseconds(meta);
 
-		return new Tag(tmpDataType, tmpTimestamp, tmpBodySize, tmpBody,
-				tmpPreviousTagSize);
+		return new Tag(IoConstants.TYPE_METADATA, tmpTimestamp, tmpBodySize, tmpBody, tmpPreviousTagSize);
 
 	}
 
@@ -346,7 +341,7 @@ public class MetaService implements IMetaService {
 		MetaData<?, ?> retMeta = new MetaData<String, Object>();
 		Input input = new Input(buffer);
 		if (deserializer == null) {
-		    deserializer = new Deserializer();
+			deserializer = new Deserializer();
 		}
 		String metaType = deserializer.deserialize(input, String.class);
 		log.debug("Metadata type: {}", metaType);
