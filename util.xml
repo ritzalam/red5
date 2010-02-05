@@ -1,0 +1,66 @@
+<?xml version="1.0" ?>
+<project name="Red5" basedir="." default="usage">
+
+	<!-- This build file requires Apache Ant >= 1.7 -->
+	<condition property="ant-at-least-7">
+		<antversion atleast="1.7.0"/>
+	</condition>
+	
+	<!-- project properties -->
+	<property environment="env"/>
+
+	<!-- base project properties -->
+	<property file="build.properties"/>
+	<!-- user overides for project properties -->
+	<property file="${user.home}/build.properties"/>
+
+	<target name="project" description="Creates new application project structure for Red5">
+		<echo message="Creating Red5 application project structure for Eclipse"/>
+		<!-- create tmp dir for unpacking -->
+		<mkdir dir="tmp"/>
+		<!-- unpack base project files -->
+		<unzip src="project.zip" dest="tmp"/>
+		<!-- get project name -->
+		<input message="Please enter your projects name (ie. mycoolred5app):"
+			addproperty="new.project.name"
+			/>
+		<filter token="new.project.name" value="${new.project.name}"/>
+		<!-- get project path -->
+		<input message="Please enter your workspace path (ie. c:\\eclipse\\workspace):"
+			addproperty="new.project.path"
+			defaultvalue="c:/eclipse/workspace"
+			/>	
+		<condition property="do.abort">
+			<equals arg1="." arg2="${new.project.path}"/>
+		</condition>
+		<fail if="do.abort">Cannot specify '.' as it will overwrite red5's files</fail>			
+		<filter token="new.project.path" value="${new.project.path}/${new.project.name}"/>
+		<!-- get package base -->
+		<input message="Please enter your package namespace (ie. org.red5):"
+			addproperty="new.package.name"
+			defaultvalue="org.red5.app"
+			/>		
+		<filter token="new.package.name" value="${new.package.name}"/>	
+		<!-- create dirs -->
+		<mkdir dir="${new.project.path}/${new.project.name}/lib"/>
+		<!-- copy project structure to new path with filtering -->
+		<copy todir="${new.project.path}/${new.project.name}" filtering="true" verbose="true">
+			<fileset dir="tmp"/>
+		</copy>
+		<!-- copy ivy jar -->
+		<copy file="lib/${ivy.version}.jar" tofile="${new.project.path}/${new.project.name}/lib/ivy.jar" filtering="false" verbose="true"/>
+		<!-- rename logback xml -->
+		<move file="${new.project.path}/${new.project.name}/src/logback.xml" tofile="${new.project.path}/${new.project.name}/src/logback-${new.project.name}.xml" filtering="false" verbose="true"/>		
+		<!-- cleanup -->
+		<delete dir="tmp"/>
+	</target>
+	
+	<target name="deploy" description="Deploys an application project to Red5">
+	</target>	
+	
+	<target name="usage">
+		<echo message="Utility targets for Red5"/>
+		<echo message="* Create a new project: ant -f util.xml project"/>
+		<echo message="* Deploy to red5: ant -f util.xml deploy"/>
+	</target>
+</project>
