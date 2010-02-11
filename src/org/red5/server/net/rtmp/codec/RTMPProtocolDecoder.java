@@ -975,8 +975,17 @@ public class RTMPProtocolDecoder implements Constants, IEventDecoder {
 				//get the params datatype
 				byte object = input.readDataType();
 				log.debug("Dataframe params type: {}", object);
-				ObjectMap<Object, Object> params = (ObjectMap<Object, Object>) input.readObject(deserializer,
-						Object.class);
+
+				Map<Object, Object> params;
+				if (object == DataTypes.CORE_MAP) {
+					// The params are sent as a Mixed-Array.  This is needed
+					// to support the RTMP publish provided by ffmpeg/xuggler
+					params = (Map<Object, Object>) input.readMap(deserializer, null);
+				} else {
+					// Read the params as a standard object
+					params = (Map<Object, Object>) input.readObject(deserializer,
+							Object.class);
+				}
 				log.debug("Dataframe: {} params: {}", onCueOrOnMeta, params.toString());
 
 				IoBuffer buf = IoBuffer.allocate(1024);
