@@ -35,7 +35,7 @@ import org.red5.io.object.Serializer;
  * @author The Red5 Project (red5@osflash.org)
  * @author Dominick Accattato (daccattato@gmail.com)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)
- * @author Paul Gregoire, (mondain@gmail.com)
+ * @author Paul Gregoire (mondain@gmail.com)
  */
 public class FLVService extends BaseStreamableFileService implements
 		IFLVService {

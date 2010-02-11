@@ -278,4 +278,10 @@ public class Client extends AttributeStore implements IClient {
 			conn.setAttribute(PERMISSIONS, permissions);
 		}
 	}
+	
+	/** {@inheritDoc} */
+	public void checkBandwidth() {
+		//do something to check the bandwidth, Dan what do you think?
+	}
+	
 }

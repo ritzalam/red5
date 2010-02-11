@@ -136,4 +136,10 @@ public interface IClient extends ClientMBean, IAttributeStore {
 	 */
 	public boolean hasPermission(IConnection conn, String permissionName);
 	
+	/**
+	 * Performs a bandwidth checking routine.
+	 * Information may be found here: http://www.adobe.com/devnet/flashmediaserver/articles/dynamic_stream_switching_04.html
+	 */
+	public void checkBandwidth();
+	
 }

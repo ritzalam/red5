@@ -24,6 +24,7 @@ import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
 import org.red5.server.api.IScopeHandler;
+import org.red5.server.api.Red5;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.service.IServiceCall;
 
@@ -146,5 +147,14 @@ public abstract class AbstractScopeAdapter implements IScopeHandler {
     public boolean handleEvent(IEvent event) {
 		return canHandleEvent;
 	}
+    
+	/** {@inheritDoc} */
+    public void checkBandwidth(Object o) {
+    	//Incoming object should be null
+    	IClient client = Red5.getConnectionLocal().getClient();
+    	if (client != null) {
+    		client.checkBandwidth();
+    	}
+    }
 
 }
