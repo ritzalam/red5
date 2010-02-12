@@ -34,11 +34,11 @@ public interface IContext extends ResourcePatternResolver {
 	public static final String ID = "red5.context";
 
 	/**
-     * Getter for application context
-     *
-     * @return  Application context
-     */
-    ApplicationContext getApplicationContext();
+	 * Getter for application context
+	 *
+	 * @return  Application context
+	 */
+	ApplicationContext getApplicationContext();
 
 	// public IScopeResolver getScopeResolver();
 	/**
@@ -47,7 +47,7 @@ public interface IContext extends ResourcePatternResolver {
 	 * 
 	 * @return	Client registry object
 	 */
-    IClientRegistry getClientRegistry();
+	IClientRegistry getClientRegistry();
 
 	/**
 	 * Returns service invoker object. Service invokers are objects that make
@@ -55,7 +55,7 @@ public interface IContext extends ResourcePatternResolver {
 	 * 
 	 * @return		Service invoker object
 	 */
-    IServiceInvoker getServiceInvoker();
+	IServiceInvoker getServiceInvoker();
 
 	/**
 	 * Returns persistence store object, a storage for persistent objects like
@@ -63,7 +63,7 @@ public interface IContext extends ResourcePatternResolver {
 	 * 
 	 * @return	Persistence store object
 	 */
-    IPersistenceStore getPersistanceStore();
+	IPersistenceStore getPersistanceStore();
 
 	/**
 	 * Returns scope handler (object that handle all actions related to the
@@ -73,7 +73,7 @@ public interface IContext extends ResourcePatternResolver {
 	 *            Path of scope handler
 	 * @return		Scope handler
 	 */
-    IScopeHandler lookupScopeHandler(String path);
+	IScopeHandler lookupScopeHandler(String path);
 
 	/**
 	 * Returns scope by path. You can think of IScope as of tree items, used to
@@ -84,7 +84,7 @@ public interface IContext extends ResourcePatternResolver {
 	 *            Path of scope
 	 * @return		IScope object
 	 */
-    IScope resolveScope(String path);
+	IScope resolveScope(String path);
 
 	/**
 	 * Returns scope by path from given root. You can think of IScope as of tree
@@ -97,14 +97,14 @@ public interface IContext extends ResourcePatternResolver {
 	 *            Path of scope
 	 * @return		IScope object
 	 */
-    IScope resolveScope(IScope root, String path);
+	IScope resolveScope(IScope root, String path);
 
 	/**
 	 * Returns global scope reference
 	 * 
 	 * @return	global scope reference
 	 */
-    IGlobalScope getGlobalScope();
+	IGlobalScope getGlobalScope();
 
 	/**
 	 * Returns service by name. 
@@ -113,7 +113,7 @@ public interface IContext extends ResourcePatternResolver {
 	 *            Name of service
 	 * @return				Service object
 	 */
-    Object lookupService(String serviceName);
+	Object lookupService(String serviceName);
 
 	/**
 	 * Returns bean by ID
@@ -122,14 +122,15 @@ public interface IContext extends ResourcePatternResolver {
 	 *            Bean ID
 	 * @return			Given bean instance
 	 */
-    Object getBean(String beanId);
-    /**
-     * Returns true if the context contains a certain bean,
-     * false otherwise.
-     * @param beanId	The name of the bean to find. 
-     * @return	True if the bean exists, false otherwise. 
-     */
-    boolean hasBean(String beanId);
+	Object getBean(String beanId);
+
+	/**
+	 * Returns true if the context contains a certain bean,
+	 * false otherwise.
+	 * @param beanId	The name of the bean to find. 
+	 * @return	True if the bean exists, false otherwise. 
+	 */
+	boolean hasBean(String beanId);
 
 	/**
 	 * Returns core service by bean id
@@ -138,7 +139,7 @@ public interface IContext extends ResourcePatternResolver {
 	 *            Bean ID
 	 * @return			Core service
 	 */
-    Object getCoreService(String beanId);
+	Object getCoreService(String beanId);
 
 	/**
 	 * Returns IMappingStrategy object
