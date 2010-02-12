@@ -243,11 +243,13 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 			// absolute? no matter: it's never used!
 			if (firstPacketTime == -1) {
 				firstPacketTime = rtmpEvent.getTimestamp();
-				log.trace(String.format("CBS=@%08x: rtmpEvent=%s firstPacketTime=%d", System.identityHashCode(this),
-						rtmpEvent.getClass().getSimpleName(), firstPacketTime));
+				log.trace(String.format("CBS=@%08x: rtmpEvent=%s creation=%s firstPacketTime=%d", System
+						.identityHashCode(this), rtmpEvent.getClass().getSimpleName(), creationTime, firstPacketTime));
+			} else {
+				log.trace(String.format("CBS=@%08x: rtmpEvent=%s creation=%s firstPacketTime=%d timestamp=%d", System
+						.identityHashCode(this), rtmpEvent.getClass().getSimpleName(), creationTime, firstPacketTime,
+						rtmpEvent.getTimestamp()));
 			}
-			log.trace(String.format("CBS=@%08x: rtmpEvent=%s  timestamp=%d", System.identityHashCode(this), rtmpEvent
-					.getClass().getSimpleName(), rtmpEvent.getTimestamp()));
 
 		}
 		//get the buffer only once per call
@@ -521,13 +523,13 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 
 		//setup record objects
 		if (recordPipe == null) {
-    		recordPipe = new InMemoryPushPushPipe();
-    		// Clear record flag
-    		recordParamMap.put("record", null);
-    		recordPipe.subscribe((IProvider) this, recordParamMap);	
-    		recordParamMap.clear();
+			recordPipe = new InMemoryPushPushPipe();
+			// Clear record flag
+			recordParamMap.put("record", null);
+			recordPipe.subscribe((IProvider) this, recordParamMap);
+			recordParamMap.clear();
 		}
-		
+
 		// Get stream scope
 		IStreamCapableConnection conn = getConnection();
 		if (conn == null) {
@@ -600,7 +602,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 
 		log.debug("Recording file: {}", file.getCanonicalPath());
 		recordingFile = new FileConsumer(scope, file);
-		
+
 		//get decoder info if it exists for the stream
 		IStreamCodecInfo codecInfo = getCodecInfo();
 		log.debug("Codec info: {}", codecInfo);
@@ -625,7 +627,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 				log.debug("Could not initialize stream output, videoCodec is null.");
 			}
 		}
-		
+
 		if (isAppend) {
 			recordParamMap.put("mode", "append");
 		} else {
