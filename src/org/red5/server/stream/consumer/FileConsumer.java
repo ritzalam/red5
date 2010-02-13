@@ -50,7 +50,6 @@ import org.red5.server.net.rtmp.message.Constants;
 import org.red5.server.stream.IStreamData;
 import org.red5.server.stream.message.RTMPMessage;
 import org.red5.server.stream.message.ResetMessage;
-import org.red5.server.stream.message.StatusMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -111,7 +110,7 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	/**
 	 * Number of queued items needed before writes are initiated
 	 */
-	private int queueThreshold = 33;
+	private int queueThreshold = 37;
 
 	/**
 	 * Creates file consumer
@@ -123,8 +122,9 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 		this.file = file;
 		// Get the duration from the existing file
 		long duration = FLVReader.getDuration(file);
+		log.debug("Duration: {}", duration);
 		if (duration > 0) {
-			offset = (int) duration + 30;
+			offset = (int) duration + 1;
 		}
 	}
 
@@ -135,19 +135,7 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	 * @throws IOException if message could not be written
 	 */
 	public void pushMessage(IPipe pipe, IMessage message) throws IOException {
-		if (message instanceof ResetMessage) {
-			startTimestamp = -1;
-			offset += lastTimestamp;
-			return;
-		} else if (message instanceof StatusMessage) {
-			return;
-		}
 		if (message instanceof RTMPMessage) {
-			//initialize a writer
-			if (writer == null) {
-    			init();
-    		}
-    
     		final IRTMPEvent msg = ((RTMPMessage) message).getBody();
     
     		int timestamp = msg.getTimestamp();
@@ -156,10 +144,14 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
     		// if we're dealing with a FlexStreamSend IRTMPEvent, this avoids relative timestamp calculations
     		if (!(msg instanceof FlexStreamSend)) {
     			log.trace("Not FlexStreamSend type");
-    			timestamp -= startTimestamp;
     			lastTimestamp = timestamp;
     		}
     
+			//initialize a writer
+			if (writer == null) {
+    			init();
+    		}
+    		
     		QueuedData queued = null;
     		if (msg instanceof IStreamData) {
     			queued = new QueuedData(timestamp, msg.getDataType(), ((IStreamData) msg).getData().asReadOnlyBuffer());
@@ -180,9 +172,13 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
     					doWrites();
     				}
     			};
+    			worker.setDaemon(true);
     			worker.start();
     		}
-		}
+		} else if (message instanceof ResetMessage) {
+			startTimestamp = -1;
+			offset += lastTimestamp;
+		} 
 	}
 
 	/**
@@ -308,13 +304,11 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 		//if the last message was a reset or we just started, use the header timer
 		if (startTimestamp == -1) {
 			startTimestamp = timestamp;
+			timestamp = 0;
+		} else {
+			timestamp -= startTimestamp;
 		}
-		
-		if (timestamp < 0) {
-			log.warn("Skipping message with negative timestamp.");
-			return;
-		}
-		
+				
 		ITag tag = new Tag();
 		tag.setDataType(queued.getDataType());
 
@@ -330,8 +324,12 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 		}
 		
 		try {
-			if (!writer.writeTag(tag)) {
-				log.warn("Tag was not written");
+			if (timestamp >= 0) {
+				if (!writer.writeTag(tag)) {
+					log.warn("Tag was not written");
+				}
+			} else {
+				log.warn("Skipping message with negative timestamp.");	
 			}
 		} catch (IOException e) {
 			log.error("Error writing tag", e);

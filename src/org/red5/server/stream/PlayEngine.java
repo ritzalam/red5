@@ -432,12 +432,13 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 				if (msgIn == null) {
 					sendStreamNotFoundStatus(currentItem);
 					throw new StreamNotFoundException(itemName);
-				}
-				if (!msgIn.subscribe(this, null)) {
+				} else if (msgIn.subscribe(this, null)) {
+					//execute the processes to get VOD playback setup
+					msg = playVOD(withReset, itemLength);					
+				} else {
 					log.error("Input source subscribe failed");
+					throw new IOException(String.format("Subscribe to %s failed", itemName));
 				}
-				//execute the processes to get VOD playback setup
-				msg = playVOD(withReset, itemLength);
 				break;
 			default:
 				sendStreamNotFoundStatus(currentItem);

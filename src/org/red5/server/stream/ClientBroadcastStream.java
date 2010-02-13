@@ -470,6 +470,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 						&& (event.getParamMap() == null || !event.getParamMap().containsKey("record"))) {
 
 					this.livePipe = (IPipe) event.getSource();
+					log.debug("Provider: {}", this.livePipe.getClass().getName());
 					for (IConsumer consumer : this.livePipe.getConsumers()) {
 						subscriberStats.increment();
 					}
@@ -477,6 +478,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 				break;
 			case PipeConnectionEvent.PROVIDER_DISCONNECT:
 				log.info("Provider disconnect");
+				log.debug("Provider: {}", this.livePipe.getClass().getName());
 				if (this.livePipe == event.getSource()) {
 					this.livePipe = null;
 				}
@@ -484,6 +486,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 			case PipeConnectionEvent.CONSUMER_CONNECT_PUSH:
 				log.info("Consumer connect");
 				IPipe pipe = (IPipe) event.getSource();
+				log.debug("Consumer: {}", pipe.getClass().getName());
 				if (this.livePipe == pipe) {
 					notifyChunkSize();
 				}
@@ -491,6 +494,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 				break;
 			case PipeConnectionEvent.CONSUMER_DISCONNECT:
 				log.info("Consumer disconnect");
+				log.debug("Consumer: {}",  event.getSource().getClass().getName());
 				subscriberStats.decrement();
 				break;
 			default:

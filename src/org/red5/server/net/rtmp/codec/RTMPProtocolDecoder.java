@@ -33,7 +33,6 @@ import org.red5.io.object.Deserializer;
 import org.red5.io.object.Input;
 import org.red5.io.object.Serializer;
 import org.red5.io.utils.BufferUtils;
-import org.red5.io.utils.ObjectMap;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.Red5;
 import org.red5.server.api.IConnection.Encoding;
