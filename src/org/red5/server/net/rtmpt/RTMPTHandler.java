@@ -19,6 +19,8 @@ package org.red5.server.net.rtmpt;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.Arrays;
+
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.api.Red5;
 import org.red5.server.net.protocol.ProtocolState;
@@ -39,47 +41,46 @@ import org.slf4j.LoggerFactory;
  */
 public class RTMPTHandler extends RTMPHandler {
 
-    /**
-     * Logger
-     */
-    private static final Logger log = LoggerFactory.getLogger(RTMPTHandler.class);
-
-    /**
-     * Handler constant
-     */
-    public static final String HANDLER_ATTRIBUTE = "red5.RMPTHandler";
-
-    /**
-     * Protocol codec factory
-     */
-    protected RTMPTCodecFactory codecFactory;
+	/**
+	 * Logger
+	 */
+	private static final Logger log = LoggerFactory.getLogger(RTMPTHandler.class);
 
 	/**
-     * Setter for codec factory
-     *
-     * @param factory  Codec factory to use
-     */
-    public void setCodecFactory(RTMPTCodecFactory factory) {
+	 * Handler constant
+	 */
+	public static final String HANDLER_ATTRIBUTE = "red5.RMPTHandler";
+
+	/**
+	 * Protocol codec factory
+	 */
+	protected RTMPTCodecFactory codecFactory;
+
+	/**
+	 * Setter for codec factory
+	 *
+	 * @param factory  Codec factory to use
+	 */
+	public void setCodecFactory(RTMPTCodecFactory factory) {
 		this.codecFactory = factory;
 	}
 
 	/**
-     * Getter for codec factory
-     *
-     * @return Codec factory
-     */
-    public RTMPTCodecFactory getCodecFactory() {
+	 * Getter for codec factory
+	 *
+	 * @return Codec factory
+	 */
+	public RTMPTCodecFactory getCodecFactory() {
 		return this.codecFactory;
 	}
 
-    /**
-     * Handle raw buffer reciept
-     * @param conn        RTMP connection
-     * @param state       Protocol state
-     * @param in          Byte buffer with input raw data
-     */
-    private void rawBufferRecieved(RTMPConnection conn, ProtocolState state,
-    		IoBuffer in) {
+	/**
+	 * Handle raw buffer reciept
+	 * @param conn        RTMP connection
+	 * @param state       Protocol state
+	 * @param in          Byte buffer with input raw data
+	 */
+	private void rawBufferRecieved(RTMPConnection conn, ProtocolState state, IoBuffer in) {
 		final RTMP rtmp = (RTMP) state;
 
 		if (rtmp.getState() != RTMP.STATE_HANDSHAKE) {
@@ -99,21 +100,26 @@ public class RTMPTHandler extends RTMPHandler {
 			out.put(RTMPHandshake.HANDSHAKE_PAD_BYTES).put(in).flip();
 		} else {
 			log.debug("Using new style handshake");
+			//save resource by only doing this after the first request
+			if (RTMPHandshake.HANDSHAKE_PAD_BYTES == null) {
+				RTMPHandshake.HANDSHAKE_PAD_BYTES = new byte[Constants.HANDSHAKE_SIZE - 4];
+				//fill pad bytes
+				Arrays.fill(RTMPHandshake.HANDSHAKE_PAD_BYTES, (byte) 0x00);
+			}
 			RTMPHandshake shake = new RTMPHandshake();
 			out = shake.generateResponse(in);
 		}
 
 		// Skip first 8 bytes when comparing the handshake, they seem to
 		// be changed when connecting from a Mac client.
-		rtmp.setHandshake(out, 9, Constants.HANDSHAKE_SIZE-8);
+		rtmp.setHandshake(out, 9, Constants.HANDSHAKE_SIZE - 8);
 
 		conn.rawWrite(out);
 	}
 
 	/** {@inheritDoc} */
-    @Override
-	public void messageReceived(RTMPConnection conn, ProtocolState state,
-			Object in) throws Exception {
+	@Override
+	public void messageReceived(RTMPConnection conn, ProtocolState state, Object in) throws Exception {
 		if (in instanceof IoBuffer) {
 			rawBufferRecieved(conn, state, (IoBuffer) in);
 			((IoBuffer) in).free();
