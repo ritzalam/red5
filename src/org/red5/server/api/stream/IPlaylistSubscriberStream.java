@@ -46,9 +46,9 @@ public interface IPlaylistSubscriberStream extends ISubscriberStream, IPlaylist 
 	/**
 	 * Handles a change occurring on the stream.
 	 * 
+	 * @param state stream state that we are changing to or notifying of
 	 * @param changed changed items
-	 * @return true if successful, false if there was an error
 	 */	
-	public boolean onChange(StreamState state, Object... changed);	
+	public void onChange(StreamState state, Object... changed);	
 	
 }

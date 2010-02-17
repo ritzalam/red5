@@ -27,8 +27,10 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.red5.logging.Red5LoggerFactory;
+import org.red5.server.api.IConnection;
 import org.red5.server.api.IContext;
 import org.red5.server.api.IScope;
+import org.red5.server.api.Red5;
 import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.api.statistics.IPlaylistSubscriberStreamStatistics;
 import org.red5.server.api.stream.IPlayItem;
@@ -580,104 +582,145 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 	/**
 	 * {@inheritDoc}
 	 */
-	public boolean onChange(StreamState state, Object... changed) {
-		boolean result = true;
-		//get the handler if it exists
+	public void onChange(final StreamState state, final Object... changed) {
+		Notifier notifier = null;
 		IStreamAwareScopeHandler handler = getStreamAwareHandler();
 		switch (state) {
 			case SEEK:
 				//notifies subscribers on seek
 				if (handler != null) {
-					try {
-						//get item being played
-						IPlayItem item = (IPlayItem) changed[0];
-						//seek position
-						int position = (Integer) changed[1];		
-						handler.streamPlaylistVODItemSeek(this, item, position);
-					} catch (Throwable t) {
-						log.error("error notify streamPlaylistVODItemSeek", t);
-						result = false;
-					}
-				}				
+					notifier = new Notifier(this, handler) {
+						public void run() {
+							//make sure those notified have the correct connection
+							Red5.setConnectionLocal(conn);
+							//get item being played
+							IPlayItem item = (IPlayItem) changed[0];
+							//seek position
+							int position = (Integer) changed[1];
+							try {
+								handler.streamPlaylistVODItemSeek(stream, item, position);
+							} catch (Throwable t) {
+								log.error("error notify streamPlaylistVODItemSeek", t);
+							}
+						}
+					};
+				}
 				break;
 			case PAUSED:
+				//set the paused state
+				this.setState(StreamState.PAUSED);
 				//notifies subscribers on pause
 				if (handler != null) {
-					try {
-						//get item being played
-						IPlayItem item = (IPlayItem) changed[0];
-						//playback position
-						int position = (Integer) changed[1];						
-						handler.streamPlaylistVODItemPause(this, item, position);
-					} catch (Throwable t) {
-						log.error("error notify streamPlaylistVODItemPause", t);
-            			result = false;
-                	}
-                }
-                break;
+					notifier = new Notifier(this, handler) {
+						public void run() {
+							//make sure those notified have the correct connection
+							Red5.setConnectionLocal(conn);
+							//get item being played
+							IPlayItem item = (IPlayItem) changed[0];
+							//playback position
+							int position = (Integer) changed[1];
+							try {
+								handler.streamPlaylistVODItemPause(stream, item, position);
+							} catch (Throwable t) {
+								log.error("error notify streamPlaylistVODItemPause", t);
+							}
+						}
+					};
+				}
+				break;
 			case RESUMED:
+				//resume playing
+				this.setState(StreamState.PLAYING);
 				//notifies subscribers on resume
 				if (handler != null) {
-					try {
-						//get item being played
-						IPlayItem item = (IPlayItem) changed[0];
-						//playback position
-						int position = (Integer) changed[1];							
-						handler.streamPlaylistVODItemResume(this, item, position);
-					} catch (Throwable t) {
-						log.error("error notify streamPlaylistVODItemResume", t);				
-						result = false;
-            		}
-            	}
-            	break;
+					notifier = new Notifier(this, handler) {
+						public void run() {
+							//make sure those notified have the correct connection
+							Red5.setConnectionLocal(conn);
+							//get item being played
+							IPlayItem item = (IPlayItem) changed[0];
+							//playback position
+							int position = (Integer) changed[1];
+							try {
+								handler.streamPlaylistVODItemResume(stream, item, position);
+							} catch (Throwable t) {
+								log.error("error notify streamPlaylistVODItemResume", t);
+
+							}
+						}
+					};
+				}
+				break;
 			case PLAYING:
 				//notifies subscribers on play
 				if (handler != null) {
-					try {
-						//get item being played
-						IPlayItem item = (IPlayItem) changed[0];
-						//is it a live broadcast
-						boolean isLive = (Boolean) changed[1];
-						handler.streamPlaylistItemPlay(this, item, isLive);
-					} catch (Throwable t) {
-						log.error("error notify streamPlaylistItemPlay", t);
-						result = false;
-					}
+					notifier = new Notifier(this, handler) {
+						public void run() {
+							//make sure those notified have the correct connection
+							Red5.setConnectionLocal(conn);
+							//get item being played
+							IPlayItem item = (IPlayItem) changed[0];
+							//is it a live broadcast
+							boolean isLive = (Boolean) changed[1];
+							try {
+								handler.streamPlaylistItemPlay(stream, item, isLive);
+							} catch (Throwable t) {
+								log.error("error notify streamPlaylistItemPlay", t);
+							}
+						}
+					};
 				}
 				break;
 			case CLOSED:
 				//notifies subscribers on close
 				if (handler != null) {
-					try {
-						handler.streamSubscriberClose(this);
-					} catch (Throwable t) {
-						log.error("error notify streamSubscriberClose", t);
-						result = false;
-					}
-				}		
+					notifier = new Notifier(this, handler) {
+						public void run() {
+							//make sure those notified have the correct connection
+							Red5.setConnectionLocal(conn);
+							try {
+								handler.streamSubscriberClose(stream);
+							} catch (Throwable t) {
+								log.error("error notify streamSubscriberClose", t);
+							}
+						}
+					};
+				}
 				break;
 			case STARTED:
 				//notifies subscribers on start
 				if (handler != null) {
-					try {
-						handler.streamSubscriberStart(this);
-					} catch (Throwable t) {
-						log.error("error notify streamSubscriberStart", t);
-						result = false;
-					}
-				}				
+					notifier = new Notifier(this, handler) {
+						public void run() {
+							//make sure those notified have the correct connection
+							Red5.setConnectionLocal(conn);
+							try {
+								handler.streamSubscriberStart(stream);
+							} catch (Throwable t) {
+								log.error("error notify streamSubscriberStart", t);
+							}
+						}
+					};
+				}
 				break;
 			case STOPPED:
+				//set the stopped state
+				this.setState(StreamState.STOPPED);
 				//notifies subscribers on stop
 				if (handler != null) {
-					try {
-						//get the item that was stopped
-						IPlayItem item = (IPlayItem) changed[0];
-						handler.streamPlaylistItemStop(this, item);
-					} catch (Throwable t) {
-						log.error("error notify streamPlaylistItemStop", t);
-						result = false;
-					}
+					notifier = new Notifier(this, handler) {
+						public void run() {
+							//make sure those notified have the correct connection
+							Red5.setConnectionLocal(conn);
+							//get the item that was stopped
+							IPlayItem item = (IPlayItem) changed[0];
+							try {
+								handler.streamPlaylistItemStop(stream, item);
+							} catch (Throwable t) {
+								log.error("error notify streamPlaylistItemStop", t);
+							}
+						}
+					};
 				}
 				break;
 			case END:
@@ -687,8 +730,11 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 			default:
 				//there is no "default" handling
 		}
-
-		return result;
+		if (notifier != null) {
+			IConnection conn = Red5.getConnectionLocal();
+			notifier.setConnection(conn);
+			executor.execute(notifier);
+		}
 	}
 
 	/** {@inheritDoc} */
@@ -746,6 +792,32 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 	@Override
 	public void setState(StreamState state) {
 		this.state = state;
+	}
+
+	/**
+	 * Handles notifications in a separate thread.
+	 */
+	public class Notifier implements Runnable {
+
+		IPlaylistSubscriberStream stream;
+
+		IStreamAwareScopeHandler handler;
+		
+		IConnection conn;
+
+		public Notifier(IPlaylistSubscriberStream stream, IStreamAwareScopeHandler handler) {
+			log.trace("Notifier - stream: {} handler: {}", stream, handler);
+			this.stream = stream;
+			this.handler = handler;
+		}
+		
+		public void setConnection(IConnection conn) {
+			this.conn = conn;
+		}
+
+		public void run() {
+		}
+
 	}
 
 }

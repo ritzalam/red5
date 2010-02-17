@@ -635,9 +635,6 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 			case PLAYING:
 			case STOPPED:
 				//allow pause if playing or stopped
-				synchronized (this) {
-					playlistSubscriberStream.setState(StreamState.PAUSED);
-				}
 				releasePendingMessage();
 				clearWaitJobs();
 				sendClearPing();
@@ -658,9 +655,6 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 		switch (playlistSubscriberStream.getState()) {
 			case PAUSED:
 				//allow resume from pause
-				synchronized (this) {
-					playlistSubscriberStream.setState(StreamState.PLAYING);
-				}
 				sendReset();
 				sendResumeStatus(currentItem);
 				if (pullMode) {
@@ -792,9 +786,6 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 			case PLAYING:
 			case PAUSED:
 				//allow stop if playing or paused
-				synchronized (this) {
-					playlistSubscriberStream.setState(StreamState.STOPPED);
-				}
 				if (msgIn != null && !pullMode) {
 					msgIn.unsubscribe(this);
 					msgIn = null;
@@ -803,7 +794,6 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 				clearWaitJobs();
 				if (!playlistSubscriberStream.hasMoreItems()) {
 					releasePendingMessage();
-
 					if (playlistSubscriberStream.getItemSize() > 0) {
 						sendCompleteStatus();
 					}
