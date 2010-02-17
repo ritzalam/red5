@@ -167,8 +167,11 @@
 			<fileset dir="${webapps.dir}/" includes="**/*.jar"/>
 		</delete>
 		<delete>
-			<fileset dir="." includes="*.tar.gz"/>
-			<fileset dir="." includes="*.zip"/>
+			<fileset dir="${basedir}">
+				<include name="*.tar.gz"/>
+				<include name="*.zip"/>
+				<exclude name="project.zip"/>
+			</fileset>
 		</delete>
 	</target>
 	<target name="retrieve" unless="library.installed" description="Retrieves the libraries if needed">
