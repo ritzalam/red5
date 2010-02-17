@@ -36,11 +36,12 @@ import org.red5.server.api.stream.IPlaylistController;
 import org.red5.server.api.stream.IPlaylistSubscriberStream;
 import org.red5.server.api.stream.IStreamAwareScopeHandler;
 import org.red5.server.api.stream.OperationNotSupportedException;
+import org.red5.server.api.stream.StreamState;
 import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.slf4j.Logger;
 
 /**
- * Stream of playlist subsciber
+ * Stream of playlist subscriber
  */
 public class PlaylistSubscriberStream extends AbstractClientStream implements IPlaylistSubscriberStream,
 		IPlaylistSubscriberStreamStatistics {
@@ -201,7 +202,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 		// Start playback engine
 		engine.start();
 		// Notify subscribers on start
-		notifySubscriberStart();
+		onChange(StreamState.STARTED);
 	}
 
 	/** {@inheritDoc} */
@@ -281,7 +282,8 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 	/** {@inheritDoc} */
 	public void close() {
 		engine.close();
-		notifySubscriberClose();
+		onChange(StreamState.CLOSED);
+		items.clear();
 	}
 
 	/** {@inheritDoc} */
@@ -576,117 +578,117 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 	}
 
 	/**
-	 * Notified by the play engine when the current item reaches the end.
+	 * {@inheritDoc}
 	 */
-	protected void onItemEnd() {
-		nextItem();
-	}
-
-	/**
-	 * Notifies subscribers on start
-	 */
-	protected void notifySubscriberStart() {
+	public boolean onChange(StreamState state, Object... changed) {
+		boolean result = true;
+		//get the handler if it exists
 		IStreamAwareScopeHandler handler = getStreamAwareHandler();
-		if (handler != null) {
-			try {
-				handler.streamSubscriberStart(this);
-			} catch (Throwable t) {
-				log.error("error notify streamSubscriberStart", t);
-			}
+		switch (state) {
+			case SEEK:
+				//notifies subscribers on seek
+				if (handler != null) {
+					try {
+						//get item being played
+						IPlayItem item = (IPlayItem) changed[0];
+						//seek position
+						int position = (Integer) changed[1];		
+						handler.streamPlaylistVODItemSeek(this, item, position);
+					} catch (Throwable t) {
+						log.error("error notify streamPlaylistVODItemSeek", t);
+						result = false;
+					}
+				}				
+				break;
+			case PAUSED:
+				//notifies subscribers on pause
+				if (handler != null) {
+					try {
+						//get item being played
+						IPlayItem item = (IPlayItem) changed[0];
+						//playback position
+						int position = (Integer) changed[1];						
+						handler.streamPlaylistVODItemPause(this, item, position);
+					} catch (Throwable t) {
+						log.error("error notify streamPlaylistVODItemPause", t);
+            			result = false;
+                	}
+                }
+                break;
+			case RESUMED:
+				//notifies subscribers on resume
+				if (handler != null) {
+					try {
+						//get item being played
+						IPlayItem item = (IPlayItem) changed[0];
+						//playback position
+						int position = (Integer) changed[1];							
+						handler.streamPlaylistVODItemResume(this, item, position);
+					} catch (Throwable t) {
+						log.error("error notify streamPlaylistVODItemResume", t);				
+						result = false;
+            		}
+            	}
+            	break;
+			case PLAYING:
+				//notifies subscribers on play
+				if (handler != null) {
+					try {
+						//get item being played
+						IPlayItem item = (IPlayItem) changed[0];
+						//is it a live broadcast
+						boolean isLive = (Boolean) changed[1];
+						handler.streamPlaylistItemPlay(this, item, isLive);
+					} catch (Throwable t) {
+						log.error("error notify streamPlaylistItemPlay", t);
+						result = false;
+					}
+				}
+				break;
+			case CLOSED:
+				//notifies subscribers on close
+				if (handler != null) {
+					try {
+						handler.streamSubscriberClose(this);
+					} catch (Throwable t) {
+						log.error("error notify streamSubscriberClose", t);
+						result = false;
+					}
+				}		
+				break;
+			case STARTED:
+				//notifies subscribers on start
+				if (handler != null) {
+					try {
+						handler.streamSubscriberStart(this);
+					} catch (Throwable t) {
+						log.error("error notify streamSubscriberStart", t);
+						result = false;
+					}
+				}				
+				break;
+			case STOPPED:
+				//notifies subscribers on stop
+				if (handler != null) {
+					try {
+						//get the item that was stopped
+						IPlayItem item = (IPlayItem) changed[0];
+						handler.streamPlaylistItemStop(this, item);
+					} catch (Throwable t) {
+						log.error("error notify streamPlaylistItemStop", t);
+						result = false;
+					}
+				}
+				break;
+			case END:
+				//notified by the play engine when the current item reaches the end
+				nextItem();
+				break;
+			default:
+				//there is no "default" handling
 		}
-	}
 
-	/**
-	 * Notifies subscribers on stop
-	 */
-	protected void notifySubscriberClose() {
-		IStreamAwareScopeHandler handler = getStreamAwareHandler();
-		if (handler != null) {
-			try {
-				handler.streamSubscriberClose(this);
-			} catch (Throwable t) {
-				log.error("error notify streamSubscriberClose", t);
-			}
-		}
-	}
-
-	/**
-	 * Notifies subscribers on item playback
-	 * @param item               Item being played
-	 * @param isLive             Is it a live broadcasting?
-	 */
-	protected void notifyItemPlay(IPlayItem item, boolean isLive) {
-		IStreamAwareScopeHandler handler = getStreamAwareHandler();
-		if (handler != null) {
-			try {
-				handler.streamPlaylistItemPlay(this, item, isLive);
-			} catch (Throwable t) {
-				log.error("error notify streamPlaylistItemPlay", t);
-			}
-		}
-	}
-
-	/**
-	 * Notifies subscribers on item stop
-	 * @param item               Item that just has been stopped
-	 */
-	protected void notifyItemStop(IPlayItem item) {
-		IStreamAwareScopeHandler handler = getStreamAwareHandler();
-		if (handler != null) {
-			try {
-				handler.streamPlaylistItemStop(this, item);
-			} catch (Throwable t) {
-				log.error("error notify streamPlaylistItemStop", t);
-			}
-		}
-	}
-
-	/**
-	 * Notifies subscribers on pause
-	 * @param item                Item that just has been paused
-	 * @param position            Playback head position
-	 */
-	protected void notifyItemPause(IPlayItem item, int position) {
-		IStreamAwareScopeHandler handler = getStreamAwareHandler();
-		if (handler != null) {
-			try {
-				handler.streamPlaylistVODItemPause(this, item, position);
-			} catch (Throwable t) {
-				log.error("error notify streamPlaylistVODItemPause", t);
-			}
-		}
-	}
-
-	/**
-	 * Notifies subscribers on resume
-	 * @param item                Item that just has been resumed
-	 * @param position            Playback head position
-	 */
-	protected void notifyItemResume(IPlayItem item, int position) {
-		IStreamAwareScopeHandler handler = getStreamAwareHandler();
-		if (handler != null) {
-			try {
-				handler.streamPlaylistVODItemResume(this, item, position);
-			} catch (Throwable t) {
-				log.error("error notify streamPlaylistVODItemResume", t);
-			}
-		}
-	}
-
-	/**
-	 * Notify on item seek
-	 * @param item            Playlist item
-	 * @param position        Seek position
-	 */
-	protected void notifyItemSeek(IPlayItem item, int position) {
-		IStreamAwareScopeHandler handler = getStreamAwareHandler();
-		if (handler != null) {
-			try {
-				handler.streamPlaylistVODItemSeek(this, item, position);
-			} catch (Throwable t) {
-				log.error("error notify streamPlaylistVODItemSeek", t);
-			}
-		}
+		return result;
 	}
 
 	/** {@inheritDoc} */
@@ -732,6 +734,18 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 		// Expected amount of data present in client buffer
 		final long buffered = msg.getTimestamp() - delta;
 		return (buffered * 100.0) / buffer;
+	}
+
+	/** {@inheritDoc} */
+	@Override
+	public StreamState getState() {
+		return state;
+	}
+
+	/** {@inheritDoc} */
+	@Override
+	public void setState(StreamState state) {
+		this.state = state;
 	}
 
 }

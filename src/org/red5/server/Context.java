@@ -237,7 +237,7 @@ public class Context implements IContext, ApplicationContextAware, ContextMBean 
 	}
 
 	/**
-	 * Setter for context path. Adds slash at the end of path if there's no one
+	 * Setter for context path. Adds a slash at the end of path if there isn't  one
 	 * 
 	 * @param contextPath Context path
 	 */

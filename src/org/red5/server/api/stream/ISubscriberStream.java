@@ -83,4 +83,19 @@ public interface ISubscriberStream extends IClientStream {
 	 * @param receive
 	 */
 	void receiveAudio(boolean receive);
+	
+	/**
+	 * Return the streams state enum.
+	 * 
+	 * @return current state
+	 */
+	public StreamState getState();	
+	
+	/**
+	 * Sets the streams state enum.
+	 * 
+	 * @param state
+	 */
+	public void setState(StreamState state);		
+	
 }

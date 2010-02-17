@@ -40,6 +40,7 @@ import org.red5.server.api.stream.IStreamListener;
 import org.red5.server.api.stream.IStreamPacket;
 import org.red5.server.api.stream.ResourceExistException;
 import org.red5.server.api.stream.ResourceNotFoundException;
+import org.red5.server.api.stream.StreamState;
 import org.red5.server.api.stream.IStreamFilenameGenerator.GenerationType;
 import org.red5.server.messaging.IFilter;
 import org.red5.server.messaging.IMessage;
@@ -412,7 +413,7 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 	 * Start this server-side stream
 	 */
 	public void start() {
-		if (state != State.UNINIT) {
+		if (state != StreamState.UNINIT) {
 			throw new IllegalStateException("State " + state + " not valid to start");
 		}
 		if (items.size() == 0) {
@@ -431,7 +432,7 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 		recordPipe.subscribe((IProvider) this, recordParamMap);
 		recordingFilename = null;
 		scheduler = (ISchedulingService) getScope().getContext().getBean(ISchedulingService.BEAN_NAME);
-		state = State.STOPPED;
+		state = StreamState.STOPPED;
 		currentItemIndex = -1;
 		nextItem();
 	}
@@ -440,7 +441,7 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 	 * Stop this server-side stream
 	 */
 	public synchronized void stop() {
-		if (state != State.PLAYING && state != State.PAUSED) {
+		if (state != StreamState.PLAYING && state != StreamState.PAUSED) {
 			return;
 		}
 		if (liveJobName != null) {
@@ -458,15 +459,15 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 		if (nextRTMPMessage != null) {
 			nextRTMPMessage.getBody().release();
 		}
-		state = State.STOPPED;
+		state = StreamState.STOPPED;
 	}
 
 	/** {@inheritDoc} */
 	public void pause() {
-		if (state == State.PLAYING) {
-			state = State.PAUSED;
-		} else if (state == State.PAUSED) {
-			state = State.PLAYING;
+		if (state == StreamState.PLAYING) {
+			state = StreamState.PAUSED;
+		} else if (state == StreamState.PAUSED) {
+			state = StreamState.PLAYING;
 			vodStartTS = 0;
 			serverStartTS = System.currentTimeMillis();
 			scheduleNextMessage();
@@ -475,7 +476,7 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 
 	/** {@inheritDoc} */
 	public void seek(int position) {
-		if (state != State.PLAYING && state != State.PAUSED) {
+		if (state != StreamState.PLAYING && state != StreamState.PAUSED) {
 			// Can't seek when stopped/closed
 			return;
 		}
@@ -484,7 +485,7 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 
 	/** {@inheritDoc} */
 	public synchronized void close() {
-		if (state == State.PLAYING || state == State.PAUSED) {
+		if (state == StreamState.PLAYING || state == StreamState.PAUSED) {
 			stop();
 		}
 		if (msgOut != null) {
@@ -492,7 +493,7 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 		}
 		recordPipe.unsubscribe((IProvider) this);
 		notifyBroadcastClose();
-		state = State.CLOSED;
+		state = StreamState.CLOSED;
 	}
 
 	/** {@inheritDoc} */
@@ -539,7 +540,7 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 	 */
 	protected void play(IPlayItem item) {
 		// Return if already playing
-		if (state != State.STOPPED) {
+		if (state != StreamState.STOPPED) {
 			return;
 		}
 		// Assume this is not live stream
@@ -556,7 +557,7 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 			log.warn("ABNORMAL Can't get both VOD and Live input from providerService");
 			return;
 		}
-		state = State.PLAYING;
+		state = StreamState.PLAYING;
 		currentItem = item;
 		sendResetMessage();
 		msgIn.subscribe(this, null);
@@ -705,7 +706,7 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 				if (!doPushMessage()) {
 					return;
 				}
-				if (state != State.PLAYING) {
+				if (state != StreamState.PLAYING) {
 					// Stream is paused, don't load more messages
 					nextRTMPMessage = null;
 					return;
@@ -725,7 +726,7 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 					if (!doPushMessage()) {
 						return;
 					}
-					if (state == State.PLAYING) {
+					if (state == StreamState.PLAYING) {
 						scheduleNextMessage();
 					} else {
 						// Stream is paused, don't load more messages

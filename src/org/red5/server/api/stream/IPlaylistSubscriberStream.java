@@ -19,6 +19,8 @@ package org.red5.server.api.stream;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+
 import org.red5.server.api.statistics.IPlaylistSubscriberStreamStatistics;
 
 /**
@@ -33,5 +35,20 @@ public interface IPlaylistSubscriberStream extends ISubscriberStream, IPlaylist 
 	 * @return statistics
 	 */
 	public IPlaylistSubscriberStreamStatistics getStatistics();
+	
+	/**
+	 * Returns the job executor.
+	 * 
+	 * @return executor
+	 */
+	public ScheduledThreadPoolExecutor getExecutor();
+	
+	/**
+	 * Handles a change occurring on the stream.
+	 * 
+	 * @param changed changed items
+	 * @return true if successful, false if there was an error
+	 */	
+	public boolean onChange(StreamState state, Object... changed);	
 	
 }

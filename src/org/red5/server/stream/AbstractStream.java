@@ -24,6 +24,7 @@ import org.red5.server.api.IScopeHandler;
 import org.red5.server.api.stream.IStream;
 import org.red5.server.api.stream.IStreamAwareScopeHandler;
 import org.red5.server.api.stream.IStreamCodecInfo;
+import org.red5.server.api.stream.StreamState;
 import org.red5.server.net.rtmp.event.Notify;
 
 /**
@@ -33,18 +34,11 @@ import org.red5.server.net.rtmp.event.Notify;
  * @see  org.red5.server.api.stream.IStream
  */
 public abstract class AbstractStream implements IStream {
-
-    /**
-     * Enumeration for states
-     */
-    protected enum State {
-		UNINIT, CLOSED, STOPPED, PLAYING, PAUSED
-	}
     
     /**
      * Current state
      */
-    protected State state = State.UNINIT;
+    protected StreamState state = StreamState.UNINIT;
     
 	/**
      *  Stream name
