@@ -1233,12 +1233,19 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 		String recordingName = stream.getSaveFilename();
 		// if its not null then we did a recording
 		if (recordingName != null) {
-			// use cs-bytes for file size for now
-			log
-					.info(
-							"W3C x-category:stream x-event:recordstop c-ip:{} cs-bytes:{} sc-bytes:{} x-sname:{} x-file-name:{} x-file-length:{} x-file-size:{}",
-							new Object[] { conn.getRemoteAddress(), conn.getReadBytes(), conn.getWrittenBytes(),
-									stream.getName(), recordingName, publishDuration, conn.getReadBytes() });
+			if (conn != null) {
+				// use cs-bytes for file size for now
+				log
+						.info(
+								"W3C x-category:stream x-event:recordstop c-ip:{} cs-bytes:{} sc-bytes:{} x-sname:{} x-file-name:{} x-file-length:{} x-file-size:{}",
+								new Object[] { conn.getRemoteAddress(), conn.getReadBytes(), conn.getWrittenBytes(),
+										stream.getName(), recordingName, publishDuration, conn.getReadBytes() });
+			} else {
+				log
+						.info(
+								"W3C x-category:stream x-event:recordstop x-sname:{} x-file-name:{} x-file-length:{}",
+								new Object[] { stream.getName(), recordingName, publishDuration });
+			}
 			// if the stream length is 0 bytes then delete it, this
 			// is a fix for SN-20
 			// get the web root
