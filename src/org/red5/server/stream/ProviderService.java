@@ -53,18 +53,18 @@ public class ProviderService implements IProviderService {
 			//we have live input
 			result = INPUT_TYPE.LIVE;
 		} else {
-    		try {
-    			File file = getStreamFile(scope, name);
-    			if (file != null) {
-    				//we have vod input
-    				result = INPUT_TYPE.VOD;    				
-        			//null it to prevent leak or file locking
-        			file = null;
-    			}
-    		} catch (IOException e) {
-    			log.warn("Exception attempting to lookup file: {}", name, e);
-    			e.printStackTrace();
-    		}
+			try {
+				File file = getStreamFile(scope, name);
+				if (file != null) {
+					//we have vod input
+					result = INPUT_TYPE.VOD;
+					//null it to prevent leak or file locking
+					file = null;
+				}
+			} catch (IOException e) {
+				log.warn("Exception attempting to lookup file: {}", name, e);
+				e.printStackTrace();
+			}
 		}
 		return result;
 	}
@@ -87,7 +87,7 @@ public class ProviderService implements IProviderService {
 		//make sure the create is actually needed
 		IBasicScope basicScope = scope.getBasicScope(IBroadcastScope.TYPE, name);
 		if (basicScope == null) {
-			if (needCreate) {			
+			if (needCreate) {
 				// Re-check if another thread already created the scope
 				basicScope = scope.getBasicScope(IBroadcastScope.TYPE, name);
 				if (basicScope == null) {
@@ -140,7 +140,7 @@ public class ProviderService implements IProviderService {
 
 	/** {@inheritDoc} */
 	public boolean registerBroadcastStream(IScope scope, String name, IBroadcastStream bs) {
-		log.debug("Registering - name: {} stream: {} scope: {}", new Object[]{name, bs, scope});
+		log.debug("Registering - name: {} stream: {} scope: {}", new Object[] { name, bs, scope });
 		if (log.isDebugEnabled()) {
 			((Scope) scope).dump();
 		}
@@ -170,15 +170,15 @@ public class ProviderService implements IProviderService {
 		it = null;
 		return result;
 	}
-	
+
 	/** {@inheritDoc} */
 	public boolean unregisterBroadcastStream(IScope scope, String name) {
 		return unregisterBroadcastStream(scope, name, null);
 	}
-	
+
 	/** {@inheritDoc} */
 	public boolean unregisterBroadcastStream(IScope scope, String name, IBroadcastStream bs) {
-		log.debug("Unregistering - name: {} stream: {} scope: {}", new Object[]{name, bs, scope});
+		log.debug("Unregistering - name: {} stream: {} scope: {}", new Object[] { name, bs, scope });
 		if (log.isDebugEnabled()) {
 			((Scope) scope).dump();
 		}
@@ -199,7 +199,7 @@ public class ProviderService implements IProviderService {
 				if (scope.getBasicScope(IBroadcastScope.TYPE, name) == null) {
 					log.debug("Scope was removed");
 				} else {
-					log.debug("Scope was not removed");		
+					log.debug("Scope was not removed");
 				}
 			}
 			status = true;
@@ -208,8 +208,8 @@ public class ProviderService implements IProviderService {
 	}
 
 	private File getStreamFile(IScope scope, String name) throws IOException {
-		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils
-				.getScopeService(scope, IStreamableFileFactory.class);
+		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils.getScopeService(scope,
+				IStreamableFileFactory.class);
 		if (name.indexOf(':') == -1 && name.indexOf('.') == -1) {
 			// Default to .flv files if no prefix and no extension is given.
 			name = "flv:" + name;
@@ -222,12 +222,10 @@ public class ProviderService implements IProviderService {
 			}
 		}
 
-		IStreamFilenameGenerator filenameGenerator = (IStreamFilenameGenerator) ScopeUtils
-				.getScopeService(scope, IStreamFilenameGenerator.class,
-						DefaultStreamFilenameGenerator.class);
+		IStreamFilenameGenerator filenameGenerator = (IStreamFilenameGenerator) ScopeUtils.getScopeService(scope,
+				IStreamFilenameGenerator.class, DefaultStreamFilenameGenerator.class);
 
-		String filename = filenameGenerator.generateFilename(scope, name,
-				GenerationType.PLAYBACK);
+		String filename = filenameGenerator.generateFilename(scope, name, GenerationType.PLAYBACK);
 		File file;
 		if (filenameGenerator.resolvesToAbsolutePath()) {
 			file = new File(filename);
