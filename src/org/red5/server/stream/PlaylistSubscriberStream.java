@@ -39,7 +39,6 @@ import org.red5.server.api.stream.IPlaylistSubscriberStream;
 import org.red5.server.api.stream.IStreamAwareScopeHandler;
 import org.red5.server.api.stream.OperationNotSupportedException;
 import org.red5.server.api.stream.StreamState;
-import org.red5.server.net.rtmp.event.IRTMPEvent;
 import org.slf4j.Logger;
 
 /**
@@ -79,49 +78,49 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 	/**
 	 * Plays items back
 	 */
-	private PlayEngine engine;
+	protected PlayEngine engine;
 
 	/**
 	 * Rewind mode state
 	 */
-	private boolean rewind;
+	protected boolean rewind;
 
 	/**
 	 * Random mode state
 	 */
-	private boolean random;
+	protected boolean random;
 
 	/**
 	 * Repeat mode state
 	 */
-	private boolean repeat;
+	protected boolean repeat;
 
 	/**
 	 * Executor that will be used to schedule stream playback to keep
 	 * the client buffer filled.
 	 */
-	private static ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(16);
+	protected static ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(16);
 
 	/**
 	 * Interval in ms to check for buffer underruns in VOD streams.
 	 */
-	private int bufferCheckInterval = 0;
+	protected int bufferCheckInterval = 0;
 
 	/**
 	 * Number of pending messages at which a <code>NetStream.Play.InsufficientBW</code>
 	 * message is generated for VOD streams.
 	 */
-	private int underrunTrigger = 10;
+	protected int underrunTrigger = 10;
 
 	/**
 	 * Timestamp this stream was created.
 	 */
-	private long creationTime = System.currentTimeMillis();
+	protected long creationTime = System.currentTimeMillis();
 
 	/**
 	 * Number of bytes sent.
 	 */
-	private long bytesSent = 0;
+	protected long bytesSent = 0;
 
 	/** Constructs a new PlaylistSubscriberStream. */
 	public PlaylistSubscriberStream() {
@@ -515,7 +514,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 		//check if engine currently receives audio, returns previous value
 		boolean receiveAudio = engine.receiveAudio(receive);
 		if (receiveAudio && !receive) {
-			//send a black audio packet to reset the player
+			//send a blank audio packet to reset the player
 			engine.sendBlankAudio(true);
 		} else if (!receiveAudio && receive) {
 			//do a seek	
@@ -749,11 +748,11 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 
 	/** {@inheritDoc} */
 	public int getCurrentTimestamp() {
-		final IRTMPEvent msg = engine.getLastMessage();
-		if (msg == null) {
+		int lastMessageTs = engine.getLastMessageTimestamp();
+		if (lastMessageTs >= 0) {
 			return 0;
 		}
-		return msg.getTimestamp();
+		return lastMessageTs;
 	}
 
 	/** {@inheritDoc} */
@@ -763,8 +762,9 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 
 	/** {@inheritDoc} */
 	public double getEstimatedBufferFill() {
-		final IRTMPEvent msg = engine.getLastMessage();
-		if (msg == null) {
+		//check to see if any messages have been sent
+		int lastMessageTs = engine.getLastMessageTimestamp();
+		if (lastMessageTs < 0) {
 			// Nothing has been sent yet
 			return 0.0;
 		}
@@ -778,7 +778,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 		// Duration the stream is playing
 		final long delta = System.currentTimeMillis() - engine.getPlaybackStart();
 		// Expected amount of data present in client buffer
-		final long buffered = msg.getTimestamp() - delta;
+		final long buffered = lastMessageTs - delta;
 		return (buffered * 100.0) / buffer;
 	}
 

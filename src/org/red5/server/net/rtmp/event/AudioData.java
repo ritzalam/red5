@@ -28,17 +28,18 @@ import org.red5.server.api.stream.IStreamPacket;
 import org.red5.server.stream.IStreamData;
 
 public class AudioData extends BaseEvent implements IStreamData, IStreamPacket {
-	
+
 	private static final long serialVersionUID = -4102940670913999407L;
-	
+
 	protected IoBuffer data;
-    /**
-     * Data type
-     */
-    private byte dataType = TYPE_AUDIO_DATA;
+
+	/**
+	 * Data type
+	 */
+	private byte dataType = TYPE_AUDIO_DATA;
 
 	/** Constructs a new AudioData. */
-    public AudioData() {
+	public AudioData() {
 		this(IoBuffer.allocate(0).flip());
 	}
 
@@ -47,56 +48,56 @@ public class AudioData extends BaseEvent implements IStreamData, IStreamPacket {
 		setData(data);
 	}
 
-    /**
-     * Create audio data event with given data buffer
-     * @param data Audio data
-     * @param copy true to use a copy of the data or false to use reference
-     */
-    public AudioData(IoBuffer data, boolean copy) {
+	/**
+	 * Create audio data event with given data buffer
+	 * @param data Audio data
+	 * @param copy true to use a copy of the data or false to use reference
+	 */
+	public AudioData(IoBuffer data, boolean copy) {
 		super(Type.STREAM_DATA);
 		if (copy) {
 			byte[] array = new byte[data.limit()];
 			data.mark();
 			data.get(array);
 			data.reset();
-        	setData(array);
-    	} else {
-    		setData(data);
-    	}
-	} 	
-	
+			setData(array);
+		} else {
+			setData(data);
+		}
+	}
+
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public byte getDataType() {
 		return dataType;
 	}
-    
+
 	public void setDataType(byte dataType) {
 		this.dataType = dataType;
 	}
 
 	/** {@inheritDoc} */
-    public IoBuffer getData() {
+	public IoBuffer getData() {
 		return data;
 	}
-    
-    public void setData(IoBuffer data) {
+
+	public void setData(IoBuffer data) {
 		this.data = data;
 	}
-    
-    public void setData(byte[] data) {
-    	this.data = IoBuffer.allocate(data.length);
+
+	public void setData(byte[] data) {
+		this.data = IoBuffer.allocate(data.length);
 		this.data.put(data).flip();
-    }
+	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	public String toString() {
 		return String.format("Audio - ts: %s length: %s", getTimestamp(), (data != null ? data.limit() : '0'));
 	}
 
 	/** {@inheritDoc} */
-    @Override
+	@Override
 	protected void releaseInternal() {
 		if (data != null) {
 			data.free();

@@ -157,9 +157,9 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	private int timestampOffset = 0;
 
 	/**
-	 * Last message sent to the client.
+	 * Timestamp of the last message sent to the client.
 	 */
-	private IRTMPEvent lastMessage;
+	private int lastMessageTs = -1;
 
 	/**
 	 * Number of bytes sent.
@@ -744,7 +744,6 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 								doPushMessage(rtmpMessage);
 								rtmpMessage.getBody().release();
 								messageSent = true;
-								lastMessage = body;
 								break;
 							}
 						}
@@ -766,7 +765,6 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 			audio.getHeader().setTimer(seekPos);
 			RTMPMessage audioMessage = new RTMPMessage();
 			audioMessage.setBody(audio);
-			lastMessage = audio;
 			doPushMessage(audioMessage);
 			audioMessage.getBody().release();
 		}
@@ -801,10 +799,10 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 					sendClearPing();
 					sendStopStatus(currentItem);
 				} else {
-					if (lastMessage != null) {
+					if (lastMessageTs > 0) {
 						// Remember last timestamp so we can generate correct
 						// headers in playlists.
-						timestampOffset = lastMessage.getTimestamp();
+						timestampOffset = lastMessageTs;
 					}
 					playlistSubscriberStream.nextItem();
 				}
@@ -827,7 +825,6 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 		}
 		clearWaitJobs();
 		releasePendingMessage();
-		lastMessage = null;
 		sendClearPing();
 	}
 
@@ -842,15 +839,15 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 		if (message instanceof IStreamData) {
 			final long now = System.currentTimeMillis();
 			// check client buffer length when we've already sent some messages
-			if (lastMessage != null) {
+			if (lastMessageTs >= 0) {
 				// Duration the stream is playing / playback duration
 				final long delta = now - playbackStart;
 				// Buffer size as requested by the client
 				final long buffer = playlistSubscriberStream.getClientBufferDuration();
 				// Expected amount of data present in client buffer
-				final long buffered = lastMessage.getTimestamp() - delta;
+				final long buffered = lastMessageTs - delta;
 				log.trace("okayToSendMessage: timestamp {} delta {} buffered {} buffer {}", new Object[] {
-						lastMessage.getTimestamp(), delta, buffered, buffer });
+						lastMessageTs, delta, buffered, buffer });
 				//Fix for SN-122, this sends double the size of the client buffer
 				if (buffer > 0 && buffered > (buffer * 2)) {
 					// Client is likely to have enough data in the buffer
@@ -933,6 +930,8 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 			msgOut.pushMessage(message);
 			if (message instanceof RTMPMessage) {
 				IRTMPEvent body = ((RTMPMessage) message).getBody();
+				//update the last message sent's timestamp
+				lastMessageTs = body.getTimestamp();
 				IoBuffer streamData = null;
 				if (body instanceof IStreamData && (streamData = ((IStreamData) body).getData()) != null) {
 					bytesSent.addAndGet(streamData.limit());
@@ -1003,7 +1002,6 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 				}
 			}
 		}
-		lastMessage = messageOut.getBody();
 		doPushMessage(messageOut);
 	}
 
@@ -1100,9 +1098,8 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 		buf.flip();
 
 		IRTMPEvent event = new Notify(buf);
-		if (lastMessage != null) {
-			int timestamp = lastMessage.getTimestamp();
-			event.setTimestamp(timestamp);
+		if (lastMessageTs > 0) {
+			event.setTimestamp(lastMessageTs);
 		} else {
 			event.setTimestamp(0);
 		}
@@ -1386,8 +1383,8 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 						// Send blank audio packet to reset player
 						sendBlankAudio = false;
 						body = new AudioData();
-						if (lastMessage != null) {
-							body.setTimestamp(lastMessage.getTimestamp());
+						if (lastMessageTs > 0) {
+							body.setTimestamp(lastMessageTs);
 						} else {
 							body.setTimestamp(0);
 						}
@@ -1440,10 +1437,15 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 		return playlistSubscriberStream.getState() == StreamState.PAUSED;
 	}
 
-	public IRTMPEvent getLastMessage() {
-		return lastMessage;
+	/**
+	 * Returns the timestamp of the last message sent.
+	 * 
+	 * @return last message timestamp
+	 */
+	public int getLastMessageTimestamp() {
+		return lastMessageTs;
 	}
-
+	
 	public long getPlaybackStart() {
 		return playbackStart;
 	}
@@ -1554,8 +1556,8 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 											sendBlankAudio = false;
 											body = new AudioData();
 											// We need a zero timestamp
-											if (lastMessage != null) {
-												body.setTimestamp(lastMessage.getTimestamp() - timestampOffset);
+											if (lastMessageTs >= 0) {
+												body.setTimestamp(lastMessageTs - timestampOffset);
 											} else {
 												body.setTimestamp(-timestampOffset);
 											}

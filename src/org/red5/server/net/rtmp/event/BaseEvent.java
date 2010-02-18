@@ -33,22 +33,22 @@ import org.red5.server.net.rtmp.message.Header;
  * Base abstract class for all RTMP events
  */
 public abstract class BaseEvent implements Constants, IRTMPEvent, Externalizable {
-	
+
 	// XXX we need a better way to inject allocation debugging
 	// (1) make it configurable in xml
 	// (2) make it aspect oriented
 	private static final boolean allocationDebugging = false;
-	
-    /**
+
+	/**
 	 * Event type
 	 */
 	private Type type;
 
-    /**
+	/**
 	 * Source type
 	 */
 	private byte sourceType;
-	
+
 	/**
 	 * Event target object
 	 */
@@ -79,18 +79,19 @@ public abstract class BaseEvent implements Constants, IRTMPEvent, Externalizable
 		this(Type.SERVER, null);
 	}
 
-    /**
-     * Create new event of given type
-     * @param type             Event type
-     */
-    public BaseEvent(Type type) {
+	/**
+	 * Create new event of given type
+	 * @param type             Event type
+	 */
+	public BaseEvent(Type type) {
 		this(type, null);
 	}
-    /**
-     * Create new event of given type
-     * @param type             Event type
-     * @param source           Event source
-     */
+
+	/**
+	 * Create new event of given type
+	 * @param type             Event type
+	 * @param source           Event source
+	 */
 	public BaseEvent(Type type, IEventListener source) {
 		this.type = type;
 		this.source = source;
@@ -100,14 +101,14 @@ public abstract class BaseEvent implements Constants, IRTMPEvent, Externalizable
 	}
 
 	/** {@inheritDoc} */
-    public Type getType() {
+	public Type getType() {
 		return type;
 	}
 
-    public void setType(Type type) {
+	public void setType(Type type) {
 		this.type = type;
 	}
-    
+
 	public byte getSourceType() {
 		return sourceType;
 	}
@@ -117,80 +118,78 @@ public abstract class BaseEvent implements Constants, IRTMPEvent, Externalizable
 	}
 
 	/** {@inheritDoc} */
-    public Object getObject() {
+	public Object getObject() {
 		return object;
 	}
 
 	/** {@inheritDoc} */
-    public Header getHeader() {
+	public Header getHeader() {
 		return header;
 	}
 
 	/** {@inheritDoc} */
-    public void setHeader(Header header) {
+	public void setHeader(Header header) {
 		this.header = header;
 	}
 
 	/** {@inheritDoc} */
-    public boolean hasSource() {
+	public boolean hasSource() {
 		return source != null;
 	}
 
 	/** {@inheritDoc} */
-    public IEventListener getSource() {
+	public IEventListener getSource() {
 		return source;
 	}
 
 	/** {@inheritDoc} */
-    public void setSource(IEventListener source) {
+	public void setSource(IEventListener source) {
 		this.source = source;
 	}
 
 	/** {@inheritDoc} */
-    public abstract byte getDataType();
+	public abstract byte getDataType();
 
 	/** {@inheritDoc} */
-    public int getTimestamp() {
+	public int getTimestamp() {
 		return timestamp;
 	}
 
 	/** {@inheritDoc} */
-    public void setTimestamp(int timestamp) {
+	public void setTimestamp(int timestamp) {
 		this.timestamp = timestamp;
 	}
 
 	/** {@inheritDoc} */
-    @SuppressWarnings("all")
-    public void retain() {
+	@SuppressWarnings("all")
+	public void retain() {
 		if (allocationDebugging) {
 			AllocationDebugger.getInstance().retain(this);
 		}
 		final int baseCount = refcount.getAndIncrement();
-		if (allocationDebugging && baseCount < 1)
-		{
-			throw new RuntimeException("attempt to retain object with invalid ref count" );
+		if (allocationDebugging && baseCount < 1) {
+			throw new RuntimeException("attempt to retain object with invalid ref count");
 		}
 	}
 
 	/** {@inheritDoc} */
-    @SuppressWarnings("all")
-    public void release() {
+	@SuppressWarnings("all")
+	public void release() {
 		if (allocationDebugging) {
 			AllocationDebugger.getInstance().release(this);
 		}
 		final int baseCount = refcount.decrementAndGet();
 		if (baseCount == 0) {
 			releaseInternal();
-		} else if (allocationDebugging && baseCount < 0)
-		{
-			throw new RuntimeException("attempt to retain object with invalid ref count" );
+		} else if (allocationDebugging && baseCount < 0) {
+			throw new RuntimeException("attempt to retain object with invalid ref count");
 		}
 	}
 
-    /**
-     * Release event
-     */
-    protected abstract void releaseInternal();
+	/**
+	 * Release event
+	 */
+	protected abstract void releaseInternal();
 
 	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
 		type = (Type) in.readObject();
@@ -202,6 +201,6 @@ public abstract class BaseEvent implements Constants, IRTMPEvent, Externalizable
 		out.writeObject(type);
 		out.writeByte(sourceType);
 		out.writeInt(timestamp);
-		
 	}
+	
 }

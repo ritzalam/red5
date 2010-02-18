@@ -26,23 +26,24 @@ import org.red5.server.net.rtmp.event.IRTMPEvent;
  * RTMP message
  */
 public class RTMPMessage extends AbstractMessage {
+	
 	private IRTMPEvent body;
 
 	/**
-     * Return RTMP message body
-     *
-     * @return Value for property 'body'.
-     */
-    public IRTMPEvent getBody() {
+	 * Return RTMP message body
+	 *
+	 * @return Value for property 'body'.
+	 */
+	public IRTMPEvent getBody() {
 		return body;
 	}
 
 	/**
-     * Setter for RTMP message body
-     *
-     * @param body Value to set for property 'body'.
-     */
-    public void setBody(IRTMPEvent body) {
+	 * Setter for RTMP message body
+	 *
+	 * @param body Value to set for property 'body'.
+	 */
+	public void setBody(IRTMPEvent body) {
 		this.body = body;
 	}
 

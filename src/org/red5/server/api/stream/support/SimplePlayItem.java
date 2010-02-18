@@ -26,6 +26,7 @@ import org.red5.server.messaging.IMessageInput;
  * Simple playlist item implementation
  */
 public class SimplePlayItem implements IPlayItem {
+	
 	/**
 	 * Length
 	 */
@@ -34,8 +35,8 @@ public class SimplePlayItem implements IPlayItem {
 	/**
 	 * Size
 	 */
-	private long size = -1;	
-	
+	private long size = -1;
+
 	/**
 	 * Playlist item name
 	 */
@@ -147,4 +148,35 @@ public class SimplePlayItem implements IPlayItem {
 		this.start = start;
 	}
 
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + (int) (size ^ (size >>> 32));
+		result = prime * result + (int) (start ^ (start >>> 32));
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		SimplePlayItem other = (SimplePlayItem) obj;
+		if (name == null) {
+			if (other.name != null)
+				return false;
+		} else if (!name.equals(other.name))
+			return false;
+		if (size != other.size)
+			return false;
+		if (start != other.start)
+			return false;
+		return true;
+	}
+	
 }
