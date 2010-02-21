@@ -29,13 +29,14 @@ import org.red5.server.api.stream.IStreamCapableConnection;
  */
 public abstract class AbstractClientStream extends AbstractStream implements IClientStream {
 
-    /**
-     *  Stream identifier. Unique across server.
-     */
-    private int streamId;
-    /**
-     *  Connection that works with streams
-     */
+	/**
+	 *  Stream identifier. Unique across server.
+	 */
+	private int streamId;
+
+	/**
+	 *  Connection that works with streams
+	 */
 	private WeakReference<IStreamCapableConnection> conn;
 
 	/**
@@ -43,34 +44,34 @@ public abstract class AbstractClientStream extends AbstractStream implements ICl
 	 */
 	private int clientBufferDuration;
 
-    /**
-     * Return stream id
-     * @return           Stream id
-     */
+	/**
+	 * Return stream id
+	 * @return           Stream id
+	 */
 	public int getStreamId() {
 		return streamId;
 	}
 
-    /**
-     * Return connection associated with stream
-     * @return           Stream capable connection object
-     */
+	/**
+	 * Return connection associated with stream
+	 * @return           Stream capable connection object
+	 */
 	public IStreamCapableConnection getConnection() {
 		return conn.get();
 	}
 
-    /**
-     * Setter for stream id
-     * @param streamId       Stream id
-     */
+	/**
+	 * Setter for stream id
+	 * @param streamId       Stream id
+	 */
 	public void setStreamId(int streamId) {
 		this.streamId = streamId;
 	}
 
-    /**
-     * Setter for stream capable connection
-     * @param conn           IStreamCapableConnection object
-     */
+	/**
+	 * Setter for stream capable connection
+	 * @param conn           IStreamCapableConnection object
+	 */
 	public void setConnection(IStreamCapableConnection conn) {
 		this.conn = new WeakReference<IStreamCapableConnection>(conn);
 	}
@@ -87,6 +88,6 @@ public abstract class AbstractClientStream extends AbstractStream implements ICl
 	 */
 	public int getClientBufferDuration() {
 		return clientBufferDuration;
-	}	
-	
+	}
+
 }

@@ -238,7 +238,7 @@
 			 optimize="${build.optimize}" verbose="${build.verbose}" fork="${build.fork}" nowarn="${build.nowarn}"
 			 deprecation="${build.deprecation}" debug="${debug.state}" compiler="${compiler}"
 			 source="${java.target_version}" target="${java.target_version}" memoryMaximumSize="${memory.maximum}"
-			 excludes="${std_excludes}" listfiles="false"/>
+			 excludes="${std_excludes}" listfiles="false" includeantruntime="false"/>
 		<!-- touch this source file so that the revision number will be updated upon svn commit -->
 		<touch file="${src.dir}/org/red5/server/api/Red5.java"/>
 	</target>
@@ -250,7 +250,7 @@
 			 optimize="${build.optimize}" verbose="${build.verbose}" fork="${build.fork}" nowarn="${build.nowarn}"
 			 deprecation="${build.deprecation}" debug="${debug.state}" compiler="${compiler}"
 			 source="${java.target_version}" target="${java.target_version}" memoryMaximumSize="${memory.maximum}"
-			 excludes="${std_excludes}" listfiles="false"/>
+			 excludes="${std_excludes}" listfiles="false" includeantruntime="false"/>
 	</target>
 	<macrodef name="build-demo">
 		<attribute name="name"/>
@@ -261,7 +261,7 @@
 			<javac sourcepath="" srcdir="${webapps.dir}/@{name}/WEB-INF/src" destdir="${webapps.build.dir}/@{name}/WEB-INF/classes"
 				 classpathref="webapps.classpath" optimize="${build.optimize}" verbose="${build.verbose}"
 				 fork="${build.fork}" nowarn="${build.nowarn}" deprecation="${build.deprecation}"
-				 debug="${debug.state}" compiler="${compiler}" source="${java.target_version}" target="${java.target_version}"/>
+				 debug="${debug.state}" compiler="${compiler}" source="${java.target_version}" target="${java.target_version}" includeantruntime="false"/>
 			<copy todir="${webapps.build.dir}/@{name}" filtering="true">
 				<fileset dir="webapps/@{name}">
 					<exclude name="**/src/**"/>
@@ -359,7 +359,7 @@
 			 optimize="${build.optimize}" verbose="${build.verbose}" fork="${build.fork}" nowarn="${build.nowarn}"
 			 deprecation="${build.deprecation}" debug="${debug.state}" compiler="${compiler}"
 			 source="${java.target_version}" target="${java.target_version}" memoryMaximumSize="${memory.maximum}"
-			 includes="org/red5/server/script/**" listfiles="false"/>
+			 includes="org/red5/server/script/**" listfiles="false" includeantruntime="false"/>
 		<echo message="${scripting.using}"/>
 	</target>
 	<target name="compile-war" depends="-library.check, -java6.check, clean, prepare">

@@ -124,17 +124,18 @@ public interface IStreamService extends IScopeService {
 
     /**
      * Pauses playback
-     * @param pausePlayback           Pause flah
+     * @param pausePlayback           Pause or resume flash
      * @param position                Pause position
      */
-	public void pause(boolean pausePlayback, int position);
+	public void pause(Boolean pausePlayback, int position);
 
 	/**
 	 * Undocumented Flash Plugin 10 call, assuming to be the alias to pause(boolean, int)
-	 * @param pausePlayback           Pause flah
+	 * 
+	 * @param pausePlayback           Pause or resume flash
 	 * @param position                Pause position
 	 */
-	public void pauseRaw(boolean pausePlayback, int position);
+	public void pauseRaw(Boolean pausePlayback, int position);
 	
     /**
      * Can recieve video?
