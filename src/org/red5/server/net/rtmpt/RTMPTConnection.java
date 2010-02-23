@@ -121,17 +121,11 @@ public class RTMPTConnection extends BaseRTMPTConnection {
 	 * @return the polling delay
 	 */
 	public byte getPollingDelay() {
-		getReadLock().lock();
-		try {
-			if (state.getState() == RTMP.STATE_DISCONNECTED) {
-				// Special value to notify client about a closed connection.
-				return (byte) 0;
-			}
-
-			return (byte) (this.pollingDelay + 1);
-		} finally {
-			getReadLock().unlock();
+		if (state.getState() == RTMP.STATE_DISCONNECTED) {
+			// Special value to notify client about a closed connection.
+			return (byte) 0;
 		}
+		return (byte) (this.pollingDelay + 1);
 	}
 
 	/**

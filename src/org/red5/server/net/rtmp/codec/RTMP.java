@@ -92,7 +92,7 @@ public class RTMP extends ProtocolState {
 	/**
 	 * RTMP state.
 	 */
-	private byte state = STATE_CONNECT;
+	private volatile byte state = STATE_CONNECT;
 
 	/**
 	 * Server mode by default.

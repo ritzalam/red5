@@ -227,40 +227,20 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	}
 
 	public RTMP getState() {
-		getReadLock().lock();
-		try {
-			return state;
-		} finally {
-			getReadLock().unlock();
-		}
+		return state;
 	}
 
 	public byte getStateCode() {
-		getReadLock().lock();
-		try {
-			return state.getState();
-		} finally {
-			getReadLock().unlock();
-		}
+		return state.getState();
 	}
 
 	public void setStateCode(byte code) {
-		getWriteLock().lock();
-		try {
-			state.setState(code);
-		} finally {
-			getWriteLock().unlock();
-		}
+		state.setState(code);
 	}
 
 	public void setState(RTMP state) {
-		getWriteLock().lock();
-		try {
-			log.debug("Set state: {}", state);
-			this.state = state;
-		} finally {
-			getWriteLock().unlock();
-		}
+		log.debug("Set state: {}", state);
+		this.state = state;
 	}
 
 	@Override
@@ -947,18 +927,14 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 * Starts measurement.
 	 */
 	public void startRoundTripMeasurement() {
-		if (pingInterval <= 0) {
-			// Ghost detection code disabled
-			return;
-		}
-		getWriteLock().lock();
-		try {
-			if (keepAliveJobName == null) {
-				keepAliveJobName = schedulingService.addScheduledJob(pingInterval, new KeepAliveJob());
-			}
-			log.debug("Keep alive job name {} for client id {}", keepAliveJobName, getId());
-		} finally {
-			getWriteLock().unlock();
+		if (pingInterval > 0 && keepAliveJobName == null) {
+			getWriteLock().lock();
+    		try {
+   				keepAliveJobName = schedulingService.addScheduledJob(pingInterval, new KeepAliveJob());
+    			log.debug("Keep alive job name {} for client id {}", keepAliveJobName, getId());
+    		} finally {
+    			getWriteLock().unlock();
+    		}
 		}
 	}
 

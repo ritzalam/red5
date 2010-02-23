@@ -205,14 +205,14 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	 * @return a list of decoded objects
 	 */
 	public List<?> decode(IoBuffer data) {
+		if (closing || state.getState() == RTMP.STATE_DISCONNECTED) {
+			// Connection is being closed, don't decode any new packets
+			return Collections.EMPTY_LIST;
+		}
+		//set the local connection
+		Red5.setConnectionLocal(this);
 		getWriteLock().lock();
 		try {
-			if (closing || state.getState() == RTMP.STATE_DISCONNECTED) {
-				// Connection is being closed, don't decode any new packets
-				return Collections.EMPTY_LIST;
-			}
-			//set the local connection
-			Red5.setConnectionLocal(this);
 			readBytes.addAndGet(data.limit());
 			this.buffer.put(data);
 			this.buffer.flip();
@@ -229,13 +229,12 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	 */
 	@Override
 	public void write(final Packet packet) {
+		if (closing || state.getState() == RTMP.STATE_DISCONNECTED) {
+			// Connection is being closed, don't send any new packets
+			return;
+		}
 		getWriteLock().lock();
 		try {
-			if (closing || state.getState() == RTMP.STATE_DISCONNECTED) {
-				// Connection is being closed, don't send any new packets
-				return;
-			}
-
 			IoBuffer data;
 			try {
 				data = this.encoder.encode(this.state, packet);
@@ -258,6 +257,10 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 	}
 
 	protected IoBuffer foldPendingMessages(int targetSize) {
+		if (pendingMessages.isEmpty()) {
+			return null;
+		}
+		
 		IoBuffer result = IoBuffer.allocate(2048);
 		result.setAutoExpand(true);
 		
@@ -266,18 +269,15 @@ public abstract class BaseRTMPTConnection extends RTMPConnection {
 
 		getWriteLock().lock();
 		try {
-			if (pendingMessages.isEmpty()) {
-				return null;
-			}
-
 			while (!pendingMessages.isEmpty()) {
 				PendingData pendingMessage = pendingMessages.remove();
 				result.put(pendingMessage.getBuffer());
-				if (pendingMessage.getPacket() != null)
+				if (pendingMessage.getPacket() != null) {
 					toNotify.add(pendingMessage.getPacket());
-				
-				if ((result.position() > targetSize))
+				}
+				if ((result.position() > targetSize)) {
 					break;
+				}
 			}
 		} finally {
 			getWriteLock().unlock();

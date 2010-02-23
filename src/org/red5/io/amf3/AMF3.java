@@ -129,7 +129,27 @@ public class AMF3 {
      */
     public static final byte TYPE_BYTEARRAY = 0x0C;
 
-	/**
+    /**
+     * Vector<int> marker
+     */
+    public static final byte TYPE_VECTOR_INT = 0x0D;
+    
+    /**
+     * Vector<uint> marker
+     */
+    public static final byte TYPE_VECTOR_UINT = 0x0E;
+    
+    /**
+     * Vector<Number> marker
+     */
+    public static final byte TYPE_VECTOR_NUMBER = 0x0F;
+
+    /**
+     * Vector<Object> marker
+     */
+    public static final byte TYPE_VECTOR_OBJECT = 0x10;
+    
+    /**
 	 * Property list encoding.
 	 * 
 	 * The remaining integer-data represents the number of class members
