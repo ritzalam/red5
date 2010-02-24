@@ -24,7 +24,10 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.Map.Entry;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.io.ITag;
@@ -75,25 +78,6 @@ public class MetaService implements IMetaService {
 	 * Deserializer
 	 */
 	private Deserializer deserializer;
-
-	/**
-	 * Merges metadata objects
-	 */
-	private Resolver resolver;
-
-	/**
-	 * @return Returns the resolver.
-	 */
-	public Resolver getResolver() {
-		return resolver;
-	}
-
-	/**
-	 * @param resolver The resolver to set.
-	 */
-	public void setResolver(Resolver resolver) {
-		this.resolver = resolver;
-	}
 
 	/**
 	 * @return Returns the deserializer.
@@ -216,7 +200,7 @@ public class MetaService implements IMetaService {
 	}
 
 	/**
-	 * Merges the two Meta objects according to user
+	 * Merges the two Meta objects
 	 * 
 	 * @param metaData
 	 *            First metadata object
@@ -224,9 +208,56 @@ public class MetaService implements IMetaService {
 	 *            Second metadata object
 	 * @return Merged metadata
 	 */
-	@SuppressWarnings("unused")
-	private IMeta mergeMeta(IMetaData<?, ?> metaData, IMetaData<?, ?> md) {
-		return new Resolver().resolve(metaData, md);
+	@SuppressWarnings({ "unused", "unchecked" })
+	public static IMeta mergeMeta(IMetaData<?, ?> metaData1, IMetaData<?, ?> metaData2) {
+		//walk the entries and merge them
+		//1. higher number values trump lower ones
+		//2. true considered higher than false
+		//3. strings are not replaced
+		Map<String, Object> map1 = ((Map<String, Object>) metaData1);
+		Set<Entry<String, Object>> set1 = map1.entrySet();
+		Map<String, Object> map2 = ((Map<String, Object>) metaData2);
+		Set<Entry<String, Object>> set2 = map2.entrySet();
+		//map to hold updates / replacements
+		Map<String, Object> rep = new HashMap<String, Object>();
+		//loop to update common elements
+		for (Entry<String, Object> entry1 : set1) {
+			String key1 = entry1.getKey();
+			if (map2.containsKey(key1)) {
+				Object value1 = map1.get(key1);
+				Object value2 = map2.get(key1);
+				//we dont replace strings
+				//check numbers
+				if (value1 instanceof Double) {
+					if (Double.valueOf(value1.toString()).doubleValue() < Double.valueOf(value2.toString()).doubleValue()) {
+						rep.put(key1, value2);
+					}
+				} else if (value1 instanceof Integer) {
+					if (Integer.valueOf(value1.toString()).intValue() < Integer.valueOf(value2.toString()).intValue()) {
+						rep.put(key1, value2);
+					}
+				} else if (value1 instanceof Long) {
+					if (Long.valueOf(value1.toString()).longValue() < Long.valueOf(value2.toString()).longValue()) {
+						rep.put(key1, value2);
+					}
+				}
+				//check boolean
+				if (value1 instanceof Boolean) {
+					//consider true > false
+					if (!Boolean.valueOf(value1.toString()) && Boolean.valueOf(value2.toString())) {
+						rep.put(key1, value2);
+					}
+				}				
+			}
+		}
+		//remove all changed
+		set1.removeAll(rep.entrySet());
+		//add the updates
+		set1.addAll(rep.entrySet());
+		//perform a union / adds all elements missing from set1
+		set1.addAll(set2);
+		//return the original object with merges
+		return metaData1;
 	}
 
 	/**
