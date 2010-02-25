@@ -21,6 +21,8 @@ package org.red5.server.api;
 
 import java.lang.ref.WeakReference;
 
+import javax.management.openmbean.CompositeData;
+
 /**
  * Utility class for accessing Red5 API objects.
  *
@@ -41,7 +43,7 @@ import java.lang.ref.WeakReference;
  * @author Luke Hubbard (luke@codegent.com)
  * @author Paul Gregoire (mondain@gmail.com)
  */
-public final class Red5 implements Red5MBean {
+public final class Red5 {
 
 	/**
 	 * Current connection thread. Each connection of Red5 application runs in a
@@ -180,4 +182,25 @@ public final class Red5 implements Red5MBean {
 	    return System.currentTimeMillis() - START_TIME;
 	}	
 
+	/**
+	 * Allows for reconstruction via CompositeData.
+	 * 
+	 * @param cd composite data
+	 * @return Red5 class instance
+	 */
+    public static Red5 from(CompositeData cd) {
+    	Red5 instance = null;
+    	if (cd.containsKey("connection")) {
+    		Object cn = cd.get("connection");
+    		if (cn != null && cn instanceof IConnection) {
+    			instance = new Red5((IConnection) cn);
+    		} else {
+    			instance = new Red5();
+    		}
+		} else {
+			instance = new Red5();
+		}
+        return instance;
+    }	
+    
 }

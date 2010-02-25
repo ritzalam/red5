@@ -1,5 +1,6 @@
 package org.red5.server;
 
+import java.beans.ConstructorProperties;
 import java.lang.ref.WeakReference;
 import java.util.AbstractList;
 import java.util.ArrayList;
@@ -33,18 +34,18 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * @param <E>
  *            type of class
  */
-public class ClientList<E> extends AbstractList<E> implements ListMBean {
+public class ClientList<E> extends AbstractList<E> {
 
 	private static final long serialVersionUID = -3127064371410565215L;
 
-	private CopyOnWriteArrayList<WeakReference<E>> items;
+	private CopyOnWriteArrayList<WeakReference<E>> items = new CopyOnWriteArrayList<WeakReference<E>>();
 
+	@ConstructorProperties(value = { "" })
 	public ClientList() {
-		items = new CopyOnWriteArrayList<WeakReference<E>>();
 	}
 
+	@ConstructorProperties({"c"})
 	public ClientList(Collection<E> c) {
-		items = new CopyOnWriteArrayList<WeakReference<E>>();
 		addAll(0, c);
 	}
 

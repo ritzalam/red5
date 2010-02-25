@@ -208,7 +208,7 @@ public class MetaService implements IMetaService {
 	 *            Second metadata object
 	 * @return Merged metadata
 	 */
-	@SuppressWarnings({ "unused", "unchecked" })
+	@SuppressWarnings({ "unchecked" })
 	public static IMeta mergeMeta(IMetaData<?, ?> metaData1, IMetaData<?, ?> metaData2) {
 		//walk the entries and merge them
 		//1. higher number values trump lower ones
@@ -330,9 +330,11 @@ public class MetaService implements IMetaService {
 	public void writeMetaData(IMetaData<?, ?> metaData) {
 		IMetaCue meta = (MetaCue<?, ?>) metaData;
 		Output out = new Output(IoBuffer.allocate(1000));
+		if (serializer == null) {
+			serializer = new Serializer();
+		}		
 		serializer.serialize(out, "onCuePoint");
 		serializer.serialize(out, meta);
-
 	}
 
 	/**

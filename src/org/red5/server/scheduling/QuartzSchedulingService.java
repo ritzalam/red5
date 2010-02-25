@@ -35,6 +35,7 @@ import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.api.scheduling.IScheduledJob;
 import org.red5.server.api.scheduling.ISchedulingService;
 import org.red5.server.jmx.JMXAgent;
+import org.red5.server.jmx.mxbeans.QuartzSchedulingServiceMXBean;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -47,7 +48,7 @@ import org.springframework.beans.factory.InitializingBean;
  * @author Paul Gregoire (mondain@gmail.com)
  */
 public class QuartzSchedulingService implements ISchedulingService,
-		QuartzSchedulingServiceMBean, InitializingBean, DisposableBean {
+		QuartzSchedulingServiceMXBean, InitializingBean, DisposableBean {
 
 	private static Logger log = Red5LoggerFactory.getLogger(QuartzSchedulingService.class);
 	
@@ -107,10 +108,10 @@ public class QuartzSchedulingService implements ISchedulingService,
 		//register with jmx server
 		if (instanceId == null) {
 			JMXAgent.registerMBean(this, this.getClass().getName(),
-				QuartzSchedulingServiceMBean.class);
+				QuartzSchedulingServiceMXBean.class);
 		} else {
 			JMXAgent.registerMBean(this, this.getClass().getName(),
-					QuartzSchedulingServiceMBean.class, instanceId);
+					QuartzSchedulingServiceMXBean.class, instanceId);
 		}
 	}
 	

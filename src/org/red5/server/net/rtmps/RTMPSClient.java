@@ -60,7 +60,7 @@ public class RTMPSClient extends RTMPClient {
 		return params;
 	}
 	
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "rawtypes" })
 	@Override
 	protected void startConnector(String server, int port) {
 		socketConnector = new NioSocketConnector();

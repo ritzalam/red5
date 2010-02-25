@@ -22,8 +22,8 @@ package org.red5.server.tomcat;
 import java.io.File;
 import java.util.Map;
 
+import javax.management.JMX;
 import javax.management.MBeanServer;
-import javax.management.MBeanServerInvocationHandler;
 import javax.management.ObjectName;
 import javax.servlet.ServletContext;
 
@@ -36,10 +36,11 @@ import org.apache.catalina.Valve;
 import org.apache.catalina.core.StandardContext;
 import org.apache.catalina.core.StandardHost;
 import org.red5.server.ContextLoader;
-import org.red5.server.ContextLoaderMBean;
 import org.red5.server.LoaderBase;
 import org.red5.server.jmx.JMXAgent;
 import org.red5.server.jmx.JMXFactory;
+import org.red5.server.jmx.mxbeans.ContextLoaderMXBean;
+import org.red5.server.jmx.mxbeans.TomcatVHostLoaderMXBean;
 import org.red5.server.util.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +53,7 @@ import org.springframework.web.context.support.XmlWebApplicationContext;
  * 
  * @author Paul Gregoire (mondain@gmail.com)
  */
-public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoaderMBean {
+public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoaderMXBean {
 
 	// Initialize Logging
 	private static Logger log = LoggerFactory.getLogger(TomcatVHostLoader.class);
@@ -191,9 +192,9 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
             					MBeanServer mbs = JMXFactory.getMBeanServer();
             					//get the ContextLoader from jmx
             					ObjectName oName = JMXFactory.createObjectName("type", "ContextLoader");
-            					ContextLoaderMBean proxy = null;
+            					ContextLoaderMXBean proxy = null;
             					if (mbs.isRegistered(oName)) {
-            						proxy = (ContextLoaderMBean) MBeanServerInvocationHandler.newProxyInstance(mbs, oName, ContextLoaderMBean.class, true);
+            						proxy = (ContextLoaderMXBean) JMX.newMXBeanProxy(mbs, oName, ContextLoaderMXBean.class, true);
             						log.debug("Context loader was found");
             						appctx.setParent(proxy.getContext(defaultApplicationContextId));	
             					} else {
@@ -320,9 +321,9 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 					MBeanServer mbs = JMXFactory.getMBeanServer();
 					//get the ContextLoader from jmx
 					ObjectName oName = JMXFactory.createObjectName("type", "ContextLoader");
-					ContextLoaderMBean proxy = null;
+					ContextLoaderMXBean proxy = null;
 					if (mbs.isRegistered(oName)) {
-						proxy = (ContextLoaderMBean) MBeanServerInvocationHandler.newProxyInstance(mbs, oName, ContextLoaderMBean.class, true);
+						proxy = (ContextLoaderMXBean) JMX.newMXBeanProxy(mbs, oName, ContextLoaderMXBean.class, true);
 						log.debug("Context loader was found");
 						appctx.setParent(proxy.getContext(defaultApplicationContextId));	
 					} else {
@@ -531,7 +532,7 @@ public class TomcatVHostLoader extends TomcatLoader implements TomcatVHostLoader
 
 	public void registerJMX() {
 		oName = JMXFactory.createObjectName("type", "TomcatVHostLoader", "name", name, "domain", domain);
-		JMXAgent.registerMBean(this, this.getClass().getName(),	TomcatVHostLoaderMBean.class, oName);
+		JMXAgent.registerMBean(this, this.getClass().getName(),	TomcatVHostLoaderMXBean.class, oName);
 	}
 	
 	public void unregisterJMX() {	

@@ -1,4 +1,4 @@
-package org.red5.server.api;
+package org.red5.server.jmx.mxbeans;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -20,27 +20,51 @@ package org.red5.server.api;
  */
 
 import java.util.List;
+import java.util.Map;
 
-import org.red5.server.exception.ClientNotFoundException;
+import javax.management.MXBean;
 
 /**
- * An MBean interface for the client registry.
- *
- * @author The Red5 Project (red5@osflash.org)
- * @author Paul Gregoire (mondain@gmail.com)
+ * Base abstract class for connections. Adds connection specific functionality like work with clients
+ * to AttributeStore.
  */
-public interface ClientRegistryMBean {
+@MXBean
+public interface RTMPMinaConnectionMXBean {
 
-	public String nextId();
+	public String getType();
 
-	public boolean hasClient(String id);
+	public String getHost();
 
-	public IClient lookupClient(String id) throws ClientNotFoundException;
+	public String getRemoteAddress();
 
-	public IClient newClient(Object[] params);
+	public List<String> getRemoteAddresses();
 
-	public List<IClient> getClientList();
+	public int getRemotePort();
 
-	public IClient getClient(String id) throws ClientNotFoundException;
+	public String getPath();
+
+	public String getSessionId();
+
+	public Map<String, Object> getConnectParams();
+
+	public boolean isConnected();
+
+	public void close();
+
+	public long getReadBytes();
+
+	public long getWrittenBytes();
+
+	public long getReadMessages();
+
+	public long getWrittenMessages();
+
+	public long getDroppedMessages();
+
+	public long getPendingMessages();
+
+	public long getPendingVideoMessages(int streamId);
+	
+    public void invokeMethod(String method);
 
 }

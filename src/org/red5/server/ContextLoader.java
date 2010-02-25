@@ -32,6 +32,7 @@ import javax.management.ObjectName;
 
 import org.red5.server.jmx.JMXAgent;
 import org.red5.server.jmx.JMXFactory;
+import org.red5.server.jmx.mxbeans.ContextLoaderMXBean;
 import org.red5.server.plugin.PluginRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +53,7 @@ import org.springframework.core.io.Resource;
  * @author Tiago Jacobs (tiago@imdt.com.br)
  * @author Paul Gregoire (mondain@gmail.com)
  */
-public class ContextLoader implements ApplicationContextAware, ContextLoaderMBean {
+public class ContextLoader implements ApplicationContextAware, ContextLoaderMXBean {
 
 	protected static Logger log = LoggerFactory.getLogger(ContextLoader.class);
 
@@ -142,7 +143,7 @@ public class ContextLoader implements ApplicationContextAware, ContextLoaderMBea
 		// register in jmx
 		//create a new mbean for this instance
 		oName = JMXFactory.createObjectName("type", "ContextLoader");
-		JMXAgent.registerMBean(this, this.getClass().getName(),	ContextLoaderMBean.class, oName);		
+		JMXAgent.registerMBean(this, this.getClass().getName(),	ContextLoaderMXBean.class, oName);		
 		
 		//check to see if we should add a shutdown hook
 		if (useShutdownHook) {

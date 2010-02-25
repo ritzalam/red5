@@ -3,12 +3,14 @@ package org.red5.server;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.HashMap;
 
+import javax.management.JMX;
 import javax.management.MBeanServerConnection;
-import javax.management.MBeanServerInvocationHandler;
 import javax.management.ObjectName;
 import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
+
+import org.red5.server.jmx.mxbeans.LoaderMXBean;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -46,41 +48,38 @@ public class Shutdown {
 	@SuppressWarnings("cast")
 	public static void main(String[] args) {
 		try {
-			
+
 			String policyFile = System.getProperty("java.security.policy");
 			if (policyFile == null) {
-				System.setProperty("java.security.debug", "failure");			
+				System.setProperty("java.security.debug", "failure");
 				System.setProperty("java.security.policy", "conf/red5.policy");
 			}
-			
+
 			/*
-		    try {
-		        // Enable the security manager
-		        SecurityManager sm = new SecurityManager();
-		        System.setSecurityManager(sm);
-		    } catch (SecurityException se) {
-		    	System.err.println("Security manager already set");
-		    }
-		    */			
-			
+			try {
+			    // Enable the security manager
+			    SecurityManager sm = new SecurityManager();
+			    System.setSecurityManager(sm);
+			} catch (SecurityException se) {
+				System.err.println("Security manager already set");
+			}
+			*/
+
 			JMXServiceURL url = null;
 			JMXConnector jmxc = null;
-            HashMap<String, Object> env = null;
-			
+			HashMap<String, Object> env = null;
+
 			if (null == args || args.length < 1) {
 				System.out.println("Attempting to connect to RMI port: 9999");
-				url = new JMXServiceURL(
-						"service:jmx:rmi:///jndi/rmi://:9999/red5");
+				url = new JMXServiceURL("service:jmx:rmi:///jndi/rmi://:9999/red5");
 			} else {
-				System.out.println("Attempting to connect to RMI port: "
-						+ args[0]);
-				url = new JMXServiceURL("service:jmx:rmi:///jndi/rmi://:"
-						+ args[0] + "/red5");
-				
+				System.out.println("Attempting to connect to RMI port: " + args[0]);
+				url = new JMXServiceURL("service:jmx:rmi:///jndi/rmi://:" + args[0] + "/red5");
+
 				if (args.length > 1) {
-		            env = new HashMap<String, Object>(1);
-		            String[] credentials = new String[] {args[1], args[2]};
-		            env.put("jmx.remote.credentials", credentials);
+					env = new HashMap<String, Object>(1);
+					String[] credentials = new String[] { args[1], args[2] };
+					env.put("jmx.remote.credentials", credentials);
 				}
 			}
 
@@ -88,22 +87,17 @@ public class Shutdown {
 			MBeanServerConnection mbs = jmxc.getMBeanServerConnection();
 
 			//check for loader registration
-			ObjectName tomcatObjectName = new ObjectName(
-					"org.red5.server:type=TomcatLoader");
-			ObjectName jettyObjectName = new ObjectName(
-					"org.red5.server:type=JettyLoader");
-			LoaderMBean mbeanProxy = null;
+			ObjectName tomcatObjectName = new ObjectName("org.red5.server:type=TomcatLoader");
+			ObjectName jettyObjectName = new ObjectName("org.red5.server:type=JettyLoader");
+			LoaderMXBean mbeanProxy = null;
 			if (mbs.isRegistered(jettyObjectName)) {
-				mbeanProxy = (LoaderMBean) MBeanServerInvocationHandler.newProxyInstance(mbs,
-						jettyObjectName, LoaderMBean.class, true);
+				mbeanProxy = (LoaderMXBean) JMX.newMXBeanProxy(mbs, jettyObjectName, LoaderMXBean.class, true);
 				System.out.println("Red5 Jetty loader was found");
 			} else if (mbs.isRegistered(tomcatObjectName)) {
-				mbeanProxy = (LoaderMBean) MBeanServerInvocationHandler.newProxyInstance(mbs,
-						tomcatObjectName, LoaderMBean.class, true);
+				mbeanProxy = (LoaderMXBean) JMX.newMXBeanProxy(mbs, tomcatObjectName, LoaderMXBean.class, true);
 				System.out.println("Red5 Tomcat loader was found");
 			} else {
-				System.out
-						.println("Red5 Loader was not found, is the server running?");
+				System.out.println("Red5 Loader was not found, is the server running?");
 			}
 			if (null != mbeanProxy) {
 				System.out.println("Calling shutdown");

@@ -1,7 +1,9 @@
-package org.red5.server.tomcat;
+package org.red5.server.jmx.mxbeans;
 
-import org.apache.catalina.Valve;
+import javax.management.MXBean;
+
 import org.apache.catalina.Host;
+import org.apache.catalina.Valve;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -28,7 +30,8 @@ import org.apache.catalina.Host;
  * @author The Red5 Project (red5@osflash.org)
  * @author Paul Gregoire (mondain@gmail.com)
  */
-public interface TomcatVHostLoaderMBean {
+@MXBean
+public interface TomcatVHostLoaderMXBean {
 
 	public void init();
 

@@ -37,7 +37,7 @@ import org.red5.server.adapter.IApplication;
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard (luke@codegent.com)
  */
-public interface IClient extends ClientMBean, IAttributeStore {
+public interface IClient extends IAttributeStore {
 
 	/**
 	 * The key used to store the client object in a http session.

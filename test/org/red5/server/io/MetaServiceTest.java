@@ -31,9 +31,6 @@ import org.red5.io.flv.meta.IMetaCue;
 import org.red5.io.flv.meta.MetaCue;
 import org.red5.io.flv.meta.MetaData;
 import org.red5.io.flv.meta.MetaService;
-import org.red5.io.flv.meta.Resolver;
-import org.red5.io.object.Deserializer;
-import org.red5.io.object.Serializer;
 import org.red5.server.cache.NoCacheImpl;
 
 public class MetaServiceTest extends TestCase {
@@ -51,9 +48,6 @@ public class MetaServiceTest extends TestCase {
 
 		// Create a Meta Service
 		metaService = new MetaService();
-		metaService.setSerializer(new Serializer());
-		metaService.setDeserializer(new Deserializer());
-		metaService.setResolver(new Resolver());
 	}
 
 	/**

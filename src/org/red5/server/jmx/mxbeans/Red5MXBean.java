@@ -1,4 +1,6 @@
-package org.red5.server;
+package org.red5.server.jmx.mxbeans;
+
+import javax.management.MXBean;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -20,20 +22,20 @@ package org.red5.server;
  */
 
 /**
- * Simple mbean interface for J2EE container loaders. Allows for
- * init and shutdown.
+ * JMX interface for accessing Red5 API objects
  *
  * @author The Red5 Project (red5@osflash.org)
  * @author Paul Gregoire (mondain@gmail.com)
  */
-public interface LoaderMBean {
+@MXBean
+public interface Red5MXBean {
 
-	public void init();
+	public ConnectionMXBean getConnection();
 
-	public void shutdown();
+	public ScopeMXBean getScope();
 
-	public void removeContext(String path);
+	public ClientMXBean getClient();
 
-	public boolean startWebApplication(String application);
+	public ContextMXBean getContext();
 
 }

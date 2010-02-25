@@ -1,4 +1,4 @@
-package org.red5.server.net.rtmp;
+package org.red5.server.jmx.mxbeans;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -20,48 +20,27 @@ package org.red5.server.net.rtmp;
  */
 
 import java.util.List;
-import java.util.Map;
+
+import javax.management.MXBean;
 
 /**
- * Base abstract class for connections. Adds connection specific functionality like work with clients
- * to AttributeStore.
+ * Scheduling service that uses Quartz as backend.
+ *
+ * @author The Red5 Project (red5@osflash.org)
+ * @author Paul Gregoire (mondain@gmail.com)
  */
-public interface RTMPMinaConnectionMBean {
+@MXBean
+public interface QuartzSchedulingServiceMXBean {
 
-	public String getType();
+	/**
+	 * Getter for job name.
+	 *
+	 * @return  Job name
+	 */
+	public String getJobName();
 
-	public String getHost();
+	public void removeScheduledJob(String name);
 
-	public String getRemoteAddress();
-
-	public List<String> getRemoteAddresses();
-
-	public int getRemotePort();
-
-	public String getPath();
-
-	public String getSessionId();
-
-	public Map<String, Object> getConnectParams();
-
-	public boolean isConnected();
-
-	public void close();
-
-	public long getReadBytes();
-
-	public long getWrittenBytes();
-
-	public long getReadMessages();
-
-	public long getWrittenMessages();
-
-	public long getDroppedMessages();
-
-	public long getPendingMessages();
-
-	public long getPendingVideoMessages(int streamId);
-	
-    public void invokeMethod(String method);
+	public List<String> getScheduledJobNames();
 
 }

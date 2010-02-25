@@ -19,6 +19,7 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
@@ -33,6 +34,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
+import javax.management.openmbean.CompositeData;
 
 import org.apache.commons.lang.StringUtils;
 import org.red5.server.api.IBasicScope;
@@ -50,6 +52,7 @@ import org.red5.server.api.statistics.IScopeStatistics;
 import org.red5.server.api.statistics.support.StatisticsCounter;
 import org.red5.server.jmx.JMXAgent;
 import org.red5.server.jmx.JMXFactory;
+import org.red5.server.jmx.mxbeans.ScopeMXBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
@@ -70,7 +73,7 @@ import org.springframework.core.style.ToStringCreator;
  * @author Paul Gregoire (mondain@gmail.com)
  * @author Nathan Smith (nathgs@gmail.com)
  */
-public class Scope extends BasicScope implements IScope, IScopeStatistics, ScopeMBean {
+public class Scope extends BasicScope implements IScope, IScopeStatistics, ScopeMXBean {
 
 	/**
 	 * Iterator that filters strings by given prefix
@@ -234,6 +237,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	/**
 	 * Creates unnamed scope
 	 */
+	@ConstructorProperties(value = { "" })
 	public Scope() {
 		super();
 	}
@@ -243,6 +247,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 	 * 
 	 * @param name Scope name
 	 */
+	@ConstructorProperties({ "name" })
 	public Scope(String name) {
 		super(null, TYPE, name, false);
 	}
@@ -1110,7 +1115,7 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 			} catch (MalformedObjectNameException e) {
 				log.error("Invalid object name. {}", e);
 			}
-			JMXAgent.registerMBean(this, this.getClass().getName(), ScopeMBean.class, oName);
+			JMXAgent.registerMBean(this, this.getClass().getName(), ScopeMXBean.class, oName);
 		}
 	}
 
@@ -1261,6 +1266,23 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 				log.debug("Children - {} = {}", entry.getKey(), entry.getValue());
 			}
 		}
+	}
+
+	/**
+	 * Allows for reconstruction via CompositeData.
+	 * 
+	 * @param cd composite data
+	 * @return Scope class instance
+	 */
+	public static Scope from(CompositeData cd) {
+		Scope instance = new Scope();
+		if (cd.containsKey("name")) {
+			Object name = cd.get("name");
+			if (name != null) {
+				instance = new Scope((String) name);
+			}
+		}
+		return instance;
 	}
 
 	/**

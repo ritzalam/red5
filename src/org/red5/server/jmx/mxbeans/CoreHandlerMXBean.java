@@ -1,4 +1,4 @@
-package org.red5.server;
+package org.red5.server.jmx.mxbeans;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -19,6 +19,8 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import javax.management.MXBean;
+
 import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
@@ -31,7 +33,8 @@ import org.red5.server.api.service.IServiceCall;
  *
  * @author The Red5 Project (red5@osflash.org)
  */
-public interface CoreHandlerMBean {
+@MXBean
+public interface CoreHandlerMXBean {
 
 	public boolean connect(IConnection conn, IScope scope);
 

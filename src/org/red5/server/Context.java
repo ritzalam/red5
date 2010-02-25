@@ -19,7 +19,10 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.beans.ConstructorProperties;
 import java.io.IOException;
+
+import javax.management.openmbean.CompositeData;
 
 import org.red5.server.api.IClientRegistry;
 import org.red5.server.api.IContext;
@@ -31,6 +34,7 @@ import org.red5.server.api.IScopeResolver;
 import org.red5.server.api.persistence.IPersistenceStore;
 import org.red5.server.api.service.IServiceInvoker;
 import org.red5.server.exception.ScopeHandlerNotFoundException;
+import org.red5.server.jmx.mxbeans.ContextMXBean;
 import org.red5.server.service.ServiceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +50,7 @@ import org.springframework.core.io.Resource;
  * This is basic context implementation used by Red5.
  * </p>
  */
-public class Context implements IContext, ApplicationContextAware, ContextMBean {
+public class Context implements IContext, ApplicationContextAware, ContextMXBean {
 
 	// Initialize Logging
 	public static Logger logger = LoggerFactory.getLogger(Context.class);
@@ -95,6 +99,7 @@ public class Context implements IContext, ApplicationContextAware, ContextMBean 
 	 * Initializes core context bean factory using red5.core bean factory from
 	 * red5.xml context
 	 */
+	@ConstructorProperties(value = { "" })
 	public Context() {
 	}
 
@@ -104,6 +109,7 @@ public class Context implements IContext, ApplicationContextAware, ContextMBean 
 	 * @param context Application context
 	 * @param contextPath Context path
 	 */
+	@ConstructorProperties({"context", "contextPath"})
 	public Context(ApplicationContext context, String contextPath) {
 		setApplicationContext(context);
 		this.contextPath = contextPath;
@@ -422,4 +428,22 @@ public class Context implements IContext, ApplicationContextAware, ContextMBean 
 		return applicationContext.getClassLoader();
 	}
 
+	/**
+	 * Allows for reconstruction via CompositeData.
+	 * 
+	 * @param cd composite data
+	 * @return Context class instance
+	 */
+	public static Context from(CompositeData cd) {
+		Context instance = new Context();
+		if (cd.containsKey("context") && cd.containsKey("contextPath")) {
+			Object context = cd.get("context");
+			Object contextPath = cd.get("contextPath");
+			if (context != null && contextPath != null) {
+				instance = new Context((ApplicationContext) context, (String) contextPath);
+			}
+		}
+		return instance;
+	}	
+	
 }

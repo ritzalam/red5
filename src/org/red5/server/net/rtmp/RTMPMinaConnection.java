@@ -19,6 +19,7 @@ package org.red5.server.net.rtmp;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+import java.beans.ConstructorProperties;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.ArrayList;
@@ -33,6 +34,7 @@ import org.red5.server.api.IContext;
 import org.red5.server.api.IScope;
 import org.red5.server.jmx.JMXAgent;
 import org.red5.server.jmx.JMXFactory;
+import org.red5.server.jmx.mxbeans.RTMPMinaConnectionMXBean;
 import org.red5.server.net.filter.TrafficShapingFilter;
 import org.red5.server.net.rtmp.event.ClientBW;
 import org.red5.server.net.rtmp.event.ServerBW;
@@ -47,7 +49,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author Paul Gregoire
  */
-public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnectionMBean {
+public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnectionMXBean {
 	
 	protected static Logger log = LoggerFactory.getLogger(RTMPMinaConnection.class);
 
@@ -66,6 +68,7 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 	}
 	
 	/** Constructs a new RTMPMinaConnection. */
+	@ConstructorProperties(value={"persistent"})
 	public RTMPMinaConnection() {
 		super(PERSISTENT);
 	}
@@ -114,7 +117,7 @@ public class RTMPMinaConnection extends RTMPConnection implements RTMPMinaConnec
 				}				
 			    // Create a new mbean for this instance
 			    oName = JMXFactory.createObjectName("type", cName, "connectionType", type, "host", hostStr, "port", port + "", "clientId", client.getId());
-			    JMXAgent.registerMBean(this, this.getClass().getName(),	RTMPMinaConnectionMBean.class, oName);		
+			    JMXAgent.registerMBean(this, this.getClass().getName(),	RTMPMinaConnectionMXBean.class, oName);		
     		} catch (Exception e) {
     			log.warn("Exception registering mbean", e);
     		}

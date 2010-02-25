@@ -35,6 +35,7 @@ import org.red5.server.exception.ClientNotFoundException;
 import org.red5.server.exception.ClientRejectedException;
 import org.red5.server.jmx.JMXAgent;
 import org.red5.server.jmx.JMXFactory;
+import org.red5.server.jmx.mxbeans.ClientRegistryMXBean;
 
 /**
  * Registry for clients. Associates client with it's id so it's possible to get client by id
@@ -42,7 +43,7 @@ import org.red5.server.jmx.JMXFactory;
  *
  * @author The Red5 Project (red5@osflash.org)
  */
-public class ClientRegistry implements IClientRegistry, ClientRegistryMBean {
+public class ClientRegistry implements IClientRegistry, ClientRegistryMXBean {
 	/**
 	 * Clients map
 	 */
@@ -57,9 +58,9 @@ public class ClientRegistry implements IClientRegistry, ClientRegistryMBean {
 	 * The identifier for this client registry
 	 */
 	private String name;
-	
+
 	public ClientRegistry() {
-		JMXAgent.registerMBean(this, this.getClass().getName(),	ClientRegistryMBean.class);		
+		JMXAgent.registerMBean(this, this.getClass().getName(), ClientRegistryMXBean.class);
 	}
 
 	//allows for setting a "name" to be used with jmx for lookup
@@ -68,15 +69,14 @@ public class ClientRegistry implements IClientRegistry, ClientRegistryMBean {
 		if (StringUtils.isNotBlank(this.name)) {
 			try {
 				String className = JMXAgent.trimClassName(getClass().getName());
-				ObjectName oName = new ObjectName(JMXFactory.getDefaultDomain() + ":type="
-						+ className + ",name=" + this.name);
-				JMXAgent.registerMBean(this, getClass().getName(), ClientRegistryMBean.class, oName);			
+				ObjectName oName = new ObjectName(String.format("%s:type=%s,name=%s", JMXFactory.getDefaultDomain(), className, name));
+				JMXAgent.registerMBean(this, getClass().getName(), ClientRegistryMXBean.class, oName);
 			} catch (MalformedObjectNameException e) {
 				//log.error("Invalid object name. {}", e);
 			}
-		}		
+		}
 	}
-	
+
 	/**
 	 * Add client to registry
 	 * @param client           Client to add
@@ -84,26 +84,26 @@ public class ClientRegistry implements IClientRegistry, ClientRegistryMBean {
 	protected void addClient(IClient client) {
 		addClient(client.getId(), client);
 	}
-	
+
 	/**
 	 * Add the client to the registry
 	 */
 	private void addClient(String id, IClient client) {
-	    //check to see if the id already exists first
-	    if (!hasClient(id)) {
-		    clients.put(id, client);
+		//check to see if the id already exists first
+		if (!hasClient(id)) {
+			clients.put(id, client);
 		} else {
-		    //get the next available client id
-		    String newId = nextId();
-		    //update the client
-		    client.setId(newId);
-		    //add the client to the list
-		    addClient(newId, client);		    
+			//get the next available client id
+			String newId = nextId();
+			//update the client
+			client.setId(newId);
+			//add the client to the list
+			addClient(newId, client);
 		}
-	}	
+	}
 
 	public Client getClient(String id) throws ClientNotFoundException {
-		final Client result = (Client) clients.get(id);
+		Client result = (Client) clients.get(id);
 		if (result == null) {
 			throw new ClientNotFoundException(id);
 		}
@@ -129,7 +129,7 @@ public class ClientRegistry implements IClientRegistry, ClientRegistryMBean {
 	protected boolean hasClients() {
 		return !clients.isEmpty();
 	}
-	
+
 	/**
 	 * Return collection of clients
 	 * @return             Collection of clients
@@ -139,7 +139,7 @@ public class ClientRegistry implements IClientRegistry, ClientRegistryMBean {
 		if (!hasClients()) {
 			// Avoid creating new Collection object if no clients exist.
 			return Collections.EMPTY_SET;
-		}		
+		}
 		return Collections.unmodifiableCollection(clients.values());
 	}
 
@@ -176,9 +176,8 @@ public class ClientRegistry implements IClientRegistry, ClientRegistryMBean {
 	 * @throws ClientNotFoundException if client not found
 	 * @throws ClientRejectedException if client rejected
 	 */
-	public IClient newClient(Object[] params) throws ClientNotFoundException,
-			ClientRejectedException {
-	    String id = nextId();
+	public IClient newClient(Object[] params) throws ClientNotFoundException, ClientRejectedException {
+		String id = nextId();
 		IClient client = new Client(id, this);
 		addClient(id, client);
 		return client;
@@ -193,7 +192,7 @@ public class ClientRegistry implements IClientRegistry, ClientRegistryMBean {
 		if (nextId.get() == Integer.MAX_VALUE) {
 			nextId.set(0);
 		}
-		return String.format("%s", nextId.getAndIncrement()) ;
+		return String.format("%s", nextId.getAndIncrement());
 	}
 
 	/**

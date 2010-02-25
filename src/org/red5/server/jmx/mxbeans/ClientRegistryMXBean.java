@@ -1,4 +1,4 @@
-package org.red5.server.api;
+package org.red5.server.jmx.mxbeans;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -19,31 +19,30 @@ package org.red5.server.api;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-import java.util.Map;
-import java.util.Set;
+import java.util.List;
+
+import javax.management.MXBean;
+
+import org.red5.server.Client;
+import org.red5.server.exception.ClientNotFoundException;
 
 /**
- * Base interface for all API objects with attributes
+ * An MBean interface for the client registry.
  *
  * @author The Red5 Project (red5@osflash.org)
- * @author Luke Hubbard (luke@codegent.com)
+ * @author Paul Gregoire (mondain@gmail.com)
  */
-public interface AttributeStoreMBean {
+@MXBean
+public interface ClientRegistryMXBean {
 
-	public Set<String> getAttributeNames();
+	public String nextId();
 
-	public Map<String, Object> getAttributes();
+	public String previousId();
 
-	public boolean setAttribute(String name, Object value);
+	public boolean hasClient(String id);
 
-	public Object getAttribute(String name);
+	public List<Client> getClientList();
 
-	public Object getAttribute(String name, Object defaultValue);
-
-	public boolean hasAttribute(String name);
-
-	public boolean removeAttribute(String name);
-
-	public void removeAttributes();
+	public Client getClient(String id) throws ClientNotFoundException;
 
 }

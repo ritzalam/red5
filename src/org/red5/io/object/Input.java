@@ -29,7 +29,7 @@ import org.w3c.dom.Document;
 /**
  * Interface for Input which defines the contract methods which are
  * to be implemented. Input object provides
-     * ways to read primitives, complex object and object references from byte buffer.
+ * ways to read primitives, complex object and object references from byte buffer.
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard, Codegent Ltd (luke@codegent.com)

@@ -19,6 +19,7 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+import java.beans.ConstructorProperties;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -30,6 +31,8 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
+import javax.management.openmbean.CompositeData;
+
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
@@ -39,7 +42,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Client is an abstraction representing user connected to Red5 application.
- * Clients are tied to connections and registred in ClientRegistry
+ * Clients are tied to connections and registered in ClientRegistry
  */
 public class Client extends AttributeStore implements IClient {
 	/**
@@ -68,19 +71,9 @@ public class Client extends AttributeStore implements IClient {
 	protected String id;
 
 	/**
-	 * MBean object name used for de/registration purposes.
-	 */
-	//private ObjectName oName;
-
-	/**
 	 *  Client registry where Client is registered
 	 */
 	protected ClientRegistry registry;
-
-	public Client() {
-		//here for jmx reference only
-		log.trace("Default ctor called");
-	}
 
 	/**
 	 * Creates client, sets creation time and registers it in ClientRegistry
@@ -88,13 +81,11 @@ public class Client extends AttributeStore implements IClient {
 	 * @param id             Client id
 	 * @param registry       ClientRegistry
 	 */
+	@ConstructorProperties({"id", "registry"})
 	public Client(String id, ClientRegistry registry) {
 		this.id = id;
 		this.registry = registry;
 		this.creationTime = System.currentTimeMillis();
-		//create a new mbean for this instance
-		//oName = JMXFactory.createObjectName("type", "Client", "id", id);
-		//JMXAgent.registerMBean(this, this.getClass().getName(), ClientMBean.class, oName);
 	}
 
 	/**
@@ -151,6 +142,10 @@ public class Client extends AttributeStore implements IClient {
 		return result;
 	}
 
+	public void setCreationTime(long creationTime) {
+		this.creationTime = creationTime;
+	}
+	
 	/**
 	 *
 	 * @return creation time
@@ -249,8 +244,6 @@ public class Client extends AttributeStore implements IClient {
 				registry.removeClient(this);
 				registry = null;
 			}
-			// deregister with jmx
-			//JMXAgent.unregisterMBean(oName);
 		}
 	}
 
@@ -283,5 +276,22 @@ public class Client extends AttributeStore implements IClient {
 	public void checkBandwidth() {
 		//do something to check the bandwidth, Dan what do you think?
 	}
+	
+	/**
+	 * Allows for reconstruction via CompositeData.
+	 * 
+	 * @param cd composite data
+	 * @return Client class instance
+	 */
+    public static Client from(CompositeData cd) {
+    	Client instance = null;
+    	if (cd.containsKey("id")) {
+    		String id = (String) cd.get("id");
+    		instance = new Client(id, null);
+    		instance.setCreationTime((Long) cd.get("creationTime"));
+    		instance.setAttribute(PERMISSIONS, cd.get(PERMISSIONS));
+		}
+        return instance;
+    }		
 	
 }

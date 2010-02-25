@@ -596,8 +596,9 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 			tag.setBody(body);
 		}
 
-		if (tag.getDataType() == TYPE_METADATA)
+		if (tag.getDataType() == TYPE_METADATA) {
 			metadataSent = true;
+		}
 
 		return tag;
 	}

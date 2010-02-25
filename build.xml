@@ -92,7 +92,17 @@
 		<condition property="java6.using" value="1.6" else="${java.target_version}">
 			<isset property="java6.installed"/>
 		</condition>
-		<echo message="Using Java ${java6.using}"/>
+		<echo message="Using Java ${java6.using} specification: ${java.specification.version}"/>
+		<fail message="Unsupported Java version - detected: ${java.version} selected: ${java.target_version}. Only Java compiler version 1.6 or later are supported."> 
+            <condition> 
+            	<not>
+                    <or> 
+                    	<equals arg1="${java.target_version}" arg2="1.6"/>
+                        <equals arg1="${java.target_version}" arg2="1.7"/>
+                    </or>
+            	</not>
+            </condition> 
+        </fail> 
 	</target>
 	<!-- Check for the main libraries -->
 	<target name="-library.check">
@@ -492,7 +502,7 @@
 			<fileset dir="${classes.dir}">
 				<exclude name="**/org/red5/server/Bootstrap.class"/>
 				<exclude name="**/org/red5/server/Shutdown.class"/>
-				<exclude name="**/org/red5/server/LoaderMBean.class"/>
+				<exclude name="**/LoaderMXBean.class"/>
 				<exclude name="**/org/red5/classloading/**"/>
 				<include name="**/org/**"/>
 				<include name="**/META-INF**"/>
@@ -511,7 +521,7 @@
 			<fileset dir="${classes.dir}">
 				<include name="**/org/red5/server/Bootstrap.class"/>
 				<include name="**/org/red5/server/Shutdown.class"/>
-				<include name="**/org/red5/server/LoaderMBean.class"/>
+				<include name="**/LoaderMXBean.class"/>
 				<include name="**/org/red5/classloading/**"/>
 				<include name="**/META-INF**"/>
 			</fileset>

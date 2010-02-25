@@ -61,7 +61,7 @@ public class GroovyScriptFactory implements ScriptFactory, BeanClassLoaderAware 
 
 	private final Object scriptClassMonitor = new Object();
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "rawtypes" })
 	private Class[] scriptInterfaces;
 
 	/**
@@ -96,7 +96,7 @@ public class GroovyScriptFactory implements ScriptFactory, BeanClassLoaderAware 
 		this.groovyObjectCustomizer = groovyObjectCustomizer;
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "rawtypes" })
 	public GroovyScriptFactory(String scriptSourceLocator, Class[] scriptInterfaces) {
 		Assert.hasText(scriptSourceLocator, "'scriptSourceLocator' must not be empty");
 		this.scriptSourceLocator = scriptSourceLocator;
@@ -122,7 +122,7 @@ public class GroovyScriptFactory implements ScriptFactory, BeanClassLoaderAware 
 	 * hence we don't need to explicitly expose interfaces here.
 	 * @return <code>null</code> always
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "rawtypes" })
 	public Class[] getScriptInterfaces() {
 		return scriptInterfaces;
 	}
@@ -140,7 +140,7 @@ public class GroovyScriptFactory implements ScriptFactory, BeanClassLoaderAware 
 	 * Loads and parses the Groovy script via the GroovyClassLoader.
 	 * @see groovy.lang.GroovyClassLoader
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "rawtypes" })
 	public Object getScriptedObject(ScriptSource scriptSource, Class[] actualInterfaces)
 			throws IOException, ScriptCompilationException {
 

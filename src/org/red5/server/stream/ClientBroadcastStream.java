@@ -48,6 +48,7 @@ import org.red5.server.api.stream.IVideoStreamCodec;
 import org.red5.server.api.stream.ResourceExistException;
 import org.red5.server.api.stream.ResourceNotFoundException;
 import org.red5.server.api.stream.IStreamFilenameGenerator.GenerationType;
+import org.red5.server.jmx.mxbeans.ClientBroadcastStreamMXBean;
 import org.red5.server.messaging.AbstractPipe;
 import org.red5.server.messaging.IConsumer;
 import org.red5.server.messaging.IFilter;
@@ -88,7 +89,7 @@ import org.slf4j.LoggerFactory;
  */
 public class ClientBroadcastStream extends AbstractClientStream implements IClientBroadcastStream, IFilter,
 		IPushableConsumer, IPipeConnectionListener, IEventDispatcher, IClientBroadcastStreamStatistics,
-		ClientBroadcastStreamMBean {
+		ClientBroadcastStreamMXBean {
 
 	/**
 	 * Logger

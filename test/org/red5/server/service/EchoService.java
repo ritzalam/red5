@@ -75,7 +75,7 @@ public class EchoService {
 		return array;
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "rawtypes" })
 	public List echoList(List list) {
 		log.info("echoList: {}", list);
 		return list;

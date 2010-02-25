@@ -1,4 +1,6 @@
-package org.red5.server.api;
+package org.red5.server.jmx.mxbeans;
+
+import javax.management.MXBean;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -19,32 +21,22 @@ package org.red5.server.api;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-import java.util.Collection;
-import java.util.Set;
-
 /**
- * The client object represents a single client. One client may have multiple
- * connections to different scopes on the same host. In some ways the client
- * object is like a HTTP session. You can create IClient objects with
- * {@link IClientRegistry#newClient(Object[])}
- *
- *
- * NOTE: I removed session, since client serves the same purpose as a client
- * with attributes
+ * Simple mbean interface for J2EE container loaders. Allows for
+ * init and shutdown.
  *
  * @author The Red5 Project (red5@osflash.org)
- * @author Luke Hubbard (luke@codegent.com)
+ * @author Paul Gregoire (mondain@gmail.com)
  */
-public interface ClientMBean {
+@MXBean
+public interface LoaderMXBean {
 
-	public String getId();
+	public void init();
 
-	public long getCreationTime();
+	public void shutdown();
 
-	public Collection<IScope> getScopes();
+	public void removeContext(String path);
 
-	public Set<IConnection> getConnections();
-
-	public void disconnect();
+	public boolean startWebApplication(String application);
 
 }

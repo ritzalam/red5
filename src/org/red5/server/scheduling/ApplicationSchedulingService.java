@@ -29,6 +29,7 @@ import org.quartz.impl.StdSchedulerFactory;
 import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.jmx.JMXAgent;
 import org.red5.server.jmx.JMXFactory;
+import org.red5.server.jmx.mxbeans.QuartzSchedulingServiceMXBean;
 import org.slf4j.Logger;
 
 /**
@@ -103,12 +104,12 @@ public class ApplicationSchedulingService extends QuartzSchedulingService {
 	public void registerJMX() {
 		//register with jmx server
 		if (instanceId == null) {
-			JMXAgent.registerMBean(this, this.getClass().getName(), QuartzSchedulingServiceMBean.class);
+			JMXAgent.registerMBean(this, this.getClass().getName(), QuartzSchedulingServiceMXBean.class);
 		} else {
 			try {
 				ObjectName oName = new ObjectName(JMXFactory.getDefaultDomain()
 						+ ":type=ApplicationSchedulingService,name=" + applicationName + ",instanceId=" + instanceId);
-				JMXAgent.registerMBean(this, this.getClass().getName(), QuartzSchedulingServiceMBean.class, oName);
+				JMXAgent.registerMBean(this, this.getClass().getName(), QuartzSchedulingServiceMXBean.class, oName);
 			} catch (MalformedObjectNameException e) {
 				log.warn("Error in jmx registration setup", e);
 			}

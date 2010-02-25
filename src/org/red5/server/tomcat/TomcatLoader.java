@@ -29,8 +29,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.management.JMX;
 import javax.management.MBeanServer;
-import javax.management.MBeanServerInvocationHandler;
 import javax.management.ObjectName;
 import javax.servlet.ServletContext;
 import javax.xml.parsers.DocumentBuilder;
@@ -55,12 +55,12 @@ import org.apache.coyote.http11.Http11NioProtocol;
 import org.apache.coyote.http11.Http11Protocol;
 import org.red5.logging.Red5LoggerFactory;
 import org.red5.server.ContextLoader;
-import org.red5.server.ContextLoaderMBean;
 import org.red5.server.LoaderBase;
-import org.red5.server.LoaderMBean;
 import org.red5.server.api.IApplicationContext;
 import org.red5.server.jmx.JMXAgent;
 import org.red5.server.jmx.JMXFactory;
+import org.red5.server.jmx.mxbeans.ContextLoaderMXBean;
+import org.red5.server.jmx.mxbeans.LoaderMXBean;
 import org.red5.server.util.FileUtil;
 import org.slf4j.Logger;
 import org.springframework.context.ApplicationContext;
@@ -79,7 +79,7 @@ import org.w3c.dom.NodeList;
  * 
  * @author Paul Gregoire (mondain@gmail.com)
  */
-public class TomcatLoader extends LoaderBase implements ApplicationContextAware, LoaderMBean {
+public class TomcatLoader extends LoaderBase implements ApplicationContextAware, LoaderMXBean {
 
 	/*
 	 * http://blog.springsource.com/2007/06/11/using-a-shared-parent-application-context-in-a-multi-war-spring-application/
@@ -169,7 +169,7 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 	 * Additional connection properties to be set at init.
 	 */
 	protected Map<String, String> connectionProperties = new HashMap<String, String>();
-	
+
 	/**
 	 * IP Address to bind to.
 	 */
@@ -470,7 +470,7 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 				}
 			}
 		}
-		
+
 		// set the bind address
 		if (address == null) {
 			//bind locally
@@ -481,7 +481,7 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 		if (handler instanceof Http11Protocol) {
 			((Http11Protocol) handler).setAddress(address);
 		} else if (handler instanceof Http11NioProtocol) {
-			((Http11NioProtocol) handler).setAddress(address);				
+			((Http11NioProtocol) handler).setAddress(address);
 		} else {
 			log.warn("Unknown handler type: {}", handler.getClass().getName());
 		}
@@ -511,7 +511,7 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 
 					final ServletContext servletContext = ctx.getServletContext();
 					log.debug("Context initialized: {}", servletContext.getContextPath());
-					
+
 					//set the hosts id
 					servletContext.setAttribute("red5.host.id", getHostId());
 
@@ -748,10 +748,10 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 							MBeanServer mbs = JMXFactory.getMBeanServer();
 							// get the ContextLoader from jmx
 							ObjectName oName = JMXFactory.createObjectName("type", "ContextLoader");
-							ContextLoaderMBean proxy = null;
+							ContextLoaderMXBean proxy = null;
 							if (mbs.isRegistered(oName)) {
-								proxy = (ContextLoaderMBean) MBeanServerInvocationHandler.newProxyInstance(mbs, oName,
-										ContextLoaderMBean.class, true);
+								proxy = (ContextLoaderMXBean) JMX.newMXBeanProxy(mbs, oName, ContextLoaderMXBean.class,
+										true);
 								log.debug("Context loader was found");
 								parentAppCtx = proxy.getContext(defaultParentContextKey);
 							} else {
@@ -798,7 +798,7 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 		log.info("Address to bind: {}", address);
 		this.address = address.getAddress();
 	}
-	
+
 	/**
 	 * Set base host.
 	 * 
@@ -916,13 +916,13 @@ public class TomcatLoader extends LoaderBase implements ApplicationContextAware,
 	 * @return host id
 	 */
 	protected String getHostId() {
-		String hostId =  host.getName();
+		String hostId = host.getName();
 		log.debug("Host id: {}", hostId);
 		return hostId;
 	}
-	
+
 	public void registerJMX() {
-		JMXAgent.registerMBean(this, this.getClass().getName(), LoaderMBean.class);
+		JMXAgent.registerMBean(this, this.getClass().getName(), LoaderMXBean.class);
 	}
 
 	/**

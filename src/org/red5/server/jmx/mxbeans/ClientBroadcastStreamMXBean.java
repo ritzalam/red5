@@ -1,4 +1,4 @@
-package org.red5.server.stream;
+package org.red5.server.jmx.mxbeans;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -21,6 +21,8 @@ package org.red5.server.stream;
 
 import java.io.IOException;
 
+import javax.management.MXBean;
+
 import org.red5.server.api.stream.ResourceExistException;
 import org.red5.server.api.stream.ResourceNotFoundException;
 import org.red5.server.messaging.IProvider;
@@ -36,7 +38,8 @@ import org.red5.server.messaging.IProvider;
  *
  * This type of stream uses two different pipes for live streaming and recording.
  */
-public interface ClientBroadcastStreamMBean {
+@MXBean
+public interface ClientBroadcastStreamMXBean {
 
 	public void start();
 

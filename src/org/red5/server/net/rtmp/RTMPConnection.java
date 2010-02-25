@@ -21,6 +21,7 @@ package org.red5.server.net.rtmp;
 
 import static org.red5.server.api.ScopeUtils.getScopeService;
 
+import java.beans.ConstructorProperties;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashSet;
@@ -211,11 +212,11 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	 * 
 	 * @param type Connection type
 	 */
+	@ConstructorProperties({"type"})
 	public RTMPConnection(String type) {
 		// We start with an anonymous connection without a scope.
 		// These parameters will be set during the call of "connect" later.
-		// super(null, ""); temp fix to get things to compile.
-		super(type, null, null, 0, null, null, null);
+		super(type);
 	}
 
 	public int getId() {

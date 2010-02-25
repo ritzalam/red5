@@ -1,4 +1,4 @@
-package org.red5.server.scheduling;
+package org.red5.server.jmx.mxbeans;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -19,25 +19,34 @@ package org.red5.server.scheduling;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
-import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.management.MXBean;
 
 /**
- * Scheduling service that uses Quartz as backend.
+ * Base interface for all API objects with attributes
  *
  * @author The Red5 Project (red5@osflash.org)
  * @author Paul Gregoire (mondain@gmail.com)
  */
-public interface QuartzSchedulingServiceMBean {
+@MXBean
+public interface AttributeStoreMXBean {
 
-	/**
-	 * Getter for job name.
-	 *
-	 * @return  Job name
-	 */
-	public String getJobName();
+	public Set<String> getAttributeNames();
 
-	public void removeScheduledJob(String name);
+	public Map<String, Object> getAttributes();
 
-	public List<String> getScheduledJobNames();
+	public boolean setAttribute(String name, Object value);
+
+	public Object getAttribute(String name);
+
+	public Object getAttribute(String name, Object defaultValue);
+
+	public boolean hasAttribute(String name);
+
+	public boolean removeAttribute(String name);
+
+	public void removeAttributes();
 
 }

@@ -1,4 +1,4 @@
-package org.red5.server;
+package org.red5.server.jmx.mxbeans;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -24,6 +24,8 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 
+import javax.management.MXBean;
+
 import org.red5.server.api.IBasicScope;
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
@@ -38,7 +40,8 @@ import org.springframework.core.io.Resource;
  * @author The Red5 Project (red5@osflash.org)
  * @author Paul Gregoire (mondain@gmail.com)
  */
-public interface ScopeMBean {
+@MXBean
+public interface ScopeMXBean {
 
 	/**
 	 * Check if scope is enabled

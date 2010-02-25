@@ -1,4 +1,4 @@
-package org.red5.server;
+package org.red5.server.jmx.mxbeans;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -19,12 +19,30 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+import java.util.List;
+import java.util.Set;
+
+import javax.management.MXBean;
+
+import org.red5.server.api.IConnection;
+
 /**
+ * MBean for Client.
  *
  * @author The Red5 Project (red5@osflash.org)
+ * @author Paul Gregoire (mondain@gmail.com)
  */
-public interface ListMBean {
+@MXBean
+public interface ClientMXBean {
 
-	public int size();
+	public String getId();
+
+	public long getCreationTime();
+
+	public Set<IConnection> getConnections();
+
+	public List<String> iterateScopeNameList();
+
+	public void disconnect();
 
 }

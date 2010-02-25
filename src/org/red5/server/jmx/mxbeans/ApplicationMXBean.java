@@ -1,4 +1,4 @@
-package org.red5.server.adapter;
+package org.red5.server.jmx.mxbeans;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -19,6 +19,8 @@ package org.red5.server.adapter;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+import javax.management.MXBean;
+
 import org.red5.server.api.IClient;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.IScope;
@@ -28,7 +30,8 @@ import org.red5.server.api.IScope;
  *
  * @author Paul Gregoire (mondain@gmail.com)
  */
-public interface ApplicationMBean {
+@MXBean
+public interface ApplicationMXBean {
 
 	public boolean appStart(IScope app);
 

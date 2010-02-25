@@ -1,4 +1,4 @@
-package org.red5.server;
+package org.red5.server.jmx.mxbeans;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -21,6 +21,8 @@ package org.red5.server;
 
 import java.io.IOException;
 
+import javax.management.MXBean;
+
 import org.red5.server.api.IClientRegistry;
 import org.red5.server.api.IMappingStrategy;
 import org.red5.server.api.IScope;
@@ -33,7 +35,8 @@ import org.springframework.core.io.Resource;
 /**
  * <p>This is basic context implementation used by Red5.</p>
  */
-public interface ContextMBean {
+@MXBean
+public interface ContextMXBean {
 
 	public IScope getGlobalScope();
 

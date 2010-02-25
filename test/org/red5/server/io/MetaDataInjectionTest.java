@@ -176,7 +176,7 @@ public class MetaDataInjectionTest extends TestCase {
 		IoBuffer tmpBody = out.buf().flip();
 		int tmpBodySize = out.buf().limit();
 		int tmpPreviousTagSize = tag.getPreviousTagSize();
-		byte tmpDataType = ((IoConstants.TYPE_METADATA));
+		byte tmpDataType = IoConstants.TYPE_METADATA;
 		int tmpTimestamp = getTimeInMilliseconds(cp);
 
 		return new Tag(tmpDataType, tmpTimestamp, tmpBodySize, tmpBody, tmpPreviousTagSize);

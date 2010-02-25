@@ -24,12 +24,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.UUID;
 
+import javax.management.JMX;
 import javax.management.MBeanServer;
-import javax.management.MBeanServerInvocationHandler;
 import javax.management.ObjectName;
 
-import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HostConfiguration;
+import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.methods.GetMethod;
@@ -38,11 +38,11 @@ import org.apache.commons.httpclient.params.HttpMethodParams;
 import org.red5.compatibility.flex.messaging.messages.AcknowledgeMessage;
 import org.red5.compatibility.flex.messaging.messages.AsyncMessage;
 import org.red5.logging.Red5LoggerFactory;
-import org.red5.server.LoaderMBean;
 import org.red5.server.api.IConnection;
 import org.red5.server.api.Red5;
 import org.red5.server.api.service.ServiceUtils;
 import org.red5.server.jmx.JMXFactory;
+import org.red5.server.jmx.mxbeans.LoaderMXBean;
 import org.red5.server.util.FileUtil;
 import org.slf4j.Logger;
 
@@ -78,14 +78,14 @@ public final class Installer {
 	 * @return LoaderMBean
 	 */
 	@SuppressWarnings("cast")
-	public LoaderMBean getLoader() {
+	public LoaderMXBean getLoader() {
 		MBeanServer mbs = JMXFactory.getMBeanServer();
 		
 		ObjectName oName = JMXFactory.createObjectName("type", "TomcatLoader");
 		
-		LoaderMBean proxy = null;
+		LoaderMXBean proxy = null;
 		if (mbs.isRegistered(oName)) {
-			proxy = (LoaderMBean) MBeanServerInvocationHandler.newProxyInstance(mbs, oName, LoaderMBean.class, true);
+			proxy = (LoaderMXBean) JMX.newMXBeanProxy(mbs, oName, LoaderMXBean.class, true);
 			log.debug("Loader was found");
 		} else {
 			log.warn("Loader not found");
@@ -275,7 +275,7 @@ public final class Installer {
 			//if we've found or downloaded the war
 			if (result) {    			
     			//get the webapp loader
-    			LoaderMBean loader = getLoader();
+    			LoaderMXBean loader = getLoader();
     			if (loader != null) {
         			//un-archive it to app dir
         			FileUtil.unzip(srcDir + '/' + applicationWarName, contextDir);

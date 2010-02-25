@@ -272,7 +272,7 @@ public class JMXAgent implements NotificationListener {
 		log.debug("handleNotification {}", notification.getMessage());
 	}
 
-	public void init() {
+	public void init() {		
 		//environmental var holder
 		HashMap<String, Object> env = null;
 
@@ -385,16 +385,8 @@ public class JMXAgent implements NotificationListener {
 		JMXAgent.enableRmiAdapter = enableRmiAdapter;
 	}
 
-	public void setEnableRmiAdapter(String enableRmiAdapterString) {
-		JMXAgent.enableRmiAdapter = enableRmiAdapterString.matches("true|on|yes");
-	}
-
 	public void setEnableSsl(boolean enableSsl) {
 		JMXAgent.enableSsl = enableSsl;
-	}
-
-	public void setEnableSsl(String enableSslString) {
-		JMXAgent.enableSsl = enableSslString.matches("true|on|yes");
 	}
 
 	public void setRemoteAccessProperties(String remoteAccessProperties) {
@@ -431,10 +423,6 @@ public class JMXAgent implements NotificationListener {
 
 	public void setEnableMinaMonitor(boolean enableMinaMonitor) {
 		JMXAgent.enableMinaMonitor = enableMinaMonitor;
-	}
-
-	public void setEnableMinaMonitor(String enableMinaMonitor) {
-		JMXAgent.enableMinaMonitor = enableMinaMonitor.matches("true|on|yes");
 	}
 
 	public static boolean isEnableMinaMonitor() {

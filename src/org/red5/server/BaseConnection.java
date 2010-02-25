@@ -19,6 +19,7 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  */
 
+import java.beans.ConstructorProperties;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -132,6 +133,25 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	
 	/**
 	 *
+	 */
+	@ConstructorProperties(value={"persistent"})
+	public BaseConnection() {
+		log.debug("New BaseConnection");
+		this.type = PERSISTENT;
+	}	
+	
+	/**
+	 *
+	 * @param type                Connection type
+	 */
+	@ConstructorProperties({"type"})
+	public BaseConnection(String type) {
+		log.debug("New BaseConnection - type: {}", type);
+		this.type = type;
+	}
+	
+	/**
+	 *
 	 * @param type                Connection type
 	 * @param host                Host
 	 * @param remoteAddress       Remote address
@@ -140,6 +160,7 @@ public abstract class BaseConnection extends AttributeStore implements IConnecti
 	 * @param sessionId           Session id
 	 * @param params              Params passed from client
 	 */
+	@ConstructorProperties({"type", "host", "remoteAddress", "remotePort", "path", "sessionId"})
 	public BaseConnection(String type, String host, String remoteAddress,
 			int remotePort, String path, String sessionId,
 			Map<String, Object> params) {

@@ -131,7 +131,7 @@ public abstract class AbstractIOTest extends TestCase {
 		resetOutput();
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "rawtypes" })
 	public void testJavaBean() {
 		log.debug("Testing list");
 		TestJavaBean beanIn = new TestJavaBean();
@@ -244,7 +244,7 @@ public abstract class AbstractIOTest extends TestCase {
 		resetOutput();
 	}
 
-	@SuppressWarnings({ "rawtypes" })
+	@SuppressWarnings({ })
 	public void testSimpleReference() {
 		Map<String, Object> mapIn = new HashMap<String, Object>();
 		Object bean = new SimpleJavaBean();

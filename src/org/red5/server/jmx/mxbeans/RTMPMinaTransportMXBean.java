@@ -1,4 +1,4 @@
-package org.red5.server.net.rtmp;
+package org.red5.server.jmx.mxbeans;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -19,12 +19,15 @@ package org.red5.server.net.rtmp;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
  
+import javax.management.MXBean;
+
 import org.apache.mina.core.service.IoHandlerAdapter;
 
 /** 
  * 
  */
-public interface RTMPMinaTransportMBean {
+@MXBean
+public interface RTMPMinaTransportMXBean {
 
 	public void setAddress(String address);
 	public void setPort(int port);

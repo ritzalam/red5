@@ -43,72 +43,72 @@ public class Red5LoggerFactory {
 	public static Logger getLogger(Class<?> clazz) {
 		//determine the red5 app name or servlet context name
 		String contextName = null;
-				
+
 		//if the incoming class extends StatefulScopeWrappingAdapter we lookup the context
 		//by scope name
 		boolean scopeAware = StatefulScopeWrappingAdapter.class.isAssignableFrom(clazz);
 		//System.out.printf("Wrapper - %s\n", StatefulScopeWrappingAdapter.class.isAssignableFrom(clazz));
 		if (scopeAware) {
-    		try {
-        		Class wrapper = null;
-        		if ((wrapper = clazz.asSubclass(StatefulScopeWrappingAdapter.class)) != null) {
-            		Method getScope = wrapper.getMethod("getScope", new Class[0]);
-    				//NPE will occur here if the scope is not yet set on the application adapter
-            		IScope scope = (IScope) getScope.invoke(null, new Object[0]);
-                	contextName = scope.getName();
-        		}
-    		} catch (Exception cce) {
-    			//cce.printStackTrace();
-    		}
+			try {
+				Class wrapper = null;
+				if ((wrapper = clazz.asSubclass(StatefulScopeWrappingAdapter.class)) != null) {
+					Method getScope = wrapper.getMethod("getScope", new Class[0]);
+					//NPE will occur here if the scope is not yet set on the application adapter
+					IScope scope = (IScope) getScope.invoke(null, new Object[0]);
+					contextName = scope.getName();
+				}
+			} catch (Exception cce) {
+				//cce.printStackTrace();
+			}
 		} else {
-		    //route the Launcher entries to the correct context
-		    String[] parts = Thread.currentThread().getName().split("Launcher:/");
-		    if (parts.length > 1) {
-		        contextName = parts[1];
-		    }
-		    
+			//route the Launcher entries to the correct context
+			String[] parts = Thread.currentThread().getName().split("Launcher:/");
+			if (parts.length > 1) {
+				contextName = parts[1];
+			}
+
 		}
-		
+
 		/* TODO: For a future day, the context or application will be determined
 		//get a reference to our caller
 		Class caller = Reflection.getCallerClass(2);
 		//System.err.printf("Caller class: %s classloader: %s\n", caller, caller.getClassLoader());
 
 		try {
-        	//check to see if we've been called by a servlet
+			//check to see if we've been called by a servlet
 			Class sub = caller.asSubclass(Servlet.class);
-        	//System.err.println("Caller is a Servlet");
-        
-        	//Method[] methods = caller.getMethods();
-        	//for (Method meth : methods) {
-        	//	System.err.printf("Method: %s\n", meth.getName());
-        	//}
-        	
-        	Method getContext = caller.getMethod("getServletContext", new Class[0]);
-        	//System.err.printf("got context method - %s\n", getContext);
-        	ServletContext context = (ServletContext) getContext.invoke(caller, null);
-        	System.err.printf("invoked context\n");
-        
-        	contextName = context.getServletContextName();
-        	//System.err.printf("Servlet context name: %s\n", contextName);
-
-        	Method getContextName = context.getClass().getMethod("getServletContextName", new Class[0]);
-        	System.err.printf("got context name\n");
-        	Object ctxName = getContextName.invoke(null, new Object[0]);				
-        	
-        	System.err.printf("Servlet context result: %s\n", ctxName);
-        	if (ctxName != null && ctxName instanceof String) {
-        		contextName = ctxName.toString();
-        	}	
-        } catch (Exception ex) {
-        	//ex.printStackTrace();
-        }
-		*/
+			//System.err.println("Caller is a Servlet");
 		
+			//Method[] methods = caller.getMethods();
+			//for (Method meth : methods) {
+			//	System.err.printf("Method: %s\n", meth.getName());
+			//}
+			
+			Method getContext = caller.getMethod("getServletContext", new Class[0]);
+			//System.err.printf("got context method - %s\n", getContext);
+			ServletContext context = (ServletContext) getContext.invoke(caller, null);
+			System.err.printf("invoked context\n");
+		
+			contextName = context.getServletContextName();
+			//System.err.printf("Servlet context name: %s\n", contextName);
+
+			Method getContextName = context.getClass().getMethod("getServletContextName", new Class[0]);
+			System.err.printf("got context name\n");
+			Object ctxName = getContextName.invoke(null, new Object[0]);				
+			
+			System.err.printf("Servlet context result: %s\n", ctxName);
+			if (ctxName != null && ctxName instanceof String) {
+				contextName = ctxName.toString();
+			}	
+		} catch (Exception ex) {
+			//ex.printStackTrace();
+		}
+		*/
+
 		return getLogger(clazz, contextName);
 	}
 
-	@SuppressWarnings({"rawtypes", "unchecked"})
+	@SuppressWarnings({ "rawtypes" })
 	public static Logger getLogger(Class clazz, String contextName) {
 		Logger logger = null;
 		try {
@@ -116,7 +116,7 @@ public class Red5LoggerFactory {
 			Class cs = Class.forName("ch.qos.logback.classic.selector.ContextSelector");
 			//trigger an exception if the class doesn't actually exist
 			cs.getDeclaredMethods();
-			
+
 			//get the context selector
 			ContextSelector selector = StaticLoggerBinder.getSingleton().getContextSelector();
 
@@ -127,21 +127,21 @@ public class Red5LoggerFactory {
 			}
 			// and if we get here, fall back to the default context
 			if (ctx == null) {
-				ctx = selector.getLoggerContext(); 
+				ctx = selector.getLoggerContext();
 			}
-			
+
 			//debug
 			//StatusPrinter.print(ctx);
-			
+
 			//get the logger from the context or default context
 			logger = ((ctx != null) ? ctx.getLogger(clazz) : selector.getDefaultLoggerContext().getLogger(clazz));
-			
+
 		} catch (Exception e) {
 			//no logback, use whatever logger is in-place
 			logger = LoggerFactory.getLogger(clazz);
 			e.printStackTrace();
 		}
-		
+
 		return logger;
 	}
 

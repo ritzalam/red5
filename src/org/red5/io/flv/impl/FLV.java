@@ -131,7 +131,7 @@ public class FLV implements IFLV {
 	/**
 	 * {@inheritDoc}
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "rawtypes" })
 	public IMetaData getMetaData() throws FileNotFoundException {
 		metaService.setInStream(new FileInputStream(file));
 		return null;
@@ -147,14 +147,14 @@ public class FLV implements IFLV {
 	/**
 	 * {@inheritDoc}
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "rawtypes" })
 	public void setKeyFrameData(Map keyframedata) {
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "rawtypes" })
 	public Map getKeyFrameData() {
 		return null;
 	}
@@ -249,7 +249,7 @@ public class FLV implements IFLV {
 	}
 
 	/** {@inheritDoc} */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@SuppressWarnings({ "rawtypes" })
 	public void setMetaData(IMetaData meta) throws IOException {
 		File tmpFile = File.createTempFile("setMeta_", ".flv");
 		if (metaService == null) {

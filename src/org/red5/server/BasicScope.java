@@ -19,6 +19,7 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import java.beans.ConstructorProperties;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -71,6 +72,7 @@ public abstract class BasicScope extends PersistableAttributeStore implements IB
 	/**
 	 * Creates unnamed scope
 	 */
+	@ConstructorProperties(value = { "" })
 	public BasicScope() {
 		this(null, "scope", null, false);
 	}
@@ -83,6 +85,7 @@ public abstract class BasicScope extends PersistableAttributeStore implements IB
 	 * @param name             Scope name. Used to identify scopes in application, must be unique among scopes of one level
 	 * @param persistent       Whether scope is persistent
 	 */
+	@ConstructorProperties({ "parent", "type", "name", "persistent" })
 	public BasicScope(IScope parent, String type, String name, boolean persistent) {
 		super(type, name, null, persistent);
 		this.parent = parent;
@@ -143,16 +146,16 @@ public abstract class BasicScope extends PersistableAttributeStore implements IB
 	public void removeEventListener(IEventListener listener) {
 		listeners.remove(listener);
 		if (!keepOnDisconnect) {
-        	if (ScopeUtils.isRoom(this) && listeners.isEmpty()) {
-        		if (keepDelay > 0) {
-        			// create a job to keep alive for n seconds
-        			ISchedulingService schedulingService = (ISchedulingService) parent.getContext().getBean(
-        					ISchedulingService.BEAN_NAME);
-        			schedulingService.addScheduledOnceJob(keepDelay * 1000, new KeepAliveJob(this));
-        		} else {
-        			// delete empty rooms
-        			parent.removeChildScope(this);
-        		}
+			if (ScopeUtils.isRoom(this) && listeners.isEmpty()) {
+				if (keepDelay > 0) {
+					// create a job to keep alive for n seconds
+					ISchedulingService schedulingService = (ISchedulingService) parent.getContext().getBean(
+							ISchedulingService.BEAN_NAME);
+					schedulingService.addScheduledOnceJob(keepDelay * 1000, new KeepAliveJob(this));
+				} else {
+					// delete empty rooms
+					parent.removeChildScope(this);
+				}
 			}
 		}
 	}

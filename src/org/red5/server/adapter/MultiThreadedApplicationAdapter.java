@@ -69,6 +69,7 @@ import org.red5.server.api.stream.IStreamService;
 import org.red5.server.api.stream.ISubscriberStream;
 import org.red5.server.api.stream.ISubscriberStreamService;
 import org.red5.server.exception.ClientRejectedException;
+import org.red5.server.jmx.mxbeans.ApplicationMXBean;
 import org.red5.server.messaging.AbstractPipe;
 import org.red5.server.messaging.IMessageInput;
 import org.red5.server.plugin.PluginDescriptor;
@@ -133,7 +134,7 @@ import org.slf4j.Logger;
  */
 public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapter implements ISharedObjectService,
 		IBroadcastStreamService, IOnDemandStreamService, ISubscriberStreamService, ISchedulingService,
-		IStreamSecurityService, ISharedObjectSecurityService, IStreamAwareScopeHandler, ApplicationMBean {
+		IStreamSecurityService, ISharedObjectSecurityService, IStreamAwareScopeHandler, ApplicationMXBean {
 
 	/**
 	 * Logger object

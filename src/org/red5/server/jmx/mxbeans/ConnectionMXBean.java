@@ -1,4 +1,4 @@
-package org.red5.server.api;
+package org.red5.server.jmx.mxbeans;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -23,6 +23,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import javax.management.MXBean;
+import javax.management.openmbean.CompositeData;
+
 /**
  * The connection object.
  *
@@ -34,17 +37,12 @@ import java.util.Map;
  * HttpConnection, etc
  *
  * @author The Red5 Project (red5@osflash.org)
- * @author Luke Hubbard (luke@codegent.com)
+ * @author Paul Gregoire (mondain@gmail.com)
  */
-public interface ConnectionMBean {
+@MXBean
+public interface ConnectionMXBean {
 
 	public String getType();
-
-	public void initialize(IClient client);
-
-	public boolean connect(IScope scope);
-
-	public boolean connect(IScope scope, Object[] params);
 
 	public boolean isConnected();
 
@@ -52,7 +50,7 @@ public interface ConnectionMBean {
 
 	public Map<String, Object> getConnectParams();
 
-	public IClient getClient();
+	public CompositeData getClient();
 
 	public String getHost();
 
@@ -82,8 +80,8 @@ public interface ConnectionMBean {
 
 	public int getLastPingTime();
 
-	public IScope getScope();
+	public CompositeData getScope();
 
-	public Iterator<IBasicScope> getBasicScopes();
+	public Iterator<CompositeData> getBasicScopes();
 
 }

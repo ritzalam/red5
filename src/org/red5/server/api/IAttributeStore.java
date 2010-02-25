@@ -22,13 +22,15 @@ package org.red5.server.api;
 import java.util.Map;
 import java.util.Set;
 
+import org.red5.server.jmx.mxbeans.AttributeStoreMXBean;
+
 /**
  * Base interface for all API objects with attributes
  * 
  * @author The Red5 Project (red5@osflash.org)
  * @author Luke Hubbard (luke@codegent.com)
  */
-public interface IAttributeStore extends AttributeStoreMBean {
+public interface IAttributeStore extends AttributeStoreMXBean {
 
 	/**
 	 * Get the attribute names. The resulting set will be read-only.

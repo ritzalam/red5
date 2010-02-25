@@ -29,13 +29,14 @@ import org.red5.server.api.IScopeHandler;
 import org.red5.server.api.Red5;
 import org.red5.server.api.event.IEvent;
 import org.red5.server.api.service.IServiceCall;
+import org.red5.server.jmx.mxbeans.CoreHandlerMXBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Base IScopeHandler implementation
  */
-public class CoreHandler implements IScopeHandler, CoreHandlerMBean {
+public class CoreHandler implements IScopeHandler, CoreHandlerMXBean {
 
 	protected static Logger log = LoggerFactory.getLogger(CoreHandler.class);
 

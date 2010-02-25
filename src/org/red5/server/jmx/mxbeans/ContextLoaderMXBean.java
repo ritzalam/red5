@@ -1,4 +1,4 @@
-package org.red5.server;
+package org.red5.server.jmx.mxbeans;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -19,12 +19,15 @@ package org.red5.server;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import javax.management.MXBean;
+
 import org.springframework.context.ApplicationContext;
 
 /**
  * Red5 applications loader
  */
-public interface ContextLoaderMBean {
+@MXBean
+public interface ContextLoaderMXBean {
 
 	public void setContextsConfig(String contextsConfig);
 
