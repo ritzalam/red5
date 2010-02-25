@@ -148,7 +148,10 @@ public abstract class AbstractScopeAdapter implements IScopeHandler {
 		return canHandleEvent;
 	}
     
-	/** {@inheritDoc} */
+	/**
+	 * Calls the checkBandwidth method on the current client.
+	 * @param o Object passed from Flash, not used at the moment 
+	 */
     public void checkBandwidth(Object o) {
     	//Incoming object should be null
     	IClient client = Red5.getConnectionLocal().getClient();

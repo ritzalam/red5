@@ -202,9 +202,9 @@ public class MetaService implements IMetaService {
 	/**
 	 * Merges the two Meta objects
 	 * 
-	 * @param metaData
+	 * @param metaData1
 	 *            First metadata object
-	 * @param md
+	 * @param metaData2
 	 *            Second metadata object
 	 * @return Merged metadata
 	 */
