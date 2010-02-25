@@ -19,20 +19,11 @@ package org.red5.server.jmx;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 */
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import javax.management.MBeanServer;
-import javax.management.ObjectName;
-
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class JMXAgentTest {
 
-	private static Logger logger = LoggerFactory.getLogger(JMXAgentTest.class);
+	//private static Logger logger = LoggerFactory.getLogger(JMXAgentTest.class);
 
 	@Test
 	public void testGetHtmlAdapterPort() {
@@ -69,6 +60,7 @@ public class JMXAgentTest {
 		System.out.println("Not yet implemented"); // TODO
 	}
 
+/* 
 	@Test
 	public void testUnregisterMBean() throws Exception {
 		logger.info("Default jmx domain: {}", JMXFactory.getDefaultDomain());
@@ -91,7 +83,7 @@ public class JMXAgentTest {
 		logger.info("Register check 3: {}", mbs.isRegistered(oName2));
 		assertFalse(JMXAgent.unregisterMBean(oName2));
 	}
-
+*/
 	@Test
 	public void testUpdateMBeanAttributeObjectNameStringInt() {
 		System.out.println("Not yet implemented"); // TODO
