@@ -30,88 +30,104 @@ package org.red5.io.object;
  */
 public class DataTypes {
 
-    /**
-     * Padding marker
-     */
-    public static final byte CORE_SKIP = 0x00; // padding
-    /**
-     * Null type marker
-     */
-    public static final byte CORE_NULL = 0x01; // no undefined type
-    /**
-     * Boolean type marker
-     */
-    public static final byte CORE_BOOLEAN = 0x02;
-    /**
-     * Number type marker
-     */
-    public static final byte CORE_NUMBER = 0x03;
-    /**
-     * String type marker
-     */
-    public static final byte CORE_STRING = 0x04;
-    /**
-     * Date type marker
-     */
-    public static final byte CORE_DATE = 0x05;
+	/**
+	 * Padding marker
+	 */
+	public static final byte CORE_SKIP = 0x00; // padding
+
+	/**
+	 * Null type marker
+	 */
+	public static final byte CORE_NULL = 0x01; // no undefined type
+
+	/**
+	 * Boolean type marker
+	 */
+	public static final byte CORE_BOOLEAN = 0x02;
+
+	/**
+	 * Number type marker
+	 */
+	public static final byte CORE_NUMBER = 0x03;
+
+	/**
+	 * String type marker
+	 */
+	public static final byte CORE_STRING = 0x04;
+
+	/**
+	 * Date type marker
+	 */
+	public static final byte CORE_DATE = 0x05;
 
 	// Basic stuctures
 
-    /**
-     * Array type marker
-     */
-    public static final byte CORE_ARRAY = 0x06;
-    /**
-     * Map type marker
-     */
-    public static final byte CORE_MAP = 0x07;
-    /**
-     * XML type marker
-     */
-    public static final byte CORE_XML = 0x08;
-    /**
-     * Object (Hash) type marker
-     */
-    public static final byte CORE_OBJECT = 0x09;
+	/**
+	 * Array type marker
+	 */
+	public static final byte CORE_ARRAY = 0x06;
 
-    /**
-     * ByteArray type marker (AMF3 only)
-     */
-    public static final byte CORE_BYTEARRAY = 0x10; //16
+	/**
+	 * Map type marker
+	 */
+	public static final byte CORE_MAP = 0x07;
 
-    /**
-     * Reference type, this is optional for codecs to support
-     */
-    public static final byte OPT_REFERENCE = 0x11; //17
+	/**
+	 * XML type marker
+	 */
+	public static final byte CORE_XML = 0x08;
+
+	/**
+	 * Object (Hash) type marker
+	 */
+	public static final byte CORE_OBJECT = 0x09;
+
+	/**
+	 * ByteArray type marker (AMF3 only)
+	 */
+	public static final byte CORE_BYTEARRAY = 0x10; //16
+
+	/**
+	 * Vector type markers
+	 */
+	public static final byte CORE_VECTOR_INT = 0x0D + 0x30; //61
+	public static final byte CORE_VECTOR_UINT = 0x0E + 0x30; //62
+	public static final byte CORE_VECTOR_NUMBER = 0x0F + 0x30; //63
+	public static final byte CORE_VECTOR_OBJECT = 0x10 + 0x30; //64
+	
+	/**
+	 * Reference type, this is optional for codecs to support
+	 */
+	public static final byte OPT_REFERENCE = 0x11; //17
 
 	// More datatypes can be added but they should be prefixed by the type
 	// If a codec return one of these datatypes its handled by a custom
 	// serializer
 
-    /**
-     * Custom datatype mock mask marker
-     */
-    public static final byte CUSTOM_MOCK_MASK = 0x20;
-    
-    /**
-     * Custom datatype AMF mask
-     */
-    public static final byte CUSTOM_AMF_MASK = 0x30;
+	/**
+	 * Custom datatype mock mask marker
+	 */
+	public static final byte CUSTOM_MOCK_MASK = 0x20;
 
-    /**
-     * Custom datatype RTMP mask
-     */
-    public static final byte CUSTOM_RTMP_MASK = 0x40;
-    
-    /**
-     * Custom datatype JSON mask
-     */
-    public static final byte CUSTOM_JSON_MASK = 0x50;
-    
-    /**
-     * Custom datatype XML mask
-     */
-    public static final byte CUSTOM_XML_MASK = 0x60;
+	/**
+	 * Custom datatype AMF mask
+	 */
+	public static final byte CUSTOM_AMF_MASK = 0x30;
+
+	/**
+	 * Custom datatype RTMP mask
+	 */
+	public static final byte CUSTOM_RTMP_MASK = 0x40;
+
+	/**
+	 * Custom datatype JSON mask
+	 */
+	public static final byte CUSTOM_JSON_MASK = 0x50;
+
+	/**
+	 * Custom datatype XML mask
+	 */
+	public static final byte CUSTOM_XML_MASK = 0x60;
 
 	// Some helper methods..
 
@@ -119,7 +135,7 @@ public class DataTypes {
 	 * Returns the string value of the data type
 	 *
 	 * @return String        String value of given ActionScript data type
-     * @param dataType       AS data type as byte
+	 * @param dataType       AS data type as byte
 	 */
 	public static String toStringValue(byte dataType) {
 		switch (dataType) {
@@ -145,6 +161,14 @@ public class DataTypes {
 				return "Object";
 			case CORE_BYTEARRAY:
 				return "ByteArray";
+			case CORE_VECTOR_INT:
+				return "Vector<int>";
+			case CORE_VECTOR_UINT:
+				return "Vector<uint>";
+			case CORE_VECTOR_NUMBER:
+				return "Vector<Number>";
+			case CORE_VECTOR_OBJECT:
+				return "Vector<Object>";
 			case OPT_REFERENCE:
 				return "Reference";
 			default:

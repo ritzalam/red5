@@ -240,6 +240,7 @@ public abstract class AbstractIOTest extends TestCase {
 		serializer.serialize(out, Integer.valueOf(num));
 		dumpOutput();
 		Integer n = deserializer.deserialize(in, Integer.class);
+		log.debug("Integer: {} {}", n, num);
 		Assert.assertEquals(n.intValue(), num);
 		resetOutput();
 	}

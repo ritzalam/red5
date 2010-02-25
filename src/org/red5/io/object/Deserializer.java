@@ -48,7 +48,7 @@ public class Deserializer {
 	public <T> T deserialize(Input in, Type target) {
 		
 		byte type = in.readDataType();
-		log.debug("Type: {} target: {}", type, (target != null ? target.toString() : ""));
+		log.debug("Type: {} target: {}", type, (target != null ? target.toString() : "Target not specified"));
 
 		while (type == DataTypes.CORE_SKIP) {
 			type = in.readDataType();
@@ -89,6 +89,18 @@ public class Deserializer {
 				break;
 			case DataTypes.CORE_BYTEARRAY:
 				result = in.readByteArray(target);
+				break;
+			case DataTypes.CORE_VECTOR_INT:
+				result = in.readVectorInt();
+				break;
+			case DataTypes.CORE_VECTOR_UINT:
+				result = in.readVectorUInt();
+				break;
+			case DataTypes.CORE_VECTOR_NUMBER:
+				result = in.readVectorNumber();
+				break;
+			case DataTypes.CORE_VECTOR_OBJECT:
+				result = in.readVectorObject();
 				break;
 			case DataTypes.OPT_REFERENCE:
 				result = in.readReference(target);

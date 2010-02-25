@@ -65,9 +65,9 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 			put("DSA", "org.red5.compatibility.flex.messaging.messages.AsyncMessageExt");
 			put("DSC", "org.red5.compatibility.flex.messaging.messages.CommandMessageExt");
 			put("DSK", "org.red5.compatibility.flex.messaging.messages.AcknowledgeMessageExt");
-		}	
+		}
 	};
-	
+
 	protected IoBuffer buf;
 
 	protected byte currentDataType;
@@ -269,18 +269,18 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	private final static String bufferToString(final java.nio.ByteBuffer strBuf, int len) {
 		//Trac #601 - part of the problem seems to be a null byte buffer 
 		String string = null;
-		if (strBuf != null) {		
-    		int pos = strBuf.position();
-    		log.debug("String buf - position: {} limit: {}", pos, (pos + len));
-    		strBuf.limit(pos + len);
-    		string = AMF.CHARSET.decode(strBuf).toString();
-    		log.debug("String: {}", string);
-    	} else {
-    		log.warn("ByteBuffer was null attempting to read String");
-    	}
+		if (strBuf != null) {
+			int pos = strBuf.position();
+			log.debug("String buf - position: {} limit: {}", pos, (pos + len));
+			strBuf.limit(pos + len);
+			string = AMF.CHARSET.decode(strBuf).toString();
+			log.debug("String: {}", string);
+		} else {
+			log.warn("ByteBuffer was null attempting to read String");
+		}
 		return string;
 	}
-	
+
 	/**
 	 * Returns a date
 	 *
@@ -431,7 +431,7 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 				// Use Red5 compatibility class instead
 				className = "org.red5.compatibility." + className;
 				log.debug("Modified classname: {}", className);
-			}			
+			}
 			Class<?> clazz = Thread.currentThread().getContextClassLoader().loadClass(className);
 			instance = clazz.newInstance();
 		} catch (Exception ex) {
@@ -616,6 +616,42 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	 */
 	public ByteArray readByteArray(Type target) {
 		throw new RuntimeException("ByteArray objects not supported with AMF0");
+	}
+
+	/**
+	 * Read Vector<int> object. This is not supported by the AMF0 deserializer.
+	 *
+	 * @return	List<Integer> object
+	 */
+	public List<Integer> readVectorInt() {
+		throw new RuntimeException("Vector objects not supported with AMF0");
+	}
+
+	/**
+	 * Read Vector<Long> object. This is not supported by the AMF0 deserializer.
+	 *
+	 * @return	List<Long> object
+	 */
+	public List<Long> readVectorUInt() {
+		throw new RuntimeException("Vector objects not supported with AMF0");
+	}
+
+	/**
+	 * Read Vector<Number> object. This is not supported by the AMF0 deserializer.
+	 *
+	 * @return	List<Double> object
+	 */
+	public List<Double> readVectorNumber() {
+		throw new RuntimeException("Vector objects not supported with AMF0");
+	}
+
+	/**
+	 * Read Vector<Object> object. This is not supported by the AMF0 deserializer.
+	 *
+	 * @return	List<Object> object
+	 */
+	public List<Object> readVectorObject() {
+		throw new RuntimeException("Vector objects not supported with AMF0");
 	}
 
 	/**

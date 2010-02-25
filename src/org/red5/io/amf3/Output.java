@@ -103,8 +103,9 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 	// Basic Data Types
 
 	protected void writeAMF3() {
-		if (amf3_mode == 0)
+		if (amf3_mode == 0) {
 			buf.put(AMF.TYPE_AMF3_OBJECT);
+		}
 	}
 
 	/** {@inheritDoc} */
@@ -122,25 +123,25 @@ public class Output extends org.red5.io.amf.Output implements org.red5.io.object
 	}
 
 	protected void putInteger(long value) {
-		if (value < 0) {
-			buf.put((byte) (0x80 | ((value >> 22) & 0xff)));
-			buf.put((byte) (0x80 | ((value >> 15) & 0x7f)));
-			buf.put((byte) (0x80 | ((value >> 8) & 0x7f)));
-			buf.put((byte) (value & 0xff));
-		} else if (value <= 0x7f) {
+		if ((value >= -268435456) && (value <= 268435455)) {
+			value &= 536870911;
+		}
+		if (value < 128) {
 			buf.put((byte) value);
-		} else if (value <= 0x3fff) {
-			buf.put((byte) (0x80 | ((value >> 7) & 0x7f)));
-			buf.put((byte) (value & 0x7f));
-		} else if (value <= 0x1fffff) {
-			buf.put((byte) (0x80 | ((value >> 14) & 0x7f)));
-			buf.put((byte) (0x80 | ((value >> 7) & 0x7f)));
-			buf.put((byte) (value & 0x7f));
+		} else if (value < 16384) {
+			buf.put((byte) (((value >> 7) & 0x7F) | 0x80));
+			buf.put((byte) (value & 0x7F));
+		} else if (value < 2097152) {
+			buf.put((byte) (((value >> 14) & 0x7F) | 0x80));
+			buf.put((byte) (((value >> 7) & 0x7F) | 0x80));
+			buf.put((byte) (value & 0x7F));
+		} else if (value < 1073741824) {
+			buf.put((byte) (((value >> 22) & 0x7F) | 0x80));
+			buf.put((byte) (((value >> 15) & 0x7F) | 0x80));
+			buf.put((byte) (((value >> 8) & 0x7F) | 0x80));
+			buf.put((byte) (value & 0xFF));
 		} else {
-			buf.put((byte) (0x80 | ((value >> 22) & 0xff)));
-			buf.put((byte) (0x80 | ((value >> 15) & 0x7f)));
-			buf.put((byte) (0x80 | ((value >> 8) & 0x7f)));
-			buf.put((byte) (value & 0xff));
+			log.error("Integer out of range: {}", value);
 		}
 	}
 

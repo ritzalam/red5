@@ -275,13 +275,26 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 					coreType = DataTypes.CORE_BYTEARRAY;
 					break;
 
+				case AMF3.TYPE_VECTOR_INT:
+					coreType = DataTypes.CORE_VECTOR_INT;
+					break;
+				case AMF3.TYPE_VECTOR_UINT:
+					coreType = DataTypes.CORE_VECTOR_UINT;
+					break;
+				case AMF3.TYPE_VECTOR_NUMBER:
+					coreType = DataTypes.CORE_VECTOR_NUMBER;
+					break;
+				case AMF3.TYPE_VECTOR_OBJECT:
+					coreType = DataTypes.CORE_VECTOR_OBJECT;
+					break;
+
 				default:
 					log.info("Unknown datatype: {}", currentDataType);
 					// End of object, and anything else lets just skip
 					coreType = DataTypes.CORE_SKIP;
 					break;
 			}
-			log.debug("Core type: {}", coreType);	
+			log.debug("Core type: {}", coreType);
 		} else {
 			log.error("Why is buf null?");
 		}
@@ -391,11 +404,11 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		//check for null termination
 		byte b = buf.get();
 		if (b != 0) {
-			buf.position(buf.position() - 1); 
+			buf.position(buf.position() - 1);
 		}
 		return string;
-	}	
-	
+	}
+
 	public String getString() {
 		return readString(String.class);
 	}
@@ -429,12 +442,12 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Object readArray(Deserializer deserializer, Type target) {
 		int count = readAMF3Integer();
-		log.debug("Count: {} and {} ref {}", new Object[]{count, (count & 1), (count >> 1)});
+		log.debug("Count: {} and {} ref {}", new Object[] { count, (count & 1), (count >> 1) });
 		if ((count & 1) == 0) {
 			//Reference
 			Object ref = getReference(count >> 1);
 			if (ref != null) {
-				return ref;				
+				return ref;
 			}
 		}
 
@@ -545,12 +558,12 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 	@SuppressWarnings({ "unchecked", "rawtypes", "serial" })
 	public Object readObject(Deserializer deserializer, Type target) {
 		int type = readAMF3Integer();
-		log.debug("Type: {} and {} ref {}", new Object[]{type, (type & 1), (type >> 1)});
+		log.debug("Type: {} and {} ref {}", new Object[] { type, (type & 1), (type >> 1) });
 		if ((type & 1) == 0) {
 			//Reference
 			Object ref = getReference(type >> 1);
 			if (ref != null) {
-				return ref;				
+				return ref;
 			}
 			byte b = buf.get();
 			if (b == 7) {
@@ -586,7 +599,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 			} else if (className.startsWith("flex")) {
 				//set the attributes for messaging classes
 				if (className.endsWith("CommandMessage")) {
-					attributes = new LinkedList<String>(){
+					attributes = new LinkedList<String>() {
 						{
 							add("timestamp");
 							add("headers");
@@ -596,7 +609,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 							add("messageId");
 							add("timeToLive");
 							add("clientId");
-							add("destination"); 
+							add("destination");
 						}
 					};
 				} else {
@@ -676,10 +689,10 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 					}
 					if (count != tmpAttributes.size()) {
 						log.debug("Count and attributes length does not match!");
-					}					
+					}
 					classReferences.add(new ClassReference(className, AMF3.TYPE_OBJECT_VALUE, attributes));
 				}
-				
+
 				properties = new ObjectMap<String, Object>();
 				for (String key : attributes) {
 					log.debug("Looking for property: {}", key);
@@ -699,7 +712,7 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 						properties.put(key, value);
 						key = readString(String.class);
 					}
-				}				
+				}
 				break;
 			default:
 			case AMF3.TYPE_OBJECT_PROXY:
@@ -804,6 +817,96 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		return result;
 	}
 
+	@SuppressWarnings("unchecked")
+	public List<Integer> readVectorInt() {
+		int type = readAMF3Integer();
+		if ((type & 1) == 0) {
+			return (List<Integer>) getReference(type >> 1);
+		}
+
+		int len = type >> 1;
+		List<Integer> array = new ArrayList<Integer>(len);
+
+		storeReference(array);
+
+		@SuppressWarnings("unused")
+		int ref2 = readAMF3Integer();
+		for (int j = 0; j < len; ++j) {
+			array.add(buf.getInt());
+		}
+
+		return array;
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<Long> readVectorUInt() {
+		int type = readAMF3Integer();
+		if ((type & 1) == 0) {
+			return (List<Long>) getReference(type >> 1);
+		}
+
+		int len = type >> 1;
+		List<Long> array = new ArrayList<Long>(len);
+
+		storeReference(array);
+
+		@SuppressWarnings("unused")
+		int ref2 = readAMF3Integer();
+		for (int j = 0; j < len; ++j) {
+			long value = (buf.get() & 0xff) << 24L;
+			value += (buf.get() & 0xff) << 16L;
+			value += (buf.get() & 0xff) << 8L;
+			value += (buf.get() & 0xff);
+			array.add(value);
+		}
+
+		return array;
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<Double> readVectorNumber() {
+		int type = readAMF3Integer();
+		if ((type & 1) == 0) {
+			return (List<Double>) getReference(type >> 1);
+		}
+
+		int len = type >> 1;
+		List<Double> array = new ArrayList<Double>(len);
+
+		storeReference(array);
+
+		@SuppressWarnings("unused")
+		int ref2 = readAMF3Integer();
+		for (int j = 0; j < len; ++j) {
+			array.add(buf.getDouble());
+		}
+
+		return array;
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<Object> readVectorObject() {
+		int type = readAMF3Integer();
+		if ((type & 1) == 0) {
+			return (List<Object>) getReference(type >> 1);
+		}
+
+		int len = type >> 1;
+		List<Object> array = new ArrayList<Object>(len);
+
+		storeReference(array);
+		
+		Deserializer deserializer = new Deserializer();
+		Object object;
+
+		for (int j = 0; j < len; ++j) {
+			object = readObject(deserializer, null);
+			array.add(object);
+		}
+
+		return array;
+	}	
+	
 	// Others
 
 	/**
@@ -866,6 +969,28 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 
 		return result;
 	}
+	
+	//Read UInt29 style
+	@SuppressWarnings("unused")
+	private int readAMF3IntegerNew() {
+		int b = buf.get() & 0xFF;
+		if (b < 128) {
+			return b;
+		}
+		int value = (b & 0x7F) << 7;
+		b = buf.get() & 0xFF;
+		if (b < 128) {
+			return (value | b);
+		}
+		value = (value | b & 0x7F) << 7;
+		b = buf.get() & 0xFF;
+		if (b < 128) {
+			return (value | b);
+		}
+		value = (value | b & 0x7F) << 8;
+		b = buf.get() & 0xFF;
+		return (value | b);
+	}	
 
 	/** {@inheritDoc} */
 	public Document readXML(Type target) {

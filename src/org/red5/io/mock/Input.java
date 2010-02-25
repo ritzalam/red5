@@ -46,16 +46,16 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	}
 
 	/**
-     * Getter for property 'next'.
-     *
-     * @return Value for property 'next'.
-     */
-    protected Object getNext() {
+	 * Getter for property 'next'.
+	 *
+	 * @return Value for property 'next'.
+	 */
+	protected Object getNext() {
 		return list.get(idx++);
 	}
 
 	/** {@inheritDoc} */
-    public byte readDataType() {
+	public byte readDataType() {
 		Byte b = (Byte) getNext();
 		return b.byteValue();
 	}
@@ -63,55 +63,57 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	// Basic
 
 	/** {@inheritDoc} */
-    public Object readNull(Type target) {
+	public Object readNull(Type target) {
 		return null;
 	}
 
 	/** {@inheritDoc} */
-    public Boolean readBoolean(Type target) {
+	public Boolean readBoolean(Type target) {
 		return (Boolean) getNext();
 	}
 
 	/** {@inheritDoc} */
-    public Number readNumber(Type target) {
+	public Number readNumber(Type target) {
 		return (Number) getNext();
 	}
-    /** {@inheritDoc} */
+
+	/** {@inheritDoc} */
 	public String getString() {
 		return (String) getNext();
 	}
-    /** {@inheritDoc} */
+
+	/** {@inheritDoc} */
 	public String readString(Type target) {
 		return (String) getNext();
 	}
 
 	/** {@inheritDoc} */
-    public Date readDate(Type target) {
+	public Date readDate(Type target) {
 		return (Date) getNext();
 	}
 
 	// Array
 
 	/** {@inheritDoc} */
-    public Object readArray(Deserializer deserializer, Type target) {
-    	return getNext();
-    }
-    
-	/** {@inheritDoc} */
-    public Object readMap(Deserializer deserializer, Type target) {
+	public Object readArray(Deserializer deserializer, Type target) {
 		return getNext();
 	}
-    
+
 	/** {@inheritDoc} */
-    @SuppressWarnings("unchecked")
-    public Map<String, Object> readKeyValues(Deserializer deserializer) {
+	public Object readMap(Deserializer deserializer, Type target) {
+		return getNext();
+	}
+
+	/** {@inheritDoc} */
+	@SuppressWarnings("unchecked")
+	public Map<String, Object> readKeyValues(Deserializer deserializer) {
 		return (Map<String, Object>) getNext();
 	}
-    
+
 	// Object
 
 	/** {@inheritDoc} */
-    public Object readObject(Deserializer deserializer, Type target) {
+	public Object readObject(Deserializer deserializer, Type target) {
 		return getNext();
 	}
 
@@ -121,18 +123,38 @@ public class Input extends BaseInput implements org.red5.io.object.Input {
 	}
 
 	/** {@inheritDoc} */
-    public Object readCustom(Type target) {
+	public Object readCustom(Type target) {
 		// Not supported
 		return null;
 	}
 
 	/** {@inheritDoc} */
-    public ByteArray readByteArray(Type target) {
-    	return (ByteArray) getNext();
-    }
-    
+	public ByteArray readByteArray(Type target) {
+		return (ByteArray) getNext();
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<Integer> readVectorInt() {
+		return (List<Integer>) getNext();
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<Long> readVectorUInt() {
+		return (List<Long>) getNext();
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<Double> readVectorNumber() {
+		return (List<Double>) getNext();
+	}
+
+	@SuppressWarnings("unchecked")
+	public List<Object> readVectorObject() {
+		return (List<Object>) getNext();
+	}
+
 	/** {@inheritDoc} */
-    public Object readReference(Type target) {
+	public Object readReference(Type target) {
 		final Short num = (Short) getNext();
 		return getReference(num.shortValue());
 	}
