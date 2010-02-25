@@ -44,7 +44,7 @@ public class Deserializer {
 	 * @param target target
      * @return Object object
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public <T> T deserialize(Input in, Type target) {
 		
 		byte type = in.readDataType();
@@ -70,7 +70,13 @@ public class Deserializer {
 				result = in.readNumber(target);
 				break;
 			case DataTypes.CORE_STRING:
-				result = in.readString(target);
+				if (target.getClass().isInstance(Enum.class)) {
+					log.warn("Enum target specified");
+					String name = in.readString(target);		
+					result = Enum.valueOf((Class) target, name);
+				} else {
+					result = in.readString(target);
+				}
 				break;
 			case DataTypes.CORE_DATE:
 				result = in.readDate(target);
