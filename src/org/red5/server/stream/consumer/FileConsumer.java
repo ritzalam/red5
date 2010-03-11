@@ -272,6 +272,8 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 		//clear the queue
 		queue.clear();
 		queue = null;
+		//clear file ref
+		file = null;
 	}
 	
 	/**

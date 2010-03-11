@@ -210,10 +210,53 @@ public class StreamService implements IStreamService {
 		}
 	}
 
-	public void play(String name, int start, int length, Object flushPlaylist) {
-		if (flushPlaylist instanceof Boolean) {
-			play(name, start, length, ((Boolean) flushPlaylist).booleanValue());
+	/**
+	 * Plays back a stream based on the supplied name, from the specified position for the given length of time.
+	 * 
+	 * @param name - The name of a recorded file, or the identifier for live data. If 
+	 * @param start - The start time, in seconds. Allowed values are -2, -1, 0, or a positive number. 
+	 * The default value is -2, which looks for a live stream, then a recorded stream, and if it finds neither, 
+	 * opens a live stream. If -1, plays only a live stream. If 0 or a positive number, plays a recorded stream, 
+	 * beginning start seconds in.
+	 * @param length - The duration of the playback, in seconds. Allowed values are -1, 0, or a positive number. 
+	 * The default value is -1, which plays a live or recorded stream until it ends. If 0, plays a single frame 
+	 * that is start seconds from the beginning of a recorded stream. If a positive number, plays a live or recorded 
+	 * stream for length seconds.
+	 * @param reset - Whether to clear a playlist. The default value is 1 or true, which clears any previous play 
+	 * calls and plays name immediately. If 0 or false, adds the stream to a playlist. If 2, maintains the playlist 
+	 * and returns all stream messages at once, rather than at intervals. If 3, clears the playlist and returns all 
+	 * stream messages at once.
+	 */
+	public void play(String name, int start, int length, Object reset) {
+		if (reset instanceof Boolean) {
+			play(name, start, length, ((Boolean) reset).booleanValue());
 		} else {
+			if (reset instanceof Integer) {
+				int value = (Integer) reset;
+				switch (value) {
+					case 0:
+						//adds the stream to a playlist
+						IStreamCapableConnection streamConn = (IStreamCapableConnection) Red5.getConnectionLocal();
+						IPlaylistSubscriberStream playlistStream = (IPlaylistSubscriberStream) streamConn
+								.getStreamById(getCurrentStreamId());
+						SimplePlayItem item = new SimplePlayItem();
+						item.setName(name);
+						playlistStream.addItem(item);
+						play(name, start, length, false);
+						break;
+					case 2:
+						//maintains the playlist and returns all stream messages at once, rather than at intervals
+
+						break;
+					case 3:
+						//clears the playlist and returns all stream messages at once
+
+						break;
+					default:
+						//clears any previous play calls and plays name immediately
+						play(name, start, length, true);
+				}
+			}
 			play(name, start, length);
 		}
 	}
@@ -246,6 +289,9 @@ public class StreamService implements IStreamService {
 			IClientStream stream = streamConn.getStreamById(streamId);
 			boolean created = false;
 			if (stream == null) {
+				if (streamId <= 0) {
+					streamId = streamConn.reserveStreamId();
+				}
 				stream = streamConn.newPlaylistSubscriberStream(streamId);
 				stream.start();
 				created = true;

@@ -32,8 +32,7 @@ import org.slf4j.LoggerFactory;
 public class StreamableFileFactory implements IStreamableFileFactory {
 
 	// Initialize Logging
-	public static Logger logger = LoggerFactory
-			.getLogger(StreamableFileFactory.class);
+	public static Logger logger = LoggerFactory.getLogger(StreamableFileFactory.class);
 
 	private Set<IStreamableFileService> services = new HashSet<IStreamableFileService>();
 

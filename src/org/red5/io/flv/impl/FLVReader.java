@@ -808,6 +808,8 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 					flv.close();
 				}
 			} catch (IOException e) {
+			} finally {
+				flv = null;
 			}
 		}
 	}

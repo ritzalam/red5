@@ -399,7 +399,8 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	public IClientBroadcastStream newBroadcastStream(int streamId) {
 		getReadLock().lock();
 		try {
-			if (!reservedStreams.get(streamId - 1)) {
+			int index = streamId - 1;
+			if (index < 0 || !reservedStreams.get(index)) {
 				// StreamId has not been reserved before
 				return null;
 			}
@@ -442,7 +443,8 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 	public IPlaylistSubscriberStream newPlaylistSubscriberStream(int streamId) {
 		getReadLock().lock();
 		try {
-			if (!reservedStreams.get(streamId - 1)) {
+			int index = streamId - 1;
+			if (index < 0 || !reservedStreams.get(streamId - 1)) {
 				// StreamId has not been reserved before
 				return null;
 			}

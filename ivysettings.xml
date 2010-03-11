@@ -23,7 +23,10 @@
                 <artifact pattern="http://red5.googlecode.com/svn/repository/[artifact](-[revision]).[ext]" />
                 <artifact pattern="http://red5.googlecode.com/svn/repository/[organisation]/[artifact](-[revision]).[ext]" />
             </url>
-            <url m2compatible="true" name="xugglecode">
+			<url name="ibiblio" m2compatible="true">
+				<artifact pattern="http://www.ibiblio.org/maven2/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"/>
+			</url>
+            <url name="xugglecode" m2compatible="true">
                 <artifact pattern="http://xuggle.googlecode.com/svn/trunk/repo/share/java/[organisation]/[artifact]/[revision]/[artifact](-[revision]).[ext]" />
                 <artifact pattern="http://xuggle.googlecode.com/svn/trunk/repo/share/java/[organisation]/[artifact]/[artifact](-[revision]).[ext]" />
                 <artifact pattern="http://xuggle.googlecode.com/svn/trunk/repo/share/java/[organisation]/[artifact](-[revision]).[ext]" />

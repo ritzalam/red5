@@ -53,7 +53,7 @@
         <dependency org="commons" name="commons-lang" rev="2.4" />
         <dependency org="commons" name="commons-pool" rev="1.4" />
         <dependency name="quartz" rev="1.6.5" />
-        <dependency name="ehcache" rev="1.6.2" />
+		<dependency name="ehcache" rev="2.0.0"/>
         <!-- XML -->
         <dependency name="xercesImpl" rev="2.9.1" />
         <dependency name="xmlrpc" rev="2.0.1" />

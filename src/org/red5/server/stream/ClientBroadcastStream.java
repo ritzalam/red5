@@ -114,7 +114,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	/**
 	 * Is this stream still active?
 	 */
-	protected boolean closed;
+	protected volatile boolean closed;
 
 	/**
 	 * Output endpoint that providers use

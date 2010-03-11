@@ -435,7 +435,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 					throw new StreamNotFoundException(itemName);
 				} else if (msgIn.subscribe(this, null)) {
 					//execute the processes to get VOD playback setup
-					msg = playVOD(withReset, itemLength);					
+					msg = playVOD(withReset, itemLength);
 				} else {
 					log.error("Input source subscribe failed");
 					throw new IOException(String.format("Subscribe to %s failed", itemName));
@@ -487,63 +487,66 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 		//get the stream so that we can grab any metadata and decoder configs
 		IBroadcastStream stream = (IBroadcastStream) ((IBroadcastScope) msgIn)
 				.getAttribute(IBroadcastScope.STREAM_ATTRIBUTE);
-		Notify metaData = stream.getMetaData();
-		//check for metadata to send
-		if (metaData != null) {
-			log.debug("Metadata is available");
-			RTMPMessage metaMsg = new RTMPMessage();
-			metaMsg.setBody(metaData);
-			metaMsg.getBody().setTimestamp(0);
-			try {
-				msgOut.pushMessage(metaMsg);
-			} catch (IOException e) {
-				log.warn("Error sending metadata", e);
-			}
-		} else {
-			log.debug("No metadata available");
-		}
-
-		IStreamCodecInfo codecInfo = stream.getCodecInfo();
-		log.debug("Codec info: {}", codecInfo);
-		if (codecInfo instanceof StreamCodecInfo) {
-			StreamCodecInfo info = (StreamCodecInfo) codecInfo;
-			IVideoStreamCodec videoCodec = info.getVideoCodec();
-			log.debug("Video codec: {}", videoCodec);
-			if (videoCodec != null) {
-				//check for decoder configuration to send
-				IoBuffer config = videoCodec.getDecoderConfiguration();
-				if (config != null) {
-					log.debug("Decoder configuration is available for {}", videoCodec.getName());
-					//log.debug("Dump:\n{}", Hex.encodeHex(config.array()));
-					VideoData conf = new VideoData(config.asReadOnlyBuffer());
-					log.trace("Configuration ts: {}", conf.getTimestamp());
-					RTMPMessage confMsg = new RTMPMessage();
-					confMsg.setBody(conf);
-					try {
-						log.debug("Pushing decoder configuration");
-						msgOut.pushMessage(confMsg);
-					} finally {
-						conf.release();
-					}
-				}
-				//check for a keyframe to send
-				IoBuffer keyFrame = videoCodec.getKeyframe();
-				if (keyFrame != null) {
-					log.debug("Keyframe is available");
-					VideoData video = new VideoData(keyFrame.asReadOnlyBuffer());
-					log.trace("Keyframe ts: {}", video.getTimestamp());
-					//log.debug("Dump:\n{}", Hex.encodeHex(keyFrame.array()));
-					RTMPMessage videoMsg = new RTMPMessage();
-					videoMsg.setBody(video);
-					try {
-						log.debug("Pushing keyframe");
-						msgOut.pushMessage(videoMsg);
-					} finally {
-						video.release();
-					}
+		//prevent an NPE when a play list is created and then immediately flushed
+		if (stream != null) {
+			Notify metaData = stream.getMetaData();
+			//check for metadata to send
+			if (metaData != null) {
+				log.debug("Metadata is available");
+				RTMPMessage metaMsg = new RTMPMessage();
+				metaMsg.setBody(metaData);
+				metaMsg.getBody().setTimestamp(0);
+				try {
+					msgOut.pushMessage(metaMsg);
+				} catch (IOException e) {
+					log.warn("Error sending metadata", e);
 				}
 			} else {
-				log.debug("Could not initialize stream output, videoCodec is null.");
+				log.debug("No metadata available");
+			}
+
+			IStreamCodecInfo codecInfo = stream.getCodecInfo();
+			log.debug("Codec info: {}", codecInfo);
+			if (codecInfo instanceof StreamCodecInfo) {
+				StreamCodecInfo info = (StreamCodecInfo) codecInfo;
+				IVideoStreamCodec videoCodec = info.getVideoCodec();
+				log.debug("Video codec: {}", videoCodec);
+				if (videoCodec != null) {
+					//check for decoder configuration to send
+					IoBuffer config = videoCodec.getDecoderConfiguration();
+					if (config != null) {
+						log.debug("Decoder configuration is available for {}", videoCodec.getName());
+						//log.debug("Dump:\n{}", Hex.encodeHex(config.array()));
+						VideoData conf = new VideoData(config.asReadOnlyBuffer());
+						log.trace("Configuration ts: {}", conf.getTimestamp());
+						RTMPMessage confMsg = new RTMPMessage();
+						confMsg.setBody(conf);
+						try {
+							log.debug("Pushing decoder configuration");
+							msgOut.pushMessage(confMsg);
+						} finally {
+							conf.release();
+						}
+					}
+					//check for a keyframe to send
+					IoBuffer keyFrame = videoCodec.getKeyframe();
+					if (keyFrame != null) {
+						log.debug("Keyframe is available");
+						VideoData video = new VideoData(keyFrame.asReadOnlyBuffer());
+						log.trace("Keyframe ts: {}", video.getTimestamp());
+						//log.debug("Dump:\n{}", Hex.encodeHex(keyFrame.array()));
+						RTMPMessage videoMsg = new RTMPMessage();
+						videoMsg.setBody(video);
+						try {
+							log.debug("Pushing keyframe");
+							msgOut.pushMessage(videoMsg);
+						} finally {
+							video.release();
+						}
+					}
+				} else {
+					log.debug("Could not initialize stream output, videoCodec is null.");
+				}
 			}
 		}
 	}
@@ -869,7 +872,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 				return false;
 			}
 
-			return true;			
+			return true;
 		} else {
 			String itemName = "Undefined";
 			//if current item exists get the name to help debug this issue
@@ -984,8 +987,8 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 			//we changed the timestamp to update var
 			ts = relativeTs;
 			if (log.isTraceEnabled()) {
-				log.trace("sendMessage (updated): streamStartTS={}, length={}, streamOffset={}, timestamp={}", new Object[] {
-						streamStartTS, currentItem.getLength(), streamOffset, ts });
+				log.trace("sendMessage (updated): streamStartTS={}, length={}, streamOffset={}, timestamp={}",
+						new Object[] { streamStartTS, currentItem.getLength(), streamOffset, ts });
 			}
 		}
 		if (streamStartTS == -1) {
@@ -1343,8 +1346,8 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 							log.debug("Dropping packet because we cant receive video or token acquire failed");
 							videoFrameDropper.dropPacket(rtmpMessage);
 							return;
-						}						
-						
+						}
+
 						// Only check for frame dropping if the codec supports it
 						long pendingVideos = pendingVideoMessages();
 						if (!videoFrameDropper.canSendPacket(rtmpMessage, pendingVideos)) {
@@ -1445,7 +1448,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 	public int getLastMessageTimestamp() {
 		return lastMessageTs;
 	}
-	
+
 	public long getPlaybackStart() {
 		return playbackStart;
 	}
