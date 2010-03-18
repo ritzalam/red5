@@ -99,7 +99,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 	 * Executor that will be used to schedule stream playback to keep
 	 * the client buffer filled.
 	 */
-	protected static ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(16);
+	protected static ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(3);
 
 	/**
 	 * Interval in ms to check for buffer underruns in VOD streams.
@@ -187,9 +187,27 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 			IScope scope = getScope();
 			if (scope != null) {
 				IContext ctx = scope.getContext();
-				ISchedulingService schedulingService = (ISchedulingService) ctx.getBean(ISchedulingService.BEAN_NAME);
-				IConsumerService consumerService = (IConsumerService) ctx.getBean(IConsumerService.KEY);
-				IProviderService providerService = (IProviderService) ctx.getBean(IProviderService.BEAN_NAME);
+				ISchedulingService schedulingService = null;
+				if (ctx.hasBean(ISchedulingService.BEAN_NAME)) {
+					schedulingService = (ISchedulingService) ctx.getBean(ISchedulingService.BEAN_NAME);
+				} else {
+					//try the parent
+					schedulingService = (ISchedulingService) scope.getParent().getContext().getBean(ISchedulingService.BEAN_NAME);
+				}
+				IConsumerService consumerService = null;
+				if (ctx.hasBean(IConsumerService.KEY)) {
+					consumerService = (IConsumerService) ctx.getBean(IConsumerService.KEY);
+				} else {
+					//try the parent
+					consumerService = (IConsumerService) scope.getParent().getContext().getBean(IConsumerService.KEY);
+				}
+				IProviderService providerService = null;
+				if (ctx.hasBean(IProviderService.BEAN_NAME)) {
+					providerService = (IProviderService) ctx.getBean(IProviderService.BEAN_NAME);
+				} else {
+					//try the parent
+					providerService = (IProviderService) scope.getParent().getContext().getBean(IProviderService.BEAN_NAME);
+				}
 
 				engine = new PlayEngine.Builder(this, schedulingService, consumerService, providerService).build();
 			} else {
@@ -289,7 +307,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 
 	/** {@inheritDoc} */
 	public boolean isPaused() {
-		return engine.isPaused();
+		return state == StreamState.PAUSED;
 	}
 
 	/** {@inheritDoc} */
@@ -597,9 +615,9 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 							//seek position
 							int position = (Integer) changed[1];
 							try {
-								handler.streamPlaylistVODItemSeek(stream, item, position);
+								handler.streamPlayItemSeek(stream, item, position);
 							} catch (Throwable t) {
-								log.error("error notify streamPlaylistVODItemSeek", t);
+								log.error("error notify streamPlayItemSeek", t);
 							}
 						}
 					};
@@ -619,9 +637,9 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 							//playback position
 							int position = (Integer) changed[1];
 							try {
-								handler.streamPlaylistVODItemPause(stream, item, position);
+								handler.streamPlayItemPause(stream, item, position);
 							} catch (Throwable t) {
-								log.error("error notify streamPlaylistVODItemPause", t);
+								log.error("error notify streamPlayItemPause", t);
 							}
 						}
 					};
@@ -641,9 +659,9 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 							//playback position
 							int position = (Integer) changed[1];
 							try {
-								handler.streamPlaylistVODItemResume(stream, item, position);
+								handler.streamPlayItemResume(stream, item, position);
 							} catch (Throwable t) {
-								log.error("error notify streamPlaylistVODItemResume", t);
+								log.error("error notify streamPlayItemResume", t);
 
 							}
 						}
@@ -662,9 +680,9 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 							//is it a live broadcast
 							boolean isLive = (Boolean) changed[1];
 							try {
-								handler.streamPlaylistItemPlay(stream, item, isLive);
+								handler.streamPlayItemPlay(stream, item, isLive);
 							} catch (Throwable t) {
-								log.error("error notify streamPlaylistItemPlay", t);
+								log.error("error notify streamPlayItemPlay", t);
 							}
 						}
 					};
@@ -714,7 +732,7 @@ public class PlaylistSubscriberStream extends AbstractClientStream implements IP
 							//get the item that was stopped
 							IPlayItem item = (IPlayItem) changed[0];
 							try {
-								handler.streamPlaylistItemStop(stream, item);
+								handler.streamPlayItemStop(stream, item);
 							} catch (Throwable t) {
 								log.error("error notify streamPlaylistItemStop", t);
 							}

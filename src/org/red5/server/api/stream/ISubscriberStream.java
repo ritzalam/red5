@@ -1,6 +1,7 @@
 package org.red5.server.api.stream;
 
 import java.io.IOException;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -94,8 +95,22 @@ public interface ISubscriberStream extends IClientStream {
 	/**
 	 * Sets the streams state enum.
 	 * 
-	 * @param state
+	 * @param state sets current state
 	 */
-	public void setState(StreamState state);		
+	public void setState(StreamState state);
+
+	/**
+	 * Notification of state change and associated parameters.
+	 * 
+	 * @param state new state
+	 * @param changed parameters associated with the change
+	 */
+	public void onChange(final StreamState state, final Object... changed);
+
+	/**
+	 * Returns the Executor.
+	 * @return executor
+	 */
+	ScheduledThreadPoolExecutor getExecutor();		
 	
 }

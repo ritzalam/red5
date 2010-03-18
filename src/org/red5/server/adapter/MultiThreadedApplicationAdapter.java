@@ -60,7 +60,6 @@ import org.red5.server.api.stream.IClientBroadcastStream;
 import org.red5.server.api.stream.IOnDemandStream;
 import org.red5.server.api.stream.IOnDemandStreamService;
 import org.red5.server.api.stream.IPlayItem;
-import org.red5.server.api.stream.IPlaylistSubscriberStream;
 import org.red5.server.api.stream.IStreamAwareScopeHandler;
 import org.red5.server.api.stream.IStreamPlaybackSecurity;
 import org.red5.server.api.stream.IStreamPublishSecurity;
@@ -1274,13 +1273,13 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 	public void streamBroadcastStart(IBroadcastStream stream) {
 	}
 
-	public void streamPlaylistItemPlay(IPlaylistSubscriberStream stream, IPlayItem item, boolean isLive) {
+	public void streamPlayItemPlay(ISubscriberStream stream, IPlayItem item, boolean isLive) {
 		// log w3c connect event
 		log.info("W3C x-category:stream x-event:play c-ip:{} x-sname:{} x-name:{}", new Object[] {
 				Red5.getConnectionLocal().getRemoteAddress(), stream.getName(), item.getName() });
 	}
 
-	public void streamPlaylistItemStop(IPlaylistSubscriberStream stream, IPlayItem item) {
+	public void streamPlayItemStop(ISubscriberStream stream, IPlayItem item) {
 		// since there is a fair amount of processing below we will check log
 		// level prior to proceeding
 		if (log.isInfoEnabled()) {
@@ -1313,19 +1312,19 @@ public class MultiThreadedApplicationAdapter extends StatefulScopeWrappingAdapte
 		}
 	}
 
-	public void streamPlaylistVODItemPause(IPlaylistSubscriberStream stream, IPlayItem item, int position) {
+	public void streamPlayItemPause(ISubscriberStream stream, IPlayItem item, int position) {
 		// log w3c connect event
 		log.info("W3C x-category:stream x-event:pause c-ip:{} x-sname:{}",
 				Red5.getConnectionLocal().getRemoteAddress(), stream.getName());
 	}
 
-	public void streamPlaylistVODItemResume(IPlaylistSubscriberStream stream, IPlayItem item, int position) {
+	public void streamPlayItemResume(ISubscriberStream stream, IPlayItem item, int position) {
 		// log w3c connect event
 		log.info("W3C x-category:stream x-event:unpause c-ip:{} x-sname:{}", Red5.getConnectionLocal()
 				.getRemoteAddress(), stream.getName());
 	}
 
-	public void streamPlaylistVODItemSeek(IPlaylistSubscriberStream stream, IPlayItem item, int position) {
+	public void streamPlayItemSeek(ISubscriberStream stream, IPlayItem item, int position) {
 		// Override if necessary.
 	}
 

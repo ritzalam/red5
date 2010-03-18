@@ -822,6 +822,13 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 		lock();
 		try {
 			has = children.containsKey(TYPE + SEPARATOR + name);
+			if (log.isDebugEnabled()) {
+    			if (has) {
+    				log.debug("Child scope exists");
+    			} else {
+    				log.debug("Child scope does not exist");				
+    			}
+			}
 		} finally {
 			unlock();
 		}

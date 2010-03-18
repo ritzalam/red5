@@ -108,8 +108,8 @@ public class PluginLauncher implements ApplicationContextAware, InitializingBean
 					}
 					log.info("Loaded plugin: {}", pluginMainClass);
 				} catch (Throwable t) {
-					log.error("Error loading plugin: {}; Method: {}; Exception: {}",
-							new Object[]{pluginMainClass, pluginMainMethod, t});
+					log.warn("Error loading plugin: {}; Method: {}", pluginMainClass, pluginMainMethod);
+					log.error("", t);
 				}
     		}
 		} else {

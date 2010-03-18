@@ -61,6 +61,7 @@ import org.red5.server.service.PendingCall;
 import org.red5.server.stream.ClientBroadcastStream;
 import org.red5.server.stream.OutputStream;
 import org.red5.server.stream.PlaylistSubscriberStream;
+import org.red5.server.stream.SingleItemSubscriberStream;
 import org.red5.server.stream.StreamService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -431,12 +432,40 @@ public abstract class RTMPConnection extends BaseConnection implements IStreamCa
 		return cbs;
 	}
 
-	/**
-	 * {@inheritDoc} To be implemented.
-	 */
+	/** {@inheritDoc} */
 	public ISingleItemSubscriberStream newSingleItemSubscriberStream(int streamId) {
-		// TODO implement it
-		return null;
+		getReadLock().lock();
+		try {
+			int index = streamId - 1;
+			if (index < 0 || !reservedStreams.get(streamId - 1)) {
+				// StreamId has not been reserved before
+				return null;
+			}
+		} finally {
+			getReadLock().unlock();
+		}
+
+		if (streams.get(streamId - 1) != null) {
+			// Another stream already exists with this id
+			return null;
+		}
+		/**
+		 * Picking up the SingleItemSubscriberStream defined as a Spring
+		 * prototype in red5-common.xml
+		 */
+		SingleItemSubscriberStream siss = (SingleItemSubscriberStream) scope.getContext()
+				.getBean("singleItemSubscriberStream");
+		Integer buffer = streamBuffers.get(streamId - 1);
+		if (buffer != null) {
+			siss.setClientBufferDuration(buffer);
+		}
+		siss.setName(createStreamName());
+		siss.setConnection(this);
+		siss.setScope(this.getScope());
+		siss.setStreamId(streamId);
+		registerStream(siss);
+		usedStreams.incrementAndGet();
+		return siss;
 	}
 
 	/** {@inheritDoc} */

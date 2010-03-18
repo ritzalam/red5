@@ -149,7 +149,11 @@ public class ProviderService implements IProviderService {
 		if (basicScope == null) {
 			log.debug("Creating a new scope");
 			basicScope = new BroadcastScope(scope, name);
-			scope.addChildScope(basicScope);
+			if (scope.addChildScope(basicScope)) {
+				log.debug("Broadcast scope added");
+			} else {
+				log.warn("Broadcast scope was not added to {}", scope);
+			}
 		}
 		if (basicScope instanceof IBroadcastScope) {
 			log.debug("Subscribing scope {} to provider {}", basicScope, bs.getProvider());
@@ -227,10 +231,11 @@ public class ProviderService implements IProviderService {
 
 		String filename = filenameGenerator.generateFilename(scope, name, GenerationType.PLAYBACK);
 		File file;
-		if (filenameGenerator.resolvesToAbsolutePath()) {
-			file = new File(filename);
-		} else {
+		//most likely case first
+		if (!filenameGenerator.resolvesToAbsolutePath()) {
 			file = scope.getContext().getResource(filename).getFile();
+		} else {
+			file = new File(filename);
 		}
 		//check files existence
 		if (file != null && !file.exists()) {

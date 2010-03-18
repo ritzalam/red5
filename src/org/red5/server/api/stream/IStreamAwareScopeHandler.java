@@ -73,52 +73,48 @@ public interface IStreamAwareScopeHandler extends IScopeHandler {
 	public void streamSubscriberClose(ISubscriberStream stream);
 
 	/**
-	 * Notified when a playlist item plays.
+	 * Notified when a play item plays.
 	 * 
 	 * @param stream stream
 	 * @param item item
-	 * @param isLive treu if live
-	 *            TODO
+	 * @param isLive true if live
 	 */
-	public void streamPlaylistItemPlay(IPlaylistSubscriberStream stream,
-			IPlayItem item, boolean isLive);
+	public void streamPlayItemPlay(ISubscriberStream stream, IPlayItem item, boolean isLive);
 
 	/**
-	 * Notified when a playlist item stops.
+	 * Notified when a play item stops.
 	 * 
 	 * @param stream stream
 	 * @param item item
 	 */
-	public void streamPlaylistItemStop(IPlaylistSubscriberStream stream,
-			IPlayItem item);
+	public void streamPlayItemStop(ISubscriberStream stream, IPlayItem item);
 
 	/**
-	 * Notified when a playlist vod item pauses.
+	 * Notified when a play item pauses.
 	 * 
 	 * @param stream stream
 	 * @param item item
-     * @param position position
+	 * @param position position
 	 */
-	public void streamPlaylistVODItemPause(IPlaylistSubscriberStream stream,
-			IPlayItem item, int position);
+	public void streamPlayItemPause(ISubscriberStream stream, IPlayItem item, int position);
 
 	/**
-	 * Notified when a playlist vod item resumes.
+	 * Notified when a play item resumes.
 	 * 
 	 * @param stream stream
 	 * @param item item
-     * @param position position
+	 * @param position position
 	 */
-	public void streamPlaylistVODItemResume(IPlaylistSubscriberStream stream,
-			IPlayItem item, int position);
+	public void streamPlayItemResume(ISubscriberStream stream, IPlayItem item, int position);
 
 	/**
-	 * Notified when a playlist vod item seeks.
+	 * Notified when a play item seeks.
 	 * 
 	 * @param stream stream
 	 * @param item item
-     * @param position position
+	 * @param position position
 	 */
-	public void streamPlaylistVODItemSeek(IPlaylistSubscriberStream stream,
-			IPlayItem item, int position);
+	public void streamPlayItemSeek(ISubscriberStream stream, IPlayItem item, int position);	
+	
+	
 }
