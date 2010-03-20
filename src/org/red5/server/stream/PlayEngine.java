@@ -586,11 +586,10 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 			if (itemLength == 0) {
 				while (body != null && !(body instanceof VideoData)) {
 					msg = msgIn.pullMessage();
-					if (msg == null) {
-						break;
-					}
-					if (msg instanceof RTMPMessage) {
+					if (msg != null && msg instanceof RTMPMessage) {
 						body = ((RTMPMessage) msg).getBody();
+					} else {
+						break;
 					}
 				}
 			}
@@ -626,6 +625,7 @@ public final class PlayEngine implements IFilter, IPushableConsumer, IPipeConnec
 			}
 		} else {
 			log.warn("Provider was not found for {}", itemName);
+			StreamService.sendNetStreamStatus(subscriberStream.getConnection(), StatusCodes.NS_PLAY_STREAMNOTFOUND, "Stream was not found", itemName, Status.ERROR, streamId);			
 		}
 	}
 

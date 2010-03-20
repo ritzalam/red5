@@ -36,6 +36,7 @@ import org.apache.commons.beanutils.BeanMap;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.ConversionException;
 import org.red5.server.api.IConnection;
+import org.red5.server.api.remoting.IRemotingConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -109,7 +110,8 @@ public class ConversionUtils {
 			return source;
 		}
 
-		if (IConnection.class.isAssignableFrom(source.getClass()) && !target.equals(IConnection.class)) {
+		//log.trace("Source: {} Target: {}", source.getClass(), target);
+		if (IConnection.class.isAssignableFrom(source.getClass()) && (!target.equals(IConnection.class) || !target.equals(IRemotingConnection.class))) {
 			throw new ConversionException("IConnection must match exactly");
 		}
 		if (target.isInstance(source)) {

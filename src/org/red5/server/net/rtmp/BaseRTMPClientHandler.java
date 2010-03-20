@@ -232,7 +232,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 				.debug("connect server: {} port {} connectionParams {} connectCallback {} conectCallArguments {}",
 						new Object[] { server, port, connectionParams, connectCallback,
 								Arrays.toString(connectCallArguments) });
-
+		log.info("rtmp://{}:{}/{}", new Object[] { server, port, connectionParams.get("app") });
 		this.connectionParams = connectionParams;
 		this.connectArguments = connectCallArguments;
 
@@ -399,6 +399,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 	}
 
 	public void createStream(IPendingServiceCallback callback) {
+		log.debug("createStream - callback: {}", callback);
 		IPendingServiceCallback wrapper = new CreateStreamCallBack(callback);
 		invoke("createStream", null, wrapper);
 	}
@@ -441,7 +442,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 			params[1] = start;
 			params[2] = length;
 			PendingCall pendingCall = new PendingCall("play", params);
-			conn.invoke(pendingCall, getChannelForStreamId(streamId));			
+			conn.invoke(pendingCall, getChannelForStreamId(streamId));
 		} else {
 			log.info("Connection was null ?");
 		}
@@ -503,7 +504,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 
 		// potentially used twice so get the value once
 		boolean onStatus = call.getServiceMethodName().equals("onStatus");
-
+		log.debug("onStatus {}", onStatus);
 		if (onStatus) {
 			// XXX better to serialize ObjectMap to Status object
 			ObjectMap<?, ?> objMap = (ObjectMap<?, ?>) call.getArguments()[0];
@@ -513,9 +514,14 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 			if (clientId == null) {
 				clientId = source.getStreamId();
 			}
+
 			log.debug("Client/stream id: {}", clientId);
 			if (clientId != null) {
-				NetStreamPrivateData streamData = streamDataMap.get(clientId);
+				//XXX Not sure what the impact of using "1" here, was client id
+				NetStreamPrivateData streamData = streamDataMap.get(1);
+
+				streamDataMap.put(clientId, streamData);
+
 				if (streamData != null && streamData.handler != null) {
 					streamData.handler.onStreamEvent(invoke);
 				}
@@ -626,6 +632,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 		private IPendingServiceCallback wrapped;
 
 		public CreateStreamCallBack(IPendingServiceCallback wrapped) {
+			log.debug("CreateStreamCallBack {}", wrapped.getClass().getName());
 			this.wrapped = wrapped;
 		}
 
@@ -633,7 +640,9 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 			Integer streamIdInt = (Integer) call.getResult();
 			log.debug("Stream id: {}", streamIdInt);
 			RTMPConnection conn = connManager.getConnection();
+			log.debug("CreateStreamCallBack resultReceived - stream id: {}",  streamIdInt);
 			if (conn != null && streamIdInt != null) {
+				log.debug("Setting new net stream");
 				NetStream stream = new NetStream(streamEventDispatcher);
 				stream.setConnection(conn);
 				stream.setStreamId(streamIdInt);
@@ -643,6 +652,7 @@ public abstract class BaseRTMPClientHandler extends BaseRTMPHandler {
 				streamData.connConsumer = new ConnectionConsumer(conn, streamData.outputStream.getVideo().getId(),
 						streamData.outputStream.getAudio().getId(), streamData.outputStream.getData().getId());
 				streamDataMap.put(streamIdInt, streamData);
+				log.debug("streamDataMap: {}", streamDataMap);
 			}
 			wrapped.resultReceived(call);
 		}

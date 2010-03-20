@@ -252,6 +252,19 @@ public class Server implements IServer, ApplicationContextAware, InitializingBea
 	}
 
 	/**
+	 * Remove all mappings with given context path
+	 * 
+	 * @param contextPath Context path
+	 * @return true if mapping was removed, false if key doesn't exist
+	 */
+	public boolean removeMapping(String contextPath) {
+		log.info("Remove mapping context: {}", contextPath);
+		final String key = getKey("", contextPath);
+		log.debug("Remove mapping: {}", key);
+		return (mapping.remove(key) != null);
+	}	
+	
+	/**
 	 * Return mapping
 	 * 
 	 * @return Map of "scope key / scope name" pairs

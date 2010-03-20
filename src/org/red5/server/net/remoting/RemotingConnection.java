@@ -60,39 +60,40 @@ public class RemotingConnection implements IRemotingConnection {
 	 * Session attribute holding an IClient object for this connection.
 	 */
 	private final static String CLIENT = "red5.client";
-	
+
 	/**
-     * Scope
-     */
+	 * Scope
+	 */
 	protected IScope scope;
-    /**
-     * Servlet request
-     */
+
+	/**
+	 * Servlet request
+	 */
 	protected HttpServletRequest request;
 
 	/**
 	 * Remoting packet that triggered the connection.
 	 */
 	protected RemotingPacket packet;
-	
+
 	/**
 	 * Session used to store properties.
 	 */
 	protected HttpSession session;
-	
+
 	/**
 	 * Headers to be returned to the client.
 	 */
 	protected List<IRemotingHeader> headers = new ArrayList<IRemotingHeader>();
-	
-    /**
-     * Create servlet connection from request and scope.
+
+	/**
+	 * Create servlet connection from request and scope.
 	 *
-     * @param request           Servlet request
-     * @param scope             Scope
-     * @param packet packet
-     */
-    public RemotingConnection(HttpServletRequest request, IScope scope, RemotingPacket packet) {
+	 * @param request           Servlet request
+	 * @param scope             Scope
+	 * @param packet packet
+	 */
+	public RemotingConnection(HttpServletRequest request, IScope scope, RemotingPacket packet) {
 		this.request = request;
 		this.scope = scope;
 		this.packet = packet;
@@ -105,71 +106,70 @@ public class RemotingConnection implements IRemotingConnection {
 		client.register(this);
 	}
 
-    /**
-     * Return string representation of the connection.
-     * 
-     * @return string
-     */
-    public String toString() {
-		return getClass().getSimpleName() + " from " + getRemoteAddress() + ':'
-			+ getRemotePort() + " to " + getHost() + " (session: "
-			+ session.getId() + ')';
-    }
-    
-    /**
-     * Update the current packet.
-     * 
-     * @param packet
-     */
-    protected void setPacket(RemotingPacket packet) {
-    	this.packet = packet;
-    }
-    
-    /**
-     * Throws Not supported runtime exception
-     */
-    private void notSupported() {
+	/**
+	 * Return string representation of the connection.
+	 * 
+	 * @return string
+	 */
+	public String toString() {
+		return getClass().getSimpleName() + " from " + getRemoteAddress() + ':' + getRemotePort() + " to " + getHost()
+				+ " (session: " + session.getId() + ')';
+	}
+
+	/**
+	 * Update the current packet.
+	 * 
+	 * @param packet
+	 */
+	protected void setPacket(RemotingPacket packet) {
+		this.packet = packet;
+	}
+
+	/**
+	 * Throws Not supported runtime exception
+	 */
+	private void notSupported() {
 		throw new RuntimeException("Not supported for this type of connection");
 	}
 
-    /**
-     * Return encoding (AMF0 or AMF3).
+	/**
+	 * Return encoding (AMF0 or AMF3).
 	 *
-     * @return        Encoding, currently AMF0
-     */
-    public Encoding getEncoding() {
+	 * @return        Encoding, currently AMF0
+	 */
+	public Encoding getEncoding() {
 		return packet.getEncoding();
 	}
 
-    /** {@inheritDoc} */
-    public String getType() {
+	/** {@inheritDoc} */
+	public String getType() {
 		return IConnection.TRANSIENT;
 	}
 
 	/** {@inheritDoc} */
-    public void initialize(IClient client) {
+	public void initialize(IClient client) {
 		notSupported();
 	}
 
 	/** {@inheritDoc} */
-    public boolean connect(IScope scope) {
-		notSupported();
-		return false;
-	}
-
-	/** {@inheritDoc} */
-    public boolean connect(IScope scope, Object[] params) {
+	public boolean connect(IScope scope) {
 		notSupported();
 		return false;
 	}
 
 	/** {@inheritDoc} */
-    public boolean isConnected() {
+	public boolean connect(IScope scope, Object[] params) {
+		notSupported();
 		return false;
 	}
 
 	/** {@inheritDoc} */
-    public void close() {
+	public boolean isConnected() {
+		return false;
+	}
+
+	/** {@inheritDoc} */
+	public void close() {
 		session.invalidate();
 	}
 
@@ -179,32 +179,32 @@ public class RemotingConnection implements IRemotingConnection {
 	}
 
 	/** {@inheritDoc} */
-    public IClient getClient() {
+	public IClient getClient() {
 		return (IClient) session.getAttribute(CLIENT);
 	}
 
 	/** {@inheritDoc} */
-    public String getHost() {
+	public String getHost() {
 		return request.getLocalName();
 	}
 
 	/** {@inheritDoc} */
-    public String getRemoteAddress() {
+	public String getRemoteAddress() {
 		return request.getRemoteAddr();
 	}
 
 	/** {@inheritDoc} */
-    public List<String> getRemoteAddresses() {
+	public List<String> getRemoteAddresses() {
 		return ServletUtils.getRemoteAddresses(request);
 	}
 
 	/** {@inheritDoc} */
-    public int getRemotePort() {
+	public int getRemotePort() {
 		return request.getRemotePort();
 	}
 
 	/** {@inheritDoc} */
-    public String getPath() {
+	public String getPath() {
 		String path = request.getContextPath();
 		if (request.getPathInfo() != null) {
 			path += request.getPathInfo();
@@ -216,66 +216,66 @@ public class RemotingConnection implements IRemotingConnection {
 	}
 
 	/** {@inheritDoc} */
-    public String getSessionId() {
+	public String getSessionId() {
 		return null;
 	}
 
 	/** {@inheritDoc} */
-    public long getReadBytes() {
+	public long getReadBytes() {
 		return request.getContentLength();
 	}
 
 	/** {@inheritDoc} */
-    public long getWrittenBytes() {
+	public long getWrittenBytes() {
 		return 0;
 	}
 
 	/** {@inheritDoc} */
-    public long getPendingMessages() {
+	public long getPendingMessages() {
 		return 0;
 	}
 
 	/**
-     * Return pending video messages number.
-     *
-     * @return  Pending video messages number
-     */
-    public long getPendingVideoMessages() {
+	 * Return pending video messages number.
+	 *
+	 * @return  Pending video messages number
+	 */
+	public long getPendingVideoMessages() {
 		return 0;
 	}
 
 	/** {@inheritDoc} */
-    public long getReadMessages() {
+	public long getReadMessages() {
 		return 1;
 	}
 
 	/** {@inheritDoc} */
-    public long getWrittenMessages() {
+	public long getWrittenMessages() {
 		return 0;
 	}
 
 	/** {@inheritDoc} */
-    public long getDroppedMessages() {
+	public long getDroppedMessages() {
 		return 0;
 	}
 
 	/** {@inheritDoc} */
-    public void ping() {
+	public void ping() {
 		notSupported();
 	}
 
 	/** {@inheritDoc} */
-    public int getLastPingTime() {
+	public int getLastPingTime() {
 		return -1;
 	}
 
 	/** {@inheritDoc} */
-    public IScope getScope() {
+	public IScope getScope() {
 		return scope;
 	}
 
 	/** {@inheritDoc} */
-    public Iterator<IBasicScope> getBasicScopes() {
+	public Iterator<IBasicScope> getBasicScopes() {
 		notSupported();
 		return null;
 	}
@@ -285,18 +285,18 @@ public class RemotingConnection implements IRemotingConnection {
 	}
 
 	/** {@inheritDoc} */
-    public void dispatchEvent(IEvent event) {
+	public void dispatchEvent(IEvent event) {
 		notSupported();
 	}
 
 	/** {@inheritDoc} */
-    public boolean handleEvent(IEvent event) {
+	public boolean handleEvent(IEvent event) {
 		notSupported();
 		return false;
 	}
 
 	/** {@inheritDoc} */
-    public void notifyEvent(IEvent event) {
+	public void notifyEvent(IEvent event) {
 		notSupported();
 	}
 
@@ -355,7 +355,7 @@ public class RemotingConnection implements IRemotingConnection {
 		if (name == null) {
 			return null;
 		}
-		
+
 		return session.getAttribute(name);
 	}
 
@@ -364,7 +364,7 @@ public class RemotingConnection implements IRemotingConnection {
 		if (name == null) {
 			return null;
 		}
-		
+
 		// Synchronize so default value doesn't override other default value 
 		synchronized (session) {
 			Object result = session.getAttribute(name);
@@ -410,7 +410,7 @@ public class RemotingConnection implements IRemotingConnection {
 		if (name == null) {
 			return false;
 		}
-		
+
 		return (getAttribute(name) != null);
 	}
 
@@ -419,7 +419,7 @@ public class RemotingConnection implements IRemotingConnection {
 		if (name == null) {
 			return false;
 		}
-		
+
 		// Synchronize to prevent parallel modifications
 		synchronized (session) {
 			if (!hasAttribute(name)) {
@@ -447,7 +447,7 @@ public class RemotingConnection implements IRemotingConnection {
 		if (name == null) {
 			return false;
 		}
-		
+
 		if (value == null) {
 			session.removeAttribute(name);
 		} else {
@@ -458,7 +458,7 @@ public class RemotingConnection implements IRemotingConnection {
 
 	/** {@inheritDoc} */
 	public void setAttributes(Map<String, Object> values) {
-		for (Map.Entry<String, Object> entry: values.entrySet()) {
+		for (Map.Entry<String, Object> entry : values.entrySet()) {
 			final String name = entry.getKey();
 			final Object value = entry.getValue();
 			if (name != null && value != null) {
@@ -498,8 +498,8 @@ public class RemotingConnection implements IRemotingConnection {
 	public long getClientBytesRead() {
 		// This is not supported for Remoting connections
 		return 0;
-	}	
-	
+	}
+
 	/**
 	 * Cleans up the remoting connection client from the HttpSession and client
 	 * registry.
@@ -512,12 +512,12 @@ public class RemotingConnection implements IRemotingConnection {
 			if (rc != null) {
 				rc.unregister(this);
 			}
-		}		
+		}
 	}
-	
+
 	/** Internal class for clients connected through Remoting. */
 	private static class RemotingClient extends Client {
-		
+
 		private RemotingClient(String id) {
 			super(id, null);
 		}
@@ -526,7 +526,7 @@ public class RemotingConnection implements IRemotingConnection {
 		@Override
 		protected void register(IConnection conn) {
 			// We only have one connection per client
-			for (IConnection c: getConnections()) {
+			for (IConnection c : getConnections()) {
 				unregister(c);
 			}
 			super.register(conn);
@@ -535,8 +535,8 @@ public class RemotingConnection implements IRemotingConnection {
 		@Override
 		protected void unregister(IConnection conn) {
 			super.unregister(conn);
-		}	
-		
+		}
+
 	}
-	
+
 }

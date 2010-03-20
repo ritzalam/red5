@@ -33,6 +33,11 @@ public abstract class AbstractClientStream extends AbstractStream implements ICl
 	 *  Stream identifier. Unique across server.
 	 */
 	private int streamId;
+	
+	/**
+	 * Stream name of the broadcasting stream.
+	 */
+	private String broadcastStreamPublishName;
 
 	/**
 	 *  Connection that works with streams
@@ -90,4 +95,18 @@ public abstract class AbstractClientStream extends AbstractStream implements ICl
 		return clientBufferDuration;
 	}
 
+	/**
+	 * Sets the broadcasting streams name.
+	 * 
+	 * @param broadcastStreamPublishName name of the broadcasting stream
+	 */
+	public void setBroadcastStreamPublishName(String broadcastStreamPublishName) {
+		this.broadcastStreamPublishName = broadcastStreamPublishName;
+	}
+
+	/** {@inheritDoc} */
+	public String getBroadcastStreamPublishName() {
+		return broadcastStreamPublishName;
+	}
+		
 }

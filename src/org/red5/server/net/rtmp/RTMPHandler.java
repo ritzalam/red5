@@ -179,9 +179,8 @@ public class RTMPHandler extends BaseRTMPHandler {
 	private boolean invokeCall(RTMPConnection conn, IServiceCall call, Object service) {
 		final IScope scope = conn.getScope();
 		final IContext context = scope.getContext();
-		log.debug("Scope: {}", scope);
+		log.debug("Scope: {} Context: {}", scope, context);
 		log.debug("Service: {}", service);
-		log.debug("Context: {}", context);
 		return context.getServiceInvoker().invoke(call, service);
 	}
 
@@ -390,6 +389,7 @@ public class RTMPHandler extends BaseRTMPHandler {
 									IStreamService.class, StreamService.class);
 							Status status = null;
 							try {
+								log.debug("Invoking {} from {} with service: {}", new Object[]{call, conn, streamService});
 								if (!invokeCall(conn, call, streamService)) {
 									status = getStatus(NS_INVALID_ARGUMENT).asStatus();
 									status.setDescription(String.format("Failed to %s (stream id: %d)", action, source

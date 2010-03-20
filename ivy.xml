@@ -42,7 +42,7 @@
         <dependency name="logback-classic" rev="0.9.18" />
         <dependency name="tomcat-juli-slf4j" rev="1.5.0" />
         <!-- General --> 
-        <dependency org="commons" name="commons-beanutils" rev="1.8.0" />
+        <dependency org="commons" name="commons-beanutils" rev="1.8.2" />
         <dependency org="commons" name="commons-codec" rev="1.4" />
         <dependency org="commons" name="commons-collections" rev="3.2.1" /> 
         <dependency org="commons" name="commons-httpclient" rev="3.1" />

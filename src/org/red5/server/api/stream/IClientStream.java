@@ -65,5 +65,12 @@ public interface IClientStream extends IStream {
 	 * @return bufferTime duration in ms the client wants to buffer
 	 */
 	int getClientBufferDuration();	
+
+	/**
+	 * Returns the published stream name that this client is consuming.
+	 * 
+	 * @return stream name of stream being consumed
+	 */
+	String getBroadcastStreamPublishName();
 	
 }
