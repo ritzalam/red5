@@ -10,7 +10,7 @@ import javax.management.remote.JMXConnector;
 import javax.management.remote.JMXConnectorFactory;
 import javax.management.remote.JMXServiceURL;
 
-import org.red5.server.jmx.mxbeans.LoaderMXBean;
+import org.red5.server.jmx.mxbeans.ShutdownMXBean;
 
 /*
  * RED5 Open Source Flash Server - http://www.osflash.org/red5
@@ -85,25 +85,30 @@ public class Shutdown {
 
 			jmxc = JMXConnectorFactory.connect(url, env);
 			MBeanServerConnection mbs = jmxc.getMBeanServerConnection();
+			
+			//class supporting shutdown
+			ShutdownMXBean proxy = null;
 
 			//check for loader registration
 			ObjectName tomcatObjectName = new ObjectName("org.red5.server:type=TomcatLoader");
 			ObjectName jettyObjectName = new ObjectName("org.red5.server:type=JettyLoader");
-			LoaderMXBean mbeanProxy = null;
+			ObjectName contextLoaderObjectName = new ObjectName("org.red5.server:type=ContextLoader");
 			if (mbs.isRegistered(jettyObjectName)) {
-				mbeanProxy = (LoaderMXBean) JMX.newMXBeanProxy(mbs, jettyObjectName, LoaderMXBean.class, true);
 				System.out.println("Red5 Jetty loader was found");
+				proxy = (ShutdownMXBean) JMX.newMXBeanProxy(mbs, jettyObjectName, ShutdownMXBean.class, true);
 			} else if (mbs.isRegistered(tomcatObjectName)) {
-				mbeanProxy = (LoaderMXBean) JMX.newMXBeanProxy(mbs, tomcatObjectName, LoaderMXBean.class, true);
 				System.out.println("Red5 Tomcat loader was found");
+				proxy = (ShutdownMXBean) JMX.newMXBeanProxy(mbs, tomcatObjectName, ShutdownMXBean.class, true);
+			} else if (mbs.isRegistered(contextLoaderObjectName)) {
+				System.out.println("Red5 Context loader was found");	
+				proxy = (ShutdownMXBean) JMX.newMXBeanProxy(mbs, contextLoaderObjectName, ShutdownMXBean.class, true);
 			} else {
 				System.out.println("Red5 Loader was not found, is the server running?");
 			}
-			if (null != mbeanProxy) {
+			if (proxy != null) {
 				System.out.println("Calling shutdown");
-				mbeanProxy.shutdown();
+				proxy.shutdown();
 			}
-
 			jmxc.close();
 		} catch (UndeclaredThrowableException e) {
 			//ignore

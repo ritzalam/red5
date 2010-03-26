@@ -502,7 +502,7 @@
 			<fileset dir="${classes.dir}">
 				<exclude name="**/org/red5/server/Bootstrap.class"/>
 				<exclude name="**/org/red5/server/Shutdown.class"/>
-				<exclude name="**/LoaderMXBean.class"/>
+				<exclude name="**/ShutdownMXBean.class"/>
 				<exclude name="**/org/red5/classloading/**"/>
 				<include name="**/org/**"/>
 				<include name="**/META-INF**"/>
@@ -521,7 +521,7 @@
 			<fileset dir="${classes.dir}">
 				<include name="**/org/red5/server/Bootstrap.class"/>
 				<include name="**/org/red5/server/Shutdown.class"/>
-				<include name="**/LoaderMXBean.class"/>
+				<include name="**/ShutdownMXBean.class"/>
 				<include name="**/org/red5/classloading/**"/>
 				<include name="**/META-INF**"/>
 			</fileset>

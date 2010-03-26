@@ -29,11 +29,9 @@ import javax.management.MXBean;
  * @author Paul Gregoire (mondain@gmail.com)
  */
 @MXBean
-public interface LoaderMXBean {
+public interface LoaderMXBean extends ShutdownMXBean {
 
 	public void init();
-
-	public void shutdown();
 
 	public void removeContext(String path);
 
