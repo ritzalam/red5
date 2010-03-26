@@ -256,8 +256,9 @@ public class StreamService implements IStreamService {
 						//clears any previous play calls and plays name immediately
 						play(name, start, length, true);
 				}
+			} else {
+			    play(name, start, length);
 			}
-			play(name, start, length);
 		}
 	}
 
