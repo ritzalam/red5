@@ -38,12 +38,12 @@ public class FLVData {
 	 * soundRate (byte & 0x0C) == 2 0: 5.5kHz, 1: 11kHz, 2: 22kHz, 3: 44kHz 
 	 * soundFormat (byte & 0xf0) == 4 0: Uncompressed, 1: ADPCM, 2: MP3, 
 	 *     5: Nellymoser 8kHz mono, 6: Nellymoser
-	 */
-
-	/*
+	 *     
 	 * codecID (byte & 0x0f) == 0 2: Sorensen H.263, 3: Screen video, 4: On2 VP6
 	 * frameType (byte & 0xf0) == 4 1: keyframe, 2: inter frame, 3: disposable
 	 * inter frame
+	 * 
+	 * http://www.adobe.com/devnet/flv/pdf/video_file_format_spec_v10.pdf
 	 */
 
 	protected IoBuffer data;
@@ -51,109 +51,90 @@ public class FLVData {
 	protected int timestamp = -1;
 
 	/**
-     * Getter for disposable state
-     *
-     * @return  <code>true</code> if FVL data is disposable, <code>false</code> otherwise
-     */
-    public boolean isDisposable() {
+	 * Getter for disposable state
+	 *
+	 * @return  <code>true</code> if FLV data is disposable, <code>false</code> otherwise
+	 */
+	public boolean isDisposable() {
 		return false;
 	}
 
-    /**
-     * Audio data
-     */
-    public static final int TYPE_AUDIO = 8;
-    /**
-     * Video data
-     */
-	public static final int TYPE_VIDEO = 9;
-    /**
-     * Metadata
-     */
-	public static final int TYPE_METADATA = 12;
-    /**
-     * Sorensen H263 codec marker
-     */
-	public static final int VIDEO_SORENSON_H263 = 2;
-    /**
-     * Screen video
-     */
-	public static final int VIDEO_SCREEN_VIDEO = 3;
-    /**
-     * ON2 VP6 codec marker
-     */
-	public static final int VIDEO_ON2_VP6 = 4;
-    /**
-     * Keyframe
-     */
-	public static final int FRAMETYPE_KEYFRAME = 1;
-    /**
-     * Interframe
-     */
-	public static final int FRAMETYPE_INTERFRAME = 2;
-    /**
-     * Disposable
-     */
-	public static final int FRAMETYPE_DISPOSABLE = 3;
-    /**
-     * Uncompressed
-     */
-	public static final int AUDIO_UNCOMPRESSED = 0;
-    /**
-     * ADPCM data
-     */
-	public static final int AUDIO_ADPCM = 1;
-    /**
-     * MP3 data
-     */
-	public static final int AUDIO_MP3 = 2;
-    /**
-     * Nellymoser 8khz rate data
-     */
-	public static final int AUDIO_NELLYMOSER_8KHZ = 5;
-    /**
-     * Nellymoser encoded data
-     */
-	public static final int AUDIO_NELLYMOSER = 6;
-    /**
-     * Speex encoded data
-     */
-	public static final int AUDIO_SPEEX = 11;
 	/**
-     * Sound size when 8 khz quality marker
-     */
+	 * Audio data
+	 */
+	public static final int TYPE_AUDIO = 8;
+
+	/**
+	 * Video data
+	 */
+	public static final int TYPE_VIDEO = 9;
+
+	/**
+	 * Metadata
+	 */
+	public static final int TYPE_METADATA = 12;
+
+	/**
+	 * Keyframe
+	 */
+	public static final int FRAMETYPE_KEYFRAME = 1;
+
+	/**
+	 * Interframe
+	 */
+	public static final int FRAMETYPE_INTERFRAME = 2;
+
+	/**
+	 * Disposable
+	 */
+	public static final int FRAMETYPE_DISPOSABLE = 3;
+
+	/**
+	 * Server-side generated keyframe
+	 */
+	public static final int FRAMETYPE_SERVERSIDE_KEYFRAME = 4;
+	
+	/**
+	 * Video information or command
+	 */
+	public static final int FRAMETYPE_INFO = 5;
+	
+	/**
+	 * Sound size when 8 khz quality marker
+	 */
 	public static final int SOUND_SIZE_8_BIT = 0;
-    /**
-     * Sound size when 16 khz quality marker
-     */
+
+	/**
+	 * Sound size when 16 khz quality marker
+	 */
 	public static final int SOUND_SIZE_16_BIT = 2;
-    /**
-     * Sound size when 5.5 khz rate marker
-     */
+
+	/**
+	 * Sound size when 5.5 khz rate marker
+	 */
 	public static final int SOUND_RATE_5_5_KHZ = 1;
-    /**
-     * Sound size when 11 khz rate marker
-     */
+
+	/**
+	 * Sound size when 11 khz rate marker
+	 */
 	public static final int SOUND_RATE_11_KHZ = 2;
-    /**
-     * Sound size when 22 khz rate marker
-     */
+
+	/**
+	 * Sound size when 22 khz rate marker
+	 */
 	public static final int SOUND_RATE_22_KHZ = 3;
-    /**
-     * Sound size when 44 khz rate marker
-     */
+
+	/**
+	 * Sound size when 44 khz rate marker
+	 */
 	public static final int SOUND_RATE_44_KHZ = 4;
 
-	/*
-	 * 0: Uncompressed, 1: ADPCM, 2: MP3, 5: Nellymoser 8kHz mono, 6: Nellymoser
-	 */
-
 	/**
-     * Getter for codec. Returns 0 by now.
-     *
-     * @return  Codec
-     */
-    public int getCodec() {
+	 * Getter for codec. Returns 0 by now.
+	 *
+	 * @return  Codec
+	 */
+	public int getCodec() {
 		return 0;
 	}
 
