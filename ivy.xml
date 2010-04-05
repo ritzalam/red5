@@ -23,12 +23,12 @@
         <dependency org="tomcat" name="jasper-jdt" rev="6.0.26" /> 
         <dependency org="tomcat" name="jasper-el" rev="6.0.26" />
         <!-- Spring --> 
-        <dependency org="spring" name="spring-asm" rev="3.0.0" />
-        <dependency org="spring" name="spring-beans" rev="3.0.0" />
-        <dependency org="spring" name="spring-context" rev="3.0.0" />
-        <dependency org="spring" name="spring-core" rev="3.0.0" />
-        <dependency org="spring" name="spring-web" rev="3.0.0" />
-        <dependency org="spring" name="spring-expression" rev="3.0.0" />
+        <dependency org="spring" name="spring-asm" rev="3.0.2" />
+        <dependency org="spring" name="spring-beans" rev="3.0.2" />
+        <dependency org="spring" name="spring-context" rev="3.0.2" />
+        <dependency org="spring" name="spring-core" rev="3.0.2" />
+        <dependency org="spring" name="spring-web" rev="3.0.2" />
+        <dependency org="spring" name="spring-expression" rev="3.0.2" />
         <!-- Tomcat --> 
         <dependency org="tomcat" name="catalina" rev="6.0.26" />
         <dependency org="tomcat" name="tomcat-coyote" rev="6.0.26" />
@@ -65,7 +65,7 @@
         <dependency name="jruby-complete" rev="1.1.6" conf="java6->*"/>  
         <dependency name="jruby-engine" rev="1.1.6" conf="java6->*"/>  
         <dependency name="jython" rev="2.5" />  
-        <dependency org="spring" name="spring-context-support" rev="3.0.0" />
+        <dependency org="spring" name="spring-context-support" rev="3.0.2" />
         <!-- Java5 support -->
         <dependency org="rhino" name="js" rev="1.6R7" conf="java5->*"/>
         <dependency name="jsr173_1.0_api" rev="" conf="java5->*"/>
@@ -83,8 +83,8 @@
         <!-- until Eclipse updates their junit version, we have to use this -->
         <dependency name="junit" rev="4.7" conf="eclipse->*"/>
         <dependency name="GroboUtils" rev="5-core" conf="eclipse->*"/>
-        <dependency org="spring" name="spring-test" rev="3.0.0" conf="eclipse->*"/>   
-        <dependency org="spring" name="spring-transaction" rev="3.0.0" conf="eclipse->*"/>  
+        <dependency org="spring" name="spring-test" rev="3.0.2" conf="eclipse->*"/>   
+        <dependency org="spring" name="spring-transaction" rev="3.0.2" conf="eclipse->*"/>  
         <dependency name="jython-engine" rev="" conf="eclipse->*"/> 
         <dependency name="groovy-engine" rev="" conf="eclipse->*"/>
     </dependencies>
