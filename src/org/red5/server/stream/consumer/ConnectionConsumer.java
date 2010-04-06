@@ -19,6 +19,7 @@ package org.red5.server.stream.consumer;
  * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA 
  */
 
+import org.apache.mina.core.buffer.IoBuffer;
 import org.red5.server.api.stream.IClientStream;
 import org.red5.server.messaging.IMessage;
 import org.red5.server.messaging.IMessageComponent;
@@ -138,22 +139,34 @@ public class ConnectionConsumer implements IPushableConsumer, IPipeConnectionLis
 			//create a new header for the consumer
 			final Header header = new Header();
 			header.setTimerBase(eventTime);
+			//data buffer
+			IoBuffer buf = null;
 			switch (dataType) {
 				case Constants.TYPE_AUDIO_DATA:
 					log.trace("Audio data");
-					AudioData audioData = new AudioData(((AudioData) msg).getData().asReadOnlyBuffer());
-					audioData.setHeader(header);
-					audioData.setTimestamp(header.getTimer());
-					audioData.setSourceType(((AudioData)msg).getSourceType());
-					audio.write(audioData);
+					buf = ((AudioData) msg).getData();
+					if (buf != null) {
+    					AudioData audioData = new AudioData(buf.asReadOnlyBuffer());
+    					audioData.setHeader(header);
+    					audioData.setTimestamp(header.getTimer());
+    					audioData.setSourceType(((AudioData)msg).getSourceType());
+    					audio.write(audioData);
+					} else {
+						log.warn("Audio data was not found");
+					}
 					break;
 				case Constants.TYPE_VIDEO_DATA:
 					log.trace("Video data");
-					VideoData videoData = new VideoData(((VideoData) msg).getData().asReadOnlyBuffer());
-					videoData.setHeader(header);
-					videoData.setTimestamp(header.getTimer());
-					videoData.setSourceType(((VideoData)msg).getSourceType());
-					video.write(videoData);
+					buf = ((VideoData) msg).getData();
+					if (buf != null) {
+    					VideoData videoData = new VideoData(buf.asReadOnlyBuffer());
+    					videoData.setHeader(header);
+    					videoData.setTimestamp(header.getTimer());
+    					videoData.setSourceType(((VideoData)msg).getSourceType());
+    					video.write(videoData);
+					} else {
+						log.warn("Video data was not found");
+					}
 					break;
 				case Constants.TYPE_PING:
 					log.trace("Ping");	

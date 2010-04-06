@@ -705,7 +705,10 @@ public class FLVReader implements IoConstants, ITagReader, IKeyFrameDataAnalyzer
 					log.debug(" pos=" + pos);
 					log.debug("-----");
 				}
-				throw new RuntimeException("New position exceeds limit");
+				//XXX Paul: A runtime exception is probably not needed here
+				log.info("New position {} exceeds limit {}", newPosition, getTotalBytes());
+				//just break from the loop
+				break;
 			} else {
 				setCurrentPosition(newPosition);
 			}
