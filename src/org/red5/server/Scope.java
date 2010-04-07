@@ -301,8 +301,13 @@ public class Scope extends BasicScope implements IScope, IScopeStatistics, Scope
 			}
 		}
 		log.debug("Add child scope: {} to {}", scope, this);
-		children.put(scope.getType() + SEPARATOR + scope.getName(), scope);
-		subscopeStats.increment();
+		String key = scope.getType() + SEPARATOR + scope.getName();
+		//do a check first
+		if (children.get(key) == null) {
+    		//this happens atomically
+    		children.putIfAbsent(key, scope);
+    		subscopeStats.increment();
+		}
 		return true;
 	}
 

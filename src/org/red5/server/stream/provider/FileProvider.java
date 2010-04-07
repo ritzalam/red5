@@ -58,67 +58,74 @@ import org.slf4j.LoggerFactory;
 /**
  * Pullable provider for files
  */
-public class FileProvider implements IPassive, ISeekableProvider,
-		IPullableProvider, IPipeConnectionListener, IStreamTypeAwareProvider {
-    /**
-     * Logger
-     */
-    private static final Logger log = LoggerFactory.getLogger(FileProvider.class);
-    /**
-     * Class name
-     */
+public class FileProvider implements IPassive, ISeekableProvider, IPullableProvider, IPipeConnectionListener,
+		IStreamTypeAwareProvider {
+	/**
+	 * Logger
+	 */
+	private static final Logger log = LoggerFactory.getLogger(FileProvider.class);
+
+	/**
+	 * Class name
+	 */
 	public static final String KEY = FileProvider.class.getName();
-    /**
-     * Provider scope
-     */
+
+	/**
+	 * Provider scope
+	 */
 	private IScope scope;
-    /**
-     * Source file
-     */
+
+	/**
+	 * Source file
+	 */
 	private File file;
-    /**
-     * Consumer pipe
-     */
+
+	/**
+	 * Consumer pipe
+	 */
 	private IPipe pipe;
-    /**
-     * Tag reader
-     */
+
+	/**
+	 * Tag reader
+	 */
 	private ITagReader reader;
-    /**
-     * Keyframe metadata
-     */
+
+	/**
+	 * Keyframe metadata
+	 */
 	private KeyFrameMeta keyFrameMeta;
-    /**
-     * Position at start
-     */
+
+	/**
+	 * Position at start
+	 */
 	private int start;
 
-    /**
-     * Create file provider for given file and scope
-     * @param scope            Scope
-     * @param file             File
-     */
-    public FileProvider(IScope scope, File file) {
+	/**
+	 * Create file provider for given file and scope
+	 * @param scope            Scope
+	 * @param file             File
+	 */
+	public FileProvider(IScope scope, File file) {
 		this.scope = scope;
 		this.file = file;
 	}
 
 	/**
-     * Setter for start position
-     *
-     * @param start Start position
-     */
-    public void setStart(int start) {
+	 * Setter for start position
+	 *
+	 * @param start Start position
+	 */
+	public void setStart(int start) {
 		this.start = start;
 	}
 
-    /** {@inheritDoc} */
-    public boolean hasVideo() {
-    	return (reader != null && reader.hasVideo());
-    }
-    
 	/** {@inheritDoc} */
-    public synchronized IMessage pullMessage(IPipe pipe) throws IOException {
+	public boolean hasVideo() {
+		return (reader != null && reader.hasVideo());
+	}
+
+	/** {@inheritDoc} */
+	public synchronized IMessage pullMessage(IPipe pipe) throws IOException {
 		if (this.pipe != pipe) {
 			return null;
 		}
@@ -161,12 +168,12 @@ public class FileProvider implements IPassive, ISeekableProvider,
 	}
 
 	/** {@inheritDoc} */
-    public IMessage pullMessage(IPipe pipe, long wait) throws IOException {
+	public IMessage pullMessage(IPipe pipe, long wait) throws IOException {
 		return pullMessage(pipe);
 	}
 
 	/** {@inheritDoc} */
-    public void onPipeConnectionEvent(PipeConnectionEvent event) {
+	public void onPipeConnectionEvent(PipeConnectionEvent event) {
 		switch (event.getType()) {
 			case PipeConnectionEvent.PROVIDER_CONNECT_PULL:
 				if (pipe == null) {
@@ -188,41 +195,37 @@ public class FileProvider implements IPassive, ISeekableProvider,
 	}
 
 	/** {@inheritDoc} */
-    public void onOOBControlMessage(IMessageComponent source, IPipe pipe,
-			OOBControlMessage oobCtrlMsg) {
-    	String serviceName = oobCtrlMsg.getServiceName();
-    	String target = oobCtrlMsg.getTarget();
-    	log.debug("onOOBControlMessage - service name: {} target: {}", serviceName, target);
-    	if (serviceName != null) {
-    		if (IPassive.KEY.equals(target)) {
-    			if ("init".equals(serviceName)) {
-    				Integer startTS = (Integer) oobCtrlMsg.getServiceParamMap()
-    						.get("startTS");
-    				setStart(startTS);
-    			}
-    		} else if (ISeekableProvider.KEY.equals(target)) {
-    			if ("seek".equals(serviceName)) {
-    				Integer position = (Integer) oobCtrlMsg.getServiceParamMap()
-    						.get("position");
-    				int seekPos = seek(position.intValue());
-    				// Return position we seeked to
-    				oobCtrlMsg.setResult(seekPos);
-    			}
-    		} else if (IStreamTypeAwareProvider.KEY.equals(target)) {
-    			if ("hasVideo".equals(serviceName)) {
-    				oobCtrlMsg.setResult(hasVideo());
-    			}
-    		}
-    	}
+	public void onOOBControlMessage(IMessageComponent source, IPipe pipe, OOBControlMessage oobCtrlMsg) {
+		String serviceName = oobCtrlMsg.getServiceName();
+		String target = oobCtrlMsg.getTarget();
+		log.debug("onOOBControlMessage - service name: {} target: {}", serviceName, target);
+		if (serviceName != null) {
+			if (IPassive.KEY.equals(target)) {
+				if ("init".equals(serviceName)) {
+					Integer startTS = (Integer) oobCtrlMsg.getServiceParamMap().get("startTS");
+					setStart(startTS);
+				}
+			} else if (ISeekableProvider.KEY.equals(target)) {
+				if ("seek".equals(serviceName)) {
+					Integer position = (Integer) oobCtrlMsg.getServiceParamMap().get("position");
+					int seekPos = seek(position.intValue());
+					// Return position we seeked to
+					oobCtrlMsg.setResult(seekPos);
+				}
+			} else if (IStreamTypeAwareProvider.KEY.equals(target)) {
+				if ("hasVideo".equals(serviceName)) {
+					oobCtrlMsg.setResult(hasVideo());
+				}
+			}
+		}
 	}
 
-    /**
-     * Initializes file provider. Creates streamable file factory and service, seeks to start position
-     */
-    private void init() throws IOException {
-		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils
-				.getScopeService(scope, IStreamableFileFactory.class,
-						StreamableFileFactory.class);
+	/**
+	 * Initializes file provider. Creates streamable file factory and service, seeks to start position
+	 */
+	private void init() throws IOException {
+		IStreamableFileFactory factory = (IStreamableFileFactory) ScopeUtils.getScopeService(scope,
+				IStreamableFileFactory.class, StreamableFileFactory.class);
 		IStreamableFileService service = factory.getService(file);
 		if (service == null) {
 			log.error("No service found for {}", file.getAbsolutePath());
@@ -235,10 +238,10 @@ public class FileProvider implements IPassive, ISeekableProvider,
 		}
 	}
 
-    /**
-     * Reset
-     */
-    private synchronized void uninit() {
+	/**
+	 * Reset
+	 */
+	private synchronized void uninit() {
 		if (this.reader != null) {
 			this.reader.close();
 			this.reader = null;

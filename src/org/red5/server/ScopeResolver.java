@@ -78,35 +78,34 @@ public class ScopeResolver implements IScopeResolver {
         // Start from root scope
         IScope scope = root;
         // If there's no path return root scope (e.i. root path scope)
-        if (path == null) {
-			return scope;
-		}
-        // Split path to parts
-        final String[] parts = path.split("/");
-        // Iterate thru them, skip empty parts
-		for (String room : parts) {
-			if (room == null || room.equals("")) {
-				// Skip empty path elements
-				continue;
-			}
-
-			if (scope.hasChildScope(room)) {
-				scope = scope.getScope(room);
-			} else if (!scope.equals(root)) {
-				//no need for sync here, scope.children is concurrent
-				if (scope.createChildScope(room)) {
-					scope = scope.getScope(room);
-				}
-			} 
-			
-			//if the scope is still equal to root then the room was not found
-			if (scope == root) {
-				throw new ScopeNotFoundException(scope, room);
-			}
-			
-			if (scope instanceof WebScope && ((WebScope) scope).isShuttingDown()) {
-				throw new ScopeShuttingDownException(scope);
-			}
+        if (path != null || !"".equals(path)) {
+            // Split path to parts
+            final String[] parts = path.split("/");
+            // Iterate thru them, skip empty parts
+    		for (String room : parts) {
+    			if (room == null || "".equals(room)) {
+    				// Skip empty path elements
+    				continue;
+    			}
+    
+    			if (scope.hasChildScope(room)) {
+    				scope = scope.getScope(room);
+    			} else if (!scope.equals(root)) {
+    				//no need for sync here, scope.children is concurrent
+    				if (scope.createChildScope(room)) {
+    					scope = scope.getScope(room);
+    				}
+    			} 
+    			
+    			//if the scope is still equal to root then the room was not found
+    			if (scope == root) {
+    				throw new ScopeNotFoundException(scope, room);
+    			}
+    			
+    			if (scope instanceof WebScope && ((WebScope) scope).isShuttingDown()) {
+    				throw new ScopeShuttingDownException(scope);
+    			}
+    		}
 		}
 		return scope;
 	}
