@@ -174,6 +174,11 @@ public class StreamService implements IStreamService {
 	}
 
 	/** {@inheritDoc} */
+    public void initStream(int streamId) { 
+		// XXX: what to do here?
+	}
+	
+	/** {@inheritDoc} */
 	public void releaseStream(String streamName) {
 		// XXX: what to do here?
 	}

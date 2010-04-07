@@ -372,14 +372,15 @@ public class RTMPHandler extends BaseRTMPHandler {
 						conn.close();
 						break;
 					case CREATE_STREAM:
-					case DELETE_STREAM:
+					case INIT_STREAM:
+					case CLOSE_STREAM:
 					case RELEASE_STREAM:
+					case DELETE_STREAM:
 					case PUBLISH:
 					case PLAY:
 					case SEEK:
 					case PAUSE:
 					case PAUSE_RAW:
-					case CLOSE_STREAM:
 					case RECEIVE_VIDEO:
 					case RECEIVE_AUDIO:
 						IStreamService streamService = (IStreamService) getScopeService(conn.getScope(),
