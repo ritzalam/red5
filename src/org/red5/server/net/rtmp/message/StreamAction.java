@@ -12,7 +12,7 @@ public enum StreamAction {
 	CONNECT("connect"), DISCONNECT("disconnect"), CREATE_STREAM("createStream"), DELETE_STREAM("deleteStream"), CLOSE_STREAM(
 			"closeStream"), RELEASE_STREAM("releaseStream"), PUBLISH("publish"), PAUSE("pause"), PAUSE_RAW("pauseRaw"), SEEK(
 			"seek"), PLAY("play"), PLAY2("play2"), STOP("disconnect"), RECEIVE_VIDEO("receiveVideo"), RECEIVE_AUDIO(
-			"receiveAudio");
+			"receiveAudio"), CUSTOM("");
 
 	//presize to fit all enums in
 	private final static Map<String, StreamAction> map = new HashMap<String, StreamAction>(15);
@@ -36,7 +36,13 @@ public enum StreamAction {
 				map.put(action.getActionString(), action);
 			}
 		}
-		return map.get(actionString);
+		//look up the action from the predefined set
+		StreamAction match = map.get(actionString); 
+	 	if (match != null) { 
+	 		return match; 
+	 	}
+	 	//return an action representing a custom type
+	 	return CUSTOM;
 	}
 	
 	public boolean equals(StreamAction action) {

@@ -366,49 +366,45 @@ public class RTMPHandler extends BaseRTMPHandler {
 			} else {
 				//log.debug("Enum value of: {}", StreamAction.getEnum(action));
 				StreamAction streamAction = StreamAction.getEnum(action);
-				//if the "stream" action is null, we assume that it is an "invoke"
-				if (null == streamAction) {
-					invokeCall(conn, call);
-				} else {
-					switch (streamAction) {
-						case DISCONNECT:
-							conn.close();
-							break;
-						case CREATE_STREAM:
-						case DELETE_STREAM:
-						case RELEASE_STREAM:
-						case PUBLISH:
-						case PLAY:
-						case SEEK:
-						case PAUSE:
-						case PAUSE_RAW:
-						case CLOSE_STREAM:
-						case RECEIVE_VIDEO:
-						case RECEIVE_AUDIO:
-							IStreamService streamService = (IStreamService) getScopeService(conn.getScope(),
-									IStreamService.class, StreamService.class);
-							Status status = null;
-							try {
-								log.debug("Invoking {} from {} with service: {}", new Object[]{call, conn, streamService});
-								if (!invokeCall(conn, call, streamService)) {
-									status = getStatus(NS_INVALID_ARGUMENT).asStatus();
-									status.setDescription(String.format("Failed to %s (stream id: %d)", action, source
-											.getStreamId()));
-								}
-							} catch (Throwable err) {
-								log.error("Error while invoking {} on stream service. {}", action, err);
-								status = getStatus(NS_FAILED).asStatus();
-								status.setDescription(String.format("Error while invoking %s (stream id: %d)", action,
-										source.getStreamId()));
-								status.setDetails(err.getMessage());
+				//if the "stream" action is not predefined a custom type will be returned
+				switch (streamAction) {
+					case DISCONNECT:
+						conn.close();
+						break;
+					case CREATE_STREAM:
+					case DELETE_STREAM:
+					case RELEASE_STREAM:
+					case PUBLISH:
+					case PLAY:
+					case SEEK:
+					case PAUSE:
+					case PAUSE_RAW:
+					case CLOSE_STREAM:
+					case RECEIVE_VIDEO:
+					case RECEIVE_AUDIO:
+						IStreamService streamService = (IStreamService) getScopeService(conn.getScope(),
+								IStreamService.class, StreamService.class);
+						Status status = null;
+						try {
+							log.debug("Invoking {} from {} with service: {}", new Object[]{call, conn, streamService});
+							if (!invokeCall(conn, call, streamService)) {
+								status = getStatus(NS_INVALID_ARGUMENT).asStatus();
+								status.setDescription(String.format("Failed to %s (stream id: %d)", action, source
+										.getStreamId()));
 							}
-							if (status != null) {
-								channel.sendStatus(status);
-							}
-							break;
-						default:
-							invokeCall(conn, call);
-					}
+						} catch (Throwable err) {
+							log.error("Error while invoking {} on stream service. {}", action, err);
+							status = getStatus(NS_FAILED).asStatus();
+							status.setDescription(String.format("Error while invoking %s (stream id: %d)", action,
+									source.getStreamId()));
+							status.setDetails(err.getMessage());
+						}
+						if (status != null) {
+							channel.sendStatus(status);
+						}
+						break;
+					default:
+						invokeCall(conn, call);
 				}
 			}
 		} else if (conn.isConnected()) {
