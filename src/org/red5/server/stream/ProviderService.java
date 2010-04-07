@@ -53,17 +53,20 @@ public class ProviderService implements IProviderService {
 			//we have live input
 			result = INPUT_TYPE.LIVE;
 		} else {
+            //"default" to VOD as a missing file will be picked up later on 
+		 	result = INPUT_TYPE.VOD;  			
+		 	File file = null;
 			try {
-				File file = getStreamFile(scope, name);
-				if (file != null) {
-					//we have vod input
-					result = INPUT_TYPE.VOD;
-					//null it to prevent leak or file locking
-					file = null;
+				file = getStreamFile(scope, name);
+				if (file == null) {
+					log.debug("Requested stream: {} does not appear to be of VOD type", name);
 				}
 			} catch (IOException e) {
 				log.warn("Exception attempting to lookup file: {}", name, e);
 				e.printStackTrace();
+			} finally {
+				//null it to prevent leak or file locking
+				file = null;				
 			}
 		}
 		return result;
