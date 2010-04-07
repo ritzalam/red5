@@ -369,6 +369,10 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 		this.queueThreshold = queueThreshold;
 	}
 
+	public int getQueueThreshold() {
+		return queueThreshold;
+	}	
+	
 	private final static class QueuedData implements Comparable<QueuedData> {
 		final int timestamp;
 		final byte dataType;

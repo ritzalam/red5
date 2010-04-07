@@ -174,6 +174,11 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 
 	protected long latestTimeStamp = -1;
 
+	/** 
+	 * Utilized by the FileConsumer to size the data queue.
+	 */
+	private int queueThreshold = 37;
+
 	/**
 	 * Check and send notification if necessary
 	 * @param event          Event
@@ -376,11 +381,39 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	}
 
 	/**
+	 * Setter for stream published name
+	 * @param name       Name that used for publishing. Set at client side when begin to broadcast with NetStream#publish.
+	 */
+	public void setPublishedName(String name) {
+		log.debug("setPublishedName: {}", name);
+		//check to see if we are setting the name to the same string
+		/*
+		if (!name.equals(publishedName)) {
+			// update an attribute
+			JMXAgent.updateMBeanAttribute(oName, "publishedName", name);
+		} else {
+			//create a new mbean for this instance with the new name
+			oName = JMXFactory.createObjectName("type", "ClientBroadcastStream", "publishedName", name);
+			JMXAgent.registerMBean(this, this.getClass().getName(), ClientBroadcastStreamMBean.class, oName);
+		}
+		*/
+		this.publishedName = name;
+	}
+
+	/**
 	 * Getter for published name
 	 * @return        Stream published name
 	 */
 	public String getPublishedName() {
 		return publishedName;
+	}
+
+	public int getQueueThreshold() {
+		return queueThreshold;
+	}
+
+	public void setQueueThreshold(int queueThreshold) {
+		this.queueThreshold = queueThreshold;
 	}
 
 	/** {@inheritDoc} */
@@ -495,7 +528,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 				break;
 			case PipeConnectionEvent.CONSUMER_DISCONNECT:
 				log.info("Consumer disconnect");
-				log.debug("Consumer: {}",  event.getSource().getClass().getName());
+				log.debug("Consumer: {}", event.getSource().getClass().getName());
 				subscriberStats.decrement();
 				break;
 			default:
@@ -607,6 +640,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 
 		log.debug("Recording file: {}", file.getCanonicalPath());
 		recordingFile = new FileConsumer(scope, file);
+		recordingFile.setQueueThreshold(queueThreshold);
 
 		//get decoder info if it exists for the stream
 		IStreamCodecInfo codecInfo = getCodecInfo();
@@ -753,26 +787,6 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 			}
 			notifyBroadcastStart();
 		}
-	}
-
-	/**
-	 * Setter for stream published name
-	 * @param name       Name that used for publishing. Set at client side when begin to broadcast with NetStream#publish.
-	 */
-	public void setPublishedName(String name) {
-		log.debug("setPublishedName: {}", name);
-		//check to see if we are setting the name to the same string
-		/*
-		if (!name.equals(publishedName)) {
-			// update an attribute
-			JMXAgent.updateMBeanAttribute(oName, "publishedName", name);
-		} else {
-			//create a new mbean for this instance with the new name
-			oName = JMXFactory.createObjectName("type", "ClientBroadcastStream", "publishedName", name);
-			JMXAgent.registerMBean(this, this.getClass().getName(), ClientBroadcastStreamMBean.class, oName);
-		}
-		*/
-		this.publishedName = name;
 	}
 
 	/**
