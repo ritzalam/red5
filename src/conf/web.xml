@@ -698,6 +698,10 @@
         <mime-type>audio/x-mpegurl</mime-type>
     </mime-mapping>
     <mime-mapping>
+        <extension>m3u8</extension>
+        <mime-type>application/x-mpegURL</mime-type>
+    </mime-mapping>
+    <mime-mapping>
         <extension>mac</extension>
         <mime-type>image/x-macpaint</mime-type>
     </mime-mapping>
@@ -964,6 +968,10 @@
     <mime-mapping>
         <extension>tr</extension>
         <mime-type>application/x-troff</mime-type>
+    </mime-mapping>
+    <mime-mapping>
+        <extension>ts</extension>
+        <mime-type>video/MP2T</mime-type>
     </mime-mapping>
     <mime-mapping>
         <extension>tsv</extension>
