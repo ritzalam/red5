@@ -172,8 +172,7 @@ public class FLVWriter implements ITagWriter {
 		flvHeader.setFlagAudio (true);
 		flvHeader.setFlagReserved02 ((byte) 0x0);
 		flvHeader.setFlagVideo (true);
-		flvHeader.write(out);
-		
+		flvHeader.write(out);		
 		//Dump header to output channel
 		channel.write(out.buf());
 	}
@@ -220,44 +219,33 @@ public class FLVWriter implements ITagWriter {
 	 * {@inheritDoc}
 	 */
 	public boolean writeTag(ITag tag) throws IOException {
-
 		if (!append && bytesWritten == 0 && tag.getDataType() != ITag.TYPE_METADATA) {
 			// Write intermediate onMetaData tag, will be replaced later
 			writeMetadataTag(0, -1, -1);
 		}
-		
 		// skip tags with no data
 		if (tag.getBodySize() == 0) {
 			log.debug("Empty tag skipped: {}", tag);
 			return false;
 		}
-		
 		if (channel.size() < 9) {
 			throw new IOException("Refusing to write tag to file with size " + channel.size());
 		}
-		
 		out.clear();
-
 		// Data Type
 		out.put(tag.getDataType());
-
 		// Body Size
 		IOUtils.writeMediumInt(out, tag.getBodySize());
-
 		// Timestamp
 		IOUtils.writeMediumInt(out, tag.getTimestamp() + offset);
-
 		// Reserved
 		out.putInt(0x00);
-
 		out.flip();
 		bytesWritten += channel.write(out.buf());
 		log.debug("Bytes written 1: {}", bytesWritten);
-
 		IoBuffer bodyBuf = tag.getBody();
 		bytesWritten += channel.write(bodyBuf.buf());
 		log.debug("Bytes written 2: {}", bytesWritten);
-
 		if (audioCodecId == -1 && tag.getDataType() == ITag.TYPE_AUDIO) {
 			bodyBuf.flip();
 			byte id = bodyBuf.get();
@@ -277,7 +265,6 @@ public class FLVWriter implements ITagWriter {
 		out.flip();
 		bytesWritten += channel.write(out.buf());
 		log.debug("Bytes written 3: {}", bytesWritten);
-
 		return true;
 	}
 
@@ -333,7 +320,7 @@ public class FLVWriter implements ITagWriter {
 
 	/** {@inheritDoc} */
     public boolean writeStream(byte[] b) {
-		// TODO
+		// TODO implement writing byte stream
 		return false;
 	}
 

@@ -301,8 +301,7 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	private final void write(QueuedData queued) {
 		//get timestamp
 		int timestamp = queued.getTimestamp();
-		log.debug("Write - timestamp: {} type: {}", timestamp, queued.getDataType());
-		
+		log.debug("Write - timestamp: {} type: {}", timestamp, queued.getDataType());	
 		//if the last message was a reset or we just started, use the header timer
 		if (startTimestamp == -1) {
 			startTimestamp = timestamp;
@@ -310,21 +309,19 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 		} else {
 			timestamp -= startTimestamp;
 		}
-				
+		// create a tag
 		ITag tag = new Tag();
 		tag.setDataType(queued.getDataType());
-
 		//Always add offset since it's needed for "append" publish mode
 		//It adds on disk flv file duration
 		//Search for "offset" in this class constructor
 		tag.setTimestamp(timestamp + offset);
-		
+		// get queued
 		IoBuffer data = queued.getData();
 		if (data != null) {
 			tag.setBodySize(data.limit());
 			tag.setBody(data);					
-		}
-		
+		}		
 		try {
 			if (timestamp >= 0) {
 				if (!writer.writeTag(tag)) {
@@ -337,10 +334,12 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 			log.error("Error writing tag", e);
 		} finally {
 			if (data != null) {
+				data.clear();
 				data.free();
 			}
 		}
-		
+		data = null;
+		queued = null;
 	}
 
 	/**

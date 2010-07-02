@@ -94,8 +94,6 @@ public class DebugProxyHandler extends IoHandlerAdapter implements
 	/** {@inheritDoc} */
     @Override
 	public void sessionOpened(IoSession session) throws Exception {
-		// TODO Auto-generated method stub
-
 		SocketSessionConfig ssc = (SocketSessionConfig) session.getConfig();
 		ssc.setTcpNoDelay(true);
 		//ssc.setReceiveBufferSize(2048);

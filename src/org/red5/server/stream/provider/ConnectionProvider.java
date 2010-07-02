@@ -38,8 +38,6 @@ public class ConnectionProvider implements IProvider, IPipeConnectionListener {
 	/** {@inheritDoc} */
     public void onOOBControlMessage(IMessageComponent source, IPipe pipe,
 			OOBControlMessage oobCtrlMsg) {
-		// TODO Auto-generated method stub
-
 	}
 
 	/** {@inheritDoc} */

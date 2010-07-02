@@ -27,7 +27,6 @@ public interface IMessageComponent {
 	 * 
 	 * @param source               Message component source
 	 * @param pipe                 Connection pipe
-	 *            TODO
 	 * @param oobCtrlMsg           Out-of-band control message
 	 */
 	void onOOBControlMessage(IMessageComponent source, IPipe pipe,
