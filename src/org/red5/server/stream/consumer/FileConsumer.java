@@ -279,7 +279,7 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	/**
 	 * Write all the queued items to the writer.
 	 */
-	public final void doWrites() {
+	public final synchronized void doWrites() {
 		//get the current items in the queue
 		QueuedData[] tmp = queue.toArray(new QueuedData[0]);
 		queue.removeAll(Arrays.asList(tmp));

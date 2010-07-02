@@ -48,40 +48,35 @@ import org.slf4j.LoggerFactory;
  * @author Tiago Jacobs (tiago@imdt.com.br)
  */
 public class FLVWriter implements ITagWriter {
-    /**
-     * Logger
-     */
+	/**
+	 * Logger
+	 */
 	private static Logger log = LoggerFactory.getLogger(FLVWriter.class);
 
-    /**
-     * File output stream
-     */
-    private FileOutputStream fos;
+	/**
+	 * File output stream
+	 */
+	private FileOutputStream fos;
 
-    /**
-     * Writable byte channel (not concurrent)
-     */
-    private FileChannel channel;
+	/**
+	 * Writable byte channel (not concurrent)
+	 */
+	private FileChannel channel;
 
-    /**
-     * Output byte buffer
-     */
-    private IoBuffer out;
+	/**
+	 * FLV object
+	 */
+	private IFLV flv;
 
-    /**
-     * FLV object
-     */
-    private IFLV flv;
+	/**
+	 * Number of bytes written
+	 */
+	private long bytesWritten;
 
-    /**
-     * Number of bytes written
-     */
-    private long bytesWritten;
-
-    /**
-     * Position in file
-     */
-    private int offset;
+	/**
+	 * Position in file
+	 */
+	private int offset;
 
 	/**
 	 * Size of tag containing onMetaData.
@@ -97,32 +92,32 @@ public class FLVWriter implements ITagWriter {
 	 * Id of the audio codec used.
 	 */
 	private int audioCodecId = -1;
-	
+
 	/**
 	 * Are we appending to an existing file?
 	 */
 	private boolean append;
-	
+
 	/**
 	 * Duration of the file.
 	 */
 	private int duration;
-	
+
 	/**
 	 * Position of the meta data tag in our file.
 	 */
 	private long metaPosition;
-	
+
 	/**
 	 * need direct access to file to append full duration metadata
 	 */
 	private File file;
-	
+
 	/**
 	 * Creates writer implementation with given file output stream and last tag
 	 *
 	 * @param fos               File output stream
-     * @param append            true if append to existing file
+	 * @param append            true if append to existing file
 	 */
 	public FLVWriter(FileOutputStream fos, boolean append) {
 		this.fos = fos;
@@ -132,11 +127,11 @@ public class FLVWriter implements ITagWriter {
 
 	/**
 	 * Creates writer implementation with given file and last tag
-     *
-     * FLV.java uses this constructor so we have access to the file object
+	 *
+	 * FLV.java uses this constructor so we have access to the file object
 	 *
 	 * @param file              File output stream
-     * @param append            true if append to existing file
+	 * @param append            true if append to existing file
 	 */
 	public FLVWriter(File file, boolean append) {
 		this.file = file;
@@ -144,7 +139,7 @@ public class FLVWriter implements ITagWriter {
 		try {
 			this.fos = new FileOutputStream(file, true);
 			init();
-		} catch(Exception e) {
+		} catch (Exception e) {
 			log.error("Failed to create FLV writer", e);
 		}
 	}
@@ -154,10 +149,8 @@ public class FLVWriter implements ITagWriter {
 	 */
 	private void init() {
 		channel = this.fos.getChannel();
-		out = IoBuffer.allocate(1024);
-		out.setAutoExpand(true);		
 	}
-	
+
 	/**
 	 * Writes the header bytes
 	 *
@@ -167,14 +160,19 @@ public class FLVWriter implements ITagWriter {
 		//Header fields (in same order than spec, for comparison purposes)
 		FLVHeader flvHeader = new FLVHeader();
 		flvHeader.setSignature("FLV".getBytes());
-		flvHeader.setVersion ((byte)0x01);
-		flvHeader.setFlagReserved01 ((byte) 0x0);
-		flvHeader.setFlagAudio (true);
-		flvHeader.setFlagReserved02 ((byte) 0x0);
-		flvHeader.setFlagVideo (true);
-		flvHeader.write(out);		
+		flvHeader.setVersion((byte) 0x01);
+		flvHeader.setFlagReserved01((byte) 0x0);
+		flvHeader.setFlagAudio(true);
+		flvHeader.setFlagReserved02((byte) 0x0);
+		flvHeader.setFlagVideo(true);
+		// create a buffer
+		IoBuffer out = IoBuffer.allocate(15);
+		out.setAutoExpand(true);
+		flvHeader.write(out);
 		//Dump header to output channel
 		channel.write(out.buf());
+		out.clear();
+		out.free();
 	}
 
 	/** {@inheritDoc}
@@ -184,10 +182,10 @@ public class FLVWriter implements ITagWriter {
 	}
 
 	/**
-     * Setter for FLV object
-     *
-     * @param flv  FLV source
-     *
+	 * Setter for FLV object
+	 *
+	 * @param flv  FLV source
+	 *
 	 */
 	public void setFLV(IFLV flv) {
 		this.flv = flv;
@@ -200,11 +198,11 @@ public class FLVWriter implements ITagWriter {
 	}
 
 	/**
-     * Setter for offset
-     *
-     * @param offset Value to set for offset
-     */
-    public void setOffset(int offset) {
+	 * Setter for offset
+	 *
+	 * @param offset Value to set for offset
+	 */
+	public void setOffset(int offset) {
 		this.offset = offset;
 	}
 
@@ -231,7 +229,9 @@ public class FLVWriter implements ITagWriter {
 		if (channel.size() < 9) {
 			throw new IOException("Refusing to write tag to file with size " + channel.size());
 		}
-		out.clear();
+		// create a buffer
+		IoBuffer out = IoBuffer.allocate(2048);
+		out.setAutoExpand(true);
 		// Data Type
 		out.put(tag.getDataType());
 		// Body Size
@@ -258,13 +258,15 @@ public class FLVWriter implements ITagWriter {
 			log.debug("Video codec id: {}", videoCodecId);
 		}
 		duration = Math.max(duration, tag.getTimestamp() + offset);
-		log.debug("Writer duration: {} offset: {}", duration, offset);	
+		log.debug("Writer duration: {} offset: {}", duration, offset);
 		// We add the tag size
 		out.clear();
 		out.putInt(tag.getBodySize() + 11);
 		out.flip();
 		bytesWritten += channel.write(out.buf());
 		log.debug("Bytes written 3: {}", bytesWritten);
+		out.clear();
+		out.free();
 		return true;
 	}
 
@@ -282,7 +284,7 @@ public class FLVWriter implements ITagWriter {
 			if (metaPosition > 0) {
 				long oldPos = channel.position();
 				try {
-					log.debug("In the metadata writing (close) method - duration:{}", duration);					
+					log.debug("In the metadata writing (close) method - duration:{}", duration);
 					channel.position(metaPosition);
 					writeMetadataTag(duration * 0.001, videoCodecId, audioCodecId);
 				} finally {
@@ -300,17 +302,17 @@ public class FLVWriter implements ITagWriter {
 				channel = appender.getChannel(); // reuse member variable to make sure writeMetadataTag() works
 				channel.position(13); // This is the position of the first tag
 				writeMetadataTag(duration * 0.001, videoCodecId, audioCodecId);
-			}	
+			}
 		} catch (IOException e) {
 			log.error("IO error on close", e);
 		} finally {
 			try {
-    			if (appender != null) {
-    				appender.close();
-    			}
-    			if (channel != null) {
-    				channel.close();
-    			}
+				if (appender != null) {
+					appender.close();
+				}
+				if (channel != null) {
+					channel.close();
+				}
 			} catch (IOException e) {
 				log.error("", e);
 			}
@@ -319,19 +321,19 @@ public class FLVWriter implements ITagWriter {
 	}
 
 	/** {@inheritDoc} */
-    public boolean writeStream(byte[] b) {
+	public boolean writeStream(byte[] b) {
 		// TODO implement writing byte stream
 		return false;
 	}
 
-    /**
-     * Write "onMetaData" tag to the file.
-     *
-     * @param duration			Duration to write in milliseconds.
-     * @param videoCodecId		Id of the video codec used while recording.
-     * @param audioCodecId		Id of the audio codec used while recording.
-     * @throws IOException if the tag could not be written
-     */
+	/**
+	 * Write "onMetaData" tag to the file.
+	 *
+	 * @param duration			Duration to write in milliseconds.
+	 * @param videoCodecId		Id of the video codec used while recording.
+	 * @param audioCodecId		Id of the audio codec used while recording.
+	 * @throws IOException if the tag could not be written
+	 */
 	private void writeMetadataTag(double duration, Integer videoCodecId, Integer audioCodecId) throws IOException {
 		metaPosition = channel.position();
 		IoBuffer buf = IoBuffer.allocate(1024);
@@ -357,6 +359,5 @@ public class FLVWriter implements ITagWriter {
 		ITag onMetaData = new Tag(ITag.TYPE_METADATA, 0, fileMetaSize, buf, 0);
 		writeTag(onMetaData);
 	}
-
 
 }
