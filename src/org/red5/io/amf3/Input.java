@@ -362,8 +362,6 @@ public class Input extends org.red5.io.amf.Input implements org.red5.io.object.I
 		if (len == 1) {
 			// Empty string
 			return "";
-		} else if (len == 0) {
-			return "null";
 		}
 		if ((len & 1) == 0) {
 			//if the refs are empty an IndexOutOfBoundsEx will be thrown

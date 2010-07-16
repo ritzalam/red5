@@ -205,7 +205,7 @@ public class SharedObjectMessage extends BaseEvent implements ISharedObjectMessa
 		return sb.toString();
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
+	@SuppressWarnings({ "unchecked" })
 	@Override
 	public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
 		super.readExternal(in);
