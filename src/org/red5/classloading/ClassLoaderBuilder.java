@@ -113,6 +113,7 @@ public final class ClassLoaderBuilder {
 	 * @return the Class loader to use to load the required class(es).
 	 * 
 	 */
+	@SuppressWarnings("unused")
 	public static ClassLoader build(File path, int mode, ClassLoader parent) {
 				
 		JarFileFilter jarFileFilter = new JarFileFilter();

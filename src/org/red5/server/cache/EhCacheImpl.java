@@ -83,7 +83,7 @@ public class EhCacheImpl implements ICacheStore, ApplicationContextAware {
 		return applicationContext;
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "unused" })
 	public void init() {
 		log.info("Loading ehcache");
 		// log.debug("Appcontext: " + applicationContext.toString());

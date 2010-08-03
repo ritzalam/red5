@@ -110,7 +110,13 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	/**
 	 * Number of queued items needed before writes are initiated
 	 */
-	private int queueThreshold = 37;
+	private int queueThreshold = 17;
+
+	/**
+	 * Whether or not to use a queue for delaying file writes. The queue is useful
+	 * for keeping Tag items in their expected order based on their time stamp.
+	 */
+	private boolean delayWrite = false;
 
 	/**
 	 * Creates file consumer
@@ -137,44 +143,44 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	public void pushMessage(IPipe pipe, IMessage message) throws IOException {
 		if (message instanceof RTMPMessage) {
     		final IRTMPEvent msg = ((RTMPMessage) message).getBody();
-    
+    		// get the timestamp
     		int timestamp = msg.getTimestamp();
-    		log.debug("Timestamps: {}", timestamp);
-    
+    		log.debug("Timestamp: {}", timestamp);
     		// if we're dealing with a FlexStreamSend IRTMPEvent, this avoids relative timestamp calculations
     		if (!(msg instanceof FlexStreamSend)) {
     			log.trace("Not FlexStreamSend type");
     			lastTimestamp = timestamp;
-    		}
-    
+    		}    
 			//initialize a writer
 			if (writer == null) {
     			init();
     		}
-    		
-    		QueuedData queued = null;
-    		if (msg instanceof IStreamData) {
-    			queued = new QueuedData(timestamp, msg.getDataType(), ((IStreamData) msg).getData().asReadOnlyBuffer());
-    		} else {
-    			//XXX what type of message are we saving that has no body data??
-    			log.debug("Non-stream data, body not saved. Type: {}", msg.getClass().getName());
-    			queued = new QueuedData(timestamp, msg.getDataType());			
-    		}
-    		
-    		//add to the queue
-    		queue.add(queued);
-    		
-    		//when we reach the threshold, spawn a write thread
-    		if (queue.size() >= queueThreshold) {
-    			Thread worker = new Thread() {
-    				public void run() {
-    					log.debug("Spawning queue writer thread");
-    					doWrites();
-    				}
-    			};
-    			worker.setDaemon(true);
-    			worker.start();
-    		}
+    		// if writes are delayed, queue the data and sort it by time
+			if (!delayWrite) {		
+				write(timestamp, msg);
+			} else {
+        		QueuedData queued = null;
+        		if (msg instanceof IStreamData) {
+        			queued = new QueuedData(timestamp, msg.getDataType(), ((IStreamData) msg).getData().asReadOnlyBuffer());
+        		} else {
+        			//XXX what type of message are we saving that has no body data??
+        			log.debug("Non-stream data, body not saved. Type: {}", msg.getClass().getName());
+        			queued = new QueuedData(timestamp, msg.getDataType());			
+        		}        		
+        		//add to the queue
+        		queue.add(queued);
+        		//when we reach the threshold, spawn a write thread
+        		if (queue.size() >= queueThreshold) {
+        			Thread worker = new Thread() {
+        				public void run() {
+        					log.trace("Spawning queue writer thread");
+        					doWrites();
+        				}
+        			};
+        			worker.setDaemon(true);
+        			worker.start();
+        		}
+			}
 		} else if (message instanceof ResetMessage) {
 			startTimestamp = -1;
 			offset += lastTimestamp;
@@ -294,6 +300,54 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	}
 	
 	/**
+	 * Write incoming data to the file.
+	 * 
+	 * @param timestamp adjusted timestamp
+	 * @param msg stream data
+	 */
+	private final void write(int timestamp, IRTMPEvent msg) {
+		byte dataType = msg.getDataType();
+		log.debug("Write - timestamp: {} type: {}", timestamp, dataType);	
+		//if the last message was a reset or we just started, use the header timer
+		if (startTimestamp == -1) {
+			startTimestamp = timestamp;
+			timestamp = 0;
+		} else {
+			timestamp -= startTimestamp;
+		}
+		// create a tag
+		ITag tag = new Tag();
+		tag.setDataType(dataType);
+		//Always add offset since it's needed for "append" publish mode
+		//It adds on disk flv file duration
+		//Search for "offset" in this class constructor
+		tag.setTimestamp(timestamp + offset);
+		// get data bytes
+		IoBuffer data = ((IStreamData) msg).getData();
+		if (data != null) {
+			tag.setBodySize(data.limit());
+			tag.setBody(data);					
+			try {
+				if (timestamp >= 0) {
+					if (!writer.writeTag(tag)) {
+						log.warn("Tag was not written");
+					}
+				} else {
+					log.warn("Skipping message with negative timestamp.");	
+				}
+			} catch (IOException e) {
+				log.error("Error writing tag", e);
+			} finally {
+				if (data != null) {
+					data.clear();
+					data.free();
+				}
+			}
+			data = null;
+		}		
+	}
+
+	/**
 	 * Adjust timestamp and write to the file.
 	 * 
 	 * @param queued queued data for write
@@ -321,27 +375,27 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 		if (data != null) {
 			tag.setBodySize(data.limit());
 			tag.setBody(data);					
-		}		
-		try {
-			if (timestamp >= 0) {
-				if (!writer.writeTag(tag)) {
-					log.warn("Tag was not written");
+			try {
+				if (timestamp >= 0) {
+					if (!writer.writeTag(tag)) {
+						log.warn("Tag was not written");
+					}
+				} else {
+					log.warn("Skipping message with negative timestamp.");	
 				}
-			} else {
-				log.warn("Skipping message with negative timestamp.");	
+			} catch (IOException e) {
+				log.error("Error writing tag", e);
+			} finally {
+				if (data != null) {
+					data.clear();
+					data.free();
+				}
 			}
-		} catch (IOException e) {
-			log.error("Error writing tag", e);
-		} finally {
-			if (data != null) {
-				data.clear();
-				data.free();
-			}
-		}
-		data = null;
+			data = null;
+		}		
 		queued = null;
-	}
-
+	}	
+	
 	/**
 	 * Sets a video decoder configuration; some codecs require this, such as AVC.
 	 * 

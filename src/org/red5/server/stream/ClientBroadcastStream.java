@@ -228,14 +228,13 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 			log.debug("dispatchEvent: {}", event.getType());
 			return;
 		}
-
-		// Get stream codec
+		// get stream codec
 		IStreamCodecInfo codecInfo = getCodecInfo();
 		StreamCodecInfo info = null;
 		if (codecInfo instanceof StreamCodecInfo) {
 			info = (StreamCodecInfo) codecInfo;
 		}
-
+		// create the event
 		IRTMPEvent rtmpEvent;
 		try {
 			rtmpEvent = (IRTMPEvent) event;
@@ -280,11 +279,9 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 			} else if (codecInfo != null) {
 				videoStreamCodec = codecInfo.getVideoCodec();
 			}
-
 			if (videoStreamCodec != null) {
 				videoStreamCodec.addData(buf.asReadOnlyBuffer());
 			}
-
 			if (info != null) {
 				info.setHasVideo(true);
 			}
@@ -305,29 +302,39 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 					log.warn("Metadata could not be duplicated for this stream", e);
 				}
 			}
-
 			eventTime = rtmpEvent.getTimestamp();
 		}
+		// update last event time
 		if (eventTime > latestTimeStamp) {
 			latestTimeStamp = eventTime;
 		}
-
-		// Notify event listeners
+		// notify event listeners
 		checkSendNotifications(event);
-
-		// Create new RTMP message, initialize it and push through pipe
-		RTMPMessage msg = new RTMPMessage();
-		msg.setBody(rtmpEvent);
-		msg.getBody().setTimestamp(eventTime);
-		// note this timestamp is set in event/body but not in the associated header.
+		// note this timestamp is set in event/body but not in the associated header
 		try {
-			if (livePipe != null) {
-				livePipe.pushMessage(msg);
-			} else {
-				log.debug("Live pipe was null, message was not pushed");
-			}
+			// route to recording
 			if (recording) {
 				if (recordPipe != null) {
+					// make a copy for the record pipe
+					buf.mark();
+					byte[] buffer = new byte[buf.limit()];
+					buf.get(buffer);
+					buf.reset();
+					// Create new RTMP message, initialize it and push through pipe
+					RTMPMessage msg = new RTMPMessage();
+					if (rtmpEvent instanceof AudioData) {
+						AudioData audio = new AudioData(IoBuffer.wrap(buffer));
+						audio.setTimestamp(eventTime);
+						msg.setBody(audio);
+					} else if (rtmpEvent instanceof VideoData) {
+						VideoData video = new VideoData(IoBuffer.wrap(buffer));
+						video.setTimestamp(eventTime);
+						msg.setBody(video);
+					} else {
+						log.info("Data was not of A/V type: {}", rtmpEvent.getType());
+						msg.getBody().setTimestamp(eventTime);
+					}
+					// push it down to the recorder
 					recordPipe.pushMessage(msg);
 				} else {
 					log.debug("Record pipe was null, message was not pushed");
@@ -335,11 +342,20 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 			} else {
 				log.trace("Recording not active");
 			}
+			// route to live
+			if (livePipe != null) {
+				// create new RTMP message, initialize it and push through pipe
+				RTMPMessage msg = new RTMPMessage();
+				msg.setBody(rtmpEvent);
+				msg.getBody().setTimestamp(eventTime);
+				livePipe.pushMessage(msg);
+			} else {
+				log.debug("Live pipe was null, message was not pushed");
+			}
 		} catch (IOException err) {
 			sendRecordFailedNotify(err.getMessage());
 			stop();
 		}
-
 		// Notify listeners about received packet
 		if (rtmpEvent instanceof IStreamPacket) {
 			for (IStreamListener listener : getStreamListeners()) {

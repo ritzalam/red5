@@ -89,6 +89,7 @@ public class BufferUtils {
 	 * @param numBytesMax        Number of bytes max
 	 * @return int               Number of bytes written
 	 */
+	@SuppressWarnings("unused")
 	public final static int put(IoBuffer out, IoBuffer in, int numBytesMax) {
 		//log.trace("Put - out buffer: {} in buffer: {} max bytes: {}", new Object[]{out, in, numBytesMax});
 		int limit = in.limit(); 
