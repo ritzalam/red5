@@ -69,10 +69,6 @@
 	<logger name="org.red5.server.cache">
 		<level value="WARN" />
 	</logger>
-	<logger
-		name="org.red5.server.jetty.Red5WebPropertiesConfiguration">
-		<level value="WARN" />
-	</logger>
 	<logger name="org.red5.server.jmx">
 		<level value="WARN" />
 	</logger>
@@ -136,6 +132,11 @@
 	<logger name="org.red5.server.stream.consumer">
 		<level value="WARN" />
 	</logger>
+<!-- 
+    <logger name="org.red5.server.stream.consumer.FileConsumer">
+        <level value="TRACE" />
+    </logger>	
+ -->
 	<logger name="org.red5.server.net.mrtmp">
 		<level value="WARN" />
 	</logger>

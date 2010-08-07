@@ -245,6 +245,12 @@
 		<property name="maximumPoolSize" value="32"/>
 	</bean>
 	
+	<!-- Low level access for recording to file -->
+    <bean id="fileConsumer" scope="prototype" lazy-init="true" class="org.red5.server.stream.consumer.FileConsumer">        
+        <property name="delayWrite" value="true"/>
+        <property name="queueThreshold" value="33"/>
+    </bean>
+	
 	<!-- ClientBroadcastStream and PlaylistSubscriberStream
 		that will be used by RTMPConnection and maybe other classes.
 		These beans are lazy-init because most likely server will need

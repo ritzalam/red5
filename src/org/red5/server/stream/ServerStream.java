@@ -372,7 +372,17 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 					meta.deleteOnExit();
 				}
 			}
-			FileConsumer fc = new FileConsumer(scope, file);
+			FileConsumer recordingFile = null;
+			log.debug("Recording file: {}", file.getCanonicalPath());
+			// get instance via spring
+			if (scope.getContext().hasBean("fileConsumer")) {
+				recordingFile = (FileConsumer) scope.getContext().getBean("fileConsumer");
+				recordingFile.setScope(scope);
+				recordingFile.setFile(file);			
+			} else {
+				// get a new instance
+				recordingFile = new FileConsumer(scope, file);			
+			}			
 			Map<String, Object> paramMap = new HashMap<String, Object>();
 			if (isAppend) {
 				paramMap.put("mode", "append");
@@ -382,7 +392,7 @@ public class ServerStream extends AbstractStream implements IServerStream, IFilt
 			if (null == recordPipe) {
 				recordPipe = new InMemoryPushPushPipe();
 			}
-			recordPipe.subscribe(fc, paramMap);
+			recordPipe.subscribe(recordingFile, paramMap);
 			recordingFilename = filename;
 		} catch (IOException e) {
 			log.warn("Save as exception", e);

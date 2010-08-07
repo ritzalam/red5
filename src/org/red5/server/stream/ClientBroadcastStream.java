@@ -174,11 +174,6 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 
 	protected long latestTimeStamp = -1;
 
-	/** 
-	 * Utilized by the FileConsumer to size the data queue.
-	 */
-	private int queueThreshold = 37;
-
 	/**
 	 * Check and send notification if necessary
 	 * @param event          Event
@@ -315,27 +310,32 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 			// route to recording
 			if (recording) {
 				if (recordPipe != null) {
-					// make a copy for the record pipe
-					buf.mark();
-					byte[] buffer = new byte[buf.limit()];
-					buf.get(buffer);
-					buf.reset();
-					// Create new RTMP message, initialize it and push through pipe
-					RTMPMessage msg = new RTMPMessage();
-					if (rtmpEvent instanceof AudioData) {
-						AudioData audio = new AudioData(IoBuffer.wrap(buffer));
-						audio.setTimestamp(eventTime);
-						msg.setBody(audio);
-					} else if (rtmpEvent instanceof VideoData) {
-						VideoData video = new VideoData(IoBuffer.wrap(buffer));
-						video.setTimestamp(eventTime);
-						msg.setBody(video);
+					int bufferLimit = buf.limit();
+					if (bufferLimit > 0) {
+    					// make a copy for the record pipe
+    					buf.mark();
+    					byte[] buffer = new byte[bufferLimit];
+    					buf.get(buffer);
+    					buf.reset();
+    					// Create new RTMP message, initialize it and push through pipe
+    					RTMPMessage msg = new RTMPMessage();
+    					if (rtmpEvent instanceof AudioData) {
+    						AudioData audio = new AudioData(IoBuffer.wrap(buffer));
+    						audio.setTimestamp(eventTime);
+    						msg.setBody(audio);
+    					} else if (rtmpEvent instanceof VideoData) {
+    						VideoData video = new VideoData(IoBuffer.wrap(buffer));
+    						video.setTimestamp(eventTime);
+    						msg.setBody(video);
+    					} else {
+    						log.info("Data was not of A/V type: {}", rtmpEvent.getType());
+    						msg.getBody().setTimestamp(eventTime);
+    					}
+    					// push it down to the recorder
+    					recordPipe.pushMessage(msg);
 					} else {
-						log.info("Data was not of A/V type: {}", rtmpEvent.getType());
-						msg.getBody().setTimestamp(eventTime);
+						log.debug("Stream data size was 0, recording pipe will not be notified");
 					}
-					// push it down to the recorder
-					recordPipe.pushMessage(msg);
 				} else {
 					log.debug("Record pipe was null, message was not pushed");
 				}
@@ -422,14 +422,6 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 	 */
 	public String getPublishedName() {
 		return publishedName;
-	}
-
-	public int getQueueThreshold() {
-		return queueThreshold;
-	}
-
-	public void setQueueThreshold(int queueThreshold) {
-		this.queueThreshold = queueThreshold;
 	}
 
 	/** {@inheritDoc} */
@@ -628,7 +620,7 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 				isAppend = false;
 			}
 		}
-
+		// if the file doesn't exist yet, create it
 		if (!file.exists()) {
 			// Make sure the destination directory exists
 			String path = file.getAbsolutePath();
@@ -640,10 +632,8 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 			if (!tmp.isDirectory()) {
 				tmp.mkdirs();
 			}
-
 			file.createNewFile();
 		}
-
 		//remove existing meta file
 		File meta = new File(file.getCanonicalPath() + ".meta");
 		if (meta.exists()) {
@@ -657,11 +647,18 @@ public class ClientBroadcastStream extends AbstractClientStream implements IClie
 		} else {
 			log.debug("Meta file does not exist: {}", meta.getCanonicalPath());
 		}
-
 		log.debug("Recording file: {}", file.getCanonicalPath());
-		recordingFile = new FileConsumer(scope, file);
-		recordingFile.setQueueThreshold(queueThreshold);
-
+		// get instance via spring
+		if (scope.getContext().hasBean("fileConsumer")) {
+			log.debug("Context contains a file consumer");
+			recordingFile = (FileConsumer) scope.getContext().getBean("fileConsumer");
+			recordingFile.setScope(scope);
+			recordingFile.setFile(file);			
+		} else {
+			log.debug("Context does not contain a file consumer, using direct instance");
+			// get a new instance
+			recordingFile = new FileConsumer(scope, file);			
+		}
 		//get decoder info if it exists for the stream
 		IStreamCodecInfo codecInfo = getCodecInfo();
 		log.debug("Codec info: {}", codecInfo);
