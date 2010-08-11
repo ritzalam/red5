@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:lang="http://www.springframework.org/schema/lang"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:jee="http://www.springframework.org/schema/jee"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+                           http://www.springframework.org/schema/lang http://www.springframework.org/schema/lang/spring-lang-2.5.xsd
+                           http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-2.5.xsd
+                           http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee-2.5.xsd">
+
+  <bean id="serializer" class="org.red5.io.object.Serializer" />
+
+  <bean id="deserializer" class="org.red5.io.object.Deserializer" />
+
+  <bean id="statusObjectService"
+    class="org.red5.server.net.rtmp.status.StatusObjectService"
+    autowire="byType" init-method="initialize" />
+
+  <bean id="rtmpCodecFactory"
+    class="org.red5.server.net.rtmp.codec.RTMPMinaCodecFactory"
+    autowire="byType" init-method="init" />
+
+  <bean id="red5.clientRegistry"
+    class="org.red5.server.ClientRegistry" />
+
+  <bean id="red5.serviceInvoker"
+    class="org.red5.server.service.ServiceInvoker" />
+
+  <bean id="red5.mappingStrategy"
+    class="org.red5.server.MappingStrategy" />
+
+  <bean id="red5.context" class="org.red5.server.Context" autowire="byType">
+    <property name="contextPath" value="test" />
+  </bean>
+
+  <!--
+  <bean id="red5.baseHandler" class="org.red5.server.net.impl.BaseHandler" 
+    autowire="byType" />
+  -->
+
+  <bean id="host.default" class="org.red5.server.GlobalScope" init-method="init">
+    <property name="depth" value="0" />
+    <property name="context" ref="red5.context" />
+    <property name="name" value="localhost" />
+  </bean>
+
+  <bean id="app.default" class="org.red5.server.Scope" init-method="init">
+    <property name="parent" ref="host.default" />
+    <property name="name" value="default" />
+    <property name="handler" ref="handler.default" />
+  </bean>
+
+  <bean id="app.test" class="org.red5.server.Scope" init-method="init">
+    <property name="parent" ref="app.default" />
+    <property name="name" value="test" />
+    <property name="handler" ref="handler.default" />
+  </bean>
+
+  <bean id="echoService" class="org.red5.server.service.EchoService" init-method="startUp"/>
+
+  <bean id="handler.default" class="org.red5.server.adapter.ApplicationAdapter"/>
+
+  <bean id="red5.scopeResolver" class="org.red5.server.ScopeResolver">
+    <property name="globalScope" ref="host.default"/>
+  </bean>
+
+</beans>

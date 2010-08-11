@@ -1,0 +1,37 @@
+<ivysettings>
+    <settings defaultResolver="local"/>
+    <!--
+    <triggers>
+		<log file="ivy.log" append="true" message='resolving,,,"${module}"' event="pre-resolve" />
+		<log file="ivy.log" append="true" message='dependency,${duration},,"${module}","${revision}","${req-revision}"' event="post-resolve-dependency" filter="resolved=true"/>
+ 		<log file="ivy.log" append="true" message='resolved,${resolve-duration},,"${module}"' event="post-resolve" />
+        <log file="ivy.log" append="true" message='downloaded,${download-duration},${download-size},"${module}"' event="post-resolve" />
+        <log file="ivy.log" append="true" message='artifact,${duration},${size},"${module}","${revision}","${origin}","${file}"' event="post-download-artifact" filter="status=successful"/>
+        <log file="ivy.log" append="true" message='retrieved,${duration},${size},"${module}",,${nbCopied}' event="post-retrieve" />
+    </triggers>
+    -->
+    <!-- 
+    JEE 5 jar home: http://mirrors.ibiblio.org/pub/mirrors/maven2/org/ow2/jonas/osgi/javaee-api/
+     -->
+    <resolvers>
+        <chain name="local">     
+			<filesystem name="default">
+				<ivy pattern="${user.home}/.ivy2/cache/[organisation]/[module]/ivys/ivy-[revision].xml"/>
+        		<artifact pattern="${ivy.lib.dir}/[artifact](-[revision]).[ext]" />
+     	 	</filesystem>        
+            <url name="googlecode">
+                <artifact pattern="http://red5.googlecode.com/svn/repository/[artifact](-[revision]).[ext]" />
+                <artifact pattern="http://red5.googlecode.com/svn/repository/[organisation]/[artifact](-[revision]).[ext]" />
+            </url>
+			<url name="ibiblio" m2compatible="true">
+				<artifact pattern="http://www.ibiblio.org/maven2/[organisation]/[module]/[revision]/[artifact]-[revision].[ext]"/>
+			</url>
+            <url name="xugglecode" m2compatible="true">
+                <artifact pattern="http://xuggle.googlecode.com/svn/trunk/repo/share/java/[organisation]/[artifact]/[revision]/[artifact](-[revision]).[ext]" />
+                <artifact pattern="http://xuggle.googlecode.com/svn/trunk/repo/share/java/[organisation]/[artifact]/[artifact](-[revision]).[ext]" />
+                <artifact pattern="http://xuggle.googlecode.com/svn/trunk/repo/share/java/[organisation]/[artifact](-[revision]).[ext]" />
+                <artifact pattern="http://xuggle.googlecode.com/svn/trunk/repo/share/java/[artifact](-[revision]).[ext]" />
+            </url>   
+        </chain>
+    </resolvers>
+</ivysettings>
