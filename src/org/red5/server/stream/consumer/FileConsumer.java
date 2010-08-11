@@ -132,10 +132,20 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	private int queueThreshold = 33;
 
 	/**
+	 * Size of the slice of queued data to write at a time
+	 */
+	private int sliceLength = (queueThreshold / 4); // default is 1/4
+	
+	/**
 	 * Whether or not to use a queue for delaying file writes. The queue is useful
 	 * for keeping Tag items in their expected order based on their time stamp.
 	 */
 	private boolean delayWrite = false;
+
+	/**
+	 * Tracks the last timestamp written to prevent backwards time stamped data.
+	 */
+	private volatile int lastWrittenTs = -1;
 
 	/**
 	 * Default ctor
@@ -204,17 +214,15 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 				// when we reach the threshold, sort the entire queue and spawn a worker
 				// to write a slice of the data
 				if (queueSize >= queueThreshold) {
-					// get a slice 1/3 of the threshold
-					int third = (queueThreshold / 3);
 					// get the slice
-					final QueuedData[] slice = new QueuedData[third];
+					final QueuedData[] slice = new QueuedData[sliceLength];
 					log.trace("Slice length: {}", slice.length);
 					writeLock.lock();
 					try {
     					// sort the queue
     					Collections.sort(queue);
     					log.trace("Queue length: {}", queue.size());    					
-    					for (int q = 0; q < third; q++) {
+    					for (int q = 0; q < sliceLength; q++) {
     						slice[q] = queue.remove(0);
     					}
     					log.trace("Queue length (after removal): {}", queue.size());
@@ -379,7 +387,11 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	public final void doWrites(QueuedData[] slice) {
 		//empty the queue
 		for (QueuedData queued : slice) {
-			write(queued);
+			int tmpTs = queued.getTimestamp();
+			if (lastWrittenTs <= tmpTs) {
+				write(queued);
+				lastWrittenTs = tmpTs;
+			}
 		}
 		//clear and null-out
 		slice = null;
@@ -537,6 +549,24 @@ public class FileConsumer implements Constants, IPushableConsumer, IPipeConnecti
 	 */
 	public int getQueueThreshold() {
 		return queueThreshold;
+	}
+
+	/**
+	 * Sets the amount of queued data items to be written at a time.
+	 * 
+	 * @param sliceLength
+	 */
+	public void setSliceLength(int sliceLength) {
+		this.sliceLength = sliceLength;
+	}
+
+	/**
+	 * Returns the amount of queued data items to be written at a time.
+	 * 
+	 * @return
+	 */
+	public int getSliceLength() {
+		return sliceLength;
 	}
 
 	/**
